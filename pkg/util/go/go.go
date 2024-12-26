@@ -13,8 +13,10 @@ import (
 
 var _ transport.Server = (*GoRoutine)(nil)
 
-var globalG *GoRoutine
-var gOnce sync.Once
+var (
+	globalG *GoRoutine
+	gOnce   sync.Once
+)
 
 // Go 暴露到外界到可控写成方法
 var Go = func(f func()) {

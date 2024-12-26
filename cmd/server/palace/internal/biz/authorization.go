@@ -337,7 +337,7 @@ func (b *AuthorizationBiz) githubLogin(ctx context.Context, code string) (string
 		return "", err
 	}
 
-	//fmt.Println(userInfo.String())
+	// fmt.Println(userInfo.String())
 	return b.oauthLogin(ctx, &userInfo)
 }
 

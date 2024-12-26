@@ -105,8 +105,10 @@ func (t *Time) Value() (driver.Value, error) {
 	return t.Time, nil
 }
 
-var _ driver.Valuer = (*Duration)(nil)
-var _ sql.Scanner = (*Duration)(nil)
+var (
+	_ driver.Valuer = (*Duration)(nil)
+	_ sql.Scanner   = (*Duration)(nil)
+)
 
 // NewDuration 创建一个 Duration
 func NewDuration(dur *durationpb.Duration) *Duration {

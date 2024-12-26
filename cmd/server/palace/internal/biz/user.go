@@ -72,7 +72,7 @@ func (b *UserBiz) DeleteUser(ctx context.Context, id uint32) error {
 		}
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
-	if !middleware.GetUserRole(ctx).IsSuperadmin() && userDo.Role.IsAdmin() {
+	if !middleware.GetUserRole(ctx).IsSuperAdmin() && userDo.Role.IsAdmin() {
 		return merr.ErrorI18nForbidden(ctx)
 	}
 	// 记录操作日志
@@ -112,9 +112,10 @@ func (b *UserBiz) BatchUpdateUserStatus(ctx context.Context, params *bo.BatchUpd
 	if !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
+	opRole := middleware.GetUserRole(ctx)
 	for _, user := range userDos {
-		if user.Role.IsAdmin() {
-			return merr.ErrorI18nForbidden(ctx).WithMetadata(map[string]string{"msg": "不允许操作管理员状态"})
+		if !opRole.GT(user.Role) {
+			return merr.ErrorI18nForbiddenPermissionDenied(ctx).WithMetadata(map[string]string{"msg": "不允许操作管理员状态"})
 		}
 	}
 
@@ -191,6 +192,32 @@ func (b *UserBiz) UpdateUserAvatar(ctx context.Context, req *bo.UpdateUserAvatar
 		}
 	}
 	userDo.Avatar = req.Avatar
+	if err = b.userRepo.UpdateUser(ctx, userDo); !types.IsNil(err) {
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+	}
+	return nil
+}
+
+// SetUserRole 设置用户角色
+func (b *UserBiz) SetUserRole(ctx context.Context, params *bo.SetUserRoleParams) error {
+	// 检查操作者角色
+	opUserRole := middleware.GetUserRole(ctx)
+	// 查询用户
+	userDo, err := b.userRepo.GetByID(ctx, params.UserID)
+	if !types.IsNil(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return merr.ErrorI18nToastUserNotFound(ctx)
+		}
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+	}
+	if !opUserRole.GT(userDo.Role) {
+		return merr.ErrorI18nForbiddenPermissionDenied(ctx).WithMetadata(map[string]string{"msg": "同等权限或者您的权限小于他", "me": opUserRole.String(), "other": userDo.Role.String()})
+	}
+	if opUserRole == params.Role {
+		return merr.ErrorI18nForbiddenPermissionDenied(ctx).WithMetadata(map[string]string{"msg": "不能设置成同等权限"})
+	}
+	userDo.Role = params.Role
+	userDo.WithContext(ctx)
 	if err = b.userRepo.UpdateUser(ctx, userDo); !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}

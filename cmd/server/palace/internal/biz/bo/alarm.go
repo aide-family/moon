@@ -24,6 +24,8 @@ type (
 		NoticeMembers []*CreateNoticeMemberParams `json:"noticeMembers,omitempty"`
 		// hook ids
 		HookIds []uint32 `json:"hookIds"`
+		// 时间引擎ids
+		TimeEngineIds []uint32 `json:"timeEngineIds"`
 	}
 
 	// CreateNoticeMemberParams 创建通知人参数
@@ -121,7 +123,7 @@ type (
 		TeamID           uint32                          `json:"teamId"`
 		Alerts           []*AlertItemRawParams           `json:"alerts"`
 		Strategy         *bizmodel.Strategy              `json:"strategy"`
-		Level            *TeamStrategyLevelModel         `json:"level"`
+		Level            string                          `json:"level"`
 		DatasourceMap    map[uint32]*bizmodel.Datasource `json:"datasourceMap"`
 		RawInfoMap       map[string]*alarmmodel.AlarmRaw `json:"rawIdMap"`
 	}

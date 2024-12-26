@@ -87,7 +87,7 @@ func syncBizDatabase(d *Data) error {
 		if err = db.AutoMigrate(bizmodel.Models()...); err != nil {
 			return err
 		}
-		// TODO 同步实时告警数据库
+		// 同步实时告警数据库
 		alarmDB, err := d.GetAlarmGormDB(team.ID)
 		if err != nil {
 			return err
@@ -101,6 +101,15 @@ func syncBizDatabase(d *Data) error {
 			}
 		}
 		if err := bizquery.Use(db).SysTeamAPI.Clauses(clause.OnConflict{DoNothing: true}).Create(teamApis...); !types.IsNil(err) {
+			return err
+		}
+		teamMember := &bizmodel.SysTeamMember{
+			UserID: team.GetCreatorID(),
+			Status: vobj.StatusEnable,
+			Role:   vobj.RoleSuperAdmin,
+		}
+		// 把创建人同步到团队成员表
+		if err := bizquery.Use(db).SysTeamMember.Clauses(clause.OnConflict{DoNothing: true}).Create(teamMember); !types.IsNil(err) {
 			return err
 		}
 	}
@@ -1211,6 +1220,14 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowSystem,
 	},
+	// 设置用户角色
+	{
+		Name:   "设置用户角色",
+		Path:   "/api.admin.user.User/SetUserRole",
+		Remark: "设置用户角色， 用于设置用户角色",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowSystem,
+	},
 	// 重置用户密码
 	{
 		Name:   "重置用户密码",
@@ -1357,59 +1374,88 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowNone,
 	},
-	// 创建mq数据源
+	// 时间引擎规则模块
 	{
-		Name:   "创建mq数据源",
-		Path:   "/api.admin.datasource.MqDatasource/CreateMqDatasource",
-		Remark: "创建mq数据源,用于创建kafka、rabbitMQ、MQTT等数据源",
+		Name:   "获取时间引擎规则列表",
+		Path:   "/api.admin.alarm.TimeEngineRule/ListTimeEngineRule",
+		Remark: "获取时间引擎规则列表",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
-	// 更新mq数据源
 	{
-		Name:   "更新mq数据源",
-		Path:   "/api.admin.datasource.MqDatasource/UpdateMqDatasource",
-		Remark: "更新mq数据源",
+		Name:   "获取时间引擎规则",
+		Path:   "/api.admin.alarm.TimeEngineRule/GetTimeEngineRule",
+		Remark: "获取时间引擎规则",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
-	// 删除mq数据源
 	{
-		Name:   "删除mq数据源",
-		Path:   "/api.admin.datasource.MqDatasource/DeleteMqDatasource",
-		Remark: "删除mq数据源",
+		Name:   "创建时间引擎规则",
+		Path:   "/api.admin.alarm.TimeEngineRule/CreateTimeEngineRule",
+		Remark: "创建时间引擎规则",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
-	// 获取mq数据源
 	{
-		Name:   "获取mq数据源",
-		Path:   "/api.admin.datasource.MqDatasource/GetMqDatasource",
-		Remark: "获取mq数据源",
+		Name:   "更新时间引擎规则",
+		Path:   "/api.admin.alarm.TimeEngineRule/UpdateTimeEngineRule",
+		Remark: "更新时间引擎规则",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
-	// 获取mq数据源列表
 	{
-		Name:   "获取mq数据源列表",
-		Path:   "/api.admin.datasource.MqDatasource/ListMqDatasource",
-		Remark: "获取mq数据源列表分页",
+		Name:   "删除时间引擎规则",
+		Path:   "/api.admin.alarm.TimeEngineRule/DeleteTimeEngineRule",
+		Remark: "删除时间引擎规则",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
-	// 更新mq数据源状态
 	{
-		Name:   "更新mq数据源状态",
-		Path:   "/api.admin.datasource.MqDatasource/UpdateMqDatasourceStatus",
-		Remark: "更新mq数据源状态",
+		Name:   "批量更新时间引擎规则状态",
+		Path:   "/api.admin.alarm.TimeEngineRule/BatchUpdateTimeEngineRuleStatus",
+		Remark: "批量更新时间引擎规则状态",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
-	// 获取mq数据源下拉列表
 	{
-		Name:   "获取mq数据源下拉列表",
-		Path:   "/api.admin.datasource.MqDatasource/GetMqDatasourceSelect",
-		Remark: "更新mq数据源状态",
+		Name:   "创建时间引擎",
+		Path:   "/api.admin.alarm.TimeEngineRule/CreateTimeEngine",
+		Remark: "创建时间引擎",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "更新时间引擎",
+		Path:   "/api.admin.alarm.TimeEngineRule/UpdateTimeEngine",
+		Remark: "更新时间引擎",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "删除时间引擎",
+		Path:   "/api.admin.alarm.TimeEngineRule/DeleteTimeEngine",
+		Remark: "删除时间引擎",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "获取时间引擎",
+		Path:   "/api.admin.alarm.TimeEngineRule/GetTimeEngine",
+		Remark: "获取时间引擎",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "获取时间引擎列表",
+		Path:   "/api.admin.alarm.TimeEngineRule/ListTimeEngine",
+		Remark: "获取时间引擎列表",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "批量更新时间引擎状态",
+		Path:   "/api.admin.alarm.TimeEngineRule/BatchUpdateTimeEngineStatus",
+		Remark: "批量更新时间引擎状态",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},

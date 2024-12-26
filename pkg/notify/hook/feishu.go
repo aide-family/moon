@@ -87,7 +87,7 @@ func (l *feiShu) Send(ctx context.Context, msg notify.Msg) error {
 }
 
 func genSign(secret string, timestamp int64) string {
-	//timestamp + key 做sha256, 再进行base64 encode
+	// timestamp + key 做sha256, 再进行base64 encode
 	stringToSign := fmt.Sprintf("%v", timestamp) + "\n" + secret
 
 	var data []byte

@@ -17,17 +17,17 @@ var _ imodel.IBaseModel = (*BaseModel)(nil)
 type BaseModel struct {
 	ctx context.Context `gorm:"-"`
 
-	CreatedAt *types.Time           `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`
-	UpdatedAt *types.Time           `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`
-	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at"`
+	CreatedAt *types.Time           `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at,omitempty"`
+	UpdatedAt *types.Time           `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at,omitempty"`
+	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at,omitempty"`
 
 	// 创建人
-	CreatorID uint32 `gorm:"column:creator;type:int unsigned;not null;comment:创建者" json:"creator_id"`
+	CreatorID uint32 `gorm:"column:creator;type:int unsigned;not null;comment:创建者" json:"creator_id,omitempty"`
 }
 
 // GetCreatedAt 获取创建时间
 func (u *BaseModel) GetCreatedAt() *types.Time {
-	if types.IsNil(u.CreatedAt) {
+	if types.IsNil(u) {
 		return &types.Time{}
 	}
 	return u.CreatedAt
@@ -35,7 +35,7 @@ func (u *BaseModel) GetCreatedAt() *types.Time {
 
 // GetUpdatedAt 获取更新时间
 func (u *BaseModel) GetUpdatedAt() *types.Time {
-	if types.IsNil(u.UpdatedAt) {
+	if types.IsNil(u) {
 		return &types.Time{}
 	}
 
@@ -44,7 +44,7 @@ func (u *BaseModel) GetUpdatedAt() *types.Time {
 
 // GetDeletedAt 获取删除时间
 func (u *BaseModel) GetDeletedAt() soft_delete.DeletedAt {
-	if types.IsNil(u.DeletedAt) {
+	if types.IsNil(u) {
 		return 0
 	}
 
@@ -53,7 +53,7 @@ func (u *BaseModel) GetDeletedAt() soft_delete.DeletedAt {
 
 // GetCreatorID 获取创建者ID
 func (u *BaseModel) GetCreatorID() uint32 {
-	if types.IsNil(u.CreatorID) {
+	if types.IsNil(u) {
 		return 0
 	}
 
@@ -64,13 +64,13 @@ var _ imodel.IAllFieldModel = (*AllFieldModel)(nil)
 
 // AllFieldModel gorm包含所有字段的模型
 type AllFieldModel struct {
-	ID uint32 `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	ID uint32 `gorm:"column:id;primaryKey;autoIncrement" json:"id,omitempty"`
 	BaseModel
 }
 
 // GetID 获取ID
 func (a *AllFieldModel) GetID() uint32 {
-	if types.IsNil(a.ID) {
+	if types.IsNil(a) {
 		return 0
 	}
 	return a.ID
@@ -80,15 +80,15 @@ var _ imodel.IEasyModel = (*EasyModel)(nil)
 
 // EasyModel gorm包含基础字段的模型
 type EasyModel struct {
-	ID        uint32                `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	CreatedAt *types.Time           `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`
-	UpdatedAt *types.Time           `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`
-	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at"`
+	ID        uint32                `gorm:"column:id;primaryKey;autoIncrement" json:"id,omitempty"`
+	CreatedAt *types.Time           `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at,omitempty"`
+	UpdatedAt *types.Time           `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at,omitempty"`
+	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at,omitempty"`
 }
 
 // GetID 获取ID
 func (e *EasyModel) GetID() uint32 {
-	if types.IsNil(e.ID) {
+	if types.IsNil(e) {
 		return 0
 	}
 
@@ -97,7 +97,7 @@ func (e *EasyModel) GetID() uint32 {
 
 // GetCreatedAt 获取创建时间
 func (e *EasyModel) GetCreatedAt() *types.Time {
-	if types.IsNil(e.CreatedAt) {
+	if types.IsNil(e) {
 		return &types.Time{}
 	}
 
@@ -106,7 +106,7 @@ func (e *EasyModel) GetCreatedAt() *types.Time {
 
 // GetUpdatedAt 获取更新时间
 func (e *EasyModel) GetUpdatedAt() *types.Time {
-	if types.IsNil(e.UpdatedAt) {
+	if types.IsNil(e) {
 		return &types.Time{}
 	}
 
@@ -115,7 +115,7 @@ func (e *EasyModel) GetUpdatedAt() *types.Time {
 
 // GetDeletedAt 获取删除时间
 func (e *EasyModel) GetDeletedAt() soft_delete.DeletedAt {
-	if types.IsNil(e.DeletedAt) {
+	if types.IsNil(e) {
 		return 0
 	}
 

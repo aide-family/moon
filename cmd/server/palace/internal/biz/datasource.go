@@ -52,13 +52,6 @@ func (b *DatasourceBiz) CreateDatasource(ctx context.Context, datasource *bo.Cre
 
 // UpdateDatasourceBaseInfo 更新数据源
 func (b *DatasourceBiz) UpdateDatasourceBaseInfo(ctx context.Context, datasource *bo.UpdateDatasourceBaseInfoParams) error {
-	// 校验config数据格式
-	if datasource.ConfigValue != "" {
-		_, err := types.JSONToMap(datasource.ConfigValue)
-		if err != nil {
-			return merr.ErrorI18nNotificationDataSourceConfigurationError(ctx).WithCause(err)
-		}
-	}
 	if err := b.datasourceRepository.UpdateDatasourceBaseInfo(ctx, datasource); !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}

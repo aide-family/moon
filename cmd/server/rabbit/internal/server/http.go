@@ -18,7 +18,7 @@ import (
 func NewHTTPServer(bc *rabbitconf.Bootstrap) *http.Server {
 	c := bc.GetHttp()
 
-	var opts = []http.ServerOption{
+	opts := []http.ServerOption{
 		http.Filter(middleware.Cors()),
 		http.Middleware(
 			recovery.Recovery(recovery.WithHandler(mlog.RecoveryHandle)),

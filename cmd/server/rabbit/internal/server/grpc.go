@@ -13,7 +13,7 @@ import (
 // NewGRPCServer new a gRPC server.
 func NewGRPCServer(bc *rabbitconf.Bootstrap) *grpc.Server {
 	c := bc.GetGrpc()
-	var opts = []grpc.ServerOption{
+	opts := []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(recovery.WithHandler(mlog.RecoveryHandle)),
 			middleware.Logging(log.GetLogger()),

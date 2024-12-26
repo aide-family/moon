@@ -4,9 +4,9 @@
 package main
 
 import (
-	_ "go.uber.org/automaxprocs"
-
 	"flag"
+
+	_ "go.uber.org/automaxprocs"
 
 	"github.com/aide-family/moon/cmd/server/demo"
 	"github.com/aide-family/moon/pkg/env"

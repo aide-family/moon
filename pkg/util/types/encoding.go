@@ -8,10 +8,12 @@ import (
 	"github.com/go-kratos/kratos/v2/encoding"
 )
 
-var defaultMarshalFn = json.Marshal
-var defaultUnmarshalFn = json.Unmarshal
-var setMarshalOnce sync.Once
-var setUnmarshalOnce sync.Once
+var (
+	defaultMarshalFn   = json.Marshal
+	defaultUnmarshalFn = json.Unmarshal
+	setMarshalOnce     sync.Once
+	setUnmarshalOnce   sync.Once
+)
 
 // Marshal 编码
 func Marshal(v any) ([]byte, error) {

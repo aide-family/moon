@@ -1,7 +1,6 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -10,7 +9,7 @@ const tableNameSysMenu = "sys_team_menus"
 
 // SysTeamMenu mapped from table <sys_menus>
 type SysTeamMenu struct {
-	model.AllFieldModel
+	AllFieldModel
 	Name     string      `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__team_menu__name,priority:1;comment:菜单名称" json:"name"`
 	EnName   string      `gorm:"column:en_name;type:varchar(64);not null;uniqueIndex:idx__team_menu__name,priority:1;comment:菜单英文名称" json:"en_name"`
 	Path     string      `gorm:"column:path;type:varchar(255);not null;uniqueIndex:idx__team_menu__path,priority:1;comment:api路径" json:"path"`

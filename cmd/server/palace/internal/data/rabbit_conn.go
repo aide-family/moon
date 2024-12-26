@@ -167,11 +167,11 @@ func (l *RabbitConn) Heartbeat(_ context.Context, req *api.HeartbeatRequest) err
 }
 
 // getTeamEmailConfig 获取团队邮箱配置
-func (l *RabbitConn) getTeamEmailConfig(teamID uint32) (*model.SysTeamEmail, error) {
+func (l *RabbitConn) getTeamEmailConfig(teamID uint32) (*model.SysTeamConfig, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
-	return mainQuery.WithContext(ctx).SysTeamEmail.Where(mainQuery.SysTeamEmail.TeamID.Eq(teamID)).First()
+	return mainQuery.WithContext(ctx).SysTeamConfig.Where(mainQuery.SysTeamConfig.TeamID.Eq(teamID)).First()
 }
 
 // SyncTeam 同步团队
@@ -186,7 +186,7 @@ func (l *RabbitConn) SyncTeam(ctx context.Context, teamID uint32, srvs ...*Srv) 
 		return nil
 	}
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
-	emailConfigDo, _ := mainQuery.SysTeamEmail.Where(mainQuery.SysTeamEmail.TeamID.Eq(teamID)).First()
+	teamConfigDo, _ := mainQuery.SysTeamConfig.Where(mainQuery.SysTeamConfig.TeamID.Eq(teamID)).First()
 	// 获取所有的有效告警组
 	teamDB, err := l.data.GetBizGormDB(teamID)
 	if !types.IsNil(err) {
@@ -202,15 +202,7 @@ func (l *RabbitConn) SyncTeam(ctx context.Context, teamID uint32, srvs ...*Srv) 
 		log.Errorw("获取告警组失败", err)
 		return err
 	}
-	var emailConfig *conf.EmailConfig
-	if emailConfigDo != nil {
-		emailConfig = &conf.EmailConfig{
-			User: emailConfigDo.User,
-			Pass: emailConfigDo.Pass,
-			Host: emailConfigDo.Host,
-			Port: emailConfigDo.Port,
-		}
-	}
+	emailConfig := teamConfigDo.EmailConfig.ToConf()
 	for _, noticeGroupItem := range noticeGroupItems {
 		for _, srv := range srvs {
 			if err := l.syncNoticeGroup(srv, teamID, emailConfig, noticeGroupItem); !types.IsNil(err) {

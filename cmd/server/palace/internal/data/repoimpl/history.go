@@ -45,27 +45,25 @@ func (a *alarmHistoryRepositoryImpl) CreateAlarmHistory(ctx context.Context, par
 	return alarmQuery.Transaction(func(tx *alarmquery.Query) error {
 		for _, history := range historyList {
 			// 告警历史表
-			if err := tx.AlarmHistory.WithContext(ctx).Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "fingerprint"}},
-				DoUpdates: clause.AssignmentColumns(historyCol)}).Create(history); err != nil {
+			if err := tx.AlarmHistory.WithContext(ctx).Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "fingerprint"}},
+				DoUpdates: clause.AssignmentColumns(historyCol),
+			}).Create(history); err != nil {
 				return err
 			}
 
 			// 告警详情表
 			detail := &alarmmodel.HistoryDetails{
-				AlarmHistoryID: history.ID,
 				Strategy:       param.Strategy.String(),
+				Level:          param.Level,
 				Datasource:     param.GetDatasourceMap(history.Labels.GetDatasourceID()),
+				AlarmHistoryID: history.ID,
+				AlarmHistory:   history,
 			}
-			switch param.Strategy.StrategyType {
-			case vobj.StrategyTypeMetric:
-				detail.Level = param.Level.MetricsLevel.String()
-			case vobj.StrategyTypeMQ:
-				detail.Level = param.Level.MQLevel.String()
-			default:
-				return merr.ErrorI18nToastStrategyTypeNotExist(ctx)
-			}
-			if err := tx.HistoryDetails.WithContext(ctx).Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "alarm_history_id"}},
-				DoUpdates: clause.AssignmentColumns(detailCol)}).Create(detail); err != nil {
+			if err := tx.HistoryDetails.WithContext(ctx).Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "alarm_history_id"}},
+				DoUpdates: clause.AssignmentColumns(detailCol),
+			}).Create(detail); err != nil {
 				return err
 			}
 		}

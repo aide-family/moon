@@ -15,14 +15,46 @@ import (
 )
 
 // NewTeamDictRepository 创建数据库字典操作
-func NewTeamDictRepository(data *data.Data) repository.TeamDict {
+func NewTeamDictRepository(data *data.Data, cacheRepo repository.Cache) repository.TeamDict {
 	return &teamDictRepositoryImpl{
-		data: data,
+		data:      data,
+		cacheRepo: cacheRepo,
 	}
 }
 
 type teamDictRepositoryImpl struct {
-	data *data.Data
+	data      *data.Data
+	cacheRepo repository.Cache
+}
+
+func (l *teamDictRepositoryImpl) cacheDict(ctx context.Context, id uint32) {
+	if id <= 0 {
+		return
+	}
+	iDict, err := l.GetByID(ctx, id)
+	if err != nil {
+		return
+	}
+	l.cacheRepo.AppendDict(ctx, iDict, true)
+}
+
+func (l *teamDictRepositoryImpl) cacheDictItemList(ctx context.Context, items []imodel.IDict) {
+	if len(items) == 0 {
+		return
+	}
+
+	l.cacheRepo.AppendDictList(ctx, items, true)
+}
+
+func (l *teamDictRepositoryImpl) cacheDictList(ctx context.Context, ids []uint32) {
+	if len(ids) == 0 {
+		return
+	}
+	iDictList, err := l.GetByIDs(ctx, ids)
+	if err != nil {
+		return
+	}
+	l.cacheRepo.AppendDictList(ctx, iDictList, true)
 }
 
 func (l *teamDictRepositoryImpl) UpdateStatusByIds(ctx context.Context, params *bo.UpdateDictStatusParams) error {
@@ -31,6 +63,7 @@ func (l *teamDictRepositoryImpl) UpdateStatusByIds(ctx context.Context, params *
 	if !types.IsNil(err) {
 		return err
 	}
+	defer l.cacheDictList(ctx, params.IDs)
 	_, err = bizQuery.SysDict.WithContext(ctx).Where(bizQuery.SysDict.ID.In(ids...)).Update(bizQuery.SysDict.Status, params.Status)
 	return err
 }
@@ -40,12 +73,18 @@ func (l *teamDictRepositoryImpl) DeleteByID(ctx context.Context, id uint32) erro
 	if !types.IsNil(err) {
 		return err
 	}
+	defer l.cacheDict(ctx, id)
 	_, err = bizQuery.SysDict.Where(bizQuery.SysDict.ID.Eq(id)).Delete()
 	return err
 }
 
 func (l *teamDictRepositoryImpl) Create(ctx context.Context, dict *bo.CreateDictParams) (imodel.IDict, error) {
-	return l.createBizDictModel(ctx, dict)
+	dictDo, err := l.createBizDictModel(ctx, dict)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	defer l.cacheDict(ctx, dictDo.GetID())
+	return dictDo, err
 }
 
 func (l *teamDictRepositoryImpl) FindByPage(ctx context.Context, params *bo.QueryDictListParams) ([]imodel.IDict, error) {
@@ -61,7 +100,24 @@ func (l *teamDictRepositoryImpl) GetByID(ctx context.Context, id uint32) (imodel
 	return bizWrapper.Where(bizQuery.SysDict.ID.Eq(id)).Preload(field.Associations).First()
 }
 
+func (l *teamDictRepositoryImpl) GetByIDs(ctx context.Context, ids []uint32) ([]imodel.IDict, error) {
+	bizQuery, err := getBizQuery(ctx, l.data)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	bizWrapper := bizQuery.SysDict.WithContext(ctx)
+	sysDictList, err := bizWrapper.Where(bizQuery.SysDict.ID.In(ids...)).Preload(field.Associations).Find()
+	if err != nil {
+		return nil, err
+	}
+
+	return types.SliceTo(sysDictList, func(item *bizmodel.SysDict) imodel.IDict {
+		return imodel.IDict(item)
+	}), nil
+}
+
 func (l *teamDictRepositoryImpl) UpdateByID(ctx context.Context, dict *bo.UpdateDictParams) error {
+	defer l.cacheDict(ctx, dict.ID)
 	return l.updateBizDictModel(ctx, dict)
 }
 
@@ -100,6 +156,7 @@ func (l *teamDictRepositoryImpl) listBizDictModel(ctx context.Context, params *b
 	dictList := types.SliceTo(sysDictList, func(dict *bizmodel.SysDict) imodel.IDict {
 		return dict
 	})
+	l.cacheDictItemList(ctx, dictList)
 	return dictList, nil
 }
 

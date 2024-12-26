@@ -27,10 +27,12 @@ type metricRepositoryImpl struct {
 }
 
 func (l *metricRepositoryImpl) getMetricOptions(datasourceInfo *bo.GetMetricsParams) []datasource.MetricDatasourceBuildOption {
+	username, _ := datasourceInfo.Config.Map()["username"].(string)
+	password, _ := datasourceInfo.Config.Map()["password"].(string)
 	return []datasource.MetricDatasourceBuildOption{
 		datasource.WithMetricStep(10),
 		datasource.WithMetricEndpoint(datasourceInfo.Endpoint),
-		datasource.WithMetricBasicAuth(datasourceInfo.Config["username"], datasourceInfo.Config["password"]),
+		datasource.WithMetricBasicAuth(username, password),
 	}
 }
 

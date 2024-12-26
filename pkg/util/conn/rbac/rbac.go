@@ -13,8 +13,11 @@ import (
 
 //go:embed rbac_model.conf
 var rbacModelConf string
-var rbacOnce sync.Once
-var enforcer *casbin.SyncedEnforcer
+
+var (
+	rbacOnce sync.Once
+	enforcer *casbin.SyncedEnforcer
+)
 
 // InitCasbinModel 初始化 casbin 模型
 func InitCasbinModel(db *gorm.DB) (*casbin.SyncedEnforcer, error) {

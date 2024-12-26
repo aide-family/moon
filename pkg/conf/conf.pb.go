@@ -2366,20 +2366,28 @@ func (x *RocketMQ) GetNamespace() string {
 	return ""
 }
 
-// mq配置
-type MQ struct {
+// mqtt配置
+type MQTT struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// mq类型
-	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	// rocketmq配置
-	RocketMQ *RocketMQ `protobuf:"bytes,2,opt,name=rocketMQ,proto3" json:"rocketMQ,omitempty"`
+	// broker地址
+	Broker string `protobuf:"bytes,1,opt,name=broker,proto3" json:"broker,omitempty"`
+	// 用户名
+	Username string `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	// 密码
+	Password string `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	// client
+	ClientId string `protobuf:"bytes,4,opt,name=clientId,proto3" json:"clientId,omitempty"`
+	// 是否自动重连
+	AutoReconnect bool `protobuf:"varint,5,opt,name=autoReconnect,proto3" json:"autoReconnect,omitempty"`
+	// qos  0 1 2
+	Qos int32 `protobuf:"varint,6,opt,name=qos,proto3" json:"qos,omitempty"`
 }
 
-func (x *MQ) Reset() {
-	*x = MQ{}
+func (x *MQTT) Reset() {
+	*x = MQTT{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_conf_conf_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2387,13 +2395,13 @@ func (x *MQ) Reset() {
 	}
 }
 
-func (x *MQ) String() string {
+func (x *MQTT) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*MQ) ProtoMessage() {}
+func (*MQTT) ProtoMessage() {}
 
-func (x *MQ) ProtoReflect() protoreflect.Message {
+func (x *MQTT) ProtoReflect() protoreflect.Message {
 	mi := &file_conf_conf_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2405,23 +2413,355 @@ func (x *MQ) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use MQ.ProtoReflect.Descriptor instead.
-func (*MQ) Descriptor() ([]byte, []int) {
+// Deprecated: Use MQTT.ProtoReflect.Descriptor instead.
+func (*MQTT) Descriptor() ([]byte, []int) {
 	return file_conf_conf_proto_rawDescGZIP(), []int{32}
 }
 
-func (x *MQ) GetType() string {
+func (x *MQTT) GetBroker() string {
+	if x != nil {
+		return x.Broker
+	}
+	return ""
+}
+
+func (x *MQTT) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *MQTT) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+func (x *MQTT) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *MQTT) GetAutoReconnect() bool {
+	if x != nil {
+		return x.AutoReconnect
+	}
+	return false
+}
+
+func (x *MQTT) GetQos() int32 {
+	if x != nil {
+		return x.Qos
+	}
+	return 0
+}
+
+// kafka配置
+type Kafka struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// broker地址
+	Brokers string `protobuf:"bytes,1,opt,name=brokers,proto3" json:"brokers,omitempty"`
+	// topic
+	Topic string `protobuf:"bytes,2,opt,name=topic,proto3" json:"topic,omitempty"`
+	// 消费组
+	GroupName string `protobuf:"bytes,3,opt,name=groupName,proto3" json:"groupName,omitempty"`
+	// 策略
+	Strategy string `protobuf:"bytes,4,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	// 用户名
+	Username string `protobuf:"bytes,5,opt,name=username,proto3" json:"username,omitempty"`
+	// 密码
+	Password string `protobuf:"bytes,6,opt,name=password,proto3" json:"password,omitempty"`
+	// 是否开启sasl
+	SaslEnable bool `protobuf:"varint,7,opt,name=saslEnable,proto3" json:"saslEnable,omitempty"`
+	// version
+	Version string `protobuf:"bytes,8,opt,name=version,proto3" json:"version,omitempty"`
+}
+
+func (x *Kafka) Reset() {
+	*x = Kafka{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_conf_conf_proto_msgTypes[33]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Kafka) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Kafka) ProtoMessage() {}
+
+func (x *Kafka) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_conf_proto_msgTypes[33]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Kafka.ProtoReflect.Descriptor instead.
+func (*Kafka) Descriptor() ([]byte, []int) {
+	return file_conf_conf_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *Kafka) GetBrokers() string {
+	if x != nil {
+		return x.Brokers
+	}
+	return ""
+}
+
+func (x *Kafka) GetTopic() string {
+	if x != nil {
+		return x.Topic
+	}
+	return ""
+}
+
+func (x *Kafka) GetGroupName() string {
+	if x != nil {
+		return x.GroupName
+	}
+	return ""
+}
+
+func (x *Kafka) GetStrategy() string {
+	if x != nil {
+		return x.Strategy
+	}
+	return ""
+}
+
+func (x *Kafka) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *Kafka) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+func (x *Kafka) GetSaslEnable() bool {
+	if x != nil {
+		return x.SaslEnable
+	}
+	return false
+}
+
+func (x *Kafka) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+// mq配置
+type Event struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// mq类型
+	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	// rocketmq配置
+	RocketMQ *RocketMQ `protobuf:"bytes,2,opt,name=rocketMQ,proto3" json:"rocketMQ,omitempty"`
+	// mqtt配置
+	Mqtt *MQTT `protobuf:"bytes,3,opt,name=mqtt,proto3" json:"mqtt,omitempty"`
+	// kafka配置
+	Kafka *Kafka `protobuf:"bytes,4,opt,name=kafka,proto3" json:"kafka,omitempty"`
+}
+
+func (x *Event) Reset() {
+	*x = Event{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_conf_conf_proto_msgTypes[34]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Event) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Event) ProtoMessage() {}
+
+func (x *Event) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_conf_proto_msgTypes[34]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Event.ProtoReflect.Descriptor instead.
+func (*Event) Descriptor() ([]byte, []int) {
+	return file_conf_conf_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *Event) GetType() string {
 	if x != nil {
 		return x.Type
 	}
 	return ""
 }
 
-func (x *MQ) GetRocketMQ() *RocketMQ {
+func (x *Event) GetRocketMQ() *RocketMQ {
 	if x != nil {
 		return x.RocketMQ
 	}
 	return nil
+}
+
+func (x *Event) GetMqtt() *MQTT {
+	if x != nil {
+		return x.Mqtt
+	}
+	return nil
+}
+
+func (x *Event) GetKafka() *Kafka {
+	if x != nil {
+		return x.Kafka
+	}
+	return nil
+}
+
+// 对称加密配置
+type SymmetricEncryptionConfig struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// 密钥
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// 初始化向量
+	Iv string `protobuf:"bytes,2,opt,name=iv,proto3" json:"iv,omitempty"`
+}
+
+func (x *SymmetricEncryptionConfig) Reset() {
+	*x = SymmetricEncryptionConfig{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_conf_conf_proto_msgTypes[35]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SymmetricEncryptionConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SymmetricEncryptionConfig) ProtoMessage() {}
+
+func (x *SymmetricEncryptionConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_conf_proto_msgTypes[35]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SymmetricEncryptionConfig.ProtoReflect.Descriptor instead.
+func (*SymmetricEncryptionConfig) Descriptor() ([]byte, []int) {
+	return file_conf_conf_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *SymmetricEncryptionConfig) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *SymmetricEncryptionConfig) GetIv() string {
+	if x != nil {
+		return x.Iv
+	}
+	return ""
+}
+
+// 非对称加密配置
+type AsymmetricEncryptionConfig struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// 公钥
+	PublicKey string `protobuf:"bytes,1,opt,name=publicKey,proto3" json:"publicKey,omitempty"`
+	// 私钥
+	PrivateKey string `protobuf:"bytes,2,opt,name=privateKey,proto3" json:"privateKey,omitempty"`
+}
+
+func (x *AsymmetricEncryptionConfig) Reset() {
+	*x = AsymmetricEncryptionConfig{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_conf_conf_proto_msgTypes[36]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AsymmetricEncryptionConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AsymmetricEncryptionConfig) ProtoMessage() {}
+
+func (x *AsymmetricEncryptionConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_conf_proto_msgTypes[36]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AsymmetricEncryptionConfig.ProtoReflect.Descriptor instead.
+func (*AsymmetricEncryptionConfig) Descriptor() ([]byte, []int) {
+	return file_conf_conf_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *AsymmetricEncryptionConfig) GetPublicKey() string {
+	if x != nil {
+		return x.PublicKey
+	}
+	return ""
+}
+
+func (x *AsymmetricEncryptionConfig) GetPrivateKey() string {
+	if x != nil {
+		return x.PrivateKey
+	}
+	return ""
 }
 
 // 拨打电话
@@ -2434,7 +2774,7 @@ type ReceiverPhone_Call struct {
 func (x *ReceiverPhone_Call) Reset() {
 	*x = ReceiverPhone_Call{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_conf_proto_msgTypes[34]
+		mi := &file_conf_conf_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2447,7 +2787,7 @@ func (x *ReceiverPhone_Call) String() string {
 func (*ReceiverPhone_Call) ProtoMessage() {}
 
 func (x *ReceiverPhone_Call) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[34]
+	mi := &file_conf_conf_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2473,7 +2813,7 @@ type ReceiverPhone_Sms struct {
 func (x *ReceiverPhone_Sms) Reset() {
 	*x = ReceiverPhone_Sms{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_conf_proto_msgTypes[35]
+		mi := &file_conf_conf_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2486,7 +2826,7 @@ func (x *ReceiverPhone_Sms) String() string {
 func (*ReceiverPhone_Sms) ProtoMessage() {}
 
 func (x *ReceiverPhone_Sms) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[35]
+	mi := &file_conf_conf_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2792,15 +3132,55 @@ var file_conf_conf_proto_rawDesc = []byte{
 	0x79, 0x12, 0x1c, 0x0a, 0x09, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x4b, 0x65, 0x79, 0x18, 0x05,
 	0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x4b, 0x65, 0x79, 0x12,
 	0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x06, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x22, 0x48, 0x0a,
-	0x02, 0x4d, 0x51, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x2e, 0x0a, 0x08, 0x72, 0x6f, 0x63, 0x6b, 0x65,
-	0x74, 0x4d, 0x51, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x70, 0x6b, 0x67, 0x2e,
-	0x63, 0x6f, 0x6e, 0x66, 0x2e, 0x52, 0x6f, 0x63, 0x6b, 0x65, 0x74, 0x4d, 0x51, 0x52, 0x08, 0x72,
-	0x6f, 0x63, 0x6b, 0x65, 0x74, 0x4d, 0x51, 0x42, 0x2b, 0x5a, 0x29, 0x67, 0x69, 0x74, 0x68, 0x75,
-	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x69, 0x64, 0x65, 0x2d, 0x66, 0x61, 0x6d, 0x69, 0x6c,
-	0x79, 0x2f, 0x6d, 0x6f, 0x6f, 0x6e, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x63, 0x6f, 0x6e, 0x66, 0x3b,
-	0x63, 0x6f, 0x6e, 0x66, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x22, 0xaa, 0x01,
+	0x0a, 0x04, 0x4d, 0x51, 0x54, 0x54, 0x12, 0x16, 0x0a, 0x06, 0x62, 0x72, 0x6f, 0x6b, 0x65, 0x72,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x62, 0x72, 0x6f, 0x6b, 0x65, 0x72, 0x12, 0x1a,
+	0x0a, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x70, 0x61,
+	0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x70, 0x61,
+	0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74,
+	0x49, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74,
+	0x49, 0x64, 0x12, 0x24, 0x0a, 0x0d, 0x61, 0x75, 0x74, 0x6f, 0x52, 0x65, 0x63, 0x6f, 0x6e, 0x6e,
+	0x65, 0x63, 0x74, 0x18, 0x05, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0d, 0x61, 0x75, 0x74, 0x6f, 0x52,
+	0x65, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x71, 0x6f, 0x73, 0x18,
+	0x06, 0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x71, 0x6f, 0x73, 0x22, 0xe3, 0x01, 0x0a, 0x05, 0x4b,
+	0x61, 0x66, 0x6b, 0x61, 0x12, 0x18, 0x0a, 0x07, 0x62, 0x72, 0x6f, 0x6b, 0x65, 0x72, 0x73, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x62, 0x72, 0x6f, 0x6b, 0x65, 0x72, 0x73, 0x12, 0x14,
+	0x0a, 0x05, 0x74, 0x6f, 0x70, 0x69, 0x63, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74,
+	0x6f, 0x70, 0x69, 0x63, 0x12, 0x1c, 0x0a, 0x09, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x4e, 0x61, 0x6d,
+	0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x4e, 0x61,
+	0x6d, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x73, 0x74, 0x72, 0x61, 0x74, 0x65, 0x67, 0x79, 0x18, 0x04,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x73, 0x74, 0x72, 0x61, 0x74, 0x65, 0x67, 0x79, 0x12, 0x1a,
+	0x0a, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x70, 0x61,
+	0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x70, 0x61,
+	0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x12, 0x1e, 0x0a, 0x0a, 0x73, 0x61, 0x73, 0x6c, 0x45, 0x6e,
+	0x61, 0x62, 0x6c, 0x65, 0x18, 0x07, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0a, 0x73, 0x61, 0x73, 0x6c,
+	0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f,
+	0x6e, 0x18, 0x08, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e,
+	0x22, 0x96, 0x01, 0x0a, 0x05, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79,
+	0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x2e,
+	0x0a, 0x08, 0x72, 0x6f, 0x63, 0x6b, 0x65, 0x74, 0x4d, 0x51, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x12, 0x2e, 0x70, 0x6b, 0x67, 0x2e, 0x63, 0x6f, 0x6e, 0x66, 0x2e, 0x52, 0x6f, 0x63, 0x6b,
+	0x65, 0x74, 0x4d, 0x51, 0x52, 0x08, 0x72, 0x6f, 0x63, 0x6b, 0x65, 0x74, 0x4d, 0x51, 0x12, 0x22,
+	0x0a, 0x04, 0x6d, 0x71, 0x74, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x70,
+	0x6b, 0x67, 0x2e, 0x63, 0x6f, 0x6e, 0x66, 0x2e, 0x4d, 0x51, 0x54, 0x54, 0x52, 0x04, 0x6d, 0x71,
+	0x74, 0x74, 0x12, 0x25, 0x0a, 0x05, 0x6b, 0x61, 0x66, 0x6b, 0x61, 0x18, 0x04, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x0f, 0x2e, 0x70, 0x6b, 0x67, 0x2e, 0x63, 0x6f, 0x6e, 0x66, 0x2e, 0x4b, 0x61, 0x66,
+	0x6b, 0x61, 0x52, 0x05, 0x6b, 0x61, 0x66, 0x6b, 0x61, 0x22, 0x3d, 0x0a, 0x19, 0x53, 0x79, 0x6d,
+	0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x45, 0x6e, 0x63, 0x72, 0x79, 0x70, 0x74, 0x69, 0x6f, 0x6e,
+	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x76, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x76, 0x22, 0x5a, 0x0a, 0x1a, 0x41, 0x73, 0x79, 0x6d,
+	0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x45, 0x6e, 0x63, 0x72, 0x79, 0x70, 0x74, 0x69, 0x6f, 0x6e,
+	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x1c, 0x0a, 0x09, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x63,
+	0x4b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x70, 0x75, 0x62, 0x6c, 0x69,
+	0x63, 0x4b, 0x65, 0x79, 0x12, 0x1e, 0x0a, 0x0a, 0x70, 0x72, 0x69, 0x76, 0x61, 0x74, 0x65, 0x4b,
+	0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x70, 0x72, 0x69, 0x76, 0x61, 0x74,
+	0x65, 0x4b, 0x65, 0x79, 0x42, 0x2b, 0x5a, 0x29, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
+	0x6f, 0x6d, 0x2f, 0x61, 0x69, 0x64, 0x65, 0x2d, 0x66, 0x61, 0x6d, 0x69, 0x6c, 0x79, 0x2f, 0x6d,
+	0x6f, 0x6f, 0x6e, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x63, 0x6f, 0x6e, 0x66, 0x3b, 0x63, 0x6f, 0x6e,
+	0x66, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -2815,61 +3195,65 @@ func file_conf_conf_proto_rawDescGZIP() []byte {
 	return file_conf_conf_proto_rawDescData
 }
 
-var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
+var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 41)
 var file_conf_conf_proto_goTypes = []any{
-	(*Server)(nil),              // 0: pkg.conf.Server
-	(*HTTPServer)(nil),          // 1: pkg.conf.HTTPServer
-	(*GRPCServer)(nil),          // 2: pkg.conf.GRPCServer
-	(*JWT)(nil),                 // 3: pkg.conf.JWT
-	(*Database)(nil),            // 4: pkg.conf.Database
-	(*Redis)(nil),               // 5: pkg.conf.Redis
-	(*NutsDB)(nil),              // 6: pkg.conf.NutsDB
-	(*Free)(nil),                // 7: pkg.conf.Free
-	(*Cache)(nil),               // 8: pkg.conf.Cache
-	(*MicroServer)(nil),         // 9: pkg.conf.MicroServer
-	(*Jaeger)(nil),              // 10: pkg.conf.Jaeger
-	(*Tracer)(nil),              // 11: pkg.conf.Tracer
-	(*ETCD)(nil),                // 12: pkg.conf.ETCD
-	(*Discovery)(nil),           // 13: pkg.conf.Discovery
-	(*EmailConfig)(nil),         // 14: pkg.conf.EmailConfig
-	(*ReceiverEmail)(nil),       // 15: pkg.conf.ReceiverEmail
-	(*ReceiverPhone)(nil),       // 16: pkg.conf.ReceiverPhone
-	(*ReceiverHook)(nil),        // 17: pkg.conf.ReceiverHook
-	(*Receiver)(nil),            // 18: pkg.conf.Receiver
-	(*Log)(nil),                 // 19: pkg.conf.Log
-	(*OllamaConfig)(nil),        // 20: pkg.conf.OllamaConfig
-	(*AliYunLogConfig)(nil),     // 21: pkg.conf.AliYunLogConfig
-	(*ZapLogConfig)(nil),        // 22: pkg.conf.ZapLogConfig
-	(*SLogConfig)(nil),          // 23: pkg.conf.SLogConfig
-	(*LokiLogConfig)(nil),       // 24: pkg.conf.LokiLogConfig
-	(*Minio)(nil),               // 25: pkg.conf.Minio
-	(*TencentOss)(nil),          // 26: pkg.conf.TencentOss
-	(*AliOss)(nil),              // 27: pkg.conf.AliOss
-	(*LocalStorage)(nil),        // 28: pkg.conf.LocalStorage
-	(*FileLimit)(nil),           // 29: pkg.conf.FileLimit
-	(*Oss)(nil),                 // 30: pkg.conf.Oss
-	(*RocketMQ)(nil),            // 31: pkg.conf.RocketMQ
-	(*MQ)(nil),                  // 32: pkg.conf.MQ
-	nil,                         // 33: pkg.conf.Server.MetadataEntry
-	(*ReceiverPhone_Call)(nil),  // 34: pkg.conf.ReceiverPhone.Call
-	(*ReceiverPhone_Sms)(nil),   // 35: pkg.conf.ReceiverPhone.Sms
-	nil,                         // 36: pkg.conf.Oss.LimitSizeEntry
-	(*durationpb.Duration)(nil), // 37: google.protobuf.Duration
+	(*Server)(nil),                     // 0: pkg.conf.Server
+	(*HTTPServer)(nil),                 // 1: pkg.conf.HTTPServer
+	(*GRPCServer)(nil),                 // 2: pkg.conf.GRPCServer
+	(*JWT)(nil),                        // 3: pkg.conf.JWT
+	(*Database)(nil),                   // 4: pkg.conf.Database
+	(*Redis)(nil),                      // 5: pkg.conf.Redis
+	(*NutsDB)(nil),                     // 6: pkg.conf.NutsDB
+	(*Free)(nil),                       // 7: pkg.conf.Free
+	(*Cache)(nil),                      // 8: pkg.conf.Cache
+	(*MicroServer)(nil),                // 9: pkg.conf.MicroServer
+	(*Jaeger)(nil),                     // 10: pkg.conf.Jaeger
+	(*Tracer)(nil),                     // 11: pkg.conf.Tracer
+	(*ETCD)(nil),                       // 12: pkg.conf.ETCD
+	(*Discovery)(nil),                  // 13: pkg.conf.Discovery
+	(*EmailConfig)(nil),                // 14: pkg.conf.EmailConfig
+	(*ReceiverEmail)(nil),              // 15: pkg.conf.ReceiverEmail
+	(*ReceiverPhone)(nil),              // 16: pkg.conf.ReceiverPhone
+	(*ReceiverHook)(nil),               // 17: pkg.conf.ReceiverHook
+	(*Receiver)(nil),                   // 18: pkg.conf.Receiver
+	(*Log)(nil),                        // 19: pkg.conf.Log
+	(*OllamaConfig)(nil),               // 20: pkg.conf.OllamaConfig
+	(*AliYunLogConfig)(nil),            // 21: pkg.conf.AliYunLogConfig
+	(*ZapLogConfig)(nil),               // 22: pkg.conf.ZapLogConfig
+	(*SLogConfig)(nil),                 // 23: pkg.conf.SLogConfig
+	(*LokiLogConfig)(nil),              // 24: pkg.conf.LokiLogConfig
+	(*Minio)(nil),                      // 25: pkg.conf.Minio
+	(*TencentOss)(nil),                 // 26: pkg.conf.TencentOss
+	(*AliOss)(nil),                     // 27: pkg.conf.AliOss
+	(*LocalStorage)(nil),               // 28: pkg.conf.LocalStorage
+	(*FileLimit)(nil),                  // 29: pkg.conf.FileLimit
+	(*Oss)(nil),                        // 30: pkg.conf.Oss
+	(*RocketMQ)(nil),                   // 31: pkg.conf.RocketMQ
+	(*MQTT)(nil),                       // 32: pkg.conf.MQTT
+	(*Kafka)(nil),                      // 33: pkg.conf.Kafka
+	(*Event)(nil),                      // 34: pkg.conf.Event
+	(*SymmetricEncryptionConfig)(nil),  // 35: pkg.conf.SymmetricEncryptionConfig
+	(*AsymmetricEncryptionConfig)(nil), // 36: pkg.conf.AsymmetricEncryptionConfig
+	nil,                                // 37: pkg.conf.Server.MetadataEntry
+	(*ReceiverPhone_Call)(nil),         // 38: pkg.conf.ReceiverPhone.Call
+	(*ReceiverPhone_Sms)(nil),          // 39: pkg.conf.ReceiverPhone.Sms
+	nil,                                // 40: pkg.conf.Oss.LimitSizeEntry
+	(*durationpb.Duration)(nil),        // 41: google.protobuf.Duration
 }
 var file_conf_conf_proto_depIdxs = []int32{
-	33, // 0: pkg.conf.Server.metadata:type_name -> pkg.conf.Server.MetadataEntry
-	37, // 1: pkg.conf.HTTPServer.timeout:type_name -> google.protobuf.Duration
-	37, // 2: pkg.conf.GRPCServer.timeout:type_name -> google.protobuf.Duration
-	37, // 3: pkg.conf.JWT.expire:type_name -> google.protobuf.Duration
-	37, // 4: pkg.conf.Redis.read_timeout:type_name -> google.protobuf.Duration
-	37, // 5: pkg.conf.Redis.write_timeout:type_name -> google.protobuf.Duration
-	37, // 6: pkg.conf.Redis.dial_timeout:type_name -> google.protobuf.Duration
+	37, // 0: pkg.conf.Server.metadata:type_name -> pkg.conf.Server.MetadataEntry
+	41, // 1: pkg.conf.HTTPServer.timeout:type_name -> google.protobuf.Duration
+	41, // 2: pkg.conf.GRPCServer.timeout:type_name -> google.protobuf.Duration
+	41, // 3: pkg.conf.JWT.expire:type_name -> google.protobuf.Duration
+	41, // 4: pkg.conf.Redis.read_timeout:type_name -> google.protobuf.Duration
+	41, // 5: pkg.conf.Redis.write_timeout:type_name -> google.protobuf.Duration
+	41, // 6: pkg.conf.Redis.dial_timeout:type_name -> google.protobuf.Duration
 	5,  // 7: pkg.conf.Cache.redis:type_name -> pkg.conf.Redis
 	6,  // 8: pkg.conf.Cache.nutsDB:type_name -> pkg.conf.NutsDB
 	7,  // 9: pkg.conf.Cache.free:type_name -> pkg.conf.Free
-	37, // 10: pkg.conf.MicroServer.timeout:type_name -> google.protobuf.Duration
+	41, // 10: pkg.conf.MicroServer.timeout:type_name -> google.protobuf.Duration
 	10, // 11: pkg.conf.Tracer.jaeger:type_name -> pkg.conf.Jaeger
-	37, // 12: pkg.conf.ETCD.timeout:type_name -> google.protobuf.Duration
+	41, // 12: pkg.conf.ETCD.timeout:type_name -> google.protobuf.Duration
 	12, // 13: pkg.conf.Discovery.etcd:type_name -> pkg.conf.ETCD
 	17, // 14: pkg.conf.Receiver.hooks:type_name -> pkg.conf.ReceiverHook
 	16, // 15: pkg.conf.Receiver.phones:type_name -> pkg.conf.ReceiverPhone
@@ -2883,14 +3267,16 @@ var file_conf_conf_proto_depIdxs = []int32{
 	26, // 23: pkg.conf.Oss.tencentOss:type_name -> pkg.conf.TencentOss
 	27, // 24: pkg.conf.Oss.aliOss:type_name -> pkg.conf.AliOss
 	28, // 25: pkg.conf.Oss.local:type_name -> pkg.conf.LocalStorage
-	36, // 26: pkg.conf.Oss.limitSize:type_name -> pkg.conf.Oss.LimitSizeEntry
-	31, // 27: pkg.conf.MQ.rocketMQ:type_name -> pkg.conf.RocketMQ
-	29, // 28: pkg.conf.Oss.LimitSizeEntry.value:type_name -> pkg.conf.FileLimit
-	29, // [29:29] is the sub-list for method output_type
-	29, // [29:29] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	40, // 26: pkg.conf.Oss.limitSize:type_name -> pkg.conf.Oss.LimitSizeEntry
+	31, // 27: pkg.conf.Event.rocketMQ:type_name -> pkg.conf.RocketMQ
+	32, // 28: pkg.conf.Event.mqtt:type_name -> pkg.conf.MQTT
+	33, // 29: pkg.conf.Event.kafka:type_name -> pkg.conf.Kafka
+	29, // 30: pkg.conf.Oss.LimitSizeEntry.value:type_name -> pkg.conf.FileLimit
+	31, // [31:31] is the sub-list for method output_type
+	31, // [31:31] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_conf_conf_proto_init() }
@@ -3284,7 +3670,19 @@ func file_conf_conf_proto_init() {
 			}
 		}
 		file_conf_conf_proto_msgTypes[32].Exporter = func(v any, i int) any {
-			switch v := v.(*MQ); i {
+			switch v := v.(*MQTT); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_conf_conf_proto_msgTypes[33].Exporter = func(v any, i int) any {
+			switch v := v.(*Kafka); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3296,7 +3694,7 @@ func file_conf_conf_proto_init() {
 			}
 		}
 		file_conf_conf_proto_msgTypes[34].Exporter = func(v any, i int) any {
-			switch v := v.(*ReceiverPhone_Call); i {
+			switch v := v.(*Event); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3308,6 +3706,42 @@ func file_conf_conf_proto_init() {
 			}
 		}
 		file_conf_conf_proto_msgTypes[35].Exporter = func(v any, i int) any {
+			switch v := v.(*SymmetricEncryptionConfig); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_conf_conf_proto_msgTypes[36].Exporter = func(v any, i int) any {
+			switch v := v.(*AsymmetricEncryptionConfig); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_conf_conf_proto_msgTypes[38].Exporter = func(v any, i int) any {
+			switch v := v.(*ReceiverPhone_Call); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_conf_conf_proto_msgTypes[39].Exporter = func(v any, i int) any {
 			switch v := v.(*ReceiverPhone_Sms); i {
 			case 0:
 				return &v.state
@@ -3330,7 +3764,7 @@ func file_conf_conf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_conf_conf_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   37,
+			NumMessages:   41,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

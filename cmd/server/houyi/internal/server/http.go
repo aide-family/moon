@@ -18,7 +18,7 @@ import (
 
 // NewHTTPServer new an HTTP server.
 func NewHTTPServer(bc *houyiconf.Bootstrap) *http.Server {
-	var opts = []http.ServerOption{
+	opts := []http.ServerOption{
 		http.Filter(middleware.Cors()),
 		http.Middleware(
 			recovery.Recovery(recovery.WithHandler(mlog.RecoveryHandle)),

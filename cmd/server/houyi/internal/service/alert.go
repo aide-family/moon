@@ -41,7 +41,7 @@ func (s *AlertService) Hook(ctx context.Context, req *api.AlarmItem) (*api.HookR
 
 // Alarm 告警
 func (s *AlertService) Alarm(ctx context.Context, req *alertapi.AlarmRequest) (*alertapi.AlarmReply, error) {
-	strategyInfo := build.NewStrategyBuilder(req.GetStrategy()).ToBo()
+	strategyInfo := build.NewMetricStrategyBuilder(req.GetStrategy()).ToBo()
 	innerAlarm, err := s.InnerAlarm(ctx, strategyInfo)
 	if err != nil {
 		return nil, err

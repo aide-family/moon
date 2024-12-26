@@ -10,7 +10,6 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
-	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
@@ -134,32 +133,4 @@ func (b *StrategyBiz) verifyStrategyStatus(ctx context.Context, ids []uint32) er
 // SyncStrategy 同步策略
 func (b *StrategyBiz) SyncStrategy(ctx context.Context, id uint32) error {
 	return b.strategyRepo.Sync(ctx, id)
-}
-
-// GetStrategyLevel 获取策略层级详情
-func (b *StrategyBiz) GetStrategyLevel(ctx context.Context, strategyID uint32, strategyType vobj.StrategyType) (*bo.StrategyLevelDetailModel, error) {
-	detailModel := &bo.StrategyLevelDetailModel{}
-	switch strategyType {
-	case vobj.StrategyTypeMetric:
-		metricLevels, err := b.strategyRepo.GetStrategyMetricLevels(ctx, []uint32{strategyID})
-		if err != nil {
-			return nil, err
-		}
-		strategyLevelMap := types.ToMapSlice(metricLevels, func(level *bizmodel.StrategyMetricsLevel) uint32 {
-			return level.StrategyID
-		})
-		detailModel.MetricsLevelMap = strategyLevelMap
-	case vobj.StrategyTypeMQ:
-		mqLevels, err := b.strategyRepo.GetStrategyMQLevels(ctx, []uint32{strategyID})
-		if err != nil {
-			return nil, err
-		}
-		mqLevelMap := types.ToMapSlice(mqLevels, func(level *bizmodel.StrategyMQLevel) uint32 {
-			return level.StrategyID
-		})
-		detailModel.MQLevelMap = mqLevelMap
-	default:
-		return nil, merr.ErrorI18nToastStrategyTypeNotExist(ctx)
-	}
-	return detailModel, nil
 }

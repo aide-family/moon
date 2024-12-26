@@ -63,7 +63,7 @@ type (
 
 	// IDoAlarmNoticeGroupItemBuilder 告警组列表返回值构造器
 	IDoAlarmNoticeGroupItemBuilder interface {
-		ToAPI(*bizmodel.AlarmNoticeGroup, ...map[uint32]*adminapi.UserItem) *adminapi.AlarmNoticeGroupItem
+		ToAPI(*bizmodel.AlarmNoticeGroup) *adminapi.AlarmNoticeGroupItem
 		ToAPIs([]*bizmodel.AlarmNoticeGroup) []*adminapi.AlarmNoticeGroupItem
 		ToSelect(*bizmodel.AlarmNoticeGroup) *adminapi.SelectItem
 		ToSelects([]*bizmodel.AlarmNoticeGroup) []*adminapi.SelectItem
@@ -112,9 +112,44 @@ type (
 		APICreateStrategyLabelNoticeRequest() ICreateStrategyLabelNoticeRequestBuilder
 		DoAlarmNoticeGroupItemBuilder() IDoAlarmNoticeGroupItemBuilder
 		DoLabelNoticeBuilder() IDoLabelNoticeBuilder
+		AlarmNoticeGroupItemBuilder() IAlarmNoticeGroupItemBuilder
 		WithAPIMyAlarmGroupListRequest(*alarmapi.MyAlarmGroupRequest) IMyAlarmGroupListParamsBuilder
 	}
+
+	// IAlarmNoticeGroupItemBuilder 告警组列表返回值构造器
+	IAlarmNoticeGroupItemBuilder interface {
+		ToAPI(*bizmodel.StrategyMetricsLabelNotice) *api.LabelNotices
+		ToAPIs([]*bizmodel.StrategyMetricsLabelNotice) []*api.LabelNotices
+	}
+
+	alarmNoticeGroupItemBuilder struct {
+		ctx context.Context
+	}
 )
+
+func (a *alarmNoticeGroupItemBuilder) ToAPI(group *bizmodel.StrategyMetricsLabelNotice) *api.LabelNotices {
+	if types.IsNil(group) || types.IsNil(a) {
+		return nil
+	}
+
+	return &api.LabelNotices{
+		Key:   group.Name,
+		Value: group.Value,
+		ReceiverGroupIDs: types.SliceUnique(types.SliceTo(group.AlarmGroups, func(group *bizmodel.AlarmNoticeGroup) uint32 {
+			return group.ID
+		})),
+	}
+}
+
+func (a *alarmNoticeGroupItemBuilder) ToAPIs(groups []*bizmodel.StrategyMetricsLabelNotice) []*api.LabelNotices {
+	return types.SliceTo(groups, func(group *bizmodel.StrategyMetricsLabelNotice) *api.LabelNotices {
+		return a.ToAPI(group)
+	})
+}
+
+func (a *alarmNoticeGroupModuleBuilder) AlarmNoticeGroupItemBuilder() IAlarmNoticeGroupItemBuilder {
+	return &alarmNoticeGroupItemBuilder{ctx: a.ctx}
+}
 
 // ToBo 转换为业务对象
 func (a *myAlarmGroupListParamsBuilder) ToBo() *bo.MyAlarmGroupListParams {
@@ -205,22 +240,11 @@ func (d *doAlarmNoticeGroupItemBuilder) ToSelects(groups []*bizmodel.AlarmNotice
 	})
 }
 
-func getUsers(ctx context.Context, userMaps []map[uint32]*adminapi.UserItem, userIDs ...uint32) map[uint32]*adminapi.UserItem {
+func getUsers(ctx context.Context, userIDs ...uint32) map[uint32]*adminapi.UserItem {
 	userMap := make(map[uint32]*adminapi.UserItem)
 	userDoBuilder := NewParamsBuild(ctx).UserModuleBuilder().DoUserBuilder()
-	noExistIds := make([]uint32, 0, len(userIDs))
-	if len(userMaps) > 0 && len(userMaps[0]) > 0 {
-		userMap = userMaps[0]
-		for _, userID := range userIDs {
-			if _, ok := userMap[userID]; !ok {
-				noExistIds = append(noExistIds, userID)
-			}
-		}
-	} else {
-		noExistIds = userIDs
-	}
-	if biz.RuntimeCache != nil && len(noExistIds) > 0 {
-		userList := biz.RuntimeCache.GetUsers(ctx, noExistIds)
+	if biz.RuntimeCache != nil {
+		userList := biz.RuntimeCache.GetUsers(ctx, userIDs)
 		for _, user := range userList {
 			userMap[user.ID] = userDoBuilder.ToAPI(user)
 		}
@@ -229,12 +253,12 @@ func getUsers(ctx context.Context, userMaps []map[uint32]*adminapi.UserItem, use
 	return userMap
 }
 
-func (d *doAlarmNoticeGroupItemBuilder) ToAPI(group *bizmodel.AlarmNoticeGroup, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.AlarmNoticeGroupItem {
+func (d *doAlarmNoticeGroupItemBuilder) ToAPI(group *bizmodel.AlarmNoticeGroup) *adminapi.AlarmNoticeGroupItem {
 	if types.IsNil(group) || types.IsNil(d) {
 		return nil
 	}
 
-	userMap := getUsers(d.ctx, userMaps, group.CreatorID)
+	userMap := getUsers(d.ctx, group.CreatorID)
 	return &adminapi.AlarmNoticeGroupItem{
 		Id:          group.ID,
 		Name:        group.Name,
@@ -242,10 +266,11 @@ func (d *doAlarmNoticeGroupItemBuilder) ToAPI(group *bizmodel.AlarmNoticeGroup, 
 		CreatedAt:   group.CreatedAt.String(),
 		UpdatedAt:   group.UpdatedAt.String(),
 		Remark:      group.Remark,
-		Creator:     userMap[group.CreatorID], // TODO impl
+		Creator:     userMap[group.CreatorID],
 		CreatorId:   group.CreatorID,
 		NoticeUsers: NewParamsBuild(d.ctx).UserModuleBuilder().DoNoticeUserBuilder().ToAPIs(group.NoticeMembers),
 		Hooks:       NewParamsBuild(d.ctx).HookModuleBuilder().DoHookBuilder().ToAPIs(group.AlarmHooks),
+		TimeEngines: NewParamsBuild(d.ctx).TimeEngineModuleBuilder().Do().ToAPIs(group.TimeEngines),
 	}
 }
 
@@ -253,12 +278,8 @@ func (d *doAlarmNoticeGroupItemBuilder) ToAPIs(groups []*bizmodel.AlarmNoticeGro
 	if types.IsNil(groups) || types.IsNil(d) {
 		return nil
 	}
-	ids := types.SliceTo(groups, func(group *bizmodel.AlarmNoticeGroup) uint32 {
-		return group.CreatorID
-	})
-	userMap := getUsers(d.ctx, nil, ids...)
 	return types.SliceTo(groups, func(group *bizmodel.AlarmNoticeGroup) *adminapi.AlarmNoticeGroupItem {
-		return d.ToAPI(group, userMap)
+		return d.ToAPI(group)
 	})
 }
 
@@ -306,12 +327,10 @@ func (c *createAlarmGroupRequestBuilder) ToBo() *bo.CreateAlarmNoticeGroupParams
 		Remark: c.GetRemark(),
 		Status: vobj.Status(c.GetStatus()),
 		NoticeMembers: types.SliceTo(c.NoticeMember, func(member *alarmapi.CreateNoticeMemberRequest) *bo.CreateNoticeMemberParams {
-			return &bo.CreateNoticeMemberParams{
-				MemberID:   member.GetMemberId(),
-				NotifyType: vobj.NotifyType(member.GetNotifyType()),
-			}
+			return &bo.CreateNoticeMemberParams{MemberID: member.GetMemberId(), NotifyType: vobj.NotifyType(member.GetNotifyType())}
 		}),
-		HookIds: c.GetHookIds(),
+		HookIds:       c.GetHookIds(),
+		TimeEngineIds: c.GetTimeEngines(),
 	}
 }
 

@@ -1,7 +1,6 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -12,7 +11,7 @@ const tableNameDatasourceMetric = "datasource_metrics"
 
 // DatasourceMetric mapped from table <datasource_metrics>
 type DatasourceMetric struct {
-	model.AllFieldModel
+	AllFieldModel
 	Name         string          `gorm:"column:name;type:varchar(255);not null;comment:指标名称;uniqueIndex:idx__name__datasource_id__deleted_at" json:"name"`
 	Category     vobj.MetricType `gorm:"column:category;type:int;not null;comment:指标类型（对应prometheus四种数据类型）" json:"category"`
 	Unit         string          `gorm:"column:unit;type:varchar(255);not null;comment:单位" json:"unit"`                                                                       // 单位

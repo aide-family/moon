@@ -141,8 +141,7 @@ func WithMetricID(id uint32) MetricDatasourceBuildOption {
 	}
 }
 
-type mockMetricDatasource struct {
-}
+type mockMetricDatasource struct{}
 
 func (m *mockMetricDatasource) GetBasicInfo() *BasicInfo {
 	return new(BasicInfo)

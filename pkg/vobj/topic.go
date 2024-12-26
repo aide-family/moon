@@ -21,8 +21,8 @@ const (
 	// TopicAlertMsg 告警消息
 	TopicAlertMsg // 告警消息
 
-	// TopicMQDatasource MQ 数据源
-	TopicMQDatasource // MQ 数据源
+	// TopicEventDatasource MQ 数据源
+	TopicEventDatasource // MQ 数据源
 
 	// TopicEventStrategy 事件策略
 	TopicEventStrategy // 事件策略

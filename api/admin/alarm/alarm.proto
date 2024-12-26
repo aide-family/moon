@@ -106,6 +106,8 @@ message CreateAlarmGroupRequest {
   repeated CreateNoticeMemberRequest noticeMember = 4;
   // hook ids
   repeated uint32 hookIds = 5;
+  // 时间引擎
+  repeated uint32 timeEngines = 6;
 }
 message CreateAlarmGroupReply {}
 

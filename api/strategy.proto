@@ -31,9 +31,7 @@ message MetricStrategyItem {
   uint32 count = 4;
   // 持续的类型
   SustainType sustainType = 5 [(buf.validate.field).enum.defined_only = true];
-  // 多数据源持续类型
-  MultiDatasourceSustainType multiDatasourceSustainType = 6 [(buf.validate.field).enum.defined_only = true];
-  // 策略标签
+   // 策略标签
   map<string, string> labels = 7 [(buf.validate.field).cel = {
     id: "Strategy_labels"
     expression: 'this.size() > 0'
@@ -45,30 +43,19 @@ message MetricStrategyItem {
     expression: 'this.size() > 0'
     message: "策略注解不允许为空"
   }];
-  // 执行频率
-  google.protobuf.Duration interval = 9;
+  Status status = 9 [(buf.validate.field).enum.defined_only = true];
   // 数据源
-  repeated Datasource datasource = 10 [(buf.validate.field).cel = {
+  repeated DatasourceItem datasource = 10 [(buf.validate.field).cel = {
     id: "Strategy_datasource"
     expression: 'this.size() > 0'
     message: "数据源不允许为空"
   }];
-  // 策略ID, 用于标识唯一性
-  uint32 id = 11 [(buf.validate.field).cel = {
-    id: "Strategy_id"
-    expression: 'this > 0'
-    message: "策略ID必须大于0"
-  }];
-  // 策略状态
-  Status status = 12 [(buf.validate.field).enum.defined_only = true];
-  // 采样率
-  uint32 step = 13;
   // 判断条件
   Condition condition = 14;
   // 阈值
   double threshold = 15;
   // 策略等级ID
-  uint32 levelID = 16 [(buf.validate.field).cel = {
+  uint32 levelId = 16 [(buf.validate.field).cel = {
     id: "Strategy_level"
     expression: 'this > 0'
     message: "策略等级必须大于0"
@@ -83,6 +70,12 @@ message MetricStrategyItem {
   repeated uint32 receiverGroupIDs = 18;
   repeated LabelNotices labelNotices = 19;
   StrategyType strategyType = 20;
+  // 策略ID
+  uint32 strategyID = 21 [(buf.validate.field).cel = {
+    id: "DomainStrategyItem_strategyID"
+    expression: 'this > 0'
+    message: "策略ID必须大于0"
+  }];
 }
 
 // 域名证书或者端口监控策略定义
@@ -94,7 +87,7 @@ message DomainStrategyItem {
     message: "策略ID必须大于0"
   }];
   // 策略等级ID
-  uint32 levelID = 2 [(buf.validate.field).cel = {
+  uint32 levelId = 2 [(buf.validate.field).cel = {
     id: "DomainStrategyItem_levelID"
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
@@ -139,16 +132,8 @@ message DomainStrategyItem {
     expression: 'this.size() > 0'
     message: "策略名称不允许为空"
   }];
-  // 超时时间
-  uint32 timeout = 21;
-  // 执行频率
-  google.protobuf.Duration interval = 22;
   // 端口
-  uint32 port = 23 [(buf.validate.field).cel = {
-    id: "DomainStrategyItem_port"
-    expression: 'this > 0'
-    message: "端口必须大于0"
-  }];
+  uint32 port = 23;
   // 策略类型 vobj.StrategyType  端口监控 ｜ 域名监控
   StrategyType strategyType = 24;
 }
@@ -170,7 +155,7 @@ message HttpStrategyItem {
     message: "策略ID必须大于0"
   }];
   // 策略等级ID
-  uint32 levelID = 4 [(buf.validate.field).cel = {
+  uint32 levelId = 4 [(buf.validate.field).cel = {
     id: "HttpStrategyItem_levelID"
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
@@ -197,18 +182,8 @@ message HttpStrategyItem {
     expression: 'this.size() > 0'
     message: "策略注解不允许为空"
   }];
-  // 阈值
-  int64 threshold = 10 [(buf.validate.field).cel = {
-    id: "HttpStrategyItem_threshold"
-    expression: 'this >= 0'
-    message: "阈值必须大于等于0"
-  }];
-  // 超时时间
-  uint32 timeout = 11;
-  // 执行频率
-  google.protobuf.Duration interval = 12;
   // 状态码
-  uint32 statusCodes = 13;
+  string statusCode = 13;
   // 策略名称
   string alert = 14 [(buf.validate.field).cel = {
     id: "Strategy_alert"
@@ -221,6 +196,12 @@ message HttpStrategyItem {
   string body = 16;
   // 请求方式
   string method = 17;
+  // 响应时间
+  double responseTime = 18;
+  // 状态码判断条件
+  Condition statusCodeCondition = 19;
+  // 响应时间判断条件
+  Condition responseTimeCondition = 20;
 }
 
 // Ping监控策略定义， 用于监控指定IP的网络延迟、丢包率等
@@ -247,16 +228,12 @@ message PingStrategyItem {
     expression: 'this.size() > 0'
     message: "策略名称不允许为空"
   }];
-  // 执行频率
-  google.protobuf.Duration interval = 6;
   // 策略等级ID
-  uint32 levelID = 7 [(buf.validate.field).cel = {
+  uint32 levelId = 7 [(buf.validate.field).cel = {
     id: "PingStrategyItem_levelID"
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
   }];
-  // 超时时间
-  uint32 timeout = 8;
   // 策略标签
   map<string, string> labels = 9 [(buf.validate.field).cel = {
     id: "PingStrategyItem_labels"
@@ -293,7 +270,8 @@ message PingStrategyItem {
   int64 stdDev = 19;
 }
 
-message MQStrategyItem {
+// 事件监控策略定义， 用于监控指定事件
+message EventStrategyItem {
   // 策略类型 vobj.StrategyType  端口监控 ｜ 域名监控
   StrategyType strategyType = 1;
   // 策略ID
@@ -317,7 +295,7 @@ message MQStrategyItem {
     message: "策略名称不允许为空"
   }];
   // 策略等级ID
-  uint32 levelID = 7 [(buf.validate.field).cel = {
+  uint32 levelId = 7 [(buf.validate.field).cel = {
     id: "PingStrategyItem_levelID"
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
@@ -339,9 +317,9 @@ message MQStrategyItem {
   // 值
   string value = 12;
   // 条件
-  MQCondition condition = 13;
+  EventCondition condition = 13;
   // 数据类型
-  MQDataType dataType = 14;
+  EventDataType dataType = 14;
   // 策略语句
   string topic = 15 [(buf.validate.field).cel = {
     id: "Strategy_topic"
@@ -349,7 +327,7 @@ message MQStrategyItem {
     message: "主题不允许为空"
   }];
   // 数据源
-  repeated MQDatasource datasource = 16 [(buf.validate.field).cel = {
+  repeated DatasourceItem datasource = 16 [(buf.validate.field).cel = {
     id: "Strategy_datasource"
     expression: 'this.size() > 0'
     message: "数据源不允许为空"
@@ -550,4 +528,18 @@ message Message  {
   map<string, string> labels = 4;
   // 通知组，需要通知的对象组列表
   repeated NotifyGroup groups = 5;
+}
+
+// 时间引擎规则
+message TimeEngineRule {
+  // 规则ID
+  string id = 1;
+  // 规则名称
+  string name = 2;
+  // 规则类型
+  int32 category = 3;
+  // 规则
+  repeated int32 rule = 4;
+  // 状态
+  int32 status = 5;
 }

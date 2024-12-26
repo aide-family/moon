@@ -7,6 +7,7 @@ import (
 	adminapi "github.com/aide-family/moon/api/admin"
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/houyi/datasource"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -33,23 +34,17 @@ type (
 		// WithListDatasourceRequest 获取数据源列表请求参数构造器
 		WithListDatasourceRequest(*datasourceapi.ListDatasourceRequest) IListDatasourceRequestBuilder
 
-		// BoDatasourceBuilder 业务对象构造器
-		BoDatasourceBuilder() IBoDatasourceBuilder
+		// DatasourceBuilder 业务对象构造器
+		DatasourceBuilder() IDatasourceBuilder
 	}
 
 	// IDoDatasourceBuilder 数据源条目构造器
 	IDoDatasourceBuilder interface {
 		// ToAPI 转换为API对象
-		ToAPI(*bizmodel.Datasource, ...map[uint32]*adminapi.UserItem) *adminapi.DatasourceItem
+		ToAPI(*bizmodel.Datasource) *adminapi.DatasourceItem
 
 		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.Datasource) []*adminapi.DatasourceItem
-
-		// ToBo 转换为业务对象
-		ToBo(*bizmodel.Datasource) *bo.Datasource
-
-		// ToBos 转换为业务对象列表
-		ToBos([]*bizmodel.Datasource) []*bo.Datasource
 
 		// ToSelect 转换为选择对象
 		ToSelect(*bizmodel.Datasource) *adminapi.SelectItem
@@ -94,13 +89,12 @@ type (
 		*datasourceapi.ListDatasourceRequest
 	}
 
-	// IBoDatasourceBuilder 业务对象构造器
-	IBoDatasourceBuilder interface {
+	// IDatasourceBuilder 业务对象构造器
+	IDatasourceBuilder interface {
 		// ToAPI 转换为API对象
-		ToAPI(*bo.Datasource) *api.Datasource
-
+		ToAPI(*bizmodel.Datasource) *api.DatasourceItem
 		// ToAPIs 转换为API对象列表
-		ToAPIs([]*bo.Datasource) []*api.Datasource
+		ToAPIs([]*bizmodel.Datasource) []*api.DatasourceItem
 	}
 
 	boDatasourceBuilder struct {
@@ -108,57 +102,28 @@ type (
 	}
 )
 
-func (d *doDatasourceBuilder) ToBo(datasource *bizmodel.Datasource) *bo.Datasource {
-	if types.IsNil(datasource) || types.IsNil(d) {
+func (b *boDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource) *api.DatasourceItem {
+	if types.IsNil(b) || types.IsNil(datasource) {
 		return nil
 	}
-
-	config := make(map[string]string)
-	_ = types.Unmarshal([]byte(datasource.Config), &config)
-	return &bo.Datasource{
-		Category:    datasource.Category,
-		StorageType: datasource.StorageType,
-		Config:      config,
-		Endpoint:    datasource.Endpoint,
-		ID:          datasource.ID,
-	}
-}
-
-func (d *doDatasourceBuilder) ToBos(datasources []*bizmodel.Datasource) []*bo.Datasource {
-	if types.IsNil(datasources) || types.IsNil(d) {
-		return nil
-	}
-
-	return types.SliceTo(datasources, func(item *bizmodel.Datasource) *bo.Datasource {
-		return d.ToBo(item)
-	})
-}
-
-func (b *boDatasourceBuilder) ToAPI(datasource *bo.Datasource) *api.Datasource {
-	if types.IsNil(datasource) || types.IsNil(b) {
-		return nil
-	}
-
-	return &api.Datasource{
+	return &api.DatasourceItem{
 		Category:    api.DatasourceType(datasource.Category),
 		StorageType: api.StorageType(datasource.StorageType),
-		Config:      datasource.Config,
+		Config:      datasource.Config.String(),
 		Endpoint:    datasource.Endpoint,
 		Id:          datasource.ID,
+		Status:      api.Status(datasource.Status),
+		TeamId:      datasource.TeamID,
 	}
 }
 
-func (b *boDatasourceBuilder) ToAPIs(datasources []*bo.Datasource) []*api.Datasource {
-	if types.IsNil(datasources) || types.IsNil(b) {
-		return nil
-	}
-
-	return types.SliceTo(datasources, func(item *bo.Datasource) *api.Datasource {
+func (b *boDatasourceBuilder) ToAPIs(datasource []*bizmodel.Datasource) []*api.DatasourceItem {
+	return types.SliceTo(datasource, func(item *bizmodel.Datasource) *api.DatasourceItem {
 		return b.ToAPI(item)
 	})
 }
 
-func (d *datasourceModuleBuilder) BoDatasourceBuilder() IBoDatasourceBuilder {
+func (d *datasourceModuleBuilder) DatasourceBuilder() IDatasourceBuilder {
 	return &boDatasourceBuilder{ctx: d.ctx}
 }
 
@@ -184,11 +149,12 @@ func (u *updateDatasourceRequestBuilder) ToBo() *bo.UpdateDatasourceBaseInfoPara
 	return &bo.UpdateDatasourceBaseInfoParams{
 		ID:             u.GetId(),
 		Name:           u.GetName(),
+		Endpoint:       u.GetEndpoint(),
 		Status:         vobj.Status(u.GetStatus()),
+		Config:         datasource.NewDatasourceConfigByString(u.GetConfig()),
 		Remark:         u.GetRemark(),
 		StorageType:    vobj.StorageType(u.GetStorageType()),
 		DatasourceType: vobj.DatasourceType(u.GetDatasourceType()),
-		ConfigValue:    u.GetConfigValue(),
 	}
 }
 
@@ -203,20 +169,17 @@ func (c *createDatasourceRequestBuilder) ToBo() *bo.CreateDatasourceParams {
 		Endpoint:       c.GetEndpoint(),
 		Status:         vobj.Status(c.GetStatus()),
 		Remark:         c.GetRemark(),
-		Config:         c.GetConfig(),
+		Config:         datasource.NewDatasourceConfigByString(c.GetConfig()),
 		StorageType:    vobj.StorageType(c.GetStorageType()),
 	}
 }
 
-func (d *doDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.DatasourceItem {
+func (d *doDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource) *adminapi.DatasourceItem {
 	if types.IsNil(datasource) || types.IsNil(d) {
 		return nil
 	}
 
-	userMap := getUsers(d.ctx, userMaps, datasource.CreatorID)
-
-	config := make(map[string]string)
-	_ = types.Unmarshal([]byte(datasource.Config), &config)
+	userMap := getUsers(d.ctx, datasource.CreatorID)
 	return &adminapi.DatasourceItem{
 		Id:             datasource.ID,
 		Name:           datasource.Name,
@@ -225,24 +188,20 @@ func (d *doDatasourceBuilder) ToAPI(datasource *bizmodel.Datasource, userMaps ..
 		Status:         api.Status(datasource.Status),
 		CreatedAt:      datasource.CreatedAt.String(),
 		UpdatedAt:      datasource.UpdatedAt.String(),
-		Config:         config,
+		Config:         datasource.Config.String(),
 		Remark:         datasource.Remark,
 		StorageType:    api.StorageType(datasource.StorageType),
 		Creator:        userMap[datasource.CreatorID],
 	}
 }
 
-func (d *doDatasourceBuilder) ToAPIs(datasources []*bizmodel.Datasource) []*adminapi.DatasourceItem {
-	if types.IsNil(datasources) || types.IsNil(d) {
+func (d *doDatasourceBuilder) ToAPIs(datasource []*bizmodel.Datasource) []*adminapi.DatasourceItem {
+	if types.IsNil(datasource) || types.IsNil(d) {
 		return nil
 	}
 
-	ids := types.SliceTo(datasources, func(item *bizmodel.Datasource) uint32 {
-		return item.CreatorID
-	})
-	userMap := getUsers(d.ctx, nil, ids...)
-	return types.SliceTo(datasources, func(item *bizmodel.Datasource) *adminapi.DatasourceItem {
-		return d.ToAPI(item, userMap)
+	return types.SliceTo(datasource, func(item *bizmodel.Datasource) *adminapi.DatasourceItem {
+		return d.ToAPI(item)
 	})
 }
 
@@ -262,12 +221,12 @@ func (d *doDatasourceBuilder) ToSelect(datasource *bizmodel.Datasource) *adminap
 	}
 }
 
-func (d *doDatasourceBuilder) ToSelects(datasources []*bizmodel.Datasource) []*adminapi.SelectItem {
-	if types.IsNil(d) || types.IsNil(datasources) {
+func (d *doDatasourceBuilder) ToSelects(datasource []*bizmodel.Datasource) []*adminapi.SelectItem {
+	if types.IsNil(d) || types.IsNil(datasource) {
 		return nil
 	}
 
-	return types.SliceTo(datasources, func(item *bizmodel.Datasource) *adminapi.SelectItem {
+	return types.SliceTo(datasource, func(item *bizmodel.Datasource) *adminapi.SelectItem {
 		return d.ToSelect(item)
 	})
 }

@@ -33,7 +33,7 @@ func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service)
 		}),
 	).Match(middleware.NewWhiteListMatcher(allowAPIList)).Build()
 
-	var opts = []http.ServerOption{
+	opts := []http.ServerOption{
 		http.Filter(middleware.Cors()),
 		http.Middleware(
 			recovery.Recovery(recovery.WithHandler(mlog.RecoveryHandle)),

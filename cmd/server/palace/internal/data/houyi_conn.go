@@ -187,21 +187,29 @@ func (l *HouYiConn) pushStrategy(ctx context.Context, conn *Srv, in *strategyapi
 	teamIDMap := types.ToMap(conn.teamIds, func(t uint32) uint32 {
 		return t
 	})
-	list := make([]*api.MetricStrategyItem, 0, len(in.Strategies))
-	for _, strategyItem := range in.Strategies {
-		if len(teamIDMap) == 0 {
-			list = in.Strategies
-			break
-		}
-		if teamIDMap[strategyItem.TeamID] <= 0 {
-			continue
-		}
-		list = append(list, strategyItem)
+
+	if len(teamIDMap) > 0 {
+		in.MetricStrategies = types.Filter(in.MetricStrategies, func(item *api.MetricStrategyItem) bool {
+			return teamIDMap[item.TeamID] > 0
+		})
+
+		in.EventStrategies = types.Filter(in.EventStrategies, func(item *api.EventStrategyItem) bool {
+			return teamIDMap[item.TeamID] > 0
+		})
+
+		in.DomainStrategies = types.Filter(in.DomainStrategies, func(item *api.DomainStrategyItem) bool {
+			return teamIDMap[item.TeamID] > 0
+		})
+
+		in.HttpStrategies = types.Filter(in.HttpStrategies, func(item *api.HttpStrategyItem) bool {
+			return teamIDMap[item.TeamID] > 0
+		})
+
+		in.PingStrategies = types.Filter(in.PingStrategies, func(item *api.PingStrategyItem) bool {
+			return teamIDMap[item.TeamID] > 0
+		})
 	}
-	if len(list) <= 0 {
-		return &strategyapi.PushStrategyReply{}, nil
-	}
-	in.Strategies = list
+
 	var err error
 	switch conn.network {
 	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
@@ -279,8 +287,8 @@ func (l *HouYiConn) syncStrategies(srv *Srv, strategies []*bo.Strategy) error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	items := builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToAPIs(strategies)
-	_, err := l.pushStrategy(ctx, srv, &strategyapi.PushStrategyRequest{Strategies: items})
+	item := builder.NewParamsBuild(ctx).StrategyModuleBuilder().BoStrategyBuilder().ToAPI(strategies...)
+	_, err := l.pushStrategy(ctx, srv, item)
 	if !types.IsNil(err) {
 		log.Errorw("同步策略失败：", err)
 		return err

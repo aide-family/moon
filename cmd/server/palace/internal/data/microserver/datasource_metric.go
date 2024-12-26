@@ -26,19 +26,12 @@ type datasourceMetricRepositoryImpl struct {
 
 // Query 查询数据源指标
 func (l *datasourceMetricRepositoryImpl) Query(ctx context.Context, req *bo.DatasourceQueryParams) ([]*bo.MetricQueryData, error) {
-	configMap := make(map[string]string)
-	if !types.TextIsNull(req.Config) {
-		if err := types.Unmarshal([]byte(req.Config), &configMap); !types.IsNil(err) {
-			return nil, err
-		}
-	}
-
 	in := &metadata.QueryRequest{
 		Query:       req.Query,
 		Range:       req.TimeRange,
 		Step:        req.Step,
 		Endpoint:    req.Endpoint,
-		Config:      configMap,
+		Config:      req.Config.String(),
 		StorageType: api.StorageType(req.StorageType),
 	}
 	queryReply, err := l.cli.Query(ctx, in)
@@ -70,13 +63,9 @@ func (l *datasourceMetricRepositoryImpl) Query(ctx context.Context, req *bo.Data
 
 // GetMetadata 获取数据源指标元数据
 func (l *datasourceMetricRepositoryImpl) GetMetadata(ctx context.Context, datasourceInfo *bizmodel.Datasource) ([]*bizmodel.DatasourceMetric, error) {
-	configMap := make(map[string]string)
-	if err := types.Unmarshal([]byte(datasourceInfo.Config), &configMap); !types.IsNil(err) {
-		return nil, err
-	}
 	in := &metadata.SyncMetadataRequest{
 		Endpoint:    datasourceInfo.Endpoint,
-		Config:      configMap,
+		Config:      datasourceInfo.Config.String(),
 		StorageType: api.StorageType(datasourceInfo.StorageType),
 	}
 	syncReply, err := l.cli.Sync(ctx, in)
@@ -109,14 +98,9 @@ func (l *datasourceMetricRepositoryImpl) GetMetadata(ctx context.Context, dataso
 
 // InitiateSyncRequest 发起同步请求
 func (l *datasourceMetricRepositoryImpl) InitiateSyncRequest(ctx context.Context, datasourceInfo *bizmodel.Datasource) error {
-	configMap := make(map[string]string)
-	if err := types.Unmarshal([]byte(datasourceInfo.Config), &configMap); !types.IsNil(err) {
-		return err
-	}
-
 	in := &metadata.SyncMetadataV2Request{
 		Endpoint:     datasourceInfo.Endpoint,
-		Config:       configMap,
+		Config:       datasourceInfo.Config.String(),
 		StorageType:  api.StorageType(datasourceInfo.StorageType),
 		DatasourceId: datasourceInfo.ID,
 		TeamId:       middleware.GetTeamID(ctx),

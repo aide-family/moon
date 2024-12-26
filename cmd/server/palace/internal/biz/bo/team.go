@@ -3,8 +3,11 @@ package bo
 import (
 	"context"
 
+	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/util/cipher"
+	"github.com/aide-family/moon/pkg/util/email"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -115,27 +118,26 @@ type (
 		OldLeaderID uint32 `json:"oldLeaderID"`
 	}
 
-	// SetTeamMailConfigParams 设置团队邮件配置请求参数
-	SetTeamMailConfigParams struct {
-		User     string `json:"user"`
-		Password string `json:"password"`
-		Host     string `json:"host"`
-		Port     uint32 `json:"port"`
-		Remark   string `json:"remark"`
+	// SetTeamConfigParams 设置团队配置请求参数
+	SetTeamConfigParams struct {
+		// 邮箱配置
+		EmailConfig *conf.EmailConfig `json:"emailConfig"`
+		// 对称加密配置
+		SymmetricEncryptionConfig *conf.SymmetricEncryptionConfig `json:"symmetricEncryptionConfig"`
+		// 非对称加密配置
+		AsymmetricEncryptionConfig *conf.AsymmetricEncryptionConfig `json:"asymmetricEncryptionConfig"`
 	}
 )
 
 // ToModel 转换为model
-func (t *SetTeamMailConfigParams) ToModel(ctx context.Context) *model.SysTeamEmail {
-	if !types.IsNil(t) {
-		return nil
+func (t *SetTeamConfigParams) ToModel(ctx context.Context) *model.SysTeamConfig {
+	if types.IsNil(t) {
+		panic("SetTeamConfigParams is nil")
 	}
-	return &model.SysTeamEmail{
-		TeamID: middleware.GetTeamID(ctx),
-		User:   t.User,
-		Pass:   t.Password,
-		Host:   t.Host,
-		Port:   t.Port,
-		Remark: t.Remark,
+	return &model.SysTeamConfig{
+		TeamID:                     middleware.GetTeamID(ctx),
+		EmailConfig:                email.NewDefaultConfig(t.EmailConfig),
+		SymmetricEncryptionConfig:  cipher.NewSymmetricEncryptionConfig(t.SymmetricEncryptionConfig.Key, t.SymmetricEncryptionConfig.Iv),
+		AsymmetricEncryptionConfig: cipher.NewAsymmetricEncryptionConfig(t.AsymmetricEncryptionConfig.PublicKey, t.AsymmetricEncryptionConfig.PrivateKey),
 	}
 }

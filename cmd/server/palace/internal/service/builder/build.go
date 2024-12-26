@@ -2,11 +2,13 @@ package builder
 
 import (
 	"context"
+
+	"github.com/aide-family/moon/pkg/util/types"
 )
 
 // NewParamsBuild 创建参数构造器
 func NewParamsBuild(ctx context.Context) IPramsBuilder {
-	return &paramsBuilder{ctx: ctx}
+	return &paramsBuilder{ctx: types.CopyValueCtx(ctx)}
 }
 
 type (
@@ -78,24 +80,32 @@ type (
 		// AlarmSendModuleBuilder 告警发送模块构造器
 		AlarmSendModuleBuilder() IAlarmSendModuleBuilder
 
-		// MqDataSourceModuleBuild mq数据源模块构造器
-		MqDataSourceModuleBuild() IMqDataSourceModuleBuild
+		// TimeEngineRuleModuleBuilder 时间引擎规则模块构造器
+		TimeEngineRuleModuleBuilder() ITimeEngineRuleModuleBuilder
+
+		// TimeEngineModuleBuilder 时间引擎模块构造器
+		TimeEngineModuleBuilder() ITimeEngineModuleBuilder
 
 		// OauthModuleBuilder oauth模块构造器
 		OauthModuleBuilder() IOauthModuleBuilder
 	}
 )
 
+// TimeEngineModuleBuilder implements IPramsBuilder.
+func (p *paramsBuilder) TimeEngineModuleBuilder() ITimeEngineModuleBuilder {
+	return &timeEngineModuleBuilderImpl{ctx: p.ctx}
+}
+
+// TimeEngineRuleModuleBuilder implements IPramsBuilder.
+func (p *paramsBuilder) TimeEngineRuleModuleBuilder() ITimeEngineRuleModuleBuilder {
+	return &timeEngineRuleModuleBuilderImpl{ctx: p.ctx}
+}
+
 // OauthModuleBuilder implements IPramsBuilder.
 func (p *paramsBuilder) OauthModuleBuilder() IOauthModuleBuilder {
 	return NewOauthModuleBuilder(p.ctx)
 }
 
-func (p *paramsBuilder) MqDataSourceModuleBuild() IMqDataSourceModuleBuild {
-	return &mqDatasourceModuleBuild{
-		ctx: p.ctx,
-	}
-}
 func (p *paramsBuilder) AlarmSendModuleBuilder() IAlarmSendModuleBuilder {
 	return &alarmSendModuleBuilder{ctx: p.ctx}
 }

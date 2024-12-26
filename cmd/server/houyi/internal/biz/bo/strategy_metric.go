@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/pkg/env"
@@ -14,6 +15,7 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
 	"github.com/go-kratos/kratos/v2/log"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 var _ IStrategy = (*StrategyMetric)(nil)
@@ -64,14 +66,10 @@ type (
 		Count uint32 `json:"count,omitempty"`
 		// 持续的类型
 		SustainType vobj.Sustain `json:"sustainType,omitempty"`
-		// 多数据源持续类型
-		MultiDatasourceSustainType vobj.MultiDatasourceSustain `json:"multiDatasourceSustainType,omitempty"`
 		// 策略标签
 		Labels *vobj.Labels `json:"labels,omitempty"`
 		// 策略注解
 		Annotations *vobj.Annotations `json:"annotations,omitempty"`
-		// 执行频率
-		Interval *types.Duration `json:"interval,omitempty"`
 		// 数据源
 		Datasource []*Datasource `json:"datasource,omitempty"`
 		// 策略状态
@@ -82,6 +80,8 @@ type (
 		Threshold float64 `json:"threshold,omitempty"`
 		// 团队ID
 		TeamID uint32 `json:"teamId,omitempty"`
+		// 策略类型
+		StrategyType vobj.StrategyType `json:"strategyType,omitempty"`
 	}
 
 	// Datasource 数据源明细
@@ -91,17 +91,21 @@ type (
 		// 存储器类型
 		StorageType vobj.StorageType `json:"storage_type,omitempty"`
 		// 数据源配置 json
-		Config map[string]string `json:"config,omitempty"`
+		Config string `json:"config,omitempty"`
 		// 数据源地址
 		Endpoint string `json:"endpoint,omitempty"`
 		// 数据源ID
 		ID uint32 `json:"id,omitempty"`
+		// 状态
+		Status vobj.Status `json:"status,omitempty"`
+		// 团队ID
+		TeamID uint32 `json:"teamId,omitempty"`
 	}
 )
 
 // GetInterval 获取执行频率
 func (s *StrategyMetric) GetInterval() *types.Duration {
-	return s.Interval
+	return types.NewDuration(durationpb.New(time.Second * 10))
 }
 
 // BuilderAlarmBaseInfo 生成告警基础信息
@@ -171,7 +175,7 @@ func (s *StrategyMetric) getDatasourceCliList() ([]datasource.MetricDatasource, 
 			log.Warnw("method", "Eval", "error", "datasource category is not same")
 			continue
 		}
-		cfg := &api.Datasource{
+		cfg := &api.DatasourceItem{
 			Category:    api.DatasourceType(datasourceItem.Category),
 			StorageType: api.StorageType(datasourceItem.StorageType),
 			Config:      datasourceItem.Config,

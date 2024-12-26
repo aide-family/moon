@@ -203,9 +203,6 @@ message CreateStrategyRequest {
   Status status = 4;
   // 数据源id
   repeated uint32 datasourceIds = 6 [(buf.validate.field).cel = {
-    message: "请选择至少一个数据源",
-    expression: "this.size() > 0"
-  }, (buf.validate.field).cel = {
     message: "数据源重复",
     expression: "this.unique()"
   }];
@@ -263,15 +260,27 @@ message CreateStrategyRequest {
 
   option (buf.validate.message).cel = {
     id: "StrategyMetricLevelRequired",
-    expression: "this.strategyType != 1 || (this.strategyMetricLevel.size() > 0)",
+    expression: "this.strategyType != 1 || (this.strategyMetricLevels.size() > 0)",
     message: "strategyMetricLevels 不能为空"
   };
+
+//  option (buf.validate.message).cel = {
+//    id: "StrategyMetricLevelRequired",
+//    expression: "this.strategyType != 1 || (this.datasourceIds.size() > 0)",
+//    message: "请选择至少一个数据源"
+//  };
 
   option (buf.validate.message).cel = {
     id: "StrategyEventLevelRequired",
     expression: "this.strategyType != 2 || (this.strategyDomainLevels.size() > 0)",
     message: "StrategyDomainLevels 不能为空"
   };
+
+//  option (buf.validate.message).cel = {
+//    id: "StrategyMetricLevelRequired",
+//    expression: "this.strategyType != 2 || (this.datasourceIds.size() > 0)",
+//    message: "请选择至少一个数据源"
+//  };
 
   option (buf.validate.message).cel = {
     id: "StrategyPortLevelRequired",
@@ -337,6 +346,8 @@ message ListStrategyRequest {
   // 状态查询
   Status status = 3;
   DatasourceType datasourceType = 4;
+  // 策略类型
+  repeated StrategyType strategyTypes = 5;
 }
 message ListStrategyReply {
   // 分页信息
@@ -361,15 +372,13 @@ message UpdateStrategyStatusReply {}
 
 message CreateStrategyEventLevelRequest{
   // 值
-  string value = 1 [(buf.validate.field).required = true];
+  string threshold = 1 [(buf.validate.field).required = true];
   // 条件
-  MQCondition condition = 2 [(buf.validate.field).required = true];
+  EventCondition condition = 2 [(buf.validate.field).required = true];
   // 数据类型
-  MQDataType dataType = 3 [(buf.validate.field).required = true];
-  // 状态
-  Status status = 4;
+  EventDataType dataType = 3 [(buf.validate.field).required = true];
   // 告警等级ID
-  uint32 alarmLevelId = 5;
+  uint32 levelId = 5;
   // 告警页面ID
   repeated uint32 alarmPageIds = 6 [(buf.validate.field).cel = {
     message: "请选择告警页面",
@@ -395,10 +404,6 @@ message CreateStrategyMetricLevelRequest{
   uint32 count = 2;
   // 持续的类型
   SustainType sustainType = 3;
-  // 执行频率
-  int64 interval = 4;
-  // 状态
-  Status status = 5;
   // 告警等级ID
   uint32 levelId = 6;
   // 阈值
@@ -419,85 +424,16 @@ message CreateStrategyMetricLevelRequest{
   }];
   // 策略Labels
   repeated CreateStrategyLabelNoticeRequest labelNotices = 15;
-  // ID
-  uint32 id = 16;
 }
 
 // 域名证书监控策略定义
 message CreateStrategyDomainLevelRequest{
   // 策略等级ID
-  uint32 levelID = 1 [(buf.validate.field).cel = {
+  uint32 levelId = 1 [(buf.validate.field).cel = {
     id: "DomainStrategyItem_levelID"
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
   }];
-   // 状态
-   Status status = 2;
-   // 告警页面ID
-   repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
-    message: "请选择告警页面",
-    expression: "this.size() > 0"
-  }, (buf.validate.field).cel = {
-    message: "告警页面重复",
-    expression: "this.unique()"
-  }];
-  // 告警组ID列表
-  repeated uint32 alarmGroupIds = 4 [(buf.validate.field).cel = {
-    message: "告警组重复",
-    expression: "this.unique()"
-  }];
-  // 策略Labels
-  repeated CreateStrategyLabelNoticeRequest labelNotices = 5;
-  // ID
-  uint32 id = 6;
-  // 阈值
-  int64 threshold = 7;
-  // 判断条件
-  Condition condition = 11;
-}
-
-// 端口监控策略定义
-message CreateStrategyPortLevelRequest {
-  // 策略等级ID
-  uint32 levelID = 1 [(buf.validate.field).cel = {
-    id: "PortStrategyItem_levelID"
-    expression: 'this > 0'
-    message: "策略等级ID必须大于0"
-  }];
-   // 状态
-   Status status = 2;
-   // 告警页面ID
-   repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
-    message: "请选择告警页面",
-    expression: "this.size() > 0"
-  }, (buf.validate.field).cel = {
-    message: "告警页面重复",
-    expression: "this.unique()"
-  }];
-  // 告警组ID列表
-  repeated uint32 alarmGroupIds = 4 [(buf.validate.field).cel = {
-    message: "告警组重复",
-    expression: "this.unique()"
-  }];
-  // 策略Labels
-  repeated CreateStrategyLabelNoticeRequest labelNotices = 5;
-  // ID
-  uint32 id = 6;
-  // 阈值
-  int64 threshold = 7;
-  // 端口
-  uint32 port = 8;
-}
-
-message CreateStrategyHTTPLevelRequest {
-  // 策略等级ID
-  uint32 levelID = 1 [(buf.validate.field).cel = {
-    id: "PortStrategyItem_levelID"
-    expression: 'this > 0'
-    message: "策略等级ID必须大于0"
-  }];
-  // 状态
-  Status status = 2;
   // 告警页面ID
   repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
     message: "请选择告警页面",
@@ -513,14 +449,69 @@ message CreateStrategyHTTPLevelRequest {
   }];
   // 策略Labels
   repeated CreateStrategyLabelNoticeRequest labelNotices = 5;
-  // ID
-  uint32 id = 6;
+  // 阈值
+  int64 threshold = 7;
+  // 判断条件
+  Condition condition = 11;
+}
+
+// 端口监控策略定义
+message CreateStrategyPortLevelRequest {
+  // 策略等级ID
+  uint32 levelId = 1 [(buf.validate.field).cel = {
+    id: "PortStrategyItem_levelID"
+    expression: 'this > 0'
+    message: "策略等级ID必须大于0"
+  }];
+  // 告警页面ID
+  repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
+    message: "请选择告警页面",
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "告警页面重复",
+    expression: "this.unique()"
+  }];
+  // 告警组ID列表
+  repeated uint32 alarmGroupIds = 4 [(buf.validate.field).cel = {
+    message: "告警组重复",
+    expression: "this.unique()"
+  }];
+  // 策略Labels
+  repeated CreateStrategyLabelNoticeRequest labelNotices = 5;
+  // 阈值
+  int64 threshold = 7;
+  // 端口
+  uint32 port = 8;
+}
+
+message CreateStrategyHTTPLevelRequest {
+  // 策略等级ID
+  uint32 levelId = 1 [(buf.validate.field).cel = {
+    id: "PortStrategyItem_levelID"
+    expression: 'this > 0'
+    message: "策略等级ID必须大于0"
+  }];
+  // 告警页面ID
+  repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
+    message: "请选择告警页面",
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "告警页面重复",
+    expression: "this.unique()"
+  }];
+  // 告警组ID列表
+  repeated uint32 alarmGroupIds = 4 [(buf.validate.field).cel = {
+    message: "告警组重复",
+    expression: "this.unique()"
+  }];
+  // 策略Labels
+  repeated CreateStrategyLabelNoticeRequest labelNotices = 5;
   // 响应时间 s
-  uint32 responseTime = 7;
+  double responseTime = 7;
   // 状态码
-  uint32 statusCodes = 8;
+  string statusCode = 8;
   // 请求头
-  map<string, string> headers = 9;
+  repeated HeaderItem headers = 9;
   // 请求体
   string body = 10;
   // 查询参数
@@ -531,6 +522,19 @@ message CreateStrategyHTTPLevelRequest {
   Condition statusCodeCondition = 13;
   // 响应时间判断条件
   Condition responseTimeCondition = 14;
+}
+
+message HeaderItem {
+  string key = 1 [(buf.validate.field).cel = {
+    message: "标签名称长度限制在1-200个字符",
+    expression: "this.size() <= 200 && this.size() > 0"
+    id: "HeaderItem_key"
+  }];
+  string value = 2 [(buf.validate.field).cel = {
+    message: "标签名称长度限制在1-200个字符",
+    expression: "this.size() <= 200 && this.size() > 0"
+    id: "HeaderItem_value"
+  }];
 }
 
 message CopyStrategyRequest {

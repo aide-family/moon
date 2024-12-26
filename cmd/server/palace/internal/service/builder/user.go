@@ -43,6 +43,8 @@ type (
 		WithUpdateUserAvatarRequest(*userapi.UpdateUserAvatarRequest) IUpdateUserAvatarRequestBuilder
 		// WithUpdateUserBaseInfoRequest 设置更新用户基础信息请求
 		WithUpdateUserBaseInfoRequest(*userapi.UpdateUserBaseInfoRequest) IUpdateUserBaseInfoRequestBuilder
+		// WithSetUserRoleRequest 设置设置用户角色请求
+		WithSetUserRoleRequest(*userapi.SetUserRoleRequest) ISetUserRoleRequestBuilder
 		// DoUserBuilder 获取用户条目构造器
 		DoUserBuilder() IDoUserBuilder
 		// DoNoticeUserBuilder 获取通知用户条目构造器
@@ -153,6 +155,17 @@ type (
 		*userapi.UpdateUserBaseInfoRequest
 	}
 
+	// ISetUserRoleRequestBuilder 设置用户角色请求参数构造器
+	ISetUserRoleRequestBuilder interface {
+		// ToBo 转换为业务对象
+		ToBo() *bo.SetUserRoleParams
+	}
+
+	setUserRoleRequestBuilder struct {
+		ctx context.Context
+		*userapi.SetUserRoleRequest
+	}
+
 	// IDoUserBuilder 用户条目构造器
 	IDoUserBuilder interface {
 		// ToAPI 转换为API对象
@@ -199,6 +212,23 @@ type (
 		ctx context.Context
 	}
 )
+
+func (s *setUserRoleRequestBuilder) ToBo() *bo.SetUserRoleParams {
+	if s == nil || types.IsNil(s.SetUserRoleRequest) {
+		return nil
+	}
+	return &bo.SetUserRoleParams{
+		Role:   vobj.Role(s.GetRole()),
+		UserID: s.GetId(),
+	}
+}
+
+func (u *userModuleBuilder) WithSetUserRoleRequest(request *userapi.SetUserRoleRequest) ISetUserRoleRequestBuilder {
+	return &setUserRoleRequestBuilder{
+		ctx:                u.ctx,
+		SetUserRoleRequest: request,
+	}
+}
 
 // ToAPIByID implements IDoUserBuilder.
 func (d *doUserBuilder) ToAPIByID(ctx context.Context, id uint32) *adminapi.UserItem {

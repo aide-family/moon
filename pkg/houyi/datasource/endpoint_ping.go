@@ -44,22 +44,22 @@ func EndpointPing(_ context.Context, endpoint string, seconds time.Duration) (ma
 	points := make(map[watch.Indexer]*Point)
 
 	pinger.OnRecv = func(pkt *ping.Packet) {
-		//fmt.Printf("%d bytes from %s: icmp_seq=%d time=%v\n",
+		// fmt.Printf("%d bytes from %s: icmp_seq=%d time=%v\n",
 		//	pkt.Nbytes, pkt.IPAddr, pkt.Seq, pkt.Rtt)
 	}
 
 	pinger.OnDuplicateRecv = func(pkt *ping.Packet) {
-		//fmt.Printf("%d bytes from %s: icmp_seq=%d time=%v ttl=%v (DUP!)\n",
+		// fmt.Printf("%d bytes from %s: icmp_seq=%d time=%v ttl=%v (DUP!)\n",
 		//	pkt.Nbytes, pkt.IPAddr, pkt.Seq, pkt.Rtt, pkt.Ttl)
 	}
 
 	var detail PingDetail
 
 	pinger.OnFinish = func(stats *ping.Statistics) {
-		//fmt.Printf("\n--- %s ping statistics ---\n", stats.Addr)
-		//fmt.Printf("%d packets transmitted, %d packets received, %v%% packet loss\n",
+		// fmt.Printf("\n--- %s ping statistics ---\n", stats.Addr)
+		// fmt.Printf("%d packets transmitted, %d packets received, %v%% packet loss\n",
 		//	stats.PacketsSent, stats.PacketsRecv, stats.PacketLoss)
-		//fmt.Printf("round-trip min/avg/max/stddev = %v/%v/%v/%v\n",
+		// fmt.Printf("round-trip min/avg/max/stddev = %v/%v/%v/%v\n",
 		//	stats.MinRtt, stats.AvgRtt, stats.MaxRtt, stats.StdDevRtt)
 		detail.TotalPackets = float64(stats.PacketsSent)
 		detail.SuccessPackets = float64(stats.PacketsRecv)
@@ -70,7 +70,7 @@ func EndpointPing(_ context.Context, endpoint string, seconds time.Duration) (ma
 		detail.StdDevDelay = float64(stats.StdDevRtt.Milliseconds())
 	}
 
-	//fmt.Printf("PING %s (%s):\n", pinger.Addr(), pinger.IPAddr())
+	// fmt.Printf("PING %s (%s):\n", pinger.Addr(), pinger.IPAddr())
 	if err := pinger.Run(); err != nil {
 		return nil, err
 	}

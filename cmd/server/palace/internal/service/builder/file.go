@@ -12,23 +12,24 @@ import (
 var _ IFileModuleBuild = (*fileModuleBuild)(nil)
 
 type (
-	fileModuleBuild struct {
-		ctx context.Context
-	}
-
 	// IFileModuleBuild 文件模块构造器
 	IFileModuleBuild interface {
 		// WithUpdateFileRequest 更新文件请求参数构造器
 		WithUpdateFileRequest(bytes []byte) IUploadFileRequest
 	}
 
+	fileModuleBuild struct {
+		ctx context.Context
+	}
+
 	// IUploadFileRequest 上传文件请求参数构造器
 	IUploadFileRequest interface {
-		// ToJson 转换为JSON字符串
+		// ToJSON 转换为JSON字符串
 		ToJSON() string
-		// ToYaml 转换为YAML字符串
+		// ToYAML 转换为YAML字符串
 		ToYAML() string
 	}
+
 	updateFileRequest struct {
 		ctx   context.Context
 		bytes []byte

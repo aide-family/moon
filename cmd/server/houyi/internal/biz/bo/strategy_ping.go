@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 var _ IStrategy = (*StrategyPing)(nil)
@@ -28,12 +29,8 @@ type StrategyPing struct {
 	Status vobj.Status `json:"status,omitempty"`
 	// 策略名称
 	Alert string `json:"alert,omitempty"`
-	// 执行频率
-	Interval *types.Duration `json:"interval,omitempty"`
 	// 策略级别ID
 	LevelID uint32 `json:"levelId,omitempty"`
-	// 超时时间
-	Timeout uint32 `json:"timeout,omitempty"`
 	// 策略标签
 	Labels *vobj.Labels `json:"labels,omitempty"`
 	// 策略注解
@@ -126,7 +123,7 @@ func (s *StrategyPing) GetAnnotations() map[string]string {
 
 // GetInterval 获取执行频率
 func (s *StrategyPing) GetInterval() *types.Duration {
-	return s.Interval
+	return types.NewDuration(durationpb.New(10 * time.Second))
 }
 
 // Eval 评估策略
@@ -134,7 +131,7 @@ func (s *StrategyPing) Eval(ctx context.Context) (map[watch.Indexer]*datasource.
 	if !s.Status.IsEnable() {
 		return nil, nil
 	}
-	return datasource.EndpointPing(ctx, s.Address, time.Duration(s.Timeout)*time.Second)
+	return datasource.EndpointPing(ctx, s.Address, 10*time.Second)
 }
 
 // IsCompletelyMeet 是否完全满足策略条件

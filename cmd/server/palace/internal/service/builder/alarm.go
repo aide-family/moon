@@ -21,14 +21,6 @@ type (
 		WithCreateAlarmRawInfoRequest(*api.AlarmItem) ICreateAlarmRawInfoRequestBuilder
 	}
 
-	// ICreateAlarmItemRequestBuilder 创建报警项请求构建器
-	ICreateAlarmItemRequestBuilder interface {
-	}
-
-	createAlarmItemRequestBuilder struct {
-		ctx context.Context
-	}
-
 	// ICreateAlarmRawInfoRequestBuilder 创建告警原始数据请求构建器
 	ICreateAlarmRawInfoRequestBuilder interface {
 		ToBo() *bo.CreateAlarmHookRawParams

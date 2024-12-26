@@ -3,6 +3,7 @@ package repoimpl
 import (
 	"context"
 
+	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
@@ -45,29 +46,25 @@ func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, p
 	return alarmQuery.Transaction(func(tx *alarmquery.Query) error {
 		for _, realTime := range realTimes {
 			// 实时告警表
-			if err := tx.RealtimeAlarm.WithContext(ctx).Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "fingerprint"}},
-				DoUpdates: clause.AssignmentColumns(realCol)}).Create(realTime); err != nil {
+			if err := tx.RealtimeAlarm.WithContext(ctx).Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "fingerprint"}},
+				DoUpdates: clause.AssignmentColumns(realCol),
+			}).Create(realTime); err != nil {
 				return err
 			}
 
 			// 告警详情表
 			detail := &alarmmodel.RealtimeDetails{
-				RealtimeAlarmID: realTime.ID,
 				Strategy:        param.Strategy.String(),
+				Level:           param.Level,
 				Datasource:      param.GetDatasourceMap(realTime.Labels.GetDatasourceID()),
+				RealtimeAlarmID: realTime.ID,
+				RealtimeAlarm:   realTime,
 			}
-
-			switch param.Strategy.StrategyType {
-			case vobj.StrategyTypeMetric:
-				detail.Level = param.Level.MetricsLevel.String()
-			case vobj.StrategyTypeMQ:
-				detail.Level = param.Level.MQLevel.String()
-			default:
-				return merr.ErrorI18nToastStrategyTypeNotExist(ctx)
-			}
-
-			if err := tx.RealtimeDetails.WithContext(ctx).Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "realtime_alarm_id"}},
-				DoUpdates: clause.AssignmentColumns(detailCol)}).Create(detail); err != nil {
+			if err := tx.RealtimeDetails.WithContext(ctx).Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "realtime_alarm_id"}},
+				DoUpdates: clause.AssignmentColumns(detailCol),
+			}).Create(detail); err != nil {
 				return err
 			}
 		}
@@ -122,7 +119,7 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 		_, _ = alarmQuery.RealtimeAlarmReceiver.Where(alarmQuery.RealtimeAlarmReceiver.RealtimeAlarmID.In(resolvedIds...)).Delete()
 	}
 
-	var wheres = []gen.Condition{
+	wheres := []gen.Condition{
 		alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusFiring.GetValue()),
 	}
 	if !types.TextIsNull(params.EventAtStart) && !types.TextIsNull(params.EventAtEnd) {
@@ -172,31 +169,33 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 
 func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.CreateAlarmInfoParams) []*alarmmodel.RealtimeAlarm {
 	strategy := param.Strategy
-	levelID := param.Level.MetricsLevel.LevelID
-	strategyLevel := param.Level.MetricsLevel
 	alarms := types.SliceTo(param.Alerts, func(alarmParam *bo.AlertItemRawParams) *alarmmodel.RealtimeAlarm {
 		labels := vobj.NewLabels(alarmParam.Labels)
 		annotations := vobj.NewAnnotations(alarmParam.Annotations)
-		return &alarmmodel.RealtimeAlarm{
-			Status:      vobj.ToAlertStatus(alarmParam.Status),
-			StartsAt:    alarmParam.StartsAt,
-			EndsAt:      alarmParam.EndsAt,
-			Summary:     annotations.GetSummary(),
-			Description: annotations.GetDescription(),
-			Expr:        strategy.Expr,
-			Fingerprint: alarmParam.Fingerprint,
-			Labels:      labels,
-			Annotations: annotations,
-			RawInfoID:   param.GetRawInfoID(alarmParam.Fingerprint),
-			StrategyID:  strategy.GetID(),
+		alarm := &alarmmodel.RealtimeAlarm{
+			EasyModel:       model.EasyModel{},
+			Status:          vobj.ToAlertStatus(alarmParam.Status),
+			StartsAt:        alarmParam.StartsAt,
+			EndsAt:          alarmParam.EndsAt,
+			Summary:         annotations.GetSummary(),
+			Description:     annotations.GetDescription(),
+			Expr:            strategy.Expr,
+			Fingerprint:     alarmParam.Fingerprint,
+			Labels:          labels,
+			Annotations:     annotations,
+			RawInfoID:       param.GetRawInfoID(alarmParam.Fingerprint),
+			RealtimeDetails: &alarmmodel.RealtimeDetails{},
+			StrategyID:      strategy.GetID(),
+			LevelID:         strategy.Level.GetID(),
+			RawInfo:         &alarmmodel.AlarmRaw{},
 			Receiver: types.SliceTo(param.ReceiverGroupIDs, func(id uint32) *alarmmodel.RealtimeAlarmReceiver {
 				return &alarmmodel.RealtimeAlarmReceiver{AlarmNoticeGroupID: id}
 			}),
-			LevelID: levelID,
-			Pages: types.SliceTo(strategyLevel.AlarmPage, func(page *bizmodel.SysDict) *alarmmodel.RealtimeAlarmPage {
+			Pages: types.SliceTo(strategy.Level.GetAlarmPageList(), func(page *bizmodel.SysDict) *alarmmodel.RealtimeAlarmPage {
 				return &alarmmodel.RealtimeAlarmPage{PageID: page.GetID()}
 			}),
 		}
+		return alarm
 	})
 	return alarms
 }

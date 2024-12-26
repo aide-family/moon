@@ -165,3 +165,12 @@ func (s *Service) GetUserSelfBasic(ctx context.Context, _ *userapi.GetUserSelfBa
 		Detail: builder.NewParamsBuild(ctx).UserModuleBuilder().DoUserBuilder().ToAPI(userDo),
 	}, nil
 }
+
+// SetUserRole 设置用户角色
+func (s *Service) SetUserRole(ctx context.Context, req *userapi.SetUserRoleRequest) (*userapi.SetUserRoleReply, error) {
+	params := builder.NewParamsBuild(ctx).UserModuleBuilder().WithSetUserRoleRequest(req).ToBo()
+	if err := s.userBiz.SetUserRole(ctx, params); !types.IsNil(err) {
+		return nil, err
+	}
+	return &userapi.SetUserRoleReply{}, nil
+}

@@ -6,7 +6,6 @@ import (
 	teamapi "github.com/aide-family/moon/api/admin/team"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
-	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -148,29 +147,25 @@ func (s *Service) TransferTeamLeader(ctx context.Context, req *teamapi.TransferT
 	return &teamapi.TransferTeamLeaderReply{}, nil
 }
 
-// SetTeamMailConfig 设置团队邮件配置
-func (s *Service) SetTeamMailConfig(ctx context.Context, req *teamapi.SetTeamMailConfigRequest) (*teamapi.SetTeamMailConfigReply, error) {
-	params := builder.NewParamsBuild(ctx).TeamModuleBuilder().WithSetTeamMailConfigRequest(req).ToBo()
-	if err := s.teamBiz.SetTeamMailConfig(ctx, params); !types.IsNil(err) {
+// SetTeamConfig 设置团队配置
+func (s *Service) SetTeamConfig(ctx context.Context, req *teamapi.SetTeamConfigRequest) (*teamapi.SetTeamConfigReply, error) {
+	params := builder.NewParamsBuild(ctx).TeamModuleBuilder().WithSetTeamConfigRequest(req).ToBo()
+	if err := s.teamBiz.SetTeamConfig(ctx, params); !types.IsNil(err) {
 		return nil, err
 	}
-	return &teamapi.SetTeamMailConfigReply{}, nil
+	return &teamapi.SetTeamConfigReply{}, nil
 }
 
-// GetTeamMailConfig 获取团队邮件配置
-func (s *Service) GetTeamMailConfig(ctx context.Context, _ *teamapi.GetTeamMailConfigRequest) (*teamapi.GetTeamMailConfigReply, error) {
-	config, err := s.teamBiz.GetTeamMailConfig(ctx)
+// GetTeamConfig 获取团队配置
+func (s *Service) GetTeamConfig(ctx context.Context, _ *teamapi.GetTeamConfigRequest) (*teamapi.GetTeamConfigReply, error) {
+	config, err := s.teamBiz.GetTeamConfig(ctx)
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	return &teamapi.GetTeamMailConfigReply{
-		Config: &conf.EmailConfig{
-			User: config.User,
-			Pass: config.Pass,
-			Host: config.Host,
-			Port: config.Port,
-		},
-		Remark: config.Remark,
+	return &teamapi.GetTeamConfigReply{
+		EmailConfig:                config.EmailConfig.ToConf(),
+		SymmetricEncryptionConfig:  config.SymmetricEncryptionConfig.ToConf(),
+		AsymmetricEncryptionConfig: config.AsymmetricEncryptionConfig.ToConf(),
 	}, nil
 }
 

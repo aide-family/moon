@@ -82,7 +82,7 @@ type (
 	// IDoDictBuilder 字典条目构造器
 	IDoDictBuilder interface {
 		// ToAPI 转换为API对象
-		ToAPI(imodel.IDict, ...map[uint32]*adminapi.UserItem) *adminapi.DictItem
+		ToAPI(imodel.IDict) *adminapi.DictItem
 		// ToAPIs 转换为API对象列表
 		ToAPIs([]imodel.IDict) []*adminapi.DictItem
 		// ToSelect 转换为选择对象
@@ -96,11 +96,11 @@ type (
 	}
 )
 
-func (d *doDictBuilder) ToAPI(dict imodel.IDict, userMaps ...map[uint32]*adminapi.UserItem) *adminapi.DictItem {
+func (d *doDictBuilder) ToAPI(dict imodel.IDict) *adminapi.DictItem {
 	if types.IsNil(d) || types.IsNil(dict) {
 		return nil
 	}
-	userMap := getUsers(d.ctx, userMaps, dict.GetCreatorID())
+	userMap := getUsers(d.ctx, dict.GetCreatorID())
 	return &adminapi.DictItem{
 		Id:           dict.GetID(),
 		Name:         dict.GetName(),
@@ -119,16 +119,13 @@ func (d *doDictBuilder) ToAPI(dict imodel.IDict, userMaps ...map[uint32]*adminap
 	}
 }
 
-func (d *doDictBuilder) ToAPIs(dicts []imodel.IDict) []*adminapi.DictItem {
-	if types.IsNil(d) || types.IsNil(dicts) {
+func (d *doDictBuilder) ToAPIs(dictList []imodel.IDict) []*adminapi.DictItem {
+	if types.IsNil(d) || types.IsNil(dictList) {
 		return nil
 	}
-	ids := types.SliceTo(dicts, func(item imodel.IDict) uint32 {
-		return item.GetCreatorID()
-	})
-	userMap := getUsers(d.ctx, nil, ids...)
-	return types.SliceTo(dicts, func(item imodel.IDict) *adminapi.DictItem {
-		return d.ToAPI(item, userMap)
+
+	return types.SliceTo(dictList, func(item imodel.IDict) *adminapi.DictItem {
+		return d.ToAPI(item)
 	})
 }
 
@@ -151,12 +148,12 @@ func (d *doDictBuilder) ToSelect(dict imodel.IDict) *adminapi.SelectItem {
 	}
 }
 
-func (d *doDictBuilder) ToSelects(dicts []imodel.IDict) []*adminapi.SelectItem {
-	if types.IsNil(d) || types.IsNil(dicts) {
+func (d *doDictBuilder) ToSelects(dictList []imodel.IDict) []*adminapi.SelectItem {
+	if types.IsNil(d) || types.IsNil(dictList) {
 		return nil
 	}
 
-	return types.SliceTo(dicts, func(item imodel.IDict) *adminapi.SelectItem {
+	return types.SliceTo(dictList, func(item imodel.IDict) *adminapi.SelectItem {
 		return d.ToSelect(item)
 	})
 }

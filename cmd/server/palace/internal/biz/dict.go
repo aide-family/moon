@@ -59,7 +59,6 @@ func (b *DictBiz) ListDict(ctx context.Context, listParam *bo.QueryDictListParam
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return dictDos, nil
-
 }
 
 // GetDict 获取字典

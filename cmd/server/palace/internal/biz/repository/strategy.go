@@ -35,18 +35,10 @@ type Strategy interface {
 
 	// Eval 策略评估
 	Eval(context.Context, *bo.Strategy) (*bo.Alarm, error)
+
 	// GetTeamStrategy 获取团队策略
 	GetTeamStrategy(ctx context.Context, params *bo.GetTeamStrategyParams) (*bizmodel.Strategy, error)
 
-	// GetTeamStrategyLevelByLevelID 获取团队策略等级
-	GetTeamStrategyLevelByLevelID(ctx context.Context, params *bo.GetTeamStrategyLevelParams) (*bo.TeamStrategyLevelModel, error)
-
 	// Sync 同步策略
 	Sync(ctx context.Context, id uint32) error
-
-	// GetStrategyMetricLevels 获取Metric策略等级
-	GetStrategyMetricLevels(ctx context.Context, strategyID []uint32) ([]*bizmodel.StrategyMetricsLevel, error)
-
-	// GetStrategyMQLevels 获取MQ策略等级
-	GetStrategyMQLevels(ctx context.Context, strategyIds []uint32) ([]*bizmodel.StrategyMQLevel, error)
 }

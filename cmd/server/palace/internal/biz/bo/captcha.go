@@ -8,8 +8,10 @@ import (
 )
 
 // redis缓存实现
-var _ encoding.BinaryMarshaler = (*ValidateCaptchaItem)(nil)
-var _ encoding.BinaryUnmarshaler = (*ValidateCaptchaItem)(nil)
+var (
+	_ encoding.BinaryMarshaler   = (*ValidateCaptchaItem)(nil)
+	_ encoding.BinaryUnmarshaler = (*ValidateCaptchaItem)(nil)
+)
 
 // ValidateCaptchaItem 验证码缓存明细
 type ValidateCaptchaItem struct {

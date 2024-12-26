@@ -28,7 +28,6 @@ func (y *fileRepositoryImpl) DownLoadFile(ctx context.Context, params *bo.DownLo
 }
 
 func (y *fileRepositoryImpl) UploadFile(ctx context.Context, params *bo.UploadFileParams) (string, error) {
-
 	if !y.data.OssIsOpen() {
 		return "", merr.ErrorI18nFileRelatedOssNotOpened(ctx)
 	}

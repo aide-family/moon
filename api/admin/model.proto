@@ -234,7 +234,7 @@ message DatasourceItem {
   // 更新时间
   string updatedAt = 7;
   // 配置信息
-  map<string, string> config = 8;
+  string config = 8;
   // 描述
   string remark = 9;
   // 存储器类型
@@ -317,48 +317,30 @@ message StrategyMetricLevelItem {
   uint32 count = 4;
   // 持续的类型
   SustainType sustainType = 5;
-  // 执行频率
-  int64 interval = 8;
-  // 状态
-  Status status = 9;
-  // 数据主键
-  uint32 id = 10;
-  // 告警等级ID
-  uint32 levelId = 11;
   // 告警等级明细
   SelectItem level = 12;
   // 告警页面
   repeated SelectItem alarmPages = 13;
   // 阈值
   double threshold = 14;
-  // 所属策略
-  uint32 strategyId = 15;
   // 条件
   Condition condition = 16;
   // 告警分组
   repeated AlarmNoticeGroupItem alarmGroups = 25;
   // label匹配的告警通知组
   repeated LabelNoticeItem labelNotices = 26;
-  // 创建人
-  UserItem creator = 17;
 }
 
 // 端口监控策略等级
 message StrategyPortLevelItem {
-  // 策略等级ID
-  uint32 levelID = 1;
   // 告警等级明细
   SelectItem level = 2;
-  // 状态
-  Status status = 3;
   // 告警页面
   repeated SelectItem alarmPages = 4;
   // 告警组
   repeated AlarmNoticeGroupItem alarmGroups = 5;
   // 策略Labels
   repeated LabelNoticeItem labelNotices = 6;
-  // ID
-  uint32 id = 7;
   // 阈值
   int64 threshold = 8;
   // 端口
@@ -367,24 +349,18 @@ message StrategyPortLevelItem {
 
 // HTTP监控策略等级
 message StrategyHTTPLevelItem {
-  // 策略等级ID
-  uint32 levelID = 1;
   // 告警等级明细
   SelectItem level = 2;
-  // 状态
-  Status status = 3;
   // 告警页面
   repeated SelectItem alarmPages = 4;
   // 告警组
   repeated AlarmNoticeGroupItem alarmGroups = 5;
   // 策略Labels
   repeated LabelNoticeItem labelNotices = 6;
-  // ID
-  uint32 id = 7;
   // 状态码
-  uint32 statusCodes = 8;
+  string statusCode = 8;
   // 响应时间
-  uint32 responseTime = 9;
+  double responseTime = 9;
   // 请求头
   map<string, string> headers = 10;
   // 请求体
@@ -401,20 +377,14 @@ message StrategyHTTPLevelItem {
 
 // 域名监控策略等级
 message StrategyDomainLevelItem {
-  // 策略等级ID
-  uint32 levelID = 1;
   // 告警等级明细
   SelectItem level = 2;
-  // 状态
-  Status status = 3;
   // 告警页面
   repeated SelectItem alarmPages = 4;
   // 告警组
   repeated AlarmNoticeGroupItem alarmGroups = 5;
   // 策略Labels
   repeated LabelNoticeItem labelNotices = 6;
-  // ID
-  uint32 id = 7;
   // 阈值
   int64 threshold = 8;
   // 判断条件
@@ -462,7 +432,7 @@ message StrategyItem {
   // 根据策略等级配置的详细策略， key为策略等级ID
   repeated StrategyMetricLevelItem metricLevels = 21;
   // MQ等级
-  repeated StrategyMQLevelItem mqLevels = 22;
+  repeated StrategyEventLevelItem eventLevels = 22;
   // 端口监控策略
   repeated StrategyPortLevelItem portLevels = 23;
   // HTTP监控策略
@@ -656,6 +626,8 @@ message AlarmNoticeGroupItem {
   repeated NoticeItem noticeUsers = 9;
   // hooks
   repeated AlarmHookItem hooks = 10;
+  // 时间引擎
+  repeated TimeEngineItem timeEngines = 11;
 }
 
 // 通知人
@@ -743,7 +715,7 @@ message AlarmHistoryItem{
   // 持续时间
   string duration = 16;
   // MQ告警级别
-  StrategyMQLevelItem mqLevel = 17;
+  StrategyEventLevelItem eventLevel = 17;
 }
 
 message NoticeUserMessage {
@@ -785,7 +757,7 @@ message AlarmSendItem{
 }
 
 // mq datasource item
-message MqDatasourceItem{
+message EventDatasourceItem{
   // 数据源ID
   uint32 id = 1;
   // 数据源名称
@@ -810,32 +782,63 @@ message MqDatasourceItem{
   StorageType storageType = 11;
 }
 
-message StrategyMQLevelItem{
-  uint32 id = 1;
+message StrategyEventLevelItem{
   // 值
-  string value = 2;
+  string threshold = 2;
   // 条件
-  MQCondition condition = 3;
+  EventCondition condition = 3;
   // 数据类型
-  MQDataType dataType = 4;
-  // 告警等级ID
-  uint32 AlarmLevelId = 5;
+  EventDataType dataType = 4;
   // 告警等级明细
-  SelectItem AlarmLevel = 6;
+  SelectItem level = 6;
   // 告警页面
   repeated SelectItem alarmPages = 7;
-  // 所属策略
-  uint32 strategyId = 8;
   // 告警分组
   repeated AlarmNoticeGroupItem alarmGroups = 9;
-  // 创建人
-  UserItem creator = 10;
-  // 状态
-  Status status = 11;
   // 对象状态下的数据KEY
   string pathKey = 12;
   // label匹配的告警通知组
   repeated LabelNoticeItem labelNotices = 26;
 }
 
+// 时间引擎规则
+message TimeEngineRuleItem {
+  // 规则ID
+  uint32 id = 1;
+  // 规则名称
+  string name = 2;
+  // 规则类型
+  int32 category = 3;
+  // 规则
+  repeated int32 rules = 4;
+  // 状态
+  int32 status = 5;
+  // 备注
+  string remark = 6;
+  // 创建时间
+  string createdAt = 7;
+  // 更新时间
+  string updatedAt = 8;
+  // 创建人
+  UserItem creator = 9;
+}
 
+// 时间引擎
+message TimeEngineItem {
+  // 引擎ID
+  uint32 id = 1;
+  // 引擎名称
+  string name = 2;
+  // 引擎状态
+  Status status = 3;
+  // 引擎备注
+  string remark = 4;
+  // 创建时间
+  string createdAt = 5;
+  // 更新时间
+  string updatedAt = 6;
+  // 引擎规则列表
+  repeated TimeEngineRuleItem rules = 7;
+  // 引擎创建人
+  UserItem creator = 8;
+}

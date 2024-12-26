@@ -44,7 +44,7 @@ func (l *teamResourceRepositoryImpl) CheckPath(ctx context.Context, s string) (i
 		return nil, merr.ErrorI18nForbidden(ctx)
 	}
 
-	if !(mainAPIDo.Allow.IsRbac() || mainAPIDo.Allow.IsTeam()) {
+	if !(mainAPIDo.Allow.IsRBAC() || mainAPIDo.Allow.IsTeam()) {
 		return mainAPIDo, nil
 	}
 

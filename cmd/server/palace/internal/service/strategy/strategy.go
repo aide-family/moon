@@ -161,10 +161,10 @@ func checkStrategyLevelIsDuplicates(req *strategyapi.CreateStrategyRequest) bool
 			sb.WriteString(strconv.FormatInt(int64(request.GetLevelId()), 10))
 			return sb.String()
 		})
-	case vobj.StrategyTypeMQ:
+	case vobj.StrategyTypeEvent:
 		return types.SlicesHasDuplicates(req.GetStrategyEventLevels(), func(request *strategyapi.CreateStrategyEventLevelRequest) string {
 			var sb strings.Builder
-			sb.WriteString(strconv.FormatInt(int64(request.GetAlarmLevelId()), 10))
+			sb.WriteString(strconv.FormatInt(int64(request.GetLevelId()), 10))
 			return sb.String()
 		})
 	default:
@@ -199,9 +199,8 @@ func (s *Service) GetStrategy(ctx context.Context, req *strategyapi.GetStrategyR
 	if err != nil {
 		return nil, err
 	}
-	strategyLevel, _ := s.strategyBiz.GetStrategyLevel(ctx, strategy.GetID(), strategy.StrategyType)
 	return &strategyapi.GetStrategyReply{
-		Detail: builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().WithStrategyLevelDetail(strategyLevel).ToAPI(strategy),
+		Detail: builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategy),
 	}, nil
 }
 

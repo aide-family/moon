@@ -45,26 +45,31 @@ func (l *teamRepositoryImpl) MemberList(ctx context.Context, teamID uint32) ([]*
 	return bizQuery.SysTeamMember.WithContext(ctx).Find()
 }
 
-func (l *teamRepositoryImpl) GetTeamMailConfig(ctx context.Context, teamID uint32) (*model.SysTeamEmail, error) {
+func (l *teamRepositoryImpl) GetTeamConfig(ctx context.Context, teamID uint32) (*model.SysTeamConfig, error) {
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
-	return mainQuery.WithContext(ctx).SysTeamEmail.Where(mainQuery.SysTeamEmail.TeamID.Eq(teamID)).First()
+	return mainQuery.WithContext(ctx).SysTeamConfig.Where(mainQuery.SysTeamConfig.TeamID.Eq(teamID)).First()
 }
 
-func (l *teamRepositoryImpl) CreateTeamMailConfig(ctx context.Context, params *bo.SetTeamMailConfigParams) error {
+func (l *teamRepositoryImpl) CreateTeamConfig(ctx context.Context, params *bo.SetTeamConfigParams) error {
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
-	return mainQuery.WithContext(ctx).SysTeamEmail.Create(params.ToModel(ctx))
+	return mainQuery.WithContext(ctx).SysTeamConfig.Create(params.ToModel(ctx))
 }
 
-func (l *teamRepositoryImpl) UpdateTeamMailConfig(ctx context.Context, params *bo.SetTeamMailConfigParams) error {
+func (l *teamRepositoryImpl) UpdateTeamConfig(ctx context.Context, params *bo.SetTeamConfigParams) error {
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
-	rows, err := mainQuery.WithContext(ctx).SysTeamEmail.
-		Where(mainQuery.SysTeamEmail.TeamID.Eq(middleware.GetTeamID(ctx))).
-		Updates(params.ToModel(ctx))
+	teamConfig := params.ToModel(ctx)
+	rows, err := mainQuery.WithContext(ctx).SysTeamConfig.
+		Where(mainQuery.SysTeamConfig.TeamID.Eq(middleware.GetTeamID(ctx))).
+		UpdateColumnSimple(
+			mainQuery.SysTeamConfig.EmailConfig.Value(teamConfig.EmailConfig),
+			mainQuery.SysTeamConfig.SymmetricEncryptionConfig.Value(teamConfig.SymmetricEncryptionConfig),
+			mainQuery.SysTeamConfig.AsymmetricEncryptionConfig.Value(teamConfig.AsymmetricEncryptionConfig),
+		)
 	if !types.IsNil(err) {
 		return err
 	}
 	if rows.RowsAffected == 0 {
-		log.Warnw("UpdateTeamMailConfig.RowsAffected", "rows", rows)
+		log.Warnw("UpdateTeamConfig.RowsAffected", "rows", rows)
 	}
 	return nil
 }
@@ -332,7 +337,7 @@ func (l *teamRepositoryImpl) AddTeamMember(ctx context.Context, params *bo.AddTe
 					return nil, false
 				}
 				return &bizmodel.SysTeamRole{
-					AllFieldModel: model.AllFieldModel{ID: roleId},
+					AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: roleId}},
 				}, true
 			}),
 		}, true
@@ -425,7 +430,7 @@ func (l *teamRepositoryImpl) SetMemberRole(ctx context.Context, params *bo.SetMe
 			return nil, false
 		}
 		return &bizmodel.SysTeamRole{
-			AllFieldModel: model.AllFieldModel{ID: roleId},
+			AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: roleId}},
 		}, true
 	})
 	bizDB, err := l.data.GetBizGormDB(middleware.GetTeamID(ctx))
@@ -435,7 +440,9 @@ func (l *teamRepositoryImpl) SetMemberRole(ctx context.Context, params *bo.SetMe
 	bizQuery := bizquery.Use(bizDB)
 	return bizQuery.SysTeamMember.TeamRoles.
 		WithContext(ctx).
-		Model(&bizmodel.SysTeamMember{AllFieldModel: model.AllFieldModel{ID: params.MemberID}}).
+		Model(&bizmodel.SysTeamMember{AllFieldModel: bizmodel.AllFieldModel{
+			AllFieldModel: model.AllFieldModel{ID: params.MemberID},
+		}}).
 		Replace(roles...)
 }
 

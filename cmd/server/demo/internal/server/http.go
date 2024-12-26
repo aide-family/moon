@@ -16,7 +16,7 @@ import (
 func NewHTTPServer(bc *democonf.Bootstrap) *http.Server {
 	c := bc.GetServer()
 
-	var opts = []http.ServerOption{
+	opts := []http.ServerOption{
 		http.Filter(middleware.Cors()),
 		http.Middleware(
 			recovery.Recovery(recovery.WithHandler(mlog.RecoveryHandle)),

@@ -10,6 +10,8 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/util/cipher"
+	"github.com/aide-family/moon/pkg/util/email"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -18,8 +20,10 @@ import (
 )
 
 // RuntimeCache 运行时缓存
-var RuntimeCache repository.Cache
-var runtimeCacheOnce = sync.Once{}
+var (
+	RuntimeCache     repository.Cache
+	runtimeCacheOnce = sync.Once{}
+)
 
 // NewTeamBiz 创建团队业务
 func NewTeamBiz(teamRepo repository.Team, cacheRepo repository.Cache) *TeamBiz {
@@ -125,7 +129,7 @@ func (t *TeamBiz) RemoveTeamMember(ctx context.Context, params *bo.RemoveTeamMem
 	opUserID := middleware.GetUserID(ctx)
 	for _, teamMember := range teamMemberList {
 		role := teamMember.Role
-		if role.IsSuperadmin() || role.IsAdmin() || teamMember.UserID == teamInfo.LeaderID {
+		if role.IsSuperAdmin() || role.IsAdmin() || teamMember.UserID == teamInfo.LeaderID {
 			return merr.ErrorI18nToastUserNotAllowRemoveAdmin(ctx)
 		}
 		if teamMember.UserID == opUserID {
@@ -194,24 +198,34 @@ func (t *TeamBiz) TransferTeamLeader(ctx context.Context, params *bo.TransferTea
 	return nil
 }
 
-// SetTeamMailConfig 设置团队邮件配置
-func (t *TeamBiz) SetTeamMailConfig(ctx context.Context, params *bo.SetTeamMailConfigParams) error {
-	// 查询团队邮件配置
-	_, err := t.teamRepo.GetTeamMailConfig(ctx, middleware.GetTeamID(ctx))
+// SetTeamConfig 设置团队配置
+func (t *TeamBiz) SetTeamConfig(ctx context.Context, params *bo.SetTeamConfigParams) error {
+	// 查询团队配置
+	_, err := t.teamRepo.GetTeamConfig(ctx, middleware.GetTeamID(ctx))
 	if !types.IsNil(err) {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 		}
 		// 配置不存在，创建新配置
-		return t.teamRepo.CreateTeamMailConfig(ctx, params)
+		return t.teamRepo.CreateTeamConfig(ctx, params)
 	}
-	return t.teamRepo.UpdateTeamMailConfig(ctx, params)
+	return t.teamRepo.UpdateTeamConfig(ctx, params)
 }
 
-// GetTeamMailConfig 获取团队邮件配置
-func (t *TeamBiz) GetTeamMailConfig(ctx context.Context) (*model.SysTeamEmail, error) {
-	config, err := t.teamRepo.GetTeamMailConfig(ctx, middleware.GetTeamID(ctx))
+// GetTeamConfig 获取团队配置
+func (t *TeamBiz) GetTeamConfig(ctx context.Context) (*model.SysTeamConfig, error) {
+	config, err := t.teamRepo.GetTeamConfig(ctx, middleware.GetTeamID(ctx))
 	if !types.IsNil(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// 没有配置， 返回默认空结构体
+			return &model.SysTeamConfig{
+				AllFieldModel:              model.AllFieldModel{},
+				TeamID:                     middleware.GetTeamID(ctx),
+				EmailConfig:                &email.DefaultConfig{},
+				SymmetricEncryptionConfig:  &cipher.SymmetricEncryptionConfig{},
+				AsymmetricEncryptionConfig: &cipher.AsymmetricEncryptionConfig{},
+			}, nil
+		}
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return config, nil

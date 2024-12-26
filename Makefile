@@ -24,6 +24,7 @@ endif
 # init env
 init:
 	go install golang.org/x/lint/golint@latest
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
@@ -32,6 +33,7 @@ init:
 	go install github.com/google/gnostic/cmd/protoc-gen-openapi@latest
 	go install github.com/google/wire/cmd/wire@latest
 	go install github.com/aide-cloud/protoc-gen-go-errors@latest
+	go install mvdan.cc/gofumpt@latest
 
 .PHONY: format
 format:
@@ -42,6 +44,7 @@ format:
 	go mod verify
 	goimports -w .
 	golangci-lint run ./...
+	gofumpt -l -w .
 
 .PHONY: config
 # generate internal config
@@ -126,7 +129,7 @@ model:
 
 .PHONY: all
 # generate all
-all: error api config stringer model wire
+all: error api config stringer model wire format
 	go mod tidy
 
 .PHONY: clean

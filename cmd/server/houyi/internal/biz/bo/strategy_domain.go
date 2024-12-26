@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 var _ IStrategy = (*StrategyDomain)(nil)
@@ -40,14 +41,10 @@ type StrategyDomain struct {
 	Annotations *vobj.Annotations `json:"annotations,omitempty"`
 	// 域名
 	Domain string `json:"domain,omitempty"`
-	// 超时时间
-	Timeout uint32 `json:"timeout,omitempty"`
-	// 执行频率
-	Interval *types.Duration `json:"interval,omitempty"`
 	// 端口
 	Port uint32 `json:"port,omitempty"`
 	// 类型
-	Type vobj.StrategyType `json:"type,omitempty"`
+	StrategyType vobj.StrategyType `json:"strategyType,omitempty"`
 }
 
 // String 策略转字符串
@@ -76,11 +73,11 @@ func (s *StrategyDomain) IsCompletelyMeet(values []*datasource.Value) (map[strin
 	}
 	for _, point := range values {
 		// 域名证书检测、小于等于阈值都是满足条件的
-		if s.Type.IsDomaincertificate() && point.Value <= s.Threshold {
+		if s.StrategyType.IsDomainCertificate() && point.Value <= s.Threshold {
 			return nil, true
 		}
 		// 端口检测、等于阈值才是满足条件的 1开启， 0关闭
-		if s.Type.IsDomainport() && point.Value == s.Threshold {
+		if s.StrategyType.IsDomainPort() && point.Value == s.Threshold {
 			return nil, true
 		}
 	}
@@ -114,10 +111,10 @@ func (s *StrategyDomain) Eval(ctx context.Context) (map[watch.Indexer]*datasourc
 	if !s.Status.IsEnable() {
 		return nil, nil
 	}
-	if s.Type.IsDomainport() {
-		return datasource.EndpointPortEval(ctx, s.Domain, s.Port, time.Duration(s.Timeout)*time.Second)
+	if s.StrategyType.IsDomainPort() {
+		return datasource.EndpointPortEval(ctx, s.Domain, s.Port, 10*time.Second)
 	}
-	return datasource.DomainEval(ctx, s.Domain, s.Port, time.Duration(s.Timeout)*time.Second)
+	return datasource.DomainEval(ctx, s.Domain, s.Port, 10*time.Second)
 }
 
 // GetTeamID 获取团队ID
@@ -147,5 +144,5 @@ func (s *StrategyDomain) GetAnnotations() map[string]string {
 
 // GetInterval 获取执行频率
 func (s *StrategyDomain) GetInterval() *types.Duration {
-	return s.Interval
+	return types.NewDuration(durationpb.New(5 * time.Second))
 }

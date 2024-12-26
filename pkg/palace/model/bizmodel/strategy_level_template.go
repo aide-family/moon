@@ -1,7 +1,6 @@
 package bizmodel
 
 import (
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -10,7 +9,7 @@ const tableNameStrategyLevelTemplates = "strategy_level_templates"
 
 // StrategyLevelTemplate 策略等级模板级别
 type StrategyLevelTemplate struct {
-	model.AllFieldModel
+	AllFieldModel
 	// 所属策略模板
 	StrategyTemplateID uint32            `gorm:"column:strategy_template_id;type:int unsigned;not null;comment:策略模板ID" json:"strategy_template_id"`
 	StrategyTemplate   *StrategyTemplate `gorm:"foreignKey:StrategyTemplateID" json:"strategy_template"`

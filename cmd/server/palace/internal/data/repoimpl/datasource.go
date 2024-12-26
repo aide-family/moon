@@ -67,12 +67,10 @@ func (l *datasourceRepositoryImpl) CreateDatasource(ctx context.Context, datasou
 	if !types.IsNil(err) {
 		return nil, err
 	}
-	config, _ := types.Marshal(datasource.Config)
-
 	datasourceModel := &bizmodel.Datasource{
 		Name:        datasource.Name,
 		Category:    datasource.DatasourceType,
-		Config:      string(config),
+		Config:      datasource.Config,
 		Endpoint:    datasource.Endpoint,
 		Status:      datasource.Status,
 		Remark:      datasource.Remark,
@@ -144,11 +142,12 @@ func (l *datasourceRepositoryImpl) UpdateDatasourceBaseInfo(ctx context.Context,
 	}
 	_, err = bizQuery.Datasource.WithContext(ctx).Where(bizQuery.Datasource.ID.Eq(datasource.ID)).UpdateColumnSimple(
 		bizQuery.Datasource.Name.Value(datasource.Name),
+		bizQuery.Datasource.Endpoint.Value(datasource.Endpoint),
 		bizQuery.Datasource.Status.Value(datasource.Status.GetValue()),
 		bizQuery.Datasource.Remark.Value(datasource.Remark),
 		bizQuery.Datasource.StorageType.Value(datasource.StorageType.GetValue()),
 		bizQuery.Datasource.Category.Value(datasource.DatasourceType.GetValue()),
-		bizQuery.Datasource.Config.Value(datasource.ConfigValue),
+		bizQuery.Datasource.Config.Value(datasource.Config),
 	)
 	return err
 }
