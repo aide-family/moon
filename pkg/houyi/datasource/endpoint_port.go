@@ -23,12 +23,12 @@ func EndpointPortEval(_ context.Context, endpoint string, port uint32, timeout t
 			Labels: labels.Map(),
 			Values: []*Value{
 				{
-					Value:     0,
+					Value:     1,
 					Timestamp: now.Unix(),
 				},
 			},
 		}
-		return points, err
+		return points, nil
 	}
 	// 连接成功，关闭连接
 	defer conn.Close()
@@ -37,7 +37,7 @@ func EndpointPortEval(_ context.Context, endpoint string, port uint32, timeout t
 		Labels: labels.Map(),
 		Values: []*Value{
 			{
-				Value:     1,
+				Value:     0,
 				Timestamp: now.Unix(),
 			},
 		},

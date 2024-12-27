@@ -77,6 +77,7 @@ func (s *strategyRepositoryImpl) resolvedAlerts(ctx context.Context, strategy bo
 // Eval 评估策略 告警/恢复
 func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy) (*bo.Alarm, error) {
 	alarmInfo := strategy.BuilderAlarmBaseInfo()
+	// 恢复告警
 	if !strategy.GetStatus().IsEnable() {
 		alerts := s.resolvedAlerts(ctx, strategy)
 		alarmInfo.Alerts = alerts
