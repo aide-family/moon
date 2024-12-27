@@ -3,9 +3,6 @@ package repoimpl
 import (
 	"context"
 
-	"github.com/aide-family/moon/pkg/palace/model"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
-
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
@@ -13,6 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel/alarmquery"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -191,7 +189,6 @@ func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.Crea
 		labels := vobj.NewLabels(alarmParam.Labels)
 		annotations := vobj.NewAnnotations(alarmParam.Annotations)
 		alarm := &alarmmodel.RealtimeAlarm{
-			EasyModel:       model.EasyModel{},
 			Status:          vobj.ToAlertStatus(alarmParam.Status),
 			StartsAt:        alarmParam.StartsAt,
 			EndsAt:          alarmParam.EndsAt,
