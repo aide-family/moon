@@ -190,7 +190,6 @@ func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.Crea
 			RealtimeDetails: &alarmmodel.RealtimeDetails{},
 			StrategyID:      strategy.GetID(),
 			LevelID:         strategy.Level.GetID(),
-			RawInfo:         &alarmmodel.AlarmRaw{},
 			Receiver: types.SliceTo(param.ReceiverGroupIDs, func(id uint32) *alarmmodel.RealtimeAlarmReceiver {
 				return &alarmmodel.RealtimeAlarmReceiver{AlarmNoticeGroupID: id}
 			}),
