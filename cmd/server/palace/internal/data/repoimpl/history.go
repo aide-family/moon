@@ -38,15 +38,30 @@ func (a *alarmHistoryRepositoryImpl) CreateAlarmHistory(ctx context.Context, par
 	if err != nil {
 		return err
 	}
+	alarmHistoryDoQuery := alarmQuery.AlarmHistory
+	historyDetailsDoQuery := alarmQuery.HistoryDetails
 	historyList := a.createAlarmHistoryToModels(param)
 	// 所更新的字段
-	historyCol := []string{"summary", "description", "status", "starts_at", "ends_at", "expr", "labels", "annotations"}
-	detailCol := []string{"strategy", "level", "datasource"}
+	historyCol := []string{
+		alarmHistoryDoQuery.Summary.ColumnName().String(),
+		alarmHistoryDoQuery.Description.ColumnName().String(),
+		alarmHistoryDoQuery.AlertStatus.ColumnName().String(),
+		alarmHistoryDoQuery.StartsAt.ColumnName().String(),
+		alarmHistoryDoQuery.EndsAt.ColumnName().String(),
+		alarmHistoryDoQuery.Expr.ColumnName().String(),
+		alarmHistoryDoQuery.Labels.ColumnName().String(),
+		alarmHistoryDoQuery.Annotations.ColumnName().String(),
+	}
+	detailCol := []string{
+		historyDetailsDoQuery.Strategy.ColumnName().String(),
+		historyDetailsDoQuery.Level.ColumnName().String(),
+		historyDetailsDoQuery.Datasource.ColumnName().String(),
+	}
 	return alarmQuery.Transaction(func(tx *alarmquery.Query) error {
 		for _, history := range historyList {
 			// 告警历史表
 			if err := tx.AlarmHistory.WithContext(ctx).Clauses(clause.OnConflict{
-				Columns:   []clause.Column{{Name: "fingerprint"}},
+				Columns:   []clause.Column{{Name: alarmHistoryDoQuery.Fingerprint.ColumnName().String()}},
 				DoUpdates: clause.AssignmentColumns(historyCol),
 			}).Create(history); err != nil {
 				return err
@@ -61,7 +76,7 @@ func (a *alarmHistoryRepositoryImpl) CreateAlarmHistory(ctx context.Context, par
 				AlarmHistory:   history,
 			}
 			if err := tx.HistoryDetails.WithContext(ctx).Clauses(clause.OnConflict{
-				Columns:   []clause.Column{{Name: "alarm_history_id"}},
+				Columns:   []clause.Column{{Name: historyDetailsDoQuery.AlarmHistoryID.ColumnName().String()}},
 				DoUpdates: clause.AssignmentColumns(detailCol),
 			}).Create(detail); err != nil {
 				return err
