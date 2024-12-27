@@ -155,7 +155,13 @@ func (e *StrategyHTTP) IsCompletelyMeet(values []*datasource.Value) (map[string]
 	}
 
 	codeMatch := types.MatchStatusCodes(e.StatusCode, int(code))
-	responseTimeMatch := e.ResponseTimeCondition.Judge(duration, e.ResponseTime)
+	responseTimeMatch := e.ResponseTimeCondition.Judge(e.ResponseTime, duration)
 
+	if e.StatusCodeCondition.IsEQ() && codeMatch {
+		codeMatch = true
+	}
+	if e.StatusCodeCondition.IsNE() && !codeMatch {
+		codeMatch = true
+	}
 	return extJSON, codeMatch && responseTimeMatch
 }

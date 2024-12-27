@@ -17,8 +17,13 @@ import (
 func DomainEval(_ context.Context, domain string, port uint32, timeout time.Duration) (map[watch.Indexer]*Point, error) {
 	now := time.Now()
 	points := make(map[watch.Indexer]*Point)
+
+	dsn := domain
+	if port != 0 {
+		dsn = domain + ":" + strconv.FormatUint(uint64(port), 10)
+	}
 	// 创建 TCP 连接
-	conn, err := net.DialTimeout("tcp", domain+":"+strconv.FormatUint(uint64(port), 10), timeout)
+	conn, err := net.DialTimeout("tcp", dsn, timeout)
 	if err != nil {
 		// 超时或者连接失败，返回空切片和错误信息
 		labels := vobj.NewLabels(map[string]string{vobj.Domain: domain, vobj.DomainPort: strconv.FormatUint(uint64(port), 10)})
@@ -47,8 +52,7 @@ func DomainEval(_ context.Context, domain string, port uint32, timeout time.Dura
 	defer tlsConn.Close()
 
 	// 创建一个 TLS 的握手
-	err = tlsConn.Handshake()
-	if err != nil {
+	if err = tlsConn.Handshake(); err != nil {
 		return nil, err
 	}
 
@@ -56,10 +60,8 @@ func DomainEval(_ context.Context, domain string, port uint32, timeout time.Dura
 	certs := tlsConn.ConnectionState().PeerCertificates
 	for _, cert := range certs {
 		labels := vobj.NewLabels(map[string]string{
-			vobj.Domain:          domain,
-			vobj.DomainPort:      strconv.FormatUint(uint64(port), 10),
-			vobj.DomainSubject:   cert.Subject.CommonName,
-			vobj.DomainExpiresOn: cert.NotAfter.Format("2006-01-02 15:04:05"),
+			vobj.Domain:     domain,
+			vobj.DomainPort: strconv.FormatUint(uint64(port), 10),
 		})
 		points[labels] = &Point{
 			Labels: labels.Map(),
@@ -67,6 +69,10 @@ func DomainEval(_ context.Context, domain string, port uint32, timeout time.Dura
 				{
 					Value:     float64(int(cert.NotAfter.Sub(now).Hours() / 24)),
 					Timestamp: now.Unix(),
+					Ext: map[string]any{
+						vobj.DomainSubject:   cert.Subject.CommonName,
+						vobj.DomainExpiresOn: cert.NotAfter.Format("2006-01-02 15:04:05"),
+					},
 				},
 			},
 		}

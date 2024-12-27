@@ -45,6 +45,8 @@ type StrategyDomain struct {
 	Port uint32 `json:"port,omitempty"`
 	// 类型
 	StrategyType vobj.StrategyType `json:"strategyType,omitempty"`
+	// 判断条件
+	Condition vobj.Condition `json:"condition,omitempty"`
 }
 
 // String 策略转字符串
@@ -73,12 +75,12 @@ func (s *StrategyDomain) IsCompletelyMeet(values []*datasource.Value) (map[strin
 	}
 	for _, point := range values {
 		// 域名证书检测、小于等于阈值都是满足条件的
-		if s.StrategyType.IsDomainCertificate() && point.Value <= s.Threshold {
-			return nil, true
+		if s.StrategyType.IsDomainCertificate() && s.Condition.Judge(s.Threshold, point.Value) {
+			return point.Ext, true
 		}
 		// 端口检测、等于阈值才是满足条件的 1开启， 0关闭
-		if s.StrategyType.IsDomainPort() && point.Value == s.Threshold {
-			return nil, true
+		if s.StrategyType.IsDomainPort() && s.Condition.Judge(s.Threshold, point.Value) {
+			return point.Ext, true
 		}
 	}
 	return nil, false

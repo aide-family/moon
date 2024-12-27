@@ -126,6 +126,8 @@ message DomainStrategyItem {
     expression: 'this.size() > 0'
     message: "域名不允许为空"
   }];
+  // 判断条件
+  Condition condition = 10;
   // 策略名称
   string alert = 20 [(buf.validate.field).cel = {
     id: "Strategy_alert"

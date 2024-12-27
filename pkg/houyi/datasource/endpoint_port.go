@@ -23,7 +23,7 @@ func EndpointPortEval(_ context.Context, endpoint string, port uint32, timeout t
 			Labels: labels.Map(),
 			Values: []*Value{
 				{
-					Value:     1,
+					Value:     0,
 					Timestamp: now.Unix(),
 				},
 			},
@@ -37,7 +37,7 @@ func EndpointPortEval(_ context.Context, endpoint string, port uint32, timeout t
 		Labels: labels.Map(),
 		Values: []*Value{
 			{
-				Value:     0,
+				Value:     1,
 				Timestamp: now.Unix(),
 			},
 		},

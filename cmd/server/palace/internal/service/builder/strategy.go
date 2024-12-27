@@ -535,8 +535,9 @@ func (d *doStrategyLevelsBuilder) ToDomainAPI(strategy *bizmodel.Strategy, level
 		Annotations:      strategy.Annotations.Map(),
 		Threshold:        level.Threshold,
 		Domain:           strategy.Expr,
+		Condition:        api.Condition(level.Condition),
 		Alert:            strategy.Name,
-		Port:             0,
+		Port:             443,
 		StrategyType:     api.StrategyType(strategy.StrategyType),
 	}
 }
@@ -569,6 +570,7 @@ func (d *doStrategyLevelsBuilder) ToPortAPI(strategy *bizmodel.Strategy, level *
 		Annotations:      strategy.Annotations.Map(),
 		Threshold:        level.Threshold,
 		Domain:           strategy.Expr,
+		Condition:        api.Condition(vobj.ConditionEQ),
 		Alert:            strategy.Name,
 		Port:             level.Port,
 		StrategyType:     api.StrategyType(strategy.StrategyType),

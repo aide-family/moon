@@ -19,8 +19,9 @@ import (
 type (
 	// Value 数据源查询值
 	Value struct {
-		Value     float64 `json:"value"`
-		Timestamp int64   `json:"timestamp"`
+		Value     float64        `json:"value"`
+		Timestamp int64          `json:"timestamp"`
+		Ext       map[string]any `json:"ext"`
 	}
 
 	// Point 数据点
