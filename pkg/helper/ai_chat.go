@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -74,11 +75,11 @@ func NewOllama(url string, opts ...OllamaOption) *Ollama {
 
 // Ollama represents an Ollama instance.
 type Ollama struct {
-	Model          string `json:"model"`
-	URL            string `json:"url"`
-	Auth           string `json:"auth"`
-	Type           string `json:"type"`
-	enabledContext bool
+	Model   string `json:"model"`
+	URL     string `json:"url"`
+	Auth    string `json:"auth"`
+	Type    string `json:"type"`
+	context *safety.Map[string, chan []Message]
 }
 
 // OllamaOption is a function that configures an Ollama instance.
@@ -106,12 +107,46 @@ func WithOllamaType(t string) OllamaOption {
 }
 
 // HandleChat returns an HTTP handler function that handles chat requests.
-func (o *Ollama) HandleChat(enabledContext bool) http.HandlerFunc {
-	o.enabledContext = enabledContext
+func (o *Ollama) HandleChat() http.HandlerFunc {
+	o.context = safety.NewMap[string, chan []Message]()
 	return func(ctx http.Context) error {
 		o.handleChat(ctx.Response(), ctx.Request())
 		return nil
 	}
+}
+
+// HandlePushContext is a handler that pushes context to the Ollama instance.
+func (o *Ollama) HandlePushContext() http.HandlerFunc {
+	return func(ctx http.Context) error {
+		return o.pushContext(ctx)
+	}
+}
+
+func (o *Ollama) pushContext(ctx http.Context) error {
+	token := ctx.Request().URL.Query().Get("token")
+	if token == "" {
+		return nil
+	}
+
+	body, err := io.ReadAll(ctx.Request().Body)
+	if err != nil {
+		return fmt.Errorf("read body error: %w", err)
+	}
+
+	var messages []Message
+	if err := types.Unmarshal(body, &messages); err != nil {
+		return fmt.Errorf("unmarshal error: %w", err)
+	}
+
+	if ch, ok := o.context.Get(token); ok {
+		ch <- messages
+	} else {
+		ch := make(chan []Message)
+		o.context.Set(token, ch)
+		ch <- messages
+	}
+
+	return nil
 }
 
 func (o *Ollama) handleChat(w http.ResponseWriter, r *http.Request) {
@@ -126,45 +161,32 @@ func (o *Ollama) handleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var messages []Message
-	if o.enabledContext {
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			fmt.Fprintf(w, "data: [DONE]\n\n")
-			flusher.Flush()
-			return
-		}
-		if err := types.Unmarshal(body, &messages); err != nil {
-			fmt.Fprintf(w, "data: [DONE]\n\n")
-			flusher.Flush()
-			return
-		}
-	} else {
-		msg := Message{
-			Role:    "user",
-			Content: r.URL.Query().Get("message") + ", 用中文回复我！",
-		}
-		if msg.Content == "" {
-			fmt.Fprintf(w, "data: [DONE]\n\n")
-			flusher.Flush()
-			return
-		}
-		messages = append(messages, msg)
-	}
-
-	req := Request{
-		Model:    o.Model,
-		Stream:   true,
-		Messages: messages,
-	}
-
-	if err := o.streamFromOllama(context.Background(), o.URL, req, w, flusher); err != nil {
-		fmt.Printf("Error: %v\n", err)
+	token := r.URL.Query().Get("token")
+	if token == "" {
 		return
 	}
 
-	fmt.Fprintf(w, "data: [DONE]\n\n")
-	flusher.Flush()
+	messagesChan, ok := o.context.Get(token)
+	if !ok {
+		messagesChan = make(chan []Message)
+		o.context.Set(token, messagesChan)
+	}
+
+	for messages := range messagesChan {
+		req := Request{
+			Model:    o.Model,
+			Stream:   true,
+			Messages: messages,
+		}
+
+		if err := o.streamFromOllama(context.Background(), o.URL, req, w, flusher); err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return
+		}
+
+		fmt.Fprintf(w, "data: [DONE]\n\n")
+		flusher.Flush()
+	}
 }
 
 func (o *Ollama) streamFromOllama(ctx context.Context, url string, ollamaReq Request, w http.ResponseWriter, flusher http.Flusher) error {

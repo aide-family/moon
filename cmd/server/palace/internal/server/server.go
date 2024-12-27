@@ -199,8 +199,9 @@ func RegisterService(
 		helper.WithOllamaAuth(c.GetOllama().GetAuth()),
 		helper.WithOllamaType(c.GetOllama().GetType()),
 	)
-	ollamaRoute.POST("/chat", ollama.HandleChat(c.GetOllama().GetEnabledContext()))
-	ollamaRoute.GET("/chat", ollama.HandleChat(c.GetOllama().GetEnabledContext()))
+	ollamaRoute.POST("/chat", ollama.HandleChat())
+	ollamaRoute.GET("/chat", ollama.HandleChat())
+	ollamaRoute.POST("/push", ollama.HandlePushContext())
 	// 是否启动链路追踪
 	if !types.IsNil(c.GetTracer()) {
 		var err error
