@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	nhttp "net/http"
 	"strings"
 	"time"
@@ -73,10 +74,11 @@ func NewOllama(url string, opts ...OllamaOption) *Ollama {
 
 // Ollama represents an Ollama instance.
 type Ollama struct {
-	Model string `json:"model"`
-	URL   string `json:"url"`
-	Auth  string `json:"auth"`
-	Type  string `json:"type"`
+	Model          string `json:"model"`
+	URL            string `json:"url"`
+	Auth           string `json:"auth"`
+	Type           string `json:"type"`
+	enabledContext bool
 }
 
 // OllamaOption is a function that configures an Ollama instance.
@@ -104,7 +106,8 @@ func WithOllamaType(t string) OllamaOption {
 }
 
 // HandleChat returns an HTTP handler function that handles chat requests.
-func (o *Ollama) HandleChat() http.HandlerFunc {
+func (o *Ollama) HandleChat(enabledContext bool) http.HandlerFunc {
+	o.enabledContext = enabledContext
 	return func(ctx http.Context) error {
 		o.handleChat(ctx.Response(), ctx.Request())
 		return nil
@@ -123,20 +126,36 @@ func (o *Ollama) handleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg := Message{
-		Role:    "user",
-		Content: r.URL.Query().Get("message") + ", 用中文回复我！",
-	}
-	if msg.Content == "" {
-		fmt.Fprintf(w, "data: [DONE]\n\n")
-		flusher.Flush()
-		return
+	var messages []Message
+	if o.enabledContext {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			fmt.Fprintf(w, "data: [DONE]\n\n")
+			flusher.Flush()
+			return
+		}
+		if err := types.Unmarshal(body, &messages); err != nil {
+			fmt.Fprintf(w, "data: [DONE]\n\n")
+			flusher.Flush()
+			return
+		}
+	} else {
+		msg := Message{
+			Role:    "user",
+			Content: r.URL.Query().Get("message") + ", 用中文回复我！",
+		}
+		if msg.Content == "" {
+			fmt.Fprintf(w, "data: [DONE]\n\n")
+			flusher.Flush()
+			return
+		}
+		messages = append(messages, msg)
 	}
 
 	req := Request{
 		Model:    o.Model,
 		Stream:   true,
-		Messages: []Message{msg},
+		Messages: messages,
 	}
 
 	if err := o.streamFromOllama(context.Background(), o.URL, req, w, flusher); err != nil {

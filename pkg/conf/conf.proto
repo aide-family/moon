@@ -242,6 +242,7 @@ message OllamaConfig {
   string url = 2;
   string auth = 3;
   string type = 4;
+  bool enabledContext = 5;
 }
 
 message AliYunLogConfig {
