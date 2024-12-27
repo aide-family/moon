@@ -59,9 +59,9 @@ func TestStrategyDomainPort_Eval(t *testing.T) {
 			"description": "百度域名端口监控 明细 {{ . }}",
 		}),
 		Domain:       "baidu.com",
-		Port:         1443,
+		Port:         443,
 		StrategyType: vobj.StrategyTypeDomainPort,
-		Condition:    vobj.ConditionGTE,
+		Condition:    vobj.ConditionEQ,
 	}
 
 	eval, err := domainStrategy.Eval(context.Background())

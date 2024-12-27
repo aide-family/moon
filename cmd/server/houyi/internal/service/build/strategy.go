@@ -81,6 +81,7 @@ func (a *DomainStrategyBuilder) ToBo() *bo.StrategyDomain {
 		Domain:           a.GetDomain(),
 		Port:             a.GetPort(),
 		StrategyType:     vobj.StrategyType(a.GetStrategyType()),
+		Condition:        vobj.Condition(a.GetCondition()),
 	}
 }
 
@@ -167,8 +168,8 @@ type EventStrategyBuilder struct {
 	*api.EventStrategyItem
 }
 
-// NewMQStrategyBuilder 创建MQ策略构建器
-func NewMQStrategyBuilder(strategyInfo *api.EventStrategyItem) *EventStrategyBuilder {
+// NewEventStrategyBuilder 创建MQ策略构建器
+func NewEventStrategyBuilder(strategyInfo *api.EventStrategyItem) *EventStrategyBuilder {
 	return &EventStrategyBuilder{
 		EventStrategyItem: strategyInfo,
 	}

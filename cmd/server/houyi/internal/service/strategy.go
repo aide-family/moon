@@ -50,7 +50,7 @@ func (s *StrategyService) PushStrategy(ctx context.Context, req *strategyapi.Pus
 	}
 	if len(req.GetEventStrategies()) > 0 {
 		strategies = append(strategies, types.SliceTo(req.GetEventStrategies(), func(item *api.EventStrategyItem) bo.IStrategy {
-			return build.NewMQStrategyBuilder(item).ToBo()
+			return build.NewEventStrategyBuilder(item).ToBo()
 		})...)
 	}
 	if len(strategies) == 0 {
