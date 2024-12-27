@@ -65,17 +65,27 @@ func (c EventCondition) Judge(data []byte, dataType EventDataType, key, threshol
 func (c EventCondition) stringJudge(data string, threshold string) bool {
 	switch c {
 	case EventConditionEQ:
-		return data == threshold
+		dataNum, _ := strconv.Atoi(data)
+		thresholdNum, _ := strconv.Atoi(threshold)
+		return dataNum == thresholdNum
 	case EventConditionNE:
-		return data != threshold
+		dataNum, _ := strconv.Atoi(data)
+		thresholdNum, _ := strconv.Atoi(threshold)
+		return dataNum != thresholdNum
 	case EventConditionGT:
 		return data > threshold
 	case EventConditionGTE:
-		return data >= threshold
+		dataNum, _ := strconv.Atoi(data)
+		thresholdNum, _ := strconv.Atoi(threshold)
+		return dataNum >= thresholdNum
 	case EventConditionLT:
-		return data < threshold
+		dataNum, _ := strconv.Atoi(data)
+		thresholdNum, _ := strconv.Atoi(threshold)
+		return dataNum < thresholdNum
 	case EventConditionLTE:
-		return data <= threshold
+		dataNum, _ := strconv.Atoi(data)
+		thresholdNum, _ := strconv.Atoi(threshold)
+		return dataNum <= thresholdNum
 	case EventConditionContain:
 		return strings.Contains(data, threshold)
 	case EventConditionPrefix:
