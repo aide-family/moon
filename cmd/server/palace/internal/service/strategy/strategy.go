@@ -8,7 +8,9 @@ import (
 	strategyapi "github.com/aide-family/moon/api/admin/strategy"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
+	"github.com/aide-family/moon/pkg/helper"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -22,15 +24,24 @@ type Service struct {
 	strategyBiz      *biz.StrategyBiz
 	strategyGroupBiz *biz.StrategyGroupBiz
 	strategyCountBiz *biz.StrategyCountBiz
+
+	aiChat *helper.Ollama
 }
 
 // NewStrategyService 创建策略管理服务
-func NewStrategyService(templateBiz *biz.TemplateBiz, strategy *biz.StrategyBiz, strategyGroupBiz *biz.StrategyGroupBiz, strategyCountBiz *biz.StrategyCountBiz) *Service {
+func NewStrategyService(bootstrap *palaceconf.Bootstrap, templateBiz *biz.TemplateBiz, strategy *biz.StrategyBiz, strategyGroupBiz *biz.StrategyGroupBiz, strategyCountBiz *biz.StrategyCountBiz) *Service {
+	opts := []helper.OllamaOption{
+		helper.WithOllamaModel(bootstrap.GetOllama().GetModel()),
+		helper.WithOllamaAuth(bootstrap.GetOllama().GetAuth()),
+		helper.WithOllamaType(bootstrap.GetOllama().GetType()),
+		helper.WithOllamaContextSize(bootstrap.GetOllama().GetContextSize()),
+	}
 	return &Service{
 		templateBiz:      templateBiz,
 		strategyBiz:      strategy,
 		strategyGroupBiz: strategyGroupBiz,
 		strategyCountBiz: strategyCountBiz,
+		aiChat:           helper.NewOllama(bootstrap.GetOllama().GetUrl(), opts...),
 	}
 }
 
@@ -242,4 +253,13 @@ func (s *Service) PushStrategy(ctx context.Context, req *strategyapi.PushStrateg
 		return nil, err
 	}
 	return &strategyapi.PushStrategyReply{}, nil
+}
+
+// GetAnnotation 获取策略注释
+func (s *Service) GetAnnotation(ctx context.Context, req *strategyapi.GetAnnotationRequest) (*strategyapi.GetAnnotationReply, error) {
+	reply, err := s.aiChat.GetAnnotation(ctx, req.GetStrategy())
+	if err != nil {
+		return nil, merr.ErrorAlert("获取告警注释失败, 请稍后再试")
+	}
+	return reply, nil
 }

@@ -124,6 +124,14 @@ service Strategy {
       get: "/v1/strategy/push/{id}"
     };
   }
+
+   // 获取告警注释
+   rpc GetAnnotation (GetAnnotationRequest) returns (GetAnnotationReply) {
+    option (google.api.http) = {
+      post: "/v1/admin/strategy/annotation"
+      body: "*"
+    };
+  }
 }
 
 message CreateStrategyGroupRequest {
@@ -568,3 +576,11 @@ message PushStrategyRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
 }
 message PushStrategyReply {}
+
+message GetAnnotationRequest {
+  CreateStrategyRequest strategy = 1 [(buf.validate.field).required = true];
+}
+message GetAnnotationReply {
+  string description = 1;
+  string summary = 2;
+}

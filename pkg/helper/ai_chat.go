@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	strategyapi "github.com/aide-family/moon/api/admin/strategy"
 	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/types"
 
@@ -44,8 +45,8 @@ type OllamaResponse struct {
 	TotalDuration      int64     `json:"total_duration"`
 }
 
-// OpenAIAPIResponse is a struct representing an OpenAI API response.
-type OpenAIAPIResponse struct {
+// OpenAIAPIResponseByStream is a struct representing an OpenAI API response.
+type OpenAIAPIResponseByStream struct {
 	ID                string `json:"id"`
 	Object            string `json:"object"`
 	Created           int    `json:"created"`
@@ -59,6 +60,32 @@ type OpenAIAPIResponse struct {
 		Logprobs     interface{} `json:"logprobs"`
 		FinishReason interface{} `json:"finish_reason"`
 	} `json:"choices"`
+}
+
+type OpenAIAPIResponse struct {
+	ID      string `json:"id"`
+	Object  string `json:"object"`
+	Created int    `json:"created"`
+	Model   string `json:"model"`
+	Choices []struct {
+		Index   int `json:"index"`
+		Message struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		} `json:"message"`
+		FinishReason string `json:"finish_reason"`
+	} `json:"choices"`
+	Usage struct {
+		PromptTokens     int `json:"prompt_tokens"`
+		CompletionTokens int `json:"completion_tokens"`
+		TotalTokens      int `json:"total_tokens"`
+	} `json:"usage"`
+}
+
+// String OpenAIAPIResponse to json
+func (o *OpenAIAPIResponse) String() string {
+	b, _ := types.Marshal(o)
+	return string(b)
 }
 
 // NewOllama creates a new instance of Ollama with the given URL and options.
@@ -205,6 +232,96 @@ func (o *Ollama) handleChat(w http.ResponseWriter, r *http.Request) {
 	flusher.Flush()
 }
 
+func (o *Ollama) GetAnnotation(ctx context.Context, strategyItem *strategyapi.CreateStrategyRequest) (*strategyapi.GetAnnotationReply, error) {
+	return o.getAnnotation(ctx, strategyItem)
+}
+
+func (o *Ollama) getAnnotation(ctx context.Context, strategyItem *strategyapi.CreateStrategyRequest) (*strategyapi.GetAnnotationReply, error) {
+	formatValue := `
+	map[string]any{
+		"value":  endPointValue.Value,
+		"time":   endPointValue.Timestamp,
+		"labels": labels.Map(),
+		"ext":    extJSON,
+	}`
+	messages := []Message{
+		{
+			Role:    "user",
+			Content: strategyItem.String(),
+		},
+		{
+			Role:    "user",
+			Content: fmt.Sprintf("模板按照：%s 格式， 通过template完成数据填充，我希望这个json格式是满足此数据的go template格式", formatValue),
+		},
+		{
+			Role:    "user",
+			Content: "请根据规则生成告警描述和告警总结的go template， 按照json格式返回，json格式如下：{\"description\": \"描述\", \"summary\": \"总结\"}, 回复不要有任何解释, 以及任何的markdown语法， 只需要纯粹的json字符串，我会根据这个回复通过Unmarshal解析出json数据",
+		},
+	}
+	resp, err := o.getTemplate(ctx, messages)
+	if err != nil {
+		return nil, err
+	}
+
+	var reply strategyapi.GetAnnotationReply
+	if len(resp.Choices) > 0 {
+		if err := types.Unmarshal([]byte(resp.Choices[0].Message.Content), &reply); err != nil {
+			return nil, err
+		}
+	}
+	return &reply, nil
+}
+
+func (o *Ollama) getTemplate(ctx context.Context, msg []Message) (*OpenAIAPIResponse, error) {
+	resp, err := o.responseFromOllama(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("Response: %s\n", resp.String())
+
+	return resp, nil
+}
+
+// responseFromOllama 从Ollama获取响应
+func (o *Ollama) responseFromOllama(ctx context.Context, msg []Message) (*OpenAIAPIResponse, error) {
+	req := Request{
+		Model:    o.Model,
+		Stream:   false,
+		Messages: msg,
+	}
+
+	js, err := types.Marshal(&req)
+	if err != nil {
+		return nil, fmt.Errorf("marshal error: %w", err)
+	}
+
+	client := nhttp.Client{}
+	httpReq, err := nhttp.NewRequestWithContext(ctx, nhttp.MethodPost, o.URL, bytes.NewReader(js))
+	if err != nil {
+		return nil, fmt.Errorf("create request error: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("Authorization", "Bearer "+o.Auth)
+
+	httpResp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("do request error: %w", err)
+	}
+	defer httpResp.Body.Close()
+
+	body, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read body error: %w", err)
+	}
+
+	var resp OpenAIAPIResponse
+	if err := types.Unmarshal(body, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 func (o *Ollama) streamFromOllama(ctx context.Context, token string, url string, ollamaReq Request, w http.ResponseWriter, flusher http.Flusher) error {
 	js, err := types.Marshal(&ollamaReq)
 	if err != nil {
@@ -246,7 +363,7 @@ func (o *Ollama) streamFromOllama(ctx context.Context, token string, url string,
 		fmt.Printf("Received line: %s\n", line)
 		switch o.Type {
 		case "openai":
-			var response OpenAIAPIResponse
+			var response OpenAIAPIResponseByStream
 			line = strings.TrimPrefix(line, "data:")
 			if err := types.Unmarshal([]byte(line), &response); err != nil {
 				fmt.Printf("Unmarshal error: %v, data: %v\n", err, line)
@@ -284,14 +401,16 @@ func (o *Ollama) streamFromOllama(ctx context.Context, token string, url string,
 			}
 		}
 	}
-	msg, ok := o.context.Get(token)
-	if !ok {
-		return nil
+	if token != "" {
+		msg, ok := o.context.Get(token)
+		if !ok {
+			return nil
+		}
+		msg = append(msg, Message{
+			Role:    "assistant",
+			Content: resp,
+		})
+		o.context.Set(token, msg)
 	}
-	msg = append(msg, Message{
-		Role:    "assistant",
-		Content: resp,
-	})
-	o.context.Set(token, msg)
 	return nil
 }
