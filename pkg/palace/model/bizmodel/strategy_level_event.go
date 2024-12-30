@@ -49,11 +49,11 @@ func (s *StrategyEventLevel) GetAlarmGroupList() []*AlarmNoticeGroup {
 }
 
 // String json string
-func (c *StrategyEventLevel) String() string {
-	if c == nil {
+func (s *StrategyEventLevel) String() string {
+	if s == nil {
 		return "{}"
 	}
-	bs, err := types.Marshal(c)
+	bs, err := types.Marshal(s)
 	if err != nil {
 		return "{}"
 	}
@@ -61,11 +61,11 @@ func (c *StrategyEventLevel) String() string {
 }
 
 // UnmarshalBinary redis存储实现
-func (c *StrategyEventLevel) UnmarshalBinary(data []byte) error {
-	return types.Unmarshal(data, c)
+func (s *StrategyEventLevel) UnmarshalBinary(data []byte) error {
+	return types.Unmarshal(data, s)
 }
 
 // MarshalBinary redis存储实现
-func (c *StrategyEventLevel) MarshalBinary() (data []byte, err error) {
-	return types.Marshal(c)
+func (s *StrategyEventLevel) MarshalBinary() (data []byte, err error) {
+	return types.Marshal(s)
 }

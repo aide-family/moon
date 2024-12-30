@@ -57,11 +57,11 @@ func (s *StrategyMetricLevel) GetLabelNoticeList() []*StrategyMetricsLabelNotice
 }
 
 // String json string
-func (c *StrategyMetricLevel) String() string {
-	if c == nil {
+func (s *StrategyMetricLevel) String() string {
+	if s == nil {
 		return "{}"
 	}
-	bs, err := types.Marshal(c)
+	bs, err := types.Marshal(s)
 	if err != nil {
 		return "{}"
 	}
@@ -69,11 +69,11 @@ func (c *StrategyMetricLevel) String() string {
 }
 
 // UnmarshalBinary redis存储实现
-func (c *StrategyMetricLevel) UnmarshalBinary(data []byte) error {
-	return types.Unmarshal(data, c)
+func (s *StrategyMetricLevel) UnmarshalBinary(data []byte) error {
+	return types.Unmarshal(data, s)
 }
 
 // MarshalBinary redis存储实现
-func (c *StrategyMetricLevel) MarshalBinary() (data []byte, err error) {
-	return types.Marshal(c)
+func (s *StrategyMetricLevel) MarshalBinary() (data []byte, err error) {
+	return types.Marshal(s)
 }

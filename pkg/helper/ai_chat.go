@@ -44,8 +44,9 @@ type OllamaResponse struct {
 	TotalDuration      int64     `json:"total_duration"`
 }
 
+// OpenAIAPIResponse is a struct representing an OpenAI API response.
 type OpenAIAPIResponse struct {
-	Id                string `json:"id"`
+	ID                string `json:"id"`
 	Object            string `json:"object"`
 	Created           int    `json:"created"`
 	Model             string `json:"model"`
