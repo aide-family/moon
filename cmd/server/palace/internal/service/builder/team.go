@@ -336,7 +336,7 @@ func (l *listTeamRequestBuilder) ToBo() *bo.QueryTeamListParams {
 		Status:    vobj.Status(l.GetStatus()),
 		CreatorID: l.GetCreatorId(),
 		LeaderID:  l.GetLeaderId(),
-		UserID:    middleware.GetUserID(l.ctx),
+		UserID:    0,
 		IDs:       l.GetIds(),
 	}
 }
