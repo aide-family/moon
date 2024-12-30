@@ -66,6 +66,8 @@ func NewOllama(url string, opts ...OllamaOption) *Ollama {
 		Model: "gpt-4o-mini",
 		URL:   url,
 		Auth:  "",
+		// 上下文容量
+		contextSize: 10,
 	}
 	for _, opt := range opts {
 		opt(o)
@@ -79,7 +81,9 @@ type Ollama struct {
 	URL     string `json:"url"`
 	Auth    string `json:"auth"`
 	Type    string `json:"type"`
-	context *safety.Map[string, chan []Message]
+	context *safety.Map[string, []Message]
+	// 上下文容量
+	contextSize uint32
 }
 
 // OllamaOption is a function that configures an Ollama instance.
@@ -106,9 +110,16 @@ func WithOllamaType(t string) OllamaOption {
 	}
 }
 
+// WithOllamaContextSize sets the context size for the Ollama instance.
+func WithOllamaContextSize(size uint32) OllamaOption {
+	return func(o *Ollama) {
+		o.contextSize = size
+	}
+}
+
 // HandleChat returns an HTTP handler function that handles chat requests.
 func (o *Ollama) HandleChat() http.HandlerFunc {
-	o.context = safety.NewMap[string, chan []Message]()
+	o.context = safety.NewMap[string, []Message]()
 	return func(ctx http.Context) error {
 		o.handleChat(ctx.Response(), ctx.Request())
 		return nil
@@ -133,17 +144,22 @@ func (o *Ollama) pushContext(ctx http.Context) error {
 		return fmt.Errorf("read body error: %w", err)
 	}
 
-	var messages []Message
-	if err := types.Unmarshal(body, &messages); err != nil {
+	var message Message
+	if err := types.Unmarshal(body, &message); err != nil {
 		return fmt.Errorf("unmarshal error: %w", err)
 	}
 
 	if ch, ok := o.context.Get(token); ok {
-		ch <- messages
-	} else {
-		ch := make(chan []Message)
+		// 判断上下文容量， 大于10之后，清空
+		if len(ch) > int(o.contextSize) {
+			ch = make([]Message, 0)
+		}
+		ch = append(ch, message)
 		o.context.Set(token, ch)
-		ch <- messages
+	} else {
+		ch = make([]Message, 0)
+		ch = append(ch, message)
+		o.context.Set(token, ch)
 	}
 
 	return nil
@@ -166,30 +182,29 @@ func (o *Ollama) handleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messagesChan, ok := o.context.Get(token)
+	messages, ok := o.context.Get(token)
 	if !ok {
-		messagesChan = make(chan []Message)
-		o.context.Set(token, messagesChan)
+		messages = make([]Message, 0)
+		o.context.Set(token, messages)
 	}
 
-	for messages := range messagesChan {
-		req := Request{
-			Model:    o.Model,
-			Stream:   true,
-			Messages: messages,
-		}
-
-		if err := o.streamFromOllama(context.Background(), o.URL, req, w, flusher); err != nil {
-			fmt.Printf("Error: %v\n", err)
-			return
-		}
-
-		fmt.Fprintf(w, "data: [DONE]\n\n")
-		flusher.Flush()
+	ctx := r.Context()
+	req := Request{
+		Model:    o.Model,
+		Stream:   true,
+		Messages: messages,
 	}
+
+	if err := o.streamFromOllama(ctx, token, o.URL, req, w, flusher); err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	fmt.Fprintf(w, "data: [DONE]\n\n")
+	flusher.Flush()
 }
 
-func (o *Ollama) streamFromOllama(ctx context.Context, url string, ollamaReq Request, w http.ResponseWriter, flusher http.Flusher) error {
+func (o *Ollama) streamFromOllama(ctx context.Context, token string, url string, ollamaReq Request, w http.ResponseWriter, flusher http.Flusher) error {
 	js, err := types.Marshal(&ollamaReq)
 	if err != nil {
 		return fmt.Errorf("marshal error: %w", err)
@@ -215,6 +230,7 @@ func (o *Ollama) streamFromOllama(ctx context.Context, url string, ollamaReq Req
 	}
 
 	reader := bufio.NewReader(httpResp.Body)
+	resp := ""
 	for {
 		line, err := reader.ReadString('\n')
 		if err != nil {
@@ -238,6 +254,7 @@ func (o *Ollama) streamFromOllama(ctx context.Context, url string, ollamaReq Req
 
 			for _, choice := range response.Choices {
 				if choice.Delta.Content != "" {
+					resp += choice.Delta.Content
 					fmt.Fprintf(w, "data: %s\n\n", choice.Delta.Content)
 					flusher.Flush()
 				}
@@ -256,6 +273,7 @@ func (o *Ollama) streamFromOllama(ctx context.Context, url string, ollamaReq Req
 
 			safeMessage := strings.ReplaceAll(response.Message.Content, "\n", "\\n")
 			if response.Message.Content != "" {
+				resp += safeMessage
 				fmt.Fprintf(w, "data: %s\n\n", safeMessage)
 				flusher.Flush()
 			}
@@ -265,5 +283,14 @@ func (o *Ollama) streamFromOllama(ctx context.Context, url string, ollamaReq Req
 			}
 		}
 	}
+	msg, ok := o.context.Get(token)
+	if !ok {
+		return nil
+	}
+	msg = append(msg, Message{
+		Role:    "assistant",
+		Content: resp,
+	})
+	o.context.Set(token, msg)
 	return nil
 }

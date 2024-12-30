@@ -242,6 +242,8 @@ message OllamaConfig {
   string url = 2;
   string auth = 3;
   string type = 4;
+  // 上下文容量
+  uint32 contextSize = 5;
 }
 
 message AliYunLogConfig {

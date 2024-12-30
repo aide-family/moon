@@ -198,6 +198,7 @@ func RegisterService(
 		helper.WithOllamaModel(c.GetOllama().GetModel()),
 		helper.WithOllamaAuth(c.GetOllama().GetAuth()),
 		helper.WithOllamaType(c.GetOllama().GetType()),
+		helper.WithOllamaContextSize(c.GetOllama().GetContextSize()),
 	)
 	ollamaRoute.POST("/chat", ollama.HandleChat())
 	ollamaRoute.GET("/chat", ollama.HandleChat())
