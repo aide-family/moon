@@ -193,9 +193,16 @@ func RegisterService(
 
 	// Ollama
 	ollamaRoute := httpSrv.Route("/ollama", middleware.Cors())
-	ollama := helper.NewOllama(c.GetOllama().GetUrl(), helper.WithOllamaModel(c.GetOllama().GetModel()))
+	ollama := helper.NewOllama(
+		c.GetOllama().GetUrl(),
+		helper.WithOllamaModel(c.GetOllama().GetModel()),
+		helper.WithOllamaAuth(c.GetOllama().GetAuth()),
+		helper.WithOllamaType(c.GetOllama().GetType()),
+		helper.WithOllamaContextSize(c.GetOllama().GetContextSize()),
+	)
 	ollamaRoute.POST("/chat", ollama.HandleChat())
 	ollamaRoute.GET("/chat", ollama.HandleChat())
+	ollamaRoute.POST("/push", ollama.HandlePushContext())
 	// 是否启动链路追踪
 	if !types.IsNil(c.GetTracer()) {
 		var err error

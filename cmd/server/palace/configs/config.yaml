@@ -64,19 +64,19 @@ cache:
 #    timeout: 50s
 
 database:
-  driver: "mysql"
+  driver: 'mysql'
   debug: false
-  dsn: "root:123456@tcp(localhost:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local"
+  dsn: 'root:123456@tcp(localhost:3306)/moon?charset=utf8mb4&parseTime=True&loc=Local'
 
 bizDatabase:
-  driver: "mysql"
+  driver: 'mysql'
   debug: false
-  dsn: "root:123456@tcp(localhost:3306)/"
+  dsn: 'root:123456@tcp(localhost:3306)/'
 
 alarmDatabase:
-  driver: "mysql"
+  driver: 'mysql'
   debug: false
-  dsn: "root:123456@tcp(localhost:3306)/"
+  dsn: 'root:123456@tcp(localhost:3306)/'
 
 log:
   #  default, slog, aliyun, zap
@@ -140,5 +140,8 @@ oss:
     secure: false
 
 ollama:
-  model: "jimscard/devopd:7b"
-  url: "http://localhost:11434/api/chat"
+  type: 'openai'
+  model: 'gpt-4o-mini'
+  url: 'https://free.v36.cm/v1/chat/completions'
+  auth: 'sk-lSlotX3nG97FMfX5346e1fC139C6486aBdFc94B3Be129e9d'
+  contextSize: 10

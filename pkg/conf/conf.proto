@@ -240,6 +240,10 @@ message Log {
 message OllamaConfig {
   string model = 1;
   string url = 2;
+  string auth = 3;
+  string type = 4;
+  // 上下文容量
+  uint32 contextSize = 5;
 }
 
 message AliYunLogConfig {
@@ -389,7 +393,6 @@ message Event {
   // kafka配置
   Kafka kafka = 4;
 }
-
 
 // 对称加密配置
 message SymmetricEncryptionConfig {
