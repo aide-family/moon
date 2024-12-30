@@ -254,9 +254,10 @@ func (o *Ollama) streamFromOllama(ctx context.Context, token string, url string,
 			}
 
 			for _, choice := range response.Choices {
+				safeMessage := strings.ReplaceAll(choice.Delta.Content, "\n", "\\n")
 				if choice.Delta.Content != "" {
 					resp += choice.Delta.Content
-					fmt.Fprintf(w, "data: %s\n\n", choice.Delta.Content)
+					fmt.Fprintf(w, "data: %s\n\n", safeMessage)
 					flusher.Flush()
 				}
 
