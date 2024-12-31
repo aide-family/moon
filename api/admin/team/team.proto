@@ -49,7 +49,7 @@ service Team {
   // 修改团队状态
   rpc UpdateTeamStatus (UpdateTeamStatusRequest) returns (UpdateTeamStatusReply) {
     option (google.api.http) = {
-      put: "/v1/team/status"
+      put: "/v1/team/update/status"
       body: "*"
     };
   }
