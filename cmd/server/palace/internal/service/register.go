@@ -16,7 +16,9 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/subscriber"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/system"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/team"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/template"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/user"
+
 	"github.com/google/wire"
 )
 
@@ -49,4 +51,5 @@ var ProviderSetService = wire.NewSet(
 	fileservice.NewFileService,
 	NewServerService,
 	system.NewSystemService,
+	template.NewSendTemplateService,
 )

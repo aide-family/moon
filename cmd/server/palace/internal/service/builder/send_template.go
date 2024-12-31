@@ -2,11 +2,14 @@ package builder
 
 import (
 	"context"
-	"github.com/aide-family/moon/pkg/util/types"
-	"github.com/aide-family/moon/pkg/vobj"
 
+	"github.com/aide-family/moon/api"
+	adminapi "github.com/aide-family/moon/api/admin"
 	templateapi "github.com/aide-family/moon/api/admin/template"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/palace/imodel"
+	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
 var _ SendTemplateModuleBuild = (*sendTemplateModuleBuild)(nil)
@@ -17,8 +20,8 @@ type (
 		WithSendTemplateCreateRequest(*templateapi.CreateSendTemplateRequest) ICreateSendTemplateRequestBuilder
 		// WithSendTemplateStatusUpdateRequest 构建更新告警发送模板状态请求
 		WithSendTemplateStatusUpdateRequest(*templateapi.UpdateStatusRequest) IUpdateSendTemplateStatusRequestBuilder
-		// WithSendTemplateUpdateUpdateRequest 构建更新告警发送模板请求
-		WithSendTemplateUpdateUpdateRequest(*templateapi.UpdateSendTemplateRequest) IUpdateSendTemplateRequestBuilder
+		// WithSendTemplateUpdateRequest 构建更新告警发送模板请求
+		WithSendTemplateUpdateRequest(*templateapi.UpdateSendTemplateRequest) IUpdateSendTemplateRequestBuilder
 		// WithSendTemplateListRequest 构建查询告警发送模板列表请求
 		WithSendTemplateListRequest(*templateapi.ListSendTemplateRequest) IListSendTemplateRequestBuilder
 		// IDoSendTemplateBuilder 执行告警发送模板请求构建器
@@ -42,7 +45,7 @@ type (
 
 	// IUpdateSendTemplateStatusRequestBuilder 更新告警发送模板状态请求构建器
 	IUpdateSendTemplateStatusRequestBuilder interface {
-		ToBo() *bo.UpdateSendTemplateStatus
+		ToBo() *bo.UpdateSendTemplateStatusParams
 	}
 
 	updateSendTemplateStatusRequestBuilder struct {
@@ -71,8 +74,32 @@ type (
 
 	// IDoSendTemplateBuilder 执行告警发送模板请求构建器
 	IDoSendTemplateBuilder interface {
+		ToAPI(imodel.ISendTemplate) *adminapi.SendTemplateItem
+		ToAPIs([]imodel.ISendTemplate) []*adminapi.SendTemplateItem
 	}
 )
+
+func (s *sendTemplateModuleBuild) ToAPI(template imodel.ISendTemplate) *adminapi.SendTemplateItem {
+	if types.IsNil(s) || types.IsNil(template) {
+		return nil
+	}
+
+	return &adminapi.SendTemplateItem{
+		Id:       template.GetID(),
+		Name:     template.GetName(),
+		Content:  template.GetContent(),
+		SendType: api.AlarmSendType(template.GetSendType()),
+	}
+}
+
+func (s *sendTemplateModuleBuild) ToAPIs(templates []imodel.ISendTemplate) []*adminapi.SendTemplateItem {
+	if types.IsNil(s) || types.IsNil(templates) {
+		return nil
+	}
+	return types.SliceTo(templates, func(t imodel.ISendTemplate) *adminapi.SendTemplateItem {
+		return s.ToAPI(t)
+	})
+}
 
 func (l *listSendTemplateRequestBuilder) ToBo() *bo.QuerySendTemplateListParams {
 	if types.IsNil(l) || types.IsNil(l.ListSendTemplateRequest) {
@@ -91,16 +118,17 @@ func (u *updateSendTemplateRequestBuilder) ToBo() *bo.UpdateSendTemplate {
 		return nil
 	}
 	return &bo.UpdateSendTemplate{
-		ID: u.GetId(),
+		ID:          u.GetId(),
+		UpdateParam: NewParamsBuild(u.ctx).SendTemplateModuleBuild().WithSendTemplateCreateRequest(u.UpdateSendTemplateRequest.GetData()).ToBo(),
 	}
 }
 
-func (u *updateSendTemplateStatusRequestBuilder) ToBo() *bo.UpdateSendTemplateStatus {
+func (u *updateSendTemplateStatusRequestBuilder) ToBo() *bo.UpdateSendTemplateStatusParams {
 	if types.IsNil(u) || types.IsNil(u.UpdateStatusRequest) {
 		return nil
 	}
-	return &bo.UpdateSendTemplateStatus{
-		ID:     u.GetId(),
+	return &bo.UpdateSendTemplateStatusParams{
+		Ids:    u.GetId(),
 		Status: vobj.Status(u.GetStatus()),
 	}
 }
@@ -132,7 +160,7 @@ func (s *sendTemplateModuleBuild) WithSendTemplateStatusUpdateRequest(request *t
 	}
 }
 
-func (s *sendTemplateModuleBuild) WithSendTemplateUpdateUpdateRequest(request *templateapi.UpdateSendTemplateRequest) IUpdateSendTemplateRequestBuilder {
+func (s *sendTemplateModuleBuild) WithSendTemplateUpdateRequest(request *templateapi.UpdateSendTemplateRequest) IUpdateSendTemplateRequestBuilder {
 	return &updateSendTemplateRequestBuilder{
 		ctx:                       s.ctx,
 		UpdateSendTemplateRequest: request,
@@ -148,5 +176,7 @@ func (s *sendTemplateModuleBuild) WithSendTemplateListRequest(request *templatea
 }
 
 func (s *sendTemplateModuleBuild) IDoSendTemplateBuilder() IDoSendTemplateBuilder {
-	return &sendTemplateModuleBuild{}
+	return &sendTemplateModuleBuild{
+		ctx: s.ctx,
+	}
 }

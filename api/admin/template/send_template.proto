@@ -85,7 +85,9 @@ message DeleteSendTemplateReply {}
 message GetSendTemplateRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
 }
-message GetSendTemplateReply {}
+message GetSendTemplateReply {
+  SendTemplateItem detail = 1;
+}
 
 message ListSendTemplateRequest {
   // 分页参数
@@ -99,7 +101,12 @@ message ListSendTemplateRequest {
   // 状态查询
   Status status = 4;
 }
-message ListSendTemplateReply {}
+message ListSendTemplateReply {
+  // 列表数据
+  repeated SendTemplateItem list = 1;
+  // 分页信息
+  PaginationReply pagination = 2;
+}
 
 message UpdateStatusRequest {
   repeated uint32  id =  1[(buf.validate.field).cel = {

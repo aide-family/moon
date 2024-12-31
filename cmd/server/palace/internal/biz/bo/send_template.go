@@ -21,8 +21,8 @@ type (
 	}
 	// UpdateSendTemplate 更新发送模板
 	UpdateSendTemplate struct {
-		ID          uint32             `json:"id"`
-		UpdateParam CreateSendTemplate `json:"updateParam"`
+		ID          uint32              `json:"id"`
+		UpdateParam *CreateSendTemplate `json:"updateParam"`
 	}
 
 	// QuerySendTemplateListParams 查询发送模板列表参数
@@ -33,9 +33,9 @@ type (
 		SendType vobj.AlarmSendType `json:"sendType"`
 	}
 
-	// UpdateSendTemplateStatus 更新发送模板状态
-	UpdateSendTemplateStatus struct {
-		ID     []uint32    `json:"id"`
+	// UpdateSendTemplateStatusParams 更新发送模板状态
+	UpdateSendTemplateStatusParams struct {
+		Ids    []uint32    `json:"ids"`
 		Status vobj.Status `json:"status"`
 	}
 )

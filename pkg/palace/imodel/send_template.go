@@ -4,6 +4,8 @@ import "github.com/aide-family/moon/pkg/vobj"
 
 // ISendTemplate 发送模板
 type ISendTemplate interface {
+	// GetID 获取id
+	GetID() uint32
 	// GetName 获取模板名称
 	GetName() string
 	// GetContent 获取模板内容

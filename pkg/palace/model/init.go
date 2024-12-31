@@ -15,5 +15,6 @@ func Models() []any {
 		&SysOAuthUser{},
 		&SysTeamInvite{},
 		&SysUserMessage{},
+		&SysSendTemplate{},
 	}
 }
