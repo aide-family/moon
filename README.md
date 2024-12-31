@@ -21,7 +21,8 @@
 
 * [中文](README-zh.md)
 
-Moon is a monitoring and alerting platform suitable for multiple domains, supporting various application scenarios such as cloud-native, Internet of Things (IoT), and Artificial Intelligence (AI). It not only simplifies the operational work of cloud-native monitoring but also possesses strong IoT and AI support capabilities, meeting the diverse monitoring needs across different industries and domains. Through real-time data monitoring, intelligent alerts, and fault response, Moon helps enterprises detect potential issues early, improving system stability, availability, and intelligence.
+Moon is a monitoring and alerting platform suitable for multiple domains, supporting various application scenarios such as cloud-native, Internet of Things (IoT), and Artificial Intelligence (AI). It not only simplifies the operational work of cloud-native monitoring but also boasts strong IoT and AI support capabilities, meeting the diverse monitoring needs across different industries and domains. Through real-time data monitoring, intelligent alerts, and fault response, it is capable of addressing the monitoring requirements of various fields.
+
 ## Architecture
 
 ![architecture-en.png](docs/images/architecture-en.png)
