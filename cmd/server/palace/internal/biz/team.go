@@ -241,7 +241,7 @@ func (t *TeamBiz) UpdateTeamMemberStatus(ctx context.Context, status vobj.Status
 
 // GetTeamMemberDetail 获取团队成员详情
 func (t *TeamBiz) GetTeamMemberDetail(ctx context.Context, memberID uint32) (*bizmodel.SysTeamMember, error) {
-	member, err := t.teamRepo.GetUserTeamByID(ctx, middleware.GetUserID(ctx), memberID)
+	member, err := t.teamRepo.GetUserTeamByID(ctx, memberID, middleware.GetTeamID(ctx))
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
