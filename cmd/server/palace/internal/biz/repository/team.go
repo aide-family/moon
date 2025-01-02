@@ -67,4 +67,7 @@ type Team interface {
 
 	// SyncTeamBaseData 同步团队基础数据
 	SyncTeamBaseData(context.Context, *model.SysTeam, []*bizmodel.SysTeamMember) error
+
+	// GetMemberDetail 获取团队成员详情
+	GetMemberDetail(context.Context, uint32) (*bizmodel.SysTeamMember, error)
 }

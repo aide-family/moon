@@ -553,3 +553,14 @@ func (l *teamRepositoryImpl) UpdateTeamMemberStatus(ctx context.Context, status 
 	).UpdateColumnSimple(bizQuery.SysTeamMember.Status.Value(status.GetValue()))
 	return err
 }
+
+func (l *teamRepositoryImpl) GetMemberDetail(ctx context.Context, id uint32) (*bizmodel.SysTeamMember, error) {
+	bizDB, err := l.data.GetBizGormDB(middleware.GetTeamID(ctx))
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	bizQuery := bizquery.Use(bizDB)
+	return bizQuery.WithContext(ctx).SysTeamMember.Where(
+		bizQuery.SysTeamMember.ID.Eq(id),
+	).First()
+}
