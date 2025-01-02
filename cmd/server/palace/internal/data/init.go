@@ -30,6 +30,11 @@ func initMainDatabase(d *Data) error {
 		return err
 	}
 
+	// 创建发送模板
+	if err := query.Use(d.mainDB).SysSendTemplate.Clauses(clause.OnConflict{DoNothing: true}).Create(sendTemplateList...); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -40,7 +45,7 @@ func syncBizDatabase(d *Data) error {
 	}
 	// 获取所有团队
 	teams, err := query.Use(d.mainDB).SysTeam.Find()
-	if err != nil {
+	if !types.IsNil(err) {
 		return err
 	}
 	mainQuery := query.Use(d.mainDB)
@@ -53,6 +58,12 @@ func syncBizDatabase(d *Data) error {
 	if !types.IsNil(err) {
 		return err
 	}
+
+	sendTemplates, err := mainQuery.SysSendTemplate.Find()
+	if !types.IsNil(err) {
+		return err
+	}
+
 	teamApis := types.SliceToWithFilter(sysApis, func(apiItem *model.SysAPI) (*bizmodel.SysTeamAPI, bool) {
 		return &bizmodel.SysTeamAPI{
 			Name:   apiItem.Name,
@@ -78,6 +89,17 @@ func syncBizDatabase(d *Data) error {
 			Remark:       dictItem.Remark,
 		}, true
 	})
+
+	sendTemplatesList := types.SliceToWithFilter(sendTemplates, func(item *model.SysSendTemplate) (*bizmodel.SysSendTemplate, bool) {
+		return &bizmodel.SysSendTemplate{
+			Name:     item.Name,
+			Content:  item.Content,
+			Status:   item.Status,
+			Remark:   item.Remark,
+			SendType: item.SendType,
+		}, true
+	})
+
 	for _, team := range teams {
 		// 获取团队业务库连接
 		db, err := d.GetBizGormDB(team.ID)
@@ -111,6 +133,12 @@ func syncBizDatabase(d *Data) error {
 		// 把创建人同步到团队成员表
 		if err := bizquery.Use(db).SysTeamMember.Clauses(clause.OnConflict{DoNothing: true}).Create(teamMember); !types.IsNil(err) {
 			return err
+		}
+
+		if len(sendTemplatesList) > 0 {
+			if err := bizquery.Use(db).SysSendTemplate.Clauses(clause.OnConflict{DoNothing: true}).Create(sendTemplatesList...); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -1501,5 +1529,37 @@ var resourceList = []*model.SysAPI{
 		Remark: "更新发送模板状态",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
+	},
+}
+
+// 发送模板相关
+var sendTemplateList = []*model.SysSendTemplate{
+	{
+		Name:     "邮箱-监控告警模板",
+		Content:  "    <h1>监控告警</h1>\n    <p>{{ .annotations.summary }}</p>\n    <p>{{ .annotations.description }}</p>\n    <p>时间: {{ .startsAt }} 至 {{ .endsAt }}</p>",
+		SendType: vobj.AlarmSendTypeEmail,
+		Status:   vobj.StatusEnable,
+		Remark:   "系统邮箱模板",
+	},
+	{
+		Name:     "钉钉-监控告警模板",
+		Content:  "    {{- $status := .status -}}\n    {{- $labels := .labels -}}\n    {{- $annotations := .annotations -}}\n    \n    {\n        \"msgtype\": \"markdown\",\n        \"markdown\": {\n          \"title\": \"平台状态通知\",\n          \"text\": \"### {{if eq $status `resolved`}}✅ 告警已恢复{{else}}🚨 紧急告警通知{{end}}\\n\\n  \\n**时间**: `{{ .startsAt }}` 至 `{{ .endsAt }}`  \\n\\n<hr/>\\n\\n**摘要**:  \\n`{{ $annotations.summary }}`  \\n\\n**描述**:  \\n`{{ $annotations.description }}`  \\n\\n<hr/>\\n\\n**标签**:  \\n- **数据源 ID**: {{ index $labels \"__moon__datasource_id__\" }}  \\n- **数据源 URL**: [链接]({{ index $labels \"__moon__datasource_url__\" }})  \\n- **级别 ID**: {{ index $labels \"__moon__level_id__\" }}  \\n- **策略 ID**: {{ index $labels \"__moon__strategy_id__\" }}  \\n- **团队 ID**: {{ index $labels \"__moon__team_id__\" }}  \\n- **实例**: `{{ index $labels \"instance\" }}`  \\n- **IP**: `{{ index $labels \"ip\" }}`  \\n- **作业**: `{{ index $labels \"job\" }}`  \\n\\n<hr/>\\n\\n请根据以上信息进行后续处理！\"\n        }\n    }",
+		SendType: vobj.AlarmSendTypeDingTalk,
+		Status:   vobj.StatusEnable,
+		Remark:   "系统钉钉模板",
+	},
+	{
+		Name:     "飞书-监控告警模板",
+		Content:  "    {\n        \"msg_type\": \"interactive\",\n        \"card\": {\n            \"config\": {\n                \"wide_screen_mode\": true\n            },\n            \"header\": {\n                \"title\": {\n                    \"tag\": \"plain_text\",\n                    \"content\": \"{{if eq .status `resolved`}}✅ 告警已恢复{{else}}🚨 紧急告警通知{{end}}\"\n                },\n                \"template\": \"{{if eq .status `resolved`}}green{{else}}red{{end}}\"\n            },\n            \"elements\": [\n                {\n                    \"tag\": \"div\",\n                    \"fields\": [\n                        {\n                            \"is_short\": false,\n                            \"text\": {\n                                \"tag\": \"lark_md\",\n                                \"content\": \"**🔍 告警摘要**\\n{{.annotations.summary}}\"\n                            }\n                        },\n                        {\n                            \"is_short\": false,\n                            \"text\": {\n                                \"tag\": \"lark_md\",\n                                \"content\": \"**🔍 告警描述**\\n{{.annotations.description}}\"\n                            }\n                        },\n                        {\n                            \"is_short\": false,\n                            \"text\": {\n                                \"tag\": \"lark_md\",\n                                \"content\": \"**🕒 开始时间**\\n{{.startsAt}}\"\n                            }\n                        },\n                        {\n                            \"is_short\": false,\n                            \"text\": {\n                                \"tag\": \"lark_md\",\n                                \"content\": \"{{if eq .status `resolved`}}**🕒 恢复时间**\\n{{.endsAt}}{{end}}\"\n                            }\n                        }\n                    ]\n                },\n                {\n                    \"tag\": \"hr\"\n                },\n                {\n                  \"tag\": \"div\",\n                  \"fields\": [\n                    {\n                      \"is_short\": true,\n                      \"text\": {\n                        \"tag\": \"lark_md\",\n                        \"content\": \"**❗ 状态**\\n<font color=\\\"warning\\\">{{.status}}</font>\"\n                      }\n                    },\n                    {\n                      \"is_short\": true,\n                      \"text\": {\n                        \"tag\": \"lark_md\",\n                        \"content\": \"**🌐 数据源**\\n[点击查看]({{.labels.__moon__datasource_url__}})\"\n                      }\n                    },\n                    {\n                      \"is_short\": true,\n                      \"text\": {\n                        \"tag\": \"lark_md\",\n                        \"content\": \"**📛 告警名称**\\n<font color=\\\"info\\\">{{.labels.__name__}}</font>\"\n                      }\n                    },\n                    {\n                      \"is_short\": true,\n                      \"text\": {\n                        \"tag\": \"lark_md\",\n                        \"content\": \"**🔗 策略 ID**\\n{{.labels.__moon__strategy_id__}}\"\n                      }\n                    },\n                    {\n                      \"is_short\": true,\n                      \"text\": {\n                        \"tag\": \"lark_md\",\n                        \"content\": \"**🆔 团队 ID**\\n{{.labels.__moon__team_id__}}\"\n                      }\n                    },\n                    {\n                      \"is_short\": true,\n                      \"text\": {\n                        \"tag\": \"lark_md\",\n                        \"content\": \"**💻 IP 地址**\\n{{.labels.ip}}\"\n                      }\n                    }\n                  ]\n                },\n                {\n                    \"tag\": \"hr\"\n                },\n                {\n                    \"tag\": \"action\",\n                    \"actions\": [\n                        {\n                            \"tag\": \"button\",\n                            \"text\": {\n                                \"tag\": \"lark_md\",\n                                \"content\": \"📄 查看详情\"\n                            },\n                            \"url\": \"{{.labels.__moon__datasource_url__}}\",\n                            \"type\": \"primary\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }",
+		SendType: vobj.AlarmSendTypeFeiShu,
+		Status:   vobj.StatusEnable,
+		Remark:   "系统飞书模板",
+	},
+	{
+		Name:     "企业微信-监控告警模板",
+		Content:  "    {\n        \"msgtype\": \"markdown\",\n        \"markdown\": {\n          \"content\": \"### {{if eq .status `resolved`}}✅ 告警已恢复{{else}}🚨 紧急告警通知{{end}}\\n\\n {{ .annotations }}\"\n        }\n    }",
+		SendType: vobj.AlarmSendTypeWechat,
+		Status:   vobj.StatusEnable,
+		Remark:   "企业微信告警模板",
 	},
 }
