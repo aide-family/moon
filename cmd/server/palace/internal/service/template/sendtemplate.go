@@ -68,7 +68,8 @@ func (s *SendTemplateService) ListSendTemplate(ctx context.Context, req *pb.List
 		return nil, err
 	}
 	return &pb.ListSendTemplateReply{
-		List: builder.NewParamsBuild(ctx).SendTemplateModuleBuild().IDoSendTemplateBuilder().ToAPIs(list),
+		List:       builder.NewParamsBuild(ctx).SendTemplateModuleBuild().IDoSendTemplateBuilder().ToAPIs(list),
+		Pagination: builder.NewParamsBuild(ctx).PaginationModuleBuilder().ToAPI(param.Page),
 	}, nil
 }
 

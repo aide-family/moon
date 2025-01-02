@@ -42,7 +42,8 @@ service SendTemplate {
   // List send template
   rpc ListSendTemplate (ListSendTemplateRequest) returns (ListSendTemplateReply){
     option (google.api.http) = {
-      get: "/v1/admin/template/send/list"
+      post: "/v1/admin/template/send/list"
+      body: "*"
     };
   }
   // Update send template status
