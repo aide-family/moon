@@ -1459,4 +1459,47 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
+	// 发送模板相关
+	{
+		Name:   "创建发送模板",
+		Path:   "/api.admin.template.SendTemplate/CreateSendTemplate",
+		Remark: "创建发送模板",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "删除发送模板",
+		Path:   "/api.admin.template.SendTemplate/DeleteSendTemplate",
+		Remark: "删除发送模板",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "获取发送模板详情",
+		Path:   "/api.admin.template.SendTemplate/GetSendTemplate",
+		Remark: "获取发送模板详情",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "发送模板列表",
+		Path:   "/api.admin.template.SendTemplate/ListSendTemplate",
+		Remark: "发送模板列表",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "更新发送模板",
+		Path:   "/api.admin.template.SendTemplate/UpdateSendTemplate",
+		Remark: "更新发送模板",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "更新发送模板状态",
+		Path:   "/api.admin.template.SendTemplate/UpdateStatus",
+		Remark: "更新发送模板状态",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
 }

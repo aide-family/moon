@@ -23,6 +23,11 @@ type sendTemplateRepositoryImpl struct {
 	data *data.Data
 }
 
+func (s *sendTemplateRepositoryImpl) GetTemplateInfoByName(ctx context.Context, name string) (imodel.ISendTemplate, error) {
+	mainQuery := query.Use(s.data.GetMainDB(ctx))
+	return mainQuery.SysSendTemplate.WithContext(ctx).Where(mainQuery.SysSendTemplate.Name.Eq(name)).First()
+}
+
 func (s *sendTemplateRepositoryImpl) Create(ctx context.Context, params *bo.CreateSendTemplate) error {
 	templateModel := createSendTemplateParamToModel(ctx, params)
 	mainQuery := query.Use(s.data.GetMainDB(ctx))

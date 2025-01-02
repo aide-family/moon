@@ -83,12 +83,16 @@ func (s *sendTemplateModuleBuild) ToAPI(template imodel.ISendTemplate) *adminapi
 	if types.IsNil(s) || types.IsNil(template) {
 		return nil
 	}
-
+	userMap := getUsers(s.ctx, template.GetCreatorID())
 	return &adminapi.SendTemplateItem{
-		Id:       template.GetID(),
-		Name:     template.GetName(),
-		Content:  template.GetContent(),
-		SendType: api.AlarmSendType(template.GetSendType()),
+		Id:        template.GetID(),
+		Name:      template.GetName(),
+		Content:   template.GetContent(),
+		SendType:  api.AlarmSendType(template.GetSendType()),
+		Status:    api.Status(template.GetStatus()),
+		CreatedAt: template.GetCreatedAt().Time.String(),
+		UpdatedAt: template.GetUpdatedAt().Time.String(),
+		Creator:   userMap[template.GetCreatorID()],
 	}
 }
 

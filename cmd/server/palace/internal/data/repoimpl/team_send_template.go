@@ -19,6 +19,14 @@ type (
 	}
 )
 
+func (t *teamSendTemplateRepoImpl) GetTemplateInfoByName(ctx context.Context, name string) (imodel.ISendTemplate, error) {
+	bizQuery, err := getBizQuery(ctx, t.data)
+	if err != nil {
+		return nil, err
+	}
+	return bizQuery.WithContext(ctx).SysSendTemplate.Where(bizQuery.SysSendTemplate.Name.Eq(name)).First()
+}
+
 // NewTeamSendTemplateRepository 创建团队发送模板仓库
 func NewTeamSendTemplateRepository(data *data.Data) repository.TeamSendTemplate {
 	return &teamSendTemplateRepoImpl{

@@ -16,6 +16,7 @@ import (
 	subscriberapi "github.com/aide-family/moon/api/admin/subscriber"
 	systemapi "github.com/aide-family/moon/api/admin/system"
 	teamapi "github.com/aide-family/moon/api/admin/team"
+	templateapi "github.com/aide-family/moon/api/admin/template"
 	userapi "github.com/aide-family/moon/api/admin/user"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
@@ -35,6 +36,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/subscriber"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/system"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/team"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/template"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/user"
 	"github.com/aide-family/moon/pkg/helper"
 	"github.com/aide-family/moon/pkg/helper/metric"
@@ -114,6 +116,7 @@ func RegisterService(
 	systemService *system.Service,
 	alarmSendService *alarm.SendService,
 	timeEngineRuleService *alarm.TimeEngineRuleService,
+	templateService *template.SendTemplateService,
 ) *Server {
 	// 注册GRPC服务
 	userapi.RegisterUserServer(rpcSrv, userService)
@@ -141,6 +144,7 @@ func RegisterService(
 	inviteapi.RegisterInviteServer(rpcSrv, inviteService)
 	historyapi.RegisterHistoryServer(rpcSrv, historyService)
 	api.RegisterServerServer(rpcSrv, serverService)
+	templateapi.RegisterSendTemplateServer(rpcSrv, templateService)
 
 	// 注册HTTP服务
 	userapi.RegisterUserHTTPServer(httpSrv, userService)
@@ -169,6 +173,7 @@ func RegisterService(
 	api.RegisterServerHTTPServer(httpSrv, serverService)
 	historyapi.RegisterHistoryHTTPServer(httpSrv, historyService)
 	systemapi.RegisterSystemHTTPServer(httpSrv, systemService)
+	templateapi.RegisterSendTemplateHTTPServer(httpSrv, templateService)
 
 	// metrics
 	httpSrv.Handle("/metrics", metric.NewMetricHandler(c.GetMetricsToken()))

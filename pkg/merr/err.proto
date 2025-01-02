@@ -368,6 +368,17 @@ enum ErrorReason {
       reason: "STRATEGY_TYPE_NOT_EXIST"
       message: "策略类型不存在",
       metadata: {key: "type", value: "STRATEGY_TYPE_NOT_EXIST"}
+    },
+    // 发送模板不存在
+    (errors.biz_reason) = {
+      reason: "SEND_TEMPLATE_TYPE_NOT_EXIST"
+      message: "发送模板不存在",
+      metadata: {key: "type", value: "SEND_TEMPLATE_TYPE_NOT_EXIST"}
+    },
+    (errors.biz_reason) = {
+      reason: "SEND_TEMPLATE_NAME_EXIST"
+      message: "发送模板名称{%s}已经存在!",
+      metadata: {key: "type", value: "SEND_TEMPLATE_NAME_EXIST"}
     }
   ];
 

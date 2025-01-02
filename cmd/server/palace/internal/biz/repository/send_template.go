@@ -22,5 +22,7 @@ type (
 		UpdateStatusByIds(ctx context.Context, status *bo.UpdateSendTemplateStatusParams) error
 		// GetByID 根据ID查询告警发送模板
 		GetByID(ctx context.Context, ID uint32) (imodel.ISendTemplate, error)
+		// GetTemplateInfoByName 根据名称查询告警发送模板
+		GetTemplateInfoByName(ctx context.Context, name string) (imodel.ISendTemplate, error)
 	}
 )

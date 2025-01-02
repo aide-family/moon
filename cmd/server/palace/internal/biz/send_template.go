@@ -39,7 +39,12 @@ func (b *SendTemplateBiz) getSendTemplateRepo(ctx context.Context) repository.Se
 
 // CreateSendTemplate 创建告警发送模板
 func (b *SendTemplateBiz) CreateSendTemplate(ctx context.Context, param *bo.CreateSendTemplate) error {
-	err := b.teamTemplateRepo.Create(ctx, param)
+	// 校验名称是否存在
+	isExist := b.templateNameIsExist(ctx, param.Name)
+	if isExist {
+		return merr.ErrorI18nToastSendTemplateNameExist(ctx, param.Name)
+	}
+	err := b.getSendTemplateRepo(ctx).Create(ctx, param)
 	if !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
@@ -48,7 +53,7 @@ func (b *SendTemplateBiz) CreateSendTemplate(ctx context.Context, param *bo.Crea
 
 // UpdateSendTemplate 获取告警发送模板
 func (b *SendTemplateBiz) UpdateSendTemplate(ctx context.Context, param *bo.UpdateSendTemplate) error {
-	err := b.teamTemplateRepo.UpdateByID(ctx, param)
+	err := b.getSendTemplateRepo(ctx).UpdateByID(ctx, param)
 	if !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
@@ -57,7 +62,7 @@ func (b *SendTemplateBiz) UpdateSendTemplate(ctx context.Context, param *bo.Upda
 
 // UpdateSendTemplateStatus 更新告警发送模板状态
 func (b *SendTemplateBiz) UpdateSendTemplateStatus(ctx context.Context, param *bo.UpdateSendTemplateStatusParams) error {
-	err := b.teamTemplateRepo.UpdateStatusByIds(ctx, param)
+	err := b.getSendTemplateRepo(ctx).UpdateStatusByIds(ctx, param)
 	if !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
@@ -66,10 +71,10 @@ func (b *SendTemplateBiz) UpdateSendTemplateStatus(ctx context.Context, param *b
 
 // GetSendTemplateDetail 获取告警发送模板
 func (b *SendTemplateBiz) GetSendTemplateDetail(ctx context.Context, ID uint32) (imodel.ISendTemplate, error) {
-	sendTemplate, err := b.teamTemplateRepo.GetByID(ctx, ID)
+	sendTemplate, err := b.getSendTemplateRepo(ctx).GetByID(ctx, ID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, merr.ErrorI18nToastDictNotFound(ctx)
+			return nil, merr.ErrorI18nToastSendTemplateTypeNotExist(ctx)
 		}
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
@@ -78,7 +83,7 @@ func (b *SendTemplateBiz) GetSendTemplateDetail(ctx context.Context, ID uint32) 
 
 // SendTemplateList 获取告警发送模板列表
 func (b *SendTemplateBiz) SendTemplateList(ctx context.Context, param *bo.QuerySendTemplateListParams) ([]imodel.ISendTemplate, error) {
-	templates, err := b.teamTemplateRepo.FindByPage(ctx, param)
+	templates, err := b.getSendTemplateRepo(ctx).FindByPage(ctx, param)
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
@@ -87,9 +92,21 @@ func (b *SendTemplateBiz) SendTemplateList(ctx context.Context, param *bo.QueryS
 
 // DeleteSendTemplate 删除告警发送模板
 func (b *SendTemplateBiz) DeleteSendTemplate(ctx context.Context, ID uint32) error {
-	err := b.teamTemplateRepo.DeleteByID(ctx, ID)
+	err := b.getSendTemplateRepo(ctx).DeleteByID(ctx, ID)
 	if !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil
+}
+
+// templateNameIsExist 模板名称是否存在
+func (b *SendTemplateBiz) templateNameIsExist(ctx context.Context, name string) bool {
+	template, err := b.getSendTemplateRepo(ctx).GetTemplateInfoByName(ctx, name)
+	if err != nil {
+		return false
+	}
+	if !types.IsNil(template) {
+		return true
+	}
+	return false
 }
