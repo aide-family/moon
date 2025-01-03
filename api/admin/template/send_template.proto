@@ -23,7 +23,7 @@ service SendTemplate {
   // Update send template
   rpc UpdateSendTemplate (UpdateSendTemplateRequest) returns (UpdateSendTemplateReply){
     option (google.api.http) = {
-      patch: "/v1/admin/template/send/update"
+      put: "/v1/admin/template/send/update"
       body: "*"
     };
   };
@@ -36,7 +36,7 @@ service SendTemplate {
   // Get send template
   rpc GetSendTemplate (GetSendTemplateRequest) returns (GetSendTemplateReply){
     option (google.api.http) = {
-      get: "/v1/admin/template/send/get"
+      get: "/v1/admin/template/send/get/{id}"
     };
   };
   // List send template
@@ -49,7 +49,7 @@ service SendTemplate {
   // Update send template status
   rpc UpdateStatus (UpdateStatusRequest) returns (UpdateStatusReply){
     option (google.api.http) = {
-      patch: "/v1/admin/template/send/status"
+      put: "/v1/admin/template/send/status"
       body: "*"
     };
   }
@@ -58,7 +58,7 @@ service SendTemplate {
 message CreateSendTemplateRequest {
   // 模板名称
   string name = 1[(buf.validate.field).required = true, (buf.validate.field).cel = {
-    message: "团队名称长度在3-20个字符之间"
+    message: "模板名称长度在3-20个字符之间"
     expression: 'this.size() >= 3 && this.size() <= 20'
   }];
   // 模板内容
@@ -66,7 +66,10 @@ message CreateSendTemplateRequest {
   // 模板类型
   AlarmSendType sendType = 3;
   // 备注
-  string remark = 4;
+  string remark = 4[(buf.validate.field).cel = {
+    message: "备注长度限制在0-500个字符",
+    expression: "this.size() <= 500"
+  }];
   // 状态
   Status status = 5;
 }
@@ -110,7 +113,7 @@ message ListSendTemplateReply {
 }
 
 message UpdateStatusRequest {
-  repeated uint32  id =  1[(buf.validate.field).cel = {
+  repeated uint32  id = 1[(buf.validate.field).cel = {
     message: "必须保证修改对象数据唯一",
     expression: "this.unique()"
   }];

@@ -5,6 +5,7 @@ package merr
 import (
 	context "context"
 	fmt "fmt"
+
 	errors "github.com/go-kratos/kratos/v2/errors"
 	i18n "github.com/nicksnyder/go-i18n/v2/i18n"
 )

@@ -98,7 +98,7 @@ func (s *sendTemplateRepositoryImpl) listSendTemplateModels(ctx context.Context,
 		wheres = append(wheres, sendQuery.SendType.Eq(params.SendType.GetValue()))
 	}
 
-	if types.TextIsNull(params.Keyword) {
+	if !types.TextIsNull(params.Keyword) {
 		queryWrapper = queryWrapper.Or(sendQuery.Name.Like(params.Keyword))
 		queryWrapper = queryWrapper.Or(sendQuery.Remark.Like(params.Keyword))
 	}

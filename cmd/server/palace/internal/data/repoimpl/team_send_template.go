@@ -124,7 +124,7 @@ func (t *teamSendTemplateRepoImpl) listSendTemplateModels(ctx context.Context, p
 		wheres = append(wheres, bizQuery.SysSendTemplate.SendType.Eq(params.SendType.GetValue()))
 	}
 
-	if types.TextIsNull(params.Keyword) {
+	if !types.TextIsNull(params.Keyword) {
 		queryWrapper = queryWrapper.Or(bizQuery.SysSendTemplate.Name.Like(params.Keyword))
 		queryWrapper = queryWrapper.Or(bizQuery.SysSendTemplate.Remark.Like(params.Keyword))
 	}

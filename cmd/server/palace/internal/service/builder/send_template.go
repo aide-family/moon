@@ -174,7 +174,6 @@ func (s *sendTemplateModuleBuild) WithSendTemplateUpdateRequest(request *templat
 }
 
 func (s *sendTemplateModuleBuild) WithSendTemplateListRequest(request *templateapi.ListSendTemplateRequest) IListSendTemplateRequestBuilder {
-
 	return &listSendTemplateRequestBuilder{
 		ctx:                     s.ctx,
 		ListSendTemplateRequest: request,
