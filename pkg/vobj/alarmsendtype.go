@@ -18,4 +18,6 @@ const (
 	AlarmSendTypeFeiShu // 飞书
 	// AlarmSendTypeWechat 微信
 	AlarmSendTypeWechat // 微信
+	// AlarmSendTypeCustom 自定义
+	AlarmSendTypeCustom // 自定义
 )

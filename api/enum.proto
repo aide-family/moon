@@ -403,12 +403,13 @@ enum SendStatus {
 }
 
 enum AlarmSendType {
-  AlarmSend_Type_UNKNOWN = 0;
-  Alarm_Send_Type_Email = 1;
-  Alarm_Send_Type_SMS = 2;
-  Alarm_Send_Type_Ding_Talk = 3;
-  Alarm_Send_Type_FeiShu = 4;
-  Alarm_Send_Type_Wechat = 5;
+  AlarmSendTypeUNKNOWN = 0;
+  AlarmSendTypeEmail = 1;
+  AlarmSendTypeSMS = 2;
+  AlarmSendTypeDingTalk = 3;
+  AlarmSendTypeFeiShu = 4;
+  AlarmSendTypeWechat = 5;
+  AlarmSendTypeCustom = 6;
 }
 
 enum StrategyType {
