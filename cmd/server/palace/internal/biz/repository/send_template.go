@@ -15,13 +15,13 @@ type (
 		// UpdateByID 更新告警发送模板
 		UpdateByID(ctx context.Context, params *bo.UpdateSendTemplate) error
 		// DeleteByID 删除告警发送模板
-		DeleteByID(ctx context.Context, ID uint32) error
+		DeleteByID(ctx context.Context, id uint32) error
 		// FindByPage 分页查询告警发送模板
 		FindByPage(ctx context.Context, params *bo.QuerySendTemplateListParams) ([]imodel.ISendTemplate, error)
 		// UpdateStatusByIds 批量更新告警发送模板状态
 		UpdateStatusByIds(ctx context.Context, status *bo.UpdateSendTemplateStatusParams) error
 		// GetByID 根据ID查询告警发送模板
-		GetByID(ctx context.Context, ID uint32) (imodel.ISendTemplate, error)
+		GetByID(ctx context.Context, id uint32) (imodel.ISendTemplate, error)
 		// GetTemplateInfoByName 根据名称查询告警发送模板
 		GetTemplateInfoByName(ctx context.Context, name string) (imodel.ISendTemplate, error)
 	}

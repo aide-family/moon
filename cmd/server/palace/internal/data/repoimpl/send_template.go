@@ -44,9 +44,9 @@ func (s *sendTemplateRepositoryImpl) UpdateByID(ctx context.Context, params *bo.
 	return nil
 }
 
-func (s *sendTemplateRepositoryImpl) DeleteByID(ctx context.Context, ID uint32) error {
+func (s *sendTemplateRepositoryImpl) DeleteByID(ctx context.Context, id uint32) error {
 	mainQuery := query.Use(s.data.GetMainDB(ctx))
-	if _, err := mainQuery.SysSendTemplate.WithContext(ctx).Where(mainQuery.SysSendTemplate.ID.Eq(ID)).Delete(); err != nil {
+	if _, err := mainQuery.SysSendTemplate.WithContext(ctx).Where(mainQuery.SysSendTemplate.ID.Eq(id)).Delete(); err != nil {
 		return err
 	}
 	return nil
@@ -94,7 +94,7 @@ func (s *sendTemplateRepositoryImpl) listSendTemplateModels(ctx context.Context,
 		wheres = append(wheres, sendQuery.Status.Eq(params.Status.GetValue()))
 	}
 
-	if params.SendType.IsUnknown() {
+	if !params.SendType.IsUnknown() {
 		wheres = append(wheres, sendQuery.SendType.Eq(params.SendType.GetValue()))
 	}
 

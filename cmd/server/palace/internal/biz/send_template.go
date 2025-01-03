@@ -103,10 +103,10 @@ func (b *SendTemplateBiz) DeleteSendTemplate(ctx context.Context, ID uint32) err
 func (b *SendTemplateBiz) templateNameIsExist(ctx context.Context, name string) bool {
 	template, err := b.getSendTemplateRepo(ctx).GetTemplateInfoByName(ctx, name)
 	if err != nil {
-		return false
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false
+		}
+		panic(err)
 	}
-	if !types.IsNil(template) {
-		return true
-	}
-	return false
+	return !types.IsNil(template)
 }

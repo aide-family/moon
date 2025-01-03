@@ -51,10 +51,8 @@ func (t *teamSendTemplateRepoImpl) UpdateByID(ctx context.Context, params *bo.Up
 	id := params.ID
 	param := params.UpdateParam
 	sendTemplateModel := createTeamSendTemplateParamToModel(ctx, param)
-	if _, err := bizQuery.WithContext(ctx).SysSendTemplate.Where(bizQuery.SysSendTemplate.ID.Eq(id)).Updates(sendTemplateModel); err != nil {
-		return err
-	}
-	return nil
+	_, err = bizQuery.WithContext(ctx).SysSendTemplate.Where(bizQuery.SysSendTemplate.ID.Eq(id)).Updates(sendTemplateModel)
+	return err
 }
 
 func (t *teamSendTemplateRepoImpl) DeleteByID(ctx context.Context, ID uint32) error {
@@ -62,10 +60,8 @@ func (t *teamSendTemplateRepoImpl) DeleteByID(ctx context.Context, ID uint32) er
 	if err != nil {
 		return err
 	}
-	if _, err := bizQuery.SysSendTemplate.WithContext(ctx).Where(bizQuery.SysSendTemplate.ID.Eq(ID)).Delete(); err != nil {
-		return err
-	}
-	return nil
+	_, err = bizQuery.SysSendTemplate.WithContext(ctx).Where(bizQuery.SysSendTemplate.ID.Eq(ID)).Delete()
+	return err
 }
 
 func (t *teamSendTemplateRepoImpl) FindByPage(ctx context.Context, params *bo.QuerySendTemplateListParams) ([]imodel.ISendTemplate, error) {
@@ -80,18 +76,15 @@ func (t *teamSendTemplateRepoImpl) UpdateStatusByIds(ctx context.Context, params
 	status := params.Status
 	ids := params.Ids
 	_, err = bizQuery.SysSendTemplate.WithContext(ctx).Where(bizQuery.SysSendTemplate.ID.In(ids...)).UpdateSimple(bizQuery.SysSendTemplate.Status.Value(status.GetValue()))
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
-func (t *teamSendTemplateRepoImpl) GetByID(ctx context.Context, ID uint32) (imodel.ISendTemplate, error) {
+func (t *teamSendTemplateRepoImpl) GetByID(ctx context.Context, id uint32) (imodel.ISendTemplate, error) {
 	bizQuery, err := getBizQuery(ctx, t.data)
 	if err != nil {
 		return nil, err
 	}
-	return bizQuery.SysSendTemplate.Where(bizQuery.SysSendTemplate.ID.Eq(ID)).First()
+	return bizQuery.SysSendTemplate.Where(bizQuery.SysSendTemplate.ID.Eq(id)).First()
 }
 
 func createTeamSendTemplateParamToModel(ctx context.Context, param *bo.CreateSendTemplate) *bizmodel.SysSendTemplate {
@@ -120,7 +113,7 @@ func (t *teamSendTemplateRepoImpl) listSendTemplateModels(ctx context.Context, p
 		wheres = append(wheres, bizQuery.SysSendTemplate.Status.Eq(params.Status.GetValue()))
 	}
 
-	if params.SendType.IsUnknown() {
+	if !params.SendType.IsUnknown() {
 		wheres = append(wheres, bizQuery.SysSendTemplate.SendType.Eq(params.SendType.GetValue()))
 	}
 
