@@ -25,6 +25,7 @@ type SysSendTemplate struct {
 	Remark string `gorm:"column:remark;type:varchar(500);not null;comment:模板备注"`
 }
 
+// GetStatus get status
 func (c *SysSendTemplate) GetStatus() vobj.Status {
 	if types.IsNil(c) {
 		return vobj.StatusUnknown
@@ -32,6 +33,7 @@ func (c *SysSendTemplate) GetStatus() vobj.Status {
 	return c.Status
 }
 
+// GetName get name
 func (c *SysSendTemplate) GetName() string {
 	if types.IsNil(c) {
 		return ""
@@ -39,6 +41,7 @@ func (c *SysSendTemplate) GetName() string {
 	return c.Name
 }
 
+// GetContent get send content
 func (c *SysSendTemplate) GetContent() string {
 	if types.IsNil(c) {
 		return ""
@@ -46,6 +49,7 @@ func (c *SysSendTemplate) GetContent() string {
 	return c.Content
 }
 
+// GetSendType get send type
 func (c *SysSendTemplate) GetSendType() vobj.AlarmSendType {
 	if types.IsNil(c) {
 		return vobj.AlarmSendTypeUnknown
@@ -53,6 +57,7 @@ func (c *SysSendTemplate) GetSendType() vobj.AlarmSendType {
 	return c.SendType
 }
 
+// GetRemark get remark
 func (c *SysSendTemplate) GetRemark() string {
 	if types.IsNil(c) {
 		return ""

@@ -12,9 +12,11 @@ import (
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
+// SendTemplateModuleBuild 告警发送模板请求构建器
 var _ SendTemplateModuleBuild = (*sendTemplateModuleBuild)(nil)
 
 type (
+	// SendTemplateModuleBuild 告警发送模板请求构建器
 	SendTemplateModuleBuild interface {
 		// WithSendTemplateCreateRequest 构建创建告警发送模板请求
 		WithSendTemplateCreateRequest(*templateapi.CreateSendTemplateRequest) ICreateSendTemplateRequestBuilder

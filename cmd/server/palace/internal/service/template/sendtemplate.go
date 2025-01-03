@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
+// SendTemplateService send template service
 type SendTemplateService struct {
 	pb.UnimplementedSendTemplateServer
 
