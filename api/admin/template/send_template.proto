@@ -30,7 +30,7 @@ service SendTemplate {
   // Delete send template
   rpc DeleteSendTemplate (DeleteSendTemplateRequest) returns (DeleteSendTemplateReply){
     option (google.api.http) = {
-      delete: "/v1/admin/template/send/delete"
+      delete: "/v1/admin/template/send/delete/{id}"
     };
   };
   // Get send template
