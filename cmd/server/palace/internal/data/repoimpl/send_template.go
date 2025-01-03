@@ -46,10 +46,8 @@ func (s *sendTemplateRepositoryImpl) UpdateByID(ctx context.Context, params *bo.
 
 func (s *sendTemplateRepositoryImpl) DeleteByID(ctx context.Context, id uint32) error {
 	mainQuery := query.Use(s.data.GetMainDB(ctx))
-	if _, err := mainQuery.SysSendTemplate.WithContext(ctx).Where(mainQuery.SysSendTemplate.ID.Eq(id)).Delete(); err != nil {
-		return err
-	}
-	return nil
+	_, err := mainQuery.SysSendTemplate.WithContext(ctx).Where(mainQuery.SysSendTemplate.ID.Eq(id)).Delete()
+	return err
 }
 
 func (s *sendTemplateRepositoryImpl) FindByPage(ctx context.Context, params *bo.QuerySendTemplateListParams) ([]imodel.ISendTemplate, error) {
@@ -60,10 +58,8 @@ func (s *sendTemplateRepositoryImpl) UpdateStatusByIds(ctx context.Context, para
 	status := params.Status
 	ids := params.Ids
 	mainQuery := query.Use(s.data.GetMainDB(ctx))
-	if _, err := mainQuery.StrategyTemplate.WithContext(ctx).Where(mainQuery.SysSendTemplate.ID.In(ids...)).UpdateSimple(mainQuery.SysSendTemplate.Status.Value(status.GetValue())); err != nil {
-		return err
-	}
-	return nil
+	_, err := mainQuery.StrategyTemplate.WithContext(ctx).Where(mainQuery.SysSendTemplate.ID.In(ids...)).UpdateSimple(mainQuery.SysSendTemplate.Status.Value(status.GetValue()))
+	return err
 }
 
 func (s *sendTemplateRepositoryImpl) GetByID(ctx context.Context, ID uint32) (imodel.ISendTemplate, error) {
