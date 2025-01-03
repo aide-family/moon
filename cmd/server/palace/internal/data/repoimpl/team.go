@@ -302,6 +302,10 @@ func (l *teamRepositoryImpl) GetTeamList(ctx context.Context, params *bo.QueryTe
 	if queryTeamIds {
 		teamQuery = teamQuery.Where(mainQuery.SysTeam.ID.In(teamIds...))
 	}
+	var err error
+	if teamQuery, err = types.WithPageQuery(teamQuery, params.Page); err != nil {
+		return nil, err
+	}
 
 	return teamQuery.Order(mainQuery.SysTeam.ID.Desc()).Preload(field.Associations).Find()
 }
