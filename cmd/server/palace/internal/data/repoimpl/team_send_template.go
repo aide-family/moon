@@ -2,6 +2,7 @@ package repoimpl
 
 import (
 	"context"
+	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
@@ -113,8 +114,8 @@ func (t *teamSendTemplateRepoImpl) listSendTemplateModels(ctx context.Context, p
 		wheres = append(wheres, bizQuery.SysSendTemplate.Status.Eq(params.Status.GetValue()))
 	}
 
-	if !params.SendType.IsUnknown() {
-		wheres = append(wheres, bizQuery.SysSendTemplate.SendType.Eq(params.SendType.GetValue()))
+	if len(params.SendTypes) > 0 {
+		wheres = append(wheres, bizQuery.SysSendTemplate.SendType.In(types.SliceTo(params.SendTypes, func(item vobj.AlarmSendType) int { return item.GetValue() })...))
 	}
 
 	if !types.TextIsNull(params.Keyword) {

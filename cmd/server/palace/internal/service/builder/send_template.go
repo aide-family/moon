@@ -92,8 +92,8 @@ func (s *sendTemplateModuleBuild) ToAPI(template imodel.ISendTemplate) *adminapi
 		Content:   template.GetContent(),
 		SendType:  api.AlarmSendType(template.GetSendType()),
 		Status:    api.Status(template.GetStatus()),
-		CreatedAt: template.GetCreatedAt().Time.String(),
-		UpdatedAt: template.GetUpdatedAt().Time.String(),
+		CreatedAt: template.GetCreatedAt().String(),
+		UpdatedAt: template.GetUpdatedAt().String(),
 		Remark:    template.GetRemark(),
 		Creator:   userMap[template.GetCreatorID()],
 	}
@@ -113,10 +113,10 @@ func (l *listSendTemplateRequestBuilder) ToBo() *bo.QuerySendTemplateListParams 
 		return nil
 	}
 	return &bo.QuerySendTemplateListParams{
-		Page:     types.NewPagination(l.GetPagination()),
-		Keyword:  l.GetKeyword(),
-		Status:   vobj.Status(l.GetStatus()),
-		SendType: vobj.AlarmSendType(l.GetStatus()),
+		Page:      types.NewPagination(l.GetPagination()),
+		Keyword:   l.GetKeyword(),
+		Status:    vobj.Status(l.GetStatus()),
+		SendTypes: types.SliceTo(l.GetSendTypes(), func(t api.AlarmSendType) vobj.AlarmSendType { return vobj.AlarmSendType(t) }),
 	}
 }
 
@@ -135,7 +135,7 @@ func (u *updateSendTemplateStatusRequestBuilder) ToBo() *bo.UpdateSendTemplateSt
 		return nil
 	}
 	return &bo.UpdateSendTemplateStatusParams{
-		Ids:    u.GetId(),
+		Ids:    u.GetIds(),
 		Status: vobj.Status(u.GetStatus()),
 	}
 }

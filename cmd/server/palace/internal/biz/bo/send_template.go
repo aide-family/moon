@@ -27,10 +27,10 @@ type (
 
 	// QuerySendTemplateListParams 查询发送模板列表参数
 	QuerySendTemplateListParams struct {
-		Page     types.Pagination
-		Keyword  string             `json:"keyword"`
-		Status   vobj.Status        `json:"status"`
-		SendType vobj.AlarmSendType `json:"sendType"`
+		Page      types.Pagination
+		Keyword   string               `json:"keyword"`
+		Status    vobj.Status          `json:"status"`
+		SendTypes []vobj.AlarmSendType `json:"sendTypes"`
 	}
 
 	// UpdateSendTemplateStatusParams 更新发送模板状态

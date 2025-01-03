@@ -102,7 +102,7 @@ message ListSendTemplateRequest {
     expression: "this.size() <= 20"
   }];
   // 模板类型
-  AlarmSendType sendType = 3;
+  repeated AlarmSendType sendTypes = 3;
   // 状态查询
   Status status = 4;
 }
@@ -114,9 +114,12 @@ message ListSendTemplateReply {
 }
 
 message UpdateStatusRequest {
-  repeated uint32  id = 1[(buf.validate.field).cel = {
-    message: "必须保证修改对象数据唯一",
+  repeated uint32  ids = 1[(buf.validate.field).cel = {
+    message: "必须保证修改的模板数据唯一",
     expression: "this.unique()"
+  }, (buf.validate.field).cel = {
+    message: "至少选择一个告警模板",
+    expression: "this.size() > 0"
   }];
   Status status = 2 [(buf.validate.field).cel = {
     message: "请选择状态",

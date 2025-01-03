@@ -17,7 +17,7 @@ import (
 type (
 	// SendTemplateBiz 告警发送模板
 	SendTemplateBiz struct {
-		sendTemplateRepo repository.SendTemplateRepo
+		sysTemplateRepo  repository.SendTemplateRepo
 		teamTemplateRepo repository.TeamSendTemplate
 	}
 )
@@ -25,14 +25,14 @@ type (
 // NewSendTemplateBiz 创建告警发送模板
 func NewSendTemplateBiz(sendTemplateRepo repository.SendTemplateRepo, teamTemplateRepo repository.TeamSendTemplate) *SendTemplateBiz {
 	return &SendTemplateBiz{
-		sendTemplateRepo: sendTemplateRepo,
+		sysTemplateRepo:  sendTemplateRepo,
 		teamTemplateRepo: teamTemplateRepo,
 	}
 }
 
 func (b *SendTemplateBiz) getSendTemplateRepo(ctx context.Context) repository.SendTemplateRepo {
 	if middleware.GetSourceType(ctx).IsSystem() {
-		return b.sendTemplateRepo
+		return b.sysTemplateRepo
 	}
 	return b.teamTemplateRepo
 }
