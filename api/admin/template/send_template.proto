@@ -101,6 +101,7 @@ message ListSendTemplateRequest {
     message: "关键字模糊查询长度限制在0-20个字符",
     expression: "this.size() <= 20"
   }];
+  // 模板类型
   AlarmSendType sendType = 3;
   // 状态查询
   Status status = 4;

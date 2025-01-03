@@ -37,11 +37,9 @@ func (s *sendTemplateRepositoryImpl) Create(ctx context.Context, params *bo.Crea
 func (s *sendTemplateRepositoryImpl) UpdateByID(ctx context.Context, params *bo.UpdateSendTemplate) error {
 	mainQuery := query.Use(s.data.GetMainDB(ctx))
 	templateModel := createSendTemplateParamToModel(ctx, params.UpdateParam)
-	if _, err := mainQuery.SysSendTemplate.WithContext(ctx).
-		Update(mainQuery.SysSendTemplate.ID.Eq(params.ID), templateModel); err != nil {
-		return err
-	}
-	return nil
+	_, err := mainQuery.SysSendTemplate.WithContext(ctx).
+		Update(mainQuery.SysSendTemplate.ID.Eq(params.ID), templateModel)
+	return err
 }
 
 func (s *sendTemplateRepositoryImpl) DeleteByID(ctx context.Context, id uint32) error {

@@ -861,4 +861,6 @@ message SendTemplateItem {
   string updatedAt = 7;
   // 创建人
   UserItem creator = 8;
+  // 备注
+  string remark = 9;
 }

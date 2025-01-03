@@ -94,6 +94,7 @@ func (s *sendTemplateModuleBuild) ToAPI(template imodel.ISendTemplate) *adminapi
 		Status:    api.Status(template.GetStatus()),
 		CreatedAt: template.GetCreatedAt().Time.String(),
 		UpdatedAt: template.GetUpdatedAt().Time.String(),
+		Remark:    template.GetRemark(),
 		Creator:   userMap[template.GetCreatorID()],
 	}
 }
