@@ -1535,16 +1535,16 @@ var resourceList = []*model.SysAPI{
 }
 
 //go:embed sendtemplate/send_dingtalk.tpl
-var sendDingTalkHTML string
+var sendDingTalkTPL string
 
 //go:embed sendtemplate/send_email.html
 var sendEmailHTML string
 
 //go:embed sendtemplate/send_feishu.json
-var sendFeiShuHTML string
+var sendFeiShuJSON string
 
 //go:embed sendtemplate/send_wechat.json
-var sendWeChatHTML string
+var sendWeChatJSON string
 
 // 发送模板相关
 var sendTemplateList = []*model.SysSendTemplate{
@@ -1557,21 +1557,21 @@ var sendTemplateList = []*model.SysSendTemplate{
 	},
 	{
 		Name:     "钉钉-监控告警模板",
-		Content:  sendDingTalkHTML,
+		Content:  sendDingTalkTPL,
 		SendType: vobj.AlarmSendTypeDingTalk,
 		Status:   vobj.StatusEnable,
 		Remark:   "系统钉钉模板",
 	},
 	{
 		Name:     "飞书-监控告警模板",
-		Content:  sendFeiShuHTML,
+		Content:  sendFeiShuJSON,
 		SendType: vobj.AlarmSendTypeFeiShu,
 		Status:   vobj.StatusEnable,
 		Remark:   "系统飞书模板",
 	},
 	{
 		Name:     "企业微信-监控告警模板",
-		Content:  sendWeChatHTML,
+		Content:  sendWeChatJSON,
 		SendType: vobj.AlarmSendTypeWechat,
 		Status:   vobj.StatusEnable,
 		Remark:   "企业微信告警模板",
