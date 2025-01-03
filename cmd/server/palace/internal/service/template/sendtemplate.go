@@ -24,8 +24,7 @@ func NewSendTemplateService(sendTemplate *biz.SendTemplateBiz) *SendTemplateServ
 // CreateSendTemplate create send template
 func (s *SendTemplateService) CreateSendTemplate(ctx context.Context, req *pb.CreateSendTemplateRequest) (*pb.CreateSendTemplateReply, error) {
 	param := builder.NewParamsBuild(ctx).SendTemplateModuleBuild().WithSendTemplateCreateRequest(req).ToBo()
-	err := s.sendTemplate.CreateSendTemplate(ctx, param)
-	if !types.IsNil(err) {
+	if err := s.sendTemplate.CreateSendTemplate(ctx, param); types.IsNotNil(err) {
 		return nil, err
 	}
 	return &pb.CreateSendTemplateReply{}, nil
@@ -34,8 +33,7 @@ func (s *SendTemplateService) CreateSendTemplate(ctx context.Context, req *pb.Cr
 // UpdateSendTemplate update send template
 func (s *SendTemplateService) UpdateSendTemplate(ctx context.Context, req *pb.UpdateSendTemplateRequest) (*pb.UpdateSendTemplateReply, error) {
 	param := builder.NewParamsBuild(ctx).SendTemplateModuleBuild().WithSendTemplateUpdateRequest(req).ToBo()
-	err := s.sendTemplate.UpdateSendTemplate(ctx, param)
-	if !types.IsNil(err) {
+	if err := s.sendTemplate.UpdateSendTemplate(ctx, param); types.IsNotNil(err) {
 		return nil, err
 	}
 	return &pb.UpdateSendTemplateReply{}, nil
@@ -43,8 +41,7 @@ func (s *SendTemplateService) UpdateSendTemplate(ctx context.Context, req *pb.Up
 
 // DeleteSendTemplate delete send template
 func (s *SendTemplateService) DeleteSendTemplate(ctx context.Context, req *pb.DeleteSendTemplateRequest) (*pb.DeleteSendTemplateReply, error) {
-	err := s.sendTemplate.DeleteSendTemplate(ctx, req.GetId())
-	if !types.IsNil(err) {
+	if err := s.sendTemplate.DeleteSendTemplate(ctx, req.GetId()); types.IsNotNil(err) {
 		return nil, err
 	}
 	return &pb.DeleteSendTemplateReply{}, nil
@@ -53,7 +50,7 @@ func (s *SendTemplateService) DeleteSendTemplate(ctx context.Context, req *pb.De
 // GetSendTemplate get send template
 func (s *SendTemplateService) GetSendTemplate(ctx context.Context, req *pb.GetSendTemplateRequest) (*pb.GetSendTemplateReply, error) {
 	detail, err := s.sendTemplate.GetSendTemplateDetail(ctx, req.GetId())
-	if !types.IsNil(err) {
+	if types.IsNotNil(err) {
 		return nil, err
 	}
 	return &pb.GetSendTemplateReply{
@@ -65,7 +62,7 @@ func (s *SendTemplateService) GetSendTemplate(ctx context.Context, req *pb.GetSe
 func (s *SendTemplateService) ListSendTemplate(ctx context.Context, req *pb.ListSendTemplateRequest) (*pb.ListSendTemplateReply, error) {
 	param := builder.NewParamsBuild(ctx).SendTemplateModuleBuild().WithSendTemplateListRequest(req).ToBo()
 	list, err := s.sendTemplate.SendTemplateList(ctx, param)
-	if !types.IsNil(err) {
+	if types.IsNotNil(err) {
 		return nil, err
 	}
 	return &pb.ListSendTemplateReply{
@@ -77,8 +74,7 @@ func (s *SendTemplateService) ListSendTemplate(ctx context.Context, req *pb.List
 // UpdateStatus update send template status
 func (s *SendTemplateService) UpdateStatus(ctx context.Context, req *pb.UpdateStatusRequest) (*pb.UpdateStatusReply, error) {
 	param := builder.NewParamsBuild(ctx).SendTemplateModuleBuild().WithSendTemplateStatusUpdateRequest(req).ToBo()
-	err := s.sendTemplate.UpdateSendTemplateStatus(ctx, param)
-	if !types.IsNil(err) {
+	if err := s.sendTemplate.UpdateSendTemplateStatus(ctx, param); types.IsNotNil(err) {
 		return nil, err
 	}
 	return &pb.UpdateStatusReply{}, nil

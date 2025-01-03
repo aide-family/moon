@@ -59,9 +59,9 @@ func (s *sendTemplateRepositoryImpl) UpdateStatusByIds(ctx context.Context, para
 	return err
 }
 
-func (s *sendTemplateRepositoryImpl) GetByID(ctx context.Context, ID uint32) (imodel.ISendTemplate, error) {
+func (s *sendTemplateRepositoryImpl) GetByID(ctx context.Context, id uint32) (imodel.ISendTemplate, error) {
 	mainQuery := query.Use(s.data.GetMainDB(ctx))
-	return mainQuery.SysSendTemplate.WithContext(ctx).Where(mainQuery.SysSendTemplate.ID.Eq(ID)).First()
+	return mainQuery.SysSendTemplate.WithContext(ctx).Where(mainQuery.SysSendTemplate.ID.Eq(id)).First()
 }
 
 func createSendTemplateParamToModel(ctx context.Context, param *bo.CreateSendTemplate) *model.SysSendTemplate {
