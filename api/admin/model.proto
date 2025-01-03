@@ -842,3 +842,25 @@ message TimeEngineItem {
   // 引擎创建人
   UserItem creator = 8;
 }
+
+// 发送模板参数
+message SendTemplateItem {
+  // 模板ID
+  uint32 id = 1;
+  // 模板名称
+  string name = 2;
+  // 模板内容
+  string content = 3;
+  // 模板发送类型
+  AlarmSendType sendType = 4;
+  // 模板状态
+  Status status = 5;
+  // 创建时间
+  string createdAt = 6;
+  // 更新时间
+  string updatedAt = 7;
+  // 创建人
+  UserItem creator = 8;
+  // 备注
+  string remark = 9;
+}

@@ -88,8 +88,15 @@ type (
 
 		// OauthModuleBuilder oauth模块构造器
 		OauthModuleBuilder() IOauthModuleBuilder
+		// SendTemplateModuleBuild 发送模板模块构造器
+		SendTemplateModuleBuild() SendTemplateModuleBuild
 	}
 )
+
+// SendTemplateModuleBuild 发送模板模块构造器
+func (p *paramsBuilder) SendTemplateModuleBuild() SendTemplateModuleBuild {
+	return &sendTemplateModuleBuild{ctx: p.ctx}
+}
 
 // TimeEngineModuleBuilder implements IPramsBuilder.
 func (p *paramsBuilder) TimeEngineModuleBuilder() ITimeEngineModuleBuilder {

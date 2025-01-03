@@ -11,6 +11,11 @@ func TextIsNull(text string) bool {
 	return len(text) == 0
 }
 
+// TextNotNull 判断字符串是否不为空
+func TextNotNull(text string) bool {
+	return !TextIsNull(text)
+}
+
 // TextJoinToBytes 拼接字符串
 func TextJoinToBytes(ss ...string) []byte {
 	if len(ss) == 0 {

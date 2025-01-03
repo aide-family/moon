@@ -1,6 +1,8 @@
 package data
 
 import (
+	_ "embed"
+
 	"github.com/aide-family/moon/pkg/env"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
@@ -30,6 +32,11 @@ func initMainDatabase(d *Data) error {
 		return err
 	}
 
+	// 创建发送模板
+	if err := query.Use(d.mainDB).SysSendTemplate.Clauses(clause.OnConflict{DoNothing: true}).Create(sendTemplateList...); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -40,7 +47,7 @@ func syncBizDatabase(d *Data) error {
 	}
 	// 获取所有团队
 	teams, err := query.Use(d.mainDB).SysTeam.Find()
-	if err != nil {
+	if !types.IsNil(err) {
 		return err
 	}
 	mainQuery := query.Use(d.mainDB)
@@ -53,6 +60,12 @@ func syncBizDatabase(d *Data) error {
 	if !types.IsNil(err) {
 		return err
 	}
+
+	sendTemplates, err := mainQuery.SysSendTemplate.Find()
+	if !types.IsNil(err) {
+		return err
+	}
+
 	teamApis := types.SliceToWithFilter(sysApis, func(apiItem *model.SysAPI) (*bizmodel.SysTeamAPI, bool) {
 		return &bizmodel.SysTeamAPI{
 			Name:   apiItem.Name,
@@ -78,6 +91,17 @@ func syncBizDatabase(d *Data) error {
 			Remark:       dictItem.Remark,
 		}, true
 	})
+
+	sendTemplatesList := types.SliceToWithFilter(sendTemplates, func(item *model.SysSendTemplate) (*bizmodel.SysSendTemplate, bool) {
+		return &bizmodel.SysSendTemplate{
+			Name:     item.Name,
+			Content:  item.Content,
+			Status:   item.Status,
+			Remark:   item.Remark,
+			SendType: item.SendType,
+		}, true
+	})
+
 	for _, team := range teams {
 		// 获取团队业务库连接
 		db, err := d.GetBizGormDB(team.ID)
@@ -111,6 +135,12 @@ func syncBizDatabase(d *Data) error {
 		// 把创建人同步到团队成员表
 		if err := bizquery.Use(db).SysTeamMember.Clauses(clause.OnConflict{DoNothing: true}).Create(teamMember); !types.IsNil(err) {
 			return err
+		}
+
+		if len(sendTemplatesList) > 0 {
+			if err := bizquery.Use(db).SysSendTemplate.Clauses(clause.OnConflict{DoNothing: true}).Create(sendTemplatesList...); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -1458,5 +1488,92 @@ var resourceList = []*model.SysAPI{
 		Remark: "批量更新时间引擎状态",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
+	},
+	// 发送模板相关
+	{
+		Name:   "创建发送模板",
+		Path:   "/api.admin.template.SendTemplate/CreateSendTemplate",
+		Remark: "创建发送模板",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "删除发送模板",
+		Path:   "/api.admin.template.SendTemplate/DeleteSendTemplate",
+		Remark: "删除发送模板",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "获取发送模板详情",
+		Path:   "/api.admin.template.SendTemplate/GetSendTemplate",
+		Remark: "获取发送模板详情",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "发送模板列表",
+		Path:   "/api.admin.template.SendTemplate/ListSendTemplate",
+		Remark: "发送模板列表",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "更新发送模板",
+		Path:   "/api.admin.template.SendTemplate/UpdateSendTemplate",
+		Remark: "更新发送模板",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "更新发送模板状态",
+		Path:   "/api.admin.template.SendTemplate/UpdateStatus",
+		Remark: "更新发送模板状态",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+}
+
+//go:embed sendtemplate/send_dingtalk.tpl
+var sendDingTalkTPL string
+
+//go:embed sendtemplate/send_email.html
+var sendEmailHTML string
+
+//go:embed sendtemplate/send_feishu.json
+var sendFeiShuJSON string
+
+//go:embed sendtemplate/send_wechat.json
+var sendWeChatJSON string
+
+// 发送模板相关
+var sendTemplateList = []*model.SysSendTemplate{
+	{
+		Name:     "邮箱-监控告警模板",
+		Content:  sendEmailHTML,
+		SendType: vobj.AlarmSendTypeEmail,
+		Status:   vobj.StatusEnable,
+		Remark:   "系统邮箱模板",
+	},
+	{
+		Name:     "钉钉-监控告警模板",
+		Content:  sendDingTalkTPL,
+		SendType: vobj.AlarmSendTypeDingTalk,
+		Status:   vobj.StatusEnable,
+		Remark:   "系统钉钉模板",
+	},
+	{
+		Name:     "飞书-监控告警模板",
+		Content:  sendFeiShuJSON,
+		SendType: vobj.AlarmSendTypeFeiShu,
+		Status:   vobj.StatusEnable,
+		Remark:   "系统飞书模板",
+	},
+	{
+		Name:     "企业微信-监控告警模板",
+		Content:  sendWeChatJSON,
+		SendType: vobj.AlarmSendTypeWechat,
+		Status:   vobj.StatusEnable,
+		Remark:   "企业微信告警模板",
 	},
 }
