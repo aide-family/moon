@@ -14,7 +14,7 @@ type (
 		Content string `json:"content"`
 		// SendType 发送类型
 		SendType vobj.AlarmSendType `json:"sendType"`
-		// SendTarget 发送目标
+		// Status 状态
 		Status vobj.Status `json:"status"`
 		// Remark 备注
 		Remark string `json:"remark"`
