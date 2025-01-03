@@ -1230,11 +1230,11 @@ func (d *doStrategyBuilder) ToAPI(strategy *bizmodel.Strategy) *adminapi.Strateg
 		Categories:        NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToAPIs(types.SliceTo(strategy.Categories, func(item *bizmodel.SysDict) imodel.IDict { return item })),
 		AlarmNoticeGroups: NewParamsBuild(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(strategy.AlarmNoticeGroups),
 		Creator:           userMap[strategy.CreatorID],
-		MetricLevels:      NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToMetricAPIs(strategy.Level.StrategyMetricsLevelList),
-		EventLevels:       NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToEventAPIs(strategy.Level.StrategyEventLevelList),
-		PortLevels:        NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToPortAPIs(strategy.Level.StrategyPortLevelList),
-		HttpLevels:        NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToHTTPLevelAPIs(strategy.Level.StrategyHTTPLevelList),
-		DomainLevels:      NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToDomainAPIs(strategy.Level.StrategyDomainLevelList),
+		MetricLevels:      NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToMetricAPIs(strategy.GetLevel().GetStrategyMetricsLevelList()),
+		EventLevels:       NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToEventAPIs(strategy.GetLevel().GetStrategyEventLevelList()),
+		PortLevels:        NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToPortAPIs(strategy.GetLevel().GetStrategyPortLevelList()),
+		HttpLevels:        NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToHTTPLevelAPIs(strategy.GetLevel().GetStrategyHTTPLevelList()),
+		DomainLevels:      NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToDomainAPIs(strategy.GetLevel().GetStrategyDomainLevelList()),
 	}
 
 	return strategyItem
