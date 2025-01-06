@@ -9,6 +9,7 @@ import (
 	strategyapi "github.com/aide-family/moon/api/admin/strategy"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/palace/imodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -271,6 +272,9 @@ func (d *doAlarmNoticeGroupItemBuilder) ToAPI(group *bizmodel.AlarmNoticeGroup) 
 		NoticeUsers: NewParamsBuild(d.ctx).UserModuleBuilder().DoNoticeUserBuilder().ToAPIs(group.NoticeMembers),
 		Hooks:       NewParamsBuild(d.ctx).HookModuleBuilder().DoHookBuilder().ToAPIs(group.AlarmHooks),
 		TimeEngines: NewParamsBuild(d.ctx).TimeEngineModuleBuilder().Do().ToAPIs(group.TimeEngines),
+		Templates: NewParamsBuild(d.ctx).SendTemplateModuleBuild().IDoSendTemplateBuilder().ToAPIs(types.SliceTo(group.Templates, func(template *bizmodel.SysSendTemplate) imodel.ISendTemplate {
+			return template
+		})),
 	}
 }
 
@@ -326,11 +330,12 @@ func (c *createAlarmGroupRequestBuilder) ToBo() *bo.CreateAlarmNoticeGroupParams
 		Name:   c.GetName(),
 		Remark: c.GetRemark(),
 		Status: vobj.Status(c.GetStatus()),
-		NoticeMembers: types.SliceTo(c.NoticeMember, func(member *alarmapi.CreateNoticeMemberRequest) *bo.CreateNoticeMemberParams {
+		NoticeMembers: types.SliceTo(c.GetNoticeMember(), func(member *alarmapi.CreateNoticeMemberRequest) *bo.CreateNoticeMemberParams {
 			return &bo.CreateNoticeMemberParams{MemberID: member.GetMemberId(), NotifyType: vobj.NotifyType(member.GetNotifyType())}
 		}),
 		HookIds:       c.GetHookIds(),
 		TimeEngineIds: c.GetTimeEngines(),
+		TemplateIds:   c.GetTemplates(),
 	}
 }
 

@@ -182,7 +182,14 @@ func (l *RabbitConn) SyncTeam(ctx context.Context, teamID uint32, srvs ...*Srv) 
 	if len(srvs) == 0 {
 		srvs = l.srvs.getSrvs()
 	}
-	if len(srvs) == 0 {
+	newSrvs := make([]*Srv, 0, len(srvs))
+	// 根据teamID 过滤srvs
+	for _, srv := range srvs {
+		if types.ContainsOf(srv.teamIds, func(teamId uint32) bool { return teamId == teamID }) {
+			newSrvs = append(newSrvs, srv)
+		}
+	}
+	if len(newSrvs) == 0 {
 		return nil
 	}
 	mainQuery := query.Use(l.data.GetMainDB(ctx))
@@ -197,21 +204,56 @@ func (l *RabbitConn) SyncTeam(ctx context.Context, teamID uint32, srvs ...*Srv) 
 		Where(teamBizQuery.AlarmNoticeGroup.Status.Eq(vobj.StatusEnable.GetValue())).
 		Preload(field.Associations).
 		Preload(teamBizQuery.AlarmNoticeGroup.NoticeMembers.Member).
+		Preload(teamBizQuery.AlarmNoticeGroup.Templates).
 		Find()
 	if !types.IsNil(err) {
 		log.Errorw("获取告警组失败", err)
 		return err
 	}
+	// 获取所有告警模板
+	templates, err := teamBizQuery.WithContext(ctx).SysSendTemplate.Find()
+	if !types.IsNil(err) {
+		log.Errorw("获取告警模板失败", err)
+		return err
+	}
+
+	templateMap := make(map[string]string)
+	for _, template := range templates {
+		key := fmt.Sprintf("team_%d_%d_%s", teamID, template.ID, template.GetSendType().EnUSString())
+		templateMap[key] = template.Content
+	}
+
 	emailConfig := teamConfigDo.GetEmailConfig().ToConf()
-	for _, noticeGroupItem := range noticeGroupItems {
-		for _, srv := range srvs {
-			if err := l.syncNoticeGroup(srv, teamID, emailConfig, noticeGroupItem); !types.IsNil(err) {
-				log.Errorw("同步告警组失败", err)
-				continue
-			}
+	syncNoticeGroupMap := make(map[string]*conf.Receiver)
+	syncNoticeGroups := types.SliceTo(noticeGroupItems, func(noticeGroupItem *bizmodel.AlarmNoticeGroup) map[string]*conf.Receiver {
+		return l.buildSyncNoticeGroup(teamID, emailConfig, noticeGroupItem)
+	})
+	for _, receiver := range syncNoticeGroups {
+		for key, value := range receiver {
+			syncNoticeGroupMap[key] = value
 		}
 	}
 
+	params := &pushapi.NotifyObjectRequest{
+		Receivers: syncNoticeGroupMap,
+		Templates: templateMap,
+	}
+	if err := l.syncNotifyObject(ctx, newSrvs, params); !types.IsNil(err) {
+		log.Errorw("同步告警模板失败", err)
+		return err
+	}
+
+	return nil
+}
+
+// syncTemplate 同步告警模板
+func (l *RabbitConn) syncNotifyObject(ctx context.Context, srvs []*Srv, params *pushapi.NotifyObjectRequest) error {
+	for _, srv := range srvs {
+		if err := l.notifyObject(types.CopyValueCtx(ctx), srv, params); !types.IsNil(err) {
+			log.Errorw("同步告警模板失败", err, "params", params)
+			continue
+		}
+	}
 	return nil
 }
 
@@ -239,51 +281,55 @@ func (l *RabbitConn) sync(srv *Srv) error {
 	return nil
 }
 
-// syncNoticeGroup 同步告警组
-func (l *RabbitConn) syncNoticeGroup(srv *Srv, teamID uint32, teamEmailConfig *conf.EmailConfig, noticeGroupItem *bizmodel.AlarmNoticeGroup) error {
+// getTemplate 获取模板
+func getTemplate(teamID uint32, templateMap map[string]*bizmodel.SysSendTemplate, sendType string) string {
+	if template, ok := templateMap[sendType]; ok {
+		return fmt.Sprintf("team_%d_%d_%s", teamID, template.ID, template.GetSendType().EnUSString())
+	}
+	return ""
+}
+
+// buildSyncNoticeGroup 构建同步告警组数据
+func (l *RabbitConn) buildSyncNoticeGroup(teamID uint32, teamEmailConfig *conf.EmailConfig, noticeGroupItem *bizmodel.AlarmNoticeGroup) map[string]*conf.Receiver {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	member := types.SliceToWithFilter(noticeGroupItem.NoticeMembers, func(member *bizmodel.AlarmNoticeMember) (*bizmodel.SysTeamMember, bool) {
 		m := member.GetMember()
 		return m, m != nil || member.AlarmNoticeType.IsEmail() // TODO 后面兼容短信
 	})
+	templateMap := types.ToMap(noticeGroupItem.Templates, func(template *bizmodel.SysSendTemplate) string {
+		return template.GetSendType().EnUSString()
+	})
 	members := builder.NewParamsBuild(ctx).TeamMemberModuleBuilder().DoTeamMemberBuilder().ToAPIs(member)
-	params := &pushapi.NotifyObjectRequest{
-		Receivers: map[string]*conf.Receiver{
-			fmt.Sprintf("team_%d_%d", teamID, noticeGroupItem.ID): {
-				Hooks: types.SliceTo(noticeGroupItem.AlarmHooks, func(hook *bizmodel.AlarmHook) *conf.ReceiverHook {
-					return &conf.ReceiverHook{
-						Type:     hook.APP.EnUSString(),
-						Webhook:  hook.URL,
-						Content:  "",
-						Template: hook.APP.EnUSString(), // TODO 先固定模板， 后面再替换自定义模板
-						Secret:   hook.Secret,
-					}
-				}),
-				Phones: nil,
-				Emails: types.SliceToWithFilter(members, func(memberItem *adminapi.TeamMemberItem) (*conf.ReceiverEmail, bool) {
-					user := memberItem.GetUser()
-					if user == nil {
-						return nil, false
-					}
-					return &conf.ReceiverEmail{
-						To:          user.GetEmail(),
-						Subject:     "Moon监控告警",
-						Content:     "",
-						Template:    "email", // 先固定模板
-						Cc:          nil,
-						AttachUrl:   nil,
-						ContentType: "text/plain",
-					}, true
-				}),
-				EmailConfig: teamEmailConfig,
-			},
+	return map[string]*conf.Receiver{
+		fmt.Sprintf("team_%d_%d", teamID, noticeGroupItem.ID): {
+			Hooks: types.SliceTo(noticeGroupItem.AlarmHooks, func(hook *bizmodel.AlarmHook) *conf.ReceiverHook {
+				return &conf.ReceiverHook{
+					Type:     hook.APP.EnUSString(),
+					Webhook:  hook.URL,
+					Template: getTemplate(teamID, templateMap, hook.APP.EnUSString()),
+					Secret:   hook.Secret,
+				}
+			}),
+			Phones: nil,
+			Emails: types.SliceToWithFilter(members, func(memberItem *adminapi.TeamMemberItem) (*conf.ReceiverEmail, bool) {
+				user := memberItem.GetUser()
+				if user == nil {
+					return nil, false
+				}
+				return &conf.ReceiverEmail{
+					To:          user.GetEmail(),
+					Subject:     "Moon监控告警",
+					Content:     "",
+					Template:    getTemplate(teamID, templateMap, "email"),
+					Cc:          nil,
+					AttachUrl:   nil,
+					ContentType: "text/plain",
+				}, true
+			}),
+			EmailConfig: teamEmailConfig,
 		},
-		Templates: nil,
 	}
-	log.Infow("syncNoticeGroup", "开始推送通知对象")
-	// 推送策略
-	return l.notifyObject(ctx, srv, params)
 }
 
 // srvRegister 服务注册

@@ -58,6 +58,24 @@ func (a *alarmGroupRepositoryImpl) checkHooks(ctx context.Context, hookIds []uin
 	return nil
 }
 
+func (a *alarmGroupRepositoryImpl) checkTemplates(ctx context.Context, templateIds []uint32) error {
+	if len(templateIds) == 0 {
+		return nil
+	}
+	bizQuery, err := getBizQuery(ctx, a.data)
+	if !types.IsNil(err) {
+		return err
+	}
+	templateCount, err := bizQuery.SysSendTemplate.WithContext(ctx).Where(bizQuery.SysSendTemplate.ID.In(templateIds...)).Count()
+	if !types.IsNil(err) {
+		return err
+	}
+	if int(templateCount) != len(templateIds) {
+		return merr.ErrorI18nToastAlarmTemplateNotFound(ctx)
+	}
+	return nil
+}
+
 func (a *alarmGroupRepositoryImpl) checkMembers(ctx context.Context, memberIds []uint32) error {
 	if len(memberIds) == 0 {
 		return nil
@@ -105,6 +123,9 @@ func (a *alarmGroupRepositoryImpl) CreateAlarmGroup(ctx context.Context, params 
 	if err := a.checkHooks(ctx, params.HookIds); !types.IsNil(err) {
 		return nil, err
 	}
+	if err := a.checkTemplates(ctx, params.TemplateIds); !types.IsNil(err) {
+		return nil, err
+	}
 	memberIds := types.SliceTo(params.NoticeMembers, func(member *bo.CreateNoticeMemberParams) uint32 {
 		return member.MemberID
 	})
@@ -141,6 +162,14 @@ func (a *alarmGroupRepositoryImpl) CreateAlarmGroup(ctx context.Context, params 
 			}}
 		})
 		if err := bizQuery.AlarmNoticeGroup.TimeEngines.Model(alarmGroupModel).Append(timeEngines...); err != nil {
+			return nil, err
+		}
+	}
+	if len(params.TemplateIds) > 0 {
+		templates := types.SliceTo(params.TemplateIds, func(templateID uint32) *bizmodel.SysSendTemplate {
+			return &bizmodel.SysSendTemplate{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: templateID}}}
+		})
+		if err := bizQuery.AlarmNoticeGroup.Templates.Model(alarmGroupModel).Append(templates...); err != nil {
 			return nil, err
 		}
 	}
@@ -183,6 +212,9 @@ func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params 
 			AllFieldModel: model.AllFieldModel{ID: hookID},
 			TeamID:        middleware.GetTeamID(ctx),
 		}}
+	})
+	templateModels := types.SliceTo(params.UpdateParam.TemplateIds, func(templateID uint32) *bizmodel.SysSendTemplate {
+		return &bizmodel.SysSendTemplate{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: templateID}}}
 	})
 	// 告警组关联通知人中间表操作
 	groupModel := &bizmodel.AlarmNoticeGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: params.ID}}}
@@ -234,6 +266,17 @@ func (a *alarmGroupRepositoryImpl) UpdateAlarmGroup(ctx context.Context, params 
 		} else {
 			// 清除告警hook信息
 			if err := bizQueryTx.AlarmNoticeGroup.AlarmHooks.Model(groupModel).Clear(); err != nil {
+				return err
+			}
+		}
+
+		if len(templateModels) > 0 {
+			if err := bizQueryTx.AlarmNoticeGroup.Templates.Model(groupModel).Replace(templateModels...); err != nil {
+				return err
+			}
+		} else {
+			// 清除告警模板信息
+			if err := bizQueryTx.AlarmNoticeGroup.Templates.Model(groupModel).Clear(); err != nil {
 				return err
 			}
 		}
@@ -290,6 +333,7 @@ func (a *alarmGroupRepositoryImpl) GetAlarmGroup(ctx context.Context, alarmID ui
 	return bizQuery.AlarmNoticeGroup.WithContext(ctx).Where(bizQuery.AlarmNoticeGroup.ID.Eq(alarmID)).
 		Preload(field.Associations, bizQuery.AlarmNoticeGroup.NoticeMembers.Member).
 		Preload(bizQuery.AlarmNoticeGroup.TimeEngines).
+		Preload(bizQuery.AlarmNoticeGroup.Templates).
 		First()
 }
 
@@ -301,6 +345,7 @@ func (a *alarmGroupRepositoryImpl) GetAlarmGroupsByIDs(ctx context.Context, ids 
 	return bizQuery.AlarmNoticeGroup.WithContext(ctx).Where(bizQuery.AlarmNoticeGroup.ID.In(ids...)).
 		Preload(field.Associations, bizQuery.AlarmNoticeGroup.NoticeMembers.Member).
 		Preload(bizQuery.AlarmNoticeGroup.TimeEngines).
+		Preload(bizQuery.AlarmNoticeGroup.Templates).
 		Find()
 }
 
