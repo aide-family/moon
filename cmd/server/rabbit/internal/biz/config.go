@@ -2,11 +2,11 @@ package biz
 
 import (
 	"context"
-	"sync"
 
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
 	"github.com/aide-family/moon/pkg/conf"
+	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -23,16 +23,16 @@ func NewConfigBiz(c *rabbitconf.Bootstrap) *ConfigBiz {
 func GetConfigData() *Config {
 	if types.IsNil(configData) {
 		configData = &Config{
-			Receivers: new(sync.Map),
-			Templates: new(sync.Map),
+			Receivers: safety.NewMap[string, *conf.Receiver](),
+			Templates: safety.NewMap[string, string](),
 		}
 	}
 	return configData
 }
 
 var configData = &Config{
-	Receivers: new(sync.Map),
-	Templates: new(sync.Map),
+	Receivers: safety.NewMap[string, *conf.Receiver](),
+	Templates: safety.NewMap[string, string](),
 }
 
 // GetReceivers 获取接收人
@@ -40,12 +40,7 @@ func (l *Config) GetReceivers(route string) (*conf.Receiver, bool) {
 	if types.IsNil(l) {
 		return nil, false
 	}
-	val, ok := GetConfigData().Receivers.Load(route)
-	if ok {
-		receivers, ok := val.(*conf.Receiver)
-		return receivers, ok
-	}
-	return nil, false
+	return GetConfigData().Receivers.Get(route)
 }
 
 // GetTemplates 获取模板
@@ -53,12 +48,9 @@ func (l *Config) GetTemplates(temp string) string {
 	if types.IsNil(l) {
 		return ""
 	}
-	val, ok := GetConfigData().Templates.Load(temp)
+	template, ok := GetConfigData().Templates.Get(temp)
 	if ok {
-		template, ok := val.(string)
-		if ok {
-			return template
-		}
+		return template
 	}
 	return ""
 }
@@ -70,8 +62,8 @@ type ConfigBiz struct {
 
 // Config 配置数据
 type Config struct {
-	Receivers *sync.Map `json:"receivers"`
-	Templates *sync.Map `json:"templates"`
+	Receivers *safety.Map[string, *conf.Receiver] `json:"receivers"`
+	Templates *safety.Map[string, string]         `json:"templates"`
 }
 
 // Set 设置接收人
@@ -111,10 +103,10 @@ func (l *Config) Set(_ context.Context, params *bo.CacheConfigParams) {
 				Port: v.GetEmailConfig().GetPort(),
 			}
 		}
-		l.Receivers.Store(k, r)
+		l.Receivers.Set(k, r)
 	}
 	for k, v := range params.Templates {
-		l.Templates.Store(k, v)
+		l.Templates.Set(k, v)
 	}
 }
 

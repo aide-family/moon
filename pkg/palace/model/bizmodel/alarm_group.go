@@ -22,6 +22,8 @@ type AlarmNoticeGroup struct {
 	NoticeMembers []*AlarmNoticeMember  `gorm:"foreignKey:AlarmGroupID;comment:通知人信息中间表" json:"notice_members,omitempty"`
 	AlarmHooks    []*AlarmHook          `gorm:"many2many:alarm_group_hook" json:"alarm_hooks,omitempty"`
 	TimeEngines   []*TimeEngine         `gorm:"many2many:alarm_group_time_engine" json:"time_engines,omitempty"`
+	// 告警模板
+	Templates []*SysSendTemplate `gorm:"many2many:alarm_group_templates" json:"templates,omitempty"`
 }
 
 // IsAllowed 判断条件是否允许

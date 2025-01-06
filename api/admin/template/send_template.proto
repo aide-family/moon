@@ -12,6 +12,7 @@ option go_package = "github.com/aide-family/moon/api/admin/template;template";
 option java_multiple_files = true;
 option java_package = "api.admin.template";
 
+// Alarm Template module
 service SendTemplate {
   // Create send template
   rpc CreateSendTemplate (CreateSendTemplateRequest) returns (CreateSendTemplateReply){

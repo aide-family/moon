@@ -3300,6 +3300,75 @@ func ErrorI18nToastAlarmHookNotFound(ctx context.Context, args ...interface{}) *
 	})
 }
 
+const ErrorToastAlarmTemplateNotFoundID = "TOAST__ALARM_TEMPLATE_NOT_FOUND"
+
+// IsToastAlarmTemplateNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
+//
+//	ALARM_TEMPLATE_NOT_FOUND
+//	告警模板不存在
+func IsToastAlarmTemplateNotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorToastAlarmTemplateNotFoundID && e.Code == 404
+}
+
+// ErrorToastAlarmTemplateNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
+//
+//	ALARM_TEMPLATE_NOT_FOUND
+//	告警模板不存在
+func ErrorToastAlarmTemplateNotFound(format string, args ...interface{}) *errors.Error {
+	return errors.New(404, ErrorToastAlarmTemplateNotFoundID, fmt.Sprintf(format, args...))
+}
+
+// ErrorToastAlarmTemplateNotFoundWithContext 用于toast验证错误， 资源不存在或者已存在时候提示
+//
+//	ALARM_TEMPLATE_NOT_FOUND
+//	告警模板不存在
+//	带上下文，支持国际化输出元数据
+func ErrorToastAlarmTemplateNotFoundWithContext(ctx context.Context, format string, args ...interface{}) *errors.Error {
+	return errors.New(404, ErrorToastAlarmTemplateNotFoundID, fmt.Sprintf(format, args...)).WithMetadata(map[string]string{
+		"alertTemplate": GetI18nMessage(ctx, "ALERT_TEMPLATE_NOT_FOUND", ""),
+	})
+}
+
+var _ToastAlarmTemplateNotFoundMsg = &i18n.Message{
+	ID:    ErrorToastAlarmTemplateNotFoundID,
+	One:   "告警模板不存在",
+	Other: "告警模板不存在",
+}
+
+// ErrorI18nToastAlarmTemplateNotFound 用于toast验证错误， 资源不存在或者已存在时候提示
+//
+//	ALARM_TEMPLATE_NOT_FOUND
+//	告警模板不存在
+//	支持国际化输出
+func ErrorI18nToastAlarmTemplateNotFound(ctx context.Context, args ...interface{}) *errors.Error {
+	msg := "告警模板不存在"
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	err := errors.New(404, ErrorToastAlarmTemplateNotFoundID, msg)
+	local, ok := FromContext(ctx)
+	if ok {
+		config := &i18n.LocalizeConfig{
+			MessageID:      ErrorToastAlarmTemplateNotFoundID,
+			DefaultMessage: _ToastAlarmTemplateNotFoundMsg,
+		}
+		localize, err1 := local.Localize(config)
+		if err1 != nil {
+			err = errors.New(404, ErrorToastAlarmTemplateNotFoundID, msg).WithCause(err1)
+		} else {
+			err = errors.New(404, ErrorToastAlarmTemplateNotFoundID, localize)
+		}
+	}
+
+	return err.WithMetadata(map[string]string{
+		"alertTemplate": GetI18nMessage(ctx, "ALERT_TEMPLATE_NOT_FOUND", ""),
+	})
+}
+
 const ErrorToastMenuNotFoundID = "TOAST__MENU_NOT_FOUND"
 
 // IsToastMenuNotFound 用于toast验证错误， 资源不存在或者已存在时候提示

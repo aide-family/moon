@@ -2,7 +2,11 @@ package repoimpl
 
 import (
 	"context"
+
+	"github.com/aide-family/moon/pkg/helper/middleware"
+	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
@@ -14,11 +18,30 @@ import (
 	"gorm.io/gen"
 )
 
+// NewTeamSendTemplateRepository 创建团队发送模板仓库
+func NewTeamSendTemplateRepository(data *data.Data, rabbitConn *data.RabbitConn) repository.TeamSendTemplate {
+	return &teamSendTemplateRepoImpl{
+		data:       data,
+		rabbitConn: rabbitConn,
+	}
+}
+
 type (
 	teamSendTemplateRepoImpl struct {
-		data *data.Data
+		data       *data.Data
+		rabbitConn *data.RabbitConn
 	}
 )
+
+func (t *teamSendTemplateRepoImpl) sync(ctx context.Context) {
+	go func() {
+		defer after.RecoverX()
+		ctx := types.CopyValueCtx(ctx)
+		if err := t.rabbitConn.SyncTeam(ctx, middleware.GetTeamID(ctx)); !types.IsNil(err) {
+			log.Errorw("method", "SyncTeam", "error", err)
+		}
+	}()
+}
 
 func (t *teamSendTemplateRepoImpl) GetTemplateInfoByName(ctx context.Context, name string) (imodel.ISendTemplate, error) {
 	bizQuery, err := getBizQuery(ctx, t.data)
@@ -28,20 +51,17 @@ func (t *teamSendTemplateRepoImpl) GetTemplateInfoByName(ctx context.Context, na
 	return bizQuery.WithContext(ctx).SysSendTemplate.Where(bizQuery.SysSendTemplate.Name.Eq(name)).First()
 }
 
-// NewTeamSendTemplateRepository 创建团队发送模板仓库
-func NewTeamSendTemplateRepository(data *data.Data) repository.TeamSendTemplate {
-	return &teamSendTemplateRepoImpl{
-		data: data,
-	}
-}
-
 func (t *teamSendTemplateRepoImpl) Create(ctx context.Context, params *bo.CreateSendTemplate) error {
 	templateModel := createTeamSendTemplateParamToModel(ctx, params)
 	bizQuery, err := getBizQuery(ctx, t.data)
 	if err != nil {
 		return err
 	}
-	return bizQuery.WithContext(ctx).SysSendTemplate.Create(templateModel)
+	if err := bizQuery.WithContext(ctx).SysSendTemplate.Create(templateModel); err != nil {
+		return err
+	}
+	t.sync(ctx)
+	return nil
 }
 
 func (t *teamSendTemplateRepoImpl) UpdateByID(ctx context.Context, params *bo.UpdateSendTemplate) error {
@@ -52,8 +72,11 @@ func (t *teamSendTemplateRepoImpl) UpdateByID(ctx context.Context, params *bo.Up
 	id := params.ID
 	param := params.UpdateParam
 	sendTemplateModel := createTeamSendTemplateParamToModel(ctx, param)
-	_, err = bizQuery.WithContext(ctx).SysSendTemplate.Where(bizQuery.SysSendTemplate.ID.Eq(id)).Updates(sendTemplateModel)
-	return err
+	if _, err = bizQuery.WithContext(ctx).SysSendTemplate.Where(bizQuery.SysSendTemplate.ID.Eq(id)).Updates(sendTemplateModel); err != nil {
+		return err
+	}
+	t.sync(ctx)
+	return nil
 }
 
 func (t *teamSendTemplateRepoImpl) DeleteByID(ctx context.Context, ID uint32) error {
@@ -61,8 +84,11 @@ func (t *teamSendTemplateRepoImpl) DeleteByID(ctx context.Context, ID uint32) er
 	if err != nil {
 		return err
 	}
-	_, err = bizQuery.SysSendTemplate.WithContext(ctx).Where(bizQuery.SysSendTemplate.ID.Eq(ID)).Delete()
-	return err
+	if _, err = bizQuery.SysSendTemplate.WithContext(ctx).Where(bizQuery.SysSendTemplate.ID.Eq(ID)).Delete(); err != nil {
+		return err
+	}
+	t.sync(ctx)
+	return nil
 }
 
 func (t *teamSendTemplateRepoImpl) FindByPage(ctx context.Context, params *bo.QuerySendTemplateListParams) ([]imodel.ISendTemplate, error) {
@@ -76,8 +102,11 @@ func (t *teamSendTemplateRepoImpl) UpdateStatusByIds(ctx context.Context, params
 	}
 	status := params.Status
 	ids := params.Ids
-	_, err = bizQuery.SysSendTemplate.WithContext(ctx).Where(bizQuery.SysSendTemplate.ID.In(ids...)).UpdateSimple(bizQuery.SysSendTemplate.Status.Value(status.GetValue()))
-	return err
+	if _, err = bizQuery.SysSendTemplate.WithContext(ctx).Where(bizQuery.SysSendTemplate.ID.In(ids...)).UpdateSimple(bizQuery.SysSendTemplate.Status.Value(status.GetValue())); err != nil {
+		return err
+	}
+	t.sync(ctx)
+	return nil
 }
 
 func (t *teamSendTemplateRepoImpl) GetByID(ctx context.Context, id uint32) (imodel.ISendTemplate, error) {

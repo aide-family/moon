@@ -21,3 +21,20 @@ const (
 	// AlarmSendTypeCustom 自定义
 	AlarmSendTypeCustom // 自定义
 )
+
+// EnUSString 英文字符串
+func (a AlarmSendType) EnUSString() string {
+	switch a {
+	case AlarmSendTypeDingTalk:
+		return "dingtalk"
+	case AlarmSendTypeFeiShu:
+		return "feishu"
+	case AlarmSendTypeWechat:
+		return "wechat"
+	case AlarmSendTypeEmail:
+		return "email"
+	case AlarmSendTypeSMS:
+		return "sms"
+	}
+	return "other"
+}

@@ -108,6 +108,8 @@ message CreateAlarmGroupRequest {
   repeated uint32 hookIds = 5;
   // 时间引擎
   repeated uint32 timeEngines = 6;
+  // 告警模板
+  repeated uint32 templates = 7;
 }
 message CreateAlarmGroupReply {}
 

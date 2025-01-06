@@ -628,6 +628,8 @@ message AlarmNoticeGroupItem {
   repeated AlarmHookItem hooks = 10;
   // 时间引擎
   repeated TimeEngineItem timeEngines = 11;
+  // 告警模板
+  repeated SendTemplateItem templates = 12;
 }
 
 // 通知人

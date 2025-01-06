@@ -26,6 +26,8 @@ type (
 		HookIds []uint32 `json:"hookIds"`
 		// 时间引擎ids
 		TimeEngineIds []uint32 `json:"timeEngineIds"`
+		// 告警模板ids
+		TemplateIds []uint32 `json:"templateIds"`
 	}
 
 	// CreateNoticeMemberParams 创建通知人参数

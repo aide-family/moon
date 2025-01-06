@@ -300,6 +300,12 @@ enum ErrorReason {
       message: "告警hook不存在",
       metadata: {key: "alertHook", value: "ALERT_HOOK_NOT_FOUND"}
     },
+    // 告警模板不存在
+    (errors.biz_reason) = {
+      reason: "ALARM_TEMPLATE_NOT_FOUND"
+      message: "告警模板不存在",
+      metadata: {key: "alertTemplate", value: "ALERT_TEMPLATE_NOT_FOUND"}
+    },
     // 菜单不存在
     (errors.biz_reason) = {
       reason: "MENU_NOT_FOUND"
