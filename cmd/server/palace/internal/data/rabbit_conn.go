@@ -296,7 +296,7 @@ func getTemplate(teamID uint32, templateMap map[string]*bizmodel.SysSendTemplate
 	if template, ok := templateMap[sendType]; ok {
 		return fmt.Sprintf("team_%d_%d_%s", teamID, template.ID, template.GetSendType().EnUSString())
 	}
-	return ""
+	return sendType
 }
 
 // buildSyncNoticeGroup 构建同步告警组数据
