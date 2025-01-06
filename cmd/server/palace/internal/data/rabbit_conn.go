@@ -199,6 +199,7 @@ func (l *RabbitConn) SyncTeam(ctx context.Context, teamID uint32, srvs ...*Srv) 
 	if !types.IsNil(err) {
 		return err
 	}
+
 	teamBizQuery := bizquery.Use(teamDB)
 	noticeGroupItems, err := teamBizQuery.WithContext(ctx).AlarmNoticeGroup.
 		Where(teamBizQuery.AlarmNoticeGroup.Status.Eq(vobj.StatusEnable.GetValue())).
@@ -218,6 +219,15 @@ func (l *RabbitConn) SyncTeam(ctx context.Context, teamID uint32, srvs ...*Srv) 
 	}
 
 	templateMap := make(map[string]string)
+	// 获取公告告警模板
+	noticeTemplates, err := teamBizQuery.WithContext(ctx).SysSendTemplate.Find()
+	if !types.IsNil(err) {
+		log.Errorw("获取公告告警模板失败", err)
+		return err
+	}
+	for _, template := range noticeTemplates {
+		templateMap[template.GetSendType().EnUSString()] = template.Content
+	}
 	for _, template := range templates {
 		key := fmt.Sprintf("team_%d_%d_%s", teamID, template.ID, template.GetSendType().EnUSString())
 		templateMap[key] = template.Content
