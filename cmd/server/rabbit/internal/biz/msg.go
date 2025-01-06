@@ -15,6 +15,8 @@ import (
 	"github.com/aide-family/moon/pkg/notify/hook"
 	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
+
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -29,6 +31,54 @@ type MsgBiz struct {
 	data *data.Data
 }
 
+// IsAllowed 判断条件是否允许
+func IsAllowed(receive *conf.Receiver, t time.Time) bool {
+	if receive == nil || len(receive.TimeEngines) == 0 {
+		return true
+	}
+
+	for _, engine := range receive.TimeEngines {
+		c := types.SliceToWithFilter(engine.Rules, func(r *conf.TimeEngineRule) (types.Matcher, bool) {
+			switch vobj.ToTimeEngineRuleType(r.Category) {
+			case vobj.TimeEngineRuleTypeHourRange:
+				if len(r.Rule) < 2 {
+					return nil, false
+				}
+				return &types.HourRange{
+					Start: int(r.Rule[0]),
+					End:   int(r.Rule[1]),
+				}, true
+			case vobj.TimeEngineRuleTypeDaysOfWeek:
+				daysOfWeek := types.DaysOfWeek(types.SliceTo(r.GetRule(), func(i int32) int { return int(i) }))
+				return &daysOfWeek, true
+			case vobj.TimeEngineRuleTypeDaysOfMonth:
+				if len(r.Rule) < 2 {
+					return nil, false
+				}
+				return &types.DaysOfMonth{
+					Start: int(r.Rule[0]),
+					End:   int(r.Rule[1]),
+				}, true
+			case vobj.TimeEngineRuleTypeMonths:
+				if len(r.Rule) < 2 {
+					return nil, false
+				}
+				return &types.Months{
+					Start: int(r.Rule[0]),
+					End:   int(r.Rule[1]),
+				}, true
+			default:
+				return nil, false
+			}
+		})
+		if types.NewTimeEngine(types.WithConfigurations(c)).IsAllowed(t) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // SendMsg 发送消息  TODO 标记后续改造发送通知
 func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 	if types.TextIsNull(msg.Route) {
@@ -36,19 +86,19 @@ func (b *MsgBiz) SendMsg(ctx context.Context, msg *bo.SendMsgParams) error {
 	}
 
 	config := GetConfigData()
-	receives, ok := config.GetReceivers(msg.Route)
+	receive, ok := config.GetReceivers(msg.Route)
 	if !ok {
 		return merr.ErrorAlert("%s receiver not found", msg.Route)
 	}
 
 	globalEmailConfig := b.c.GetGlobalEmailConfig()
 	// 如果有自定义的邮箱配置， 使用自定义， 否则使用公共邮箱配置
-	if !types.IsNil(receives.GetEmailConfig()) {
-		globalEmailConfig = receives.GetEmailConfig()
+	if !types.IsNil(receive.GetEmailConfig()) {
+		globalEmailConfig = receive.GetEmailConfig()
 	}
 
-	emailReceives := receives.GetEmails()
-	hookReceivers := receives.GetHooks()
+	emailReceives := receive.GetEmails()
+	hookReceivers := receive.GetHooks()
 	senderList := make([]notify.Notify, 0, len(emailReceives)*4+len(hookReceivers)*4)
 	for _, hookItem := range hookReceivers {
 		if types.IsNil(hookItem) {

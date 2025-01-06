@@ -212,13 +212,16 @@ message ReceiverHook {
 }
 
 message Receiver {
+  // hook 列表
   repeated ReceiverHook hooks = 1;
-
+  // 电话列表
   repeated ReceiverPhone phones = 2;
-
+  // 邮件列表
   repeated ReceiverEmail emails = 3;
-
+  // 邮件配置
   EmailConfig emailConfig = 4;
+  // 时间引擎
+  repeated TimeEngine timeEngines = 5;
 }
 
 message Log {
@@ -408,4 +411,22 @@ message AsymmetricEncryptionConfig {
   string publicKey = 1;
   // 私钥
   string privateKey = 2;
+}
+
+// 时间引擎规则
+message TimeEngineRule {
+  // 规则名称
+  string name = 1;
+  // 规则类型  hourRange: 小时范围, daysOfWeek: 星期, daysOfMonth: 日期, months: 月份
+  string category = 2;
+  // 规则
+  repeated int32 rule = 3;
+}
+
+// 时间引擎配置
+message TimeEngine {
+  // 规则名称
+  string name = 1;
+  // 规则
+  repeated TimeEngineRule rules = 2;
 }

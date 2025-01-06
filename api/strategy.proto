@@ -531,17 +531,3 @@ message Message  {
   // 通知组，需要通知的对象组列表
   repeated NotifyGroup groups = 5;
 }
-
-// 时间引擎规则
-message TimeEngineRule {
-  // 规则ID
-  string id = 1;
-  // 规则名称
-  string name = 2;
-  // 规则类型
-  int32 category = 3;
-  // 规则
-  repeated int32 rule = 4;
-  // 状态
-  int32 status = 5;
-}
