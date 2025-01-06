@@ -186,5 +186,5 @@ func (i *InviteRepositoryImpl) SendInviteEmail(ctx context.Context, params *bo.I
 		"APP":         i.bc.GetServer().GetName(),
 		"Remark":      i.bc.GetServer().GetMetadata()["description"],
 	})
-	return i.data.GetEmail().SetSubject("欢迎使用"+i.bc.GetServer().GetName()).SetTo(email).SetBody(emailBody, "text/html").Send()
+	return i.data.GetEmail().SetSubject("欢迎使用 Moon 监控系统").SetTo(email).SetBody(emailBody, "text/html").Send()
 }

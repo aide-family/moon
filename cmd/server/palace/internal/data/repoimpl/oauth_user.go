@@ -203,7 +203,7 @@ func (g *githubUserRepositoryImpl) sendUserPassword(_ context.Context, user *mod
 		return err
 	}
 
-	body = format.Formatter(body, map[string]string{
+	emailBody := format.Formatter(body, map[string]string{
 		"Username":    user.Email,
 		"Password":    pass,
 		"RedirectURI": g.bc.GetOauth2().GetRedirectUri(),
@@ -211,7 +211,7 @@ func (g *githubUserRepositoryImpl) sendUserPassword(_ context.Context, user *mod
 		"Remark":      g.bc.GetServer().GetMetadata()["description"],
 	})
 	// 发送用户密码到用户邮箱
-	return g.data.GetEmail().SetSubject("欢迎使用"+g.bc.GetServer().GetName()).SetTo(user.Email).SetBody(body, "text/html").Send()
+	return g.data.GetEmail().SetSubject("欢迎使用 Moon 监控系统").SetTo(user.Email).SetBody(emailBody, "text/html").Send()
 }
 
 //go:embed verify_email.html
@@ -236,7 +236,7 @@ func (g *githubUserRepositoryImpl) SendVerifyEmail(ctx context.Context, email st
 		"APP":         g.bc.GetServer().GetName(),
 		"Remark":      g.bc.GetServer().GetMetadata()["description"],
 	})
-	return g.data.GetEmail().SetSubject("欢迎使用"+g.bc.GetServer().GetName()).SetTo(email).SetBody(emailBody, "text/html").Send()
+	return g.data.GetEmail().SetSubject("欢迎使用 Moon 监控系统").SetTo(email).SetBody(emailBody, "text/html").Send()
 }
 
 // CheckVerifyEmailCode 检查验证码
