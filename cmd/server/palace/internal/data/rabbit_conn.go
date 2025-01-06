@@ -85,7 +85,7 @@ func (l *RabbitConn) NotifyObject(ctx context.Context, in *pushapi.NotifyObjectR
 	for _, srv := range l.srvs.getSrvs() {
 		conn := srv
 		eg.Go(func() error {
-			return l.notifyObject(ctx, conn, in, opts...)
+			return l.notifyObject(types.CopyValueCtx(ctx), conn, in, opts...)
 		})
 	}
 	return eg.Wait()
