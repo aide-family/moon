@@ -254,6 +254,24 @@ func (p *prometheusDatasource) Query(ctx context.Context, expr string, duration 
 	return result, nil
 }
 
+func newMetrics(length int) *metrics {
+	return &metrics{
+		list: make([]*Metric, 0, length),
+	}
+}
+
+type metrics struct {
+	list []*Metric
+	mux  sync.Mutex
+}
+
+// append metrics
+func (m *metrics) append(metric ...*Metric) {
+	m.mux.Lock()
+	defer m.mux.Unlock()
+	m.list = append(m.list, metric...)
+}
+
 func (p *prometheusDatasource) Metadata(ctx context.Context) (*Metadata, error) {
 	now := time.Now()
 	// 获取元数据
@@ -261,14 +279,18 @@ func (p *prometheusDatasource) Metadata(ctx context.Context) (*Metadata, error) 
 	if err != nil {
 		return nil, err
 	}
+	metricNameMap := make(map[string]PromMetricInfo)
 	metricNames := make([]string, 0, len(metadataInfo))
 	for metricName := range metadataInfo {
 		metricNames = append(metricNames, metricName)
+		if len(metadataInfo[metricName]) == 0 {
+			continue
+		}
+		metricNameMap[metricName] = metadataInfo[metricName][0]
 	}
 
 	// metricNames = metricNames[:151]
-	metrics := make([]*Metric, 0, len(metricNames))
-	lock := new(sync.RWMutex)
+	metricList := newMetrics(len(metricNames))
 	batchNum := 20
 	namesLen := len(metricNames)
 	eg := new(errgroup.Group)
@@ -287,11 +309,8 @@ func (p *prometheusDatasource) Metadata(ctx context.Context) (*Metadata, error) 
 			}
 
 			metricsTmp := make([]*Metric, 0, right-left)
-			for metricName, metricInfos := range metadataInfo {
-				if len(metricInfos) == 0 {
-					continue
-				}
-				metricInfo := metricInfos[0]
+			for _, metricName := range metricNames[left:right] {
+				metricInfo := metricNameMap[metricName]
 				item := &Metric{
 					Type:   metricInfo.Type,
 					Name:   metricName,
@@ -301,9 +320,8 @@ func (p *prometheusDatasource) Metadata(ctx context.Context) (*Metadata, error) 
 				}
 				metricsTmp = append(metricsTmp, item)
 			}
-			lock.Lock()
-			defer lock.Unlock()
-			metrics = append(metrics, metricsTmp...)
+
+			metricList.append(metricsTmp...)
 			return nil
 		})
 	}
@@ -312,7 +330,7 @@ func (p *prometheusDatasource) Metadata(ctx context.Context) (*Metadata, error) 
 	}
 
 	return &Metadata{
-		Metric:    metrics,
+		Metric:    metricList.list,
 		Timestamp: now.Unix(),
 	}, nil
 }
