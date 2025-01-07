@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/watch"
 	"github.com/go-ping/ping"
 )
@@ -74,8 +74,8 @@ func EndpointPing(_ context.Context, endpoint string, seconds time.Duration) (ma
 	if err := pinger.Run(); err != nil {
 		return nil, err
 	}
-	labels := vobj.NewLabels(map[string]string{
-		vobj.Domain: endpoint,
+	labels := label.NewLabels(map[string]string{
+		label.Domain: endpoint,
 	})
 	unix := now.Unix()
 	points[labels] = &Point{

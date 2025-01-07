@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -28,9 +29,9 @@ type (
 		Name   string `json:"name"`
 		TeamID uint32 `json:"teamID"`
 		// 标签
-		Labels *vobj.Labels `json:"labels"`
+		Labels *label.Labels `json:"labels"`
 		// 注解
-		Annotations *vobj.Annotations `json:"annotations"`
+		Annotations *label.Annotations `json:"annotations"`
 		// 告警表达式
 		Expr string `json:"expr"`
 		// 策略类型

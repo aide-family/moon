@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -20,8 +21,8 @@ func TestStrategyHTTP_Eval(t *testing.T) {
 		Method:                vobj.HTTPMethodGet,
 		ResponseTime:          1,
 		ResponseTimeCondition: vobj.ConditionGTE,
-		Labels:                vobj.NewLabels(map[string]string{"http": "baidu.com"}),
-		Annotations: vobj.NewAnnotations(map[string]string{
+		Labels:                label.NewLabels(map[string]string{"http": "baidu.com"}),
+		Annotations: label.NewAnnotations(map[string]string{
 			"summary":     "baidu.com http 探测",
 			"description": "baidu.com http 探测, 明细 {{ . }}",
 		}),

@@ -10,6 +10,7 @@ import (
 	houyistrategyapi "github.com/aide-family/moon/api/houyi/strategy"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/helper/middleware"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/palace/imodel"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
@@ -1181,8 +1182,8 @@ func (u *updateTemplateStrategyRequestBuilder) ToBo() *bo.UpdateTemplateStrategy
 			Alert:                  u.GetAlert(),
 			Expr:                   u.GetExpr(),
 			Remark:                 u.GetRemark(),
-			Labels:                 vobj.NewLabels(u.GetLabels()),
-			Annotations:            vobj.NewAnnotations(u.GetAnnotations()),
+			Labels:                 label.NewLabels(u.GetLabels()),
+			Annotations:            label.NewAnnotations(u.GetAnnotations()),
 			StrategyLevelTemplates: NewParamsBuild(u.ctx).StrategyModuleBuilder().APIMutationStrategyLevelTemplateItems().WithStrategyTemplateID(u.GetId()).ToBos(u.GetLevels()),
 			CategoriesIDs:          u.GetCategoriesIds(),
 		},
@@ -1198,8 +1199,8 @@ func (c *createTemplateStrategyRequestBuilder) ToBo() *bo.CreateTemplateStrategy
 		Alert:                  c.GetAlert(),
 		Expr:                   c.GetExpr(),
 		Remark:                 c.GetRemark(),
-		Labels:                 vobj.NewLabels(c.GetLabels()),
-		Annotations:            vobj.NewAnnotations(c.GetAnnotations()),
+		Labels:                 label.NewLabels(c.GetLabels()),
+		Annotations:            label.NewAnnotations(c.GetAnnotations()),
 		StrategyLevelTemplates: NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelTemplateItems().ToBos(c.GetLevels()),
 		CategoriesIDs:          c.GetCategoriesIds(),
 	}
@@ -1327,8 +1328,8 @@ func (c *createStrategyRequestBuilder) ToBo() *bo.CreateStrategyParams {
 		TemplateSource: vobj.StrategyTemplateSource(c.GetSourceType()),
 		Name:           c.GetName(),
 		TeamID:         middleware.GetTeamID(c.ctx),
-		Labels:         vobj.NewLabels(c.GetLabels()),
-		Annotations:    vobj.NewAnnotations(c.GetAnnotations()),
+		Labels:         label.NewLabels(c.GetLabels()),
+		Annotations:    label.NewAnnotations(c.GetAnnotations()),
 		Expr:           c.GetExpr(),
 		CategoriesIds:  c.GetCategoriesIds(),
 		AlarmGroupIds:  c.GetAlarmGroupIds(),

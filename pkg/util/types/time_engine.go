@@ -1,6 +1,11 @@
 package types
 
-import "time"
+import (
+	"time"
+
+	"github.com/aide-family/moon/pkg/conf"
+	"github.com/aide-family/moon/pkg/vobj"
+)
 
 var (
 	_ Matcher = (*HourRange)(nil)
@@ -134,4 +139,43 @@ func (tr *TimeEngine) matches(t time.Time) bool {
 		}
 	}
 	return true
+}
+
+// IsAllowed 判断时间条件是否允许放行
+func IsAllowed(t time.Time, timeEngines ...*conf.TimeEngine) bool {
+	if timeEngines == nil || len(timeEngines) == 0 {
+		return true
+	}
+
+	for _, engine := range timeEngines {
+		c := SliceToWithFilter(engine.Rules, func(r *conf.TimeEngineRule) (Matcher, bool) {
+			switch vobj.ToTimeEngineRuleType(r.Category) {
+			case vobj.TimeEngineRuleTypeHourRange:
+				if len(r.Rule) < 2 {
+					return nil, false
+				}
+				return &HourRange{Start: int(r.Rule[0]), End: int(r.Rule[1])}, true
+			case vobj.TimeEngineRuleTypeDaysOfWeek:
+				daysOfWeek := DaysOfWeek(SliceTo(r.GetRule(), func(i int32) int { return int(i) }))
+				return &daysOfWeek, true
+			case vobj.TimeEngineRuleTypeDaysOfMonth:
+				if len(r.Rule) < 2 {
+					return nil, false
+				}
+				return &DaysOfMonth{Start: int(r.Rule[0]), End: int(r.Rule[1])}, true
+			case vobj.TimeEngineRuleTypeMonths:
+				if len(r.Rule) < 2 {
+					return nil, false
+				}
+				return &Months{Start: int(r.Rule[0]), End: int(r.Rule[1])}, true
+			default:
+				return nil, false
+			}
+		})
+		if NewTimeEngine(WithConfigurations(c)).IsAllowed(t) {
+			return true
+		}
+	}
+
+	return false
 }

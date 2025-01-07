@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -19,8 +20,8 @@ func TestStrategyDomain_Eval(t *testing.T) {
 		Status:           vobj.StatusEnable,
 		Alert:            "百度域名证书监控",
 		Threshold:        1,
-		Labels:           vobj.NewLabels(map[string]string{"domain": "baidu.com"}),
-		Annotations: vobj.NewAnnotations(map[string]string{
+		Labels:           label.NewLabels(map[string]string{"domain": "baidu.com"}),
+		Annotations: label.NewAnnotations(map[string]string{
 			"summary":     "百度域名证书监控",
 			"description": "百度域名证书监控 明细 {{ . }}",
 		}),
@@ -53,8 +54,8 @@ func TestStrategyDomainPort_Eval(t *testing.T) {
 		Status:           vobj.StatusEnable,
 		Alert:            "百度域名端口监控",
 		Threshold:        1,
-		Labels:           vobj.NewLabels(map[string]string{"domain": "baidu.com"}),
-		Annotations: vobj.NewAnnotations(map[string]string{
+		Labels:           label.NewLabels(map[string]string{"domain": "baidu.com"}),
+		Annotations: label.NewAnnotations(map[string]string{
 			"summary":     "百度域名端口监控",
 			"description": "百度域名端口监控 明细 {{ . }}",
 		}),

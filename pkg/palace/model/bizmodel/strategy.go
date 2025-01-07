@@ -1,6 +1,7 @@
 package bizmodel
 
 import (
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -22,8 +23,8 @@ type Strategy struct {
 	TemplateSource vobj.StrategyTemplateSource `gorm:"column:strategy_template_source;type:tinyint;not null;comment:策略模板来源（系统、团队）" json:"template_source"`
 	Name           string                      `gorm:"column:alert;type:varchar(64);not null;comment:策略名称;uniqueIndex:idx__strategy__group_id__name,priority:1" json:"name"`
 	Expr           string                      `gorm:"column:expr;type:text;not null;comment:告警表达式" json:"expr"`
-	Labels         *vobj.Labels                `gorm:"column:labels;type:JSON;not null;comment:标签" json:"labels"`
-	Annotations    *vobj.Annotations           `gorm:"column:annotations;type:JSON;not null;comment:注解" json:"annotations"`
+	Labels         *label.Labels               `gorm:"column:labels;type:JSON;not null;comment:标签" json:"labels"`
+	Annotations    *label.Annotations          `gorm:"column:annotations;type:JSON;not null;comment:注解" json:"annotations"`
 	Remark         string                      `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
 	Status         vobj.Status                 `gorm:"column:status;type:int;not null;comment:策略状态" json:"status"`
 	Datasource     []*Datasource               `gorm:"many2many:strategy_datasource;" json:"datasource"`

@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/log"
@@ -23,8 +24,8 @@ func TestStrategyMetric_Eval(t *testing.T) {
 		For:              types.NewDuration(durationpb.New(time.Second * 600)),
 		Count:            1,
 		SustainType:      vobj.SustainMax,
-		Labels:           vobj.NewLabels(map[string]string{"xx": "test"}),
-		Annotations:      vobj.NewAnnotations(map[string]string{"xx": "test"}),
+		Labels:           label.NewLabels(map[string]string{"xx": "test"}),
+		Annotations:      label.NewAnnotations(map[string]string{"xx": "test"}),
 		Datasource: []*Datasource{{
 			Category:    vobj.DatasourceTypeMetrics,
 			StorageType: vobj.StorageTypeVictoriametrics,

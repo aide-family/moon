@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/watch"
 )
 
@@ -15,7 +15,7 @@ func EndpointPortEval(_ context.Context, endpoint string, port uint32, timeout t
 	now := time.Now()
 	points := make(map[watch.Indexer]*Point)
 	// 超时或者连接失败，返回空切片和错误信息
-	labels := vobj.NewLabels(map[string]string{vobj.Domain: endpoint, vobj.DomainPort: strconv.FormatUint(uint64(port), 10)})
+	labels := label.NewLabels(map[string]string{label.Domain: endpoint, label.DomainPort: strconv.FormatUint(uint64(port), 10)})
 	// 创建 TCP 连接
 	conn, err := net.DialTimeout("tcp", endpoint+":"+strconv.FormatUint(uint64(port), 10), timeout)
 	if err != nil {

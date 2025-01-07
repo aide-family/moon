@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -11,8 +12,8 @@ import (
 func TestAlert_AlertJson(t *testing.T) {
 	alert := &Alert{
 		Status:       vobj.AlertStatusFiring,
-		Labels:       vobj.NewLabels(map[string]string{}),
-		Annotations:  make(vobj.Annotations),
+		Labels:       label.NewLabels(map[string]string{}),
+		Annotations:  make(label.Annotations),
 		StartsAt:     types.NewTime(time.Now()),
 		EndsAt:       &types.Time{},
 		GeneratorURL: "",

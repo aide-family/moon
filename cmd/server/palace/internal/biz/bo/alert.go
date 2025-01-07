@@ -1,6 +1,7 @@
 package bo
 
 import (
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -14,16 +15,16 @@ var (
 type (
 	// Alarm alarm detail info
 	Alarm struct {
-		Receiver          string           `json:"receiver"`
-		Status            vobj.AlertStatus `json:"status"`
-		Alerts            []*Alert         `json:"alerts"`
-		GroupLabels       *vobj.Labels     `json:"groupLabels"`
-		CommonLabels      *vobj.Labels     `json:"commonLabels"`
-		CommonAnnotations vobj.Annotations `json:"commonAnnotations"`
-		ExternalURL       string           `json:"externalURL"`
-		Version           string           `json:"version"`
-		GroupKey          string           `json:"groupKey"`
-		TruncatedAlerts   int32            `json:"truncatedAlerts"`
+		Receiver          string            `json:"receiver"`
+		Status            vobj.AlertStatus  `json:"status"`
+		Alerts            []*Alert          `json:"alerts"`
+		GroupLabels       *label.Labels     `json:"groupLabels"`
+		CommonLabels      *label.Labels     `json:"commonLabels"`
+		CommonAnnotations label.Annotations `json:"commonAnnotations"`
+		ExternalURL       string            `json:"externalURL"`
+		Version           string            `json:"version"`
+		GroupKey          string            `json:"groupKey"`
+		TruncatedAlerts   int32             `json:"truncatedAlerts"`
 	}
 
 	alarmInfo struct {
@@ -40,14 +41,14 @@ type (
 
 	// Alert alert detail info
 	Alert struct {
-		Status       vobj.AlertStatus `json:"status"`
-		Labels       *vobj.Labels     `json:"labels"`
-		Annotations  vobj.Annotations `json:"annotations"`
-		StartsAt     *types.Time      `json:"startsAt"`
-		EndsAt       *types.Time      `json:"endsAt"`
-		GeneratorURL string           `json:"generatorURL"`
-		Fingerprint  string           `json:"fingerprint"`
-		Value        float64          `json:"value"`
+		Status       vobj.AlertStatus  `json:"status"`
+		Labels       *label.Labels     `json:"labels"`
+		Annotations  label.Annotations `json:"annotations"`
+		StartsAt     *types.Time       `json:"startsAt"`
+		EndsAt       *types.Time       `json:"endsAt"`
+		GeneratorURL string            `json:"generatorURL"`
+		Fingerprint  string            `json:"fingerprint"`
+		Value        float64           `json:"value"`
 	}
 
 	alertInfo struct {

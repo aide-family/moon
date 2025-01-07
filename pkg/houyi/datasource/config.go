@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 
 	"github.com/aide-family/moon/pkg/conf"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
-	"github.com/aide-family/moon/pkg/vobj"
 )
 
 var (
@@ -28,7 +28,7 @@ func (d *Config) Scan(src any) (err error) {
 	case string:
 		err = types.Unmarshal([]byte(s), &d.datasourceConfig)
 	default:
-		err = vobj.ErrUnsupportedType
+		err = label.ErrUnsupportedType
 	}
 	return err
 }

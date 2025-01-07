@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/data"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -96,7 +97,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 	var alerts []*bo.Alert
 	receiverGroupIDsMap := types.ToMap(strategy.GetReceiverGroupIDs(), func(id uint32) string { return fmt.Sprintf("team_%d_%d", strategy.GetTeamID(), id) })
 	for index, point := range evalPoints {
-		labels, ok := index.(*vobj.Labels)
+		labels, ok := index.(*label.Labels)
 		if !ok {
 			continue
 		}
@@ -128,7 +129,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 			"labels": labels.Map(),
 			"ext":    extJSON,
 		}
-		annotations := make(vobj.Annotations, len(strategy.GetAnnotations()))
+		annotations := make(label.Annotations, len(strategy.GetAnnotations()))
 
 		for key, annotation := range strategy.GetAnnotations() {
 			annotations[key] = format.Formatter(annotation, formatValue)
@@ -145,7 +146,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 		}
 		alert = getFiringAlert(ctx, s.data, alert)
 		alerts = append(alerts, alert)
-		alarmInfo.CommonLabels = findCommonKeys([]*vobj.Labels{alarmInfo.CommonLabels, labels}...)
+		alarmInfo.CommonLabels = findCommonKeys([]*label.Labels{alarmInfo.CommonLabels, labels}...)
 	}
 
 	firingKeys := types.SliceToWithFilter(alerts, func(alert *bo.Alert) (string, bool) {
@@ -210,7 +211,7 @@ func getResolvedAlert(ctx context.Context, d *data.Data, uniqueKey string) (*bo.
 	return &resolvedAlert, nil
 }
 
-func findCommonKeys(maps ...*vobj.Labels) *vobj.Labels {
+func findCommonKeys(maps ...*label.Labels) *label.Labels {
 	if len(maps) == 0 {
 		return nil
 	}

@@ -1,6 +1,7 @@
 package bo
 
 import (
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -15,9 +16,9 @@ type (
 		// 备注
 		Remark string `json:"remark"`
 		// 标签
-		Labels *vobj.Labels `json:"labels"`
+		Labels *label.Labels `json:"labels"`
 		// 注解
-		Annotations *vobj.Annotations `json:"annotations"`
+		Annotations *label.Annotations `json:"annotations"`
 		// 告警等级数据
 		StrategyLevelTemplates []*CreateStrategyLevelTemplate `json:"strategyLevelTemplates"`
 		// 策略模板类型

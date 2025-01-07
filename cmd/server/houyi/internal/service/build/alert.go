@@ -3,6 +3,7 @@ package build
 import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -27,11 +28,11 @@ func (a *AlarmAPIBuilder) ToBo() *bo.Alarm {
 	})
 	return &bo.Alarm{
 		Alerts:            alerts,
-		CommonAnnotations: vobj.NewAnnotations(a.GetCommonAnnotations()),
-		CommonLabels:      vobj.NewLabels(a.GetCommonLabels()),
+		CommonAnnotations: label.NewAnnotations(a.GetCommonAnnotations()),
+		CommonLabels:      label.NewLabels(a.GetCommonLabels()),
 		ExternalURL:       a.GetExternalURL(),
 		GroupKey:          a.GetGroupKey(),
-		GroupLabels:       vobj.NewLabels(a.GetGroupLabels()),
+		GroupLabels:       label.NewLabels(a.GetGroupLabels()),
 		Receiver:          a.GetReceiver(),
 		Status:            vobj.ToAlertStatus(a.GetStatus()),
 		TruncatedAlerts:   a.GetTruncatedAlerts(),
@@ -56,7 +57,7 @@ func (a *AlertAPIBuilder) ToBo() *bo.Alert {
 	}
 	return &bo.Alert{
 		Status:       vobj.ToAlertStatus(a.GetStatus()),
-		Labels:       vobj.NewLabels(a.GetLabels()),
+		Labels:       label.NewLabels(a.GetLabels()),
 		Annotations:  a.Annotations,
 		StartsAt:     types.NewTimeByString(a.GetStartsAt()),
 		EndsAt:       types.NewTimeByString(a.GetEndsAt()),

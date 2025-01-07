@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
 	"github.com/go-kratos/kratos/v2/log"
@@ -27,9 +28,9 @@ func EndpointDuration(ctx context.Context, url string, method vobj.HTTPMethod, h
 		}
 	}
 	points := make(map[watch.Indexer]*Point)
-	labels := vobj.NewLabels(map[string]string{
-		vobj.StrategyHTTPPath:   url,
-		vobj.StrategyHTTPMethod: method.String(),
+	labels := label.NewLabels(map[string]string{
+		label.StrategyHTTPPath:   url,
+		label.StrategyHTTPMethod: method.String(),
 	})
 	points[labels] = &Point{
 		Labels: labels.Map(),

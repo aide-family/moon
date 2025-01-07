@@ -8,6 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -104,7 +105,7 @@ func (s *TemplateService) ValidateAnnotationsTemplate(ctx context.Context, req *
 		// 策略告警unix时间戳
 		"eventAt": timeNow.Unix(),
 		// 策略告警标签
-		"labels": vobj.NewLabels(req.GetLabels()),
+		"labels": label.NewLabels(req.GetLabels()),
 		// 策略明细
 		"strategy": map[string]any{
 			// 策略名称
@@ -125,7 +126,7 @@ func (s *TemplateService) ValidateAnnotationsTemplate(ctx context.Context, req *
 			"threshold": req.GetThreshold(),
 		},
 	}
-	labels := vobj.NewLabels(req.GetLabels())
+	labels := label.NewLabels(req.GetLabels())
 	queryParams := &bo.DatasourceQueryParams{
 		DatasourceID: req.GetDatasourceId(), // TODO 增加数据源支持
 		Query:        req.GetExpr(),
@@ -150,7 +151,7 @@ func (s *TemplateService) ValidateAnnotationsTemplate(ctx context.Context, req *
 				continue
 			}
 			labelsTmp := types.MapsMerge(labels.Map(), datum.Labels)
-			labels = vobj.NewLabels(labelsTmp)
+			labels = label.NewLabels(labelsTmp)
 		}
 		data["labels"] = labels
 		data["value"] = queryData[0].Value.Value

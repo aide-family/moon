@@ -3,6 +3,7 @@ package bo
 import (
 	"encoding/json"
 
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -103,7 +104,7 @@ type (
 		// 标签
 		Labels map[string]string `json:"labels"`
 		// 注解
-		Annotations vobj.Annotations `json:"annotations"`
+		Annotations label.Annotations `json:"annotations"`
 		// 开始时间
 		StartsAt string `json:"startsAt"`
 		// 结束时间, 空表示未结束
@@ -134,8 +135,8 @@ type (
 	CreateAlarmHookRawParams struct {
 		Receiver          string                `json:"receiver"`
 		Status            string                `json:"status"`
-		GroupLabels       *vobj.Labels          `json:"groupLabels"`
-		CommonLabels      *vobj.Labels          `json:"commonLabels"`
+		GroupLabels       *label.Labels         `json:"groupLabels"`
+		CommonLabels      *label.Labels         `json:"commonLabels"`
 		CommonAnnotations map[string]string     `json:"commonAnnotations"`
 		ExternalURL       string                `json:"externalURL"`
 		Version           string                `json:"version"`

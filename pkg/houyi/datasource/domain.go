@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/watch"
 )
 
@@ -26,8 +26,8 @@ func DomainEval(_ context.Context, domain string, port uint32, timeout time.Dura
 	conn, err := net.DialTimeout("tcp", dsn, timeout)
 	if err != nil {
 		// 超时或者连接失败，返回空切片和错误信息
-		labels := vobj.NewLabels(map[string]string{vobj.Domain: domain, vobj.DomainPort: strconv.FormatUint(uint64(port), 10)})
-		points[vobj.NewLabels(map[string]string{vobj.Domain: domain})] = &Point{
+		labels := label.NewLabels(map[string]string{label.Domain: domain, label.DomainPort: strconv.FormatUint(uint64(port), 10)})
+		points[label.NewLabels(map[string]string{label.Domain: domain})] = &Point{
 			Labels: labels.Map(),
 			Values: []*Value{
 				{
@@ -59,9 +59,9 @@ func DomainEval(_ context.Context, domain string, port uint32, timeout time.Dura
 	// 获取证书信息，返回的是一个切片
 	certs := tlsConn.ConnectionState().PeerCertificates
 	for _, cert := range certs {
-		labels := vobj.NewLabels(map[string]string{
-			vobj.Domain:     domain,
-			vobj.DomainPort: strconv.FormatUint(uint64(port), 10),
+		labels := label.NewLabels(map[string]string{
+			label.Domain:     domain,
+			label.DomainPort: strconv.FormatUint(uint64(port), 10),
 		})
 		points[labels] = &Point{
 			Labels: labels.Map(),
@@ -70,8 +70,8 @@ func DomainEval(_ context.Context, domain string, port uint32, timeout time.Dura
 					Value:     float64(int(cert.NotAfter.Sub(now).Hours() / 24)),
 					Timestamp: now.Unix(),
 					Ext: map[string]any{
-						vobj.DomainSubject:   cert.Subject.CommonName,
-						vobj.DomainExpiresOn: cert.NotAfter.Format("2006-01-02 15:04:05"),
+						label.DomainSubject:   cert.Subject.CommonName,
+						label.DomainExpiresOn: cert.NotAfter.Format("2006-01-02 15:04:05"),
 					},
 				},
 			},

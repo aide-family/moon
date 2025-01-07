@@ -9,6 +9,7 @@ import (
 
 	"github.com/aide-family/moon/pkg/env"
 	"github.com/aide-family/moon/pkg/houyi/datasource"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -39,9 +40,9 @@ type (
 		// 响应时间阈值条件
 		ResponseTimeCondition vobj.Condition `json:"responseTimeCondition,omitempty"`
 		// 策略标签
-		Labels *vobj.Labels `json:"labels,omitempty"`
+		Labels *label.Labels `json:"labels,omitempty"`
 		// 策略注解
-		Annotations *vobj.Annotations `json:"annotations,omitempty"`
+		Annotations *label.Annotations `json:"annotations,omitempty"`
 		// 接收者 （告警组ID列表）
 		ReceiverGroupIDs []uint32 `json:"receiverGroupIDs,omitempty"`
 		// 自定义接收者匹配对象
@@ -80,11 +81,11 @@ func (e *StrategyHTTP) Message() *watch.Message {
 
 // BuilderAlarmBaseInfo 生成告警基础信息
 func (e *StrategyHTTP) BuilderAlarmBaseInfo() *Alarm {
-	e.Labels.Append(vobj.StrategyID, strconv.FormatUint(uint64(e.ID), 10))
-	e.Labels.Append(vobj.LevelID, strconv.FormatUint(uint64(e.LevelID), 10))
-	e.Labels.Append(vobj.TeamID, strconv.FormatUint(uint64(e.TeamID), 10))
-	e.Labels.Append(vobj.StrategyHTTPPath, e.URL)
-	e.Labels.Append(vobj.StrategyHTTPMethod, e.Method.String())
+	e.Labels.Append(label.StrategyID, strconv.FormatUint(uint64(e.ID), 10))
+	e.Labels.Append(label.LevelID, strconv.FormatUint(uint64(e.LevelID), 10))
+	e.Labels.Append(label.TeamID, strconv.FormatUint(uint64(e.TeamID), 10))
+	e.Labels.Append(label.StrategyHTTPPath, e.URL)
+	e.Labels.Append(label.StrategyHTTPMethod, e.Method.String())
 
 	return &Alarm{
 		Receiver:          strings.Join(types.SliceTo(e.ReceiverGroupIDs, func(id uint32) string { return fmt.Sprintf("team_%d_%d", e.TeamID, id) }), ","),

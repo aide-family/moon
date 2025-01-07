@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/pkg/helper/middleware"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel/alarmquery"
@@ -186,8 +187,8 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 func (r *realtimeAlarmRepositoryImpl) createRealTimeAlarmToModels(param *bo.CreateAlarmInfoParams) []*alarmmodel.RealtimeAlarm {
 	strategy := param.Strategy
 	alarms := types.SliceTo(param.Alerts, func(alarmParam *bo.AlertItemRawParams) *alarmmodel.RealtimeAlarm {
-		labels := vobj.NewLabels(alarmParam.Labels)
-		annotations := vobj.NewAnnotations(alarmParam.Annotations)
+		labels := label.NewLabels(alarmParam.Labels)
+		annotations := label.NewAnnotations(alarmParam.Annotations)
 		alarm := &alarmmodel.RealtimeAlarm{
 			Status:          vobj.ToAlertStatus(alarmParam.Status),
 			StartsAt:        alarmParam.StartsAt,

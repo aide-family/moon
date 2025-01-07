@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/api"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -123,9 +124,9 @@ func metricEval(ctx context.Context, d MetricDatasource, expr string, startAt, e
 				Timestamp: v.Timestamp,
 			})
 		}
-		labels[vobj.DatasourceID] = strconv.Itoa(int(basicInfo.ID))
-		labels[vobj.DatasourceURL] = basicInfo.Endpoint
-		vobjLabels := vobj.NewLabels(labels)
+		labels[label.DatasourceID] = strconv.Itoa(int(basicInfo.ID))
+		labels[label.DatasourceURL] = basicInfo.Endpoint
+		vobjLabels := label.NewLabels(labels)
 		responseMap[vobjLabels] = &Point{
 			Values: values,
 			Labels: labels,

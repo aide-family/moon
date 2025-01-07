@@ -3,6 +3,7 @@ package build
 import (
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/cmd/server/houyi/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -37,8 +38,8 @@ func (a *MetricStrategyBuilder) ToBo() *bo.StrategyMetric {
 		For:         types.NewDuration(strategyInfo.GetFor()),
 		Count:       strategyInfo.GetCount(),
 		SustainType: vobj.Sustain(strategyInfo.GetSustainType()),
-		Labels:      vobj.NewLabels(strategyInfo.GetLabels()),
-		Annotations: vobj.NewAnnotations(strategyInfo.GetAnnotations()),
+		Labels:      label.NewLabels(strategyInfo.GetLabels()),
+		Annotations: label.NewAnnotations(strategyInfo.GetAnnotations()),
 		Datasource: types.SliceTo(strategyInfo.GetDatasource(), func(ds *api.DatasourceItem) *bo.Datasource {
 			return NewDatasourceAPIBuilder(ds).ToMetricBo()
 		}),
@@ -76,8 +77,8 @@ func (a *DomainStrategyBuilder) ToBo() *bo.StrategyDomain {
 		Status:           vobj.Status(a.GetStatus()),
 		Alert:            a.GetAlert(),
 		Threshold:        float64(a.GetThreshold()),
-		Labels:           vobj.NewLabels(a.GetLabels()),
-		Annotations:      vobj.NewAnnotations(a.GetAnnotations()),
+		Labels:           label.NewLabels(a.GetLabels()),
+		Annotations:      label.NewAnnotations(a.GetAnnotations()),
 		Domain:           a.GetDomain(),
 		Port:             a.GetPort(),
 		StrategyType:     vobj.StrategyType(a.GetStrategyType()),
@@ -112,8 +113,8 @@ func (a *HTTPStrategyBuilder) ToBo() *bo.StrategyHTTP {
 		Method:                vobj.ToHTTPMethod(a.GetMethod()),
 		ResponseTime:          a.GetResponseTime(),
 		ResponseTimeCondition: vobj.Condition(a.GetResponseTimeCondition()),
-		Labels:                vobj.NewLabels(a.GetLabels()),
-		Annotations:           vobj.NewAnnotations(a.GetAnnotations()),
+		Labels:                label.NewLabels(a.GetLabels()),
+		Annotations:           label.NewAnnotations(a.GetAnnotations()),
 		ReceiverGroupIDs:      a.GetReceiverGroupIDs(),
 		LabelNotices:          nil,
 		TeamID:                a.GetTeamID(),
@@ -149,8 +150,8 @@ func (a *PingStrategyBuilder) ToBo() *bo.StrategyPing {
 		Status:           vobj.Status(a.GetStatus()),
 		Alert:            a.GetAlert(),
 		LevelID:          a.GetLevelId(),
-		Labels:           vobj.NewLabels(a.GetLabels()),
-		Annotations:      vobj.NewAnnotations(a.GetAnnotations()),
+		Labels:           label.NewLabels(a.GetLabels()),
+		Annotations:      label.NewAnnotations(a.GetAnnotations()),
 		ReceiverGroupIDs: a.GetReceiverGroupIDs(),
 		Address:          a.GetAddress(),
 		TotalPackets:     float64(a.GetTotalCount()),
@@ -196,7 +197,7 @@ func (a *EventStrategyBuilder) ToBo() *bo.StrategyEvent {
 			return NewDatasourceAPIBuilder(ds).ToEventBo()
 		}),
 		Status:      vobj.Status(a.GetStatus()),
-		Labels:      vobj.NewLabels(a.GetLabels()),
-		Annotations: vobj.NewAnnotations(a.GetAnnotations()),
+		Labels:      label.NewLabels(a.GetLabels()),
+		Annotations: label.NewAnnotations(a.GetAnnotations()),
 	}
 }

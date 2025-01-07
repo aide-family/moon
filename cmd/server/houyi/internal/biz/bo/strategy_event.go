@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/env"
 	"github.com/aide-family/moon/pkg/houyi/datasource"
 	"github.com/aide-family/moon/pkg/houyi/mq"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -60,9 +61,9 @@ type StrategyEvent struct {
 	// 策略状态
 	Status vobj.Status `json:"status,omitempty"`
 	// 策略标签
-	Labels *vobj.Labels `json:"labels,omitempty"`
+	Labels *label.Labels `json:"labels,omitempty"`
 	// 策略注解
-	Annotations *vobj.Annotations `json:"annotations,omitempty"`
+	Annotations *label.Annotations `json:"annotations,omitempty"`
 
 	msg *mq.Msg
 }
@@ -116,10 +117,10 @@ func (s *StrategyEvent) Message() *watch.Message {
 
 // BuilderAlarmBaseInfo 实现 IStrategy 接口
 func (s *StrategyEvent) BuilderAlarmBaseInfo() *Alarm {
-	s.Labels.Append(vobj.StrategyID, strconv.FormatUint(uint64(s.ID), 10))
-	s.Labels.Append(vobj.LevelID, strconv.FormatUint(uint64(s.LevelID), 10))
-	s.Labels.Append(vobj.TeamID, strconv.FormatUint(uint64(s.TeamID), 10))
-	s.Labels.Append(vobj.StrategyEventExpr, s.Expr)
+	s.Labels.Append(label.StrategyID, strconv.FormatUint(uint64(s.ID), 10))
+	s.Labels.Append(label.LevelID, strconv.FormatUint(uint64(s.LevelID), 10))
+	s.Labels.Append(label.TeamID, strconv.FormatUint(uint64(s.TeamID), 10))
+	s.Labels.Append(label.StrategyEventExpr, s.Expr)
 
 	return &Alarm{
 		Receiver:          strings.Join(types.SliceTo(s.ReceiverGroupIDs, func(id uint32) string { return fmt.Sprintf("team_%d_%d", s.TeamID, id) }), ","),

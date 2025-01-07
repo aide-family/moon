@@ -9,6 +9,7 @@ import (
 
 	"github.com/aide-family/moon/pkg/env"
 	"github.com/aide-family/moon/pkg/houyi/datasource"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -32,9 +33,9 @@ type StrategyPing struct {
 	// 策略级别ID
 	LevelID uint32 `json:"levelId,omitempty"`
 	// 策略标签
-	Labels *vobj.Labels `json:"labels,omitempty"`
+	Labels *label.Labels `json:"labels,omitempty"`
 	// 策略注解
-	Annotations *vobj.Annotations `json:"annotations,omitempty"`
+	Annotations *label.Annotations `json:"annotations,omitempty"`
 	// 接收者 （告警组ID列表）
 	ReceiverGroupIDs []uint32 `json:"receiverGroupIDs,omitempty"`
 	// 域名或IP
@@ -77,10 +78,10 @@ func (s *StrategyPing) Message() *watch.Message {
 
 // BuilderAlarmBaseInfo 生成告警基础信息
 func (s *StrategyPing) BuilderAlarmBaseInfo() *Alarm {
-	s.Labels.Append(vobj.StrategyID, strconv.FormatUint(uint64(s.StrategyID), 10))
-	s.Labels.Append(vobj.LevelID, strconv.FormatUint(uint64(s.LevelID), 10))
-	s.Labels.Append(vobj.TeamID, strconv.FormatUint(uint64(s.TeamID), 10))
-	s.Labels.Append(vobj.Domain, s.Address)
+	s.Labels.Append(label.StrategyID, strconv.FormatUint(uint64(s.StrategyID), 10))
+	s.Labels.Append(label.LevelID, strconv.FormatUint(uint64(s.LevelID), 10))
+	s.Labels.Append(label.TeamID, strconv.FormatUint(uint64(s.TeamID), 10))
+	s.Labels.Append(label.Domain, s.Address)
 
 	return &Alarm{
 		Receiver:          strings.Join(types.SliceTo(s.ReceiverGroupIDs, func(id uint32) string { return fmt.Sprintf("team_%d_%d", s.TeamID, id) }), ","),

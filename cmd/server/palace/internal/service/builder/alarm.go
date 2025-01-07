@@ -5,8 +5,8 @@ import (
 
 	"github.com/aide-family/moon/api"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
-	"github.com/aide-family/moon/pkg/vobj"
 )
 
 var _ IAlarmModuleBuilder = (*alarmModuleBuilder)(nil)
@@ -39,8 +39,8 @@ func (a *createAlarmRequestBuilder) ToBo() *bo.CreateAlarmHookRawParams {
 	return &bo.CreateAlarmHookRawParams{
 		Receiver:          a.GetReceiver(),
 		Status:            a.GetStatus(),
-		GroupLabels:       vobj.NewLabels(a.GetGroupLabels()),
-		CommonLabels:      vobj.NewLabels(a.GetCommonLabels()),
+		GroupLabels:       label.NewLabels(a.GetGroupLabels()),
+		CommonLabels:      label.NewLabels(a.GetCommonLabels()),
 		CommonAnnotations: a.GetCommonAnnotations(),
 		ExternalURL:       a.GetExternalURL(),
 		Version:           a.GetVersion(),
@@ -58,9 +58,9 @@ func (a *createAlarmRequestBuilder) ToBo() *bo.CreateAlarmHookRawParams {
 				Value:        item.GetValue(),
 			}
 		}),
-		TeamID:     vobj.NewLabels(a.GetGroupLabels()).GetTeamID(),
-		StrategyID: vobj.NewLabels(a.GetCommonLabels()).GetStrategyID(),
-		LevelID:    vobj.NewLabels(a.GetGroupLabels()).GetLevelID(),
+		TeamID:     label.NewLabels(a.GetGroupLabels()).GetTeamID(),
+		StrategyID: label.NewLabels(a.GetCommonLabels()).GetStrategyID(),
+		LevelID:    label.NewLabels(a.GetGroupLabels()).GetLevelID(),
 	}
 }
 

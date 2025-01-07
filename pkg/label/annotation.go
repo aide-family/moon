@@ -1,4 +1,4 @@
-package vobj
+package label
 
 import (
 	"database/sql"
