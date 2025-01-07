@@ -289,7 +289,6 @@ func (p *prometheusDatasource) Metadata(ctx context.Context) (*Metadata, error) 
 		metricNameMap[metricName] = metadataInfo[metricName][0]
 	}
 
-	// metricNames = metricNames[:151]
 	metricList := newMetrics(len(metricNames))
 	batchNum := 20
 	namesLen := len(metricNames)

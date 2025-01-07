@@ -99,11 +99,11 @@ func NewMetricDatasource(storageType vobj.StorageType, opts ...MetricDatasourceB
 			WithPrometheusBasicAuth(d.basicAuth.Username, d.basicAuth.Password),
 		), nil
 	case vobj.StorageTypeVictoriametrics:
-		return NewVictoriametricsDatasource(
-			WithVictoriametricsEndpoint(d.endpoint),
-			WithVictoriametricsStep(d.step),
-			WithVictoriametricsID(d.id),
-			WithVictoriametricsBasicAuth(d.basicAuth.Username, d.basicAuth.Password),
+		return NewVictoriaMetricsDatasource(
+			WithVictoriaMetricsEndpoint(d.endpoint),
+			WithVictoriaMetricsStep(d.step),
+			WithVictoriaMetricsID(d.id),
+			WithVictoriaMetricsBasicAuth(d.basicAuth.Username, d.basicAuth.Password),
 		), nil
 	default:
 		return nil, merr.ErrorNotificationUnsupportedDataSource("unsupported data source type")

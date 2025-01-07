@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/aide-family/moon/pkg/util/httpx"
@@ -17,16 +16,16 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var _ MetricDatasource = (*victoriametricsDatasource)(nil)
+var _ MetricDatasource = (*victoriaMetricsDatasource)(nil)
 
-// NewVictoriametricsDatasource creates a new victoriametrics datasource.
-func NewVictoriametricsDatasource(opts ...VictoriametricsDatasourceOption) MetricDatasource {
-	v := &victoriametricsDatasource{
+// NewVictoriaMetricsDatasource creates a new victoriaMetrics datasource.
+func NewVictoriaMetricsDatasource(opts ...VictoriaMetricsDatasourceOption) MetricDatasource {
+	v := &victoriaMetricsDatasource{
 		step:          14,
-		queryAPI:      victoriametricsQueryAPI,
-		queryRangeAPI: victoriametricsQueryRangeAPI,
-		metadataAPI:   victoriametricsMetadataAPI,
-		seriesAPI:     victoriametricsSeriesAPI,
+		queryAPI:      victoriaMetricsQueryAPI,
+		queryRangeAPI: victoriaMetricsQueryRangeAPI,
+		metadataAPI:   victoriaMetricsMetadataAPI,
+		seriesAPI:     victoriaMetricsSeriesAPI,
 	}
 	for _, opt := range opts {
 		opt(v)
@@ -35,11 +34,11 @@ func NewVictoriametricsDatasource(opts ...VictoriametricsDatasourceOption) Metri
 }
 
 type (
-	// VictoriametricsDatasourceOption victoriametrics数据源选项
-	VictoriametricsDatasourceOption func(*victoriametricsDatasource)
+	// VictoriaMetricsDatasourceOption victoriaMetrics数据源选项
+	VictoriaMetricsDatasourceOption func(*victoriaMetricsDatasource)
 
-	// victoriametricsDatasource victoriametrics数据源
-	victoriametricsDatasource struct {
+	// victoriaMetricsDatasource victoriaMetrics数据源
+	victoriaMetricsDatasource struct {
 		// basicAuth 数据源基础认证
 		basicAuth *BasicAuth
 
@@ -56,14 +55,14 @@ type (
 		metadataAPI   string
 	}
 
-	// VictoriametricsMetadataResponse victoriametrics元数据响应
-	VictoriametricsMetadataResponse struct {
+	// VictoriaMetricsMetadataResponse victoriaMetrics元数据响应
+	VictoriaMetricsMetadataResponse struct {
 		Status string   `json:"status"`
 		Data   []string `json:"data"`
 	}
 )
 
-func (p *victoriametricsDatasource) GetBasicInfo() *BasicInfo {
+func (p *victoriaMetricsDatasource) GetBasicInfo() *BasicInfo {
 	return &BasicInfo{
 		Endpoint:  p.endpoint,
 		BasicAuth: p.basicAuth,
@@ -72,20 +71,20 @@ func (p *victoriametricsDatasource) GetBasicInfo() *BasicInfo {
 }
 
 const (
-	victoriametricsQueryAPI      = "/api/v1/query"
-	victoriametricsQueryRangeAPI = "/api/v1/query_range"
-	victoriametricsSeriesAPI     = "/api/v1/series"
-	victoriametricsMetadataAPI   = "/api/v1/label/__name__/values"
+	victoriaMetricsQueryAPI      = "/api/v1/query"
+	victoriaMetricsQueryRangeAPI = "/api/v1/query_range"
+	victoriaMetricsSeriesAPI     = "/api/v1/series"
+	victoriaMetricsMetadataAPI   = "/api/v1/label/__name__/values"
 )
 
-func (p *victoriametricsDatasource) Step() uint32 {
+func (p *victoriaMetricsDatasource) Step() uint32 {
 	if p.step == 0 {
 		return 14
 	}
 	return p.step
 }
 
-func (p *victoriametricsDatasource) Query(ctx context.Context, expr string, duration int64) ([]*QueryResponse, error) {
+func (p *victoriaMetricsDatasource) Query(ctx context.Context, expr string, duration int64) ([]*QueryResponse, error) {
 	params := httpx.ParseQuery(map[string]any{
 		"query": expr,
 		"time":  duration,
@@ -144,7 +143,7 @@ func (p *victoriametricsDatasource) Query(ctx context.Context, expr string, dura
 	return result, nil
 }
 
-func (p *victoriametricsDatasource) QueryRange(ctx context.Context, expr string, start, end int64, step uint32) ([]*QueryResponse, error) {
+func (p *victoriaMetricsDatasource) QueryRange(ctx context.Context, expr string, start, end int64, step uint32) ([]*QueryResponse, error) {
 	st := step
 	if step == 0 {
 		st = p.step
@@ -211,21 +210,24 @@ func (p *victoriametricsDatasource) QueryRange(ctx context.Context, expr string,
 	return result, nil
 }
 
-func (p *victoriametricsDatasource) Metadata(ctx context.Context) (*Metadata, error) {
+func (p *victoriaMetricsDatasource) Metadata(ctx context.Context) (*Metadata, error) {
 	now := time.Now()
 	// 获取元数据
 	metadataInfo, err := p.metadata(ctx)
 	if err != nil {
 		return nil, err
 	}
+	metricNameMap := make(map[string]PromMetricInfo)
 	metricNames := make([]string, 0, len(metadataInfo))
 	for metricName := range metadataInfo {
 		metricNames = append(metricNames, metricName)
+		if len(metadataInfo[metricName]) == 0 {
+			continue
+		}
+		metricNameMap[metricName] = metadataInfo[metricName][0]
 	}
 
-	// metricNames = metricNames[:151]
-	metrics := make([]*Metric, 0, len(metricNames))
-	lock := new(sync.RWMutex)
+	metricList := newMetrics(len(metricNames))
 	batchNum := 20
 	namesLen := len(metricNames)
 	eg := new(errgroup.Group)
@@ -244,11 +246,8 @@ func (p *victoriametricsDatasource) Metadata(ctx context.Context) (*Metadata, er
 			}
 
 			metricsTmp := make([]*Metric, 0, right-left)
-			for metricName, metricInfos := range metadataInfo {
-				if len(metricInfos) == 0 {
-					continue
-				}
-				metricInfo := metricInfos[0]
+			for _, metricName := range metricNames[left:right] {
+				metricInfo := metricNameMap[metricName]
 				item := &Metric{
 					Type:   metricInfo.Type,
 					Name:   metricName,
@@ -258,9 +257,8 @@ func (p *victoriametricsDatasource) Metadata(ctx context.Context) (*Metadata, er
 				}
 				metricsTmp = append(metricsTmp, item)
 			}
-			lock.Lock()
-			defer lock.Unlock()
-			metrics = append(metrics, metricsTmp...)
+
+			metricList.append(metricsTmp...)
 			return nil
 		})
 	}
@@ -269,13 +267,13 @@ func (p *victoriametricsDatasource) Metadata(ctx context.Context) (*Metadata, er
 	}
 
 	return &Metadata{
-		Metric:    metrics,
+		Metric:    metricList.list,
 		Timestamp: now.Unix(),
 	}, nil
 }
 
 // metadata 获取原始数据
-func (p *victoriametricsDatasource) metadata(ctx context.Context) (map[string][]PromMetricInfo, error) {
+func (p *victoriaMetricsDatasource) metadata(ctx context.Context) (map[string][]PromMetricInfo, error) {
 	hx := httpx.NewHTTPX()
 	hx.SetHeader(map[string]string{
 		"Accept":          "*/*",
@@ -293,7 +291,7 @@ func (p *victoriametricsDatasource) metadata(ctx context.Context) (map[string][]
 		return nil, err
 	}
 	defer getResponse.Body.Close()
-	var allResp VictoriametricsMetadataResponse
+	var allResp VictoriaMetricsMetadataResponse
 	if err = types.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
 		return nil, err
 	}
@@ -305,7 +303,7 @@ func (p *victoriametricsDatasource) metadata(ctx context.Context) (map[string][]
 }
 
 // series 查询时间序列 map[metricName][labelName][]labelValue
-func (p *victoriametricsDatasource) series(ctx context.Context, t time.Time, metricNames ...string) (map[string]map[string][]string, error) {
+func (p *victoriaMetricsDatasource) series(ctx context.Context, t time.Time, metricNames ...string) (map[string]map[string][]string, error) {
 	now := t
 	// 获取此格式时间2024-04-21T17:58:55.061Z
 	start := now.Add(-time.Hour * 24).Format("2006-01-02T15:04:05.000Z")
@@ -369,16 +367,16 @@ func (p *victoriametricsDatasource) series(ctx context.Context, t time.Time, met
 	return res, nil
 }
 
-// WithVictoriametricsEndpoint 设置数据源地址
-func WithVictoriametricsEndpoint(endpoint string) VictoriametricsDatasourceOption {
-	return func(p *victoriametricsDatasource) {
+// WithVictoriaMetricsEndpoint 设置数据源地址
+func WithVictoriaMetricsEndpoint(endpoint string) VictoriaMetricsDatasourceOption {
+	return func(p *victoriaMetricsDatasource) {
 		p.endpoint = endpoint
 	}
 }
 
-// WithVictoriametricsStep 设置步长
-func WithVictoriametricsStep(step uint32) VictoriametricsDatasourceOption {
-	return func(p *victoriametricsDatasource) {
+// WithVictoriaMetricsStep 设置步长
+func WithVictoriaMetricsStep(step uint32) VictoriaMetricsDatasourceOption {
+	return func(p *victoriaMetricsDatasource) {
 		if step <= 0 {
 			p.step = 10
 			return
@@ -387,9 +385,9 @@ func WithVictoriametricsStep(step uint32) VictoriametricsDatasourceOption {
 	}
 }
 
-// WithVictoriametricsBasicAuth 设置数据源配置
-func WithVictoriametricsBasicAuth(username, password string) VictoriametricsDatasourceOption {
-	return func(p *victoriametricsDatasource) {
+// WithVictoriaMetricsBasicAuth 设置数据源配置
+func WithVictoriaMetricsBasicAuth(username, password string) VictoriaMetricsDatasourceOption {
+	return func(p *victoriaMetricsDatasource) {
 		if types.TextIsNull(username) || types.TextIsNull(password) {
 			return
 		}
@@ -400,9 +398,9 @@ func WithVictoriametricsBasicAuth(username, password string) VictoriametricsData
 	}
 }
 
-// WithVictoriametricsID 设置数据源ID
-func WithVictoriametricsID(id uint32) VictoriametricsDatasourceOption {
-	return func(p *victoriametricsDatasource) {
+// WithVictoriaMetricsID 设置数据源ID
+func WithVictoriaMetricsID(id uint32) VictoriaMetricsDatasourceOption {
+	return func(p *victoriaMetricsDatasource) {
 		p.id = id
 	}
 }

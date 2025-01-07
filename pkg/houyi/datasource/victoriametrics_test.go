@@ -11,10 +11,10 @@ import (
 )
 
 func TestNewVictoriametricsDatasource(t *testing.T) {
-	opts := []datasource.VictoriametricsDatasourceOption{
-		datasource.WithVictoriametricsEndpoint("https://victoriametrics.aide-cloud.cn"),
+	opts := []datasource.VictoriaMetricsDatasourceOption{
+		datasource.WithVictoriaMetricsEndpoint("https://victoriametrics.aide-cloud.cn"),
 	}
-	vmData := datasource.NewVictoriametricsDatasource(opts...)
+	vmData := datasource.NewVictoriaMetricsDatasource(opts...)
 	durationT := types.NewDuration(durationpb.New(60 * time.Second))
 	endAt := time.Now()
 	startAt := types.NewTime(endAt.Add(-durationT.Duration.AsDuration()))
