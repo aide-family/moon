@@ -143,7 +143,7 @@ func (tr *TimeEngine) matches(t time.Time) bool {
 
 // IsAllowed 判断时间条件是否允许放行
 func IsAllowed(t time.Time, timeEngines ...*conf.TimeEngine) bool {
-	if timeEngines == nil || len(timeEngines) == 0 {
+	if len(timeEngines) == 0 {
 		return true
 	}
 

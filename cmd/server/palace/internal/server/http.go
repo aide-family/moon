@@ -34,7 +34,7 @@ func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service)
 	opts := []http.ServerOption{
 		http.Filter(middleware.Cors()),
 		http.Middleware(
-			//recovery.Recovery(recovery.WithHandler(mlog.RecoveryHandle)),
+			// recovery.Recovery(recovery.WithHandler(mlog.RecoveryHandle)),
 			tracing.Server(),
 			middleware.Logging(log.GetLogger()),
 			middleware.I18N(),

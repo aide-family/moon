@@ -1,6 +1,7 @@
 package data
 
 import (
+	// 引入默认模板
 	_ "embed"
 
 	"github.com/aide-family/moon/pkg/env"
