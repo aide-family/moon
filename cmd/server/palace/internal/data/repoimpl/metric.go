@@ -2,6 +2,7 @@ package repoimpl
 
 import (
 	"context"
+
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
@@ -210,7 +211,8 @@ func (m *metricRepositoryImpl) CreateMetrics(ctx context.Context, params *bo.Cre
 		if err := tx.DatasourceMetric.WithContext(ctx).Clauses(
 			clause.OnConflict{
 				Columns:   metricWrapper,
-				DoUpdates: clause.AssignmentColumns(metricCol)},
+				DoUpdates: clause.AssignmentColumns(metricCol),
+			},
 		).Create(metric); !types.IsNil(err) {
 			return err
 		}
@@ -253,7 +255,7 @@ func createDatasourceMetricParamToModel(ctx context.Context, params *bo.CreateMe
 	return datasourceMetric
 }
 
-func createMetricLabelParamToModels(ctx context.Context, params *bo.CreateMetricParams, metricId uint32) []*bizmodel.MetricLabel {
+func createMetricLabelParamToModels(ctx context.Context, params *bo.CreateMetricParams, metricID uint32) []*bizmodel.MetricLabel {
 	if types.IsNil(params) || types.IsNil(params.Metric) {
 		return nil
 	}
@@ -267,7 +269,7 @@ func createMetricLabelParamToModels(ctx context.Context, params *bo.CreateMetric
 		}
 		bs, _ := types.Marshal(values)
 		metricLabel := &bizmodel.MetricLabel{
-			MetricID:    metricId,
+			MetricID:    metricID,
 			Name:        label.Name,
 			LabelValues: string(bs),
 		}

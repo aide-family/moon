@@ -2,10 +2,9 @@ package sse
 
 import (
 	"fmt"
-	"net/http"
-	"sync"
-
+	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/go-kratos/kratos/v2/log"
+	"net/http"
 )
 
 // NewClient creates a new client
@@ -25,38 +24,31 @@ type Client struct {
 // NewClientManager creates a new client manager
 func NewClientManager() *ClientManager {
 	return &ClientManager{
-		clients: make(map[uint32]*Client),
+		clients: safety.NewMap[uint32, *Client](),
 	}
 }
 
+// ClientManager is a manager of the S
 type ClientManager struct {
-	clients map[uint32]*Client
-	mu      sync.RWMutex
+	clients *safety.Map[uint32, *Client]
 }
 
 // AddClient adds a client to the manager
 func (cm *ClientManager) AddClient(client *Client) {
-	cm.mu.Lock()
-	defer cm.mu.Unlock()
-	if _, ok := cm.clients[client.ID]; ok {
+	if _, ok := cm.clients.Get(client.ID); ok {
 		return
 	}
-	cm.clients[client.ID] = client
+	cm.clients.Set(client.ID, client)
 }
 
 // RemoveClient removes a client from the manager
 func (cm *ClientManager) RemoveClient(id uint32) {
-	cm.mu.Lock()
-	defer cm.mu.Unlock()
-	delete(cm.clients, id)
+	cm.clients.Delete(id)
 }
 
 // GetClient returns a client by id
 func (cm *ClientManager) GetClient(id uint32) (*Client, bool) {
-	cm.mu.RLock()
-	defer cm.mu.RUnlock()
-	client, ok := cm.clients[id]
-	return client, ok
+	return cm.clients.Get(id)
 }
 
 // WriteSSE writes data to the client
@@ -70,9 +62,19 @@ func (c *Client) WriteSSE(w http.ResponseWriter) {
 	log.Debugw("msg", "listen sse client")
 	for data := range c.Send {
 		log.Debugw("WriteSSE", string(data))
-		fmt.Fprintf(w, "data: %s\n\n", string(data))
+		_, _ = fmt.Fprintf(w, "data: %s\n\n", string(data))
 		flusher.Flush()
 	}
-	fmt.Fprintf(w, "data: [DONE]\n\n")
 	log.Debugw("WriteSSE", "data: [DONE]")
+}
+
+// SendMessage sends a message to the client
+func (c *Client) SendMessage(message string) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("send message error: %v", r)
+		}
+	}()
+	c.Send <- []byte(message)
+	return
 }

@@ -78,6 +78,9 @@
         }
         fetch(`/msg?msg=${message}`, {
             method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + document.getElementById('token').value,
+            }
         });
     }
 </script>

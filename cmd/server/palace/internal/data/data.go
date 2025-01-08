@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/aide-family/moon/pkg/helper/sse"
 	"strconv"
 	"strings"
 
@@ -55,6 +56,8 @@ type Data struct {
 	alertConsumerStorage watch.Storage
 	// 通用邮件发送器
 	emailCli email.Interface
+
+	sseClientManager *sse.ClientManager
 }
 
 var closeFuncList []func()
@@ -79,6 +82,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		alertConsumerStorage:    watch.NewDefaultStorage(),
 		emailCli:                email.NewMockEmail(),
 		ossConf:                 ossConf,
+		sseClientManager:        sse.NewClientManager(),
 	}
 	cleanup := func() {
 		for _, f := range closeFuncList {
@@ -477,4 +481,13 @@ func (d *Data) OssIsOpen() bool {
 		return false
 	}
 	return d.ossConf.GetOpen()
+}
+
+// GetSSEClientManager 获取sse客户端管理
+func (d *Data) GetSSEClientManager() *sse.ClientManager {
+	if types.IsNil(d.sseClientManager) {
+		log.Warn("persistence sseClientManager is nil")
+		d.sseClientManager = sse.NewClientManager()
+	}
+	return d.sseClientManager
 }
