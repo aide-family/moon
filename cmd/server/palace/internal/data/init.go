@@ -910,6 +910,14 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
+	// 策略推送
+	{
+		Name:   "策略推送",
+		Path:   "/api.admin.strategy.Strategy/PushStrategy",
+		Remark: "策略推送， 用于策略推送",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
 	// 策略模版管理
 	// 创建策略模版
 	{
