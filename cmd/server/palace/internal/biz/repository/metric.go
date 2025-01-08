@@ -31,5 +31,5 @@ type Metric interface {
 	MetricLabelCount(context.Context, uint32) (uint32, error)
 
 	// CreateMetrics 创建指标
-	CreateMetrics(context.Context, uint32, *bizmodel.DatasourceMetric) error
+	CreateMetrics(context.Context, *bo.CreateMetricParams) error
 }
