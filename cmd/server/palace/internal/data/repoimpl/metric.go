@@ -207,7 +207,7 @@ func (m *metricRepositoryImpl) CreateMetrics(ctx context.Context, params *bo.Cre
 	}
 
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
-		if err := bizQuery.DatasourceMetric.WithContext(ctx).Clauses(
+		if err := tx.DatasourceMetric.WithContext(ctx).Clauses(
 			clause.OnConflict{
 				Columns:   metricWrapper,
 				DoUpdates: clause.AssignmentColumns(metricCol)},
@@ -217,10 +217,7 @@ func (m *metricRepositoryImpl) CreateMetrics(ctx context.Context, params *bo.Cre
 
 		metricID := metric.ID
 		// select db labels
-		datasourceMetric, err := m.GetWithRelation(ctx, metricID)
-		if types.IsNotNil(err) {
-			return err
-		}
+		datasourceMetric, _ := m.GetWithRelation(ctx, metricID)
 
 		if types.IsNotNil(datasourceMetric) && types.IsNotNil(datasourceMetric.Labels) {
 			labelsMap := types.ToMap(datasourceMetric.Labels, func(item *bizmodel.MetricLabel) string {
@@ -231,12 +228,12 @@ func (m *metricRepositoryImpl) CreateMetrics(ctx context.Context, params *bo.Cre
 
 		labels := createMetricLabelParamToModels(ctx, params, metricID)
 
-		if _, err := bizQuery.DatasourceMetric.WithContext(ctx).Where(bizQuery.DatasourceMetric.ID.Eq(metricID)).
-			UpdateColumn(bizQuery.DatasourceMetric.LabelCount, len(labels)); types.IsNotNil(err) {
+		if _, err := tx.DatasourceMetric.WithContext(ctx).Where(bizQuery.DatasourceMetric.ID.Eq(metricID)).
+			UpdateColumn(tx.DatasourceMetric.LabelCount, len(labels)); types.IsNotNil(err) {
 			return err
 		}
 
-		return bizQuery.MetricLabel.WithContext(ctx).Clauses(clause.OnConflict{Columns: labelWrapper, DoUpdates: clause.AssignmentColumns(labelCol)}).Create(labels...)
+		return tx.MetricLabel.WithContext(ctx).Clauses(clause.OnConflict{Columns: labelWrapper, DoUpdates: clause.AssignmentColumns(labelCol)}).Create(labels...)
 	})
 }
 
