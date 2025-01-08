@@ -42,3 +42,13 @@ func TestNewJwtClaims(t *testing.T) {
 	}
 	t.Log(token)
 }
+
+func TestParseJwtClaimsFromToken(t *testing.T) {
+	SetSignKey("moon-sign_key")
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoyLCJ0ZWFtIjozMCwibWVtYmVyIjoxLCJpc3MiOiJtb29uLXBhbGFjZSIsImV4cCI6MTczNjMzMTg1OX0.PdAIRvDphKRe6haL8DtSrAfYZ-bGUv75-rPB1cMkIqc"
+	claims, ok := ParseJwtClaimsFromToken(token)
+	t.Log(claims)
+	if !ok {
+		t.Fatal("failed to parse jwt claims from token")
+	}
+}
