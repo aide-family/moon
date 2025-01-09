@@ -30,7 +30,6 @@ func NewSSEHandler(clientManager *ClientManager) http.HandlerFunc {
 		clientManager.AddClient(client)
 		defer func() {
 			clientManager.RemoveClient(client.ID)
-			close(client.Send)
 		}()
 
 		go client.WriteSSE(w)

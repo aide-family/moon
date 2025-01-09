@@ -45,7 +45,10 @@ func (cm *ClientManager) AddClient(client *Client) {
 
 // RemoveClient removes a client from the manager
 func (cm *ClientManager) RemoveClient(id uint32) {
-	cm.clients.Delete(id)
+	if client, ok := cm.clients.Get(id); ok {
+		close(client.Send)
+		cm.clients.Delete(id)
+	}
 }
 
 // GetClient returns a client by id
