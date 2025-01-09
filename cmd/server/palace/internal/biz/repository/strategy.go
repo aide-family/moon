@@ -41,4 +41,6 @@ type Strategy interface {
 
 	// Sync 同步策略
 	Sync(ctx context.Context, id uint32) error
+	// GetStrategyCategories 获取策略分类
+	GetStrategyCategories(ctx context.Context) (*bo.StrategyCategoriesModel, error)
 }

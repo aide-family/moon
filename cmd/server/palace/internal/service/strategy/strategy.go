@@ -243,3 +243,15 @@ func (s *Service) PushStrategy(ctx context.Context, req *strategyapi.PushStrateg
 	}
 	return &strategyapi.PushStrategyReply{}, nil
 }
+
+// GetStrategyCategories 获取策略分类
+func (s *Service) GetStrategyCategories(ctx context.Context, _ *strategyapi.GetStrategyCategoriesRequest) (*strategyapi.GetStrategyCategoriesReply, error) {
+
+	categories, err := s.strategyBiz.GetStrategyCategories(ctx)
+	if types.IsNotNil(err) {
+		return nil, err
+	}
+	return &strategyapi.GetStrategyCategoriesReply{
+		List: builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoStrategyCategoriesBuilder().ToAPIs(categories),
+	}, nil
+}

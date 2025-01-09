@@ -866,3 +866,11 @@ message SendTemplateItem {
   // 备注
   string remark = 9;
 }
+
+message StrategyCategoriesItem {
+  // 告警策略分类ID
+  uint32 id = 1;
+  // 告警策略分类名称
+  string name = 2;
+  repeated uint32 strategyIds = 3;
+}

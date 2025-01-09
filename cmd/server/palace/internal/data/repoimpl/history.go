@@ -124,9 +124,15 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistories(ctx context.Context, para
 	if !types.TextIsNull(param.EventAtStart) && !types.TextIsNull(param.EventAtEnd) {
 		wheres = append(wheres, alarmQuery.AlarmHistory.StartsAt.Between(param.EventAtStart, param.EventAtEnd))
 	}
+
 	if !types.TextIsNull(param.ResolvedAtStart) && !types.TextIsNull(param.ResolvedAtEnd) {
 		wheres = append(wheres, alarmQuery.AlarmHistory.AlertStatus.Eq(vobj.AlertStatusResolved.GetValue()))
 		wheres = append(wheres, alarmQuery.AlarmHistory.EndsAt.Between(param.ResolvedAtStart, param.ResolvedAtEnd))
+	}
+
+	// 策略
+	if types.IsNotNil(param.StrategyIds) {
+		wheres = append(wheres, alarmQuery.AlarmHistory.StrategyID.In(param.StrategyIds...))
 	}
 
 	bizWrapper = bizWrapper.Where(wheres...)
@@ -149,6 +155,7 @@ func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModels(param *bo.Create
 			StartsAt:    alarmParam.StartsAt,
 			EndsAt:      alarmParam.EndsAt,
 			Expr:        strategy.Expr,
+			StrategyID:  strategy.ID,
 			Fingerprint: alarmParam.Fingerprint,
 			Labels:      labels,
 			Annotations: annotations,

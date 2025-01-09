@@ -72,6 +72,8 @@ type (
 		DoStrategyLevelTemplateBuilder() IDoStrategyLevelTemplateBuilder
 		// BoStrategyBuilder 策略业务对象构造器
 		BoStrategyBuilder() IBoStrategyBuilder
+		// DoStrategyCategoriesBuilder 策略分类条目构造器
+		DoStrategyCategoriesBuilder() DoStrategyCategoriesBuilder
 	}
 
 	// ICreateStrategyGroupRequestBuilder 创建策略组请求参数构造器
@@ -397,7 +399,44 @@ type (
 	boStrategyBuilder struct {
 		ctx context.Context
 	}
+
+	DoStrategyCategoriesBuilder interface {
+		ToAPIs(*bo.StrategyCategoriesModel) []*adminapi.StrategyCategoriesItem
+	}
+	doStrategyCategoriesBuilder struct {
+		ctx context.Context
+	}
 )
+
+func (d *doStrategyCategoriesBuilder) ToAPIs(model *bo.StrategyCategoriesModel) []*adminapi.StrategyCategoriesItem {
+	if types.IsNil(d) || types.IsNil(model) || types.IsNil(model.CategoriesMap) || types.IsNil(model.SysDicts) {
+		return nil
+	}
+	dicts := model.SysDicts
+	categoriesMap := model.CategoriesMap
+	var resItems []*adminapi.StrategyCategoriesItem
+	for _, dict := range dicts {
+		categories := categoriesMap[dict.ID]
+		if types.IsNil(categories) {
+			continue
+		}
+		item := &adminapi.StrategyCategoriesItem{
+			Name: dict.Name,
+			Id:   dict.ID,
+			StrategyIds: types.SliceTo(categories, func(item *bizmodel.StrategyCategories) uint32 {
+				return item.StrategyID
+			}),
+		}
+		resItems = append(resItems, item)
+	}
+	return resItems
+}
+
+func (s *strategyModuleBuilder) DoStrategyCategoriesBuilder() DoStrategyCategoriesBuilder {
+	return &doStrategyCategoriesBuilder{
+		ctx: s.ctx,
+	}
+}
 
 func (d *doStrategyLevelsBuilder) ToPingAPI(strategy *bizmodel.Strategy, level *bizmodel.StrategyPingLevel) *api.PingStrategyItem {
 	if types.IsNil(strategy) || types.IsNil(level) || types.IsNil(d) {

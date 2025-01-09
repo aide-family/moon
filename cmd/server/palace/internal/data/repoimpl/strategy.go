@@ -37,6 +37,36 @@ type strategyRepositoryImpl struct {
 	data *data.Data
 }
 
+func (s *strategyRepositoryImpl) GetStrategyCategories(ctx context.Context) (*bo.StrategyCategoriesModel, error) {
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if types.IsNotNil(err) {
+		return nil, err
+	}
+
+	strategyCategories, err := bizQuery.WithContext(ctx).StrategyCategories.Find()
+	if types.IsNotNil(err) {
+		return nil, err
+	}
+
+	sysDictIds := types.SliceTo(strategyCategories, func(item *bizmodel.StrategyCategories) uint32 {
+		return item.SysDictID
+	})
+
+	sysDicts, err := bizQuery.WithContext(ctx).SysDict.Where(bizQuery.SysDict.ID.In(sysDictIds...)).Find()
+	if types.IsNotNil(err) {
+		return nil, err
+	}
+
+	categoriesMap := types.ToMapSlice(strategyCategories, func(item *bizmodel.StrategyCategories) uint32 {
+		return item.SysDictID
+	})
+
+	return &bo.StrategyCategoriesModel{
+		SysDicts:      sysDicts,
+		CategoriesMap: categoriesMap,
+	}, nil
+}
+
 func (s *strategyRepositoryImpl) Sync(ctx context.Context, id uint32) error {
 	s.syncStrategiesByIds(ctx, id)
 	return nil

@@ -134,3 +134,12 @@ func (b *StrategyBiz) verifyStrategyStatus(ctx context.Context, ids []uint32) er
 func (b *StrategyBiz) SyncStrategy(ctx context.Context, id uint32) error {
 	return b.strategyRepo.Sync(ctx, id)
 }
+
+// GetStrategyCategories 获取策略分类
+func (b *StrategyBiz) GetStrategyCategories(ctx context.Context) (*bo.StrategyCategoriesModel, error) {
+	categoriesModel, err := b.strategyRepo.GetStrategyCategories(ctx)
+	if types.IsNotNil(err) {
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+	}
+	return categoriesModel, nil
+}

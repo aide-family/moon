@@ -1,6 +1,9 @@
 package bo
 
-import "github.com/aide-family/moon/pkg/vobj"
+import (
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/vobj"
+)
 
 type (
 
@@ -28,5 +31,13 @@ type (
 	GetTeamDatasourceParams struct {
 		TeamID        uint32   `json:"teamId"`
 		DatasourceIds []uint32 `json:"datasourceIds"`
+	}
+
+	// StrategyCategoriesModel 策略分类模型
+	StrategyCategoriesModel struct {
+		// 策略id
+		SysDicts []*bizmodel.SysDict `json:"sysDicts"`
+		// 策略类别Map
+		CategoriesMap map[uint32][]*bizmodel.StrategyCategories
 	}
 )

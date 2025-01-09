@@ -127,6 +127,7 @@ func (l *listAlarmHistoryRequestBuilder) ToBo() *bo.QueryAlarmHistoryListParams 
 		ResolvedAtStart: l.GetRecoverAtStart(),
 		ResolvedAtEnd:   l.GetRecoverAtEnd(),
 		AlarmPage:       l.GetAlarmPage(),
+		StrategyIds:     l.GetStrategyIds(),
 	}
 }
 
