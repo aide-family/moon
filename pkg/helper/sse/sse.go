@@ -1,9 +1,10 @@
 package sse
 
 import (
+	"net/http"
+
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/go-kratos/kratos/v2/log"
-	"net/http"
 )
 
 // NewSSEHandler handles the SSE connection

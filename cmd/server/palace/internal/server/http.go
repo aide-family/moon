@@ -3,14 +3,18 @@ package server
 import (
 	"context"
 	nHttp "net/http"
+	"time"
 
 	authorizationapi "github.com/aide-family/moon/api/admin/authorization"
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/authorization"
 	"github.com/aide-family/moon/pkg/env"
 	"github.com/aide-family/moon/pkg/helper/middleware"
+	"github.com/aide-family/moon/pkg/plugin/mlog"
+
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/http"
 )
@@ -31,10 +35,16 @@ func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service)
 		}),
 	).Match(middleware.NewWhiteListMatcher(allowAPIList)).Build()
 
+	timeoutMiddleware := middleware.
+		Server(middleware.Timeout(httpConf.GetTimeout().AsDuration())).
+		Match(middleware.NewWhiteListMatcher(nil)).
+		Build()
+
 	opts := []http.ServerOption{
 		http.Filter(middleware.Cors()),
 		http.Middleware(
-			// recovery.Recovery(recovery.WithHandler(mlog.RecoveryHandle)),
+			recovery.Recovery(recovery.WithHandler(mlog.RecoveryHandle)),
+			timeoutMiddleware,
 			tracing.Server(),
 			middleware.Logging(log.GetLogger()),
 			middleware.I18N(),
@@ -50,7 +60,7 @@ func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service)
 		opts = append(opts, http.Address(httpConf.GetAddr()))
 	}
 	if httpConf.GetTimeout() != nil {
-		opts = append(opts, http.Timeout(httpConf.GetTimeout().AsDuration()))
+		opts = append(opts, http.Timeout(time.Hour*24))
 	}
 	srv := http.NewServer(opts...)
 

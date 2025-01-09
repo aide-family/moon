@@ -2,9 +2,11 @@ package sse
 
 import (
 	"fmt"
+	"net/http"
+
+	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/go-kratos/kratos/v2/log"
-	"net/http"
 )
 
 // NewClient creates a new client
@@ -51,8 +53,17 @@ func (cm *ClientManager) GetClient(id uint32) (*Client, bool) {
 	return cm.clients.Get(id)
 }
 
+// Close closes the client
+func (cm *ClientManager) Close() {
+	list := cm.clients.List()
+	for _, client := range list {
+		close(client.Send)
+	}
+}
+
 // WriteSSE writes data to the client
 func (c *Client) WriteSSE(w http.ResponseWriter) {
+	defer after.RecoverX()
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		log.Errorw("err", "Streaming unsupported!")

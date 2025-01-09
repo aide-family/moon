@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/aide-family/moon/pkg/helper/sse"
 	"strconv"
 	"strings"
+
+	"github.com/aide-family/moon/pkg/helper/sse"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/pkg/conf"
@@ -85,6 +86,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		sseClientManager:        sse.NewClientManager(),
 	}
 	cleanup := func() {
+		d.sseClientManager.Close()
 		for _, f := range closeFuncList {
 			f()
 		}

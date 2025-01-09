@@ -1,7 +1,10 @@
 package server
 
 import (
+	"time"
+
 	"github.com/aide-family/moon/api"
+	adminapi "github.com/aide-family/moon/api/admin"
 	alarmapi "github.com/aide-family/moon/api/admin/alarm"
 	authorizationapi "github.com/aide-family/moon/api/admin/authorization"
 	datasourceapi "github.com/aide-family/moon/api/admin/datasource"
@@ -46,6 +49,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -225,31 +229,8 @@ func RegisterService(
 		}
 	}
 
-	//go func() {
-	//	id := uint32(1)
-	//	for {
-	//		client, ok := data.GetSSEClientManager().GetClient(1)
-	//		if !ok {
-	//			continue
-	//		}
-	//		time.Sleep(2 * time.Second)
-	//		msg := &adminapi.NoticeUserMessage{
-	//			Id:        id,
-	//			Category:  "info",
-	//			Content:   "测试消息: " + time.Now().Format(time.DateTime),
-	//			Timestamp: time.Now().Unix(),
-	//			Biz:       "notice",
-	//			BizID:     id,
-	//		}
-	//		id++
-	//		bs, _ := types.Marshal(msg)
-	//		if err := client.SendMessage(string(bs)); err != nil {
-	//			log.Errorw("err", err)
-	//			continue
-	//		}
-	//	}
-	//
-	//}()
+	// 消息测试
+	// msgTest(data)
 
 	return &Server{
 		rpcSrv:             rpcSrv,
@@ -278,4 +259,31 @@ func registerUserMessageRoute(httpSrv *http.Server, d *data.Data) {
 		handle(ctx.Response(), ctx.Request())
 		return nil
 	})
+}
+
+func msgTest(data *data.Data) {
+	go func() {
+		id := uint32(1)
+		for {
+			client, ok := data.GetSSEClientManager().GetClient(1)
+			if !ok {
+				continue
+			}
+			time.Sleep(2 * time.Second)
+			msg := &adminapi.NoticeUserMessage{
+				Id:        id,
+				Category:  "info",
+				Content:   "测试消息: " + time.Now().Format(time.DateTime),
+				Timestamp: time.Now().Unix(),
+				Biz:       "notice",
+				BizID:     id,
+			}
+			id++
+			bs, _ := types.Marshal(msg)
+			if err := client.SendMessage(string(bs)); err != nil {
+				log.Errorw("err", err)
+				continue
+			}
+		}
+	}()
 }
