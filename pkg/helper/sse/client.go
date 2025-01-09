@@ -23,6 +23,11 @@ type Client struct {
 	Send chan []byte
 }
 
+// Close closes the client
+func (c *Client) Close() {
+	close(c.Send)
+}
+
 // NewClientManager creates a new client manager
 func NewClientManager() *ClientManager {
 	return &ClientManager{
@@ -46,7 +51,7 @@ func (cm *ClientManager) AddClient(client *Client) {
 // RemoveClient removes a client from the manager
 func (cm *ClientManager) RemoveClient(id uint32) {
 	if client, ok := cm.clients.Get(id); ok {
-		close(client.Send)
+		client.Close()
 		cm.clients.Delete(id)
 	}
 }
