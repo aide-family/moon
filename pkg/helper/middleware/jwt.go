@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/log"
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/go-kratos/kratos/v2/middleware"
@@ -132,6 +133,31 @@ func ParseJwtClaims(ctx context.Context) (*JwtClaims, bool) {
 		return nil, false
 	}
 	return jwtClaims, true
+}
+
+// ParseJwtClaimsFromToken parse jwt claims from token
+func ParseJwtClaimsFromToken(token string) (*JwtBaseInfo, bool) {
+	claims, err := jwtv5.Parse(token, func(token *jwtv5.Token) (interface{}, error) {
+		return []byte(signKey), nil
+	})
+	if err != nil {
+		log.Errorw("解析token失败：", err, "token", token)
+		return nil, false
+	}
+	if !claims.Valid {
+		log.Errorw("token无效：", "token", token)
+		return nil, false
+	}
+
+	claimsBs, _ := types.Marshal(claims.Claims)
+	log.Debugw("claims", string(claimsBs))
+	var jwtClaims JwtClaims
+	err = types.Unmarshal(claimsBs, &jwtClaims)
+	if err != nil {
+		log.Errorw("解析token失败：", err, "token", token)
+		return nil, false
+	}
+	return jwtClaims.JwtBaseInfo, true
 }
 
 // NewJwtClaims new jwt claims

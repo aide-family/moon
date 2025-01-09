@@ -2,10 +2,12 @@ package datasource
 
 import (
 	"context"
-	"github.com/aide-family/moon/pkg/util/types"
-	"github.com/go-kratos/kratos/v2/log"
 	"testing"
 	"time"
+
+	"github.com/aide-family/moon/pkg/util/types"
+
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 func Test_prometheusDatasource_series(t *testing.T) {

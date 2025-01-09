@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/after"
+	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/aide-family/moon/pkg/watch"
@@ -79,7 +80,7 @@ type EvalFunc func(ctx context.Context, expr string, duration *types.Duration) (
 func MetricEval(items ...MetricDatasource) EvalFunc {
 	return func(ctx context.Context, expr string, duration *types.Duration) (map[watch.Indexer]*Point, error) {
 		var wg sync.WaitGroup
-		evalRes := new(sync.Map)
+		evalRes := safety.NewMap[watch.Indexer, *Point]()
 		endAt := time.Now()
 		startAt := types.NewTime(endAt.Add(-duration.Duration.AsDuration()))
 		for _, item := range items {
@@ -93,16 +94,15 @@ func MetricEval(items ...MetricDatasource) EvalFunc {
 					return
 				}
 				for k, v := range list {
-					evalRes.Store(k, v)
+					evalRes.Set(k, v)
 				}
 			}(item)
 		}
 		wg.Wait()
 		res := make(map[watch.Indexer]*Point)
-		evalRes.Range(func(k, v any) bool {
-			res[k.(watch.Indexer)] = v.(*Point)
-			return true
-		})
+		for key, value := range evalRes.List() {
+			res[key] = value
+		}
 		return res, nil
 	}
 }

@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"sync"
+
+	"github.com/aide-family/moon/pkg/helper/sse"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/pkg/conf"
@@ -16,6 +17,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/conn/rbac"
 	"github.com/aide-family/moon/pkg/util/email"
+	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/watch"
 
@@ -38,9 +40,9 @@ type Data struct {
 	alarmDB      *sql.DB
 	bizDB        *sql.DB
 	cacher       cache.ICacher
-	enforcerMap  *sync.Map
-	teamBizDBMap *sync.Map
-	alarmDBMap   *sync.Map
+	enforcerMap  *safety.Map[uint32, *casbin.SyncedEnforcer]
+	teamBizDBMap *safety.Map[uint32, *gorm.DB]
+	alarmDBMap   *safety.Map[uint32, *gorm.DB]
 
 	ossClient oss.Client
 	ossConf   *conf.Oss
@@ -55,6 +57,8 @@ type Data struct {
 	alertConsumerStorage watch.Storage
 	// 通用邮件发送器
 	emailCli email.Interface
+
+	sseClientManager *sse.ClientManager
 }
 
 var closeFuncList []func()
@@ -70,17 +74,19 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 	d := &Data{
 		bizDatabaseConf:         bizConf,
 		alarmDatabaseConf:       alarmConf,
-		teamBizDBMap:            new(sync.Map),
-		alarmDBMap:              new(sync.Map),
-		enforcerMap:             new(sync.Map),
+		teamBizDBMap:            safety.NewMap[uint32, *gorm.DB](),
+		alarmDBMap:              safety.NewMap[uint32, *gorm.DB](),
+		enforcerMap:             safety.NewMap[uint32, *casbin.SyncedEnforcer](),
 		strategyQueue:           watch.NewDefaultQueue(watch.QueueMaxSize),
 		alertQueue:              watch.NewDefaultQueue(watch.QueueMaxSize),
 		alertPersistenceDBQueue: watch.NewDefaultQueue(watch.QueueMaxSize),
 		alertConsumerStorage:    watch.NewDefaultStorage(),
 		emailCli:                email.NewMockEmail(),
 		ossConf:                 ossConf,
+		sseClientManager:        sse.NewClientManager(),
 	}
 	cleanup := func() {
+		d.sseClientManager.Close()
 		for _, f := range closeFuncList {
 			f()
 		}
@@ -115,16 +121,11 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		}
 		d.alarmDB = db
 		closeFuncList = append(closeFuncList, func() {
-			log.Debugw("close alarm db", d.bizDB.Close())
-			d.alarmDBMap.Range(func(key, value any) bool {
-				alarmDB, ok := value.(*gorm.DB)
-				if !ok {
-					return true
-				}
-				dbTmp, _ := alarmDB.DB()
-				log.Debugw("close alarm orm db", key, "err", dbTmp.Close())
-				return ok
-			})
+			log.Debugw("msg", "close alarm db", "err", d.bizDB.Close())
+			for _, value := range d.alarmDBMap.List() {
+				dbTmp, _ := value.DB()
+				log.Debugw("msg", "close alarm orm db", "err", dbTmp.Close())
+			}
 		})
 	}
 
@@ -139,16 +140,11 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 
 		d.bizDB = db
 		closeFuncList = append(closeFuncList, func() {
-			log.Debugw("close biz db", d.bizDB.Close())
-			d.teamBizDBMap.Range(func(key, value any) bool {
-				teamBizDB, ok := value.(*gorm.DB)
-				if !ok {
-					return true
-				}
-				dbTmp, _ := teamBizDB.DB()
-				log.Debugw("close biz orm db", key, "err", dbTmp.Close())
-				return ok
-			})
+			log.Debugw("msg", "close biz db", "err", d.bizDB.Close())
+			for _, value := range d.teamBizDBMap.List() {
+				teamBizDB, _ := value.DB()
+				log.Debugw("msg", "close biz orm db", "err", teamBizDB.Close())
+			}
 		})
 	}
 
@@ -286,13 +282,9 @@ func (d *Data) GetBizGormDB(teamID uint32) (*gorm.DB, error) {
 			"teamID": strconv.FormatUint(uint64(teamID), 10),
 		})
 	}
-	dbValue, exist := d.teamBizDBMap.Load(teamID)
+	bizDB, exist := d.teamBizDBMap.Get(teamID)
 	if exist {
-		bizDB, isBizDB := dbValue.(*gorm.DB)
-		if isBizDB {
-			return bizDB, nil
-		}
-		return nil, merr.ErrorNotification("数据库服务异常")
+		return bizDB, nil
 	}
 	dsn := genBizDatabaseName(teamID)
 	driver := strings.ToLower(d.bizDatabaseConf.GetDriver())
@@ -314,13 +306,13 @@ func (d *Data) GetBizGormDB(teamID uint32) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	d.teamBizDBMap.Store(teamID, bizDB)
+	d.teamBizDBMap.Set(teamID, bizDB)
 	enforcer, err := rbac.InitCasbinModel(bizDB)
 	if !types.IsNil(err) {
 		log.Errorw("casbin", "init error", "err", err)
 		return nil, err
 	}
-	d.enforcerMap.Store(teamID, enforcer)
+	d.enforcerMap.Set(teamID, enforcer)
 	return bizDB, nil
 }
 
@@ -329,13 +321,9 @@ func (d *Data) GetAlarmGormDB(teamID uint32) (*gorm.DB, error) {
 	if teamID == 0 {
 		return nil, merr.ErrorI18nToastTeamNotFound(context.Background())
 	}
-	dbValue, exist := d.alarmDBMap.Load(teamID)
+	dbValue, exist := d.alarmDBMap.Get(teamID)
 	if exist {
-		bizDB, isBizDB := dbValue.(*gorm.DB)
-		if isBizDB {
-			return bizDB, nil
-		}
-		return nil, merr.ErrorNotification("数据库服务异常")
+		return dbValue, nil
 	}
 
 	dsn := genAlarmDatabaseName(teamID)
@@ -357,8 +345,7 @@ func (d *Data) GetAlarmGormDB(teamID uint32) (*gorm.DB, error) {
 	if !types.IsNil(err) {
 		return nil, err
 	}
-
-	d.alarmDBMap.Store(teamID, bizDB)
+	d.alarmDBMap.Set(teamID, bizDB)
 	return bizDB, nil
 }
 
@@ -385,18 +372,15 @@ func (d *Data) GetCasBin(teamID uint32, tx ...*gorm.DB) *casbin.SyncedEnforcer {
 	if len(tx) > 0 {
 		return d.GetCasbinByTx(tx[0])
 	}
-	enforceVal, exist := d.enforcerMap.Load(teamID)
+	enforceVal, exist := d.enforcerMap.Get(teamID)
 	if !exist {
 		_, err := d.GetBizGormDB(teamID)
 		if !types.IsNil(err) {
 			panic(err)
 		}
+		return d.GetCasBin(teamID)
 	}
-	enforce, ok := enforceVal.(*casbin.SyncedEnforcer)
-	if !ok {
-		panic("enforcer not found")
-	}
-	return enforce
+	return enforceVal
 }
 
 // newCache 创建缓存
@@ -499,4 +483,13 @@ func (d *Data) OssIsOpen() bool {
 		return false
 	}
 	return d.ossConf.GetOpen()
+}
+
+// GetSSEClientManager 获取sse客户端管理
+func (d *Data) GetSSEClientManager() *sse.ClientManager {
+	if types.IsNil(d.sseClientManager) {
+		log.Warn("persistence sseClientManager is nil")
+		d.sseClientManager = sse.NewClientManager()
+	}
+	return d.sseClientManager
 }

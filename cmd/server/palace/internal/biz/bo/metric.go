@@ -38,11 +38,12 @@ type (
 
 	// MetricBo 指标明细
 	MetricBo struct {
-		Name   string          `json:"name"`
-		Help   string          `json:"help"`
-		Type   vobj.MetricType `json:"type"`
-		Unit   string          `json:"unit"`
-		Labels []*MetricLabel  `json:"labels"`
+		Name      string                           `json:"name"`
+		Help      string                           `json:"help"`
+		Type      vobj.MetricType                  `json:"type"`
+		Unit      string                           `json:"unit"`
+		Labels    []*MetricLabel                   `json:"labels"`
+		MapLabels map[string]*bizmodel.MetricLabel `json:"mapLabels"`
 	}
 
 	// CreateMetricParams 创建指标请求参数
@@ -54,8 +55,16 @@ type (
 	}
 )
 
-// ToModel 转换成数据库模型
-func (c *CreateMetricParams) ToModel() *bizmodel.DatasourceMetric {
+// GetMapLabels 获取标签map
+func (m *MetricBo) GetMapLabels() map[string]*bizmodel.MetricLabel {
+	if types.IsNil(m) || types.IsNil(m.MapLabels) {
+		return map[string]*bizmodel.MetricLabel{}
+	}
+	return m.MapLabels
+}
+
+// ToMetricModel 转换成数据库Metric模型
+func (c *CreateMetricParams) ToMetricModel() *bizmodel.DatasourceMetric {
 	if types.IsNil(c) || types.IsNil(c.Metric) {
 		return nil
 	}
@@ -66,13 +75,5 @@ func (c *CreateMetricParams) ToModel() *bizmodel.DatasourceMetric {
 		Unit:         c.Metric.Unit,
 		Remark:       c.Metric.Help,
 		DatasourceID: c.DatasourceID,
-		LabelCount:   uint32(len(c.Metric.Labels)),
-		Labels: types.SliceTo(c.Metric.Labels, func(label *MetricLabel) *bizmodel.MetricLabel {
-			bs, _ := types.Marshal(label.Values)
-			return &bizmodel.MetricLabel{
-				Name:        label.Name,
-				LabelValues: string(bs),
-			}
-		}),
 	}
 }

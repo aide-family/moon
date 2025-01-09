@@ -910,6 +910,14 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
+	// 策略推送
+	{
+		Name:   "策略推送",
+		Path:   "/api.admin.strategy.Strategy/PushStrategy",
+		Remark: "策略推送， 用于策略推送",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
 	// 策略模版管理
 	// 创建策略模版
 	{
@@ -997,6 +1005,13 @@ var resourceList = []*model.SysAPI{
 		Name:   "策略订阅者列表",
 		Path:   "/api.admin.subscriber.Subscriber/GetStrategySubscriber",
 		Remark: "策略订阅者列表， 用于策略订阅者列表",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowUser,
+	},
+	{
+		Name:   "策略id列表",
+		Path:   "/api.admin.strategy.Strategy/GetSelectStrategyIds",
+		Remark: "策略id列表， 用于每个策略选择自定义的业务类目属性，每个策略选择自定义的业务类目属性",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowUser,
 	},

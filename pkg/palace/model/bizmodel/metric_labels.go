@@ -20,6 +20,9 @@ type MetricLabel struct {
 
 // GetLabelValues get label values
 func (c *MetricLabel) GetLabelValues() []string {
+	if types.IsNil(c) {
+		return nil
+	}
 	var values []string
 	_ = types.Unmarshal([]byte(c.LabelValues), &values)
 	return values

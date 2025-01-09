@@ -38,6 +38,8 @@ type AlarmHistory struct {
 	RawInfoID uint32 `gorm:"column:raw_info_id;type:int;comment:告警原始数据id;uniqueIndex:idx__history__notice__raw_info_id,priority:1" json:"rawInfoId"`
 	// 附加信息
 	HistoryDetails *HistoryDetails `gorm:"foreignKey:AlarmHistoryID;comment:附加信息"`
+	// 策略ID
+	StrategyID uint32 `gorm:"column:strategy_id;type:int;not null;comment:策略id"`
 }
 
 // String json string

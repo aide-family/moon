@@ -8,7 +8,11 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
+	"github.com/aide-family/moon/pkg/helper/metric"
+	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
+
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -42,6 +46,7 @@ func (s *AlertService) PushStrategy(ctx context.Context, strategies *bo.Strategy
 
 // Hook 告警hook
 func (s *AlertService) Hook(ctx context.Context, req *api.AlarmItem) (*api.HookReply, error) {
+	go s.alertMetric(req)
 	param := builder.NewParamsBuild(ctx).AlarmModuleBuilder().WithCreateAlarmRawInfoRequest(req).ToBo()
 	err := s.alertBiz.SaveAlertQueue(param)
 	if !types.IsNil(err) {
@@ -59,4 +64,18 @@ func (s *AlertService) CreateAlarmInfo(ctx context.Context, params *bo.CreateAla
 func (s *AlertService) SendAlertMsg(ctx context.Context, req *hookapi.SendMsgRequest) error {
 	s.alertBiz.SendAlertMsg(ctx, &bo.SendMsg{SendMsgRequest: req})
 	return nil
+}
+
+// alertMetric 告警指标
+func (s *AlertService) alertMetric(req *api.AlarmItem) {
+	for _, alertItem := range req.GetAlerts() {
+		labels := alertItem.GetLabels()
+		levelID, strategyID, teamID := labels[label.LevelID], labels[label.StrategyID], labels[label.TeamID]
+		if vobj.ToAlertStatus(alertItem.GetStatus()).IsResolved() {
+			metric.DecAlarmGauge(levelID, strategyID, teamID)
+		} else {
+			metric.IncAlarmCounter(levelID, strategyID, teamID)
+			metric.IncAlarmGauge(levelID, strategyID, teamID)
+		}
+	}
 }

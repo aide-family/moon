@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
+	"github.com/aide-family/moon/pkg/helper/metric"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -89,8 +90,12 @@ func (s *sendAlertRepositoryImpl) alarmSendHistorySave(ctx context.Context, send
 	routeParts := strings.Split(route, "_")
 	// 检查route是否合法
 	if len(routeParts) != 3 {
-		return merr.ErrorI18nParameterRelatedAlarmSendingAndReceivingParametersAreInvalid(ctx)
+		log.Warnf("route is invalid: %s", merr.ErrorI18nParameterRelatedAlarmSendingAndReceivingParametersAreInvalid(ctx))
+		return nil
 	}
+	teamID := routeParts[1]
+	notifyID := routeParts[2]
+	metric.IncNotifyCounter(teamID, status.EnString(), notifyID)
 	// 解析告警team_id
 	param.TeamID = getTeamIDByRoute(routeParts)
 	// 解析告警组id

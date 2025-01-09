@@ -124,6 +124,14 @@ service Strategy {
       get: "/v1/strategy/push/{id}"
     };
   }
+
+  // 获取策略ids
+  rpc GetSelectStrategyIds(GetSelectStrategyIdsRequest) returns (GetSelectStrategyIdsReply) {
+    option (google.api.http) = {
+      post: "/v1/strategy/select/strategyIds"
+      body: "*"
+    };
+  }
 }
 
 message CreateStrategyGroupRequest {
@@ -264,11 +272,11 @@ message CreateStrategyRequest {
     message: "strategyMetricLevels 不能为空"
   };
 
-//  option (buf.validate.message).cel = {
-//    id: "StrategyMetricLevelRequired",
-//    expression: "this.strategyType != 1 || (this.datasourceIds.size() > 0)",
-//    message: "请选择至少一个数据源"
-//  };
+  //  option (buf.validate.message).cel = {
+  //    id: "StrategyMetricLevelRequired",
+  //    expression: "this.strategyType != 1 || (this.datasourceIds.size() > 0)",
+  //    message: "请选择至少一个数据源"
+  //  };
 
   option (buf.validate.message).cel = {
     id: "StrategyEventLevelRequired",
@@ -276,11 +284,11 @@ message CreateStrategyRequest {
     message: "StrategyDomainLevels 不能为空"
   };
 
-//  option (buf.validate.message).cel = {
-//    id: "StrategyMetricLevelRequired",
-//    expression: "this.strategyType != 2 || (this.datasourceIds.size() > 0)",
-//    message: "请选择至少一个数据源"
-//  };
+  //  option (buf.validate.message).cel = {
+  //    id: "StrategyMetricLevelRequired",
+  //    expression: "this.strategyType != 2 || (this.datasourceIds.size() > 0)",
+  //    message: "请选择至少一个数据源"
+  //  };
 
   option (buf.validate.message).cel = {
     id: "StrategyPortLevelRequired",
@@ -568,3 +576,15 @@ message PushStrategyRequest {
   uint32 id = 1 [(buf.validate.field).required = true];
 }
 message PushStrategyReply {}
+
+message GetSelectStrategyIdsRequest  {
+  // 类目Ids
+  repeated uint32 ids = 1;
+  // 策略类型
+  repeated StrategyType types = 2;
+}
+
+// 获取策略类别
+message GetSelectStrategyIdsReply {
+  repeated uint32 strategyIds = 1;
+}

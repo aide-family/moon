@@ -153,24 +153,24 @@ func (b *AlarmBiz) send(ctx context.Context, params *bo.CreateAlarmInfoParams) e
 		return err
 	}
 
-	for _, v := range params.Alerts {
+	for _, alert := range params.Alerts {
 		// 以告警发生时刻的时间作为时间引擎的判断时间
-		ts := types.NewTimeByString(v.StartsAt)
+		ts := types.NewTimeByString(alert.StartsAt)
 		receivers := make([]string, 0, len(alarmGroups))
-		for _, v := range alarmGroups {
-			if !v.IsAllowed(ts.Time) {
+		for _, group := range alarmGroups {
+			if !group.IsAllowed(ts.Time) {
 				continue
 			}
-			receivers = append(receivers, fmt.Sprintf("team_%d_%d", params.TeamID, v.ID))
+			receivers = append(receivers, fmt.Sprintf("team_%d_%d", params.TeamID, group.ID))
 		}
 
 		if len(receivers) == 0 {
 			continue
 		}
 		for _, route := range receivers {
-			key := v.NoticeKey(route)
+			key := alert.NoticeKey(route)
 			task := &hookapi.SendMsgRequest{
-				Json:      v.GetAlertItemString(),
+				Json:      alert.GetAlertItemString(),
 				Route:     route,
 				RequestID: key,
 			}
