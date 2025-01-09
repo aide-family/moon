@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/query"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/go-kratos/kratos/v2/errors"
+	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 
 	"gorm.io/gen"
@@ -54,7 +55,18 @@ func (u *userMessageRepositoryImpl) DeleteAll(ctx context.Context) error {
 // Create 创建用户消息
 func (u *userMessageRepositoryImpl) Create(ctx context.Context, message *model.SysUserMessage) error {
 	mainQuery := query.Use(u.data.GetMainDB(ctx))
-	return mainQuery.WithContext(ctx).SysUserMessage.Create(message)
+	if err := mainQuery.WithContext(ctx).SysUserMessage.Create(message); err != nil {
+		return err
+	}
+	client, ok := u.data.GetSSEClientManager().GetClient(message.UserID)
+	if ok {
+		go func() {
+			if err := client.SendMessage(message.String()); err != nil {
+				log.Errorw("method", "createUserMessage", "err", err)
+			}
+		}()
+	}
+	return nil
 }
 
 // Delete 删除用户消息
