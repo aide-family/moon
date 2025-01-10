@@ -2,6 +2,7 @@ package sse
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/go-kratos/kratos/v2/log"
@@ -20,7 +21,7 @@ func NewSSEHandler(clientManager *ClientManager) http.HandlerFunc {
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Connection", "keep-alive")
 
-		claims, ok := middleware.ParseJwtClaimsFromToken(token)
+		claims, ok := middleware.ParseJwtClaimsFromToken(strings.TrimPrefix(token, "Bearer "))
 		if !ok {
 			http.Error(w, "token is invalid", http.StatusUnauthorized)
 			return

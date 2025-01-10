@@ -24,7 +24,7 @@
     <input type="text" id="token" placeholder="e.g., user1">
     <button onclick="connectToSSE()">Connect</button>
 </div>
-<div></div>
+<div>
     <label for="message">Enter your Message: </label>
     <input type="text" id="message" placeholder="e.g., hello">
     <button onclick="sendMessage()">Send</button>
@@ -48,6 +48,7 @@
 
         const url = new URL(`http://localhost:9999/events`);
         url.searchParams.set("token", token);
+
         eventSource = new EventSource(url.toString());
 
         eventSource.onmessage = function(event) {
