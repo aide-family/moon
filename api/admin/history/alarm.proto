@@ -48,7 +48,6 @@ message ListHistoryRequest {
   }];
   // 告警状态
   repeated AlertStatus alarmStatuses = 3;
-
   // 告警时间范围
   string eventAtStart = 4;
   string eventAtEnd = 5;
@@ -57,6 +56,8 @@ message ListHistoryRequest {
   string recoverAtEnd = 7;
   // 告警页面
   uint32 alarmPage = 8;
+  // 策略类别id
+  repeated uint32  strategyIds = 9;
 }
 message ListHistoryReply {
   // 告警历史记录列表

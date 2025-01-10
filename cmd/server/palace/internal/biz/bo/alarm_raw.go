@@ -1,6 +1,8 @@
 package bo
 
-import "github.com/aide-family/moon/pkg/vobj"
+import (
+	"github.com/aide-family/moon/pkg/vobj"
+)
 
 type (
 

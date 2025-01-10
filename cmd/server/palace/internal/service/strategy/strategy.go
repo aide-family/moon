@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/aide-family/moon/api"
 	strategyapi "github.com/aide-family/moon/api/admin/strategy"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
@@ -242,4 +243,24 @@ func (s *Service) PushStrategy(ctx context.Context, req *strategyapi.PushStrateg
 		return nil, err
 	}
 	return &strategyapi.PushStrategyReply{}, nil
+}
+
+// GetSelectStrategyIds 获取策略ids
+func (s *Service) GetSelectStrategyIds(ctx context.Context, req *strategyapi.GetSelectStrategyIdsRequest) (*strategyapi.GetSelectStrategyIdsReply, error) {
+
+	categories, err := s.strategyBiz.GetStrategyCategories(ctx, req.GetIds(), types.SliceTo(req.GetTypes(), func(item api.StrategyType) vobj.StrategyType {
+		return vobj.StrategyType(item)
+	}))
+	if types.IsNotNil(err) {
+		return nil, err
+	}
+	strategyIds := types.SliceTo(categories, func(item *bizmodel.StrategyCategories) uint32 {
+		return item.StrategyID
+	})
+
+	// 去重
+	strategyIds = types.SliceUnique(strategyIds)
+	return &strategyapi.GetSelectStrategyIdsReply{
+		StrategyIds: strategyIds,
+	}, nil
 }
