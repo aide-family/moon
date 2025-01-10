@@ -37,3 +37,43 @@ func (c *SysTeamRole) MarshalBinary() (data []byte, err error) {
 func (*SysTeamRole) TableName() string {
 	return tableNameSysTeamRole
 }
+
+// GetName 获取角色名称
+func (c *SysTeamRole) GetName() string {
+	if c == nil {
+		return ""
+	}
+	return c.Name
+}
+
+// GetStatus 获取状态
+func (c *SysTeamRole) GetStatus() vobj.Status {
+	if c == nil {
+		return vobj.StatusUnknown
+	}
+	return c.Status
+}
+
+// GetRemark 获取备注
+func (c *SysTeamRole) GetRemark() string {
+	if c == nil {
+		return ""
+	}
+	return c.Remark
+}
+
+// GetApis 获取团队API
+func (c *SysTeamRole) GetApis() []*SysTeamAPI {
+	if c == nil {
+		return nil
+	}
+	return c.Apis
+}
+
+// GetMembers 获取团队成员
+func (c *SysTeamRole) GetMembers() []*SysTeamMember {
+	if c == nil {
+		return nil
+	}
+	return c.Members
+}

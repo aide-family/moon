@@ -40,3 +40,51 @@ func (c *SysTeam) MarshalBinary() (data []byte, err error) {
 func (*SysTeam) TableName() string {
 	return tableNameSysTeam
 }
+
+// GetName get name
+func (c *SysTeam) GetName() string {
+	if types.IsNil(c) {
+		return ""
+	}
+	return c.Name
+}
+
+// GetStatus get status
+func (c *SysTeam) GetStatus() vobj.Status {
+	if types.IsNil(c) {
+		return vobj.Status(0)
+	}
+	return c.Status
+}
+
+// GetRemark get remark
+func (c *SysTeam) GetRemark() string {
+	if types.IsNil(c) {
+		return ""
+	}
+	return c.Remark
+}
+
+// GetLogo get logo
+func (c *SysTeam) GetLogo() string {
+	if types.IsNil(c) {
+		return ""
+	}
+	return c.Logo
+}
+
+// GetLeaderID get leader id
+func (c *SysTeam) GetLeaderID() uint32 {
+	if types.IsNil(c) {
+		return 0
+	}
+	return c.LeaderID
+}
+
+// GetUUID get uuid
+func (c *SysTeam) GetUUID() string {
+	if types.IsNil(c) {
+		return ""
+	}
+	return c.UUID
+}

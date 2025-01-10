@@ -30,3 +30,35 @@ func (c *StrategySubscriber) MarshalBinary() (data []byte, err error) {
 func (*StrategySubscriber) TableName() string {
 	return tableNameStrategySubscribers
 }
+
+// GetStrategy get strategy
+func (c *StrategySubscriber) GetStrategy() *Strategy {
+	if types.IsNil(c) {
+		return nil
+	}
+	return c.Strategy
+}
+
+// GetAlarmNoticeType get alarm notice type
+func (c *StrategySubscriber) GetAlarmNoticeType() vobj.NotifyType {
+	if types.IsNil(c) {
+		return 0
+	}
+	return c.AlarmNoticeType
+}
+
+// GetUserID get user id
+func (c *StrategySubscriber) GetUserID() uint32 {
+	if types.IsNil(c) {
+		return 0
+	}
+	return c.UserID
+}
+
+// GetStrategyID get strategy id
+func (c *StrategySubscriber) GetStrategyID() uint32 {
+	if types.IsNil(c) {
+		return 0
+	}
+	return c.StrategyID
+}
