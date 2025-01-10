@@ -6,10 +6,12 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/types"
+
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm/clause"
@@ -157,7 +159,11 @@ func (m *metricRepositoryImpl) Select(ctx context.Context, params *bo.QueryMetri
 	return metricQuery.Find()
 }
 
-func (m *metricRepositoryImpl) CreateMetrics(ctx context.Context, teamID uint32, metric *bizmodel.DatasourceMetric) error {
+func (m *metricRepositoryImpl) CreateMetrics(ctx context.Context, params *bo.CreateMetricParams) error {
+	teamID := params.TeamID
+	ctx = middleware.WithTeamIDContextKey(ctx, teamID)
+	metric := createDatasourceMetricParamToModel(ctx, params)
+	metric.WithContext(ctx)
 	// 根据指标名称查询指标
 	bizDB, err := m.data.GetBizGormDB(teamID)
 	if !types.IsNil(err) {
@@ -165,18 +171,109 @@ func (m *metricRepositoryImpl) CreateMetrics(ctx context.Context, teamID uint32,
 	}
 	bizQuery := bizquery.Use(bizDB)
 
-	if err := bizQuery.DatasourceMetric.WithContext(ctx).Clauses(
-		clause.OnConflict{DoNothing: true},
-	).Omit(bizQuery.DatasourceMetric.Labels.Field()).Create(metric); !types.IsNil(err) {
-		return err
+	// metric 所更新的字段
+	metricCol := []string{
+		bizQuery.DatasourceMetric.DatasourceID.ColumnName().String(),
+		bizQuery.DatasourceMetric.Name.ColumnName().String(),
+		bizQuery.DatasourceMetric.Category.ColumnName().String(),
+		bizQuery.DatasourceMetric.Unit.ColumnName().String(),
+		bizQuery.DatasourceMetric.Remark.ColumnName().String(),
+		bizQuery.DatasourceMetric.LabelCount.ColumnName().String(),
+		bizQuery.DatasourceMetric.TeamID.ColumnName().String(),
+		bizQuery.DatasourceMetric.DeletedAt.ColumnName().String(),
 	}
-	metricQueryDo, err := bizQuery.DatasourceMetric.WithContext(ctx).Where(bizQuery.DatasourceMetric.Name.Eq(metric.Name)).First()
-	if !types.IsNil(err) {
-		return err
+
+	// metric 更新条件
+	metricWrapper := []clause.Column{
+		{Name: bizQuery.DatasourceMetric.DatasourceID.ColumnName().String()},
+		{Name: bizQuery.DatasourceMetric.Name.ColumnName().String()},
+		{Name: bizQuery.DatasourceMetric.Category.ColumnName().String()},
+		{Name: bizQuery.DatasourceMetric.DeletedAt.ColumnName().String()},
 	}
-	labels := types.SliceTo(metric.Labels, func(item *bizmodel.MetricLabel) *bizmodel.MetricLabel {
-		item.MetricID = metricQueryDo.ID
-		return item
+
+	// label 所更新的字段
+	labelCol := []string{
+		bizQuery.MetricLabel.Name.ColumnName().String(),
+		bizQuery.MetricLabel.LabelValues.ColumnName().String(),
+		bizQuery.MetricLabel.MetricID.ColumnName().String(),
+		bizQuery.MetricLabel.TeamID.ColumnName().String(),
+		bizQuery.MetricLabel.Remark.ColumnName().String(),
+	}
+
+	// label 更新条件
+	labelWrapper := []clause.Column{
+		{Name: bizQuery.MetricLabel.Name.ColumnName().String()},
+		{Name: bizQuery.MetricLabel.MetricID.ColumnName().String()},
+		{Name: bizQuery.MetricLabel.DeletedAt.ColumnName().String()},
+	}
+
+	return bizQuery.Transaction(func(tx *bizquery.Query) error {
+		if err := tx.DatasourceMetric.WithContext(ctx).Clauses(
+			clause.OnConflict{
+				Columns:   metricWrapper,
+				DoUpdates: clause.AssignmentColumns(metricCol),
+			},
+		).Create(metric); !types.IsNil(err) {
+			return err
+		}
+
+		metricID := metric.ID
+		// select db labels
+		datasourceMetric, _ := m.GetWithRelation(ctx, metricID)
+
+		if types.IsNotNil(datasourceMetric) && types.IsNotNil(datasourceMetric.Labels) {
+			labelsMap := types.ToMap(datasourceMetric.Labels, func(item *bizmodel.MetricLabel) string {
+				return item.Name
+			})
+			params.Metric.MapLabels = labelsMap
+		}
+
+		labels := createMetricLabelParamToModels(ctx, params, metricID)
+
+		if _, err := tx.DatasourceMetric.WithContext(ctx).Where(bizQuery.DatasourceMetric.ID.Eq(metricID)).
+			UpdateColumn(tx.DatasourceMetric.LabelCount, len(labels)); types.IsNotNil(err) {
+			return err
+		}
+
+		return tx.MetricLabel.WithContext(ctx).Clauses(clause.OnConflict{Columns: labelWrapper, DoUpdates: clause.AssignmentColumns(labelCol)}).Create(labels...)
 	})
-	return bizQuery.MetricLabel.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(labels...)
+}
+
+func createDatasourceMetricParamToModel(ctx context.Context, params *bo.CreateMetricParams) *bizmodel.DatasourceMetric {
+	if types.IsNil(params) || types.IsNil(params.Metric) {
+		return nil
+	}
+
+	datasourceMetric := &bizmodel.DatasourceMetric{
+		Name:         params.Metric.Name,
+		Category:     params.Metric.Type,
+		Unit:         params.Metric.Unit,
+		Remark:       params.Metric.Help,
+		DatasourceID: params.DatasourceID,
+	}
+	datasourceMetric.WithContext(ctx)
+	return datasourceMetric
+}
+
+func createMetricLabelParamToModels(ctx context.Context, params *bo.CreateMetricParams, metricID uint32) []*bizmodel.MetricLabel {
+	if types.IsNil(params) || types.IsNil(params.Metric) {
+		return nil
+	}
+	return types.SliceTo(params.Metric.Labels, func(label *bo.MetricLabel) *bizmodel.MetricLabel {
+		var values []string
+		mapLabels := params.Metric.GetMapLabels()
+		if types.IsNotNil(mapLabels[label.Name].GetLabelValues()) {
+			values = types.MergeSliceWithUnique(label.Values, mapLabels[label.Name].GetLabelValues())
+		} else {
+			values = label.Values
+		}
+		bs, _ := types.Marshal(values)
+		metricLabel := &bizmodel.MetricLabel{
+			MetricID:    metricID,
+			Name:        label.Name,
+			LabelValues: string(bs),
+		}
+		metricLabel.WithContext(ctx)
+		return metricLabel
+	})
 }

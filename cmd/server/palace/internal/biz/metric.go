@@ -94,7 +94,7 @@ func (b *MetricBiz) CreateMetric(ctx context.Context, params *bo.CreateMetricPar
 		}()
 	}
 
-	if err := b.metricRepository.CreateMetrics(ctx, params.TeamID, params.ToModel()); !types.IsNil(err) {
+	if err := b.metricRepository.CreateMetrics(ctx, params); !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return nil

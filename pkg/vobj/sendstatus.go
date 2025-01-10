@@ -9,9 +9,23 @@ const (
 	// SendStatusUnknown 未知
 	SendStatusUnknown SendStatus = iota // 未知
 	// Sending 发送中
-	Sending
+	Sending // 发送中
 	// SentSuccess 发送成功
-	SentSuccess
+	SentSuccess // 发送成功
 	// SendFail 发送失败
-	SendFail
+	SendFail // 发送失败
 )
+
+// EnString 转换为字符串
+func (s SendStatus) EnString() string {
+	switch s {
+	case Sending:
+		return "sending"
+	case SentSuccess:
+		return "sent_success"
+	case SendFail:
+		return "send_fail"
+	default:
+		return "unknown"
+	}
+}
