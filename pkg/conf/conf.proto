@@ -430,3 +430,28 @@ message TimeEngine {
   // 规则
   repeated TimeEngineRule rules = 2;
 }
+
+// 短信配置
+message SmsConfig {
+  // 短信类型  aliyun
+  string type = 1;
+  // 阿里云短信配置
+  AliYunSmsConfig aliYun = 2;
+}
+
+// 阿里云短信配置
+message AliYunSmsConfig {
+  // 模板
+  message Template {
+    // 模板code
+    string templateCode = 1;
+    // 签名
+    string signName = 2;
+  }
+  // 阿里云accessKeyId
+  string accessKeyId = 1;
+  // 阿里云accessKeySecret
+  string accessKeySecret = 2;
+  // 模板集合
+  map<string, Template> templates = 3;
+}
