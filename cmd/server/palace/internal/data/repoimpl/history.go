@@ -131,7 +131,7 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistories(ctx context.Context, para
 	}
 
 	// 策略
-	if types.IsNotNil(param.StrategyIds) {
+	if len(param.StrategyIds) > 0 {
 		wheres = append(wheres, alarmQuery.AlarmHistory.StrategyID.In(param.StrategyIds...))
 	}
 

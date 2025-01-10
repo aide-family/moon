@@ -1008,6 +1008,13 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowUser,
 	},
+	{
+		Name:   "策略类目列表",
+		Path:   "/api.admin.strategy.Strategy/GetStrategyCategories",
+		Remark: "策略类目列表， 用于每个策略选择自定义的业务类目属性，每个策略选择自定义的业务类目属性",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowUser,
+	},
 	// 团队角色管理
 	// 创建角色
 	{
