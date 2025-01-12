@@ -45,3 +45,35 @@ func (c *SysTeamInvite) GetRolesIds() []uint32 {
 	}
 	return c.RolesIds.ToSlice()
 }
+
+// GetRole get role
+func (c *SysTeamInvite) GetRole() vobj.Role {
+	if types.IsNil(c) {
+		return vobj.Role(0)
+	}
+	return c.Role
+}
+
+// GetInviteType get invite type
+func (c *SysTeamInvite) GetInviteType() vobj.InviteType {
+	if types.IsNil(c) {
+		return vobj.InviteType(0)
+	}
+	return c.InviteType
+}
+
+// GetUserID get user id
+func (c *SysTeamInvite) GetUserID() uint32 {
+	if types.IsNil(c) {
+		return 0
+	}
+	return c.UserID
+}
+
+// GetTeamID get team id
+func (c *SysTeamInvite) GetTeamID() uint32 {
+	if types.IsNil(c) {
+		return 0
+	}
+	return c.TeamID
+}

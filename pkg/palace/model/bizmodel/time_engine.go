@@ -54,3 +54,35 @@ func (c *TimeEngine) MarshalBinary() (data []byte, err error) {
 func (*TimeEngine) TableName() string {
 	return tableNameTimeEngine
 }
+
+// GetRules 获取规则
+func (c *TimeEngine) GetRules() []*TimeEngineRule {
+	if c == nil {
+		return nil
+	}
+	return c.Rules
+}
+
+// GetStatus 获取状态
+func (c *TimeEngine) GetStatus() vobj.Status {
+	if c == nil {
+		return vobj.StatusUnknown
+	}
+	return c.Status
+}
+
+// GetName 获取名称
+func (c *TimeEngine) GetName() string {
+	if c == nil {
+		return ""
+	}
+	return c.Name
+}
+
+// GetRemark 获取备注
+func (c *TimeEngine) GetRemark() string {
+	if c == nil {
+		return ""
+	}
+	return c.Remark
+}

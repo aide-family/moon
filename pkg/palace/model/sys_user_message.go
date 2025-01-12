@@ -39,3 +39,51 @@ func (c *SysUserMessage) MarshalBinary() (data []byte, err error) {
 func (*SysUserMessage) TableName() string {
 	return tableNameSysUserMessage
 }
+
+// GetContent get content
+func (c *SysUserMessage) GetContent() string {
+	if types.IsNil(c) {
+		return ""
+	}
+	return c.Content
+}
+
+// GetCategory get category
+func (c *SysUserMessage) GetCategory() vobj.UserMessageType {
+	if types.IsNil(c) {
+		return vobj.UserMessageTypeUnknown
+	}
+	return c.Category
+}
+
+// GetUserID get user id
+func (c *SysUserMessage) GetUserID() uint32 {
+	if types.IsNil(c) {
+		return 0
+	}
+	return c.UserID
+}
+
+// GetBiz get biz
+func (c *SysUserMessage) GetBiz() vobj.BizType {
+	if types.IsNil(c) {
+		return vobj.BizTypeUnknown
+	}
+	return c.Biz
+}
+
+// GetBizID get biz id
+func (c *SysUserMessage) GetBizID() uint32 {
+	if types.IsNil(c) {
+		return 0
+	}
+	return c.BizID
+}
+
+// GetUser get user
+func (c *SysUserMessage) GetUser() *SysUser {
+	if types.IsNil(c) {
+		return nil
+	}
+	return c.User
+}

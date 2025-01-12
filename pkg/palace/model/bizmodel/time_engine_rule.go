@@ -96,3 +96,43 @@ func (c *TimeEngineRule) getRule() []int {
 	}
 	return nums
 }
+
+// GetName 获取规则名称
+func (c *TimeEngineRule) GetName() string {
+	if c == nil {
+		return ""
+	}
+	return c.Name
+}
+
+// GetRemark 获取备注
+func (c *TimeEngineRule) GetRemark() string {
+	if c == nil {
+		return ""
+	}
+	return c.Remark
+}
+
+// GetStatus 获取状态
+func (c *TimeEngineRule) GetStatus() vobj.Status {
+	if c == nil {
+		return vobj.StatusUnknown
+	}
+	return c.Status
+}
+
+// GetCategory 获取规则类型
+func (c *TimeEngineRule) GetCategory() vobj.TimeEngineRuleType {
+	if c == nil {
+		return vobj.TimeEngineRuleTypeUnknown
+	}
+	return c.Category
+}
+
+// GetRule 获取规则
+func (c *TimeEngineRule) GetRule() string {
+	if c == nil {
+		return ""
+	}
+	return c.Rule
+}

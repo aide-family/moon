@@ -44,3 +44,27 @@ func (c *SysTeamMember) MarshalBinary() (data []byte, err error) {
 func (*SysTeamMember) TableName() string {
 	return tableNameSysTeamMember
 }
+
+// GetTeamRoles 获取团队角色
+func (c *SysTeamMember) GetTeamRoles() []*SysTeamRole {
+	if c == nil {
+		return nil
+	}
+	return c.TeamRoles
+}
+
+// GetStatus 获取状态
+func (c *SysTeamMember) GetStatus() vobj.Status {
+	if c == nil {
+		return vobj.StatusUnknown
+	}
+	return c.Status
+}
+
+// GetRole 获取角色
+func (c *SysTeamMember) GetRole() vobj.Role {
+	if c == nil {
+		return vobj.RoleAll
+	}
+	return c.Role
+}
