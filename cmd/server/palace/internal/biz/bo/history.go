@@ -18,6 +18,7 @@ type (
 		ResolvedAtStart string
 		ResolvedAtEnd   string
 		AlarmPage       uint32
+		StrategyIds     []uint32
 	}
 
 	// GetAlarmHistoryParams 获取告警告警历史参数

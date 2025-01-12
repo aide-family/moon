@@ -5,6 +5,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
 // Strategy 策略管理接口
@@ -41,4 +42,7 @@ type Strategy interface {
 
 	// Sync 同步策略
 	Sync(ctx context.Context, id uint32) error
+
+	// GetStrategyCategories 获取策略分类
+	GetStrategyCategories(context.Context, []uint32, []vobj.StrategyType) ([]*bizmodel.StrategyCategories, error)
 }

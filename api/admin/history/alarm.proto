@@ -57,6 +57,8 @@ message ListHistoryRequest {
   string recoverAtEnd = 7;
   // 告警页面
   uint32 alarmPage = 8;
+  // 策略id
+  repeated uint32 strategyIds = 9;
 }
 message ListHistoryReply {
   // 告警历史记录列表

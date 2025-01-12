@@ -129,6 +129,10 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistories(ctx context.Context, para
 		wheres = append(wheres, alarmQuery.AlarmHistory.EndsAt.Between(param.ResolvedAtStart, param.ResolvedAtEnd))
 	}
 
+	if len(param.StrategyIds) > 0 {
+		wheres = append(wheres, alarmQuery.AlarmHistory.StrategyID.In(param.StrategyIds...))
+	}
+
 	bizWrapper = bizWrapper.Where(wheres...)
 	if bizWrapper, err = types.WithPageQuery(bizWrapper, param.Page); err != nil {
 		return nil, err
@@ -153,6 +157,7 @@ func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModels(param *bo.Create
 			Labels:      labels,
 			Annotations: annotations,
 			RawInfoID:   param.GetRawInfoID(alarmParam.Fingerprint),
+			StrategyID:  strategy.ID,
 		}
 	})
 	return historyList
