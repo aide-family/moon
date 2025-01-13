@@ -586,5 +586,5 @@ message GetSelectStrategyIdsRequest  {
 
 // 获取策略类别
 message GetSelectStrategyIdsReply {
-  repeated uint32 strategyIds = 1;
+  StrategyIdsItem detail = 1;
 }

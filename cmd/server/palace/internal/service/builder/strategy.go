@@ -16,6 +16,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
@@ -44,6 +45,8 @@ type (
 		WithCreateStrategyRequest(*strategyapi.CreateStrategyRequest) ICreateStrategyRequestBuilder
 		// WithUpdateStrategyRequest 设置更新策略请求参数
 		WithUpdateStrategyRequest(*strategyapi.UpdateStrategyRequest) IUpdateStrategyRequestBuilder
+
+		WithGetStrategyIdsRequestBuilder(request *strategyapi.GetSelectStrategyIdsRequest) IGetStrategyIdsRequestBuilder
 		// WithListStrategyRequest 设置获取策略列表请求参数
 		WithListStrategyRequest(*strategyapi.ListStrategyRequest) IListStrategyRequestBuilder
 		// WithUpdateStrategyStatusRequest 设置更新策略状态请求参数
@@ -54,6 +57,8 @@ type (
 		DoStrategyLevelBuilder() IDoStrategyLevelBuilder
 		// DoStrategyLevelsBuilder 策略等级条目构造器
 		DoStrategyLevelsBuilder() IDoStrategyLevelsBuilder
+		// DoGetStrategyIdsBuilder 获取策略ID构造器
+		DoGetStrategyIdsBuilder() IDoGetStrategyIdsBuilder
 		// WithCreateTemplateStrategyRequest 设置创建模板策略请求参数
 		WithCreateTemplateStrategyRequest(*strategyapi.CreateTemplateStrategyRequest) ICreateTemplateStrategyRequestBuilder
 		// WithUpdateTemplateStrategyRequest 设置更新模板策略请求参数
@@ -160,6 +165,16 @@ type (
 	listStrategyRequestBuilder struct {
 		ctx context.Context
 		*strategyapi.ListStrategyRequest
+	}
+
+	// IGetStrategyIdsRequestBuilder 获取策略ID列表请求参数构造器
+	IGetStrategyIdsRequestBuilder interface {
+		ToBo() *bo.GetStrategyIdsParams
+	}
+
+	getStrategyIdsRequestBuilder struct {
+		ctx context.Context
+		*strategyapi.GetSelectStrategyIdsRequest
 	}
 
 	// IUpdateStrategyStatusRequestBuilder 更新策略状态请求参数构造器
@@ -388,6 +403,16 @@ type (
 		ctx context.Context
 	}
 
+	IDoGetStrategyIdsBuilder interface {
+		// ToBo 转换为业务对象
+		ToBo([]*bizmodel.StrategyCategories) *adminapi.StrategyIdsItem
+	}
+
+	doGetStrategyIdsBuilder struct {
+		ctx                context.Context
+		StrategyCategories []*bizmodel.StrategyCategories
+	}
+
 	// IBoStrategyBuilder 策略业务对象构造器
 	IBoStrategyBuilder interface {
 		// ToAPI 转换为API对象
@@ -398,6 +423,47 @@ type (
 		ctx context.Context
 	}
 )
+
+func (d doGetStrategyIdsBuilder) ToBo(categories []*bizmodel.StrategyCategories) *adminapi.StrategyIdsItem {
+	if types.IsNil(d) || types.IsNil(categories) {
+		return nil
+	}
+	strategyIds := types.SliceTo(categories, func(item *bizmodel.StrategyCategories) uint32 {
+		return item.StrategyID
+	})
+
+	// 去重
+	strategyIds = types.SliceUnique(strategyIds)
+	return &adminapi.StrategyIdsItem{
+		StrategyIds: strategyIds,
+	}
+}
+
+func (s *strategyModuleBuilder) DoGetStrategyIdsBuilder() IDoGetStrategyIdsBuilder {
+	return &doGetStrategyIdsBuilder{
+		ctx: s.ctx,
+	}
+}
+
+func (g *getStrategyIdsRequestBuilder) ToBo() *bo.GetStrategyIdsParams {
+	if types.IsNil(g) || types.IsNil(g.GetSelectStrategyIdsRequest) {
+		return nil
+	}
+	request := g.GetSelectStrategyIdsRequest
+	return &bo.GetStrategyIdsParams{
+		StrategyTypes: types.SliceTo(request.GetTypes(), func(item api.StrategyType) vobj.StrategyType {
+			return vobj.StrategyType(item)
+		}),
+		Ids: g.GetIds(),
+	}
+}
+
+func (s *strategyModuleBuilder) WithGetStrategyIdsRequestBuilder(request *strategyapi.GetSelectStrategyIdsRequest) IGetStrategyIdsRequestBuilder {
+	return &getStrategyIdsRequestBuilder{
+		ctx:                         s.ctx,
+		GetSelectStrategyIdsRequest: request,
+	}
+}
 
 func (d *doStrategyLevelsBuilder) ToPingAPI(strategy *bizmodel.Strategy, level *bizmodel.StrategyPingLevel) *api.PingStrategyItem {
 	if types.IsNil(strategy) || types.IsNil(level) || types.IsNil(d) {

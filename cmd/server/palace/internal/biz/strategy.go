@@ -10,7 +10,6 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
-	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
@@ -136,9 +135,9 @@ func (b *StrategyBiz) SyncStrategy(ctx context.Context, id uint32) error {
 	return b.strategyRepo.Sync(ctx, id)
 }
 
-// GetStrategyCategories 获取策略分类下的策略ID
-func (b *StrategyBiz) GetStrategyCategories(ctx context.Context, ids []uint32, strategyTypes []vobj.StrategyType) ([]*bizmodel.StrategyCategories, error) {
-	categories, err := b.strategyRepo.GetStrategyCategories(ctx, ids, strategyTypes)
+// GetStrategyIds 获取策略Ids
+func (b *StrategyBiz) GetStrategyIds(ctx context.Context, param *bo.GetStrategyIdsParams) ([]*bizmodel.StrategyCategories, error) {
+	categories, err := b.strategyRepo.GetStrategyIds(ctx, param)
 	if types.IsNotNil(err) {
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
