@@ -85,7 +85,7 @@ type (
 		// ToAPIs 转换为API对象列表
 		ToAPIs([]*bizmodel.StrategySubscriber) []*adminapi.StrategySubscriberItem
 		// ToStrategies 转换为策略对象列表
-		ToStrategies([]*bizmodel.StrategySubscriber) []*adminapi.StrategyItem
+		ToStrategies([]*bizmodel.StrategySubscriber) []*adminapi.SubscriberStrategyItem
 	}
 
 	doSubscriberBuilder struct {
@@ -115,17 +115,20 @@ func (d *doSubscriberBuilder) ToAPIs(subscribers []*bizmodel.StrategySubscriber)
 	})
 }
 
-func (d *doSubscriberBuilder) ToStrategies(subscribers []*bizmodel.StrategySubscriber) []*adminapi.StrategyItem {
+func (d *doSubscriberBuilder) ToStrategies(subscribers []*bizmodel.StrategySubscriber) []*adminapi.SubscriberStrategyItem {
 	if types.IsNil(subscribers) || types.IsNil(d) {
 		return nil
 	}
 
-	return types.SliceToWithFilter(subscribers, func(subscriber *bizmodel.StrategySubscriber) (*adminapi.StrategyItem, bool) {
+	return types.SliceToWithFilter(subscribers, func(subscriber *bizmodel.StrategySubscriber) (*adminapi.SubscriberStrategyItem, bool) {
 		if types.IsNil(subscriber.Strategy) {
 			return nil, false
 		}
 		strategyInfo := subscriber.Strategy
-		return NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategyInfo), true
+		return &adminapi.SubscriberStrategyItem{
+			NotifyType: api.NotifyType(subscriber.GetAlarmNoticeType()),
+			Strategy:   NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategyInfo),
+		}, true
 	})
 }
 

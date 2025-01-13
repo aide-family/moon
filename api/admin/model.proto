@@ -396,7 +396,7 @@ message StrategyItem {
   string name = 1;
   // 策略语句
   string expr = 2;
-   // 策略类型
+  // 策略类型
   StrategyType strategyType = 3;
   // 策略标签
   map<string, string> labels = 6;
@@ -439,6 +439,13 @@ message StrategyItem {
   repeated StrategyHTTPLevelItem httpLevels = 24;
   // 域名监控策略
   repeated StrategyDomainLevelItem domainLevels = 25;
+}
+
+message SubscriberStrategyItem {
+  // 通知方式
+  NotifyType notifyType = 1;
+  // 策略
+  StrategyItem strategy = 2;
 }
 
 message StrategyGroupItem {

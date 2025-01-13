@@ -81,7 +81,7 @@ message UserSubscriberListRequest {
 // 用户订阅策略列表
 message UserSubscriberListReply {
   // 订阅的告警策略
-  repeated StrategyItem strategies = 1;
+  repeated SubscriberStrategyItem list = 1;
   // 分页信息
   PaginationReply pagination = 2;
 }
