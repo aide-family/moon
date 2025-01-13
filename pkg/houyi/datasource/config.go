@@ -18,14 +18,44 @@ var (
 // Config 数据源配置
 type Config struct {
 	datasourceConfig map[string]any
+	conf             string
 }
+
+type (
+	// MetricConfig 指标数据源配置
+	MetricConfig struct {
+		ClientCert string                `json:"clientCert"`
+		ClientKey  string                `json:"clientKey"`
+		Headers    []*MetricConfigHeader `json:"headers"`
+		Params     []*MetricConfigParams `json:"params"`
+		Password   string                `json:"password"`
+		SelfCACert string                `json:"selfCACert"`
+		ServerName string                `json:"serverName"`
+		SkipVerify bool                  `json:"skipVerify"`
+		Username   string                `json:"username"`
+	}
+
+	// MetricConfigHeader 指标数据源配置-请求头参数
+	MetricConfigHeader struct {
+		Key   string `json:"key"`
+		Value string `json:"value"`
+	}
+
+	// MetricConfigParams 指标数据源配置-请求参数
+	MetricConfigParams struct {
+		Key   string `json:"key"`
+		Value string `json:"value"`
+	}
+)
 
 // Scan 实现 sql.Scanner 接口
 func (d *Config) Scan(src any) (err error) {
 	switch s := src.(type) {
 	case []byte:
+		d.conf = string(s)
 		err = types.Unmarshal(s, &d.datasourceConfig)
 	case string:
+		d.conf = s
 		err = types.Unmarshal([]byte(s), &d.datasourceConfig)
 	default:
 		err = label.ErrUnsupportedType
@@ -80,7 +110,7 @@ func (d *Config) GetRocketMQ() *conf.RocketMQ {
 	if d == nil || d.datasourceConfig == nil {
 		return config
 	}
-	_ = json.Unmarshal([]byte(d.String()), config)
+	_ = json.Unmarshal([]byte(d.conf), config)
 	return config
 }
 
@@ -90,7 +120,7 @@ func (d *Config) GetMQTT() *conf.MQTT {
 	if d == nil || d.datasourceConfig == nil {
 		return config
 	}
-	_ = json.Unmarshal([]byte(d.String()), config)
+	_ = json.Unmarshal([]byte(d.conf), config)
 	return config
 }
 
@@ -100,6 +130,16 @@ func (d *Config) GetKafka() *conf.Kafka {
 	if d == nil || d.datasourceConfig == nil {
 		return config
 	}
-	_ = json.Unmarshal([]byte(d.String()), config)
+	_ = json.Unmarshal([]byte(d.conf), config)
+	return config
+}
+
+// GetMetric 获取指标数据源配置
+func (d *Config) GetMetric() *MetricConfig {
+	config := &MetricConfig{}
+	if d == nil || d.datasourceConfig == nil {
+		return config
+	}
+	_ = json.Unmarshal([]byte(d.conf), config)
 	return config
 }
