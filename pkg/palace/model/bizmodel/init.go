@@ -32,5 +32,6 @@ func Models() []any {
 		&TimeEngine{},
 		&StrategyLevel{},
 		&SysSendTemplate{},
+		&StrategyCategories{},
 	}
 }

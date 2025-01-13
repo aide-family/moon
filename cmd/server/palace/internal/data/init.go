@@ -1541,6 +1541,13 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
+	{
+		Name:   "获取策略id",
+		Path:   "/api.admin.strategy.Strategy/GetSelectStrategyIds",
+		Remark: "获取策略id(策略类型、策略类别获取)",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
 }
 
 //go:embed sendtemplate/send_dingtalk.tpl

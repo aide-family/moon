@@ -243,3 +243,16 @@ func (s *Service) PushStrategy(ctx context.Context, req *strategyapi.PushStrateg
 	}
 	return &strategyapi.PushStrategyReply{}, nil
 }
+
+// GetSelectStrategyIds 获取策略ids
+func (s *Service) GetSelectStrategyIds(ctx context.Context, req *strategyapi.GetSelectStrategyIdsRequest) (*strategyapi.GetSelectStrategyIdsReply, error) {
+	params := builder.NewParamsBuild(ctx).StrategyModuleBuilder().WithGetStrategyIdsRequestBuilder(req).ToBo()
+	categories, err := s.strategyBiz.GetStrategyIds(ctx, params)
+	if types.IsNotNil(err) {
+		return nil, err
+	}
+
+	return &strategyapi.GetSelectStrategyIdsReply{
+		Detail: builder.NewParamsBuild(ctx).StrategyModuleBuilder().DoGetStrategyIdsBuilder().ToBo(categories),
+	}, nil
+}

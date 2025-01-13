@@ -37,6 +37,41 @@ type strategyRepositoryImpl struct {
 	data *data.Data
 }
 
+func (s *strategyRepositoryImpl) GetStrategyIds(ctx context.Context, param *bo.GetStrategyIdsParams) ([]*bizmodel.StrategyCategories, error) {
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if types.IsNotNil(err) {
+		return nil, err
+	}
+	bizWrapper := bizQuery.WithContext(ctx).StrategyCategories
+	categoriesIds := param.Ids
+	strategyTypes := param.StrategyTypes
+	// 条件 1: categoriesIds
+	if len(categoriesIds) > 0 {
+		bizWrapper = bizWrapper.Where(bizQuery.StrategyCategories.SysDictID.In(categoriesIds...))
+	}
+
+	// 条件 2: strategyTypes
+	if len(strategyTypes) > 0 {
+		typeValues := types.SliceTo(strategyTypes, func(item vobj.StrategyType) int {
+			return item.GetValue()
+		})
+		// 使用子查询获取满足条件的 strategyIds
+		strategies, err := bizQuery.WithContext(ctx).Strategy.Where(bizQuery.Strategy.StrategyType.In(typeValues...)).Find()
+
+		if types.IsNotNil(err) {
+			return nil, err
+		}
+
+		if len(strategies) > 0 {
+			strategyIds := types.SliceTo(strategies, func(item *bizmodel.Strategy) uint32 {
+				return item.ID
+			})
+			bizWrapper = bizWrapper.Where(bizQuery.StrategyCategories.StrategyID.In(strategyIds...))
+		}
+	}
+	return bizWrapper.Find()
+}
+
 func (s *strategyRepositoryImpl) Sync(ctx context.Context, id uint32) error {
 	s.syncStrategiesByIds(ctx, id)
 	return nil

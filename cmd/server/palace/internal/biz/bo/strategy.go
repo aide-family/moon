@@ -253,6 +253,14 @@ type (
 		// 告警组
 		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
 	}
+
+	// GetStrategyIdsParams 获取策略ids参数
+	GetStrategyIdsParams struct {
+		// 策略类目ids
+		Ids []uint32 `json:"ids"`
+		// 策略类型
+		StrategyTypes []vobj.StrategyType `json:"strategyTypes"`
+	}
 )
 
 // GetStrategyCountMap 获取策略总数
