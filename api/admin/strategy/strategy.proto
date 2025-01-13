@@ -584,7 +584,7 @@ message GetSelectStrategyIdsRequest  {
   repeated StrategyType types = 2;
 }
 
-// 获取策略类别
+// 获取策略ids
 message GetSelectStrategyIdsReply {
   StrategyIdsItem detail = 1;
 }

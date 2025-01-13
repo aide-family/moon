@@ -45,7 +45,7 @@ type (
 		WithCreateStrategyRequest(*strategyapi.CreateStrategyRequest) ICreateStrategyRequestBuilder
 		// WithUpdateStrategyRequest 设置更新策略请求参数
 		WithUpdateStrategyRequest(*strategyapi.UpdateStrategyRequest) IUpdateStrategyRequestBuilder
-
+		// WithGetStrategyIdsRequestBuilder 设置获取策略ID列表请求参数
 		WithGetStrategyIdsRequestBuilder(request *strategyapi.GetSelectStrategyIdsRequest) IGetStrategyIdsRequestBuilder
 		// WithListStrategyRequest 设置获取策略列表请求参数
 		WithListStrategyRequest(*strategyapi.ListStrategyRequest) IListStrategyRequestBuilder

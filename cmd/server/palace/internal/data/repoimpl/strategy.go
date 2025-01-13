@@ -55,9 +55,9 @@ func (s *strategyRepositoryImpl) GetStrategyIds(ctx context.Context, param *bo.G
 		typeValues := types.SliceTo(strategyTypes, func(item vobj.StrategyType) int {
 			return item.GetValue()
 		})
-
 		// 使用子查询获取满足条件的 strategyIds
 		strategies, err := bizQuery.WithContext(ctx).Strategy.Where(bizQuery.Strategy.StrategyType.In(typeValues...)).Find()
+
 		if types.IsNotNil(err) {
 			return nil, err
 		}
@@ -69,7 +69,6 @@ func (s *strategyRepositoryImpl) GetStrategyIds(ctx context.Context, param *bo.G
 			bizWrapper = bizWrapper.Where(bizQuery.StrategyCategories.StrategyID.In(strategyIds...))
 		}
 	}
-
 	return bizWrapper.Find()
 }
 
