@@ -441,6 +441,13 @@ message StrategyItem {
   repeated StrategyDomainLevelItem domainLevels = 25;
 }
 
+message SubscriberStrategyItem {
+  // 通知方式
+  NotifyType notifyType = 1;
+  // 策略
+  StrategyItem strategy = 2;
+}
+
 message StrategyGroupItem {
   // 策略组ID
   uint32 id = 1;

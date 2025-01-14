@@ -2,6 +2,7 @@ package repoimpl
 
 import (
 	"context"
+	"gorm.io/gorm/clause"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
@@ -32,7 +33,7 @@ func (s *subscriberStrategyRepository) UserSubscriberStrategy(ctx context.Contex
 		return err
 	}
 	subscriberModel := createSubscriberStrategyToModel(ctx, params)
-	return bizQuery.StrategySubscriber.Create(subscriberModel)
+	return bizQuery.StrategySubscriber.Clauses(clause.OnConflict{UpdateAll: true}).Create(subscriberModel)
 }
 
 func (s *subscriberStrategyRepository) UserUnSubscriberStrategy(ctx context.Context, params *bo.UnSubscriberStrategyParams) error {
@@ -60,7 +61,13 @@ func (s *subscriberStrategyRepository) UserSubscriberStrategyList(ctx context.Co
 	}
 	wheres = append(wheres, bizQuery.StrategySubscriber.UserID.Eq(params.UserID))
 
-	bizWrapper = bizWrapper.Where(wheres...).Preload(field.Associations)
+	bizWrapper = bizWrapper.Where(wheres...).
+		Preload(field.Associations).
+		Preload(
+			bizQuery.StrategySubscriber.Strategy.Categories,
+			bizQuery.StrategySubscriber.Strategy.Datasource,
+			bizQuery.StrategySubscriber.Strategy.Group,
+		)
 
 	if bizWrapper, err = types.WithPageQuery(bizWrapper, params.Page); err != nil {
 		return nil, err

@@ -47,7 +47,7 @@ func (s *Service) UserSubscriberList(ctx context.Context, req *sbscriberapi.User
 	}
 	return &sbscriberapi.UserSubscriberListReply{
 		Pagination: builder.NewParamsBuild(ctx).PaginationModuleBuilder().ToAPI(param.Page),
-		Strategies: builder.NewParamsBuild(ctx).SubscriberModuleBuilder().DoSubscriberBuilder().ToStrategies(strategyList),
+		List:       builder.NewParamsBuild(ctx).SubscriberModuleBuilder().DoSubscriberBuilder().ToStrategies(strategyList),
 	}, nil
 }
 
