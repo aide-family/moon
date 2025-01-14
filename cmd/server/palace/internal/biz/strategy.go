@@ -137,9 +137,20 @@ func (b *StrategyBiz) SyncStrategy(ctx context.Context, id uint32) error {
 
 // GetStrategyIds 获取策略Ids
 func (b *StrategyBiz) GetStrategyIds(ctx context.Context, param *bo.GetStrategyIdsParams) ([]*bizmodel.StrategyCategories, error) {
+	err := b.checkGetStrategyIdsParams(ctx, param)
+	if types.IsNotNil(err) {
+		return nil, err
+	}
 	categories, err := b.strategyRepo.GetStrategyIds(ctx, param)
 	if types.IsNotNil(err) {
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
 	return categories, nil
+}
+
+func (b *StrategyBiz) checkGetStrategyIdsParams(ctx context.Context, param *bo.GetStrategyIdsParams) error {
+	if len(param.Ids) == 0 && len(param.StrategyTypes) == 0 {
+		return merr.ErrorI18nParameterRelated(ctx)
+	}
+	return nil
 }

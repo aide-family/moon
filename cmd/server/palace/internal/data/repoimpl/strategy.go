@@ -45,6 +45,7 @@ func (s *strategyRepositoryImpl) GetStrategyIds(ctx context.Context, param *bo.G
 	bizWrapper := bizQuery.WithContext(ctx).StrategyCategories
 	categoriesIds := param.Ids
 	strategyTypes := param.StrategyTypes
+
 	// 条件 1: categoriesIds
 	if len(categoriesIds) > 0 {
 		bizWrapper = bizWrapper.Where(bizQuery.StrategyCategories.SysDictID.In(categoriesIds...))
@@ -57,7 +58,6 @@ func (s *strategyRepositoryImpl) GetStrategyIds(ctx context.Context, param *bo.G
 		})
 		// 使用子查询获取满足条件的 strategyIds
 		strategies, err := bizQuery.WithContext(ctx).Strategy.Where(bizQuery.Strategy.StrategyType.In(typeValues...)).Find()
-
 		if types.IsNotNil(err) {
 			return nil, err
 		}
@@ -66,9 +66,21 @@ func (s *strategyRepositoryImpl) GetStrategyIds(ctx context.Context, param *bo.G
 			strategyIds := types.SliceTo(strategies, func(item *bizmodel.Strategy) uint32 {
 				return item.ID
 			})
-			bizWrapper = bizWrapper.Where(bizQuery.StrategyCategories.StrategyID.In(strategyIds...))
+
+			// 合并两个条件
+			if len(categoriesIds) > 0 && len(strategyIds) > 0 {
+				bizWrapper = bizWrapper.Where(bizQuery.StrategyCategories.SysDictID.In(categoriesIds...), bizQuery.StrategyCategories.StrategyID.In(strategyIds...))
+			} else if len(categoriesIds) > 0 {
+				bizWrapper = bizWrapper.Where(bizQuery.StrategyCategories.SysDictID.In(categoriesIds...))
+			} else if len(strategyIds) > 0 {
+				bizWrapper = bizWrapper.Where(bizQuery.StrategyCategories.StrategyID.In(strategyIds...))
+			}
+		} else {
+			// 如果没有找到任何 strategy，直接返回空的结果集
+			return []*bizmodel.StrategyCategories{}, nil
 		}
 	}
+
 	return bizWrapper.Find()
 }
 
