@@ -383,7 +383,7 @@ enum ErrorReason {
     },
     (errors.biz_reason) = {
       reason: "SEND_TEMPLATE_NAME_EXIST"
-      message: "发送模板名称{%s}已经存在!",
+      message: "发送模板名称【%s】已经存在!",
       metadata: {key: "type", value: "SEND_TEMPLATE_NAME_EXIST"}
     }
   ];
