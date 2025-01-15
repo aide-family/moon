@@ -24,9 +24,9 @@ type sendTemplateRepositoryImpl struct {
 	data *data.Data
 }
 
-func (s *sendTemplateRepositoryImpl) GetTemplateInfoByName(ctx context.Context, name string) (imodel.ISendTemplate, error) {
+func (s *sendTemplateRepositoryImpl) GetTemplateInfoByName(ctx context.Context, name string, sendType vobj.AlarmSendType) (imodel.ISendTemplate, error) {
 	mainQuery := query.Use(s.data.GetMainDB(ctx))
-	return mainQuery.SysSendTemplate.WithContext(ctx).Where(mainQuery.SysSendTemplate.Name.Eq(name)).First()
+	return mainQuery.SysSendTemplate.WithContext(ctx).Where(mainQuery.SysSendTemplate.Name.Eq(name), mainQuery.SysSendTemplate.SendType.Eq(sendType.GetValue())).First()
 }
 
 func (s *sendTemplateRepositoryImpl) Create(ctx context.Context, params *bo.CreateSendTemplate) error {
@@ -38,7 +38,13 @@ func (s *sendTemplateRepositoryImpl) Create(ctx context.Context, params *bo.Crea
 func (s *sendTemplateRepositoryImpl) UpdateByID(ctx context.Context, params *bo.UpdateSendTemplate) error {
 	mainQuery := query.Use(s.data.GetMainDB(ctx))
 	templateModel := createSendTemplateParamToModel(ctx, params.UpdateParam)
-	_, err := mainQuery.SysSendTemplate.WithContext(ctx).Update(mainQuery.SysSendTemplate.ID.Eq(params.ID), templateModel)
+	_, err := mainQuery.SysSendTemplate.WithContext(ctx).Where(mainQuery.SysSendTemplate.ID.Eq(params.ID)).UpdateSimple(
+		mainQuery.SysSendTemplate.Name.Value(templateModel.Name),
+		mainQuery.SysSendTemplate.Content.Value(templateModel.Content),
+		mainQuery.SysSendTemplate.SendType.Value(templateModel.SendType.GetValue()),
+		mainQuery.SysSendTemplate.Status.Value(templateModel.Status.GetValue()),
+		mainQuery.SysSendTemplate.Remark.Value(templateModel.Remark),
+	)
 	return err
 }
 

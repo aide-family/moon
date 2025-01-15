@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/imodel"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
@@ -40,9 +41,8 @@ func (b *SendTemplateBiz) getSendTemplateRepo(ctx context.Context) repository.Se
 // CreateSendTemplate 创建告警发送模板
 func (b *SendTemplateBiz) CreateSendTemplate(ctx context.Context, param *bo.CreateSendTemplate) error {
 	// 校验名称是否存在
-	isExist := b.templateNameIsExist(ctx, param.Name)
-	if isExist {
-		return merr.ErrorI18nToastSendTemplateNameExist(ctx, param.Name)
+	if err := b.templateNameIsExist(ctx, param.Name, param.SendType); types.IsNotNil(err) {
+		return err
 	}
 	if err := b.getSendTemplateRepo(ctx).Create(ctx, param); types.IsNotNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
@@ -52,6 +52,11 @@ func (b *SendTemplateBiz) CreateSendTemplate(ctx context.Context, param *bo.Crea
 
 // UpdateSendTemplate 获取告警发送模板
 func (b *SendTemplateBiz) UpdateSendTemplate(ctx context.Context, param *bo.UpdateSendTemplate) error {
+	temp := param.UpdateParam
+	// 校验名称是否存在
+	if err := b.templateNameIsExist(ctx, temp.Name, temp.SendType, param.ID); types.IsNotNil(err) {
+		return err
+	}
 	if err := b.getSendTemplateRepo(ctx).UpdateByID(ctx, param); types.IsNotNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
@@ -96,13 +101,16 @@ func (b *SendTemplateBiz) DeleteSendTemplate(ctx context.Context, ID uint32) err
 }
 
 // templateNameIsExist 模板名称是否存在
-func (b *SendTemplateBiz) templateNameIsExist(ctx context.Context, name string) bool {
-	template, err := b.getSendTemplateRepo(ctx).GetTemplateInfoByName(ctx, name)
+func (b *SendTemplateBiz) templateNameIsExist(ctx context.Context, name string, sendType vobj.AlarmSendType, id ...uint32) error {
+	template, err := b.getSendTemplateRepo(ctx).GetTemplateInfoByName(ctx, name, sendType)
 	if types.IsNotNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false
+			return nil
 		}
-		panic(err)
+		return err
 	}
-	return types.IsNotNil(template)
+	if types.IsNotNil(template) && (len(id) == 0 || template.GetID() != id[0]) {
+		return merr.ErrorI18nToastSendTemplateNameExist(ctx, name)
+	}
+	return nil
 }

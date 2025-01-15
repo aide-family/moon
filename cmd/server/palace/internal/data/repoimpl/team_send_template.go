@@ -43,12 +43,12 @@ func (t *teamSendTemplateRepoImpl) sync(ctx context.Context) {
 	}()
 }
 
-func (t *teamSendTemplateRepoImpl) GetTemplateInfoByName(ctx context.Context, name string) (imodel.ISendTemplate, error) {
+func (t *teamSendTemplateRepoImpl) GetTemplateInfoByName(ctx context.Context, name string, sendType vobj.AlarmSendType) (imodel.ISendTemplate, error) {
 	bizQuery, err := getBizQuery(ctx, t.data)
 	if err != nil {
 		return nil, err
 	}
-	return bizQuery.WithContext(ctx).SysSendTemplate.Where(bizQuery.SysSendTemplate.Name.Eq(name)).First()
+	return bizQuery.WithContext(ctx).SysSendTemplate.Where(bizQuery.SysSendTemplate.Name.Eq(name), bizQuery.SysSendTemplate.SendType.Eq(sendType.GetValue())).First()
 }
 
 func (t *teamSendTemplateRepoImpl) Create(ctx context.Context, params *bo.CreateSendTemplate) error {
@@ -72,7 +72,14 @@ func (t *teamSendTemplateRepoImpl) UpdateByID(ctx context.Context, params *bo.Up
 	id := params.ID
 	param := params.UpdateParam
 	sendTemplateModel := createTeamSendTemplateParamToModel(ctx, param)
-	if _, err = bizQuery.WithContext(ctx).SysSendTemplate.Where(bizQuery.SysSendTemplate.ID.Eq(id)).Updates(sendTemplateModel); err != nil {
+	_, err = bizQuery.WithContext(ctx).SysSendTemplate.Where(bizQuery.SysSendTemplate.ID.Eq(id)).UpdateSimple(
+		bizQuery.SysSendTemplate.Name.Value(sendTemplateModel.Name),
+		bizQuery.SysSendTemplate.Content.Value(sendTemplateModel.Content),
+		bizQuery.SysSendTemplate.SendType.Value(sendTemplateModel.SendType.GetValue()),
+		bizQuery.SysSendTemplate.Status.Value(sendTemplateModel.Status.GetValue()),
+		bizQuery.SysSendTemplate.Remark.Value(sendTemplateModel.Remark),
+	)
+	if err != nil {
 		return err
 	}
 	t.sync(ctx)

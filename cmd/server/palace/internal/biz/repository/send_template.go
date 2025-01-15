@@ -5,6 +5,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/palace/imodel"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
 type (
@@ -23,6 +24,6 @@ type (
 		// GetByID 根据ID查询告警发送模板
 		GetByID(ctx context.Context, id uint32) (imodel.ISendTemplate, error)
 		// GetTemplateInfoByName 根据名称查询告警发送模板
-		GetTemplateInfoByName(ctx context.Context, name string) (imodel.ISendTemplate, error)
+		GetTemplateInfoByName(ctx context.Context, name string, sendType vobj.AlarmSendType) (imodel.ISendTemplate, error)
 	}
 )
