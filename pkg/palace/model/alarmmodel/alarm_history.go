@@ -38,6 +38,8 @@ type AlarmHistory struct {
 	RawInfoID uint32 `gorm:"column:raw_info_id;type:int;comment:告警原始数据id;uniqueIndex:idx__history__notice__raw_info_id,priority:1" json:"rawInfoId"`
 	// 附加信息
 	HistoryDetails *HistoryDetails `gorm:"foreignKey:AlarmHistoryID;comment:附加信息"`
+	// 告警原始数据
+	RawInfo *AlarmRaw `gorm:"foreignKey:RawInfoID;comment:告警原始数据"`
 }
 
 // String json string
@@ -71,4 +73,12 @@ func (a *AlarmHistory) GetHistoryDetails() *HistoryDetails {
 		return &HistoryDetails{}
 	}
 	return a.HistoryDetails
+}
+
+// GetRawInfo 获取告警原始数据
+func (a *AlarmHistory) GetRawInfo() *AlarmRaw {
+	if types.IsNil(a) || types.IsNil(a.RawInfo) {
+		return &AlarmRaw{}
+	}
+	return a.RawInfo
 }

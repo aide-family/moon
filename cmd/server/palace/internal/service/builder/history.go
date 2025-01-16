@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 var _ IAlarmHistoryModuleBuilder = (*alarmHistoryModuleBuilder)(nil)
@@ -72,17 +73,21 @@ func (a *doAlarmHistoryBuilder) ToAPI(history *alarmmodel.AlarmHistory) *admin.A
 		StartsAt:    history.StartsAt,
 		EndsAt:      history.EndsAt,
 		AlertStatus: api.AlertStatus(history.AlertStatus),
-		MetricLevel: nil,
 		Strategy:    nil,
 		Description: history.Description,
 		Expr:        history.Expr,
 		Datasource:  nil,
 		Fingerprint: history.Fingerprint,
-		RawInfo:     "",
+		RawInfo:     history.GetRawInfo().RawInfo,
 		Labels:      history.Labels.Map(),
 		Annotations: history.Annotations.Map(),
 		Summary:     history.Summary,
 		Duration:    types.NewTimeByString(endAt).Sub(types.NewTimeByString(history.StartsAt).Time).String(),
+		MetricLevel: nil,
+		EventLevel:  nil,
+		PortLevel:   nil,
+		HttpLevel:   nil,
+		DomainLevel: nil,
 	}
 
 	details := history.HistoryDetails
@@ -95,9 +100,30 @@ func (a *doAlarmHistoryBuilder) ToAPI(history *alarmmodel.AlarmHistory) *admin.A
 		_ = strategy.UnmarshalBinary([]byte(details.Strategy))
 		resItem.Strategy = NewParamsBuild(a.ctx).StrategyModuleBuilder().DoStrategyBuilder().ToAPI(strategy)
 
-		level := &bizmodel.StrategyMetricLevel{}
-		_ = level.UnmarshalBinary([]byte(details.Level))
-		resItem.MetricLevel = NewParamsBuild(a.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToMetricAPI(level)
+		switch strategy.StrategyType {
+		case vobj.StrategyTypeMetric:
+			level := &bizmodel.StrategyMetricLevel{}
+			_ = level.UnmarshalBinary([]byte(details.Level))
+			resItem.MetricLevel = NewParamsBuild(a.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToMetricAPI(level)
+		case vobj.StrategyTypeEvent:
+			level := &bizmodel.StrategyEventLevel{}
+			_ = level.UnmarshalBinary([]byte(details.Level))
+			resItem.EventLevel = NewParamsBuild(a.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToEventAPI(level)
+		case vobj.StrategyTypeDomainPort:
+			level := &bizmodel.StrategyPortLevel{}
+			_ = level.UnmarshalBinary([]byte(details.Level))
+			resItem.PortLevel = NewParamsBuild(a.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToPortAPI(level)
+		case vobj.StrategyTypeDomainCertificate:
+			level := &bizmodel.StrategyDomainLevel{}
+			_ = level.UnmarshalBinary([]byte(details.Level))
+			resItem.DomainLevel = NewParamsBuild(a.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToDomainAPI(level)
+		case vobj.StrategyTypeHTTP:
+			level := &bizmodel.StrategyHTTPLevel{}
+			_ = level.UnmarshalBinary([]byte(details.Level))
+			resItem.HttpLevel = NewParamsBuild(a.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToHTTPLevelAPI(level)
+		default:
+			log.Warnf("unknown strategy type: %s", strategy.StrategyType)
+		}
 	}
 
 	return resItem

@@ -701,8 +701,6 @@ message AlarmHistoryItem{
   string  endsAt = 3;
   // 告警状态
   AlertStatus alertStatus = 4;
-  // Metric告警级别
-  StrategyMetricLevelItem metricLevel = 5;
   // 告警策略
   StrategyItem strategy = 7;
   // 告警详情
@@ -723,8 +721,16 @@ message AlarmHistoryItem{
   string summary = 15;
   // 持续时间
   string duration = 16;
-  // MQ告警级别
-  StrategyEventLevelItem eventLevel = 17;
+  // 根据策略等级配置的详细策略， key为策略等级ID
+  StrategyMetricLevelItem metricLevel = 21;
+  // MQ等级
+  StrategyEventLevelItem eventLevel = 22;
+  // 端口监控策略
+  StrategyPortLevelItem portLevel = 23;
+  // HTTP监控策略
+  StrategyHTTPLevelItem httpLevel = 24;
+  // 域名监控策略
+  StrategyDomainLevelItem domainLevel = 25;
 }
 
 message NoticeUserMessage {
