@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -12,6 +13,15 @@ var _ ICacher = (*redisCacher)(nil)
 // NewRedisCacher creates a new redis cacher
 func NewRedisCacher(cli *redis.Client) ICacher {
 	return &redisCacher{client: cli}
+}
+
+// NewRedisCacherByMiniRedis creates a new redis cacher by mini redis
+func NewRedisCacherByMiniRedis(cli *miniredis.Miniredis) ICacher {
+	c := redis.NewClient(&redis.Options{
+		Network: "tcp",
+		Addr:    cli.Addr(),
+	})
+	return &redisCacher{client: c}
 }
 
 type (

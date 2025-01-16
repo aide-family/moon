@@ -22,7 +22,6 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/casbin/casbin/v2"
-	"github.com/coocood/freecache"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 	"gorm.io/gorm"
@@ -102,7 +101,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		d.emailCli = email.New(emailConf)
 	}
 
-	d.cacher = newCache(cacheConf)
+	d.cacher = cache.NewCache(cacheConf)
 
 	// 是否开启oss
 	if ossConf.GetOpen() {
@@ -383,23 +382,6 @@ func (d *Data) GetCasBin(teamID uint32, tx ...*gorm.DB) *casbin.SyncedEnforcer {
 		return d.GetCasBin(teamID)
 	}
 	return enforceVal
-}
-
-// newCache 创建缓存
-func newCache(c *conf.Cache) cache.ICacher {
-	switch strings.ToLower(c.GetDriver()) {
-	case "redis":
-		log.Debugw("cache", "init redis cache")
-		cli := conn.NewRedisClient(c.GetRedis())
-		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
-			log.Warnw("redis ping error", err)
-		}
-		return cache.NewRedisCacher(cli)
-	default:
-		log.Debugw("cache", "init free cache")
-		size := int(c.GetFree().GetSize())
-		return cache.NewFreeCache(freecache.NewCache(types.Ternary(size > 0, size, 10*1024*1024)))
-	}
 }
 
 // GetStrategyQueue 获取策略队列

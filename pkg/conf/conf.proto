@@ -84,14 +84,6 @@ message Redis {
   google.protobuf.Duration dial_timeout = 7;
 }
 
-// nuts db配置
-message NutsDB {
-  // 数据库路径
-  string path = 1;
-  // 缓存桶
-  string bucket = 2;
-}
-
 // 内存缓存配置
 message Free {
   // 内存缓存大小
@@ -100,14 +92,12 @@ message Free {
 
 // 缓存配置
 message Cache {
-  //redis nuts-db  free
+  //redis miniredis  free
   string driver = 1;
   // redis配置
   Redis redis = 2;
-  // nuts db配置
-  NutsDB nutsDB = 3;
   // 内存缓存配置
-  Free free = 4;
+  Free free = 3;
 }
 
 // 微服务配置
