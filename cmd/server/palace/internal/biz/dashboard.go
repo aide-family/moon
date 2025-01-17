@@ -49,3 +49,28 @@ func (b *DashboardBiz) ListDashboard(ctx context.Context, params *bo.ListDashboa
 func (b *DashboardBiz) BatchUpdateDashboardStatus(ctx context.Context, params *bo.BatchUpdateDashboardStatusParams) error {
 	return b.dashboardRepository.BatchUpdateDashboardStatus(ctx, params)
 }
+
+// AddChart 添加图表
+func (b *DashboardBiz) AddChart(ctx context.Context, params *bo.AddChartParams) error {
+	return b.dashboardRepository.AddChart(ctx, params)
+}
+
+// UpdateChart 更新图表
+func (b *DashboardBiz) UpdateChart(ctx context.Context, params *bo.UpdateChartParams) error {
+	return b.dashboardRepository.UpdateChart(ctx, params)
+}
+
+// DeleteChart 删除图表
+func (b *DashboardBiz) DeleteChart(ctx context.Context, params *bo.DeleteChartParams) error {
+	return b.dashboardRepository.DeleteChart(ctx, params)
+}
+
+// ListChart 获取图表列表
+func (b *DashboardBiz) ListChart(ctx context.Context, params *bo.ListChartParams) ([]*bizmodel.DashboardChart, error) {
+	return b.dashboardRepository.ListChart(ctx, params)
+}
+
+// GetChart 获取图表
+func (b *DashboardBiz) GetChart(ctx context.Context, params *bo.GetChartParams) (*bizmodel.DashboardChart, error) {
+	return b.dashboardRepository.GetChart(ctx, params)
+}

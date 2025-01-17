@@ -32,8 +32,6 @@ service Server {
 			body: "*"
 		};
 	}
-
-
 }
 
 message GetServerListRequest{

@@ -67,6 +67,44 @@ service Dashboard {
 			body: "*"
 		};
 	}
+
+	// 添加图表
+	rpc AddChart (AddChartRequest) returns (AddChartReply) {
+		option (google.api.http) = {
+			post: "/v1/admin/realtime/dashboard/{dashboardId}/chart/add"
+			body: "*"
+		};
+	}
+
+	// 更新图表
+	rpc UpdateChart (UpdateChartRequest) returns (UpdateChartReply) {
+		option (google.api.http) = {
+			put: "/v1/admin/realtime/dashboard/{dashboardId}/chart/update/{id}"
+			body: "*"
+		};
+	}
+
+	// 删除图表
+	rpc DeleteChart (DeleteChartRequest) returns (DeleteChartReply) {
+		option (google.api.http) = {
+			delete: "/v1/admin/realtime/dashboard/{dashboardId}/chart/delete/{id}"
+		};
+	}
+
+	// 获取图表明细
+	rpc GetChart (GetChartRequest) returns (GetChartReply) {
+		option (google.api.http) = {
+			get: "/v1/admin/realtime/dashboard/{dashboardId}/chart/get/{id}"
+		};
+	}
+
+	// 获取图表列表
+	rpc ListChart (ListChartRequest) returns (ListChartReply) {
+		option (google.api.http) = {
+			post: "/v1/admin/realtime/dashboard/{dashboardId}/chart/list"
+			body: "*"
+		};
+	}
 }
 
 message CreateDashboardRequest {
@@ -82,8 +120,8 @@ message CreateDashboardRequest {
 	}];
 	// 仪表板颜色
 	string color = 3;
-	// 图表列表
-	repeated ChartItem charts = 4;
+	// 仪表板状态	
+	Status status = 4;
 	// 策略组
 	repeated uint32 strategyGroups = 5;
 }
@@ -95,22 +133,7 @@ message UpdateDashboardRequest {
 		message: "请选择要操作的仪表",
 		expression: 'this > 0'
 	}];
-	// 仪表板名称
-	string title = 2 [(buf.validate.field).cel = {
-		message: "仪表标题在1-20个字符",
-		expression: 'this.size() >= 1 && this.size() <= 20'
-	}];
-	// 仪表板说明
-	string remark = 3 [(buf.validate.field).cel = {
-		message: "仪表说明在200个字符以内",
-		expression: 'this.size() <= 200'
-	}];
-	// 仪表板颜色
-	string color = 4;
-	// 图表列表
-	repeated ChartItem charts = 5;
-	// 策略组
-	repeated uint32 strategyGroups = 6;
+	CreateDashboardRequest dashboard = 2;
 }
 message UpdateDashboardReply {}
 
@@ -172,3 +195,106 @@ message BatchUpdateDashboardStatusRequest {
 	Status status = 2;
 }
 message BatchUpdateDashboardStatusReply {}
+
+message AddChartRequest {
+	// 仪表板ID
+	uint32 dashboardId = 1 [(buf.validate.field).cel = {
+		message: "请选择要操作的仪表",
+		expression: 'this > 0'
+	}];
+	// 图表标题
+	string title = 2 [(buf.validate.field).cel = {
+		message: "图表标题在1-20个字符",
+		expression: 'this.size() >= 1 && this.size() <= 20'
+	}];
+	// 图表说明
+	string remark = 3 [(buf.validate.field).cel = {
+		message: "图表说明在200个字符以内",
+		expression: 'this.size() <= 200'
+	}];
+	// 图表url
+	string url = 4 [(buf.validate.field).cel = {
+		message: "图表url不能为空",
+		expression: 'this.isUri()'
+	}];
+	// 图表状态
+	Status status = 5;
+	// 图表类型
+	ChartType chartType = 6;
+	// 宽度
+	string width = 7;
+	// 高度
+	string height = 8;
+}
+message AddChartReply {}
+
+message UpdateChartRequest {
+	// 仪表板ID
+	uint32 dashboardId = 1 [(buf.validate.field).cel = {
+		message: "请选择要操作的仪表",
+		expression: 'this > 0'
+	}];
+	// 图表ID
+	uint32 id = 2 [(buf.validate.field).cel = {
+		message: "请选择要操作的图表",
+		expression: 'this > 0'
+	}];
+	AddChartRequest chart = 3;
+}
+message UpdateChartReply {}
+
+message DeleteChartRequest {
+	// 仪表板ID
+	uint32 dashboardId = 1 [(buf.validate.field).cel = {
+		message: "请选择要操作的仪表",
+		expression: 'this > 0'
+	}];
+	// 图表ID
+	uint32 id = 2 [(buf.validate.field).cel = {
+		message: "请选择要操作的图表",
+		expression: 'this > 0'
+	}];
+}
+message DeleteChartReply {}
+
+message GetChartRequest {
+	// 仪表板ID
+	uint32 dashboardId = 1 [(buf.validate.field).cel = {
+		message: "请选择要操作的仪表",
+		expression: 'this > 0'
+	}];
+	// 图表ID
+	uint32 id = 2 [(buf.validate.field).cel = {
+		message: "请选择要操作的图表",
+		expression: 'this > 0'
+	}];
+}
+message GetChartReply {
+	// 图表详情
+	ChartItem detail = 1;
+}
+
+message ListChartRequest {
+	// 仪表板ID
+	uint32 dashboardId = 1 [(buf.validate.field).cel = {
+		message: "请选择要操作的仪表",
+		expression: 'this > 0'
+	}];
+	// 分页
+	PaginationReq pagination = 2 [(buf.validate.field).required = true];
+	// 图表状态
+	Status status = 3;
+	// 图表类型
+	repeated ChartType chartTypes = 4;
+	// 图表标题
+	string keyword = 5 [(buf.validate.field).cel = {
+		message: "模糊搜索在20个字符以内",
+		expression: 'this.size() <= 20'
+	}];
+}
+message ListChartReply {
+	// 图表列表
+	repeated ChartItem list = 1;
+	// 分页
+	PaginationReply pagination = 2;
+}

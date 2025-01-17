@@ -26,4 +26,19 @@ type Dashboard interface {
 
 	// BatchUpdateDashboardStatus 批量更新仪表盘状态
 	BatchUpdateDashboardStatus(ctx context.Context, params *bo.BatchUpdateDashboardStatusParams) error
+
+	// AddChart 添加图表
+	AddChart(ctx context.Context, params *bo.AddChartParams) error
+
+	// UpdateChart 更新图表
+	UpdateChart(ctx context.Context, params *bo.UpdateChartParams) error
+
+	// DeleteChart 删除图表
+	DeleteChart(ctx context.Context, params *bo.DeleteChartParams) error
+
+	// GetChart 获取图表
+	GetChart(ctx context.Context, params *bo.GetChartParams) (*bizmodel.DashboardChart, error)
+
+	// ListChart 获取图表列表
+	ListChart(ctx context.Context, params *bo.ListChartParams) ([]*bizmodel.DashboardChart, error)
 }

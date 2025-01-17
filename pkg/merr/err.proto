@@ -385,6 +385,12 @@ enum ErrorReason {
       reason: "SEND_TEMPLATE_NAME_EXIST"
       message: "发送模板名称【%s】已经存在!",
       metadata: {key: "type", value: "SEND_TEMPLATE_NAME_EXIST"}
+    },
+    // 图表不存在
+    (errors.biz_reason) = {
+      reason: "DASHBOARD_CHART_NOT_FOUND"
+      message: "图表不存在",
+      metadata: {key: "chart", value: "DASHBOARD_CHART_NOT_FOUND"}
     }
   ];
 

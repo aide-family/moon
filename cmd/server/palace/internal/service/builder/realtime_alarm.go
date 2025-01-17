@@ -9,7 +9,6 @@ import (
 	adminapi "github.com/aide-family/moon/api/admin"
 	realtimeapi "github.com/aide-family/moon/api/admin/realtime"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
-	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -44,16 +43,75 @@ type (
 		WithListDashboardRequest(*realtimeapi.ListDashboardRequest) IListDashboardRequestBuilder
 		// WithBatchUpdateDashboardStatusRequest 批量更新仪表盘状态请求参数构造器
 		WithBatchUpdateDashboardStatusRequest(*realtimeapi.BatchUpdateDashboardStatusRequest) IBatchUpdateDashboardStatusRequestBuilder
+		// WithAddChartRequest 添加图表请求参数构造器
+		WithAddChartRequest(*realtimeapi.AddChartRequest) IAddChartRequestBuilder
+		// WithUpdateChartRequest 更新图表请求参数构造器
+		WithUpdateChartRequest(*realtimeapi.UpdateChartRequest) IUpdateChartRequestBuilder
+		// WithDeleteChartRequest 删除图表请求参数构造器
+		WithDeleteChartRequest(*realtimeapi.DeleteChartRequest) IDeleteChartRequestBuilder
+		// WithGetChartRequest 获取图表请求参数构造器
+		WithGetChartRequest(*realtimeapi.GetChartRequest) IGetChartRequestBuilder
+		// WithListChartRequest 获取图表列表请求参数构造器
+		WithListChartRequest(*realtimeapi.ListChartRequest) IListChartRequestBuilder
 		// DoDashboardBuilder 仪表盘条目构造器
 		DoDashboardBuilder() IDoDashboardBuilder
-		// BoChartBuilder 图表条目构造器
-		BoChartBuilder() IBoChartBuilder
 		// DoChartBuilder 图表条目构造器
 		DoChartBuilder() IDoChartBuilder
-		// WithBoAddDashboardParams 添加仪表盘请求参数构造器
-		WithBoAddDashboardParams(*bo.AddDashboardParams) IBoAddDashboardParamsBuilder
-		// WithBoUpdateDashboardParams 更新仪表盘请求参数构造器
-		WithBoUpdateDashboardParams(*bo.UpdateDashboardParams) IBoUpdateDashboardParamsBuilder
+	}
+
+	// IAddChartRequestBuilder 添加图表请求参数构造器
+	IAddChartRequestBuilder interface {
+		// ToBo 转换为业务对象
+		ToBo() *bo.AddChartParams
+	}
+
+	addChartRequestBuilder struct {
+		ctx context.Context
+		*realtimeapi.AddChartRequest
+	}
+
+	// IUpdateChartRequestBuilder 更新图表请求参数构造器
+	IUpdateChartRequestBuilder interface {
+		// ToBo 转换为业务对象
+		ToBo() *bo.UpdateChartParams
+	}
+
+	updateChartRequestBuilder struct {
+		ctx context.Context
+		*realtimeapi.UpdateChartRequest
+	}
+
+	// IDeleteChartRequestBuilder 删除图表请求参数构造器
+	IDeleteChartRequestBuilder interface {
+		// ToBo 转换为业务对象
+		ToBo() *bo.DeleteChartParams
+	}
+
+	deleteChartRequestBuilder struct {
+		ctx context.Context
+		*realtimeapi.DeleteChartRequest
+	}
+
+	// IGetChartRequestBuilder 获取图表请求参数构造器
+	IGetChartRequestBuilder interface {
+		// ToBo 转换为业务对象
+		ToBo() *bo.GetChartParams
+	}
+
+	getChartRequestBuilder struct {
+		ctx context.Context
+		*realtimeapi.GetChartRequest
+	}
+
+	// IListChartRequestBuilder 获取图表列表请求参数构造器
+	IListChartRequestBuilder interface {
+		// ToBo 转换为业务对象
+		ToBo() *bo.ListChartParams
+	}
+
+	listChartRequestBuilder struct {
+		ctx context.Context
+		*realtimeapi.ListChartRequest
 	}
 
 	// IBatchUpdateDashboardStatusRequestBuilder 批量更新仪表盘状态请求参数构造器
@@ -75,14 +133,6 @@ type (
 		WithDashboardID(uint32) IBoAddDashboardParamsBuilder
 		// ToDoStrategyGroups 转换为策略组列表
 		ToDoStrategyGroups() []*bizmodel.StrategyGroup
-		// ToDoCharts 转换为图表列表
-		ToDoCharts() []*bizmodel.DashboardChart
-	}
-
-	boAddDashboardParamsBuilder struct {
-		ctx         context.Context
-		dashboardID uint32
-		*bo.AddDashboardParams
 	}
 
 	// IBoUpdateDashboardParamsBuilder 更新仪表盘请求参数构造器
@@ -93,14 +143,6 @@ type (
 		WithDashboardID(uint32) IBoUpdateDashboardParamsBuilder
 		// ToDoStrategyGroups 转换为策略组列表
 		ToDoStrategyGroups() []*bizmodel.StrategyGroup
-		// ToDoCharts 转换为图表列表
-		ToDoCharts() []*bizmodel.DashboardChart
-	}
-
-	boUpdateDashboardParamsBuilder struct {
-		ctx         context.Context
-		dashboardID uint32
-		*bo.UpdateDashboardParams
 	}
 
 	// IGetAlarmRequestBuilder 获取告警请求参数构造器
@@ -209,21 +251,6 @@ type (
 		ctx context.Context
 	}
 
-	// IBoChartBuilder 图表条目构造器
-	IBoChartBuilder interface {
-		// ToBo 转换为业务对象
-		ToBo(*adminapi.ChartItem) *bo.ChartItem
-		// ToBos 转换为业务对象列表
-		ToBos([]*adminapi.ChartItem) []*bo.ChartItem
-		// WithDashboardID 设置仪表盘ID
-		WithDashboardID(uint32) IBoChartBuilder
-	}
-
-	boChartBuilder struct {
-		ctx         context.Context
-		dashboardID uint32
-	}
-
 	// IDoChartBuilder 图表条目构造器
 	IDoChartBuilder interface {
 		// ToAPI 转换为API对象
@@ -236,6 +263,121 @@ type (
 		ctx context.Context
 	}
 )
+
+// ToBo implements IListChartRequestBuilder.
+func (l *listChartRequestBuilder) ToBo() *bo.ListChartParams {
+	if types.IsNil(l) || types.IsNil(l.ListChartRequest) {
+		return nil
+	}
+	return &bo.ListChartParams{
+		DashboardID: l.GetDashboardId(),
+		Page:        types.NewPagination(l.GetPagination()),
+		Keyword:     l.GetKeyword(),
+		Status:      vobj.Status(l.GetStatus()),
+		ChartTypes: types.SliceTo(l.GetChartTypes(), func(chartType api.ChartType) vobj.DashboardChartType {
+			return vobj.DashboardChartType(chartType)
+		}),
+	}
+}
+
+// ToBo implements IGetChartRequestBuilder.
+func (g *getChartRequestBuilder) ToBo() *bo.GetChartParams {
+	if types.IsNil(g) || types.IsNil(g.GetChartRequest) {
+		return nil
+	}
+	return &bo.GetChartParams{
+		DashboardID: g.GetDashboardId(),
+		ChartID:     g.GetId(),
+	}
+}
+
+// ToBo implements IDeleteChartRequestBuilder.
+func (d *deleteChartRequestBuilder) ToBo() *bo.DeleteChartParams {
+	if types.IsNil(d) || types.IsNil(d.DeleteChartRequest) {
+		return nil
+	}
+	return &bo.DeleteChartParams{
+		DashboardID: d.GetDashboardId(),
+		ChartID:     d.GetId(),
+	}
+}
+
+// ToBo implements IUpdateChartRequestBuilder.
+func (u *updateChartRequestBuilder) ToBo() *bo.UpdateChartParams {
+	if types.IsNil(u) || types.IsNil(u.UpdateChartRequest) {
+		return nil
+	}
+	return &bo.UpdateChartParams{
+		DashboardID: u.GetDashboardId(),
+		ChartItem: &bo.ChartItem{
+			ID:          u.GetId(),
+			Name:        u.GetChart().GetTitle(),
+			Remark:      u.GetChart().GetRemark(),
+			URL:         u.GetChart().GetUrl(),
+			Status:      vobj.Status(u.GetChart().GetStatus()),
+			Height:      u.GetChart().GetHeight(),
+			Width:       u.GetChart().GetWidth(),
+			ChartType:   vobj.DashboardChartType(u.GetChart().GetChartType()),
+			DashboardID: u.GetDashboardId(),
+		},
+	}
+}
+
+// ToBo implements IAddChartRequestBuilder.
+func (a *addChartRequestBuilder) ToBo() *bo.AddChartParams {
+	if types.IsNil(a) || types.IsNil(a.AddChartRequest) {
+		return nil
+	}
+	return &bo.AddChartParams{
+		DashboardID: a.GetDashboardId(),
+		ChartItem: &bo.ChartItem{
+			ID:          0,
+			Name:        a.GetTitle(),
+			Remark:      a.GetRemark(),
+			URL:         a.GetUrl(),
+			Status:      vobj.Status(a.GetStatus()),
+			Height:      a.GetHeight(),
+			Width:       a.GetWidth(),
+			ChartType:   vobj.DashboardChartType(a.GetChartType()),
+			DashboardID: a.GetDashboardId(),
+		},
+	}
+}
+
+func (r *realtimeAlarmModuleBuilder) WithAddChartRequest(request *realtimeapi.AddChartRequest) IAddChartRequestBuilder {
+	return &addChartRequestBuilder{
+		ctx:             r.ctx,
+		AddChartRequest: request,
+	}
+}
+
+func (r *realtimeAlarmModuleBuilder) WithUpdateChartRequest(request *realtimeapi.UpdateChartRequest) IUpdateChartRequestBuilder {
+	return &updateChartRequestBuilder{
+		ctx:                r.ctx,
+		UpdateChartRequest: request,
+	}
+}
+
+func (r *realtimeAlarmModuleBuilder) WithDeleteChartRequest(request *realtimeapi.DeleteChartRequest) IDeleteChartRequestBuilder {
+	return &deleteChartRequestBuilder{
+		ctx:                r.ctx,
+		DeleteChartRequest: request,
+	}
+}
+
+func (r *realtimeAlarmModuleBuilder) WithGetChartRequest(request *realtimeapi.GetChartRequest) IGetChartRequestBuilder {
+	return &getChartRequestBuilder{
+		ctx:             r.ctx,
+		GetChartRequest: request,
+	}
+}
+
+func (r *realtimeAlarmModuleBuilder) WithListChartRequest(request *realtimeapi.ListChartRequest) IListChartRequestBuilder {
+	return &listChartRequestBuilder{
+		ctx:              r.ctx,
+		ListChartRequest: request,
+	}
+}
 
 func (b *batchUpdateDashboardStatusRequestBuilder) ToBo() *bo.BatchUpdateDashboardStatusParams {
 	if types.IsNil(b) || types.IsNil(b.BatchUpdateDashboardStatusRequest) {
@@ -252,185 +394,6 @@ func (r *realtimeAlarmModuleBuilder) WithBatchUpdateDashboardStatusRequest(reque
 		ctx:                               r.ctx,
 		BatchUpdateDashboardStatusRequest: request,
 	}
-}
-
-func (b *boUpdateDashboardParamsBuilder) ToModel() *bizmodel.Dashboard {
-	if types.IsNil(b) || types.IsNil(b.UpdateDashboardParams) {
-		return nil
-	}
-
-	return &bizmodel.Dashboard{
-		AllFieldModel: bizmodel.AllFieldModel{
-			AllFieldModel: model.AllFieldModel{ID: b.dashboardID},
-		},
-		Name:           b.Name,
-		Status:         vobj.StatusEnable,
-		Remark:         b.Remark,
-		Color:          b.Color,
-		Charts:         b.WithDashboardID(0).ToDoCharts(),
-		StrategyGroups: b.WithDashboardID(0).ToDoStrategyGroups(),
-	}
-}
-
-func (b *boUpdateDashboardParamsBuilder) WithDashboardID(u uint32) IBoUpdateDashboardParamsBuilder {
-	if !types.IsNil(b) {
-		b.dashboardID = u
-	}
-
-	return b
-}
-
-func (b *boUpdateDashboardParamsBuilder) ToDoStrategyGroups() []*bizmodel.StrategyGroup {
-	if types.IsNil(b) {
-		return nil
-	}
-
-	return types.SliceTo(b.StrategyGroups, func(strategyGroupId uint32) *bizmodel.StrategyGroup {
-		return &bizmodel.StrategyGroup{
-			AllFieldModel: bizmodel.AllFieldModel{
-				AllFieldModel: model.AllFieldModel{ID: strategyGroupId},
-			},
-		}
-	})
-}
-
-func (b *boUpdateDashboardParamsBuilder) ToDoCharts() []*bizmodel.DashboardChart {
-	if types.IsNil(b) {
-		return nil
-	}
-
-	return types.SliceTo(b.Charts, func(chartItem *bo.ChartItem) *bizmodel.DashboardChart {
-		return &bizmodel.DashboardChart{
-			AllFieldModel: bizmodel.AllFieldModel{
-				AllFieldModel: model.AllFieldModel{ID: chartItem.ID},
-			},
-			Name:        chartItem.Name,
-			Status:      chartItem.Status,
-			Remark:      chartItem.Remark,
-			URL:         chartItem.URL,
-			DashboardID: b.dashboardID,
-			ChartType:   chartItem.ChartType,
-			Width:       chartItem.Width,
-			Height:      chartItem.Height,
-		}
-	})
-}
-
-func (b *boAddDashboardParamsBuilder) ToModel() *bizmodel.Dashboard {
-	if types.IsNil(b) || types.IsNil(b.AddDashboardParams) {
-		return nil
-	}
-
-	return &bizmodel.Dashboard{
-		AllFieldModel: bizmodel.AllFieldModel{
-			AllFieldModel: model.AllFieldModel{ID: b.dashboardID},
-		},
-		Name:           b.Name,
-		Status:         vobj.StatusEnable,
-		Remark:         b.Remark,
-		Color:          b.Color,
-		Charts:         b.WithDashboardID(0).ToDoCharts(),
-		StrategyGroups: b.WithDashboardID(0).ToDoStrategyGroups(),
-	}
-}
-
-func (b *boAddDashboardParamsBuilder) WithDashboardID(u uint32) IBoAddDashboardParamsBuilder {
-	if !types.IsNil(b) {
-		b.dashboardID = u
-	}
-
-	return b
-}
-
-func (b *boAddDashboardParamsBuilder) ToDoStrategyGroups() []*bizmodel.StrategyGroup {
-	if types.IsNil(b) {
-		return nil
-	}
-
-	return types.SliceTo(b.StrategyGroups, func(strategyGroupId uint32) *bizmodel.StrategyGroup {
-		return &bizmodel.StrategyGroup{
-			AllFieldModel: bizmodel.AllFieldModel{
-				AllFieldModel: model.AllFieldModel{ID: strategyGroupId},
-			},
-		}
-	})
-}
-
-func (b *boAddDashboardParamsBuilder) ToDoCharts() []*bizmodel.DashboardChart {
-	if types.IsNil(b) {
-		return nil
-	}
-
-	return types.SliceTo(b.Charts, func(chartItem *bo.ChartItem) *bizmodel.DashboardChart {
-		return &bizmodel.DashboardChart{
-			AllFieldModel: bizmodel.AllFieldModel{
-				AllFieldModel: model.AllFieldModel{ID: chartItem.ID},
-			},
-			Name:        chartItem.Name,
-			Status:      chartItem.Status,
-			Remark:      chartItem.Remark,
-			URL:         chartItem.URL,
-			DashboardID: b.dashboardID,
-			ChartType:   chartItem.ChartType,
-			Width:       chartItem.Width,
-			Height:      chartItem.Height,
-		}
-	})
-}
-
-func (r *realtimeAlarmModuleBuilder) WithBoAddDashboardParams(params *bo.AddDashboardParams) IBoAddDashboardParamsBuilder {
-	if types.IsNil(r) || types.IsNil(params) {
-		return nil
-	}
-
-	return &boAddDashboardParamsBuilder{ctx: r.ctx, AddDashboardParams: params}
-}
-
-func (r *realtimeAlarmModuleBuilder) WithBoUpdateDashboardParams(params *bo.UpdateDashboardParams) IBoUpdateDashboardParamsBuilder {
-	if types.IsNil(r) || types.IsNil(params) {
-		return nil
-	}
-
-	return &boUpdateDashboardParamsBuilder{ctx: r.ctx, UpdateDashboardParams: params, dashboardID: params.ID}
-}
-
-func (b *boChartBuilder) WithDashboardID(u uint32) IBoChartBuilder {
-	if !types.IsNil(b) {
-		b.dashboardID = u
-	}
-	return b
-}
-
-func (b *boChartBuilder) ToBo(item *adminapi.ChartItem) *bo.ChartItem {
-	if types.IsNil(b) || types.IsNil(item) {
-		return nil
-	}
-
-	return &bo.ChartItem{
-		ID:          item.GetId(),
-		Name:        item.GetTitle(),
-		Remark:      item.GetRemark(),
-		URL:         item.GetUrl(),
-		Status:      vobj.Status(item.GetStatus()),
-		Height:      item.GetHeight(),
-		Width:       item.GetWidth(),
-		ChartType:   vobj.DashboardChartType(item.GetChartType()),
-		DashboardID: b.dashboardID,
-	}
-}
-
-func (b *boChartBuilder) ToBos(items []*adminapi.ChartItem) []*bo.ChartItem {
-	if types.IsNil(b) || types.IsNil(items) {
-		return nil
-	}
-
-	return types.SliceTo(items, func(item *adminapi.ChartItem) *bo.ChartItem {
-		return b.ToBo(item)
-	})
-}
-
-func (r *realtimeAlarmModuleBuilder) BoChartBuilder() IBoChartBuilder {
-	return &boChartBuilder{ctx: r.ctx}
 }
 
 func (d *doChartBuilder) ToAPI(chart *bizmodel.DashboardChart) *adminapi.ChartItem {
@@ -548,12 +511,8 @@ func (u *updateDashboardRequestBuilder) ToBo() *bo.UpdateDashboardParams {
 	}
 
 	return &bo.UpdateDashboardParams{
-		ID:             u.GetId(),
-		Name:           u.GetTitle(),
-		Remark:         u.GetRemark(),
-		Color:          u.GetColor(),
-		Charts:         NewParamsBuild(u.ctx).RealtimeAlarmModuleBuilder().BoChartBuilder().ToBos(u.GetCharts()),
-		StrategyGroups: u.GetStrategyGroups(),
+		ID:        u.GetId(),
+		Dashboard: NewParamsBuild(u.ctx).RealtimeAlarmModuleBuilder().WithCreateDashboardRequest(u.GetDashboard()).ToBo(),
 	}
 }
 
@@ -566,7 +525,7 @@ func (c *createDashboardRequestBuilder) ToBo() *bo.AddDashboardParams {
 		Name:           c.GetTitle(),
 		Remark:         c.GetRemark(),
 		Color:          c.GetColor(),
-		Charts:         NewParamsBuild(c.ctx).RealtimeAlarmModuleBuilder().BoChartBuilder().ToBos(c.GetCharts()),
+		Status:         vobj.Status(c.GetStatus()),
 		StrategyGroups: c.GetStrategyGroups(),
 	}
 }

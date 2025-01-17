@@ -6,7 +6,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
-	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
@@ -27,6 +26,98 @@ type dashboardRepositoryImpl struct {
 	data *data.Data
 }
 
+// AddChart implements repository.Dashboard.
+func (d *dashboardRepositoryImpl) AddChart(ctx context.Context, params *bo.AddChartParams) error {
+	bizQuery, err := getBizQuery(ctx, d.data)
+	if err != nil {
+		return err
+	}
+	chartModel := params.ChartItem.ToModel(ctx)
+	return bizQuery.DashboardChart.WithContext(ctx).Create(chartModel)
+}
+
+// DeleteChart implements repository.Dashboard.
+func (d *dashboardRepositoryImpl) DeleteChart(ctx context.Context, params *bo.DeleteChartParams) error {
+	bizQuery, err := getBizQuery(ctx, d.data)
+	if err != nil {
+		return err
+	}
+	_, err = bizQuery.DashboardChart.WithContext(ctx).Where(
+		bizQuery.DashboardChart.ID.Eq(params.ChartID),
+		bizQuery.DashboardChart.DashboardID.Eq(params.DashboardID),
+	).Delete()
+	return err
+}
+
+// GetChart implements repository.Dashboard.
+func (d *dashboardRepositoryImpl) GetChart(ctx context.Context, params *bo.GetChartParams) (*bizmodel.DashboardChart, error) {
+	bizQuery, err := getBizQuery(ctx, d.data)
+	if err != nil {
+		return nil, err
+	}
+	chartModel, err := bizQuery.DashboardChart.WithContext(ctx).Where(
+		bizQuery.DashboardChart.ID.Eq(params.ChartID),
+		bizQuery.DashboardChart.DashboardID.Eq(params.DashboardID),
+	).First()
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, merr.ErrorI18nToastDashboardChartNotFound(ctx).WithCause(err)
+		}
+		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+	}
+	return chartModel, nil
+}
+
+// ListChart implements repository.Dashboard.
+func (d *dashboardRepositoryImpl) ListChart(ctx context.Context, params *bo.ListChartParams) ([]*bizmodel.DashboardChart, error) {
+	bizQuery, err := getBizQuery(ctx, d.data)
+	if err != nil {
+		return nil, err
+	}
+	wheres := make([]gen.Condition, 0, 4)
+	wheres = append(wheres, bizQuery.DashboardChart.DashboardID.Eq(params.DashboardID))
+	if !types.TextIsNull(params.Keyword) {
+		wheres = append(wheres, bizQuery.DashboardChart.Name.Like(params.Keyword))
+	}
+	if !params.Status.IsUnknown() {
+		wheres = append(wheres, bizQuery.DashboardChart.Status.Eq(params.Status.GetValue()))
+	}
+	chartTypes := params.GetChartTypes()
+	if len(chartTypes) > 0 {
+		wheres = append(wheres, bizQuery.DashboardChart.ChartType.In(chartTypes...))
+	}
+	chartQuery := bizQuery.DashboardChart.WithContext(ctx)
+	if len(wheres) > 0 {
+		chartQuery = chartQuery.Where(wheres...)
+	}
+	if chartQuery, err = types.WithPageQuery(chartQuery, params.Page); err != nil {
+		return nil, err
+	}
+	return chartQuery.Find()
+}
+
+// UpdateChart implements repository.Dashboard.
+func (d *dashboardRepositoryImpl) UpdateChart(ctx context.Context, params *bo.UpdateChartParams) error {
+	bizQuery, err := getBizQuery(ctx, d.data)
+	if err != nil {
+		return err
+	}
+	chartModel := params.ChartItem.ToModel(ctx)
+	_, err = bizQuery.DashboardChart.WithContext(ctx).Where(
+		bizQuery.DashboardChart.ID.Eq(params.ChartItem.ID),
+		bizQuery.DashboardChart.DashboardID.Eq(params.DashboardID),
+	).UpdateSimple(
+		bizQuery.DashboardChart.Name.Value(chartModel.Name),
+		bizQuery.DashboardChart.ChartType.Value(chartModel.ChartType.GetValue()),
+		bizQuery.DashboardChart.Status.Value(chartModel.Status.GetValue()),
+		bizQuery.DashboardChart.Remark.Value(chartModel.Remark),
+		bizQuery.DashboardChart.Height.Value(chartModel.Height),
+		bizQuery.DashboardChart.Width.Value(chartModel.Width),
+		bizQuery.DashboardChart.URL.Value(chartModel.URL),
+	)
+	return err
+}
+
 func (d *dashboardRepositoryImpl) BatchUpdateDashboardStatus(ctx context.Context, params *bo.BatchUpdateDashboardStatusParams) error {
 	if len(params.IDs) == 0 {
 		return nil
@@ -42,8 +133,7 @@ func (d *dashboardRepositoryImpl) BatchUpdateDashboardStatus(ctx context.Context
 }
 
 func (d *dashboardRepositoryImpl) AddDashboard(ctx context.Context, req *bo.AddDashboardParams) error {
-	dashboardModuleBuilder := builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().WithBoAddDashboardParams(req)
-	dashboardModel := dashboardModuleBuilder.ToModel()
+	dashboardModel := req.ToModel(ctx)
 	bizQuery, err := getBizQuery(ctx, d.data)
 	if err != nil {
 		return err
@@ -52,12 +142,8 @@ func (d *dashboardRepositoryImpl) AddDashboard(ctx context.Context, req *bo.AddD
 		if err = tx.Dashboard.WithContext(ctx).Create(dashboardModel); err != nil {
 			return err
 		}
-		strategyGroups := dashboardModuleBuilder.WithDashboardID(dashboardModel.ID).ToDoStrategyGroups()
+		strategyGroups := req.GetStrategyGroupDos()
 		if err = tx.Dashboard.StrategyGroups.Model(dashboardModel).Append(strategyGroups...); err != nil {
-			return err
-		}
-		charts := dashboardModuleBuilder.WithDashboardID(dashboardModel.ID).ToDoCharts()
-		if err = tx.Dashboard.Charts.Model(dashboardModel).Append(charts...); err != nil {
 			return err
 		}
 		return nil
@@ -85,24 +171,27 @@ func (d *dashboardRepositoryImpl) DeleteDashboard(ctx context.Context, req *bo.D
 }
 
 func (d *dashboardRepositoryImpl) UpdateDashboard(ctx context.Context, req *bo.UpdateDashboardParams) error {
-	dashboardModuleBuilder := builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().WithBoUpdateDashboardParams(req)
-	dashboardModel := dashboardModuleBuilder.ToModel()
-	strategyGroups := dashboardModuleBuilder.ToDoStrategyGroups()
-	charts := dashboardModuleBuilder.ToDoCharts()
+	dashboardModel := req.ToModel(ctx)
+	strategyGroups := req.Dashboard.GetStrategyGroupDos()
+
 	bizQuery, err := getBizQuery(ctx, d.data)
 	if err != nil {
 		return err
 	}
 
 	return bizQuery.Transaction(func(tx *bizquery.Query) error {
-		// 替换仪表盘图表
-		if err = tx.Dashboard.Charts.Model(dashboardModel).Replace(charts...); err != nil {
-			return err
+		if len(strategyGroups) > 0 {
+			// 替换策略组
+			if err = tx.Dashboard.StrategyGroups.Model(dashboardModel).Replace(strategyGroups...); err != nil {
+				return err
+			}
+		} else {
+			// 删除策略组
+			if err = tx.Dashboard.StrategyGroups.Model(dashboardModel).Clear(); err != nil {
+				return err
+			}
 		}
-		// 替换策略组
-		if err = tx.Dashboard.StrategyGroups.Model(dashboardModel).Replace(strategyGroups...); err != nil {
-			return err
-		}
+
 		_, err = tx.Dashboard.WithContext(ctx).
 			Where(bizQuery.Dashboard.ID.Eq(req.ID)).
 			UpdateSimple(

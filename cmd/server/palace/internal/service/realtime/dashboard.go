@@ -95,3 +95,55 @@ func (s *DashboardService) BatchUpdateDashboardStatus(ctx context.Context, req *
 	}
 	return &realtimeapi.BatchUpdateDashboardStatusReply{}, nil
 }
+
+// AddChart 添加图表
+func (s *DashboardService) AddChart(ctx context.Context, req *realtimeapi.AddChartRequest) (*realtimeapi.AddChartReply, error) {
+	params := builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().WithAddChartRequest(req).ToBo()
+	if err := s.dashboardBiz.AddChart(ctx, params); err != nil {
+		return nil, err
+	}
+	return &realtimeapi.AddChartReply{}, nil
+}
+
+// UpdateChart 更新图表
+func (s *DashboardService) UpdateChart(ctx context.Context, req *realtimeapi.UpdateChartRequest) (*realtimeapi.UpdateChartReply, error) {
+	params := builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().WithUpdateChartRequest(req).ToBo()
+	if err := s.dashboardBiz.UpdateChart(ctx, params); err != nil {
+		return nil, err
+	}
+	return &realtimeapi.UpdateChartReply{}, nil
+}
+
+// DeleteChart 删除图表
+func (s *DashboardService) DeleteChart(ctx context.Context, req *realtimeapi.DeleteChartRequest) (*realtimeapi.DeleteChartReply, error) {
+	params := builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().WithDeleteChartRequest(req).ToBo()
+	if err := s.dashboardBiz.DeleteChart(ctx, params); err != nil {
+		return nil, err
+	}
+	return &realtimeapi.DeleteChartReply{}, nil
+}
+
+// GetChart 获取图表
+func (s *DashboardService) GetChart(ctx context.Context, req *realtimeapi.GetChartRequest) (*realtimeapi.GetChartReply, error) {
+	params := builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().WithGetChartRequest(req).ToBo()
+	detail, err := s.dashboardBiz.GetChart(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &realtimeapi.GetChartReply{
+		Detail: builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().DoChartBuilder().ToAPI(detail),
+	}, nil
+}
+
+// ListChart 获取图表列表
+func (s *DashboardService) ListChart(ctx context.Context, req *realtimeapi.ListChartRequest) (*realtimeapi.ListChartReply, error) {
+	params := builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().WithListChartRequest(req).ToBo()
+	list, err := s.dashboardBiz.ListChart(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &realtimeapi.ListChartReply{
+		List:       builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().DoChartBuilder().ToAPIs(list),
+		Pagination: builder.NewParamsBuild(ctx).PaginationModuleBuilder().ToAPI(params.Page),
+	}, nil
+}
