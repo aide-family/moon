@@ -7,8 +7,6 @@ import (
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
-	"github.com/coocood/freecache"
-
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
@@ -35,7 +33,7 @@ func NewData(c *democonf.Bootstrap) (*Data, func(), error) {
 	bizConf := c.GetData().GetBizDatabase()
 	cacheConf := c.GetData().GetCache()
 	if !types.IsNil(cacheConf) {
-		d.cacher = newCache(cacheConf)
+		d.cacher = cache.NewCache(cacheConf)
 		closeFuncList = append(closeFuncList, func() {
 			log.Debugw("close cache", d.cacher.Close())
 		})
@@ -103,22 +101,4 @@ func (d *Data) GetCacher() cache.ICacher {
 // GetCasbin 获取casbin
 func (d *Data) GetCasbin() *casbin.SyncedEnforcer {
 	return d.enforcer
-}
-
-// newCache new cache
-func newCache(c *democonf.Data_Cache) cache.ICacher {
-	if types.IsNil(c) {
-		return nil
-	}
-
-	if !types.IsNil(c.GetRedis()) {
-		log.Debugw("cache init", "redis")
-		cli := conn.NewRedisClient(c.GetRedis())
-		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
-			log.Warnw("redis ping error", err)
-		}
-		return cache.NewRedisCacher(cli)
-	}
-
-	return cache.NewFreeCache(freecache.NewCache(10 * 1024 * 1024))
 }

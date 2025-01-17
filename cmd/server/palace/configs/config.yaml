@@ -32,7 +32,7 @@ jwt:
     - /api.admin.authorization.Authorization/RegisterWithEmail
 
 cache:
-  driver: 'free'
+  driver: 'miniredis'
   redis:
     network: 'tcp'
     addr: localhost:6379
