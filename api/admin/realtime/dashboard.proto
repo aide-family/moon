@@ -121,6 +121,21 @@ service Dashboard {
 			body: "*"
 		};
 	}
+
+	// 获取个人仪表板列表
+	rpc ListSelfDashboard (ListSelfDashboardRequest) returns (ListSelfDashboardReply) {
+		option (google.api.http) = {
+			get: "/v1/admin/realtime/self/dashboard/list"
+		};
+	}
+
+	// 更新个人仪表板
+	rpc UpdateSelfDashboard (UpdateSelfDashboardRequest) returns (UpdateSelfDashboardReply) {
+		option (google.api.http) = {
+			put: "/v1/admin/realtime/self/dashboard/update"
+			body: "*"
+		};
+	}
 }
 
 message CreateDashboardRequest {
@@ -168,6 +183,8 @@ message GetDashboardRequest {
 		message: "请选择要操作的仪表",
 		expression: 'this > 0'
 	}];
+	// 是否获取图表列表
+	bool charts = 2;
 }
 message GetDashboardReply {
 	// 仪表板详情
@@ -344,3 +361,15 @@ message BatchUpdateChartSortRequest {
 	}];
 }
 message BatchUpdateChartSortReply {}
+
+message ListSelfDashboardRequest {}
+message ListSelfDashboardReply {
+	// 仪表板列表
+	repeated DashboardItem list = 1;
+}
+
+message UpdateSelfDashboardRequest {
+	// 仪表板ID列表
+	repeated uint32 ids = 1;
+}
+message UpdateSelfDashboardReply {}

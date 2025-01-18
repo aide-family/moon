@@ -51,7 +51,8 @@ func (s *DashboardService) DeleteDashboard(ctx context.Context, req *realtimeapi
 
 // GetDashboard 获取监控大盘
 func (s *DashboardService) GetDashboard(ctx context.Context, req *realtimeapi.GetDashboardRequest) (*realtimeapi.GetDashboardReply, error) {
-	detail, err := s.dashboardBiz.GetDashboard(ctx, req.GetId())
+	params := builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().WithGetDashboardRequest(req).ToBo()
+	detail, err := s.dashboardBiz.GetDashboard(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -163,4 +164,23 @@ func (s *DashboardService) BatchUpdateChartSort(ctx context.Context, req *realti
 		return nil, err
 	}
 	return &realtimeapi.BatchUpdateChartSortReply{}, nil
+}
+
+// ListSelfDashboard 获取个人仪表板列表
+func (s *DashboardService) ListSelfDashboard(ctx context.Context, req *realtimeapi.ListSelfDashboardRequest) (*realtimeapi.ListSelfDashboardReply, error) {
+	list, err := s.dashboardBiz.ListSelfDashboard(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &realtimeapi.ListSelfDashboardReply{
+		List: builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().DoDashboardBuilder().ToAPIs(list),
+	}, nil
+}
+
+// UpdateSelfDashboard 更新个人仪表板
+func (s *DashboardService) UpdateSelfDashboard(ctx context.Context, req *realtimeapi.UpdateSelfDashboardRequest) (*realtimeapi.UpdateSelfDashboardReply, error) {
+	if err := s.dashboardBiz.UpdateSelfDashboard(ctx, req.GetIds()); err != nil {
+		return nil, err
+	}
+	return &realtimeapi.UpdateSelfDashboardReply{}, nil
 }

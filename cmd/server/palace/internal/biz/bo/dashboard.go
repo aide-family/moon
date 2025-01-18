@@ -38,6 +38,12 @@ type (
 		Status vobj.Status
 	}
 
+	// GetDashboardParams 获取仪表盘请求参数
+	GetDashboardParams struct {
+		ID     uint32
+		Charts bool
+	}
+
 	// UpdateDashboardParams 更新仪表盘请求参数
 	UpdateDashboardParams struct {
 		ID        uint32

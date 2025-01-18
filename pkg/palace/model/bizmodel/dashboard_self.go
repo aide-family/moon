@@ -9,10 +9,10 @@ const tableNameDashboardSelf = "dashboard_self"
 // DashboardSelf mapped from table <dashboard_self>
 type DashboardSelf struct {
 	AllFieldModel
-	DashboardID uint `gorm:"column:dashboard_id;type:int unsigned;not null;uniqueIndex:idx__user_id__dashboard__id,priority:2;comment:DashboardID" json:"dashboard_id"`
-	UserID      uint `gorm:"column:user_id;type:int unsigned;not null;uniqueIndex:idx__user_id__dashboard__id,priority:1;comment:用户ID" json:"user_id"`
-	MemberID    uint `gorm:"column:member_id;type:int unsigned;not null;comment:成员ID" json:"member_id"`
-	Sort        uint `gorm:"column:sort;type:int unsigned;not null;default:0;comment:排序(值越小越靠前， 默认为0)" json:"sort"`
+	DashboardID uint32 `gorm:"column:dashboard_id;type:int unsigned;not null;uniqueIndex:idx__user_id__dashboard__id,priority:2;comment:DashboardID" json:"dashboard_id"`
+	UserID      uint32 `gorm:"column:user_id;type:int unsigned;not null;uniqueIndex:idx__user_id__dashboard__id,priority:1;comment:用户ID" json:"user_id"`
+	MemberID    uint32 `gorm:"column:member_id;type:int unsigned;not null;comment:成员ID" json:"member_id"`
+	Sort        uint32 `gorm:"column:sort;type:int unsigned;not null;default:0;comment:排序(值越小越靠前， 默认为0)" json:"sort"`
 
 	Member    *SysTeamMember `gorm:"foreignKey:MemberID" json:"member"`
 	Dashboard *Dashboard     `gorm:"foreignKey:DashboardID" json:"dashboard"`

@@ -39,6 +39,8 @@ type (
 		WithUpdateDashboardRequest(*realtimeapi.UpdateDashboardRequest) IUpdateDashboardRequestBuilder
 		// WithDeleteDashboardRequest 删除仪表盘请求参数构造器
 		WithDeleteDashboardRequest(*realtimeapi.DeleteDashboardRequest) IDeleteDashboardRequestBuilder
+		// WithGetDashboardRequest 获取仪表盘请求参数构造器
+		WithGetDashboardRequest(*realtimeapi.GetDashboardRequest) IGetDashboardRequestBuilder
 		// WithListDashboardRequest 获取仪表盘列表请求参数构造器
 		WithListDashboardRequest(*realtimeapi.ListDashboardRequest) IListDashboardRequestBuilder
 		// WithBatchUpdateDashboardStatusRequest 批量更新仪表盘状态请求参数构造器
@@ -59,6 +61,17 @@ type (
 		DoDashboardBuilder() IDoDashboardBuilder
 		// DoChartBuilder 图表条目构造器
 		DoChartBuilder() IDoChartBuilder
+	}
+
+	// IGetDashboardRequestBuilder 获取仪表盘请求参数构造器
+	IGetDashboardRequestBuilder interface {
+		// ToBo 转换为业务对象
+		ToBo() *bo.GetDashboardParams
+	}
+
+	getDashboardRequestBuilder struct {
+		ctx context.Context
+		*realtimeapi.GetDashboardRequest
 	}
 
 	// IBatchUpdateChartStatusRequestBuilder 批量更新图表状态请求参数构造器
@@ -276,6 +289,25 @@ type (
 		ctx context.Context
 	}
 )
+
+// ToBo implements IGetDashboardRequestBuilder.
+func (g *getDashboardRequestBuilder) ToBo() *bo.GetDashboardParams {
+	if types.IsNil(g) || types.IsNil(g.GetDashboardRequest) {
+		return nil
+	}
+	return &bo.GetDashboardParams{
+		ID:     g.GetId(),
+		Charts: g.GetCharts(),
+	}
+}
+
+// WithGetDashboardRequest implements IRealtimeAlarmModuleBuilder.
+func (r *realtimeAlarmModuleBuilder) WithGetDashboardRequest(request *realtimeapi.GetDashboardRequest) IGetDashboardRequestBuilder {
+	return &getDashboardRequestBuilder{
+		ctx:                 r.ctx,
+		GetDashboardRequest: request,
+	}
+}
 
 // ToBo implements IBatchUpdateChartStatusRequestBuilder.
 func (b *batchUpdateChartStatusRequestBuilder) ToBo() *bo.BatchUpdateChartStatusParams {

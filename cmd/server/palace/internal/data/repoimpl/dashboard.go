@@ -8,6 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
@@ -17,6 +18,7 @@ import (
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // NewDashboardRepository 创建仪表盘操作实现
@@ -177,6 +179,47 @@ func (d *dashboardRepositoryImpl) BatchUpdateChartSort(ctx context.Context, dash
 	return err
 }
 
+func (d *dashboardRepositoryImpl) ListSelfDashboard(ctx context.Context) ([]*bizmodel.DashboardSelf, error) {
+	bizQuery, err := getBizQuery(ctx, d.data)
+	if err != nil {
+		return nil, err
+	}
+	dashboardSelf := bizQuery.DashboardSelf
+	return dashboardSelf.WithContext(ctx).
+		Where(dashboardSelf.UserID.Eq(middleware.GetUserID(ctx))).
+		Order(dashboardSelf.Sort.Desc(), dashboardSelf.ID.Asc()).Find()
+}
+
+func (d *dashboardRepositoryImpl) UpdateSelfDashboard(ctx context.Context, ids []uint32) error {
+	bizQuery, err := getBizQuery(ctx, d.data)
+	if err != nil {
+		return err
+	}
+
+	if len(ids) == 0 {
+		_, err = bizQuery.DashboardSelf.WithContext(ctx).Where(bizQuery.DashboardSelf.UserID.Eq(middleware.GetUserID(ctx))).Delete()
+		return err
+	}
+	list := make([]*bizmodel.DashboardSelf, 0, len(ids))
+	for index, id := range ids {
+		if id == 0 {
+			continue
+		}
+		list = append(list, &bizmodel.DashboardSelf{
+			AllFieldModel: bizmodel.AllFieldModel{},
+			DashboardID:   id,
+			UserID:        middleware.GetUserID(ctx),
+			MemberID:      middleware.GetTeamMemberID(ctx),
+			Sort:          uint32(index),
+		})
+	}
+	dashboardSelf := bizQuery.DashboardSelf
+	return dashboardSelf.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: dashboardSelf.DashboardID.ColumnName().String()}, {Name: dashboardSelf.UserID.ColumnName().String()}},
+		DoUpdates: clause.AssignmentColumns([]string{"sort"}),
+	}).Create(list...)
+}
+
 func (d *dashboardRepositoryImpl) AddDashboard(ctx context.Context, req *bo.AddDashboardParams) error {
 	dashboardModel := req.ToModel(ctx)
 	bizQuery, err := getBizQuery(ctx, d.data)
@@ -249,12 +292,16 @@ func (d *dashboardRepositoryImpl) UpdateDashboard(ctx context.Context, req *bo.U
 	})
 }
 
-func (d *dashboardRepositoryImpl) GetDashboard(ctx context.Context, id uint32) (*bizmodel.Dashboard, error) {
+func (d *dashboardRepositoryImpl) GetDashboard(ctx context.Context, params *bo.GetDashboardParams) (*bizmodel.Dashboard, error) {
 	bizQuery, err := getBizQuery(ctx, d.data)
 	if err != nil {
 		return nil, err
 	}
-	detail, err := bizQuery.Dashboard.WithContext(ctx).Where(bizQuery.Dashboard.ID.Eq(id)).First()
+	dashboardQuery := bizQuery.Dashboard.WithContext(ctx).Where(bizQuery.Dashboard.ID.Eq(params.ID))
+	if params.Charts {
+		dashboardQuery = dashboardQuery.Preload(bizQuery.Dashboard.Charts)
+	}
+	detail, err := dashboardQuery.First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorI18nToastDashboardNotFound(ctx).WithCause(err)

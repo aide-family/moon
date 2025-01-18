@@ -6,6 +6,8 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
 // NewDashboardBiz 创建仪表盘业务
@@ -36,8 +38,8 @@ func (b *DashboardBiz) DeleteDashboard(ctx context.Context, req *bo.DeleteDashbo
 }
 
 // GetDashboard 获取仪表盘
-func (b *DashboardBiz) GetDashboard(ctx context.Context, id uint32) (*bizmodel.Dashboard, error) {
-	return b.dashboardRepository.GetDashboard(ctx, id)
+func (b *DashboardBiz) GetDashboard(ctx context.Context, params *bo.GetDashboardParams) (*bizmodel.Dashboard, error) {
+	return b.dashboardRepository.GetDashboard(ctx, params)
 }
 
 // ListDashboard 获取仪表盘列表
@@ -83,4 +85,20 @@ func (b *DashboardBiz) BatchUpdateChartStatus(ctx context.Context, params *bo.Ba
 // BatchUpdateChartSort 批量更新图表排序
 func (b *DashboardBiz) BatchUpdateChartSort(ctx context.Context, dashboardID uint32, ids []uint32) error {
 	return b.dashboardRepository.BatchUpdateChartSort(ctx, dashboardID, ids)
+}
+
+// ListSelfDashboard 获取个人仪表板列表
+func (b *DashboardBiz) ListSelfDashboard(ctx context.Context) ([]*bizmodel.Dashboard, error) {
+	selfDashboards, err := b.dashboardRepository.ListSelfDashboard(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return types.SliceToWithFilter(selfDashboards, func(item *bizmodel.DashboardSelf) (*bizmodel.Dashboard, bool) {
+		return item.Dashboard, item.Dashboard.Status == vobj.StatusEnable && types.IsNotNil(item.Dashboard)
+	}), nil
+}
+
+// UpdateSelfDashboard 更新个人仪表板
+func (b *DashboardBiz) UpdateSelfDashboard(ctx context.Context, ids []uint32) error {
+	return b.dashboardRepository.UpdateSelfDashboard(ctx, ids)
 }

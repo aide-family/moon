@@ -19,7 +19,7 @@ type Dashboard interface {
 	UpdateDashboard(ctx context.Context, req *bo.UpdateDashboardParams) error
 
 	// GetDashboard 获取仪表盘详情
-	GetDashboard(ctx context.Context, id uint32) (*bizmodel.Dashboard, error)
+	GetDashboard(ctx context.Context, params *bo.GetDashboardParams) (*bizmodel.Dashboard, error)
 
 	// ListDashboard 获取仪表盘列表
 	ListDashboard(ctx context.Context, params *bo.ListDashboardParams) ([]*bizmodel.Dashboard, error)
@@ -47,4 +47,10 @@ type Dashboard interface {
 
 	// BatchUpdateChartSort 批量更新图表排序
 	BatchUpdateChartSort(ctx context.Context, dashboardID uint32, ids []uint32) error
+
+	// ListSelfDashboard 获取个人仪表板列表
+	ListSelfDashboard(ctx context.Context) ([]*bizmodel.DashboardSelf, error)
+
+	// UpdateSelfDashboard 更新个人仪表板
+	UpdateSelfDashboard(ctx context.Context, ids []uint32) error
 }
