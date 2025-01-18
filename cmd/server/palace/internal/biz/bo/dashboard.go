@@ -89,6 +89,13 @@ type (
 		DashboardID uint32
 		ChartID     uint32
 	}
+
+	// BatchUpdateChartStatusParams 批量更新图表状态请求参数
+	BatchUpdateChartStatusParams struct {
+		DashboardID uint32
+		ChartIDs    []uint32
+		Status      vobj.Status
+	}
 )
 
 // ToModel 转换为模型

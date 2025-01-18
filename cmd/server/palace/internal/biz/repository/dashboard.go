@@ -41,4 +41,7 @@ type Dashboard interface {
 
 	// ListChart 获取图表列表
 	ListChart(ctx context.Context, params *bo.ListChartParams) ([]*bizmodel.DashboardChart, error)
+
+	// BatchUpdateChartStatus 批量更新图表状态
+	BatchUpdateChartStatus(ctx context.Context, params *bo.BatchUpdateChartStatusParams) error
 }

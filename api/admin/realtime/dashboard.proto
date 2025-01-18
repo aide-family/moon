@@ -105,6 +105,14 @@ service Dashboard {
 			body: "*"
 		};
 	}
+
+	// 批量修改图表状态
+	rpc BatchUpdateChartStatus (BatchUpdateChartStatusRequest) returns (BatchUpdateChartStatusReply) {
+		option (google.api.http) = {
+			put: "/v1/admin/realtime/dashboard/{dashboardId}/chart/batch/update/status"
+			body: "*"
+		};
+	}
 }
 
 message CreateDashboardRequest {
@@ -298,3 +306,19 @@ message ListChartReply {
 	// 分页
 	PaginationReply pagination = 2;
 }
+
+message BatchUpdateChartStatusRequest {
+	// 仪表板ID
+	uint32 dashboardId = 1 [(buf.validate.field).cel = {
+		message: "请选择要操作的仪表",
+		expression: 'this > 0'
+	}];
+	// 图表ID列表
+	repeated uint32 ids = 2 [(buf.validate.field).cel = {
+		message: "请选择要操作的图表",
+		expression: 'this.size() > 0'
+	}];
+	// 图表状态
+	Status status = 3;
+}
+message BatchUpdateChartStatusReply {}

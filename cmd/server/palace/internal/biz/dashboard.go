@@ -74,3 +74,8 @@ func (b *DashboardBiz) ListChart(ctx context.Context, params *bo.ListChartParams
 func (b *DashboardBiz) GetChart(ctx context.Context, params *bo.GetChartParams) (*bizmodel.DashboardChart, error) {
 	return b.dashboardRepository.GetChart(ctx, params)
 }
+
+// BatchUpdateChartStatus 批量更新图表状态
+func (b *DashboardBiz) BatchUpdateChartStatus(ctx context.Context, params *bo.BatchUpdateChartStatusParams) error {
+	return b.dashboardRepository.BatchUpdateChartStatus(ctx, params)
+}

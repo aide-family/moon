@@ -96,6 +96,22 @@ func (d *dashboardRepositoryImpl) ListChart(ctx context.Context, params *bo.List
 	return chartQuery.Find()
 }
 
+// BatchUpdateChartStatus implements repository.Dashboard.
+func (d *dashboardRepositoryImpl) BatchUpdateChartStatus(ctx context.Context, params *bo.BatchUpdateChartStatusParams) error {
+	if len(params.ChartIDs) == 0 || params.Status.IsUnknown() {
+		return nil
+	}
+	bizQuery, err := getBizQuery(ctx, d.data)
+	if err != nil {
+		return err
+	}
+	_, err = bizQuery.DashboardChart.WithContext(ctx).Where(
+		bizQuery.DashboardChart.ID.In(params.ChartIDs...),
+		bizQuery.DashboardChart.DashboardID.Eq(params.DashboardID),
+	).UpdateSimple(bizQuery.DashboardChart.Status.Value(params.Status.GetValue()))
+	return err
+}
+
 // UpdateChart implements repository.Dashboard.
 func (d *dashboardRepositoryImpl) UpdateChart(ctx context.Context, params *bo.UpdateChartParams) error {
 	bizQuery, err := getBizQuery(ctx, d.data)

@@ -53,10 +53,23 @@ type (
 		WithGetChartRequest(*realtimeapi.GetChartRequest) IGetChartRequestBuilder
 		// WithListChartRequest 获取图表列表请求参数构造器
 		WithListChartRequest(*realtimeapi.ListChartRequest) IListChartRequestBuilder
+		// WithBatchUpdateChartStatusRequest 批量更新图表状态请求参数构造器
+		WithBatchUpdateChartStatusRequest(*realtimeapi.BatchUpdateChartStatusRequest) IBatchUpdateChartStatusRequestBuilder
 		// DoDashboardBuilder 仪表盘条目构造器
 		DoDashboardBuilder() IDoDashboardBuilder
 		// DoChartBuilder 图表条目构造器
 		DoChartBuilder() IDoChartBuilder
+	}
+
+	// IBatchUpdateChartStatusRequestBuilder 批量更新图表状态请求参数构造器
+	IBatchUpdateChartStatusRequestBuilder interface {
+		// ToBo 转换为业务对象
+		ToBo() *bo.BatchUpdateChartStatusParams
+	}
+
+	batchUpdateChartStatusRequestBuilder struct {
+		ctx context.Context
+		*realtimeapi.BatchUpdateChartStatusRequest
 	}
 
 	// IAddChartRequestBuilder 添加图表请求参数构造器
@@ -263,6 +276,26 @@ type (
 		ctx context.Context
 	}
 )
+
+// ToBo implements IBatchUpdateChartStatusRequestBuilder.
+func (b *batchUpdateChartStatusRequestBuilder) ToBo() *bo.BatchUpdateChartStatusParams {
+	if types.IsNil(b) || types.IsNil(b.BatchUpdateChartStatusRequest) {
+		return nil
+	}
+	return &bo.BatchUpdateChartStatusParams{
+		DashboardID: b.GetDashboardId(),
+		ChartIDs:    b.GetIds(),
+		Status:      vobj.Status(b.GetStatus()),
+	}
+}
+
+// WithBatchUpdateChartStatusRequest implements IRealtimeAlarmModuleBuilder.
+func (r *realtimeAlarmModuleBuilder) WithBatchUpdateChartStatusRequest(request *realtimeapi.BatchUpdateChartStatusRequest) IBatchUpdateChartStatusRequestBuilder {
+	return &batchUpdateChartStatusRequestBuilder{
+		ctx:                           r.ctx,
+		BatchUpdateChartStatusRequest: request,
+	}
+}
 
 // ToBo implements IListChartRequestBuilder.
 func (l *listChartRequestBuilder) ToBo() *bo.ListChartParams {

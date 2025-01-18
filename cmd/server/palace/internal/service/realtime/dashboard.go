@@ -147,3 +147,12 @@ func (s *DashboardService) ListChart(ctx context.Context, req *realtimeapi.ListC
 		Pagination: builder.NewParamsBuild(ctx).PaginationModuleBuilder().ToAPI(params.Page),
 	}, nil
 }
+
+// BatchUpdateChartStatus 批量更新图表状态
+func (s *DashboardService) BatchUpdateChartStatus(ctx context.Context, req *realtimeapi.BatchUpdateChartStatusRequest) (*realtimeapi.BatchUpdateChartStatusReply, error) {
+	params := builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().WithBatchUpdateChartStatusRequest(req).ToBo()
+	if err := s.dashboardBiz.BatchUpdateChartStatus(ctx, params); err != nil {
+		return nil, err
+	}
+	return &realtimeapi.BatchUpdateChartStatusReply{}, nil
+}
