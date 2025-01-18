@@ -113,6 +113,14 @@ service Dashboard {
 			body: "*"
 		};
 	}
+
+	// 批量更新图表排序
+	rpc BatchUpdateChartSort (BatchUpdateChartSortRequest) returns (BatchUpdateChartSortReply) {
+		option (google.api.http) = {
+			put: "/v1/admin/realtime/dashboard/{dashboardId}/chart/batch/update/sort"
+			body: "*"
+		};
+	}
 }
 
 message CreateDashboardRequest {
@@ -289,7 +297,7 @@ message ListChartRequest {
 		expression: 'this > 0'
 	}];
 	// 分页
-	PaginationReq pagination = 2 [(buf.validate.field).required = true];
+	PaginationReq pagination = 2;
 	// 图表状态
 	Status status = 3;
 	// 图表类型
@@ -322,3 +330,17 @@ message BatchUpdateChartStatusRequest {
 	Status status = 3;
 }
 message BatchUpdateChartStatusReply {}
+
+message BatchUpdateChartSortRequest {
+	// 仪表板ID
+	uint32 dashboardId = 1 [(buf.validate.field).cel = {
+		message: "请选择要操作的仪表",
+		expression: 'this > 0'
+	}];
+	// 图表ID列表
+	repeated uint32 ids = 2 [(buf.validate.field).cel = {
+		message: "请选择要操作的图表",
+		expression: 'this.size() > 0'
+	}];
+}
+message BatchUpdateChartSortReply {}

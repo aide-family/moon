@@ -156,3 +156,11 @@ func (s *DashboardService) BatchUpdateChartStatus(ctx context.Context, req *real
 	}
 	return &realtimeapi.BatchUpdateChartStatusReply{}, nil
 }
+
+// BatchUpdateChartSort 批量更新图表排序
+func (s *DashboardService) BatchUpdateChartSort(ctx context.Context, req *realtimeapi.BatchUpdateChartSortRequest) (*realtimeapi.BatchUpdateChartSortReply, error) {
+	if err := s.dashboardBiz.BatchUpdateChartSort(ctx, req.GetDashboardId(), req.GetIds()); err != nil {
+		return nil, err
+	}
+	return &realtimeapi.BatchUpdateChartSortReply{}, nil
+}

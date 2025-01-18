@@ -2,6 +2,8 @@ package repoimpl
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
@@ -33,6 +35,11 @@ func (d *dashboardRepositoryImpl) AddChart(ctx context.Context, params *bo.AddCh
 		return err
 	}
 	chartModel := params.ChartItem.ToModel(ctx)
+	count, err := bizQuery.DashboardChart.WithContext(ctx).Where(bizQuery.DashboardChart.DashboardID.Eq(params.DashboardID)).Count()
+	if err != nil {
+		return err
+	}
+	chartModel.Sort = uint32(count)
 	return bizQuery.DashboardChart.WithContext(ctx).Create(chartModel)
 }
 
@@ -145,6 +152,28 @@ func (d *dashboardRepositoryImpl) BatchUpdateDashboardStatus(ctx context.Context
 	_, err = bizQuery.WithContext(ctx).
 		Dashboard.Where(bizQuery.Dashboard.ID.In(params.IDs...)).
 		Update(bizQuery.Dashboard.Status, params.Status)
+	return err
+}
+
+func (d *dashboardRepositoryImpl) BatchUpdateChartSort(ctx context.Context, dashboardID uint32, ids []uint32) error {
+	bizQuery, err := getBizQuery(ctx, d.data)
+	if err != nil {
+		return err
+	}
+
+	// 使用 strings.Builder 构建 CASE 语句
+	var caseStmt strings.Builder
+	caseStmt.WriteString("CASE")
+	for index, id := range ids {
+		caseStmt.WriteString(fmt.Sprintf(" WHEN id = %d THEN %d", id, index))
+	}
+	caseStmt.WriteString(" END")
+
+	// 执行批量更新
+	_, err = bizQuery.DashboardChart.WithContext(ctx).
+		Where(bizQuery.DashboardChart.DashboardID.Eq(dashboardID), bizQuery.DashboardChart.ID.In(ids...)).
+		Update(bizQuery.DashboardChart.Sort, gorm.Expr(caseStmt.String()))
+
 	return err
 }
 

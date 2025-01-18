@@ -443,6 +443,7 @@ func (d *doChartBuilder) ToAPI(chart *bizmodel.DashboardChart) *adminapi.ChartIt
 		ChartType: api.ChartType(chart.ChartType),
 		Width:     chart.Width,
 		Height:    chart.Height,
+		Sort:      chart.Sort,
 	}
 }
 
@@ -450,6 +451,10 @@ func (d *doChartBuilder) ToAPIs(charts []*bizmodel.DashboardChart) []*adminapi.C
 	if types.IsNil(d) || types.IsNil(charts) {
 		return nil
 	}
+
+	sort.Slice(charts, func(i, j int) bool {
+		return charts[i].Sort < charts[j].Sort
+	})
 
 	return types.SliceTo(charts, func(chart *bizmodel.DashboardChart) *adminapi.ChartItem {
 		return d.ToAPI(chart)

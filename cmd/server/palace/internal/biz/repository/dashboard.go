@@ -44,4 +44,7 @@ type Dashboard interface {
 
 	// BatchUpdateChartStatus 批量更新图表状态
 	BatchUpdateChartStatus(ctx context.Context, params *bo.BatchUpdateChartStatusParams) error
+
+	// BatchUpdateChartSort 批量更新图表排序
+	BatchUpdateChartSort(ctx context.Context, dashboardID uint32, ids []uint32) error
 }

@@ -581,6 +581,8 @@ message ChartItem {
   string  width = 7;
   // 高度
   string  height = 8;
+  // 排序
+  uint32 sort = 9;
 }
 
 message RealtimeAlarmItem {
