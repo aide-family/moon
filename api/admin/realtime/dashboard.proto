@@ -366,6 +366,15 @@ message ListSelfDashboardReply {
 
 message UpdateSelfDashboardRequest {
 	// 仪表板ID列表
-	repeated uint32 ids = 1;
+	repeated uint32 ids = 1 [(buf.validate.field).cel = {
+		message: "请选择要操作的仪表",
+		expression: 'this.size() > 0'
+	}, (buf.validate.field).cel = {
+		message: "仪表板ID列表不能重复",
+		expression: 'this.unique()'
+	}, (buf.validate.field).cel = {
+		message: "最多选择10个仪表板",
+		expression: 'this.size() <= 10'
+	}];
 }
 message UpdateSelfDashboardReply {}

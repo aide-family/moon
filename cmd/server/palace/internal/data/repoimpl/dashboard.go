@@ -182,7 +182,8 @@ func (d *dashboardRepositoryImpl) ListSelfDashboard(ctx context.Context) ([]*biz
 	dashboardSelf := bizQuery.DashboardSelf
 	return dashboardSelf.WithContext(ctx).
 		Where(dashboardSelf.UserID.Eq(middleware.GetUserID(ctx))).
-		Order(dashboardSelf.Sort.Desc(), dashboardSelf.ID.Asc()).Find()
+		Preload(dashboardSelf.Dashboard).
+		Order(dashboardSelf.Sort.Asc(), dashboardSelf.ID.Asc()).Find()
 }
 
 func (d *dashboardRepositoryImpl) UpdateSelfDashboard(ctx context.Context, ids []uint32) error {

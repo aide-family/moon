@@ -94,7 +94,7 @@ func (b *DashboardBiz) ListSelfDashboard(ctx context.Context) ([]*bizmodel.Dashb
 		return nil, err
 	}
 	return types.SliceToWithFilter(selfDashboards, func(item *bizmodel.DashboardSelf) (*bizmodel.Dashboard, bool) {
-		return item.Dashboard, item.Dashboard.Status == vobj.StatusEnable && types.IsNotNil(item.Dashboard)
+		return item.Dashboard, types.IsNotNil(item.Dashboard) && item.Dashboard.Status == vobj.StatusEnable
 	}), nil
 }
 
