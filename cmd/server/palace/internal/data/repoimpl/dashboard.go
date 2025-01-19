@@ -91,10 +91,6 @@ func (d *dashboardRepositoryImpl) ListChart(ctx context.Context, params *bo.List
 	if !params.Status.IsUnknown() {
 		wheres = append(wheres, bizQuery.DashboardChart.Status.Eq(params.Status.GetValue()))
 	}
-	chartTypes := params.GetChartTypes()
-	if len(chartTypes) > 0 {
-		wheres = append(wheres, bizQuery.DashboardChart.ChartType.In(chartTypes...))
-	}
 	chartQuery := bizQuery.DashboardChart.WithContext(ctx)
 	if len(wheres) > 0 {
 		chartQuery = chartQuery.Where(wheres...)
@@ -133,7 +129,6 @@ func (d *dashboardRepositoryImpl) UpdateChart(ctx context.Context, params *bo.Up
 		bizQuery.DashboardChart.DashboardID.Eq(params.DashboardID),
 	).UpdateSimple(
 		bizQuery.DashboardChart.Name.Value(chartModel.Name),
-		bizQuery.DashboardChart.ChartType.Value(chartModel.ChartType.GetValue()),
 		bizQuery.DashboardChart.Status.Value(chartModel.Status.GetValue()),
 		bizQuery.DashboardChart.Remark.Value(chartModel.Remark),
 		bizQuery.DashboardChart.Height.Value(chartModel.Height),

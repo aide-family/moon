@@ -19,7 +19,6 @@ type (
 		Status      vobj.Status
 		Height      string
 		Width       string
-		ChartType   vobj.DashboardChartType
 		DashboardID uint32
 	}
 
@@ -87,7 +86,6 @@ type (
 		Page        types.Pagination
 		Keyword     string
 		Status      vobj.Status
-		ChartTypes  []vobj.DashboardChartType
 	}
 
 	// GetChartParams 获取图表请求参数
@@ -113,19 +111,11 @@ func (p *ChartItem) ToModel(ctx context.Context) *bizmodel.DashboardChart {
 		Remark:        p.Remark,
 		URL:           p.URL,
 		DashboardID:   p.DashboardID,
-		ChartType:     vobj.DashboardChartType(p.ChartType),
 		Width:         p.Width,
 		Height:        p.Height,
 	}
 	m.WithContext(ctx)
 	return m
-}
-
-// GetChartTypes ListChartParams 获取图表类型
-func (p *ListChartParams) GetChartTypes() []int {
-	return types.SliceTo(p.ChartTypes, func(chartType vobj.DashboardChartType) int {
-		return int(chartType)
-	})
 }
 
 // GetStrategyGroupDos 获取策略组列表

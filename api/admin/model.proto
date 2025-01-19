@@ -575,8 +575,6 @@ message ChartItem {
   string url = 4;
   // 图表状态
   Status status = 5;
-  // 图表类型
-  ChartType chartType = 6;
   // 宽度
   string  width = 7;
   // 高度

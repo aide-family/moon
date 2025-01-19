@@ -339,9 +339,6 @@ func (l *listChartRequestBuilder) ToBo() *bo.ListChartParams {
 		Page:        types.NewPagination(l.GetPagination()),
 		Keyword:     l.GetKeyword(),
 		Status:      vobj.Status(l.GetStatus()),
-		ChartTypes: types.SliceTo(l.GetChartTypes(), func(chartType api.ChartType) vobj.DashboardChartType {
-			return vobj.DashboardChartType(chartType)
-		}),
 	}
 }
 
@@ -382,7 +379,6 @@ func (u *updateChartRequestBuilder) ToBo() *bo.UpdateChartParams {
 			Status:      vobj.Status(u.GetChart().GetStatus()),
 			Height:      u.GetChart().GetHeight(),
 			Width:       u.GetChart().GetWidth(),
-			ChartType:   vobj.DashboardChartType(u.GetChart().GetChartType()),
 			DashboardID: u.GetDashboardId(),
 		},
 	}
@@ -403,7 +399,6 @@ func (a *addChartRequestBuilder) ToBo() *bo.AddChartParams {
 			Status:      vobj.Status(a.GetStatus()),
 			Height:      a.GetHeight(),
 			Width:       a.GetWidth(),
-			ChartType:   vobj.DashboardChartType(a.GetChartType()),
 			DashboardID: a.GetDashboardId(),
 		},
 	}
@@ -467,15 +462,14 @@ func (d *doChartBuilder) ToAPI(chart *bizmodel.DashboardChart) *adminapi.ChartIt
 	}
 
 	return &adminapi.ChartItem{
-		Id:        chart.ID,
-		Title:     chart.Name,
-		Remark:    chart.Remark,
-		Url:       chart.URL,
-		Status:    api.Status(chart.Status),
-		ChartType: api.ChartType(chart.ChartType),
-		Width:     chart.Width,
-		Height:    chart.Height,
-		Sort:      chart.Sort,
+		Id:     chart.ID,
+		Title:  chart.Name,
+		Remark: chart.Remark,
+		Url:    chart.URL,
+		Status: api.Status(chart.Status),
+		Width:  chart.Width,
+		Height: chart.Height,
+		Sort:   chart.Sort,
 	}
 }
 
