@@ -304,6 +304,11 @@ func (d *dashboardRepositoryImpl) GetDashboard(ctx context.Context, params *bo.G
 		}
 		return nil, merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
+	if params.MyDashboard {
+		detail.Charts = types.SliceToWithFilter(detail.Charts, func(chart *bizmodel.DashboardChart) (*bizmodel.DashboardChart, bool) {
+			return chart, chart.Status.IsEnable()
+		})
+	}
 	return detail, nil
 }
 

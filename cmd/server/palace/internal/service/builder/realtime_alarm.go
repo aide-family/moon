@@ -296,8 +296,9 @@ func (g *getDashboardRequestBuilder) ToBo() *bo.GetDashboardParams {
 		return nil
 	}
 	return &bo.GetDashboardParams{
-		ID:     g.GetId(),
-		Charts: g.GetCharts(),
+		ID:          g.GetId(),
+		Charts:      g.GetCharts(),
+		MyDashboard: g.GetMyDashboard(),
 	}
 }
 

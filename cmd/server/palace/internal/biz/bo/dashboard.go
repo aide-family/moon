@@ -39,8 +39,9 @@ type (
 
 	// GetDashboardParams 获取仪表盘请求参数
 	GetDashboardParams struct {
-		ID     uint32
-		Charts bool
+		ID          uint32
+		Charts      bool
+		MyDashboard bool
 	}
 
 	// UpdateDashboardParams 更新仪表盘请求参数
