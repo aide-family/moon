@@ -35,10 +35,10 @@ func (s *StatisticsService) SummaryAlarm(ctx context.Context, req *pb.SummaryAla
 		Recovered:                 rand.Int64N(1000),
 		HighestPriority:           rand.Int64N(100),
 		ChartData:                 randomChartData,
-		TotalComparison:           fmt.Sprintf("%.2f%%", rand.Float64()*100),
-		OngoingComparison:         fmt.Sprintf("%.2f%%", rand.Float64()*100),
-		RecoveredComparison:       fmt.Sprintf("%.2f%%", rand.Float64()*100),
-		HighestPriorityComparison: fmt.Sprintf("%.2f%%", rand.Float64()*100),
+		TotalComparison:           fmt.Sprintf("%.2f", rand.Float64()*100),
+		OngoingComparison:         fmt.Sprintf("%.2f", rand.Float64()*100),
+		RecoveredComparison:       fmt.Sprintf("%.2f", rand.Float64()*100),
+		HighestPriorityComparison: fmt.Sprintf("%.2f", rand.Float64()*100),
 	}, nil
 }
 
@@ -54,8 +54,8 @@ func (s *StatisticsService) SummaryNotice(ctx context.Context, req *pb.SummaryNo
 		Total:            rand.Int64N(1000),
 		Failed:           rand.Int64N(500),
 		ChartData:        randomChartData,
-		TotalComparison:  fmt.Sprintf("%.2f%%", rand.Float64()*100),
-		FailedComparison: fmt.Sprintf("%.2f%%", rand.Float64()*100),
+		TotalComparison:  fmt.Sprintf("%.2f", rand.Float64()*100),
+		FailedComparison: fmt.Sprintf("%.2f", rand.Float64()*100),
 		NotifyTypes:      []*pb.SummaryNoticeReply_NotifyType{},
 	}, nil
 }
