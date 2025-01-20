@@ -13,7 +13,9 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/helper/metric"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -95,13 +97,50 @@ func (s *sendAlertRepositoryImpl) alarmSendHistorySave(ctx context.Context, send
 	}
 	teamID := routeParts[1]
 	notifyID := routeParts[2]
-	metric.IncNotifyCounter(teamID, status.EnString(), notifyID)
+	notifyIDInt, _ := strconv.Atoi(notifyID)
+	teamIDInt, _ := strconv.Atoi(teamID)
+	strategyNameMap := s.getStrategyNameMap(uint32(teamIDInt), []uint32{uint32(notifyIDInt)})
+	metric.IncNotifyCounter(teamID, status.EnString(), notifyID, strategyNameMap[uint32(notifyIDInt)])
 	// 解析告警team_id
 	param.TeamID = getTeamIDByRoute(routeParts)
 	// 解析告警组id
 	param.AlarmGroupID = getAlarmGroupIDByRoute(routeParts)
 	param.SendTime = types.NewTime(time.Now())
 	return s.alarmSendRepository.SaveAlarmSendHistory(ctx, param)
+}
+
+// getBizQuery 获取业务数据库
+func getBizQuery(ctx context.Context, data *data.Data) (*bizquery.Query, error) {
+	bizDB, err := data.GetBizGormDB(middleware.GetTeamID(ctx))
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return bizquery.Use(bizDB), nil
+}
+
+// getStrategyNameMap 获取策略名称
+func (s *sendAlertRepositoryImpl) getStrategyNameMap(teamID uint32, strategyIDList []uint32) map[uint32]string {
+	if len(strategyIDList) == 0 {
+		return nil
+	}
+	ctx := middleware.WithTeamIDContextKey(context.Background(), teamID)
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if err != nil {
+		return nil
+	}
+	strategies, err := bizQuery.Strategy.WithContext(ctx).
+		Unscoped().
+		Select(bizQuery.Strategy.ID, bizQuery.Strategy.Name).
+		Where(bizQuery.Strategy.ID.In(strategyIDList...)).
+		Find()
+	if err != nil {
+		return nil
+	}
+	strategyNameMap := make(map[uint32]string)
+	for _, strategy := range strategies {
+		strategyNameMap[strategy.ID] = strategy.Name
+	}
+	return strategyNameMap
 }
 
 // 获取告警发送次数

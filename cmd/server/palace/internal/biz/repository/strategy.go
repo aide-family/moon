@@ -21,6 +21,9 @@ type Strategy interface {
 	// GetStrategyByIds 批量获取策略详情
 	GetStrategyByIds(context.Context, []uint32) ([]*bizmodel.Strategy, error)
 
+	// GetStrategySimpleByIds 获取策略简单信息
+	GetStrategySimpleByIds(context.Context, []uint32) ([]*bizmodel.Strategy, error)
+
 	// UpdateStatus 更新状态
 	UpdateStatus(context.Context, *bo.UpdateStrategyStatusParams) error
 

@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -133,4 +134,18 @@ func (b *StrategyBiz) verifyStrategyStatus(ctx context.Context, ids []uint32) er
 // SyncStrategy 同步策略
 func (b *StrategyBiz) SyncStrategy(ctx context.Context, id uint32) error {
 	return b.strategyRepo.Sync(ctx, id)
+}
+
+// GetStrategyNameMap 获取策略名称
+func (b *StrategyBiz) GetStrategyNameMap(teamID uint32, strategyIDList []uint32) map[uint32]string {
+	ctx := middleware.WithTeamIDContextKey(context.Background(), teamID)
+	strategies, err := b.strategyRepo.GetStrategySimpleByIds(ctx, strategyIDList)
+	if err != nil {
+		return nil
+	}
+	strategyNameMap := make(map[uint32]string)
+	for _, strategy := range strategies {
+		strategyNameMap[strategy.ID] = strategy.Name
+	}
+	return strategyNameMap
 }

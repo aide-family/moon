@@ -9,7 +9,7 @@ var alarmCounter = prometheus.NewCounterVec(
 		Name:      "alarm_total",
 		Help:      "count of alarm",
 	},
-	[]string{"level_id", "strategy_id", "team_id"},
+	[]string{"level_id", "strategy_id", "team_id", "strategy_name"},
 )
 
 func init() {
@@ -17,11 +17,11 @@ func init() {
 }
 
 // IncAlarmCounter 告警计数器+1
-func IncAlarmCounter(levelID, strategyID, teamID string) {
-	alarmCounter.WithLabelValues(levelID, strategyID, teamID).Inc()
+func IncAlarmCounter(levelID, strategyID, teamID, strategyName string) {
+	alarmCounter.WithLabelValues(levelID, strategyID, teamID, strategyName).Inc()
 }
 
 // AddAlarmCounter 告警计数器+n
-func AddAlarmCounter(levelID, strategyID, teamID string, n float64) {
-	alarmCounter.WithLabelValues(levelID, strategyID, teamID).Add(n)
+func AddAlarmCounter(levelID, strategyID, teamID, strategyName string, n float64) {
+	alarmCounter.WithLabelValues(levelID, strategyID, teamID, strategyName).Add(n)
 }

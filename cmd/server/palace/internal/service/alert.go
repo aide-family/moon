@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/aide-family/moon/api"
 	hookapi "github.com/aide-family/moon/api/rabbit/hook"
@@ -68,14 +69,50 @@ func (s *AlertService) SendAlertMsg(ctx context.Context, req *hookapi.SendMsgReq
 
 // alertMetric 告警指标
 func (s *AlertService) alertMetric(req *api.AlarmItem) {
+	type StrateySimple struct {
+		LevelID       string
+		StrategyID    string
+		StrategyIDInt uint32
+		TeamID        string
+		TeamIDInt     uint32
+		Status        string
+	}
+	strategyList := make([]StrateySimple, 0, len(req.GetAlerts()))
+	strategyIDList := make([]uint32, 0, len(strategyList))
 	for _, alertItem := range req.GetAlerts() {
 		labels := alertItem.GetLabels()
 		levelID, strategyID, teamID := labels[label.LevelID], labels[label.StrategyID], labels[label.TeamID]
-		if vobj.ToAlertStatus(alertItem.GetStatus()).IsResolved() {
-			metric.DecAlarmGauge(levelID, strategyID, teamID)
+		strategyIDInt, _ := strconv.ParseUint(strategyID, 10, 32)
+		teamIDInt, _ := strconv.ParseUint(teamID, 10, 32)
+		if strategyIDInt > 0 {
+			strategyIDList = append(strategyIDList, uint32(strategyIDInt))
+		}
+		strategyList = append(strategyList, StrateySimple{
+			LevelID:       levelID,
+			StrategyID:    strategyID,
+			TeamID:        teamID,
+			Status:        alertItem.GetStatus(),
+			TeamIDInt:     uint32(teamIDInt),
+			StrategyIDInt: uint32(strategyIDInt),
+		})
+	}
+
+	strategyNameMap := make(map[uint32]string)
+	if len(strategyIDList) > 0 {
+		// 获取策略名称
+		strategyNameMap = s.strategyBiz.GetStrategyNameMap(strategyList[0].TeamIDInt, strategyIDList)
+	}
+
+	for _, strategy := range strategyList {
+		strategyName := strategyNameMap[strategy.StrategyIDInt]
+		if strategyName == "" {
+			strategyName = "unknown"
+		}
+		if vobj.ToAlertStatus(strategy.Status).IsResolved() {
+			metric.DecAlarmGauge(strategy.LevelID, strategy.StrategyID, strategy.TeamID, strategyName)
 		} else {
-			metric.IncAlarmCounter(levelID, strategyID, teamID)
-			metric.IncAlarmGauge(levelID, strategyID, teamID)
+			metric.IncAlarmCounter(strategy.LevelID, strategy.StrategyID, strategy.TeamID, strategyName)
+			metric.IncAlarmGauge(strategy.LevelID, strategy.StrategyID, strategy.TeamID, strategyName)
 		}
 	}
 }

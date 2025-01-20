@@ -9,7 +9,7 @@ var notifyCounter = prometheus.NewCounterVec(
 		Name:      "notify_total",
 		Help:      "count of notify",
 	},
-	[]string{"team_id", "status", "notify_id"},
+	[]string{"team_id", "status", "notify_id", "notify_name"},
 )
 
 func init() {
@@ -17,6 +17,6 @@ func init() {
 }
 
 // IncNotifyCounter 通知计数器+1
-func IncNotifyCounter(teamID, notifyStatus, notifyID string) {
-	notifyCounter.WithLabelValues(teamID, notifyStatus, notifyID).Inc()
+func IncNotifyCounter(teamID, notifyStatus, notifyID, notifyName string) {
+	notifyCounter.WithLabelValues(teamID, notifyStatus, notifyID, notifyName).Inc()
 }

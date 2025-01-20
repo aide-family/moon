@@ -22,7 +22,7 @@ func NewMetricHandler(token string) http.Handler {
 func (m *metric) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	// 从URL中获取token
 	if m.validateToken(request) {
-		writer.WriteHeader(http.StatusForbidden)
+		writer.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	promhttp.Handler().ServeHTTP(writer, request)

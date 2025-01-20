@@ -42,7 +42,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/template"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/user"
 	"github.com/aide-family/moon/pkg/helper"
-	"github.com/aide-family/moon/pkg/helper/metric"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/helper/sse"
 	"github.com/aide-family/moon/pkg/util/conn"
@@ -181,11 +180,7 @@ func RegisterService(
 
 	// user msg
 	registerUserMessageRoute(httpSrv, data)
-
-	// metrics
-	httpSrv.Handle("/metrics", metric.NewMetricHandler(c.GetMetricsToken()))
 	registerMetricRoute(httpSrv, datasourceService)
-
 	registerDataSourceRoute(httpSrv, datasourceService)
 	// custom api
 	proxy := httpSrv.Route("/v1")

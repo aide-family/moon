@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/authorization"
 	"github.com/aide-family/moon/pkg/env"
+	"github.com/aide-family/moon/pkg/helper/metric"
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/plugin/mlog"
 
@@ -68,6 +69,9 @@ func NewHTTPServer(bc *palaceconf.Bootstrap, authService *authorization.Service)
 		// doc
 		srv.HandlePrefix("/doc/", nHttp.StripPrefix("/doc/", nHttp.FileServer(nHttp.Dir("./third_party/swagger_ui"))))
 	}
+
+	// metrics
+	srv.Handle("/metrics", metric.NewMetricHandler(bc.GetMetricsToken()))
 
 	return srv
 }

@@ -59,6 +59,16 @@ func (s *strategyRepositoryImpl) GetStrategyByIds(ctx context.Context, ids []uin
 	return s.withStrategyPreloadALL(ctx, bizQuery).Where(bizQuery.Strategy.ID.In(ids...)).Find()
 }
 
+func (s *strategyRepositoryImpl) GetStrategySimpleByIds(ctx context.Context, ids []uint32) ([]*bizmodel.Strategy, error) {
+	bizQuery, err := getBizQuery(ctx, s.data)
+	if !types.IsNil(err) {
+		return nil, err
+	}
+	return bizQuery.Strategy.WithContext(ctx).
+		Where(bizQuery.Strategy.ID.In(ids...)).
+		Find()
+}
+
 func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy *bo.Strategy) (*bo.Alarm, error) {
 	return nil, merr.ErrorNotification("未实现本地告警评估逻辑")
 }
