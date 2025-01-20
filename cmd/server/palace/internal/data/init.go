@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/query"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+	"golang.org/x/sync/errgroup"
 
 	"gorm.io/gorm/clause"
 )
@@ -103,48 +104,54 @@ func syncBizDatabase(d *Data) error {
 		}, true
 	})
 
-	for _, team := range teams {
-		// 获取团队业务库连接
-		db, err := d.GetBizGormDB(team.ID)
-		if err != nil {
-			return err
-		}
-		if err = db.AutoMigrate(bizmodel.Models()...); err != nil {
-			return err
-		}
-		// 同步实时告警数据库
-		alarmDB, err := d.GetAlarmGormDB(team.ID)
-		if err != nil {
-			return err
-		}
-		if err = alarmDB.AutoMigrate(alarmmodel.Models()...); err != nil {
-			return err
-		}
-		if len(dictList) > 0 {
-			if err = bizquery.Use(db).SysDict.Clauses(clause.OnConflict{DoNothing: true}).Create(dictList...); !types.IsNil(err) {
+	eg := new(errgroup.Group)
+	eg.SetLimit(30)
+	for _, teamItem := range teams {
+		team := teamItem
+		eg.Go(func() error {
+			// 获取团队业务库连接
+			db, err := d.GetBizGormDB(team.ID)
+			if err != nil {
 				return err
 			}
-		}
-		if err := bizquery.Use(db).SysTeamAPI.Clauses(clause.OnConflict{DoNothing: true}).Create(teamApis...); !types.IsNil(err) {
-			return err
-		}
-		teamMember := &bizmodel.SysTeamMember{
-			UserID: team.GetCreatorID(),
-			Status: vobj.StatusEnable,
-			Role:   vobj.RoleSuperAdmin,
-		}
-		// 把创建人同步到团队成员表
-		if err := bizquery.Use(db).SysTeamMember.Clauses(clause.OnConflict{DoNothing: true}).Create(teamMember); !types.IsNil(err) {
-			return err
-		}
+			if err = db.AutoMigrate(bizmodel.Models()...); err != nil {
+				return err
+			}
+			// 同步实时告警数据库
+			alarmDB, err := d.GetAlarmGormDB(team.ID)
+			if err != nil {
+				return err
+			}
+			if err = alarmDB.AutoMigrate(alarmmodel.Models()...); err != nil {
+				return err
+			}
+			if len(dictList) > 0 {
+				if err = bizquery.Use(db).SysDict.Clauses(clause.OnConflict{DoNothing: true}).Create(dictList...); !types.IsNil(err) {
+					return err
+				}
+			}
+			if err := bizquery.Use(db).SysTeamAPI.Clauses(clause.OnConflict{DoNothing: true}).Create(teamApis...); !types.IsNil(err) {
+				return err
+			}
+			teamMember := &bizmodel.SysTeamMember{
+				UserID: team.GetCreatorID(),
+				Status: vobj.StatusEnable,
+				Role:   vobj.RoleSuperAdmin,
+			}
+			// 把创建人同步到团队成员表
+			if err := bizquery.Use(db).SysTeamMember.Clauses(clause.OnConflict{DoNothing: true}).Create(teamMember); !types.IsNil(err) {
+				return err
+			}
 
-		if len(sendTemplatesList) > 0 {
-			if err := bizquery.Use(db).SysSendTemplate.Clauses(clause.OnConflict{DoNothing: true}).Create(sendTemplatesList...); err != nil {
-				return err
+			if len(sendTemplatesList) > 0 {
+				if err := bizquery.Use(db).SysSendTemplate.Clauses(clause.OnConflict{DoNothing: true}).Create(sendTemplatesList...); err != nil {
+					return err
+				}
 			}
-		}
+			return nil
+		})
 	}
-	return nil
+	return eg.Wait()
 }
 
 // 创建默认字典
