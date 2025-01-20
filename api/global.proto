@@ -36,3 +36,11 @@ message PaginationReply {
   // 总条数
   int64 total = 3;
 }
+
+// 时间范围
+message TimeRangeReq {
+  // 开始时间
+  int64 start = 1;
+  // 结束时间
+  int64 end = 2;
+}

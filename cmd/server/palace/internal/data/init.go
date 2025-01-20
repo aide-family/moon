@@ -1562,6 +1562,42 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
+	// 实时监控
+	{
+		Name:   "告警汇总",
+		Path:   "/api.admin.realtime.Statistics/SummaryAlarm",
+		Remark: "告警汇总",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "通知汇总",
+		Path:   "/api.admin.realtime.Statistics/SummaryNotice",
+		Remark: "通知汇总",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "策略告警数量TopN",
+		Path:   "/api.admin.realtime.Statistics/TopStrategyAlarm",
+		Remark: "策略告警数量TopN",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "最新告警事件",
+		Path:   "/api.admin.realtime.Statistics/LatestAlarmEvent",
+		Remark: "最新告警事件",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	{
+		Name:   "最新介入事件",
+		Path:   "/api.admin.realtime.Statistics/LatestInterventionEvent",
+		Remark: "最新介入事件",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
 }
 
 //go:embed sendtemplate/send_dingtalk.tpl

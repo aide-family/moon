@@ -120,6 +120,7 @@ func RegisterService(
 	alarmSendService *alarm.SendService,
 	timeEngineRuleService *alarm.TimeEngineRuleService,
 	templateService *template.SendTemplateService,
+	statisticsService *realtime.StatisticsService,
 ) *Server {
 	// 注册GRPC服务
 	userapi.RegisterUserServer(rpcSrv, userService)
@@ -177,6 +178,7 @@ func RegisterService(
 	historyapi.RegisterHistoryHTTPServer(httpSrv, historyService)
 	systemapi.RegisterSystemHTTPServer(httpSrv, systemService)
 	templateapi.RegisterSendTemplateHTTPServer(httpSrv, templateService)
+	realtimeapi.RegisterStatisticsHTTPServer(httpSrv, statisticsService)
 
 	// user msg
 	registerUserMessageRoute(httpSrv, data)

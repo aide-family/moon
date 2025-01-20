@@ -1,0 +1,176 @@
+syntax = "proto3";
+
+package api.admin.realtime;
+
+import "google/api/annotations.proto";
+import "global.proto";
+import "admin/model.proto";
+
+option go_package = "github.com/aide-family/moon/api/admin/realtime;realtime";
+option java_multiple_files = true;
+option java_package = "api.admin.realtime";
+
+service Statistics {
+	// 告警汇总
+	rpc SummaryAlarm (SummaryAlarmRequest) returns (SummaryAlarmReply) {
+		option (google.api.http) = {
+			get: "/v1/admin/statistics/alarm/summary"
+		};
+	}
+
+	// 通知汇总
+	rpc SummaryNotice (SummaryNoticeRequest) returns (SummaryNoticeReply) {
+		option (google.api.http) = {
+			get: "/v1/admin/statistics/notice/summary"
+		};
+	}
+
+	// 策略告警数量TopN
+	rpc TopStrategyAlarm (TopStrategyAlarmRequest) returns (TopStrategyAlarmReply) {
+		option (google.api.http) = {
+			get: "/v1/admin/statistics/alarm/top/strategy"
+		};
+	}
+
+	// 最新告警事件
+	rpc LatestAlarmEvent (LatestAlarmEventRequest) returns (LatestAlarmEventReply) {
+		option (google.api.http) = {
+			get: "/v1/admin/statistics/alarm/latest/event"
+		};
+	}
+
+	// 最新介入事件
+	rpc LatestInterventionEvent (LatestInterventionEventRequest) returns (LatestInterventionEventReply) {
+		option (google.api.http) = {
+			get: "/v1/admin/statistics/alarm/latest/intervention"
+		};
+	}
+}
+
+// 告警汇总
+message SummaryAlarmRequest {
+	TimeRangeReq timeRange = 1;
+	// 指定告警等级
+	uint32 level = 2;
+	// 环比周期，默认1天
+	uint32 inComparison = 3;
+}
+message SummaryAlarmReply {
+	// 告警总数
+	int64 total = 1;
+	// 正在告警
+	int64 ongoing = 2;
+	// 已恢复
+	int64 recovered = 3;
+	// 最高优先级的告警
+	int64 highestPriority = 4;
+	// 图表数据
+	repeated double chartData = 5;
+	// 总数环比
+	string totalComparison = 6;
+	// 正在告警环比
+	string ongoingComparison = 7;
+	// 已恢复环比
+	string recoveredComparison = 8;
+	// 最高优先级告警环比
+	string highestPriorityComparison = 9;
+}
+
+// 通知汇总
+message SummaryNoticeRequest {
+	TimeRangeReq timeRange = 1;
+	// 环比周期，默认1天
+	uint32 inComparison = 2;
+	// 通知类型
+	repeated uint32 notifyTypes = 3;
+}
+message SummaryNoticeReply {
+	// 通知总数
+	int64 total = 1;
+	// 通知失败总数
+	int64 failed = 2;
+	// 图表数据
+	repeated double chartData = 3;
+	// 环比
+	string totalComparison = 4;
+	// 通知失败环比
+	string failedComparison = 5;
+
+	message NotifyType {
+		// 通知类型
+		uint32 notifyType = 1;
+		// 通知名称	
+		string notifyName = 2;
+		// 通知数量
+		int64 total = 3;
+	}
+	// 通知类型
+	repeated NotifyType notifyTypes = 6;
+}
+
+// 策略告警数量TopN
+message TopStrategyAlarmRequest {
+	TimeRangeReq timeRange = 1;
+	// 指定top数量，默认10
+	uint32 limit = 2;
+}
+message TopStrategyAlarmReply {
+	message StrategyAlarmTopN {
+		// 策略ID
+		uint64 strategyId = 1;
+		// 告警数量
+		int64 total = 2;
+		// 策略名称
+		string strategyName = 3;
+	}
+	// 策略告警数量TopN
+	repeated StrategyAlarmTopN topN = 1;
+}
+
+// 最新告警事件
+message LatestAlarmEventRequest {
+	TimeRangeReq timeRange = 1;
+	// 指定top数量，默认10
+	uint32 limit = 2;
+}
+message LatestAlarmEventReply {
+	message LatestAlarmEvent {
+		// 告警指纹
+		string fingerprint = 1;
+		// 告警等级
+		string level = 2;
+		// 告警时间
+		string eventTime = 3;
+		// 告警摘要
+		string summary = 4;
+	}
+	// 最新告警事件
+	repeated LatestAlarmEvent events = 1;
+}
+
+// 最新介入事件
+message LatestInterventionEventRequest {
+	TimeRangeReq timeRange = 1;
+	// 指定top数量，默认10
+	uint32 limit = 2;
+}
+message LatestInterventionEventReply {
+	message LatestInterventionEvent {
+		// 告警指纹
+		string fingerprint = 1;
+		// 告警时间
+		string eventTime = 2;
+		// 告警摘要
+		string summary = 3;
+		// 告警等级
+		string level = 4;
+		// 告警状态
+		string status = 5;
+		// 告警处理人
+		UserItem handler = 6;
+		// 告警处理时间
+		string handledAt = 7;
+	}
+	// 最新介入事件
+	repeated LatestInterventionEvent events = 1;
+}
