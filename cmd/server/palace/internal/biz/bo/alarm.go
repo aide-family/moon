@@ -147,6 +147,18 @@ type (
 		StrategyID        uint32                `json:"strategyId"`
 		LevelID           uint32                `json:"levelId"`
 	}
+
+	// MarkRealTimeAlarmParams 告警标记参数
+	MarkRealTimeAlarmParams struct {
+		// 告警ID
+		ID uint32
+		// 告警指纹
+		Fingerprint string
+		// 告警动作
+		Action vobj.RealTimeAction
+		// 备注
+		Remark string
+	}
 )
 
 // String 将告警hook原始信息转换为字符串

@@ -14,6 +14,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/aide-family/moon/pkg/vobj"
 )
 
 // NewAlarmBiz 创建告警相关业务逻辑
@@ -56,6 +57,22 @@ func (b *AlarmBiz) GetRealTimeAlarm(ctx context.Context, params *bo.GetRealTimeA
 // ListRealTimeAlarms 获取实时告警列表
 func (b *AlarmBiz) ListRealTimeAlarms(ctx context.Context, params *bo.GetRealTimeAlarmsParams) ([]*alarmmodel.RealtimeAlarm, error) {
 	return b.alarmRepository.GetRealTimeAlarms(ctx, params)
+}
+
+// MarkRealTimeAlarm 告警标记
+func (b *AlarmBiz) MarkRealTimeAlarm(ctx context.Context, params *bo.MarkRealTimeAlarmParams) error {
+	switch params.Action {
+	case vobj.RealTimeActionMark:
+		return b.alarmRepository.MarkRealTimeAlarm(ctx, params)
+	case vobj.RealTimeActionDelete:
+		return b.alarmRepository.DeleteRealTimeAlarm(ctx, params)
+	case vobj.RealTimeActionSuppress:
+		return b.alarmRepository.SuppressRealTimeAlarm(ctx, params)
+	case vobj.RealTimeActionUpgrade:
+		return b.alarmRepository.UpgradeRealTimeAlarm(ctx, params)
+	default:
+		return nil
+	}
 }
 
 // SaveAlertQueue 保存告警队列

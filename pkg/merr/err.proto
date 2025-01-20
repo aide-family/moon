@@ -202,6 +202,11 @@ enum ErrorReason {
     (errors.message) = "资源不存在",
     (errors.id) = "TOAST",
     (errors.biz_reason) = {
+      reason: "UNIMPLEMENTED"
+      message: "【%s】该功能未实现，敬请期待",
+      metadata: {key: "feature", value: "UNIMPLEMENTED"}
+    },
+    (errors.biz_reason) = {
       reason: "RESOURCE_NOT_FOUND"
       message: "资源不存在",
     },

@@ -20,4 +20,16 @@ type Alarm interface {
 
 	// CreateRealTimeAlarm 创建实时告警
 	CreateRealTimeAlarm(ctx context.Context, param *bo.CreateAlarmInfoParams) error
+
+	// MarkRealTimeAlarm 告警标记
+	MarkRealTimeAlarm(ctx context.Context, params *bo.MarkRealTimeAlarmParams) error
+
+	// DeleteRealTimeAlarm 删除实时告警
+	DeleteRealTimeAlarm(ctx context.Context, params *bo.MarkRealTimeAlarmParams) error
+
+	// SuppressRealTimeAlarm 抑制实时告警
+	SuppressRealTimeAlarm(ctx context.Context, params *bo.MarkRealTimeAlarmParams) error
+
+	// UpgradeRealTimeAlarm 升级实时告警
+	UpgradeRealTimeAlarm(ctx context.Context, params *bo.MarkRealTimeAlarmParams) error
 }

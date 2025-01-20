@@ -28,6 +28,14 @@ service Alarm {
       body: "*"
     };
   }
+
+  // 告警标记
+  rpc MarkAlarm (MarkAlarmRequest) returns (MarkAlarmReply) {
+    option (google.api.http) = {
+      post: "/v1/admin/realtime/alarm/mark"
+      body: "*"
+    };
+  }
 }
 
 message GetAlarmRequest {
@@ -79,3 +87,28 @@ message ListAlarmReply {
   // 分页
   PaginationReply pagination = 2;
 }
+
+message MarkAlarmRequest {
+  // 告警ID
+  uint32 id = 1 [(buf.validate.field).cel = {
+    message: "请选择要操作的告警",
+    expression: 'this > 0'
+  }];
+  // 指纹
+  string fingerprint = 2 [(buf.validate.field).cel = {
+    message: "指纹不能为空",
+    expression: 'this.size() > 0'
+  }];
+  // 动作 1: 介入 2: 删除 3: 抑制 4: 升级
+  uint32 action = 3 [(buf.validate.field).cel = {
+    message: "请选择要操作的动作",
+    expression: 'this >= 1 && this <= 4'
+  }];
+  // 备注
+  string remark = 4 [(buf.validate.field).cel = {
+    message: "备注不能超过500字符",
+    expression: 'this.size() <= 500'
+  }];
+}
+message MarkAlarmReply {}
+

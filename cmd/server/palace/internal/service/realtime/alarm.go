@@ -46,3 +46,12 @@ func (s *AlarmService) ListAlarm(ctx context.Context, req *realtimeapi.ListAlarm
 		Pagination: builder.NewParamsBuild(ctx).PaginationModuleBuilder().ToAPI(params.Pagination),
 	}, nil
 }
+
+// MarkAlarm 告警标记
+func (s *AlarmService) MarkAlarm(ctx context.Context, req *realtimeapi.MarkAlarmRequest) (*realtimeapi.MarkAlarmReply, error) {
+	params := builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().WithMarkAlarmRequest(req).ToBo()
+	if err := s.alarmBiz.MarkRealTimeAlarm(ctx, params); err != nil {
+		return nil, err
+	}
+	return &realtimeapi.MarkAlarmReply{}, nil
+}

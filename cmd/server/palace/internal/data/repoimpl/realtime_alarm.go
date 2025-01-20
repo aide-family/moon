@@ -32,6 +32,30 @@ type realtimeAlarmRepositoryImpl struct {
 	data *data.Data
 }
 
+// DeleteRealTimeAlarm implements repository.Alarm.
+func (r *realtimeAlarmRepositoryImpl) DeleteRealTimeAlarm(ctx context.Context, params *bo.MarkRealTimeAlarmParams) error {
+	// 不继续接收也不告警
+	return merr.ErrorI18nToastUnimplemented(ctx, "删除告警")
+}
+
+// MarkRealTimeAlarm implements repository.Alarm.
+func (r *realtimeAlarmRepositoryImpl) MarkRealTimeAlarm(ctx context.Context, params *bo.MarkRealTimeAlarmParams) error {
+	// 添加处理人， 可以被多人介入
+	return merr.ErrorI18nToastUnimplemented(ctx, "告警介入")
+}
+
+// SuppressRealTimeAlarm implements repository.Alarm.
+func (r *realtimeAlarmRepositoryImpl) SuppressRealTimeAlarm(ctx context.Context, params *bo.MarkRealTimeAlarmParams) error {
+	// 继续接收告警， 但是不告警
+	return merr.ErrorI18nToastUnimplemented(ctx, "告警抑制")
+}
+
+// UpgradeRealTimeAlarm implements repository.Alarm.
+func (r *realtimeAlarmRepositoryImpl) UpgradeRealTimeAlarm(ctx context.Context, params *bo.MarkRealTimeAlarmParams) error {
+	// 升级告警, 把告警发送给更高级别的人
+	return merr.ErrorI18nToastUnimplemented(ctx, "告警升级")
+}
+
 func (r *realtimeAlarmRepositoryImpl) CreateRealTimeAlarm(ctx context.Context, param *bo.CreateAlarmInfoParams) error {
 	alarmQuery, err := getTeamBizAlarmQuery(param.TeamID, r.data)
 	if err != nil {

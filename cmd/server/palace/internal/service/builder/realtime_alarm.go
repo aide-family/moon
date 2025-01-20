@@ -29,6 +29,8 @@ type (
 		WithGetAlarmRequest(*realtimeapi.GetAlarmRequest) IGetAlarmRequestBuilder
 		// WithListAlarmRequest 获取告警列表请求参数构造器
 		WithListAlarmRequest(*realtimeapi.ListAlarmRequest) IListAlarmRequestBuilder
+		// WithMarkAlarmRequest 告警标记请求参数构造器
+		WithMarkAlarmRequest(*realtimeapi.MarkAlarmRequest) IMarkAlarmRequestBuilder
 		// DoRealtimeAlarmBuilder 告警条目构造器
 		DoRealtimeAlarmBuilder() IDoRealtimeAlarmBuilder
 		// DoAlarmPageSelfBuilder 告警页面自定义字段条目构造器
@@ -61,6 +63,17 @@ type (
 		DoDashboardBuilder() IDoDashboardBuilder
 		// DoChartBuilder 图表条目构造器
 		DoChartBuilder() IDoChartBuilder
+	}
+
+	// IMarkAlarmRequestBuilder 告警标记请求参数构造器
+	IMarkAlarmRequestBuilder interface {
+		// ToBo 转换为业务对象
+		ToBo() *bo.MarkRealTimeAlarmParams
+	}
+
+	markAlarmRequestBuilder struct {
+		ctx context.Context
+		*realtimeapi.MarkAlarmRequest
 	}
 
 	// IGetDashboardRequestBuilder 获取仪表盘请求参数构造器
@@ -289,6 +302,27 @@ type (
 		ctx context.Context
 	}
 )
+
+// ToBo implements IMarkAlarmRequestBuilder.
+func (m *markAlarmRequestBuilder) ToBo() *bo.MarkRealTimeAlarmParams {
+	if types.IsNil(m) || types.IsNil(m.MarkAlarmRequest) {
+		return nil
+	}
+	return &bo.MarkRealTimeAlarmParams{
+		ID:          m.GetId(),
+		Fingerprint: m.GetFingerprint(),
+		Action:      vobj.RealTimeAction(m.GetAction()),
+		Remark:      m.GetRemark(),
+	}
+}
+
+// WithMarkAlarmRequest implements IRealtimeAlarmModuleBuilder.
+func (r *realtimeAlarmModuleBuilder) WithMarkAlarmRequest(request *realtimeapi.MarkAlarmRequest) IMarkAlarmRequestBuilder {
+	return &markAlarmRequestBuilder{
+		ctx:              r.ctx,
+		MarkAlarmRequest: request,
+	}
+}
 
 // ToBo implements IGetDashboardRequestBuilder.
 func (g *getDashboardRequestBuilder) ToBo() *bo.GetDashboardParams {

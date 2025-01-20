@@ -76,7 +76,7 @@ api:
 .PHONY: error
 # generate api proto
 error:
-	go install github.com/aide-cloud/protoc-gen-go-errors@latest
+	#go install github.com/aide-cloud/protoc-gen-go-errors@latest
 	protoc --proto_path=./third_party \
 		   --proto_path=./pkg \
  	       --go_out=paths=source_relative:./pkg \
