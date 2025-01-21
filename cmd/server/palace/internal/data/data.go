@@ -119,7 +119,7 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 		}
 		d.alarmDB = db
 		closeFuncList = append(closeFuncList, func() {
-			log.Debugw("msg", "close alarm db", "err", d.bizDB.Close())
+			log.Debugw("msg", "close alarm db", "err", d.alarmDB.Close())
 			for _, value := range d.alarmDBMap.List() {
 				dbTmp, _ := value.DB()
 				log.Debugw("msg", "close alarm orm db", "err", dbTmp.Close())
