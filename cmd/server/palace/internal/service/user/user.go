@@ -86,7 +86,9 @@ func (s *Service) BatchUpdateUserStatus(ctx context.Context, req *userapi.BatchU
 
 // ResetUserPassword 重置用户密码
 func (s *Service) ResetUserPassword(ctx context.Context, req *userapi.ResetUserPasswordRequest) (*userapi.ResetUserPasswordReply, error) {
-	// TODO 发送邮件等相关操作
+	if err := s.userBiz.ResetUserPassword(ctx, req.GetId()); !types.IsNil(err) {
+		return nil, err
+	}
 	return &userapi.ResetUserPasswordReply{}, nil
 }
 

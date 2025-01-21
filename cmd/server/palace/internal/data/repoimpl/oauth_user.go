@@ -16,7 +16,9 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/query"
+	"github.com/aide-family/moon/pkg/util/email"
 	"github.com/aide-family/moon/pkg/util/format"
+	"github.com/aide-family/moon/pkg/util/random"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -54,8 +56,8 @@ func buildSysUserModel(u auth.IOAuthUser, pass types.Password) *model.SysUser {
 
 // genPassword 生成密码
 func genPassword() (string, types.Password) {
-	randPass := types.MD5(time.Now().String())[:8]
-	password := types.NewPassword(types.MD5(randPass + "3c4d9a0a5a703938dd1d2d46e1c924f9"))
+	randPass := random.GenerateRandomPassword(8)
+	password := types.NewPassword(randPass)
 	return randPass, password
 }
 
@@ -199,6 +201,10 @@ var body string
 
 // sendUserPassword 发送用户密码
 func (g *githubUserRepositoryImpl) sendUserPassword(_ context.Context, user *model.SysUser, pass string) error {
+	return sendUserPassword(g.data.GetEmail(), g.bc, user, pass)
+}
+
+func sendUserPassword(e email.Interface, bc *palaceconf.Bootstrap, user *model.SysUser, pass string) error {
 	if err := helper.CheckEmail(user.Email); err != nil {
 		return err
 	}
@@ -206,12 +212,12 @@ func (g *githubUserRepositoryImpl) sendUserPassword(_ context.Context, user *mod
 	emailBody := format.Formatter(body, map[string]string{
 		"Username":    user.Email,
 		"Password":    pass,
-		"RedirectURI": g.bc.GetOauth2().GetRedirectUri(),
-		"APP":         g.bc.GetServer().GetName(),
-		"Remark":      g.bc.GetServer().GetMetadata()["description"],
+		"RedirectURI": bc.GetOauth2().GetRedirectUri(),
+		"APP":         bc.GetServer().GetName(),
+		"Remark":      bc.GetServer().GetMetadata()["description"],
 	})
 	// 发送用户密码到用户邮箱
-	return g.data.GetEmail().SetSubject("欢迎使用 Moon 监控系统").SetTo(user.Email).SetBody(emailBody, "text/html").Send()
+	return e.SetSubject("欢迎使用 Moon 监控系统").SetTo(user.Email).SetBody(emailBody, "text/html").Send()
 }
 
 //go:embed verify_email.html

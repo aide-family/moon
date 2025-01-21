@@ -7,9 +7,7 @@ import (
 )
 
 func TestNewPassword(t *testing.T) {
-	s := types.MD5("123456" + "3c4d9a0a5a703938dd1d2d46e1c924f9")
-	t.Log(s)
-	pVal := s
+	pVal := "123456"
 	enP := types.NewPassword(pVal)
 	t.Log(enP.String())
 	t.Log(enP.GetSalt())

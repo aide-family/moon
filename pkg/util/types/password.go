@@ -11,42 +11,54 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const (
+	passwordSalt = "3c4d9a0a5a703938dd1d2d46e1c924f9"
+)
+
 // ErrValidatePassword 密码错误
 var ErrValidatePassword = status.Error(http.StatusUnauthorized, "密码错误")
 
 // NewPassword 创建密码
 func NewPassword(values ...string) Password {
-	var value, salt string
+	var value, salt, plaintext string
 	switch len(values) {
 	case 1:
 		salt = generateSalt()
-		value = generatePassword(values[0], salt)
+		plaintext = values[0]
+		value = generatePassword(plaintext, salt)
 	case 2:
 		value = values[0]
 		salt = values[1]
 	default:
 		salt = generateSalt()
-		value = generatePassword(random.GenerateRandomString(8, 0), salt)
+		plaintext = random.GenerateRandomPassword(8)
+		value = generatePassword(MD5(plaintext+passwordSalt), salt)
 	}
 	return &password{
-		salt:  salt,
-		value: value,
+		salt:      salt,
+		value:     value,
+		plaintext: plaintext,
 	}
 }
 
 type (
 	// Password 密码
 	Password interface {
+		fmt.Stringer
 		GetValue() string
 		GetSalt() string
-		fmt.Stringer
 		Validate(checkPass string) error
 		Equal(other Password) bool
+		GetPlaintext() string
 	}
 	password struct {
-		value, salt string
+		value, salt, plaintext string
 	}
 )
+
+func (p *password) GetPlaintext() string {
+	return p.plaintext
+}
 
 func (p *password) Equal(other Password) bool {
 	return p.value == other.GetValue()

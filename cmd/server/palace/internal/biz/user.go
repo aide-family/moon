@@ -125,6 +125,15 @@ func (b *UserBiz) BatchUpdateUserStatus(ctx context.Context, params *bo.BatchUpd
 	return nil
 }
 
+// ResetUserPassword 重置用户密码
+func (b *UserBiz) ResetUserPassword(ctx context.Context, id uint32) error {
+	newPass := types.NewPassword()
+	if err := b.userRepo.UpdatePassword(ctx, id, newPass); !types.IsNil(err) {
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+	}
+	return nil
+}
+
 // ResetUserPasswordBySelf 重置自己的密码
 func (b *UserBiz) ResetUserPasswordBySelf(ctx context.Context, req *bo.ResetUserPasswordBySelfParams) error {
 	if err := b.userRepo.UpdatePassword(ctx, req.UserID, req.Password); !types.IsNil(err) {

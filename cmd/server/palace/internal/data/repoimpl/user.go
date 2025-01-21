@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
+	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/pkg/helper"
 	"github.com/aide-family/moon/pkg/palace/model"
 	"github.com/aide-family/moon/pkg/palace/model/query"
@@ -18,14 +19,16 @@ import (
 )
 
 // NewUserRepository 创建用户仓库
-func NewUserRepository(data *data.Data, cacheRepo repository.Cache) repository.User {
+func NewUserRepository(bc *palaceconf.Bootstrap, data *data.Data, cacheRepo repository.Cache) repository.User {
 	return &userRepositoryImpl{
+		bc:        bc,
 		data:      data,
 		cacheRepo: cacheRepo,
 	}
 }
 
 type userRepositoryImpl struct {
+	bc        *palaceconf.Bootstrap
 	data      *data.Data
 	cacheRepo repository.Cache
 }
@@ -78,13 +81,24 @@ func (l *userRepositoryImpl) UpdateStatusByIds(ctx context.Context, status vobj.
 }
 
 func (l *userRepositoryImpl) UpdatePassword(ctx context.Context, id uint32, password types.Password) error {
-	userQuery := query.Use(l.data.GetMainDB(ctx)).SysUser
-	_, err := userQuery.Where(userQuery.ID.Eq(id)).
-		UpdateSimple(
-			userQuery.Password.Value(password.String()),
-			userQuery.Salt.Value(password.GetSalt()),
-		)
-	return err
+	// 查询用户信息
+	user, err := l.GetByID(ctx, id)
+	if !types.IsNil(err) {
+		return err
+	}
+
+	return l.data.GetMainDB(ctx).Transaction(func(tx *gorm.DB) error {
+		userQuery := query.Use(tx).SysUser
+		_, err = userQuery.Where(userQuery.ID.Eq(id)).
+			UpdateSimple(
+				userQuery.Password.Value(password.GetValue()),
+				userQuery.Salt.Value(password.GetSalt()),
+			)
+		if err != nil {
+			return err
+		}
+		return sendUserPassword(l.data.GetEmail(), l.bc, user, password.GetPlaintext())
+	})
 }
 
 func (l *userRepositoryImpl) Create(ctx context.Context, user *bo.CreateUserParams) (*model.SysUser, error) {
