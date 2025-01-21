@@ -31,22 +31,22 @@ type OauthLoginParams struct {
 }
 
 // VerifyToken 校验token是否过期
-func (o *OauthLoginParams) VerifyToken(ctx context.Context, cacher cache.ISimpleCacher) error {
-	exist, err := cacher.Exist(ctx, o.GetTokenKey())
+func (o *OauthLoginParams) VerifyToken(ctx context.Context, cacher cache.ICacher) error {
+	exist, err := cacher.Client().Exists(ctx, o.GetTokenKey()).Result()
 	if err != nil {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
-	if !exist {
+	if exist == 0 {
 		return merr.ErrorI18nUnauthorized(ctx).WithMetadata(map[string]string{
-			"exist": types.Ternary(exist, "true", "false"),
+			"exist": "false",
 		})
 	}
 	return nil
 }
 
 // WaitVerifyToken 等待token验证
-func (o *OauthLoginParams) WaitVerifyToken(ctx context.Context, cacher cache.ISimpleCacher) error {
-	return cacher.Set(ctx, o.GetTokenKey(), o.Token, 0)
+func (o *OauthLoginParams) WaitVerifyToken(ctx context.Context, cacher cache.ICacher) error {
+	return cacher.Client().Set(ctx, o.GetTokenKey(), o.Token, 0).Err()
 }
 
 // GetTokenKey 返回token的key

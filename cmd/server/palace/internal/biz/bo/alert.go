@@ -72,6 +72,16 @@ type (
 	}
 )
 
+// BinaryUnmarshaler LatestAlarmEvent encoding.BinaryUnmarshaler
+func (a *LatestAlarmEvent) UnmarshalBinary(data []byte) error {
+	return types.Unmarshal(data, a)
+}
+
+// MarshalBinary LatestAlarmEvent encoding.BinaryMarshaler
+func (a *LatestAlarmEvent) MarshalBinary() ([]byte, error) {
+	return types.Marshal(a)
+}
+
 func (a *Alarm) String() string {
 	alarm := alarmInfo{
 		Receiver: a.Receiver,

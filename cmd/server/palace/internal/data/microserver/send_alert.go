@@ -46,7 +46,7 @@ func (s *sendAlertRepositoryImpl) Send(_ context.Context, alertMsg *bo.SendMsg) 
 
 // send 发送告警
 func (s *sendAlertRepositoryImpl) send(task *bo.SendMsg) {
-	setOK, err := s.data.GetCacher().SetNX(context.Background(), task.RequestID, "1", 2*time.Hour)
+	setOK, err := s.data.GetCacher().Client().SetNX(context.Background(), task.RequestID, "1", 2*time.Hour).Result()
 	if err != nil {
 		log.Warnf("set cache failed: %v", err)
 		return
@@ -59,7 +59,7 @@ func (s *sendAlertRepositoryImpl) send(task *bo.SendMsg) {
 	sendStatus := vobj.SentSuccess
 	if err := s.rabbitConn.SendMsg(ctx, task.SendMsgRequest); err != nil {
 		// 删除缓存
-		if err := s.data.GetCacher().Delete(context.Background(), task.RequestID); err != nil {
+		if err := s.data.GetCacher().Client().Del(context.Background(), task.RequestID).Err(); err != nil {
 			log.Warnf("send alert failed")
 		}
 		sendStatus = vobj.SendFail

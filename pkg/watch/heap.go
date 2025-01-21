@@ -95,7 +95,7 @@ func newMessage(data string) *Message {
 }
 
 func (c *cacheStorage) Get(index Indexer) *Message {
-	cacheStr, _ := c.cacher.Get(context.Background(), index.Index())
+	cacheStr, _ := c.cacher.Client().Get(context.Background(), index.Index()).Result()
 	return newMessage(cacheStr)
 }
 
@@ -109,14 +109,14 @@ func (c *cacheStorage) Put(msg *Message) error {
 		Retry:    msg.retry,
 		RetryMax: msg.retryMax,
 	}
-	return c.cacher.Set(context.Background(), cacheMsg.Data.Index(), cacheMsg.String(), 0)
+	return c.cacher.Client().Set(context.Background(), cacheMsg.Data.Index(), cacheMsg.String(), 0).Err()
 }
 
 func (c *cacheStorage) Clear() {
 }
 
 func (c *cacheStorage) Remove(index Indexer) {
-	_ = c.cacher.Delete(context.Background(), index.Index())
+	_ = c.cacher.Client().Del(context.Background(), index.Index()).Err()
 }
 
 func (c *cacheStorage) Close() error {
@@ -128,13 +128,13 @@ func (c *cacheStorage) Len() int {
 }
 
 func (c *cacheStorage) Range(f func(index Indexer, msg *Message) bool) {
-	keys, err := c.cacher.Keys(context.Background(), "")
+	keys, err := c.cacher.Client().Keys(context.Background(), "").Result()
 	if err != nil {
 		return
 	}
 	// 遍历缓存存储器，并将缓存消息反序列化为Message
 	for _, key := range keys {
-		d, err := c.cacher.Get(context.Background(), key)
+		d, err := c.cacher.Client().Get(context.Background(), key).Result()
 		if err != nil {
 			continue
 		}

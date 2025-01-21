@@ -46,7 +46,7 @@ func (a *AlertBiz) cacheAlarm(ctx context.Context, alarm *bo.Alarm) (*bo.Alarm, 
 	alerts := alarm.Alerts
 	pushAlerts := make([]*bo.Alert, 0, len(alerts))
 	for _, alert := range alerts {
-		ok, err := a.cacheRepo.Cacher().SetNX(ctx, alert.PushedFlag(), "1", 60*time.Second)
+		ok, err := a.cacheRepo.Cacher().Client().SetNX(ctx, alert.PushedFlag(), "1", 60*time.Second).Result()
 		if err != nil {
 			return nil, err
 		}
@@ -66,6 +66,6 @@ func (a *AlertBiz) deleteAlarm(ctx context.Context, alarm *bo.Alarm, err error) 
 	}
 	// 删除缓存
 	for _, alert := range alarm.Alerts {
-		_ = a.cacheRepo.Cacher().Delete(ctx, alert.PushedFlag())
+		_ = a.cacheRepo.Cacher().Client().Del(ctx, alert.PushedFlag()).Err()
 	}
 }

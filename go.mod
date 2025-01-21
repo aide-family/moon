@@ -13,7 +13,6 @@ require (
 	github.com/bufbuild/protovalidate-go v0.7.3
 	github.com/casbin/casbin/v2 v2.101.0
 	github.com/casbin/gorm-adapter/v3 v3.32.0
-	github.com/coocood/freecache v1.2.4
 	github.com/duke-git/lancet/v2 v2.3.3
 	github.com/go-kratos/kratos/contrib/registry/etcd/v2 v2.0.0-20241105072421-f8b97f675b32
 	github.com/go-kratos/kratos/v2 v2.8.2

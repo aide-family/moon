@@ -26,11 +26,11 @@ func (l *captchaRepositoryImpl) CreateCaptcha(ctx context.Context, captcha *bo.V
 	if !types.IsNil(err) {
 		return err
 	}
-	return l.data.GetCacher().Set(ctx, captcha.ID, string(bs), duration)
+	return l.data.GetCacher().Client().Set(ctx, captcha.ID, string(bs), duration).Err()
 }
 
 func (l *captchaRepositoryImpl) GetCaptchaByID(ctx context.Context, id string) (*bo.ValidateCaptchaItem, error) {
-	str, err := l.data.GetCacher().Get(ctx, id)
+	str, err := l.data.GetCacher().Client().Get(ctx, id).Result()
 	if !types.IsNil(err) {
 		return nil, err
 	}

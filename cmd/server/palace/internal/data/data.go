@@ -19,7 +19,6 @@ import (
 	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/watch"
-	"github.com/redis/go-redis/v9"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/go-kratos/kratos/v2/log"
@@ -56,10 +55,8 @@ type Data struct {
 	alertConsumerStorage watch.Storage
 	// 通用邮件发送器
 	emailCli email.Interface
-
+	// sse客户端管理
 	sseClientManager *sse.ClientManager
-
-	cache *redis.Client
 }
 
 var closeFuncList []func()

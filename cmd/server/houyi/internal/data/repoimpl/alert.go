@@ -30,7 +30,7 @@ func (a *alertRepositoryImpl) PushAlarm(ctx context.Context, alarm *bo.Alarm) er
 		return err
 	}
 	log.Debugw("pushAlarm", pushAlarm)
-	return a.data.GetCacher().Delete(ctx, alarm.Index())
+	return a.data.GetCacher().Client().Del(ctx, alarm.Index()).Err()
 }
 
 func (a *alertRepositoryImpl) SaveAlarm(_ context.Context, alarm *bo.Alarm) error {

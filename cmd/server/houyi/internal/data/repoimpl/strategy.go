@@ -14,6 +14,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/format"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/exp/maps"
 )
@@ -52,7 +53,7 @@ func (s *strategyRepositoryImpl) Save(_ context.Context, strategies []bo.IStrate
 }
 
 func (s *strategyRepositoryImpl) resolvedAlerts(ctx context.Context, strategy bo.IStrategy, alertKeys ...string) (alerts []*bo.Alert) {
-	alertsStr, err := s.data.GetCacher().Get(ctx, strategy.Index())
+	alertsStr, err := s.data.GetCacher().Client().Get(ctx, strategy.Index()).Result()
 	if err != nil || alertsStr == "" {
 		return
 	}
@@ -83,8 +84,8 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 		alerts := s.resolvedAlerts(ctx, strategy)
 		alarmInfo.Alerts = alerts
 		alarmInfo.Status = vobj.AlertStatusResolved
-		_ = s.data.GetCacher().Delete(ctx, strategy.Index())
-		_ = s.data.GetCacher().Delete(ctx, alarmInfo.Index())
+		_ = s.data.GetCacher().Client().Del(ctx, strategy.Index()).Err()
+		_ = s.data.GetCacher().Client().Del(ctx, alarmInfo.Index()).Err()
 		return alarmInfo, nil
 	}
 
@@ -158,17 +159,17 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 
 	if len(alerts) == 0 {
 		// 删除缓存
-		_ = s.data.GetCacher().Delete(ctx, strategy.Index())
-		_ = s.data.GetCacher().Delete(ctx, alarmInfo.Index())
+		_ = s.data.GetCacher().Client().Del(ctx, strategy.Index()).Err()
+		_ = s.data.GetCacher().Client().Del(ctx, alarmInfo.Index()).Err()
 		return alarmInfo, nil
 	}
 	if len(firingKeys) > 0 {
 		// 缓存告警指纹， 用于完全消失时候的告警恢复
-		if err := s.data.GetCacher().Set(ctx, strategy.Index(), strings.Join(firingKeys, ","), 0); err != nil {
+		if err := s.data.GetCacher().Client().Set(ctx, strategy.Index(), strings.Join(firingKeys, ","), 0).Err(); err != nil {
 			log.Warnw("method", "storage.put", "error", err)
 		}
 	} else {
-		_ = s.data.GetCacher().Delete(ctx, strategy.Index())
+		_ = s.data.GetCacher().Client().Del(ctx, strategy.Index()).Err()
 	}
 	alarmInfo.Alerts = alerts
 	return alarmInfo, nil
@@ -176,7 +177,7 @@ func (s *strategyRepositoryImpl) Eval(ctx context.Context, strategy bo.IStrategy
 
 func getFiringAlert(ctx context.Context, d *data.Data, alert *bo.Alert) *bo.Alert {
 	// 获取已存在的告警
-	firingKey, err := d.GetCacher().Get(ctx, alert.Index())
+	firingKey, err := d.GetCacher().Client().Get(ctx, alert.Index()).Result()
 	if err == nil {
 		firingAlert, err := bo.NewAlertWithAlertStrInfo(firingKey)
 		if err != nil {
@@ -187,7 +188,7 @@ func getFiringAlert(ctx context.Context, d *data.Data, alert *bo.Alert) *bo.Aler
 	}
 
 	// 更新最新的告警数据值
-	if err := d.GetCacher().Set(ctx, alert.Index(), alert.String(), 0); err != nil {
+	if err := d.GetCacher().Client().Set(ctx, alert.Index(), alert.String(), 0).Err(); err != nil {
 		log.Warnw("method", "storage.put", "error", err)
 		// TODO 存在争议， 不确定是否要把缓存失败的数据推出去
 		// 如果不推， 会导致告警丢失，如果推送，会导致此事件没有告警恢复
@@ -199,7 +200,7 @@ func getFiringAlert(ctx context.Context, d *data.Data, alert *bo.Alert) *bo.Aler
 func getResolvedAlert(ctx context.Context, d *data.Data, uniqueKey string) (*bo.Alert, error) {
 	// 获取存在的告警信息
 	var resolvedAlert bo.Alert
-	if err := d.GetCacher().GetObject(ctx, uniqueKey, &resolvedAlert); err != nil {
+	if err := d.GetCacher().Client().Get(ctx, uniqueKey).Scan(&resolvedAlert); err != nil {
 		return nil, err
 	}
 
@@ -207,7 +208,7 @@ func getResolvedAlert(ctx context.Context, d *data.Data, uniqueKey string) (*bo.
 	resolvedAlert.Status = vobj.AlertStatusResolved
 	resolvedAlert.EndsAt = types.NewTimeByUnix(time.Now().Unix())
 	// 删除缓存
-	_ = d.GetCacher().Delete(ctx, uniqueKey)
+	_ = d.GetCacher().Client().Del(ctx, uniqueKey).Err()
 	return &resolvedAlert, nil
 }
 

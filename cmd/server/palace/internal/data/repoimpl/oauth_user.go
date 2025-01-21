@@ -225,7 +225,7 @@ func (g *githubUserRepositoryImpl) SendVerifyEmail(ctx context.Context, email st
 	// 生成验证码
 	code := strings.ToUpper(types.MD5(time.Now().String())[:6])
 	// 缓存验证码
-	if err := g.data.GetCacher().Set(ctx, fmt.Sprintf("email_verify_code:%s", email), code, 5*time.Minute); err != nil {
+	if err := g.data.GetCacher().Client().Set(ctx, fmt.Sprintf("email_verify_code:%s", email), code, 5*time.Minute).Err(); err != nil {
 		return err
 	}
 	// 发送验证码到用户邮箱
@@ -245,7 +245,7 @@ func (g *githubUserRepositoryImpl) CheckVerifyEmailCode(ctx context.Context, ema
 		return err
 	}
 	// 验证码是否正确
-	if v, err := g.data.GetCacher().Get(ctx, fmt.Sprintf("email_verify_code:%s", email)); err != nil || v != code {
+	if v, err := g.data.GetCacher().Client().Get(ctx, fmt.Sprintf("email_verify_code:%s", email)).Result(); err != nil || v != code {
 		return merr.ErrorI18nAlertEmailCaptchaErr(ctx)
 	}
 	return nil

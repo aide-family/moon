@@ -1,13 +1,11 @@
 package imodel
 
 import (
-	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/vobj"
 )
 
 // IDict 系统字典通用接口
 type IDict interface {
-	cache.IObjectSchema
 	IAllFieldModel
 	// GetName 字典名称
 	GetName() string

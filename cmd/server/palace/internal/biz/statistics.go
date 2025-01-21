@@ -5,6 +5,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 )
 
 func NewStatisticsBiz(statisticsRepository repository.Statistics) *StatisticsBiz {
@@ -24,6 +25,6 @@ func (s *StatisticsBiz) AddEvents(ctx context.Context, events ...*bo.LatestAlarm
 }
 
 // GetLatestEvents 获取最新事件
-func (s *StatisticsBiz) GetLatestEvents(ctx context.Context, teamID uint32, limit int) ([]*bo.LatestAlarmEvent, error) {
-	return s.statisticsRepository.GetLatestEvents(ctx, teamID, limit)
+func (s *StatisticsBiz) GetLatestEvents(ctx context.Context, limit int) ([]*bo.LatestAlarmEvent, error) {
+	return s.statisticsRepository.GetLatestEvents(ctx, middleware.GetTeamID(ctx), limit)
 }

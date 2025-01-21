@@ -183,7 +183,7 @@ func (l *JwtClaims) Logout(ctx context.Context, cache cache.ICacher) error {
 		return err
 	}
 	bs, _ := types.Marshal(l)
-	return cache.Set(ctx, types.MD5(token), string(bs), expire)
+	return cache.Client().Set(ctx, types.MD5(token), string(bs), expire).Err()
 }
 
 // IsLogout 是否已经登出
@@ -282,14 +282,14 @@ func JwtLoginMiddleware(check CheckTokenFun) middleware.Middleware {
 }
 
 // isLogout 是否已经登出
-func isLogout(ctx context.Context, cache cache.ISimpleCacher, jwtClaims *JwtClaims) bool {
+func isLogout(ctx context.Context, cache cache.ICacher, jwtClaims *JwtClaims) bool {
 	// 判断是否过期
 	token, err := jwtClaims.GetToken()
 	if err != nil {
 		return true
 	}
-	exist, err := cache.Exist(ctx, types.MD5(token))
-	return exist && types.IsNil(err)
+	exist, err := cache.Client().Exists(ctx, types.MD5(token)).Result()
+	return exist == 1 && types.IsNil(err)
 }
 
 // IsExpire 是否过期

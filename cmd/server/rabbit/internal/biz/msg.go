@@ -15,6 +15,7 @@ import (
 	"github.com/aide-family/moon/pkg/notify/hook"
 	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
+
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -122,7 +123,7 @@ func (b *MsgBiz) sendMsg(ctx context.Context, msg *bo.SendMsgParams, sends ...no
 				return
 			}
 
-			nxOK, err := b.data.GetCacher().SetNX(ctx, key, "ok", 1*time.Hour)
+			nxOK, err := b.data.GetCacher().Client().SetNX(ctx, key, "ok", 1*time.Hour).Result()
 			if err != nil {
 				log.Warnw("method", "set cache error", "err", err)
 				return
@@ -134,7 +135,7 @@ func (b *MsgBiz) sendMsg(ctx context.Context, msg *bo.SendMsgParams, sends ...no
 			if err := send.Send(ctx, msgMap); !types.IsNil(err) {
 				log.Warnw("method", "send hook error", "err", err, "receiver", send.Type())
 				// 删除缓存  加入重试队列
-				_ = b.data.GetCacher().Delete(ctx, key)
+				_ = b.data.GetCacher().Client().Del(ctx, key).Err()
 			}
 		}(sender)
 	}

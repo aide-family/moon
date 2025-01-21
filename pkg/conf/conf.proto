@@ -96,8 +96,6 @@ message Cache {
   string driver = 1;
   // redis配置
   Redis redis = 2;
-  // 内存缓存配置
-  Free free = 3;
 }
 
 // 微服务配置
