@@ -13,4 +13,10 @@ type Statistics interface {
 
 	// GetLatestEvents 获取最新事件
 	GetLatestEvents(ctx context.Context, teamID uint32, limit int) ([]*bo.LatestAlarmEvent, error)
+
+	// AddInterventionEvents 添加干预事件
+	AddInterventionEvents(ctx context.Context, events ...*bo.LatestInterventionEvent) error
+
+	// GetLatestInterventionEvents 获取最新干预事件
+	GetLatestInterventionEvents(ctx context.Context, teamID uint32, limit int) ([]*bo.LatestInterventionEvent, error)
 }

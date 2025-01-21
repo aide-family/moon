@@ -62,6 +62,7 @@ type (
 		Value        float64           `json:"value"`
 	}
 
+	// LatestAlarmEvent 最新事件
 	LatestAlarmEvent struct {
 		Fingerprint string           `json:"fingerprint"`
 		Level       string           `json:"level"`
@@ -69,6 +70,18 @@ type (
 		Summary     string           `json:"summary"`
 		Status      vobj.AlertStatus `json:"status"`
 		TeamID      string           `json:"teamID"`
+	}
+
+	// LatestInterventionEvent 最新干预事件
+	LatestInterventionEvent struct {
+		Fingerprint string           `json:"fingerprint"`
+		Level       string           `json:"level"`
+		EventTime   string           `json:"eventTime"`
+		Summary     string           `json:"summary"`
+		Status      vobj.AlertStatus `json:"status"`
+		TeamID      string           `json:"teamID"`
+		HandlerID   uint32           `json:"handlerID"`
+		HandledAt   string           `json:"handledAt"`
 	}
 )
 
@@ -79,6 +92,16 @@ func (a *LatestAlarmEvent) UnmarshalBinary(data []byte) error {
 
 // MarshalBinary LatestAlarmEvent encoding.BinaryMarshaler
 func (a *LatestAlarmEvent) MarshalBinary() ([]byte, error) {
+	return types.Marshal(a)
+}
+
+// BinaryUnmarshaler LatestInterventionEvent encoding.BinaryUnmarshaler
+func (a *LatestInterventionEvent) UnmarshalBinary(data []byte) error {
+	return types.Unmarshal(data, a)
+}
+
+// MarshalBinary LatestInterventionEvent encoding.BinaryMarshaler
+func (a *LatestInterventionEvent) MarshalBinary() ([]byte, error) {
 	return types.Marshal(a)
 }
 

@@ -5,15 +5,19 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	hookapi "github.com/aide-family/moon/api/rabbit/hook"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 // NewAlarmBiz 创建告警相关业务逻辑
@@ -25,6 +29,7 @@ func NewAlarmBiz(
 	historyRepository repository.HistoryRepository,
 	sendAlert microrepository.SendAlert,
 	alarmGroup repository.AlarmGroup,
+	statisticsRepository repository.Statistics,
 ) *AlarmBiz {
 	return &AlarmBiz{
 		alarmGroup:           alarmGroup,
@@ -34,6 +39,7 @@ func NewAlarmBiz(
 		strategyRepository:   strategyRepository,
 		datasourceRepository: datasourceRepository,
 		sendAlertRepository:  sendAlert,
+		statisticsRepository: statisticsRepository,
 	}
 }
 
@@ -46,6 +52,7 @@ type AlarmBiz struct {
 	strategyRepository   repository.Strategy
 	datasourceRepository repository.Datasource
 	sendAlertRepository  microrepository.SendAlert
+	statisticsRepository repository.Statistics
 }
 
 // GetRealTimeAlarm 获取实时告警明细
@@ -60,6 +67,30 @@ func (b *AlarmBiz) ListRealTimeAlarms(ctx context.Context, params *bo.GetRealTim
 
 // MarkRealTimeAlarm 告警标记
 func (b *AlarmBiz) MarkRealTimeAlarm(ctx context.Context, params *bo.MarkRealTimeAlarmParams) error {
+	// 查询告警
+	alarm, err := b.alarmRepository.GetRealTimeAlarm(ctx, &bo.GetRealTimeAlarmParams{
+		RealtimeAlarmID: params.ID,
+		Fingerprint:     params.Fingerprint,
+	})
+	if !types.IsNil(err) {
+		return err
+	}
+
+	interventionEvent := &bo.LatestInterventionEvent{
+		TeamID:      strconv.Itoa(int(middleware.GetTeamID(ctx))),
+		HandlerID:   middleware.GetUserID(ctx),
+		HandledAt:   time.Now().Format(time.DateTime),
+		Fingerprint: alarm.Fingerprint,
+		Level:       alarm.Level,
+		EventTime:   alarm.StartsAt,
+		Summary:     alarm.Summary,
+		Status:      alarm.Status,
+	}
+
+	if err := b.statisticsRepository.AddInterventionEvents(ctx, interventionEvent); err != nil {
+		log.Errorw("method", "MarkRealTimeAlarm", "error", err)
+	}
+
 	switch params.Action {
 	case vobj.RealTimeActionMark:
 		return b.alarmRepository.MarkRealTimeAlarm(ctx, params)

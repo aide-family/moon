@@ -167,7 +167,7 @@ message LatestInterventionEventReply {
 		// 告警等级
 		string level = 4;
 		// 告警状态
-		string status = 5;
+		uint32 status = 5;
 		// 告警处理人
 		UserItem handler = 6;
 		// 告警处理时间

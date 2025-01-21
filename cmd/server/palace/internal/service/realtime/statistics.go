@@ -6,13 +6,10 @@ import (
 	"math/rand/v2"
 	"sort"
 	"strconv"
-	"time"
 
-	"github.com/aide-family/moon/api/admin"
 	pb "github.com/aide-family/moon/api/admin/realtime"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
-	"github.com/aide-family/moon/pkg/util/types"
 )
 
 type StatisticsService struct {
@@ -93,22 +90,11 @@ func (s *StatisticsService) LatestAlarmEvent(ctx context.Context, req *pb.Latest
 }
 
 func (s *StatisticsService) LatestInterventionEvent(ctx context.Context, req *pb.LatestInterventionEventRequest) (*pb.LatestInterventionEventReply, error) {
-	events := make([]*pb.LatestInterventionEventReply_LatestInterventionEvent, 0, req.GetLimit())
-	for i := 0; i < int(req.GetLimit()); i++ {
-		events = append(events, &pb.LatestInterventionEventReply_LatestInterventionEvent{
-			Fingerprint: types.MD5(time.Now().Format(time.RFC3339)),
-			EventTime:   time.Now().Add(-time.Second).Format(time.RFC3339),
-			Summary:     "事件" + strconv.Itoa(i),
-			Level:       "P0",
-			Status:      "处理中",
-			Handler: &admin.UserItem{
-				Id:   uint32(rand.Uint64()),
-				Name: "处理人" + strconv.Itoa(i),
-			},
-			HandledAt: time.Now().Add(-time.Second).Format(time.RFC3339),
-		})
+	events, err := s.statisticsBiz.GetLatestInterventionEvents(ctx, int(req.GetLimit()))
+	if err != nil {
+		return nil, err
 	}
 	return &pb.LatestInterventionEventReply{
-		Events: events,
+		Events: builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().DoStatisticsBuilder().InterventionEventToAPIs(events),
 	}, nil
 }

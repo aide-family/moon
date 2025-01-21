@@ -28,3 +28,13 @@ func (s *StatisticsBiz) AddEvents(ctx context.Context, events ...*bo.LatestAlarm
 func (s *StatisticsBiz) GetLatestEvents(ctx context.Context, limit int) ([]*bo.LatestAlarmEvent, error) {
 	return s.statisticsRepository.GetLatestEvents(ctx, middleware.GetTeamID(ctx), limit)
 }
+
+// GetLatestInterventionEvents 获取最新干预事件
+func (s *StatisticsBiz) GetLatestInterventionEvents(ctx context.Context, limit int) ([]*bo.LatestInterventionEvent, error) {
+	return s.statisticsRepository.GetLatestInterventionEvents(ctx, middleware.GetTeamID(ctx), limit)
+}
+
+// AddInterventionEvents 添加干预事件
+func (s *StatisticsBiz) AddInterventionEvents(ctx context.Context, events ...*bo.LatestInterventionEvent) error {
+	return s.statisticsRepository.AddInterventionEvents(ctx, events...)
+}

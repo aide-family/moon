@@ -125,12 +125,9 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarm(ctx context.Context, para
 	if err != nil {
 		return nil, err
 	}
-	var wheres []gen.Condition
-	if !types.TextIsNull(params.Fingerprint) {
-		wheres = append(wheres, alarmQuery.RealtimeAlarm.Fingerprint.Eq(params.Fingerprint))
-	}
-	if params.RealtimeAlarmID != 0 {
-		wheres = append(wheres, alarmQuery.RealtimeAlarm.ID.Eq(params.RealtimeAlarmID))
+	wheres := []gen.Condition{
+		alarmQuery.RealtimeAlarm.Fingerprint.Eq(params.Fingerprint),
+		alarmQuery.RealtimeAlarm.ID.Eq(params.RealtimeAlarmID),
 	}
 	detail, err := alarmQuery.WithContext(ctx).RealtimeAlarm.Preload(field.Associations).Where(wheres...).First()
 	if err != nil {

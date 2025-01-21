@@ -75,6 +75,10 @@ type (
 		EventToAPI(*bo.LatestAlarmEvent) *realtimeapi.LatestAlarmEventReply_LatestAlarmEvent
 		// EventToAPIs 转换为API对象列表
 		EventToAPIs([]*bo.LatestAlarmEvent) []*realtimeapi.LatestAlarmEventReply_LatestAlarmEvent
+		// InterventionEventToAPI 转换为API对象
+		InterventionEventToAPI(*bo.LatestInterventionEvent) *realtimeapi.LatestInterventionEventReply_LatestInterventionEvent
+		// InterventionEventToAPIs 转换为API对象列表
+		InterventionEventToAPIs([]*bo.LatestInterventionEvent) []*realtimeapi.LatestInterventionEventReply_LatestInterventionEvent
 	}
 
 	doStatisticsBuilder struct {
@@ -341,6 +345,35 @@ func (d *doStatisticsBuilder) EventToAPIs(events []*bo.LatestAlarmEvent) []*real
 	}
 	return types.SliceTo(events, func(event *bo.LatestAlarmEvent) *realtimeapi.LatestAlarmEventReply_LatestAlarmEvent {
 		return d.EventToAPI(event)
+	})
+}
+
+// InterventionEventToAPI implements IDoStatisticsBuilder.
+func (d *doStatisticsBuilder) InterventionEventToAPI(event *bo.LatestInterventionEvent) *realtimeapi.LatestInterventionEventReply_LatestInterventionEvent {
+	if types.IsNil(d) || types.IsNil(event) {
+		return nil
+	}
+
+	levelID, _ := strconv.ParseUint(event.Level, 10, 32)
+	user := biz.RuntimeCache.GetUser(d.ctx, event.HandlerID)
+	return &realtimeapi.LatestInterventionEventReply_LatestInterventionEvent{
+		Fingerprint: event.Fingerprint,
+		EventTime:   event.EventTime,
+		Summary:     event.Summary,
+		Level:       biz.RuntimeCache.GetDict(d.ctx, uint32(levelID), true).GetName(),
+		Status:      uint32(event.Status),
+		Handler:     NewParamsBuild(d.ctx).UserModuleBuilder().DoUserBuilder().ToAPI(user),
+		HandledAt:   event.HandledAt,
+	}
+}
+
+// InterventionEventToAPIs implements IDoStatisticsBuilder.
+func (d *doStatisticsBuilder) InterventionEventToAPIs(events []*bo.LatestInterventionEvent) []*realtimeapi.LatestInterventionEventReply_LatestInterventionEvent {
+	if types.IsNil(d) || types.IsNil(events) {
+		return nil
+	}
+	return types.SliceTo(events, func(event *bo.LatestInterventionEvent) *realtimeapi.LatestInterventionEventReply_LatestInterventionEvent {
+		return d.InterventionEventToAPI(event)
 	})
 }
 
