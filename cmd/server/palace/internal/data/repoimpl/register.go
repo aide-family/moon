@@ -42,4 +42,5 @@ var ProviderSetRepoImpl = wire.NewSet(
 	NewTimeEngineRuleRepository,
 	NewSendTemplateRepository,
 	NewTeamSendTemplateRepository,
+	NewStatisticsRepository,
 )

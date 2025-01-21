@@ -63,6 +63,20 @@ type (
 		DoDashboardBuilder() IDoDashboardBuilder
 		// DoChartBuilder 图表条目构造器
 		DoChartBuilder() IDoChartBuilder
+		// DoStatisticsBuilder 统计条目构造器
+		DoStatisticsBuilder() IDoStatisticsBuilder
+	}
+
+	// IDoStatisticsBuilder 统计条目构造器
+	IDoStatisticsBuilder interface {
+		// EventToAPI 转换为API对象
+		EventToAPI(*bo.LatestAlarmEvent) *realtimeapi.LatestAlarmEventReply_LatestAlarmEvent
+		// EventToAPIs 转换为API对象列表
+		EventToAPIs([]*bo.LatestAlarmEvent) []*realtimeapi.LatestAlarmEventReply_LatestAlarmEvent
+	}
+
+	doStatisticsBuilder struct {
+		ctx context.Context
 	}
 
 	// IMarkAlarmRequestBuilder 告警标记请求参数构造器
@@ -302,6 +316,35 @@ type (
 		ctx context.Context
 	}
 )
+
+// EventToAPI implements IDoStatisticsBuilder.
+func (d *doStatisticsBuilder) EventToAPI(event *bo.LatestAlarmEvent) *realtimeapi.LatestAlarmEventReply_LatestAlarmEvent {
+	if types.IsNil(d) || types.IsNil(event) {
+		return nil
+	}
+	return &realtimeapi.LatestAlarmEventReply_LatestAlarmEvent{
+		Fingerprint: event.Fingerprint,
+		Level:       event.Level,
+		EventTime:   event.EventTime,
+		Summary:     event.Summary,
+		Status:      uint32(event.Status),
+	}
+}
+
+// EventToAPIs implements IDoStatisticsBuilder.
+func (d *doStatisticsBuilder) EventToAPIs(events []*bo.LatestAlarmEvent) []*realtimeapi.LatestAlarmEventReply_LatestAlarmEvent {
+	if types.IsNil(d) || types.IsNil(events) {
+		return nil
+	}
+	return types.SliceTo(events, func(event *bo.LatestAlarmEvent) *realtimeapi.LatestAlarmEventReply_LatestAlarmEvent {
+		return d.EventToAPI(event)
+	})
+}
+
+// DoStatisticsBuilder implements IRealtimeAlarmModuleBuilder.
+func (r *realtimeAlarmModuleBuilder) DoStatisticsBuilder() IDoStatisticsBuilder {
+	return &doStatisticsBuilder{ctx: r.ctx}
+}
 
 // ToBo implements IMarkAlarmRequestBuilder.
 func (m *markAlarmRequestBuilder) ToBo() *bo.MarkRealTimeAlarmParams {

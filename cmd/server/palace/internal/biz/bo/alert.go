@@ -61,6 +61,15 @@ type (
 		Fingerprint  string            `json:"fingerprint"`
 		Value        float64           `json:"value"`
 	}
+
+	LatestAlarmEvent struct {
+		Fingerprint string           `json:"fingerprint"`
+		Level       string           `json:"level"`
+		EventTime   string           `json:"eventTime"`
+		Summary     string           `json:"summary"`
+		Status      vobj.AlertStatus `json:"status"`
+		TeamID      string           `json:"teamID"`
+	}
 )
 
 func (a *Alarm) String() string {

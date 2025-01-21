@@ -7,10 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aide-family/moon/pkg/helper/sse"
-
 	"github.com/aide-family/moon/cmd/server/palace/internal/palaceconf"
 	"github.com/aide-family/moon/pkg/conf"
+	"github.com/aide-family/moon/pkg/helper/sse"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/plugin/oss"
@@ -20,6 +19,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/watch"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/coocood/freecache"
@@ -59,6 +59,8 @@ type Data struct {
 	emailCli email.Interface
 
 	sseClientManager *sse.ClientManager
+
+	cache *redis.Client
 }
 
 var closeFuncList []func()

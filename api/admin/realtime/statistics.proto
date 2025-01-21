@@ -143,6 +143,8 @@ message LatestAlarmEventReply {
 		string eventTime = 3;
 		// 告警摘要
 		string summary = 4;
+		// 告警状态
+		uint32 status = 5;
 	}
 	// 最新告警事件
 	repeated LatestAlarmEvent events = 1;

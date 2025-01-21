@@ -10,7 +10,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/microrepository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
-	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/util/types"
@@ -112,7 +111,7 @@ func (b *AlarmBiz) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHo
 		if types.IsNil(item.Labels) {
 			return 0
 		}
-		return label.NewLabels(item.Labels).GetDatasourceID()
+		return item.Labels.GetDatasourceID()
 	})
 
 	datasourceList, err := b.datasourceRepository.GetTeamDatasource(ctx, params.TeamID, datasourceIds)

@@ -6,7 +6,6 @@ import (
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/server/palace/internal/data"
-	"github.com/aide-family/moon/pkg/label"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel/alarmquery"
@@ -139,8 +138,8 @@ func (a *alarmHistoryRepositoryImpl) GetAlarmHistories(ctx context.Context, para
 func (a *alarmHistoryRepositoryImpl) createAlarmHistoryToModels(param *bo.CreateAlarmInfoParams) []*alarmmodel.AlarmHistory {
 	strategy := param.Strategy
 	historyList := types.SliceTo(param.Alerts, func(alarmParam *bo.AlertItemRawParams) *alarmmodel.AlarmHistory {
-		labels := label.NewLabels(alarmParam.Labels)
-		annotations := label.NewAnnotations(alarmParam.Annotations)
+		labels := alarmParam.Labels
+		annotations := alarmParam.Annotations
 		alertStatus := vobj.ToAlertStatus(alarmParam.Status)
 		return &alarmmodel.AlarmHistory{
 			Summary:     annotations.GetSummary(),

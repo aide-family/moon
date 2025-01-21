@@ -21,15 +21,17 @@ import (
 type AlertService struct {
 	api.UnimplementedAlertServer
 
-	alertBiz    *biz.AlarmBiz
-	strategyBiz *biz.StrategyBiz
+	alertBiz      *biz.AlarmBiz
+	strategyBiz   *biz.StrategyBiz
+	statisticsBiz *biz.StatisticsBiz
 }
 
 // NewAlertService 创建告警服务
-func NewAlertService(alertBiz *biz.AlarmBiz, strategyBiz *biz.StrategyBiz) *AlertService {
+func NewAlertService(alertBiz *biz.AlarmBiz, strategyBiz *biz.StrategyBiz, statisticsBiz *biz.StatisticsBiz) *AlertService {
 	return &AlertService{
-		alertBiz:    alertBiz,
-		strategyBiz: strategyBiz,
+		alertBiz:      alertBiz,
+		strategyBiz:   strategyBiz,
+		statisticsBiz: statisticsBiz,
 	}
 }
 
@@ -58,6 +60,19 @@ func (s *AlertService) Hook(ctx context.Context, req *api.AlarmItem) (*api.HookR
 
 // CreateAlarmInfo 创建告警信息
 func (s *AlertService) CreateAlarmInfo(ctx context.Context, params *bo.CreateAlarmHookRawParams) error {
+	events := types.SliceTo(params.Alerts, func(item *bo.AlertItemRawParams) *bo.LatestAlarmEvent {
+		return &bo.LatestAlarmEvent{
+			Fingerprint: item.Fingerprint,
+			Level:       item.Labels.Get(label.LevelID),
+			EventTime:   item.StartsAt,
+			Summary:     item.Annotations.GetSummary(),
+			Status:      vobj.ToAlertStatus(item.Status),
+			TeamID:      item.Labels.Get(label.TeamID),
+		}
+	})
+	if err := s.statisticsBiz.AddEvents(ctx, events...); !types.IsNil(err) {
+		log.Error("msg", "add events error", "err", err)
+	}
 	return s.alertBiz.CreateAlarmInfo(ctx, params)
 }
 

@@ -102,9 +102,9 @@ type (
 		// 告警状态, firing, resolved
 		Status string `json:"status"`
 		// 标签
-		Labels map[string]string `json:"labels"`
+		Labels *label.Labels `json:"labels"`
 		// 注解
-		Annotations label.Annotations `json:"annotations"`
+		Annotations *label.Annotations `json:"annotations"`
 		// 开始时间
 		StartsAt string `json:"startsAt"`
 		// 结束时间, 空表示未结束

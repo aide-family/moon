@@ -10,15 +10,20 @@ import (
 
 	"github.com/aide-family/moon/api/admin"
 	pb "github.com/aide-family/moon/api/admin/realtime"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
+	"github.com/aide-family/moon/cmd/server/palace/internal/service/builder"
 	"github.com/aide-family/moon/pkg/util/types"
 )
 
 type StatisticsService struct {
 	pb.UnimplementedStatisticsServer
+	statisticsBiz *biz.StatisticsBiz
 }
 
-func NewStatisticsService() *StatisticsService {
-	return &StatisticsService{}
+func NewStatisticsService(statisticsBiz *biz.StatisticsBiz) *StatisticsService {
+	return &StatisticsService{
+		statisticsBiz: statisticsBiz,
+	}
 }
 
 func (s *StatisticsService) SummaryAlarm(ctx context.Context, req *pb.SummaryAlarmRequest) (*pb.SummaryAlarmReply, error) {
@@ -78,17 +83,12 @@ func (s *StatisticsService) TopStrategyAlarm(ctx context.Context, req *pb.TopStr
 }
 
 func (s *StatisticsService) LatestAlarmEvent(ctx context.Context, req *pb.LatestAlarmEventRequest) (*pb.LatestAlarmEventReply, error) {
-	events := make([]*pb.LatestAlarmEventReply_LatestAlarmEvent, 0, req.GetLimit())
-	for i := 0; i < int(req.GetLimit()); i++ {
-		events = append(events, &pb.LatestAlarmEventReply_LatestAlarmEvent{
-			Fingerprint: types.MD5(time.Now().Format(time.RFC3339)),
-			Level:       "P0",
-			EventTime:   time.Now().Add(-time.Second).Format(time.RFC3339),
-			Summary:     "事件" + strconv.Itoa(i),
-		})
+	events, err := s.statisticsBiz.GetLatestEvents(ctx, int(req.GetLimit()))
+	if err != nil {
+		return nil, err
 	}
 	return &pb.LatestAlarmEventReply{
-		Events: events,
+		Events: builder.NewParamsBuild(ctx).RealtimeAlarmModuleBuilder().DoStatisticsBuilder().EventToAPIs(events),
 	}, nil
 }
 
