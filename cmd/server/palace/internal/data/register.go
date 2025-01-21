@@ -54,6 +54,16 @@ type Srv struct {
 	uuid string
 }
 
+// SetUuid 设置uuid
+func (l *Srv) SetUuid(uuid string) {
+	l.uuid = uuid
+}
+
+// IsSameUuid 判断uuid是否一致
+func (l *Srv) IsSameUuid(uuid string) bool {
+	return l.uuid == uuid
+}
+
 // appendSrv 添加服务
 func (l *SrvList) appendSrv(key string, srv *Srv) {
 	if !l.depend {

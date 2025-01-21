@@ -149,9 +149,10 @@ func (l *RabbitConn) Heartbeat(_ context.Context, req *api.HeartbeatRequest) err
 		return nil
 	}
 	srv, ok := l.srvs.getSrv(srvKey, true)
-	if ok && srv.uuid == req.GetUuid() {
+	if ok && srv.IsSameUuid(req.GetUuid()) {
 		return nil
 	}
+	srv.SetUuid(req.GetUuid())
 	srv, err := l.srvRegister(srvKey, req.GetServer(), req.GetTeamIds())
 	if !types.IsNil(err) {
 		log.Errorw("method", "srvRegister", "err", err)

@@ -256,7 +256,7 @@ func (l *HouYiConn) Heartbeat(_ context.Context, req *api.HeartbeatRequest) erro
 		return nil
 	}
 	srv, ok := l.srvs.getSrv(srvKey, true)
-	if ok && srv.uuid == req.GetUuid() {
+	if ok && srv.IsSameUuid(req.GetUuid()) {
 		return nil
 	}
 	srv, err := l.srvRegister(srvKey, req.GetServer(), req.GetTeamIds())
@@ -264,7 +264,7 @@ func (l *HouYiConn) Heartbeat(_ context.Context, req *api.HeartbeatRequest) erro
 		log.Errorw("method", "srvRegister", "err", err)
 		return err
 	}
-
+	srv.SetUuid(req.GetUuid())
 	go func() {
 		defer after.RecoverX()
 		strategiesCh, err := l.getStrategies(srv)
@@ -361,12 +361,13 @@ func (l *HouYiConn) srvRegister(key string, microServer *conf.MicroServer, teamI
 	}
 	network := vobj.ToNetwork(microServer.GetNetwork())
 	srv = &Srv{
-		srvInfo:      microServer,
-		teamIds:      teamIds,
-		rpcClient:    nil,
-		network:      network,
-		httpClient:   nil,
-		registerTime: time.Now(),
+		srvInfo:           microServer,
+		teamIds:           teamIds,
+		rpcClient:         nil,
+		network:           network,
+		httpClient:        nil,
+		registerTime:      time.Now(),
+		firstRegisterTime: time.Time{},
 	}
 	switch network {
 	case vobj.NetworkHTTP, vobj.NetworkHTTPS:
