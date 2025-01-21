@@ -379,22 +379,31 @@ func (r *resetUserPasswordBySelfRequestBuilder) WithUserInfo(f func(ctx context.
 		return nil, err
 	}
 	newPass := types.NewPassword(r.GetNewPassword(), userDo.Salt)
-	oldPass := userDo.Password
+	oldPass := types.NewPassword(userDo.Password, userDo.Salt)
 	// 对比旧密码正确
-	if oldPass != r.GetOldPassword() {
+	if err := oldPass.Validate(r.GetOldPassword()); err != nil {
 		return nil, merr.ErrorI18nAlertPasswordErr(r.ctx)
 	}
 
 	// 对比两次密码相同, 相同修改无意义
-	if newPass.String() == oldPass {
+	if oldPass.Equal(newPass) {
 		return nil, merr.ErrorI18nAlertPasswordSameErr(r.ctx)
 	}
+	r.userDo = userDo
 	return r, nil
 }
 
 func (r *resetUserPasswordBySelfRequestBuilder) ToBo() *bo.ResetUserPasswordBySelfParams {
-	if types.IsNil(r) || types.IsNil(r.ResetUserPasswordBySelfRequest) || types.IsNil(r.userDo) {
-		return nil
+	if types.IsNil(r) {
+		panic("resetUserPasswordBySelfRequestBuilder is nil")
+	}
+
+	if types.IsNil(r.ResetUserPasswordBySelfRequest) {
+		panic("resetUserPasswordBySelfRequestBuilder ResetUserPasswordBySelfRequest is nil")
+	}
+
+	if types.IsNil(r.userDo) {
+		panic("resetUserPasswordBySelfRequestBuilder userDo is nil")
 	}
 
 	return &bo.ResetUserPasswordBySelfParams{

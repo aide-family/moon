@@ -41,11 +41,16 @@ type (
 		GetSalt() string
 		fmt.Stringer
 		Validate(checkPass string) error
+		Equal(other Password) bool
 	}
 	password struct {
 		value, salt string
 	}
 )
+
+func (p *password) Equal(other Password) bool {
+	return p.value == other.GetValue()
+}
 
 func (p *password) Validate(checkPass string) error {
 	return validatePassword(p.value, checkPass, p.salt)
