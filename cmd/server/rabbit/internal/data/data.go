@@ -1,17 +1,11 @@
 package data
 
 import (
-	"context"
-	"strings"
-
 	"github.com/aide-family/moon/cmd/server/rabbit/internal/rabbitconf"
-	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/plugin/cache"
-	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/watch"
 
-	"github.com/coocood/freecache"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 )
@@ -35,7 +29,7 @@ func NewData(c *rabbitconf.Bootstrap) (*Data, func(), error) {
 		watchStorage: watch.NewDefaultStorage(),
 		watchQueue:   watch.NewDefaultQueue(watch.QueueMaxSize),
 	}
-	d.cacher = newCache(c.GetCache())
+	d.cacher = cache.NewCache(c.GetCache())
 	closeFuncList = append(closeFuncList, func() {
 		log.Debugw("close cache", d.cacher.Close())
 	})
@@ -65,21 +59,4 @@ func (d *Data) GetWatcherStorage() watch.Storage {
 // GetWatcherQueue 获取 watcher 队列
 func (d *Data) GetWatcherQueue() watch.Queue {
 	return d.watchQueue
-}
-
-// newCache new cache
-func newCache(c *conf.Cache) cache.ICacher {
-	switch strings.ToLower(c.GetDriver()) {
-	case "redis":
-		log.Debugw("cache init", "redis")
-		cli := conn.NewRedisClient(c.GetRedis())
-		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
-			log.Warnw("redis ping error", err)
-		}
-		return cache.NewRedisCacher(cli)
-	default:
-		log.Debugw("cache init", "free")
-		size := int(c.GetFree().GetSize())
-		return cache.NewFreeCache(freecache.NewCache(types.Ternary(size > 0, size, 10*1024*1024)))
-	}
 }

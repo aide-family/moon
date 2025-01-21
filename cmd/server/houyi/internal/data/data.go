@@ -1,16 +1,11 @@
 package data
 
 import (
-	"context"
-
 	"github.com/aide-family/moon/cmd/server/houyi/internal/houyiconf"
-	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/plugin/cache"
-	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/watch"
 
-	"github.com/coocood/freecache"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 )
@@ -43,7 +38,7 @@ func NewData(c *houyiconf.Bootstrap) (*Data, func(), error) {
 	}
 
 	cacheConf := c.GetCache()
-	d.cacher = newCache(cacheConf)
+	d.cacher = cache.NewCache(cacheConf)
 	d.alertStorage = watch.NewCacheStorage(d.cacher)
 	closeFuncList = append(closeFuncList, func() {
 		log.Debugw("close alert storage", d.alertStorage.Close())
@@ -105,21 +100,4 @@ func (d *Data) GetEventStrategyQueue() watch.Queue {
 		log.Warn("eventStrategyQueue is nil")
 	}
 	return d.eventStrategyQueue
-}
-
-// newCache new cache
-func newCache(c *conf.Cache) cache.ICacher {
-	switch c.GetDriver() {
-	case "redis", "REDIS":
-		log.Debugw("cache init", "redis")
-		cli := conn.NewRedisClient(c.GetRedis())
-		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
-			log.Warnw("redis ping error", err)
-		}
-		return cache.NewRedisCacher(cli)
-	default:
-		log.Debugw("cache init", "free")
-		size := int(c.GetFree().GetSize())
-		return cache.NewFreeCache(freecache.NewCache(types.Ternary(size > 0, size, 10*1024*1024)))
-	}
 }

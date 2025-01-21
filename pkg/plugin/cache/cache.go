@@ -3,7 +3,19 @@ package cache
 import (
 	"context"
 	"encoding"
+	"strings"
 	"time"
+
+	"github.com/aide-family/moon/pkg/conf"
+	"github.com/aide-family/moon/pkg/util/conn"
+	"github.com/aide-family/moon/pkg/util/types"
+	"github.com/coocood/freecache"
+	"github.com/go-kratos/kratos/v2/log"
+)
+
+const (
+	CacherDriverRedis        = "redis"
+	CacherDriverRedisCluster = "miniredis"
 )
 
 type (
@@ -92,3 +104,29 @@ type (
 		SetNX(ctx context.Context, key string, value string, expiration time.Duration) (bool, error)
 	}
 )
+
+// NewCache new cache
+func NewCache(c *conf.Cache) ICacher {
+	switch strings.ToLower(c.GetDriver()) {
+	case CacherDriverRedis:
+		log.Debugw("msg", "redis cache init")
+		cli := conn.NewRedisClient(c.GetRedis())
+		if err := cli.Ping(context.Background()).Err(); !types.IsNil(err) {
+			log.Warnw("redis ping error", err)
+			panic(err)
+		}
+		return NewRedisCacher(cli)
+	case CacherDriverRedisCluster:
+		log.Debugw("msg", "miniredis cache init")
+		cli, err := conn.NewMiniRedis()
+		if !types.IsNil(err) {
+			log.Errorw("miniredis", "init error", "err", err)
+			panic(err)
+		}
+		return NewRedisCacherByMiniRedis(cli)
+	default:
+		log.Debugw("msg", "free cache init")
+		size := int(c.GetFree().GetSize())
+		return NewFreeCache(freecache.NewCache(types.Ternary(size > 0, size, 10*1024*1024)))
+	}
+}
