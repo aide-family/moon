@@ -32,12 +32,10 @@ func NewData(c *democonf.Bootstrap) (*Data, func(), error) {
 	mainConf := c.GetData().GetDatabase()
 	bizConf := c.GetData().GetBizDatabase()
 	cacheConf := c.GetData().GetCache()
-	if !types.IsNil(cacheConf) {
-		d.cacher = cache.NewCache(cacheConf)
-		closeFuncList = append(closeFuncList, func() {
-			log.Debugw("close cache", d.cacher.Close())
-		})
-	}
+	d.cacher = cache.NewCache(cacheConf)
+	closeFuncList = append(closeFuncList, func() {
+		log.Debugw("close cache", d.cacher.Close())
+	})
 
 	if !types.IsNil(mainConf) && !types.TextIsNull(mainConf.GetDsn()) {
 		mainDB, err := conn.NewGormDB(mainConf)

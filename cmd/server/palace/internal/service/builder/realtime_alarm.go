@@ -3,11 +3,13 @@ package builder
 import (
 	"context"
 	"sort"
+	"strconv"
 	"time"
 
 	"github.com/aide-family/moon/api"
 	adminapi "github.com/aide-family/moon/api/admin"
 	realtimeapi "github.com/aide-family/moon/api/admin/realtime"
+	"github.com/aide-family/moon/cmd/server/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
@@ -322,9 +324,10 @@ func (d *doStatisticsBuilder) EventToAPI(event *bo.LatestAlarmEvent) *realtimeap
 	if types.IsNil(d) || types.IsNil(event) {
 		return nil
 	}
+	levelID, _ := strconv.ParseUint(event.Level, 10, 32)
 	return &realtimeapi.LatestAlarmEventReply_LatestAlarmEvent{
 		Fingerprint: event.Fingerprint,
-		Level:       event.Level,
+		Level:       biz.RuntimeCache.GetDict(d.ctx, uint32(levelID), true).GetName(),
 		EventTime:   event.EventTime,
 		Summary:     event.Summary,
 		Status:      uint32(event.Status),
