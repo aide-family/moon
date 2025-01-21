@@ -21,13 +21,13 @@ import (
 	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
+
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/transport/http"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
-
-	"github.com/go-kratos/kratos/v2/transport/http"
-	"google.golang.org/grpc"
 )
 
 // NewRabbitRPCConn 创建一个rabbit rpc连接
@@ -148,8 +148,8 @@ func (l *RabbitConn) Heartbeat(_ context.Context, req *api.HeartbeatRequest) err
 		l.srvs.removeSrv(srvKey)
 		return nil
 	}
-	_, ok := l.srvs.getSrv(srvKey, true)
-	if ok {
+	srv, ok := l.srvs.getSrv(srvKey, true)
+	if ok && srv.uuid == req.GetUuid() {
 		return nil
 	}
 	srv, err := l.srvRegister(srvKey, req.GetServer(), req.GetTeamIds())

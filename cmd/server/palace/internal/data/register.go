@@ -50,6 +50,8 @@ type Srv struct {
 	registerTime time.Time
 	// 服务开始时间
 	firstRegisterTime time.Time
+	// 服务启动时间 如果启动时间不一致，需要重新注册和推送
+	uuid string
 }
 
 // appendSrv 添加服务

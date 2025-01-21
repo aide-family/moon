@@ -255,8 +255,8 @@ func (l *HouYiConn) Heartbeat(_ context.Context, req *api.HeartbeatRequest) erro
 		l.srvs.removeSrv(srvKey)
 		return nil
 	}
-	_, ok := l.srvs.getSrv(srvKey, true)
-	if ok {
+	srv, ok := l.srvs.getSrv(srvKey, true)
+	if ok && srv.uuid == req.GetUuid() {
 		return nil
 	}
 	srv, err := l.srvRegister(srvKey, req.GetServer(), req.GetTeamIds())

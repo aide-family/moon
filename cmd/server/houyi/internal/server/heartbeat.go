@@ -56,17 +56,18 @@ func (h *HeartbeatServer) Start(ctx context.Context) error {
 		if !h.dependPalace {
 			return
 		}
+		uuid := types.UUID()
 		log.Infof("[HeartbeatServer] server started")
 		for {
 			select {
 			case <-h.stopCh:
-				if err := h.healthService.Heartbeat(ctx, &api.HeartbeatRequest{Server: h.srv, TeamIds: h.teamIds, Online: false}); err != nil {
+				if err := h.healthService.Heartbeat(ctx, &api.HeartbeatRequest{Server: h.srv, TeamIds: h.teamIds, Online: false, Uuid: uuid}); err != nil {
 					log.Errorw("heartbeat error", err)
 				}
 				log.Infof("[HeartbeatServer] server stopped")
 				return
 			case <-h.tick.C:
-				if err := h.healthService.Heartbeat(ctx, &api.HeartbeatRequest{Server: h.srv, TeamIds: h.teamIds, Online: true}); err != nil {
+				if err := h.healthService.Heartbeat(ctx, &api.HeartbeatRequest{Server: h.srv, TeamIds: h.teamIds, Online: true, Uuid: uuid}); err != nil {
 					log.Errorw("heartbeat error", err)
 				}
 			}

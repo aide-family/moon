@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 // TextIsNull 判断字符串是否为空
@@ -105,4 +107,9 @@ func GetAPI(path string) string {
 		return ""
 	}
 	return u
+}
+
+// UUID 生成uuid
+func UUID() string {
+	return uuid.New().String()
 }

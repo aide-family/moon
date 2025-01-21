@@ -59,5 +59,7 @@ message HeartbeatRequest {
 	repeated uint32 teamIds = 2;
 	// 上线还是下线
 	bool online = 3;
+	// uuid
+	string uuid = 4;
 }
 message HeartbeatReply {}
