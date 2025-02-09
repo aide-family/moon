@@ -120,7 +120,7 @@ message CreateTimeEngineRuleRequest {
     message: "规则不能为空"
   }];
   // 状态
-  int32 status = 4 [(buf.validate.field).cel = {
+  optional int32 status = 4 [(buf.validate.field).cel = {
     expression: "this == 1 || this == 2",
     message: "状态必须为1:启用,2:禁用"
   }];
@@ -210,7 +210,7 @@ message CreateTimeEngineRequest {
   // 引擎规则列表
   repeated uint32 rules = 2;
   // 状态
-  Status status = 3 [(buf.validate.field).cel = {
+  optional Status status = 3 [(buf.validate.field).cel = {
     expression: "this == 1 || this == 2",
     message: "状态必须为1:启用,2:禁用"
   }];
