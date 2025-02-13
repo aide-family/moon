@@ -114,13 +114,7 @@ func syncBizDatabase(d *Data) error {
 			if err != nil {
 				return err
 			}
-			defer func() {
-				cli, err := db.DB()
-				if err != nil {
-					return
-				}
-				cli.Close()
-			}()
+
 			if err = db.AutoMigrate(bizmodel.Models()...); err != nil {
 				return err
 			}
@@ -129,13 +123,7 @@ func syncBizDatabase(d *Data) error {
 			if err != nil {
 				return err
 			}
-			defer func() {
-				cli, err := alarmDB.DB()
-				if err != nil {
-					return
-				}
-				cli.Close()
-			}()
+
 			if err = alarmDB.AutoMigrate(alarmmodel.Models()...); err != nil {
 				return err
 			}
