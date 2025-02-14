@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/pkg/conf"
 	"github.com/aide-family/moon/pkg/util/conn"
 	"github.com/aide-family/moon/pkg/util/types"
+	"google.golang.org/grpc/keepalive"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
@@ -39,8 +40,9 @@ func NewRPCConn(microServerConf *conf.MicroServer, discovery *conf.Discovery) (*
 		),
 		kgrpc.WithEndpoint(endpoint),
 		kgrpc.WithTimeout(timeout),
-		kgrpc.WithOptions(grpc.WithConnectParams(defaultGrpcConnectParam)),
 		kgrpc.WithOptions(
+			grpc.WithConnectParams(defaultGrpcConnectParam),
+			grpc.WithKeepaliveParams(defaultGrpcKeepAliveParams),
 			grpc.WithDefaultCallOptions(
 				grpc.MaxCallSendMsgSize(maxMsgSize),
 				grpc.MaxCallRecvMsgSize(maxMsgSize),
@@ -120,4 +122,10 @@ func init() {
 type Option struct {
 	RPCOpts  []grpc.CallOption
 	HTTPOpts []http.CallOption
+}
+
+var defaultGrpcKeepAliveParams = keepalive.ClientParameters{
+	Time:                time.Second * 10,
+	Timeout:             time.Second * 3,
+	PermitWithoutStream: true,
 }
