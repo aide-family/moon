@@ -295,6 +295,7 @@ type (
 		PortLevel   *api.DomainStrategyItem `json:"portLevel,omitempty"`
 		HTTPLevel   *api.HttpStrategyItem   `json:"httpLevel,omitempty"`
 		PingLevel   *api.PingStrategyItem   `json:"pingLevel,omitempty"`
+		LogsLevel   *api.LogsStrategyItem   `json:"logsLevel,omitempty"`
 	}
 )
 

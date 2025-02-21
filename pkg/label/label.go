@@ -38,6 +38,8 @@ const (
 	StrategyHTTPPath = "__moon__http_path__"
 	// StrategyEventExpr 事件表达式
 	StrategyEventExpr = "__moon__event_expr__"
+
+	StrategyLogInfo = "__moon__log_info__"
 )
 
 var (

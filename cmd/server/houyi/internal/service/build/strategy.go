@@ -201,3 +201,38 @@ func (a *EventStrategyBuilder) ToBo() *bo.StrategyEvent {
 		Annotations: label.NewAnnotations(a.GetAnnotations()),
 	}
 }
+
+// LogsStrategyBuilder 日志策略构建器
+type LogsStrategyBuilder struct {
+	*api.LogsStrategyItem
+}
+
+// NewLogsStrategyBuilder 创建日志策略构建器
+func NewLogsStrategyBuilder(strategyInfo *api.LogsStrategyItem) *LogsStrategyBuilder {
+	return &LogsStrategyBuilder{
+		LogsStrategyItem: strategyInfo,
+	}
+}
+
+func (a *LogsStrategyBuilder) ToBo() *bo.StrategyLogs {
+	if types.IsNil(a) || types.IsNil(a.LogsStrategyItem) {
+		return nil
+	}
+
+	return &bo.StrategyLogs{
+		Type:             vobj.StrategyType(a.GetStrategyType()),
+		TeamID:           a.GetTeamID(),
+		ReceiverGroupIDs: a.GetReceiverGroupIDs(),
+		ID:               a.GetStrategyID(),
+		LevelID:          a.GetLevelId(),
+		Alert:            a.GetAlert(),
+		Expr:             a.GetExpr(),
+		Status:           vobj.Status(a.GetStatus()),
+		Labels:           label.NewLabels(a.GetLabels()),
+		Annotations:      label.NewAnnotations(a.GetAnnotations()),
+		For:              types.NewDuration(a.GetFor()),
+		Datasource: types.SliceTo(a.GetDatasource(), func(ds *api.DatasourceItem) *bo.LogDatasource {
+			return NewDatasourceAPIBuilder(ds).ToLogBo()
+		}),
+	}
+}

@@ -418,3 +418,46 @@ message TimeEngine {
   // 规则
   repeated TimeEngineRule rules = 2;
 }
+
+// es 配置
+message Elasticsearch {
+  // 地址
+  string endpoint = 1;
+  // 用户名
+  string username = 2;
+  // 密码
+  string password = 3;
+  // 服务token
+  string serviceToken = 4;
+  // cloud Id
+  string cloudId = 5;
+  // api key
+  string apiKey = 6;
+  // 查询索引值
+  string searchIndex = 7;
+}
+
+// 日志查询配置
+message LogQuery {
+  // 日志类型
+  string type = 1;
+  // es
+  Elasticsearch es = 2;
+  // loki
+  Loki loki = 3;
+  // 阿里云日志
+  AliYunLogConfig aliYun = 4;
+}
+
+// loki 配置
+message Loki {
+  // 地址
+  string endpoint = 1;
+  // 用户名
+  string username = 2;
+  // 密码
+  string password = 3;
+  // limit 条数
+  int64 limit = 4;
+}
+
