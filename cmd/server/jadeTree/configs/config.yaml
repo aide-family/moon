@@ -1,0 +1,54 @@
+env: dev # dev、test、prod、local
+
+dependPalace: true
+server:
+  name: moon_jade_tree
+  httpEndpoint: "127.0.0.1:8003"
+  grpcEndpoint: "127.0.0.1:9003"
+  network: "rpc"
+  secret: ""
+  metadata:
+    description: 是moon监控系列的边缘agent组件，独立部署，用于作为边缘机器的控制平台
+    background: 寓意为月宫上的玉树，一颗一颗的布满整个月球
+
+http:
+  addr: 0.0.0.0:8003
+  timeout: 2s
+grpc:
+  addr: 0.0.0.0:9003
+  timeout: 2s
+
+cache:
+  driver: "free"
+  redis:
+    network: "tcp"
+    addr: 127.0.0.1:6379
+    db: 0
+    password: ""
+    read_timeout: 0.2s
+    write_timeout: 0.2s
+    dial_timeout: 0.2s
+  nutsDB:
+    path: ./tmp/nutsdb
+    bucket: test
+  free:
+    size: 104857600
+
+#discovery:
+#  driver: "etcd"
+#  etcd:
+#    endpoints:
+#      - 127.0.0.1:20000
+#      - 127.0.0.1:20002
+#      - 127.0.0.1:20004
+#    username: ""
+#    password: ""
+#    timeout: 10s
+
+palace_server:
+  network: "rpc"
+  nodeVersion: ""
+  #  endpoint: "discovery:///moon_palace"
+  endpoint: "127.0.0.1:9000"
+  timeout: 50s
+  secret: ""
