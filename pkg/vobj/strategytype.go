@@ -27,6 +27,6 @@ const (
 	// StrategyTypeEvent 事件策略
 	StrategyTypeEvent // event
 
-	// StrategyTypeLog 日志策略
-	StrategyTypeLog // log
+	// StrategyTypeLogs 日志策略
+	StrategyTypeLogs // log
 )

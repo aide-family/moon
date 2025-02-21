@@ -53,6 +53,12 @@ func (s *StrategyService) PushStrategy(ctx context.Context, req *strategyapi.Pus
 			return build.NewEventStrategyBuilder(item).ToBo()
 		})...)
 	}
+	if len(req.GetLogStrategies()) > 0 {
+		strategies = append(strategies, types.SliceTo(req.GetLogStrategies(), func(item *api.LogsStrategyItem) bo.IStrategy {
+			return build.NewLogsStrategyBuilder(item).ToBo()
+		})...)
+	}
+
 	if len(strategies) == 0 {
 		return &strategyapi.PushStrategyReply{}, nil
 	}
