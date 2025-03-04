@@ -36,6 +36,7 @@ type StrategyLevel struct {
 	StrategyPortLevelList    []*StrategyPortLevel   `gorm:"-" json:"strategyPortList,omitempty"`
 	StrategyHTTPLevelList    []*StrategyHTTPLevel   `gorm:"-" json:"strategyHTTPList,omitempty"`
 	StrategyPingLevelList    []*StrategyPingLevel   `gorm:"-" json:"strategyPingList,omitempty"`
+	StrategyLogsLevelList    []*StrategyLogsLevel   `gorm:"-" json:"strategyLogsList,omitempty"`
 }
 
 // GetStrategy 获取策略
@@ -94,6 +95,14 @@ func (c *StrategyLevel) GetStrategyPingLevelList() []*StrategyPingLevel {
 	return c.StrategyPingLevelList
 }
 
+// GetStrategyLogLevelList 获取日志策略等级列表
+func (c *StrategyLevel) GetStrategyLogLevelList() []*StrategyLogsLevel {
+	if c == nil {
+		return nil
+	}
+	return c.StrategyLogsLevelList
+}
+
 // AfterFind get strategy level
 func (c *StrategyLevel) AfterFind(_ *gorm.DB) (err error) {
 	if c.RawInfo == "" {
@@ -119,6 +128,8 @@ func (c *StrategyLevel) AfterFind(_ *gorm.DB) (err error) {
 		c.StrategyPingLevelList = c.getStrategyPing()
 	case vobj.StrategyTypeDomainPort:
 		c.StrategyPortLevelList = c.getStrategyPort()
+	case vobj.StrategyTypeLogs:
+		c.StrategyLogsLevelList = c.getStrategyLogs()
 	default:
 	}
 	return
@@ -188,6 +199,12 @@ func (c *StrategyLevel) GetLevelByID(id uint32) string {
 	case vobj.StrategyTypeDomainPort:
 		levels := c.getStrategyPort()
 		level := types.SliceFind(levels, func(item *StrategyPortLevel) bool {
+			return item.Level.GetID() == id
+		})
+		return level.String()
+	case vobj.StrategyTypeLogs:
+		levels := c.getStrategyLogs()
+		level := types.SliceFind(levels, func(item *StrategyLogsLevel) bool {
 			return item.Level.GetID() == id
 		})
 		return level.String()
@@ -326,6 +343,28 @@ func (c *StrategyLevel) getStrategyPort() []*StrategyPortLevel {
 		return nil
 	}
 	return types.SliceTo(ports, func(item *StrategyPortLevel) *StrategyPortLevel {
+		item.Level = c.dictMap[item.Level.GetID()]
+		item.AlarmPageList = types.SliceToWithFilter(item.AlarmPageList, func(dictItem *SysDict) (*SysDict, bool) {
+			dict, ok := c.dictMap[dictItem.GetID()]
+			return dict, ok
+		})
+		item.AlarmGroupList = types.SliceToWithFilter(item.AlarmGroupList, func(alarmGroupItem *AlarmNoticeGroup) (*AlarmNoticeGroup, bool) {
+			group, ok := c.alarmGroupMap[alarmGroupItem.GetID()]
+			return group, ok
+		})
+		return item
+	})
+}
+
+// getStrategyLogs get strategy logs
+func (c *StrategyLevel) getStrategyLogs() []*StrategyLogsLevel {
+	ports := make([]*StrategyLogsLevel, 0)
+	err := json.Unmarshal([]byte(c.RawInfo), &ports)
+	if err != nil {
+		log.Warnw("method", "get strategy port", "err", err)
+		return nil
+	}
+	return types.SliceTo(ports, func(item *StrategyLogsLevel) *StrategyLogsLevel {
 		item.Level = c.dictMap[item.Level.GetID()]
 		item.AlarmPageList = types.SliceToWithFilter(item.AlarmPageList, func(dictItem *SysDict) (*SysDict, bool) {
 			dict, ok := c.dictMap[dictItem.GetID()]
