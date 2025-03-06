@@ -38,8 +38,6 @@ type RealtimeAlarm struct {
 	StrategyID uint32 `gorm:"column:strategy_id;type:int;not null;comment:策略id"`
 	// 告警等级ID
 	LevelID uint32 `gorm:"column:level_id;type:int;not null;comment:告警等级id"`
-	// 告警等级
-	Level string `gorm:"column:level;type:varchar(100);not null;comment:告警等级"`
 	// 告警原始信息
 	RawInfo *AlarmRaw `gorm:"foreignKey:RawInfoID"`
 	// 关联的告警通知组列表 通过RealtimeAlarmID关联RealtimeAlarmReceiver表

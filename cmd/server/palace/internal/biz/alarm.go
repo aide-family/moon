@@ -81,7 +81,7 @@ func (b *AlarmBiz) MarkRealTimeAlarm(ctx context.Context, params *bo.MarkRealTim
 		HandlerID:   middleware.GetUserID(ctx),
 		HandledAt:   time.Now().Format(time.DateTime),
 		Fingerprint: alarm.Fingerprint,
-		Level:       alarm.Level,
+		Level:       alarm.GetRealtimeDetails().Level,
 		EventTime:   alarm.StartsAt,
 		Summary:     alarm.Summary,
 		Status:      alarm.Status,
