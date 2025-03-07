@@ -31,7 +31,7 @@ message MetricStrategyItem {
   uint32 count = 4;
   // 持续的类型
   SustainType sustainType = 5 [(buf.validate.field).enum.defined_only = true];
-   // 策略标签
+  // 策略标签
   map<string, string> labels = 7 [(buf.validate.field).cel = {
     id: "Strategy_labels"
     expression: 'this.size() > 0'
@@ -406,6 +406,12 @@ message LogsStrategyItem {
     id: "LogsStrategy_levelID"
     expression: 'this > 0'
     message: "策略等级ID必须大于0"
+  }];
+  // 日志总数
+  uint32 count = 16 [(buf.validate.field).cel = {
+    id: "LogsStrategy_count"
+    expression: 'this > 0'
+    message: "日志总数必须大于0"
   }];
 }
 

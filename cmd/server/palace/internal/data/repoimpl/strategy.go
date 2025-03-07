@@ -810,6 +810,22 @@ func createStrategyDomainPortLevelParamsToModel(params []*bo.CreateStrategyPortL
 	})
 }
 
+func createStrategyLogLevelParamsToModel(params []*bo.CreateStrategyLogLevel) []*bizmodel.StrategyLogsLevel {
+	return types.SliceTo(params, func(item *bo.CreateStrategyLogLevel) *bizmodel.StrategyLogsLevel {
+		return &bizmodel.StrategyLogsLevel{
+			Count:    item.Count,
+			Duration: item.Duration,
+			Level:    &bizmodel.SysDict{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: item.LevelID}}},
+			AlarmPageList: types.SliceTo(item.AlarmPageIds, func(pageID uint32) *bizmodel.SysDict {
+				return &bizmodel.SysDict{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: pageID}}}
+			}),
+			AlarmGroupList: types.SliceTo(item.AlarmGroupIds, func(groupID uint32) *bizmodel.AlarmNoticeGroup {
+				return &bizmodel.AlarmNoticeGroup{AllFieldModel: bizmodel.AllFieldModel{AllFieldModel: model.AllFieldModel{ID: groupID}}}
+			}),
+		}
+	})
+}
+
 func (s *strategyRepositoryImpl) createStrategyLevelRawModel(ctx context.Context, params *bo.CreateStrategyParams, strategyID uint32) (level *bizmodel.StrategyLevel, err error) {
 	bizQuery, err := getBizQuery(ctx, s.data)
 	if !types.IsNil(err) {
@@ -898,7 +914,17 @@ func (s *strategyRepositoryImpl) createStrategyLevelRawModel(ctx context.Context
 			level.DictList = append(level.DictList, levelModel.Level)
 			level.AlarmGroups = append(level.AlarmGroups, levelModel.AlarmGroupList...)
 		}
-
+	case vobj.StrategyTypeLogs:
+		logLevelModels := createStrategyLogLevelParamsToModel(params.LogLevels)
+		bytes, err = types.Marshal(logLevelModels)
+		if !types.IsNil(err) {
+			return nil, merr.ErrorI18nNotificationSystemError(ctx)
+		}
+		for _, levelModel := range logLevelModels {
+			level.DictList = append(level.DictList, levelModel.AlarmPageList...)
+			level.DictList = append(level.DictList, levelModel.Level)
+			level.AlarmGroups = append(level.AlarmGroups, levelModel.AlarmGroupList...)
+		}
 	default:
 		return nil, merr.ErrorI18nNotificationSystemError(ctx)
 	}

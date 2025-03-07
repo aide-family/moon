@@ -321,6 +321,10 @@ type (
 		ToHTTPBo(*strategyapi.CreateStrategyHTTPLevelRequest) *bo.CreateStrategyHTTPLevel
 		// ToHTTPBos 转换为业务对象列表
 		ToHTTPBos([]*strategyapi.CreateStrategyHTTPLevelRequest) []*bo.CreateStrategyHTTPLevel
+		// ToLogBo 转换为业务对象
+		ToLogBo(*strategyapi.CreateStrategyLogLevelRequest) *bo.CreateStrategyLogLevel
+		// ToLogBos 转换为业务对象列表
+		ToLogBos([]*strategyapi.CreateStrategyLogLevelRequest) []*bo.CreateStrategyLogLevel
 	}
 
 	mutationStrategyLevelBuilder struct {
@@ -350,6 +354,10 @@ type (
 		ToHTTPLevelAPI(*bizmodel.StrategyHTTPLevel) *adminapi.StrategyHTTPLevelItem
 		// ToHTTPLevelAPIs 转换为API对象列表
 		ToHTTPLevelAPIs([]*bizmodel.StrategyHTTPLevel) []*adminapi.StrategyHTTPLevelItem
+		// ToLogAPI 转换为API对象
+		ToLogAPI(*bizmodel.StrategyLogsLevel) *adminapi.StrategyLogLevelItem
+		// ToLogAPIs 转换为API对象列表
+		ToLogAPIs([]*bizmodel.StrategyLogsLevel) []*adminapi.StrategyLogLevelItem
 	}
 
 	doStrategyLevelBuilder struct {
@@ -404,6 +412,38 @@ type (
 	}
 )
 
+func (d *doStrategyLevelBuilder) ToLogAPI(level *bizmodel.StrategyLogsLevel) *adminapi.StrategyLogLevelItem {
+	if types.IsNil(level) {
+		return nil
+	}
+
+	return &adminapi.StrategyLogLevelItem{
+		Count:       level.Count,
+		Level:       NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelect(level.GetLevel()),
+		AlarmPages:  NewParamsBuild(d.ctx).DictModuleBuilder().DoDictBuilder().ToSelects(types.SliceTo(level.GetAlarmPageList(), func(item *bizmodel.SysDict) imodel.IDict { return item })),
+		AlarmGroups: NewParamsBuild(d.ctx).AlarmNoticeGroupModuleBuilder().DoAlarmNoticeGroupItemBuilder().ToAPIs(level.GetAlarmGroupList()),
+	}
+}
+
+func (d *doStrategyLevelBuilder) ToLogAPIs(levels []*bizmodel.StrategyLogsLevel) []*adminapi.StrategyLogLevelItem {
+	return types.SliceTo(levels, func(level *bizmodel.StrategyLogsLevel) *adminapi.StrategyLogLevelItem {
+		return d.ToLogAPI(level)
+	})
+}
+
+func (m *mutationStrategyLevelBuilder) ToLogBo(request *strategyapi.CreateStrategyLogLevelRequest) *bo.CreateStrategyLogLevel {
+	if types.IsNil(request) || types.IsNil(m) {
+		return nil
+	}
+	return &bo.CreateStrategyLogLevel{
+		AlarmPageIds:  request.GetAlarmPageIds(),
+		AlarmGroupIds: request.GetAlarmGroupIds(),
+		LevelID:       request.GetLevelId(),
+		Duration:      request.GetDuration(),
+		Count:         request.GetCount(),
+	}
+}
+
 func (d *doStrategyLevelsBuilder) ToLogAPIs(strategy *bizmodel.Strategy, levels []*bizmodel.StrategyLogsLevel) []*api.LogsStrategyItem {
 	return types.SliceTo(levels, func(level *bizmodel.StrategyLogsLevel) *api.LogsStrategyItem {
 		return d.ToLogAPI(strategy, level)
@@ -436,6 +476,7 @@ func (d *doStrategyLevelsBuilder) ToLogAPI(strategy *bizmodel.Strategy, level *b
 		For:              durationpb.New(time.Duration(level.Duration) * time.Second),
 		Datasource:       NewParamsBuild(d.ctx).DatasourceModuleBuilder().DatasourceBuilder().ToAPIs(strategy.Datasource),
 		ReceiverGroupIDs: receiverGroupIDs,
+		Count:            level.Count,
 	}
 }
 
@@ -866,6 +907,15 @@ func (m *mutationStrategyLevelBuilder) ToHTTPBos(requests []*strategyapi.CreateS
 	})
 }
 
+func (m *mutationStrategyLevelBuilder) ToLogBos(requests []*strategyapi.CreateStrategyLogLevelRequest) []*bo.CreateStrategyLogLevel {
+	if types.IsNil(requests) || types.IsNil(m) {
+		return nil
+	}
+	return types.SliceTo(requests, func(request *strategyapi.CreateStrategyLogLevelRequest) *bo.CreateStrategyLogLevel {
+		return m.ToLogBo(request)
+	})
+}
+
 func (b *boStrategyBuilder) ToEventAPI(strategy *bo.Strategy) *api.EventStrategyItem {
 	if types.IsNil(strategy) || types.IsNil(strategy.EventLevel) || types.IsNil(b) {
 		return nil
@@ -1290,6 +1340,7 @@ func (d *doStrategyBuilder) ToAPI(strategy *bizmodel.Strategy) *adminapi.Strateg
 		PortLevels:        NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToPortAPIs(strategy.GetLevel().GetStrategyPortLevelList()),
 		HttpLevels:        NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToHTTPLevelAPIs(strategy.GetLevel().GetStrategyHTTPLevelList()),
 		DomainLevels:      NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToDomainAPIs(strategy.GetLevel().GetStrategyDomainLevelList()),
+		LogLevels:         NewParamsBuild(d.ctx).StrategyModuleBuilder().DoStrategyLevelBuilder().ToLogAPIs(strategy.GetLevel().GetStrategyLogLevelList()),
 	}
 
 	return strategyItem
@@ -1393,6 +1444,7 @@ func (c *createStrategyRequestBuilder) ToBo() *bo.CreateStrategyParams {
 		DomainLevels:   NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToDomainBos(c.GetStrategyDomainLevels()),
 		PortLevels:     NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToPortBos(c.GetStrategyPortLevels()),
 		HTTPLevels:     NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToHTTPBos(c.GetStrategyHTTPLevels()),
+		LogLevels:      NewParamsBuild(c.ctx).StrategyModuleBuilder().APIMutationStrategyLevelItems().ToLogBos(c.GetStrategyLogLevels()),
 	}
 }
 

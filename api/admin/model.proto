@@ -391,6 +391,19 @@ message StrategyDomainLevelItem {
   Condition condition = 9;
 }
 
+message StrategyLogLevelItem {
+  // 告警等级明细
+  SelectItem level = 2;
+  // 告警页面
+  repeated SelectItem alarmPages = 4;
+  // 告警组
+  repeated AlarmNoticeGroupItem alarmGroups = 5;
+  // 策略Labels
+  repeated LabelNoticeItem labelNotices = 6;
+  // 总数
+  uint32 count = 7;
+}
+
 message StrategyItem {
   // 策略名称
   string name = 1;
@@ -439,6 +452,8 @@ message StrategyItem {
   repeated StrategyHTTPLevelItem httpLevels = 24;
   // 域名监控策略
   repeated StrategyDomainLevelItem domainLevels = 25;
+  // log监控策略
+  repeated StrategyLogLevelItem logLevels = 26;
 }
 
 message SubscriberStrategyItem {

@@ -231,6 +231,7 @@ func (a *LogsStrategyBuilder) ToBo() *bo.StrategyLogs {
 		Labels:           label.NewLabels(a.GetLabels()),
 		Annotations:      label.NewAnnotations(a.GetAnnotations()),
 		For:              types.NewDuration(a.GetFor()),
+		Count:            a.GetCount(),
 		Datasource: types.SliceTo(a.GetDatasource(), func(ds *api.DatasourceItem) *bo.LogDatasource {
 			return NewDatasourceAPIBuilder(ds).ToLogBo()
 		}),
