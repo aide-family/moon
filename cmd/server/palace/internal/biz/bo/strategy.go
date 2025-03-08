@@ -50,6 +50,8 @@ type (
 		PortLevels []*CreateStrategyPortLevel `json:"portLevels"`
 		// HTTP策略等级
 		HTTPLevels []*CreateStrategyHTTPLevel `json:"httpLevels"`
+		// 日志策略等级
+		LogLevels []*CreateStrategyLogLevel `json:"logLevels"`
 	}
 
 	// UpdateStrategyParams 更新策略请求参数
@@ -180,6 +182,20 @@ type (
 		LevelID uint32 `json:"levelID"`
 	}
 
+	// CreateStrategyLogLevel 创建日志监控策略
+	CreateStrategyLogLevel struct {
+		// 告警页面
+		AlarmPageIds []uint32 `json:"alarmPageIds"`
+		// 告警组
+		AlarmGroupIds []uint32 `json:"alarmGroupIds"`
+		// 告警等级 对应sys_dict字典id
+		LevelID uint32 `json:"levelID"`
+		// 日志总数
+		Count uint32 `json:"count"`
+		// 持续时间
+		Duration int64 `json:"duration"`
+	}
+
 	// HeaderItem 请求头
 	HeaderItem struct {
 		Key   string `json:"key"`
@@ -295,6 +311,7 @@ type (
 		PortLevel   *api.DomainStrategyItem `json:"portLevel,omitempty"`
 		HTTPLevel   *api.HttpStrategyItem   `json:"httpLevel,omitempty"`
 		PingLevel   *api.PingStrategyItem   `json:"pingLevel,omitempty"`
+		LogsLevel   *api.LogsStrategyItem   `json:"logsLevel,omitempty"`
 	}
 )
 

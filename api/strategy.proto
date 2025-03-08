@@ -31,7 +31,7 @@ message MetricStrategyItem {
   uint32 count = 4;
   // 持续的类型
   SustainType sustainType = 5 [(buf.validate.field).enum.defined_only = true];
-   // 策略标签
+  // 策略标签
   map<string, string> labels = 7 [(buf.validate.field).cel = {
     id: "Strategy_labels"
     expression: 'this.size() > 0'
@@ -342,6 +342,77 @@ message EventStrategyItem {
     message: '当前数据类型为 Object 时，数据 key 不允许为空'
     expression: 'this.dataType != 3 || this.dataKey.size() > 0'
   };
+}
+
+// LogsStrategyItem 日志策略定义， 用于监控指定日志
+message LogsStrategyItem {
+  // 策略名称
+  string alert = 1 [(buf.validate.field).cel = {
+    id: "LogsStrategy_alert"
+    expression: 'this.size() > 0'
+    message: "策略名称不允许为空"
+  }];
+  // 策略语句
+  string expr = 2 [(buf.validate.field).cel = {
+    id: "LogsStrategy_expr"
+    expression: 'this.size() > 0'
+    message: "策略语句不允许为空"
+  }];
+  // 策略持续时间
+  google.protobuf.Duration for = 3;
+
+  // 持续的类型
+  SustainType sustainType = 4 [(buf.validate.field).enum.defined_only = true];
+  // 策略标签
+  map<string, string> labels = 5 [(buf.validate.field).cel = {
+    id: "LogsStrategy_labels"
+    expression: 'this.size() > 0'
+    message: "策略标签不允许为空"
+  }];
+  // 策略注解
+  map<string, string> annotations = 6 [(buf.validate.field).cel = {
+    id: "LogsStrategy_annotations"
+    expression: 'this.size() > 0'
+    message: "策略注解不允许为空"
+  }];
+  Status status = 7 [(buf.validate.field).enum.defined_only = true];
+  // 数据源
+  repeated DatasourceItem datasource = 8 [(buf.validate.field).cel = {
+    id: "LogsStrategy_datasource"
+    expression: 'this.size() > 0'
+    message: "数据源不允许为空"
+  }];
+  // 判断条件
+  Condition condition = 9;
+  // 团队ID
+  uint32 teamID = 10 [(buf.validate.field).cel = {
+    id: "LogsStrategy_team"
+    expression: 'this > 0'
+    message: "团队ID必须大于0"
+  }];
+  // 接收对象列表（告警组ID列表）
+  repeated uint32 receiverGroupIDs = 11;
+  repeated LabelNotices labelNotices = 12;
+  StrategyType strategyType = 13;
+  // 策略ID
+  uint32 strategyID = 14 [(buf.validate.field).cel = {
+    id: "LogsStrategy_strategyID"
+    expression: 'this > 0'
+    message: "策略ID必须大于0"
+  }];
+
+  // 策略等级ID
+  uint32 levelId = 15 [(buf.validate.field).cel = {
+    id: "LogsStrategy_levelID"
+    expression: 'this > 0'
+    message: "策略等级ID必须大于0"
+  }];
+  // 日志总数
+  uint32 count = 16 [(buf.validate.field).cel = {
+    id: "LogsStrategy_count"
+    expression: 'this > 0'
+    message: "日志总数必须大于0"
+  }];
 }
 
 message LabelNotices {

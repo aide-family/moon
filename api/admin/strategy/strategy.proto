@@ -257,6 +257,8 @@ message CreateStrategyRequest {
   repeated CreateStrategyPortLevelRequest strategyPortLevels = 18;
   // HTTP监控策略定义
   repeated CreateStrategyHTTPLevelRequest strategyHTTPLevels = 19;
+  // Log监控策略定义
+  repeated CreateStrategyLogLevelRequest strategyLogLevels = 20;
 
   option (buf.validate.message).cel = {
     id: "StrategyMetricLevelRequired",
@@ -264,11 +266,11 @@ message CreateStrategyRequest {
     message: "strategyMetricLevels 不能为空"
   };
 
-//  option (buf.validate.message).cel = {
-//    id: "StrategyMetricLevelRequired",
-//    expression: "this.strategyType != 1 || (this.datasourceIds.size() > 0)",
-//    message: "请选择至少一个数据源"
-//  };
+  //  option (buf.validate.message).cel = {
+  //    id: "StrategyMetricLevelRequired",
+  //    expression: "this.strategyType != 1 || (this.datasourceIds.size() > 0)",
+  //    message: "请选择至少一个数据源"
+  //  };
 
   option (buf.validate.message).cel = {
     id: "StrategyEventLevelRequired",
@@ -276,11 +278,11 @@ message CreateStrategyRequest {
     message: "StrategyDomainLevels 不能为空"
   };
 
-//  option (buf.validate.message).cel = {
-//    id: "StrategyMetricLevelRequired",
-//    expression: "this.strategyType != 2 || (this.datasourceIds.size() > 0)",
-//    message: "请选择至少一个数据源"
-//  };
+  //  option (buf.validate.message).cel = {
+  //    id: "StrategyMetricLevelRequired",
+  //    expression: "this.strategyType != 2 || (this.datasourceIds.size() > 0)",
+  //    message: "请选择至少一个数据源"
+  //  };
 
   option (buf.validate.message).cel = {
     id: "StrategyPortLevelRequired",
@@ -298,6 +300,12 @@ message CreateStrategyRequest {
     id: "StrategyMqLevelRequired",
     expression: "this.strategyType != 6 || (this.strategyEventLevels.size() > 0)",
     message: "strategyEventLevels 不能为空"
+  };
+
+  option (buf.validate.message).cel = {
+    id: "StrategyLogLevelRequired",
+    expression: "this.strategyType != 7 || (this.strategyLogLevels.size() > 0)",
+    message: "strategyLogLevels 不能为空"
   };
 }
 message CreateStrategyReply {}
@@ -522,6 +530,35 @@ message CreateStrategyHTTPLevelRequest {
   Condition statusCodeCondition = 13;
   // 响应时间判断条件
   Condition responseTimeCondition = 14;
+}
+
+
+// 端口监控策略定义
+message CreateStrategyLogLevelRequest {
+  // 策略等级ID
+  uint32 levelId = 1 [(buf.validate.field).cel = {
+    id: "PortStrategyItem_levelID"
+    expression: 'this > 0'
+    message: "策略等级ID必须大于0"
+  }];
+  // 告警页面ID
+  repeated uint32 alarmPageIds = 3 [(buf.validate.field).cel = {
+    message: "请选择告警页面",
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "告警页面重复",
+    expression: "this.unique()"
+  }];
+  // 告警组ID列表
+  repeated uint32 alarmGroupIds = 4 [(buf.validate.field).cel = {
+    message: "告警组重复",
+    expression: "this.unique()"
+  }];
+  // 策略Labels
+  repeated CreateStrategyLabelNoticeRequest labelNotices = 5;
+  // 端口
+  uint32 count = 6;
+  int64 duration = 7;
 }
 
 message HeaderItem {

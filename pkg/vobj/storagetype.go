@@ -14,6 +14,11 @@ const (
 
 	// StorageTypeVictoriametrics VictoriaMetrics
 	StorageTypeVictoriametrics // VictoriaMetrics
+
+	StorageTypeElasticsearch // Elasticsearch
+	StorageTypeLoki          // Loki
+
+	StorageAliYunSLS // AliYunSLS
 )
 
 const (

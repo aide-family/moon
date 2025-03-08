@@ -50,5 +50,11 @@ message PushStrategyRequest {
     expression: "this.size() <= 10"
     message: "MQ策略列表不能超过10个"
   }];
+  // log 策略
+  repeated LogsStrategyItem logStrategies = 6 [(buf.validate.field).cel = {
+    id: "PushStrategyRequest_log_strategies_lte10",
+    expression: "this.size() <= 10"
+    message: "LOG策略列表不能超过10个"
+  }];
 }
 message PushStrategyReply {}

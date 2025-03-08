@@ -76,3 +76,37 @@ func (b *DatasourceAPIBuilder) ToEventBo() *bo.EventDatasource {
 
 	return eventDatasource
 }
+
+func (b *DatasourceAPIBuilder) ToLogBo() *bo.LogDatasource {
+	if types.IsNil(b) || types.IsNil(b.DatasourceItem) {
+		return nil
+	}
+	storageType := vobj.StorageType(b.GetStorageType())
+
+	datasource := &bo.LogDatasource{
+		TeamID: b.GetTeamId(),
+		ID:     b.GetId(),
+		Status: vobj.Status(b.GetStatus()),
+		Conf: &conf.LogQuery{
+			Type: storageType.String(),
+		},
+	}
+
+	switch storageType {
+	case vobj.StorageTypeElasticsearch:
+		elasticsearch := conf.Elasticsearch{Endpoint: b.GetEndpoint()}
+		_ = types.Unmarshal([]byte(b.GetConfig()), &elasticsearch)
+		datasource.Conf.Es = &elasticsearch
+	case vobj.StorageTypeLoki:
+		loki := conf.Loki{Endpoint: b.GetEndpoint()}
+		_ = types.Unmarshal([]byte(b.GetConfig()), &loki)
+		datasource.Conf.Loki = &loki
+	case vobj.StorageAliYunSLS:
+		aliYunLogConfig := conf.AliYunLogConfig{Endpoint: b.GetEndpoint()}
+		_ = types.Unmarshal([]byte(b.GetConfig()), &aliYunLogConfig)
+		datasource.Conf.AliYun = &aliYunLogConfig
+	default:
+		return nil
+	}
+	return datasource
+}
