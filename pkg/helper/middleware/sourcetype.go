@@ -9,14 +9,14 @@ import (
 	"github.com/go-kratos/kratos/v2/transport"
 )
 
-const SourceTypeHeader = "X-Source-Type"
+const XSourceTypeHeader = "X-Source-Type"
 
 // SourceType 获取请求头中的Source-Type  sourceType System Team
 func SourceType() middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {
 			if tr, ok := transport.FromServerContext(ctx); ok {
-				sourceCode := tr.RequestHeader().Get(SourceTypeHeader)
+				sourceCode := tr.RequestHeader().Get(XSourceTypeHeader)
 				ctx = context.WithValue(ctx, sourceTypeKey{}, vobj.GetSourceType(sourceCode))
 			}
 

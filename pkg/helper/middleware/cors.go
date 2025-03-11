@@ -28,7 +28,7 @@ func Cors() func(http.Handler) http.Handler {
 			"Accept-Encoding",
 			"Accept-Language",
 			"X-Requested-With",
-			SourceTypeHeader,
+			XSourceTypeHeader,
 			XTeamIDHeader,
 			XTeamMemberIDHeader,
 		}),
