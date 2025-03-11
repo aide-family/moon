@@ -136,6 +136,14 @@ service Team {
       get: "/v1/team/member/detail/{id}"
     };
   }
+
+  // 同步基础信息
+  rpc SyncTeamInfo (SyncTeamInfoRequest) returns (SyncTeamInfoReply) {
+    option (google.api.http) = {
+      put: "/v1/team/sync"
+      body: "*"
+    };
+  }
 }
 
 message CreateTeamRequest {
@@ -294,3 +302,8 @@ message GetTeamMemberDetailRequest {
 message GetTeamMemberDetailReply {
   TeamMemberItem detail = 1;
 }
+
+message SyncTeamInfoRequest {
+  repeated uint32 teamIds = 1;
+}
+message SyncTeamInfoReply {}

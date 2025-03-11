@@ -2,6 +2,7 @@ package repoimpl
 
 import (
 	"context"
+	"time"
 
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/server/palace/internal/biz/repository"
@@ -13,28 +14,33 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/palace/model/query"
+	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/random"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
+	"golang.org/x/sync/errgroup"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // NewTeamRepository 创建团队仓库
-func NewTeamRepository(data *data.Data, cacheRepo repository.Cache) repository.Team {
+func NewTeamRepository(data *data.Data, cacheRepo repository.Cache, lockRepo repository.Lock) repository.Team {
 	return &teamRepositoryImpl{
 		data:      data,
 		cacheRepo: cacheRepo,
+		lockRepo:  lockRepo,
 	}
 }
 
 type teamRepositoryImpl struct {
 	data      *data.Data
 	cacheRepo repository.Cache
+	lockRepo  repository.Lock
 }
 
 func (l *teamRepositoryImpl) MemberList(ctx context.Context, teamID uint32) ([]*bizmodel.SysTeamMember, error) {
@@ -567,4 +573,141 @@ func (l *teamRepositoryImpl) GetMemberDetail(ctx context.Context, id uint32) (*b
 	return bizQuery.WithContext(ctx).SysTeamMember.Where(
 		bizQuery.SysTeamMember.ID.Eq(id),
 	).First()
+}
+
+func (l *teamRepositoryImpl) SyncTeamInfo(ctx context.Context, teamIds ...uint32) error {
+	if len(teamIds) == 0 {
+		return nil
+	}
+
+	key := "palace:sync:team"
+	if err := l.lockRepo.Lock(ctx, key, time.Minute*10); !types.IsNil(err) {
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+	}
+
+	go func(ids []uint32) {
+		defer after.RecoverX()
+		l.syncTeamInfo(types.CopyValueCtx(ctx), key, ids)
+	}(teamIds)
+
+	return nil
+}
+
+func (l *teamRepositoryImpl) syncTeamInfo(ctx context.Context, key string, ids []uint32) {
+	defer func() {
+		if err := l.lockRepo.UnLock(types.CopyValueCtx(ctx), key); !types.IsNil(err) {
+			log.Error(err)
+		}
+	}()
+	mainDB := l.data.GetMainDB(ctx)
+	teamQuery := query.Use(l.data.GetMainDB(ctx)).SysTeam
+	// 获取所有团队
+	teams, err := teamQuery.Where(query.SysTeam.ID.In(ids...)).Find()
+	if !types.IsNil(err) {
+		return
+	}
+	mainQuery := query.Use(mainDB)
+	sysApis, err := mainQuery.SysAPI.Find()
+	if !types.IsNil(err) {
+		return
+	}
+
+	sysDict, err := mainQuery.SysDict.Find()
+	if !types.IsNil(err) {
+		return
+	}
+
+	sendTemplates, err := mainQuery.SysSendTemplate.Find()
+	if !types.IsNil(err) {
+		return
+	}
+
+	teamApis := types.SliceToWithFilter(sysApis, func(apiItem *model.SysAPI) (*bizmodel.SysTeamAPI, bool) {
+		return &bizmodel.SysTeamAPI{
+			Name:   apiItem.Name,
+			Path:   apiItem.Path,
+			Status: apiItem.Status,
+			Remark: apiItem.Remark,
+			Module: apiItem.Module,
+			Domain: apiItem.Domain,
+		}, true
+	})
+
+	dictList := types.SliceToWithFilter(sysDict, func(dictItem *model.SysDict) (*bizmodel.SysDict, bool) {
+		return &bizmodel.SysDict{
+			Name:         dictItem.Name,
+			Value:        dictItem.Value,
+			DictType:     dictItem.DictType,
+			ColorType:    dictItem.ColorType,
+			CSSClass:     dictItem.CSSClass,
+			Icon:         dictItem.Icon,
+			ImageURL:     dictItem.ImageURL,
+			Status:       dictItem.Status,
+			LanguageCode: dictItem.LanguageCode,
+			Remark:       dictItem.Remark,
+		}, true
+	})
+
+	sendTemplatesList := types.SliceToWithFilter(sendTemplates, func(item *model.SysSendTemplate) (*bizmodel.SysSendTemplate, bool) {
+		return &bizmodel.SysSendTemplate{
+			Name:     item.Name,
+			Content:  item.Content,
+			Status:   item.Status,
+			Remark:   item.Remark,
+			SendType: item.SendType,
+		}, true
+	})
+
+	eg := new(errgroup.Group)
+	eg.SetLimit(30)
+	for _, teamItem := range teams {
+		team := teamItem
+		eg.Go(func() error {
+			// 获取团队业务库连接
+			db, err := l.data.GetBizGormDB(team.ID)
+			if err != nil {
+				return err
+			}
+
+			if err = db.AutoMigrate(bizmodel.Models()...); err != nil {
+				return err
+			}
+			// 同步实时告警数据库
+			alarmDB, err := l.data.GetAlarmGormDB(team.ID)
+			if err != nil {
+				return err
+			}
+
+			if err = alarmDB.AutoMigrate(alarmmodel.Models()...); err != nil {
+				return err
+			}
+			if len(dictList) > 0 {
+				if err = bizquery.Use(db).SysDict.Clauses(clause.OnConflict{DoNothing: true}).Create(dictList...); !types.IsNil(err) {
+					return err
+				}
+			}
+			if err := bizquery.Use(db).SysTeamAPI.Clauses(clause.OnConflict{DoNothing: true}).Create(teamApis...); !types.IsNil(err) {
+				return err
+			}
+			teamMember := &bizmodel.SysTeamMember{
+				UserID: team.GetCreatorID(),
+				Status: vobj.StatusEnable,
+				Role:   vobj.RoleSuperAdmin,
+			}
+			// 把创建人同步到团队成员表
+			if err := bizquery.Use(db).SysTeamMember.Clauses(clause.OnConflict{DoNothing: true}).Create(teamMember); !types.IsNil(err) {
+				return err
+			}
+
+			if len(sendTemplatesList) > 0 {
+				if err := bizquery.Use(db).SysSendTemplate.Clauses(clause.OnConflict{DoNothing: true}).Create(sendTemplatesList...); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		log.Errorw("syncTeamInfo", err)
+	}
 }
