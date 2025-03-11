@@ -47,6 +47,7 @@ func syncBizDatabase(d *Data) error {
 	if env.Env() != "dev" {
 		return nil
 	}
+	return nil
 	// 获取所有团队
 	teams, err := query.Use(d.mainDB).SysTeam.Find()
 	if !types.IsNil(err) {
