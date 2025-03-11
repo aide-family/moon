@@ -3,6 +3,7 @@ package bo
 import (
 	"github.com/aide-family/moon/pkg/helper/middleware"
 	"github.com/aide-family/moon/pkg/palace/model"
+	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 )
 
 // CheckPermissionParams 鉴权请求参数
@@ -44,5 +45,5 @@ type RefreshTokenParams struct {
 type RefreshTokenReply struct {
 	JwtClaims *middleware.JwtClaims
 	User      *model.SysUser
-	TeamID    uint32 `json:"teamID"`
+	Member    *bizmodel.SysTeamMember
 }

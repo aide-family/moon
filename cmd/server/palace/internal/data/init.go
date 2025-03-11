@@ -21,9 +21,9 @@ func initMainDatabase(d *Data) error {
 	if env.Env() != "dev" {
 		return nil
 	}
-	if err := d.mainDB.AutoMigrate(model.Models()...); err != nil {
-		return err
-	}
+	//if err := d.mainDB.AutoMigrate(model.Models()...); err != nil {
+	//	return err
+	//}
 
 	if err := query.Use(d.mainDB).SysDict.Clauses(clause.OnConflict{DoNothing: true}).Create(defaultDictList...); err != nil {
 		return err
@@ -47,6 +47,7 @@ func syncBizDatabase(d *Data) error {
 	if env.Env() != "dev" {
 		return nil
 	}
+	return nil
 	// 获取所有团队
 	teams, err := query.Use(d.mainDB).SysTeam.Find()
 	if !types.IsNil(err) {
