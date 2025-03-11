@@ -160,13 +160,6 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 			return nil, nil, err
 		}
 
-		// 同步业务模型到各个团队， 保证数据一致性
-		if err := d.syncBizDatabase(); err != nil {
-			log.Fatalf("Error init biz database: %v\n", err)
-			cleanup()
-			return nil, nil, err
-		}
-
 		closeFuncList = append(closeFuncList, func() {
 			mainDBClose, _ := d.mainDB.DB()
 			log.Debugw("close main db", mainDBClose.Close())
@@ -179,11 +172,6 @@ func NewData(c *palaceconf.Bootstrap) (*Data, func(), error) {
 // initMainDatabase 初始化数据库
 func (d *Data) initMainDatabase() error {
 	return initMainDatabase(d)
-}
-
-// syncBizDatabase 同步业务模型到各个团队， 保证数据一致性
-func (d *Data) syncBizDatabase() error {
-	return syncBizDatabase(d)
 }
 
 // GetMainDB 获取主库连接
