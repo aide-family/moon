@@ -187,3 +187,11 @@ func (s *Service) GetTeamMemberDetail(ctx context.Context, req *teamapi.GetTeamM
 		Detail: builder.NewParamsBuild(ctx).TeamMemberModuleBuilder().DoTeamMemberBuilder().ToAPI(member),
 	}, nil
 }
+
+// SyncTeamInfo 同步团队信息
+func (s *Service) SyncTeamInfo(ctx context.Context, req *teamapi.SyncTeamInfoRequest) (*teamapi.SyncTeamInfoReply, error) {
+	if err := s.teamBiz.SyncTeamInfo(ctx, req.GetTeamIds()); !types.IsNil(err) {
+		return nil, err
+	}
+	return &teamapi.SyncTeamInfoReply{}, nil
+}

@@ -19,15 +19,15 @@ type lockRepositoryImpl struct {
 }
 
 func (l *lockRepositoryImpl) Lock(ctx context.Context, key string, expire time.Duration) error {
-	exist, err := l.data.GetCacher().Client().Exists(ctx, key).Result()
+	locked, err := l.data.GetCacher().Client().SetNX(ctx, key, key, expire).Result()
 	if err != nil {
 		return err
 	}
 	// 判断是否存在
-	if exist == 1 {
+	if !locked {
 		return merr.ErrorI18nToastDatasourceSyncing(ctx)
 	}
-	return l.data.GetCacher().Client().Set(ctx, key, key, expire).Err()
+	return nil
 }
 
 func (l *lockRepositoryImpl) UnLock(ctx context.Context, key string) error {

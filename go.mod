@@ -14,6 +14,7 @@ require (
 	github.com/casbin/casbin/v2 v2.101.0
 	github.com/casbin/gorm-adapter/v3 v3.32.0
 	github.com/duke-git/lancet/v2 v2.3.3
+	github.com/elastic/go-elasticsearch/v8 v8.17.1
 	github.com/go-kratos/kratos/contrib/registry/etcd/v2 v2.0.0-20241105072421-f8b97f675b32
 	github.com/go-kratos/kratos/v2 v2.8.2
 	github.com/go-ping/ping v1.1.0
@@ -64,7 +65,6 @@ require (
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.6.1 // indirect
-	github.com/elastic/go-elasticsearch/v8 v8.17.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect

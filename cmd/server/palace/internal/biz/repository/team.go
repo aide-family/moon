@@ -70,4 +70,7 @@ type Team interface {
 
 	// GetMemberDetail 获取团队成员详情
 	GetMemberDetail(context.Context, uint32) (*bizmodel.SysTeamMember, error)
+
+	// SyncTeamInfo 同步团队信息
+	SyncTeamInfo(context.Context, ...uint32) error
 }

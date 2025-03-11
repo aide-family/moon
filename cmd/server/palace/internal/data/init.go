@@ -6,14 +6,8 @@ import (
 
 	"github.com/aide-family/moon/pkg/env"
 	"github.com/aide-family/moon/pkg/palace/model"
-	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
-	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/palace/model/query"
-	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
-	"golang.org/x/sync/errgroup"
-
 	"gorm.io/gorm/clause"
 )
 
@@ -21,9 +15,10 @@ func initMainDatabase(d *Data) error {
 	if env.Env() != "dev" {
 		return nil
 	}
-	//if err := d.mainDB.AutoMigrate(model.Models()...); err != nil {
-	//	return err
-	//}
+
+	if err := d.mainDB.AutoMigrate(model.Models()...); err != nil {
+		return err
+	}
 
 	if err := query.Use(d.mainDB).SysDict.Clauses(clause.OnConflict{DoNothing: true}).Create(defaultDictList...); err != nil {
 		return err
@@ -40,121 +35,6 @@ func initMainDatabase(d *Data) error {
 	}
 
 	return nil
-}
-
-// syncBizDatabase 同步业务模型到各个团队， 保证数据一致性
-func syncBizDatabase(d *Data) error {
-	if env.Env() != "dev" {
-		return nil
-	}
-	return nil
-	// 获取所有团队
-	teams, err := query.Use(d.mainDB).SysTeam.Find()
-	if !types.IsNil(err) {
-		return err
-	}
-	mainQuery := query.Use(d.mainDB)
-	sysApis, err := mainQuery.SysAPI.Find()
-	if !types.IsNil(err) {
-		return err
-	}
-
-	sysDict, err := mainQuery.SysDict.Find()
-	if !types.IsNil(err) {
-		return err
-	}
-
-	sendTemplates, err := mainQuery.SysSendTemplate.Find()
-	if !types.IsNil(err) {
-		return err
-	}
-
-	teamApis := types.SliceToWithFilter(sysApis, func(apiItem *model.SysAPI) (*bizmodel.SysTeamAPI, bool) {
-		return &bizmodel.SysTeamAPI{
-			Name:   apiItem.Name,
-			Path:   apiItem.Path,
-			Status: apiItem.Status,
-			Remark: apiItem.Remark,
-			Module: apiItem.Module,
-			Domain: apiItem.Domain,
-		}, true
-	})
-
-	dictList := types.SliceToWithFilter(sysDict, func(dictItem *model.SysDict) (*bizmodel.SysDict, bool) {
-		return &bizmodel.SysDict{
-			Name:         dictItem.Name,
-			Value:        dictItem.Value,
-			DictType:     dictItem.DictType,
-			ColorType:    dictItem.ColorType,
-			CSSClass:     dictItem.CSSClass,
-			Icon:         dictItem.Icon,
-			ImageURL:     dictItem.ImageURL,
-			Status:       dictItem.Status,
-			LanguageCode: dictItem.LanguageCode,
-			Remark:       dictItem.Remark,
-		}, true
-	})
-
-	sendTemplatesList := types.SliceToWithFilter(sendTemplates, func(item *model.SysSendTemplate) (*bizmodel.SysSendTemplate, bool) {
-		return &bizmodel.SysSendTemplate{
-			Name:     item.Name,
-			Content:  item.Content,
-			Status:   item.Status,
-			Remark:   item.Remark,
-			SendType: item.SendType,
-		}, true
-	})
-
-	eg := new(errgroup.Group)
-	eg.SetLimit(30)
-	for _, teamItem := range teams {
-		team := teamItem
-		eg.Go(func() error {
-			// 获取团队业务库连接
-			db, err := d.GetBizGormDB(team.ID)
-			if err != nil {
-				return err
-			}
-
-			if err = db.AutoMigrate(bizmodel.Models()...); err != nil {
-				return err
-			}
-			// 同步实时告警数据库
-			alarmDB, err := d.GetAlarmGormDB(team.ID)
-			if err != nil {
-				return err
-			}
-
-			if err = alarmDB.AutoMigrate(alarmmodel.Models()...); err != nil {
-				return err
-			}
-			if len(dictList) > 0 {
-				if err = bizquery.Use(db).SysDict.Clauses(clause.OnConflict{DoNothing: true}).Create(dictList...); !types.IsNil(err) {
-					return err
-				}
-			}
-			if err := bizquery.Use(db).SysTeamAPI.Clauses(clause.OnConflict{DoNothing: true}).Create(teamApis...); !types.IsNil(err) {
-				return err
-			}
-			teamMember := &bizmodel.SysTeamMember{
-				UserID: team.GetCreatorID(),
-				Status: vobj.StatusEnable,
-				Role:   vobj.RoleSuperAdmin,
-			}
-			// 把创建人同步到团队成员表
-			if err := bizquery.Use(db).SysTeamMember.Clauses(clause.OnConflict{DoNothing: true}).Create(teamMember); !types.IsNil(err) {
-				return err
-			}
-
-			if len(sendTemplatesList) > 0 {
-				if err := bizquery.Use(db).SysSendTemplate.Clauses(clause.OnConflict{DoNothing: true}).Create(sendTemplatesList...); err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-	}
-	return eg.Wait()
 }
 
 // 创建默认字典
@@ -780,6 +660,78 @@ var resourceList = []*model.SysAPI{
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowRBAC,
 	},
+	// 添加图表
+	{
+		Name:   "添加图表",
+		Path:   "/api.admin.realtime.Dashboard/AddChart",
+		Remark: "添加图表， 用于添加图表",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	// 更新图表
+	{
+		Name:   "更新图表",
+		Path:   "/api.admin.realtime.Dashboard/UpdateChart",
+		Remark: "更新图表， 用于更新图表",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	// DeleteChart 删除图表
+	{
+		Name:   "删除图表",
+		Path:   "/api.admin.realtime.Dashboard/DeleteChart",
+		Remark: "删除图表， 用于删除图表",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	// GetChart 获取图表
+	{
+		Name:   "获取图表",
+		Path:   "/api.admin.realtime.Dashboard/GetChart",
+		Remark: "获取图表， 用于获取图表",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	// 获取图表列表
+	{
+		Name:   "获取图表列表",
+		Path:   "/api.admin.realtime.Dashboard/ListChart",
+		Remark: "获取图表列表， 用于获取图表列表",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	// 批量修改图表状态
+	{
+		Name:   "批量修改图表状态",
+		Path:   "/api.admin.realtime.Dashboard/BatchUpdateChartStatus",
+		Remark: "批量修改图表状态， 用于批量修改图表状态",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	// 批量更新图表排序
+	{
+		Name:   "批量更新图表排序",
+		Path:   "/api.admin.realtime.Dashboard/BatchUpdateChartSort",
+		Remark: "批量更新图表排序， 用于批量更新图表排序",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	// 获取个人仪表板列表
+	{
+		Name:   "获取个人仪表板列表",
+		Path:   "/api.admin.realtime.Dashboard/ListDashboardSelf",
+		Remark: "获取个人仪表板列表， 用于获取个人仪表板列表",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
+	// UpdateSelfDashboard
+	{
+		Name:   "更新个人仪表板",
+		Path:   "/api.admin.realtime.Dashboard/UpdateSelfDashboard",
+		Remark: "更新个人仪表板， 用于更新个人仪表板",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowRBAC,
+	},
 	// 系统公共API资源管理模块
 	// 获取资源详情
 	{
@@ -1195,6 +1147,14 @@ var resourceList = []*model.SysAPI{
 		Remark: "团队成员详情， 用于获取团队成员详情",
 		Status: vobj.StatusEnable,
 		Allow:  vobj.AllowTeam,
+	},
+	// 同步基础信息
+	{
+		Name:   "同步团队基础信息",
+		Path:   "/api.admin.team.Team/SyncTeamInfo",
+		Remark: "同步团队基础信息， 用于同步团队基础信息",
+		Status: vobj.StatusEnable,
+		Allow:  vobj.AllowSystem,
 	},
 	// 用户个人消息模块
 	// 删除消息， 用于清除所有通知

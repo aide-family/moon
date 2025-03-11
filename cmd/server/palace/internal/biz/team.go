@@ -247,3 +247,11 @@ func (t *TeamBiz) GetTeamMemberDetail(ctx context.Context, memberID uint32) (*bi
 	}
 	return member, nil
 }
+
+// SyncTeamInfo 同步团队信息
+func (t *TeamBiz) SyncTeamInfo(ctx context.Context, teamIds []uint32) error {
+	if err := t.teamRepo.SyncTeamInfo(ctx, teamIds...); !types.IsNil(err) {
+		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
+	}
+	return nil
+}
