@@ -127,6 +127,8 @@ message RefreshTokenReply {
   UserItem user = 2;
   // 团队ID
   uint32 teamID = 5;
+  // 团队成员ID
+  uint32 teamMemberID = 6;
 }
 
 // 登录验证码

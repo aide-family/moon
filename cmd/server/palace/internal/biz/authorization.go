@@ -266,6 +266,25 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 		return nil, merr.ErrorI18nNotificationSystemError(ctx)
 	}
 
+	var memberItem bizmodel.SysTeamMember
+	// 检查用户是否在团队里面
+	if req.Team > 0 {
+		memberDo, err := b.teamRepo.GetUserTeamByID(ctx, userDo.ID, req.Team)
+		if !types.IsNil(err) {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, merr.ErrorI18nForbiddenUserNotInTeam(ctx)
+			}
+			return nil, err
+		}
+		if memberDo == nil {
+			return nil, merr.ErrorI18nForbiddenUserNotInTeam(ctx)
+		}
+		if !memberDo.Status.IsEnable() {
+			return nil, merr.ErrorI18nForbiddenMemberDisabled(ctx)
+		}
+		memberItem = *memberDo
+	}
+
 	// 生成token
 	base, err := b.getJwtBaseInfo(ctx, userDo, req.Team)
 	if !types.IsNil(err) {
@@ -274,8 +293,9 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 
 	jwtClaims := middleware.NewJwtClaims(base)
 	return &bo.RefreshTokenReply{
-		User:      userDo,
 		JwtClaims: jwtClaims,
+		User:      userDo,
+		Member:    &memberItem,
 	}, nil
 }
 
