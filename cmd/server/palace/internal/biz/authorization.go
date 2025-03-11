@@ -119,8 +119,9 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 		return merr.ErrorI18nForbidden(ctx)
 	}
 
+	teamID := middleware.GetTeamID(ctx)
 	// 检查用户是否被团队禁用
-	teamMemberDo, err := b.teamRepo.GetUserTeamByID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
+	teamMemberDo, err := b.teamRepo.GetUserTeamByID(ctx, req.JwtClaims.GetUser(), teamID)
 	if !types.IsNil(err) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return merr.ErrorI18nForbiddenUserNotInTeam(ctx)
@@ -142,7 +143,7 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 	}
 
 	// 查询用户角色
-	memberRoles, err := b.teamRoleRepo.GetTeamRoleByUserID(ctx, req.JwtClaims.GetUser(), req.JwtClaims.GetTeam())
+	memberRoles, err := b.teamRoleRepo.GetTeamRoleByUserID(ctx, req.JwtClaims.GetUser(), teamID)
 	if !types.IsNil(err) {
 		return merr.ErrorI18nNotificationSystemError(ctx).WithCause(err)
 	}
@@ -152,7 +153,7 @@ func (b *AuthorizationBiz) CheckPermission(ctx context.Context, req *bo.CheckPer
 	memberRoleIds := types.SliceToWithFilter(memberRoles, func(role *bizmodel.SysTeamRole) (uint32, bool) {
 		return role.ID, role.Status.IsEnable()
 	})
-	rbac, err := b.teamRoleRepo.CheckRbac(ctx, req.JwtClaims.GetTeam(), memberRoleIds, req.Operation)
+	rbac, err := b.teamRoleRepo.CheckRbac(ctx, teamID, memberRoleIds, req.Operation)
 	if !types.IsNil(err) {
 		return err
 	}
@@ -216,8 +217,6 @@ func (b *AuthorizationBiz) getJwtBaseInfo(ctx context.Context, userDo *model.Sys
 		if !memberItem.Status.IsEnable() {
 			return nil, merr.ErrorI18nForbiddenMemberDisabled(ctx)
 		}
-		base.SetTeamInfo(teamID)
-		base.SetMember(memberItem.ID)
 	}
 
 	return base, nil
@@ -277,7 +276,6 @@ func (b *AuthorizationBiz) RefreshToken(ctx context.Context, req *bo.RefreshToke
 	return &bo.RefreshTokenReply{
 		User:      userDo,
 		JwtClaims: jwtClaims,
-		TeamID:    jwtClaims.TeamID,
 	}, nil
 }
 

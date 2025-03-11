@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"strconv"
 	"sync"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/transport"
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/go-kratos/kratos/v2/middleware"
@@ -75,17 +77,7 @@ type JwtClaims struct {
 
 // JwtBaseInfo jwt base info
 type JwtBaseInfo struct {
-	UserID   uint32 `json:"user"`
-	TeamID   uint32 `json:"team"`
-	MemberID uint32 `json:"member"`
-}
-
-// GetMember 获取成员id
-func (l *JwtBaseInfo) GetMember() uint32 {
-	if types.IsNil(l) {
-		return 0
-	}
-	return l.MemberID
+	UserID uint32 `json:"user"`
 }
 
 // GetUser 获取用户id
@@ -96,29 +88,9 @@ func (l *JwtBaseInfo) GetUser() uint32 {
 	return l.UserID
 }
 
-// GetTeam 获取团队id
-func (l *JwtBaseInfo) GetTeam() uint32 {
-	if types.IsNil(l) {
-		return 0
-	}
-	return l.TeamID
-}
-
 // SetUserInfo 设置用户信息
 func (l *JwtBaseInfo) SetUserInfo(userID uint32) *JwtBaseInfo {
 	l.UserID = userID
-	return l
-}
-
-// SetTeamInfo 设置团队信息
-func (l *JwtBaseInfo) SetTeamInfo(teamID uint32) *JwtBaseInfo {
-	l.TeamID = teamID
-	return l
-}
-
-// SetMember 设置成员信息
-func (l *JwtBaseInfo) SetMember(memberID uint32) *JwtBaseInfo {
-	l.MemberID = memberID
 	return l
 }
 
@@ -257,6 +229,11 @@ func GetUserRole(ctx context.Context) vobj.Role {
 // CheckTokenFun check token fun
 type CheckTokenFun func(ctx context.Context) (*authorization.CheckTokenReply, error)
 
+const (
+	XTeamID       = "X-Team-ID"
+	XTeamMemberID = "X-Team-Member-ID"
+)
+
 // JwtLoginMiddleware jwt login middleware
 func JwtLoginMiddleware(check CheckTokenFun) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
@@ -268,14 +245,28 @@ func JwtLoginMiddleware(check CheckTokenFun) middleware.Middleware {
 			if !checked.GetIsLogin() {
 				return nil, merr.ErrorI18nUnauthorized(ctx)
 			}
+			if tr, ok := transport.FromServerContext(ctx); ok {
+				if teamIDStr := tr.RequestHeader().Get(XTeamID); teamIDStr != "" {
+					teamID, err := strconv.ParseUint(teamIDStr, 10, 32)
+					if err != nil {
+						return nil, merr.ErrorI18nUnauthorized(ctx)
+					}
+					ctx = WithTeamIDContextKey(ctx, uint32(teamID))
+				}
+				if teamMemberIDStr := tr.RequestHeader().Get(XTeamMemberID); teamMemberIDStr != "" {
+					teamMemberID, err := strconv.ParseUint(teamMemberIDStr, 10, 32)
+					if err != nil {
+						return nil, merr.ErrorI18nUnauthorized(ctx)
+					}
+					ctx = WithTeamMemberIDContextKey(ctx, uint32(teamMemberID))
+				}
+			}
+			ctx = WithUserRoleContextKey(ctx, vobj.Role(checked.GetUser().GetRole()))
 			claims, ok := ParseJwtClaims(ctx)
 			if !ok {
 				return nil, merr.ErrorI18nUnauthorized(ctx)
 			}
-			ctx = WithUserRoleContextKey(ctx, vobj.Role(checked.GetUser().GetRole()))
-			ctx = WithUserIDContextKey(ctx, checked.GetUser().GetId())
-			ctx = WithTeamIDContextKey(ctx, claims.GetTeam())
-			ctx = WithTeamMemberIDContextKey(ctx, claims.GetMember())
+			ctx = WithUserIDContextKey(ctx, claims.GetUser())
 			return handler(ctx, req)
 		}
 	}
