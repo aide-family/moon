@@ -230,8 +230,8 @@ func GetUserRole(ctx context.Context) vobj.Role {
 type CheckTokenFun func(ctx context.Context) (*authorization.CheckTokenReply, error)
 
 const (
-	XTeamID       = "X-Team-ID"
-	XTeamMemberID = "X-Team-Member-ID"
+	XTeamIDHeader       = "X-Team-ID"
+	XTeamMemberIDHeader = "X-Team-Member-ID"
 )
 
 // JwtLoginMiddleware jwt login middleware
@@ -246,14 +246,14 @@ func JwtLoginMiddleware(check CheckTokenFun) middleware.Middleware {
 				return nil, merr.ErrorI18nUnauthorized(ctx)
 			}
 			if tr, ok := transport.FromServerContext(ctx); ok {
-				if teamIDStr := tr.RequestHeader().Get(XTeamID); teamIDStr != "" {
+				if teamIDStr := tr.RequestHeader().Get(XTeamIDHeader); teamIDStr != "" {
 					teamID, err := strconv.ParseUint(teamIDStr, 10, 32)
 					if err != nil {
 						return nil, merr.ErrorI18nUnauthorized(ctx)
 					}
 					ctx = WithTeamIDContextKey(ctx, uint32(teamID))
 				}
-				if teamMemberIDStr := tr.RequestHeader().Get(XTeamMemberID); teamMemberIDStr != "" {
+				if teamMemberIDStr := tr.RequestHeader().Get(XTeamMemberIDHeader); teamMemberIDStr != "" {
 					teamMemberID, err := strconv.ParseUint(teamMemberIDStr, 10, 32)
 					if err != nil {
 						return nil, merr.ErrorI18nUnauthorized(ctx)
