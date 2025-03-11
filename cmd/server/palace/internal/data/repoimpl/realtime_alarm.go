@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel"
 	"github.com/aide-family/moon/pkg/palace/model/alarmmodel/alarmquery"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
+	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 
@@ -145,16 +146,19 @@ func (r *realtimeAlarmRepositoryImpl) GetRealTimeAlarms(ctx context.Context, par
 		return nil, err
 	}
 
-	// 删除已经恢复的告警及关联数据
-	var resolvedIds []uint32
-	_ = alarmQuery.WithContext(ctx).RealtimeAlarm.Where(alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusResolved.GetValue())).
-		Select(alarmQuery.RealtimeAlarm.ID).Scan(&resolvedIds)
-	if len(resolvedIds) > 0 {
-		_, _ = alarmQuery.RealtimeAlarm.Where(alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusResolved.GetValue())).Delete()
-		_, _ = alarmQuery.RealtimeDetails.Where(alarmQuery.RealtimeDetails.RealtimeAlarmID.In(resolvedIds...)).Delete()
-		_, _ = alarmQuery.RealtimeAlarmPage.Where(alarmQuery.RealtimeAlarmPage.RealtimeAlarmID.In(resolvedIds...)).Delete()
-		_, _ = alarmQuery.RealtimeAlarmReceiver.Where(alarmQuery.RealtimeAlarmReceiver.RealtimeAlarmID.In(resolvedIds...)).Delete()
-	}
+	go func() {
+		defer after.RecoverX()
+		// 删除已经恢复的告警及关联数据
+		var resolvedIds []uint32
+		_ = alarmQuery.WithContext(types.CopyValueCtx(ctx)).RealtimeAlarm.Where(alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusResolved.GetValue())).
+			Select(alarmQuery.RealtimeAlarm.ID).Scan(&resolvedIds)
+		if len(resolvedIds) > 0 {
+			_, _ = alarmQuery.RealtimeAlarm.Where(alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusResolved.GetValue())).Delete()
+			_, _ = alarmQuery.RealtimeDetails.Where(alarmQuery.RealtimeDetails.RealtimeAlarmID.In(resolvedIds...)).Delete()
+			_, _ = alarmQuery.RealtimeAlarmPage.Where(alarmQuery.RealtimeAlarmPage.RealtimeAlarmID.In(resolvedIds...)).Delete()
+			_, _ = alarmQuery.RealtimeAlarmReceiver.Where(alarmQuery.RealtimeAlarmReceiver.RealtimeAlarmID.In(resolvedIds...)).Delete()
+		}
+	}()
 
 	wheres := []gen.Condition{
 		alarmQuery.RealtimeAlarm.Status.Eq(vobj.AlertStatusFiring.GetValue()),
