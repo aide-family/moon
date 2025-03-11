@@ -186,8 +186,12 @@ func (l *RabbitConn) SyncTeam(ctx context.Context, teamID uint32, srvs ...*Srv) 
 	newSrvs := make([]*Srv, 0, len(srvs))
 	// 根据teamID 过滤srvs
 	for _, srv := range srvs {
-		if types.ContainsOf(srv.teamIds, func(teamId uint32) bool { return teamId == teamID }) {
+		if len(srv.teamIds) == 0 {
 			newSrvs = append(newSrvs, srv)
+		} else {
+			if types.ContainsOf(srv.teamIds, func(teamId uint32) bool { return teamId == teamID }) {
+				newSrvs = append(newSrvs, srv)
+			}
 		}
 	}
 	if len(newSrvs) == 0 {
