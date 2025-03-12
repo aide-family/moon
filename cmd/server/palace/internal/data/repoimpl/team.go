@@ -14,7 +14,6 @@ import (
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel"
 	"github.com/aide-family/moon/pkg/palace/model/bizmodel/bizquery"
 	"github.com/aide-family/moon/pkg/palace/model/query"
-	"github.com/aide-family/moon/pkg/util/after"
 	"github.com/aide-family/moon/pkg/util/random"
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
@@ -586,7 +585,7 @@ func (l *teamRepositoryImpl) SyncTeamInfo(ctx context.Context, teamIds ...uint32
 	}
 
 	go func(ids []uint32) {
-		defer after.RecoverX()
+		//defer after.RecoverX()
 		l.syncTeamInfo(types.CopyValueCtx(ctx), key, ids)
 	}(teamIds)
 
@@ -602,7 +601,7 @@ func (l *teamRepositoryImpl) syncTeamInfo(ctx context.Context, key string, ids [
 	mainDB := l.data.GetMainDB(ctx)
 	teamQuery := query.Use(l.data.GetMainDB(ctx)).SysTeam
 	// 获取所有团队
-	teams, err := teamQuery.Where(query.SysTeam.ID.In(ids...)).Find()
+	teams, err := teamQuery.Where(teamQuery.ID.In(ids...)).Find()
 	if !types.IsNil(err) {
 		return
 	}

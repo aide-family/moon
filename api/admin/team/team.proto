@@ -140,7 +140,7 @@ service Team {
   // 同步基础信息
   rpc SyncTeamInfo (SyncTeamInfoRequest) returns (SyncTeamInfoReply) {
     option (google.api.http) = {
-      put: "/v1/team/sync"
+      put: "/v1/team/sync/basic"
       body: "*"
     };
   }
