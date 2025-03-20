@@ -9,6 +9,8 @@ import (
 	"github.com/aide-family/moon/pkg/util/types"
 
 	"github.com/go-kratos/kratos/v2/errors"
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/tidwall/gjson"
 )
 
 // ReplaceString 替换字符串中的$为.
@@ -53,6 +55,7 @@ func Formatter(format string, data any) (s string) {
 	resultIoWriter := new(strings.Builder)
 
 	if err = tmpl.Execute(resultIoWriter, data); err != nil {
+		log.Error("template execute error: %v", err)
 		return format
 	}
 	return resultIoWriter.String()
@@ -88,16 +91,25 @@ func FormatterWithErr(format string, data any) (s string, err error) {
 
 func templateFuncMap() template.FuncMap {
 	return template.FuncMap{
-		"now":        time.Now,
-		"hasPrefix":  strings.HasPrefix,
-		"hasSuffix":  strings.HasSuffix,
-		"contains":   strings.Contains,
-		"trimSpace":  strings.TrimSpace,
-		"trimPrefix": strings.TrimPrefix,
-		"trimSuffix": strings.TrimSuffix,
-		"toUpper":    strings.ToUpper,
-		"toLower":    strings.ToLower,
-		"replace":    strings.Replace,
-		"split":      strings.Split,
+		"now":            time.Now,
+		"hasPrefix":      strings.HasPrefix,
+		"hasSuffix":      strings.HasSuffix,
+		"contains":       strings.Contains,
+		"trimSpace":      strings.TrimSpace,
+		"trimPrefix":     strings.TrimPrefix,
+		"trimSuffix":     strings.TrimSuffix,
+		"toUpper":        strings.ToUpper,
+		"toLower":        strings.ToLower,
+		"replace":        strings.Replace,
+		"split":          strings.Split,
+		"getObjectByKey": GetObjectByKey,
 	}
+}
+
+// GetObjectByKey 从json字符串中获取指定key的值
+func GetObjectByKey(key string, value string) any {
+	if types.TextIsNull(value) {
+		return nil
+	}
+	return gjson.Get(value, key).Value()
 }

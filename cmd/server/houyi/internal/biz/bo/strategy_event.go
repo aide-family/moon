@@ -190,6 +190,9 @@ func (s *StrategyEvent) Eval(_ context.Context) (map[watch.Indexer]*datasource.P
 				{
 					Value:     s.isCompletelyMeet(),
 					Timestamp: s.getEventTime().Unix(),
+					Ext: map[string]any{
+						label.StrategyEventInfo: string(s.msg.Data),
+					},
 				},
 			},
 		},
@@ -224,5 +227,5 @@ func (s *StrategyEvent) IsCompletelyMeet(values []*datasource.Value) (map[string
 		return nil, false
 	}
 	value := values[0]
-	return nil, value.Value == 1
+	return values[0].Ext, value.Value == 1
 }
