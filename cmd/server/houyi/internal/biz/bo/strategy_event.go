@@ -227,5 +227,6 @@ func (s *StrategyEvent) IsCompletelyMeet(values []*datasource.Value) (map[string
 		return nil, false
 	}
 	value := values[0]
-	return values[0].Ext, value.Value == 1
+	ext := value.Ext
+	return ext, value.Value == 1
 }
