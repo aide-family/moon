@@ -55,7 +55,7 @@ func Formatter(format string, data any) (s string) {
 	resultIoWriter := new(strings.Builder)
 
 	if err = tmpl.Execute(resultIoWriter, data); err != nil {
-		log.Error("template execute error: %v", err)
+		log.Error("template execute error:", err)
 		return format
 	}
 	return resultIoWriter.String()
