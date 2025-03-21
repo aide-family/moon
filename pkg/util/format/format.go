@@ -91,25 +91,34 @@ func FormatterWithErr(format string, data any) (s string, err error) {
 
 func templateFuncMap() template.FuncMap {
 	return template.FuncMap{
-		"now":            time.Now,
-		"hasPrefix":      strings.HasPrefix,
-		"hasSuffix":      strings.HasSuffix,
-		"contains":       strings.Contains,
-		"trimSpace":      strings.TrimSpace,
-		"trimPrefix":     strings.TrimPrefix,
-		"trimSuffix":     strings.TrimSuffix,
-		"toUpper":        strings.ToUpper,
-		"toLower":        strings.ToLower,
-		"replace":        strings.Replace,
-		"split":          strings.Split,
-		"getObjectByKey": GetObjectByKey,
+		"now":             time.Now,
+		"hasPrefix":       strings.HasPrefix,
+		"hasSuffix":       strings.HasSuffix,
+		"contains":        strings.Contains,
+		"trimSpace":       strings.TrimSpace,
+		"trimPrefix":      strings.TrimPrefix,
+		"trimSuffix":      strings.TrimSuffix,
+		"toUpper":         strings.ToUpper,
+		"toLower":         strings.ToLower,
+		"replace":         strings.Replace,
+		"split":           strings.Split,
+		"getObjectByPath": GetObjectByPath,
+		"getObjectByKey":  GetObjectByKey,
 	}
 }
 
-// GetObjectByKey 从json字符串中获取指定key的值
-func GetObjectByKey(key string, value string) any {
+// GetObjectByPath 从json字符串中获取指定key的值
+func GetObjectByPath(key string, value string) any {
 	if types.TextIsNull(value) {
 		return nil
 	}
 	return gjson.Get(value, key).Value()
+}
+
+// GetObjectByKey 从map中获取指定key的值
+func GetObjectByKey(key string, value map[string]any) any {
+	if types.IsNil(value) {
+		return nil
+	}
+	return value[key]
 }
