@@ -120,12 +120,21 @@ wire:
 
 .PHONY: model
 model:
+ifeq ($(GOHOSTOS), windows)
+	@if exist "pkg\palace\model\query" rd /s /q "pkg\palace\model\query"
+	@if exist "pkg\palace\model\bizmodel\bizquery" rd /s /q "pkg\palace\model\bizmodel\bizquery"
+	@if exist "pkg\palace\model\alarmmodel\alarmquery" rd /s /q "pkg\palace\model\alarmmodel\alarmquery"
+	go run cmd/server/gen/gen/cmd.go -m main
+	go run cmd/server/gen/gen/cmd.go -m biz
+	go run cmd/server/gen/gen/cmd.go -m alarm
+else
 	rm -rf pkg/palace/model/query
 	rm -rf pkg/palace/model/bizmodel/bizquery
 	rm -rf pkg/palace/model/alarmmodel/alarmquery
 	go run cmd/server/gen/gen/cmd.go -m main
 	go run cmd/server/gen/gen/cmd.go -m biz
 	go run cmd/server/gen/gen/cmd.go -m alarm
+endif
 
 .PHONY: all
 # generate all
