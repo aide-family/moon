@@ -62,7 +62,7 @@ func genPassword() (string, types.Password) {
 }
 
 // GetSysUserByOAuthID 获取系统OAuth用户
-func (g *githubUserRepositoryImpl) GetSysUserByOAuthID(ctx context.Context, u uint32, app vobj.OAuthAPP) (*model.SysOAuthUser, error) {
+func (g *githubUserRepositoryImpl) GetSysUserByOAuthID(ctx context.Context, u string, app vobj.OAuthAPP) (*model.SysOAuthUser, error) {
 	userQuery := query.Use(g.data.GetMainDB(ctx))
 	oauthUser, err := userQuery.SysOAuthUser.WithContext(ctx).Where(
 		userQuery.SysOAuthUser.OAuthID.Eq(u),
@@ -75,16 +75,16 @@ func (g *githubUserRepositoryImpl) GetSysUserByOAuthID(ctx context.Context, u ui
 }
 
 // SetEmail 设置邮箱
-func (g *githubUserRepositoryImpl) SetEmail(ctx context.Context, u uint32, s string) (sysUser *model.SysUser, err error) {
+func (g *githubUserRepositoryImpl) SetEmail(ctx context.Context, u string, s string) (sysUser *model.SysUser, err error) {
 	userQuery := query.Use(g.data.GetMainDB(ctx))
-	oauthUser, err := userQuery.SysOAuthUser.WithContext(ctx).Where(userQuery.SysOAuthUser.ID.Eq(u)).First()
+	oauthUser, err := userQuery.SysOAuthUser.WithContext(ctx).Where(userQuery.SysOAuthUser.OAuthID.Eq(u)).First()
 	if !types.IsNil(err) {
 		return nil, merr.ErrorI18nToastUserNotFound(ctx)
 	}
 
 	// 查询此邮箱有没有被绑定， 如果被绑定， 则直接关联该平台
 	if sysUser, err = g.getSysUserByEmail(ctx, s); types.IsNil(err) {
-		if _, err = userQuery.SysOAuthUser.WithContext(ctx).Where(userQuery.SysOAuthUser.ID.Eq(u)).UpdateSimple(userQuery.SysOAuthUser.SysUserID.Value(sysUser.ID)); err != nil {
+		if _, err = userQuery.SysOAuthUser.WithContext(ctx).Where(userQuery.SysOAuthUser.OAuthID.Eq(u)).UpdateSimple(userQuery.SysOAuthUser.SysUserID.Value(sysUser.ID)); err != nil {
 			return nil, err
 		}
 		return sysUser, nil

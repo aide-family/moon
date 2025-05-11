@@ -77,4 +77,5 @@ message OAuth2 {
   string redirect_uri = 1;
   Config github = 2;
   Config gitee = 3;
+  Config feishu = 4;
 }

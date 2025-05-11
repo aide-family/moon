@@ -14,4 +14,6 @@ const (
 
 	// OAuthAPPGitee Gitee
 	OAuthAPPGitee // Gitee
+	// OAuthFeiShu FeiShu
+	OAuthFeiShu
 )

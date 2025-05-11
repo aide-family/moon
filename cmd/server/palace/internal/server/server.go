@@ -194,6 +194,8 @@ func RegisterService(
 	auth.GET("/github/callback", authorizationService.OAuthLoginCallback(vobj.OAuthAPPGithub))
 	auth.GET("/gitee", authorizationService.OAuthLogin(vobj.OAuthAPPGitee))
 	auth.GET("/gitee/callback", authorizationService.OAuthLoginCallback(vobj.OAuthAPPGitee))
+	auth.GET("/feishu", authorizationService.OAuthLogin(vobj.OAuthFeiShu))
+	auth.GET("/feishu/callback", authorizationService.OAuthLoginCallback(vobj.OAuthFeiShu))
 
 	// fileRoute
 	fileRoute := httpSrv.Route("/file")

@@ -186,7 +186,7 @@ message CheckTokenReply {
 }
 
 message SetEmailWithLoginRequest {
-  uint32 oauthID = 1 [(buf.validate.field).cel = {
+  string oauthID = 1 [(buf.validate.field).cel = {
     message: "必须选择第三方登录",
     expression: "this > 0"
   }];

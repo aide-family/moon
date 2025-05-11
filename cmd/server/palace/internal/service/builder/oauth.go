@@ -40,5 +40,13 @@ func (b *oauthModuleBuilder) ToAPI(config *palaceconf.OAuth2) []*authorizationap
 			Redirect: config.GetGitee().GetAuthorizeUri(),
 		})
 	}
+
+	if config.Feishu != nil {
+		list = append(list, &authorizationapi.OauthItem{
+			Icon:     "feishu",
+			Label:    "飞书登录",
+			Redirect: config.GetFeishu().GetAuthorizeUri(),
+		})
+	}
 	return list
 }

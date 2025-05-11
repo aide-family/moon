@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"strconv"
+
 	"github.com/aide-family/moon/pkg/util/types"
 	"github.com/aide-family/moon/pkg/vobj"
 )
@@ -50,8 +52,8 @@ func (g *GithubUser) GetNickname() string {
 }
 
 // GetOAuthID 获取OAuth ID
-func (g *GithubUser) GetOAuthID() uint32 {
-	return g.ID
+func (g *GithubUser) GetOAuthID() string {
+	return strconv.Itoa(int(g.ID))
 }
 
 // GetEmail 获取邮箱
