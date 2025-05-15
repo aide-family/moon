@@ -14,6 +14,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/config"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/cnst"
 	"github.com/aide-family/moon/pkg/util/timex"
 )
 
@@ -97,9 +98,9 @@ func MustLogin(validate TokenValidateFunc) middleware.Middleware {
 			if !ok {
 				return nil, merr.ErrorBadRequest("not allow request")
 			}
-			if tokenStr := tr.RequestHeader().Get(XHeaderToken); tokenStr != "" {
+			if tokenStr := tr.RequestHeader().Get(cnst.XHeaderToken); tokenStr != "" {
 				auths := strings.SplitN(tokenStr, " ", 2)
-				if len(auths) != 2 || !strings.EqualFold(auths[0], bearerWord) {
+				if len(auths) != 2 || !strings.EqualFold(auths[0], cnst.BearerWord) {
 					return nil, jwt.ErrMissingJwtToken
 				}
 				jwtToken := auths[1]

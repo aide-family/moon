@@ -9,16 +9,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
-)
-
-const (
-	// bearerWord the bearer key word for authorization
-	bearerWord string = "Bearer"
-)
-
-const (
-	XHeaderTeamID = "X-Team-ID"
-	XHeaderToken  = "Authorization"
+	"github.com/aide-family/moon/pkg/util/cnst"
 )
 
 func BindHeaders() middleware.Middleware {
@@ -40,10 +31,10 @@ func withAllHeaders(ctx context.Context) (context.Context, error) {
 	}
 
 	ctx = permission.WithOperationContext(ctx, tr.Operation())
-	if teamIDStr := tr.RequestHeader().Get(XHeaderTeamID); teamIDStr != "" {
+	if teamIDStr := tr.RequestHeader().Get(cnst.XHeaderTeamID); teamIDStr != "" {
 		teamID, err := strconv.ParseUint(teamIDStr, 10, 32)
 		if err != nil {
-			return nil, merr.ErrorBadRequest("not allow request, header [%s] err", XHeaderTeamID)
+			return nil, merr.ErrorBadRequest("not allow request, header [%s] err", cnst.XHeaderTeamID)
 		}
 		ctx = permission.WithTeamIDContext(ctx, uint32(teamID))
 	}
