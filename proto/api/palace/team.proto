@@ -100,6 +100,13 @@ service Team {
     };
   }
 
+  // GetTeamRole retrieves a team role by Id
+  rpc GetTeamRole (GetTeamRoleRequest) returns (api.palace.common.TeamRoleItem) {
+    option (google.api.http) = {
+      get: "/api/team/role"
+    };
+  }
+
   // SaveTeamRole saves a new team role or updates an existing one
   rpc SaveTeamRole (SaveTeamRoleRequest) returns (api.palace.common.EmptyReply) {
     option (google.api.http) = {
@@ -244,6 +251,12 @@ message GetTeamRolesReply {
   repeated api.palace.common.TeamRoleItem items = 1;
   // Pagination response details
   api.palace.common.PaginationReply pagination = 2;
+}
+
+// GetTeamRoleRequest represents the request data for retrieving a team role
+message GetTeamRoleRequest {
+  // Role Id
+  uint32 roleId = 1 [(buf.validate.field).required = true];
 }
 
 // SaveTeamRoleRequest represents the request data for saving or updating a team role

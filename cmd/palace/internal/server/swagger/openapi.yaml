@@ -1497,6 +1497,26 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.GetTeamResourcesReply'
+    /api/team/role:
+        get:
+            tags:
+                - Team
+            description: GetTeamRole retrieves a team role by Id
+            operationId: Team_GetTeamRole
+            parameters:
+                - name: roleId
+                  in: query
+                  description: Role Id
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.TeamRoleItem'
     /api/team/role/status:
         put:
             tags:

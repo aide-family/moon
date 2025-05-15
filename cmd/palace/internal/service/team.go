@@ -142,6 +142,14 @@ func (s *TeamService) GetTeamRoles(ctx context.Context, req *palace.GetTeamRoles
 	}, nil
 }
 
+func (s *TeamService) GetTeamRole(ctx context.Context, req *palace.GetTeamRoleRequest) (*common.TeamRoleItem, error) {
+	role, err := s.teamBiz.GetTeamRole(ctx, req.GetRoleId())
+	if err != nil {
+		return nil, err
+	}
+	return build.ToTeamRoleItem(role), nil
+}
+
 func (s *TeamService) SaveTeamRole(ctx context.Context, req *palace.SaveTeamRoleRequest) (*common.EmptyReply, error) {
 	params := build.ToSaveTeamRoleRequest(req)
 	if err := s.teamBiz.SaveTeamRole(ctx, params); err != nil {

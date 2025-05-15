@@ -229,6 +229,10 @@ func (t *Team) GetTeamRoles(ctx context.Context, req *bo.ListRoleReq) (*bo.ListT
 	return t.teamRoleRepo.List(ctx, req)
 }
 
+func (t *Team) GetTeamRole(ctx context.Context, roleID uint32) (do.TeamRole, error) {
+	return t.teamRoleRepo.Get(ctx, roleID)
+}
+
 func (t *Team) DeleteTeamRole(ctx context.Context, roleID uint32) error {
 	return t.teamRoleRepo.Delete(ctx, roleID)
 }
