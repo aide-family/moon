@@ -36,8 +36,13 @@ bin/
 .vscode/
 .idea/
 *.swp
-tmp
+
+.idea
+
+*.*.go
 wire_gen.go
-api/*.*.go
 *.db*
-db_*
+
+.env
+.env.palace
+.cursor

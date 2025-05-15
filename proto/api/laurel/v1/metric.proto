@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package api.laurel.v1;
+
+import "google/api/annotations.proto";
+import "laurel/common/metric.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/laurel/v1;v1";
+
+service Metric {
+	rpc PushMetricData (PushMetricDataRequest) returns (EmptyReply) {
+		option (google.api.http) = {
+			post: "/v1/metric/push"
+			body: "*"
+		};
+	}
+
+	rpc RegisterMetric (RegisterMetricRequest) returns (EmptyReply) {
+		option (google.api.http) = {
+			post: "/v1/metric/register"
+			body: "*"
+		};
+	}
+}
+
+message PushMetricDataRequest {
+	repeated api.laurel.common.MetricData metrics = 1;
+}
+
+message RegisterMetricRequest {
+	repeated api.laurel.common.MetricVec metricVecs = 1;
+}
+
+message EmptyReply {
+	int32 code = 1;
+	string message = 2;
+}

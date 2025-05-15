@@ -1,0 +1,175 @@
+syntax = "proto3";
+
+package api.palace.common;
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace/common;common";
+
+// GlobalStatus represents the status of a global resource.
+enum GlobalStatus {
+  // GLOBAL_STATUS_UNKNOWN is the default status for a global resource.
+  GLOBAL_STATUS_UNKNOWN = 0;
+  // GLOBAL_STATUS_ENABLE indicates the resource is enabled.
+  GLOBAL_STATUS_ENABLE = 1;
+  // GLOBAL_STATUS_DISABLE indicates the resource is disabled.
+  GLOBAL_STATUS_DISABLE = 2;
+}
+
+// OperateType represents the type of an operation.
+enum OperateType {
+  // OPERATE_TYPE_UNKNOWN is the default type when the operation type is unknown.
+  OPERATE_TYPE_UNKNOWN = 0;
+  // OPERATE_TYPE_QUERY indicates that the operation is a query operation.
+  OPERATE_TYPE_QUERY = 1;
+  // OPERATE_TYPE_ADD indicates that the operation is an add operation.
+  OPERATE_TYPE_ADD = 2;
+  // OPERATE_TYPE_UPDATE indicates that the operation is an update operation.
+  OPERATE_TYPE_UPDATE = 3;
+  // OPERATE_TYPE_DELETE indicates that the operation is a delete operation.
+  OPERATE_TYPE_DELETE = 4;
+  // OPERATE_TYPE_LOGIN indicates that the operation is a login operation.
+  OPERATE_TYPE_LOGIN = 5;
+  // OPERATE_TYPE_LOGOUT indicates that the operation is a logout operation.
+  OPERATE_TYPE_LOGOUT = 6;
+  // OPERATE_TYPE_EXPORT indicates that the operation is an export operation.
+  OPERATE_TYPE_EXPORT = 7;
+  // OPERATE_TYPE_IMPORT indicates that the operation is an import operation.
+  OPERATE_TYPE_IMPORT = 8;
+}
+
+// ResourceAllow represents the allow of a resource.
+enum ResourceAllow {
+  // RESOURCE_ALLOW_UNKNOWN is the default allow for a resource.
+  RESOURCE_ALLOW_UNKNOWN = 0;
+  // RESOURCE_ALLOW_NONE indicates that the resource allow is none.
+  RESOURCE_ALLOW_NONE = 1;
+  // RESOURCE_ALLOW_SYSTEM indicates that the resource allow is system.
+  RESOURCE_ALLOW_SYSTEM = 2;
+  // RESOURCE_ALLOW_SYSTEM_RBAC indicates that the resource allow is system RBAC.
+  RESOURCE_ALLOW_SYSTEM_RBAC = 3;
+  // RESOURCE_ALLOW_TEAM indicates that the resource allow is team.
+  RESOURCE_ALLOW_TEAM = 4;
+  // RESOURCE_ALLOW_TEAM_RBAC indicates that the resource allow is team RBAC.
+  RESOURCE_ALLOW_TEAM_RBAC = 5;
+  // RESOURCE_ALLOW_USER indicates that the resource allow is user.
+  RESOURCE_ALLOW_USER = 6;
+}
+
+// MenuType represents the type of a menu
+enum MenuType {
+  // Default unknown menu type
+  MENU_TYPE_UNKNOWN = 0;
+  // System menu type
+  MENU_TYPE_SYSTEM = 1;
+  // Team menu type
+  MENU_TYPE_TEAM = 2;
+  // User menu type
+  MENU_TYPE_USER = 3;
+}
+
+enum DatasourceDriverMetric {
+  DATASOURCE_DRIVER_METRIC_UNKNOWN = 0;
+  DATASOURCE_DRIVER_METRIC_PROMETHEUS = 1;
+  DATASOURCE_DRIVER_METRIC_VICTORIAMETRICS = 2;
+}
+
+enum HTTPMethod {
+  HTTP_METHOD_UNKNOWN = 0;
+  HTTP_METHOD_GET = 1;
+  HTTP_METHOD_POST = 2;
+  HTTP_METHOD_PUT = 3;
+  HTTP_METHOD_DELETE = 4;
+  HTTP_METHOD_HEAD = 5;
+  HTTP_METHOD_OPTIONS = 6;
+  HTTP_METHOD_PATCH = 7;
+}
+
+// 采样方式
+enum SampleMode {
+  // 未知
+  SAMPLE_MODE_UNKNOWN = 0;
+  // m时间内连续出现n次
+  SAMPLE_MODE_FOR = 1;
+  // m时间内最多出现n次
+  SAMPLE_MODE_MAX = 2;
+  // m时间内最少出现n次
+  SAMPLE_MODE_MIN = 3;
+}
+
+enum ConditionMetric {
+  CONDITION_METRIC_UNKNOWN = 0;
+  // 等于
+  CONDITION_METRIC_EQ = 1;
+  // 不等于
+  CONDITION_METRIC_NE = 2;
+  // 大于
+  CONDITION_METRIC_GT = 3;
+  // 大于等于
+  CONDITION_METRIC_GTE = 4;
+  // 小于
+  CONDITION_METRIC_LT = 5;
+  // 小于等于
+  CONDITION_METRIC_LTE = 6;
+  // 在范围内
+  CONDITION_METRIC_IN = 7;
+  // 不在范围内
+  CONDITION_METRIC_NOT_IN = 8;
+}
+
+enum StrategyType {
+  STRATEGY_TYPE_UNKNOWN = 0;
+  STRATEGY_TYPE_METRIC = 1;
+  STRATEGY_TYPE_EVENT = 2;
+  STRATEGY_TYPE_LOGS = 3;
+  STRATEGY_TYPE_PORT = 4;
+  STRATEGY_TYPE_HTTP = 5;
+  STRATEGY_TYPE_PING = 6;
+  STRATEGY_TYPE_CERT = 7;
+}
+
+enum DictType {
+  DICT_TYPE_UNKNOWN = 0;
+  DICT_TYPE_ALARM_LEVEL = 1;
+  DICT_TYPE_ALARM_PAGE = 2;
+}
+
+enum HookAPP {
+  HOOK_APP_UNKNOWN = 0;
+  HOOK_APP_OTHER = 1;
+  HOOK_APP_DING_TALK = 2;
+  HOOK_APP_WECHAT = 3;
+  HOOK_APP_FEI_SHU = 4;
+}
+
+enum NoticeType {
+  NOTICE_TYPE_UNKNOWN = 0;
+  NOTICE_TYPE_EMAIL = 1;
+  NOTICE_TYPE_SMS = 2;
+  NOTICE_TYPE_VOICE = 4;
+}
+
+enum SMSProviderType {
+  SMS_PROVIDER_TYPE_UNKNOWN = 0;
+  SMS_PROVIDER_TYPE_ALIYUN = 1;
+  SMS_PROVIDER_TYPE_TENCENT = 2;
+  SMS_PROVIDER_TYPE_TWILIO = 3;
+}
+
+enum MessageType {
+  MESSAGE_TYPE_UNKNOWN = 0;
+  MESSAGE_TYPE_EMAIL = 1;
+  MESSAGE_TYPE_SMS = 2;
+  MESSAGE_TYPE_VOICE = 3;
+  MESSAGE_TYPE_HOOK_DING_TALK = 4;
+  MESSAGE_TYPE_HOOK_WECHAT = 5;
+  MESSAGE_TYPE_HOOK_FEI_SHU = 6;
+  MESSAGE_TYPE_HOOK_WEBHOOK = 7;
+}
+
+enum SendMessageStatus {
+  SEND_MESSAGE_STATUS_UNKNOWN = 0;
+  SEND_MESSAGE_STATUS_SUCCESS = 1;
+  SEND_MESSAGE_STATUS_FAILED = 2;
+  SEND_MESSAGE_STATUS_PENDING = 3;
+  SEND_MESSAGE_STATUS_SENDING = 4;
+  SEND_MESSAGE_STATUS_RETRY = 5;
+}

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email verification code.</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f4f6;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 90%;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #007bff;
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .message {
+            font-size: 16px;
+            margin: 20px 0;
+            color: #555;
+            text-align: center;
+        }
+
+        .credentials-container {
+            width: 80%;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        .credential-item {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .credential-label {
+            min-width: 80px;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .highlight {
+            color: #d9534f;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .footer {
+            font-size: 14px;
+            color: #999;
+            text-align: center;
+            margin-top: 20px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>Welcome to the <a href="{{.RedirectURI}}" target="_blank" style="color: inherit; text-decoration: none;">Moon
+            Monitoring System.</a></h2>
+    </div>
+    <div class="message">
+        <div class="credentials-container">
+            <div class="credential-item">
+                <span class="credential-label">Username:</span>
+                <span class="highlight">{{.Email}}</span>
+            </div>
+            <div class="credential-item">
+                <span class="credential-label">Code:</span>
+                <span class="highlight">{{.Code}}</span>
+            </div>
+        </div>
+    </div>
+    <p style="text-align: center; font-size: 14px; color: #999;">Please use this verification code within 5 minutes to
+        complete the operation.</p>
+    <div class="footer">
+        <p>If this action was not performed by you, please disregard this email, and your account will remain
+            secure.</p>
+        <p>If you have any questions, please contact our <a href="https://github.com/aide-family/moon">support team</a>
+        </p>
+    </div>
+</div>
+</body>
+</html>

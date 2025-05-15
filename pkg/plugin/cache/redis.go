@@ -4,43 +4,36 @@ import (
 	"context"
 	"time"
 
-	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
+
+	"github.com/moon-monitor/moon/pkg/config"
 )
 
-// NewRedisCacher creates a new redis cacher
-func NewRedisCacher(cli *redis.Client) ICacher {
-	return &redisCacher{client: cli}
+var _ Cache = (*redisCache)(nil)
+
+// NewRedisCache create a redis cache.
+func NewRedisCache(cli *redis.Client, driver config.Cache_Driver) Cache {
+	return &redisCache{client: cli, driver: driver}
 }
 
-// NewRedisCacherByMiniRedis creates a new redis cacher by mini redis
-func NewRedisCacherByMiniRedis(cli *miniredis.Miniredis) ICacher {
-	c := redis.NewClient(&redis.Options{
-		Network: "tcp",
-		Addr:    cli.Addr(),
-	})
-	return &redisCacher{client: c}
+type redisCache struct {
+	client *redis.Client
+	driver config.Cache_Driver
 }
 
-type (
-	redisCacher struct {
-		client *redis.Client
-	}
-)
-
-// Client implements ICacher.
-func (r *redisCacher) Client() *redis.Client {
-	return r.client
-}
-
-func (r *redisCacher) Close() error {
-	if r == nil {
-		return nil
-	}
+func (r *redisCache) Close() error {
 	return r.client.Close()
 }
 
-func (r *redisCacher) IncMax(ctx context.Context, key string, max int64, expiration time.Duration) (bool, error) {
+func (r *redisCache) Client() *redis.Client {
+	return r.client
+}
+
+func (r *redisCache) Driver() config.Cache_Driver {
+	return r.driver
+}
+
+func (r *redisCache) IncMax(ctx context.Context, key string, max int64, expiration time.Duration) (bool, error) {
 	return r.client.Eval(ctx, `
 local key = KEYS[1]
 local max = tonumber(ARGV[1])
@@ -59,7 +52,7 @@ return 0
 `, []string{key}, max, expiration/time.Second).Bool()
 }
 
-func (r *redisCacher) DecMin(ctx context.Context, key string, min int64, expiration time.Duration) (bool, error) {
+func (r *redisCache) DecMin(ctx context.Context, key string, min int64, expiration time.Duration) (bool, error) {
 	return r.client.Eval(ctx, `
 local key = KEYS[1]
 local min = tonumber(ARGV[1])

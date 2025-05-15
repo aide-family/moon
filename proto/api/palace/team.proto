@@ -1,0 +1,464 @@
+syntax = "proto3";
+
+package api.palace;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "palace/common/team.proto";
+import "palace/common/team_enum.proto";
+import "palace/common/system.proto";
+import "palace/common/common.proto";
+import "palace/common/common_enum.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
+
+// Team service provides operations for managing teams, members, roles, and email configurations
+service Team {
+  // SaveTeam saves a new team or updates an existing one
+  rpc SaveTeam (SaveTeamRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/team/save"
+      body: "*"
+    };
+  }
+
+  // GetTeam retrieves the details of the current team
+  rpc GetTeam (api.palace.common.EmptyRequest) returns (api.palace.common.TeamItem) {
+    option (google.api.http) = {
+      get: "/api/team/detail"
+    };
+  }
+
+  // GetTeamResources retrieves the resources associated with the current team
+  rpc GetTeamResources (api.palace.common.EmptyRequest) returns (GetTeamResourcesReply) {
+    option (google.api.http) = {
+      get: "/api/team/resources"
+    };
+  }
+
+  // TransferTeam transfers the leadership of the team to a new leader
+  rpc TransferTeam (TransferTeamRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/team/transfer"
+      body: "*"
+    };
+  }
+
+  // InviteMember invites a new member to the team
+  rpc InviteMember (InviteMemberRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/team/invite/member"
+      body: "*"
+    };
+  }
+
+  // RemoveMember removes a member from the team
+  rpc RemoveMember (RemoveMemberRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/team/remove/member"
+      body: "*"
+    };
+  }
+
+  // GetTeamMembers retrieves the list of members in the team
+  rpc GetTeamMembers (GetTeamMembersRequest) returns (GetTeamMembersReply) {
+    option (google.api.http) = {
+      post: "/api/team/members"
+      body: "*"
+    };
+  }
+
+  // UpdateMemberPosition updates the position of a team member
+  rpc UpdateMemberPosition (UpdateMemberPositionRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/team/update/member/position"
+      body: "*"
+    };
+  }
+
+  // UpdateMemberStatus updates the status of multiple team members
+  rpc UpdateMemberStatus (UpdateMemberStatusRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/team/update/member/status"
+      body: "*"
+    };
+  }
+
+  // UpdateMemberRoles updates the roles assigned to multiple team members
+  rpc UpdateMemberRoles (UpdateMemberRolesRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/team/update/member/roles"
+      body: "*"
+    };
+  }
+
+  // GetTeamRoles retrieves the roles available in the team
+  rpc GetTeamRoles (GetTeamRolesRequest) returns (GetTeamRolesReply) {
+    option (google.api.http) = {
+      post: "/api/team/roles"
+      body: "*"
+    };
+  }
+
+  // SaveTeamRole saves a new team role or updates an existing one
+  rpc SaveTeamRole (SaveTeamRoleRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/team/roles"
+      body: "*"
+    };
+  }
+
+  // DeleteTeamRole deletes a team role by Id
+  rpc DeleteTeamRole (DeleteTeamRoleRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      delete: "/api/team/roles"
+    };
+  }
+
+  // UpdateTeamRoleStatus updates the status of a team role
+  rpc UpdateTeamRoleStatus (UpdateTeamRoleStatusRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/team/role/status"
+      body: "*"
+    };
+  }
+
+  // SaveEmailConfig saves or updates the email configuration for the team
+  rpc SaveEmailConfig (SaveEmailConfigRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/team/email/config"
+      body: "*"
+    };
+  }
+
+  // GetEmailConfigs retrieves the email configuration for the team
+  rpc GetEmailConfigs (GetEmailConfigsRequest) returns (GetEmailConfigsReply) {
+    option (google.api.http) = {
+      post: "/api/team/email/configs"
+      body: "*"
+    };
+  }
+
+  // SaveSMSConfig saves or updates the SMS configuration for the team
+  rpc SaveSMSConfig (SaveSMSConfigRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/team/sms/config"
+      body: "*"
+    };
+  }
+
+  // GetSMSConfigs retrieves the SMS configuration for the team
+  rpc GetSMSConfigs (GetSMSConfigsRequest) returns (GetSMSConfigsReply) {
+    option (google.api.http) = {
+      post: "/api/team/sms/configs"
+      body: "*"
+    };
+  }
+
+  // OperateLogList lists operation logs based on specified filters
+  rpc OperateLogList (TeamOperateLogListRequest) returns (TeamOperateLogListReply) {
+    option (google.api.http) = {
+      post: "/api/team/operate/log/list"
+      body: "*"
+    };
+  }
+}
+
+// SaveTeamRequest represents the request data for saving or updating a team
+message SaveTeamRequest {
+  // Team name
+  string name = 1 [(buf.validate.field).cel = {
+    message: "name is required"
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "name max length is 32"
+    expression: "this.size() <= 32"
+  }];
+  // Team remark or description
+  string remark = 2 [(buf.validate.field).cel = {
+    message: "remark max length is 200"
+    expression: "this.size() <= 200"
+  }];
+  // Team logo URL
+  string logo = 3 [(buf.validate.field).cel = {
+    message: "logo max length is 255"
+    expression: "this.size() <= 255"
+  }];
+  uint32 teamId = 4;
+}
+
+// GetTeamResourcesReply contains the response data for retrieving team resources
+message GetTeamResourcesReply {
+  // List of resource items associated with the team
+  repeated api.palace.common.ResourceItem items = 1;
+}
+
+// TransferTeamRequest represents the request data for transferring team leadership
+message TransferTeamRequest {
+  // New leader's user Id
+  uint32 newLeaderId = 1 [(buf.validate.field).required = true];
+}
+
+// InviteMemberRequest represents the request data for inviting a new member to the team
+message InviteMemberRequest {
+  // Email of the user to invite
+  string userEmail = 1 [(buf.validate.field).required = true];
+  // Position of the new member
+  api.palace.common.MemberPosition position = 2 [(buf.validate.field).required = true];
+  // List of role Ids to assign to the new member
+  repeated uint32 roleIds = 3;
+}
+
+// RemoveMemberRequest represents the request data for removing a member from the team
+message RemoveMemberRequest {
+  uint32 memberId = 1 [(buf.validate.field).required = true];
+}
+
+message GetTeamMembersRequest {
+  api.palace.common.PaginationRequest pagination = 1;
+  string keyword = 2;
+  repeated api.palace.common.MemberStatus status = 3;
+  repeated api.palace.common.MemberPosition positions = 4;
+}
+
+// GetTeamMembersReply contains the response data for retrieving team members
+message GetTeamMembersReply {
+  // List of team member items
+  repeated api.palace.common.TeamMemberItem items = 1;
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+// GetTeamRolesRequest represents the request data for retrieving team roles
+message GetTeamRolesRequest {
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 1;
+  // Keyword to search roles by
+  string keyword = 2 [(buf.validate.field).string.max_len = 20];
+  // Status to filter roles by
+  api.palace.common.GlobalStatus status = 3;
+}
+
+// GetTeamRolesReply contains the response data for retrieving team roles
+message GetTeamRolesReply {
+  // List of team role items
+  repeated api.palace.common.TeamRoleItem items = 1;
+  // Pagination response details
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+// SaveTeamRoleRequest represents the request data for saving or updating a team role
+message SaveTeamRoleRequest {
+  // Role Id, optional for new roles
+  uint32 roleId = 1 [(buf.validate.field).required = true];
+  // Role name
+  string name = 2 [(buf.validate.field).cel = {
+    message: "name max length is 32"
+    expression: "this.size() <= 32"
+  }, (buf.validate.field).required = true];
+  // Role remark or description
+  string remark = 4 [(buf.validate.field).cel = {
+    message: "remark max length is 200"
+    expression: "this.size() <= 200"
+  }];
+  // List of resource Ids associated with the role
+  repeated uint32 menuIds = 6;
+}
+
+// UpdateMemberPositionRequest represents the request data for updating a member's position
+message UpdateMemberPositionRequest {
+  // Member Id
+  uint32 memberId = 1 [(buf.validate.field).required = true];
+  // New position for the member
+  api.palace.common.MemberPosition position = 2 [(buf.validate.field).required = true];
+}
+
+// UpdateMemberStatusRequest represents the request data for updating the status of multiple members
+message UpdateMemberStatusRequest {
+  // List of member Ids to update
+  repeated uint32 memberIds = 1 [(buf.validate.field).cel = {
+    message: "memberIds is required"
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "memberIds max size is 100"
+    expression: "this.size() <= 100"
+  }];
+  // New status for the members
+  api.palace.common.MemberStatus status = 2 [(buf.validate.field).required = true];
+}
+
+// UpdateMemberRolesRequest represents the request data for updating the roles of multiple members
+message UpdateMemberRolesRequest {
+  // List of member Ids to update
+  uint32 memberId = 1 [(buf.validate.field).required = true];
+  // List of role Ids to assign to the members
+  repeated uint32 roleIds = 2 [(buf.validate.field).cel = {
+    message: "roleIds is required"
+    expression: "this.size() > 0"
+  }];
+}
+
+// DeleteTeamRoleRequest represents the request data for deleting a team role
+message DeleteTeamRoleRequest {
+  // Role Id
+  uint32 roleId = 1 [(buf.validate.field).required = true];
+}
+
+// UpdateTeamRoleStatusRequest represents the request data for updating role status
+message UpdateTeamRoleStatusRequest {
+  // Role Id
+  uint32 roleId = 1 [(buf.validate.field).required = true];
+  // New status for the role
+  api.palace.common.GlobalStatus status = 2 [(buf.validate.field).required = true];
+}
+
+// SaveEmailConfigRequest represents the request data for saving or updating the email configuration
+message SaveEmailConfigRequest {
+  // Email user
+  string user = 1 [(buf.validate.field).required = true];
+  // Email password
+  string pass = 2 [(buf.validate.field).required = true];
+  // Email server host
+  string host = 3 [(buf.validate.field).required = true];
+  // Email server port
+  uint32 port = 4 [(buf.validate.field).required = true];
+  // Enable email configuration
+  api.palace.common.GlobalStatus status = 5;
+  // Name of the email configuration
+  string name = 6 [(buf.validate.field).cel = {
+    message: "name max length is 32"
+    expression: "this.size() <= 32"
+  }, (buf.validate.field).required = true];
+  // Remark of the email configuration
+  string remark = 7 [(buf.validate.field).cel = {
+    message: "remark max length is 200"
+    expression: "this.size() <= 200"
+  }];
+  // emailConfigId of the email configuration
+  uint32 emailConfigId = 8;
+}
+
+// EmailConfigItem represents the structure of an email configuration
+message EmailConfigItem {
+  // Email user
+  string user = 1;
+  // Email password
+  string pass = 2;
+  // Email server host
+  string host = 3;
+  // Email server port
+  uint32 port = 4;
+  // Enable email configuration
+  api.palace.common.GlobalStatus status = 5;
+  // Name of the email configuration
+  string name = 6;
+  // Remark of the email configuration
+  string remark = 7;
+  // emailConfigId of the email configuration
+  uint32 emailConfigId = 8;
+}
+
+// GetEmailConfigsRequest represents the request data for retrieving the email configuration
+message GetEmailConfigsRequest {
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 1;
+  // Keyword to search email configurations by
+  string keyword = 2 [(buf.validate.field).string.max_len = 20];
+  // Status to filter email configurations by
+  api.palace.common.GlobalStatus status = 3;
+}
+
+// GetEmailConfigReply contains the response data for retrieving the email configuration
+message GetEmailConfigsReply {
+  // List of email configuration items
+  repeated EmailConfigItem items = 1;
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+// SaveSMSConfigRequest represents the request data for saving or updating the SMS configuration
+message SaveSMSConfigRequest {
+  // SMS provider type
+  api.palace.common.SMSProviderType provider = 1 [(buf.validate.field).required = true];
+  // Access Key Id for the SMS provider
+  string accessKeyId = 2 [(buf.validate.field).required = true];
+  // Access Key Secret for the SMS provider
+  string accessKeySecret = 3 [(buf.validate.field).required = true];
+  // Sign name for the SMS provider
+  string signName = 4 [(buf.validate.field).required = true];
+  // Endpoint for the SMS provider
+  string endpoint = 5 [(buf.validate.field).required = true];
+  // Name of the SMS configuration
+  string name = 6 [(buf.validate.field).cel = {
+    message: "name max length is 32"
+    expression: "this.size() <= 32"
+  }, (buf.validate.field).required = true];
+  // Remark of the SMS configuration
+  string remark = 7 [(buf.validate.field).cel = {
+    message: "remark max length is 200"
+    expression: "this.size() <= 200"
+  }];
+  // Enable SMS configuration
+  api.palace.common.GlobalStatus status = 8;
+  // smsConfigId of the SMS configuration
+  uint32 smsConfigId = 9;
+}
+
+// SMSConfigItem represents the structure of an SMS configuration
+message SMSConfigItem {
+  // SMS provider type
+  api.palace.common.SMSProviderType providerType = 1;
+  // Access Key Id for the SMS provider
+  string accessKeyId = 2;
+  // Access Key Secret for the SMS provider
+  string accessKeySecret = 3;
+  // Sign name for the SMS provider
+  string signName = 4;
+  // Endpoint for the SMS provider
+  string endpoint = 5;
+  // Name of the SMS configuration
+  string name = 6;
+  // Remark of the SMS configuration
+  string remark = 7;
+  // smsConfigId of the SMS configuration
+  uint32 smsConfigId = 8;
+  // Enable SMS configuration
+  api.palace.common.GlobalStatus status = 9;
+}
+
+// GetSMSConfigsRequest represents the request data for retrieving the SMS configuration
+message GetSMSConfigsRequest {
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 1;
+  // Keyword to search SMS configurations by
+  string keyword = 2 [(buf.validate.field).string.max_len = 20];
+  // Status to filter SMS configurations by
+  api.palace.common.GlobalStatus status = 3;
+  // Provider to filter SMS configurations by
+  api.palace.common.SMSProviderType provider = 4;
+}
+
+// GetSMSConfigsReply contains the response data for retrieving the SMS configuration
+message GetSMSConfigsReply {
+  // List of SMS configuration items
+  repeated SMSConfigItem items = 1;
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+// OperateLogListRequest represents the request data for listing operation logs
+message TeamOperateLogListRequest {
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 1;
+  // List of types to filter operation logs by
+  repeated api.palace.common.OperateType operateTypes = 2;
+  // Keyword to search operation logs by
+  string keyword = 3;
+  // User Id, optional for filtering logs by user
+  uint32 userId = 4;
+}
+
+// OperateLogListReply contains the response data for listing operation logs
+message TeamOperateLogListReply {
+  // List of operation log items
+  repeated api.palace.common.OperateLogItem items = 1;
+  // Pagination response details
+  api.palace.common.PaginationReply pagination = 2;
+}

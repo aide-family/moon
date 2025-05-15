@@ -1,0 +1,398 @@
+syntax = "proto3";
+
+package api.palace;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "palace/common/system.proto";
+import "palace/common/system_enum.proto";
+import "palace/common/common.proto";
+import "palace/common/common_enum.proto";
+import "palace/common/team.proto";
+import "palace/common/team_enum.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
+
+// System service provides operations for managing system users, roles, teams, and audits
+service System {
+  // UpdateUser updates user information
+  rpc UpdateUser (UpdateUserRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/system/user"
+      body: "*"
+    };
+  }
+
+  // UpdateUserStatus updates the status of multiple users
+  rpc UpdateUserStatus (UpdateUserStatusRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/system/user/status"
+      body: "*"
+    };
+  }
+
+  // ResetUserPassword resets the password for multiple users
+  rpc ResetUserPassword (ResetUserPasswordRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/system/user/password"
+      body: "*"
+    };
+  }
+
+  // UpdateUserPosition updates the position of a user
+  rpc UpdateUserPosition (UpdateUserPositionRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/system/user/position"
+      body: "*"
+    };
+  }
+
+  // GetUser retrieves a user by Id
+  rpc GetUser (GetUserRequest) returns (api.palace.common.UserItem) {
+    option (google.api.http) = {
+      get: "/api/system/user/detail"
+    };
+  }
+
+  // GetUserList lists users based on specified filters
+  rpc GetUserList (GetUserListRequest) returns (GetUserListReply) {
+    option (google.api.http) = {
+      post: "/api/system/user/list"
+      body: "*"
+    };
+  }
+
+  // GetTeamList lists teams based on specified filters
+  rpc GetTeamList (GetTeamListRequest) returns (GetTeamListReply) {
+    option (google.api.http) = {
+      post: "/api/system/team/list"
+      body: "*"
+    };
+  }
+
+  // GetTeam retrieves a team by Id
+  rpc GetTeam (GetTeamRequest) returns (api.palace.common.TeamItem) {
+    option (google.api.http) = {
+      get: "/api/system/team/detail"
+    };
+  }
+
+  // GetSystemRole retrieves a system role by Id
+  rpc GetSystemRole (GetSystemRoleRequest) returns (api.palace.common.SystemRoleItem) {
+    option (google.api.http) = {
+      get: "/api/system/role"
+    };
+  }
+
+  // GetSystemRoles lists system roles based on specified filters
+  rpc GetSystemRoles (GetSystemRolesRequest) returns (GetSystemRolesReply) {
+    option (google.api.http) = {
+      post: "/api/system/role/list"
+      body: "*"
+    };
+  }
+
+  // SaveRole saves a new role or updates an existing one
+  rpc SaveRole (SaveRoleRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/system/role"
+      body: "*"
+    };
+  }
+
+  // UpdateRoleStatus updates the status of a role
+  rpc UpdateRoleStatus (UpdateRoleStatusRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/system/role/status"
+      body: "*"
+    };
+  }
+
+  // UpdateUserRoles updates the roles assigned to a user
+  rpc UpdateUserRoles (UpdateUserRolesRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/system/user/roles"
+      body: "*"
+    };
+  }
+
+  // UpdateRoleUsers updates the users assigned to a role
+  rpc UpdateRoleUsers (UpdateRoleUsersRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/system/role/users"
+      body: "*"
+    };
+  }
+
+  // GetTeamAuditList lists team audit records based on specified filters
+  rpc GetTeamAuditList (GetTeamAuditListRequest) returns (GetTeamAuditListReply) {
+    option (google.api.http) = {
+      post: "/api/system/team/audit/list"
+      body: "*"
+    };
+  }
+
+  // UpdateTeamAuditStatus updates the status of a team audit record
+  rpc UpdateTeamAuditStatus (UpdateTeamAuditStatusRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/system/team/audit/status"
+      body: "*"
+    };
+  }
+
+  // OperateLogList lists operation logs based on specified filters
+  rpc OperateLogList (OperateLogListRequest) returns (OperateLogListReply) {
+    option (google.api.http) = {
+      post: "/api/system/operate/log/list"
+      body: "*"
+    };
+  }
+
+  rpc GetSendMessageLogs (GetSendMessageLogsRequest) returns (GetSendMessageLogsReply) {
+    option (google.api.http) = {
+      post: "/api/team/log/send/message"
+      body: "*"
+    };
+  }
+  rpc GetSendMessageLog (OperateOneSendMessageRequest) returns (api.palace.common.SendMessageLogItem) {
+    option (google.api.http) = {
+      get: "/api/team/log/send/message"
+    };
+  }
+  rpc RetrySendMessage (OperateOneSendMessageRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/team/log/send/message/retry"
+      body: "*"
+    };
+  }
+}
+
+// UpdateUserRequest represents the request data for updating user information
+message UpdateUserRequest {
+  // User Id
+  uint32 userId = 1 [(buf.validate.field).required = true];
+  // User nickname
+  string nickname = 2 [(buf.validate.field).required = true];
+  // User avatar URL
+  string avatar = 3 [(buf.validate.field).required = true];
+  // User gender
+  api.palace.common.Gender gender = 4 [(buf.validate.field).required = true];
+}
+
+// UpdateUserStatusRequest represents the request data for updating user status
+message UpdateUserStatusRequest {
+  // List of user Ids to update
+  repeated uint32 userIds = 1 [(buf.validate.field).cel = {
+    message: "please select user"
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    message: "select user max size is 100"
+    expression: "this.size() <= 100"
+  }];
+  // New status for the users
+  api.palace.common.UserStatus status = 2 [(buf.validate.field).required = true];
+}
+
+// ResetUserPasswordRequest represents the request data for resetting user passwords
+message ResetUserPasswordRequest {
+  uint32 userId = 1 [(buf.validate.field).required = true];
+}
+
+// UpdateUserPositionRequest represents the request data for updating user position
+message UpdateUserPositionRequest {
+  // User Id
+  uint32 userId = 1 [(buf.validate.field).required = true];
+  // New position for the user
+  api.palace.common.UserPosition position = 2 [(buf.validate.field).required = true];
+}
+
+// GetUserRequest represents the request data for retrieving a user
+message GetUserRequest {
+  // User Id
+  uint32 userId = 1 [(buf.validate.field).required = true];
+}
+
+// GetUserListRequest represents the request data for listing users
+message GetUserListRequest {
+  // List of statuses to filter users by
+  repeated api.palace.common.UserStatus status = 1;
+  // List of positions to filter users by
+  repeated api.palace.common.UserPosition position = 2;
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 3;
+  // Keyword to search users by
+  string keyword = 4;
+}
+
+// GetUserListReply contains the response data for listing users
+message GetUserListReply {
+  // List of user items
+  repeated api.palace.common.UserItem items = 1;
+  // Pagination response details
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+// GetTeamListRequest represents the request data for listing teams
+message GetTeamListRequest {
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 1;
+  // List of statuses to filter teams by
+  repeated api.palace.common.TeamStatus status = 2;
+  // Keyword to search teams by
+  string keyword = 3;
+  uint32 leaderId = 4;
+  uint32 creatorId = 5;
+}
+
+// GetTeamListReply contains the response data for listing teams
+message GetTeamListReply {
+  // List of team items
+  repeated api.palace.common.TeamItem items = 1;
+  // Pagination response details
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+// GetSystemRolesRequest represents the request data for listing system roles
+message GetSystemRolesRequest {
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 1;
+  // Keyword to search roles by
+  string keyword = 2;
+  // Status to filter roles by
+  api.palace.common.GlobalStatus status = 3;
+}
+
+// GetSystemRolesReply contains the response data for listing system roles
+message GetSystemRolesReply {
+  // List of system role items
+  repeated api.palace.common.SystemRoleItem items = 1;
+  // Pagination response details
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+// SaveRoleRequest represents the request data for saving or updating a role
+message SaveRoleRequest {
+  // Role Id, optional for new roles
+  uint32 roleId = 1;
+  // Role name
+  string name = 2 [(buf.validate.field).cel = {
+    message: "name max length is 32"
+    expression: "this.size() <= 32"
+  }, (buf.validate.field).required = true];
+  // Role remark or description
+  string remark = 3 [(buf.validate.field).cel = {
+    message: "remark max length is 200"
+    expression: "this.size() <= 200"
+  }];
+  // List of resource Ids associated with the role
+  repeated uint32 menuIds = 4 [(buf.validate.field).required = true];
+}
+
+// UpdateRoleStatusRequest represents the request data for updating role status
+message UpdateRoleStatusRequest {
+  // Role Id
+  uint32 roleId = 1 [(buf.validate.field).required = true];
+  // New status for the role
+  api.palace.common.GlobalStatus status = 2 [(buf.validate.field).required = true];
+}
+
+// UpdateUserRolesRequest represents the request data for updating user roles
+message UpdateUserRolesRequest {
+  // User Id
+  uint32 userId = 1 [(buf.validate.field).required = true];
+  // List of role Ids to assign to the user
+  repeated uint32 roleIds = 2 [(buf.validate.field).required = true];
+}
+
+// UpdateRoleUsersRequest represents the request data for updating role users
+message UpdateRoleUsersRequest {
+  // Role Id
+  uint32 roleId = 1 [(buf.validate.field).required = true];
+  // List of user Ids to assign to the role
+  repeated uint32 userIds = 2 [(buf.validate.field).required = true];
+}
+
+// GetTeamRequest represents the request data for retrieving a team
+message GetTeamRequest {
+  // Team Id
+  uint32 teamId = 1 [(buf.validate.field).required = true];
+}
+
+// GetSystemRoleRequest represents the request data for retrieving a system role
+message GetSystemRoleRequest {
+  // Role Id
+  uint32 roleId = 1 [(buf.validate.field).required = true];
+}
+
+// GetTeamAuditListRequest represents the request data for listing team audit records
+message GetTeamAuditListRequest {
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 1;
+  // List of statuses to filter team audit records by
+  repeated api.palace.common.TeamAuditStatus status = 2;
+  // Keyword to search team audit records by
+  string keyword = 3;
+  // User Id, optional for filtering audits by user
+  uint32 userId = 4;
+  repeated api.palace.common.TeamAuditAction actions = 5;
+}
+
+// GetTeamAuditListReply contains the response data for listing team audit records
+message GetTeamAuditListReply {
+  // List of team audit items
+  repeated api.palace.common.TeamAuditItem items = 1;
+  // Pagination response details
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+// UpdateTeamAuditStatusRequest represents the request data for updating team audit status
+message UpdateTeamAuditStatusRequest {
+  // Audit Id
+  uint32 auditId = 1 [(buf.validate.field).required = true];
+  // New status for the team audit record
+  api.palace.common.TeamAuditStatus status = 2 [(buf.validate.field).required = true];
+  // Reason for the status update
+  string reason = 3 [(buf.validate.field).cel = {
+    message: "reason max length is 200"
+    expression: "this.size() <= 200"
+  }];
+}
+
+// OperateLogListRequest represents the request data for listing operation logs
+message OperateLogListRequest {
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 1;
+  // List of types to filter operation logs by
+  repeated api.palace.common.OperateType operateTypes = 2;
+  // Keyword to search operation logs by
+  string keyword = 3;
+  // User Id, optional for filtering logs by user
+  uint32 userId = 4;
+}
+
+// OperateLogListReply contains the response data for listing operation logs
+message OperateLogListReply {
+  // List of operation log items
+  repeated api.palace.common.OperateLogItem items = 1;
+  // Pagination response details
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+
+message GetSendMessageLogsRequest {
+  string requestId = 1;
+  string message = 2;
+  common.MessageType messageType = 3;
+  common.SendMessageStatus status = 4;
+  string keyword = 5;
+  common.PaginationRequest pagination = 6;
+}
+
+message GetSendMessageLogsReply {
+  repeated common.SendMessageLogItem items = 1;
+  common.PaginationReply pagination = 2;
+}
+
+message OperateOneSendMessageRequest {
+  string requestId = 1;
+}

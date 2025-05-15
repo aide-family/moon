@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package api.palace.common;
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace/common;common";
+
+// TeamStatus represents the status of a team.
+enum TeamStatus {
+  // TEAM_STATUS_UNKNOWN is the default status for a team.
+  TEAM_STATUS_UNKNOWN = 0;
+  // TEAM_STATUS_NORMAL indicates the team is operating normally.
+  TEAM_STATUS_NORMAL = 1;
+  // TEAM_STATUS_FORBIDDEN indicates the team has been forbidden.
+  TEAM_STATUS_FORBIDDEN = 2;
+  // TEAM_STATUS_DELETED indicates the team has been deleted.
+  TEAM_STATUS_DELETED = 3;
+  // TEAM_STATUS_APPROVAL indicates the team is waiting for approval.
+  TEAM_STATUS_APPROVAL = 4;
+  // TEAM_STATUS_REJECTED indicates the team has been rejected.
+  TEAM_STATUS_REJECTED = 5;
+}
+
+// MemberPosition represents the position of a member in a team.
+enum MemberPosition {
+  // MEMBER_POSITION_UNKNOWN is the default position for a member.
+  MEMBER_POSITION_UNKNOWN = 0;
+  // MEMBER_POSITION_SUPER_ADMIN indicates the member is the super administrator of the team.
+  MEMBER_POSITION_SUPER_ADMIN = 1;
+  // MEMBER_POSITION_ADMIN indicates the member is an administrator of the team.
+  MEMBER_POSITION_ADMIN = 2;
+  // MEMBER_POSITION_MEMBER indicates the member is a regular member of the team.
+  MEMBER_POSITION_MEMBER = 3;
+  // MEMBER_POSITION_GUEST indicates the member is a guest of the team.
+  MEMBER_POSITION_GUEST = 4;
+}
+
+// MemberStatus represents the status of a member in a team.
+enum MemberStatus {
+  // MEMBER_STATUS_UNKNOWN is the default status for a member.
+  MEMBER_STATUS_UNKNOWN = 0;
+  // MEMBER_STATUS_NORMAL indicates the member is active and normal.
+  MEMBER_STATUS_NORMAL = 1;
+  // MEMBER_STATUS_FORBIDDEN indicates the member has been forbidden.
+  MEMBER_STATUS_FORBIDDEN = 2;
+  // MEMBER_STATUS_DELETED indicates the member has been deleted.
+  MEMBER_STATUS_DELETED = 3;
+  // MEMBER_STATUS_PENDING_CONFIRM indicates the member is waiting for confirmation to join the team.
+  MEMBER_STATUS_PENDING_CONFIRM = 4;
+  // MEMBER_STATUS_DEPARTED indicates the member has left the team.
+  MEMBER_STATUS_DEPARTED = 5;
+}
+

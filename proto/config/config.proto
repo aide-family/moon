@@ -1,0 +1,386 @@
+syntax = "proto3";
+
+package config;
+
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/config;config";
+
+enum Environment {
+  UNKNOWN = 0;
+  DEV = 1;
+  TEST = 2;
+  PROD = 3;
+}
+
+enum Network {
+  // http
+  HTTP = 0;
+  // https
+  HTTPS = 1;
+  // grpc
+  GRPC = 2;
+}
+
+message Server {
+  string name = 1;
+  map<string, string> metadata = 2;
+  HTTPServer http = 3;
+  GRPCServer grpc = 4;
+  google.protobuf.Duration onlineInterval = 5;
+  repeated uint32 teamIds = 6;
+  string outEndpoint = 7;
+  Network network = 8;
+}
+
+// http server config
+message HTTPServer {
+  // network type
+  string network = 1;
+  // endpoint
+  string addr = 2;
+  // read timeout
+  google.protobuf.Duration timeout = 3;
+  repeated string allowHeaders = 4;
+  repeated string allowMethods = 5;
+  repeated string allowOrigins = 6;
+}
+
+// grpc server config
+message GRPCServer {
+  // network type
+  string network = 1;
+  // endpoint
+  string addr = 2;
+  // read timeout
+  google.protobuf.Duration timeout = 3;
+}
+
+// jwt config
+message JWT {
+  // sign key
+  string signKey = 1;
+  // issuer
+  string issuer = 2;
+  // expire
+  google.protobuf.Duration expire = 3;
+  // allow operations
+  repeated string allowOperations = 4;
+}
+
+message Database {
+  enum Driver {
+    // mysql
+    MYSQL = 0;
+  }
+  Driver driver = 1;
+  string user = 3;
+  string password = 4;
+  string host = 5;
+  int32 port = 6;
+  string params = 7;
+  bool debug = 8;
+  bool useSystemLog = 9;
+  string dbName = 10;
+}
+
+// 缓存配置
+message Cache {
+  enum Driver {
+    MEMORY = 0;
+    REDIS = 1;
+  }
+  Driver driver = 1;
+  // network type
+  string network = 2;
+  // address
+  string addr = 3;
+  // password
+  string password = 4;
+  // database
+  uint32 db = 5;
+  // read timeout
+  google.protobuf.Duration readTimeout = 6;
+  // write timeout
+  google.protobuf.Duration writeTimeout = 7;
+  // dial timeout
+  google.protobuf.Duration dialTimeout = 8;
+  string clientName = 9;
+  int64 protocol = 10;
+  string username = 11;
+  int64 maxRetries = 12;
+  google.protobuf.Duration minRetryBackoff = 13;
+  google.protobuf.Duration maxRetryBackoff = 14;
+  bool contextTimeoutEnabled = 15;
+  bool poolFifo = 16;
+  int64 poolSize = 17;
+  google.protobuf.Duration poolTimeout = 18;
+  int64 minIdleConns = 19;
+  int64 maxIdleConns = 20;
+  int64 maxActiveConns = 21;
+  google.protobuf.Duration connMaxIdleTime = 22;
+  google.protobuf.Duration connMaxLifetime = 23;
+  bool disableIdentity = 24;
+  string identitySuffix = 25;
+  bool unstableResp3 = 26;
+}
+
+message Crypto {
+  message AesConfig {
+    enum MODE {
+      ECB = 0;
+      CBC = 1;
+      GCM = 2;
+    }
+    string key = 1;
+    string iv = 2;
+    MODE mode = 3;
+  }
+  AesConfig aes = 1;
+}
+
+// micro server config
+message MicroServer {
+  // endpoint
+  string endpoint = 1;
+  // secret
+  optional string secret = 2;
+  // timeout
+  optional google.protobuf.Duration timeout = 3;
+  // network type, http, https, grpc
+  Network network = 4;
+  // node version
+  string version = 5;
+  // name service name
+  string name = 6;
+}
+
+// trace config
+message Tracer {
+  enum Driver {
+    // unknown
+    UNKNOWN = 0;
+    // jaeger
+    JAEGER = 1;
+  }
+  // jaeger config
+  message Jaeger {
+    // endpoint
+    string endpoint = 1;
+  }
+  // driver, support jaeger
+  Driver driver = 1;
+  // jaeger config
+  Jaeger jaeger = 2;
+}
+
+// etcd data source config
+message Etcd {
+  repeated string endpoints = 1;
+  string username = 2;
+  string password = 3;
+  google.protobuf.Duration timeout = 4;
+  google.protobuf.Duration autoSyncInterval = 5;
+  google.protobuf.Duration dialKeepAliveTime = 6;
+  google.protobuf.Duration dialKeepAliveTimeout = 7;
+  int64 maxCallSendMsgSize = 8;
+  int64 maxCallRecvMsgSize = 9;
+  bool rejectOldCluster = 10;
+  bool permitWithoutStream = 11;
+  uint64 maxUnaryRetries = 12;
+  google.protobuf.Duration backoffWaitBetween = 13;
+  double backoffJitterFraction = 14;
+}
+
+enum RegistryDriver {
+  ETCD = 0;
+}
+
+// server register config
+message Registry {
+  RegistryDriver driver = 1;
+  bool enable = 2;
+  Etcd etcd = 3;
+}
+
+// server discovery config
+message Discovery {
+  RegistryDriver driver = 1;
+  bool enable = 2;
+  Etcd etcd = 3;
+}
+
+// email config
+message EmailConfig {
+  string user = 1;
+  string pass = 2;
+  string host = 3;
+  uint32 port = 4;
+  bool enable = 5;
+  string name = 6;
+}
+
+message Log {
+  enum Driver {
+    DEFAULT = 0;
+    SUGARED = 1;
+  }
+  enum Level {
+    DEBUG = 0;
+    INFO = 1;
+    WARN = 2;
+    ERROR = 3;
+    FATAL = 4;
+  }
+  message SugaredLogConfig {
+    string format = 1;
+    string output = 2;
+    bool disableCaller = 3;
+    bool disableStacktrace = 4;
+    bool enableColor = 5;
+  }
+  Driver driver = 1;
+  Level level = 2;
+  optional SugaredLogConfig sugared = 3;
+}
+
+// oss related
+
+// minio
+message Minio{
+  string endpoint = 1;
+  string accessKeyID = 2;
+  string accessKeySecret = 3;
+  string bucketName = 4;
+  // use https
+  bool secure = 5;
+}
+
+// tencent oss
+message TencentOss{
+  string bucketURL = 1;
+  string secretID = 2;
+  string secretKey = 3;
+  int64  expiry = 4;
+  string bucketName = 5;
+  bool isPublic = 6;
+  string region = 7;
+}
+
+// ali oss
+message AliOss{
+  string endpoint = 1;
+  string accessKeyID = 2;
+  string accessKeySecret = 3;
+  string bucketName = 4;
+}
+
+// local
+message LocalStorage{
+  string  path = 1;
+  string url = 2;
+  string downloadPre = 3;
+}
+
+message Oss {
+  enum Driver {
+    UNKNOWN = 0;
+    MINIO = 1;
+    TENCENT = 2;
+    ALI = 3;
+    LOCAL = 4;
+  }
+  // file size limit
+  message Limit {
+    optional int64 maxByteSize = 1;
+    optional int64 minByteSize = 2;
+  }
+  // oss type
+  Driver driver = 1;
+  Minio minio = 2;
+  TencentOss tencentOss = 3;
+  AliOss aliOss = 4;
+  LocalStorage local = 5;
+  // file size
+  map <string, Limit> limitSize = 6;
+}
+
+// mq config
+message Event {
+  enum Driver {
+    UNKNOWN = 0;
+    // rocketmq
+    ROCKETMQ = 1;
+    // mqtt
+    MQTT = 2;
+    // kafka
+    KAFKA = 3;
+  }
+  // rocketmq配置
+  message RocketMQ {
+    // group name
+    string groupName = 1;
+    // endpoint
+    string endpoint = 2;
+    // region
+    string region = 3;
+    // access key
+    string accessKey = 4;
+    // secret key
+    string secretKey = 5;
+    // namespace
+    string namespace = 6;
+  }
+
+  // mqtt配置
+  message Mqtt {
+    // broker address
+    string  broker = 1;
+    // username
+    string  username = 2;
+    // password
+    string  password = 3;
+    // client id
+    string clientId = 4;
+    // auto reconnect
+    bool autoReconnect = 5;
+    // qos  0 1 2
+    int32  qos = 6;
+  }
+
+  // kafka配置
+  message Kafka{
+    // broker address
+    string brokers = 1;
+    // topic
+    string topic = 2;
+    // group name
+    string groupName = 3;
+    // strategy
+    string strategy = 4;
+    // username
+    string username = 5;
+    // password
+    string password = 6;
+    // enable sasl
+    bool saslEnable = 7;
+    // version
+    string version = 8;
+  }
+  // mq type
+  Driver driver = 1;
+  // rocketmq config
+  optional RocketMQ rocketMQ = 2;
+  // mqtt config
+  optional Mqtt mqtt = 3;
+  // kafka config
+  optional Kafka kafka = 4;
+}
+
+message AliyunSMSConfig {
+  string accessKeyId = 1;
+  string accessKeySecret = 2;
+  string signName = 3;
+  string endpoint = 4;
+  string name = 5;
+}

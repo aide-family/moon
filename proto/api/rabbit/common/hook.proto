@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package api.rabbit.common;
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/rabbit/common;common";
+
+enum HookAPP {
+  UNKNOWN = 0;
+  OTHER = 1;
+  DINGTALK = 2;
+  WECHAT = 3;
+  FEISHU = 4;
+}
+
+message HookConfig {
+  string name = 1;
+  HookAPP app = 2;
+  string url = 3;
+  string secret = 4;
+  string token = 5;
+  string username = 6;
+  string password = 7;
+  map<string, string> headers = 8;
+  bool enable = 9;
+}

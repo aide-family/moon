@@ -1,0 +1,43 @@
+auth:
+  jwt:
+    signKey: ${X_MOON_AUTH_JWT_SIGN_KEY:moon-jwt-sign-key}
+    issuer: ${X_MOON_AUTH_JWT_ISSUER:moon-palace}
+    expire: ${X_MOON_AUTH_JWT_EXPIRE:3600s}
+    allowOperations:
+      - /api.common.Health/Check
+      - /api.palace.Auth/GetCaptcha
+      - /api.palace.Auth/LoginByPassword
+      - /api.palace.Auth/VerifyEmail
+      - /api.palace.Auth/LoginByEmail
+      - /api.palace.Auth/OAuthLoginByEmail
+      - /api.palace.Auth/OAuth2List
+      - /api.palace.Auth/GetFilingInformation
+  captcha:
+    prefix: ${X_MOON_AUTH_CAPTCHA_PREFIX}
+    timeout: ${X_MOON_AUTH_CAPTCHA_TIMEOUT:10s}
+    expire: ${X_MOON_AUTH_CAPTCHA_EXPIRE:60s}
+  oauth2:
+    enable: ${X_MOON_AUTH_OAUTH2_ENABLE:false}
+    redirectUri: ${X_MOON_AUTH_OAUTH2_REDIRECT_URI}
+    configs:
+      - app: ${X_MOON_AUTH_OAUTH2_APP_0:0}
+        clientId: ${X_MOON_AUTH_OAUTH2_CLIENT_ID_0}
+        clientSecret: ${X_MOON_AUTH_OAUTH2_CLIENT_SECRET_0}
+        callbackUri: ${X_MOON_AUTH_OAUTH2_CALLBACK_URI_0}
+        authUrl: ${X_MOON_AUTH_OAUTH2_AUTH_URL_0}
+        tokenUrl: ${X_MOON_AUTH_OAUTH2_TOKEN_URL_0}
+        scopes: ${X_MOON_AUTH_OAUTH2_SCOPES_0:[]}
+        loginUrl: ${X_MOON_AUTH_OAUTH2_LOGIN_URL_0}
+
+      - app: ${X_MOON_AUTH_OAUTH2_APP_1:0}
+        clientId: ${X_MOON_AUTH_OAUTH2_CLIENT_ID_1}
+        clientSecret: ${X_MOON_AUTH_OAUTH2_CLIENT_SECRET_1}
+        callbackUri: ${X_MOON_AUTH_OAUTH2_CALLBACK_URI_1}
+        authUrl: ${X_MOON_AUTH_OAUTH2_AUTH_URL_1}
+        tokenUrl: ${X_MOON_AUTH_OAUTH2_TOKEN_URL_1}
+        scopes: ${X_MOON_AUTH_OAUTH2_SCOPES_1:[]}
+        loginUrl: ${X_MOON_AUTH_OAUTH2_LOGIN_URL_1}
+
+filing:
+  url: ${X_MOON_FILING_URL}
+  information: ${X_MOON_FILING_INFORMATION}

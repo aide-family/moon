@@ -1,0 +1,42 @@
+[BAD_REQUEST]
+other = ""
+
+[NOT_FOUND]
+other = ""
+
+[CAPTCHA_ERROR]
+other = ""
+
+[PARAMS_ERROR]
+other = ""
+
+[PASSWORD_ERROR]
+other = ""
+
+[PERMISSION_DENIED]
+other = ""
+
+[METHOD_NOT_ALLOWED]
+other = ""
+
+[UNAUTHORIZED]
+other = ""
+
+[INVALID_TOKEN]
+other = ""
+
+[TOKEN_EXPIRED]
+other = ""
+
+[USER_FORBIDDEN]
+other = ""
+
+[USER_NOT_FOUND]
+other = ""
+
+[INTERNAL_SERVER_ERROR]
+other = ""
+
+[INVALID_ARGUMENT]
+other = ""
+

@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+package api.palace.common;
+
+import "palace/common/team_enum.proto";
+import "palace/common/common_enum.proto";
+import "palace/common/system.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace/common;common";
+
+// TeamItem represents the structure of a team.
+message TeamItem {
+  // Unique identifier for the team.
+  uint32 teamId = 1;
+  // Universally unique identifier for the team.
+  string uuid = 2;
+  // Name of the team.
+  string name = 3;
+  // Remarks or additional information about the team.
+  string remark = 4;
+  // URL or path to the team's logo.
+  string logo = 5;
+  // Status of the team.
+  api.palace.common.TeamStatus status = 6;
+  // Information about the creator of the team.
+  api.palace.common.UserBaseItem creator = 7;
+  // Information about the leader of the team.
+  api.palace.common.UserBaseItem leader = 8;
+  // List of administrators in the team.
+  repeated api.palace.common.UserBaseItem admins = 9;
+  // Timestamp indicating when the team was created.
+  string createdAt = 10;
+  // Timestamp indicating when the team was last updated.
+  string updatedAt = 11;
+  // Total number of members in the team.
+  int64 memberCount = 12;
+  // Total number of strategies associated with the team.
+  int64 strategyCount = 13;
+  // Total number of data sources associated with the team.
+  int64 datasourceCount = 14;
+}
+
+// TeamRoleItem represents the structure of a team role.
+message TeamRoleItem {
+  // Unique identifier for the role.
+  uint32 teamRoleId = 1;
+  // Name of the role.
+  string name = 2;
+  // Remarks or additional information about the role.
+  string remark = 3;
+  // Status of the role.
+  api.palace.common.GlobalStatus status = 4;
+  // List of resources associated with the role.
+  repeated api.palace.common.ResourceItem resources = 5;
+  // List of members assigned to the role.
+  repeated TeamMemberItem members = 6;
+  // Timestamp indicating when the role was created.
+  string createdAt = 7;
+  // Timestamp indicating when the role was last updated.
+  string updatedAt = 8;
+  UserBaseItem creator = 9;
+}
+
+// TeamMemberItem represents the structure of a team member.
+message TeamMemberItem {
+  // Unique identifier for the member.
+  uint32 teamMemberId = 1;
+  // Information about the user who is a member.
+  api.palace.common.UserBaseItem user = 2;
+  // Position of the member within the team.
+  api.palace.common.MemberPosition position = 3;
+  // Status of the member.
+  api.palace.common.MemberStatus status = 4;
+  // Information about the user who invited the member.
+  api.palace.common.UserBaseItem inviter = 5;
+  // List of roles assigned to the member.
+  repeated TeamRoleItem roles = 6;
+  // Timestamp indicating when the member was added to the team.
+  string createdAt = 7;
+  // Timestamp indicating when the member's information was last updated.
+  string updatedAt = 8;
+}
+
+message TeamMemberBaseItem {
+  uint32 teamMemberId = 1;
+  string memberName = 2;
+  string remark = 3;
+  api.palace.common.MemberPosition position = 4;
+  api.palace.common.MemberStatus status = 5;
+  string createdAt = 6;
+  string updatedAt = 7;
+  api.palace.common.UserBaseItem user = 8;
+}
+
+message TeamDashboardItem {
+  uint32 teamDashboardId = 1;
+  string name = 2;
+  string remark = 3;
+  api.palace.common.GlobalStatus status = 4;
+  string colorHex = 5;
+  string createdAt = 6;
+  string updatedAt = 7;
+}
+
+message TeamDashboardChartItem {
+  uint32 teamDashboardChartId = 1;
+  uint32 dashboardId = 2;
+  string title = 3;
+  string remark = 4;
+  api.palace.common.GlobalStatus status = 5;
+  string url = 6;
+  string width = 7;
+  string height = 8;
+  string createdAt = 9;
+  string updatedAt = 10;
+}

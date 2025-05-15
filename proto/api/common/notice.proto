@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package api.common;
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/common;common";
+
+enum NoticeType {
+  NOTICE_TYPE_UNKNOWN = 0;
+  NOTICE_TYPE_EMAIL = 1;
+  NOTICE_TYPE_SMS = 2;
+  NOTICE_TYPE_VOICE = 3;
+  NOTICE_TYPE_HOOK_DINGTALK = 4;
+  NOTICE_TYPE_HOOK_WECHAT = 5;
+  NOTICE_TYPE_HOOK_FEISHU = 6;
+  NOTICE_TYPE_HOOK_WEBHOOK = 7;
+}

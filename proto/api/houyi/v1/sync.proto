@@ -1,0 +1,151 @@
+syntax = "proto3";
+
+package api.houyi.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "houyi/common/strategy.proto";
+import "houyi/common/datasource.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/houyi/v1;v1";
+
+service Sync {
+  rpc MetricStrategy (MetricStrategyRequest) returns (SyncReply) {
+    option (google.api.http) = {
+      post: "/v1/sync/strategy/metric"
+      body: "*"
+    };
+  }
+
+  rpc CertificateStrategy (CertificateStrategyRequest) returns (SyncReply) {
+    option (google.api.http) = {
+      post: "/v1/sync/strategy/certificate"
+      body: "*"
+    };
+  }
+
+  rpc ServerPortStrategy (ServerPortStrategyRequest) returns (SyncReply) {
+    option (google.api.http) = {
+      post: "/v1/sync/strategy/server-port"
+      body: "*"
+    };
+  }
+
+  rpc HttpStrategy (HttpStrategyRequest) returns (SyncReply) {
+    option (google.api.http) = {
+      post: "/v1/sync/strategy/http"
+      body: "*"
+    };
+  }
+
+  rpc PingStrategy (PingStrategyRequest) returns (SyncReply) {
+    option (google.api.http) = {
+      post: "/v1/sync/strategy/ping"
+      body: "*"
+    };
+  }
+
+  rpc EventStrategy (EventStrategyRequest) returns (SyncReply) {
+    option (google.api.http) = {
+      post: "/v1/sync/strategy/event"
+      body: "*"
+    };
+  }
+
+  rpc LogsStrategy (LogsStrategyRequest) returns (SyncReply) {
+    option (google.api.http) = {
+      post: "/v1/sync/strategy/logs"
+      body: "*"
+    };
+  }
+
+  rpc RemoveStrategy (RemoveStrategyRequest) returns (SyncReply) {
+    option (google.api.http) = {
+      post: "/v1/remove/strategy"
+      body: "*"
+    };
+  }
+
+  rpc MetricDatasource(MetricDatasourceRequest) returns (SyncReply) {
+    option (google.api.http) = {
+      post: "/v1/sync/datasource/metric"
+      body: "*"
+    };
+  }
+
+  rpc LogsDatasource(LogsDatasourceRequest) returns (SyncReply) {
+    option (google.api.http) = {
+      post: "/v1/sync/datasource/logs"
+      body: "*"
+    };
+  }
+
+  rpc EventDatasource(EventDatasourceRequest) returns (SyncReply) {
+    option (google.api.http) = {
+      post: "/v1/sync/datasource/event"
+      body: "*"
+    };
+  }
+
+  rpc MetricMetadata(MetricMetadataRequest) returns (SyncReply) {
+    option (google.api.http) = {
+      post: "/v1/sync/metadata/metric"
+      body: "*"
+    };
+  }
+}
+
+message MetricStrategyRequest {
+  google.protobuf.Timestamp syncTime = 1;
+  houyi.common.MetricStrategyItem strategies = 2;
+}
+message CertificateStrategyRequest {
+  google.protobuf.Timestamp syncTime = 1;
+  houyi.common.CertificateStrategyItem strategies = 2;
+}
+message ServerPortStrategyRequest {
+  google.protobuf.Timestamp syncTime = 1;
+  houyi.common.ServerPortStrategyItem strategies = 2;
+}
+message HttpStrategyRequest {
+  google.protobuf.Timestamp syncTime = 1;
+  houyi.common.HttpStrategyItem strategies = 2;
+}
+message PingStrategyRequest {
+  google.protobuf.Timestamp syncTime = 1;
+  houyi.common.PingStrategyItem strategies = 2;
+}
+message EventStrategyRequest {
+  google.protobuf.Timestamp syncTime = 1;
+  houyi.common.EventStrategyItem strategies = 2;
+}
+message LogsStrategyRequest {
+  google.protobuf.Timestamp syncTime = 1;
+  houyi.common.LogsStrategyItem strategies = 2;
+}
+message RemoveStrategyRequest {
+  google.protobuf.Timestamp syncTime = 1;
+  repeated houyi.common.RemoveStrategyItem strategies = 2;
+}
+
+message MetricDatasourceRequest {
+  repeated common.MetricDatasourceItem items = 1;
+}
+
+message LogsDatasourceRequest {
+  repeated common.LogDatasourceItem items = 1;
+}
+
+message EventDatasourceRequest {
+  repeated common.EventDatasourceItem items = 1;
+}
+
+message MetricMetadataRequest {
+  common.MetricDatasourceItem item = 1;
+  uint32 operatorId = 2;
+}
+
+message SyncReply {
+  int32 code = 1;
+  string message = 2;
+}

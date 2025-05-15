@@ -1,0 +1,10 @@
+auth:
+  jwt:
+    signKey: ${X_MOON_RABBIT_AUTH_JWT_SIGN_KEY:rabbit-sign-key}
+    issuer: ${X_MOON_RABBIT_AUTH_JWT_ISSUER:moon.rabbit}
+    expire: ${X_MOON_RABBIT_AUTH_JWT_EXPIRE:3600s}
+    allowOperations:
+      - /api.common.Health/Check
+  tokens:
+    - token: ${X_MOON_RABBIT_AUTH_TOKEN_0:rabbit-token-0}
+      name: ${X_MOON_RABBIT_AUTH_TOKEN_NAME_0:palace-to-rabbit}

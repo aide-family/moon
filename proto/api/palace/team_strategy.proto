@@ -1,0 +1,306 @@
+syntax = "proto3";
+
+package api.palace;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "palace/common/common.proto";
+import "palace/common/common_enum.proto";
+import "palace/common/team_strategy.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
+
+// TeamStrategy service provides operations for managing team strategy groups and strategies
+service TeamStrategy {
+  // SaveTeamStrategyGroup saves a new team strategy group or updates an existing one
+  rpc SaveTeamStrategyGroup (SaveTeamStrategyGroupRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/team/strategy/group"
+      body: "*"
+    };
+  }
+
+  // UpdateTeamStrategyGroupStatus updates the status of a team strategy group
+  rpc UpdateTeamStrategyGroupStatus (UpdateTeamStrategyGroupStatusRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/team/strategy/group/status"
+      body: "*"
+    };
+  }
+
+  // DeleteTeamStrategyGroup deletes a team strategy group by Id
+  rpc DeleteTeamStrategyGroup (DeleteTeamStrategyGroupRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      delete: "/api/team/strategy/group"
+    };
+  }
+
+  // GetTeamStrategyGroup retrieves a team strategy group by Id
+  rpc GetTeamStrategyGroup (GetTeamStrategyGroupRequest) returns (api.palace.common.TeamStrategyGroupItem) {
+    option (google.api.http) = {
+      get: "/api/team/strategy/group"
+    };
+  }
+
+  // ListTeamStrategyGroup lists team strategy groups based on specified filters
+  rpc ListTeamStrategyGroup (ListTeamStrategyGroupRequest) returns (ListTeamStrategyGroupReply) {
+    option (google.api.http) = {
+      post: "/api/team/strategy/group/list"
+      body: "*"
+    };
+  }
+
+  // SaveTeamStrategy saves a new team strategy or updates an existing one
+  rpc SaveTeamStrategy (SaveTeamStrategyRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/team/strategy"
+      body: "*"
+    };
+  }
+
+  // SaveTeamMetricStrategy saves a new team metric strategy or updates an existing one
+  rpc SaveTeamMetricStrategy (SaveTeamMetricStrategyRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/team/strategy/metric"
+      body: "*"
+    };
+  }
+
+  // SaveTeamMetricStrategyLevels saves a new team metric strategy level or updates an existing one
+  rpc SaveTeamMetricStrategyLevels (SaveTeamMetricStrategyLevelsRequest) returns (SaveTeamMetricStrategyLevelsReply) {
+    option (google.api.http) = {
+      post: "/api/team/strategy/metric/levels"
+      body: "*"
+    };
+  }
+
+  // UpdateTeamStrategiesStatus updates the status of multiple team strategies
+  rpc UpdateTeamStrategiesStatus (UpdateTeamStrategiesStatusRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/team/strategy/status"
+      body: "*"
+    };
+  }
+
+  // DeleteTeamStrategy deletes a team strategy by Id
+  rpc DeleteTeamStrategy (OperateTeamStrategyRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      delete: "/api/team/strategy"
+    };
+  }
+
+  // GetTeamStrategy retrieves a team strategy by Id
+  rpc GetTeamMetricStrategy (OperateTeamStrategyRequest) returns (api.palace.common.TeamStrategyMetricItem) {
+    option (google.api.http) = {
+      get: "/api/team/strategy/metric"
+    };
+  }
+
+  // ListTeamStrategy lists team strategies based on specified filters
+  rpc ListTeamStrategy (ListTeamStrategyRequest) returns (ListTeamStrategyReply) {
+    option (google.api.http) = {
+      post: "/api/team/strategy/list"
+      body: "*"
+    };
+  }
+
+  // SubscribeTeamStrategy subscribes or unsubscribes from a team strategy
+  rpc SubscribeTeamStrategy (SubscribeTeamStrategyRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/team/strategy/subscribe"
+      body: "*"
+    };
+  }
+
+  // SubscribeTeamStrategies subscribes or unsubscribes from multiple team strategies
+  rpc SubscribeTeamStrategies (SubscribeTeamStrategiesRequest) returns (SubscribeTeamStrategiesReply) {
+    option (google.api.http) = {
+      post: "/api/team/strategy/subscribe/list"
+      body: "*"
+    };
+  }
+}
+
+// SaveTeamStrategyGroupRequest represents the request data for saving or updating a team strategy group
+message SaveTeamStrategyGroupRequest {
+  // Strategy group Id, optional for new groups
+  uint32 groupId = 1;
+  // Strategy group name
+  string name = 2 [(buf.validate.field).string.max_len = 128];
+  // Strategy group remark or description
+  string remark = 3 [(buf.validate.field).string.max_len = 255];
+}
+
+// UpdateTeamStrategyGroupStatusRequest represents the request data for updating the status of a team strategy group
+message UpdateTeamStrategyGroupStatusRequest {
+  // Strategy group Id
+  uint32 groupId = 1;
+  // New status for the strategy group
+  api.palace.common.GlobalStatus status = 2;
+}
+
+// DeleteTeamStrategyGroupRequest represents the request data for deleting a team strategy group
+message DeleteTeamStrategyGroupRequest {
+  // Strategy group Id
+  uint32 groupId = 1 [(buf.validate.field).required = true];
+}
+
+// GetTeamStrategyGroupRequest represents the request data for retrieving a team strategy group
+message GetTeamStrategyGroupRequest {
+  // Strategy group Id
+  uint32 groupId = 1 [(buf.validate.field).required = true];
+}
+
+// ListTeamStrategyGroupRequest represents the request data for listing team strategy groups
+message ListTeamStrategyGroupRequest {
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 1;
+  // Keyword to search strategy groups by
+  string keyword = 2 [(buf.validate.field).string.max_len = 20];
+  // List of statuses to filter strategy groups by
+  repeated api.palace.common.GlobalStatus status = 3;
+}
+
+// ListTeamStrategyGroupReply contains the response data for listing team strategy groups
+message ListTeamStrategyGroupReply {
+  // List of strategy group items
+  repeated api.palace.common.TeamStrategyGroupItem items = 1;
+  // Pagination response details
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+message SaveTeamStrategyRequest {
+  // Strategy item Id, optional for new items
+  uint32 strategyId = 1;
+  // Strategy item name
+  string name = 2 [(buf.validate.field).string.max_len = 128];
+  // Strategy item remark or description
+  string remark = 3 [(buf.validate.field).string.max_len = 255];
+  // Strategy item type
+  api.palace.common.StrategyType strategyType = 4;
+  // Receiver routes
+  repeated uint32 receiverRoutes = 5;
+  // Group id
+  uint32 groupId = 6 [(buf.validate.field).required = true];
+}
+
+// SaveTeamMetricStrategyRequest represents the request data for saving or updating a team metric strategy
+message SaveTeamMetricStrategyRequest {
+  // Strategy id
+  uint32 strategyId = 1 [(buf.validate.field).required = true];
+  // Metric strategy id
+  uint32 metricStrategyId = 2;
+  // Expression
+  string expr = 3 [(buf.validate.field).string.min_len = 1];
+  // Labels
+  map<string, string> labels = 4;
+  // Annotations
+  map<string, string> annotations = 5;
+  // Datasource
+  repeated uint32 datasource = 6;
+}
+
+message LabelNotices {
+  string key = 2;
+  string value = 3;
+  repeated uint32 receiverRoutes = 4;
+}
+
+message SaveTeamMetricStrategyLevelRequest {
+  // Level Id
+  uint32 levelId = 1;
+  // Level name
+  string levelName = 2 [(buf.validate.field).string.max_len = 128];
+  // Sample mode
+  api.palace.common.SampleMode sampleMode = 3;
+  // Total
+  int64 total = 4;
+  // Condition
+  api.palace.common.ConditionMetric condition = 5;
+  // Values
+  repeated double values = 6;
+  // Receiver routes
+  repeated uint32 receiverRoutes = 7;
+  // Label notices
+  repeated LabelNotices labelNotices = 8;
+  // Duration
+  google.protobuf.Duration duration = 9;
+  // Status
+  api.palace.common.GlobalStatus status = 10;
+  // Id
+  uint32 strategyMetricLevelId = 11;
+  // alarm pages
+  repeated uint32 alarmPages = 12;
+}
+
+message SaveTeamMetricStrategyLevelsRequest {
+  // Strategy metric id
+  uint32 strategyMetricId = 1;
+  // Levels
+  repeated SaveTeamMetricStrategyLevelRequest levels = 2;
+}
+
+message SaveTeamMetricStrategyLevelsReply {
+  // Levels
+  repeated api.palace.common.TeamStrategyMetricItem.RuleItem levels = 1;
+  string message = 2;
+}
+
+message UpdateTeamStrategiesStatusRequest {
+  // Strategy ids
+  repeated uint32 strategyIds = 1;
+  // Status
+  api.palace.common.GlobalStatus status = 2;
+}
+
+message OperateTeamStrategyRequest {
+  // Strategy id
+  uint32 strategyId = 1;
+  // strategy type
+  api.palace.common.StrategyType strategyType = 2;
+}
+
+message ListTeamStrategyRequest {
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 1;
+  // Keyword to search strategies by
+  string keyword = 2 [(buf.validate.field).string.max_len = 20];
+  // List of statuses to filter strategies by
+  api.palace.common.GlobalStatus status = 3;
+  // Group id
+  repeated uint32 groupIds = 4;
+  // Strategy type
+  repeated api.palace.common.StrategyType strategyTypes = 5;
+}
+
+message ListTeamStrategyReply {
+  // List of strategy items
+  repeated api.palace.common.TeamStrategyItem items = 1;
+  // Pagination response details
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+message SubscribeTeamStrategyRequest {
+  // Strategy id
+  uint32 strategyId = 1;
+  // subscribe type
+  api.palace.common.NoticeType subscribeType = 2;
+}
+
+message SubscribeTeamStrategiesRequest {
+  // Strategy id
+  uint32 strategyId = 1;
+  // subscribers
+  repeated uint32 subscribers = 2;
+  // subscribe type
+  api.palace.common.NoticeType subscribeType = 3;
+  api.palace.common.PaginationRequest pagination = 4;
+}
+
+message SubscribeTeamStrategiesReply {
+  // subscribers
+  repeated api.palace.common.SubscriberItem items = 1;
+  // pagination
+  api.palace.common.PaginationReply pagination = 2;
+}

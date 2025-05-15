@@ -1,0 +1,158 @@
+syntax = "proto3";
+
+package api.palace.common;
+
+import "palace/common/system_enum.proto";
+import "palace/common/common_enum.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace/common;common";
+
+// system-api
+message ResourceItem {
+  // Unique identifier for the API resource
+  uint32 resourceId = 1;
+  // Name of the API resource
+  string name = 2;
+  // Path of the API resource
+  string path = 3;
+  // Status of the API resource
+  api.palace.common.GlobalStatus status = 4;
+  // Remarks about the API resource
+  string remark = 5;
+  // Creation time of the API resource
+  string createdAt = 6;
+  // Last update time of the API resource
+  string updatedAt = 7;
+  api.palace.common.ResourceAllow allow = 8;
+  repeated MenuTreeItem menus = 9;
+}
+
+message UserBaseItem {
+  // User's login name
+  string username = 1;
+  // User's nickname
+  string nickname = 2;
+  // User's avatar URL
+  string avatar = 3;
+  // User's gender
+  api.palace.common.Gender gender = 4;
+  // User's unique identifier
+  uint32 userId = 5;
+}
+
+message UserItem {
+  // User's login name
+  string username = 1;
+  // User's nickname
+  string nickname = 2;
+  // User's avatar URL
+  string avatar = 3;
+  // User's gender
+  api.palace.common.Gender gender = 4;
+  // User's email address (encrypted)
+  string email = 5;
+  // User's phone number (encrypted)
+  string phone = 6;
+  // Remarks about the user
+  string remark = 7;
+  // User's position/role in the system
+  api.palace.common.UserPosition position = 8;
+  // User's status
+  api.palace.common.UserStatus status = 9;
+  // User's creation time
+  string createdAt = 10;
+  // User's last update time
+  string updatedAt = 11;
+  // User's unique identifier
+  uint32 userId = 12;
+}
+
+message SystemRoleItem {
+  // Unique identifier for the system role
+  uint32 roleId = 1;
+  // Name of the system role
+  string name = 2;
+  // Remarks about the system role
+  string remark = 3;
+  // Status of the system role
+  api.palace.common.GlobalStatus status = 4;
+  // Creation time of the system role
+  string createdAt = 5;
+  // Last update time of the system role
+  string updatedAt = 6;
+  // List of resources associated with the system role
+  repeated ResourceItem resources = 7;
+  // List of users assigned to the system role
+  repeated UserBaseItem users = 8;
+  UserBaseItem creator = 9;
+}
+
+message TeamBaseItem {
+  // Unique identifier for the team
+  uint32 teamId = 1;
+  // Name of the team
+  string name = 2;
+  // Remarks about the team
+  string remark = 3;
+  // Logo URL of the team
+  string logo = 4;
+}
+
+message TeamAuditItem {
+  // Unique identifier for the team audit record
+  uint32 teamAuditId = 1;
+  // User information of the audit requester
+  UserBaseItem user = 2;
+  // Status of the team audit
+  api.palace.common.TeamAuditStatus status = 3;
+  // Reason for the audit result
+  string reason = 4;
+  // Creation time of the audit record
+  string createdAt = 5;
+  // Team information being audited
+  TeamBaseItem team = 6;
+  api.palace.common.TeamAuditAction action = 7;
+}
+
+// OperateLogItem represents the structure of an operation log item.
+message OperateLogItem {
+  // Unique identifier for the operation log.
+  uint32 operateLogId = 1;
+  // Operator information of the operation requester
+  UserBaseItem operator = 2;
+  // Type of the operation
+  api.palace.common.OperateType type = 3;
+  // ResourceModule of the operation
+  api.palace.common.ResourceModule module = 4;
+  // DataId of the operation
+  uint32 dataId = 5;
+  // DataName of the operation
+  string dataName = 6;
+  // OperateTime of the operation
+  string operateTime = 7;
+  // Title of the operation
+  string title = 8;
+  // Before of the operation
+  string before = 9;
+  // After of the operation
+  string after = 10;
+  // IP of the operation
+  string ip = 11;
+}
+
+message MenuTreeItem {
+  // Unique identifier for the menu tree item
+  uint32 menuId = 1;
+  // Name of the menu tree item
+  string name = 2;
+  // Path of the menu tree item
+  string path = 3;
+  // Status of the menu tree item
+  api.palace.common.GlobalStatus status = 4;
+  // Icon of the menu tree item
+  string icon = 5;
+  // children of the menu tree item
+  repeated MenuTreeItem children = 6;
+  api.palace.common.MenuType menuType = 7;
+  repeated ResourceItem resources = 8;
+}

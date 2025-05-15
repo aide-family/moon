@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+package api.palace;
+
+import "google/api/annotations.proto";
+import "google/protobuf/duration.proto";
+import "buf/validate/validate.proto";
+import "palace/common/common_enum.proto";
+import "palace/common/common.proto";
+import "palace/common/team_datasource.proto";
+import "common/metric.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
+
+service TeamDatasource {
+  rpc SaveTeamMetricDatasource(SaveTeamMetricDatasourceRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/team/metric/datasource"
+      body: "*"
+    };
+  }
+  rpc UpdateTeamMetricDatasourceStatus (UpdateTeamMetricDatasourceStatusRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/team/metric/datasource/status"
+      body: "*"
+    };
+  }
+  rpc DeleteTeamMetricDatasource (DeleteTeamMetricDatasourceRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      delete: "/api/team/metric/datasource"
+    };
+  }
+  rpc GetTeamMetricDatasource (GetTeamMetricDatasourceRequest) returns (api.palace.common.TeamMetricDatasourceItem) {
+    option (google.api.http) = {
+      get: "/api/team/metric/datasource"
+    };
+  }
+  rpc ListTeamMetricDatasource (ListTeamMetricDatasourceRequest) returns (ListTeamMetricDatasourceReply) {
+    option (google.api.http) = {
+      post: "/api/team/metric/datasource/list"
+      body: "*"
+    };
+  }
+  rpc SyncMetricMetadata (SyncMetricMetadataRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/team/metric/datasource/sync/metadata"
+      body: "*"
+    };
+  }
+  rpc MetricDatasourceQuery (MetricDatasourceQueryRequest) returns (api.common.MetricDatasourceQueryReply) {
+    option (google.api.http) = {
+      post: "/api/team/metric/datasource/query"
+      body: "*"
+    };
+  }
+}
+
+message SaveTeamMetricDatasourceRequest {
+  api.palace.common.DatasourceDriverMetric metricDatasourceDriver = 1;
+  uint32 datasourceId = 2;
+  string name = 3 [(buf.validate.field).string = {
+    max_len: 20,
+    min_len: 1,
+  }];
+  string remark = 4 [(buf.validate.field).string = {
+    max_len: 200,
+  }];
+  string endpoint = 5 [(buf.validate.field).string = {
+    max_len: 255,
+    min_len: 1,
+    uri: true,
+  }];
+  google.protobuf.Duration scrapeInterval = 6;
+  map<string, string> headers = 7;
+  api.palace.common.HTTPMethod queryMethod = 8 [(buf.validate.field).required = true];
+  string ca = 9;
+  api.palace.common.TLS tls = 10;
+  api.palace.common.BasicAuth basicAuth = 11;
+  map<string, string> extra = 12;
+}
+
+message UpdateTeamMetricDatasourceStatusRequest {
+  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
+    gt: 0,
+  }];
+  api.palace.common.GlobalStatus status = 2 [(buf.validate.field).required = true];
+}
+
+message DeleteTeamMetricDatasourceRequest {
+  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
+    gt: 0,
+  }];
+}
+
+message GetTeamMetricDatasourceRequest {
+  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
+    gt: 0,
+  }];
+}
+
+message ListTeamMetricDatasourceRequest {
+  api.palace.common.PaginationRequest pagination = 1;
+  string keyword = 2 [(buf.validate.field).string = {
+    max_len: 20,
+  }];
+  api.palace.common.GlobalStatus status = 3;
+  api.palace.common.DatasourceDriverMetric driver = 4;
+}
+message ListTeamMetricDatasourceReply {
+  api.palace.common.PaginationReply pagination = 1;
+  repeated api.palace.common.TeamMetricDatasourceItem items = 2;
+}
+
+message SyncMetricMetadataRequest {
+  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
+    gt: 0,
+  }];
+}
+
+message MetricDatasourceQueryRequest {
+  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
+    gt: 0,
+  }];
+  string expr = 2;
+  int64 time = 3;
+  int64 startTime = 4;
+  int64 endTime = 5;
+  uint32 step = 6;
+}
+
+message MetricDatasourceProxyRequest {
+  uint32 datasourceId = 1 [(buf.validate.field).required = true];
+  uint32 teamId = 2 [(buf.validate.field).required = true];
+  string target = 3;
+}

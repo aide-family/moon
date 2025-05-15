@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package api.common;
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/common;common";
+
+enum AlertStatus {
+	ALERT_STATUS_UNKNOWN = 0;
+	pending = 1;
+	firing = 2;
+	resolved = 3;
+}
+
+message AlertItem {
+	// status of the alert
+	AlertStatus status = 1;
+	// labels of the alert
+	map<string, string> labels = 2;
+	// annotations of the alert
+	map<string, string> annotations = 3;
+	// startsAt of the alert
+	string startsAt = 4;
+	// endsAt of the alert
+	string endsAt = 5;
+	// generatorURL of the alert
+	string generatorURL = 6;
+	// fingerprint of the alert
+	string fingerprint = 7;
+	// value of the alert
+	string value = 8;	
+}
+
+message AlertsItem {
+	string receiver = 1;
+	AlertStatus status = 2;
+	repeated AlertItem alerts = 3;
+	map<string, string> groupLabels = 4;
+	map<string, string> commonLabels = 5;
+	map<string, string> commonAnnotations = 6;
+	string externalURL = 7;
+	string version = 8;
+	string groupKey = 9;
+	int32 truncatedAlerts = 10;
+}

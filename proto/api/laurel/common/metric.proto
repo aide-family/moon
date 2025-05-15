@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package api.laurel.common;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/laurel/common;common";
+
+enum MetricType {
+	METRIC_TYPE_UNKNOWN = 0;
+	METRIC_TYPE_COUNTER = 1;
+	METRIC_TYPE_GAUGE = 2;
+	METRIC_TYPE_HISTOGRAM = 3;
+	METRIC_TYPE_SUMMARY = 4;
+}
+
+message MetricData {
+	MetricType metricType = 1;
+	string namespace = 2 [(buf.validate.field).string = {
+		min_len: 1,
+		max_len: 32
+	}];
+	string subSystem = 3 [(buf.validate.field).string = {
+		min_len: 1,
+		max_len: 32
+	}];
+	string name = 4 [(buf.validate.field).string = {
+		min_len: 1,
+		max_len: 32
+	}];
+	map<string, string> labels = 5;
+	double value = 6;
+}
+
+message MetricVec {
+	message Objective {
+		double quantile = 1;
+		double value = 2;
+	}
+	MetricType metricType = 1;
+	string namespace = 2 [(buf.validate.field).string = {
+		min_len: 1,
+		max_len: 32
+	}];
+	string subSystem = 3 [(buf.validate.field).string = {
+		min_len: 1,
+		max_len: 32
+	}];
+	string name = 4 [(buf.validate.field).string = {
+		min_len: 1,
+		max_len: 32
+	}];
+	repeated string labels = 5;
+	string help = 6 [(buf.validate.field).string = {
+		min_len: 1,
+		max_len: 255
+	}];
+	repeated double nativeHistogramBuckets = 7;
+	double nativeHistogramBucketFactor = 8;
+	double nativeHistogramZeroThreshold = 9;
+	uint32 nativeHistogramMaxBucketNumber = 10;
+	int64 nativeHistogramMinResetDuration = 11;
+	double nativeHistogramMaxZeroThreshold = 12;
+	int64 nativeHistogramMaxExemplars = 13;
+	int64 nativeHistogramExemplarTTL = 14;
+	repeated Objective summaryObjectives = 15;
+	int64 summaryMaxAge = 16;
+	uint32 summaryAgeBuckets = 17;
+	uint32 summaryBufCap = 18;
+}

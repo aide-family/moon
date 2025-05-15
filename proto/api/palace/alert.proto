@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package api.palace;
+
+import "google/api/annotations.proto";
+import "common/alert.proto";
+import "palace/common/common.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
+
+service Alert {
+	rpc PushAlert (api.common.AlertItem) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+			post: "/api/alert/push"
+			body: "*"
+		};
+	}
+	rpc ListAlerts (ListAlertParams) returns (ListAlertReply) {
+		option (google.api.http) = {
+			post: "/api/alert/list"
+			body: "*"
+		};
+	}
+}
+
+message ListAlertParams {
+	api.palace.common.PaginationRequest pagination = 1;
+	repeated string timeRange = 2;
+	string fingerprint = 3;
+	string keyword = 4;
+	api.common.AlertStatus status = 5;
+}
+
+message RealtimeAlertItem {
+	uint32 alertId = 1;
+	api.common.AlertStatus status = 2;
+	string fingerprint = 3;
+	map<string, string> labels = 4;
+	string summary = 5;
+	string description = 6;
+	string value = 7;
+	string generatorURL = 8;
+	string startsAt = 9;
+	string endsAt = 10;
+}
+
+message ListAlertReply {
+	api.palace.common.PaginationReply pagination = 1;
+	repeated RealtimeAlertItem items = 2;
+}

@@ -1,0 +1,44 @@
+environment: ${X_MOON_ENVIRONMENT:DEV}
+
+server:
+  name: ${X_MOON_SERVER_NAME:palace}
+  metadata:
+    summary: ${X_MOON_SUMMARY}
+  http:
+    network: ${X_MOON_HTTP_NETWORK:tcp}
+    addr: ${X_MOON_HTTP_ADDR:0.0.0.0:8080}
+    timeout: ${X_MOON_HTTP_TIMEOUT:5s}
+    allowHeaders:
+      - Origin
+      - Content-Length
+      - Content-Type
+      - Authorization
+      - Content-Type-Original
+      - Accept
+      - user-agent
+      - User-Agent
+      - Referer
+      - Accept-Encoding
+      - Accept-Language
+      - X-Requested-With
+      - X-Team-ID
+    allowMethods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+    allowOrigins: ${X_MOON_HTTP_ALLOW_ORIGINS:['*']}
+
+  grpc:
+    network: ${X_MOON_GRPC_NETWORK:tcp}
+    addr: ${X_MOON_GRPC_ADDR:0.0.0.0:9090}
+    timeout: ${X_MOON_GRPC_TIMEOUT:5s}
+
+registry:
+  driver: ${X_MOON_REGISTRY_DRIVER:ETCD}
+  enable: ${X_MOON_REGISTRY_ENABLE:false}
+  etcd:
+    endpoints: ${X_MOON_REGISTRY_ETCD_ENDPOINTS:['127.0.0.1:2379']}
+    timeout: ${X_MOON_REGISTRY_ETCD_TIMEOUT:5s}
+    username: ${X_MOON_REGISTRY_ETCD_USERNAME}
+    password: ${X_MOON_REGISTRY_ETCD_PASSWORD}

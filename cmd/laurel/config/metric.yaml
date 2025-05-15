@@ -1,0 +1,17 @@
+metricVecs:
+  - type: COUNTER
+    namespace: moon
+    subSystem: laurel
+    name: requests_total
+    labels:
+      - method
+      - code
+    help: 'The total number of requests'
+
+  - type: GAUGE
+    namespace: moon
+    subSystem: laurel
+    name: status_count
+    labels:
+      - status
+    help: 'The number of status'

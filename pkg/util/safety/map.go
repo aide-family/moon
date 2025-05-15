@@ -2,21 +2,29 @@ package safety
 
 import (
 	"sync"
+
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
-// NewMap 创建一个安全的map
-func NewMap[K comparable, T any]() *Map[K, T] {
-	return &Map[K, T]{
+// NewMap Create a thread-safe map.
+func NewMap[K comparable, T any](ms ...map[K]T) *Map[K, T] {
+	s := &Map[K, T]{
 		m: new(sync.Map),
 	}
+	for _, m := range ms {
+		for k, v := range m {
+			s.Set(k, v)
+		}
+	}
+	return s
 }
 
-// Map 安全的map
+// Map a thread-safe map.
 type Map[K comparable, T any] struct {
 	m *sync.Map
 }
 
-// Get 获取map中的值
+// Get Retrieve the value from the map.
 func (m *Map[K, T]) Get(key K) (T, bool) {
 	v, ok := m.m.Load(key)
 	if !ok {
@@ -26,17 +34,17 @@ func (m *Map[K, T]) Get(key K) (T, bool) {
 	return v.(T), true
 }
 
-// Set 设置map中的值
+// Set the value in the map.
 func (m *Map[K, T]) Set(key K, value T) {
 	m.m.Store(key, value)
 }
 
-// Delete 删除map中的值
+// Delete the value from the map.
 func (m *Map[K, T]) Delete(key K) {
 	m.m.Delete(key)
 }
 
-// List 获取map中的所有值
+// List Retrieve all values from the map.
 func (m *Map[K, T]) List() map[K]T {
 	values := make(map[K]T)
 	m.m.Range(func(key, value any) bool {
@@ -46,7 +54,16 @@ func (m *Map[K, T]) List() map[K]T {
 	return values
 }
 
-// Clear 清空map
+// Clear the map.
 func (m *Map[K, T]) Clear() {
 	m.m.Clear()
+}
+
+func (m *Map[K, T]) First() (T, bool) {
+	var first T
+	m.m.Range(func(key, value any) bool {
+		first = value.(T)
+		return false
+	})
+	return first, validate.IsNotNil(first)
 }

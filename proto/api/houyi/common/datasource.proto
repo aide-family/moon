@@ -1,0 +1,179 @@
+syntax = "proto3";
+
+package api.houyi.common;
+
+import "google/protobuf/duration.proto";
+import "houyi/common/team.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/houyi/common;common";
+
+message BasicAuth {
+  string username = 1;
+  string password = 2;
+}
+
+message TLS {
+  string serverName = 1;
+  string clientCertificate = 2;
+  string clientKey = 3;
+}
+
+enum DatasourceQueryMethod {
+  DATASOURCE_QUERY_METHOD_UNKNOWN = 0;
+  POST = 1;
+  PUT = 2;
+  GET = 3;
+  DELETE = 4;
+}
+
+enum MetricDatasourceDriver {
+  // unknown
+  METRIC_DATASOURCE_DRIVER_UNKNOWN = 0;
+  // prometheus
+  PROMETHEUS = 1;
+  // victoria metrics
+  VICTORIAMETRICS = 2;
+}
+
+message MetricDatasourceItem {
+  message Prometheus {
+    string endpoint = 1;
+    BasicAuth basicAuth = 2;
+    map<string, string> headers = 3;
+    string ca = 4;
+    TLS tls = 5;
+    DatasourceQueryMethod method = 6;
+  }
+
+  message VictoriaMetrics {
+    string endpoint = 1;
+    BasicAuth basicAuth = 2;
+    map<string, string> headers = 3;
+    string ca = 4;
+    TLS tls = 5;
+    DatasourceQueryMethod method = 6;
+  }
+
+  houyi.common.TeamItem team = 1;
+  MetricDatasourceDriver driver = 2;
+  Prometheus prometheus = 3;
+  VictoriaMetrics victoriaMetrics = 4;
+  bool enable = 5;
+  uint32 id = 6;
+  string name = 7;
+  google.protobuf.Duration scrapeInterval = 8;
+}
+
+enum LogDatasourceDriver {
+  // unknown
+  LOG_DATASOURCE_DRIVER_UNKNOWN = 0;
+  // aliyun
+  ALIYUN = 1;
+  // elasticsearch
+  ES = 2;
+  // loki
+  LOKI = 3;
+}
+
+message LogDatasourceItem {
+  message AliCloud {
+    string endpoint = 1;
+    string accessKey = 2;
+    string accessSecret = 3;
+    string securityToken = 4;
+    string project = 5;
+    string store = 6;
+    google.protobuf.Duration expireTime = 7;
+  }
+
+  message ElasticSearch {
+    string endpoint = 1;
+    string username = 2;
+    string password = 3;
+    string serverToken = 4;
+    string cloudId = 5;
+    string apiKey = 6;
+    string searchIndex = 7;
+  }
+
+  message Loki {
+    BasicAuth basicAuth = 1;
+    string endpoint = 2;
+  }
+
+  houyi.common.TeamItem team = 1;
+  LogDatasourceDriver driver = 2;
+  AliCloud aliCloud = 3;
+  ElasticSearch elasticSearch = 4;
+  Loki loki = 5;
+  bool enable = 6;
+}
+
+enum EventDatasourceDriver {
+  // unknown
+  EVENT_DATASOURCE_DRIVER_UNKNOWN = 0;
+  // rocketmq
+  ROCKETMQ = 1;
+  // mqtt
+  MQTT = 2;
+  // kafka
+  KAFKA = 3;
+}
+
+message EventDatasourceItem {
+  message RocketMQ {
+    string groupName = 1;
+    string endpoint = 2;
+    string region = 3;
+    string accessKey = 4;
+    string secretKey = 5;
+    string namespace = 6;
+  }
+
+  message Mqtt {
+    string broker = 1;
+    string username = 2;
+    string password = 3;
+    string clientId = 4;
+    bool autoReconnect = 5;
+    int32 qos = 6;
+  }
+
+  message Kafka {
+    string brokers = 1;
+    string groupName = 2;
+    string strategy = 3;
+    string username = 4;
+    string password = 5;
+    bool saslEnable = 6;
+    string version = 7;
+  }
+
+  houyi.common.TeamItem team = 1;
+  EventDatasourceDriver driver = 2;
+  RocketMQ rocketmq = 3;
+  Mqtt mqtt = 4;
+  Kafka kafka = 5;
+  bool enable = 6;
+}
+
+message CertificateDatasourceItem {
+  string domain = 1;
+}
+
+message ServerPortDatasourceItem {
+  string ip = 1;
+  int32 port = 2;
+}
+
+message HttpDatasourceItem {
+  string url = 1;
+  DatasourceQueryMethod method = 2;
+  map<string, string> headers = 3;
+  map<string, string> params = 4;
+  string body = 5;
+}
+
+message PingDatasourceItem {
+  string endpoint = 1;
+}

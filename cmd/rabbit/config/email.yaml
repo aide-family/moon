@@ -1,0 +1,6 @@
+email_config:
+  - name: 'default'
+    host: ${X_MOON_RABBIT_EMAIL_HOST:smtp.example.com}
+    port: ${X_MOON_RABBIT_EMAIL_PORT:587}
+    user: ${X_MOON_RABBIT_EMAIL_USERNAME:user}
+    pass: ${X_MOON_RABBIT_EMAIL_PASSWORD:pass}

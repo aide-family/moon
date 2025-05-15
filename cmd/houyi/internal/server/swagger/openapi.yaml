@@ -1,0 +1,1285 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: ""
+    version: 0.0.1
+paths:
+    /health:
+        get:
+            tags:
+                - Health
+            operationId: Health_Check
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.common.CheckReply'
+    /v1/alert/push:
+        post:
+            tags:
+                - Alert
+            operationId: Alert_Push
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.houyi.v1.PushAlertRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.houyi.v1.PushAlertReply'
+    /v1/metric/datasource/query:
+        post:
+            tags:
+                - Query
+            operationId: Query_MetricDatasourceQuery
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.houyi.v1.MetricDatasourceQueryRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.common.MetricDatasourceQueryReply'
+    /v1/remove/strategy:
+        post:
+            tags:
+                - Sync
+            operationId: Sync_RemoveStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.houyi.v1.RemoveStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.houyi.v1.SyncReply'
+    /v1/server/register:
+        post:
+            tags:
+                - Server
+            operationId: Server_Register
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.common.ServerRegisterRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.common.ServerRegisterReply'
+    /v1/sync/datasource/event:
+        post:
+            tags:
+                - Sync
+            operationId: Sync_EventDatasource
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.houyi.v1.EventDatasourceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.houyi.v1.SyncReply'
+    /v1/sync/datasource/logs:
+        post:
+            tags:
+                - Sync
+            operationId: Sync_LogsDatasource
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.houyi.v1.LogsDatasourceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.houyi.v1.SyncReply'
+    /v1/sync/datasource/metric:
+        post:
+            tags:
+                - Sync
+            operationId: Sync_MetricDatasource
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.houyi.v1.MetricDatasourceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.houyi.v1.SyncReply'
+    /v1/sync/metadata/metric:
+        post:
+            tags:
+                - Sync
+            operationId: Sync_MetricMetadata
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.houyi.v1.MetricMetadataRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.houyi.v1.SyncReply'
+    /v1/sync/strategy/certificate:
+        post:
+            tags:
+                - Sync
+            operationId: Sync_CertificateStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.houyi.v1.CertificateStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.houyi.v1.SyncReply'
+    /v1/sync/strategy/event:
+        post:
+            tags:
+                - Sync
+            operationId: Sync_EventStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.houyi.v1.EventStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.houyi.v1.SyncReply'
+    /v1/sync/strategy/http:
+        post:
+            tags:
+                - Sync
+            operationId: Sync_HttpStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.houyi.v1.HttpStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.houyi.v1.SyncReply'
+    /v1/sync/strategy/logs:
+        post:
+            tags:
+                - Sync
+            operationId: Sync_LogsStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.houyi.v1.LogsStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.houyi.v1.SyncReply'
+    /v1/sync/strategy/metric:
+        post:
+            tags:
+                - Sync
+            operationId: Sync_MetricStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.houyi.v1.MetricStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.houyi.v1.SyncReply'
+    /v1/sync/strategy/ping:
+        post:
+            tags:
+                - Sync
+            operationId: Sync_PingStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.houyi.v1.PingStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.houyi.v1.SyncReply'
+    /v1/sync/strategy/server-port:
+        post:
+            tags:
+                - Sync
+            operationId: Sync_ServerPortStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.houyi.v1.ServerPortStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.houyi.v1.SyncReply'
+components:
+    schemas:
+        api.common.AlertItem:
+            type: object
+            properties:
+                status:
+                    type: integer
+                    description: status of the alert
+                    format: enum
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: labels of the alert
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: annotations of the alert
+                startsAt:
+                    type: string
+                    description: startsAt of the alert
+                endsAt:
+                    type: string
+                    description: endsAt of the alert
+                generatorURL:
+                    type: string
+                    description: generatorURL of the alert
+                fingerprint:
+                    type: string
+                    description: fingerprint of the alert
+                value:
+                    type: string
+                    description: value of the alert
+        api.common.CheckReply:
+            type: object
+            properties:
+                healthy:
+                    type: boolean
+                version:
+                    type: string
+                time:
+                    type: string
+        api.common.MetricDatasourceQueryReply:
+            type: object
+            properties:
+                results:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.common.MetricQueryResult'
+        api.common.MetricQueryResult:
+            type: object
+            properties:
+                metric:
+                    type: object
+                    additionalProperties:
+                        type: string
+                value:
+                    $ref: '#/components/schemas/api.common.MetricQueryResultValue'
+                values:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.common.MetricQueryResultValue'
+        api.common.MetricQueryResultValue:
+            type: object
+            properties:
+                timestamp:
+                    type: string
+                value:
+                    type: number
+                    format: double
+        api.common.ServerRegisterReply:
+            type: object
+            properties: {}
+        api.common.ServerRegisterRequest:
+            type: object
+            properties:
+                serverType:
+                    type: integer
+                    format: enum
+                server:
+                    $ref: '#/components/schemas/config.MicroServer'
+                discovery:
+                    $ref: '#/components/schemas/config.Discovery'
+                teamIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                isOnline:
+                    type: boolean
+                uuid:
+                    type: string
+        api.houyi.common.BasicAuth:
+            type: object
+            properties:
+                username:
+                    type: string
+                password:
+                    type: string
+        api.houyi.common.CertificateDatasourceItem:
+            type: object
+            properties:
+                domain:
+                    type: string
+        api.houyi.common.CertificateStrategyItem:
+            type: object
+            properties:
+                team:
+                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                datasource:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.CertificateDatasourceItem'
+                name:
+                    type: string
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                strategyId:
+                    type: integer
+                    format: uint32
+                rules:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.CertificateStrategyItem_CertificateRuleItem'
+        api.houyi.common.CertificateStrategyItem_CertificateRuleItem:
+            type: object
+            properties:
+                strategyId:
+                    type: integer
+                    format: uint32
+                levelId:
+                    type: integer
+                    format: uint32
+                condition:
+                    type: integer
+                    format: enum
+                value:
+                    type: string
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: string
+        api.houyi.common.EventDatasourceItem:
+            type: object
+            properties:
+                team:
+                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                driver:
+                    type: integer
+                    format: enum
+                rocketmq:
+                    $ref: '#/components/schemas/api.houyi.common.EventDatasourceItem_RocketMQ'
+                mqtt:
+                    $ref: '#/components/schemas/api.houyi.common.EventDatasourceItem_Mqtt'
+                kafka:
+                    $ref: '#/components/schemas/api.houyi.common.EventDatasourceItem_Kafka'
+                enable:
+                    type: boolean
+        api.houyi.common.EventDatasourceItem_Kafka:
+            type: object
+            properties:
+                brokers:
+                    type: string
+                groupName:
+                    type: string
+                strategy:
+                    type: string
+                username:
+                    type: string
+                password:
+                    type: string
+                saslEnable:
+                    type: boolean
+                version:
+                    type: string
+        api.houyi.common.EventDatasourceItem_Mqtt:
+            type: object
+            properties:
+                broker:
+                    type: string
+                username:
+                    type: string
+                password:
+                    type: string
+                clientId:
+                    type: string
+                autoReconnect:
+                    type: boolean
+                qos:
+                    type: integer
+                    format: int32
+        api.houyi.common.EventDatasourceItem_RocketMQ:
+            type: object
+            properties:
+                groupName:
+                    type: string
+                endpoint:
+                    type: string
+                region:
+                    type: string
+                accessKey:
+                    type: string
+                secretKey:
+                    type: string
+                namespace:
+                    type: string
+        api.houyi.common.EventStrategyItem:
+            type: object
+            properties:
+                team:
+                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                datasource:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.EventDatasourceItem'
+                name:
+                    type: string
+                topic:
+                    type: string
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                strategyId:
+                    type: integer
+                    format: uint32
+                rules:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.EventStrategyItem_EventRuleItem'
+        api.houyi.common.EventStrategyItem_EventRuleItem:
+            type: object
+            properties:
+                strategyId:
+                    type: integer
+                    format: uint32
+                levelId:
+                    type: integer
+                    format: uint32
+                dataType:
+                    type: integer
+                    format: enum
+                index:
+                    type: string
+                value:
+                    type: string
+                stringCondition:
+                    type: integer
+                    format: enum
+                numberCondition:
+                    type: integer
+                    format: enum
+                booleanCondition:
+                    type: integer
+                    format: enum
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: string
+                labelNotices:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.EventStrategyItem_LabelNotices'
+        api.houyi.common.EventStrategyItem_LabelNotices:
+            type: object
+            properties:
+                index:
+                    type: string
+                value:
+                    type: string
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: string
+        api.houyi.common.HttpDatasourceItem:
+            type: object
+            properties:
+                url:
+                    type: string
+                method:
+                    type: integer
+                    format: enum
+                headers:
+                    type: object
+                    additionalProperties:
+                        type: string
+                params:
+                    type: object
+                    additionalProperties:
+                        type: string
+                body:
+                    type: string
+        api.houyi.common.HttpStrategyItem:
+            type: object
+            properties:
+                team:
+                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                datasource:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.HttpDatasourceItem'
+                name:
+                    type: string
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                strategyId:
+                    type: integer
+                    format: uint32
+                rules:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.HttpStrategyItem_HttpRuleItem'
+        api.houyi.common.HttpStrategyItem_HttpRuleItem:
+            type: object
+            properties:
+                strategyId:
+                    type: integer
+                    format: uint32
+                levelId:
+                    type: integer
+                    format: uint32
+                responseTimeCondition:
+                    type: integer
+                    format: enum
+                responseTime:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                statusCodeCondition:
+                    type: integer
+                    format: enum
+                statusCode:
+                    type: integer
+                    format: int32
+                judgment:
+                    type: integer
+                    format: enum
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: string
+        api.houyi.common.LogDatasourceItem:
+            type: object
+            properties:
+                team:
+                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                driver:
+                    type: integer
+                    format: enum
+                aliCloud:
+                    $ref: '#/components/schemas/api.houyi.common.LogDatasourceItem_AliCloud'
+                elasticSearch:
+                    $ref: '#/components/schemas/api.houyi.common.LogDatasourceItem_ElasticSearch'
+                loki:
+                    $ref: '#/components/schemas/api.houyi.common.LogDatasourceItem_Loki'
+                enable:
+                    type: boolean
+        api.houyi.common.LogDatasourceItem_AliCloud:
+            type: object
+            properties:
+                endpoint:
+                    type: string
+                accessKey:
+                    type: string
+                accessSecret:
+                    type: string
+                securityToken:
+                    type: string
+                project:
+                    type: string
+                store:
+                    type: string
+                expireTime:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+        api.houyi.common.LogDatasourceItem_ElasticSearch:
+            type: object
+            properties:
+                endpoint:
+                    type: string
+                username:
+                    type: string
+                password:
+                    type: string
+                serverToken:
+                    type: string
+                cloudId:
+                    type: string
+                apiKey:
+                    type: string
+                searchIndex:
+                    type: string
+        api.houyi.common.LogDatasourceItem_Loki:
+            type: object
+            properties:
+                basicAuth:
+                    $ref: '#/components/schemas/api.houyi.common.BasicAuth'
+                endpoint:
+                    type: string
+        api.houyi.common.LogsStrategyItem:
+            type: object
+            properties:
+                team:
+                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                datasource:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.LogDatasourceItem'
+                name:
+                    type: string
+                expr:
+                    type: string
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                strategyId:
+                    type: integer
+                    format: uint32
+                rules:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.LogsStrategyItem_LogsRuleItem'
+                duration:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+        api.houyi.common.LogsStrategyItem_LogsRuleItem:
+            type: object
+            properties:
+                strategyId:
+                    type: integer
+                    format: uint32
+                levelId:
+                    type: integer
+                    format: uint32
+                condition:
+                    type: integer
+                    format: enum
+                value:
+                    type: string
+                keyword:
+                    type: string
+                sampleMode:
+                    type: integer
+                    format: enum
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: string
+        api.houyi.common.MetricDatasourceItem:
+            type: object
+            properties:
+                team:
+                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                driver:
+                    type: integer
+                    format: enum
+                prometheus:
+                    $ref: '#/components/schemas/api.houyi.common.MetricDatasourceItem_Prometheus'
+                victoriaMetrics:
+                    $ref: '#/components/schemas/api.houyi.common.MetricDatasourceItem_VictoriaMetrics'
+                enable:
+                    type: boolean
+                id:
+                    type: integer
+                    format: uint32
+                name:
+                    type: string
+                scrapeInterval:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+        api.houyi.common.MetricDatasourceItem_Prometheus:
+            type: object
+            properties:
+                endpoint:
+                    type: string
+                basicAuth:
+                    $ref: '#/components/schemas/api.houyi.common.BasicAuth'
+                headers:
+                    type: object
+                    additionalProperties:
+                        type: string
+                ca:
+                    type: string
+                tls:
+                    $ref: '#/components/schemas/api.houyi.common.TLS'
+                method:
+                    type: integer
+                    format: enum
+        api.houyi.common.MetricDatasourceItem_VictoriaMetrics:
+            type: object
+            properties:
+                endpoint:
+                    type: string
+                basicAuth:
+                    $ref: '#/components/schemas/api.houyi.common.BasicAuth'
+                headers:
+                    type: object
+                    additionalProperties:
+                        type: string
+                ca:
+                    type: string
+                tls:
+                    $ref: '#/components/schemas/api.houyi.common.TLS'
+                method:
+                    type: integer
+                    format: enum
+        api.houyi.common.MetricStrategyItem:
+            type: object
+            properties:
+                team:
+                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                datasource:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.MetricStrategyItem_MetricDatasourceItem'
+                name:
+                    type: string
+                expr:
+                    type: string
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                strategyId:
+                    type: integer
+                    format: uint32
+                rules:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.MetricStrategyItem_MetricRuleItem'
+        api.houyi.common.MetricStrategyItem_LabelNotices:
+            type: object
+            properties:
+                key:
+                    type: string
+                value:
+                    type: string
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: string
+        api.houyi.common.MetricStrategyItem_MetricDatasourceItem:
+            type: object
+            properties:
+                driver:
+                    type: integer
+                    format: enum
+                id:
+                    type: integer
+                    format: uint32
+        api.houyi.common.MetricStrategyItem_MetricRuleItem:
+            type: object
+            properties:
+                strategyId:
+                    type: integer
+                    format: uint32
+                levelId:
+                    type: integer
+                    format: uint32
+                levelName:
+                    type: string
+                sampleMode:
+                    type: integer
+                    format: enum
+                count:
+                    type: string
+                condition:
+                    type: integer
+                    format: enum
+                values:
+                    type: array
+                    items:
+                        type: number
+                        format: double
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: string
+                labelNotices:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.MetricStrategyItem_LabelNotices'
+                duration:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                enable:
+                    type: boolean
+        api.houyi.common.PingDatasourceItem:
+            type: object
+            properties:
+                endpoint:
+                    type: string
+        api.houyi.common.PingStrategyItem:
+            type: object
+            properties:
+                team:
+                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                datasource:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.PingDatasourceItem'
+                name:
+                    type: string
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                strategyId:
+                    type: integer
+                    format: uint32
+                rules:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.PingStrategyItem_PingRuleItem'
+                lossPacket:
+                    type: boolean
+        api.houyi.common.PingStrategyItem_PingRuleItem:
+            type: object
+            properties:
+                strategyId:
+                    type: integer
+                    format: uint32
+                levelId:
+                    type: integer
+                    format: uint32
+                responseTimeCondition:
+                    type: integer
+                    format: enum
+                responseTime:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: string
+        api.houyi.common.RemoveStrategyItem:
+            type: object
+            properties:
+                type:
+                    type: integer
+                    format: enum
+                strategyId:
+                    type: integer
+                    format: uint32
+                teamId:
+                    type: integer
+                    format: uint32
+        api.houyi.common.ServerPortDatasourceItem:
+            type: object
+            properties:
+                ip:
+                    type: string
+                port:
+                    type: integer
+                    format: int32
+        api.houyi.common.ServerPortStrategyItem:
+            type: object
+            properties:
+                team:
+                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                datasource:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.ServerPortDatasourceItem'
+                name:
+                    type: string
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                strategyId:
+                    type: integer
+                    format: uint32
+                condition:
+                    type: integer
+                    format: enum
+        api.houyi.common.TLS:
+            type: object
+            properties:
+                serverName:
+                    type: string
+                clientCertificate:
+                    type: string
+                clientKey:
+                    type: string
+        api.houyi.common.TeamItem:
+            type: object
+            properties:
+                teamId:
+                    type: integer
+                    format: uint32
+                uuid:
+                    type: string
+        api.houyi.v1.CertificateStrategyRequest:
+            type: object
+            properties:
+                syncTime:
+                    type: string
+                    format: date-time
+                strategies:
+                    $ref: '#/components/schemas/api.houyi.common.CertificateStrategyItem'
+        api.houyi.v1.EventDatasourceRequest:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.EventDatasourceItem'
+        api.houyi.v1.EventStrategyRequest:
+            type: object
+            properties:
+                syncTime:
+                    type: string
+                    format: date-time
+                strategies:
+                    $ref: '#/components/schemas/api.houyi.common.EventStrategyItem'
+        api.houyi.v1.HttpStrategyRequest:
+            type: object
+            properties:
+                syncTime:
+                    type: string
+                    format: date-time
+                strategies:
+                    $ref: '#/components/schemas/api.houyi.common.HttpStrategyItem'
+        api.houyi.v1.LogsDatasourceRequest:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.LogDatasourceItem'
+        api.houyi.v1.LogsStrategyRequest:
+            type: object
+            properties:
+                syncTime:
+                    type: string
+                    format: date-time
+                strategies:
+                    $ref: '#/components/schemas/api.houyi.common.LogsStrategyItem'
+        api.houyi.v1.MetricDatasourceQueryRequest:
+            type: object
+            properties:
+                datasource:
+                    $ref: '#/components/schemas/api.houyi.common.MetricDatasourceItem'
+                expr:
+                    type: string
+                time:
+                    type: string
+                startTime:
+                    type: string
+                endTime:
+                    type: string
+                step:
+                    type: integer
+                    format: uint32
+        api.houyi.v1.MetricDatasourceRequest:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.MetricDatasourceItem'
+        api.houyi.v1.MetricMetadataRequest:
+            type: object
+            properties:
+                item:
+                    $ref: '#/components/schemas/api.houyi.common.MetricDatasourceItem'
+                operatorId:
+                    type: integer
+                    format: uint32
+        api.houyi.v1.MetricStrategyRequest:
+            type: object
+            properties:
+                syncTime:
+                    type: string
+                    format: date-time
+                strategies:
+                    $ref: '#/components/schemas/api.houyi.common.MetricStrategyItem'
+        api.houyi.v1.PingStrategyRequest:
+            type: object
+            properties:
+                syncTime:
+                    type: string
+                    format: date-time
+                strategies:
+                    $ref: '#/components/schemas/api.houyi.common.PingStrategyItem'
+        api.houyi.v1.PushAlertReply:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+        api.houyi.v1.PushAlertRequest:
+            type: object
+            properties:
+                receiver:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                alerts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.common.AlertItem'
+                groupLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                commonLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                commonAnnotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                externalURL:
+                    type: string
+                version:
+                    type: string
+                groupKey:
+                    type: string
+                truncatedAlerts:
+                    type: string
+        api.houyi.v1.RemoveStrategyRequest:
+            type: object
+            properties:
+                syncTime:
+                    type: string
+                    format: date-time
+                strategies:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.RemoveStrategyItem'
+        api.houyi.v1.ServerPortStrategyRequest:
+            type: object
+            properties:
+                syncTime:
+                    type: string
+                    format: date-time
+                strategies:
+                    $ref: '#/components/schemas/api.houyi.common.ServerPortStrategyItem'
+        api.houyi.v1.SyncReply:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+        config.Discovery:
+            type: object
+            properties:
+                driver:
+                    type: integer
+                    format: enum
+                enable:
+                    type: boolean
+                etcd:
+                    $ref: '#/components/schemas/config.Etcd'
+            description: server discovery config
+        config.Etcd:
+            type: object
+            properties:
+                endpoints:
+                    type: array
+                    items:
+                        type: string
+                username:
+                    type: string
+                password:
+                    type: string
+                timeout:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                autoSyncInterval:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                dialKeepAliveTime:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                dialKeepAliveTimeout:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                maxCallSendMsgSize:
+                    type: string
+                maxCallRecvMsgSize:
+                    type: string
+                rejectOldCluster:
+                    type: boolean
+                permitWithoutStream:
+                    type: boolean
+                maxUnaryRetries:
+                    type: string
+                backoffWaitBetween:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                backoffJitterFraction:
+                    type: number
+                    format: double
+            description: etcd data source config
+        config.MicroServer:
+            type: object
+            properties:
+                endpoint:
+                    type: string
+                    description: endpoint
+                secret:
+                    type: string
+                    description: secret
+                timeout:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                    description: timeout
+                network:
+                    type: integer
+                    description: network type, http, https, grpc
+                    format: enum
+                version:
+                    type: string
+                    description: node version
+                name:
+                    type: string
+                    description: name service name
+            description: micro server config
+tags:
+    - name: Alert
+    - name: Health
+      description: Health Check API
+    - name: Query
+    - name: Server
+    - name: Sync

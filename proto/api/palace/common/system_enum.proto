@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package api.palace.common;
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace/common;common";
+
+// Defines the module to which a resource belongs, such as system, user, or team modules.
+enum ResourceModule {
+  // RESOURCE_MODULE_UNKNOWN is the default module for a resource.
+  RESOURCE_MODULE_UNKNOWN = 0;
+  // The module to which the resource belongs is unspecified.
+  RESOURCE_MODULE_UNSPECIFIED = 1;
+  // The resource belongs to the system module.
+  RESOURCE_MODULE_SYSTEM = 2;
+  // The resource belongs to the user module.
+  RESOURCE_MODULE_USER = 3;
+  // The resource belongs to the team module.
+  RESOURCE_MODULE_TEAM = 4;
+}
+
+// Defines gender types, including unspecified, male, and female.
+enum Gender {
+  // Gender is unspecified.
+  GENDER_UNSPECIFIED = 0;
+  // Gender is male.
+  GENDER_MALE = 1;
+  // Gender is female.
+  GENDER_FEMALE = 2;
+}
+
+// Defines the status of a user, including unknown, normal, forbidden, and deleted states.
+enum UserStatus {
+  // The user status is unknown.
+  USER_STATUS_UNKNOWN = 0;
+  // The user status is normal.
+  USER_STATUS_NORMAL = 1;
+  // The user status is forbidden.
+  USER_STATUS_FORBIDDEN = 2;
+  // The user status is deleted.
+  USER_STATUS_DELETED = 3;
+}
+
+// Defines the position of a user within the system, including super admin, admin, user, and guest.
+enum UserPosition {
+  // The user position is unknown.
+  USER_POSITION_UNKNOWN = 0;
+  // The user position is super admin.
+  USER_POSITION_SUPER_ADMIN = 1;
+  // The user position is admin.
+  USER_POSITION_ADMIN = 2;
+  // The user position is a regular user.
+  USER_POSITION_USER = 3;
+  // The user position is guest.
+  USER_POSITION_GUEST = 4;
+}
+
+// Defines the audit status of a team, including pending, approved, and rejected.
+enum TeamAuditStatus {
+  // The team audit status is unknown.
+  TEAM_AUDIT_STATUS_UNKNOWN = 0;
+  // The team audit status is pending.
+  TEAM_AUDIT_STATUS_PENDING = 1;
+  // The team audit status is approved.
+  TEAM_AUDIT_STATUS_APPROVED = 2;
+  // The team audit status is rejected.
+  TEAM_AUDIT_STATUS_REJECTED = 3;
+}
+
+enum TeamAuditAction {
+  // The team audit action is unknown.
+  TEAM_AUDIT_ACTION_UNKNOWN = 0;
+  // The team audit action is join.
+  TEAM_AUDIT_ACTION_JOIN = 1;
+  // The team audit action is leave.
+  TEAM_AUDIT_ACTION_LEAVE = 2;
+}

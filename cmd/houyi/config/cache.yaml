@@ -1,0 +1,6 @@
+cache:
+  driver: ${X_MOON_HOUYI_CACHE_DRIVER:MEMORY}
+  network: ${X_MOON_HOUYI_CACHE_NETWORK}
+  addr: ${X_MOON_HOUYI_CACHE_ADDR}
+  password: ${X_MOON_HOUYI_CACHE_PASSWORD}
+  db: ${X_MOON_HOUYI_CACHE_DB:0}

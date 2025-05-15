@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package api.rabbit.v1;
+
+import "google/api/annotations.proto";
+import "rabbit/common/common.proto";
+import "common/alert.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/rabbit/v1;v1";
+
+service Alert {
+	rpc SendAlert (api.common.AlertsItem) returns (rabbit.common.EmptyReply) {
+		option (google.api.http) = {
+			post: "/v1/alert/send"
+			body: "*"
+		};
+	}
+}

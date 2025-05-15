@@ -1,0 +1,3 @@
+evaluate:
+  interval: ${X_MOON_HOUYI_EVALUATE_INTERVAL:10s}
+  timeout: ${X_MOON_HOUYI_EVALUATE_TIMEOUT:5s}

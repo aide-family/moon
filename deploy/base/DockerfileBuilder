@@ -1,0 +1,10 @@
+FROM golang:1.24.1-bullseye
+
+RUN apt update -y \
+    && apt install -y protobuf-compiler
+
+WORKDIR /moon
+
+COPY Makefile Makefile
+
+RUN make init

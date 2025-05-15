@@ -1,0 +1,170 @@
+syntax = "proto3";
+
+package api.palace;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "palace/common/common.proto";
+import "palace/common/common_enum.proto";
+import "palace/common/team.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
+
+service TeamDashboard {
+	rpc SaveTeamDashboard (SaveTeamDashboardRequest) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+			put: "/api/team/dashboard"
+			body: "*"
+		};
+	}
+	rpc DeleteTeamDashboard (DeleteTeamDashboardRequest) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+			delete: "/api/team/dashboard"
+		};
+	}
+	rpc GetTeamDashboard (GetTeamDashboardRequest) returns (api.palace.common.TeamDashboardItem) {
+		option (google.api.http) = {
+			get: "/api/team/dashboard"
+		};
+	}
+	rpc ListTeamDashboard (ListTeamDashboardRequest) returns (ListTeamDashboardReply) {
+		option (google.api.http) = {
+			post: "/api/team/dashboard/list"
+			body: "*"
+		};
+	}
+	rpc UpdateTeamDashboardStatus (UpdateTeamDashboardStatusRequest) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+			put: "/api/team/dashboard/status"
+			body: "*"
+		};
+	}
+	rpc SaveTeamDashboardChart (SaveTeamDashboardChartRequest) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+			put: "/api/team/dashboard/chart"
+			body: "*"
+		};
+	}
+	rpc DeleteTeamDashboardChart (DeleteTeamDashboardChartRequest) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+			delete: "/api/team/dashboard/chart"
+		};
+	}
+	rpc GetTeamDashboardChart (GetTeamDashboardChartRequest) returns (api.palace.common.TeamDashboardChartItem) {
+		option (google.api.http) = {
+			get: "/api/team/dashboard/chart"
+		};
+	}
+	rpc ListTeamDashboardChart (ListTeamDashboardChartRequest) returns (ListTeamDashboardChartReply) {
+		option (google.api.http) = {
+			post: "/api/team/dashboard/chart/list"
+			body: "*"
+		};
+	}
+	rpc UpdateTeamDashboardChartStatus (UpdateTeamDashboardChartStatusRequest) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+			put: "/api/team/dashboard/chart/status"
+			body: "*"
+		};
+	}
+}
+
+
+message SaveTeamDashboardRequest {
+	uint32 dashboardId = 1;
+	string title = 2 [(buf.validate.field).cel = {
+		message: "title is required"
+		expression: "this.size() > 0"
+	}, (buf.validate.field).cel = {
+		message: "title max length is 32"
+		expression: "this.size() <= 32"
+	}];
+	string remark = 3 [(buf.validate.field).cel = {
+		message: "remark max length is 200"
+		expression: "this.size() <= 200"
+	}];
+	api.palace.common.GlobalStatus status = 4;
+	string colorHex = 5 [(buf.validate.field).cel = {
+		message: "colorHex is required"
+		expression: "this.size() > 0"
+	}, (buf.validate.field).cel = {
+		message: "colorHex max length is 10"
+		expression: "this.size() <= 50"
+	}];
+}
+
+message DeleteTeamDashboardRequest {
+	uint32 dashboardId = 1;
+}
+
+message GetTeamDashboardRequest {
+	uint32 dashboardId = 1;
+}
+
+message ListTeamDashboardRequest {
+	api.palace.common.PaginationRequest pagination = 1;
+	api.palace.common.GlobalStatus status = 2;
+	string keyword = 3;
+}
+message ListTeamDashboardReply {
+	repeated api.palace.common.TeamDashboardItem items = 1;
+	api.palace.common.PaginationReply pagination = 2;
+}
+
+message UpdateTeamDashboardStatusRequest {
+	repeated uint32 dashboardIds = 1;
+	api.palace.common.GlobalStatus status = 2;
+}
+
+message SaveTeamDashboardChartRequest {
+	uint32 dashboardId = 1 [(buf.validate.field).required = true, (buf.validate.field).uint32.gt = 0];
+	uint32 chartId = 2;
+	string title = 3 [(buf.validate.field).cel = {
+		message: "title max length is 32"
+		expression: "this.size() <= 32"
+	}];
+	string remark = 4 [(buf.validate.field).cel = {
+		message: "remark max length is 200"
+		expression: "this.size() <= 200"
+	}];
+	api.palace.common.GlobalStatus status = 5;
+	string url = 6 [(buf.validate.field).cel = {
+		message: "url max length is 255"
+		expression: "this.size() <= 255"
+	}];
+	string width = 7 [(buf.validate.field).cel = {
+		message: "width max length is 10"
+		expression: "this.size() <= 10"
+	}];
+	string height = 8 [(buf.validate.field).cel = {
+		message: "height max length is 10"
+		expression: "this.size() <= 10"
+	}];
+}
+
+message DeleteTeamDashboardChartRequest {
+	uint32 chartId = 1 [(buf.validate.field).required = true, (buf.validate.field).uint32.gt = 0];
+	uint32 dashboardId = 2 [(buf.validate.field).required = true, (buf.validate.field).uint32.gt = 0];
+}
+
+message GetTeamDashboardChartRequest {
+	uint32 chartId = 1 [(buf.validate.field).required = true, (buf.validate.field).uint32.gt = 0];
+	uint32 dashboardId = 2 [(buf.validate.field).required = true, (buf.validate.field).uint32.gt = 0];
+}
+
+message ListTeamDashboardChartRequest {
+	api.palace.common.PaginationRequest pagination = 1;
+	uint32 dashboardId = 2 [(buf.validate.field).required = true, (buf.validate.field).uint32.gt = 0];
+	api.palace.common.GlobalStatus status = 3;
+	string keyword = 4;
+}
+message ListTeamDashboardChartReply {
+	repeated api.palace.common.TeamDashboardChartItem items = 1;
+	api.palace.common.PaginationReply pagination = 2;
+}
+
+message UpdateTeamDashboardChartStatusRequest {
+	uint32 dashboardId = 1 [(buf.validate.field).required = true, (buf.validate.field).uint32.gt = 0];
+	repeated uint32 chartIds = 2;
+	api.palace.common.GlobalStatus status = 3;
+}

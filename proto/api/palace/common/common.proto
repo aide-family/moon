@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package api.palace.common;
+
+import "buf/validate/validate.proto";
+import "palace/common/common_enum.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace/common;common";
+
+// PaginationRequest is used for pagination queries, specifying the page number and the number of items per page.
+// page: The current page number, must be greater than 0.
+// limit: The number of items per page, must be greater than 0 and less than or equal to 10000.
+message PaginationRequest {
+  uint32 page = 1 [(buf.validate.field).uint32.gt = 0];
+  uint32 pageSize = 2 [(buf.validate.field).uint32.gt = 0, (buf.validate.field).uint32.lte = 10000];
+}
+
+// PaginationReply is the response for pagination queries, containing the total number of items, the current page number, and the number of items per page.
+// total: The total number of items.
+// page: The current page number.
+// limit: The number of items per page.
+message PaginationReply {
+  uint32 total = 1;
+  uint32 page = 2;
+  uint32 pageSize = 3;
+}
+
+// SelectItem represents an option in a selection, including its value, display label, and whether it is disabled.
+// value: The actual value of the option.
+// label: The label displayed for the option.
+// disabled: Indicates whether the option is disabled, true for disabled, false for enabled.
+message SelectItem {
+  uint32 value = 1;
+  string label = 2;
+  bool disabled = 3;
+}
+
+// EmptyRequest represents an empty request, typically used for operations that do not require input parameters.
+message EmptyRequest {}
+
+// EmptyReply represents an empty response, typically used for operations that only need to return a status message.
+// message: A string message, usually used to indicate the execution status.
+message EmptyReply {
+  string message = 1;
+  uint32 id = 2;
+}
+
+message BasicAuth {
+  string username = 1;
+  string password = 2;
+}
+
+message TLS {
+  string serverName = 1;
+  string clientCert = 2;
+  string clientKey = 3;
+}
+
+message SendMessageLogItem {
+  string requestId = 1;
+  string message = 2;
+  common.MessageType messageType = 3;
+  common.SendMessageStatus status = 4;
+  string error = 5;
+  int32 retryCount = 6;
+  string createdAt = 7;
+  string updatedAt = 8;
+}

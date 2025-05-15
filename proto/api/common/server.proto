@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package api.common;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "config.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/common;common";
+
+service Server {
+  rpc Register (ServerRegisterRequest) returns (ServerRegisterReply) {
+    option (google.api.http) = {
+      post: "/v1/server/register"
+      body: "*"
+    };
+  }
+}
+
+
+message ServerRegisterRequest {
+  enum ServerType {
+    UNKNOWN = 0;
+    PALACE = 1;
+    HOUYI = 2;
+    RABBIT = 3;
+    LAUREL = 4;
+  }
+  ServerType serverType = 1 [(buf.validate.field).required = true];
+  config.MicroServer server = 2 [(buf.validate.field).required = true];
+  config.Discovery discovery = 3;
+  repeated uint32 teamIds = 4;
+  bool isOnline = 5;
+  string uuid = 6 [(buf.validate.field).required = true];
+}
+message ServerRegisterReply {}
+

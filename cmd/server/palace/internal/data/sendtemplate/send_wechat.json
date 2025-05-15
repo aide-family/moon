@@ -1,6 +1,0 @@
-{
-  "msgtype": "markdown",
-  "markdown": {
-    "content": "### {{if eq .status `resolved`}}✅ 告警已恢复{{else}}🚨 紧急告警通知{{end}}\n\n {{ .annotations }}"
-  }
-}

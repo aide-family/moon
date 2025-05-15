@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package api.palace;
+
+import "google/api/annotations.proto";
+import "palace/common/common.proto";
+import "palace/common/common_enum.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
+
+service TeamLog {
+  rpc GetSendMessageLogs (GetTeamSendMessageLogsRequest) returns (GetTeamSendMessageLogsReply) {
+    option (google.api.http) = {
+      post: "/api/team/log/send/message"
+      body: "*"
+    };
+  }
+  rpc GetSendMessageLog (OperateOneTeamSendMessageRequest) returns (api.palace.common.SendMessageLogItem) {
+    option (google.api.http) = {
+      get: "/api/team/log/send/message"
+    };
+  }
+  rpc RetrySendMessage (OperateOneTeamSendMessageRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/team/log/send/message/retry"
+      body: "*"
+    };
+  }
+}
+
+message GetTeamSendMessageLogsRequest {
+  string requestId = 1;
+  string message = 2;
+  common.MessageType messageType = 3;
+  common.SendMessageStatus status = 4;
+  string keyword = 5;
+  common.PaginationRequest pagination = 6;
+}
+
+message GetTeamSendMessageLogsReply {
+  repeated common.SendMessageLogItem items = 1;
+  common.PaginationReply pagination = 2;
+}
+
+message OperateOneTeamSendMessageRequest {
+  string requestId = 1;
+}
