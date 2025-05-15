@@ -1018,11 +1018,6 @@ paths:
                   schema:
                     type: integer
                     format: uint32
-                - name: code
-                  in: query
-                  description: Code of the email configuration
-                  schema:
-                    type: string
             responses:
                 "200":
                     description: OK
@@ -1648,11 +1643,6 @@ paths:
                   schema:
                     type: integer
                     format: uint32
-                - name: code
-                  in: query
-                  description: Code of the SMS configuration
-                  schema:
-                    type: string
             responses:
                 "200":
                     description: OK

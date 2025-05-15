@@ -385,11 +385,6 @@ message GetEmailConfigsReply {
 message GetEmailConfigRequest {
   // Email configuration Id
   uint32 emailConfigId = 1 [(buf.validate.field).required = true];
-  // Code of the email configuration
-  string code = 2 [(buf.validate.field).string = {
-    max_len: 20
-    min_len: 1
-  }];
 }
 
 // SaveSMSConfigRequest represents the request data for saving or updating the SMS configuration
@@ -443,11 +438,6 @@ message GetSMSConfigsReply {
 message GetSMSConfigRequest {
   // SMS configuration Id
   uint32 smsConfigId = 1 [(buf.validate.field).required = true];
-  // Code of the SMS configuration
-  string code = 2 [(buf.validate.field).string = {
-    max_len: 20
-    min_len: 1
-  }];
 }
 
 // OperateLogListRequest represents the request data for listing operation logs

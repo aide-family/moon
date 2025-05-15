@@ -48,7 +48,10 @@ init:
 all:
 	@echo "Initialization of moon project"
 	@if [ -z "$(APP_NAME)" ]; then echo "app name is required"; echo "usage: make all app=<app_name>"; exit 1; fi
-	make api
+	make api app=palace
+	make api app=houyi
+	make api app=rabbit
+	make api app=laurel
 	make errors
 	make conf
 	make stringer-$(APP_NAME)
