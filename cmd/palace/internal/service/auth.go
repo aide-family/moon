@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	nhttp "net/http"
-	"strings"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -21,6 +20,7 @@ import (
 	"github.com/aide-family/moon/pkg/api/palace"
 	"github.com/aide-family/moon/pkg/api/palace/common"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/strutil"
 )
 
 func NewAuthService(
@@ -60,7 +60,7 @@ func builderOAuth2List(oauth2 *conf.Auth_OAuth2) []*palace.OAuth2ListReply_OAuth
 	for _, oauth := range list {
 		oauthList = append(oauthList, &palace.OAuth2ListReply_OAuthItem{
 			Icon:     oauth.GetApp().String(),
-			Label:    strings.Title(strings.ToLower(oauth.GetApp().String()) + " login"),
+			Label:    strutil.Title(oauth.GetApp().String(), "login"),
 			Redirect: oauth.GetLoginUrl(),
 		})
 	}
