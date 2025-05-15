@@ -52,7 +52,7 @@ service TeamStrategy {
   }
 
   // SaveTeamStrategy saves a new team strategy or updates an existing one
-  rpc SaveTeamStrategy (SaveTeamStrategyRequest) returns (api.palace.common.EmptyReply) {
+  rpc SaveTeamStrategy (SaveTeamStrategyRequest) returns (api.palace.common.TeamStrategyItem) {
     option (google.api.http) = {
       post: "/api/team/strategy"
       body: "*"
@@ -60,7 +60,7 @@ service TeamStrategy {
   }
 
   // SaveTeamMetricStrategy saves a new team metric strategy or updates an existing one
-  rpc SaveTeamMetricStrategy (SaveTeamMetricStrategyRequest) returns (api.palace.common.EmptyReply) {
+  rpc SaveTeamMetricStrategy (SaveTeamMetricStrategyRequest) returns (api.palace.common.TeamStrategyMetricItem) {
     option (google.api.http) = {
       post: "/api/team/strategy/metric"
       body: "*"
@@ -244,7 +244,6 @@ message SaveTeamMetricStrategyLevelsRequest {
 message SaveTeamMetricStrategyLevelsReply {
   // Levels
   repeated api.palace.common.TeamStrategyMetricItem.RuleItem levels = 1;
-  string message = 2;
 }
 
 message UpdateTeamStrategiesStatusRequest {

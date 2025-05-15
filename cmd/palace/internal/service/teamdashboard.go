@@ -39,14 +39,14 @@ func (s *TeamDashboardService) SaveTeamDashboard(ctx context.Context, req *palac
 	if err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "保存团队图表看板成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamDashboardService) DeleteTeamDashboard(ctx context.Context, req *palace.DeleteTeamDashboardRequest) (*common.EmptyReply, error) {
 	if err := s.dashboard.DeleteDashboard(ctx, req.GetDashboardId()); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "删除团队图表看板成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamDashboardService) GetTeamDashboard(ctx context.Context, req *palace.GetTeamDashboardRequest) (*common.TeamDashboardItem, error) {
@@ -82,7 +82,7 @@ func (s *TeamDashboardService) UpdateTeamDashboardStatus(ctx context.Context, re
 	if err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新团队图表看板状态成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamDashboardService) SaveTeamDashboardChart(ctx context.Context, req *palace.SaveTeamDashboardChartRequest) (*common.EmptyReply, error) {
@@ -99,7 +99,7 @@ func (s *TeamDashboardService) SaveTeamDashboardChart(ctx context.Context, req *
 	if err := s.dashboard.SaveDashboardChart(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "保存团队图表成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamDashboardService) DeleteTeamDashboardChart(ctx context.Context, req *palace.DeleteTeamDashboardChartRequest) (*common.EmptyReply, error) {
@@ -110,7 +110,7 @@ func (s *TeamDashboardService) DeleteTeamDashboardChart(ctx context.Context, req
 	if err := s.dashboard.DeleteDashboardChart(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "删除团队图表成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamDashboardService) GetTeamDashboardChart(ctx context.Context, req *palace.GetTeamDashboardChartRequest) (*common.TeamDashboardChartItem, error) {
@@ -152,5 +152,5 @@ func (s *TeamDashboardService) UpdateTeamDashboardChartStatus(ctx context.Contex
 	if err := s.dashboard.BatchUpdateDashboardChartStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新团队图表状态成功"}, nil
+	return &common.EmptyReply{}, nil
 }

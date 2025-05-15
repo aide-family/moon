@@ -55,5 +55,5 @@ func (s *TeamLogService) RetrySendMessage(ctx context.Context, req *palace.Opera
 	if err = s.logsBiz.RetrySendMessage(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "重试发送消息成功"}, nil
+	return &common.EmptyReply{}, nil
 }

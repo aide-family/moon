@@ -35,7 +35,7 @@ func (s *TeamService) SaveTeam(ctx context.Context, req *palace.SaveTeamRequest)
 	if err := s.teamBiz.SaveTeam(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "保存团队信息成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamService) GetTeam(ctx context.Context, _ *common.EmptyRequest) (*common.TeamItem, error) {
@@ -68,7 +68,7 @@ func (s *TeamService) InviteMember(ctx context.Context, req *palace.InviteMember
 	if err := s.teamBiz.InviteMember(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "邀请团队成员成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamService) RemoveMember(ctx context.Context, req *palace.RemoveMemberRequest) (*common.EmptyReply, error) {
@@ -78,7 +78,7 @@ func (s *TeamService) RemoveMember(ctx context.Context, req *palace.RemoveMember
 	if err := s.teamBiz.RemoveMember(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "移除团队成员成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamService) GetTeamMembers(ctx context.Context, req *palace.GetTeamMembersRequest) (*palace.GetTeamMembersReply, error) {
@@ -105,7 +105,7 @@ func (s *TeamService) UpdateMemberPosition(ctx context.Context, req *palace.Upda
 	if err := s.teamBiz.UpdateMemberPosition(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新团队成员职位成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamService) UpdateMemberStatus(ctx context.Context, req *palace.UpdateMemberStatusRequest) (*common.EmptyReply, error) {
@@ -116,7 +116,7 @@ func (s *TeamService) UpdateMemberStatus(ctx context.Context, req *palace.Update
 	if err := s.teamBiz.UpdateMemberStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新团队成员状态成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamService) UpdateMemberRoles(ctx context.Context, req *palace.UpdateMemberRolesRequest) (*common.EmptyReply, error) {
@@ -127,7 +127,7 @@ func (s *TeamService) UpdateMemberRoles(ctx context.Context, req *palace.UpdateM
 	if err := s.teamBiz.UpdateMemberRoles(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新团队成员角色成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamService) GetTeamRoles(ctx context.Context, req *palace.GetTeamRolesRequest) (*palace.GetTeamRolesReply, error) {
@@ -155,14 +155,14 @@ func (s *TeamService) SaveTeamRole(ctx context.Context, req *palace.SaveTeamRole
 	if err := s.teamBiz.SaveTeamRole(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "保存团队角色成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamService) DeleteTeamRole(ctx context.Context, req *palace.DeleteTeamRoleRequest) (*common.EmptyReply, error) {
 	if err := s.teamBiz.DeleteTeamRole(ctx, req.GetRoleId()); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "删除团队角色成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamService) UpdateTeamRoleStatus(ctx context.Context, req *palace.UpdateTeamRoleStatusRequest) (*common.EmptyReply, error) {
@@ -173,14 +173,14 @@ func (s *TeamService) UpdateTeamRoleStatus(ctx context.Context, req *palace.Upda
 	if err := s.teamBiz.UpdateTeamRoleStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新团队角色状态成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamService) SaveEmailConfig(ctx context.Context, req *palace.SaveEmailConfigRequest) (*common.EmptyReply, error) {
 	if err := s.teamBiz.SaveEmailConfig(ctx, build.ToSaveEmailConfigRequest(req)); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "保存邮件配置成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamService) GetEmailConfigs(ctx context.Context, req *palace.GetEmailConfigsRequest) (*palace.GetEmailConfigsReply, error) {
@@ -204,7 +204,7 @@ func (s *TeamService) SaveSMSConfig(ctx context.Context, req *palace.SaveSMSConf
 	if err := s.teamBiz.SaveSMSConfig(ctx, build.ToSaveSMSConfigRequest(req)); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "保存短信配置成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamService) GetSMSConfigs(ctx context.Context, req *palace.GetSMSConfigsRequest) (*palace.GetSMSConfigsReply, error) {

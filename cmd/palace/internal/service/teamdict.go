@@ -37,7 +37,7 @@ func (s *TeamDictService) SaveTeamDict(ctx context.Context, req *palace.SaveTeam
 	if err := s.dictBiz.SaveDict(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "保存团队字典成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamDictService) UpdateTeamDictStatus(ctx context.Context, req *palace.UpdateTeamDictStatusRequest) (*common.EmptyReply, error) {
@@ -48,7 +48,7 @@ func (s *TeamDictService) UpdateTeamDictStatus(ctx context.Context, req *palace.
 	if err := s.dictBiz.UpdateDictStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新团队字典状态成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamDictService) DeleteTeamDict(ctx context.Context, req *palace.DeleteTeamDictRequest) (*common.EmptyReply, error) {
@@ -56,7 +56,7 @@ func (s *TeamDictService) DeleteTeamDict(ctx context.Context, req *palace.Delete
 	if err := s.dictBiz.DeleteDict(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "删除团队字典成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamDictService) GetTeamDict(ctx context.Context, req *palace.GetTeamDictRequest) (*common.TeamDictItem, error) {

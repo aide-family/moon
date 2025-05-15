@@ -53,7 +53,7 @@ func (s *UserService) UpdateSelfInfo(ctx context.Context, req *palace.UpdateSelf
 		return nil, err
 	}
 
-	return &common.EmptyReply{Message: "修改成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 // UpdateSelfPassword updates the current user's password.
@@ -63,7 +63,7 @@ func (s *UserService) UpdateSelfPassword(ctx context.Context, req *palace.Update
 		return nil, err
 	}
 
-	return &common.EmptyReply{Message: "修改密码成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 // LeaveTeam allows the current user to leave a team.
@@ -83,7 +83,7 @@ func (s *UserService) CreateTeam(ctx context.Context, req *palace.CreateTeamRequ
 	if err := s.teamBiz.SaveTeam(ctx, build.ToSaveOneTeamRequestByCreate(req)); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "创建团队成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 // SelfTeamList retrieves the list of teams the current user is a member of.

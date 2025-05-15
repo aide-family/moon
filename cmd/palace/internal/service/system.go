@@ -41,7 +41,7 @@ func (s *SystemService) UpdateUser(ctx context.Context, req *palace.UpdateUserRe
 	if err := s.userBiz.UpdateUserBaseInfo(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新用户信息成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *SystemService) UpdateUserStatus(ctx context.Context, req *palace.UpdateUserStatusRequest) (*common.EmptyReply, error) {
@@ -52,7 +52,7 @@ func (s *SystemService) UpdateUserStatus(ctx context.Context, req *palace.Update
 	if err := s.userBiz.UpdateUserStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新用户状态成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *SystemService) ResetUserPassword(ctx context.Context, req *palace.ResetUserPasswordRequest) (*common.EmptyReply, error) {
@@ -63,7 +63,7 @@ func (s *SystemService) ResetUserPassword(ctx context.Context, req *palace.Reset
 	if err := s.userBiz.ResetUserPassword(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "重置用户密码成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *SystemService) UpdateUserPosition(ctx context.Context, req *palace.UpdateUserPositionRequest) (*common.EmptyReply, error) {
@@ -74,7 +74,7 @@ func (s *SystemService) UpdateUserPosition(ctx context.Context, req *palace.Upda
 	if err := s.userBiz.UpdateUserPosition(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新用户职位成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *SystemService) GetUser(ctx context.Context, req *palace.GetUserRequest) (*common.UserItem, error) {
@@ -144,7 +144,7 @@ func (s *SystemService) SaveRole(ctx context.Context, req *palace.SaveRoleReques
 	if err := s.systemBiz.SaveRole(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "保存角色成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *SystemService) UpdateRoleStatus(ctx context.Context, req *palace.UpdateRoleStatusRequest) (*common.EmptyReply, error) {
@@ -155,7 +155,7 @@ func (s *SystemService) UpdateRoleStatus(ctx context.Context, req *palace.Update
 	if err := s.systemBiz.UpdateRoleStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新角色状态成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *SystemService) UpdateUserRoles(ctx context.Context, req *palace.UpdateUserRolesRequest) (*common.EmptyReply, error) {
@@ -166,7 +166,7 @@ func (s *SystemService) UpdateUserRoles(ctx context.Context, req *palace.UpdateU
 	if err := s.systemBiz.UpdateUserRoles(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新用户角色成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *SystemService) UpdateRoleUsers(ctx context.Context, req *palace.UpdateRoleUsersRequest) (*common.EmptyReply, error) {
@@ -177,7 +177,7 @@ func (s *SystemService) UpdateRoleUsers(ctx context.Context, req *palace.UpdateR
 	if err := s.systemBiz.UpdateRoleUsers(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新角色用户成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *SystemService) GetTeamAuditList(ctx context.Context, req *palace.GetTeamAuditListRequest) (*palace.GetTeamAuditListReply, error) {
@@ -201,7 +201,7 @@ func (s *SystemService) UpdateTeamAuditStatus(ctx context.Context, req *palace.U
 	if err := s.systemBiz.UpdateTeamAuditStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新团队审核状态成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *SystemService) OperateLogList(ctx context.Context, req *palace.OperateLogListRequest) (*palace.OperateLogListReply, error) {
@@ -242,5 +242,5 @@ func (s *SystemService) RetrySendMessage(ctx context.Context, req *palace.Operat
 	if err := s.logsBiz.RetrySendMessage(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "重试发送消息成功"}, nil
+	return &common.EmptyReply{}, nil
 }

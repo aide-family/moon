@@ -38,7 +38,7 @@ func (s *ResourceService) BatchUpdateResourceStatus(ctx context.Context, req *pa
 		return nil, err
 	}
 
-	return &common.EmptyReply{Message: "更改资源接口状态成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *ResourceService) GetResource(ctx context.Context, req *palace.GetResourceRequest) (*common.ResourceItem, error) {
@@ -94,7 +94,7 @@ func (s *ResourceService) SaveResource(ctx context.Context, req *palace.SaveReso
 		return nil, err
 	}
 
-	return &common.EmptyReply{Message: "保存资源成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *ResourceService) SaveMenu(ctx context.Context, req *palace.SaveMenuRequest) (*common.EmptyReply, error) {
@@ -103,7 +103,7 @@ func (s *ResourceService) SaveMenu(ctx context.Context, req *palace.SaveMenuRequ
 		return nil, err
 	}
 
-	return &common.EmptyReply{Message: "保存系统菜单成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *ResourceService) GetMenu(ctx context.Context, req *palace.GetMenuRequest) (*common.MenuTreeItem, error) {

@@ -42,7 +42,7 @@ func (s *TeamDatasourceService) SaveTeamMetricDatasource(ctx context.Context, re
 	if err := s.teamDatasourceBiz.SaveMetricDatasource(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "保存团队数据源成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamDatasourceService) UpdateTeamMetricDatasourceStatus(ctx context.Context, req *palace.UpdateTeamMetricDatasourceStatusRequest) (*common.EmptyReply, error) {
@@ -53,14 +53,14 @@ func (s *TeamDatasourceService) UpdateTeamMetricDatasourceStatus(ctx context.Con
 	if err := s.teamDatasourceBiz.UpdateMetricDatasourceStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新团队数据源状态成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamDatasourceService) DeleteTeamMetricDatasource(ctx context.Context, req *palace.DeleteTeamMetricDatasourceRequest) (*common.EmptyReply, error) {
 	if err := s.teamDatasourceBiz.DeleteMetricDatasource(ctx, req.GetDatasourceId()); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "删除团队数据源成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamDatasourceService) GetTeamMetricDatasource(ctx context.Context, req *palace.GetTeamMetricDatasourceRequest) (*common.TeamMetricDatasourceItem, error) {
@@ -97,7 +97,7 @@ func (s *TeamDatasourceService) SyncMetricMetadata(ctx context.Context, req *pal
 	if err := s.teamDatasourceBiz.SyncMetricMetadata(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "数据源元数据同步中，请稍后刷新页面查看"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamDatasourceService) MetricDatasourceQuery(ctx context.Context, req *palace.MetricDatasourceQueryRequest) (*com.MetricDatasourceQueryReply, error) {

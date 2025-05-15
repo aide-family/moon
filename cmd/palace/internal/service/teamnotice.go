@@ -33,7 +33,7 @@ func (s *TeamNoticeService) SaveTeamNoticeHook(ctx context.Context, req *palace.
 	if err := s.teamHookBiz.SaveHook(ctx, build.ToSaveTeamNoticeHookRequest(req)); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "保存团队通知Hook成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 // UpdateTeamNoticeHookStatus 更新钩子状态
@@ -45,7 +45,7 @@ func (s *TeamNoticeService) UpdateTeamNoticeHookStatus(ctx context.Context, req 
 	if err := s.teamHookBiz.UpdateHookStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新团队通知Hook状态成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 // DeleteTeamNoticeHook 删除钩子
@@ -53,7 +53,7 @@ func (s *TeamNoticeService) DeleteTeamNoticeHook(ctx context.Context, req *palac
 	if err := s.teamHookBiz.DeleteHook(ctx, req.GetHookId()); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "删除团队通知Hook成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 // GetTeamNoticeHook 获取钩子详情
@@ -98,7 +98,7 @@ func (s *TeamNoticeService) SaveTeamNoticeGroup(ctx context.Context, req *palace
 	if err := s.teamNoticeBiz.SaveNoticeGroup(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "保存团队通知组成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamNoticeService) UpdateTeamNoticeGroupStatus(ctx context.Context, req *palace.UpdateTeamNoticeGroupStatusRequest) (*common.EmptyReply, error) {
@@ -109,14 +109,14 @@ func (s *TeamNoticeService) UpdateTeamNoticeGroupStatus(ctx context.Context, req
 	if err := s.teamNoticeBiz.UpdateNoticeGroupStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "更新团队通知组状态成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamNoticeService) DeleteTeamNoticeGroup(ctx context.Context, req *palace.DeleteTeamNoticeGroupRequest) (*common.EmptyReply, error) {
 	if err := s.teamNoticeBiz.DeleteNoticeGroup(ctx, req.GetGroupId()); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "删除团队通知组成功"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *TeamNoticeService) GetTeamNoticeGroup(ctx context.Context, req *palace.GetTeamNoticeGroupRequest) (*common.NoticeGroupItem, error) {

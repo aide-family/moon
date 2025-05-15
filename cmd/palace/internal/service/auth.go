@@ -228,7 +228,7 @@ func (s *AuthService) ReplaceUserRole(ctx context.Context, req *palace.ReplaceUs
 	if err := s.authBiz.ReplaceUserRole(ctx, updateReq); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "success"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 func (s *AuthService) ReplaceMemberRole(ctx context.Context, req *palace.ReplaceMemberRoleRequest) (*common.EmptyReply, error) {
@@ -239,7 +239,7 @@ func (s *AuthService) ReplaceMemberRole(ctx context.Context, req *palace.Replace
 	if err := s.authBiz.ReplaceMemberRole(ctx, updateReq); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{Message: "success"}, nil
+	return &common.EmptyReply{}, nil
 }
 
 // OAuthLogin oauth login

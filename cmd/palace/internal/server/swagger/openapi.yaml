@@ -1705,7 +1705,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
+                                $ref: '#/components/schemas/api.palace.common.TeamStrategyItem'
         delete:
             tags:
                 - TeamStrategy
@@ -1888,7 +1888,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
+                                $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricItem'
     /api/team/strategy/metric/levels:
         post:
             tags:
@@ -3591,8 +3591,6 @@ components:
                     items:
                         $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricItem_RuleItem'
                     description: Levels
-                message:
-                    type: string
         api.palace.SaveTeamMetricStrategyLevelsRequest:
             type: object
             properties:
@@ -4269,12 +4267,7 @@ components:
             description: EmailConfigItem represents the structure of an email configuration
         api.palace.common.EmptyReply:
             type: object
-            properties:
-                message:
-                    type: string
-                id:
-                    type: integer
-                    format: uint32
+            properties: {}
             description: |-
                 EmptyReply represents an empty response, typically used for operations that only need to return a status message.
                  message: A string message, usually used to indicate the execution status.

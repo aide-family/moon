@@ -40,10 +40,7 @@ message EmptyRequest {}
 
 // EmptyReply represents an empty response, typically used for operations that only need to return a status message.
 // message: A string message, usually used to indicate the execution status.
-message EmptyReply {
-  string message = 1;
-  uint32 id = 2;
-}
+message EmptyReply {}
 
 message BasicAuth {
   string username = 1;
