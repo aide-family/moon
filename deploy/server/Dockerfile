@@ -17,6 +17,7 @@ WORKDIR /moon
 
 COPY --from=builder /moon/bin /moon/bin
 COPY --from=builder /moon/cmd/${APP_NAME}/config /moon/config
+COPY --from=builder /moon/i18n /moon/i18n
 
 RUN mv /moon/bin/${APP_NAME} /moon/bin/server
 

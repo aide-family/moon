@@ -18,6 +18,7 @@ message Bootstrap {
   config.Crypto crypto = 8;
   FilingInformation filing = 9;
   config.EmailConfig email = 10;
+  config.I18N i18n = 11;
 }
 
 message Data {

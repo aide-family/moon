@@ -12,6 +12,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/houyi/internal/conf"
 	"github.com/aide-family/moon/cmd/houyi/internal/helper/middleware"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/metric"
 	"github.com/aide-family/moon/pkg/middler"
 	"github.com/aide-family/moon/pkg/util/docs"
@@ -33,8 +34,9 @@ func NewHTTPServer(bc *conf.Bootstrap, logger log.Logger) *http.Server {
 		http.Filter(middler.Cors(httpConf)),
 		http.Middleware(
 			recovery.Recovery(),
-			logging.Server(logger),
 			tracing.Server(),
+			merr.I18n(),
+			logging.Server(logger),
 			authMiddleware,
 			middler.Validate(),
 		),

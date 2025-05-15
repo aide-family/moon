@@ -17,6 +17,7 @@ message Bootstrap {
   repeated config.EmailConfig email_config = 8;
   repeated config.AliyunSMSConfig aliyun_sms_config = 9;
   config.MicroServer palace = 10;
+  config.I18N i18n = 11;
 }
 
 message Data {

@@ -10,6 +10,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/rabbit/internal/conf"
 	"github.com/aide-family/moon/cmd/rabbit/internal/helper/middleware"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/middler"
 )
 
@@ -26,8 +27,9 @@ func NewGRPCServer(bc *conf.Bootstrap, logger log.Logger) *grpc.Server {
 	opts := []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
-			logging.Server(logger),
 			tracing.Server(),
+			merr.I18n(),
+			logging.Server(logger),
 			authMiddleware,
 			middler.Validate(),
 		),

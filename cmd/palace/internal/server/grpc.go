@@ -10,6 +10,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/palace/internal/conf"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/middler"
 )
 
@@ -27,6 +28,7 @@ func NewGRPCServer(bc *conf.Bootstrap, logger log.Logger) *grpc.Server {
 		grpc.Middleware(
 			recovery.Recovery(),
 			tracing.Server(),
+			merr.I18n(),
 			logging.Server(logger),
 			authMiddleware,
 			middler.Validate(),

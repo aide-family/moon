@@ -20,6 +20,7 @@ message Bootstrap {
   Evaluate evaluate = 10;
   Config config = 11;
   Alert alert = 12;
+  config.I18N i18n = 13;
 }
 
 message Data {

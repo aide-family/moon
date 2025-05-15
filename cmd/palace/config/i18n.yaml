@@ -1,0 +1,3 @@
+i18n:
+  dir: ./i18n
+  format: TOML

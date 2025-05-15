@@ -9,7 +9,9 @@ import (
 
 	"github.com/aide-family/moon/cmd/rabbit/internal/conf"
 	"github.com/aide-family/moon/pkg/hello"
+	"github.com/aide-family/moon/pkg/i18n"
 	mlog "github.com/aide-family/moon/pkg/log"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/server"
 	"github.com/aide-family/moon/pkg/util/load"
 )
@@ -43,7 +45,9 @@ func run(cfgPath string) {
 		panic(err)
 	}
 	hello.SetEnvWithConfig(Version, bc.GetEnvironment(), bc.GetServer())
-
+	i18nConf := bc.GetI18N()
+	bundle := i18n.New(i18nConf)
+	merr.RegisterGlobalLocalizer(merr.NewLocalizer(bundle))
 	logger, err := mlog.New(bc.IsDev(), bc.GetLog())
 	if err != nil {
 		panic(err)
