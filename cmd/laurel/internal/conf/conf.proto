@@ -16,6 +16,7 @@ message Bootstrap {
   config.MicroServer palace = 7;
   repeated MetricVec metricVecs = 8;
   config.I18N i18n = 9;
+  repeated string taskScripts = 10;
 }
 
 message Auth {
@@ -58,4 +59,3 @@ message MetricVec {
 	int64 nativeHistogramMaxExemplars = 17;
 	int64 nativeHistogramExemplarTTL = 18;
 }
-

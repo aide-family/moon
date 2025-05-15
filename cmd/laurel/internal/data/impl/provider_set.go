@@ -9,4 +9,5 @@ var ProviderSetImpl = wire.NewSet(
 	NewCacheRepo,
 	NewPingRepo,
 	NewMetricRegister,
+	NewScriptImpl,
 )
