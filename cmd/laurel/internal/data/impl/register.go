@@ -29,7 +29,7 @@ func (m *metricRegisterImpl) WithCounterMetricValue(ctx context.Context, metrics
 	}
 	errList := make([]error, 0, len(metrics))
 	for _, metric := range metrics {
-		counterVec, ok := m.GetCounterMetric(metric.Name)
+		counterVec, ok := m.GetCounterMetric(metric.GetMetricName())
 		if !ok {
 			errList = append(errList, merr.ErrorNotFound("counter metric %s not found", metric.GetMetricName()))
 			continue
@@ -49,7 +49,7 @@ func (m *metricRegisterImpl) WithGaugeMetricValue(ctx context.Context, metrics .
 	}
 	errList := make([]error, 0, len(metrics))
 	for _, metric := range metrics {
-		gaugeVec, ok := m.GetGaugeMetric(metric.Name)
+		gaugeVec, ok := m.GetGaugeMetric(metric.GetMetricName())
 		if !ok {
 			errList = append(errList, merr.ErrorNotFound("gauge metric %s not found", metric.GetMetricName()))
 			continue
@@ -69,7 +69,7 @@ func (m *metricRegisterImpl) WithHistogramMetricValue(ctx context.Context, metri
 	}
 	errList := make([]error, 0, len(metrics))
 	for _, metric := range metrics {
-		histogramVec, ok := m.GetHistogramMetric(metric.Name)
+		histogramVec, ok := m.GetHistogramMetric(metric.GetMetricName())
 		if !ok {
 			errList = append(errList, merr.ErrorNotFound("histogram metric %s not found", metric.GetMetricName()))
 			continue
@@ -89,7 +89,7 @@ func (m *metricRegisterImpl) WithSummaryMetricValue(ctx context.Context, metrics
 	}
 	errList := make([]error, 0, len(metrics))
 	for _, metric := range metrics {
-		summaryVec, ok := m.GetSummaryMetric(metric.Name)
+		summaryVec, ok := m.GetSummaryMetric(metric.GetMetricName())
 		if !ok {
 			errList = append(errList, merr.ErrorNotFound("summary metric %s not found", metric.GetMetricName()))
 			continue

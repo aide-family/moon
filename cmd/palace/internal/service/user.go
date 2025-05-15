@@ -43,7 +43,7 @@ func (s *UserService) SelfInfo(ctx context.Context, _ *common.EmptyRequest) (*co
 		return nil, err
 	}
 
-	return build.ToUserItem(user), nil
+	return build.ToUserItemPlaintext(user), nil
 }
 
 // UpdateSelfInfo updates the current user's information.

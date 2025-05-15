@@ -34,6 +34,27 @@ func ToUserItem(user do.User) *common.UserItem {
 	}
 }
 
+func ToUserItemPlaintext(user do.User) *common.UserItem {
+	if validate.IsNil(user) {
+		return nil
+	}
+
+	return &common.UserItem{
+		Username:  user.GetUsername(),
+		Nickname:  user.GetNickname(),
+		Avatar:    user.GetAvatar(),
+		Gender:    common.Gender(user.GetGender().GetValue()),
+		Email:     string(user.GetEmail()),
+		Phone:     string(user.GetPhone()),
+		Remark:    user.GetRemark(),
+		Position:  common.UserPosition(user.GetPosition().GetValue()),
+		Status:    common.UserStatus(user.GetStatus().GetValue()),
+		CreatedAt: timex.Format(user.GetCreatedAt()),
+		UpdatedAt: timex.Format(user.GetUpdatedAt()),
+		UserId:    user.GetID(),
+	}
+}
+
 func ToUserBaseItem(user do.User) *common.UserBaseItem {
 	if validate.IsNil(user) {
 		return nil

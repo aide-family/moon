@@ -33,10 +33,9 @@ func withAllHeaders(ctx context.Context) (context.Context, error) {
 	ctx = permission.WithOperationContext(ctx, tr.Operation())
 	if teamIDStr := tr.RequestHeader().Get(cnst.XHeaderTeamID); teamIDStr != "" {
 		teamID, err := strconv.ParseUint(teamIDStr, 10, 32)
-		if err != nil {
-			return nil, merr.ErrorBadRequest("not allow request, header [%s] err", cnst.XHeaderTeamID)
+		if err == nil {
+			ctx = permission.WithTeamIDContext(ctx, uint32(teamID))
 		}
-		ctx = permission.WithTeamIDContext(ctx, uint32(teamID))
 	}
 	return ctx, nil
 }

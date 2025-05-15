@@ -71,10 +71,6 @@ func (b *UserBiz) GetSelfInfo(ctx context.Context) (do.User, error) {
 		return nil, merr.ErrorInternalServerError("failed to find user").WithCause(err)
 	}
 
-	if user == nil {
-		return nil, merr.ErrorUserNotFound("user not found")
-	}
-
 	return user, nil
 }
 
