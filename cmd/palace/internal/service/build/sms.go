@@ -53,7 +53,7 @@ func ToListSMSConfigRequest(req *palace.GetSMSConfigsRequest) *bo.ListSMSConfigR
 	}
 }
 
-func ToSMSConfigItem(item do.TeamSMSConfig) *palace.SMSConfigItem {
+func ToSMSConfigItem(item do.TeamSMSConfig) *common.SMSConfigItem {
 	if validate.IsNil(item) {
 		return nil
 	}
@@ -62,7 +62,7 @@ func ToSMSConfigItem(item do.TeamSMSConfig) *palace.SMSConfigItem {
 	if validate.IsNil(config) {
 		return nil
 	}
-	return &palace.SMSConfigItem{
+	return &common.SMSConfigItem{
 		ProviderType:    common.SMSProviderType(item.GetProviderType().GetValue()),
 		AccessKeyId:     strutil.MaskString(config.AccessKeyID, 2, 4),
 		AccessKeySecret: strutil.MaskString(config.AccessKeySecret, 2, 4),
@@ -75,7 +75,28 @@ func ToSMSConfigItem(item do.TeamSMSConfig) *palace.SMSConfigItem {
 	}
 }
 
-func ToSMSConfigItems(items []do.TeamSMSConfig) []*palace.SMSConfigItem {
+func ToSMSConfigItemPlaintext(item do.TeamSMSConfig) *common.SMSConfigItem {
+	if validate.IsNil(item) {
+		return nil
+	}
+	config := item.GetSMSConfig()
+	if validate.IsNil(config) {
+		return nil
+	}
+	return &common.SMSConfigItem{
+		ProviderType:    common.SMSProviderType(item.GetProviderType().GetValue()),
+		AccessKeyId:     config.AccessKeyID,
+		AccessKeySecret: config.AccessKeySecret,
+		SignName:        config.SignName,
+		Endpoint:        config.Endpoint,
+		Name:            item.GetName(),
+		Remark:          item.GetRemark(),
+		SmsConfigId:     item.GetID(),
+		Status:          common.GlobalStatus(item.GetStatus().GetValue()),
+	}
+}
+
+func ToSMSConfigItems(items []do.TeamSMSConfig) []*common.SMSConfigItem {
 	return slices.Map(items, ToSMSConfigItem)
 }
 

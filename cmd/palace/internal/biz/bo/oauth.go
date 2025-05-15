@@ -35,6 +35,11 @@ type VerifyEmailParams struct {
 	SendEmailFun SendEmailFun
 }
 
+type VerifyEmailCodeParams struct {
+	Email string
+	Code  string
+}
+
 type OAuthLoginParams struct {
 	APP          vobj.OAuthAPP `json:"app"`
 	Code         string        `json:"code"`

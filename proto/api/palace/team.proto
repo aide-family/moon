@@ -146,6 +146,13 @@ service Team {
     };
   }
 
+  // GetEmailConfig retrieves the email configuration for the team
+  rpc GetEmailConfig (GetEmailConfigRequest) returns (api.palace.common.EmailConfigItem) {
+    option (google.api.http) = {
+      get: "/api/team/email/config"
+    };
+  }
+
   // SaveSMSConfig saves or updates the SMS configuration for the team
   rpc SaveSMSConfig (SaveSMSConfigRequest) returns (api.palace.common.EmptyReply) {
     option (google.api.http) = {
@@ -159,6 +166,13 @@ service Team {
     option (google.api.http) = {
       post: "/api/team/sms/configs"
       body: "*"
+    };
+  }
+
+  // GetSMSConfig retrieves the SMS configuration for the team
+  rpc GetSMSConfig (GetSMSConfigRequest) returns (api.palace.common.SMSConfigItem) {
+    option (google.api.http) = {
+      get: "/api/team/sms/config"
     };
   }
 
@@ -350,26 +364,6 @@ message SaveEmailConfigRequest {
   uint32 emailConfigId = 8;
 }
 
-// EmailConfigItem represents the structure of an email configuration
-message EmailConfigItem {
-  // Email user
-  string user = 1;
-  // Email password
-  string pass = 2;
-  // Email server host
-  string host = 3;
-  // Email server port
-  uint32 port = 4;
-  // Enable email configuration
-  api.palace.common.GlobalStatus status = 5;
-  // Name of the email configuration
-  string name = 6;
-  // Remark of the email configuration
-  string remark = 7;
-  // emailConfigId of the email configuration
-  uint32 emailConfigId = 8;
-}
-
 // GetEmailConfigsRequest represents the request data for retrieving the email configuration
 message GetEmailConfigsRequest {
   // Pagination request details
@@ -383,8 +377,19 @@ message GetEmailConfigsRequest {
 // GetEmailConfigReply contains the response data for retrieving the email configuration
 message GetEmailConfigsReply {
   // List of email configuration items
-  repeated EmailConfigItem items = 1;
+  repeated api.palace.common.EmailConfigItem items = 1;
   api.palace.common.PaginationReply pagination = 2;
+}
+
+// GetEmailConfigRequest represents the request data for retrieving the email configuration
+message GetEmailConfigRequest {
+  // Email configuration Id
+  uint32 emailConfigId = 1 [(buf.validate.field).required = true];
+  // Code of the email configuration
+  string code = 2 [(buf.validate.field).string = {
+    max_len: 20
+    min_len: 1
+  }];
 }
 
 // SaveSMSConfigRequest represents the request data for saving or updating the SMS configuration
@@ -415,28 +420,6 @@ message SaveSMSConfigRequest {
   uint32 smsConfigId = 9;
 }
 
-// SMSConfigItem represents the structure of an SMS configuration
-message SMSConfigItem {
-  // SMS provider type
-  api.palace.common.SMSProviderType providerType = 1;
-  // Access Key Id for the SMS provider
-  string accessKeyId = 2;
-  // Access Key Secret for the SMS provider
-  string accessKeySecret = 3;
-  // Sign name for the SMS provider
-  string signName = 4;
-  // Endpoint for the SMS provider
-  string endpoint = 5;
-  // Name of the SMS configuration
-  string name = 6;
-  // Remark of the SMS configuration
-  string remark = 7;
-  // smsConfigId of the SMS configuration
-  uint32 smsConfigId = 8;
-  // Enable SMS configuration
-  api.palace.common.GlobalStatus status = 9;
-}
-
 // GetSMSConfigsRequest represents the request data for retrieving the SMS configuration
 message GetSMSConfigsRequest {
   // Pagination request details
@@ -452,8 +435,19 @@ message GetSMSConfigsRequest {
 // GetSMSConfigsReply contains the response data for retrieving the SMS configuration
 message GetSMSConfigsReply {
   // List of SMS configuration items
-  repeated SMSConfigItem items = 1;
+  repeated api.palace.common.SMSConfigItem items = 1;
   api.palace.common.PaginationReply pagination = 2;
+}
+
+// GetSMSConfigRequest represents the request data for retrieving the SMS configuration
+message GetSMSConfigRequest {
+  // SMS configuration Id
+  uint32 smsConfigId = 1 [(buf.validate.field).required = true];
+  // Code of the SMS configuration
+  string code = 2 [(buf.validate.field).string = {
+    max_len: 20
+    min_len: 1
+  }];
 }
 
 // OperateLogListRequest represents the request data for listing operation logs

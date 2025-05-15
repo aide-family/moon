@@ -18,15 +18,21 @@ type TeamService struct {
 
 	teamBiz    *biz.Team
 	messageBiz *biz.Message
+	authBiz    *biz.AuthBiz
+	userBiz    *biz.UserBiz
 }
 
 func NewTeamService(
 	teamBiz *biz.Team,
 	messageBiz *biz.Message,
+	authBiz *biz.AuthBiz,
+	userBiz *biz.UserBiz,
 ) *TeamService {
 	return &TeamService{
 		teamBiz:    teamBiz,
 		messageBiz: messageBiz,
+		authBiz:    authBiz,
+		userBiz:    userBiz,
 	}
 }
 
@@ -192,6 +198,25 @@ func (s *TeamService) GetEmailConfigs(ctx context.Context, req *palace.GetEmailC
 	return build.ToEmailConfigReply(config), nil
 }
 
+func (s *TeamService) GetEmailConfig(ctx context.Context, req *palace.GetEmailConfigRequest) (*common.EmailConfigItem, error) {
+	config, err := s.teamBiz.GetEmailConfig(ctx, req.GetEmailConfigId())
+	if err != nil {
+		return nil, err
+	}
+	userDo, err := s.userBiz.GetSelfInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	verifyParams := &bo.VerifyEmailCodeParams{
+		Email: userDo.GetEmail(),
+		Code:  req.GetCode(),
+	}
+	if err := s.authBiz.VerifyEmailCode(ctx, verifyParams); err != nil {
+		return nil, err
+	}
+	return build.ToEmailConfigItemPlaintext(config), nil
+}
+
 func (s *TeamService) SaveSMSConfig(ctx context.Context, req *palace.SaveSMSConfigRequest) (*common.EmptyReply, error) {
 	if err := s.teamBiz.SaveSMSConfig(ctx, build.ToSaveSMSConfigRequest(req)); err != nil {
 		return nil, err
@@ -206,6 +231,25 @@ func (s *TeamService) GetSMSConfigs(ctx context.Context, req *palace.GetSMSConfi
 		return nil, err
 	}
 	return build.ToSMSConfigReply(config), nil
+}
+
+func (s *TeamService) GetSMSConfig(ctx context.Context, req *palace.GetSMSConfigRequest) (*common.SMSConfigItem, error) {
+	config, err := s.teamBiz.GetSMSConfig(ctx, req.GetSmsConfigId())
+	if err != nil {
+		return nil, err
+	}
+	userDo, err := s.userBiz.GetSelfInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	verifyParams := &bo.VerifyEmailCodeParams{
+		Email: userDo.GetEmail(),
+		Code:  req.GetCode(),
+	}
+	if err := s.authBiz.VerifyEmailCode(ctx, verifyParams); err != nil {
+		return nil, err
+	}
+	return build.ToSMSConfigItemPlaintext(config), nil
 }
 
 func (s *TeamService) OperateLogList(ctx context.Context, req *palace.TeamOperateLogListRequest) (*palace.TeamOperateLogListReply, error) {

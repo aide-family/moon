@@ -182,6 +182,10 @@ func (t *Team) GetEmailConfigs(ctx context.Context, req *bo.ListEmailConfigReque
 	return configListReply, nil
 }
 
+func (t *Team) GetEmailConfig(ctx context.Context, emailConfigId uint32) (do.TeamEmailConfig, error) {
+	return t.teamEmailConfigRepo.Get(ctx, emailConfigId)
+}
+
 // SaveSMSConfig saves the SMS configuration for a team
 func (t *Team) SaveSMSConfig(ctx context.Context, req *bo.SaveSMSConfigRequest) error {
 	if err := req.Validate(); err != nil {
@@ -202,6 +206,10 @@ func (t *Team) SaveSMSConfig(ctx context.Context, req *bo.SaveSMSConfigRequest) 
 // GetSMSConfigs retrieves SMS configurations for a team
 func (t *Team) GetSMSConfigs(ctx context.Context, req *bo.ListSMSConfigRequest) (*bo.ListSMSConfigListReply, error) {
 	return t.teamSMSConfigRepo.List(ctx, req)
+}
+
+func (t *Team) GetSMSConfig(ctx context.Context, smsConfigId uint32) (do.TeamSMSConfig, error) {
+	return t.teamSMSConfigRepo.Get(ctx, smsConfigId)
 }
 
 func (t *Team) SaveTeamRole(ctx context.Context, req *bo.SaveTeamRoleReq) error {

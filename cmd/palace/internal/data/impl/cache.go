@@ -270,8 +270,8 @@ func (c *cacheReoImpl) CacheVerifyOAuthToken(ctx context.Context, oauthParams *b
 	return c.GetCache().Client().Set(ctx, key, "##code##", 10*time.Minute).Err()
 }
 
-func (c *cacheReoImpl) VerifyEmailCode(ctx context.Context, email, code string) error {
-	key := repository.EmailCodeKey.Key(email)
+func (c *cacheReoImpl) VerifyEmailCode(ctx context.Context, params *bo.VerifyEmailCodeParams) error {
+	key := repository.EmailCodeKey.Key(params.Email)
 	cacheCode, err := c.GetCache().Client().Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
@@ -282,7 +282,7 @@ func (c *cacheReoImpl) VerifyEmailCode(ctx context.Context, email, code string) 
 		return merr.ErrorInternalServerError("cache err").WithCause(err)
 	}
 	defer c.GetCache().Client().Del(ctx, key).Val()
-	if strings.EqualFold(cacheCode, code) {
+	if strings.EqualFold(cacheCode, params.Code) {
 		return nil
 	}
 	return merr.ErrorCaptchaError("captcha err").WithMetadata(map[string]string{
@@ -293,31 +293,31 @@ func (c *cacheReoImpl) VerifyEmailCode(ctx context.Context, email, code string) 
 //go:embed template/verify_email.html
 var verifyEmailTemplate string
 
-func (c *cacheReoImpl) SendVerifyEmailCode(ctx context.Context, email string) (*bo.SendEmailParams, error) {
-	if err := validate.CheckEmail(email); err != nil {
-		return nil, err
+func (c *cacheReoImpl) SendVerifyEmailCode(ctx context.Context, params *bo.VerifyEmailParams) error {
+	if err := validate.CheckEmail(params.Email); err != nil {
+		return err
 	}
 	code := strings.ToUpper(hash.MD5(timex.Now().String())[:6])
-	err := c.GetCache().Client().Set(ctx, repository.EmailCodeKey.Key(email), code, 5*time.Minute).Err()
+	err := c.GetCache().Client().Set(ctx, repository.EmailCodeKey.Key(params.Email), code, 5*time.Minute).Err()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	bodyParams := map[string]string{
-		"Email":       email,
+		"Email":       params.Email,
 		"Code":        code,
 		"RedirectURI": c.bc.GetAuth().GetOauth2().GetRedirectUri(),
 	}
 	emailBody, err := template.HtmlFormatter(verifyEmailTemplate, bodyParams)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	params := &bo.SendEmailParams{
-		Email:       email,
+	sendEmailParams := &bo.SendEmailParams{
+		Email:       params.Email,
 		Body:        emailBody,
 		Subject:     "Email verification code.",
 		ContentType: "text/html",
 		RequestID:   uuid.New().String(),
 	}
-	return params, nil
+	return params.SendEmailFun(ctx, sendEmailParams)
 }

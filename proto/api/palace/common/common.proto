@@ -66,3 +66,45 @@ message SendMessageLogItem {
   string createdAt = 7;
   string updatedAt = 8;
 }
+
+// EmailConfigItem represents the structure of an email configuration
+message EmailConfigItem {
+  // Email user
+  string user = 1;
+  // Email password
+  string pass = 2;
+  // Email server host
+  string host = 3;
+  // Email server port
+  uint32 port = 4;
+  // Enable email configuration
+  api.palace.common.GlobalStatus status = 5;
+  // Name of the email configuration
+  string name = 6;
+  // Remark of the email configuration
+  string remark = 7;
+  // emailConfigId of the email configuration
+  uint32 emailConfigId = 8;
+}
+
+// SMSConfigItem represents the structure of an SMS configuration
+message SMSConfigItem {
+  // SMS provider type
+  api.palace.common.SMSProviderType providerType = 1;
+  // Access Key Id for the SMS provider
+  string accessKeyId = 2;
+  // Access Key Secret for the SMS provider
+  string accessKeySecret = 3;
+  // Sign name for the SMS provider
+  string signName = 4;
+  // Endpoint for the SMS provider
+  string endpoint = 5;
+  // Name of the SMS configuration
+  string name = 6;
+  // Remark of the SMS configuration
+  string remark = 7;
+  // smsConfigId of the SMS configuration
+  uint32 smsConfigId = 8;
+  // Enable SMS configuration
+  api.palace.common.GlobalStatus status = 9;
+}

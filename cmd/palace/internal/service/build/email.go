@@ -42,12 +42,12 @@ func ToSaveEmailConfigRequest(req *palace.SaveEmailConfigRequest) *bo.SaveEmailC
 	return item
 }
 
-func ToEmailConfigItem(config do.TeamEmailConfig) *palace.EmailConfigItem {
+func ToEmailConfigItem(config do.TeamEmailConfig) *common.EmailConfigItem {
 	if validate.IsNil(config) {
 		return nil
 	}
 
-	return &palace.EmailConfigItem{
+	return &common.EmailConfigItem{
 		User:          strutil.MaskEmail(config.GetUser()),
 		Pass:          strutil.MaskString(config.GetPass(), 0, 4),
 		Host:          config.GetHost(),
@@ -59,7 +59,24 @@ func ToEmailConfigItem(config do.TeamEmailConfig) *palace.EmailConfigItem {
 	}
 }
 
-func ToEmailConfigItems(configs []do.TeamEmailConfig) []*palace.EmailConfigItem {
+func ToEmailConfigItemPlaintext(configItem do.TeamEmailConfig) *common.EmailConfigItem {
+	if validate.IsNil(configItem) {
+		return nil
+	}
+
+	return &common.EmailConfigItem{
+		User:          configItem.GetUser(),
+		Pass:          configItem.GetPass(),
+		Host:          configItem.GetHost(),
+		Port:          configItem.GetPort(),
+		Status:        common.GlobalStatus(configItem.GetStatus().GetValue()),
+		Name:          configItem.GetName(),
+		Remark:        configItem.GetRemark(),
+		EmailConfigId: configItem.GetID(),
+	}
+}
+
+func ToEmailConfigItems(configs []do.TeamEmailConfig) []*common.EmailConfigItem {
 	return slices.Map(configs, ToEmailConfigItem)
 }
 

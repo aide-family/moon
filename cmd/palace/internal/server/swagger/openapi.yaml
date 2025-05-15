@@ -1006,6 +1006,30 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
     /api/team/email/config:
+        get:
+            tags:
+                - Team
+            description: GetEmailConfig retrieves the email configuration for the team
+            operationId: Team_GetEmailConfig
+            parameters:
+                - name: emailConfigId
+                  in: query
+                  description: Email configuration Id
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: code
+                  in: query
+                  description: Code of the email configuration
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmailConfigItem'
         put:
             tags:
                 - Team
@@ -1612,6 +1636,30 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
     /api/team/sms/config:
+        get:
+            tags:
+                - Team
+            description: GetSMSConfig retrieves the SMS configuration for the team
+            operationId: Team_GetSMSConfig
+            parameters:
+                - name: smsConfigId
+                  in: query
+                  description: SMS configuration Id
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: code
+                  in: query
+                  description: Code of the SMS configuration
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.SMSConfigItem'
         put:
             tags:
                 - Team
@@ -2353,37 +2401,6 @@ components:
                     type: string
                     description: Team logo URL
             description: CreateTeamRequest represents the request data for creating a new team
-        api.palace.EmailConfigItem:
-            type: object
-            properties:
-                user:
-                    type: string
-                    description: Email user
-                pass:
-                    type: string
-                    description: Email password
-                host:
-                    type: string
-                    description: Email server host
-                port:
-                    type: integer
-                    description: Email server port
-                    format: uint32
-                status:
-                    type: integer
-                    description: Enable email configuration
-                    format: enum
-                name:
-                    type: string
-                    description: Name of the email configuration
-                remark:
-                    type: string
-                    description: Remark of the email configuration
-                emailConfigId:
-                    type: integer
-                    description: emailConfigId of the email configuration
-                    format: uint32
-            description: EmailConfigItem represents the structure of an email configuration
         api.palace.GetCaptchaReply:
             type: object
             properties:
@@ -2404,7 +2421,7 @@ components:
                 items:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.EmailConfigItem'
+                        $ref: '#/components/schemas/api.palace.common.EmailConfigItem'
                     description: List of email configuration items
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationReply'
@@ -2449,7 +2466,7 @@ components:
                 items:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.SMSConfigItem'
+                        $ref: '#/components/schemas/api.palace.common.SMSConfigItem'
                     description: List of SMS configuration items
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationReply'
@@ -3287,40 +3304,6 @@ components:
                     type: integer
                     format: uint32
             description: ResetUserPasswordRequest represents the request data for resetting user passwords
-        api.palace.SMSConfigItem:
-            type: object
-            properties:
-                providerType:
-                    type: integer
-                    description: SMS provider type
-                    format: enum
-                accessKeyId:
-                    type: string
-                    description: Access Key Id for the SMS provider
-                accessKeySecret:
-                    type: string
-                    description: Access Key Secret for the SMS provider
-                signName:
-                    type: string
-                    description: Sign name for the SMS provider
-                endpoint:
-                    type: string
-                    description: Endpoint for the SMS provider
-                name:
-                    type: string
-                    description: Name of the SMS configuration
-                remark:
-                    type: string
-                    description: Remark of the SMS configuration
-                smsConfigId:
-                    type: integer
-                    description: smsConfigId of the SMS configuration
-                    format: uint32
-                status:
-                    type: integer
-                    description: Enable SMS configuration
-                    format: enum
-            description: SMSConfigItem represents the structure of an SMS configuration
         api.palace.SaveEmailConfigRequest:
             type: object
             properties:
@@ -4263,6 +4246,37 @@ components:
                     type: string
                 password:
                     type: string
+        api.palace.common.EmailConfigItem:
+            type: object
+            properties:
+                user:
+                    type: string
+                    description: Email user
+                pass:
+                    type: string
+                    description: Email password
+                host:
+                    type: string
+                    description: Email server host
+                port:
+                    type: integer
+                    description: Email server port
+                    format: uint32
+                status:
+                    type: integer
+                    description: Enable email configuration
+                    format: enum
+                name:
+                    type: string
+                    description: Name of the email configuration
+                remark:
+                    type: string
+                    description: Remark of the email configuration
+                emailConfigId:
+                    type: integer
+                    description: emailConfigId of the email configuration
+                    format: uint32
+            description: EmailConfigItem represents the structure of an email configuration
         api.palace.common.EmptyReply:
             type: object
             properties:
@@ -4496,6 +4510,40 @@ components:
                     items:
                         $ref: '#/components/schemas/api.palace.common.MenuTreeItem'
             description: system-api
+        api.palace.common.SMSConfigItem:
+            type: object
+            properties:
+                providerType:
+                    type: integer
+                    description: SMS provider type
+                    format: enum
+                accessKeyId:
+                    type: string
+                    description: Access Key Id for the SMS provider
+                accessKeySecret:
+                    type: string
+                    description: Access Key Secret for the SMS provider
+                signName:
+                    type: string
+                    description: Sign name for the SMS provider
+                endpoint:
+                    type: string
+                    description: Endpoint for the SMS provider
+                name:
+                    type: string
+                    description: Name of the SMS configuration
+                remark:
+                    type: string
+                    description: Remark of the SMS configuration
+                smsConfigId:
+                    type: integer
+                    description: smsConfigId of the SMS configuration
+                    format: uint32
+                status:
+                    type: integer
+                    description: Enable SMS configuration
+                    format: enum
+            description: SMSConfigItem represents the structure of an SMS configuration
         api.palace.common.SendMessageLogItem:
             type: object
             properties:

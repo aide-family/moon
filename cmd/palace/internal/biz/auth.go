@@ -330,7 +330,11 @@ func (a *AuthBiz) oauthLogin(ctx context.Context, userInfo bo.IOAuthUser, sendEm
 
 // OAuthLoginWithEmail oauth2 set email login
 func (a *AuthBiz) OAuthLoginWithEmail(ctx context.Context, oauthParams *bo.OAuthLoginParams) (*bo.LoginSign, error) {
-	if err := a.cacheRepo.VerifyEmailCode(ctx, oauthParams.Email, oauthParams.Code); err != nil {
+	verifyParams := &bo.VerifyEmailCodeParams{
+		Email: oauthParams.Email,
+		Code:  oauthParams.Code,
+	}
+	if err := a.cacheRepo.VerifyEmailCode(ctx, verifyParams); err != nil {
 		return nil, err
 	}
 
@@ -360,16 +364,21 @@ func (a *AuthBiz) OAuthLoginWithEmail(ctx context.Context, oauthParams *bo.OAuth
 
 // VerifyEmail verify email
 func (a *AuthBiz) VerifyEmail(ctx context.Context, req *bo.VerifyEmailParams) error {
-	sendEmailParams, err := a.cacheRepo.SendVerifyEmailCode(ctx, req.Email)
-	if err != nil {
-		return err
-	}
-	return req.SendEmailFun(ctx, sendEmailParams)
+	return a.cacheRepo.SendVerifyEmailCode(ctx, req)
+}
+
+// VerifyEmailCode verify email code
+func (a *AuthBiz) VerifyEmailCode(ctx context.Context, params *bo.VerifyEmailCodeParams) error {
+	return a.cacheRepo.VerifyEmailCode(ctx, params)
 }
 
 // LoginWithEmail 邮箱登录
 func (a *AuthBiz) LoginWithEmail(ctx context.Context, req *bo.LoginWithEmailParams) (*bo.LoginSign, error) {
-	if err := a.cacheRepo.VerifyEmailCode(ctx, req.GetEmail(), req.Code); err != nil {
+	verifyParams := &bo.VerifyEmailCodeParams{
+		Email: req.GetEmail(),
+		Code:  req.Code,
+	}
+	if err := a.cacheRepo.VerifyEmailCode(ctx, verifyParams); err != nil {
 		return nil, err
 	}
 	userDo, err := a.userRepo.FindByEmail(ctx, req.GetEmail())
