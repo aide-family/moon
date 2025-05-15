@@ -13,6 +13,8 @@ import (
 	"github.com/aide-family/moon/cmd/laurel/internal/conf"
 	"github.com/aide-family/moon/cmd/laurel/internal/helper/middleware"
 	"github.com/aide-family/moon/pkg/hello"
+	"github.com/aide-family/moon/pkg/i18n"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/metric"
 	"github.com/aide-family/moon/pkg/middler"
 	"github.com/aide-family/moon/pkg/util/docs"
@@ -26,6 +28,9 @@ func NewHTTPServer(bc *conf.Bootstrap, logger log.Logger) *http.Server {
 	serverConf := bc.GetServer()
 	httpConf := serverConf.GetHttp()
 	jwtConf := bc.GetAuth().GetJwt()
+	i18nConf := bc.GetI18N()
+	bundle := i18n.New(i18nConf)
+	merr.RegisterGlobalLocalizer(merr.NewLocalizer(bundle))
 
 	authMiddleware := selector.Server(
 		middleware.JwtServer(jwtConf.GetSignKey()),
@@ -34,6 +39,7 @@ func NewHTTPServer(bc *conf.Bootstrap, logger log.Logger) *http.Server {
 		http.Filter(middler.Cors(httpConf)),
 		http.Middleware(
 			recovery.Recovery(),
+			merr.I18n(),
 			logging.Server(logger),
 			tracing.Server(),
 			metric.Server(hello.GetEnv().Name()),

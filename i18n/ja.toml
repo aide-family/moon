@@ -1,42 +1,41 @@
 [BAD_REQUEST]
-other = ""
+other = "不正なリクエスト"
 
 [NOT_FOUND]
-other = ""
+other = "リソースが見つかりません"
 
 [CAPTCHA_ERROR]
-other = ""
+other = "不正な検証コード"
 
 [PARAMS_ERROR]
-other = ""
+other = "パラメータが不正です"
 
 [PASSWORD_ERROR]
-other = ""
+other = "パスワードが不正です"
 
 [PERMISSION_DENIED]
-other = ""
+other = "許可されていません"
 
 [METHOD_NOT_ALLOWED]
-other = "xxx"
+other = "メソッドが許可されていません"
 
 [UNAUTHORIZED]
-other = ""
+other = "未認証"
 
 [INVALID_TOKEN]
-other = ""
+other = "無効なトークン"
 
 [TOKEN_EXPIRED]
-other = ""
+other = "トークンが期限切れです"
 
 [USER_FORBIDDEN]
-other = ""
+other = "ユーザーが禁止されています"
 
 [USER_NOT_FOUND]
-other = ""
+other = "ユーザーが見つかりません"
 
 [INTERNAL_SERVER_ERROR]
-other = ""
+other = "サーバーエラー"
 
 [INVALID_ARGUMENT]
-other = ""
-
+other = "無効な引数"

@@ -22,6 +22,16 @@ enum Network {
   GRPC = 2;
 }
 
+enum I18nFormat {
+  TOML = 0;
+  JSON = 1;
+}
+
+message I18N {
+  string dir = 1;
+  I18nFormat format = 2;
+}
+
 message Server {
   string name = 1;
   map<string, string> metadata = 2;

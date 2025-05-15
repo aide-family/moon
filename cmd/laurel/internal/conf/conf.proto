@@ -15,6 +15,7 @@ message Bootstrap {
   Auth auth = 6;
   config.MicroServer palace = 7;
   repeated MetricVec metricVecs = 8;
+  config.I18N i18n = 9;
 }
 
 message Auth {
