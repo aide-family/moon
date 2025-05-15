@@ -115,13 +115,13 @@ func (r *UpdateUserPositionRequest) WithUser(user do.User) *UpdateUserPositionRe
 
 func (r *UpdateUserPositionRequest) Validate() error {
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParamsError("invalid operator")
+		return merr.ErrorParamsError("operator is unknown")
 	}
 	if validate.IsNil(r.user) {
 		return merr.ErrorParamsError("invalid user")
 	}
 	if r.Position.IsUnknown() {
-		return merr.ErrorParamsError("invalid position")
+		return merr.ErrorParamsError("position is unknown")
 	}
 	if r.operator.GetID() == r.user.GetID() {
 		return merr.ErrorParamsError("not allowed to update your own position")
@@ -131,7 +131,7 @@ func (r *UpdateUserPositionRequest) Validate() error {
 		return nil
 	}
 	if !operatorPosition.GT(r.Position) || !operatorPosition.IsAdminOrSuperAdmin() {
-		return merr.ErrorParamsError("invalid position")
+		return merr.ErrorPermissionDenied("position is not allowed")
 	}
 	return nil
 }
