@@ -64,7 +64,7 @@ func (u *userJob) Run() {
 		if userListReply.Total < pageReq.Limit {
 			break
 		}
-		pageReq.PaginationRequest.Page++
+		pageReq.Page++
 	}
 
 }

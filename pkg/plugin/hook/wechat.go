@@ -66,7 +66,11 @@ func (h *wechatHook) Send(ctx context.Context, message Message) (err error) {
 		h.helper.WithContext(ctx).Warnf("send wechat hook failed: %v", err)
 		return err
 	}
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		if err := Body.Close(); err != nil {
+			h.helper.WithContext(ctx).Warnf("close wechat hook response body failed: %v", err)
+		}
+	}(response.Body)
 
 	if response.StatusCode != http.StatusOK {
 		h.helper.WithContext(ctx).Warnf("send wechat hook failed: status code: %d", response.StatusCode)

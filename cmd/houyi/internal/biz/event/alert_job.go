@@ -121,7 +121,11 @@ func (a *alertJob) Run() {
 	if !locked {
 		return
 	}
-	defer a.cacheRepo.Unlock(ctx, lockKey)
+	defer func(cacheRepo repository.Cache, ctx context.Context, key string) {
+		if err := cacheRepo.Unlock(ctx, key); err != nil {
+			a.helper.Warnw("err", err, "msg", "unlock error")
+		}
+	}(a.cacheRepo, ctx, lockKey)
 
 	alertInfo, ok := a.isSustaining()
 	if !ok {

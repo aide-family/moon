@@ -82,7 +82,11 @@ func (o *otherHook) Send(ctx context.Context, message Message) (err error) {
 		o.helper.WithContext(ctx).Warnf("send other hook failed: %v", err)
 		return err
 	}
-	defer response.Body.Close()
+	defer func(body io.ReadCloser) {
+		if err := body.Close(); err != nil {
+			o.helper.WithContext(ctx).Warnf("close other hook response body failed: %v", err)
+		}
+	}(response.Body)
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {

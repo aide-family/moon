@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
+	"golang.org/x/sync/errgroup"
 )
 
 var _ transport.Server = (*Ticker)(nil)
@@ -153,7 +154,12 @@ func (t *Tickers) Add(interval time.Duration, task *TickTask) uint64 {
 		t.autoID++
 	}
 	ticker := NewTicker(interval, task, WithTickerLogger(t.logger), WithTickerImmediate(task.Immediate))
-	defer ticker.Start(context.Background())
+	defer func(ticker *Ticker, ctx context.Context) {
+		err := ticker.Start(ctx)
+		if err != nil {
+			_ = t.logger.Log(log.LevelError, "err", err, "msg", "start ticker err")
+		}
+	}(ticker, context.Background())
 	t.tickers[id] = ticker
 	return id
 }
@@ -165,7 +171,11 @@ func (t *Tickers) Remove(id uint64) {
 	if !ok {
 		return
 	}
-	ticker.Stop(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := ticker.Stop(ctx); err != nil {
+		_ = t.logger.Log(log.LevelWarn, "err", err, "msg", "stop ticker err")
+	}
 	delete(t.tickers, id)
 	t.recycle = append(t.recycle, id)
 }
@@ -173,20 +183,26 @@ func (t *Tickers) Remove(id uint64) {
 func (t *Tickers) Start(ctx context.Context) error {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
+	eg := new(errgroup.Group)
 	for _, ticker := range t.tickers {
-		ticker.Start(ctx)
+		eg.Go(func() error {
+			return ticker.Start(ctx)
+		})
 	}
-	return nil
+	return eg.Wait()
 }
 
 func (t *Tickers) Stop(ctx context.Context) error {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
+	eg := new(errgroup.Group)
 	for _, ticker := range t.tickers {
-		ticker.Stop(ctx)
+		eg.Go(func() error {
+			return ticker.Stop(ctx)
+		})
 	}
 	t.tickers = make(map[uint64]*Ticker)
 	t.recycle = make([]uint64, 0, 100)
 	t.autoID = 1
-	return nil
+	return eg.Wait()
 }

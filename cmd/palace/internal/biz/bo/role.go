@@ -240,7 +240,7 @@ func (r *UpdateRoleUsersReq) Validate() error {
 		return nil
 	}
 	for _, user := range r.users {
-		if !(operatorPosition.GT(user.GetPosition()) && operatorPosition.IsAdminOrSuperAdmin()) {
+		if !operatorPosition.GT(user.GetPosition()) || !operatorPosition.IsAdminOrSuperAdmin() {
 			return merr.ErrorParamsError("invalid position")
 		}
 	}

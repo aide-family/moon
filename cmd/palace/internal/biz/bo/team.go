@@ -175,7 +175,7 @@ func (r *UpdateMemberPositionReq) Validate() error {
 		return merr.ErrorParamsError("invalid position")
 	}
 	operatorPosition := r.operator.GetPosition()
-	if !(operatorPosition.GT(r.Position) && operatorPosition.IsAdminOrSuperAdmin()) {
+	if !operatorPosition.GT(r.Position) || !operatorPosition.IsAdminOrSuperAdmin() {
 		return merr.ErrorParamsError("invalid position")
 	}
 	return nil
@@ -234,7 +234,7 @@ func (r *UpdateMemberStatusReq) Validate() error {
 	}
 	operatorPosition := r.operator.GetPosition()
 	for _, member := range r.members {
-		if !(operatorPosition.GT(member.GetPosition()) && operatorPosition.IsAdminOrSuperAdmin()) {
+		if !operatorPosition.GT(member.GetPosition()) || !operatorPosition.IsAdminOrSuperAdmin() {
 			return merr.ErrorParamsError("invalid position")
 		}
 	}
@@ -296,7 +296,7 @@ func (r *UpdateMemberRolesReq) Validate() error {
 		return merr.ErrorParamsError("invalid member")
 	}
 	operatorPosition := r.operator.GetPosition()
-	if !(operatorPosition.GT(r.member.GetPosition()) && operatorPosition.IsAdminOrSuperAdmin()) {
+	if !operatorPosition.GT(r.member.GetPosition()) || !operatorPosition.IsAdminOrSuperAdmin() {
 		return merr.ErrorParamsError("invalid position")
 	}
 	return nil
@@ -340,7 +340,7 @@ func (r *RemoveMemberReq) Validate() error {
 		return merr.ErrorParamsError("invalid member")
 	}
 	operatorPosition := r.operator.GetPosition()
-	if !(operatorPosition.GT(r.member.GetPosition()) && operatorPosition.IsAdminOrSuperAdmin()) {
+	if !operatorPosition.GT(r.member.GetPosition()) || !operatorPosition.IsAdminOrSuperAdmin() {
 		return merr.ErrorParamsError("invalid position")
 	}
 	return nil

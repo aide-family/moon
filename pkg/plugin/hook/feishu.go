@@ -91,7 +91,11 @@ func (f *feishuHook) Send(ctx context.Context, message Message) (err error) {
 		f.helper.WithContext(ctx).Warnf("send feishu hook failed: %v", err)
 		return err
 	}
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		if err := Body.Close(); err != nil {
+			f.helper.WithContext(ctx).Warnf("close feishu hook response body failed: %v", err)
+		}
+	}(response.Body)
 
 	if response.StatusCode != http.StatusOK {
 		f.helper.WithContext(ctx).Warnf("send feishu hook failed: status code: %d", response.StatusCode)

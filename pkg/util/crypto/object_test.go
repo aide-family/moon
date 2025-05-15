@@ -21,11 +21,11 @@ func TestObject_Scan_Success(t *testing.T) {
 	}
 
 	var origin string
-	switch val.(type) {
+	switch v := val.(type) {
 	case string:
-		origin = val.(string)
+		origin = v
 	case []byte:
-		origin = string(val.([]byte))
+		origin = string(v)
 	default:
 		t.Fatal("Unexpected type")
 	}

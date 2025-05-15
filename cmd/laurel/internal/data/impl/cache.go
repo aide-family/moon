@@ -81,22 +81,22 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 
 func (c *cacheImpl) GetCounterMetrics(ctx context.Context, names ...string) ([]*bo.CounterMetricVec, error) {
 	key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeCounter)
-	return getMetrics[bo.CounterMetricVec](ctx, c.Data.GetCache(), key, names...)
+	return getMetrics[bo.CounterMetricVec](ctx, c.GetCache(), key, names...)
 }
 
 func (c *cacheImpl) GetGaugeMetrics(ctx context.Context, names ...string) ([]*bo.GaugeMetricVec, error) {
 	key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeGauge)
-	return getMetrics[bo.GaugeMetricVec](ctx, c.Data.GetCache(), key, names...)
+	return getMetrics[bo.GaugeMetricVec](ctx, c.GetCache(), key, names...)
 }
 
 func (c *cacheImpl) GetHistogramMetrics(ctx context.Context, names ...string) ([]*bo.HistogramMetricVec, error) {
 	key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeHistogram)
-	return getMetrics[bo.HistogramMetricVec](ctx, c.Data.GetCache(), key, names...)
+	return getMetrics[bo.HistogramMetricVec](ctx, c.GetCache(), key, names...)
 }
 
 func (c *cacheImpl) GetSummaryMetrics(ctx context.Context, names ...string) ([]*bo.SummaryMetricVec, error) {
 	key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeSummary)
-	return getMetrics[bo.SummaryMetricVec](ctx, c.Data.GetCache(), key, names...)
+	return getMetrics[bo.SummaryMetricVec](ctx, c.GetCache(), key, names...)
 }
 
 func getMetrics[T any](ctx context.Context, cacheInstance cache.Cache, key string, names ...string) ([]*T, error) {

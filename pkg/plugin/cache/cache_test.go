@@ -38,7 +38,9 @@ func Test_Cache(t *testing.T) {
 		t.Errorf("new cache error: %v", err)
 		return
 	}
-	defer c.Close()
+	defer func(c cache.Cache) {
+		_ = c.Close()
+	}(c)
 
 	users := []*User{
 		{

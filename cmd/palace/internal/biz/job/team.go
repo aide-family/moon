@@ -63,7 +63,7 @@ func (t *teamJob) Run() {
 		if teamListReply.Total < pageReq.Limit {
 			break
 		}
-		pageReq.PaginationRequest.Page++
+		pageReq.Page++
 	}
 }
 

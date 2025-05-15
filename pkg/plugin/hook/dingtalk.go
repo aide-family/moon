@@ -81,7 +81,11 @@ func (d *dingTalkHook) Send(ctx context.Context, message Message) (err error) {
 		d.helper.WithContext(ctx).Warnf("send dingtalk hook failed: %v", err)
 		return err
 	}
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		if err := Body.Close(); err != nil {
+			d.helper.WithContext(ctx).Warnf("close dingtalk hook response body failed: %v", err)
+		}
+	}(response.Body)
 
 	var resp dingTalkHookResp
 	if err := json.NewDecoder(response.Body).Decode(&resp); err != nil {

@@ -58,7 +58,7 @@ func Test_Async_LoadPlugin_Server(t *testing.T) {
 		})
 		if err != nil {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Failed to load plugin " + err.Error()))
+			_, _ = w.Write([]byte("Failed to load plugin " + err.Error()))
 			return
 		}
 
@@ -68,7 +68,7 @@ func Test_Async_LoadPlugin_Server(t *testing.T) {
 		}
 		if err := sender.Send(context.Background(), "+1234567890", msg); err != nil {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Failed to send message " + err.Error()))
+			_, _ = w.Write([]byte("Failed to send message " + err.Error()))
 			return
 		}
 	})
@@ -78,7 +78,7 @@ func Test_Async_LoadPlugin_Server(t *testing.T) {
 		if _, err := os.Stat(filename); err == nil {
 			if err := os.Remove(filename); err != nil {
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("Failed to remove file " + err.Error()))
+				_, _ = w.Write([]byte("Failed to remove file " + err.Error()))
 				return
 			}
 		}
@@ -86,15 +86,17 @@ func Test_Async_LoadPlugin_Server(t *testing.T) {
 		file, err := os.Create(filename)
 		if err != nil {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Failed to create file " + err.Error()))
+			_, _ = w.Write([]byte("Failed to create file " + err.Error()))
 			return
 		}
-		defer file.Close()
+		defer func(file *os.File) {
+			_ = file.Close()
+		}(file)
 
 		_, err = io.Copy(file, r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Failed to copy file " + err.Error()))
+			_, _ = w.Write([]byte("Failed to copy file " + err.Error()))
 			return
 		}
 
@@ -107,7 +109,7 @@ func Test_Async_LoadPlugin_Server(t *testing.T) {
 		})
 		if err != nil {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Failed to load plugin " + err.Error()))
+			_, _ = w.Write([]byte("Failed to load plugin " + err.Error()))
 			return
 		}
 
@@ -117,7 +119,7 @@ func Test_Async_LoadPlugin_Server(t *testing.T) {
 		}
 		if err := sender.Send(context.Background(), "+1234567890", msg); err != nil {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Failed to send message " + err.Error()))
+			_, _ = w.Write([]byte("Failed to send message " + err.Error()))
 			return
 		}
 	})
@@ -139,7 +141,7 @@ func Test_Async_LoadPlugin(t *testing.T) {
 		})
 		if err != nil {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Failed to load plugin " + err.Error()))
+			_, _ = w.Write([]byte("Failed to load plugin " + err.Error()))
 			return
 		}
 
@@ -149,12 +151,12 @@ func Test_Async_LoadPlugin(t *testing.T) {
 		}
 		if err := sender.Send(context.Background(), "+1234567890", msg); err != nil {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Failed to send message " + err.Error()))
+			_, _ = w.Write([]byte("Failed to send message " + err.Error()))
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Success"))
+		_, _ = w.Write([]byte("Success"))
 	}))
 	defer server.Close()
 
@@ -163,7 +165,9 @@ func Test_Async_LoadPlugin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to make request: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	// Verify the response
 	if resp.StatusCode != http.StatusOK {

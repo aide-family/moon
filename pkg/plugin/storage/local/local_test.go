@@ -81,7 +81,9 @@ func Test_NewLocalOSS(t *testing.T) {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 
-	go srv.Start(context.Background())
+	go func() {
+		_ = srv.Start(context.Background())
+	}()
 
 	go func() {
 		defer func() {
@@ -92,29 +94,26 @@ func Test_NewLocalOSS(t *testing.T) {
 		fileName := "test.txt"
 		// Create a test.txt file with 2M data
 		if err := os.WriteFile(fileName, bytes.Repeat([]byte("a"), 2*1024*1024), 0644); err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		}
 
 		initiateMultipartUpload, err := fileManager.InitiateMultipartUpload("test.txt", "test_0")
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		}
 		parts, err := uploadFile(fileName, fileManager, initiateMultipartUpload)
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		}
 		completeMultipartUpload, err := fileManager.CompleteMultipartUpload(initiateMultipartUpload.UploadID, initiateMultipartUpload.ObjectKey, parts)
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		}
 		fmt.Printf("Upload completed, visit the address: %s\n", completeMultipartUpload.PublicURL)
 	}()
 
-	for {
-		select {
-		case <-ch:
-			return
-		}
+	for range ch {
+
 	}
 }
 
@@ -125,7 +124,9 @@ func uploadFile(fileName string, manager storage.FileManager, params *storage.In
 	if err != nil {
 		return nil, fmt.Errorf("failed to open the file: %v", err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
 
 	fileInfo, err := file.Stat()
 	if err != nil {
@@ -190,7 +191,9 @@ func uploadChunk(url string, chunk []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
 
 	if resp.StatusCode >= 400 {
 		return "", fmt.Errorf("failed to upload shard. HTTP status code: %d", resp.StatusCode)

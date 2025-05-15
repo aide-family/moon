@@ -89,7 +89,9 @@ func uploadFile(fileName string, manager storage.FileManager, params *storage.In
 	if err != nil {
 		return nil, fmt.Errorf("failed to open the file: %v", err)
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	fileInfo, err := file.Stat()
 	if err != nil {
@@ -154,7 +156,9 @@ func uploadChunk(url string, chunk []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode >= 400 {
 		return "", fmt.Errorf("failed to upload shard. HTTP status code: %d", resp.StatusCode)

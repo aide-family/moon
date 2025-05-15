@@ -76,7 +76,11 @@ func (p *Prometheus) Proxy(ctx transporthttp.Context, target string) error {
 	if !validate.IsNil(err) {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		if err := Body.Close(); err != nil {
+			p.helper.Warnw("method", "prometheus.proxy", "err", err)
+		}
+	}(resp.Body)
 	for k, v := range resp.Header {
 		if len(v) == 0 {
 			continue
@@ -226,7 +230,11 @@ func (p *Prometheus) query(ctx context.Context, expr string, t int64) (*datasour
 	if err != nil {
 		return nil, err
 	}
-	defer getResponse.Body.Close()
+	defer func(Body io.ReadCloser) {
+		if err := Body.Close(); err != nil {
+			p.helper.Errorw("method", "prometheus.query", "err", err)
+		}
+	}(getResponse.Body)
 	if getResponse.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(getResponse.Body)
 		return nil, merr.ErrorBadRequest("status code: %d => %s", getResponse.StatusCode, string(body))
@@ -255,7 +263,11 @@ func (p *Prometheus) queryRange(ctx context.Context, expr string, start, end int
 	if err != nil {
 		return nil, err
 	}
-	defer getResponse.Body.Close()
+	defer func(Body io.ReadCloser) {
+		if err := Body.Close(); err != nil {
+			p.helper.Warnw("method", "prometheus.queryRange", "err", err)
+		}
+	}(getResponse.Body)
 	if getResponse.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(getResponse.Body)
 		return nil, merr.ErrorBadRequest("status code: %d => %s", getResponse.StatusCode, string(body))
@@ -290,7 +302,11 @@ func (p *Prometheus) series(ctx context.Context, now time.Time, metricNames ...s
 	if err != nil {
 		return nil, err
 	}
-	defer getResponse.Body.Close()
+	defer func(Body io.ReadCloser) {
+		if err := Body.Close(); err != nil {
+			p.helper.Warnw("method", "prometheus.series", "err", err)
+		}
+	}(getResponse.Body)
 	if getResponse.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(getResponse.Body)
 		return nil, merr.ErrorBadRequest("status code: %d => %s", getResponse.StatusCode, string(body))
@@ -333,7 +349,11 @@ func (p *Prometheus) metadata(ctx context.Context) (map[string][]PromMetricInfo,
 	if err != nil {
 		return nil, err
 	}
-	defer getResponse.Body.Close()
+	defer func(Body io.ReadCloser) {
+		if err := Body.Close(); err != nil {
+			p.helper.Warnw("method", "prometheus.metadata", "err", err)
+		}
+	}(getResponse.Body)
 	if getResponse.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(getResponse.Body)
 		return nil, merr.ErrorBadRequest("status code: %d => %s", getResponse.StatusCode, string(body))

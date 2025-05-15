@@ -61,7 +61,11 @@ func registerCustomerHookTest(srv *http.Server, isDev bool) {
 		if err != nil {
 			return err
 		}
-		defer ctx.Request().Body.Close()
+		defer func(Body io.ReadCloser) {
+			if err := Body.Close(); err != nil {
+				log.Warnf("close request body failed: %v", err)
+			}
+		}(ctx.Request().Body)
 		log.Infof("hook test: %s", string(body))
 		return ctx.JSON(200, map[string]string{
 			"message": "ok",

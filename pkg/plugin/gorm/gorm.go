@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
@@ -27,7 +28,11 @@ func NewDB(c *config.Database) (DB, error) {
 		if err != nil {
 			panic(err)
 		}
-		defer sqlDB.Close()
+		defer func(sqlDB *sql.DB) {
+			if err := sqlDB.Close(); err != nil {
+				log.Warnw("method", "close sql db", "err", err)
+			}
+		}(sqlDB)
 		if _, err := sqlDB.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_general_ci;", c.GetDbName())); err != nil {
 			panic(err)
 		}

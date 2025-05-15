@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-kratos/kratos/v2/log"
 	kratoshttp "github.com/go-kratos/kratos/v2/transport/http"
 
 	"github.com/aide-family/moon/pkg/merr"
@@ -48,7 +49,11 @@ func (l *Local) UploadHandler(w http.ResponseWriter, r *http.Request) error {
 		return merr.ErrorParamsError("invalid partNumber").WithCause(err)
 	}
 
-	defer r.Body.Close()
+	defer func(body io.ReadCloser) {
+		if err := body.Close(); err != nil {
+			log.Warnw("method", "uploadHandler", "err", err)
+		}
+	}(r.Body)
 
 	session, exists := l.uploads.Get(uploadID)
 	if !exists {
@@ -67,17 +72,21 @@ func (l *Local) UploadHandler(w http.ResponseWriter, r *http.Request) error {
 		http.Error(w, fmt.Sprintf("failed to create temp file: %v", err), http.StatusInternalServerError)
 		return merr.ErrorInternalServerError("system err").WithCause(err)
 	}
-	defer tempFile.Close()
+	defer func(tempFile *os.File) {
+		if err := tempFile.Close(); err != nil {
+			log.Warnw("method", "uploadHandler", "err", err)
+		}
+	}(tempFile)
 
-	hasher := md5.New()
-	multiWriter := io.MultiWriter(tempFile, hasher)
+	hashed := md5.New()
+	multiWriter := io.MultiWriter(tempFile, hashed)
 
 	if _, err := io.Copy(multiWriter, r.Body); err != nil {
 		http.Error(w, fmt.Sprintf("failed to write part data: %v", err), http.StatusInternalServerError)
 		return merr.ErrorInternalServerError("system err").WithCause(err)
 	}
 
-	eTag := hex.EncodeToString(hasher.Sum(nil))
+	eTag := hex.EncodeToString(hashed.Sum(nil))
 
 	session.parts.Set(partNumber, tempFile.Name())
 
@@ -89,7 +98,7 @@ func (l *Local) UploadHandler(w http.ResponseWriter, r *http.Request) error {
 		"uploadID":   uploadID,
 		"partNumber": partNumber,
 		"eTag":       eTag,
-		"size":       hasher.Size(),
+		"size":       hashed.Size(),
 	}); err != nil {
 		return merr.ErrorInternalServerError("system err").WithCause(err)
 	}
@@ -112,8 +121,16 @@ func (l *Local) PreviewHandler(w http.ResponseWriter, r *http.Request) error {
 		http.Error(w, fmt.Sprintf("failed to open file: %v", err), http.StatusInternalServerError)
 		return merr.ErrorInternalServerError("system err").WithCause(err)
 	}
-	defer file.Close()
-	defer r.Body.Close()
+	defer func(file *os.File) {
+		if err := file.Close(); err != nil {
+			log.Warnw("method", "previewHandler", "err", err)
+		}
+	}(file)
+	defer func(body io.ReadCloser) {
+		if err := body.Close(); err != nil {
+			log.Warnw("method", "previewHandler", "err", err)
+		}
+	}(r.Body)
 
 	ext := filepath.Ext(file.Name())
 	contentType := getContentType(ext)

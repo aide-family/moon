@@ -202,7 +202,11 @@ func (s *strategyMetricJob) Run() {
 	if !locked {
 		return
 	}
-	defer s.cacheRepo.Unlock(ctx, lockKey)
+	defer func(cacheRepo repository.Cache, ctx context.Context, key string) {
+		if err := cacheRepo.Unlock(ctx, key); err != nil {
+			s.helper.Warnw("msg", "unlock fail", "err", err)
+		}
+	}(s.cacheRepo, ctx, lockKey)
 	metricStrategy, ok := s.configRepo.GetMetricRule(ctx, s.metricStrategyUniqueKey)
 	if !ok {
 		s.helper.Warnw("metric strategy not found")

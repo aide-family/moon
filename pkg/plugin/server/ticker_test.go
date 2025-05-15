@@ -42,7 +42,7 @@ func TestNewTicker(t *testing.T) {
 	}
 
 	<-ctx.Done()
-	ticker.Stop(ctx)
+	_ = ticker.Stop(ctx)
 }
 
 func TestTestNewTickers(t *testing.T) {
@@ -104,5 +104,5 @@ func TestTestNewTickers(t *testing.T) {
 	})
 
 	<-ctx.Done()
-	tickers.Stop(ctx)
+	_ = tickers.Stop(ctx)
 }

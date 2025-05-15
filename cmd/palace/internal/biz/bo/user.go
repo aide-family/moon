@@ -29,7 +29,7 @@ func (u *UserUpdateInfo) GetUserID() uint32 {
 	if u.User == nil {
 		return u.UserID
 	}
-	return u.User.GetID()
+	return u.GetID()
 }
 
 func (u *UserUpdateInfo) GetNickname() string {
@@ -130,7 +130,7 @@ func (r *UpdateUserPositionRequest) Validate() error {
 	if operatorPosition.IsSuperAdmin() {
 		return nil
 	}
-	if !(operatorPosition.GT(r.Position) && operatorPosition.IsAdminOrSuperAdmin()) {
+	if !operatorPosition.GT(r.Position) || !operatorPosition.IsAdminOrSuperAdmin() {
 		return merr.ErrorParamsError("invalid position")
 	}
 	return nil
@@ -210,7 +210,7 @@ func (r *UpdateUserRolesReq) Validate() error {
 	if operatorPosition.IsSuperAdmin() {
 		return nil
 	}
-	if !(operatorPosition.GT(r.user.GetPosition()) && operatorPosition.IsAdminOrSuperAdmin()) {
+	if !operatorPosition.GT(r.user.GetPosition()) || !operatorPosition.IsAdminOrSuperAdmin() {
 		return merr.ErrorParamsError("invalid position")
 	}
 	return nil

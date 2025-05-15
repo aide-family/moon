@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/oauth2"
@@ -199,7 +200,11 @@ func (a *AuthBiz) githubLogin(ctx context.Context, code string, sendEmailFunc bo
 		return "", err
 	}
 	body := userResp.Body
-	defer body.Close()
+	defer func(body io.ReadCloser) {
+		if err := body.Close(); err != nil {
+			a.helper.WithContext(ctx).Warnw("msg", "close github oauth response body error", "err", err)
+		}
+	}(body)
 	var userInfo bo.GithubUser
 	if err := json.NewDecoder(body).Decode(&userInfo); err != nil {
 		return "", err
@@ -233,7 +238,11 @@ func (a *AuthBiz) giteeLogin(ctx context.Context, code string, sendEmailFunc bo.
 		return "", err
 	}
 	body := resp.Body
-	defer body.Close()
+	defer func(body io.ReadCloser) {
+		if err := body.Close(); err != nil {
+			a.helper.WithContext(ctx).Warnw("msg", "close gitee oauth response body error", "err", err)
+		}
+	}(body)
 	var userInfo bo.GiteeUser
 	if err := json.NewDecoder(body).Decode(&userInfo); err != nil {
 		return "", err

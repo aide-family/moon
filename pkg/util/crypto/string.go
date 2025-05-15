@@ -27,15 +27,15 @@ func (s *String) Scan(value interface{}) error {
 		return nil
 	}
 	val := ""
-	switch value.(type) {
+	switch v := value.(type) {
 	case string:
-		val = value.(string)
+		val = v
 		if len(val) == 0 {
 			*s = ""
 			return nil
 		}
 	case []byte:
-		val = string(value.([]byte))
+		val = string(v)
 		if len(val) == 0 {
 			*s = ""
 			return nil
