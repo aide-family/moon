@@ -13,7 +13,7 @@ import (
 // IOAuthUser OAuth用户接口
 type IOAuthUser interface {
 	fmt.Stringer
-	GetOAuthID() uint32
+	GetOAuthID() string
 	GetEmail() string
 	GetRemark() string
 	GetUsername() string
@@ -26,7 +26,7 @@ type IOAuthUser interface {
 type OauthLoginParams struct {
 	Code    string `json:"code"`
 	Email   string `json:"email"`
-	OAuthID uint32 `json:"oAuthID"`
+	OAuthID string `json:"oAuthID"`
 	Token   string `json:"token"`
 }
 

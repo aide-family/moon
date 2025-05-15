@@ -14,9 +14,9 @@ type OAuth interface {
 	OAuthUserFirstOrCreate(context.Context, auth.IOAuthUser) (*model.SysUser, error)
 
 	// SetEmail 设置电子邮箱
-	SetEmail(context.Context, uint32, string) (*model.SysUser, error)
+	SetEmail(context.Context, string, string) (*model.SysUser, error)
 
-	GetSysUserByOAuthID(context.Context, uint32, vobj.OAuthAPP) (*model.SysOAuthUser, error)
+	GetSysUserByOAuthID(context.Context, string, vobj.OAuthAPP) (*model.SysOAuthUser, error)
 
 	SendVerifyEmail(ctx context.Context, email string) error
 

@@ -35,6 +35,7 @@ type AuthorizationBiz struct {
 
 	githubOAuthConf *oauth2.Config
 	giteeOAuthConf  *oauth2.Config
+	feishuOAuthConf *oauth2.Config
 	redirectURL     string
 }
 
@@ -51,6 +52,7 @@ func NewAuthorizationBiz(
 ) *AuthorizationBiz {
 	githubOAuthConf := bc.GetOauth2().GetGithub()
 	giteeOAuthConf := bc.GetOauth2().GetGitee()
+	feishuOAuthConf := bc.GetOauth2().GetFeishu()
 	return &AuthorizationBiz{
 		userRepo:         userRepo,
 		teamRepo:         teamRepo,
@@ -78,6 +80,16 @@ func NewAuthorizationBiz(
 			},
 			RedirectURL: giteeOAuthConf.GetCallbackUri(),
 			Scopes:      giteeOAuthConf.GetScopes(),
+		},
+		feishuOAuthConf: &oauth2.Config{
+			ClientID:     feishuOAuthConf.GetClientId(),
+			ClientSecret: feishuOAuthConf.GetClientSecret(),
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "https://open.feishu.cn/open-apis/authen/v1/authorize",
+				TokenURL: "https://open.feishu.cn/open-apis/authen/v2/oauth/token",
+			},
+			RedirectURL: feishuOAuthConf.GetCallbackUri(),
+			Scopes:      feishuOAuthConf.GetScopes(),
 		},
 		redirectURL: bc.GetOauth2().GetRedirectUri(),
 	}
@@ -319,6 +331,8 @@ func (b *AuthorizationBiz) GetOAuthConf(provider vobj.OAuthAPP) *oauth2.Config {
 		return b.githubOAuthConf
 	case vobj.OAuthAPPGitee:
 		return b.giteeOAuthConf
+	case vobj.OAuthFeiShu:
+		return b.feishuOAuthConf
 	default:
 		return nil
 	}
@@ -331,6 +345,8 @@ func (b *AuthorizationBiz) OAuthLogin(ctx context.Context, provider vobj.OAuthAP
 		return b.githubLogin(ctx, code)
 	case vobj.OAuthAPPGitee:
 		return b.giteeLogin(ctx, code)
+	case vobj.OAuthFeiShu:
+		return b.feiShuLogin(ctx, code)
 	default:
 		return "", merr.ErrorI18nNotificationSystemError(ctx)
 	}
@@ -357,6 +373,33 @@ func (b *AuthorizationBiz) githubLogin(ctx context.Context, code string) (string
 
 	// fmt.Println(userInfo.String())
 	return b.oauthLogin(ctx, &userInfo)
+}
+
+func (b *AuthorizationBiz) feiShuLogin(ctx context.Context, code string) (string, error) {
+	verifier := oauth2.GenerateVerifier()
+	token, err := b.feishuOAuthConf.Exchange(ctx, code, oauth2.VerifierOption(verifier))
+	if err != nil {
+		return "", err
+	}
+	// 使用token来获取用户信息
+	client := oauth2.NewClient(ctx, oauth2.StaticTokenSource(token))
+	userResp, err := client.Get("https://open.feishu.cn/open-apis/authen/v1/user_info")
+	if err != nil {
+		return "", err
+	}
+	body := userResp.Body
+	defer body.Close()
+
+	var result struct {
+		Code int              `json:"code"`
+		Msg  string           `json:"msg"`
+		Data *auth.FeiShuUser `json:"data"`
+	}
+	if err := types.NewDecoder(body).Decode(&result); err != nil {
+		return "", err
+	}
+
+	return b.oauthLogin(ctx, result.Data)
 }
 
 // giteeLogin gitee登录
@@ -402,13 +445,13 @@ func (b *AuthorizationBiz) oauthLogin(ctx context.Context, userInfo auth.IOAuthU
 			return "", err
 		}
 		oauthParams := auth.OauthLoginParams{
-			OAuthID: authUserDo.ID,
+			OAuthID: authUserDo.OAuthID,
 			Token:   types.MD5(random.GenerateRandomString(32, 32)),
 		}
 		if err := oauthParams.WaitVerifyToken(ctx, b.cacheRepo.Cacher()); err != nil {
 			return "", err
 		}
-		redirect := fmt.Sprintf("%s?oauth_id=%d&token=%s#/oauth/register/email", b.redirectURL, oauthParams.OAuthID, oauthParams.Token)
+		redirect := fmt.Sprintf("%s?oauth_id=%s&token=%s#/oauth/register/email", b.redirectURL, oauthParams.OAuthID, oauthParams.Token)
 		return redirect, nil
 	}
 
