@@ -12,13 +12,13 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/http"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
-	"github.com/moon-monitor/moon/cmd/palace/internal/conf"
-	"github.com/moon-monitor/moon/cmd/palace/internal/helper/middleware"
-	"github.com/moon-monitor/moon/cmd/palace/internal/service"
-	"github.com/moon-monitor/moon/pkg/metric"
-	"github.com/moon-monitor/moon/pkg/middler"
-	"github.com/moon-monitor/moon/pkg/util/docs"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/cmd/palace/internal/conf"
+	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
+	"github.com/aide-family/moon/cmd/palace/internal/service"
+	"github.com/aide-family/moon/pkg/metric"
+	"github.com/aide-family/moon/pkg/middler"
+	"github.com/aide-family/moon/pkg/util/docs"
 )
 
 //go:embed swagger

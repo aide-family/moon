@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	github = "https://github.com/moon-monitor/moon"
+	github = "https://github.com/aide-family/moon"
 )
 
 const logo = `

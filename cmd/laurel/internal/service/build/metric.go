@@ -1,11 +1,11 @@
 package build
 
 import (
-	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/vobj"
-	apicommon "github.com/moon-monitor/moon/pkg/api/laurel/common"
-	"github.com/moon-monitor/moon/pkg/util/slices"
-	"github.com/moon-monitor/moon/pkg/util/validate"
+	"github.com/aide-family/moon/cmd/laurel/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/laurel/internal/biz/vobj"
+	apicommon "github.com/aide-family/moon/pkg/api/laurel/common"
+	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func ToCounterMetricVecs(counterVecs []*apicommon.MetricVec) []*bo.CounterMetricVec {

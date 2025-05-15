@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz"
-	"github.com/moon-monitor/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/cmd/palace/internal/biz"
+	"github.com/aide-family/moon/pkg/plugin/server"
 )
 
 func NewLoadService(userBiz *biz.UserBiz, teamBiz *biz.Team) *LoadService {

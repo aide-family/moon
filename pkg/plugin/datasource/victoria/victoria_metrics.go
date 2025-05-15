@@ -1,8 +1,8 @@
 package victoria
 
 import (
+	"github.com/aide-family/moon/pkg/plugin/datasource"
 	"github.com/go-kratos/kratos/v2/log"
-	"github.com/moon-monitor/moon/pkg/plugin/datasource"
 )
 
 func New(c datasource.MetricConfig, logger log.Logger) *Victoria {

@@ -1,7 +1,7 @@
 package crypto
 
 import (
-	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/aide-family/moon/pkg/config"
 )
 
 // WithIV sets the IV for the AES cipher.

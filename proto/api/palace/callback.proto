@@ -6,7 +6,7 @@ import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 import "common/metric.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
+option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
 
 service Callback {
 	rpc SendMsgCallback (SendMsgCallbackRequest) returns (SendMsgCallbackReply) {

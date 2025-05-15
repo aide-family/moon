@@ -3,7 +3,7 @@ package kv_test
 import (
 	"testing"
 
-	"github.com/moon-monitor/moon/pkg/util/kv"
+	"github.com/aide-family/moon/pkg/util/kv"
 )
 
 func Test_New(t *testing.T) {

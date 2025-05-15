@@ -4,7 +4,7 @@ package cmd.laurel.internal.conf;
 
 import "config.proto";
 
-option go_package = "github.com/moon-monitor/moon/cmd/laurel/internal/conf;conf";
+option go_package = "github.com/aide-family/moon/cmd/laurel/internal/conf;conf";
 
 message Bootstrap {
   config.Environment environment = 1;

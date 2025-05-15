@@ -3,10 +3,10 @@ package do
 import (
 	"encoding/json"
 
-	"github.com/moon-monitor/moon/pkg/api/rabbit/common"
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/plugin/cache"
-	"github.com/moon-monitor/moon/pkg/util/validate"
+	"github.com/aide-family/moon/pkg/api/rabbit/common"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 var _ cache.Object = (*HookConfig)(nil)

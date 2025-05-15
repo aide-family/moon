@@ -5,9 +5,9 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/repository"
-	"github.com/moon-monitor/moon/pkg/util/validate"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func NewConfig(configRepo repository.Config, logger log.Logger) *Config {

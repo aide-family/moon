@@ -11,7 +11,7 @@ import "palace/common/common_enum.proto";
 import "palace/common/team.proto";
 import "palace/common/team_enum.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
+option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
 
 // System service provides operations for managing system users, roles, teams, and audits
 service System {

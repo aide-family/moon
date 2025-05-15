@@ -4,11 +4,11 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/util/slices"
-	"github.com/moon-monitor/moon/pkg/util/timer"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/timer"
 )
 
 var _ do.TimeEngineRule = (*TimeEngineRule)(nil)

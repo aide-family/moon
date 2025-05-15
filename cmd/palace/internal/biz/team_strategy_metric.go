@@ -3,11 +3,11 @@ package biz
 import (
 	"context"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 func NewTeamStrategyMetric(

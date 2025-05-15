@@ -6,7 +6,7 @@ import "google/protobuf/duration.proto";
 import "houyi/common/team.proto";
 import "houyi/common/datasource.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/houyi/common;common";
+option go_package = "github.com/aide-family/moon/pkg/api/houyi/common;common";
 
 enum StrategyType {
   STRATEGY_TYPE_UNKNOWN = 0;

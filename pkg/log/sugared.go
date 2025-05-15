@@ -5,7 +5,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/aide-family/moon/pkg/config"
 )
 
 var _ log.Logger = (*sugaredLogger)(nil)

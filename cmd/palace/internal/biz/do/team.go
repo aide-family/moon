@@ -1,10 +1,10 @@
 package do
 
 import (
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/config"
+	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/google/uuid"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
-	"github.com/moon-monitor/moon/pkg/config"
-	"github.com/moon-monitor/moon/pkg/plugin/cache"
 )
 
 type Team interface {

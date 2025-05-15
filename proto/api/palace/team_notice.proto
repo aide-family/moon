@@ -7,7 +7,7 @@ import "palace/common/common.proto";
 import "palace/common/common_enum.proto";
 import "palace/common/team_notice.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
+option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
 
 service TeamNotice {
   rpc SaveTeamNoticeHook (SaveTeamNoticeHookRequest) returns (api.palace.common.EmptyReply) {

@@ -7,13 +7,13 @@ import (
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
-	"github.com/moon-monitor/moon/cmd/palace/internal/data"
-	"github.com/moon-monitor/moon/pkg/util/slices"
-	"github.com/moon-monitor/moon/pkg/util/validate"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/palace/internal/data"
+	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func NewRoleRepo(d *data.Data, logger log.Logger) repository.Role {

@@ -14,9 +14,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aide-family/moon/pkg/plugin/storage"
+	"github.com/aide-family/moon/pkg/plugin/storage/local"
 	kratoshttp "github.com/go-kratos/kratos/v2/transport/http"
-	"github.com/moon-monitor/moon/pkg/plugin/storage"
-	"github.com/moon-monitor/moon/pkg/plugin/storage/local"
 )
 
 var _ local.Config = (*config)(nil)

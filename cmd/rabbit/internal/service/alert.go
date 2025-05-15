@@ -3,11 +3,11 @@ package service
 import (
 	"context"
 
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz"
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/service/build"
-	common "github.com/moon-monitor/moon/pkg/api/common"
-	apicommon "github.com/moon-monitor/moon/pkg/api/rabbit/common"
-	apiv1 "github.com/moon-monitor/moon/pkg/api/rabbit/v1"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz"
+	"github.com/aide-family/moon/cmd/rabbit/internal/service/build"
+	common "github.com/aide-family/moon/pkg/api/common"
+	apicommon "github.com/aide-family/moon/pkg/api/rabbit/common"
+	apiv1 "github.com/aide-family/moon/pkg/api/rabbit/v1"
 )
 
 type AlertService struct {

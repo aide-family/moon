@@ -5,7 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/base64"
 
-	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 var _ sql.Scanner = (*String)(nil)

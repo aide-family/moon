@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	pb "github.com/moon-monitor/moon/pkg/api/common"
-	"github.com/moon-monitor/moon/pkg/hello"
-	"github.com/moon-monitor/moon/pkg/util/timex"
+	pb "github.com/aide-family/moon/pkg/api/common"
+	"github.com/aide-family/moon/pkg/hello"
+	"github.com/aide-family/moon/pkg/util/timex"
 )
 
 type HealthService struct {

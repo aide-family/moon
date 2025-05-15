@@ -1,6 +1,6 @@
 package do
 
-import "github.com/moon-monitor/moon/pkg/plugin/datasource"
+import "github.com/aide-family/moon/pkg/plugin/datasource"
 
 var _ datasource.BasicAuth = (*BasicAuth)(nil)
 

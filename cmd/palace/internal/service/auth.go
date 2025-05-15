@@ -10,17 +10,17 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"golang.org/x/oauth2"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
-	"github.com/moon-monitor/moon/cmd/palace/internal/conf"
-	"github.com/moon-monitor/moon/cmd/palace/internal/helper/permission"
-	"github.com/moon-monitor/moon/cmd/palace/internal/service/build"
-	"github.com/moon-monitor/moon/pkg/api/palace"
-	"github.com/moon-monitor/moon/pkg/api/palace/common"
-	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/aide-family/moon/cmd/palace/internal/biz"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/cmd/palace/internal/conf"
+	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
+	"github.com/aide-family/moon/cmd/palace/internal/service/build"
+	"github.com/aide-family/moon/pkg/api/palace"
+	"github.com/aide-family/moon/pkg/api/palace/common"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func NewAuthService(

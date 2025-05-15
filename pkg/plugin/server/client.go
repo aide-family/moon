@@ -15,10 +15,10 @@ import (
 	jwtv5 "github.com/golang-jwt/jwt/v5"
 	ggrpc "google.golang.org/grpc"
 
-	"github.com/moon-monitor/moon/pkg/config"
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/middler"
-	"github.com/moon-monitor/moon/pkg/plugin/registry"
+	"github.com/aide-family/moon/pkg/config"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/middler"
+	"github.com/aide-family/moon/pkg/plugin/registry"
 )
 
 type InitConfig struct {

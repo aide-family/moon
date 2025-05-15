@@ -1,7 +1,7 @@
 package bo
 
 import (
-	"github.com/moon-monitor/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server"
 )
 
 type StrategyJob interface {

@@ -5,7 +5,7 @@ package api.palace.common;
 import "buf/validate/validate.proto";
 import "palace/common/common_enum.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/palace/common;common";
+option go_package = "github.com/aide-family/moon/pkg/api/palace/common;common";
 
 // PaginationRequest is used for pagination queries, specifying the page number and the number of items per page.
 // page: The current page number, must be greater than 0.

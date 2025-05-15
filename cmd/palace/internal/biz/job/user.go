@@ -6,10 +6,10 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/robfig/cron/v3"
-	
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
-	"github.com/moon-monitor/moon/pkg/plugin/server"
+
+	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/plugin/server"
 )
 
 var _ server.CronJob = (*userJob)(nil)

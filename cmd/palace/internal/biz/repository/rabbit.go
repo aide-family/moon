@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 
-	"github.com/moon-monitor/moon/pkg/api/common"
-	rabbitcommon "github.com/moon-monitor/moon/pkg/api/rabbit/common"
-	rabbitv1 "github.com/moon-monitor/moon/pkg/api/rabbit/v1"
+	"github.com/aide-family/moon/pkg/api/common"
+	rabbitcommon "github.com/aide-family/moon/pkg/api/rabbit/common"
+	rabbitv1 "github.com/aide-family/moon/pkg/api/rabbit/v1"
 )
 
 type Rabbit interface {

@@ -1,4 +1,4 @@
-module github.com/moon-monitor/moon
+module github.com/aide-family/moon
 
 go 1.24.1
 

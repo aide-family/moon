@@ -10,7 +10,7 @@ import "palace/common/common.proto";
 import "palace/common/team_datasource.proto";
 import "common/metric.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
+option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
 
 service TeamDatasource {
   rpc SaveTeamMetricDatasource(SaveTeamMetricDatasourceRequest) returns (api.palace.common.EmptyReply) {

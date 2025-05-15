@@ -1,11 +1,11 @@
 package middleware
 
 import (
+	"github.com/aide-family/moon/pkg/config"
+	"github.com/aide-family/moon/pkg/util/timex"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	jwtv5 "github.com/golang-jwt/jwt/v5"
-	"github.com/moon-monitor/moon/pkg/config"
-	"github.com/moon-monitor/moon/pkg/util/timex"
 )
 
 func NewJwtClaims(c *config.JWT, token string) *JwtClaims {

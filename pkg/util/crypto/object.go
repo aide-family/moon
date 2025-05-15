@@ -6,8 +6,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/util/validate"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 var _ sql.Scanner = (*Object[any])(nil)

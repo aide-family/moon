@@ -6,12 +6,12 @@ package main
 import (
 	"fmt"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/event"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do/event"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/spf13/cobra"
 	"gorm.io/gen"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
 )
 
 var c = gen.Config{

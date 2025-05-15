@@ -3,13 +3,13 @@ package build
 import (
 	"strconv"
 
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/do"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/vobj"
-	"github.com/moon-monitor/moon/pkg/api/houyi/common"
-	"github.com/moon-monitor/moon/pkg/util/cnst"
-	"github.com/moon-monitor/moon/pkg/util/kv/label"
-	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/do"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/api/houyi/common"
+	"github.com/aide-family/moon/pkg/util/cnst"
+	"github.com/aide-family/moon/pkg/util/kv/label"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 func ToMetricRules(strategyItems ...*common.MetricStrategyItem) []bo.MetricRule {

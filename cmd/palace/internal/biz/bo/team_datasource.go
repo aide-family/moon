@@ -3,13 +3,13 @@ package bo
 import (
 	"time"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
-	"github.com/moon-monitor/moon/pkg/api/houyi/common"
-	"github.com/moon-monitor/moon/pkg/plugin/datasource"
-	"github.com/moon-monitor/moon/pkg/util/kv"
-	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/api/houyi/common"
+	"github.com/aide-family/moon/pkg/plugin/datasource"
+	"github.com/aide-family/moon/pkg/util/kv"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 type SaveTeamMetricDatasource struct {

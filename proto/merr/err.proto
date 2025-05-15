@@ -4,7 +4,7 @@ package merr;
 
 import "errors/errors.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/merr;merr";
+option go_package = "github.com/aide-family/moon/pkg/merr;merr";
 
 enum ClientError {
   option (errors.default_code) = 400;

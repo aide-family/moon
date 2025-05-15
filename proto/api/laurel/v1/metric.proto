@@ -5,7 +5,7 @@ package api.laurel.v1;
 import "google/api/annotations.proto";
 import "laurel/common/metric.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/laurel/v1;v1";
+option go_package = "github.com/aide-family/moon/pkg/api/laurel/v1;v1";
 
 service Metric {
 	rpc PushMetricData (PushMetricDataRequest) returns (EmptyReply) {

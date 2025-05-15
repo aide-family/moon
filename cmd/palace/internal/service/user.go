@@ -5,10 +5,10 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz"
-	"github.com/moon-monitor/moon/cmd/palace/internal/service/build"
-	"github.com/moon-monitor/moon/pkg/api/palace"
-	"github.com/moon-monitor/moon/pkg/api/palace/common"
+	"github.com/aide-family/moon/cmd/palace/internal/biz"
+	"github.com/aide-family/moon/cmd/palace/internal/service/build"
+	"github.com/aide-family/moon/pkg/api/palace"
+	"github.com/aide-family/moon/pkg/api/palace/common"
 )
 
 // UserService is a user service implementation.

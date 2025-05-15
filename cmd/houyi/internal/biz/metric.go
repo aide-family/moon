@@ -7,16 +7,16 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/do"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/event"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/conf"
-	"github.com/moon-monitor/moon/pkg/api/common"
-	"github.com/moon-monitor/moon/pkg/api/palace"
-	"github.com/moon-monitor/moon/pkg/plugin/server"
-	"github.com/moon-monitor/moon/pkg/util/slices"
-	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/do"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/event"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/houyi/internal/conf"
+	"github.com/aide-family/moon/pkg/api/common"
+	"github.com/aide-family/moon/pkg/api/palace"
+	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/timex"
 )
 
 func NewMetric(

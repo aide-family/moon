@@ -4,8 +4,8 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"google.golang.org/grpc"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
-	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/config"
 )
 
 type ServerRegisterReq struct {

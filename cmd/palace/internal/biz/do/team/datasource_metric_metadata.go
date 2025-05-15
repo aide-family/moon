@@ -1,8 +1,8 @@
 package team
 
 import (
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
-	"github.com/moon-monitor/moon/pkg/util/kv"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/pkg/util/kv"
 )
 
 var _ do.DatasourceMetricMetadata = (*DatasourceMetricMetadata)(nil)

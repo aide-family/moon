@@ -6,7 +6,7 @@ import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 import "config.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/common;common";
+option go_package = "github.com/aide-family/moon/pkg/api/common;common";
 
 service Server {
   rpc Register (ServerRegisterRequest) returns (ServerRegisterReply) {

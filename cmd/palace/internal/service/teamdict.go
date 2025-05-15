@@ -3,13 +3,13 @@ package service
 import (
 	"context"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
-	"github.com/moon-monitor/moon/cmd/palace/internal/service/build"
-	"github.com/moon-monitor/moon/pkg/api/palace"
-	"github.com/moon-monitor/moon/pkg/api/palace/common"
-	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/aide-family/moon/cmd/palace/internal/biz"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/cmd/palace/internal/service/build"
+	"github.com/aide-family/moon/pkg/api/palace"
+	"github.com/aide-family/moon/pkg/api/palace/common"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 type TeamDictService struct {

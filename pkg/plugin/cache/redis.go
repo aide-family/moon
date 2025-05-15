@@ -6,7 +6,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/aide-family/moon/pkg/config"
 )
 
 var _ Cache = (*redisCache)(nil)

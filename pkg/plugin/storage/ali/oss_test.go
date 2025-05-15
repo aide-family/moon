@@ -13,8 +13,8 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"github.com/moon-monitor/moon/pkg/plugin/storage"
-	"github.com/moon-monitor/moon/pkg/plugin/storage/ali"
+	"github.com/aide-family/moon/pkg/plugin/storage"
+	"github.com/aide-family/moon/pkg/plugin/storage/ali"
 )
 
 var _ ali.Config = (*config)(nil)

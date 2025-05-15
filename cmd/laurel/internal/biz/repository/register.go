@@ -5,7 +5,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/laurel/internal/biz/bo"
 )
 
 type MetricRegister interface {

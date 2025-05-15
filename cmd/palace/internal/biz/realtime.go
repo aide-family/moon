@@ -3,9 +3,9 @@ package biz
 import (
 	"context"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
-	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func NewRealtime(realtimeRepo repository.Realtime) *Realtime {

@@ -3,8 +3,8 @@ package service
 import (
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
 )
 
 func NewEventBusService(

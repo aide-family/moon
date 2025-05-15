@@ -7,8 +7,8 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
-	"github.com/moon-monitor/moon/pkg/config"
-	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/config"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 type DB interface {

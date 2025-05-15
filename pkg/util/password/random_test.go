@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/moon-monitor/moon/pkg/util/password"
+	"github.com/aide-family/moon/pkg/util/password"
 )
 
 // TestGenerateRandomPassword_Success verifies correct password length generation

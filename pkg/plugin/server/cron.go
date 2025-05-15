@@ -8,7 +8,7 @@ import (
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/robfig/cron/v3"
 
-	"github.com/moon-monitor/moon/pkg/util/safety"
+	"github.com/aide-family/moon/pkg/util/safety"
 )
 
 var _ transport.Server = (*CronJobServer)(nil)

@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/moon-monitor/moon/cmd/laurel/internal/helper/middleware"
-	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/aide-family/moon/cmd/laurel/internal/helper/middleware"
+	"github.com/aide-family/moon/pkg/config"
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 

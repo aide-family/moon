@@ -5,7 +5,7 @@ package api.houyi.common;
 import "google/protobuf/duration.proto";
 import "houyi/common/team.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/houyi/common;common";
+option go_package = "github.com/aide-family/moon/pkg/api/houyi/common;common";
 
 message BasicAuth {
   string username = 1;

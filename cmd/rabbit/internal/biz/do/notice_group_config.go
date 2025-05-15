@@ -3,11 +3,11 @@ package do
 import (
 	"encoding/json"
 
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/bo"
-	"github.com/moon-monitor/moon/pkg/api/common"
-	apicommon "github.com/moon-monitor/moon/pkg/api/rabbit/common"
-	"github.com/moon-monitor/moon/pkg/plugin/cache"
-	"github.com/moon-monitor/moon/pkg/util/validate"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
+	"github.com/aide-family/moon/pkg/api/common"
+	apicommon "github.com/aide-family/moon/pkg/api/rabbit/common"
+	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 var _ cache.Object = (*NoticeGroupConfig)(nil)

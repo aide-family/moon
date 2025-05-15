@@ -8,17 +8,17 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
-	"github.com/moon-monitor/moon/cmd/palace/internal/conf"
-	"github.com/moon-monitor/moon/cmd/palace/internal/data/query/systemgen"
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/plugin/cache"
-	"github.com/moon-monitor/moon/pkg/plugin/gorm"
-	"github.com/moon-monitor/moon/pkg/util/safety"
-	"github.com/moon-monitor/moon/pkg/util/validate"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/cmd/palace/internal/conf"
+	"github.com/aide-family/moon/cmd/palace/internal/data/query/systemgen"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/aide-family/moon/pkg/plugin/gorm"
+	"github.com/aide-family/moon/pkg/util/safety"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 // ProviderSetData is a set of data providers.

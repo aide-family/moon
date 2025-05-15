@@ -11,8 +11,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/helper/permission"
-	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 type GetUserFun func(id uint32) User

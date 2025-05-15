@@ -1,8 +1,8 @@
 package build
 
 import (
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/vobj"
-	"github.com/moon-monitor/moon/pkg/api/rabbit/common"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/api/rabbit/common"
 )
 
 func ToSendHookAPP(app common.HookAPP) vobj.APP {

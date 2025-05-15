@@ -5,7 +5,7 @@ import (
 
 	"gorm.io/plugin/soft_delete"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 )
 
 type Resource interface {

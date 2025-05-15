@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/moon-monitor/moon/pkg/util/crypto"
+	"github.com/aide-family/moon/pkg/util/crypto"
 )
 
 func TestString_Scan_Success(t *testing.T) {

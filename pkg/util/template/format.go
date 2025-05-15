@@ -5,8 +5,8 @@ import (
 	"strings"
 	text "text/template"
 
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/timex"
 )
 
 func TextFormatterX(format string, data any) (s string) {

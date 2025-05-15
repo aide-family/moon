@@ -7,10 +7,10 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/moon-monitor/moon/pkg/api/houyi/common"
-	"github.com/moon-monitor/moon/pkg/plugin/datasource"
-	"github.com/moon-monitor/moon/pkg/plugin/datasource/prometheus"
-	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/aide-family/moon/pkg/api/houyi/common"
+	"github.com/aide-family/moon/pkg/plugin/datasource"
+	"github.com/aide-family/moon/pkg/plugin/datasource/prometheus"
+	"github.com/aide-family/moon/pkg/util/timex"
 )
 
 var _ datasource.MetricConfig = (*config)(nil)

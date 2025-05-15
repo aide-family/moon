@@ -6,10 +6,10 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/repository"
-	"github.com/moon-monitor/moon/cmd/laurel/internal/data"
-	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/aide-family/moon/cmd/laurel/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/laurel/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/laurel/internal/data"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func NewMetricRegister(data *data.Data) repository.MetricRegister {

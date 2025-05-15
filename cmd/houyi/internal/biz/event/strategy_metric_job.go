@@ -7,14 +7,14 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/robfig/cron/v3"
 
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/do"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/vobj"
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/plugin/server"
-	"github.com/moon-monitor/moon/pkg/util/slices"
-	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/do"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/timex"
 )
 
 func NewStrategyMetricJob(key string, opts ...StrategyMetricJobOption) (bo.StrategyJob, error) {

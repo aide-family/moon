@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/moon-monitor/moon/pkg/plugin/server"
-	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/util/timex"
 )
 
 // TestNewTicker verifies that TestNewTicker correctly initializes a Ticker with the given interval and task.

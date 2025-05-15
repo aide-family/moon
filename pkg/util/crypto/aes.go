@@ -9,8 +9,8 @@ import (
 	"io"
 	"sync"
 
-	"github.com/moon-monitor/moon/pkg/config"
-	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/config"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 var (

@@ -10,7 +10,7 @@ import "palace/common/system.proto";
 import "palace/common/common.proto";
 import "palace/common/common_enum.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
+option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
 
 // Team service provides operations for managing teams, members, roles, and email configurations
 service Team {

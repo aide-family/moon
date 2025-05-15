@@ -6,15 +6,15 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/repository"
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/data"
-	"github.com/moon-monitor/moon/pkg/api/rabbit/common"
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/plugin/email"
-	"github.com/moon-monitor/moon/pkg/plugin/hook"
-	"github.com/moon-monitor/moon/pkg/plugin/sms"
-	"github.com/moon-monitor/moon/pkg/plugin/sms/ali"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/rabbit/internal/data"
+	"github.com/aide-family/moon/pkg/api/rabbit/common"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/plugin/email"
+	"github.com/aide-family/moon/pkg/plugin/hook"
+	"github.com/aide-family/moon/pkg/plugin/sms"
+	"github.com/aide-family/moon/pkg/plugin/sms/ali"
 )
 
 func NewSendRepo(d *data.Data, logger log.Logger) repository.Send {

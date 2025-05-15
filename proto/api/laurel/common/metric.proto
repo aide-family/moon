@@ -4,7 +4,7 @@ package api.laurel.common;
 
 import "buf/validate/validate.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/laurel/common;common";
+option go_package = "github.com/aide-family/moon/pkg/api/laurel/common;common";
 
 enum MetricType {
 	METRIC_TYPE_UNKNOWN = 0;

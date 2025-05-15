@@ -3,8 +3,8 @@ package label_test
 import (
 	"testing"
 
-	"github.com/moon-monitor/moon/pkg/util/cnst"
-	"github.com/moon-monitor/moon/pkg/util/kv/label"
+	"github.com/aide-family/moon/pkg/util/cnst"
+	"github.com/aide-family/moon/pkg/util/kv/label"
 )
 
 func TestNewLabel(t *testing.T) {

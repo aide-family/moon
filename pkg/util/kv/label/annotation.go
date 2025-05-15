@@ -3,9 +3,9 @@ package label
 import (
 	"encoding/json"
 
-	"github.com/moon-monitor/moon/pkg/util/cnst"
-	"github.com/moon-monitor/moon/pkg/util/kv"
-	"github.com/moon-monitor/moon/pkg/util/template"
+	"github.com/aide-family/moon/pkg/util/cnst"
+	"github.com/aide-family/moon/pkg/util/kv"
+	"github.com/aide-family/moon/pkg/util/template"
 )
 
 var _ json.Marshaler = (*Annotation)(nil)

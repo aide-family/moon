@@ -1,9 +1,9 @@
 package build
 
 import (
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/do"
-	"github.com/moon-monitor/moon/pkg/api/houyi/common"
-	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/do"
+	"github.com/aide-family/moon/pkg/api/houyi/common"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func ToMetricDatasourceConfig(metricItem *common.MetricDatasourceItem) (*do.DatasourceMetricConfig, error) {

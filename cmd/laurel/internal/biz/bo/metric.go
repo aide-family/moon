@@ -7,8 +7,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/vobj"
-	"github.com/moon-monitor/moon/pkg/plugin/cache"
+	"github.com/aide-family/moon/cmd/laurel/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/plugin/cache"
 )
 
 type MetricVec interface {

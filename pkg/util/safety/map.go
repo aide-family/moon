@@ -3,7 +3,7 @@ package safety
 import (
 	"sync"
 
-	"github.com/moon-monitor/moon/pkg/util/validate"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 // NewMap Create a thread-safe map.

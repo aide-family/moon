@@ -1,10 +1,10 @@
 package build
 
 import (
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/do"
-	"github.com/moon-monitor/moon/pkg/api/rabbit/common"
-	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/do"
+	"github.com/aide-family/moon/pkg/api/rabbit/common"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 func ToSMSConfig(smsItem *common.SMSConfig) (bo.SMSConfig, bool) {

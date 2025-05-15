@@ -4,7 +4,7 @@ package config;
 
 import "google/protobuf/duration.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/config;config";
+option go_package = "github.com/aide-family/moon/pkg/config;config";
 
 enum Environment {
   UNKNOWN = 0;

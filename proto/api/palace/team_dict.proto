@@ -7,7 +7,7 @@ import "palace/common/team_dict.proto";
 import "palace/common/common.proto";
 import "palace/common/common_enum.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
+option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
 
 service TeamDict {
   rpc SaveTeamDict (SaveTeamDictRequest) returns (api.palace.common.EmptyReply) {

@@ -6,12 +6,12 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/uuid"
 
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/conf"
-	"github.com/moon-monitor/moon/pkg/api/common"
-	"github.com/moon-monitor/moon/pkg/config"
-	"github.com/moon-monitor/moon/pkg/hello"
-	"github.com/moon-monitor/moon/pkg/util/pointer"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/houyi/internal/conf"
+	"github.com/aide-family/moon/pkg/api/common"
+	"github.com/aide-family/moon/pkg/config"
+	"github.com/aide-family/moon/pkg/hello"
+	"github.com/aide-family/moon/pkg/util/pointer"
 )
 
 func NewRegisterBiz(bc *conf.Bootstrap, serverRegisterRepo repository.ServerRegister, logger log.Logger) *RegisterBiz {

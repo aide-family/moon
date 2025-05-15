@@ -3,11 +3,11 @@ package build
 import (
 	"context"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
-	"github.com/moon-monitor/moon/pkg/util/crypto"
-	"github.com/moon-monitor/moon/pkg/util/slices"
-	"github.com/moon-monitor/moon/pkg/util/validate"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
+	"github.com/aide-family/moon/pkg/util/crypto"
+	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func ToStrategyNotice(ctx context.Context, route do.NoticeGroup) *team.NoticeGroup {

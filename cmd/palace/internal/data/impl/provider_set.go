@@ -5,12 +5,12 @@ import (
 
 	"github.com/google/wire"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/data/query/eventgen"
-	"github.com/moon-monitor/moon/cmd/palace/internal/data/query/systemgen"
-	"github.com/moon-monitor/moon/cmd/palace/internal/data/query/teamgen"
-	"github.com/moon-monitor/moon/cmd/palace/internal/helper/permission"
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/plugin/gorm"
+	"github.com/aide-family/moon/cmd/palace/internal/data/query/eventgen"
+	"github.com/aide-family/moon/cmd/palace/internal/data/query/systemgen"
+	"github.com/aide-family/moon/cmd/palace/internal/data/query/teamgen"
+	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/plugin/gorm"
 )
 
 // ProviderSetImpl is a set of providers.

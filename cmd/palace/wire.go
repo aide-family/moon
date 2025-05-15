@@ -8,13 +8,13 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz"
-	"github.com/moon-monitor/moon/cmd/palace/internal/conf"
-	"github.com/moon-monitor/moon/cmd/palace/internal/data"
-	"github.com/moon-monitor/moon/cmd/palace/internal/data/impl"
-	"github.com/moon-monitor/moon/cmd/palace/internal/data/rpc"
-	"github.com/moon-monitor/moon/cmd/palace/internal/server"
-	"github.com/moon-monitor/moon/cmd/palace/internal/service"
+	"github.com/aide-family/moon/cmd/palace/internal/biz"
+	"github.com/aide-family/moon/cmd/palace/internal/conf"
+	"github.com/aide-family/moon/cmd/palace/internal/data"
+	"github.com/aide-family/moon/cmd/palace/internal/data/impl"
+	"github.com/aide-family/moon/cmd/palace/internal/data/rpc"
+	"github.com/aide-family/moon/cmd/palace/internal/server"
+	"github.com/aide-family/moon/cmd/palace/internal/service"
 )
 
 // wireApp init kratos application.

@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/moon-monitor/moon/pkg/plugin/storage"
-	"github.com/moon-monitor/moon/pkg/util/safety"
-	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/aide-family/moon/pkg/plugin/storage"
+	"github.com/aide-family/moon/pkg/util/safety"
+	"github.com/aide-family/moon/pkg/util/timex"
 )
 
 var _ storage.FileManager = (*Local)(nil)

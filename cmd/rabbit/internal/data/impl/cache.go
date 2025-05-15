@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/repository"
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/data"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/rabbit/internal/data"
 )
 
 func NewCacheRepo(d *data.Data, logger log.Logger) repository.Cache {

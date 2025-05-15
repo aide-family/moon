@@ -3,9 +3,9 @@ package bo
 import (
 	"time"
 
-	"github.com/moon-monitor/moon/pkg/api/houyi/common"
-	"github.com/moon-monitor/moon/pkg/plugin/cache"
-	"github.com/moon-monitor/moon/pkg/plugin/datasource"
+	"github.com/aide-family/moon/pkg/api/houyi/common"
+	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/aide-family/moon/pkg/plugin/datasource"
 )
 
 type MetricDatasourceConfig interface {

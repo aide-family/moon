@@ -3,8 +3,8 @@ package build
 import (
 	"context"
 
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
-	"github.com/moon-monitor/moon/pkg/util/validate"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func ToBaseModel(ctx context.Context, model do.Base) do.BaseModel {

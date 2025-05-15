@@ -1,7 +1,7 @@
 package condition
 
 import (
-	"github.com/moon-monitor/moon/pkg/api/houyi/common"
+	"github.com/aide-family/moon/pkg/api/houyi/common"
 )
 
 var metricConditions = make(map[common.MetricStrategyItem_Condition]MetricCondition, 8)

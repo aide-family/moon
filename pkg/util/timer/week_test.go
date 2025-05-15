@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/util/timer"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/timer"
 )
 
 func TestNewDaysOfWeek_ValidInput_ReturnsMatcher(t *testing.T) {

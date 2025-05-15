@@ -12,11 +12,11 @@ import (
 	transporthttp "github.com/go-kratos/kratos/v2/transport/http"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/plugin/datasource"
-	"github.com/moon-monitor/moon/pkg/util/httpx"
-	"github.com/moon-monitor/moon/pkg/util/timex"
-	"github.com/moon-monitor/moon/pkg/util/validate"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/plugin/datasource"
+	"github.com/aide-family/moon/pkg/util/httpx"
+	"github.com/aide-family/moon/pkg/util/timex"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 var _ datasource.Metric = (*Prometheus)(nil)

@@ -7,11 +7,11 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/spf13/cobra"
 
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/conf"
-	"github.com/moon-monitor/moon/pkg/hello"
-	mlog "github.com/moon-monitor/moon/pkg/log"
-	"github.com/moon-monitor/moon/pkg/plugin/server"
-	"github.com/moon-monitor/moon/pkg/util/load"
+	"github.com/aide-family/moon/cmd/rabbit/internal/conf"
+	"github.com/aide-family/moon/pkg/hello"
+	mlog "github.com/aide-family/moon/pkg/log"
+	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/util/load"
 )
 
 // Version is the version of the compiled software.

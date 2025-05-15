@@ -12,7 +12,7 @@ import "rabbit/common/notice_group.proto";
 import "rabbit/common/common.proto";
 import "common/notice.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/rabbit/v1;v1";
+option go_package = "github.com/aide-family/moon/pkg/api/rabbit/v1;v1";
 
 service Sync {
   rpc Sms (SyncSmsRequest) returns (rabbit.common.EmptyReply) {

@@ -9,7 +9,7 @@ import "palace/common/common_enum.proto";
 import "palace/common/team_strategy.proto";
 import "google/protobuf/duration.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
+option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
 
 // TeamStrategy service provides operations for managing team strategy groups and strategies
 service TeamStrategy {

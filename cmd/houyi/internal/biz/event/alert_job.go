@@ -4,15 +4,15 @@ import (
 	"context"
 	"time"
 
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/vobj"
 	"github.com/go-kratos/kratos/v2/log"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/vobj"
 	"github.com/robfig/cron/v3"
 
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/plugin/server"
-	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/util/timex"
 )
 
 func NewAlertJob(alert bo.Alert, opts ...AlertJobOption) (bo.AlertJob, error) {

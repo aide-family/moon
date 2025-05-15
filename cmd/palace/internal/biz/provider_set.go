@@ -1,9 +1,9 @@
 package biz
 
 import (
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/pkg/api/houyi/common"
 	"github.com/google/wire"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
-	"github.com/moon-monitor/moon/pkg/api/houyi/common"
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 

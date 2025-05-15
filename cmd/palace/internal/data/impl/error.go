@@ -4,7 +4,7 @@ import (
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
 
-	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func userNotFound(err error) error {

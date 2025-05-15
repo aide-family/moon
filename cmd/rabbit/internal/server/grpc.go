@@ -8,9 +8,9 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/conf"
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/helper/middleware"
-	"github.com/moon-monitor/moon/pkg/middler"
+	"github.com/aide-family/moon/cmd/rabbit/internal/conf"
+	"github.com/aide-family/moon/cmd/rabbit/internal/helper/middleware"
+	"github.com/aide-family/moon/pkg/middler"
 )
 
 // NewGRPCServer new a gRPC server.

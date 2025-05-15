@@ -14,7 +14,7 @@ import (
 
 	kratoshttp "github.com/go-kratos/kratos/v2/transport/http"
 
-	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func (l *Local) RegisterHandler(srv *kratoshttp.Server) {

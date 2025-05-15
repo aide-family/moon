@@ -6,7 +6,7 @@ import "palace/common/common_enum.proto";
 import "palace/common/team.proto";
 import "palace/common/system.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/palace/common;common";
+option go_package = "github.com/aide-family/moon/pkg/api/palace/common;common";
 
 message NoticeHookItem {
   uint32 noticeHookId = 1;

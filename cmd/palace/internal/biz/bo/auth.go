@@ -1,8 +1,8 @@
 package bo
 
 import (
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
-	"github.com/moon-monitor/moon/cmd/palace/internal/helper/middleware"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
 )
 
 type Captcha struct {

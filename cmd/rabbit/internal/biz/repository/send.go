@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
 )
 
 type Send interface {

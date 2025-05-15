@@ -3,8 +3,8 @@ package crypto_test
 import (
 	"testing"
 
-	"github.com/moon-monitor/moon/pkg/config"
-	"github.com/moon-monitor/moon/pkg/util/crypto"
+	"github.com/aide-family/moon/pkg/config"
+	"github.com/aide-family/moon/pkg/util/crypto"
 )
 
 func Test_Default(t *testing.T) {

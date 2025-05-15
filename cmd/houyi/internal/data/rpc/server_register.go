@@ -5,11 +5,11 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/conf"
-	"github.com/moon-monitor/moon/pkg/api/common"
-	"github.com/moon-monitor/moon/pkg/config"
-	"github.com/moon-monitor/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/houyi/internal/conf"
+	"github.com/aide-family/moon/pkg/api/common"
+	"github.com/aide-family/moon/pkg/config"
+	"github.com/aide-family/moon/pkg/plugin/server"
 )
 
 func NewServerRegisterRepo(bc *conf.Bootstrap, logger log.Logger) (repository.ServerRegister, error) {

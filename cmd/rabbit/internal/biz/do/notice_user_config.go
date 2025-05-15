@@ -3,7 +3,7 @@ package do
 import (
 	"encoding/json"
 
-	"github.com/moon-monitor/moon/pkg/plugin/cache"
+	"github.com/aide-family/moon/pkg/plugin/cache"
 )
 
 var _ cache.Object = (*NoticeUserConfig)(nil)

@@ -6,12 +6,12 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/config"
+	"github.com/aide-family/moon/pkg/plugin/gorm"
+	"github.com/aide-family/moon/pkg/util/password"
 	"github.com/joho/godotenv"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
-	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
-	"github.com/moon-monitor/moon/pkg/config"
-	"github.com/moon-monitor/moon/pkg/plugin/gorm"
-	"github.com/moon-monitor/moon/pkg/util/password"
 )
 
 var c config.Database

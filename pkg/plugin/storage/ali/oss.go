@@ -9,8 +9,8 @@ import (
 
 	alioss "github.com/aliyun/aliyun-oss-go-sdk/oss"
 
-	"github.com/moon-monitor/moon/pkg/plugin/storage"
-	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/aide-family/moon/pkg/plugin/storage"
+	"github.com/aide-family/moon/pkg/util/timex"
 )
 
 var _ storage.FileManager = (*aliCloud)(nil)

@@ -5,9 +5,9 @@ import (
 	"github.com/google/wire"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/moon-monitor/moon/cmd/laurel/internal/conf"
-	"github.com/moon-monitor/moon/pkg/plugin/cache"
-	"github.com/moon-monitor/moon/pkg/util/safety"
+	"github.com/aide-family/moon/cmd/laurel/internal/conf"
+	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/aide-family/moon/pkg/util/safety"
 )
 
 // ProviderSetData is a set of data providers.

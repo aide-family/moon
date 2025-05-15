@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/moon-monitor/moon/pkg/util/crypto"
+	"github.com/aide-family/moon/pkg/util/crypto"
 )
 
 type User struct {

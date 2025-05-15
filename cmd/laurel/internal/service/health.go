@@ -5,10 +5,10 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/moon-monitor/moon/cmd/laurel/internal/biz"
-	"github.com/moon-monitor/moon/pkg/api/common"
-	"github.com/moon-monitor/moon/pkg/hello"
-	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/aide-family/moon/cmd/laurel/internal/biz"
+	"github.com/aide-family/moon/pkg/api/common"
+	"github.com/aide-family/moon/pkg/hello"
+	"github.com/aide-family/moon/pkg/util/timex"
 )
 
 type HealthService struct {

@@ -3,8 +3,8 @@ package hello_test
 import (
 	"testing"
 
-	"github.com/moon-monitor/moon/pkg/config"
-	"github.com/moon-monitor/moon/pkg/hello"
+	"github.com/aide-family/moon/pkg/config"
+	"github.com/aide-family/moon/pkg/hello"
 )
 
 func TestHello(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/moon-monitor/moon/pkg/util/kv/label"
-	"github.com/moon-monitor/moon/pkg/util/validate"
+	"github.com/aide-family/moon/pkg/util/kv/label"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 type AlertItem struct {

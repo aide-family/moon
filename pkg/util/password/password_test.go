@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/moon-monitor/moon/pkg/util/password"
+	"github.com/aide-family/moon/pkg/util/password"
 )
 
 func TestHashPassword_Success(t *testing.T) {

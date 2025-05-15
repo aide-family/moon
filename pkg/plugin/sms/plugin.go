@@ -1,7 +1,7 @@
 package sms
 
 import (
-	"github.com/moon-monitor/moon/pkg/plugin"
+	"github.com/aide-family/moon/pkg/plugin"
 )
 
 func LoadPlugin(config *plugin.LoadConfig) (Sender, error) {

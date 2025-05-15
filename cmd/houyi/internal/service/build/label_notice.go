@@ -1,8 +1,8 @@
 package build
 
 import (
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/do"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/do"
 )
 
 func ToLabelNotice(notice bo.LabelNotices) *do.LabelNotices {

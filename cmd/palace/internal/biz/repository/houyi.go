@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/moon-monitor/moon/pkg/api/common"
-	houyiv1 "github.com/moon-monitor/moon/pkg/api/houyi/v1"
+	"github.com/aide-family/moon/pkg/api/common"
+	houyiv1 "github.com/aide-family/moon/pkg/api/houyi/v1"
 )
 
 type Houyi interface {

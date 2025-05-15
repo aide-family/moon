@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api.palace.common;
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/palace/common;common";
+option go_package = "github.com/aide-family/moon/pkg/api/palace/common;common";
 
 // TeamStatus represents the status of a team.
 enum TeamStatus {

@@ -45,9 +45,9 @@ Moon is an open-source project, and we welcome developers and technology enthusi
 
 1. **Read the Documentation**: Before starting, please read [GOPHER.md](./docs/dev/GOPHER.md) and [DEV.md](./docs/dev/DEV.md) and [COMMIT.md](./docs/dev/COMMIT.md).
 
-1. **Submit Issues**: If you find a bug or have a feature suggestion, please submit it in the [Issues](https://github.com/moon-monitor/moon/issues) section.
+1. **Submit Issues**: If you find a bug or have a feature suggestion, please submit it in the [Issues](https://github.com/aide-family/moon/issues) section.
 
-2. **Submit Pull Requests**: If you have code contributions, feel free to fork the project and submit a [Pull Request](https://github.com/moon-monitor/moon/pulls). Ensure your code complies with the project's coding standards and passes all tests.
+2. **Submit Pull Requests**: If you have code contributions, feel free to fork the project and submit a [Pull Request](https://github.com/aide-family/moon/pulls). Ensure your code complies with the project's coding standards and passes all tests.
 
 3. **Documentation Contributions**: We welcome improvements and additions to the documentation to help users better understand and use Moon.
 
@@ -57,7 +57,7 @@ Moon is an open-source project, and we welcome developers and technology enthusi
 
 Thank you to all the developers who have contributed to the Moon project! Your efforts have made Moon stronger and more user-friendly.
 
-<a href="https://github.com/moon-monitor/moon/graphs/contributors"><img src="https://contributors-img.web.app/image?repo=moon-monitor/moon" /></a>
+<a href="https://github.com/aide-family/moon/graphs/contributors"><img src="https://contributors-img.web.app/image?repo=moon-monitor/moon" /></a>
 
 # License
 

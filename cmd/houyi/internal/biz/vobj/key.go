@@ -3,7 +3,7 @@ package vobj
 import (
 	"fmt"
 
-	"github.com/moon-monitor/moon/pkg/api/houyi/common"
+	"github.com/aide-family/moon/pkg/api/houyi/common"
 )
 
 func MetricDatasourceUniqueKey(driver common.MetricDatasourceDriver, teamId, id uint32) string {

@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz"
-	"github.com/moon-monitor/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz"
+	"github.com/aide-family/moon/pkg/plugin/server"
 )
 
 func NewLoadService(

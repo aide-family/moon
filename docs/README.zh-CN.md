@@ -48,10 +48,10 @@ Moon 是一个开源项目，我们欢迎全球的开发者和技术爱好者加
 
 1. **阅读文档**：开始前请先阅读[GOPHER.md](./dev/GOPHER.zh-CN.md)、[DEV.md](./dev/DEV.zh-CN.md)和[COMMIT.md](./dev/COMMIT.zh-CN.md)
 
-2. **提交 Issue**：如果你发现了 Bug 或者有新的功能建议，欢迎在 [Issues](https://github.com/moon-monitor/moon/issues) 中提交。
+2. **提交 Issue**：如果你发现了 Bug 或者有新的功能建议，欢迎在 [Issues](https://github.com/aide-family/moon/issues) 中提交。
 
 3. **提交 Pull Request**：如果你有代码贡献，欢迎 Fork
-   项目并提交 [Pull Request](https://github.com/moon-monitor/moon/pulls)。请确保你的代码符合项目的代码规范，并通过了所有测试。
+   项目并提交 [Pull Request](https://github.com/aide-family/moon/pulls)。请确保你的代码符合项目的代码规范，并通过了所有测试。
 
 4. **文档贡献**：我们非常欢迎对文档的改进和补充，帮助更多用户更好地理解和使用 Moon。
 
@@ -61,7 +61,7 @@ Moon 是一个开源项目，我们欢迎全球的开发者和技术爱好者加
 
 感谢所有为 Moon 项目做出贡献的开发者们！你们的努力让 Moon 变得更加强大和易用。
 
-<a href="https://github.com/moon-monitor/moon/graphs/contributors"><img src="https://contributors-img.web.app/image?repo=moon-monitor/moon" /></a>
+<a href="https://github.com/aide-family/moon/graphs/contributors"><img src="https://contributors-img.web.app/image?repo=moon-monitor/moon" /></a>
 
 # 许可证
 

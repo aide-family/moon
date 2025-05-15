@@ -7,11 +7,11 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/repository"
-	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/vobj"
-	"github.com/moon-monitor/moon/cmd/laurel/internal/conf"
-	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/aide-family/moon/cmd/laurel/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/laurel/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/laurel/internal/biz/vobj"
+	"github.com/aide-family/moon/cmd/laurel/internal/conf"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 func NewMetricManager(

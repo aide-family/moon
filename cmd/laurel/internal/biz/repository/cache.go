@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/vobj"
+	"github.com/aide-family/moon/cmd/laurel/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/laurel/internal/biz/vobj"
 )
 
 type Cache interface {

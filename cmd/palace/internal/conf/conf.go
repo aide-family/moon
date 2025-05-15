@@ -1,7 +1,7 @@
 package conf
 
 import (
-	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/aide-family/moon/pkg/config"
 )
 
 func (c *Bootstrap) IsDev() bool {

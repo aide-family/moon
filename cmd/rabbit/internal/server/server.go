@@ -9,12 +9,12 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/google/wire"
 
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/conf"
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/service"
-	"github.com/moon-monitor/moon/pkg/api/common"
-	rabbitv1 "github.com/moon-monitor/moon/pkg/api/rabbit/v1"
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/cmd/rabbit/internal/conf"
+	"github.com/aide-family/moon/cmd/rabbit/internal/service"
+	"github.com/aide-family/moon/pkg/api/common"
+	rabbitv1 "github.com/aide-family/moon/pkg/api/rabbit/v1"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/plugin/server"
 )
 
 // ProviderSetServer is server providers.

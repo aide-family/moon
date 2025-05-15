@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api.houyi.common;
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/houyi/common;common";
+option go_package = "github.com/aide-family/moon/pkg/api/houyi/common;common";
 
 message TeamItem {
 	uint32 teamId = 1;

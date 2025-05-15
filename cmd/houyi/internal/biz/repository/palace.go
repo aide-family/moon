@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/moon-monitor/moon/pkg/api/common"
-	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/aide-family/moon/pkg/api/common"
+	"github.com/aide-family/moon/pkg/api/palace"
 )
 
 type ServerRegister interface {

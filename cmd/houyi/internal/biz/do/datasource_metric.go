@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/vobj"
-	"github.com/moon-monitor/moon/pkg/api/houyi/common"
-	"github.com/moon-monitor/moon/pkg/plugin/cache"
-	"github.com/moon-monitor/moon/pkg/plugin/datasource"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/api/houyi/common"
+	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/aide-family/moon/pkg/plugin/datasource"
 )
 
 var _ cache.Object = (*DatasourceMetricConfig)(nil)

@@ -6,12 +6,12 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/repository"
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/util/slices"
-	"github.com/moon-monitor/moon/pkg/util/template"
-	"github.com/moon-monitor/moon/pkg/util/validate"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/template"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func NewAlert(

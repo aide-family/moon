@@ -1,6 +1,6 @@
 package hook
 
-import "github.com/moon-monitor/moon/pkg/util/template"
+import "github.com/aide-family/moon/pkg/util/template"
 
 type Message []byte
 

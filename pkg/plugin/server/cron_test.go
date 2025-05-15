@@ -3,7 +3,7 @@ package server
 import (
 	"testing"
 
-	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/aide-family/moon/pkg/util/timex"
 	"github.com/robfig/cron/v3"
 )
 

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/moon-monitor/moon/pkg/config"
-	"github.com/moon-monitor/moon/pkg/plugin/cache"
+	"github.com/aide-family/moon/pkg/config"
+	"github.com/aide-family/moon/pkg/plugin/cache"
 )
 
 var _ cache.Object = (*User)(nil)

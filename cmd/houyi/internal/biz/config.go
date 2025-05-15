@@ -3,9 +3,9 @@ package biz
 import (
 	"context"
 
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
 	"github.com/go-kratos/kratos/v2/log"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
-	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
 )
 
 func NewConfig(configRepo repository.Config, logger log.Logger) *Config {

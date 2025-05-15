@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 // TextIsNull 判断字符串是否为空

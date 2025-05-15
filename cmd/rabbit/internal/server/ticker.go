@@ -5,9 +5,9 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/conf"
-	"github.com/moon-monitor/moon/cmd/rabbit/internal/service"
-	"github.com/moon-monitor/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/cmd/rabbit/internal/conf"
+	"github.com/aide-family/moon/cmd/rabbit/internal/service"
+	"github.com/aide-family/moon/pkg/plugin/server"
 )
 
 func NewTicker(bc *conf.Bootstrap, healthService *service.HealthService, logger log.Logger) *server.Ticker {

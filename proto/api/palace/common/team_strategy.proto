@@ -9,7 +9,7 @@ import "palace/common/team_datasource.proto";
 import "palace/common/team_notice.proto";
 import "palace/common/team_dict.proto";
 
-option go_package = "github.com/moon-monitor/moon/pkg/api/palace/common;common";
+option go_package = "github.com/aide-family/moon/pkg/api/palace/common;common";
 
 // TeamStrategyGroupItem represents the structure of a team strategy group item.
 message TeamStrategyGroupItem {

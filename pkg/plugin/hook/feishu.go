@@ -12,10 +12,10 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/moon-monitor/moon/pkg/api/rabbit/common"
-	"github.com/moon-monitor/moon/pkg/merr"
-	"github.com/moon-monitor/moon/pkg/util/httpx"
-	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/aide-family/moon/pkg/api/rabbit/common"
+	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/httpx"
+	"github.com/aide-family/moon/pkg/util/timex"
 )
 
 var _ Sender = (*feishuHook)(nil)
