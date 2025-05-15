@@ -13,16 +13,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/log"
-
-	"github.com/aide-family/moon/pkg/plugin/storage"
-	"github.com/aide-family/moon/pkg/util/safety"
-	"github.com/aide-family/moon/pkg/util/timex"
+	"github.com/moon-monitor/moon/pkg/plugin/storage"
+	"github.com/moon-monitor/moon/pkg/util/safety"
+	"github.com/moon-monitor/moon/pkg/util/timex"
 )
 
 var _ storage.FileManager = (*Local)(nil)
 
-func New(c Config) (*Local, error) {
+func NewLocalOSS(c Config) (*Local, error) {
 	if err := os.MkdirAll(c.GetRoot(), 0755); err != nil {
 		return nil, fmt.Errorf("failed to create root directory: %w", err)
 	}
@@ -121,25 +119,17 @@ func (l *Local) CompleteMultipartUpload(uploadID, objectKey string, parts []stor
 	if err != nil {
 		return nil, fmt.Errorf("failed to create final file: %w", err)
 	}
-	defer func(finalFile *os.File) {
-		if err := finalFile.Close(); err != nil {
-			log.Warnf("failed to close final file: %v", err)
-		}
-	}(finalFile)
+	defer finalFile.Close()
 
-	hashed := md5.New()
-	multiWriter := io.MultiWriter(finalFile, hashed)
+	hasher := md5.New()
+	multiWriter := io.MultiWriter(finalFile, hasher)
 
 	f := func(partNumber int, filePath string) error {
 		partFile, err := os.Open(filePath)
 		if err != nil {
 			return fmt.Errorf("failed to open part file: %w", err)
 		}
-		defer func(partFile *os.File) {
-			if err := partFile.Close(); err != nil {
-				log.Warnf("failed to close part file: %v", err)
-			}
-		}(partFile)
+		defer partFile.Close()
 		if _, err := partFile.Seek(0, 0); err != nil {
 			return fmt.Errorf("failed to seek part file: %w", err)
 		}
@@ -165,7 +155,7 @@ func (l *Local) CompleteMultipartUpload(uploadID, objectKey string, parts []stor
 		}
 	}
 
-	eTag := hex.EncodeToString(hashed.Sum(nil))
+	eTag := hex.EncodeToString(hasher.Sum(nil))
 
 	if err := os.RemoveAll(filepath.Join(l.root, "tmp", uploadID)); err != nil {
 		return nil, fmt.Errorf("failed to clean temp files: %w", err)

@@ -1,15 +1,15 @@
 package build
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/strutil"
-	"github.com/aide-family/moon/pkg/util/timex"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/strutil"
+	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 // ToUserItem converts a system.User to a common.UserItem
@@ -25,27 +25,6 @@ func ToUserItem(user do.User) *common.UserItem {
 		Gender:    common.Gender(user.GetGender().GetValue()),
 		Email:     strutil.MaskEmail(string(user.GetEmail())),
 		Phone:     strutil.MaskPhone(string(user.GetPhone())),
-		Remark:    user.GetRemark(),
-		Position:  common.UserPosition(user.GetPosition().GetValue()),
-		Status:    common.UserStatus(user.GetStatus().GetValue()),
-		CreatedAt: timex.Format(user.GetCreatedAt()),
-		UpdatedAt: timex.Format(user.GetUpdatedAt()),
-		UserId:    user.GetID(),
-	}
-}
-
-func ToUserItemPlaintext(user do.User) *common.UserItem {
-	if validate.IsNil(user) {
-		return nil
-	}
-
-	return &common.UserItem{
-		Username:  user.GetUsername(),
-		Nickname:  user.GetNickname(),
-		Avatar:    user.GetAvatar(),
-		Gender:    common.Gender(user.GetGender().GetValue()),
-		Email:     string(user.GetEmail()),
-		Phone:     string(user.GetPhone()),
 		Remark:    user.GetRemark(),
 		Position:  common.UserPosition(user.GetPosition().GetValue()),
 		Status:    common.UserStatus(user.GetStatus().GetValue()),
@@ -124,7 +103,7 @@ func ToUserListRequest(req *palace.GetUserListRequest) *bo.UserListRequest {
 	return &bo.UserListRequest{
 		PaginationRequest: ToPaginationRequest(req.GetPagination()),
 		Status:            slices.Map(req.GetStatus(), func(status common.UserStatus) vobj.UserStatus { return vobj.UserStatus(status) }),
-		Position:          slices.Map(req.GetPosition(), func(position common.UserPosition) vobj.Position { return vobj.Position(position) }),
+		Position:          slices.Map(req.GetPosition(), func(position common.UserPosition) vobj.Role { return vobj.Role(position) }),
 		Keyword:           req.GetKeyword(),
 	}
 }

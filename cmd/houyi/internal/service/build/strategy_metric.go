@@ -3,14 +3,13 @@ package build
 import (
 	"strconv"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/do"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/api/houyi/common"
-	"github.com/aide-family/moon/pkg/util/cnst"
-	"github.com/aide-family/moon/pkg/util/kv/label"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/api/houyi/common"
+	"github.com/moon-monitor/moon/pkg/util/cnst"
+	"github.com/moon-monitor/moon/pkg/util/kv/label"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 func ToMetricRules(strategyItems ...*common.MetricStrategyItem) []bo.MetricRule {
@@ -19,16 +18,16 @@ func ToMetricRules(strategyItems ...*common.MetricStrategyItem) []bo.MetricRule 
 	}
 	rules := make([]bo.MetricRule, 0, len(strategyItems)*5*3)
 	for _, strategyItem := range strategyItems {
-		if validate.IsNil(strategyItem) {
+		if strategyItem == nil {
 			continue
 		}
 		for _, rule := range strategyItem.Rules {
-			if validate.IsNil(rule) {
+			if rule == nil {
 				continue
 			}
 			datasourceConfigs := strategyItem.GetDatasource()
 			for _, datasourceItem := range datasourceConfigs {
-				if validate.IsNil(datasourceItem) {
+				if datasourceItem == nil {
 					continue
 				}
 				annotations := strategyItem.GetAnnotations()

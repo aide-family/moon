@@ -6,8 +6,8 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/service"
-	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/service"
+	"github.com/moon-monitor/moon/pkg/plugin/server"
 )
 
 var _ transport.Server = (*CronAlertJobServer)(nil)
@@ -21,7 +21,7 @@ func NewCronAlertJobServer(
 		evaluateService: evaluateService,
 		alertService:    alertService,
 		helper:          log.NewHelper(log.With(logger, "module", "server.cron.alert.job")),
-		CronJobServer:   cron_server.NewCronJobServer("Alert", logger),
+		CronJobServer:   server.NewCronJobServer("Alert", logger),
 	}
 }
 
@@ -30,7 +30,7 @@ type CronAlertJobServer struct {
 	alertService    *service.AlertService
 
 	helper *log.Helper
-	*cron_server.CronJobServer
+	*server.CronJobServer
 }
 
 func (c *CronAlertJobServer) Start(ctx context.Context) error {

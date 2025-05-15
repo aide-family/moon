@@ -12,7 +12,7 @@ import "rabbit/common/notice_group.proto";
 import "rabbit/common/common.proto";
 import "common/notice.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/rabbit/v1;v1";
+option go_package = "github.com/moon-monitor/moon/pkg/api/rabbit/v1;v1";
 
 service Sync {
   rpc Sms (SyncSmsRequest) returns (rabbit.common.EmptyReply) {
@@ -43,6 +43,13 @@ service Sync {
     };
   }
 
+  rpc NoticeUser (SyncNoticeUserRequest) returns (rabbit.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/v1/sync/notice-user"
+      body: "*"
+    };
+  }
+
   rpc Remove(RemoveRequest) returns (rabbit.common.EmptyReply) {
     option (google.api.http) = {
       post: "/v1/sync/remove"
@@ -68,6 +75,11 @@ message SyncHookRequest {
 
 message SyncNoticeGroupRequest {
   repeated rabbit.common.NoticeGroup noticeGroups = 1;
+  string teamId = 2 [(buf.validate.field).required = true];
+}
+
+message SyncNoticeUserRequest {
+  repeated rabbit.common.NoticeUser noticeUsers = 1;
   string teamId = 2 [(buf.validate.field).required = true];
 }
 

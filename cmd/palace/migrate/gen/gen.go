@@ -6,28 +6,28 @@ package main
 import (
 	"fmt"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/event"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/event"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
 	"github.com/spf13/cobra"
 	"gorm.io/gen"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
 )
 
 var c = gen.Config{
 	OutPath: "./dal",
 	Mode:    gen.WithoutContext | gen.WithDefaultQuery | gen.WithQueryInterface, // generate mode
-	// If you want to generate pointer type properties for nullable fields, set FieldNullable to true
+	// 如果你希望为可为null的字段生成属性为指针类型, 设置 FieldNullable 为 true
 	// FieldNullable: true,
-	// If you want to assign default values to fields in the `Create` API, set FieldCoverable to true, see: https://gorm.io/docs/create.html#Default-Values
+	// 如果你希望在 `Create` API 中为字段分配默认值, 设置 FieldCoverable 为 true, 参考: https://gorm.io/docs/create.html#Default-Values
 	FieldCoverable: true,
-	// If you want to generate unsigned integer type fields, set FieldSignable to true
+	// 如果你希望生成无符号整数类型字段, 设置 FieldSignable 为 true
 	FieldSignable: true,
-	// If you want to generate index tags from the database, set FieldWithIndexTag to true
+	// 如果你希望从数据库生成索引标记, 设置 FieldWithIndexTag 为 true
 	FieldWithIndexTag: true,
-	// If you want to generate type tags from the database, set FieldWithTypeTag to true
+	// 如果你希望从数据库生成类型标记, 设置 FieldWithTypeTag 为 true
 	FieldWithTypeTag: true,
-	// If you need unit tests for query code, set WithUnitTest to true
+	// 如果你需要对查询代码进行单元测试, 设置 WithUnitTest 为 true
 	// WithUnitTest: true,
 }
 

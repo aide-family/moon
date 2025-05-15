@@ -3,11 +3,10 @@ syntax = "proto3";
 package api.palace;
 
 import "google/api/annotations.proto";
-import "buf/validate/validate.proto";
 import "palace/common/common.proto";
 import "palace/common/common_enum.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
 
 service TeamLog {
   rpc GetSendMessageLogs (GetTeamSendMessageLogsRequest) returns (GetTeamSendMessageLogsReply) {
@@ -31,11 +30,11 @@ service TeamLog {
 
 message GetTeamSendMessageLogsRequest {
   string requestId = 1;
-  common.MessageType messageType = 2;
-  common.SendMessageStatus status = 3;
-  string keyword = 4;
-  common.PaginationRequest pagination = 5;
-  repeated string timeRange = 6;
+  string message = 2;
+  common.MessageType messageType = 3;
+  common.SendMessageStatus status = 4;
+  string keyword = 5;
+  common.PaginationRequest pagination = 6;
 }
 
 message GetTeamSendMessageLogsReply {
@@ -44,14 +43,5 @@ message GetTeamSendMessageLogsReply {
 }
 
 message OperateOneTeamSendMessageRequest {
-  string requestId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "OPERATE_ONE_TEAM_SEND_MESSAGE_REQUEST_ID_VALIDATOR",
-    message: "requestId must be less than 64 characters"
-    expression: "this.size() <= 64"
-  }];
-  string sendTime = 2 [(buf.validate.field).cel = {
-    id: "OPERATE_ONE_TEAM_SEND_MESSAGE_SEND_TIME_VALIDATOR",
-    message: "sendTime must be 19 characters, format: 2005-01-02 15:04:05"
-    expression: "this.size() == 19"
-  }];
+  string requestId = 1;
 }

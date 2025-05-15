@@ -1,10 +1,12 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 type TeamAuditListRequest struct {
@@ -15,10 +17,10 @@ type TeamAuditListRequest struct {
 	UserID  uint32             `json:"userId"`
 }
 
-func (r *TeamAuditListRequest) ToListReply(items []do.TeamAudit) *TeamAuditListReply {
+func (r *TeamAuditListRequest) ToTeamAuditListReply(items []*system.TeamAudit) *TeamAuditListReply {
 	return &TeamAuditListReply{
 		PaginationReply: r.ToReply(),
-		Items:           items,
+		Items:           slices.Map(items, func(item *system.TeamAudit) do.TeamAudit { return item }),
 	}
 }
 
@@ -60,17 +62,17 @@ func (r *UpdateTeamAuditStatusReq) GetReason() string {
 
 func (r *UpdateTeamAuditStatusReq) Validate() error {
 	if r.AuditID <= 0 {
-		return merr.ErrorParams("invalid audit id")
+		return merr.ErrorParamsError("invalid audit id")
 	}
 	if r.Status == vobj.AuditStatusUnknown {
-		return merr.ErrorParams("invalid audit status")
+		return merr.ErrorParamsError("invalid audit status")
 	}
 	if validate.IsNil(r.auditDo) {
-		return merr.ErrorParams("audit is nil")
+		return merr.ErrorParamsError("audit is nil")
 	}
 
 	if r.auditDo.GetStatus().IsFinal() {
-		return merr.ErrorParams("audit status is final")
+		return merr.ErrorParamsError("audit status is final")
 	}
 	return nil
 }

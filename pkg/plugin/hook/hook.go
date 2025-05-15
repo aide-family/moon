@@ -3,7 +3,7 @@ package hook
 import (
 	"context"
 
-	"github.com/aide-family/moon/pkg/api/rabbit/common"
+	"github.com/moon-monitor/moon/pkg/api/rabbit/common"
 )
 
 type Sender interface {

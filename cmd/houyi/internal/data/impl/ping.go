@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/houyi/internal/data"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/data"
 )
 
 func NewPingRepo(data *data.Data, logger log.Logger) repository.Health {

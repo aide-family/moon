@@ -3,9 +3,9 @@ package judge
 import (
 	"time"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/houyi/internal/data/impl/judge/condition"
-	"github.com/aide-family/moon/pkg/api/houyi/common"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/data/impl/judge/condition"
+	"github.com/moon-monitor/moon/pkg/api/houyi/common"
 )
 
 func NewMetricJudge(sampleModeType common.SampleMode, opts ...MetricJudgeOption) MetricJudge {

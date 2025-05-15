@@ -3,15 +3,15 @@ package impl
 import (
 	"context"
 
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/do"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/houyi/internal/data"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/data"
 )
 
 func NewConfigRepo(d *data.Data, logger log.Logger) repository.Config {
@@ -71,9 +71,9 @@ func (c *configImpl) SetMetricDatasourceConfig(ctx context.Context, configs ...b
 		tls := v.GetTLS()
 		if validate.IsNotNil(tls) {
 			item.TLS = &do.TLS{
-				ClientCert: tls.GetClientCert(),
-				ClientKey:  tls.GetClientKey(),
-				ServerName: tls.GetServerName(),
+				ClientCertificate: tls.GetClientCertificate(),
+				ClientKey:         tls.GetClientKey(),
+				ServerName:        tls.GetServerName(),
 			}
 		}
 		configDos[item.UniqueKey()] = item
@@ -91,7 +91,7 @@ func (c *configImpl) SetMetricRules(ctx context.Context, rules ...bo.MetricRule)
 			LevelId:    v.GetLevelId(),
 			Receiver:   v.GetReceiverRoutes(),
 			LabelReceiver: slices.MapFilter(v.GetLabelReceiverRoutes(), func(noticeItem bo.LabelNotices) (*do.LabelNotices, bool) {
-				if validate.IsNil(noticeItem) || len(noticeItem.GetReceiverRoutes()) == 0 {
+				if noticeItem == nil || len(noticeItem.GetReceiverRoutes()) == 0 {
 					return nil, false
 				}
 				return &do.LabelNotices{

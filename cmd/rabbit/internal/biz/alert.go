@@ -6,11 +6,12 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/template"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/repository"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/template"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func NewAlert(
@@ -34,27 +35,54 @@ type Alert struct {
 
 func (a *Alert) SendAlert(ctx context.Context, alert *bo.AlertsItem) error {
 	if validate.IsNil(alert) {
-		return merr.ErrorParams("No alert is available")
+		return merr.ErrorParamsError("No alert is available")
 	}
 	receivers := alert.GetReceiver()
 	if len(receivers) == 0 {
-		return merr.ErrorParams("No receiver is available")
+		return merr.ErrorParamsError("No receiver is available")
 	}
-
+	eg := new(errgroup.Group)
 	for _, receiver := range receivers {
 		noticeGroupConfig, ok := a.configRepo.GetNoticeGroupConfig(ctx, alert.GetTeamID(), receiver)
 		if !ok || validate.IsNil(noticeGroupConfig) {
 			continue
 		}
-		a.sendEmail(ctx, noticeGroupConfig, alert)
-		a.sendSms(ctx, noticeGroupConfig, alert)
-		a.sendHook(ctx, noticeGroupConfig, alert)
+		eg.Go(func() error {
+			a.sendEmail(ctx, noticeGroupConfig, alert)
+			return nil
+		})
+		eg.Go(func() error {
+			a.sendSms(ctx, noticeGroupConfig, alert)
+			return nil
+		})
+		eg.Go(func() error {
+			a.sendHook(ctx, noticeGroupConfig, alert)
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		a.helper.WithContext(ctx).Warnw("method", "SendAlert", "err", err)
+		return err
 	}
 	return nil
 }
 
 func (a *Alert) sendEmail(ctx context.Context, noticeGroupConfig bo.NoticeGroup, alert *bo.AlertsItem) {
-	emails := noticeGroupConfig.GetEmailUserNames()
+	emailNames := noticeGroupConfig.GetEmailUserNames()
+	if len(emailNames) == 0 {
+		return
+	}
+	userConfigs, err := a.configRepo.GetNoticeUserConfigs(ctx, alert.GetTeamID(), emailNames...)
+	if err != nil {
+		a.helper.WithContext(ctx).Warnw("method", "GetNoticeUserConfigs", "err", err)
+		return
+	}
+	emails := slices.MapFilter(userConfigs, func(userConfig bo.NoticeUser) (string, bool) {
+		if email := userConfig.GetEmail(); validate.TextIsNotNull(email) {
+			return email, true
+		}
+		return "", false
+	})
 	if len(emails) == 0 {
 		return
 	}
@@ -64,7 +92,6 @@ func (a *Alert) sendEmail(ctx context.Context, noticeGroupConfig bo.NoticeGroup,
 	}
 	emailTemplate := noticeGroupConfig.GetEmailTemplate()
 	eg := new(errgroup.Group)
-	eg.SetLimit(10)
 	for _, alertItem := range alert.Alerts {
 		opts := []bo.SendEmailParamsOption{
 			bo.WithSendEmailParamsOptionEmail(emails...),
@@ -80,13 +107,28 @@ func (a *Alert) sendEmail(ctx context.Context, noticeGroupConfig bo.NoticeGroup,
 			return a.sendRepo.Email(ctx, sendEmailParams)
 		})
 	}
+
 	if err := eg.Wait(); err != nil {
 		a.helper.WithContext(ctx).Warnw("method", "sendEmail", "err", err)
 	}
 }
 
 func (a *Alert) sendSms(ctx context.Context, noticeGroupConfig bo.NoticeGroup, alert *bo.AlertsItem) {
-	phoneNumbers := noticeGroupConfig.GetSmsUserNames()
+	smsNames := noticeGroupConfig.GetSmsUserNames()
+	if len(smsNames) == 0 {
+		return
+	}
+	userConfigs, err := a.configRepo.GetNoticeUserConfigs(ctx, alert.GetTeamID(), smsNames...)
+	if err != nil {
+		a.helper.WithContext(ctx).Warnw("method", "GetNoticeUserConfigs", "err", err)
+		return
+	}
+	phoneNumbers := slices.MapFilter(userConfigs, func(userConfig bo.NoticeUser) (string, bool) {
+		if phone := userConfig.GetPhone(); validate.TextIsNotNull(phone) {
+			return phone, true
+		}
+		return "", false
+	})
 	if len(phoneNumbers) == 0 {
 		return
 	}
@@ -96,7 +138,6 @@ func (a *Alert) sendSms(ctx context.Context, noticeGroupConfig bo.NoticeGroup, a
 	}
 	smsTemplate := noticeGroupConfig.GetSmsTemplate()
 	eg := new(errgroup.Group)
-	eg.SetLimit(10)
 	for _, alertItem := range alert.Alerts {
 		opts := []bo.SendSMSParamsOption{
 			bo.WithSendSMSParamsOptionPhoneNumbers(phoneNumbers...),

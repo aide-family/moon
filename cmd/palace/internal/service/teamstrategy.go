@@ -3,28 +3,32 @@ package service
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/service/build"
+	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 func NewTeamStrategyService(
-	teamStrategyGroupBiz *biz.TeamStrategyGroup,
+	teamStrategyGroupBiz *biz.TeamStrategyGroupBiz,
 	teamStrategyBiz *biz.TeamStrategy,
+	teamStrategyMetricBiz *biz.TeamStrategyMetric,
 ) *TeamStrategyService {
 	return &TeamStrategyService{
-		teamStrategyGroupBiz: teamStrategyGroupBiz,
-		teamStrategyBiz:      teamStrategyBiz,
+		teamStrategyGroupBiz:  teamStrategyGroupBiz,
+		teamStrategyBiz:       teamStrategyBiz,
+		teamStrategyMetricBiz: teamStrategyMetricBiz,
 	}
 }
 
 type TeamStrategyService struct {
 	palace.UnimplementedTeamStrategyServer
-	teamStrategyGroupBiz *biz.TeamStrategyGroup
-	teamStrategyBiz      *biz.TeamStrategy
+	teamStrategyGroupBiz  *biz.TeamStrategyGroupBiz
+	teamStrategyBiz       *biz.TeamStrategy
+	teamStrategyMetricBiz *biz.TeamStrategyMetric
 }
 
 func (t *TeamStrategyService) SaveTeamStrategyGroup(ctx context.Context, request *palace.SaveTeamStrategyGroupRequest) (*common.EmptyReply, error) {
@@ -36,7 +40,7 @@ func (t *TeamStrategyService) SaveTeamStrategyGroup(ctx context.Context, request
 	if err := t.teamStrategyGroupBiz.SaveTeamStrategyGroup(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "保存策略组成功"}, nil
 }
 
 func (t *TeamStrategyService) UpdateTeamStrategyGroupStatus(ctx context.Context, request *palace.UpdateTeamStrategyGroupStatusRequest) (*common.EmptyReply, error) {
@@ -47,14 +51,14 @@ func (t *TeamStrategyService) UpdateTeamStrategyGroupStatus(ctx context.Context,
 	if err := t.teamStrategyGroupBiz.UpdateTeamStrategyGroupStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "更新策略组状态成功"}, nil
 }
 
 func (t *TeamStrategyService) DeleteTeamStrategyGroup(ctx context.Context, request *palace.DeleteTeamStrategyGroupRequest) (*common.EmptyReply, error) {
 	if err := t.teamStrategyGroupBiz.DeleteTeamStrategyGroup(ctx, request.GetGroupId()); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "删除策略组成功"}, nil
 }
 
 func (t *TeamStrategyService) GetTeamStrategyGroup(ctx context.Context, request *palace.GetTeamStrategyGroupRequest) (*common.TeamStrategyGroupItem, error) {
@@ -68,7 +72,7 @@ func (t *TeamStrategyService) GetTeamStrategyGroup(ctx context.Context, request 
 func (t *TeamStrategyService) ListTeamStrategyGroup(ctx context.Context, request *palace.ListTeamStrategyGroupRequest) (*palace.ListTeamStrategyGroupReply, error) {
 	params := &bo.ListTeamStrategyGroupParams{
 		Keyword:           request.GetKeyword(),
-		Status:            vobj.GlobalStatus(request.GetStatus()),
+		Status:            slices.Map(request.GetStatus(), func(status common.GlobalStatus) vobj.GlobalStatus { return vobj.GlobalStatus(status) }),
 		PaginationRequest: build.ToPaginationRequest(request.GetPagination()),
 	}
 	groups, err := t.teamStrategyGroupBiz.ListTeamStrategyGroup(ctx, params)
@@ -81,24 +85,34 @@ func (t *TeamStrategyService) ListTeamStrategyGroup(ctx context.Context, request
 	}, nil
 }
 
-func (t *TeamStrategyService) SelectTeamStrategyGroup(ctx context.Context, request *palace.SelectTeamStrategyGroupRequest) (*palace.SelectTeamStrategyGroupReply, error) {
-	params := build.ToSelectTeamStrategyGroupParams(request)
-	groups, err := t.teamStrategyGroupBiz.SelectTeamStrategyGroup(ctx, params)
+func (t *TeamStrategyService) SaveTeamStrategy(ctx context.Context, request *palace.SaveTeamStrategyRequest) (*common.EmptyReply, error) {
+	params := build.ToSaveTeamStrategyParams(request)
+	strategyDo, err := t.teamStrategyBiz.SaveTeamStrategy(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	return &palace.SelectTeamStrategyGroupReply{
-		Items:      build.ToSelectItems(groups.Items),
-		Pagination: build.ToPaginationReply(groups.PaginationReply),
-	}, nil
+	return &common.EmptyReply{Message: "保存策略成功", Id: strategyDo.GetID()}, nil
 }
 
-func (t *TeamStrategyService) SaveTeamStrategy(ctx context.Context, request *palace.SaveTeamStrategyRequest) (*common.EmptyReply, error) {
-	params := build.ToSaveTeamStrategyParams(request)
-	if err := t.teamStrategyBiz.SaveTeamStrategy(ctx, params); err != nil {
+func (t *TeamStrategyService) SaveTeamMetricStrategy(ctx context.Context, request *palace.SaveTeamMetricStrategyRequest) (*common.EmptyReply, error) {
+	params := build.ToSaveTeamMetricStrategyParams(request)
+	metricStrategyDo, err := t.teamStrategyMetricBiz.SaveTeamMetricStrategy(ctx, params)
+	if err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "保存策略成功", Id: metricStrategyDo.GetID()}, nil
+}
+
+func (t *TeamStrategyService) SaveTeamMetricStrategyLevels(ctx context.Context, request *palace.SaveTeamMetricStrategyLevelsRequest) (*palace.SaveTeamMetricStrategyLevelsReply, error) {
+	params := build.ToSaveTeamMetricStrategyLevelsParams(request)
+	metricStrategyRules, err := t.teamStrategyMetricBiz.SaveTeamMetricStrategyLevels(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &palace.SaveTeamMetricStrategyLevelsReply{
+		Levels:  build.ToTeamMetricStrategyItemRules(metricStrategyRules),
+		Message: "保存策略成功",
+	}, nil
 }
 
 func (t *TeamStrategyService) UpdateTeamStrategiesStatus(ctx context.Context, request *palace.UpdateTeamStrategiesStatusRequest) (*common.EmptyReply, error) {
@@ -106,14 +120,24 @@ func (t *TeamStrategyService) UpdateTeamStrategiesStatus(ctx context.Context, re
 	if err := t.teamStrategyBiz.UpdateTeamStrategiesStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "更新策略状态成功"}, nil
 }
 
-func (t *TeamStrategyService) DeleteTeamStrategy(ctx context.Context, request *palace.DeleteTeamStrategyRequest) (*common.EmptyReply, error) {
-	if err := t.teamStrategyBiz.DeleteTeamStrategy(ctx, request.GetStrategyId()); err != nil {
+func (t *TeamStrategyService) DeleteTeamStrategy(ctx context.Context, request *palace.OperateTeamStrategyRequest) (*common.EmptyReply, error) {
+	params := build.ToOperateTeamStrategyParams(request)
+	if err := t.teamStrategyBiz.DeleteTeamStrategy(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "删除策略成功"}, nil
+}
+
+func (t *TeamStrategyService) GetTeamMetricStrategy(ctx context.Context, request *palace.OperateTeamStrategyRequest) (*common.TeamStrategyMetricItem, error) {
+	params := build.ToOperateTeamStrategyParams(request)
+	strategy, err := t.teamStrategyMetricBiz.GetTeamMetricStrategy(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return build.ToTeamMetricStrategyItem(strategy), nil
 }
 
 func (t *TeamStrategyService) ListTeamStrategy(ctx context.Context, request *palace.ListTeamStrategyRequest) (*palace.ListTeamStrategyReply, error) {
@@ -133,7 +157,7 @@ func (t *TeamStrategyService) SubscribeTeamStrategy(ctx context.Context, request
 	if err := t.teamStrategyBiz.SubscribeTeamStrategy(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "订阅策略成功"}, nil
 }
 
 func (t *TeamStrategyService) SubscribeTeamStrategies(ctx context.Context, request *palace.SubscribeTeamStrategiesRequest) (*palace.SubscribeTeamStrategiesReply, error) {

@@ -1,23 +1,12 @@
 package build
 
 import (
-	"github.com/aide-family/moon/cmd/laurel/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/laurel/internal/biz/vobj"
-	apicommon "github.com/aide-family/moon/pkg/api/laurel/common"
-	"github.com/aide-family/moon/pkg/hello"
-	"github.com/aide-family/moon/pkg/util/kv"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/vobj"
+	apicommon "github.com/moon-monitor/moon/pkg/api/laurel/common"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
-
-var publicLabels = []string{"server", "instance"}
-
-func publicLabelsMap() map[string]string {
-	return map[string]string{
-		"server":   hello.GetEnv().Name(),
-		"instance": hello.GetEnv().ID(),
-	}
-}
 
 func ToCounterMetricVecs(counterVecs []*apicommon.MetricVec) []*bo.CounterMetricVec {
 	if len(counterVecs) == 0 {
@@ -55,7 +44,7 @@ func ToCounterMetricVec(counterVec *apicommon.MetricVec) *bo.CounterMetricVec {
 		Namespace: counterVec.GetNamespace(),
 		SubSystem: counterVec.GetSubSystem(),
 		Name:      counterVec.GetName(),
-		Labels:    append(counterVec.GetLabels(), publicLabels...),
+		Labels:    counterVec.GetLabels(),
 		Help:      counterVec.GetHelp(),
 	}
 }
@@ -68,7 +57,7 @@ func ToGaugeMetricVec(gaugeVec *apicommon.MetricVec) *bo.GaugeMetricVec {
 		Namespace: gaugeVec.GetNamespace(),
 		SubSystem: gaugeVec.GetSubSystem(),
 		Name:      gaugeVec.GetName(),
-		Labels:    append(gaugeVec.GetLabels(), publicLabels...),
+		Labels:    gaugeVec.GetLabels(),
 		Help:      gaugeVec.GetHelp(),
 	}
 }
@@ -81,7 +70,7 @@ func ToHistogramMetricVec(histogramVec *apicommon.MetricVec) *bo.HistogramMetric
 		Namespace:                       histogramVec.GetNamespace(),
 		SubSystem:                       histogramVec.GetSubSystem(),
 		Name:                            histogramVec.GetName(),
-		Labels:                          append(histogramVec.GetLabels(), publicLabels...),
+		Labels:                          histogramVec.GetLabels(),
 		Help:                            histogramVec.GetHelp(),
 		Buckets:                         histogramVec.GetNativeHistogramBuckets(),
 		NativeHistogramBucketFactor:     histogramVec.GetNativeHistogramBucketFactor(),
@@ -107,7 +96,7 @@ func ToSummaryMetricVec(summaryVec *apicommon.MetricVec) *bo.SummaryMetricVec {
 		Namespace:  summaryVec.GetNamespace(),
 		SubSystem:  summaryVec.GetSubSystem(),
 		Name:       summaryVec.GetName(),
-		Labels:     append(summaryVec.GetLabels(), publicLabels...),
+		Labels:     summaryVec.GetLabels(),
 		Help:       summaryVec.GetHelp(),
 		Objectives: objectives,
 		MaxAge:     summaryVec.GetSummaryMaxAge(),
@@ -132,7 +121,7 @@ func ToMetricData(metric *apicommon.MetricData) *bo.MetricData {
 		Namespace:  metric.GetNamespace(),
 		SubSystem:  metric.GetSubSystem(),
 		Name:       metric.GetName(),
-		Labels:     kv.NewStringMap(metric.GetLabels()).Append(publicLabelsMap()).ToMap(),
+		Labels:     metric.GetLabels(),
 		Value:      metric.GetValue(),
 	}
 }

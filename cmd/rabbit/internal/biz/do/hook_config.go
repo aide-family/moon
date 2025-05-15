@@ -3,10 +3,10 @@ package do
 import (
 	"encoding/json"
 
-	"github.com/aide-family/moon/pkg/api/rabbit/common"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/cache"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/pkg/api/rabbit/common"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/plugin/cache"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 var _ cache.Object = (*HookConfig)(nil)
@@ -27,7 +27,7 @@ func NewHookConfig(url string, opts ...HookConfigOption) (*HookConfig, error) {
 func WithHookConfigOptionName(name string) HookConfigOption {
 	return func(h *HookConfig) error {
 		if name == "" {
-			return merr.ErrorParams("name is empty")
+			return merr.ErrorParamsError("name is empty")
 		}
 		h.Name = name
 		return nil
@@ -37,7 +37,7 @@ func WithHookConfigOptionName(name string) HookConfigOption {
 func WithHookConfigOptionApp(app common.HookAPP) HookConfigOption {
 	return func(h *HookConfig) error {
 		if app < 0 {
-			return merr.ErrorParams("app is empty")
+			return merr.ErrorParamsError("app is empty")
 		}
 		h.App = app
 		return nil

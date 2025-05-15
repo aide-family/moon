@@ -8,9 +8,7 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v2/transport/http"
-
-	"github.com/aide-family/moon/pkg/api/houyi/common"
-	"github.com/aide-family/moon/pkg/util/kv"
+	"github.com/moon-monitor/moon/pkg/api/houyi/common"
 )
 
 type ResultType string
@@ -18,7 +16,7 @@ type ResultType string
 type (
 	MetricConfig interface {
 		GetEndpoint() string
-		GetHeaders() []*kv.KV
+		GetHeaders() map[string]string
 		GetMethod() common.DatasourceQueryMethod
 		GetBasicAuth() BasicAuth
 		GetTLS() TLS
@@ -74,12 +72,6 @@ type (
 		Timestamp int64                 `json:"timestamp"`
 	}
 )
-
-// String implement stringer
-func (m *MetricMetadata) String() string {
-	bs, _ := json.Marshal(m)
-	return string(bs)
-}
 
 type Metric interface {
 	Query(ctx context.Context, req *MetricQueryRequest) (*MetricQueryResponse, error)

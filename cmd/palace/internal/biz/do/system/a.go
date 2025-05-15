@@ -4,6 +4,7 @@ func Models() []any {
 	return []any{
 		&OperateLog{},
 		&Menu{},
+		&Resource{},
 		&Role{},
 		&SendMessageLog{},
 		&Team{},

@@ -1,13 +1,14 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/config"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
 	"github.com/google/uuid"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 type CreateTeamRequest interface {
@@ -101,10 +102,10 @@ type TeamListRequest struct {
 	CreatorId uint32
 }
 
-func (r *TeamListRequest) ToListReply(items []do.Team) *TeamListReply {
+func (r *TeamListRequest) ToTeamListReply(items []*system.Team) *TeamListReply {
 	return &TeamListReply{
 		PaginationReply: r.ToReply(),
-		Items:           items,
+		Items:           slices.Map(items, func(team *system.Team) do.Team { return team }),
 	}
 }
 
@@ -114,66 +115,29 @@ type TeamMemberListRequest struct {
 	*PaginationRequest
 	Keyword   string
 	Status    []vobj.MemberStatus
-	Positions []vobj.Position
+	Positions []vobj.Role
 	TeamId    uint32
 }
 
-func (r *TeamMemberListRequest) ToListReply(items []do.TeamMember) *TeamMemberListReply {
+func (r *TeamMemberListRequest) ToTeamMemberListReply(items []*system.TeamMember) *TeamMemberListReply {
 	return &TeamMemberListReply{
 		PaginationReply: r.ToReply(),
-		Items:           items,
+		Items:           slices.Map(items, func(member *system.TeamMember) do.TeamMember { return member }),
 	}
 }
 
 type TeamMemberListReply = ListReply[do.TeamMember]
 
-type SelectTeamMembersRequest struct {
-	*PaginationRequest
-	Keyword string
-	Status  []vobj.MemberStatus
-	TeamId  uint32
-}
-
-func (r *SelectTeamMembersRequest) ToSelectReply(items []do.TeamMember) *SelectTeamMembersReply {
-	return &SelectTeamMembersReply{
-		PaginationReply: r.ToReply(),
-		Items: slices.Map(items, func(member do.TeamMember) SelectItem {
-			user := member.GetUser()
-			name := member.GetMemberName()
-			item := &selectItem{
-				Value:    member.GetID(),
-				Label:    name,
-				Disabled: !member.GetStatus().IsNormal() || member.GetDeletedAt() > 0 || validate.IsNil(user),
-				Extra:    nil,
-			}
-
-			if validate.IsNotNil(user) {
-				if validate.TextIsNull(name) {
-					item.Label = user.GetUsername()
-				}
-				item.Extra = &selectItemExtra{
-					Remark: user.GetRemark(),
-					Icon:   user.GetAvatar(),
-					Color:  user.GetGender().String(),
-				}
-			}
-			return item
-		}),
-	}
-}
-
-type SelectTeamMembersReply = ListReply[SelectItem]
-
 type UpdateMemberPosition interface {
 	GetMember() do.TeamMember
-	GetPosition() vobj.Position
+	GetPosition() vobj.Role
 }
 
 type UpdateMemberPositionReq struct {
 	operator do.TeamMember
 	member   do.TeamMember
 	MemberID uint32
-	Position vobj.Position
+	Position vobj.Role
 }
 
 func (r *UpdateMemberPositionReq) GetMember() do.TeamMember {
@@ -183,9 +147,9 @@ func (r *UpdateMemberPositionReq) GetMember() do.TeamMember {
 	return r.member
 }
 
-func (r *UpdateMemberPositionReq) GetPosition() vobj.Position {
+func (r *UpdateMemberPositionReq) GetPosition() vobj.Role {
 	if r == nil {
-		return vobj.PositionUnknown
+		return vobj.RoleUnknown
 	}
 	return r.Position
 }
@@ -202,17 +166,17 @@ func (r *UpdateMemberPositionReq) WithMember(member do.TeamMember) *UpdateMember
 
 func (r *UpdateMemberPositionReq) Validate() error {
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParams("invalid operator")
+		return merr.ErrorParamsError("invalid operator")
 	}
 	if validate.IsNil(r.member) {
-		return merr.ErrorParams("invalid member")
+		return merr.ErrorParamsError("invalid member")
 	}
 	if r.Position.IsUnknown() {
-		return merr.ErrorParams("invalid position")
+		return merr.ErrorParamsError("invalid position")
 	}
 	operatorPosition := r.operator.GetPosition()
-	if !operatorPosition.GT(r.Position) || !operatorPosition.IsAdminOrSuperAdmin() {
-		return merr.ErrorParams("invalid position")
+	if !(operatorPosition.GT(r.Position) && operatorPosition.IsAdminOrSuperAdmin()) {
+		return merr.ErrorParamsError("invalid position")
 	}
 	return nil
 }
@@ -260,18 +224,18 @@ func (r *UpdateMemberStatusReq) WithMembers(members []do.TeamMember) *UpdateMemb
 
 func (r *UpdateMemberStatusReq) Validate() error {
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParams("invalid operator")
+		return merr.ErrorParamsError("invalid operator")
 	}
 	if len(r.members) == 0 {
-		return merr.ErrorParams("invalid members")
+		return merr.ErrorParamsError("invalid members")
 	}
 	if r.Status.IsUnknown() {
-		return merr.ErrorParams("invalid status")
+		return merr.ErrorParamsError("invalid status")
 	}
 	operatorPosition := r.operator.GetPosition()
 	for _, member := range r.members {
-		if !operatorPosition.GT(member.GetPosition()) || !operatorPosition.IsAdminOrSuperAdmin() {
-			return merr.ErrorParams("invalid position")
+		if !(operatorPosition.GT(member.GetPosition()) && operatorPosition.IsAdminOrSuperAdmin()) {
+			return merr.ErrorParamsError("invalid position")
 		}
 	}
 	return nil
@@ -326,14 +290,14 @@ func (r *UpdateMemberRolesReq) WithRoles(roles []do.TeamRole) *UpdateMemberRoles
 
 func (r *UpdateMemberRolesReq) Validate() error {
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParams("invalid operator")
+		return merr.ErrorParamsError("invalid operator")
 	}
 	if validate.IsNil(r.member) {
-		return merr.ErrorParams("invalid member")
+		return merr.ErrorParamsError("invalid member")
 	}
 	operatorPosition := r.operator.GetPosition()
-	if !operatorPosition.GT(r.member.GetPosition()) || !operatorPosition.IsAdminOrSuperAdmin() {
-		return merr.ErrorParams("invalid position")
+	if !(operatorPosition.GT(r.member.GetPosition()) && operatorPosition.IsAdminOrSuperAdmin()) {
+		return merr.ErrorParamsError("invalid position")
 	}
 	return nil
 }
@@ -370,14 +334,14 @@ func (r *RemoveMemberReq) WithMember(member do.TeamMember) *RemoveMemberReq {
 
 func (r *RemoveMemberReq) Validate() error {
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParams("invalid operator")
+		return merr.ErrorParamsError("invalid operator")
 	}
 	if validate.IsNil(r.member) {
-		return merr.ErrorParams("invalid member")
+		return merr.ErrorParamsError("invalid member")
 	}
 	operatorPosition := r.operator.GetPosition()
-	if !operatorPosition.GT(r.member.GetPosition()) || !operatorPosition.IsAdminOrSuperAdmin() {
-		return merr.ErrorParams("invalid position")
+	if !(operatorPosition.GT(r.member.GetPosition()) && operatorPosition.IsAdminOrSuperAdmin()) {
+		return merr.ErrorParamsError("invalid position")
 	}
 	return nil
 }
@@ -385,7 +349,7 @@ func (r *RemoveMemberReq) Validate() error {
 type InviteMember interface {
 	GetTeam() do.Team
 	GetInviteUser() do.User
-	GetPosition() vobj.Position
+	GetPosition() vobj.Role
 	GetRoles() []do.TeamRole
 	GetSendEmailFun() SendEmailFun
 	GetOperator() do.TeamMember
@@ -397,7 +361,7 @@ type InviteMemberReq struct {
 	invitee      do.User
 	roles        []do.TeamRole
 	UserEmail    string
-	Position     vobj.Position
+	Position     vobj.Role
 	RoleIds      []uint32
 	SendEmailFun SendEmailFun
 }
@@ -416,9 +380,9 @@ func (r *InviteMemberReq) GetInviteUser() do.User {
 	return r.invitee
 }
 
-func (r *InviteMemberReq) GetPosition() vobj.Position {
+func (r *InviteMemberReq) GetPosition() vobj.Role {
 	if r == nil {
-		return vobj.PositionUnknown
+		return vobj.RoleUnknown
 	}
 	return r.Position
 }
@@ -446,19 +410,19 @@ func (r *InviteMemberReq) GetOperator() do.TeamMember {
 
 func (r *InviteMemberReq) Validate() error {
 	if validate.IsNil(r.team) {
-		return merr.ErrorParams("invalid team")
+		return merr.ErrorParamsError("invalid team")
 	}
 	if validate.IsNil(r.invitee) {
-		return merr.ErrorParams("invalid invitee")
+		return merr.ErrorParamsError("invalid invitee")
 	}
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParams("invalid operator")
+		return merr.ErrorParamsError("invalid operator")
 	}
 	if r.Position.IsUnknown() {
-		return merr.ErrorParams("invalid position")
+		return merr.ErrorParamsError("invalid position")
 	}
 	if !r.operator.GetPosition().IsAdminOrSuperAdmin() {
-		return merr.ErrorParams("invalid position")
+		return merr.ErrorParamsError("invalid position")
 	}
 	return nil
 }
@@ -492,5 +456,5 @@ type CreateTeamMemberReq struct {
 	Team     do.Team
 	User     do.User
 	Status   vobj.MemberStatus
-	Position vobj.Position
+	Position vobj.Role
 }

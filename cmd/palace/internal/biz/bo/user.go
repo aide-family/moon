@@ -1,11 +1,12 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 type UserUpdateInfo struct {
@@ -25,10 +26,10 @@ func (u *UserUpdateInfo) GetUserID() uint32 {
 	if u == nil {
 		return 0
 	}
-	if validate.IsNil(u.User) {
+	if u.User == nil {
 		return u.UserID
 	}
-	return u.GetID()
+	return u.User.GetID()
 }
 
 func (u *UserUpdateInfo) GetNickname() string {
@@ -78,19 +79,19 @@ type ResetUserPasswordRequest struct {
 
 type UpdateUserPosition interface {
 	GetUser() do.User
-	GetPosition() vobj.Position
+	GetPosition() vobj.Role
 }
 
 type UpdateUserPositionRequest struct {
 	operator do.User
 	user     do.User
 	UserId   uint32
-	Position vobj.Position
+	Position vobj.Role
 }
 
-func (r *UpdateUserPositionRequest) GetPosition() vobj.Position {
+func (r *UpdateUserPositionRequest) GetPosition() vobj.Role {
 	if r == nil {
-		return vobj.PositionUnknown
+		return vobj.RoleUnknown
 	}
 	return r.Position
 }
@@ -114,38 +115,38 @@ func (r *UpdateUserPositionRequest) WithUser(user do.User) *UpdateUserPositionRe
 
 func (r *UpdateUserPositionRequest) Validate() error {
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParams("operator is unknown")
+		return merr.ErrorParamsError("invalid operator")
 	}
 	if validate.IsNil(r.user) {
-		return merr.ErrorParams("invalid user")
+		return merr.ErrorParamsError("invalid user")
 	}
 	if r.Position.IsUnknown() {
-		return merr.ErrorParams("position is unknown")
+		return merr.ErrorParamsError("invalid position")
 	}
 	if r.operator.GetID() == r.user.GetID() {
-		return merr.ErrorParams("not allowed to update your own position")
+		return merr.ErrorParamsError("not allowed to update your own position")
 	}
 	operatorPosition := r.operator.GetPosition()
 	if operatorPosition.IsSuperAdmin() {
 		return nil
 	}
-	if !operatorPosition.GT(r.Position) || !operatorPosition.IsAdminOrSuperAdmin() {
-		return merr.ErrorPermissionDenied("position is not allowed")
+	if !(operatorPosition.GT(r.Position) && operatorPosition.IsAdminOrSuperAdmin()) {
+		return merr.ErrorParamsError("invalid position")
 	}
 	return nil
 }
 
 type UserListRequest struct {
 	*PaginationRequest
-	Status   []vobj.UserStatus
-	Position []vobj.Position
-	Keyword  string
+	Status   []vobj.UserStatus `json:"status"`
+	Position []vobj.Role       `json:"position"`
+	Keyword  string            `json:"keyword"`
 }
 
-func (r *UserListRequest) ToListReply(users []do.User) *UserListReply {
+func (r *UserListRequest) ToListUserReply(users []*system.User) *UserListReply {
 	return &UserListReply{
 		PaginationReply: r.ToReply(),
-		Items:           users,
+		Items:           slices.Map(users, func(user *system.User) do.User { return user }),
 	}
 }
 
@@ -200,17 +201,17 @@ func (r *UpdateUserRolesReq) WithUser(user do.User) *UpdateUserRolesReq {
 
 func (r *UpdateUserRolesReq) Validate() error {
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParams("invalid operator")
+		return merr.ErrorParamsError("invalid operator")
 	}
 	if validate.IsNil(r.user) {
-		return merr.ErrorParams("invalid user")
+		return merr.ErrorParamsError("invalid user")
 	}
 	operatorPosition := r.operator.GetPosition()
 	if operatorPosition.IsSuperAdmin() {
 		return nil
 	}
-	if !operatorPosition.GT(r.user.GetPosition()) || !operatorPosition.IsAdminOrSuperAdmin() {
-		return merr.ErrorParams("invalid position")
+	if !(operatorPosition.GT(r.user.GetPosition()) && operatorPosition.IsAdminOrSuperAdmin()) {
+		return merr.ErrorParamsError("invalid position")
 	}
 	return nil
 }

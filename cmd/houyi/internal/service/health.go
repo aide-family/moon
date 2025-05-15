@@ -5,10 +5,10 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz"
-	"github.com/aide-family/moon/pkg/api/common"
-	"github.com/aide-family/moon/pkg/hello"
-	"github.com/aide-family/moon/pkg/util/timex"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz"
+	"github.com/moon-monitor/moon/pkg/api/common"
+	"github.com/moon-monitor/moon/pkg/hello"
+	"github.com/moon-monitor/moon/pkg/util/timex"
 )
 
 type HealthService struct {
@@ -38,9 +38,10 @@ func (s *HealthService) Check(ctx context.Context, req *common.CheckRequest) (*c
 	}, nil
 }
 
-func (s *HealthService) Register(ctx context.Context, isOnline bool) error {
-	if isOnline {
-		return s.registerBiz.Online(ctx)
-	}
+func (s *HealthService) Online(ctx context.Context) error {
+	return s.registerBiz.Online(ctx)
+}
+
+func (s *HealthService) Offline(ctx context.Context) error {
 	return s.registerBiz.Offline(ctx)
 }

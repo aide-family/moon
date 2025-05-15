@@ -5,10 +5,10 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz"
-	"github.com/aide-family/moon/cmd/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz"
+	"github.com/moon-monitor/moon/cmd/palace/internal/service/build"
+	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
 )
 
 // UserService is a user service implementation.
@@ -43,7 +43,7 @@ func (s *UserService) SelfInfo(ctx context.Context, _ *common.EmptyRequest) (*co
 		return nil, err
 	}
 
-	return build.ToUserItemPlaintext(user), nil
+	return build.ToUserItem(user), nil
 }
 
 // UpdateSelfInfo updates the current user's information.
@@ -53,7 +53,7 @@ func (s *UserService) UpdateSelfInfo(ctx context.Context, req *palace.UpdateSelf
 		return nil, err
 	}
 
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "修改成功"}, nil
 }
 
 // UpdateSelfPassword updates the current user's password.
@@ -63,7 +63,7 @@ func (s *UserService) UpdateSelfPassword(ctx context.Context, req *palace.Update
 		return nil, err
 	}
 
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "修改密码成功"}, nil
 }
 
 // LeaveTeam allows the current user to leave a team.
@@ -83,7 +83,7 @@ func (s *UserService) CreateTeam(ctx context.Context, req *palace.CreateTeamRequ
 	if err := s.teamBiz.SaveTeam(ctx, build.ToSaveOneTeamRequestByCreate(req)); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "创建团队成功"}, nil
 }
 
 // SelfTeamList retrieves the list of teams the current user is a member of.
@@ -94,7 +94,7 @@ func (s *UserService) SelfTeamList(ctx context.Context, _ *common.EmptyRequest) 
 		return nil, err
 	}
 
-	// Convert domain objects to proto objects
+	// 使用转换方法将领域对象转换为proto对象
 	return &palace.SelfTeamListReply{
 		Items: build.ToTeamItems(teams),
 	}, nil

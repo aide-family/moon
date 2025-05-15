@@ -14,9 +14,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/moon/pkg/plugin/storage"
-	"github.com/aide-family/moon/pkg/plugin/storage/local"
 	kratoshttp "github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/moon-monitor/moon/pkg/plugin/storage"
+	"github.com/moon-monitor/moon/pkg/plugin/storage/local"
 )
 
 var _ local.Config = (*config)(nil)
@@ -49,7 +49,7 @@ func (c *config) GetEndpoint() string {
 	return c.endpoint
 }
 
-func Test_New(t *testing.T) {
+func Test_NewLocalOSS(t *testing.T) {
 	c := &config{
 		root:         "./moon",
 		uploadMethod: "PUT",
@@ -58,7 +58,7 @@ func Test_New(t *testing.T) {
 		endpoint:     "http://localhost:8080",
 	}
 
-	localOSS, err := local.New(c)
+	localOSS, err := local.NewLocalOSS(c)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,9 +81,7 @@ func Test_New(t *testing.T) {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 
-	go func() {
-		_ = srv.Start(context.Background())
-	}()
+	go srv.Start(context.Background())
 
 	go func() {
 		defer func() {
@@ -94,26 +92,29 @@ func Test_New(t *testing.T) {
 		fileName := "test.txt"
 		// Create a test.txt file with 2M data
 		if err := os.WriteFile(fileName, bytes.Repeat([]byte("a"), 2*1024*1024), 0644); err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 
 		initiateMultipartUpload, err := fileManager.InitiateMultipartUpload("test.txt", "test_0")
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 		parts, err := uploadFile(fileName, fileManager, initiateMultipartUpload)
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 		completeMultipartUpload, err := fileManager.CompleteMultipartUpload(initiateMultipartUpload.UploadID, initiateMultipartUpload.ObjectKey, parts)
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 		fmt.Printf("Upload completed, visit the address: %s\n", completeMultipartUpload.PublicURL)
 	}()
 
-	for range ch {
-
+	for {
+		select {
+		case <-ch:
+			return
+		}
 	}
 }
 
@@ -124,9 +125,7 @@ func uploadFile(fileName string, manager storage.FileManager, params *storage.In
 	if err != nil {
 		return nil, fmt.Errorf("failed to open the file: %v", err)
 	}
-	defer func(file *os.File) {
-		_ = file.Close()
-	}(file)
+	defer file.Close()
 
 	fileInfo, err := file.Stat()
 	if err != nil {
@@ -191,9 +190,7 @@ func uploadChunk(url string, chunk []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
-	}(resp.Body)
+	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
 		return "", fmt.Errorf("failed to upload shard. HTTP status code: %d", resp.StatusCode)

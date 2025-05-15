@@ -9,9 +9,8 @@ import (
 	"io"
 	"sync"
 
-	"github.com/go-kratos/kratos/v2/errors"
-
-	"github.com/aide-family/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
 var (
@@ -84,7 +83,7 @@ func aesSha1Padding(keyBytes []byte, encryptLength int) ([]byte, error) {
 	maxLen := len(hashes)
 	realLen := encryptLength / 8
 	if realLen > maxLen {
-		return nil, errors.New(400, "INVALID_LENGTH", "invalid length")
+		return nil, merr.ErrorInternalServerError("invalid length")
 	}
 	return hashes[0:realLen], nil
 }
@@ -113,7 +112,7 @@ func (a *aesImpl) Encrypt(plaintext []byte) ([]byte, error) {
 	case config.Crypto_AesConfig_ECB:
 		return a.encryptECB(plaintext)
 	default:
-		return nil, errors.Newf(400, "UNSUPPORTED_AES_MODE", "unsupported AES mode %v", a.mode)
+		return nil, merr.ErrorInternalServerError("unsupported AES mode %v", a.mode)
 	}
 }
 
@@ -127,7 +126,7 @@ func (a *aesImpl) Decrypt(ciphertext []byte) ([]byte, error) {
 	case config.Crypto_AesConfig_ECB:
 		return a.decryptECB(ciphertext)
 	default:
-		return nil, errors.Newf(400, "UNSUPPORTED_AES_MODE", "unsupported AES mode %v", a.mode)
+		return nil, merr.ErrorInternalServerError("unsupported AES mode %v", a.mode)
 	}
 }
 
@@ -153,14 +152,14 @@ func (a *aesImpl) decryptCBC(ciphertext []byte) ([]byte, error) {
 	blockSize := a.block.BlockSize()
 
 	if len(ciphertext) < blockSize {
-		return nil, errors.New(400, "CIPHERTEXT_TOO_SHORT", "ciphertext too short")
+		return nil, merr.ErrorInternalServerError("ciphertext too short")
 	}
 
 	iv := ciphertext[:blockSize]
 	ciphertext = ciphertext[blockSize:]
 
 	if len(ciphertext)%blockSize != 0 {
-		return nil, errors.New(400, "CIPHERTEXT_NOT_A_MULTIPLE_OF_THE_BLOCK_SIZE", "ciphertext is not a multiple of the block size")
+		return nil, merr.ErrorInternalServerError("ciphertext is not a multiple of the block size")
 	}
 
 	mode := cipher.NewCBCDecrypter(a.block, iv)
@@ -195,7 +194,7 @@ func (a *aesImpl) decryptGCM(ciphertext []byte) ([]byte, error) {
 
 	nonceSize := gcm.NonceSize()
 	if len(ciphertext) < nonceSize {
-		return nil, errors.New(400, "CIPHERTEXT_TOO_SHORT", "ciphertext too short")
+		return nil, merr.ErrorInternalServerError("ciphertext too short")
 	}
 
 	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
@@ -219,7 +218,7 @@ func (a *aesImpl) encryptECB(plaintext []byte) ([]byte, error) {
 		plain[i] = pad
 	}
 	encrypted := make([]byte, len(plain))
-	// Encrypt in blocks
+	// 分组分块加密
 	for bs, be := 0, blockSize; bs <= len(plaintext); bs, be = bs+blockSize, be+blockSize {
 		a.block.Encrypt(encrypted[bs:be], plain[bs:be])
 	}
@@ -257,9 +256,9 @@ func pkcs7Unpad(data []byte) []byte {
 	if len(data) == 0 {
 		return data
 	}
-	padding := int(data[len(data)-1]) // Get padding byte
+	padding := int(data[len(data)-1]) // 获取填充字节
 	if padding > len(data) {
-		return data // If padding byte is invalid, return original data
+		return data // 如果填充字节无效，返回原始数据
 	}
-	return data[:len(data)-padding] // Remove padding bytes
+	return data[:len(data)-padding] // 移除填充字节
 }

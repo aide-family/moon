@@ -6,10 +6,11 @@ import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
 import "palace/common/team.proto";
 import "palace/common/team_enum.proto";
+import "palace/common/system.proto";
 import "palace/common/common.proto";
 import "palace/common/common_enum.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
 
 // Team service provides operations for managing teams, members, roles, and email configurations
 service Team {
@@ -25,6 +26,13 @@ service Team {
   rpc GetTeam (api.palace.common.EmptyRequest) returns (api.palace.common.TeamItem) {
     option (google.api.http) = {
       get: "/api/team/detail"
+    };
+  }
+
+  // GetTeamResources retrieves the resources associated with the current team
+  rpc GetTeamResources (api.palace.common.EmptyRequest) returns (GetTeamResourcesReply) {
+    option (google.api.http) = {
+      get: "/api/team/resources"
     };
   }
 
@@ -60,14 +68,6 @@ service Team {
     };
   }
 
-  // SelectTeamMembers selects team members based on specified filters
-  rpc SelectTeamMembers (SelectTeamMembersRequest) returns (SelectTeamMembersReply) {
-    option (google.api.http) = {
-      post: "/api/team/members/select"
-      body: "*"
-    };
-  }
-
   // UpdateMemberPosition updates the position of a team member
   rpc UpdateMemberPosition (UpdateMemberPositionRequest) returns (api.palace.common.EmptyReply) {
     option (google.api.http) = {
@@ -97,13 +97,6 @@ service Team {
     option (google.api.http) = {
       post: "/api/team/roles"
       body: "*"
-    };
-  }
-
-  // GetTeamRole retrieves a team role by Id
-  rpc GetTeamRole (GetTeamRoleRequest) returns (api.palace.common.TeamRoleItem) {
-    option (google.api.http) = {
-      get: "/api/team/role"
     };
   }
 
@@ -146,13 +139,6 @@ service Team {
     };
   }
 
-  // GetEmailConfig retrieves the email configuration for the team
-  rpc GetEmailConfig (GetEmailConfigRequest) returns (api.palace.common.EmailConfigItem) {
-    option (google.api.http) = {
-      get: "/api/team/email/config"
-    };
-  }
-
   // SaveSMSConfig saves or updates the SMS configuration for the team
   rpc SaveSMSConfig (SaveSMSConfigRequest) returns (api.palace.common.EmptyReply) {
     option (google.api.http) = {
@@ -169,15 +155,8 @@ service Team {
     };
   }
 
-  // GetSMSConfig retrieves the SMS configuration for the team
-  rpc GetSMSConfig (GetSMSConfigRequest) returns (api.palace.common.SMSConfigItem) {
-    option (google.api.http) = {
-      get: "/api/team/sms/config"
-    };
-  }
-
   // OperateLogList lists operation logs based on specified filters
-  rpc OperateLogList (api.palace.common.OperateLogListRequest) returns (api.palace.common.OperateLogListReply) {
+  rpc OperateLogList (TeamOperateLogListRequest) returns (TeamOperateLogListReply) {
     option (google.api.http) = {
       post: "/api/team/operate/log/list"
       body: "*"
@@ -206,6 +185,12 @@ message SaveTeamRequest {
     expression: "this.size() <= 255"
   }];
   uint32 teamId = 4;
+}
+
+// GetTeamResourcesReply contains the response data for retrieving team resources
+message GetTeamResourcesReply {
+  // List of resource items associated with the team
+  repeated api.palace.common.ResourceItem items = 1;
 }
 
 // TransferTeamRequest represents the request data for transferring team leadership
@@ -243,20 +228,6 @@ message GetTeamMembersReply {
   api.palace.common.PaginationReply pagination = 2;
 }
 
-// SelectTeamMembersRequest represents the request data for selecting team members
-message SelectTeamMembersRequest {
-  api.palace.common.PaginationRequest pagination = 1;
-  string keyword = 2;
-  repeated api.palace.common.MemberStatus status = 3;
-}
-
-// SelectTeamMembersReply contains the response data for selecting team members
-message SelectTeamMembersReply {
-  // List of team member items
-  repeated api.palace.common.SelectItem items = 1;
-  api.palace.common.PaginationReply pagination = 2;
-}
-
 // GetTeamRolesRequest represents the request data for retrieving team roles
 message GetTeamRolesRequest {
   // Pagination request details
@@ -273,12 +244,6 @@ message GetTeamRolesReply {
   repeated api.palace.common.TeamRoleItem items = 1;
   // Pagination response details
   api.palace.common.PaginationReply pagination = 2;
-}
-
-// GetTeamRoleRequest represents the request data for retrieving a team role
-message GetTeamRoleRequest {
-  // Role Id
-  uint32 roleId = 1 [(buf.validate.field).required = true];
 }
 
 // SaveTeamRoleRequest represents the request data for saving or updating a team role
@@ -372,6 +337,26 @@ message SaveEmailConfigRequest {
   uint32 emailConfigId = 8;
 }
 
+// EmailConfigItem represents the structure of an email configuration
+message EmailConfigItem {
+  // Email user
+  string user = 1;
+  // Email password
+  string pass = 2;
+  // Email server host
+  string host = 3;
+  // Email server port
+  uint32 port = 4;
+  // Enable email configuration
+  api.palace.common.GlobalStatus status = 5;
+  // Name of the email configuration
+  string name = 6;
+  // Remark of the email configuration
+  string remark = 7;
+  // emailConfigId of the email configuration
+  uint32 emailConfigId = 8;
+}
+
 // GetEmailConfigsRequest represents the request data for retrieving the email configuration
 message GetEmailConfigsRequest {
   // Pagination request details
@@ -385,14 +370,8 @@ message GetEmailConfigsRequest {
 // GetEmailConfigReply contains the response data for retrieving the email configuration
 message GetEmailConfigsReply {
   // List of email configuration items
-  repeated api.palace.common.EmailConfigItem items = 1;
+  repeated EmailConfigItem items = 1;
   api.palace.common.PaginationReply pagination = 2;
-}
-
-// GetEmailConfigRequest represents the request data for retrieving the email configuration
-message GetEmailConfigRequest {
-  // Email configuration Id
-  uint32 emailConfigId = 1 [(buf.validate.field).required = true];
 }
 
 // SaveSMSConfigRequest represents the request data for saving or updating the SMS configuration
@@ -423,6 +402,28 @@ message SaveSMSConfigRequest {
   uint32 smsConfigId = 9;
 }
 
+// SMSConfigItem represents the structure of an SMS configuration
+message SMSConfigItem {
+  // SMS provider type
+  api.palace.common.SMSProviderType providerType = 1;
+  // Access Key Id for the SMS provider
+  string accessKeyId = 2;
+  // Access Key Secret for the SMS provider
+  string accessKeySecret = 3;
+  // Sign name for the SMS provider
+  string signName = 4;
+  // Endpoint for the SMS provider
+  string endpoint = 5;
+  // Name of the SMS configuration
+  string name = 6;
+  // Remark of the SMS configuration
+  string remark = 7;
+  // smsConfigId of the SMS configuration
+  uint32 smsConfigId = 8;
+  // Enable SMS configuration
+  api.palace.common.GlobalStatus status = 9;
+}
+
 // GetSMSConfigsRequest represents the request data for retrieving the SMS configuration
 message GetSMSConfigsRequest {
   // Pagination request details
@@ -438,12 +439,26 @@ message GetSMSConfigsRequest {
 // GetSMSConfigsReply contains the response data for retrieving the SMS configuration
 message GetSMSConfigsReply {
   // List of SMS configuration items
-  repeated api.palace.common.SMSConfigItem items = 1;
+  repeated SMSConfigItem items = 1;
   api.palace.common.PaginationReply pagination = 2;
 }
 
-// GetSMSConfigRequest represents the request data for retrieving the SMS configuration
-message GetSMSConfigRequest {
-  // SMS configuration Id
-  uint32 smsConfigId = 1 [(buf.validate.field).required = true];
+// OperateLogListRequest represents the request data for listing operation logs
+message TeamOperateLogListRequest {
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 1;
+  // List of types to filter operation logs by
+  repeated api.palace.common.OperateType operateTypes = 2;
+  // Keyword to search operation logs by
+  string keyword = 3;
+  // User Id, optional for filtering logs by user
+  uint32 userId = 4;
+}
+
+// OperateLogListReply contains the response data for listing operation logs
+message TeamOperateLogListReply {
+  // List of operation log items
+  repeated api.palace.common.OperateLogItem items = 1;
+  // Pagination response details
+  api.palace.common.PaginationReply pagination = 2;
 }

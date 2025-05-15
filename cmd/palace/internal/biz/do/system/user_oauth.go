@@ -1,9 +1,9 @@
 package system
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 var _ do.UserOAuth = (*UserOAuth)(nil)
@@ -13,9 +13,9 @@ const tableNameOAuthUser = "sys_oauth_users"
 type UserOAuth struct {
 	do.BaseModel
 	OpenID string        `gorm:"column:open_id;type:varchar(255);not null;comment:open_id;index:uk__open_id__app,unique" json:"open_id"`
-	UserID uint32        `gorm:"column:user_id;type:int unsigned;not null;comment:associated user ID;index:uk__open_id__app,unique" json:"user_id"`
-	Row    string        `gorm:"column:row;type:text;comment:user information" json:"row"`
-	APP    vobj.OAuthAPP `gorm:"column:app;type:tinyint;not null;comment:OAuth application;index:uk__open_id__app,unique" json:"app"`
+	UserID uint32        `gorm:"column:user_id;type:int unsigned;not null;comment:关联用户id;index:uk__open_id__app,unique" json:"user_id"`
+	Row    string        `gorm:"column:row;type:text;comment:用户信息" json:"row"`
+	APP    vobj.OAuthAPP `gorm:"column:app;type:tinyint;not null;comment:oauth应用;index:uk__open_id__app,unique" json:"app"`
 	User   *User         `gorm:"foreignKey:UserID;references:ID" json:"user"`
 }
 

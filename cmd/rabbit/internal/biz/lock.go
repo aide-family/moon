@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/vobj"
 )
 
 func NewLock(cacheRepo repository.Cache, logger log.Logger) *Lock {

@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
+	
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
 )
 
 func NewHealthBiz(cacheRepo repository.Cache, pingRepo repository.Health, logger log.Logger) *HealthBiz {

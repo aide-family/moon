@@ -1,9 +1,8 @@
 package team
 
 import (
-	"time"
-
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
 )
 
 var _ do.OperateLog = (*OperateLog)(nil)
@@ -12,73 +11,72 @@ const tableNameOperateLog = "team_operate_logs"
 
 type OperateLog struct {
 	do.TeamModel
+	OperateType     vobj.OperateType    `gorm:"column:type;type:tinyint(2);not null;comment:操作类型" json:"operateType"`
+	OperateModule   vobj.ResourceModule `gorm:"column:module;type:tinyint(2);not null;comment:资源模块" json:"operateModule"`
+	OperateDataID   uint32              `gorm:"column:data_id;type:int unsigned;not null;comment:操作数据id" json:"operateDataID"`
+	OperateDataName string              `gorm:"column:data_name;type:varchar(255);not null;comment:操作数据名称" json:"operateDataName"`
+	Title           string              `gorm:"column:title;type:varchar(255);not null;comment:标题" json:"title"`
+	Before          string              `gorm:"column:before;type:text;not null;comment:操作前" json:"before"`
+	After           string              `gorm:"column:after;type:text;not null;comment:操作后" json:"after"`
+	IP              string              `gorm:"column:ip;type:varchar(128);not null;comment:ip" json:"ip"`
+}
 
-	Operation     string        `gorm:"column:operation;type:varchar(255);not null;default:'';comment:operation" json:"operation"`
-	MenuID        uint32        `gorm:"column:menu_id;type:int unsigned;not null;default:0;comment:operation menu ID" json:"menuID"`
-	MenuName      string        `gorm:"column:menu_name;type:varchar(255);not null;default:'';comment:operation menu name" json:"menuName"`
-	Request       string        `gorm:"column:request;type:text;not null;;comment:request" json:"request"`
-	Error         string        `gorm:"column:error;type:text;not null;comment:error" json:"error"`
-	OriginRequest string        `gorm:"column:origin_request;type:text;not null;comment:origin request" json:"originRequest"`
-	Duration      time.Duration `gorm:"column:duration;type:bigint;not null;default:0;comment:duration" json:"duration"`
-	RequestTime   time.Time     `gorm:"column:request_time;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:request time" json:"requestTime"`
-	ReplyTime     time.Time     `gorm:"column:reply_time;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:reply time" json:"replyTime"`
-	ClientIP      string        `gorm:"column:client_ip;type:varchar(128);not null;default:'';comment:client IP" json:"clientIP"`
-	UserAgent     string        `gorm:"column:user_agent;type:varchar(255);not null;default:'';comment:user agent" json:"userAgent"`
-	UserBaseInfo  string        `gorm:"column:user_base_info;type:text;not null;comment:user base info" json:"userBaseInfo"`
+func (o *OperateLog) GetOperateType() vobj.OperateType {
+	if o == nil {
+		return vobj.OperateTypeUnknown
+	}
+	return o.OperateType
+}
+
+func (o *OperateLog) GetOperateModule() vobj.ResourceModule {
+	if o == nil {
+		return vobj.ResourceModuleUnknown
+	}
+	return o.OperateModule
+}
+
+func (o *OperateLog) GetOperateDataID() uint32 {
+	if o == nil {
+		return 0
+	}
+	return o.OperateDataID
+}
+
+func (o *OperateLog) GetOperateDataName() string {
+	if o == nil {
+		return ""
+	}
+	return o.OperateDataName
+}
+
+func (o *OperateLog) GetTitle() string {
+	if o == nil {
+		return ""
+	}
+	return o.Title
+}
+
+func (o *OperateLog) GetBefore() string {
+	if o == nil {
+		return ""
+	}
+	return o.Before
+}
+
+func (o *OperateLog) GetAfter() string {
+	if o == nil {
+		return ""
+	}
+	return o.After
+}
+
+func (o *OperateLog) GetIP() string {
+	if o == nil {
+		return ""
+	}
+	return o.IP
 }
 
 func (o *OperateLog) TableName() string {
 	return tableNameOperateLog
-}
-
-func (o *OperateLog) GetOperation() string {
-	return o.Operation
-}
-
-func (o *OperateLog) GetMenuID() uint32 {
-	return o.MenuID
-}
-
-func (o *OperateLog) GetMenuName() string {
-	return o.MenuName
-}
-
-func (o *OperateLog) GetRequest() string {
-	return o.Request
-}
-
-func (o *OperateLog) GetError() string {
-	return o.Error
-}
-
-func (o *OperateLog) GetOriginRequest() string {
-	return o.OriginRequest
-}
-
-func (o *OperateLog) GetDuration() time.Duration {
-	return o.Duration
-}
-
-func (o *OperateLog) GetRequestTime() time.Time {
-	return o.RequestTime
-}
-
-func (o *OperateLog) GetReplyTime() time.Time {
-	return o.ReplyTime
-}
-
-func (o *OperateLog) GetClientIP() string {
-	return o.ClientIP
-}
-
-func (o *OperateLog) GetUserAgent() string {
-	return o.UserAgent
-}
-
-func (o *OperateLog) GetUserBaseInfo() string {
-	return o.UserBaseInfo
-}
-
-func (o *OperateLog) GetTeamID() uint32 {
-	return o.TeamID
 }

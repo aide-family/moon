@@ -4,12 +4,12 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 
-	"github.com/aide-family/moon/cmd/rabbit/internal/conf"
-	"github.com/aide-family/moon/pkg/plugin/cache"
-	"github.com/aide-family/moon/pkg/plugin/email"
-	"github.com/aide-family/moon/pkg/plugin/hook"
-	"github.com/aide-family/moon/pkg/plugin/sms"
-	"github.com/aide-family/moon/pkg/util/safety"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/conf"
+	"github.com/moon-monitor/moon/pkg/plugin/cache"
+	"github.com/moon-monitor/moon/pkg/plugin/email"
+	"github.com/moon-monitor/moon/pkg/plugin/hook"
+	"github.com/moon-monitor/moon/pkg/plugin/sms"
+	"github.com/moon-monitor/moon/pkg/util/safety"
 )
 
 // ProviderSetData is a set of data providers.

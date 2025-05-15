@@ -1,13 +1,12 @@
 package build
 
 import (
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/do"
-	"github.com/aide-family/moon/pkg/api/houyi/common"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/do"
+	"github.com/moon-monitor/moon/pkg/api/houyi/common"
 )
 
 func ToBasicAuth(basicAuth *common.BasicAuth) *do.BasicAuth {
-	if validate.IsNil(basicAuth) {
+	if basicAuth == nil {
 		return nil
 	}
 	return &do.BasicAuth{
@@ -17,12 +16,12 @@ func ToBasicAuth(basicAuth *common.BasicAuth) *do.BasicAuth {
 }
 
 func ToTLS(tls *common.TLS) *do.TLS {
-	if validate.IsNil(tls) {
+	if tls == nil {
 		return nil
 	}
 	return &do.TLS{
-		ClientCert: tls.GetClientCert(),
-		ClientKey:  tls.GetClientKey(),
-		ServerName: tls.GetServerName(),
+		ClientCertificate: tls.GetClientCertificate(),
+		ClientKey:         tls.GetClientKey(),
+		ServerName:        tls.GetServerName(),
 	}
 }

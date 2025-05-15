@@ -3,8 +3,8 @@ package biz
 import (
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
 )
 
 func NewEventBus(eventBus repository.EventBus, logger log.Logger) *EventBus {

@@ -3,19 +3,19 @@ package server
 import (
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/service"
-	"github.com/aide-family/moon/pkg/plugin/server/ticker_server"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/service"
+	"github.com/moon-monitor/moon/pkg/plugin/server"
 )
 
 type LoadTickerServer struct {
-	*ticker_server.Tickers
+	*server.Tickers
 }
 
 func NewLoadTickerServer(loadService *service.LoadService, logger log.Logger) *LoadTickerServer {
 	return &LoadTickerServer{
-		Tickers: ticker_server.NewTickers(
-			ticker_server.WithTickersTasks(loadService.Loads()...),
-			ticker_server.WithTickersLogger(logger),
+		Tickers: server.NewTickers(
+			server.WithTickersTasks(loadService.Loads()...),
+			server.WithTickersLogger(logger),
 		),
 	}
 }

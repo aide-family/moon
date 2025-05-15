@@ -1,15 +1,17 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 type Dashboard interface {
 	GetID() uint32
 	GetTitle() string
 	GetRemark() string
+	GetStatus() vobj.GlobalStatus
 	GetColorHex() string
 }
 
@@ -18,6 +20,7 @@ type SaveDashboardReq struct {
 	ID       uint32
 	Title    string
 	Remark   string
+	Status   vobj.GlobalStatus
 	ColorHex string
 }
 
@@ -36,6 +39,10 @@ func (d *SaveDashboardReq) GetRemark() string {
 	return d.Remark
 }
 
+func (d *SaveDashboardReq) GetStatus() vobj.GlobalStatus {
+	return d.Status
+}
+
 func (d *SaveDashboardReq) GetColorHex() string {
 	return d.ColorHex
 }
@@ -47,36 +54,12 @@ type ListDashboardReq struct {
 	Keyword string
 }
 
-func (r *ListDashboardReq) ToListReply(dashboards []do.Dashboard) *ListDashboardReply {
+func (r *ListDashboardReq) ToListDashboardReply(dashboards []*team.Dashboard) *ListDashboardReply {
 	return &ListDashboardReply{
 		PaginationReply: r.ToReply(),
-		Items:           dashboards,
+		Items:           slices.Map(dashboards, func(dashboard *team.Dashboard) do.Dashboard { return dashboard }),
 	}
 }
 
 // ListDashboardReply represents a reply to list dashboards
 type ListDashboardReply = ListReply[do.Dashboard]
-
-type SelectTeamDashboardReq struct {
-	*PaginationRequest
-	Status  vobj.GlobalStatus
-	Keyword string
-}
-
-func (r *SelectTeamDashboardReq) ToSelectReply(dashboards []do.Dashboard) *SelectTeamDashboardReply {
-	return &SelectTeamDashboardReply{
-		PaginationReply: r.ToReply(),
-		Items: slices.Map(dashboards, func(dashboard do.Dashboard) SelectItem {
-			return &selectItem{
-				Value:    dashboard.GetID(),
-				Label:    dashboard.GetTitle(),
-				Disabled: dashboard.GetDeletedAt() > 0 || !dashboard.GetStatus().IsEnable(),
-				Extra: &selectItemExtra{
-					Remark: dashboard.GetRemark(),
-				},
-			}
-		}),
-	}
-}
-
-type SelectTeamDashboardReply = ListReply[SelectItem]

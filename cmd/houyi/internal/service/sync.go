@@ -6,12 +6,12 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"google.golang.org/grpc/codes"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/houyi/internal/service/build"
-	"github.com/aide-family/moon/pkg/api/houyi/common"
-	houyiv1 "github.com/aide-family/moon/pkg/api/houyi/v1"
-	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/service/build"
+	"github.com/moon-monitor/moon/pkg/api/houyi/common"
+	houyiv1 "github.com/moon-monitor/moon/pkg/api/houyi/v1"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 type SyncService struct {
@@ -35,7 +35,7 @@ func NewSyncService(
 }
 
 func (s *SyncService) MetricStrategy(ctx context.Context, req *houyiv1.MetricStrategyRequest) (*houyiv1.SyncReply, error) {
-	metricRules := build.ToMetricRules(req.GetStrategies()...)
+	metricRules := build.ToMetricRules(req.GetStrategies())
 	if len(metricRules) == 0 {
 		return &houyiv1.SyncReply{}, nil
 	}
@@ -111,6 +111,6 @@ func (s *SyncService) MetricMetadata(ctx context.Context, req *houyiv1.MetricMet
 	}
 	return &houyiv1.SyncReply{
 		Code:    int32(codes.OK),
-		Message: "Synchronization in progress, please check back later",
+		Message: "同步中，请稍后查看",
 	}, nil
 }

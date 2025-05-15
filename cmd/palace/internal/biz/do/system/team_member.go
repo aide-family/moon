@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 var _ do.TeamMember = (*TeamMember)(nil)
@@ -15,12 +15,12 @@ const tableNameTeamMember = "team_members"
 
 type TeamMember struct {
 	do.TeamModel
-	MemberName string            `gorm:"column:member_name;type:varchar(64);not null;comment:member name" json:"memberName"`
-	Remark     string            `gorm:"column:remark;type:varchar(255);not null;comment:remark" json:"remark"`
-	UserID     uint32            `gorm:"column:user_id;type:int unsigned;not null;comment:user ID" json:"userID"`
-	InviterID  uint32            `gorm:"column:inviter_id;type:int unsigned;not null;comment:inviter ID" json:"inviterID"`
-	Position   vobj.Position     `gorm:"column:position;type:tinyint(2);not null;comment:position" json:"position"`
-	Status     vobj.MemberStatus `gorm:"column:status;type:tinyint(2);not null;comment:status" json:"status"`
+	MemberName string            `gorm:"column:member_name;type:varchar(64);not null;comment:成员名" json:"memberName"`
+	Remark     string            `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
+	UserID     uint32            `gorm:"column:user_id;type:int unsigned;not null;comment:用户ID" json:"userID"`
+	InviterID  uint32            `gorm:"column:inviter_id;type:int unsigned;not null;comment:邀请者ID" json:"inviterID"`
+	Position   vobj.Role         `gorm:"column:position;type:tinyint(2);not null;comment:职位" json:"position"`
+	Status     vobj.MemberStatus `gorm:"column:status;type:tinyint(2);not null;comment:状态" json:"status"`
 	Roles      []*TeamRole       `gorm:"many2many:sys_team_member_roles" json:"roles"`
 	User       *User             `gorm:"foreignKey:UserID;references:ID" json:"user"`
 	Inviter    *User             `gorm:"foreignKey:InviterID;references:ID" json:"inviter"`
@@ -93,9 +93,9 @@ func (u *TeamMember) GetInviterID() uint32 {
 	return u.InviterID
 }
 
-func (u *TeamMember) GetPosition() vobj.Position {
+func (u *TeamMember) GetPosition() vobj.Role {
 	if u == nil {
-		return vobj.PositionUnknown
+		return vobj.RoleUnknown
 	}
 	return u.Position
 }

@@ -1,7 +1,7 @@
 package do
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
 )
 
 type TeamRole interface {

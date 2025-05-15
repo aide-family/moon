@@ -5,15 +5,14 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/vobj"
 	"github.com/robfig/cron/v3"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
-	"github.com/aide-family/moon/pkg/util/timex"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/plugin/server"
+	"github.com/moon-monitor/moon/pkg/util/timex"
 )
 
 func NewAlertJob(alert bo.Alert, opts ...AlertJobOption) (bo.AlertJob, error) {
@@ -38,8 +37,8 @@ type AlertJobOption func(*alertJob) error
 
 func WithAlertJobAlertRepo(alertRepo repository.Alert) AlertJobOption {
 	return func(a *alertJob) error {
-		if validate.IsNil(alertRepo) {
-			return merr.ErrorInternalServer("alertRepo is nil")
+		if alertRepo == nil {
+			return merr.ErrorInternalServerError("alertRepo is nil")
 		}
 		a.alertRepo = alertRepo
 		return nil
@@ -48,8 +47,8 @@ func WithAlertJobAlertRepo(alertRepo repository.Alert) AlertJobOption {
 
 func WithAlertJobEventBusRepo(eventBusRepo repository.EventBus) AlertJobOption {
 	return func(a *alertJob) error {
-		if validate.IsNil(eventBusRepo) {
-			return merr.ErrorInternalServer("eventBusRepo is nil")
+		if eventBusRepo == nil {
+			return merr.ErrorInternalServerError("eventBusRepo is nil")
 		}
 		a.eventBusRepo = eventBusRepo
 		return nil
@@ -58,8 +57,8 @@ func WithAlertJobEventBusRepo(eventBusRepo repository.EventBus) AlertJobOption {
 
 func WithAlertJobHelper(logger log.Logger) AlertJobOption {
 	return func(a *alertJob) error {
-		if validate.IsNil(logger) {
-			return merr.ErrorInternalServer("logger is nil")
+		if logger == nil {
+			return merr.ErrorInternalServerError("logger is nil")
 		}
 		a.helper = log.NewHelper(log.With(logger, "module", "event.alert", "jobKey", a.alert.GetFingerprint()))
 		return nil
@@ -68,8 +67,8 @@ func WithAlertJobHelper(logger log.Logger) AlertJobOption {
 
 func WithAlertJobCacheRepo(cacheRepo repository.Cache) AlertJobOption {
 	return func(a *alertJob) error {
-		if validate.IsNil(cacheRepo) {
-			return merr.ErrorInternalServer("cacheRepo is nil")
+		if cacheRepo == nil {
+			return merr.ErrorInternalServerError("cacheRepo is nil")
 		}
 		a.cacheRepo = cacheRepo
 		return nil
@@ -122,11 +121,7 @@ func (a *alertJob) Run() {
 	if !locked {
 		return
 	}
-	defer func(cacheRepo repository.Cache, ctx context.Context, key string) {
-		if err := cacheRepo.Unlock(ctx, key); err != nil {
-			a.helper.Warnw("err", err, "msg", "unlock error")
-		}
-	}(a.cacheRepo, ctx, lockKey)
+	defer a.cacheRepo.Unlock(ctx, lockKey)
 
 	alertInfo, ok := a.isSustaining()
 	if !ok {
@@ -153,19 +148,14 @@ func (a *alertJob) Index() string {
 	return a.alert.GetFingerprint()
 }
 
-func (a *alertJob) Spec() cron_server.CronSpec {
+func (a *alertJob) Spec() server.CronSpec {
 	if a == nil {
-		return cron_server.CronSpecEvery(1 * time.Minute)
+		return server.CronSpecEvery(1 * time.Minute)
 	}
-	return cron_server.CronSpecEvery(a.alert.GetDuration())
+	return server.CronSpecEvery(a.alert.GetDuration())
 }
 
-func (a *alertJob) WithID(id cron.EntryID) cron_server.CronJob {
+func (a *alertJob) WithID(id cron.EntryID) server.CronJob {
 	a.id = id
 	return a
-}
-
-// IsImmediate implements server.CronJob.
-func (a *alertJob) IsImmediate() bool {
-	return false
 }

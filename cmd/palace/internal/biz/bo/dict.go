@@ -1,10 +1,10 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 type Dict interface {
@@ -33,7 +33,7 @@ func (s *SaveDictReq) GetID() uint32 {
 	if s == nil {
 		return 0
 	}
-	if validate.IsNil(s.dictItem) {
+	if s.dictItem == nil {
 		return s.DictID
 	}
 	return s.dictItem.GetID()
@@ -85,39 +85,11 @@ type ListDictReq struct {
 	Langs     []string          `json:"langs"`
 }
 
-func (r *ListDictReq) ToListReply(dictItems []do.TeamDict) *ListDictReply {
+func (r *ListDictReq) ToListDictReply(dictItems []*team.Dict) *ListDictReply {
 	return &ListDictReply{
 		PaginationReply: r.ToReply(),
-		Items:           dictItems,
+		Items:           slices.Map(dictItems, func(item *team.Dict) do.TeamDict { return item }),
 	}
 }
 
 type ListDictReply = ListReply[do.TeamDict]
-
-type SelectDictReq struct {
-	*PaginationRequest
-	DictTypes []vobj.DictType   `json:"dictTypes"`
-	Status    vobj.GlobalStatus `json:"status"`
-	Keyword   string            `json:"keyword"`
-	Langs     []string          `json:"langs"`
-}
-
-func (r *SelectDictReq) ToSelectReply(dictItems []do.TeamDict) *SelectDictReply {
-	return &SelectDictReply{
-		PaginationReply: r.ToReply(),
-		Items: slices.Map(dictItems, func(dict do.TeamDict) SelectItem {
-			return &selectItem{
-				Label:    dict.GetValue(),
-				Disabled: dict.GetDeletedAt() > 0 || !dict.GetStatus().IsEnable(),
-				Extra: &selectItemExtra{
-					Remark: dict.GetLang(),
-					Icon:   dict.GetKey(),
-					Color:  dict.GetColor(),
-				},
-				Value: dict.GetID(),
-			}
-		}),
-	}
-}
-
-type SelectDictReply = ListReply[SelectItem]

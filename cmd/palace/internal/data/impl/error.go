@@ -4,7 +4,7 @@ import (
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
 
-	"github.com/aide-family/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
 func userNotFound(err error) error {
@@ -49,9 +49,23 @@ func teamMemberNotFound(err error) error {
 	return err
 }
 
+func resourceNotFound(err error) error {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return merr.ErrorNotFound("resource not found").WithCause(err)
+	}
+	return err
+}
+
 func menuNotFound(err error) error {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return merr.ErrorNotFound("menu not found").WithCause(err)
+	}
+	return err
+}
+
+func teamMenuNotFound(err error) error {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return merr.ErrorNotFound("team menu not found").WithCause(err)
 	}
 	return err
 }
@@ -150,34 +164,6 @@ func sendMessageLogNotFound(err error) error {
 func realtimeNotFound(err error) error {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return merr.ErrorNotFound("realtime not found").WithCause(err)
-	}
-	return err
-}
-
-func teamTimeEngineNotFound(err error) error {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return merr.ErrorNotFound("team time engine not found").WithCause(err)
-	}
-	return err
-}
-
-func teamTimeEngineRuleNotFound(err error) error {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return merr.ErrorNotFound("team time engine rule not found").WithCause(err)
-	}
-	return err
-}
-
-func teamDatasourceMetricMetadataNotFound(err error) error {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return merr.ErrorNotFound("team datasource metric metadata not found").WithCause(err)
-	}
-	return err
-}
-
-func strategyMetricRuleNotFound(err error) error {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return merr.ErrorNotFound("strategy metric rule not found").WithCause(err)
 	}
 	return err
 }

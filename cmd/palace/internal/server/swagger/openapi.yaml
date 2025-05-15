@@ -6,24 +6,6 @@ info:
     title: ""
     version: 0.0.1
 paths:
-    /api/alert/detail:
-        post:
-            tags:
-                - Alert
-            operationId: Alert_AlertDetail
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.AlertDetailParams'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.AlertDetailReply'
     /api/alert/list:
         post:
             tags:
@@ -285,9 +267,9 @@ paths:
     /api/menu/detail:
         get:
             tags:
-                - Menu
+                - Resource
             description: GetMenu retrieves a menu by Id
-            operationId: Menu_GetMenu
+            operationId: Resource_GetMenu
             parameters:
                 - name: menuId
                   in: query
@@ -302,31 +284,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.MenuTreeItem'
-    /api/menu/list:
-        post:
-            tags:
-                - Menu
-            description: MenuList returns the menu list
-            operationId: Menu_MenuList
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.MenuListRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.MenuListReply'
     /api/menu/save:
         put:
             tags:
-                - Menu
+                - Resource
             description: SaveMenu creates or updates a system menu
-            operationId: Menu_SaveMenu
+            operationId: Resource_SaveMenu
             requestBody:
                 content:
                     application/json:
@@ -343,57 +306,27 @@ paths:
     /api/menu/tree:
         get:
             tags:
-                - Menu
-            description: GetMenuTree returns the menu tree
-            operationId: Menu_GetMenuTree
+                - Resource
+            description: GetResourceMenuTree returns the menu tree
+            operationId: Resource_GetResourceMenuTree
             responses:
                 "200":
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.GetMenuTreeReply'
-    /api/portal/auth/captcha:
-        get:
+                                $ref: '#/components/schemas/api.palace.GetResourceMenuTreeReply'
+    /api/resource/batch/status:
+        put:
             tags:
-                - Auth
-            description: GetCaptcha sends a captcha image to the client
-            operationId: Auth_GetCaptcha
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.portal.GetCaptchaReply'
-    /api/portal/auth/login:
-        post:
-            tags:
-                - Auth
-            operationId: Auth_Login
+                - Resource
+            description: BatchUpdateResourceStatus updates the status of multiple resources
+            operationId: Resource_BatchUpdateResourceStatus
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.palace.portal.LoginRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.portal.LoginInfo'
-    /api/portal/auth/logout:
-        post:
-            tags:
-                - Auth
-            operationId: Auth_Logout
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.common.EmptyRequest'
+                            $ref: '#/components/schemas/api.palace.BatchUpdateResourceStatusRequest'
                 required: true
             responses:
                 "200":
@@ -402,16 +335,37 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/portal/auth/register:
+    /api/resource/detail:
+        get:
+            tags:
+                - Resource
+            description: GetResource retrieves a resource by Id
+            operationId: Resource_GetResource
+            parameters:
+                - name: resourceId
+                  in: query
+                  description: Id of the resource to retrieve
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.ResourceItem'
+    /api/resource/list:
         post:
             tags:
-                - Auth
-            operationId: Auth_Register
+                - Resource
+            description: ListResource lists resources based on specified filters
+            operationId: Resource_ListResource
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.palace.portal.RegisterRequest'
+                            $ref: '#/components/schemas/api.palace.ListResourceRequest'
                 required: true
             responses:
                 "200":
@@ -419,30 +373,18 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.portal.LoginInfo'
-    /api/portal/auth/user-info:
-        get:
+                                $ref: '#/components/schemas/api.palace.ListResourceReply'
+    /api/resource/save:
+        put:
             tags:
-                - Auth
-            operationId: Auth_GetUserInfo
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.UserBaseItem'
-    /api/portal/auth/verify-email:
-        post:
-            tags:
-                - Auth
-            description: VerifyEmail sends a verification email to the user
-            operationId: Auth_VerifyEmail
+                - Resource
+            description: SaveResource creates or updates a resource
+            operationId: Resource_SaveResource
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.palace.portal.VerifyEmailRequest'
+                            $ref: '#/components/schemas/api.palace.SaveResourceRequest'
                 required: true
             responses:
                 "200":
@@ -451,54 +393,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/portal/home/features:
-        get:
-            tags:
-                - Home
-            operationId: Home_Features
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.portal.FeaturesReply'
-    /api/portal/home/footer:
-        get:
-            tags:
-                - Home
-            operationId: Home_Footer
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.portal.FooterReply'
-    /api/portal/home/partners:
-        get:
-            tags:
-                - Home
-            operationId: Home_Partners
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.portal.PartnersReply'
-    /api/portal/pricing/package:
-        get:
-            tags:
-                - Pricing
-            operationId: Pricing_ListPackage
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.portal.ListPackageReply'
     /api/system/operate/log/list:
         post:
             tags:
@@ -509,7 +403,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.palace.common.OperateLogListRequest'
+                            $ref: '#/components/schemas/api.palace.OperateLogListRequest'
                 required: true
             responses:
                 "200":
@@ -517,7 +411,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.common.OperateLogListReply'
+                                $ref: '#/components/schemas/api.palace.OperateLogListReply'
     /api/system/role:
         get:
             tags:
@@ -956,24 +850,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.ListTeamDashboardChartReply'
-    /api/team/dashboard/chart/select:
-        post:
-            tags:
-                - TeamDashboard
-            operationId: TeamDashboard_SelectTeamDashboardChart
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.SelectTeamDashboardChartRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.SelectTeamDashboardChartReply'
     /api/team/dashboard/chart/status:
         put:
             tags:
@@ -1010,24 +886,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.ListTeamDashboardReply'
-    /api/team/dashboard/select:
-        post:
-            tags:
-                - TeamDashboard
-            operationId: TeamDashboard_SelectTeamDashboard
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.SelectTeamDashboardRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.SelectTeamDashboardReply'
     /api/team/dashboard/status:
         put:
             tags:
@@ -1039,111 +897,6 @@ paths:
                         schema:
                             $ref: '#/components/schemas/api.palace.UpdateTeamDashboardStatusRequest'
                 required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/team/datasource/metric/{datasourceId}/{target}:
-        get:
-            tags:
-                - TeamDatasource
-            operationId: TeamDatasource_MetricDatasourceProxy
-            parameters:
-                - name: datasourceId
-                  in: path
-                  required: true
-                  schema:
-                    type: integer
-                    format: uint32
-                - name: target
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-        put:
-            tags:
-                - TeamDatasource
-            operationId: TeamDatasource_MetricDatasourceProxy
-            parameters:
-                - name: datasourceId
-                  in: path
-                  required: true
-                  schema:
-                    type: integer
-                    format: uint32
-                - name: target
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.MetricDatasourceProxyRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-        post:
-            tags:
-                - TeamDatasource
-            operationId: TeamDatasource_MetricDatasourceProxy
-            parameters:
-                - name: datasourceId
-                  in: path
-                  required: true
-                  schema:
-                    type: integer
-                    format: uint32
-                - name: target
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.MetricDatasourceProxyRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-        delete:
-            tags:
-                - TeamDatasource
-            operationId: TeamDatasource_MetricDatasourceProxy
-            parameters:
-                - name: datasourceId
-                  in: path
-                  required: true
-                  schema:
-                    type: integer
-                    format: uint32
-                - name: target
-                  in: path
-                  required: true
-                  schema:
-                    type: string
             responses:
                 "200":
                     description: OK
@@ -1234,24 +987,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.ListTeamDictReply'
-    /api/team/dict/select:
-        post:
-            tags:
-                - TeamDict
-            operationId: TeamDict_SelectTeamDict
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.SelectTeamDictRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.SelectTeamDictReply'
     /api/team/dict/status:
         put:
             tags:
@@ -1271,25 +1006,6 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
     /api/team/email/config:
-        get:
-            tags:
-                - Team
-            description: GetEmailConfig retrieves the email configuration for the team
-            operationId: Team_GetEmailConfig
-            parameters:
-                - name: emailConfigId
-                  in: query
-                  description: Email configuration Id
-                  schema:
-                    type: integer
-                    format: uint32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmailConfigItem'
         put:
             tags:
                 - Team
@@ -1356,10 +1072,6 @@ paths:
                   in: query
                   schema:
                     type: string
-                - name: sendTime
-                  in: query
-                  schema:
-                    type: string
             responses:
                 "200":
                     description: OK
@@ -1421,57 +1133,19 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.GetTeamMembersReply'
-    /api/team/members/select:
-        post:
-            tags:
-                - Team
-            description: SelectTeamMembers selects team members based on specified filters
-            operationId: Team_SelectTeamMembers
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.SelectTeamMembersRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.SelectTeamMembersReply'
-    /api/team/menu/list:
-        post:
-            tags:
-                - Menu
-            description: TeamMenuList returns the team menu list
-            operationId: Menu_TeamMenuList
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.MenuListRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.MenuListReply'
     /api/team/menu/tree:
         get:
             tags:
-                - Menu
-            description: GetTeamMenuTree returns the menu tree
-            operationId: Menu_GetTeamMenuTree
+                - Resource
+            description: GetTeamResourceMenuTree returns the menu tree
+            operationId: Resource_GetTeamResourceMenuTree
             responses:
                 "200":
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.GetMenuTreeReply'
+                                $ref: '#/components/schemas/api.palace.GetResourceMenuTreeReply'
     /api/team/metric/datasource:
         get:
             tags:
@@ -1542,64 +1216,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.ListTeamMetricDatasourceReply'
-    /api/team/metric/datasource/metadata:
-        get:
-            tags:
-                - TeamDatasource
-            operationId: TeamDatasource_GetMetricDatasourceMetadata
-            parameters:
-                - name: datasourceId
-                  in: query
-                  schema:
-                    type: integer
-                    format: uint32
-                - name: metadataId
-                  in: query
-                  schema:
-                    type: integer
-                    format: uint32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.TeamMetricDatasourceMetadataItem'
-        put:
-            tags:
-                - TeamDatasource
-            operationId: TeamDatasource_UpdateMetricDatasourceMetadata
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.UpdateMetricDatasourceMetadataRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/team/metric/datasource/metadata/list:
-        post:
-            tags:
-                - TeamDatasource
-            operationId: TeamDatasource_ListMetricDatasourceMetadata
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.ListMetricDatasourceMetadataRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.ListMetricDatasourceMetadataReply'
     /api/team/metric/datasource/query:
         post:
             tags:
@@ -1618,24 +1234,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.common.MetricDatasourceQueryReply'
-    /api/team/metric/datasource/select:
-        post:
-            tags:
-                - TeamDatasource
-            operationId: TeamDatasource_DatasourceSelect
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.DatasourceSelectRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.DatasourceSelectReply'
     /api/team/metric/datasource/status:
         put:
             tags:
@@ -1742,24 +1340,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.ListTeamNoticeGroupReply'
-    /api/team/notice/group/select:
-        post:
-            tags:
-                - TeamNotice
-            operationId: TeamNotice_TeamNoticeGroupSelect
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.TeamNoticeGroupSelectRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.TeamNoticeGroupSelectReply'
     /api/team/notice/group/status:
         put:
             tags:
@@ -1848,24 +1428,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.ListTeamNoticeHookReply'
-    /api/team/notice/hook/select:
-        post:
-            tags:
-                - TeamNotice
-            operationId: TeamNotice_TeamNoticeHookSelect
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.TeamNoticeHookSelectRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.TeamNoticeHookSelectReply'
     /api/team/notice/hook/status:
         put:
             tags:
@@ -1894,7 +1456,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.palace.common.OperateLogListRequest'
+                            $ref: '#/components/schemas/api.palace.TeamOperateLogListRequest'
                 required: true
             responses:
                 "200":
@@ -1902,7 +1464,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.common.OperateLogListReply'
+                                $ref: '#/components/schemas/api.palace.TeamOperateLogListReply'
     /api/team/remove/member:
         post:
             tags:
@@ -1922,26 +1484,19 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/team/role:
+    /api/team/resources:
         get:
             tags:
                 - Team
-            description: GetTeamRole retrieves a team role by Id
-            operationId: Team_GetTeamRole
-            parameters:
-                - name: roleId
-                  in: query
-                  description: Role Id
-                  schema:
-                    type: integer
-                    format: uint32
+            description: GetTeamResources retrieves the resources associated with the current team
+            operationId: Team_GetTeamResources
             responses:
                 "200":
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.common.TeamRoleItem'
+                                $ref: '#/components/schemas/api.palace.GetTeamResourcesReply'
     /api/team/role/status:
         put:
             tags:
@@ -2037,25 +1592,6 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
     /api/team/sms/config:
-        get:
-            tags:
-                - Team
-            description: GetSMSConfig retrieves the SMS configuration for the team
-            operationId: Team_GetSMSConfig
-            parameters:
-                - name: smsConfigId
-                  in: query
-                  description: SMS configuration Id
-                  schema:
-                    type: integer
-                    format: uint32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.SMSConfigItem'
         put:
             tags:
                 - Team
@@ -2124,6 +1660,12 @@ paths:
                   schema:
                     type: integer
                     format: uint32
+                - name: strategyType
+                  in: query
+                  description: strategy type
+                  schema:
+                    type: integer
+                    format: enum
             responses:
                 "200":
                     description: OK
@@ -2207,25 +1749,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.ListTeamStrategyGroupReply'
-    /api/team/strategy/group/select:
-        post:
-            tags:
-                - TeamStrategy
-            description: SelectTeamStrategyGroup selects team strategy groups based on specified filters
-            operationId: TeamStrategy_SelectTeamStrategyGroup
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.SelectTeamStrategyGroupRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.SelectTeamStrategyGroupReply'
     /api/team/strategy/group/status:
         put:
             tags:
@@ -2267,9 +1790,9 @@ paths:
     /api/team/strategy/metric:
         get:
             tags:
-                - TeamStrategyMetric
-            description: TeamMetricStrategyDetail gets the detail of a team metric strategy
-            operationId: TeamStrategyMetric_TeamMetricStrategyDetail
+                - TeamStrategy
+            description: GetTeamStrategy retrieves a team strategy by Id
+            operationId: TeamStrategy_GetTeamMetricStrategy
             parameters:
                 - name: strategyId
                   in: query
@@ -2277,6 +1800,12 @@ paths:
                   schema:
                     type: integer
                     format: uint32
+                - name: strategyType
+                  in: query
+                  description: strategy type
+                  schema:
+                    type: integer
+                    format: enum
             responses:
                 "200":
                     description: OK
@@ -2286,9 +1815,9 @@ paths:
                                 $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricItem'
         post:
             tags:
-                - TeamStrategyMetric
+                - TeamStrategy
             description: SaveTeamMetricStrategy saves a new team metric strategy or updates an existing one
-            operationId: TeamStrategyMetric_SaveTeamMetricStrategy
+            operationId: TeamStrategy_SaveTeamMetricStrategy
             requestBody:
                 content:
                     application/json:
@@ -2302,55 +1831,17 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
-        delete:
-            tags:
-                - TeamStrategyMetric
-            description: DeleteTeamMetricStrategy deletes a team metric strategy
-            operationId: TeamStrategyMetric_DeleteTeamMetricStrategy
-            parameters:
-                - name: strategyId
-                  in: query
-                  description: Strategy id
-                  schema:
-                    type: integer
-                    format: uint32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/team/strategy/metric/level:
-        get:
-            tags:
-                - TeamStrategyMetric
-            description: TeamMetricStrategyLevelDetail gets the detail of a team metric strategy level
-            operationId: TeamStrategyMetric_TeamMetricStrategyLevelDetail
-            parameters:
-                - name: strategyMetricLevelId
-                  in: query
-                  description: Strategy metric level id
-                  schema:
-                    type: integer
-                    format: uint32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricLevelItem'
+    /api/team/strategy/metric/levels:
         post:
             tags:
-                - TeamStrategyMetric
-            description: SaveTeamMetricStrategyLevel saves a new team metric strategy level or updates an existing one
-            operationId: TeamStrategyMetric_SaveTeamMetricStrategyLevel
+                - TeamStrategy
+            description: SaveTeamMetricStrategyLevels saves a new team metric strategy level or updates an existing one
+            operationId: TeamStrategy_SaveTeamMetricStrategyLevels
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.palace.SaveTeamMetricStrategyLevelRequest'
+                            $ref: '#/components/schemas/api.palace.SaveTeamMetricStrategyLevelsRequest'
                 required: true
             responses:
                 "200":
@@ -2358,66 +1849,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-        delete:
-            tags:
-                - TeamStrategyMetric
-            description: DeleteTeamMetricStrategyLevel deletes a team metric strategy level
-            operationId: TeamStrategyMetric_DeleteTeamMetricStrategyLevel
-            parameters:
-                - name: strategyMetricLevelIds
-                  in: query
-                  description: Strategy metric level id
-                  schema:
-                    type: array
-                    items:
-                        type: integer
-                        format: uint32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/team/strategy/metric/level/list:
-        post:
-            tags:
-                - TeamStrategyMetric
-            description: TeamMetricStrategyLevelList gets the list of team metric strategy levels
-            operationId: TeamStrategyMetric_TeamMetricStrategyLevelList
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.TeamMetricStrategyLevelListRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.TeamMetricStrategyLevelListReply'
-    /api/team/strategy/metric/level/status:
-        post:
-            tags:
-                - TeamStrategyMetric
-            description: UpdateTeamMetricStrategyLevelStatus updates the status of a team metric strategy level
-            operationId: TeamStrategyMetric_UpdateTeamMetricStrategyLevelStatus
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.UpdateTeamMetricStrategyLevelStatusRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
+                                $ref: '#/components/schemas/api.palace.SaveTeamMetricStrategyLevelsReply'
     /api/team/strategy/status:
         put:
             tags:
@@ -2543,222 +1975,6 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/api.palace.UpdateMemberStatusRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/time/engine/delete:
-        delete:
-            tags:
-                - TimeEngine
-            operationId: TimeEngine_DeleteTimeEngine
-            parameters:
-                - name: timeEngineId
-                  in: query
-                  schema:
-                    type: integer
-                    format: uint32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/time/engine/detail:
-        get:
-            tags:
-                - TimeEngine
-            operationId: TimeEngine_GetTimeEngine
-            parameters:
-                - name: timeEngineId
-                  in: query
-                  schema:
-                    type: integer
-                    format: uint32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.TimeEngineItem'
-    /api/time/engine/list:
-        post:
-            tags:
-                - TimeEngine
-            operationId: TimeEngine_ListTimeEngine
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.ListTimeEngineRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.ListTimeEngineReply'
-    /api/time/engine/rule/delete:
-        delete:
-            tags:
-                - TimeEngine
-            operationId: TimeEngine_DeleteTimeEngineRule
-            parameters:
-                - name: timeEngineRuleId
-                  in: query
-                  schema:
-                    type: integer
-                    format: uint32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/time/engine/rule/detail:
-        get:
-            tags:
-                - TimeEngine
-            operationId: TimeEngine_GetTimeEngineRule
-            parameters:
-                - name: timeEngineRuleId
-                  in: query
-                  schema:
-                    type: integer
-                    format: uint32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.TimeEngineItemRule'
-    /api/time/engine/rule/list:
-        post:
-            tags:
-                - TimeEngine
-            operationId: TimeEngine_ListTimeEngineRule
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.ListTimeEngineRuleRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.ListTimeEngineRuleReply'
-    /api/time/engine/rule/save:
-        post:
-            tags:
-                - TimeEngine
-            operationId: TimeEngine_SaveTimeEngineRule
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.SaveTimeEngineRuleRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/time/engine/rule/select:
-        post:
-            tags:
-                - TimeEngine
-            operationId: TimeEngine_SelectTimeEngineRule
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.SelectTimeEngineRuleRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.SelectTimeEngineRuleReply'
-    /api/time/engine/rule/update/status:
-        put:
-            tags:
-                - TimeEngine
-            operationId: TimeEngine_UpdateTimeEngineRuleStatus
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.UpdateTimeEngineRuleStatusRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/time/engine/save:
-        post:
-            tags:
-                - TimeEngine
-            operationId: TimeEngine_SaveTimeEngine
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.SaveTimeEngineRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/time/engine/select:
-        post:
-            tags:
-                - TimeEngine
-            operationId: TimeEngine_SelectTimeEngine
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.SelectTimeEngineRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.SelectTimeEngineReply'
-    /api/time/engine/update/status:
-        put:
-            tags:
-                - TimeEngine
-            operationId: TimeEngine_UpdateTimeEngineStatus
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.UpdateTimeEngineStatusRequest'
                 required: true
             responses:
                 "200":
@@ -3032,23 +2248,11 @@ components:
                 type:
                     type: string
                 labels:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.common.MetricItem_Label'
+                    type: object
+                    additionalProperties:
+                        type: string
                 unit:
                     type: string
-                value:
-                    type: number
-                    format: double
-        api.common.MetricItem_Label:
-            type: object
-            properties:
-                key:
-                    type: string
-                values:
-                    type: array
-                    items:
-                        type: string
         api.common.MetricQueryResult:
             type: object
             properties:
@@ -3092,33 +2296,20 @@ components:
                     type: boolean
                 uuid:
                     type: string
-        api.palace.AlertDetailParams:
+        api.palace.BatchUpdateResourceStatusRequest:
             type: object
             properties:
-                alertId:
+                resourceIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                    description: List of resource Ids to update
+                status:
                     type: integer
-                    format: uint32
-                fingerprint:
-                    type: string
-                createdAt:
-                    type: string
-        api.palace.AlertDetailReply:
-            type: object
-            properties:
-                alert:
-                    $ref: '#/components/schemas/api.palace.RealtimeAlertItem'
-                strategyId:
-                    type: integer
-                    format: uint32
-                strategyGroupId:
-                    type: integer
-                    format: uint32
-                strategyLevelId:
-                    type: integer
-                    format: uint32
-                strategyType:
-                    type: integer
+                    description: New status for the resources
                     format: enum
+            description: BatchUpdateResourceStatusRequest represents the request data for updating the status of multiple resources
         api.palace.CaptchaValidateRequest:
             type: object
             properties:
@@ -3142,31 +2333,37 @@ components:
                     type: string
                     description: Team logo URL
             description: CreateTeamRequest represents the request data for creating a new team
-        api.palace.DatasourceSelectReply:
+        api.palace.EmailConfigItem:
             type: object
             properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.SelectItem'
-        api.palace.DatasourceSelectRequest:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                datasourceId:
+                user:
+                    type: string
+                    description: Email user
+                pass:
+                    type: string
+                    description: Email password
+                host:
+                    type: string
+                    description: Email server host
+                port:
                     type: integer
+                    description: Email server port
                     format: uint32
-                type:
-                    type: integer
-                    format: enum
                 status:
                     type: integer
+                    description: Enable email configuration
                     format: enum
-                keyword:
+                name:
                     type: string
+                    description: Name of the email configuration
+                remark:
+                    type: string
+                    description: Remark of the email configuration
+                emailConfigId:
+                    type: integer
+                    description: emailConfigId of the email configuration
+                    format: uint32
+            description: EmailConfigItem represents the structure of an email configuration
         api.palace.GetCaptchaReply:
             type: object
             properties:
@@ -3187,7 +2384,7 @@ components:
                 items:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.common.EmailConfigItem'
+                        $ref: '#/components/schemas/api.palace.EmailConfigItem'
                     description: List of email configuration items
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationReply'
@@ -3217,7 +2414,7 @@ components:
                     type: string
                     description: Filing information
             description: GetFilingInformationReply contains the response data for getting the filing information
-        api.palace.GetMenuTreeReply:
+        api.palace.GetResourceMenuTreeReply:
             type: object
             properties:
                 menus:
@@ -3232,7 +2429,7 @@ components:
                 items:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.common.SMSConfigItem'
+                        $ref: '#/components/schemas/api.palace.SMSConfigItem'
                     description: List of SMS configuration items
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationReply'
@@ -3279,6 +2476,8 @@ components:
             properties:
                 requestId:
                     type: string
+                message:
+                    type: string
                 messageType:
                     type: integer
                     format: enum
@@ -3289,10 +2488,6 @@ components:
                     type: string
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                timeRange:
-                    type: array
-                    items:
-                        type: string
         api.palace.GetSystemRolesReply:
             type: object
             properties:
@@ -3424,6 +2619,15 @@ components:
                     items:
                         type: integer
                         format: enum
+        api.palace.GetTeamResourcesReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.ResourceItem'
+                    description: List of resource items associated with the team
+            description: GetTeamResourcesReply contains the response data for retrieving team resources
         api.palace.GetTeamRolesReply:
             type: object
             properties:
@@ -3466,6 +2670,8 @@ components:
             properties:
                 requestId:
                     type: string
+                message:
+                    type: string
                 messageType:
                     type: integer
                     format: enum
@@ -3476,10 +2682,6 @@ components:
                     type: string
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                timeRange:
-                    type: array
-                    items:
-                        type: string
         api.palace.GetUserListReply:
             type: object
             properties:
@@ -3543,6 +2745,18 @@ components:
                     type: string
                     description: Reason for joining the team
             description: JoinTeamRequest represents the request data for joining a team
+        api.palace.LabelNotices:
+            type: object
+            properties:
+                key:
+                    type: string
+                value:
+                    type: string
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
         api.palace.LeaveTeamRequest:
             type: object
             properties:
@@ -3579,27 +2793,32 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.palace.RealtimeAlertItem'
-        api.palace.ListMetricDatasourceMetadataReply:
+        api.palace.ListResourceReply:
             type: object
             properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
                 items:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.common.TeamMetricDatasourceMetadataItem'
-        api.palace.ListMetricDatasourceMetadataRequest:
+                        $ref: '#/components/schemas/api.palace.common.ResourceItem'
+                    description: List of resource items
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+            description: ListResourceReply contains the response data for listing resources
+        api.palace.ListResourceRequest:
             type: object
             properties:
-                datasourceId:
-                    type: integer
-                    format: uint32
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                status:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+                    description: List of statuses to filter resources by
                 keyword:
                     type: string
-                type:
-                    type: string
+                    description: Keyword to search resources by
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+            description: ListResourceRequest represents the request data for listing resources
         api.palace.ListTeamDashboardChartReply:
             type: object
             properties:
@@ -3770,9 +2989,11 @@ components:
                     type: string
                     description: Keyword to search strategy groups by
                 status:
-                    type: integer
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
                     description: List of statuses to filter strategy groups by
-                    format: enum
             description: ListTeamStrategyGroupRequest represents the request data for listing team strategy groups
         api.palace.ListTeamStrategyReply:
             type: object
@@ -3812,49 +3033,6 @@ components:
                         type: integer
                         format: enum
                     description: Strategy type
-        api.palace.ListTimeEngineReply:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.TimeEngineItem'
-        api.palace.ListTimeEngineRequest:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                status:
-                    type: integer
-                    format: enum
-                keyword:
-                    type: string
-        api.palace.ListTimeEngineRuleReply:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.TimeEngineItemRule'
-        api.palace.ListTimeEngineRuleRequest:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                status:
-                    type: integer
-                    format: enum
-                keyword:
-                    type: string
-                types:
-                    type: array
-                    items:
-                        type: integer
-                        format: enum
         api.palace.LoginByEmailRequest:
             type: object
             properties:
@@ -3921,47 +3099,6 @@ components:
                     type: string
                     description: Redirect URL after logout, optional
             description: LogoutRequest represents the request data for logging out
-        api.palace.MenuListReply:
-            type: object
-            properties:
-                menus:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.MenuTreeItem'
-                    description: List of menu items
-                pagination:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.PaginationReply'
-                    description: Pagination
-            description: MenuListReply represents the response data for retrieving the menu list
-        api.palace.MenuListRequest:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                status:
-                    type: integer
-                    format: enum
-                menuType:
-                    type: integer
-                    format: enum
-                menuCategory:
-                    type: integer
-                    format: enum
-                processType:
-                    type: integer
-                    format: enum
-                keyword:
-                    type: string
-            description: MenuListRequest represents the request data for retrieving the menu list
-        api.palace.MetricDatasourceProxyRequest:
-            type: object
-            properties:
-                datasourceId:
-                    type: integer
-                    format: uint32
-                target:
-                    type: string
         api.palace.MetricDatasourceQueryRequest:
             type: object
             properties:
@@ -4021,19 +3158,49 @@ components:
                     description: Application Id, to identify the application
                     format: int32
             description: OAuthLoginByEmailRequest represents the request data for OAuth2.0 login with email
+        api.palace.OperateLogListReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.OperateLogItem'
+                    description: List of operation log items
+                pagination:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.common.PaginationReply'
+                    description: Pagination response details
+            description: OperateLogListReply contains the response data for listing operation logs
+        api.palace.OperateLogListRequest:
+            type: object
+            properties:
+                pagination:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                    description: Pagination request details
+                operateTypes:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+                    description: List of types to filter operation logs by
+                keyword:
+                    type: string
+                    description: Keyword to search operation logs by
+                userId:
+                    type: integer
+                    description: User Id, optional for filtering logs by user
+                    format: uint32
+            description: OperateLogListRequest represents the request data for listing operation logs
         api.palace.OperateOneSendMessageRequest:
             type: object
             properties:
                 requestId:
                     type: string
-                sendTime:
-                    type: string
         api.palace.OperateOneTeamSendMessageRequest:
             type: object
             properties:
                 requestId:
-                    type: string
-                sendTime:
                     type: string
         api.palace.RealtimeAlertItem:
             type: object
@@ -4100,6 +3267,40 @@ components:
                     type: integer
                     format: uint32
             description: ResetUserPasswordRequest represents the request data for resetting user passwords
+        api.palace.SMSConfigItem:
+            type: object
+            properties:
+                providerType:
+                    type: integer
+                    description: SMS provider type
+                    format: enum
+                accessKeyId:
+                    type: string
+                    description: Access Key Id for the SMS provider
+                accessKeySecret:
+                    type: string
+                    description: Access Key Secret for the SMS provider
+                signName:
+                    type: string
+                    description: Sign name for the SMS provider
+                endpoint:
+                    type: string
+                    description: Endpoint for the SMS provider
+                name:
+                    type: string
+                    description: Name of the SMS configuration
+                remark:
+                    type: string
+                    description: Remark of the SMS configuration
+                smsConfigId:
+                    type: integer
+                    description: smsConfigId of the SMS configuration
+                    format: uint32
+                status:
+                    type: integer
+                    description: Enable SMS configuration
+                    format: enum
+            description: SMSConfigItem represents the structure of an SMS configuration
         api.palace.SaveEmailConfigRequest:
             type: object
             properties:
@@ -4141,17 +3342,14 @@ components:
                 name:
                     type: string
                     description: Name of the menu
-                menuPath:
+                path:
                     type: string
                     description: Path of the menu
-                apiPath:
-                    type: string
-                    description: Api path of the menu
                 status:
                     type: integer
                     description: Status of the menu
                     format: enum
-                menuIcon:
+                icon:
                     type: string
                     description: Icon of the menu
                 parentId:
@@ -4162,18 +3360,37 @@ components:
                     type: integer
                     description: Type of the menu
                     format: enum
-                menuCategory:
-                    type: integer
-                    description: Category of the menu
-                    format: enum
-                processType:
-                    type: integer
-                    description: Process type of the menu
-                    format: enum
-                isRelyOnBrother:
-                    type: boolean
-                    description: Whether the menu is rely on brother
+                resourceIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
             description: SaveMenuRequest represents the request data for creating or updating a system menu
+        api.palace.SaveResourceRequest:
+            type: object
+            properties:
+                resourceId:
+                    type: integer
+                    description: Id of the resource (0 for create, >0 for update)
+                    format: uint32
+                name:
+                    type: string
+                    description: Name of the resource
+                path:
+                    type: string
+                    description: Path of the resource
+                status:
+                    type: integer
+                    description: Status of the resource
+                    format: enum
+                allow:
+                    type: integer
+                    description: Allow rule for the resource
+                    format: enum
+                remark:
+                    type: string
+                    description: Remark for the resource
+            description: SaveResourceRequest represents the request data for creating or updating a resource
         api.palace.SaveRoleRequest:
             type: object
             properties:
@@ -4241,11 +3458,13 @@ components:
                     type: string
                 remark:
                     type: string
+                status:
+                    type: integer
+                    format: enum
                 url:
                     type: string
                 width:
-                    type: integer
-                    format: uint32
+                    type: string
                 height:
                     type: string
         api.palace.SaveTeamDashboardRequest:
@@ -4258,6 +3477,9 @@ components:
                     type: string
                 remark:
                     type: string
+                status:
+                    type: integer
+                    format: enum
                 colorHex:
                     type: string
         api.palace.SaveTeamDictRequest:
@@ -4280,7 +3502,7 @@ components:
         api.palace.SaveTeamMetricDatasourceRequest:
             type: object
             properties:
-                driver:
+                metricDatasourceDriver:
                     type: integer
                     format: enum
                 datasourceId:
@@ -4293,11 +3515,12 @@ components:
                 endpoint:
                     type: string
                 scrapeInterval:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
                     type: string
                 headers:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
+                    type: object
+                    additionalProperties:
+                        type: string
                 queryMethod:
                     type: integer
                     format: enum
@@ -4308,16 +3531,19 @@ components:
                 basicAuth:
                     $ref: '#/components/schemas/api.palace.common.BasicAuth'
                 extra:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
+                    type: object
+                    additionalProperties:
+                        type: string
         api.palace.SaveTeamMetricStrategyLevelRequest:
             type: object
             properties:
                 levelId:
                     type: integer
-                    description: Level Id of dict item
+                    description: Level Id
                     format: uint32
+                levelName:
+                    type: string
+                    description: Level name
                 sampleMode:
                     type: integer
                     description: Sample mode
@@ -4341,14 +3567,19 @@ components:
                         type: integer
                         format: uint32
                     description: Receiver routes
-                labelReceiverRoutes:
+                labelNotices:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.common.LabelNotices'
+                        $ref: '#/components/schemas/api.palace.LabelNotices'
                     description: Label notices
                 duration:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
                     type: string
-                    description: Duration in seconds
+                    description: Duration
+                status:
+                    type: integer
+                    description: Status
+                    format: enum
                 strategyMetricLevelId:
                     type: integer
                     description: Id
@@ -4358,12 +3589,29 @@ components:
                     items:
                         type: integer
                         format: uint32
-                    description: alarm pages of dict item
+                    description: alarm pages
+        api.palace.SaveTeamMetricStrategyLevelsReply:
+            type: object
+            properties:
+                levels:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricItem_RuleItem'
+                    description: Levels
+                message:
+                    type: string
+        api.palace.SaveTeamMetricStrategyLevelsRequest:
+            type: object
+            properties:
                 strategyMetricId:
                     type: integer
-                    description: strategy metric id
+                    description: Strategy metric id
                     format: uint32
-            description: SaveTeamMetricStrategyLevelRequest represents the request data for saving or updating a team metric strategy level
+                levels:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.SaveTeamMetricStrategyLevelRequest'
+                    description: Levels
         api.palace.SaveTeamMetricStrategyRequest:
             type: object
             properties:
@@ -4371,17 +3619,22 @@ components:
                     type: integer
                     description: Strategy id
                     format: uint32
+                metricStrategyId:
+                    type: integer
+                    description: Metric strategy id
+                    format: uint32
                 expr:
                     type: string
                     description: Expression
                 labels:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
+                    type: object
+                    additionalProperties:
+                        type: string
                     description: Labels
                 annotations:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.AnnotationsItem'
+                    type: object
+                    additionalProperties:
+                        type: string
                     description: Annotations
                 datasource:
                     type: array
@@ -4424,11 +3677,6 @@ components:
                 noticeType:
                     type: integer
                     format: enum
-                dutyCycleIds:
-                    type: array
-                    items:
-                        type: integer
-                        format: uint32
         api.palace.SaveTeamNoticeHookRequest:
             type: object
             properties:
@@ -4436,6 +3684,9 @@ components:
                     type: string
                 remark:
                     type: string
+                status:
+                    type: integer
+                    format: enum
                 url:
                     type: string
                 secret:
@@ -4444,9 +3695,9 @@ components:
                     type: integer
                     format: enum
                 headers:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
+                    type: object
+                    additionalProperties:
+                        type: string
                 app:
                     type: integer
                     format: enum
@@ -4528,206 +3779,8 @@ components:
                     description: Receiver routes
                 groupId:
                     type: integer
+                    description: Group id
                     format: uint32
-        api.palace.SaveTimeEngineRequest:
-            type: object
-            properties:
-                timeEngineId:
-                    type: integer
-                    format: uint32
-                name:
-                    type: string
-                remark:
-                    type: string
-                ruleIds:
-                    type: array
-                    items:
-                        type: integer
-                        format: uint32
-        api.palace.SaveTimeEngineRuleRequest:
-            type: object
-            properties:
-                timeEngineRuleId:
-                    type: integer
-                    format: uint32
-                name:
-                    type: string
-                remark:
-                    type: string
-                type:
-                    type: integer
-                    format: enum
-                ruleIds:
-                    type: array
-                    items:
-                        type: integer
-                        format: uint32
-        api.palace.SelectTeamDashboardChartReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.SelectItem'
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
-        api.palace.SelectTeamDashboardChartRequest:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                dashboardId:
-                    type: integer
-                    format: uint32
-                status:
-                    type: integer
-                    format: enum
-                keyword:
-                    type: string
-        api.palace.SelectTeamDashboardReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.SelectItem'
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
-        api.palace.SelectTeamDashboardRequest:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                status:
-                    type: integer
-                    format: enum
-                keyword:
-                    type: string
-        api.palace.SelectTeamDictReply:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.SelectItem'
-        api.palace.SelectTeamDictRequest:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                dictTypes:
-                    type: array
-                    items:
-                        type: integer
-                        format: enum
-                status:
-                    type: integer
-                    format: enum
-                keyword:
-                    type: string
-                langs:
-                    type: array
-                    items:
-                        type: string
-        api.palace.SelectTeamMembersReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.SelectItem'
-                    description: List of team member items
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
-            description: SelectTeamMembersReply contains the response data for selecting team members
-        api.palace.SelectTeamMembersRequest:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                keyword:
-                    type: string
-                status:
-                    type: array
-                    items:
-                        type: integer
-                        format: enum
-            description: SelectTeamMembersRequest represents the request data for selecting team members
-        api.palace.SelectTeamStrategyGroupReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.SelectItem'
-                    description: List of strategy group items
-                pagination:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.PaginationReply'
-                    description: Pagination response details
-            description: SelectTeamStrategyGroupReply contains the response data for selecting team strategy groups
-        api.palace.SelectTeamStrategyGroupRequest:
-            type: object
-            properties:
-                pagination:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                    description: Pagination request details
-                keyword:
-                    type: string
-                    description: Keyword to search strategy groups by
-                status:
-                    type: array
-                    items:
-                        type: integer
-                        format: enum
-                    description: List of statuses to filter strategy groups by
-            description: SelectTeamStrategyGroupRequest represents the request data for selecting team strategy groups
-        api.palace.SelectTimeEngineReply:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.SelectItem'
-        api.palace.SelectTimeEngineRequest:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                status:
-                    type: integer
-                    format: enum
-                keyword:
-                    type: string
-        api.palace.SelectTimeEngineRuleReply:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.SelectItem'
-        api.palace.SelectTimeEngineRuleRequest:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                status:
-                    type: integer
-                    format: enum
-                keyword:
-                    type: string
-                types:
-                    type: array
-                    items:
-                        type: integer
-                        format: enum
         api.palace.SelfSubscribeTeamStrategiesReply:
             type: object
             properties:
@@ -4798,6 +3851,10 @@ components:
         api.palace.SubscribeTeamStrategiesRequest:
             type: object
             properties:
+                strategyId:
+                    type: integer
+                    description: Strategy id
+                    format: uint32
                 subscribers:
                     type: array
                     items:
@@ -4855,86 +3912,40 @@ components:
                 datasourceId:
                     type: integer
                     format: uint32
-        api.palace.TeamMetricStrategyLevelListReply:
+        api.palace.TeamOperateLogListReply:
             type: object
             properties:
                 items:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricLevelItem'
+                        $ref: '#/components/schemas/api.palace.common.OperateLogItem'
+                    description: List of operation log items
                 pagination:
                     allOf:
                         - $ref: '#/components/schemas/api.palace.common.PaginationReply'
-                    description: Pagination
-            description: TeamMetricStrategyLevelListReply represents the response data for the list of team metric strategy levels
-        api.palace.TeamMetricStrategyLevelListRequest:
+                    description: Pagination response details
+            description: OperateLogListReply contains the response data for listing operation logs
+        api.palace.TeamOperateLogListRequest:
             type: object
             properties:
-                strategyMetricId:
-                    type: integer
-                    description: Strategy metric id
-                    format: uint32
                 pagination:
                     allOf:
                         - $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                    description: Pagination
-                keyword:
-                    type: string
-                    description: Keyword
-                status:
-                    type: integer
-                    description: Status
-                    format: enum
-                levelId:
-                    type: integer
-                    description: Level id
-                    format: uint32
-            description: TeamMetricStrategyLevelListRequest represents the request data for getting the list of team metric strategy levels
-        api.palace.TeamNoticeGroupSelectReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.SelectItem'
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
-        api.palace.TeamNoticeGroupSelectRequest:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                status:
-                    type: integer
-                    format: enum
-                keyword:
-                    type: string
-        api.palace.TeamNoticeHookSelectReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.SelectItem'
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
-        api.palace.TeamNoticeHookSelectRequest:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                apps:
+                    description: Pagination request details
+                operateTypes:
                     type: array
                     items:
                         type: integer
                         format: enum
-                status:
-                    type: integer
-                    format: enum
+                    description: List of types to filter operation logs by
                 keyword:
                     type: string
-                url:
-                    type: string
+                    description: Keyword to search operation logs by
+                userId:
+                    type: integer
+                    description: User Id, optional for filtering logs by user
+                    format: uint32
+            description: OperateLogListRequest represents the request data for listing operation logs
         api.palace.TransferTeamRequest:
             type: object
             properties:
@@ -4983,21 +3994,6 @@ components:
                     description: New status for the members
                     format: enum
             description: UpdateMemberStatusRequest represents the request data for updating the status of multiple members
-        api.palace.UpdateMetricDatasourceMetadataRequest:
-            type: object
-            properties:
-                datasourceId:
-                    type: integer
-                    format: uint32
-                metadataId:
-                    type: integer
-                    format: uint32
-                help:
-                    type: string
-                unit:
-                    type: string
-                type:
-                    type: string
         api.palace.UpdateRoleStatusRequest:
             type: object
             properties:
@@ -5108,18 +4104,6 @@ components:
                 status:
                     type: integer
                     format: enum
-        api.palace.UpdateTeamMetricStrategyLevelStatusRequest:
-            type: object
-            properties:
-                strategyMetricLevelId:
-                    type: integer
-                    description: Strategy metric level id
-                    format: uint32
-                status:
-                    type: integer
-                    description: Status
-                    format: enum
-            description: UpdateTeamMetricStrategyLevelStatusRequest represents the request data for updating the status of a team metric strategy level
         api.palace.UpdateTeamNoticeGroupStatusRequest:
             type: object
             properties:
@@ -5175,28 +4159,6 @@ components:
                     description: New status for the strategy group
                     format: enum
             description: UpdateTeamStrategyGroupStatusRequest represents the request data for updating the status of a team strategy group
-        api.palace.UpdateTimeEngineRuleStatusRequest:
-            type: object
-            properties:
-                timeEngineRuleIds:
-                    type: array
-                    items:
-                        type: integer
-                        format: uint32
-                status:
-                    type: integer
-                    format: enum
-        api.palace.UpdateTimeEngineStatusRequest:
-            type: object
-            properties:
-                timeEngineIds:
-                    type: array
-                    items:
-                        type: integer
-                        format: uint32
-                status:
-                    type: integer
-                    format: enum
         api.palace.UpdateUserPositionRequest:
             type: object
             properties:
@@ -5274,13 +4236,6 @@ components:
                         - $ref: '#/components/schemas/api.palace.CaptchaValidateRequest'
                     description: Captcha validation information
             description: VerifyEmailRequest represents the request data for email verification
-        api.palace.common.AnnotationsItem:
-            type: object
-            properties:
-                summary:
-                    type: string
-                description:
-                    type: string
         api.palace.common.BasicAuth:
             type: object
             properties:
@@ -5288,44 +4243,14 @@ components:
                     type: string
                 password:
                     type: string
-        api.palace.common.EmailConfigItem:
-            type: object
-            properties:
-                user:
-                    type: string
-                    description: Email user
-                pass:
-                    type: string
-                    description: Email password
-                host:
-                    type: string
-                    description: Email server host
-                port:
-                    type: integer
-                    description: Email server port
-                    format: uint32
-                status:
-                    type: integer
-                    description: Enable email configuration
-                    format: enum
-                name:
-                    type: string
-                    description: Name of the email configuration
-                remark:
-                    type: string
-                    description: Remark of the email configuration
-                emailConfigId:
-                    type: integer
-                    description: emailConfigId of the email configuration
-                    format: uint32
-                creator:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.UserBaseItem'
-                    description: creator of the email configuration
-            description: EmailConfigItem represents the structure of an email configuration
         api.palace.common.EmptyReply:
             type: object
-            properties: {}
+            properties:
+                message:
+                    type: string
+                id:
+                    type: integer
+                    format: uint32
             description: |-
                 EmptyReply represents an empty response, typically used for operations that only need to return a status message.
                  message: A string message, usually used to indicate the execution status.
@@ -5333,26 +4258,6 @@ components:
             type: object
             properties: {}
             description: EmptyRequest represents an empty request, typically used for operations that do not require input parameters.
-        api.palace.common.KeyValueItem:
-            type: object
-            properties:
-                key:
-                    type: string
-                value:
-                    type: string
-        api.palace.common.LabelNotices:
-            type: object
-            properties:
-                key:
-                    type: string
-                value:
-                    type: string
-                receiverRoutes:
-                    type: array
-                    items:
-                        type: integer
-                        format: uint32
-            description: LabelNotices represents the structure of a label notice item.
         api.palace.common.MenuTreeItem:
             type: object
             properties:
@@ -5363,17 +4268,14 @@ components:
                 name:
                     type: string
                     description: Name of the menu tree item
-                menuPath:
+                path:
                     type: string
-                    description: menu path of the menu tree item
-                apiPath:
-                    type: string
-                    description: api path
+                    description: Path of the menu tree item
                 status:
                     type: integer
                     description: Status of the menu tree item
                     format: enum
-                menuIcon:
+                icon:
                     type: string
                     description: Icon of the menu tree item
                 children:
@@ -5383,23 +4285,11 @@ components:
                     description: children of the menu tree item
                 menuType:
                     type: integer
-                    description: Type of the menu tree item
                     format: enum
-                menuCategory:
-                    type: integer
-                    description: Category of the menu tree item
-                    format: enum
-                processType:
-                    type: integer
-                    description: Process type of the menu tree item
-                    format: enum
-                parentId:
-                    type: integer
-                    description: Parent menu id
-                    format: uint32
-                isRelyOnBrother:
-                    type: boolean
-                    description: rely on brother
+                resources:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.ResourceItem'
         api.palace.common.NoticeGroupItem:
             type: object
             properties:
@@ -5452,9 +4342,9 @@ components:
                 secret:
                     type: string
                 headers:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
+                    type: object
+                    additionalProperties:
+                        type: string
                 app:
                     type: integer
                     format: enum
@@ -5480,85 +4370,48 @@ components:
                     $ref: '#/components/schemas/api.palace.common.NoticeGroupItem'
                 member:
                     $ref: '#/components/schemas/api.palace.common.TeamMemberBaseItem'
-                dutyCycles:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.TimeEngineItem'
         api.palace.common.OperateLogItem:
             type: object
             properties:
-                operation:
-                    type: string
-                menuId:
+                operateLogId:
                     type: integer
+                    description: Unique identifier for the operation log.
                     format: uint32
-                menuName:
+                operator:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.common.UserBaseItem'
+                    description: Operator information of the operation requester
+                type:
+                    type: integer
+                    description: Type of the operation
+                    format: enum
+                module:
+                    type: integer
+                    description: ResourceModule of the operation
+                    format: enum
+                dataId:
+                    type: integer
+                    description: DataId of the operation
+                    format: uint32
+                dataName:
                     type: string
-                request:
+                    description: DataName of the operation
+                operateTime:
                     type: string
-                error:
+                    description: OperateTime of the operation
+                title:
                     type: string
-                originRequest:
+                    description: Title of the operation
+                before:
                     type: string
-                duration:
+                    description: Before of the operation
+                after:
                     type: string
-                requestTime:
+                    description: After of the operation
+                ip:
                     type: string
-                replyTime:
-                    type: string
-                clientIP:
-                    type: string
-                userAgent:
-                    type: string
-                userBaseInfo:
-                    type: string
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
+                    description: IP of the operation
             description: OperateLogItem represents the structure of an operation log item.
-        api.palace.common.OperateLogListReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.OperateLogItem'
-                    description: List of operation log items
-                pagination:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.PaginationReply'
-                    description: Pagination response details
-            description: OperateLogListReply contains the response data for listing operation logs
-        api.palace.common.OperateLogListRequest:
-            type: object
-            properties:
-                pagination:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                    description: Pagination request details
-                operateTypes:
-                    type: array
-                    items:
-                        type: integer
-                        format: enum
-                    description: List of types to filter operation logs by
-                keyword:
-                    type: string
-                    description: Keyword to search operation logs by
-                userId:
-                    type: integer
-                    description: User Id, optional for filtering logs by user
-                    format: uint32
-                timeRange:
-                    type: array
-                    items:
-                        type: string
-                    description: Time range to filter operation logs by
-                operation:
-                    type: string
-                    description: Operation
-            description: OperateLogListRequest represents the request data for listing operation logs
         api.palace.common.PaginationReply:
             type: object
             properties:
@@ -5589,70 +4442,40 @@ components:
                 PaginationRequest is used for pagination queries, specifying the page number and the number of items per page.
                  page: The current page number, must be greater than 0.
                  limit: The number of items per page, must be greater than 0 and less than or equal to 10000.
-        api.palace.common.SMSConfigItem:
+        api.palace.common.ResourceItem:
             type: object
             properties:
-                providerType:
+                resourceId:
                     type: integer
-                    description: SMS provider type
-                    format: enum
-                accessKeyId:
-                    type: string
-                    description: Access Key Id for the SMS provider
-                accessKeySecret:
-                    type: string
-                    description: Access Key Secret for the SMS provider
-                signName:
-                    type: string
-                    description: Sign name for the SMS provider
-                endpoint:
-                    type: string
-                    description: Endpoint for the SMS provider
+                    description: Unique identifier for the API resource
+                    format: uint32
                 name:
                     type: string
-                    description: Name of the SMS configuration
-                remark:
+                    description: Name of the API resource
+                path:
                     type: string
-                    description: Remark of the SMS configuration
-                smsConfigId:
-                    type: integer
-                    description: smsConfigId of the SMS configuration
-                    format: uint32
+                    description: Path of the API resource
                 status:
                     type: integer
-                    description: Enable SMS configuration
+                    description: Status of the API resource
                     format: enum
-                creator:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.UserBaseItem'
-                    description: creator of the SMS configuration
-            description: SMSConfigItem represents the structure of an SMS configuration
-        api.palace.common.SelectItem:
-            type: object
-            properties:
-                value:
-                    type: integer
-                    format: uint32
-                label:
-                    type: string
-                disabled:
-                    type: boolean
-                extra:
-                    $ref: '#/components/schemas/api.palace.common.SelectItem_Extra'
-            description: |-
-                SelectItem represents an option in a selection, including its value, display label, and whether it is disabled.
-                 value: The actual value of the option.
-                 label: The label displayed for the option.
-                 disabled: Indicates whether the option is disabled, true for disabled, false for enabled.
-        api.palace.common.SelectItem_Extra:
-            type: object
-            properties:
                 remark:
                     type: string
-                icon:
+                    description: Remarks about the API resource
+                createdAt:
                     type: string
-                color:
+                    description: Creation time of the API resource
+                updatedAt:
                     type: string
+                    description: Last update time of the API resource
+                allow:
+                    type: integer
+                    format: enum
+                menus:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.MenuTreeItem'
+            description: system-api
         api.palace.common.SendMessageLogItem:
             type: object
             properties:
@@ -5675,7 +4498,7 @@ components:
                     type: string
                 updatedAt:
                     type: string
-        api.palace.common.StrategyMetricLevelLabelNotice:
+        api.palace.common.StrategyMetricRuleLabelNotice:
             type: object
             properties:
                 labelNoticeId:
@@ -5739,7 +4562,7 @@ components:
                 resources:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.common.MenuTreeItem'
+                        $ref: '#/components/schemas/api.palace.common.ResourceItem'
                     description: List of resources associated with the system role
                 users:
                     type: array
@@ -5757,8 +4580,6 @@ components:
                     type: string
                 clientKey:
                     type: string
-                skipVerify:
-                    type: boolean
         api.palace.common.TeamAuditItem:
             type: object
             properties:
@@ -5822,8 +4643,7 @@ components:
                 url:
                     type: string
                 width:
-                    type: integer
-                    format: uint32
+                    type: string
                 height:
                     type: string
                 createdAt:
@@ -6010,11 +4830,12 @@ components:
                 endpoint:
                     type: string
                 scrapeInterval:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
                     type: string
                 headers:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
+                    type: object
+                    additionalProperties:
+                        type: string
                 queryMethod:
                     type: integer
                     format: enum
@@ -6025,48 +4846,14 @@ components:
                 basicAuth:
                     $ref: '#/components/schemas/api.palace.common.BasicAuth'
                 extra:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
+                    type: object
+                    additionalProperties:
+                        type: string
                 status:
                     type: integer
                     format: enum
                 creator:
                     $ref: '#/components/schemas/api.palace.common.UserBaseItem'
-        api.palace.common.TeamMetricDatasourceMetadataItem:
-            type: object
-            properties:
-                metadataId:
-                    type: integer
-                    format: uint32
-                datasourceId:
-                    type: integer
-                    format: uint32
-                name:
-                    type: string
-                help:
-                    type: string
-                type:
-                    type: string
-                labels:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.TeamMetricDatasourceMetadataItem_Label'
-                unit:
-                    type: string
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
-        api.palace.common.TeamMetricDatasourceMetadataItem_Label:
-            type: object
-            properties:
-                key:
-                    type: string
-                values:
-                    type: array
-                    items:
-                        type: string
         api.palace.common.TeamRoleItem:
             type: object
             properties:
@@ -6084,11 +4871,11 @@ components:
                     type: integer
                     description: Status of the role.
                     format: enum
-                menus:
+                resources:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.common.MenuTreeItem'
-                    description: List of menus associated with the role.
+                        $ref: '#/components/schemas/api.palace.common.ResourceItem'
+                    description: List of resources associated with the role.
                 members:
                     type: array
                     items:
@@ -6187,28 +4974,30 @@ components:
             properties:
                 base:
                     $ref: '#/components/schemas/api.palace.common.TeamStrategyItem'
-                strategyMetricId:
+                StrategyMetricId:
                     type: integer
                     format: uint32
                 expr:
                     type: string
                 labels:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
+                    type: object
+                    additionalProperties:
+                        type: string
                 annotations:
-                    $ref: '#/components/schemas/api.palace.common.AnnotationsItem'
-                strategyMetricLevels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                strategyMetricRules:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricLevelItem'
+                        $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricItem_RuleItem'
                 datasource:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.palace.common.TeamMetricDatasourceItem'
                 creator:
                     $ref: '#/components/schemas/api.palace.common.UserBaseItem'
-        api.palace.common.TeamStrategyMetricLevelItem:
+        api.palace.common.TeamStrategyMetricItem_RuleItem:
             type: object
             properties:
                 strategyMetricId:
@@ -6216,7 +5005,7 @@ components:
                     format: uint32
                 level:
                     $ref: '#/components/schemas/api.palace.common.TeamDictItem'
-                strategyMetricLevelId:
+                ruleId:
                     type: integer
                     format: uint32
                 sampleMode:
@@ -6233,75 +5022,23 @@ components:
                         type: number
                         format: double
                 duration:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
                     type: string
                 status:
                     type: integer
                     format: enum
-                receiverRoutes:
+                notices:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.palace.common.NoticeGroupItem'
-                labelReceiverRoutes:
+                labelNotices:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.common.StrategyMetricLevelLabelNotice'
+                        $ref: '#/components/schemas/api.palace.common.StrategyMetricRuleLabelNotice'
                 alarmPages:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.palace.common.TeamDictItem'
-        api.palace.common.TimeEngineItem:
-            type: object
-            properties:
-                timeEngineId:
-                    type: integer
-                    format: uint32
-                name:
-                    type: string
-                remark:
-                    type: string
-                status:
-                    type: integer
-                    format: enum
-                rules:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.TimeEngineItemRule'
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
-                creator:
-                    $ref: '#/components/schemas/api.palace.common.UserBaseItem'
-        api.palace.common.TimeEngineItemRule:
-            type: object
-            properties:
-                timeEngineRuleId:
-                    type: integer
-                    format: uint32
-                name:
-                    type: string
-                remark:
-                    type: string
-                status:
-                    type: integer
-                    format: enum
-                engines:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.TimeEngineItem'
-                type:
-                    type: integer
-                    format: enum
-                rules:
-                    type: array
-                    items:
-                        type: string
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
-                creator:
-                    $ref: '#/components/schemas/api.palace.common.UserBaseItem'
         api.palace.common.UserBaseItem:
             type: object
             properties:
@@ -6365,237 +5102,6 @@ components:
                     type: integer
                     description: User's unique identifier
                     format: uint32
-        api.palace.portal.CaptchaValidateRequest:
-            type: object
-            properties:
-                captchaId:
-                    type: string
-                    description: Captcha Id, used to identify the captcha image
-                answer:
-                    type: string
-                    description: User's captcha answer
-            description: CaptchaValidateRequest is used to validate the captcha
-        api.palace.portal.CookieItem:
-            type: object
-            properties:
-                name:
-                    type: string
-                url:
-                    type: string
-                remark:
-                    type: string
-        api.palace.portal.CopyrightItem:
-            type: object
-            properties:
-                name:
-                    type: string
-                url:
-                    type: string
-        api.palace.portal.FeatureItem:
-            type: object
-            properties:
-                title:
-                    type: string
-                remark:
-                    type: string
-                icon:
-                    type: string
-                link:
-                    type: string
-        api.palace.portal.FeaturesReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.portal.FeatureItem'
-        api.palace.portal.FooterItem:
-            type: object
-            properties:
-                name:
-                    type: string
-                url:
-                    type: string
-                remark:
-                    type: string
-        api.palace.portal.FooterReply:
-            type: object
-            properties:
-                remark:
-                    type: string
-                products:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.portal.FooterItem'
-                    description: 产品
-                resources:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.portal.FooterItem'
-                    description: 资源
-                companies:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.portal.FooterItem'
-                    description: 公司
-                terms:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.portal.TermsItem'
-                    description: 服务条款
-                privacy:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.portal.PolicyItem'
-                    description: 隐私政策
-                cookie:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.portal.CookieItem'
-                    description: Cookie 政策
-                copyright:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.portal.CopyrightItem'
-                    description: 版权
-                icp:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.portal.ICPItem'
-                    description: 备案
-        api.palace.portal.GetCaptchaReply:
-            type: object
-            properties:
-                captchaId:
-                    type: string
-                    description: Unique identifier for the captcha
-                captchaImg:
-                    type: string
-                    description: Base64 encoded captcha image data
-                expiredSeconds:
-                    type: integer
-                    description: Captcha expiration time in seconds
-                    format: int32
-            description: GetCaptchaReply contains the response data for the GetCaptcha method
-        api.palace.portal.ICPItem:
-            type: object
-            properties:
-                name:
-                    type: string
-                url:
-                    type: string
-                remark:
-                    type: string
-        api.palace.portal.ListPackageReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.portal.PackageItem'
-        api.palace.portal.LoginInfo:
-            type: object
-            properties:
-                token:
-                    type: string
-                expiresAt:
-                    type: string
-                user:
-                    $ref: '#/components/schemas/api.palace.common.UserBaseItem'
-        api.palace.portal.LoginRequest:
-            type: object
-            properties:
-                email:
-                    type: string
-                password:
-                    type: string
-                code:
-                    type: string
-        api.palace.portal.PackageFeature:
-            type: object
-            properties:
-                name:
-                    type: string
-                remark:
-                    type: string
-        api.palace.portal.PackageItem:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                remark:
-                    type: string
-                price:
-                    type: number
-                    format: double
-                currency:
-                    type: string
-                period:
-                    type: string
-                features:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.portal.PackageFeature'
-        api.palace.portal.PartnerItem:
-            type: object
-            properties:
-                name:
-                    type: string
-                url:
-                    type: string
-                logo:
-                    type: string
-                remark:
-                    type: string
-        api.palace.portal.PartnersReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.portal.PartnerItem'
-        api.palace.portal.PolicyItem:
-            type: object
-            properties:
-                name:
-                    type: string
-                url:
-                    type: string
-                remark:
-                    type: string
-        api.palace.portal.RegisterRequest:
-            type: object
-            properties:
-                email:
-                    type: string
-                password:
-                    type: string
-                code:
-                    type: string
-                username:
-                    type: string
-        api.palace.portal.TermsItem:
-            type: object
-            properties:
-                name:
-                    type: string
-                url:
-                    type: string
-                remark:
-                    type: string
-        api.palace.portal.VerifyEmailRequest:
-            type: object
-            properties:
-                email:
-                    type: string
-                captcha:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.portal.CaptchaValidateRequest'
-                    description: Captcha validation information
-        config.Consul:
-            type: object
-            properties:
-                address:
-                    type: string
-                path:
-                    type: string
         config.Discovery:
             type: object
             properties:
@@ -6606,8 +5112,6 @@ components:
                     type: boolean
                 etcd:
                     $ref: '#/components/schemas/config.Etcd'
-                consul:
-                    $ref: '#/components/schemas/config.Consul'
             description: server discovery config
         config.Etcd:
             type: object
@@ -6672,22 +5176,16 @@ components:
                 name:
                     type: string
                     description: name service name
-                enable:
-                    type: boolean
-                    description: enable micro service
             description: micro server config
 tags:
     - name: Alert
-    - name: Auth
     - name: Auth
       description: Auth service provides authentication related operations
     - name: Callback
     - name: Health
       description: Health Check API
-    - name: Home
-    - name: Menu
-      description: Menu service provides operations for managing menus
-    - name: Pricing
+    - name: Resource
+      description: Resource service provides operations for managing resources
     - name: Server
     - name: System
       description: System service provides operations for managing system users, roles, teams, and audits
@@ -6700,7 +5198,5 @@ tags:
     - name: TeamNotice
     - name: TeamStrategy
       description: TeamStrategy service provides operations for managing team strategy groups and strategies
-    - name: TeamStrategyMetric
-    - name: TimeEngine
     - name: User
       description: User service provides operations for managing user information, teams, and subscriptions

@@ -6,20 +6,15 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/rabbit/internal/data"
-	"github.com/aide-family/moon/pkg/api/rabbit/common"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/email"
-	"github.com/aide-family/moon/pkg/plugin/hook"
-	"github.com/aide-family/moon/pkg/plugin/hook/dingtalk"
-	"github.com/aide-family/moon/pkg/plugin/hook/feishu"
-	"github.com/aide-family/moon/pkg/plugin/hook/other"
-	"github.com/aide-family/moon/pkg/plugin/hook/wechat"
-	"github.com/aide-family/moon/pkg/plugin/sms"
-	"github.com/aide-family/moon/pkg/plugin/sms/alicloud"
-	"github.com/aide-family/moon/pkg/util/safety"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/data"
+	"github.com/moon-monitor/moon/pkg/api/rabbit/common"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/plugin/email"
+	"github.com/moon-monitor/moon/pkg/plugin/hook"
+	"github.com/moon-monitor/moon/pkg/plugin/sms"
+	"github.com/moon-monitor/moon/pkg/plugin/sms/ali"
 )
 
 func NewSendRepo(d *data.Data, logger log.Logger) repository.Send {
@@ -36,7 +31,7 @@ type sendImpl struct {
 
 func (s *sendImpl) Email(_ context.Context, params bo.SendEmailParams) error {
 	if len(params.GetEmails()) == 0 {
-		return merr.ErrorParams("No email is available")
+		return merr.ErrorParamsError("No email is available")
 	}
 	emailInstance, ok := s.GetEmail(params.GetConfig().GetName())
 	if !ok {
@@ -58,7 +53,7 @@ func (s *sendImpl) Email(_ context.Context, params bo.SendEmailParams) error {
 
 func (s *sendImpl) SMS(ctx context.Context, params bo.SendSMSParams) error {
 	if len(params.GetPhoneNumbers()) == 0 {
-		return merr.ErrorParams("No phone number is available")
+		return merr.ErrorParamsError("No phone number is available")
 	}
 	var err error
 	smsInstance, ok := s.GetSms(params.GetConfig().GetName())
@@ -81,7 +76,7 @@ func (s *sendImpl) SMS(ctx context.Context, params bo.SendSMSParams) error {
 
 func (s *sendImpl) Hook(ctx context.Context, params bo.SendHookParams) error {
 	var err error
-	hooks := safety.NewMap(make(map[string]hook.Sender))
+	hooks := make(map[string]hook.Sender)
 	for _, configItem := range params.GetConfigs() {
 		hookInstance, ok := s.GetHook(configItem.GetName())
 		if !ok {
@@ -92,62 +87,62 @@ func (s *sendImpl) Hook(ctx context.Context, params bo.SendHookParams) error {
 			}
 			s.SetHook(configItem.GetName(), hookInstance)
 		}
-		hooks.Set(configItem.GetName(), hookInstance)
+		hooks[configItem.GetName()] = hookInstance
 	}
 
-	if hooks.Len() == 0 {
-		return merr.ErrorParams("No hook is available")
+	if len(hooks) == 0 {
+		return merr.ErrorParamsError("No hook is available")
 	}
-
+	bodyMap := params.GetBody()
 	eg := new(errgroup.Group)
-	eg.SetLimit(10)
-	for _, body := range params.GetBody() {
+	for _, body := range bodyMap {
 		bodyItem := body
 		eg.Go(func() error {
-			sender, ok := hooks.Get(bodyItem.AppName)
+			sender, ok := hooks[bodyItem.AppName]
 			if !ok {
-				return merr.ErrorParams("No hook is available")
+				return merr.ErrorParamsError("No hook is available")
 			}
 			return sender.Send(ctx, bodyItem.Body)
 		})
 	}
+
 	return eg.Wait()
 }
 
 func (s *sendImpl) newSms(config bo.SMSConfig) (sms.Sender, error) {
 	switch config.GetType() {
 	case common.SMSConfig_ALIYUN:
-		return alicloud.New(config, alicloud.WithLogger(s.helper.Logger()))
+		return ali.NewAliyun(config, ali.WithAliyunLogger(s.helper.Logger()))
 	default:
-		return nil, merr.ErrorParams("No SMS configuration is available")
+		return nil, merr.ErrorParamsError("No SMS configuration is available")
 	}
 }
 
 func (s *sendImpl) newHook(config bo.HookConfig) (hook.Sender, error) {
 	switch config.GetApp() {
 	case common.HookAPP_OTHER:
-		opts := []other.Option{
-			other.WithBasicAuth(config.GetUsername(), config.GetPassword()),
-			other.WithLogger(s.helper.Logger()),
-			other.WithHeader(config.GetHeaders()),
+		opts := []hook.OtherHookOption{
+			hook.WithOtherBasicAuth(config.GetUsername(), config.GetPassword()),
+			hook.WithOtherLogger(s.helper.Logger()),
+			hook.WithOtherHeader(config.GetHeaders()),
 		}
-		return other.New(config.GetUrl(), opts...), nil
+		return hook.NewOtherHook(config.GetUrl(), opts...), nil
 	case common.HookAPP_DINGTALK:
-		opts := []dingtalk.Option{
-			dingtalk.WithLogger(s.helper.Logger()),
+		opts := []hook.DingTalkHookOption{
+			hook.WithDingTalkLogger(s.helper.Logger()),
 		}
-		return dingtalk.New(config.GetUrl(), config.GetSecret(), opts...), nil
+		return hook.NewDingTalkHook(config.GetUrl(), config.GetSecret(), opts...), nil
 	case common.HookAPP_WECHAT:
-		opts := []wechat.Option{
-			wechat.WithLogger(s.helper.Logger()),
+		opts := []hook.WechatHookOption{
+			hook.WithWechatLogger(s.helper.Logger()),
 		}
-		return wechat.New(config.GetUrl(), opts...), nil
+		return hook.NewWechatHook(config.GetUrl(), opts...), nil
 	case common.HookAPP_FEISHU:
-		opts := []feishu.Option{
-			feishu.WithLogger(s.helper.Logger()),
+		opts := []hook.FeishuHookOption{
+			hook.WithFeishuLogger(s.helper.Logger()),
 		}
-		return feishu.New(config.GetUrl(), config.GetSecret(), opts...), nil
+		return hook.NewFeishuHook(config.GetUrl(), config.GetSecret(), opts...), nil
 	default:
-		return nil, merr.ErrorParams("No hook configuration is available")
+		return nil, merr.ErrorParamsError("No hook configuration is available")
 	}
 }

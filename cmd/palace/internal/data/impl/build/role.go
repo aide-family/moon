@@ -3,10 +3,10 @@ package build
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func ToRole(ctx context.Context, roleDo do.Role) *system.Role {
@@ -18,16 +18,14 @@ func ToRole(ctx context.Context, roleDo do.Role) *system.Role {
 		role.WithContext(ctx)
 		return role
 	}
-	role = &system.Role{
+	return &system.Role{
 		CreatorModel: ToCreatorModel(ctx, roleDo),
-		Name:         roleDo.GetName(),
-		Remark:       roleDo.GetRemark(),
-		Status:       roleDo.GetStatus(),
-		Users:        ToUsers(ctx, roleDo.GetUsers()),
+		Name:         role.GetName(),
+		Remark:       role.GetRemark(),
+		Status:       role.GetStatus(),
+		Users:        ToUsers(ctx, role.GetUsers()),
 		Menus:        nil,
 	}
-	role.WithContext(ctx)
-	return role
 }
 
 func ToRoles(ctx context.Context, roles []do.Role) []*system.Role {
@@ -48,16 +46,14 @@ func ToTeamRole(ctx context.Context, roleDo do.TeamRole) *system.TeamRole {
 		role.WithContext(ctx)
 		return role
 	}
-	role = &system.TeamRole{
+	return &system.TeamRole{
 		TeamModel: ToTeamModel(ctx, roleDo),
-		Name:      roleDo.GetName(),
-		Remark:    roleDo.GetRemark(),
-		Status:    roleDo.GetStatus(),
-		Members:   ToTeamMembers(ctx, roleDo.GetMembers()),
+		Name:      role.GetName(),
+		Remark:    role.GetRemark(),
+		Status:    role.GetStatus(),
+		Members:   ToTeamMembers(ctx, role.GetMembers()),
 		Menus:     nil,
 	}
-	role.WithContext(ctx)
-	return role
 }
 
 func ToTeamRoles(ctx context.Context, roles []do.TeamRole) []*system.TeamRole {

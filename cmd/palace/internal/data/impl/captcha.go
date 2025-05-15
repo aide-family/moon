@@ -7,11 +7,11 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/mojocn/base64Captcha"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/conf"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/pkg/util/captcha"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/conf"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/pkg/util/captcha"
 )
 
 func NewCaptchaRepo(bc *conf.Bootstrap, d *data.Data, logger log.Logger) repository.Captcha {

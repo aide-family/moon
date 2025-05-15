@@ -7,15 +7,14 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/aide-family/moon/cmd/laurel/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/laurel/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/laurel/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/laurel/internal/conf"
-	"github.com/aide-family/moon/pkg/util/safety"
-	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/laurel/internal/conf"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
-func NewMetricManagerBiz(
+func NewMetricManager(
 	bc *conf.Bootstrap,
 	metricRegisterRepo repository.MetricRegister,
 	cacheRepo repository.Cache,
@@ -45,50 +44,41 @@ func (m *MetricManager) WithMetricData(ctx context.Context, metrics ...*bo.Metri
 	metricDataList := slices.GroupBy(metrics, func(metric *bo.MetricData) vobj.MetricType {
 		return metric.MetricType
 	})
-	safetyMetricDataList := safety.NewMap(metricDataList)
 
 	eg := new(errgroup.Group)
 	eg.Go(func() error {
-		metricDataList, ok := safetyMetricDataList.Get(vobj.MetricTypeCounter)
-		if !ok {
-			return nil
-		}
+		metricDataList := metricDataList[vobj.MetricTypeCounter]
 		if len(metricDataList) == 0 {
 			return nil
 		}
 		return m.metricRegisterRepo.WithCounterMetricValue(ctx, metricDataList...)
 	})
 	eg.Go(func() error {
-		metricDataList, ok := safetyMetricDataList.Get(vobj.MetricTypeGauge)
-		if !ok {
-			return nil
-		}
+		metricDataList := metricDataList[vobj.MetricTypeGauge]
 		if len(metricDataList) == 0 {
 			return nil
 		}
 		return m.metricRegisterRepo.WithGaugeMetricValue(ctx, metricDataList...)
 	})
 	eg.Go(func() error {
-		metricDataList, ok := safetyMetricDataList.Get(vobj.MetricTypeHistogram)
-		if !ok {
-			return nil
-		}
+		metricDataList := metricDataList[vobj.MetricTypeHistogram]
 		if len(metricDataList) == 0 {
 			return nil
 		}
 		return m.metricRegisterRepo.WithHistogramMetricValue(ctx, metricDataList...)
 	})
 	eg.Go(func() error {
-		metricDataList, ok := safetyMetricDataList.Get(vobj.MetricTypeSummary)
-		if !ok {
-			return nil
-		}
+		metricDataList := metricDataList[vobj.MetricTypeSummary]
 		if len(metricDataList) == 0 {
 			return nil
 		}
 		return m.metricRegisterRepo.WithSummaryMetricValue(ctx, metricDataList...)
 	})
-	return eg.Wait()
+	if err := eg.Wait(); err != nil {
+		m.helper.Errorw("msg", "with metric data error", "error", err)
+		return err
+	}
+	return nil
 }
 
 func (m *MetricManager) RegisterCounterMetric(ctx context.Context, metrics ...*bo.CounterMetricVec) error {
@@ -162,7 +152,6 @@ func (m *MetricManager) RegisterSummaryMetric(ctx context.Context, metrics ...*b
 func (m *MetricManager) loadCacheMetrics() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-
 	eg := new(errgroup.Group)
 	eg.Go(func() error {
 		counterMetrics, err := m.cacheRepo.GetCounterMetrics(ctx)
@@ -193,7 +182,7 @@ func (m *MetricManager) loadCacheMetrics() {
 		return m.RegisterSummaryMetric(ctx, summaryMetrics...)
 	})
 	if err := eg.Wait(); err != nil {
-		m.helper.WithContext(ctx).Errorw("method", "loadCacheMetrics", "err", err)
+		m.helper.Errorw("msg", "load cache metrics error", "error", err)
 	}
 }
 
@@ -207,7 +196,6 @@ func (m *MetricManager) loadConfigMetrics(bc *conf.Bootstrap) {
 	})
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-
 	eg := new(errgroup.Group)
 	for metricType, metrics := range metrics {
 		if len(metrics) == 0 {
@@ -237,7 +225,7 @@ func (m *MetricManager) loadConfigMetrics(bc *conf.Bootstrap) {
 		}
 	}
 	if err := eg.Wait(); err != nil {
-		m.helper.WithContext(ctx).Errorw("method", "loadConfigMetrics", "err", err)
+		m.helper.Errorw("msg", "load config metrics error", "error", err)
 	}
 }
 

@@ -6,13 +6,12 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/uuid"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/houyi/internal/conf"
-	"github.com/aide-family/moon/pkg/api/common"
-	"github.com/aide-family/moon/pkg/config"
-	"github.com/aide-family/moon/pkg/hello"
-	"github.com/aide-family/moon/pkg/util/pointer"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/conf"
+	"github.com/moon-monitor/moon/pkg/api/common"
+	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/hello"
+	"github.com/moon-monitor/moon/pkg/util/pointer"
 )
 
 func NewRegisterBiz(bc *conf.Bootstrap, serverRegisterRepo repository.ServerRegister, logger log.Logger) *RegisterBiz {
@@ -35,7 +34,6 @@ func (b *RegisterBiz) register(online bool) *common.ServerRegisterRequest {
 	serverConfig := b.bc.GetServer()
 	jwtConf := b.bc.GetAuth().GetJwt()
 	params := &common.ServerRegisterRequest{
-		ServerType: common.ServerRegisterRequest_HOUYI,
 		Server: &config.MicroServer{
 			Endpoint: serverConfig.GetOutEndpoint(),
 			Secret:   pointer.Of(jwtConf.GetSignKey()),
@@ -56,7 +54,7 @@ func (b *RegisterBiz) register(online bool) *common.ServerRegisterRequest {
 		params.Server.Timeout = serverConfig.GetHttp().GetTimeout()
 	}
 	register := b.bc.GetRegistry()
-	if validate.IsNotNil(register) && register.GetEnable() {
+	if register != nil {
 		params.Discovery = &config.Discovery{
 			Driver: register.GetDriver(),
 			Enable: register.GetEnable(),

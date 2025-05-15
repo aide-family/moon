@@ -9,38 +9,38 @@ import (
 	"gorm.io/gen"
 	"gorm.io/gorm"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/event"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/timex"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/event"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/cmd/palace/internal/helper/permission"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func NewSendMessageLog(data *data.Data) repository.SendMessageLog {
-	return &sendMessageLogRepoImpl{
+	return &sendMessageLogImpl{
 		Data: data,
 	}
 }
 
-type sendMessageLogRepoImpl struct {
+type sendMessageLogImpl struct {
 	*data.Data
 }
 
-func (s *sendMessageLogRepoImpl) Retry(ctx context.Context, params *bo.RetrySendMessageParams) error {
+func (s *sendMessageLogImpl) Retry(ctx context.Context, params *bo.RetrySendMessageParams) error {
 	if params.TeamID > 0 {
 		return s.retryTeamSendMessageLog(ctx, params)
 	}
 	return s.retrySystemSendMessageLog(ctx, params)
 }
 
-func (s *sendMessageLogRepoImpl) getTeamSendMessageLogTableName(ctx context.Context, sendAt time.Time) (string, error) {
+func (s *sendMessageLogImpl) getTeamSendMessageLogTableName(ctx context.Context, sendAt time.Time) (string, error) {
 	teamId, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return "", merr.ErrorPermissionDenied("team id not found")
@@ -52,12 +52,12 @@ func (s *sendMessageLogRepoImpl) getTeamSendMessageLogTableName(ctx context.Cont
 	return event.GetSendMessageLogTableName(teamId, sendAt, bizDB.GetDB())
 }
 
-func (s *sendMessageLogRepoImpl) getSystemSendMessageLogTableName(sendAt time.Time) (string, error) {
+func (s *sendMessageLogImpl) getSystemSendMessageLogTableName(sendAt time.Time) (string, error) {
 	tx := s.GetMainDB()
 	return system.GetSendMessageLogTableName(sendAt, tx.GetDB())
 }
 
-func (s *sendMessageLogRepoImpl) retryTeamSendMessageLog(ctx context.Context, params *bo.RetrySendMessageParams) error {
+func (s *sendMessageLogImpl) retryTeamSendMessageLog(ctx context.Context, params *bo.RetrySendMessageParams) error {
 	tx, teamId := getTeamEventQueryWithTeamID(ctx, s)
 	tableName, err := s.getTeamSendMessageLogTableName(ctx, params.SendAt)
 	if err != nil {
@@ -70,7 +70,7 @@ func (s *sendMessageLogRepoImpl) retryTeamSendMessageLog(ctx context.Context, pa
 	return err
 }
 
-func (s *sendMessageLogRepoImpl) retrySystemSendMessageLog(ctx context.Context, params *bo.RetrySendMessageParams) error {
+func (s *sendMessageLogImpl) retrySystemSendMessageLog(ctx context.Context, params *bo.RetrySendMessageParams) error {
 	tx := getMainQuery(ctx, s)
 	tableName, err := s.getSystemSendMessageLogTableName(params.SendAt)
 	if err != nil {
@@ -84,7 +84,7 @@ func (s *sendMessageLogRepoImpl) retrySystemSendMessageLog(ctx context.Context, 
 }
 
 // List implements repository.SendMessageLog.
-func (s *sendMessageLogRepoImpl) List(ctx context.Context, params *bo.ListSendMessageLogParams) (*bo.ListSendMessageLogReply, error) {
+func (s *sendMessageLogImpl) List(ctx context.Context, params *bo.ListSendMessageLogParams) (*bo.ListSendMessageLogReply, error) {
 	if params.TeamID > 0 {
 		return s.listTeamSendMessageLog(ctx, params)
 	}
@@ -92,7 +92,7 @@ func (s *sendMessageLogRepoImpl) List(ctx context.Context, params *bo.ListSendMe
 }
 
 // Get implements repository.SendMessageLog.
-func (s *sendMessageLogRepoImpl) Get(ctx context.Context, params *bo.GetSendMessageLogParams) (do.SendMessageLog, error) {
+func (s *sendMessageLogImpl) Get(ctx context.Context, params *bo.GetSendMessageLogParams) (do.SendMessageLog, error) {
 	if params.TeamID > 0 {
 		return s.getTeamSendMessageLog(ctx, params)
 	}
@@ -100,21 +100,21 @@ func (s *sendMessageLogRepoImpl) Get(ctx context.Context, params *bo.GetSendMess
 }
 
 // UpdateStatus implements repository.SendMessageLog.
-func (s *sendMessageLogRepoImpl) UpdateStatus(ctx context.Context, params *bo.UpdateSendMessageLogStatusParams) error {
+func (s *sendMessageLogImpl) UpdateStatus(ctx context.Context, params *bo.UpdateSendMessageLogStatusParams) error {
 	if params.TeamID > 0 {
 		return s.updateTeamSendMessageLog(ctx, params)
 	}
 	return s.updateSystemSendMessageLog(ctx, params)
 }
 
-func (s *sendMessageLogRepoImpl) Create(ctx context.Context, params *bo.CreateSendMessageLogParams) error {
+func (s *sendMessageLogImpl) Create(ctx context.Context, params *bo.CreateSendMessageLogParams) error {
 	if params.TeamID > 0 {
 		return s.createTeamSendMessageLog(ctx, params)
 	}
 	return s.createSystemSendMessageLog(ctx, params)
 }
 
-func (s *sendMessageLogRepoImpl) createTeamSendMessageLog(ctx context.Context, params *bo.CreateSendMessageLogParams) error {
+func (s *sendMessageLogImpl) createTeamSendMessageLog(ctx context.Context, params *bo.CreateSendMessageLogParams) error {
 	sendMessageLog := &event.SendMessageLog{
 		TeamID:      params.TeamID,
 		MessageType: params.MessageType,
@@ -135,7 +135,7 @@ func (s *sendMessageLogRepoImpl) createTeamSendMessageLog(ctx context.Context, p
 	return sendMessageLogTx.WithContext(ctx).Create(sendMessageLog)
 }
 
-func (s *sendMessageLogRepoImpl) createSystemSendMessageLog(ctx context.Context, params *bo.CreateSendMessageLogParams) error {
+func (s *sendMessageLogImpl) createSystemSendMessageLog(ctx context.Context, params *bo.CreateSendMessageLogParams) error {
 	sendMessageLog := &system.SendMessageLog{
 		SentAt:      params.SendAt,
 		MessageType: params.MessageType,
@@ -155,7 +155,7 @@ func (s *sendMessageLogRepoImpl) createSystemSendMessageLog(ctx context.Context,
 	return sendMessageLogTx.WithContext(ctx).Create(sendMessageLog)
 }
 
-func (s *sendMessageLogRepoImpl) getTeamSendMessageLog(ctx context.Context, params *bo.GetSendMessageLogParams) (do.SendMessageLog, error) {
+func (s *sendMessageLogImpl) getTeamSendMessageLog(ctx context.Context, params *bo.GetSendMessageLogParams) (do.SendMessageLog, error) {
 	ctx = permission.WithTeamIDContext(ctx, params.TeamID)
 	tx, teamId := getTeamEventQueryWithTeamID(ctx, s)
 	tableName, err := s.getTeamSendMessageLogTableName(ctx, params.SendAt)
@@ -175,7 +175,7 @@ func (s *sendMessageLogRepoImpl) getTeamSendMessageLog(ctx context.Context, para
 	return sendMessageLog, nil
 }
 
-func (s *sendMessageLogRepoImpl) getSystemSendMessageLog(ctx context.Context, params *bo.GetSendMessageLogParams) (do.SendMessageLog, error) {
+func (s *sendMessageLogImpl) getSystemSendMessageLog(ctx context.Context, params *bo.GetSendMessageLogParams) (do.SendMessageLog, error) {
 	tx := getMainQuery(ctx, s)
 	tableName, err := s.getSystemSendMessageLogTableName(params.SendAt)
 	if err != nil {
@@ -193,7 +193,7 @@ func (s *sendMessageLogRepoImpl) getSystemSendMessageLog(ctx context.Context, pa
 	return sendMessageLog, nil
 }
 
-func (s *sendMessageLogRepoImpl) updateTeamSendMessageLog(ctx context.Context, params *bo.UpdateSendMessageLogStatusParams) error {
+func (s *sendMessageLogImpl) updateTeamSendMessageLog(ctx context.Context, params *bo.UpdateSendMessageLogStatusParams) error {
 	ctx = permission.WithTeamIDContext(ctx, params.TeamID)
 	tx, teamId := getTeamEventQueryWithTeamID(ctx, s)
 	tableName, err := s.getTeamSendMessageLogTableName(ctx, params.SendAt)
@@ -216,7 +216,7 @@ func (s *sendMessageLogRepoImpl) updateTeamSendMessageLog(ctx context.Context, p
 	return wrapper.Save(sendMessageLog)
 }
 
-func (s *sendMessageLogRepoImpl) updateSystemSendMessageLog(ctx context.Context, params *bo.UpdateSendMessageLogStatusParams) error {
+func (s *sendMessageLogImpl) updateSystemSendMessageLog(ctx context.Context, params *bo.UpdateSendMessageLogStatusParams) error {
 	tx := getMainQuery(ctx, s)
 	tableName, err := s.getSystemSendMessageLogTableName(params.SendAt)
 	if err != nil {
@@ -237,7 +237,7 @@ func (s *sendMessageLogRepoImpl) updateSystemSendMessageLog(ctx context.Context,
 	return wrapper.Save(sendMessageLog)
 }
 
-func (s *sendMessageLogRepoImpl) listTeamSendMessageLog(ctx context.Context, params *bo.ListSendMessageLogParams) (*bo.ListSendMessageLogReply, error) {
+func (s *sendMessageLogImpl) listTeamSendMessageLog(ctx context.Context, params *bo.ListSendMessageLogParams) (*bo.ListSendMessageLogReply, error) {
 	eventDB, err := s.GetEventDB(params.TeamID)
 	if err != nil {
 		return nil, err
@@ -275,10 +275,10 @@ func (s *sendMessageLogRepoImpl) listTeamSendMessageLog(ctx context.Context, par
 	rows := slices.Map(sendMessageLogs, func(log *event.SendMessageLog) do.SendMessageLog {
 		return log
 	})
-	return params.ToListReply(rows), nil
+	return params.ToListSendMessageLogReply(rows), nil
 }
 
-func (s *sendMessageLogRepoImpl) buildSendMessageLogWrapper(eventDB *gorm.DB, params *bo.ListSendMessageLogParams) *gorm.DB {
+func (s *sendMessageLogImpl) buildSendMessageLogWrapper(eventDB *gorm.DB, params *bo.ListSendMessageLogParams) *gorm.DB {
 	if validate.TextIsNotNull(params.Keyword) {
 		eventDB = eventDB.Where("message LIKE ?", params.Keyword)
 	}
@@ -297,7 +297,7 @@ func (s *sendMessageLogRepoImpl) buildSendMessageLogWrapper(eventDB *gorm.DB, pa
 	return eventDB
 }
 
-func (s *sendMessageLogRepoImpl) listSystemSendMessageLog(ctx context.Context, params *bo.ListSendMessageLogParams) (*bo.ListSendMessageLogReply, error) {
+func (s *sendMessageLogImpl) listSystemSendMessageLog(ctx context.Context, params *bo.ListSendMessageLogParams) (*bo.ListSendMessageLogReply, error) {
 	mainDB := s.GetMainDB().GetDB()
 	startAt, endAt := params.TimeRange[0], params.TimeRange[1]
 	if startAt.IsZero() {
@@ -331,5 +331,5 @@ func (s *sendMessageLogRepoImpl) listSystemSendMessageLog(ctx context.Context, p
 	rows := slices.Map(sendMessageLogs, func(log *system.SendMessageLog) do.SendMessageLog {
 		return log
 	})
-	return params.ToListReply(rows), nil
+	return params.ToListSendMessageLogReply(rows), nil
 }

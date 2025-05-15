@@ -3,11 +3,11 @@ package do
 import (
 	"time"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/timer"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/util/timer"
 )
 
-// TimeEngine represents the time engine interface
+// TimeEngine 时间引擎接口
 type TimeEngine interface {
 	TeamBase
 	GetName() string
@@ -17,7 +17,7 @@ type TimeEngine interface {
 	Allow(time.Time) (bool, error)
 }
 
-// TimeEngineRule represents the time engine rule interface
+// TimeEngineRule 时间引擎规则接口
 type TimeEngineRule interface {
 	TeamBase
 	GetName() string

@@ -195,9 +195,7 @@ func (c *client) Get(api string, params ...url.Values) (*http.Response, error) {
 	urlParams := url.Values{}
 	for _, param := range params {
 		for k, v := range param {
-			for _, s := range v {
-				urlParams.Add(k, s)
-			}
+			urlParams.Set(k, v[0])
 		}
 	}
 	api = api + "?" + urlParams.Encode()

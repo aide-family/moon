@@ -9,5 +9,4 @@ const (
 	OAuthAPPUnknown OAuthAPP = iota // unknown
 	OAuthAPPGithub                  // github
 	OAuthAPPGitee                   // gitee
-	OAuthAPPFeiShu                  // feishu
 )

@@ -5,7 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/base64"
 
-	"github.com/go-kratos/kratos/v2/errors"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
 var _ sql.Scanner = (*String)(nil)
@@ -27,21 +27,21 @@ func (s *String) Scan(value interface{}) error {
 		return nil
 	}
 	val := ""
-	switch v := value.(type) {
+	switch value.(type) {
 	case string:
-		val = v
+		val = value.(string)
 		if len(val) == 0 {
 			*s = ""
 			return nil
 		}
 	case []byte:
-		val = string(v)
+		val = string(value.([]byte))
 		if len(val) == 0 {
 			*s = ""
 			return nil
 		}
 	default:
-		return errors.New(400, "INVALID_VALUE_TYPE_OF_CRYPTO_STRING", "invalid value type of crypto.String")
+		return merr.ErrorInternalServerError("invalid value type of crypto.String")
 	}
 	decodedString, err := base64.StdEncoding.DecodeString(val)
 	if err != nil {

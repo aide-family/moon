@@ -9,7 +9,7 @@ var ProviderSetService = wire.NewSet(
 	NewAuthService,
 	NewHealthService,
 	NewServerService,
-	NewMenuService,
+	NewResourceService,
 	NewUserService,
 	NewCallbackService,
 	NewTeamDashboardService,
@@ -22,6 +22,4 @@ var ProviderSetService = wire.NewSet(
 	NewLoadService,
 	NewTeamLogService,
 	NewAlertService,
-	NewTimeEngineService,
-	NewTeamStrategyMetricService,
 )

@@ -1,8 +1,8 @@
 package do
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/plugin/cache"
 )
 
 type TeamMember interface {
@@ -13,7 +13,7 @@ type TeamMember interface {
 	GetRemark() string
 	GetUserID() uint32
 	GetInviterID() uint32
-	GetPosition() vobj.Position
+	GetPosition() vobj.Role
 	GetStatus() vobj.MemberStatus
 	GetRoles() []TeamRole
 	GetUser() User

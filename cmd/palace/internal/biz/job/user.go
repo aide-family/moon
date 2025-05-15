@@ -6,23 +6,23 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/robfig/cron/v3"
-
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
+	
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/pkg/plugin/server"
 )
 
-var _ cron_server.CronJob = (*userJob)(nil)
+var _ server.CronJob = (*userJob)(nil)
 
 func NewUserJob(
 	userRepo repository.User,
 	cacheRepo repository.Cache,
 	logger log.Logger,
-) cron_server.CronJob {
+) server.CronJob {
 	return &userJob{
 		index:     "cache.user",
 		id:        0,
-		spec:      cron_server.CronSpecEvery(10 * time.Minute),
+		spec:      server.CronSpecEvery(10 * time.Minute),
 		helper:    log.NewHelper(log.With(logger, "module", "job.user")),
 		userRepo:  userRepo,
 		cacheRepo: cacheRepo,
@@ -30,9 +30,10 @@ func NewUserJob(
 }
 
 type userJob struct {
-	index     string
-	id        cron.EntryID
-	spec      cron_server.CronSpec
+	index string
+	id    cron.EntryID
+	spec  server.CronSpec
+
 	helper    *log.Helper
 	userRepo  repository.User
 	cacheRepo repository.Cache
@@ -63,7 +64,7 @@ func (u *userJob) Run() {
 		if userListReply.Total < pageReq.Limit {
 			break
 		}
-		pageReq.Page++
+		pageReq.PaginationRequest.Page++
 	}
 
 }
@@ -76,16 +77,11 @@ func (u *userJob) Index() string {
 	return u.index
 }
 
-func (u *userJob) Spec() cron_server.CronSpec {
+func (u *userJob) Spec() server.CronSpec {
 	return u.spec
 }
 
-func (u *userJob) WithID(id cron.EntryID) cron_server.CronJob {
+func (u *userJob) WithID(id cron.EntryID) server.CronJob {
 	u.id = id
 	return u
-}
-
-// IsImmediate implements server.CronJob.
-func (u *userJob) IsImmediate() bool {
-	return false
 }

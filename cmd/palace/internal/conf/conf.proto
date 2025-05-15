@@ -5,7 +5,7 @@ package cmd.palace.internal.conf;
 import "google/protobuf/duration.proto";
 import "config.proto";
 
-option go_package = "github.com/aide-family/moon/cmd/palace/internal/conf;conf";
+option go_package = "github.com/moon-monitor/moon/cmd/palace/internal/conf;conf";
 
 message Bootstrap {
   config.Environment environment = 1;
@@ -18,9 +18,6 @@ message Bootstrap {
   config.Crypto crypto = 8;
   FilingInformation filing = 9;
   config.EmailConfig email = 10;
-  config.I18N i18n = 11;
-  config.HTTPServer portal = 12;
-  config.ConfigSource configSource = 13;
 }
 
 message Data {
@@ -38,7 +35,6 @@ message Auth {
       UNKNOWN = 0;
       GITHUB = 1;
       GITEE = 2;
-      FEISHU = 3;
     }
     message Config {
       APP app = 1;
@@ -57,7 +53,6 @@ message Auth {
   config.JWT jwt = 1;
   Captcha captcha = 2;
   OAuth2 oauth2 = 3;
-  OAuth2 oauth2Portal = 4;
 }
 
 message FilingInformation {

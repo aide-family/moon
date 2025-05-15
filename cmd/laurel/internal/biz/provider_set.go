@@ -8,6 +8,5 @@ import (
 var ProviderSetBiz = wire.NewSet(
 	NewHealthBiz,
 	NewRegisterBiz,
-	NewMetricManagerBiz,
-	NewScriptBiz,
+	NewMetricManager,
 )

@@ -7,29 +7,28 @@ import (
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/pkg/util/crypto"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/pkg/util/crypto"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func NewTeamConfigEmailRepo(data *data.Data, logger log.Logger) repository.TeamEmailConfig {
-	return &teamConfigEmailRepoImpl{
+	return &teamConfigEmailImpl{
 		Data:   data,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.team_config_email")),
 	}
 }
 
-type teamConfigEmailRepoImpl struct {
+type teamConfigEmailImpl struct {
 	*data.Data
 	helper *log.Helper
 }
 
-func (t *teamConfigEmailRepoImpl) Get(ctx context.Context, id uint32) (do.TeamEmailConfig, error) {
+func (t *teamConfigEmailImpl) Get(ctx context.Context, id uint32) (do.TeamEmailConfig, error) {
 	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizEmailConfigQuery := bizQuery.EmailConfig
 	wrappers := []gen.Condition{
@@ -43,7 +42,7 @@ func (t *teamConfigEmailRepoImpl) Get(ctx context.Context, id uint32) (do.TeamEm
 	return emailConfig, nil
 }
 
-func (t *teamConfigEmailRepoImpl) List(ctx context.Context, req *bo.ListEmailConfigRequest) (*bo.ListEmailConfigListReply, error) {
+func (t *teamConfigEmailImpl) List(ctx context.Context, req *bo.ListEmailConfigRequest) (*bo.ListEmailConfigListReply, error) {
 	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizEmailConfigQuery := bizQuery.EmailConfig
 	wrapper := bizEmailConfigQuery.WithContext(ctx).Where(bizEmailConfigQuery.TeamID.Eq(teamID))
@@ -65,11 +64,10 @@ func (t *teamConfigEmailRepoImpl) List(ctx context.Context, req *bo.ListEmailCon
 	if err != nil {
 		return nil, err
 	}
-	rows := slices.Map(emailConfigs, func(emailConfig *team.EmailConfig) do.TeamEmailConfig { return emailConfig })
-	return req.ToListReply(rows), nil
+	return req.ToListEmailConfigListReply(emailConfigs), nil
 }
 
-func (t *teamConfigEmailRepoImpl) Create(ctx context.Context, config bo.TeamEmailConfig) error {
+func (t *teamConfigEmailImpl) Create(ctx context.Context, config bo.TeamEmailConfig) error {
 	emailConfigDo := &team.EmailConfig{
 		TeamModel: do.TeamModel{},
 		Name:      config.GetName(),
@@ -83,7 +81,7 @@ func (t *teamConfigEmailRepoImpl) Create(ctx context.Context, config bo.TeamEmai
 	return bizEmailConfigQuery.WithContext(ctx).Create(emailConfigDo)
 }
 
-func (t *teamConfigEmailRepoImpl) Update(ctx context.Context, config bo.TeamEmailConfig) error {
+func (t *teamConfigEmailImpl) Update(ctx context.Context, config bo.TeamEmailConfig) error {
 	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizEmailConfigQuery := bizQuery.EmailConfig
 	wrappers := []gen.Condition{
@@ -98,18 +96,4 @@ func (t *teamConfigEmailRepoImpl) Update(ctx context.Context, config bo.TeamEmai
 	}
 	_, err := bizEmailConfigQuery.WithContext(ctx).Where(wrappers...).UpdateColumnSimple(mutations...)
 	return err
-}
-
-func (t *teamConfigEmailRepoImpl) FindByIds(ctx context.Context, ids []uint32) ([]do.TeamEmailConfig, error) {
-	if len(ids) == 0 {
-		return nil, nil
-	}
-	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
-	bizEmailConfigQuery := bizQuery.EmailConfig
-	wrapper := bizEmailConfigQuery.WithContext(ctx).Where(bizEmailConfigQuery.TeamID.Eq(teamID), bizEmailConfigQuery.ID.In(ids...))
-	emailConfigs, err := wrapper.Preload(field.Associations).Find()
-	if err != nil {
-		return nil, err
-	}
-	return slices.Map(emailConfigs, func(emailConfig *team.EmailConfig) do.TeamEmailConfig { return emailConfig }), nil
 }

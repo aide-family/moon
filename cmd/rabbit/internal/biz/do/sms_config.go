@@ -3,8 +3,8 @@ package do
 import (
 	"encoding/json"
 
-	"github.com/aide-family/moon/pkg/api/rabbit/common"
-	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/moon-monitor/moon/pkg/api/rabbit/common"
+	"github.com/moon-monitor/moon/pkg/plugin/cache"
 )
 
 var _ cache.Object = (*SMSConfig)(nil)

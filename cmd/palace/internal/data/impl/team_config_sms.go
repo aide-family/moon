@@ -6,27 +6,26 @@ import (
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/pkg/util/crypto"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/pkg/util/crypto"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func NewTeamConfigSMSRepo(data *data.Data) repository.TeamSMSConfig {
-	return &teamConfigSMSRepoImpl{
+	return &teamConfigSMSImpl{
 		Data: data,
 	}
 }
 
-type teamConfigSMSRepoImpl struct {
+type teamConfigSMSImpl struct {
 	*data.Data
 }
 
-func (t *teamConfigSMSRepoImpl) List(ctx context.Context, req *bo.ListSMSConfigRequest) (*bo.ListSMSConfigListReply, error) {
+func (t *teamConfigSMSImpl) List(ctx context.Context, req *bo.ListSMSConfigRequest) (*bo.ListSMSConfigListReply, error) {
 	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizSMSConfigQuery := bizQuery.SmsConfig
 	wrapper := bizSMSConfigQuery.WithContext(ctx).Where(bizSMSConfigQuery.TeamID.Eq(teamID))
@@ -54,11 +53,10 @@ func (t *teamConfigSMSRepoImpl) List(ctx context.Context, req *bo.ListSMSConfigR
 	if err != nil {
 		return nil, err
 	}
-	rows := slices.Map(smsConfigs, func(smsConfig *team.SmsConfig) do.TeamSMSConfig { return smsConfig })
-	return req.ToListReply(rows), nil
+	return req.ToListSMSConfigListReply(smsConfigs), nil
 }
 
-func (t *teamConfigSMSRepoImpl) Create(ctx context.Context, config bo.TeamSMSConfig) error {
+func (t *teamConfigSMSImpl) Create(ctx context.Context, config bo.TeamSMSConfig) error {
 	smsConfigDo := &team.SmsConfig{
 		TeamModel: do.TeamModel{},
 		Name:      config.GetName(),
@@ -73,7 +71,7 @@ func (t *teamConfigSMSRepoImpl) Create(ctx context.Context, config bo.TeamSMSCon
 	return bizSMSConfigQuery.WithContext(ctx).Create(smsConfigDo)
 }
 
-func (t *teamConfigSMSRepoImpl) Update(ctx context.Context, config bo.TeamSMSConfig) error {
+func (t *teamConfigSMSImpl) Update(ctx context.Context, config bo.TeamSMSConfig) error {
 	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizSMSConfigQuery := bizQuery.SmsConfig
 	wrappers := []gen.Condition{
@@ -91,7 +89,7 @@ func (t *teamConfigSMSRepoImpl) Update(ctx context.Context, config bo.TeamSMSCon
 	return err
 }
 
-func (t *teamConfigSMSRepoImpl) Get(ctx context.Context, id uint32) (do.TeamSMSConfig, error) {
+func (t *teamConfigSMSImpl) Get(ctx context.Context, id uint32) (do.TeamSMSConfig, error) {
 	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizSMSConfigQuery := bizQuery.SmsConfig
 	wrapper := []gen.Condition{
@@ -103,18 +101,4 @@ func (t *teamConfigSMSRepoImpl) Get(ctx context.Context, id uint32) (do.TeamSMSC
 		return nil, teamSMSConfigNotFound(err)
 	}
 	return smsConfig, nil
-}
-
-func (t *teamConfigSMSRepoImpl) FindByIds(ctx context.Context, ids []uint32) ([]do.TeamSMSConfig, error) {
-	if len(ids) == 0 {
-		return nil, nil
-	}
-	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
-	bizSMSConfigQuery := bizQuery.SmsConfig
-	wrapper := bizSMSConfigQuery.WithContext(ctx).Where(bizSMSConfigQuery.TeamID.Eq(teamID), bizSMSConfigQuery.ID.In(ids...))
-	smsConfigs, err := wrapper.Preload(field.Associations).Find()
-	if err != nil {
-		return nil, err
-	}
-	return slices.Map(smsConfigs, func(smsConfig *team.SmsConfig) do.TeamSMSConfig { return smsConfig }), nil
 }

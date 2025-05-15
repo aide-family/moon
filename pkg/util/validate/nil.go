@@ -6,16 +6,7 @@ import (
 
 // IsNil checks if the given interface is nil or a pointer to nil.
 func IsNil(i interface{}) bool {
-	if i == nil {
-		return true
-	}
-	v := reflect.ValueOf(i)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Func:
-		return v.IsNil()
-	default:
-		return false
-	}
+	return i == nil || (reflect.ValueOf(i).Kind() == reflect.Ptr && reflect.ValueOf(i).IsNil())
 }
 
 // IsNotNil checks if the given interface is not nil or a pointer to nil.

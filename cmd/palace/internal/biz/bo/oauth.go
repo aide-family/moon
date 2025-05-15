@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 type IOAuthUser interface {
@@ -35,18 +35,12 @@ type VerifyEmailParams struct {
 	SendEmailFun SendEmailFun
 }
 
-type VerifyEmailCodeParams struct {
-	Email string
-	Code  string
-}
-
 type OAuthLoginParams struct {
-	APP          vobj.OAuthAPP
-	From         vobj.OAuthFrom
-	Code         string
-	Email        string
-	OpenID       string
-	Token        string
+	APP          vobj.OAuthAPP `json:"app"`
+	Code         string        `json:"code"`
+	Email        string        `json:"email"`
+	OpenID       string        `json:"openID"`
+	Token        string        `json:"token"`
 	SendEmailFun SendEmailFun
 }
 
@@ -61,13 +55,13 @@ func NewOAuthRowData(app vobj.OAuthAPP, row string) (IOAuthUser, error) {
 		err := json.Unmarshal([]byte(row), &giteeUser)
 		return &giteeUser, err
 	default:
-		return nil, merr.ErrorInternalServer("unknown oauth app")
+		return nil, merr.ErrorInternalServerError("unknown oauth app")
 	}
 }
 
 var _ IOAuthUser = (*GithubUser)(nil)
 
-// GithubUser represents a GitHub user
+// GithubUser Github用户
 type GithubUser struct {
 	AvatarURL         string `json:"avatar_url"`
 	Bio               string `json:"bio"`
@@ -115,17 +109,17 @@ func (g *GithubUser) GetUserID() uint32 {
 	return g.userID
 }
 
-// GetNickname gets the nickname
+// GetNickname 获取昵称
 func (g *GithubUser) GetNickname() string {
 	return g.Name
 }
 
-// GetOpenID gets the OpenID
+// GetOpenID 获取OpenID
 func (g *GithubUser) GetOpenID() string {
 	return strconv.FormatUint(uint64(g.ID), 10)
 }
 
-// GetEmail gets the email
+// GetEmail 获取邮箱
 func (g *GithubUser) GetEmail() string {
 	if err := validate.CheckEmail(g.Email); err != nil {
 		return ""
@@ -133,27 +127,27 @@ func (g *GithubUser) GetEmail() string {
 	return g.Email
 }
 
-// GetRemark gets the remark
+// GetRemark 获取备注
 func (g *GithubUser) GetRemark() string {
 	return g.Bio
 }
 
-// GetUsername gets the username
+// GetUsername 获取用户名
 func (g *GithubUser) GetUsername() string {
 	return g.Login
 }
 
-// GetAvatar gets the avatar
+// GetAvatar 获取头像
 func (g *GithubUser) GetAvatar() string {
 	return g.AvatarURL
 }
 
-// GetAPP gets the OAuth application
+// GetAPP 获取OAuth应用
 func (g *GithubUser) GetAPP() vobj.OAuthAPP {
 	return vobj.OAuthAPPGithub
 }
 
-// String converts the GitHub user to a string
+// String 将Github用户转换为字符串
 func (g *GithubUser) String() string {
 	bs, _ := json.Marshal(g)
 	return string(bs)
@@ -202,12 +196,12 @@ func (g *GiteeUser) GetUserID() uint32 {
 	return g.userID
 }
 
-// GetOpenID gets the OpenID
+// GetOpenID 获取OpenID
 func (g *GiteeUser) GetOpenID() string {
 	return strconv.FormatUint(uint64(g.ID), 10)
 }
 
-// GetEmail gets the email
+// GetEmail 获取邮箱
 func (g *GiteeUser) GetEmail() string {
 	if err := validate.CheckEmail(g.Email); err != nil {
 		return ""
@@ -215,32 +209,32 @@ func (g *GiteeUser) GetEmail() string {
 	return g.Email
 }
 
-// GetRemark gets the remark
+// GetRemark 获取备注
 func (g *GiteeUser) GetRemark() string {
 	return g.Remark
 }
 
-// GetUsername gets the username
+// GetUsername 获取用户名
 func (g *GiteeUser) GetUsername() string {
 	return g.Login
 }
 
-// GetNickname gets the nickname
+// GetNickname 获取昵称
 func (g *GiteeUser) GetNickname() string {
 	return g.Name
 }
 
-// GetAvatar gets the avatar
+// GetAvatar 获取头像
 func (g *GiteeUser) GetAvatar() string {
 	return g.AvatarURL
 }
 
-// GetAPP gets the OAuth application
+// GetAPP 获取OAuth应用
 func (g *GiteeUser) GetAPP() vobj.OAuthAPP {
 	return vobj.OAuthAPPGitee
 }
 
-// String converts the Gitee user to a string
+// String 将Gitee用户转换为字符串
 func (g *GiteeUser) String() string {
 	bs, _ := json.Marshal(g)
 	return string(bs)

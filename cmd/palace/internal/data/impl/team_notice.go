@@ -7,29 +7,28 @@ import (
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/cmd/palace/internal/data/impl/build"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func NewTeamNotice(data *data.Data, logger log.Logger) repository.TeamNotice {
-	return &teamNoticeRepoImpl{
+	return &teamNoticeImpl{
 		Data:   data,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.team_notice")),
 	}
 }
 
-type teamNoticeRepoImpl struct {
+type teamNoticeImpl struct {
 	*data.Data
 	helper *log.Helper
 }
 
-func (t *teamNoticeRepoImpl) List(ctx context.Context, req *bo.ListNoticeGroupReq) (*bo.ListNoticeGroupReply, error) {
+func (t *teamNoticeImpl) List(ctx context.Context, req *bo.ListNoticeGroupReq) (*bo.ListNoticeGroupReply, error) {
 	if validate.IsNil(req) {
 		return nil, nil
 	}
@@ -49,7 +48,7 @@ func (t *teamNoticeRepoImpl) List(ctx context.Context, req *bo.ListNoticeGroupRe
 			return nil, err
 		}
 		if len(noticeGroupIds) == 0 {
-			return req.ToListReply(nil), nil
+			return req.ToListNoticeGroupReply(nil), nil
 		}
 		wrapper = wrapper.Where(noticeGroupQuery.ID.In(noticeGroupIds...))
 	}
@@ -65,37 +64,45 @@ func (t *teamNoticeRepoImpl) List(ctx context.Context, req *bo.ListNoticeGroupRe
 	if err != nil {
 		return nil, err
 	}
-	rows := slices.Map(noticeGroups, func(noticeGroup *team.NoticeGroup) do.NoticeGroup { return noticeGroup })
-	return req.ToListReply(rows), nil
+	return req.ToListNoticeGroupReply(noticeGroups), nil
 }
 
-func (t *teamNoticeRepoImpl) Create(ctx context.Context, group bo.SaveNoticeGroup) error {
+func (t *teamNoticeImpl) Create(ctx context.Context, group bo.SaveNoticeGroup) error {
 	members := slices.MapFilter(group.GetNoticeMembers(), func(member *bo.SaveNoticeMemberItem) (*team.NoticeMember, bool) {
 		if validate.IsNil(member) || member.MemberID <= 0 {
 			return nil, false
 		}
 		item := &team.NoticeMember{
-			UserID:        member.UserID,
-			NoticeType:    member.NoticeType,
-			TeamModel:     do.TeamModel{},
-			NoticeGroupID: 0,
-			DutyCycle:     []*team.TimeEngine{},
-		}
-		if dutyCycles := member.GetDutyCycles(); len(dutyCycles) > 0 {
-			item.DutyCycle = slices.Map(dutyCycles, func(dutyCycle do.TimeEngine) *team.TimeEngine {
-				item := build.ToTimeEngine(ctx, dutyCycle)
-				item.WithContext(ctx)
-				return item
-			})
+			UserID:     member.UserID,
+			NoticeType: member.NoticeType,
 		}
 		item.WithContext(ctx)
 		return item, true
 	})
+	hooks := slices.MapFilter(group.GetHooks(), func(hook do.NoticeHook) (*team.NoticeHook, bool) {
+		if validate.IsNil(hook) || hook.GetID() <= 0 {
+			return nil, false
+		}
+		hookItem := &team.NoticeHook{
+			TeamModel: do.TeamModel{
+				CreatorModel: do.CreatorModel{
+					BaseModel: do.BaseModel{ID: hook.GetID()},
+				},
+			},
+		}
+		hookItem.WithContext(ctx)
+		return hookItem, true
+	})
 	noticeGroupDo := &team.NoticeGroup{
-		Name:    group.GetName(),
-		Remark:  group.GetRemark(),
-		Status:  group.GetStatus(),
-		Members: members,
+		Name:          group.GetName(),
+		Remark:        group.GetRemark(),
+		Status:        group.GetStatus(),
+		Members:       members,
+		Hooks:         hooks,
+		EmailConfigID: 0,
+		EmailConfig:   nil,
+		SMSConfigID:   0,
+		SMSConfig:     nil,
 	}
 	if validate.IsNotNil(group.GetEmailConfig()) {
 		noticeGroupDo.EmailConfigID = group.GetEmailConfig().GetID()
@@ -105,28 +112,10 @@ func (t *teamNoticeRepoImpl) Create(ctx context.Context, group bo.SaveNoticeGrou
 	}
 	noticeGroupDo.WithContext(ctx)
 	bizMutation := getTeamBizQuery(ctx, t)
-	if err := bizMutation.NoticeGroup.WithContext(ctx).Create(noticeGroupDo); err != nil {
-		return err
-	}
-
-	hooks := slices.MapFilter(group.GetHooks(), func(hook do.NoticeHook) (*team.NoticeHook, bool) {
-		if validate.IsNil(hook) || hook.GetID() <= 0 {
-			return nil, false
-		}
-		hookItem := build.ToTeamNoticeHook(ctx, hook)
-		hookItem.WithContext(ctx)
-		return hookItem, true
-	})
-	if len(hooks) > 0 {
-		if err := bizMutation.NoticeGroup.Hooks.Model(noticeGroupDo).Append(hooks...); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return bizMutation.NoticeGroup.WithContext(ctx).Create(noticeGroupDo)
 }
 
-func (t *teamNoticeRepoImpl) Update(ctx context.Context, group bo.SaveNoticeGroup) error {
+func (t *teamNoticeImpl) Update(ctx context.Context, group bo.SaveNoticeGroup) error {
 	if validate.IsNil(group) {
 		return nil
 	}
@@ -161,7 +150,13 @@ func (t *teamNoticeRepoImpl) Update(ctx context.Context, group bo.SaveNoticeGrou
 		if validate.IsNil(hook) || hook.GetID() <= 0 {
 			return nil, false
 		}
-		hookItem := build.ToTeamNoticeHook(ctx, hook)
+		hookItem := &team.NoticeHook{
+			TeamModel: do.TeamModel{
+				CreatorModel: do.CreatorModel{
+					BaseModel: do.BaseModel{ID: hook.GetID()},
+				},
+			},
+		}
 		hookItem.WithContext(ctx)
 		return hookItem, true
 	})
@@ -172,13 +167,6 @@ func (t *teamNoticeRepoImpl) Update(ctx context.Context, group bo.SaveNoticeGrou
 		item := &team.NoticeMember{
 			UserID:     member.UserID,
 			NoticeType: member.NoticeType,
-		}
-		if dutyCycles := member.GetDutyCycles(); len(dutyCycles) > 0 {
-			item.DutyCycle = slices.Map(dutyCycles, func(dutyCycle do.TimeEngine) *team.TimeEngine {
-				item := build.ToTimeEngine(ctx, dutyCycle)
-				item.WithContext(ctx)
-				return item
-			})
 		}
 		item.WithContext(ctx)
 		return item, true
@@ -205,7 +193,7 @@ func (t *teamNoticeRepoImpl) Update(ctx context.Context, group bo.SaveNoticeGrou
 	return nil
 }
 
-func (t *teamNoticeRepoImpl) UpdateStatus(ctx context.Context, req *bo.UpdateTeamNoticeGroupStatusRequest) error {
+func (t *teamNoticeImpl) UpdateStatus(ctx context.Context, req *bo.UpdateTeamNoticeGroupStatusRequest) error {
 	groupIds := slices.MapFilter(req.GroupIds, func(groupId uint32) (uint32, bool) {
 		if groupId <= 0 {
 			return 0, false
@@ -226,7 +214,7 @@ func (t *teamNoticeRepoImpl) UpdateStatus(ctx context.Context, req *bo.UpdateTea
 	return err
 }
 
-func (t *teamNoticeRepoImpl) Delete(ctx context.Context, groupID uint32) error {
+func (t *teamNoticeImpl) Delete(ctx context.Context, groupID uint32) error {
 	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
 		bizMutation.NoticeGroup.TeamID.Eq(teamId),
@@ -236,7 +224,7 @@ func (t *teamNoticeRepoImpl) Delete(ctx context.Context, groupID uint32) error {
 	return err
 }
 
-func (t *teamNoticeRepoImpl) Get(ctx context.Context, groupID uint32) (do.NoticeGroup, error) {
+func (t *teamNoticeImpl) Get(ctx context.Context, groupID uint32) (do.NoticeGroup, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
 		bizQuery.NoticeGroup.TeamID.Eq(teamId),
@@ -249,21 +237,21 @@ func (t *teamNoticeRepoImpl) Get(ctx context.Context, groupID uint32) (do.Notice
 	return noticeGroup, nil
 }
 
-func (t *teamNoticeRepoImpl) FindByIds(ctx context.Context, groupIds []uint32) ([]do.NoticeGroup, error) {
+func (t *teamNoticeImpl) FindByIds(ctx context.Context, groupIds []uint32) ([]do.NoticeGroup, error) {
 	if len(groupIds) == 0 {
 		return nil, nil
 	}
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizQuery.NoticeGroup
 	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId), mutation.ID.In(groupIds...))
-	rows, err := wrapper.Preload(field.Associations).Find()
+	rows, err := wrapper.Find()
 	if err != nil {
 		return nil, err
 	}
 	return slices.Map(rows, func(row *team.NoticeGroup) do.NoticeGroup { return row }), nil
 }
 
-func (t *teamNoticeRepoImpl) FindLabelNotices(ctx context.Context, labelNoticeIds []uint32) ([]do.StrategyMetricRuleLabelNotice, error) {
+func (t *teamNoticeImpl) FindLabelNotices(ctx context.Context, labelNoticeIds []uint32) ([]do.StrategyMetricRuleLabelNotice, error) {
 	if len(labelNoticeIds) == 0 {
 		return nil, nil
 	}
@@ -275,36 +263,4 @@ func (t *teamNoticeRepoImpl) FindLabelNotices(ctx context.Context, labelNoticeId
 		return nil, err
 	}
 	return slices.Map(rows, func(row *team.StrategyMetricRuleLabelNotice) do.StrategyMetricRuleLabelNotice { return row }), nil
-}
-
-func (t *teamNoticeRepoImpl) Select(ctx context.Context, req *bo.TeamNoticeGroupSelectRequest) (*bo.TeamNoticeGroupSelectReply, error) {
-	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
-	noticeGroupQuery := query.NoticeGroup
-	wrapper := noticeGroupQuery.WithContext(ctx).Where(noticeGroupQuery.TeamID.Eq(teamID))
-	if !req.Status.IsUnknown() {
-		wrapper = wrapper.Where(noticeGroupQuery.Status.Eq(req.Status.GetValue()))
-	}
-	if !validate.TextIsNull(req.Keyword) {
-		wrapper = wrapper.Where(noticeGroupQuery.Name.Like(req.Keyword))
-	}
-	if validate.IsNotNil(req.PaginationRequest) {
-		total, err := wrapper.Count()
-		if err != nil {
-			return nil, err
-		}
-		wrapper = wrapper.Offset(req.Offset()).Limit(int(req.Limit))
-		req.WithTotal(total)
-	}
-	selectColumns := []field.Expr{
-		noticeGroupQuery.ID,
-		noticeGroupQuery.Name,
-		noticeGroupQuery.Remark,
-		noticeGroupQuery.Status,
-		noticeGroupQuery.DeletedAt,
-	}
-	rows, err := wrapper.Select(selectColumns...).Order(noticeGroupQuery.ID.Desc()).Find()
-	if err != nil {
-		return nil, err
-	}
-	return req.ToSelectReply(slices.Map(rows, func(row *team.NoticeGroup) do.NoticeGroup { return row })), nil
 }

@@ -1,14 +1,16 @@
 package build
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/timex"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"time"
+
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 type GetSendMessageLogsRequest interface {
@@ -17,16 +19,11 @@ type GetSendMessageLogsRequest interface {
 	GetStatus() common.SendMessageStatus
 	GetKeyword() string
 	GetMessageType() common.MessageType
-	GetTimeRange() []string
 }
 
-func ToListSendMessageLogParams(req GetSendMessageLogsRequest) (*bo.ListSendMessageLogParams, error) {
+func ToListSendMessageLogParams(req GetSendMessageLogsRequest) *bo.ListSendMessageLogParams {
 	if validate.IsNil(req) {
 		panic("GetSendMessageLogsRequest is nil")
-	}
-	timeRange, err := ToTimeRange(req.GetTimeRange())
-	if err != nil {
-		return nil, err
 	}
 	return &bo.ListSendMessageLogParams{
 		PaginationRequest: ToPaginationRequest(req.GetPagination()),
@@ -34,9 +31,9 @@ func ToListSendMessageLogParams(req GetSendMessageLogsRequest) (*bo.ListSendMess
 		RequestID:         req.GetRequestId(),
 		Status:            vobj.SendMessageStatus(req.GetStatus()),
 		Keyword:           req.GetKeyword(),
-		TimeRange:         timeRange,
+		TimeRange:         [2]time.Time{},
 		MessageType:       vobj.MessageType(req.GetMessageType()),
-	}, nil
+	}
 }
 
 func ToGetSendMessageLogParams(requestId string) *bo.GetSendMessageLogParams {
@@ -46,21 +43,11 @@ func ToGetSendMessageLogParams(requestId string) *bo.GetSendMessageLogParams {
 	}
 }
 
-type OperateOneSendMessageRequest interface {
-	GetRequestId() string
-	GetSendTime() string
-}
-
-func ToRetrySendMessageParams(req OperateOneSendMessageRequest) (*bo.RetrySendMessageParams, error) {
-	sendAt, err := timex.Parse(req.GetSendTime())
-	if err != nil {
-		return nil, err
-	}
+func ToRetrySendMessageParams(requestId string) *bo.RetrySendMessageParams {
 	return &bo.RetrySendMessageParams{
 		TeamID:    0,
-		RequestID: req.GetRequestId(),
-		SendAt:    sendAt,
-	}, nil
+		RequestID: requestId,
+	}
 }
 
 func ToUpdateSendMessageLogStatusParams(req *palace.SendMsgCallbackRequest) *bo.UpdateSendMessageLogStatusParams {

@@ -3,41 +3,30 @@ package repository
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
 )
 
 type TeamStrategy interface {
-	NameExists(ctx context.Context, name string, strategyId uint32) error
-	Create(ctx context.Context, params bo.CreateTeamStrategyParams) error
-	Update(ctx context.Context, params bo.UpdateTeamStrategyParams) error
-	Delete(ctx context.Context, strategyId uint32) error
+	Create(ctx context.Context, params bo.CreateTeamStrategyParams) (do.Strategy, error)
+	Update(ctx context.Context, params bo.UpdateTeamStrategyParams) (do.Strategy, error)
+	Delete(ctx context.Context, params *bo.OperateTeamStrategyParams) error
 	UpdateStatus(ctx context.Context, params *bo.UpdateTeamStrategiesStatusParams) error
 	List(ctx context.Context, params *bo.ListTeamStrategyParams) (*bo.ListTeamStrategyReply, error)
-	Subscribe(ctx context.Context, params *bo.SubscribeTeamStrategyParams) error
+	Subscribe(ctx context.Context, params bo.SubscribeTeamStrategy) error
 	SubscribeList(ctx context.Context, params *bo.SubscribeTeamStrategiesParams) (*bo.SubscribeTeamStrategiesReply, error)
-	Get(ctx context.Context, strategyId uint32) (do.Strategy, error)
-	GetByName(ctx context.Context, name string) (do.Strategy, error)
-	FindByStrategiesGroupId(ctx context.Context, strategyGroupId uint32) ([]do.Strategy, error)
-	DeleteByStrategyIds(ctx context.Context, strategyIds ...uint32) error
+	Get(ctx context.Context, params *bo.OperateTeamStrategyParams) (do.Strategy, error)
 }
 
 type TeamStrategyMetric interface {
-	Create(ctx context.Context, params bo.CreateTeamMetricStrategyParams) error
-	Update(ctx context.Context, params bo.UpdateTeamMetricStrategyParams) error
-	Get(ctx context.Context, strategyMetricId uint32) (do.StrategyMetric, error)
-	GetByStrategyId(ctx context.Context, strategyId uint32) (do.StrategyMetric, error)
-	Delete(ctx context.Context, strategyMetricId uint32) error
-	DeleteByStrategyIds(ctx context.Context, strategyIds ...uint32) error
-	FindByStrategyIds(ctx context.Context, strategyIds []uint32) ([]do.StrategyMetric, error)
-}
+	Create(ctx context.Context, params bo.CreateTeamMetricStrategyParams) (do.StrategyMetric, error)
+	Update(ctx context.Context, params bo.UpdateTeamMetricStrategyParams) (do.StrategyMetric, error)
+	Get(ctx context.Context, params *bo.OperateTeamStrategyParams) (do.StrategyMetric, error)
+	Delete(ctx context.Context, params *bo.OperateTeamStrategyParams) error
 
-type TeamStrategyMetricLevel interface {
-	Create(ctx context.Context, params bo.CreateTeamMetricStrategyLevelParams) error
-	Update(ctx context.Context, params bo.UpdateTeamMetricStrategyLevelParams) error
-	Delete(ctx context.Context, strategyMetricLevelIds []uint32) error
-	DeleteByStrategyIds(ctx context.Context, strategyIds ...uint32) error
-	List(ctx context.Context, params *bo.ListTeamMetricStrategyLevelsParams) (*bo.ListTeamMetricStrategyLevelsReply, error)
-	UpdateStatus(ctx context.Context, params *bo.UpdateTeamMetricStrategyLevelStatusParams) error
-	Get(ctx context.Context, strategyMetricLevelId uint32) (do.StrategyMetricRule, error)
+	FindLevels(ctx context.Context, params *bo.FindTeamMetricStrategyLevelsParams) ([]do.StrategyMetricRule, error)
+	CreateLevels(ctx context.Context, params bo.SaveTeamMetricStrategyLevels) ([]do.StrategyMetricRule, error)
+	UpdateLevels(ctx context.Context, params bo.SaveTeamMetricStrategyLevels) ([]do.StrategyMetricRule, error)
+	DeleteLevels(ctx context.Context, params *bo.OperateTeamStrategyParams) error
+	DeleteUnUsedLevels(ctx context.Context, params *bo.DeleteUnUsedLevelsParams) error
 }

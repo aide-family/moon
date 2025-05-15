@@ -7,15 +7,14 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/robfig/cron/v3"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/do"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/timex"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/plugin/server"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/timex"
 )
 
 func NewStrategyMetricJob(key string, opts ...StrategyMetricJobOption) (bo.StrategyJob, error) {
@@ -27,7 +26,7 @@ func NewStrategyMetricJob(key string, opts ...StrategyMetricJobOption) (bo.Strat
 			return nil, err
 		}
 	}
-	if validate.IsNil(s.helper) {
+	if s.helper == nil {
 		WithStrategyMetricJobHelper(log.GetLogger())
 	}
 	checkOpts := []*checkItem{
@@ -45,8 +44,8 @@ func NewStrategyMetricJob(key string, opts ...StrategyMetricJobOption) (bo.Strat
 
 func WithStrategyMetricJobHelper(logger log.Logger) StrategyMetricJobOption {
 	return func(s *strategyMetricJob) error {
-		if validate.IsNil(logger) {
-			return merr.ErrorInternalServer("logger is nil")
+		if logger == nil {
+			return merr.ErrorInternalServerError("logger is nil")
 		}
 		s.helper = log.NewHelper(log.With(logger, "module", "event.strategy.metric", "jobKey", s.key))
 		return nil
@@ -56,7 +55,7 @@ func WithStrategyMetricJobHelper(logger log.Logger) StrategyMetricJobOption {
 func WithStrategyMetricJobMetric(metricStrategyUniqueKey string, metricStrategyEnable bool) StrategyMetricJobOption {
 	return func(s *strategyMetricJob) error {
 		if metricStrategyUniqueKey == "" {
-			return merr.ErrorInternalServer("metric strategy unique key is null")
+			return merr.ErrorInternalServerError("metric strategy unique key is null")
 		}
 		s.metricStrategyUniqueKey = metricStrategyUniqueKey
 		s.metricStrategyEnable = metricStrategyEnable
@@ -66,8 +65,8 @@ func WithStrategyMetricJobMetric(metricStrategyUniqueKey string, metricStrategyE
 
 func WithStrategyMetricJobConfigRepo(configRepo repository.Config) StrategyMetricJobOption {
 	return func(s *strategyMetricJob) error {
-		if validate.IsNil(configRepo) {
-			return merr.ErrorInternalServer("configRepo is nil")
+		if configRepo == nil {
+			return merr.ErrorInternalServerError("configRepo is nil")
 		}
 		s.configRepo = configRepo
 		return nil
@@ -76,8 +75,8 @@ func WithStrategyMetricJobConfigRepo(configRepo repository.Config) StrategyMetri
 
 func WithStrategyMetricJobMetricInitRepo(metricInitRepo repository.MetricInit) StrategyMetricJobOption {
 	return func(s *strategyMetricJob) error {
-		if validate.IsNil(metricInitRepo) {
-			return merr.ErrorInternalServer("metricInitRepo is nil")
+		if metricInitRepo == nil {
+			return merr.ErrorInternalServerError("metricInitRepo is nil")
 		}
 		s.metricInitRepo = metricInitRepo
 		return nil
@@ -86,8 +85,8 @@ func WithStrategyMetricJobMetricInitRepo(metricInitRepo repository.MetricInit) S
 
 func WithStrategyMetricJobJudgeRepo(judgeRepo repository.Judge) StrategyMetricJobOption {
 	return func(s *strategyMetricJob) error {
-		if validate.IsNil(judgeRepo) {
-			return merr.ErrorInternalServer("judgeRepo is nil")
+		if judgeRepo == nil {
+			return merr.ErrorInternalServerError("judgeRepo is nil")
 		}
 		s.judgeRepo = judgeRepo
 		return nil
@@ -96,8 +95,8 @@ func WithStrategyMetricJobJudgeRepo(judgeRepo repository.Judge) StrategyMetricJo
 
 func WithStrategyMetricJobAlertRepo(alertRepo repository.Alert) StrategyMetricJobOption {
 	return func(s *strategyMetricJob) error {
-		if validate.IsNil(alertRepo) {
-			return merr.ErrorInternalServer("alertRepo is nil")
+		if alertRepo == nil {
+			return merr.ErrorInternalServerError("alertRepo is nil")
 		}
 		s.alertRepo = alertRepo
 		return nil
@@ -107,12 +106,12 @@ func WithStrategyMetricJobAlertRepo(alertRepo repository.Alert) StrategyMetricJo
 func WithStrategyMetricJobSpec(evaluateInterval time.Duration) StrategyMetricJobOption {
 	return func(s *strategyMetricJob) error {
 		if evaluateInterval <= 0 {
-			return merr.ErrorInternalServer("evaluateInterval is 0")
+			return merr.ErrorInternalServerError("evaluateInterval is 0")
 		}
 		s.evaluateInterval = evaluateInterval
-		spec := cron_server.CronSpecEvery(evaluateInterval)
+		spec := server.CronSpecEvery(evaluateInterval)
 		if spec == "" {
-			return merr.ErrorInternalServer("spec is empty")
+			return merr.ErrorInternalServerError("spec is empty")
 		}
 		s.spec = &spec
 		return nil
@@ -122,7 +121,7 @@ func WithStrategyMetricJobSpec(evaluateInterval time.Duration) StrategyMetricJob
 func WithStrategyMetricJobTimeout(timeout time.Duration) StrategyMetricJobOption {
 	return func(s *strategyMetricJob) error {
 		if timeout == 0 {
-			return merr.ErrorInternalServer("timeout is 0")
+			return merr.ErrorInternalServerError("timeout is 0")
 		}
 		s.timeout = timeout
 		return nil
@@ -131,8 +130,8 @@ func WithStrategyMetricJobTimeout(timeout time.Duration) StrategyMetricJobOption
 
 func WithStrategyMetricJobEventBusRepo(eventBusRepo repository.EventBus) StrategyMetricJobOption {
 	return func(s *strategyMetricJob) error {
-		if validate.IsNil(eventBusRepo) {
-			return merr.ErrorInternalServer("eventBusRepo is nil")
+		if eventBusRepo == nil {
+			return merr.ErrorInternalServerError("eventBusRepo is nil")
 		}
 		s.eventBusRepo = eventBusRepo
 		return nil
@@ -141,8 +140,8 @@ func WithStrategyMetricJobEventBusRepo(eventBusRepo repository.EventBus) Strateg
 
 func WithStrategyMetricJobCacheRepo(cacheRepo repository.Cache) StrategyMetricJobOption {
 	return func(s *strategyMetricJob) error {
-		if validate.IsNil(cacheRepo) {
-			return merr.ErrorInternalServer("cacheRepo is nil")
+		if cacheRepo == nil {
+			return merr.ErrorInternalServerError("cacheRepo is nil")
 		}
 		s.cacheRepo = cacheRepo
 		return nil
@@ -153,7 +152,7 @@ type strategyMetricJob struct {
 	helper *log.Helper
 	key    string
 	id     cron.EntryID
-	spec   *cron_server.CronSpec
+	spec   *server.CronSpec
 
 	metricStrategyUniqueKey string
 	metricStrategyEnable    bool
@@ -177,8 +176,8 @@ type checkItem struct {
 
 func checkList(list ...*checkItem) error {
 	for _, listItem := range list {
-		if validate.IsNil(listItem.value) {
-			return merr.ErrorInternalServer("%s is nil", listItem.name)
+		if listItem.value == nil {
+			return merr.ErrorInternalServerError("%s is nil", listItem.name)
 		}
 	}
 	return nil
@@ -203,11 +202,7 @@ func (s *strategyMetricJob) Run() {
 	if !locked {
 		return
 	}
-	defer func(cacheRepo repository.Cache, ctx context.Context, key string) {
-		if err := cacheRepo.Unlock(ctx, key); err != nil {
-			s.helper.Warnw("msg", "unlock fail", "err", err)
-		}
-	}(s.cacheRepo, ctx, lockKey)
+	defer s.cacheRepo.Unlock(ctx, lockKey)
 	metricStrategy, ok := s.configRepo.GetMetricRule(ctx, s.metricStrategyUniqueKey)
 	if !ok {
 		s.helper.Warnw("metric strategy not found")
@@ -289,21 +284,16 @@ func (s *strategyMetricJob) Index() string {
 	return s.key
 }
 
-func (s *strategyMetricJob) Spec() cron_server.CronSpec {
+func (s *strategyMetricJob) Spec() server.CronSpec {
 	if s == nil || s.spec == nil {
-		return cron_server.CronSpecEvery(1 * time.Minute)
+		return server.CronSpecEvery(1 * time.Minute)
 	}
 	return *s.spec
 }
 
-func (s *strategyMetricJob) WithID(id cron.EntryID) cron_server.CronJob {
+func (s *strategyMetricJob) WithID(id cron.EntryID) server.CronJob {
 	s.id = id
 	return s
-}
-
-// IsImmediate implements server.CronJob.
-func (s *strategyMetricJob) IsImmediate() bool {
-	return false
 }
 
 func (s *strategyMetricJob) GetEnable() bool {

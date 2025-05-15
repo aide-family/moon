@@ -6,9 +6,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
-	"github.com/go-kratos/kratos/v2/errors"
-
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 var _ sql.Scanner = (*Object[any])(nil)
@@ -40,7 +39,7 @@ func (o *Object[T]) Scan(value interface{}) error {
 	case string:
 		origin = val
 	default:
-		return errors.New(400, "INVALID_VALUE_TYPE_OF_CRYPTO_OBJECT", "invalid value type of crypto.Object")
+		return merr.ErrorInternalServerError("invalid value type of crypto.Object")
 	}
 	if len(origin) == 0 {
 		return nil

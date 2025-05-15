@@ -3,11 +3,10 @@ package build
 import (
 	"time"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/pkg/api/palace/common"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/timex"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func ToPaginationReply(pagination *bo.PaginationReply) *common.PaginationReply {
@@ -31,20 +30,18 @@ func ToPaginationRequest(pagination *common.PaginationRequest) *bo.PaginationReq
 	}
 }
 
-func ToTimeRange(timeRanges []string) ([]time.Time, error) {
+func ToTimeRange(timeRanges []string) []time.Time {
 	if len(timeRanges) != 2 {
-		return nil, merr.ErrorParams("time range must be 2")
+		return nil
 	}
 
 	times := make([]time.Time, 0, 2)
 	for _, timeRange := range timeRanges {
 		t, err := timex.Parse(timeRange)
 		if err != nil {
-			return nil, merr.ErrorParams("%s", err).WithMetadata(map[string]string{
-				"timeRange": err.Error(),
-			})
+			return nil
 		}
 		times = append(times, t)
 	}
-	return times, nil
+	return times
 }

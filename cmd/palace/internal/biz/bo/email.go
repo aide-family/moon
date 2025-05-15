@@ -3,10 +3,12 @@ package bo
 import (
 	"encoding/json"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 type TeamEmailConfig interface {
@@ -29,7 +31,7 @@ type SaveEmailConfigRequest struct {
 
 func (s *SaveEmailConfigRequest) Validate() error {
 	if s.ID <= 0 && validate.IsNil(s.Config) {
-		return merr.ErrorParams("email config is nil")
+		return merr.ErrorParamsError("email config is nil")
 	}
 	return nil
 }
@@ -38,7 +40,7 @@ func (s *SaveEmailConfigRequest) GetID() uint32 {
 	if s == nil {
 		return 0
 	}
-	if validate.IsNil(s.emailConfig) {
+	if s.emailConfig == nil {
 		return s.ID
 	}
 	return s.emailConfig.GetID()
@@ -62,7 +64,7 @@ func (s *SaveEmailConfigRequest) GetStatus() vobj.GlobalStatus {
 	if s == nil {
 		return vobj.GlobalStatusUnknown
 	}
-	if validate.IsNil(s.emailConfig) {
+	if s.emailConfig == nil {
 		return s.Status
 	}
 	if s.Status.IsUnknown() {
@@ -74,6 +76,9 @@ func (s *SaveEmailConfigRequest) GetStatus() vobj.GlobalStatus {
 func (s *SaveEmailConfigRequest) GetEmailConfig() *do.Email {
 	if s == nil {
 		return nil
+	}
+	if s.Config == nil && s.emailConfig != nil {
+		return s.emailConfig.GetEmailConfig()
 	}
 	return s.Config
 }
@@ -89,10 +94,10 @@ type ListEmailConfigRequest struct {
 	Status  vobj.GlobalStatus `json:"status"`
 }
 
-func (r *ListEmailConfigRequest) ToListReply(configs []do.TeamEmailConfig) *ListEmailConfigListReply {
+func (r *ListEmailConfigRequest) ToListEmailConfigListReply(configs []*team.EmailConfig) *ListEmailConfigListReply {
 	return &ListEmailConfigListReply{
 		PaginationReply: r.ToReply(),
-		Items:           configs,
+		Items:           slices.Map(configs, func(config *team.EmailConfig) do.TeamEmailConfig { return config }),
 	}
 }
 

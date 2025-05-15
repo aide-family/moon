@@ -5,13 +5,13 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/do"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/houyi/internal/data"
-	"github.com/aide-family/moon/pkg/api/common"
-	"github.com/aide-family/moon/pkg/util/timex"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/data"
+	"github.com/moon-monitor/moon/pkg/api/common"
+	"github.com/moon-monitor/moon/pkg/util/timex"
 )
 
 func NewAlertRepo(data *data.Data, logger log.Logger) repository.Alert {

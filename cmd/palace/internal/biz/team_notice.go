@@ -3,19 +3,18 @@ package biz
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
 )
 
-func NewTeamNoticeBiz(
+func NewTeamNotice(
 	transaction repository.Transaction,
 	teamNoticeRepo repository.TeamNotice,
 	teamHookRepo repository.TeamHook,
 	teamMemberRepo repository.Member,
 	teamConfigEmailRepo repository.TeamEmailConfig,
 	teamConfigSMSRepo repository.TeamSMSConfig,
-	teamTimeEngineRepo repository.TimeEngine,
 ) *TeamNotice {
 	return &TeamNotice{
 		transaction:         transaction,
@@ -24,7 +23,6 @@ func NewTeamNoticeBiz(
 		teamMemberRepo:      teamMemberRepo,
 		teamConfigEmailRepo: teamConfigEmailRepo,
 		teamConfigSMSRepo:   teamConfigSMSRepo,
-		teamTimeEngineRepo:  teamTimeEngineRepo,
 	}
 }
 
@@ -35,15 +33,9 @@ type TeamNotice struct {
 	teamMemberRepo      repository.Member
 	teamConfigEmailRepo repository.TeamEmailConfig
 	teamConfigSMSRepo   repository.TeamSMSConfig
-	teamTimeEngineRepo  repository.TimeEngine
 }
 
 func (t *TeamNotice) SaveNoticeGroup(ctx context.Context, req *bo.SaveNoticeGroupReq) error {
-	timeEngines, err := t.teamTimeEngineRepo.Find(ctx, req.GetTimeEngineIds()...)
-	if err != nil {
-		return err
-	}
-	req.WithTimeEngines(timeEngines)
 	hookDos, err := t.teamHookRepo.Find(ctx, req.HookIds)
 	if err != nil {
 		return err
@@ -99,8 +91,4 @@ func (t *TeamNotice) GetNoticeGroup(ctx context.Context, groupID uint32) (do.Not
 
 func (t *TeamNotice) TeamNoticeGroups(ctx context.Context, req *bo.ListNoticeGroupReq) (*bo.ListNoticeGroupReply, error) {
 	return t.teamNoticeRepo.List(ctx, req)
-}
-
-func (t *TeamNotice) SelectNoticeGroup(ctx context.Context, req *bo.TeamNoticeGroupSelectRequest) (*bo.TeamNoticeGroupSelectReply, error) {
-	return t.teamNoticeRepo.Select(ctx, req)
 }

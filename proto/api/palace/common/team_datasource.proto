@@ -2,11 +2,12 @@ syntax = "proto3";
 
 package api.palace.common;
 
+import "google/protobuf/duration.proto";
 import "palace/common/common_enum.proto";
 import "palace/common/common.proto";
 import "palace/common/system.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/palace/common;common";
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace/common;common";
 
 message TeamMetricDatasourceItem {
   uint32 teamId = 1;
@@ -17,29 +18,13 @@ message TeamMetricDatasourceItem {
   string remark = 6;
   api.palace.common.DatasourceDriverMetric driver = 7;
   string endpoint = 8;
-  int64 scrapeInterval = 9;
-  repeated api.palace.common.KeyValueItem headers = 10;
+  google.protobuf.Duration scrapeInterval = 9;
+  map<string, string> headers = 10;
   api.palace.common.HTTPMethod queryMethod = 11;
   string ca = 12;
   TLS tls = 13;
   api.palace.common.BasicAuth basicAuth = 14;
-  repeated api.palace.common.KeyValueItem extra = 15;
+  map<string, string> extra = 15;
   api.palace.common.GlobalStatus status = 16;
   api.palace.common.UserBaseItem creator = 17;
-}
-
-message TeamMetricDatasourceMetadataItem {
-	message Label {
-		string key = 1;
-		repeated string values = 2;
-	}
-  uint32 metadataId = 1;
-  uint32 datasourceId = 2;
-	string name = 3;
-	string help = 4;
-	string type = 5;
-	repeated Label labels = 6;
-	string unit = 7;
-  string createdAt = 8;
-  string updatedAt = 9;
 }

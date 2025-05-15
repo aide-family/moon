@@ -1,9 +1,9 @@
 package team
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 var _ do.Strategy = (*Strategy)(nil)
@@ -12,11 +12,11 @@ const tableNameStrategy = "team_strategies"
 
 type Strategy struct {
 	do.TeamModel
-	StrategyGroupID uint32            `gorm:"column:strategy_group_id;type:int unsigned;not null;comment:group ID" json:"strategyGroupID"`
-	Name            string            `gorm:"column:name;type:varchar(64);not null;comment:name" json:"name"`
-	Remark          string            `gorm:"column:remark;type:varchar(255);not null;comment:remark" json:"remark"`
-	Status          vobj.GlobalStatus `gorm:"column:status;type:tinyint(2);not null;comment:status" json:"status"`
-	StrategyType    vobj.StrategyType `gorm:"column:strategy_type;type:tinyint(2);not null;comment:type" json:"strategyType"`
+	StrategyGroupID uint32            `gorm:"column:strategy_group_id;type:int unsigned;not null;comment:组ID" json:"strategyGroupID"`
+	Name            string            `gorm:"column:name;type:varchar(64);not null;comment:名称" json:"name"`
+	Remark          string            `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
+	Status          vobj.GlobalStatus `gorm:"column:status;type:tinyint(2);not null;comment:状态" json:"status"`
+	StrategyType    vobj.StrategyType `gorm:"column:strategy_type;type:tinyint(2);not null;comment:类型" json:"strategyType"`
 	StrategyGroup   *StrategyGroup    `gorm:"foreignKey:StrategyGroupID;references:ID" json:"strategyGroup"`
 	Notices         []*NoticeGroup    `gorm:"many2many:team_strategy_notice_groups" json:"notices"`
 }
@@ -29,7 +29,7 @@ func (s *Strategy) GetStrategyGroupID() uint32 {
 }
 
 func (s *Strategy) GetStrategyGroup() do.StrategyGroup {
-	if s == nil {
+	if s == nil || s.StrategyGroup == nil {
 		return nil
 	}
 	return s.StrategyGroup

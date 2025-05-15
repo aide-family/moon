@@ -5,22 +5,18 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/google/wire"
 
-	"github.com/aide-family/moon/cmd/palace/internal/conf"
-	"github.com/aide-family/moon/cmd/palace/internal/service"
-	portal_service "github.com/aide-family/moon/cmd/palace/internal/service/portal"
-	"github.com/aide-family/moon/pkg/api/common"
-	"github.com/aide-family/moon/pkg/api/palace"
-	portalapi "github.com/aide-family/moon/pkg/api/palace/portal"
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/moon-monitor/moon/cmd/palace/internal/conf"
+	"github.com/moon-monitor/moon/cmd/palace/internal/service"
+	"github.com/moon-monitor/moon/pkg/api/common"
+	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/moon-monitor/moon/pkg/plugin/server"
 )
 
 // ProviderSetServer is server providers.
 var ProviderSetServer = wire.NewSet(
 	NewGRPCServer,
 	NewHTTPServer,
-	NewPortalHTTPServer,
 	NewTickerServer,
-	NewEvent,
 	RegisterService,
 )
 
@@ -29,13 +25,11 @@ func RegisterService(
 	c *conf.Bootstrap,
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
-	portalHttpSrv *PortalHTTPServer,
 	tickerSrv *TickerServer,
-	eventSrv *Event,
 	healthService *service.HealthService,
 	authService *service.AuthService,
 	serverService *service.ServerService,
-	menuService *service.MenuService,
+	resourceService *service.ResourceService,
 	userService *service.UserService,
 	callbackService *service.CallbackService,
 	teamDashboardService *service.TeamDashboardService,
@@ -47,21 +41,15 @@ func RegisterService(
 	systemService *service.SystemService,
 	teamLogService *service.TeamLogService,
 	alertService *service.AlertService,
-	timeEngineService *service.TimeEngineService,
-	portalAuthService *portal_service.AuthService,
-	portalHomeService *portal_service.HomeService,
-	portalPricingService *portal_service.PricingService,
-	teamStrategyMetricService *service.TeamStrategyMetricService,
 ) server.Servers {
 	common.RegisterHealthServer(rpcSrv, healthService)
 	common.RegisterServerServer(rpcSrv, serverService)
 	palace.RegisterAlertServer(rpcSrv, alertService)
-	palace.RegisterCallbackServer(rpcSrv, callbackService)
 
 	common.RegisterHealthHTTPServer(httpSrv, healthService)
 	common.RegisterServerHTTPServer(httpSrv, serverService)
 	palace.RegisterAuthHTTPServer(httpSrv, authService)
-	palace.RegisterMenuHTTPServer(httpSrv, menuService)
+	palace.RegisterResourceHTTPServer(httpSrv, resourceService)
 	palace.RegisterUserHTTPServer(httpSrv, userService)
 	palace.RegisterCallbackHTTPServer(httpSrv, callbackService)
 	palace.RegisterTeamDashboardHTTPServer(httpSrv, teamDashboardService)
@@ -73,13 +61,5 @@ func RegisterService(
 	palace.RegisterSystemHTTPServer(httpSrv, systemService)
 	palace.RegisterTeamLogHTTPServer(httpSrv, teamLogService)
 	palace.RegisterAlertHTTPServer(httpSrv, alertService)
-	palace.RegisterTimeEngineHTTPServer(httpSrv, timeEngineService)
-	palace.RegisterTeamStrategyMetricHTTPServer(httpSrv, teamStrategyMetricService)
-
-	// portal
-	portalapi.RegisterAuthHTTPServer(portalHttpSrv.Server, portalAuthService)
-	portalapi.RegisterHomeHTTPServer(portalHttpSrv.Server, portalHomeService)
-	portalapi.RegisterPricingHTTPServer(portalHttpSrv.Server, portalPricingService)
-
-	return server.Servers{rpcSrv, httpSrv, portalHttpSrv, tickerSrv, eventSrv}
+	return server.Servers{rpcSrv, httpSrv, tickerSrv}
 }

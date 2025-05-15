@@ -28,17 +28,10 @@
    在 系统变量 中找到 Path → 点击 编辑 → 添加路径：C:\w64devkit\bin（根据实际解压路径调整）。
 4. 验证安装
    打开命令提示符，运行：
-   ```bash
-   make --version # 应输出类似 "GNU Make 4.4"
-   ```
-> 如果出现编码异常问题， 参考下面两步， 没有则忽略
-   1. 修改控制台编码
-   ```bash
-   reg add HKEY_CURRENT_USER\Console /v CodePage /t REG_DWORD /d 65001 /f
-   ```
-
-   2. 启用系统级 UTF-8 支持
-   -  设置 → 时间和语言 → 语言 → 管理语言设置 → 勾选 "Beta: Unicode UTF-8" → 重启
+```bash
+make --version # 应输出类似 "GNU Make 4.4"
+```
+### 附加说明（优化版）
 
 **推荐使用 w64devkit 的原因：**
 1. **原生编译支持**：w64devkit 提供完整的 Windows 原生 GNU 工具链（含 `make`、`gcc` 等），能直接适配 Makefile 的编译需求。

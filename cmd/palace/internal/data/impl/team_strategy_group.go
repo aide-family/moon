@@ -6,28 +6,28 @@ import (
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func NewTeamStrategyGroupRepo(data *data.Data) repository.TeamStrategyGroup {
-	return &teamStrategyGroupRepoImpl{
+	return &teamStrategyGroupRepo{
 		Data: data,
 	}
 }
 
-type teamStrategyGroupRepoImpl struct {
+type teamStrategyGroupRepo struct {
 	*data.Data
 }
 
 // Create implements repository.TeamStrategyGroup.
-func (t *teamStrategyGroupRepoImpl) Create(ctx context.Context, params *bo.SaveTeamStrategyGroupParams) error {
+func (t *teamStrategyGroupRepo) Create(ctx context.Context, params *bo.SaveTeamStrategyGroupParams) error {
 	tx := getTeamBizQuery(ctx, t)
 	groupDo := &team.StrategyGroup{
 		Name:   params.Name,
@@ -40,7 +40,7 @@ func (t *teamStrategyGroupRepoImpl) Create(ctx context.Context, params *bo.SaveT
 }
 
 // Delete implements repository.TeamStrategyGroup.
-func (t *teamStrategyGroupRepoImpl) Delete(ctx context.Context, id uint32) error {
+func (t *teamStrategyGroupRepo) Delete(ctx context.Context, id uint32) error {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
 	wrappers := []gen.Condition{
@@ -61,14 +61,14 @@ func (t *teamStrategyGroupRepoImpl) Delete(ctx context.Context, id uint32) error
 }
 
 // Get implements repository.TeamStrategyGroup.
-func (t *teamStrategyGroupRepoImpl) Get(ctx context.Context, id uint32) (do.StrategyGroup, error) {
+func (t *teamStrategyGroupRepo) Get(ctx context.Context, id uint32) (do.StrategyGroup, error) {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
 	wrappers := []gen.Condition{
 		mutation.ID.Eq(id),
 		mutation.TeamID.Eq(teamId),
 	}
-	group, err := mutation.WithContext(ctx).Where(wrappers...).Preload(field.Associations).First()
+	group, err := mutation.WithContext(ctx).Preload(field.Associations).Where(wrappers...).First()
 	if err != nil {
 		return nil, strategyGroupNotFound(err)
 	}
@@ -76,15 +76,15 @@ func (t *teamStrategyGroupRepoImpl) Get(ctx context.Context, id uint32) (do.Stra
 }
 
 // List implements repository.TeamStrategyGroup.
-func (t *teamStrategyGroupRepoImpl) List(ctx context.Context, listParams *bo.ListTeamStrategyGroupParams) (*bo.ListTeamStrategyGroupReply, error) {
+func (t *teamStrategyGroupRepo) List(ctx context.Context, listParams *bo.ListTeamStrategyGroupParams) (*bo.ListTeamStrategyGroupReply, error) {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
 	wrappers := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId))
 	if validate.TextIsNotNull(listParams.Keyword) {
 		wrappers = wrappers.Where(mutation.Name.Like(listParams.Keyword))
 	}
-	if listParams.Status.Exist() && !listParams.Status.IsUnknown() {
-		wrappers = wrappers.Where(mutation.Status.Eq(listParams.Status.GetValue()))
+	if len(listParams.Status) > 0 {
+		wrappers = wrappers.Where(mutation.Status.In(slices.Map(listParams.Status, func(status vobj.GlobalStatus) int8 { return int8(status) })...))
 	}
 	if validate.IsNotNil(listParams.PaginationRequest) {
 		total, err := wrappers.Count()
@@ -98,46 +98,11 @@ func (t *teamStrategyGroupRepoImpl) List(ctx context.Context, listParams *bo.Lis
 	if err != nil {
 		return nil, err
 	}
-	rows := slices.Map(groups, func(group *team.StrategyGroup) do.StrategyGroup { return group })
-	return listParams.ToListReply(rows), nil
-}
-
-// Select implements repository.TeamStrategyGroup.
-func (t *teamStrategyGroupRepoImpl) Select(ctx context.Context, selectParams *bo.SelectTeamStrategyGroupRequest) (*bo.SelectTeamStrategyGroupReply, error) {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
-	mutation := tx.StrategyGroup
-	wrappers := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId))
-	if validate.TextIsNotNull(selectParams.Keyword) {
-		wrappers = wrappers.Where(mutation.Name.Like(selectParams.Keyword))
-	}
-	if len(selectParams.Status) > 0 {
-		wrappers = wrappers.Where(mutation.Status.In(slices.Map(selectParams.Status, func(status vobj.GlobalStatus) int8 { return int8(status) })...))
-	}
-	if validate.IsNotNil(selectParams.PaginationRequest) {
-		total, err := wrappers.Count()
-		if err != nil {
-			return nil, err
-		}
-		selectParams.WithTotal(total)
-		wrappers = wrappers.Limit(int(selectParams.Limit)).Offset(selectParams.Offset())
-	}
-	selectColumns := []field.Expr{
-		mutation.ID,
-		mutation.Name,
-		mutation.Remark,
-		mutation.Status,
-		mutation.DeletedAt,
-	}
-	groups, err := wrappers.WithContext(ctx).Select(selectColumns...).Order(mutation.ID.Desc()).Find()
-	if err != nil {
-		return nil, err
-	}
-	rows := slices.Map(groups, func(group *team.StrategyGroup) do.StrategyGroup { return group })
-	return selectParams.ToSelectReply(rows), nil
+	return listParams.ToListTeamStrategyGroupReply(groups), nil
 }
 
 // Update implements repository.TeamStrategyGroup.
-func (t *teamStrategyGroupRepoImpl) Update(ctx context.Context, params *bo.SaveTeamStrategyGroupParams) error {
+func (t *teamStrategyGroupRepo) Update(ctx context.Context, params *bo.SaveTeamStrategyGroupParams) error {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
 	wrappers := []gen.Condition{
@@ -153,7 +118,7 @@ func (t *teamStrategyGroupRepoImpl) Update(ctx context.Context, params *bo.SaveT
 }
 
 // UpdateStatus implements repository.TeamStrategyGroup.
-func (t *teamStrategyGroupRepoImpl) UpdateStatus(ctx context.Context, params *bo.UpdateTeamStrategyGroupStatusParams) error {
+func (t *teamStrategyGroupRepo) UpdateStatus(ctx context.Context, params *bo.UpdateTeamStrategyGroupStatusParams) error {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
 	wrappers := []gen.Condition{

@@ -7,11 +7,10 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/pkg/api/houyi/common"
-	"github.com/aide-family/moon/pkg/plugin/datasource"
-	"github.com/aide-family/moon/pkg/plugin/datasource/prometheus"
-	"github.com/aide-family/moon/pkg/util/kv"
-	"github.com/aide-family/moon/pkg/util/timex"
+	"github.com/moon-monitor/moon/pkg/api/houyi/common"
+	"github.com/moon-monitor/moon/pkg/plugin/datasource"
+	"github.com/moon-monitor/moon/pkg/plugin/datasource/prometheus"
+	"github.com/moon-monitor/moon/pkg/util/timex"
 )
 
 var _ datasource.MetricConfig = (*config)(nil)
@@ -31,7 +30,7 @@ func (c *config) GetCA() string {
 }
 
 // GetHeaders implements prometheus.Config.
-func (c *config) GetHeaders() []*kv.KV {
+func (c *config) GetHeaders() map[string]string {
 	return nil
 }
 
@@ -55,7 +54,7 @@ func (c *config) GetBasicAuth() datasource.BasicAuth {
 
 func Test_Query(t *testing.T) {
 	c := &config{
-		Endpoint: "http://localhost:9090/",
+		Endpoint: "https://prometheus.aide-cloud.cn/",
 	}
 	prom := prometheus.New(c, log.GetLogger())
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -77,13 +76,13 @@ func Test_Query(t *testing.T) {
 	}
 
 	for _, v := range resp.Data.Result {
-		t.Logf("%s", v)
+		t.Log(v.GetMetricQueryValue())
 	}
 }
 
 func Test_QueryRange(t *testing.T) {
 	c := &config{
-		Endpoint: "http://localhost:9090/",
+		Endpoint: "https://prometheus.aide-cloud.cn/",
 	}
 	prom := prometheus.New(c, log.GetLogger())
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -113,7 +112,7 @@ func Test_QueryRange(t *testing.T) {
 
 func Test_Metadata(t *testing.T) {
 	c := &config{
-		Endpoint: "http://localhost:9090/",
+		Endpoint: "https://prometheus.aide-cloud.cn/",
 	}
 	prom := prometheus.New(c, log.GetLogger())
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

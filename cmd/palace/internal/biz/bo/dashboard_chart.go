@@ -1,9 +1,10 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 type DashboardChart interface {
@@ -11,8 +12,9 @@ type DashboardChart interface {
 	GetDashboardID() uint32
 	GetTitle() string
 	GetRemark() string
+	GetStatus() vobj.GlobalStatus
 	GetUrl() string
-	GetWidth() uint32
+	GetWidth() string
 	GetHeight() string
 }
 
@@ -22,8 +24,9 @@ type SaveDashboardChartReq struct {
 	DashboardID uint32
 	Title       string
 	Remark      string
+	Status      vobj.GlobalStatus
 	Url         string
-	Width       uint32
+	Width       string
 	Height      string
 }
 
@@ -55,6 +58,13 @@ func (d *SaveDashboardChartReq) GetRemark() string {
 	return d.Remark
 }
 
+func (d *SaveDashboardChartReq) GetStatus() vobj.GlobalStatus {
+	if d == nil {
+		return vobj.GlobalStatusUnknown
+	}
+	return d.Status
+}
+
 func (d *SaveDashboardChartReq) GetUrl() string {
 	if d == nil {
 		return ""
@@ -62,9 +72,9 @@ func (d *SaveDashboardChartReq) GetUrl() string {
 	return d.Url
 }
 
-func (d *SaveDashboardChartReq) GetWidth() uint32 {
+func (d *SaveDashboardChartReq) GetWidth() string {
 	if d == nil {
-		return 6
+		return ""
 	}
 	return d.Width
 }
@@ -84,40 +94,15 @@ type ListDashboardChartReq struct {
 	Keyword     string
 }
 
-func (r *ListDashboardChartReq) ToListReply(charts []do.DashboardChart) *ListDashboardChartReply {
+func (r *ListDashboardChartReq) ToListDashboardChartReply(charts []*team.DashboardChart) *ListDashboardChartReply {
 	return &ListDashboardChartReply{
 		PaginationReply: r.ToReply(),
-		Items:           charts,
+		Items:           slices.Map(charts, func(chart *team.DashboardChart) do.DashboardChart { return chart }),
 	}
 }
 
 // ListDashboardChartReply represents a reply to list dashboard charts
 type ListDashboardChartReply = ListReply[do.DashboardChart]
-
-type SelectTeamDashboardChartReq struct {
-	*PaginationRequest
-	Status      vobj.GlobalStatus
-	DashboardID uint32
-	Keyword     string
-}
-
-func (r *SelectTeamDashboardChartReq) ToSelectReply(charts []do.DashboardChart) *SelectTeamDashboardChartReply {
-	return &SelectTeamDashboardChartReply{
-		PaginationReply: r.ToReply(),
-		Items: slices.Map(charts, func(chart do.DashboardChart) SelectItem {
-			return &selectItem{
-				Value:    chart.GetID(),
-				Label:    chart.GetTitle(),
-				Disabled: chart.GetDeletedAt() > 0 || !chart.GetStatus().IsEnable(),
-				Extra: &selectItemExtra{
-					Remark: chart.GetRemark(),
-				},
-			}
-		}),
-	}
-}
-
-type SelectTeamDashboardChartReply = ListReply[SelectItem]
 
 // BatchUpdateDashboardStatusReq represents a request to batch update dashboard status
 type BatchUpdateDashboardStatusReq struct {

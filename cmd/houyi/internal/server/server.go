@@ -5,12 +5,11 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/google/wire"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/conf"
-	"github.com/aide-family/moon/cmd/houyi/internal/service"
-	"github.com/aide-family/moon/pkg/api/common"
-	houyiv1 "github.com/aide-family/moon/pkg/api/houyi/v1"
-	"github.com/aide-family/moon/pkg/plugin/server"
-	"github.com/aide-family/moon/pkg/plugin/server/ticker_server"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/conf"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/service"
+	"github.com/moon-monitor/moon/pkg/api/common"
+	houyiv1 "github.com/moon-monitor/moon/pkg/api/houyi/v1"
+	"github.com/moon-monitor/moon/pkg/plugin/server"
 )
 
 // ProviderSetServer is server providers.
@@ -22,7 +21,6 @@ var ProviderSetServer = wire.NewSet(
 	NewCronAlertJobServer,
 	NewEventBusServer,
 	NewLoadTickerServer,
-	NewTicker,
 )
 
 // RegisterService register service
@@ -30,7 +28,6 @@ func RegisterService(
 	c *conf.Bootstrap,
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
-	tickerSrv *ticker_server.Ticker,
 	cronStrategySrv *CronStrategyJobServer,
 	cronAlertSrv *CronAlertJobServer,
 	eventBusService *EventBusServer,
@@ -54,6 +51,5 @@ func RegisterService(
 		cronAlertSrv,
 		eventBusService,
 		loadTickerSrv,
-		tickerSrv,
 	}
 }

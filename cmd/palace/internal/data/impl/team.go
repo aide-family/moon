@@ -3,22 +3,20 @@ package impl
 import (
 	"context"
 
-	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
-	"gorm.io/gorm"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/crypto"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data/impl/build"
+	"github.com/moon-monitor/moon/pkg/util/crypto"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func NewTeamRepo(d *data.Data, logger log.Logger) repository.Team {
@@ -33,7 +31,7 @@ type teamRepoImpl struct {
 	helper *log.Helper
 }
 
-func (r *teamRepoImpl) Create(ctx context.Context, team bo.CreateTeamRequest) error {
+func (r *teamRepoImpl) Create(ctx context.Context, team bo.CreateTeamRequest) (do.Team, error) {
 	teamMutation := getMainQuery(ctx, r).Team
 	teamDo := &system.Team{
 		Name:          team.GetName(),
@@ -43,17 +41,20 @@ func (r *teamRepoImpl) Create(ctx context.Context, team bo.CreateTeamRequest) er
 		LeaderID:      team.GetLeader().GetID(),
 		UUID:          team.GetUUID(),
 		Capacity:      team.GetCapacity(),
-		Leader:        nil,
+		Leader:        build.ToUser(ctx, team.GetLeader()),
 		Admins:        nil,
-		Menus:         nil,
+		Resources:     nil,
 		BizDBConfig:   crypto.NewObject(team.GetBizDBConfig()),
 		AlarmDBConfig: crypto.NewObject(team.GetAlarmDBConfig()),
 	}
 	teamDo.WithContext(ctx)
-	return teamMutation.WithContext(ctx).Create(teamDo)
+	if err := teamMutation.WithContext(ctx).Create(teamDo); err != nil {
+		return nil, err
+	}
+	return teamDo, nil
 }
 
-func (r *teamRepoImpl) Update(ctx context.Context, team bo.UpdateTeamRequest) error {
+func (r *teamRepoImpl) Update(ctx context.Context, team bo.UpdateTeamRequest) (do.Team, error) {
 	teamMutation := getMainQuery(ctx, r).Team
 	wrappers := []gen.Condition{
 		teamMutation.ID.Eq(team.GetTeam().GetID()),
@@ -64,7 +65,10 @@ func (r *teamRepoImpl) Update(ctx context.Context, team bo.UpdateTeamRequest) er
 		teamMutation.Logo.Value(team.GetLogo()),
 	}
 	_, err := teamMutation.WithContext(ctx).Where(wrappers...).UpdateColumnSimple(mutations...)
-	return err
+	if err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, team.GetTeam().GetID())
 }
 
 func (r *teamRepoImpl) Delete(ctx context.Context, id uint32) error {
@@ -78,7 +82,7 @@ func (r *teamRepoImpl) Delete(ctx context.Context, id uint32) error {
 
 func (r *teamRepoImpl) FindByID(ctx context.Context, id uint32) (do.Team, error) {
 	systemQuery := getMainQuery(ctx, r).Team
-	teamDo, err := systemQuery.WithContext(ctx).Preload(field.Associations).Where(systemQuery.ID.Eq(id)).First()
+	teamDo, err := systemQuery.WithContext(ctx).Where(systemQuery.ID.Eq(id)).First()
 	if err != nil {
 		return nil, teamNotFound(err)
 	}
@@ -88,7 +92,7 @@ func (r *teamRepoImpl) FindByID(ctx context.Context, id uint32) (do.Team, error)
 func (r *teamRepoImpl) List(ctx context.Context, req *bo.TeamListRequest) (*bo.TeamListReply, error) {
 	query := getMainQuery(ctx, r)
 	teamQuery := query.Team
-	wrapper := teamQuery.WithContext(ctx).Preload(field.Associations)
+	wrapper := teamQuery.WithContext(ctx)
 	if !validate.TextIsNull(req.Keyword) {
 		wrapper = wrapper.Where(teamQuery.Name.Like(req.Keyword))
 	}
@@ -132,38 +136,5 @@ func (r *teamRepoImpl) List(ctx context.Context, req *bo.TeamListRequest) (*bo.T
 	if err != nil {
 		return nil, err
 	}
-	rows := slices.Map(teamDos, func(teamDo *system.Team) do.Team { return teamDo })
-	return req.ToListReply(rows), nil
-}
-
-func (r *teamRepoImpl) CheckNameUnique(ctx context.Context, name string, teamID uint32) error {
-	teamQuery := getMainQuery(ctx, r).Team
-	wrapper := teamQuery.WithContext(ctx)
-	if teamID > 0 {
-		wrapper = wrapper.Where(teamQuery.ID.Neq(teamID))
-	}
-	teamDo, err := wrapper.Where(teamQuery.Name.Eq(name)).First()
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil
-		}
-		return err
-	}
-	if teamDo != nil {
-		return merr.ErrorConflict("team name already exists")
-	}
-	return nil
-}
-
-func (r *teamRepoImpl) FindByName(ctx context.Context, name string) (do.Team, error) {
-	teamQuery := getMainQuery(ctx, r).Team
-	wrapper := teamQuery.WithContext(ctx).Preload(field.Associations)
-	teamDo, err := wrapper.Where(teamQuery.Name.Eq(name)).First()
-	if err != nil {
-		return nil, teamNotFound(err)
-	}
-	if teamDo == nil {
-		return nil, merr.ErrorNotFound("team not found")
-	}
-	return teamDo, nil
+	return req.ToTeamListReply(teamDos), nil
 }

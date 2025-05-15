@@ -6,9 +6,9 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/kv"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/util/kv"
 )
 
 var _ do.Realtime = (*Realtime)(nil)
@@ -17,18 +17,18 @@ const tableNameRealtime = "team_realtime_alerts"
 
 type Realtime struct {
 	ID           uint32           `gorm:"column:id;primaryKey;autoIncrement" json:"id,omitempty"`
-	CreatedAt    time.Time        `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:creation time" json:"createdAt"`
-	UpdatedAt    time.Time        `gorm:"column:updated_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:update time" json:"updatedAt"`
-	TeamID       uint32           `gorm:"column:team_id;type:int;not null;comment:team ID;uniqueIndex:uk__team_id__fingerprint" json:"teamId"`
-	Status       vobj.AlertStatus `gorm:"column:status;type:tinyint;not null;comment:status" json:"status"`
-	Fingerprint  string           `gorm:"column:fingerprint;type:varchar(255);not null;comment:fingerprint;uniqueIndex:uk__team_id__fingerprint" json:"fingerprint"`
-	Labels       kv.StringMap     `gorm:"column:labels;type:text;not null;comment:labels" json:"labels"`
-	Summary      string           `gorm:"column:summary;type:text;not null;comment:summary" json:"summary"`
-	Description  string           `gorm:"column:description;type:text;not null;comment:description" json:"description"`
-	Value        string           `gorm:"column:value;type:text;not null;comment:value" json:"value"`
-	GeneratorURL string           `gorm:"column:generator_url;type:text;not null;comment:generator URL" json:"generatorURL"`
-	StartsAt     time.Time        `gorm:"column:starts_at;type:datetime;not null;default:'0001-01-01 00:00:00';comment:start time" json:"startsAt"`
-	EndsAt       time.Time        `gorm:"column:ends_at;type:datetime;not null;default:'0001-01-01 00:00:00';comment:end time" json:"endsAt"`
+	CreatedAt    time.Time        `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"createdAt"`
+	UpdatedAt    time.Time        `gorm:"column:updated_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updatedAt"`
+	TeamID       uint32           `gorm:"column:team_id;type:int;not null;comment:团队ID;uniqueIndex:uk__team_id__fingerprint" json:"teamId"`
+	Status       vobj.AlertStatus `gorm:"column:status;type:tinyint;not null;comment:状态" json:"status"`
+	Fingerprint  string           `gorm:"column:fingerprint;type:varchar(255);not null;comment:指纹;uniqueIndex:uk__team_id__fingerprint" json:"fingerprint"`
+	Labels       kv.StringMap     `gorm:"column:labels;type:text;not null;comment:标签" json:"labels"`
+	Summary      string           `gorm:"column:summary;type:text;not null;comment:摘要" json:"summary"`
+	Description  string           `gorm:"column:description;type:text;not null;comment:描述" json:"description"`
+	Value        string           `gorm:"column:value;type:text;not null;comment:值" json:"value"`
+	GeneratorURL string           `gorm:"column:generator_url;type:text;not null;comment:生成URL" json:"generatorURL"`
+	StartsAt     time.Time        `gorm:"column:starts_at;type:datetime;not null;default:'0001-01-01 00:00:00';comment:开始时间" json:"startsAt"`
+	EndsAt       time.Time        `gorm:"column:ends_at;type:datetime;not null;default:'0001-01-01 00:00:00';comment:结束时间" json:"endsAt"`
 }
 
 // GetCreatedAt implements do.Realtime.
@@ -130,19 +130,19 @@ func GetRealtimeTableName(teamId uint32, t time.Time, tx *gorm.DB) (string, erro
 }
 
 func GetRealtimeTableNames(teamId uint32, start, end time.Time, tx *gorm.DB) []string {
-	// Validate time range
+	// 验证时间范围
 	if start.After(end) {
 		return nil
 	}
 
 	var tableNames []string
 
-	// Find the first Monday (Monday containing or before start)
+	// 找到第一个周一（包含或早于start的周一）
 	firstMonday := do.GetPreviousMonday(start)
 
-	// From the first Monday, add 7 days each week until exceeding end time
+	// 从第一个周一开始，每周增加7天，直到超过end时间
 	for currentMonday := firstMonday; !currentMonday.After(end); currentMonday = currentMonday.AddDate(0, 0, 7) {
-		// Ensure the generated table name is within the time range (Monday + 6 days not before start)
+		// 确保生成的表名在时间范围内（周一+6天不超过start）
 		if currentMonday.AddDate(0, 0, 6).Before(start) {
 			continue
 		}

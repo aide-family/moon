@@ -1,8 +1,8 @@
 package do
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/plugin/cache"
 )
 
 type User interface {
@@ -18,7 +18,7 @@ type User interface {
 	GetGender() vobj.Gender
 	GetAvatar() string
 	GetStatus() vobj.UserStatus
-	GetPosition() vobj.Position
+	GetPosition() vobj.Role
 	GetRoles() []Role
 	GetTeams() []Team
 	ValidatePassword(p string) bool

@@ -1,7 +1,7 @@
 package do
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
 )
 
 type Dashboard interface {
@@ -21,6 +21,6 @@ type DashboardChart interface {
 	GetStatus() vobj.GlobalStatus
 	GetDashboard() Dashboard
 	GetUrl() string
-	GetWidth() uint32
+	GetWidth() string
 	GetHeight() string
 }

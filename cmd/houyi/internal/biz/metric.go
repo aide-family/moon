@@ -2,20 +2,21 @@ package biz
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/do"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/event"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/houyi/internal/conf"
-	"github.com/aide-family/moon/pkg/api/common"
-	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/plugin/server/ticker_server"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/timex"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/event"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/conf"
+	"github.com/moon-monitor/moon/pkg/api/common"
+	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/moon-monitor/moon/pkg/plugin/server"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/timex"
 )
 
 func NewMetric(
@@ -63,8 +64,8 @@ type Metric struct {
 	syncTimeout      time.Duration
 }
 
-func (m *Metric) Loads() []*ticker_server.TickTask {
-	return []*ticker_server.TickTask{
+func (m *Metric) Loads() []*server.TickTask {
+	return []*server.TickTask{
 		{
 			Fn:        m.syncMetricRuleConfigs,
 			Name:      "syncMetricRuleConfigs",
@@ -151,12 +152,9 @@ func (m *Metric) SyncMetricMetadata(ctx context.Context, req *bo.SyncMetricMetad
 	for metadata := range metadataChan {
 		total += len(metadata)
 		metadataItems := slices.Map(metadata, func(v *do.MetricItem) *common.MetricItem {
-			labels := make([]*common.MetricItem_Label, 0, len(v.Labels))
+			labels := make(map[string]string)
 			for k, v := range v.Labels {
-				labels = append(labels, &common.MetricItem_Label{
-					Key:    k,
-					Values: v,
-				})
+				labels[k] = strings.Join(v, ",")
 			}
 			return &common.MetricItem{
 				Name:   v.Name,
@@ -199,8 +197,12 @@ func (m *Metric) QueryMetricDatasource(ctx context.Context, req *bo.MetricDataso
 		return nil, err
 	}
 
-	if req.IsQueryRange() {
-		queryRangeRequest := req.GetQueryRange()
+	if req.EndTime > req.StartTime && req.EndTime > 0 {
+		queryRangeRequest := &bo.MetricRangeQueryRequest{
+			Expr:      req.Expr,
+			StartTime: time.Unix(req.StartTime, 0),
+			EndTime:   time.Unix(req.EndTime, 0),
+		}
 		queryResponse, err := metricInstance.QueryRange(ctx, queryRangeRequest)
 		if err != nil {
 			m.helper.WithContext(ctx).Errorw("msg", "query metric datasource error", "err", err)
@@ -209,7 +211,10 @@ func (m *Metric) QueryMetricDatasource(ctx context.Context, req *bo.MetricDataso
 		return NewMetricDatasourceQueryReply(WithMetricDatasourceQueryRangeReply(queryResponse)), nil
 	}
 
-	queryRequest := req.GetQuery()
+	queryRequest := &bo.MetricQueryRequest{
+		Expr: req.Expr,
+		Time: time.Unix(req.Time, 0),
+	}
 	queryResponse, err := metricInstance.Query(ctx, queryRequest)
 	if err != nil {
 		m.helper.WithContext(ctx).Errorw("msg", "query metric datasource error", "err", err)

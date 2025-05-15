@@ -5,29 +5,28 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func NewAuditRepo(d *data.Data, logger log.Logger) repository.Audit {
-	return &auditRepoImpl{
+	return &auditImpl{
 		Data:   d,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.audit")),
 	}
 }
 
-type auditRepoImpl struct {
+type auditImpl struct {
 	*data.Data
 	helper *log.Helper
 }
 
-func (a *auditRepoImpl) Get(ctx context.Context, id uint32) (do.TeamAudit, error) {
+func (a *auditImpl) Get(ctx context.Context, id uint32) (do.TeamAudit, error) {
 	auditQuery := getMainQuery(ctx, a).TeamAudit
 	audit, err := auditQuery.WithContext(ctx).Where(auditQuery.ID.Eq(id)).First()
 	if err != nil {
@@ -36,7 +35,7 @@ func (a *auditRepoImpl) Get(ctx context.Context, id uint32) (do.TeamAudit, error
 	return audit, nil
 }
 
-func (a *auditRepoImpl) TeamAuditList(ctx context.Context, req *bo.TeamAuditListRequest) (*bo.TeamAuditListReply, error) {
+func (a *auditImpl) TeamAuditList(ctx context.Context, req *bo.TeamAuditListRequest) (*bo.TeamAuditListReply, error) {
 	auditQuery := getMainQuery(ctx, a).TeamAudit
 	wrapper := auditQuery.WithContext(ctx)
 
@@ -66,11 +65,10 @@ func (a *auditRepoImpl) TeamAuditList(ctx context.Context, req *bo.TeamAuditList
 	if err != nil {
 		return nil, err
 	}
-	rows := slices.Map(audits, func(audit *system.TeamAudit) do.TeamAudit { return audit })
-	return req.ToListReply(rows), nil
+	return req.ToTeamAuditListReply(audits), nil
 }
 
-func (a *auditRepoImpl) UpdateTeamAuditStatus(ctx context.Context, req bo.UpdateTeamAuditStatus) error {
+func (a *auditImpl) UpdateTeamAuditStatus(ctx context.Context, req bo.UpdateTeamAuditStatus) error {
 	auditMutation := getMainQuery(ctx, a).TeamAudit
 	_, err := auditMutation.WithContext(ctx).
 		Where(auditMutation.ID.Eq(req.GetAuditID())).

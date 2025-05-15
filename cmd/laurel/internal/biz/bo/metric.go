@@ -7,8 +7,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/aide-family/moon/cmd/laurel/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/moon-monitor/moon/cmd/laurel/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/plugin/cache"
 )
 
 type MetricVec interface {
@@ -20,11 +20,11 @@ type MetricVec interface {
 var _ MetricVec = (*CounterMetricVec)(nil)
 
 type CounterMetricVec struct {
-	Namespace string   `json:"namespace"`
-	SubSystem string   `json:"subSystem"`
-	Name      string   `json:"name"`
-	Labels    []string `json:"labels"`
-	Help      string   `json:"help"`
+	Namespace string
+	SubSystem string
+	Name      string
+	Labels    []string
+	Help      string
 }
 
 // Type implements MetricVec.
@@ -63,11 +63,11 @@ func (c *CounterMetricVec) New() *prometheus.CounterVec {
 var _ MetricVec = (*GaugeMetricVec)(nil)
 
 type GaugeMetricVec struct {
-	Namespace string   `json:"namespace"`
-	SubSystem string   `json:"subSystem"`
-	Name      string   `json:"name"`
-	Labels    []string `json:"labels"`
-	Help      string   `json:"help"`
+	Namespace string
+	SubSystem string
+	Name      string
+	Labels    []string
+	Help      string
 }
 
 // Type implements MetricVec.
@@ -106,19 +106,19 @@ func (g *GaugeMetricVec) New() *prometheus.GaugeVec {
 var _ MetricVec = (*HistogramMetricVec)(nil)
 
 type HistogramMetricVec struct {
-	Namespace                       string    `json:"namespace"`
-	SubSystem                       string    `json:"subSystem"`
-	Name                            string    `json:"name"`
-	Labels                          []string  `json:"labels"`
-	Help                            string    `json:"help"`
-	Buckets                         []float64 `json:"buckets"`
-	NativeHistogramBucketFactor     float64   `json:"nativeHistogramBucketFactor"`
-	NativeHistogramZeroThreshold    float64   `json:"nativeHistogramZeroThreshold"`
-	NativeHistogramMaxBucketNumber  uint32    `json:"nativeHistogramMaxBucketNumber"`
-	NativeHistogramMinResetDuration int64     `json:"nativeHistogramMinResetDuration"`
-	NativeHistogramMaxZeroThreshold float64   `json:"nativeHistogramMaxZeroThreshold"`
-	NativeHistogramMaxExemplars     int64     `json:"nativeHistogramMaxExemplars"`
-	NativeHistogramExemplarTTL      int64     `json:"nativeHistogramExemplarTTL"`
+	Namespace                       string
+	SubSystem                       string
+	Name                            string
+	Labels                          []string
+	Help                            string
+	Buckets                         []float64
+	NativeHistogramBucketFactor     float64
+	NativeHistogramZeroThreshold    float64
+	NativeHistogramMaxBucketNumber  uint32
+	NativeHistogramMinResetDuration int64
+	NativeHistogramMaxZeroThreshold float64
+	NativeHistogramMaxExemplars     int64
+	NativeHistogramExemplarTTL      int64
 }
 
 // Type implements MetricVec.
@@ -165,15 +165,15 @@ func (h *HistogramMetricVec) New() *prometheus.HistogramVec {
 var _ MetricVec = (*SummaryMetricVec)(nil)
 
 type SummaryMetricVec struct {
-	Namespace  string              `json:"namespace"`
-	SubSystem  string              `json:"subSystem"`
-	Name       string              `json:"name"`
-	Labels     []string            `json:"labels"`
-	Help       string              `json:"help"`
-	Objectives map[float64]float64 `json:"objectives"`
-	MaxAge     int64               `json:"maxAge"`
-	AgeBuckets uint32              `json:"ageBuckets"`
-	BufCap     uint32              `json:"bufCap"`
+	Namespace  string
+	SubSystem  string
+	Name       string
+	Labels     []string
+	Help       string
+	Objectives map[float64]float64
+	MaxAge     int64
+	AgeBuckets uint32
+	BufCap     uint32
 }
 
 // Type implements MetricVec.
@@ -214,12 +214,12 @@ func (s *SummaryMetricVec) New() *prometheus.SummaryVec {
 }
 
 type MetricData struct {
-	MetricType vobj.MetricType   `json:"metricType"`
-	Namespace  string            `json:"namespace"`
-	SubSystem  string            `json:"subSystem"`
-	Name       string            `json:"name"`
-	Labels     map[string]string `json:"labels"`
-	Value      float64           `json:"value"`
+	MetricType vobj.MetricType
+	Namespace  string
+	SubSystem  string
+	Name       string
+	Labels     map[string]string
+	Value      float64
 }
 
 func (m *MetricData) GetMetricName() string {

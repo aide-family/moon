@@ -7,7 +7,7 @@ import "palace/common/common.proto";
 import "palace/common/common_enum.proto";
 import "palace/common/team_notice.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
 
 service TeamNotice {
   rpc SaveTeamNoticeHook (SaveTeamNoticeHookRequest) returns (api.palace.common.EmptyReply) {
@@ -35,12 +35,6 @@ service TeamNotice {
   rpc ListTeamNoticeHook (ListTeamNoticeHookRequest) returns (ListTeamNoticeHookReply) {
     option (google.api.http) = {
       post: "/api/team/notice/hook/list"
-      body: "*"
-    };
-  }
-  rpc TeamNoticeHookSelect (TeamNoticeHookSelectRequest) returns (TeamNoticeHookSelectReply) {
-    option (google.api.http) = {
-      post: "/api/team/notice/hook/select"
       body: "*"
     };
   }
@@ -72,23 +66,18 @@ service TeamNotice {
       body: "*"
     };
   }
-  rpc TeamNoticeGroupSelect (TeamNoticeGroupSelectRequest) returns (TeamNoticeGroupSelectReply) {
-    option (google.api.http) = {
-      post: "/api/team/notice/group/select"
-      body: "*"
-    };
-  }
 }
 
 message SaveTeamNoticeHookRequest {
   string name = 1;
   string remark = 2;
-  string url = 3;
-  string secret = 4;
-  api.palace.common.HTTPMethod method = 5;
-  repeated api.palace.common.KeyValueItem headers = 6;
-  api.palace.common.HookAPP app = 7;
-  uint32 hookId = 8;
+  api.palace.common.GlobalStatus status = 3;
+  string url = 4;
+  string secret = 5;
+  api.palace.common.HTTPMethod method = 6;
+  map<string, string> headers = 7;
+  api.palace.common.HookAPP app = 8;
+  uint32 hookId = 9;
 }
 
 message UpdateTeamNoticeHookStatusRequest {
@@ -116,23 +105,10 @@ message ListTeamNoticeHookReply {
   repeated api.palace.common.NoticeHookItem items = 2;
 }
 
-message TeamNoticeHookSelectRequest {
-  api.palace.common.PaginationRequest pagination = 1;
-  repeated api.palace.common.HookAPP apps = 2;
-  api.palace.common.GlobalStatus status = 3;
-  string keyword = 4;
-  string url = 5;
-}
-message TeamNoticeHookSelectReply {
-  repeated api.palace.common.SelectItem items = 1;
-  api.palace.common.PaginationReply pagination = 2;
-}
-
 message SaveTeamNoticeGroupRequest {
   message Member {
     uint32 memberId = 1;
     api.palace.common.NoticeType noticeType = 2;
-    repeated uint32 dutyCycleIds = 3;
   }
   string name = 1;
   string remark = 2;
@@ -166,14 +142,4 @@ message ListTeamNoticeGroupRequest {
 message ListTeamNoticeGroupReply {
   api.palace.common.PaginationReply pagination = 1;
   repeated api.palace.common.NoticeGroupItem items = 2;
-}
-
-message TeamNoticeGroupSelectRequest {
-  api.palace.common.PaginationRequest pagination = 1;
-  api.palace.common.GlobalStatus status = 2;
-  string keyword = 3;
-}
-message TeamNoticeGroupSelectReply {
-  repeated api.palace.common.SelectItem items = 1;
-  api.palace.common.PaginationReply pagination = 2;
 }

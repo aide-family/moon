@@ -5,9 +5,8 @@ package api.palace.common;
 import "palace/common/common_enum.proto";
 import "palace/common/team.proto";
 import "palace/common/system.proto";
-import "palace/common/common.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/palace/common;common";
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace/common;common";
 
 message NoticeHookItem {
   uint32 noticeHookId = 1;
@@ -19,7 +18,7 @@ message NoticeHookItem {
   string url = 7;
   api.palace.common.HTTPMethod method = 8;
   string secret = 9;
-  repeated api.palace.common.KeyValueItem headers = 10;
+  map<string, string> headers = 10;
   api.palace.common.HookAPP app = 11;
   api.palace.common.UserBaseItem creator = 12;
   repeated api.palace.common.NoticeGroupItem noticeGroups = 13;
@@ -31,7 +30,6 @@ message NoticeMemberItem {
   api.palace.common.NoticeType noticeType = 3;
   NoticeGroupItem noticeGroup = 4;
   api.palace.common.TeamMemberBaseItem member = 5;
-  repeated api.palace.common.TimeEngineItem dutyCycles = 6;
 }
 
 message NoticeGroupItem {
@@ -46,7 +44,7 @@ message NoticeGroupItem {
   api.palace.common.UserBaseItem creator = 9;
 }
 
-message StrategyMetricLevelLabelNotice {
+message StrategyMetricRuleLabelNotice {
   uint32 labelNoticeId = 1;
   string createdAt = 2;
   string updatedAt = 3;

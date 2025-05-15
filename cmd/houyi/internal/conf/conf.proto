@@ -5,7 +5,7 @@ package cmd.houyi.internal.conf;
 import "google/protobuf/duration.proto";
 import "config.proto";
 
-option go_package = "github.com/aide-family/moon/cmd/houyi/internal/conf;conf";
+option go_package = "github.com/moon-monitor/moon/cmd/houyi/internal/conf;conf";
 
 message Bootstrap {
   config.Environment environment = 1;
@@ -20,8 +20,6 @@ message Bootstrap {
   Evaluate evaluate = 10;
   Config config = 11;
   Alert alert = 12;
-  config.I18N i18n = 13;
-  config.ConfigSource configSource = 14;
 }
 
 message Data {

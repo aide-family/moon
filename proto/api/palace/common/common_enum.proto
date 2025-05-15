@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api.palace.common;
 
-option go_package = "github.com/aide-family/moon/pkg/api/palace/common;common";
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace/common;common";
 
 // GlobalStatus represents the status of a global resource.
 enum GlobalStatus {
@@ -36,6 +36,24 @@ enum OperateType {
   OPERATE_TYPE_IMPORT = 8;
 }
 
+// ResourceAllow represents the allow of a resource.
+enum ResourceAllow {
+  // RESOURCE_ALLOW_UNKNOWN is the default allow for a resource.
+  RESOURCE_ALLOW_UNKNOWN = 0;
+  // RESOURCE_ALLOW_NONE indicates that the resource allow is none.
+  RESOURCE_ALLOW_NONE = 1;
+  // RESOURCE_ALLOW_SYSTEM indicates that the resource allow is system.
+  RESOURCE_ALLOW_SYSTEM = 2;
+  // RESOURCE_ALLOW_SYSTEM_RBAC indicates that the resource allow is system RBAC.
+  RESOURCE_ALLOW_SYSTEM_RBAC = 3;
+  // RESOURCE_ALLOW_TEAM indicates that the resource allow is team.
+  RESOURCE_ALLOW_TEAM = 4;
+  // RESOURCE_ALLOW_TEAM_RBAC indicates that the resource allow is team RBAC.
+  RESOURCE_ALLOW_TEAM_RBAC = 5;
+  // RESOURCE_ALLOW_USER indicates that the resource allow is user.
+  RESOURCE_ALLOW_USER = 6;
+}
+
 // MenuType represents the type of a menu
 enum MenuType {
   // Default unknown menu type
@@ -46,22 +64,6 @@ enum MenuType {
   MENU_TYPE_TEAM = 2;
   // User menu type
   MENU_TYPE_USER = 3;
-  // None menu type
-  MENU_TYPE_NONE = 4;
-}
-
-enum MenuCategory {
-  MENU_CATEGORY_UNKNOWN = 0;
-  MENU_CATEGORY_MENU = 1;
-  MENU_CATEGORY_BUTTON = 2;
-}
-
-enum MenuProcessType {
-  MENU_PROCESS_TYPE_UNKNOWN = 0;
-  MENU_PROCESS_TYPE_LOGIN = 1;
-  MENU_PROCESS_TYPE_TEAM = 2;
-  MENU_PROCESS_TYPE_LOG = 4;
-  MENU_PROCESS_TYPE_DATA_PERMISSION = 8;
 }
 
 enum DatasourceDriverMetric {
@@ -81,36 +83,35 @@ enum HTTPMethod {
   HTTP_METHOD_PATCH = 7;
 }
 
-// SampleMode represents the sampling mode
-// (e.g., how many times an event occurs within a period)
+// 采样方式
 enum SampleMode {
-  // Unknown
+  // 未知
   SAMPLE_MODE_UNKNOWN = 0;
-  // Occurs n times consecutively within m time
+  // m时间内连续出现n次
   SAMPLE_MODE_FOR = 1;
-  // Occurs at most n times within m time
+  // m时间内最多出现n次
   SAMPLE_MODE_MAX = 2;
-  // Occurs at least n times within m time
+  // m时间内最少出现n次
   SAMPLE_MODE_MIN = 3;
 }
 
 enum ConditionMetric {
   CONDITION_METRIC_UNKNOWN = 0;
-  // Equal to
+  // 等于
   CONDITION_METRIC_EQ = 1;
-  // Not equal to
+  // 不等于
   CONDITION_METRIC_NE = 2;
-  // Greater than
+  // 大于
   CONDITION_METRIC_GT = 3;
-  // Greater than or equal to
+  // 大于等于
   CONDITION_METRIC_GTE = 4;
-  // Less than
+  // 小于
   CONDITION_METRIC_LT = 5;
-  // Less than or equal to
+  // 小于等于
   CONDITION_METRIC_LTE = 6;
-  // In range
+  // 在范围内
   CONDITION_METRIC_IN = 7;
-  // Not in range
+  // 不在范围内
   CONDITION_METRIC_NOT_IN = 8;
 }
 
@@ -172,14 +173,3 @@ enum SendMessageStatus {
   SEND_MESSAGE_STATUS_SENDING = 4;
   SEND_MESSAGE_STATUS_RETRY = 5;
 }
-
-enum TimeEngineRuleType {
-  TIME_ENGINE_RULE_TYPE_UNKNOWN = 0;
-  TIME_ENGINE_RULE_TYPE_HOUR_RANGE = 1;
-  TIME_ENGINE_RULE_TYPE_HOUR = 2;
-  TIME_ENGINE_RULE_TYPE_HOUR_MINUTE_RANGE = 3;
-  TIME_ENGINE_RULE_TYPE_DAYS_OF_WEEK = 4;
-  TIME_ENGINE_RULE_TYPE_DAY_OF_MONTH = 5;
-  TIME_ENGINE_RULE_TYPE_MONTH = 6;
-}
-

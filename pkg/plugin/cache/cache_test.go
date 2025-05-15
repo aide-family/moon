@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aide-family/moon/pkg/config"
-	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/plugin/cache"
 )
 
 var _ cache.Object = (*User)(nil)
@@ -38,9 +38,7 @@ func Test_Cache(t *testing.T) {
 		t.Errorf("new cache error: %v", err)
 		return
 	}
-	defer func(c cache.Cache) {
-		_ = c.Close()
-	}(c)
+	defer c.Close()
 
 	users := []*User{
 		{

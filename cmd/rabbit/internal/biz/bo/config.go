@@ -1,6 +1,6 @@
 package bo
 
-import "github.com/aide-family/moon/pkg/api/common"
+import "github.com/moon-monitor/moon/pkg/api/common"
 
 type RemoveConfigParams struct {
 	TeamID string

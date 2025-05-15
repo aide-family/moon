@@ -1,13 +1,12 @@
 package registry
 
 import (
-	registryconsul "github.com/go-kratos/kratos/contrib/registry/consul/v2"
 	registryetcd "github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"github.com/go-kratos/kratos/v2/registry"
+	clientv3 "go.etcd.io/etcd/client/v3"
 
-	"github.com/aide-family/moon/pkg/config"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/conn"
+	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
 // NewRegister Create a service registration instance
@@ -15,19 +14,27 @@ func NewRegister(c *config.Registry) (registry.Registrar, error) {
 	switch c.GetDriver() {
 	case config.RegistryDriver_ETCD:
 		etcdConf := c.GetEtcd()
-		client, err := conn.NewEtcd(etcdConf)
+		client, err := clientv3.New(clientv3.Config{
+			Endpoints:             etcdConf.GetEndpoints(),
+			AutoSyncInterval:      etcdConf.GetAutoSyncInterval().AsDuration(),
+			DialTimeout:           etcdConf.GetTimeout().AsDuration(),
+			DialKeepAliveTime:     etcdConf.GetDialKeepAliveTime().AsDuration(),
+			DialKeepAliveTimeout:  etcdConf.GetDialKeepAliveTimeout().AsDuration(),
+			MaxCallSendMsgSize:    int(etcdConf.GetMaxCallSendMsgSize()),
+			MaxCallRecvMsgSize:    int(etcdConf.GetMaxCallRecvMsgSize()),
+			Username:              etcdConf.GetUsername(),
+			Password:              etcdConf.GetPassword(),
+			RejectOldCluster:      etcdConf.GetRejectOldCluster(),
+			PermitWithoutStream:   etcdConf.GetPermitWithoutStream(),
+			MaxUnaryRetries:       uint(etcdConf.GetMaxUnaryRetries()),
+			BackoffWaitBetween:    etcdConf.GetBackoffWaitBetween().AsDuration(),
+			BackoffJitterFraction: etcdConf.GetBackoffJitterFraction(),
+		})
 		if err != nil {
 			return nil, err
 		}
 		return registryetcd.New(client), nil
-	case config.RegistryDriver_CONSUL:
-		consulConf := c.GetConsul()
-		client, err := conn.NewConsul(consulConf)
-		if err != nil {
-			return nil, err
-		}
-		return registryconsul.New(client), nil
 	default:
-		return nil, merr.ErrorInternalServer("registry driver is not support")
+		return nil, merr.ErrorInternalServerError("registry driver is not support")
 	}
 }

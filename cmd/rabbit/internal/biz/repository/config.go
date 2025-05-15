@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/bo"
 )
 
 type Config interface {
@@ -22,6 +22,10 @@ type Config interface {
 	GetNoticeGroupConfig(ctx context.Context, teamID string, name string) (bo.NoticeGroup, bool)
 	GetNoticeGroupConfigs(ctx context.Context, teamID string, names ...string) ([]bo.NoticeGroup, error)
 	SetNoticeGroupConfig(ctx context.Context, teamID string, configs ...bo.NoticeGroup) error
+
+	GetNoticeUserConfig(ctx context.Context, teamID string, name string) (bo.NoticeUser, bool)
+	GetNoticeUserConfigs(ctx context.Context, teamID string, names ...string) ([]bo.NoticeUser, error)
+	SetNoticeUserConfig(ctx context.Context, teamID string, configs ...bo.NoticeUser) error
 
 	RemoveConfig(ctx context.Context, params *bo.RemoveConfigParams) error
 }

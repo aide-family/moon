@@ -3,11 +3,11 @@ package build
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/pkg/util/crypto"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/pkg/util/crypto"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func ToTeam(ctx context.Context, teamDo do.Team) *system.Team {
@@ -19,7 +19,7 @@ func ToTeam(ctx context.Context, teamDo do.Team) *system.Team {
 		team.WithContext(ctx)
 		return team
 	}
-	team = &system.Team{
+	return &system.Team{
 		CreatorModel:  ToCreatorModel(ctx, teamDo),
 		Name:          teamDo.GetName(),
 		Status:        teamDo.GetStatus(),
@@ -30,11 +30,10 @@ func ToTeam(ctx context.Context, teamDo do.Team) *system.Team {
 		Capacity:      teamDo.GetCapacity(),
 		Leader:        ToUser(ctx, teamDo.GetLeader()),
 		Admins:        ToUsers(ctx, teamDo.GetAdmins()),
+		Resources:     nil,
 		BizDBConfig:   crypto.NewObject(teamDo.GetBizDBConfig()),
 		AlarmDBConfig: crypto.NewObject(teamDo.GetAlarmDBConfig()),
 	}
-	team.WithContext(ctx)
-	return team
 }
 
 func ToTeams(ctx context.Context, teamDos []do.Team) []*system.Team {
@@ -55,7 +54,7 @@ func ToTeamMember(ctx context.Context, memberDo do.TeamMember) *system.TeamMembe
 		member.WithContext(ctx)
 		return member
 	}
-	member = &system.TeamMember{
+	return &system.TeamMember{
 		TeamModel:  ToTeamModel(ctx, memberDo),
 		MemberName: memberDo.GetMemberName(),
 		Remark:     memberDo.GetRemark(),
@@ -67,8 +66,6 @@ func ToTeamMember(ctx context.Context, memberDo do.TeamMember) *system.TeamMembe
 		User:       ToUser(ctx, memberDo.GetUser()),
 		Inviter:    ToUser(ctx, memberDo.GetInviter()),
 	}
-	member.WithContext(ctx)
-	return member
 }
 
 func ToTeamMembers(ctx context.Context, memberDos []do.TeamMember) []*system.TeamMember {

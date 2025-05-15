@@ -8,15 +8,15 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/uuid"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/conf"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/template"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/conf"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/template"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func NewInviteRepo(
@@ -24,14 +24,14 @@ func NewInviteRepo(
 	d *data.Data,
 	logger log.Logger,
 ) repository.Invite {
-	return &inviteRepoImpl{
+	return &inviteImpl{
 		bc:     bc,
 		Data:   d,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.invite")),
 	}
 }
 
-type inviteRepoImpl struct {
+type inviteImpl struct {
 	bc *conf.Bootstrap
 	*data.Data
 	helper *log.Helper
@@ -40,7 +40,7 @@ type inviteRepoImpl struct {
 //go:embed template/team_invite_user.html
 var inviteEmailBody string
 
-func (i *inviteRepoImpl) TeamInviteUser(ctx context.Context, req bo.InviteMember) error {
+func (i *inviteImpl) TeamInviteUser(ctx context.Context, req bo.InviteMember) error {
 	roleIds := slices.MapFilter(req.GetRoles(), func(role do.TeamRole) (uint32, bool) {
 		if validate.IsNil(role) || role.GetID() <= 0 {
 			return 0, false

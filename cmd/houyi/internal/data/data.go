@@ -1,15 +1,14 @@
 package data
 
 import (
-	"github.com/aide-family/moon/pkg/plugin/server"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/houyi/internal/conf"
-	"github.com/aide-family/moon/pkg/plugin/cache"
-	"github.com/aide-family/moon/pkg/plugin/datasource"
-	"github.com/aide-family/moon/pkg/util/safety"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/conf"
+	"github.com/moon-monitor/moon/pkg/plugin/cache"
+	"github.com/moon-monitor/moon/pkg/plugin/datasource"
+	"github.com/moon-monitor/moon/pkg/util/safety"
 )
 
 // ProviderSetData is a set of data providers.
@@ -19,29 +18,17 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	var err error
 	dataConf := c.GetData()
 	eventBusConf := c.GetEventBus()
-	palaceConfig := c.GetPalace()
-	initConfig := &server.InitConfig{
-		MicroConfig: palaceConfig,
-		Registry:    c.GetRegistry(),
-	}
-	palaceServer, err := InitClient(initConfig)
-	if err != nil {
-		return nil, nil, err
-	}
-	cacheServer, err := cache.NewCache(c.GetCache())
-	if err != nil {
-		return nil, nil, err
-	}
-
 	data := &Data{
 		dataConf:            dataConf,
-		cache:               cacheServer,
 		helper:              log.NewHelper(log.With(logger, "module", "data")),
-		palaceServer:        palaceServer,
 		metricDatasource:    safety.NewMap[string, datasource.Metric](),
 		StrategyJobEventBus: make(chan bo.StrategyJob, eventBusConf.GetStrategyJobEventBusMaxCap()),
 		AlertJobEventBus:    make(chan bo.AlertJob, eventBusConf.GetAlertEventJobBusMaxCap()),
 		AlertEventBus:       make(chan bo.Alert, eventBusConf.GetAlertEventBusMaxCap()),
+	}
+	data.cache, err = cache.NewCache(c.GetCache())
+	if err != nil {
+		return nil, nil, err
 	}
 
 	cleanup := func() {
@@ -55,18 +42,14 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 }
 
 type Data struct {
-	dataConf            *conf.Data
-	cache               cache.Cache
-	helper              *log.Helper
-	palaceServer        *Server
-	metricDatasource    *safety.Map[string, datasource.Metric]
+	dataConf         *conf.Data
+	cache            cache.Cache
+	helper           *log.Helper
+	metricDatasource *safety.Map[string, datasource.Metric]
+
 	StrategyJobEventBus chan bo.StrategyJob
 	AlertJobEventBus    chan bo.AlertJob
 	AlertEventBus       chan bo.Alert
-}
-
-func (d *Data) GetPlaceServer() *Server {
-	return d.palaceServer
 }
 
 func (d *Data) GetCache() cache.Cache {

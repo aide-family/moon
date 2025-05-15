@@ -6,17 +6,13 @@ import (
 	"strings"
 
 	"github.com/bufbuild/protovalidate-go"
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"google.golang.org/protobuf/proto"
 
-	mi18n "github.com/aide-family/moon/pkg/i18n"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
-// Validate validate request parameters
+// Validate 验证请求参数
 func Validate(opts ...protovalidate.ValidatorOption) middleware.Middleware {
 	validator := validateParams(opts...)
 	return func(handler middleware.Handler) middleware.Handler {
@@ -34,23 +30,15 @@ func Validate(opts ...protovalidate.ValidatorOption) middleware.Middleware {
 	}
 }
 
-func getMsg(ctx context.Context, constraintId string, msg string) string {
-	if validate.TextIsNull(constraintId) {
-		return msg
-	}
-	if strings.EqualFold(constraintId, "required") {
-		constraintId = "REQUIRED"
-	}
+var errMsgMap = map[string]string{
+	"value is required": "params is required",
+}
 
-	lang := mi18n.GetLanguage(ctx)
-	localize, localizeErr := i18n.NewLocalizer(mi18n.GetBundle(), lang).
-		Localize(&i18n.LocalizeConfig{MessageID: constraintId})
-	if validate.IsNotNil(localizeErr) {
-		log.Warnf("%s => validate error: %v", constraintId, localizeErr)
-		return msg
+func getMsg(msg string) string {
+	if v, ok := errMsgMap[msg]; ok {
+		return v
 	}
-
-	return localize
+	return msg
 }
 
 // ValidateHandler validate handler
@@ -75,11 +63,11 @@ func validateParams(opts ...protovalidate.ValidatorOption) ValidateHandler {
 		}
 		var validationError *protovalidate.ValidationError
 		if !errors.As(err, &validationError) {
-			return merr.ErrorInternalServer("system error").WithCause(err)
+			return merr.ErrorInternalServerError("system error").WithCause(err)
 		}
 
-		if validate.IsNil(validationError) || len(validationError.Violations) == 0 {
-			return merr.ErrorInternalServer("system error")
+		if validationError == nil || len(validationError.Violations) == 0 {
+			return merr.ErrorInternalServerError("system error")
 		}
 
 		errMap := make(map[string][]string)
@@ -89,19 +77,18 @@ func validateParams(opts ...protovalidate.ValidatorOption) ValidateHandler {
 			for _, element := range elements {
 				fields = append(fields, element.GetFieldName())
 			}
-			constraintId := v.Proto.GetConstraintId()
-			msg := v.Proto.GetMessage()
 			if len(fields) == 0 {
-				return merr.ErrorParams("%s", getMsg(ctx, constraintId, msg))
+				continue
 			}
+			msg := v.Proto.GetMessage()
 			field := strings.Join(fields, ".")
-			errMap[field] = append(errMap[field], getMsg(ctx, constraintId, msg))
+			errMap[field] = append(errMap[field], getMsg(msg))
 		}
 
 		msgMap := make(map[string]string)
 		for k, v := range errMap {
 			msgMap[k] = strings.Join(v, ",")
 		}
-		return merr.ErrorParams("params error").WithMetadata(msgMap)
+		return merr.ErrorParamsError("params error").WithMetadata(msgMap)
 	}
 }

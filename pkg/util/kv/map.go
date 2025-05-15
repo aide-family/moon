@@ -87,12 +87,3 @@ func (m Map[K, V]) ToMap() map[K]V {
 func (m Map[K, V]) Copy() Map[K, V] {
 	return New(m)
 }
-
-func (m Map[K, V]) Append(ms ...map[K]V) Map[K, V] {
-	for _, v := range ms {
-		for k, v2 := range v {
-			m[k] = v2
-		}
-	}
-	return m
-}

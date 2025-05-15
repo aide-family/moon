@@ -1,14 +1,14 @@
 package build
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/strutil"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/strutil"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 // ToSaveEmailConfigRequest converts proto request to business object
@@ -42,12 +42,12 @@ func ToSaveEmailConfigRequest(req *palace.SaveEmailConfigRequest) *bo.SaveEmailC
 	return item
 }
 
-func ToEmailConfigItem(config do.TeamEmailConfig) *common.EmailConfigItem {
+func ToEmailConfigItem(config do.TeamEmailConfig) *palace.EmailConfigItem {
 	if validate.IsNil(config) {
 		return nil
 	}
 
-	return &common.EmailConfigItem{
+	return &palace.EmailConfigItem{
 		User:          strutil.MaskEmail(config.GetUser()),
 		Pass:          strutil.MaskString(config.GetPass(), 0, 4),
 		Host:          config.GetHost(),
@@ -59,24 +59,7 @@ func ToEmailConfigItem(config do.TeamEmailConfig) *common.EmailConfigItem {
 	}
 }
 
-func ToEmailConfigItemPlaintext(configItem do.TeamEmailConfig) *common.EmailConfigItem {
-	if validate.IsNil(configItem) {
-		return nil
-	}
-
-	return &common.EmailConfigItem{
-		User:          configItem.GetUser(),
-		Pass:          configItem.GetPass(),
-		Host:          configItem.GetHost(),
-		Port:          configItem.GetPort(),
-		Status:        common.GlobalStatus(configItem.GetStatus().GetValue()),
-		Name:          configItem.GetName(),
-		Remark:        configItem.GetRemark(),
-		EmailConfigId: configItem.GetID(),
-	}
-}
-
-func ToEmailConfigItems(configs []do.TeamEmailConfig) []*common.EmailConfigItem {
+func ToEmailConfigItems(configs []do.TeamEmailConfig) []*palace.EmailConfigItem {
 	return slices.Map(configs, ToEmailConfigItem)
 }
 

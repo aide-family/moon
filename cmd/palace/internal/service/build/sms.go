@@ -1,14 +1,14 @@
 package build
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/strutil"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/strutil"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 // ToSaveSMSConfigRequest converts API request to business object
@@ -53,7 +53,7 @@ func ToListSMSConfigRequest(req *palace.GetSMSConfigsRequest) *bo.ListSMSConfigR
 	}
 }
 
-func ToSMSConfigItem(item do.TeamSMSConfig) *common.SMSConfigItem {
+func ToSMSConfigItem(item do.TeamSMSConfig) *palace.SMSConfigItem {
 	if validate.IsNil(item) {
 		return nil
 	}
@@ -62,7 +62,7 @@ func ToSMSConfigItem(item do.TeamSMSConfig) *common.SMSConfigItem {
 	if validate.IsNil(config) {
 		return nil
 	}
-	return &common.SMSConfigItem{
+	return &palace.SMSConfigItem{
 		ProviderType:    common.SMSProviderType(item.GetProviderType().GetValue()),
 		AccessKeyId:     strutil.MaskString(config.AccessKeyID, 2, 4),
 		AccessKeySecret: strutil.MaskString(config.AccessKeySecret, 2, 4),
@@ -75,28 +75,7 @@ func ToSMSConfigItem(item do.TeamSMSConfig) *common.SMSConfigItem {
 	}
 }
 
-func ToSMSConfigItemPlaintext(item do.TeamSMSConfig) *common.SMSConfigItem {
-	if validate.IsNil(item) {
-		return nil
-	}
-	config := item.GetSMSConfig()
-	if validate.IsNil(config) {
-		return nil
-	}
-	return &common.SMSConfigItem{
-		ProviderType:    common.SMSProviderType(item.GetProviderType().GetValue()),
-		AccessKeyId:     config.AccessKeyID,
-		AccessKeySecret: config.AccessKeySecret,
-		SignName:        config.SignName,
-		Endpoint:        config.Endpoint,
-		Name:            item.GetName(),
-		Remark:          item.GetRemark(),
-		SmsConfigId:     item.GetID(),
-		Status:          common.GlobalStatus(item.GetStatus().GetValue()),
-	}
-}
-
-func ToSMSConfigItems(items []do.TeamSMSConfig) []*common.SMSConfigItem {
+func ToSMSConfigItems(items []do.TeamSMSConfig) []*palace.SMSConfigItem {
 	return slices.Map(items, ToSMSConfigItem)
 }
 

@@ -6,7 +6,7 @@ import "palace/common/team_enum.proto";
 import "palace/common/common_enum.proto";
 import "palace/common/system.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/palace/common;common";
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace/common;common";
 
 // TeamItem represents the structure of a team.
 message TeamItem {
@@ -50,8 +50,8 @@ message TeamRoleItem {
   string remark = 3;
   // Status of the role.
   api.palace.common.GlobalStatus status = 4;
-  // List of menus associated with the role.
-  repeated api.palace.common.MenuTreeItem menus = 5;
+  // List of resources associated with the role.
+  repeated api.palace.common.ResourceItem resources = 5;
   // List of members assigned to the role.
   repeated TeamMemberItem members = 6;
   // Timestamp indicating when the role was created.
@@ -109,7 +109,7 @@ message TeamDashboardChartItem {
   string remark = 4;
   api.palace.common.GlobalStatus status = 5;
   string url = 6;
-  uint32 width = 7;
+  string width = 7;
   string height = 8;
   string createdAt = 9;
   string updatedAt = 10;

@@ -7,43 +7,40 @@ import (
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
 )
 
 // NewDashboardRepo creates a new dashboard repository
 func NewDashboardRepo(data *data.Data, logger log.Logger) repository.Dashboard {
-	return &dashboardRepoImpl{
+	return &dashboardImpl{
 		Data:   data,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.dashboard")),
 	}
 }
 
-type dashboardRepoImpl struct {
+type dashboardImpl struct {
 	*data.Data
 
 	helper *log.Helper
 }
 
-func (r *dashboardRepoImpl) CreateDashboard(ctx context.Context, dashboard bo.Dashboard) error {
+func (r *dashboardImpl) CreateDashboard(ctx context.Context, dashboard bo.Dashboard) error {
 	query := getTeamBizQuery(ctx, r)
 	dashboardDo := &team.Dashboard{
 		Title:    dashboard.GetTitle(),
 		Remark:   dashboard.GetRemark(),
-		Status:   vobj.GlobalStatusEnable,
+		Status:   dashboard.GetStatus(),
 		ColorHex: dashboard.GetColorHex(),
 	}
 	dashboardDo.WithContext(ctx)
 	return query.Dashboard.WithContext(ctx).Create(dashboardDo)
 }
 
-func (r *dashboardRepoImpl) UpdateDashboard(ctx context.Context, dashboard bo.Dashboard) error {
+func (r *dashboardImpl) UpdateDashboard(ctx context.Context, dashboard bo.Dashboard) error {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := query.Dashboard
 	wrappers := []gen.Condition{
@@ -53,6 +50,7 @@ func (r *dashboardRepoImpl) UpdateDashboard(ctx context.Context, dashboard bo.Da
 	mutations := []field.AssignExpr{
 		mutation.Title.Value(dashboard.GetTitle()),
 		mutation.Remark.Value(dashboard.GetRemark()),
+		mutation.Status.Value(dashboard.GetStatus().GetValue()),
 		mutation.ColorHex.Value(dashboard.GetColorHex()),
 	}
 	_, err := mutation.WithContext(ctx).Where(wrappers...).UpdateColumnSimple(mutations...)
@@ -60,7 +58,7 @@ func (r *dashboardRepoImpl) UpdateDashboard(ctx context.Context, dashboard bo.Da
 }
 
 // DeleteDashboard delete dashboard by id
-func (r *dashboardRepoImpl) DeleteDashboard(ctx context.Context, id uint32) error {
+func (r *dashboardImpl) DeleteDashboard(ctx context.Context, id uint32) error {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := query.Dashboard
 	wrappers := []gen.Condition{
@@ -72,7 +70,7 @@ func (r *dashboardRepoImpl) DeleteDashboard(ctx context.Context, id uint32) erro
 }
 
 // GetDashboard get dashboard by id
-func (r *dashboardRepoImpl) GetDashboard(ctx context.Context, id uint32) (do.Dashboard, error) {
+func (r *dashboardImpl) GetDashboard(ctx context.Context, id uint32) (do.Dashboard, error) {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := query.Dashboard
 	wrappers := []gen.Condition{
@@ -87,7 +85,7 @@ func (r *dashboardRepoImpl) GetDashboard(ctx context.Context, id uint32) (do.Das
 }
 
 // ListDashboards list dashboards with filter
-func (r *dashboardRepoImpl) ListDashboards(ctx context.Context, req *bo.ListDashboardReq) (*bo.ListDashboardReply, error) {
+func (r *dashboardImpl) ListDashboards(ctx context.Context, req *bo.ListDashboardReq) (*bo.ListDashboardReply, error) {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := query.Dashboard
 	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamID))
@@ -96,7 +94,7 @@ func (r *dashboardRepoImpl) ListDashboards(ctx context.Context, req *bo.ListDash
 		wrapper = wrapper.Where(mutation.Status.Eq(req.Status.GetValue()))
 	}
 
-	if validate.IsNotNil(req.PaginationRequest) {
+	if req.PaginationRequest != nil {
 		total, err := wrapper.Count()
 		if err != nil {
 			return nil, err
@@ -109,46 +107,11 @@ func (r *dashboardRepoImpl) ListDashboards(ctx context.Context, req *bo.ListDash
 	if err != nil {
 		return nil, err
 	}
-	rows := slices.Map(dashboards, func(dashboard *team.Dashboard) do.Dashboard { return dashboard })
-	return req.ToListReply(rows), nil
-}
-
-func (r *dashboardRepoImpl) SelectTeamDashboard(ctx context.Context, req *bo.SelectTeamDashboardReq) (*bo.SelectTeamDashboardReply, error) {
-	tx, teamID := getTeamBizQueryWithTeamID(ctx, r)
-	mutation := tx.Dashboard
-	query := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamID))
-	if validate.TextIsNotNull(req.Keyword) {
-		query = query.Where(mutation.Title.Like(req.Keyword))
-	}
-	if !req.Status.IsUnknown() {
-		query = query.Where(mutation.Status.Eq(req.Status.GetValue()))
-	}
-	if validate.IsNotNil(req.PaginationRequest) {
-		total, err := query.Count()
-		if err != nil {
-			return nil, err
-		}
-		req.WithTotal(total)
-		query = query.Limit(int(req.Limit)).Offset(req.Offset())
-	}
-
-	selectColumns := []field.Expr{
-		mutation.ID,
-		mutation.Title,
-		mutation.Remark,
-		mutation.Status,
-		mutation.DeletedAt,
-	}
-	dashboards, err := query.WithContext(ctx).Select(selectColumns...).Order(mutation.ID.Desc()).Find()
-	if err != nil {
-		return nil, err
-	}
-	rows := slices.Map(dashboards, func(dashboard *team.Dashboard) do.Dashboard { return dashboard })
-	return req.ToSelectReply(rows), nil
+	return req.ToListDashboardReply(dashboards), nil
 }
 
 // BatchUpdateDashboardStatus update multiple dashboards status
-func (r *dashboardRepoImpl) BatchUpdateDashboardStatus(ctx context.Context, req *bo.BatchUpdateDashboardStatusReq) error {
+func (r *dashboardImpl) BatchUpdateDashboardStatus(ctx context.Context, req *bo.BatchUpdateDashboardStatusReq) error {
 	if len(req.Ids) == 0 {
 		return nil
 	}

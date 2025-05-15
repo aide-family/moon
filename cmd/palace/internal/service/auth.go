@@ -3,38 +3,38 @@ package service
 import (
 	"context"
 	nhttp "net/http"
+	"strings"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"golang.org/x/oauth2"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/conf"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
-	"github.com/aide-family/moon/cmd/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/strutil"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/conf"
+	"github.com/moon-monitor/moon/cmd/palace/internal/helper/permission"
+	"github.com/moon-monitor/moon/cmd/palace/internal/service/build"
+	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
 func NewAuthService(
 	bc *conf.Bootstrap,
-	authBiz *biz.Auth,
-	permissionBiz *biz.Permission,
-	menuBiz *biz.Menu,
+	authBiz *biz.AuthBiz,
+	permissionBiz *biz.PermissionBiz,
+	resourceBiz *biz.ResourceBiz,
 	messageBiz *biz.Message,
 	logger log.Logger,
 ) *AuthService {
 	return &AuthService{
 		authBiz:       authBiz,
 		permissionBiz: permissionBiz,
-		menuBiz:       menuBiz,
+		resourceBiz:   resourceBiz,
 		messageBiz:    messageBiz,
 		oauth2List:    builderOAuth2List(bc.GetAuth().GetOauth2()),
 		helper:        log.NewHelper(log.With(logger, "module", "service.auth")),
@@ -43,9 +43,9 @@ func NewAuthService(
 
 type AuthService struct {
 	palace.UnimplementedAuthServer
-	authBiz       *biz.Auth
-	permissionBiz *biz.Permission
-	menuBiz       *biz.Menu
+	authBiz       *biz.AuthBiz
+	permissionBiz *biz.PermissionBiz
+	resourceBiz   *biz.ResourceBiz
 	messageBiz    *biz.Message
 	oauth2List    []*palace.OAuth2ListReply_OAuthItem
 	helper        *log.Helper
@@ -58,13 +58,9 @@ func builderOAuth2List(oauth2 *conf.Auth_OAuth2) []*palace.OAuth2ListReply_OAuth
 	list := oauth2.GetConfigs()
 	oauthList := make([]*palace.OAuth2ListReply_OAuthItem, 0, len(list))
 	for _, oauth := range list {
-		app := vobj.OAuthAPP(oauth.GetApp())
-		if !app.Exist() || app.IsUnknown() {
-			continue
-		}
 		oauthList = append(oauthList, &palace.OAuth2ListReply_OAuthItem{
-			Icon:     app.String(),
-			Label:    strutil.Title(app.String(), "login"),
+			Icon:     oauth.GetApp().String(),
+			Label:    strings.Title(strings.ToLower(oauth.GetApp().String()) + " login"),
 			Redirect: oauth.GetLoginUrl(),
 		})
 	}
@@ -148,7 +144,7 @@ func (s *AuthService) LoginByEmail(ctx context.Context, req *palace.LoginByEmail
 		Email:     req.GetEmail(),
 		Remark:    req.GetRemark(),
 		Gender:    vobj.Gender(req.GetGender()),
-		Position:  vobj.PositionUser,
+		Position:  vobj.RoleUser,
 		Status:    vobj.UserStatusNormal,
 	}
 	params := &bo.LoginWithEmailParams{
@@ -171,11 +167,15 @@ func (s *AuthService) OAuthLoginByEmail(ctx context.Context, req *palace.OAuthLo
 	return login(s.authBiz.OAuthLoginWithEmail(ctx, oauthParams))
 }
 
-func (s *AuthService) VerifyToken(ctx context.Context, token string) (userDo do.User, err error) {
+func (s *AuthService) VerifyToken(ctx context.Context, token string) error {
+	// TODO 记得开启
+	return nil
 	return s.authBiz.VerifyToken(ctx, token)
 }
 
 func (s *AuthService) VerifyPermission(ctx context.Context) error {
+	// TODO 记得开启
+	return nil
 	return s.permissionBiz.VerifyPermission(ctx)
 }
 
@@ -211,7 +211,7 @@ func (s *AuthService) GetFilingInformation(ctx context.Context, _ *common.EmptyR
 }
 
 func (s *AuthService) GetSelfMenuTree(ctx context.Context, _ *common.EmptyRequest) (*palace.GetSelfMenuTreeReply, error) {
-	menus, err := s.menuBiz.SelfMenus(ctx)
+	menus, err := s.resourceBiz.SelfMenus(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +228,7 @@ func (s *AuthService) ReplaceUserRole(ctx context.Context, req *palace.ReplaceUs
 	if err := s.authBiz.ReplaceUserRole(ctx, updateReq); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "success"}, nil
 }
 
 func (s *AuthService) ReplaceMemberRole(ctx context.Context, req *palace.ReplaceMemberRoleRequest) (*common.EmptyReply, error) {
@@ -239,17 +239,17 @@ func (s *AuthService) ReplaceMemberRole(ctx context.Context, req *palace.Replace
 	if err := s.authBiz.ReplaceMemberRole(ctx, updateReq); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "success"}, nil
 }
 
 // OAuthLogin oauth login
 func (s *AuthService) OAuthLogin(app vobj.OAuthAPP) http.HandlerFunc {
 	return func(ctx http.Context) error {
-		oauthConf, err := s.authBiz.GetOAuthConf(app, vobj.OAuthFromAdmin)
+		oauthConf, err := s.authBiz.GetOAuthConf(app)
 		if err != nil {
 			return err
 		}
-		// Redirect to the specified URL
+		// 重定向到指定地址
 		url := oauthConf.AuthCodeURL("state", oauth2.AccessTypeOnline)
 		req := ctx.Request()
 		resp := ctx.Response()
@@ -269,18 +269,14 @@ func (s *AuthService) OAuthLoginCallback(app vobj.OAuthAPP) http.HandlerFunc {
 		}
 		params := &bo.OAuthLoginParams{
 			APP:          app,
-			From:         vobj.OAuthFromAdmin,
 			Code:         code,
 			SendEmailFun: s.messageBiz.SendEmail,
-			Email:        "",
-			OpenID:       "",
-			Token:        "",
 		}
 		loginRedirect, err := s.authBiz.OAuthLogin(ctx, params)
 		if err != nil {
 			return err
 		}
-		// Redirect to the specified URL
+		// 重定向到指定地址
 		req := ctx.Request()
 		resp := ctx.Response()
 

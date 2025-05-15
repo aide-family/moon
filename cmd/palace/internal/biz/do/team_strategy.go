@@ -1,8 +1,10 @@
 package do
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/kv"
+	"time"
+
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/util/kv"
 )
 
 type StrategyGroup interface {
@@ -30,7 +32,7 @@ type StrategyMetric interface {
 	GetStrategy() Strategy
 	GetDatasourceList() []DatasourceMetric
 	GetExpr() string
-	GetLabels() kv.KeyValues
+	GetLabels() kv.StringMap
 	GetAnnotations() kv.StringMap
 	GetRules() []StrategyMetricRule
 }
@@ -45,12 +47,11 @@ type StrategyMetricRule interface {
 	GetCondition() vobj.ConditionMetric
 	GetTotal() int64
 	GetValues() []float64
-	GetDuration() int64
+	GetDuration() time.Duration
 	GetStatus() vobj.GlobalStatus
 	GetNotices() []NoticeGroup
 	GetLabelNotices() []StrategyMetricRuleLabelNotice
 	GetAlarmPages() []TeamDict
-	GetStrategyID() uint32
 }
 
 type StrategyMetricRuleLabelNotice interface {

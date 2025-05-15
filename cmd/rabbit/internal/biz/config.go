@@ -5,9 +5,9 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/repository"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func NewConfig(configRepo repository.Config, logger log.Logger) *Config {
@@ -92,6 +92,24 @@ func (c *Config) SetNoticeGroupConfig(ctx context.Context, params *bo.SetNoticeG
 		return nil
 	}
 	return c.configRepo.SetNoticeGroupConfig(ctx, params.TeamID, params.Configs...)
+}
+
+func (c *Config) GetNoticeUserConfig(ctx context.Context, params *bo.GetNoticeUserConfigParams) bo.NoticeUser {
+	if validate.IsNil(params.Name) || *params.Name == "" {
+		return params.DefaultNoticeUser
+	}
+	noticeUserConfig, ok := c.configRepo.GetNoticeUserConfig(ctx, params.TeamID, *params.Name)
+	if !ok {
+		return params.DefaultNoticeUser
+	}
+	return noticeUserConfig
+}
+
+func (c *Config) SetNoticeUserConfig(ctx context.Context, params *bo.SetNoticeUserConfigParams) error {
+	if len(params.Configs) == 0 {
+		return nil
+	}
+	return c.configRepo.SetNoticeUserConfig(ctx, params.TeamID, params.Configs...)
 }
 
 func (c *Config) RemoveConfig(ctx context.Context, params *bo.RemoveConfigParams) error {

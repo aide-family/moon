@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
 )
 
 type TeamDict interface {
@@ -15,5 +15,4 @@ type TeamDict interface {
 	Update(ctx context.Context, dict bo.Dict) error
 	UpdateStatus(ctx context.Context, req *bo.UpdateDictStatusReq) error
 	List(ctx context.Context, req *bo.ListDictReq) (*bo.ListDictReply, error)
-	Select(ctx context.Context, req *bo.SelectDictReq) (*bo.SelectDictReply, error)
 }

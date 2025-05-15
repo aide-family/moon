@@ -3,30 +3,24 @@ package do
 import (
 	"time"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/kv"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/util/kv"
 )
 
-type Datasource interface {
+type DatasourceMetric interface {
 	TeamBase
 	GetName() string
-	GetRemark() string
-	GetType() vobj.DatasourceType
-	GetStorageDriver() string
 	GetStatus() vobj.GlobalStatus
-}
-
-type DatasourceMetric interface {
-	Datasource
+	GetRemark() string
 	GetDriver() vobj.DatasourceDriverMetric
 	GetEndpoint() string
 	GetScrapeInterval() time.Duration
-	GetHeaders() []*kv.KV
+	GetHeaders() kv.StringMap
 	GetQueryMethod() vobj.HTTPMethod
 	GetCA() string
 	GetTLS() *TLS
 	GetBasicAuth() *BasicAuth
-	GetExtra() []*kv.KV
+	GetExtra() kv.StringMap
 	GetStrategies() []StrategyMetric
 }
 
@@ -37,6 +31,6 @@ type DatasourceMetricMetadata interface {
 	GetName() string
 	GetHelp() string
 	GetType() string
-	GetLabels() map[string][]string
+	GetLabels() map[string]string
 	GetUnit() string
 }

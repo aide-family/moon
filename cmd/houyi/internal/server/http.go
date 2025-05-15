@@ -10,12 +10,11 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/http"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/conf"
-	"github.com/aide-family/moon/cmd/houyi/internal/helper/middleware"
-	"github.com/aide-family/moon/pkg/i18n"
-	"github.com/aide-family/moon/pkg/metric"
-	"github.com/aide-family/moon/pkg/middler"
-	"github.com/aide-family/moon/pkg/util/docs"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/conf"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/helper/middleware"
+	"github.com/moon-monitor/moon/pkg/metric"
+	"github.com/moon-monitor/moon/pkg/middler"
+	"github.com/moon-monitor/moon/pkg/util/docs"
 )
 
 //go:embed swagger
@@ -34,9 +33,8 @@ func NewHTTPServer(bc *conf.Bootstrap, logger log.Logger) *http.Server {
 		http.Filter(middler.Cors(httpConf)),
 		http.Middleware(
 			recovery.Recovery(),
-			tracing.Server(),
-			i18n.I18n(),
 			logging.Server(logger),
+			tracing.Server(),
 			authMiddleware,
 			middler.Validate(),
 		),

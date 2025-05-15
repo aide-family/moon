@@ -6,7 +6,7 @@ type BasicAuth interface {
 }
 
 type TLS interface {
-	GetClientCert() string
+	GetClientCertificate() string
 	GetClientKey() string
 	GetServerName() string
 }

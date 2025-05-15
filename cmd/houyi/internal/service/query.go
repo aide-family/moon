@@ -3,11 +3,11 @@ package service
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/houyi/internal/service/build"
-	"github.com/aide-family/moon/pkg/api/common"
-	houyiv1 "github.com/aide-family/moon/pkg/api/houyi/v1"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/service/build"
+	"github.com/moon-monitor/moon/pkg/api/common"
+	houyiv1 "github.com/moon-monitor/moon/pkg/api/houyi/v1"
 )
 
 type QueryService struct {

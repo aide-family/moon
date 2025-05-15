@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
-	houyiv1 "github.com/aide-family/moon/pkg/api/houyi/v1"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
+	houyiv1 "github.com/moon-monitor/moon/pkg/api/houyi/v1"
 )
 
 type AlertService struct {

@@ -8,17 +8,17 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/conf"
-	"github.com/aide-family/moon/cmd/palace/internal/data/query/systemgen"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/cache"
-	"github.com/aide-family/moon/pkg/plugin/gorm"
-	"github.com/aide-family/moon/pkg/util/safety"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/conf"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data/query/systemgen"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/plugin/cache"
+	"github.com/moon-monitor/moon/pkg/plugin/gorm"
+	"github.com/moon-monitor/moon/pkg/util/safety"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 // ProviderSetData is a set of data providers.
@@ -28,21 +28,19 @@ var ProviderSetData = wire.NewSet(New)
 func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	var err error
 	data := &Data{
-		dataConf:           c.GetData(),
-		mainDB:             nil,
-		bizDBMap:           safety.NewMap[uint32, gorm.DB](),
-		eventDBMap:         safety.NewMap[uint32, gorm.DB](),
-		cache:              nil,
-		rabbitConn:         safety.NewMap[string, *bo.Server](),
-		houyiConn:          safety.NewMap[string, *bo.Server](),
-		laurelConn:         safety.NewMap[string, *bo.Server](),
-		helper:             log.NewHelper(log.With(logger, "module", "data")),
-		dataChangeEventBus: make(chan *bo.SyncRequest, 100),
+		dataConf:   c.GetData(),
+		mainDB:     nil,
+		bizDBMap:   safety.NewMap[uint32, gorm.DB](),
+		eventDBMap: safety.NewMap[uint32, gorm.DB](),
+		cache:      nil,
+		rabbitConn: safety.NewMap[string, *bo.Server](),
+		houyiConn:  safety.NewMap[string, *bo.Server](),
+		helper:     log.NewHelper(log.With(logger, "module", "data")),
 	}
 
 	dataConf := c.GetData()
 
-	data.mainDB, err = gorm.NewDB(dataConf.GetMain(), logger)
+	data.mainDB, err = gorm.NewDB(dataConf.GetMain())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -95,12 +93,6 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 				data.helper.Errorw("method", "close houyi conn", "err", err)
 			}
 		}
-		for _, server := range data.laurelConn.List() {
-			if err = server.Conn.Close(); err != nil {
-				data.helper.Errorw("method", "close laurel conn", "err", err)
-			}
-		}
-		close(data.dataChangeEventBus)
 	}, nil
 }
 
@@ -112,7 +104,6 @@ type Data struct {
 	rabbitConn           *safety.Map[string, *bo.Server]
 	houyiConn            *safety.Map[string, *bo.Server]
 	laurelConn           *safety.Map[string, *bo.Server]
-	dataChangeEventBus   chan *bo.SyncRequest
 	helper               *log.Helper
 }
 
@@ -183,9 +174,9 @@ func (d *Data) GetBizDB(teamID uint32) (gorm.DB, error) {
 		return d.GetMainDB(), nil
 	}
 
-	db, err = gorm.NewDB(dbConfig, d.helper.Logger())
+	db, err = gorm.NewDB(dbConfig)
 	if err != nil {
-		return nil, merr.ErrorInternalServer("new team biz db err").WithCause(err)
+		return nil, merr.ErrorInternalServerError("new team biz db err").WithCause(err)
 	}
 	d.bizDBMap.Set(teamID, db)
 	return db, nil
@@ -204,9 +195,9 @@ func (d *Data) GetEventDB(teamID uint32) (gorm.DB, error) {
 	if validate.IsNil(dbConfig) {
 		return d.GetMainDB(), nil
 	}
-	db, err = gorm.NewDB(dbConfig, d.helper.Logger())
+	db, err = gorm.NewDB(dbConfig)
 	if err != nil {
-		return nil, merr.ErrorInternalServer("new team alarm db err").WithCause(err)
+		return nil, merr.ErrorInternalServerError("new team alarm db err").WithCause(err)
 	}
 	d.eventDBMap.Set(teamID, db)
 	return db, nil
@@ -218,11 +209,7 @@ func (d *Data) queryTeam(teamID uint32) (*system.Team, error) {
 	defer cancel()
 	teamDo, err := teamQuery.WithContext(ctx).Where(teamQuery.ID.Eq(teamID)).First()
 	if err != nil {
-		return nil, merr.ErrorInternalServer("team query err").WithCause(err)
+		return nil, merr.ErrorInternalServerError("team query err").WithCause(err)
 	}
 	return teamDo, nil
-}
-
-func (d *Data) GetDataChangeEventBus() chan *bo.SyncRequest {
-	return d.dataChangeEventBus
 }

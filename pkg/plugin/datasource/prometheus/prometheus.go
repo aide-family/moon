@@ -12,13 +12,11 @@ import (
 	transporthttp "github.com/go-kratos/kratos/v2/transport/http"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/datasource"
-	"github.com/aide-family/moon/pkg/util/httpx"
-	"github.com/aide-family/moon/pkg/util/safety"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/timex"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/plugin/datasource"
+	"github.com/moon-monitor/moon/pkg/util/httpx"
+	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 var _ datasource.Metric = (*Prometheus)(nil)
@@ -51,9 +49,9 @@ func (p *Prometheus) Proxy(ctx transporthttp.Context, target string) error {
 	w := ctx.Response()
 	r := ctx.Request()
 
-	// Get query data
+	// 获取query data
 	query := r.URL.Query()
-	// Bind query to target
+	// 绑定query到to
 	api, err := url.JoinPath(p.c.GetEndpoint(), target)
 	if !validate.IsNil(err) {
 		return err
@@ -66,7 +64,7 @@ func (p *Prometheus) Proxy(ctx transporthttp.Context, target string) error {
 	// body
 	body := r.Body
 	hx := p.configureHTTPClient(ctx)
-	// Initiate a new request and write data back to w
+	// 发起一个新请求， 把数据写回w
 	proxyReq, err := http.NewRequestWithContext(ctx, r.Method, toURL.String(), body)
 	if !validate.IsNil(err) {
 		return err
@@ -78,11 +76,7 @@ func (p *Prometheus) Proxy(ctx transporthttp.Context, target string) error {
 	if !validate.IsNil(err) {
 		return err
 	}
-	defer func(Body io.ReadCloser) {
-		if err := Body.Close(); err != nil {
-			p.helper.Warnw("method", "prometheus.proxy", "err", err)
-		}
-	}(resp.Body)
+	defer resp.Body.Close()
 	for k, v := range resp.Header {
 		if len(v) == 0 {
 			continue
@@ -118,56 +112,49 @@ func (p *Prometheus) Metadata(ctx context.Context) (<-chan *datasource.MetricMet
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				log.Warnw("method", "prometheus.metadata", "err", err)
+				p.helper.Errorw("method", "metadata", "panic", err)
 			}
 		}()
 		defer close(send)
-		p.sendMetadata(send, safety.NewMap(metadataInfo))
+		p.sendMetadata(send, metadataInfo)
 	}()
 
 	return send, nil
 }
 
-func (p *Prometheus) sendMetadata(send chan<- *datasource.MetricMetadata, metrics *safety.Map[string, []PromMetricInfo]) {
+func (p *Prometheus) sendMetadata(send chan<- *datasource.MetricMetadata, metrics map[string][]PromMetricInfo) {
 	metricNameMap := make(map[string]PromMetricInfo)
-	metricNames := make([]string, 0, metrics.Len())
-	for metricName, metricInfo := range metrics.List() {
+	metricNames := make([]string, 0, len(metrics))
+	for metricName := range metrics {
 		metricNames = append(metricNames, metricName)
-		if len(metricInfo) == 0 {
+		if len(metrics[metricName]) == 0 {
 			continue
 		}
-		metricNameMap[metricName] = metricInfo[0]
+		metricNameMap[metricName] = metrics[metricName][0]
 	}
 
-	safetyMetricNameMap := safety.NewMap(metricNameMap)
-
-	now := timex.Now().Add(-8 * time.Hour)
+	now := timex.Now()
 	batchNum := 20
 	namesLen := len(metricNames)
 	eg := new(errgroup.Group)
-	eg.SetLimit(10)
 	for i := 0; i < namesLen; i += batchNum {
 		left := i
 		right := left + batchNum
 		if right > namesLen {
 			right = namesLen
 		}
-		operationNames := metricNames[left:right]
 		eg.Go(func() error {
-			ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
-			seriesInfo, seriesErr := p.series(ctx, now, operationNames...)
+			seriesInfo, seriesErr := p.series(ctx, now, metricNames[left:right]...)
 			if seriesErr != nil {
 				log.Warnw("series error", seriesErr)
 				return seriesErr
 			}
 
 			metricsTmp := make([]*datasource.MetricMetadataItem, 0, right-left)
-			for _, metricName := range operationNames {
-				metricInfo, ok := safetyMetricNameMap.Get(metricName)
-				if !ok {
-					continue
-				}
+			for _, metricName := range metricNames[left:right] {
+				metricInfo := metricNameMap[metricName]
 				item := &datasource.MetricMetadataItem{
 					Type:   metricInfo.Type,
 					Name:   metricName,
@@ -185,7 +172,7 @@ func (p *Prometheus) sendMetadata(send chan<- *datasource.MetricMetadata, metric
 		})
 	}
 	if err := eg.Wait(); err != nil {
-		log.Warnw("series error", err)
+		p.helper.Errorw("method", "metadata", "err", err)
 	}
 }
 
@@ -198,7 +185,7 @@ func (p *Prometheus) configureHTTPClient(ctx context.Context) httpx.Client {
 
 	// Configure TLS if available
 	if tls := p.c.GetTLS(); validate.IsNotNil(tls) {
-		hx = hx.WithTLSClientConfig(tls.GetClientCert(), tls.GetClientKey())
+		hx = hx.WithTLSClientConfig(tls.GetClientCertificate(), tls.GetClientKey())
 		if serverName := tls.GetServerName(); serverName != "" {
 			hx = hx.WithServerName(serverName)
 		}
@@ -216,8 +203,8 @@ func (p *Prometheus) configureHTTPClient(ctx context.Context) httpx.Client {
 
 	// Configure custom headers if available
 	if headers := p.c.GetHeaders(); len(headers) > 0 {
-		for _, keyVal := range headers {
-			hx = hx.WithHeader(http.Header{keyVal.Key: []string{keyVal.Value}})
+		for k, v := range headers {
+			hx = hx.WithHeader(http.Header{k: []string{v}})
 		}
 	}
 
@@ -239,11 +226,7 @@ func (p *Prometheus) query(ctx context.Context, expr string, t int64) (*datasour
 	if err != nil {
 		return nil, err
 	}
-	defer func(Body io.ReadCloser) {
-		if err := Body.Close(); err != nil {
-			p.helper.Errorw("method", "prometheus.query", "err", err)
-		}
-	}(getResponse.Body)
+	defer getResponse.Body.Close()
 	if getResponse.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(getResponse.Body)
 		return nil, merr.ErrorBadRequest("status code: %d => %s", getResponse.StatusCode, string(body))
@@ -272,11 +255,7 @@ func (p *Prometheus) queryRange(ctx context.Context, expr string, start, end int
 	if err != nil {
 		return nil, err
 	}
-	defer func(Body io.ReadCloser) {
-		if err := Body.Close(); err != nil {
-			p.helper.Warnw("method", "prometheus.queryRange", "err", err)
-		}
-	}(getResponse.Body)
+	defer getResponse.Body.Close()
 	if getResponse.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(getResponse.Body)
 		return nil, merr.ErrorBadRequest("status code: %d => %s", getResponse.StatusCode, string(body))
@@ -290,15 +269,16 @@ func (p *Prometheus) queryRange(ctx context.Context, expr string, start, end int
 }
 
 func (p *Prometheus) series(ctx context.Context, now time.Time, metricNames ...string) (map[string]map[string][]string, error) {
-	start := now.Add(-time.Hour * 12).Format("2006-01-02T15:04:05.000Z")
+	start := now.Add(-time.Hour * 24).Format("2006-01-02T15:04:05.000Z")
 	end := now.Format("2006-01-02T15:04:05.000Z")
 
 	params := httpx.ParseQuery(map[string]any{
 		"start": start,
 		"end":   end,
 	})
+
 	for _, metricName := range metricNames {
-		params.Add("match[]", metricName)
+		params.Set("match[]", metricName)
 	}
 
 	hx := p.configureHTTPClient(ctx)
@@ -310,11 +290,7 @@ func (p *Prometheus) series(ctx context.Context, now time.Time, metricNames ...s
 	if err != nil {
 		return nil, err
 	}
-	defer func(Body io.ReadCloser) {
-		if err := Body.Close(); err != nil {
-			p.helper.Warnw("method", "prometheus.series", "err", err)
-		}
-	}(getResponse.Body)
+	defer getResponse.Body.Close()
 	if getResponse.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(getResponse.Body)
 		return nil, merr.ErrorBadRequest("status code: %d => %s", getResponse.StatusCode, string(body))
@@ -323,6 +299,7 @@ func (p *Prometheus) series(ctx context.Context, now time.Time, metricNames ...s
 	if err = json.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
 		return nil, err
 	}
+
 	res := make(map[string]map[string][]string)
 	for _, v := range allResp.Data {
 		metricName := v["__name__"]
@@ -339,7 +316,7 @@ func (p *Prometheus) series(ctx context.Context, now time.Time, metricNames ...s
 			if _, ok := res[metricName][k]; !ok {
 				res[metricName][k] = make([]string, 0)
 			}
-			res[metricName][k] = slices.Unique(append(res[metricName][k], val))
+			res[metricName][k] = append(res[metricName][k], val)
 		}
 	}
 
@@ -356,11 +333,7 @@ func (p *Prometheus) metadata(ctx context.Context) (map[string][]PromMetricInfo,
 	if err != nil {
 		return nil, err
 	}
-	defer func(Body io.ReadCloser) {
-		if err := Body.Close(); err != nil {
-			p.helper.Warnw("method", "prometheus.metadata", "err", err)
-		}
-	}(getResponse.Body)
+	defer getResponse.Body.Close()
 	if getResponse.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(getResponse.Body)
 		return nil, merr.ErrorBadRequest("status code: %d => %s", getResponse.StatusCode, string(body))

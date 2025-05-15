@@ -6,7 +6,7 @@ import (
 
 	"github.com/gorilla/handlers"
 
-	"github.com/aide-family/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/config"
 )
 
 // Cors Cross-domain middleware

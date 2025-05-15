@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package merr;
+
+import "errors/errors.proto";
+
+option go_package = "github.com/moon-monitor/moon/pkg/merr;merr";
+
+enum ClientError {
+  option (errors.default_code) = 400;
+  BAD_REQUEST = 0;
+  NOT_FOUND = 1;
+  CAPTCHA_ERROR = 2;
+  PARAMS_ERROR = 3;
+  PASSWORD_ERROR = 4;
+  PERMISSION_DENIED = 5;
+  METHOD_NOT_ALLOWED = 6;
+}
+
+enum UnauthorizedError {
+  option (errors.default_code) = 401;
+  UNAUTHORIZED = 0;
+  INVALID_TOKEN = 1;
+  TOKEN_EXPIRED = 2;
+  USER_FORBIDDEN = 3;
+  USER_NOT_FOUND = 4;
+}
+
+enum ServerError {
+  option (errors.default_code) = 500;
+  INTERNAL_SERVER_ERROR = 0;
+  INVALID_ARGUMENT = 4;
+}

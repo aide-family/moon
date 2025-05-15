@@ -1,12 +1,9 @@
 package biz
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/pkg/api/houyi/common"
-	"github.com/aide-family/moon/pkg/util/kv"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
 	"github.com/google/wire"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/pkg/api/houyi/common"
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
@@ -14,71 +11,38 @@ import (
 var ProviderSetBiz = wire.NewSet(
 	NewAuthBiz,
 	NewPermissionBiz,
-	NewMenuBiz,
+	NewResourceBiz,
 	NewUserBiz,
 	NewDashboardBiz,
 	NewServerBiz,
-	NewDictBiz,
-	NewTeamBiz,
-	NewTeamHookBiz,
-	NewMessageBiz,
-	NewSystemBiz,
-	NewTeamNoticeBiz,
-	NewTeamDatasourceBiz,
-	NewTeamStrategyBiz,
+	NewDict,
+	NewTeam,
+	NewTeamHook,
+	NewMessage,
+	NewSystem,
+	NewTeamNotice,
+	NewTeamDatasource,
+	NewTeamStrategy,
 	NewTeamStrategyGroupBiz,
-	NewTeamStrategyMetricBiz,
-	NewLogsBiz,
-	NewRealtimeBiz,
-	NewTeamDatasourceQueryBiz,
-	NewTimeEngineBiz,
-	NewEventBus,
+	NewTeamStrategyMetric,
+	NewLogs,
+	NewRealtime,
+	NewTeamDatasourceQuery,
 )
 
 func NewMetricDatasourceItem(datasourceMetricDo do.DatasourceMetric) *common.MetricDatasourceItem {
-	if validate.IsNil(datasourceMetricDo) {
-		return nil
-	}
-	item := &common.MetricDatasourceItem{
-		Team:   nil,
-		Driver: common.MetricDatasourceDriver(datasourceMetricDo.GetDriver().GetValue()),
-		Config: &common.MetricDatasourceItem_Config{
-			Endpoint:  datasourceMetricDo.GetEndpoint(),
-			BasicAuth: nil,
-			Headers: slices.Map(datasourceMetricDo.GetHeaders(), func(header *kv.KV) *common.KeyValueItem {
-				return &common.KeyValueItem{
-					Key:   header.Key,
-					Value: header.Value,
-				}
-			}),
-			Ca:     datasourceMetricDo.GetCA(),
-			Tls:    nil,
-			Method: common.DatasourceQueryMethod(datasourceMetricDo.GetQueryMethod().GetValue()),
-		},
-		Enable:         datasourceMetricDo.GetStatus().IsEnable(),
-		Id:             datasourceMetricDo.GetID(),
-		Name:           datasourceMetricDo.GetName(),
-		ScrapeInterval: durationpb.New(datasourceMetricDo.GetScrapeInterval()),
-	}
-	if teamDo := datasourceMetricDo.GetTeam(); validate.IsNotNil(teamDo) {
-		item.Team = &common.TeamItem{
+	teamDo := datasourceMetricDo.GetTeam()
+	return &common.MetricDatasourceItem{
+		Team: &common.TeamItem{
 			TeamId: teamDo.GetID(),
 			Uuid:   teamDo.GetUUID().String(),
-		}
+		},
+		Driver:          common.MetricDatasourceDriver(datasourceMetricDo.GetDriver().GetValue()),
+		Prometheus:      &common.MetricDatasourceItem_Prometheus{},
+		VictoriaMetrics: &common.MetricDatasourceItem_VictoriaMetrics{},
+		Enable:          false,
+		Id:              0,
+		Name:            datasourceMetricDo.GetName(),
+		ScrapeInterval:  &durationpb.Duration{},
 	}
-	if basicAuth := datasourceMetricDo.GetBasicAuth(); validate.IsNotNil(basicAuth) {
-		item.Config.BasicAuth = &common.BasicAuth{
-			Username: basicAuth.GetUsername(),
-			Password: basicAuth.GetPassword(),
-		}
-	}
-	if tls := datasourceMetricDo.GetTLS(); validate.IsNotNil(tls) {
-		item.Config.Tls = &common.TLS{
-			ServerName: tls.GetServerName(),
-			ClientCert: tls.GetClientCert(),
-			ClientKey:  tls.GetClientKey(),
-			SkipVerify: tls.GetSkipVerify(),
-		}
-	}
-	return item
 }

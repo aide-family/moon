@@ -1,10 +1,10 @@
 package biz
 
 import (
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/do"
-	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/google/wire"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/do"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 // ProviderSetBiz set biz dependency

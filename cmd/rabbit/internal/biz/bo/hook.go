@@ -1,9 +1,9 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/pkg/api/rabbit/common"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/api/rabbit/common"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 func NewSendHookParams(configs []HookConfig, opts ...SendHookParamsOption) (SendHookParams, error) {
@@ -11,7 +11,7 @@ func NewSendHookParams(configs []HookConfig, opts ...SendHookParamsOption) (Send
 		return configItem, configItem != nil && configItem.GetEnable()
 	})
 	if len(configs) == 0 {
-		return nil, merr.ErrorParams("No hook configuration is available")
+		return nil, merr.ErrorParamsError("No hook configuration is available")
 	}
 	params := &sendHookParams{
 		Configs: configs,
@@ -81,7 +81,7 @@ type HookBody struct {
 func WithSendHookParamsOptionBody(body []*HookBody) SendHookParamsOption {
 	return func(params *sendHookParams) error {
 		if len(body) == 0 {
-			return merr.ErrorParams("body is empty").WithMetadata(map[string]string{
+			return merr.ErrorParamsError("body is empty").WithMetadata(map[string]string{
 				"body": "body is empty",
 			})
 		}

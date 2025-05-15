@@ -3,13 +3,13 @@ package service
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
-	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/service/build"
+	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 type TeamDictService struct {
@@ -37,7 +37,7 @@ func (s *TeamDictService) SaveTeamDict(ctx context.Context, req *palace.SaveTeam
 	if err := s.dictBiz.SaveDict(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "保存团队字典成功"}, nil
 }
 
 func (s *TeamDictService) UpdateTeamDictStatus(ctx context.Context, req *palace.UpdateTeamDictStatusRequest) (*common.EmptyReply, error) {
@@ -48,7 +48,7 @@ func (s *TeamDictService) UpdateTeamDictStatus(ctx context.Context, req *palace.
 	if err := s.dictBiz.UpdateDictStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "更新团队字典状态成功"}, nil
 }
 
 func (s *TeamDictService) DeleteTeamDict(ctx context.Context, req *palace.DeleteTeamDictRequest) (*common.EmptyReply, error) {
@@ -56,7 +56,7 @@ func (s *TeamDictService) DeleteTeamDict(ctx context.Context, req *palace.Delete
 	if err := s.dictBiz.DeleteDict(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "删除团队字典成功"}, nil
 }
 
 func (s *TeamDictService) GetTeamDict(ctx context.Context, req *palace.GetTeamDictRequest) (*common.TeamDictItem, error) {
@@ -83,23 +83,5 @@ func (s *TeamDictService) ListTeamDict(ctx context.Context, req *palace.ListTeam
 	return &palace.ListTeamDictReply{
 		Pagination: build.ToPaginationReply(listDictReply.PaginationReply),
 		Items:      build.ToDictItems(listDictReply.Items),
-	}, nil
-}
-
-func (s *TeamDictService) SelectTeamDict(ctx context.Context, req *palace.SelectTeamDictRequest) (*palace.SelectTeamDictReply, error) {
-	params := &bo.SelectDictReq{
-		PaginationRequest: build.ToPaginationRequest(req.GetPagination()),
-		DictTypes:         slices.Map(req.GetDictTypes(), func(dictType common.DictType) vobj.DictType { return vobj.DictType(dictType) }),
-		Status:            vobj.GlobalStatus(req.GetStatus()),
-		Keyword:           req.GetKeyword(),
-		Langs:             req.GetLangs(),
-	}
-	selectDictReply, err := s.dictBiz.SelectDict(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	return &palace.SelectTeamDictReply{
-		Pagination: build.ToPaginationReply(selectDictReply.PaginationReply),
-		Items:      build.ToSelectItems(selectDictReply.Items),
 	}, nil
 }

@@ -6,7 +6,7 @@ import "google/api/annotations.proto";
 import "rabbit/common/common.proto";
 import "common/alert.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/rabbit/v1;v1";
+option go_package = "github.com/moon-monitor/moon/pkg/api/rabbit/v1;v1";
 
 service Alert {
 	rpc SendAlert (api.common.AlertsItem) returns (rabbit.common.EmptyReply) {

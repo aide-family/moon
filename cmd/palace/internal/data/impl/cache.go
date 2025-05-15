@@ -12,24 +12,24 @@ import (
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/conf"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/cmd/palace/internal/data/impl/build"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/hash"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/template"
-	"github.com/aide-family/moon/pkg/util/timex"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/conf"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data/impl/build"
+	"github.com/moon-monitor/moon/cmd/palace/internal/helper/middleware"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/hash"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/template"
+	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func NewCacheRepo(bc *conf.Bootstrap, d *data.Data, logger log.Logger) repository.Cache {
-	return &cacheRepoImpl{
+	return &cacheReoImpl{
 		bc:      bc,
 		signKey: bc.GetAuth().GetJwt().GetSignKey(),
 		Data:    d,
@@ -37,7 +37,7 @@ func NewCacheRepo(bc *conf.Bootstrap, d *data.Data, logger log.Logger) repositor
 	}
 }
 
-type cacheRepoImpl struct {
+type cacheReoImpl struct {
 	bc      *conf.Bootstrap
 	signKey string
 	*data.Data
@@ -45,8 +45,8 @@ type cacheRepoImpl struct {
 	helper *log.Helper
 }
 
-func (c *cacheRepoImpl) CacheTeams(ctx context.Context, teams ...do.Team) error {
-	key := repository.TeamCacheKey.Key()
+func (c *cacheReoImpl) CacheTeams(ctx context.Context, teams ...do.Team) error {
+	key := repository.UserCacheKey.Key()
 	teamsMap := make(map[string]any)
 	for _, team := range teams {
 		teamItem := build.ToTeam(ctx, team)
@@ -58,7 +58,7 @@ func (c *cacheRepoImpl) CacheTeams(ctx context.Context, teams ...do.Team) error 
 	return c.GetCache().Client().HSet(ctx, key, teamsMap).Err()
 }
 
-func (c *cacheRepoImpl) GetTeam(ctx context.Context, teamID uint32) (do.Team, error) {
+func (c *cacheReoImpl) GetTeam(ctx context.Context, teamID uint32) (do.Team, error) {
 	key := repository.TeamCacheKey.Key()
 	teamKey := strconv.Itoa(int(teamID))
 	exist, err := c.GetCache().Client().HExists(ctx, key, teamKey).Result()
@@ -75,7 +75,7 @@ func (c *cacheRepoImpl) GetTeam(ctx context.Context, teamID uint32) (do.Team, er
 	return &team, nil
 }
 
-func (c *cacheRepoImpl) GetTeams(ctx context.Context, ids ...uint32) ([]do.Team, error) {
+func (c *cacheReoImpl) GetTeams(ctx context.Context, ids ...uint32) ([]do.Team, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -103,7 +103,7 @@ func (c *cacheRepoImpl) GetTeams(ctx context.Context, ids ...uint32) ([]do.Team,
 	return teams, nil
 }
 
-func (c *cacheRepoImpl) CacheTeamMembers(ctx context.Context, members ...do.TeamMember) error {
+func (c *cacheReoImpl) CacheTeamMembers(ctx context.Context, members ...do.TeamMember) error {
 	if len(members) == 0 {
 		return nil
 	}
@@ -119,7 +119,7 @@ func (c *cacheRepoImpl) CacheTeamMembers(ctx context.Context, members ...do.Team
 	return c.GetCache().Client().HSet(ctx, key, membersMap).Err()
 }
 
-func (c *cacheRepoImpl) GetTeamMember(ctx context.Context, memberID uint32) (do.TeamMember, error) {
+func (c *cacheReoImpl) GetTeamMember(ctx context.Context, memberID uint32) (do.TeamMember, error) {
 	key := repository.TeamMemberCacheKey.Key()
 	memberKey := strconv.Itoa(int(memberID))
 	exist, err := c.GetCache().Client().HExists(ctx, key, memberKey).Result()
@@ -136,7 +136,7 @@ func (c *cacheRepoImpl) GetTeamMember(ctx context.Context, memberID uint32) (do.
 	return &member, nil
 }
 
-func (c *cacheRepoImpl) GetTeamMembers(ctx context.Context, ids ...uint32) ([]do.TeamMember, error) {
+func (c *cacheReoImpl) GetTeamMembers(ctx context.Context, ids ...uint32) ([]do.TeamMember, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -164,7 +164,7 @@ func (c *cacheRepoImpl) GetTeamMembers(ctx context.Context, ids ...uint32) ([]do
 	return members, nil
 }
 
-func (c *cacheRepoImpl) CacheUsers(ctx context.Context, users ...do.User) error {
+func (c *cacheReoImpl) CacheUsers(ctx context.Context, users ...do.User) error {
 	key := repository.UserCacheKey.Key()
 	usersMap := make(map[string]any)
 	for _, user := range users {
@@ -177,7 +177,7 @@ func (c *cacheRepoImpl) CacheUsers(ctx context.Context, users ...do.User) error 
 	return c.GetCache().Client().HSet(ctx, key, usersMap).Err()
 }
 
-func (c *cacheRepoImpl) GetUser(ctx context.Context, userID uint32) (do.User, error) {
+func (c *cacheReoImpl) GetUser(ctx context.Context, userID uint32) (do.User, error) {
 	key := repository.UserCacheKey.Key()
 	userKey := strconv.Itoa(int(userID))
 	exist, err := c.GetCache().Client().HExists(ctx, key, userKey).Result()
@@ -195,7 +195,7 @@ func (c *cacheRepoImpl) GetUser(ctx context.Context, userID uint32) (do.User, er
 	return &user, nil
 }
 
-func (c *cacheRepoImpl) GetUsers(ctx context.Context, ids ...uint32) ([]do.User, error) {
+func (c *cacheReoImpl) GetUsers(ctx context.Context, ids ...uint32) ([]do.User, error) {
 	key := repository.UserCacheKey.Key()
 	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
@@ -220,15 +220,15 @@ func (c *cacheRepoImpl) GetUsers(ctx context.Context, ids ...uint32) ([]do.User,
 	return users, nil
 }
 
-func (c *cacheRepoImpl) Lock(ctx context.Context, key string, expiration time.Duration) (bool, error) {
+func (c *cacheReoImpl) Lock(ctx context.Context, key string, expiration time.Duration) (bool, error) {
 	return c.GetCache().Client().SetNX(ctx, key, 1, expiration).Result()
 }
 
-func (c *cacheRepoImpl) Unlock(ctx context.Context, key string) error {
+func (c *cacheReoImpl) Unlock(ctx context.Context, key string) error {
 	return c.GetCache().Client().Del(ctx, key).Err()
 }
 
-func (c *cacheRepoImpl) BanToken(ctx context.Context, token string) error {
+func (c *cacheReoImpl) BanToken(ctx context.Context, token string) error {
 	jwtClaims, err := middleware.ParseJwtClaimsFromToken(token, c.signKey)
 	if err != nil {
 		return err
@@ -240,7 +240,7 @@ func (c *cacheRepoImpl) BanToken(ctx context.Context, token string) error {
 	return c.GetCache().Client().Set(ctx, repository.BankTokenKey.Key(hash.MD5(token)), 1, expiration).Err()
 }
 
-func (c *cacheRepoImpl) VerifyToken(ctx context.Context, token string) error {
+func (c *cacheReoImpl) VerifyToken(ctx context.Context, token string) error {
 	exist, err := c.GetCache().Client().Exists(ctx, repository.BankTokenKey.Key(hash.MD5(token))).Result()
 	if err != nil {
 		return err
@@ -251,11 +251,11 @@ func (c *cacheRepoImpl) VerifyToken(ctx context.Context, token string) error {
 	return nil
 }
 
-func (c *cacheRepoImpl) VerifyOAuthToken(ctx context.Context, oauthParams *bo.OAuthLoginParams) error {
+func (c *cacheReoImpl) VerifyOAuthToken(ctx context.Context, oauthParams *bo.OAuthLoginParams) error {
 	key := repository.OAuthTokenKey.Key(oauthParams.APP, oauthParams.OpenID, oauthParams.Token)
 	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
-		return merr.ErrorInternalServer("cache err").WithCause(err)
+		return merr.ErrorInternalServerError("cache err").WithCause(err)
 	}
 	if exist == 0 {
 		return merr.ErrorUnauthorized("oauth unauthorized").WithMetadata(map[string]string{
@@ -265,27 +265,27 @@ func (c *cacheRepoImpl) VerifyOAuthToken(ctx context.Context, oauthParams *bo.OA
 	return c.GetCache().Client().Del(ctx, key).Err()
 }
 
-func (c *cacheRepoImpl) CacheVerifyOAuthToken(ctx context.Context, oauthParams *bo.OAuthLoginParams) error {
+func (c *cacheReoImpl) CacheVerifyOAuthToken(ctx context.Context, oauthParams *bo.OAuthLoginParams) error {
 	key := repository.OAuthTokenKey.Key(oauthParams.APP, oauthParams.OpenID, oauthParams.Token)
 	return c.GetCache().Client().Set(ctx, key, "##code##", 10*time.Minute).Err()
 }
 
-func (c *cacheRepoImpl) VerifyEmailCode(ctx context.Context, params *bo.VerifyEmailCodeParams) error {
-	key := repository.EmailCodeKey.Key(params.Email)
+func (c *cacheReoImpl) VerifyEmailCode(ctx context.Context, email, code string) error {
+	key := repository.EmailCodeKey.Key(email)
 	cacheCode, err := c.GetCache().Client().Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return merr.ErrorCaptcha("captcha is expire").WithMetadata(map[string]string{
+			return merr.ErrorCaptchaError("captcha is expire").WithMetadata(map[string]string{
 				"code": "captcha is expire",
 			})
 		}
-		return merr.ErrorInternalServer("cache err").WithCause(err)
+		return merr.ErrorInternalServerError("cache err").WithCause(err)
 	}
 	defer c.GetCache().Client().Del(ctx, key).Val()
-	if strings.EqualFold(cacheCode, params.Code) {
+	if strings.EqualFold(cacheCode, code) {
 		return nil
 	}
-	return merr.ErrorCaptcha("captcha err").WithMetadata(map[string]string{
+	return merr.ErrorCaptchaError("captcha err").WithMetadata(map[string]string{
 		"code": "The verification code is incorrect. Please retrieve a new one and try again.",
 	})
 }
@@ -293,80 +293,31 @@ func (c *cacheRepoImpl) VerifyEmailCode(ctx context.Context, params *bo.VerifyEm
 //go:embed template/verify_email.html
 var verifyEmailTemplate string
 
-func (c *cacheRepoImpl) SendVerifyEmailCode(ctx context.Context, params *bo.VerifyEmailParams) error {
-	if err := validate.CheckEmail(params.Email); err != nil {
-		return err
+func (c *cacheReoImpl) SendVerifyEmailCode(ctx context.Context, email string) (*bo.SendEmailParams, error) {
+	if err := validate.CheckEmail(email); err != nil {
+		return nil, err
 	}
 	code := strings.ToUpper(hash.MD5(timex.Now().String())[:6])
-	err := c.GetCache().Client().Set(ctx, repository.EmailCodeKey.Key(params.Email), code, 5*time.Minute).Err()
+	err := c.GetCache().Client().Set(ctx, repository.EmailCodeKey.Key(email), code, 5*time.Minute).Err()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	bodyParams := map[string]string{
-		"Email":       params.Email,
+		"Email":       email,
 		"Code":        code,
 		"RedirectURI": c.bc.GetAuth().GetOauth2().GetRedirectUri(),
 	}
 	emailBody, err := template.HtmlFormatter(verifyEmailTemplate, bodyParams)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	sendEmailParams := &bo.SendEmailParams{
-		Email:       params.Email,
+	params := &bo.SendEmailParams{
+		Email:       email,
 		Body:        emailBody,
 		Subject:     "Email verification code.",
 		ContentType: "text/html",
 		RequestID:   uuid.New().String(),
 	}
-	return params.SendEmailFun(ctx, sendEmailParams)
-}
-
-func (c *cacheRepoImpl) CacheMenus(ctx context.Context, menus ...do.Menu) error {
-	key := repository.MenuCacheKey.Key()
-	menusMap := make(map[string]any)
-	for _, menu := range menus {
-		menusMap[menu.UniqueKey()] = menu
-	}
-	return c.GetCache().Client().HSet(ctx, key, menusMap).Err()
-}
-
-func (c *cacheRepoImpl) GetMenu(ctx context.Context, operation string) (do.Menu, error) {
-	key := repository.MenuCacheKey.Key()
-	exist, err := c.GetCache().Client().HExists(ctx, key, operation).Result()
-	if err != nil {
-		return nil, err
-	}
-	if !exist {
-		return nil, merr.ErrorNotFound("menu not found")
-	}
-	var menu system.Menu
-	if err = c.GetCache().Client().HGet(ctx, key, operation).Scan(&menu); err != nil {
-		return nil, err
-	}
-	return &menu, nil
-}
-
-func (c *cacheRepoImpl) GetMenus(ctx context.Context, operations ...string) ([]do.Menu, error) {
-	key := repository.MenuCacheKey.Key()
-	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
-	if err != nil {
-		return nil, err
-	}
-	if exist == 0 {
-		return nil, nil
-	}
-	menuMap, err := c.GetCache().Client().HMGet(ctx, key, operations...).Result()
-	if err != nil {
-		return nil, err
-	}
-	menus := make([]do.Menu, 0, len(menuMap))
-	for _, v := range menuMap {
-		var menu system.Menu
-		if err := menu.UnmarshalBinary([]byte(v.(string))); err != nil {
-			continue
-		}
-		menus = append(menus, &menu)
-	}
-	return menus, nil
+	return params, nil
 }

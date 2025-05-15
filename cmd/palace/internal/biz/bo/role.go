@@ -1,11 +1,12 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 type Role interface {
@@ -30,7 +31,7 @@ func (r *SaveTeamRoleReq) GetID() uint32 {
 	if r == nil {
 		return 0
 	}
-	if validate.IsNil(r.teamRole) {
+	if r.teamRole == nil {
 		return r.ID
 	}
 	return r.teamRole.GetID()
@@ -97,7 +98,7 @@ func (r *SaveRoleReq) GetID() uint32 {
 	if r == nil {
 		return 0
 	}
-	if validate.IsNil(r.role) {
+	if r.role == nil {
 		return r.ID
 	}
 	return r.role.GetID()
@@ -153,21 +154,21 @@ func (r *SaveRoleReq) WithMenus(menus []do.Menu) Role {
 
 type ListRoleReq struct {
 	*PaginationRequest
-	Status  vobj.GlobalStatus
-	Keyword string
+	Status  vobj.GlobalStatus `json:"status"`
+	Keyword string            `json:"keyword"`
 }
 
-func (r *ListRoleReq) ToTeamRoleListReply(roles []do.TeamRole) *ListTeamRoleReply {
+func (r *ListRoleReq) ToListTeamRoleReply(roles []*system.TeamRole) *ListTeamRoleReply {
 	return &ListTeamRoleReply{
 		PaginationReply: r.ToReply(),
-		Items:           roles,
+		Items:           slices.Map(roles, func(role *system.TeamRole) do.TeamRole { return role }),
 	}
 }
 
-func (r *ListRoleReq) ToListReply(roles []do.Role) *ListRoleReply {
+func (r *ListRoleReq) ToListRoleReply(roles []*system.Role) *ListRoleReply {
 	return &ListRoleReply{
 		PaginationReply: r.ToReply(),
-		Items:           roles,
+		Items:           slices.Map(roles, func(role *system.Role) do.Role { return role }),
 	}
 }
 
@@ -176,8 +177,8 @@ type ListTeamRoleReply = ListReply[do.TeamRole]
 type ListRoleReply = ListReply[do.Role]
 
 type UpdateRoleStatusReq struct {
-	RoleID uint32
-	Status vobj.GlobalStatus
+	RoleID uint32            `json:"roleId"`
+	Status vobj.GlobalStatus `json:"status"`
 }
 
 type UpdateRoleUsers interface {
@@ -186,8 +187,8 @@ type UpdateRoleUsers interface {
 }
 
 type UpdateRoleUsersReq struct {
-	RoleID   uint32
-	UserIDs  []uint32
+	RoleID   uint32   `json:"roleId"`
+	UserIDs  []uint32 `json:"userIds"`
 	users    []do.User
 	operator do.User
 	role     do.Role
@@ -229,18 +230,18 @@ func (r *UpdateRoleUsersReq) WithOperator(operator do.User) *UpdateRoleUsersReq 
 
 func (r *UpdateRoleUsersReq) Validate() error {
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParams("invalid operator")
+		return merr.ErrorParamsError("invalid operator")
 	}
 	if validate.IsNil(r.role) {
-		return merr.ErrorParams("invalid role")
+		return merr.ErrorParamsError("invalid role")
 	}
 	operatorPosition := r.operator.GetPosition()
 	if operatorPosition.IsSuperAdmin() {
 		return nil
 	}
 	for _, user := range r.users {
-		if !operatorPosition.GT(user.GetPosition()) || !operatorPosition.IsAdminOrSuperAdmin() {
-			return merr.ErrorParams("invalid position")
+		if !(operatorPosition.GT(user.GetPosition()) && operatorPosition.IsAdminOrSuperAdmin()) {
+			return merr.ErrorParamsError("invalid position")
 		}
 	}
 	return nil

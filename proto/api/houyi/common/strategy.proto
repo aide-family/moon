@@ -6,7 +6,7 @@ import "google/protobuf/duration.proto";
 import "houyi/common/team.proto";
 import "houyi/common/datasource.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/houyi/common;common";
+option go_package = "github.com/moon-monitor/moon/pkg/api/houyi/common;common";
 
 enum StrategyType {
   STRATEGY_TYPE_UNKNOWN = 0;
@@ -19,39 +19,38 @@ enum StrategyType {
   CERT = 7;
 }
 
-// SampleMode represents the sampling mode
-// (e.g., how many times an event occurs within a period)
+// 采样方式
 enum SampleMode {
-  // Unknown
+  // 未知
   SAMPLE_MODE_UNKNOWN = 0;
-  // Occurs n times consecutively within m time
+  // m时间内连续出现n次
   FOR = 1;
-  // Occurs at most n times within m time
+  // m时间内最多出现n次
   MAX = 2;
-  // Occurs at least n times within m time
+  // m时间内最少出现n次
   MIN = 3;
 }
 
 message MetricStrategyItem {
-  // Condition for judgment
+  // 判断条件
   enum Condition {
-    // Unknown
+    // 未知
     METRIC_STRATEGY_CONDITION_UNKNOWN = 0;
-    // Equal to
+    // 等于
     EQ = 1;
-    // Not equal to
+    // 不等于
     NE = 2;
-    // Greater than
+    // 大于
     GT = 3;
-    // Greater than or equal to
+    // 大于等于
     GTE = 4;
-    // Less than
+    // 小于
     LT = 5;
-    // Less than or equal to
+    // 小于等于
     LTE = 6;
-    // In range
+    // 在范围内
     IN = 7;
-    // Not in range
+    // 不在范围内
     NOT_IN = 8;
   }
 
@@ -64,14 +63,15 @@ message MetricStrategyItem {
   message MetricRuleItem {
     uint32 strategyId = 1;
     uint32 levelId = 2;
-    SampleMode sampleMode = 3;
-    int64 count = 4;
-    Condition condition = 5;
-    repeated double values = 6;
-    repeated string receiverRoutes = 7;
-    repeated LabelNotices labelNotices = 8;
-    google.protobuf.Duration duration = 9;
-    bool enable = 10;
+    string levelName = 3;
+    SampleMode sampleMode = 4;
+    int64 count = 5;
+    Condition condition = 6;
+    repeated double values = 7;
+    repeated string receiverRoutes = 8;
+    repeated LabelNotices labelNotices = 9;
+    google.protobuf.Duration duration = 10;
+    bool enable = 11;
   }
 
   message MetricDatasourceItem {
@@ -91,23 +91,23 @@ message MetricStrategyItem {
 }
 
 message CertificateStrategyItem {
-  // Condition for judgment
+  // 判断条件
   enum Condition {
-    // Unknown
+    // 未知
     CERTIFICATE_STRATEGY_CONDITION_UNKNOWN = 0;
-    // Equal to
+    // 等于
     EQ = 1;
-    // Greater than
+    // 大于
     GT = 2;
-    // Greater than or equal to
+    // 大于等于
     GTE = 3;
-    // Less than
+    // 小于
     LT = 4;
-    // Less than or equal to
+    // 小于等于
     LTE = 5;
-    // Before current time
+    // 在当前时间之前
     BEFORE = 6;
-    // After current time
+    // 在当前时间之后
     AFTER = 7;
   }
   message CertificateRuleItem {
@@ -130,11 +130,11 @@ message CertificateStrategyItem {
 
 message ServerPortStrategyItem {
   enum Condition {
-    // Unknown
+    // 未知
     SERVER_PORT_STRATEGY_CONDITION_UNKNOWN = 0;
-    // Open
+    // 打开
     OPEN = 1;
-    // Close
+    // 关闭
     CLOSE = 2;
   }
   houyi.common.TeamItem team = 1;
@@ -149,22 +149,22 @@ message ServerPortStrategyItem {
 
 message HttpStrategyItem {
   enum Condition {
-    // Unknown
+    // 未知
     HTTP_STRATEGY_CONDITION_UNKNOWN = 0;
-    // Equal to
+    // 等于
     EQ = 1;
-    // Greater than
+    // 大于
     GT = 2;
-    // Greater than or equal to
+    // 大于等于
     GTE = 3;
-    // Less than
+    // 小于
     LT = 4;
-    // Less than or equal to
+    // 小于等于
     LTE = 5;
   }
 
   enum Judgment {
-    // Unknown
+    // 未知
     HTTP_STRATEGY_JUDGMENT_UNKNOWN = 0;
     OR = 1;
     AND = 2;
@@ -193,17 +193,17 @@ message HttpStrategyItem {
 
 message PingStrategyItem {
   enum Condition {
-    // Unknown
+    // 未知
     PING_STRATEGY_CONDITION_UNKNOWN = 0;
-    // Equal to
+    // 等于
     EQ = 1;
-    // Greater than
+    // 大于
     GT = 2;
-    // Greater than or equal to
+    // 大于等于
     GTE = 3;
-    // Less than
+    // 小于
     LT = 4;
-    // Less than or equal to
+    // 小于等于
     LTE = 5;
   }
 
@@ -235,43 +235,43 @@ message EventStrategyItem {
   }
 
   enum StringCondition {
-    // Unknown
+    // 未知
     EVENT_STRATEGY_STRING_CONDITION_UNKNOWN = 0;
-    // Equal to
+    // 等于
     STRING_EQ = 1;
-    // Not equal to
+    // 不等于
     STRING_NE = 2;
-    // Contains
+    // 包含
     STRING_CONTAINS = 3;
-    // Not contains
+    // 不包含
     STRING_NOT_CONTAINS = 4;
-    // Prefix
+    // 前缀
     STRING_PREFIX = 5;
-    // Suffix
+    // 后缀
     STRING_SUFFIX = 6;
-    // Regular expression match
+    // 正则匹配
     STRING_REGEX = 7;
   }
 
   enum NumberCondition {
-    // Unknown
+    // 未知
     EVENT_STRATEGY_NUMBER_CONDITION_UNKNOWN = 0;
-    // Equal to
+    // 等于
     NUMBER_EQ = 1;
-    // Not equal to
+    // 不等于
     NUMBER_NE = 2;
-    // Greater than
+    // 大于
     NUMBER_GT = 3;
-    // Greater than or equal to
+    // 大于等于
     NUMBER_GTE = 4;
-    // Less than
+    // 小于
     NUMBER_LT = 5;
-    // Less than or equal to
+    // 小于等于
     NUMBER_LTE = 6;
   }
 
   enum BooleanCondition {
-    // Unknown
+    // 未知
     EVENT_STRATEGY_BOOLEAN_CONDITION_UNKNOWN = 0;
     // true
     TRUE = 1;
@@ -311,19 +311,19 @@ message EventStrategyItem {
 
 message LogsStrategyItem {
   enum Condition {
-    // Unknown
+    // 未知
     LOGS_STRATEGY_CONDITION_UNKNOWN = 0;
-    // Equal to
+    // 等于
     EQ = 1;
-    // Not equal to
+    // 不等于
     NE = 2;
-    // Greater than
+    // 大于
     GT = 3;
-    // Greater than or equal to
+    // 大于等于
     GTE = 4;
-    // Less than
+    // 小于
     LT = 5;
-    // Less than or equal to
+    // 小于等于
     LTE = 6;
   }
 

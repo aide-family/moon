@@ -1,11 +1,11 @@
 package team
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/crypto"
-	"github.com/aide-family/moon/pkg/util/kv"
-	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/util/crypto"
+	"github.com/moon-monitor/moon/pkg/util/kv"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 var _ do.NoticeHook = (*NoticeHook)(nil)
@@ -14,15 +14,15 @@ const tableNameNoticeHook = "team_notice_hooks"
 
 type NoticeHook struct {
 	do.TeamModel
-	Name         string                   `gorm:"column:name;type:varchar(64);not null;comment:name" json:"name"`
-	Remark       string                   `gorm:"column:remark;type:varchar(255);not null;comment:remark" json:"remark"`
-	Status       vobj.GlobalStatus        `gorm:"column:status;type:tinyint(2);not null;comment:status" json:"status"`
-	URL          string                   `gorm:"column:url;type:varchar(255);not null;comment:URL" json:"url"`
-	Method       vobj.HTTPMethod          `gorm:"column:method;type:tinyint(2);not null;comment:request method" json:"method"`
-	Secret       crypto.String            `gorm:"column:secret;type:varchar(255);not null;comment:secret key" json:"secret"`
-	Headers      *crypto.Object[[]*kv.KV] `gorm:"column:headers;type:text;not null;comment:request headers" json:"headers"`
-	NoticeGroups []*NoticeGroup           `gorm:"many2many:team_notice_group_hooks" json:"noticeGroups"`
-	APP          vobj.HookApp             `gorm:"column:app;type:tinyint(2);not null;comment:application" json:"app"`
+	Name         string                       `gorm:"column:name;type:varchar(64);not null;comment:名称" json:"name"`
+	Remark       string                       `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
+	Status       vobj.GlobalStatus            `gorm:"column:status;type:tinyint(2);not null;comment:状态" json:"status"`
+	URL          crypto.String                `gorm:"column:url;type:varchar(255);not null;comment:URL" json:"url"`
+	Method       vobj.HTTPMethod              `gorm:"column:method;type:tinyint(2);not null;comment:请求方法" json:"method"`
+	Secret       crypto.String                `gorm:"column:secret;type:varchar(255);not null;comment:密钥" json:"secret"`
+	Headers      *crypto.Object[kv.StringMap] `gorm:"column:headers;type:text;not null;comment:请求头" json:"headers"`
+	NoticeGroups []*NoticeGroup               `gorm:"many2many:team_notice_group_hooks" json:"noticeGroups"`
+	APP          vobj.HookApp                 `gorm:"column:app;type:tinyint(2);not null;comment:应用" json:"app"`
 }
 
 func (n *NoticeHook) GetName() string {
@@ -50,7 +50,7 @@ func (n *NoticeHook) GetURL() string {
 	if n == nil {
 		return ""
 	}
-	return n.URL
+	return string(n.URL)
 }
 
 func (n *NoticeHook) GetMethod() vobj.HTTPMethod {
@@ -67,7 +67,7 @@ func (n *NoticeHook) GetSecret() string {
 	return string(n.Secret)
 }
 
-func (n *NoticeHook) GetHeaders() []*kv.KV {
+func (n *NoticeHook) GetHeaders() kv.StringMap {
 	if n == nil {
 		return nil
 	}

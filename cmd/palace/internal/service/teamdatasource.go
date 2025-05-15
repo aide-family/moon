@@ -7,16 +7,15 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/http"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
-	"github.com/aide-family/moon/cmd/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/api/common"
-	"github.com/aide-family/moon/pkg/api/palace"
-	palacecommon "github.com/aide-family/moon/pkg/api/palace/common"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/cnst"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/helper/permission"
+	"github.com/moon-monitor/moon/cmd/palace/internal/service/build"
+	com "github.com/moon-monitor/moon/pkg/api/common"
+	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
 type TeamDatasourceService struct {
@@ -38,15 +37,15 @@ func NewTeamDatasourceService(
 	}
 }
 
-func (s *TeamDatasourceService) SaveTeamMetricDatasource(ctx context.Context, req *palace.SaveTeamMetricDatasourceRequest) (*palacecommon.EmptyReply, error) {
+func (s *TeamDatasourceService) SaveTeamMetricDatasource(ctx context.Context, req *palace.SaveTeamMetricDatasourceRequest) (*common.EmptyReply, error) {
 	params := build.ToSaveTeamMetricDatasourceRequest(req)
 	if err := s.teamDatasourceBiz.SaveMetricDatasource(ctx, params); err != nil {
 		return nil, err
 	}
-	return &palacecommon.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "保存团队数据源成功"}, nil
 }
 
-func (s *TeamDatasourceService) UpdateTeamMetricDatasourceStatus(ctx context.Context, req *palace.UpdateTeamMetricDatasourceStatusRequest) (*palacecommon.EmptyReply, error) {
+func (s *TeamDatasourceService) UpdateTeamMetricDatasourceStatus(ctx context.Context, req *palace.UpdateTeamMetricDatasourceStatusRequest) (*common.EmptyReply, error) {
 	params := &bo.UpdateTeamMetricDatasourceStatusRequest{
 		DatasourceID: req.GetDatasourceId(),
 		Status:       vobj.GlobalStatus(req.GetStatus()),
@@ -54,36 +53,23 @@ func (s *TeamDatasourceService) UpdateTeamMetricDatasourceStatus(ctx context.Con
 	if err := s.teamDatasourceBiz.UpdateMetricDatasourceStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &palacecommon.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "更新团队数据源状态成功"}, nil
 }
 
-func (s *TeamDatasourceService) DeleteTeamMetricDatasource(ctx context.Context, req *palace.DeleteTeamMetricDatasourceRequest) (*palacecommon.EmptyReply, error) {
+func (s *TeamDatasourceService) DeleteTeamMetricDatasource(ctx context.Context, req *palace.DeleteTeamMetricDatasourceRequest) (*common.EmptyReply, error) {
 	if err := s.teamDatasourceBiz.DeleteMetricDatasource(ctx, req.GetDatasourceId()); err != nil {
 		return nil, err
 	}
-	return &palacecommon.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "删除团队数据源成功"}, nil
 }
 
-func (s *TeamDatasourceService) GetTeamMetricDatasource(ctx context.Context, req *palace.GetTeamMetricDatasourceRequest) (*palacecommon.TeamMetricDatasourceItem, error) {
+func (s *TeamDatasourceService) GetTeamMetricDatasource(ctx context.Context, req *palace.GetTeamMetricDatasourceRequest) (*common.TeamMetricDatasourceItem, error) {
 	datasource, err := s.teamDatasourceBiz.GetMetricDatasource(ctx, req.GetDatasourceId())
 	if err != nil {
 		return nil, err
 	}
 
 	return build.ToTeamMetricDatasourceItem(datasource), nil
-}
-
-func (s *TeamDatasourceService) DatasourceSelect(ctx context.Context, req *palace.DatasourceSelectRequest) (*palace.DatasourceSelectReply, error) {
-	params := build.ToDatasourceSelectRequest(req)
-	datasourceReply, err := s.teamDatasourceBiz.DatasourceSelect(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-
-	return &palace.DatasourceSelectReply{
-		Pagination: build.ToPaginationReply(datasourceReply.PaginationReply),
-		Items:      build.ToSelectItems(datasourceReply.Items),
-	}, nil
 }
 
 func (s *TeamDatasourceService) ListTeamMetricDatasource(ctx context.Context, req *palace.ListTeamMetricDatasourceRequest) (*palace.ListTeamMetricDatasourceReply, error) {
@@ -99,10 +85,10 @@ func (s *TeamDatasourceService) ListTeamMetricDatasource(ctx context.Context, re
 	}, nil
 }
 
-func (s *TeamDatasourceService) SyncMetricMetadata(ctx context.Context, req *palace.SyncMetricMetadataRequest) (*palacecommon.EmptyReply, error) {
+func (s *TeamDatasourceService) SyncMetricMetadata(ctx context.Context, req *palace.SyncMetricMetadataRequest) (*common.EmptyReply, error) {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
-		return nil, merr.ErrorBadRequest("please select a team")
+		return nil, merr.ErrorBadRequest("请选择团队")
 	}
 	params := &bo.SyncMetricMetadataRequest{
 		DatasourceID: req.GetDatasourceId(),
@@ -111,10 +97,10 @@ func (s *TeamDatasourceService) SyncMetricMetadata(ctx context.Context, req *pal
 	if err := s.teamDatasourceBiz.SyncMetricMetadata(ctx, params); err != nil {
 		return nil, err
 	}
-	return &palacecommon.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "数据源元数据同步中，请稍后刷新页面查看"}, nil
 }
 
-func (s *TeamDatasourceService) MetricDatasourceQuery(ctx context.Context, req *palace.MetricDatasourceQueryRequest) (*common.MetricDatasourceQueryReply, error) {
+func (s *TeamDatasourceService) MetricDatasourceQuery(ctx context.Context, req *palace.MetricDatasourceQueryRequest) (*com.MetricDatasourceQueryReply, error) {
 	datasource, err := s.teamDatasourceBiz.GetMetricDatasource(ctx, req.GetDatasourceId())
 	if err != nil {
 		return nil, err
@@ -135,49 +121,21 @@ func (s *TeamDatasourceService) MetricDatasourceQuery(ctx context.Context, req *
 	return reply, nil
 }
 
-func (s *TeamDatasourceService) GetMetricDatasourceMetadata(ctx context.Context, req *palace.GetMetricDatasourceMetadataRequest) (*palacecommon.TeamMetricDatasourceMetadataItem, error) {
-	params := &bo.GetMetricDatasourceMetadataRequest{
-		DatasourceID: req.GetDatasourceId(),
-		ID:           req.GetMetadataId(),
-	}
-	metadata, err := s.teamDatasourceBiz.GetMetricDatasourceMetadata(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	return build.ToTeamMetricDatasourceMetadataItem(metadata), nil
-}
+const (
+	OperationTeamDatasourceMetricDatasourceProxy = "/api.palace.TeamDatasource/MetricDatasourceProxy"
+)
 
-func (s *TeamDatasourceService) ListMetricDatasourceMetadata(ctx context.Context, req *palace.ListMetricDatasourceMetadataRequest) (*palace.ListMetricDatasourceMetadataReply, error) {
-	params := build.ToListMetricDatasourceMetadataRequest(req)
-	metadata, err := s.teamDatasourceBiz.ListMetricDatasourceMetadata(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	return &palace.ListMetricDatasourceMetadataReply{
-		Pagination: build.ToPaginationReply(metadata.PaginationReply),
-		Items:      build.ToTeamMetricDatasourceMetadataItems(metadata.Items),
-	}, nil
-}
-
-func (s *TeamDatasourceService) UpdateMetricDatasourceMetadata(ctx context.Context, req *palace.UpdateMetricDatasourceMetadataRequest) (*palacecommon.EmptyReply, error) {
-	params := build.ToUpdateMetricDatasourceMetadataRequest(req)
-	if err := s.teamDatasourceBiz.UpdateMetricDatasourceMetadata(ctx, params); err != nil {
-		return nil, err
-	}
-	return &palacecommon.EmptyReply{}, nil
-}
-
-func (s *TeamDatasourceService) MetricDatasourceProxyHandler(httpCtx http.Context) error {
+func (s *TeamDatasourceService) MetricDatasourceProxy(httpCtx http.Context) error {
 	isContentType := false
 	for k := range httpCtx.Request().Header {
-		if strings.EqualFold(k, cnst.HttpHeaderContentType) {
+		if strings.EqualFold(k, "Content-Type") {
 			isContentType = true
 			break
 		}
 	}
 	if !isContentType {
-		httpCtx.Header().Set(cnst.HttpHeaderContentType, cnst.HttpHeaderContentTypeJSON)
-		httpCtx.Request().Header.Set(cnst.HttpHeaderContentType, cnst.HttpHeaderContentTypeJSON)
+		httpCtx.Header().Set("Content-Type", "application/json")
+		httpCtx.Request().Header.Set("Content-Type", "application/json")
 	}
 	var in palace.MetricDatasourceProxyRequest
 	if err := httpCtx.Bind(&in); err != nil {
@@ -189,23 +147,24 @@ func (s *TeamDatasourceService) MetricDatasourceProxyHandler(httpCtx http.Contex
 	if err := httpCtx.BindVars(&in); err != nil {
 		return err
 	}
-	http.SetOperation(httpCtx, palace.OperationTeamDatasourceMetricDatasourceProxy)
+	http.SetOperation(httpCtx, OperationTeamDatasourceMetricDatasourceProxy)
 
 	h := httpCtx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+		ctx = permission.WithTeamIDContext(ctx, in.GetTeamId())
 		datasourceDo, err := s.teamDatasourceBiz.GetMetricDatasource(ctx, in.GetDatasourceId())
 		if err != nil {
 			return nil, err
 		}
 
-		datasource, err := bo.ToMetricDatasource(datasourceDo, s.helper.Logger())
+		datasource, err := build.ToMetricDatasource(datasourceDo, s.helper.Logger())
 		if err != nil {
 			return nil, err
 		}
 
 		return nil, datasource.Proxy(httpCtx, in.GetTarget())
 	})
-
-	if _, err := h(httpCtx, &in); err != nil {
+	_, err := h(httpCtx, &in)
+	if err != nil {
 		return err
 	}
 	return nil

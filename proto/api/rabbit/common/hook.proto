@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api.rabbit.common;
 
-option go_package = "github.com/aide-family/moon/pkg/api/rabbit/common;common";
+option go_package = "github.com/moon-monitor/moon/pkg/api/rabbit/common;common";
 
 enum HookAPP {
   UNKNOWN = 0;

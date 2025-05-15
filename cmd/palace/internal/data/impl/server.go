@@ -5,27 +5,27 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/pkg/config"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/plugin/server"
 )
 
 func NewServerRepo(data *data.Data, logger log.Logger) repository.Server {
-	return &serverRepoImpl{
+	return &serverRepository{
 		data:   data,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.server")),
 	}
 }
 
-type serverRepoImpl struct {
+type serverRepository struct {
 	data   *data.Data
 	helper *log.Helper
 }
 
-func (s *serverRepoImpl) DeregisterServer(ctx context.Context, req *bo.ServerRegisterReq) error {
+func (s *serverRepository) DeregisterServer(ctx context.Context, req *bo.ServerRegisterReq) error {
 	s.helper.WithContext(ctx).Debugf("deregister %s server: %v", req.ServerType, req)
 	serverConn, ok := s.data.GetServerConn(req.ServerType, req.Uuid)
 	if !ok {
@@ -38,7 +38,7 @@ func (s *serverRepoImpl) DeregisterServer(ctx context.Context, req *bo.ServerReg
 	return nil
 }
 
-func (s *serverRepoImpl) RegisterServer(ctx context.Context, req *bo.ServerRegisterReq) error {
+func (s *serverRepository) RegisterServer(ctx context.Context, req *bo.ServerRegisterReq) error {
 	s.helper.WithContext(ctx).Debugf("register %s server: %s", req.ServerType, req.Uuid)
 	initConfig := &server.InitConfig{
 		MicroConfig: req.Server,

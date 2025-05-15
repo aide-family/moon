@@ -7,22 +7,22 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/robfig/cron/v3"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/pkg/plugin/server"
 )
 
-var _ cron_server.CronJob = (*teamJob)(nil)
+var _ server.CronJob = (*teamJob)(nil)
 
 func NewTeamJob(
 	teamRepo repository.Team,
 	cacheRepo repository.Cache,
 	logger log.Logger,
-) cron_server.CronJob {
+) server.CronJob {
 	return &teamJob{
 		index:     "cache.team",
 		id:        0,
-		spec:      cron_server.CronSpecEvery(10 * time.Minute),
+		spec:      server.CronSpecEvery(10 * time.Minute),
 		helper:    log.NewHelper(log.With(logger, "module", "job.team")),
 		teamRepo:  teamRepo,
 		cacheRepo: cacheRepo,
@@ -32,7 +32,7 @@ func NewTeamJob(
 type teamJob struct {
 	index     string
 	id        cron.EntryID
-	spec      cron_server.CronSpec
+	spec      server.CronSpec
 	helper    *log.Helper
 	teamRepo  repository.Team
 	cacheRepo repository.Cache
@@ -63,7 +63,7 @@ func (t *teamJob) Run() {
 		if teamListReply.Total < pageReq.Limit {
 			break
 		}
-		pageReq.Page++
+		pageReq.PaginationRequest.Page++
 	}
 }
 
@@ -75,16 +75,11 @@ func (t *teamJob) Index() string {
 	return t.index
 }
 
-func (t *teamJob) Spec() cron_server.CronSpec {
+func (t *teamJob) Spec() server.CronSpec {
 	return t.spec
 }
 
-func (t *teamJob) WithID(id cron.EntryID) cron_server.CronJob {
+func (t *teamJob) WithID(id cron.EntryID) server.CronJob {
 	t.id = id
 	return t
-}
-
-// IsImmediate implements server.CronJob.
-func (t *teamJob) IsImmediate() bool {
-	return false
 }

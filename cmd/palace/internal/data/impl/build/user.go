@@ -3,10 +3,10 @@ package build
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func ToUser(ctx context.Context, userDo do.User) *system.User {
@@ -18,7 +18,7 @@ func ToUser(ctx context.Context, userDo do.User) *system.User {
 		user.WithContext(ctx)
 		return user
 	}
-	user = &system.User{
+	return &system.User{
 		BaseModel: ToBaseModel(ctx, userDo),
 		Username:  userDo.GetUsername(),
 		Nickname:  userDo.GetNickname(),
@@ -32,8 +32,6 @@ func ToUser(ctx context.Context, userDo do.User) *system.User {
 		Roles:     ToRoles(ctx, userDo.GetRoles()),
 		Teams:     ToTeams(ctx, userDo.GetTeams()),
 	}
-	user.WithContext(ctx)
-	return user
 }
 
 func ToUsers(ctx context.Context, userDos []do.User) []*system.User {

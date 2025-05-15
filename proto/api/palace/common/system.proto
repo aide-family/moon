@@ -5,7 +5,27 @@ package api.palace.common;
 import "palace/common/system_enum.proto";
 import "palace/common/common_enum.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/palace/common;common";
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace/common;common";
+
+// system-api
+message ResourceItem {
+  // Unique identifier for the API resource
+  uint32 resourceId = 1;
+  // Name of the API resource
+  string name = 2;
+  // Path of the API resource
+  string path = 3;
+  // Status of the API resource
+  api.palace.common.GlobalStatus status = 4;
+  // Remarks about the API resource
+  string remark = 5;
+  // Creation time of the API resource
+  string createdAt = 6;
+  // Last update time of the API resource
+  string updatedAt = 7;
+  api.palace.common.ResourceAllow allow = 8;
+  repeated MenuTreeItem menus = 9;
+}
 
 message UserBaseItem {
   // User's login name
@@ -61,7 +81,7 @@ message SystemRoleItem {
   // Last update time of the system role
   string updatedAt = 6;
   // List of resources associated with the system role
-  repeated MenuTreeItem resources = 7;
+  repeated ResourceItem resources = 7;
   // List of users assigned to the system role
   repeated UserBaseItem users = 8;
   UserBaseItem creator = 9;
@@ -94,29 +114,45 @@ message TeamAuditItem {
   api.palace.common.TeamAuditAction action = 7;
 }
 
+// OperateLogItem represents the structure of an operation log item.
+message OperateLogItem {
+  // Unique identifier for the operation log.
+  uint32 operateLogId = 1;
+  // Operator information of the operation requester
+  UserBaseItem operator = 2;
+  // Type of the operation
+  api.palace.common.OperateType type = 3;
+  // ResourceModule of the operation
+  api.palace.common.ResourceModule module = 4;
+  // DataId of the operation
+  uint32 dataId = 5;
+  // DataName of the operation
+  string dataName = 6;
+  // OperateTime of the operation
+  string operateTime = 7;
+  // Title of the operation
+  string title = 8;
+  // Before of the operation
+  string before = 9;
+  // After of the operation
+  string after = 10;
+  // IP of the operation
+  string ip = 11;
+}
+
 message MenuTreeItem {
   // Unique identifier for the menu tree item
   uint32 menuId = 1;
   // Name of the menu tree item
   string name = 2;
-  // menu path of the menu tree item
-  string menuPath = 3;
-  // api path
-  string apiPath = 4;
+  // Path of the menu tree item
+  string path = 3;
   // Status of the menu tree item
-  api.palace.common.GlobalStatus status = 5;
+  api.palace.common.GlobalStatus status = 4;
   // Icon of the menu tree item
-  string menuIcon = 6;
+  string icon = 5;
   // children of the menu tree item
-  repeated MenuTreeItem children = 7;
-  // Type of the menu tree item
-  api.palace.common.MenuType menuType = 8;
-  // Category of the menu tree item
-  api.palace.common.MenuCategory menuCategory = 9;
-  // Process type of the menu tree item
-  api.palace.common.MenuProcessType processType = 10;
-  // Parent menu id
-  uint32 parentId = 11;
-  // rely on brother
-  bool isRelyOnBrother = 12;
+  repeated MenuTreeItem children = 6;
+  api.palace.common.MenuType menuType = 7;
+  repeated ResourceItem resources = 8;
 }

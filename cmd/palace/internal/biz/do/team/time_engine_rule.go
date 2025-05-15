@@ -4,11 +4,11 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/timer"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/timer"
 )
 
 var _ do.TimeEngineRule = (*TimeEngineRule)(nil)
@@ -17,11 +17,11 @@ const tableNameTimeEngineRule = "team_time_engine_rules"
 
 type TimeEngineRule struct {
 	do.TeamModel
-	Name    string                  `gorm:"column:name;type:varchar(64);not null;comment:name" json:"name"`
-	Remark  string                  `gorm:"column:remark;type:varchar(255);not null;comment:remark" json:"remark"`
-	Status  vobj.GlobalStatus       `gorm:"column:status;type:tinyint(2);not null;comment:status" json:"status"`
-	Rule    Rules                   `gorm:"column:rule;type:text;not null;comment:rule" json:"rule"`
-	Type    vobj.TimeEngineRuleType `gorm:"column:type;type:tinyint(2);not null;comment:type" json:"type"`
+	Name    string                  `gorm:"column:name;type:varchar(64);not null;comment:名称" json:"name"`
+	Remark  string                  `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
+	Status  vobj.GlobalStatus       `gorm:"column:status;type:tinyint(2);not null;comment:状态" json:"status"`
+	Rule    Rules                   `gorm:"column:rule;type:text;not null;comment:规则" json:"rule"`
+	Type    vobj.TimeEngineRuleType `gorm:"column:type;type:tinyint(2);not null;comment:类型" json:"type"`
 	Engines []*TimeEngine           `gorm:"many2many:team_time_engine__time_rules" json:"engines"`
 }
 
@@ -96,6 +96,6 @@ func (t *TimeEngineRule) ToTimerMatcher() (timer.Matcher, error) {
 	case vobj.TimeEngineRuleTypeHour:
 		return timer.NewHour(t.Rule)
 	default:
-		return nil, merr.ErrorParams("invalid time engine rule type: %d", t.Type)
+		return nil, merr.ErrorParamsError("invalid time engine rule type: %d", t.Type)
 	}
 }

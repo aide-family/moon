@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
 )
 
 type TeamEmailConfig interface {
@@ -12,5 +12,4 @@ type TeamEmailConfig interface {
 	List(ctx context.Context, req *bo.ListEmailConfigRequest) (*bo.ListEmailConfigListReply, error)
 	Create(ctx context.Context, config bo.TeamEmailConfig) error
 	Update(ctx context.Context, config bo.TeamEmailConfig) error
-	FindByIds(ctx context.Context, ids []uint32) ([]do.TeamEmailConfig, error)
 }

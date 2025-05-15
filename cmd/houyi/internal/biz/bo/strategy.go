@@ -1,10 +1,10 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
+	"github.com/moon-monitor/moon/pkg/plugin/server"
 )
 
 type StrategyJob interface {
-	cron_server.CronJob
+	server.CronJob
 	GetEnable() bool
 }

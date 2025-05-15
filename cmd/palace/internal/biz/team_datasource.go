@@ -4,19 +4,17 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/moon/pkg/util/validate"
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
-	houyiv1 "github.com/aide-family/moon/pkg/api/houyi/v1"
-	"github.com/aide-family/moon/pkg/merr"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/helper/permission"
+	houyiv1 "github.com/moon-monitor/moon/pkg/api/houyi/v1"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
-func NewTeamDatasourceBiz(
+func NewTeamDatasource(
 	teamDatasourceMetricRepo repository.TeamDatasourceMetric,
 	teamDatasourceMetricMetadataRepo repository.TeamDatasourceMetricMetadata,
 	cacheRepo repository.Cache,
@@ -40,19 +38,7 @@ type TeamDatasource struct {
 	helper                           *log.Helper
 }
 
-func (t *TeamDatasource) DatasourceSelect(ctx context.Context, req *bo.DatasourceSelect) (*bo.DatasourceSelectReply, error) {
-	switch req.Type {
-	case vobj.DatasourceTypeMetric:
-		return t.teamDatasourceMetricRepo.Select(ctx, req)
-	default:
-		return nil, merr.ErrorBadRequest("unsupported datasource type")
-	}
-}
-
 func (t *TeamDatasource) SaveMetricDatasource(ctx context.Context, req *bo.SaveTeamMetricDatasource) error {
-	if err := req.Validate(); err != nil {
-		return err
-	}
 	if req.ID <= 0 {
 		return t.teamDatasourceMetricRepo.Create(ctx, req)
 	}
@@ -61,7 +47,7 @@ func (t *TeamDatasource) SaveMetricDatasource(ctx context.Context, req *bo.SaveT
 		return err
 	}
 	if metricDatasourceDo.GetStatus().IsEnable() {
-		return merr.ErrorBadRequest("datasource is enabled and cannot be modified")
+		return merr.ErrorBadRequest("数据源已启用，不能修改")
 	}
 
 	return t.teamDatasourceMetricRepo.Update(ctx, req)
@@ -96,10 +82,10 @@ func (t *TeamDatasource) BatchSaveMetricDatasourceMetadata(ctx context.Context, 
 	return t.teamDatasourceMetricMetadataRepo.BatchSave(ctx, req)
 }
 
-func (t *TeamDatasource) SyncMetricMetadata(ctx context.Context, req *bo.SyncMetricMetadataRequest) (err error) {
+func (t *TeamDatasource) SyncMetricMetadata(ctx context.Context, req *bo.SyncMetricMetadataRequest) error {
 	syncClient, ok := t.houyiRepo.Sync()
 	if !ok {
-		return merr.ErrorBadRequest("sync service is not running")
+		return merr.ErrorBadRequest("同步服务未启动")
 	}
 
 	datasourceMetricDo, err := t.teamDatasourceMetricRepo.Get(ctx, req.DatasourceID)
@@ -107,21 +93,15 @@ func (t *TeamDatasource) SyncMetricMetadata(ctx context.Context, req *bo.SyncMet
 		return err
 	}
 	teamDo := datasourceMetricDo.GetTeam()
-	key := repository.TeamDatasourceMetricMetadataSyncKey.Key(teamDo.GetID(), req.DatasourceID)
-	locked, err := t.cacheRepo.Lock(ctx, key, 5*time.Minute)
+	locked, err := t.cacheRepo.Lock(ctx, repository.TeamDatasourceMetricMetadataSyncKey.Key(teamDo.GetID(), req.DatasourceID), 5*time.Minute)
 	if err != nil {
 		t.helper.WithContext(ctx).Warnw("msg", "lock team datasource metric metadata sync key error", "err", err)
 		return err
 	}
 	if !locked {
-		return merr.ErrorBadRequest("datasource metadata sync is in progress, please try again later")
+		return merr.ErrorBadRequest("数据源元数据同步正在执行中，请稍后再试")
 	}
-	defer func() {
-		if validate.IsNotNil(err) {
-			_ = t.cacheRepo.Unlock(ctx, key)
-		}
-	}()
-	reply, err := syncClient.SyncMetricMetadata(ctx, &houyiv1.MetricMetadataRequest{
+	reply, err := syncClient.MetricMetadata(ctx, &houyiv1.MetricMetadataRequest{
 		Item:       NewMetricDatasourceItem(datasourceMetricDo),
 		OperatorId: permission.GetUserIDByContextWithDefault(ctx, teamDo.GetCreatorID()),
 	})
@@ -137,12 +117,8 @@ func (t *TeamDatasource) ListMetricDatasourceMetadata(ctx context.Context, req *
 	return t.teamDatasourceMetricMetadataRepo.List(ctx, req)
 }
 
-func (t *TeamDatasource) GetMetricDatasourceMetadata(ctx context.Context, req *bo.GetMetricDatasourceMetadataRequest) (do.DatasourceMetricMetadata, error) {
-	return t.teamDatasourceMetricMetadataRepo.Get(ctx, req.ID)
-}
-
-func (t *TeamDatasource) UpdateMetricDatasourceMetadata(ctx context.Context, req *bo.UpdateMetricDatasourceMetadataRequest) error {
-	return t.teamDatasourceMetricMetadataRepo.Update(ctx, req)
+func (t *TeamDatasource) UpdateMetricDatasourceMetadataRemark(ctx context.Context, req *bo.UpdateTeamMetricDatasourceMetadataRemarkRequest) error {
+	return t.teamDatasourceMetricMetadataRepo.UpdateRemark(ctx, req)
 }
 
 func (t *TeamDatasource) DeleteMetricDatasourceMetadata(ctx context.Context, metadataID uint32) error {

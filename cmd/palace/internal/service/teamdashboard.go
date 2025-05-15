@@ -5,22 +5,22 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/service/build"
+	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
 )
 
 type TeamDashboardService struct {
 	palace.UnimplementedTeamDashboardServer
 
-	dashboard *biz.Dashboard
+	dashboard *biz.DashboardBiz
 	helper    *log.Helper
 }
 
-func NewTeamDashboardService(dashboard *biz.Dashboard, logger log.Logger) *TeamDashboardService {
+func NewTeamDashboardService(dashboard *biz.DashboardBiz, logger log.Logger) *TeamDashboardService {
 	return &TeamDashboardService{
 		dashboard: dashboard,
 		helper:    log.NewHelper(log.With(logger, "module", "service.teamDashboard")),
@@ -32,20 +32,21 @@ func (s *TeamDashboardService) SaveTeamDashboard(ctx context.Context, req *palac
 		ID:       req.GetDashboardId(),
 		Title:    req.GetTitle(),
 		Remark:   req.GetRemark(),
+		Status:   vobj.GlobalStatus(req.GetStatus()),
 		ColorHex: req.GetColorHex(),
 	}
 	err := s.dashboard.SaveDashboard(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "保存团队图表看板成功"}, nil
 }
 
 func (s *TeamDashboardService) DeleteTeamDashboard(ctx context.Context, req *palace.DeleteTeamDashboardRequest) (*common.EmptyReply, error) {
 	if err := s.dashboard.DeleteDashboard(ctx, req.GetDashboardId()); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "删除团队图表看板成功"}, nil
 }
 
 func (s *TeamDashboardService) GetTeamDashboard(ctx context.Context, req *palace.GetTeamDashboardRequest) (*common.TeamDashboardItem, error) {
@@ -72,18 +73,6 @@ func (s *TeamDashboardService) ListTeamDashboard(ctx context.Context, req *palac
 	}, nil
 }
 
-func (s *TeamDashboardService) SelectTeamDashboard(ctx context.Context, req *palace.SelectTeamDashboardRequest) (*palace.SelectTeamDashboardReply, error) {
-	params := build.ToSelectTeamDashboardParams(req)
-	reply, err := s.dashboard.SelectTeamDashboard(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	return &palace.SelectTeamDashboardReply{
-		Items:      build.ToSelectItems(reply.Items),
-		Pagination: build.ToPaginationReply(reply.PaginationReply),
-	}, nil
-}
-
 func (s *TeamDashboardService) UpdateTeamDashboardStatus(ctx context.Context, req *palace.UpdateTeamDashboardStatusRequest) (*common.EmptyReply, error) {
 	params := &bo.BatchUpdateDashboardStatusReq{
 		Ids:    req.GetDashboardIds(),
@@ -93,7 +82,7 @@ func (s *TeamDashboardService) UpdateTeamDashboardStatus(ctx context.Context, re
 	if err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "更新团队图表看板状态成功"}, nil
 }
 
 func (s *TeamDashboardService) SaveTeamDashboardChart(ctx context.Context, req *palace.SaveTeamDashboardChartRequest) (*common.EmptyReply, error) {
@@ -102,6 +91,7 @@ func (s *TeamDashboardService) SaveTeamDashboardChart(ctx context.Context, req *
 		DashboardID: req.GetDashboardId(),
 		Title:       req.GetTitle(),
 		Remark:      req.GetRemark(),
+		Status:      vobj.GlobalStatus(req.GetStatus()),
 		Url:         req.GetUrl(),
 		Width:       req.GetWidth(),
 		Height:      req.GetHeight(),
@@ -109,7 +99,7 @@ func (s *TeamDashboardService) SaveTeamDashboardChart(ctx context.Context, req *
 	if err := s.dashboard.SaveDashboardChart(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "保存团队图表成功"}, nil
 }
 
 func (s *TeamDashboardService) DeleteTeamDashboardChart(ctx context.Context, req *palace.DeleteTeamDashboardChartRequest) (*common.EmptyReply, error) {
@@ -120,7 +110,7 @@ func (s *TeamDashboardService) DeleteTeamDashboardChart(ctx context.Context, req
 	if err := s.dashboard.DeleteDashboardChart(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "删除团队图表成功"}, nil
 }
 
 func (s *TeamDashboardService) GetTeamDashboardChart(ctx context.Context, req *palace.GetTeamDashboardChartRequest) (*common.TeamDashboardChartItem, error) {
@@ -152,18 +142,6 @@ func (s *TeamDashboardService) ListTeamDashboardChart(ctx context.Context, req *
 	}, nil
 }
 
-func (s *TeamDashboardService) SelectTeamDashboardChart(ctx context.Context, req *palace.SelectTeamDashboardChartRequest) (*palace.SelectTeamDashboardChartReply, error) {
-	params := build.ToSelectTeamDashboardChartParams(req)
-	reply, err := s.dashboard.SelectTeamDashboardChart(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	return &palace.SelectTeamDashboardChartReply{
-		Items:      build.ToSelectItems(reply.Items),
-		Pagination: build.ToPaginationReply(reply.PaginationReply),
-	}, nil
-}
-
 func (s *TeamDashboardService) UpdateTeamDashboardChartStatus(ctx context.Context, req *palace.UpdateTeamDashboardChartStatusRequest) (*common.EmptyReply, error) {
 	params := &bo.BatchUpdateDashboardChartStatusReq{
 		DashboardID: req.GetDashboardId(),
@@ -174,5 +152,5 @@ func (s *TeamDashboardService) UpdateTeamDashboardChartStatus(ctx context.Contex
 	if err := s.dashboard.BatchUpdateDashboardChartStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "更新团队图表状态成功"}, nil
 }

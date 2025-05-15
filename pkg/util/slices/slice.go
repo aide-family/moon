@@ -4,7 +4,7 @@ import (
 	"encoding"
 	"encoding/json"
 
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 // FindByValue find slice by value, return value and ok
@@ -110,13 +110,4 @@ func GroupBy[T any, K comparable](s []T, f func(v T) K) map[K][]T {
 		m[f(v)] = append(m[f(v)], v)
 	}
 	return m
-}
-
-func Contains[T comparable](s []T, v T) bool {
-	for _, item := range s {
-		if item == v {
-			return true
-		}
-	}
-	return false
 }

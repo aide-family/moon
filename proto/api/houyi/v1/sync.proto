@@ -7,7 +7,7 @@ import "google/protobuf/timestamp.proto";
 import "houyi/common/strategy.proto";
 import "houyi/common/datasource.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/houyi/v1;v1";
+option go_package = "github.com/moon-monitor/moon/pkg/api/houyi/v1;v1";
 
 service Sync {
   rpc MetricStrategy (MetricStrategyRequest) returns (SyncReply) {
@@ -97,7 +97,7 @@ service Sync {
 
 message MetricStrategyRequest {
   google.protobuf.Timestamp syncTime = 1;
-  repeated houyi.common.MetricStrategyItem strategies = 2;
+  houyi.common.MetricStrategyItem strategies = 2;
 }
 message CertificateStrategyRequest {
   google.protobuf.Timestamp syncTime = 1;

@@ -4,7 +4,7 @@ package api.laurel.common;
 
 import "buf/validate/validate.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/laurel/common;common";
+option go_package = "github.com/moon-monitor/moon/pkg/api/laurel/common;common";
 
 enum MetricType {
 	METRIC_TYPE_UNKNOWN = 0;
@@ -67,9 +67,4 @@ message MetricVec {
 	int64 summaryMaxAge = 16;
 	uint32 summaryAgeBuckets = 17;
 	uint32 summaryBufCap = 18;
-}
-
-message MetricEvent {
-	MetricVec vec = 1 [(buf.validate.field).required = true];
-	MetricData data = 2 [(buf.validate.field).required = true];
 }

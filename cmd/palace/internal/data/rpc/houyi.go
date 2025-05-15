@@ -5,14 +5,14 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/pkg/api/common"
-	houyiv1 "github.com/aide-family/moon/pkg/api/houyi/v1"
-	"github.com/aide-family/moon/pkg/config"
-	"github.com/aide-family/moon/pkg/merr"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/pkg/api/common"
+	houyiv1 "github.com/moon-monitor/moon/pkg/api/houyi/v1"
+	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
 func NewHouyiServer(data *data.Data, logger log.Logger) repository.Houyi {
@@ -27,6 +27,10 @@ type houyiServer struct {
 	helper *log.Helper
 }
 
+type houyiSyncClient struct {
+	server *bo.Server
+}
+
 func (s *houyiServer) Sync() (repository.HouyiSyncClient, bool) {
 	server, ok := s.FirstServerConn(vobj.ServerTypeHouyi)
 	if !ok {
@@ -35,40 +39,14 @@ func (s *houyiServer) Sync() (repository.HouyiSyncClient, bool) {
 	return &houyiSyncClient{server: server}, true
 }
 
-type houyiSyncClient struct {
-	server *bo.Server
-}
-
-func (s *houyiSyncClient) SyncMetricMetadata(ctx context.Context, req *houyiv1.MetricMetadataRequest) (*houyiv1.SyncReply, error) {
+func (s *houyiSyncClient) MetricMetadata(ctx context.Context, req *houyiv1.MetricMetadataRequest) (*houyiv1.SyncReply, error) {
 	switch s.server.Config.Server.GetNetwork() {
 	case config.Network_GRPC:
 		return houyiv1.NewSyncClient(s.server.Conn).MetricMetadata(ctx, req)
 	case config.Network_HTTP:
 		return houyiv1.NewSyncHTTPClient(s.server.Client).MetricMetadata(ctx, req)
 	default:
-		return nil, merr.ErrorInternalServer("network is not supported")
-	}
-}
-
-func (s *houyiSyncClient) SyncMetricDatasource(ctx context.Context, req *houyiv1.MetricDatasourceRequest) (*houyiv1.SyncReply, error) {
-	switch s.server.Config.Server.GetNetwork() {
-	case config.Network_GRPC:
-		return houyiv1.NewSyncClient(s.server.Conn).MetricDatasource(ctx, req)
-	case config.Network_HTTP:
-		return houyiv1.NewSyncHTTPClient(s.server.Client).MetricDatasource(ctx, req)
-	default:
-		return nil, merr.ErrorInternalServer("network is not supported")
-	}
-}
-
-func (s *houyiSyncClient) SyncMetricStrategy(ctx context.Context, req *houyiv1.MetricStrategyRequest) (*houyiv1.SyncReply, error) {
-	switch s.server.Config.Server.GetNetwork() {
-	case config.Network_GRPC:
-		return houyiv1.NewSyncClient(s.server.Conn).MetricStrategy(ctx, req)
-	case config.Network_HTTP:
-		return houyiv1.NewSyncHTTPClient(s.server.Client).MetricStrategy(ctx, req)
-	default:
-		return nil, merr.ErrorInternalServer("network is not supported")
+		return nil, merr.ErrorInternalServerError("network is not supported")
 	}
 }
 
@@ -91,6 +69,6 @@ func (s *houyiQueryClient) MetricDatasourceQuery(ctx context.Context, req *houyi
 	case config.Network_HTTP:
 		return houyiv1.NewQueryHTTPClient(s.server.Client).MetricDatasourceQuery(ctx, req)
 	default:
-		return nil, merr.ErrorInternalServer("network is not supported")
+		return nil, merr.ErrorInternalServerError("network is not supported")
 	}
 }

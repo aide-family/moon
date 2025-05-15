@@ -3,12 +3,12 @@ package repository
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
 )
 
 type OperateLog interface {
-	CreateLog(ctx context.Context, log *bo.OperateLogParams) error
-	TeamCreateLog(ctx context.Context, log *bo.OperateLogParams) error
+	OperateLog(ctx context.Context, log *bo.AddOperateLog) error
 	List(ctx context.Context, req *bo.OperateLogListRequest) (*bo.OperateLogListReply, error)
+	TeamOperateLog(ctx context.Context, log *bo.AddOperateLog) error
 	TeamList(ctx context.Context, req *bo.OperateLogListRequest) (*bo.OperateLogListReply, error)
 }

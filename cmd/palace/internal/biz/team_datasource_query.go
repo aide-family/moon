@@ -3,15 +3,15 @@ package biz
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/pkg/api/common"
-	houyiv1 "github.com/aide-family/moon/pkg/api/houyi/v1"
-	"github.com/aide-family/moon/pkg/plugin/datasource"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/pkg/api/common"
+	houyiv1 "github.com/moon-monitor/moon/pkg/api/houyi/v1"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
-func NewTeamDatasourceQueryBiz(
+func NewTeamDatasourceQuery(
 	teamDatasourceMetricRepo repository.TeamDatasourceMetric,
 	houyiRepo repository.Houyi,
 	logger log.Logger,
@@ -32,7 +32,7 @@ type TeamDatasourceQuery struct {
 func (t *TeamDatasourceQuery) MetricDatasourceQuery(ctx context.Context, req *bo.MetricDatasourceQueryRequest) (*common.MetricDatasourceQueryReply, error) {
 	queryClient, ok := t.houyiRepo.Query()
 	if !ok {
-		return t.metricDatasourceQuery(ctx, req)
+		return nil, merr.ErrorBadRequest("同步服务未启动")
 	}
 	params := &houyiv1.MetricDatasourceQueryRequest{
 		Datasource: NewMetricDatasourceItem(req.Datasource),
@@ -43,20 +43,4 @@ func (t *TeamDatasourceQuery) MetricDatasourceQuery(ctx context.Context, req *bo
 		Step:       req.Step,
 	}
 	return queryClient.MetricDatasourceQuery(ctx, params)
-}
-
-func (t *TeamDatasourceQuery) metricDatasourceQuery(ctx context.Context, req *bo.MetricDatasourceQueryRequest) (*common.MetricDatasourceQueryReply, error) {
-	datasourceInstance, err := bo.ToMetricDatasource(req.Datasource, t.helper.Logger())
-	if err != nil {
-		return nil, err
-	}
-	queryParams := &datasource.MetricQueryRequest{
-		Expr:      req.Expr,
-		Time:      req.Time,
-		EndTime:   req.EndTime,
-		Step:      req.Step,
-		StartTime: req.StartTime,
-	}
-
-	return bo.ToMetricDatasourceQueryReply(datasourceInstance.Query(ctx, queryParams))
 }

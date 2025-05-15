@@ -1,9 +1,10 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 type SaveTeamStrategyGroupParams struct {
@@ -15,15 +16,15 @@ type SaveTeamStrategyGroupParams struct {
 type ListTeamStrategyGroupParams struct {
 	*PaginationRequest
 	Keyword string
-	Status  vobj.GlobalStatus
+	Status  []vobj.GlobalStatus
 }
 
 type ListTeamStrategyGroupReply = ListReply[do.StrategyGroup]
 
-func (r *ListTeamStrategyGroupParams) ToListReply(groups []do.StrategyGroup) *ListTeamStrategyGroupReply {
+func (r *ListTeamStrategyGroupParams) ToListTeamStrategyGroupReply(groups []*team.StrategyGroup) *ListTeamStrategyGroupReply {
 	return &ListTeamStrategyGroupReply{
 		PaginationReply: r.ToReply(),
-		Items:           groups,
+		Items:           slices.Map(groups, func(group *team.StrategyGroup) do.StrategyGroup { return group }),
 	}
 }
 
@@ -31,27 +32,3 @@ type UpdateTeamStrategyGroupStatusParams struct {
 	ID     uint32
 	Status vobj.GlobalStatus
 }
-
-type SelectTeamStrategyGroupRequest struct {
-	*PaginationRequest
-	Keyword string
-	Status  []vobj.GlobalStatus
-}
-
-func (r *SelectTeamStrategyGroupRequest) ToSelectReply(groups []do.StrategyGroup) *SelectTeamStrategyGroupReply {
-	return &SelectTeamStrategyGroupReply{
-		PaginationReply: r.ToReply(),
-		Items: slices.Map(groups, func(g do.StrategyGroup) SelectItem {
-			return &selectItem{
-				Value:    g.GetID(),
-				Label:    g.GetName(),
-				Disabled: g.GetDeletedAt() > 0 || !g.GetStatus().IsEnable(),
-				Extra: &selectItemExtra{
-					Remark: g.GetRemark(),
-				},
-			}
-		}),
-	}
-}
-
-type SelectTeamStrategyGroupReply = ListReply[SelectItem]

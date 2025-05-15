@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/service"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/service"
 )
 
 func NewEventBusServer(

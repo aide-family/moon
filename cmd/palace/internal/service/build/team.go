@@ -1,14 +1,14 @@
 package build
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/timex"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func ToSaveOneTeamRequest(req *palace.SaveTeamRequest) *bo.SaveOneTeamRequest {
@@ -70,7 +70,7 @@ func ToTeamBaseItem(team do.Team) *common.TeamBaseItem {
 	}
 }
 
-// ToTeamItems converts a slice of system Team objects to a slice of TeamItem proto objects
+// ToTeamItems 将系统Team对象切片转换为TeamItem proto对象切片
 func ToTeamItems(teams []do.Team) []*common.TeamItem {
 	return slices.Map(teams, ToTeamItem)
 }
@@ -86,13 +86,10 @@ func ToTeamListRequest(req *palace.GetTeamListRequest) *bo.TeamListRequest {
 	return &bo.TeamListRequest{
 		PaginationRequest: ToPaginationRequest(req.GetPagination()),
 		Keyword:           req.GetKeyword(),
-		Status: slices.MapFilter(req.GetStatus(), func(status common.TeamStatus) (vobj.TeamStatus, bool) {
-			vobjStatus := vobj.TeamStatus(status)
-			return vobjStatus, !vobjStatus.IsUnknown() && vobjStatus.Exist()
-		}),
-		UserIds:   nil,
-		LeaderId:  req.GetLeaderId(),
-		CreatorId: req.GetCreatorId(),
+		Status:            slices.Map(req.GetStatus(), func(status common.TeamStatus) vobj.TeamStatus { return vobj.TeamStatus(status) }),
+		UserIds:           nil,
+		LeaderId:          req.GetLeaderId(),
+		CreatorId:         req.GetCreatorId(),
 	}
 }
 
@@ -103,30 +100,9 @@ func ToTeamMemberListRequest(req *palace.GetTeamMembersRequest, teamId uint32) *
 	return &bo.TeamMemberListRequest{
 		PaginationRequest: ToPaginationRequest(req.GetPagination()),
 		Keyword:           req.GetKeyword(),
-		Status: slices.MapFilter(req.GetStatus(), func(status common.MemberStatus) (vobj.MemberStatus, bool) {
-			vobjStatus := vobj.MemberStatus(status)
-			return vobjStatus, !vobjStatus.IsUnknown() && vobjStatus.Exist()
-		}),
-		Positions: slices.MapFilter(req.GetPositions(), func(position common.MemberPosition) (vobj.Position, bool) {
-			vobjPosition := vobj.Position(position)
-			return vobjPosition, !vobjPosition.IsUnknown() && vobjPosition.Exist()
-		}),
-		TeamId: teamId,
-	}
-}
-
-func ToTeamMemberSelectRequest(req *palace.SelectTeamMembersRequest, teamId uint32) *bo.SelectTeamMembersRequest {
-	if validate.IsNil(req) {
-		return nil
-	}
-	return &bo.SelectTeamMembersRequest{
-		PaginationRequest: ToPaginationRequest(req.GetPagination()),
-		Keyword:           req.GetKeyword(),
-		Status: slices.MapFilter(req.GetStatus(), func(status common.MemberStatus) (vobj.MemberStatus, bool) {
-			vobjStatus := vobj.MemberStatus(status)
-			return vobjStatus, !vobjStatus.IsUnknown() && vobjStatus.Exist()
-		}),
-		TeamId: teamId,
+		Status:            slices.Map(req.GetStatus(), func(status common.MemberStatus) vobj.MemberStatus { return vobj.MemberStatus(status) }),
+		Positions:         slices.Map(req.GetPositions(), func(position common.MemberPosition) vobj.Role { return vobj.Role(position) }),
+		TeamId:            teamId,
 	}
 }
 

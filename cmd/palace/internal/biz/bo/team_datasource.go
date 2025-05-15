@@ -3,48 +3,29 @@ package bo
 import (
 	"time"
 
-	"github.com/go-kratos/kratos/v2/log"
-
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/api/common"
-	houyicommon "github.com/aide-family/moon/pkg/api/houyi/common"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/datasource"
-	"github.com/aide-family/moon/pkg/plugin/datasource/prometheus"
-	"github.com/aide-family/moon/pkg/plugin/datasource/victoria"
-	"github.com/aide-family/moon/pkg/util/kv"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/api/houyi/common"
+	"github.com/moon-monitor/moon/pkg/plugin/datasource"
+	"github.com/moon-monitor/moon/pkg/util/kv"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 type SaveTeamMetricDatasource struct {
 	ID             uint32
 	Name           string
+	Status         vobj.GlobalStatus
 	Remark         string
 	Driver         vobj.DatasourceDriverMetric
 	Endpoint       string
-	ScrapeInterval int64
-	Headers        []*kv.KV
+	ScrapeInterval time.Duration
+	Headers        kv.StringMap
 	QueryMethod    vobj.HTTPMethod
 	CA             string
 	TLS            *do.TLS
 	BasicAuth      *do.BasicAuth
-	Extra          []*kv.KV
-}
-
-func (r *SaveTeamMetricDatasource) Validate() error {
-	if r.ScrapeInterval <= 0 {
-		return merr.ErrorParams("scrape interval must be greater than 0")
-	}
-	if !r.Driver.Exist() || r.Driver.IsUnknown() {
-		return merr.ErrorParams("invalid datasource driver: %s", r.Driver)
-	}
-	if !r.QueryMethod.Exist() || r.QueryMethod.IsUnknown() {
-		return merr.ErrorParams("invalid query method: %s", r.QueryMethod)
-	}
-
-	return nil
+	Extra          kv.StringMap
 }
 
 type ListTeamMetricDatasource struct {
@@ -53,10 +34,10 @@ type ListTeamMetricDatasource struct {
 	Keyword string
 }
 
-func (r *ListTeamMetricDatasource) ToListReply(datasourceItems []do.DatasourceMetric) *ListTeamMetricDatasourceReply {
+func (r *ListTeamMetricDatasource) ToListTeamMetricDatasourceReply(datasourceItems []*team.DatasourceMetric) *ListTeamMetricDatasourceReply {
 	return &ListTeamMetricDatasourceReply{
 		PaginationReply: r.ToReply(),
-		Items:           datasourceItems,
+		Items:           slices.Map(datasourceItems, func(datasource *team.DatasourceMetric) do.DatasourceMetric { return datasource }),
 	}
 }
 
@@ -71,7 +52,7 @@ type DatasourceMetricMetadata struct {
 	Name         string
 	Help         string
 	Type         string
-	Labels       map[string][]string
+	Labels       map[string]string
 	Unit         string
 	DatasourceID uint32
 }
@@ -88,33 +69,23 @@ type SyncMetricMetadataRequest struct {
 	DatasourceID uint32
 }
 
-type GetMetricDatasourceMetadataRequest struct {
-	DatasourceID uint32
-	ID           uint32
-}
-
 type ListTeamMetricDatasourceMetadata struct {
 	*PaginationRequest
 	DatasourceID uint32
-	Keyword      string
-	Type         string
 }
 
-func (r *ListTeamMetricDatasourceMetadata) ToListReply(metadataItems []do.DatasourceMetricMetadata) *ListTeamMetricDatasourceMetadataReply {
+func (r *ListTeamMetricDatasourceMetadata) ToListTeamMetricDatasourceMetadataReply(metadataItems []*team.DatasourceMetricMetadata) *ListTeamMetricDatasourceMetadataReply {
 	return &ListTeamMetricDatasourceMetadataReply{
 		PaginationReply: r.ToReply(),
-		Items:           metadataItems,
+		Items:           slices.Map(metadataItems, func(metadata *team.DatasourceMetricMetadata) do.DatasourceMetricMetadata { return metadata }),
 	}
 }
 
 type ListTeamMetricDatasourceMetadataReply = ListReply[do.DatasourceMetricMetadata]
 
-type UpdateMetricDatasourceMetadataRequest struct {
-	DatasourceID uint32
-	MetadataID   uint32
-	Help         string
-	Unit         string
-	Type         string
+type UpdateTeamMetricDatasourceMetadataRemarkRequest struct {
+	ID         uint32
+	Help, Unit string
 }
 
 type MetricDatasourceQueryRequest struct {
@@ -124,10 +95,6 @@ type MetricDatasourceQueryRequest struct {
 	StartTime  int64
 	EndTime    int64
 	Step       uint32
-}
-
-func (r *MetricDatasourceQueryRequest) IsQueryRange() bool {
-	return r.EndTime >= r.StartTime && r.StartTime > 0
 }
 
 var _ datasource.MetricConfig = (*metricDatasourceConfig)(nil)
@@ -156,13 +123,13 @@ func (m *metricDatasourceConfig) GetEndpoint() string {
 }
 
 // GetHeaders implements datasource.MetricConfig.
-func (m *metricDatasourceConfig) GetHeaders() []*kv.KV {
+func (m *metricDatasourceConfig) GetHeaders() map[string]string {
 	return m.datasourceMetric.GetHeaders()
 }
 
 // GetMethod implements datasource.MetricConfig.
-func (m *metricDatasourceConfig) GetMethod() houyicommon.DatasourceQueryMethod {
-	return houyicommon.DatasourceQueryMethod(m.datasourceMetric.GetQueryMethod().GetValue())
+func (m *metricDatasourceConfig) GetMethod() common.DatasourceQueryMethod {
+	return common.DatasourceQueryMethod(m.datasourceMetric.GetQueryMethod().GetValue())
 }
 
 // GetScrapeInterval implements datasource.MetricConfig.
@@ -174,79 +141,3 @@ func (m *metricDatasourceConfig) GetScrapeInterval() time.Duration {
 func (m *metricDatasourceConfig) GetTLS() datasource.TLS {
 	return m.datasourceMetric.GetTLS()
 }
-
-func ToMetricDatasource(datasourceMetric do.DatasourceMetric, logger log.Logger) (datasource.Metric, error) {
-	config := NewMetricDatasourceConfig(datasourceMetric)
-	switch datasourceMetric.GetDriver() {
-	case vobj.DatasourceDriverMetricPrometheus:
-		return prometheus.New(config, logger), nil
-	case vobj.DatasourceDriverMetricVictoriametrics:
-		return victoria.New(config, logger), nil
-	default:
-		return nil, merr.ErrorBadRequest("invalid datasource driver: %s", datasourceMetric.GetDriver())
-	}
-}
-
-func ToMetricDatasourceQueryReply(reply *datasource.MetricQueryResponse, err error) (*common.MetricDatasourceQueryReply, error) {
-	if err != nil {
-		return nil, err
-	}
-	results := make([]*common.MetricQueryResult, 0, len(reply.Data.Result))
-	for _, result := range reply.Data.Result {
-		results = append(results, &common.MetricQueryResult{
-			Metric: result.Metric,
-			Value:  getMetricQueryResultValue(result.GetMetricQueryValue()),
-			Values: getMetricQueryResultValues(result.GetMetricQueryValues()),
-		})
-	}
-	return &common.MetricDatasourceQueryReply{
-		Results: results,
-	}, nil
-}
-
-func getMetricQueryResultValue(value *datasource.MetricQueryValue) *common.MetricQueryResultValue {
-	if validate.IsNil(value) {
-		return nil
-	}
-	return &common.MetricQueryResultValue{
-		Timestamp: int64(value.Timestamp),
-		Value:     value.Value,
-	}
-}
-
-func getMetricQueryResultValues(values []*datasource.MetricQueryValue) []*common.MetricQueryResultValue {
-	results := make([]*common.MetricQueryResultValue, 0, len(values))
-	for _, value := range values {
-		results = append(results, getMetricQueryResultValue(value))
-	}
-	return results
-}
-
-type DatasourceSelect struct {
-	*PaginationRequest
-	Keyword string
-	Status  vobj.GlobalStatus
-	Type    vobj.DatasourceType
-}
-
-func (r *DatasourceSelect) ToSelectReply(datasources []do.Datasource) *DatasourceSelectReply {
-	return &DatasourceSelectReply{
-		PaginationReply: r.ToReply(),
-		Items: slices.Map(datasources, func(item do.Datasource) SelectItem {
-			datasourceType := item.GetType().String()
-			datasourceDriver := item.GetStorageDriver()
-			return &selectItem{
-				Value:    item.GetID(),
-				Label:    item.GetName(),
-				Disabled: !item.GetStatus().IsEnable() || item.GetDeletedAt() != 0,
-				Extra: &selectItemExtra{
-					Remark: item.GetRemark(),
-					Icon:   datasourceDriver,
-					Color:  datasourceType,
-				},
-			}
-		}),
-	}
-}
-
-type DatasourceSelectReply = ListReply[SelectItem]

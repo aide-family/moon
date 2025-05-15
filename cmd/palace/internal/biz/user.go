@@ -6,15 +6,14 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/job"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
-	"github.com/aide-family/moon/pkg/util/password"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/job"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/helper/permission"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/plugin/server"
+	"github.com/moon-monitor/moon/pkg/util/password"
 )
 
 // UserBiz is a user business logic implementation.
@@ -69,7 +68,11 @@ func (b *UserBiz) GetSelfInfo(ctx context.Context) (do.User, error) {
 
 	user, err := b.userRepo.FindByID(ctx, userID)
 	if err != nil {
-		return nil, merr.ErrorInternalServer("failed to find user").WithCause(err)
+		return nil, merr.ErrorInternalServerError("failed to find user").WithCause(err)
+	}
+
+	if user == nil {
+		return nil, merr.ErrorUserNotFound("user not found")
 	}
 
 	return user, nil
@@ -84,15 +87,15 @@ func (b *UserBiz) UpdateSelfInfo(ctx context.Context, userUpdateInfo *bo.UserUpd
 
 	user, err := b.userRepo.FindByID(ctx, userID)
 	if err != nil {
-		return merr.ErrorInternalServer("failed to find user").WithCause(err)
+		return merr.ErrorInternalServerError("failed to find user").WithCause(err)
 	}
 
-	if validate.IsNil(user) {
+	if user == nil {
 		return merr.ErrorUserNotFound("user not found")
 	}
 
 	if err = b.userRepo.UpdateUserInfo(ctx, userUpdateInfo.WithUser(user)); err != nil {
-		return merr.ErrorInternalServer("failed to update user info").WithCause(err)
+		return merr.ErrorInternalServerError("failed to update user info").WithCause(err)
 	}
 
 	return nil
@@ -104,7 +107,7 @@ func (b *UserBiz) UpdateUserBaseInfo(ctx context.Context, userUpdateInfo *bo.Use
 		return err
 	}
 	if err = b.userRepo.UpdateUserInfo(ctx, userUpdateInfo.WithUser(user)); err != nil {
-		return merr.ErrorInternalServer("failed to update user info").WithCause(err)
+		return merr.ErrorInternalServerError("failed to update user info").WithCause(err)
 	}
 	return nil
 }
@@ -121,20 +124,20 @@ func (b *UserBiz) UpdateSelfPassword(ctx context.Context, passwordUpdateInfo *bo
 		return err
 	}
 
-	if validate.IsNil(user) {
+	if user == nil {
 		return merr.ErrorUserNotFound("user not found")
 	}
 
 	// Verify old password
 	if !user.ValidatePassword(passwordUpdateInfo.OldPassword) {
-		return merr.ErrorPassword("old password is incorrect")
+		return merr.ErrorPasswordError("old password is incorrect")
 	}
 
 	// Generate new password
 	pass := password.New(passwordUpdateInfo.NewPassword)
 	encryptedPassword, err := pass.EnValue()
 	if err != nil {
-		return merr.ErrorInternalServer("failed to encrypt password").WithCause(err)
+		return merr.ErrorInternalServerError("failed to encrypt password").WithCause(err)
 	}
 
 	updateUserPasswordInfo := &bo.UpdateUserPasswordInfo{
@@ -146,7 +149,7 @@ func (b *UserBiz) UpdateSelfPassword(ctx context.Context, passwordUpdateInfo *bo
 	}
 	// Update password through repository
 	if err = b.userRepo.UpdatePassword(ctx, updateUserPasswordInfo); err != nil {
-		return merr.ErrorInternalServer("failed to update password").WithCause(err)
+		return merr.ErrorInternalServerError("failed to update password").WithCause(err)
 	}
 
 	return nil
@@ -161,7 +164,7 @@ func (b *UserBiz) GetUserTeams(ctx context.Context) ([]do.Team, error) {
 
 	teams, err := b.userRepo.GetTeamsByUserID(ctx, userID)
 	if err != nil {
-		return nil, merr.ErrorInternalServer("failed to get user teams").WithCause(err)
+		return nil, merr.ErrorInternalServerError("failed to get user teams").WithCause(err)
 	}
 
 	return teams, nil
@@ -221,8 +224,8 @@ func (b *UserBiz) ListUser(ctx context.Context, req *bo.UserListRequest) (*bo.Us
 	return b.userRepo.List(ctx, req)
 }
 
-func (b *UserBiz) Jobs() []cron_server.CronJob {
-	return []cron_server.CronJob{
+func (b *UserBiz) Jobs() []server.CronJob {
+	return []server.CronJob{
 		job.NewUserJob(b.userRepo, b.cacheRepo, b.log.Logger()),
 	}
 }

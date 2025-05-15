@@ -7,12 +7,11 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/spf13/cobra"
 
-	"github.com/aide-family/moon/cmd/laurel/internal/conf"
-	"github.com/aide-family/moon/pkg/hello"
-	"github.com/aide-family/moon/pkg/i18n"
-	mlog "github.com/aide-family/moon/pkg/log"
-	"github.com/aide-family/moon/pkg/plugin/server"
-	"github.com/aide-family/moon/pkg/util/load"
+	"github.com/moon-monitor/moon/cmd/laurel/internal/conf"
+	"github.com/moon-monitor/moon/pkg/hello"
+	mlog "github.com/moon-monitor/moon/pkg/log"
+	"github.com/moon-monitor/moon/pkg/plugin/server"
+	"github.com/moon-monitor/moon/pkg/util/load"
 )
 
 // Version is the version of the compiled software.
@@ -44,10 +43,11 @@ func run(cfgPath string) {
 		panic(err)
 	}
 	hello.SetEnvWithConfig(Version, bc.GetEnvironment(), bc.GetServer())
-	i18nConf := bc.GetI18N()
-	bundle := i18n.New(i18nConf)
-	i18n.RegisterGlobalLocalizer(i18n.NewLocalizer(bundle))
-	logger := mlog.New(bc.IsDev(), bc.GetLog())
+
+	logger, err := mlog.New(bc.IsDev(), bc.GetLog())
+	if err != nil {
+		panic(err)
+	}
 
 	app, cleanup, err := wireApp(&bc, logger)
 	if err != nil {

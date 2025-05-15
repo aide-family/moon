@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aide-family/moon/pkg/util/crypto"
+	"github.com/moon-monitor/moon/pkg/util/crypto"
 )
 
 type User struct {
@@ -21,11 +21,11 @@ func TestObject_Scan_Success(t *testing.T) {
 	}
 
 	var origin string
-	switch v := val.(type) {
+	switch val.(type) {
 	case string:
-		origin = v
+		origin = val.(string)
 	case []byte:
-		origin = string(v)
+		origin = string(val.([]byte))
 	default:
 		t.Fatal("Unexpected type")
 	}

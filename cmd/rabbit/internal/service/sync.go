@@ -3,13 +3,13 @@ package service
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz"
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/rabbit/internal/service/build"
-	"github.com/aide-family/moon/pkg/api/rabbit/common"
-	apiv1 "github.com/aide-family/moon/pkg/api/rabbit/v1"
-	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/service/build"
+	"github.com/moon-monitor/moon/pkg/api/rabbit/common"
+	apiv1 "github.com/moon-monitor/moon/pkg/api/rabbit/v1"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 type SyncService struct {
@@ -84,6 +84,20 @@ func (s *SyncService) NoticeGroup(ctx context.Context, req *apiv1.SyncNoticeGrou
 		Configs: noticeGroups,
 	}
 	if err := s.configBiz.SetNoticeGroupConfig(ctx, params); err != nil {
+		return nil, err
+	}
+	return &common.EmptyReply{}, nil
+}
+
+func (s *SyncService) NoticeUser(ctx context.Context, req *apiv1.SyncNoticeUserRequest) (*common.EmptyReply, error) {
+	noticeUsers := slices.Map(req.GetNoticeUsers(), func(noticeUserItem *common.NoticeUser) bo.NoticeUser {
+		return noticeUserItem
+	})
+	params := &bo.SetNoticeUserConfigParams{
+		TeamID:  req.GetTeamId(),
+		Configs: noticeUsers,
+	}
+	if err := s.configBiz.SetNoticeUserConfig(ctx, params); err != nil {
 		return nil, err
 	}
 	return &common.EmptyReply{}, nil

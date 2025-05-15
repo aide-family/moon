@@ -11,7 +11,7 @@ import "palace/common/common_enum.proto";
 import "palace/common/team.proto";
 import "palace/common/team_enum.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
 
 // System service provides operations for managing system users, roles, teams, and audits
 service System {
@@ -141,7 +141,7 @@ service System {
   }
 
   // OperateLogList lists operation logs based on specified filters
-  rpc OperateLogList (api.palace.common.OperateLogListRequest) returns (api.palace.common.OperateLogListReply) {
+  rpc OperateLogList (OperateLogListRequest) returns (OperateLogListReply) {
     option (google.api.http) = {
       post: "/api/system/operate/log/list"
       body: "*"
@@ -170,120 +170,58 @@ service System {
 // UpdateUserRequest represents the request data for updating user information
 message UpdateUserRequest {
   // User Id
-  uint32 userId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_USER_USER_ID_VALIDATOR",
-    message: "must select a user"
-    expression: "this > 0"
-  }];
+  uint32 userId = 1 [(buf.validate.field).required = true];
   // User nickname
-  string nickname = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_USER_NICKNAME_VALIDATOR",
-    message: "nickname is required"
-    expression: "this.size() > 0"
-  }];
+  string nickname = 2 [(buf.validate.field).required = true];
   // User avatar URL
-  string avatar = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_USER_AVATAR_VALIDATOR",
-    message: "avatar is required"
-    expression: "this.size() > 0"
-  }, (buf.validate.field).cel = {
-    id: "UPDATE_USER_AVATAR_MAX_LENGTH_VALIDATOR",
-    message: "avatar must be less than 256 characters"
-    expression: "this.size() <= 256"
-  }, (buf.validate.field).cel = {
-    id: "UPDATE_USER_AVATAR_URL_VALIDATOR",
-    message: "avatar must be a valid URL"
-    expression: "this.isUri()"
-  }];
+  string avatar = 3 [(buf.validate.field).required = true];
   // User gender
-  api.palace.common.Gender gender = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_USER_GENDER_VALIDATOR",
-    message: "gender is required"
-    expression: "this in ['GENDER_MALE', 'GENDER_FEMALE', 'GENDER_OTHER', 1, 2, 3]"
-  }];
+  api.palace.common.Gender gender = 4 [(buf.validate.field).required = true];
 }
 
 // UpdateUserStatusRequest represents the request data for updating user status
 message UpdateUserStatusRequest {
   // List of user Ids to update
   repeated uint32 userIds = 1 [(buf.validate.field).cel = {
-    id: "UPDATE_USER_USER_ID_SIZE_VALIDATOR",
     message: "please select user"
     expression: "this.size() > 0"
   }, (buf.validate.field).cel = {
-    id: "UPDATE_USER_USER_ID_MAX_SIZE_VALIDATOR",
     message: "select user max size is 100"
     expression: "this.size() <= 100"
-  }, (buf.validate.field).cel = {
-    id: "UPDATE_USER_USER_ID_VALIDATOR",
-    message: "a valid user must be selected"
-    expression: "this.all(x, x > 0)"
   }];
   // New status for the users
-  api.palace.common.UserStatus status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_USER_STATUS_VALIDATOR",
-    message: "status must be one of the following: USER_STATUS_NORMAL, USER_STATUS_FORBIDDEN, USER_STATUS_DELETED"
-    expression: "this in ['USER_STATUS_NORMAL', 'USER_STATUS_FORBIDDEN', 'USER_STATUS_DELETED', 1, 2, 3]"
-  }];
+  api.palace.common.UserStatus status = 2 [(buf.validate.field).required = true];
 }
 
 // ResetUserPasswordRequest represents the request data for resetting user passwords
 message ResetUserPasswordRequest {
-  uint32 userId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "RESET_USER_PASSWORD_USER_ID_VALIDATOR",
-    message: "must select a user"
-    expression: "this > 0"
-  }];
+  uint32 userId = 1 [(buf.validate.field).required = true];
 }
 
 // UpdateUserPositionRequest represents the request data for updating user position
 message UpdateUserPositionRequest {
   // User Id
-  uint32 userId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_USER_POSITION_USER_ID_VALIDATOR",
-    message: "must select a user"
-    expression: "this > 0"
-  }];
+  uint32 userId = 1 [(buf.validate.field).required = true];
   // New position for the user
-  api.palace.common.UserPosition position = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_USER_POSITION_POSITION_VALIDATOR",
-    message: "position must be one of the following: USER_POSITION_SUPER_ADMIN, USER_POSITION_ADMIN, USER_POSITION_USER, USER_POSITION_GUEST"
-    expression: "this in ['USER_POSITION_SUPER_ADMIN', 'USER_POSITION_ADMIN', 'USER_POSITION_USER', 'USER_POSITION_GUEST', 1, 2, 3, 4]"
-  }];
+  api.palace.common.UserPosition position = 2 [(buf.validate.field).required = true];
 }
 
 // GetUserRequest represents the request data for retrieving a user
 message GetUserRequest {
   // User Id
-  uint32 userId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "GET_USER_USER_ID_VALIDATOR",
-    message: "must select a user"
-    expression: "this > 0"
-  }];
+  uint32 userId = 1 [(buf.validate.field).required = true];
 }
 
 // GetUserListRequest represents the request data for listing users
 message GetUserListRequest {
   // List of statuses to filter users by
-  repeated api.palace.common.UserStatus status = 1 [(buf.validate.field).cel = {
-    id: "GET_USER_LIST_STATUS_VALIDATOR",
-    message: "status must be one of the following: USER_STATUS_NORMAL, USER_STATUS_FORBIDDEN, USER_STATUS_DELETED"
-    expression: "this in ['USER_STATUS_NORMAL', 'USER_STATUS_FORBIDDEN', 'USER_STATUS_DELETED', 0, 1, 2, 3]"
-  }];
+  repeated api.palace.common.UserStatus status = 1;
   // List of positions to filter users by
-  repeated api.palace.common.UserPosition position = 2 [(buf.validate.field).cel = {
-    id: "GET_USER_LIST_POSITION_VALIDATOR",
-    message: "position must be one of the following: USER_POSITION_SUPER_ADMIN, USER_POSITION_ADMIN, USER_POSITION_USER, USER_POSITION_GUEST"
-    expression: "this in ['USER_POSITION_SUPER_ADMIN', 'USER_POSITION_ADMIN', 'USER_POSITION_USER', 'USER_POSITION_GUEST', 0, 1, 2, 3, 4]"
-  }];
+  repeated api.palace.common.UserPosition position = 2;
   // Pagination request details
-  api.palace.common.PaginationRequest pagination = 3 [(buf.validate.field).required = true];
+  api.palace.common.PaginationRequest pagination = 3;
   // Keyword to search users by
-  string keyword = 4 [(buf.validate.field).cel = {
-    id: "GET_USER_LIST_KEYWORD_VALIDATOR",
-    message: "keyword must be less than 64 characters"
-    expression: "this.size() <= 20"
-  }];
+  string keyword = 4;
 }
 
 // GetUserListReply contains the response data for listing users
@@ -297,19 +235,11 @@ message GetUserListReply {
 // GetTeamListRequest represents the request data for listing teams
 message GetTeamListRequest {
   // Pagination request details
-  api.palace.common.PaginationRequest pagination = 1 [(buf.validate.field).required = true];
+  api.palace.common.PaginationRequest pagination = 1;
   // List of statuses to filter teams by
-  repeated api.palace.common.TeamStatus status = 2 [(buf.validate.field).cel = {
-    id: "GET_TEAM_LIST_STATUS_VALIDATOR",
-    message: "status must be one of the following: TEAM_STATUS_NORMAL, TEAM_STATUS_DELETED"
-    expression: "this in ['TEAM_STATUS_NORMAL', 'TEAM_STATUS_DELETED', 0, 1]"
-  }];
+  repeated api.palace.common.TeamStatus status = 2;
   // Keyword to search teams by
-  string keyword = 3 [(buf.validate.field).cel = {
-    id: "GET_TEAM_LIST_KEYWORD_VALIDATOR",
-    message: "keyword must be less than 20 characters"
-    expression: "this.size() <= 20"
-  }];
+  string keyword = 3;
   uint32 leaderId = 4;
   uint32 creatorId = 5;
 }
@@ -325,19 +255,11 @@ message GetTeamListReply {
 // GetSystemRolesRequest represents the request data for listing system roles
 message GetSystemRolesRequest {
   // Pagination request details
-  api.palace.common.PaginationRequest pagination = 1 [(buf.validate.field).required = true];
+  api.palace.common.PaginationRequest pagination = 1;
   // Keyword to search roles by
-  string keyword = 2 [(buf.validate.field).cel = {
-    id: "GET_SYSTEM_ROLES_KEYWORD_VALIDATOR",
-    message: "keyword must be less than 20 characters"
-    expression: "this.size() <= 20"
-  }];
+  string keyword = 2;
   // Status to filter roles by
-  api.palace.common.GlobalStatus status = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "GET_SYSTEM_ROLES_STATUS_VALIDATOR",
-    message: "status must be one of the following: GLOBAL_STATUS_ENABLE, GLOBAL_STATUS_DISABLE"
-    expression: "this in ['GLOBAL_STATUS_ENABLE', 'GLOBAL_STATUS_DISABLE', 0, 1, 2]"
-  }];
+  api.palace.common.GlobalStatus status = 3;
 }
 
 // GetSystemRolesReply contains the response data for listing system roles
@@ -354,70 +276,40 @@ message SaveRoleRequest {
   uint32 roleId = 1;
   // Role name
   string name = 2 [(buf.validate.field).cel = {
-    id: "SAVE_ROLE_NAME_MAX_LENGTH_VALIDATOR",
     message: "name max length is 32"
     expression: "this.size() <= 32"
   }, (buf.validate.field).required = true];
   // Role remark or description
   string remark = 3 [(buf.validate.field).cel = {
-    id: "SAVE_ROLE_REMARK_MAX_LENGTH_VALIDATOR",
     message: "remark max length is 200"
     expression: "this.size() <= 200"
   }];
   // List of resource Ids associated with the role
-  repeated uint32 menuIds = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "SAVE_ROLE_MENU_IDS_VALIDATOR",
-    message: "menuIds must be greater than 0"
-    expression: "this.size() == 0 || this.all(x, x > 0)"
-  }];
+  repeated uint32 menuIds = 4 [(buf.validate.field).required = true];
 }
 
 // UpdateRoleStatusRequest represents the request data for updating role status
 message UpdateRoleStatusRequest {
   // Role Id
-  uint32 roleId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_ROLE_STATUS_ROLE_ID_VALIDATOR",
-    message: "must select a role"
-    expression: "this > 0"
-  }];
+  uint32 roleId = 1 [(buf.validate.field).required = true];
   // New status for the role
-  api.palace.common.GlobalStatus status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_ROLE_STATUS_STATUS_VALIDATOR",
-    message: "status must be one of the following: GLOBAL_STATUS_ENABLE, GLOBAL_STATUS_DISABLE"
-    expression: "this in ['GLOBAL_STATUS_ENABLE', 'GLOBAL_STATUS_DISABLE', 1, 2]"
-  }];
+  api.palace.common.GlobalStatus status = 2 [(buf.validate.field).required = true];
 }
 
 // UpdateUserRolesRequest represents the request data for updating user roles
 message UpdateUserRolesRequest {
   // User Id
-  uint32 userId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_USER_ROLES_USER_ID_VALIDATOR",
-    message: "must select a user"
-    expression: "this > 0"
-  }];
+  uint32 userId = 1 [(buf.validate.field).required = true];
   // List of role Ids to assign to the user
-  repeated uint32 roleIds = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_USER_ROLES_ROLE_IDS_VALIDATOR",
-    message: "roleIds must be greater than 0"
-    expression: "this.size() == 0 || this.all(x, x > 0)"
-  }];
+  repeated uint32 roleIds = 2 [(buf.validate.field).required = true];
 }
 
 // UpdateRoleUsersRequest represents the request data for updating role users
 message UpdateRoleUsersRequest {
   // Role Id
-  uint32 roleId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_ROLE_USERS_ROLE_ID_VALIDATOR",
-    message: "must select a role"
-    expression: "this > 0"
-  }];
+  uint32 roleId = 1 [(buf.validate.field).required = true];
   // List of user Ids to assign to the role
-  repeated uint32 userIds = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_ROLE_USERS_USER_IDS_VALIDATOR",
-    message: "userIds must be greater than 0"
-    expression: "this.size() == 0 || this.all(x, x > 0)"
-  }];
+  repeated uint32 userIds = 2 [(buf.validate.field).required = true];
 }
 
 // GetTeamRequest represents the request data for retrieving a team
@@ -429,36 +321,20 @@ message GetTeamRequest {
 // GetSystemRoleRequest represents the request data for retrieving a system role
 message GetSystemRoleRequest {
   // Role Id
-  uint32 roleId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "GET_SYSTEM_ROLE_ROLE_ID_VALIDATOR",
-    message: "must select a role"
-    expression: "this > 0"
-  }];
+  uint32 roleId = 1 [(buf.validate.field).required = true];
 }
 
 // GetTeamAuditListRequest represents the request data for listing team audit records
 message GetTeamAuditListRequest {
   // Pagination request details
-  api.palace.common.PaginationRequest pagination = 1 [(buf.validate.field).required = true];
+  api.palace.common.PaginationRequest pagination = 1;
   // List of statuses to filter team audit records by
-  repeated api.palace.common.TeamAuditStatus status = 2 [(buf.validate.field).cel = {
-    id: "GET_TEAM_AUDIT_LIST_STATUS_VALIDATOR",
-    message: "status must be one of the following: TEAM_AUDIT_STATUS_PENDING, TEAM_AUDIT_STATUS_APPROVED, TEAM_AUDIT_STATUS_REJECTED"
-    expression: "this in ['TEAM_AUDIT_STATUS_PENDING', 'TEAM_AUDIT_STATUS_APPROVED', 'TEAM_AUDIT_STATUS_REJECTED', 0, 1, 2, 3]"
-  }];
+  repeated api.palace.common.TeamAuditStatus status = 2;
   // Keyword to search team audit records by
-  string keyword = 3 [(buf.validate.field).cel = {
-    id: "GET_TEAM_AUDIT_LIST_KEYWORD_VALIDATOR",
-    message: "keyword must be less than 20 characters"
-    expression: "this.size() <= 20"
-  }];
+  string keyword = 3;
   // User Id, optional for filtering audits by user
   uint32 userId = 4;
-  repeated api.palace.common.TeamAuditAction actions = 5 [(buf.validate.field).cel = {
-    id: "GET_TEAM_AUDIT_LIST_ACTIONS_VALIDATOR",
-    message: "actions must be one of the following: TEAM_AUDIT_ACTION_JOIN, TEAM_AUDIT_ACTION_LEAVE"
-    expression: "this in ['TEAM_AUDIT_ACTION_JOIN', 'TEAM_AUDIT_ACTION_LEAVE', 0, 1, 2]"
-  }];
+  repeated api.palace.common.TeamAuditAction actions = 5;
 }
 
 // GetTeamAuditListReply contains the response data for listing team audit records
@@ -472,17 +348,9 @@ message GetTeamAuditListReply {
 // UpdateTeamAuditStatusRequest represents the request data for updating team audit status
 message UpdateTeamAuditStatusRequest {
   // Audit Id
-  uint32 auditId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_TEAM_AUDIT_STATUS_AUDIT_ID_VALIDATOR",
-    message: "must select a audit"
-    expression: "this > 0"
-  }];
+  uint32 auditId = 1 [(buf.validate.field).required = true];
   // New status for the team audit record
-  api.palace.common.TeamAuditStatus status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_TEAM_AUDIT_STATUS_STATUS_VALIDATOR",
-    message: "status must be one of the following: TEAM_AUDIT_STATUS_PENDING, TEAM_AUDIT_STATUS_APPROVED, TEAM_AUDIT_STATUS_REJECTED"
-    expression: "this in ['TEAM_AUDIT_STATUS_PENDING', 'TEAM_AUDIT_STATUS_APPROVED', 'TEAM_AUDIT_STATUS_REJECTED', 1, 2, 3]"
-  }];
+  api.palace.common.TeamAuditStatus status = 2 [(buf.validate.field).required = true];
   // Reason for the status update
   string reason = 3 [(buf.validate.field).cel = {
     message: "reason max length is 200"
@@ -490,33 +358,34 @@ message UpdateTeamAuditStatusRequest {
   }];
 }
 
+// OperateLogListRequest represents the request data for listing operation logs
+message OperateLogListRequest {
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 1;
+  // List of types to filter operation logs by
+  repeated api.palace.common.OperateType operateTypes = 2;
+  // Keyword to search operation logs by
+  string keyword = 3;
+  // User Id, optional for filtering logs by user
+  uint32 userId = 4;
+}
+
+// OperateLogListReply contains the response data for listing operation logs
+message OperateLogListReply {
+  // List of operation log items
+  repeated api.palace.common.OperateLogItem items = 1;
+  // Pagination response details
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+
 message GetSendMessageLogsRequest {
-  string requestId = 1 [(buf.validate.field).cel = {
-    id: "GET_SEND_MESSAGE_LOGS_REQUEST_ID_VALIDATOR",
-    message: "requestId must be less than 64 characters"
-    expression: "this.size() <= 64"
-  }];
-  common.MessageType messageType = 2 [(buf.validate.field).cel = {
-    id: "GET_SEND_MESSAGE_LOGS_MESSAGE_TYPE_VALIDATOR",
-    message: "messageType must be one of the following: MESSAGE_TYPE_TEXT, MESSAGE_TYPE_IMAGE, MESSAGE_TYPE_VOICE, MESSAGE_TYPE_VIDEO, MESSAGE_TYPE_FILE"
-    expression: "this in ['MESSAGE_TYPE_TEXT', 'MESSAGE_TYPE_IMAGE', 'MESSAGE_TYPE_VOICE', 'MESSAGE_TYPE_VIDEO', 'MESSAGE_TYPE_FILE', 1, 2, 3, 4, 5]"
-  }];
-  common.SendMessageStatus status = 3 [(buf.validate.field).cel = {
-    id: "GET_SEND_MESSAGE_LOGS_STATUS_VALIDATOR",
-    message: "status must be one of the following: SEND_MESSAGE_STATUS_SUCCESS, SEND_MESSAGE_STATUS_FAILED"
-    expression: "this in ['SEND_MESSAGE_STATUS_SUCCESS', 'SEND_MESSAGE_STATUS_FAILED', 1, 2]"
-  }];
-  string keyword = 4 [(buf.validate.field).cel = {
-    id: "GET_SEND_MESSAGE_LOGS_KEYWORD_VALIDATOR",
-    message: "keyword must be less than 20 characters"
-    expression: "this.size() <= 20"
-  }];
-  common.PaginationRequest pagination = 5 [(buf.validate.field).required = true];
-  repeated string timeRange = 6 [(buf.validate.field).cel = {
-    id: "GET_SEND_MESSAGE_LOGS_SEND_TIME_VALIDATOR",
-    message: "timeRange must be 2 elements and each element must be 19 characters"
-    expression: "this.size() == 2 && this.all(x, x.size() == 19)"
-  }];
+  string requestId = 1;
+  string message = 2;
+  common.MessageType messageType = 3;
+  common.SendMessageStatus status = 4;
+  string keyword = 5;
+  common.PaginationRequest pagination = 6;
 }
 
 message GetSendMessageLogsReply {
@@ -525,14 +394,5 @@ message GetSendMessageLogsReply {
 }
 
 message OperateOneSendMessageRequest {
-  string requestId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "OPERATE_ONE_SEND_MESSAGE_REQUEST_ID_VALIDATOR",
-    message: "requestId must be less than 64 characters"
-    expression: "this.size() <= 64"
-  }];
-  string sendTime = 2 [(buf.validate.field).cel = {
-    id: "OPERATE_ONE_SEND_MESSAGE_SEND_TIME_VALIDATOR",
-    message: "sendTime must be 19 characters, format: 2005-01-02 15:04:05"
-    expression: "this.size() == 19"
-  }];
+  string requestId = 1;
 }

@@ -6,28 +6,28 @@ import (
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/cmd/palace/internal/helper/permission"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func NewTeamRole(data *data.Data) repository.TeamRole {
-	return &teamRoleRepoImpl{
+	return &teamRoleImpl{
 		Data: data,
 	}
 }
 
-type teamRoleRepoImpl struct {
+type teamRoleImpl struct {
 	*data.Data
 }
 
-func (t *teamRoleRepoImpl) Find(ctx context.Context, ids []uint32) ([]do.TeamRole, error) {
+func (t *teamRoleImpl) Find(ctx context.Context, ids []uint32) ([]do.TeamRole, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -48,7 +48,7 @@ func (t *teamRoleRepoImpl) Find(ctx context.Context, ids []uint32) ([]do.TeamRol
 	return roleDos, nil
 }
 
-func (t *teamRoleRepoImpl) Get(ctx context.Context, id uint32) (do.TeamRole, error) {
+func (t *teamRoleImpl) Get(ctx context.Context, id uint32) (do.TeamRole, error) {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorPermissionDenied("team id not found")
@@ -59,14 +59,14 @@ func (t *teamRoleRepoImpl) Get(ctx context.Context, id uint32) (do.TeamRole, err
 		roleQuery.TeamID.Eq(teamID),
 		roleQuery.ID.Eq(id),
 	}
-	role, err := roleQuery.WithContext(ctx).Where(wrapper...).Preload(field.Associations).First()
+	role, err := roleQuery.WithContext(ctx).Where(wrapper...).First()
 	if err != nil {
 		return nil, teamRoleNotFound(err)
 	}
 	return role, nil
 }
 
-func (t *teamRoleRepoImpl) List(ctx context.Context, req *bo.ListRoleReq) (*bo.ListTeamRoleReply, error) {
+func (t *teamRoleImpl) List(ctx context.Context, req *bo.ListRoleReq) (*bo.ListTeamRoleReply, error) {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorPermissionDenied("team id not found")
@@ -92,37 +92,30 @@ func (t *teamRoleRepoImpl) List(ctx context.Context, req *bo.ListRoleReq) (*bo.L
 	if err != nil {
 		return nil, err
 	}
-	rows := slices.Map(roles, func(role *system.TeamRole) do.TeamRole { return role })
-	return req.ToTeamRoleListReply(rows), nil
+	return req.ToListTeamRoleReply(roles), nil
 }
 
-func (t *teamRoleRepoImpl) Create(ctx context.Context, role bo.Role) error {
+func (t *teamRoleImpl) Create(ctx context.Context, role bo.Role) error {
 	teamDo := &system.TeamRole{
 		Name:   role.GetName(),
 		Remark: role.GetRemark(),
 		Status: role.GetStatus(),
+		Menus: slices.MapFilter(role.GetMenus(), func(menu do.Menu) (*system.Menu, bool) {
+			if validate.IsNil(menu) || menu.GetID() <= 0 {
+				return nil, false
+			}
+			return &system.Menu{
+				BaseModel: do.BaseModel{ID: menu.GetID()},
+			}, true
+		}),
 	}
 	teamDo.WithContext(ctx)
 
 	bizRoleQuery := getMainQuery(ctx, t).TeamRole
-	if err := bizRoleQuery.WithContext(ctx).Create(teamDo); err != nil {
-		return err
-	}
-	menus := slices.MapFilter(role.GetMenus(), func(menu do.Menu) (*system.Menu, bool) {
-		if validate.IsNil(menu) || menu.GetID() <= 0 {
-			return nil, false
-		}
-		return &system.Menu{
-			BaseModel: do.BaseModel{ID: menu.GetID()},
-		}, true
-	})
-	if len(menus) == 0 {
-		return nil
-	}
-	return bizRoleQuery.Menus.Model(teamDo).Append(menus...)
+	return bizRoleQuery.WithContext(ctx).Create(teamDo)
 }
 
-func (t *teamRoleRepoImpl) Update(ctx context.Context, role bo.Role) error {
+func (t *teamRoleImpl) Update(ctx context.Context, role bo.Role) error {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return merr.ErrorPermissionDenied("team id not found")
@@ -164,7 +157,7 @@ func (t *teamRoleRepoImpl) Update(ctx context.Context, role bo.Role) error {
 	return menuMutation.Replace(menuDos...)
 }
 
-func (t *teamRoleRepoImpl) Delete(ctx context.Context, id uint32) error {
+func (t *teamRoleImpl) Delete(ctx context.Context, id uint32) error {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return merr.ErrorPermissionDenied("team id not found")
@@ -178,7 +171,7 @@ func (t *teamRoleRepoImpl) Delete(ctx context.Context, id uint32) error {
 	return err
 }
 
-func (t *teamRoleRepoImpl) UpdateStatus(ctx context.Context, req *bo.UpdateRoleStatusReq) error {
+func (t *teamRoleImpl) UpdateStatus(ctx context.Context, req *bo.UpdateRoleStatusReq) error {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return merr.ErrorPermissionDenied("team id not found")

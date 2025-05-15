@@ -4,7 +4,7 @@ package config;
 
 import "google/protobuf/duration.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/config;config";
+option go_package = "github.com/moon-monitor/moon/pkg/config;config";
 
 enum Environment {
   UNKNOWN = 0;
@@ -20,16 +20,6 @@ enum Network {
   HTTPS = 1;
   // grpc
   GRPC = 2;
-}
-
-enum I18nFormat {
-  TOML = 0;
-  JSON = 1;
-}
-
-message I18N {
-  string dir = 1;
-  I18nFormat format = 2;
 }
 
 message Server {
@@ -94,7 +84,7 @@ message Database {
   string dbName = 10;
 }
 
-// Cache configuration
+// 缓存配置
 message Cache {
   enum Driver {
     MEMORY = 0;
@@ -163,8 +153,6 @@ message MicroServer {
   string version = 5;
   // name service name
   string name = 6;
-  // enable micro service
-  bool enable = 7;
 }
 
 // trace config
@@ -205,9 +193,7 @@ message Etcd {
 }
 
 enum RegistryDriver {
-  REGISTRY_DRIVER_UNKNOWN = 0;
-  ETCD = 1;
-  CONSUL = 2;
+  ETCD = 0;
 }
 
 // server register config
@@ -215,7 +201,6 @@ message Registry {
   RegistryDriver driver = 1;
   bool enable = 2;
   Etcd etcd = 3;
-  Consul consul = 4;
 }
 
 // server discovery config
@@ -223,7 +208,6 @@ message Discovery {
   RegistryDriver driver = 1;
   bool enable = 2;
   Etcd etcd = 3;
-  Consul consul = 4;
 }
 
 // email config
@@ -332,7 +316,7 @@ message Event {
     // kafka
     KAFKA = 3;
   }
-  // RocketMQ configuration
+  // rocketmq配置
   message RocketMQ {
     // group name
     string groupName = 1;
@@ -348,7 +332,7 @@ message Event {
     string namespace = 6;
   }
 
-  // MQTT configuration
+  // mqtt配置
   message Mqtt {
     // broker address
     string  broker = 1;
@@ -364,7 +348,7 @@ message Event {
     int32  qos = 6;
   }
 
-  // Kafka configuration
+  // kafka配置
   message Kafka{
     // broker address
     string brokers = 1;
@@ -399,15 +383,4 @@ message AliyunSMSConfig {
   string signName = 3;
   string endpoint = 4;
   string name = 5;
-}
-
-message Consul {
-  string address = 1;
-  string path = 2;
-}
-
-message ConfigSource {
-  RegistryDriver driver = 1;
-  Consul consul = 2;
-  Etcd etcd = 3;
 }

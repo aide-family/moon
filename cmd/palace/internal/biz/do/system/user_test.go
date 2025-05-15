@@ -6,14 +6,12 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/joho/godotenv"
-
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/config"
-	"github.com/aide-family/moon/pkg/plugin/gorm"
-	"github.com/aide-family/moon/pkg/util/password"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/plugin/gorm"
+	"github.com/moon-monitor/moon/pkg/util/password"
 )
 
 var c config.Database
@@ -38,7 +36,7 @@ func init() {
 }
 
 func Test_NewUser(t *testing.T) {
-	db, err := gorm.NewDB(&c, log.GetLogger())
+	db, err := gorm.NewDB(&c)
 	if err != nil {
 		bs, _ := json.Marshal(&c)
 		t.Fatalf("err: %s, config: %s", err, string(bs))
@@ -54,7 +52,7 @@ func Test_NewUser(t *testing.T) {
 
 	user := &system.User{
 		Username: "admin",
-		Nickname: "admin",
+		Nickname: "管理员",
 		Password: enPass,
 		Email:    "1058165620@qq.com",
 		Phone:    "",
@@ -62,7 +60,7 @@ func Test_NewUser(t *testing.T) {
 		Avatar:   "",
 		Salt:     pass.Salt(),
 		Gender:   vobj.GenderMale,
-		Position: vobj.PositionSuperAdmin,
+		Position: vobj.RoleSuperAdmin,
 		Status:   vobj.UserStatusNormal,
 		Roles:    nil,
 		Teams:    nil,

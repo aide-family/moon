@@ -48,17 +48,13 @@ init:
 all:
 	@echo "Initialization of moon project"
 	@if [ -z "$(APP_NAME)" ]; then echo "app name is required"; echo "usage: make all app=<app_name>"; exit 1; fi
-	APP_NAME=palace make api
-	APP_NAME=houyi make api
-	APP_NAME=rabbit make api
-	APP_NAME=laurel make api
+	make api
 	make errors
 	make conf
 	make stringer-$(APP_NAME)
 	make conf-$(APP_NAME)
 	make wire-$(APP_NAME)
 	make gen-$(APP_NAME)
-	go mod tidy
 
 .PHONY: api
 # generate api proto
@@ -88,11 +84,11 @@ api:
 # generate errors
 errors:
 	mkdir -p ./pkg/merr
-	protoc --proto_path=./proto/api/merr \
+	protoc --proto_path=./proto/merr \
            --proto_path=./proto/third_party \
            --go_out=paths=source_relative:./pkg/merr \
            --go-errors_out=paths=source_relative:./pkg/merr \
-           ./proto/api/merr/*.proto
+           ./proto/merr/*.proto
 	make i18n
 
 .PHONY: conf
@@ -108,8 +104,13 @@ conf:
 .PHONY: i18n
 # i18n
 i18n:
-	i18n-gen -O ./i18n/ -P ./proto/api/**.proto -L en,ja,zh -suffix Error
+	i18n-gen -O ./i18n/ -P ./proto/merr/err.proto -L en,ja,zh
 
+.PHONY: gen-palace
+# generate gorm gen
+gen-palace:
+	rm -rf ./cmd/palace/internal/data/query
+	go run cmd/palace/migrate/gen/gen.go
 
 .PHONY: conf-palace
 # generate palace-config
@@ -193,12 +194,6 @@ stringer-laurel:
 	@echo "Generating laurel stringer"
 	cd ./cmd/laurel/internal/biz/vobj && go generate
 	
-.PHONY: gen-palace
-# generate gorm gen
-gen-palace:
-	rm -rf ./cmd/palace/internal/data/query
-	go run cmd/palace/migrate/gen/gen.go
-
 .PHONY: gen-rabbit
 gen-rabbit:
 	@echo "Generating rabbit db"
@@ -215,20 +210,14 @@ gen-laurel:
 build:
 	@if [ -z "$(APP_NAME)" ]; then echo "app name is required"; echo "usage: make build app=<app_name>"; exit 1; fi
 	@echo "Building moon app=$(APP_NAME)"
-	make all app=$(APP_NAME)
+	make all
 	mkdir -p bin/ && go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./cmd/$(APP_NAME)
 
 .PHONY: run
 run:
 	@if [ -z "$(APP_NAME)" ]; then echo "app name is required"; echo "usage: make run app=<app_name>"; exit 1; fi
 	@echo "Running moon app=$(APP_NAME)"
-	make all app=$(APP_NAME)
-	go run ./cmd/$(APP_NAME) -c ./cmd/$(APP_NAME)/config
-
-.PHONY: simple-run
-simple-run:
-	@if [ -z "$(APP_NAME)" ]; then echo "app name is required"; echo "usage: make simple-run app=<app_name>"; exit 1; fi
-	@echo "Running moon app=$(APP_NAME)"
+	make all
 	go run ./cmd/$(APP_NAME) -c ./cmd/$(APP_NAME)/config
 
 .PHONY: migrate-table
@@ -241,16 +230,16 @@ migrate-table:
 docker-build:
 	@if [ -z "$(APP_NAME)" ]; then echo "app name is required"; echo "usage: make docker-build app=<app_name>"; exit 1; fi
 	@echo "Building moon app=$(APP_NAME)"
-	docker build -t ghcr.io/aide-family/$(APP_NAME):$(VERSION) \
+	docker build -t ghcr.io/moon-monitor/$(APP_NAME):$(VERSION) \
       --build-arg APP_NAME=$(APP_NAME) \
       -f deploy/server/Dockerfile .
 
 .PHONY: builder-image
 builder-image:
 	@echo "Building moon builder image"
-	docker build -f deploy/base/DockerfileBuilder -t ghcr.io/aide-family/moon:builder .
+	docker build -f deploy/base/DockerfileBuilder -t ghcr.io/moon-monitor/moon:builder .
 
 .PHONY: deploy-image
 deploy-image:
 	@echo "Building moon deploy image"
-	docker build -f deploy/base/DockerfileDeploy -t ghcr.io/aide-family/moon:deploy .
+	docker build -f deploy/base/DockerfileDeploy -t ghcr.io/moon-monitor/moon:deploy .

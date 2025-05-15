@@ -10,5 +10,4 @@ const (
 	MenuTypeMenuSystem                 // system
 	MenuTypeMenuTeam                   // team
 	MenuTypeMenuUser                   // user
-	MenuTypeMenuNone                   // none
 )

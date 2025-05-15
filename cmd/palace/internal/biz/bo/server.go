@@ -4,17 +4,17 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"google.golang.org/grpc"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/config"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/config"
 )
 
 type ServerRegisterReq struct {
-	ServerType vobj.ServerType
-	Server     *config.MicroServer
-	Discovery  *config.Discovery
-	TeamIds    []uint32
-	IsOnline   bool
-	Uuid       string
+	ServerType vobj.ServerType     `json:"server_type"`
+	Server     *config.MicroServer `json:"server"`
+	Discovery  *config.Discovery   `json:"discovery"`
+	TeamIds    []uint32            `json:"team_ids"`
+	IsOnline   bool                `json:"is_online"`
+	Uuid       string              `json:"uuid"`
 }
 
 type Server struct {

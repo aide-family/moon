@@ -1,13 +1,13 @@
 package build
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/api/palace/common"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/timex"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 type ListRoleRequest interface {
@@ -33,7 +33,7 @@ func ToTeamRoleItem(role do.TeamRole) *common.TeamRoleItem {
 		Name:       role.GetName(),
 		Remark:     role.GetRemark(),
 		Status:     common.GlobalStatus(role.GetStatus().GetValue()),
-		Menus:      nil,
+		Resources:  nil,
 		Members:    nil,
 		CreatedAt:  timex.Format(role.GetCreatedAt()),
 		UpdatedAt:  timex.Format(role.GetUpdatedAt()),

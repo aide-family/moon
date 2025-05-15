@@ -10,14 +10,11 @@ import (
 	"github.com/go-kratos/kratos/v2/transport"
 	jwtv5 "github.com/golang-jwt/jwt/v5"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
-	"github.com/aide-family/moon/pkg/config"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/cnst"
-	"github.com/aide-family/moon/pkg/util/timex"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/helper/permission"
+	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/timex"
 )
 
 // JwtBaseInfo jwt base info
@@ -32,8 +29,8 @@ type JwtBaseInfo struct {
 // JwtClaims jwt claims
 type JwtClaims struct {
 	signKey string
-	JwtBaseInfo
-	jwtv5.RegisteredClaims
+	*JwtBaseInfo
+	*jwtv5.RegisteredClaims
 }
 
 // ParseJwtClaims parse jwt claims
@@ -85,19 +82,12 @@ func JwtServer(signKey string) middleware.Middleware {
 	)
 }
 
-type TokenValidateFunc func(ctx context.Context, token string) (userDo do.User, err error)
+type TokenValidateFunc func(ctx context.Context, token string) error
 
 // MustLogin must login
-func MustLogin(validateFunc TokenValidateFunc) middleware.Middleware {
+func MustLogin(validate TokenValidateFunc) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req any) (any, error) {
-			menuDo, ok := do.GetMenuDoContext(ctx)
-			if !ok {
-				return nil, merr.ErrorBadRequest("not allow request")
-			}
-			if !menuDo.GetProcessType().IsContainsLogin() {
-				return handler(ctx, req)
-			}
 			claims, ok := ParseJwtClaims(ctx)
 			if !ok {
 				return nil, merr.ErrorUnauthorized("token error")
@@ -107,32 +97,28 @@ func MustLogin(validateFunc TokenValidateFunc) middleware.Middleware {
 			if !ok {
 				return nil, merr.ErrorBadRequest("not allow request")
 			}
-			authorization := tr.RequestHeader().Get(cnst.XHeaderToken)
-			if validate.TextIsNull(authorization) {
-				return nil, jwt.ErrMissingJwtToken
+			if tokenStr := tr.RequestHeader().Get(XHeaderToken); tokenStr != "" {
+				auths := strings.SplitN(tokenStr, " ", 2)
+				if len(auths) != 2 || !strings.EqualFold(auths[0], bearerWord) {
+					return nil, jwt.ErrMissingJwtToken
+				}
+				jwtToken := auths[1]
+				ctx = permission.WithTokenContext(ctx, jwtToken)
+				if err := validate(ctx, jwtToken); err != nil {
+					return nil, err
+				}
 			}
-			auths := strings.SplitN(authorization, " ", 2)
-			if len(auths) != 2 || !strings.EqualFold(auths[0], cnst.BearerWord) {
-				return nil, jwt.ErrTokenInvalid
-			}
-			jwtToken := auths[1]
-			ctx = permission.WithTokenContext(ctx, jwtToken)
-			userDo, err := validateFunc(ctx, jwtToken)
-			if err != nil {
-				return nil, err
-			}
-			ctx = do.WithUserDoContext(ctx, userDo)
 			return handler(ctx, req)
 		}
 	}
 }
 
 // NewJwtClaims new jwt claims
-func NewJwtClaims(c *config.JWT, base JwtBaseInfo) *JwtClaims {
+func NewJwtClaims(c *config.JWT, base *JwtBaseInfo) *JwtClaims {
 	return &JwtClaims{
 		signKey:     c.GetSignKey(),
 		JwtBaseInfo: base,
-		RegisteredClaims: jwtv5.RegisteredClaims{
+		RegisteredClaims: &jwtv5.RegisteredClaims{
 			ExpiresAt: jwtv5.NewNumericDate(timex.Now().Add(c.GetExpire().AsDuration())),
 			Issuer:    c.GetIssuer(),
 		},

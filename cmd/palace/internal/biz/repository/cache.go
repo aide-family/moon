@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/pkg/plugin/cache"
 )
 
 type Cache interface {
@@ -17,8 +17,8 @@ type Cache interface {
 
 	VerifyOAuthToken(ctx context.Context, oauthParams *bo.OAuthLoginParams) error
 	CacheVerifyOAuthToken(ctx context.Context, oauthParams *bo.OAuthLoginParams) error
-	SendVerifyEmailCode(ctx context.Context, params *bo.VerifyEmailParams) error
-	VerifyEmailCode(ctx context.Context, params *bo.VerifyEmailCodeParams) error
+	SendVerifyEmailCode(ctx context.Context, email string) (*bo.SendEmailParams, error)
+	VerifyEmailCode(ctx context.Context, email, code string) error
 
 	CacheUsers(ctx context.Context, users ...do.User) error
 	GetUser(ctx context.Context, userID uint32) (do.User, error)
@@ -31,10 +31,6 @@ type Cache interface {
 	CacheTeamMembers(ctx context.Context, members ...do.TeamMember) error
 	GetTeamMember(ctx context.Context, memberID uint32) (do.TeamMember, error)
 	GetTeamMembers(ctx context.Context, ids ...uint32) ([]do.TeamMember, error)
-
-	CacheMenus(ctx context.Context, menus ...do.Menu) error
-	GetMenu(ctx context.Context, operation string) (do.Menu, error)
-	GetMenus(ctx context.Context, operations ...string) ([]do.Menu, error)
 }
 
 const (
@@ -45,5 +41,4 @@ const (
 	TeamCacheKey                        cache.K = "palace:team:cache"
 	TeamMemberCacheKey                  cache.K = "palace:team:member:cache"
 	TeamDatasourceMetricMetadataSyncKey cache.K = "palace:team:datasource:metric:metadata:sync"
-	MenuCacheKey                        cache.K = "palace:menu:cache"
 )

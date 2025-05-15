@@ -3,14 +3,13 @@ package main
 import (
 	"fmt"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
-	"github.com/go-kratos/kratos/v2/log"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
 	"github.com/spf13/cobra"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/cmd/palace/internal/conf"
-	"github.com/aide-family/moon/pkg/plugin/gorm"
-	"github.com/aide-family/moon/pkg/util/load"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/conf"
+	"github.com/moon-monitor/moon/pkg/plugin/gorm"
+	"github.com/moon-monitor/moon/pkg/util/load"
 )
 
 var cfgPath string
@@ -40,7 +39,7 @@ func run(cfgPath string) {
 		panic(err)
 	}
 
-	mainDB, err := gorm.NewDB(bc.GetData().GetMain(), log.GetLogger())
+	mainDB, err := gorm.NewDB(bc.GetData().GetMain())
 	if err != nil {
 		panic(err)
 	}

@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz"
-	"github.com/aide-family/moon/cmd/palace/internal/service/build"
-	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz"
+	"github.com/moon-monitor/moon/cmd/palace/internal/service/build"
+	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
 )
 
 type TeamLogService struct {
@@ -21,11 +21,7 @@ func NewTeamLogService(logsBiz *biz.Logs) *TeamLogService {
 }
 
 func (s *TeamLogService) GetSendMessageLogs(ctx context.Context, req *palace.GetTeamSendMessageLogsRequest) (*palace.GetTeamSendMessageLogsReply, error) {
-	listParams, err := build.ToListSendMessageLogParams(req)
-	if err != nil {
-		return nil, err
-	}
-	params, err := listParams.WithTeamID(ctx)
+	params, err := build.ToListSendMessageLogParams(req).WithTeamID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -52,16 +48,12 @@ func (s *TeamLogService) GetSendMessageLog(ctx context.Context, req *palace.Oper
 }
 
 func (s *TeamLogService) RetrySendMessage(ctx context.Context, req *palace.OperateOneTeamSendMessageRequest) (*common.EmptyReply, error) {
-	reTryParams, err := build.ToRetrySendMessageParams(req)
-	if err != nil {
-		return nil, err
-	}
-	params, err := reTryParams.WithTeamID(ctx)
+	params, err := build.ToRetrySendMessageParams(req.GetRequestId()).WithTeamID(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if err = s.logsBiz.RetrySendMessage(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &common.EmptyReply{Message: "重试发送消息成功"}, nil
 }

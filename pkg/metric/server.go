@@ -11,7 +11,7 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http/status"
 	"google.golang.org/grpc/codes"
 
-	"github.com/aide-family/moon/pkg/util/timex"
+	"github.com/moon-monitor/moon/pkg/util/timex"
 )
 
 func Server(name string, opts ...MetricServerOption) middleware.Middleware {

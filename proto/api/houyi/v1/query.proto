@@ -6,7 +6,7 @@ import "google/api/annotations.proto";
 import "common/metric.proto";
 import "houyi/common/datasource.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/houyi/v1;v1";
+option go_package = "github.com/moon-monitor/moon/pkg/api/houyi/v1;v1";
 
 service Query {
 	rpc MetricDatasourceQuery(MetricDatasourceQueryRequest) returns (api.common.MetricDatasourceQueryReply) {

@@ -12,10 +12,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-kratos/kratos/v2/log"
 	kratoshttp "github.com/go-kratos/kratos/v2/transport/http"
 
-	"github.com/aide-family/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
 func (l *Local) RegisterHandler(srv *kratoshttp.Server) {
@@ -40,53 +39,45 @@ func (l *Local) UploadHandler(w http.ResponseWriter, r *http.Request) error {
 	partNumberStr := r.URL.Query().Get("partNumber")
 	if uploadID == "" || partNumberStr == "" {
 		http.Error(w, "missing uploadID or partNumber", http.StatusBadRequest)
-		return merr.ErrorParams("missing uploadID or partNumber")
+		return merr.ErrorParamsError("missing uploadID or partNumber")
 	}
 
 	partNumber, err := strconv.Atoi(partNumberStr)
 	if err != nil || partNumber <= 0 {
 		http.Error(w, "invalid partNumber", http.StatusBadRequest)
-		return merr.ErrorParams("invalid partNumber").WithCause(err)
+		return merr.ErrorParamsError("invalid partNumber").WithCause(err)
 	}
 
-	defer func(body io.ReadCloser) {
-		if err := body.Close(); err != nil {
-			log.Warnw("method", "uploadHandler", "err", err)
-		}
-	}(r.Body)
+	defer r.Body.Close()
 
 	session, exists := l.uploads.Get(uploadID)
 	if !exists {
 		http.Error(w, "upload session not found", http.StatusNotFound)
-		return merr.ErrorParams("upload session not found")
+		return merr.ErrorParamsError("upload session not found")
 	}
 
 	tempDir := filepath.Join(l.root, "tmp", uploadID)
 	if err := os.MkdirAll(tempDir, 0755); err != nil {
 		http.Error(w, fmt.Sprintf("failed to create temp directory: %v", err), http.StatusInternalServerError)
-		return merr.ErrorInternalServer("system err").WithCause(err)
+		return merr.ErrorInternalServerError("system err").WithCause(err)
 	}
 
 	tempFile, err := os.CreateTemp(tempDir, fmt.Sprintf("part_%d", partNumber))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to create temp file: %v", err), http.StatusInternalServerError)
-		return merr.ErrorInternalServer("system err").WithCause(err)
+		return merr.ErrorInternalServerError("system err").WithCause(err)
 	}
-	defer func(tempFile *os.File) {
-		if err := tempFile.Close(); err != nil {
-			log.Warnw("method", "uploadHandler", "err", err)
-		}
-	}(tempFile)
+	defer tempFile.Close()
 
-	hashed := md5.New()
-	multiWriter := io.MultiWriter(tempFile, hashed)
+	hasher := md5.New()
+	multiWriter := io.MultiWriter(tempFile, hasher)
 
 	if _, err := io.Copy(multiWriter, r.Body); err != nil {
 		http.Error(w, fmt.Sprintf("failed to write part data: %v", err), http.StatusInternalServerError)
-		return merr.ErrorInternalServer("system err").WithCause(err)
+		return merr.ErrorInternalServerError("system err").WithCause(err)
 	}
 
-	eTag := hex.EncodeToString(hashed.Sum(nil))
+	eTag := hex.EncodeToString(hasher.Sum(nil))
 
 	session.parts.Set(partNumber, tempFile.Name())
 
@@ -98,9 +89,9 @@ func (l *Local) UploadHandler(w http.ResponseWriter, r *http.Request) error {
 		"uploadID":   uploadID,
 		"partNumber": partNumber,
 		"eTag":       eTag,
-		"size":       hashed.Size(),
+		"size":       hasher.Size(),
 	}); err != nil {
-		return merr.ErrorInternalServer("system err").WithCause(err)
+		return merr.ErrorInternalServerError("system err").WithCause(err)
 	}
 	return nil
 }
@@ -109,7 +100,7 @@ func (l *Local) PreviewHandler(w http.ResponseWriter, r *http.Request) error {
 	objectKey := r.URL.Query().Get("objectKey")
 	if objectKey == "" {
 		http.Error(w, "missing objectKey", http.StatusBadRequest)
-		return merr.ErrorParams("missing objectKey")
+		return merr.ErrorParamsError("missing objectKey")
 	}
 
 	filePath := objectKey
@@ -119,25 +110,17 @@ func (l *Local) PreviewHandler(w http.ResponseWriter, r *http.Request) error {
 	file, err := os.Open(filePath)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to open file: %v", err), http.StatusInternalServerError)
-		return merr.ErrorInternalServer("system err").WithCause(err)
+		return merr.ErrorInternalServerError("system err").WithCause(err)
 	}
-	defer func(file *os.File) {
-		if err := file.Close(); err != nil {
-			log.Warnw("method", "previewHandler", "err", err)
-		}
-	}(file)
-	defer func(body io.ReadCloser) {
-		if err := body.Close(); err != nil {
-			log.Warnw("method", "previewHandler", "err", err)
-		}
-	}(r.Body)
+	defer file.Close()
+	defer r.Body.Close()
 
 	ext := filepath.Ext(file.Name())
 	contentType := getContentType(ext)
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", filepath.Base(file.Name())))
 	if _, err := io.Copy(w, file); err != nil {
-		return merr.ErrorInternalServer("system err").WithCause(err)
+		return merr.ErrorInternalServerError("system err").WithCause(err)
 	}
 	return nil
 }

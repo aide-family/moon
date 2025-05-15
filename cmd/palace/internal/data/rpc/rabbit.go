@@ -5,15 +5,15 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/pkg/api/common"
-	rabbitcommon "github.com/aide-family/moon/pkg/api/rabbit/common"
-	rabbitv1 "github.com/aide-family/moon/pkg/api/rabbit/v1"
-	"github.com/aide-family/moon/pkg/config"
-	"github.com/aide-family/moon/pkg/merr"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/pkg/api/common"
+	rabbitcommon "github.com/moon-monitor/moon/pkg/api/rabbit/common"
+	rabbitv1 "github.com/moon-monitor/moon/pkg/api/rabbit/v1"
+	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
 func NewRabbitServer(data *data.Data, logger log.Logger) repository.Rabbit {
@@ -29,7 +29,7 @@ type rabbitServer struct {
 }
 
 // Send implements repository.Rabbit.
-func (r *rabbitServer) Send() (repository.RabbitSendClient, bool) {
+func (r *rabbitServer) Send() (repository.SendClient, bool) {
 	server, ok := r.FirstServerConn(vobj.ServerTypeRabbit)
 	if !ok {
 		return nil, false
@@ -38,7 +38,7 @@ func (r *rabbitServer) Send() (repository.RabbitSendClient, bool) {
 }
 
 // Sync implements repository.Rabbit.
-func (r *rabbitServer) Sync() (repository.RabbitSyncClient, bool) {
+func (r *rabbitServer) Sync() (repository.SyncClient, bool) {
 	server, ok := r.FirstServerConn(vobj.ServerTypeRabbit)
 	if !ok {
 		return nil, false
@@ -47,7 +47,7 @@ func (r *rabbitServer) Sync() (repository.RabbitSyncClient, bool) {
 }
 
 // Alert implements repository.Rabbit.
-func (r *rabbitServer) Alert() (repository.RabbitAlertClient, bool) {
+func (r *rabbitServer) Alert() (repository.AlertClient, bool) {
 	server, ok := r.FirstServerConn(vobj.ServerTypeRabbit)
 	if !ok {
 		return nil, false
@@ -66,7 +66,7 @@ func (s *sendClient) Email(ctx context.Context, in *rabbitv1.SendEmailRequest) (
 	case config.Network_HTTP:
 		return rabbitv1.NewSendHTTPClient(s.server.Client).Email(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServer("network is not supported")
+		return nil, merr.ErrorInternalServerError("network is not supported")
 	}
 }
 
@@ -77,7 +77,7 @@ func (s *sendClient) Sms(ctx context.Context, in *rabbitv1.SendSmsRequest) (*rab
 	case config.Network_HTTP:
 		return rabbitv1.NewSendHTTPClient(s.server.Client).Sms(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServer("network is not supported")
+		return nil, merr.ErrorInternalServerError("network is not supported")
 	}
 }
 
@@ -88,7 +88,7 @@ func (s *sendClient) Hook(ctx context.Context, in *rabbitv1.SendHookRequest) (*r
 	case config.Network_HTTP:
 		return rabbitv1.NewSendHTTPClient(s.server.Client).Hook(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServer("network is not supported")
+		return nil, merr.ErrorInternalServerError("network is not supported")
 	}
 }
 
@@ -104,7 +104,7 @@ func (s *syncClient) Hook(ctx context.Context, in *rabbitv1.SyncHookRequest) (*r
 	case config.Network_HTTP:
 		return rabbitv1.NewSyncHTTPClient(s.server.Client).Hook(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServer("network is not supported")
+		return nil, merr.ErrorInternalServerError("network is not supported")
 	}
 }
 
@@ -116,7 +116,19 @@ func (s *syncClient) NoticeGroup(ctx context.Context, in *rabbitv1.SyncNoticeGro
 	case config.Network_HTTP:
 		return rabbitv1.NewSyncHTTPClient(s.server.Client).NoticeGroup(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServer("network is not supported")
+		return nil, merr.ErrorInternalServerError("network is not supported")
+	}
+}
+
+// NoticeUser implements repository.SyncClient.
+func (s *syncClient) NoticeUser(ctx context.Context, in *rabbitv1.SyncNoticeUserRequest) (*rabbitcommon.EmptyReply, error) {
+	switch s.server.Config.Server.GetNetwork() {
+	case config.Network_GRPC:
+		return rabbitv1.NewSyncClient(s.server.Conn).NoticeUser(ctx, in)
+	case config.Network_HTTP:
+		return rabbitv1.NewSyncHTTPClient(s.server.Client).NoticeUser(ctx, in)
+	default:
+		return nil, merr.ErrorInternalServerError("network is not supported")
 	}
 }
 
@@ -128,7 +140,7 @@ func (s *syncClient) Remove(ctx context.Context, in *rabbitv1.RemoveRequest) (*r
 	case config.Network_HTTP:
 		return rabbitv1.NewSyncHTTPClient(s.server.Client).Remove(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServer("network is not supported")
+		return nil, merr.ErrorInternalServerError("network is not supported")
 	}
 }
 func (s *syncClient) Sms(ctx context.Context, in *rabbitv1.SyncSmsRequest) (*rabbitcommon.EmptyReply, error) {
@@ -138,7 +150,7 @@ func (s *syncClient) Sms(ctx context.Context, in *rabbitv1.SyncSmsRequest) (*rab
 	case config.Network_HTTP:
 		return rabbitv1.NewSyncHTTPClient(s.server.Client).Sms(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServer("network is not supported")
+		return nil, merr.ErrorInternalServerError("network is not supported")
 	}
 }
 
@@ -150,7 +162,7 @@ func (s *syncClient) Email(ctx context.Context, in *rabbitv1.SyncEmailRequest) (
 	case config.Network_HTTP:
 		return rabbitv1.NewSyncHTTPClient(s.server.Client).Email(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServer("network is not supported")
+		return nil, merr.ErrorInternalServerError("network is not supported")
 	}
 }
 
@@ -166,6 +178,6 @@ func (a *alertClient) SendAlert(ctx context.Context, in *common.AlertsItem) (*ra
 	case config.Network_HTTP:
 		return rabbitv1.NewAlertHTTPClient(a.server.Client).SendAlert(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServer("network is not supported")
+		return nil, merr.ErrorInternalServerError("network is not supported")
 	}
 }

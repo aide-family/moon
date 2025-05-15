@@ -6,17 +6,17 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/job"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/job"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/helper/permission"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/plugin/server"
 )
 
-func NewTeamBiz(
+func NewTeam(
 	cacheRepo repository.Cache,
 	userRepo repository.User,
 	teamRepo repository.Team,
@@ -53,10 +53,6 @@ func NewTeamBiz(
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		return teamBiz.getTeamMember(ctx, id)
-	}, func(ids []uint32) []do.TeamMember {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		return teamBiz.getTeamMembers(ctx, ids)
 	})
 	return teamBiz
 }
@@ -110,30 +106,32 @@ func (t *Team) getTeamMember(ctx context.Context, id uint32) do.TeamMember {
 	return teamMember
 }
 
-func (t *Team) getTeamMembers(ctx context.Context, ids []uint32) []do.TeamMember {
-	teamMembers, err := t.cacheRepo.GetTeamMembers(ctx, ids...)
-	if err != nil {
-		if merr.IsNotFound(err) {
-			teamMembers, err = t.memberRepo.Find(ctx, ids)
-			if err != nil {
-				t.helper.WithContext(ctx).Errorw("msg", "get team members fail", "err", err)
-			} else {
-				if err := t.cacheRepo.CacheTeamMembers(ctx, teamMembers...); err != nil {
-					t.helper.WithContext(ctx).Errorw("msg", "cache team members fail", "err", err)
-				}
-			}
-		}
-	}
-	return teamMembers
-}
-
 func (t *Team) SaveTeam(ctx context.Context, req *bo.SaveOneTeamRequest) error {
-	// check team name is unique
-	if err := t.teamRepo.CheckNameUnique(ctx, req.GetName(), req.TeamID); err != nil {
-		return err
-	}
-
 	return t.transaction.MainExec(ctx, func(ctx context.Context) error {
+		var (
+			teamDo do.Team
+			err    error
+		)
+		defer func() {
+			if err != nil {
+				t.helper.WithContext(ctx).Errorw("msg", "save team fail", "err", err)
+				return
+			}
+			if err = t.userRepo.AppendTeam(ctx, teamDo); err != nil {
+				t.helper.WithContext(ctx).Errorw("msg", "append team to user fail", "err", err)
+				return
+			}
+			createMemberParams := &bo.CreateTeamMemberReq{
+				Team:     teamDo,
+				User:     teamDo.GetLeader(),
+				Status:   vobj.MemberStatusNormal,
+				Position: vobj.RoleSuperAdmin,
+			}
+			if err := t.memberRepo.Create(ctx, createMemberParams); err != nil {
+				t.helper.WithContext(ctx).Errorw("msg", "create team member fail", "err", err)
+				return
+			}
+		}()
 		if req.TeamID <= 0 {
 			leaderId, ok := permission.GetUserIDByContext(ctx)
 			if !ok {
@@ -144,39 +142,16 @@ func (t *Team) SaveTeam(ctx context.Context, req *bo.SaveOneTeamRequest) error {
 				return err
 			}
 			createParams := req.WithCreateTeamRequest(leaderDo)
-			if err := t.teamRepo.Create(ctx, createParams); err != nil {
-				return err
-			}
-		} else {
-			teamInfo, err := t.teamRepo.FindByID(ctx, req.TeamID)
-			if err != nil {
-				return err
-			}
-			updateTeamParams := req.WithUpdateTeamRequest(teamInfo)
-			if err := t.teamRepo.Update(ctx, updateTeamParams); err != nil {
-				return err
-			}
+			teamDo, err = t.teamRepo.Create(ctx, createParams)
+			return err
 		}
-		teamDo, err := t.teamRepo.FindByName(ctx, req.GetName())
+		teamInfo, err := t.teamRepo.FindByID(ctx, req.TeamID)
 		if err != nil {
 			return err
 		}
-
-		if err := t.userRepo.AppendTeam(ctx, teamDo); err != nil {
-			t.helper.WithContext(ctx).Errorw("msg", "append team to user fail", "err", err)
-			return err
-		}
-		createMemberParams := &bo.CreateTeamMemberReq{
-			Team:     teamDo,
-			User:     teamDo.GetLeader(),
-			Status:   vobj.MemberStatusNormal,
-			Position: vobj.PositionSuperAdmin,
-		}
-		if err := t.memberRepo.Create(ctx, createMemberParams); err != nil {
-			t.helper.WithContext(ctx).Errorw("msg", "create team member fail", "err", err)
-			return err
-		}
-		return nil
+		updateTeamParams := req.WithUpdateTeamRequest(teamInfo)
+		teamDo, err = t.teamRepo.Update(ctx, updateTeamParams)
+		return err
 	})
 }
 
@@ -201,14 +176,10 @@ func (t *Team) SaveEmailConfig(ctx context.Context, req *bo.SaveEmailConfigReque
 func (t *Team) GetEmailConfigs(ctx context.Context, req *bo.ListEmailConfigRequest) (*bo.ListEmailConfigListReply, error) {
 	configListReply, err := t.teamEmailConfigRepo.List(ctx, req)
 	if err != nil {
-		return nil, merr.ErrorInternalServer("failed to get email config").WithCause(err)
+		return nil, merr.ErrorInternalServerError("failed to get email config").WithCause(err)
 	}
 
 	return configListReply, nil
-}
-
-func (t *Team) GetEmailConfig(ctx context.Context, emailConfigId uint32) (do.TeamEmailConfig, error) {
-	return t.teamEmailConfigRepo.Get(ctx, emailConfigId)
 }
 
 // SaveSMSConfig saves the SMS configuration for a team
@@ -231,10 +202,6 @@ func (t *Team) SaveSMSConfig(ctx context.Context, req *bo.SaveSMSConfigRequest) 
 // GetSMSConfigs retrieves SMS configurations for a team
 func (t *Team) GetSMSConfigs(ctx context.Context, req *bo.ListSMSConfigRequest) (*bo.ListSMSConfigListReply, error) {
 	return t.teamSMSConfigRepo.List(ctx, req)
-}
-
-func (t *Team) GetSMSConfig(ctx context.Context, smsConfigId uint32) (do.TeamSMSConfig, error) {
-	return t.teamSMSConfigRepo.Get(ctx, smsConfigId)
 }
 
 func (t *Team) SaveTeamRole(ctx context.Context, req *bo.SaveTeamRoleReq) error {
@@ -262,10 +229,6 @@ func (t *Team) GetTeamRoles(ctx context.Context, req *bo.ListRoleReq) (*bo.ListT
 	return t.teamRoleRepo.List(ctx, req)
 }
 
-func (t *Team) GetTeamRole(ctx context.Context, roleID uint32) (do.TeamRole, error) {
-	return t.teamRoleRepo.Get(ctx, roleID)
-}
-
 func (t *Team) DeleteTeamRole(ctx context.Context, roleID uint32) error {
 	return t.teamRoleRepo.Delete(ctx, roleID)
 }
@@ -288,10 +251,6 @@ func (t *Team) GetTeamByID(ctx context.Context, teamID uint32) (do.Team, error) 
 
 func (t *Team) GetTeamMembers(ctx context.Context, req *bo.TeamMemberListRequest) (*bo.TeamMemberListReply, error) {
 	return t.memberRepo.List(ctx, req)
-}
-
-func (t *Team) SelectTeamMembers(ctx context.Context, req *bo.SelectTeamMembersRequest) (*bo.SelectTeamMembersReply, error) {
-	return t.memberRepo.Select(ctx, req)
 }
 
 func (t *Team) UpdateMemberPosition(ctx context.Context, req *bo.UpdateMemberPositionReq) error {
@@ -415,8 +374,8 @@ func (t *Team) InviteMember(ctx context.Context, req *bo.InviteMemberReq) error 
 	})
 }
 
-func (t *Team) Jobs() []cron_server.CronJob {
-	return []cron_server.CronJob{
+func (t *Team) Jobs() []server.CronJob {
+	return []server.CronJob{
 		job.NewTeamJob(t.teamRepo, t.cacheRepo, t.helper.Logger()),
 		job.NewTeamMemberJob(t.memberRepo, t.cacheRepo, t.helper.Logger()),
 	}

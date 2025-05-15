@@ -1,35 +1,59 @@
 package build
 
 import (
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/do"
-	"github.com/aide-family/moon/pkg/api/houyi/common"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/kv"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/do"
+	"github.com/moon-monitor/moon/pkg/api/houyi/common"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
 func ToMetricDatasourceConfig(metricItem *common.MetricDatasourceItem) (*do.DatasourceMetricConfig, error) {
-	config := metricItem.GetConfig()
-	if validate.IsNil(config) {
-		return nil, merr.ErrorParams("config is nil")
+	switch metricItem.GetDriver() {
+	case common.MetricDatasourceDriver_PROMETHEUS:
+		return ToMetricDatasourceConfigWithPrometheus(metricItem)
+	case common.MetricDatasourceDriver_VICTORIAMETRICS:
+		return ToMetricDatasourceConfigWithVictoriaMetrics(metricItem)
+	default:
+		return nil, merr.ErrorParamsError("invalid metric datasource driver: %s", metricItem.GetDriver())
+	}
+}
+
+func ToMetricDatasourceConfigWithPrometheus(metricItem *common.MetricDatasourceItem) (*do.DatasourceMetricConfig, error) {
+	prometheusConfig := metricItem.GetPrometheus()
+	if prometheusConfig == nil {
+		return nil, merr.ErrorParamsError("prometheus config is nil")
 	}
 	return &do.DatasourceMetricConfig{
-		TeamId:   metricItem.GetTeam().GetTeamId(),
-		ID:       metricItem.GetId(),
-		Name:     metricItem.GetName(),
-		Driver:   metricItem.GetDriver(),
-		Endpoint: config.GetEndpoint(),
-		Headers: slices.Map(config.GetHeaders(), func(header *common.KeyValueItem) *kv.KV {
-			return &kv.KV{
-				Key:   header.GetKey(),
-				Value: header.GetValue(),
-			}
-		}),
-		Method:         config.GetMethod(),
-		CA:             config.GetCa(),
-		BasicAuth:      ToBasicAuth(config.GetBasicAuth()),
-		TLS:            ToTLS(config.GetTls()),
+		TeamId:         metricItem.GetTeam().GetTeamId(),
+		ID:             metricItem.GetId(),
+		Name:           metricItem.GetName(),
+		Driver:         common.MetricDatasourceDriver_PROMETHEUS,
+		Endpoint:       prometheusConfig.GetEndpoint(),
+		Headers:        prometheusConfig.GetHeaders(),
+		Method:         prometheusConfig.GetMethod(),
+		CA:             prometheusConfig.GetCa(),
+		BasicAuth:      ToBasicAuth(prometheusConfig.GetBasicAuth()),
+		TLS:            ToTLS(prometheusConfig.GetTls()),
+		Enable:         metricItem.GetEnable(),
+		ScrapeInterval: metricItem.GetScrapeInterval().AsDuration(),
+	}, nil
+}
+
+func ToMetricDatasourceConfigWithVictoriaMetrics(metricItem *common.MetricDatasourceItem) (*do.DatasourceMetricConfig, error) {
+	victoriaMetricsConfig := metricItem.GetVictoriaMetrics()
+	if victoriaMetricsConfig == nil {
+		return nil, merr.ErrorParamsError("victoria metrics config is nil")
+	}
+	return &do.DatasourceMetricConfig{
+		TeamId:         metricItem.GetTeam().GetTeamId(),
+		ID:             metricItem.GetId(),
+		Name:           metricItem.GetName(),
+		Driver:         common.MetricDatasourceDriver_VICTORIAMETRICS,
+		Endpoint:       victoriaMetricsConfig.GetEndpoint(),
+		Headers:        victoriaMetricsConfig.GetHeaders(),
+		Method:         victoriaMetricsConfig.GetMethod(),
+		CA:             victoriaMetricsConfig.GetCa(),
+		BasicAuth:      ToBasicAuth(victoriaMetricsConfig.GetBasicAuth()),
+		TLS:            ToTLS(victoriaMetricsConfig.GetTls()),
 		Enable:         metricItem.GetEnable(),
 		ScrapeInterval: metricItem.GetScrapeInterval().AsDuration(),
 	}, nil

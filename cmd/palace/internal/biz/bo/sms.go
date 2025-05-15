@@ -1,10 +1,12 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 type TeamSMSConfig interface {
@@ -28,7 +30,7 @@ type SaveSMSConfigRequest struct {
 
 func (s *SaveSMSConfigRequest) Validate() error {
 	if s.ID <= 0 && validate.IsNil(s.Config) {
-		return merr.ErrorParams("sms config is nil")
+		return merr.ErrorParamsError("sms config is nil")
 	}
 
 	return nil
@@ -72,6 +74,9 @@ func (s *SaveSMSConfigRequest) GetSMSConfig() *do.SMS {
 	if s == nil {
 		return nil
 	}
+	if s.Config == nil && s.smsConfig != nil {
+		return s.smsConfig.GetSMSConfig()
+	}
 	return s.Config
 }
 
@@ -89,15 +94,15 @@ func (s *SaveSMSConfigRequest) WithSMSConfig(smsConfig do.TeamSMSConfig) TeamSMS
 
 type ListSMSConfigRequest struct {
 	*PaginationRequest
-	Keyword  string
-	Status   vobj.GlobalStatus
-	Provider vobj.SMSProviderType
+	Keyword  string               `json:"keyword"`
+	Status   vobj.GlobalStatus    `json:"status"`
+	Provider vobj.SMSProviderType `json:"provider"`
 }
 
-func (r *ListSMSConfigRequest) ToListReply(configs []do.TeamSMSConfig) *ListSMSConfigListReply {
+func (r *ListSMSConfigRequest) ToListSMSConfigListReply(configs []*team.SmsConfig) *ListSMSConfigListReply {
 	return &ListSMSConfigListReply{
 		PaginationReply: r.ToReply(),
-		Items:           configs,
+		Items:           slices.Map(configs, func(config *team.SmsConfig) do.TeamSMSConfig { return config }),
 	}
 }
 

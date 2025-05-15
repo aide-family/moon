@@ -3,11 +3,11 @@ package team
 import (
 	"time"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/timer"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/timer"
 )
 
 var _ do.TimeEngine = (*TimeEngine)(nil)
@@ -16,9 +16,9 @@ const tableNameTimeEngine = "team_time_engines"
 
 type TimeEngine struct {
 	do.TeamModel
-	Name   string            `gorm:"column:name;type:varchar(64);not null;comment:name" json:"name"`
-	Remark string            `gorm:"column:remark;type:varchar(255);not null;comment:remark" json:"remark"`
-	Status vobj.GlobalStatus `gorm:"column:status;type:tinyint(2);not null;comment:status" json:"status"`
+	Name   string            `gorm:"column:name;type:varchar(64);not null;comment:名称" json:"name"`
+	Remark string            `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
+	Status vobj.GlobalStatus `gorm:"column:status;type:tinyint(2);not null;comment:状态" json:"status"`
 	Rules  []*TimeEngineRule `gorm:"many2many:team_time_engine__time_rules" json:"rules"`
 }
 
@@ -66,7 +66,7 @@ func (t *TimeEngine) Allow(g time.Time) (bool, error) {
 		matchers = append(matchers, matcher)
 	}
 	if len(errs) > 0 {
-		return false, merr.ErrorParams("failed to convert time engine rules to timer matchers: %v", errs)
+		return false, merr.ErrorParamsError("failed to convert time engine rules to timer matchers: %v", errs)
 	}
 	for _, matcher := range matchers {
 		if !matcher.Match(g) {

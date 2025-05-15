@@ -1,19 +1,15 @@
 package build
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/timex"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/timex"
 )
 
 // ToDashboardItem converts a business object to a proto object
 func ToDashboardItem(dashboard do.Dashboard) *common.TeamDashboardItem {
-	if validate.IsNil(dashboard) {
+	if dashboard == nil {
 		return nil
 	}
 
@@ -35,7 +31,7 @@ func ToDashboardItems(dashboards []do.Dashboard) []*common.TeamDashboardItem {
 
 // ToDashboardChartItem converts a business object to a proto object
 func ToDashboardChartItem(chart do.DashboardChart) *common.TeamDashboardChartItem {
-	if validate.IsNil(chart) {
+	if chart == nil {
 		return nil
 	}
 
@@ -56,23 +52,4 @@ func ToDashboardChartItem(chart do.DashboardChart) *common.TeamDashboardChartIte
 // ToDashboardChartItems converts multiple business objects to proto objects
 func ToDashboardChartItems(charts []do.DashboardChart) []*common.TeamDashboardChartItem {
 	return slices.Map(charts, ToDashboardChartItem)
-}
-
-// ToSelectTeamDashboardParams converts a proto object to a business object
-func ToSelectTeamDashboardParams(req *palace.SelectTeamDashboardRequest) *bo.SelectTeamDashboardReq {
-	return &bo.SelectTeamDashboardReq{
-		Keyword:           req.GetKeyword(),
-		Status:            vobj.GlobalStatus(req.GetStatus()),
-		PaginationRequest: ToPaginationRequest(req.GetPagination()),
-	}
-}
-
-// ToSelectTeamDashboardChartParams converts a proto object to a business object
-func ToSelectTeamDashboardChartParams(req *palace.SelectTeamDashboardChartRequest) *bo.SelectTeamDashboardChartReq {
-	return &bo.SelectTeamDashboardChartReq{
-		DashboardID:       req.GetDashboardId(),
-		PaginationRequest: ToPaginationRequest(req.GetPagination()),
-		Status:            vobj.GlobalStatus(req.GetStatus()),
-		Keyword:           req.GetKeyword(),
-	}
 }

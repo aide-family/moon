@@ -1,9 +1,9 @@
 package team
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 var _ do.NoticeGroup = (*NoticeGroup)(nil)
@@ -12,14 +12,14 @@ const tableNameNoticeGroup = "team_notice_groups"
 
 type NoticeGroup struct {
 	do.TeamModel
-	Name          string            `gorm:"column:name;type:varchar(64);not null;comment:name" json:"name"`
-	Remark        string            `gorm:"column:remark;type:varchar(255);not null;comment:remark" json:"remark"`
-	Status        vobj.GlobalStatus `gorm:"column:status;type:tinyint(2);not null;comment:status" json:"status"`
+	Name          string            `gorm:"column:name;type:varchar(64);not null;comment:名称" json:"name"`
+	Remark        string            `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
+	Status        vobj.GlobalStatus `gorm:"column:status;type:tinyint(2);not null;comment:状态" json:"status"`
 	Members       []*NoticeMember   `gorm:"many2many:team_notice_group_members" json:"members"`
 	Hooks         []*NoticeHook     `gorm:"many2many:team_notice_group_hooks" json:"hooks"`
-	EmailConfigID uint32            `gorm:"column:email_config_id;type:int(10);not null;comment:email configuration ID" json:"emailConfigId"`
+	EmailConfigID uint32            `gorm:"column:email_config_id;type:int(10);not null;comment:邮件配置ID" json:"emailConfigId"`
 	EmailConfig   *EmailConfig      `gorm:"foreignKey:EmailConfigID;references:ID" json:"emailConfig"`
-	SMSConfigID   uint32            `gorm:"column:sms_config_id;type:int(10);not null;comment:SMS configuration ID" json:"smsConfigId"`
+	SMSConfigID   uint32            `gorm:"column:sms_config_id;type:int(10);not null;comment:短信配置ID" json:"smsConfigId"`
 	SMSConfig     *SmsConfig        `gorm:"foreignKey:SMSConfigID;references:ID" json:"smsConfig"`
 }
 

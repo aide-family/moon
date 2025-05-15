@@ -15,15 +15,11 @@ import (
 	jwtv5 "github.com/golang-jwt/jwt/v5"
 	ggrpc "google.golang.org/grpc"
 
-	"github.com/aide-family/moon/pkg/config"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/middler"
-	"github.com/aide-family/moon/pkg/plugin/registry"
+	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/middler"
+	"github.com/moon-monitor/moon/pkg/plugin/registry"
 )
-
-func init() {
-	selector.SetGlobalSelector(wrr.NewBuilder())
-}
 
 type InitConfig struct {
 	MicroConfig *config.MicroServer
@@ -32,7 +28,7 @@ type InitConfig struct {
 
 func InitHTTPClient(initConfig *InitConfig) (*http.Client, error) {
 	if initConfig.MicroConfig.GetNetwork() != config.Network_HTTP {
-		return nil, merr.ErrorInternalServer("network is not http")
+		return nil, merr.ErrorInternalServerError("network is not http")
 	}
 	middlewares := []middleware.Middleware{
 		recovery.Recovery(),
@@ -74,7 +70,7 @@ func InitHTTPClient(initConfig *InitConfig) (*http.Client, error) {
 
 func InitGRPCClient(initConfig *InitConfig) (*ggrpc.ClientConn, error) {
 	if initConfig.MicroConfig.GetNetwork() != config.Network_GRPC {
-		return nil, merr.ErrorInternalServer("network is not grpc")
+		return nil, merr.ErrorInternalServerError("network is not grpc")
 	}
 	middlewares := []middleware.Middleware{
 		recovery.Recovery(),
@@ -91,6 +87,13 @@ func InitGRPCClient(initConfig *InitConfig) (*ggrpc.ClientConn, error) {
 		grpc.WithMiddleware(middlewares...),
 	}
 
+	nodeVersion := strings.TrimSpace(initConfig.MicroConfig.GetVersion())
+	if nodeVersion != "" {
+		nodeFilter := filter.Version(nodeVersion)
+		selector.SetGlobalSelector(wrr.NewBuilder())
+		opts = append(opts, grpc.WithNodeFilter(nodeFilter))
+	}
+
 	if initConfig.Registry != nil && initConfig.Registry.GetEnable() {
 		var err error
 		discovery, err := registry.NewDiscovery(initConfig.Registry)
@@ -98,11 +101,6 @@ func InitGRPCClient(initConfig *InitConfig) (*ggrpc.ClientConn, error) {
 			return nil, err
 		}
 		opts = append(opts, grpc.WithDiscovery(discovery))
-		nodeVersion := strings.TrimSpace(initConfig.MicroConfig.GetVersion())
-		if nodeVersion != "" {
-			nodeFilter := filter.Version(nodeVersion)
-			opts = append(opts, grpc.WithNodeFilter(nodeFilter))
-		}
 	}
 
 	if initConfig.MicroConfig.GetTimeout() != nil {

@@ -3,11 +3,10 @@ package biz
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/validate"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/repository"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
 func NewEmail(sendRepo repository.Send, logger log.Logger) *Email {
@@ -24,8 +23,8 @@ type Email struct {
 }
 
 func (e *Email) Send(ctx context.Context, params bo.SendEmailParams) error {
-	if validate.IsNil(params.GetConfig()) {
-		return merr.ErrorParams("No email configuration is available")
+	if params.GetConfig() == nil {
+		return merr.ErrorParamsError("No email configuration is available")
 	}
 	return e.sendRepo.Email(ctx, params)
 }

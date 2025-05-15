@@ -1,9 +1,9 @@
 package team
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/crypto"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/util/crypto"
 )
 
 var _ do.TeamEmailConfig = (*EmailConfig)(nil)
@@ -13,10 +13,10 @@ const tableNameConfigEmail = "team_config_emails"
 // EmailConfig represents email configuration for a team
 type EmailConfig struct {
 	do.TeamModel
-	Name   string                    `gorm:"column:name;type:varchar(20);not null;comment:configuration name" json:"name"`
-	Remark string                    `gorm:"column:remark;type:varchar(200);not null;comment:configuration remark" json:"remark"`
-	Status vobj.GlobalStatus         `gorm:"column:status;type:tinyint(2);not null;default:0;comment:status" json:"status"`
-	Email  *crypto.Object[*do.Email] `gorm:"column:email;type:text;not null;comment:email configuration" json:"email"`
+	Name   string                    `gorm:"column:name;type:varchar(20);not null;comment:配置名称" json:"name"`
+	Remark string                    `gorm:"column:remark;type:varchar(200);not null;comment:配置备注" json:"remark"`
+	Status vobj.GlobalStatus         `gorm:"column:status;type:tinyint(2);not null;default:0;comment:状态" json:"status"`
+	Email  *crypto.Object[*do.Email] `gorm:"column:email;type:text;not null;comment:邮件配置" json:"email"`
 }
 
 func (c *EmailConfig) GetEmailConfig() *do.Email {

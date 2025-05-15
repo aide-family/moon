@@ -4,7 +4,7 @@ package cmd.rabbit.internal.conf;
 
 import "config.proto";
 
-option go_package = "github.com/aide-family/moon/cmd/rabbit/internal/conf;conf";
+option go_package = "github.com/moon-monitor/moon/cmd/rabbit/internal/conf;conf";
 
 message Bootstrap {
   config.Environment environment = 1;
@@ -17,8 +17,6 @@ message Bootstrap {
   repeated config.EmailConfig email_config = 8;
   repeated config.AliyunSMSConfig aliyun_sms_config = 9;
   config.MicroServer palace = 10;
-  config.I18N i18n = 11;
-  config.ConfigSource configSource = 12;
 }
 
 message Data {

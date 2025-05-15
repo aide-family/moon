@@ -4,7 +4,7 @@ package api.common;
 
 import "google/api/annotations.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/common;common";
+option go_package = "github.com/moon-monitor/moon/pkg/api/common;common";
 
 // Health Check API
 service Health {

@@ -9,19 +9,19 @@ import (
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/conf"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/cmd/palace/internal/data/impl/build"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/password"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/template"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/conf"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data/impl/build"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/password"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/template"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func NewUserRepo(bc *conf.Bootstrap, data *data.Data, logger log.Logger) repository.User {
@@ -115,7 +115,7 @@ func (u *userRepoImpl) CreateUserWithOAuthUser(ctx context.Context, user bo.IOAu
 		Avatar:    user.GetAvatar(),
 		Salt:      "",
 		Gender:    vobj.GenderUnknown,
-		Position:  vobj.PositionUser,
+		Position:  vobj.RoleUser,
 		Status:    vobj.UserStatusNormal,
 		Roles:     nil,
 	}
@@ -124,15 +124,6 @@ func (u *userRepoImpl) CreateUserWithOAuthUser(ctx context.Context, user bo.IOAu
 }
 
 func (u *userRepoImpl) Create(ctx context.Context, user do.User, sendEmailFunc bo.SendEmailFun) (do.User, error) {
-	userQuery := getMainQuery(ctx, u).User
-	total, err := userQuery.WithContext(ctx).Count()
-	if err != nil {
-		return nil, err
-	}
-	position := user.GetPosition()
-	if total == 0 {
-		position = vobj.PositionSuperAdmin
-	}
 	pass := password.New(password.GenerateRandomPassword(8))
 	enValue, err := pass.EnValue()
 	if err != nil {
@@ -148,7 +139,7 @@ func (u *userRepoImpl) Create(ctx context.Context, user do.User, sendEmailFunc b
 		Avatar:   user.GetAvatar(),
 		Salt:     pass.Salt(),
 		Gender:   user.GetGender(),
-		Position: position,
+		Position: user.GetPosition(),
 		Status:   user.GetStatus(),
 	}
 	userDo.WithContext(ctx)
@@ -379,8 +370,8 @@ func (u *userRepoImpl) List(ctx context.Context, req *bo.UserListRequest) (*bo.U
 		wrapper = wrapper.Where(userQuery.Status.In(status...))
 	}
 	if len(req.Position) > 0 {
-		positions := slices.Map(req.Position, func(positionItem vobj.Position) int8 { return positionItem.GetValue() })
-		wrapper = wrapper.Where(userQuery.Position.In(positions...))
+		position := slices.Map(req.Position, func(positionItem vobj.Role) int8 { return positionItem.GetValue() })
+		wrapper = wrapper.Where(userQuery.Position.In(position...))
 	}
 	if validate.IsNotNil(req.PaginationRequest) {
 		total, err := wrapper.Count()
@@ -394,6 +385,5 @@ func (u *userRepoImpl) List(ctx context.Context, req *bo.UserListRequest) (*bo.U
 	if err != nil {
 		return nil, err
 	}
-	rows := slices.Map(users, func(user *system.User) do.User { return user })
-	return req.ToListReply(rows), nil
+	return req.ToListUserReply(users), nil
 }

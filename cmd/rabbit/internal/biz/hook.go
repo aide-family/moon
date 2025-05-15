@@ -3,10 +3,10 @@ package biz
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/rabbit/internal/biz/repository"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
 func NewHook(sendRepo repository.Send, logger log.Logger) *Hook {
@@ -24,7 +24,7 @@ type Hook struct {
 
 func (h *Hook) Send(ctx context.Context, params bo.SendHookParams) error {
 	if len(params.GetConfigs()) == 0 {
-		return merr.ErrorParams("No hook configuration is available")
+		return merr.ErrorParamsError("No hook configuration is available")
 	}
 	return h.sendRepo.Hook(ctx, params)
 }

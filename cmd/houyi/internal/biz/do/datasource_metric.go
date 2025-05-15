@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/api/houyi/common"
-	"github.com/aide-family/moon/pkg/plugin/cache"
-	"github.com/aide-family/moon/pkg/plugin/datasource"
-	"github.com/aide-family/moon/pkg/util/kv"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/api/houyi/common"
+	"github.com/moon-monitor/moon/pkg/plugin/cache"
+	"github.com/moon-monitor/moon/pkg/plugin/datasource"
 )
 
 var _ cache.Object = (*DatasourceMetricConfig)(nil)
@@ -19,7 +18,7 @@ type DatasourceMetricConfig struct {
 	Name           string                        `json:"name,omitempty"`
 	Driver         common.MetricDatasourceDriver `json:"driver,omitempty"`
 	Endpoint       string                        `json:"endpoint,omitempty"`
-	Headers        []*kv.KV                      `json:"headers,omitempty"`
+	Headers        map[string]string             `json:"headers,omitempty"`
 	Method         common.DatasourceQueryMethod  `json:"method,omitempty"`
 	CA             string                        `json:"ca,omitempty"`
 	BasicAuth      *BasicAuth                    `json:"basicAuth,omitempty"`
@@ -77,7 +76,7 @@ func (d *DatasourceMetricConfig) GetEndpoint() string {
 	return d.Endpoint
 }
 
-func (d *DatasourceMetricConfig) GetHeaders() []*kv.KV {
+func (d *DatasourceMetricConfig) GetHeaders() map[string]string {
 	if d == nil {
 		return nil
 	}

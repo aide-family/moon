@@ -4,8 +4,8 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
 )
 
 var _ do.TeamInviteUser = (*TeamInviteUser)(nil)
@@ -14,12 +14,12 @@ const tableNameTeamInviteUser = "team_invite_users"
 
 type TeamInviteUser struct {
 	do.CreatorModel
-	TeamID       uint32        `gorm:"index:idx_team_invite_user_team_id;column:team_id;not null;type:int(10) unsigned;comment:team ID" json:"teamID"`
-	InviteUserID uint32        `gorm:"index:idx_team_invite_user_invite_user_id;column:invite_user_id;not null;type:int(10) unsigned;comment:invited user ID" json:"inviteUserID"`
-	InviteUser   *User         `gorm:"foreignKey:InviteUserID;references:ID" json:"inviteUser"`
-	Position     vobj.Position `gorm:"column:position;type:tinyint(2);not null;comment:position" json:"position"`
-	Roles        RoleSlice     `gorm:"column:roles;type:text;not null;comment:role ID list" json:"roles"`
-	Team         *Team         `gorm:"foreignKey:TeamID;references:ID" json:"team"`
+	TeamID       uint32    `gorm:"index:idx_team_invite_user_team_id;column:team_id;not null;type:int(10) unsigned;comment:团队ID" json:"teamID"`
+	InviteUserID uint32    `gorm:"index:idx_team_invite_user_invite_user_id;column:invite_user_id;not null;type:int(10) unsigned;comment:被邀请用户ID" json:"inviteUserID"`
+	InviteUser   *User     `gorm:"foreignKey:InviteUserID;references:ID" json:"inviteUser"`
+	Position     vobj.Role `gorm:"column:position;type:tinyint(2);not null;comment:职位" json:"position"`
+	Roles        RoleSlice `gorm:"column:roles;type:text;not null;comment:角色id列表" json:"roles"`
+	Team         *Team     `gorm:"foreignKey:TeamID;references:ID" json:"team"`
 }
 
 func (t *TeamInviteUser) GetTeamID() uint32 {
@@ -36,9 +36,9 @@ func (t *TeamInviteUser) GetInviteUserID() uint32 {
 	return t.InviteUserID
 }
 
-func (t *TeamInviteUser) GetPosition() vobj.Position {
+func (t *TeamInviteUser) GetPosition() vobj.Role {
 	if t == nil {
-		return vobj.PositionUnknown
+		return vobj.RoleUnknown
 	}
 	return t.Position
 }

@@ -1,6 +1,6 @@
 package do
 
-import "github.com/aide-family/moon/pkg/plugin/datasource"
+import "github.com/moon-monitor/moon/pkg/plugin/datasource"
 
 var _ datasource.BasicAuth = (*BasicAuth)(nil)
 
@@ -25,11 +25,10 @@ type TLS struct {
 	ServerName string `json:"serverName"`
 	ClientCert string `json:"clientCert"`
 	ClientKey  string `json:"clientKey"`
-	SkipVerify bool   `json:"skipVerify"`
 }
 
 // GetClientCertificate implements datasource.TLS.
-func (t *TLS) GetClientCert() string {
+func (t *TLS) GetClientCertificate() string {
 	return t.ClientCert
 }
 
@@ -41,9 +40,4 @@ func (t *TLS) GetClientKey() string {
 // GetServerName implements datasource.TLS.
 func (t *TLS) GetServerName() string {
 	return t.ServerName
-}
-
-// GetSkipVerify implements datasource.TLS.
-func (t *TLS) GetSkipVerify() bool {
-	return t.SkipVerify
 }

@@ -6,78 +6,66 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gen"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/team"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func NewOperateLogRepo(d *data.Data, logger log.Logger) repository.OperateLog {
-	return &operateLogRepoImpl{
+	return &operateLogImpl{
 		Data:   d,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.operate_log")),
 	}
 }
 
-type operateLogRepoImpl struct {
+type operateLogImpl struct {
 	*data.Data
 	helper *log.Helper
 }
 
-func (o *operateLogRepoImpl) CreateLog(ctx context.Context, operateLogParams *bo.OperateLogParams) error {
-	ctx = permission.WithUserIDContext(ctx, operateLogParams.UserID)
+func (o *operateLogImpl) OperateLog(ctx context.Context, log *bo.AddOperateLog) error {
 	operateLog := &system.OperateLog{
-		CreatorModel: do.CreatorModel{
-			CreatorID: operateLogParams.UserID,
-		},
-		Operation:     operateLogParams.Operation,
-		MenuID:        operateLogParams.MenuID,
-		MenuName:      operateLogParams.MenuName,
-		Request:       operateLogParams.Request,
-		Error:         operateLogParams.Error,
-		OriginRequest: operateLogParams.OriginRequest,
-		Duration:      operateLogParams.Duration,
-		RequestTime:   operateLogParams.RequestTime,
-		ReplyTime:     operateLogParams.ReplyTime,
-		ClientIP:      operateLogParams.ClientIP,
-		UserAgent:     operateLogParams.UserAgent,
-		UserBaseInfo:  operateLogParams.UserBaseInfo,
+		OperateType:     log.OperateType,
+		OperateModule:   log.OperateModule,
+		OperateDataID:   log.OperateDataID,
+		OperateDataName: log.OperateDataName,
+		Title:           log.Title,
+		Before:          log.Before,
+		After:           log.After,
+		IP:              log.IP,
 	}
 	operateLog.WithContext(ctx)
 	operateLogMutation := getMainQuery(ctx, o).OperateLog
 	return operateLogMutation.WithContext(ctx).Create(operateLog)
 }
 
-func (o *operateLogRepoImpl) List(ctx context.Context, req *bo.OperateLogListRequest) (*bo.OperateLogListReply, error) {
+func (o *operateLogImpl) List(ctx context.Context, req *bo.OperateLogListRequest) (*bo.OperateLogListReply, error) {
 	if validate.IsNil(req) {
 		return nil, nil
 	}
 	operateLogQuery := getMainQuery(ctx, o).OperateLog
 	wrapper := operateLogQuery.WithContext(ctx)
 
+	if len(req.OperateTypes) > 0 {
+		wrapper = wrapper.Where(operateLogQuery.OperateType.In(slices.Map(req.OperateTypes, func(operateType vobj.OperateType) int8 { return operateType.GetValue() })...))
+	}
 	if !validate.TextIsNull(req.Keyword) {
 		ors := []gen.Condition{
-			operateLogQuery.Operation.Like(req.Keyword),
-			operateLogQuery.MenuName.Like(req.Keyword),
-			operateLogQuery.Request.Like(req.Keyword),
-			operateLogQuery.Error.Like(req.Keyword),
-			operateLogQuery.OriginRequest.Like(req.Keyword),
-			operateLogQuery.ClientIP.Like(req.Keyword),
-			operateLogQuery.UserAgent.Like(req.Keyword),
-			operateLogQuery.UserBaseInfo.Like(req.Keyword),
+			operateLogQuery.Before.Like(req.Keyword),
+			operateLogQuery.After.Like(req.Keyword),
+			operateLogQuery.Title.Like(req.Keyword),
+			operateLogQuery.OperateDataName.Like(req.Keyword),
+			operateLogQuery.IP.Like(req.Keyword),
 		}
 		wrapper = wrapper.Where(operateLogQuery.Or(ors...))
 	}
 	if req.UserID > 0 {
 		wrapper = wrapper.Where(operateLogQuery.CreatorID.Eq(req.UserID))
-	}
-	if len(req.TimeRange) == 2 {
-		wrapper = wrapper.Where(operateLogQuery.RequestTime.Between(req.TimeRange[0], req.TimeRange[1]))
 	}
 	if validate.IsNotNil(req.PaginationRequest) {
 		total, err := wrapper.Count()
@@ -91,32 +79,19 @@ func (o *operateLogRepoImpl) List(ctx context.Context, req *bo.OperateLogListReq
 	if err != nil {
 		return nil, err
 	}
-	rows := slices.Map(operateLogs, func(operateLog *system.OperateLog) do.OperateLog { return operateLog })
-	return req.ToListReply(rows), nil
+	return req.ToOperateLogListReply(operateLogs), nil
 }
 
-func (o *operateLogRepoImpl) TeamCreateLog(ctx context.Context, operateLogParams *bo.OperateLogParams) error {
-	ctx = permission.WithUserIDContext(ctx, operateLogParams.UserID)
-	ctx = permission.WithTeamIDContext(ctx, operateLogParams.TeamID)
+func (o *operateLogImpl) TeamOperateLog(ctx context.Context, log *bo.AddOperateLog) error {
 	operateLog := &team.OperateLog{
-		TeamModel: do.TeamModel{
-			TeamID: operateLogParams.TeamID,
-			CreatorModel: do.CreatorModel{
-				CreatorID: operateLogParams.UserID,
-			},
-		},
-		Operation:     operateLogParams.Operation,
-		MenuID:        operateLogParams.MenuID,
-		MenuName:      operateLogParams.MenuName,
-		Request:       operateLogParams.Request,
-		Error:         operateLogParams.Error,
-		OriginRequest: operateLogParams.OriginRequest,
-		Duration:      operateLogParams.Duration,
-		RequestTime:   operateLogParams.RequestTime,
-		ReplyTime:     operateLogParams.ReplyTime,
-		ClientIP:      operateLogParams.ClientIP,
-		UserAgent:     operateLogParams.UserAgent,
-		UserBaseInfo:  operateLogParams.UserBaseInfo,
+		OperateType:     log.OperateType,
+		OperateModule:   log.OperateModule,
+		OperateDataID:   log.OperateDataID,
+		OperateDataName: log.OperateDataName,
+		Title:           log.Title,
+		Before:          log.Before,
+		After:           log.After,
+		IP:              log.IP,
 	}
 	operateLog.WithContext(ctx)
 	bizMutation := getTeamBizQuery(ctx, o)
@@ -124,7 +99,7 @@ func (o *operateLogRepoImpl) TeamCreateLog(ctx context.Context, operateLogParams
 	return operateLogMutation.WithContext(ctx).Create(operateLog)
 }
 
-func (o *operateLogRepoImpl) TeamList(ctx context.Context, req *bo.OperateLogListRequest) (*bo.OperateLogListReply, error) {
+func (o *operateLogImpl) TeamList(ctx context.Context, req *bo.OperateLogListRequest) (*bo.OperateLogListReply, error) {
 	if validate.IsNil(req) {
 		return nil, nil
 	}
@@ -132,24 +107,21 @@ func (o *operateLogRepoImpl) TeamList(ctx context.Context, req *bo.OperateLogLis
 	operateLogQuery := bizQuery.OperateLog
 	wrapper := operateLogQuery.WithContext(ctx).Where(operateLogQuery.TeamID.Eq(teamId))
 
+	if len(req.OperateTypes) > 0 {
+		wrapper = wrapper.Where(operateLogQuery.OperateType.In(slices.Map(req.OperateTypes, func(operateType vobj.OperateType) int8 { return operateType.GetValue() })...))
+	}
 	if !validate.TextIsNull(req.Keyword) {
 		ors := []gen.Condition{
-			operateLogQuery.Operation.Like(req.Keyword),
-			operateLogQuery.MenuName.Like(req.Keyword),
-			operateLogQuery.Request.Like(req.Keyword),
-			operateLogQuery.Error.Like(req.Keyword),
-			operateLogQuery.OriginRequest.Like(req.Keyword),
-			operateLogQuery.ClientIP.Like(req.Keyword),
-			operateLogQuery.UserAgent.Like(req.Keyword),
-			operateLogQuery.UserBaseInfo.Like(req.Keyword),
+			operateLogQuery.Before.Like(req.Keyword),
+			operateLogQuery.After.Like(req.Keyword),
+			operateLogQuery.Title.Like(req.Keyword),
+			operateLogQuery.OperateDataName.Like(req.Keyword),
+			operateLogQuery.IP.Like(req.Keyword),
 		}
 		wrapper = wrapper.Where(operateLogQuery.Or(ors...))
 	}
 	if req.UserID > 0 {
 		wrapper = wrapper.Where(operateLogQuery.CreatorID.Eq(req.UserID))
-	}
-	if len(req.TimeRange) == 2 {
-		wrapper = wrapper.Where(operateLogQuery.RequestTime.Between(req.TimeRange[0], req.TimeRange[1]))
 	}
 	if validate.IsNotNil(req.PaginationRequest) {
 		total, err := wrapper.Count()
@@ -163,6 +135,5 @@ func (o *operateLogRepoImpl) TeamList(ctx context.Context, req *bo.OperateLogLis
 	if err != nil {
 		return nil, err
 	}
-	rows := slices.Map(operateLogs, func(operateLog *team.OperateLog) do.OperateLog { return operateLog })
-	return req.ToListReply(rows), nil
+	return req.ToTeamOperateLogListReply(operateLogs), nil
 }

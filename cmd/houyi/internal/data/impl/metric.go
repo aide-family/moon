@@ -5,16 +5,14 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/do"
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/houyi/internal/data"
-	"github.com/aide-family/moon/pkg/api/houyi/common"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/datasource"
-	"github.com/aide-family/moon/pkg/plugin/datasource/prometheus"
-	"github.com/aide-family/moon/pkg/plugin/datasource/victoria"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/houyi/internal/data"
+	"github.com/moon-monitor/moon/pkg/api/houyi/common"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/plugin/datasource"
+	"github.com/moon-monitor/moon/pkg/plugin/datasource/prometheus"
 )
 
 func NewMetricRepo(d *data.Data, logger log.Logger) repository.MetricInit {
@@ -35,7 +33,7 @@ type metricInstance struct {
 }
 
 func (m *metricImpl) Init(config bo.MetricDatasourceConfig) (repository.Metric, error) {
-	if validate.IsNil(config) {
+	if config == nil {
 		return nil, merr.ErrorInvalidArgument("metric datasource config is nil")
 	}
 
@@ -52,10 +50,10 @@ func (m *metricImpl) Init(config bo.MetricDatasourceConfig) (repository.Metric, 
 		}
 	case common.MetricDatasourceDriver_VICTORIAMETRICS:
 		if !ok {
-			metricDatasource = victoria.New(config, m.help.Logger())
+			metricDatasource = prometheus.New(config, m.help.Logger())
 		}
 	default:
-		return nil, merr.ErrorParams("invalid metric datasource driver: %s", config.GetDriver())
+		return nil, merr.ErrorParamsError("invalid metric datasource driver: %s", config.GetDriver())
 	}
 	return &metricInstance{
 		metric: metricDatasource,
@@ -90,7 +88,7 @@ func (m *metricInstance) Query(ctx context.Context, req *bo.MetricQueryRequest) 
 }
 
 func (m *metricInstance) QueryRange(ctx context.Context, req *bo.MetricRangeQueryRequest) ([]*do.MetricQueryRangeReply, error) {
-	// Calculate resolution
+	// 分辨率计算
 	step := req.GetOptimalStep(m.metric.GetScrapeInterval())
 	queryParams := &datasource.MetricQueryRequest{
 		Expr:      req.Expr,

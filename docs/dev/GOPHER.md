@@ -37,7 +37,7 @@ import (
   "github.com/xxxx/xxxx"
   
   // Internal project packages
-  "github.com/aide-family/moon/internal/biz"
+  "github.com/moon-monitor/moon/internal/biz"
 )
 ```
 

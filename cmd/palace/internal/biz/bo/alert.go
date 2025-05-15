@@ -4,10 +4,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/kv"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/event"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/kv"
+	"github.com/moon-monitor/moon/pkg/util/slices"
 )
 
 type Alert struct {
@@ -25,23 +27,23 @@ type Alert struct {
 
 func (a *Alert) Validate() error {
 	if a.StartsAt.IsZero() {
-		return merr.ErrorParams("startsAt is required")
+		return merr.ErrorParamsError("startsAt is required")
 	}
 	if !a.Status.Exist() {
-		return merr.ErrorParams("status is required")
+		return merr.ErrorParamsError("status is required")
 	}
 	if strings.TrimSpace(a.Fingerprint) == "" {
-		return merr.ErrorParams("fingerprint is required")
+		return merr.ErrorParamsError("fingerprint is required")
 	}
 	if a.TeamID <= 0 {
-		return merr.ErrorParams("teamId is required")
+		return merr.ErrorParamsError("teamId is required")
 	}
 	if a.Status.IsResolved() {
 		if a.EndsAt.IsZero() {
-			return merr.ErrorParams("endsAt is required")
+			return merr.ErrorParamsError("endsAt is required")
 		}
 		if a.EndsAt.Before(a.StartsAt) {
-			return merr.ErrorParams("endsAt must be after startsAt")
+			return merr.ErrorParamsError("endsAt must be after startsAt")
 		}
 	}
 
@@ -63,10 +65,10 @@ type ListAlertParams struct {
 	Status      vobj.AlertStatus `json:"status"`
 }
 
-func (p *ListAlertParams) ToListReply(items []do.Realtime) *ListAlertReply {
+func (p *ListAlertParams) ToListAlertReply(items []*event.Realtime) *ListAlertReply {
 	return &ListAlertReply{
 		PaginationReply: p.ToReply(),
-		Items:           items,
+		Items:           slices.Map(items, func(item *event.Realtime) do.Realtime { return item }),
 	}
 }
 

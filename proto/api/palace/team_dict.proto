@@ -7,7 +7,7 @@ import "palace/common/team_dict.proto";
 import "palace/common/common.proto";
 import "palace/common/common_enum.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
+option go_package = "github.com/moon-monitor/moon/pkg/api/palace;palace";
 
 service TeamDict {
   rpc SaveTeamDict (SaveTeamDictRequest) returns (api.palace.common.EmptyReply) {
@@ -35,12 +35,6 @@ service TeamDict {
   rpc ListTeamDict (ListTeamDictRequest) returns (ListTeamDictReply) {
     option (google.api.http) = {
       post: "/api/team/dict/list"
-      body: "*"
-    };
-  }
-  rpc SelectTeamDict (SelectTeamDictRequest) returns (SelectTeamDictReply) {
-    option (google.api.http) = {
-      post: "/api/team/dict/select"
       body: "*"
     };
   }
@@ -79,17 +73,3 @@ message ListTeamDictReply {
   api.palace.common.PaginationReply pagination = 1;
   repeated api.palace.common.TeamDictItem items = 2;
 }
-
-message SelectTeamDictRequest {
-  api.palace.common.PaginationRequest pagination = 1;
-  repeated api.palace.common.DictType dictTypes = 2;
-  api.palace.common.GlobalStatus status = 3;
-  string keyword = 4;
-  repeated string langs = 5;
-}
-
-message SelectTeamDictReply {
-  api.palace.common.PaginationReply pagination = 1;
-  repeated api.palace.common.SelectItem items = 2;
-}
-

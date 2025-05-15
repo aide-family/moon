@@ -208,13 +208,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.laurel.common.MetricVec'
-        config.Consul:
-            type: object
-            properties:
-                address:
-                    type: string
-                path:
-                    type: string
         config.Discovery:
             type: object
             properties:
@@ -225,8 +218,6 @@ components:
                     type: boolean
                 etcd:
                     $ref: '#/components/schemas/config.Etcd'
-                consul:
-                    $ref: '#/components/schemas/config.Consul'
             description: server discovery config
         config.Etcd:
             type: object
@@ -291,9 +282,6 @@ components:
                 name:
                     type: string
                     description: name service name
-                enable:
-                    type: boolean
-                    description: enable micro service
             description: micro server config
 tags:
     - name: Health

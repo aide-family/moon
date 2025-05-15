@@ -8,10 +8,9 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 
-	"github.com/aide-family/moon/cmd/palace/internal/conf"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
-	"github.com/aide-family/moon/pkg/i18n"
-	"github.com/aide-family/moon/pkg/middler"
+	"github.com/moon-monitor/moon/cmd/palace/internal/conf"
+	"github.com/moon-monitor/moon/cmd/palace/internal/helper/middleware"
+	"github.com/moon-monitor/moon/pkg/middler"
 )
 
 // NewGRPCServer new a gRPC server.
@@ -28,7 +27,6 @@ func NewGRPCServer(bc *conf.Bootstrap, logger log.Logger) *grpc.Server {
 		grpc.Middleware(
 			recovery.Recovery(),
 			tracing.Server(),
-			i18n.I18n(),
 			logging.Server(logger),
 			authMiddleware,
 			middler.Validate(),

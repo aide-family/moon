@@ -3,13 +3,13 @@ package service
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
-	"github.com/aide-family/moon/cmd/palace/internal/service/build"
-	apicommon "github.com/aide-family/moon/pkg/api/common"
-	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
-	"github.com/aide-family/moon/pkg/merr"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz"
+	"github.com/moon-monitor/moon/cmd/palace/internal/helper/permission"
+	"github.com/moon-monitor/moon/cmd/palace/internal/service/build"
+	apicommon "github.com/moon-monitor/moon/pkg/api/common"
+	"github.com/moon-monitor/moon/pkg/api/palace"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
 func NewAlertService(realtimeBiz *biz.Realtime) *AlertService {
@@ -36,9 +36,9 @@ func (s *AlertService) ListAlerts(ctx context.Context, req *palace.ListAlertPara
 	if !ok {
 		return nil, merr.ErrorPermissionDenied("team id not found")
 	}
-	params, err := build.ToListAlertParams(req)
-	if err != nil {
-		return nil, err
+	params := build.ToListAlertParams(req)
+	if len(params.TimeRange) != 2 {
+		return nil, merr.ErrorInvalidArgument("time range must be 2")
 	}
 	params.TeamID = teamId
 	reply, err := s.realtimeBiz.ListAlerts(ctx, params)

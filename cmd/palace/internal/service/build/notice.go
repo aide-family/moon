@@ -1,14 +1,11 @@
 package build
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/timex"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/pkg/api/palace/common"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/timex"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func ToNoticeMemberItem(noticeMember do.NoticeMember) *common.NoticeMemberItem {
@@ -21,7 +18,6 @@ func ToNoticeMemberItem(noticeMember do.NoticeMember) *common.NoticeMemberItem {
 		NoticeType:    common.NoticeType(noticeMember.GetNoticeType()),
 		NoticeGroup:   ToNoticeGroupItem(noticeMember.GetNoticeGroup()),
 		Member:        ToTeamMemberBaseItem(noticeMember.GetMember()),
-		DutyCycles:    ToTimeEngineItemEngines(noticeMember.GetDutyCycle()),
 	}
 }
 
@@ -48,15 +44,4 @@ func ToNoticeGroupItem(noticeGroup do.NoticeGroup) *common.NoticeGroupItem {
 
 func ToNoticeGroupItems(noticeGroups []do.NoticeGroup) []*common.NoticeGroupItem {
 	return slices.Map(noticeGroups, ToNoticeGroupItem)
-}
-
-func ToTeamNoticeGroupSelectRequest(req *palace.TeamNoticeGroupSelectRequest) *bo.TeamNoticeGroupSelectRequest {
-	if validate.IsNil(req) {
-		return nil
-	}
-	return &bo.TeamNoticeGroupSelectRequest{
-		PaginationRequest: ToPaginationRequest(req.GetPagination()),
-		Keyword:           req.GetKeyword(),
-		Status:            vobj.GlobalStatus(req.GetStatus()),
-	}
 }

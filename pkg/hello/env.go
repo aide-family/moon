@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-kratos/kratos/v2"
 
-	"github.com/aide-family/moon/pkg/config"
-	"github.com/aide-family/moon/pkg/plugin/registry"
+	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/plugin/registry"
 )
 
 var (

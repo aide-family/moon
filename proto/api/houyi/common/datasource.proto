@@ -3,46 +3,19 @@ syntax = "proto3";
 package api.houyi.common;
 
 import "google/protobuf/duration.proto";
-import "buf/validate/validate.proto";
 import "houyi/common/team.proto";
 
-option go_package = "github.com/aide-family/moon/pkg/api/houyi/common;common";
-
-message KeyValueItem {
-  string key = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "KEY_VALUE_ITEM_KEY_VALIDATOR",
-    message: "key must be less than 255 characters"
-    expression: "this.size() <= 255"
-  }];
-  string value = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "KEY_VALUE_ITEM_VALUE_VALIDATOR",
-    message: "value must be less than 255 characters"
-    expression: "this.size() <= 255"
-  }];
-}
+option go_package = "github.com/moon-monitor/moon/pkg/api/houyi/common;common";
 
 message BasicAuth {
-  string username = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "BASIC_AUTH_USERNAME_VALIDATOR",
-    message: "username must be less than 255 characters"
-    expression: "this.size() <= 255"
-  }];
-  string password = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "BASIC_AUTH_PASSWORD_VALIDATOR",
-    message: "password must be less than 255 characters"
-    expression: "this.size() <= 255"
-  }];
+  string username = 1;
+  string password = 2;
 }
 
 message TLS {
-  string serverName = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "TLS_SERVER_NAME_VALIDATOR",
-    message: "serverName must be less than 255 characters"
-    expression: "this.size() <= 255"
-  }];
-  string clientCert = 2 [(buf.validate.field).required = true];
-  string clientKey = 3 [(buf.validate.field).required = true];
-  bool skipVerify = 4;
+  string serverName = 1;
+  string clientCertificate = 2;
+  string clientKey = 3;
 }
 
 enum DatasourceQueryMethod {
@@ -63,10 +36,19 @@ enum MetricDatasourceDriver {
 }
 
 message MetricDatasourceItem {
-  message Config {
+  message Prometheus {
     string endpoint = 1;
     BasicAuth basicAuth = 2;
-    repeated KeyValueItem headers = 3;
+    map<string, string> headers = 3;
+    string ca = 4;
+    TLS tls = 5;
+    DatasourceQueryMethod method = 6;
+  }
+
+  message VictoriaMetrics {
+    string endpoint = 1;
+    BasicAuth basicAuth = 2;
+    map<string, string> headers = 3;
     string ca = 4;
     TLS tls = 5;
     DatasourceQueryMethod method = 6;
@@ -74,11 +56,12 @@ message MetricDatasourceItem {
 
   houyi.common.TeamItem team = 1;
   MetricDatasourceDriver driver = 2;
-  Config config = 3;
-  bool enable = 4;
-  uint32 id = 5;
-  string name = 6;
-  google.protobuf.Duration scrapeInterval = 7;
+  Prometheus prometheus = 3;
+  VictoriaMetrics victoriaMetrics = 4;
+  bool enable = 5;
+  uint32 id = 6;
+  string name = 7;
+  google.protobuf.Duration scrapeInterval = 8;
 }
 
 enum LogDatasourceDriver {
@@ -186,8 +169,8 @@ message ServerPortDatasourceItem {
 message HttpDatasourceItem {
   string url = 1;
   DatasourceQueryMethod method = 2;
-  repeated KeyValueItem headers = 3;
-  repeated KeyValueItem params = 4;
+  map<string, string> headers = 3;
+  map<string, string> params = 4;
   string body = 5;
 }
 

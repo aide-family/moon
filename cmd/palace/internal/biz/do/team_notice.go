@@ -3,8 +3,8 @@ package do
 import (
 	"time"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/kv"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/util/kv"
 )
 
 type NoticeHook interface {
@@ -15,7 +15,7 @@ type NoticeHook interface {
 	GetURL() string
 	GetMethod() vobj.HTTPMethod
 	GetSecret() string
-	GetHeaders() []*kv.KV
+	GetHeaders() kv.StringMap
 	GetApp() vobj.HookApp
 	GetNoticeGroups() []NoticeGroup
 }
@@ -40,5 +40,4 @@ type NoticeMember interface {
 	GetNoticeType() vobj.NoticeType
 	GetNoticeGroup() NoticeGroup
 	GetMember() TeamMember
-	GetDutyCycle() []TimeEngine
 }

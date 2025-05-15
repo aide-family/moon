@@ -1,10 +1,10 @@
 package do
 
 import (
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/config"
-	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/google/uuid"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/plugin/cache"
 )
 
 type Team interface {
@@ -21,7 +21,7 @@ type Team interface {
 	GetAlarmDBConfig() *config.Database
 	GetLeader() User
 	GetAdmins() []User
-	GetMenus() []Menu
+	GetResources() []Resource
 }
 
 type TeamAudit interface {
@@ -37,7 +37,7 @@ type TeamInviteUser interface {
 	Creator
 	GetTeamID() uint32
 	GetInviteUserID() uint32
-	GetPosition() vobj.Position
+	GetPosition() vobj.Role
 	GetRoles() []uint32
 	GetInviteUser() User
 	GetTeam() Team

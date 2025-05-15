@@ -1,7 +1,7 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 type PaginationRequest struct {

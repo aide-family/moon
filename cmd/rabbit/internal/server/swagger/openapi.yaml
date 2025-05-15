@@ -162,6 +162,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.rabbit.common.EmptyReply'
+    /v1/sync/notice-user:
+        post:
+            tags:
+                - Sync
+            operationId: Sync_NoticeUser
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.rabbit.v1.SyncNoticeUserRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.rabbit.common.EmptyReply'
     /v1/sync/remove:
         post:
             tags:
@@ -392,6 +410,15 @@ components:
                     type: string
                 subject:
                     type: string
+        api.rabbit.common.NoticeUser:
+            type: object
+            properties:
+                name:
+                    type: string
+                email:
+                    type: string
+                phone:
+                    type: string
         api.rabbit.common.SMSConfig:
             type: object
             properties:
@@ -507,6 +534,15 @@ components:
                         $ref: '#/components/schemas/api.rabbit.common.NoticeGroup'
                 teamId:
                     type: string
+        api.rabbit.v1.SyncNoticeUserRequest:
+            type: object
+            properties:
+                noticeUsers:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.rabbit.common.NoticeUser'
+                teamId:
+                    type: string
         api.rabbit.v1.SyncSmsRequest:
             type: object
             properties:
@@ -515,13 +551,6 @@ components:
                     items:
                         $ref: '#/components/schemas/api.rabbit.common.SMSConfig'
                 teamId:
-                    type: string
-        config.Consul:
-            type: object
-            properties:
-                address:
-                    type: string
-                path:
                     type: string
         config.Discovery:
             type: object
@@ -533,8 +562,6 @@ components:
                     type: boolean
                 etcd:
                     $ref: '#/components/schemas/config.Etcd'
-                consul:
-                    $ref: '#/components/schemas/config.Consul'
             description: server discovery config
         config.Etcd:
             type: object
@@ -599,9 +626,6 @@ components:
                 name:
                     type: string
                     description: name service name
-                enable:
-                    type: boolean
-                    description: enable micro service
             description: micro server config
 tags:
     - name: Alert

@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
 )
 
 type Dashboard interface {
@@ -20,9 +20,6 @@ type Dashboard interface {
 
 	// ListDashboards list dashboards with filter
 	ListDashboards(ctx context.Context, req *bo.ListDashboardReq) (*bo.ListDashboardReply, error)
-
-	// SelectTeamDashboard select team dashboard
-	SelectTeamDashboard(ctx context.Context, req *bo.SelectTeamDashboardReq) (*bo.SelectTeamDashboardReply, error)
 
 	// BatchUpdateDashboardStatus update multiple dashboards status
 	BatchUpdateDashboardStatus(ctx context.Context, req *bo.BatchUpdateDashboardStatusReq) error
@@ -41,9 +38,6 @@ type DashboardChart interface {
 
 	// ListDashboardCharts list dashboard charts with filter
 	ListDashboardCharts(ctx context.Context, req *bo.ListDashboardChartReq) (*bo.ListDashboardChartReply, error)
-
-	// SelectTeamDashboardChart select team dashboard chart
-	SelectTeamDashboardChart(ctx context.Context, req *bo.SelectTeamDashboardChartReq) (*bo.SelectTeamDashboardChartReply, error)
 
 	// BatchUpdateDashboardChartStatus update multiple dashboard charts status
 	BatchUpdateDashboardChartStatus(ctx context.Context, req *bo.BatchUpdateDashboardChartStatusReq) error

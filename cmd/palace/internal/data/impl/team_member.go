@@ -5,34 +5,34 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gen"
-	"gorm.io/gen/field"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/slices"
-	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/do/system"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/vobj"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data"
+	"github.com/moon-monitor/moon/cmd/palace/internal/data/impl/build"
+	"github.com/moon-monitor/moon/cmd/palace/internal/helper/permission"
+	"github.com/moon-monitor/moon/pkg/merr"
+	"github.com/moon-monitor/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/util/validate"
 )
 
 func NewMemberRepo(data *data.Data, logger log.Logger) repository.Member {
-	return &memberRepoImpl{
+	return &memberImpl{
 		Data:   data,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.member")),
 	}
 }
 
-type memberRepoImpl struct {
+type memberImpl struct {
 	*data.Data
 	helper *log.Helper
 }
 
 // Create implements repository.Member.
-func (m *memberRepoImpl) Create(ctx context.Context, req *bo.CreateTeamMemberReq) error {
+func (m *memberImpl) Create(ctx context.Context, req *bo.CreateTeamMemberReq) error {
 	memberQuery := getMainQuery(ctx, m).TeamMember
 	memberDo := &system.TeamMember{
 		TeamModel:  do.TeamModel{TeamID: req.Team.GetID()},
@@ -41,6 +41,7 @@ func (m *memberRepoImpl) Create(ctx context.Context, req *bo.CreateTeamMemberReq
 		UserID:     req.User.GetID(),
 		Position:   req.Position,
 		Status:     req.Status,
+		User:       build.ToUser(ctx, req.User),
 	}
 	memberDo.WithContext(ctx)
 	if err := memberQuery.WithContext(ctx).Create(memberDo); err != nil {
@@ -49,9 +50,9 @@ func (m *memberRepoImpl) Create(ctx context.Context, req *bo.CreateTeamMemberReq
 	return nil
 }
 
-func (m *memberRepoImpl) List(ctx context.Context, req *bo.TeamMemberListRequest) (*bo.TeamMemberListReply, error) {
+func (m *memberImpl) List(ctx context.Context, req *bo.TeamMemberListRequest) (*bo.TeamMemberListReply, error) {
 	if validate.IsNil(req) {
-		return nil, merr.ErrorParams("invalid request")
+		return nil, merr.ErrorParamsError("invalid request")
 	}
 
 	memberQuery := getMainQuery(ctx, m).TeamMember
@@ -71,7 +72,7 @@ func (m *memberRepoImpl) List(ctx context.Context, req *bo.TeamMemberListRequest
 		wrapper = wrapper.Where(memberQuery.Status.In(status...))
 	}
 	if len(req.Positions) > 0 {
-		positions := slices.Map(req.Positions, func(positionItem vobj.Position) int8 { return positionItem.GetValue() })
+		positions := slices.Map(req.Positions, func(positionItem vobj.Role) int8 { return positionItem.GetValue() })
 		wrapper = wrapper.Where(memberQuery.Position.In(positions...))
 	}
 	if validate.IsNotNil(req.PaginationRequest) {
@@ -82,64 +83,16 @@ func (m *memberRepoImpl) List(ctx context.Context, req *bo.TeamMemberListRequest
 		wrapper = wrapper.Offset(req.Offset()).Limit(int(req.Limit))
 		req.WithTotal(total)
 	}
-	members, err := wrapper.Preload(field.Associations).Find()
+	members, err := wrapper.Find()
 	if err != nil {
 		return nil, err
 	}
-	rows := slices.Map(members, func(member *system.TeamMember) do.TeamMember { return member })
-	return req.ToListReply(rows), nil
+	return req.ToTeamMemberListReply(members), nil
 }
 
-func (m *memberRepoImpl) Select(ctx context.Context, req *bo.SelectTeamMembersRequest) (*bo.SelectTeamMembersReply, error) {
+func (m *memberImpl) UpdateStatus(ctx context.Context, req bo.UpdateMemberStatus) error {
 	if validate.IsNil(req) {
-		return nil, merr.ErrorParams("invalid request")
-	}
-	mainQuery := getMainQuery(ctx, m)
-	memberQuery := mainQuery.TeamMember
-	userQuery := mainQuery.User
-	wrapper := memberQuery.WithContext(ctx).Where(memberQuery.TeamID.Eq(req.TeamId))
-	if !validate.TextIsNull(req.Keyword) {
-		wrapper = wrapper.Where(memberQuery.MemberName.Like(req.Keyword))
-	}
-	if len(req.Status) > 0 {
-		status := slices.Map(req.Status, func(statusItem vobj.MemberStatus) int8 { return statusItem.GetValue() })
-		wrapper = wrapper.Where(memberQuery.Status.In(status...))
-	}
-	if validate.IsNotNil(req.PaginationRequest) {
-		total, err := wrapper.Count()
-		if err != nil {
-			return nil, err
-		}
-		wrapper = wrapper.Offset(req.Offset()).Limit(int(req.Limit))
-		req.WithTotal(total)
-	}
-	selectColumns := []field.Expr{
-		memberQuery.ID,
-		memberQuery.MemberName,
-		memberQuery.Remark,
-		memberQuery.Status,
-		memberQuery.DeletedAt,
-	}
-	userSelectColumns := []field.Expr{
-		userQuery.ID,
-		userQuery.Username,
-		userQuery.Nickname,
-		userQuery.Avatar,
-		userQuery.Gender,
-		userQuery.DeletedAt,
-		userQuery.Status,
-	}
-	members, err := wrapper.Select(selectColumns...).Order(memberQuery.ID.Desc()).Preload(memberQuery.User.Select(userSelectColumns...)).Find()
-	if err != nil {
-		return nil, err
-	}
-	rows := slices.Map(members, func(member *system.TeamMember) do.TeamMember { return member })
-	return req.ToSelectReply(rows), nil
-}
-
-func (m *memberRepoImpl) UpdateStatus(ctx context.Context, req bo.UpdateMemberStatus) error {
-	if validate.IsNil(req) {
-		return merr.ErrorParams("invalid request")
+		return merr.ErrorParamsError("invalid request")
 	}
 	if len(req.GetMembers()) == 0 {
 		return nil
@@ -166,7 +119,7 @@ func (m *memberRepoImpl) UpdateStatus(ctx context.Context, req bo.UpdateMemberSt
 	return err
 }
 
-func (m *memberRepoImpl) UpdatePosition(ctx context.Context, req bo.UpdateMemberPosition) error {
+func (m *memberImpl) UpdatePosition(ctx context.Context, req bo.UpdateMemberPosition) error {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return merr.ErrorPermissionDenied("team id not found")
@@ -181,7 +134,7 @@ func (m *memberRepoImpl) UpdatePosition(ctx context.Context, req bo.UpdateMember
 	return err
 }
 
-func (m *memberRepoImpl) UpdateRoles(ctx context.Context, req bo.UpdateMemberRoles) error {
+func (m *memberImpl) UpdateRoles(ctx context.Context, req bo.UpdateMemberRoles) error {
 	memberDo := &system.TeamMember{
 		TeamModel: do.TeamModel{
 			CreatorModel: do.CreatorModel{
@@ -211,7 +164,7 @@ func (m *memberRepoImpl) UpdateRoles(ctx context.Context, req bo.UpdateMemberRol
 	return rolesAssociation.Replace(roles...)
 }
 
-func (m *memberRepoImpl) Get(ctx context.Context, id uint32) (do.TeamMember, error) {
+func (m *memberImpl) Get(ctx context.Context, id uint32) (do.TeamMember, error) {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorPermissionDenied("team id not found")
@@ -221,14 +174,14 @@ func (m *memberRepoImpl) Get(ctx context.Context, id uint32) (do.TeamMember, err
 		memberQuery.TeamID.Eq(teamID),
 		memberQuery.ID.Eq(id),
 	}
-	member, err := memberQuery.WithContext(ctx).Where(wrappers...).Preload(field.Associations).First()
+	member, err := memberQuery.WithContext(ctx).Where(wrappers...).First()
 	if err != nil {
 		return nil, teamMemberNotFound(err)
 	}
 	return member, nil
 }
 
-func (m *memberRepoImpl) Find(ctx context.Context, ids []uint32) ([]do.TeamMember, error) {
+func (m *memberImpl) Find(ctx context.Context, ids []uint32) ([]do.TeamMember, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -242,7 +195,7 @@ func (m *memberRepoImpl) Find(ctx context.Context, ids []uint32) ([]do.TeamMembe
 		memberQuery.TeamID.Eq(teamID),
 		memberQuery.ID.In(ids...),
 	}
-	members, err := memberQuery.WithContext(ctx).Where(wrappers...).Preload(field.Associations).Find()
+	members, err := memberQuery.WithContext(ctx).Where(wrappers...).Find()
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +203,7 @@ func (m *memberRepoImpl) Find(ctx context.Context, ids []uint32) ([]do.TeamMembe
 	return memberDos, nil
 }
 
-func (m *memberRepoImpl) FindByUserID(ctx context.Context, userID uint32) (do.TeamMember, error) {
+func (m *memberImpl) FindByUserID(ctx context.Context, userID uint32) (do.TeamMember, error) {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorPermissionDenied("team id not found")
@@ -261,7 +214,7 @@ func (m *memberRepoImpl) FindByUserID(ctx context.Context, userID uint32) (do.Te
 		memberQuery.TeamID.Eq(teamID),
 		memberQuery.UserID.Eq(userID),
 	}
-	member, err := memberQuery.WithContext(ctx).Where(wrappers...).Preload(field.Associations).First()
+	member, err := memberQuery.WithContext(ctx).Where(wrappers...).First()
 	if err != nil {
 		return nil, teamMemberNotFound(err)
 	}

@@ -5,7 +5,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/aide-family/moon/pkg/config"
+	"github.com/moon-monitor/moon/pkg/config"
 )
 
 var _ log.Logger = (*sugaredLogger)(nil)
@@ -39,7 +39,7 @@ func (s *sugaredLogger) Log(level log.Level, keyvals ...any) error {
 	return nil
 }
 
-func newSugaredLogger(isDev bool, level config.Log_Level, cfg *config.Log_SugaredLogConfig) log.Logger {
+func NewSugaredLogger(isDev bool, level config.Log_Level, cfg *config.Log_SugaredLogConfig) (log.Logger, error) {
 	zapLevel, err := zap.ParseAtomicLevel(level.String())
 	if err != nil {
 		zapLevel = zap.NewAtomicLevel()
@@ -78,7 +78,7 @@ func newSugaredLogger(isDev bool, level config.Log_Level, cfg *config.Log_Sugare
 	}
 	logger, err := zapCfg.Build()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return &sugaredLogger{logger: logger.Sugar()}
+	return &sugaredLogger{logger: logger.Sugar()}, nil
 }

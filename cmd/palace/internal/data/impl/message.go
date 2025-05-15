@@ -5,12 +5,12 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/conf"
-	"github.com/aide-family/moon/pkg/api/rabbit/common"
-	rabbitv1 "github.com/aide-family/moon/pkg/api/rabbit/v1"
-	"github.com/aide-family/moon/pkg/plugin/email"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/bo"
+	"github.com/moon-monitor/moon/cmd/palace/internal/biz/repository"
+	"github.com/moon-monitor/moon/cmd/palace/internal/conf"
+	"github.com/moon-monitor/moon/pkg/api/rabbit/common"
+	rabbitv1 "github.com/moon-monitor/moon/pkg/api/rabbit/v1"
+	"github.com/moon-monitor/moon/pkg/plugin/email"
 )
 
 func NewSendMessageRepo(
@@ -19,7 +19,7 @@ func NewSendMessageRepo(
 	logger log.Logger,
 ) repository.SendMessage {
 	emailConfig := bc.GetEmail()
-	return &sendMessageRepoImpl{
+	return &sendMessageImpl{
 		helper:     log.NewHelper(log.With(logger, "module", "data.impl.sendMessage")),
 		rabbitRepo: rabbitRepo,
 		emailConfig: &common.EmailConfig{
@@ -33,14 +33,14 @@ func NewSendMessageRepo(
 	}
 }
 
-type sendMessageRepoImpl struct {
+type sendMessageImpl struct {
 	helper      *log.Helper
 	rabbitRepo  repository.Rabbit
 	emailConfig *common.EmailConfig
 }
 
 // SendEmail implements repository.SendMessage.
-func (s *sendMessageRepoImpl) SendEmail(ctx context.Context, params *bo.SendEmailParams) error {
+func (s *sendMessageImpl) SendEmail(ctx context.Context, params *bo.SendEmailParams) error {
 	sendClient, ok := s.rabbitRepo.Send()
 	if !ok {
 		// call local send email
@@ -50,7 +50,7 @@ func (s *sendMessageRepoImpl) SendEmail(ctx context.Context, params *bo.SendEmai
 	return s.rabbitSendEmail(ctx, sendClient, params)
 }
 
-func (s *sendMessageRepoImpl) localSendEmail(ctx context.Context, params *bo.SendEmailParams) error {
+func (s *sendMessageImpl) localSendEmail(ctx context.Context, params *bo.SendEmailParams) error {
 	emailInstance := email.New(s.emailConfig)
 	emailInstance.SetTo(params.Email).
 		SetSubject(params.Subject).
@@ -62,7 +62,7 @@ func (s *sendMessageRepoImpl) localSendEmail(ctx context.Context, params *bo.Sen
 	return nil
 }
 
-func (s *sendMessageRepoImpl) rabbitSendEmail(ctx context.Context, client repository.RabbitSendClient, params *bo.SendEmailParams) error {
+func (s *sendMessageImpl) rabbitSendEmail(ctx context.Context, client repository.SendClient, params *bo.SendEmailParams) error {
 	reply, err := client.Email(ctx, &rabbitv1.SendEmailRequest{
 		Emails:      []string{params.Email},
 		Body:        params.Body,

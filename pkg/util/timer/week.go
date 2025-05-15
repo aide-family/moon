@@ -1,9 +1,10 @@
 package timer
 
 import (
+	"slices"
 	"time"
 
-	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/moon-monitor/moon/pkg/merr"
 )
 
 // Ensure that the daysOfWeek type implements the Matcher interface.
@@ -18,10 +19,13 @@ var _ Matcher = (*daysOfWeek)(nil)
 // This function validates each day in the rule to ensure it falls within the valid range of weekdays.
 // If an invalid day is found, an error is returned.
 func NewDaysOfWeek(rule []int) (Matcher, error) {
-	if err := ValidateDaysOfWeek(rule); err != nil {
-		return nil, err
+	days := make([]time.Weekday, 0, len(rule))
+	for _, day := range rule {
+		if day < int(time.Sunday) || day > int(time.Saturday) {
+			return nil, merr.ErrorParamsError("invalid days of week: %v", rule)
+		}
+		days = append(days, time.Weekday(day))
 	}
-	days := slices.Map(rule, func(v int) time.Weekday { return time.Weekday(v) })
 	return &daysOfWeek{Days: days}, nil
 }
 
