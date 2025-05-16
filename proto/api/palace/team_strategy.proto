@@ -189,16 +189,14 @@ message SaveTeamStrategyRequest {
 message SaveTeamMetricStrategyRequest {
   // Strategy id
   uint32 strategyId = 1 [(buf.validate.field).required = true];
-  // Metric strategy id
-  uint32 metricStrategyId = 2;
   // Expression
-  string expr = 3 [(buf.validate.field).string.min_len = 1];
+  string expr = 2 [(buf.validate.field).string.min_len = 1];
   // Labels
-  map<string, string> labels = 4;
+  map<string, string> labels = 3;
   // Annotations
-  map<string, string> annotations = 5;
+  map<string, string> annotations = 4;
   // Datasource
-  repeated uint32 datasource = 6;
+  repeated uint32 datasource = 5;
 }
 
 message LabelNotices {
@@ -235,8 +233,8 @@ message SaveTeamMetricStrategyLevelRequest {
 }
 
 message SaveTeamMetricStrategyLevelsRequest {
-  // Strategy metric id
-  uint32 strategyMetricId = 1;
+  // Strategy id
+  uint32 strategyId = 1;
   // Levels
   repeated SaveTeamMetricStrategyLevelRequest levels = 2;
 }
@@ -256,8 +254,6 @@ message UpdateTeamStrategiesStatusRequest {
 message OperateTeamStrategyRequest {
   // Strategy id
   uint32 strategyId = 1;
-  // strategy type
-  api.palace.common.StrategyType strategyType = 2;
 }
 
 message ListTeamStrategyRequest {

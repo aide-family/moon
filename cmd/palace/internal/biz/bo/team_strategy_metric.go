@@ -150,7 +150,6 @@ type UpdateTeamMetricStrategyParams interface {
 
 type SaveTeamMetricStrategyParams struct {
 	StrategyID  uint32
-	ID          uint32
 	Expr        string
 	Labels      kv.StringMap
 	Annotations kv.StringMap
@@ -223,9 +222,6 @@ func (s *SaveTeamMetricStrategyParams) Validate() error {
 	}
 	if len(s.Annotations) == 0 {
 		return merr.ErrorParamsError("annotations is required")
-	}
-	if s.ID > 0 && (validate.IsNil(s.strategyMetricDo) || s.strategyMetricDo.GetID() != s.ID) {
-		return merr.ErrorParamsError("strategy metric is not found")
 	}
 	if len(s.Datasource) != len(s.datasourceDos) {
 		return merr.ErrorParamsError("datasource is not found")
@@ -401,9 +397,24 @@ func (s *SaveTeamMetricStrategyLevelParams) GetValues() []float64 {
 	return s.Values
 }
 
+type OperateTeamMetricStrategyLevelsParams struct {
+	StrategyID uint32
+	Levels     []*SaveTeamMetricStrategyLevelParams
+}
+
+func (s *OperateTeamMetricStrategyLevelsParams) ToSaveTeamMetricStrategyLevelsParams(strategyMetricDo do.StrategyMetric, noticeGroupDos []do.NoticeGroup, dicts []do.TeamDict) *SaveTeamMetricStrategyLevelsParams {
+	saveParams := &SaveTeamMetricStrategyLevelsParams{
+		StrategyMetricID: strategyMetricDo.GetID(),
+		Levels:           s.Levels,
+	}
+	saveParams.ToSaveTeamMetricStrategyLevelsParams(strategyMetricDo, noticeGroupDos, dicts)
+	return saveParams
+}
+
 type SaveTeamMetricStrategyLevels interface {
 	GetStrategyMetric() do.StrategyMetric
 	GetLevels() []SaveTeamMetricStrategyLevel
+	Validate() error
 }
 
 var _ SaveTeamMetricStrategyLevels = (*SaveTeamMetricStrategyLevelsParams)(nil)

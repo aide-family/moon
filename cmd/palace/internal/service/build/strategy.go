@@ -32,7 +32,6 @@ func ToSaveTeamMetricStrategyParams(request *palace.SaveTeamMetricStrategyReques
 	}
 	return &bo.SaveTeamMetricStrategyParams{
 		StrategyID:  request.GetStrategyId(),
-		ID:          request.GetMetricStrategyId(),
 		Expr:        request.GetExpr(),
 		Labels:      request.GetLabels(),
 		Annotations: request.GetAnnotations(),
@@ -40,13 +39,13 @@ func ToSaveTeamMetricStrategyParams(request *palace.SaveTeamMetricStrategyReques
 	}
 }
 
-func ToSaveTeamMetricStrategyLevelsParams(request *palace.SaveTeamMetricStrategyLevelsRequest) *bo.SaveTeamMetricStrategyLevelsParams {
+func ToOperateTeamMetricStrategyLevelsParams(request *palace.SaveTeamMetricStrategyLevelsRequest) *bo.OperateTeamMetricStrategyLevelsParams {
 	if validate.IsNil(request) {
 		panic("SaveTeamMetricStrategyLevelsRequest is nil")
 	}
-	return &bo.SaveTeamMetricStrategyLevelsParams{
-		StrategyMetricID: request.GetStrategyMetricId(),
-		Levels:           slices.Map(request.GetLevels(), ToSaveTeamMetricStrategyLevelParams),
+	return &bo.OperateTeamMetricStrategyLevelsParams{
+		StrategyID: request.GetStrategyId(),
+		Levels:     slices.Map(request.GetLevels(), ToSaveTeamMetricStrategyLevelParams),
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func NewTeamStrategyMetric(
@@ -52,9 +53,12 @@ func (t *TeamStrategyMetric) SaveTeamMetricStrategy(ctx context.Context, params 
 	if err != nil {
 		return nil, err
 	}
-	var strategyMetricDo do.StrategyMetric
+	strategyMetricDo, err := t.teamStrategyMetricRepo.Get(ctx, &bo.OperateTeamStrategyParams{StrategyId: params.StrategyID})
+	if err != nil && !merr.IsNotFound(err) {
+		return nil, err
+	}
 	err = t.transaction.BizExec(ctx, func(ctx context.Context) error {
-		if params.ID <= 0 {
+		if validate.IsNil(strategyMetricDo) {
 			req := params.ToCreateTeamMetricStrategyParams(strategyDo, datasourceDos)
 			if err := req.Validate(); err != nil {
 				return err
@@ -79,8 +83,8 @@ func (t *TeamStrategyMetric) SaveTeamMetricStrategy(ctx context.Context, params 
 	return strategyMetricDo, nil
 }
 
-func (t *TeamStrategyMetric) SaveTeamMetricStrategyLevels(ctx context.Context, params *bo.SaveTeamMetricStrategyLevelsParams) ([]do.StrategyMetricRule, error) {
-	strategyMetricDo, err := t.teamStrategyMetricRepo.Get(ctx, &bo.OperateTeamStrategyParams{StrategyId: params.StrategyMetricID})
+func (t *TeamStrategyMetric) SaveTeamMetricStrategyLevels(ctx context.Context, params *bo.OperateTeamMetricStrategyLevelsParams) ([]do.StrategyMetricRule, error) {
+	strategyMetricDo, err := t.teamStrategyMetricRepo.Get(ctx, &bo.OperateTeamStrategyParams{StrategyId: params.StrategyID})
 	if err != nil {
 		return nil, err
 	}
@@ -102,16 +106,16 @@ func (t *TeamStrategyMetric) SaveTeamMetricStrategyLevels(ctx context.Context, p
 	if err != nil {
 		return nil, err
 	}
-	params.ToSaveTeamMetricStrategyLevelsParams(strategyMetricDo, noticeGroupDos, dicts)
-	if err := params.Validate(); err != nil {
+	saveParams := params.ToSaveTeamMetricStrategyLevelsParams(strategyMetricDo, noticeGroupDos, dicts)
+	if err := saveParams.Validate(); err != nil {
 		return nil, err
 	}
 	updatedRulesParams := &bo.SaveTeamMetricStrategyLevelsParams{
-		StrategyMetricID: params.StrategyMetricID,
+		StrategyMetricID: saveParams.StrategyMetricID,
 		Levels:           make([]*bo.SaveTeamMetricStrategyLevelParams, 0, len(params.Levels)),
 	}
 	createdRulesParams := &bo.SaveTeamMetricStrategyLevelsParams{
-		StrategyMetricID: params.StrategyMetricID,
+		StrategyMetricID: saveParams.StrategyMetricID,
 		Levels:           make([]*bo.SaveTeamMetricStrategyLevelParams, 0, len(params.Levels)),
 	}
 	for _, rule := range params.Levels {
@@ -130,7 +134,7 @@ func (t *TeamStrategyMetric) SaveTeamMetricStrategyLevels(ctx context.Context, p
 		return nil, err
 	}
 	levels, err := t.teamStrategyMetricRepo.FindLevels(ctx, &bo.FindTeamMetricStrategyLevelsParams{
-		StrategyMetricID: params.StrategyMetricID,
+		StrategyMetricID: strategyMetricDo.GetID(),
 	})
 	if err != nil {
 		return nil, err
@@ -160,7 +164,7 @@ func (t *TeamStrategyMetric) SaveTeamMetricStrategyLevels(ctx context.Context, p
 			}
 		}
 		return t.teamStrategyMetricRepo.DeleteUnUsedLevels(ctx, &bo.DeleteUnUsedLevelsParams{
-			StrategyMetricID: params.StrategyMetricID,
+			StrategyMetricID: strategyMetricDo.GetID(),
 			RuleIds:          deleteIds,
 		})
 	})

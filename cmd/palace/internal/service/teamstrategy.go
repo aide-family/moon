@@ -104,7 +104,7 @@ func (t *TeamStrategyService) SaveTeamMetricStrategy(ctx context.Context, reques
 }
 
 func (t *TeamStrategyService) SaveTeamMetricStrategyLevels(ctx context.Context, request *palace.SaveTeamMetricStrategyLevelsRequest) (*palace.SaveTeamMetricStrategyLevelsReply, error) {
-	params := build.ToSaveTeamMetricStrategyLevelsParams(request)
+	params := build.ToOperateTeamMetricStrategyLevelsParams(request)
 	metricStrategyRules, err := t.teamStrategyMetricBiz.SaveTeamMetricStrategyLevels(ctx, params)
 	if err != nil {
 		return nil, err

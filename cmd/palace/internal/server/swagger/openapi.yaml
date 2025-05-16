@@ -1718,12 +1718,6 @@ paths:
                   schema:
                     type: integer
                     format: uint32
-                - name: strategyType
-                  in: query
-                  description: strategy type
-                  schema:
-                    type: integer
-                    format: enum
             responses:
                 "200":
                     description: OK
@@ -1858,12 +1852,6 @@ paths:
                   schema:
                     type: integer
                     format: uint32
-                - name: strategyType
-                  in: query
-                  description: strategy type
-                  schema:
-                    type: integer
-                    format: enum
             responses:
                 "200":
                     description: OK
@@ -3594,9 +3582,9 @@ components:
         api.palace.SaveTeamMetricStrategyLevelsRequest:
             type: object
             properties:
-                strategyMetricId:
+                strategyId:
                     type: integer
-                    description: Strategy metric id
+                    description: Strategy id
                     format: uint32
                 levels:
                     type: array
@@ -3609,10 +3597,6 @@ components:
                 strategyId:
                     type: integer
                     description: Strategy id
-                    format: uint32
-                metricStrategyId:
-                    type: integer
-                    description: Metric strategy id
                     format: uint32
                 expr:
                     type: string
