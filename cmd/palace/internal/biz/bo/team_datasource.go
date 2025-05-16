@@ -57,7 +57,7 @@ type DatasourceMetricMetadata struct {
 	Name         string
 	Help         string
 	Type         string
-	Labels       map[string]string
+	Labels       map[string][]string
 	Unit         string
 	DatasourceID uint32
 }

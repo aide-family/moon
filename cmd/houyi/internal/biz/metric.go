@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -152,9 +151,12 @@ func (m *Metric) SyncMetricMetadata(ctx context.Context, req *bo.SyncMetricMetad
 	for metadata := range metadataChan {
 		total += len(metadata)
 		metadataItems := slices.Map(metadata, func(v *do.MetricItem) *common.MetricItem {
-			labels := make(map[string]string)
+			labels := make([]*common.MetricItem_Label, 0, len(v.Labels))
 			for k, v := range v.Labels {
-				labels[k] = strings.Join(v, ",")
+				labels = append(labels, &common.MetricItem_Label{
+					Key:    k,
+					Values: v,
+				})
 			}
 			return &common.MetricItem{
 				Name:   v.Name,

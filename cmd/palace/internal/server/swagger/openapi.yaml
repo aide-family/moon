@@ -2438,11 +2438,20 @@ components:
                 type:
                     type: string
                 labels:
-                    type: object
-                    additionalProperties:
-                        type: string
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.common.MetricItem_Label'
                 unit:
                     type: string
+        api.common.MetricItem_Label:
+            type: object
+            properties:
+                key:
+                    type: string
+                values:
+                    type: array
+                    items:
+                        type: string
         api.common.MetricQueryResult:
             type: object
             properties:

@@ -31,6 +31,6 @@ type DatasourceMetricMetadata interface {
 	GetName() string
 	GetHelp() string
 	GetType() string
-	GetLabels() map[string]string
+	GetLabels() map[string][]string
 	GetUnit() string
 }

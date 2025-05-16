@@ -103,11 +103,15 @@ func ToMetricDatasourceMetadataItem(datasourceID uint32, item *com.MetricItem) *
 	if validate.IsNil(item) {
 		return nil
 	}
+	labels := make(map[string][]string)
+	for _, label := range item.GetLabels() {
+		labels[label.GetKey()] = label.GetValues()
+	}
 	return &bo.DatasourceMetricMetadata{
 		Name:         item.GetName(),
 		Help:         item.GetHelp(),
 		Type:         item.GetType(),
-		Labels:       item.GetLabels(),
+		Labels:       labels,
 		Unit:         item.GetUnit(),
 		DatasourceID: datasourceID,
 	}
