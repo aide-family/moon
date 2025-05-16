@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	houyiv1 "github.com/aide-family/moon/pkg/api/houyi/v1"
 	"github.com/aide-family/moon/pkg/merr"
@@ -36,6 +37,15 @@ type TeamDatasource struct {
 	cacheRepo                        repository.Cache
 	houyiRepo                        repository.Houyi
 	helper                           *log.Helper
+}
+
+func (t *TeamDatasource) DatasourceSelect(ctx context.Context, req *bo.DatasourceSelect) (*bo.DatasourceSelectReply, error) {
+	switch req.Type {
+	case vobj.DatasourceTypeMetric:
+		return t.teamDatasourceMetricRepo.Select(ctx, req)
+	default:
+		return nil, merr.ErrorBadRequest("不支持的数据源类型")
+	}
 }
 
 func (t *TeamDatasource) SaveMetricDatasource(ctx context.Context, req *bo.SaveTeamMetricDatasource) error {

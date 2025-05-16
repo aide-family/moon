@@ -30,9 +30,15 @@ message PaginationReply {
 // label: The label displayed for the option.
 // disabled: Indicates whether the option is disabled, true for disabled, false for enabled.
 message SelectItem {
+  message Extra {
+    string remark = 1;
+    string icon = 2;
+    string color = 3;
+  }
   uint32 value = 1;
   string label = 2;
   bool disabled = 3;
+  Extra extra = 4;
 }
 
 // EmptyRequest represents an empty request, typically used for operations that do not require input parameters.

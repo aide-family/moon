@@ -7,11 +7,17 @@ import (
 	"github.com/aide-family/moon/pkg/util/kv"
 )
 
-type DatasourceMetric interface {
+type Datasource interface {
 	TeamBase
 	GetName() string
-	GetStatus() vobj.GlobalStatus
 	GetRemark() string
+	GetType() vobj.DatasourceType
+	GetStorageDriver() string
+	GetStatus() vobj.GlobalStatus
+}
+
+type DatasourceMetric interface {
+	Datasource
 	GetDriver() vobj.DatasourceDriverMetric
 	GetEndpoint() string
 	GetScrapeInterval() time.Duration

@@ -1311,6 +1311,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.common.MetricDatasourceQueryReply'
+    /api/team/metric/datasource/select:
+        post:
+            tags:
+                - TeamDatasource
+            operationId: TeamDatasource_DatasourceSelect
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.DatasourceSelectRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.DatasourceSelectReply'
     /api/team/metric/datasource/status:
         put:
             tags:
@@ -2590,6 +2608,31 @@ components:
                     type: string
                     description: Team logo URL
             description: CreateTeamRequest represents the request data for creating a new team
+        api.palace.DatasourceSelectReply:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.SelectItem'
+        api.palace.DatasourceSelectRequest:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                datasourceId:
+                    type: integer
+                    format: uint32
+                type:
+                    type: integer
+                    format: enum
+                status:
+                    type: integer
+                    format: enum
+                keyword:
+                    type: string
         api.palace.GetCaptchaReply:
             type: object
             properties:
@@ -4834,6 +4877,32 @@ components:
                     description: Enable SMS configuration
                     format: enum
             description: SMSConfigItem represents the structure of an SMS configuration
+        api.palace.common.SelectItem:
+            type: object
+            properties:
+                value:
+                    type: integer
+                    format: uint32
+                label:
+                    type: string
+                disabled:
+                    type: boolean
+                extra:
+                    $ref: '#/components/schemas/api.palace.common.SelectItem_Extra'
+            description: |-
+                SelectItem represents an option in a selection, including its value, display label, and whether it is disabled.
+                 value: The actual value of the option.
+                 label: The label displayed for the option.
+                 disabled: Indicates whether the option is disabled, true for disabled, false for enabled.
+        api.palace.common.SelectItem_Extra:
+            type: object
+            properties:
+                remark:
+                    type: string
+                icon:
+                    type: string
+                color:
+                    type: string
         api.palace.common.SendMessageLogItem:
             type: object
             properties:

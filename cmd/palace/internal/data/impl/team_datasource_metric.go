@@ -161,3 +161,36 @@ func (t *teamMetricDatasourceImpl) FindByIds(ctx context.Context, datasourceIds 
 	}
 	return slices.Map(rows, func(row *team.DatasourceMetric) do.DatasourceMetric { return row }), nil
 }
+
+func (t *teamMetricDatasourceImpl) Select(ctx context.Context, req *bo.DatasourceSelect) (*bo.DatasourceSelectReply, error) {
+	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	mutation := bizQuery.DatasourceMetric
+	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId))
+	if !req.Status.IsUnknown() {
+		wrapper = wrapper.Where(mutation.Status.Eq(req.Status.GetValue()))
+	}
+	if !validate.TextIsNull(req.Keyword) {
+		wrapper = wrapper.Where(mutation.Name.Like(req.Keyword))
+	}
+	if validate.IsNotNil(req.PaginationRequest) {
+		total, err := wrapper.Count()
+		if err != nil {
+			return nil, err
+		}
+		wrapper = wrapper.Offset(req.Offset()).Limit(int(req.Limit))
+		req.WithTotal(total)
+	}
+	selectColumns := []field.Expr{
+		mutation.ID,
+		mutation.Name,
+		mutation.Status,
+		mutation.Remark,
+		mutation.Driver,
+	}
+	datasourceDos, err := wrapper.Select(selectColumns...).Find()
+	if err != nil {
+		return nil, err
+	}
+	rows := slices.Map(datasourceDos, func(datasource *team.DatasourceMetric) do.Datasource { return datasource })
+	return req.ToSelectReply(rows), nil
+}

@@ -9,6 +9,7 @@ import "palace/common/common_enum.proto";
 import "palace/common/common.proto";
 import "palace/common/team_datasource.proto";
 import "common/metric.proto";
+import "common/datasource.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
 
@@ -67,6 +68,12 @@ service TeamDatasource {
   rpc UpdateMetricDatasourceMetadata (UpdateMetricDatasourceMetadataRequest) returns (api.palace.common.EmptyReply) {
     option (google.api.http) = {
       put: "/api/team/metric/datasource/metadata"
+      body: "*"
+    };
+  }
+  rpc DatasourceSelect (DatasourceSelectRequest) returns (DatasourceSelectReply) {
+    option (google.api.http) = {
+      post: "/api/team/metric/datasource/select"
       body: "*"
     };
   }
@@ -195,3 +202,21 @@ message UpdateMetricDatasourceMetadataRequest {
     max_len: 20,
   }];
 }
+
+message DatasourceSelectRequest {
+  api.palace.common.PaginationRequest pagination = 1;
+  uint32 datasourceId = 2 [(buf.validate.field).uint32 = {
+    gt: 0,
+  }];
+  api.common.DatasourceType type = 3 [(buf.validate.field).required = true];
+  api.palace.common.GlobalStatus status = 4;
+  string keyword = 5 [(buf.validate.field).string = {
+    max_len: 20,
+  }];
+}
+
+message DatasourceSelectReply {
+  api.palace.common.PaginationReply pagination = 1;
+  repeated api.palace.common.SelectItem items = 2;
+}
+

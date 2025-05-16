@@ -203,3 +203,19 @@ func getMetricQueryResultValues(values []*datasource.MetricQueryValue) []*common
 	}
 	return results
 }
+
+type DatasourceSelect struct {
+	*PaginationRequest
+	Keyword string
+	Status  vobj.GlobalStatus
+	Type    vobj.DatasourceType
+}
+
+func (r *DatasourceSelect) ToSelectReply(datasources []do.Datasource) *DatasourceSelectReply {
+	return &DatasourceSelectReply{
+		PaginationReply: r.ToReply(),
+		Items:           datasources,
+	}
+}
+
+type DatasourceSelectReply = ListReply[do.Datasource]

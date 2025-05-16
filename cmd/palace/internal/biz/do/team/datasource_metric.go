@@ -31,6 +31,14 @@ type DatasourceMetric struct {
 	Metrics        []*StrategyMetric             `gorm:"many2many:team_strategy_metric_datasource" json:"metrics"`
 }
 
+func (d *DatasourceMetric) GetType() vobj.DatasourceType {
+	return vobj.DatasourceTypeMetric
+}
+
+func (d *DatasourceMetric) GetStorageDriver() string {
+	return d.Driver.String()
+}
+
 func (d *DatasourceMetric) GetName() string {
 	if d == nil {
 		return ""

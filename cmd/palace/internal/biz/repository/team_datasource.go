@@ -15,6 +15,7 @@ type TeamDatasourceMetric interface {
 	Get(ctx context.Context, datasourceID uint32) (do.DatasourceMetric, error)
 	List(ctx context.Context, req *bo.ListTeamMetricDatasource) (*bo.ListTeamMetricDatasourceReply, error)
 	FindByIds(ctx context.Context, datasourceIds []uint32) ([]do.DatasourceMetric, error)
+	Select(ctx context.Context, req *bo.DatasourceSelect) (*bo.DatasourceSelectReply, error)
 }
 
 type TeamDatasourceMetricMetadata interface {

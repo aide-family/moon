@@ -72,6 +72,19 @@ func (s *TeamDatasourceService) GetTeamMetricDatasource(ctx context.Context, req
 	return build.ToTeamMetricDatasourceItem(datasource), nil
 }
 
+func (s *TeamDatasourceService) DatasourceSelect(ctx context.Context, req *palace.DatasourceSelectRequest) (*palace.DatasourceSelectReply, error) {
+	params := build.ToDatasourceSelectRequest(req)
+	datasourceReply, err := s.teamDatasourceBiz.DatasourceSelect(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return &palace.DatasourceSelectReply{
+		Pagination: build.ToPaginationReply(datasourceReply.PaginationReply),
+		Items:      build.ToSelectItems(datasourceReply.Items),
+	}, nil
+}
+
 func (s *TeamDatasourceService) ListTeamMetricDatasource(ctx context.Context, req *palace.ListTeamMetricDatasourceRequest) (*palace.ListTeamMetricDatasourceReply, error) {
 	params := build.ToListTeamMetricDatasourceRequest(req)
 	datasourceReply, err := s.teamDatasourceBiz.ListMetricDatasource(ctx, params)
