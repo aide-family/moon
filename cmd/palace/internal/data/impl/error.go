@@ -167,3 +167,17 @@ func realtimeNotFound(err error) error {
 	}
 	return err
 }
+
+func teamTimeEngineNotFound(err error) error {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return merr.ErrorNotFound("team time engine not found").WithCause(err)
+	}
+	return err
+}
+
+func teamTimeEngineRuleNotFound(err error) error {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return merr.ErrorNotFound("team time engine rule not found").WithCause(err)
+	}
+	return err
+}

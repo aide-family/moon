@@ -22,4 +22,5 @@ var ProviderSetService = wire.NewSet(
 	NewLoadService,
 	NewTeamLogService,
 	NewAlertService,
+	NewTimeEngineService,
 )

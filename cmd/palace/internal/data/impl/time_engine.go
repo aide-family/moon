@@ -1,0 +1,138 @@
+package impl
+
+import (
+	"context"
+
+	"gorm.io/gen"
+	"gorm.io/gen/field"
+
+	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/cmd/palace/internal/data"
+	"github.com/aide-family/moon/cmd/palace/internal/data/impl/build"
+	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
+)
+
+// NewTimeEngine 创建时间引擎仓储实现
+func NewTimeEngine(data *data.Data) repository.TimeEngine {
+	return &timeEngineImpl{
+		Data: data,
+	}
+}
+
+type timeEngineImpl struct {
+	*data.Data
+}
+
+// CreateTimeEngine 创建时间引擎
+func (r *timeEngineImpl) CreateTimeEngine(ctx context.Context, req *bo.SaveTimeEngineRequest) error {
+	timeEngine := &team.TimeEngine{
+		Name:   req.Name,
+		Remark: req.Remark,
+		Status: vobj.GlobalStatusEnable,
+	}
+	timeEngine.WithContext(ctx)
+	bizQuery := getTeamBizQuery(ctx, r)
+	if err := bizQuery.TimeEngine.WithContext(ctx).Create(timeEngine); err != nil {
+		return err
+	}
+
+	if len(req.GetRules()) == 0 {
+		return nil
+	}
+	rules := build.ToTimeEngineRules(ctx, req.GetRules())
+	return bizQuery.TimeEngine.Rules.Model(timeEngine).Append(rules...)
+}
+
+// UpdateTimeEngine 更新时间引擎
+func (r *timeEngineImpl) UpdateTimeEngine(ctx context.Context, timeEngineId uint32, req *bo.SaveTimeEngineRequest) error {
+	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, r)
+	timeEngine := build.ToTimeEngine(ctx, req.GetTimeEngine())
+	timeEngineMutation := bizMutation.TimeEngine
+	wrappers := []gen.Condition{
+		timeEngineMutation.ID.Eq(timeEngineId),
+		timeEngineMutation.TeamID.Eq(teamId),
+	}
+	columns := []field.AssignExpr{
+		timeEngineMutation.Name.Value(req.Name),
+		timeEngineMutation.Remark.Value(req.Remark),
+	}
+
+	_, err := timeEngineMutation.WithContext(ctx).Where(wrappers...).UpdateSimple(columns...)
+	if err != nil {
+		return err
+	}
+
+	if len(req.GetRules()) > 0 {
+		rules := build.ToTimeEngineRules(ctx, req.GetRules())
+		return bizMutation.TimeEngine.Rules.Model(timeEngine).Replace(rules...)
+	}
+
+	return nil
+}
+
+// DeleteTimeEngine 删除时间引擎
+func (r *timeEngineImpl) DeleteTimeEngine(ctx context.Context, req *bo.DeleteTimeEngineRequest) error {
+	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, r)
+	timeEngineMutation := bizMutation.TimeEngine
+	wrappers := []gen.Condition{
+		timeEngineMutation.ID.Eq(req.TimeEngineId),
+		timeEngineMutation.TeamID.Eq(teamId),
+	}
+	_, err := timeEngineMutation.WithContext(ctx).Where(wrappers...).Delete()
+	return err
+}
+
+// GetTimeEngine 获取时间引擎详情
+func (r *timeEngineImpl) GetTimeEngine(ctx context.Context, req *bo.GetTimeEngineRequest) (do.TimeEngine, error) {
+	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
+	timeEngineQuery := bizQuery.TimeEngine
+	timeEngine, err := timeEngineQuery.WithContext(ctx).
+		Where(timeEngineQuery.ID.Eq(req.TimeEngineId), timeEngineQuery.TeamID.Eq(teamId)).
+		First()
+	if err != nil {
+		return nil, teamTimeEngineNotFound(err)
+	}
+
+	return timeEngine, nil
+}
+
+// ListTimeEngine 获取时间引擎列表
+func (r *timeEngineImpl) ListTimeEngine(ctx context.Context, req *bo.ListTimeEngineRequest) (*bo.ListTimeEngineReply, error) {
+	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
+	timeEngineQuery := bizQuery.TimeEngine
+	timeEngineWrapper := timeEngineQuery.Where(timeEngineQuery.TeamID.Eq(teamId))
+
+	if !req.Status.IsUnknown() {
+		timeEngineWrapper = timeEngineWrapper.Where(timeEngineQuery.Status.Eq(req.Status.GetValue()))
+	}
+
+	if validate.TextIsNotNull(req.Keyword) {
+		or := []gen.Condition{
+			timeEngineQuery.Name.Like(req.Keyword),
+			timeEngineQuery.Remark.Like(req.Keyword),
+		}
+		timeEngineWrapper = timeEngineWrapper.Where(timeEngineQuery.Or(or...))
+	}
+
+	if validate.IsNil(req.PaginationRequest) {
+		total, err := timeEngineWrapper.WithContext(ctx).Count()
+		if err != nil {
+			return nil, err
+		}
+		req.WithTotal(total)
+		timeEngineWrapper = timeEngineWrapper.Limit(int(req.Limit)).Offset(int(req.Offset()))
+	}
+	timeEngineWrapper = timeEngineWrapper.Order(timeEngineQuery.CreatedAt.Desc())
+	timeEngines, err := timeEngineWrapper.WithContext(ctx).Find()
+	if err != nil {
+		return nil, err
+	}
+
+	dos := slices.Map(timeEngines, func(v *team.TimeEngine) do.TimeEngine { return v })
+	return req.ToListReply(dos), nil
+}

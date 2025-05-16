@@ -3,8 +3,6 @@ package timer
 import (
 	"slices"
 	"time"
-
-	"github.com/aide-family/moon/pkg/merr"
 )
 
 // Matcher is an interface for time matching.
@@ -16,16 +14,10 @@ var _ Matcher = (*hourMinuteRange)(nil)
 // rule: A slice containing 2 integers representing the start and end hours.
 // Returns a Matcher that matches the specified hour range, or an error if the rule is invalid.
 func NewHourRange(rule []int) (Matcher, error) {
-	if len(rule) != 2 {
-		return nil, merr.ErrorParamsError("invalid hour range: %v", rule)
+	if err := ValidateHourRange(rule); err != nil {
+		return nil, err
 	}
-
-	start := rule[0]
-	end := rule[1]
-	if start < 0 || start > 23 || end < 0 || end > 23 {
-		return nil, merr.ErrorParamsError("invalid hour range: %d-%d", start, end)
-	}
-	return &hourRange{Start: start, End: end}, nil
+	return &hourRange{Start: rule[0], End: rule[1]}, nil
 }
 
 // hourRange is a struct for defining an hour range, implementing the Matcher interface.
@@ -49,6 +41,9 @@ func (h *hourRange) Match(t time.Time) bool {
 // rule: A slice containing the hours to match.
 // Returns a Matcher that matches any of the specified hours.
 func NewHour(rule []int) (Matcher, error) {
+	if err := ValidateHour(rule); err != nil {
+		return nil, err
+	}
 	return &hour{Hours: rule}, nil
 }
 
@@ -77,18 +72,15 @@ func NewHourMinuteRange(startHourMinute, endHourMinute HourMinute) (Matcher, err
 // hour: A slice containing 4 integers representing the start hour, start minute, end hour, and end minute.
 // Returns a Matcher that matches the specified hour-minute range.
 func NewHourMinuteRangeWithSlice(hour []int) (Matcher, error) {
-	if len(hour) != 4 {
-		return nil, merr.ErrorParamsError("invalid hour minute range: %v", hour)
+	if err := ValidateHourMinuteRange(hour); err != nil {
+		return nil, err
 	}
-
-	startHour := hour[0]
-	startMinute := hour[1]
-	endHour := hour[2]
-	endMinute := hour[3]
+	startHour, startMinute := hour[0], hour[1]
 	startHourMinute, err := NewHourMinute(startHour, startMinute)
 	if err != nil {
 		return nil, err
 	}
+	endHour, endMinute := hour[2], hour[3]
 	endHourMinute, err := NewHourMinute(endHour, endMinute)
 	if err != nil {
 		return nil, err
@@ -125,8 +117,8 @@ func (h *hourMinuteRange) Match(t time.Time) bool {
 // minute: The minute to match.
 // Returns a Matcher that matches the specified hour and minute.
 func NewHourMinute(hour, minute int) (*HourMinute, error) {
-	if hour < 0 || hour > 23 || minute < 0 || minute > 59 {
-		return nil, merr.ErrorParamsError("invalid hour minute: %d-%d", hour, minute)
+	if err := ValidateHourMinute(hour, minute); err != nil {
+		return nil, err
 	}
 	return &HourMinute{Hour: hour, Minute: minute}, nil
 }

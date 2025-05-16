@@ -105,3 +105,25 @@ message SMSConfigItem {
   // Enable SMS configuration
   api.palace.common.GlobalStatus status = 9;
 }
+
+message TimeEngineItem {
+  uint32 timeEngineId = 1;
+  string name = 2;
+  string remark = 3;
+  api.palace.common.GlobalStatus status = 4;
+  repeated TimeEngineItemRule rules = 5;
+  string createdAt = 6;
+  string updatedAt = 7;
+}
+
+message TimeEngineItemRule {
+  uint32 ruleId = 1;
+  string name = 2;
+  string remark = 3;
+  api.palace.common.GlobalStatus status = 4;
+  repeated TimeEngineItem engines = 5;
+  api.palace.common.TimeEngineRuleType type = 6;
+  repeated int64 rules = 7;
+  string createdAt = 8;
+  string updatedAt = 9;
+}

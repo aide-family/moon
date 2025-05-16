@@ -163,8 +163,8 @@ func (s *TeamDatasourceService) MetricDatasourceProxy(httpCtx http.Context) erro
 
 		return nil, datasource.Proxy(httpCtx, in.GetTarget())
 	})
-	_, err := h(httpCtx, &in)
-	if err != nil {
+
+	if _, err := h(httpCtx, &in); err != nil {
 		return err
 	}
 	return nil

@@ -2029,6 +2029,150 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/time/engine/delete:
+        delete:
+            tags:
+                - TimeEngine
+            operationId: TimeEngine_DeleteTimeEngine
+            parameters:
+                - name: timeEngineId
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/time/engine/detail:
+        get:
+            tags:
+                - TimeEngine
+            operationId: TimeEngine_GetTimeEngine
+            parameters:
+                - name: timeEngineId
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.TimeEngineItem'
+    /api/time/engine/list:
+        post:
+            tags:
+                - TimeEngine
+            operationId: TimeEngine_ListTimeEngine
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.ListTimeEngineRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.ListTimeEngineReply'
+    /api/time/engine/rule/delete:
+        delete:
+            tags:
+                - TimeEngine
+            operationId: TimeEngine_DeleteTimeEngineRule
+            parameters:
+                - name: timeEngineRuleId
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/time/engine/rule/detail:
+        get:
+            tags:
+                - TimeEngine
+            operationId: TimeEngine_GetTimeEngineRule
+            parameters:
+                - name: timeEngineRuleId
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.TimeEngineItemRule'
+    /api/time/engine/rule/list:
+        post:
+            tags:
+                - TimeEngine
+            operationId: TimeEngine_ListTimeEngineRule
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.ListTimeEngineRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.ListTimeEngineRuleReply'
+    /api/time/engine/rule/save:
+        post:
+            tags:
+                - TimeEngine
+            operationId: TimeEngine_SaveTimeEngineRule
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.SaveTimeEngineRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/time/engine/save:
+        post:
+            tags:
+                - TimeEngine
+            operationId: TimeEngine_SaveTimeEngine
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.SaveTimeEngineRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
     /api/user/self:
         get:
             tags:
@@ -3048,6 +3192,49 @@ components:
                         type: integer
                         format: enum
                     description: Strategy type
+        api.palace.ListTimeEngineReply:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.TimeEngineItem'
+        api.palace.ListTimeEngineRequest:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                status:
+                    type: integer
+                    format: enum
+                keyword:
+                    type: string
+        api.palace.ListTimeEngineRuleReply:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.TimeEngineItemRule'
+        api.palace.ListTimeEngineRuleRequest:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                status:
+                    type: integer
+                    format: enum
+                keyword:
+                    type: string
+                types:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
         api.palace.LoginByEmailRequest:
             type: object
             properties:
@@ -3756,6 +3943,39 @@ components:
                     type: integer
                     description: Group id
                     format: uint32
+        api.palace.SaveTimeEngineRequest:
+            type: object
+            properties:
+                timeEngineId:
+                    type: integer
+                    format: uint32
+                name:
+                    type: string
+                remark:
+                    type: string
+                ruleIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+        api.palace.SaveTimeEngineRuleRequest:
+            type: object
+            properties:
+                timeEngineRuleId:
+                    type: integer
+                    format: uint32
+                name:
+                    type: string
+                remark:
+                    type: string
+                type:
+                    type: integer
+                    format: enum
+                ruleIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
         api.palace.SelfSubscribeTeamStrategiesReply:
             type: object
             properties:
@@ -5074,6 +5294,55 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.palace.common.TeamDictItem'
+        api.palace.common.TimeEngineItem:
+            type: object
+            properties:
+                timeEngineId:
+                    type: integer
+                    format: uint32
+                name:
+                    type: string
+                remark:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                rules:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.TimeEngineItemRule'
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        api.palace.common.TimeEngineItemRule:
+            type: object
+            properties:
+                ruleId:
+                    type: integer
+                    format: uint32
+                name:
+                    type: string
+                remark:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                engines:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.TimeEngineItem'
+                type:
+                    type: integer
+                    format: enum
+                rules:
+                    type: array
+                    items:
+                        type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
         api.palace.common.UserBaseItem:
             type: object
             properties:
@@ -5233,5 +5502,6 @@ tags:
     - name: TeamNotice
     - name: TeamStrategy
       description: TeamStrategy service provides operations for managing team strategy groups and strategies
+    - name: TimeEngine
     - name: User
       description: User service provides operations for managing user information, teams, and subscriptions

@@ -111,3 +111,12 @@ func GroupBy[T any, K comparable](s []T, f func(v T) K) map[K][]T {
 	}
 	return m
 }
+
+func Contains[T comparable](s []T, v T) bool {
+	for _, item := range s {
+		if item == v {
+			return true
+		}
+	}
+	return false
+}

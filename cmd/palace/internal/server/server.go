@@ -41,6 +41,7 @@ func RegisterService(
 	systemService *service.SystemService,
 	teamLogService *service.TeamLogService,
 	alertService *service.AlertService,
+	timeEngineService *service.TimeEngineService,
 ) server.Servers {
 	common.RegisterHealthServer(rpcSrv, healthService)
 	common.RegisterServerServer(rpcSrv, serverService)
@@ -61,5 +62,6 @@ func RegisterService(
 	palace.RegisterSystemHTTPServer(httpSrv, systemService)
 	palace.RegisterTeamLogHTTPServer(httpSrv, teamLogService)
 	palace.RegisterAlertHTTPServer(httpSrv, alertService)
+	palace.RegisterTimeEngineHTTPServer(httpSrv, timeEngineService)
 	return server.Servers{rpcSrv, httpSrv, tickerSrv}
 }

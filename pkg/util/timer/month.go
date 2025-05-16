@@ -2,8 +2,6 @@ package timer
 
 import (
 	"time"
-
-	"github.com/aide-family/moon/pkg/merr"
 )
 
 // Matcher is an interface for objects that can match a given time.Time against a rule.
@@ -16,15 +14,10 @@ var _ Matcher = (*month)(nil)
 // The rule is represented as a slice of two integers,
 // indicating the start and end days of the month, respectively.
 func NewDayOfMonths(rule []int) (Matcher, error) {
-	if len(rule) != 2 {
-		return nil, merr.ErrorParamsError("invalid day of months: %v", rule)
+	if err := ValidateDayOfMonth(rule); err != nil {
+		return nil, err
 	}
-	start := rule[0]
-	end := rule[1]
-	if start < 1 || start > 31 || end < 1 || end > 31 {
-		return nil, merr.ErrorParamsError("invalid day of months: %v", rule)
-	}
-	return &dayOfMonths{Start: start, End: end}, nil
+	return &dayOfMonths{Start: rule[0], End: rule[1]}, nil
 }
 
 // dayOfMonths is a struct representing a matching rule for days of the month.
@@ -49,15 +42,10 @@ func (m *dayOfMonths) Match(t time.Time) bool {
 // The rule is represented as a slice of two integers,
 // indicating the start and end months, respectively.
 func NewMonth(rule []int) (Matcher, error) {
-	if len(rule) != 2 {
-		return nil, merr.ErrorParamsError("invalid month: %v", rule)
+	if err := ValidateMonth(rule); err != nil {
+		return nil, err
 	}
-	start := rule[0]
-	end := rule[1]
-	if start < 1 || start > 12 || end < 1 || end > 12 {
-		return nil, merr.ErrorParamsError("invalid month: %v", rule)
-	}
-	return &month{Start: start, End: end}, nil
+	return &month{Start: rule[0], End: rule[1]}, nil
 }
 
 // month is a struct representing a matching rule for months.

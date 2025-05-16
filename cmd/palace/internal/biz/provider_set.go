@@ -28,6 +28,7 @@ var ProviderSetBiz = wire.NewSet(
 	NewLogs,
 	NewRealtime,
 	NewTeamDatasourceQuery,
+	NewTimeEngine,
 )
 
 func NewMetricDatasourceItem(datasourceMetricDo do.DatasourceMetric) *common.MetricDatasourceItem {
