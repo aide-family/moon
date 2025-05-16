@@ -137,3 +137,35 @@ func (r *ListTimeEngineRuleRequest) ToListReply(items []do.TimeEngineRule) *List
 }
 
 type ListTimeEngineRuleReply = ListReply[do.TimeEngineRule]
+
+// UpdateTimeEngineStatusRequest 更新时间引擎状态请求参数
+type UpdateTimeEngineStatusRequest struct {
+	TimeEngineIds []uint32
+	Status        vobj.GlobalStatus
+}
+
+func (r *UpdateTimeEngineStatusRequest) Validate() error {
+	if len(r.TimeEngineIds) == 0 {
+		return merr.ErrorParamsError("timeEngineIds is required")
+	}
+	if !r.Status.Exist() || r.Status.IsUnknown() {
+		return merr.ErrorParamsError("status is required")
+	}
+	return nil
+}
+
+// UpdateTimeEngineRuleStatusRequest 更新时间引擎规则状态请求参数
+type UpdateTimeEngineRuleStatusRequest struct {
+	TimeEngineRuleIds []uint32
+	Status            vobj.GlobalStatus
+}
+
+func (r *UpdateTimeEngineRuleStatusRequest) Validate() error {
+	if len(r.TimeEngineRuleIds) == 0 {
+		return merr.ErrorParamsError("timeEngineRuleIds is required")
+	}
+	if !r.Status.Exist() || r.Status.IsUnknown() {
+		return merr.ErrorParamsError("status is required")
+	}
+	return nil
+}

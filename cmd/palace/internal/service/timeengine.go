@@ -29,6 +29,14 @@ func (s *TimeEngineService) SaveTimeEngine(ctx context.Context, req *api.SaveTim
 	return &palacecommon.EmptyReply{}, nil
 }
 
+func (s *TimeEngineService) UpdateTimeEngineStatus(ctx context.Context, req *api.UpdateTimeEngineStatusRequest) (*palacecommon.EmptyReply, error) {
+	params := build.ToUpdateTimeEngineStatusRequest(req)
+	if err := s.timeEngineBiz.UpdateTimeEngineStatus(ctx, params); err != nil {
+		return nil, err
+	}
+	return &palacecommon.EmptyReply{}, nil
+}
+
 func (s *TimeEngineService) DeleteTimeEngine(ctx context.Context, req *api.DeleteTimeEngineRequest) (*palacecommon.EmptyReply, error) {
 	params := build.ToDeleteTimeEngineRequest(req)
 	if err := s.timeEngineBiz.DeleteTimeEngine(ctx, params); err != nil {
@@ -58,6 +66,14 @@ func (s *TimeEngineService) ListTimeEngine(ctx context.Context, req *api.ListTim
 func (s *TimeEngineService) SaveTimeEngineRule(ctx context.Context, req *api.SaveTimeEngineRuleRequest) (*palacecommon.EmptyReply, error) {
 	params := build.ToSaveTimeEngineRuleRequest(req)
 	if err := s.timeEngineBiz.SaveTimeEngineRule(ctx, params); err != nil {
+		return nil, err
+	}
+	return &palacecommon.EmptyReply{}, nil
+}
+
+func (s *TimeEngineService) UpdateTimeEngineRuleStatus(ctx context.Context, req *api.UpdateTimeEngineRuleStatusRequest) (*palacecommon.EmptyReply, error) {
+	params := build.ToUpdateTimeEngineRuleStatusRequest(req)
+	if err := s.timeEngineBiz.UpdateTimeEngineRuleStatus(ctx, params); err != nil {
 		return nil, err
 	}
 	return &palacecommon.EmptyReply{}, nil

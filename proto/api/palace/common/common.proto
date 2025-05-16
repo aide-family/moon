@@ -4,6 +4,7 @@ package api.palace.common;
 
 import "buf/validate/validate.proto";
 import "palace/common/common_enum.proto";
+import "palace/common/system.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/palace/common;common";
 
@@ -88,6 +89,8 @@ message EmailConfigItem {
   string remark = 7;
   // emailConfigId of the email configuration
   uint32 emailConfigId = 8;
+  // creator of the email configuration
+  api.palace.common.UserBaseItem creator = 9;
 }
 
 // SMSConfigItem represents the structure of an SMS configuration
@@ -110,6 +113,8 @@ message SMSConfigItem {
   uint32 smsConfigId = 8;
   // Enable SMS configuration
   api.palace.common.GlobalStatus status = 9;
+  // creator of the SMS configuration
+  api.palace.common.UserBaseItem creator = 10;
 }
 
 message TimeEngineItem {
@@ -120,10 +125,11 @@ message TimeEngineItem {
   repeated TimeEngineItemRule rules = 5;
   string createdAt = 6;
   string updatedAt = 7;
+  api.palace.common.UserBaseItem creator = 8;
 }
 
 message TimeEngineItemRule {
-  uint32 ruleId = 1;
+  uint32 timeEngineRuleId = 1;
   string name = 2;
   string remark = 3;
   api.palace.common.GlobalStatus status = 4;
@@ -132,4 +138,5 @@ message TimeEngineItemRule {
   repeated int64 rules = 7;
   string createdAt = 8;
   string updatedAt = 9;
+  api.palace.common.UserBaseItem creator = 10;
 }

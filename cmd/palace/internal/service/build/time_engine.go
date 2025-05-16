@@ -116,6 +116,7 @@ func ToTimeEngineItem(item do.TimeEngine) *common.TimeEngineItem {
 		CreatedAt:    timex.Format(item.GetCreatedAt()),
 		UpdatedAt:    timex.Format(item.GetUpdatedAt()),
 		Rules:        ToTimeEngineItemRules(item.GetRules()),
+		Creator:      ToUserBaseItem(item.GetCreator()),
 	}
 }
 
@@ -130,15 +131,16 @@ func ToTimeEngineItemRule(rule do.TimeEngineRule) *common.TimeEngineItemRule {
 		return nil
 	}
 	return &common.TimeEngineItemRule{
-		RuleId:    rule.GetID(),
-		Name:      rule.GetName(),
-		Remark:    rule.GetRemark(),
-		Status:    common.GlobalStatus(rule.GetStatus()),
-		Engines:   ToTimeEngineItemEngines(rule.GetTimeEngines()),
-		Type:      common.TimeEngineRuleType(rule.GetType()),
-		Rules:     slices.Map(rule.GetRules(), func(v int) int64 { return int64(v) }),
-		CreatedAt: timex.Format(rule.GetCreatedAt()),
-		UpdatedAt: timex.Format(rule.GetUpdatedAt()),
+		TimeEngineRuleId: rule.GetID(),
+		Name:             rule.GetName(),
+		Remark:           rule.GetRemark(),
+		Status:           common.GlobalStatus(rule.GetStatus()),
+		Engines:          ToTimeEngineItemEngines(rule.GetTimeEngines()),
+		Type:             common.TimeEngineRuleType(rule.GetType()),
+		Rules:            slices.Map(rule.GetRules(), func(v int) int64 { return int64(v) }),
+		CreatedAt:        timex.Format(rule.GetCreatedAt()),
+		UpdatedAt:        timex.Format(rule.GetUpdatedAt()),
+		Creator:          ToUserBaseItem(rule.GetCreator()),
 	}
 }
 
@@ -166,5 +168,27 @@ func ToListTimeEngineRuleReply(reply *bo.ListTimeEngineRuleReply) *api.ListTimeE
 	return &api.ListTimeEngineRuleReply{
 		Pagination: ToPaginationReply(reply.PaginationReply),
 		Items:      slices.Map(reply.Items, ToTimeEngineItemRule),
+	}
+}
+
+// ToUpdateTimeEngineStatusRequest 转换更新时间引擎状态请求
+func ToUpdateTimeEngineStatusRequest(req *api.UpdateTimeEngineStatusRequest) *bo.UpdateTimeEngineStatusRequest {
+	if validate.IsNil(req) {
+		return nil
+	}
+	return &bo.UpdateTimeEngineStatusRequest{
+		TimeEngineIds: req.GetTimeEngineIds(),
+		Status:        vobj.GlobalStatus(req.GetStatus()),
+	}
+}
+
+// ToUpdateTimeEngineRuleStatusRequest 转换更新时间引擎规则状态请求
+func ToUpdateTimeEngineRuleStatusRequest(req *api.UpdateTimeEngineRuleStatusRequest) *bo.UpdateTimeEngineRuleStatusRequest {
+	if validate.IsNil(req) {
+		return nil
+	}
+	return &bo.UpdateTimeEngineRuleStatusRequest{
+		TimeEngineRuleIds: req.GetTimeEngineRuleIds(),
+		Status:            vobj.GlobalStatus(req.GetStatus()),
 	}
 }

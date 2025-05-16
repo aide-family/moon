@@ -13,6 +13,8 @@ type TimeEngine interface {
 	CreateTimeEngine(ctx context.Context, req *bo.SaveTimeEngineRequest) error
 	// UpdateTimeEngine 更新时间引擎
 	UpdateTimeEngine(ctx context.Context, timeEngineId uint32, req *bo.SaveTimeEngineRequest) error
+	// UpdateTimeEngineStatus 更新时间引擎状态
+	UpdateTimeEngineStatus(ctx context.Context, req *bo.UpdateTimeEngineStatusRequest) error
 	// DeleteTimeEngine 删除时间引擎
 	DeleteTimeEngine(ctx context.Context, req *bo.DeleteTimeEngineRequest) error
 	// GetTimeEngine 获取时间引擎详情
@@ -27,6 +29,8 @@ type TimeEngineRule interface {
 	CreateTimeEngineRule(ctx context.Context, req *bo.SaveTimeEngineRuleRequest) error
 	// UpdateTimeEngineRule 更新时间引擎规则
 	UpdateTimeEngineRule(ctx context.Context, timeEngineRuleId uint32, req *bo.SaveTimeEngineRuleRequest) error
+	// UpdateTimeEngineRuleStatus 更新时间引擎规则状态
+	UpdateTimeEngineRuleStatus(ctx context.Context, req *bo.UpdateTimeEngineRuleStatusRequest) error
 	// DeleteTimeEngineRule 删除时间引擎规则
 	DeleteTimeEngineRule(ctx context.Context, req *bo.DeleteTimeEngineRuleRequest) error
 	// GetTimeEngineRule 获取时间引擎规则详情

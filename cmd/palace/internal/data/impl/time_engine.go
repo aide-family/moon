@@ -75,6 +75,24 @@ func (r *timeEngineImpl) UpdateTimeEngine(ctx context.Context, timeEngineId uint
 	return nil
 }
 
+// UpdateTimeEngineStatus implements repository.TimeEngine.
+func (r *timeEngineImpl) UpdateTimeEngineStatus(ctx context.Context, req *bo.UpdateTimeEngineStatusRequest) error {
+	if len(req.TimeEngineIds) == 0 {
+		return nil
+	}
+	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, r)
+	timeEngineMutation := bizMutation.TimeEngine
+	wrappers := []gen.Condition{
+		timeEngineMutation.ID.In(req.TimeEngineIds...),
+		timeEngineMutation.TeamID.Eq(teamId),
+	}
+	columns := []field.AssignExpr{
+		timeEngineMutation.Status.Value(req.Status.GetValue()),
+	}
+	_, err := timeEngineMutation.WithContext(ctx).Where(wrappers...).UpdateSimple(columns...)
+	return err
+}
+
 // DeleteTimeEngine 删除时间引擎
 func (r *timeEngineImpl) DeleteTimeEngine(ctx context.Context, req *bo.DeleteTimeEngineRequest) error {
 	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, r)

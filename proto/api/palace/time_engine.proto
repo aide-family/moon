@@ -17,6 +17,13 @@ service TimeEngine {
 		};
 	}
 
+	rpc UpdateTimeEngineStatus (UpdateTimeEngineStatusRequest) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+			put: "/api/time/engine/update/status"
+			body: "*"
+		};
+	}
+
 	rpc DeleteTimeEngine (DeleteTimeEngineRequest) returns (api.palace.common.EmptyReply) {
 		option (google.api.http) = {
 			delete: "/api/time/engine/delete"
@@ -39,6 +46,13 @@ service TimeEngine {
 	rpc SaveTimeEngineRule (SaveTimeEngineRuleRequest) returns (api.palace.common.EmptyReply) {
 		option (google.api.http) = {
 			post: "/api/time/engine/rule/save"
+			body: "*"
+		};
+	}
+
+	rpc UpdateTimeEngineRuleStatus (UpdateTimeEngineRuleStatusRequest) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+			put: "/api/time/engine/rule/update/status"
 			body: "*"
 		};
 	}
@@ -76,6 +90,11 @@ message SaveTimeEngineRequest {
 	repeated uint32 ruleIds = 4;
 }
 
+message UpdateTimeEngineStatusRequest {
+	repeated uint32 timeEngineIds = 1;
+	api.palace.common.GlobalStatus status = 2;
+}
+
 message DeleteTimeEngineRequest {
 	uint32 timeEngineId = 1 [(buf.validate.field).uint32.lt = 0];
 }
@@ -109,6 +128,11 @@ message SaveTimeEngineRuleRequest {
 	}];
 	api.palace.common.TimeEngineRuleType type = 5;
 	repeated uint32 ruleIds = 6;
+}
+
+message UpdateTimeEngineRuleStatusRequest {
+	repeated uint32 timeEngineRuleIds = 1;
+	api.palace.common.GlobalStatus status = 2;
 }
 
 message DeleteTimeEngineRuleRequest {

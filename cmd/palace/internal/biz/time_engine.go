@@ -48,6 +48,14 @@ func (t *TimeEngine) SaveTimeEngine(ctx context.Context, req *bo.SaveTimeEngineR
 	return t.timeEngineRepo.UpdateTimeEngine(ctx, req.TimeEngineId, req)
 }
 
+// UpdateTimeEngineStatus 更新时间引擎状态
+func (t *TimeEngine) UpdateTimeEngineStatus(ctx context.Context, req *bo.UpdateTimeEngineStatusRequest) error {
+	if err := req.Validate(); err != nil {
+		return err
+	}
+	return t.timeEngineRepo.UpdateTimeEngineStatus(ctx, req)
+}
+
 // DeleteTimeEngine 删除时间引擎
 func (t *TimeEngine) DeleteTimeEngine(ctx context.Context, req *bo.DeleteTimeEngineRequest) error {
 	return t.timeEngineRepo.DeleteTimeEngine(ctx, req)
@@ -72,6 +80,14 @@ func (t *TimeEngine) SaveTimeEngineRule(ctx context.Context, req *bo.SaveTimeEng
 		return t.timeEngineRuleRepo.CreateTimeEngineRule(ctx, req)
 	}
 	return t.timeEngineRuleRepo.UpdateTimeEngineRule(ctx, req.TimeEngineRuleId, req)
+}
+
+// UpdateTimeEngineRuleStatus 更新时间引擎规则状态
+func (t *TimeEngine) UpdateTimeEngineRuleStatus(ctx context.Context, req *bo.UpdateTimeEngineRuleStatusRequest) error {
+	if err := req.Validate(); err != nil {
+		return err
+	}
+	return t.timeEngineRuleRepo.UpdateTimeEngineRuleStatus(ctx, req)
 }
 
 // DeleteTimeEngineRule 删除时间引擎规则

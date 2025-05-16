@@ -60,6 +60,24 @@ func (r *timeEngineRuleImpl) UpdateTimeEngineRule(ctx context.Context, timeEngin
 	return err
 }
 
+// UpdateTimeEngineRuleStatus 更新时间引擎规则状态
+func (r *timeEngineRuleImpl) UpdateTimeEngineRuleStatus(ctx context.Context, req *bo.UpdateTimeEngineRuleStatusRequest) error {
+	if len(req.TimeEngineRuleIds) == 0 {
+		return nil
+	}
+	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, r)
+	timeEngineRuleMutation := bizMutation.TimeEngineRule
+	wrappers := []gen.Condition{
+		timeEngineRuleMutation.ID.In(req.TimeEngineRuleIds...),
+		timeEngineRuleMutation.TeamID.Eq(teamId),
+	}
+	columns := []field.AssignExpr{
+		timeEngineRuleMutation.Status.Value(req.Status.GetValue()),
+	}
+	_, err := timeEngineRuleMutation.WithContext(ctx).Where(wrappers...).UpdateSimple(columns...)
+	return err
+}
+
 // DeleteTimeEngineRule 删除时间引擎规则
 func (r *timeEngineRuleImpl) DeleteTimeEngineRule(ctx context.Context, req *bo.DeleteTimeEngineRuleRequest) error {
 	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, r)

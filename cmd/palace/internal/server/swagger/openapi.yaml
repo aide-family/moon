@@ -2231,6 +2231,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/time/engine/rule/update/status:
+        put:
+            tags:
+                - TimeEngine
+            operationId: TimeEngine_UpdateTimeEngineRuleStatus
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.UpdateTimeEngineRuleStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
     /api/time/engine/save:
         post:
             tags:
@@ -2241,6 +2259,24 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/api.palace.SaveTimeEngineRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/time/engine/update/status:
+        put:
+            tags:
+                - TimeEngine
+            operationId: TimeEngine_UpdateTimeEngineStatus
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.UpdateTimeEngineStatusRequest'
                 required: true
             responses:
                 "200":
@@ -4500,6 +4536,28 @@ components:
                     description: New status for the strategy group
                     format: enum
             description: UpdateTeamStrategyGroupStatusRequest represents the request data for updating the status of a team strategy group
+        api.palace.UpdateTimeEngineRuleStatusRequest:
+            type: object
+            properties:
+                timeEngineRuleIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                status:
+                    type: integer
+                    format: enum
+        api.palace.UpdateTimeEngineStatusRequest:
+            type: object
+            properties:
+                timeEngineIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                status:
+                    type: integer
+                    format: enum
         api.palace.UpdateUserPositionRequest:
             type: object
             properties:
@@ -4614,6 +4672,10 @@ components:
                     type: integer
                     description: emailConfigId of the email configuration
                     format: uint32
+                creator:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.common.UserBaseItem'
+                    description: creator of the email configuration
             description: EmailConfigItem represents the structure of an email configuration
         api.palace.common.EmptyReply:
             type: object
@@ -4876,6 +4938,10 @@ components:
                     type: integer
                     description: Enable SMS configuration
                     format: enum
+                creator:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.common.UserBaseItem'
+                    description: creator of the SMS configuration
             description: SMSConfigItem represents the structure of an SMS configuration
         api.palace.common.SelectItem:
             type: object
@@ -5521,10 +5587,12 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                creator:
+                    $ref: '#/components/schemas/api.palace.common.UserBaseItem'
         api.palace.common.TimeEngineItemRule:
             type: object
             properties:
-                ruleId:
+                timeEngineRuleId:
                     type: integer
                     format: uint32
                 name:
@@ -5549,6 +5617,8 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                creator:
+                    $ref: '#/components/schemas/api.palace.common.UserBaseItem'
         api.palace.common.UserBaseItem:
             type: object
             properties:
