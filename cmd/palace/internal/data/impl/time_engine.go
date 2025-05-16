@@ -93,6 +93,7 @@ func (r *timeEngineImpl) GetTimeEngine(ctx context.Context, req *bo.GetTimeEngin
 	timeEngineQuery := bizQuery.TimeEngine
 	timeEngine, err := timeEngineQuery.WithContext(ctx).
 		Where(timeEngineQuery.ID.Eq(req.TimeEngineId), timeEngineQuery.TeamID.Eq(teamId)).
+		Preload(timeEngineQuery.Rules).
 		First()
 	if err != nil {
 		return nil, teamTimeEngineNotFound(err)
