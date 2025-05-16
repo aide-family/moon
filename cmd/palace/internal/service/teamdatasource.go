@@ -145,6 +145,14 @@ func (s *TeamDatasourceService) ListMetricDatasourceMetadata(ctx context.Context
 	}, nil
 }
 
+func (s *TeamDatasourceService) UpdateMetricDatasourceMetadata(ctx context.Context, req *palace.UpdateMetricDatasourceMetadataRequest) (*palacecommon.EmptyReply, error) {
+	params := build.ToUpdateMetricDatasourceMetadataRequest(req)
+	if err := s.teamDatasourceBiz.UpdateMetricDatasourceMetadata(ctx, params); err != nil {
+		return nil, err
+	}
+	return &palacecommon.EmptyReply{}, nil
+}
+
 const (
 	OperationTeamDatasourceMetricDatasourceProxy = "/api.palace.TeamDatasource/MetricDatasourceProxy"
 )

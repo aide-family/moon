@@ -153,3 +153,16 @@ func ToListMetricDatasourceMetadataRequest(req *palace.ListMetricDatasourceMetad
 		Type:              req.GetType(),
 	}
 }
+
+func ToUpdateMetricDatasourceMetadataRequest(req *palace.UpdateMetricDatasourceMetadataRequest) *bo.UpdateMetricDatasourceMetadataRequest {
+	if validate.IsNil(req) {
+		return nil
+	}
+	return &bo.UpdateMetricDatasourceMetadataRequest{
+		DatasourceID: req.GetDatasourceId(),
+		MetadataID:   req.GetMetadataId(),
+		Help:         req.GetHelp(),
+		Unit:         req.GetUnit(),
+		Type:         req.GetType(),
+	}
+}

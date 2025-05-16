@@ -94,9 +94,12 @@ func (r *ListTeamMetricDatasourceMetadata) ToListReply(metadataItems []do.Dataso
 
 type ListTeamMetricDatasourceMetadataReply = ListReply[do.DatasourceMetricMetadata]
 
-type UpdateTeamMetricDatasourceMetadataRemarkRequest struct {
-	ID         uint32
-	Help, Unit string
+type UpdateMetricDatasourceMetadataRequest struct {
+	DatasourceID uint32
+	MetadataID   uint32
+	Help         string
+	Unit         string
+	Type         string
 }
 
 type MetricDatasourceQueryRequest struct {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gen"
+	"gorm.io/gen/field"
 	"gorm.io/gorm/clause"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
@@ -80,8 +81,22 @@ func (t *teamDatasourceMetricMetadataImpl) List(ctx context.Context, req *bo.Lis
 	return req.ToListReply(rows), nil
 }
 
-func (t *teamDatasourceMetricMetadataImpl) UpdateRemark(ctx context.Context, req *bo.UpdateTeamMetricDatasourceMetadataRemarkRequest) error {
-	return nil
+func (t *teamDatasourceMetricMetadataImpl) Update(ctx context.Context, req *bo.UpdateMetricDatasourceMetadataRequest) error {
+	query, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	datasourceMetricMetadataMutation := query.DatasourceMetricMetadata
+	wrapper := datasourceMetricMetadataMutation.WithContext(ctx)
+	wrappers := []gen.Condition{
+		datasourceMetricMetadataMutation.ID.Eq(req.MetadataID),
+		datasourceMetricMetadataMutation.DatasourceMetricID.Eq(req.DatasourceID),
+		datasourceMetricMetadataMutation.TeamID.Eq(teamId),
+	}
+	mutations := []field.AssignExpr{
+		datasourceMetricMetadataMutation.Help.Value(req.Help),
+		datasourceMetricMetadataMutation.Unit.Value(req.Unit),
+		datasourceMetricMetadataMutation.Type.Value(req.Type),
+	}
+	_, err := wrapper.Where(wrappers...).UpdateSimple(mutations...)
+	return err
 }
 
 func (t *teamDatasourceMetricMetadataImpl) Get(ctx context.Context, metadataID uint32) (do.DatasourceMetricMetadata, error) {

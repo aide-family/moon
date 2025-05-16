@@ -1258,6 +1258,23 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.TeamMetricDatasourceMetadataItem'
+        put:
+            tags:
+                - TeamDatasource
+            operationId: TeamDatasource_UpdateMetricDatasourceMetadata
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.UpdateMetricDatasourceMetadataRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
     /api/team/metric/datasource/metadata/list:
         post:
             tags:
@@ -4260,6 +4277,21 @@ components:
                     description: New status for the members
                     format: enum
             description: UpdateMemberStatusRequest represents the request data for updating the status of multiple members
+        api.palace.UpdateMetricDatasourceMetadataRequest:
+            type: object
+            properties:
+                datasourceId:
+                    type: integer
+                    format: uint32
+                metadataId:
+                    type: integer
+                    format: uint32
+                help:
+                    type: string
+                unit:
+                    type: string
+                type:
+                    type: string
         api.palace.UpdateRoleStatusRequest:
             type: object
             properties:

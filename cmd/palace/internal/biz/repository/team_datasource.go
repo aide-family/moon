@@ -20,7 +20,7 @@ type TeamDatasourceMetric interface {
 type TeamDatasourceMetricMetadata interface {
 	BatchSave(ctx context.Context, req *bo.BatchSaveTeamMetricDatasourceMetadata) error
 	List(ctx context.Context, req *bo.ListTeamMetricDatasourceMetadata) (*bo.ListTeamMetricDatasourceMetadataReply, error)
-	UpdateRemark(ctx context.Context, req *bo.UpdateTeamMetricDatasourceMetadataRemarkRequest) error
+	Update(ctx context.Context, req *bo.UpdateMetricDatasourceMetadataRequest) error
 	Get(ctx context.Context, metadataID uint32) (do.DatasourceMetricMetadata, error)
 	Delete(ctx context.Context, metadataID uint32) error
 }

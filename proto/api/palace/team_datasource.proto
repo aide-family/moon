@@ -64,6 +64,12 @@ service TeamDatasource {
       body: "*"
     };
   }
+  rpc UpdateMetricDatasourceMetadata (UpdateMetricDatasourceMetadataRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/team/metric/datasource/metadata"
+      body: "*"
+    };
+  }
 }
 
 message SaveTeamMetricDatasourceRequest {
@@ -170,4 +176,22 @@ message ListMetricDatasourceMetadataRequest {
 message ListMetricDatasourceMetadataReply {
   api.palace.common.PaginationReply pagination = 1;
   repeated api.palace.common.TeamMetricDatasourceMetadataItem items = 2;
+}
+
+message UpdateMetricDatasourceMetadataRequest {
+  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
+    gt: 0,
+  }];
+  uint32 metadataId = 2 [(buf.validate.field).uint32 = {
+    gt: 0,
+  }];
+  string help = 3 [(buf.validate.field).string = {
+    max_len: 200,
+  }];
+  string unit = 4 [(buf.validate.field).string = {
+    max_len: 20,
+  }];
+  string type = 5 [(buf.validate.field).string = {
+    max_len: 20,
+  }];
 }

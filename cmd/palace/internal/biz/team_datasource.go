@@ -121,8 +121,8 @@ func (t *TeamDatasource) GetMetricDatasourceMetadata(ctx context.Context, req *b
 	return t.teamDatasourceMetricMetadataRepo.Get(ctx, req.ID)
 }
 
-func (t *TeamDatasource) UpdateMetricDatasourceMetadataRemark(ctx context.Context, req *bo.UpdateTeamMetricDatasourceMetadataRemarkRequest) error {
-	return t.teamDatasourceMetricMetadataRepo.UpdateRemark(ctx, req)
+func (t *TeamDatasource) UpdateMetricDatasourceMetadata(ctx context.Context, req *bo.UpdateMetricDatasourceMetadataRequest) error {
+	return t.teamDatasourceMetricMetadataRepo.Update(ctx, req)
 }
 
 func (t *TeamDatasource) DeleteMetricDatasourceMetadata(ctx context.Context, metadataID uint32) error {
