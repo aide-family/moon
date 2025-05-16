@@ -156,7 +156,7 @@ func (s *TeamDatasourceService) MetricDatasourceProxy(httpCtx http.Context) erro
 			return nil, err
 		}
 
-		datasource, err := build.ToMetricDatasource(datasourceDo, s.helper.Logger())
+		datasource, err := bo.ToMetricDatasource(datasourceDo, s.helper.Logger())
 		if err != nil {
 			return nil, err
 		}

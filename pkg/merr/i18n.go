@@ -66,7 +66,9 @@ func (l *localizer) Localize(ctx context.Context, err error) error {
 		return se.WithCause(localizeErr)
 	}
 
-	return errors.New(int(se.GetCode()), se.GetReason(), localize)
+	return errors.New(int(se.GetCode()), se.GetReason(), localize).WithMetadata(map[string]string{
+		"message": se.GetMessage(),
+	})
 }
 
 func GetLanguage(ctx context.Context) string {

@@ -1,7 +1,6 @@
 package build
 
 import (
-	"github.com/go-kratos/kratos/v2/log"
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
@@ -10,9 +9,6 @@ import (
 	com "github.com/aide-family/moon/pkg/api/common"
 	"github.com/aide-family/moon/pkg/api/palace"
 	"github.com/aide-family/moon/pkg/api/palace/common"
-	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/datasource"
-	"github.com/aide-family/moon/pkg/plugin/datasource/prometheus"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/timex"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -114,14 +110,5 @@ func ToMetricDatasourceMetadataItem(datasourceID uint32, item *com.MetricItem) *
 		Labels:       item.GetLabels(),
 		Unit:         item.GetUnit(),
 		DatasourceID: datasourceID,
-	}
-}
-
-func ToMetricDatasource(datasourceMetric do.DatasourceMetric, logger log.Logger) (datasource.Metric, error) {
-	switch datasourceMetric.GetDriver() {
-	case vobj.DatasourceDriverMetricPrometheus:
-		return prometheus.New(bo.NewMetricDatasourceConfig(datasourceMetric), logger), nil
-	default:
-		return nil, merr.ErrorBadRequest("invalid datasource driver: %s", datasourceMetric.GetDriver())
 	}
 }
