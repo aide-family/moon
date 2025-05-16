@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
 	"github.com/aide-family/moon/pkg/util/crypto"
+	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -64,7 +65,8 @@ func (t *teamConfigEmailImpl) List(ctx context.Context, req *bo.ListEmailConfigR
 	if err != nil {
 		return nil, err
 	}
-	return req.ToListEmailConfigListReply(emailConfigs), nil
+	rows := slices.Map(emailConfigs, func(emailConfig *team.EmailConfig) do.TeamEmailConfig { return emailConfig })
+	return req.ToListReply(rows), nil
 }
 
 func (t *teamConfigEmailImpl) Create(ctx context.Context, config bo.TeamEmailConfig) error {

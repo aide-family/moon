@@ -2,10 +2,8 @@ package bo
 
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -17,10 +15,10 @@ type TeamAuditListRequest struct {
 	UserID  uint32             `json:"userId"`
 }
 
-func (r *TeamAuditListRequest) ToTeamAuditListReply(items []*system.TeamAudit) *TeamAuditListReply {
+func (r *TeamAuditListRequest) ToListReply(items []do.TeamAudit) *TeamAuditListReply {
 	return &TeamAuditListReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(items, func(item *system.TeamAudit) do.TeamAudit { return item }),
+		Items:           items,
 	}
 }
 

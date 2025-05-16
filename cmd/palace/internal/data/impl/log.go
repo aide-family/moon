@@ -7,6 +7,7 @@ import (
 	"gorm.io/gen"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
@@ -79,7 +80,8 @@ func (o *operateLogImpl) List(ctx context.Context, req *bo.OperateLogListRequest
 	if err != nil {
 		return nil, err
 	}
-	return req.ToOperateLogListReply(operateLogs), nil
+	rows := slices.Map(operateLogs, func(operateLog *system.OperateLog) do.OperateLog { return operateLog })
+	return req.ToListReply(rows), nil
 }
 
 func (o *operateLogImpl) TeamOperateLog(ctx context.Context, log *bo.AddOperateLog) error {
@@ -135,5 +137,6 @@ func (o *operateLogImpl) TeamList(ctx context.Context, req *bo.OperateLogListReq
 	if err != nil {
 		return nil, err
 	}
-	return req.ToTeamOperateLogListReply(operateLogs), nil
+	rows := slices.Map(operateLogs, func(operateLog *team.OperateLog) do.OperateLog { return operateLog })
+	return req.ToListReply(rows), nil
 }

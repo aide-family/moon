@@ -87,7 +87,8 @@ func (m *memberImpl) List(ctx context.Context, req *bo.TeamMemberListRequest) (*
 	if err != nil {
 		return nil, err
 	}
-	return req.ToTeamMemberListReply(members), nil
+	rows := slices.Map(members, func(member *system.TeamMember) do.TeamMember { return member })
+	return req.ToListReply(rows), nil
 }
 
 func (m *memberImpl) UpdateStatus(ctx context.Context, req bo.UpdateMemberStatus) error {

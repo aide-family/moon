@@ -75,7 +75,8 @@ func (r *roleImpl) List(ctx context.Context, req *bo.ListRoleReq) (*bo.ListRoleR
 	if err != nil {
 		return nil, err
 	}
-	return req.ToListRoleReply(roles), nil
+	rows := slices.Map(roles, func(role *system.Role) do.Role { return role })
+	return req.ToListReply(rows), nil
 }
 
 func (r *roleImpl) Create(ctx context.Context, role bo.Role) error {

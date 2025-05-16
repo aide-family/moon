@@ -385,5 +385,6 @@ func (u *userRepoImpl) List(ctx context.Context, req *bo.UserListRequest) (*bo.U
 	if err != nil {
 		return nil, err
 	}
-	return req.ToListUserReply(users), nil
+	rows := slices.Map(users, func(user *system.User) do.User { return user })
+	return req.ToListReply(rows), nil
 }

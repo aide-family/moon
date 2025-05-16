@@ -9,12 +9,12 @@ import (
 )
 
 type ServerRegisterReq struct {
-	ServerType vobj.ServerType     `json:"server_type"`
-	Server     *config.MicroServer `json:"server"`
-	Discovery  *config.Discovery   `json:"discovery"`
-	TeamIds    []uint32            `json:"team_ids"`
-	IsOnline   bool                `json:"is_online"`
-	Uuid       string              `json:"uuid"`
+	ServerType vobj.ServerType
+	Server     *config.MicroServer
+	Discovery  *config.Discovery
+	TeamIds    []uint32
+	IsOnline   bool
+	Uuid       string
 }
 
 type Server struct {

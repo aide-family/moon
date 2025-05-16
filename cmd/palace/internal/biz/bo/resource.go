@@ -2,7 +2,6 @@ package bo
 
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -12,20 +11,20 @@ type Resource struct {
 }
 
 type BatchUpdateResourceStatusReq struct {
-	IDs    []uint32          `json:"ids"`
-	Status vobj.GlobalStatus `json:"status"`
+	IDs    []uint32
+	Status vobj.GlobalStatus
 }
 
 type ListResourceReq struct {
-	Statuses []vobj.GlobalStatus `json:"statuses"`
-	Keyword  string              `json:"keyword"`
+	Statuses []vobj.GlobalStatus
+	Keyword  string
 	*PaginationRequest
 }
 
-func (r *ListResourceReq) ToListResourceReply(resources []*system.Resource) *ListResourceReply {
+func (r *ListResourceReq) ToListReply(resources []do.Resource) *ListResourceReply {
 	return &ListResourceReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(resources, func(resource *system.Resource) do.Resource { return resource }),
+		Items:           resources,
 	}
 }
 

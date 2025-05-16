@@ -136,5 +136,6 @@ func (r *teamRepoImpl) List(ctx context.Context, req *bo.TeamListRequest) (*bo.T
 	if err != nil {
 		return nil, err
 	}
-	return req.ToTeamListReply(teamDos), nil
+	rows := slices.Map(teamDos, func(teamDo *system.Team) do.Team { return teamDo })
+	return req.ToListReply(rows), nil
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 // NewDashboardChartRepo creates a new dashboard chart repository
@@ -125,7 +126,8 @@ func (r *dashboardChartImpl) ListDashboardCharts(ctx context.Context, req *bo.Li
 	if err != nil {
 		return nil, err
 	}
-	return req.ToListDashboardChartReply(charts), nil
+	rows := slices.Map(charts, func(chart *team.DashboardChart) do.DashboardChart { return chart })
+	return req.ToListReply(rows), nil
 }
 
 // BatchUpdateDashboardChartStatus update multiple dashboard charts status

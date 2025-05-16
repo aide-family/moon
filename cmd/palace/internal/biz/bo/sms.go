@@ -2,10 +2,8 @@ package bo
 
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -94,15 +92,15 @@ func (s *SaveSMSConfigRequest) WithSMSConfig(smsConfig do.TeamSMSConfig) TeamSMS
 
 type ListSMSConfigRequest struct {
 	*PaginationRequest
-	Keyword  string               `json:"keyword"`
-	Status   vobj.GlobalStatus    `json:"status"`
-	Provider vobj.SMSProviderType `json:"provider"`
+	Keyword  string
+	Status   vobj.GlobalStatus
+	Provider vobj.SMSProviderType
 }
 
-func (r *ListSMSConfigRequest) ToListSMSConfigListReply(configs []*team.SmsConfig) *ListSMSConfigListReply {
+func (r *ListSMSConfigRequest) ToListReply(configs []do.TeamSMSConfig) *ListSMSConfigListReply {
 	return &ListSMSConfigListReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(configs, func(config *team.SmsConfig) do.TeamSMSConfig { return config }),
+		Items:           configs,
 	}
 }
 

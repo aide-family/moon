@@ -2,10 +2,8 @@ package bo
 
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/util/kv"
-	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -114,10 +112,10 @@ type ListTeamNoticeHookRequest struct {
 	Apps    []vobj.HookApp    `json:"apps"`
 }
 
-func (r *ListTeamNoticeHookRequest) ToListTeamNoticeHookReply(hooks []*team.NoticeHook) *ListTeamNoticeHookReply {
+func (r *ListTeamNoticeHookRequest) ToListReply(hooks []do.NoticeHook) *ListTeamNoticeHookReply {
 	return &ListTeamNoticeHookReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(hooks, func(hook *team.NoticeHook) do.NoticeHook { return hook }),
+		Items:           hooks,
 	}
 }
 

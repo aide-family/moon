@@ -5,11 +5,9 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/event"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/kv"
-	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 type Alert struct {
@@ -65,10 +63,10 @@ type ListAlertParams struct {
 	Status      vobj.AlertStatus `json:"status"`
 }
 
-func (p *ListAlertParams) ToListAlertReply(items []*event.Realtime) *ListAlertReply {
+func (p *ListAlertParams) ToListReply(items []do.Realtime) *ListAlertReply {
 	return &ListAlertReply{
 		PaginationReply: p.ToReply(),
-		Items:           slices.Map(items, func(item *event.Realtime) do.Realtime { return item }),
+		Items:           items,
 	}
 }
 

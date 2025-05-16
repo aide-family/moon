@@ -1,11 +1,11 @@
 package bo
 
 type ReplaceUserRoleReq struct {
-	UserID uint32   `json:"userID"`
-	Roles  []uint32 `json:"roles"`
+	UserID uint32
+	Roles  []uint32
 }
 
 type ReplaceMemberRoleReq struct {
-	MemberID uint32   `json:"memberID"`
-	Roles    []uint32 `json:"roles"`
+	MemberID uint32
+	Roles    []uint32
 }

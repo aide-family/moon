@@ -2,7 +2,6 @@ package bo
 
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/slices"
@@ -10,9 +9,9 @@ import (
 )
 
 type SaveNoticeMemberItem struct {
-	MemberID   uint32          `json:"memberID"`
-	UserID     uint32          `json:"userID"`
-	NoticeType vobj.NoticeType `json:"noticeType"`
+	MemberID   uint32
+	UserID     uint32
+	NoticeType vobj.NoticeType
 }
 
 type SaveNoticeGroup interface {
@@ -32,13 +31,13 @@ type SaveNoticeGroupReq struct {
 	members       map[uint32]do.TeamMember
 	emailConfig   do.TeamEmailConfig
 	smsConfig     do.TeamSMSConfig
-	GroupID       uint32                  `json:"groupId"`
-	Name          string                  `json:"name"`
-	Remark        string                  `json:"remark"`
-	HookIds       []uint32                `json:"hookIds"`
-	NoticeMembers []*SaveNoticeMemberItem `json:"noticeMembers"`
-	EmailConfigID uint32                  `json:"emailConfigId"`
-	SMSConfigID   uint32                  `json:"smsConfigId"`
+	GroupID       uint32
+	Name          string
+	Remark        string
+	HookIds       []uint32
+	NoticeMembers []*SaveNoticeMemberItem
+	EmailConfigID uint32
+	SMSConfigID   uint32
 }
 
 func (r *SaveNoticeGroupReq) GetHooks() []do.NoticeHook {
@@ -182,10 +181,10 @@ type ListNoticeGroupReq struct {
 	Keyword   string
 }
 
-func (r *ListNoticeGroupReq) ToListNoticeGroupReply(groups []*team.NoticeGroup) *ListNoticeGroupReply {
+func (r *ListNoticeGroupReq) ToListReply(groups []do.NoticeGroup) *ListNoticeGroupReply {
 	return &ListNoticeGroupReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(groups, func(group *team.NoticeGroup) do.NoticeGroup { return group }),
+		Items:           groups,
 	}
 }
 

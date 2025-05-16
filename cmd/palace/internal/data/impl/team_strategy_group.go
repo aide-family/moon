@@ -98,7 +98,8 @@ func (t *teamStrategyGroupRepo) List(ctx context.Context, listParams *bo.ListTea
 	if err != nil {
 		return nil, err
 	}
-	return listParams.ToListTeamStrategyGroupReply(groups), nil
+	rows := slices.Map(groups, func(group *team.StrategyGroup) do.StrategyGroup { return group })
+	return listParams.ToListReply(rows), nil
 }
 
 // Update implements repository.TeamStrategyGroup.

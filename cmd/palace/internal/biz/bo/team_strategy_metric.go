@@ -6,7 +6,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/kv"
@@ -104,7 +103,7 @@ func (s *SaveTeamStrategyParams) Validate() error {
 	}
 	if validate.IsNotNil(s.strategyDo) {
 		if s.strategyDo.GetStatus().IsEnable() && s.strategyDo.GetStrategyGroupID() != s.StrategyGroupID {
-			return merr.ErrorBadRequest("启用中的策略不能修改策略组")
+			return merr.ErrorBadRequest("enabled strategy cannot modify strategy group")
 		}
 	}
 
@@ -227,7 +226,7 @@ func (s *SaveTeamMetricStrategyParams) Validate() error {
 		return merr.ErrorParamsError("datasource is not found")
 	}
 	if s.strategyDo.GetStatus().IsEnable() {
-		return merr.ErrorBadRequest("启用中的策略不能修改")
+		return merr.ErrorBadRequest("enabled strategy cannot modify")
 	}
 
 	return nil
@@ -525,10 +524,10 @@ func (l *ListTeamStrategyParams) Validate() error {
 	return nil
 }
 
-func (l *ListTeamStrategyParams) ToListTeamStrategyReply(items []*team.Strategy) *ListTeamStrategyReply {
+func (l *ListTeamStrategyParams) ToListReply(items []do.Strategy) *ListTeamStrategyReply {
 	return &ListTeamStrategyReply{
 		PaginationReply: l.ToReply(),
-		Items:           slices.Map(items, func(item *team.Strategy) do.Strategy { return item }),
+		Items:           items,
 	}
 }
 
@@ -589,10 +588,10 @@ func (s *SubscribeTeamStrategiesParams) Validate() error {
 	return nil
 }
 
-func (s *SubscribeTeamStrategiesParams) ToSubscribeTeamStrategiesReply(items []*team.StrategySubscriber) *SubscribeTeamStrategiesReply {
+func (s *SubscribeTeamStrategiesParams) ToListReply(items []do.TeamStrategySubscriber) *SubscribeTeamStrategiesReply {
 	return &SubscribeTeamStrategiesReply{
 		PaginationReply: s.ToReply(),
-		Items:           slices.Map(items, func(item *team.StrategySubscriber) do.TeamStrategySubscriber { return item }),
+		Items:           items,
 	}
 }
 

@@ -17,6 +17,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/data"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -177,7 +178,8 @@ func (r *realtimeImpl) ListAlerts(ctx context.Context, params *bo.ListAlertParam
 	if err != nil {
 		return nil, err
 	}
-	return params.ToListAlertReply(realtimeDo), nil
+	rows := slices.Map(realtimeDo, func(realtime *event.Realtime) do.Realtime { return realtime })
+	return params.ToListReply(rows), nil
 }
 
 func (r *realtimeImpl) buildWrapper(bizDB *gorm.DB, params *bo.ListAlertParams) *gorm.DB {

@@ -133,7 +133,8 @@ func (t *teamDictImpl) List(ctx context.Context, req *bo.ListDictReq) (*bo.ListD
 	if err != nil {
 		return nil, err
 	}
-	return req.ToListDictReply(dictItems), nil
+	rows := slices.Map(dictItems, func(dictItem *team.Dict) do.TeamDict { return dictItem })
+	return req.ToListReply(rows), nil
 }
 
 func (t *teamDictImpl) FindByIds(ctx context.Context, dictIds []uint32) ([]do.TeamDict, error) {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
@@ -65,7 +66,8 @@ func (a *auditImpl) TeamAuditList(ctx context.Context, req *bo.TeamAuditListRequ
 	if err != nil {
 		return nil, err
 	}
-	return req.ToTeamAuditListReply(audits), nil
+	rows := slices.Map(audits, func(audit *system.TeamAudit) do.TeamAudit { return audit })
+	return req.ToListReply(rows), nil
 }
 
 func (a *auditImpl) UpdateTeamAuditStatus(ctx context.Context, req bo.UpdateTeamAuditStatus) error {

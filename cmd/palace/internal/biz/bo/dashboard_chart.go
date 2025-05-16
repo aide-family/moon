@@ -2,9 +2,7 @@ package bo
 
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 type DashboardChart interface {
@@ -94,10 +92,10 @@ type ListDashboardChartReq struct {
 	Keyword     string
 }
 
-func (r *ListDashboardChartReq) ToListDashboardChartReply(charts []*team.DashboardChart) *ListDashboardChartReply {
+func (r *ListDashboardChartReq) ToListReply(charts []do.DashboardChart) *ListDashboardChartReply {
 	return &ListDashboardChartReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(charts, func(chart *team.DashboardChart) do.DashboardChart { return chart }),
+		Items:           charts,
 	}
 }
 

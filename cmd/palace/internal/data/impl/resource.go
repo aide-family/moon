@@ -209,7 +209,8 @@ func (r *resourceImpl) ListResources(ctx context.Context, req *bo.ListResourceRe
 	if err != nil {
 		return nil, err
 	}
-	return req.ToListResourceReply(resources), nil
+	rows := slices.Map(resources, func(resource *system.Resource) do.Resource { return resource })
+	return req.ToListReply(rows), nil
 }
 
 func (r *resourceImpl) GetMenusByUserID(ctx context.Context, userID uint32) ([]do.Menu, error) {

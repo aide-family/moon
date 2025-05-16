@@ -48,7 +48,7 @@ func (t *teamNoticeImpl) List(ctx context.Context, req *bo.ListNoticeGroupReq) (
 			return nil, err
 		}
 		if len(noticeGroupIds) == 0 {
-			return req.ToListNoticeGroupReply(nil), nil
+			return req.ToListReply(nil), nil
 		}
 		wrapper = wrapper.Where(noticeGroupQuery.ID.In(noticeGroupIds...))
 	}
@@ -64,7 +64,8 @@ func (t *teamNoticeImpl) List(ctx context.Context, req *bo.ListNoticeGroupReq) (
 	if err != nil {
 		return nil, err
 	}
-	return req.ToListNoticeGroupReply(noticeGroups), nil
+	rows := slices.Map(noticeGroups, func(noticeGroup *team.NoticeGroup) do.NoticeGroup { return noticeGroup })
+	return req.ToListReply(rows), nil
 }
 
 func (t *teamNoticeImpl) Create(ctx context.Context, group bo.SaveNoticeGroup) error {

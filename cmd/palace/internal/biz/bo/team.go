@@ -2,7 +2,6 @@ package bo
 
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/config"
 	"github.com/aide-family/moon/pkg/merr"
@@ -102,10 +101,10 @@ type TeamListRequest struct {
 	CreatorId uint32
 }
 
-func (r *TeamListRequest) ToTeamListReply(items []*system.Team) *TeamListReply {
+func (r *TeamListRequest) ToListReply(items []do.Team) *TeamListReply {
 	return &TeamListReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(items, func(team *system.Team) do.Team { return team }),
+		Items:           items,
 	}
 }
 
@@ -119,10 +118,10 @@ type TeamMemberListRequest struct {
 	TeamId    uint32
 }
 
-func (r *TeamMemberListRequest) ToTeamMemberListReply(items []*system.TeamMember) *TeamMemberListReply {
+func (r *TeamMemberListRequest) ToListReply(items []do.TeamMember) *TeamMemberListReply {
 	return &TeamMemberListReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(items, func(member *system.TeamMember) do.TeamMember { return member }),
+		Items:           items,
 	}
 }
 

@@ -78,7 +78,7 @@ func (p *ListSendMessageLogParams) WithTeamID(ctx context.Context) (*ListSendMes
 	return p, nil
 }
 
-func (p *ListSendMessageLogParams) ToListSendMessageLogReply(logs []do.SendMessageLog) *ListSendMessageLogReply {
+func (p *ListSendMessageLogParams) ToListReply(logs []do.SendMessageLog) *ListSendMessageLogReply {
 	return &ListSendMessageLogReply{
 		PaginationReply: p.ToReply(),
 		Items:           logs,

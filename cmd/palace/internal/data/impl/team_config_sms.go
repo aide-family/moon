@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
 	"github.com/aide-family/moon/pkg/util/crypto"
+	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -53,7 +54,8 @@ func (t *teamConfigSMSImpl) List(ctx context.Context, req *bo.ListSMSConfigReque
 	if err != nil {
 		return nil, err
 	}
-	return req.ToListSMSConfigListReply(smsConfigs), nil
+	rows := slices.Map(smsConfigs, func(smsConfig *team.SmsConfig) do.TeamSMSConfig { return smsConfig })
+	return req.ToListReply(rows), nil
 }
 
 func (t *teamConfigSMSImpl) Create(ctx context.Context, config bo.TeamSMSConfig) error {

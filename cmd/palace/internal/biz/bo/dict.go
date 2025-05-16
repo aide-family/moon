@@ -2,9 +2,7 @@ package bo
 
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 type Dict interface {
@@ -85,10 +83,10 @@ type ListDictReq struct {
 	Langs     []string          `json:"langs"`
 }
 
-func (r *ListDictReq) ToListDictReply(dictItems []*team.Dict) *ListDictReply {
+func (r *ListDictReq) ToListReply(dictItems []do.TeamDict) *ListDictReply {
 	return &ListDictReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(dictItems, func(item *team.Dict) do.TeamDict { return item }),
+		Items:           dictItems,
 	}
 }
 

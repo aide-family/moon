@@ -165,5 +165,6 @@ func (t *teamHookImpl) List(ctx context.Context, req *bo.ListTeamNoticeHookReque
 	if err != nil {
 		return nil, err
 	}
-	return req.ToListTeamNoticeHookReply(noticeHooks), nil
+	rows := slices.Map(noticeHooks, func(noticeHook *team.NoticeHook) do.NoticeHook { return noticeHook })
+	return req.ToListReply(rows), nil
 }

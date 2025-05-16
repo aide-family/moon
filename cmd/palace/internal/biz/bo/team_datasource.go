@@ -13,7 +13,6 @@ import (
 	"github.com/aide-family/moon/pkg/plugin/datasource"
 	"github.com/aide-family/moon/pkg/plugin/datasource/prometheus"
 	"github.com/aide-family/moon/pkg/util/kv"
-	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -42,7 +41,7 @@ type ListTeamMetricDatasource struct {
 func (r *ListTeamMetricDatasource) ToListReply(datasourceItems []do.DatasourceMetric) *ListTeamMetricDatasourceReply {
 	return &ListTeamMetricDatasourceReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(datasourceItems, func(datasource do.DatasourceMetric) do.DatasourceMetric { return datasource }),
+		Items:           datasourceItems,
 	}
 }
 
@@ -89,7 +88,7 @@ type ListTeamMetricDatasourceMetadata struct {
 func (r *ListTeamMetricDatasourceMetadata) ToListReply(metadataItems []do.DatasourceMetricMetadata) *ListTeamMetricDatasourceMetadataReply {
 	return &ListTeamMetricDatasourceMetadataReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(metadataItems, func(metadata do.DatasourceMetricMetadata) do.DatasourceMetricMetadata { return metadata }),
+		Items:           metadataItems,
 	}
 }
 

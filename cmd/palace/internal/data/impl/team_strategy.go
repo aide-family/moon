@@ -106,7 +106,8 @@ func (t *teamStrategyImpl) SubscribeList(ctx context.Context, params *bo.Subscri
 	if err != nil {
 		return nil, err
 	}
-	return params.ToSubscribeTeamStrategiesReply(subscribers), nil
+	rows := slices.Map(subscribers, func(subscriber *team.StrategySubscriber) do.TeamStrategySubscriber { return subscriber })
+	return params.ToListReply(rows), nil
 }
 
 // Update implements repository.TeamStrategy.
@@ -174,7 +175,8 @@ func (t *teamStrategyImpl) List(ctx context.Context, params *bo.ListTeamStrategy
 	if err != nil {
 		return nil, err
 	}
-	return params.ToListTeamStrategyReply(strategies), nil
+	rows := slices.Map(strategies, func(strategy *team.Strategy) do.Strategy { return strategy })
+	return params.ToListReply(rows), nil
 }
 
 // UpdateStatus implements repository.TeamStrategy.

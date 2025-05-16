@@ -41,11 +41,11 @@ type VerifyEmailCodeParams struct {
 }
 
 type OAuthLoginParams struct {
-	APP          vobj.OAuthAPP `json:"app"`
-	Code         string        `json:"code"`
-	Email        string        `json:"email"`
-	OpenID       string        `json:"openID"`
-	Token        string        `json:"token"`
+	APP          vobj.OAuthAPP
+	Code         string
+	Email        string
+	OpenID       string
+	Token        string
 	SendEmailFun SendEmailFun
 }
 

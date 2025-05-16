@@ -275,7 +275,7 @@ func (s *sendMessageLogImpl) listTeamSendMessageLog(ctx context.Context, params 
 	rows := slices.Map(sendMessageLogs, func(log *event.SendMessageLog) do.SendMessageLog {
 		return log
 	})
-	return params.ToListSendMessageLogReply(rows), nil
+	return params.ToListReply(rows), nil
 }
 
 func (s *sendMessageLogImpl) buildSendMessageLogWrapper(eventDB *gorm.DB, params *bo.ListSendMessageLogParams) *gorm.DB {
@@ -331,5 +331,5 @@ func (s *sendMessageLogImpl) listSystemSendMessageLog(ctx context.Context, param
 	rows := slices.Map(sendMessageLogs, func(log *system.SendMessageLog) do.SendMessageLog {
 		return log
 	})
-	return params.ToListSendMessageLogReply(rows), nil
+	return params.ToListReply(rows), nil
 }

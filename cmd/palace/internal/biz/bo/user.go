@@ -2,7 +2,6 @@ package bo
 
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/slices"
@@ -138,15 +137,15 @@ func (r *UpdateUserPositionRequest) Validate() error {
 
 type UserListRequest struct {
 	*PaginationRequest
-	Status   []vobj.UserStatus `json:"status"`
-	Position []vobj.Role       `json:"position"`
-	Keyword  string            `json:"keyword"`
+	Status   []vobj.UserStatus
+	Position []vobj.Role
+	Keyword  string
 }
 
-func (r *UserListRequest) ToListUserReply(users []*system.User) *UserListReply {
+func (r *UserListRequest) ToListReply(users []do.User) *UserListReply {
 	return &UserListReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(users, func(user *system.User) do.User { return user }),
+		Items:           users,
 	}
 }
 

@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -94,10 +92,10 @@ type ListEmailConfigRequest struct {
 	Status  vobj.GlobalStatus `json:"status"`
 }
 
-func (r *ListEmailConfigRequest) ToListEmailConfigListReply(configs []*team.EmailConfig) *ListEmailConfigListReply {
+func (r *ListEmailConfigRequest) ToListReply(configs []do.TeamEmailConfig) *ListEmailConfigListReply {
 	return &ListEmailConfigListReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(configs, func(config *team.EmailConfig) do.TeamEmailConfig { return config }),
+		Items:           configs,
 	}
 }
 

@@ -2,7 +2,6 @@ package bo
 
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/slices"
@@ -154,21 +153,21 @@ func (r *SaveRoleReq) WithMenus(menus []do.Menu) Role {
 
 type ListRoleReq struct {
 	*PaginationRequest
-	Status  vobj.GlobalStatus `json:"status"`
-	Keyword string            `json:"keyword"`
+	Status  vobj.GlobalStatus
+	Keyword string
 }
 
-func (r *ListRoleReq) ToListTeamRoleReply(roles []*system.TeamRole) *ListTeamRoleReply {
+func (r *ListRoleReq) ToTeamRoleListReply(roles []do.TeamRole) *ListTeamRoleReply {
 	return &ListTeamRoleReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(roles, func(role *system.TeamRole) do.TeamRole { return role }),
+		Items:           roles,
 	}
 }
 
-func (r *ListRoleReq) ToListRoleReply(roles []*system.Role) *ListRoleReply {
+func (r *ListRoleReq) ToListReply(roles []do.Role) *ListRoleReply {
 	return &ListRoleReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(roles, func(role *system.Role) do.Role { return role }),
+		Items:           roles,
 	}
 }
 
@@ -177,8 +176,8 @@ type ListTeamRoleReply = ListReply[do.TeamRole]
 type ListRoleReply = ListReply[do.Role]
 
 type UpdateRoleStatusReq struct {
-	RoleID uint32            `json:"roleId"`
-	Status vobj.GlobalStatus `json:"status"`
+	RoleID uint32
+	Status vobj.GlobalStatus
 }
 
 type UpdateRoleUsers interface {
@@ -187,8 +186,8 @@ type UpdateRoleUsers interface {
 }
 
 type UpdateRoleUsersReq struct {
-	RoleID   uint32   `json:"roleId"`
-	UserIDs  []uint32 `json:"userIds"`
+	RoleID   uint32
+	UserIDs  []uint32
 	users    []do.User
 	operator do.User
 	role     do.Role
