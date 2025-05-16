@@ -12,9 +12,9 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/cmd/palace/internal/service/build"
-	com "github.com/aide-family/moon/pkg/api/common"
+	"github.com/aide-family/moon/pkg/api/common"
 	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
+	palacecommon "github.com/aide-family/moon/pkg/api/palace/common"
 	"github.com/aide-family/moon/pkg/merr"
 )
 
@@ -37,15 +37,15 @@ func NewTeamDatasourceService(
 	}
 }
 
-func (s *TeamDatasourceService) SaveTeamMetricDatasource(ctx context.Context, req *palace.SaveTeamMetricDatasourceRequest) (*common.EmptyReply, error) {
+func (s *TeamDatasourceService) SaveTeamMetricDatasource(ctx context.Context, req *palace.SaveTeamMetricDatasourceRequest) (*palacecommon.EmptyReply, error) {
 	params := build.ToSaveTeamMetricDatasourceRequest(req)
 	if err := s.teamDatasourceBiz.SaveMetricDatasource(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &palacecommon.EmptyReply{}, nil
 }
 
-func (s *TeamDatasourceService) UpdateTeamMetricDatasourceStatus(ctx context.Context, req *palace.UpdateTeamMetricDatasourceStatusRequest) (*common.EmptyReply, error) {
+func (s *TeamDatasourceService) UpdateTeamMetricDatasourceStatus(ctx context.Context, req *palace.UpdateTeamMetricDatasourceStatusRequest) (*palacecommon.EmptyReply, error) {
 	params := &bo.UpdateTeamMetricDatasourceStatusRequest{
 		DatasourceID: req.GetDatasourceId(),
 		Status:       vobj.GlobalStatus(req.GetStatus()),
@@ -53,17 +53,17 @@ func (s *TeamDatasourceService) UpdateTeamMetricDatasourceStatus(ctx context.Con
 	if err := s.teamDatasourceBiz.UpdateMetricDatasourceStatus(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &palacecommon.EmptyReply{}, nil
 }
 
-func (s *TeamDatasourceService) DeleteTeamMetricDatasource(ctx context.Context, req *palace.DeleteTeamMetricDatasourceRequest) (*common.EmptyReply, error) {
+func (s *TeamDatasourceService) DeleteTeamMetricDatasource(ctx context.Context, req *palace.DeleteTeamMetricDatasourceRequest) (*palacecommon.EmptyReply, error) {
 	if err := s.teamDatasourceBiz.DeleteMetricDatasource(ctx, req.GetDatasourceId()); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &palacecommon.EmptyReply{}, nil
 }
 
-func (s *TeamDatasourceService) GetTeamMetricDatasource(ctx context.Context, req *palace.GetTeamMetricDatasourceRequest) (*common.TeamMetricDatasourceItem, error) {
+func (s *TeamDatasourceService) GetTeamMetricDatasource(ctx context.Context, req *palace.GetTeamMetricDatasourceRequest) (*palacecommon.TeamMetricDatasourceItem, error) {
 	datasource, err := s.teamDatasourceBiz.GetMetricDatasource(ctx, req.GetDatasourceId())
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func (s *TeamDatasourceService) ListTeamMetricDatasource(ctx context.Context, re
 	}, nil
 }
 
-func (s *TeamDatasourceService) SyncMetricMetadata(ctx context.Context, req *palace.SyncMetricMetadataRequest) (*common.EmptyReply, error) {
+func (s *TeamDatasourceService) SyncMetricMetadata(ctx context.Context, req *palace.SyncMetricMetadataRequest) (*palacecommon.EmptyReply, error) {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorBadRequest("请选择团队")
@@ -97,10 +97,10 @@ func (s *TeamDatasourceService) SyncMetricMetadata(ctx context.Context, req *pal
 	if err := s.teamDatasourceBiz.SyncMetricMetadata(ctx, params); err != nil {
 		return nil, err
 	}
-	return &common.EmptyReply{}, nil
+	return &palacecommon.EmptyReply{}, nil
 }
 
-func (s *TeamDatasourceService) MetricDatasourceQuery(ctx context.Context, req *palace.MetricDatasourceQueryRequest) (*com.MetricDatasourceQueryReply, error) {
+func (s *TeamDatasourceService) MetricDatasourceQuery(ctx context.Context, req *palace.MetricDatasourceQueryRequest) (*common.MetricDatasourceQueryReply, error) {
 	datasource, err := s.teamDatasourceBiz.GetMetricDatasource(ctx, req.GetDatasourceId())
 	if err != nil {
 		return nil, err
@@ -119,6 +119,30 @@ func (s *TeamDatasourceService) MetricDatasourceQuery(ctx context.Context, req *
 		return nil, err
 	}
 	return reply, nil
+}
+
+func (s *TeamDatasourceService) GetMetricDatasourceMetadata(ctx context.Context, req *palace.GetMetricDatasourceMetadataRequest) (*palacecommon.TeamMetricDatasourceMetadataItem, error) {
+	params := &bo.GetMetricDatasourceMetadataRequest{
+		DatasourceID: req.GetDatasourceId(),
+		ID:           req.GetMetadataId(),
+	}
+	metadata, err := s.teamDatasourceBiz.GetMetricDatasourceMetadata(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return build.ToTeamMetricDatasourceMetadataItem(metadata), nil
+}
+
+func (s *TeamDatasourceService) ListMetricDatasourceMetadata(ctx context.Context, req *palace.ListMetricDatasourceMetadataRequest) (*palace.ListMetricDatasourceMetadataReply, error) {
+	params := build.ToListMetricDatasourceMetadataRequest(req)
+	metadata, err := s.teamDatasourceBiz.ListMetricDatasourceMetadata(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &palace.ListMetricDatasourceMetadataReply{
+		Pagination: build.ToPaginationReply(metadata.PaginationReply),
+		Items:      build.ToTeamMetricDatasourceMetadataItems(metadata.Items),
+	}, nil
 }
 
 const (

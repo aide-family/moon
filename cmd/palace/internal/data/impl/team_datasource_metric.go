@@ -144,7 +144,8 @@ func (t *teamMetricDatasourceImpl) List(ctx context.Context, req *bo.ListTeamMet
 	if err != nil {
 		return nil, err
 	}
-	return req.ToListTeamMetricDatasourceReply(datasourceDos), nil
+	rows := slices.Map(datasourceDos, func(datasource *team.DatasourceMetric) do.DatasourceMetric { return datasource })
+	return req.ToListReply(rows), nil
 }
 
 func (t *teamMetricDatasourceImpl) FindByIds(ctx context.Context, datasourceIds []uint32) ([]do.DatasourceMetric, error) {

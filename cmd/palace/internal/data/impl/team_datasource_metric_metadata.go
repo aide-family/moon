@@ -3,13 +3,18 @@ package impl
 import (
 	"context"
 
+	"github.com/go-kratos/kratos/v2/log"
+	"gorm.io/gen"
+	"gorm.io/gorm/clause"
+
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
 	"github.com/aide-family/moon/cmd/palace/internal/data/impl/build"
-	"github.com/go-kratos/kratos/v2/log"
-	"gorm.io/gorm/clause"
+	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func NewTeamDatasourceMetricMetadataRepo(data *data.Data, logger log.Logger) repository.TeamDatasourceMetricMetadata {
@@ -40,7 +45,39 @@ func (t *teamDatasourceMetricMetadataImpl) BatchSave(ctx context.Context, req *b
 }
 
 func (t *teamDatasourceMetricMetadataImpl) List(ctx context.Context, req *bo.ListTeamMetricDatasourceMetadata) (*bo.ListTeamMetricDatasourceMetadataReply, error) {
-	return nil, nil
+	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t.Data)
+	datasourceMetricMetadataMutation := bizQuery.DatasourceMetricMetadata
+	wrapper := datasourceMetricMetadataMutation.WithContext(ctx)
+	wrapper = wrapper.Where(datasourceMetricMetadataMutation.DatasourceMetricID.Eq(req.DatasourceID))
+	wrapper = wrapper.Where(datasourceMetricMetadataMutation.TeamID.Eq(teamId))
+	if validate.TextIsNotNull(req.Keyword) {
+		or := []gen.Condition{
+			datasourceMetricMetadataMutation.Name.Like(req.Keyword),
+			datasourceMetricMetadataMutation.Help.Like(req.Keyword),
+		}
+		wrapper = wrapper.Where(datasourceMetricMetadataMutation.Or(or...))
+	}
+	if validate.TextIsNotNull(req.Type) {
+		wrapper = wrapper.Where(datasourceMetricMetadataMutation.Type.Eq(req.Type))
+	}
+	if validate.IsNotNil(req.PaginationRequest) {
+		total, err := wrapper.WithContext(ctx).Count()
+		if err != nil {
+			return nil, err
+		}
+		req.WithTotal(total)
+		wrapper = wrapper.Limit(int(req.PaginationRequest.Limit)).Offset(req.PaginationRequest.Offset())
+	}
+	wrapper = wrapper.Order(datasourceMetricMetadataMutation.CreatedAt.Desc())
+	items, err := wrapper.Find()
+	if err != nil {
+		return nil, err
+	}
+
+	rows := slices.Map(items, func(item *team.DatasourceMetricMetadata) do.DatasourceMetricMetadata {
+		return item
+	})
+	return req.ToListReply(rows), nil
 }
 
 func (t *teamDatasourceMetricMetadataImpl) UpdateRemark(ctx context.Context, req *bo.UpdateTeamMetricDatasourceMetadataRemarkRequest) error {
@@ -48,9 +85,20 @@ func (t *teamDatasourceMetricMetadataImpl) UpdateRemark(ctx context.Context, req
 }
 
 func (t *teamDatasourceMetricMetadataImpl) Get(ctx context.Context, metadataID uint32) (do.DatasourceMetricMetadata, error) {
-	return nil, nil
+	datasourceMetricMetadataMutation := getTeamBizQuery(ctx, t.Data).DatasourceMetricMetadata
+	wrapper := datasourceMetricMetadataMutation.WithContext(ctx)
+	wrapper = wrapper.Where(datasourceMetricMetadataMutation.ID.Eq(metadataID))
+	item, err := wrapper.First()
+	if err != nil {
+		return nil, teamDatasourceMetricMetadataNotFound(err)
+	}
+	return item, nil
 }
 
 func (t *teamDatasourceMetricMetadataImpl) Delete(ctx context.Context, metadataID uint32) error {
-	return nil
+	datasourceMetricMetadataMutation := getTeamBizQuery(ctx, t.Data).DatasourceMetricMetadata
+	wrapper := datasourceMetricMetadataMutation.WithContext(ctx)
+	wrapper = wrapper.Where(datasourceMetricMetadataMutation.ID.Eq(metadataID))
+	_, err := wrapper.Delete()
+	return err
 }

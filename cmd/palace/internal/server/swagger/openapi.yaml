@@ -1235,6 +1235,47 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.ListTeamMetricDatasourceReply'
+    /api/team/metric/datasource/metadata:
+        get:
+            tags:
+                - TeamDatasource
+            operationId: TeamDatasource_GetMetricDatasourceMetadata
+            parameters:
+                - name: datasourceId
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: metadataId
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.TeamMetricDatasourceMetadataItem'
+    /api/team/metric/datasource/metadata/list:
+        post:
+            tags:
+                - TeamDatasource
+            operationId: TeamDatasource_ListMetricDatasourceMetadata
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.ListMetricDatasourceMetadataRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.ListMetricDatasourceMetadataReply'
     /api/team/metric/datasource/query:
         post:
             tags:
@@ -2961,6 +3002,27 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.palace.RealtimeAlertItem'
+        api.palace.ListMetricDatasourceMetadataReply:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.TeamMetricDatasourceMetadataItem'
+        api.palace.ListMetricDatasourceMetadataRequest:
+            type: object
+            properties:
+                datasourceId:
+                    type: integer
+                    format: uint32
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                keyword:
+                    type: string
+                type:
+                    type: string
         api.palace.ListResourceReply:
             type: object
             properties:
@@ -5118,6 +5180,40 @@ components:
                     format: enum
                 creator:
                     $ref: '#/components/schemas/api.palace.common.UserBaseItem'
+        api.palace.common.TeamMetricDatasourceMetadataItem:
+            type: object
+            properties:
+                metadataId:
+                    type: integer
+                    format: uint32
+                datasourceId:
+                    type: integer
+                    format: uint32
+                name:
+                    type: string
+                help:
+                    type: string
+                type:
+                    type: string
+                labels:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.TeamMetricDatasourceMetadataItem_Label'
+                unit:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        api.palace.common.TeamMetricDatasourceMetadataItem_Label:
+            type: object
+            properties:
+                key:
+                    type: string
+                values:
+                    type: array
+                    items:
+                        type: string
         api.palace.common.TeamRoleItem:
             type: object
             properties:

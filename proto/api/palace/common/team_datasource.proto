@@ -28,3 +28,19 @@ message TeamMetricDatasourceItem {
   api.palace.common.GlobalStatus status = 16;
   api.palace.common.UserBaseItem creator = 17;
 }
+
+message TeamMetricDatasourceMetadataItem {
+	message Label {
+		string key = 1;
+		repeated string values = 2;
+	}
+  uint32 metadataId = 1;
+  uint32 datasourceId = 2;
+	string name = 3;
+	string help = 4;
+	string type = 5;
+	repeated Label labels = 6;
+	string unit = 7;
+  string createdAt = 8;
+  string updatedAt = 9;
+}

@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/util/kv"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 type NoticeHook interface {
@@ -35,63 +36,66 @@ type SaveTeamNoticeHookRequest struct {
 }
 
 func (r *SaveTeamNoticeHookRequest) GetID() uint32 {
-	if r == nil || r.hookDo == nil {
+	if validate.IsNil(r) {
 		return 0
+	}
+	if validate.IsNil(r.hookDo) {
+		return r.HookID
 	}
 	return r.hookDo.GetID()
 }
 
 func (r *SaveTeamNoticeHookRequest) GetName() string {
-	if r == nil {
+	if validate.IsNil(r) {
 		return ""
 	}
 	return r.Name
 }
 
 func (r *SaveTeamNoticeHookRequest) GetRemark() string {
-	if r == nil {
+	if validate.IsNil(r) {
 		return ""
 	}
 	return r.Remark
 }
 
 func (r *SaveTeamNoticeHookRequest) GetStatus() vobj.GlobalStatus {
-	if r == nil {
+	if validate.IsNil(r) {
 		return vobj.GlobalStatusUnknown
 	}
 	return r.Status
 }
 
 func (r *SaveTeamNoticeHookRequest) GetURL() string {
-	if r == nil {
+	if validate.IsNil(r) {
 		return ""
 	}
 	return r.URL
 }
 
 func (r *SaveTeamNoticeHookRequest) GetMethod() vobj.HTTPMethod {
-	if r == nil {
+	if validate.IsNil(r) {
 		return vobj.HTTPMethodPost
 	}
 	return r.Method
 }
 
 func (r *SaveTeamNoticeHookRequest) GetSecret() string {
-	if r == nil {
+	if validate.IsNil(r) {
 		return ""
 	}
 	return r.Secret
 }
 
 func (r *SaveTeamNoticeHookRequest) GetHeaders() kv.StringMap {
-	if r == nil {
+	if validate.IsNil(r) {
 		return nil
 	}
 	return r.Headers
 }
 
 func (r *SaveTeamNoticeHookRequest) GetApp() vobj.HookApp {
-	if r == nil {
+	if validate.IsNil(r) {
 		return vobj.HookAppOther
 	}
 	return r.APP

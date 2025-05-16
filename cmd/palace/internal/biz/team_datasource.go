@@ -117,6 +117,10 @@ func (t *TeamDatasource) ListMetricDatasourceMetadata(ctx context.Context, req *
 	return t.teamDatasourceMetricMetadataRepo.List(ctx, req)
 }
 
+func (t *TeamDatasource) GetMetricDatasourceMetadata(ctx context.Context, req *bo.GetMetricDatasourceMetadataRequest) (do.DatasourceMetricMetadata, error) {
+	return t.teamDatasourceMetricMetadataRepo.Get(ctx, req.ID)
+}
+
 func (t *TeamDatasource) UpdateMetricDatasourceMetadataRemark(ctx context.Context, req *bo.UpdateTeamMetricDatasourceMetadataRemarkRequest) error {
 	return t.teamDatasourceMetricMetadataRepo.UpdateRemark(ctx, req)
 }

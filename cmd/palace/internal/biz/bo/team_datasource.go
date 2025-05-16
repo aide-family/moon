@@ -3,8 +3,9 @@ package bo
 import (
 	"time"
 
+	"github.com/go-kratos/kratos/v2/log"
+
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/api/common"
 	houyicommon "github.com/aide-family/moon/pkg/api/houyi/common"
@@ -14,7 +15,6 @@ import (
 	"github.com/aide-family/moon/pkg/util/kv"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
-	"github.com/go-kratos/kratos/v2/log"
 )
 
 type SaveTeamMetricDatasource struct {
@@ -39,10 +39,10 @@ type ListTeamMetricDatasource struct {
 	Keyword string
 }
 
-func (r *ListTeamMetricDatasource) ToListTeamMetricDatasourceReply(datasourceItems []*team.DatasourceMetric) *ListTeamMetricDatasourceReply {
+func (r *ListTeamMetricDatasource) ToListReply(datasourceItems []do.DatasourceMetric) *ListTeamMetricDatasourceReply {
 	return &ListTeamMetricDatasourceReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(datasourceItems, func(datasource *team.DatasourceMetric) do.DatasourceMetric { return datasource }),
+		Items:           slices.Map(datasourceItems, func(datasource do.DatasourceMetric) do.DatasourceMetric { return datasource }),
 	}
 }
 
@@ -74,15 +74,22 @@ type SyncMetricMetadataRequest struct {
 	DatasourceID uint32
 }
 
+type GetMetricDatasourceMetadataRequest struct {
+	DatasourceID uint32
+	ID           uint32
+}
+
 type ListTeamMetricDatasourceMetadata struct {
 	*PaginationRequest
 	DatasourceID uint32
+	Keyword      string
+	Type         string
 }
 
-func (r *ListTeamMetricDatasourceMetadata) ToListTeamMetricDatasourceMetadataReply(metadataItems []*team.DatasourceMetricMetadata) *ListTeamMetricDatasourceMetadataReply {
+func (r *ListTeamMetricDatasourceMetadata) ToListReply(metadataItems []do.DatasourceMetricMetadata) *ListTeamMetricDatasourceMetadataReply {
 	return &ListTeamMetricDatasourceMetadataReply{
 		PaginationReply: r.ToReply(),
-		Items:           slices.Map(metadataItems, func(metadata *team.DatasourceMetricMetadata) do.DatasourceMetricMetadata { return metadata }),
+		Items:           slices.Map(metadataItems, func(metadata do.DatasourceMetricMetadata) do.DatasourceMetricMetadata { return metadata }),
 	}
 }
 

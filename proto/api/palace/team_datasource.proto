@@ -53,6 +53,17 @@ service TeamDatasource {
       body: "*"
     };
   }
+  rpc GetMetricDatasourceMetadata (GetMetricDatasourceMetadataRequest) returns (api.palace.common.TeamMetricDatasourceMetadataItem) {
+    option (google.api.http) = {
+      get: "/api/team/metric/datasource/metadata"
+    };
+  }
+  rpc ListMetricDatasourceMetadata (ListMetricDatasourceMetadataRequest) returns (ListMetricDatasourceMetadataReply) {
+    option (google.api.http) = {
+      post: "/api/team/metric/datasource/metadata/list"
+      body: "*"
+    };
+  }
 }
 
 message SaveTeamMetricDatasourceRequest {
@@ -132,4 +143,31 @@ message MetricDatasourceProxyRequest {
   uint32 datasourceId = 1 [(buf.validate.field).required = true];
   uint32 teamId = 2 [(buf.validate.field).required = true];
   string target = 3;
+}
+
+message GetMetricDatasourceMetadataRequest {
+  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
+    gt: 0,
+  }];
+  uint32 metadataId = 2 [(buf.validate.field).uint32 = {
+    gt: 0,
+  }];
+}
+
+message ListMetricDatasourceMetadataRequest {
+  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
+    gt: 0,
+  }];
+  api.palace.common.PaginationRequest pagination = 2;
+  string keyword = 3 [(buf.validate.field).string = {
+    max_len: 20,
+  }];
+  string type = 4 [(buf.validate.field).string = {
+    max_len: 20,
+  }];
+}
+
+message ListMetricDatasourceMetadataReply {
+  api.palace.common.PaginationReply pagination = 1;
+  repeated api.palace.common.TeamMetricDatasourceMetadataItem items = 2;
 }

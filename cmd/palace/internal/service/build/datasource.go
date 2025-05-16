@@ -6,9 +6,9 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	com "github.com/aide-family/moon/pkg/api/common"
+	"github.com/aide-family/moon/pkg/api/common"
 	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/api/palace/common"
+	palacecommon "github.com/aide-family/moon/pkg/api/palace/common"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/timex"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -46,32 +46,32 @@ func ToListTeamMetricDatasourceRequest(req *palace.ListTeamMetricDatasourceReque
 	}
 }
 
-func ToTeamMetricDatasourceItem(item do.DatasourceMetric) *common.TeamMetricDatasourceItem {
+func ToTeamMetricDatasourceItem(item do.DatasourceMetric) *palacecommon.TeamMetricDatasourceItem {
 	if validate.IsNil(item) {
 		return nil
 	}
-	return &common.TeamMetricDatasourceItem{
+	return &palacecommon.TeamMetricDatasourceItem{
 		TeamId:         item.GetTeamID(),
 		DatasourceId:   item.GetID(),
 		CreatedAt:      timex.Format(item.GetCreatedAt()),
 		UpdatedAt:      timex.Format(item.GetUpdatedAt()),
 		Name:           item.GetName(),
 		Remark:         item.GetRemark(),
-		Driver:         common.DatasourceDriverMetric(item.GetDriver()),
+		Driver:         palacecommon.DatasourceDriverMetric(item.GetDriver()),
 		Endpoint:       item.GetEndpoint(),
 		ScrapeInterval: durationpb.New(item.GetScrapeInterval()),
 		Headers:        item.GetHeaders(),
-		QueryMethod:    common.HTTPMethod(item.GetQueryMethod()),
+		QueryMethod:    palacecommon.HTTPMethod(item.GetQueryMethod()),
 		Ca:             item.GetCA(),
 		Tls:            ToTLSItem(item.GetTLS()),
 		BasicAuth:      ToBasicAuthItem(item.GetBasicAuth()),
 		Extra:          item.GetExtra(),
-		Status:         common.GlobalStatus(item.GetStatus().GetValue()),
+		Status:         palacecommon.GlobalStatus(item.GetStatus().GetValue()),
 		Creator:        ToUserBaseItem(item.GetCreator()),
 	}
 }
 
-func ToTeamMetricDatasourceItems(items []do.DatasourceMetric) []*common.TeamMetricDatasourceItem {
+func ToTeamMetricDatasourceItems(items []do.DatasourceMetric) []*palacecommon.TeamMetricDatasourceItem {
 	return slices.Map(items, ToTeamMetricDatasourceItem)
 }
 
@@ -87,11 +87,11 @@ func ToBatchSaveTeamMetricDatasourceMetadataRequest(req *palace.SyncMetadataRequ
 	}
 }
 
-func ToMetricDatasourceMetadataItems(datasourceID uint32, items []*com.MetricItem) []*bo.DatasourceMetricMetadata {
+func ToMetricDatasourceMetadataItems(datasourceID uint32, items []*common.MetricItem) []*bo.DatasourceMetricMetadata {
 	if len(items) == 0 {
 		return nil
 	}
-	return slices.MapFilter(items, func(item *com.MetricItem) (*bo.DatasourceMetricMetadata, bool) {
+	return slices.MapFilter(items, func(item *common.MetricItem) (*bo.DatasourceMetricMetadata, bool) {
 		if validate.IsNil(item) {
 			return nil, false
 		}
@@ -99,7 +99,7 @@ func ToMetricDatasourceMetadataItems(datasourceID uint32, items []*com.MetricIte
 	})
 }
 
-func ToMetricDatasourceMetadataItem(datasourceID uint32, item *com.MetricItem) *bo.DatasourceMetricMetadata {
+func ToMetricDatasourceMetadataItem(datasourceID uint32, item *common.MetricItem) *bo.DatasourceMetricMetadata {
 	if validate.IsNil(item) {
 		return nil
 	}
@@ -114,5 +114,42 @@ func ToMetricDatasourceMetadataItem(datasourceID uint32, item *com.MetricItem) *
 		Labels:       labels,
 		Unit:         item.GetUnit(),
 		DatasourceID: datasourceID,
+	}
+}
+
+func ToTeamMetricDatasourceMetadataItem(item do.DatasourceMetricMetadata) *palacecommon.TeamMetricDatasourceMetadataItem {
+	if validate.IsNil(item) {
+		return nil
+	}
+	labels := make([]*palacecommon.TeamMetricDatasourceMetadataItem_Label, 0, len(item.GetLabels()))
+	for k, v := range item.GetLabels() {
+		labels = append(labels, &palacecommon.TeamMetricDatasourceMetadataItem_Label{
+			Key:    k,
+			Values: v,
+		})
+	}
+	return &palacecommon.TeamMetricDatasourceMetadataItem{
+		MetadataId: item.GetID(),
+		Name:       item.GetName(),
+		Help:       item.GetHelp(),
+		Type:       item.GetType(),
+		Labels:     labels,
+		Unit:       item.GetUnit(),
+	}
+}
+
+func ToTeamMetricDatasourceMetadataItems(items []do.DatasourceMetricMetadata) []*palacecommon.TeamMetricDatasourceMetadataItem {
+	return slices.Map(items, ToTeamMetricDatasourceMetadataItem)
+}
+
+func ToListMetricDatasourceMetadataRequest(req *palace.ListMetricDatasourceMetadataRequest) *bo.ListTeamMetricDatasourceMetadata {
+	if validate.IsNil(req) {
+		return nil
+	}
+	return &bo.ListTeamMetricDatasourceMetadata{
+		PaginationRequest: ToPaginationRequest(req.GetPagination()),
+		DatasourceID:      req.GetDatasourceId(),
+		Keyword:           req.GetKeyword(),
+		Type:              req.GetType(),
 	}
 }

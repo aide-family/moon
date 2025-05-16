@@ -181,3 +181,10 @@ func teamTimeEngineRuleNotFound(err error) error {
 	}
 	return err
 }
+
+func teamDatasourceMetricMetadataNotFound(err error) error {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return merr.ErrorNotFound("team datasource metric metadata not found").WithCause(err)
+	}
+	return err
+}
