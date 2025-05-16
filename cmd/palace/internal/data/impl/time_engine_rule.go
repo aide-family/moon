@@ -132,7 +132,7 @@ func (r *timeEngineRuleImpl) ListTimeEngineRule(ctx context.Context, req *bo.Lis
 		timeEngineRuleWrapper = timeEngineRuleWrapper.Where(timeEngineRuleQuery.Type.In(types...))
 	}
 
-	if validate.IsNil(req.PaginationRequest) {
+	if validate.IsNotNil(req.PaginationRequest) {
 		total, err := timeEngineRuleWrapper.WithContext(ctx).Count()
 		if err != nil {
 			return nil, err

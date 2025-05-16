@@ -138,7 +138,7 @@ func (r *timeEngineImpl) ListTimeEngine(ctx context.Context, req *bo.ListTimeEng
 		timeEngineWrapper = timeEngineWrapper.Where(timeEngineQuery.Or(or...))
 	}
 
-	if validate.IsNil(req.PaginationRequest) {
+	if validate.IsNotNil(req.PaginationRequest) {
 		total, err := timeEngineWrapper.WithContext(ctx).Count()
 		if err != nil {
 			return nil, err
