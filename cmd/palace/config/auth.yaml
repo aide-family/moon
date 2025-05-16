@@ -38,6 +38,15 @@ auth:
         scopes: ${X_MOON_AUTH_OAUTH2_SCOPES_1:[]}
         loginUrl: ${X_MOON_AUTH_OAUTH2_LOGIN_URL_1}
 
+      - app: ${X_MOON_AUTH_OAUTH2_APP_2:0}
+        clientId: ${X_MOON_AUTH_OAUTH2_CLIENT_ID_2}
+        clientSecret: ${X_MOON_AUTH_OAUTH2_CLIENT_SECRET_2}
+        callbackUri: ${X_MOON_AUTH_OAUTH2_CALLBACK_URI_2}
+        authUrl: ${X_MOON_AUTH_OAUTH2_AUTH_URL_2}
+        tokenUrl: ${X_MOON_AUTH_OAUTH2_TOKEN_URL_2}
+        scopes: ${X_MOON_AUTH_OAUTH2_SCOPES_2:[]}
+        loginUrl: ${X_MOON_AUTH_OAUTH2_LOGIN_URL_2}
+
 filing:
   url: ${X_MOON_FILING_URL}
   information: ${X_MOON_FILING_INFORMATION}
