@@ -178,6 +178,8 @@ func (a *AuthBiz) OAuthLogin(ctx context.Context, req *bo.OAuthLoginParams) (str
 		return a.githubLogin(ctx, req.Code, req.SendEmailFun)
 	case vobj.OAuthAPPGitee:
 		return a.giteeLogin(ctx, req.Code, req.SendEmailFun)
+	case vobj.OAuthAPPFeiShu:
+		return a.feiShuLogin(ctx, req.Code, req.SendEmailFun)
 	default:
 		return "", merr.ErrorInternalServerError("not support oauth provider")
 	}
@@ -249,6 +251,41 @@ func (a *AuthBiz) giteeLogin(ctx context.Context, code string, sendEmailFunc bo.
 	}
 
 	return a.oauthLogin(ctx, &userInfo, sendEmailFunc)
+}
+
+func (a *AuthBiz) feiShuLogin(ctx context.Context, code string, sendEmailFunc bo.SendEmailFun) (string, error) {
+	oAuthConf, err := a.GetOAuthConf(vobj.OAuthAPPFeiShu)
+	if err != nil {
+		return "", err
+	}
+
+	verifier := oauth2.GenerateVerifier()
+	token, err := oAuthConf.Exchange(ctx, code, oauth2.VerifierOption(verifier))
+
+	if err != nil {
+		return "", err
+	}
+
+	client := oauth2.NewClient(ctx, oauth2.StaticTokenSource(token))
+	userResp, err := client.Get("https://open.feishu.cn/open-apis/authen/v1/user_info")
+	if err != nil {
+		return "", err
+	}
+
+	body := userResp.Body
+	defer body.Close()
+
+	var result struct {
+		Code int            `json:"code"`
+		Msg  string         `json:"msg"`
+		Data *bo.FeiShuUser `json:"data"`
+	}
+
+	if err := json.NewDecoder(body).Decode(&result); err != nil {
+		return "", err
+	}
+
+	return a.oauthLogin(ctx, result.Data, sendEmailFunc)
 }
 
 func (a *AuthBiz) oauthUserFirstOrCreate(ctx context.Context, userInfo bo.IOAuthUser, sendEmail bo.SendEmailFun) (do.UserOAuth, error) {
