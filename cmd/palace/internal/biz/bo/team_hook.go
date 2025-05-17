@@ -11,7 +11,6 @@ type NoticeHook interface {
 	GetID() uint32
 	GetName() string
 	GetRemark() string
-	GetStatus() vobj.GlobalStatus
 	GetURL() string
 	GetMethod() vobj.HTTPMethod
 	GetSecret() string
@@ -22,15 +21,14 @@ type NoticeHook interface {
 // SaveTeamNoticeHookRequest 保存团队通知钩子请求
 type SaveTeamNoticeHookRequest struct {
 	hookDo  do.NoticeHook
-	HookID  uint32            `json:"hookId"`
-	Name    string            `json:"name"`
-	Remark  string            `json:"remark"`
-	Status  vobj.GlobalStatus `json:"status"`
-	URL     string            `json:"url"`
-	Method  vobj.HTTPMethod   `json:"method"`
-	Secret  string            `json:"secret"`
-	Headers kv.StringMap      `json:"headers"`
-	APP     vobj.HookApp      `json:"app"`
+	HookID  uint32          `json:"hookId"`
+	Name    string          `json:"name"`
+	Remark  string          `json:"remark"`
+	URL     string          `json:"url"`
+	Method  vobj.HTTPMethod `json:"method"`
+	Secret  string          `json:"secret"`
+	Headers kv.StringMap    `json:"headers"`
+	APP     vobj.HookApp    `json:"app"`
 }
 
 func (r *SaveTeamNoticeHookRequest) GetID() uint32 {
@@ -55,13 +53,6 @@ func (r *SaveTeamNoticeHookRequest) GetRemark() string {
 		return ""
 	}
 	return r.Remark
-}
-
-func (r *SaveTeamNoticeHookRequest) GetStatus() vobj.GlobalStatus {
-	if validate.IsNil(r) {
-		return vobj.GlobalStatusUnknown
-	}
-	return r.Status
 }
 
 func (r *SaveTeamNoticeHookRequest) GetURL() string {

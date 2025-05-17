@@ -8,6 +8,11 @@ import "palace/common/system.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/palace/common;common";
 
+message Header {
+  string key = 1;
+  string value = 2;
+}
+
 message NoticeHookItem {
   uint32 noticeHookId = 1;
   string createdAt = 2;
@@ -18,7 +23,7 @@ message NoticeHookItem {
   string url = 7;
   api.palace.common.HTTPMethod method = 8;
   string secret = 9;
-  map<string, string> headers = 10;
+  repeated Header headers = 10;
   api.palace.common.HookAPP app = 11;
   api.palace.common.UserBaseItem creator = 12;
   repeated api.palace.common.NoticeGroupItem noticeGroups = 13;

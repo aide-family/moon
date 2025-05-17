@@ -4013,9 +4013,6 @@ components:
                     type: string
                 remark:
                     type: string
-                status:
-                    type: integer
-                    format: enum
                 url:
                     type: string
                 secret:
@@ -4024,9 +4021,9 @@ components:
                     type: integer
                     format: enum
                 headers:
-                    type: object
-                    additionalProperties:
-                        type: string
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.Header'
                 app:
                     type: integer
                     format: enum
@@ -4687,6 +4684,13 @@ components:
             type: object
             properties: {}
             description: EmptyRequest represents an empty request, typically used for operations that do not require input parameters.
+        api.palace.common.Header:
+            type: object
+            properties:
+                key:
+                    type: string
+                value:
+                    type: string
         api.palace.common.MenuTreeItem:
             type: object
             properties:
@@ -4771,9 +4775,9 @@ components:
                 secret:
                     type: string
                 headers:
-                    type: object
-                    additionalProperties:
-                        type: string
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.Header'
                 app:
                     type: integer
                     format: enum

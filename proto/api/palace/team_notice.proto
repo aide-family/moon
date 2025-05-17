@@ -71,13 +71,12 @@ service TeamNotice {
 message SaveTeamNoticeHookRequest {
   string name = 1;
   string remark = 2;
-  api.palace.common.GlobalStatus status = 3;
-  string url = 4;
-  string secret = 5;
-  api.palace.common.HTTPMethod method = 6;
-  map<string, string> headers = 7;
-  api.palace.common.HookAPP app = 8;
-  uint32 hookId = 9;
+  string url = 3;
+  string secret = 4;
+  api.palace.common.HTTPMethod method = 5;
+  repeated api.palace.common.Header headers = 6;
+  api.palace.common.HookAPP app = 7;
+  uint32 hookId = 8;
 }
 
 message UpdateTeamNoticeHookStatusRequest {

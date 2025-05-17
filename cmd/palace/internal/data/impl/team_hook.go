@@ -52,7 +52,7 @@ func (t *teamHookImpl) Create(ctx context.Context, hook bo.NoticeHook) error {
 	noticeHook := &team.NoticeHook{
 		Name:    hook.GetName(),
 		Remark:  hook.GetRemark(),
-		Status:  hook.GetStatus(),
+		Status:  vobj.GlobalStatusEnable,
 		URL:     crypto.String(hook.GetURL()),
 		Method:  hook.GetMethod(),
 		Secret:  crypto.String(hook.GetSecret()),
@@ -77,7 +77,6 @@ func (t *teamHookImpl) Update(ctx context.Context, hook bo.NoticeHook) error {
 	mutations := []field.AssignExpr{
 		hookQuery.Name.Value(hook.GetName()),
 		hookQuery.Remark.Value(hook.GetRemark()),
-		hookQuery.Status.Value(hook.GetStatus().GetValue()),
 		hookQuery.Method.Value(hook.GetMethod().GetValue()),
 		hookQuery.Headers.Value(crypto.NewObject(hook.GetHeaders())),
 		hookQuery.APP.Value(hook.GetApp().GetValue()),
