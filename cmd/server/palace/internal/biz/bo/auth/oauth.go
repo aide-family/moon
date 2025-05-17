@@ -65,6 +65,10 @@ func NewOAuthRowData(app vobj.OAuthAPP, row string) (IOAuthUser, error) {
 		var giteeUser GiteeUser
 		err := types.Unmarshal([]byte(row), &giteeUser)
 		return &giteeUser, err
+	case vobj.OAuthFeiShu:
+		var feiShuUser FeiShuUser
+		err := types.Unmarshal([]byte(row), &feiShuUser)
+		return &feiShuUser, err
 	default:
 		return nil, merr.ErrorI18nNotificationSystemError(context.Background())
 	}
