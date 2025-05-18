@@ -153,8 +153,7 @@ message MetricDatasourceQueryRequest {
 
 message MetricDatasourceProxyRequest {
   uint32 datasourceId = 1 [(buf.validate.field).required = true];
-  uint32 teamId = 2 [(buf.validate.field).required = true];
-  string target = 3;
+  string target = 2;
 }
 
 message GetMetricDatasourceMetadataRequest {

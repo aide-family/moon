@@ -265,3 +265,35 @@ func (t *teamNoticeImpl) FindLabelNotices(ctx context.Context, labelNoticeIds []
 	}
 	return slices.Map(rows, func(row *team.StrategyMetricRuleLabelNotice) do.StrategyMetricRuleLabelNotice { return row }), nil
 }
+
+func (t *teamNoticeImpl) Select(ctx context.Context, req *bo.TeamNoticeGroupSelectRequest) (*bo.TeamNoticeGroupSelectReply, error) {
+	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
+	noticeGroupQuery := query.NoticeGroup
+	wrapper := noticeGroupQuery.WithContext(ctx).Where(noticeGroupQuery.TeamID.Eq(teamID))
+	if !req.Status.IsUnknown() {
+		wrapper = wrapper.Where(noticeGroupQuery.Status.Eq(req.Status.GetValue()))
+	}
+	if !validate.TextIsNull(req.Keyword) {
+		wrapper = wrapper.Where(noticeGroupQuery.Name.Like(req.Keyword))
+	}
+	if validate.IsNotNil(req.PaginationRequest) {
+		total, err := wrapper.Count()
+		if err != nil {
+			return nil, err
+		}
+		wrapper = wrapper.Offset(req.Offset()).Limit(int(req.Limit))
+		req.WithTotal(total)
+	}
+	selectColumns := []field.Expr{
+		noticeGroupQuery.ID,
+		noticeGroupQuery.Name,
+		noticeGroupQuery.Remark,
+		noticeGroupQuery.Status,
+		noticeGroupQuery.DeletedAt,
+	}
+	rows, err := wrapper.Select(selectColumns...).Order(noticeGroupQuery.ID.Desc()).Find()
+	if err != nil {
+		return nil, err
+	}
+	return req.ToSelectReply(slices.Map(rows, func(row *team.NoticeGroup) do.NoticeGroup { return row })), nil
+}

@@ -54,7 +54,7 @@ func ToStrategyHook(ctx context.Context, hook do.NoticeHook) *team.NoticeHook {
 		Name:         hook.GetName(),
 		Remark:       hook.GetRemark(),
 		Status:       hook.GetStatus(),
-		URL:          crypto.String(hook.GetURL()),
+		URL:          hook.GetURL(),
 		Method:       hook.GetMethod(),
 		Secret:       crypto.String(hook.GetSecret()),
 		Headers:      crypto.NewObject(hook.GetHeaders()),

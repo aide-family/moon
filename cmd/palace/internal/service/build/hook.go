@@ -41,6 +41,19 @@ func ToListTeamNoticeHookRequest(req *palace.ListTeamNoticeHookRequest) *bo.List
 	}
 }
 
+func ToTeamNoticeHookSelectRequest(req *palace.TeamNoticeHookSelectRequest) *bo.TeamNoticeHookSelectRequest {
+	if req == nil {
+		return nil
+	}
+	return &bo.TeamNoticeHookSelectRequest{
+		PaginationRequest: ToPaginationRequest(req.GetPagination()),
+		Status:            vobj.GlobalStatus(req.GetStatus()),
+		Apps:              slices.Map(req.GetApps(), func(app common.HookAPP) vobj.HookApp { return vobj.HookApp(app) }),
+		Keyword:           req.GetKeyword(),
+		URL:               req.GetUrl(),
+	}
+}
+
 // ToNoticeHookItem 转换钩子信息
 func ToNoticeHookItem(hook do.NoticeHook) *common.NoticeHookItem {
 	if hook == nil {

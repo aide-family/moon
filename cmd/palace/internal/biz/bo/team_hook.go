@@ -4,6 +4,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/util/kv"
+	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -118,3 +119,31 @@ type UpdateTeamNoticeHookStatusRequest struct {
 	HookID uint32            `json:"hookId"`
 	Status vobj.GlobalStatus `json:"status"`
 }
+
+type TeamNoticeHookSelectRequest struct {
+	*PaginationRequest
+	Status  vobj.GlobalStatus `json:"status"`
+	Keyword string            `json:"keyword"`
+	Apps    []vobj.HookApp    `json:"apps"`
+	URL     string            `json:"url"`
+}
+
+func (r *TeamNoticeHookSelectRequest) ToSelectReply(hooks []do.NoticeHook) *TeamNoticeHookSelectReply {
+	return &TeamNoticeHookSelectReply{
+		PaginationReply: r.ToReply(),
+		Items: slices.Map(hooks, func(hook do.NoticeHook) SelectItem {
+			return &selectItem{
+				Value:    hook.GetID(),
+				Label:    hook.GetName(),
+				Disabled: !hook.GetStatus().IsEnable() || hook.GetDeletedAt() != 0,
+				Extra: &selectItemExtra{
+					Remark: hook.GetRemark(),
+					Color:  hook.GetMethod().String(),
+					Icon:   hook.GetApp().String(),
+				},
+			}
+		}),
+	}
+}
+
+type TeamNoticeHookSelectReply = ListReply[SelectItem]

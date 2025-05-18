@@ -14,5 +14,6 @@ type TeamHook interface {
 	Delete(ctx context.Context, hookID uint32) error
 	Get(ctx context.Context, hookID uint32) (do.NoticeHook, error)
 	List(ctx context.Context, req *bo.ListTeamNoticeHookRequest) (*bo.ListTeamNoticeHookReply, error)
+	Select(ctx context.Context, req *bo.TeamNoticeHookSelectRequest) (*bo.TeamNoticeHookSelectReply, error)
 	Find(ctx context.Context, ids []uint32) ([]do.NoticeHook, error)
 }

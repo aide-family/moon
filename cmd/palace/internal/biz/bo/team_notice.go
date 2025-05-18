@@ -189,3 +189,27 @@ func (r *ListNoticeGroupReq) ToListReply(groups []do.NoticeGroup) *ListNoticeGro
 }
 
 type ListNoticeGroupReply = ListReply[do.NoticeGroup]
+
+type TeamNoticeGroupSelectRequest struct {
+	*PaginationRequest
+	Keyword string
+	Status  vobj.GlobalStatus
+}
+
+func (r *TeamNoticeGroupSelectRequest) ToSelectReply(groups []do.NoticeGroup) *TeamNoticeGroupSelectReply {
+	return &TeamNoticeGroupSelectReply{
+		PaginationReply: r.ToReply(),
+		Items: slices.Map(groups, func(group do.NoticeGroup) SelectItem {
+			return &selectItem{
+				Value:    group.GetID(),
+				Label:    group.GetName(),
+				Disabled: !group.GetStatus().IsEnable() || group.GetDeletedAt() != 0,
+				Extra: &selectItemExtra{
+					Remark: group.GetRemark(),
+				},
+			}
+		}),
+	}
+}
+
+type TeamNoticeGroupSelectReply = ListReply[SelectItem]

@@ -38,6 +38,12 @@ service TeamNotice {
       body: "*"
     };
   }
+  rpc TeamNoticeHookSelect (TeamNoticeHookSelectRequest) returns (TeamNoticeHookSelectReply) {
+    option (google.api.http) = {
+      post: "/api/team/notice/hook/select"
+      body: "*"
+    };
+  }
   rpc SaveTeamNoticeGroup (SaveTeamNoticeGroupRequest) returns (api.palace.common.EmptyReply) {
     option (google.api.http) = {
       post: "/api/team/notice/group"
@@ -63,6 +69,12 @@ service TeamNotice {
   rpc ListTeamNoticeGroup (ListTeamNoticeGroupRequest) returns (ListTeamNoticeGroupReply) {
     option (google.api.http) = {
       post: "/api/team/notice/group/list"
+      body: "*"
+    };
+  }
+  rpc TeamNoticeGroupSelect (TeamNoticeGroupSelectRequest) returns (TeamNoticeGroupSelectReply) {
+    option (google.api.http) = {
+      post: "/api/team/notice/group/select"
       body: "*"
     };
   }
@@ -104,6 +116,18 @@ message ListTeamNoticeHookReply {
   repeated api.palace.common.NoticeHookItem items = 2;
 }
 
+message TeamNoticeHookSelectRequest {
+  api.palace.common.PaginationRequest pagination = 1;
+  repeated api.palace.common.HookAPP apps = 2;
+  api.palace.common.GlobalStatus status = 3;
+  string keyword = 4;
+  string url = 5;
+}
+message TeamNoticeHookSelectReply {
+  repeated api.palace.common.SelectItem items = 1;
+  api.palace.common.PaginationReply pagination = 2;
+}
+
 message SaveTeamNoticeGroupRequest {
   message Member {
     uint32 memberId = 1;
@@ -141,4 +165,14 @@ message ListTeamNoticeGroupRequest {
 message ListTeamNoticeGroupReply {
   api.palace.common.PaginationReply pagination = 1;
   repeated api.palace.common.NoticeGroupItem items = 2;
+}
+
+message TeamNoticeGroupSelectRequest {
+  api.palace.common.PaginationRequest pagination = 1;
+  api.palace.common.GlobalStatus status = 2;
+  string keyword = 3;
+}
+message TeamNoticeGroupSelectReply {
+  repeated api.palace.common.SelectItem items = 1;
+  api.palace.common.PaginationReply pagination = 2;
 }

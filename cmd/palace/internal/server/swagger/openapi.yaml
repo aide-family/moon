@@ -1435,6 +1435,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.ListTeamNoticeGroupReply'
+    /api/team/notice/group/select:
+        post:
+            tags:
+                - TeamNotice
+            operationId: TeamNotice_TeamNoticeGroupSelect
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.TeamNoticeGroupSelectRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.TeamNoticeGroupSelectReply'
     /api/team/notice/group/status:
         put:
             tags:
@@ -1523,6 +1541,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.ListTeamNoticeHookReply'
+    /api/team/notice/hook/select:
+        post:
+            tags:
+                - TeamNotice
+            operationId: TeamNotice_TeamNoticeHookSelect
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.TeamNoticeHookSelectRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.TeamNoticeHookSelectReply'
     /api/team/notice/hook/status:
         put:
             tags:
@@ -4269,6 +4305,51 @@ components:
                 datasourceId:
                     type: integer
                     format: uint32
+        api.palace.TeamNoticeGroupSelectReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.SelectItem'
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+        api.palace.TeamNoticeGroupSelectRequest:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                status:
+                    type: integer
+                    format: enum
+                keyword:
+                    type: string
+        api.palace.TeamNoticeHookSelectReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.SelectItem'
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+        api.palace.TeamNoticeHookSelectRequest:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                apps:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+                status:
+                    type: integer
+                    format: enum
+                keyword:
+                    type: string
+                url:
+                    type: string
         api.palace.TeamOperateLogListReply:
             type: object
             properties:

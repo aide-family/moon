@@ -70,33 +70,6 @@ func ToSaveTeamMetricDatasourceRequest(req *palace.SaveTeamMetricDatasourceReque
 	}
 }
 
-func ToSelectItem(item do.Datasource) *palacecommon.SelectItem {
-	if validate.IsNil(item) {
-		return nil
-	}
-	datasourceType := item.GetType().String()
-	datasourceDriver := item.GetStorageDriver()
-	return &palacecommon.SelectItem{
-		Value:    item.GetID(),
-		Label:    item.GetName(),
-		Disabled: item.GetDeletedAt() != 0 || !item.GetStatus().IsEnable(),
-		Extra: &palacecommon.SelectItem_Extra{
-			Remark: item.GetRemark(),
-			Icon:   datasourceDriver,
-			Color:  datasourceType,
-		},
-	}
-}
-
-func ToSelectItems(items []do.Datasource) []*palacecommon.SelectItem {
-	return slices.MapFilter(items, func(item do.Datasource) (*palacecommon.SelectItem, bool) {
-		if validate.IsNil(item) {
-			return nil, false
-		}
-		return ToSelectItem(item), true
-	})
-}
-
 func ToDatasourceSelectRequest(req *palace.DatasourceSelectRequest) *bo.DatasourceSelect {
 	if validate.IsNil(req) {
 		return nil

@@ -89,7 +89,7 @@ func registerOAuth2Routes(c *conf.Auth_OAuth2, httpSrv *http.Server, authService
 
 func registerTeamDatasourceRoutes(srv *http.Server, teamDatasourceService *service.TeamDatasourceService) {
 	metricRoute := srv.Route("/datasource/metric")
-	publicRoute := "/{teamId}/{datasourceId}/{target:[^/]+(?:/[^?]*)}"
+	publicRoute := "/{datasourceId}/{target:[^/]+(?:/[^?]*)}"
 	metricRoute.GET(publicRoute, teamDatasourceService.MetricDatasourceProxy)
 	metricRoute.POST(publicRoute, teamDatasourceService.MetricDatasourceProxy)
 	metricRoute.DELETE(publicRoute, teamDatasourceService.MetricDatasourceProxy)

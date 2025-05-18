@@ -53,7 +53,7 @@ func (t *teamHookImpl) Create(ctx context.Context, hook bo.NoticeHook) error {
 		Name:    hook.GetName(),
 		Remark:  hook.GetRemark(),
 		Status:  vobj.GlobalStatusEnable,
-		URL:     crypto.String(hook.GetURL()),
+		URL:     hook.GetURL(),
 		Method:  hook.GetMethod(),
 		Secret:  crypto.String(hook.GetSecret()),
 		Headers: crypto.NewObject(hook.GetHeaders()),
@@ -80,12 +80,8 @@ func (t *teamHookImpl) Update(ctx context.Context, hook bo.NoticeHook) error {
 		hookQuery.Method.Value(hook.GetMethod().GetValue()),
 		hookQuery.Headers.Value(crypto.NewObject(hook.GetHeaders())),
 		hookQuery.APP.Value(hook.GetApp().GetValue()),
-	}
-	if validate.TextIsNotNull(hook.GetSecret()) {
-		mutations = append(mutations, hookQuery.Secret.Value(crypto.String(hook.GetSecret())))
-	}
-	if validate.TextIsNotNull(hook.GetURL()) {
-		mutations = append(mutations, hookQuery.URL.Value(crypto.String(hook.GetURL())))
+		hookQuery.Secret.Value(crypto.String(hook.GetSecret())),
+		hookQuery.URL.Value(hook.GetURL()),
 	}
 
 	_, err := hookQuery.WithContext(ctx).Where(wrapper...).UpdateSimple(mutations...)
@@ -166,4 +162,46 @@ func (t *teamHookImpl) List(ctx context.Context, req *bo.ListTeamNoticeHookReque
 	}
 	rows := slices.Map(noticeHooks, func(noticeHook *team.NoticeHook) do.NoticeHook { return noticeHook })
 	return req.ToListReply(rows), nil
+}
+
+func (t *teamHookImpl) Select(ctx context.Context, req *bo.TeamNoticeHookSelectRequest) (*bo.TeamNoticeHookSelectReply, error) {
+	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
+
+	hookQuery := query.NoticeHook
+	wrapper := hookQuery.WithContext(ctx).Where(hookQuery.TeamID.Eq(teamID))
+	if !req.Status.IsUnknown() {
+		wrapper = wrapper.Where(hookQuery.Status.Eq(req.Status.GetValue()))
+	}
+	if len(req.Apps) > 0 {
+		wrapper = wrapper.Where(hookQuery.APP.In(slices.Map(req.Apps, func(app vobj.HookApp) int8 { return app.GetValue() })...))
+	}
+	if !validate.TextIsNull(req.Keyword) {
+		wrapper = wrapper.Where(hookQuery.Name.Like(req.Keyword))
+	}
+	if !validate.TextIsNull(req.URL) {
+		wrapper = wrapper.Where(hookQuery.URL.Eq(req.URL))
+	}
+	if validate.IsNotNil(req.PaginationRequest) {
+		total, err := wrapper.Count()
+		if err != nil {
+			return nil, err
+		}
+		wrapper = wrapper.Offset(req.Offset()).Limit(int(req.Limit))
+		req.WithTotal(total)
+	}
+	selectColumns := []field.Expr{
+		hookQuery.ID,
+		hookQuery.Name,
+		hookQuery.Remark,
+		hookQuery.Status,
+		hookQuery.Method,
+		hookQuery.APP,
+		hookQuery.DeletedAt,
+	}
+	noticeHooks, err := wrapper.Select(selectColumns...).Order(hookQuery.ID.Desc()).Find()
+	if err != nil {
+		return nil, err
+	}
+	rows := slices.Map(noticeHooks, func(noticeHook *team.NoticeHook) do.NoticeHook { return noticeHook })
+	return req.ToSelectReply(rows), nil
 }

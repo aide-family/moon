@@ -78,6 +78,17 @@ func (s *TeamNoticeService) ListTeamNoticeHook(ctx context.Context, req *palace.
 	}, nil
 }
 
+func (s *TeamNoticeService) TeamNoticeHookSelect(ctx context.Context, req *palace.TeamNoticeHookSelectRequest) (*palace.TeamNoticeHookSelectReply, error) {
+	reply, err := s.teamHookBiz.SelectHook(ctx, build.ToTeamNoticeHookSelectRequest(req))
+	if err != nil {
+		return nil, err
+	}
+	return &palace.TeamNoticeHookSelectReply{
+		Pagination: build.ToPaginationReply(reply.PaginationReply),
+		Items:      build.ToSelectItems(reply.Items),
+	}, nil
+}
+
 func (s *TeamNoticeService) SaveTeamNoticeGroup(ctx context.Context, req *palace.SaveTeamNoticeGroupRequest) (*common.EmptyReply, error) {
 	members := slices.Map(req.GetMembers(), func(member *palace.SaveTeamNoticeGroupRequest_Member) *bo.SaveNoticeMemberItem {
 		return &bo.SaveNoticeMemberItem{
@@ -142,5 +153,16 @@ func (s *TeamNoticeService) ListTeamNoticeGroup(ctx context.Context, req *palace
 	return &palace.ListTeamNoticeGroupReply{
 		Pagination: build.ToPaginationReply(reply.PaginationReply),
 		Items:      build.ToNoticeGroupItems(reply.Items),
+	}, nil
+}
+
+func (s *TeamNoticeService) TeamNoticeGroupSelect(ctx context.Context, req *palace.TeamNoticeGroupSelectRequest) (*palace.TeamNoticeGroupSelectReply, error) {
+	reply, err := s.teamNoticeBiz.SelectNoticeGroup(ctx, build.ToTeamNoticeGroupSelectRequest(req))
+	if err != nil {
+		return nil, err
+	}
+	return &palace.TeamNoticeGroupSelectReply{
+		Pagination: build.ToPaginationReply(reply.PaginationReply),
+		Items:      build.ToSelectItems(reply.Items),
 	}, nil
 }

@@ -92,3 +92,7 @@ func (t *TeamNotice) GetNoticeGroup(ctx context.Context, groupID uint32) (do.Not
 func (t *TeamNotice) TeamNoticeGroups(ctx context.Context, req *bo.ListNoticeGroupReq) (*bo.ListNoticeGroupReply, error) {
 	return t.teamNoticeRepo.List(ctx, req)
 }
+
+func (t *TeamNotice) SelectNoticeGroup(ctx context.Context, req *bo.TeamNoticeGroupSelectRequest) (*bo.TeamNoticeGroupSelectReply, error) {
+	return t.teamNoticeRepo.Select(ctx, req)
+}

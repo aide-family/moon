@@ -181,6 +181,7 @@ func (t *teamMetricDatasourceImpl) Select(ctx context.Context, req *bo.Datasourc
 		mutation.Status,
 		mutation.Remark,
 		mutation.Driver,
+		mutation.DeletedAt,
 	}
 	datasourceDos, err := wrapper.Select(selectColumns...).Find()
 	if err != nil {

@@ -69,3 +69,11 @@ func (h *TeamHook) ListHook(ctx context.Context, req *bo.ListTeamNoticeHookReque
 	}
 	return h.teamHookRepo.List(ctx, req)
 }
+
+// SelectHook 获取钩子列表
+func (h *TeamHook) SelectHook(ctx context.Context, req *bo.TeamNoticeHookSelectRequest) (*bo.TeamNoticeHookSelectReply, error) {
+	if req == nil {
+		return nil, merr.ErrorParamsError("invalid request")
+	}
+	return h.teamHookRepo.Select(ctx, req)
+}

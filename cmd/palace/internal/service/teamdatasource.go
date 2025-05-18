@@ -195,7 +195,6 @@ func (s *TeamDatasourceService) MetricDatasourceProxy(httpCtx http.Context) erro
 	http.SetOperation(httpCtx, OperationTeamDatasourceMetricDatasourceProxy)
 
 	h := httpCtx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-		ctx = permission.WithTeamIDContext(ctx, in.GetTeamId())
 		datasourceDo, err := s.teamDatasourceBiz.GetMetricDatasource(ctx, in.GetDatasourceId())
 		if err != nil {
 			return nil, err

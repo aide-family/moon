@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/pkg/plugin/datasource"
 	"github.com/aide-family/moon/pkg/plugin/datasource/prometheus"
 	"github.com/aide-family/moon/pkg/util/kv"
+	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -213,8 +214,21 @@ type DatasourceSelect struct {
 func (r *DatasourceSelect) ToSelectReply(datasources []do.Datasource) *DatasourceSelectReply {
 	return &DatasourceSelectReply{
 		PaginationReply: r.ToReply(),
-		Items:           datasources,
+		Items: slices.Map(datasources, func(item do.Datasource) SelectItem {
+			datasourceType := item.GetType().String()
+			datasourceDriver := item.GetStorageDriver()
+			return &selectItem{
+				Value:    item.GetID(),
+				Label:    item.GetName(),
+				Disabled: !item.GetStatus().IsEnable() || item.GetDeletedAt() != 0,
+				Extra: &selectItemExtra{
+					Remark: item.GetRemark(),
+					Icon:   datasourceDriver,
+					Color:  datasourceType,
+				},
+			}
+		}),
 	}
 }
 
-type DatasourceSelectReply = ListReply[do.Datasource]
+type DatasourceSelectReply = ListReply[SelectItem]
