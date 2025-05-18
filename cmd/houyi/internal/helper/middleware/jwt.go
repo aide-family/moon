@@ -13,7 +13,7 @@ func NewJwtClaims(c *config.JWT, token string) *JwtClaims {
 	return &JwtClaims{
 		signKey: c.SignKey,
 		Token:   token,
-		RegisteredClaims: &jwtv5.RegisteredClaims{
+		RegisteredClaims: jwtv5.RegisteredClaims{
 			Issuer:    c.Issuer,
 			Subject:   "moon.houyi",
 			ExpiresAt: jwtv5.NewNumericDate(now.Add(c.GetExpire().AsDuration())),
@@ -28,7 +28,7 @@ type JwtClaims struct {
 	signKey string
 	Token   string `json:"token"`
 	Name    string `json:"name"`
-	*jwtv5.RegisteredClaims
+	jwtv5.RegisteredClaims
 }
 
 // GetToken get token

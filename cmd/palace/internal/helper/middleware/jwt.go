@@ -30,8 +30,8 @@ type JwtBaseInfo struct {
 // JwtClaims jwt claims
 type JwtClaims struct {
 	signKey string
-	*JwtBaseInfo
-	*jwtv5.RegisteredClaims
+	JwtBaseInfo
+	jwtv5.RegisteredClaims
 }
 
 // ParseJwtClaims parse jwt claims
@@ -115,11 +115,11 @@ func MustLogin(validate TokenValidateFunc) middleware.Middleware {
 }
 
 // NewJwtClaims new jwt claims
-func NewJwtClaims(c *config.JWT, base *JwtBaseInfo) *JwtClaims {
+func NewJwtClaims(c *config.JWT, base JwtBaseInfo) *JwtClaims {
 	return &JwtClaims{
 		signKey:     c.GetSignKey(),
 		JwtBaseInfo: base,
-		RegisteredClaims: &jwtv5.RegisteredClaims{
+		RegisteredClaims: jwtv5.RegisteredClaims{
 			ExpiresAt: jwtv5.NewNumericDate(timex.Now().Add(c.GetExpire().AsDuration())),
 			Issuer:    c.GetIssuer(),
 		},

@@ -17,7 +17,7 @@ func Test_GenJWTToken(t *testing.T) {
 		Expire:          durationpb.New(time.Hour * 24 * 365),
 		AllowOperations: nil,
 	}
-	claims := middleware.NewJwtClaims(c, &middleware.JwtBaseInfo{
+	claims := middleware.NewJwtClaims(c, middleware.JwtBaseInfo{
 		UserID:   1,
 		Username: "admin",
 		Nickname: "管理员",

@@ -25,6 +25,7 @@ type TLS struct {
 	ServerName string `json:"serverName"`
 	ClientCert string `json:"clientCert"`
 	ClientKey  string `json:"clientKey"`
+	SkipVerify bool   `json:"skipVerify"`
 }
 
 // GetClientCertificate implements datasource.TLS.
@@ -40,4 +41,9 @@ func (t *TLS) GetClientKey() string {
 // GetServerName implements datasource.TLS.
 func (t *TLS) GetServerName() string {
 	return t.ServerName
+}
+
+// GetSkipVerify implements datasource.TLS.
+func (t *TLS) GetSkipVerify() bool {
+	return t.SkipVerify
 }

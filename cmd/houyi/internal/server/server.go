@@ -21,6 +21,7 @@ var ProviderSetServer = wire.NewSet(
 	NewCronAlertJobServer,
 	NewEventBusServer,
 	NewLoadTickerServer,
+	NewTicker,
 )
 
 // RegisterService register service
@@ -28,6 +29,7 @@ func RegisterService(
 	c *conf.Bootstrap,
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
+	tickerSrv *server.Ticker,
 	cronStrategySrv *CronStrategyJobServer,
 	cronAlertSrv *CronAlertJobServer,
 	eventBusService *EventBusServer,
@@ -51,5 +53,6 @@ func RegisterService(
 		cronAlertSrv,
 		eventBusService,
 		loadTickerSrv,
+		tickerSrv,
 	}
 }

@@ -87,12 +87,12 @@ func InitGRPCClient(initConfig *InitConfig) (*ggrpc.ClientConn, error) {
 		grpc.WithMiddleware(middlewares...),
 	}
 
-	nodeVersion := strings.TrimSpace(initConfig.MicroConfig.GetVersion())
-	if nodeVersion != "" {
-		nodeFilter := filter.Version(nodeVersion)
-		selector.SetGlobalSelector(wrr.NewBuilder())
-		opts = append(opts, grpc.WithNodeFilter(nodeFilter))
-	}
+	//nodeVersion := strings.TrimSpace(initConfig.MicroConfig.GetVersion())
+	//if nodeVersion != "" {
+	//	nodeFilter := filter.Version(nodeVersion)
+	//	selector.SetGlobalSelector(wrr.NewBuilder())
+	//	opts = append(opts, grpc.WithNodeFilter(nodeFilter))
+	//}
 
 	if initConfig.Registry != nil && initConfig.Registry.GetEnable() {
 		var err error

@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/aide-family/moon/pkg/util/validate"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
@@ -92,7 +93,7 @@ func (t *TeamDatasource) BatchSaveMetricDatasourceMetadata(ctx context.Context, 
 	return t.teamDatasourceMetricMetadataRepo.BatchSave(ctx, req)
 }
 
-func (t *TeamDatasource) SyncMetricMetadata(ctx context.Context, req *bo.SyncMetricMetadataRequest) error {
+func (t *TeamDatasource) SyncMetricMetadata(ctx context.Context, req *bo.SyncMetricMetadataRequest) (err error) {
 	syncClient, ok := t.houyiRepo.Sync()
 	if !ok {
 		return merr.ErrorBadRequest("同步服务未启动")
@@ -103,7 +104,8 @@ func (t *TeamDatasource) SyncMetricMetadata(ctx context.Context, req *bo.SyncMet
 		return err
 	}
 	teamDo := datasourceMetricDo.GetTeam()
-	locked, err := t.cacheRepo.Lock(ctx, repository.TeamDatasourceMetricMetadataSyncKey.Key(teamDo.GetID(), req.DatasourceID), 5*time.Minute)
+	key := repository.TeamDatasourceMetricMetadataSyncKey.Key(teamDo.GetID(), req.DatasourceID)
+	locked, err := t.cacheRepo.Lock(ctx, key, 5*time.Minute)
 	if err != nil {
 		t.helper.WithContext(ctx).Warnw("msg", "lock team datasource metric metadata sync key error", "err", err)
 		return err
@@ -111,6 +113,11 @@ func (t *TeamDatasource) SyncMetricMetadata(ctx context.Context, req *bo.SyncMet
 	if !locked {
 		return merr.ErrorBadRequest("数据源元数据同步正在执行中，请稍后再试")
 	}
+	defer func() {
+		if validate.IsNotNil(err) {
+			_ = t.cacheRepo.Unlock(ctx, key)
+		}
+	}()
 	reply, err := syncClient.MetricMetadata(ctx, &houyiv1.MetricMetadataRequest{
 		Item:       NewMetricDatasourceItem(datasourceMetricDo),
 		OperatorId: permission.GetUserIDByContextWithDefault(ctx, teamDo.GetCreatorID()),

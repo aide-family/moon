@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/config"
 	"github.com/aide-family/moon/pkg/hello"
 	"github.com/aide-family/moon/pkg/util/pointer"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func NewRegisterBiz(bc *conf.Bootstrap, serverRegisterRepo repository.ServerRegister, logger log.Logger) *RegisterBiz {
@@ -34,6 +35,7 @@ func (b *RegisterBiz) register(online bool) *common.ServerRegisterRequest {
 	serverConfig := b.bc.GetServer()
 	jwtConf := b.bc.GetAuth().GetJwt()
 	params := &common.ServerRegisterRequest{
+		ServerType: common.ServerRegisterRequest_HOUYI,
 		Server: &config.MicroServer{
 			Endpoint: serverConfig.GetOutEndpoint(),
 			Secret:   pointer.Of(jwtConf.GetSignKey()),
@@ -54,7 +56,7 @@ func (b *RegisterBiz) register(online bool) *common.ServerRegisterRequest {
 		params.Server.Timeout = serverConfig.GetHttp().GetTimeout()
 	}
 	register := b.bc.GetRegistry()
-	if register != nil {
+	if validate.IsNotNil(register) && register.GetEnable() {
 		params.Discovery = &config.Discovery{
 			Driver: register.GetDriver(),
 			Enable: register.GetEnable(),

@@ -46,6 +46,7 @@ func RegisterService(
 	common.RegisterHealthServer(rpcSrv, healthService)
 	common.RegisterServerServer(rpcSrv, serverService)
 	palace.RegisterAlertServer(rpcSrv, alertService)
+	palace.RegisterCallbackServer(rpcSrv, callbackService)
 
 	common.RegisterHealthHTTPServer(httpSrv, healthService)
 	common.RegisterServerHTTPServer(httpSrv, serverService)

@@ -145,7 +145,7 @@ func (a *AuthBiz) RefreshToken(ctx context.Context, req *bo.RefreshToken) (*bo.L
 }
 
 func (a *AuthBiz) login(userDo do.User) (*bo.LoginSign, error) {
-	base := &middleware.JwtBaseInfo{
+	base := middleware.JwtBaseInfo{
 		UserID:   userDo.GetID(),
 		Username: userDo.GetUsername(),
 		Nickname: userDo.GetNickname(),
@@ -157,7 +157,7 @@ func (a *AuthBiz) login(userDo do.User) (*bo.LoginSign, error) {
 		return nil, err
 	}
 	return &bo.LoginSign{
-		Base:           base,
+		Base:           &base,
 		ExpiredSeconds: int64(a.bc.GetAuth().GetJwt().GetExpire().AsDuration().Seconds()),
 		Token:          token,
 	}, nil
