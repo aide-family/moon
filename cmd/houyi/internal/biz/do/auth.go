@@ -1,16 +1,16 @@
 package do
 
 type TLS struct {
-	ServerName        string `json:"serverName,omitempty"`
-	ClientCertificate string `json:"clientCertificate,omitempty"`
-	ClientKey         string `json:"clientKey,omitempty"`
+	ServerName string `json:"serverName,omitempty"`
+	ClientCert string `json:"clientCert,omitempty"`
+	ClientKey  string `json:"clientKey,omitempty"`
 }
 
-func (t *TLS) GetClientCertificate() string {
+func (t *TLS) GetClientCert() string {
 	if t == nil {
 		return ""
 	}
-	return t.ClientCertificate
+	return t.ClientCert
 }
 
 func (t *TLS) GetClientKey() string {

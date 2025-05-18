@@ -199,12 +199,8 @@ func (m *Metric) QueryMetricDatasource(ctx context.Context, req *bo.MetricDataso
 		return nil, err
 	}
 
-	if req.EndTime > req.StartTime && req.EndTime > 0 {
-		queryRangeRequest := &bo.MetricRangeQueryRequest{
-			Expr:      req.Expr,
-			StartTime: time.Unix(req.StartTime, 0),
-			EndTime:   time.Unix(req.EndTime, 0),
-		}
+	if req.IsQueryRange() {
+		queryRangeRequest := req.GetQueryRange()
 		queryResponse, err := metricInstance.QueryRange(ctx, queryRangeRequest)
 		if err != nil {
 			m.helper.WithContext(ctx).Errorw("msg", "query metric datasource error", "err", err)
@@ -213,10 +209,7 @@ func (m *Metric) QueryMetricDatasource(ctx context.Context, req *bo.MetricDataso
 		return NewMetricDatasourceQueryReply(WithMetricDatasourceQueryRangeReply(queryResponse)), nil
 	}
 
-	queryRequest := &bo.MetricQueryRequest{
-		Expr: req.Expr,
-		Time: time.Unix(req.Time, 0),
-	}
+	queryRequest := req.GetQuery()
 	queryResponse, err := metricInstance.Query(ctx, queryRequest)
 	if err != nil {
 		m.helper.WithContext(ctx).Errorw("msg", "query metric datasource error", "err", err)

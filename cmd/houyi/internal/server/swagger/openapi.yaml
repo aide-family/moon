@@ -590,13 +590,13 @@ components:
                     type: integer
                     format: enum
                 headers:
-                    type: object
-                    additionalProperties:
-                        type: string
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.KeyValueItem'
                 params:
-                    type: object
-                    additionalProperties:
-                        type: string
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.KeyValueItem'
                 body:
                     type: string
         api.houyi.common.HttpStrategyItem:
@@ -657,6 +657,13 @@ components:
                     type: array
                     items:
                         type: string
+        api.houyi.common.KeyValueItem:
+            type: object
+            properties:
+                key:
+                    type: string
+                value:
+                    type: string
         api.houyi.common.LogDatasourceItem:
             type: object
             properties:
@@ -781,10 +788,8 @@ components:
                 driver:
                     type: integer
                     format: enum
-                prometheus:
-                    $ref: '#/components/schemas/api.houyi.common.MetricDatasourceItem_Prometheus'
-                victoriaMetrics:
-                    $ref: '#/components/schemas/api.houyi.common.MetricDatasourceItem_VictoriaMetrics'
+                config:
+                    $ref: '#/components/schemas/api.houyi.common.MetricDatasourceItem_Config'
                 enable:
                     type: boolean
                 id:
@@ -795,7 +800,7 @@ components:
                 scrapeInterval:
                     pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
                     type: string
-        api.houyi.common.MetricDatasourceItem_Prometheus:
+        api.houyi.common.MetricDatasourceItem_Config:
             type: object
             properties:
                 endpoint:
@@ -803,27 +808,9 @@ components:
                 basicAuth:
                     $ref: '#/components/schemas/api.houyi.common.BasicAuth'
                 headers:
-                    type: object
-                    additionalProperties:
-                        type: string
-                ca:
-                    type: string
-                tls:
-                    $ref: '#/components/schemas/api.houyi.common.TLS'
-                method:
-                    type: integer
-                    format: enum
-        api.houyi.common.MetricDatasourceItem_VictoriaMetrics:
-            type: object
-            properties:
-                endpoint:
-                    type: string
-                basicAuth:
-                    $ref: '#/components/schemas/api.houyi.common.BasicAuth'
-                headers:
-                    type: object
-                    additionalProperties:
-                        type: string
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.KeyValueItem'
                 ca:
                     type: string
                 tls:

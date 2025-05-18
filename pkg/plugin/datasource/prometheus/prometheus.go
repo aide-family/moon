@@ -189,7 +189,7 @@ func (p *Prometheus) configureHTTPClient(ctx context.Context) httpx.Client {
 
 	// Configure TLS if available
 	if tls := p.c.GetTLS(); validate.IsNotNil(tls) {
-		hx = hx.WithTLSClientConfig(tls.GetClientCertificate(), tls.GetClientKey())
+		hx = hx.WithTLSClientConfig(tls.GetClientCert(), tls.GetClientKey())
 		if serverName := tls.GetServerName(); serverName != "" {
 			hx = hx.WithServerName(serverName)
 		}

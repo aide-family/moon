@@ -71,9 +71,9 @@ func (c *configImpl) SetMetricDatasourceConfig(ctx context.Context, configs ...b
 		tls := v.GetTLS()
 		if validate.IsNotNil(tls) {
 			item.TLS = &do.TLS{
-				ClientCertificate: tls.GetClientCertificate(),
-				ClientKey:         tls.GetClientKey(),
-				ServerName:        tls.GetServerName(),
+				ClientCert: tls.GetClientCert(),
+				ClientKey:  tls.GetClientKey(),
+				ServerName: tls.GetServerName(),
 			}
 		}
 		configDos[item.UniqueKey()] = item

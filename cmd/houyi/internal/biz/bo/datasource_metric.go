@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/pkg/api/houyi/common"
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/plugin/datasource"
+	"github.com/aide-family/moon/pkg/util/kv"
 )
 
 type MetricDatasourceConfig interface {
@@ -15,7 +16,7 @@ type MetricDatasourceConfig interface {
 	GetName() string
 	GetDriver() common.MetricDatasourceDriver
 	GetEndpoint() string
-	GetHeaders() map[string]string
+	GetHeaders() []*kv.KV
 	GetMethod() common.DatasourceQueryMethod
 	GetBasicAuth() datasource.BasicAuth
 	GetTLS() datasource.TLS
@@ -74,6 +75,25 @@ type MetricDatasourceQueryRequest struct {
 	StartTime  int64
 	EndTime    int64
 	Step       uint32
+}
+
+func (m *MetricDatasourceQueryRequest) IsQueryRange() bool {
+	return m.EndTime > m.StartTime && m.EndTime > 0
+}
+
+func (m *MetricDatasourceQueryRequest) GetQueryRange() *MetricRangeQueryRequest {
+	return &MetricRangeQueryRequest{
+		Expr:      m.Expr,
+		StartTime: time.Unix(m.StartTime, 0),
+		EndTime:   time.Unix(m.EndTime, 0),
+	}
+}
+
+func (m *MetricDatasourceQueryRequest) GetQuery() *MetricQueryRequest {
+	return &MetricQueryRequest{
+		Expr: m.Expr,
+		Time: time.Unix(m.Time, 0),
+	}
 }
 
 type MetricQueryValue struct {

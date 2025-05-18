@@ -28,7 +28,7 @@ type TLS struct {
 }
 
 // GetClientCertificate implements datasource.TLS.
-func (t *TLS) GetClientCertificate() string {
+func (t *TLS) GetClientCert() string {
 	return t.ClientCert
 }
 

@@ -7,6 +7,11 @@ import "houyi/common/team.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/houyi/common;common";
 
+message KeyValueItem {
+  string key = 1;
+  string value = 2;
+}
+
 message BasicAuth {
   string username = 1;
   string password = 2;
@@ -37,19 +42,10 @@ enum MetricDatasourceDriver {
 }
 
 message MetricDatasourceItem {
-  message Prometheus {
+  message Config {
     string endpoint = 1;
     BasicAuth basicAuth = 2;
-    map<string, string> headers = 3;
-    string ca = 4;
-    TLS tls = 5;
-    DatasourceQueryMethod method = 6;
-  }
-
-  message VictoriaMetrics {
-    string endpoint = 1;
-    BasicAuth basicAuth = 2;
-    map<string, string> headers = 3;
+    repeated KeyValueItem headers = 3;
     string ca = 4;
     TLS tls = 5;
     DatasourceQueryMethod method = 6;
@@ -57,12 +53,11 @@ message MetricDatasourceItem {
 
   houyi.common.TeamItem team = 1;
   MetricDatasourceDriver driver = 2;
-  Prometheus prometheus = 3;
-  VictoriaMetrics victoriaMetrics = 4;
-  bool enable = 5;
-  uint32 id = 6;
-  string name = 7;
-  google.protobuf.Duration scrapeInterval = 8;
+  Config config = 3;
+  bool enable = 4;
+  uint32 id = 5;
+  string name = 6;
+  google.protobuf.Duration scrapeInterval = 7;
 }
 
 enum LogDatasourceDriver {
@@ -170,8 +165,8 @@ message ServerPortDatasourceItem {
 message HttpDatasourceItem {
   string url = 1;
   DatasourceQueryMethod method = 2;
-  map<string, string> headers = 3;
-  map<string, string> params = 4;
+  repeated KeyValueItem headers = 3;
+  repeated KeyValueItem params = 4;
   string body = 5;
 }
 

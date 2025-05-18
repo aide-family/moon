@@ -20,8 +20,8 @@ func ToTLS(tls *common.TLS) *do.TLS {
 		return nil
 	}
 	return &do.TLS{
-		ClientCertificate: tls.GetClientCertificate(),
-		ClientKey:         tls.GetClientKey(),
-		ServerName:        tls.GetServerName(),
+		ClientCert: tls.GetClientCert(),
+		ClientKey:  tls.GetClientKey(),
+		ServerName: tls.GetServerName(),
 	}
 }
