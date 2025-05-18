@@ -15,6 +15,7 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/datasource"
 	"github.com/aide-family/moon/pkg/util/httpx"
+	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/timex"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
@@ -137,10 +138,11 @@ func (p *Prometheus) sendMetadata(send chan<- *datasource.MetricMetadata, metric
 		metricNameMap[metricName] = metrics[metricName][0]
 	}
 
-	now := timex.Now()
+	now := timex.Now().Add(-8 * time.Hour)
 	batchNum := 20
 	namesLen := len(metricNames)
 	eg := new(errgroup.Group)
+	eg.SetLimit(10)
 	for i := 0; i < namesLen; i += batchNum {
 		left := i
 		right := left + batchNum
@@ -281,16 +283,15 @@ func (p *Prometheus) queryRange(ctx context.Context, expr string, start, end int
 }
 
 func (p *Prometheus) series(ctx context.Context, now time.Time, metricNames ...string) (map[string]map[string][]string, error) {
-	start := now.Add(-time.Hour * 24).Format("2006-01-02T15:04:05.000Z")
+	start := now.Add(-time.Hour * 12).Format("2006-01-02T15:04:05.000Z")
 	end := now.Format("2006-01-02T15:04:05.000Z")
 
 	params := httpx.ParseQuery(map[string]any{
 		"start": start,
 		"end":   end,
 	})
-
 	for _, metricName := range metricNames {
-		params.Set("match[]", metricName)
+		params.Add("match[]", metricName)
 	}
 
 	hx := p.configureHTTPClient(ctx)
@@ -315,7 +316,6 @@ func (p *Prometheus) series(ctx context.Context, now time.Time, metricNames ...s
 	if err = json.NewDecoder(getResponse.Body).Decode(&allResp); err != nil {
 		return nil, err
 	}
-
 	res := make(map[string]map[string][]string)
 	for _, v := range allResp.Data {
 		metricName := v["__name__"]
@@ -332,7 +332,7 @@ func (p *Prometheus) series(ctx context.Context, now time.Time, metricNames ...s
 			if _, ok := res[metricName][k]; !ok {
 				res[metricName][k] = make([]string, 0)
 			}
-			res[metricName][k] = append(res[metricName][k], val)
+			res[metricName][k] = slices.Unique(append(res[metricName][k], val))
 		}
 	}
 
