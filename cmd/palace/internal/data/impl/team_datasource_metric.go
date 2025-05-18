@@ -66,16 +66,11 @@ func (t *teamMetricDatasourceImpl) Update(ctx context.Context, req *bo.SaveTeamM
 		mutation.Headers.Value(crypto.NewObject(req.Headers)),
 		mutation.QueryMethod.Value(req.QueryMethod.GetValue()),
 		mutation.Extra.Value(crypto.NewObject(req.Extra)),
+		mutation.CA.Value(crypto.String(req.CA)),
+		mutation.TLS.Value(crypto.NewObject(req.TLS)),
+		mutation.BasicAuth.Value(crypto.NewObject(req.BasicAuth)),
 	}
-	if validate.TextIsNotNull(req.CA) {
-		mutations = append(mutations, mutation.CA.Value(crypto.String(req.CA)))
-	}
-	if validate.IsNotNil(req.TLS) {
-		mutations = append(mutations, mutation.TLS.Value(crypto.NewObject(req.TLS)))
-	}
-	if validate.IsNotNil(req.BasicAuth) {
-		mutations = append(mutations, mutation.BasicAuth.Value(crypto.NewObject(req.BasicAuth)))
-	}
+
 	_, err := mutation.WithContext(ctx).Where(wrapper...).UpdateSimple(mutations...)
 	return err
 }
