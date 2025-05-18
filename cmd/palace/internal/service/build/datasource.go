@@ -1,7 +1,7 @@
 package build
 
 import (
-	"google.golang.org/protobuf/types/known/durationpb"
+	"time"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
@@ -9,29 +9,64 @@ import (
 	"github.com/aide-family/moon/pkg/api/common"
 	"github.com/aide-family/moon/pkg/api/palace"
 	palacecommon "github.com/aide-family/moon/pkg/api/palace/common"
+	"github.com/aide-family/moon/pkg/util/kv"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/timex"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
+func ToKV(keyVal *palacecommon.KeyValueItem) *kv.KV {
+	if validate.IsNil(keyVal) {
+		return nil
+	}
+	return &kv.KV{
+		Key:   keyVal.Key,
+		Value: keyVal.Value,
+	}
+}
+
+func ToKVs(kvs []*palacecommon.KeyValueItem) []*kv.KV {
+	if len(kvs) == 0 {
+		return nil
+	}
+	return slices.Map(kvs, ToKV)
+}
+
+func ToKVsItems(kvs []*kv.KV) []*palacecommon.KeyValueItem {
+	if len(kvs) == 0 {
+		return nil
+	}
+	return slices.Map(kvs, ToKVItem)
+}
+
+func ToKVItem(kv *kv.KV) *palacecommon.KeyValueItem {
+	if validate.IsNil(kv) {
+		return nil
+	}
+	return &palacecommon.KeyValueItem{
+		Key:   kv.Key,
+		Value: kv.Value,
+	}
+}
+
 func ToSaveTeamMetricDatasourceRequest(req *palace.SaveTeamMetricDatasourceRequest) *bo.SaveTeamMetricDatasource {
 	if validate.IsNil(req) {
 		return nil
 	}
+
 	return &bo.SaveTeamMetricDatasource{
 		ID:             req.GetDatasourceId(),
 		Name:           req.GetName(),
-		Status:         vobj.GlobalStatusEnable,
 		Remark:         req.GetRemark(),
-		Driver:         vobj.DatasourceDriverMetric(req.GetMetricDatasourceDriver()),
+		Driver:         vobj.DatasourceDriverMetric(req.GetDriver()),
 		Endpoint:       req.GetEndpoint(),
-		ScrapeInterval: req.GetScrapeInterval().AsDuration(),
-		Headers:        req.GetHeaders(),
+		ScrapeInterval: time.Duration(req.GetScrapeInterval()) * time.Second,
+		Headers:        ToKVs(req.GetHeaders()),
 		QueryMethod:    vobj.HTTPMethod(req.GetQueryMethod()),
 		CA:             req.GetCa(),
 		TLS:            ToTLS(req.GetTls()),
 		BasicAuth:      ToBasicAuth(req.GetBasicAuth()),
-		Extra:          req.GetExtra(),
+		Extra:          ToKVs(req.GetExtra()),
 	}
 }
 
@@ -98,13 +133,13 @@ func ToTeamMetricDatasourceItem(item do.DatasourceMetric) *palacecommon.TeamMetr
 		Remark:         item.GetRemark(),
 		Driver:         palacecommon.DatasourceDriverMetric(item.GetDriver()),
 		Endpoint:       item.GetEndpoint(),
-		ScrapeInterval: durationpb.New(item.GetScrapeInterval()),
-		Headers:        item.GetHeaders(),
+		ScrapeInterval: int64(item.GetScrapeInterval().Seconds()),
+		Headers:        ToKVsItems(item.GetHeaders()),
 		QueryMethod:    palacecommon.HTTPMethod(item.GetQueryMethod()),
 		Ca:             item.GetCA(),
 		Tls:            ToTLSItem(item.GetTLS()),
 		BasicAuth:      ToBasicAuthItem(item.GetBasicAuth()),
-		Extra:          item.GetExtra(),
+		Extra:          ToKVsItems(item.GetExtra()),
 		Status:         palacecommon.GlobalStatus(item.GetStatus().GetValue()),
 		Creator:        ToUserBaseItem(item.GetCreator()),
 	}

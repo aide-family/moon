@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/api/palace"
 	"github.com/aide-family/moon/pkg/api/palace/common"
+	"github.com/aide-family/moon/pkg/util/cnst"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/timex"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -30,11 +31,18 @@ func ToSaveTeamMetricStrategyParams(request *palace.SaveTeamMetricStrategyReques
 	if validate.IsNil(request) {
 		panic("SaveTeamMetricStrategyRequest is nil")
 	}
+	labels := make(map[string]string, len(request.GetLabels()))
+	for _, label := range request.GetLabels() {
+		labels[label.GetKey()] = label.GetValue()
+	}
+	annotations := make(map[string]string, 2)
+	annotations[cnst.AnnotationKeySummary] = request.GetAnnotations().GetSummary()
+	annotations[cnst.AnnotationKeyDescription] = request.GetAnnotations().GetDescription()
 	return &bo.SaveTeamMetricStrategyParams{
 		StrategyID:  request.GetStrategyId(),
 		Expr:        request.GetExpr(),
-		Labels:      request.GetLabels(),
-		Annotations: request.GetAnnotations(),
+		Labels:      labels,
+		Annotations: annotations,
 		Datasource:  request.GetDatasource(),
 	}
 }

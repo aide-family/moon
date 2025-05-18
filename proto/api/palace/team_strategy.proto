@@ -192,9 +192,9 @@ message SaveTeamMetricStrategyRequest {
   // Expression
   string expr = 2 [(buf.validate.field).string.min_len = 1];
   // Labels
-  map<string, string> labels = 3;
+  repeated api.palace.common.KeyValueItem labels = 3;
   // Annotations
-  map<string, string> annotations = 4;
+  api.palace.common.AnnotationsItem annotations = 4;
   // Datasource
   repeated uint32 datasource = 5;
 }

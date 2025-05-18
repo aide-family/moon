@@ -3837,7 +3837,7 @@ components:
         api.palace.SaveTeamMetricDatasourceRequest:
             type: object
             properties:
-                metricDatasourceDriver:
+                driver:
                     type: integer
                     format: enum
                 datasourceId:
@@ -3850,12 +3850,11 @@ components:
                 endpoint:
                     type: string
                 scrapeInterval:
-                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
                     type: string
                 headers:
-                    type: object
-                    additionalProperties:
-                        type: string
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
                 queryMethod:
                     type: integer
                     format: enum
@@ -3866,9 +3865,9 @@ components:
                 basicAuth:
                     $ref: '#/components/schemas/api.palace.common.BasicAuth'
                 extra:
-                    type: object
-                    additionalProperties:
-                        type: string
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
         api.palace.SaveTeamMetricStrategyLevelRequest:
             type: object
             properties:
@@ -3956,14 +3955,13 @@ components:
                     type: string
                     description: Expression
                 labels:
-                    type: object
-                    additionalProperties:
-                        type: string
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
                     description: Labels
                 annotations:
-                    type: object
-                    additionalProperties:
-                        type: string
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.common.AnnotationsItem'
                     description: Annotations
                 datasource:
                     type: array
@@ -4023,7 +4021,7 @@ components:
                 headers:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.common.Header'
+                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
                 app:
                     type: integer
                     format: enum
@@ -4632,6 +4630,13 @@ components:
                         - $ref: '#/components/schemas/api.palace.CaptchaValidateRequest'
                     description: Captcha validation information
             description: VerifyEmailRequest represents the request data for email verification
+        api.palace.common.AnnotationsItem:
+            type: object
+            properties:
+                summary:
+                    type: string
+                description:
+                    type: string
         api.palace.common.BasicAuth:
             type: object
             properties:
@@ -4684,7 +4689,7 @@ components:
             type: object
             properties: {}
             description: EmptyRequest represents an empty request, typically used for operations that do not require input parameters.
-        api.palace.common.Header:
+        api.palace.common.KeyValueItem:
             type: object
             properties:
                 key:
@@ -4777,7 +4782,7 @@ components:
                 headers:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.common.Header'
+                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
                 app:
                     type: integer
                     format: enum
@@ -5077,6 +5082,8 @@ components:
                     type: string
                 clientKey:
                     type: string
+                skipVerify:
+                    type: boolean
         api.palace.common.TeamAuditItem:
             type: object
             properties:
@@ -5327,12 +5334,11 @@ components:
                 endpoint:
                     type: string
                 scrapeInterval:
-                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
                     type: string
                 headers:
-                    type: object
-                    additionalProperties:
-                        type: string
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
                 queryMethod:
                     type: integer
                     format: enum
@@ -5343,9 +5349,9 @@ components:
                 basicAuth:
                     $ref: '#/components/schemas/api.palace.common.BasicAuth'
                 extra:
-                    type: object
-                    additionalProperties:
-                        type: string
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
                 status:
                     type: integer
                     format: enum

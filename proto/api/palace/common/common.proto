@@ -58,6 +58,7 @@ message TLS {
   string serverName = 1;
   string clientCert = 2;
   string clientKey = 3;
+  bool skipVerify = 4;
 }
 
 message SendMessageLogItem {
@@ -139,4 +140,14 @@ message TimeEngineItemRule {
   string createdAt = 8;
   string updatedAt = 9;
   api.palace.common.UserBaseItem creator = 10;
+}
+
+message KeyValueItem {
+  string key = 1;
+  string value = 2;
+}
+
+message AnnotationsItem {
+  string summary = 1;
+  string description = 2;
 }

@@ -207,8 +207,8 @@ func (p *Prometheus) configureHTTPClient(ctx context.Context) httpx.Client {
 
 	// Configure custom headers if available
 	if headers := p.c.GetHeaders(); len(headers) > 0 {
-		for k, v := range headers {
-			hx = hx.WithHeader(http.Header{k: []string{v}})
+		for _, keyVal := range headers {
+			hx = hx.WithHeader(http.Header{keyVal.Key: []string{keyVal.Value}})
 		}
 	}
 

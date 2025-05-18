@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/api/houyi/common"
 	"github.com/aide-family/moon/pkg/plugin/datasource"
 	"github.com/aide-family/moon/pkg/plugin/datasource/prometheus"
+	"github.com/aide-family/moon/pkg/util/kv"
 	"github.com/aide-family/moon/pkg/util/timex"
 )
 
@@ -30,7 +31,7 @@ func (c *config) GetCA() string {
 }
 
 // GetHeaders implements prometheus.Config.
-func (c *config) GetHeaders() map[string]string {
+func (c *config) GetHeaders() []*kv.KV {
 	return nil
 }
 

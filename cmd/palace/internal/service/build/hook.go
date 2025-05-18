@@ -15,10 +15,6 @@ func ToSaveTeamNoticeHookRequest(req *palace.SaveTeamNoticeHookRequest) *bo.Save
 	if req == nil {
 		return nil
 	}
-	headers := make(map[string]string, len(req.GetHeaders()))
-	for _, header := range req.GetHeaders() {
-		headers[header.GetKey()] = header.GetValue()
-	}
 
 	return &bo.SaveTeamNoticeHookRequest{
 		HookID:  req.GetHookId(),
@@ -27,7 +23,7 @@ func ToSaveTeamNoticeHookRequest(req *palace.SaveTeamNoticeHookRequest) *bo.Save
 		URL:     req.GetUrl(),
 		Method:  vobj.HTTPMethod(req.GetMethod()),
 		Secret:  req.GetSecret(),
-		Headers: headers,
+		Headers: ToKVs(req.GetHeaders()),
 		APP:     vobj.HookApp(req.GetApp()),
 	}
 }
@@ -50,10 +46,6 @@ func ToNoticeHookItem(hook do.NoticeHook) *common.NoticeHookItem {
 	if hook == nil {
 		return nil
 	}
-	headers := make([]*common.Header, 0, len(hook.GetHeaders()))
-	for k, v := range hook.GetHeaders() {
-		headers = append(headers, &common.Header{Key: k, Value: v})
-	}
 	return &common.NoticeHookItem{
 		NoticeHookId: hook.GetID(),
 		CreatedAt:    timex.Format(hook.GetCreatedAt()),
@@ -64,7 +56,7 @@ func ToNoticeHookItem(hook do.NoticeHook) *common.NoticeHookItem {
 		Url:          hook.GetURL(),
 		Method:       common.HTTPMethod(hook.GetMethod().GetValue()),
 		Secret:       hook.GetSecret(),
-		Headers:      headers,
+		Headers:      ToKVsItems(hook.GetHeaders()),
 		App:          common.HookAPP(hook.GetApp().GetValue()),
 		Creator:      ToUserBaseItem(hook.GetCreator()),
 		NoticeGroups: ToNoticeGroupItems(hook.GetNoticeGroups()),

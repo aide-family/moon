@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/pkg/api/houyi/common"
+	"github.com/aide-family/moon/pkg/util/kv"
 	"github.com/go-kratos/kratos/v2/transport/http"
 )
 
@@ -16,7 +17,7 @@ type ResultType string
 type (
 	MetricConfig interface {
 		GetEndpoint() string
-		GetHeaders() map[string]string
+		GetHeaders() []*kv.KV
 		GetMethod() common.DatasourceQueryMethod
 		GetBasicAuth() BasicAuth
 		GetTLS() TLS

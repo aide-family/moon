@@ -14,7 +14,7 @@ type NoticeHook interface {
 	GetURL() string
 	GetMethod() vobj.HTTPMethod
 	GetSecret() string
-	GetHeaders() kv.StringMap
+	GetHeaders() []*kv.KV
 	GetApp() vobj.HookApp
 }
 
@@ -27,7 +27,7 @@ type SaveTeamNoticeHookRequest struct {
 	URL     string          `json:"url"`
 	Method  vobj.HTTPMethod `json:"method"`
 	Secret  string          `json:"secret"`
-	Headers kv.StringMap    `json:"headers"`
+	Headers []*kv.KV        `json:"headers"`
 	APP     vobj.HookApp    `json:"app"`
 }
 
@@ -76,7 +76,7 @@ func (r *SaveTeamNoticeHookRequest) GetSecret() string {
 	return r.Secret
 }
 
-func (r *SaveTeamNoticeHookRequest) GetHeaders() kv.StringMap {
+func (r *SaveTeamNoticeHookRequest) GetHeaders() []*kv.KV {
 	if validate.IsNil(r) {
 		return nil
 	}

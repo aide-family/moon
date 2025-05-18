@@ -21,12 +21,12 @@ type DatasourceMetric interface {
 	GetDriver() vobj.DatasourceDriverMetric
 	GetEndpoint() string
 	GetScrapeInterval() time.Duration
-	GetHeaders() kv.StringMap
+	GetHeaders() []*kv.KV
 	GetQueryMethod() vobj.HTTPMethod
 	GetCA() string
 	GetTLS() *TLS
 	GetBasicAuth() *BasicAuth
-	GetExtra() kv.StringMap
+	GetExtra() []*kv.KV
 	GetStrategies() []StrategyMetric
 }
 

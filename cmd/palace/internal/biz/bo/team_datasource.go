@@ -19,17 +19,16 @@ import (
 type SaveTeamMetricDatasource struct {
 	ID             uint32
 	Name           string
-	Status         vobj.GlobalStatus
 	Remark         string
 	Driver         vobj.DatasourceDriverMetric
 	Endpoint       string
 	ScrapeInterval time.Duration
-	Headers        kv.StringMap
+	Headers        []*kv.KV
 	QueryMethod    vobj.HTTPMethod
 	CA             string
 	TLS            *do.TLS
 	BasicAuth      *do.BasicAuth
-	Extra          kv.StringMap
+	Extra          []*kv.KV
 }
 
 type ListTeamMetricDatasource struct {
@@ -141,7 +140,7 @@ func (m *metricDatasourceConfig) GetEndpoint() string {
 }
 
 // GetHeaders implements datasource.MetricConfig.
-func (m *metricDatasourceConfig) GetHeaders() map[string]string {
+func (m *metricDatasourceConfig) GetHeaders() []*kv.KV {
 	return m.datasourceMetric.GetHeaders()
 }
 

@@ -15,7 +15,7 @@ type NoticeHook interface {
 	GetURL() string
 	GetMethod() vobj.HTTPMethod
 	GetSecret() string
-	GetHeaders() kv.StringMap
+	GetHeaders() []*kv.KV
 	GetApp() vobj.HookApp
 	GetNoticeGroups() []NoticeGroup
 }

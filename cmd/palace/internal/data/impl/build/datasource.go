@@ -25,14 +25,14 @@ func ToDatasourceMetric(ctx context.Context, datasource do.DatasourceMetric) *te
 		Status:         datasource.GetStatus(),
 		Remark:         datasource.GetRemark(),
 		Driver:         datasource.GetDriver(),
-		Endpoint:       crypto.String(datasource.GetEndpoint()),
+		Endpoint:       datasource.GetEndpoint(),
 		ScrapeInterval: datasource.GetScrapeInterval(),
 		Headers:        crypto.NewObject(datasource.GetHeaders()),
 		QueryMethod:    datasource.GetQueryMethod(),
 		CA:             crypto.String(datasource.GetCA()),
 		TLS:            crypto.NewObject(datasource.GetTLS()),
 		BasicAuth:      crypto.NewObject(datasource.GetBasicAuth()),
-		Extra:          datasource.GetExtra(),
+		Extra:          crypto.NewObject(datasource.GetExtra()),
 		Metrics:        []*team.StrategyMetric{},
 	}
 }

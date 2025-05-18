@@ -74,7 +74,7 @@ message SaveTeamNoticeHookRequest {
   string url = 3;
   string secret = 4;
   api.palace.common.HTTPMethod method = 5;
-  repeated api.palace.common.Header headers = 6;
+  repeated api.palace.common.KeyValueItem headers = 6;
   api.palace.common.HookAPP app = 7;
   uint32 hookId = 8;
 }

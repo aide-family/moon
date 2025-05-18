@@ -219,7 +219,7 @@ func (s *SaveTeamMetricStrategyParams) Validate() error {
 	if len(s.Datasource) == 0 {
 		return merr.ErrorParamsError("datasource is required")
 	}
-	if len(s.Annotations) == 0 {
+	if validate.IsNil(s.Annotations) {
 		return merr.ErrorParamsError("annotations is required")
 	}
 	if len(s.Datasource) != len(s.datasourceDos) {

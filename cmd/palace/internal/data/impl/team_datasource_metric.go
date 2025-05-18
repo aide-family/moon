@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
 	"github.com/aide-family/moon/pkg/util/crypto"
 	"github.com/aide-family/moon/pkg/util/slices"
@@ -32,17 +33,17 @@ type teamMetricDatasourceImpl struct {
 func (t *teamMetricDatasourceImpl) Create(ctx context.Context, req *bo.SaveTeamMetricDatasource) error {
 	metricDatasourceDo := &team.DatasourceMetric{
 		Name:           req.Name,
-		Status:         req.Status,
+		Status:         vobj.GlobalStatusEnable,
 		Remark:         req.Remark,
 		Driver:         req.Driver,
-		Endpoint:       crypto.String(req.Endpoint),
+		Endpoint:       req.Endpoint,
 		ScrapeInterval: req.ScrapeInterval,
 		Headers:        crypto.NewObject(req.Headers),
 		QueryMethod:    req.QueryMethod,
 		CA:             crypto.String(req.CA),
 		TLS:            crypto.NewObject(req.TLS),
 		BasicAuth:      crypto.NewObject(req.BasicAuth),
-		Extra:          req.Extra,
+		Extra:          crypto.NewObject(req.Extra),
 	}
 	metricDatasourceDo.WithContext(ctx)
 	bizMutation := getTeamBizQuery(ctx, t)
@@ -58,14 +59,13 @@ func (t *teamMetricDatasourceImpl) Update(ctx context.Context, req *bo.SaveTeamM
 	}
 	mutations := []field.AssignExpr{
 		mutation.Name.Value(req.Name),
-		mutation.Status.Value(req.Status.GetValue()),
 		mutation.Remark.Value(req.Remark),
 		mutation.Driver.Value(req.Driver.GetValue()),
-		mutation.Endpoint.Value(crypto.String(req.Endpoint)),
+		mutation.Endpoint.Value(req.Endpoint),
 		mutation.ScrapeInterval.Value(int64(req.ScrapeInterval)),
 		mutation.Headers.Value(crypto.NewObject(req.Headers)),
 		mutation.QueryMethod.Value(req.QueryMethod.GetValue()),
-		mutation.Extra.Value(req.Extra),
+		mutation.Extra.Value(crypto.NewObject(req.Extra)),
 	}
 	if validate.TextIsNotNull(req.CA) {
 		mutations = append(mutations, mutation.CA.Value(crypto.String(req.CA)))
@@ -128,7 +128,7 @@ func (t *teamMetricDatasourceImpl) List(ctx context.Context, req *bo.ListTeamMet
 		ors := []gen.Condition{
 			mutation.Name.Like(req.Keyword),
 			mutation.Remark.Like(req.Keyword),
-			mutation.Endpoint.Eq(crypto.String(req.Keyword)),
+			mutation.Endpoint.Eq(req.Keyword),
 		}
 		wrapper = wrapper.Where(mutation.Or(ors...))
 	}

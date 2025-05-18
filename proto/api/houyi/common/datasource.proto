@@ -14,8 +14,9 @@ message BasicAuth {
 
 message TLS {
   string serverName = 1;
-  string clientCertificate = 2;
+  string clientCert = 2;
   string clientKey = 3;
+  bool skipVerify = 4;
 }
 
 enum DatasourceQueryMethod {

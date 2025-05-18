@@ -1030,10 +1030,12 @@ components:
             properties:
                 serverName:
                     type: string
-                clientCertificate:
+                clientCert:
                     type: string
                 clientKey:
                     type: string
+                skipVerify:
+                    type: boolean
         api.houyi.common.TeamItem:
             type: object
             properties:

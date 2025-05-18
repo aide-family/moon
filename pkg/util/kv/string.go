@@ -5,8 +5,13 @@ import (
 	"strings"
 )
 
+type KV struct {
+	Key   string
+	Value string
+}
+
 func NewStringMap(ms ...map[string]string) StringMap {
-	return New[string, string](ms...)
+	return New(ms...)
 }
 
 type StringMap = Map[string, string]
