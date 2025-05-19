@@ -56,6 +56,18 @@ func ToListTimeEngineRequest(req *api.ListTimeEngineRequest) *bo.ListTimeEngineR
 	}
 }
 
+// ToSelectTimeEngineRequest 转换获取时间引擎列表请求
+func ToSelectTimeEngineRequest(req *api.SelectTimeEngineRequest) *bo.SelectTimeEngineRequest {
+	if req == nil {
+		return nil
+	}
+	return &bo.SelectTimeEngineRequest{
+		PaginationRequest: ToPaginationRequest(req.Pagination),
+		Status:            vobj.GlobalStatus(req.Status),
+		Keyword:           req.Keyword,
+	}
+}
+
 // ToSaveTimeEngineRuleRequest 转换保存时间引擎规则请求
 func ToSaveTimeEngineRuleRequest(req *api.SaveTimeEngineRuleRequest) *bo.SaveTimeEngineRuleRequest {
 	if req == nil {
@@ -96,6 +108,19 @@ func ToListTimeEngineRuleRequest(req *api.ListTimeEngineRuleRequest) *bo.ListTim
 		return nil
 	}
 	return &bo.ListTimeEngineRuleRequest{
+		PaginationRequest: ToPaginationRequest(req.Pagination),
+		Status:            vobj.GlobalStatus(req.Status),
+		Keyword:           req.Keyword,
+		Types:             slices.Map(req.Types, func(t common.TimeEngineRuleType) vobj.TimeEngineRuleType { return vobj.TimeEngineRuleType(t) }),
+	}
+}
+
+// ToSelectTimeEngineRuleRequest 转换获取时间引擎规则列表请求
+func ToSelectTimeEngineRuleRequest(req *api.SelectTimeEngineRuleRequest) *bo.SelectTimeEngineRuleRequest {
+	if req == nil {
+		return nil
+	}
+	return &bo.SelectTimeEngineRuleRequest{
 		PaginationRequest: ToPaginationRequest(req.Pagination),
 		Status:            vobj.GlobalStatus(req.Status),
 		Keyword:           req.Keyword,

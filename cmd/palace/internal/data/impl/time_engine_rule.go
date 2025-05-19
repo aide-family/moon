@@ -150,6 +150,40 @@ func (r *timeEngineRuleImpl) ListTimeEngineRule(ctx context.Context, req *bo.Lis
 	return req.ToListReply(dos), nil
 }
 
+// SelectTimeEngineRule 获取时间引擎规则列表
+func (r *timeEngineRuleImpl) SelectTimeEngineRule(ctx context.Context, req *bo.SelectTimeEngineRuleRequest) (*bo.SelectTimeEngineRuleReply, error) {
+	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
+	timeEngineRuleQuery := bizQuery.TimeEngineRule
+	timeEngineRuleWrapper := timeEngineRuleQuery.Where(timeEngineRuleQuery.TeamID.Eq(teamId))
+
+	if !req.Status.IsUnknown() {
+		timeEngineRuleWrapper = timeEngineRuleWrapper.Where(timeEngineRuleQuery.Status.Eq(req.Status.GetValue()))
+	}
+
+	if validate.IsNotNil(req.PaginationRequest) {
+		total, err := timeEngineRuleWrapper.WithContext(ctx).Count()
+		if err != nil {
+			return nil, err
+		}
+		timeEngineRuleWrapper = timeEngineRuleWrapper.Limit(int(req.Limit)).Offset(int(req.Offset()))
+		req.WithTotal(total)
+	}
+	selectColumns := []field.Expr{
+		timeEngineRuleQuery.ID,
+		timeEngineRuleQuery.Name,
+		timeEngineRuleQuery.Remark,
+		timeEngineRuleQuery.Status,
+		timeEngineRuleQuery.DeletedAt,
+		timeEngineRuleQuery.Type,
+	}
+	timeEngineRules, err := timeEngineRuleWrapper.WithContext(ctx).Select(selectColumns...).Order(timeEngineRuleQuery.ID.Desc()).Find()
+	if err != nil {
+		return nil, err
+	}
+	rows := slices.Map(timeEngineRules, func(v *team.TimeEngineRule) do.TimeEngineRule { return v })
+	return req.ToSelectReply(rows), nil
+}
+
 // Find 获取时间引擎规则列表
 func (r *timeEngineRuleImpl) Find(ctx context.Context, ruleIds ...uint32) ([]do.TimeEngineRule, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)

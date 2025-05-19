@@ -43,6 +43,13 @@ service TimeEngine {
 		};
 	}
 
+	rpc SelectTimeEngine (SelectTimeEngineRequest) returns (SelectTimeEngineReply) {
+		option (google.api.http) = {
+			post: "/api/time/engine/select"
+			body: "*"
+		};
+	}
+
 	rpc SaveTimeEngineRule (SaveTimeEngineRuleRequest) returns (api.palace.common.EmptyReply) {
 		option (google.api.http) = {
 			post: "/api/time/engine/rule/save"
@@ -72,6 +79,13 @@ service TimeEngine {
 	rpc ListTimeEngineRule (ListTimeEngineRuleRequest) returns (ListTimeEngineRuleReply) {
 		option (google.api.http) = {
 			post: "/api/time/engine/rule/list"
+			body: "*"
+		};
+	}
+
+	rpc SelectTimeEngineRule (SelectTimeEngineRuleRequest) returns (SelectTimeEngineRuleReply) {
+		option (google.api.http) = {
+			post: "/api/time/engine/rule/select"
 			body: "*"
 		};
 	}
@@ -116,6 +130,19 @@ message ListTimeEngineReply {
 	repeated api.palace.common.TimeEngineItem items = 2;
 }
 
+message SelectTimeEngineRequest {
+	api.palace.common.PaginationRequest pagination = 1;
+	api.palace.common.GlobalStatus status = 2;
+	string keyword = 3 [(buf.validate.field).string = {
+		max_len: 20
+	}];
+}
+
+message SelectTimeEngineReply {
+	api.palace.common.PaginationReply pagination = 1;
+	repeated api.palace.common.SelectItem items = 2;
+}
+
 message SaveTimeEngineRuleRequest {
 	uint32 timeEngineRuleId = 1;
 	string name = 2 [(buf.validate.field).string = {
@@ -155,4 +182,18 @@ message ListTimeEngineRuleRequest {
 message ListTimeEngineRuleReply {
 	api.palace.common.PaginationReply pagination = 1;
 	repeated api.palace.common.TimeEngineItemRule items = 2;
+}
+
+message SelectTimeEngineRuleRequest {
+	api.palace.common.PaginationRequest pagination = 1;
+	api.palace.common.GlobalStatus status = 2;
+	string keyword = 3 [(buf.validate.field).string = {
+		max_len: 20
+	}];
+	repeated api.palace.common.TimeEngineRuleType types = 4;
+}
+
+message SelectTimeEngineRuleReply {
+	api.palace.common.PaginationReply pagination = 1;
+	repeated api.palace.common.SelectItem items = 2;
 }

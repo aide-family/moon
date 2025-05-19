@@ -63,6 +63,18 @@ func (s *TimeEngineService) ListTimeEngine(ctx context.Context, req *api.ListTim
 	return build.ToListTimeEngineReply(reply), nil
 }
 
+func (s *TimeEngineService) SelectTimeEngine(ctx context.Context, req *api.SelectTimeEngineRequest) (*api.SelectTimeEngineReply, error) {
+	params := build.ToSelectTimeEngineRequest(req)
+	reply, err := s.timeEngineBiz.SelectTimeEngine(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &api.SelectTimeEngineReply{
+		Pagination: build.ToPaginationReply(reply.PaginationReply),
+		Items:      build.ToSelectItems(reply.Items),
+	}, nil
+}
+
 func (s *TimeEngineService) SaveTimeEngineRule(ctx context.Context, req *api.SaveTimeEngineRuleRequest) (*palacecommon.EmptyReply, error) {
 	params := build.ToSaveTimeEngineRuleRequest(req)
 	if err := s.timeEngineBiz.SaveTimeEngineRule(ctx, params); err != nil {
@@ -103,4 +115,16 @@ func (s *TimeEngineService) ListTimeEngineRule(ctx context.Context, req *api.Lis
 		return nil, err
 	}
 	return build.ToListTimeEngineRuleReply(reply), nil
+}
+
+func (s *TimeEngineService) SelectTimeEngineRule(ctx context.Context, req *api.SelectTimeEngineRuleRequest) (*api.SelectTimeEngineRuleReply, error) {
+	params := build.ToSelectTimeEngineRuleRequest(req)
+	reply, err := s.timeEngineBiz.SelectTimeEngineRule(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &api.SelectTimeEngineRuleReply{
+		Pagination: build.ToPaginationReply(reply.PaginationReply),
+		Items:      build.ToSelectItems(reply.Items),
+	}, nil
 }

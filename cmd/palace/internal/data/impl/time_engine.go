@@ -155,3 +155,36 @@ func (r *timeEngineImpl) ListTimeEngine(ctx context.Context, req *bo.ListTimeEng
 	dos := slices.Map(timeEngines, func(v *team.TimeEngine) do.TimeEngine { return v })
 	return req.ToListReply(dos), nil
 }
+
+// SelectTimeEngine 获取时间引擎列表
+func (r *timeEngineImpl) SelectTimeEngine(ctx context.Context, req *bo.SelectTimeEngineRequest) (*bo.SelectTimeEngineReply, error) {
+	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
+	timeEngineQuery := bizQuery.TimeEngine
+	timeEngineWrapper := timeEngineQuery.Where(timeEngineQuery.TeamID.Eq(teamId))
+
+	if !req.Status.IsUnknown() {
+		timeEngineWrapper = timeEngineWrapper.Where(timeEngineQuery.Status.Eq(req.Status.GetValue()))
+	}
+
+	if validate.IsNotNil(req.PaginationRequest) {
+		total, err := timeEngineWrapper.WithContext(ctx).Count()
+		if err != nil {
+			return nil, err
+		}
+		req.WithTotal(total)
+	}
+	selectColumns := []field.Expr{
+		timeEngineQuery.ID,
+		timeEngineQuery.Name,
+		timeEngineQuery.Remark,
+		timeEngineQuery.Status,
+		timeEngineQuery.DeletedAt,
+	}
+	timeEngineWrapper = timeEngineWrapper.Order(timeEngineQuery.CreatedAt.Desc()).Select(selectColumns...)
+	timeEngines, err := timeEngineWrapper.WithContext(ctx).Find()
+	if err != nil {
+		return nil, err
+	}
+	rows := slices.Map(timeEngines, func(v *team.TimeEngine) do.TimeEngine { return v })
+	return req.ToSelectReply(rows), nil
+}

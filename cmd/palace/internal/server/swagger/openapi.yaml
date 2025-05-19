@@ -2323,6 +2323,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/time/engine/rule/select:
+        post:
+            tags:
+                - TimeEngine
+            operationId: TimeEngine_SelectTimeEngineRule
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.SelectTimeEngineRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.SelectTimeEngineRuleReply'
     /api/time/engine/rule/update/status:
         put:
             tags:
@@ -2359,6 +2377,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/time/engine/select:
+        post:
+            tags:
+                - TimeEngine
+            operationId: TimeEngine_SelectTimeEngine
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.SelectTimeEngineRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.SelectTimeEngineReply'
     /api/time/engine/update/status:
         put:
             tags:
@@ -4307,6 +4343,49 @@ components:
                         type: integer
                         format: enum
             description: SelectTeamMembersRequest represents the request data for selecting team members
+        api.palace.SelectTimeEngineReply:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.SelectItem'
+        api.palace.SelectTimeEngineRequest:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                status:
+                    type: integer
+                    format: enum
+                keyword:
+                    type: string
+        api.palace.SelectTimeEngineRuleReply:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.SelectItem'
+        api.palace.SelectTimeEngineRuleRequest:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                status:
+                    type: integer
+                    format: enum
+                keyword:
+                    type: string
+                types:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
         api.palace.SelfSubscribeTeamStrategiesReply:
             type: object
             properties:

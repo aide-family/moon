@@ -4,6 +4,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/timer"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
@@ -73,6 +74,30 @@ func (r *ListTimeEngineRequest) ToListReply(items []do.TimeEngine) *ListTimeEngi
 
 type ListTimeEngineReply = ListReply[do.TimeEngine]
 
+type SelectTimeEngineRequest struct {
+	*PaginationRequest
+	Status  vobj.GlobalStatus
+	Keyword string
+}
+
+func (r *SelectTimeEngineRequest) ToSelectReply(items []do.TimeEngine) *SelectTimeEngineReply {
+	return &SelectTimeEngineReply{
+		PaginationReply: r.ToReply(),
+		Items: slices.Map(items, func(item do.TimeEngine) SelectItem {
+			return &selectItem{
+				Value:    item.GetID(),
+				Label:    item.GetName(),
+				Disabled: item.GetDeletedAt() > 0 || !item.GetStatus().IsEnable(),
+				Extra: &selectItemExtra{
+					Remark: item.GetRemark(),
+				},
+			}
+		}),
+	}
+}
+
+type SelectTimeEngineReply = ListReply[SelectItem]
+
 // SaveTimeEngineRuleRequest 保存时间引擎规则请求参数
 type SaveTimeEngineRuleRequest struct {
 	TimeEngineRuleId uint32
@@ -137,6 +162,33 @@ func (r *ListTimeEngineRuleRequest) ToListReply(items []do.TimeEngineRule) *List
 }
 
 type ListTimeEngineRuleReply = ListReply[do.TimeEngineRule]
+
+type SelectTimeEngineRuleRequest struct {
+	*PaginationRequest
+	Status  vobj.GlobalStatus
+	Keyword string
+	Types   []vobj.TimeEngineRuleType
+}
+
+func (r *SelectTimeEngineRuleRequest) ToSelectReply(items []do.TimeEngineRule) *SelectTimeEngineRuleReply {
+	return &SelectTimeEngineRuleReply{
+		PaginationReply: r.ToReply(),
+		Items: slices.Map(items, func(item do.TimeEngineRule) SelectItem {
+			return &selectItem{
+				Value:    item.GetID(),
+				Label:    item.GetName(),
+				Disabled: item.GetDeletedAt() > 0 || !item.GetStatus().IsEnable(),
+				Extra: &selectItemExtra{
+					Remark: item.GetRemark(),
+					Icon:   item.GetType().String(),
+					Color:  item.GetType().String(),
+				},
+			}
+		}),
+	}
+}
+
+type SelectTimeEngineRuleReply = ListReply[SelectItem]
 
 // UpdateTimeEngineStatusRequest 更新时间引擎状态请求参数
 type UpdateTimeEngineStatusRequest struct {

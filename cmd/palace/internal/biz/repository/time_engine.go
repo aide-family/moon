@@ -21,6 +21,8 @@ type TimeEngine interface {
 	GetTimeEngine(ctx context.Context, req *bo.GetTimeEngineRequest) (do.TimeEngine, error)
 	// ListTimeEngine 获取时间引擎列表
 	ListTimeEngine(ctx context.Context, req *bo.ListTimeEngineRequest) (*bo.ListTimeEngineReply, error)
+	// SelectTimeEngine 获取时间引擎列表
+	SelectTimeEngine(ctx context.Context, req *bo.SelectTimeEngineRequest) (*bo.SelectTimeEngineReply, error)
 }
 
 // TimeEngineRule 时间引擎规则仓储接口
@@ -37,6 +39,8 @@ type TimeEngineRule interface {
 	GetTimeEngineRule(ctx context.Context, req *bo.GetTimeEngineRuleRequest) (do.TimeEngineRule, error)
 	// ListTimeEngineRule 获取时间引擎规则列表
 	ListTimeEngineRule(ctx context.Context, req *bo.ListTimeEngineRuleRequest) (*bo.ListTimeEngineRuleReply, error)
+	// SelectTimeEngineRule 获取时间引擎规则列表
+	SelectTimeEngineRule(ctx context.Context, req *bo.SelectTimeEngineRuleRequest) (*bo.SelectTimeEngineRuleReply, error)
 	// Find 获取时间引擎规则列表
 	// 如果ruleIds为空，则返回所有时间引擎规则
 	Find(ctx context.Context, ruleIds ...uint32) ([]do.TimeEngineRule, error)

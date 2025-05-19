@@ -71,6 +71,11 @@ func (t *TimeEngine) ListTimeEngine(ctx context.Context, req *bo.ListTimeEngineR
 	return t.timeEngineRepo.ListTimeEngine(ctx, req)
 }
 
+// SelectTimeEngine 获取时间引擎列表
+func (t *TimeEngine) SelectTimeEngine(ctx context.Context, req *bo.SelectTimeEngineRequest) (*bo.SelectTimeEngineReply, error) {
+	return t.timeEngineRepo.SelectTimeEngine(ctx, req)
+}
+
 // SaveTimeEngineRule 保存时间引擎规则
 func (t *TimeEngine) SaveTimeEngineRule(ctx context.Context, req *bo.SaveTimeEngineRuleRequest) error {
 	if err := req.Validate(); err != nil {
@@ -103,4 +108,9 @@ func (t *TimeEngine) GetTimeEngineRule(ctx context.Context, req *bo.GetTimeEngin
 // ListTimeEngineRule 获取时间引擎规则列表
 func (t *TimeEngine) ListTimeEngineRule(ctx context.Context, req *bo.ListTimeEngineRuleRequest) (*bo.ListTimeEngineRuleReply, error) {
 	return t.timeEngineRuleRepo.ListTimeEngineRule(ctx, req)
+}
+
+// SelectTimeEngineRule 获取时间引擎规则列表
+func (t *TimeEngine) SelectTimeEngineRule(ctx context.Context, req *bo.SelectTimeEngineRuleRequest) (*bo.SelectTimeEngineRuleReply, error) {
+	return t.timeEngineRuleRepo.SelectTimeEngineRule(ctx, req)
 }
