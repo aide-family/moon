@@ -294,6 +294,7 @@ func (t *teamStrategyMetricImpl) Get(ctx context.Context, params *bo.OperateTeam
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 
 	strategyMetricMutation := tx.StrategyMetric
+	strategyMetricRuleMutation := tx.StrategyMetricRule
 	wrapper := []gen.Condition{
 		strategyMetricMutation.StrategyID.Eq(params.StrategyId),
 		strategyMetricMutation.TeamID.Eq(teamId),
@@ -301,11 +302,15 @@ func (t *teamStrategyMetricImpl) Get(ctx context.Context, params *bo.OperateTeam
 
 	preloads := []field.RelationField{
 		strategyMetricMutation.Strategy.RelationField,
-		strategyMetricMutation.StrategyMetricRules.Level,
 		strategyMetricMutation.StrategyMetricRules.AlarmPages,
 		strategyMetricMutation.StrategyMetricRules.LabelNotices,
 		strategyMetricMutation.StrategyMetricRules.LabelNotices.Notices,
 		strategyMetricMutation.Datasource,
+	}
+	if params.StrategyLevelId > 0 {
+		preloads = append(preloads, strategyMetricMutation.StrategyMetricRules.Where(strategyMetricRuleMutation.ID.Eq(params.StrategyLevelId)).Level)
+	} else {
+		preloads = append(preloads, strategyMetricMutation.StrategyMetricRules.Level)
 	}
 	strategyMetricDo, err := strategyMetricMutation.WithContext(ctx).Preload(preloads...).Where(wrapper...).First()
 	if err != nil {

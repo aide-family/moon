@@ -280,6 +280,8 @@ message UpdateTeamStrategiesStatusRequest {
 message OperateTeamStrategyRequest {
   // Strategy id
   uint32 strategyId = 1;
+  // Strategy level id
+  uint32 strategyLevelId = 2;
 }
 
 message ListTeamStrategyRequest {

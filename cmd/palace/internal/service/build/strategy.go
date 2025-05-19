@@ -103,7 +103,8 @@ func ToOperateTeamStrategyParams(request *palace.OperateTeamStrategyRequest) *bo
 		panic("OperateTeamStrategyRequest is nil")
 	}
 	return &bo.OperateTeamStrategyParams{
-		StrategyId: request.GetStrategyId(),
+		StrategyId:      request.GetStrategyId(),
+		StrategyLevelId: request.GetStrategyLevelId(),
 	}
 }
 

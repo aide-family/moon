@@ -5,6 +5,7 @@ package api.palace;
 import "google/api/annotations.proto";
 import "common/alert.proto";
 import "palace/common/common.proto";
+import "palace/common/common_enum.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
 
@@ -18,6 +19,12 @@ service Alert {
 	rpc ListAlerts (ListAlertParams) returns (ListAlertReply) {
 		option (google.api.http) = {
 			post: "/api/alert/list"
+			body: "*"
+		};
+	}
+	rpc AlertDetail (AlertDetailParams) returns (AlertDetailReply) {
+		option (google.api.http) = {
+			post: "/api/alert/detail"
 			body: "*"
 		};
 	}
@@ -47,4 +54,18 @@ message RealtimeAlertItem {
 message ListAlertReply {
 	api.palace.common.PaginationReply pagination = 1;
 	repeated RealtimeAlertItem items = 2;
+}
+
+message AlertDetailParams {
+	uint32 alertId = 1;
+	string fingerprint = 2;
+	string createdAt = 3;
+}
+
+message AlertDetailReply {
+	RealtimeAlertItem alert = 1;
+	uint32 strategyId = 2;
+	uint32 strategyGroupId = 3;
+	uint32 strategyLevelId = 4;
+	api.palace.common.StrategyType strategyType = 5;
 }

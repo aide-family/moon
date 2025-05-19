@@ -6,6 +6,24 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /api/alert/detail:
+        post:
+            tags:
+                - Alert
+            operationId: Alert_AlertDetail
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.AlertDetailParams'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.AlertDetailReply'
     /api/alert/list:
         post:
             tags:
@@ -1922,6 +1940,12 @@ paths:
                   schema:
                     type: integer
                     format: uint32
+                - name: strategyLevelId
+                  in: query
+                  description: Strategy level id
+                  schema:
+                    type: integer
+                    format: uint32
             responses:
                 "200":
                     description: OK
@@ -2072,6 +2096,12 @@ paths:
                 - name: strategyId
                   in: query
                   description: Strategy id
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: strategyLevelId
+                  in: query
+                  description: Strategy level id
                   schema:
                     type: integer
                     format: uint32
@@ -2790,6 +2820,33 @@ components:
                     type: boolean
                 uuid:
                     type: string
+        api.palace.AlertDetailParams:
+            type: object
+            properties:
+                alertId:
+                    type: integer
+                    format: uint32
+                fingerprint:
+                    type: string
+                createdAt:
+                    type: string
+        api.palace.AlertDetailReply:
+            type: object
+            properties:
+                alert:
+                    $ref: '#/components/schemas/api.palace.RealtimeAlertItem'
+                strategyId:
+                    type: integer
+                    format: uint32
+                strategyGroupId:
+                    type: integer
+                    format: uint32
+                strategyLevelId:
+                    type: integer
+                    format: uint32
+                strategyType:
+                    type: integer
+                    format: enum
         api.palace.BatchUpdateResourceStatusRequest:
             type: object
             properties:
@@ -5930,7 +5987,7 @@ components:
             properties:
                 base:
                     $ref: '#/components/schemas/api.palace.common.TeamStrategyItem'
-                StrategyMetricId:
+                strategyMetricId:
                     type: integer
                     format: uint32
                 expr:

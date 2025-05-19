@@ -491,7 +491,8 @@ func (s *UpdateTeamStrategiesStatusParams) Validate() error {
 }
 
 type OperateTeamStrategyParams struct {
-	StrategyId uint32
+	StrategyId      uint32
+	StrategyLevelId uint32
 }
 
 func (s *OperateTeamStrategyParams) Validate() error {

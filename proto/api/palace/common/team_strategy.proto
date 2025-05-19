@@ -74,7 +74,7 @@ message TeamStrategyMetricItem {
     repeated api.palace.common.TeamDictItem alarmPages = 12;
   }
   TeamStrategyItem base = 1;
-  uint32 StrategyMetricId = 2;
+  uint32 strategyMetricId = 2;
   string expr = 3;
   map<string, string> labels = 4;
   map<string, string> annotations = 5;
