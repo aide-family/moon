@@ -85,6 +85,18 @@ func (t *TeamStrategyService) ListTeamStrategyGroup(ctx context.Context, request
 	}, nil
 }
 
+func (t *TeamStrategyService) SelectTeamStrategyGroup(ctx context.Context, request *palace.SelectTeamStrategyGroupRequest) (*palace.SelectTeamStrategyGroupReply, error) {
+	params := build.ToSelectTeamStrategyGroupParams(request)
+	groups, err := t.teamStrategyGroupBiz.SelectTeamStrategyGroup(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &palace.SelectTeamStrategyGroupReply{
+		Items:      build.ToSelectItems(groups.Items),
+		Pagination: build.ToPaginationReply(groups.PaginationReply),
+	}, nil
+}
+
 func (t *TeamStrategyService) SaveTeamStrategy(ctx context.Context, request *palace.SaveTeamStrategyRequest) (*common.TeamStrategyItem, error) {
 	params := build.ToSaveTeamStrategyParams(request)
 	strategyDo, err := t.teamStrategyBiz.SaveTeamStrategy(ctx, params)

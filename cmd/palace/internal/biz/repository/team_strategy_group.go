@@ -13,5 +13,6 @@ type TeamStrategyGroup interface {
 	Delete(ctx context.Context, id uint32) error
 	Get(ctx context.Context, id uint32) (do.StrategyGroup, error)
 	List(ctx context.Context, listParams *bo.ListTeamStrategyGroupParams) (*bo.ListTeamStrategyGroupReply, error)
+	Select(ctx context.Context, selectParams *bo.SelectTeamStrategyGroupRequest) (*bo.SelectTeamStrategyGroupReply, error)
 	UpdateStatus(ctx context.Context, params *bo.UpdateTeamStrategyGroupStatusParams) error
 }

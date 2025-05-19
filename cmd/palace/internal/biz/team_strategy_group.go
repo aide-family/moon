@@ -40,3 +40,7 @@ func (t *TeamStrategyGroupBiz) GetTeamStrategyGroup(ctx context.Context, id uint
 func (t *TeamStrategyGroupBiz) ListTeamStrategyGroup(ctx context.Context, params *bo.ListTeamStrategyGroupParams) (*bo.ListTeamStrategyGroupReply, error) {
 	return t.teamStrategyGroupRepo.List(ctx, params)
 }
+
+func (t *TeamStrategyGroupBiz) SelectTeamStrategyGroup(ctx context.Context, params *bo.SelectTeamStrategyGroupRequest) (*bo.SelectTeamStrategyGroupReply, error) {
+	return t.teamStrategyGroupRepo.Select(ctx, params)
+}

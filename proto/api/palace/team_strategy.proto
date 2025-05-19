@@ -51,6 +51,14 @@ service TeamStrategy {
     };
   }
 
+  // SelectTeamStrategyGroup selects team strategy groups based on specified filters
+  rpc SelectTeamStrategyGroup (SelectTeamStrategyGroupRequest) returns (SelectTeamStrategyGroupReply) {
+    option (google.api.http) = {
+      post: "/api/team/strategy/group/select"
+      body: "*"
+    };
+  }
+
   // SaveTeamStrategy saves a new team strategy or updates an existing one
   rpc SaveTeamStrategy (SaveTeamStrategyRequest) returns (api.palace.common.TeamStrategyItem) {
     option (google.api.http) = {
@@ -166,6 +174,24 @@ message ListTeamStrategyGroupRequest {
 message ListTeamStrategyGroupReply {
   // List of strategy group items
   repeated api.palace.common.TeamStrategyGroupItem items = 1;
+  // Pagination response details
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+// SelectTeamStrategyGroupRequest represents the request data for selecting team strategy groups
+message SelectTeamStrategyGroupRequest {
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 1;
+  // Keyword to search strategy groups by
+  string keyword = 2 [(buf.validate.field).string.max_len = 20];
+  // List of statuses to filter strategy groups by
+  repeated api.palace.common.GlobalStatus status = 3;
+}
+
+// SelectTeamStrategyGroupReply contains the response data for selecting team strategy groups
+message SelectTeamStrategyGroupReply {
+  // List of strategy group items
+  repeated api.palace.common.SelectItem items = 1;
   // Pagination response details
   api.palace.common.PaginationReply pagination = 2;
 }

@@ -102,6 +102,40 @@ func (t *teamStrategyGroupRepo) List(ctx context.Context, listParams *bo.ListTea
 	return listParams.ToListReply(rows), nil
 }
 
+// Select implements repository.TeamStrategyGroup.
+func (t *teamStrategyGroupRepo) Select(ctx context.Context, selectParams *bo.SelectTeamStrategyGroupRequest) (*bo.SelectTeamStrategyGroupReply, error) {
+	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	mutation := tx.StrategyGroup
+	wrappers := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId))
+	if validate.TextIsNotNull(selectParams.Keyword) {
+		wrappers = wrappers.Where(mutation.Name.Like(selectParams.Keyword))
+	}
+	if len(selectParams.Status) > 0 {
+		wrappers = wrappers.Where(mutation.Status.In(slices.Map(selectParams.Status, func(status vobj.GlobalStatus) int8 { return int8(status) })...))
+	}
+	if validate.IsNotNil(selectParams.PaginationRequest) {
+		total, err := wrappers.Count()
+		if err != nil {
+			return nil, err
+		}
+		selectParams.WithTotal(total)
+		wrappers = wrappers.Limit(int(selectParams.Limit)).Offset(selectParams.Offset())
+	}
+	selectColumns := []field.Expr{
+		mutation.ID,
+		mutation.Name,
+		mutation.Remark,
+		mutation.Status,
+		mutation.DeletedAt,
+	}
+	groups, err := wrappers.WithContext(ctx).Select(selectColumns...).Order(mutation.ID.Desc()).Find()
+	if err != nil {
+		return nil, err
+	}
+	rows := slices.Map(groups, func(group *team.StrategyGroup) do.StrategyGroup { return group })
+	return selectParams.ToSelectReply(rows), nil
+}
+
 // Update implements repository.TeamStrategyGroup.
 func (t *teamStrategyGroupRepo) Update(ctx context.Context, params *bo.SaveTeamStrategyGroupParams) error {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)

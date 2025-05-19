@@ -1969,6 +1969,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.ListTeamStrategyGroupReply'
+    /api/team/strategy/group/select:
+        post:
+            tags:
+                - TeamStrategy
+            description: SelectTeamStrategyGroup selects team strategy groups based on specified filters
+            operationId: TeamStrategy_SelectTeamStrategyGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.SelectTeamStrategyGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.SelectTeamStrategyGroupReply'
     /api/team/strategy/group/status:
         put:
             tags:
@@ -4343,6 +4362,36 @@ components:
                         type: integer
                         format: enum
             description: SelectTeamMembersRequest represents the request data for selecting team members
+        api.palace.SelectTeamStrategyGroupReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.SelectItem'
+                    description: List of strategy group items
+                pagination:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.common.PaginationReply'
+                    description: Pagination response details
+            description: SelectTeamStrategyGroupReply contains the response data for selecting team strategy groups
+        api.palace.SelectTeamStrategyGroupRequest:
+            type: object
+            properties:
+                pagination:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                    description: Pagination request details
+                keyword:
+                    type: string
+                    description: Keyword to search strategy groups by
+                status:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+                    description: List of statuses to filter strategy groups by
+            description: SelectTeamStrategyGroupRequest represents the request data for selecting team strategy groups
         api.palace.SelectTimeEngineReply:
             type: object
             properties:
