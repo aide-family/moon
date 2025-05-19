@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 // NewDashboardRepo creates a new dashboard repository
@@ -95,7 +96,7 @@ func (r *dashboardImpl) ListDashboards(ctx context.Context, req *bo.ListDashboar
 		wrapper = wrapper.Where(mutation.Status.Eq(req.Status.GetValue()))
 	}
 
-	if req.PaginationRequest != nil {
+	if validate.IsNotNil(req.PaginationRequest) {
 		total, err := wrapper.Count()
 		if err != nil {
 			return nil, err
@@ -110,6 +111,40 @@ func (r *dashboardImpl) ListDashboards(ctx context.Context, req *bo.ListDashboar
 	}
 	rows := slices.Map(dashboards, func(dashboard *team.Dashboard) do.Dashboard { return dashboard })
 	return req.ToListReply(rows), nil
+}
+
+func (r *dashboardImpl) SelectTeamDashboard(ctx context.Context, req *bo.SelectTeamDashboardReq) (*bo.SelectTeamDashboardReply, error) {
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, r)
+	mutation := tx.Dashboard
+	query := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamID))
+	if validate.TextIsNotNull(req.Keyword) {
+		query = query.Where(mutation.Title.Like(req.Keyword))
+	}
+	if !req.Status.IsUnknown() {
+		query = query.Where(mutation.Status.Eq(req.Status.GetValue()))
+	}
+	if validate.IsNotNil(req.PaginationRequest) {
+		total, err := query.Count()
+		if err != nil {
+			return nil, err
+		}
+		req.WithTotal(total)
+		query = query.Limit(int(req.Limit)).Offset(req.Offset())
+	}
+
+	selectColumns := []field.Expr{
+		mutation.ID,
+		mutation.Title,
+		mutation.Remark,
+		mutation.Status,
+		mutation.DeletedAt,
+	}
+	dashboards, err := query.WithContext(ctx).Select(selectColumns...).Order(mutation.ID.Desc()).Find()
+	if err != nil {
+		return nil, err
+	}
+	rows := slices.Map(dashboards, func(dashboard *team.Dashboard) do.Dashboard { return dashboard })
+	return req.ToSelectReply(rows), nil
 }
 
 // BatchUpdateDashboardStatus update multiple dashboards status

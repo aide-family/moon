@@ -1,7 +1,10 @@
 package build
 
 import (
+	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/api/palace"
 	"github.com/aide-family/moon/pkg/api/palace/common"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/timex"
@@ -52,4 +55,23 @@ func ToDashboardChartItem(chart do.DashboardChart) *common.TeamDashboardChartIte
 // ToDashboardChartItems converts multiple business objects to proto objects
 func ToDashboardChartItems(charts []do.DashboardChart) []*common.TeamDashboardChartItem {
 	return slices.Map(charts, ToDashboardChartItem)
+}
+
+// ToSelectTeamDashboardParams converts a proto object to a business object
+func ToSelectTeamDashboardParams(req *palace.SelectTeamDashboardRequest) *bo.SelectTeamDashboardReq {
+	return &bo.SelectTeamDashboardReq{
+		Keyword:           req.GetKeyword(),
+		Status:            vobj.GlobalStatus(req.GetStatus()),
+		PaginationRequest: ToPaginationRequest(req.GetPagination()),
+	}
+}
+
+// ToSelectTeamDashboardChartParams converts a proto object to a business object
+func ToSelectTeamDashboardChartParams(req *palace.SelectTeamDashboardChartRequest) *bo.SelectTeamDashboardChartReq {
+	return &bo.SelectTeamDashboardChartReq{
+		DashboardID:       req.GetDashboardId(),
+		PaginationRequest: ToPaginationRequest(req.GetPagination()),
+		Status:            vobj.GlobalStatus(req.GetStatus()),
+		Keyword:           req.GetKeyword(),
+	}
 }

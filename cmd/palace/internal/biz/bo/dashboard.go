@@ -3,6 +3,7 @@ package bo
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 type Dashboard interface {
@@ -61,3 +62,27 @@ func (r *ListDashboardReq) ToListReply(dashboards []do.Dashboard) *ListDashboard
 
 // ListDashboardReply represents a reply to list dashboards
 type ListDashboardReply = ListReply[do.Dashboard]
+
+type SelectTeamDashboardReq struct {
+	*PaginationRequest
+	Status  vobj.GlobalStatus
+	Keyword string
+}
+
+func (r *SelectTeamDashboardReq) ToSelectReply(dashboards []do.Dashboard) *SelectTeamDashboardReply {
+	return &SelectTeamDashboardReply{
+		PaginationReply: r.ToReply(),
+		Items: slices.Map(dashboards, func(dashboard do.Dashboard) SelectItem {
+			return &selectItem{
+				Value:    dashboard.GetID(),
+				Label:    dashboard.GetTitle(),
+				Disabled: dashboard.GetDeletedAt() > 0 || !dashboard.GetStatus().IsEnable(),
+				Extra: &selectItemExtra{
+					Remark: dashboard.GetRemark(),
+				},
+			}
+		}),
+	}
+}
+
+type SelectTeamDashboardReply = ListReply[SelectItem]

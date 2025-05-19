@@ -61,6 +61,11 @@ func (b *DashboardBiz) ListDashboard(ctx context.Context, req *bo.ListDashboardR
 	return b.dashboardRepo.ListDashboards(ctx, req)
 }
 
+// SelectTeamDashboard selects team dashboards.
+func (b *DashboardBiz) SelectTeamDashboard(ctx context.Context, req *bo.SelectTeamDashboardReq) (*bo.SelectTeamDashboardReply, error) {
+	return b.dashboardRepo.SelectTeamDashboard(ctx, req)
+}
+
 // BatchUpdateDashboardStatus updates multiple dashboards' status.
 func (b *DashboardBiz) BatchUpdateDashboardStatus(ctx context.Context, req *bo.BatchUpdateDashboardStatusReq) error {
 	return b.dashboardRepo.BatchUpdateDashboardStatus(ctx, req)
@@ -93,6 +98,11 @@ func (b *DashboardBiz) GetDashboardChart(ctx context.Context, req *bo.OperateOne
 // ListDashboardCharts lists dashboard charts.
 func (b *DashboardBiz) ListDashboardCharts(ctx context.Context, req *bo.ListDashboardChartReq) (*bo.ListDashboardChartReply, error) {
 	return b.dashboardChartRepo.ListDashboardCharts(ctx, req)
+}
+
+// SelectTeamDashboardChart selects team dashboard charts.
+func (b *DashboardBiz) SelectTeamDashboardChart(ctx context.Context, req *bo.SelectTeamDashboardChartReq) (*bo.SelectTeamDashboardChartReply, error) {
+	return b.dashboardChartRepo.SelectTeamDashboardChart(ctx, req)
 }
 
 // BatchUpdateDashboardChartStatus updates multiple dashboard charts' status.

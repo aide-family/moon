@@ -3,6 +3,7 @@ package bo
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 type DashboardChart interface {
@@ -101,6 +102,31 @@ func (r *ListDashboardChartReq) ToListReply(charts []do.DashboardChart) *ListDas
 
 // ListDashboardChartReply represents a reply to list dashboard charts
 type ListDashboardChartReply = ListReply[do.DashboardChart]
+
+type SelectTeamDashboardChartReq struct {
+	*PaginationRequest
+	Status      vobj.GlobalStatus
+	DashboardID uint32
+	Keyword     string
+}
+
+func (r *SelectTeamDashboardChartReq) ToSelectReply(charts []do.DashboardChart) *SelectTeamDashboardChartReply {
+	return &SelectTeamDashboardChartReply{
+		PaginationReply: r.ToReply(),
+		Items: slices.Map(charts, func(chart do.DashboardChart) SelectItem {
+			return &selectItem{
+				Value:    chart.GetID(),
+				Label:    chart.GetTitle(),
+				Disabled: chart.GetDeletedAt() > 0 || !chart.GetStatus().IsEnable(),
+				Extra: &selectItemExtra{
+					Remark: chart.GetRemark(),
+				},
+			}
+		}),
+	}
+}
+
+type SelectTeamDashboardChartReply = ListReply[SelectItem]
 
 // BatchUpdateDashboardStatusReq represents a request to batch update dashboard status
 type BatchUpdateDashboardStatusReq struct {

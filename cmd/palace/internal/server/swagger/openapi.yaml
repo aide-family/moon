@@ -869,6 +869,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.ListTeamDashboardChartReply'
+    /api/team/dashboard/chart/select:
+        post:
+            tags:
+                - TeamDashboard
+            operationId: TeamDashboard_SelectTeamDashboardChart
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.SelectTeamDashboardChartRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.SelectTeamDashboardChartReply'
     /api/team/dashboard/chart/status:
         put:
             tags:
@@ -905,6 +923,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.ListTeamDashboardReply'
+    /api/team/dashboard/select:
+        post:
+            tags:
+                - TeamDashboard
+            operationId: TeamDashboard_SelectTeamDashboard
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.SelectTeamDashboardRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.SelectTeamDashboardReply'
     /api/team/dashboard/status:
         put:
             tags:
@@ -4310,6 +4346,47 @@ components:
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationRequest'
             description: SelectResourceRequest represents the request data for selecting resources
+        api.palace.SelectTeamDashboardChartReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.SelectItem'
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+        api.palace.SelectTeamDashboardChartRequest:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                dashboardId:
+                    type: integer
+                    format: uint32
+                status:
+                    type: integer
+                    format: enum
+                keyword:
+                    type: string
+        api.palace.SelectTeamDashboardReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.SelectItem'
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+        api.palace.SelectTeamDashboardRequest:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                status:
+                    type: integer
+                    format: enum
+                keyword:
+                    type: string
         api.palace.SelectTeamDictReply:
             type: object
             properties:

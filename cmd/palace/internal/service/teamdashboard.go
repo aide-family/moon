@@ -73,6 +73,18 @@ func (s *TeamDashboardService) ListTeamDashboard(ctx context.Context, req *palac
 	}, nil
 }
 
+func (s *TeamDashboardService) SelectTeamDashboard(ctx context.Context, req *palace.SelectTeamDashboardRequest) (*palace.SelectTeamDashboardReply, error) {
+	params := build.ToSelectTeamDashboardParams(req)
+	reply, err := s.dashboard.SelectTeamDashboard(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &palace.SelectTeamDashboardReply{
+		Items:      build.ToSelectItems(reply.Items),
+		Pagination: build.ToPaginationReply(reply.PaginationReply),
+	}, nil
+}
+
 func (s *TeamDashboardService) UpdateTeamDashboardStatus(ctx context.Context, req *palace.UpdateTeamDashboardStatusRequest) (*common.EmptyReply, error) {
 	params := &bo.BatchUpdateDashboardStatusReq{
 		Ids:    req.GetDashboardIds(),
@@ -138,6 +150,18 @@ func (s *TeamDashboardService) ListTeamDashboardChart(ctx context.Context, req *
 	}
 	return &palace.ListTeamDashboardChartReply{
 		Items:      build.ToDashboardChartItems(reply.Items),
+		Pagination: build.ToPaginationReply(reply.PaginationReply),
+	}, nil
+}
+
+func (s *TeamDashboardService) SelectTeamDashboardChart(ctx context.Context, req *palace.SelectTeamDashboardChartRequest) (*palace.SelectTeamDashboardChartReply, error) {
+	params := build.ToSelectTeamDashboardChartParams(req)
+	reply, err := s.dashboard.SelectTeamDashboardChart(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &palace.SelectTeamDashboardChartReply{
+		Items:      build.ToSelectItems(reply.Items),
 		Pagination: build.ToPaginationReply(reply.PaginationReply),
 	}, nil
 }

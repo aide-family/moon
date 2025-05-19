@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 // NewDashboardChartRepo creates a new dashboard chart repository
@@ -128,6 +129,39 @@ func (r *dashboardChartImpl) ListDashboardCharts(ctx context.Context, req *bo.Li
 	}
 	rows := slices.Map(charts, func(chart *team.DashboardChart) do.DashboardChart { return chart })
 	return req.ToListReply(rows), nil
+}
+
+func (r *dashboardChartImpl) SelectTeamDashboardChart(ctx context.Context, req *bo.SelectTeamDashboardChartReq) (*bo.SelectTeamDashboardChartReply, error) {
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, r)
+	mutation := tx.DashboardChart
+	query := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamID), mutation.DashboardID.Eq(req.DashboardID))
+	if validate.TextIsNotNull(req.Keyword) {
+		query = query.Where(mutation.Title.Like(req.Keyword))
+	}
+	if !req.Status.IsUnknown() {
+		query = query.Where(mutation.Status.Eq(req.Status.GetValue()))
+	}
+	if req.PaginationRequest != nil {
+		total, err := query.Count()
+		if err != nil {
+			return nil, err
+		}
+		req.WithTotal(total)
+		query = query.Limit(int(req.Limit)).Offset(req.Offset())
+	}
+	selectColumns := []field.Expr{
+		mutation.ID,
+		mutation.Title,
+		mutation.Remark,
+		mutation.Status,
+		mutation.DeletedAt,
+	}
+	charts, err := query.WithContext(ctx).Select(selectColumns...).Order(mutation.ID.Desc()).Find()
+	if err != nil {
+		return nil, err
+	}
+	rows := slices.Map(charts, func(chart *team.DashboardChart) do.DashboardChart { return chart })
+	return req.ToSelectReply(rows), nil
 }
 
 // BatchUpdateDashboardChartStatus update multiple dashboard charts status

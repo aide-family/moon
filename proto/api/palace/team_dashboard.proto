@@ -33,6 +33,12 @@ service TeamDashboard {
 			body: "*"
 		};
 	}
+	rpc SelectTeamDashboard (SelectTeamDashboardRequest) returns (SelectTeamDashboardReply) {
+		option (google.api.http) = {
+			post: "/api/team/dashboard/select"
+			body: "*"
+		};
+	}
 	rpc UpdateTeamDashboardStatus (UpdateTeamDashboardStatusRequest) returns (api.palace.common.EmptyReply) {
 		option (google.api.http) = {
 			put: "/api/team/dashboard/status"
@@ -58,6 +64,12 @@ service TeamDashboard {
 	rpc ListTeamDashboardChart (ListTeamDashboardChartRequest) returns (ListTeamDashboardChartReply) {
 		option (google.api.http) = {
 			post: "/api/team/dashboard/chart/list"
+			body: "*"
+		};
+	}
+	rpc SelectTeamDashboardChart (SelectTeamDashboardChartRequest) returns (SelectTeamDashboardChartReply) {
+		option (google.api.http) = {
+			post: "/api/team/dashboard/chart/select"
 			body: "*"
 		};
 	}
@@ -111,6 +123,16 @@ message ListTeamDashboardReply {
 	api.palace.common.PaginationReply pagination = 2;
 }
 
+message SelectTeamDashboardRequest {
+	api.palace.common.PaginationRequest pagination = 1;
+	api.palace.common.GlobalStatus status = 2;
+	string keyword = 3;
+}
+message SelectTeamDashboardReply {
+	repeated api.palace.common.SelectItem items = 1;
+	api.palace.common.PaginationReply pagination = 2;
+}
+
 message UpdateTeamDashboardStatusRequest {
 	repeated uint32 dashboardIds = 1;
 	api.palace.common.GlobalStatus status = 2;
@@ -160,6 +182,17 @@ message ListTeamDashboardChartRequest {
 }
 message ListTeamDashboardChartReply {
 	repeated api.palace.common.TeamDashboardChartItem items = 1;
+	api.palace.common.PaginationReply pagination = 2;
+}
+
+message SelectTeamDashboardChartRequest {
+	api.palace.common.PaginationRequest pagination = 1;
+	uint32 dashboardId = 2 [(buf.validate.field).required = true, (buf.validate.field).uint32.gt = 0];
+	api.palace.common.GlobalStatus status = 3;
+	string keyword = 4;
+}
+message SelectTeamDashboardChartReply {
+	repeated api.palace.common.SelectItem items = 1;
 	api.palace.common.PaginationReply pagination = 2;
 }
 
