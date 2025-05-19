@@ -36,6 +36,7 @@ message Auth {
       UNKNOWN = 0;
       GITHUB = 1;
       GITEE = 2;
+      FEISHU = 3;
     }
     message Config {
       APP app = 1;
