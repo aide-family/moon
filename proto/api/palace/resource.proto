@@ -34,7 +34,15 @@ service Resource {
       body: "*"
     };
   }
-  
+
+  // SelectResource selects resources based on specified filters
+  rpc SelectResource (SelectResourceRequest) returns (SelectResourceReply) {
+    option (google.api.http) = {
+      post: "/api/resource/select"
+      body: "*"
+    };
+  }
+
   // SaveResource creates or updates a resource
   rpc SaveResource (SaveResourceRequest) returns (api.palace.common.EmptyReply) {
     option (google.api.http) = {
@@ -100,6 +108,21 @@ message ListResourceRequest {
 message ListResourceReply {
   // List of resource items
   repeated api.palace.common.ResourceItem items = 1;
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+// SelectResourceRequest represents the request data for selecting resources
+message SelectResourceRequest {
+  // List of statuses to filter resources by
+  repeated api.palace.common.GlobalStatus status = 1;
+  // Keyword to search resources by
+  string keyword = 2;
+  api.palace.common.PaginationRequest pagination = 3;
+}
+
+// SelectResourceReply contains the response data for selecting resources
+message SelectResourceReply {
+  repeated api.palace.common.SelectItem items = 1;
   api.palace.common.PaginationReply pagination = 2;
 }
 

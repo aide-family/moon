@@ -197,7 +197,7 @@ func (r *resourceImpl) ListResources(ctx context.Context, req *bo.ListResourceRe
 	if !validate.TextIsNull(req.Keyword) {
 		resourceQuery = resourceQuery.Where(resource.Name.Like(req.Keyword))
 	}
-	if req.PaginationRequest != nil {
+	if validate.IsNotNil(req.PaginationRequest) {
 		total, err := resourceQuery.Count()
 		if err != nil {
 			return nil, err
@@ -211,6 +211,38 @@ func (r *resourceImpl) ListResources(ctx context.Context, req *bo.ListResourceRe
 	}
 	rows := slices.Map(resources, func(resource *system.Resource) do.Resource { return resource })
 	return req.ToListReply(rows), nil
+}
+
+func (r *resourceImpl) SelectResources(ctx context.Context, req *bo.SelectResourceReq) (*bo.SelectResourceReply, error) {
+	mainQuery := getMainQuery(ctx, r)
+	resource := mainQuery.Resource
+	resourceQuery := resource.WithContext(ctx)
+	if len(req.Statuses) > 0 {
+		resourceQuery = resourceQuery.Where(resource.Status.In(slices.Map(req.Statuses, func(status vobj.GlobalStatus) int8 { return status.GetValue() })...))
+	}
+	if !validate.TextIsNull(req.Keyword) {
+		resourceQuery = resourceQuery.Where(resource.Name.Like(req.Keyword))
+	}
+	if validate.IsNotNil(req.PaginationRequest) {
+		total, err := resourceQuery.Count()
+		if err != nil {
+			return nil, err
+		}
+		req.WithTotal(total)
+		resourceQuery = resourceQuery.Offset(req.Offset()).Limit(int(req.Limit))
+	}
+	selectColumns := []field.Expr{
+		resource.ID,
+		resource.Name,
+		resource.Status,
+		resource.Remark,
+		resource.DeletedAt,
+	}
+	resources, err := resourceQuery.Select(selectColumns...).Order(resource.ID.Desc()).Find()
+	if err != nil {
+		return nil, err
+	}
+	return req.ToSelectReply(slices.Map(resources, func(resource *system.Resource) do.Resource { return resource })), nil
 }
 
 func (r *resourceImpl) GetMenusByUserID(ctx context.Context, userID uint32) ([]do.Menu, error) {

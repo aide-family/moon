@@ -30,6 +30,30 @@ func (r *ListResourceReq) ToListReply(resources []do.Resource) *ListResourceRepl
 
 type ListResourceReply = ListReply[do.Resource]
 
+type SelectResourceReq struct {
+	Statuses []vobj.GlobalStatus
+	Keyword  string
+	*PaginationRequest
+}
+
+func (r *SelectResourceReq) ToSelectReply(resources []do.Resource) *SelectResourceReply {
+	return &SelectResourceReply{
+		PaginationReply: r.ToReply(),
+		Items: slices.Map(resources, func(resource do.Resource) SelectItem {
+			return &selectItem{
+				Value:    resource.GetID(),
+				Label:    resource.GetName(),
+				Disabled: resource.GetDeletedAt() > 0 || !resource.GetStatus().IsEnable(),
+				Extra: &selectItemExtra{
+					Remark: resource.GetRemark(),
+				},
+			}
+		}),
+	}
+}
+
+type SelectResourceReply = ListReply[SelectItem]
+
 type SaveResource interface {
 	GetID() uint32
 	GetName() string

@@ -44,6 +44,10 @@ func (r *ResourceBiz) ListResource(ctx context.Context, req *bo.ListResourceReq)
 	return r.resourceRepo.ListResources(ctx, req)
 }
 
+func (r *ResourceBiz) SelectResource(ctx context.Context, req *bo.SelectResourceReq) (*bo.SelectResourceReply, error) {
+	return r.resourceRepo.SelectResources(ctx, req)
+}
+
 func (r *ResourceBiz) SelfMenus(ctx context.Context) ([]do.Menu, error) {
 	userID, ok := permission.GetUserIDByContext(ctx)
 	if !ok {

@@ -68,6 +68,24 @@ func (s *ResourceService) ListResource(ctx context.Context, req *palace.ListReso
 	}, nil
 }
 
+func (s *ResourceService) SelectResource(ctx context.Context, req *palace.SelectResourceRequest) (*palace.SelectResourceReply, error) {
+	selectReq := &bo.SelectResourceReq{
+		Statuses:          build.Statuses(req.GetStatus()),
+		Keyword:           req.GetKeyword(),
+		PaginationRequest: build.ToPaginationRequest(req.GetPagination()),
+	}
+
+	resourcesReply, err := s.resourceBiz.SelectResource(ctx, selectReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return &palace.SelectResourceReply{
+		Items:      build.ToSelectItems(resourcesReply.Items),
+		Pagination: build.ToPaginationReply(resourcesReply.PaginationReply),
+	}, nil
+}
+
 func (s *ResourceService) GetResourceMenuTree(ctx context.Context, _ *common.EmptyRequest) (*palace.GetResourceMenuTreeReply, error) {
 	menus, err := s.resourceBiz.Menus(ctx, vobj.MenuTypeMenuSystem)
 	if err != nil {

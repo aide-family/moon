@@ -21,6 +21,9 @@ type Resource interface {
 	// ListResources list resources
 	ListResources(ctx context.Context, req *bo.ListResourceReq) (*bo.ListResourceReply, error)
 
+	// SelectResources select resources
+	SelectResources(ctx context.Context, req *bo.SelectResourceReq) (*bo.SelectResourceReply, error)
+
 	// BatchUpdateResourceStatus update multiple resources status
 	BatchUpdateResourceStatus(ctx context.Context, ids []uint32, status vobj.GlobalStatus) error
 

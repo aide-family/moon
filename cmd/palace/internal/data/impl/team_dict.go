@@ -168,6 +168,9 @@ func (t *teamDictImpl) Select(ctx context.Context, req *bo.SelectDictReq) (*bo.S
 		bizDictQuery.Value,
 		bizDictQuery.Lang,
 		bizDictQuery.Color,
+		bizDictQuery.DictType,
+		bizDictQuery.Status,
+		bizDictQuery.DeletedAt,
 	}
 	dictItems, err := wrapper.Select(selectColumns...).Order(bizDictQuery.ID.Desc()).Find()
 	if err != nil {

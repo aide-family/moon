@@ -393,6 +393,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/resource/select:
+        post:
+            tags:
+                - Resource
+            description: SelectResource selects resources based on specified filters
+            operationId: Resource_SelectResource
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.SelectResourceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.SelectResourceReply'
     /api/system/operate/log/list:
         post:
             tags:
@@ -4192,6 +4211,31 @@ components:
                     items:
                         type: integer
                         format: uint32
+        api.palace.SelectResourceReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.SelectItem'
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+            description: SelectResourceReply contains the response data for selecting resources
+        api.palace.SelectResourceRequest:
+            type: object
+            properties:
+                status:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+                    description: List of statuses to filter resources by
+                keyword:
+                    type: string
+                    description: Keyword to search resources by
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+            description: SelectResourceRequest represents the request data for selecting resources
         api.palace.SelectTeamDictReply:
             type: object
             properties:
