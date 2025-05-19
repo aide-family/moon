@@ -15,4 +15,5 @@ type TeamDict interface {
 	Update(ctx context.Context, dict bo.Dict) error
 	UpdateStatus(ctx context.Context, req *bo.UpdateDictStatusReq) error
 	List(ctx context.Context, req *bo.ListDictReq) (*bo.ListDictReply, error)
+	Select(ctx context.Context, req *bo.SelectDictReq) (*bo.SelectDictReply, error)
 }

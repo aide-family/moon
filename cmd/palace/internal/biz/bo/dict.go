@@ -3,6 +3,7 @@ package bo
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 type Dict interface {
@@ -91,3 +92,31 @@ func (r *ListDictReq) ToListReply(dictItems []do.TeamDict) *ListDictReply {
 }
 
 type ListDictReply = ListReply[do.TeamDict]
+
+type SelectDictReq struct {
+	*PaginationRequest
+	DictTypes []vobj.DictType   `json:"dictTypes"`
+	Status    vobj.GlobalStatus `json:"status"`
+	Keyword   string            `json:"keyword"`
+	Langs     []string          `json:"langs"`
+}
+
+func (r *SelectDictReq) ToSelectReply(dictItems []do.TeamDict) *SelectDictReply {
+	return &SelectDictReply{
+		PaginationReply: r.ToReply(),
+		Items: slices.Map(dictItems, func(dict do.TeamDict) SelectItem {
+			return &selectItem{
+				Label:    dict.GetValue(),
+				Disabled: dict.GetDeletedAt() > 0 || !dict.GetStatus().IsEnable(),
+				Extra: &selectItemExtra{
+					Remark: dict.GetLang(),
+					Icon:   dict.GetKey(),
+					Color:  dict.GetColor(),
+				},
+				Value: dict.GetID(),
+			}
+		}),
+	}
+}
+
+type SelectDictReply = ListReply[SelectItem]

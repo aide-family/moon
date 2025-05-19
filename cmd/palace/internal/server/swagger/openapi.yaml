@@ -987,6 +987,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.ListTeamDictReply'
+    /api/team/dict/select:
+        post:
+            tags:
+                - TeamDict
+            operationId: TeamDict_SelectTeamDict
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.SelectTeamDictRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.SelectTeamDictReply'
     /api/team/dict/status:
         put:
             tags:
@@ -4174,6 +4192,34 @@ components:
                     items:
                         type: integer
                         format: uint32
+        api.palace.SelectTeamDictReply:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.SelectItem'
+        api.palace.SelectTeamDictRequest:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                dictTypes:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+                status:
+                    type: integer
+                    format: enum
+                keyword:
+                    type: string
+                langs:
+                    type: array
+                    items:
+                        type: string
         api.palace.SelfSubscribeTeamStrategiesReply:
             type: object
             properties:

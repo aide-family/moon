@@ -38,6 +38,12 @@ service TeamDict {
       body: "*"
     };
   }
+  rpc SelectTeamDict (SelectTeamDictRequest) returns (SelectTeamDictReply) {
+    option (google.api.http) = {
+      post: "/api/team/dict/select"
+      body: "*"
+    };
+  }
 }
 
 message SaveTeamDictRequest {
@@ -73,3 +79,17 @@ message ListTeamDictReply {
   api.palace.common.PaginationReply pagination = 1;
   repeated api.palace.common.TeamDictItem items = 2;
 }
+
+message SelectTeamDictRequest {
+  api.palace.common.PaginationRequest pagination = 1;
+  repeated api.palace.common.DictType dictTypes = 2;
+  api.palace.common.GlobalStatus status = 3;
+  string keyword = 4;
+  repeated string langs = 5;
+}
+
+message SelectTeamDictReply {
+  api.palace.common.PaginationReply pagination = 1;
+  repeated api.palace.common.SelectItem items = 2;
+}
+

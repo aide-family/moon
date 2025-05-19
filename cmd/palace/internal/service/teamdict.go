@@ -85,3 +85,21 @@ func (s *TeamDictService) ListTeamDict(ctx context.Context, req *palace.ListTeam
 		Items:      build.ToDictItems(listDictReply.Items),
 	}, nil
 }
+
+func (s *TeamDictService) SelectTeamDict(ctx context.Context, req *palace.SelectTeamDictRequest) (*palace.SelectTeamDictReply, error) {
+	params := &bo.SelectDictReq{
+		PaginationRequest: build.ToPaginationRequest(req.GetPagination()),
+		DictTypes:         slices.Map(req.GetDictTypes(), func(dictType common.DictType) vobj.DictType { return vobj.DictType(dictType) }),
+		Status:            vobj.GlobalStatus(req.GetStatus()),
+		Keyword:           req.GetKeyword(),
+		Langs:             req.GetLangs(),
+	}
+	selectDictReply, err := s.dictBiz.SelectDict(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &palace.SelectTeamDictReply{
+		Pagination: build.ToPaginationReply(selectDictReply.PaginationReply),
+		Items:      build.ToSelectItems(selectDictReply.Items),
+	}, nil
+}

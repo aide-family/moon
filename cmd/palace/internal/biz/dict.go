@@ -52,3 +52,7 @@ func (d *Dict) DeleteDict(ctx context.Context, req *bo.OperateOneDictReq) error 
 func (d *Dict) ListDict(ctx context.Context, req *bo.ListDictReq) (*bo.ListDictReply, error) {
 	return d.teamDictRepo.List(ctx, req)
 }
+
+func (d *Dict) SelectDict(ctx context.Context, req *bo.SelectDictReq) (*bo.SelectDictReply, error) {
+	return d.teamDictRepo.Select(ctx, req)
+}

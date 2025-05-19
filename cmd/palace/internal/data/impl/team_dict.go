@@ -137,6 +137,45 @@ func (t *teamDictImpl) List(ctx context.Context, req *bo.ListDictReq) (*bo.ListD
 	return req.ToListReply(rows), nil
 }
 
+func (t *teamDictImpl) Select(ctx context.Context, req *bo.SelectDictReq) (*bo.SelectDictReply, error) {
+	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
+	bizDictQuery := query.Dict
+	wrapper := bizDictQuery.WithContext(ctx).Where(bizDictQuery.TeamID.Eq(teamID))
+	if len(req.Langs) > 0 {
+		wrapper = wrapper.Where(bizDictQuery.Lang.In(req.Langs...))
+	}
+	if len(req.DictTypes) > 0 {
+		dictTypes := slices.Map(req.DictTypes, func(item vobj.DictType) int8 { return item.GetValue() })
+		wrapper = wrapper.Where(bizDictQuery.DictType.In(dictTypes...))
+	}
+	if !req.Status.IsUnknown() {
+		wrapper = wrapper.Where(bizDictQuery.Status.Eq(req.Status.GetValue()))
+	}
+	if !validate.TextIsNull(req.Keyword) {
+		wrapper = wrapper.Where(bizDictQuery.Key.Like(req.Keyword))
+	}
+	if validate.IsNotNil(req.PaginationRequest) {
+		total, err := wrapper.Count()
+		if err != nil {
+			return nil, err
+		}
+		wrapper = wrapper.Offset(req.Offset()).Limit(int(req.Limit))
+		req.WithTotal(total)
+	}
+	selectColumns := []field.Expr{
+		bizDictQuery.ID,
+		bizDictQuery.Key,
+		bizDictQuery.Value,
+		bizDictQuery.Lang,
+		bizDictQuery.Color,
+	}
+	dictItems, err := wrapper.Select(selectColumns...).Order(bizDictQuery.ID.Desc()).Find()
+	if err != nil {
+		return nil, err
+	}
+	return req.ToSelectReply(slices.Map(dictItems, func(dictItem *team.Dict) do.TeamDict { return dictItem })), nil
+}
+
 func (t *teamDictImpl) FindByIds(ctx context.Context, dictIds []uint32) ([]do.TeamDict, error) {
 	if len(dictIds) == 0 {
 		return nil, nil
