@@ -67,7 +67,7 @@ func (t *teamDatasourceMetricMetadataImpl) List(ctx context.Context, req *bo.Lis
 			return nil, err
 		}
 		req.WithTotal(total)
-		wrapper = wrapper.Limit(int(req.PaginationRequest.Limit)).Offset(req.PaginationRequest.Offset())
+		wrapper = wrapper.Limit(int(req.PaginationRequest.Limit)).Offset(req.Offset())
 	}
 	wrapper = wrapper.Order(datasourceMetricMetadataMutation.CreatedAt.Desc())
 	items, err := wrapper.Find()

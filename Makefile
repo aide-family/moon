@@ -43,6 +43,7 @@ init:
 	go install github.com/google/wire/cmd/wire@latest
 	go install github.com/moon-monitor/stringer@latest
 	go install github.com/protoc-gen/i18n-gen@latest
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 
 .PHONY: all
 all:
@@ -221,6 +222,7 @@ run:
 	@if [ -z "$(APP_NAME)" ]; then echo "app name is required"; echo "usage: make run app=<app_name>"; exit 1; fi
 	@echo "Running moon app=$(APP_NAME)"
 	make all
+	golangci-lint run -v --fix
 	go run ./cmd/$(APP_NAME) -c ./cmd/$(APP_NAME)/config
 
 .PHONY: migrate-table

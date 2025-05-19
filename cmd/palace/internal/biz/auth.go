@@ -273,7 +273,11 @@ func (a *AuthBiz) feiShuLogin(ctx context.Context, code string, sendEmailFunc bo
 	}
 
 	body := userResp.Body
-	defer body.Close()
+	defer func() {
+		if err := body.Close(); err != nil {
+			a.helper.WithContext(ctx).Warnw("msg", "close feishu oauth response body error", "err", err)
+		}
+	}()
 
 	var result struct {
 		Code int            `json:"code"`

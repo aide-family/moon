@@ -63,13 +63,6 @@ func menuNotFound(err error) error {
 	return err
 }
 
-func teamMenuNotFound(err error) error {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return merr.ErrorNotFound("team menu not found").WithCause(err)
-	}
-	return err
-}
-
 func strategyNotFound(err error) error {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return merr.ErrorNotFound("strategy not found").WithCause(err)
