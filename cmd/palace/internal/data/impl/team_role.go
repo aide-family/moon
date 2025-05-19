@@ -101,19 +101,25 @@ func (t *teamRoleImpl) Create(ctx context.Context, role bo.Role) error {
 		Name:   role.GetName(),
 		Remark: role.GetRemark(),
 		Status: role.GetStatus(),
-		Menus: slices.MapFilter(role.GetMenus(), func(menu do.Menu) (*system.Menu, bool) {
-			if validate.IsNil(menu) || menu.GetID() <= 0 {
-				return nil, false
-			}
-			return &system.Menu{
-				BaseModel: do.BaseModel{ID: menu.GetID()},
-			}, true
-		}),
 	}
 	teamDo.WithContext(ctx)
 
 	bizRoleQuery := getMainQuery(ctx, t).TeamRole
-	return bizRoleQuery.WithContext(ctx).Create(teamDo)
+	if err := bizRoleQuery.WithContext(ctx).Create(teamDo); err != nil {
+		return err
+	}
+	menus := slices.MapFilter(role.GetMenus(), func(menu do.Menu) (*system.Menu, bool) {
+		if validate.IsNil(menu) || menu.GetID() <= 0 {
+			return nil, false
+		}
+		return &system.Menu{
+			BaseModel: do.BaseModel{ID: menu.GetID()},
+		}, true
+	})
+	if len(menus) == 0 {
+		return nil
+	}
+	return bizRoleQuery.Menus.Model(teamDo).Append(menus...)
 }
 
 func (t *teamRoleImpl) Update(ctx context.Context, role bo.Role) error {

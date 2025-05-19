@@ -19,7 +19,7 @@ func ToDatasourceMetric(ctx context.Context, datasource do.DatasourceMetric) *te
 		datasource.WithContext(ctx)
 		return datasource
 	}
-	return &team.DatasourceMetric{
+	datasourceDo := &team.DatasourceMetric{
 		TeamModel:      ToTeamModel(ctx, datasource),
 		Name:           datasource.GetName(),
 		Status:         datasource.GetStatus(),
@@ -35,6 +35,8 @@ func ToDatasourceMetric(ctx context.Context, datasource do.DatasourceMetric) *te
 		Extra:          crypto.NewObject(datasource.GetExtra()),
 		Metrics:        []*team.StrategyMetric{},
 	}
+	datasourceDo.WithContext(ctx)
+	return datasourceDo
 }
 func ToDatasourceMetrics(ctx context.Context, datasourceList []do.DatasourceMetric) []*team.DatasourceMetric {
 	return slices.MapFilter(datasourceList, func(v do.DatasourceMetric) (*team.DatasourceMetric, bool) {

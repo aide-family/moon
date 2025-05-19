@@ -17,13 +17,15 @@ func ToStrategyMember(ctx context.Context, member do.NoticeMember) *team.NoticeM
 		member.WithContext(ctx)
 		return member
 	}
-	return &team.NoticeMember{
+	memberDo := &team.NoticeMember{
 		TeamModel:     ToTeamModel(ctx, member),
 		NoticeGroupID: member.GetNoticeGroupID(),
 		UserID:        member.GetUserID(),
 		NoticeType:    member.GetNoticeType(),
 		NoticeGroup:   ToStrategyNotice(ctx, member.GetNoticeGroup()),
 	}
+	memberDo.WithContext(ctx)
+	return memberDo
 }
 
 func ToStrategyMembers(ctx context.Context, members []do.NoticeMember) []*team.NoticeMember {

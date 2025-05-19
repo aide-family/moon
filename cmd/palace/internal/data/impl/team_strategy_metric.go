@@ -71,11 +71,9 @@ func (t *teamStrategyMetricImpl) Create(ctx context.Context, params bo.CreateTea
 
 	strategyMetricDo := &team.StrategyMetric{
 		StrategyID:  params.GetStrategy().GetID(),
-		Strategy:    build.ToStrategy(ctx, params.GetStrategy()),
 		Expr:        params.GetExpr(),
 		Labels:      params.GetLabels(),
 		Annotations: params.GetAnnotations(),
-		Datasource:  build.ToDatasourceMetrics(ctx, params.GetDatasource()),
 	}
 	strategyMetricDo.WithContext(ctx)
 
@@ -83,9 +81,10 @@ func (t *teamStrategyMetricImpl) Create(ctx context.Context, params bo.CreateTea
 		return nil, err
 	}
 
-	if len(strategyMetricDo.Datasource) > 0 {
+	datasourceList := build.ToDatasourceMetrics(ctx, params.GetDatasource())
+	if len(datasourceList) > 0 {
 		datasource := tx.StrategyMetric.Datasource.WithContext(ctx).Model(strategyMetricDo)
-		if err := datasource.Append(strategyMetricDo.Datasource...); err != nil {
+		if err := datasource.Append(datasourceList...); err != nil {
 			return nil, err
 		}
 	}

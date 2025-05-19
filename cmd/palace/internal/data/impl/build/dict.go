@@ -17,7 +17,7 @@ func ToDict(ctx context.Context, dict do.TeamDict) *team.Dict {
 		dict.WithContext(ctx)
 		return dict
 	}
-	return &team.Dict{
+	dictDo := &team.Dict{
 		TeamModel: ToTeamModel(ctx, dict),
 		Key:       dict.GetKey(),
 		Value:     dict.GetValue(),
@@ -26,10 +26,15 @@ func ToDict(ctx context.Context, dict do.TeamDict) *team.Dict {
 		DictType:  dict.GetType(),
 		Status:    dict.GetStatus(),
 	}
+	dictDo.WithContext(ctx)
+	return dictDo
 }
 
 func ToDicts(ctx context.Context, dicts []do.TeamDict) []*team.Dict {
-	return slices.Map(dicts, func(v do.TeamDict) *team.Dict {
-		return ToDict(ctx, v)
+	return slices.MapFilter(dicts, func(v do.TeamDict) (*team.Dict, bool) {
+		if validate.IsNil(v) {
+			return nil, false
+		}
+		return ToDict(ctx, v), true
 	})
 }

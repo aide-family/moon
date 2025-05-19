@@ -18,14 +18,16 @@ func ToRole(ctx context.Context, roleDo do.Role) *system.Role {
 		role.WithContext(ctx)
 		return role
 	}
-	return &system.Role{
+	role = &system.Role{
 		CreatorModel: ToCreatorModel(ctx, roleDo),
-		Name:         role.GetName(),
-		Remark:       role.GetRemark(),
-		Status:       role.GetStatus(),
-		Users:        ToUsers(ctx, role.GetUsers()),
+		Name:         roleDo.GetName(),
+		Remark:       roleDo.GetRemark(),
+		Status:       roleDo.GetStatus(),
+		Users:        ToUsers(ctx, roleDo.GetUsers()),
 		Menus:        nil,
 	}
+	role.WithContext(ctx)
+	return role
 }
 
 func ToRoles(ctx context.Context, roles []do.Role) []*system.Role {
@@ -46,14 +48,16 @@ func ToTeamRole(ctx context.Context, roleDo do.TeamRole) *system.TeamRole {
 		role.WithContext(ctx)
 		return role
 	}
-	return &system.TeamRole{
+	role = &system.TeamRole{
 		TeamModel: ToTeamModel(ctx, roleDo),
-		Name:      role.GetName(),
-		Remark:    role.GetRemark(),
-		Status:    role.GetStatus(),
-		Members:   ToTeamMembers(ctx, role.GetMembers()),
+		Name:      roleDo.GetName(),
+		Remark:    roleDo.GetRemark(),
+		Status:    roleDo.GetStatus(),
+		Members:   ToTeamMembers(ctx, roleDo.GetMembers()),
 		Menus:     nil,
 	}
+	role.WithContext(ctx)
+	return role
 }
 
 func ToTeamRoles(ctx context.Context, roles []do.TeamRole) []*system.TeamRole {

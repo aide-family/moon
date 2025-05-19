@@ -19,7 +19,7 @@ func ToTeam(ctx context.Context, teamDo do.Team) *system.Team {
 		team.WithContext(ctx)
 		return team
 	}
-	return &system.Team{
+	team = &system.Team{
 		CreatorModel:  ToCreatorModel(ctx, teamDo),
 		Name:          teamDo.GetName(),
 		Status:        teamDo.GetStatus(),
@@ -34,6 +34,8 @@ func ToTeam(ctx context.Context, teamDo do.Team) *system.Team {
 		BizDBConfig:   crypto.NewObject(teamDo.GetBizDBConfig()),
 		AlarmDBConfig: crypto.NewObject(teamDo.GetAlarmDBConfig()),
 	}
+	team.WithContext(ctx)
+	return team
 }
 
 func ToTeams(ctx context.Context, teamDos []do.Team) []*system.Team {
@@ -54,7 +56,7 @@ func ToTeamMember(ctx context.Context, memberDo do.TeamMember) *system.TeamMembe
 		member.WithContext(ctx)
 		return member
 	}
-	return &system.TeamMember{
+	member = &system.TeamMember{
 		TeamModel:  ToTeamModel(ctx, memberDo),
 		MemberName: memberDo.GetMemberName(),
 		Remark:     memberDo.GetRemark(),
@@ -66,6 +68,8 @@ func ToTeamMember(ctx context.Context, memberDo do.TeamMember) *system.TeamMembe
 		User:       ToUser(ctx, memberDo.GetUser()),
 		Inviter:    ToUser(ctx, memberDo.GetInviter()),
 	}
+	member.WithContext(ctx)
+	return member
 }
 
 func ToTeamMembers(ctx context.Context, memberDos []do.TeamMember) []*system.TeamMember {

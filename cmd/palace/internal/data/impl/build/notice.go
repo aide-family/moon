@@ -18,7 +18,7 @@ func ToStrategyNotice(ctx context.Context, route do.NoticeGroup) *team.NoticeGro
 		notice.WithContext(ctx)
 		return notice
 	}
-	return &team.NoticeGroup{
+	group := &team.NoticeGroup{
 		Name:          route.GetName(),
 		Remark:        route.GetRemark(),
 		Status:        route.GetStatus(),
@@ -30,9 +30,14 @@ func ToStrategyNotice(ctx context.Context, route do.NoticeGroup) *team.NoticeGro
 		SMSConfig:     ToStrategySmsConfig(ctx, route.GetSMSConfig()),
 		TeamModel:     ToTeamModel(ctx, route),
 	}
+	group.WithContext(ctx)
+	return group
 }
 
 func ToStrategyNotices(ctx context.Context, routes []do.NoticeGroup) []*team.NoticeGroup {
+	if len(routes) == 0 {
+		return nil
+	}
 	return slices.MapFilter(routes, func(route do.NoticeGroup) (*team.NoticeGroup, bool) {
 		if validate.IsNil(route) {
 			return nil, false
@@ -45,11 +50,12 @@ func ToStrategyHook(ctx context.Context, hook do.NoticeHook) *team.NoticeHook {
 	if validate.IsNil(hook) {
 		return nil
 	}
-	if hook, ok := hook.(*team.NoticeHook); ok {
-		hook.WithContext(ctx)
-		return hook
+	hookDo, ok := hook.(*team.NoticeHook)
+	if ok {
+		hookDo.WithContext(ctx)
+		return hookDo
 	}
-	return &team.NoticeHook{
+	hookDo = &team.NoticeHook{
 		TeamModel:    ToTeamModel(ctx, hook),
 		Name:         hook.GetName(),
 		Remark:       hook.GetRemark(),
@@ -61,6 +67,8 @@ func ToStrategyHook(ctx context.Context, hook do.NoticeHook) *team.NoticeHook {
 		NoticeGroups: ToStrategyNotices(ctx, hook.GetNoticeGroups()),
 		APP:          hook.GetApp(),
 	}
+	hookDo.WithContext(ctx)
+	return hookDo
 }
 
 func ToStrategyHooks(ctx context.Context, hooks []do.NoticeHook) []*team.NoticeHook {
@@ -81,13 +89,15 @@ func ToStrategyEmailConfig(ctx context.Context, config do.TeamEmailConfig) *team
 		return config
 	}
 
-	return &team.EmailConfig{
+	emailConfig := &team.EmailConfig{
 		TeamModel: ToTeamModel(ctx, config),
 		Name:      config.GetName(),
 		Remark:    config.GetRemark(),
 		Status:    config.GetStatus(),
 		Email:     crypto.NewObject(config.GetEmailConfig()),
 	}
+	emailConfig.WithContext(ctx)
+	return emailConfig
 }
 
 func ToStrategySmsConfig(ctx context.Context, config do.TeamSMSConfig) *team.SmsConfig {
@@ -98,7 +108,7 @@ func ToStrategySmsConfig(ctx context.Context, config do.TeamSMSConfig) *team.Sms
 		config.WithContext(ctx)
 		return config
 	}
-	return &team.SmsConfig{
+	smsConfig := &team.SmsConfig{
 		TeamModel: ToTeamModel(ctx, config),
 		Name:      config.GetName(),
 		Remark:    config.GetRemark(),
@@ -106,6 +116,8 @@ func ToStrategySmsConfig(ctx context.Context, config do.TeamSMSConfig) *team.Sms
 		Sms:       crypto.NewObject(config.GetSMSConfig()),
 		Provider:  config.GetProviderType(),
 	}
+	smsConfig.WithContext(ctx)
+	return smsConfig
 }
 
 func ToStrategyMetricRuleLabelNotice(ctx context.Context, notice do.StrategyMetricRuleLabelNotice) *team.StrategyMetricRuleLabelNotice {
@@ -116,13 +128,15 @@ func ToStrategyMetricRuleLabelNotice(ctx context.Context, notice do.StrategyMetr
 		notice.WithContext(ctx)
 		return notice
 	}
-	return &team.StrategyMetricRuleLabelNotice{
+	noticeDo := &team.StrategyMetricRuleLabelNotice{
 		TeamModel:            ToTeamModel(ctx, notice),
 		StrategyMetricRuleID: notice.GetStrategyMetricRuleID(),
 		LabelKey:             notice.GetLabelKey(),
 		LabelValue:           notice.GetLabelValue(),
 		Notices:              ToStrategyNotices(ctx, notice.GetNotices()),
 	}
+	noticeDo.WithContext(ctx)
+	return noticeDo
 }
 
 func ToStrategyMetricRuleLabelNotices(ctx context.Context, notices []do.StrategyMetricRuleLabelNotice) []*team.StrategyMetricRuleLabelNotice {

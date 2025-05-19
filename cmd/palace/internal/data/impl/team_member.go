@@ -13,7 +13,6 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/cmd/palace/internal/data/impl/build"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/slices"
@@ -42,7 +41,6 @@ func (m *memberImpl) Create(ctx context.Context, req *bo.CreateTeamMemberReq) er
 		UserID:     req.User.GetID(),
 		Position:   req.Position,
 		Status:     req.Status,
-		User:       build.ToUser(ctx, req.User),
 	}
 	memberDo.WithContext(ctx)
 	if err := memberQuery.WithContext(ctx).Create(memberDo); err != nil {

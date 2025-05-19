@@ -13,7 +13,6 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/cmd/palace/internal/data/impl/build"
 	"github.com/aide-family/moon/pkg/util/crypto"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -41,7 +40,7 @@ func (r *teamRepoImpl) Create(ctx context.Context, team bo.CreateTeamRequest) (d
 		LeaderID:      team.GetLeader().GetID(),
 		UUID:          team.GetUUID(),
 		Capacity:      team.GetCapacity(),
-		Leader:        build.ToUser(ctx, team.GetLeader()),
+		Leader:        nil,
 		Admins:        nil,
 		Resources:     nil,
 		BizDBConfig:   crypto.NewObject(team.GetBizDBConfig()),

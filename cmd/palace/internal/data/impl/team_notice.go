@@ -69,6 +69,26 @@ func (t *teamNoticeImpl) List(ctx context.Context, req *bo.ListNoticeGroupReq) (
 }
 
 func (t *teamNoticeImpl) Create(ctx context.Context, group bo.SaveNoticeGroup) error {
+	noticeGroupDo := &team.NoticeGroup{
+		Name:          group.GetName(),
+		Remark:        group.GetRemark(),
+		Status:        group.GetStatus(),
+		EmailConfigID: 0,
+		EmailConfig:   nil,
+		SMSConfigID:   0,
+		SMSConfig:     nil,
+	}
+	if validate.IsNotNil(group.GetEmailConfig()) {
+		noticeGroupDo.EmailConfigID = group.GetEmailConfig().GetID()
+	}
+	if validate.IsNotNil(group.GetSMSConfig()) {
+		noticeGroupDo.SMSConfigID = group.GetSMSConfig().GetID()
+	}
+	noticeGroupDo.WithContext(ctx)
+	bizMutation := getTeamBizQuery(ctx, t)
+	if err := bizMutation.NoticeGroup.WithContext(ctx).Create(noticeGroupDo); err != nil {
+		return err
+	}
 	members := slices.MapFilter(group.GetNoticeMembers(), func(member *bo.SaveNoticeMemberItem) (*team.NoticeMember, bool) {
 		if validate.IsNil(member) || member.MemberID <= 0 {
 			return nil, false
@@ -80,6 +100,11 @@ func (t *teamNoticeImpl) Create(ctx context.Context, group bo.SaveNoticeGroup) e
 		item.WithContext(ctx)
 		return item, true
 	})
+	if len(members) > 0 {
+		if err := bizMutation.NoticeGroup.Members.Model(noticeGroupDo).Append(members...); err != nil {
+			return err
+		}
+	}
 	hooks := slices.MapFilter(group.GetHooks(), func(hook do.NoticeHook) (*team.NoticeHook, bool) {
 		if validate.IsNil(hook) || hook.GetID() <= 0 {
 			return nil, false
@@ -94,26 +119,13 @@ func (t *teamNoticeImpl) Create(ctx context.Context, group bo.SaveNoticeGroup) e
 		hookItem.WithContext(ctx)
 		return hookItem, true
 	})
-	noticeGroupDo := &team.NoticeGroup{
-		Name:          group.GetName(),
-		Remark:        group.GetRemark(),
-		Status:        group.GetStatus(),
-		Members:       members,
-		Hooks:         hooks,
-		EmailConfigID: 0,
-		EmailConfig:   nil,
-		SMSConfigID:   0,
-		SMSConfig:     nil,
+	if len(hooks) > 0 {
+		if err := bizMutation.NoticeGroup.Hooks.Model(noticeGroupDo).Append(hooks...); err != nil {
+			return err
+		}
 	}
-	if validate.IsNotNil(group.GetEmailConfig()) {
-		noticeGroupDo.EmailConfigID = group.GetEmailConfig().GetID()
-	}
-	if validate.IsNotNil(group.GetSMSConfig()) {
-		noticeGroupDo.SMSConfigID = group.GetSMSConfig().GetID()
-	}
-	noticeGroupDo.WithContext(ctx)
-	bizMutation := getTeamBizQuery(ctx, t)
-	return bizMutation.NoticeGroup.WithContext(ctx).Create(noticeGroupDo)
+
+	return nil
 }
 
 func (t *teamNoticeImpl) Update(ctx context.Context, group bo.SaveNoticeGroup) error {

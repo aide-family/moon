@@ -8,37 +8,39 @@ import (
 )
 
 func ToBaseModel(ctx context.Context, model do.Base) do.BaseModel {
-	if validate.IsNil(model) {
-		m := do.BaseModel{}
-		m.WithContext(ctx)
-		return m
-	}
-	m := do.BaseModel{
-		ID:        model.GetID(),
-		CreatedAt: model.GetCreatedAt(),
-		UpdatedAt: model.GetUpdatedAt(),
-		DeletedAt: model.GetDeletedAt(),
+	m := do.BaseModel{}
+	if validate.IsNotNil(model) {
+		m = do.BaseModel{
+			ID:        model.GetID(),
+			CreatedAt: model.GetCreatedAt(),
+			UpdatedAt: model.GetUpdatedAt(),
+			DeletedAt: model.GetDeletedAt(),
+		}
 	}
 	m.WithContext(ctx)
 	return m
 }
 
 func ToCreatorModel(ctx context.Context, model do.Creator) do.CreatorModel {
-	if validate.IsNil(model) {
-		return do.CreatorModel{}
+	item := do.CreatorModel{}
+	if validate.IsNotNil(model) {
+		item = do.CreatorModel{
+			BaseModel: ToBaseModel(ctx, model),
+			CreatorID: model.GetCreatorID(),
+		}
 	}
-	return do.CreatorModel{
-		BaseModel: ToBaseModel(ctx, model),
-		CreatorID: model.GetCreatorID(),
-	}
+	item.WithContext(ctx)
+	return item
 }
 
 func ToTeamModel(ctx context.Context, model do.TeamBase) do.TeamModel {
+	item := do.TeamModel{}
 	if validate.IsNil(model) {
-		return do.TeamModel{}
+		item = do.TeamModel{
+			CreatorModel: ToCreatorModel(ctx, model),
+			TeamID:       model.GetTeamID(),
+		}
 	}
-	return do.TeamModel{
-		CreatorModel: ToCreatorModel(ctx, model),
-		TeamID:       model.GetTeamID(),
-	}
+	item.WithContext(ctx)
+	return item
 }

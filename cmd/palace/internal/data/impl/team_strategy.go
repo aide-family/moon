@@ -35,17 +35,16 @@ func (t *teamStrategyImpl) Create(ctx context.Context, params bo.CreateTeamStrat
 		Remark:          params.GetRemark(),
 		Status:          vobj.GlobalStatusDisable,
 		StrategyType:    params.GetStrategyType(),
-		StrategyGroup:   build.ToStrategyGroup(ctx, params.GetStrategyGroup()),
-		Notices:         build.ToStrategyNotices(ctx, params.GetReceiverRoutes()),
 	}
 	strategyDo.WithContext(ctx)
 	tx := getTeamBizQuery(ctx, t)
 	if err := tx.Strategy.WithContext(ctx).Create(strategyDo); err != nil {
 		return nil, err
 	}
-	if len(strategyDo.Notices) > 0 {
+	notices := build.ToStrategyNotices(ctx, params.GetReceiverRoutes())
+	if len(notices) > 0 {
 		notice := tx.Strategy.Notices.WithContext(ctx).Model(strategyDo)
-		if err := notice.Append(strategyDo.Notices...); err != nil {
+		if err := notice.Append(notices...); err != nil {
 			return nil, err
 		}
 	}

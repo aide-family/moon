@@ -80,6 +80,16 @@ func (r *roleImpl) List(ctx context.Context, req *bo.ListRoleReq) (*bo.ListRoleR
 }
 
 func (r *roleImpl) Create(ctx context.Context, role bo.Role) error {
+	roleDo := &system.Role{
+		Name:   role.GetName(),
+		Remark: role.GetRemark(),
+		Status: role.GetStatus(),
+	}
+	roleDo.WithContext(ctx)
+	roleMutation := getMainQuery(ctx, r).Role
+	if err := roleMutation.WithContext(ctx).Create(roleDo); err != nil {
+		return err
+	}
 	menus := slices.MapFilter(role.GetMenus(), func(menu do.Menu) (*system.Menu, bool) {
 		if validate.IsNil(menu) || menu.GetID() <= 0 {
 			return nil, false
@@ -88,16 +98,10 @@ func (r *roleImpl) Create(ctx context.Context, role bo.Role) error {
 			BaseModel: do.BaseModel{ID: menu.GetID()},
 		}, true
 	})
-	roleDo := &system.Role{
-		CreatorModel: do.CreatorModel{},
-		Name:         role.GetName(),
-		Remark:       role.GetRemark(),
-		Status:       role.GetStatus(),
-		Menus:        menus,
+	if len(menus) == 0 {
+		return nil
 	}
-	roleDo.WithContext(ctx)
-	roleMutation := getMainQuery(ctx, r).Role
-	return roleMutation.WithContext(ctx).Create(roleDo)
+	return roleMutation.Menus.Model(roleDo).Append(menus...)
 }
 
 func (r *roleImpl) Update(ctx context.Context, role bo.Role) error {

@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"fmt"
 	"sync"
 	"time"
 
+	"github.com/aide-family/moon/pkg/util/validate"
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
@@ -156,7 +156,7 @@ func (u *BaseModel) WithContext(ctx context.Context) {
 
 // GetContext get context
 func (u *BaseModel) GetContext() context.Context {
-	if u.ctx == nil {
+	if validate.IsNil(u.ctx) {
 		panic("context is nil")
 	}
 	return u.ctx
@@ -184,9 +184,6 @@ func (u *CreatorModel) GetCreatorID() uint32 {
 }
 
 func (u *CreatorModel) GetCreator() (user User) {
-	defer func() {
-		fmt.Println("get creator", user)
-	}()
 	if u == nil {
 		return nil
 	}
@@ -226,17 +223,15 @@ func (u *TeamModel) GetTeamID() uint32 {
 
 func (u *TeamModel) BeforeCreate(tx *gorm.DB) (err error) {
 	var exist bool
+	if err := u.CreatorModel.BeforeCreate(tx); err != nil {
+		return err
+	}
 	if u.TeamID <= 0 {
 		u.TeamID, exist = permission.GetTeamIDByContext(u.GetContext())
 		if !exist || u.TeamID == 0 {
 			return merr.ErrorInternalServer("team id not found")
 		}
 	}
-	u.CreatorID, exist = permission.GetUserIDByContext(u.GetContext())
-	if !exist || u.CreatorID == 0 {
-		return merr.ErrorInternalServer("user id not found")
-	}
-	tx.WithContext(u.GetContext())
 	return
 }
 

@@ -18,7 +18,7 @@ func ToUser(ctx context.Context, userDo do.User) *system.User {
 		user.WithContext(ctx)
 		return user
 	}
-	return &system.User{
+	user = &system.User{
 		BaseModel: ToBaseModel(ctx, userDo),
 		Username:  userDo.GetUsername(),
 		Nickname:  userDo.GetNickname(),
@@ -32,6 +32,8 @@ func ToUser(ctx context.Context, userDo do.User) *system.User {
 		Roles:     ToRoles(ctx, userDo.GetRoles()),
 		Teams:     ToTeams(ctx, userDo.GetTeams()),
 	}
+	user.WithContext(ctx)
+	return user
 }
 
 func ToUsers(ctx context.Context, userDos []do.User) []*system.User {
