@@ -176,7 +176,7 @@ func (t *Team) SaveEmailConfig(ctx context.Context, req *bo.SaveEmailConfigReque
 func (t *Team) GetEmailConfigs(ctx context.Context, req *bo.ListEmailConfigRequest) (*bo.ListEmailConfigListReply, error) {
 	configListReply, err := t.teamEmailConfigRepo.List(ctx, req)
 	if err != nil {
-		return nil, merr.ErrorInternalServerError("failed to get email config").WithCause(err)
+		return nil, merr.ErrorInternalServer("failed to get email config").WithCause(err)
 	}
 
 	return configListReply, nil

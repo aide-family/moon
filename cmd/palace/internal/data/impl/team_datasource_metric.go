@@ -62,7 +62,7 @@ func (t *teamMetricDatasourceImpl) Update(ctx context.Context, req *bo.SaveTeamM
 		mutation.Remark.Value(req.Remark),
 		mutation.Driver.Value(req.Driver.GetValue()),
 		mutation.Endpoint.Value(req.Endpoint),
-		mutation.ScrapeInterval.Value(int64(req.ScrapeInterval)),
+		mutation.ScrapeInterval.Value(req.ScrapeInterval),
 		mutation.Headers.Value(crypto.NewObject(req.Headers)),
 		mutation.QueryMethod.Value(req.QueryMethod.GetValue()),
 		mutation.Extra.Value(crypto.NewObject(req.Extra)),

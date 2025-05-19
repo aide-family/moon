@@ -41,7 +41,7 @@ func (h *TeamHook) SaveHook(ctx context.Context, req *bo.SaveTeamNoticeHookReque
 // UpdateHookStatus 更新钩子状态
 func (h *TeamHook) UpdateHookStatus(ctx context.Context, req *bo.UpdateTeamNoticeHookStatusRequest) error {
 	if req.HookID <= 0 {
-		return merr.ErrorParamsError("invalid hook id")
+		return merr.ErrorParams("invalid hook id")
 	}
 	return h.teamHookRepo.UpdateStatus(ctx, req)
 }
@@ -49,7 +49,7 @@ func (h *TeamHook) UpdateHookStatus(ctx context.Context, req *bo.UpdateTeamNotic
 // DeleteHook 删除钩子
 func (h *TeamHook) DeleteHook(ctx context.Context, hookID uint32) error {
 	if hookID <= 0 {
-		return merr.ErrorParamsError("invalid hook id")
+		return merr.ErrorParams("invalid hook id")
 	}
 	return h.teamHookRepo.Delete(ctx, hookID)
 }
@@ -57,7 +57,7 @@ func (h *TeamHook) DeleteHook(ctx context.Context, hookID uint32) error {
 // GetHook 获取钩子详情
 func (h *TeamHook) GetHook(ctx context.Context, hookID uint32) (do.NoticeHook, error) {
 	if hookID <= 0 {
-		return nil, merr.ErrorParamsError("invalid hook id")
+		return nil, merr.ErrorParams("invalid hook id")
 	}
 	return h.teamHookRepo.Get(ctx, hookID)
 }
@@ -65,7 +65,7 @@ func (h *TeamHook) GetHook(ctx context.Context, hookID uint32) (do.NoticeHook, e
 // ListHook 获取钩子列表
 func (h *TeamHook) ListHook(ctx context.Context, req *bo.ListTeamNoticeHookRequest) (*bo.ListTeamNoticeHookReply, error) {
 	if req == nil {
-		return nil, merr.ErrorParamsError("invalid request")
+		return nil, merr.ErrorParams("invalid request")
 	}
 	return h.teamHookRepo.List(ctx, req)
 }
@@ -73,7 +73,7 @@ func (h *TeamHook) ListHook(ctx context.Context, req *bo.ListTeamNoticeHookReque
 // SelectHook 获取钩子列表
 func (h *TeamHook) SelectHook(ctx context.Context, req *bo.TeamNoticeHookSelectRequest) (*bo.TeamNoticeHookSelectReply, error) {
 	if req == nil {
-		return nil, merr.ErrorParamsError("invalid request")
+		return nil, merr.ErrorParams("invalid request")
 	}
 	return h.teamHookRepo.Select(ctx, req)
 }

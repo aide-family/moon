@@ -28,7 +28,7 @@ type SaveSMSConfigRequest struct {
 
 func (s *SaveSMSConfigRequest) Validate() error {
 	if s.ID <= 0 && validate.IsNil(s.Config) {
-		return merr.ErrorParamsError("sms config is nil")
+		return merr.ErrorParams("sms config is nil")
 	}
 
 	return nil

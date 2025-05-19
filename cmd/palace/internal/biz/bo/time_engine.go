@@ -21,10 +21,10 @@ type SaveTimeEngineRequest struct {
 
 func (r *SaveTimeEngineRequest) Validate() error {
 	if validate.IsNil(r.timeEngine) {
-		return merr.ErrorParamsError("timeEngine is required")
+		return merr.ErrorParams("timeEngine is required")
 	}
 	if len(r.rules) != len(r.RuleIds) {
-		return merr.ErrorParamsError("rules is not exist")
+		return merr.ErrorParams("rules is not exist")
 	}
 	return nil
 }
@@ -84,7 +84,7 @@ type SaveTimeEngineRuleRequest struct {
 
 func (r *SaveTimeEngineRuleRequest) Validate() error {
 	if !r.Type.Exist() || r.Type.IsUnknown() {
-		return merr.ErrorParamsError("type is required")
+		return merr.ErrorParams("type is required")
 	}
 	if err := validateTimeEngineRule(r.Rules, r.Type); err != nil {
 		return err
@@ -107,7 +107,7 @@ func validateTimeEngineRule(rules []int, ruleType vobj.TimeEngineRuleType) error
 	case vobj.TimeEngineRuleTypeMonth:
 		return timer.ValidateMonth(rules)
 	default:
-		return merr.ErrorParamsError("invalid rule type: %s", ruleType)
+		return merr.ErrorParams("invalid rule type: %s", ruleType)
 	}
 }
 
@@ -146,10 +146,10 @@ type UpdateTimeEngineStatusRequest struct {
 
 func (r *UpdateTimeEngineStatusRequest) Validate() error {
 	if len(r.TimeEngineIds) == 0 {
-		return merr.ErrorParamsError("timeEngineIds is required")
+		return merr.ErrorParams("timeEngineIds is required")
 	}
 	if !r.Status.Exist() || r.Status.IsUnknown() {
-		return merr.ErrorParamsError("status is required")
+		return merr.ErrorParams("status is required")
 	}
 	return nil
 }
@@ -162,10 +162,10 @@ type UpdateTimeEngineRuleStatusRequest struct {
 
 func (r *UpdateTimeEngineRuleStatusRequest) Validate() error {
 	if len(r.TimeEngineRuleIds) == 0 {
-		return merr.ErrorParamsError("timeEngineRuleIds is required")
+		return merr.ErrorParams("timeEngineRuleIds is required")
 	}
 	if !r.Status.Exist() || r.Status.IsUnknown() {
-		return merr.ErrorParamsError("status is required")
+		return merr.ErrorParams("status is required")
 	}
 	return nil
 }

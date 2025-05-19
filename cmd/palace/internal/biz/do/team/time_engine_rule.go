@@ -96,6 +96,6 @@ func (t *TimeEngineRule) ToTimerMatcher() (timer.Matcher, error) {
 	case vobj.TimeEngineRuleTypeHour:
 		return timer.NewHour(t.Rule)
 	default:
-		return nil, merr.ErrorParamsError("invalid time engine rule type: %d", t.Type)
+		return nil, merr.ErrorParams("invalid time engine rule type: %d", t.Type)
 	}
 }

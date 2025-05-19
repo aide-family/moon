@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/server"
 	"github.com/aide-family/moon/pkg/util/timex"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func NewAlertJob(alert bo.Alert, opts ...AlertJobOption) (bo.AlertJob, error) {
@@ -37,8 +38,8 @@ type AlertJobOption func(*alertJob) error
 
 func WithAlertJobAlertRepo(alertRepo repository.Alert) AlertJobOption {
 	return func(a *alertJob) error {
-		if alertRepo == nil {
-			return merr.ErrorInternalServerError("alertRepo is nil")
+		if validate.IsNil(alertRepo) {
+			return merr.ErrorInternalServer("alertRepo is nil")
 		}
 		a.alertRepo = alertRepo
 		return nil
@@ -47,8 +48,8 @@ func WithAlertJobAlertRepo(alertRepo repository.Alert) AlertJobOption {
 
 func WithAlertJobEventBusRepo(eventBusRepo repository.EventBus) AlertJobOption {
 	return func(a *alertJob) error {
-		if eventBusRepo == nil {
-			return merr.ErrorInternalServerError("eventBusRepo is nil")
+		if validate.IsNil(eventBusRepo) {
+			return merr.ErrorInternalServer("eventBusRepo is nil")
 		}
 		a.eventBusRepo = eventBusRepo
 		return nil
@@ -57,8 +58,8 @@ func WithAlertJobEventBusRepo(eventBusRepo repository.EventBus) AlertJobOption {
 
 func WithAlertJobHelper(logger log.Logger) AlertJobOption {
 	return func(a *alertJob) error {
-		if logger == nil {
-			return merr.ErrorInternalServerError("logger is nil")
+		if validate.IsNil(logger) {
+			return merr.ErrorInternalServer("logger is nil")
 		}
 		a.helper = log.NewHelper(log.With(logger, "module", "event.alert", "jobKey", a.alert.GetFingerprint()))
 		return nil
@@ -67,8 +68,8 @@ func WithAlertJobHelper(logger log.Logger) AlertJobOption {
 
 func WithAlertJobCacheRepo(cacheRepo repository.Cache) AlertJobOption {
 	return func(a *alertJob) error {
-		if cacheRepo == nil {
-			return merr.ErrorInternalServerError("cacheRepo is nil")
+		if validate.IsNil(cacheRepo) {
+			return merr.ErrorInternalServer("cacheRepo is nil")
 		}
 		a.cacheRepo = cacheRepo
 		return nil

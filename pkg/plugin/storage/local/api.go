@@ -40,13 +40,13 @@ func (l *Local) UploadHandler(w http.ResponseWriter, r *http.Request) error {
 	partNumberStr := r.URL.Query().Get("partNumber")
 	if uploadID == "" || partNumberStr == "" {
 		http.Error(w, "missing uploadID or partNumber", http.StatusBadRequest)
-		return merr.ErrorParamsError("missing uploadID or partNumber")
+		return merr.ErrorParams("missing uploadID or partNumber")
 	}
 
 	partNumber, err := strconv.Atoi(partNumberStr)
 	if err != nil || partNumber <= 0 {
 		http.Error(w, "invalid partNumber", http.StatusBadRequest)
-		return merr.ErrorParamsError("invalid partNumber").WithCause(err)
+		return merr.ErrorParams("invalid partNumber").WithCause(err)
 	}
 
 	defer func(body io.ReadCloser) {
@@ -58,19 +58,19 @@ func (l *Local) UploadHandler(w http.ResponseWriter, r *http.Request) error {
 	session, exists := l.uploads.Get(uploadID)
 	if !exists {
 		http.Error(w, "upload session not found", http.StatusNotFound)
-		return merr.ErrorParamsError("upload session not found")
+		return merr.ErrorParams("upload session not found")
 	}
 
 	tempDir := filepath.Join(l.root, "tmp", uploadID)
 	if err := os.MkdirAll(tempDir, 0755); err != nil {
 		http.Error(w, fmt.Sprintf("failed to create temp directory: %v", err), http.StatusInternalServerError)
-		return merr.ErrorInternalServerError("system err").WithCause(err)
+		return merr.ErrorInternalServer("system err").WithCause(err)
 	}
 
 	tempFile, err := os.CreateTemp(tempDir, fmt.Sprintf("part_%d", partNumber))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to create temp file: %v", err), http.StatusInternalServerError)
-		return merr.ErrorInternalServerError("system err").WithCause(err)
+		return merr.ErrorInternalServer("system err").WithCause(err)
 	}
 	defer func(tempFile *os.File) {
 		if err := tempFile.Close(); err != nil {
@@ -83,7 +83,7 @@ func (l *Local) UploadHandler(w http.ResponseWriter, r *http.Request) error {
 
 	if _, err := io.Copy(multiWriter, r.Body); err != nil {
 		http.Error(w, fmt.Sprintf("failed to write part data: %v", err), http.StatusInternalServerError)
-		return merr.ErrorInternalServerError("system err").WithCause(err)
+		return merr.ErrorInternalServer("system err").WithCause(err)
 	}
 
 	eTag := hex.EncodeToString(hashed.Sum(nil))
@@ -100,7 +100,7 @@ func (l *Local) UploadHandler(w http.ResponseWriter, r *http.Request) error {
 		"eTag":       eTag,
 		"size":       hashed.Size(),
 	}); err != nil {
-		return merr.ErrorInternalServerError("system err").WithCause(err)
+		return merr.ErrorInternalServer("system err").WithCause(err)
 	}
 	return nil
 }
@@ -109,7 +109,7 @@ func (l *Local) PreviewHandler(w http.ResponseWriter, r *http.Request) error {
 	objectKey := r.URL.Query().Get("objectKey")
 	if objectKey == "" {
 		http.Error(w, "missing objectKey", http.StatusBadRequest)
-		return merr.ErrorParamsError("missing objectKey")
+		return merr.ErrorParams("missing objectKey")
 	}
 
 	filePath := objectKey
@@ -119,7 +119,7 @@ func (l *Local) PreviewHandler(w http.ResponseWriter, r *http.Request) error {
 	file, err := os.Open(filePath)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to open file: %v", err), http.StatusInternalServerError)
-		return merr.ErrorInternalServerError("system err").WithCause(err)
+		return merr.ErrorInternalServer("system err").WithCause(err)
 	}
 	defer func(file *os.File) {
 		if err := file.Close(); err != nil {
@@ -137,7 +137,7 @@ func (l *Local) PreviewHandler(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", filepath.Base(file.Name())))
 	if _, err := io.Copy(w, file); err != nil {
-		return merr.ErrorInternalServerError("system err").WithCause(err)
+		return merr.ErrorInternalServer("system err").WithCause(err)
 	}
 	return nil
 }

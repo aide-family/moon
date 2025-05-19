@@ -8,7 +8,7 @@ import (
 
 func NewSendSMSParams(config SMSConfig, opts ...SendSMSParamsOption) (SendSMSParams, error) {
 	if config == nil {
-		return nil, merr.ErrorParamsError("No SMS configuration is available")
+		return nil, merr.ErrorParams("No SMS configuration is available")
 	}
 	s := &sendSMSParams{
 		config: config,
@@ -90,7 +90,7 @@ type SendSMSParamsOption func(s *sendSMSParams) error
 func WithSendSMSParamsOptionPhoneNumbers(phoneNumbers ...string) SendSMSParamsOption {
 	return func(s *sendSMSParams) error {
 		if len(phoneNumbers) == 0 {
-			return merr.ErrorParamsError("Phone numbers cannot be empty").WithMetadata(map[string]string{
+			return merr.ErrorParams("Phone numbers cannot be empty").WithMetadata(map[string]string{
 				"phoneNumbers": "Phone numbers cannot be empty",
 			})
 		}
@@ -102,7 +102,7 @@ func WithSendSMSParamsOptionPhoneNumbers(phoneNumbers ...string) SendSMSParamsOp
 func WithSendSMSParamsOptionTemplateParam(templateParam string) SendSMSParamsOption {
 	return func(s *sendSMSParams) error {
 		if templateParam == "" {
-			return merr.ErrorParamsError("Template parameters cannot be empty").WithMetadata(map[string]string{
+			return merr.ErrorParams("Template parameters cannot be empty").WithMetadata(map[string]string{
 				"templateParam": "Template parameters cannot be empty",
 			})
 		}
@@ -114,7 +114,7 @@ func WithSendSMSParamsOptionTemplateParam(templateParam string) SendSMSParamsOpt
 func WithSendSMSParamsOptionTemplateCode(templateCode string) SendSMSParamsOption {
 	return func(s *sendSMSParams) error {
 		if templateCode == "" {
-			return merr.ErrorParamsError("Template code cannot be empty").WithMetadata(map[string]string{
+			return merr.ErrorParams("Template code cannot be empty").WithMetadata(map[string]string{
 				"templateCode": "Template code cannot be empty",
 			})
 		}

@@ -4,13 +4,13 @@ other = "Bad Request"
 [NOT_FOUND]
 other = "Not Found"
 
-[CAPTCHA_ERROR]
+[CAPTCHA]
 other = "Captcha Error"
 
-[PARAMS_ERROR]
+[PARAMS]
 other = "Params Error"
 
-[PASSWORD_ERROR]
+[PASSWORD]
 other = "Password Error"
 
 [PERMISSION_DENIED]
@@ -34,7 +34,7 @@ other = "User Forbidden"
 [USER_NOT_FOUND]
 other = "User Not Found"
 
-[INTERNAL_SERVER_ERROR]
+[INTERNAL_SERVER]
 other = "Internal Server Error"
 
 [INVALID_ARGUMENT]

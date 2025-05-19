@@ -255,7 +255,7 @@ func (c *cacheReoImpl) VerifyOAuthToken(ctx context.Context, oauthParams *bo.OAu
 	key := repository.OAuthTokenKey.Key(oauthParams.APP, oauthParams.OpenID, oauthParams.Token)
 	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
-		return merr.ErrorInternalServerError("cache err").WithCause(err)
+		return merr.ErrorInternalServer("cache err").WithCause(err)
 	}
 	if exist == 0 {
 		return merr.ErrorUnauthorized("oauth unauthorized").WithMetadata(map[string]string{
@@ -275,17 +275,17 @@ func (c *cacheReoImpl) VerifyEmailCode(ctx context.Context, params *bo.VerifyEma
 	cacheCode, err := c.GetCache().Client().Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return merr.ErrorCaptchaError("captcha is expire").WithMetadata(map[string]string{
+			return merr.ErrorCaptcha("captcha is expire").WithMetadata(map[string]string{
 				"code": "captcha is expire",
 			})
 		}
-		return merr.ErrorInternalServerError("cache err").WithCause(err)
+		return merr.ErrorInternalServer("cache err").WithCause(err)
 	}
 	defer c.GetCache().Client().Del(ctx, key).Val()
 	if strings.EqualFold(cacheCode, params.Code) {
 		return nil
 	}
-	return merr.ErrorCaptchaError("captcha err").WithMetadata(map[string]string{
+	return merr.ErrorCaptcha("captcha err").WithMetadata(map[string]string{
 		"code": "The verification code is incorrect. Please retrieve a new one and try again.",
 	})
 }

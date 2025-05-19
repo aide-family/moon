@@ -21,7 +21,7 @@ type DatasourceMetric struct {
 	Remark         string                        `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
 	Driver         vobj.DatasourceDriverMetric   `gorm:"column:type;type:tinyint(2);not null;comment:类型" json:"type"`
 	Endpoint       string                        `gorm:"column:endpoint;type:varchar(255);not null;comment:数据源地址" json:"endpoint"`
-	ScrapeInterval time.Duration                 `gorm:"column:scrape_interval;type:bigint(20);not null;comment:抓取间隔" json:"scrapeInterval"`
+	ScrapeInterval int64                         `gorm:"column:scrape_interval;type:bigint(20);not null;comment:抓取间隔" json:"scrapeInterval"`
 	Headers        *crypto.Object[[]*kv.KV]      `gorm:"column:headers;type:text;not null;comment:请求头" json:"headers"`
 	QueryMethod    vobj.HTTPMethod               `gorm:"column:query_method;type:tinyint(2);not null;comment:请求方法" json:"queryMethod"`
 	CA             crypto.String                 `gorm:"column:ca;type:text;not null;comment:ca" json:"ca"`
@@ -78,7 +78,7 @@ func (d *DatasourceMetric) GetScrapeInterval() time.Duration {
 	if d == nil {
 		return 0
 	}
-	return d.ScrapeInterval
+	return time.Duration(d.ScrapeInterval) * time.Second
 }
 
 func (d *DatasourceMetric) GetHeaders() []*kv.KV {

@@ -53,7 +53,7 @@ func (m *metricImpl) Init(config bo.MetricDatasourceConfig) (repository.Metric, 
 			metricDatasource = prometheus.New(config, m.help.Logger())
 		}
 	default:
-		return nil, merr.ErrorParamsError("invalid metric datasource driver: %s", config.GetDriver())
+		return nil, merr.ErrorParams("invalid metric datasource driver: %s", config.GetDriver())
 	}
 	return &metricInstance{
 		metric: metricDatasource,

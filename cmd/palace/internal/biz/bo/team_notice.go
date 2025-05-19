@@ -164,7 +164,7 @@ func (r *SaveNoticeGroupReq) WithSMSConfig(config do.TeamSMSConfig) *SaveNoticeG
 
 func (r *SaveNoticeGroupReq) Validate() error {
 	if validate.IsNil(r.group) {
-		return merr.ErrorParamsError("invalid notice group")
+		return merr.ErrorParams("invalid notice group")
 	}
 	return nil
 }

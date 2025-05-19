@@ -66,7 +66,7 @@ func (s *sendClient) Email(ctx context.Context, in *rabbitv1.SendEmailRequest) (
 	case config.Network_HTTP:
 		return rabbitv1.NewSendHTTPClient(s.server.Client).Email(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServerError("network is not supported")
+		return nil, merr.ErrorInternalServer("network is not supported")
 	}
 }
 
@@ -77,7 +77,7 @@ func (s *sendClient) Sms(ctx context.Context, in *rabbitv1.SendSmsRequest) (*rab
 	case config.Network_HTTP:
 		return rabbitv1.NewSendHTTPClient(s.server.Client).Sms(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServerError("network is not supported")
+		return nil, merr.ErrorInternalServer("network is not supported")
 	}
 }
 
@@ -88,7 +88,7 @@ func (s *sendClient) Hook(ctx context.Context, in *rabbitv1.SendHookRequest) (*r
 	case config.Network_HTTP:
 		return rabbitv1.NewSendHTTPClient(s.server.Client).Hook(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServerError("network is not supported")
+		return nil, merr.ErrorInternalServer("network is not supported")
 	}
 }
 
@@ -104,7 +104,7 @@ func (s *syncClient) Hook(ctx context.Context, in *rabbitv1.SyncHookRequest) (*r
 	case config.Network_HTTP:
 		return rabbitv1.NewSyncHTTPClient(s.server.Client).Hook(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServerError("network is not supported")
+		return nil, merr.ErrorInternalServer("network is not supported")
 	}
 }
 
@@ -116,7 +116,7 @@ func (s *syncClient) NoticeGroup(ctx context.Context, in *rabbitv1.SyncNoticeGro
 	case config.Network_HTTP:
 		return rabbitv1.NewSyncHTTPClient(s.server.Client).NoticeGroup(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServerError("network is not supported")
+		return nil, merr.ErrorInternalServer("network is not supported")
 	}
 }
 
@@ -128,7 +128,7 @@ func (s *syncClient) NoticeUser(ctx context.Context, in *rabbitv1.SyncNoticeUser
 	case config.Network_HTTP:
 		return rabbitv1.NewSyncHTTPClient(s.server.Client).NoticeUser(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServerError("network is not supported")
+		return nil, merr.ErrorInternalServer("network is not supported")
 	}
 }
 
@@ -140,7 +140,7 @@ func (s *syncClient) Remove(ctx context.Context, in *rabbitv1.RemoveRequest) (*r
 	case config.Network_HTTP:
 		return rabbitv1.NewSyncHTTPClient(s.server.Client).Remove(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServerError("network is not supported")
+		return nil, merr.ErrorInternalServer("network is not supported")
 	}
 }
 func (s *syncClient) Sms(ctx context.Context, in *rabbitv1.SyncSmsRequest) (*rabbitcommon.EmptyReply, error) {
@@ -150,7 +150,7 @@ func (s *syncClient) Sms(ctx context.Context, in *rabbitv1.SyncSmsRequest) (*rab
 	case config.Network_HTTP:
 		return rabbitv1.NewSyncHTTPClient(s.server.Client).Sms(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServerError("network is not supported")
+		return nil, merr.ErrorInternalServer("network is not supported")
 	}
 }
 
@@ -162,7 +162,7 @@ func (s *syncClient) Email(ctx context.Context, in *rabbitv1.SyncEmailRequest) (
 	case config.Network_HTTP:
 		return rabbitv1.NewSyncHTTPClient(s.server.Client).Email(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServerError("network is not supported")
+		return nil, merr.ErrorInternalServer("network is not supported")
 	}
 }
 
@@ -178,6 +178,6 @@ func (a *alertClient) SendAlert(ctx context.Context, in *common.AlertsItem) (*ra
 	case config.Network_HTTP:
 		return rabbitv1.NewAlertHTTPClient(a.server.Client).SendAlert(ctx, in)
 	default:
-		return nil, merr.ErrorInternalServerError("network is not supported")
+		return nil, merr.ErrorInternalServer("network is not supported")
 	}
 }

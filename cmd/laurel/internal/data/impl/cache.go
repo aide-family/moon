@@ -160,7 +160,7 @@ func (c *cacheImpl) GetMetric(ctx context.Context, metricType vobj.MetricType, m
 		}
 		return &metric, nil
 	default:
-		return nil, merr.ErrorParamsError("invalid metric type: %s", metricType)
+		return nil, merr.ErrorParams("invalid metric type: %s", metricType)
 	}
 }
 

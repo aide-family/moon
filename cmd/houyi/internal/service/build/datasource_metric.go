@@ -6,12 +6,13 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/kv"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func ToMetricDatasourceConfig(metricItem *common.MetricDatasourceItem) (*do.DatasourceMetricConfig, error) {
 	config := metricItem.GetConfig()
-	if config == nil {
-		return nil, merr.ErrorParamsError("config is nil")
+	if validate.IsNil(config) {
+		return nil, merr.ErrorParams("config is nil")
 	}
 	return &do.DatasourceMetricConfig{
 		TeamId:   metricItem.GetTeam().GetTeamId(),

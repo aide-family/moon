@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/timer"
 )
 
@@ -25,9 +24,7 @@ func TestNewDaysOfWeek_InvalidInput_ReturnsError(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected an error, got nil")
 	}
-	if !merr.IsParamsError(err) {
-		t.Errorf("Expected a ParamsError, got %v", err)
-	}
+	t.Errorf("Expected a ParamsError, got %v", err)
 }
 
 func TestNewDaysOfWeek_EmptyInput_ReturnsMatcher(t *testing.T) {

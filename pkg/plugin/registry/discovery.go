@@ -35,6 +35,6 @@ func NewDiscovery(c *config.Registry) (registry.Discovery, error) {
 		}
 		return registryetcd.New(client), nil
 	default:
-		return nil, merr.ErrorInternalServerError("discovery config is not supported")
+		return nil, merr.ErrorInternalServer("discovery config is not supported")
 	}
 }

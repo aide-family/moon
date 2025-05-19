@@ -25,23 +25,23 @@ type Alert struct {
 
 func (a *Alert) Validate() error {
 	if a.StartsAt.IsZero() {
-		return merr.ErrorParamsError("startsAt is required")
+		return merr.ErrorParams("startsAt is required")
 	}
 	if !a.Status.Exist() {
-		return merr.ErrorParamsError("status is required")
+		return merr.ErrorParams("status is required")
 	}
 	if strings.TrimSpace(a.Fingerprint) == "" {
-		return merr.ErrorParamsError("fingerprint is required")
+		return merr.ErrorParams("fingerprint is required")
 	}
 	if a.TeamID <= 0 {
-		return merr.ErrorParamsError("teamId is required")
+		return merr.ErrorParams("teamId is required")
 	}
 	if a.Status.IsResolved() {
 		if a.EndsAt.IsZero() {
-			return merr.ErrorParamsError("endsAt is required")
+			return merr.ErrorParams("endsAt is required")
 		}
 		if a.EndsAt.Before(a.StartsAt) {
-			return merr.ErrorParamsError("endsAt must be after startsAt")
+			return merr.ErrorParams("endsAt must be after startsAt")
 		}
 	}
 

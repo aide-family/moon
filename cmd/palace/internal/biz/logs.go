@@ -46,7 +46,7 @@ func (l *Logs) RetrySendMessage(ctx context.Context, params *bo.RetrySendMessage
 		return err
 	}
 	if !sendMessageLog.GetStatus().IsFailed() {
-		return merr.ErrorParamsError("message is %s, do not need retry", sendMessageLog.GetStatus())
+		return merr.ErrorParams("message is %s, do not need retry", sendMessageLog.GetStatus())
 	}
 	if params.TeamID > 0 {
 		return l.transaction.BizExec(ctx, func(ctx context.Context) error {

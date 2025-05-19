@@ -52,7 +52,7 @@ func (m *memberImpl) Create(ctx context.Context, req *bo.CreateTeamMemberReq) er
 
 func (m *memberImpl) List(ctx context.Context, req *bo.TeamMemberListRequest) (*bo.TeamMemberListReply, error) {
 	if validate.IsNil(req) {
-		return nil, merr.ErrorParamsError("invalid request")
+		return nil, merr.ErrorParams("invalid request")
 	}
 
 	memberQuery := getMainQuery(ctx, m).TeamMember
@@ -93,7 +93,7 @@ func (m *memberImpl) List(ctx context.Context, req *bo.TeamMemberListRequest) (*
 
 func (m *memberImpl) UpdateStatus(ctx context.Context, req bo.UpdateMemberStatus) error {
 	if validate.IsNil(req) {
-		return merr.ErrorParamsError("invalid request")
+		return merr.ErrorParams("invalid request")
 	}
 	if len(req.GetMembers()) == 0 {
 		return nil

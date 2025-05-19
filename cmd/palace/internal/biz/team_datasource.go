@@ -50,6 +50,9 @@ func (t *TeamDatasource) DatasourceSelect(ctx context.Context, req *bo.Datasourc
 }
 
 func (t *TeamDatasource) SaveMetricDatasource(ctx context.Context, req *bo.SaveTeamMetricDatasource) error {
+	if err := req.Validate(); err != nil {
+		return err
+	}
 	if req.ID <= 0 {
 		return t.teamDatasourceMetricRepo.Create(ctx, req)
 	}

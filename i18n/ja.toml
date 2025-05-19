@@ -4,14 +4,14 @@ other = "不正なリクエスト"
 [NOT_FOUND]
 other = "リソースが見つかりません"
 
-[CAPTCHA_ERROR]
-other = "不正な検証コード"
+[CAPTCHA]
+other = "CAPTCHAエラー"
 
-[PARAMS_ERROR]
-other = "パラメータが不正です"
+[PARAMS]
+other = "パラメーターエラー"
 
-[PASSWORD_ERROR]
-other = "パスワードが不正です"
+[PASSWORD]
+other = "パスワードエラー"
 
 [PERMISSION_DENIED]
 other = "許可されていません"
@@ -34,7 +34,7 @@ other = "ユーザーが禁止されています"
 [USER_NOT_FOUND]
 other = "ユーザーが見つかりません"
 
-[INTERNAL_SERVER_ERROR]
+[INTERNAL_SERVER]
 other = "サーバーエラー"
 
 [INVALID_ARGUMENT]

@@ -9,7 +9,7 @@ import (
 
 func NewSendEmailParams(config EmailConfig, opts ...SendEmailParamsOption) (SendEmailParams, error) {
 	if config == nil {
-		return nil, merr.ErrorParamsError("No email configuration is available")
+		return nil, merr.ErrorParams("No email configuration is available")
 	}
 	params := &sendEmailParams{
 		config:      config,
@@ -121,7 +121,7 @@ type SendEmailParamsOption func(params *sendEmailParams) error
 func WithSendEmailParamsOptionEmail(emails ...string) SendEmailParamsOption {
 	return func(params *sendEmailParams) error {
 		if len(emails) == 0 {
-			return merr.ErrorParamsError("email is required").WithMetadata(map[string]string{
+			return merr.ErrorParams("email is required").WithMetadata(map[string]string{
 				"emails": "emails is required",
 			})
 		}
@@ -141,7 +141,7 @@ func WithSendEmailParamsOptionEmail(emails ...string) SendEmailParamsOption {
 func WithSendEmailParamsOptionBody(body string) SendEmailParamsOption {
 	return func(params *sendEmailParams) error {
 		if body == "" {
-			return merr.ErrorParamsError("body is required").WithMetadata(map[string]string{
+			return merr.ErrorParams("body is required").WithMetadata(map[string]string{
 				"body": "body is required",
 			})
 		}

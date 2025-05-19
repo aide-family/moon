@@ -27,7 +27,7 @@ func NewHookConfig(url string, opts ...HookConfigOption) (*HookConfig, error) {
 func WithHookConfigOptionName(name string) HookConfigOption {
 	return func(h *HookConfig) error {
 		if name == "" {
-			return merr.ErrorParamsError("name is empty")
+			return merr.ErrorParams("name is empty")
 		}
 		h.Name = name
 		return nil
@@ -37,7 +37,7 @@ func WithHookConfigOptionName(name string) HookConfigOption {
 func WithHookConfigOptionApp(app common.HookAPP) HookConfigOption {
 	return func(h *HookConfig) error {
 		if app < 0 {
-			return merr.ErrorParamsError("app is empty")
+			return merr.ErrorParams("app is empty")
 		}
 		h.App = app
 		return nil

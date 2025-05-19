@@ -29,7 +29,7 @@ type SaveEmailConfigRequest struct {
 
 func (s *SaveEmailConfigRequest) Validate() error {
 	if s.ID <= 0 && validate.IsNil(s.Config) {
-		return merr.ErrorParamsError("email config is nil")
+		return merr.ErrorParams("email config is nil")
 	}
 	return nil
 }

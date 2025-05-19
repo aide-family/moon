@@ -35,6 +35,6 @@ func NewRegister(c *config.Registry) (registry.Registrar, error) {
 		}
 		return registryetcd.New(client), nil
 	default:
-		return nil, merr.ErrorInternalServerError("registry driver is not support")
+		return nil, merr.ErrorInternalServer("registry driver is not support")
 	}
 }

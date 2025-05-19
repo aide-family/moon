@@ -81,25 +81,25 @@ func (s *SaveTeamStrategyParams) GetStrategyType() vobj.StrategyType {
 
 func (s *SaveTeamStrategyParams) Validate() error {
 	if s.StrategyGroupID <= 0 {
-		return merr.ErrorParamsError("strategy group id is required")
+		return merr.ErrorParams("strategy group id is required")
 	}
 	if validate.IsNil(s.strategyGroup) || s.strategyGroup.GetID() != s.StrategyGroupID {
-		return merr.ErrorParamsError("strategy group is not found")
+		return merr.ErrorParams("strategy group is not found")
 	}
 	if strings.TrimSpace(s.Name) == "" {
-		return merr.ErrorParamsError("name is required")
+		return merr.ErrorParams("name is required")
 	}
 	if !s.StrategyType.Exist() {
-		return merr.ErrorParamsError("strategy type is invalid")
+		return merr.ErrorParams("strategy type is invalid")
 	}
 	if utf8.RuneCountInString(s.Remark) > 255 {
-		return merr.ErrorParamsError("remark is too long")
+		return merr.ErrorParams("remark is too long")
 	}
 	if s.ID > 0 && validate.IsNil(s.strategyDo) {
-		return merr.ErrorParamsError("strategy is not found")
+		return merr.ErrorParams("strategy is not found")
 	}
 	if s.ID > 0 && s.strategyDo.GetID() != s.ID {
-		return merr.ErrorParamsError("strategy is not found")
+		return merr.ErrorParams("strategy is not found")
 	}
 	if validate.IsNotNil(s.strategyDo) {
 		if s.strategyDo.GetStatus().IsEnable() && s.strategyDo.GetStrategyGroupID() != s.StrategyGroupID {
@@ -208,22 +208,22 @@ func (s *SaveTeamMetricStrategyParams) ToUpdateTeamMetricStrategyParams(
 
 func (s *SaveTeamMetricStrategyParams) Validate() error {
 	if s.StrategyID <= 0 {
-		return merr.ErrorParamsError("strategy id is required")
+		return merr.ErrorParams("strategy id is required")
 	}
 	if validate.IsNil(s.strategyDo) {
-		return merr.ErrorParamsError("strategy is not found")
+		return merr.ErrorParams("strategy is not found")
 	}
 	if strings.TrimSpace(s.Expr) == "" {
-		return merr.ErrorParamsError("expr is required")
+		return merr.ErrorParams("expr is required")
 	}
 	if len(s.Datasource) == 0 {
-		return merr.ErrorParamsError("datasource is required")
+		return merr.ErrorParams("datasource is required")
 	}
 	if validate.IsNil(s.Annotations) {
-		return merr.ErrorParamsError("annotations is required")
+		return merr.ErrorParams("annotations is required")
 	}
 	if len(s.Datasource) != len(s.datasourceDos) {
-		return merr.ErrorParamsError("datasource is not found")
+		return merr.ErrorParams("datasource is not found")
 	}
 	if s.strategyDo.GetStatus().IsEnable() {
 		return merr.ErrorBadRequest("enabled strategy cannot modify")
@@ -429,19 +429,19 @@ type SaveTeamMetricStrategyLevelsParams struct {
 
 func (s *SaveTeamMetricStrategyLevelsParams) Validate() error {
 	if s.StrategyMetricID <= 0 {
-		return merr.ErrorParamsError("strategy metric id is required")
+		return merr.ErrorParams("strategy metric id is required")
 	}
 	if validate.IsNil(s.strategyMetricDo) || s.strategyMetricDo.GetID() != s.StrategyMetricID {
-		return merr.ErrorParamsError("strategy metric is not found")
+		return merr.ErrorParams("strategy metric is not found")
 	}
 	if len(s.Levels) > 5 {
-		return merr.ErrorParamsError("levels is too many")
+		return merr.ErrorParams("levels is too many")
 	}
 	levelMap := slices.ToMap(s.Levels, func(level *SaveTeamMetricStrategyLevelParams) uint32 {
 		return level.GetLevelId()
 	})
 	if len(levelMap) != len(s.Levels) {
-		return merr.ErrorParamsError("level id is duplicate")
+		return merr.ErrorParams("level id is duplicate")
 	}
 	return nil
 }
@@ -482,10 +482,10 @@ type UpdateTeamStrategiesStatusParams struct {
 
 func (s *UpdateTeamStrategiesStatusParams) Validate() error {
 	if len(s.StrategyIds) == 0 {
-		return merr.ErrorParamsError("strategy ids is required")
+		return merr.ErrorParams("strategy ids is required")
 	}
 	if !s.Status.Exist() {
-		return merr.ErrorParamsError("status is invalid")
+		return merr.ErrorParams("status is invalid")
 	}
 	return nil
 }
@@ -496,7 +496,7 @@ type OperateTeamStrategyParams struct {
 
 func (s *OperateTeamStrategyParams) Validate() error {
 	if s.StrategyId <= 0 {
-		return merr.ErrorParamsError("strategy id is required")
+		return merr.ErrorParams("strategy id is required")
 	}
 	return nil
 }
@@ -511,14 +511,14 @@ type ListTeamStrategyParams struct {
 
 func (l *ListTeamStrategyParams) Validate() error {
 	if l.Keyword != "" && utf8.RuneCountInString(l.Keyword) > 20 {
-		return merr.ErrorParamsError("keyword is too long")
+		return merr.ErrorParams("keyword is too long")
 	}
 	if !l.Status.Exist() {
-		return merr.ErrorParamsError("status is invalid")
+		return merr.ErrorParams("status is invalid")
 	}
 	for _, strategyType := range l.StrategyTypes {
 		if !strategyType.Exist() {
-			return merr.ErrorParamsError("strategy type is invalid")
+			return merr.ErrorParams("strategy type is invalid")
 		}
 	}
 	return nil
@@ -555,13 +555,13 @@ func (s *SubscribeTeamStrategyParams) GetNoticeType() vobj.NoticeType {
 
 func (s *SubscribeTeamStrategyParams) Validate() error {
 	if s.StrategyId <= 0 {
-		return merr.ErrorParamsError("strategy id is required")
+		return merr.ErrorParams("strategy id is required")
 	}
 	if validate.IsNil(s.strategyDo) {
-		return merr.ErrorParamsError("strategy is not found")
+		return merr.ErrorParams("strategy is not found")
 	}
 	if !s.NoticeType.Exist() {
-		return merr.ErrorParamsError("notice type is invalid")
+		return merr.ErrorParams("notice type is invalid")
 	}
 	return nil
 }
@@ -580,10 +580,10 @@ type SubscribeTeamStrategiesParams struct {
 
 func (s *SubscribeTeamStrategiesParams) Validate() error {
 	if s.StrategyId <= 0 {
-		return merr.ErrorParamsError("strategy id is required")
+		return merr.ErrorParams("strategy id is required")
 	}
 	if !s.NoticeType.Exist() {
-		return merr.ErrorParamsError("notice type is invalid")
+		return merr.ErrorParams("notice type is invalid")
 	}
 	return nil
 }

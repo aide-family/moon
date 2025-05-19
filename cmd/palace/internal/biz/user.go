@@ -68,7 +68,7 @@ func (b *UserBiz) GetSelfInfo(ctx context.Context) (do.User, error) {
 
 	user, err := b.userRepo.FindByID(ctx, userID)
 	if err != nil {
-		return nil, merr.ErrorInternalServerError("failed to find user").WithCause(err)
+		return nil, merr.ErrorInternalServer("failed to find user").WithCause(err)
 	}
 
 	return user, nil
@@ -83,7 +83,7 @@ func (b *UserBiz) UpdateSelfInfo(ctx context.Context, userUpdateInfo *bo.UserUpd
 
 	user, err := b.userRepo.FindByID(ctx, userID)
 	if err != nil {
-		return merr.ErrorInternalServerError("failed to find user").WithCause(err)
+		return merr.ErrorInternalServer("failed to find user").WithCause(err)
 	}
 
 	if user == nil {
@@ -91,7 +91,7 @@ func (b *UserBiz) UpdateSelfInfo(ctx context.Context, userUpdateInfo *bo.UserUpd
 	}
 
 	if err = b.userRepo.UpdateUserInfo(ctx, userUpdateInfo.WithUser(user)); err != nil {
-		return merr.ErrorInternalServerError("failed to update user info").WithCause(err)
+		return merr.ErrorInternalServer("failed to update user info").WithCause(err)
 	}
 
 	return nil
@@ -103,7 +103,7 @@ func (b *UserBiz) UpdateUserBaseInfo(ctx context.Context, userUpdateInfo *bo.Use
 		return err
 	}
 	if err = b.userRepo.UpdateUserInfo(ctx, userUpdateInfo.WithUser(user)); err != nil {
-		return merr.ErrorInternalServerError("failed to update user info").WithCause(err)
+		return merr.ErrorInternalServer("failed to update user info").WithCause(err)
 	}
 	return nil
 }
@@ -126,14 +126,14 @@ func (b *UserBiz) UpdateSelfPassword(ctx context.Context, passwordUpdateInfo *bo
 
 	// Verify old password
 	if !user.ValidatePassword(passwordUpdateInfo.OldPassword) {
-		return merr.ErrorPasswordError("old password is incorrect")
+		return merr.ErrorPassword("old password is incorrect")
 	}
 
 	// Generate new password
 	pass := password.New(passwordUpdateInfo.NewPassword)
 	encryptedPassword, err := pass.EnValue()
 	if err != nil {
-		return merr.ErrorInternalServerError("failed to encrypt password").WithCause(err)
+		return merr.ErrorInternalServer("failed to encrypt password").WithCause(err)
 	}
 
 	updateUserPasswordInfo := &bo.UpdateUserPasswordInfo{
@@ -145,7 +145,7 @@ func (b *UserBiz) UpdateSelfPassword(ctx context.Context, passwordUpdateInfo *bo
 	}
 	// Update password through repository
 	if err = b.userRepo.UpdatePassword(ctx, updateUserPasswordInfo); err != nil {
-		return merr.ErrorInternalServerError("failed to update password").WithCause(err)
+		return merr.ErrorInternalServer("failed to update password").WithCause(err)
 	}
 
 	return nil
@@ -160,7 +160,7 @@ func (b *UserBiz) GetUserTeams(ctx context.Context) ([]do.Team, error) {
 
 	teams, err := b.userRepo.GetTeamsByUserID(ctx, userID)
 	if err != nil {
-		return nil, merr.ErrorInternalServerError("failed to get user teams").WithCause(err)
+		return nil, merr.ErrorInternalServer("failed to get user teams").WithCause(err)
 	}
 
 	return teams, nil

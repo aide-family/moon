@@ -26,7 +26,7 @@ func ToDatasourceMetric(ctx context.Context, datasource do.DatasourceMetric) *te
 		Remark:         datasource.GetRemark(),
 		Driver:         datasource.GetDriver(),
 		Endpoint:       datasource.GetEndpoint(),
-		ScrapeInterval: datasource.GetScrapeInterval(),
+		ScrapeInterval: int64(datasource.GetScrapeInterval().Seconds()),
 		Headers:        crypto.NewObject(datasource.GetHeaders()),
 		QueryMethod:    datasource.GetQueryMethod(),
 		CA:             crypto.String(datasource.GetCA()),

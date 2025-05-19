@@ -66,7 +66,7 @@ func (t *TimeEngine) Allow(g time.Time) (bool, error) {
 		matchers = append(matchers, matcher)
 	}
 	if len(errs) > 0 {
-		return false, merr.ErrorParamsError("failed to convert time engine rules to timer matchers: %v", errs)
+		return false, merr.ErrorParams("failed to convert time engine rules to timer matchers: %v", errs)
 	}
 	for _, matcher := range matchers {
 		if !matcher.Match(g) {

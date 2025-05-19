@@ -24,7 +24,7 @@ type Email struct {
 
 func (e *Email) Send(ctx context.Context, params bo.SendEmailParams) error {
 	if params.GetConfig() == nil {
-		return merr.ErrorParamsError("No email configuration is available")
+		return merr.ErrorParams("No email configuration is available")
 	}
 	return e.sendRepo.Email(ctx, params)
 }

@@ -84,7 +84,7 @@ func (a *AuthBiz) GetCaptcha(ctx context.Context) (*bo.Captcha, error) {
 func (a *AuthBiz) VerifyCaptcha(ctx context.Context, req *bo.CaptchaVerify) error {
 	verify := a.captchaRepo.Verify(ctx, req)
 	if !verify {
-		return merr.ErrorCaptchaError("captcha err").WithMetadata(map[string]string{
+		return merr.ErrorCaptcha("captcha err").WithMetadata(map[string]string{
 			"captcha.answer": "The verification code is incorrect. Please retrieve a new one and try again.",
 		})
 	}
@@ -119,10 +119,10 @@ func (a *AuthBiz) VerifyToken(ctx context.Context, token string) error {
 func (a *AuthBiz) LoginByPassword(ctx context.Context, req *bo.LoginByPassword) (*bo.LoginSign, error) {
 	user, err := a.userRepo.FindByEmail(ctx, req.Email)
 	if err != nil {
-		return nil, merr.ErrorPasswordError("password error").WithCause(err)
+		return nil, merr.ErrorPassword("password error").WithCause(err)
 	}
 	if !user.ValidatePassword(req.Password) {
-		return nil, merr.ErrorPasswordError("password error")
+		return nil, merr.ErrorPassword("password error")
 	}
 	return a.login(user)
 }
@@ -167,7 +167,7 @@ func (a *AuthBiz) login(userDo do.User) (*bo.LoginSign, error) {
 func (a *AuthBiz) GetOAuthConf(provider vobj.OAuthAPP) (*oauth2.Config, error) {
 	config, ok := a.oauthConfigs.Get(provider)
 	if !ok {
-		return nil, merr.ErrorInternalServerError("not support oauth provider")
+		return nil, merr.ErrorInternalServer("not support oauth provider")
 	}
 	return config, nil
 }
@@ -179,7 +179,7 @@ func (a *AuthBiz) OAuthLogin(ctx context.Context, req *bo.OAuthLoginParams) (str
 	case vobj.OAuthAPPGitee:
 		return a.giteeLogin(ctx, req.Code, req.SendEmailFun)
 	default:
-		return "", merr.ErrorInternalServerError("not support oauth provider")
+		return "", merr.ErrorInternalServer("not support oauth provider")
 	}
 }
 

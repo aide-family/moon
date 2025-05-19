@@ -5,7 +5,8 @@ import (
 	"strings"
 	text "text/template"
 
-	"github.com/aide-family/moon/pkg/merr"
+	"github.com/go-kratos/kratos/v2/errors"
+
 	"github.com/aide-family/moon/pkg/util/timex"
 )
 
@@ -27,10 +28,10 @@ func HtmlFormatterX(format string, data any) (s string) {
 
 func TextFormatter(format string, data any) (s string, err error) {
 	if format == "" {
-		return "", merr.ErrorInternalServerError("format is null")
+		return "", errors.New(400, "FORMAT_IS_NULL", "format is null")
 	}
 	if data == nil {
-		return "", merr.ErrorInternalServerError("data is nil")
+		return "", errors.New(400, "DATA_IS_NIL", "data is nil")
 	}
 
 	t, err := text.New("text/template").Funcs(templateFuncMap).Parse(format)
@@ -48,10 +49,10 @@ func TextFormatter(format string, data any) (s string, err error) {
 
 func HtmlFormatter(format string, data any) (s string, err error) {
 	if format == "" {
-		return "", merr.ErrorInternalServerError("format is null")
+		return "", errors.New(400, "FORMAT_IS_NULL", "format is null")
 	}
 	if data == nil {
-		return "", merr.ErrorInternalServerError("data is nil")
+		return "", errors.New(400, "DATA_IS_NIL", "data is nil")
 	}
 
 	// 创建一个模板对象，定义模板字符串

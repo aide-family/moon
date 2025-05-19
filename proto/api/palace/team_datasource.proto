@@ -79,7 +79,7 @@ service TeamDatasource {
 }
 
 message SaveTeamMetricDatasourceRequest {
-  api.palace.common.DatasourceDriverMetric driver = 1;
+  api.palace.common.DatasourceDriverMetric driver = 1 [(buf.validate.field).required = true];
   uint32 datasourceId = 2;
   string name = 3 [(buf.validate.field).string = {
     max_len: 20,
@@ -93,7 +93,9 @@ message SaveTeamMetricDatasourceRequest {
     min_len: 1,
     uri: true,
   }];
-  int64 scrapeInterval = 6;
+  int64 scrapeInterval = 6 [(buf.validate.field).int64 = {
+    gt: 0,
+  }];
   repeated api.palace.common.KeyValueItem headers = 7;
   api.palace.common.HTTPMethod queryMethod = 8 [(buf.validate.field).required = true];
   string ca = 9;

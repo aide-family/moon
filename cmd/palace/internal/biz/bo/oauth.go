@@ -60,7 +60,7 @@ func NewOAuthRowData(app vobj.OAuthAPP, row string) (IOAuthUser, error) {
 		err := json.Unmarshal([]byte(row), &giteeUser)
 		return &giteeUser, err
 	default:
-		return nil, merr.ErrorInternalServerError("unknown oauth app")
+		return nil, merr.ErrorInternalServer("unknown oauth app")
 	}
 }
 

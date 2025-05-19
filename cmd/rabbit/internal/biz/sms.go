@@ -24,7 +24,7 @@ type SMS struct {
 
 func (s *SMS) Send(ctx context.Context, params bo.SendSMSParams) error {
 	if params.GetConfig() == nil {
-		return merr.ErrorParamsError("No sms configuration is available")
+		return merr.ErrorParams("No sms configuration is available")
 	}
 	return s.send.SMS(ctx, params)
 }

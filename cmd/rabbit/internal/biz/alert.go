@@ -35,11 +35,11 @@ type Alert struct {
 
 func (a *Alert) SendAlert(ctx context.Context, alert *bo.AlertsItem) error {
 	if validate.IsNil(alert) {
-		return merr.ErrorParamsError("No alert is available")
+		return merr.ErrorParams("No alert is available")
 	}
 	receivers := alert.GetReceiver()
 	if len(receivers) == 0 {
-		return merr.ErrorParamsError("No receiver is available")
+		return merr.ErrorParams("No receiver is available")
 	}
 	eg := new(errgroup.Group)
 	for _, receiver := range receivers {

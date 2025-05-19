@@ -50,11 +50,11 @@ func NewDB(c *config.Database) (DB, error) {
 	case config.Database_MYSQL:
 		dialector = mysql.Open(dsn)
 	default:
-		return nil, merr.ErrorInternalServerError("invalid driver: %s", drive)
+		return nil, merr.ErrorInternalServer("invalid driver: %s", drive)
 	}
 	conn, err := gorm.Open(dialector, opts...)
 	if err != nil {
-		return nil, merr.ErrorInternalServerError("connect db error: %s", err)
+		return nil, merr.ErrorInternalServer("connect db error: %s", err)
 	}
 	if c.GetDebug() {
 		conn = conn.Debug()
@@ -87,6 +87,6 @@ func newSqlDB(c *config.Database) (*sql.DB, error) {
 	case config.Database_MYSQL:
 		return sql.Open("mysql", dsn)
 	default:
-		return nil, merr.ErrorInternalServerError("invalid driver: %s", c.GetDriver())
+		return nil, merr.ErrorInternalServer("invalid driver: %s", c.GetDriver())
 	}
 }

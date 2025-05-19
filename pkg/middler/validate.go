@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 // Validate 验证请求参数
@@ -63,11 +64,11 @@ func validateParams(opts ...protovalidate.ValidatorOption) ValidateHandler {
 		}
 		var validationError *protovalidate.ValidationError
 		if !errors.As(err, &validationError) {
-			return merr.ErrorInternalServerError("system error").WithCause(err)
+			return merr.ErrorInternalServer("system error").WithCause(err)
 		}
 
-		if validationError == nil || len(validationError.Violations) == 0 {
-			return merr.ErrorInternalServerError("system error")
+		if validate.IsNil(validationError) || len(validationError.Violations) == 0 {
+			return merr.ErrorInternalServer("system error")
 		}
 
 		errMap := make(map[string][]string)
@@ -89,6 +90,6 @@ func validateParams(opts ...protovalidate.ValidatorOption) ValidateHandler {
 		for k, v := range errMap {
 			msgMap[k] = strings.Join(v, ",")
 		}
-		return merr.ErrorParamsError("params error").WithMetadata(msgMap)
+		return merr.ErrorParams("params error").WithMetadata(msgMap)
 	}
 }

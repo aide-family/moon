@@ -114,16 +114,16 @@ func (r *UpdateUserPositionRequest) WithUser(user do.User) *UpdateUserPositionRe
 
 func (r *UpdateUserPositionRequest) Validate() error {
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParamsError("operator is unknown")
+		return merr.ErrorParams("operator is unknown")
 	}
 	if validate.IsNil(r.user) {
-		return merr.ErrorParamsError("invalid user")
+		return merr.ErrorParams("invalid user")
 	}
 	if r.Position.IsUnknown() {
-		return merr.ErrorParamsError("position is unknown")
+		return merr.ErrorParams("position is unknown")
 	}
 	if r.operator.GetID() == r.user.GetID() {
-		return merr.ErrorParamsError("not allowed to update your own position")
+		return merr.ErrorParams("not allowed to update your own position")
 	}
 	operatorPosition := r.operator.GetPosition()
 	if operatorPosition.IsSuperAdmin() {
@@ -200,17 +200,17 @@ func (r *UpdateUserRolesReq) WithUser(user do.User) *UpdateUserRolesReq {
 
 func (r *UpdateUserRolesReq) Validate() error {
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParamsError("invalid operator")
+		return merr.ErrorParams("invalid operator")
 	}
 	if validate.IsNil(r.user) {
-		return merr.ErrorParamsError("invalid user")
+		return merr.ErrorParams("invalid user")
 	}
 	operatorPosition := r.operator.GetPosition()
 	if operatorPosition.IsSuperAdmin() {
 		return nil
 	}
 	if !operatorPosition.GT(r.user.GetPosition()) || !operatorPosition.IsAdminOrSuperAdmin() {
-		return merr.ErrorParamsError("invalid position")
+		return merr.ErrorParams("invalid position")
 	}
 	return nil
 }

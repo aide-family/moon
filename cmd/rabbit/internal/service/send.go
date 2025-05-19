@@ -80,7 +80,7 @@ func (s *SendService) Sms(ctx context.Context, req *rabbitv1.SendSmsRequest) (*c
 	}
 	smsConfig, ok := build.ToSMSConfig(req.GetSmsConfig())
 	if !ok {
-		return nil, merr.ErrorParamsError("sms config is invalid")
+		return nil, merr.ErrorParams("sms config is invalid")
 	}
 	params := &bo.GetSMSConfigParams{
 		TeamID:           req.GetTeamId(),

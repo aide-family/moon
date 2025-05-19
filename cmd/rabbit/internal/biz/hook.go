@@ -24,7 +24,7 @@ type Hook struct {
 
 func (h *Hook) Send(ctx context.Context, params bo.SendHookParams) error {
 	if len(params.GetConfigs()) == 0 {
-		return merr.ErrorParamsError("No hook configuration is available")
+		return merr.ErrorParams("No hook configuration is available")
 	}
 	return h.sendRepo.Hook(ctx, params)
 }

@@ -197,7 +197,7 @@ func (u *CreatorModel) BeforeCreate(tx *gorm.DB) (err error) {
 	var exist bool
 	u.CreatorID, exist = permission.GetUserIDByContext(u.GetContext())
 	if !exist || u.CreatorID == 0 {
-		return merr.ErrorInternalServerError("user id not found")
+		return merr.ErrorInternalServer("user id not found")
 	}
 	tx.WithContext(u.GetContext())
 	return
@@ -229,12 +229,12 @@ func (u *TeamModel) BeforeCreate(tx *gorm.DB) (err error) {
 	if u.TeamID <= 0 {
 		u.TeamID, exist = permission.GetTeamIDByContext(u.GetContext())
 		if !exist || u.TeamID == 0 {
-			return merr.ErrorInternalServerError("team id not found")
+			return merr.ErrorInternalServer("team id not found")
 		}
 	}
 	u.CreatorID, exist = permission.GetUserIDByContext(u.GetContext())
 	if !exist || u.CreatorID == 0 {
-		return merr.ErrorInternalServerError("user id not found")
+		return merr.ErrorInternalServer("user id not found")
 	}
 	tx.WithContext(u.GetContext())
 	return

@@ -60,17 +60,17 @@ func (r *UpdateTeamAuditStatusReq) GetReason() string {
 
 func (r *UpdateTeamAuditStatusReq) Validate() error {
 	if r.AuditID <= 0 {
-		return merr.ErrorParamsError("invalid audit id")
+		return merr.ErrorParams("invalid audit id")
 	}
 	if r.Status == vobj.AuditStatusUnknown {
-		return merr.ErrorParamsError("invalid audit status")
+		return merr.ErrorParams("invalid audit status")
 	}
 	if validate.IsNil(r.auditDo) {
-		return merr.ErrorParamsError("audit is nil")
+		return merr.ErrorParams("audit is nil")
 	}
 
 	if r.auditDo.GetStatus().IsFinal() {
-		return merr.ErrorParamsError("audit status is final")
+		return merr.ErrorParams("audit status is final")
 	}
 	return nil
 }

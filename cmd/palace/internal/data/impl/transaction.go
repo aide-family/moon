@@ -125,11 +125,11 @@ func (t *transactionRepoImpl) BizExec(ctx context.Context, fn func(ctx context.C
 	}
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
-		return merr.ErrorInternalServerError("team id not found").WithMetadata(map[string]string{"method": "BizExec"})
+		return merr.ErrorInternalServer("team id not found").WithMetadata(map[string]string{"method": "BizExec"})
 	}
 	bizDB, err := t.GetBizDB(teamID)
 	if err != nil {
-		return merr.ErrorInternalServerError("biz db not found").WithMetadata(map[string]string{"method": "BizExec"}).WithCause(err)
+		return merr.ErrorInternalServer("biz db not found").WithMetadata(map[string]string{"method": "BizExec"}).WithCause(err)
 	}
 	return bizDB.GetDB().Transaction(func(tx *gorm.DB) error {
 		txCtx := WithBizTXContext(ctx, tx)
@@ -144,11 +144,11 @@ func (t *transactionRepoImpl) EventExec(ctx context.Context, fn func(ctx context
 	}
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
-		return merr.ErrorInternalServerError("team id not found").WithMetadata(map[string]string{"method": "EventExec"})
+		return merr.ErrorInternalServer("team id not found").WithMetadata(map[string]string{"method": "EventExec"})
 	}
 	eventDB, err := t.GetEventDB(teamID)
 	if err != nil {
-		return merr.ErrorInternalServerError("event db not found").WithMetadata(map[string]string{"method": "EventExec"}).WithCause(err)
+		return merr.ErrorInternalServer("event db not found").WithMetadata(map[string]string{"method": "EventExec"}).WithCause(err)
 	}
 	return eventDB.GetDB().Transaction(func(tx *gorm.DB) error {
 		txCtx := WithEventTXContext(ctx, tx)

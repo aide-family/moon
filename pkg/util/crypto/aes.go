@@ -9,8 +9,9 @@ import (
 	"io"
 	"sync"
 
+	"github.com/go-kratos/kratos/v2/errors"
+
 	"github.com/aide-family/moon/pkg/config"
-	"github.com/aide-family/moon/pkg/merr"
 )
 
 var (
@@ -83,7 +84,7 @@ func aesSha1Padding(keyBytes []byte, encryptLength int) ([]byte, error) {
 	maxLen := len(hashes)
 	realLen := encryptLength / 8
 	if realLen > maxLen {
-		return nil, merr.ErrorInternalServerError("invalid length")
+		return nil, errors.New(400, "INVALID_LENGTH", "invalid length")
 	}
 	return hashes[0:realLen], nil
 }
@@ -112,7 +113,7 @@ func (a *aesImpl) Encrypt(plaintext []byte) ([]byte, error) {
 	case config.Crypto_AesConfig_ECB:
 		return a.encryptECB(plaintext)
 	default:
-		return nil, merr.ErrorInternalServerError("unsupported AES mode %v", a.mode)
+		return nil, errors.Newf(400, "UNSUPPORTED_AES_MODE", "unsupported AES mode %v", a.mode)
 	}
 }
 
@@ -126,7 +127,7 @@ func (a *aesImpl) Decrypt(ciphertext []byte) ([]byte, error) {
 	case config.Crypto_AesConfig_ECB:
 		return a.decryptECB(ciphertext)
 	default:
-		return nil, merr.ErrorInternalServerError("unsupported AES mode %v", a.mode)
+		return nil, errors.Newf(400, "UNSUPPORTED_AES_MODE", "unsupported AES mode %v", a.mode)
 	}
 }
 
@@ -152,14 +153,14 @@ func (a *aesImpl) decryptCBC(ciphertext []byte) ([]byte, error) {
 	blockSize := a.block.BlockSize()
 
 	if len(ciphertext) < blockSize {
-		return nil, merr.ErrorInternalServerError("ciphertext too short")
+		return nil, errors.New(400, "CIPHERTEXT_TOO_SHORT", "ciphertext too short")
 	}
 
 	iv := ciphertext[:blockSize]
 	ciphertext = ciphertext[blockSize:]
 
 	if len(ciphertext)%blockSize != 0 {
-		return nil, merr.ErrorInternalServerError("ciphertext is not a multiple of the block size")
+		return nil, errors.New(400, "CIPHERTEXT_NOT_A_MULTIPLE_OF_THE_BLOCK_SIZE", "ciphertext is not a multiple of the block size")
 	}
 
 	mode := cipher.NewCBCDecrypter(a.block, iv)
@@ -194,7 +195,7 @@ func (a *aesImpl) decryptGCM(ciphertext []byte) ([]byte, error) {
 
 	nonceSize := gcm.NonceSize()
 	if len(ciphertext) < nonceSize {
-		return nil, merr.ErrorInternalServerError("ciphertext too short")
+		return nil, errors.New(400, "CIPHERTEXT_TOO_SHORT", "ciphertext too short")
 	}
 
 	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]

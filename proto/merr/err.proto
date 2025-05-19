@@ -10,9 +10,9 @@ enum ClientError {
   option (errors.default_code) = 400;
   BAD_REQUEST = 0;
   NOT_FOUND = 1;
-  CAPTCHA_ERROR = 2;
-  PARAMS_ERROR = 3;
-  PASSWORD_ERROR = 4;
+  CAPTCHA = 2;
+  PARAMS = 3;
+  PASSWORD = 4;
   PERMISSION_DENIED = 5;
   METHOD_NOT_ALLOWED = 6;
 }
@@ -28,6 +28,6 @@ enum UnauthorizedError {
 
 enum ServerError {
   option (errors.default_code) = 500;
-  INTERNAL_SERVER_ERROR = 0;
+  INTERNAL_SERVER = 0;
   INVALID_ARGUMENT = 4;
 }

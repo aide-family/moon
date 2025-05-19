@@ -165,17 +165,17 @@ func (r *UpdateMemberPositionReq) WithMember(member do.TeamMember) *UpdateMember
 
 func (r *UpdateMemberPositionReq) Validate() error {
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParamsError("invalid operator")
+		return merr.ErrorParams("invalid operator")
 	}
 	if validate.IsNil(r.member) {
-		return merr.ErrorParamsError("invalid member")
+		return merr.ErrorParams("invalid member")
 	}
 	if r.Position.IsUnknown() {
-		return merr.ErrorParamsError("invalid position")
+		return merr.ErrorParams("invalid position")
 	}
 	operatorPosition := r.operator.GetPosition()
 	if !operatorPosition.GT(r.Position) || !operatorPosition.IsAdminOrSuperAdmin() {
-		return merr.ErrorParamsError("invalid position")
+		return merr.ErrorParams("invalid position")
 	}
 	return nil
 }
@@ -223,18 +223,18 @@ func (r *UpdateMemberStatusReq) WithMembers(members []do.TeamMember) *UpdateMemb
 
 func (r *UpdateMemberStatusReq) Validate() error {
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParamsError("invalid operator")
+		return merr.ErrorParams("invalid operator")
 	}
 	if len(r.members) == 0 {
-		return merr.ErrorParamsError("invalid members")
+		return merr.ErrorParams("invalid members")
 	}
 	if r.Status.IsUnknown() {
-		return merr.ErrorParamsError("invalid status")
+		return merr.ErrorParams("invalid status")
 	}
 	operatorPosition := r.operator.GetPosition()
 	for _, member := range r.members {
 		if !operatorPosition.GT(member.GetPosition()) || !operatorPosition.IsAdminOrSuperAdmin() {
-			return merr.ErrorParamsError("invalid position")
+			return merr.ErrorParams("invalid position")
 		}
 	}
 	return nil
@@ -289,14 +289,14 @@ func (r *UpdateMemberRolesReq) WithRoles(roles []do.TeamRole) *UpdateMemberRoles
 
 func (r *UpdateMemberRolesReq) Validate() error {
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParamsError("invalid operator")
+		return merr.ErrorParams("invalid operator")
 	}
 	if validate.IsNil(r.member) {
-		return merr.ErrorParamsError("invalid member")
+		return merr.ErrorParams("invalid member")
 	}
 	operatorPosition := r.operator.GetPosition()
 	if !operatorPosition.GT(r.member.GetPosition()) || !operatorPosition.IsAdminOrSuperAdmin() {
-		return merr.ErrorParamsError("invalid position")
+		return merr.ErrorParams("invalid position")
 	}
 	return nil
 }
@@ -333,14 +333,14 @@ func (r *RemoveMemberReq) WithMember(member do.TeamMember) *RemoveMemberReq {
 
 func (r *RemoveMemberReq) Validate() error {
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParamsError("invalid operator")
+		return merr.ErrorParams("invalid operator")
 	}
 	if validate.IsNil(r.member) {
-		return merr.ErrorParamsError("invalid member")
+		return merr.ErrorParams("invalid member")
 	}
 	operatorPosition := r.operator.GetPosition()
 	if !operatorPosition.GT(r.member.GetPosition()) || !operatorPosition.IsAdminOrSuperAdmin() {
-		return merr.ErrorParamsError("invalid position")
+		return merr.ErrorParams("invalid position")
 	}
 	return nil
 }
@@ -409,19 +409,19 @@ func (r *InviteMemberReq) GetOperator() do.TeamMember {
 
 func (r *InviteMemberReq) Validate() error {
 	if validate.IsNil(r.team) {
-		return merr.ErrorParamsError("invalid team")
+		return merr.ErrorParams("invalid team")
 	}
 	if validate.IsNil(r.invitee) {
-		return merr.ErrorParamsError("invalid invitee")
+		return merr.ErrorParams("invalid invitee")
 	}
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParamsError("invalid operator")
+		return merr.ErrorParams("invalid operator")
 	}
 	if r.Position.IsUnknown() {
-		return merr.ErrorParamsError("invalid position")
+		return merr.ErrorParams("invalid position")
 	}
 	if !r.operator.GetPosition().IsAdminOrSuperAdmin() {
-		return merr.ErrorParamsError("invalid position")
+		return merr.ErrorParams("invalid position")
 	}
 	return nil
 }

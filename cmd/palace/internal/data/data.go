@@ -176,7 +176,7 @@ func (d *Data) GetBizDB(teamID uint32) (gorm.DB, error) {
 
 	db, err = gorm.NewDB(dbConfig)
 	if err != nil {
-		return nil, merr.ErrorInternalServerError("new team biz db err").WithCause(err)
+		return nil, merr.ErrorInternalServer("new team biz db err").WithCause(err)
 	}
 	d.bizDBMap.Set(teamID, db)
 	return db, nil
@@ -197,7 +197,7 @@ func (d *Data) GetEventDB(teamID uint32) (gorm.DB, error) {
 	}
 	db, err = gorm.NewDB(dbConfig)
 	if err != nil {
-		return nil, merr.ErrorInternalServerError("new team alarm db err").WithCause(err)
+		return nil, merr.ErrorInternalServer("new team alarm db err").WithCause(err)
 	}
 	d.eventDBMap.Set(teamID, db)
 	return db, nil
@@ -209,7 +209,7 @@ func (d *Data) queryTeam(teamID uint32) (*system.Team, error) {
 	defer cancel()
 	teamDo, err := teamQuery.WithContext(ctx).Where(teamQuery.ID.Eq(teamID)).First()
 	if err != nil {
-		return nil, merr.ErrorInternalServerError("team query err").WithCause(err)
+		return nil, merr.ErrorInternalServer("team query err").WithCause(err)
 	}
 	return teamDo, nil
 }

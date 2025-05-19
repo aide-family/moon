@@ -46,7 +46,7 @@ func (s *houyiSyncClient) MetricMetadata(ctx context.Context, req *houyiv1.Metri
 	case config.Network_HTTP:
 		return houyiv1.NewSyncHTTPClient(s.server.Client).MetricMetadata(ctx, req)
 	default:
-		return nil, merr.ErrorInternalServerError("network is not supported")
+		return nil, merr.ErrorInternalServer("network is not supported")
 	}
 }
 
@@ -69,6 +69,6 @@ func (s *houyiQueryClient) MetricDatasourceQuery(ctx context.Context, req *houyi
 	case config.Network_HTTP:
 		return houyiv1.NewQueryHTTPClient(s.server.Client).MetricDatasourceQuery(ctx, req)
 	default:
-		return nil, merr.ErrorInternalServerError("network is not supported")
+		return nil, merr.ErrorInternalServer("network is not supported")
 	}
 }

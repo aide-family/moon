@@ -28,7 +28,7 @@ type InitConfig struct {
 
 func InitHTTPClient(initConfig *InitConfig) (*http.Client, error) {
 	if initConfig.MicroConfig.GetNetwork() != config.Network_HTTP {
-		return nil, merr.ErrorInternalServerError("network is not http")
+		return nil, merr.ErrorInternalServer("network is not http")
 	}
 	middlewares := []middleware.Middleware{
 		recovery.Recovery(),
@@ -70,7 +70,7 @@ func InitHTTPClient(initConfig *InitConfig) (*http.Client, error) {
 
 func InitGRPCClient(initConfig *InitConfig) (*ggrpc.ClientConn, error) {
 	if initConfig.MicroConfig.GetNetwork() != config.Network_GRPC {
-		return nil, merr.ErrorInternalServerError("network is not grpc")
+		return nil, merr.ErrorInternalServer("network is not grpc")
 	}
 	middlewares := []middleware.Middleware{
 		recovery.Recovery(),

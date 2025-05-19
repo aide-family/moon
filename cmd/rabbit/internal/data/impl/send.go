@@ -31,7 +31,7 @@ type sendImpl struct {
 
 func (s *sendImpl) Email(_ context.Context, params bo.SendEmailParams) error {
 	if len(params.GetEmails()) == 0 {
-		return merr.ErrorParamsError("No email is available")
+		return merr.ErrorParams("No email is available")
 	}
 	emailInstance, ok := s.GetEmail(params.GetConfig().GetName())
 	if !ok {
@@ -53,7 +53,7 @@ func (s *sendImpl) Email(_ context.Context, params bo.SendEmailParams) error {
 
 func (s *sendImpl) SMS(ctx context.Context, params bo.SendSMSParams) error {
 	if len(params.GetPhoneNumbers()) == 0 {
-		return merr.ErrorParamsError("No phone number is available")
+		return merr.ErrorParams("No phone number is available")
 	}
 	var err error
 	smsInstance, ok := s.GetSms(params.GetConfig().GetName())
@@ -91,7 +91,7 @@ func (s *sendImpl) Hook(ctx context.Context, params bo.SendHookParams) error {
 	}
 
 	if len(hooks) == 0 {
-		return merr.ErrorParamsError("No hook is available")
+		return merr.ErrorParams("No hook is available")
 	}
 	bodyMap := params.GetBody()
 	eg := new(errgroup.Group)
@@ -100,7 +100,7 @@ func (s *sendImpl) Hook(ctx context.Context, params bo.SendHookParams) error {
 		eg.Go(func() error {
 			sender, ok := hooks[bodyItem.AppName]
 			if !ok {
-				return merr.ErrorParamsError("No hook is available")
+				return merr.ErrorParams("No hook is available")
 			}
 			return sender.Send(ctx, bodyItem.Body)
 		})
@@ -114,7 +114,7 @@ func (s *sendImpl) newSms(config bo.SMSConfig) (sms.Sender, error) {
 	case common.SMSConfig_ALIYUN:
 		return ali.NewAliyun(config, ali.WithAliyunLogger(s.helper.Logger()))
 	default:
-		return nil, merr.ErrorParamsError("No SMS configuration is available")
+		return nil, merr.ErrorParams("No SMS configuration is available")
 	}
 }
 
@@ -143,6 +143,6 @@ func (s *sendImpl) newHook(config bo.HookConfig) (hook.Sender, error) {
 		}
 		return hook.NewFeishuHook(config.GetUrl(), config.GetSecret(), opts...), nil
 	default:
-		return nil, merr.ErrorParamsError("No hook configuration is available")
+		return nil, merr.ErrorParams("No hook configuration is available")
 	}
 }

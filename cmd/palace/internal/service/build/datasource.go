@@ -1,8 +1,6 @@
 package build
 
 import (
-	"time"
-
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
@@ -60,7 +58,7 @@ func ToSaveTeamMetricDatasourceRequest(req *palace.SaveTeamMetricDatasourceReque
 		Remark:         req.GetRemark(),
 		Driver:         vobj.DatasourceDriverMetric(req.GetDriver()),
 		Endpoint:       req.GetEndpoint(),
-		ScrapeInterval: time.Duration(req.GetScrapeInterval()) * time.Second,
+		ScrapeInterval: req.GetScrapeInterval(),
 		Headers:        ToKVs(req.GetHeaders()),
 		QueryMethod:    vobj.HTTPMethod(req.GetQueryMethod()),
 		CA:             req.GetCa(),

@@ -23,13 +23,27 @@ type SaveTeamMetricDatasource struct {
 	Remark         string
 	Driver         vobj.DatasourceDriverMetric
 	Endpoint       string
-	ScrapeInterval time.Duration
+	ScrapeInterval int64
 	Headers        []*kv.KV
 	QueryMethod    vobj.HTTPMethod
 	CA             string
 	TLS            *do.TLS
 	BasicAuth      *do.BasicAuth
 	Extra          []*kv.KV
+}
+
+func (r *SaveTeamMetricDatasource) Validate() error {
+	if r.ScrapeInterval <= 0 {
+		return merr.ErrorParams("scrape interval must be greater than 0")
+	}
+	if !r.Driver.Exist() || r.Driver.IsUnknown() {
+		return merr.ErrorParams("invalid datasource driver: %s", r.Driver)
+	}
+	if !r.QueryMethod.Exist() || r.QueryMethod.IsUnknown() {
+		return merr.ErrorParams("invalid query method: %s", r.QueryMethod)
+	}
+
+	return nil
 }
 
 type ListTeamMetricDatasource struct {

@@ -229,10 +229,10 @@ func (r *UpdateRoleUsersReq) WithOperator(operator do.User) *UpdateRoleUsersReq 
 
 func (r *UpdateRoleUsersReq) Validate() error {
 	if validate.IsNil(r.operator) {
-		return merr.ErrorParamsError("invalid operator")
+		return merr.ErrorParams("invalid operator")
 	}
 	if validate.IsNil(r.role) {
-		return merr.ErrorParamsError("invalid role")
+		return merr.ErrorParams("invalid role")
 	}
 	operatorPosition := r.operator.GetPosition()
 	if operatorPosition.IsSuperAdmin() {
@@ -240,7 +240,7 @@ func (r *UpdateRoleUsersReq) Validate() error {
 	}
 	for _, user := range r.users {
 		if !operatorPosition.GT(user.GetPosition()) || !operatorPosition.IsAdminOrSuperAdmin() {
-			return merr.ErrorParamsError("invalid position")
+			return merr.ErrorParams("invalid position")
 		}
 	}
 	return nil
