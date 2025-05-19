@@ -1189,6 +1189,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.GetTeamMembersReply'
+    /api/team/members/select:
+        post:
+            tags:
+                - Team
+            description: SelectTeamMembers selects team members based on specified filters
+            operationId: Team_SelectTeamMembers
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.SelectTeamMembersRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.SelectTeamMembersReply'
     /api/team/menu/tree:
         get:
             tags:
@@ -4264,6 +4283,30 @@ components:
                     type: array
                     items:
                         type: string
+        api.palace.SelectTeamMembersReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.SelectItem'
+                    description: List of team member items
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+            description: SelectTeamMembersReply contains the response data for selecting team members
+        api.palace.SelectTeamMembersRequest:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                keyword:
+                    type: string
+                status:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+            description: SelectTeamMembersRequest represents the request data for selecting team members
         api.palace.SelfSubscribeTeamStrategiesReply:
             type: object
             properties:

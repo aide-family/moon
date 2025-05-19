@@ -127,6 +127,43 @@ func (r *TeamMemberListRequest) ToListReply(items []do.TeamMember) *TeamMemberLi
 
 type TeamMemberListReply = ListReply[do.TeamMember]
 
+type SelectTeamMembersRequest struct {
+	*PaginationRequest
+	Keyword string
+	Status  []vobj.MemberStatus
+	TeamId  uint32
+}
+
+func (r *SelectTeamMembersRequest) ToSelectReply(items []do.TeamMember) *SelectTeamMembersReply {
+	return &SelectTeamMembersReply{
+		PaginationReply: r.ToReply(),
+		Items: slices.Map(items, func(member do.TeamMember) SelectItem {
+			user := member.GetUser()
+			name := member.GetMemberName()
+			item := &selectItem{
+				Value:    member.GetID(),
+				Label:    name,
+				Disabled: !member.GetStatus().IsNormal() || member.GetDeletedAt() > 0 || validate.IsNil(user),
+				Extra:    nil,
+			}
+
+			if validate.IsNotNil(user) {
+				if validate.TextIsNull(name) {
+					item.Label = user.GetUsername()
+				}
+				item.Extra = &selectItemExtra{
+					Remark: user.GetRemark(),
+					Icon:   user.GetAvatar(),
+					Color:  user.GetGender().String(),
+				}
+			}
+			return item
+		}),
+	}
+}
+
+type SelectTeamMembersReply = ListReply[SelectItem]
+
 type UpdateMemberPosition interface {
 	GetMember() do.TeamMember
 	GetPosition() vobj.Role

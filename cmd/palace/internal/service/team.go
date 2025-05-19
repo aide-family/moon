@@ -97,6 +97,22 @@ func (s *TeamService) GetTeamMembers(ctx context.Context, req *palace.GetTeamMem
 	}, nil
 }
 
+func (s *TeamService) SelectTeamMembers(ctx context.Context, req *palace.SelectTeamMembersRequest) (*palace.SelectTeamMembersReply, error) {
+	teamId, ok := permission.GetTeamIDByContext(ctx)
+	if !ok {
+		return nil, merr.ErrorPermissionDenied("please select team")
+	}
+	params := build.ToTeamMemberSelectRequest(req, teamId)
+	membersReply, err := s.teamBiz.SelectTeamMembers(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &palace.SelectTeamMembersReply{
+		Items:      build.ToSelectItems(membersReply.Items),
+		Pagination: build.ToPaginationReply(membersReply.PaginationReply),
+	}, nil
+}
+
 func (s *TeamService) UpdateMemberPosition(ctx context.Context, req *palace.UpdateMemberPositionRequest) (*common.EmptyReply, error) {
 	params := &bo.UpdateMemberPositionReq{
 		MemberID: req.GetMemberId(),

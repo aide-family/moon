@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gen"
+	"gorm.io/gen/field"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
@@ -89,6 +90,53 @@ func (m *memberImpl) List(ctx context.Context, req *bo.TeamMemberListRequest) (*
 	}
 	rows := slices.Map(members, func(member *system.TeamMember) do.TeamMember { return member })
 	return req.ToListReply(rows), nil
+}
+
+func (m *memberImpl) Select(ctx context.Context, req *bo.SelectTeamMembersRequest) (*bo.SelectTeamMembersReply, error) {
+	if validate.IsNil(req) {
+		return nil, merr.ErrorParams("invalid request")
+	}
+	mainQuery := getMainQuery(ctx, m)
+	memberQuery := mainQuery.TeamMember
+	userQuery := mainQuery.User
+	wrapper := memberQuery.WithContext(ctx).Where(memberQuery.TeamID.Eq(req.TeamId))
+	if !validate.TextIsNull(req.Keyword) {
+		wrapper = wrapper.Where(memberQuery.MemberName.Like(req.Keyword))
+	}
+	if len(req.Status) > 0 {
+		status := slices.Map(req.Status, func(statusItem vobj.MemberStatus) int8 { return statusItem.GetValue() })
+		wrapper = wrapper.Where(memberQuery.Status.In(status...))
+	}
+	if validate.IsNotNil(req.PaginationRequest) {
+		total, err := wrapper.Count()
+		if err != nil {
+			return nil, err
+		}
+		wrapper = wrapper.Offset(req.Offset()).Limit(int(req.Limit))
+		req.WithTotal(total)
+	}
+	selectColumns := []field.Expr{
+		memberQuery.ID,
+		memberQuery.MemberName,
+		memberQuery.Remark,
+		memberQuery.Status,
+		memberQuery.DeletedAt,
+	}
+	userSelectColumns := []field.Expr{
+		userQuery.ID,
+		userQuery.Username,
+		userQuery.Nickname,
+		userQuery.Avatar,
+		userQuery.Gender,
+		userQuery.DeletedAt,
+		userQuery.Status,
+	}
+	members, err := wrapper.Select(selectColumns...).Order(memberQuery.ID.Desc()).Preload(memberQuery.User.Select(userSelectColumns...)).Find()
+	if err != nil {
+		return nil, err
+	}
+	rows := slices.Map(members, func(member *system.TeamMember) do.TeamMember { return member })
+	return req.ToSelectReply(rows), nil
 }
 
 func (m *memberImpl) UpdateStatus(ctx context.Context, req bo.UpdateMemberStatus) error {

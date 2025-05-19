@@ -106,6 +106,18 @@ func ToTeamMemberListRequest(req *palace.GetTeamMembersRequest, teamId uint32) *
 	}
 }
 
+func ToTeamMemberSelectRequest(req *palace.SelectTeamMembersRequest, teamId uint32) *bo.SelectTeamMembersRequest {
+	if validate.IsNil(req) {
+		return nil
+	}
+	return &bo.SelectTeamMembersRequest{
+		PaginationRequest: ToPaginationRequest(req.GetPagination()),
+		Keyword:           req.GetKeyword(),
+		Status:            slices.Map(req.GetStatus(), func(status common.MemberStatus) vobj.MemberStatus { return vobj.MemberStatus(status) }),
+		TeamId:            teamId,
+	}
+}
+
 func ToTeamMemberItem(member do.TeamMember) *common.TeamMemberItem {
 	if validate.IsNil(member) {
 		return nil

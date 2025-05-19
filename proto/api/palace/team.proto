@@ -68,6 +68,14 @@ service Team {
     };
   }
 
+  // SelectTeamMembers selects team members based on specified filters
+  rpc SelectTeamMembers (SelectTeamMembersRequest) returns (SelectTeamMembersReply) {
+    option (google.api.http) = {
+      post: "/api/team/members/select"
+      body: "*"
+    };
+  }
+
   // UpdateMemberPosition updates the position of a team member
   rpc UpdateMemberPosition (UpdateMemberPositionRequest) returns (api.palace.common.EmptyReply) {
     option (google.api.http) = {
@@ -246,6 +254,20 @@ message GetTeamMembersRequest {
 message GetTeamMembersReply {
   // List of team member items
   repeated api.palace.common.TeamMemberItem items = 1;
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+// SelectTeamMembersRequest represents the request data for selecting team members
+message SelectTeamMembersRequest {
+  api.palace.common.PaginationRequest pagination = 1;
+  string keyword = 2;
+  repeated api.palace.common.MemberStatus status = 3;
+}
+
+// SelectTeamMembersReply contains the response data for selecting team members
+message SelectTeamMembersReply {
+  // List of team member items
+  repeated api.palace.common.SelectItem items = 1;
   api.palace.common.PaginationReply pagination = 2;
 }
 

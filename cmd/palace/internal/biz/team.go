@@ -265,6 +265,10 @@ func (t *Team) GetTeamMembers(ctx context.Context, req *bo.TeamMemberListRequest
 	return t.memberRepo.List(ctx, req)
 }
 
+func (t *Team) SelectTeamMembers(ctx context.Context, req *bo.SelectTeamMembersRequest) (*bo.SelectTeamMembersReply, error) {
+	return t.memberRepo.Select(ctx, req)
+}
+
 func (t *Team) UpdateMemberPosition(ctx context.Context, req *bo.UpdateMemberPositionReq) error {
 	userId, ok := permission.GetUserIDByContext(ctx)
 	if !ok {
