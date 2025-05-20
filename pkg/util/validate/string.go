@@ -7,7 +7,7 @@ import (
 	"github.com/go-kratos/kratos/v2/errors"
 )
 
-// TextIsNull 判断字符串是否为空
+// TextIsNull determines whether the string is empty
 func TextIsNull(text string) bool {
 	return len(strings.TrimSpace(text)) == 0
 }

@@ -11,9 +11,9 @@ const tableNameNoticeMember = "team_notice_members"
 
 type NoticeMember struct {
 	do.TeamModel
-	NoticeGroupID uint32          `gorm:"column:notice_group_id;type:int(10) unsigned;not null;comment:通知组ID" json:"noticeGroupID"`
-	UserID        uint32          `gorm:"column:user_id;type:int(10) unsigned;not null;comment:用户ID" json:"userID"`
-	NoticeType    vobj.NoticeType `gorm:"column:notice_type;type:int(10) unsigned;not null;comment:通知类型" json:"noticeType"`
+	NoticeGroupID uint32          `gorm:"column:notice_group_id;type:int(10) unsigned;not null;comment:notice group ID" json:"noticeGroupID"`
+	UserID        uint32          `gorm:"column:user_id;type:int(10) unsigned;not null;comment:user ID" json:"userID"`
+	NoticeType    vobj.NoticeType `gorm:"column:notice_type;type:int(10) unsigned;not null;comment:notice type" json:"noticeType"`
 	NoticeGroup   *NoticeGroup    `gorm:"foreignKey:NoticeGroupID;references:ID" json:"noticeGroup"`
 }
 

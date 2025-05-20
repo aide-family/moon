@@ -66,7 +66,7 @@ func NewOAuthRowData(app vobj.OAuthAPP, row string) (IOAuthUser, error) {
 
 var _ IOAuthUser = (*GithubUser)(nil)
 
-// GithubUser Github用户
+// GithubUser represents a GitHub user
 type GithubUser struct {
 	AvatarURL         string `json:"avatar_url"`
 	Bio               string `json:"bio"`
@@ -114,17 +114,17 @@ func (g *GithubUser) GetUserID() uint32 {
 	return g.userID
 }
 
-// GetNickname 获取昵称
+// GetNickname gets the nickname
 func (g *GithubUser) GetNickname() string {
 	return g.Name
 }
 
-// GetOpenID 获取OpenID
+// GetOpenID gets the OpenID
 func (g *GithubUser) GetOpenID() string {
 	return strconv.FormatUint(uint64(g.ID), 10)
 }
 
-// GetEmail 获取邮箱
+// GetEmail gets the email
 func (g *GithubUser) GetEmail() string {
 	if err := validate.CheckEmail(g.Email); err != nil {
 		return ""
@@ -132,27 +132,27 @@ func (g *GithubUser) GetEmail() string {
 	return g.Email
 }
 
-// GetRemark 获取备注
+// GetRemark gets the remark
 func (g *GithubUser) GetRemark() string {
 	return g.Bio
 }
 
-// GetUsername 获取用户名
+// GetUsername gets the username
 func (g *GithubUser) GetUsername() string {
 	return g.Login
 }
 
-// GetAvatar 获取头像
+// GetAvatar gets the avatar
 func (g *GithubUser) GetAvatar() string {
 	return g.AvatarURL
 }
 
-// GetAPP 获取OAuth应用
+// GetAPP gets the OAuth application
 func (g *GithubUser) GetAPP() vobj.OAuthAPP {
 	return vobj.OAuthAPPGithub
 }
 
-// String 将Github用户转换为字符串
+// String converts the GitHub user to a string
 func (g *GithubUser) String() string {
 	bs, _ := json.Marshal(g)
 	return string(bs)
@@ -201,12 +201,12 @@ func (g *GiteeUser) GetUserID() uint32 {
 	return g.userID
 }
 
-// GetOpenID 获取OpenID
+// GetOpenID gets the OpenID
 func (g *GiteeUser) GetOpenID() string {
 	return strconv.FormatUint(uint64(g.ID), 10)
 }
 
-// GetEmail 获取邮箱
+// GetEmail gets the email
 func (g *GiteeUser) GetEmail() string {
 	if err := validate.CheckEmail(g.Email); err != nil {
 		return ""
@@ -214,32 +214,32 @@ func (g *GiteeUser) GetEmail() string {
 	return g.Email
 }
 
-// GetRemark 获取备注
+// GetRemark gets the remark
 func (g *GiteeUser) GetRemark() string {
 	return g.Remark
 }
 
-// GetUsername 获取用户名
+// GetUsername gets the username
 func (g *GiteeUser) GetUsername() string {
 	return g.Login
 }
 
-// GetNickname 获取昵称
+// GetNickname gets the nickname
 func (g *GiteeUser) GetNickname() string {
 	return g.Name
 }
 
-// GetAvatar 获取头像
+// GetAvatar gets the avatar
 func (g *GiteeUser) GetAvatar() string {
 	return g.AvatarURL
 }
 
-// GetAPP 获取OAuth应用
+// GetAPP gets the OAuth application
 func (g *GiteeUser) GetAPP() vobj.OAuthAPP {
 	return vobj.OAuthAPPGitee
 }
 
-// String 将Gitee用户转换为字符串
+// String converts the Gitee user to a string
 func (g *GiteeUser) String() string {
 	bs, _ := json.Marshal(g)
 	return string(bs)

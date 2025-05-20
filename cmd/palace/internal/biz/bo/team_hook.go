@@ -19,7 +19,7 @@ type NoticeHook interface {
 	GetApp() vobj.HookApp
 }
 
-// SaveTeamNoticeHookRequest 保存团队通知钩子请求
+// SaveTeamNoticeHookRequest represents a request to save a team notification hook
 type SaveTeamNoticeHookRequest struct {
 	hookDo  do.NoticeHook
 	HookID  uint32          `json:"hookId"`
@@ -96,7 +96,7 @@ func (r *SaveTeamNoticeHookRequest) WithUpdateHookRequest(hook do.NoticeHook) No
 	return r
 }
 
-// ListTeamNoticeHookRequest 列表请求
+// ListTeamNoticeHookRequest represents a request to list team notification hooks
 type ListTeamNoticeHookRequest struct {
 	*PaginationRequest
 	Status  vobj.GlobalStatus `json:"status"`
@@ -111,15 +111,16 @@ func (r *ListTeamNoticeHookRequest) ToListReply(hooks []do.NoticeHook) *ListTeam
 	}
 }
 
-// ListTeamNoticeHookReply 列表响应
+// ListTeamNoticeHookReply represents a response containing a list of team notification hooks
 type ListTeamNoticeHookReply = ListReply[do.NoticeHook]
 
-// UpdateTeamNoticeHookStatusRequest 更新状态请求
+// UpdateTeamNoticeHookStatusRequest represents a request to update the status of a team notification hook
 type UpdateTeamNoticeHookStatusRequest struct {
 	HookID uint32            `json:"hookId"`
 	Status vobj.GlobalStatus `json:"status"`
 }
 
+// TeamNoticeHookSelectRequest represents a request to select team notification hooks
 type TeamNoticeHookSelectRequest struct {
 	*PaginationRequest
 	Status  vobj.GlobalStatus `json:"status"`
@@ -146,4 +147,5 @@ func (r *TeamNoticeHookSelectRequest) ToSelectReply(hooks []do.NoticeHook) *Team
 	}
 }
 
+// TeamNoticeHookSelectReply represents a response containing selected team notification hooks
 type TeamNoticeHookSelectReply = ListReply[SelectItem]

@@ -70,7 +70,7 @@ func ToTeamBaseItem(team do.Team) *common.TeamBaseItem {
 	}
 }
 
-// ToTeamItems 将系统Team对象切片转换为TeamItem proto对象切片
+// ToTeamItems converts a slice of system Team objects to a slice of TeamItem proto objects
 func ToTeamItems(teams []do.Team) []*common.TeamItem {
 	return slices.Map(teams, ToTeamItem)
 }

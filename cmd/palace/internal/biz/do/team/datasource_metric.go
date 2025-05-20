@@ -16,18 +16,18 @@ const tableNameDatasourceMetric = "team_datasource_metrics"
 
 type DatasourceMetric struct {
 	do.TeamModel
-	Name           string                        `gorm:"column:name;type:varchar(64);not null;comment:名称" json:"name"`
-	Status         vobj.GlobalStatus             `gorm:"column:status;type:tinyint(2);not null;comment:状态" json:"status"`
-	Remark         string                        `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
-	Driver         vobj.DatasourceDriverMetric   `gorm:"column:type;type:tinyint(2);not null;comment:类型" json:"type"`
-	Endpoint       string                        `gorm:"column:endpoint;type:varchar(255);not null;comment:数据源地址" json:"endpoint"`
-	ScrapeInterval int64                         `gorm:"column:scrape_interval;type:bigint(20);not null;comment:抓取间隔" json:"scrapeInterval"`
-	Headers        *crypto.Object[[]*kv.KV]      `gorm:"column:headers;type:text;not null;comment:请求头" json:"headers"`
-	QueryMethod    vobj.HTTPMethod               `gorm:"column:query_method;type:tinyint(2);not null;comment:请求方法" json:"queryMethod"`
+	Name           string                        `gorm:"column:name;type:varchar(64);not null;comment:name" json:"name"`
+	Status         vobj.GlobalStatus             `gorm:"column:status;type:tinyint(2);not null;comment:status" json:"status"`
+	Remark         string                        `gorm:"column:remark;type:varchar(255);not null;comment:remark" json:"remark"`
+	Driver         vobj.DatasourceDriverMetric   `gorm:"column:type;type:tinyint(2);not null;comment:type" json:"type"`
+	Endpoint       string                        `gorm:"column:endpoint;type:varchar(255);not null;comment:datasource endpoint" json:"endpoint"`
+	ScrapeInterval int64                         `gorm:"column:scrape_interval;type:bigint(20);not null;comment:scrape interval" json:"scrapeInterval"`
+	Headers        *crypto.Object[[]*kv.KV]      `gorm:"column:headers;type:text;not null;comment:request headers" json:"headers"`
+	QueryMethod    vobj.HTTPMethod               `gorm:"column:query_method;type:tinyint(2);not null;comment:request method" json:"queryMethod"`
 	CA             crypto.String                 `gorm:"column:ca;type:text;not null;comment:ca" json:"ca"`
 	TLS            *crypto.Object[*do.TLS]       `gorm:"column:tls;type:text;not null;comment:tls" json:"tls"`
 	BasicAuth      *crypto.Object[*do.BasicAuth] `gorm:"column:basic_auth;type:text;not null;comment:basic_auth" json:"basicAuth"`
-	Extra          *crypto.Object[[]*kv.KV]      `gorm:"column:extra;type:text;not null;comment:额外信息" json:"extra"`
+	Extra          *crypto.Object[[]*kv.KV]      `gorm:"column:extra;type:text;not null;comment:extra information" json:"extra"`
 	Metrics        []*StrategyMetric             `gorm:"many2many:team_strategy_metric_datasource" json:"metrics"`
 }
 

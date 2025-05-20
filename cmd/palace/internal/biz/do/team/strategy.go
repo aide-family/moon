@@ -12,11 +12,11 @@ const tableNameStrategy = "team_strategies"
 
 type Strategy struct {
 	do.TeamModel
-	StrategyGroupID uint32            `gorm:"column:strategy_group_id;type:int unsigned;not null;comment:组ID" json:"strategyGroupID"`
-	Name            string            `gorm:"column:name;type:varchar(64);not null;comment:名称" json:"name"`
-	Remark          string            `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
-	Status          vobj.GlobalStatus `gorm:"column:status;type:tinyint(2);not null;comment:状态" json:"status"`
-	StrategyType    vobj.StrategyType `gorm:"column:strategy_type;type:tinyint(2);not null;comment:类型" json:"strategyType"`
+	StrategyGroupID uint32            `gorm:"column:strategy_group_id;type:int unsigned;not null;comment:group ID" json:"strategyGroupID"`
+	Name            string            `gorm:"column:name;type:varchar(64);not null;comment:name" json:"name"`
+	Remark          string            `gorm:"column:remark;type:varchar(255);not null;comment:remark" json:"remark"`
+	Status          vobj.GlobalStatus `gorm:"column:status;type:tinyint(2);not null;comment:status" json:"status"`
+	StrategyType    vobj.StrategyType `gorm:"column:strategy_type;type:tinyint(2);not null;comment:type" json:"strategyType"`
 	StrategyGroup   *StrategyGroup    `gorm:"foreignKey:StrategyGroupID;references:ID" json:"strategyGroup"`
 	Notices         []*NoticeGroup    `gorm:"many2many:team_strategy_notice_groups" json:"notices"`
 }

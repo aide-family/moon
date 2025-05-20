@@ -12,11 +12,11 @@ const tableNameStrategyMetrics = "team_strategy_metrics"
 
 type StrategyMetric struct {
 	do.TeamModel
-	StrategyID          uint32                `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略id" json:"strategyID"`
+	StrategyID          uint32                `gorm:"column:strategy_id;type:int unsigned;not null;comment:strategy ID" json:"strategyID"`
 	Strategy            *Strategy             `gorm:"foreignKey:StrategyID;references:ID" json:"strategy"`
-	Expr                string                `gorm:"column:expr;type:varchar(1024);not null;comment:表达式" json:"expr"`
-	Labels              kv.StringMap          `gorm:"column:labels;type:json;not null;comment:标签" json:"labels"`
-	Annotations         kv.StringMap          `gorm:"column:annotations;type:json;not null;comment:注解" json:"annotations"`
+	Expr                string                `gorm:"column:expr;type:varchar(1024);not null;comment:expression" json:"expr"`
+	Labels              kv.StringMap          `gorm:"column:labels;type:json;not null;comment:labels" json:"labels"`
+	Annotations         kv.StringMap          `gorm:"column:annotations;type:json;not null;comment:annotations" json:"annotations"`
 	StrategyMetricRules []*StrategyMetricRule `gorm:"foreignKey:StrategyMetricID;references:ID" json:"strategyMetricRules"`
 	Datasource          []*DatasourceMetric   `gorm:"many2many:team_strategy_metric_datasource" json:"datasource"`
 }

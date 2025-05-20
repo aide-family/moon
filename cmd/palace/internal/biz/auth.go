@@ -167,7 +167,7 @@ func (a *Auth) login(userDo do.User) (*bo.LoginSign, error) {
 	}, nil
 }
 
-// GetOAuthConf 获取oauth配置
+// GetOAuthConf get oauth configuration
 func (a *Auth) GetOAuthConf(provider vobj.OAuthAPP) (*oauth2.Config, error) {
 	config, ok := a.oauthConfigs.Get(provider)
 	if !ok {
@@ -199,7 +199,7 @@ func (a *Auth) githubLogin(ctx context.Context, code string, sendEmailFunc bo.Se
 	if err != nil {
 		return "", err
 	}
-	// 使用token来获取用户信息
+	// Use token to get user information
 	client := oauth2.NewClient(ctx, oauth2.StaticTokenSource(token))
 	userResp, err := client.Get("https://api.github.com/user")
 	if err != nil {
@@ -236,7 +236,7 @@ func (a *Auth) giteeLogin(ctx context.Context, code string, sendEmailFunc bo.Sen
 	if err != nil {
 		return "", err
 	}
-	// 使用token来获取用户信息
+	// Use token to get user information
 	client := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(token))
 
 	resp, err := client.Get("https://gitee.com/api/v5/user")
@@ -325,7 +325,7 @@ func (a *Auth) oauthUserFirstOrCreate(ctx context.Context, userInfo bo.IOAuthUse
 			}
 		}
 		if validate.IsNil(oauthUserDo.GetUser()) {
-			// 创建用户
+			// Create user
 			userDo, err := a.userRepo.CreateUserWithOAuthUser(ctx, userInfo, sendEmail)
 			if err != nil {
 				return err
@@ -417,7 +417,7 @@ func (a *Auth) VerifyEmailCode(ctx context.Context, params *bo.VerifyEmailCodePa
 	return a.cacheRepo.VerifyEmailCode(ctx, params)
 }
 
-// LoginWithEmail 邮箱登录
+// LoginWithEmail login with email
 func (a *Auth) LoginWithEmail(ctx context.Context, req *bo.LoginWithEmailParams) (*bo.LoginSign, error) {
 	verifyParams := &bo.VerifyEmailCodeParams{
 		Email: req.GetEmail(),

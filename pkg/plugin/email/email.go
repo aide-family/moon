@@ -9,13 +9,13 @@ import (
 var _ Email = (*e)(nil)
 
 type (
-	// Email 邮件
+	// Email email
 	e struct {
 		config Config
 		mail   *gomail.Message
 	}
 
-	// Email 邮件接口
+	// Email email interface
 	Email interface {
 		Send() error
 		SetTo(to ...string) Email
@@ -26,7 +26,7 @@ type (
 		Copy() Email
 	}
 
-	// Config 邮件配置
+	// Config email configuration
 	Config interface {
 		GetUser() string
 		GetPass() string
@@ -38,8 +38,8 @@ type (
 )
 
 const (
-	// DOMAIN 域名
-	DOMAIN = "Moon监控系统"
+	// DOMAIN domain name
+	DOMAIN = "Moon Monitoring System"
 )
 
 func (l *e) Copy() Email {
@@ -49,7 +49,7 @@ func (l *e) Copy() Email {
 	}
 }
 
-// init 初始化
+// init initialize
 func (l *e) init() Email {
 	if l.mail == nil {
 		l.mail = gomail.NewMessage(gomail.SetEncoding(gomail.Base64))
@@ -57,36 +57,36 @@ func (l *e) init() Email {
 	return l
 }
 
-// SetTo 设置收件人
+// SetTo set recipients
 func (l *e) SetTo(to ...string) Email {
-	l.mail.SetHeader("To", to...) // 发送给用户(可以多个)
+	l.mail.SetHeader("To", to...) // send to users (can be multiple)
 	return l
 }
 
-// SetCc 设置抄送人
+// SetCc set CC recipients
 func (l *e) SetCc(cc ...string) Email {
 	l.mail.SetHeader("Cc", cc...)
 	return l
 }
 
-// SetSubject 设置邮件主题
+// SetSubject set email subject
 func (l *e) SetSubject(subject string) Email {
-	l.mail.SetHeader("Subject", subject) // 设置邮件主题
+	l.mail.SetHeader("Subject", subject) // set email subject
 	return l
 }
 
-// SetBody 设置邮件正文
+// SetBody set email body
 func (l *e) SetBody(body string, contentType ...string) Email {
 	cType := "text/plain"
 	if len(contentType) > 0 && contentType[0] != "" {
 		cType = contentType[0]
 	}
 
-	l.mail.SetBody(cType, body) // 设置邮件正文
+	l.mail.SetBody(cType, body) // set email body
 	return l
 }
 
-// SetAttach 设置附件
+// SetAttach set attachments
 func (l *e) SetAttach(attach ...string) Email {
 	for _, v := range attach {
 		l.mail.Attach(v)
@@ -94,27 +94,27 @@ func (l *e) SetAttach(attach ...string) Email {
 	return l
 }
 
-// setFrom 设置发件人
+// setFrom set sender
 func (l *e) setFrom(from string) Email {
 	domain := DOMAIN
 	if from != "" {
 		domain = from
 	}
 
-	l.mail.SetHeader("From", l.mail.FormatAddress(l.config.GetUser(), domain)) // 添加别名
+	l.mail.SetHeader("From", l.mail.FormatAddress(l.config.GetUser(), domain)) // add alias
 	return l
 }
 
-// Send 发送邮件
+// Send send email
 func (l *e) Send() error {
 	l.setFrom(l.config.GetUser())
-	d := gomail.NewDialer(l.config.GetHost(), int(l.config.GetPort()), l.config.GetUser(), l.config.GetPass()) // 设置邮件正文
+	d := gomail.NewDialer(l.config.GetHost(), int(l.config.GetPort()), l.config.GetUser(), l.config.GetPass()) // set email body
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: false, ServerName: l.config.GetHost(), MinVersion: tls.VersionTLS12}
 	err := d.DialAndSend(l.mail)
 	return err
 }
 
-// New 创建邮件
+// New create email
 func New(cfg Config) Email {
 	if !cfg.GetEnable() {
 		return NewMockEmail()

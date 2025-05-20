@@ -45,7 +45,7 @@ func (t *TeamDatasource) DatasourceSelect(ctx context.Context, req *bo.Datasourc
 	case vobj.DatasourceTypeMetric:
 		return t.teamDatasourceMetricRepo.Select(ctx, req)
 	default:
-		return nil, merr.ErrorBadRequest("不支持的数据源类型")
+		return nil, merr.ErrorBadRequest("unsupported datasource type")
 	}
 }
 
@@ -61,7 +61,7 @@ func (t *TeamDatasource) SaveMetricDatasource(ctx context.Context, req *bo.SaveT
 		return err
 	}
 	if metricDatasourceDo.GetStatus().IsEnable() {
-		return merr.ErrorBadRequest("数据源已启用，不能修改")
+		return merr.ErrorBadRequest("datasource is enabled and cannot be modified")
 	}
 
 	return t.teamDatasourceMetricRepo.Update(ctx, req)
@@ -99,7 +99,7 @@ func (t *TeamDatasource) BatchSaveMetricDatasourceMetadata(ctx context.Context, 
 func (t *TeamDatasource) SyncMetricMetadata(ctx context.Context, req *bo.SyncMetricMetadataRequest) (err error) {
 	syncClient, ok := t.houyiRepo.Sync()
 	if !ok {
-		return merr.ErrorBadRequest("同步服务未启动")
+		return merr.ErrorBadRequest("sync service is not running")
 	}
 
 	datasourceMetricDo, err := t.teamDatasourceMetricRepo.Get(ctx, req.DatasourceID)
@@ -114,7 +114,7 @@ func (t *TeamDatasource) SyncMetricMetadata(ctx context.Context, req *bo.SyncMet
 		return err
 	}
 	if !locked {
-		return merr.ErrorBadRequest("数据源元数据同步正在执行中，请稍后再试")
+		return merr.ErrorBadRequest("datasource metadata sync is in progress, please try again later")
 	}
 	defer func() {
 		if validate.IsNotNil(err) {

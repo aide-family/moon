@@ -50,9 +50,9 @@ func (p *Prometheus) Proxy(ctx transporthttp.Context, target string) error {
 	w := ctx.Response()
 	r := ctx.Request()
 
-	// 获取query data
+	// Get query data
 	query := r.URL.Query()
-	// 绑定query到to
+	// Bind query to target
 	api, err := url.JoinPath(p.c.GetEndpoint(), target)
 	if !validate.IsNil(err) {
 		return err
@@ -65,7 +65,7 @@ func (p *Prometheus) Proxy(ctx transporthttp.Context, target string) error {
 	// body
 	body := r.Body
 	hx := p.configureHTTPClient(ctx)
-	// 发起一个新请求， 把数据写回w
+	// Initiate a new request and write data back to w
 	proxyReq, err := http.NewRequestWithContext(ctx, r.Method, toURL.String(), body)
 	if !validate.IsNil(err) {
 		return err

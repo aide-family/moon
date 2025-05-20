@@ -47,7 +47,7 @@ func (t *TeamStrategyMetric) SaveTeamMetricStrategy(ctx context.Context, params 
 		return nil, err
 	}
 	if strategyDo.GetStatus().IsEnable() {
-		return nil, merr.ErrorBadRequest("策略已启用，不能修改")
+		return nil, merr.ErrorBadRequest("strategy is enabled and cannot be modified")
 	}
 	datasourceDos, err := t.datasourceRepo.FindByIds(ctx, params.Datasource)
 	if err != nil {
@@ -89,7 +89,7 @@ func (t *TeamStrategyMetric) SaveTeamMetricStrategyLevels(ctx context.Context, p
 		return nil, err
 	}
 	if strategyMetricDo.GetStrategy().GetStatus().IsEnable() {
-		return nil, merr.ErrorBadRequest("策略已启用，不能修改")
+		return nil, merr.ErrorBadRequest("strategy is enabled and cannot be modified")
 	}
 	noticeGroupIds := make([]uint32, 0, len(params.Levels))
 	dictIds := make([]uint32, 0, len(params.Levels))

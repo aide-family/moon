@@ -219,7 +219,7 @@ func (a *aesImpl) encryptECB(plaintext []byte) ([]byte, error) {
 		plain[i] = pad
 	}
 	encrypted := make([]byte, len(plain))
-	// 分组分块加密
+	// Encrypt in blocks
 	for bs, be := 0, blockSize; bs <= len(plaintext); bs, be = bs+blockSize, be+blockSize {
 		a.block.Encrypt(encrypted[bs:be], plain[bs:be])
 	}
@@ -257,9 +257,9 @@ func pkcs7Unpad(data []byte) []byte {
 	if len(data) == 0 {
 		return data
 	}
-	padding := int(data[len(data)-1]) // 获取填充字节
+	padding := int(data[len(data)-1]) // Get padding byte
 	if padding > len(data) {
-		return data // 如果填充字节无效，返回原始数据
+		return data // If padding byte is invalid, return original data
 	}
-	return data[:len(data)-padding] // 移除填充字节
+	return data[:len(data)-padding] // Remove padding bytes
 }

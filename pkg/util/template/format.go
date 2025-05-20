@@ -55,13 +55,13 @@ func HtmlFormatter(format string, data any) (s string, err error) {
 		return "", errors.New(400, "DATA_IS_NIL", "data is nil")
 	}
 
-	// 创建一个模板对象，定义模板字符串
+	// Create a template object and define the template string
 	t, err := html.New("html/template").Funcs(templateFuncMap).Parse(format)
 	if err != nil {
 		return "", nil
 	}
 	tmpl := html.Must(t, err)
-	// 执行模板并填充数据
+	// Execute the template and fill in the data
 	resultIoWriter := new(strings.Builder)
 
 	if err = tmpl.Execute(resultIoWriter, data); err != nil {

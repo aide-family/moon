@@ -172,13 +172,13 @@ func (s *AuthService) OAuthLoginByEmail(ctx context.Context, req *palace.OAuthLo
 }
 
 func (s *AuthService) VerifyToken(ctx context.Context, token string) error {
-	// TODO 记得开启
+	// TODO: Remember to enable this
 	return nil
 	//return s.authBiz.VerifyToken(ctx, token)
 }
 
 func (s *AuthService) VerifyPermission(ctx context.Context) error {
-	// TODO 记得开启
+	// TODO: Remember to enable this
 	return nil
 	//return s.permissionBiz.VerifyPermission(ctx)
 }
@@ -253,7 +253,7 @@ func (s *AuthService) OAuthLogin(app vobj.OAuthAPP) http.HandlerFunc {
 		if err != nil {
 			return err
 		}
-		// 重定向到指定地址
+		// Redirect to the specified URL
 		url := oauthConf.AuthCodeURL("state", oauth2.AccessTypeOnline)
 		req := ctx.Request()
 		resp := ctx.Response()
@@ -280,7 +280,7 @@ func (s *AuthService) OAuthLoginCallback(app vobj.OAuthAPP) http.HandlerFunc {
 		if err != nil {
 			return err
 		}
-		// 重定向到指定地址
+		// Redirect to the specified URL
 		req := ctx.Request()
 		resp := ctx.Response()
 

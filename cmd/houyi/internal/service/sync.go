@@ -111,6 +111,6 @@ func (s *SyncService) MetricMetadata(ctx context.Context, req *houyiv1.MetricMet
 	}
 	return &houyiv1.SyncReply{
 		Code:    int32(codes.OK),
-		Message: "同步中，请稍后查看",
+		Message: "Synchronization in progress, please check back later",
 	}, nil
 }

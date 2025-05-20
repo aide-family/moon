@@ -52,7 +52,7 @@ func Test_NewUser(t *testing.T) {
 
 	user := &system.User{
 		Username: "admin",
-		Nickname: "管理员",
+		Nickname: "admin",
 		Password: enPass,
 		Email:    "1058165620@qq.com",
 		Phone:    "",

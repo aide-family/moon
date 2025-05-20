@@ -7,41 +7,41 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 )
 
-// TimeEngine 时间引擎仓储接口
+// TimeEngine time engine repository interface
 type TimeEngine interface {
-	// CreateTimeEngine 创建时间引擎
+	// CreateTimeEngine create time engine
 	CreateTimeEngine(ctx context.Context, req *bo.SaveTimeEngineRequest) error
-	// UpdateTimeEngine 更新时间引擎
+	// UpdateTimeEngine update time engine
 	UpdateTimeEngine(ctx context.Context, timeEngineId uint32, req *bo.SaveTimeEngineRequest) error
-	// UpdateTimeEngineStatus 更新时间引擎状态
+	// UpdateTimeEngineStatus update time engine status
 	UpdateTimeEngineStatus(ctx context.Context, req *bo.UpdateTimeEngineStatusRequest) error
-	// DeleteTimeEngine 删除时间引擎
+	// DeleteTimeEngine delete time engine
 	DeleteTimeEngine(ctx context.Context, req *bo.DeleteTimeEngineRequest) error
-	// GetTimeEngine 获取时间引擎详情
+	// GetTimeEngine get time engine details
 	GetTimeEngine(ctx context.Context, req *bo.GetTimeEngineRequest) (do.TimeEngine, error)
-	// ListTimeEngine 获取时间引擎列表
+	// ListTimeEngine get time engine list
 	ListTimeEngine(ctx context.Context, req *bo.ListTimeEngineRequest) (*bo.ListTimeEngineReply, error)
-	// SelectTimeEngine 获取时间引擎列表
+	// SelectTimeEngine get time engine list
 	SelectTimeEngine(ctx context.Context, req *bo.SelectTimeEngineRequest) (*bo.SelectTimeEngineReply, error)
 }
 
-// TimeEngineRule 时间引擎规则仓储接口
+// TimeEngineRule time engine rule repository interface
 type TimeEngineRule interface {
-	// CreateTimeEngineRule 创建时间引擎规则
+	// CreateTimeEngineRule create time engine rule
 	CreateTimeEngineRule(ctx context.Context, req *bo.SaveTimeEngineRuleRequest) error
-	// UpdateTimeEngineRule 更新时间引擎规则
+	// UpdateTimeEngineRule update time engine rule
 	UpdateTimeEngineRule(ctx context.Context, timeEngineRuleId uint32, req *bo.SaveTimeEngineRuleRequest) error
-	// UpdateTimeEngineRuleStatus 更新时间引擎规则状态
+	// UpdateTimeEngineRuleStatus update time engine rule status
 	UpdateTimeEngineRuleStatus(ctx context.Context, req *bo.UpdateTimeEngineRuleStatusRequest) error
-	// DeleteTimeEngineRule 删除时间引擎规则
+	// DeleteTimeEngineRule delete time engine rule
 	DeleteTimeEngineRule(ctx context.Context, req *bo.DeleteTimeEngineRuleRequest) error
-	// GetTimeEngineRule 获取时间引擎规则详情
+	// GetTimeEngineRule get time engine rule details
 	GetTimeEngineRule(ctx context.Context, req *bo.GetTimeEngineRuleRequest) (do.TimeEngineRule, error)
-	// ListTimeEngineRule 获取时间引擎规则列表
+	// ListTimeEngineRule get time engine rule list
 	ListTimeEngineRule(ctx context.Context, req *bo.ListTimeEngineRuleRequest) (*bo.ListTimeEngineRuleReply, error)
-	// SelectTimeEngineRule 获取时间引擎规则列表
+	// SelectTimeEngineRule get time engine rule list
 	SelectTimeEngineRule(ctx context.Context, req *bo.SelectTimeEngineRuleRequest) (*bo.SelectTimeEngineRuleReply, error)
-	// Find 获取时间引擎规则列表
-	// 如果ruleIds为空，则返回所有时间引擎规则
+	// Find get time engine rule list
+	// if ruleIds is empty, return all time engine rules
 	Find(ctx context.Context, ruleIds ...uint32) ([]do.TimeEngineRule, error)
 }

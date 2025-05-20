@@ -88,7 +88,7 @@ func (m *metricInstance) Query(ctx context.Context, req *bo.MetricQueryRequest) 
 }
 
 func (m *metricInstance) QueryRange(ctx context.Context, req *bo.MetricRangeQueryRequest) ([]*do.MetricQueryRangeReply, error) {
-	// 分辨率计算
+	// Calculate resolution
 	step := req.GetOptimalStep(m.metric.GetScrapeInterval())
 	queryParams := &datasource.MetricQueryRequest{
 		Expr:      req.Expr,

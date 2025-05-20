@@ -11,7 +11,7 @@ func ToMenuTree(menus []do.Menu) []*common.MenuTreeItem {
 		menuMap[menu.GetID()] = menu
 	}
 
-	// 构建树形结构
+	// Build tree structure
 	var roots []*common.MenuTreeItem
 	for _, menu := range menus {
 		if menu.GetParentID() == 0 {
@@ -42,7 +42,6 @@ func convertMenuToTreeItemWithMap(menu do.Menu, menuMap map[uint32]do.Menu) *com
 		IsRelyOnBrother: menu.IsRelyOnBrother(),
 	}
 
-	// 查找所有子菜单
 	for _, m := range menuMap {
 		if m.GetParentID() == menu.GetID() {
 			if treeItem.Children == nil {

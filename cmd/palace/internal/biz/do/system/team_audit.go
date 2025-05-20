@@ -11,10 +11,10 @@ const tableNameTeamAudit = "sys_team_audits"
 
 type TeamAudit struct {
 	do.CreatorModel
-	TeamID  uint32           `gorm:"column:team_id;type:int unsigned;not null;comment:团队ID" json:"team_id,omitempty"`
-	Status  vobj.StatusAudit `gorm:"column:status;type:tinyint(2);not null;comment:审批状态" json:"status"`
-	Action  vobj.AuditAction `gorm:"column:action;type:tinyint(2);not null;comment:操作" json:"action"`
-	Reason  string           `gorm:"column:reason;type:varchar(255);not null;comment:原因" json:"reason"`
+	TeamID  uint32           `gorm:"column:team_id;type:int unsigned;not null;comment:team ID" json:"team_id,omitempty"`
+	Status  vobj.StatusAudit `gorm:"column:status;type:tinyint(2);not null;comment:audit status" json:"status"`
+	Action  vobj.AuditAction `gorm:"column:action;type:tinyint(2);not null;comment:action" json:"action"`
+	Reason  string           `gorm:"column:reason;type:varchar(255);not null;comment:reason" json:"reason"`
 	Creator *User            `gorm:"foreignKey:CreatorID;references:ID" json:"creator"`
 	Team    *Team            `gorm:"foreignKey:TeamID;references:ID" json:"team"`
 }

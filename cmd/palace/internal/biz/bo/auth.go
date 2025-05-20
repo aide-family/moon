@@ -2,6 +2,7 @@ package bo
 
 import (
 	"encoding/json"
+
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
 )
@@ -35,13 +36,13 @@ type LoginSign struct {
 	ExpiredSeconds int64                   `json:"expired_seconds"`
 }
 
-// FilingInformation 备案信息
+// FilingInformation represents filing information
 type FilingInformation struct {
 	URL         string `json:"url"`
 	Information string `json:"information"`
 }
 
-// VerifyNewPermission 验证新权限请求
+// VerifyNewPermission represents a new permission verification request
 type VerifyNewPermission struct {
 	SystemRoleID   uint32    `json:"system_role_id"`
 	TeamRoleID     uint32    `json:"team_role_id"`
@@ -50,24 +51,24 @@ type VerifyNewPermission struct {
 	TeamPosition   vobj.Role `json:"team_position"`
 }
 
-// UserIdentities 用户身份信息
+// UserIdentities represents user identity information
 type UserIdentities struct {
-	// 系统职位列表
+	// System position list
 	SystemPositions []vobj.Role `json:"system_positions"`
-	// 系统角色列表
+	// System role list
 	SystemRoles []*SystemRoleItem `json:"system_roles"`
-	// 团队列表
+	// Team list
 	Teams []*TeamItem `json:"teams"`
 }
 
-// SystemRoleItem 系统角色项
+// SystemRoleItem represents a system role item
 type SystemRoleItem struct {
 	ID     uint32            `json:"id"`
 	Name   string            `json:"name"`
 	Status vobj.GlobalStatus `json:"status"`
 }
 
-// TeamItem 团队项
+// TeamItem represents a team item
 type TeamItem struct {
 	ID        uint32          `json:"id"`
 	Name      string          `json:"name"`
@@ -76,7 +77,7 @@ type TeamItem struct {
 	Roles     []*TeamRoleItem `json:"roles"`
 }
 
-// TeamRoleItem 团队角色项
+// TeamRoleItem represents a team role item
 type TeamRoleItem struct {
 	ID     uint32            `json:"id"`
 	Name   string            `json:"name"`
@@ -85,7 +86,7 @@ type TeamRoleItem struct {
 
 var _ IOAuthUser = (*FeiShuUser)(nil)
 
-// FeiShuUser 飞书用户
+// FeiShuUser represents a Feishu user
 type FeiShuUser struct {
 	Name            string `json:"name"`
 	EnName          string `json:"en_name"`
@@ -93,14 +94,14 @@ type FeiShuUser struct {
 	AvatarThumb     string `json:"avatar_thumb"`
 	AvatarMiddle    string `json:"avatar_middle"`
 	AvatarBig       string `json:"avatar_big"`
-	OpenID          string `json:"open_id"`          // 用户在当前应用中的唯一标识
-	UnionID         string `json:"union_id"`         // 用户在飞书开放平台中的唯一标识
-	Email           string `json:"email"`            // 用户邮箱
-	EnterpriseEmail string `json:"enterprise_email"` // 企业邮箱
-	ID              string `json:"user_id"`          // 用户ID（旧版字段）
-	Mobile          string `json:"mobile"`           // 手机号（带国际码）
-	TenantKey       string `json:"tenant_key"`       // 企业唯一标识
-	EmployeeNo      string `json:"employee_no"`      // 工号
+	OpenID          string `json:"open_id"`          // Unique identifier for the user in the current application
+	UnionID         string `json:"union_id"`         // Unique identifier for the user in the Feishu open platform
+	Email           string `json:"email"`            // User's email
+	EnterpriseEmail string `json:"enterprise_email"` // Enterprise email
+	ID              string `json:"user_id"`          // User ID (legacy field)
+	Mobile          string `json:"mobile"`           // Phone number (with country code)
+	TenantKey       string `json:"tenant_key"`       // Enterprise unique identifier
+	EmployeeNo      string `json:"employee_no"`      // Employee number
 
 	userID uint32
 }

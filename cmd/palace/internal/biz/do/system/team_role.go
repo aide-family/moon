@@ -12,9 +12,9 @@ const tableNameTeamRole = "team_roles"
 
 type TeamRole struct {
 	do.TeamModel
-	Name    string            `gorm:"column:name;type:varchar(64);not null;comment:角色名" json:"name"`
-	Remark  string            `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
-	Status  vobj.GlobalStatus `gorm:"column:status;type:tinyint(2);not null;comment:状态" json:"status"`
+	Name    string            `gorm:"column:name;type:varchar(64);not null;comment:role name" json:"name"`
+	Remark  string            `gorm:"column:remark;type:varchar(255);not null;comment:remark" json:"remark"`
+	Status  vobj.GlobalStatus `gorm:"column:status;type:tinyint(2);not null;comment:status" json:"status"`
 	Members []*TeamMember     `gorm:"many2many:team_member_roles" json:"members"`
 	Menus   []*Menu           `gorm:"many2many:team_role_menus" json:"menus"`
 }

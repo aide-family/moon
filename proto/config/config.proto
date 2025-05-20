@@ -94,7 +94,7 @@ message Database {
   string dbName = 10;
 }
 
-// 缓存配置
+// Cache configuration
 message Cache {
   enum Driver {
     MEMORY = 0;
@@ -326,7 +326,7 @@ message Event {
     // kafka
     KAFKA = 3;
   }
-  // rocketmq配置
+  // RocketMQ configuration
   message RocketMQ {
     // group name
     string groupName = 1;
@@ -342,7 +342,7 @@ message Event {
     string namespace = 6;
   }
 
-  // mqtt配置
+  // MQTT configuration
   message Mqtt {
     // broker address
     string  broker = 1;
@@ -358,7 +358,7 @@ message Event {
     int32  qos = 6;
   }
 
-  // kafka配置
+  // Kafka configuration
   message Kafka{
     // broker address
     string brokers = 1;

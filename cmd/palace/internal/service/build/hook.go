@@ -10,7 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/timex"
 )
 
-// ToSaveTeamNoticeHookRequest 转换保存钩子请求
+// ToSaveTeamNoticeHookRequest converts save hook request
 func ToSaveTeamNoticeHookRequest(req *palace.SaveTeamNoticeHookRequest) *bo.SaveTeamNoticeHookRequest {
 	if req == nil {
 		return nil
@@ -28,7 +28,7 @@ func ToSaveTeamNoticeHookRequest(req *palace.SaveTeamNoticeHookRequest) *bo.Save
 	}
 }
 
-// ToListTeamNoticeHookRequest 转换列表请求
+// ToListTeamNoticeHookRequest converts list request
 func ToListTeamNoticeHookRequest(req *palace.ListTeamNoticeHookRequest) *bo.ListTeamNoticeHookRequest {
 	if req == nil {
 		return nil
@@ -41,6 +41,7 @@ func ToListTeamNoticeHookRequest(req *palace.ListTeamNoticeHookRequest) *bo.List
 	}
 }
 
+// ToTeamNoticeHookSelectRequest converts select request
 func ToTeamNoticeHookSelectRequest(req *palace.TeamNoticeHookSelectRequest) *bo.TeamNoticeHookSelectRequest {
 	if req == nil {
 		return nil
@@ -54,7 +55,7 @@ func ToTeamNoticeHookSelectRequest(req *palace.TeamNoticeHookSelectRequest) *bo.
 	}
 }
 
-// ToNoticeHookItem 转换钩子信息
+// ToNoticeHookItem converts hook information
 func ToNoticeHookItem(hook do.NoticeHook) *common.NoticeHookItem {
 	if hook == nil {
 		return nil
@@ -76,7 +77,7 @@ func ToNoticeHookItem(hook do.NoticeHook) *common.NoticeHookItem {
 	}
 }
 
-// ToNoticeHookItems 转换钩子信息列表
+// ToNoticeHookItems converts hook information list
 func ToNoticeHookItems(hooks []do.NoticeHook) []*common.NoticeHookItem {
 	return slices.Map(hooks, ToNoticeHookItem)
 }

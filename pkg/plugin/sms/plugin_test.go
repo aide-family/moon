@@ -74,7 +74,7 @@ func Test_Async_LoadPlugin_Server(t *testing.T) {
 	})
 	http.HandleFunc("/other", func(w http.ResponseWriter, r *http.Request) {
 		filename := fmt.Sprintf("%s.so", r.URL.Query().Get("name"))
-		// 判断文件是否存在， 存在则删除
+		// Check if file exists, delete if it exists
 		if _, err := os.Stat(filename); err == nil {
 			if err := os.Remove(filename); err != nil {
 				w.WriteHeader(http.StatusOK)
@@ -82,7 +82,7 @@ func Test_Async_LoadPlugin_Server(t *testing.T) {
 				return
 			}
 		}
-		// 从http里获取 .so文件流， 并保存到当前目录
+		// Get .so file stream from HTTP and save to current directory
 		file, err := os.Create(filename)
 		if err != nil {
 			w.WriteHeader(http.StatusOK)

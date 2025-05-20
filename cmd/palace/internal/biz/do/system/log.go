@@ -11,15 +11,15 @@ const tableNameOperateLog = "sys_operate_logs"
 
 type OperateLog struct {
 	do.CreatorModel
-	OperateType     vobj.OperateType `gorm:"column:type;type:tinyint(2);not null;comment:操作类型" json:"operateType"`
-	OperateMenuID   uint32           `gorm:"column:menu_id;type:int unsigned;not null;comment:操作菜单id" json:"operateMenuID"`
-	OperateMenuName string           `gorm:"column:menu_name;type:varchar(255);not null;comment:操作菜单名称" json:"operateMenuName"`
-	OperateDataID   uint32           `gorm:"column:data_id;type:int unsigned;not null;comment:操作数据id" json:"operateDataID"`
-	OperateDataName string           `gorm:"column:data_name;type:varchar(255);not null;comment:操作数据名称" json:"operateDataName"`
-	Title           string           `gorm:"column:title;type:varchar(255);not null;comment:标题" json:"title"`
-	Before          string           `gorm:"column:before;type:text;not null;comment:操作前" json:"before"`
-	After           string           `gorm:"column:after;type:text;not null;comment:操作后" json:"after"`
-	IP              string           `gorm:"column:ip;type:varchar(128);not null;comment:ip" json:"ip"`
+	OperateType     vobj.OperateType `gorm:"column:type;type:tinyint(2);not null;comment:operation type" json:"operateType"`
+	OperateMenuID   uint32           `gorm:"column:menu_id;type:int unsigned;not null;comment:operation menu ID" json:"operateMenuID"`
+	OperateMenuName string           `gorm:"column:menu_name;type:varchar(255);not null;comment:operation menu name" json:"operateMenuName"`
+	OperateDataID   uint32           `gorm:"column:data_id;type:int unsigned;not null;comment:operation data ID" json:"operateDataID"`
+	OperateDataName string           `gorm:"column:data_name;type:varchar(255);not null;comment:operation data name" json:"operateDataName"`
+	Title           string           `gorm:"column:title;type:varchar(255);not null;comment:title" json:"title"`
+	Before          string           `gorm:"column:before;type:text;not null;comment:before operation" json:"before"`
+	After           string           `gorm:"column:after;type:text;not null;comment:after operation" json:"after"`
+	IP              string           `gorm:"column:ip;type:varchar(128);not null;comment:IP address" json:"ip"`
 }
 
 func (o *OperateLog) GetOperateType() vobj.OperateType {

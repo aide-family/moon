@@ -101,7 +101,7 @@ func (s *TeamDatasourceService) ListTeamMetricDatasource(ctx context.Context, re
 func (s *TeamDatasourceService) SyncMetricMetadata(ctx context.Context, req *palace.SyncMetricMetadataRequest) (*palacecommon.EmptyReply, error) {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
-		return nil, merr.ErrorBadRequest("请选择团队")
+		return nil, merr.ErrorBadRequest("please select a team")
 	}
 	params := &bo.SyncMetricMetadataRequest{
 		DatasourceID: req.GetDatasourceId(),

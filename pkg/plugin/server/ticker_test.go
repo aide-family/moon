@@ -31,7 +31,7 @@ func TestNewTicker(t *testing.T) {
 			t.Logf("Task executed after %v", diff)
 			return nil
 		},
-		Name:    "定时器",
+		Name:    "Ticker Test",
 		Timeout: 0,
 	}
 

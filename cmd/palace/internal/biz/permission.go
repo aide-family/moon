@@ -147,7 +147,7 @@ func (h *basePermissionHandler) AllowCheckHandler() PermissionHandler {
 func (h *basePermissionHandler) SystemAdminCheckHandler() PermissionHandler {
 	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
 		if pCtx.SystemPosition.IsAdminOrSuperAdmin() {
-			return true, nil // 管理员直接通过
+			return true, nil // Admin directly passes
 		}
 		return false, nil
 	})

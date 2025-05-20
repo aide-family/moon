@@ -25,7 +25,7 @@ type TeamHook struct {
 	teamHookRepo repository.TeamHook
 }
 
-// SaveHook 保存团队通知钩子
+// SaveHook saves team notification hook
 func (h *TeamHook) SaveHook(ctx context.Context, req *bo.SaveTeamNoticeHookRequest) error {
 	if req.GetID() <= 0 {
 		return h.teamHookRepo.Create(ctx, req)
@@ -38,7 +38,7 @@ func (h *TeamHook) SaveHook(ctx context.Context, req *bo.SaveTeamNoticeHookReque
 	return h.teamHookRepo.Update(ctx, hook)
 }
 
-// UpdateHookStatus 更新钩子状态
+// UpdateHookStatus updates hook status
 func (h *TeamHook) UpdateHookStatus(ctx context.Context, req *bo.UpdateTeamNoticeHookStatusRequest) error {
 	if req.HookID <= 0 {
 		return merr.ErrorParams("invalid hook id")
@@ -46,7 +46,7 @@ func (h *TeamHook) UpdateHookStatus(ctx context.Context, req *bo.UpdateTeamNotic
 	return h.teamHookRepo.UpdateStatus(ctx, req)
 }
 
-// DeleteHook 删除钩子
+// DeleteHook deletes a hook
 func (h *TeamHook) DeleteHook(ctx context.Context, hookID uint32) error {
 	if hookID <= 0 {
 		return merr.ErrorParams("invalid hook id")
@@ -54,7 +54,7 @@ func (h *TeamHook) DeleteHook(ctx context.Context, hookID uint32) error {
 	return h.teamHookRepo.Delete(ctx, hookID)
 }
 
-// GetHook 获取钩子详情
+// GetHook gets hook details
 func (h *TeamHook) GetHook(ctx context.Context, hookID uint32) (do.NoticeHook, error) {
 	if hookID <= 0 {
 		return nil, merr.ErrorParams("invalid hook id")
@@ -62,7 +62,7 @@ func (h *TeamHook) GetHook(ctx context.Context, hookID uint32) (do.NoticeHook, e
 	return h.teamHookRepo.Get(ctx, hookID)
 }
 
-// ListHook 获取钩子列表
+// ListHook gets hook list
 func (h *TeamHook) ListHook(ctx context.Context, req *bo.ListTeamNoticeHookRequest) (*bo.ListTeamNoticeHookReply, error) {
 	if req == nil {
 		return nil, merr.ErrorParams("invalid request")
@@ -70,7 +70,7 @@ func (h *TeamHook) ListHook(ctx context.Context, req *bo.ListTeamNoticeHookReque
 	return h.teamHookRepo.List(ctx, req)
 }
 
-// SelectHook 获取钩子列表
+// SelectHook gets hook list
 func (h *TeamHook) SelectHook(ctx context.Context, req *bo.TeamNoticeHookSelectRequest) (*bo.TeamNoticeHookSelectReply, error) {
 	if req == nil {
 		return nil, merr.ErrorParams("invalid request")

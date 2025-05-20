@@ -7,7 +7,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/timer"
 )
 
-// TimeEngine 时间引擎接口
+// TimeEngine represents the time engine interface
 type TimeEngine interface {
 	TeamBase
 	GetName() string
@@ -17,7 +17,7 @@ type TimeEngine interface {
 	Allow(time.Time) (bool, error)
 }
 
-// TimeEngineRule 时间引擎规则接口
+// TimeEngineRule represents the time engine rule interface
 type TimeEngineRule interface {
 	TeamBase
 	GetName() string

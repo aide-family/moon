@@ -11,9 +11,9 @@ const tableNameStrategySubscriber = "team_strategy_subscribers"
 
 type StrategySubscriber struct {
 	do.TeamModel
-	StrategyID    uint32          `gorm:"column:strategy_id;type:int unsigned;not null;comment:策略id" json:"strategyID"`
+	StrategyID    uint32          `gorm:"column:strategy_id;type:int unsigned;not null;comment:strategy ID" json:"strategyID"`
 	Strategy      *Strategy       `gorm:"foreignKey:StrategyID;references:ID" json:"strategy"`
-	SubscribeType vobj.NoticeType `gorm:"column:subscribe_type;type:int unsigned;not null;comment:订阅类型" json:"subscribeType"`
+	SubscribeType vobj.NoticeType `gorm:"column:subscribe_type;type:int unsigned;not null;comment:subscription type" json:"subscribeType"`
 }
 
 // GetStrategy implements do.TeamStrategySubscriber.

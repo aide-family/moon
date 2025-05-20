@@ -12,9 +12,9 @@ const tableNameRole = "sys_roles"
 
 type Role struct {
 	do.CreatorModel
-	Name   string            `gorm:"column:name;type:varchar(64);not null;comment:角色名" json:"name"`
-	Remark string            `gorm:"column:remark;type:varchar(255);not null;comment:备注" json:"remark"`
-	Status vobj.GlobalStatus `gorm:"column:status;type:tinyint(2);not null;comment:状态" json:"status"`
+	Name   string            `gorm:"column:name;type:varchar(64);not null;comment:role name" json:"name"`
+	Remark string            `gorm:"column:remark;type:varchar(255);not null;comment:remark" json:"remark"`
+	Status vobj.GlobalStatus `gorm:"column:status;type:tinyint(2);not null;comment:status" json:"status"`
 	Users  []*User           `gorm:"many2many:sys_user_roles" json:"users"`
 	Menus  []*Menu           `gorm:"many2many:sys_role_menus" json:"menus"`
 }

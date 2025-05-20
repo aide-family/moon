@@ -13,7 +13,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
-// Validate 验证请求参数
+// Validate validate request parameters
 func Validate(opts ...protovalidate.ValidatorOption) middleware.Middleware {
 	validator := validateParams(opts...)
 	return func(handler middleware.Handler) middleware.Handler {

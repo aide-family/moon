@@ -111,13 +111,13 @@ type TeamBase interface {
 
 var _ Base = (*BaseModel)(nil)
 
-// BaseModel gorm base model
+// BaseModel represents the base model for GORM
 type BaseModel struct {
 	ctx context.Context `gorm:"-"`
 
 	ID        uint32                `gorm:"column:id;primaryKey;autoIncrement" json:"id,omitempty"`
-	CreatedAt time.Time             `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at,omitempty"`
-	UpdatedAt time.Time             `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at,omitempty"`
+	CreatedAt time.Time             `gorm:"column:created_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:creation time" json:"created_at,omitempty"`
+	UpdatedAt time.Time             `gorm:"column:updated_at;type:timestamp;not null;default:CURRENT_TIMESTAMP;comment:update time" json:"updated_at,omitempty"`
 	DeletedAt soft_delete.DeletedAt `gorm:"column:deleted_at;type:bigint;not null;default:0;" json:"deleted_at,omitempty"`
 }
 
@@ -149,12 +149,12 @@ func (u *BaseModel) GetDeletedAt() soft_delete.DeletedAt {
 	return u.DeletedAt
 }
 
-// WithContext set context
+// WithContext sets the context
 func (u *BaseModel) WithContext(ctx context.Context) {
 	u.ctx = ctx
 }
 
-// GetContext get context
+// GetContext gets the context
 func (u *BaseModel) GetContext() context.Context {
 	if validate.IsNil(u.ctx) {
 		panic("context is nil")
@@ -166,7 +166,7 @@ var _ Creator = (*CreatorModel)(nil)
 
 type CreatorModel struct {
 	BaseModel
-	CreatorID uint32 `gorm:"column:creator;type:int unsigned;not null;comment:创建者" json:"creator_id,omitempty"`
+	CreatorID uint32 `gorm:"column:creator;type:int unsigned;not null;comment:creator" json:"creator_id,omitempty"`
 }
 
 func (u *CreatorModel) GetCreatorMember() TeamMember {
@@ -204,7 +204,7 @@ var _ TeamBase = (*TeamModel)(nil)
 
 type TeamModel struct {
 	CreatorModel
-	TeamID uint32 `gorm:"column:team_id;type:int unsigned;not null;comment:团队ID" json:"team_id,omitempty"`
+	TeamID uint32 `gorm:"column:team_id;type:int unsigned;not null;comment:team ID" json:"team_id,omitempty"`
 }
 
 func (u *TeamModel) GetTeam() Team {
@@ -261,11 +261,11 @@ func CreateTable(teamId uint32, tx *gorm.DB, tableName string, model any) error 
 	return cacheTableFlag(teamId, tableName)
 }
 
-// GetPreviousMonday 返回给定日期所在周的周一
+// GetPreviousMonday returns the Monday of the week containing the given date
 func GetPreviousMonday(t time.Time) time.Time {
-	// 计算与周一的偏移量
+	// Calculate the offset to Monday
 	offset := int(time.Monday - t.Weekday())
-	if offset > 0 { // 如果当天是周日(Weekday=0)，则 offset=1，需要减去7天
+	if offset > 0 { // If the current day is Sunday (Weekday=0), offset=1, need to subtract 7 days
 		offset -= 7
 	}
 	return t.AddDate(0, 0, offset)

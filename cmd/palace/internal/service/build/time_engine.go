@@ -11,7 +11,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
-// ToSaveTimeEngineRequest 转换保存时间引擎请求
+// ToSaveTimeEngineRequest converts save time engine request
 func ToSaveTimeEngineRequest(req *api.SaveTimeEngineRequest) *bo.SaveTimeEngineRequest {
 	if req == nil {
 		return nil
@@ -24,7 +24,7 @@ func ToSaveTimeEngineRequest(req *api.SaveTimeEngineRequest) *bo.SaveTimeEngineR
 	}
 }
 
-// ToDeleteTimeEngineRequest 转换删除时间引擎请求
+// ToDeleteTimeEngineRequest converts delete time engine request
 func ToDeleteTimeEngineRequest(req *api.DeleteTimeEngineRequest) *bo.DeleteTimeEngineRequest {
 	if req == nil {
 		return nil
@@ -34,7 +34,7 @@ func ToDeleteTimeEngineRequest(req *api.DeleteTimeEngineRequest) *bo.DeleteTimeE
 	}
 }
 
-// ToGetTimeEngineRequest 转换获取时间引擎详情请求
+// ToGetTimeEngineRequest converts get time engine details request
 func ToGetTimeEngineRequest(req *api.GetTimeEngineRequest) *bo.GetTimeEngineRequest {
 	if req == nil {
 		return nil
@@ -44,7 +44,7 @@ func ToGetTimeEngineRequest(req *api.GetTimeEngineRequest) *bo.GetTimeEngineRequ
 	}
 }
 
-// ToListTimeEngineRequest 转换获取时间引擎列表请求
+// ToListTimeEngineRequest converts get time engine list request
 func ToListTimeEngineRequest(req *api.ListTimeEngineRequest) *bo.ListTimeEngineRequest {
 	if req == nil {
 		return nil
@@ -56,7 +56,7 @@ func ToListTimeEngineRequest(req *api.ListTimeEngineRequest) *bo.ListTimeEngineR
 	}
 }
 
-// ToSelectTimeEngineRequest 转换获取时间引擎列表请求
+// ToSelectTimeEngineRequest converts get time engine list request
 func ToSelectTimeEngineRequest(req *api.SelectTimeEngineRequest) *bo.SelectTimeEngineRequest {
 	if req == nil {
 		return nil
@@ -68,7 +68,7 @@ func ToSelectTimeEngineRequest(req *api.SelectTimeEngineRequest) *bo.SelectTimeE
 	}
 }
 
-// ToSaveTimeEngineRuleRequest 转换保存时间引擎规则请求
+// ToSaveTimeEngineRuleRequest converts save time engine rule request
 func ToSaveTimeEngineRuleRequest(req *api.SaveTimeEngineRuleRequest) *bo.SaveTimeEngineRuleRequest {
 	if req == nil {
 		return nil
@@ -82,7 +82,7 @@ func ToSaveTimeEngineRuleRequest(req *api.SaveTimeEngineRuleRequest) *bo.SaveTim
 	}
 }
 
-// ToDeleteTimeEngineRuleRequest 转换删除时间引擎规则请求
+// ToDeleteTimeEngineRuleRequest converts delete time engine rule request
 func ToDeleteTimeEngineRuleRequest(req *api.DeleteTimeEngineRuleRequest) *bo.DeleteTimeEngineRuleRequest {
 	if req == nil {
 		return nil
@@ -92,7 +92,7 @@ func ToDeleteTimeEngineRuleRequest(req *api.DeleteTimeEngineRuleRequest) *bo.Del
 	}
 }
 
-// ToGetTimeEngineRuleRequest 转换获取时间引擎规则详情请求
+// ToGetTimeEngineRuleRequest converts get time engine rule details request
 func ToGetTimeEngineRuleRequest(req *api.GetTimeEngineRuleRequest) *bo.GetTimeEngineRuleRequest {
 	if req == nil {
 		return nil
@@ -102,7 +102,7 @@ func ToGetTimeEngineRuleRequest(req *api.GetTimeEngineRuleRequest) *bo.GetTimeEn
 	}
 }
 
-// ToListTimeEngineRuleRequest 转换获取时间引擎规则列表请求
+// ToListTimeEngineRuleRequest converts get time engine rule list request
 func ToListTimeEngineRuleRequest(req *api.ListTimeEngineRuleRequest) *bo.ListTimeEngineRuleRequest {
 	if req == nil {
 		return nil
@@ -115,7 +115,7 @@ func ToListTimeEngineRuleRequest(req *api.ListTimeEngineRuleRequest) *bo.ListTim
 	}
 }
 
-// ToSelectTimeEngineRuleRequest 转换获取时间引擎规则列表请求
+// ToSelectTimeEngineRuleRequest converts get time engine rule list request
 func ToSelectTimeEngineRuleRequest(req *api.SelectTimeEngineRuleRequest) *bo.SelectTimeEngineRuleRequest {
 	if req == nil {
 		return nil
@@ -128,7 +128,7 @@ func ToSelectTimeEngineRuleRequest(req *api.SelectTimeEngineRuleRequest) *bo.Sel
 	}
 }
 
-// ToTimeEngineItem 转换时间引擎详情
+// ToTimeEngineItem converts time engine details
 func ToTimeEngineItem(item do.TimeEngine) *common.TimeEngineItem {
 	if validate.IsNil(item) {
 		return nil
@@ -145,12 +145,12 @@ func ToTimeEngineItem(item do.TimeEngine) *common.TimeEngineItem {
 	}
 }
 
-// ToTimeEngineItemRules 转换时间引擎规则列表
+// ToTimeEngineItemRules converts time engine rule list
 func ToTimeEngineItemRules(rules []do.TimeEngineRule) []*common.TimeEngineItemRule {
 	return slices.Map(rules, ToTimeEngineItemRule)
 }
 
-// ToTimeEngineItemRule 转换时间引擎规则
+// ToTimeEngineItemRule converts time engine rule
 func ToTimeEngineItemRule(rule do.TimeEngineRule) *common.TimeEngineItemRule {
 	if validate.IsNil(rule) {
 		return nil
@@ -169,12 +169,12 @@ func ToTimeEngineItemRule(rule do.TimeEngineRule) *common.TimeEngineItemRule {
 	}
 }
 
-// ToTimeEngineItemEngines 转换时间引擎规则引擎列表
+// ToTimeEngineItemEngines converts time engine rule engine list
 func ToTimeEngineItemEngines(engines []do.TimeEngine) []*common.TimeEngineItem {
 	return slices.Map(engines, ToTimeEngineItem)
 }
 
-// ToListTimeEngineReply 转换时间引擎列表
+// ToListTimeEngineReply converts time engine list
 func ToListTimeEngineReply(reply *bo.ListTimeEngineReply) *api.ListTimeEngineReply {
 	if validate.IsNil(reply) {
 		return nil
@@ -185,7 +185,7 @@ func ToListTimeEngineReply(reply *bo.ListTimeEngineReply) *api.ListTimeEngineRep
 	}
 }
 
-// ToListTimeEngineRuleReply 转换时间引擎规则列表
+// ToListTimeEngineRuleReply converts time engine rule list
 func ToListTimeEngineRuleReply(reply *bo.ListTimeEngineRuleReply) *api.ListTimeEngineRuleReply {
 	if validate.IsNil(reply) {
 		return nil
@@ -196,7 +196,7 @@ func ToListTimeEngineRuleReply(reply *bo.ListTimeEngineRuleReply) *api.ListTimeE
 	}
 }
 
-// ToUpdateTimeEngineStatusRequest 转换更新时间引擎状态请求
+// ToUpdateTimeEngineStatusRequest converts update time engine status request
 func ToUpdateTimeEngineStatusRequest(req *api.UpdateTimeEngineStatusRequest) *bo.UpdateTimeEngineStatusRequest {
 	if validate.IsNil(req) {
 		return nil
@@ -207,7 +207,7 @@ func ToUpdateTimeEngineStatusRequest(req *api.UpdateTimeEngineStatusRequest) *bo
 	}
 }
 
-// ToUpdateTimeEngineRuleStatusRequest 转换更新时间引擎规则状态请求
+// ToUpdateTimeEngineRuleStatusRequest converts update time engine rule status request
 func ToUpdateTimeEngineRuleStatusRequest(req *api.UpdateTimeEngineRuleStatusRequest) *bo.UpdateTimeEngineRuleStatusRequest {
 	if validate.IsNil(req) {
 		return nil

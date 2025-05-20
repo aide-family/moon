@@ -60,7 +60,7 @@ func generateObjectKey(originalName, group string) string {
 func (a *aliCloud) InitiateMultipartUpload(originalName, group string) (*storage.InitiateMultipartUploadResult, error) {
 	uniqueKey := generateObjectKey(originalName, group)
 
-	// 初始化分片上传
+	// Initialize multipart upload
 	multipartUpload, err := a.bucket.InitiateMultipartUpload(uniqueKey)
 	if err != nil {
 		return nil, err

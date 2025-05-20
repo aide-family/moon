@@ -11,13 +11,13 @@ const (
 	tableNameUserConfig = "sys_user_config_themes"
 )
 
-// UserConfigTheme 用户配置基础结构
+// UserConfigTheme represents the basic structure for user theme configuration
 type UserConfigTheme struct {
 	do.CreatorModel
-	ThemeMode    vobj.ThemeMode   `gorm:"column:theme_mode;type:tinyint(2);not null;comment:主题模式" json:"themeMode"`
-	ThemeLayout  vobj.ThemeLayout `gorm:"column:theme_layout;type:tinyint(2);not null;comment:主题布局" json:"themeLayout"`
-	PrimaryColor string           `gorm:"column:primary_color;type:varchar(20);not null;comment:主题主色" json:"primaryColor"`
-	TimeZone     string           `gorm:"column:time_zone;type:varchar(20);not null;comment:时区" json:"timeZone"`
+	ThemeMode    vobj.ThemeMode   `gorm:"column:theme_mode;type:tinyint(2);not null;comment:theme mode" json:"themeMode"`
+	ThemeLayout  vobj.ThemeLayout `gorm:"column:theme_layout;type:tinyint(2);not null;comment:theme layout" json:"themeLayout"`
+	PrimaryColor string           `gorm:"column:primary_color;type:varchar(20);not null;comment:primary color" json:"primaryColor"`
+	TimeZone     string           `gorm:"column:time_zone;type:varchar(20);not null;comment:time zone" json:"timeZone"`
 }
 
 func (u *UserConfigTheme) GetThemeMode() vobj.ThemeMode {

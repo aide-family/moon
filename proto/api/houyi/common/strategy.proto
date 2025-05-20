@@ -19,38 +19,39 @@ enum StrategyType {
   CERT = 7;
 }
 
-// 采样方式
+// SampleMode represents the sampling mode
+// (e.g., how many times an event occurs within a period)
 enum SampleMode {
-  // 未知
+  // Unknown
   SAMPLE_MODE_UNKNOWN = 0;
-  // m时间内连续出现n次
+  // Occurs n times consecutively within m time
   FOR = 1;
-  // m时间内最多出现n次
+  // Occurs at most n times within m time
   MAX = 2;
-  // m时间内最少出现n次
+  // Occurs at least n times within m time
   MIN = 3;
 }
 
 message MetricStrategyItem {
-  // 判断条件
+  // Condition for judgment
   enum Condition {
-    // 未知
+    // Unknown
     METRIC_STRATEGY_CONDITION_UNKNOWN = 0;
-    // 等于
+    // Equal to
     EQ = 1;
-    // 不等于
+    // Not equal to
     NE = 2;
-    // 大于
+    // Greater than
     GT = 3;
-    // 大于等于
+    // Greater than or equal to
     GTE = 4;
-    // 小于
+    // Less than
     LT = 5;
-    // 小于等于
+    // Less than or equal to
     LTE = 6;
-    // 在范围内
+    // In range
     IN = 7;
-    // 不在范围内
+    // Not in range
     NOT_IN = 8;
   }
 
@@ -91,23 +92,23 @@ message MetricStrategyItem {
 }
 
 message CertificateStrategyItem {
-  // 判断条件
+  // Condition for judgment
   enum Condition {
-    // 未知
+    // Unknown
     CERTIFICATE_STRATEGY_CONDITION_UNKNOWN = 0;
-    // 等于
+    // Equal to
     EQ = 1;
-    // 大于
+    // Greater than
     GT = 2;
-    // 大于等于
+    // Greater than or equal to
     GTE = 3;
-    // 小于
+    // Less than
     LT = 4;
-    // 小于等于
+    // Less than or equal to
     LTE = 5;
-    // 在当前时间之前
+    // Before current time
     BEFORE = 6;
-    // 在当前时间之后
+    // After current time
     AFTER = 7;
   }
   message CertificateRuleItem {
@@ -130,11 +131,11 @@ message CertificateStrategyItem {
 
 message ServerPortStrategyItem {
   enum Condition {
-    // 未知
+    // Unknown
     SERVER_PORT_STRATEGY_CONDITION_UNKNOWN = 0;
-    // 打开
+    // Open
     OPEN = 1;
-    // 关闭
+    // Close
     CLOSE = 2;
   }
   houyi.common.TeamItem team = 1;
@@ -149,22 +150,22 @@ message ServerPortStrategyItem {
 
 message HttpStrategyItem {
   enum Condition {
-    // 未知
+    // Unknown
     HTTP_STRATEGY_CONDITION_UNKNOWN = 0;
-    // 等于
+    // Equal to
     EQ = 1;
-    // 大于
+    // Greater than
     GT = 2;
-    // 大于等于
+    // Greater than or equal to
     GTE = 3;
-    // 小于
+    // Less than
     LT = 4;
-    // 小于等于
+    // Less than or equal to
     LTE = 5;
   }
 
   enum Judgment {
-    // 未知
+    // Unknown
     HTTP_STRATEGY_JUDGMENT_UNKNOWN = 0;
     OR = 1;
     AND = 2;
@@ -193,17 +194,17 @@ message HttpStrategyItem {
 
 message PingStrategyItem {
   enum Condition {
-    // 未知
+    // Unknown
     PING_STRATEGY_CONDITION_UNKNOWN = 0;
-    // 等于
+    // Equal to
     EQ = 1;
-    // 大于
+    // Greater than
     GT = 2;
-    // 大于等于
+    // Greater than or equal to
     GTE = 3;
-    // 小于
+    // Less than
     LT = 4;
-    // 小于等于
+    // Less than or equal to
     LTE = 5;
   }
 
@@ -235,43 +236,43 @@ message EventStrategyItem {
   }
 
   enum StringCondition {
-    // 未知
+    // Unknown
     EVENT_STRATEGY_STRING_CONDITION_UNKNOWN = 0;
-    // 等于
+    // Equal to
     STRING_EQ = 1;
-    // 不等于
+    // Not equal to
     STRING_NE = 2;
-    // 包含
+    // Contains
     STRING_CONTAINS = 3;
-    // 不包含
+    // Not contains
     STRING_NOT_CONTAINS = 4;
-    // 前缀
+    // Prefix
     STRING_PREFIX = 5;
-    // 后缀
+    // Suffix
     STRING_SUFFIX = 6;
-    // 正则匹配
+    // Regular expression match
     STRING_REGEX = 7;
   }
 
   enum NumberCondition {
-    // 未知
+    // Unknown
     EVENT_STRATEGY_NUMBER_CONDITION_UNKNOWN = 0;
-    // 等于
+    // Equal to
     NUMBER_EQ = 1;
-    // 不等于
+    // Not equal to
     NUMBER_NE = 2;
-    // 大于
+    // Greater than
     NUMBER_GT = 3;
-    // 大于等于
+    // Greater than or equal to
     NUMBER_GTE = 4;
-    // 小于
+    // Less than
     NUMBER_LT = 5;
-    // 小于等于
+    // Less than or equal to
     NUMBER_LTE = 6;
   }
 
   enum BooleanCondition {
-    // 未知
+    // Unknown
     EVENT_STRATEGY_BOOLEAN_CONDITION_UNKNOWN = 0;
     // true
     TRUE = 1;
@@ -311,19 +312,19 @@ message EventStrategyItem {
 
 message LogsStrategyItem {
   enum Condition {
-    // 未知
+    // Unknown
     LOGS_STRATEGY_CONDITION_UNKNOWN = 0;
-    // 等于
+    // Equal to
     EQ = 1;
-    // 不等于
+    // Not equal to
     NE = 2;
-    // 大于
+    // Greater than
     GT = 3;
-    // 大于等于
+    // Greater than or equal to
     GTE = 4;
-    // 小于
+    // Less than
     LT = 5;
-    // 小于等于
+    // Less than or equal to
     LTE = 6;
   }
 

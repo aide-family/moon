@@ -17,7 +17,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
-// NewTimeEngine 创建时间引擎仓储实现
+// NewTimeEngine creates a time engine repository implementation
 func NewTimeEngine(data *data.Data) repository.TimeEngine {
 	return &timeEngineRepoImpl{
 		Data: data,
@@ -28,7 +28,7 @@ type timeEngineRepoImpl struct {
 	*data.Data
 }
 
-// CreateTimeEngine 创建时间引擎
+// CreateTimeEngine creates a time engine
 func (r *timeEngineRepoImpl) CreateTimeEngine(ctx context.Context, req *bo.SaveTimeEngineRequest) error {
 	timeEngine := &team.TimeEngine{
 		Name:   req.Name,
@@ -48,7 +48,7 @@ func (r *timeEngineRepoImpl) CreateTimeEngine(ctx context.Context, req *bo.SaveT
 	return bizQuery.TimeEngine.Rules.Model(timeEngine).Append(rules...)
 }
 
-// UpdateTimeEngine 更新时间引擎
+// UpdateTimeEngine updates a time engine
 func (r *timeEngineRepoImpl) UpdateTimeEngine(ctx context.Context, timeEngineId uint32, req *bo.SaveTimeEngineRequest) error {
 	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngine := build.ToTimeEngine(ctx, req.GetTimeEngine())
@@ -75,7 +75,7 @@ func (r *timeEngineRepoImpl) UpdateTimeEngine(ctx context.Context, timeEngineId 
 	return nil
 }
 
-// UpdateTimeEngineStatus implements repository.TimeEngine.
+// UpdateTimeEngineStatus updates the status of a time engine
 func (r *timeEngineRepoImpl) UpdateTimeEngineStatus(ctx context.Context, req *bo.UpdateTimeEngineStatusRequest) error {
 	if len(req.TimeEngineIds) == 0 {
 		return nil
@@ -93,7 +93,7 @@ func (r *timeEngineRepoImpl) UpdateTimeEngineStatus(ctx context.Context, req *bo
 	return err
 }
 
-// DeleteTimeEngine 删除时间引擎
+// DeleteTimeEngine deletes a time engine
 func (r *timeEngineRepoImpl) DeleteTimeEngine(ctx context.Context, req *bo.DeleteTimeEngineRequest) error {
 	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineMutation := bizMutation.TimeEngine
@@ -105,7 +105,7 @@ func (r *timeEngineRepoImpl) DeleteTimeEngine(ctx context.Context, req *bo.Delet
 	return err
 }
 
-// GetTimeEngine 获取时间引擎详情
+// GetTimeEngine gets the details of a time engine
 func (r *timeEngineRepoImpl) GetTimeEngine(ctx context.Context, req *bo.GetTimeEngineRequest) (do.TimeEngine, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineQuery := bizQuery.TimeEngine
@@ -120,7 +120,7 @@ func (r *timeEngineRepoImpl) GetTimeEngine(ctx context.Context, req *bo.GetTimeE
 	return timeEngine, nil
 }
 
-// ListTimeEngine 获取时间引擎列表
+// ListTimeEngine gets the list of time engines
 func (r *timeEngineRepoImpl) ListTimeEngine(ctx context.Context, req *bo.ListTimeEngineRequest) (*bo.ListTimeEngineReply, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineQuery := bizQuery.TimeEngine
@@ -156,7 +156,7 @@ func (r *timeEngineRepoImpl) ListTimeEngine(ctx context.Context, req *bo.ListTim
 	return req.ToListReply(dos), nil
 }
 
-// SelectTimeEngine 获取时间引擎列表
+// SelectTimeEngine gets the list of time engines
 func (r *timeEngineRepoImpl) SelectTimeEngine(ctx context.Context, req *bo.SelectTimeEngineRequest) (*bo.SelectTimeEngineReply, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineQuery := bizQuery.TimeEngine

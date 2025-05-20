@@ -8,13 +8,13 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 )
 
-// TimeEngine 时间引擎用例
+// TimeEngine represents a time engine use case
 type TimeEngine struct {
 	timeEngineRepo     repository.TimeEngine
 	timeEngineRuleRepo repository.TimeEngineRule
 }
 
-// NewTimeEngine 创建时间引擎用例
+// NewTimeEngineBiz creates a new time engine use case
 func NewTimeEngineBiz(timeEngineRepo repository.TimeEngine, timeEngineRuleRepo repository.TimeEngineRule) *TimeEngine {
 	return &TimeEngine{
 		timeEngineRepo:     timeEngineRepo,
@@ -22,7 +22,7 @@ func NewTimeEngineBiz(timeEngineRepo repository.TimeEngine, timeEngineRuleRepo r
 	}
 }
 
-// SaveTimeEngine 保存时间引擎
+// SaveTimeEngine saves a time engine
 func (t *TimeEngine) SaveTimeEngine(ctx context.Context, req *bo.SaveTimeEngineRequest) error {
 	rules, err := t.timeEngineRuleRepo.Find(ctx, req.RuleIds...)
 	if err != nil {
@@ -48,7 +48,7 @@ func (t *TimeEngine) SaveTimeEngine(ctx context.Context, req *bo.SaveTimeEngineR
 	return t.timeEngineRepo.UpdateTimeEngine(ctx, req.TimeEngineId, req)
 }
 
-// UpdateTimeEngineStatus 更新时间引擎状态
+// UpdateTimeEngineStatus updates the status of a time engine
 func (t *TimeEngine) UpdateTimeEngineStatus(ctx context.Context, req *bo.UpdateTimeEngineStatusRequest) error {
 	if err := req.Validate(); err != nil {
 		return err
@@ -56,27 +56,27 @@ func (t *TimeEngine) UpdateTimeEngineStatus(ctx context.Context, req *bo.UpdateT
 	return t.timeEngineRepo.UpdateTimeEngineStatus(ctx, req)
 }
 
-// DeleteTimeEngine 删除时间引擎
+// DeleteTimeEngine deletes a time engine
 func (t *TimeEngine) DeleteTimeEngine(ctx context.Context, req *bo.DeleteTimeEngineRequest) error {
 	return t.timeEngineRepo.DeleteTimeEngine(ctx, req)
 }
 
-// GetTimeEngine 获取时间引擎详情
+// GetTimeEngine retrieves time engine details
 func (t *TimeEngine) GetTimeEngine(ctx context.Context, req *bo.GetTimeEngineRequest) (do.TimeEngine, error) {
 	return t.timeEngineRepo.GetTimeEngine(ctx, req)
 }
 
-// ListTimeEngine 获取时间引擎列表
+// ListTimeEngine retrieves a list of time engines
 func (t *TimeEngine) ListTimeEngine(ctx context.Context, req *bo.ListTimeEngineRequest) (*bo.ListTimeEngineReply, error) {
 	return t.timeEngineRepo.ListTimeEngine(ctx, req)
 }
 
-// SelectTimeEngine 获取时间引擎列表
+// SelectTimeEngine retrieves a list of time engines
 func (t *TimeEngine) SelectTimeEngine(ctx context.Context, req *bo.SelectTimeEngineRequest) (*bo.SelectTimeEngineReply, error) {
 	return t.timeEngineRepo.SelectTimeEngine(ctx, req)
 }
 
-// SaveTimeEngineRule 保存时间引擎规则
+// SaveTimeEngineRule saves a time engine rule
 func (t *TimeEngine) SaveTimeEngineRule(ctx context.Context, req *bo.SaveTimeEngineRuleRequest) error {
 	if err := req.Validate(); err != nil {
 		return err
@@ -87,7 +87,7 @@ func (t *TimeEngine) SaveTimeEngineRule(ctx context.Context, req *bo.SaveTimeEng
 	return t.timeEngineRuleRepo.UpdateTimeEngineRule(ctx, req.TimeEngineRuleId, req)
 }
 
-// UpdateTimeEngineRuleStatus 更新时间引擎规则状态
+// UpdateTimeEngineRuleStatus updates the status of a time engine rule
 func (t *TimeEngine) UpdateTimeEngineRuleStatus(ctx context.Context, req *bo.UpdateTimeEngineRuleStatusRequest) error {
 	if err := req.Validate(); err != nil {
 		return err
@@ -95,22 +95,22 @@ func (t *TimeEngine) UpdateTimeEngineRuleStatus(ctx context.Context, req *bo.Upd
 	return t.timeEngineRuleRepo.UpdateTimeEngineRuleStatus(ctx, req)
 }
 
-// DeleteTimeEngineRule 删除时间引擎规则
+// DeleteTimeEngineRule deletes a time engine rule
 func (t *TimeEngine) DeleteTimeEngineRule(ctx context.Context, req *bo.DeleteTimeEngineRuleRequest) error {
 	return t.timeEngineRuleRepo.DeleteTimeEngineRule(ctx, req)
 }
 
-// GetTimeEngineRule 获取时间引擎规则详情
+// GetTimeEngineRule retrieves time engine rule details
 func (t *TimeEngine) GetTimeEngineRule(ctx context.Context, req *bo.GetTimeEngineRuleRequest) (do.TimeEngineRule, error) {
 	return t.timeEngineRuleRepo.GetTimeEngineRule(ctx, req)
 }
 
-// ListTimeEngineRule 获取时间引擎规则列表
+// ListTimeEngineRule retrieves a list of time engine rules
 func (t *TimeEngine) ListTimeEngineRule(ctx context.Context, req *bo.ListTimeEngineRuleRequest) (*bo.ListTimeEngineRuleReply, error) {
 	return t.timeEngineRuleRepo.ListTimeEngineRule(ctx, req)
 }
 
-// SelectTimeEngineRule 获取时间引擎规则列表
+// SelectTimeEngineRule retrieves a list of time engine rules
 func (t *TimeEngine) SelectTimeEngineRule(ctx context.Context, req *bo.SelectTimeEngineRuleRequest) (*bo.SelectTimeEngineRuleReply, error) {
 	return t.timeEngineRuleRepo.SelectTimeEngineRule(ctx, req)
 }

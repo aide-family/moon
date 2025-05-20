@@ -28,7 +28,7 @@ func NewTeamNoticeService(
 	}
 }
 
-// SaveTeamNoticeHook 保存团队通知钩子
+// SaveTeamNoticeHook saves a team notice hook
 func (s *TeamNoticeService) SaveTeamNoticeHook(ctx context.Context, req *palace.SaveTeamNoticeHookRequest) (*common.EmptyReply, error) {
 	if err := s.teamHookBiz.SaveHook(ctx, build.ToSaveTeamNoticeHookRequest(req)); err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (s *TeamNoticeService) SaveTeamNoticeHook(ctx context.Context, req *palace.
 	return &common.EmptyReply{}, nil
 }
 
-// UpdateTeamNoticeHookStatus 更新钩子状态
+// UpdateTeamNoticeHookStatus updates the status of a hook
 func (s *TeamNoticeService) UpdateTeamNoticeHookStatus(ctx context.Context, req *palace.UpdateTeamNoticeHookStatusRequest) (*common.EmptyReply, error) {
 	params := &bo.UpdateTeamNoticeHookStatusRequest{
 		HookID: req.GetHookId(),
@@ -48,7 +48,7 @@ func (s *TeamNoticeService) UpdateTeamNoticeHookStatus(ctx context.Context, req 
 	return &common.EmptyReply{}, nil
 }
 
-// DeleteTeamNoticeHook 删除钩子
+// DeleteTeamNoticeHook deletes a hook
 func (s *TeamNoticeService) DeleteTeamNoticeHook(ctx context.Context, req *palace.DeleteTeamNoticeHookRequest) (*common.EmptyReply, error) {
 	if err := s.teamHookBiz.DeleteHook(ctx, req.GetHookId()); err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func (s *TeamNoticeService) DeleteTeamNoticeHook(ctx context.Context, req *palac
 	return &common.EmptyReply{}, nil
 }
 
-// GetTeamNoticeHook 获取钩子详情
+// GetTeamNoticeHook gets the details of a hook
 func (s *TeamNoticeService) GetTeamNoticeHook(ctx context.Context, req *palace.GetTeamNoticeHookRequest) (*common.NoticeHookItem, error) {
 	hook, err := s.teamHookBiz.GetHook(ctx, req.GetHookId())
 	if err != nil {
@@ -65,7 +65,7 @@ func (s *TeamNoticeService) GetTeamNoticeHook(ctx context.Context, req *palace.G
 	return build.ToNoticeHookItem(hook), nil
 }
 
-// ListTeamNoticeHook 获取钩子列表
+// ListTeamNoticeHook gets the list of hooks
 func (s *TeamNoticeService) ListTeamNoticeHook(ctx context.Context, req *palace.ListTeamNoticeHookRequest) (*palace.ListTeamNoticeHookReply, error) {
 	reply, err := s.teamHookBiz.ListHook(ctx, build.ToListTeamNoticeHookRequest(req))
 	if err != nil {

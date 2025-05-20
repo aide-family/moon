@@ -109,7 +109,7 @@ func getFileType(file string) vobj.FileType {
 	case ".py3":
 		return vobj.FileTypePython3
 	case "":
-		// 获取文件第一行，判断是否为sh或者bash
+		// Read the first line of the file to determine if it's sh or bash
 		firstLine, err := os.ReadFile(file)
 		if err != nil {
 			return vobj.FileTypeUnknown
@@ -133,7 +133,7 @@ func getInterval(file string) time.Duration {
 	if len(parts) < 2 {
 		return 0
 	}
-	// 10s 5s转换为time.Duration
+	// Convert 10s, 5s to time.Duration
 	interval, err := time.ParseDuration(parts[1])
 	if err != nil {
 		return 0

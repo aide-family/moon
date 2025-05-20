@@ -9,7 +9,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
-// SaveTimeEngineRequest 保存时间引擎请求参数
+// SaveTimeEngineRequest represents the request parameters for saving a time engine
 type SaveTimeEngineRequest struct {
 	TimeEngineId uint32
 	Name         string
@@ -48,17 +48,17 @@ func (r *SaveTimeEngineRequest) GetTimeEngine() do.TimeEngine {
 	return r.timeEngine
 }
 
-// DeleteTimeEngineRequest 删除时间引擎请求参数
+// DeleteTimeEngineRequest represents the request parameters for deleting a time engine
 type DeleteTimeEngineRequest struct {
 	TimeEngineId uint32
 }
 
-// GetTimeEngineRequest 获取时间引擎详情请求参数
+// GetTimeEngineRequest represents the request parameters for getting time engine details
 type GetTimeEngineRequest struct {
 	TimeEngineId uint32
 }
 
-// ListTimeEngineRequest 获取时间引擎列表请求参数
+// ListTimeEngineRequest represents the request parameters for listing time engines
 type ListTimeEngineRequest struct {
 	*PaginationRequest
 	Status  vobj.GlobalStatus
@@ -98,7 +98,7 @@ func (r *SelectTimeEngineRequest) ToSelectReply(items []do.TimeEngine) *SelectTi
 
 type SelectTimeEngineReply = ListReply[SelectItem]
 
-// SaveTimeEngineRuleRequest 保存时间引擎规则请求参数
+// SaveTimeEngineRuleRequest represents the request parameters for saving a time engine rule
 type SaveTimeEngineRuleRequest struct {
 	TimeEngineRuleId uint32
 	Name             string
@@ -136,17 +136,17 @@ func validateTimeEngineRule(rules []int, ruleType vobj.TimeEngineRuleType) error
 	}
 }
 
-// DeleteTimeEngineRuleRequest 删除时间引擎规则请求参数
+// DeleteTimeEngineRuleRequest represents the request parameters for deleting a time engine rule
 type DeleteTimeEngineRuleRequest struct {
 	TimeEngineRuleId uint32
 }
 
-// GetTimeEngineRuleRequest 获取时间引擎规则详情请求参数
+// GetTimeEngineRuleRequest represents the request parameters for getting time engine rule details
 type GetTimeEngineRuleRequest struct {
 	TimeEngineRuleId uint32
 }
 
-// ListTimeEngineRuleRequest 获取时间引擎规则列表请求参数
+// ListTimeEngineRuleRequest represents the request parameters for listing time engine rules
 type ListTimeEngineRuleRequest struct {
 	*PaginationRequest
 	Status  vobj.GlobalStatus
@@ -190,7 +190,7 @@ func (r *SelectTimeEngineRuleRequest) ToSelectReply(items []do.TimeEngineRule) *
 
 type SelectTimeEngineRuleReply = ListReply[SelectItem]
 
-// UpdateTimeEngineStatusRequest 更新时间引擎状态请求参数
+// UpdateTimeEngineStatusRequest represents the request parameters for updating time engine status
 type UpdateTimeEngineStatusRequest struct {
 	TimeEngineIds []uint32
 	Status        vobj.GlobalStatus
@@ -206,7 +206,7 @@ func (r *UpdateTimeEngineStatusRequest) Validate() error {
 	return nil
 }
 
-// UpdateTimeEngineRuleStatusRequest 更新时间引擎规则状态请求参数
+// UpdateTimeEngineRuleStatusRequest represents the request parameters for updating time engine rule status
 type UpdateTimeEngineRuleStatusRequest struct {
 	TimeEngineRuleIds []uint32
 	Status            vobj.GlobalStatus

@@ -20,7 +20,7 @@ func Test_GenJWTToken(t *testing.T) {
 	claims := middleware.NewJwtClaims(c, middleware.JwtBaseInfo{
 		UserID:   1,
 		Username: "admin",
-		Nickname: "管理员",
+		Nickname: "administrator",
 		Avatar:   "",
 		Gender:   vobj.GenderMale,
 	})

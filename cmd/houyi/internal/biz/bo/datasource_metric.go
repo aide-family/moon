@@ -39,27 +39,27 @@ type MetricRangeQueryRequest struct {
 func (m *MetricRangeQueryRequest) GetOptimalStep(scrapeInterval time.Duration) time.Duration {
 	duration := m.EndTime.Sub(m.StartTime)
 
-	// Prometheus 通常会对较旧的数据进行降采样
+	// Prometheus typically downsamples older data
 	if duration > 15*24*time.Hour {
-		// 对于超过15天的数据，使用较大的step
+		// For data older than 15 days, use a larger step
 		return 2 * time.Hour
 	} else if duration > 3*24*time.Hour {
 		return 1 * time.Hour
 	}
 
-	// 确保step至少是scrape_interval的倍数
+	// Ensure step is at least a multiple of scrape_interval
 	minStep := scrapeInterval
 
-	// 计算一个合理的step，使返回点数在500-1000之间
+	// Calculate a reasonable step to return between 500-1000 points
 	desiredPoints := 800
 	calculatedStep := duration / time.Duration(desiredPoints)
 
-	// 确保step不小于最小step，且是scrapeInterval的倍数
+	// Ensure step is not less than minimum step and is a multiple of scrapeInterval
 	if calculatedStep < minStep {
 		return minStep
 	}
 
-	// 向上取整到scrapeInterval的倍数
+	// Round up to the nearest multiple of scrapeInterval
 	return ((calculatedStep + scrapeInterval - 1) / scrapeInterval) * scrapeInterval
 }
 

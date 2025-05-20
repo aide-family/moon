@@ -16,7 +16,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
-// NewTimeEngineRule 创建时间引擎规则仓储实现
+// NewTimeEngineRule creates a time engine rule repository implementation
 func NewTimeEngineRule(data *data.Data) repository.TimeEngineRule {
 	return &timeEngineRuleRepoImpl{
 		Data: data,
@@ -27,7 +27,7 @@ type timeEngineRuleRepoImpl struct {
 	*data.Data
 }
 
-// CreateTimeEngineRule 创建时间引擎规则
+// CreateTimeEngineRule creates a time engine rule
 func (r *timeEngineRuleRepoImpl) CreateTimeEngineRule(ctx context.Context, req *bo.SaveTimeEngineRuleRequest) error {
 	timeEngineRule := &team.TimeEngineRule{
 		Name:   req.Name,
@@ -41,7 +41,7 @@ func (r *timeEngineRuleRepoImpl) CreateTimeEngineRule(ctx context.Context, req *
 	return bizQuery.TimeEngineRule.WithContext(ctx).Create(timeEngineRule)
 }
 
-// UpdateTimeEngineRule 更新时间引擎规则
+// UpdateTimeEngineRule updates a time engine rule
 func (r *timeEngineRuleRepoImpl) UpdateTimeEngineRule(ctx context.Context, timeEngineRuleId uint32, req *bo.SaveTimeEngineRuleRequest) error {
 	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleMutation := bizMutation.TimeEngineRule
@@ -60,7 +60,7 @@ func (r *timeEngineRuleRepoImpl) UpdateTimeEngineRule(ctx context.Context, timeE
 	return err
 }
 
-// UpdateTimeEngineRuleStatus 更新时间引擎规则状态
+// UpdateTimeEngineRuleStatus updates the status of a time engine rule
 func (r *timeEngineRuleRepoImpl) UpdateTimeEngineRuleStatus(ctx context.Context, req *bo.UpdateTimeEngineRuleStatusRequest) error {
 	if len(req.TimeEngineRuleIds) == 0 {
 		return nil
@@ -78,7 +78,7 @@ func (r *timeEngineRuleRepoImpl) UpdateTimeEngineRuleStatus(ctx context.Context,
 	return err
 }
 
-// DeleteTimeEngineRule 删除时间引擎规则
+// DeleteTimeEngineRule deletes a time engine rule
 func (r *timeEngineRuleRepoImpl) DeleteTimeEngineRule(ctx context.Context, req *bo.DeleteTimeEngineRuleRequest) error {
 	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleMutation := bizMutation.TimeEngineRule
@@ -90,7 +90,7 @@ func (r *timeEngineRuleRepoImpl) DeleteTimeEngineRule(ctx context.Context, req *
 	return err
 }
 
-// GetTimeEngineRule 获取时间引擎规则详情
+// GetTimeEngineRule gets the details of a time engine rule
 func (r *timeEngineRuleRepoImpl) GetTimeEngineRule(ctx context.Context, req *bo.GetTimeEngineRuleRequest) (do.TimeEngineRule, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleQuery := bizQuery.TimeEngineRule
@@ -104,7 +104,7 @@ func (r *timeEngineRuleRepoImpl) GetTimeEngineRule(ctx context.Context, req *bo.
 	return timeEngineRule, nil
 }
 
-// ListTimeEngineRule 获取时间引擎规则列表
+// ListTimeEngineRule gets the list of time engine rules
 func (r *timeEngineRuleRepoImpl) ListTimeEngineRule(ctx context.Context, req *bo.ListTimeEngineRuleRequest) (*bo.ListTimeEngineRuleReply, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleQuery := bizQuery.TimeEngineRule
@@ -150,7 +150,7 @@ func (r *timeEngineRuleRepoImpl) ListTimeEngineRule(ctx context.Context, req *bo
 	return req.ToListReply(dos), nil
 }
 
-// SelectTimeEngineRule 获取时间引擎规则列表
+// SelectTimeEngineRule gets the list of time engine rules
 func (r *timeEngineRuleRepoImpl) SelectTimeEngineRule(ctx context.Context, req *bo.SelectTimeEngineRuleRequest) (*bo.SelectTimeEngineRuleReply, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleQuery := bizQuery.TimeEngineRule
@@ -184,7 +184,7 @@ func (r *timeEngineRuleRepoImpl) SelectTimeEngineRule(ctx context.Context, req *
 	return req.ToSelectReply(rows), nil
 }
 
-// Find 获取时间引擎规则列表
+// Find gets the list of time engine rules
 func (r *timeEngineRuleRepoImpl) Find(ctx context.Context, ruleIds ...uint32) ([]do.TimeEngineRule, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleQuery := bizQuery.TimeEngineRule

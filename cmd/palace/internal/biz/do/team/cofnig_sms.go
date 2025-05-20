@@ -12,11 +12,11 @@ const tableNameConfigSMS = "team_config_sms"
 
 type SmsConfig struct {
 	do.TeamModel
-	Name     string                  `gorm:"column:name;type:varchar(32);not null;comment:名称" json:"name"`
-	Remark   string                  `gorm:"column:remark;type:text;comment:备注" json:"remark"`
-	Status   vobj.GlobalStatus       `gorm:"column:status;type:tinyint;not null;default:0;comment:状态" json:"status"`
-	Provider vobj.SMSProviderType    `gorm:"column:provider;type:tinyint(2);not null;comment:短信服务商" json:"provider"`
-	Sms      *crypto.Object[*do.SMS] `gorm:"column:sms;type:text;not null;comment:短信配置" json:"sms"`
+	Name     string                  `gorm:"column:name;type:varchar(32);not null;comment:name" json:"name"`
+	Remark   string                  `gorm:"column:remark;type:text;comment:remark" json:"remark"`
+	Status   vobj.GlobalStatus       `gorm:"column:status;type:tinyint;not null;default:0;comment:status" json:"status"`
+	Provider vobj.SMSProviderType    `gorm:"column:provider;type:tinyint(2);not null;comment:SMS provider" json:"provider"`
+	Sms      *crypto.Object[*do.SMS] `gorm:"column:sms;type:text;not null;comment:SMS configuration" json:"sms"`
 }
 
 func (s *SmsConfig) GetProviderType() vobj.SMSProviderType {

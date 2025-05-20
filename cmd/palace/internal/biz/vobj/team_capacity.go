@@ -1,6 +1,6 @@
 package vobj
 
-// TeamCapacity 定义租户容量（人数）的梯度
+// TeamCapacity defines the tenant capacity (number of people) gradient
 //
 //go:generate stringer -type=TeamCapacity -linecomment -output=team_capacity.string.go
 type TeamCapacity int8
