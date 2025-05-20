@@ -13,17 +13,17 @@ import (
 )
 
 func NewMenuRepo(d *data.Data) repository.Menu {
-	return &menuImpl{
+	return &menuRepoImpl{
 		Data: d,
 	}
 }
 
-type menuImpl struct {
+type menuRepoImpl struct {
 	*data.Data
 }
 
 // FindMenusByType implements repository.Menu.
-func (m *menuImpl) FindMenusByType(ctx context.Context, menuType vobj.MenuType) ([]do.Menu, error) {
+func (m *menuRepoImpl) FindMenusByType(ctx context.Context, menuType vobj.MenuType) ([]do.Menu, error) {
 	mainQuery := getMainQuery(ctx, m)
 	menu := mainQuery.Menu
 	wrappers := []gen.Condition{
@@ -37,7 +37,7 @@ func (m *menuImpl) FindMenusByType(ctx context.Context, menuType vobj.MenuType) 
 	return slices.Map(menuDos, func(menu *system.Menu) do.Menu { return menu }), nil
 }
 
-func (m *menuImpl) Find(ctx context.Context, ids []uint32) ([]do.Menu, error) {
+func (m *menuRepoImpl) Find(ctx context.Context, ids []uint32) ([]do.Menu, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -51,7 +51,7 @@ func (m *menuImpl) Find(ctx context.Context, ids []uint32) ([]do.Menu, error) {
 	return menus, nil
 }
 
-func (m *menuImpl) GetMenuByOperation(ctx context.Context, operation string) (do.Menu, error) {
+func (m *menuRepoImpl) GetMenuByOperation(ctx context.Context, operation string) (do.Menu, error) {
 	mainQuery := getMainQuery(ctx, m)
 	menu := mainQuery.Menu
 	menuDo, err := menu.WithContext(ctx).Where(menu.ApiPath.Eq(operation)).First()

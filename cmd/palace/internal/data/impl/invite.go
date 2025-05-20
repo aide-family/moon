@@ -24,14 +24,14 @@ func NewInviteRepo(
 	d *data.Data,
 	logger log.Logger,
 ) repository.Invite {
-	return &inviteImpl{
+	return &inviteRepoImpl{
 		bc:     bc,
 		Data:   d,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.invite")),
 	}
 }
 
-type inviteImpl struct {
+type inviteRepoImpl struct {
 	bc *conf.Bootstrap
 	*data.Data
 	helper *log.Helper
@@ -40,7 +40,7 @@ type inviteImpl struct {
 //go:embed template/team_invite_user.html
 var inviteEmailBody string
 
-func (i *inviteImpl) TeamInviteUser(ctx context.Context, req bo.InviteMember) error {
+func (i *inviteRepoImpl) TeamInviteUser(ctx context.Context, req bo.InviteMember) error {
 	roleIds := slices.MapFilter(req.GetRoles(), func(role do.TeamRole) (uint32, bool) {
 		if validate.IsNil(role) || role.GetID() <= 0 {
 			return 0, false

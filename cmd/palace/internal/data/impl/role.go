@@ -17,18 +17,18 @@ import (
 )
 
 func NewRoleRepo(d *data.Data, logger log.Logger) repository.Role {
-	return &roleImpl{
+	return &roleRepoImpl{
 		Data:   d,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.role")),
 	}
 }
 
-type roleImpl struct {
+type roleRepoImpl struct {
 	*data.Data
 	helper *log.Helper
 }
 
-func (r *roleImpl) Find(ctx context.Context, ids []uint32) ([]do.Role, error) {
+func (r *roleRepoImpl) Find(ctx context.Context, ids []uint32) ([]do.Role, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -40,7 +40,7 @@ func (r *roleImpl) Find(ctx context.Context, ids []uint32) ([]do.Role, error) {
 	return slices.Map(roles, func(role *system.Role) do.Role { return role }), nil
 }
 
-func (r *roleImpl) Get(ctx context.Context, id uint32) (do.Role, error) {
+func (r *roleRepoImpl) Get(ctx context.Context, id uint32) (do.Role, error) {
 	roleQuery := getMainQuery(ctx, r).Role
 	role, err := roleQuery.WithContext(ctx).Where(roleQuery.ID.Eq(id)).First()
 	if err != nil {
@@ -49,7 +49,7 @@ func (r *roleImpl) Get(ctx context.Context, id uint32) (do.Role, error) {
 	return role, nil
 }
 
-func (r *roleImpl) List(ctx context.Context, req *bo.ListRoleReq) (*bo.ListRoleReply, error) {
+func (r *roleRepoImpl) List(ctx context.Context, req *bo.ListRoleReq) (*bo.ListRoleReply, error) {
 	roleQuery := getMainQuery(ctx, r).Role
 	wrapper := roleQuery.WithContext(ctx)
 
@@ -79,7 +79,7 @@ func (r *roleImpl) List(ctx context.Context, req *bo.ListRoleReq) (*bo.ListRoleR
 	return req.ToListReply(rows), nil
 }
 
-func (r *roleImpl) Create(ctx context.Context, role bo.Role) error {
+func (r *roleRepoImpl) Create(ctx context.Context, role bo.Role) error {
 	roleDo := &system.Role{
 		Name:   role.GetName(),
 		Remark: role.GetRemark(),
@@ -104,7 +104,7 @@ func (r *roleImpl) Create(ctx context.Context, role bo.Role) error {
 	return roleMutation.Menus.Model(roleDo).Append(menus...)
 }
 
-func (r *roleImpl) Update(ctx context.Context, role bo.Role) error {
+func (r *roleRepoImpl) Update(ctx context.Context, role bo.Role) error {
 	menus := slices.MapFilter(role.GetMenus(), func(menu do.Menu) (*system.Menu, bool) {
 		if validate.IsNil(menu) || menu.GetID() <= 0 {
 			return nil, false
@@ -141,7 +141,7 @@ func (r *roleImpl) Update(ctx context.Context, role bo.Role) error {
 	return menusAssociation.Replace(menus...)
 }
 
-func (r *roleImpl) Delete(ctx context.Context, id uint32) error {
+func (r *roleRepoImpl) Delete(ctx context.Context, id uint32) error {
 	roleMutation := getMainQuery(ctx, r).Role
 	wrapper := []gen.Condition{
 		roleMutation.ID.Eq(id),
@@ -150,7 +150,7 @@ func (r *roleImpl) Delete(ctx context.Context, id uint32) error {
 	return err
 }
 
-func (r *roleImpl) UpdateStatus(ctx context.Context, req *bo.UpdateRoleStatusReq) error {
+func (r *roleRepoImpl) UpdateStatus(ctx context.Context, req *bo.UpdateRoleStatusReq) error {
 	roleMutation := getMainQuery(ctx, r).Role
 	wrapper := []gen.Condition{
 		roleMutation.ID.Eq(req.RoleID),
@@ -159,7 +159,7 @@ func (r *roleImpl) UpdateStatus(ctx context.Context, req *bo.UpdateRoleStatusReq
 	return err
 }
 
-func (r *roleImpl) UpdateUsers(ctx context.Context, req bo.UpdateRoleUsers) error {
+func (r *roleRepoImpl) UpdateUsers(ctx context.Context, req bo.UpdateRoleUsers) error {
 	roleMutation := getMainQuery(ctx, r).Role
 	roleDo := &system.Role{
 		CreatorModel: do.CreatorModel{

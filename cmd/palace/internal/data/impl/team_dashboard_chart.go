@@ -18,19 +18,19 @@ import (
 
 // NewDashboardChartRepo creates a new dashboard chart repository
 func NewDashboardChartRepo(data *data.Data, logger log.Logger) repository.DashboardChart {
-	return &dashboardChartImpl{
+	return &dashboardChartRepoImpl{
 		Data:   data,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.dashboard_chart")),
 	}
 }
 
-type dashboardChartImpl struct {
+type dashboardChartRepoImpl struct {
 	*data.Data
 
 	helper *log.Helper
 }
 
-func (r *dashboardChartImpl) DeleteDashboardChartByDashboardID(ctx context.Context, dashboardID uint32) error {
+func (r *dashboardChartRepoImpl) DeleteDashboardChartByDashboardID(ctx context.Context, dashboardID uint32) error {
 	tx, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := tx.DashboardChart
 	wrapper := []gen.Condition{
@@ -41,7 +41,7 @@ func (r *dashboardChartImpl) DeleteDashboardChartByDashboardID(ctx context.Conte
 	return err
 }
 
-func (r *dashboardChartImpl) CreateDashboardChart(ctx context.Context, chart bo.DashboardChart) error {
+func (r *dashboardChartRepoImpl) CreateDashboardChart(ctx context.Context, chart bo.DashboardChart) error {
 	dashboardChartDo := &team.DashboardChart{
 		DashboardID: chart.GetDashboardID(),
 		Title:       chart.GetTitle(),
@@ -56,7 +56,7 @@ func (r *dashboardChartImpl) CreateDashboardChart(ctx context.Context, chart bo.
 	return tx.DashboardChart.WithContext(ctx).Create(dashboardChartDo)
 }
 
-func (r *dashboardChartImpl) UpdateDashboardChart(ctx context.Context, chart bo.DashboardChart) error {
+func (r *dashboardChartRepoImpl) UpdateDashboardChart(ctx context.Context, chart bo.DashboardChart) error {
 	tx, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := tx.DashboardChart
 	wrapper := []gen.Condition{
@@ -76,7 +76,7 @@ func (r *dashboardChartImpl) UpdateDashboardChart(ctx context.Context, chart bo.
 }
 
 // DeleteDashboardChart delete dashboard chart by id
-func (r *dashboardChartImpl) DeleteDashboardChart(ctx context.Context, req *bo.OperateOneDashboardChartReq) error {
+func (r *dashboardChartRepoImpl) DeleteDashboardChart(ctx context.Context, req *bo.OperateOneDashboardChartReq) error {
 	tx, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := tx.DashboardChart
 	wrapper := []gen.Condition{
@@ -89,7 +89,7 @@ func (r *dashboardChartImpl) DeleteDashboardChart(ctx context.Context, req *bo.O
 }
 
 // GetDashboardChart get dashboard chart by id
-func (r *dashboardChartImpl) GetDashboardChart(ctx context.Context, req *bo.OperateOneDashboardChartReq) (do.DashboardChart, error) {
+func (r *dashboardChartRepoImpl) GetDashboardChart(ctx context.Context, req *bo.OperateOneDashboardChartReq) (do.DashboardChart, error) {
 	tx, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := tx.DashboardChart
 	wrapper := []gen.Condition{
@@ -105,7 +105,7 @@ func (r *dashboardChartImpl) GetDashboardChart(ctx context.Context, req *bo.Oper
 }
 
 // ListDashboardCharts list dashboard charts with filter
-func (r *dashboardChartImpl) ListDashboardCharts(ctx context.Context, req *bo.ListDashboardChartReq) (*bo.ListDashboardChartReply, error) {
+func (r *dashboardChartRepoImpl) ListDashboardCharts(ctx context.Context, req *bo.ListDashboardChartReq) (*bo.ListDashboardChartReply, error) {
 	tx, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := tx.DashboardChart
 	query := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamID), mutation.DashboardID.Eq(req.DashboardID))
@@ -131,7 +131,7 @@ func (r *dashboardChartImpl) ListDashboardCharts(ctx context.Context, req *bo.Li
 	return req.ToListReply(rows), nil
 }
 
-func (r *dashboardChartImpl) SelectTeamDashboardChart(ctx context.Context, req *bo.SelectTeamDashboardChartReq) (*bo.SelectTeamDashboardChartReply, error) {
+func (r *dashboardChartRepoImpl) SelectTeamDashboardChart(ctx context.Context, req *bo.SelectTeamDashboardChartReq) (*bo.SelectTeamDashboardChartReply, error) {
 	tx, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := tx.DashboardChart
 	query := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamID), mutation.DashboardID.Eq(req.DashboardID))
@@ -165,7 +165,7 @@ func (r *dashboardChartImpl) SelectTeamDashboardChart(ctx context.Context, req *
 }
 
 // BatchUpdateDashboardChartStatus update multiple dashboard charts status
-func (r *dashboardChartImpl) BatchUpdateDashboardChartStatus(ctx context.Context, req *bo.BatchUpdateDashboardChartStatusReq) error {
+func (r *dashboardChartRepoImpl) BatchUpdateDashboardChartStatus(ctx context.Context, req *bo.BatchUpdateDashboardChartStatusReq) error {
 	tx, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := tx.DashboardChart
 	wrapper := []gen.Condition{

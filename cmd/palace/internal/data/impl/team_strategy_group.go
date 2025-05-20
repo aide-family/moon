@@ -17,17 +17,17 @@ import (
 )
 
 func NewTeamStrategyGroupRepo(data *data.Data) repository.TeamStrategyGroup {
-	return &teamStrategyGroupRepo{
+	return &teamStrategyGroupRepoImpl{
 		Data: data,
 	}
 }
 
-type teamStrategyGroupRepo struct {
+type teamStrategyGroupRepoImpl struct {
 	*data.Data
 }
 
 // Create implements repository.TeamStrategyGroup.
-func (t *teamStrategyGroupRepo) Create(ctx context.Context, params *bo.SaveTeamStrategyGroupParams) error {
+func (t *teamStrategyGroupRepoImpl) Create(ctx context.Context, params *bo.SaveTeamStrategyGroupParams) error {
 	tx := getTeamBizQuery(ctx, t)
 	groupDo := &team.StrategyGroup{
 		Name:   params.Name,
@@ -40,7 +40,7 @@ func (t *teamStrategyGroupRepo) Create(ctx context.Context, params *bo.SaveTeamS
 }
 
 // Delete implements repository.TeamStrategyGroup.
-func (t *teamStrategyGroupRepo) Delete(ctx context.Context, id uint32) error {
+func (t *teamStrategyGroupRepoImpl) Delete(ctx context.Context, id uint32) error {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
 	wrappers := []gen.Condition{
@@ -61,7 +61,7 @@ func (t *teamStrategyGroupRepo) Delete(ctx context.Context, id uint32) error {
 }
 
 // Get implements repository.TeamStrategyGroup.
-func (t *teamStrategyGroupRepo) Get(ctx context.Context, id uint32) (do.StrategyGroup, error) {
+func (t *teamStrategyGroupRepoImpl) Get(ctx context.Context, id uint32) (do.StrategyGroup, error) {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
 	wrappers := []gen.Condition{
@@ -76,7 +76,7 @@ func (t *teamStrategyGroupRepo) Get(ctx context.Context, id uint32) (do.Strategy
 }
 
 // List implements repository.TeamStrategyGroup.
-func (t *teamStrategyGroupRepo) List(ctx context.Context, listParams *bo.ListTeamStrategyGroupParams) (*bo.ListTeamStrategyGroupReply, error) {
+func (t *teamStrategyGroupRepoImpl) List(ctx context.Context, listParams *bo.ListTeamStrategyGroupParams) (*bo.ListTeamStrategyGroupReply, error) {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
 	wrappers := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId))
@@ -103,7 +103,7 @@ func (t *teamStrategyGroupRepo) List(ctx context.Context, listParams *bo.ListTea
 }
 
 // Select implements repository.TeamStrategyGroup.
-func (t *teamStrategyGroupRepo) Select(ctx context.Context, selectParams *bo.SelectTeamStrategyGroupRequest) (*bo.SelectTeamStrategyGroupReply, error) {
+func (t *teamStrategyGroupRepoImpl) Select(ctx context.Context, selectParams *bo.SelectTeamStrategyGroupRequest) (*bo.SelectTeamStrategyGroupReply, error) {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
 	wrappers := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId))
@@ -137,7 +137,7 @@ func (t *teamStrategyGroupRepo) Select(ctx context.Context, selectParams *bo.Sel
 }
 
 // Update implements repository.TeamStrategyGroup.
-func (t *teamStrategyGroupRepo) Update(ctx context.Context, params *bo.SaveTeamStrategyGroupParams) error {
+func (t *teamStrategyGroupRepoImpl) Update(ctx context.Context, params *bo.SaveTeamStrategyGroupParams) error {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
 	wrappers := []gen.Condition{
@@ -153,7 +153,7 @@ func (t *teamStrategyGroupRepo) Update(ctx context.Context, params *bo.SaveTeamS
 }
 
 // UpdateStatus implements repository.TeamStrategyGroup.
-func (t *teamStrategyGroupRepo) UpdateStatus(ctx context.Context, params *bo.UpdateTeamStrategyGroupStatusParams) error {
+func (t *teamStrategyGroupRepoImpl) UpdateStatus(ctx context.Context, params *bo.UpdateTeamStrategyGroupStatusParams) error {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
 	wrappers := []gen.Condition{

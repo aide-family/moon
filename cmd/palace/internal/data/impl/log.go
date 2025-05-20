@@ -18,18 +18,18 @@ import (
 )
 
 func NewOperateLogRepo(d *data.Data, logger log.Logger) repository.OperateLog {
-	return &operateLogImpl{
+	return &operateLogRepoImpl{
 		Data:   d,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.operate_log")),
 	}
 }
 
-type operateLogImpl struct {
+type operateLogRepoImpl struct {
 	*data.Data
 	helper *log.Helper
 }
 
-func (o *operateLogImpl) OperateLog(ctx context.Context, log *bo.AddOperateLog) error {
+func (o *operateLogRepoImpl) OperateLog(ctx context.Context, log *bo.AddOperateLog) error {
 	operateLog := &system.OperateLog{
 		OperateType:     log.OperateType,
 		OperateMenuID:   log.OperateMenuID,
@@ -46,7 +46,7 @@ func (o *operateLogImpl) OperateLog(ctx context.Context, log *bo.AddOperateLog) 
 	return operateLogMutation.WithContext(ctx).Create(operateLog)
 }
 
-func (o *operateLogImpl) List(ctx context.Context, req *bo.OperateLogListRequest) (*bo.OperateLogListReply, error) {
+func (o *operateLogRepoImpl) List(ctx context.Context, req *bo.OperateLogListRequest) (*bo.OperateLogListReply, error) {
 	if validate.IsNil(req) {
 		return nil, nil
 	}
@@ -85,7 +85,7 @@ func (o *operateLogImpl) List(ctx context.Context, req *bo.OperateLogListRequest
 	return req.ToListReply(rows), nil
 }
 
-func (o *operateLogImpl) TeamOperateLog(ctx context.Context, log *bo.AddOperateLog) error {
+func (o *operateLogRepoImpl) TeamOperateLog(ctx context.Context, log *bo.AddOperateLog) error {
 	operateLog := &team.OperateLog{
 		OperateType:     log.OperateType,
 		OperateMenuID:   log.OperateMenuID,
@@ -103,7 +103,7 @@ func (o *operateLogImpl) TeamOperateLog(ctx context.Context, log *bo.AddOperateL
 	return operateLogMutation.WithContext(ctx).Create(operateLog)
 }
 
-func (o *operateLogImpl) TeamList(ctx context.Context, req *bo.OperateLogListRequest) (*bo.OperateLogListReply, error) {
+func (o *operateLogRepoImpl) TeamList(ctx context.Context, req *bo.OperateLogListRequest) (*bo.OperateLogListReply, error) {
 	if validate.IsNil(req) {
 		return nil, nil
 	}

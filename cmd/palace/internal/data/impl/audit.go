@@ -16,18 +16,18 @@ import (
 )
 
 func NewAuditRepo(d *data.Data, logger log.Logger) repository.Audit {
-	return &auditImpl{
+	return &auditRepoImpl{
 		Data:   d,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.audit")),
 	}
 }
 
-type auditImpl struct {
+type auditRepoImpl struct {
 	*data.Data
 	helper *log.Helper
 }
 
-func (a *auditImpl) Get(ctx context.Context, id uint32) (do.TeamAudit, error) {
+func (a *auditRepoImpl) Get(ctx context.Context, id uint32) (do.TeamAudit, error) {
 	auditQuery := getMainQuery(ctx, a).TeamAudit
 	audit, err := auditQuery.WithContext(ctx).Where(auditQuery.ID.Eq(id)).First()
 	if err != nil {
@@ -36,7 +36,7 @@ func (a *auditImpl) Get(ctx context.Context, id uint32) (do.TeamAudit, error) {
 	return audit, nil
 }
 
-func (a *auditImpl) TeamAuditList(ctx context.Context, req *bo.TeamAuditListRequest) (*bo.TeamAuditListReply, error) {
+func (a *auditRepoImpl) TeamAuditList(ctx context.Context, req *bo.TeamAuditListRequest) (*bo.TeamAuditListReply, error) {
 	auditQuery := getMainQuery(ctx, a).TeamAudit
 	wrapper := auditQuery.WithContext(ctx)
 
@@ -70,7 +70,7 @@ func (a *auditImpl) TeamAuditList(ctx context.Context, req *bo.TeamAuditListRequ
 	return req.ToListReply(rows), nil
 }
 
-func (a *auditImpl) UpdateTeamAuditStatus(ctx context.Context, req bo.UpdateTeamAuditStatus) error {
+func (a *auditRepoImpl) UpdateTeamAuditStatus(ctx context.Context, req bo.UpdateTeamAuditStatus) error {
 	auditMutation := getMainQuery(ctx, a).TeamAudit
 	_, err := auditMutation.WithContext(ctx).
 		Where(auditMutation.ID.Eq(req.GetAuditID())).

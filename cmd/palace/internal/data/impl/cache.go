@@ -29,7 +29,7 @@ import (
 )
 
 func NewCacheRepo(bc *conf.Bootstrap, d *data.Data, logger log.Logger) repository.Cache {
-	return &cacheReoImpl{
+	return &cacheRepoImpl{
 		bc:      bc,
 		signKey: bc.GetAuth().GetJwt().GetSignKey(),
 		Data:    d,
@@ -37,7 +37,7 @@ func NewCacheRepo(bc *conf.Bootstrap, d *data.Data, logger log.Logger) repositor
 	}
 }
 
-type cacheReoImpl struct {
+type cacheRepoImpl struct {
 	bc      *conf.Bootstrap
 	signKey string
 	*data.Data
@@ -45,7 +45,7 @@ type cacheReoImpl struct {
 	helper *log.Helper
 }
 
-func (c *cacheReoImpl) CacheTeams(ctx context.Context, teams ...do.Team) error {
+func (c *cacheRepoImpl) CacheTeams(ctx context.Context, teams ...do.Team) error {
 	key := repository.UserCacheKey.Key()
 	teamsMap := make(map[string]any)
 	for _, team := range teams {
@@ -58,7 +58,7 @@ func (c *cacheReoImpl) CacheTeams(ctx context.Context, teams ...do.Team) error {
 	return c.GetCache().Client().HSet(ctx, key, teamsMap).Err()
 }
 
-func (c *cacheReoImpl) GetTeam(ctx context.Context, teamID uint32) (do.Team, error) {
+func (c *cacheRepoImpl) GetTeam(ctx context.Context, teamID uint32) (do.Team, error) {
 	key := repository.TeamCacheKey.Key()
 	teamKey := strconv.Itoa(int(teamID))
 	exist, err := c.GetCache().Client().HExists(ctx, key, teamKey).Result()
@@ -75,7 +75,7 @@ func (c *cacheReoImpl) GetTeam(ctx context.Context, teamID uint32) (do.Team, err
 	return &team, nil
 }
 
-func (c *cacheReoImpl) GetTeams(ctx context.Context, ids ...uint32) ([]do.Team, error) {
+func (c *cacheRepoImpl) GetTeams(ctx context.Context, ids ...uint32) ([]do.Team, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -103,7 +103,7 @@ func (c *cacheReoImpl) GetTeams(ctx context.Context, ids ...uint32) ([]do.Team, 
 	return teams, nil
 }
 
-func (c *cacheReoImpl) CacheTeamMembers(ctx context.Context, members ...do.TeamMember) error {
+func (c *cacheRepoImpl) CacheTeamMembers(ctx context.Context, members ...do.TeamMember) error {
 	if len(members) == 0 {
 		return nil
 	}
@@ -119,7 +119,7 @@ func (c *cacheReoImpl) CacheTeamMembers(ctx context.Context, members ...do.TeamM
 	return c.GetCache().Client().HSet(ctx, key, membersMap).Err()
 }
 
-func (c *cacheReoImpl) GetTeamMember(ctx context.Context, memberID uint32) (do.TeamMember, error) {
+func (c *cacheRepoImpl) GetTeamMember(ctx context.Context, memberID uint32) (do.TeamMember, error) {
 	key := repository.TeamMemberCacheKey.Key()
 	memberKey := strconv.Itoa(int(memberID))
 	exist, err := c.GetCache().Client().HExists(ctx, key, memberKey).Result()
@@ -136,7 +136,7 @@ func (c *cacheReoImpl) GetTeamMember(ctx context.Context, memberID uint32) (do.T
 	return &member, nil
 }
 
-func (c *cacheReoImpl) GetTeamMembers(ctx context.Context, ids ...uint32) ([]do.TeamMember, error) {
+func (c *cacheRepoImpl) GetTeamMembers(ctx context.Context, ids ...uint32) ([]do.TeamMember, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -164,7 +164,7 @@ func (c *cacheReoImpl) GetTeamMembers(ctx context.Context, ids ...uint32) ([]do.
 	return members, nil
 }
 
-func (c *cacheReoImpl) CacheUsers(ctx context.Context, users ...do.User) error {
+func (c *cacheRepoImpl) CacheUsers(ctx context.Context, users ...do.User) error {
 	key := repository.UserCacheKey.Key()
 	usersMap := make(map[string]any)
 	for _, user := range users {
@@ -177,7 +177,7 @@ func (c *cacheReoImpl) CacheUsers(ctx context.Context, users ...do.User) error {
 	return c.GetCache().Client().HSet(ctx, key, usersMap).Err()
 }
 
-func (c *cacheReoImpl) GetUser(ctx context.Context, userID uint32) (do.User, error) {
+func (c *cacheRepoImpl) GetUser(ctx context.Context, userID uint32) (do.User, error) {
 	key := repository.UserCacheKey.Key()
 	userKey := strconv.Itoa(int(userID))
 	exist, err := c.GetCache().Client().HExists(ctx, key, userKey).Result()
@@ -195,7 +195,7 @@ func (c *cacheReoImpl) GetUser(ctx context.Context, userID uint32) (do.User, err
 	return &user, nil
 }
 
-func (c *cacheReoImpl) GetUsers(ctx context.Context, ids ...uint32) ([]do.User, error) {
+func (c *cacheRepoImpl) GetUsers(ctx context.Context, ids ...uint32) ([]do.User, error) {
 	key := repository.UserCacheKey.Key()
 	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
@@ -220,15 +220,15 @@ func (c *cacheReoImpl) GetUsers(ctx context.Context, ids ...uint32) ([]do.User, 
 	return users, nil
 }
 
-func (c *cacheReoImpl) Lock(ctx context.Context, key string, expiration time.Duration) (bool, error) {
+func (c *cacheRepoImpl) Lock(ctx context.Context, key string, expiration time.Duration) (bool, error) {
 	return c.GetCache().Client().SetNX(ctx, key, 1, expiration).Result()
 }
 
-func (c *cacheReoImpl) Unlock(ctx context.Context, key string) error {
+func (c *cacheRepoImpl) Unlock(ctx context.Context, key string) error {
 	return c.GetCache().Client().Del(ctx, key).Err()
 }
 
-func (c *cacheReoImpl) BanToken(ctx context.Context, token string) error {
+func (c *cacheRepoImpl) BanToken(ctx context.Context, token string) error {
 	jwtClaims, err := middleware.ParseJwtClaimsFromToken(token, c.signKey)
 	if err != nil {
 		return err
@@ -240,7 +240,7 @@ func (c *cacheReoImpl) BanToken(ctx context.Context, token string) error {
 	return c.GetCache().Client().Set(ctx, repository.BankTokenKey.Key(hash.MD5(token)), 1, expiration).Err()
 }
 
-func (c *cacheReoImpl) VerifyToken(ctx context.Context, token string) error {
+func (c *cacheRepoImpl) VerifyToken(ctx context.Context, token string) error {
 	exist, err := c.GetCache().Client().Exists(ctx, repository.BankTokenKey.Key(hash.MD5(token))).Result()
 	if err != nil {
 		return err
@@ -251,7 +251,7 @@ func (c *cacheReoImpl) VerifyToken(ctx context.Context, token string) error {
 	return nil
 }
 
-func (c *cacheReoImpl) VerifyOAuthToken(ctx context.Context, oauthParams *bo.OAuthLoginParams) error {
+func (c *cacheRepoImpl) VerifyOAuthToken(ctx context.Context, oauthParams *bo.OAuthLoginParams) error {
 	key := repository.OAuthTokenKey.Key(oauthParams.APP, oauthParams.OpenID, oauthParams.Token)
 	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
@@ -265,12 +265,12 @@ func (c *cacheReoImpl) VerifyOAuthToken(ctx context.Context, oauthParams *bo.OAu
 	return c.GetCache().Client().Del(ctx, key).Err()
 }
 
-func (c *cacheReoImpl) CacheVerifyOAuthToken(ctx context.Context, oauthParams *bo.OAuthLoginParams) error {
+func (c *cacheRepoImpl) CacheVerifyOAuthToken(ctx context.Context, oauthParams *bo.OAuthLoginParams) error {
 	key := repository.OAuthTokenKey.Key(oauthParams.APP, oauthParams.OpenID, oauthParams.Token)
 	return c.GetCache().Client().Set(ctx, key, "##code##", 10*time.Minute).Err()
 }
 
-func (c *cacheReoImpl) VerifyEmailCode(ctx context.Context, params *bo.VerifyEmailCodeParams) error {
+func (c *cacheRepoImpl) VerifyEmailCode(ctx context.Context, params *bo.VerifyEmailCodeParams) error {
 	key := repository.EmailCodeKey.Key(params.Email)
 	cacheCode, err := c.GetCache().Client().Get(ctx, key).Result()
 	if err != nil {
@@ -293,7 +293,7 @@ func (c *cacheReoImpl) VerifyEmailCode(ctx context.Context, params *bo.VerifyEma
 //go:embed template/verify_email.html
 var verifyEmailTemplate string
 
-func (c *cacheReoImpl) SendVerifyEmailCode(ctx context.Context, params *bo.VerifyEmailParams) error {
+func (c *cacheRepoImpl) SendVerifyEmailCode(ctx context.Context, params *bo.VerifyEmailParams) error {
 	if err := validate.CheckEmail(params.Email); err != nil {
 		return err
 	}

@@ -18,18 +18,18 @@ import (
 )
 
 func NewTeamConfigEmailRepo(data *data.Data, logger log.Logger) repository.TeamEmailConfig {
-	return &teamConfigEmailImpl{
+	return &teamConfigEmailRepoImpl{
 		Data:   data,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.team_config_email")),
 	}
 }
 
-type teamConfigEmailImpl struct {
+type teamConfigEmailRepoImpl struct {
 	*data.Data
 	helper *log.Helper
 }
 
-func (t *teamConfigEmailImpl) Get(ctx context.Context, id uint32) (do.TeamEmailConfig, error) {
+func (t *teamConfigEmailRepoImpl) Get(ctx context.Context, id uint32) (do.TeamEmailConfig, error) {
 	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizEmailConfigQuery := bizQuery.EmailConfig
 	wrappers := []gen.Condition{
@@ -43,7 +43,7 @@ func (t *teamConfigEmailImpl) Get(ctx context.Context, id uint32) (do.TeamEmailC
 	return emailConfig, nil
 }
 
-func (t *teamConfigEmailImpl) List(ctx context.Context, req *bo.ListEmailConfigRequest) (*bo.ListEmailConfigListReply, error) {
+func (t *teamConfigEmailRepoImpl) List(ctx context.Context, req *bo.ListEmailConfigRequest) (*bo.ListEmailConfigListReply, error) {
 	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizEmailConfigQuery := bizQuery.EmailConfig
 	wrapper := bizEmailConfigQuery.WithContext(ctx).Where(bizEmailConfigQuery.TeamID.Eq(teamID))
@@ -69,7 +69,7 @@ func (t *teamConfigEmailImpl) List(ctx context.Context, req *bo.ListEmailConfigR
 	return req.ToListReply(rows), nil
 }
 
-func (t *teamConfigEmailImpl) Create(ctx context.Context, config bo.TeamEmailConfig) error {
+func (t *teamConfigEmailRepoImpl) Create(ctx context.Context, config bo.TeamEmailConfig) error {
 	emailConfigDo := &team.EmailConfig{
 		TeamModel: do.TeamModel{},
 		Name:      config.GetName(),
@@ -83,7 +83,7 @@ func (t *teamConfigEmailImpl) Create(ctx context.Context, config bo.TeamEmailCon
 	return bizEmailConfigQuery.WithContext(ctx).Create(emailConfigDo)
 }
 
-func (t *teamConfigEmailImpl) Update(ctx context.Context, config bo.TeamEmailConfig) error {
+func (t *teamConfigEmailRepoImpl) Update(ctx context.Context, config bo.TeamEmailConfig) error {
 	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizEmailConfigQuery := bizQuery.EmailConfig
 	wrappers := []gen.Condition{

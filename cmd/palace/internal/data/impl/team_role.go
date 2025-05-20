@@ -18,16 +18,16 @@ import (
 )
 
 func NewTeamRole(data *data.Data) repository.TeamRole {
-	return &teamRoleImpl{
+	return &teamRoleRepoImpl{
 		Data: data,
 	}
 }
 
-type teamRoleImpl struct {
+type teamRoleRepoImpl struct {
 	*data.Data
 }
 
-func (t *teamRoleImpl) Find(ctx context.Context, ids []uint32) ([]do.TeamRole, error) {
+func (t *teamRoleRepoImpl) Find(ctx context.Context, ids []uint32) ([]do.TeamRole, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -48,7 +48,7 @@ func (t *teamRoleImpl) Find(ctx context.Context, ids []uint32) ([]do.TeamRole, e
 	return roleDos, nil
 }
 
-func (t *teamRoleImpl) Get(ctx context.Context, id uint32) (do.TeamRole, error) {
+func (t *teamRoleRepoImpl) Get(ctx context.Context, id uint32) (do.TeamRole, error) {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorPermissionDenied("team id not found")
@@ -66,7 +66,7 @@ func (t *teamRoleImpl) Get(ctx context.Context, id uint32) (do.TeamRole, error) 
 	return role, nil
 }
 
-func (t *teamRoleImpl) List(ctx context.Context, req *bo.ListRoleReq) (*bo.ListTeamRoleReply, error) {
+func (t *teamRoleRepoImpl) List(ctx context.Context, req *bo.ListRoleReq) (*bo.ListTeamRoleReply, error) {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorPermissionDenied("team id not found")
@@ -96,7 +96,7 @@ func (t *teamRoleImpl) List(ctx context.Context, req *bo.ListRoleReq) (*bo.ListT
 	return req.ToTeamRoleListReply(rows), nil
 }
 
-func (t *teamRoleImpl) Create(ctx context.Context, role bo.Role) error {
+func (t *teamRoleRepoImpl) Create(ctx context.Context, role bo.Role) error {
 	teamDo := &system.TeamRole{
 		Name:   role.GetName(),
 		Remark: role.GetRemark(),
@@ -122,7 +122,7 @@ func (t *teamRoleImpl) Create(ctx context.Context, role bo.Role) error {
 	return bizRoleQuery.Menus.Model(teamDo).Append(menus...)
 }
 
-func (t *teamRoleImpl) Update(ctx context.Context, role bo.Role) error {
+func (t *teamRoleRepoImpl) Update(ctx context.Context, role bo.Role) error {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return merr.ErrorPermissionDenied("team id not found")
@@ -164,7 +164,7 @@ func (t *teamRoleImpl) Update(ctx context.Context, role bo.Role) error {
 	return menuMutation.Replace(menuDos...)
 }
 
-func (t *teamRoleImpl) Delete(ctx context.Context, id uint32) error {
+func (t *teamRoleRepoImpl) Delete(ctx context.Context, id uint32) error {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return merr.ErrorPermissionDenied("team id not found")
@@ -178,7 +178,7 @@ func (t *teamRoleImpl) Delete(ctx context.Context, id uint32) error {
 	return err
 }
 
-func (t *teamRoleImpl) UpdateStatus(ctx context.Context, req *bo.UpdateRoleStatusReq) error {
+func (t *teamRoleRepoImpl) UpdateStatus(ctx context.Context, req *bo.UpdateRoleStatusReq) error {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return merr.ErrorPermissionDenied("team id not found")

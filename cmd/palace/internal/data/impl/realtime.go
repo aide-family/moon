@@ -22,16 +22,16 @@ import (
 )
 
 func NewRealtime(data *data.Data) repository.Realtime {
-	return &realtimeImpl{
+	return &realtimeRepoImpl{
 		Data: data,
 	}
 }
 
-type realtimeImpl struct {
+type realtimeRepoImpl struct {
 	*data.Data
 }
 
-func (r *realtimeImpl) getRealtimeTableName(ctx context.Context, alertStartsAt time.Time) (string, error) {
+func (r *realtimeRepoImpl) getRealtimeTableName(ctx context.Context, alertStartsAt time.Time) (string, error) {
 	teamId, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return "", merr.ErrorPermissionDenied("team id not found")
@@ -48,7 +48,7 @@ func (r *realtimeImpl) getRealtimeTableName(ctx context.Context, alertStartsAt t
 }
 
 // Exists implements repository.Realtime.
-func (r *realtimeImpl) Exists(ctx context.Context, alert *bo.GetAlertParams) (bool, error) {
+func (r *realtimeRepoImpl) Exists(ctx context.Context, alert *bo.GetAlertParams) (bool, error) {
 	ctx = permission.WithTeamIDContext(ctx, alert.TeamID)
 	tx, teamId := getTeamEventQueryWithTeamID(ctx, r)
 	tableName, err := r.getRealtimeTableName(ctx, alert.StartsAt)
@@ -72,7 +72,7 @@ func (r *realtimeImpl) Exists(ctx context.Context, alert *bo.GetAlertParams) (bo
 }
 
 // GetAlert implements repository.Realtime.
-func (r *realtimeImpl) GetAlert(ctx context.Context, alert *bo.GetAlertParams) (do.Realtime, error) {
+func (r *realtimeRepoImpl) GetAlert(ctx context.Context, alert *bo.GetAlertParams) (do.Realtime, error) {
 	ctx = permission.WithTeamIDContext(ctx, alert.TeamID)
 	tx, teamId := getTeamEventQueryWithTeamID(ctx, r)
 	tableName, err := r.getRealtimeTableName(ctx, alert.StartsAt)
@@ -95,7 +95,7 @@ func (r *realtimeImpl) GetAlert(ctx context.Context, alert *bo.GetAlertParams) (
 }
 
 // CreateAlert implements repository.Realtime.
-func (r *realtimeImpl) CreateAlert(ctx context.Context, alert *bo.Alert) error {
+func (r *realtimeRepoImpl) CreateAlert(ctx context.Context, alert *bo.Alert) error {
 	ctx = permission.WithTeamIDContext(ctx, alert.TeamID)
 	tx, teamId := getTeamEventQueryWithTeamID(ctx, r)
 
@@ -120,7 +120,7 @@ func (r *realtimeImpl) CreateAlert(ctx context.Context, alert *bo.Alert) error {
 }
 
 // UpdateAlert implements repository.Realtime.
-func (r *realtimeImpl) UpdateAlert(ctx context.Context, alert *bo.Alert) error {
+func (r *realtimeRepoImpl) UpdateAlert(ctx context.Context, alert *bo.Alert) error {
 	ctx = permission.WithTeamIDContext(ctx, alert.TeamID)
 	tx, teamId := getTeamEventQueryWithTeamID(ctx, r)
 	tableName, err := r.getRealtimeTableName(ctx, alert.StartsAt)
@@ -149,7 +149,7 @@ func (r *realtimeImpl) UpdateAlert(ctx context.Context, alert *bo.Alert) error {
 }
 
 // ListAlerts implements repository.Realtime.
-func (r *realtimeImpl) ListAlerts(ctx context.Context, params *bo.ListAlertParams) (*bo.ListAlertReply, error) {
+func (r *realtimeRepoImpl) ListAlerts(ctx context.Context, params *bo.ListAlertParams) (*bo.ListAlertReply, error) {
 	bizDB, err := r.GetBizDB(params.TeamID)
 	if err != nil {
 		return nil, err
@@ -182,7 +182,7 @@ func (r *realtimeImpl) ListAlerts(ctx context.Context, params *bo.ListAlertParam
 	return params.ToListReply(rows), nil
 }
 
-func (r *realtimeImpl) buildWrapper(bizDB *gorm.DB, params *bo.ListAlertParams) *gorm.DB {
+func (r *realtimeRepoImpl) buildWrapper(bizDB *gorm.DB, params *bo.ListAlertParams) *gorm.DB {
 	if params.Keyword != "" {
 		bizDB = bizDB.Where("summary LIKE ? or description LIKE ?", params.Keyword, params.Keyword)
 	}

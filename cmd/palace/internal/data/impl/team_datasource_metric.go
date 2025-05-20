@@ -19,18 +19,18 @@ import (
 )
 
 func NewTeamMetricDatasourceRepo(data *data.Data, logger log.Logger) repository.TeamDatasourceMetric {
-	return &teamMetricDatasourceImpl{
+	return &teamMetricDatasourceRepoImpl{
 		Data:   data,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.team.datasource.metric")),
 	}
 }
 
-type teamMetricDatasourceImpl struct {
+type teamMetricDatasourceRepoImpl struct {
 	*data.Data
 	helper *log.Helper
 }
 
-func (t *teamMetricDatasourceImpl) Create(ctx context.Context, req *bo.SaveTeamMetricDatasource) error {
+func (t *teamMetricDatasourceRepoImpl) Create(ctx context.Context, req *bo.SaveTeamMetricDatasource) error {
 	metricDatasourceDo := &team.DatasourceMetric{
 		Name:           req.Name,
 		Status:         vobj.GlobalStatusEnable,
@@ -50,7 +50,7 @@ func (t *teamMetricDatasourceImpl) Create(ctx context.Context, req *bo.SaveTeamM
 	return bizMutation.DatasourceMetric.WithContext(ctx).Create(metricDatasourceDo)
 }
 
-func (t *teamMetricDatasourceImpl) Update(ctx context.Context, req *bo.SaveTeamMetricDatasource) error {
+func (t *teamMetricDatasourceRepoImpl) Update(ctx context.Context, req *bo.SaveTeamMetricDatasource) error {
 	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizMutation.DatasourceMetric
 	wrapper := []gen.Condition{
@@ -75,7 +75,7 @@ func (t *teamMetricDatasourceImpl) Update(ctx context.Context, req *bo.SaveTeamM
 	return err
 }
 
-func (t *teamMetricDatasourceImpl) UpdateStatus(ctx context.Context, req *bo.UpdateTeamMetricDatasourceStatusRequest) error {
+func (t *teamMetricDatasourceRepoImpl) UpdateStatus(ctx context.Context, req *bo.UpdateTeamMetricDatasourceStatusRequest) error {
 	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizMutation.DatasourceMetric
 	wrapper := []gen.Condition{
@@ -86,7 +86,7 @@ func (t *teamMetricDatasourceImpl) UpdateStatus(ctx context.Context, req *bo.Upd
 	return err
 }
 
-func (t *teamMetricDatasourceImpl) Delete(ctx context.Context, datasourceID uint32) error {
+func (t *teamMetricDatasourceRepoImpl) Delete(ctx context.Context, datasourceID uint32) error {
 	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizMutation.DatasourceMetric
 	wrapper := []gen.Condition{
@@ -97,7 +97,7 @@ func (t *teamMetricDatasourceImpl) Delete(ctx context.Context, datasourceID uint
 	return err
 }
 
-func (t *teamMetricDatasourceImpl) Get(ctx context.Context, datasourceID uint32) (do.DatasourceMetric, error) {
+func (t *teamMetricDatasourceRepoImpl) Get(ctx context.Context, datasourceID uint32) (do.DatasourceMetric, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizQuery.DatasourceMetric
 	wrapper := []gen.Condition{
@@ -111,7 +111,7 @@ func (t *teamMetricDatasourceImpl) Get(ctx context.Context, datasourceID uint32)
 	return datasource, nil
 }
 
-func (t *teamMetricDatasourceImpl) List(ctx context.Context, req *bo.ListTeamMetricDatasource) (*bo.ListTeamMetricDatasourceReply, error) {
+func (t *teamMetricDatasourceRepoImpl) List(ctx context.Context, req *bo.ListTeamMetricDatasource) (*bo.ListTeamMetricDatasourceReply, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizQuery.DatasourceMetric
 	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId))
@@ -143,7 +143,7 @@ func (t *teamMetricDatasourceImpl) List(ctx context.Context, req *bo.ListTeamMet
 	return req.ToListReply(rows), nil
 }
 
-func (t *teamMetricDatasourceImpl) FindByIds(ctx context.Context, datasourceIds []uint32) ([]do.DatasourceMetric, error) {
+func (t *teamMetricDatasourceRepoImpl) FindByIds(ctx context.Context, datasourceIds []uint32) ([]do.DatasourceMetric, error) {
 	if len(datasourceIds) == 0 {
 		return nil, nil
 	}
@@ -157,7 +157,7 @@ func (t *teamMetricDatasourceImpl) FindByIds(ctx context.Context, datasourceIds 
 	return slices.Map(rows, func(row *team.DatasourceMetric) do.DatasourceMetric { return row }), nil
 }
 
-func (t *teamMetricDatasourceImpl) Select(ctx context.Context, req *bo.DatasourceSelect) (*bo.DatasourceSelectReply, error) {
+func (t *teamMetricDatasourceRepoImpl) Select(ctx context.Context, req *bo.DatasourceSelect) (*bo.DatasourceSelectReply, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizQuery.DatasourceMetric
 	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId))

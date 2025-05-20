@@ -20,19 +20,19 @@ import (
 )
 
 func NewMemberRepo(data *data.Data, logger log.Logger) repository.Member {
-	return &memberImpl{
+	return &memberRepoImpl{
 		Data:   data,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.member")),
 	}
 }
 
-type memberImpl struct {
+type memberRepoImpl struct {
 	*data.Data
 	helper *log.Helper
 }
 
 // Create implements repository.Member.
-func (m *memberImpl) Create(ctx context.Context, req *bo.CreateTeamMemberReq) error {
+func (m *memberRepoImpl) Create(ctx context.Context, req *bo.CreateTeamMemberReq) error {
 	memberQuery := getMainQuery(ctx, m).TeamMember
 	memberDo := &system.TeamMember{
 		TeamModel:  do.TeamModel{TeamID: req.Team.GetID()},
@@ -49,7 +49,7 @@ func (m *memberImpl) Create(ctx context.Context, req *bo.CreateTeamMemberReq) er
 	return nil
 }
 
-func (m *memberImpl) List(ctx context.Context, req *bo.TeamMemberListRequest) (*bo.TeamMemberListReply, error) {
+func (m *memberRepoImpl) List(ctx context.Context, req *bo.TeamMemberListRequest) (*bo.TeamMemberListReply, error) {
 	if validate.IsNil(req) {
 		return nil, merr.ErrorParams("invalid request")
 	}
@@ -90,7 +90,7 @@ func (m *memberImpl) List(ctx context.Context, req *bo.TeamMemberListRequest) (*
 	return req.ToListReply(rows), nil
 }
 
-func (m *memberImpl) Select(ctx context.Context, req *bo.SelectTeamMembersRequest) (*bo.SelectTeamMembersReply, error) {
+func (m *memberRepoImpl) Select(ctx context.Context, req *bo.SelectTeamMembersRequest) (*bo.SelectTeamMembersReply, error) {
 	if validate.IsNil(req) {
 		return nil, merr.ErrorParams("invalid request")
 	}
@@ -137,7 +137,7 @@ func (m *memberImpl) Select(ctx context.Context, req *bo.SelectTeamMembersReques
 	return req.ToSelectReply(rows), nil
 }
 
-func (m *memberImpl) UpdateStatus(ctx context.Context, req bo.UpdateMemberStatus) error {
+func (m *memberRepoImpl) UpdateStatus(ctx context.Context, req bo.UpdateMemberStatus) error {
 	if validate.IsNil(req) {
 		return merr.ErrorParams("invalid request")
 	}
@@ -166,7 +166,7 @@ func (m *memberImpl) UpdateStatus(ctx context.Context, req bo.UpdateMemberStatus
 	return err
 }
 
-func (m *memberImpl) UpdatePosition(ctx context.Context, req bo.UpdateMemberPosition) error {
+func (m *memberRepoImpl) UpdatePosition(ctx context.Context, req bo.UpdateMemberPosition) error {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return merr.ErrorPermissionDenied("team id not found")
@@ -181,7 +181,7 @@ func (m *memberImpl) UpdatePosition(ctx context.Context, req bo.UpdateMemberPosi
 	return err
 }
 
-func (m *memberImpl) UpdateRoles(ctx context.Context, req bo.UpdateMemberRoles) error {
+func (m *memberRepoImpl) UpdateRoles(ctx context.Context, req bo.UpdateMemberRoles) error {
 	memberDo := &system.TeamMember{
 		TeamModel: do.TeamModel{
 			CreatorModel: do.CreatorModel{
@@ -211,7 +211,7 @@ func (m *memberImpl) UpdateRoles(ctx context.Context, req bo.UpdateMemberRoles) 
 	return rolesAssociation.Replace(roles...)
 }
 
-func (m *memberImpl) Get(ctx context.Context, id uint32) (do.TeamMember, error) {
+func (m *memberRepoImpl) Get(ctx context.Context, id uint32) (do.TeamMember, error) {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorPermissionDenied("team id not found")
@@ -228,7 +228,7 @@ func (m *memberImpl) Get(ctx context.Context, id uint32) (do.TeamMember, error) 
 	return member, nil
 }
 
-func (m *memberImpl) Find(ctx context.Context, ids []uint32) ([]do.TeamMember, error) {
+func (m *memberRepoImpl) Find(ctx context.Context, ids []uint32) ([]do.TeamMember, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -250,7 +250,7 @@ func (m *memberImpl) Find(ctx context.Context, ids []uint32) ([]do.TeamMember, e
 	return memberDos, nil
 }
 
-func (m *memberImpl) FindByUserID(ctx context.Context, userID uint32) (do.TeamMember, error) {
+func (m *memberRepoImpl) FindByUserID(ctx context.Context, userID uint32) (do.TeamMember, error) {
 	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorPermissionDenied("team id not found")

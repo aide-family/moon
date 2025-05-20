@@ -14,18 +14,18 @@ import (
 )
 
 func NewServerRepo(data *data.Data, logger log.Logger) repository.Server {
-	return &serverRepository{
+	return &serverRepoImpl{
 		data:   data,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.server")),
 	}
 }
 
-type serverRepository struct {
+type serverRepoImpl struct {
 	data   *data.Data
 	helper *log.Helper
 }
 
-func (s *serverRepository) DeregisterServer(ctx context.Context, req *bo.ServerRegisterReq) error {
+func (s *serverRepoImpl) DeregisterServer(ctx context.Context, req *bo.ServerRegisterReq) error {
 	s.helper.WithContext(ctx).Debugf("deregister %s server: %v", req.ServerType, req)
 	serverConn, ok := s.data.GetServerConn(req.ServerType, req.Uuid)
 	if !ok {
@@ -38,7 +38,7 @@ func (s *serverRepository) DeregisterServer(ctx context.Context, req *bo.ServerR
 	return nil
 }
 
-func (s *serverRepository) RegisterServer(ctx context.Context, req *bo.ServerRegisterReq) error {
+func (s *serverRepoImpl) RegisterServer(ctx context.Context, req *bo.ServerRegisterReq) error {
 	s.helper.WithContext(ctx).Debugf("register %s server: %s", req.ServerType, req.Uuid)
 	initConfig := &server.InitConfig{
 		MicroConfig: req.Server,

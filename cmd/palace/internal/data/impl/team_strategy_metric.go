@@ -17,17 +17,17 @@ import (
 )
 
 func NewTeamStrategyMetricRepo(d *data.Data) repository.TeamStrategyMetric {
-	return &teamStrategyMetricImpl{
+	return &teamStrategyMetricRepoImpl{
 		Data: d,
 	}
 }
 
-type teamStrategyMetricImpl struct {
+type teamStrategyMetricRepoImpl struct {
 	*data.Data
 }
 
 // DeleteUnUsedLevels implements repository.TeamStrategyMetric.
-func (t *teamStrategyMetricImpl) DeleteUnUsedLevels(ctx context.Context, params *bo.DeleteUnUsedLevelsParams) error {
+func (t *teamStrategyMetricRepoImpl) DeleteUnUsedLevels(ctx context.Context, params *bo.DeleteUnUsedLevelsParams) error {
 	if params.StrategyMetricID <= 0 || len(params.RuleIds) == 0 {
 		return nil
 	}
@@ -43,7 +43,7 @@ func (t *teamStrategyMetricImpl) DeleteUnUsedLevels(ctx context.Context, params 
 }
 
 // FindLevels implements repository.TeamStrategyMetric.
-func (t *teamStrategyMetricImpl) FindLevels(ctx context.Context, params *bo.FindTeamMetricStrategyLevelsParams) ([]do.StrategyMetricRule, error) {
+func (t *teamStrategyMetricRepoImpl) FindLevels(ctx context.Context, params *bo.FindTeamMetricStrategyLevelsParams) ([]do.StrategyMetricRule, error) {
 	if params.StrategyMetricID <= 0 {
 		return nil, nil
 	}
@@ -66,7 +66,7 @@ func (t *teamStrategyMetricImpl) FindLevels(ctx context.Context, params *bo.Find
 }
 
 // Create implements repository.TeamStrategyMetric.
-func (t *teamStrategyMetricImpl) Create(ctx context.Context, params bo.CreateTeamMetricStrategyParams) (do.StrategyMetric, error) {
+func (t *teamStrategyMetricRepoImpl) Create(ctx context.Context, params bo.CreateTeamMetricStrategyParams) (do.StrategyMetric, error) {
 	tx := getTeamBizQuery(ctx, t)
 
 	strategyMetricDo := &team.StrategyMetric{
@@ -93,7 +93,7 @@ func (t *teamStrategyMetricImpl) Create(ctx context.Context, params bo.CreateTea
 }
 
 // Update implements repository.TeamStrategyMetric.
-func (t *teamStrategyMetricImpl) Update(ctx context.Context, params bo.UpdateTeamMetricStrategyParams) (do.StrategyMetric, error) {
+func (t *teamStrategyMetricRepoImpl) Update(ctx context.Context, params bo.UpdateTeamMetricStrategyParams) (do.StrategyMetric, error) {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 
 	strategyMetricMutation := tx.StrategyMetric
@@ -133,7 +133,7 @@ func (t *teamStrategyMetricImpl) Update(ctx context.Context, params bo.UpdateTea
 }
 
 // UpdateLevels implements repository.TeamStrategyMetric.
-func (t *teamStrategyMetricImpl) UpdateLevels(ctx context.Context, params bo.SaveTeamMetricStrategyLevels) ([]do.StrategyMetricRule, error) {
+func (t *teamStrategyMetricRepoImpl) UpdateLevels(ctx context.Context, params bo.SaveTeamMetricStrategyLevels) ([]do.StrategyMetricRule, error) {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 
 	strategyMetricRuleMutation := tx.StrategyMetricRule
@@ -209,7 +209,7 @@ func (t *teamStrategyMetricImpl) UpdateLevels(ctx context.Context, params bo.Sav
 }
 
 // CreateLevels implements repository.TeamStrategyMetric.
-func (t *teamStrategyMetricImpl) CreateLevels(ctx context.Context, params bo.SaveTeamMetricStrategyLevels) ([]do.StrategyMetricRule, error) {
+func (t *teamStrategyMetricRepoImpl) CreateLevels(ctx context.Context, params bo.SaveTeamMetricStrategyLevels) ([]do.StrategyMetricRule, error) {
 	tx := getTeamBizQuery(ctx, t)
 
 	strategyMetricRuleDos := slices.Map(params.GetLevels(), func(rule bo.SaveTeamMetricStrategyLevel) *team.StrategyMetricRule {
@@ -250,7 +250,7 @@ func (t *teamStrategyMetricImpl) CreateLevels(ctx context.Context, params bo.Sav
 }
 
 // Delete implements repository.TeamStrategyMetric.
-func (t *teamStrategyMetricImpl) Delete(ctx context.Context, params *bo.OperateTeamStrategyParams) error {
+func (t *teamStrategyMetricRepoImpl) Delete(ctx context.Context, params *bo.OperateTeamStrategyParams) error {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 
 	strategyMetricMutation := tx.StrategyMetric
@@ -264,7 +264,7 @@ func (t *teamStrategyMetricImpl) Delete(ctx context.Context, params *bo.OperateT
 }
 
 // DeleteLevels implements repository.TeamStrategyMetric.
-func (t *teamStrategyMetricImpl) DeleteLevels(ctx context.Context, params *bo.OperateTeamStrategyParams) error {
+func (t *teamStrategyMetricRepoImpl) DeleteLevels(ctx context.Context, params *bo.OperateTeamStrategyParams) error {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 
 	strategyMetricMutation := tx.StrategyMetric
@@ -289,7 +289,7 @@ func (t *teamStrategyMetricImpl) DeleteLevels(ctx context.Context, params *bo.Op
 }
 
 // Get implements repository.TeamStrategyMetric.
-func (t *teamStrategyMetricImpl) Get(ctx context.Context, params *bo.OperateTeamStrategyParams) (do.StrategyMetric, error) {
+func (t *teamStrategyMetricRepoImpl) Get(ctx context.Context, params *bo.OperateTeamStrategyParams) (do.StrategyMetric, error) {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 
 	strategyMetricMutation := tx.StrategyMetric

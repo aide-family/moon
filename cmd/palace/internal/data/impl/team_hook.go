@@ -19,18 +19,18 @@ import (
 )
 
 func NewTeamHook(data *data.Data, logger log.Logger) repository.TeamHook {
-	return &teamHookImpl{
+	return &teamHookRepoImpl{
 		Data:   data,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.team_hook")),
 	}
 }
 
-type teamHookImpl struct {
+type teamHookRepoImpl struct {
 	*data.Data
 	helper *log.Helper
 }
 
-func (t *teamHookImpl) Find(ctx context.Context, ids []uint32) ([]do.NoticeHook, error) {
+func (t *teamHookRepoImpl) Find(ctx context.Context, ids []uint32) ([]do.NoticeHook, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -48,7 +48,7 @@ func (t *teamHookImpl) Find(ctx context.Context, ids []uint32) ([]do.NoticeHook,
 	return slices.Map(hooks, func(hook *team.NoticeHook) do.NoticeHook { return hook }), nil
 }
 
-func (t *teamHookImpl) Create(ctx context.Context, hook bo.NoticeHook) error {
+func (t *teamHookRepoImpl) Create(ctx context.Context, hook bo.NoticeHook) error {
 	noticeHook := &team.NoticeHook{
 		Name:    hook.GetName(),
 		Remark:  hook.GetRemark(),
@@ -66,7 +66,7 @@ func (t *teamHookImpl) Create(ctx context.Context, hook bo.NoticeHook) error {
 	return query.NoticeHook.WithContext(ctx).Create(noticeHook)
 }
 
-func (t *teamHookImpl) Update(ctx context.Context, hook bo.NoticeHook) error {
+func (t *teamHookRepoImpl) Update(ctx context.Context, hook bo.NoticeHook) error {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
 		query.NoticeHook.ID.Eq(hook.GetID()),
@@ -88,7 +88,7 @@ func (t *teamHookImpl) Update(ctx context.Context, hook bo.NoticeHook) error {
 	return err
 }
 
-func (t *teamHookImpl) UpdateStatus(ctx context.Context, req *bo.UpdateTeamNoticeHookStatusRequest) error {
+func (t *teamHookRepoImpl) UpdateStatus(ctx context.Context, req *bo.UpdateTeamNoticeHookStatusRequest) error {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
 
 	wrapper := []gen.Condition{
@@ -103,7 +103,7 @@ func (t *teamHookImpl) UpdateStatus(ctx context.Context, req *bo.UpdateTeamNotic
 	return err
 }
 
-func (t *teamHookImpl) Delete(ctx context.Context, hookID uint32) error {
+func (t *teamHookRepoImpl) Delete(ctx context.Context, hookID uint32) error {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
 
 	wrapper := []gen.Condition{
@@ -116,7 +116,7 @@ func (t *teamHookImpl) Delete(ctx context.Context, hookID uint32) error {
 	return err
 }
 
-func (t *teamHookImpl) Get(ctx context.Context, hookID uint32) (do.NoticeHook, error) {
+func (t *teamHookRepoImpl) Get(ctx context.Context, hookID uint32) (do.NoticeHook, error) {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
 
 	hookQuery := query.NoticeHook
@@ -132,7 +132,7 @@ func (t *teamHookImpl) Get(ctx context.Context, hookID uint32) (do.NoticeHook, e
 	return hook, nil
 }
 
-func (t *teamHookImpl) List(ctx context.Context, req *bo.ListTeamNoticeHookRequest) (*bo.ListTeamNoticeHookReply, error) {
+func (t *teamHookRepoImpl) List(ctx context.Context, req *bo.ListTeamNoticeHookRequest) (*bo.ListTeamNoticeHookReply, error) {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
 
 	hookQuery := query.NoticeHook
@@ -164,7 +164,7 @@ func (t *teamHookImpl) List(ctx context.Context, req *bo.ListTeamNoticeHookReque
 	return req.ToListReply(rows), nil
 }
 
-func (t *teamHookImpl) Select(ctx context.Context, req *bo.TeamNoticeHookSelectRequest) (*bo.TeamNoticeHookSelectReply, error) {
+func (t *teamHookRepoImpl) Select(ctx context.Context, req *bo.TeamNoticeHookSelectRequest) (*bo.TeamNoticeHookSelectReply, error) {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
 
 	hookQuery := query.NoticeHook

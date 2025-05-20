@@ -17,18 +17,18 @@ import (
 )
 
 func NewTeamNotice(data *data.Data, logger log.Logger) repository.TeamNotice {
-	return &teamNoticeImpl{
+	return &teamNoticeRepoImpl{
 		Data:   data,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.team_notice")),
 	}
 }
 
-type teamNoticeImpl struct {
+type teamNoticeRepoImpl struct {
 	*data.Data
 	helper *log.Helper
 }
 
-func (t *teamNoticeImpl) List(ctx context.Context, req *bo.ListNoticeGroupReq) (*bo.ListNoticeGroupReply, error) {
+func (t *teamNoticeRepoImpl) List(ctx context.Context, req *bo.ListNoticeGroupReq) (*bo.ListNoticeGroupReply, error) {
 	if validate.IsNil(req) {
 		return nil, nil
 	}
@@ -68,7 +68,7 @@ func (t *teamNoticeImpl) List(ctx context.Context, req *bo.ListNoticeGroupReq) (
 	return req.ToListReply(rows), nil
 }
 
-func (t *teamNoticeImpl) Create(ctx context.Context, group bo.SaveNoticeGroup) error {
+func (t *teamNoticeRepoImpl) Create(ctx context.Context, group bo.SaveNoticeGroup) error {
 	noticeGroupDo := &team.NoticeGroup{
 		Name:          group.GetName(),
 		Remark:        group.GetRemark(),
@@ -128,7 +128,7 @@ func (t *teamNoticeImpl) Create(ctx context.Context, group bo.SaveNoticeGroup) e
 	return nil
 }
 
-func (t *teamNoticeImpl) Update(ctx context.Context, group bo.SaveNoticeGroup) error {
+func (t *teamNoticeRepoImpl) Update(ctx context.Context, group bo.SaveNoticeGroup) error {
 	if validate.IsNil(group) {
 		return nil
 	}
@@ -206,7 +206,7 @@ func (t *teamNoticeImpl) Update(ctx context.Context, group bo.SaveNoticeGroup) e
 	return nil
 }
 
-func (t *teamNoticeImpl) UpdateStatus(ctx context.Context, req *bo.UpdateTeamNoticeGroupStatusRequest) error {
+func (t *teamNoticeRepoImpl) UpdateStatus(ctx context.Context, req *bo.UpdateTeamNoticeGroupStatusRequest) error {
 	groupIds := slices.MapFilter(req.GroupIds, func(groupId uint32) (uint32, bool) {
 		if groupId <= 0 {
 			return 0, false
@@ -227,7 +227,7 @@ func (t *teamNoticeImpl) UpdateStatus(ctx context.Context, req *bo.UpdateTeamNot
 	return err
 }
 
-func (t *teamNoticeImpl) Delete(ctx context.Context, groupID uint32) error {
+func (t *teamNoticeRepoImpl) Delete(ctx context.Context, groupID uint32) error {
 	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
 		bizMutation.NoticeGroup.TeamID.Eq(teamId),
@@ -237,7 +237,7 @@ func (t *teamNoticeImpl) Delete(ctx context.Context, groupID uint32) error {
 	return err
 }
 
-func (t *teamNoticeImpl) Get(ctx context.Context, groupID uint32) (do.NoticeGroup, error) {
+func (t *teamNoticeRepoImpl) Get(ctx context.Context, groupID uint32) (do.NoticeGroup, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
 		bizQuery.NoticeGroup.TeamID.Eq(teamId),
@@ -250,7 +250,7 @@ func (t *teamNoticeImpl) Get(ctx context.Context, groupID uint32) (do.NoticeGrou
 	return noticeGroup, nil
 }
 
-func (t *teamNoticeImpl) FindByIds(ctx context.Context, groupIds []uint32) ([]do.NoticeGroup, error) {
+func (t *teamNoticeRepoImpl) FindByIds(ctx context.Context, groupIds []uint32) ([]do.NoticeGroup, error) {
 	if len(groupIds) == 0 {
 		return nil, nil
 	}
@@ -264,7 +264,7 @@ func (t *teamNoticeImpl) FindByIds(ctx context.Context, groupIds []uint32) ([]do
 	return slices.Map(rows, func(row *team.NoticeGroup) do.NoticeGroup { return row }), nil
 }
 
-func (t *teamNoticeImpl) FindLabelNotices(ctx context.Context, labelNoticeIds []uint32) ([]do.StrategyMetricRuleLabelNotice, error) {
+func (t *teamNoticeRepoImpl) FindLabelNotices(ctx context.Context, labelNoticeIds []uint32) ([]do.StrategyMetricRuleLabelNotice, error) {
 	if len(labelNoticeIds) == 0 {
 		return nil, nil
 	}
@@ -278,7 +278,7 @@ func (t *teamNoticeImpl) FindLabelNotices(ctx context.Context, labelNoticeIds []
 	return slices.Map(rows, func(row *team.StrategyMetricRuleLabelNotice) do.StrategyMetricRuleLabelNotice { return row }), nil
 }
 
-func (t *teamNoticeImpl) Select(ctx context.Context, req *bo.TeamNoticeGroupSelectRequest) (*bo.TeamNoticeGroupSelectReply, error) {
+func (t *teamNoticeRepoImpl) Select(ctx context.Context, req *bo.TeamNoticeGroupSelectRequest) (*bo.TeamNoticeGroupSelectReply, error) {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	noticeGroupQuery := query.NoticeGroup
 	wrapper := noticeGroupQuery.WithContext(ctx).Where(noticeGroupQuery.TeamID.Eq(teamID))

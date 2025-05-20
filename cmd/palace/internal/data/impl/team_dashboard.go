@@ -18,19 +18,19 @@ import (
 
 // NewDashboardRepo creates a new dashboard repository
 func NewDashboardRepo(data *data.Data, logger log.Logger) repository.Dashboard {
-	return &dashboardImpl{
+	return &dashboardRepoImpl{
 		Data:   data,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.dashboard")),
 	}
 }
 
-type dashboardImpl struct {
+type dashboardRepoImpl struct {
 	*data.Data
 
 	helper *log.Helper
 }
 
-func (r *dashboardImpl) CreateDashboard(ctx context.Context, dashboard bo.Dashboard) error {
+func (r *dashboardRepoImpl) CreateDashboard(ctx context.Context, dashboard bo.Dashboard) error {
 	query := getTeamBizQuery(ctx, r)
 	dashboardDo := &team.Dashboard{
 		Title:    dashboard.GetTitle(),
@@ -42,7 +42,7 @@ func (r *dashboardImpl) CreateDashboard(ctx context.Context, dashboard bo.Dashbo
 	return query.Dashboard.WithContext(ctx).Create(dashboardDo)
 }
 
-func (r *dashboardImpl) UpdateDashboard(ctx context.Context, dashboard bo.Dashboard) error {
+func (r *dashboardRepoImpl) UpdateDashboard(ctx context.Context, dashboard bo.Dashboard) error {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := query.Dashboard
 	wrappers := []gen.Condition{
@@ -60,7 +60,7 @@ func (r *dashboardImpl) UpdateDashboard(ctx context.Context, dashboard bo.Dashbo
 }
 
 // DeleteDashboard delete dashboard by id
-func (r *dashboardImpl) DeleteDashboard(ctx context.Context, id uint32) error {
+func (r *dashboardRepoImpl) DeleteDashboard(ctx context.Context, id uint32) error {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := query.Dashboard
 	wrappers := []gen.Condition{
@@ -72,7 +72,7 @@ func (r *dashboardImpl) DeleteDashboard(ctx context.Context, id uint32) error {
 }
 
 // GetDashboard get dashboard by id
-func (r *dashboardImpl) GetDashboard(ctx context.Context, id uint32) (do.Dashboard, error) {
+func (r *dashboardRepoImpl) GetDashboard(ctx context.Context, id uint32) (do.Dashboard, error) {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := query.Dashboard
 	wrappers := []gen.Condition{
@@ -87,7 +87,7 @@ func (r *dashboardImpl) GetDashboard(ctx context.Context, id uint32) (do.Dashboa
 }
 
 // ListDashboards list dashboards with filter
-func (r *dashboardImpl) ListDashboards(ctx context.Context, req *bo.ListDashboardReq) (*bo.ListDashboardReply, error) {
+func (r *dashboardRepoImpl) ListDashboards(ctx context.Context, req *bo.ListDashboardReq) (*bo.ListDashboardReply, error) {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := query.Dashboard
 	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamID))
@@ -113,7 +113,7 @@ func (r *dashboardImpl) ListDashboards(ctx context.Context, req *bo.ListDashboar
 	return req.ToListReply(rows), nil
 }
 
-func (r *dashboardImpl) SelectTeamDashboard(ctx context.Context, req *bo.SelectTeamDashboardReq) (*bo.SelectTeamDashboardReply, error) {
+func (r *dashboardRepoImpl) SelectTeamDashboard(ctx context.Context, req *bo.SelectTeamDashboardReq) (*bo.SelectTeamDashboardReply, error) {
 	tx, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	mutation := tx.Dashboard
 	query := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamID))
@@ -148,7 +148,7 @@ func (r *dashboardImpl) SelectTeamDashboard(ctx context.Context, req *bo.SelectT
 }
 
 // BatchUpdateDashboardStatus update multiple dashboards status
-func (r *dashboardImpl) BatchUpdateDashboardStatus(ctx context.Context, req *bo.BatchUpdateDashboardStatusReq) error {
+func (r *dashboardRepoImpl) BatchUpdateDashboardStatus(ctx context.Context, req *bo.BatchUpdateDashboardStatusReq) error {
 	if len(req.Ids) == 0 {
 		return nil
 	}

@@ -18,18 +18,18 @@ import (
 )
 
 func NewTeamDictRepo(d *data.Data, logger log.Logger) repository.TeamDict {
-	return &teamDictImpl{
+	return &teamDictRepoImpl{
 		Data:   d,
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.team_dict")),
 	}
 }
 
-type teamDictImpl struct {
+type teamDictRepoImpl struct {
 	*data.Data
 	helper *log.Helper
 }
 
-func (t *teamDictImpl) Get(ctx context.Context, dictID uint32) (do.TeamDict, error) {
+func (t *teamDictRepoImpl) Get(ctx context.Context, dictID uint32) (do.TeamDict, error) {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
 
 	bizDictQuery := query.Dict
@@ -44,7 +44,7 @@ func (t *teamDictImpl) Get(ctx context.Context, dictID uint32) (do.TeamDict, err
 	return dict, nil
 }
 
-func (t *teamDictImpl) Delete(ctx context.Context, dictID uint32) error {
+func (t *teamDictRepoImpl) Delete(ctx context.Context, dictID uint32) error {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizDictQuery := query.Dict
 	wrappers := []gen.Condition{
@@ -55,7 +55,7 @@ func (t *teamDictImpl) Delete(ctx context.Context, dictID uint32) error {
 	return err
 }
 
-func (t *teamDictImpl) Create(ctx context.Context, dict bo.Dict) error {
+func (t *teamDictRepoImpl) Create(ctx context.Context, dict bo.Dict) error {
 	query := getTeamBizQuery(ctx, t)
 	dictDo := &team.Dict{
 		Key:      dict.GetKey(),
@@ -70,7 +70,7 @@ func (t *teamDictImpl) Create(ctx context.Context, dict bo.Dict) error {
 	return bizDictQuery.WithContext(ctx).Create(dictDo)
 }
 
-func (t *teamDictImpl) Update(ctx context.Context, dict bo.Dict) error {
+func (t *teamDictRepoImpl) Update(ctx context.Context, dict bo.Dict) error {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizDictQuery := query.Dict
 	mutations := []field.AssignExpr{
@@ -89,7 +89,7 @@ func (t *teamDictImpl) Update(ctx context.Context, dict bo.Dict) error {
 	return err
 }
 
-func (t *teamDictImpl) UpdateStatus(ctx context.Context, req *bo.UpdateDictStatusReq) error {
+func (t *teamDictRepoImpl) UpdateStatus(ctx context.Context, req *bo.UpdateDictStatusReq) error {
 	if len(req.DictIds) == 0 {
 		return nil
 	}
@@ -104,7 +104,7 @@ func (t *teamDictImpl) UpdateStatus(ctx context.Context, req *bo.UpdateDictStatu
 	return err
 }
 
-func (t *teamDictImpl) List(ctx context.Context, req *bo.ListDictReq) (*bo.ListDictReply, error) {
+func (t *teamDictRepoImpl) List(ctx context.Context, req *bo.ListDictReq) (*bo.ListDictReply, error) {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizDictQuery := query.Dict
 	wrapper := bizDictQuery.WithContext(ctx).Where(bizDictQuery.TeamID.Eq(teamID))
@@ -137,7 +137,7 @@ func (t *teamDictImpl) List(ctx context.Context, req *bo.ListDictReq) (*bo.ListD
 	return req.ToListReply(rows), nil
 }
 
-func (t *teamDictImpl) Select(ctx context.Context, req *bo.SelectDictReq) (*bo.SelectDictReply, error) {
+func (t *teamDictRepoImpl) Select(ctx context.Context, req *bo.SelectDictReq) (*bo.SelectDictReply, error) {
 	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizDictQuery := query.Dict
 	wrapper := bizDictQuery.WithContext(ctx).Where(bizDictQuery.TeamID.Eq(teamID))
@@ -179,7 +179,7 @@ func (t *teamDictImpl) Select(ctx context.Context, req *bo.SelectDictReq) (*bo.S
 	return req.ToSelectReply(slices.Map(dictItems, func(dictItem *team.Dict) do.TeamDict { return dictItem })), nil
 }
 
-func (t *teamDictImpl) FindByIds(ctx context.Context, dictIds []uint32) ([]do.TeamDict, error) {
+func (t *teamDictRepoImpl) FindByIds(ctx context.Context, dictIds []uint32) ([]do.TeamDict, error) {
 	if len(dictIds) == 0 {
 		return nil, nil
 	}

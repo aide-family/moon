@@ -18,17 +18,17 @@ import (
 
 // NewTimeEngineRule 创建时间引擎规则仓储实现
 func NewTimeEngineRule(data *data.Data) repository.TimeEngineRule {
-	return &timeEngineRuleImpl{
+	return &timeEngineRuleRepoImpl{
 		Data: data,
 	}
 }
 
-type timeEngineRuleImpl struct {
+type timeEngineRuleRepoImpl struct {
 	*data.Data
 }
 
 // CreateTimeEngineRule 创建时间引擎规则
-func (r *timeEngineRuleImpl) CreateTimeEngineRule(ctx context.Context, req *bo.SaveTimeEngineRuleRequest) error {
+func (r *timeEngineRuleRepoImpl) CreateTimeEngineRule(ctx context.Context, req *bo.SaveTimeEngineRuleRequest) error {
 	timeEngineRule := &team.TimeEngineRule{
 		Name:   req.Name,
 		Remark: req.Remark,
@@ -42,7 +42,7 @@ func (r *timeEngineRuleImpl) CreateTimeEngineRule(ctx context.Context, req *bo.S
 }
 
 // UpdateTimeEngineRule 更新时间引擎规则
-func (r *timeEngineRuleImpl) UpdateTimeEngineRule(ctx context.Context, timeEngineRuleId uint32, req *bo.SaveTimeEngineRuleRequest) error {
+func (r *timeEngineRuleRepoImpl) UpdateTimeEngineRule(ctx context.Context, timeEngineRuleId uint32, req *bo.SaveTimeEngineRuleRequest) error {
 	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleMutation := bizMutation.TimeEngineRule
 	wrappers := []gen.Condition{
@@ -61,7 +61,7 @@ func (r *timeEngineRuleImpl) UpdateTimeEngineRule(ctx context.Context, timeEngin
 }
 
 // UpdateTimeEngineRuleStatus 更新时间引擎规则状态
-func (r *timeEngineRuleImpl) UpdateTimeEngineRuleStatus(ctx context.Context, req *bo.UpdateTimeEngineRuleStatusRequest) error {
+func (r *timeEngineRuleRepoImpl) UpdateTimeEngineRuleStatus(ctx context.Context, req *bo.UpdateTimeEngineRuleStatusRequest) error {
 	if len(req.TimeEngineRuleIds) == 0 {
 		return nil
 	}
@@ -79,7 +79,7 @@ func (r *timeEngineRuleImpl) UpdateTimeEngineRuleStatus(ctx context.Context, req
 }
 
 // DeleteTimeEngineRule 删除时间引擎规则
-func (r *timeEngineRuleImpl) DeleteTimeEngineRule(ctx context.Context, req *bo.DeleteTimeEngineRuleRequest) error {
+func (r *timeEngineRuleRepoImpl) DeleteTimeEngineRule(ctx context.Context, req *bo.DeleteTimeEngineRuleRequest) error {
 	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleMutation := bizMutation.TimeEngineRule
 	wrappers := []gen.Condition{
@@ -91,7 +91,7 @@ func (r *timeEngineRuleImpl) DeleteTimeEngineRule(ctx context.Context, req *bo.D
 }
 
 // GetTimeEngineRule 获取时间引擎规则详情
-func (r *timeEngineRuleImpl) GetTimeEngineRule(ctx context.Context, req *bo.GetTimeEngineRuleRequest) (do.TimeEngineRule, error) {
+func (r *timeEngineRuleRepoImpl) GetTimeEngineRule(ctx context.Context, req *bo.GetTimeEngineRuleRequest) (do.TimeEngineRule, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleQuery := bizQuery.TimeEngineRule
 	timeEngineRule, err := timeEngineRuleQuery.WithContext(ctx).
@@ -105,7 +105,7 @@ func (r *timeEngineRuleImpl) GetTimeEngineRule(ctx context.Context, req *bo.GetT
 }
 
 // ListTimeEngineRule 获取时间引擎规则列表
-func (r *timeEngineRuleImpl) ListTimeEngineRule(ctx context.Context, req *bo.ListTimeEngineRuleRequest) (*bo.ListTimeEngineRuleReply, error) {
+func (r *timeEngineRuleRepoImpl) ListTimeEngineRule(ctx context.Context, req *bo.ListTimeEngineRuleRequest) (*bo.ListTimeEngineRuleReply, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleQuery := bizQuery.TimeEngineRule
 	timeEngineRuleWrapper := timeEngineRuleQuery.Where(timeEngineRuleQuery.TeamID.Eq(teamId))
@@ -151,7 +151,7 @@ func (r *timeEngineRuleImpl) ListTimeEngineRule(ctx context.Context, req *bo.Lis
 }
 
 // SelectTimeEngineRule 获取时间引擎规则列表
-func (r *timeEngineRuleImpl) SelectTimeEngineRule(ctx context.Context, req *bo.SelectTimeEngineRuleRequest) (*bo.SelectTimeEngineRuleReply, error) {
+func (r *timeEngineRuleRepoImpl) SelectTimeEngineRule(ctx context.Context, req *bo.SelectTimeEngineRuleRequest) (*bo.SelectTimeEngineRuleReply, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleQuery := bizQuery.TimeEngineRule
 	timeEngineRuleWrapper := timeEngineRuleQuery.Where(timeEngineRuleQuery.TeamID.Eq(teamId))
@@ -185,7 +185,7 @@ func (r *timeEngineRuleImpl) SelectTimeEngineRule(ctx context.Context, req *bo.S
 }
 
 // Find 获取时间引擎规则列表
-func (r *timeEngineRuleImpl) Find(ctx context.Context, ruleIds ...uint32) ([]do.TimeEngineRule, error) {
+func (r *timeEngineRuleRepoImpl) Find(ctx context.Context, ruleIds ...uint32) ([]do.TimeEngineRule, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleQuery := bizQuery.TimeEngineRule
 	wrappers := timeEngineRuleQuery.Where(timeEngineRuleQuery.TeamID.Eq(teamId))

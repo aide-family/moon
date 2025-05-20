@@ -18,17 +18,17 @@ import (
 )
 
 func NewTeamStrategyRepo(data *data.Data) repository.TeamStrategy {
-	return &teamStrategyImpl{
+	return &teamStrategyRepoImpl{
 		Data: data,
 	}
 }
 
-type teamStrategyImpl struct {
+type teamStrategyRepoImpl struct {
 	*data.Data
 }
 
 // Create implements repository.TeamStrategy.
-func (t *teamStrategyImpl) Create(ctx context.Context, params bo.CreateTeamStrategyParams) (do.Strategy, error) {
+func (t *teamStrategyRepoImpl) Create(ctx context.Context, params bo.CreateTeamStrategyParams) (do.Strategy, error) {
 	strategyDo := &team.Strategy{
 		StrategyGroupID: params.GetStrategyGroup().GetID(),
 		Name:            params.GetName(),
@@ -52,7 +52,7 @@ func (t *teamStrategyImpl) Create(ctx context.Context, params bo.CreateTeamStrat
 }
 
 // Delete implements repository.TeamStrategy.
-func (t *teamStrategyImpl) Delete(ctx context.Context, params *bo.OperateTeamStrategyParams) error {
+func (t *teamStrategyRepoImpl) Delete(ctx context.Context, params *bo.OperateTeamStrategyParams) error {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.Strategy
 	wrappers := []gen.Condition{
@@ -64,7 +64,7 @@ func (t *teamStrategyImpl) Delete(ctx context.Context, params *bo.OperateTeamStr
 }
 
 // Subscribe implements repository.TeamStrategy.
-func (t *teamStrategyImpl) Subscribe(ctx context.Context, params bo.SubscribeTeamStrategy) error {
+func (t *teamStrategyRepoImpl) Subscribe(ctx context.Context, params bo.SubscribeTeamStrategy) error {
 	tx := getTeamBizQuery(ctx, t)
 	subscriberDo := &team.StrategySubscriber{
 		StrategyID:    params.GetStrategy().GetID(),
@@ -80,7 +80,7 @@ func (t *teamStrategyImpl) Subscribe(ctx context.Context, params bo.SubscribeTea
 }
 
 // SubscribeList implements repository.TeamStrategy.
-func (t *teamStrategyImpl) SubscribeList(ctx context.Context, params *bo.SubscribeTeamStrategiesParams) (*bo.SubscribeTeamStrategiesReply, error) {
+func (t *teamStrategyRepoImpl) SubscribeList(ctx context.Context, params *bo.SubscribeTeamStrategiesParams) (*bo.SubscribeTeamStrategiesReply, error) {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	query := tx.StrategySubscriber
 	wrappers := query.WithContext(ctx).Where(query.TeamID.Eq(teamId))
@@ -110,7 +110,7 @@ func (t *teamStrategyImpl) SubscribeList(ctx context.Context, params *bo.Subscri
 }
 
 // Update implements repository.TeamStrategy.
-func (t *teamStrategyImpl) Update(ctx context.Context, params bo.UpdateTeamStrategyParams) (do.Strategy, error) {
+func (t *teamStrategyRepoImpl) Update(ctx context.Context, params bo.UpdateTeamStrategyParams) (do.Strategy, error) {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.Strategy
 	wrappers := []gen.Condition{
@@ -146,7 +146,7 @@ func (t *teamStrategyImpl) Update(ctx context.Context, params bo.UpdateTeamStrat
 }
 
 // List implements repository.TeamStrategy.
-func (t *teamStrategyImpl) List(ctx context.Context, params *bo.ListTeamStrategyParams) (*bo.ListTeamStrategyReply, error) {
+func (t *teamStrategyRepoImpl) List(ctx context.Context, params *bo.ListTeamStrategyParams) (*bo.ListTeamStrategyReply, error) {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	query := tx.Strategy
 	wrappers := query.WithContext(ctx).Where(query.TeamID.Eq(teamId))
@@ -179,7 +179,7 @@ func (t *teamStrategyImpl) List(ctx context.Context, params *bo.ListTeamStrategy
 }
 
 // UpdateStatus implements repository.TeamStrategy.
-func (t *teamStrategyImpl) UpdateStatus(ctx context.Context, params *bo.UpdateTeamStrategiesStatusParams) error {
+func (t *teamStrategyRepoImpl) UpdateStatus(ctx context.Context, params *bo.UpdateTeamStrategiesStatusParams) error {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.Strategy
 	wrappers := []gen.Condition{
@@ -193,7 +193,7 @@ func (t *teamStrategyImpl) UpdateStatus(ctx context.Context, params *bo.UpdateTe
 	return err
 }
 
-func (t *teamStrategyImpl) FindByIds(ctx context.Context, strategyIds []uint32) ([]do.Strategy, error) {
+func (t *teamStrategyRepoImpl) FindByIds(ctx context.Context, strategyIds []uint32) ([]do.Strategy, error) {
 	if len(strategyIds) == 0 {
 		return nil, nil
 	}
@@ -207,7 +207,7 @@ func (t *teamStrategyImpl) FindByIds(ctx context.Context, strategyIds []uint32) 
 	return slices.Map(rows, func(row *team.Strategy) do.Strategy { return row }), nil
 }
 
-func (t *teamStrategyImpl) Get(ctx context.Context, params *bo.OperateTeamStrategyParams) (do.Strategy, error) {
+func (t *teamStrategyRepoImpl) Get(ctx context.Context, params *bo.OperateTeamStrategyParams) (do.Strategy, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := bizQuery.Strategy.WithContext(ctx).Where(bizQuery.Strategy.TeamID.Eq(teamId), bizQuery.Strategy.ID.Eq(params.StrategyId))
 	strategy, err := wrapper.First()

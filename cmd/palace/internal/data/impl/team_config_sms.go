@@ -17,16 +17,16 @@ import (
 )
 
 func NewTeamConfigSMSRepo(data *data.Data) repository.TeamSMSConfig {
-	return &teamConfigSMSImpl{
+	return &teamConfigSMSRepoImpl{
 		Data: data,
 	}
 }
 
-type teamConfigSMSImpl struct {
+type teamConfigSMSRepoImpl struct {
 	*data.Data
 }
 
-func (t *teamConfigSMSImpl) List(ctx context.Context, req *bo.ListSMSConfigRequest) (*bo.ListSMSConfigListReply, error) {
+func (t *teamConfigSMSRepoImpl) List(ctx context.Context, req *bo.ListSMSConfigRequest) (*bo.ListSMSConfigListReply, error) {
 	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizSMSConfigQuery := bizQuery.SmsConfig
 	wrapper := bizSMSConfigQuery.WithContext(ctx).Where(bizSMSConfigQuery.TeamID.Eq(teamID))
@@ -58,7 +58,7 @@ func (t *teamConfigSMSImpl) List(ctx context.Context, req *bo.ListSMSConfigReque
 	return req.ToListReply(rows), nil
 }
 
-func (t *teamConfigSMSImpl) Create(ctx context.Context, config bo.TeamSMSConfig) error {
+func (t *teamConfigSMSRepoImpl) Create(ctx context.Context, config bo.TeamSMSConfig) error {
 	smsConfigDo := &team.SmsConfig{
 		TeamModel: do.TeamModel{},
 		Name:      config.GetName(),
@@ -73,7 +73,7 @@ func (t *teamConfigSMSImpl) Create(ctx context.Context, config bo.TeamSMSConfig)
 	return bizSMSConfigQuery.WithContext(ctx).Create(smsConfigDo)
 }
 
-func (t *teamConfigSMSImpl) Update(ctx context.Context, config bo.TeamSMSConfig) error {
+func (t *teamConfigSMSRepoImpl) Update(ctx context.Context, config bo.TeamSMSConfig) error {
 	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizSMSConfigQuery := bizQuery.SmsConfig
 	wrappers := []gen.Condition{
@@ -91,7 +91,7 @@ func (t *teamConfigSMSImpl) Update(ctx context.Context, config bo.TeamSMSConfig)
 	return err
 }
 
-func (t *teamConfigSMSImpl) Get(ctx context.Context, id uint32) (do.TeamSMSConfig, error) {
+func (t *teamConfigSMSRepoImpl) Get(ctx context.Context, id uint32) (do.TeamSMSConfig, error) {
 	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	bizSMSConfigQuery := bizQuery.SmsConfig
 	wrapper := []gen.Condition{
