@@ -7,8 +7,8 @@ import (
 )
 
 type OperateLog interface {
-	OperateLog(ctx context.Context, log *bo.AddOperateLog) error
+	OperateLog(ctx context.Context, log *bo.OperateLogParams) error
 	List(ctx context.Context, req *bo.OperateLogListRequest) (*bo.OperateLogListReply, error)
-	TeamOperateLog(ctx context.Context, log *bo.AddOperateLog) error
+	TeamOperateLog(ctx context.Context, log *bo.OperateLogParams) error
 	TeamList(ctx context.Context, req *bo.OperateLogListRequest) (*bo.OperateLogListReply, error)
 }

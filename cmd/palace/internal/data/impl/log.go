@@ -28,7 +28,7 @@ type operateLogRepoImpl struct {
 	helper *log.Helper
 }
 
-func (o *operateLogRepoImpl) OperateLog(ctx context.Context, log *bo.AddOperateLog) error {
+func (o *operateLogRepoImpl) OperateLog(ctx context.Context, log *bo.OperateLogParams) error {
 	operateLog := &system.OperateLog{}
 	operateLog.WithContext(ctx)
 	operateLogMutation := getMainQuery(ctx, o).OperateLog
@@ -71,7 +71,7 @@ func (o *operateLogRepoImpl) List(ctx context.Context, req *bo.OperateLogListReq
 	return req.ToListReply(rows), nil
 }
 
-func (o *operateLogRepoImpl) TeamOperateLog(ctx context.Context, log *bo.AddOperateLog) error {
+func (o *operateLogRepoImpl) TeamOperateLog(ctx context.Context, log *bo.OperateLogParams) error {
 	operateLog := &team.OperateLog{}
 	operateLog.WithContext(ctx)
 	bizMutation := getTeamBizQuery(ctx, o)

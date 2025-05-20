@@ -8,6 +8,7 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
+	"github.com/aide-family/moon/pkg/util/timex"
 )
 
 type OperateLogParams struct {
@@ -17,6 +18,8 @@ type OperateLogParams struct {
 	Error         error
 	OriginRequest *http.Request
 	Duration      time.Duration
+	RequestTime   time.Time
+	ReplyTime     time.Time
 }
 
 type OperateLogFunc func(ctx context.Context, params *OperateLogParams)
@@ -24,7 +27,7 @@ type OperateLogFunc func(ctx context.Context, params *OperateLogParams)
 func OperateLog(operateLogFunc OperateLogFunc) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req any) (any, error) {
-			startTime := time.Now()
+			startTime := timex.Now()
 			reply, err := handler(ctx, req)
 			duration := time.Since(startTime)
 			var originRequest *http.Request
@@ -38,6 +41,8 @@ func OperateLog(operateLogFunc OperateLogFunc) middleware.Middleware {
 				Error:         err,
 				OriginRequest: originRequest,
 				Duration:      duration,
+				RequestTime:   startTime,
+				ReplyTime:     timex.Now(),
 			}
 			operateLogFunc(ctx, params)
 			return reply, err
