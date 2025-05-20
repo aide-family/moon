@@ -124,6 +124,15 @@ func (u *userRepoImpl) CreateUserWithOAuthUser(ctx context.Context, user bo.IOAu
 }
 
 func (u *userRepoImpl) Create(ctx context.Context, user do.User, sendEmailFunc bo.SendEmailFun) (do.User, error) {
+	userQuery := getMainQuery(ctx, u).User
+	total, err := userQuery.WithContext(ctx).Count()
+	if err != nil {
+		return nil, err
+	}
+	position := user.GetPosition()
+	if total == 0 {
+		position = vobj.RoleSuperAdmin
+	}
 	pass := password.New(password.GenerateRandomPassword(8))
 	enValue, err := pass.EnValue()
 	if err != nil {
@@ -139,7 +148,7 @@ func (u *userRepoImpl) Create(ctx context.Context, user do.User, sendEmailFunc b
 		Avatar:   user.GetAvatar(),
 		Salt:     pass.Salt(),
 		Gender:   user.GetGender(),
-		Position: user.GetPosition(),
+		Position: position,
 		Status:   user.GetStatus(),
 	}
 	userDo.WithContext(ctx)

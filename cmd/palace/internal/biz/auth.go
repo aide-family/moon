@@ -424,7 +424,7 @@ func (a *Auth) LoginWithEmail(ctx context.Context, req *bo.LoginWithEmailParams)
 		return nil, err
 	}
 	userDo, err := a.userRepo.FindByEmail(ctx, req.GetEmail())
-	if err == nil {
+	if validate.IsNil(err) && validate.IsNotNil(userDo) {
 		return a.login(userDo)
 	}
 	userDo = req.User
