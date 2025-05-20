@@ -13,7 +13,7 @@ import (
 )
 
 func NewTeamStrategyService(
-	teamStrategyGroupBiz *biz.TeamStrategyGroupBiz,
+	teamStrategyGroupBiz *biz.TeamStrategyGroup,
 	teamStrategyBiz *biz.TeamStrategy,
 	teamStrategyMetricBiz *biz.TeamStrategyMetric,
 ) *TeamStrategyService {
@@ -26,7 +26,7 @@ func NewTeamStrategyService(
 
 type TeamStrategyService struct {
 	palace.UnimplementedTeamStrategyServer
-	teamStrategyGroupBiz  *biz.TeamStrategyGroupBiz
+	teamStrategyGroupBiz  *biz.TeamStrategyGroup
 	teamStrategyBiz       *biz.TeamStrategy
 	teamStrategyMetricBiz *biz.TeamStrategyMetric
 }

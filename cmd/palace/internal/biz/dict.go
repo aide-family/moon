@@ -10,7 +10,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 )
 
-func NewDict(
+func NewDictBiz(
 	teamDictRepo repository.TeamDict,
 	logger log.Logger,
 ) *Dict {

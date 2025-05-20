@@ -10,7 +10,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
-func NewTeamHook(
+func NewTeamHookBiz(
 	teamHookRepo repository.TeamHook,
 	logger log.Logger,
 ) *TeamHook {

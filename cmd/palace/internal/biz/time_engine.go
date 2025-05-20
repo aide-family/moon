@@ -15,7 +15,7 @@ type TimeEngine struct {
 }
 
 // NewTimeEngine 创建时间引擎用例
-func NewTimeEngine(timeEngineRepo repository.TimeEngine, timeEngineRuleRepo repository.TimeEngineRule) *TimeEngine {
+func NewTimeEngineBiz(timeEngineRepo repository.TimeEngine, timeEngineRuleRepo repository.TimeEngineRule) *TimeEngine {
 	return &TimeEngine{
 		timeEngineRepo:     timeEngineRepo,
 		timeEngineRuleRepo: timeEngineRuleRepo,

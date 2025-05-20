@@ -14,12 +14,12 @@ import (
 type ServerService struct {
 	common.UnimplementedServerServer
 
-	serverBiz *biz.ServerBiz
+	serverBiz *biz.Server
 
 	helper *log.Helper
 }
 
-func NewServerService(serverBiz *biz.ServerBiz, logger log.Logger) *ServerService {
+func NewServerService(serverBiz *biz.Server, logger log.Logger) *ServerService {
 	return &ServerService{
 		serverBiz: serverBiz,
 		helper:    log.NewHelper(log.With(logger, "module", "service.server")),

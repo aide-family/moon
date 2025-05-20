@@ -11,7 +11,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
-func NewTeamDatasourceQuery(
+func NewTeamDatasourceQueryBiz(
 	teamDatasourceMetricRepo repository.TeamDatasourceMetric,
 	houyiRepo repository.Houyi,
 	logger log.Logger,

@@ -16,7 +16,7 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 )
 
-func NewTeamDatasource(
+func NewTeamDatasourceBiz(
 	teamDatasourceMetricRepo repository.TeamDatasourceMetric,
 	teamDatasourceMetricMetadataRepo repository.TeamDatasourceMetricMetadata,
 	cacheRepo repository.Cache,

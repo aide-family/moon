@@ -11,7 +11,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
-func NewTeamStrategyMetric(
+func NewTeamStrategyMetricBiz(
 	teamStrategyGroupRepo repository.TeamStrategyGroup,
 	teamStrategyRepo repository.TeamStrategy,
 	teamStrategyMetricRepo repository.TeamStrategyMetric,

@@ -16,7 +16,7 @@ import (
 	"github.com/aide-family/moon/pkg/plugin/server"
 )
 
-func NewTeam(
+func NewTeamBiz(
 	cacheRepo repository.Cache,
 	userRepo repository.User,
 	teamRepo repository.Team,

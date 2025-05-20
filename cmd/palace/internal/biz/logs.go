@@ -9,7 +9,7 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 )
 
-func NewLogs(
+func NewLogsBiz(
 	sendMessageLogRepo repository.SendMessageLog,
 	transaction repository.Transaction,
 ) *Logs {

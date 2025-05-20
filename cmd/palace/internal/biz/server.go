@@ -11,19 +11,19 @@ import (
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
-func NewServerBiz(serverRepo repository.Server, logger log.Logger) *ServerBiz {
-	return &ServerBiz{
+func NewServerBiz(serverRepo repository.Server, logger log.Logger) *Server {
+	return &Server{
 		serverRepo: serverRepo,
 		helper:     log.NewHelper(log.With(logger, "module", "biz.server")),
 	}
 }
 
-type ServerBiz struct {
+type Server struct {
 	serverRepo repository.Server
 	helper     *log.Helper
 }
 
-func (b *ServerBiz) Register(ctx context.Context, req *bo.ServerRegisterReq) error {
+func (b *Server) Register(ctx context.Context, req *bo.ServerRegisterReq) error {
 	if validate.IsNil(req) {
 		return merr.ErrorInvalidArgument("invalid request")
 	}
@@ -40,7 +40,7 @@ func (b *ServerBiz) Register(ctx context.Context, req *bo.ServerRegisterReq) err
 	return nil
 }
 
-func (b *ServerBiz) Deregister(ctx context.Context, req *bo.ServerRegisterReq) error {
+func (b *Server) Deregister(ctx context.Context, req *bo.ServerRegisterReq) error {
 	if validate.IsNil(req) {
 		return merr.ErrorInvalidArgument("invalid request")
 	}

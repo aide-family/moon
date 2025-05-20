@@ -12,7 +12,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 )
 
-func NewSystem(
+func NewSystemBiz(
 	roleRepo repository.Role,
 	userRepo repository.User,
 	auditRepo repository.Audit,

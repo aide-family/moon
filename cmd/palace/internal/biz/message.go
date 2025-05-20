@@ -11,7 +11,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 )
 
-func NewMessage(
+func NewMessageBiz(
 	sendMessageRepo repository.SendMessage,
 	sendMessageLogRepo repository.SendMessageLog,
 	transaction repository.Transaction,

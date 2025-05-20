@@ -52,8 +52,8 @@ func NewAuthBiz(
 	oauthRepo repository.OAuth,
 	transaction repository.Transaction,
 	logger log.Logger,
-) *AuthBiz {
-	return &AuthBiz{
+) *Auth {
+	return &Auth{
 		bc:           bc,
 		redirectURL:  bc.GetAuth().GetOauth2().GetRedirectUri(),
 		oauthConfigs: buildOAuthConf(bc.GetAuth().GetOauth2()),
@@ -66,7 +66,7 @@ func NewAuthBiz(
 	}
 }
 
-type AuthBiz struct {
+type Auth struct {
 	bc           *conf.Bootstrap
 	redirectURL  string
 	oauthConfigs *safety.Map[vobj.OAuthAPP, *oauth2.Config]
@@ -80,12 +80,12 @@ type AuthBiz struct {
 }
 
 // GetCaptcha get image captchaRepo
-func (a *AuthBiz) GetCaptcha(ctx context.Context) (*bo.Captcha, error) {
+func (a *Auth) GetCaptcha(ctx context.Context) (*bo.Captcha, error) {
 	return a.captchaRepo.Generate(ctx)
 }
 
 // VerifyCaptcha Captcha
-func (a *AuthBiz) VerifyCaptcha(ctx context.Context, req *bo.CaptchaVerify) error {
+func (a *Auth) VerifyCaptcha(ctx context.Context, req *bo.CaptchaVerify) error {
 	verify := a.captchaRepo.Verify(ctx, req)
 	if !verify {
 		return merr.ErrorCaptcha("captcha err").WithMetadata(map[string]string{
@@ -96,12 +96,12 @@ func (a *AuthBiz) VerifyCaptcha(ctx context.Context, req *bo.CaptchaVerify) erro
 }
 
 // Logout token logout
-func (a *AuthBiz) Logout(ctx context.Context, token string) error {
+func (a *Auth) Logout(ctx context.Context, token string) error {
 	return a.cacheRepo.BanToken(ctx, token)
 }
 
 // VerifyToken verify token
-func (a *AuthBiz) VerifyToken(ctx context.Context, token string) error {
+func (a *Auth) VerifyToken(ctx context.Context, token string) error {
 	if err := a.cacheRepo.VerifyToken(ctx, token); err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (a *AuthBiz) VerifyToken(ctx context.Context, token string) error {
 }
 
 // LoginByPassword login by password
-func (a *AuthBiz) LoginByPassword(ctx context.Context, req *bo.LoginByPassword) (*bo.LoginSign, error) {
+func (a *Auth) LoginByPassword(ctx context.Context, req *bo.LoginByPassword) (*bo.LoginSign, error) {
 	user, err := a.userRepo.FindByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, merr.ErrorPassword("password error").WithCause(err)
@@ -132,7 +132,7 @@ func (a *AuthBiz) LoginByPassword(ctx context.Context, req *bo.LoginByPassword) 
 }
 
 // RefreshToken refresh token
-func (a *AuthBiz) RefreshToken(ctx context.Context, req *bo.RefreshToken) (*bo.LoginSign, error) {
+func (a *Auth) RefreshToken(ctx context.Context, req *bo.RefreshToken) (*bo.LoginSign, error) {
 	if err := a.VerifyToken(ctx, req.Token); err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (a *AuthBiz) RefreshToken(ctx context.Context, req *bo.RefreshToken) (*bo.L
 	return a.login(userDo)
 }
 
-func (a *AuthBiz) login(userDo do.User) (*bo.LoginSign, error) {
+func (a *Auth) login(userDo do.User) (*bo.LoginSign, error) {
 	base := middleware.JwtBaseInfo{
 		UserID:   userDo.GetID(),
 		Username: userDo.GetUsername(),
@@ -168,7 +168,7 @@ func (a *AuthBiz) login(userDo do.User) (*bo.LoginSign, error) {
 }
 
 // GetOAuthConf 获取oauth配置
-func (a *AuthBiz) GetOAuthConf(provider vobj.OAuthAPP) (*oauth2.Config, error) {
+func (a *Auth) GetOAuthConf(provider vobj.OAuthAPP) (*oauth2.Config, error) {
 	config, ok := a.oauthConfigs.Get(provider)
 	if !ok {
 		return nil, merr.ErrorInternalServer("not support oauth provider")
@@ -176,7 +176,7 @@ func (a *AuthBiz) GetOAuthConf(provider vobj.OAuthAPP) (*oauth2.Config, error) {
 	return config, nil
 }
 
-func (a *AuthBiz) OAuthLogin(ctx context.Context, req *bo.OAuthLoginParams) (string, error) {
+func (a *Auth) OAuthLogin(ctx context.Context, req *bo.OAuthLoginParams) (string, error) {
 	switch req.APP {
 	case vobj.OAuthAPPGithub:
 		return a.githubLogin(ctx, req.Code, req.SendEmailFun)
@@ -189,7 +189,7 @@ func (a *AuthBiz) OAuthLogin(ctx context.Context, req *bo.OAuthLoginParams) (str
 	}
 }
 
-func (a *AuthBiz) githubLogin(ctx context.Context, code string, sendEmailFunc bo.SendEmailFun) (string, error) {
+func (a *Auth) githubLogin(ctx context.Context, code string, sendEmailFunc bo.SendEmailFun) (string, error) {
 	githubOAuthConf, err := a.GetOAuthConf(vobj.OAuthAPPGithub)
 	if err != nil {
 		return "", err
@@ -219,7 +219,7 @@ func (a *AuthBiz) githubLogin(ctx context.Context, code string, sendEmailFunc bo
 	return a.oauthLogin(ctx, &userInfo, sendEmailFunc)
 }
 
-func (a *AuthBiz) giteeLogin(ctx context.Context, code string, sendEmailFunc bo.SendEmailFun) (string, error) {
+func (a *Auth) giteeLogin(ctx context.Context, code string, sendEmailFunc bo.SendEmailFun) (string, error) {
 	giteeOAuthConf, err := a.GetOAuthConf(vobj.OAuthAPPGitee)
 	if err != nil {
 		return "", err
@@ -257,7 +257,7 @@ func (a *AuthBiz) giteeLogin(ctx context.Context, code string, sendEmailFunc bo.
 	return a.oauthLogin(ctx, &userInfo, sendEmailFunc)
 }
 
-func (a *AuthBiz) feiShuLogin(ctx context.Context, code string, sendEmailFunc bo.SendEmailFun) (string, error) {
+func (a *Auth) feiShuLogin(ctx context.Context, code string, sendEmailFunc bo.SendEmailFun) (string, error) {
 	oAuthConf, err := a.GetOAuthConf(vobj.OAuthAPPFeiShu)
 	if err != nil {
 		return "", err
@@ -296,7 +296,7 @@ func (a *AuthBiz) feiShuLogin(ctx context.Context, code string, sendEmailFunc bo
 	return a.oauthLogin(ctx, result.Data, sendEmailFunc)
 }
 
-func (a *AuthBiz) oauthUserFirstOrCreate(ctx context.Context, userInfo bo.IOAuthUser, sendEmail bo.SendEmailFun) (do.UserOAuth, error) {
+func (a *Auth) oauthUserFirstOrCreate(ctx context.Context, userInfo bo.IOAuthUser, sendEmail bo.SendEmailFun) (do.UserOAuth, error) {
 	oauthUserDoExist := true
 	oauthUserDo, err := a.oauthRepo.FindByOpenID(ctx, userInfo.GetOpenID(), userInfo.GetAPP())
 	if err != nil {
@@ -345,7 +345,7 @@ func (a *AuthBiz) oauthUserFirstOrCreate(ctx context.Context, userInfo bo.IOAuth
 	return oauthUserDo, nil
 }
 
-func (a *AuthBiz) oauthLogin(ctx context.Context, userInfo bo.IOAuthUser, sendEmail bo.SendEmailFun) (string, error) {
+func (a *Auth) oauthLogin(ctx context.Context, userInfo bo.IOAuthUser, sendEmail bo.SendEmailFun) (string, error) {
 	oauthUserDo, err := a.oauthUserFirstOrCreate(ctx, userInfo, sendEmail)
 	if err != nil {
 		return "", err
@@ -374,7 +374,7 @@ func (a *AuthBiz) oauthLogin(ctx context.Context, userInfo bo.IOAuthUser, sendEm
 }
 
 // OAuthLoginWithEmail oauth2 set email login
-func (a *AuthBiz) OAuthLoginWithEmail(ctx context.Context, oauthParams *bo.OAuthLoginParams) (*bo.LoginSign, error) {
+func (a *Auth) OAuthLoginWithEmail(ctx context.Context, oauthParams *bo.OAuthLoginParams) (*bo.LoginSign, error) {
 	verifyParams := &bo.VerifyEmailCodeParams{
 		Email: oauthParams.Email,
 		Code:  oauthParams.Code,
@@ -408,17 +408,17 @@ func (a *AuthBiz) OAuthLoginWithEmail(ctx context.Context, oauthParams *bo.OAuth
 }
 
 // VerifyEmail verify email
-func (a *AuthBiz) VerifyEmail(ctx context.Context, req *bo.VerifyEmailParams) error {
+func (a *Auth) VerifyEmail(ctx context.Context, req *bo.VerifyEmailParams) error {
 	return a.cacheRepo.SendVerifyEmailCode(ctx, req)
 }
 
 // VerifyEmailCode verify email code
-func (a *AuthBiz) VerifyEmailCode(ctx context.Context, params *bo.VerifyEmailCodeParams) error {
+func (a *Auth) VerifyEmailCode(ctx context.Context, params *bo.VerifyEmailCodeParams) error {
 	return a.cacheRepo.VerifyEmailCode(ctx, params)
 }
 
 // LoginWithEmail 邮箱登录
-func (a *AuthBiz) LoginWithEmail(ctx context.Context, req *bo.LoginWithEmailParams) (*bo.LoginSign, error) {
+func (a *Auth) LoginWithEmail(ctx context.Context, req *bo.LoginWithEmailParams) (*bo.LoginSign, error) {
 	verifyParams := &bo.VerifyEmailCodeParams{
 		Email: req.GetEmail(),
 		Code:  req.Code,
@@ -439,7 +439,7 @@ func (a *AuthBiz) LoginWithEmail(ctx context.Context, req *bo.LoginWithEmailPara
 }
 
 // GetFilingInformation get filing information
-func (a *AuthBiz) GetFilingInformation(_ context.Context) (*bo.FilingInformation, error) {
+func (a *Auth) GetFilingInformation(_ context.Context) (*bo.FilingInformation, error) {
 	filing := a.bc.GetFiling()
 	filingInfo := &bo.FilingInformation{
 		URL:         filing.GetUrl(),
@@ -448,10 +448,10 @@ func (a *AuthBiz) GetFilingInformation(_ context.Context) (*bo.FilingInformation
 	return filingInfo, nil
 }
 
-func (a *AuthBiz) ReplaceUserRole(ctx context.Context, req *bo.ReplaceUserRoleReq) error {
+func (a *Auth) ReplaceUserRole(ctx context.Context, req *bo.ReplaceUserRoleReq) error {
 	return nil
 }
 
-func (a *AuthBiz) ReplaceMemberRole(ctx context.Context, req *bo.ReplaceMemberRoleReq) error {
+func (a *Auth) ReplaceMemberRole(ctx context.Context, req *bo.ReplaceMemberRoleReq) error {
 	return nil
 }

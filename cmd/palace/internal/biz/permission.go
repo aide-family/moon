@@ -13,14 +13,14 @@ import (
 	"github.com/aide-family/moon/pkg/util/slices"
 )
 
-// NewPermissionBiz create a new permission biz
+// NewPermission create a new permission biz
 func NewPermissionBiz(
 	menuRepo repository.Menu,
 	userRepo repository.User,
 	teamRepo repository.Team,
 	memberRepo repository.Member,
 	logger log.Logger,
-) *PermissionBiz {
+) *Permission {
 	baseHandler := &basePermissionHandler{}
 	// build permission chain
 	permissionChain := []PermissionHandler{
@@ -35,18 +35,18 @@ func NewPermissionBiz(
 		baseHandler.TeamAdminCheckHandler(),
 		baseHandler.TeamRBACHandler(checkTeamRBAC),
 	}
-	return &PermissionBiz{
+	return &Permission{
 		helper:          log.NewHelper(log.With(logger, "module", "biz.permission")),
 		permissionChain: permissionChain,
 	}
 }
 
-type PermissionBiz struct {
+type Permission struct {
 	permissionChain []PermissionHandler // add permission chain
 	helper          *log.Helper
 }
 
-func (a *PermissionBiz) VerifyPermission(ctx context.Context) error {
+func (a *Permission) VerifyPermission(ctx context.Context) error {
 	pCtx := &PermissionContext{}
 	for _, handler := range a.permissionChain {
 		stop, err := handler.Handle(ctx, pCtx)

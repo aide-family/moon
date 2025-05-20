@@ -8,7 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 )
 
-func NewTeamStrategy(
+func NewTeamStrategyBiz(
 	teamStrategyGroupRepo repository.TeamStrategyGroup,
 	teamStrategyRepo repository.TeamStrategy,
 	teamNoticeRepo repository.TeamNotice,

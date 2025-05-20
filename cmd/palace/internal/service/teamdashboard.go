@@ -16,11 +16,11 @@ import (
 type TeamDashboardService struct {
 	palace.UnimplementedTeamDashboardServer
 
-	dashboard *biz.DashboardBiz
+	dashboard *biz.Dashboard
 	helper    *log.Helper
 }
 
-func NewTeamDashboardService(dashboard *biz.DashboardBiz, logger log.Logger) *TeamDashboardService {
+func NewTeamDashboardService(dashboard *biz.Dashboard, logger log.Logger) *TeamDashboardService {
 	return &TeamDashboardService{
 		dashboard: dashboard,
 		helper:    log.NewHelper(log.With(logger, "module", "service.teamDashboard")),

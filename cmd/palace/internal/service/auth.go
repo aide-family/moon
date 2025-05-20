@@ -25,8 +25,8 @@ import (
 
 func NewAuthService(
 	bc *conf.Bootstrap,
-	authBiz *biz.AuthBiz,
-	permissionBiz *biz.PermissionBiz,
+	authBiz *biz.Auth,
+	permissionBiz *biz.Permission,
 	menuBiz *biz.Menu,
 	messageBiz *biz.Message,
 	logger log.Logger,
@@ -43,8 +43,8 @@ func NewAuthService(
 
 type AuthService struct {
 	palace.UnimplementedAuthServer
-	authBiz       *biz.AuthBiz
-	permissionBiz *biz.PermissionBiz
+	authBiz       *biz.Auth
+	permissionBiz *biz.Permission
 	menuBiz       *biz.Menu
 	messageBiz    *biz.Message
 	oauth2List    []*palace.OAuth2ListReply_OAuthItem

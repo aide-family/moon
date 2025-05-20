@@ -8,7 +8,7 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 )
 
-func NewRealtime(realtimeRepo repository.Realtime) *Realtime {
+func NewRealtimeBiz(realtimeRepo repository.Realtime) *Realtime {
 	return &Realtime{
 		realtimeRepo: realtimeRepo,
 	}
