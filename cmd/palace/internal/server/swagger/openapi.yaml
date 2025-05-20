@@ -285,9 +285,9 @@ paths:
     /api/menu/detail:
         get:
             tags:
-                - Resource
+                - Menu
             description: GetMenu retrieves a menu by Id
-            operationId: Resource_GetMenu
+            operationId: Menu_GetMenu
             parameters:
                 - name: menuId
                   in: query
@@ -305,9 +305,9 @@ paths:
     /api/menu/save:
         put:
             tags:
-                - Resource
+                - Menu
             description: SaveMenu creates or updates a system menu
-            operationId: Resource_SaveMenu
+            operationId: Menu_SaveMenu
             requestBody:
                 content:
                     application/json:
@@ -324,112 +324,16 @@ paths:
     /api/menu/tree:
         get:
             tags:
-                - Resource
-            description: GetResourceMenuTree returns the menu tree
-            operationId: Resource_GetResourceMenuTree
+                - Menu
+            description: GetMenuTree returns the menu tree
+            operationId: Menu_GetMenuTree
             responses:
                 "200":
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.GetResourceMenuTreeReply'
-    /api/resource/batch/status:
-        put:
-            tags:
-                - Resource
-            description: BatchUpdateResourceStatus updates the status of multiple resources
-            operationId: Resource_BatchUpdateResourceStatus
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.BatchUpdateResourceStatusRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/resource/detail:
-        get:
-            tags:
-                - Resource
-            description: GetResource retrieves a resource by Id
-            operationId: Resource_GetResource
-            parameters:
-                - name: resourceId
-                  in: query
-                  description: Id of the resource to retrieve
-                  schema:
-                    type: integer
-                    format: uint32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.ResourceItem'
-    /api/resource/list:
-        post:
-            tags:
-                - Resource
-            description: ListResource lists resources based on specified filters
-            operationId: Resource_ListResource
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.ListResourceRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.ListResourceReply'
-    /api/resource/save:
-        put:
-            tags:
-                - Resource
-            description: SaveResource creates or updates a resource
-            operationId: Resource_SaveResource
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.SaveResourceRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/resource/select:
-        post:
-            tags:
-                - Resource
-            description: SelectResource selects resources based on specified filters
-            operationId: Resource_SelectResource
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.SelectResourceRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.SelectResourceReply'
+                                $ref: '#/components/schemas/api.palace.GetMenuTreeReply'
     /api/system/operate/log/list:
         post:
             tags:
@@ -1265,16 +1169,16 @@ paths:
     /api/team/menu/tree:
         get:
             tags:
-                - Resource
-            description: GetTeamResourceMenuTree returns the menu tree
-            operationId: Resource_GetTeamResourceMenuTree
+                - Menu
+            description: GetTeamMenuTree returns the menu tree
+            operationId: Menu_GetTeamMenuTree
             responses:
                 "200":
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.GetResourceMenuTreeReply'
+                                $ref: '#/components/schemas/api.palace.GetMenuTreeReply'
     /api/team/metric/datasource:
         get:
             tags:
@@ -1725,19 +1629,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
-    /api/team/resources:
-        get:
-            tags:
-                - Team
-            description: GetTeamResources retrieves the resources associated with the current team
-            operationId: Team_GetTeamResources
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.GetTeamResourcesReply'
     /api/team/role:
         get:
             tags:
@@ -2847,20 +2738,6 @@ components:
                 strategyType:
                     type: integer
                     format: enum
-        api.palace.BatchUpdateResourceStatusRequest:
-            type: object
-            properties:
-                resourceIds:
-                    type: array
-                    items:
-                        type: integer
-                        format: uint32
-                    description: List of resource Ids to update
-                status:
-                    type: integer
-                    description: New status for the resources
-                    format: enum
-            description: BatchUpdateResourceStatusRequest represents the request data for updating the status of multiple resources
         api.palace.CaptchaValidateRequest:
             type: object
             properties:
@@ -2959,7 +2836,7 @@ components:
                     type: string
                     description: Filing information
             description: GetFilingInformationReply contains the response data for getting the filing information
-        api.palace.GetResourceMenuTreeReply:
+        api.palace.GetMenuTreeReply:
             type: object
             properties:
                 menus:
@@ -3164,15 +3041,6 @@ components:
                     items:
                         type: integer
                         format: enum
-        api.palace.GetTeamResourcesReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.ResourceItem'
-                    description: List of resource items associated with the team
-            description: GetTeamResourcesReply contains the response data for retrieving team resources
         api.palace.GetTeamRolesReply:
             type: object
             properties:
@@ -3359,32 +3227,6 @@ components:
                     type: string
                 type:
                     type: string
-        api.palace.ListResourceReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.ResourceItem'
-                    description: List of resource items
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
-            description: ListResourceReply contains the response data for listing resources
-        api.palace.ListResourceRequest:
-            type: object
-            properties:
-                status:
-                    type: array
-                    items:
-                        type: integer
-                        format: enum
-                    description: List of statuses to filter resources by
-                keyword:
-                    type: string
-                    description: Keyword to search resources by
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-            description: ListResourceRequest represents the request data for listing resources
         api.palace.ListTeamDashboardChartReply:
             type: object
             properties:
@@ -3917,14 +3759,17 @@ components:
                 name:
                     type: string
                     description: Name of the menu
-                path:
+                menuPath:
                     type: string
                     description: Path of the menu
+                apiPath:
+                    type: string
+                    description: Api path of the menu
                 status:
                     type: integer
                     description: Status of the menu
                     format: enum
-                icon:
+                menuIcon:
                     type: string
                     description: Icon of the menu
                 parentId:
@@ -3935,37 +3780,18 @@ components:
                     type: integer
                     description: Type of the menu
                     format: enum
-                resourceIds:
-                    type: array
-                    items:
-                        type: integer
-                        format: uint32
+                menuCategory:
+                    type: integer
+                    description: Category of the menu
+                    format: enum
+                processType:
+                    type: integer
+                    description: Process type of the menu
+                    format: enum
+                isRelyOnBrother:
+                    type: boolean
+                    description: Whether the menu is rely on brother
             description: SaveMenuRequest represents the request data for creating or updating a system menu
-        api.palace.SaveResourceRequest:
-            type: object
-            properties:
-                resourceId:
-                    type: integer
-                    description: Id of the resource (0 for create, >0 for update)
-                    format: uint32
-                name:
-                    type: string
-                    description: Name of the resource
-                path:
-                    type: string
-                    description: Path of the resource
-                status:
-                    type: integer
-                    description: Status of the resource
-                    format: enum
-                allow:
-                    type: integer
-                    description: Allow rule for the resource
-                    format: enum
-                remark:
-                    type: string
-                    description: Remark for the resource
-            description: SaveResourceRequest represents the request data for creating or updating a resource
         api.palace.SaveRoleRequest:
             type: object
             properties:
@@ -4378,31 +4204,6 @@ components:
                     items:
                         type: integer
                         format: uint32
-        api.palace.SelectResourceReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.SelectItem'
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
-            description: SelectResourceReply contains the response data for selecting resources
-        api.palace.SelectResourceRequest:
-            type: object
-            properties:
-                status:
-                    type: array
-                    items:
-                        type: integer
-                        format: enum
-                    description: List of statuses to filter resources by
-                keyword:
-                    type: string
-                    description: Keyword to search resources by
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-            description: SelectResourceRequest represents the request data for selecting resources
         api.palace.SelectTeamDashboardChartReply:
             type: object
             properties:
@@ -5182,14 +4983,17 @@ components:
                 name:
                     type: string
                     description: Name of the menu tree item
-                path:
+                menuPath:
                     type: string
-                    description: Path of the menu tree item
+                    description: menu path of the menu tree item
+                apiPath:
+                    type: string
+                    description: api path
                 status:
                     type: integer
                     description: Status of the menu tree item
                     format: enum
-                icon:
+                menuIcon:
                     type: string
                     description: Icon of the menu tree item
                 children:
@@ -5199,11 +5003,23 @@ components:
                     description: children of the menu tree item
                 menuType:
                     type: integer
+                    description: Type of the menu tree item
                     format: enum
-                resources:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.ResourceItem'
+                menuCategory:
+                    type: integer
+                    description: Category of the menu tree item
+                    format: enum
+                processType:
+                    type: integer
+                    description: Process type of the menu tree item
+                    format: enum
+                parentId:
+                    type: integer
+                    description: Parent menu id
+                    format: uint32
+                isRelyOnBrother:
+                    type: boolean
+                    description: rely on brother
         api.palace.common.NoticeGroupItem:
             type: object
             properties:
@@ -5299,10 +5115,9 @@ components:
                     type: integer
                     description: Type of the operation
                     format: enum
-                module:
-                    type: integer
-                    description: ResourceModule of the operation
-                    format: enum
+                menuName:
+                    type: string
+                    description: MenuName of the operation
                 dataId:
                     type: integer
                     description: DataId of the operation
@@ -5356,40 +5171,6 @@ components:
                 PaginationRequest is used for pagination queries, specifying the page number and the number of items per page.
                  page: The current page number, must be greater than 0.
                  limit: The number of items per page, must be greater than 0 and less than or equal to 10000.
-        api.palace.common.ResourceItem:
-            type: object
-            properties:
-                resourceId:
-                    type: integer
-                    description: Unique identifier for the API resource
-                    format: uint32
-                name:
-                    type: string
-                    description: Name of the API resource
-                path:
-                    type: string
-                    description: Path of the API resource
-                status:
-                    type: integer
-                    description: Status of the API resource
-                    format: enum
-                remark:
-                    type: string
-                    description: Remarks about the API resource
-                createdAt:
-                    type: string
-                    description: Creation time of the API resource
-                updatedAt:
-                    type: string
-                    description: Last update time of the API resource
-                allow:
-                    type: integer
-                    format: enum
-                menus:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.MenuTreeItem'
-            description: system-api
         api.palace.common.SMSConfigItem:
             type: object
             properties:
@@ -5540,7 +5321,7 @@ components:
                 resources:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.common.ResourceItem'
+                        $ref: '#/components/schemas/api.palace.common.MenuTreeItem'
                     description: List of resources associated with the system role
                 users:
                     type: array
@@ -5884,11 +5665,11 @@ components:
                     type: integer
                     description: Status of the role.
                     format: enum
-                resources:
+                menus:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.common.ResourceItem'
-                    description: List of resources associated with the role.
+                        $ref: '#/components/schemas/api.palace.common.MenuTreeItem'
+                    description: List of menus associated with the role.
                 members:
                     type: array
                     items:
@@ -6250,8 +6031,8 @@ tags:
     - name: Callback
     - name: Health
       description: Health Check API
-    - name: Resource
-      description: Resource service provides operations for managing resources
+    - name: Menu
+      description: Menu service provides operations for managing menus
     - name: Server
     - name: System
       description: System service provides operations for managing system users, roles, teams, and audits

@@ -49,13 +49,6 @@ func teamMemberNotFound(err error) error {
 	return err
 }
 
-func resourceNotFound(err error) error {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return merr.ErrorNotFound("resource not found").WithCause(err)
-	}
-	return err
-}
-
 func menuNotFound(err error) error {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return merr.ErrorNotFound("menu not found").WithCause(err)

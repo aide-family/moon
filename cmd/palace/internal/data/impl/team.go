@@ -42,7 +42,7 @@ func (r *teamRepoImpl) Create(ctx context.Context, team bo.CreateTeamRequest) (d
 		Capacity:      team.GetCapacity(),
 		Leader:        nil,
 		Admins:        nil,
-		Resources:     nil,
+		Menus:         nil,
 		BizDBConfig:   crypto.NewObject(team.GetBizDBConfig()),
 		AlarmDBConfig: crypto.NewObject(team.GetAlarmDBConfig()),
 	}

@@ -15,7 +15,7 @@ import (
 
 // NewPermissionBiz create a new permission biz
 func NewPermissionBiz(
-	resourceRepo repository.Resource,
+	menuRepo repository.Menu,
 	userRepo repository.User,
 	teamRepo repository.Team,
 	memberRepo repository.Member,
@@ -26,7 +26,7 @@ func NewPermissionBiz(
 	permissionChain := []PermissionHandler{
 		baseHandler.UserHandler(userRepo.FindByID),
 		baseHandler.OperationHandler(),
-		baseHandler.ResourceHandler(resourceRepo.GetResourceByOperation),
+		baseHandler.ResourceHandler(menuRepo.GetMenuByOperation),
 		baseHandler.AllowCheckHandler(),
 		baseHandler.SystemAdminCheckHandler(),
 		baseHandler.SystemRBACHandler(checkSystemRBAC),
@@ -63,7 +63,7 @@ func (a *PermissionBiz) VerifyPermission(ctx context.Context) error {
 // PermissionContext permission check context
 type PermissionContext struct {
 	Operation      string
-	Resource       do.Resource
+	Menu           do.Menu
 	User           do.User
 	Team           do.Team
 	SystemPosition vobj.Role
@@ -99,16 +99,16 @@ func (h *basePermissionHandler) OperationHandler() PermissionHandler {
 }
 
 // ResourceHandler resourceRepo check
-func (h *basePermissionHandler) ResourceHandler(getResourceByOperation func(ctx context.Context, operation string) (do.Resource, error)) PermissionHandler {
+func (h *basePermissionHandler) ResourceHandler(getMenuByOperation func(ctx context.Context, operation string) (do.Menu, error)) PermissionHandler {
 	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
-		resource, err := getResourceByOperation(ctx, pCtx.Operation)
+		menu, err := getMenuByOperation(ctx, pCtx.Operation)
 		if err != nil {
 			return true, err
 		}
-		if !resource.GetStatus().IsEnable() {
+		if !menu.GetStatus().IsEnable() {
 			return true, merr.ErrorPermissionDenied("permission denied")
 		}
-		pCtx.Resource = resource
+		pCtx.Menu = menu
 		return false, nil
 	})
 }
@@ -136,9 +136,9 @@ func (h *basePermissionHandler) UserHandler(findUserByID func(ctx context.Contex
 // AllowCheckHandler allow check
 func (h *basePermissionHandler) AllowCheckHandler() PermissionHandler {
 	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
-		if pCtx.Resource.GetAllow().IsNone() || pCtx.Resource.GetAllow().IsUser() {
-			return true, nil // satisfy condition directly pass
-		}
+		// if pCtx.Menu.GetAllow().IsNone() || pCtx.Menu.GetAllow().IsUser() {
+		// 	return true, nil // satisfy condition directly pass
+		// }
 		return false, nil
 	})
 }
@@ -154,9 +154,9 @@ func (h *basePermissionHandler) SystemAdminCheckHandler() PermissionHandler {
 }
 
 // SystemRBACHandler system rbac check
-func (h *basePermissionHandler) SystemRBACHandler(checkSystemRBAC func(ctx context.Context, user do.User, resource do.Resource) (bool, error)) PermissionHandler {
+func (h *basePermissionHandler) SystemRBACHandler(checkSystemRBAC func(ctx context.Context, user do.User, menu do.Menu) (bool, error)) PermissionHandler {
 	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
-		ok, err := checkSystemRBAC(ctx, pCtx.User, pCtx.Resource)
+		ok, err := checkSystemRBAC(ctx, pCtx.User, pCtx.Menu)
 		if err != nil {
 			return false, err
 		}
@@ -213,9 +213,9 @@ func (h *basePermissionHandler) TeamAdminCheckHandler() PermissionHandler {
 }
 
 // TeamRBACHandler team rbac check
-func (h *basePermissionHandler) TeamRBACHandler(checkTeamRBAC func(ctx context.Context, member do.TeamMember, resource do.Resource) (bool, error)) PermissionHandler {
+func (h *basePermissionHandler) TeamRBACHandler(checkTeamRBAC func(ctx context.Context, member do.TeamMember, menu do.Menu) (bool, error)) PermissionHandler {
 	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
-		ok, err := checkTeamRBAC(ctx, pCtx.TeamMember, pCtx.Resource)
+		ok, err := checkTeamRBAC(ctx, pCtx.TeamMember, pCtx.Menu)
 		if err != nil {
 			return false, err
 		}
@@ -223,47 +223,48 @@ func (h *basePermissionHandler) TeamRBACHandler(checkTeamRBAC func(ctx context.C
 	})
 }
 
-func checkSystemRBAC(_ context.Context, user do.User, resource do.Resource) (bool, error) {
-	if !resource.GetAllow().IsSystemRBAC() {
-		return false, nil
-	}
-	resources := make([]do.Resource, 0, len(user.GetRoles())*10)
+func checkSystemRBAC(_ context.Context, user do.User, menu do.Menu) (bool, error) {
+	// if !menu.GetAllow().IsSystemRBAC() {
+	// 	return false, nil
+	// }
+	resources := make([]do.Menu, 0, len(user.GetRoles())*10)
 	for _, role := range user.GetRoles() {
 		if role.GetStatus().IsEnable() {
 			for _, menu := range role.GetMenus() {
 				if !menu.GetStatus().IsEnable() {
 					continue
 				}
-				resources = append(resources, menu.GetResources()...)
+				resources = append(resources, menu)
 			}
 		}
 	}
-	_, ok := slices.FindByValue(resources, resource.GetID(), func(role do.Resource) uint32 { return role.GetID() })
+	_, ok := slices.FindByValue(resources, menu.GetID(), func(role do.Menu) uint32 { return role.GetID() })
 	if ok {
 		return true, nil
 	}
 	return false, merr.ErrorPermissionDenied("user role resourceRepo is invalid.")
 }
 
-func checkTeamRBAC(_ context.Context, member do.TeamMember, resource do.Resource) (bool, error) {
-	if !resource.GetAllow().IsTeamRBAC() {
-		return false, nil
-	}
-	roles := member.GetRoles()
-	resources := make([]do.Resource, 0, len(roles)*10)
-	for _, role := range roles {
-		if role.GetStatus().IsEnable() {
-			for _, menu := range role.GetMenus() {
-				if !menu.GetStatus().IsEnable() {
-					continue
-				}
-				resources = append(resources, menu.GetResources()...)
-			}
-		}
-	}
-	_, ok := slices.FindByValue(resources, resource.GetID(), func(role do.Resource) uint32 { return role.GetID() })
-	if ok {
-		return true, nil
-	}
-	return false, merr.ErrorPermissionDenied("team role resourceRepo is invalid.")
+func checkTeamRBAC(_ context.Context, member do.TeamMember, menu do.Menu) (bool, error) {
+	return true, nil
+	// if !menu.GetAllow().IsTeamRBAC() {
+	// 	return false, nil
+	// }
+	// roles := member.GetRoles()
+	// resources := make([]do.Menu, 0, len(roles)*10)
+	// for _, role := range roles {
+	// 	if role.GetStatus().IsEnable() {
+	// 		for _, menu := range role.GetMenus() {
+	// 			if !menu.GetStatus().IsEnable() {
+	// 				continue
+	// 			}
+	// 			resources = append(resources, menu.GetResources()...)
+	// 		}
+	// 	}
+	// }
+	// _, ok := slices.FindByValue(resources, resource.GetID(), func(role do.Resource) uint32 { return role.GetID() })
+	// if ok {
+	// 	return true, nil
+	// }
+	// return false, merr.ErrorPermissionDenied("team role resourceRepo is invalid.")
 }

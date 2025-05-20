@@ -7,26 +7,6 @@ import "palace/common/common_enum.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/palace/common;common";
 
-// system-api
-message ResourceItem {
-  // Unique identifier for the API resource
-  uint32 resourceId = 1;
-  // Name of the API resource
-  string name = 2;
-  // Path of the API resource
-  string path = 3;
-  // Status of the API resource
-  api.palace.common.GlobalStatus status = 4;
-  // Remarks about the API resource
-  string remark = 5;
-  // Creation time of the API resource
-  string createdAt = 6;
-  // Last update time of the API resource
-  string updatedAt = 7;
-  api.palace.common.ResourceAllow allow = 8;
-  repeated MenuTreeItem menus = 9;
-}
-
 message UserBaseItem {
   // User's login name
   string username = 1;
@@ -81,7 +61,7 @@ message SystemRoleItem {
   // Last update time of the system role
   string updatedAt = 6;
   // List of resources associated with the system role
-  repeated ResourceItem resources = 7;
+  repeated MenuTreeItem resources = 7;
   // List of users assigned to the system role
   repeated UserBaseItem users = 8;
   UserBaseItem creator = 9;
@@ -122,8 +102,8 @@ message OperateLogItem {
   UserBaseItem operator = 2;
   // Type of the operation
   api.palace.common.OperateType type = 3;
-  // ResourceModule of the operation
-  api.palace.common.ResourceModule module = 4;
+  // MenuName of the operation
+  string menuName = 4;
   // DataId of the operation
   uint32 dataId = 5;
   // DataName of the operation
@@ -145,14 +125,24 @@ message MenuTreeItem {
   uint32 menuId = 1;
   // Name of the menu tree item
   string name = 2;
-  // Path of the menu tree item
-  string path = 3;
+  // menu path of the menu tree item
+  string menuPath = 3;
+  // api path
+  string apiPath = 4;
   // Status of the menu tree item
-  api.palace.common.GlobalStatus status = 4;
+  api.palace.common.GlobalStatus status = 5;
   // Icon of the menu tree item
-  string icon = 5;
+  string menuIcon = 6;
   // children of the menu tree item
-  repeated MenuTreeItem children = 6;
-  api.palace.common.MenuType menuType = 7;
-  repeated ResourceItem resources = 8;
+  repeated MenuTreeItem children = 7;
+  // Type of the menu tree item
+  api.palace.common.MenuType menuType = 8;
+  // Category of the menu tree item
+  api.palace.common.MenuCategory menuCategory = 9;
+  // Process type of the menu tree item
+  api.palace.common.MenuProcessType processType = 10;
+  // Parent menu id
+  uint32 parentId = 11;
+  // rely on brother
+  bool isRelyOnBrother = 12;
 }

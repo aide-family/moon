@@ -6,10 +6,10 @@ package vobj
 type NoticeType int8
 
 const (
-	NoticeTypeUnknown NoticeType = 0         // NONE
-	NoticeTypeEmail   NoticeType = 1 << iota // Email
-	NoticeTypeSMS                            // SMS
-	NoticeTypeVoice                          // Voice
+	NoticeTypeUnknown NoticeType = 0               // NONE
+	NoticeTypeEmail   NoticeType = 1 << (iota - 1) // Email
+	NoticeTypeSMS                                  // SMS
+	NoticeTypeVoice                                // Voice
 )
 
 // IsContainsEmail is contains email notice type

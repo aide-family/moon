@@ -36,24 +36,6 @@ enum OperateType {
   OPERATE_TYPE_IMPORT = 8;
 }
 
-// ResourceAllow represents the allow of a resource.
-enum ResourceAllow {
-  // RESOURCE_ALLOW_UNKNOWN is the default allow for a resource.
-  RESOURCE_ALLOW_UNKNOWN = 0;
-  // RESOURCE_ALLOW_NONE indicates that the resource allow is none.
-  RESOURCE_ALLOW_NONE = 1;
-  // RESOURCE_ALLOW_SYSTEM indicates that the resource allow is system.
-  RESOURCE_ALLOW_SYSTEM = 2;
-  // RESOURCE_ALLOW_SYSTEM_RBAC indicates that the resource allow is system RBAC.
-  RESOURCE_ALLOW_SYSTEM_RBAC = 3;
-  // RESOURCE_ALLOW_TEAM indicates that the resource allow is team.
-  RESOURCE_ALLOW_TEAM = 4;
-  // RESOURCE_ALLOW_TEAM_RBAC indicates that the resource allow is team RBAC.
-  RESOURCE_ALLOW_TEAM_RBAC = 5;
-  // RESOURCE_ALLOW_USER indicates that the resource allow is user.
-  RESOURCE_ALLOW_USER = 6;
-}
-
 // MenuType represents the type of a menu
 enum MenuType {
   // Default unknown menu type
@@ -64,6 +46,20 @@ enum MenuType {
   MENU_TYPE_TEAM = 2;
   // User menu type
   MENU_TYPE_USER = 3;
+}
+
+enum MenuCategory {
+  MENU_CATEGORY_UNKNOWN = 0;
+  MENU_CATEGORY_MENU = 1;
+  MENU_CATEGORY_BUTTON = 2;
+}
+
+enum MenuProcessType {
+  MENU_PROCESS_TYPE_UNKNOWN = 0;
+  MENU_PROCESS_TYPE_LOGIN = 1;
+  MENU_PROCESS_TYPE_TEAM = 2;
+  MENU_PROCESS_TYPE_LOG = 4;
+  MENU_PROCESS_TYPE_DATA_PERMISSION = 8;
 }
 
 enum DatasourceDriverMetric {

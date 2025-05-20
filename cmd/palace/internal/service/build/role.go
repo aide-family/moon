@@ -33,7 +33,7 @@ func ToTeamRoleItem(role do.TeamRole) *common.TeamRoleItem {
 		Name:       role.GetName(),
 		Remark:     role.GetRemark(),
 		Status:     common.GlobalStatus(role.GetStatus().GetValue()),
-		Resources:  nil,
+		Menus:      nil,
 		Members:    nil,
 		CreatedAt:  timex.Format(role.GetCreatedAt()),
 		UpdatedAt:  timex.Format(role.GetUpdatedAt()),

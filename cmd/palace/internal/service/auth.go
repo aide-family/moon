@@ -27,14 +27,14 @@ func NewAuthService(
 	bc *conf.Bootstrap,
 	authBiz *biz.AuthBiz,
 	permissionBiz *biz.PermissionBiz,
-	resourceBiz *biz.ResourceBiz,
+	menuBiz *biz.Menu,
 	messageBiz *biz.Message,
 	logger log.Logger,
 ) *AuthService {
 	return &AuthService{
 		authBiz:       authBiz,
 		permissionBiz: permissionBiz,
-		resourceBiz:   resourceBiz,
+		menuBiz:       menuBiz,
 		messageBiz:    messageBiz,
 		oauth2List:    builderOAuth2List(bc.GetAuth().GetOauth2()),
 		helper:        log.NewHelper(log.With(logger, "module", "service.auth")),
@@ -45,7 +45,7 @@ type AuthService struct {
 	palace.UnimplementedAuthServer
 	authBiz       *biz.AuthBiz
 	permissionBiz *biz.PermissionBiz
-	resourceBiz   *biz.ResourceBiz
+	menuBiz       *biz.Menu
 	messageBiz    *biz.Message
 	oauth2List    []*palace.OAuth2ListReply_OAuthItem
 	helper        *log.Helper
@@ -58,9 +58,13 @@ func builderOAuth2List(oauth2 *conf.Auth_OAuth2) []*palace.OAuth2ListReply_OAuth
 	list := oauth2.GetConfigs()
 	oauthList := make([]*palace.OAuth2ListReply_OAuthItem, 0, len(list))
 	for _, oauth := range list {
+		app := vobj.OAuthAPP(oauth.GetApp())
+		if !app.Exist() || app.IsUnknown() {
+			continue
+		}
 		oauthList = append(oauthList, &palace.OAuth2ListReply_OAuthItem{
-			Icon:     oauth.GetApp().String(),
-			Label:    strutil.Title(oauth.GetApp().String(), "login"),
+			Icon:     app.String(),
+			Label:    strutil.Title(app.String(), "login"),
 			Redirect: oauth.GetLoginUrl(),
 		})
 	}
@@ -211,7 +215,7 @@ func (s *AuthService) GetFilingInformation(ctx context.Context, _ *common.EmptyR
 }
 
 func (s *AuthService) GetSelfMenuTree(ctx context.Context, _ *common.EmptyRequest) (*palace.GetSelfMenuTreeReply, error) {
-	menus, err := s.resourceBiz.SelfMenus(ctx)
+	menus, err := s.menuBiz.SelfMenus(ctx)
 	if err != nil {
 		return nil, err
 	}

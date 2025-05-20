@@ -29,13 +29,6 @@ service Team {
     };
   }
 
-  // GetTeamResources retrieves the resources associated with the current team
-  rpc GetTeamResources (api.palace.common.EmptyRequest) returns (GetTeamResourcesReply) {
-    option (google.api.http) = {
-      get: "/api/team/resources"
-    };
-  }
-
   // TransferTeam transfers the leadership of the team to a new leader
   rpc TransferTeam (TransferTeamRequest) returns (api.palace.common.EmptyReply) {
     option (google.api.http) = {
@@ -214,12 +207,6 @@ message SaveTeamRequest {
     expression: "this.size() <= 255"
   }];
   uint32 teamId = 4;
-}
-
-// GetTeamResourcesReply contains the response data for retrieving team resources
-message GetTeamResourcesReply {
-  // List of resource items associated with the team
-  repeated api.palace.common.ResourceItem items = 1;
 }
 
 // TransferTeamRequest represents the request data for transferring team leadership

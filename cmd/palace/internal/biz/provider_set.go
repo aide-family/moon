@@ -14,7 +14,7 @@ import (
 var ProviderSetBiz = wire.NewSet(
 	NewAuthBiz,
 	NewPermissionBiz,
-	NewResourceBiz,
+	NewMenuBiz,
 	NewUserBiz,
 	NewDashboardBiz,
 	NewServerBiz,

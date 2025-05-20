@@ -7,11 +7,14 @@ import (
 type Menu interface {
 	Base
 	GetName() string
-	GetPath() string
+	GetMenuPath() string
+	GetMenuIcon() string
+	GetMenuType() vobj.MenuType
+	GetMenuCategory() vobj.MenuCategory
+	GetApiPath() string
 	GetStatus() vobj.GlobalStatus
-	GetIcon() string
+	GetProcessType() vobj.MenuProcessType
 	GetParentID() uint32
-	GetType() vobj.MenuType
-	GetResources() []Resource
 	GetParent() Menu
+	IsRelyOnBrother() bool
 }

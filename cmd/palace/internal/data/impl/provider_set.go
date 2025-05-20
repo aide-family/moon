@@ -20,7 +20,6 @@ var ProviderSetImpl = wire.NewSet(
 	NewCaptchaRepo,
 	NewCacheRepo,
 	NewOAuthRepo,
-	NewResourceRepo,
 	NewTransaction,
 	NewTeamRepo,
 	NewDashboardRepo,

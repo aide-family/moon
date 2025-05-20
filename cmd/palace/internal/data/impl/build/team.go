@@ -30,7 +30,6 @@ func ToTeam(ctx context.Context, teamDo do.Team) *system.Team {
 		Capacity:      teamDo.GetCapacity(),
 		Leader:        ToUser(ctx, teamDo.GetLeader()),
 		Admins:        ToUsers(ctx, teamDo.GetAdmins()),
-		Resources:     nil,
 		BizDBConfig:   crypto.NewObject(teamDo.GetBizDBConfig()),
 		AlarmDBConfig: crypto.NewObject(teamDo.GetAlarmDBConfig()),
 	}

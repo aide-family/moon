@@ -29,7 +29,7 @@ func RegisterService(
 	healthService *service.HealthService,
 	authService *service.AuthService,
 	serverService *service.ServerService,
-	resourceService *service.ResourceService,
+	menuService *service.MenuService,
 	userService *service.UserService,
 	callbackService *service.CallbackService,
 	teamDashboardService *service.TeamDashboardService,
@@ -51,7 +51,7 @@ func RegisterService(
 	common.RegisterHealthHTTPServer(httpSrv, healthService)
 	common.RegisterServerHTTPServer(httpSrv, serverService)
 	palace.RegisterAuthHTTPServer(httpSrv, authService)
-	palace.RegisterResourceHTTPServer(httpSrv, resourceService)
+	palace.RegisterMenuHTTPServer(httpSrv, menuService)
 	palace.RegisterUserHTTPServer(httpSrv, userService)
 	palace.RegisterCallbackHTTPServer(httpSrv, callbackService)
 	palace.RegisterTeamDashboardHTTPServer(httpSrv, teamDashboardService)

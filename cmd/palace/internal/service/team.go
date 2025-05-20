@@ -50,10 +50,6 @@ func (s *TeamService) GetTeam(ctx context.Context, _ *common.EmptyRequest) (*com
 	return build.ToTeamItem(teamDo), nil
 }
 
-func (s *TeamService) GetTeamResources(ctx context.Context, req *common.EmptyRequest) (*palace.GetTeamResourcesReply, error) {
-	return &palace.GetTeamResourcesReply{}, nil
-}
-
 func (s *TeamService) TransferTeam(ctx context.Context, req *palace.TransferTeamRequest) (*common.EmptyReply, error) {
 	return &common.EmptyReply{}, nil
 }

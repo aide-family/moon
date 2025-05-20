@@ -26,7 +26,11 @@ import (
 func buildOAuthConf(c *conf.Auth_OAuth2) *safety.Map[vobj.OAuthAPP, *oauth2.Config] {
 	oauth2Map := safety.NewMap[vobj.OAuthAPP, *oauth2.Config]()
 	for _, config := range c.GetConfigs() {
-		oauth2Map.Set(vobj.OAuthAPP(config.GetApp()), &oauth2.Config{
+		app := vobj.OAuthAPP(config.GetApp())
+		if !app.Exist() || app.IsUnknown() {
+			continue
+		}
+		oauth2Map.Set(app, &oauth2.Config{
 			ClientID:     config.GetClientId(),
 			ClientSecret: config.GetClientSecret(),
 			Endpoint: oauth2.Endpoint{

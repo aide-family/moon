@@ -7,7 +7,8 @@ import (
 type OperateLog interface {
 	Creator
 	GetOperateType() vobj.OperateType
-	GetOperateModule() vobj.ResourceModule
+	GetOperateMenuID() uint32
+	GetOperateMenuName() string
 	GetOperateDataID() uint32
 	GetOperateDataName() string
 	GetTitle() string

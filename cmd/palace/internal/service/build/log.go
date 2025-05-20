@@ -37,7 +37,7 @@ func ToOperateLogItem(log do.OperateLog) *common.OperateLogItem {
 		OperateLogId: log.GetID(),
 		Operator:     ToUserBaseItem(log.GetCreator()),
 		Type:         common.OperateType(log.GetOperateType().GetValue()),
-		Module:       common.ResourceModule(log.GetOperateModule().GetValue()),
+		MenuName:     log.GetOperateMenuName(),
 		DataId:       log.GetOperateDataID(),
 		DataName:     log.GetOperateDataName(),
 		OperateTime:  timex.Format(log.GetCreatedAt()),

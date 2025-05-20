@@ -4,20 +4,6 @@ package api.palace.common;
 
 option go_package = "github.com/aide-family/moon/pkg/api/palace/common;common";
 
-// Defines the module to which a resource belongs, such as system, user, or team modules.
-enum ResourceModule {
-  // RESOURCE_MODULE_UNKNOWN is the default module for a resource.
-  RESOURCE_MODULE_UNKNOWN = 0;
-  // The module to which the resource belongs is unspecified.
-  RESOURCE_MODULE_UNSPECIFIED = 1;
-  // The resource belongs to the system module.
-  RESOURCE_MODULE_SYSTEM = 2;
-  // The resource belongs to the user module.
-  RESOURCE_MODULE_USER = 3;
-  // The resource belongs to the team module.
-  RESOURCE_MODULE_TEAM = 4;
-}
-
 // Defines gender types, including unspecified, male, and female.
 enum Gender {
   // Gender is unspecified.

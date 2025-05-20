@@ -3,7 +3,6 @@ package system
 import (
 	"encoding/json"
 	"strconv"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -29,9 +28,9 @@ type Team struct {
 	Capacity      vobj.TeamCapacity                `gorm:"column:capacity;type:tinyint(2);not null;comment:团队容量(套餐)" json:"capacity"`
 	Leader        *User                            `gorm:"foreignKey:LeaderID;references:ID" json:"leader"`
 	Admins        []*User                          `gorm:"many2many:sys_team_admins" json:"admins"`
-	Resources     []*Resource                      `gorm:"many2many:sys_team_resources" json:"resources"`
 	BizDBConfig   *crypto.Object[*config.Database] `gorm:"column:biz_db_config;type:text;not null;comment:数据库名" json:"bizDBConfig"`
 	AlarmDBConfig *crypto.Object[*config.Database] `gorm:"column:alarm_db_config;type:text;not null;comment:数据库名" json:"alarmDBConfig"`
+	Menus         []*Menu                          `gorm:"many2many:sys_team_menus" json:"menus"`
 }
 
 func (u *Team) MarshalBinary() (data []byte, err error) {
@@ -64,27 +63,6 @@ func (u *Team) GetAdmins() []do.User {
 		return nil
 	}
 	return slices.Map(u.Admins, func(v *User) do.User { return v })
-}
-
-func (u *Team) GetResources() []do.Resource {
-	if u == nil {
-		return nil
-	}
-	return slices.Map(u.Resources, func(v *Resource) do.Resource { return v })
-}
-
-func (u *Team) GetCreatedAt() time.Time {
-	if u == nil {
-		return time.Time{}
-	}
-	return u.CreatedAt
-}
-
-func (u *Team) GetUpdatedAt() time.Time {
-	if u == nil {
-		return time.Time{}
-	}
-	return u.UpdatedAt
 }
 
 func (u *Team) GetTeamID() uint32 {
@@ -155,6 +133,13 @@ func (u *Team) GetAlarmDBConfig() *config.Database {
 		return nil
 	}
 	return u.AlarmDBConfig.Get()
+}
+
+func (u *Team) GetMenus() []do.Menu {
+	if u == nil {
+		return nil
+	}
+	return slices.Map(u.Menus, func(v *Menu) do.Menu { return v })
 }
 
 func (u *Team) TableName() string {

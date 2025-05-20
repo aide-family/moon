@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package api.palace;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "palace/common/system.proto";
+import "palace/common/common.proto";
+import "palace/common/common_enum.proto";
+
+option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
+
+// Menu service provides operations for managing menus
+service Menu {
+  // SaveMenu creates or updates a system menu
+  rpc SaveMenu (SaveMenuRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/menu/save"
+      body: "*"
+    };
+  }
+
+  // GetMenu retrieves a menu by Id
+  rpc GetMenu (GetMenuRequest) returns (api.palace.common.MenuTreeItem) {
+    option (google.api.http) = {
+      get: "/api/menu/detail"
+    };
+  }
+
+  // GetMenuTree returns the menu tree
+  rpc GetMenuTree (api.palace.common.EmptyRequest) returns (GetMenuTreeReply) {
+    option (google.api.http) = {
+      get: "/api/menu/tree"
+    };
+  }
+
+  // GetTeamMenuTree returns the menu tree
+  rpc GetTeamMenuTree (api.palace.common.EmptyRequest) returns (GetMenuTreeReply) {
+    option (google.api.http) = {
+      get: "/api/team/menu/tree"
+    };
+  }
+}
+
+// GetMenuTreeReply contains the response data for retrieving the menu tree
+message GetMenuTreeReply {
+  // List of menu items
+  repeated api.palace.common.MenuTreeItem menus = 1;
+}
+
+
+// GetMenuRequest represents the request data for retrieving a menu
+message GetMenuRequest {
+  // Id of the menu to retrieve
+  uint32 menuId = 1 [(buf.validate.field).required = true];
+}
+
+// SaveMenuRequest represents the request data for creating or updating a system menu
+message SaveMenuRequest {
+  // Id of the menu (0 for create, >0 for update)
+  uint32 menuId = 1;
+  // Name of the menu
+  string name = 2 [(buf.validate.field).required = true];
+  // Path of the menu
+  string menuPath = 3 [(buf.validate.field).required = true];
+  // Api path of the menu
+  string apiPath = 4 [(buf.validate.field).required = true];
+  // Status of the menu
+  api.palace.common.GlobalStatus status = 5 [(buf.validate.field).required = true];
+  // Icon of the menu
+  string menuIcon = 6;
+  // Parent menu Id (0 for root menu)
+  uint32 parentId = 7;
+  // Type of the menu
+  api.palace.common.MenuType menuType = 8 [(buf.validate.field).required = true];
+  // Category of the menu
+  api.palace.common.MenuCategory menuCategory = 9 [(buf.validate.field).required = true];
+  // Process type of the menu
+  api.palace.common.MenuProcessType processType = 10 [(buf.validate.field).required = true];
+  // Whether the menu is rely on brother
+  bool isRelyOnBrother = 11;
+}

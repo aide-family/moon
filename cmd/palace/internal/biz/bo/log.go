@@ -25,7 +25,8 @@ type TeamOperateLogListReply = ListReply[do.OperateLog]
 
 type AddOperateLog struct {
 	OperateType     vobj.OperateType
-	OperateModule   vobj.ResourceModule
+	OperateMenuID   uint32
+	OperateMenuName string
 	OperateDataID   uint32
 	OperateDataName string
 	Title           string

@@ -32,7 +32,8 @@ type operateLogImpl struct {
 func (o *operateLogImpl) OperateLog(ctx context.Context, log *bo.AddOperateLog) error {
 	operateLog := &system.OperateLog{
 		OperateType:     log.OperateType,
-		OperateModule:   log.OperateModule,
+		OperateMenuID:   log.OperateMenuID,
+		OperateMenuName: log.OperateMenuName,
 		OperateDataID:   log.OperateDataID,
 		OperateDataName: log.OperateDataName,
 		Title:           log.Title,
@@ -87,7 +88,8 @@ func (o *operateLogImpl) List(ctx context.Context, req *bo.OperateLogListRequest
 func (o *operateLogImpl) TeamOperateLog(ctx context.Context, log *bo.AddOperateLog) error {
 	operateLog := &team.OperateLog{
 		OperateType:     log.OperateType,
-		OperateModule:   log.OperateModule,
+		OperateMenuID:   log.OperateMenuID,
+		OperateMenuName: log.OperateMenuName,
 		OperateDataID:   log.OperateDataID,
 		OperateDataName: log.OperateDataName,
 		Title:           log.Title,

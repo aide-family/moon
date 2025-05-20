@@ -50,8 +50,8 @@ message TeamRoleItem {
   string remark = 3;
   // Status of the role.
   api.palace.common.GlobalStatus status = 4;
-  // List of resources associated with the role.
-  repeated api.palace.common.ResourceItem resources = 5;
+  // List of menus associated with the role.
+  repeated api.palace.common.MenuTreeItem menus = 5;
   // List of members assigned to the role.
   repeated TeamMemberItem members = 6;
   // Timestamp indicating when the role was created.

@@ -21,7 +21,7 @@ type Team interface {
 	GetAlarmDBConfig() *config.Database
 	GetLeader() User
 	GetAdmins() []User
-	GetResources() []Resource
+	GetMenus() []Menu
 }
 
 type TeamAudit interface {
