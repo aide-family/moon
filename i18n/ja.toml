@@ -19,6 +19,9 @@ other = "許可されていません"
 [METHOD_NOT_ALLOWED]
 other = "メソッドが許可されていません"
 
+[EXIST]
+other = "データが既に存在します"
+
 [UNAUTHORIZED]
 other = "未認証"
 

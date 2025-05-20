@@ -12,13 +12,13 @@ const tableNameMenu = "sys_menus"
 type Menu struct {
 	do.BaseModel
 	Name          string               `gorm:"column:name;type:varchar(64);not null;uniqueIndex:idx__menu__name,priority:1;comment:menu name" json:"name"`
-	MenuPath      string               `gorm:"column:menu_path;type:varchar(255);not null;uniqueIndex:idx__menu__menu_path,priority:1;comment:menu path" json:"menuPath"`
-	MenuIcon      string               `gorm:"column:menu_icon;type:varchar(64);not null;comment:menu icon" json:"menuIcon"`
-	MenuType      vobj.MenuType        `gorm:"column:menu_type;type:tinyint(2);not null;comment:menu system type" json:"menuType"`
-	MenuCategory  vobj.MenuCategory    `gorm:"column:menu_category;type:tinyint(2);not null;comment:menu category" json:"menuCategory"`
-	ApiPath       string               `gorm:"column:api_path;type:varchar(255);not null;comment:API path" json:"apiPath"`
-	Status        vobj.GlobalStatus    `gorm:"column:status;type:tinyint(2);not null;comment:status" json:"status"`
-	ProcessType   vobj.MenuProcessType `gorm:"column:process_type;type:tinyint(2);not null;comment:process type" json:"processType"`
+	MenuPath      string               `gorm:"column:menu_path;type:varchar(255);not null;default:'';comment:menu path" json:"menuPath"`
+	MenuIcon      string               `gorm:"column:menu_icon;type:varchar(64);not null;default:'';comment:menu icon" json:"menuIcon"`
+	MenuType      vobj.MenuType        `gorm:"column:menu_type;type:tinyint(2);not null;default:0;comment:menu system type" json:"menuType"`
+	MenuCategory  vobj.MenuCategory    `gorm:"column:menu_category;type:tinyint(2);not null;default:0;comment:menu category" json:"menuCategory"`
+	ApiPath       string               `gorm:"column:api_path;type:varchar(255);not null;default:'';comment:API path" json:"apiPath"`
+	Status        vobj.GlobalStatus    `gorm:"column:status;type:tinyint(2);not null;default:0;comment:status" json:"status"`
+	ProcessType   vobj.MenuProcessType `gorm:"column:process_type;type:tinyint(2);not null;default:0;comment:process type" json:"processType"`
 	ParentID      uint32               `gorm:"column:parent_id;type:int unsigned;not null;default:0;comment:parent ID" json:"parentID"`
 	Parent        *Menu                `gorm:"foreignKey:ParentID;references:ID" json:"parent"`
 	RelyOnBrother bool                 `gorm:"column:rely_on_brother;type:tinyint(1);not null;default:0;comment:whether to rely on sibling node" json:"relyOnBrother"`

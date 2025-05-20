@@ -9,9 +9,12 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
+	"gorm.io/gorm"
 )
 
 func NewMenuRepo(d *data.Data) repository.Menu {
@@ -102,4 +105,20 @@ func (m *menuRepoImpl) Update(ctx context.Context, menu *bo.SaveMenuRequest) err
 	}
 	_, err := menuMutation.WithContext(ctx).Where(wrappers...).UpdateColumnSimple(mutations...)
 	return err
+}
+
+func (m *menuRepoImpl) ExistByName(ctx context.Context, name string, menuID uint32) error {
+	mainQuery := getMainQuery(ctx, m)
+	menu := mainQuery.Menu
+	menuDo, err := menu.WithContext(ctx).Where(menu.Name.Eq(name), menu.ID.Neq(menuID)).First()
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		return err
+	}
+	if menuID == menuDo.ID {
+		return nil
+	}
+	return merr.ErrorExist("menu name already exists")
 }

@@ -116,7 +116,7 @@ func (h *basePermissionHandler) MenuHandler(findMenuByOperation FindMenuByOperat
 		if !menuDo.GetStatus().IsEnable() || menuDo.GetDeletedAt() > 0 {
 			return false, merr.ErrorPermissionDenied("permission denied")
 		}
-		if menuDo.GetMenuType().IsMenuUser() {
+		if menuDo.GetMenuType().IsMenuUser() || menuDo.GetMenuType().IsMenuNone() {
 			return true, nil
 		}
 		return false, nil

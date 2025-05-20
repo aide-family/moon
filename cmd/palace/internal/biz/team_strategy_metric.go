@@ -47,18 +47,21 @@ func (t *TeamStrategyMetric) SaveTeamMetricStrategy(ctx context.Context, params 
 		return nil, err
 	}
 	if strategyDo.GetStatus().IsEnable() {
-		return nil, merr.ErrorBadRequest("strategy is enabled and cannot be modified")
+		return nil, merr.ErrorParams("strategy is enabled and cannot be modified")
 	}
 	datasourceDos, err := t.datasourceRepo.FindByIds(ctx, params.Datasource)
 	if err != nil {
 		return nil, err
+	}
+	if len(datasourceDos) == 0 {
+		return nil, merr.ErrorParams("datasource not found")
 	}
 	strategyMetricDo, err := t.teamStrategyMetricRepo.Get(ctx, &bo.OperateTeamStrategyParams{StrategyId: params.StrategyID})
 	if err != nil && !merr.IsNotFound(err) {
 		return nil, err
 	}
 	err = t.transaction.BizExec(ctx, func(ctx context.Context) error {
-		if validate.IsNil(strategyMetricDo) {
+		if validate.IsNil(strategyMetricDo) || strategyMetricDo.GetID() == 0 {
 			req := params.ToCreateTeamMetricStrategyParams(strategyDo, datasourceDos)
 			if err := req.Validate(); err != nil {
 				return err

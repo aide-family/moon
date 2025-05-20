@@ -15,6 +15,7 @@ enum ClientError {
   PASSWORD = 4;
   PERMISSION_DENIED = 5;
   METHOD_NOT_ALLOWED = 6;
+  EXIST = 7;
 }
 
 enum UnauthorizedError {

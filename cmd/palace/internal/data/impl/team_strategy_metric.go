@@ -89,7 +89,7 @@ func (t *teamStrategyMetricRepoImpl) Create(ctx context.Context, params bo.Creat
 		}
 	}
 
-	return strategyMetricDo, nil
+	return t.Get(ctx, &bo.OperateTeamStrategyParams{StrategyId: params.GetStrategy().GetID()})
 }
 
 // Update implements repository.TeamStrategyMetric.
@@ -110,15 +110,9 @@ func (t *teamStrategyMetricRepoImpl) Update(ctx context.Context, params bo.Updat
 	if _, err := strategyMetricMutation.WithContext(ctx).Where(wrapper...).UpdateSimple(strategyMetricMutations...); err != nil {
 		return nil, err
 	}
-	strategyMetricDo, err := t.Get(ctx, &bo.OperateTeamStrategyParams{
-		StrategyId: params.GetStrategyMetric().GetID(),
-	})
-	if err != nil {
-		return nil, err
-	}
 
 	datasourceDos := build.ToDatasourceMetrics(ctx, params.GetDatasource())
-	datasourceMutation := tx.StrategyMetric.Datasource.WithContext(ctx).Model(build.ToStrategyMetric(ctx, strategyMetricDo))
+	datasourceMutation := tx.StrategyMetric.Datasource.WithContext(ctx).Model(build.ToStrategyMetric(ctx, params.GetStrategyMetric()))
 	if len(datasourceDos) > 0 {
 		if err := datasourceMutation.Replace(datasourceDos...); err != nil {
 			return nil, err
@@ -129,7 +123,11 @@ func (t *teamStrategyMetricRepoImpl) Update(ctx context.Context, params bo.Updat
 		}
 	}
 
-	return strategyMetricDo, nil
+	strategyMetric, err := tx.StrategyMetric.WithContext(ctx).Where(wrapper...).First()
+	if err != nil {
+		return nil, err
+	}
+	return strategyMetric, nil
 }
 
 // UpdateLevels implements repository.TeamStrategyMetric.

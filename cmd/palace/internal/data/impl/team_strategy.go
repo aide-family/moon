@@ -127,7 +127,8 @@ func (t *teamStrategyRepoImpl) Update(ctx context.Context, params bo.UpdateTeamS
 		return nil, err
 	}
 	notices := build.ToStrategyNotices(ctx, params.GetReceiverRoutes())
-	notice := tx.Strategy.Notices.WithContext(ctx).Model(&team.Strategy{TeamModel: build.ToTeamModel(ctx, params.GetStrategy())})
+	strategyDo := &team.Strategy{TeamModel: build.ToTeamModel(ctx, params.GetStrategy())}
+	notice := tx.Strategy.Notices.WithContext(ctx).Model(strategyDo)
 	if len(notices) > 0 {
 		if err := notice.Replace(notices...); err != nil {
 			return nil, err

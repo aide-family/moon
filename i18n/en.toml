@@ -19,6 +19,9 @@ other = "Permission Denied"
 [METHOD_NOT_ALLOWED]
 other = "Method Not Allowed"
 
+[EXIST]
+other = "Data already exists"
+
 [UNAUTHORIZED]
 other = "Unauthorized"
 

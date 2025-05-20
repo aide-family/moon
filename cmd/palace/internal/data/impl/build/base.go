@@ -35,7 +35,7 @@ func ToCreatorModel(ctx context.Context, model do.Creator) do.CreatorModel {
 
 func ToTeamModel(ctx context.Context, model do.TeamBase) do.TeamModel {
 	item := do.TeamModel{}
-	if validate.IsNil(model) {
+	if validate.IsNotNil(model) {
 		item = do.TeamModel{
 			CreatorModel: ToCreatorModel(ctx, model),
 			TeamID:       model.GetTeamID(),

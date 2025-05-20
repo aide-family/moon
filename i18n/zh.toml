@@ -19,6 +19,9 @@ other = "权限不足"
 [METHOD_NOT_ALLOWED]
 other = "请求方法错误"
 
+[EXIST]
+other = "数据已存在"
+
 [UNAUTHORIZED]
 other = "未授权"
 

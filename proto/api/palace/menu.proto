@@ -62,9 +62,9 @@ message SaveMenuRequest {
   // Name of the menu
   string name = 2 [(buf.validate.field).required = true];
   // Path of the menu
-  string menuPath = 3 [(buf.validate.field).required = true];
+  string menuPath = 3;
   // Api path of the menu
-  string apiPath = 4 [(buf.validate.field).required = true];
+  string apiPath = 4;
   // Status of the menu
   api.palace.common.GlobalStatus status = 5 [(buf.validate.field).required = true];
   // Icon of the menu
@@ -76,7 +76,7 @@ message SaveMenuRequest {
   // Category of the menu
   api.palace.common.MenuCategory menuCategory = 9 [(buf.validate.field).required = true];
   // Process type of the menu
-  api.palace.common.MenuProcessType processType = 10 [(buf.validate.field).required = true];
+  api.palace.common.MenuProcessType processType = 10;
   // Whether the menu is rely on brother
   bool isRelyOnBrother = 11;
 }

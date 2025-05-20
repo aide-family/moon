@@ -7,7 +7,7 @@ server:
   http:
     network: ${X_MOON_HTTP_NETWORK:tcp}
     addr: ${X_MOON_HTTP_ADDR:0.0.0.0:8080}
-    timeout: ${X_MOON_HTTP_TIMEOUT:5s}
+    timeout: ${X_MOON_HTTP_TIMEOUT:50s}
     allowHeaders:
       - Origin
       - Content-Length
@@ -32,7 +32,7 @@ server:
   grpc:
     network: ${X_MOON_GRPC_NETWORK:tcp}
     addr: ${X_MOON_GRPC_ADDR:0.0.0.0:9090}
-    timeout: ${X_MOON_GRPC_TIMEOUT:5s}
+    timeout: ${X_MOON_GRPC_TIMEOUT:50s}
 
 registry:
   driver: ${X_MOON_REGISTRY_DRIVER:ETCD}
