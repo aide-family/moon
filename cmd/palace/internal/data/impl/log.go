@@ -11,7 +11,6 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -30,17 +29,7 @@ type operateLogRepoImpl struct {
 }
 
 func (o *operateLogRepoImpl) OperateLog(ctx context.Context, log *bo.AddOperateLog) error {
-	operateLog := &system.OperateLog{
-		OperateType:     log.OperateType,
-		OperateMenuID:   log.OperateMenuID,
-		OperateMenuName: log.OperateMenuName,
-		OperateDataID:   log.OperateDataID,
-		OperateDataName: log.OperateDataName,
-		Title:           log.Title,
-		Before:          log.Before,
-		After:           log.After,
-		IP:              log.IP,
-	}
+	operateLog := &system.OperateLog{}
 	operateLog.WithContext(ctx)
 	operateLogMutation := getMainQuery(ctx, o).OperateLog
 	return operateLogMutation.WithContext(ctx).Create(operateLog)
@@ -53,9 +42,6 @@ func (o *operateLogRepoImpl) List(ctx context.Context, req *bo.OperateLogListReq
 	operateLogQuery := getMainQuery(ctx, o).OperateLog
 	wrapper := operateLogQuery.WithContext(ctx)
 
-	if len(req.OperateTypes) > 0 {
-		wrapper = wrapper.Where(operateLogQuery.OperateType.In(slices.Map(req.OperateTypes, func(operateType vobj.OperateType) int8 { return operateType.GetValue() })...))
-	}
 	if !validate.TextIsNull(req.Keyword) {
 		ors := []gen.Condition{
 			operateLogQuery.Before.Like(req.Keyword),
@@ -86,17 +72,7 @@ func (o *operateLogRepoImpl) List(ctx context.Context, req *bo.OperateLogListReq
 }
 
 func (o *operateLogRepoImpl) TeamOperateLog(ctx context.Context, log *bo.AddOperateLog) error {
-	operateLog := &team.OperateLog{
-		OperateType:     log.OperateType,
-		OperateMenuID:   log.OperateMenuID,
-		OperateMenuName: log.OperateMenuName,
-		OperateDataID:   log.OperateDataID,
-		OperateDataName: log.OperateDataName,
-		Title:           log.Title,
-		Before:          log.Before,
-		After:           log.After,
-		IP:              log.IP,
-	}
+	operateLog := &team.OperateLog{}
 	operateLog.WithContext(ctx)
 	bizMutation := getTeamBizQuery(ctx, o)
 	operateLogMutation := bizMutation.OperateLog
@@ -111,9 +87,6 @@ func (o *operateLogRepoImpl) TeamList(ctx context.Context, req *bo.OperateLogLis
 	operateLogQuery := bizQuery.OperateLog
 	wrapper := operateLogQuery.WithContext(ctx).Where(operateLogQuery.TeamID.Eq(teamId))
 
-	if len(req.OperateTypes) > 0 {
-		wrapper = wrapper.Where(operateLogQuery.OperateType.In(slices.Map(req.OperateTypes, func(operateType vobj.OperateType) int8 { return operateType.GetValue() })...))
-	}
 	if !validate.TextIsNull(req.Keyword) {
 		ors := []gen.Condition{
 			operateLogQuery.Before.Like(req.Keyword),

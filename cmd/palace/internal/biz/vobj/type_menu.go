@@ -6,8 +6,9 @@ package vobj
 type MenuType int8
 
 const (
-	MenuTypeUnknown    MenuType = iota // unknown
-	MenuTypeMenuSystem                 // system
-	MenuTypeMenuTeam                   // team
-	MenuTypeMenuUser                   // user
+	MenuTypeUnknown            MenuType = iota // unknown
+	MenuTypeMenuSystem                         // system
+	MenuTypeMenuTeam                           // team
+	MenuTypeMenuUser                           // user
+	MenuTypeMenuTeamDatasource                 // team datasource
 )

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/service/build"
 	api "github.com/aide-family/moon/pkg/api/palace"
 	palacecommon "github.com/aide-family/moon/pkg/api/palace/common"
@@ -55,4 +56,8 @@ func (s *MenuService) GetTeamMenuTree(ctx context.Context, req *palacecommon.Emp
 	return &api.GetMenuTreeReply{
 		Menus: build.ToMenuTree(menus),
 	}, nil
+}
+
+func (s *MenuService) GetMenuByOperation(ctx context.Context, operation string) (do.Menu, error) {
+	return s.menuBiz.GetMenuByOperation(ctx, operation)
 }

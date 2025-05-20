@@ -91,6 +91,13 @@ type TokenValidateFunc func(ctx context.Context, token string) (userDo do.User, 
 func MustLogin(validateFunc TokenValidateFunc) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req any) (any, error) {
+			menuDo, ok := do.GetMenuDoContext(ctx)
+			if !ok {
+				return nil, merr.ErrorBadRequest("not allow request")
+			}
+			if !menuDo.GetProcessType().IsContainsLogin() {
+				return handler(ctx, req)
+			}
 			claims, ok := ParseJwtClaims(ctx)
 			if !ok {
 				return nil, merr.ErrorUnauthorized("token error")

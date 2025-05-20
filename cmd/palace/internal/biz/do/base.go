@@ -26,6 +26,17 @@ func GetUserDoContext(ctx context.Context) (userDo User, ok bool) {
 	return
 }
 
+type menuDoContextKey struct{}
+
+func WithMenuDoContext(ctx context.Context, menuDo Menu) context.Context {
+	return context.WithValue(ctx, menuDoContextKey{}, menuDo)
+}
+
+func GetMenuDoContext(ctx context.Context) (menuDo Menu, ok bool) {
+	menuDo, ok = ctx.Value(menuDoContextKey{}).(Menu)
+	return
+}
+
 type GetUserFun func(id uint32) User
 
 type GetTeamFun func(id uint32) Team

@@ -29,6 +29,10 @@ func (m *Menu) SystemMenus(ctx context.Context) ([]do.Menu, error) {
 	return m.menuRepo.FindMenusByType(ctx, vobj.MenuTypeMenuSystem)
 }
 
+func (m *Menu) GetMenuByOperation(ctx context.Context, operation string) (do.Menu, error) {
+	return m.menuRepo.GetMenuByOperation(ctx, operation)
+}
+
 func (m *Menu) GetMenu(ctx context.Context, id uint32) (do.Menu, error) {
 	menus, err := m.menuRepo.Find(ctx, []uint32{id})
 	if err != nil {

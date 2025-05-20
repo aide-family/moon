@@ -59,6 +59,18 @@ func GetOperationByContext(ctx context.Context) (string, bool) {
 	return operation, ok
 }
 
+// GetOperationByContextWithDefault Retrieve the operation from the context with a default value.
+func GetOperationByContextWithDefault(ctx context.Context, defaultOperation ...string) string {
+	operation, ok := GetOperationByContext(ctx)
+	if ok {
+		return operation
+	}
+	if len(defaultOperation) > 0 {
+		return defaultOperation[0]
+	}
+	return ""
+}
+
 // WithOperationContext Set the operation in the context.
 func WithOperationContext(ctx context.Context, operation string) context.Context {
 	return context.WithValue(ctx, operationContextKey{}, operation)

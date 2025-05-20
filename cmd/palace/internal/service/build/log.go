@@ -3,7 +3,6 @@ package build
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/api/palace/common"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/timex"
@@ -23,9 +22,9 @@ func ToOperateLogListRequest(req OperateLogListRequest) *bo.OperateLogListReques
 	}
 	return &bo.OperateLogListRequest{
 		PaginationRequest: ToPaginationRequest(req.GetPagination()),
-		OperateTypes:      slices.Map(req.GetOperateTypes(), func(operateType common.OperateType) vobj.OperateType { return vobj.OperateType(operateType) }),
 		Keyword:           req.GetKeyword(),
 		UserID:            req.GetUserId(),
+		Operation:         "",
 	}
 }
 
@@ -36,7 +35,6 @@ func ToOperateLogItem(log do.OperateLog) *common.OperateLogItem {
 	return &common.OperateLogItem{
 		OperateLogId: log.GetID(),
 		Operator:     ToUserBaseItem(log.GetCreator()),
-		Type:         common.OperateType(log.GetOperateType().GetValue()),
 		MenuName:     log.GetOperateMenuName(),
 		DataId:       log.GetOperateDataID(),
 		DataName:     log.GetOperateDataName(),

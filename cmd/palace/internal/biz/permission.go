@@ -25,9 +25,9 @@ func NewPermissionBiz(
 	baseHandler := &basePermissionHandler{}
 	// build permission chain
 	permissionChain := []PermissionHandler{
-		baseHandler.UserHandler(userRepo.FindByID),
 		baseHandler.OperationHandler(),
 		baseHandler.MenuHandler(menuRepo.GetMenuByOperation),
+		baseHandler.UserHandler(userRepo.FindByID),
 		baseHandler.SystemAdminCheckHandler(),
 		baseHandler.SystemRBACHandler(checkSystemRBAC),
 		baseHandler.TeamIDHandler(teamRepo.FindByID),
@@ -99,25 +99,35 @@ func (h *basePermissionHandler) OperationHandler() PermissionHandler {
 }
 
 // MenuHandler menu check
-func (h *basePermissionHandler) MenuHandler(getMenuByOperation func(ctx context.Context, operation string) (do.Menu, error)) PermissionHandler {
+func (h *basePermissionHandler) MenuHandler(findMenuByOperation FindMenuByOperation) PermissionHandler {
 	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
-		menu, err := getMenuByOperation(ctx, pCtx.Operation)
-		if err != nil {
-			return false, err
+		menuDo, ok := do.GetMenuDoContext(ctx)
+		if !ok {
+			var err error
+			menuDo, err = findMenuByOperation(ctx, pCtx.Operation)
+			if err != nil {
+				return true, err
+			}
 		}
-		if !menu.GetStatus().IsEnable() || menu.GetDeletedAt() > 0 {
+		pCtx.Menu = menuDo
+		if !menuDo.GetProcessType().IsContainsLogin() {
+			return true, nil
+		}
+		if !menuDo.GetStatus().IsEnable() || menuDo.GetDeletedAt() > 0 {
 			return false, merr.ErrorPermissionDenied("permission denied")
 		}
-		if menu.GetMenuType().IsMenuUser() {
-			pCtx.Menu = menu
+		if menuDo.GetMenuType().IsMenuUser() {
 			return true, nil
 		}
 		return false, nil
 	})
 }
 
+type FindUserByID func(ctx context.Context, userID uint32) (do.User, error)
+type FindMenuByOperation func(ctx context.Context, operation string) (do.Menu, error)
+
 // UserHandler user check
-func (h *basePermissionHandler) UserHandler(findUserByID func(ctx context.Context, userID uint32) (do.User, error)) PermissionHandler {
+func (h *basePermissionHandler) UserHandler(findUserByID FindUserByID) PermissionHandler {
 	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
 		userDo, ok := do.GetUserDoContext(ctx)
 		if !ok {

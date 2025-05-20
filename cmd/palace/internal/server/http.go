@@ -28,8 +28,10 @@ var docFS embed.FS
 // NewHTTPServer new an HTTP server.
 func NewHTTPServer(
 	bc *conf.Bootstrap,
+	healthService *service.HealthService,
 	authService *service.AuthService,
 	teamDatasourceService *service.TeamDatasourceService,
+	menuService *service.MenuService,
 	logger log.Logger,
 ) *http.Server {
 	serverConf := bc.GetServer()
@@ -38,7 +40,6 @@ func NewHTTPServer(
 
 	selectorMiddleware := []middle.Middleware{
 		middleware.JwtServer(jwtConf.GetSignKey()),
-		middleware.BindHeaders(),
 		middleware.MustLogin(authService.VerifyToken),
 		middleware.MustPermission(authService.VerifyPermission),
 	}
@@ -48,10 +49,12 @@ func NewHTTPServer(
 		http.Middleware(
 			recovery.Recovery(),
 			tracing.Server(),
+			middleware.BindHeaders(menuService.GetMenuByOperation),
 			merr.I18n(),
 			logging.Server(logger),
 			authMiddleware,
 			middler.Validate(),
+			middleware.OperateLog(healthService.CreateOperateLog),
 		),
 	}
 	if httpConf.GetNetwork() != "" {

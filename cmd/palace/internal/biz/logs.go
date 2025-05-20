@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
 	"github.com/aide-family/moon/pkg/merr"
 )
 
@@ -67,4 +68,8 @@ func (l *Logs) RetrySendMessage(ctx context.Context, params *bo.RetrySendMessage
 
 func (l *Logs) sendMessage(ctx context.Context, sendMessageLog do.SendMessageLog) error {
 	return nil
+}
+
+func (l *Logs) CreateOperateLog(ctx context.Context, params *middleware.OperateLogParams) {
+
 }
