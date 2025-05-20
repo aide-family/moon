@@ -10,12 +10,14 @@ import (
 	"github.com/go-kratos/kratos/v2/transport"
 	jwtv5 "github.com/golang-jwt/jwt/v5"
 
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/config"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/cnst"
 	"github.com/aide-family/moon/pkg/util/timex"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 // JwtBaseInfo jwt base info
@@ -83,10 +85,10 @@ func JwtServer(signKey string) middleware.Middleware {
 	)
 }
 
-type TokenValidateFunc func(ctx context.Context, token string) error
+type TokenValidateFunc func(ctx context.Context, token string) (userDo do.User, err error)
 
 // MustLogin must login
-func MustLogin(validate TokenValidateFunc) middleware.Middleware {
+func MustLogin(validateFunc TokenValidateFunc) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req any) (any, error) {
 			claims, ok := ParseJwtClaims(ctx)
@@ -98,17 +100,21 @@ func MustLogin(validate TokenValidateFunc) middleware.Middleware {
 			if !ok {
 				return nil, merr.ErrorBadRequest("not allow request")
 			}
-			if tokenStr := tr.RequestHeader().Get(cnst.XHeaderToken); tokenStr != "" {
-				auths := strings.SplitN(tokenStr, " ", 2)
-				if len(auths) != 2 || !strings.EqualFold(auths[0], cnst.BearerWord) {
-					return nil, jwt.ErrMissingJwtToken
-				}
-				jwtToken := auths[1]
-				ctx = permission.WithTokenContext(ctx, jwtToken)
-				if err := validate(ctx, jwtToken); err != nil {
-					return nil, err
-				}
+			authorization := tr.RequestHeader().Get(cnst.XHeaderToken)
+			if validate.TextIsNull(authorization) {
+				return nil, jwt.ErrMissingJwtToken
 			}
+			auths := strings.SplitN(authorization, " ", 2)
+			if len(auths) != 2 || !strings.EqualFold(auths[0], cnst.BearerWord) {
+				return nil, jwt.ErrTokenInvalid
+			}
+			jwtToken := auths[1]
+			ctx = permission.WithTokenContext(ctx, jwtToken)
+			userDo, err := validateFunc(ctx, jwtToken)
+			if err != nil {
+				return nil, err
+			}
+			ctx = do.WithUserDoContext(ctx, userDo)
 			return handler(ctx, req)
 		}
 	}

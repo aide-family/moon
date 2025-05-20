@@ -101,22 +101,22 @@ func (a *Auth) Logout(ctx context.Context, token string) error {
 }
 
 // VerifyToken verify token
-func (a *Auth) VerifyToken(ctx context.Context, token string) error {
+func (a *Auth) VerifyToken(ctx context.Context, token string) (do.User, error) {
 	if err := a.cacheRepo.VerifyToken(ctx, token); err != nil {
-		return err
+		return nil, err
 	}
 	userID, ok := permission.GetUserIDByContext(ctx)
 	if !ok {
-		return merr.ErrorInvalidToken("token is invalid")
+		return nil, merr.ErrorInvalidToken("token is invalid")
 	}
 	userDo, err := a.userRepo.FindByID(ctx, userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if !userDo.GetStatus().IsNormal() {
-		return merr.ErrorUserForbidden("user forbidden")
+	if validate.IsNil(userDo) || !userDo.GetStatus().IsNormal() || userDo.GetDeletedAt() > 0 {
+		return nil, merr.ErrorUserForbidden("user is forbidden")
 	}
-	return nil
+	return userDo, nil
 }
 
 // LoginByPassword login by password
@@ -133,9 +133,6 @@ func (a *Auth) LoginByPassword(ctx context.Context, req *bo.LoginByPassword) (*b
 
 // RefreshToken refresh token
 func (a *Auth) RefreshToken(ctx context.Context, req *bo.RefreshToken) (*bo.LoginSign, error) {
-	if err := a.VerifyToken(ctx, req.Token); err != nil {
-		return nil, err
-	}
 	userDo, err := a.userRepo.FindByID(ctx, req.UserID)
 	if err != nil {
 		return nil, err

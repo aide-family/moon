@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/cnst"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func BindHeaders() middleware.Middleware {
@@ -31,9 +32,8 @@ func withAllHeaders(ctx context.Context) (context.Context, error) {
 	}
 
 	ctx = permission.WithOperationContext(ctx, tr.Operation())
-	if teamIDStr := tr.RequestHeader().Get(cnst.XHeaderTeamID); teamIDStr != "" {
-		teamID, err := strconv.ParseUint(teamIDStr, 10, 32)
-		if err == nil {
+	if xTeamID := tr.RequestHeader().Get(cnst.XHeaderTeamID); xTeamID != "" {
+		if teamID, err := strconv.ParseUint(xTeamID, 10, 32); validate.IsNil(err) {
 			ctx = permission.WithTeamIDContext(ctx, uint32(teamID))
 		}
 	}

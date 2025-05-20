@@ -7,13 +7,24 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aide-family/moon/pkg/util/validate"
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
+
+type userDoContextKey struct{}
+
+func WithUserDoContext(ctx context.Context, userDo User) context.Context {
+	return context.WithValue(ctx, userDoContextKey{}, userDo)
+}
+
+func GetUserDoContext(ctx context.Context) (userDo User, ok bool) {
+	userDo, ok = ctx.Value(userDoContextKey{}).(User)
+	return
+}
 
 type GetUserFun func(id uint32) User
 

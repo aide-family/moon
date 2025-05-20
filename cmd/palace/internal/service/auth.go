@@ -171,10 +171,10 @@ func (s *AuthService) OAuthLoginByEmail(ctx context.Context, req *palace.OAuthLo
 	return login(s.authBiz.OAuthLoginWithEmail(ctx, oauthParams))
 }
 
-func (s *AuthService) VerifyToken(ctx context.Context, token string) error {
+func (s *AuthService) VerifyToken(ctx context.Context, token string) (userDo do.User, err error) {
 	// TODO: Remember to enable this
-	return nil
-	//return s.authBiz.VerifyToken(ctx, token)
+	return nil, nil
+	// return s.authBiz.VerifyToken(ctx, token)
 }
 
 func (s *AuthService) VerifyPermission(ctx context.Context) error {
