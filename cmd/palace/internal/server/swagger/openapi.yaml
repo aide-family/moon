@@ -5774,13 +5774,11 @@ components:
                 expr:
                     type: string
                 labels:
-                    type: object
-                    additionalProperties:
-                        type: string
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.KeyValueItem'
                 annotations:
-                    type: object
-                    additionalProperties:
-                        type: string
+                    $ref: '#/components/schemas/api.palace.common.AnnotationsItem'
                 strategyMetricRules:
                     type: array
                     items:

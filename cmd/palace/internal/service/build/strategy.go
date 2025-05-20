@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/moon/pkg/api/palace"
 	"github.com/aide-family/moon/pkg/api/palace/common"
 	"github.com/aide-family/moon/pkg/util/cnst"
+	"github.com/aide-family/moon/pkg/util/kv"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/timex"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -31,10 +32,9 @@ func ToSaveTeamMetricStrategyParams(request *palace.SaveTeamMetricStrategyReques
 	if validate.IsNil(request) {
 		panic("SaveTeamMetricStrategyRequest is nil")
 	}
-	labels := make(map[string]string, len(request.GetLabels()))
-	for _, label := range request.GetLabels() {
-		labels[label.GetKey()] = label.GetValue()
-	}
+	labels := slices.Map(request.GetLabels(), func(label *common.KeyValueItem) *kv.KV {
+		return &kv.KV{Key: label.Key, Value: label.Value}
+	})
 	annotations := make(map[string]string, 2)
 	annotations[cnst.AnnotationKeySummary] = request.GetAnnotations().GetSummary()
 	annotations[cnst.AnnotationKeyDescription] = request.GetAnnotations().GetDescription()
@@ -175,11 +175,26 @@ func ToTeamMetricStrategyItem(strategy do.StrategyMetric) *common.TeamStrategyMe
 		Base:                ToTeamStrategyItem(strategy.GetStrategy()),
 		StrategyMetricId:    strategy.GetID(),
 		Expr:                strategy.GetExpr(),
-		Labels:              strategy.GetLabels(),
-		Annotations:         strategy.GetAnnotations(),
+		Labels:              ToKeyValueItems(strategy.GetLabels()),
+		Annotations:         ToAnnotationsItem(strategy.GetAnnotations()),
 		StrategyMetricRules: ToTeamMetricStrategyItemRules(strategy.GetRules()),
 		Datasource:          ToTeamMetricDatasourceItems(strategy.GetDatasourceList()),
 		Creator:             ToUserBaseItem(strategy.GetCreator()),
+	}
+}
+
+func ToKeyValueItems(labels []*kv.KV) []*common.KeyValueItem {
+	return slices.Map(labels, ToKeyValueItem)
+}
+
+func ToKeyValueItem(label *kv.KV) *common.KeyValueItem {
+	return &common.KeyValueItem{Key: label.Key, Value: label.Value}
+}
+
+func ToAnnotationsItem(annotations kv.StringMap) *common.AnnotationsItem {
+	return &common.AnnotationsItem{
+		Summary:     annotations[cnst.AnnotationKeySummary],
+		Description: annotations[cnst.AnnotationKeyDescription],
 	}
 }
 

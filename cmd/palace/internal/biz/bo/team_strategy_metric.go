@@ -136,7 +136,7 @@ var _ UpdateTeamMetricStrategyParams = (*SaveTeamMetricStrategyParams)(nil)
 type CreateTeamMetricStrategyParams interface {
 	GetStrategy() do.Strategy
 	GetExpr() string
-	GetLabels() kv.StringMap
+	GetLabels() kv.KeyValues
 	GetAnnotations() kv.StringMap
 	GetDatasource() []do.DatasourceMetric
 	Validate() error
@@ -150,7 +150,7 @@ type UpdateTeamMetricStrategyParams interface {
 type SaveTeamMetricStrategyParams struct {
 	StrategyID  uint32
 	Expr        string
-	Labels      kv.StringMap
+	Labels      kv.KeyValues
 	Annotations kv.StringMap
 	Datasource  []uint32
 
@@ -180,7 +180,7 @@ func (s *SaveTeamMetricStrategyParams) GetStrategyMetric() do.StrategyMetric {
 }
 
 // GetLabels implements UpdateTeamMetricStrategyParams.
-func (s *SaveTeamMetricStrategyParams) GetLabels() kv.StringMap {
+func (s *SaveTeamMetricStrategyParams) GetLabels() kv.KeyValues {
 	return s.Labels
 }
 

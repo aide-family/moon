@@ -15,7 +15,7 @@ type StrategyMetric struct {
 	StrategyID          uint32                `gorm:"column:strategy_id;type:int unsigned;not null;comment:strategy ID" json:"strategyID"`
 	Strategy            *Strategy             `gorm:"foreignKey:StrategyID;references:ID" json:"strategy"`
 	Expr                string                `gorm:"column:expr;type:varchar(1024);not null;comment:expression" json:"expr"`
-	Labels              kv.StringMap          `gorm:"column:labels;type:json;not null;comment:labels" json:"labels"`
+	Labels              kv.KeyValues          `gorm:"column:labels;type:json;not null;comment:labels" json:"labels"`
 	Annotations         kv.StringMap          `gorm:"column:annotations;type:json;not null;comment:annotations" json:"annotations"`
 	StrategyMetricRules []*StrategyMetricRule `gorm:"foreignKey:StrategyMetricID;references:ID" json:"strategyMetricRules"`
 	Datasource          []*DatasourceMetric   `gorm:"many2many:team_strategy_metric_datasource" json:"datasource"`
@@ -42,7 +42,7 @@ func (m *StrategyMetric) GetExpr() string {
 	return m.Expr
 }
 
-func (m *StrategyMetric) GetLabels() kv.StringMap {
+func (m *StrategyMetric) GetLabels() []*kv.KV {
 	if m == nil {
 		return nil
 	}
