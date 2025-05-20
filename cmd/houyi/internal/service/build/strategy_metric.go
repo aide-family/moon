@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/cnst"
 	"github.com/aide-family/moon/pkg/util/kv/label"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func ToMetricRules(strategyItems ...*common.MetricStrategyItem) []bo.MetricRule {
@@ -18,16 +19,16 @@ func ToMetricRules(strategyItems ...*common.MetricStrategyItem) []bo.MetricRule 
 	}
 	rules := make([]bo.MetricRule, 0, len(strategyItems)*5*3)
 	for _, strategyItem := range strategyItems {
-		if strategyItem == nil {
+		if validate.IsNil(strategyItem) {
 			continue
 		}
 		for _, rule := range strategyItem.Rules {
-			if rule == nil {
+			if validate.IsNil(rule) {
 				continue
 			}
 			datasourceConfigs := strategyItem.GetDatasource()
 			for _, datasourceItem := range datasourceConfigs {
-				if datasourceItem == nil {
+				if validate.IsNil(datasourceItem) {
 					continue
 				}
 				annotations := strategyItem.GetAnnotations()

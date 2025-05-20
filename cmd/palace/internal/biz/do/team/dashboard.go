@@ -48,7 +48,7 @@ func (d *Dashboard) GetColorHex() string {
 }
 
 func (d *Dashboard) GetCharts() []do.DashboardChart {
-	if d == nil || d.Charts == nil {
+	if d == nil {
 		return nil
 	}
 	return slices.Map(d.Charts, func(chart *DashboardChart) do.DashboardChart { return chart })

@@ -25,7 +25,7 @@ func (u *UserUpdateInfo) GetUserID() uint32 {
 	if u == nil {
 		return 0
 	}
-	if u.User == nil {
+	if validate.IsNil(u.User) {
 		return u.UserID
 	}
 	return u.GetID()

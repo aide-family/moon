@@ -27,7 +27,7 @@ func NewStrategyMetricJob(key string, opts ...StrategyMetricJobOption) (bo.Strat
 			return nil, err
 		}
 	}
-	if s.helper == nil {
+	if validate.IsNil(s.helper) {
 		WithStrategyMetricJobHelper(log.GetLogger())
 	}
 	checkOpts := []*checkItem{

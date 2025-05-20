@@ -5,10 +5,11 @@ import (
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/do"
 	"github.com/aide-family/moon/pkg/api/rabbit/common"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func ToSMSConfig(smsItem *common.SMSConfig) (bo.SMSConfig, bool) {
-	if smsItem == nil {
+	if validate.IsNil(smsItem) {
 		return nil, false
 	}
 	switch smsItem.Type {

@@ -3,6 +3,7 @@ package impl
 import (
 	"context"
 
+	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
@@ -10,6 +11,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/data"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"gorm.io/gen"
+	"gorm.io/gen/field"
 )
 
 func NewMenuRepo(d *data.Data) repository.Menu {
@@ -59,4 +61,45 @@ func (m *menuRepoImpl) GetMenuByOperation(ctx context.Context, operation string)
 		return nil, menuNotFound(err)
 	}
 	return menuDo, nil
+}
+
+func (m *menuRepoImpl) Create(ctx context.Context, menu *bo.SaveMenuRequest) error {
+	mainQuery := getMainQuery(ctx, m)
+	menuMutation := mainQuery.Menu
+	systemMenu := &system.Menu{
+		Name:          menu.Name,
+		MenuPath:      menu.MenuPath,
+		MenuIcon:      menu.MenuIcon,
+		MenuType:      menu.MenuType,
+		MenuCategory:  menu.MenuCategory,
+		ApiPath:       menu.ApiPath,
+		Status:        menu.Status,
+		ProcessType:   menu.ProcessType,
+		ParentID:      menu.ParentID,
+		RelyOnBrother: menu.RelyOnBrother,
+	}
+	systemMenu.WithContext(ctx)
+	return menuMutation.WithContext(ctx).Create(systemMenu)
+}
+
+func (m *menuRepoImpl) Update(ctx context.Context, menu *bo.SaveMenuRequest) error {
+	mainQuery := getMainQuery(ctx, m)
+	menuMutation := mainQuery.Menu
+	mutations := []field.AssignExpr{
+		menuMutation.Name.Value(menu.Name),
+		menuMutation.MenuPath.Value(menu.MenuPath),
+		menuMutation.MenuIcon.Value(menu.MenuIcon),
+		menuMutation.MenuType.Value(menu.MenuType.GetValue()),
+		menuMutation.MenuCategory.Value(menu.MenuCategory.GetValue()),
+		menuMutation.ApiPath.Value(menu.ApiPath),
+		menuMutation.Status.Value(menu.Status.GetValue()),
+		menuMutation.ProcessType.Value(menu.ProcessType.GetValue()),
+		menuMutation.ParentID.Value(menu.ParentID),
+		menuMutation.RelyOnBrother.Value(menu.RelyOnBrother),
+	}
+	wrappers := []gen.Condition{
+		menuMutation.ID.Eq(menu.MenuId),
+	}
+	_, err := menuMutation.WithContext(ctx).Where(wrappers...).UpdateColumnSimple(mutations...)
+	return err
 }

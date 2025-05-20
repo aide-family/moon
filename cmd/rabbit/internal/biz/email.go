@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/validate"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -23,7 +24,7 @@ type Email struct {
 }
 
 func (e *Email) Send(ctx context.Context, params bo.SendEmailParams) error {
-	if params.GetConfig() == nil {
+	if validate.IsNil(params.GetConfig()) {
 		return merr.ErrorParams("No email configuration is available")
 	}
 	return e.sendRepo.Email(ctx, params)

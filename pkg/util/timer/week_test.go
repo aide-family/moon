@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/pkg/util/timer"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func TestNewDaysOfWeek_ValidInput_ReturnsMatcher(t *testing.T) {
@@ -13,7 +14,7 @@ func TestNewDaysOfWeek_ValidInput_ReturnsMatcher(t *testing.T) {
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
-	if matcher == nil {
+	if validate.IsNil(matcher) {
 		t.Errorf("Expected a non-nil matcher")
 	}
 }
@@ -33,7 +34,7 @@ func TestNewDaysOfWeek_EmptyInput_ReturnsMatcher(t *testing.T) {
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
-	if matcher == nil {
+	if validate.IsNil(matcher) {
 		t.Errorf("Expected a non-nil matcher")
 	}
 }

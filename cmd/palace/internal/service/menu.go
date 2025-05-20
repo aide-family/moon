@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz"
+	"github.com/aide-family/moon/cmd/palace/internal/service/build"
 	api "github.com/aide-family/moon/pkg/api/palace"
 	palacecommon "github.com/aide-family/moon/pkg/api/palace/common"
 )
@@ -20,17 +21,38 @@ type MenuService struct {
 }
 
 func (s *MenuService) SaveMenu(ctx context.Context, req *api.SaveMenuRequest) (*palacecommon.EmptyReply, error) {
+	menu := build.ToSaveMenuRequest(req)
+
+	if err := s.menuBiz.SaveMenu(ctx, menu); err != nil {
+		return nil, err
+	}
 	return &palacecommon.EmptyReply{}, nil
 }
 
 func (s *MenuService) GetMenu(ctx context.Context, req *api.GetMenuRequest) (*palacecommon.MenuTreeItem, error) {
-	return &palacecommon.MenuTreeItem{}, nil
+	menu, err := s.menuBiz.GetMenu(ctx, req.MenuId)
+	if err != nil {
+		return nil, err
+	}
+	return build.ToMenuTreeItem(menu), nil
 }
 
 func (s *MenuService) GetMenuTree(ctx context.Context, req *palacecommon.EmptyRequest) (*api.GetMenuTreeReply, error) {
-	return &api.GetMenuTreeReply{}, nil
+	menus, err := s.menuBiz.SystemMenus(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &api.GetMenuTreeReply{
+		Menus: build.ToMenuTree(menus),
+	}, nil
 }
 
 func (s *MenuService) GetTeamMenuTree(ctx context.Context, req *palacecommon.EmptyRequest) (*api.GetMenuTreeReply, error) {
-	return &api.GetMenuTreeReply{}, nil
+	menus, err := s.menuBiz.TeamMenus(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &api.GetMenuTreeReply{
+		Menus: build.ToMenuTree(menus),
+	}, nil
 }

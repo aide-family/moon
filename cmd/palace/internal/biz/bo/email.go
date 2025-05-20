@@ -38,7 +38,7 @@ func (s *SaveEmailConfigRequest) GetID() uint32 {
 	if s == nil {
 		return 0
 	}
-	if s.emailConfig == nil {
+	if validate.IsNil(s.emailConfig) {
 		return s.ID
 	}
 	return s.emailConfig.GetID()
@@ -62,7 +62,7 @@ func (s *SaveEmailConfigRequest) GetStatus() vobj.GlobalStatus {
 	if s == nil {
 		return vobj.GlobalStatusUnknown
 	}
-	if s.emailConfig == nil {
+	if validate.IsNil(s.emailConfig) {
 		return s.Status
 	}
 	if s.Status.IsUnknown() {
@@ -74,9 +74,6 @@ func (s *SaveEmailConfigRequest) GetStatus() vobj.GlobalStatus {
 func (s *SaveEmailConfigRequest) GetEmailConfig() *do.Email {
 	if s == nil {
 		return nil
-	}
-	if s.Config == nil && s.emailConfig != nil {
-		return s.emailConfig.GetEmailConfig()
 	}
 	return s.Config
 }

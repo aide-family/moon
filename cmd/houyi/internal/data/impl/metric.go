@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/datasource"
 	"github.com/aide-family/moon/pkg/plugin/datasource/prometheus"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func NewMetricRepo(d *data.Data, logger log.Logger) repository.MetricInit {
@@ -33,7 +34,7 @@ type metricInstance struct {
 }
 
 func (m *metricImpl) Init(config bo.MetricDatasourceConfig) (repository.Metric, error) {
-	if config == nil {
+	if validate.IsNil(config) {
 		return nil, merr.ErrorInvalidArgument("metric datasource config is nil")
 	}
 

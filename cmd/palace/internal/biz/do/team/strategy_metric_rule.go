@@ -39,7 +39,7 @@ func (r *StrategyMetricRule) GetStrategyMetricID() uint32 {
 }
 
 func (r *StrategyMetricRule) GetStrategyMetric() do.StrategyMetric {
-	if r == nil || r.StrategyMetric == nil {
+	if r == nil {
 		return nil
 	}
 	return r.StrategyMetric
@@ -81,7 +81,7 @@ func (r *StrategyMetricRule) GetTotal() int64 {
 }
 
 func (r *StrategyMetricRule) GetValues() []float64 {
-	if r == nil || r.Values == nil {
+	if r == nil {
 		return nil
 	}
 	return r.Values

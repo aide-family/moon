@@ -236,8 +236,8 @@ func (u *TeamModel) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func HasTable(teamId uint32, tx *gorm.DB, tableName string) bool {
-	if hasTable == nil {
-		if tx == nil {
+	if validate.IsNil(hasTable) {
+		if validate.IsNil(tx) {
 			return false
 		}
 		if !tx.Migrator().HasTable(tableName) {
@@ -255,7 +255,7 @@ func CreateTable(teamId uint32, tx *gorm.DB, tableName string, model any) error 
 	if err := tx.Table(tableName).AutoMigrate(model); err != nil {
 		return err
 	}
-	if cacheTableFlag == nil {
+	if validate.IsNil(cacheTableFlag) {
 		return nil
 	}
 	return cacheTableFlag(teamId, tableName)

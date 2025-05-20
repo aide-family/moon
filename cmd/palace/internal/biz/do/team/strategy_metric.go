@@ -29,7 +29,7 @@ func (m *StrategyMetric) GetStrategyID() uint32 {
 }
 
 func (m *StrategyMetric) GetStrategy() do.Strategy {
-	if m == nil || m.Strategy == nil {
+	if m == nil {
 		return nil
 	}
 	return m.Strategy

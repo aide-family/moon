@@ -14,6 +14,7 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/server"
 	"github.com/aide-family/moon/pkg/util/password"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 // UserBiz is a user business logic implementation.
@@ -86,7 +87,7 @@ func (b *UserBiz) UpdateSelfInfo(ctx context.Context, userUpdateInfo *bo.UserUpd
 		return merr.ErrorInternalServer("failed to find user").WithCause(err)
 	}
 
-	if user == nil {
+	if validate.IsNil(user) {
 		return merr.ErrorUserNotFound("user not found")
 	}
 
@@ -120,7 +121,7 @@ func (b *UserBiz) UpdateSelfPassword(ctx context.Context, passwordUpdateInfo *bo
 		return err
 	}
 
-	if user == nil {
+	if validate.IsNil(user) {
 		return merr.ErrorUserNotFound("user not found")
 	}
 

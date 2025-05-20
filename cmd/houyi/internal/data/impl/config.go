@@ -91,7 +91,7 @@ func (c *configImpl) SetMetricRules(ctx context.Context, rules ...bo.MetricRule)
 			LevelId:    v.GetLevelId(),
 			Receiver:   v.GetReceiverRoutes(),
 			LabelReceiver: slices.MapFilter(v.GetLabelReceiverRoutes(), func(noticeItem bo.LabelNotices) (*do.LabelNotices, bool) {
-				if noticeItem == nil || len(noticeItem.GetReceiverRoutes()) == 0 {
+				if validate.IsNil(noticeItem) || len(noticeItem.GetReceiverRoutes()) == 0 {
 					return nil, false
 				}
 				return &do.LabelNotices{

@@ -29,7 +29,7 @@ func (s *Strategy) GetStrategyGroupID() uint32 {
 }
 
 func (s *Strategy) GetStrategyGroup() do.StrategyGroup {
-	if s == nil || s.StrategyGroup == nil {
+	if s == nil {
 		return nil
 	}
 	return s.StrategyGroup

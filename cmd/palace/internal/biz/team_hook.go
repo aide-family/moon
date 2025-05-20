@@ -64,16 +64,10 @@ func (h *TeamHook) GetHook(ctx context.Context, hookID uint32) (do.NoticeHook, e
 
 // ListHook gets hook list
 func (h *TeamHook) ListHook(ctx context.Context, req *bo.ListTeamNoticeHookRequest) (*bo.ListTeamNoticeHookReply, error) {
-	if req == nil {
-		return nil, merr.ErrorParams("invalid request")
-	}
 	return h.teamHookRepo.List(ctx, req)
 }
 
 // SelectHook gets hook list
 func (h *TeamHook) SelectHook(ctx context.Context, req *bo.TeamNoticeHookSelectRequest) (*bo.TeamNoticeHookSelectReply, error) {
-	if req == nil {
-		return nil, merr.ErrorParams("invalid request")
-	}
 	return h.teamHookRepo.Select(ctx, req)
 }

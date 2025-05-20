@@ -4,10 +4,11 @@ import (
 	"github.com/aide-family/moon/pkg/api/rabbit/common"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func NewSendSMSParams(config SMSConfig, opts ...SendSMSParamsOption) (SendSMSParams, error) {
-	if config == nil {
+	if validate.IsNil(config) {
 		return nil, merr.ErrorParams("No SMS configuration is available")
 	}
 	s := &sendSMSParams{

@@ -8,11 +8,12 @@ import (
 	"github.com/aide-family/moon/pkg/api/palace/common"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/timex"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 // ToDashboardItem converts a business object to a proto object
 func ToDashboardItem(dashboard do.Dashboard) *common.TeamDashboardItem {
-	if dashboard == nil {
+	if validate.IsNil(dashboard) {
 		return nil
 	}
 
@@ -34,7 +35,7 @@ func ToDashboardItems(dashboards []do.Dashboard) []*common.TeamDashboardItem {
 
 // ToDashboardChartItem converts a business object to a proto object
 func ToDashboardChartItem(chart do.DashboardChart) *common.TeamDashboardChartItem {
-	if chart == nil {
+	if validate.IsNil(chart) {
 		return nil
 	}
 

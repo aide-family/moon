@@ -50,7 +50,7 @@ func (c *DashboardChart) GetStatus() vobj.GlobalStatus {
 }
 
 func (c *DashboardChart) GetDashboard() do.Dashboard {
-	if c == nil || c.Dashboard == nil {
+	if c == nil {
 		return nil
 	}
 	return c.Dashboard

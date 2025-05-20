@@ -72,9 +72,6 @@ func (s *SaveSMSConfigRequest) GetSMSConfig() *do.SMS {
 	if s == nil {
 		return nil
 	}
-	if s.Config == nil && s.smsConfig != nil {
-		return s.smsConfig.GetSMSConfig()
-	}
 	return s.Config
 }
 

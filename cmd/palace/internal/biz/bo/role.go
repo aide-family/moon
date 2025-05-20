@@ -30,7 +30,7 @@ func (r *SaveTeamRoleReq) GetID() uint32 {
 	if r == nil {
 		return 0
 	}
-	if r.teamRole == nil {
+	if validate.IsNil(r.teamRole) {
 		return r.ID
 	}
 	return r.teamRole.GetID()
@@ -97,7 +97,7 @@ func (r *SaveRoleReq) GetID() uint32 {
 	if r == nil {
 		return 0
 	}
-	if r.role == nil {
+	if validate.IsNil(r.role) {
 		return r.ID
 	}
 	return r.role.GetID()

@@ -46,7 +46,7 @@ func (n *NoticeMember) GetNoticeType() vobj.NoticeType {
 }
 
 func (n *NoticeMember) GetNoticeGroup() do.NoticeGroup {
-	if n == nil || n.NoticeGroup == nil {
+	if n == nil {
 		return nil
 	}
 	return n.NoticeGroup

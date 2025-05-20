@@ -4,6 +4,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 type Dict interface {
@@ -32,7 +33,7 @@ func (s *SaveDictReq) GetID() uint32 {
 	if s == nil {
 		return 0
 	}
-	if s.dictItem == nil {
+	if validate.IsNil(s.dictItem) {
 		return s.DictID
 	}
 	return s.dictItem.GetID()

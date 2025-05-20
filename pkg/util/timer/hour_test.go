@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/pkg/util/timer"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func TestNewHourRange_InvalidLength_ErrorReturned(t *testing.T) {
@@ -29,7 +30,7 @@ func TestNewHourRange_ValidInput_MatcherCreated(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
-	if matcher == nil {
+	if validate.IsNil(matcher) {
 		t.Errorf("Expected matcher to be created, got nil")
 	}
 }
@@ -58,7 +59,7 @@ func TestNewHour_ValidInput_MatcherCreated(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
-	if matcher == nil {
+	if validate.IsNil(matcher) {
 		t.Errorf("Expected matcher to be created, got nil")
 	}
 }
@@ -88,7 +89,7 @@ func TestNewHourMinuteRange_ValidInput_MatcherCreated(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
-	if matcher == nil {
+	if validate.IsNil(matcher) {
 		t.Errorf("Expected matcher to be created, got nil")
 	}
 }

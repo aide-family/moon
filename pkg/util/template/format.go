@@ -8,6 +8,7 @@ import (
 	"github.com/go-kratos/kratos/v2/errors"
 
 	"github.com/aide-family/moon/pkg/util/timex"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func TextFormatterX(format string, data any) (s string) {
@@ -30,7 +31,7 @@ func TextFormatter(format string, data any) (s string, err error) {
 	if format == "" {
 		return "", errors.New(400, "FORMAT_IS_NULL", "format is null")
 	}
-	if data == nil {
+	if validate.IsNil(data) {
 		return "", errors.New(400, "DATA_IS_NIL", "data is nil")
 	}
 
@@ -51,7 +52,7 @@ func HtmlFormatter(format string, data any) (s string, err error) {
 	if format == "" {
 		return "", errors.New(400, "FORMAT_IS_NULL", "format is null")
 	}
-	if data == nil {
+	if validate.IsNil(data) {
 		return "", errors.New(400, "DATA_IS_NIL", "data is nil")
 	}
 

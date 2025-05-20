@@ -18,7 +18,7 @@ type StrategySubscriber struct {
 
 // GetStrategy implements do.TeamStrategySubscriber.
 func (s *StrategySubscriber) GetStrategy() do.Strategy {
-	if s == nil || s.Strategy == nil {
+	if s == nil {
 		return nil
 	}
 	return s.Strategy

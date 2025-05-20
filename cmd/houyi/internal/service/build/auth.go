@@ -3,10 +3,11 @@ package build
 import (
 	"github.com/aide-family/moon/cmd/houyi/internal/biz/do"
 	"github.com/aide-family/moon/pkg/api/houyi/common"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func ToBasicAuth(basicAuth *common.BasicAuth) *do.BasicAuth {
-	if basicAuth == nil {
+	if validate.IsNil(basicAuth) {
 		return nil
 	}
 	return &do.BasicAuth{
@@ -16,7 +17,7 @@ func ToBasicAuth(basicAuth *common.BasicAuth) *do.BasicAuth {
 }
 
 func ToTLS(tls *common.TLS) *do.TLS {
-	if tls == nil {
+	if validate.IsNil(tls) {
 		return nil
 	}
 	return &do.TLS{

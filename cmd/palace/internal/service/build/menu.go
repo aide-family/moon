@@ -1,11 +1,18 @@
 package build
 
 import (
+	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	api "github.com/aide-family/moon/pkg/api/palace"
 	"github.com/aide-family/moon/pkg/api/palace/common"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func ToMenuTree(menus []do.Menu) []*common.MenuTreeItem {
+	if len(menus) == 0 {
+		return nil
+	}
 	menuMap := make(map[uint32]do.Menu)
 	for _, menu := range menus {
 		menuMap[menu.GetID()] = menu
@@ -23,10 +30,16 @@ func ToMenuTree(menus []do.Menu) []*common.MenuTreeItem {
 }
 
 func ToMenuTreeItem(menu do.Menu) *common.MenuTreeItem {
+	if validate.IsNil(menu) {
+		return nil
+	}
 	return convertMenuToTreeItemWithMap(menu, nil)
 }
 
 func convertMenuToTreeItemWithMap(menu do.Menu, menuMap map[uint32]do.Menu) *common.MenuTreeItem {
+	if validate.IsNil(menu) {
+		return nil
+	}
 	treeItem := &common.MenuTreeItem{
 		MenuId:          menu.GetID(),
 		Name:            menu.GetName(),
@@ -44,12 +57,29 @@ func convertMenuToTreeItemWithMap(menu do.Menu, menuMap map[uint32]do.Menu) *com
 
 	for _, m := range menuMap {
 		if m.GetParentID() == menu.GetID() {
+			child := convertMenuToTreeItemWithMap(m, menuMap)
 			if treeItem.Children == nil {
 				treeItem.Children = make([]*common.MenuTreeItem, 0)
 			}
-			treeItem.Children = append(treeItem.Children, convertMenuToTreeItemWithMap(m, menuMap))
+			treeItem.Children = append(treeItem.Children, child)
 		}
 	}
 
 	return treeItem
+}
+
+func ToSaveMenuRequest(req *api.SaveMenuRequest) *bo.SaveMenuRequest {
+	return &bo.SaveMenuRequest{
+		Name:          req.GetName(),
+		MenuPath:      req.GetMenuPath(),
+		MenuIcon:      req.GetMenuIcon(),
+		MenuType:      vobj.MenuType(req.GetMenuType()),
+		MenuCategory:  vobj.MenuCategory(req.GetMenuCategory()),
+		ApiPath:       req.GetApiPath(),
+		Status:        vobj.GlobalStatus(req.GetStatus()),
+		ProcessType:   vobj.MenuProcessType(req.GetProcessType()),
+		ParentID:      req.GetParentId(),
+		RelyOnBrother: req.GetIsRelyOnBrother(),
+		MenuId:        req.GetMenuId(),
+	}
 }
