@@ -5,6 +5,3 @@ auth:
     expire: ${X_MOON_LAUREL_AUTH_JWT_EXPIRE:3600s}
     allowOperations:
       - /api.common.Health/Check
-  tokens:
-    - token: ${X_MOON_LAUREL_AUTH_TOKEN_0:laurel-token-0}
-      name: ${X_MOON_LAUREL_AUTH_TOKEN_NAME_0:palace-to-laurel}

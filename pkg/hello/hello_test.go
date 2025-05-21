@@ -12,12 +12,12 @@ func TestHello(t *testing.T) {
 	opts := []hello.Option{
 		hello.WithMetadata(map[string]string{
 			"summary": "test",
-			"version": "v1.0.0",
+			"version": "v3.0.0",
 		}),
 		hello.WithEnv(config.Environment_TEST),
 		hello.WithID("local.test"),
 		hello.WithName("test"),
-		hello.WithVersion("v1.0.0"),
+		hello.WithVersion("v3.0.0"),
 	}
 	hello.SetEnvWithOption(opts...)
 	hello.Hello()

@@ -8,7 +8,7 @@ data:
     host: ${X_MOON_DATA_MAIN_HOST:127.0.0.1}
     port: ${X_MOON_DATA_MAIN_PORT:3306}
     params: ${X_MOON_DATA_MAIN_PARAMS:charset=utf8mb4&parseTime=True&loc=Local}
-    dbName: ${X_MOON_DATA_MAIN_DB_NAME:moon_palaceMain}
+    dbName: ${X_MOON_DATA_MAIN_DB_NAME:moon_palace_main}
 
 cache:
   driver: ${X_MOON_CACHE_DRIVER:MEMORY}

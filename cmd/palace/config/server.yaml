@@ -6,7 +6,7 @@ server:
     summary: ${X_MOON_SUMMARY}
   http:
     network: ${X_MOON_HTTP_NETWORK:tcp}
-    addr: ${X_MOON_HTTP_ADDR:0.0.0.0:8080}
+    addr: ${X_MOON_HTTP_ADDR:0.0.0.0:8000}
     timeout: ${X_MOON_HTTP_TIMEOUT:50s}
     allowHeaders:
       - Origin
@@ -31,7 +31,7 @@ server:
 
   grpc:
     network: ${X_MOON_GRPC_NETWORK:tcp}
-    addr: ${X_MOON_GRPC_ADDR:0.0.0.0:9090}
+    addr: ${X_MOON_GRPC_ADDR:0.0.0.0:9000}
     timeout: ${X_MOON_GRPC_TIMEOUT:50s}
 
 registry:
