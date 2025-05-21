@@ -3,23 +3,23 @@ environment: ${X_MOON_LAUREL_ENVIRONMENT:DEV}
 server:
   name: ${X_MOON_LAUREL_SERVER_NAME:laurel}
   metadata:
-    summary: ${X_MOON_LAUREL_SUMMARY}
-  teamIds: ${X_MOON_LAUREL_TEAM_IDS:[]}
-  outEndpoint: ${X_MOON_LAUREL_OUT_ENDPOINT:127.0.0.1:9000}
-  onlineInterval: ${X_MOON_LAUREL_ONLINE_INTERVAL:60s}
-  network: ${X_MOON_LAUREL_NETWORK:GRPC}
+    summary: ${X_MOON_LAUREL_SERVER_SUMMARY:laurel}
+  teamIds: ${X_MOON_LAUREL_SERVER_TEAM_IDS:[]}
+  outEndpoint: ${X_MOON_LAUREL_SERVER_OUT_ENDPOINT:127.0.0.1:9000}
+  onlineInterval: ${X_MOON_LAUREL_SERVER_ONLINE_INTERVAL:60s}
+  network: ${X_MOON_LAUREL_SERVER_NETWORK:GRPC}
   http:
-    network: ${X_MOON_LAUREL_HTTP_NETWORK:tcp}
-    addr: ${X_MOON_LAUREL_HTTP_ADDR:0.0.0.0:8000}
-    timeout: ${X_MOON_LAUREL_HTTP_TIMEOUT:50s}
-    allowHeaders: ${X_MOON_LAUREL_HTTP_ALLOW_HEADERS:['*']}
-    allowMethods: ${X_MOON_LAUREL_HTTP_ALLOW_METHODS:['*']}
-    allowOrigins: ${X_MOON_LAUREL_HTTP_ALLOW_ORIGINS:['*']}
+    network: ${X_MOON_LAUREL_SERVER_HTTP_NETWORK:tcp}
+    addr: ${X_MOON_LAUREL_SERVER_HTTP_ADDR:0.0.0.0:8000}
+    timeout: ${X_MOON_LAUREL_SERVER_HTTP_TIMEOUT:50s}
+    allowHeaders: ${X_MOON_LAUREL_SERVER_HTTP_ALLOW_HEADERS:['*']}
+    allowMethods: ${X_MOON_LAUREL_SERVER_HTTP_ALLOW_METHODS:['*']}
+    allowOrigins: ${X_MOON_LAUREL_SERVER_HTTP_ALLOW_ORIGINS:['*']}
 
   grpc:
-    network: ${X_MOON_LAUREL_GRPC_NETWORK:tcp}
-    addr: ${X_MOON_LAUREL_GRPC_ADDR:0.0.0.0:9000}
-    timeout: ${X_MOON_LAUREL_GRPC_TIMEOUT:50s}
+    network: ${X_MOON_LAUREL_SERVER_GRPC_NETWORK:tcp}
+    addr: ${X_MOON_LAUREL_SERVER_GRPC_ADDR:0.0.0.0:9000}
+    timeout: ${X_MOON_LAUREL_SERVER_GRPC_TIMEOUT:50s}
 
 registry:
   driver: ${X_MOON_LAUREL_REGISTRY_DRIVER:ETCD}

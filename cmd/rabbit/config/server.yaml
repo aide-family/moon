@@ -3,23 +3,23 @@ environment: ${X_MOON_RABBIT_ENVIRONMENT:DEV}
 server:
   name: ${X_MOON_RABBIT_SERVER_NAME:rabbit}
   metadata:
-    summary: ${X_MOON_RABBIT_SUMMARY}
-  teamIds: ${X_MOON_RABBIT_TEAM_IDS:[]}
-  outEndpoint: ${X_MOON_RABBIT_OUT_ENDPOINT:127.0.0.1:9000}
-  onlineInterval: ${X_MOON_RABBIT_ONLINE_INTERVAL:60s}
-  network: ${X_MOON_RABBIT_NETWORK:GRPC}
+    summary: ${X_MOON_RABBIT_SERVER_SUMMARY:rabbit}
+  teamIds: ${X_MOON_RABBIT_SERVER_TEAM_IDS:[]}
+  outEndpoint: ${X_MOON_RABBIT_SERVER_OUT_ENDPOINT:127.0.0.1:9000}
+  onlineInterval: ${X_MOON_RABBIT_SERVER_ONLINE_INTERVAL:60s}
+  network: ${X_MOON_RABBIT_SERVER_NETWORK:GRPC}
   http:
-    network: ${X_MOON_RABBIT_HTTP_NETWORK:tcp}
-    addr: ${X_MOON_RABBIT_HTTP_ADDR:0.0.0.0:8000}
-    timeout: ${X_MOON_RABBIT_HTTP_TIMEOUT:50s}
-    allowHeaders: ${X_MOON_RABBIT_HTTP_ALLOW_HEADERS:['*']}
-    allowMethods: ${X_MOON_RABBIT_HTTP_ALLOW_METHODS:['*']}
-    allowOrigins: ${X_MOON_RABBIT_HTTP_ALLOW_ORIGINS:['*']}
+    network: ${X_MOON_RABBIT_SERVER_HTTP_NETWORK:tcp}
+    addr: ${X_MOON_RABBIT_SERVER_HTTP_ADDR:0.0.0.0:8000}
+    timeout: ${X_MOON_RABBIT_SERVER_HTTP_TIMEOUT:50s}
+    allowHeaders: ${X_MOON_RABBIT_SERVER_HTTP_ALLOW_HEADERS:['*']}
+    allowMethods: ${X_MOON_RABBIT_SERVER_HTTP_ALLOW_METHODS:['*']}
+    allowOrigins: ${X_MOON_RABBIT_SERVER_HTTP_ALLOW_ORIGINS:['*']}
 
   grpc:
-    network: ${X_MOON_RABBIT_GRPC_NETWORK:tcp}
-    addr: ${X_MOON_RABBIT_GRPC_ADDR:0.0.0.0:9000}
-    timeout: ${X_MOON_RABBIT_GRPC_TIMEOUT:50s}
+    network: ${X_MOON_RABBIT_SERVER_GRPC_NETWORK:tcp}
+    addr: ${X_MOON_RABBIT_SERVER_GRPC_ADDR:0.0.0.0:9000}
+    timeout: ${X_MOON_RABBIT_SERVER_GRPC_TIMEOUT:50s}
 
 registry:
   driver: ${X_MOON_RABBIT_REGISTRY_DRIVER:ETCD}
