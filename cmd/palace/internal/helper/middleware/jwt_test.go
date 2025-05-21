@@ -12,7 +12,7 @@ import (
 
 func Test_GenJWTToken(t *testing.T) {
 	c := &config.JWT{
-		SignKey:         "moon-jwt-sign-key",
+		SignKey:         "palace-jwt-sign-key",
 		Issuer:          "moon.palace",
 		Expire:          durationpb.New(time.Hour * 24 * 365),
 		AllowOperations: nil,

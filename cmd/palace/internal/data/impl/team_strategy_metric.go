@@ -141,6 +141,9 @@ func (t *teamStrategyMetricRepoImpl) UpdateLevels(ctx context.Context, params bo
 	}
 	strategyMetricRuleDos := make([]do.StrategyMetricRule, 0, len(params.GetLevels()))
 	for _, rule := range params.GetLevels() {
+		if rule.GetID() <= 0 {
+			return nil, merr.ErrorBadRequest("rule id is required")
+		}
 		mutations := []field.AssignExpr{
 			strategyMetricRuleMutation.LevelID.Value(rule.GetLevel().GetID()),
 			strategyMetricRuleMutation.SampleMode.Value(rule.GetSampleMode().GetValue()),
@@ -150,10 +153,11 @@ func (t *teamStrategyMetricRepoImpl) UpdateLevels(ctx context.Context, params bo
 			strategyMetricRuleMutation.Status.Value(rule.GetStatus().GetValue()),
 			strategyMetricRuleMutation.Duration.Value(int64(rule.GetDuration())),
 		}
-		if _, err := strategyMetricRuleMutation.WithContext(ctx).Where(wrapper...).UpdateSimple(mutations...); err != nil {
+		idWrapper := strategyMetricRuleMutation.ID.Eq(rule.GetID())
+		if _, err := strategyMetricRuleMutation.WithContext(ctx).Where(idWrapper).Where(wrapper...).UpdateSimple(mutations...); err != nil {
 			return nil, err
 		}
-		ruleDo, err := strategyMetricRuleMutation.WithContext(ctx).Where(wrapper...).First()
+		ruleDo, err := strategyMetricRuleMutation.WithContext(ctx).Where(idWrapper).Where(wrapper...).First()
 		if err != nil {
 			return nil, err
 		}

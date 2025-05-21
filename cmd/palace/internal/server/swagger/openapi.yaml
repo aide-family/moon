@@ -3397,11 +3397,9 @@ components:
                     type: string
                     description: Keyword to search strategy groups by
                 status:
-                    type: array
-                    items:
-                        type: integer
-                        format: enum
+                    type: integer
                     description: List of statuses to filter strategy groups by
+                    format: enum
             description: ListTeamStrategyGroupRequest represents the request data for listing team strategy groups
         api.palace.ListTeamStrategyReply:
             type: object

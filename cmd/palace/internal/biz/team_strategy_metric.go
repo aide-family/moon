@@ -143,7 +143,7 @@ func (t *TeamStrategyMetric) SaveTeamMetricStrategyLevels(ctx context.Context, p
 		return nil, err
 	}
 	levelIds := slices.Map(levels, func(v do.StrategyMetricRule) uint32 { return v.GetID() })
-	list := make([]do.StrategyMetricRule, 0, len(updatedRulesParams.Levels))
+	list := make([]do.StrategyMetricRule, 0, len(updatedRulesParams.Levels)+len(createdRulesParams.Levels))
 	err = t.transaction.BizExec(ctx, func(ctx context.Context) error {
 		if len(updatedRulesParams.Levels) > 0 {
 			updatedRules, err := t.teamStrategyMetricRepo.UpdateLevels(ctx, updatedRulesParams)

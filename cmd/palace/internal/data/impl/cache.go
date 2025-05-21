@@ -46,7 +46,7 @@ type cacheRepoImpl struct {
 }
 
 func (c *cacheRepoImpl) CacheTeams(ctx context.Context, teams ...do.Team) error {
-	key := repository.UserCacheKey.Key()
+	key := repository.TeamCacheKey.Key()
 	teamsMap := make(map[string]any)
 	for _, team := range teams {
 		teamItem := build.ToTeam(ctx, team)

@@ -51,9 +51,13 @@ func ToOperateTeamMetricStrategyLevelsParams(request *palace.SaveTeamMetricStrat
 	if validate.IsNil(request) {
 		panic("SaveTeamMetricStrategyLevelsRequest is nil")
 	}
+	levels := slices.Map(request.GetLevels(), ToSaveTeamMetricStrategyLevelParams)
+	levels = slices.UniqueWithFunc(levels, func(item *bo.SaveTeamMetricStrategyLevelParams) uint32 {
+		return item.LevelId
+	})
 	return &bo.OperateTeamMetricStrategyLevelsParams{
 		StrategyID: request.GetStrategyId(),
-		Levels:     slices.Map(request.GetLevels(), ToSaveTeamMetricStrategyLevelParams),
+		Levels:     levels,
 	}
 }
 

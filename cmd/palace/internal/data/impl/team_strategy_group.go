@@ -83,8 +83,8 @@ func (t *teamStrategyGroupRepoImpl) List(ctx context.Context, listParams *bo.Lis
 	if validate.TextIsNotNull(listParams.Keyword) {
 		wrappers = wrappers.Where(mutation.Name.Like(listParams.Keyword))
 	}
-	if len(listParams.Status) > 0 {
-		wrappers = wrappers.Where(mutation.Status.In(slices.Map(listParams.Status, func(status vobj.GlobalStatus) int8 { return int8(status) })...))
+	if listParams.Status.Exist() && !listParams.Status.IsUnknown() {
+		wrappers = wrappers.Where(mutation.Status.Eq(listParams.Status.GetValue()))
 	}
 	if validate.IsNotNil(listParams.PaginationRequest) {
 		total, err := wrappers.Count()

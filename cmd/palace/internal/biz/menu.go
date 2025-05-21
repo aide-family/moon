@@ -59,6 +59,17 @@ func (m *Menu) GetMenu(ctx context.Context, id uint32) (do.Menu, error) {
 }
 
 func (m *Menu) SaveMenu(ctx context.Context, menu *bo.SaveMenuRequest) error {
+	defer func() {
+		apiPath := menu.ApiPath
+		if apiPath == "" {
+			return
+		}
+		menu, err := m.menuRepo.GetMenuByOperation(ctx, apiPath)
+		if err != nil {
+			return
+		}
+		m.cacheRepo.CacheMenus(ctx, menu)
+	}()
 	if err := m.menuRepo.ExistByName(ctx, menu.Name, menu.MenuId); err != nil {
 		return err
 	}

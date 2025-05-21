@@ -15,7 +15,7 @@ type SaveTeamStrategyGroupParams struct {
 type ListTeamStrategyGroupParams struct {
 	*PaginationRequest
 	Keyword string
-	Status  []vobj.GlobalStatus
+	Status  vobj.GlobalStatus
 }
 
 type ListTeamStrategyGroupReply = ListReply[do.StrategyGroup]

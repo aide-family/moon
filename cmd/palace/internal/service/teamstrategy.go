@@ -9,7 +9,6 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/service/build"
 	"github.com/aide-family/moon/pkg/api/palace"
 	"github.com/aide-family/moon/pkg/api/palace/common"
-	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 func NewTeamStrategyService(
@@ -72,7 +71,7 @@ func (t *TeamStrategyService) GetTeamStrategyGroup(ctx context.Context, request 
 func (t *TeamStrategyService) ListTeamStrategyGroup(ctx context.Context, request *palace.ListTeamStrategyGroupRequest) (*palace.ListTeamStrategyGroupReply, error) {
 	params := &bo.ListTeamStrategyGroupParams{
 		Keyword:           request.GetKeyword(),
-		Status:            slices.Map(request.GetStatus(), func(status common.GlobalStatus) vobj.GlobalStatus { return vobj.GlobalStatus(status) }),
+		Status:            vobj.GlobalStatus(request.GetStatus()),
 		PaginationRequest: build.ToPaginationRequest(request.GetPagination()),
 	}
 	groups, err := t.teamStrategyGroupBiz.ListTeamStrategyGroup(ctx, params)

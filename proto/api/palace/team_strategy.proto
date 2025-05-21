@@ -135,39 +135,66 @@ message SaveTeamStrategyGroupRequest {
   // Strategy group Id, optional for new groups
   uint32 groupId = 1;
   // Strategy group name
-  string name = 2 [(buf.validate.field).string.max_len = 128];
+  string name = 2 [(buf.validate.field).cel = {
+    message: "name must be less than 128 characters"
+    expression: "this.size() <= 128"
+  }, (buf.validate.field).cel = {
+    message: "name must be greater than 0 characters"
+    expression: "this.size() > 0"
+  }];
   // Strategy group remark or description
-  string remark = 3 [(buf.validate.field).string.max_len = 255];
+  string remark = 3 [(buf.validate.field).cel = {
+    message: "remark must be less than 255 characters"
+    expression: "this.size() <= 255"
+  }];
 }
 
 // UpdateTeamStrategyGroupStatusRequest represents the request data for updating the status of a team strategy group
 message UpdateTeamStrategyGroupStatusRequest {
   // Strategy group Id
-  uint32 groupId = 1;
+  uint32 groupId = 1 [(buf.validate.field).cel = {
+    message: "must select a strategy group"
+    expression: "this > 0"
+  }];
   // New status for the strategy group
-  api.palace.common.GlobalStatus status = 2;
+  api.palace.common.GlobalStatus status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    message: "status must be valid"
+    expression: "this in [1, 2, 'GLOBAL_STATUS_ENABLE', 'GLOBAL_STATUS_DISABLE']"
+  }];
 }
 
 // DeleteTeamStrategyGroupRequest represents the request data for deleting a team strategy group
 message DeleteTeamStrategyGroupRequest {
   // Strategy group Id
-  uint32 groupId = 1 [(buf.validate.field).required = true];
+  uint32 groupId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    message: "must select a strategy group"
+    expression: "this > 0"
+  }];
 }
 
 // GetTeamStrategyGroupRequest represents the request data for retrieving a team strategy group
 message GetTeamStrategyGroupRequest {
   // Strategy group Id
-  uint32 groupId = 1 [(buf.validate.field).required = true];
+  uint32 groupId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    message: "must select a strategy group"
+    expression: "this > 0"
+  }];
 }
 
 // ListTeamStrategyGroupRequest represents the request data for listing team strategy groups
 message ListTeamStrategyGroupRequest {
   // Pagination request details
-  api.palace.common.PaginationRequest pagination = 1;
+  api.palace.common.PaginationRequest pagination = 1 [(buf.validate.field).required = true];
   // Keyword to search strategy groups by
-  string keyword = 2 [(buf.validate.field).string.max_len = 20];
+  string keyword = 2 [(buf.validate.field).cel = {
+    message: "keyword must be less than 20 characters"
+    expression: "this.size() <= 20"
+  }];
   // List of statuses to filter strategy groups by
-  repeated api.palace.common.GlobalStatus status = 3;
+  api.palace.common.GlobalStatus status = 3 [(buf.validate.field).cel = {
+    message: "status must be valid"
+    expression: "this in [0, 1, 2, 'GLOBAL_STATUS_UNKNOWN', 'GLOBAL_STATUS_ENABLE', 'GLOBAL_STATUS_DISABLE']"
+  }];
 }
 
 // ListTeamStrategyGroupReply contains the response data for listing team strategy groups
@@ -181,11 +208,17 @@ message ListTeamStrategyGroupReply {
 // SelectTeamStrategyGroupRequest represents the request data for selecting team strategy groups
 message SelectTeamStrategyGroupRequest {
   // Pagination request details
-  api.palace.common.PaginationRequest pagination = 1;
+  api.palace.common.PaginationRequest pagination = 1 [(buf.validate.field).required = true];
   // Keyword to search strategy groups by
-  string keyword = 2 [(buf.validate.field).string.max_len = 20];
+  string keyword = 2 [(buf.validate.field).cel = {
+    message: "keyword must be less than 20 characters"
+    expression: "this.size() <= 20"
+  }];
   // List of statuses to filter strategy groups by
-  repeated api.palace.common.GlobalStatus status = 3;
+  repeated api.palace.common.GlobalStatus status = 3 [(buf.validate.field).cel = {
+    message: "status must be valid"
+    expression: "this in [0, 1, 2, 'GLOBAL_STATUS_UNKNOWN', 'GLOBAL_STATUS_ENABLE', 'GLOBAL_STATUS_DISABLE']"
+  }];
 }
 
 // SelectTeamStrategyGroupReply contains the response data for selecting team strategy groups
@@ -200,15 +233,39 @@ message SaveTeamStrategyRequest {
   // Strategy item Id, optional for new items
   uint32 strategyId = 1;
   // Strategy item name
-  string name = 2 [(buf.validate.field).string.max_len = 128];
+  string name = 2 [(buf.validate.field).cel = {
+    message: "name must be less than 128 characters"
+    expression: "this.size() <= 128"
+  }, (buf.validate.field).cel = {
+    message: "name must be greater than 0 characters"
+    expression: "this.size() > 0"
+  }];
   // Strategy item remark or description
-  string remark = 3 [(buf.validate.field).string.max_len = 255];
+  string remark = 3 [(buf.validate.field).cel = {
+    message: "remark must be less than 255 characters"
+    expression: "this.size() <= 255"
+  }];
   // Strategy item type
-  api.palace.common.StrategyType strategyType = 4;
+  api.palace.common.StrategyType strategyType = 4 [(buf.validate.field).cel = {
+    message: "strategyType must be valid"
+    expression: "this in [1, 2, 3, 4, 5, 6, 7, 'STRATEGY_TYPE_METRIC', 'STRATEGY_TYPE_EVENT', 'STRATEGY_TYPE_LOGS', 'STRATEGY_TYPE_PORT', 'STRATEGY_TYPE_HTTP', 'STRATEGY_TYPE_PING', 'STRATEGY_TYPE_CERT']"
+  }];
   // Receiver routes
-  repeated uint32 receiverRoutes = 5;
+  repeated uint32 receiverRoutes = 5 [(buf.validate.field).cel = {
+    message: "receiverRoutes must be less than 10"
+    expression: "this.size() <= 10"
+  }, (buf.validate.field).cel = {
+    message: "receiverRoutes must be unique"
+    expression: "this.unique()"
+  }, (buf.validate.field).cel = {
+    message: "receiverRoutes must be greater than 0"
+    expression: "this.all(x, x > 0)"
+  }];
   // Group id
-  uint32 groupId = 6 [(buf.validate.field).required = true];
+  uint32 groupId = 6 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    message: "must select a group"
+    expression: "this > 0"
+  }];
 }
 
 // SaveTeamMetricStrategyRequest represents the request data for saving or updating a team metric strategy
@@ -262,7 +319,16 @@ message SaveTeamMetricStrategyLevelsRequest {
   // Strategy id
   uint32 strategyId = 1;
   // Levels
-  repeated SaveTeamMetricStrategyLevelRequest levels = 2;
+  repeated SaveTeamMetricStrategyLevelRequest levels = 2 [(buf.validate.field).cel = {
+    message: "levels must be less than 10"
+    expression: "len(this) <= 10"
+  }, (buf.validate.field).cel = {
+    message: "levels must be unique"
+    expression: "len(this) == len(set(this))"
+  }, (buf.validate.field).cel = {
+    message: "levels must be greater than 0"
+    expression: "len(this) > 0"
+  }];
 }
 
 message SaveTeamMetricStrategyLevelsReply {
