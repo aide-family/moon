@@ -21,6 +21,10 @@ import (
 	"github.com/aide-family/moon/pkg/plugin/registry"
 )
 
+func init() {
+	selector.SetGlobalSelector(wrr.NewBuilder())
+}
+
 type InitConfig struct {
 	MicroConfig *config.MicroServer
 	Registry    *config.Registry
@@ -87,13 +91,6 @@ func InitGRPCClient(initConfig *InitConfig) (*ggrpc.ClientConn, error) {
 		grpc.WithMiddleware(middlewares...),
 	}
 
-	//nodeVersion := strings.TrimSpace(initConfig.MicroConfig.GetVersion())
-	//if nodeVersion != "" {
-	//	nodeFilter := filter.Version(nodeVersion)
-	//	selector.SetGlobalSelector(wrr.NewBuilder())
-	//	opts = append(opts, grpc.WithNodeFilter(nodeFilter))
-	//}
-
 	if initConfig.Registry != nil && initConfig.Registry.GetEnable() {
 		var err error
 		discovery, err := registry.NewDiscovery(initConfig.Registry)
@@ -101,6 +98,11 @@ func InitGRPCClient(initConfig *InitConfig) (*ggrpc.ClientConn, error) {
 			return nil, err
 		}
 		opts = append(opts, grpc.WithDiscovery(discovery))
+		nodeVersion := strings.TrimSpace(initConfig.MicroConfig.GetVersion())
+		if nodeVersion != "" {
+			nodeFilter := filter.Version(nodeVersion)
+			opts = append(opts, grpc.WithNodeFilter(nodeFilter))
+		}
 	}
 
 	if initConfig.MicroConfig.GetTimeout() != nil {
