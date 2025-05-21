@@ -115,7 +115,7 @@ func (u *userRepoImpl) CreateUserWithOAuthUser(ctx context.Context, user bo.IOAu
 		Avatar:    user.GetAvatar(),
 		Salt:      "",
 		Gender:    vobj.GenderUnknown,
-		Position:  vobj.RoleUser,
+		Position:  vobj.PositionUser,
 		Status:    vobj.UserStatusNormal,
 		Roles:     nil,
 	}
@@ -131,7 +131,7 @@ func (u *userRepoImpl) Create(ctx context.Context, user do.User, sendEmailFunc b
 	}
 	position := user.GetPosition()
 	if total == 0 {
-		position = vobj.RoleSuperAdmin
+		position = vobj.PositionSuperAdmin
 	}
 	pass := password.New(password.GenerateRandomPassword(8))
 	enValue, err := pass.EnValue()
@@ -379,8 +379,8 @@ func (u *userRepoImpl) List(ctx context.Context, req *bo.UserListRequest) (*bo.U
 		wrapper = wrapper.Where(userQuery.Status.In(status...))
 	}
 	if len(req.Position) > 0 {
-		position := slices.Map(req.Position, func(positionItem vobj.Role) int8 { return positionItem.GetValue() })
-		wrapper = wrapper.Where(userQuery.Position.In(position...))
+		positions := slices.Map(req.Position, func(positionItem vobj.Position) int8 { return positionItem.GetValue() })
+		wrapper = wrapper.Where(userQuery.Position.In(positions...))
 	}
 	if validate.IsNotNil(req.PaginationRequest) {
 		total, err := wrapper.Count()

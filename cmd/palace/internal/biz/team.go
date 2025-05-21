@@ -125,7 +125,7 @@ func (t *Team) SaveTeam(ctx context.Context, req *bo.SaveOneTeamRequest) error {
 				Team:     teamDo,
 				User:     teamDo.GetLeader(),
 				Status:   vobj.MemberStatusNormal,
-				Position: vobj.RoleSuperAdmin,
+				Position: vobj.PositionSuperAdmin,
 			}
 			if err := t.memberRepo.Create(ctx, createMemberParams); err != nil {
 				t.helper.WithContext(ctx).Errorw("msg", "create team member fail", "err", err)

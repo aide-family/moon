@@ -148,7 +148,7 @@ func (s *AuthService) LoginByEmail(ctx context.Context, req *palace.LoginByEmail
 		Email:     req.GetEmail(),
 		Remark:    req.GetRemark(),
 		Gender:    vobj.Gender(req.GetGender()),
-		Position:  vobj.RoleUser,
+		Position:  vobj.PositionUser,
 		Status:    vobj.UserStatusNormal,
 	}
 	params := &bo.LoginWithEmailParams{

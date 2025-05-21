@@ -13,7 +13,7 @@ type TeamMember interface {
 	GetRemark() string
 	GetUserID() uint32
 	GetInviterID() uint32
-	GetPosition() vobj.Role
+	GetPosition() vobj.Position
 	GetStatus() vobj.MemberStatus
 	GetRoles() []TeamRole
 	GetUser() User

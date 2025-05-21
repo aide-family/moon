@@ -114,7 +114,7 @@ type TeamMemberListRequest struct {
 	*PaginationRequest
 	Keyword   string
 	Status    []vobj.MemberStatus
-	Positions []vobj.Role
+	Positions []vobj.Position
 	TeamId    uint32
 }
 
@@ -166,14 +166,14 @@ type SelectTeamMembersReply = ListReply[SelectItem]
 
 type UpdateMemberPosition interface {
 	GetMember() do.TeamMember
-	GetPosition() vobj.Role
+	GetPosition() vobj.Position
 }
 
 type UpdateMemberPositionReq struct {
 	operator do.TeamMember
 	member   do.TeamMember
 	MemberID uint32
-	Position vobj.Role
+	Position vobj.Position
 }
 
 func (r *UpdateMemberPositionReq) GetMember() do.TeamMember {
@@ -183,9 +183,9 @@ func (r *UpdateMemberPositionReq) GetMember() do.TeamMember {
 	return r.member
 }
 
-func (r *UpdateMemberPositionReq) GetPosition() vobj.Role {
+func (r *UpdateMemberPositionReq) GetPosition() vobj.Position {
 	if r == nil {
-		return vobj.RoleUnknown
+		return vobj.PositionUnknown
 	}
 	return r.Position
 }
@@ -385,7 +385,7 @@ func (r *RemoveMemberReq) Validate() error {
 type InviteMember interface {
 	GetTeam() do.Team
 	GetInviteUser() do.User
-	GetPosition() vobj.Role
+	GetPosition() vobj.Position
 	GetRoles() []do.TeamRole
 	GetSendEmailFun() SendEmailFun
 	GetOperator() do.TeamMember
@@ -397,7 +397,7 @@ type InviteMemberReq struct {
 	invitee      do.User
 	roles        []do.TeamRole
 	UserEmail    string
-	Position     vobj.Role
+	Position     vobj.Position
 	RoleIds      []uint32
 	SendEmailFun SendEmailFun
 }
@@ -416,9 +416,9 @@ func (r *InviteMemberReq) GetInviteUser() do.User {
 	return r.invitee
 }
 
-func (r *InviteMemberReq) GetPosition() vobj.Role {
+func (r *InviteMemberReq) GetPosition() vobj.Position {
 	if r == nil {
-		return vobj.RoleUnknown
+		return vobj.PositionUnknown
 	}
 	return r.Position
 }
@@ -492,5 +492,5 @@ type CreateTeamMemberReq struct {
 	Team     do.Team
 	User     do.User
 	Status   vobj.MemberStatus
-	Position vobj.Role
+	Position vobj.Position
 }

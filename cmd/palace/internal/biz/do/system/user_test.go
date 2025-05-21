@@ -60,7 +60,7 @@ func Test_NewUser(t *testing.T) {
 		Avatar:   "",
 		Salt:     pass.Salt(),
 		Gender:   vobj.GenderMale,
-		Position: vobj.RoleSuperAdmin,
+		Position: vobj.PositionSuperAdmin,
 		Status:   vobj.UserStatusNormal,
 		Roles:    nil,
 		Teams:    nil,

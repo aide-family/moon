@@ -69,7 +69,7 @@ func (s *SystemService) ResetUserPassword(ctx context.Context, req *palace.Reset
 func (s *SystemService) UpdateUserPosition(ctx context.Context, req *palace.UpdateUserPositionRequest) (*common.EmptyReply, error) {
 	params := &bo.UpdateUserPositionRequest{
 		UserId:   req.GetUserId(),
-		Position: vobj.Role(req.GetPosition()),
+		Position: vobj.Position(req.GetPosition()),
 	}
 	if err := s.userBiz.UpdateUserPosition(ctx, params); err != nil {
 		return nil, err

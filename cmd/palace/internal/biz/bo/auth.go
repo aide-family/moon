@@ -44,17 +44,17 @@ type FilingInformation struct {
 
 // VerifyNewPermission represents a new permission verification request
 type VerifyNewPermission struct {
-	SystemRoleID   uint32    `json:"system_role_id"`
-	TeamRoleID     uint32    `json:"team_role_id"`
-	TeamID         uint32    `json:"team_id"`
-	SystemPosition vobj.Role `json:"system_position"`
-	TeamPosition   vobj.Role `json:"team_position"`
+	SystemRoleID   uint32        `json:"system_role_id"`
+	TeamRoleID     uint32        `json:"team_role_id"`
+	TeamID         uint32        `json:"team_id"`
+	SystemPosition vobj.Position `json:"system_position"`
+	TeamPosition   vobj.Position `json:"team_position"`
 }
 
 // UserIdentities represents user identity information
 type UserIdentities struct {
 	// System position list
-	SystemPositions []vobj.Role `json:"system_positions"`
+	SystemPositions []vobj.Position `json:"system_positions"`
 	// System role list
 	SystemRoles []*SystemRoleItem `json:"system_roles"`
 	// Team list
@@ -73,7 +73,7 @@ type TeamItem struct {
 	ID        uint32          `json:"id"`
 	Name      string          `json:"name"`
 	Status    vobj.TeamStatus `json:"status"`
-	Positions []vobj.Role     `json:"positions"`
+	Positions []vobj.Position `json:"positions"`
 	Roles     []*TeamRoleItem `json:"roles"`
 }
 

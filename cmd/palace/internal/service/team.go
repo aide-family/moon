@@ -57,7 +57,7 @@ func (s *TeamService) TransferTeam(ctx context.Context, req *palace.TransferTeam
 func (s *TeamService) InviteMember(ctx context.Context, req *palace.InviteMemberRequest) (*common.EmptyReply, error) {
 	params := &bo.InviteMemberReq{
 		UserEmail:    req.GetUserEmail(),
-		Position:     vobj.Role(req.GetPosition()),
+		Position:     vobj.Position(req.GetPosition()),
 		RoleIds:      req.GetRoleIds(),
 		SendEmailFun: s.messageBiz.SendEmail,
 	}
@@ -112,7 +112,7 @@ func (s *TeamService) SelectTeamMembers(ctx context.Context, req *palace.SelectT
 func (s *TeamService) UpdateMemberPosition(ctx context.Context, req *palace.UpdateMemberPositionRequest) (*common.EmptyReply, error) {
 	params := &bo.UpdateMemberPositionReq{
 		MemberID: req.GetMemberId(),
-		Position: vobj.Role(req.GetPosition()),
+		Position: vobj.Position(req.GetPosition()),
 	}
 	if err := s.teamBiz.UpdateMemberPosition(ctx, params); err != nil {
 		return nil, err

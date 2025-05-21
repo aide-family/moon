@@ -25,7 +25,7 @@ type User struct {
 	Avatar   string          `gorm:"column:avatar;type:varchar(255);not null;comment:avatar" json:"avatar"`
 	Salt     string          `gorm:"column:salt;type:varchar(128);not null;comment:salt" json:"-"`
 	Gender   vobj.Gender     `gorm:"column:gender;type:tinyint(2);not null;comment:gender" json:"gender"`
-	Position vobj.Role       `gorm:"column:position;type:tinyint(2);not null;comment:system default role type" json:"position"`
+	Position vobj.Position   `gorm:"column:position;type:tinyint(2);not null;comment:system default role type" json:"position"`
 	Status   vobj.UserStatus `gorm:"column:status;type:tinyint(2);not null;comment:status" json:"status"`
 	Roles    []*Role         `gorm:"many2many:sys_user_roles" json:"roles"`
 	Teams    []*Team         `gorm:"many2many:sys_user_teams" json:"teams"`
@@ -119,9 +119,9 @@ func (u *User) GetStatus() vobj.UserStatus {
 	return u.Status
 }
 
-func (u *User) GetPosition() vobj.Role {
+func (u *User) GetPosition() vobj.Position {
 	if u == nil {
-		return vobj.RoleUnknown
+		return vobj.PositionUnknown
 	}
 	return u.Position
 }

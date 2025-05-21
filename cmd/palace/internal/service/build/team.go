@@ -101,7 +101,7 @@ func ToTeamMemberListRequest(req *palace.GetTeamMembersRequest, teamId uint32) *
 		PaginationRequest: ToPaginationRequest(req.GetPagination()),
 		Keyword:           req.GetKeyword(),
 		Status:            slices.Map(req.GetStatus(), func(status common.MemberStatus) vobj.MemberStatus { return vobj.MemberStatus(status) }),
-		Positions:         slices.Map(req.GetPositions(), func(position common.MemberPosition) vobj.Role { return vobj.Role(position) }),
+		Positions:         slices.Map(req.GetPositions(), func(position common.MemberPosition) vobj.Position { return vobj.Position(position) }),
 		TeamId:            teamId,
 	}
 }

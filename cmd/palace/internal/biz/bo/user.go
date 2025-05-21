@@ -78,19 +78,19 @@ type ResetUserPasswordRequest struct {
 
 type UpdateUserPosition interface {
 	GetUser() do.User
-	GetPosition() vobj.Role
+	GetPosition() vobj.Position
 }
 
 type UpdateUserPositionRequest struct {
 	operator do.User
 	user     do.User
 	UserId   uint32
-	Position vobj.Role
+	Position vobj.Position
 }
 
-func (r *UpdateUserPositionRequest) GetPosition() vobj.Role {
+func (r *UpdateUserPositionRequest) GetPosition() vobj.Position {
 	if r == nil {
-		return vobj.RoleUnknown
+		return vobj.PositionUnknown
 	}
 	return r.Position
 }
@@ -138,7 +138,7 @@ func (r *UpdateUserPositionRequest) Validate() error {
 type UserListRequest struct {
 	*PaginationRequest
 	Status   []vobj.UserStatus
-	Position []vobj.Role
+	Position []vobj.Position
 	Keyword  string
 }
 

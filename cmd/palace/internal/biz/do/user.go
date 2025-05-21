@@ -18,7 +18,7 @@ type User interface {
 	GetGender() vobj.Gender
 	GetAvatar() string
 	GetStatus() vobj.UserStatus
-	GetPosition() vobj.Role
+	GetPosition() vobj.Position
 	GetRoles() []Role
 	GetTeams() []Team
 	ValidatePassword(p string) bool

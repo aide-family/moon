@@ -37,7 +37,7 @@ type TeamInviteUser interface {
 	Creator
 	GetTeamID() uint32
 	GetInviteUserID() uint32
-	GetPosition() vobj.Role
+	GetPosition() vobj.Position
 	GetRoles() []uint32
 	GetInviteUser() User
 	GetTeam() Team

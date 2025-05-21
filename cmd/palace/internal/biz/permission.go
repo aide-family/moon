@@ -66,8 +66,8 @@ type PermissionContext struct {
 	Menu           do.Menu
 	User           do.User
 	Team           do.Team
-	SystemPosition vobj.Role
-	TeamPosition   vobj.Role
+	SystemPosition vobj.Position
+	TeamPosition   vobj.Position
 	TeamMember     do.TeamMember
 }
 

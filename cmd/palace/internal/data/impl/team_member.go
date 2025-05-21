@@ -71,7 +71,7 @@ func (m *memberRepoImpl) List(ctx context.Context, req *bo.TeamMemberListRequest
 		wrapper = wrapper.Where(memberQuery.Status.In(status...))
 	}
 	if len(req.Positions) > 0 {
-		positions := slices.Map(req.Positions, func(positionItem vobj.Role) int8 { return positionItem.GetValue() })
+		positions := slices.Map(req.Positions, func(positionItem vobj.Position) int8 { return positionItem.GetValue() })
 		wrapper = wrapper.Where(memberQuery.Position.In(positions...))
 	}
 	if validate.IsNotNil(req.PaginationRequest) {

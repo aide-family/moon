@@ -19,7 +19,7 @@ type TeamMember struct {
 	Remark     string            `gorm:"column:remark;type:varchar(255);not null;comment:remark" json:"remark"`
 	UserID     uint32            `gorm:"column:user_id;type:int unsigned;not null;comment:user ID" json:"userID"`
 	InviterID  uint32            `gorm:"column:inviter_id;type:int unsigned;not null;comment:inviter ID" json:"inviterID"`
-	Position   vobj.Role         `gorm:"column:position;type:tinyint(2);not null;comment:position" json:"position"`
+	Position   vobj.Position     `gorm:"column:position;type:tinyint(2);not null;comment:position" json:"position"`
 	Status     vobj.MemberStatus `gorm:"column:status;type:tinyint(2);not null;comment:status" json:"status"`
 	Roles      []*TeamRole       `gorm:"many2many:sys_team_member_roles" json:"roles"`
 	User       *User             `gorm:"foreignKey:UserID;references:ID" json:"user"`
@@ -93,9 +93,9 @@ func (u *TeamMember) GetInviterID() uint32 {
 	return u.InviterID
 }
 
-func (u *TeamMember) GetPosition() vobj.Role {
+func (u *TeamMember) GetPosition() vobj.Position {
 	if u == nil {
-		return vobj.RoleUnknown
+		return vobj.PositionUnknown
 	}
 	return u.Position
 }
