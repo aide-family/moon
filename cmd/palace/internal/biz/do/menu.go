@@ -2,10 +2,12 @@ package do
 
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/plugin/cache"
 )
 
 type Menu interface {
 	Base
+	cache.Object
 	GetName() string
 	GetMenuPath() string
 	GetMenuIcon() string

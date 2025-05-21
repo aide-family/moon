@@ -301,6 +301,11 @@ func (s *strategyMetricJob) WithID(id cron.EntryID) server.CronJob {
 	return s
 }
 
+// IsImmediate implements server.CronJob.
+func (s *strategyMetricJob) IsImmediate() bool {
+	return false
+}
+
 func (s *strategyMetricJob) GetEnable() bool {
 	if s == nil {
 		return false

@@ -56,6 +56,19 @@ func (m *menuRepoImpl) Find(ctx context.Context, ids []uint32) ([]do.Menu, error
 	return menus, nil
 }
 
+func (m *menuRepoImpl) FindAll(ctx context.Context, ids ...uint32) ([]do.Menu, error) {
+	if len(ids) > 0 {
+		return m.Find(ctx, ids)
+	}
+	mainQuery := getMainQuery(ctx, m)
+	menu := mainQuery.Menu
+	menuDos, err := menu.WithContext(ctx).Find()
+	if err != nil {
+		return nil, err
+	}
+	return slices.Map(menuDos, func(menu *system.Menu) do.Menu { return menu }), nil
+}
+
 func (m *menuRepoImpl) GetMenuByOperation(ctx context.Context, operation string) (do.Menu, error) {
 	mainQuery := getMainQuery(ctx, m)
 	menu := mainQuery.Menu

@@ -30,10 +30,9 @@ func NewUserJob(
 }
 
 type userJob struct {
-	index string
-	id    cron.EntryID
-	spec  server.CronSpec
-
+	index     string
+	id        cron.EntryID
+	spec      server.CronSpec
 	helper    *log.Helper
 	userRepo  repository.User
 	cacheRepo repository.Cache
@@ -84,4 +83,9 @@ func (u *userJob) Spec() server.CronSpec {
 func (u *userJob) WithID(id cron.EntryID) server.CronJob {
 	u.id = id
 	return u
+}
+
+// IsImmediate implements server.CronJob.
+func (u *userJob) IsImmediate() bool {
+	return false
 }

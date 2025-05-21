@@ -164,3 +164,8 @@ func (a *alertJob) WithID(id cron.EntryID) server.CronJob {
 	a.id = id
 	return a
 }
+
+// IsImmediate implements server.CronJob.
+func (a *alertJob) IsImmediate() bool {
+	return false
+}

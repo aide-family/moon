@@ -321,3 +321,52 @@ func (c *cacheRepoImpl) SendVerifyEmailCode(ctx context.Context, params *bo.Veri
 	}
 	return params.SendEmailFun(ctx, sendEmailParams)
 }
+
+func (c *cacheRepoImpl) CacheMenus(ctx context.Context, menus ...do.Menu) error {
+	key := repository.MenuCacheKey.Key()
+	menusMap := make(map[string]any)
+	for _, menu := range menus {
+		menusMap[menu.UniqueKey()] = menu
+	}
+	return c.GetCache().Client().HSet(ctx, key, menusMap).Err()
+}
+
+func (c *cacheRepoImpl) GetMenu(ctx context.Context, operation string) (do.Menu, error) {
+	key := repository.MenuCacheKey.Key()
+	exist, err := c.GetCache().Client().HExists(ctx, key, operation).Result()
+	if err != nil {
+		return nil, err
+	}
+	if !exist {
+		return nil, merr.ErrorNotFound("menu not found")
+	}
+	var menu system.Menu
+	if err = c.GetCache().Client().HGet(ctx, key, operation).Scan(&menu); err != nil {
+		return nil, err
+	}
+	return &menu, nil
+}
+
+func (c *cacheRepoImpl) GetMenus(ctx context.Context, operations ...string) ([]do.Menu, error) {
+	key := repository.MenuCacheKey.Key()
+	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
+	if err != nil {
+		return nil, err
+	}
+	if exist == 0 {
+		return nil, nil
+	}
+	menuMap, err := c.GetCache().Client().HMGet(ctx, key, operations...).Result()
+	if err != nil {
+		return nil, err
+	}
+	menus := make([]do.Menu, 0, len(menuMap))
+	for _, v := range menuMap {
+		var menu system.Menu
+		if err := menu.UnmarshalBinary([]byte(v.(string))); err != nil {
+			continue
+		}
+		menus = append(menus, &menu)
+	}
+	return menus, nil
+}

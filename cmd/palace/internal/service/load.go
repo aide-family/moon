@@ -5,19 +5,27 @@ import (
 	"github.com/aide-family/moon/pkg/plugin/server"
 )
 
-func NewLoadService(userBiz *biz.UserBiz, teamBiz *biz.Team) *LoadService {
+func NewLoadService(
+	userBiz *biz.UserBiz,
+	teamBiz *biz.Team,
+	menuBiz *biz.Menu,
+) *LoadService {
 	return &LoadService{
 		userBiz: userBiz,
 		teamBiz: teamBiz,
+		menuBiz: menuBiz,
 	}
 }
 
 type LoadService struct {
 	userBiz *biz.UserBiz
 	teamBiz *biz.Team
+	menuBiz *biz.Menu
 }
 
 func (s *LoadService) LoadJobs() []server.CronJob {
 	userJobs := s.userBiz.Jobs()
-	return append(userJobs, s.teamBiz.Jobs()...)
+	teamJobs := s.teamBiz.Jobs()
+	menuJobs := s.menuBiz.Jobs()
+	return append(append(userJobs, teamJobs...), menuJobs...)
 }

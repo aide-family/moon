@@ -31,6 +31,10 @@ type Cache interface {
 	CacheTeamMembers(ctx context.Context, members ...do.TeamMember) error
 	GetTeamMember(ctx context.Context, memberID uint32) (do.TeamMember, error)
 	GetTeamMembers(ctx context.Context, ids ...uint32) ([]do.TeamMember, error)
+
+	CacheMenus(ctx context.Context, menus ...do.Menu) error
+	GetMenu(ctx context.Context, operation string) (do.Menu, error)
+	GetMenus(ctx context.Context, operations ...string) ([]do.Menu, error)
 }
 
 const (
@@ -41,4 +45,5 @@ const (
 	TeamCacheKey                        cache.K = "palace:team:cache"
 	TeamMemberCacheKey                  cache.K = "palace:team:member:cache"
 	TeamDatasourceMetricMetadataSyncKey cache.K = "palace:team:datasource:metric:metadata:sync"
+	MenuCacheKey                        cache.K = "palace:menu:cache"
 )

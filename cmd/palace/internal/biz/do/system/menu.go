@@ -1,6 +1,8 @@
 package system
 
 import (
+	"encoding/json"
+
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 )
@@ -66,6 +68,18 @@ func (u *Menu) GetParent() do.Menu {
 
 func (u *Menu) IsRelyOnBrother() bool {
 	return u.RelyOnBrother
+}
+
+func (u *Menu) MarshalBinary() ([]byte, error) {
+	return json.Marshal(u)
+}
+
+func (u *Menu) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, u)
+}
+
+func (u *Menu) UniqueKey() string {
+	return u.ApiPath
 }
 
 func (u *Menu) TableName() string {

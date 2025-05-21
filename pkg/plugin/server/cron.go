@@ -46,6 +46,7 @@ type CronJob interface {
 	Index() string
 	Spec() CronSpec
 	WithID(id cron.EntryID) CronJob
+	IsImmediate() bool
 }
 
 type CronJobServer struct {
@@ -79,6 +80,9 @@ func (c *CronJobServer) AddJob(job CronJob) {
 	}
 	job.WithID(id)
 	c.tasks.Set(job.Index(), job)
+	if job.IsImmediate() {
+		job.Run()
+	}
 }
 
 func (c *CronJobServer) AddJobForce(job CronJob) {
@@ -92,6 +96,9 @@ func (c *CronJobServer) AddJobForce(job CronJob) {
 	}
 	job.WithID(id)
 	c.tasks.Set(job.Index(), job)
+	if job.IsImmediate() {
+		job.Run()
+	}
 }
 
 func (c *CronJobServer) RemoveJob(job CronJob) {

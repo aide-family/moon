@@ -83,3 +83,8 @@ func (t *teamJob) WithID(id cron.EntryID) server.CronJob {
 	t.id = id
 	return t
 }
+
+// IsImmediate implements server.CronJob.
+func (t *teamJob) IsImmediate() bool {
+	return false
+}

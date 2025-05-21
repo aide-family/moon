@@ -16,7 +16,7 @@ import (
 
 // NewPermission create a new permission biz
 func NewPermissionBiz(
-	menuRepo repository.Menu,
+	cacheRepo repository.Cache,
 	userRepo repository.User,
 	teamRepo repository.Team,
 	memberRepo repository.Member,
@@ -26,7 +26,7 @@ func NewPermissionBiz(
 	// build permission chain
 	permissionChain := []PermissionHandler{
 		baseHandler.OperationHandler(),
-		baseHandler.MenuHandler(menuRepo.GetMenuByOperation),
+		baseHandler.MenuHandler(cacheRepo.GetMenu),
 		baseHandler.UserHandler(userRepo.FindByID),
 		baseHandler.SystemAdminCheckHandler(),
 		baseHandler.SystemRBACHandler(checkSystemRBAC),
