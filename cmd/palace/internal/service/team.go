@@ -236,13 +236,13 @@ func (s *TeamService) GetSMSConfig(ctx context.Context, req *palace.GetSMSConfig
 	return build.ToSMSConfigItemPlaintext(config), nil
 }
 
-func (s *TeamService) OperateLogList(ctx context.Context, req *palace.TeamOperateLogListRequest) (*palace.TeamOperateLogListReply, error) {
+func (s *TeamService) OperateLogList(ctx context.Context, req *common.OperateLogListRequest) (*common.OperateLogListReply, error) {
 	params := build.ToOperateLogListRequest(req)
 	operateLogReply, err := s.teamBiz.OperateLogList(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	return &palace.TeamOperateLogListReply{
+	return &common.OperateLogListReply{
 		Items:      build.ToOperateLogItems(operateLogReply.Items),
 		Pagination: build.ToPaginationReply(operateLogReply.PaginationReply),
 	}, nil

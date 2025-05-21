@@ -141,7 +141,7 @@ service System {
   }
 
   // OperateLogList lists operation logs based on specified filters
-  rpc OperateLogList (OperateLogListRequest) returns (OperateLogListReply) {
+  rpc OperateLogList (api.palace.common.OperateLogListRequest) returns (api.palace.common.OperateLogListReply) {
     option (google.api.http) = {
       post: "/api/system/operate/log/list"
       body: "*"
@@ -357,27 +357,6 @@ message UpdateTeamAuditStatusRequest {
     expression: "this.size() <= 200"
   }];
 }
-
-// OperateLogListRequest represents the request data for listing operation logs
-message OperateLogListRequest {
-  // Pagination request details
-  api.palace.common.PaginationRequest pagination = 1;
-  // List of types to filter operation logs by
-  repeated api.palace.common.OperateType operateTypes = 2;
-  // Keyword to search operation logs by
-  string keyword = 3;
-  // User Id, optional for filtering logs by user
-  uint32 userId = 4;
-}
-
-// OperateLogListReply contains the response data for listing operation logs
-message OperateLogListReply {
-  // List of operation log items
-  repeated api.palace.common.OperateLogItem items = 1;
-  // Pagination response details
-  api.palace.common.PaginationReply pagination = 2;
-}
-
 
 message GetSendMessageLogsRequest {
   string requestId = 1;

@@ -22,6 +22,9 @@ other = "请求方法错误"
 [EXIST]
 other = "数据已存在"
 
+[RESOURCE_NOT_OPEN]
+other = "资源未开放"
+
 [UNAUTHORIZED]
 other = "未授权"
 

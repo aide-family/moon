@@ -1,19 +1,26 @@
 package do
 
 import (
+	"time"
+
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 )
 
 type OperateLog interface {
 	Creator
-	GetOperateMenuID() uint32
-	GetOperateMenuName() string
-	GetOperateDataID() uint32
-	GetOperateDataName() string
-	GetTitle() string
-	GetBefore() string
-	GetAfter() string
-	GetIP() string
+	GetTeamID() uint32
+	GetOperation() string
+	GetMenuID() uint32
+	GetMenuName() string
+	GetRequest() string
+	GetError() string
+	GetOriginRequest() string
+	GetDuration() time.Duration
+	GetRequestTime() time.Time
+	GetReplyTime() time.Time
+	GetClientIP() string
+	GetUserAgent() string
+	GetUserBaseInfo() string
 }
 
 type SendMessageLog interface {

@@ -94,32 +94,6 @@ message TeamAuditItem {
   api.palace.common.TeamAuditAction action = 7;
 }
 
-// OperateLogItem represents the structure of an operation log item.
-message OperateLogItem {
-  // Unique identifier for the operation log.
-  uint32 operateLogId = 1;
-  // Operator information of the operation requester
-  UserBaseItem operator = 2;
-  // Type of the operation
-  api.palace.common.OperateType type = 3;
-  // MenuName of the operation
-  string menuName = 4;
-  // DataId of the operation
-  uint32 dataId = 5;
-  // DataName of the operation
-  string dataName = 6;
-  // OperateTime of the operation
-  string operateTime = 7;
-  // Title of the operation
-  string title = 8;
-  // Before of the operation
-  string before = 9;
-  // After of the operation
-  string after = 10;
-  // IP of the operation
-  string ip = 11;
-}
-
 message MenuTreeItem {
   // Unique identifier for the menu tree item
   uint32 menuId = 1;

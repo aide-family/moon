@@ -204,13 +204,13 @@ func (s *SystemService) UpdateTeamAuditStatus(ctx context.Context, req *palace.U
 	return &common.EmptyReply{}, nil
 }
 
-func (s *SystemService) OperateLogList(ctx context.Context, req *palace.OperateLogListRequest) (*palace.OperateLogListReply, error) {
+func (s *SystemService) OperateLogList(ctx context.Context, req *common.OperateLogListRequest) (*common.OperateLogListReply, error) {
 	params := build.ToOperateLogListRequest(req)
 	operateLogReply, err := s.systemBiz.OperateLogList(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	return &palace.OperateLogListReply{
+	return &common.OperateLogListReply{
 		Items:      build.ToOperateLogItems(operateLogReply.Items),
 		Pagination: build.ToPaginationReply(operateLogReply.PaginationReply),
 	}, nil

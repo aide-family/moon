@@ -14,7 +14,6 @@ import (
 type OperateLogParams struct {
 	Operation     string
 	Request       any
-	Reply         any
 	Error         error
 	OriginRequest *http.Request
 	Duration      time.Duration
@@ -37,7 +36,6 @@ func OperateLog(operateLogFunc OperateLogFunc) middleware.Middleware {
 			params := &OperateLogParams{
 				Operation:     permission.GetOperationByContextWithDefault(ctx),
 				Request:       req,
-				Reply:         reply,
 				Error:         err,
 				OriginRequest: originRequest,
 				Duration:      duration,

@@ -3,6 +3,8 @@ package biz
 import (
 	"context"
 
+	"github.com/go-kratos/kratos/v2/log"
+
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
@@ -11,17 +13,23 @@ import (
 
 func NewLogsBiz(
 	sendMessageLogRepo repository.SendMessageLog,
+	operateLogRepo repository.OperateLog,
 	transaction repository.Transaction,
+	logger log.Logger,
 ) *Logs {
 	return &Logs{
 		sendMessageLogRepo: sendMessageLogRepo,
+		operateLogRepo:     operateLogRepo,
 		transaction:        transaction,
+		helper:             log.NewHelper(log.With(logger, "module", "biz.logs")),
 	}
 }
 
 type Logs struct {
 	sendMessageLogRepo repository.SendMessageLog
+	operateLogRepo     repository.OperateLog
 	transaction        repository.Transaction
+	helper             *log.Helper
 }
 
 func (l *Logs) GetSendMessageLogs(ctx context.Context, params *bo.ListSendMessageLogParams) (*bo.ListSendMessageLogReply, error) {
@@ -70,5 +78,14 @@ func (l *Logs) sendMessage(ctx context.Context, sendMessageLog do.SendMessageLog
 }
 
 func (l *Logs) CreateOperateLog(ctx context.Context, params *bo.OperateLogParams) {
+	if params.TeamID > 0 {
+		if err := l.operateLogRepo.TeamCreateLog(ctx, params); err != nil {
+			l.helper.WithContext(ctx).Warnw("msg", "create team operate log failed", "err", err)
+		}
+		return
+	}
 
+	if err := l.operateLogRepo.CreateLog(ctx, params); err != nil {
+		l.helper.WithContext(ctx).Warnw("msg", "create operate log failed", "err", err)
+	}
 }

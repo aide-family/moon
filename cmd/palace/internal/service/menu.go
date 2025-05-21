@@ -8,6 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/service/build"
 	api "github.com/aide-family/moon/pkg/api/palace"
 	palacecommon "github.com/aide-family/moon/pkg/api/palace/common"
+	"github.com/aide-family/moon/pkg/merr"
 )
 
 func NewMenuService(menuBiz *biz.Menu) *MenuService {
@@ -59,5 +60,12 @@ func (s *MenuService) GetTeamMenuTree(ctx context.Context, req *palacecommon.Emp
 }
 
 func (s *MenuService) GetMenuByOperation(ctx context.Context, operation string) (do.Menu, error) {
-	return s.menuBiz.GetMenuByOperation(ctx, operation)
+	menu, err := s.menuBiz.GetMenuByOperation(ctx, operation)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return nil, merr.ErrorResourceNotOpen("menu")
+		}
+		return nil, err
+	}
+	return menu, nil
 }

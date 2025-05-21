@@ -49,11 +49,11 @@ type Permission struct {
 func (a *Permission) VerifyPermission(ctx context.Context) error {
 	pCtx := &PermissionContext{}
 	for _, handler := range a.permissionChain {
-		stop, err := handler.Handle(ctx, pCtx)
+		skip, err := handler.Handle(ctx, pCtx)
 		if err != nil {
 			return err
 		}
-		if stop {
+		if skip {
 			return nil
 		}
 	}
@@ -73,18 +73,28 @@ type PermissionContext struct {
 
 // PermissionHandler permission handler interface
 type PermissionHandler interface {
-	Handle(ctx context.Context, pCtx *PermissionContext) (stop bool, err error)
+	Handle(ctx context.Context, pCtx *PermissionContext) (skip bool, err error)
 }
 
 // PermissionHandlerFunc permission handler function type
-type PermissionHandlerFunc func(ctx context.Context, pCtx *PermissionContext) (stop bool, err error)
+type PermissionHandlerFunc func(ctx context.Context, pCtx *PermissionContext) (skip bool, err error)
 
-func (f PermissionHandlerFunc) Handle(ctx context.Context, pCtx *PermissionContext) (bool, error) {
+func (f PermissionHandlerFunc) Handle(ctx context.Context, pCtx *PermissionContext) (skip bool, err error) {
 	return f(ctx, pCtx)
 }
 
 // base permission handler implementation
 type basePermissionHandler struct{}
+
+func resourceNotOpen(err error) error {
+	if validate.IsNil(err) {
+		return nil
+	}
+	if merr.IsNotFound(err) {
+		return merr.ErrorResourceNotOpen("menu")
+	}
+	return err
+}
 
 // OperationHandler operation check
 func (h *basePermissionHandler) OperationHandler() PermissionHandler {
@@ -106,7 +116,7 @@ func (h *basePermissionHandler) MenuHandler(findMenuByOperation FindMenuByOperat
 			var err error
 			menuDo, err = findMenuByOperation(ctx, pCtx.Operation)
 			if err != nil {
-				return true, err
+				return true, resourceNotOpen(err)
 			}
 		}
 		pCtx.Menu = menuDo
@@ -116,7 +126,7 @@ func (h *basePermissionHandler) MenuHandler(findMenuByOperation FindMenuByOperat
 		if !menuDo.GetStatus().IsEnable() || menuDo.GetDeletedAt() > 0 {
 			return false, merr.ErrorPermissionDenied("permission denied")
 		}
-		if menuDo.GetMenuType().IsMenuUser() || menuDo.GetMenuType().IsMenuNone() {
+		if menuDo.GetMenuType().IsMenuNone() {
 			return true, nil
 		}
 		return false, nil
@@ -150,6 +160,10 @@ func (h *basePermissionHandler) UserHandler(findUserByID FindUserByID) Permissio
 		}
 		pCtx.User = userDo
 		pCtx.SystemPosition = userDo.GetPosition()
+		menuDo := pCtx.Menu
+		if menuDo.GetMenuType().IsMenuUser() {
+			return true, nil
+		}
 		return false, nil
 	})
 }

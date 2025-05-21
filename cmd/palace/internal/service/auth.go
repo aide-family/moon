@@ -172,15 +172,11 @@ func (s *AuthService) OAuthLoginByEmail(ctx context.Context, req *palace.OAuthLo
 }
 
 func (s *AuthService) VerifyToken(ctx context.Context, token string) (userDo do.User, err error) {
-	// TODO: Remember to enable this
-	return nil, nil
-	// return s.authBiz.VerifyToken(ctx, token)
+	return s.authBiz.VerifyToken(ctx, token)
 }
 
 func (s *AuthService) VerifyPermission(ctx context.Context) error {
-	// TODO: Remember to enable this
-	return nil
-	//return s.permissionBiz.VerifyPermission(ctx)
+	return s.permissionBiz.VerifyPermission(ctx)
 }
 
 func (s *AuthService) RefreshToken(ctx context.Context, _ *common.EmptyRequest) (*palace.LoginReply, error) {

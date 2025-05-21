@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
 	"github.com/aide-family/moon/cmd/palace/internal/service/build"
 	pb "github.com/aide-family/moon/pkg/api/common"
@@ -23,7 +24,7 @@ func NewHealthService(logsBiz *biz.Logs) *HealthService {
 	}
 }
 
-func (s *HealthService) Check(ctx context.Context, req *pb.CheckRequest) (*pb.CheckReply, error) {
+func (s *HealthService) Check(ctx context.Context, _ *pb.CheckRequest) (*pb.CheckReply, error) {
 	return &pb.CheckReply{
 		Healthy: true,
 		Version: hello.GetEnv().Version(),
@@ -32,7 +33,14 @@ func (s *HealthService) Check(ctx context.Context, req *pb.CheckRequest) (*pb.Ch
 }
 
 func (s *HealthService) CreateOperateLog(ctx context.Context, req *middleware.OperateLogParams) {
-	params := build.ToOperateLogParams(ctx, req)
+	menuDo, ok := do.GetMenuDoContext(ctx)
+	if !ok || validate.IsNil(menuDo) {
+		return
+	}
+	if !menuDo.GetProcessType().IsContainsLog() {
+		return
+	}
+	params := build.ToOperateLogParams(ctx, menuDo, req)
 	if validate.IsNil(params) {
 		return
 	}

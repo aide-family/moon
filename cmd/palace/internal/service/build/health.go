@@ -12,11 +12,10 @@ import (
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
-func ToOperateLogParams(ctx context.Context, req *middleware.OperateLogParams) *bo.OperateLogParams {
+func ToOperateLogParams(ctx context.Context, menuDo do.Menu, req *middleware.OperateLogParams) *bo.OperateLogParams {
 	item := &bo.OperateLogParams{
 		Operation:     req.Operation,
 		Request:       "",
-		Reply:         "",
 		Error:         "",
 		OriginRequest: "",
 		Duration:      req.Duration,
@@ -33,19 +32,14 @@ func ToOperateLogParams(ctx context.Context, req *middleware.OperateLogParams) *
 	if request, err := json.Marshal(req.Request); validate.IsNil(err) {
 		item.Request = string(request)
 	} else {
-		item.Request = fmt.Sprintf(`{"result": "%v"}`, req.Request)
-	}
-	if reply, err := json.Marshal(req.Reply); validate.IsNil(err) {
-		item.Reply = string(reply)
-	} else {
-		item.Reply = fmt.Sprintf(`{"result": "%v"}`, req.Reply)
+		item.Request = fmt.Sprintf(`{"result": "%v", "error": "%v"}`, req.Request, err)
 	}
 
 	if err := req.Error; validate.IsNotNil(err) {
 		item.Error = err.Error()
 	}
 
-	if menuDo, ok := do.GetMenuDoContext(ctx); ok && validate.IsNotNil(menuDo) {
+	if validate.IsNotNil(menuDo) {
 		item.MenuName = menuDo.GetName()
 		item.MenuID = menuDo.GetID()
 	}
@@ -64,10 +58,10 @@ func ToOperateLogParams(ctx context.Context, req *middleware.OperateLogParams) *
 	if request := req.OriginRequest; validate.IsNotNil(request) {
 		item.ClientIP = request.RemoteAddr
 		item.UserAgent = request.UserAgent()
-		if originRequest, err := json.Marshal(request); validate.IsNil(err) {
-			item.OriginRequest = string(originRequest)
+		if originRequest, err := bo.NewHttpRequest(request); validate.IsNil(err) {
+			item.OriginRequest = originRequest.String()
 		} else {
-			item.OriginRequest = fmt.Sprintf(`{"result": "%v"}`, request)
+			item.OriginRequest = fmt.Sprintf(`{"result": "%v", "error": "%v"}`, request, err)
 		}
 	}
 	return item

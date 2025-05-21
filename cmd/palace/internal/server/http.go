@@ -49,9 +49,9 @@ func NewHTTPServer(
 		http.Middleware(
 			recovery.Recovery(),
 			tracing.Server(),
-			middleware.BindHeaders(menuService.GetMenuByOperation),
 			merr.I18n(),
 			logging.Server(logger),
+			middleware.BindHeaders(menuService.GetMenuByOperation),
 			authMiddleware,
 			middler.Validate(),
 			middleware.OperateLog(healthService.CreateOperateLog),

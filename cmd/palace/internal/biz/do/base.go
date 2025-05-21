@@ -214,9 +214,11 @@ func (u *CreatorModel) GetCreator() (user User) {
 
 func (u *CreatorModel) BeforeCreate(tx *gorm.DB) (err error) {
 	var exist bool
-	u.CreatorID, exist = permission.GetUserIDByContext(u.GetContext())
-	if !exist || u.CreatorID == 0 {
-		return merr.ErrorInternalServer("user id not found")
+	if u.CreatorID <= 0 {
+		u.CreatorID, exist = permission.GetUserIDByContext(u.GetContext())
+		if !exist || u.CreatorID == 0 {
+			return merr.ErrorInternalServer("user id not found")
+		}
 	}
 	tx.WithContext(u.GetContext())
 	return

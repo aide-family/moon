@@ -344,7 +344,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.palace.OperateLogListRequest'
+                            $ref: '#/components/schemas/api.palace.common.OperateLogListRequest'
                 required: true
             responses:
                 "200":
@@ -352,7 +352,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.OperateLogListReply'
+                                $ref: '#/components/schemas/api.palace.common.OperateLogListReply'
     /api/system/role:
         get:
             tags:
@@ -1601,7 +1601,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.palace.TeamOperateLogListRequest'
+                            $ref: '#/components/schemas/api.palace.common.OperateLogListRequest'
                 required: true
             responses:
                 "200":
@@ -1609,7 +1609,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.TeamOperateLogListReply'
+                                $ref: '#/components/schemas/api.palace.common.OperateLogListReply'
     /api/team/remove/member:
         post:
             tags:
@@ -3609,40 +3609,6 @@ components:
                     description: Application Id, to identify the application
                     format: int32
             description: OAuthLoginByEmailRequest represents the request data for OAuth2.0 login with email
-        api.palace.OperateLogListReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.OperateLogItem'
-                    description: List of operation log items
-                pagination:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.PaginationReply'
-                    description: Pagination response details
-            description: OperateLogListReply contains the response data for listing operation logs
-        api.palace.OperateLogListRequest:
-            type: object
-            properties:
-                pagination:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                    description: Pagination request details
-                operateTypes:
-                    type: array
-                    items:
-                        type: integer
-                        format: enum
-                    description: List of types to filter operation logs by
-                keyword:
-                    type: string
-                    description: Keyword to search operation logs by
-                userId:
-                    type: integer
-                    description: User Id, optional for filtering logs by user
-                    format: uint32
-            description: OperateLogListRequest represents the request data for listing operation logs
         api.palace.OperateOneSendMessageRequest:
             type: object
             properties:
@@ -4546,40 +4512,6 @@ components:
                     type: string
                 url:
                     type: string
-        api.palace.TeamOperateLogListReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.OperateLogItem'
-                    description: List of operation log items
-                pagination:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.PaginationReply'
-                    description: Pagination response details
-            description: OperateLogListReply contains the response data for listing operation logs
-        api.palace.TeamOperateLogListRequest:
-            type: object
-            properties:
-                pagination:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                    description: Pagination request details
-                operateTypes:
-                    type: array
-                    items:
-                        type: integer
-                        format: enum
-                    description: List of types to filter operation logs by
-                keyword:
-                    type: string
-                    description: Keyword to search operation logs by
-                userId:
-                    type: integer
-                    description: User Id, optional for filtering logs by user
-                    format: uint32
-            description: OperateLogListRequest represents the request data for listing operation logs
         api.palace.TransferTeamRequest:
             type: object
             properties:
@@ -5103,44 +5035,78 @@ components:
         api.palace.common.OperateLogItem:
             type: object
             properties:
-                operateLogId:
+                operation:
+                    type: string
+                menuId:
                     type: integer
-                    description: Unique identifier for the operation log.
                     format: uint32
-                operator:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.UserBaseItem'
-                    description: Operator information of the operation requester
-                type:
-                    type: integer
-                    description: Type of the operation
-                    format: enum
                 menuName:
                     type: string
-                    description: MenuName of the operation
-                dataId:
-                    type: integer
-                    description: DataId of the operation
-                    format: uint32
-                dataName:
+                request:
                     type: string
-                    description: DataName of the operation
-                operateTime:
+                error:
                     type: string
-                    description: OperateTime of the operation
-                title:
+                originRequest:
                     type: string
-                    description: Title of the operation
-                before:
+                duration:
                     type: string
-                    description: Before of the operation
-                after:
+                requestTime:
                     type: string
-                    description: After of the operation
-                ip:
+                replyTime:
                     type: string
-                    description: IP of the operation
+                clientIP:
+                    type: string
+                userAgent:
+                    type: string
+                userBaseInfo:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
             description: OperateLogItem represents the structure of an operation log item.
+        api.palace.common.OperateLogListReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.OperateLogItem'
+                    description: List of operation log items
+                pagination:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.common.PaginationReply'
+                    description: Pagination response details
+            description: OperateLogListReply contains the response data for listing operation logs
+        api.palace.common.OperateLogListRequest:
+            type: object
+            properties:
+                pagination:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                    description: Pagination request details
+                operateTypes:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+                    description: List of types to filter operation logs by
+                keyword:
+                    type: string
+                    description: Keyword to search operation logs by
+                userId:
+                    type: integer
+                    description: User Id, optional for filtering logs by user
+                    format: uint32
+                timeRange:
+                    type: array
+                    items:
+                        type: string
+                    description: Time range to filter operation logs by
+                operation:
+                    type: string
+                    description: Operation
+            description: OperateLogListRequest represents the request data for listing operation logs
         api.palace.common.PaginationReply:
             type: object
             properties:

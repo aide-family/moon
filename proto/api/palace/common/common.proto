@@ -151,3 +151,45 @@ message AnnotationsItem {
   string summary = 1;
   string description = 2;
 }
+
+// OperateLogItem represents the structure of an operation log item.
+message OperateLogItem {
+  string operation = 1;
+  uint32 menuId = 2;
+  string menuName = 3;
+  string request = 4;
+  string error = 5;
+  string originRequest = 6;
+  int64 duration = 7;
+  string requestTime = 8;
+  string replyTime = 9;
+  string clientIP = 10;
+  string userAgent = 11;
+  string userBaseInfo = 12;
+  string createdAt = 13;
+  string updatedAt = 14;
+}
+
+// OperateLogListRequest represents the request data for listing operation logs
+message OperateLogListRequest {
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 1;
+  // List of types to filter operation logs by
+  repeated api.palace.common.OperateType operateTypes = 2;
+  // Keyword to search operation logs by
+  string keyword = 3;
+  // User Id, optional for filtering logs by user
+  uint32 userId = 4;
+  // Time range to filter operation logs by
+  repeated string timeRange = 5;
+  // Operation
+  string operation = 6;
+}
+
+// OperateLogListReply contains the response data for listing operation logs
+message OperateLogListReply {
+  // List of operation log items
+  repeated api.palace.common.OperateLogItem items = 1;
+  // Pagination response details
+  api.palace.common.PaginationReply pagination = 2;
+}
