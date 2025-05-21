@@ -11,7 +11,7 @@ import (
 var _ transport.Server = (*TickerServer)(nil)
 
 func NewTickerServer(loadService *service.LoadService, logger log.Logger) *TickerServer {
-	cronServer := server.NewCronJobServer("palace.Ticker", logger, loadService.LoadJobs()...)
+	cronServer := server.NewCronJobServer("palace.CronJob", logger, loadService.LoadJobs()...)
 	return &TickerServer{cronServer}
 }
 

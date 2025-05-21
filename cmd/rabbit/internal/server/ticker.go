@@ -14,13 +14,10 @@ func NewTicker(bc *conf.Bootstrap, healthService *service.HealthService, logger 
 	serverConfig := bc.GetServer()
 	microConfig := bc.GetPalace()
 	return server.NewTicker(serverConfig.GetOnlineInterval().AsDuration(), &server.TickTask{
-		Name:    "health.Online",
+		Name:    "health.register.rabbit",
 		Timeout: microConfig.GetTimeout().AsDuration(),
 		Fn: func(ctx context.Context, isStop bool) error {
-			if isStop {
-				return healthService.Offline(ctx)
-			}
-			return healthService.Online(ctx)
+			return healthService.Register(ctx, !isStop)
 		},
 	}, server.WithTickerLogger(logger))
 }

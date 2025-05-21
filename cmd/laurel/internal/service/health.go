@@ -38,10 +38,9 @@ func (s *HealthService) Check(ctx context.Context, req *common.CheckRequest) (*c
 	}, nil
 }
 
-func (s *HealthService) Online(ctx context.Context) error {
-	return s.registerBiz.Online(ctx)
-}
-
-func (s *HealthService) Offline(ctx context.Context) error {
+func (s *HealthService) Register(ctx context.Context, isOnline bool) error {
+	if isOnline {
+		return s.registerBiz.Online(ctx)
+	}
 	return s.registerBiz.Offline(ctx)
 }
