@@ -43,10 +43,11 @@ func (b *RegisterBiz) register(online bool) *common.ServerRegisterRequest {
 			Version:  hello.GetEnv().Version(),
 			Name:     serverConfig.GetName(),
 		},
-		Discovery: nil,
-		TeamIds:   serverConfig.GetTeamIds(),
-		IsOnline:  online,
-		Uuid:      b.uuid,
+		Discovery:  nil,
+		TeamIds:    serverConfig.GetTeamIds(),
+		IsOnline:   online,
+		Uuid:       b.uuid,
+		ServerType: common.ServerRegisterRequest_RABBIT,
 	}
 	switch serverConfig.GetNetwork() {
 	case config.Network_GRPC:

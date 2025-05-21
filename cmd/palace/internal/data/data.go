@@ -35,6 +35,7 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		cache:      nil,
 		rabbitConn: safety.NewMap[string, *bo.Server](),
 		houyiConn:  safety.NewMap[string, *bo.Server](),
+		laurelConn: safety.NewMap[string, *bo.Server](),
 		helper:     log.NewHelper(log.With(logger, "module", "data")),
 	}
 
@@ -91,6 +92,11 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		for _, server := range data.houyiConn.List() {
 			if err = server.Conn.Close(); err != nil {
 				data.helper.Errorw("method", "close houyi conn", "err", err)
+			}
+		}
+		for _, server := range data.laurelConn.List() {
+			if err = server.Conn.Close(); err != nil {
+				data.helper.Errorw("method", "close laurel conn", "err", err)
 			}
 		}
 	}, nil
