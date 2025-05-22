@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package api.palace.common;
 
-import "google/protobuf/duration.proto";
 import "palace/common/common_enum.proto";
 import "palace/common/common.proto";
 import "palace/common/system.proto";
@@ -59,27 +58,28 @@ message TeamStrategyItem {
   TeamStrategyGroupItem group = 12;
 }
 
+message TeamStrategyMetricRuleItem {
+  uint32 strategyMetricId = 1;
+  api.palace.common.TeamDictItem level = 2;
+  uint32 ruleId = 3;
+  SampleMode sampleMode = 4;
+  ConditionMetric condition = 5;
+  int64 total = 6;
+  repeated double values = 7;
+  int64 duration = 8;
+  GlobalStatus status = 9;
+  repeated NoticeGroupItem notices = 10;
+  repeated StrategyMetricRuleLabelNotice labelNotices = 11;
+  repeated api.palace.common.TeamDictItem alarmPages = 12;
+}
+
 message TeamStrategyMetricItem {
-  message RuleItem {
-    uint32 strategyMetricId = 1;
-    api.palace.common.TeamDictItem level = 2;
-    uint32 ruleId = 3;
-    SampleMode sampleMode = 4;
-    ConditionMetric condition = 5;
-    int64 total = 6;
-    repeated double values = 7;
-    google.protobuf.Duration duration = 8;
-    GlobalStatus status = 9;
-    repeated NoticeGroupItem notices = 10;
-    repeated StrategyMetricRuleLabelNotice labelNotices = 11;
-    repeated api.palace.common.TeamDictItem alarmPages = 12;
-  }
   TeamStrategyItem base = 1;
   uint32 strategyMetricId = 2;
   string expr = 3;
   repeated api.palace.common.KeyValueItem labels = 4;
   api.palace.common.AnnotationsItem annotations = 5;
-  repeated RuleItem strategyMetricRules = 6;
+  repeated TeamStrategyMetricRuleItem strategyMetricRules = 6;
   repeated api.palace.common.TeamMetricDatasourceItem datasource = 7;
   api.palace.common.UserBaseItem creator = 8;
 }

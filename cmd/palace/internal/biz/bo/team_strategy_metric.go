@@ -2,7 +2,6 @@ package bo
 
 import (
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
@@ -273,28 +272,63 @@ type SaveTeamMetricStrategyLevel interface {
 	GetValues() []float64
 	GetReceiverRoutes() []do.NoticeGroup
 	GetLabelNotices() []LabelNotice
-	GetDuration() time.Duration
-	GetStatus() vobj.GlobalStatus
+	GetDuration() int64
+	GetStrategyMetricID() uint32
 }
 
 var _ SaveTeamMetricStrategyLevel = (*SaveTeamMetricStrategyLevelParams)(nil)
 
 type SaveTeamMetricStrategyLevelParams struct {
-	ID             uint32
-	LevelId        uint32
-	LevelName      string
-	SampleMode     vobj.SampleMode
-	Total          int64
-	Condition      vobj.ConditionMetric
-	Values         []float64
-	ReceiverRoutes []uint32
-	LabelNotices   []*LabelNoticeParams
-	Duration       time.Duration
-	Status         vobj.GlobalStatus
-	AlarmPages     []uint32
+	ID               uint32
+	LevelId          uint32
+	LevelName        string
+	SampleMode       vobj.SampleMode
+	Total            int64
+	Condition        vobj.ConditionMetric
+	Values           []float64
+	ReceiverRoutes   []uint32
+	LabelNotices     []*LabelNoticeParams
+	Duration         int64
+	AlarmPages       []uint32
+	StrategyMetricID uint32
 
-	noticeGroupDos map[uint32]do.NoticeGroup
-	dicts          map[uint32]do.TeamDict
+	strategyMetricDo do.StrategyMetric
+	noticeGroupDos   map[uint32]do.NoticeGroup
+	dicts            map[uint32]do.TeamDict
+}
+
+func (s *SaveTeamMetricStrategyLevelParams) ToSaveTeamMetricStrategyLevelParams(strategyMetricDo do.StrategyMetric, noticeGroupDos []do.NoticeGroup, dictDos []do.TeamDict) SaveTeamMetricStrategyLevel {
+	s.strategyMetricDo = strategyMetricDo
+	s.noticeGroupDos = slices.ToMap(noticeGroupDos, func(v do.NoticeGroup) uint32 {
+		return v.GetID()
+	})
+	s.dicts = slices.ToMap(dictDos, func(v do.TeamDict) uint32 {
+		return v.GetID()
+	})
+	return s
+}
+
+func (s *SaveTeamMetricStrategyLevelParams) Validate() error {
+	if s.StrategyMetricID <= 0 {
+		return merr.ErrorParams("strategy metric id is required")
+	}
+	if validate.IsNil(s.strategyMetricDo) {
+		return merr.ErrorParams("strategy metric is not found")
+	}
+	if s.LevelId <= 0 {
+		return merr.ErrorParams("level id is required")
+	}
+	levelDo, ok := s.dicts[s.LevelId]
+	if !ok {
+		return merr.ErrorParams("level is not found")
+	}
+	s.LevelName = levelDo.GetKey()
+	return nil
+}
+
+// GetStrategyMetricID implements SaveTeamMetricStrategyLevel.
+func (s *SaveTeamMetricStrategyLevelParams) GetStrategyMetricID() uint32 {
+	return s.StrategyMetricID
 }
 
 func (s *SaveTeamMetricStrategyLevelParams) GetNoticeGroupIds() []uint32 {
@@ -345,7 +379,7 @@ func (s *SaveTeamMetricStrategyLevelParams) GetTotal() int64 {
 }
 
 // GetDuration implements SaveTeamMetricStrategyLevel.
-func (s *SaveTeamMetricStrategyLevelParams) GetDuration() time.Duration {
+func (s *SaveTeamMetricStrategyLevelParams) GetDuration() int64 {
 	return s.Duration
 }
 
@@ -386,93 +420,9 @@ func (s *SaveTeamMetricStrategyLevelParams) GetSampleMode() vobj.SampleMode {
 	return s.SampleMode
 }
 
-// GetStatus implements SaveTeamMetricStrategyLevel.
-func (s *SaveTeamMetricStrategyLevelParams) GetStatus() vobj.GlobalStatus {
-	return s.Status
-}
-
 // GetValues implements SaveTeamMetricStrategyLevel.
 func (s *SaveTeamMetricStrategyLevelParams) GetValues() []float64 {
 	return s.Values
-}
-
-type OperateTeamMetricStrategyLevelsParams struct {
-	StrategyID uint32
-	Levels     []*SaveTeamMetricStrategyLevelParams
-}
-
-func (s *OperateTeamMetricStrategyLevelsParams) ToSaveTeamMetricStrategyLevelsParams(strategyMetricDo do.StrategyMetric, noticeGroupDos []do.NoticeGroup, dicts []do.TeamDict) *SaveTeamMetricStrategyLevelsParams {
-	saveParams := &SaveTeamMetricStrategyLevelsParams{
-		StrategyMetricID: strategyMetricDo.GetID(),
-		Levels:           s.Levels,
-	}
-	saveParams.ToSaveTeamMetricStrategyLevelsParams(strategyMetricDo, noticeGroupDos, dicts)
-	return saveParams
-}
-
-type SaveTeamMetricStrategyLevels interface {
-	GetStrategyMetric() do.StrategyMetric
-	GetLevels() []SaveTeamMetricStrategyLevel
-	Validate() error
-}
-
-var _ SaveTeamMetricStrategyLevels = (*SaveTeamMetricStrategyLevelsParams)(nil)
-
-type SaveTeamMetricStrategyLevelsParams struct {
-	StrategyMetricID uint32
-	Levels           []*SaveTeamMetricStrategyLevelParams
-
-	strategyMetricDo do.StrategyMetric
-	noticeGroupDos   map[uint32]do.NoticeGroup
-	dicts            map[uint32]do.TeamDict
-}
-
-func (s *SaveTeamMetricStrategyLevelsParams) Validate() error {
-	if s.StrategyMetricID <= 0 {
-		return merr.ErrorParams("strategy metric id is required")
-	}
-	if validate.IsNil(s.strategyMetricDo) || s.strategyMetricDo.GetID() != s.StrategyMetricID {
-		return merr.ErrorParams("strategy metric is not found")
-	}
-	if len(s.Levels) > 5 {
-		return merr.ErrorParams("levels is too many")
-	}
-	levelMap := slices.ToMap(s.Levels, func(level *SaveTeamMetricStrategyLevelParams) uint32 {
-		return level.GetLevelId()
-	})
-	if len(levelMap) != len(s.Levels) {
-		return merr.ErrorParams("level id is duplicate")
-	}
-	return nil
-}
-
-// GetLevels implements SaveTeamMetricStrategyLevels.
-func (s *SaveTeamMetricStrategyLevelsParams) GetLevels() []SaveTeamMetricStrategyLevel {
-	return slices.Map(s.Levels, func(level *SaveTeamMetricStrategyLevelParams) SaveTeamMetricStrategyLevel {
-		level.noticeGroupDos = s.noticeGroupDos
-		level.dicts = s.dicts
-		return level
-	})
-}
-
-// GetStrategyMetric implements SaveTeamMetricStrategyLevels.
-func (s *SaveTeamMetricStrategyLevelsParams) GetStrategyMetric() do.StrategyMetric {
-	return s.strategyMetricDo
-}
-
-func (s *SaveTeamMetricStrategyLevelsParams) ToSaveTeamMetricStrategyLevelsParams(
-	strategyMetricDo do.StrategyMetric,
-	noticeGroupDos []do.NoticeGroup,
-	dicts []do.TeamDict,
-) SaveTeamMetricStrategyLevels {
-	s.strategyMetricDo = strategyMetricDo
-	s.noticeGroupDos = slices.ToMap(noticeGroupDos, func(noticeGroup do.NoticeGroup) uint32 {
-		return noticeGroup.GetID()
-	})
-	s.dicts = slices.ToMap(dicts, func(dict do.TeamDict) uint32 {
-		return dict.GetID()
-	})
-	return s
 }
 
 type UpdateTeamStrategiesStatusParams struct {
@@ -491,13 +441,20 @@ func (s *UpdateTeamStrategiesStatusParams) Validate() error {
 }
 
 type OperateTeamStrategyParams struct {
-	StrategyId      uint32
-	StrategyLevelId uint32
+	StrategyId uint32
 }
 
-func (s *OperateTeamStrategyParams) Validate() error {
-	if s.StrategyId <= 0 {
-		return merr.ErrorParams("strategy id is required")
+type OperateTeamStrategyLevelParams struct {
+	StrategyMetricId uint32
+	StrategyLevelId  uint32
+}
+
+func (s *OperateTeamStrategyLevelParams) Validate() error {
+	if s.StrategyMetricId <= 0 {
+		return merr.ErrorParams("strategy metric id is required")
+	}
+	if s.StrategyLevelId <= 0 {
+		return merr.ErrorParams("strategy level id is required")
 	}
 	return nil
 }
@@ -606,4 +563,28 @@ type DeleteUnUsedLevelsParams struct {
 type FindTeamMetricStrategyLevelsParams struct {
 	StrategyMetricID uint32
 	RuleIds          []uint32
+}
+
+type ListTeamMetricStrategyLevelsParams struct {
+	*PaginationRequest
+	StrategyMetricID uint32
+	LevelId          uint32
+}
+
+func (l *ListTeamMetricStrategyLevelsParams) ToListReply(items []do.StrategyMetricRule) *ListTeamMetricStrategyLevelsReply {
+	return &ListTeamMetricStrategyLevelsReply{
+		PaginationReply: l.ToReply(),
+		Items:           items,
+	}
+}
+
+type ListTeamMetricStrategyLevelsReply = ListReply[do.StrategyMetricRule]
+
+type DeleteTeamMetricStrategyLevelParams struct {
+	StrategyMetricLevelID uint32
+}
+
+type UpdateTeamMetricStrategyLevelStatusParams struct {
+	StrategyMetricLevelID uint32
+	Status                vobj.GlobalStatus
 }

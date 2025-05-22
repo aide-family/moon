@@ -46,6 +46,7 @@ var ProviderSetImpl = wire.NewSet(
 	NewTeamDatasourceMetricMetadataRepo,
 	NewTimeEngineRule,
 	NewTimeEngine,
+	NewTeamStrategyMetricLevelRepo,
 )
 
 type MainDB interface {

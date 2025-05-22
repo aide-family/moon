@@ -3,7 +3,6 @@ package team
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"time"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
@@ -16,6 +15,7 @@ const tableNameStrategyMetricRule = "team_strategy_metric_rules"
 
 type StrategyMetricRule struct {
 	do.TeamModel
+	StrategyID       uint32                           `gorm:"column:strategy_id;type:int unsigned;not null;comment:strategy ID" json:"strategyID"`
 	StrategyMetricID uint32                           `gorm:"column:strategy_metric_id;type:int unsigned;not null;comment:strategy metric ID" json:"strategyMetricID"`
 	StrategyMetric   *StrategyMetric                  `gorm:"foreignKey:StrategyMetricID;references:ID" json:"strategyMetric"`
 	LevelID          uint32                           `gorm:"column:level_id;type:int unsigned;not null;comment:level ID" json:"levelID"`
@@ -24,7 +24,7 @@ type StrategyMetricRule struct {
 	Condition        vobj.ConditionMetric             `gorm:"column:condition;type:tinyint(2);not null;comment:condition" json:"condition"`
 	Total            int64                            `gorm:"column:total;type:bigint;not null;comment:sample count" json:"total"`
 	Values           Values                           `gorm:"column:values;type:json;not null;comment:values" json:"values"`
-	Duration         time.Duration                    `gorm:"column:duration;type:bigint(20);not null;comment:duration" json:"duration"`
+	Duration         int64                            `gorm:"column:duration;type:bigint;not null;comment:duration" json:"duration"`
 	Status           vobj.GlobalStatus                `gorm:"column:status;type:tinyint(2);not null;comment:status" json:"status"`
 	Notices          []*NoticeGroup                   `gorm:"many2many:team_strategy_metric_rule_notice_groups" json:"notices"`
 	LabelNotices     []*StrategyMetricRuleLabelNotice `gorm:"foreignKey:StrategyMetricRuleID;references:ID" json:"labelNotices"`
@@ -87,7 +87,7 @@ func (r *StrategyMetricRule) GetValues() []float64 {
 	return r.Values
 }
 
-func (r *StrategyMetricRule) GetDuration() time.Duration {
+func (r *StrategyMetricRule) GetDuration() int64 {
 	if r == nil {
 		return 0
 	}

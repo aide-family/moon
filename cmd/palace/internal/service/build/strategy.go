@@ -11,7 +11,6 @@ import (
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/timex"
 	"github.com/aide-family/moon/pkg/util/validate"
-	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 func ToSaveTeamStrategyParams(request *palace.SaveTeamStrategyRequest) *bo.SaveTeamStrategyParams {
@@ -47,37 +46,82 @@ func ToSaveTeamMetricStrategyParams(request *palace.SaveTeamMetricStrategyReques
 	}
 }
 
-func ToOperateTeamMetricStrategyLevelsParams(request *palace.SaveTeamMetricStrategyLevelsRequest) *bo.OperateTeamMetricStrategyLevelsParams {
-	if validate.IsNil(request) {
-		panic("SaveTeamMetricStrategyLevelsRequest is nil")
-	}
-	levels := slices.Map(request.GetLevels(), ToSaveTeamMetricStrategyLevelParams)
-	levels = slices.UniqueWithFunc(levels, func(item *bo.SaveTeamMetricStrategyLevelParams) uint32 {
-		return item.LevelId
-	})
-	return &bo.OperateTeamMetricStrategyLevelsParams{
-		StrategyID: request.GetStrategyId(),
-		Levels:     levels,
-	}
-}
-
 func ToSaveTeamMetricStrategyLevelParams(request *palace.SaveTeamMetricStrategyLevelRequest) *bo.SaveTeamMetricStrategyLevelParams {
 	if validate.IsNil(request) {
 		panic("SaveTeamMetricStrategyLevelRequest is nil")
 	}
 	return &bo.SaveTeamMetricStrategyLevelParams{
-		ID:             request.GetStrategyMetricLevelId(),
-		LevelId:        request.GetLevelId(),
-		LevelName:      request.GetLevelName(),
-		SampleMode:     vobj.SampleMode(request.GetSampleMode()),
-		Total:          request.GetTotal(),
-		Condition:      vobj.ConditionMetric(request.GetCondition()),
-		Values:         request.GetValues(),
-		ReceiverRoutes: request.GetReceiverRoutes(),
-		LabelNotices:   slices.Map(request.GetLabelNotices(), ToLabelNoticeParams),
-		Duration:       request.GetDuration().AsDuration(),
-		Status:         vobj.GlobalStatus(request.GetStatus()),
-		AlarmPages:     request.GetAlarmPages(),
+		ID:               request.GetStrategyMetricLevelId(),
+		LevelId:          request.GetLevelId(),
+		LevelName:        request.GetLevelName(),
+		SampleMode:       vobj.SampleMode(request.GetSampleMode()),
+		Total:            request.GetTotal(),
+		Condition:        vobj.ConditionMetric(request.GetCondition()),
+		Values:           request.GetValues(),
+		ReceiverRoutes:   request.GetReceiverRoutes(),
+		LabelNotices:     slices.Map(request.GetLabelNotices(), ToLabelNoticeParams),
+		Duration:         request.GetDuration(),
+		AlarmPages:       request.GetAlarmPages(),
+		StrategyMetricID: request.GetStrategyMetricId(),
+	}
+}
+
+func ToListTeamMetricStrategyLevelsParams(request *palace.ListTeamMetricStrategyLevelsRequest) *bo.ListTeamMetricStrategyLevelsParams {
+	if validate.IsNil(request) {
+		panic("ListTeamMetricStrategyLevelsRequest is nil")
+	}
+	return &bo.ListTeamMetricStrategyLevelsParams{
+		PaginationRequest: ToPaginationRequest(request.GetPagination()),
+		StrategyMetricID:  request.GetStrategyMetricId(),
+		LevelId:           request.GetLevelId(),
+	}
+}
+
+func ToUpdateTeamMetricStrategyLevelStatusParams(request *palace.UpdateTeamMetricStrategyLevelStatusRequest) *bo.UpdateTeamMetricStrategyLevelStatusParams {
+	if validate.IsNil(request) {
+		panic("UpdateTeamMetricStrategyLevelStatusRequest is nil")
+	}
+	return &bo.UpdateTeamMetricStrategyLevelStatusParams{
+		StrategyMetricLevelID: request.GetStrategyMetricLevelId(),
+		Status:                vobj.GlobalStatus(request.GetStatus()),
+	}
+}
+
+func ToDeleteTeamMetricStrategyLevelParams(request *palace.DeleteTeamMetricStrategyLevelRequest) *bo.DeleteTeamMetricStrategyLevelParams {
+	if validate.IsNil(request) {
+		panic("DeleteTeamMetricStrategyLevelRequest is nil")
+	}
+	return &bo.DeleteTeamMetricStrategyLevelParams{
+		StrategyMetricLevelID: request.GetStrategyMetricLevelId(),
+	}
+}
+
+func ToTeamMetricStrategyRuleItems(rules []do.StrategyMetricRule) []*common.TeamStrategyMetricRuleItem {
+	return slices.MapFilter(rules, func(rule do.StrategyMetricRule) (*common.TeamStrategyMetricRuleItem, bool) {
+		if validate.IsNil(rule) {
+			return nil, false
+		}
+		return ToTeamMetricStrategyRuleItem(rule), true
+	})
+}
+
+func ToTeamMetricStrategyRuleItem(rule do.StrategyMetricRule) *common.TeamStrategyMetricRuleItem {
+	if validate.IsNil(rule) {
+		return nil
+	}
+	return &common.TeamStrategyMetricRuleItem{
+		RuleId:           rule.GetID(),
+		StrategyMetricId: rule.GetStrategyMetricID(),
+		Level:            ToDictItem(rule.GetLevel()),
+		SampleMode:       common.SampleMode(rule.GetSampleMode()),
+		Condition:        common.ConditionMetric(rule.GetCondition()),
+		Total:            rule.GetTotal(),
+		Values:           rule.GetValues(),
+		Duration:         rule.GetDuration(),
+		Status:           common.GlobalStatus(rule.GetStatus().GetValue()),
+		Notices:          ToNoticeGroupItems(rule.GetNotices()),
+		LabelNotices:     ToLabelNoticeItems(rule.GetLabelNotices()),
+		AlarmPages:       ToDictItems(rule.GetAlarmPages()),
 	}
 }
 
@@ -107,8 +151,7 @@ func ToOperateTeamStrategyParams(request *palace.OperateTeamStrategyRequest) *bo
 		panic("OperateTeamStrategyRequest is nil")
 	}
 	return &bo.OperateTeamStrategyParams{
-		StrategyId:      request.GetStrategyId(),
-		StrategyLevelId: request.GetStrategyLevelId(),
+		StrategyId: request.GetStrategyId(),
 	}
 }
 
@@ -206,11 +249,11 @@ func ToTeamMetricStrategyItems(strategies []do.StrategyMetric) []*common.TeamStr
 	return slices.Map(strategies, ToTeamMetricStrategyItem)
 }
 
-func ToTeamMetricStrategyItemRule(rule do.StrategyMetricRule) *common.TeamStrategyMetricItem_RuleItem {
+func ToTeamMetricStrategyItemRule(rule do.StrategyMetricRule) *common.TeamStrategyMetricRuleItem {
 	if validate.IsNil(rule) {
 		return nil
 	}
-	return &common.TeamStrategyMetricItem_RuleItem{
+	return &common.TeamStrategyMetricRuleItem{
 		RuleId:           rule.GetID(),
 		StrategyMetricId: rule.GetStrategyMetricID(),
 		Level:            ToDictItem(rule.GetLevel()),
@@ -218,7 +261,7 @@ func ToTeamMetricStrategyItemRule(rule do.StrategyMetricRule) *common.TeamStrate
 		Condition:        common.ConditionMetric(rule.GetCondition()),
 		Total:            rule.GetTotal(),
 		Values:           rule.GetValues(),
-		Duration:         durationpb.New(rule.GetDuration()),
+		Duration:         rule.GetDuration(),
 		Status:           common.GlobalStatus(rule.GetStatus().GetValue()),
 		Notices:          ToNoticeGroupItems(rule.GetNotices()),
 		LabelNotices:     ToLabelNoticeItems(rule.GetLabelNotices()),
@@ -226,7 +269,7 @@ func ToTeamMetricStrategyItemRule(rule do.StrategyMetricRule) *common.TeamStrate
 	}
 }
 
-func ToTeamMetricStrategyItemRules(rules []do.StrategyMetricRule) []*common.TeamStrategyMetricItem_RuleItem {
+func ToTeamMetricStrategyItemRules(rules []do.StrategyMetricRule) []*common.TeamStrategyMetricRuleItem {
 	return slices.Map(rules, ToTeamMetricStrategyItemRule)
 }
 

@@ -7,7 +7,6 @@ import "buf/validate/validate.proto";
 import "palace/common/common.proto";
 import "palace/common/common_enum.proto";
 import "palace/common/team_strategy.proto";
-import "google/protobuf/duration.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
 
@@ -75,11 +74,34 @@ service TeamStrategy {
     };
   }
 
-  // SaveTeamMetricStrategyLevels saves a new team metric strategy level or updates an existing one
-  rpc SaveTeamMetricStrategyLevels (SaveTeamMetricStrategyLevelsRequest) returns (SaveTeamMetricStrategyLevelsReply) {
+  // SaveTeamMetricStrategyLevel saves a new team metric strategy level or updates an existing one
+  rpc SaveTeamMetricStrategyLevel (SaveTeamMetricStrategyLevelRequest) returns (api.palace.common.TeamStrategyMetricRuleItem) {
     option (google.api.http) = {
-      post: "/api/team/strategy/metric/levels"
+      post: "/api/team/strategy/metric/level"
       body: "*"
+    };
+  }
+
+  // ListTeamMetricStrategyLevels lists team metric strategy levels
+  rpc ListTeamMetricStrategyLevels (ListTeamMetricStrategyLevelsRequest) returns (ListTeamMetricStrategyLevelsReply) {
+    option (google.api.http) = {
+      post: "/api/team/strategy/metric/level/list"
+      body: "*"
+    };
+  }
+
+  // UpdateTeamMetricStrategyLevelStatus updates the status of a team metric strategy level
+  rpc UpdateTeamMetricStrategyLevelStatus (UpdateTeamMetricStrategyLevelStatusRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/team/strategy/metric/level/status"
+      body: "*"
+    };
+  }
+
+  // DeleteTeamMetricStrategyLevel deletes a team metric strategy level
+  rpc DeleteTeamMetricStrategyLevel (DeleteTeamMetricStrategyLevelRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      delete: "/api/team/strategy/metric/level"
     };
   }
 
@@ -309,7 +331,7 @@ message LabelNotices {
 
 message SaveTeamMetricStrategyLevelRequest {
   // Level Id
-  uint32 levelId = 1;
+  uint32 levelId = 1 [(buf.validate.field).required = true];
   // Level name
   string levelName = 2 [(buf.validate.field).string.max_len = 128];
   // Sample mode
@@ -325,34 +347,43 @@ message SaveTeamMetricStrategyLevelRequest {
   // Label notices
   repeated LabelNotices labelNotices = 8;
   // Duration
-  google.protobuf.Duration duration = 9;
+  int64 duration = 9;
   // Status
   api.palace.common.GlobalStatus status = 10;
   // Id
   uint32 strategyMetricLevelId = 11;
   // alarm pages
   repeated uint32 alarmPages = 12;
+  // strategy metric id
+  uint32 strategyMetricId = 13 [(buf.validate.field).required = true];
 }
 
-message SaveTeamMetricStrategyLevelsRequest {
-  // Strategy id
-  uint32 strategyId = 1;
-  // Levels
-  repeated SaveTeamMetricStrategyLevelRequest levels = 2 [(buf.validate.field).cel = {
-    message: "levels must be less than 10"
-    expression: "len(this) <= 10"
-  }, (buf.validate.field).cel = {
-    message: "levels must be unique"
-    expression: "len(this) == len(set(this))"
-  }, (buf.validate.field).cel = {
-    message: "levels must be greater than 0"
-    expression: "len(this) > 0"
-  }];
+message ListTeamMetricStrategyLevelsRequest {
+  // Strategy metric id
+  uint32 strategyMetricId = 1 [(buf.validate.field).required = true];
+  // Pagination request details
+  api.palace.common.PaginationRequest pagination = 2;
+  // Level id
+  uint32 levelId = 3;
 }
 
-message SaveTeamMetricStrategyLevelsReply {
-  // Levels
-  repeated api.palace.common.TeamStrategyMetricItem.RuleItem levels = 1;
+message ListTeamMetricStrategyLevelsReply {
+  // List of strategy metric level items
+  repeated api.palace.common.TeamStrategyMetricRuleItem items = 1;
+  // Pagination response details
+  api.palace.common.PaginationReply pagination = 2;
+}
+
+message UpdateTeamMetricStrategyLevelStatusRequest {
+  // strategy metric level id
+  uint32 strategyMetricLevelId = 1 [(buf.validate.field).required = true];
+  // Status
+  api.palace.common.GlobalStatus status = 2 [(buf.validate.field).required = true];
+}
+
+message DeleteTeamMetricStrategyLevelRequest {
+  // strategy metric level id
+  uint32 strategyMetricLevelId = 1 [(buf.validate.field).required = true];
 }
 
 message UpdateTeamStrategiesStatusRequest {

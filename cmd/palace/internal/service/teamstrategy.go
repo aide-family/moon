@@ -114,15 +114,41 @@ func (t *TeamStrategyService) SaveTeamMetricStrategy(ctx context.Context, reques
 	return build.ToTeamMetricStrategyItem(metricStrategyDo), nil
 }
 
-func (t *TeamStrategyService) SaveTeamMetricStrategyLevels(ctx context.Context, request *palace.SaveTeamMetricStrategyLevelsRequest) (*palace.SaveTeamMetricStrategyLevelsReply, error) {
-	params := build.ToOperateTeamMetricStrategyLevelsParams(request)
-	metricStrategyRules, err := t.teamStrategyMetricBiz.SaveTeamMetricStrategyLevels(ctx, params)
+func (t *TeamStrategyService) SaveTeamMetricStrategyLevel(ctx context.Context, request *palace.SaveTeamMetricStrategyLevelRequest) (*common.TeamStrategyMetricRuleItem, error) {
+	params := build.ToSaveTeamMetricStrategyLevelParams(request)
+	metricStrategyRules, err := t.teamStrategyMetricBiz.SaveTeamMetricStrategyLevel(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	return &palace.SaveTeamMetricStrategyLevelsReply{
-		Levels: build.ToTeamMetricStrategyItemRules(metricStrategyRules),
+	return build.ToTeamMetricStrategyRuleItem(metricStrategyRules), nil
+}
+
+func (t *TeamStrategyService) ListTeamMetricStrategyLevels(ctx context.Context, request *palace.ListTeamMetricStrategyLevelsRequest) (*palace.ListTeamMetricStrategyLevelsReply, error) {
+	params := build.ToListTeamMetricStrategyLevelsParams(request)
+	metricStrategyRulesReply, err := t.teamStrategyMetricBiz.ListTeamMetricStrategyLevels(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &palace.ListTeamMetricStrategyLevelsReply{
+		Items:      build.ToTeamMetricStrategyRuleItems(metricStrategyRulesReply.Items),
+		Pagination: build.ToPaginationReply(metricStrategyRulesReply.PaginationReply),
 	}, nil
+}
+
+func (t *TeamStrategyService) UpdateTeamMetricStrategyLevelStatus(ctx context.Context, request *palace.UpdateTeamMetricStrategyLevelStatusRequest) (*common.EmptyReply, error) {
+	params := build.ToUpdateTeamMetricStrategyLevelStatusParams(request)
+	if err := t.teamStrategyMetricBiz.UpdateTeamMetricStrategyLevelStatus(ctx, params); err != nil {
+		return nil, err
+	}
+	return &common.EmptyReply{}, nil
+}
+
+func (t *TeamStrategyService) DeleteTeamMetricStrategyLevel(ctx context.Context, request *palace.DeleteTeamMetricStrategyLevelRequest) (*common.EmptyReply, error) {
+	params := build.ToDeleteTeamMetricStrategyLevelParams(request)
+	if err := t.teamStrategyMetricBiz.DeleteTeamMetricStrategyLevel(ctx, params); err != nil {
+		return nil, err
+	}
+	return &common.EmptyReply{}, nil
 }
 
 func (t *TeamStrategyService) UpdateTeamStrategiesStatus(ctx context.Context, request *palace.UpdateTeamStrategiesStatusRequest) (*common.EmptyReply, error) {

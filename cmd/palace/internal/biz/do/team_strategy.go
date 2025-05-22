@@ -1,8 +1,6 @@
 package do
 
 import (
-	"time"
-
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/util/kv"
 )
@@ -47,7 +45,7 @@ type StrategyMetricRule interface {
 	GetCondition() vobj.ConditionMetric
 	GetTotal() int64
 	GetValues() []float64
-	GetDuration() time.Duration
+	GetDuration() int64
 	GetStatus() vobj.GlobalStatus
 	GetNotices() []NoticeGroup
 	GetLabelNotices() []StrategyMetricRuleLabelNotice

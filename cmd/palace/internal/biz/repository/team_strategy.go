@@ -8,25 +8,32 @@ import (
 )
 
 type TeamStrategy interface {
-	Create(ctx context.Context, params bo.CreateTeamStrategyParams) (do.Strategy, error)
-	Update(ctx context.Context, params bo.UpdateTeamStrategyParams) (do.Strategy, error)
+	NameExists(ctx context.Context, name string, strategyId uint32) error
+	Create(ctx context.Context, params bo.CreateTeamStrategyParams) error
+	Update(ctx context.Context, params bo.UpdateTeamStrategyParams) error
 	Delete(ctx context.Context, params *bo.OperateTeamStrategyParams) error
 	UpdateStatus(ctx context.Context, params *bo.UpdateTeamStrategiesStatusParams) error
 	List(ctx context.Context, params *bo.ListTeamStrategyParams) (*bo.ListTeamStrategyReply, error)
 	Subscribe(ctx context.Context, params bo.SubscribeTeamStrategy) error
 	SubscribeList(ctx context.Context, params *bo.SubscribeTeamStrategiesParams) (*bo.SubscribeTeamStrategiesReply, error)
 	Get(ctx context.Context, params *bo.OperateTeamStrategyParams) (do.Strategy, error)
+	GetByName(ctx context.Context, name string) (do.Strategy, error)
 }
 
 type TeamStrategyMetric interface {
-	Create(ctx context.Context, params bo.CreateTeamMetricStrategyParams) (do.StrategyMetric, error)
-	Update(ctx context.Context, params bo.UpdateTeamMetricStrategyParams) (do.StrategyMetric, error)
+	Create(ctx context.Context, params bo.CreateTeamMetricStrategyParams) error
+	Update(ctx context.Context, params bo.UpdateTeamMetricStrategyParams) error
 	Get(ctx context.Context, params *bo.OperateTeamStrategyParams) (do.StrategyMetric, error)
 	Delete(ctx context.Context, params *bo.OperateTeamStrategyParams) error
+}
 
-	FindLevels(ctx context.Context, params *bo.FindTeamMetricStrategyLevelsParams) ([]do.StrategyMetricRule, error)
-	CreateLevels(ctx context.Context, params bo.SaveTeamMetricStrategyLevels) ([]do.StrategyMetricRule, error)
-	UpdateLevels(ctx context.Context, params bo.SaveTeamMetricStrategyLevels) ([]do.StrategyMetricRule, error)
-	DeleteLevels(ctx context.Context, params *bo.OperateTeamStrategyParams) error
-	DeleteUnUsedLevels(ctx context.Context, params *bo.DeleteUnUsedLevelsParams) error
+type TeamStrategyMetricLevel interface {
+	Create(ctx context.Context, params bo.SaveTeamMetricStrategyLevel) error
+	Update(ctx context.Context, params bo.SaveTeamMetricStrategyLevel) error
+	Delete(ctx context.Context, strategyMetricLevelId uint32) error
+	DeleteByStrategyId(ctx context.Context, strategyId uint32) error
+	List(ctx context.Context, params *bo.ListTeamMetricStrategyLevelsParams) (*bo.ListTeamMetricStrategyLevelsReply, error)
+	UpdateStatus(ctx context.Context, params *bo.UpdateTeamMetricStrategyLevelStatusParams) error
+	GetByLevelId(ctx context.Context, params *bo.OperateTeamStrategyLevelParams) (do.StrategyMetricRule, error)
+	Get(ctx context.Context, strategyMetricLevelId uint32) (do.StrategyMetricRule, error)
 }

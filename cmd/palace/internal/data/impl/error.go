@@ -174,3 +174,10 @@ func teamDatasourceMetricMetadataNotFound(err error) error {
 	}
 	return err
 }
+
+func strategyMetricRuleNotFound(err error) error {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return merr.ErrorNotFound("strategy metric rule not found").WithCause(err)
+	}
+	return err
+}

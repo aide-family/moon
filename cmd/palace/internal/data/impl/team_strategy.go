@@ -5,6 +5,7 @@ import (
 
 	"gorm.io/gen"
 	"gorm.io/gen/field"
+	"gorm.io/gorm"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
@@ -13,6 +14,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
 	"github.com/aide-family/moon/cmd/palace/internal/data/impl/build"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
@@ -27,8 +29,31 @@ type teamStrategyRepoImpl struct {
 	*data.Data
 }
 
+// GetByName implements repository.TeamStrategy.
+func (t *teamStrategyRepoImpl) GetByName(ctx context.Context, name string) (do.Strategy, error) {
+	tx := getTeamBizQuery(ctx, t)
+	strategy, err := tx.Strategy.WithContext(ctx).Where(tx.Strategy.Name.Eq(name)).First()
+	if err != nil {
+		return nil, strategyNotFound(err)
+	}
+	return strategy, nil
+}
+
+// NameExists implements repository.TeamStrategy.
+func (t *teamStrategyRepoImpl) NameExists(ctx context.Context, name string, strategyId uint32) error {
+	tx := getTeamBizQuery(ctx, t)
+	_, err := tx.Strategy.WithContext(ctx).Where(tx.Strategy.Name.Eq(name), tx.Strategy.ID.Neq(strategyId)).First()
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil
+		}
+		return err
+	}
+	return merr.ErrorExist("strategy name %s already exists", name)
+}
+
 // Create implements repository.TeamStrategy.
-func (t *teamStrategyRepoImpl) Create(ctx context.Context, params bo.CreateTeamStrategyParams) (do.Strategy, error) {
+func (t *teamStrategyRepoImpl) Create(ctx context.Context, params bo.CreateTeamStrategyParams) error {
 	strategyDo := &team.Strategy{
 		StrategyGroupID: params.GetStrategyGroup().GetID(),
 		Name:            params.GetName(),
@@ -39,16 +64,16 @@ func (t *teamStrategyRepoImpl) Create(ctx context.Context, params bo.CreateTeamS
 	strategyDo.WithContext(ctx)
 	tx := getTeamBizQuery(ctx, t)
 	if err := tx.Strategy.WithContext(ctx).Create(strategyDo); err != nil {
-		return nil, err
+		return err
 	}
 	notices := build.ToStrategyNotices(ctx, params.GetReceiverRoutes())
 	if len(notices) > 0 {
 		notice := tx.Strategy.Notices.WithContext(ctx).Model(strategyDo)
 		if err := notice.Append(notices...); err != nil {
-			return nil, err
+			return err
 		}
 	}
-	return strategyDo, nil
+	return nil
 }
 
 // Delete implements repository.TeamStrategy.
@@ -110,7 +135,7 @@ func (t *teamStrategyRepoImpl) SubscribeList(ctx context.Context, params *bo.Sub
 }
 
 // Update implements repository.TeamStrategy.
-func (t *teamStrategyRepoImpl) Update(ctx context.Context, params bo.UpdateTeamStrategyParams) (do.Strategy, error) {
+func (t *teamStrategyRepoImpl) Update(ctx context.Context, params bo.UpdateTeamStrategyParams) error {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.Strategy
 	wrappers := []gen.Condition{
@@ -124,26 +149,22 @@ func (t *teamStrategyRepoImpl) Update(ctx context.Context, params bo.UpdateTeamS
 	}
 	_, err := mutation.WithContext(ctx).Where(wrappers...).UpdateSimple(mutations...)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	notices := build.ToStrategyNotices(ctx, params.GetReceiverRoutes())
 	strategyDo := &team.Strategy{TeamModel: build.ToTeamModel(ctx, params.GetStrategy())}
 	notice := tx.Strategy.Notices.WithContext(ctx).Model(strategyDo)
 	if len(notices) > 0 {
 		if err := notice.Replace(notices...); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		if err := notice.Clear(); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	strategy, err := tx.Strategy.WithContext(ctx).Where(wrappers...).First()
-	if err != nil {
-		return nil, strategyNotFound(err)
-	}
-	return strategy, nil
+	return nil
 }
 
 // List implements repository.TeamStrategy.
