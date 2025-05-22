@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package api.common;
 
+import "buf/validate/validate.proto";
+
 option go_package = "github.com/aide-family/moon/pkg/api/common;common";
 
 enum AlertStatus {
@@ -13,27 +15,43 @@ enum AlertStatus {
 
 message AlertItem {
 	// status of the alert
-	AlertStatus status = 1;
+	AlertStatus status = 1 [(buf.validate.field).cel = {
+		id: "ALERT_STATUS_VALIDATOR",
+		message: "status must be one of the following: ALERT_STATUS_UNKNOWN, pending, firing, resolved",
+		expression: "this in ['pending', 'firing', 'resolved']"
+	}];
 	// labels of the alert
 	map<string, string> labels = 2;
 	// annotations of the alert
 	map<string, string> annotations = 3;
 	// startsAt of the alert
-	string startsAt = 4;
+	string startsAt = 4 [(buf.validate.field).required = true];
 	// endsAt of the alert
 	string endsAt = 5;
 	// generatorURL of the alert
 	string generatorURL = 6;
 	// fingerprint of the alert
-	string fingerprint = 7;
+	string fingerprint = 7 [(buf.validate.field).required = true];
 	// value of the alert
 	string value = 8;	
 }
 
 message AlertsItem {
 	string receiver = 1;
-	AlertStatus status = 2;
-	repeated AlertItem alerts = 3;
+	AlertStatus status = 2 [(buf.validate.field).cel = {
+		id: "PUSH_ALERT_STATUS_VALIDATOR",
+		message: "status must be one of the following: pending, firing, resolved",
+		expression: "this in ['pending', 'firing', 'resolved']"
+	}];
+	repeated AlertItem alerts = 3 [(buf.validate.field).cel = {
+		id: "PUSH_ALERT_ITEM_SIZE_GREATER_THAN_0",
+		message: "alerts must be greater than 0",
+		expression: "this.size() > 0"
+	}, (buf.validate.field).cel = {
+		id: "PUSH_ALERT_ITEM_DUPLICATE_VALIDATOR",
+		message: "alerts must not contain duplicate fingerprints",
+		expression: "this.all(x, this.filter(y, y.fingerprint == x.fingerprint).size() == 1)"
+	}];
 	map<string, string> groupLabels = 4;
 	map<string, string> commonLabels = 5;
 	map<string, string> commonAnnotations = 6;

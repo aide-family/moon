@@ -6,6 +6,7 @@ import "google/api/annotations.proto";
 import "common/alert.proto";
 import "palace/common/common.proto";
 import "palace/common/common_enum.proto";
+import "buf/validate/validate.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
 
@@ -32,10 +33,26 @@ service Alert {
 
 message ListAlertParams {
 	api.palace.common.PaginationRequest pagination = 1;
-	repeated string timeRange = 2;
-	string fingerprint = 3;
-	string keyword = 4;
-	api.common.AlertStatus status = 5;
+	repeated string timeRange = 2 [(buf.validate.field).cel = {
+		id: "TIME_RANGE_VALIDATOR",
+		message: "timeRange must be a valid time range",
+		expression: "this.size() == 0 || this.all(x, x.matches(rules.pattern))"
+	}];
+	string fingerprint = 3 [(buf.validate.field).cel = {
+		id: "FINGERPRINT_VALIDATOR",
+		message: "fingerprint must be less than 64 characters",
+		expression: "this.size() <= 64"
+	}];
+	string keyword = 4 [(buf.validate.field).cel = {
+		id: "KEYWORD_VALIDATOR",
+		message: "keyword must be less than 64 characters",
+		expression: "this.size() <= 64"
+	}];
+	api.common.AlertStatus status = 5 [(buf.validate.field).cel = {
+		id: "ALERT_STATUS_VALIDATOR",
+		message: "status must be a valid status",
+		expression: "this in ['pending', 'firing', 'resolved', 0]"
+	}];
 }
 
 message RealtimeAlertItem {

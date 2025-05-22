@@ -1,3 +1,15 @@
+[ALERT_STATUS_VALIDATOR]
+other = "status must be one of the following: pending, firing, resolved"
+
+[PUSH_ALERT_STATUS_VALIDATOR]
+other = "status must be one of the following: pending, firing, resolved"
+
+[PUSH_ALERT_ITEM_SIZE_GREATER_THAN_0]
+other = "alerts must be greater than 0"
+
+[PUSH_ALERT_ITEM_DUPLICATE_VALIDATOR]
+other = "alerts must not contain duplicate fingerprints"
+
 [BAD_REQUEST]
 other = "不正なリクエスト"
 
@@ -48,6 +60,15 @@ other = "サーバーエラー"
 
 [INVALID_ARGUMENT]
 other = "無効な引数"
+
+[TIME_RANGE_VALIDATOR]
+other = "timeRange must be a valid time range"
+
+[FINGERPRINT_VALIDATOR]
+other = "fingerprint must be less than 64 characters"
+
+[KEYWORD_VALIDATOR]
+other = "keyword must be less than 64 characters"
 
 [RECEIVER_ROUTES_SIZE_LESS_THAN_10]
 other = "receiverRoutes must be less than 10"
