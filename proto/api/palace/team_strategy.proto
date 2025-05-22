@@ -231,7 +231,7 @@ message SelectTeamStrategyGroupReply {
 
 message SaveTeamStrategyRequest {
   // Strategy item Id, optional for new items
-  uint32 strategyId = 1;
+  uint32 strategyId = 1 [(buf.validate.field).required = true];
   // Strategy item name
   string name = 2 [(buf.validate.field).cel = {
     message: "name must be less than 128 characters"
@@ -252,17 +252,20 @@ message SaveTeamStrategyRequest {
   }];
   // Receiver routes
   repeated uint32 receiverRoutes = 5 [(buf.validate.field).cel = {
+    id: "RECEIVER_ROUTES_SIZE_LESS_THAN_10",
     message: "receiverRoutes must be less than 10"
     expression: "this.size() <= 10"
   }, (buf.validate.field).cel = {
+    id: "RECEIVER_ROUTES_UNIQUE",
     message: "receiverRoutes must be unique"
     expression: "this.unique()"
   }, (buf.validate.field).cel = {
+    id: "RECEIVER_ROUTES_GREATER_THAN_0",
     message: "receiverRoutes must be greater than 0"
     expression: "this.all(x, x > 0)"
   }];
-  // Group id
   uint32 groupId = 6 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "GROUP_ID_GREATER_THAN_0",
     message: "must select a group"
     expression: "this > 0"
   }];

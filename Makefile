@@ -88,11 +88,11 @@ api:
 # generate errors
 errors:
 	mkdir -p ./pkg/merr
-	protoc --proto_path=./proto/merr \
+	protoc --proto_path=./proto/api/merr \
            --proto_path=./proto/third_party \
            --go_out=paths=source_relative:./pkg/merr \
            --go-errors_out=paths=source_relative:./pkg/merr \
-           ./proto/merr/*.proto
+           ./proto/api/merr/*.proto
 	make i18n
 
 .PHONY: conf
@@ -108,7 +108,7 @@ conf:
 .PHONY: i18n
 # i18n
 i18n:
-	i18n-gen -O ./i18n/ -P ./proto/merr/err.proto -L en,ja,zh
+	i18n-gen -O ./i18n/ -P ./proto/api/**.proto -L en,ja,zh -suffix Error
 
 .PHONY: gen-palace
 # generate gorm gen

@@ -47,6 +47,7 @@ func run(cfgPath string) {
 	hello.SetEnvWithConfig(Version, bc.GetEnvironment(), bc.GetServer())
 	i18nConf := bc.GetI18N()
 	bundle := i18n.New(i18nConf)
+	merr.RegisterBundle(bundle)
 	merr.RegisterGlobalLocalizer(merr.NewLocalizer(bundle))
 	logger, err := mlog.New(bc.IsDev(), bc.GetLog())
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 
 	"github.com/aide-family/moon/pkg/util/cnst"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 type Localizer interface {
@@ -20,6 +21,8 @@ type Localizer interface {
 var (
 	globalLocalizer Localizer
 	once            sync.Once
+	bundle          *i18n.Bundle
+	bundleOnce      sync.Once
 )
 
 func RegisterGlobalLocalizer(localizer Localizer) {
@@ -28,7 +31,23 @@ func RegisterGlobalLocalizer(localizer Localizer) {
 	})
 }
 
+func RegisterBundle(b *i18n.Bundle) {
+	bundleOnce.Do(func() {
+		bundle = b
+	})
+}
+
+func GetBundle() *i18n.Bundle {
+	return bundle
+}
+
 func I18n() middleware.Middleware {
+	if validate.IsNil(globalLocalizer) {
+		if validate.IsNil(bundle) {
+			panic("please register bundle first or use RegisterGlobalLocalizer")
+		}
+		globalLocalizer = NewLocalizer(bundle)
+	}
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {
 			reply, err = handler(ctx, req)

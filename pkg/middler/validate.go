@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	"github.com/bufbuild/protovalidate-go"
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/aide-family/moon/pkg/merr"
@@ -31,15 +33,23 @@ func Validate(opts ...protovalidate.ValidatorOption) middleware.Middleware {
 	}
 }
 
-var errMsgMap = map[string]string{
-	"value is required": "params is required",
-}
-
-func getMsg(msg string) string {
-	if v, ok := errMsgMap[msg]; ok {
-		return v
+func getMsg(ctx context.Context, constraintId string, msg string) string {
+	if validate.TextIsNull(constraintId) {
+		return msg
 	}
-	return msg
+	if strings.EqualFold(constraintId, "required") {
+		constraintId = "REQUIRED"
+	}
+
+	lang := merr.GetLanguage(ctx)
+	localize, localizeErr := i18n.NewLocalizer(merr.GetBundle(), lang).
+		Localize(&i18n.LocalizeConfig{MessageID: constraintId})
+	if validate.IsNotNil(localizeErr) {
+		log.Warnf("%s => validate error: %v", constraintId, localizeErr)
+		return msg
+	}
+
+	return localize
 }
 
 // ValidateHandler validate handler
@@ -81,9 +91,10 @@ func validateParams(opts ...protovalidate.ValidatorOption) ValidateHandler {
 			if len(fields) == 0 {
 				continue
 			}
+			constraintId := v.Proto.GetConstraintId()
 			msg := v.Proto.GetMessage()
 			field := strings.Join(fields, ".")
-			errMap[field] = append(errMap[field], getMsg(msg))
+			errMap[field] = append(errMap[field], getMsg(ctx, constraintId, msg))
 		}
 
 		msgMap := make(map[string]string)

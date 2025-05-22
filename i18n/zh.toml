@@ -25,6 +25,9 @@ other = "数据已存在"
 [RESOURCE_NOT_OPEN]
 other = "资源未开放"
 
+[REQUIRED]
+other = "参数不能为空"
+
 [UNAUTHORIZED]
 other = "未授权"
 
@@ -46,3 +49,11 @@ other = "服务器内部错误"
 [INVALID_ARGUMENT]
 other = "无效的参数"
 
+[RECEIVER_ROUTES_SIZE_LESS_THAN_10]
+other = "receiverRoutes must be less than 10"
+
+[RECEIVER_ROUTES_GREATER_THAN_0]
+other = "receiverRoutes must be greater than 0"
+
+[GROUP_ID_GREATER_THAN_0]
+other = "must select a group"

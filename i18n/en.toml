@@ -25,6 +25,9 @@ other = "Data already exists"
 [RESOURCE_NOT_OPEN]
 other = "Resource not open"
 
+[REQUIRED]
+other = "Params is required"
+
 [UNAUTHORIZED]
 other = "Unauthorized"
 
@@ -46,3 +49,11 @@ other = "Internal Server Error"
 [INVALID_ARGUMENT]
 other = "Invalid Argument"
 
+[RECEIVER_ROUTES_SIZE_LESS_THAN_10]
+other = "receiverRoutes must be less than 10"
+
+[RECEIVER_ROUTES_GREATER_THAN_0]
+other = "receiverRoutes must be greater than 0"
+
+[GROUP_ID_GREATER_THAN_0]
+other = "must select a group"
