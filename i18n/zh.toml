@@ -52,8 +52,24 @@ other = "无效的参数"
 [RECEIVER_ROUTES_SIZE_LESS_THAN_10]
 other = "receiverRoutes must be less than 10"
 
+[RECEIVER_ROUTES_UNIQUE]
+other = "receiverRoutes must be unique"
+
 [RECEIVER_ROUTES_GREATER_THAN_0]
 other = "receiverRoutes must be greater than 0"
 
 [GROUP_ID_GREATER_THAN_0]
 other = "must select a group"
+
+[STRATEGY_ID_GREATER_THAN_0]
+other = "must select a strategy"
+
+[EXPR_GREATER_THAN_0]
+other = "expr must be greater than 0 characters"
+
+[DATASOURCE_SIZE_GREATER_THAN_0]
+other = "at least one valid datasource must be selected"
+
+[DATASOURCE_GREATER_THAN_0]
+other = "a valid datasource must be selected"
+

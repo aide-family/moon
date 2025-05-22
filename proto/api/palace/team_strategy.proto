@@ -231,7 +231,7 @@ message SelectTeamStrategyGroupReply {
 
 message SaveTeamStrategyRequest {
   // Strategy item Id, optional for new items
-  uint32 strategyId = 1 [(buf.validate.field).required = true];
+  uint32 strategyId = 1;
   // Strategy item name
   string name = 2 [(buf.validate.field).cel = {
     message: "name must be less than 128 characters"
@@ -274,15 +274,31 @@ message SaveTeamStrategyRequest {
 // SaveTeamMetricStrategyRequest represents the request data for saving or updating a team metric strategy
 message SaveTeamMetricStrategyRequest {
   // Strategy id
-  uint32 strategyId = 1 [(buf.validate.field).required = true];
+  uint32 strategyId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "STRATEGY_ID_GREATER_THAN_0",
+    message: "must select a strategy"
+    expression: "this > 0"
+  }];
   // Expression
-  string expr = 2 [(buf.validate.field).string.min_len = 1];
+  string expr = 2 [(buf.validate.field).cel = {
+    id: "EXPR_GREATER_THAN_0",
+    message: "expr must be greater than 0 characters"
+    expression: "this.size() > 0"
+  }];
   // Labels
   repeated api.palace.common.KeyValueItem labels = 3;
   // Annotations
-  api.palace.common.AnnotationsItem annotations = 4;
+  api.palace.common.AnnotationsItem annotations = 4 [(buf.validate.field).required = true];
   // Datasource
-  repeated uint32 datasource = 5;
+  repeated uint32 datasource = 5 [(buf.validate.field).cel = {
+    id: "DATASOURCE_SIZE_GREATER_THAN_0",
+    message: "at least one valid datasource must be selected"
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    id: "DATASOURCE_GREATER_THAN_0",
+    message: "a valid datasource must be selected"
+    expression: "this.all(x, x > 0)"
+  }];
 }
 
 message LabelNotices {
