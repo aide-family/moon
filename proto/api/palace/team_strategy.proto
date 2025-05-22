@@ -66,11 +66,41 @@ service TeamStrategy {
     };
   }
 
+  // DeleteTeamStrategy deletes a team strategy by Id
+  rpc DeleteTeamStrategy (OperateTeamStrategyRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      delete: "/api/team/strategy"
+    };
+  }
+  
+  // ListTeamStrategy lists team strategies based on specified filters
+  rpc ListTeamStrategy (ListTeamStrategyRequest) returns (ListTeamStrategyReply) {
+    option (google.api.http) = {
+      post: "/api/team/strategy/list"
+      body: "*"
+    };
+  }
+
+   // UpdateTeamStrategiesStatus updates the status of multiple team strategies
+   rpc UpdateTeamStrategiesStatus (UpdateTeamStrategiesStatusRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/team/strategy/status"
+      body: "*"
+    };
+  }
+
   // SaveTeamMetricStrategy saves a new team metric strategy or updates an existing one
   rpc SaveTeamMetricStrategy (SaveTeamMetricStrategyRequest) returns (api.palace.common.TeamStrategyMetricItem) {
     option (google.api.http) = {
       post: "/api/team/strategy/metric"
       body: "*"
+    };
+  }
+
+  // GetTeamStrategy retrieves a team strategy by Id
+  rpc GetTeamMetricStrategy (OperateTeamStrategyRequest) returns (api.palace.common.TeamStrategyMetricItem) {
+    option (google.api.http) = {
+      get: "/api/team/strategy/metric"
     };
   }
 
@@ -102,36 +132,6 @@ service TeamStrategy {
   rpc DeleteTeamMetricStrategyLevel (DeleteTeamMetricStrategyLevelRequest) returns (api.palace.common.EmptyReply) {
     option (google.api.http) = {
       delete: "/api/team/strategy/metric/level"
-    };
-  }
-
-  // UpdateTeamStrategiesStatus updates the status of multiple team strategies
-  rpc UpdateTeamStrategiesStatus (UpdateTeamStrategiesStatusRequest) returns (api.palace.common.EmptyReply) {
-    option (google.api.http) = {
-      put: "/api/team/strategy/status"
-      body: "*"
-    };
-  }
-
-  // DeleteTeamStrategy deletes a team strategy by Id
-  rpc DeleteTeamStrategy (OperateTeamStrategyRequest) returns (api.palace.common.EmptyReply) {
-    option (google.api.http) = {
-      delete: "/api/team/strategy"
-    };
-  }
-
-  // GetTeamStrategy retrieves a team strategy by Id
-  rpc GetTeamMetricStrategy (OperateTeamStrategyRequest) returns (api.palace.common.TeamStrategyMetricItem) {
-    option (google.api.http) = {
-      get: "/api/team/strategy/metric"
-    };
-  }
-
-  // ListTeamStrategy lists team strategies based on specified filters
-  rpc ListTeamStrategy (ListTeamStrategyRequest) returns (ListTeamStrategyReply) {
-    option (google.api.http) = {
-      post: "/api/team/strategy/list"
-      body: "*"
     };
   }
 

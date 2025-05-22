@@ -29,6 +29,33 @@ type teamStrategyRepoImpl struct {
 	*data.Data
 }
 
+// DeleteByStrategyIds implements repository.TeamStrategy.
+func (t *teamStrategyRepoImpl) DeleteByStrategyIds(ctx context.Context, strategyIds ...uint32) error {
+	if len(strategyIds) == 0 {
+		return nil
+	}
+	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	mutation := tx.Strategy
+	wrappers := []gen.Condition{
+		mutation.TeamID.Eq(teamId),
+		mutation.ID.In(strategyIds...),
+	}
+	_, err := mutation.WithContext(ctx).Where(wrappers...).Delete()
+	return err
+}
+
+// FindByStrategiesGroupId implements repository.TeamStrategy.
+func (t *teamStrategyRepoImpl) FindByStrategiesGroupId(ctx context.Context, strategyGroupId uint32) ([]do.Strategy, error) {
+	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	query := tx.Strategy
+	wrapper := query.WithContext(ctx).Where(query.TeamID.Eq(teamId), query.StrategyGroupID.Eq(strategyGroupId))
+	rows, err := wrapper.Find()
+	if err != nil {
+		return nil, err
+	}
+	return slices.Map(rows, func(row *team.Strategy) do.Strategy { return row }), nil
+}
+
 // GetByName implements repository.TeamStrategy.
 func (t *teamStrategyRepoImpl) GetByName(ctx context.Context, name string) (do.Strategy, error) {
 	tx := getTeamBizQuery(ctx, t)

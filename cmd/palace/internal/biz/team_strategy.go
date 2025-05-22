@@ -81,7 +81,7 @@ func (t *TeamStrategy) DeleteTeamStrategy(ctx context.Context, params *bo.Operat
 		if err := t.teamStrategyMetricRepo.Delete(ctx, params); err != nil {
 			return err
 		}
-		if err := t.teamStrategyMetricLevelRepo.DeleteByStrategyId(ctx, params.StrategyId); err != nil {
+		if err := t.teamStrategyMetricLevelRepo.DeleteByStrategyIds(ctx, params.StrategyId); err != nil {
 			return err
 		}
 		return nil

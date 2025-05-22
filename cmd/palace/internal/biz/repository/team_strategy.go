@@ -18,6 +18,8 @@ type TeamStrategy interface {
 	SubscribeList(ctx context.Context, params *bo.SubscribeTeamStrategiesParams) (*bo.SubscribeTeamStrategiesReply, error)
 	Get(ctx context.Context, params *bo.OperateTeamStrategyParams) (do.Strategy, error)
 	GetByName(ctx context.Context, name string) (do.Strategy, error)
+	FindByStrategiesGroupId(ctx context.Context, strategyGroupId uint32) ([]do.Strategy, error)
+	DeleteByStrategyIds(ctx context.Context, strategyIds ...uint32) error
 }
 
 type TeamStrategyMetric interface {
@@ -25,13 +27,14 @@ type TeamStrategyMetric interface {
 	Update(ctx context.Context, params bo.UpdateTeamMetricStrategyParams) error
 	Get(ctx context.Context, params *bo.OperateTeamStrategyParams) (do.StrategyMetric, error)
 	Delete(ctx context.Context, params *bo.OperateTeamStrategyParams) error
+	DeleteByStrategyIds(ctx context.Context, strategyIds ...uint32) error
 }
 
 type TeamStrategyMetricLevel interface {
 	Create(ctx context.Context, params bo.SaveTeamMetricStrategyLevel) error
 	Update(ctx context.Context, params bo.SaveTeamMetricStrategyLevel) error
 	Delete(ctx context.Context, strategyMetricLevelId uint32) error
-	DeleteByStrategyId(ctx context.Context, strategyId uint32) error
+	DeleteByStrategyIds(ctx context.Context, strategyIds ...uint32) error
 	List(ctx context.Context, params *bo.ListTeamMetricStrategyLevelsParams) (*bo.ListTeamMetricStrategyLevelsReply, error)
 	UpdateStatus(ctx context.Context, params *bo.UpdateTeamMetricStrategyLevelStatusParams) error
 	GetByLevelId(ctx context.Context, params *bo.OperateTeamStrategyLevelParams) (do.StrategyMetricRule, error)

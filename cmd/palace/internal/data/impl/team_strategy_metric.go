@@ -25,6 +25,21 @@ type teamStrategyMetricRepoImpl struct {
 	*data.Data
 }
 
+// DeleteByStrategyIds implements repository.TeamStrategyMetric.
+func (t *teamStrategyMetricRepoImpl) DeleteByStrategyIds(ctx context.Context, strategyIds ...uint32) error {
+	if len(strategyIds) == 0 {
+		return nil
+	}
+	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	mutation := tx.StrategyMetric
+	wrappers := []gen.Condition{
+		mutation.TeamID.Eq(teamId),
+		mutation.StrategyID.In(strategyIds...),
+	}
+	_, err := mutation.WithContext(ctx).Where(wrappers...).Delete()
+	return err
+}
+
 // Create implements repository.TeamStrategyMetric.
 func (t *teamStrategyMetricRepoImpl) Create(ctx context.Context, params bo.CreateTeamMetricStrategyParams) error {
 	tx := getTeamBizQuery(ctx, t)

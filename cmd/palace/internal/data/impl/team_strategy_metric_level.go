@@ -26,6 +26,21 @@ type teamStrategyMetricLevelRepoImpl struct {
 	*data.Data
 }
 
+// DeleteByStrategyIds implements repository.TeamStrategyMetricLevel.
+func (t *teamStrategyMetricLevelRepoImpl) DeleteByStrategyIds(ctx context.Context, strategyIds ...uint32) error {
+	if len(strategyIds) == 0 {
+		return nil
+	}
+	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	mutation := tx.StrategyMetricRule
+	wrappers := []gen.Condition{
+		mutation.TeamID.Eq(teamId),
+		mutation.StrategyID.In(strategyIds...),
+	}
+	_, err := mutation.WithContext(ctx).Where(wrappers...).Delete()
+	return err
+}
+
 // Create implements repository.TeamStrategyMetricLevel.
 func (t *teamStrategyMetricLevelRepoImpl) Create(ctx context.Context, params bo.SaveTeamMetricStrategyLevel) error {
 	labelNotices := slices.Map(params.GetLabelNotices(), func(item bo.LabelNotice) *team.StrategyMetricRuleLabelNotice {
