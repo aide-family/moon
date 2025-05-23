@@ -12,6 +12,8 @@ enum Gender {
   GENDER_MALE = 1;
   // Gender is female.
   GENDER_FEMALE = 2;
+  // Gender is other
+  GENDER_OTHER = 3;
 }
 
 // Defines the status of a user, including unknown, normal, forbidden, and deleted states.

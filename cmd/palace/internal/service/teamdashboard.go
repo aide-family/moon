@@ -32,7 +32,6 @@ func (s *TeamDashboardService) SaveTeamDashboard(ctx context.Context, req *palac
 		ID:       req.GetDashboardId(),
 		Title:    req.GetTitle(),
 		Remark:   req.GetRemark(),
-		Status:   vobj.GlobalStatus(req.GetStatus()),
 		ColorHex: req.GetColorHex(),
 	}
 	err := s.dashboard.SaveDashboard(ctx, params)
@@ -103,7 +102,6 @@ func (s *TeamDashboardService) SaveTeamDashboardChart(ctx context.Context, req *
 		DashboardID: req.GetDashboardId(),
 		Title:       req.GetTitle(),
 		Remark:      req.GetRemark(),
-		Status:      vobj.GlobalStatus(req.GetStatus()),
 		Url:         req.GetUrl(),
 		Width:       req.GetWidth(),
 		Height:      req.GetHeight(),

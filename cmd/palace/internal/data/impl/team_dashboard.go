@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -35,7 +36,7 @@ func (r *dashboardRepoImpl) CreateDashboard(ctx context.Context, dashboard bo.Da
 	dashboardDo := &team.Dashboard{
 		Title:    dashboard.GetTitle(),
 		Remark:   dashboard.GetRemark(),
-		Status:   dashboard.GetStatus(),
+		Status:   vobj.GlobalStatusEnable,
 		ColorHex: dashboard.GetColorHex(),
 	}
 	dashboardDo.WithContext(ctx)
@@ -52,7 +53,6 @@ func (r *dashboardRepoImpl) UpdateDashboard(ctx context.Context, dashboard bo.Da
 	mutations := []field.AssignExpr{
 		mutation.Title.Value(dashboard.GetTitle()),
 		mutation.Remark.Value(dashboard.GetRemark()),
-		mutation.Status.Value(dashboard.GetStatus().GetValue()),
 		mutation.ColorHex.Value(dashboard.GetColorHex()),
 	}
 	_, err := mutation.WithContext(ctx).Where(wrappers...).UpdateColumnSimple(mutations...)

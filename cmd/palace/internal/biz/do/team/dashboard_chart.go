@@ -16,7 +16,7 @@ type DashboardChart struct {
 	Remark      string            `gorm:"column:remark;type:text;comment:remark" json:"remark"`
 	Status      vobj.GlobalStatus `gorm:"column:status;type:tinyint;not null;default:0;comment:status" json:"status"`
 	Url         string            `gorm:"column:url;type:varchar(255);not null;comment:URL" json:"url"`
-	Width       string            `gorm:"column:width;type:varchar(255);not null;comment:width" json:"width"`
+	Width       uint32            `gorm:"column:width;type:int unsigned;not null;default:6;comment:width" json:"width"`
 	Height      string            `gorm:"column:height;type:varchar(255);not null;comment:height" json:"height"`
 	Dashboard   *Dashboard        `gorm:"foreignKey:DashboardID;references:ID" json:"dashboard"`
 }
@@ -63,9 +63,9 @@ func (c *DashboardChart) GetUrl() string {
 	return c.Url
 }
 
-func (c *DashboardChart) GetWidth() string {
+func (c *DashboardChart) GetWidth() uint32 {
 	if c == nil {
-		return ""
+		return 6
 	}
 	return c.Width
 }

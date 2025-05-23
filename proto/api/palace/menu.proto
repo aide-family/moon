@@ -42,17 +42,20 @@ service Menu {
   }
 }
 
+// GetMenuRequest represents the request data for retrieving a menu
+message GetMenuRequest {
+  // Id of the menu to retrieve
+  uint32 menuId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "GET_MENU_MENU_ID_VALIDATOR",
+    message: "must select a menu"
+    expression: "this > 0"
+  }];
+}
+
 // GetMenuTreeReply contains the response data for retrieving the menu tree
 message GetMenuTreeReply {
   // List of menu items
   repeated api.palace.common.MenuTreeItem menus = 1;
-}
-
-
-// GetMenuRequest represents the request data for retrieving a menu
-message GetMenuRequest {
-  // Id of the menu to retrieve
-  uint32 menuId = 1 [(buf.validate.field).required = true];
 }
 
 // SaveMenuRequest represents the request data for creating or updating a system menu
@@ -60,23 +63,47 @@ message SaveMenuRequest {
   // Id of the menu (0 for create, >0 for update)
   uint32 menuId = 1;
   // Name of the menu
-  string name = 2 [(buf.validate.field).required = true];
+  string name = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "SAVE_MENU_NAME_VALIDATOR",
+    message: "name is required"
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    id: "SAVE_MENU_NAME_MAX_LENGTH_VALIDATOR",
+    message: "name must be less than 64 characters"
+    expression: "this.size() <= 64"
+  }];
   // Path of the menu
   string menuPath = 3;
   // Api path of the menu
   string apiPath = 4;
   // Status of the menu
-  api.palace.common.GlobalStatus status = 5 [(buf.validate.field).required = true];
+  api.palace.common.GlobalStatus status = 5 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "SAVE_MENU_STATUS_VALIDATOR",
+    message: "status must be one of the following: GLOBAL_STATUS_ENABLE, GLOBAL_STATUS_DISABLE"
+    expression: "this in ['GLOBAL_STATUS_ENABLE', 'GLOBAL_STATUS_DISABLE', 1, 2]"
+  }];
   // Icon of the menu
   string menuIcon = 6;
   // Parent menu Id (0 for root menu)
   uint32 parentId = 7;
   // Type of the menu
-  api.palace.common.MenuType menuType = 8 [(buf.validate.field).required = true];
+  api.palace.common.MenuType menuType = 8 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "SAVE_MENU_MENU_TYPE_VALIDATOR",
+    message: "menuType must be one of the following: MENU_TYPE_SYSTEM, MENU_TYPE_TEAM, MENU_TYPE_USER, MENU_TYPE_NONE"
+    expression: "this in ['MENU_TYPE_SYSTEM', 'MENU_TYPE_TEAM', 'MENU_TYPE_USER', 'MENU_TYPE_NONE', 1, 2, 3, 4]"
+  }];
   // Category of the menu
-  api.palace.common.MenuCategory menuCategory = 9 [(buf.validate.field).required = true];
+  api.palace.common.MenuCategory menuCategory = 9 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "SAVE_MENU_MENU_CATEGORY_VALIDATOR",
+    message: "menuCategory must be one of the following: MENU_CATEGORY_MENU, MENU_CATEGORY_BUTTON"
+    expression: "this in ['MENU_CATEGORY_MENU', 'MENU_CATEGORY_BUTTON', 1, 2]"
+  }];
   // Process type of the menu
-  api.palace.common.MenuProcessType processType = 10;
+  api.palace.common.MenuProcessType processType = 10 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "SAVE_MENU_PROCESS_TYPE_VALIDATOR",
+    message: "processType must be one of the following: MENU_PROCESS_TYPE_LOGIN, MENU_PROCESS_TYPE_TEAM, MENU_PROCESS_TYPE_LOG, MENU_PROCESS_TYPE_DATA_PERMISSION"
+    expression: "this in ['MENU_PROCESS_TYPE_LOGIN', 'MENU_PROCESS_TYPE_TEAM', 'MENU_PROCESS_TYPE_LOG', 'MENU_PROCESS_TYPE_DATA_PERMISSION', 1, 2, 4, 8]"
+  }];
   // Whether the menu is rely on brother
   bool isRelyOnBrother = 11;
 }

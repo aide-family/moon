@@ -3,24 +3,45 @@ syntax = "proto3";
 package api.houyi.common;
 
 import "google/protobuf/duration.proto";
+import "buf/validate/validate.proto";
 import "houyi/common/team.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/houyi/common;common";
 
 message KeyValueItem {
-  string key = 1;
-  string value = 2;
+  string key = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "KEY_VALUE_ITEM_KEY_VALIDATOR",
+    message: "key must be less than 255 characters"
+    expression: "this.size() <= 255"
+  }];
+  string value = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "KEY_VALUE_ITEM_VALUE_VALIDATOR",
+    message: "value must be less than 255 characters"
+    expression: "this.size() <= 255"
+  }];
 }
 
 message BasicAuth {
-  string username = 1;
-  string password = 2;
+  string username = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "BASIC_AUTH_USERNAME_VALIDATOR",
+    message: "username must be less than 255 characters"
+    expression: "this.size() <= 255"
+  }];
+  string password = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "BASIC_AUTH_PASSWORD_VALIDATOR",
+    message: "password must be less than 255 characters"
+    expression: "this.size() <= 255"
+  }];
 }
 
 message TLS {
-  string serverName = 1;
-  string clientCert = 2;
-  string clientKey = 3;
+  string serverName = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "TLS_SERVER_NAME_VALIDATOR",
+    message: "serverName must be less than 255 characters"
+    expression: "this.size() <= 255"
+  }];
+  string clientCert = 2 [(buf.validate.field).required = true];
+  string clientKey = 3 [(buf.validate.field).required = true];
   bool skipVerify = 4;
 }
 

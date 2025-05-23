@@ -42,9 +42,9 @@ message SendMsgCallbackReply {
 message SyncMetadataRequest {
 	repeated api.common.MetricItem items = 1;
 	bool isDone = 2;
-	uint32 operatorId = 3;
-	uint32 teamId = 4;
-	uint32 datasourceId = 5;
+	uint32 operatorId = 3 [(buf.validate.field).required = true];
+	uint32 teamId = 4 [(buf.validate.field).required = true];
+	uint32 datasourceId = 5 [(buf.validate.field).required = true];
 }
 message SyncMetadataReply {
 	// Code of the reply 0 is success, other is failed

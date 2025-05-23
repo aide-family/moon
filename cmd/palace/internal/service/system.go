@@ -217,7 +217,10 @@ func (s *SystemService) OperateLogList(ctx context.Context, req *common.OperateL
 }
 
 func (s *SystemService) GetSendMessageLogs(ctx context.Context, req *palace.GetSendMessageLogsRequest) (*palace.GetSendMessageLogsReply, error) {
-	params := build.ToListSendMessageLogParams(req)
+	params, err := build.ToListSendMessageLogParams(req)
+	if err != nil {
+		return nil, err
+	}
 	logsReply, err := s.logsBiz.GetSendMessageLogs(ctx, params)
 	if err != nil {
 		return nil, err
@@ -238,7 +241,10 @@ func (s *SystemService) GetSendMessageLog(ctx context.Context, req *palace.Opera
 }
 
 func (s *SystemService) RetrySendMessage(ctx context.Context, req *palace.OperateOneSendMessageRequest) (*common.EmptyReply, error) {
-	params := build.ToRetrySendMessageParams(req.GetRequestId())
+	params, err := build.ToRetrySendMessageParams(req)
+	if err != nil {
+		return nil, err
+	}
 	if err := s.logsBiz.RetrySendMessage(ctx, params); err != nil {
 		return nil, err
 	}

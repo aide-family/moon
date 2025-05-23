@@ -21,7 +21,11 @@ func NewTeamLogService(logsBiz *biz.Logs) *TeamLogService {
 }
 
 func (s *TeamLogService) GetSendMessageLogs(ctx context.Context, req *palace.GetTeamSendMessageLogsRequest) (*palace.GetTeamSendMessageLogsReply, error) {
-	params, err := build.ToListSendMessageLogParams(req).WithTeamID(ctx)
+	listParams, err := build.ToListSendMessageLogParams(req)
+	if err != nil {
+		return nil, err
+	}
+	params, err := listParams.WithTeamID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +52,11 @@ func (s *TeamLogService) GetSendMessageLog(ctx context.Context, req *palace.Oper
 }
 
 func (s *TeamLogService) RetrySendMessage(ctx context.Context, req *palace.OperateOneTeamSendMessageRequest) (*common.EmptyReply, error) {
-	params, err := build.ToRetrySendMessageParams(req.GetRequestId()).WithTeamID(ctx)
+	reTryParams, err := build.ToRetrySendMessageParams(req)
+	if err != nil {
+		return nil, err
+	}
+	params, err := reTryParams.WithTeamID(ctx)
 	if err != nil {
 		return nil, err
 	}

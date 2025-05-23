@@ -65,7 +65,7 @@ type ListSendMessageLogParams struct {
 	RequestID   string
 	Status      vobj.SendMessageStatus
 	Keyword     string
-	TimeRange   [2]time.Time
+	TimeRange   []time.Time
 	MessageType vobj.MessageType
 }
 

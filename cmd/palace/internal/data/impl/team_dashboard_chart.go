@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -46,7 +47,7 @@ func (r *dashboardChartRepoImpl) CreateDashboardChart(ctx context.Context, chart
 		DashboardID: chart.GetDashboardID(),
 		Title:       chart.GetTitle(),
 		Remark:      chart.GetRemark(),
-		Status:      chart.GetStatus(),
+		Status:      vobj.GlobalStatusEnable,
 		Url:         chart.GetUrl(),
 		Width:       chart.GetWidth(),
 		Height:      chart.GetHeight(),
@@ -66,7 +67,6 @@ func (r *dashboardChartRepoImpl) UpdateDashboardChart(ctx context.Context, chart
 	updates := []field.AssignExpr{
 		mutation.Title.Value(chart.GetTitle()),
 		mutation.Remark.Value(chart.GetRemark()),
-		mutation.Status.Value(chart.GetStatus().GetValue()),
 		mutation.Url.Value(chart.GetUrl()),
 		mutation.Width.Value(chart.GetWidth()),
 		mutation.Height.Value(chart.GetHeight()),

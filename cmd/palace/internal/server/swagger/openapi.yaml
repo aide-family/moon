@@ -1086,6 +1086,10 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: sendTime
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -2955,8 +2959,6 @@ components:
             properties:
                 requestId:
                     type: string
-                message:
-                    type: string
                 messageType:
                     type: integer
                     format: enum
@@ -2967,6 +2969,10 @@ components:
                     type: string
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                timeRange:
+                    type: array
+                    items:
+                        type: string
         api.palace.GetSystemRolesReply:
             type: object
             properties:
@@ -3140,8 +3146,6 @@ components:
             properties:
                 requestId:
                     type: string
-                message:
-                    type: string
                 messageType:
                     type: integer
                     format: enum
@@ -3152,6 +3156,10 @@ components:
                     type: string
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                timeRange:
+                    type: array
+                    items:
+                        type: string
         api.palace.GetUserListReply:
             type: object
             properties:
@@ -3696,10 +3704,14 @@ components:
             properties:
                 requestId:
                     type: string
+                sendTime:
+                    type: string
         api.palace.OperateOneTeamSendMessageRequest:
             type: object
             properties:
                 requestId:
+                    type: string
+                sendTime:
                     type: string
         api.palace.RealtimeAlertItem:
             type: object
@@ -3907,13 +3919,11 @@ components:
                     type: string
                 remark:
                     type: string
-                status:
-                    type: integer
-                    format: enum
                 url:
                     type: string
                 width:
-                    type: string
+                    type: integer
+                    format: uint32
                 height:
                     type: string
         api.palace.SaveTeamDashboardRequest:
@@ -3926,9 +3936,6 @@ components:
                     type: string
                 remark:
                     type: string
-                status:
-                    type: integer
-                    format: enum
                 colorHex:
                     type: string
         api.palace.SaveTeamDictRequest:

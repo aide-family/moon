@@ -46,6 +46,8 @@ enum MenuType {
   MENU_TYPE_TEAM = 2;
   // User menu type
   MENU_TYPE_USER = 3;
+  // None menu type
+  MENU_TYPE_NONE = 4;
 }
 
 enum MenuCategory {

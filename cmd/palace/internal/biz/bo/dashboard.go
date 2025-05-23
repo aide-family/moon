@@ -10,7 +10,6 @@ type Dashboard interface {
 	GetID() uint32
 	GetTitle() string
 	GetRemark() string
-	GetStatus() vobj.GlobalStatus
 	GetColorHex() string
 }
 
@@ -19,7 +18,6 @@ type SaveDashboardReq struct {
 	ID       uint32
 	Title    string
 	Remark   string
-	Status   vobj.GlobalStatus
 	ColorHex string
 }
 
@@ -36,10 +34,6 @@ func (d *SaveDashboardReq) GetTitle() string {
 
 func (d *SaveDashboardReq) GetRemark() string {
 	return d.Remark
-}
-
-func (d *SaveDashboardReq) GetStatus() vobj.GlobalStatus {
-	return d.Status
 }
 
 func (d *SaveDashboardReq) GetColorHex() string {

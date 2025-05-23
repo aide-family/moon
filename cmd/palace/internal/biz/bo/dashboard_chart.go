@@ -11,9 +11,8 @@ type DashboardChart interface {
 	GetDashboardID() uint32
 	GetTitle() string
 	GetRemark() string
-	GetStatus() vobj.GlobalStatus
 	GetUrl() string
-	GetWidth() string
+	GetWidth() uint32
 	GetHeight() string
 }
 
@@ -23,9 +22,8 @@ type SaveDashboardChartReq struct {
 	DashboardID uint32
 	Title       string
 	Remark      string
-	Status      vobj.GlobalStatus
 	Url         string
-	Width       string
+	Width       uint32
 	Height      string
 }
 
@@ -57,13 +55,6 @@ func (d *SaveDashboardChartReq) GetRemark() string {
 	return d.Remark
 }
 
-func (d *SaveDashboardChartReq) GetStatus() vobj.GlobalStatus {
-	if d == nil {
-		return vobj.GlobalStatusUnknown
-	}
-	return d.Status
-}
-
 func (d *SaveDashboardChartReq) GetUrl() string {
 	if d == nil {
 		return ""
@@ -71,9 +62,9 @@ func (d *SaveDashboardChartReq) GetUrl() string {
 	return d.Url
 }
 
-func (d *SaveDashboardChartReq) GetWidth() string {
+func (d *SaveDashboardChartReq) GetWidth() uint32 {
 	if d == nil {
-		return ""
+		return 6
 	}
 	return d.Width
 }

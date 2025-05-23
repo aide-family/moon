@@ -21,6 +21,6 @@ type DashboardChart interface {
 	GetStatus() vobj.GlobalStatus
 	GetDashboard() Dashboard
 	GetUrl() string
-	GetWidth() string
+	GetWidth() uint32
 	GetHeight() string
 }

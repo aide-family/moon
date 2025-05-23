@@ -79,25 +79,42 @@ service TeamDatasource {
 }
 
 message SaveTeamMetricDatasourceRequest {
-  api.palace.common.DatasourceDriverMetric driver = 1 [(buf.validate.field).required = true];
+  api.palace.common.DatasourceDriverMetric driver = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "SAVE_TEAM_METRIC_DATASOURCE_DRIVER_VALIDATOR",
+    message: "driver must be one of the following: DATASOURCE_DRIVER_METRIC_PROMETHEUS, DATASOURCE_DRIVER_METRIC_VICTORIAMETRICS"
+    expression: "this in ['DATASOURCE_DRIVER_METRIC_PROMETHEUS', 'DATASOURCE_DRIVER_METRIC_VICTORIAMETRICS', 1, 2]"
+  }];
   uint32 datasourceId = 2;
-  string name = 3 [(buf.validate.field).string = {
-    max_len: 20,
-    min_len: 1,
+  string name = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "SAVE_TEAM_METRIC_DATASOURCE_NAME_VALIDATOR",
+    message: "name must be less than 20 characters"
+    expression: "this.size() <= 20"
   }];
-  string remark = 4 [(buf.validate.field).string = {
-    max_len: 200,
+  string remark = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "SAVE_TEAM_METRIC_DATASOURCE_REMARK_VALIDATOR",
+    message: "remark must be less than 200 characters"
+    expression: "this.size() <= 200"
   }];
-  string endpoint = 5 [(buf.validate.field).string = {
-    max_len: 255,
-    min_len: 1,
-    uri: true,
+  string endpoint = 5 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "SAVE_TEAM_METRIC_DATASOURCE_ENDPOINT_VALIDATOR",
+    message: "endpoint must be a valid url"
+    expression: "this.isUri()"
+  }, (buf.validate.field).cel = {
+    id: "SAVE_TEAM_METRIC_DATASOURCE_ENDPOINT_MAX_LENGTH_VALIDATOR",
+    message: "endpoint must be less than 255 characters"
+    expression: "this.size() < 255"
   }];
-  int64 scrapeInterval = 6 [(buf.validate.field).int64 = {
-    gt: 0,
+  int64 scrapeInterval = 6 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "SAVE_TEAM_METRIC_DATASOURCE_SCRAPE_INTERVAL_VALIDATOR",
+    message: "scrapeInterval must be greater than 0"
+    expression: "this > 0"
   }];
   repeated api.palace.common.KeyValueItem headers = 7;
-  api.palace.common.HTTPMethod queryMethod = 8 [(buf.validate.field).required = true];
+  api.palace.common.HTTPMethod queryMethod = 8 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "SAVE_TEAM_METRIC_DATASOURCE_QUERY_METHOD_VALIDATOR",
+    message: "queryMethod must be one of the following: HTTP_METHOD_GET, HTTP_METHOD_POST, HTTP_METHOD_PUT, HTTP_METHOD_DELETE, HTTP_METHOD_HEAD, HTTP_METHOD_OPTIONS, HTTP_METHOD_PATCH"
+    expression: "this in ['HTTP_METHOD_GET', 'HTTP_METHOD_POST', 'HTTP_METHOD_PUT', 'HTTP_METHOD_DELETE', 'HTTP_METHOD_HEAD', 'HTTP_METHOD_OPTIONS', 'HTTP_METHOD_PATCH', 1, 2, 3, 4, 5, 6, 7]"
+  }];
   string ca = 9;
   api.palace.common.TLS tls = 10;
   api.palace.common.BasicAuth basicAuth = 11;
@@ -105,31 +122,51 @@ message SaveTeamMetricDatasourceRequest {
 }
 
 message UpdateTeamMetricDatasourceStatusRequest {
-  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
-    gt: 0,
+  uint32 datasourceId = 1 [(buf.validate.field).cel = {
+    id: "UPDATE_TEAM_METRIC_DATASOURCE_STATUS_DATASOURCE_ID_VALIDATOR",
+    message: "must select a datasource"
+    expression: "this > 0"
   }];
-  api.palace.common.GlobalStatus status = 2 [(buf.validate.field).required = true];
+  api.palace.common.GlobalStatus status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "UPDATE_TEAM_METRIC_DATASOURCE_STATUS_STATUS_VALIDATOR",
+    message: "status must be one of the following: GLOBAL_STATUS_ENABLE, GLOBAL_STATUS_DISABLE"
+    expression: "this in ['GLOBAL_STATUS_ENABLE', 'GLOBAL_STATUS_DISABLE', 1, 2]"
+  }];
 }
 
 message DeleteTeamMetricDatasourceRequest {
-  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
-    gt: 0,
+  uint32 datasourceId = 1 [(buf.validate.field).cel = {
+    id: "DELETE_TEAM_METRIC_DATASOURCE_DATASOURCE_ID_VALIDATOR",
+    message: "must select a datasource"
+    expression: "this > 0"
   }];
 }
 
 message GetTeamMetricDatasourceRequest {
-  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
-    gt: 0,
+  uint32 datasourceId = 1 [(buf.validate.field).cel = {
+    id: "GET_TEAM_METRIC_DATASOURCE_DATASOURCE_ID_VALIDATOR",
+    message: "must select a datasource"
+    expression: "this > 0"
   }];
 }
 
 message ListTeamMetricDatasourceRequest {
   api.palace.common.PaginationRequest pagination = 1;
-  string keyword = 2 [(buf.validate.field).string = {
-    max_len: 20,
+  string keyword = 2 [(buf.validate.field).cel = {
+    id: "LIST_TEAM_METRIC_DATASOURCE_KEYWORD_VALIDATOR",
+    message: "keyword must be less than 20 characters"
+    expression: "this.size() <= 20"
   }];
-  api.palace.common.GlobalStatus status = 3;
-  api.palace.common.DatasourceDriverMetric driver = 4;
+  api.palace.common.GlobalStatus status = 3 [(buf.validate.field).cel = {
+    id: "LIST_TEAM_METRIC_DATASOURCE_STATUS_VALIDATOR",
+    message: "status must be one of the following: GLOBAL_STATUS_ENABLE, GLOBAL_STATUS_DISABLE"
+    expression: "this in ['GLOBAL_STATUS_ENABLE', 'GLOBAL_STATUS_DISABLE', 1, 2, 0]"
+  }];
+  api.palace.common.DatasourceDriverMetric driver = 4 [(buf.validate.field).cel = {
+    id: "LIST_TEAM_METRIC_DATASOURCE_DRIVER_VALIDATOR",
+    message: "driver must be one of the following: DATASOURCE_DRIVER_METRIC_PROMETHEUS, DATASOURCE_DRIVER_METRIC_VICTORIAMETRICS"
+    expression: "this in ['DATASOURCE_DRIVER_METRIC_PROMETHEUS', 'DATASOURCE_DRIVER_METRIC_VICTORIAMETRICS', 1, 2, 0]"
+  }];
 }
 message ListTeamMetricDatasourceReply {
   api.palace.common.PaginationReply pagination = 1;
@@ -137,46 +174,69 @@ message ListTeamMetricDatasourceReply {
 }
 
 message SyncMetricMetadataRequest {
-  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
-    gt: 0,
+  uint32 datasourceId = 1 [(buf.validate.field).cel = {
+    id: "SYNC_METADATA_DATASOURCE_ID_VALIDATOR",
+    message: "must select a datasource"
+    expression: "this > 0"
   }];
 }
 
 message MetricDatasourceQueryRequest {
-  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
-    gt: 0,
+  uint32 datasourceId = 1 [(buf.validate.field).cel = {
+    id: "METRIC_DATASOURCE_QUERY_DATASOURCE_ID_VALIDATOR",
+    message: "must select a datasource"
+    expression: "this > 0"
   }];
-  string expr = 2;
+  string expr = 2 [(buf.validate.field).required = true];
   int64 time = 3;
   int64 startTime = 4;
   int64 endTime = 5;
   uint32 step = 6;
+  option (buf.validate.message).cel = {
+    id: "METRIC_DATASOURCE_QUERY_TIME_VALIDATOR",
+    message: "time, startTime and endTime must be valid time"
+    expression: "this.startTime < this.endTime || this.endTime == 0 && this.startTime == 0 && this.time > 0"
+  };
 }
 
 message MetricDatasourceProxyRequest {
-  uint32 datasourceId = 1 [(buf.validate.field).required = true];
-  string target = 2;
+  uint32 datasourceId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "METRIC_DATASOURCE_PROXY_DATASOURCE_ID_VALIDATOR",
+    message: "must select a datasource"
+    expression: "this > 0"
+  }];
+  string target = 2 [(buf.validate.field).required = true];
 }
 
 message GetMetricDatasourceMetadataRequest {
-  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
-    gt: 0,
+  uint32 datasourceId = 1 [(buf.validate.field).cel = {
+    id: "GET_METRIC_DATASOURCE_METADATA_DATASOURCE_ID_VALIDATOR",
+    message: "must select a datasource"
+    expression: "this > 0"
   }];
-  uint32 metadataId = 2 [(buf.validate.field).uint32 = {
-    gt: 0,
+  uint32 metadataId = 2 [(buf.validate.field).cel = {
+    id: "GET_METRIC_DATASOURCE_METADATA_METADATA_ID_VALIDATOR",
+    message: "must select a metadata"
+    expression: "this > 0"
   }];
 }
 
 message ListMetricDatasourceMetadataRequest {
-  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
-    gt: 0,
+  uint32 datasourceId = 1 [(buf.validate.field).cel = {
+    id: "LIST_METRIC_DATASOURCE_METADATA_DATASOURCE_ID_VALIDATOR",
+    message: "must select a datasource"
+    expression: "this > 0"
   }];
   api.palace.common.PaginationRequest pagination = 2;
-  string keyword = 3 [(buf.validate.field).string = {
-    max_len: 20,
+  string keyword = 3 [(buf.validate.field).cel = {
+    id: "LIST_METRIC_DATASOURCE_METADATA_KEYWORD_VALIDATOR",
+    message: "keyword must be less than 20 characters"
+    expression: "this.size() <= 20"
   }];
-  string type = 4 [(buf.validate.field).string = {
-    max_len: 20,
+  string type = 4 [(buf.validate.field).cel = {
+    id: "LIST_METRIC_DATASOURCE_METADATA_TYPE_VALIDATOR",
+    message: "type must be one of the following: counter, gauge, histogram, summary, unknown"
+    expression: "this.size() == 0 || this in ['counter', 'gauge', 'histogram', 'summary', 'unknown']"
   }];
 }
 
@@ -186,32 +246,50 @@ message ListMetricDatasourceMetadataReply {
 }
 
 message UpdateMetricDatasourceMetadataRequest {
-  uint32 datasourceId = 1 [(buf.validate.field).uint32 = {
-    gt: 0,
+  uint32 datasourceId = 1 [(buf.validate.field).cel = {
+    id: "UPDATE_METRIC_DATASOURCE_METADATA_DATASOURCE_ID_VALIDATOR",
+    message: "must select a datasource"
+    expression: "this > 0"
   }];
-  uint32 metadataId = 2 [(buf.validate.field).uint32 = {
-    gt: 0,
+  uint32 metadataId = 2 [(buf.validate.field).cel = {
+    id: "UPDATE_METRIC_DATASOURCE_METADATA_METADATA_ID_VALIDATOR",
+    message: "must select a metadata"
+    expression: "this > 0"
   }];
-  string help = 3 [(buf.validate.field).string = {
-    max_len: 200,
+  string help = 3 [(buf.validate.field).cel = {
+    id: "UPDATE_METRIC_DATASOURCE_METADATA_HELP_VALIDATOR",
+    message: "help must be less than 200 characters"
+    expression: "this.size() <= 200"
   }];
-  string unit = 4 [(buf.validate.field).string = {
-    max_len: 20,
+  string unit = 4 [(buf.validate.field).cel = {
+    id: "UPDATE_METRIC_DATASOURCE_METADATA_UNIT_VALIDATOR",
+    message: "unit must be less than 20 characters"
+    expression: "this.size() <= 20"
   }];
-  string type = 5 [(buf.validate.field).string = {
-    max_len: 20,
+  string type = 5 [(buf.validate.field).cel = {
+    id: "UPDATE_METRIC_DATASOURCE_METADATA_TYPE_VALIDATOR",
+    message: "type must be one of the following: counter, gauge, histogram, summary, unknown"
+    expression: "this.size() == 0 || this in ['counter', 'gauge', 'histogram', 'summary', 'unknown']"
   }];
 }
 
 message DatasourceSelectRequest {
-  api.palace.common.PaginationRequest pagination = 1;
-  uint32 datasourceId = 2 [(buf.validate.field).uint32 = {
-    gt: 0,
+  api.palace.common.PaginationRequest pagination = 1 ;
+  uint32 datasourceId = 2 [(buf.validate.field).cel = {
+    id: "DATASOURCE_SELECT_DATASOURCE_ID_VALIDATOR",
+    message: "must select a datasource"
+    expression: "this > 0"
   }];
   api.common.DatasourceType type = 3 [(buf.validate.field).required = true];
-  api.palace.common.GlobalStatus status = 4;
-  string keyword = 5 [(buf.validate.field).string = {
-    max_len: 20,
+  api.palace.common.GlobalStatus status = 4 [(buf.validate.field).cel = {
+    id: "DATASOURCE_SELECT_STATUS_VALIDATOR",
+    message: "status must be one of the following: GLOBAL_STATUS_ENABLE, GLOBAL_STATUS_DISABLE"
+    expression: "this in ['GLOBAL_STATUS_ENABLE', 'GLOBAL_STATUS_DISABLE', 1, 2, 0]"
+  }];
+  string keyword = 5 [(buf.validate.field).cel = {
+    id: "DATASOURCE_SELECT_KEYWORD_VALIDATOR",
+    message: "keyword must be less than 20 characters"
+    expression: "this.size() <= 20"
   }];
 }
 

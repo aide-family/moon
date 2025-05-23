@@ -1,8 +1,6 @@
 package build
 
 import (
-	"time"
-
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
@@ -19,11 +17,16 @@ type GetSendMessageLogsRequest interface {
 	GetStatus() common.SendMessageStatus
 	GetKeyword() string
 	GetMessageType() common.MessageType
+	GetTimeRange() []string
 }
 
-func ToListSendMessageLogParams(req GetSendMessageLogsRequest) *bo.ListSendMessageLogParams {
+func ToListSendMessageLogParams(req GetSendMessageLogsRequest) (*bo.ListSendMessageLogParams, error) {
 	if validate.IsNil(req) {
 		panic("GetSendMessageLogsRequest is nil")
+	}
+	timeRange, err := ToTimeRange(req.GetTimeRange())
+	if err != nil {
+		return nil, err
 	}
 	return &bo.ListSendMessageLogParams{
 		PaginationRequest: ToPaginationRequest(req.GetPagination()),
@@ -31,9 +34,9 @@ func ToListSendMessageLogParams(req GetSendMessageLogsRequest) *bo.ListSendMessa
 		RequestID:         req.GetRequestId(),
 		Status:            vobj.SendMessageStatus(req.GetStatus()),
 		Keyword:           req.GetKeyword(),
-		TimeRange:         [2]time.Time{},
+		TimeRange:         timeRange,
 		MessageType:       vobj.MessageType(req.GetMessageType()),
-	}
+	}, nil
 }
 
 func ToGetSendMessageLogParams(requestId string) *bo.GetSendMessageLogParams {
@@ -43,11 +46,21 @@ func ToGetSendMessageLogParams(requestId string) *bo.GetSendMessageLogParams {
 	}
 }
 
-func ToRetrySendMessageParams(requestId string) *bo.RetrySendMessageParams {
+type OperateOneSendMessageRequest interface {
+	GetRequestId() string
+	GetSendTime() string
+}
+
+func ToRetrySendMessageParams(req OperateOneSendMessageRequest) (*bo.RetrySendMessageParams, error) {
+	sendAt, err := timex.Parse(req.GetSendTime())
+	if err != nil {
+		return nil, err
+	}
 	return &bo.RetrySendMessageParams{
 		TeamID:    0,
-		RequestID: requestId,
-	}
+		RequestID: req.GetRequestId(),
+		SendAt:    sendAt,
+	}, nil
 }
 
 func ToUpdateSendMessageLogStatusParams(req *palace.SendMsgCallbackRequest) *bo.UpdateSendMessageLogStatusParams {
