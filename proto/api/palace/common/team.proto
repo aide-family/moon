@@ -109,7 +109,7 @@ message TeamDashboardChartItem {
   string remark = 4;
   api.palace.common.GlobalStatus status = 5;
   string url = 6;
-  string width = 7;
+  uint32 width = 7;
   string height = 8;
   string createdAt = 9;
   string updatedAt = 10;

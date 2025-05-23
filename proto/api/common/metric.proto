@@ -14,6 +14,7 @@ message MetricItem {
 	string type = 3;
 	repeated Label labels = 4;
 	string unit = 5;
+	double value = 6;
 }
 
 message MetricDatasourceQueryReply {

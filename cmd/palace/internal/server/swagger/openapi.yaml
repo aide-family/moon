@@ -2720,6 +2720,9 @@ components:
                         $ref: '#/components/schemas/api.common.MetricItem_Label'
                 unit:
                     type: string
+                value:
+                    type: number
+                    format: double
         api.common.MetricItem_Label:
             type: object
             properties:
@@ -5452,7 +5455,8 @@ components:
                 url:
                     type: string
                 width:
-                    type: string
+                    type: integer
+                    format: uint32
                 height:
                     type: string
                 createdAt:
