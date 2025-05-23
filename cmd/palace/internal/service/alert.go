@@ -36,9 +36,9 @@ func (s *AlertService) ListAlerts(ctx context.Context, req *palace.ListAlertPara
 	if !ok {
 		return nil, merr.ErrorPermissionDenied("team id not found")
 	}
-	params := build.ToListAlertParams(req)
-	if len(params.TimeRange) != 2 {
-		return nil, merr.ErrorInvalidArgument("time range must be 2")
+	params, err := build.ToListAlertParams(req)
+	if err != nil {
+		return nil, err
 	}
 	params.TeamID = teamId
 	reply, err := s.realtimeBiz.ListAlerts(ctx, params)

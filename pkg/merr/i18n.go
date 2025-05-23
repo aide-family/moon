@@ -11,6 +11,7 @@ import (
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 
 	"github.com/aide-family/moon/pkg/util/cnst"
+	"github.com/aide-family/moon/pkg/util/kv"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -85,8 +86,9 @@ func (l *localizer) Localize(ctx context.Context, err error) error {
 		return se.WithCause(localizeErr)
 	}
 
-	metadata := se.GetMetadata()
-	return errors.New(int(se.GetCode()), se.GetReason(), localize).WithMetadata(metadata).WithCause(err)
+	md := kv.NewStringMap(se.GetMetadata())
+	md.Set("__message__", se.GetMessage())
+	return errors.New(int(se.GetCode()), se.GetReason(), localize).WithMetadata(md).WithCause(err)
 }
 
 func GetLanguage(ctx context.Context) string {

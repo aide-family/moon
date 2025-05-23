@@ -34,23 +34,23 @@ service Alert {
 message ListAlertParams {
 	api.palace.common.PaginationRequest pagination = 1;
 	repeated string timeRange = 2 [(buf.validate.field).cel = {
-		id: "TIME_RANGE_VALIDATOR",
-		message: "timeRange must be a valid time range",
-		expression: "this.size() == 0 || this.all(x, x.matches(rules.pattern))"
+		id: "LIST_ALERT_TIME_RANGE_VALIDATOR",
+		message: "must be a valid time range",
+		expression: "this.size() == 2 && this.all(x, x.size() == 19)"
 	}];
 	string fingerprint = 3 [(buf.validate.field).cel = {
-		id: "FINGERPRINT_VALIDATOR",
-		message: "fingerprint must be less than 64 characters",
+		id: "LIST_ALERT_FINGERPRINT_VALIDATOR",
+		message: "must be less than 64 characters",
 		expression: "this.size() <= 64"
 	}];
 	string keyword = 4 [(buf.validate.field).cel = {
-		id: "KEYWORD_VALIDATOR",
-		message: "keyword must be less than 64 characters",
+		id: "LIST_ALERT_KEYWORD_VALIDATOR",
+		message: "must be less than 64 characters",
 		expression: "this.size() <= 64"
 	}];
 	api.common.AlertStatus status = 5 [(buf.validate.field).cel = {
-		id: "ALERT_STATUS_VALIDATOR",
-		message: "status must be a valid status",
+		id: "LIST_ALERT_STATUS_VALIDATOR",
+		message: "must be a valid status",
 		expression: "this in ['pending', 'firing', 'resolved', 0]"
 	}];
 }
@@ -74,9 +74,21 @@ message ListAlertReply {
 }
 
 message AlertDetailParams {
-	uint32 alertId = 1;
-	string fingerprint = 2;
-	string createdAt = 3;
+	uint32 alertId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "ALERT_DETAIL_ALERT_ID_VALIDATOR",
+		message: "must select an alert",
+		expression: "this > 0"
+	}];
+	string fingerprint = 2 [(buf.validate.field).cel = {
+		id: "ALERT_DETAIL_FINGERPRINT_VALIDATOR",
+		message: "must be less than 64 characters",
+		expression: "this.size() <= 64"
+	}];
+	string createdAt = 3 [(buf.validate.field).cel = {
+		id: "ALERT_DETAIL_CREATED_AT_VALIDATOR",
+		message: "must be a valid time, format: 2005-01-02 15:04:05",
+		expression: "this.size() == 19"
+	}];
 }
 
 message AlertDetailReply {

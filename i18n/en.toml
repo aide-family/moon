@@ -61,14 +61,17 @@ other = "Internal Server Error"
 [INVALID_ARGUMENT]
 other = "Invalid Argument"
 
-[TIME_RANGE_VALIDATOR]
+[LIST_ALERT_TIME_RANGE_VALIDATOR]
 other = "timeRange must be a valid time range"
 
-[FINGERPRINT_VALIDATOR]
+[LIST_ALERT_FINGERPRINT_VALIDATOR]
 other = "fingerprint must be less than 64 characters"
 
-[KEYWORD_VALIDATOR]
+[LIST_ALERT_KEYWORD_VALIDATOR]
 other = "keyword must be less than 64 characters"
+
+[LIST_ALERT_STATUS_VALIDATOR]
+other = "status must be a valid status"
 
 [RECEIVER_ROUTES_SIZE_LESS_THAN_10]
 other = "receiverRoutes must be less than 10"

@@ -61,36 +61,38 @@ other = "服务器内部错误"
 [INVALID_ARGUMENT]
 other = "无效的参数"
 
-[TIME_RANGE_VALIDATOR]
-other = "timeRange must be a valid time range"
+[LIST_ALERT_TIME_RANGE_VALIDATOR]
+other = "时间查询格式错误"
 
-[FINGERPRINT_VALIDATOR]
-other = "fingerprint must be less than 64 characters"
+[LIST_ALERT_FINGERPRINT_VALIDATOR]
+other = "长度不能超过64"
 
-[KEYWORD_VALIDATOR]
-other = "keyword must be less than 64 characters"
+[LIST_ALERT_KEYWORD_VALIDATOR]
+other = "长度不能超过64"
+
+[LIST_ALERT_STATUS_VALIDATOR]
+other = "状态必须为pending, firing, resolved"
 
 [RECEIVER_ROUTES_SIZE_LESS_THAN_10]
-other = "receiverRoutes must be less than 10"
+other = "长度不能超过10"
 
 [RECEIVER_ROUTES_UNIQUE]
-other = "receiverRoutes must be unique"
+other = "不能重复"
 
 [RECEIVER_ROUTES_GREATER_THAN_0]
-other = "receiverRoutes must be greater than 0"
+other = "不能为空"
 
 [GROUP_ID_GREATER_THAN_0]
-other = "must select a group"
+other = "必须选择一个分组"
 
 [STRATEGY_ID_GREATER_THAN_0]
-other = "must select a strategy"
+other = "必须选择一个策略"
 
 [EXPR_GREATER_THAN_0]
-other = "expr must be greater than 0 characters"
+other = "不能为空"
 
 [DATASOURCE_SIZE_GREATER_THAN_0]
-other = "at least one valid datasource must be selected"
+other = "至少选择一个数据源"
 
 [DATASOURCE_GREATER_THAN_0]
-other = "a valid datasource must be selected"
-
+other = "数据源必须是有效的"
