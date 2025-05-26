@@ -39,6 +39,15 @@ func (m *Map[K, T]) Set(key K, value T) {
 	m.m.Store(key, value)
 }
 
+// Append the value to the map.
+func (m *Map[K, T]) Append(values ...map[K]T) {
+	for _, v := range values {
+		for k, v := range v {
+			m.m.Store(k, v)
+		}
+	}
+}
+
 // Delete the value from the map.
 func (m *Map[K, T]) Delete(key K) {
 	m.m.Delete(key)
