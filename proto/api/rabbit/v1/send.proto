@@ -40,7 +40,7 @@ message SendEmailRequest {
     max_len: 36,
   }];
   repeated string emails = 2 [(buf.validate.field).cel = {
-    expression: "this.size() > 0 && this.size() < 100"
+    expression: "this.size() >= 1 && this.size() <= 100"
     message: "emails must be between 1 and 100"
   }];
   string body = 3 [(buf.validate.field).required = true];
@@ -59,7 +59,7 @@ message SendSmsRequest {
     max_len: 36,
   }];
   repeated string phones = 2 [(buf.validate.field).cel = {
-    message: "phones must be between 1 and 10"
+    message: "phones must be between 1 and 100"
     expression: "this.size() >= 1 && this.size() <= 100"
   }];
   string templateParameters = 3 [(buf.validate.field).required = true];
@@ -79,7 +79,7 @@ message SendHookRequest {
     max_len: 36,
   }];
   repeated api.rabbit.common.HookConfig hooks = 2 [(buf.validate.field).cel = {
-    message: "hooks must be between 1 and 10"
+    message: "hooks must be between 1 and 100"
     expression: "this.size() >= 1 && this.size() <= 100"
   }];
   repeated Body body = 3 [(buf.validate.field).required = true];
