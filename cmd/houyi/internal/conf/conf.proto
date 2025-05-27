@@ -21,6 +21,7 @@ message Bootstrap {
   Config config = 11;
   Alert alert = 12;
   config.I18N i18n = 13;
+  config.ConfigSource configSource = 14;
 }
 
 message Data {

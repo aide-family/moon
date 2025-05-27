@@ -184,6 +184,48 @@ other = "menuCategory must be one of the following: MENU_CATEGORY_MENU, MENU_CAT
 [SAVE_MENU_PROCESS_TYPE_VALIDATOR]
 other = "processType must be one of the following: MENU_PROCESS_TYPE_LOGIN, MENU_PROCESS_TYPE_TEAM, MENU_PROCESS_TYPE_LOG, MENU_PROCESS_TYPE_DATA_PERMISSION"
 
+[LOGIN_EMAIL_VALIDATOR]
+other = "email is required"
+
+[LOGIN_EMAIL_FORMAT_VALIDATOR]
+other = "email is invalid"
+
+[LOGIN_PASSWORD_VALIDATOR]
+other = "password is required"
+
+[LOGIN_CODE_VALIDATOR]
+other = "code is required"
+
+[REGISTER_EMAIL_VALIDATOR]
+other = "email is required"
+
+[REGISTER_EMAIL_FORMAT_VALIDATOR]
+other = "email is invalid"
+
+[REGISTER_PASSWORD_VALIDATOR]
+other = "password is required"
+
+[REGISTER_PASSWORD_MAX_LENGTH_VALIDATOR]
+other = "password max length is 32"
+
+[REGISTER_CODE_VALIDATOR]
+other = "code is required"
+
+[REGISTER_CODE_MAX_LENGTH_VALIDATOR]
+other = "code max length is 32"
+
+[REGISTER_USERNAME_VALIDATOR]
+other = "username is required"
+
+[REGISTER_USERNAME_MAX_LENGTH_VALIDATOR]
+other = "username max length is 32"
+
+[VERIFY_EMAIL_VALIDATOR]
+other = "email is required"
+
+[VERIFY_EMAIL_FORMAT_VALIDATOR]
+other = "email is invalid"
+
 [UPDATE_USER_USER_ID_VALIDATOR]
 other = "a valid user must be selected"
 

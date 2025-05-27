@@ -18,6 +18,7 @@ message Bootstrap {
   repeated config.AliyunSMSConfig aliyun_sms_config = 9;
   config.MicroServer palace = 10;
   config.I18N i18n = 11;
+  config.ConfigSource configSource = 12;
 }
 
 message Data {

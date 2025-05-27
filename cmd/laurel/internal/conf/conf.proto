@@ -17,6 +17,7 @@ message Bootstrap {
   repeated MetricVec metricVecs = 8;
   config.I18N i18n = 9;
   repeated string taskScripts = 10;
+  config.ConfigSource configSource = 11;
 }
 
 message Auth {

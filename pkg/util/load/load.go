@@ -10,9 +10,16 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func Load(cfgPath string, bootstrap proto.Message) error {
+func Load(cfgPath string, bootstrap ConfigSource) error {
 	_ = godotenv.Load()
 
+	if err := walk(cfgPath, bootstrap); err != nil {
+		return err
+	}
+	return loadByConfigSource(bootstrap)
+}
+
+func walk(cfgPath string, bootstrap proto.Message) error {
 	return filepath.Walk(cfgPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err

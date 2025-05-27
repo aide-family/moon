@@ -20,6 +20,7 @@ message Bootstrap {
   config.EmailConfig email = 10;
   config.I18N i18n = 11;
   config.HTTPServer portal = 12;
+  config.ConfigSource configSource = 13;
 }
 
 message Data {

@@ -203,7 +203,9 @@ message Etcd {
 }
 
 enum RegistryDriver {
-  ETCD = 0;
+  REGISTRY_DRIVER_UNKNOWN = 0;
+  ETCD = 1;
+  CONSUL = 2;
 }
 
 // server register config
@@ -211,6 +213,7 @@ message Registry {
   RegistryDriver driver = 1;
   bool enable = 2;
   Etcd etcd = 3;
+  Consul consul = 4;
 }
 
 // server discovery config
@@ -218,6 +221,7 @@ message Discovery {
   RegistryDriver driver = 1;
   bool enable = 2;
   Etcd etcd = 3;
+  Consul consul = 4;
 }
 
 // email config
@@ -393,4 +397,15 @@ message AliyunSMSConfig {
   string signName = 3;
   string endpoint = 4;
   string name = 5;
+}
+
+message Consul {
+  string address = 1;
+  string path = 2;
+}
+
+message ConfigSource {
+  RegistryDriver driver = 1;
+  Consul consul = 2;
+  Etcd etcd = 3;
 }

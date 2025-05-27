@@ -1190,6 +1190,13 @@ components:
                     format: int32
                 message:
                     type: string
+        config.Consul:
+            type: object
+            properties:
+                address:
+                    type: string
+                path:
+                    type: string
         config.Discovery:
             type: object
             properties:
@@ -1200,6 +1207,8 @@ components:
                     type: boolean
                 etcd:
                     $ref: '#/components/schemas/config.Etcd'
+                consul:
+                    $ref: '#/components/schemas/config.Consul'
             description: server discovery config
         config.Etcd:
             type: object
