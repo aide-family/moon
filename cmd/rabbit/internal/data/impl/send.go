@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
@@ -94,10 +93,10 @@ func (s *sendImpl) Hook(ctx context.Context, params bo.SendHookParams) error {
 	if hooks.Len() == 0 {
 		return merr.ErrorParams("No hook is available")
 	}
-	eg := new(errgroup.Group)
+
 	for _, body := range params.GetBody() {
 		bodyItem := body
-		eg.Go(func() error {
+		safety.Go(func() error {
 			sender, ok := hooks.Get(bodyItem.AppName)
 			if !ok {
 				return merr.ErrorParams("No hook is available")
@@ -106,7 +105,7 @@ func (s *sendImpl) Hook(ctx context.Context, params bo.SendHookParams) error {
 		})
 	}
 
-	return eg.Wait()
+	return nil
 }
 
 func (s *sendImpl) newSms(config bo.SMSConfig) (sms.Sender, error) {

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/aide-family/moon/cmd/laurel/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/laurel/internal/biz/repository"
@@ -13,6 +12,7 @@ import (
 	"github.com/aide-family/moon/cmd/laurel/internal/data"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/slices"
 )
 
@@ -38,9 +38,9 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 	gaugeMetrics := metricsByType[vobj.MetricTypeGauge]
 	histogramMetrics := metricsByType[vobj.MetricTypeHistogram]
 	summaryMetrics := metricsByType[vobj.MetricTypeSummary]
-	eg := new(errgroup.Group)
+
 	if len(counterMetrics) > 0 {
-		eg.Go(func() error {
+		safety.Go(func() error {
 			key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeCounter)
 			values := slices.ToMap(counterMetrics, func(metric bo.MetricVec) string {
 				return metric.GetMetricName()
@@ -49,7 +49,7 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 		})
 	}
 	if len(gaugeMetrics) > 0 {
-		eg.Go(func() error {
+		safety.Go(func() error {
 			key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeGauge)
 			values := slices.ToMap(gaugeMetrics, func(metric bo.MetricVec) string {
 				return metric.GetMetricName()
@@ -58,7 +58,7 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 		})
 	}
 	if len(histogramMetrics) > 0 {
-		eg.Go(func() error {
+		safety.Go(func() error {
 			key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeHistogram)
 			values := slices.ToMap(histogramMetrics, func(metric bo.MetricVec) string {
 				return metric.GetMetricName()
@@ -67,7 +67,7 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 		})
 	}
 	if len(summaryMetrics) > 0 {
-		eg.Go(func() error {
+		safety.Go(func() error {
 			key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeSummary)
 			values := slices.ToMap(summaryMetrics, func(metric bo.MetricVec) string {
 				return metric.GetMetricName()
@@ -76,7 +76,7 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 		})
 	}
 
-	return eg.Wait()
+	return nil
 }
 
 func (c *cacheImpl) GetCounterMetrics(ctx context.Context, names ...string) ([]*bo.CounterMetricVec, error) {

@@ -50,6 +50,9 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 			log.NewHelper(logger).Errorw("method", "close cache", "err", err)
 		}
 		close(data.StrategyJobEventBus)
+		if err = safety.Wait(); err != nil {
+			data.helper.Errorw("method", "safety.Wait", "err", err)
+		}
 	}
 	return data, cleanup, nil
 }

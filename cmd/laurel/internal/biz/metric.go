@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/aide-family/moon/cmd/laurel/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/laurel/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/laurel/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/laurel/internal/conf"
+	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/slices"
 )
 
@@ -45,39 +45,34 @@ func (m *MetricManager) WithMetricData(ctx context.Context, metrics ...*bo.Metri
 		return metric.MetricType
 	})
 
-	eg := new(errgroup.Group)
-	eg.Go(func() error {
+	safety.Go(func() error {
 		metricDataList := metricDataList[vobj.MetricTypeCounter]
 		if len(metricDataList) == 0 {
 			return nil
 		}
 		return m.metricRegisterRepo.WithCounterMetricValue(ctx, metricDataList...)
 	})
-	eg.Go(func() error {
+	safety.Go(func() error {
 		metricDataList := metricDataList[vobj.MetricTypeGauge]
 		if len(metricDataList) == 0 {
 			return nil
 		}
 		return m.metricRegisterRepo.WithGaugeMetricValue(ctx, metricDataList...)
 	})
-	eg.Go(func() error {
+	safety.Go(func() error {
 		metricDataList := metricDataList[vobj.MetricTypeHistogram]
 		if len(metricDataList) == 0 {
 			return nil
 		}
 		return m.metricRegisterRepo.WithHistogramMetricValue(ctx, metricDataList...)
 	})
-	eg.Go(func() error {
+	safety.Go(func() error {
 		metricDataList := metricDataList[vobj.MetricTypeSummary]
 		if len(metricDataList) == 0 {
 			return nil
 		}
 		return m.metricRegisterRepo.WithSummaryMetricValue(ctx, metricDataList...)
 	})
-	if err := eg.Wait(); err != nil {
-		m.helper.Errorw("msg", "with metric data error", "error", err)
-		return err
-	}
 	return nil
 }
 
@@ -152,38 +147,35 @@ func (m *MetricManager) RegisterSummaryMetric(ctx context.Context, metrics ...*b
 func (m *MetricManager) loadCacheMetrics() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	eg := new(errgroup.Group)
-	eg.Go(func() error {
+
+	safety.Go(func() error {
 		counterMetrics, err := m.cacheRepo.GetCounterMetrics(ctx)
 		if err != nil {
 			return err
 		}
 		return m.RegisterCounterMetric(ctx, counterMetrics...)
 	})
-	eg.Go(func() error {
+	safety.Go(func() error {
 		gaugeMetrics, err := m.cacheRepo.GetGaugeMetrics(ctx)
 		if err != nil {
 			return err
 		}
 		return m.RegisterGaugeMetric(ctx, gaugeMetrics...)
 	})
-	eg.Go(func() error {
+	safety.Go(func() error {
 		histogramMetrics, err := m.cacheRepo.GetHistogramMetrics(ctx)
 		if err != nil {
 			return err
 		}
 		return m.RegisterHistogramMetric(ctx, histogramMetrics...)
 	})
-	eg.Go(func() error {
+	safety.Go(func() error {
 		summaryMetrics, err := m.cacheRepo.GetSummaryMetrics(ctx)
 		if err != nil {
 			return err
 		}
 		return m.RegisterSummaryMetric(ctx, summaryMetrics...)
 	})
-	if err := eg.Wait(); err != nil {
-		m.helper.Errorw("msg", "load cache metrics error", "error", err)
-	}
 }
 
 func (m *MetricManager) loadConfigMetrics(bc *conf.Bootstrap) {
@@ -196,36 +188,33 @@ func (m *MetricManager) loadConfigMetrics(bc *conf.Bootstrap) {
 	})
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	eg := new(errgroup.Group)
+
 	for metricType, metrics := range metrics {
 		if len(metrics) == 0 {
 			continue
 		}
 		switch metricType {
 		case vobj.MetricTypeCounter:
-			eg.Go(func() error {
+			safety.Go(func() error {
 				counterMetrics := slices.Map(metrics, toCounterMetricVec)
 				return m.RegisterCounterMetric(ctx, counterMetrics...)
 			})
 		case vobj.MetricTypeGauge:
-			eg.Go(func() error {
+			safety.Go(func() error {
 				gaugeMetrics := slices.Map(metrics, toGaugeMetricVec)
 				return m.RegisterGaugeMetric(ctx, gaugeMetrics...)
 			})
 		case vobj.MetricTypeHistogram:
-			eg.Go(func() error {
+			safety.Go(func() error {
 				histogramMetrics := slices.Map(metrics, toHistogramMetricVec)
 				return m.RegisterHistogramMetric(ctx, histogramMetrics...)
 			})
 		case vobj.MetricTypeSummary:
-			eg.Go(func() error {
+			safety.Go(func() error {
 				summaryMetrics := slices.Map(metrics, toSummaryMetricVec)
 				return m.RegisterSummaryMetric(ctx, summaryMetrics...)
 			})
 		}
-	}
-	if err := eg.Wait(); err != nil {
-		m.helper.Errorw("msg", "load config metrics error", "error", err)
 	}
 }
 

@@ -99,6 +99,9 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 				data.helper.Errorw("method", "close laurel conn", "err", err)
 			}
 		}
+		if err = safety.Wait(); err != nil {
+			data.helper.Errorw("method", "safety.Wait", "err", err)
+		}
 	}, nil
 }
 
