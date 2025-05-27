@@ -30,7 +30,7 @@ type StrategyMetric interface {
 	GetStrategy() Strategy
 	GetDatasourceList() []DatasourceMetric
 	GetExpr() string
-	GetLabels() []*kv.KV
+	GetLabels() kv.KeyValues
 	GetAnnotations() kv.StringMap
 	GetRules() []StrategyMetricRule
 }

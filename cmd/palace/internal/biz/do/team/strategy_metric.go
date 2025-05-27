@@ -42,7 +42,7 @@ func (m *StrategyMetric) GetExpr() string {
 	return m.Expr
 }
 
-func (m *StrategyMetric) GetLabels() []*kv.KV {
+func (m *StrategyMetric) GetLabels() kv.KeyValues {
 	if m == nil {
 		return nil
 	}
