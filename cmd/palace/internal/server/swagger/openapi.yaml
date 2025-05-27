@@ -432,6 +432,54 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/portal/home/features:
+        get:
+            tags:
+                - Home
+            operationId: Home_Features
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.portal.FeaturesReply'
+    /api/portal/home/footer:
+        get:
+            tags:
+                - Home
+            operationId: Home_Footer
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.portal.FooterReply'
+    /api/portal/home/partners:
+        get:
+            tags:
+                - Home
+            operationId: Home_Partners
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.portal.PartnersReply'
+    /api/portal/pricing/package:
+        get:
+            tags:
+                - Pricing
+            operationId: Pricing_ListPackage
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.portal.ListPackageReply'
     /api/system/operate/log/list:
         post:
             tags:
@@ -6106,6 +6154,89 @@ components:
                     type: string
                     description: User's captcha answer
             description: CaptchaValidateRequest is used to validate the captcha
+        api.palace.portal.CookieItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                url:
+                    type: string
+                remark:
+                    type: string
+        api.palace.portal.CopyrightItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                url:
+                    type: string
+        api.palace.portal.FeatureItem:
+            type: object
+            properties:
+                title:
+                    type: string
+                remark:
+                    type: string
+                icon:
+                    type: string
+                link:
+                    type: string
+        api.palace.portal.FeaturesReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.portal.FeatureItem'
+        api.palace.portal.FooterItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                url:
+                    type: string
+                remark:
+                    type: string
+        api.palace.portal.FooterReply:
+            type: object
+            properties:
+                remark:
+                    type: string
+                products:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.portal.FooterItem'
+                    description: 产品
+                resources:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.portal.FooterItem'
+                    description: 资源
+                companies:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.portal.FooterItem'
+                    description: 公司
+                terms:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.portal.TermsItem'
+                    description: 服务条款
+                privacy:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.portal.PolicyItem'
+                    description: 隐私政策
+                cookie:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.portal.CookieItem'
+                    description: Cookie 政策
+                copyright:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.portal.CopyrightItem'
+                    description: 版权
+                icp:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.portal.ICPItem'
+                    description: 备案
         api.palace.portal.GetCaptchaReply:
             type: object
             properties:
@@ -6120,6 +6251,22 @@ components:
                     description: Captcha expiration time in seconds
                     format: int32
             description: GetCaptchaReply contains the response data for the GetCaptcha method
+        api.palace.portal.ICPItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                url:
+                    type: string
+                remark:
+                    type: string
+        api.palace.portal.ListPackageReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.portal.PackageItem'
         api.palace.portal.LoginInfo:
             type: object
             properties:
@@ -6138,6 +6285,60 @@ components:
                     type: string
                 code:
                     type: string
+        api.palace.portal.PackageFeature:
+            type: object
+            properties:
+                name:
+                    type: string
+                remark:
+                    type: string
+        api.palace.portal.PackageItem:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                remark:
+                    type: string
+                price:
+                    type: number
+                    format: double
+                currency:
+                    type: string
+                period:
+                    type: string
+                features:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.portal.PackageFeature'
+        api.palace.portal.PartnerItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                url:
+                    type: string
+                logo:
+                    type: string
+                remark:
+                    type: string
+        api.palace.portal.PartnersReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.portal.PartnerItem'
+        api.palace.portal.PolicyItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                url:
+                    type: string
+                remark:
+                    type: string
         api.palace.portal.RegisterRequest:
             type: object
             properties:
@@ -6148,6 +6349,15 @@ components:
                 code:
                     type: string
                 username:
+                    type: string
+        api.palace.portal.TermsItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                url:
+                    type: string
+                remark:
                     type: string
         api.palace.portal.VerifyEmailRequest:
             type: object
@@ -6241,8 +6451,10 @@ tags:
     - name: Callback
     - name: Health
       description: Health Check API
+    - name: Home
     - name: Menu
       description: Menu service provides operations for managing menus
+    - name: Pricing
     - name: Server
     - name: System
       description: System service provides operations for managing system users, roles, teams, and audits

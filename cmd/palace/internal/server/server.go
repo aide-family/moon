@@ -47,6 +47,8 @@ func RegisterService(
 	alertService *service.AlertService,
 	timeEngineService *service.TimeEngineService,
 	portalAuthService *portal_service.AuthService,
+	portalHomeService *portal_service.HomeService,
+	portalPricingService *portal_service.PricingService,
 ) server.Servers {
 	common.RegisterHealthServer(rpcSrv, healthService)
 	common.RegisterServerServer(rpcSrv, serverService)
@@ -72,6 +74,8 @@ func RegisterService(
 
 	// portal
 	portalapi.RegisterAuthHTTPServer(portalHttpSrv.Server, portalAuthService)
+	portalapi.RegisterHomeHTTPServer(portalHttpSrv.Server, portalHomeService)
+	portalapi.RegisterPricingHTTPServer(portalHttpSrv.Server, portalPricingService)
 
 	return server.Servers{rpcSrv, httpSrv, portalHttpSrv, tickerSrv}
 }
