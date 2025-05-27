@@ -12,9 +12,9 @@ import (
 	"github.com/aide-family/moon/cmd/rabbit/internal/service/build"
 	"github.com/aide-family/moon/pkg/api/rabbit/common"
 	rabbitv1 "github.com/aide-family/moon/pkg/api/rabbit/v1"
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/pointer"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 type SendService struct {
@@ -24,8 +24,7 @@ type SendService struct {
 	smsBiz    *biz.SMS
 	hookBiz   *biz.Hook
 	lockBiz   *biz.Lock
-
-	helper *log.Helper
+	helper    *log.Helper
 }
 
 func NewSendService(
@@ -52,10 +51,14 @@ func (s *SendService) Email(ctx context.Context, req *rabbitv1.SendEmailRequest)
 	}
 	params := &bo.GetEmailConfigParams{
 		TeamID:             req.GetTeamId(),
-		Name:               pointer.Of(req.GetConfigName()),
-		DefaultEmailConfig: req.GetEmailConfig(),
+		Name:               req.ConfigName,
+		DefaultEmailConfig: req.EmailConfig,
 	}
 	emailConfig := s.configBiz.GetEmailConfig(ctx, params)
+	if validate.IsNil(emailConfig) || !emailConfig.GetEnable() {
+		// no email config
+		return &common.EmptyReply{}, nil
+	}
 	opts := []bo.SendEmailParamsOption{
 		bo.WithSendEmailParamsOptionEmail(req.GetEmails()...),
 		bo.WithSendEmailParamsOptionBody(req.GetBody()),
@@ -78,16 +81,17 @@ func (s *SendService) Sms(ctx context.Context, req *rabbitv1.SendSmsRequest) (*c
 	if !s.lockBiz.LockByAPP(ctx, req.GetRequestId(), vobj.APPSms) {
 		return &common.EmptyReply{}, nil
 	}
-	smsConfig, ok := build.ToSMSConfig(req.GetSmsConfig())
-	if !ok {
-		return nil, merr.ErrorParams("sms config is invalid")
-	}
+	smsConfig, _ := build.ToSMSConfig(req.GetSmsConfig())
 	params := &bo.GetSMSConfigParams{
 		TeamID:           req.GetTeamId(),
-		Name:             pointer.Of(req.GetConfigName()),
+		Name:             req.ConfigName,
 		DefaultSMSConfig: smsConfig,
 	}
 	smsConfig = s.configBiz.GetSMSConfig(ctx, params)
+	if validate.IsNil(smsConfig) || !smsConfig.GetEnable() {
+		// no sms config
+		return &common.EmptyReply{}, nil
+	}
 	opts := []bo.SendSMSParamsOption{
 		bo.WithSendSMSParamsOptionPhoneNumbers(req.GetPhones()...),
 		bo.WithSendSMSParamsOptionTemplateParam(req.GetTemplateParameters()),
@@ -118,17 +122,20 @@ func (s *SendService) Hook(ctx context.Context, req *rabbitv1.SendHookRequest) (
 			do.WithHookConfigOptionToken(hookItem.Token),
 			do.WithHookConfigOptionUsername(hookItem.Username),
 		}
-		var hookConfig bo.HookConfig
-		hookConfigDo, err := do.NewHookConfig(hookItem.Url, opts...)
-		if err == nil {
-			hookConfig = hookConfigDo
+		hookConfig, err := do.NewHookConfig(hookItem.Url, opts...)
+		if err != nil {
+			return nil, false
 		}
 		params := &bo.GetHookConfigParams{
 			TeamID:            req.GetTeamId(),
 			Name:              pointer.Of(hookItem.Name),
 			DefaultHookConfig: hookConfig,
 		}
-		return s.configBiz.GetHookConfig(ctx, params), true
+		hookConfigDo := s.configBiz.GetHookConfig(ctx, params)
+		if validate.IsNil(hookConfigDo) || !hookConfigDo.GetEnable() {
+			return nil, false
+		}
+		return hookConfig, true
 	})
 	if len(hookConfigs) == 0 || len(req.GetBody()) == 0 {
 		return &common.EmptyReply{}, nil
