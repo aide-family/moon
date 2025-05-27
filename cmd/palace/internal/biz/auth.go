@@ -53,23 +53,26 @@ func NewAuthBiz(
 	transaction repository.Transaction,
 	logger log.Logger,
 ) *Auth {
+	authConf := bc.GetAuth()
 	return &Auth{
-		bc:           bc,
-		redirectURL:  bc.GetAuth().GetOauth2().GetRedirectUri(),
-		oauthConfigs: buildOAuthConf(bc.GetAuth().GetOauth2()),
-		userRepo:     userRepo,
-		captchaRepo:  captchaRepo,
-		cacheRepo:    cacheRepo,
-		oauthRepo:    oauthRepo,
-		transaction:  transaction,
-		helper:       log.NewHelper(log.With(logger, "module", "biz.auth")),
+		bc:                 bc,
+		redirectURL:        authConf.GetOauth2().GetRedirectUri(),
+		oauthConfigs:       buildOAuthConf(authConf.GetOauth2()),
+		oauthConfigsPortal: buildOAuthConf(authConf.GetOauth2Portal()),
+		userRepo:           userRepo,
+		captchaRepo:        captchaRepo,
+		cacheRepo:          cacheRepo,
+		oauthRepo:          oauthRepo,
+		transaction:        transaction,
+		helper:             log.NewHelper(log.With(logger, "module", "biz.auth")),
 	}
 }
 
 type Auth struct {
-	bc           *conf.Bootstrap
-	redirectURL  string
-	oauthConfigs *safety.Map[vobj.OAuthAPP, *oauth2.Config]
+	bc                 *conf.Bootstrap
+	redirectURL        string
+	oauthConfigs       *safety.Map[vobj.OAuthAPP, *oauth2.Config]
+	oauthConfigsPortal *safety.Map[vobj.OAuthAPP, *oauth2.Config]
 
 	userRepo    repository.User
 	captchaRepo repository.Captcha
@@ -165,8 +168,17 @@ func (a *Auth) login(userDo do.User) (*bo.LoginSign, error) {
 }
 
 // GetOAuthConf get oauth configuration
-func (a *Auth) GetOAuthConf(provider vobj.OAuthAPP) (*oauth2.Config, error) {
-	config, ok := a.oauthConfigs.Get(provider)
+func (a *Auth) GetOAuthConf(provider vobj.OAuthAPP, from vobj.OAuthFrom) (*oauth2.Config, error) {
+	var (
+		config *oauth2.Config
+		ok     bool
+	)
+	switch from {
+	case vobj.OAuthFromPortal:
+		config, ok = a.oauthConfigsPortal.Get(provider)
+	default:
+		config, ok = a.oauthConfigs.Get(provider)
+	}
 	if !ok {
 		return nil, merr.ErrorInternalServer("not support oauth provider")
 	}
@@ -176,23 +188,23 @@ func (a *Auth) GetOAuthConf(provider vobj.OAuthAPP) (*oauth2.Config, error) {
 func (a *Auth) OAuthLogin(ctx context.Context, req *bo.OAuthLoginParams) (string, error) {
 	switch req.APP {
 	case vobj.OAuthAPPGithub:
-		return a.githubLogin(ctx, req.Code, req.SendEmailFun)
+		return a.githubLogin(ctx, req)
 	case vobj.OAuthAPPGitee:
-		return a.giteeLogin(ctx, req.Code, req.SendEmailFun)
+		return a.giteeLogin(ctx, req)
 	case vobj.OAuthAPPFeiShu:
-		return a.feiShuLogin(ctx, req.Code, req.SendEmailFun)
+		return a.feiShuLogin(ctx, req)
 	default:
 		return "", merr.ErrorInternalServer("not support oauth provider")
 	}
 }
 
-func (a *Auth) githubLogin(ctx context.Context, code string, sendEmailFunc bo.SendEmailFun) (string, error) {
-	githubOAuthConf, err := a.GetOAuthConf(vobj.OAuthAPPGithub)
+func (a *Auth) githubLogin(ctx context.Context, req *bo.OAuthLoginParams) (string, error) {
+	githubOAuthConf, err := a.GetOAuthConf(vobj.OAuthAPPGithub, req.From)
 	if err != nil {
 		return "", err
 	}
 
-	token, err := githubOAuthConf.Exchange(ctx, code)
+	token, err := githubOAuthConf.Exchange(ctx, req.Code)
 	if err != nil {
 		return "", err
 	}
@@ -213,11 +225,11 @@ func (a *Auth) githubLogin(ctx context.Context, code string, sendEmailFunc bo.Se
 		return "", err
 	}
 
-	return a.oauthLogin(ctx, &userInfo, sendEmailFunc)
+	return a.oauthLogin(ctx, &userInfo, req.SendEmailFun)
 }
 
-func (a *Auth) giteeLogin(ctx context.Context, code string, sendEmailFunc bo.SendEmailFun) (string, error) {
-	giteeOAuthConf, err := a.GetOAuthConf(vobj.OAuthAPPGitee)
+func (a *Auth) giteeLogin(ctx context.Context, req *bo.OAuthLoginParams) (string, error) {
+	giteeOAuthConf, err := a.GetOAuthConf(vobj.OAuthAPPGitee, req.From)
 	if err != nil {
 		return "", err
 	}
@@ -227,9 +239,9 @@ func (a *Auth) giteeLogin(ctx context.Context, code string, sendEmailFunc bo.Sen
 		oauth2.SetAuthURLParam("client_secret", giteeOAuthConf.ClientSecret),
 		oauth2.SetAuthURLParam("client_id", giteeOAuthConf.ClientID),
 		oauth2.SetAuthURLParam("redirect_uri", giteeOAuthConf.RedirectURL),
-		oauth2.SetAuthURLParam("code", code),
+		oauth2.SetAuthURLParam("code", req.Code),
 	}
-	token, err := giteeOAuthConf.Exchange(context.Background(), code, opts...)
+	token, err := giteeOAuthConf.Exchange(context.Background(), req.Code, opts...)
 	if err != nil {
 		return "", err
 	}
@@ -251,17 +263,17 @@ func (a *Auth) giteeLogin(ctx context.Context, code string, sendEmailFunc bo.Sen
 		return "", err
 	}
 
-	return a.oauthLogin(ctx, &userInfo, sendEmailFunc)
+	return a.oauthLogin(ctx, &userInfo, req.SendEmailFun)
 }
 
-func (a *Auth) feiShuLogin(ctx context.Context, code string, sendEmailFunc bo.SendEmailFun) (string, error) {
-	oAuthConf, err := a.GetOAuthConf(vobj.OAuthAPPFeiShu)
+func (a *Auth) feiShuLogin(ctx context.Context, req *bo.OAuthLoginParams) (string, error) {
+	oAuthConf, err := a.GetOAuthConf(vobj.OAuthAPPFeiShu, req.From)
 	if err != nil {
 		return "", err
 	}
 
 	verifier := oauth2.GenerateVerifier()
-	token, err := oAuthConf.Exchange(ctx, code, oauth2.VerifierOption(verifier))
+	token, err := oAuthConf.Exchange(ctx, req.Code, oauth2.VerifierOption(verifier))
 
 	if err != nil {
 		return "", err
@@ -290,7 +302,7 @@ func (a *Auth) feiShuLogin(ctx context.Context, code string, sendEmailFunc bo.Se
 		return "", err
 	}
 
-	return a.oauthLogin(ctx, result.Data, sendEmailFunc)
+	return a.oauthLogin(ctx, result.Data, req.SendEmailFun)
 }
 
 func (a *Auth) oauthUserFirstOrCreate(ctx context.Context, userInfo bo.IOAuthUser, sendEmail bo.SendEmailFun) (do.UserOAuth, error) {

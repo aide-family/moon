@@ -76,7 +76,12 @@ func NewHTTPServer(
 	return srv
 }
 
-func registerOAuth2Routes(c *conf.Auth_OAuth2, httpSrv *http.Server, authService *service.AuthService) {
+type OAuthService interface {
+	OAuthLogin(app vobj.OAuthAPP) http.HandlerFunc
+	OAuthLoginCallback(app vobj.OAuthAPP) http.HandlerFunc
+}
+
+func registerOAuth2Routes(c *conf.Auth_OAuth2, httpSrv *http.Server, authService OAuthService) {
 	if !c.GetEnable() {
 		return
 	}

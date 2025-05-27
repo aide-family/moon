@@ -245,7 +245,7 @@ func (s *AuthService) ReplaceMemberRole(ctx context.Context, req *palace.Replace
 // OAuthLogin oauth login
 func (s *AuthService) OAuthLogin(app vobj.OAuthAPP) http.HandlerFunc {
 	return func(ctx http.Context) error {
-		oauthConf, err := s.authBiz.GetOAuthConf(app)
+		oauthConf, err := s.authBiz.GetOAuthConf(app, vobj.OAuthFromAdmin)
 		if err != nil {
 			return err
 		}
@@ -269,8 +269,12 @@ func (s *AuthService) OAuthLoginCallback(app vobj.OAuthAPP) http.HandlerFunc {
 		}
 		params := &bo.OAuthLoginParams{
 			APP:          app,
+			From:         vobj.OAuthFromAdmin,
 			Code:         code,
 			SendEmailFun: s.messageBiz.SendEmail,
+			Email:        "",
+			OpenID:       "",
+			Token:        "",
 		}
 		loginRedirect, err := s.authBiz.OAuthLogin(ctx, params)
 		if err != nil {

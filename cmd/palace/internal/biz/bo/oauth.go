@@ -42,6 +42,7 @@ type VerifyEmailCodeParams struct {
 
 type OAuthLoginParams struct {
 	APP          vobj.OAuthAPP
+	From         vobj.OAuthFrom
 	Code         string
 	Email        string
 	OpenID       string

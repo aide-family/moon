@@ -334,6 +334,104 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.GetMenuTreeReply'
+    /api/portal/auth/captcha:
+        get:
+            tags:
+                - Auth
+            description: GetCaptcha sends a captcha image to the client
+            operationId: Auth_GetCaptcha
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.portal.GetCaptchaReply'
+    /api/portal/auth/login:
+        post:
+            tags:
+                - Auth
+            operationId: Auth_Login
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.portal.LoginRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.portal.LoginInfo'
+    /api/portal/auth/logout:
+        post:
+            tags:
+                - Auth
+            operationId: Auth_Logout
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.common.EmptyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/portal/auth/register:
+        post:
+            tags:
+                - Auth
+            operationId: Auth_Register
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.portal.RegisterRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.portal.LoginInfo'
+    /api/portal/auth/user-info:
+        get:
+            tags:
+                - Auth
+            operationId: Auth_GetUserInfo
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.UserBaseItem'
+    /api/portal/auth/verify-email:
+        post:
+            tags:
+                - Auth
+            description: VerifyEmail sends a verification email to the user
+            operationId: Auth_VerifyEmail
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.portal.VerifyEmailRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
     /api/system/operate/log/list:
         post:
             tags:
@@ -5998,6 +6096,68 @@ components:
                     type: integer
                     description: User's unique identifier
                     format: uint32
+        api.palace.portal.CaptchaValidateRequest:
+            type: object
+            properties:
+                captchaId:
+                    type: string
+                    description: Captcha Id, used to identify the captcha image
+                answer:
+                    type: string
+                    description: User's captcha answer
+            description: CaptchaValidateRequest is used to validate the captcha
+        api.palace.portal.GetCaptchaReply:
+            type: object
+            properties:
+                captchaId:
+                    type: string
+                    description: Unique identifier for the captcha
+                captchaImg:
+                    type: string
+                    description: Base64 encoded captcha image data
+                expiredSeconds:
+                    type: integer
+                    description: Captcha expiration time in seconds
+                    format: int32
+            description: GetCaptchaReply contains the response data for the GetCaptcha method
+        api.palace.portal.LoginInfo:
+            type: object
+            properties:
+                token:
+                    type: string
+                expiresAt:
+                    type: string
+                user:
+                    $ref: '#/components/schemas/api.palace.common.UserBaseItem'
+        api.palace.portal.LoginRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                password:
+                    type: string
+                code:
+                    type: string
+        api.palace.portal.RegisterRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                password:
+                    type: string
+                code:
+                    type: string
+                username:
+                    type: string
+        api.palace.portal.VerifyEmailRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                captcha:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.portal.CaptchaValidateRequest'
+                    description: Captcha validation information
         config.Discovery:
             type: object
             properties:
@@ -6077,6 +6237,7 @@ tags:
     - name: Alert
     - name: Auth
       description: Auth service provides authentication related operations
+    - name: Auth
     - name: Callback
     - name: Health
       description: Health Check API

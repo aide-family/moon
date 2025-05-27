@@ -7,8 +7,10 @@ import (
 
 	"github.com/aide-family/moon/cmd/palace/internal/conf"
 	"github.com/aide-family/moon/cmd/palace/internal/service"
+	portal_service "github.com/aide-family/moon/cmd/palace/internal/service/portal"
 	"github.com/aide-family/moon/pkg/api/common"
 	"github.com/aide-family/moon/pkg/api/palace"
+	portalapi "github.com/aide-family/moon/pkg/api/palace/portal"
 	"github.com/aide-family/moon/pkg/plugin/server"
 )
 
@@ -16,6 +18,7 @@ import (
 var ProviderSetServer = wire.NewSet(
 	NewGRPCServer,
 	NewHTTPServer,
+	NewPortalHTTPServer,
 	NewTickerServer,
 	RegisterService,
 )
@@ -25,6 +28,7 @@ func RegisterService(
 	c *conf.Bootstrap,
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
+	portalHttpSrv *PortalHTTPServer,
 	tickerSrv *TickerServer,
 	healthService *service.HealthService,
 	authService *service.AuthService,
@@ -42,6 +46,7 @@ func RegisterService(
 	teamLogService *service.TeamLogService,
 	alertService *service.AlertService,
 	timeEngineService *service.TimeEngineService,
+	portalAuthService *portal_service.AuthService,
 ) server.Servers {
 	common.RegisterHealthServer(rpcSrv, healthService)
 	common.RegisterServerServer(rpcSrv, serverService)
@@ -64,5 +69,9 @@ func RegisterService(
 	palace.RegisterTeamLogHTTPServer(httpSrv, teamLogService)
 	palace.RegisterAlertHTTPServer(httpSrv, alertService)
 	palace.RegisterTimeEngineHTTPServer(httpSrv, timeEngineService)
-	return server.Servers{rpcSrv, httpSrv, tickerSrv}
+
+	// portal
+	portalapi.RegisterAuthHTTPServer(portalHttpSrv.Server, portalAuthService)
+
+	return server.Servers{rpcSrv, httpSrv, portalHttpSrv, tickerSrv}
 }

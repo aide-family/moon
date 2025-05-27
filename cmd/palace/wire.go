@@ -15,6 +15,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/data/rpc"
 	"github.com/aide-family/moon/cmd/palace/internal/server"
 	"github.com/aide-family/moon/cmd/palace/internal/service"
+	portal_service "github.com/aide-family/moon/cmd/palace/internal/service/portal"
 )
 
 // wireApp init kratos application.
@@ -25,6 +26,7 @@ func wireApp(*conf.Bootstrap, log.Logger) (*kratos.App, func(), error) {
 		rpc.ProviderSetRPC,
 		biz.ProviderSetBiz,
 		service.ProviderSetService,
+		portal_service.ProviderSetPortalService,
 		server.ProviderSetServer,
 		newApp,
 	))

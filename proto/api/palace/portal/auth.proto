@@ -1,0 +1,157 @@
+syntax = "proto3";
+
+package api.palace.portal;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "palace/common/system.proto";
+import "palace/common/common.proto";
+
+option go_package = "github.com/aide-family/moon/pkg/api/palace/portal;portal";
+
+service Auth {
+	rpc Login(LoginRequest) returns (LoginInfo) {
+		option (google.api.http) = {
+			post: "/api/portal/auth/login"
+			body: "*"
+		};
+	}
+	rpc Register(RegisterRequest) returns (LoginInfo) {
+		option (google.api.http) = {
+			post: "/api/portal/auth/register"
+			body: "*"
+		};
+	}
+	rpc Logout(api.palace.common.EmptyRequest) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+			post: "/api/portal/auth/logout"
+			body: "*"
+		};
+	}
+	rpc GetUserInfo(api.palace.common.EmptyRequest) returns (api.palace.common.UserBaseItem) {
+		option (google.api.http) = {
+			get: "/api/portal/auth/user-info"
+		};
+	}
+	// GetCaptcha sends a captcha image to the client
+	rpc GetCaptcha(api.palace.common.EmptyRequest) returns (GetCaptchaReply) {
+		option (google.api.http) = {
+			get: "/api/portal/auth/captcha"
+		};
+	}
+
+	// VerifyEmail sends a verification email to the user
+	rpc VerifyEmail(VerifyEmailRequest) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+			post: "/api/portal/auth/verify-email"
+			body: "*"
+		};
+	}
+}
+
+message LoginInfo {
+	string token = 1;
+	int64 expiresAt = 2;
+	api.palace.common.UserBaseItem user = 3;
+}
+
+// CaptchaValidateRequest is used to validate the captcha
+message CaptchaValidateRequest {
+	// Captcha Id, used to identify the captcha image
+	string captchaId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+	  id: "CAPTCHA_VALIDATE_CAPTCHA_ID_VALIDATOR",
+	  message: "captchaId is required"
+	  expression: "this.size() > 0"
+	}];
+	// User's captcha answer
+	string answer = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+	  id: "CAPTCHA_VALIDATE_ANSWER_VALIDATOR",
+	  message: "answer is required"
+	  expression: "this.size() > 0"
+	}];
+}
+  
+// GetCaptchaReply contains the response data for the GetCaptcha method
+message GetCaptchaReply {
+	// Unique identifier for the captcha
+	string captchaId = 1;
+	// Base64 encoded captcha image data
+	string captchaImg = 2;
+	// Captcha expiration time in seconds
+	int32 expiredSeconds = 3;
+}
+
+message LoginRequest {
+	string email = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "LOGIN_EMAIL_VALIDATOR",
+		message: "email is required"
+		expression: "this.size() > 0"
+	}, (buf.validate.field).cel = {
+		id: "LOGIN_EMAIL_FORMAT_VALIDATOR",
+		message: "email is invalid"
+		expression: "this.isEmail()"
+	}];
+	string password = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "LOGIN_PASSWORD_VALIDATOR",
+		message: "password is required"
+		expression: "this.size() > 0"
+	}];
+	string code = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "LOGIN_CODE_VALIDATOR",
+		message: "code is required"
+		expression: "this.size() > 0"
+	}];
+}
+
+message RegisterRequest {
+	string email = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "REGISTER_EMAIL_VALIDATOR",
+		message: "email is required"
+		expression: "this.size() > 0"
+	}, (buf.validate.field).cel = {
+		id: "REGISTER_EMAIL_FORMAT_VALIDATOR",
+		message: "email is invalid"
+		expression: "this.isEmail()"
+	}];
+	string password = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "REGISTER_PASSWORD_VALIDATOR",
+		message: "password is required"
+		expression: "this.size() > 0"
+	}, (buf.validate.field).cel = {
+		id: "REGISTER_PASSWORD_MAX_LENGTH_VALIDATOR",
+		message: "password max length is 32"
+		expression: "this.size() <= 32"
+	}];
+	string code = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "REGISTER_CODE_VALIDATOR",
+		message: "code is required"
+		expression: "this.size() > 0"
+	}, (buf.validate.field).cel = {
+		id: "REGISTER_CODE_MAX_LENGTH_VALIDATOR",
+		message: "code max length is 32"
+		expression: "this.size() <= 32"
+	}];
+	string username = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "REGISTER_USERNAME_VALIDATOR",
+		message: "username is required"
+		expression: "this.size() > 0"
+	}, (buf.validate.field).cel = {
+		id: "REGISTER_USERNAME_MAX_LENGTH_VALIDATOR",
+		message: "username max length is 32"
+		expression: "this.size() <= 32"
+	}];
+}
+
+message VerifyEmailRequest {
+	string email = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "VERIFY_EMAIL_VALIDATOR",
+		message: "email is required"
+		expression: "this.size() > 0"
+	}, (buf.validate.field).cel = {
+		id: "VERIFY_EMAIL_FORMAT_VALIDATOR",
+		message: "email is invalid"
+		expression: "this.isEmail()"
+	}];
+	// Captcha validation information
+	CaptchaValidateRequest captcha = 2 [(buf.validate.field).required = true];
+}

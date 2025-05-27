@@ -19,6 +19,7 @@ message Bootstrap {
   FilingInformation filing = 9;
   config.EmailConfig email = 10;
   config.I18N i18n = 11;
+  config.HTTPServer portal = 12;
 }
 
 message Data {
@@ -55,6 +56,7 @@ message Auth {
   config.JWT jwt = 1;
   Captcha captcha = 2;
   OAuth2 oauth2 = 3;
+  OAuth2 oauth2Portal = 4;
 }
 
 message FilingInformation {

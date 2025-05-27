@@ -34,6 +34,14 @@ server:
     addr: ${X_MOON_GRPC_ADDR:0.0.0.0:9000}
     timeout: ${X_MOON_GRPC_TIMEOUT:50s}
 
+portal:
+  network: ${X_MOON_PORTAL_NETWORK:tcp}
+  addr: ${X_MOON_PORTAL_ADDR:0.0.0.0:8888}
+  timeout: ${X_MOON_PORTAL_TIMEOUT:50s}
+  allowHeaders: ${X_MOON_PORTAL_ALLOW_HEADERS:['*']}
+  allowMethods: ${X_MOON_PORTAL_ALLOW_METHODS:['*']}
+  allowOrigins: ${X_MOON_PORTAL_ALLOW_ORIGINS:['*']}
+
 registry:
   driver: ${X_MOON_REGISTRY_DRIVER:ETCD}
   enable: ${X_MOON_REGISTRY_ENABLE:false}
