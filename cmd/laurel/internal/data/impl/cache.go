@@ -40,7 +40,7 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 	summaryMetrics := metricsByType[vobj.MetricTypeSummary]
 
 	if len(counterMetrics) > 0 {
-		safety.Go(func() error {
+		safety.Go(ctx, func(ctx context.Context) error {
 			key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeCounter)
 			values := slices.ToMap(counterMetrics, func(metric bo.MetricVec) string {
 				return metric.GetMetricName()
@@ -49,7 +49,7 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 		})
 	}
 	if len(gaugeMetrics) > 0 {
-		safety.Go(func() error {
+		safety.Go(ctx, func(ctx context.Context) error {
 			key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeGauge)
 			values := slices.ToMap(gaugeMetrics, func(metric bo.MetricVec) string {
 				return metric.GetMetricName()
@@ -58,7 +58,7 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 		})
 	}
 	if len(histogramMetrics) > 0 {
-		safety.Go(func() error {
+		safety.Go(ctx, func(ctx context.Context) error {
 			key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeHistogram)
 			values := slices.ToMap(histogramMetrics, func(metric bo.MetricVec) string {
 				return metric.GetMetricName()
@@ -67,7 +67,7 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 		})
 	}
 	if len(summaryMetrics) > 0 {
-		safety.Go(func() error {
+		safety.Go(ctx, func(ctx context.Context) error {
 			key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeSummary)
 			values := slices.ToMap(summaryMetrics, func(metric bo.MetricVec) string {
 				return metric.GetMetricName()

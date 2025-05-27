@@ -45,28 +45,28 @@ func (m *MetricManager) WithMetricData(ctx context.Context, metrics ...*bo.Metri
 		return metric.MetricType
 	})
 
-	safety.Go(func() error {
+	safety.Go(ctx, func(ctx context.Context) error {
 		metricDataList := metricDataList[vobj.MetricTypeCounter]
 		if len(metricDataList) == 0 {
 			return nil
 		}
 		return m.metricRegisterRepo.WithCounterMetricValue(ctx, metricDataList...)
 	})
-	safety.Go(func() error {
+	safety.Go(ctx, func(ctx context.Context) error {
 		metricDataList := metricDataList[vobj.MetricTypeGauge]
 		if len(metricDataList) == 0 {
 			return nil
 		}
 		return m.metricRegisterRepo.WithGaugeMetricValue(ctx, metricDataList...)
 	})
-	safety.Go(func() error {
+	safety.Go(ctx, func(ctx context.Context) error {
 		metricDataList := metricDataList[vobj.MetricTypeHistogram]
 		if len(metricDataList) == 0 {
 			return nil
 		}
 		return m.metricRegisterRepo.WithHistogramMetricValue(ctx, metricDataList...)
 	})
-	safety.Go(func() error {
+	safety.Go(ctx, func(ctx context.Context) error {
 		metricDataList := metricDataList[vobj.MetricTypeSummary]
 		if len(metricDataList) == 0 {
 			return nil
@@ -148,28 +148,28 @@ func (m *MetricManager) loadCacheMetrics() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	safety.Go(func() error {
+	safety.Go(ctx, func(ctx context.Context) error {
 		counterMetrics, err := m.cacheRepo.GetCounterMetrics(ctx)
 		if err != nil {
 			return err
 		}
 		return m.RegisterCounterMetric(ctx, counterMetrics...)
 	})
-	safety.Go(func() error {
+	safety.Go(ctx, func(ctx context.Context) error {
 		gaugeMetrics, err := m.cacheRepo.GetGaugeMetrics(ctx)
 		if err != nil {
 			return err
 		}
 		return m.RegisterGaugeMetric(ctx, gaugeMetrics...)
 	})
-	safety.Go(func() error {
+	safety.Go(ctx, func(ctx context.Context) error {
 		histogramMetrics, err := m.cacheRepo.GetHistogramMetrics(ctx)
 		if err != nil {
 			return err
 		}
 		return m.RegisterHistogramMetric(ctx, histogramMetrics...)
 	})
-	safety.Go(func() error {
+	safety.Go(ctx, func(ctx context.Context) error {
 		summaryMetrics, err := m.cacheRepo.GetSummaryMetrics(ctx)
 		if err != nil {
 			return err
@@ -195,22 +195,22 @@ func (m *MetricManager) loadConfigMetrics(bc *conf.Bootstrap) {
 		}
 		switch metricType {
 		case vobj.MetricTypeCounter:
-			safety.Go(func() error {
+			safety.Go(ctx, func(ctx context.Context) error {
 				counterMetrics := slices.Map(metrics, toCounterMetricVec)
 				return m.RegisterCounterMetric(ctx, counterMetrics...)
 			})
 		case vobj.MetricTypeGauge:
-			safety.Go(func() error {
+			safety.Go(ctx, func(ctx context.Context) error {
 				gaugeMetrics := slices.Map(metrics, toGaugeMetricVec)
 				return m.RegisterGaugeMetric(ctx, gaugeMetrics...)
 			})
 		case vobj.MetricTypeHistogram:
-			safety.Go(func() error {
+			safety.Go(ctx, func(ctx context.Context) error {
 				histogramMetrics := slices.Map(metrics, toHistogramMetricVec)
 				return m.RegisterHistogramMetric(ctx, histogramMetrics...)
 			})
 		case vobj.MetricTypeSummary:
-			safety.Go(func() error {
+			safety.Go(ctx, func(ctx context.Context) error {
 				summaryMetrics := slices.Map(metrics, toSummaryMetricVec)
 				return m.RegisterSummaryMetric(ctx, summaryMetrics...)
 			})

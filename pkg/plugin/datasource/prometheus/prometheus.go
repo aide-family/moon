@@ -147,9 +147,7 @@ func (p *Prometheus) sendMetadata(send chan<- *datasource.MetricMetadata, metric
 		if right > namesLen {
 			right = namesLen
 		}
-		safety.Go(func() error {
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
+		safety.Go(context.Background(), func(ctx context.Context) error {
 			seriesInfo, seriesErr := p.series(ctx, now, metricNames[left:right]...)
 			if seriesErr != nil {
 				log.Warnw("series error", seriesErr)
