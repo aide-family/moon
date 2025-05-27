@@ -15,6 +15,7 @@ import (
 	"github.com/aide-family/moon/pkg/plugin/hook"
 	"github.com/aide-family/moon/pkg/plugin/sms"
 	"github.com/aide-family/moon/pkg/plugin/sms/ali"
+	"github.com/aide-family/moon/pkg/util/safety"
 )
 
 func NewSendRepo(d *data.Data, logger log.Logger) repository.Send {
@@ -76,7 +77,7 @@ func (s *sendImpl) SMS(ctx context.Context, params bo.SendSMSParams) error {
 
 func (s *sendImpl) Hook(ctx context.Context, params bo.SendHookParams) error {
 	var err error
-	hooks := make(map[string]hook.Sender)
+	hooks := safety.NewMap(make(map[string]hook.Sender))
 	for _, configItem := range params.GetConfigs() {
 		hookInstance, ok := s.GetHook(configItem.GetName())
 		if !ok {
@@ -87,18 +88,17 @@ func (s *sendImpl) Hook(ctx context.Context, params bo.SendHookParams) error {
 			}
 			s.SetHook(configItem.GetName(), hookInstance)
 		}
-		hooks[configItem.GetName()] = hookInstance
+		hooks.Set(configItem.GetName(), hookInstance)
 	}
 
-	if len(hooks) == 0 {
+	if hooks.Len() == 0 {
 		return merr.ErrorParams("No hook is available")
 	}
-	bodyMap := params.GetBody()
 	eg := new(errgroup.Group)
-	for _, body := range bodyMap {
+	for _, body := range params.GetBody() {
 		bodyItem := body
 		eg.Go(func() error {
-			sender, ok := hooks[bodyItem.AppName]
+			sender, ok := hooks.Get(bodyItem.AppName)
 			if !ok {
 				return merr.ErrorParams("No hook is available")
 			}

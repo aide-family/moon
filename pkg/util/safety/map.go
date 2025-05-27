@@ -21,7 +21,30 @@ func NewMap[K comparable, T any](ms ...map[K]T) *Map[K, T] {
 
 // Map a thread-safe map.
 type Map[K comparable, T any] struct {
-	m *sync.Map
+	m    *sync.Map
+	lock sync.RWMutex
+	len  int
+}
+
+// Len Retrieve the length of the map.
+func (m *Map[K, T]) Len() int {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+	return m.len
+}
+
+// addLen add the length of the map.
+func (m *Map[K, T]) addLen(n int) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	m.len += n
+}
+
+// zeroLen zero the length of the map.
+func (m *Map[K, T]) zeroLen() {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	m.len = 0
 }
 
 // Get Retrieve the value from the map.
@@ -37,13 +60,14 @@ func (m *Map[K, T]) Get(key K) (T, bool) {
 // Set the value in the map.
 func (m *Map[K, T]) Set(key K, value T) {
 	m.m.Store(key, value)
+	m.addLen(1)
 }
 
 // Append the value to the map.
 func (m *Map[K, T]) Append(values ...map[K]T) {
 	for _, v := range values {
 		for k, v := range v {
-			m.m.Store(k, v)
+			m.Set(k, v)
 		}
 	}
 }
@@ -51,6 +75,7 @@ func (m *Map[K, T]) Append(values ...map[K]T) {
 // Delete the value from the map.
 func (m *Map[K, T]) Delete(key K) {
 	m.m.Delete(key)
+	m.addLen(-1)
 }
 
 // List Retrieve all values from the map.
@@ -66,6 +91,7 @@ func (m *Map[K, T]) List() map[K]T {
 // Clear the map.
 func (m *Map[K, T]) Clear() {
 	m.m.Clear()
+	m.zeroLen()
 }
 
 func (m *Map[K, T]) First() (T, bool) {
