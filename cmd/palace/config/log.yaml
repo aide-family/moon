@@ -6,4 +6,4 @@ log:
     output: ${X_MOON_LOG_SUGARED_OUTPUT:stdout}
     disableCaller: ${X_MOON_LOG_SUGARED_DISABLE_CALLER:false}
     disableStacktrace: ${X_MOON_LOG_SUGARED_DISABLE_STACKTRACE:true}
-    enableColor: ${X_MOON_LOG_SUGARED_DISABLE_TIMESTAMP:false}
+    enableColor: ${X_MOON_LOG_SUGARED_ENABLE_COLOR:false}

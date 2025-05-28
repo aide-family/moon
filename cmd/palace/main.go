@@ -49,10 +49,7 @@ func run(cfgPath string) {
 	bundle := i18n.New(i18nConf)
 	merr.RegisterBundle(bundle)
 	merr.RegisterGlobalLocalizer(merr.NewLocalizer(bundle))
-	logger, err := mlog.New(bc.IsDev(), bc.GetLog())
-	if err != nil {
-		panic(err)
-	}
+	logger := mlog.New(bc.IsDev(), bc.GetLog())
 
 	app, cleanup, err := wireApp(&bc, logger)
 	if err != nil {

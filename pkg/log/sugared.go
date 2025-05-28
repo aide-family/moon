@@ -39,7 +39,7 @@ func (s *sugaredLogger) Log(level log.Level, keyvals ...any) error {
 	return nil
 }
 
-func NewSugaredLogger(isDev bool, level config.Log_Level, cfg *config.Log_SugaredLogConfig) (log.Logger, error) {
+func NewSugaredLogger(isDev bool, level config.Log_Level, cfg *config.Log_SugaredLogConfig) log.Logger {
 	zapLevel, err := zap.ParseAtomicLevel(level.String())
 	if err != nil {
 		zapLevel = zap.NewAtomicLevel()
@@ -78,7 +78,7 @@ func NewSugaredLogger(isDev bool, level config.Log_Level, cfg *config.Log_Sugare
 	}
 	logger, err := zapCfg.Build()
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	return &sugaredLogger{logger: logger.Sugar()}, nil
+	return &sugaredLogger{logger: logger.Sugar()}
 }
