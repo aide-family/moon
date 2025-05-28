@@ -18,7 +18,7 @@ type DB interface {
 }
 
 // NewDB creates a new DB instance
-func NewDB(c *config.Database) (DB, error) {
+func NewDB(c *config.Database, logger log.Logger) (DB, error) {
 	// check db name exist, if not, create it
 	if c.GetDbName() == "" {
 		return nil, merr.ErrorBadRequest("db name is empty")
@@ -38,11 +38,6 @@ func NewDB(c *config.Database) (DB, error) {
 		}
 	}
 
-	var opts []gorm.Option
-	gormConfig := &gorm.Config{
-		DisableForeignKeyConstraintWhenMigrating: true,
-	}
-	opts = append(opts, gormConfig)
 	var dialector gorm.Dialector
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s", c.GetUser(), c.GetPassword(), c.GetHost(), c.GetPort(), c.GetDbName(), c.GetParams())
 	drive := c.GetDriver()
@@ -52,6 +47,14 @@ func NewDB(c *config.Database) (DB, error) {
 	default:
 		return nil, merr.ErrorInternalServer("invalid driver: %s", drive)
 	}
+	var opts []gorm.Option
+	gormConfig := &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	}
+	if c.GetUseSystemLog() {
+		gormConfig.Logger = NewLogger(logger)
+	}
+	opts = append(opts, gormConfig)
 	conn, err := gorm.Open(dialector, opts...)
 	if err != nil {
 		return nil, merr.ErrorInternalServer("connect db error: %s", err)

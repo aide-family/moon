@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/spf13/cobra"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
@@ -39,7 +40,7 @@ func run(cfgPath string) {
 		panic(err)
 	}
 
-	mainDB, err := gorm.NewDB(bc.GetData().GetMain())
+	mainDB, err := gorm.NewDB(bc.GetData().GetMain(), log.GetLogger())
 	if err != nil {
 		panic(err)
 	}

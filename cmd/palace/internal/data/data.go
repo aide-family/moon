@@ -41,7 +41,7 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 
 	dataConf := c.GetData()
 
-	data.mainDB, err = gorm.NewDB(dataConf.GetMain())
+	data.mainDB, err = gorm.NewDB(dataConf.GetMain(), logger)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -183,7 +183,7 @@ func (d *Data) GetBizDB(teamID uint32) (gorm.DB, error) {
 		return d.GetMainDB(), nil
 	}
 
-	db, err = gorm.NewDB(dbConfig)
+	db, err = gorm.NewDB(dbConfig, d.helper.Logger())
 	if err != nil {
 		return nil, merr.ErrorInternalServer("new team biz db err").WithCause(err)
 	}
@@ -204,7 +204,7 @@ func (d *Data) GetEventDB(teamID uint32) (gorm.DB, error) {
 	if validate.IsNil(dbConfig) {
 		return d.GetMainDB(), nil
 	}
-	db, err = gorm.NewDB(dbConfig)
+	db, err = gorm.NewDB(dbConfig, d.helper.Logger())
 	if err != nil {
 		return nil, merr.ErrorInternalServer("new team alarm db err").WithCause(err)
 	}

@@ -6,12 +6,14 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/joho/godotenv"
+
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/config"
 	"github.com/aide-family/moon/pkg/plugin/gorm"
 	"github.com/aide-family/moon/pkg/util/password"
-	"github.com/joho/godotenv"
 )
 
 var c config.Database
@@ -36,7 +38,7 @@ func init() {
 }
 
 func Test_NewUser(t *testing.T) {
-	db, err := gorm.NewDB(&c)
+	db, err := gorm.NewDB(&c, log.GetLogger())
 	if err != nil {
 		bs, _ := json.Marshal(&c)
 		t.Fatalf("err: %s, config: %s", err, string(bs))
