@@ -20,31 +20,23 @@ var (
 	poolLimitOnce sync.Once
 )
 
-func init() {
-	for i := 0; i < 10000; i++ {
-		pool.Submit(func() {
-			time.Sleep(10 * time.Second)
-		})
-	}
-}
-
 func SetPoolLimit(limit int) {
 	poolLimitOnce.Do(func() {
 		pool.Tune(limit)
 	})
 }
 
-func Go(ctx context.Context, f func(ctx context.Context) error) {
+func Go(ctx context.Context, name string, f func(ctx context.Context) error) {
 	pool.Submit(func() {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Errorw("msg", "panic in safety.Go", "error", r)
+				log.Errorw("msg", "panic in safety.Go", "error", r, "name", name)
 			}
 		}()
 		ctx, cancel := context.WithTimeout(CopyValueCtx(ctx), 60*time.Second)
 		defer cancel()
 		if err := f(ctx); err != nil {
-			log.Errorw("msg", "error in safety.Go", "error", err)
+			log.Errorw("msg", "error in safety.Go", "error", err, "name", name)
 		}
 	})
 }

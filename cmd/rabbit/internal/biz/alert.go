@@ -47,18 +47,9 @@ func (a *Alert) SendAlert(ctx context.Context, alert *bo.AlertsItem) error {
 		if !ok || validate.IsNil(noticeGroupConfig) {
 			continue
 		}
-		safety.Go(ctx, func(ctx context.Context) error {
-			a.sendEmail(ctx, noticeGroupConfig, alert)
-			return nil
-		})
-		safety.Go(ctx, func(ctx context.Context) error {
-			a.sendSms(ctx, noticeGroupConfig, alert)
-			return nil
-		})
-		safety.Go(ctx, func(ctx context.Context) error {
-			a.sendHook(ctx, noticeGroupConfig, alert)
-			return nil
-		})
+		a.sendEmail(ctx, noticeGroupConfig, alert)
+		a.sendSms(ctx, noticeGroupConfig, alert)
+		a.sendHook(ctx, noticeGroupConfig, alert)
 	}
 	return nil
 }
@@ -98,7 +89,7 @@ func (a *Alert) sendEmail(ctx context.Context, noticeGroupConfig bo.NoticeGroup,
 			a.helper.WithContext(ctx).Warnw("method", "NewSendEmailParams", "err", err)
 			continue
 		}
-		safety.Go(ctx, func(ctx context.Context) error {
+		safety.Go(ctx, "biz.Alert.sendEmail", func(ctx context.Context) error {
 			return a.sendRepo.Email(ctx, sendEmailParams)
 		})
 	}
@@ -139,7 +130,7 @@ func (a *Alert) sendSms(ctx context.Context, noticeGroupConfig bo.NoticeGroup, a
 			a.helper.WithContext(ctx).Warnw("method", "NewSendSMSParams", "err", err)
 			continue
 		}
-		safety.Go(ctx, func(ctx context.Context) error {
+		safety.Go(ctx, "biz.Alert.sendSms", func(ctx context.Context) error {
 			return a.sendRepo.SMS(ctx, sendSMSParams)
 		})
 	}

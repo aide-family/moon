@@ -39,16 +39,16 @@ func (s *MetricService) RegisterMetric(ctx context.Context, req *apiv1.RegisterM
 	histogramVecs := build.ToHistogramMetricVecs(metricVecs[apicommon.MetricType_METRIC_TYPE_HISTOGRAM])
 	summaryVecs := build.ToSummaryMetricVecs(metricVecs[apicommon.MetricType_METRIC_TYPE_SUMMARY])
 
-	safety.Go(ctx, func(ctx context.Context) error {
+	safety.Go(ctx, "metricService.RegisterMetric.RegisterCounterMetric", func(ctx context.Context) error {
 		return s.metricManager.RegisterCounterMetric(ctx, counterVecs...)
 	})
-	safety.Go(ctx, func(ctx context.Context) error {
+	safety.Go(ctx, "metricService.RegisterMetric.RegisterGaugeMetric", func(ctx context.Context) error {
 		return s.metricManager.RegisterGaugeMetric(ctx, gaugeVecs...)
 	})
-	safety.Go(ctx, func(ctx context.Context) error {
+	safety.Go(ctx, "metricService.RegisterMetric.RegisterHistogramMetric", func(ctx context.Context) error {
 		return s.metricManager.RegisterHistogramMetric(ctx, histogramVecs...)
 	})
-	safety.Go(ctx, func(ctx context.Context) error {
+	safety.Go(ctx, "metricService.RegisterMetric.RegisterSummaryMetric", func(ctx context.Context) error {
 		return s.metricManager.RegisterSummaryMetric(ctx, summaryVecs...)
 	})
 

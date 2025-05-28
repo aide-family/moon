@@ -17,6 +17,7 @@ func NewServerRegisterRepo(bc *conf.Bootstrap, data *data.Data, logger log.Logge
 	palaceConfig := bc.GetPalace()
 	s := &serverRegisterRepo{
 		Data:    data,
+		enable:  palaceConfig.GetEnable(),
 		network: palaceConfig.GetNetwork(),
 		helper:  log.NewHelper(log.With(logger, "module", "data.repo.server_register")),
 	}
@@ -31,6 +32,7 @@ func NewServerRegisterRepo(bc *conf.Bootstrap, data *data.Data, logger log.Logge
 
 type serverRegisterRepo struct {
 	*data.Data
+	enable     bool
 	network    config.Network
 	rpcClient  common.ServerClient
 	httpClient common.ServerHTTPClient
@@ -39,6 +41,9 @@ type serverRegisterRepo struct {
 }
 
 func (r *serverRegisterRepo) initClient(initConfig *server.InitConfig) error {
+	if !r.enable {
+		return nil
+	}
 	switch r.network {
 	case config.Network_GRPC:
 		conn, err := server.InitGRPCClient(initConfig)
@@ -57,6 +62,9 @@ func (r *serverRegisterRepo) initClient(initConfig *server.InitConfig) error {
 }
 
 func (r *serverRegisterRepo) Register(ctx context.Context, server *common.ServerRegisterRequest) error {
+	if !r.enable {
+		return nil
+	}
 	var (
 		reply *common.ServerRegisterReply
 		err   error

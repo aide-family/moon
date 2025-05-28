@@ -31,6 +31,7 @@ registry:
     password: ${X_MOON_RABBIT_REGISTRY_ETCD_PASSWORD}
 
 palace:
+  enable: ${X_MOON_RABBIT_SERVER_PALACE_ENABLE:false}
   endpoint: ${X_MOON_RABBIT_SERVER_PALACE_ENDPOINT:127.0.0.1:9000}
   secret: ${X_MOON_RABBIT_SERVER_PALACE_SECRET:palace-jwt-sign-key}
   timeout: ${X_MOON_RABBIT_SERVER_PALACE_TIMEOUT:50s}

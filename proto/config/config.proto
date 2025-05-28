@@ -163,6 +163,8 @@ message MicroServer {
   string version = 5;
   // name service name
   string name = 6;
+  // enable micro service
+  bool enable = 7;
 }
 
 // trace config

@@ -184,7 +184,7 @@ func (t *Tickers) Start(ctx context.Context) error {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 	for _, ticker := range t.tickers {
-		safety.Go(ctx, ticker.Start)
+		safety.Go(ctx, ticker.task.Name, ticker.Start)
 	}
 	return nil
 }
@@ -193,7 +193,7 @@ func (t *Tickers) Stop(ctx context.Context) error {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 	for _, ticker := range t.tickers {
-		safety.Go(ctx, ticker.Stop)
+		safety.Go(ctx, ticker.task.Name, ticker.Stop)
 	}
 	t.tickers = make(map[uint64]*Ticker)
 	t.recycle = make([]uint64, 0, 100)

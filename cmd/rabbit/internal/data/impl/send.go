@@ -96,7 +96,7 @@ func (s *sendImpl) Hook(ctx context.Context, params bo.SendHookParams) error {
 
 	for _, body := range params.GetBody() {
 		bodyItem := body
-		safety.Go(ctx, func(ctx context.Context) error {
+		safety.Go(ctx, "sendImpl.Hook", func(ctx context.Context) error {
 			sender, ok := hooks.Get(bodyItem.AppName)
 			if !ok {
 				return merr.ErrorParams("No hook is available")

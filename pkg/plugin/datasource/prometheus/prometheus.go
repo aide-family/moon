@@ -114,29 +114,27 @@ func (p *Prometheus) Metadata(ctx context.Context) (<-chan *datasource.MetricMet
 
 	send := make(chan *datasource.MetricMetadata, 20)
 
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				p.helper.Errorw("method", "metadata", "panic", err)
-			}
-		}()
+	safety.Go(ctx, "prometheus.Metadata", func(ctx context.Context) error {
 		defer close(send)
-		p.sendMetadata(send, metadataInfo)
-	}()
+		p.sendMetadata(send, safety.NewMap(metadataInfo))
+		return nil
+	})
 
 	return send, nil
 }
 
-func (p *Prometheus) sendMetadata(send chan<- *datasource.MetricMetadata, metrics map[string][]PromMetricInfo) {
+func (p *Prometheus) sendMetadata(send chan<- *datasource.MetricMetadata, metrics *safety.Map[string, []PromMetricInfo]) {
 	metricNameMap := make(map[string]PromMetricInfo)
-	metricNames := make([]string, 0, len(metrics))
-	for metricName := range metrics {
+	metricNames := make([]string, 0, metrics.Len())
+	for metricName, metricInfo := range metrics.List() {
 		metricNames = append(metricNames, metricName)
-		if len(metrics[metricName]) == 0 {
+		if len(metricInfo) == 0 {
 			continue
 		}
-		metricNameMap[metricName] = metrics[metricName][0]
+		metricNameMap[metricName] = metricInfo[0]
 	}
+
+	safetyMetricNameMap := safety.NewMap(metricNameMap)
 
 	now := timex.Now().Add(-8 * time.Hour)
 	batchNum := 20
@@ -147,16 +145,20 @@ func (p *Prometheus) sendMetadata(send chan<- *datasource.MetricMetadata, metric
 		if right > namesLen {
 			right = namesLen
 		}
-		safety.Go(context.Background(), func(ctx context.Context) error {
-			seriesInfo, seriesErr := p.series(ctx, now, metricNames[left:right]...)
+		operationNames := metricNames[left:right]
+		safety.Go(context.Background(), "prometheus.sendMetadata", func(ctx context.Context) error {
+			seriesInfo, seriesErr := p.series(ctx, now, operationNames...)
 			if seriesErr != nil {
 				log.Warnw("series error", seriesErr)
 				return seriesErr
 			}
 
 			metricsTmp := make([]*datasource.MetricMetadataItem, 0, right-left)
-			for _, metricName := range metricNames[left:right] {
-				metricInfo := metricNameMap[metricName]
+			for _, metricName := range operationNames {
+				metricInfo, ok := safetyMetricNameMap.Get(metricName)
+				if !ok {
+					continue
+				}
 				item := &datasource.MetricMetadataItem{
 					Type:   metricInfo.Type,
 					Name:   metricName,

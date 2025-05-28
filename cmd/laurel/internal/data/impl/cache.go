@@ -12,7 +12,6 @@ import (
 	"github.com/aide-family/moon/cmd/laurel/internal/data"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/cache"
-	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/slices"
 )
 
@@ -40,40 +39,40 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 	summaryMetrics := metricsByType[vobj.MetricTypeSummary]
 
 	if len(counterMetrics) > 0 {
-		safety.Go(ctx, func(ctx context.Context) error {
-			key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeCounter)
-			values := slices.ToMap(counterMetrics, func(metric bo.MetricVec) string {
-				return metric.GetMetricName()
-			})
-			return c.Data.GetCache().Client().HSet(ctx, key, values).Err()
+		key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeCounter)
+		values := slices.ToMap(counterMetrics, func(metric bo.MetricVec) string {
+			return metric.GetMetricName()
 		})
+		if err := c.Data.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
+			c.helper.WithContext(ctx).Errorw("method", "HSet", "err", err)
+		}
 	}
 	if len(gaugeMetrics) > 0 {
-		safety.Go(ctx, func(ctx context.Context) error {
-			key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeGauge)
-			values := slices.ToMap(gaugeMetrics, func(metric bo.MetricVec) string {
-				return metric.GetMetricName()
-			})
-			return c.Data.GetCache().Client().HSet(ctx, key, values).Err()
+		key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeGauge)
+		values := slices.ToMap(gaugeMetrics, func(metric bo.MetricVec) string {
+			return metric.GetMetricName()
 		})
+		if err := c.Data.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
+			c.helper.WithContext(ctx).Errorw("method", "HSet", "err", err)
+		}
 	}
 	if len(histogramMetrics) > 0 {
-		safety.Go(ctx, func(ctx context.Context) error {
-			key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeHistogram)
-			values := slices.ToMap(histogramMetrics, func(metric bo.MetricVec) string {
-				return metric.GetMetricName()
-			})
-			return c.Data.GetCache().Client().HSet(ctx, key, values).Err()
+		key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeHistogram)
+		values := slices.ToMap(histogramMetrics, func(metric bo.MetricVec) string {
+			return metric.GetMetricName()
 		})
+		if err := c.Data.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
+			c.helper.WithContext(ctx).Errorw("method", "HSet", "err", err)
+		}
 	}
 	if len(summaryMetrics) > 0 {
-		safety.Go(ctx, func(ctx context.Context) error {
-			key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeSummary)
-			values := slices.ToMap(summaryMetrics, func(metric bo.MetricVec) string {
-				return metric.GetMetricName()
-			})
-			return c.Data.GetCache().Client().HSet(ctx, key, values).Err()
+		key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeSummary)
+		values := slices.ToMap(summaryMetrics, func(metric bo.MetricVec) string {
+			return metric.GetMetricName()
 		})
+		if err := c.Data.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
+			c.helper.WithContext(ctx).Errorw("method", "HSet", "err", err)
+		}
 	}
 
 	return nil
