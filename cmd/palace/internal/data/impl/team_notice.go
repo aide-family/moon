@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
+	"github.com/aide-family/moon/cmd/palace/internal/data/impl/build"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
@@ -69,14 +70,32 @@ func (t *teamNoticeRepoImpl) List(ctx context.Context, req *bo.ListNoticeGroupRe
 }
 
 func (t *teamNoticeRepoImpl) Create(ctx context.Context, group bo.SaveNoticeGroup) error {
+	members := slices.MapFilter(group.GetNoticeMembers(), func(member *bo.SaveNoticeMemberItem) (*team.NoticeMember, bool) {
+		if validate.IsNil(member) || member.MemberID <= 0 {
+			return nil, false
+		}
+		item := &team.NoticeMember{
+			UserID:        member.UserID,
+			NoticeType:    member.NoticeType,
+			TeamModel:     do.TeamModel{},
+			NoticeGroupID: 0,
+			DutyCycle:     []*team.TimeEngine{},
+		}
+		if dutyCycles := member.GetDutyCycles(); len(dutyCycles) > 0 {
+			item.DutyCycle = slices.Map(dutyCycles, func(dutyCycle do.TimeEngine) *team.TimeEngine {
+				item := build.ToTimeEngine(ctx, dutyCycle)
+				item.WithContext(ctx)
+				return item
+			})
+		}
+		item.WithContext(ctx)
+		return item, true
+	})
 	noticeGroupDo := &team.NoticeGroup{
-		Name:          group.GetName(),
-		Remark:        group.GetRemark(),
-		Status:        group.GetStatus(),
-		EmailConfigID: 0,
-		EmailConfig:   nil,
-		SMSConfigID:   0,
-		SMSConfig:     nil,
+		Name:    group.GetName(),
+		Remark:  group.GetRemark(),
+		Status:  group.GetStatus(),
+		Members: members,
 	}
 	if validate.IsNotNil(group.GetEmailConfig()) {
 		noticeGroupDo.EmailConfigID = group.GetEmailConfig().GetID()
@@ -89,22 +108,7 @@ func (t *teamNoticeRepoImpl) Create(ctx context.Context, group bo.SaveNoticeGrou
 	if err := bizMutation.NoticeGroup.WithContext(ctx).Create(noticeGroupDo); err != nil {
 		return err
 	}
-	members := slices.MapFilter(group.GetNoticeMembers(), func(member *bo.SaveNoticeMemberItem) (*team.NoticeMember, bool) {
-		if validate.IsNil(member) || member.MemberID <= 0 {
-			return nil, false
-		}
-		item := &team.NoticeMember{
-			UserID:     member.UserID,
-			NoticeType: member.NoticeType,
-		}
-		item.WithContext(ctx)
-		return item, true
-	})
-	if len(members) > 0 {
-		if err := bizMutation.NoticeGroup.Members.Model(noticeGroupDo).Append(members...); err != nil {
-			return err
-		}
-	}
+
 	hooks := slices.MapFilter(group.GetHooks(), func(hook do.NoticeHook) (*team.NoticeHook, bool) {
 		if validate.IsNil(hook) || hook.GetID() <= 0 {
 			return nil, false
@@ -180,6 +184,13 @@ func (t *teamNoticeRepoImpl) Update(ctx context.Context, group bo.SaveNoticeGrou
 		item := &team.NoticeMember{
 			UserID:     member.UserID,
 			NoticeType: member.NoticeType,
+		}
+		if dutyCycles := member.GetDutyCycles(); len(dutyCycles) > 0 {
+			item.DutyCycle = slices.Map(dutyCycles, func(dutyCycle do.TimeEngine) *team.TimeEngine {
+				item := build.ToTimeEngine(ctx, dutyCycle)
+				item.WithContext(ctx)
+				return item
+			})
 		}
 		item.WithContext(ctx)
 		return item, true

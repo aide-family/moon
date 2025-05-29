@@ -40,4 +40,5 @@ type NoticeMember interface {
 	GetNoticeType() vobj.NoticeType
 	GetNoticeGroup() NoticeGroup
 	GetMember() TeamMember
+	GetDutyCycle() []TimeEngine
 }

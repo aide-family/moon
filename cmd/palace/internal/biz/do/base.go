@@ -43,6 +43,8 @@ type GetTeamFun func(id uint32) Team
 
 type GetTeamMemberFun func(id uint32) TeamMember
 
+type GetTeamMembersFun func(ids []uint32) []TeamMember
+
 type HasTableFun func(teamId uint32, tableName string) bool
 
 type CacheTableFlag func(teamId uint32, tableName string) error
@@ -75,15 +77,21 @@ func GetTeam(id uint32) Team {
 
 var registerGetTeamMemberFuncOnce sync.Once
 var getTeamMember GetTeamMemberFun
+var getTeamMembers GetTeamMembersFun
 
-func RegisterGetTeamMemberFunc(getTeamMemberFunc GetTeamMemberFun) {
+func RegisterGetTeamMemberFunc(getTeamMemberFunc GetTeamMemberFun, getTeamMembersFunc GetTeamMembersFun) {
 	registerGetTeamMemberFuncOnce.Do(func() {
 		getTeamMember = getTeamMemberFunc
+		getTeamMembers = getTeamMembersFunc
 	})
 }
 
 func GetTeamMember(id uint32) TeamMember {
 	return getTeamMember(id)
+}
+
+func GetTeamMembers(ids []uint32) []TeamMember {
+	return getTeamMembers(ids)
 }
 
 var registerHasTableFuncOnce sync.Once

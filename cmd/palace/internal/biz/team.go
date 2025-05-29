@@ -53,6 +53,10 @@ func NewTeamBiz(
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		return teamBiz.getTeamMember(ctx, id)
+	}, func(ids []uint32) []do.TeamMember {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		return teamBiz.getTeamMembers(ctx, ids)
 	})
 	return teamBiz
 }
@@ -104,6 +108,23 @@ func (t *Team) getTeamMember(ctx context.Context, id uint32) do.TeamMember {
 		}
 	}
 	return teamMember
+}
+
+func (t *Team) getTeamMembers(ctx context.Context, ids []uint32) []do.TeamMember {
+	teamMembers, err := t.cacheRepo.GetTeamMembers(ctx, ids...)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			teamMembers, err = t.memberRepo.Find(ctx, ids)
+			if err != nil {
+				t.helper.WithContext(ctx).Errorw("msg", "get team members fail", "err", err)
+			} else {
+				if err := t.cacheRepo.CacheTeamMembers(ctx, teamMembers...); err != nil {
+					t.helper.WithContext(ctx).Errorw("msg", "cache team members fail", "err", err)
+				}
+			}
+		}
+	}
+	return teamMembers
 }
 
 func (t *Team) SaveTeam(ctx context.Context, req *bo.SaveOneTeamRequest) error {

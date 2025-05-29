@@ -23,6 +23,9 @@ type TimeEngine interface {
 	ListTimeEngine(ctx context.Context, req *bo.ListTimeEngineRequest) (*bo.ListTimeEngineReply, error)
 	// SelectTimeEngine get time engine list
 	SelectTimeEngine(ctx context.Context, req *bo.SelectTimeEngineRequest) (*bo.SelectTimeEngineReply, error)
+	// Find get time engine list
+	// if ids is empty, return all time engine rules
+	Find(ctx context.Context, ids ...uint32) ([]do.TimeEngine, error)
 }
 
 // TimeEngineRule time engine rule repository interface

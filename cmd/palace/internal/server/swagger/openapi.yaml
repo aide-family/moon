@@ -4257,6 +4257,11 @@ components:
                 noticeType:
                     type: integer
                     format: enum
+                dutyCycleIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
         api.palace.SaveTeamNoticeHookRequest:
             type: object
             properties:
@@ -5263,6 +5268,10 @@ components:
                     $ref: '#/components/schemas/api.palace.common.NoticeGroupItem'
                 member:
                     $ref: '#/components/schemas/api.palace.common.TeamMemberBaseItem'
+                dutyCycles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.TimeEngineItem'
         api.palace.common.OperateLogItem:
             type: object
             properties:
@@ -6451,6 +6460,9 @@ components:
                 name:
                     type: string
                     description: name service name
+                enable:
+                    type: boolean
+                    description: enable micro service
             description: micro server config
 tags:
     - name: Alert

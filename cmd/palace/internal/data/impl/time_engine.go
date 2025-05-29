@@ -188,3 +188,18 @@ func (r *timeEngineRepoImpl) SelectTimeEngine(ctx context.Context, req *bo.Selec
 	rows := slices.Map(timeEngines, func(v *team.TimeEngine) do.TimeEngine { return v })
 	return req.ToSelectReply(rows), nil
 }
+
+func (r *timeEngineRepoImpl) Find(ctx context.Context, ids ...uint32) ([]do.TimeEngine, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
+	timeEngineQuery := bizQuery.TimeEngine
+	timeEngineWrapper := timeEngineQuery.Where(timeEngineQuery.TeamID.Eq(teamId))
+	timeEngineWrapper = timeEngineWrapper.Where(timeEngineQuery.ID.In(ids...))
+	timeEngines, err := timeEngineWrapper.WithContext(ctx).Find()
+	if err != nil {
+		return nil, err
+	}
+	return slices.Map(timeEngines, func(v *team.TimeEngine) do.TimeEngine { return v }), nil
+}

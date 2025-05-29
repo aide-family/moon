@@ -15,6 +15,7 @@ func NewTeamNoticeBiz(
 	teamMemberRepo repository.Member,
 	teamConfigEmailRepo repository.TeamEmailConfig,
 	teamConfigSMSRepo repository.TeamSMSConfig,
+	teamTimeEngineRepo repository.TimeEngine,
 ) *TeamNotice {
 	return &TeamNotice{
 		transaction:         transaction,
@@ -23,6 +24,7 @@ func NewTeamNoticeBiz(
 		teamMemberRepo:      teamMemberRepo,
 		teamConfigEmailRepo: teamConfigEmailRepo,
 		teamConfigSMSRepo:   teamConfigSMSRepo,
+		teamTimeEngineRepo:  teamTimeEngineRepo,
 	}
 }
 
@@ -33,9 +35,15 @@ type TeamNotice struct {
 	teamMemberRepo      repository.Member
 	teamConfigEmailRepo repository.TeamEmailConfig
 	teamConfigSMSRepo   repository.TeamSMSConfig
+	teamTimeEngineRepo  repository.TimeEngine
 }
 
 func (t *TeamNotice) SaveNoticeGroup(ctx context.Context, req *bo.SaveNoticeGroupReq) error {
+	timeEngines, err := t.teamTimeEngineRepo.Find(ctx, req.GetTimeEngineIds()...)
+	if err != nil {
+		return err
+	}
+	req.WithTimeEngines(timeEngines)
 	hookDos, err := t.teamHookRepo.Find(ctx, req.HookIds)
 	if err != nil {
 		return err

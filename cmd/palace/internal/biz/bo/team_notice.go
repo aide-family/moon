@@ -9,9 +9,18 @@ import (
 )
 
 type SaveNoticeMemberItem struct {
-	MemberID   uint32
-	UserID     uint32
-	NoticeType vobj.NoticeType
+	MemberID     uint32
+	UserID       uint32
+	NoticeType   vobj.NoticeType
+	DutyCycleIds []uint32
+	dutyCycle    []do.TimeEngine
+}
+
+func (m *SaveNoticeMemberItem) GetDutyCycles() []do.TimeEngine {
+	if m == nil {
+		return nil
+	}
+	return m.dutyCycle
 }
 
 type SaveNoticeGroup interface {
@@ -23,6 +32,7 @@ type SaveNoticeGroup interface {
 	GetStatus() vobj.GlobalStatus
 	GetEmailConfig() do.TeamEmailConfig
 	GetSMSConfig() do.TeamSMSConfig
+	GetTimeEngineIds() []uint32
 }
 
 type SaveNoticeGroupReq struct {
@@ -31,6 +41,7 @@ type SaveNoticeGroupReq struct {
 	members       map[uint32]do.TeamMember
 	emailConfig   do.TeamEmailConfig
 	smsConfig     do.TeamSMSConfig
+	timeEngines   []do.TimeEngine
 	GroupID       uint32
 	Name          string
 	Remark        string
@@ -38,6 +49,17 @@ type SaveNoticeGroupReq struct {
 	NoticeMembers []*SaveNoticeMemberItem
 	EmailConfigID uint32
 	SMSConfigID   uint32
+}
+
+func (r *SaveNoticeGroupReq) GetTimeEngineIds() []uint32 {
+	if r == nil {
+		return nil
+	}
+	ids := make([]uint32, 0, len(r.NoticeMembers)*2)
+	for _, member := range r.NoticeMembers {
+		ids = append(ids, member.DutyCycleIds...)
+	}
+	return ids
 }
 
 func (r *SaveNoticeGroupReq) GetHooks() []do.NoticeHook {
@@ -61,9 +83,10 @@ func (r *SaveNoticeGroupReq) GetNoticeMembers() []*SaveNoticeMemberItem {
 			continue
 		}
 		noticeMembers = append(noticeMembers, &SaveNoticeMemberItem{
-			MemberID:   noticeMember.MemberID,
-			UserID:     member.GetUserID(),
-			NoticeType: noticeMember.NoticeType,
+			MemberID:     noticeMember.MemberID,
+			UserID:       member.GetUserID(),
+			NoticeType:   noticeMember.NoticeType,
+			DutyCycleIds: noticeMember.DutyCycleIds,
 		})
 	}
 	return noticeMembers
@@ -162,9 +185,43 @@ func (r *SaveNoticeGroupReq) WithSMSConfig(config do.TeamSMSConfig) *SaveNoticeG
 	return r
 }
 
+func (r *SaveNoticeGroupReq) WithTimeEngines(engines []do.TimeEngine) *SaveNoticeGroupReq {
+	r.timeEngines = slices.MapFilter(engines, func(engine do.TimeEngine) (do.TimeEngine, bool) {
+		if validate.IsNil(engine) || engine.GetID() <= 0 {
+			return nil, false
+		}
+		return engine, true
+	})
+	timeEnginesMap := slices.ToMap(r.timeEngines, func(engine do.TimeEngine) uint32 {
+		return engine.GetID()
+	})
+	for _, member := range r.NoticeMembers {
+		member.dutyCycle = slices.MapFilter(member.DutyCycleIds, func(id uint32) (do.TimeEngine, bool) {
+			engine, ok := timeEnginesMap[id]
+			return engine, ok
+		})
+	}
+	return r
+}
+
 func (r *SaveNoticeGroupReq) Validate() error {
 	if validate.IsNil(r.group) {
 		return merr.ErrorParams("invalid notice group")
+	}
+	if len(r.timeEngines) != len(r.GetTimeEngineIds()) {
+		return merr.ErrorParams("invalid time engines")
+	}
+	if len(r.hooks) != len(r.HookIds) {
+		return merr.ErrorParams("invalid hooks")
+	}
+	if len(r.members) != len(r.GetMemberIds()) {
+		return merr.ErrorParams("invalid members")
+	}
+	if r.EmailConfigID > 0 && validate.IsNil(r.emailConfig) {
+		return merr.ErrorParams("invalid email config")
+	}
+	if r.SMSConfigID > 0 && validate.IsNil(r.smsConfig) {
+		return merr.ErrorParams("invalid sms config")
 	}
 	return nil
 }

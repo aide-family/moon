@@ -132,6 +132,7 @@ message SaveTeamNoticeGroupRequest {
   message Member {
     uint32 memberId = 1;
     api.palace.common.NoticeType noticeType = 2;
+    repeated uint32 dutyCycleIds = 3;
   }
   string name = 1;
   string remark = 2;

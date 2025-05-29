@@ -21,6 +21,7 @@ func ToNoticeMemberItem(noticeMember do.NoticeMember) *common.NoticeMemberItem {
 		NoticeType:    common.NoticeType(noticeMember.GetNoticeType()),
 		NoticeGroup:   ToNoticeGroupItem(noticeMember.GetNoticeGroup()),
 		Member:        ToTeamMemberBaseItem(noticeMember.GetMember()),
+		DutyCycles:    ToTimeEngineItemEngines(noticeMember.GetDutyCycle()),
 	}
 }
 

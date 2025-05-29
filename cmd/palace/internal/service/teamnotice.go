@@ -92,9 +92,10 @@ func (s *TeamNoticeService) TeamNoticeHookSelect(ctx context.Context, req *palac
 func (s *TeamNoticeService) SaveTeamNoticeGroup(ctx context.Context, req *palace.SaveTeamNoticeGroupRequest) (*common.EmptyReply, error) {
 	members := slices.Map(req.GetMembers(), func(member *palace.SaveTeamNoticeGroupRequest_Member) *bo.SaveNoticeMemberItem {
 		return &bo.SaveNoticeMemberItem{
-			MemberID:   member.GetMemberId(),
-			UserID:     0,
-			NoticeType: vobj.NoticeType(member.GetNoticeType()),
+			MemberID:     member.GetMemberId(),
+			UserID:       0,
+			NoticeType:   vobj.NoticeType(member.GetNoticeType()),
+			DutyCycleIds: member.GetDutyCycleIds(),
 		}
 	})
 	params := &bo.SaveNoticeGroupReq{

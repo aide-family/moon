@@ -31,6 +31,7 @@ message NoticeMemberItem {
   api.palace.common.NoticeType noticeType = 3;
   NoticeGroupItem noticeGroup = 4;
   api.palace.common.TeamMemberBaseItem member = 5;
+  repeated api.palace.common.TimeEngineItem dutyCycles = 6;
 }
 
 message NoticeGroupItem {
