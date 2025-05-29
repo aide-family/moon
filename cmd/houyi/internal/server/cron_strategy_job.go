@@ -7,7 +7,7 @@ import (
 	"github.com/go-kratos/kratos/v2/transport"
 
 	"github.com/aide-family/moon/cmd/houyi/internal/service"
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 )
 
 var _ transport.Server = (*CronStrategyJobServer)(nil)
@@ -16,14 +16,14 @@ func NewCronStrategyJobServer(evaluateService *service.EventBusService, logger l
 	return &CronStrategyJobServer{
 		evaluateService: evaluateService,
 		helper:          log.NewHelper(log.With(logger, "module", "server.cron.strategy.job")),
-		CronJobServer:   server.NewCronJobServer("Strategy", logger),
+		CronJobServer:   cron_server.NewCronJobServer("Strategy", logger),
 	}
 }
 
 type CronStrategyJobServer struct {
 	evaluateService *service.EventBusService
 	helper          *log.Helper
-	*server.CronJobServer
+	*cron_server.CronJobServer
 }
 
 func (c *CronStrategyJobServer) Start(ctx context.Context) error {

@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/api/common"
 	apiv1 "github.com/aide-family/moon/pkg/api/laurel/v1"
 	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/ticker_server"
 )
 
 // ProviderSetServer is server providers.
@@ -20,7 +21,7 @@ func RegisterService(
 	c *conf.Bootstrap,
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
-	tickerSrv *server.Ticker,
+	tickerSrv *ticker_server.Ticker,
 	healthService *service.HealthService,
 	metricService *service.MetricService,
 ) server.Servers {

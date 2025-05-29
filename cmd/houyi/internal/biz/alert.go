@@ -8,7 +8,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/houyi/internal/conf"
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/ticker_server"
 )
 
 func NewAlert(
@@ -37,8 +37,8 @@ type Alert struct {
 	syncTimeout  time.Duration
 }
 
-func (a *Alert) Loads() []*server.TickTask {
-	return []*server.TickTask{
+func (a *Alert) Loads() []*ticker_server.TickTask {
+	return []*ticker_server.TickTask{
 		{
 			Fn:        a.syncAlerts,
 			Name:      "syncAlerts",

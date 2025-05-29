@@ -13,7 +13,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 )
 
 func NewTeamBiz(
@@ -390,8 +390,8 @@ func (t *Team) InviteMember(ctx context.Context, req *bo.InviteMemberReq) error 
 	})
 }
 
-func (t *Team) Jobs() []server.CronJob {
-	return []server.CronJob{
+func (t *Team) Jobs() []cron_server.CronJob {
+	return []cron_server.CronJob{
 		job.NewTeamJob(t.teamRepo, t.cacheRepo, t.helper.Logger()),
 		job.NewTeamMemberJob(t.memberRepo, t.cacheRepo, t.helper.Logger()),
 	}

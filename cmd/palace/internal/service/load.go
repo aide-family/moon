@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz"
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 )
 
 func NewLoadService(
@@ -23,7 +23,7 @@ type LoadService struct {
 	menuBiz *biz.Menu
 }
 
-func (s *LoadService) LoadJobs() []server.CronJob {
+func (s *LoadService) LoadJobs() []cron_server.CronJob {
 	userJobs := s.userBiz.Jobs()
 	teamJobs := s.teamBiz.Jobs()
 	menuJobs := s.menuBiz.Jobs()

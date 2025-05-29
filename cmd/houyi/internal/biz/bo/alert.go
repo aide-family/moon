@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/aide-family/moon/pkg/api/common"
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 	"github.com/aide-family/moon/pkg/util/kv/label"
 )
 
@@ -28,5 +28,5 @@ type Alert interface {
 
 type AlertJob interface {
 	GetAlert() Alert
-	server.CronJob
+	cron_server.CronJob
 }

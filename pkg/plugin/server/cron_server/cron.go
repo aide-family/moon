@@ -1,4 +1,4 @@
-package server
+package cron_server
 
 import (
 	"context"
@@ -16,19 +16,13 @@ var _ transport.Server = (*CronJobServer)(nil)
 type CronSpec string
 
 const (
-	CronSpecYearly CronSpec = "@yearly"
-
+	CronSpecYearly   CronSpec = "@yearly"
 	CronSpecAnnually CronSpec = "@annually"
-
-	CronSpecMonthly CronSpec = "@monthly"
-
-	CronSpecWeekly CronSpec = "@weekly"
-
-	CronSpecDaily CronSpec = "@daily"
-
+	CronSpecMonthly  CronSpec = "@monthly"
+	CronSpecWeekly   CronSpec = "@weekly"
+	CronSpecDaily    CronSpec = "@daily"
 	CronSpecMidnight CronSpec = "@midnight"
-
-	CronSpecHourly CronSpec = "@hourly"
+	CronSpecHourly   CronSpec = "@hourly"
 )
 
 func CronSpecEvery(duration time.Duration) CronSpec {
@@ -41,7 +35,6 @@ func CronSpecCustom(s, m, h, d, M, w string) CronSpec {
 
 type CronJob interface {
 	cron.Job
-
 	ID() cron.EntryID
 	Index() string
 	Spec() CronSpec

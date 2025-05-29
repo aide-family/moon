@@ -9,20 +9,20 @@ import (
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 )
 
-var _ server.CronJob = (*teamJob)(nil)
+var _ cron_server.CronJob = (*teamJob)(nil)
 
 func NewTeamJob(
 	teamRepo repository.Team,
 	cacheRepo repository.Cache,
 	logger log.Logger,
-) server.CronJob {
+) cron_server.CronJob {
 	return &teamJob{
 		index:     "cache.team",
 		id:        0,
-		spec:      server.CronSpecEvery(10 * time.Minute),
+		spec:      cron_server.CronSpecEvery(10 * time.Minute),
 		helper:    log.NewHelper(log.With(logger, "module", "job.team")),
 		teamRepo:  teamRepo,
 		cacheRepo: cacheRepo,
@@ -32,7 +32,7 @@ func NewTeamJob(
 type teamJob struct {
 	index     string
 	id        cron.EntryID
-	spec      server.CronSpec
+	spec      cron_server.CronSpec
 	helper    *log.Helper
 	teamRepo  repository.Team
 	cacheRepo repository.Cache
@@ -75,11 +75,11 @@ func (t *teamJob) Index() string {
 	return t.index
 }
 
-func (t *teamJob) Spec() server.CronSpec {
+func (t *teamJob) Spec() cron_server.CronSpec {
 	return t.spec
 }
 
-func (t *teamJob) WithID(id cron.EntryID) server.CronJob {
+func (t *teamJob) WithID(id cron.EntryID) cron_server.CronJob {
 	t.id = id
 	return t
 }

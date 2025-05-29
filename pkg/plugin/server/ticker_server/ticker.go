@@ -1,4 +1,4 @@
-package server
+package ticker_server
 
 import (
 	"context"

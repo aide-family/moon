@@ -9,20 +9,20 @@ import (
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 )
 
-var _ server.CronJob = (*userJob)(nil)
+var _ cron_server.CronJob = (*userJob)(nil)
 
 func NewUserJob(
 	userRepo repository.User,
 	cacheRepo repository.Cache,
 	logger log.Logger,
-) server.CronJob {
+) cron_server.CronJob {
 	return &userJob{
 		index:     "cache.user",
 		id:        0,
-		spec:      server.CronSpecEvery(10 * time.Minute),
+		spec:      cron_server.CronSpecEvery(10 * time.Minute),
 		helper:    log.NewHelper(log.With(logger, "module", "job.user")),
 		userRepo:  userRepo,
 		cacheRepo: cacheRepo,
@@ -32,7 +32,7 @@ func NewUserJob(
 type userJob struct {
 	index     string
 	id        cron.EntryID
-	spec      server.CronSpec
+	spec      cron_server.CronSpec
 	helper    *log.Helper
 	userRepo  repository.User
 	cacheRepo repository.Cache
@@ -76,11 +76,11 @@ func (u *userJob) Index() string {
 	return u.index
 }
 
-func (u *userJob) Spec() server.CronSpec {
+func (u *userJob) Spec() cron_server.CronSpec {
 	return u.spec
 }
 
-func (u *userJob) WithID(id cron.EntryID) server.CronJob {
+func (u *userJob) WithID(id cron.EntryID) cron_server.CronJob {
 	u.id = id
 	return u
 }

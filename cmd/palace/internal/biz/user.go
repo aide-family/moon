@@ -12,7 +12,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 	"github.com/aide-family/moon/pkg/util/password"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
@@ -221,8 +221,8 @@ func (b *UserBiz) ListUser(ctx context.Context, req *bo.UserListRequest) (*bo.Us
 	return b.userRepo.List(ctx, req)
 }
 
-func (b *UserBiz) Jobs() []server.CronJob {
-	return []server.CronJob{
+func (b *UserBiz) Jobs() []cron_server.CronJob {
+	return []cron_server.CronJob{
 		job.NewUserJob(b.userRepo, b.cacheRepo, b.log.Logger()),
 	}
 }

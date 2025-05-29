@@ -10,7 +10,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/job"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 )
 
 func NewMenuBiz(
@@ -79,8 +79,8 @@ func (m *Menu) SaveMenu(ctx context.Context, menu *bo.SaveMenuRequest) error {
 	return m.menuRepo.Update(ctx, menu)
 }
 
-func (m *Menu) Jobs() []server.CronJob {
-	return []server.CronJob{
+func (m *Menu) Jobs() []cron_server.CronJob {
+	return []cron_server.CronJob{
 		job.NewMenuJob(m.menuRepo, m.cacheRepo, m.helper.Logger()),
 	}
 }

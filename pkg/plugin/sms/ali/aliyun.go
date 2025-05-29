@@ -16,7 +16,7 @@ import (
 
 var _ sms.Sender = (*aliyun)(nil)
 
-func NewAliyun(c Config, opts ...AliyunOption) (sms.Sender, error) {
+func NewAlibabaCloud(c Config, opts ...AliyunOption) (sms.Sender, error) {
 	a := &aliyun{
 		accessKeyID:     c.GetAccessKeyId(),
 		accessKeySecret: c.GetAccessKeySecret(),

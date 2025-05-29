@@ -7,17 +7,17 @@ import (
 
 	"github.com/aide-family/moon/cmd/laurel/internal/conf"
 	"github.com/aide-family/moon/cmd/laurel/internal/service"
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/ticker_server"
 )
 
-func NewTicker(bc *conf.Bootstrap, healthService *service.HealthService, logger log.Logger) *server.Ticker {
+func NewTicker(bc *conf.Bootstrap, healthService *service.HealthService, logger log.Logger) *ticker_server.Ticker {
 	serverConfig := bc.GetServer()
 	microConfig := bc.GetPalace()
-	return server.NewTicker(serverConfig.GetOnlineInterval().AsDuration(), &server.TickTask{
+	return ticker_server.NewTicker(serverConfig.GetOnlineInterval().AsDuration(), &ticker_server.TickTask{
 		Name:    "health.register.laurel",
 		Timeout: microConfig.GetTimeout().AsDuration(),
 		Fn: func(ctx context.Context, isStop bool) error {
 			return healthService.Register(ctx, !isStop)
 		},
-	}, server.WithTickerLogger(logger))
+	}, ticker_server.WithTickerLogger(logger))
 }

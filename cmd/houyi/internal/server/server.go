@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/api/common"
 	houyiv1 "github.com/aide-family/moon/pkg/api/houyi/v1"
 	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/ticker_server"
 )
 
 // ProviderSetServer is server providers.
@@ -29,7 +30,7 @@ func RegisterService(
 	c *conf.Bootstrap,
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
-	tickerSrv *server.Ticker,
+	tickerSrv *ticker_server.Ticker,
 	cronStrategySrv *CronStrategyJobServer,
 	cronAlertSrv *CronAlertJobServer,
 	eventBusService *EventBusServer,

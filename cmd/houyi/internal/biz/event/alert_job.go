@@ -4,14 +4,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/moon/cmd/houyi/internal/biz/vobj"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/robfig/cron/v3"
 
 	"github.com/aide-family/moon/cmd/houyi/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/houyi/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 	"github.com/aide-family/moon/pkg/util/timex"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
@@ -153,14 +153,14 @@ func (a *alertJob) Index() string {
 	return a.alert.GetFingerprint()
 }
 
-func (a *alertJob) Spec() server.CronSpec {
+func (a *alertJob) Spec() cron_server.CronSpec {
 	if a == nil {
-		return server.CronSpecEvery(1 * time.Minute)
+		return cron_server.CronSpecEvery(1 * time.Minute)
 	}
-	return server.CronSpecEvery(a.alert.GetDuration())
+	return cron_server.CronSpecEvery(a.alert.GetDuration())
 }
 
-func (a *alertJob) WithID(id cron.EntryID) server.CronJob {
+func (a *alertJob) WithID(id cron.EntryID) cron_server.CronJob {
 	a.id = id
 	return a
 }

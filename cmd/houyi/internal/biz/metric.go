@@ -13,7 +13,7 @@ import (
 	"github.com/aide-family/moon/cmd/houyi/internal/conf"
 	"github.com/aide-family/moon/pkg/api/common"
 	"github.com/aide-family/moon/pkg/api/palace"
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/ticker_server"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/timex"
 )
@@ -63,8 +63,8 @@ type Metric struct {
 	syncTimeout      time.Duration
 }
 
-func (m *Metric) Loads() []*server.TickTask {
-	return []*server.TickTask{
+func (m *Metric) Loads() []*ticker_server.TickTask {
+	return []*ticker_server.TickTask{
 		{
 			Fn:        m.syncMetricRuleConfigs,
 			Name:      "syncMetricRuleConfigs",

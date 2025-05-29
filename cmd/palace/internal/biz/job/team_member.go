@@ -4,24 +4,25 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
-	"github.com/aide-family/moon/pkg/plugin/server"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/robfig/cron/v3"
+
+	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 )
 
-var _ server.CronJob = (*teamMemberJob)(nil)
+var _ cron_server.CronJob = (*teamMemberJob)(nil)
 
 func NewTeamMemberJob(
 	teamMemberRepo repository.Member,
 	cacheRepo repository.Cache,
 	logger log.Logger,
-) server.CronJob {
+) cron_server.CronJob {
 	return &teamMemberJob{
 		index:          "cache.team.member",
 		id:             0,
-		spec:           server.CronSpecEvery(10 * time.Minute),
+		spec:           cron_server.CronSpecEvery(10 * time.Minute),
 		helper:         log.NewHelper(log.With(logger, "module", "job.team.member")),
 		teamMemberRepo: teamMemberRepo,
 		cacheRepo:      cacheRepo,
@@ -31,7 +32,7 @@ func NewTeamMemberJob(
 type teamMemberJob struct {
 	index          string
 	id             cron.EntryID
-	spec           server.CronSpec
+	spec           cron_server.CronSpec
 	helper         *log.Helper
 	teamMemberRepo repository.Member
 	cacheRepo      repository.Cache
@@ -80,14 +81,14 @@ func (t *teamMemberJob) Index() string {
 	return t.index
 }
 
-func (t *teamMemberJob) Spec() server.CronSpec {
+func (t *teamMemberJob) Spec() cron_server.CronSpec {
 	if t == nil {
-		return server.CronSpecEvery(1 * time.Minute)
+		return cron_server.CronSpecEvery(1 * time.Minute)
 	}
 	return t.spec
 }
 
-func (t *teamMemberJob) WithID(id cron.EntryID) server.CronJob {
+func (t *teamMemberJob) WithID(id cron.EntryID) cron_server.CronJob {
 	if t == nil {
 		return nil
 	}

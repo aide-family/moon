@@ -12,7 +12,7 @@ import (
 	"github.com/aide-family/moon/cmd/houyi/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/houyi/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/timex"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -110,7 +110,7 @@ func WithStrategyMetricJobSpec(evaluateInterval time.Duration) StrategyMetricJob
 			return merr.ErrorInternalServer("evaluateInterval is 0")
 		}
 		s.evaluateInterval = evaluateInterval
-		spec := server.CronSpecEvery(evaluateInterval)
+		spec := cron_server.CronSpecEvery(evaluateInterval)
 		if spec == "" {
 			return merr.ErrorInternalServer("spec is empty")
 		}
@@ -153,7 +153,7 @@ type strategyMetricJob struct {
 	helper *log.Helper
 	key    string
 	id     cron.EntryID
-	spec   *server.CronSpec
+	spec   *cron_server.CronSpec
 
 	metricStrategyUniqueKey string
 	metricStrategyEnable    bool
@@ -289,14 +289,14 @@ func (s *strategyMetricJob) Index() string {
 	return s.key
 }
 
-func (s *strategyMetricJob) Spec() server.CronSpec {
+func (s *strategyMetricJob) Spec() cron_server.CronSpec {
 	if s == nil || s.spec == nil {
-		return server.CronSpecEvery(1 * time.Minute)
+		return cron_server.CronSpecEvery(1 * time.Minute)
 	}
 	return *s.spec
 }
 
-func (s *strategyMetricJob) WithID(id cron.EntryID) server.CronJob {
+func (s *strategyMetricJob) WithID(id cron.EntryID) cron_server.CronJob {
 	s.id = id
 	return s
 }

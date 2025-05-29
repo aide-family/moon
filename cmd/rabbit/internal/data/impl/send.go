@@ -111,7 +111,7 @@ func (s *sendImpl) Hook(ctx context.Context, params bo.SendHookParams) error {
 func (s *sendImpl) newSms(config bo.SMSConfig) (sms.Sender, error) {
 	switch config.GetType() {
 	case common.SMSConfig_ALIYUN:
-		return ali.NewAliyun(config, ali.WithAliyunLogger(s.helper.Logger()))
+		return ali.NewAlibabaCloud(config, ali.WithAliyunLogger(s.helper.Logger()))
 	default:
 		return nil, merr.ErrorParams("No SMS configuration is available")
 	}

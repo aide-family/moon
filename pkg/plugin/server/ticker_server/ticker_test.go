@@ -1,4 +1,4 @@
-package server_test
+package ticker_server_test
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aide-family/moon/pkg/plugin/server"
+	"github.com/aide-family/moon/pkg/plugin/server/ticker_server"
 	"github.com/aide-family/moon/pkg/util/timex"
 )
 
@@ -16,7 +16,7 @@ func TestNewTicker(t *testing.T) {
 	defer cancel()
 	interval := 1 * time.Second
 	start := timex.Now()
-	task := &server.TickTask{
+	task := &ticker_server.TickTask{
 		Fn: func(ctx context.Context, isStop bool) error {
 			if isStop {
 				t.Logf("Task stopped")
@@ -35,7 +35,7 @@ func TestNewTicker(t *testing.T) {
 		Timeout: 0,
 	}
 
-	ticker := server.NewTicker(interval, task)
+	ticker := ticker_server.NewTicker(interval, task)
 	err := ticker.Start(ctx)
 	if err != nil {
 		t.Fatalf("Failed to start timer: %v", err)
@@ -56,9 +56,9 @@ func TestTestNewTickers(t *testing.T) {
 		5 * time.Second,
 	}
 	start := timex.Now()
-	task := make([]*server.TickTask, len(list))
+	task := make([]*ticker_server.TickTask, len(list))
 	for i, v := range list {
-		task[i] = &server.TickTask{
+		task[i] = &ticker_server.TickTask{
 			Fn: func(ctx context.Context, isStop bool) error {
 				if isStop {
 					t.Logf("Task stopped")
@@ -79,13 +79,13 @@ func TestTestNewTickers(t *testing.T) {
 		}
 	}
 
-	tickers := server.NewTickers(server.WithTickersTasks(task...))
+	tickers := ticker_server.NewTickers(ticker_server.WithTickersTasks(task...))
 	err := tickers.Start(ctx)
 	if err != nil {
 		t.Fatalf("Failed to start timer: %v", err)
 	}
 
-	tickers.Add(1*time.Second, &server.TickTask{
+	tickers.Add(1*time.Second, &ticker_server.TickTask{
 		Fn: func(ctx context.Context, isStop bool) error {
 			t.Logf("Add 1s Task executed after 1s")
 			return nil
@@ -94,7 +94,7 @@ func TestTestNewTickers(t *testing.T) {
 		Timeout: 0,
 	})
 
-	tickers.Add(2*time.Second, &server.TickTask{
+	tickers.Add(2*time.Second, &ticker_server.TickTask{
 		Fn: func(ctx context.Context, isStop bool) error {
 			t.Logf("Add 2s Task executed after 2s")
 			return nil
