@@ -166,11 +166,7 @@ func (s *TeamDatasourceService) UpdateMetricDatasourceMetadata(ctx context.Conte
 	return &palacecommon.EmptyReply{}, nil
 }
 
-const (
-	OperationTeamDatasourceMetricDatasourceProxy = "/api.palace.TeamDatasource/MetricDatasourceProxy"
-)
-
-func (s *TeamDatasourceService) MetricDatasourceProxy(httpCtx http.Context) error {
+func (s *TeamDatasourceService) MetricDatasourceProxyHandler(httpCtx http.Context) error {
 	isContentType := false
 	for k := range httpCtx.Request().Header {
 		if strings.EqualFold(k, "Content-Type") {
@@ -192,7 +188,7 @@ func (s *TeamDatasourceService) MetricDatasourceProxy(httpCtx http.Context) erro
 	if err := httpCtx.BindVars(&in); err != nil {
 		return err
 	}
-	http.SetOperation(httpCtx, OperationTeamDatasourceMetricDatasourceProxy)
+	http.SetOperation(httpCtx, palace.OperationTeamDatasourceMetricDatasourceProxy)
 
 	h := httpCtx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 		datasourceDo, err := s.teamDatasourceBiz.GetMetricDatasource(ctx, in.GetDatasourceId())

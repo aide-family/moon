@@ -1027,6 +1027,111 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/team/datasource/metric/{datasourceId}/{target}:
+        get:
+            tags:
+                - TeamDatasource
+            operationId: TeamDatasource_MetricDatasourceProxy
+            parameters:
+                - name: datasourceId
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: target
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
+        put:
+            tags:
+                - TeamDatasource
+            operationId: TeamDatasource_MetricDatasourceProxy
+            parameters:
+                - name: datasourceId
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: target
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.MetricDatasourceProxyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
+        post:
+            tags:
+                - TeamDatasource
+            operationId: TeamDatasource_MetricDatasourceProxy
+            parameters:
+                - name: datasourceId
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: target
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.MetricDatasourceProxyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
+        delete:
+            tags:
+                - TeamDatasource
+            operationId: TeamDatasource_MetricDatasourceProxy
+            parameters:
+                - name: datasourceId
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: target
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
     /api/team/detail:
         get:
             tags:
@@ -3776,6 +3881,14 @@ components:
                     type: string
                     description: Redirect URL after logout, optional
             description: LogoutRequest represents the request data for logging out
+        api.palace.MetricDatasourceProxyRequest:
+            type: object
+            properties:
+                datasourceId:
+                    type: integer
+                    format: uint32
+                target:
+                    type: string
         api.palace.MetricDatasourceQueryRequest:
             type: object
             properties:

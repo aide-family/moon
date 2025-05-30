@@ -76,6 +76,22 @@ service TeamDatasource {
       body: "*"
     };
   }
+  rpc MetricDatasourceProxy (MetricDatasourceProxyRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/team/datasource/metric/{datasourceId}/{target}"
+      body: "*"
+      additional_bindings {
+        put: "/api/team/datasource/metric/{datasourceId}/{target}"
+        body: "*"
+      }
+      additional_bindings {
+        get: "/api/team/datasource/metric/{datasourceId}/{target}"
+      }
+      additional_bindings {
+        delete: "/api/team/datasource/metric/{datasourceId}/{target}"
+      }
+    };
+  }
 }
 
 message SaveTeamMetricDatasourceRequest {
