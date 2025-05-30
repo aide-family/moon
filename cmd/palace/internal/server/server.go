@@ -49,6 +49,7 @@ func RegisterService(
 	portalAuthService *portal_service.AuthService,
 	portalHomeService *portal_service.HomeService,
 	portalPricingService *portal_service.PricingService,
+	teamStrategyMetricService *service.TeamStrategyMetricService,
 ) server.Servers {
 	common.RegisterHealthServer(rpcSrv, healthService)
 	common.RegisterServerServer(rpcSrv, serverService)
@@ -71,6 +72,7 @@ func RegisterService(
 	palace.RegisterTeamLogHTTPServer(httpSrv, teamLogService)
 	palace.RegisterAlertHTTPServer(httpSrv, alertService)
 	palace.RegisterTimeEngineHTTPServer(httpSrv, timeEngineService)
+	palace.RegisterTeamStrategyMetricHTTPServer(httpSrv, teamStrategyMetricService)
 
 	// portal
 	portalapi.RegisterAuthHTTPServer(portalHttpSrv.Server, portalAuthService)

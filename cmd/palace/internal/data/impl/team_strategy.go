@@ -104,11 +104,11 @@ func (t *teamStrategyRepoImpl) Create(ctx context.Context, params bo.CreateTeamS
 }
 
 // Delete implements repository.TeamStrategy.
-func (t *teamStrategyRepoImpl) Delete(ctx context.Context, params *bo.OperateTeamStrategyParams) error {
+func (t *teamStrategyRepoImpl) Delete(ctx context.Context, strategyId uint32) error {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.Strategy
 	wrappers := []gen.Condition{
-		mutation.ID.Eq(params.StrategyId),
+		mutation.ID.Eq(strategyId),
 		mutation.TeamID.Eq(teamId),
 	}
 	_, err := mutation.WithContext(ctx).Where(wrappers...).Delete()
@@ -116,12 +116,11 @@ func (t *teamStrategyRepoImpl) Delete(ctx context.Context, params *bo.OperateTea
 }
 
 // Subscribe implements repository.TeamStrategy.
-func (t *teamStrategyRepoImpl) Subscribe(ctx context.Context, params bo.SubscribeTeamStrategy) error {
+func (t *teamStrategyRepoImpl) Subscribe(ctx context.Context, params *bo.SubscribeTeamStrategyParams) error {
 	tx := getTeamBizQuery(ctx, t)
 	subscriberDo := &team.StrategySubscriber{
-		StrategyID:    params.GetStrategy().GetID(),
-		Strategy:      build.ToStrategy(ctx, params.GetStrategy()),
-		SubscribeType: params.GetNoticeType(),
+		StrategyID:    params.StrategyId,
+		SubscribeType: params.NoticeType,
 	}
 	subscriberDo.WithContext(ctx)
 
@@ -136,9 +135,6 @@ func (t *teamStrategyRepoImpl) SubscribeList(ctx context.Context, params *bo.Sub
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	query := tx.StrategySubscriber
 	wrappers := query.WithContext(ctx).Where(query.TeamID.Eq(teamId))
-	if validate.IsNotNil(params.StrategyId) {
-		wrappers = wrappers.Where(query.StrategyID.Eq(params.StrategyId))
-	}
 	if len(params.Subscribers) > 0 {
 		wrappers = wrappers.Where(query.CreatorID.In(params.Subscribers...))
 	}
@@ -256,9 +252,9 @@ func (t *teamStrategyRepoImpl) FindByIds(ctx context.Context, strategyIds []uint
 	return slices.Map(rows, func(row *team.Strategy) do.Strategy { return row }), nil
 }
 
-func (t *teamStrategyRepoImpl) Get(ctx context.Context, params *bo.OperateTeamStrategyParams) (do.Strategy, error) {
+func (t *teamStrategyRepoImpl) Get(ctx context.Context, strategyId uint32) (do.Strategy, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
-	wrapper := bizQuery.Strategy.WithContext(ctx).Where(bizQuery.Strategy.TeamID.Eq(teamId), bizQuery.Strategy.ID.Eq(params.StrategyId))
+	wrapper := bizQuery.Strategy.WithContext(ctx).Where(bizQuery.Strategy.TeamID.Eq(teamId), bizQuery.Strategy.ID.Eq(strategyId))
 	strategy, err := wrapper.First()
 	if err != nil {
 		return nil, strategyNotFound(err)

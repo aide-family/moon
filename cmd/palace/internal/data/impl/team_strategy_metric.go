@@ -12,7 +12,6 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
 	"github.com/aide-family/moon/cmd/palace/internal/data/impl/build"
-	"github.com/aide-family/moon/pkg/merr"
 )
 
 func NewTeamStrategyMetricRepo(d *data.Data) repository.TeamStrategyMetric {
@@ -102,12 +101,12 @@ func (t *teamStrategyMetricRepoImpl) Update(ctx context.Context, params bo.Updat
 }
 
 // Delete implements repository.TeamStrategyMetric.
-func (t *teamStrategyMetricRepoImpl) Delete(ctx context.Context, params *bo.OperateTeamStrategyParams) error {
+func (t *teamStrategyMetricRepoImpl) Delete(ctx context.Context, strategyMetricId uint32) error {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 
 	strategyMetricMutation := tx.StrategyMetric
 	wrapper := []gen.Condition{
-		strategyMetricMutation.StrategyID.Eq(params.StrategyId),
+		strategyMetricMutation.ID.Eq(strategyMetricId),
 		strategyMetricMutation.TeamID.Eq(teamId),
 	}
 
@@ -116,12 +115,12 @@ func (t *teamStrategyMetricRepoImpl) Delete(ctx context.Context, params *bo.Oper
 }
 
 // Get implements repository.TeamStrategyMetric.
-func (t *teamStrategyMetricRepoImpl) Get(ctx context.Context, params *bo.OperateTeamStrategyParams) (do.StrategyMetric, error) {
+func (t *teamStrategyMetricRepoImpl) Get(ctx context.Context, strategyMetricId uint32) (do.StrategyMetric, error) {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 
 	strategyMetricMutation := tx.StrategyMetric
 	wrapper := []gen.Condition{
-		strategyMetricMutation.StrategyID.Eq(params.StrategyId),
+		strategyMetricMutation.ID.Eq(strategyMetricId),
 		strategyMetricMutation.TeamID.Eq(teamId),
 	}
 
@@ -135,23 +134,23 @@ func (t *teamStrategyMetricRepoImpl) Get(ctx context.Context, params *bo.Operate
 	preloads = append(preloads, strategyMetricMutation.StrategyMetricRules.Level)
 	strategyMetricDo, err := strategyMetricMutation.WithContext(ctx).Preload(preloads...).Where(wrapper...).First()
 	if err != nil {
-		err = strategyMetricNotFound(err)
-		if !merr.IsNotFound(err) {
-			return nil, err
-		}
-		strategyMutation := tx.Strategy
-		strategyWrapper := []gen.Condition{
-			strategyMutation.ID.Eq(params.StrategyId),
-			strategyMutation.TeamID.Eq(teamId),
-		}
-		strategyDo, err := strategyMutation.WithContext(ctx).Where(strategyWrapper...).First()
-		if err != nil {
-			return nil, strategyNotFound(err)
-		}
-		return &team.StrategyMetric{
-			Strategy: strategyDo,
-		}, nil
+		return nil, strategyMetricNotFound(err)
+	}
+	return strategyMetricDo, nil
+}
+
+func (t *teamStrategyMetricRepoImpl) GetByStrategyId(ctx context.Context, strategyId uint32) (do.StrategyMetric, error) {
+	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+
+	strategyMetricMutation := tx.StrategyMetric
+	wrapper := []gen.Condition{
+		strategyMetricMutation.StrategyID.Eq(strategyId),
+		strategyMetricMutation.TeamID.Eq(teamId),
 	}
 
+	strategyMetricDo, err := strategyMetricMutation.WithContext(ctx).Where(wrapper...).First()
+	if err != nil {
+		return nil, strategyMetricNotFound(err)
+	}
 	return strategyMetricDo, nil
 }

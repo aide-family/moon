@@ -14,20 +14,17 @@ import (
 func NewTeamStrategyService(
 	teamStrategyGroupBiz *biz.TeamStrategyGroup,
 	teamStrategyBiz *biz.TeamStrategy,
-	teamStrategyMetricBiz *biz.TeamStrategyMetric,
 ) *TeamStrategyService {
 	return &TeamStrategyService{
-		teamStrategyGroupBiz:  teamStrategyGroupBiz,
-		teamStrategyBiz:       teamStrategyBiz,
-		teamStrategyMetricBiz: teamStrategyMetricBiz,
+		teamStrategyGroupBiz: teamStrategyGroupBiz,
+		teamStrategyBiz:      teamStrategyBiz,
 	}
 }
 
 type TeamStrategyService struct {
 	palace.UnimplementedTeamStrategyServer
-	teamStrategyGroupBiz  *biz.TeamStrategyGroup
-	teamStrategyBiz       *biz.TeamStrategy
-	teamStrategyMetricBiz *biz.TeamStrategyMetric
+	teamStrategyGroupBiz *biz.TeamStrategyGroup
+	teamStrategyBiz      *biz.TeamStrategy
 }
 
 func (t *TeamStrategyService) SaveTeamStrategyGroup(ctx context.Context, request *palace.SaveTeamStrategyGroupRequest) (*common.EmptyReply, error) {
@@ -96,56 +93,9 @@ func (t *TeamStrategyService) SelectTeamStrategyGroup(ctx context.Context, reque
 	}, nil
 }
 
-func (t *TeamStrategyService) SaveTeamStrategy(ctx context.Context, request *palace.SaveTeamStrategyRequest) (*common.TeamStrategyItem, error) {
+func (t *TeamStrategyService) SaveTeamStrategy(ctx context.Context, request *palace.SaveTeamStrategyRequest) (*common.EmptyReply, error) {
 	params := build.ToSaveTeamStrategyParams(request)
-	strategyDo, err := t.teamStrategyBiz.SaveTeamStrategy(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	return build.ToTeamStrategyItem(strategyDo), nil
-}
-
-func (t *TeamStrategyService) SaveTeamMetricStrategy(ctx context.Context, request *palace.SaveTeamMetricStrategyRequest) (*common.TeamStrategyMetricItem, error) {
-	params := build.ToSaveTeamMetricStrategyParams(request)
-	metricStrategyDo, err := t.teamStrategyMetricBiz.SaveTeamMetricStrategy(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	return build.ToTeamMetricStrategyItem(metricStrategyDo), nil
-}
-
-func (t *TeamStrategyService) SaveTeamMetricStrategyLevel(ctx context.Context, request *palace.SaveTeamMetricStrategyLevelRequest) (*common.TeamStrategyMetricRuleItem, error) {
-	params := build.ToSaveTeamMetricStrategyLevelParams(request)
-	metricStrategyRules, err := t.teamStrategyMetricBiz.SaveTeamMetricStrategyLevel(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	return build.ToTeamMetricStrategyRuleItem(metricStrategyRules), nil
-}
-
-func (t *TeamStrategyService) ListTeamMetricStrategyLevels(ctx context.Context, request *palace.ListTeamMetricStrategyLevelsRequest) (*palace.ListTeamMetricStrategyLevelsReply, error) {
-	params := build.ToListTeamMetricStrategyLevelsParams(request)
-	metricStrategyRulesReply, err := t.teamStrategyMetricBiz.ListTeamMetricStrategyLevels(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	return &palace.ListTeamMetricStrategyLevelsReply{
-		Items:      build.ToTeamMetricStrategyRuleItems(metricStrategyRulesReply.Items),
-		Pagination: build.ToPaginationReply(metricStrategyRulesReply.PaginationReply),
-	}, nil
-}
-
-func (t *TeamStrategyService) UpdateTeamMetricStrategyLevelStatus(ctx context.Context, request *palace.UpdateTeamMetricStrategyLevelStatusRequest) (*common.EmptyReply, error) {
-	params := build.ToUpdateTeamMetricStrategyLevelStatusParams(request)
-	if err := t.teamStrategyMetricBiz.UpdateTeamMetricStrategyLevelStatus(ctx, params); err != nil {
-		return nil, err
-	}
-	return &common.EmptyReply{}, nil
-}
-
-func (t *TeamStrategyService) DeleteTeamMetricStrategyLevel(ctx context.Context, request *palace.DeleteTeamMetricStrategyLevelRequest) (*common.EmptyReply, error) {
-	params := build.ToDeleteTeamMetricStrategyLevelParams(request)
-	if err := t.teamStrategyMetricBiz.DeleteTeamMetricStrategyLevel(ctx, params); err != nil {
+	if err := t.teamStrategyBiz.SaveTeamStrategy(ctx, params); err != nil {
 		return nil, err
 	}
 	return &common.EmptyReply{}, nil
@@ -159,21 +109,11 @@ func (t *TeamStrategyService) UpdateTeamStrategiesStatus(ctx context.Context, re
 	return &common.EmptyReply{}, nil
 }
 
-func (t *TeamStrategyService) DeleteTeamStrategy(ctx context.Context, request *palace.OperateTeamStrategyRequest) (*common.EmptyReply, error) {
-	params := build.ToOperateTeamStrategyParams(request)
-	if err := t.teamStrategyBiz.DeleteTeamStrategy(ctx, params); err != nil {
+func (t *TeamStrategyService) DeleteTeamStrategy(ctx context.Context, request *palace.DeleteTeamStrategyRequest) (*common.EmptyReply, error) {
+	if err := t.teamStrategyBiz.DeleteTeamStrategy(ctx, request.GetStrategyId()); err != nil {
 		return nil, err
 	}
 	return &common.EmptyReply{}, nil
-}
-
-func (t *TeamStrategyService) GetTeamMetricStrategy(ctx context.Context, request *palace.OperateTeamStrategyRequest) (*common.TeamStrategyMetricItem, error) {
-	params := build.ToOperateTeamStrategyParams(request)
-	strategy, err := t.teamStrategyMetricBiz.GetTeamMetricStrategy(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	return build.ToTeamMetricStrategyItem(strategy), nil
 }
 
 func (t *TeamStrategyService) ListTeamStrategy(ctx context.Context, request *palace.ListTeamStrategyRequest) (*palace.ListTeamStrategyReply, error) {

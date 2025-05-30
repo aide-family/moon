@@ -46,7 +46,7 @@ message NoticeGroupItem {
   api.palace.common.UserBaseItem creator = 9;
 }
 
-message StrategyMetricRuleLabelNotice {
+message StrategyMetricLevelLabelNotice {
   uint32 labelNoticeId = 1;
   string createdAt = 2;
   string updatedAt = 3;

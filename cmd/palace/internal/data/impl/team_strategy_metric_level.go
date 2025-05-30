@@ -42,21 +42,21 @@ func (t *teamStrategyMetricLevelRepoImpl) DeleteByStrategyIds(ctx context.Contex
 }
 
 // Create implements repository.TeamStrategyMetricLevel.
-func (t *teamStrategyMetricLevelRepoImpl) Create(ctx context.Context, params bo.SaveTeamMetricStrategyLevel) error {
-	labelNotices := slices.Map(params.GetLabelNotices(), func(item bo.LabelNotice) *team.StrategyMetricRuleLabelNotice {
+func (t *teamStrategyMetricLevelRepoImpl) Create(ctx context.Context, params bo.CreateTeamMetricStrategyLevelParams) error {
+	labelNotices := slices.Map(params.GetLabelNotices(), func(item *bo.LabelNoticeParams) *team.StrategyMetricRuleLabelNotice {
 		labelNotice := &team.StrategyMetricRuleLabelNotice{
 			TeamModel:            do.TeamModel{},
 			StrategyMetricRuleID: 0,
-			LabelKey:             item.GetKey(),
-			LabelValue:           item.GetValue(),
-			Notices:              build.ToStrategyNotices(ctx, item.GetReceiverRoutes()),
+			LabelKey:             item.Key,
+			LabelValue:           item.Value,
+			Notices:              build.ToStrategyNotices(ctx, item.GetNoticeGroupDos()),
 		}
 		labelNotice.WithContext(ctx)
 		return labelNotice
 	})
 	strategyMetricLevel := &team.StrategyMetricRule{
 		TeamModel:        do.TeamModel{},
-		StrategyMetricID: params.GetStrategyMetricID(),
+		StrategyMetricID: params.GetStrategyMetric().GetID(),
 		LevelID:          0,
 		Level:            build.ToDict(ctx, params.GetLevel()),
 		SampleMode:       params.GetSampleMode(),
@@ -65,7 +65,7 @@ func (t *teamStrategyMetricLevelRepoImpl) Create(ctx context.Context, params bo.
 		Values:           params.GetValues(),
 		Duration:         params.GetDuration(),
 		Status:           vobj.GlobalStatusEnable,
-		Notices:          build.ToStrategyNotices(ctx, params.GetReceiverRoutes()),
+		Notices:          build.ToStrategyNotices(ctx, params.GetNoticeGroupDos()),
 		LabelNotices:     labelNotices,
 		AlarmPages:       build.ToDicts(ctx, params.GetAlarmPages()),
 	}
@@ -111,11 +111,11 @@ func (t *teamStrategyMetricLevelRepoImpl) Get(ctx context.Context, strategyMetri
 }
 
 // GetByLevelId implements repository.TeamStrategyMetricLevel.
-func (t *teamStrategyMetricLevelRepoImpl) GetByLevelId(ctx context.Context, params *bo.OperateTeamStrategyLevelParams) (do.StrategyMetricRule, error) {
+func (t *teamStrategyMetricLevelRepoImpl) GetByLevelId(ctx context.Context, strategyMetricId uint32, levelId uint32) (do.StrategyMetricRule, error) {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
-		tx.StrategyMetricRule.LevelID.Eq(params.StrategyLevelId),
-		tx.StrategyMetricRule.StrategyMetricID.Eq(params.StrategyMetricId),
+		tx.StrategyMetricRule.LevelID.Eq(levelId),
+		tx.StrategyMetricRule.StrategyMetricID.Eq(strategyMetricId),
 		tx.StrategyMetricRule.TeamID.Eq(teamId),
 	}
 	strategyMetricRuleDo, err := tx.StrategyMetricRule.WithContext(ctx).Where(wrapper...).First()
@@ -155,10 +155,10 @@ func (t *teamStrategyMetricLevelRepoImpl) List(ctx context.Context, params *bo.L
 }
 
 // Update implements repository.TeamStrategyMetricLevel.
-func (t *teamStrategyMetricLevelRepoImpl) Update(ctx context.Context, params bo.SaveTeamMetricStrategyLevel) error {
+func (t *teamStrategyMetricLevelRepoImpl) Update(ctx context.Context, params bo.UpdateTeamMetricStrategyLevelParams) error {
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
-		tx.StrategyMetricRule.ID.Eq(params.GetID()),
+		tx.StrategyMetricRule.ID.Eq(params.GetStrategyMetricLevel().GetID()),
 		tx.StrategyMetricRule.TeamID.Eq(teamId),
 	}
 	ruleMutation := tx.StrategyMetricRule
@@ -175,19 +175,19 @@ func (t *teamStrategyMetricLevelRepoImpl) Update(ctx context.Context, params bo.
 	if err != nil {
 		return err
 	}
-	labelNotices := slices.Map(params.GetLabelNotices(), func(item bo.LabelNotice) *team.StrategyMetricRuleLabelNotice {
+	labelNotices := slices.Map(params.GetLabelNotices(), func(item *bo.LabelNoticeParams) *team.StrategyMetricRuleLabelNotice {
 		labelNotice := &team.StrategyMetricRuleLabelNotice{
 			TeamModel:            do.TeamModel{},
 			StrategyMetricRuleID: 0,
-			LabelKey:             item.GetKey(),
-			LabelValue:           item.GetValue(),
-			Notices:              build.ToStrategyNotices(ctx, item.GetReceiverRoutes()),
+			LabelKey:             item.Key,
+			LabelValue:           item.Value,
+			Notices:              build.ToStrategyNotices(ctx, item.GetNoticeGroupDos()),
 		}
 		labelNotice.WithContext(ctx)
 		return labelNotice
 	})
 
-	ruleDo, err := t.Get(ctx, params.GetStrategyMetricID())
+	ruleDo, err := t.Get(ctx, params.GetStrategyMetricLevel().GetStrategyMetricID())
 	if err != nil {
 		return err
 	}

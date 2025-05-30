@@ -1,0 +1,247 @@
+syntax = "proto3";
+
+package api.palace;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "palace/common/team_strategy_metric.proto";
+import "palace/common/team_strategy.proto";
+import "palace/common/common.proto";
+import "palace/common/common_enum.proto";
+
+option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
+
+service TeamStrategyMetric {
+	// SaveTeamMetricStrategy saves a new team metric strategy or updates an existing one
+	rpc SaveTeamMetricStrategy (SaveTeamMetricStrategyRequest) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+		  post: "/api/team/strategy/metric"
+		  body: "*"
+		};
+	}
+	// DeleteTeamMetricStrategy deletes a team metric strategy
+	rpc DeleteTeamMetricStrategy (DeleteTeamMetricStrategyRequest) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+		  delete: "/api/team/strategy/metric"
+		};
+	}
+
+	// TeamMetricStrategyDetail gets the detail of a team metric strategy
+	rpc TeamMetricStrategyDetail (TeamMetricStrategyDetailRequest) returns (api.palace.common.TeamStrategyMetricItem) {
+		option (google.api.http) = {
+		  get: "/api/team/strategy/metric"
+		};
+	}
+
+	// SaveTeamMetricStrategyLevel saves a new team metric strategy level or updates an existing one
+	rpc SaveTeamMetricStrategyLevel (SaveTeamMetricStrategyLevelRequest) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+		  post: "/api/team/strategy/metric/level"
+		  body: "*"
+		};
+	}
+
+	// DeleteTeamMetricStrategyLevel deletes a team metric strategy level
+	rpc DeleteTeamMetricStrategyLevel (DeleteTeamMetricStrategyLevelRequest) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+		  delete: "/api/team/strategy/metric/level"
+		};
+	}
+
+	// TeamMetricStrategyLevelDetail gets the detail of a team metric strategy level
+	rpc TeamMetricStrategyLevelDetail (TeamMetricStrategyLevelDetailRequest) returns (api.palace.common.TeamStrategyMetricLevelItem) {
+		option (google.api.http) = {
+		  get: "/api/team/strategy/metric/level"
+		};
+	}
+
+	// TeamMetricStrategyLevelList gets the list of team metric strategy levels
+	rpc TeamMetricStrategyLevelList (TeamMetricStrategyLevelListRequest) returns (TeamMetricStrategyLevelListReply) {
+		option (google.api.http) = {
+		  post: "/api/team/strategy/metric/level/list"
+		  body: "*"
+		};
+	}
+
+	// UpdateTeamMetricStrategyLevelStatus updates the status of a team metric strategy level
+	rpc UpdateTeamMetricStrategyLevelStatus (UpdateTeamMetricStrategyLevelStatusRequest) returns (api.palace.common.EmptyReply) {
+		option (google.api.http) = {
+		  post: "/api/team/strategy/metric/level/status"
+		  body: "*"
+		};
+	}
+}
+
+// SaveTeamMetricStrategyRequest represents the request data for saving or updating a team metric strategy
+message SaveTeamMetricStrategyRequest {
+	// Strategy id
+	uint32 strategyId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+	  id: "STRATEGY_ID_GREATER_THAN_0",
+	  message: "must select a strategy"
+	  expression: "this > 0"
+	}];
+	// Expression
+	string expr = 2 [(buf.validate.field).cel = {
+	  id: "EXPR_GREATER_THAN_0",
+	  message: "expr must be greater than 0 characters"
+	  expression: "this.size() > 0"
+	}];
+	// Labels
+	repeated api.palace.common.KeyValueItem labels = 3;
+	// Annotations
+	api.palace.common.AnnotationsItem annotations = 4 [(buf.validate.field).required = true];
+	// Datasource
+	repeated uint32 datasource = 5 [(buf.validate.field).cel = {
+	  id: "DATASOURCE_SIZE_GREATER_THAN_0",
+	  message: "at least one valid datasource must be selected"
+	  expression: "this.size() > 0"
+	}, (buf.validate.field).cel = {
+	  id: "DATASOURCE_GREATER_THAN_0",
+	  message: "a valid datasource must be selected"
+	  expression: "this.all(x, x > 0)"
+	}];
+	// Strategy metric id
+	uint32 strategyMetricId = 6;
+}
+
+// DeleteTeamMetricStrategyRequest represents the request data for deleting a team metric strategy
+message DeleteTeamMetricStrategyRequest {
+	// Strategy id
+	uint32 strategyId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+	  id: "STRATEGY_ID_GREATER_THAN_0",
+	  message: "must select a strategy"
+	  expression: "this > 0"
+	}];
+}
+
+// TeamMetricStrategyDetailRequest represents the request data for getting the detail of a team metric strategy
+message TeamMetricStrategyDetailRequest {
+	// Strategy id
+	uint32 strategyId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+	  id: "STRATEGY_ID_GREATER_THAN_0",
+	  message: "must select a strategy"
+	  expression: "this > 0"
+	}];
+}
+
+// SaveTeamMetricStrategyLevelRequest represents the request data for saving or updating a team metric strategy level
+message SaveTeamMetricStrategyLevelRequest {
+	// Level Id of dict item
+	uint32 levelId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "LEVEL_ID_GREATER_THAN_0",
+		message: "must select a level"
+		expression: "this > 0"
+	}];
+	// Sample mode
+	api.palace.common.SampleMode sampleMode = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "SAMPLE_MODE_GREATER_THAN_0",
+		message: "must select a sample mode"
+		expression: "this > 0"
+	}];
+	// Total
+	int64 total = 3;
+	// Condition
+	api.palace.common.ConditionMetric condition = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "CONDITION_GREATER_THAN_0",
+		message: "must select a condition"
+		expression: "this > 0"
+	}];
+	// Values
+	repeated double values = 5 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "VALUES_GREATER_THAN_0",
+		message: "values must be greater than 0"
+		expression: "this.size() > 0"
+	}];
+	// Receiver routes
+	repeated uint32 receiverRoutes = 6;
+	// Label notices
+	repeated api.palace.common.LabelNotices labelReceiverRoutes = 7;
+	// Duration in seconds
+	int64 duration = 8 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "DURATION_GREATER_THAN_0",
+		message: "duration must be greater than 0"
+		expression: "this > 0"
+	}];
+	// Id
+	uint32 strategyMetricLevelId = 9;
+	// alarm pages of dict item
+	repeated uint32 alarmPages = 10 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "ALARM_PAGES_GREATER_THAN_0",
+		message: "alarm pages must be greater than 0"
+		expression: "this.size() > 0"
+	}];
+	// strategy metric id
+	uint32 strategyMetricId = 11 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "STRATEGY_METRIC_ID_GREATER_THAN_0",
+		message: "must select a strategy metric"
+		expression: "this > 0"
+	}];
+
+	option (buf.validate.message).cel = {
+		// 如果condition是CONDITION_METRIC_IN或者CONDITION_METRIC_NOT_IN，则values长度必须等于2， 其他必须等于1
+		id: "VALUES_LENGTH_CONDITION_METRIC_IN_OR_CONDITION_METRIC_NOT_IN",
+		message: "values length must be 2 if condition is CONDITION_METRIC_IN or CONDITION_METRIC_NOT_IN, otherwise must be 1"
+		expression: "this in [7, 8, 'CONDITION_METRIC_IN', 'CONDITION_METRIC_NOT_IN'] ? this.size() == 2 : this.size() == 1"
+	};
+}
+
+// DeleteTeamMetricStrategyLevelRequest represents the request data for deleting a team metric strategy level
+message DeleteTeamMetricStrategyLevelRequest {
+	// Strategy metric level id
+	uint32 strategyMetricLevelId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "STRATEGY_METRIC_LEVEL_ID_GREATER_THAN_0",
+		message: "must select a strategy metric level"
+		expression: "this > 0"
+	}];
+}
+
+// TeamMetricStrategyLevelDetailRequest represents the request data for getting the detail of a team metric strategy level
+message TeamMetricStrategyLevelDetailRequest {
+	// Strategy metric level id
+	uint32 strategyMetricLevelId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "STRATEGY_METRIC_LEVEL_ID_GREATER_THAN_0",
+		message: "must select a strategy metric level"
+		expression: "this > 0"
+	}];
+}
+
+// TeamMetricStrategyLevelListRequest represents the request data for getting the list of team metric strategy levels
+message TeamMetricStrategyLevelListRequest {
+	// Strategy metric id
+	uint32 strategyMetricId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "STRATEGY_METRIC_ID_GREATER_THAN_0",
+		message: "must select a strategy metric"
+		expression: "this > 0"
+	}];
+	// Pagination
+	api.palace.common.PaginationRequest pagination = 2;
+	// Keyword
+	string keyword = 3;
+	// Status
+	api.palace.common.GlobalStatus status = 4;
+	// Level id
+	uint32 levelId = 5;
+}
+
+// TeamMetricStrategyLevelListReply represents the response data for the list of team metric strategy levels
+message TeamMetricStrategyLevelListReply {
+	repeated api.palace.common.TeamStrategyMetricLevelItem items = 1;
+	// Pagination
+	api.palace.common.PaginationReply pagination = 2;
+}
+
+// UpdateTeamMetricStrategyLevelStatusRequest represents the request data for updating the status of a team metric strategy level
+message UpdateTeamMetricStrategyLevelStatusRequest {
+	// Strategy metric level id
+	uint32 strategyMetricLevelId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "STRATEGY_METRIC_LEVEL_ID_GREATER_THAN_0",
+		message: "must select a strategy metric level"
+		expression: "this > 0"
+	}];
+	// Status
+	api.palace.common.GlobalStatus status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "STATUS_GREATER_IN_1_OR_2",
+		message: "must select a status in enable or disable"
+		expression: "this in [1, 2, 'GLOBAL_STATUS_ENABLE', 'GLOBAL_STATUS_DISABLE']"
+	}];
+}

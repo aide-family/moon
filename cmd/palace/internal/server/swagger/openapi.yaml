@@ -1968,7 +1968,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.common.TeamStrategyItem'
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
         delete:
             tags:
                 - TeamStrategy
@@ -1978,12 +1978,6 @@ paths:
                 - name: strategyId
                   in: query
                   description: Strategy id
-                  schema:
-                    type: integer
-                    format: uint32
-                - name: strategyLevelId
-                  in: query
-                  description: Strategy level id
                   schema:
                     type: integer
                     format: uint32
@@ -2130,19 +2124,13 @@ paths:
     /api/team/strategy/metric:
         get:
             tags:
-                - TeamStrategy
-            description: GetTeamStrategy retrieves a team strategy by Id
-            operationId: TeamStrategy_GetTeamMetricStrategy
+                - TeamStrategyMetric
+            description: TeamMetricStrategyDetail gets the detail of a team metric strategy
+            operationId: TeamStrategyMetric_TeamMetricStrategyDetail
             parameters:
                 - name: strategyId
                   in: query
                   description: Strategy id
-                  schema:
-                    type: integer
-                    format: uint32
-                - name: strategyLevelId
-                  in: query
-                  description: Strategy level id
                   schema:
                     type: integer
                     format: uint32
@@ -2155,9 +2143,9 @@ paths:
                                 $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricItem'
         post:
             tags:
-                - TeamStrategy
+                - TeamStrategyMetric
             description: SaveTeamMetricStrategy saves a new team metric strategy or updates an existing one
-            operationId: TeamStrategy_SaveTeamMetricStrategy
+            operationId: TeamStrategyMetric_SaveTeamMetricStrategy
             requestBody:
                 content:
                     application/json:
@@ -2170,13 +2158,51 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricItem'
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
+        delete:
+            tags:
+                - TeamStrategyMetric
+            description: DeleteTeamMetricStrategy deletes a team metric strategy
+            operationId: TeamStrategyMetric_DeleteTeamMetricStrategy
+            parameters:
+                - name: strategyId
+                  in: query
+                  description: Strategy id
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
     /api/team/strategy/metric/level:
+        get:
+            tags:
+                - TeamStrategyMetric
+            description: TeamMetricStrategyLevelDetail gets the detail of a team metric strategy level
+            operationId: TeamStrategyMetric_TeamMetricStrategyLevelDetail
+            parameters:
+                - name: strategyMetricLevelId
+                  in: query
+                  description: Strategy metric level id
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricLevelItem'
         post:
             tags:
-                - TeamStrategy
+                - TeamStrategyMetric
             description: SaveTeamMetricStrategyLevel saves a new team metric strategy level or updates an existing one
-            operationId: TeamStrategy_SaveTeamMetricStrategyLevel
+            operationId: TeamStrategyMetric_SaveTeamMetricStrategyLevel
             requestBody:
                 content:
                     application/json:
@@ -2189,16 +2215,16 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricRuleItem'
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
         delete:
             tags:
-                - TeamStrategy
+                - TeamStrategyMetric
             description: DeleteTeamMetricStrategyLevel deletes a team metric strategy level
-            operationId: TeamStrategy_DeleteTeamMetricStrategyLevel
+            operationId: TeamStrategyMetric_DeleteTeamMetricStrategyLevel
             parameters:
                 - name: strategyMetricLevelId
                   in: query
-                  description: strategy metric level id
+                  description: Strategy metric level id
                   schema:
                     type: integer
                     format: uint32
@@ -2212,14 +2238,14 @@ paths:
     /api/team/strategy/metric/level/list:
         post:
             tags:
-                - TeamStrategy
-            description: ListTeamMetricStrategyLevels lists team metric strategy levels
-            operationId: TeamStrategy_ListTeamMetricStrategyLevels
+                - TeamStrategyMetric
+            description: TeamMetricStrategyLevelList gets the list of team metric strategy levels
+            operationId: TeamStrategyMetric_TeamMetricStrategyLevelList
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.palace.ListTeamMetricStrategyLevelsRequest'
+                            $ref: '#/components/schemas/api.palace.TeamMetricStrategyLevelListRequest'
                 required: true
             responses:
                 "200":
@@ -2227,13 +2253,13 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.palace.ListTeamMetricStrategyLevelsReply'
+                                $ref: '#/components/schemas/api.palace.TeamMetricStrategyLevelListReply'
     /api/team/strategy/metric/level/status:
-        put:
+        post:
             tags:
-                - TeamStrategy
+                - TeamStrategyMetric
             description: UpdateTeamMetricStrategyLevelStatus updates the status of a team metric strategy level
-            operationId: TeamStrategy_UpdateTeamMetricStrategyLevelStatus
+            operationId: TeamStrategyMetric_UpdateTeamMetricStrategyLevelStatus
             requestBody:
                 content:
                     application/json:
@@ -3372,18 +3398,6 @@ components:
                     type: string
                     description: Reason for joining the team
             description: JoinTeamRequest represents the request data for joining a team
-        api.palace.LabelNotices:
-            type: object
-            properties:
-                key:
-                    type: string
-                value:
-                    type: string
-                receiverRoutes:
-                    type: array
-                    items:
-                        type: integer
-                        format: uint32
         api.palace.LeaveTeamRequest:
             type: object
             properties:
@@ -3532,33 +3546,6 @@ components:
                 driver:
                     type: integer
                     format: enum
-        api.palace.ListTeamMetricStrategyLevelsReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricRuleItem'
-                    description: List of strategy metric level items
-                pagination:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.PaginationReply'
-                    description: Pagination response details
-        api.palace.ListTeamMetricStrategyLevelsRequest:
-            type: object
-            properties:
-                strategyMetricId:
-                    type: integer
-                    description: Strategy metric id
-                    format: uint32
-                pagination:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                    description: Pagination request details
-                levelId:
-                    type: integer
-                    description: Level id
-                    format: uint32
         api.palace.ListTeamNoticeGroupReply:
             type: object
             properties:
@@ -4143,11 +4130,8 @@ components:
             properties:
                 levelId:
                     type: integer
-                    description: Level Id
+                    description: Level Id of dict item
                     format: uint32
-                levelName:
-                    type: string
-                    description: Level name
                 sampleMode:
                     type: integer
                     description: Sample mode
@@ -4171,18 +4155,14 @@ components:
                         type: integer
                         format: uint32
                     description: Receiver routes
-                labelNotices:
+                labelReceiverRoutes:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.LabelNotices'
+                        $ref: '#/components/schemas/api.palace.common.LabelNotices'
                     description: Label notices
                 duration:
                     type: string
-                    description: Duration
-                status:
-                    type: integer
-                    description: Status
-                    format: enum
+                    description: Duration in seconds
                 strategyMetricLevelId:
                     type: integer
                     description: Id
@@ -4192,11 +4172,12 @@ components:
                     items:
                         type: integer
                         format: uint32
-                    description: alarm pages
+                    description: alarm pages of dict item
                 strategyMetricId:
                     type: integer
                     description: strategy metric id
                     format: uint32
+            description: SaveTeamMetricStrategyLevelRequest represents the request data for saving or updating a team metric strategy level
         api.palace.SaveTeamMetricStrategyRequest:
             type: object
             properties:
@@ -4222,6 +4203,10 @@ components:
                         type: integer
                         format: uint32
                     description: Datasource
+                strategyMetricId:
+                    type: integer
+                    description: Strategy metric id
+                    format: uint32
             description: SaveTeamMetricStrategyRequest represents the request data for saving or updating a team metric strategy
         api.palace.SaveTeamNoticeGroupRequest:
             type: object
@@ -4631,10 +4616,6 @@ components:
         api.palace.SubscribeTeamStrategiesRequest:
             type: object
             properties:
-                strategyId:
-                    type: integer
-                    description: Strategy id
-                    format: uint32
                 subscribers:
                     type: array
                     items:
@@ -4692,6 +4673,41 @@ components:
                 datasourceId:
                     type: integer
                     format: uint32
+        api.palace.TeamMetricStrategyLevelListReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricLevelItem'
+                pagination:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.common.PaginationReply'
+                    description: Pagination
+            description: TeamMetricStrategyLevelListReply represents the response data for the list of team metric strategy levels
+        api.palace.TeamMetricStrategyLevelListRequest:
+            type: object
+            properties:
+                strategyMetricId:
+                    type: integer
+                    description: Strategy metric id
+                    format: uint32
+                pagination:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                    description: Pagination
+                keyword:
+                    type: string
+                    description: Keyword
+                status:
+                    type: integer
+                    description: Status
+                    format: enum
+                levelId:
+                    type: integer
+                    description: Level id
+                    format: uint32
+            description: TeamMetricStrategyLevelListRequest represents the request data for getting the list of team metric strategy levels
         api.palace.TeamNoticeGroupSelectReply:
             type: object
             properties:
@@ -4915,12 +4931,13 @@ components:
             properties:
                 strategyMetricLevelId:
                     type: integer
-                    description: strategy metric level id
+                    description: Strategy metric level id
                     format: uint32
                 status:
                     type: integer
                     description: Status
                     format: enum
+            description: UpdateTeamMetricStrategyLevelStatusRequest represents the request data for updating the status of a team metric strategy level
         api.palace.UpdateTeamNoticeGroupStatusRequest:
             type: object
             properties:
@@ -5141,6 +5158,19 @@ components:
                     type: string
                 value:
                     type: string
+        api.palace.common.LabelNotices:
+            type: object
+            properties:
+                key:
+                    type: string
+                value:
+                    type: string
+                receiverRoutes:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+            description: LabelNotices represents the structure of a label notice item.
         api.palace.common.MenuTreeItem:
             type: object
             properties:
@@ -5463,7 +5493,7 @@ components:
                     type: string
                 updatedAt:
                     type: string
-        api.palace.common.StrategyMetricRuleLabelNotice:
+        api.palace.common.StrategyMetricLevelLabelNotice:
             type: object
             properties:
                 labelNoticeId:
@@ -5986,17 +6016,17 @@ components:
                         $ref: '#/components/schemas/api.palace.common.KeyValueItem'
                 annotations:
                     $ref: '#/components/schemas/api.palace.common.AnnotationsItem'
-                strategyMetricRules:
+                strategyMetricLevels:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricRuleItem'
+                        $ref: '#/components/schemas/api.palace.common.TeamStrategyMetricLevelItem'
                 datasource:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.palace.common.TeamMetricDatasourceItem'
                 creator:
                     $ref: '#/components/schemas/api.palace.common.UserBaseItem'
-        api.palace.common.TeamStrategyMetricRuleItem:
+        api.palace.common.TeamStrategyMetricLevelItem:
             type: object
             properties:
                 strategyMetricId:
@@ -6004,7 +6034,7 @@ components:
                     format: uint32
                 level:
                     $ref: '#/components/schemas/api.palace.common.TeamDictItem'
-                ruleId:
+                strategyMetricLevelId:
                     type: integer
                     format: uint32
                 sampleMode:
@@ -6025,14 +6055,14 @@ components:
                 status:
                     type: integer
                     format: enum
-                notices:
+                receiverRoutes:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.palace.common.NoticeGroupItem'
-                labelNotices:
+                labelReceiverRoutes:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.palace.common.StrategyMetricRuleLabelNotice'
+                        $ref: '#/components/schemas/api.palace.common.StrategyMetricLevelLabelNotice'
                 alarmPages:
                     type: array
                     items:
@@ -6467,8 +6497,8 @@ components:
 tags:
     - name: Alert
     - name: Auth
-      description: Auth service provides authentication related operations
     - name: Auth
+      description: Auth service provides authentication related operations
     - name: Callback
     - name: Health
       description: Health Check API
@@ -6488,6 +6518,7 @@ tags:
     - name: TeamNotice
     - name: TeamStrategy
       description: TeamStrategy service provides operations for managing team strategy groups and strategies
+    - name: TeamStrategyMetric
     - name: TimeEngine
     - name: User
       description: User service provides operations for managing user information, teams, and subscriptions

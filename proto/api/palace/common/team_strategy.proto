@@ -2,12 +2,10 @@ syntax = "proto3";
 
 package api.palace.common;
 
+import "buf/validate/validate.proto";
 import "palace/common/common_enum.proto";
-import "palace/common/common.proto";
 import "palace/common/system.proto";
-import "palace/common/team_datasource.proto";
 import "palace/common/team_notice.proto";
-import "palace/common/team_dict.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/palace/common;common";
 
@@ -58,32 +56,6 @@ message TeamStrategyItem {
   TeamStrategyGroupItem group = 12;
 }
 
-message TeamStrategyMetricRuleItem {
-  uint32 strategyMetricId = 1;
-  api.palace.common.TeamDictItem level = 2;
-  uint32 ruleId = 3;
-  SampleMode sampleMode = 4;
-  ConditionMetric condition = 5;
-  int64 total = 6;
-  repeated double values = 7;
-  int64 duration = 8;
-  GlobalStatus status = 9;
-  repeated NoticeGroupItem notices = 10;
-  repeated StrategyMetricRuleLabelNotice labelNotices = 11;
-  repeated api.palace.common.TeamDictItem alarmPages = 12;
-}
-
-message TeamStrategyMetricItem {
-  TeamStrategyItem base = 1;
-  uint32 strategyMetricId = 2;
-  string expr = 3;
-  repeated api.palace.common.KeyValueItem labels = 4;
-  api.palace.common.AnnotationsItem annotations = 5;
-  repeated TeamStrategyMetricRuleItem strategyMetricRules = 6;
-  repeated api.palace.common.TeamMetricDatasourceItem datasource = 7;
-  api.palace.common.UserBaseItem creator = 8;
-}
-
 // subscriber
 message SubscriberItem {
   api.palace.common.UserBaseItem user = 1;
@@ -93,4 +65,35 @@ message SubscriberItem {
   api.palace.common.TeamStrategyItem strategy = 3;
   // subscribe time
   string subscribeTime = 4;
+}
+
+// LabelNotices represents the structure of a label notice item.
+message LabelNotices {
+  string key = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "KEY_GREATER_THAN_0",
+    message: "key must be greater than 0"
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    id: "KEY_LESS_THAN_128",
+    message: "key must be less than 128 characters"
+    expression: "this.size() < 128"
+  }];
+  string value = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "VALUE_GREATER_THAN_0",
+    message: "value must be greater than 0"
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    id: "VALUE_LESS_THAN_128",
+    message: "value must be less than 128 characters"
+    expression: "this.size() < 128"
+  }];
+  repeated uint32 receiverRoutes = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "RECEIVER_ROUTES_GREATER_THAN_0",
+    message: "receiverRoutes must be greater than 0"
+    expression: "this.all(x, x > 0)"
+  }, (buf.validate.field).cel = {
+    id: "RECEIVER_ROUTES_LESS_THAN_100",
+    message: "receiverRoutes must be less than 100"
+    expression: "this.size() > 0"
+  }];
 }
