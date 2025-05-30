@@ -163,6 +163,24 @@ other = "must select a user"
 [REPLACE_MEMBER_ROLE_MEMBER_ID_VALIDATOR]
 other = "must select a member"
 
+[KEY_GREATER_THAN_0]
+other = "key must be greater than 0"
+
+[KEY_LESS_THAN_128]
+other = "key must be less than 128 characters"
+
+[VALUE_GREATER_THAN_0]
+other = "value must be greater than 0"
+
+[VALUE_LESS_THAN_128]
+other = "value must be less than 128 characters"
+
+[RECEIVER_ROUTES_GREATER_THAN_0]
+other = "receiverRoutes must be greater than 0"
+
+[RECEIVER_ROUTES_LESS_THAN_100]
+other = "receiverRoutes must be less than 100"
+
 [GET_MENU_MENU_ID_VALIDATOR]
 other = "must select a menu"
 
@@ -553,9 +571,6 @@ other = "receiverRoutes must be less than 10"
 [RECEIVER_ROUTES_UNIQUE]
 other = "receiverRoutes must be unique"
 
-[RECEIVER_ROUTES_GREATER_THAN_0]
-other = "receiverRoutes must be greater than 0"
-
 [GROUP_ID_GREATER_THAN_0]
 other = "must select a group"
 
@@ -570,4 +585,34 @@ other = "at least one valid datasource must be selected"
 
 [DATASOURCE_GREATER_THAN_0]
 other = "a valid datasource must be selected"
+
+[LEVEL_ID_GREATER_THAN_0]
+other = "must select a level"
+
+[SAMPLE_MODE_GREATER_THAN_0]
+other = "must select a sample mode"
+
+[CONDITION_GREATER_THAN_0]
+other = "must select a condition"
+
+[VALUES_GREATER_THAN_0]
+other = "values must be greater than 0"
+
+[DURATION_GREATER_THAN_0]
+other = "duration must be greater than 0"
+
+[ALARM_PAGES_GREATER_THAN_0]
+other = "alarm pages must be greater than 0"
+
+[STRATEGY_METRIC_ID_GREATER_THAN_0]
+other = "must select a strategy metric"
+
+[VALUES_LENGTH_CONDITION_METRIC_IN_OR_CONDITION_METRIC_NOT_IN]
+other = ""
+
+[STRATEGY_METRIC_LEVEL_ID_GREATER_THAN_0]
+other = "must select a strategy metric level"
+
+[STATUS_GREATER_IN_1_OR_2]
+other = "must select a status in enable or disable"
 
