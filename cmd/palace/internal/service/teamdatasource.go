@@ -16,6 +16,7 @@ import (
 	"github.com/aide-family/moon/pkg/api/palace"
 	palacecommon "github.com/aide-family/moon/pkg/api/palace/common"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/cnst"
 )
 
 type TeamDatasourceService struct {
@@ -169,14 +170,14 @@ func (s *TeamDatasourceService) UpdateMetricDatasourceMetadata(ctx context.Conte
 func (s *TeamDatasourceService) MetricDatasourceProxyHandler(httpCtx http.Context) error {
 	isContentType := false
 	for k := range httpCtx.Request().Header {
-		if strings.EqualFold(k, "Content-Type") {
+		if strings.EqualFold(k, cnst.HttpHeaderContentType) {
 			isContentType = true
 			break
 		}
 	}
 	if !isContentType {
-		httpCtx.Header().Set("Content-Type", "application/json")
-		httpCtx.Request().Header.Set("Content-Type", "application/json")
+		httpCtx.Header().Set(cnst.HttpHeaderContentType, cnst.HttpHeaderContentTypeJSON)
+		httpCtx.Request().Header.Set(cnst.HttpHeaderContentType, cnst.HttpHeaderContentTypeJSON)
 	}
 	var in palace.MetricDatasourceProxyRequest
 	if err := httpCtx.Bind(&in); err != nil {
