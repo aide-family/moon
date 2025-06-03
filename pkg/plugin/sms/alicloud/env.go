@@ -1,4 +1,4 @@
-package ali
+package alicloud
 
 import (
 	util "github.com/alibabacloud-go/tea-utils/v2/service"

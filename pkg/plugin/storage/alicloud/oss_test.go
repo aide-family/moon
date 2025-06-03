@@ -1,4 +1,4 @@
-package ali_test
+package alicloud_test
 
 import (
 	"bytes"
@@ -14,10 +14,10 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/aide-family/moon/pkg/plugin/storage"
-	"github.com/aide-family/moon/pkg/plugin/storage/ali"
+	"github.com/aide-family/moon/pkg/plugin/storage/alicloud"
 )
 
-var _ ali.Config = (*config)(nil)
+var _ alicloud.Config = (*config)(nil)
 
 type config struct {
 	endpoint        string
@@ -60,7 +60,7 @@ func Test_NewOSS(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fileManager, err := ali.NewOSS(c)
+	fileManager, err := alicloud.New(c)
 	if err != nil {
 		t.Fatal(err)
 	}

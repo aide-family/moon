@@ -13,15 +13,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-kratos/kratos/v2/log"
+
 	"github.com/aide-family/moon/pkg/plugin/storage"
 	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/timex"
-	"github.com/go-kratos/kratos/v2/log"
 )
 
 var _ storage.FileManager = (*Local)(nil)
 
-func NewLocalOSS(c Config) (*Local, error) {
+func New(c Config) (*Local, error) {
 	if err := os.MkdirAll(c.GetRoot(), 0755); err != nil {
 		return nil, fmt.Errorf("failed to create root directory: %w", err)
 	}

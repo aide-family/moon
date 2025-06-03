@@ -49,7 +49,7 @@ func (c *config) GetEndpoint() string {
 	return c.endpoint
 }
 
-func Test_NewLocalOSS(t *testing.T) {
+func Test_New(t *testing.T) {
 	c := &config{
 		root:         "./moon",
 		uploadMethod: "PUT",
@@ -58,7 +58,7 @@ func Test_NewLocalOSS(t *testing.T) {
 		endpoint:     "http://localhost:8080",
 	}
 
-	localOSS, err := local.NewLocalOSS(c)
+	localOSS, err := local.New(c)
 	if err != nil {
 		t.Fatal(err)
 	}

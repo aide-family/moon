@@ -1,4 +1,4 @@
-package ali
+package alicloud
 
 import (
 	"context"
@@ -14,10 +14,10 @@ import (
 	"github.com/aide-family/moon/pkg/util/pointer"
 )
 
-var _ sms.Sender = (*aliyun)(nil)
+var _ sms.Sender = (*aliCloudImpl)(nil)
 
-func NewAlibabaCloud(c Config, opts ...AliyunOption) (sms.Sender, error) {
-	a := &aliyun{
+func New(c Config, opts ...Option) (sms.Sender, error) {
+	a := &aliCloudImpl{
 		accessKeyID:     c.GetAccessKeyId(),
 		accessKeySecret: c.GetAccessKeySecret(),
 		signName:        c.GetSignName(),
@@ -29,7 +29,7 @@ func NewAlibabaCloud(c Config, opts ...AliyunOption) (sms.Sender, error) {
 		opt(a)
 	}
 	if a.helper == nil {
-		WithAliyunLogger(log.DefaultLogger)(a)
+		WithLogger(log.DefaultLogger)(a)
 	}
 	var err error
 	a.clientV3, err = a.initV3()
@@ -46,9 +46,9 @@ type Config interface {
 	GetEndpoint() string
 }
 
-type AliyunOption func(*aliyun)
+type Option func(*aliCloudImpl)
 
-type aliyun struct {
+type aliCloudImpl struct {
 	accessKeyID     string
 	accessKeySecret string
 	signName        string
@@ -59,7 +59,7 @@ type aliyun struct {
 }
 
 // initV3 initializes the SMS clientV3
-func (a *aliyun) initV3() (*dysmsapiV3.Client, error) {
+func (a *aliCloudImpl) initV3() (*dysmsapiV3.Client, error) {
 	if a.accessKeySecret == "" || a.accessKeyID == "" {
 		return nil, merr.ErrorBadRequest("SMS sending credential information is not configured")
 	}
@@ -77,7 +77,7 @@ func (a *aliyun) initV3() (*dysmsapiV3.Client, error) {
 	return client, nil
 }
 
-func (a *aliyun) Send(ctx context.Context, phoneNumber string, message sms.Message) error {
+func (a *aliCloudImpl) Send(ctx context.Context, phoneNumber string, message sms.Message) error {
 	sendSmsRequest := &dysmsapiV3.SendSmsRequest{
 		PhoneNumbers:  pointer.Of(phoneNumber),
 		SignName:      pointer.Of(a.signName),
@@ -99,7 +99,7 @@ func (a *aliyun) Send(ctx context.Context, phoneNumber string, message sms.Messa
 	return nil
 }
 
-func (a *aliyun) SendBatch(ctx context.Context, phoneNumbers []string, message sms.Message) error {
+func (a *aliCloudImpl) SendBatch(ctx context.Context, phoneNumbers []string, message sms.Message) error {
 	signNames := make([]string, 0, len(phoneNumbers))
 	templateParams := make([]string, 0, len(phoneNumbers))
 	for range phoneNumbers {

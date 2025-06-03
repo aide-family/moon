@@ -1,4 +1,4 @@
-package ali
+package alicloud
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ import (
 
 var _ storage.FileManager = (*aliCloud)(nil)
 
-func NewOSS(c Config) (storage.FileManager, error) {
+func New(c Config) (storage.FileManager, error) {
 	client, err := alioss.New(c.GetEndpoint(), c.GetAccessKeyId(), c.GetAccessKeySecret())
 	if err != nil {
 		return nil, err

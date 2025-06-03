@@ -18,7 +18,7 @@ import (
 	"github.com/aide-family/moon/pkg/plugin/hook/other"
 	"github.com/aide-family/moon/pkg/plugin/hook/wechat"
 	"github.com/aide-family/moon/pkg/plugin/sms"
-	"github.com/aide-family/moon/pkg/plugin/sms/ali"
+	"github.com/aide-family/moon/pkg/plugin/sms/alicloud"
 	"github.com/aide-family/moon/pkg/util/safety"
 )
 
@@ -117,7 +117,7 @@ func (s *sendImpl) Hook(ctx context.Context, params bo.SendHookParams) error {
 func (s *sendImpl) newSms(config bo.SMSConfig) (sms.Sender, error) {
 	switch config.GetType() {
 	case common.SMSConfig_ALIYUN:
-		return ali.NewAlibabaCloud(config, ali.WithAliyunLogger(s.helper.Logger()))
+		return alicloud.New(config, alicloud.WithLogger(s.helper.Logger()))
 	default:
 		return nil, merr.ErrorParams("No SMS configuration is available")
 	}
