@@ -181,7 +181,7 @@ message SaveTeamMetricStrategyLevelRequest {
 		// 如果condition是CONDITION_METRIC_IN或者CONDITION_METRIC_NOT_IN，则values长度必须等于2， 其他必须等于1
 		id: "VALUES_LENGTH_CONDITION_METRIC_IN_OR_CONDITION_METRIC_NOT_IN",
 		message: "values length must be 2 if condition is CONDITION_METRIC_IN or CONDITION_METRIC_NOT_IN, otherwise must be 1"
-		expression: "this in [7, 8, 'CONDITION_METRIC_IN', 'CONDITION_METRIC_NOT_IN'] ? this.size() == 2 : this.size() == 1"
+		expression: "this.condition in [7, 8, 'CONDITION_METRIC_IN', 'CONDITION_METRIC_NOT_IN'] ? this.values.size() == 2 : this.values.size() == 1"
 	};
 }
 

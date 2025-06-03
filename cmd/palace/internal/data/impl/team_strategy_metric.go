@@ -148,7 +148,7 @@ func (t *teamStrategyMetricRepoImpl) GetByStrategyId(ctx context.Context, strate
 		strategyMetricMutation.TeamID.Eq(teamId),
 	}
 
-	strategyMetricDo, err := strategyMetricMutation.WithContext(ctx).Where(wrapper...).First()
+	strategyMetricDo, err := strategyMetricMutation.WithContext(ctx).Where(wrapper...).Preload(field.Associations).First()
 	if err != nil {
 		return nil, strategyMetricNotFound(err)
 	}
