@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/template"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -78,6 +78,8 @@ func (a *Alert) sendEmail(ctx context.Context, noticeGroupConfig bo.NoticeGroup,
 		return
 	}
 	emailTemplate := noticeGroupConfig.GetEmailTemplate()
+	eg := new(errgroup.Group)
+	eg.SetLimit(10)
 	for _, alertItem := range alert.Alerts {
 		opts := []bo.SendEmailParamsOption{
 			bo.WithSendEmailParamsOptionEmail(emails...),
@@ -89,9 +91,12 @@ func (a *Alert) sendEmail(ctx context.Context, noticeGroupConfig bo.NoticeGroup,
 			a.helper.WithContext(ctx).Warnw("method", "NewSendEmailParams", "err", err)
 			continue
 		}
-		safety.Go(ctx, "biz.Alert.sendEmail", func(ctx context.Context) error {
+		eg.Go(func() error {
 			return a.sendRepo.Email(ctx, sendEmailParams)
 		})
+	}
+	if err := eg.Wait(); err != nil {
+		a.helper.WithContext(ctx).Warnw("method", "sendEmail", "err", err)
 	}
 }
 
@@ -119,6 +124,8 @@ func (a *Alert) sendSms(ctx context.Context, noticeGroupConfig bo.NoticeGroup, a
 		return
 	}
 	smsTemplate := noticeGroupConfig.GetSmsTemplate()
+	eg := new(errgroup.Group)
+	eg.SetLimit(10)
 	for _, alertItem := range alert.Alerts {
 		opts := []bo.SendSMSParamsOption{
 			bo.WithSendSMSParamsOptionPhoneNumbers(phoneNumbers...),
@@ -130,9 +137,12 @@ func (a *Alert) sendSms(ctx context.Context, noticeGroupConfig bo.NoticeGroup, a
 			a.helper.WithContext(ctx).Warnw("method", "NewSendSMSParams", "err", err)
 			continue
 		}
-		safety.Go(ctx, "biz.Alert.sendSms", func(ctx context.Context) error {
+		eg.Go(func() error {
 			return a.sendRepo.SMS(ctx, sendSMSParams)
 		})
+	}
+	if err := eg.Wait(); err != nil {
+		a.helper.WithContext(ctx).Warnw("method", "sendSms", "err", err)
 	}
 }
 func (a *Alert) sendHook(ctx context.Context, noticeGroupConfig bo.NoticeGroup, alert *bo.AlertsItem) {

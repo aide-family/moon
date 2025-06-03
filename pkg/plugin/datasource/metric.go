@@ -75,6 +75,12 @@ type (
 	}
 )
 
+// String implement stringer
+func (m *MetricMetadata) String() string {
+	bs, _ := json.Marshal(m)
+	return string(bs)
+}
+
 type Metric interface {
 	Query(ctx context.Context, req *MetricQueryRequest) (*MetricQueryResponse, error)
 

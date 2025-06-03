@@ -1,0 +1,15 @@
+# docker run -it --rm -v `pwd`/victoria-metrics-data:/victoria-metrics-data -p 8428:8428 \
+# victoriametrics/victoria-metrics:v1.118.0 --selfScrapeInterval=5s -storageDataPath=victoria-metrics-data
+version:  "3.7"
+services:
+  victoria-metrics:
+     image: victoriametrics/victoria-metrics:v1.118.0
+     command:
+      - "--selfScrapeInterval=5s"
+      - "--storageDataPath=victoria-metrics-data"
+     ports:
+       - "8428:8428"
+
+     volumes:
+       - "./victoria-metrics-data:/victoria-metrics-data"
+

@@ -5,9 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
+	"golang.org/x/sync/errgroup"
 )
 
 var _ transport.Server = (*Ticker)(nil)
@@ -183,17 +183,26 @@ func (t *Tickers) Remove(id uint64) {
 func (t *Tickers) Start(ctx context.Context) error {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
+	eg := new(errgroup.Group)
 	for _, ticker := range t.tickers {
-		safety.Go(ctx, ticker.task.Name, ticker.Start)
+		eg.Go(func() error {
+			return ticker.Start(ctx)
+		})
 	}
-	return nil
+	return eg.Wait()
 }
 
 func (t *Tickers) Stop(ctx context.Context) error {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
+	eg := new(errgroup.Group)
 	for _, ticker := range t.tickers {
-		safety.Go(ctx, ticker.task.Name, ticker.Stop)
+		eg.Go(func() error {
+			return ticker.Stop(ctx)
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return err
 	}
 	t.tickers = make(map[uint64]*Ticker)
 	t.recycle = make([]uint64, 0, 100)

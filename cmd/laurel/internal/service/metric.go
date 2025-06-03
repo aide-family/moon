@@ -3,11 +3,12 @@ package service
 import (
 	"context"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/aide-family/moon/cmd/laurel/internal/biz"
 	"github.com/aide-family/moon/cmd/laurel/internal/service/build"
 	apicommon "github.com/aide-family/moon/pkg/api/laurel/common"
 	apiv1 "github.com/aide-family/moon/pkg/api/laurel/v1"
-	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/slices"
 )
 
@@ -39,18 +40,19 @@ func (s *MetricService) RegisterMetric(ctx context.Context, req *apiv1.RegisterM
 	histogramVecs := build.ToHistogramMetricVecs(metricVecs[apicommon.MetricType_METRIC_TYPE_HISTOGRAM])
 	summaryVecs := build.ToSummaryMetricVecs(metricVecs[apicommon.MetricType_METRIC_TYPE_SUMMARY])
 
-	safety.Go(ctx, "metricService.RegisterMetric.RegisterCounterMetric", func(ctx context.Context) error {
+	eg := new(errgroup.Group)
+	eg.Go(func() error {
 		return s.metricManager.RegisterCounterMetric(ctx, counterVecs...)
 	})
-	safety.Go(ctx, "metricService.RegisterMetric.RegisterGaugeMetric", func(ctx context.Context) error {
+	eg.Go(func() error {
 		return s.metricManager.RegisterGaugeMetric(ctx, gaugeVecs...)
 	})
-	safety.Go(ctx, "metricService.RegisterMetric.RegisterHistogramMetric", func(ctx context.Context) error {
+	eg.Go(func() error {
 		return s.metricManager.RegisterHistogramMetric(ctx, histogramVecs...)
 	})
-	safety.Go(ctx, "metricService.RegisterMetric.RegisterSummaryMetric", func(ctx context.Context) error {
+	eg.Go(func() error {
 		return s.metricManager.RegisterSummaryMetric(ctx, summaryVecs...)
 	})
 
-	return &apiv1.EmptyReply{}, nil
+	return &apiv1.EmptyReply{}, eg.Wait()
 }

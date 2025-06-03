@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	transporthttp "github.com/go-kratos/kratos/v2/transport/http"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/datasource"
@@ -114,11 +115,15 @@ func (p *Prometheus) Metadata(ctx context.Context) (<-chan *datasource.MetricMet
 
 	send := make(chan *datasource.MetricMetadata, 20)
 
-	safety.Go(ctx, "prometheus.Metadata", func(ctx context.Context) error {
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Warnw("method", "prometheus.metadata", "err", err)
+			}
+		}()
 		defer close(send)
 		p.sendMetadata(send, safety.NewMap(metadataInfo))
-		return nil
-	})
+	}()
 
 	return send, nil
 }
@@ -139,6 +144,8 @@ func (p *Prometheus) sendMetadata(send chan<- *datasource.MetricMetadata, metric
 	now := timex.Now().Add(-8 * time.Hour)
 	batchNum := 20
 	namesLen := len(metricNames)
+	eg := new(errgroup.Group)
+	eg.SetLimit(10)
 	for i := 0; i < namesLen; i += batchNum {
 		left := i
 		right := left + batchNum
@@ -146,7 +153,9 @@ func (p *Prometheus) sendMetadata(send chan<- *datasource.MetricMetadata, metric
 			right = namesLen
 		}
 		operationNames := metricNames[left:right]
-		safety.Go(context.Background(), "prometheus.sendMetadata", func(ctx context.Context) error {
+		eg.Go(func() error {
+			ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+			defer cancel()
 			seriesInfo, seriesErr := p.series(ctx, now, operationNames...)
 			if seriesErr != nil {
 				log.Warnw("series error", seriesErr)
@@ -174,6 +183,9 @@ func (p *Prometheus) sendMetadata(send chan<- *datasource.MetricMetadata, metric
 			}
 			return nil
 		})
+	}
+	if err := eg.Wait(); err != nil {
+		log.Warnw("series error", err)
 	}
 }
 
