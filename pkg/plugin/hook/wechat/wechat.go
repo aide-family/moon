@@ -1,4 +1,4 @@
-package hook
+package wechat
 
 import (
 	"context"
@@ -10,52 +10,53 @@ import (
 
 	"github.com/aide-family/moon/pkg/api/rabbit/common"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/plugin/hook"
 	"github.com/aide-family/moon/pkg/util/httpx"
 )
 
-var _ Sender = (*wechatHook)(nil)
+var _ hook.Sender = (*hookImpl)(nil)
 
-func NewWechatHook(api string, opts ...WechatHookOption) Sender {
-	h := &wechatHook{api: api}
+func New(api string, opts ...Option) hook.Sender {
+	h := &hookImpl{api: api}
 	for _, opt := range opts {
 		opt(h)
 	}
 	if h.helper == nil {
-		WithWechatLogger(log.DefaultLogger)(h)
+		WithLogger(log.DefaultLogger)(h)
 	}
 	return h
 }
 
-func WithWechatLogger(logger log.Logger) WechatHookOption {
-	return func(h *wechatHook) {
+func WithLogger(logger log.Logger) Option {
+	return func(h *hookImpl) {
 		h.helper = log.NewHelper(log.With(logger, "module", "plugin.hook.wechat"))
 	}
 }
 
-type WechatHookOption func(*wechatHook)
+type Option func(*hookImpl)
 
-type wechatHook struct {
+type hookImpl struct {
 	api    string
 	helper *log.Helper
 }
 
-func (h *wechatHook) Type() common.HookAPP {
+func (h *hookImpl) Type() common.HookAPP {
 	return common.HookAPP_WECHAT
 }
 
-type wechatHookResp struct {
+type hookResp struct {
 	ErrCode int    `json:"errcode"`
 	ErrMsg  string `json:"errmsg"`
 }
 
-func (l *wechatHookResp) Error() error {
+func (l *hookResp) Error() error {
 	if l.ErrCode == 0 {
 		return nil
 	}
 	return merr.ErrorBadRequest("errcode: %d, errmsg: %s", l.ErrCode, l.ErrMsg)
 }
 
-func (h *wechatHook) Send(ctx context.Context, message Message) (err error) {
+func (h *hookImpl) Send(ctx context.Context, message hook.Message) (err error) {
 	defer func() {
 		if err != nil {
 			h.helper.WithContext(ctx).Warnw("msg", "send wechat hook failed", "error", err, "req", string(message))
@@ -77,7 +78,7 @@ func (h *wechatHook) Send(ctx context.Context, message Message) (err error) {
 		return merr.ErrorBadRequest("status code: %d", response.StatusCode)
 	}
 
-	var resp wechatHookResp
+	var resp hookResp
 	if err := json.NewDecoder(response.Body).Decode(&resp); err != nil {
 		h.helper.WithContext(ctx).Warnf("unmarshal wechat hook response failed: %v", err)
 		body, _ := io.ReadAll(response.Body)

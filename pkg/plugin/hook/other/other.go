@@ -1,4 +1,4 @@
-package hook
+package other
 
 import (
 	"context"
@@ -9,13 +9,14 @@ import (
 
 	"github.com/aide-family/moon/pkg/api/rabbit/common"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/plugin/hook"
 	"github.com/aide-family/moon/pkg/util/httpx"
 )
 
-var _ Sender = (*otherHook)(nil)
+var _ hook.Sender = (*hookImpl)(nil)
 
-func NewOtherHook(api string, opts ...OtherHookOption) Sender {
-	h := &otherHook{
+func New(api string, opts ...Option) hook.Sender {
+	h := &hookImpl{
 		api:    api,
 		header: make(http.Header),
 	}
@@ -23,49 +24,49 @@ func NewOtherHook(api string, opts ...OtherHookOption) Sender {
 		opt(h)
 	}
 	if h.helper == nil {
-		WithOtherLogger(log.DefaultLogger)(h)
+		WithLogger(log.DefaultLogger)(h)
 	}
 	return h
 }
 
-func WithOtherBasicAuth(username, password string) OtherHookOption {
-	return func(h *otherHook) {
-		h.basicAuth = &BasicAuth{
+func WithBasicAuth(username, password string) Option {
+	return func(h *hookImpl) {
+		h.basicAuth = &hook.BasicAuth{
 			Username: username,
 			Password: password,
 		}
 	}
 }
 
-func WithOtherHeader(header map[string]string) OtherHookOption {
-	return func(h *otherHook) {
+func WithHeader(header map[string]string) Option {
+	return func(h *hookImpl) {
 		for k, v := range header {
 			h.header.Set(k, v)
 		}
 	}
 }
 
-func WithOtherLogger(logger log.Logger) OtherHookOption {
-	return func(h *otherHook) {
+func WithLogger(logger log.Logger) Option {
+	return func(h *hookImpl) {
 		h.helper = log.NewHelper(log.With(logger, "module", "plugin.hook.other"))
 	}
 }
 
-type OtherHookOption func(*otherHook)
+type Option func(*hookImpl)
 
-type otherHook struct {
+type hookImpl struct {
 	api       string
-	basicAuth *BasicAuth
+	basicAuth *hook.BasicAuth
 	header    http.Header
 	helper    *log.Helper
 }
 
-func (o *otherHook) Type() common.HookAPP {
+func (o *hookImpl) Type() common.HookAPP {
 	return common.HookAPP_OTHER
 }
 
 // Send implements Hook.
-func (o *otherHook) Send(ctx context.Context, message Message) (err error) {
+func (o *hookImpl) Send(ctx context.Context, message hook.Message) (err error) {
 	defer func() {
 		if err != nil {
 			o.helper.WithContext(ctx).Warnw("msg", "send other hook failed", "error", err, "req", string(message))

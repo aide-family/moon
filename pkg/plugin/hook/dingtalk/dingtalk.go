@@ -1,4 +1,4 @@
-package hook
+package dingtalk
 
 import (
 	"context"
@@ -15,54 +15,55 @@ import (
 
 	"github.com/aide-family/moon/pkg/api/rabbit/common"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/plugin/hook"
 	"github.com/aide-family/moon/pkg/util/httpx"
 	"github.com/aide-family/moon/pkg/util/timex"
 )
 
-var _ Sender = (*dingTalkHook)(nil)
+var _ hook.Sender = (*hookImpl)(nil)
 
-func NewDingTalkHook(api, secret string, opts ...DingTalkHookOption) Sender {
-	d := &dingTalkHook{api: api, secret: secret}
+func New(api, secret string, opts ...Option) hook.Sender {
+	d := &hookImpl{api: api, secret: secret}
 	for _, opt := range opts {
 		opt(d)
 	}
 	if d.helper == nil {
-		WithDingTalkLogger(log.DefaultLogger)(d)
+		WithLogger(log.DefaultLogger)(d)
 	}
 	return d
 }
 
-type DingTalkHookOption func(*dingTalkHook)
+type Option func(*hookImpl)
 
-type dingTalkHook struct {
+type hookImpl struct {
 	api    string
 	secret string
 	helper *log.Helper
 }
 
-func (d *dingTalkHook) Type() common.HookAPP {
+func (d *hookImpl) Type() common.HookAPP {
 	return common.HookAPP_DINGTALK
 }
 
-type dingTalkHookResp struct {
+type hookResp struct {
 	ErrCode int64  `json:"errcode"`
 	ErrMsg  string `json:"errmsg"`
 }
 
-func (l *dingTalkHookResp) Error() error {
+func (l *hookResp) Error() error {
 	if l.ErrCode == 0 {
 		return nil
 	}
 	return merr.ErrorBadRequest("errcode: %d, errmsg: %s", l.ErrCode, l.ErrMsg)
 }
 
-func WithDingTalkLogger(logger log.Logger) DingTalkHookOption {
-	return func(d *dingTalkHook) {
+func WithLogger(logger log.Logger) Option {
+	return func(d *hookImpl) {
 		d.helper = log.NewHelper(log.With(logger, "module", "plugin.hook.dingtalk"))
 	}
 }
 
-func (d *dingTalkHook) Send(ctx context.Context, message Message) (err error) {
+func (d *hookImpl) Send(ctx context.Context, message hook.Message) (err error) {
 	defer func() {
 		if err != nil {
 			d.helper.WithContext(ctx).Warnw("msg", "send dingtalk hook failed", "error", err, "req", string(message))
@@ -87,7 +88,7 @@ func (d *dingTalkHook) Send(ctx context.Context, message Message) (err error) {
 		}
 	}(response.Body)
 
-	var resp dingTalkHookResp
+	var resp hookResp
 	if err := json.NewDecoder(response.Body).Decode(&resp); err != nil {
 		d.helper.WithContext(ctx).Warnf("unmarshal dingtalk hook response failed: %v", err)
 		body, _ := io.ReadAll(response.Body)
@@ -98,7 +99,7 @@ func (d *dingTalkHook) Send(ctx context.Context, message Message) (err error) {
 }
 
 // parseApi parse api and query
-func (d *dingTalkHook) parseApi(api string, query string) string {
+func (d *hookImpl) parseApi(api string, query string) string {
 	if strings.HasSuffix(api, "?") {
 		return api + query
 	}
@@ -114,7 +115,7 @@ func (d *dingTalkHook) parseApi(api string, query string) string {
 }
 
 // parseQuery parse struct to query params
-func (d *dingTalkHook) parseQuery(qr map[string]any) string {
+func (d *hookImpl) parseQuery(qr map[string]any) string {
 	if len(qr) == 0 {
 		return ""
 	}
@@ -125,7 +126,7 @@ func (d *dingTalkHook) parseQuery(qr map[string]any) string {
 	return query.Encode()
 }
 
-func (d *dingTalkHook) sign(timestamp int64) string {
+func (d *hookImpl) sign(timestamp int64) string {
 	message := fmt.Sprintf("%d\n%s", timestamp, d.secret)
 	key := []byte(d.secret)
 	h := hmac.New(sha256.New, key)

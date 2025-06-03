@@ -13,6 +13,10 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/email"
 	"github.com/aide-family/moon/pkg/plugin/hook"
+	"github.com/aide-family/moon/pkg/plugin/hook/dingtalk"
+	"github.com/aide-family/moon/pkg/plugin/hook/feishu"
+	"github.com/aide-family/moon/pkg/plugin/hook/other"
+	"github.com/aide-family/moon/pkg/plugin/hook/wechat"
 	"github.com/aide-family/moon/pkg/plugin/sms"
 	"github.com/aide-family/moon/pkg/plugin/sms/ali"
 	"github.com/aide-family/moon/pkg/util/safety"
@@ -122,27 +126,27 @@ func (s *sendImpl) newSms(config bo.SMSConfig) (sms.Sender, error) {
 func (s *sendImpl) newHook(config bo.HookConfig) (hook.Sender, error) {
 	switch config.GetApp() {
 	case common.HookAPP_OTHER:
-		opts := []hook.OtherHookOption{
-			hook.WithOtherBasicAuth(config.GetUsername(), config.GetPassword()),
-			hook.WithOtherLogger(s.helper.Logger()),
-			hook.WithOtherHeader(config.GetHeaders()),
+		opts := []other.Option{
+			other.WithBasicAuth(config.GetUsername(), config.GetPassword()),
+			other.WithLogger(s.helper.Logger()),
+			other.WithHeader(config.GetHeaders()),
 		}
-		return hook.NewOtherHook(config.GetUrl(), opts...), nil
+		return other.New(config.GetUrl(), opts...), nil
 	case common.HookAPP_DINGTALK:
-		opts := []hook.DingTalkHookOption{
-			hook.WithDingTalkLogger(s.helper.Logger()),
+		opts := []dingtalk.Option{
+			dingtalk.WithLogger(s.helper.Logger()),
 		}
-		return hook.NewDingTalkHook(config.GetUrl(), config.GetSecret(), opts...), nil
+		return dingtalk.New(config.GetUrl(), config.GetSecret(), opts...), nil
 	case common.HookAPP_WECHAT:
-		opts := []hook.WechatHookOption{
-			hook.WithWechatLogger(s.helper.Logger()),
+		opts := []wechat.Option{
+			wechat.WithLogger(s.helper.Logger()),
 		}
-		return hook.NewWechatHook(config.GetUrl(), opts...), nil
+		return wechat.New(config.GetUrl(), opts...), nil
 	case common.HookAPP_FEISHU:
-		opts := []hook.FeishuHookOption{
-			hook.WithFeishuLogger(s.helper.Logger()),
+		opts := []feishu.Option{
+			feishu.WithLogger(s.helper.Logger()),
 		}
-		return hook.NewFeishuHook(config.GetUrl(), config.GetSecret(), opts...), nil
+		return feishu.New(config.GetUrl(), config.GetSecret(), opts...), nil
 	default:
 		return nil, merr.ErrorParams("No hook configuration is available")
 	}
