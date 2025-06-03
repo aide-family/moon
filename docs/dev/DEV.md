@@ -39,6 +39,15 @@ project.
 bash make --version # Should output "GNU Make 4.x"
 ```
 
+> If you encounter encoding issues, follow these steps:
+ 1. Modify the console encoding:
+    ```bash
+    reg add HKEY_CURRENT_USER\Console /v CodePage /t REG_DWORD /d 65001 /f
+    ```
+ 2. Enable system-level UTF-8 support:
+    - Settings → Time & language → Language → Manage language settings → Check "Beta: Unicode UTF-8" → Restart
+
+
 ## 1. protoc Installation
 
 ### MacOS
