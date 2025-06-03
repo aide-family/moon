@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/datasource"
 	"github.com/aide-family/moon/pkg/plugin/datasource/prometheus"
+	"github.com/aide-family/moon/pkg/plugin/datasource/victoria"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -51,7 +52,7 @@ func (m *metricImpl) Init(config bo.MetricDatasourceConfig) (repository.Metric, 
 		}
 	case common.MetricDatasourceDriver_VICTORIAMETRICS:
 		if !ok {
-			metricDatasource = prometheus.New(config, m.help.Logger())
+			metricDatasource = victoria.New(config, m.help.Logger())
 		}
 	default:
 		return nil, merr.ErrorParams("invalid metric datasource driver: %s", config.GetDriver())

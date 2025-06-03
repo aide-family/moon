@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/datasource"
 	"github.com/aide-family/moon/pkg/plugin/datasource/prometheus"
+	"github.com/aide-family/moon/pkg/plugin/datasource/victoria"
 	"github.com/aide-family/moon/pkg/util/kv"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -175,9 +176,12 @@ func (m *metricDatasourceConfig) GetTLS() datasource.TLS {
 }
 
 func ToMetricDatasource(datasourceMetric do.DatasourceMetric, logger log.Logger) (datasource.Metric, error) {
+	config := NewMetricDatasourceConfig(datasourceMetric)
 	switch datasourceMetric.GetDriver() {
 	case vobj.DatasourceDriverMetricPrometheus:
-		return prometheus.New(NewMetricDatasourceConfig(datasourceMetric), logger), nil
+		return prometheus.New(config, logger), nil
+	case vobj.DatasourceDriverMetricVictoriametrics:
+		return victoria.New(config, logger), nil
 	default:
 		return nil, merr.ErrorBadRequest("invalid datasource driver: %s", datasourceMetric.GetDriver())
 	}
