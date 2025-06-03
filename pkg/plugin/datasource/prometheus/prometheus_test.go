@@ -55,7 +55,7 @@ func (c *config) GetBasicAuth() datasource.BasicAuth {
 
 func Test_Query(t *testing.T) {
 	c := &config{
-		Endpoint: "https://prometheus.aide-cloud.cn/",
+		Endpoint: "http://localhost:9090/",
 	}
 	prom := prometheus.New(c, log.GetLogger())
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -77,13 +77,13 @@ func Test_Query(t *testing.T) {
 	}
 
 	for _, v := range resp.Data.Result {
-		t.Log(v.GetMetricQueryValue())
+		t.Logf("%s", v)
 	}
 }
 
 func Test_QueryRange(t *testing.T) {
 	c := &config{
-		Endpoint: "https://prometheus.aide-cloud.cn/",
+		Endpoint: "http://localhost:9090/",
 	}
 	prom := prometheus.New(c, log.GetLogger())
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -113,7 +113,7 @@ func Test_QueryRange(t *testing.T) {
 
 func Test_Metadata(t *testing.T) {
 	c := &config{
-		Endpoint: "https://prometheus.aide-cloud.cn/",
+		Endpoint: "http://localhost:9090/",
 	}
 	prom := prometheus.New(c, log.GetLogger())
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
