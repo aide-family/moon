@@ -17,10 +17,7 @@ import (
 )
 
 type config struct {
-	endpoint       string
-	basicAuth      datasource.BasicAuth
-	tls            datasource.TLS
-	scrapeInterval time.Duration
+	endpoint string
 }
 
 func (c *config) GetEndpoint() string {

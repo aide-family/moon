@@ -68,7 +68,9 @@ func (m *Menu) SaveMenu(ctx context.Context, menu *bo.SaveMenuRequest) error {
 		if err != nil {
 			return
 		}
-		m.cacheRepo.CacheMenus(ctx, menu)
+		if err := m.cacheRepo.CacheMenus(ctx, menu); err != nil {
+			m.helper.WithContext(ctx).Warnw("method", "menu.SaveMenu", "err", err)
+		}
 	}()
 	if err := m.menuRepo.ExistByName(ctx, menu.Name, menu.MenuId); err != nil {
 		return err

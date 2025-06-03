@@ -194,16 +194,24 @@ func (t *teamStrategyMetricLevelRepoImpl) Update(ctx context.Context, params bo.
 	rule := build.ToStrategyMetricRule(ctx, ruleDo)
 	ruleLabelNoticeMutation := tx.StrategyMetricRule.LabelNotices.WithContext(ctx).Model(rule)
 	if len(labelNotices) > 0 {
-		ruleLabelNoticeMutation.Replace(labelNotices...)
+		if err := ruleLabelNoticeMutation.Replace(labelNotices...); err != nil {
+			return err
+		}
 	} else {
-		ruleLabelNoticeMutation.Clear()
+		if err := ruleLabelNoticeMutation.Clear(); err != nil {
+			return err
+		}
 	}
 	alarmPages := build.ToDicts(ctx, params.GetAlarmPages())
 	ruleAlarmPageMutation := tx.StrategyMetricRule.AlarmPages.WithContext(ctx).Model(rule)
 	if len(alarmPages) > 0 {
-		ruleAlarmPageMutation.Replace(alarmPages...)
+		if err := ruleAlarmPageMutation.Replace(alarmPages...); err != nil {
+			return err
+		}
 	} else {
-		ruleAlarmPageMutation.Clear()
+		if err := ruleAlarmPageMutation.Clear(); err != nil {
+			return err
+		}
 	}
 
 	return nil

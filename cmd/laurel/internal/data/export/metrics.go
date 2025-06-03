@@ -3,23 +3,27 @@ package export
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/aide-family/moon/cmd/laurel/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/util/safety"
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 )
 
-func NewNodeExportMetricRepo() repository.Metrics {
+func NewNodeExportMetricRepo(logger log.Logger) repository.Metrics {
 	return &nodeExportMetricRepoImpl{
 		metrics: safety.NewMap[string, prometheus.Collector](),
+		helper:  log.NewHelper(log.With(logger, "module", "laurel.data.export.metrics")),
 	}
 }
 
 type nodeExportMetricRepoImpl struct {
 	metrics *safety.Map[string, prometheus.Collector]
+	helper  *log.Helper
 }
 
 // Metrics implements repository.Metrics.
@@ -28,7 +32,11 @@ func (n *nodeExportMetricRepoImpl) Metrics(ctx context.Context, target string) (
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch metrics: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func(body io.ReadCloser) {
+		if err := body.Close(); err != nil {
+			n.helper.WithContext(ctx).Warnw("method", "prometheus.metadata", "err", err)
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
