@@ -14,7 +14,13 @@ import (
 )
 
 // ProviderSetServer is server providers.
-var ProviderSetServer = wire.NewSet(NewGRPCServer, NewHTTPServer, NewTicker, RegisterService)
+var ProviderSetServer = wire.NewSet(
+	NewGRPCServer,
+	NewHTTPServer,
+	NewTicker,
+	NewCronScriptServer,
+	RegisterService,
+)
 
 // RegisterService register service
 func RegisterService(
@@ -22,6 +28,7 @@ func RegisterService(
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
 	tickerSrv *ticker_server.Ticker,
+	scriptSrv *CronScriptServer,
 	healthService *service.HealthService,
 	metricService *service.MetricService,
 ) server.Servers {
@@ -30,5 +37,5 @@ func RegisterService(
 	apiv1.RegisterMetricServer(rpcSrv, metricService)
 	apiv1.RegisterMetricHTTPServer(httpSrv, metricService)
 
-	return server.Servers{rpcSrv, httpSrv, tickerSrv}
+	return server.Servers{rpcSrv, httpSrv, tickerSrv, scriptSrv}
 }

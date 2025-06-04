@@ -40,38 +40,42 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 
 	if len(counterMetrics) > 0 {
 		key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeCounter)
-		values := slices.ToMap(counterMetrics, func(metric bo.MetricVec) string {
-			return metric.GetMetricName()
-		})
+		values := make(map[string]any, len(counterMetrics))
+		for _, metric := range counterMetrics {
+			values[metric.GetMetricName()] = metric
+		}
 		if err := c.Data.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
-			c.helper.WithContext(ctx).Errorw("method", "HSet", "err", err)
+			c.helper.WithContext(ctx).Errorw("method", "counterMetrics.HSet", "err", err)
 		}
 	}
 	if len(gaugeMetrics) > 0 {
 		key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeGauge)
-		values := slices.ToMap(gaugeMetrics, func(metric bo.MetricVec) string {
-			return metric.GetMetricName()
-		})
+		values := make(map[string]any, len(gaugeMetrics))
+		for _, metric := range gaugeMetrics {
+			values[metric.GetMetricName()] = metric
+		}
 		if err := c.Data.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
-			c.helper.WithContext(ctx).Errorw("method", "HSet", "err", err)
+			c.helper.WithContext(ctx).Errorw("method", "gaugeMetrics.HSet", "err", err)
 		}
 	}
 	if len(histogramMetrics) > 0 {
 		key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeHistogram)
-		values := slices.ToMap(histogramMetrics, func(metric bo.MetricVec) string {
-			return metric.GetMetricName()
-		})
+		values := make(map[string]any, len(histogramMetrics))
+		for _, metric := range histogramMetrics {
+			values[metric.GetMetricName()] = metric
+		}
 		if err := c.Data.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
-			c.helper.WithContext(ctx).Errorw("method", "HSet", "err", err)
+			c.helper.WithContext(ctx).Errorw("method", "histogramMetrics.HSet", "err", err)
 		}
 	}
 	if len(summaryMetrics) > 0 {
 		key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeSummary)
-		values := slices.ToMap(summaryMetrics, func(metric bo.MetricVec) string {
-			return metric.GetMetricName()
-		})
+		values := make(map[string]any, len(summaryMetrics))
+		for _, metric := range summaryMetrics {
+			values[metric.GetMetricName()] = metric
+		}
 		if err := c.Data.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
-			c.helper.WithContext(ctx).Errorw("method", "HSet", "err", err)
+			c.helper.WithContext(ctx).Errorw("method", "summaryMetrics.HSet", "err", err)
 		}
 	}
 

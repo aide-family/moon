@@ -8,6 +8,7 @@ import (
 var ProviderSetImpl = wire.NewSet(
 	NewCacheRepo,
 	NewPingRepo,
-	NewMetricRegister,
-	NewScriptImpl,
+	NewMetricRegisterRepo,
+	NewScriptRepo,
+	NewEventBusRepo,
 )

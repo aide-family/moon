@@ -12,18 +12,18 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 )
 
-func NewMetricRegister(data *data.Data) repository.MetricRegister {
-	return &metricRegisterImpl{
+func NewMetricRegisterRepo(data *data.Data) repository.MetricRegister {
+	return &metricRegisterRepoImpl{
 		Data: data,
 	}
 }
 
-type metricRegisterImpl struct {
+type metricRegisterRepoImpl struct {
 	*data.Data
 }
 
 // WithCounterMetricValue implements repository.MetricRegister.
-func (m *metricRegisterImpl) WithCounterMetricValue(ctx context.Context, metrics ...*bo.MetricData) error {
+func (m *metricRegisterRepoImpl) WithCounterMetricValue(ctx context.Context, metrics ...*bo.MetricData) error {
 	if len(metrics) == 0 {
 		return nil
 	}
@@ -43,7 +43,7 @@ func (m *metricRegisterImpl) WithCounterMetricValue(ctx context.Context, metrics
 }
 
 // WithGaugeMetricValue implements repository.MetricRegister.
-func (m *metricRegisterImpl) WithGaugeMetricValue(ctx context.Context, metrics ...*bo.MetricData) error {
+func (m *metricRegisterRepoImpl) WithGaugeMetricValue(ctx context.Context, metrics ...*bo.MetricData) error {
 	if len(metrics) == 0 {
 		return nil
 	}
@@ -63,7 +63,7 @@ func (m *metricRegisterImpl) WithGaugeMetricValue(ctx context.Context, metrics .
 }
 
 // WithHistogramMetricValue implements repository.MetricRegister.
-func (m *metricRegisterImpl) WithHistogramMetricValue(ctx context.Context, metrics ...*bo.MetricData) error {
+func (m *metricRegisterRepoImpl) WithHistogramMetricValue(ctx context.Context, metrics ...*bo.MetricData) error {
 	if len(metrics) == 0 {
 		return nil
 	}
@@ -83,7 +83,7 @@ func (m *metricRegisterImpl) WithHistogramMetricValue(ctx context.Context, metri
 }
 
 // WithSummaryMetricValue implements repository.MetricRegister.
-func (m *metricRegisterImpl) WithSummaryMetricValue(ctx context.Context, metrics ...*bo.MetricData) error {
+func (m *metricRegisterRepoImpl) WithSummaryMetricValue(ctx context.Context, metrics ...*bo.MetricData) error {
 	if len(metrics) == 0 {
 		return nil
 	}
@@ -104,7 +104,7 @@ func (m *metricRegisterImpl) WithSummaryMetricValue(ctx context.Context, metrics
 
 // RegisterCounterMetric implements repository.MetricRegister.
 // Subtle: this method shadows the method (*Data).RegisterCounterMetric of metricRegisterImpl.Data.
-func (m *metricRegisterImpl) RegisterCounterMetric(ctx context.Context, name string, metric *prometheus.CounterVec) {
+func (m *metricRegisterRepoImpl) RegisterCounterMetric(ctx context.Context, name string, metric *prometheus.CounterVec) {
 	if !m.SetCounterMetric(name, metric) {
 		return
 	}
@@ -113,7 +113,7 @@ func (m *metricRegisterImpl) RegisterCounterMetric(ctx context.Context, name str
 
 // RegisterGaugeMetric implements repository.MetricRegister.
 // Subtle: this method shadows the method (*Data).RegisterGaugeMetric of metricRegisterImpl.Data.
-func (m *metricRegisterImpl) RegisterGaugeMetric(ctx context.Context, name string, metric *prometheus.GaugeVec) {
+func (m *metricRegisterRepoImpl) RegisterGaugeMetric(ctx context.Context, name string, metric *prometheus.GaugeVec) {
 	if !m.SetGaugeMetric(name, metric) {
 		return
 	}
@@ -122,7 +122,7 @@ func (m *metricRegisterImpl) RegisterGaugeMetric(ctx context.Context, name strin
 
 // RegisterHistogramMetric implements repository.MetricRegister.
 // Subtle: this method shadows the method (*Data).RegisterHistogramMetric of metricRegisterImpl.Data.
-func (m *metricRegisterImpl) RegisterHistogramMetric(ctx context.Context, name string, metric *prometheus.HistogramVec) {
+func (m *metricRegisterRepoImpl) RegisterHistogramMetric(ctx context.Context, name string, metric *prometheus.HistogramVec) {
 	if !m.SetHistogramMetric(name, metric) {
 		return
 	}
@@ -131,7 +131,7 @@ func (m *metricRegisterImpl) RegisterHistogramMetric(ctx context.Context, name s
 
 // RegisterSummaryMetric implements repository.MetricRegister.
 // Subtle: this method shadows the method (*Data).RegisterSummaryMetric of metricRegisterImpl.Data.
-func (m *metricRegisterImpl) RegisterSummaryMetric(ctx context.Context, name string, metric *prometheus.SummaryVec) {
+func (m *metricRegisterRepoImpl) RegisterSummaryMetric(ctx context.Context, name string, metric *prometheus.SummaryVec) {
 	if !m.SetSummaryMetric(name, metric) {
 		return
 	}

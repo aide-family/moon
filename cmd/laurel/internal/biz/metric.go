@@ -15,7 +15,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/slices"
 )
 
-func NewMetricManager(
+func NewMetricManagerBiz(
 	bc *conf.Bootstrap,
 	metricRegisterRepo repository.MetricRegister,
 	cacheRepo repository.Cache,

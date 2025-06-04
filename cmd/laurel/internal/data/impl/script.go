@@ -2,6 +2,7 @@ package impl
 
 import (
 	"context"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,20 +16,20 @@ import (
 	"github.com/aide-family/moon/pkg/util/slices"
 )
 
-func NewScriptImpl(bc *conf.Bootstrap) repository.Script {
-	return &scriptImpl{
+func NewScriptRepo(bc *conf.Bootstrap) repository.Script {
+	return &scriptRepoImpl{
 		scriptDirs: bc.GetTaskScripts(),
 		scripts:    safety.NewMap[string, *bo.TaskScript](),
 	}
 }
 
-type scriptImpl struct {
+type scriptRepoImpl struct {
 	scriptDirs []string
 
 	scripts *safety.Map[string, *bo.TaskScript]
 }
 
-func (s *scriptImpl) GetScripts(ctx context.Context) ([]*bo.TaskScript, error) {
+func (s *scriptRepoImpl) GetScripts(ctx context.Context) ([]*bo.TaskScript, error) {
 	if len(s.scriptDirs) == 0 {
 		return nil, nil
 	}
@@ -42,7 +43,7 @@ func (s *scriptImpl) GetScripts(ctx context.Context) ([]*bo.TaskScript, error) {
 	return taskScripts, nil
 }
 
-func (s *scriptImpl) filterTaskScripts(taskScripts []*bo.TaskScript) []*bo.TaskScript {
+func (s *scriptRepoImpl) filterTaskScripts(taskScripts []*bo.TaskScript) []*bo.TaskScript {
 	filteredTaskScripts := make([]*bo.TaskScript, 0, len(taskScripts))
 
 	scripts := s.scripts.List()
@@ -64,13 +65,22 @@ func (s *scriptImpl) filterTaskScripts(taskScripts []*bo.TaskScript) []*bo.TaskS
 	return filteredTaskScripts
 }
 
-func (s *scriptImpl) getFiles(dirs ...string) ([]string, error) {
+func (s *scriptRepoImpl) getFiles(dirs ...string) ([]string, error) {
 	if len(dirs) == 0 {
 		return nil, nil
 	}
 	fileList := make([]string, 0, len(dirs)*100)
 	for _, dir := range dirs {
-		files, err := filepath.Glob(filepath.Join(dir))
+		var files []string
+		err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if !d.IsDir() {
+				files = append(files, path)
+			}
+			return nil
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +89,7 @@ func (s *scriptImpl) getFiles(dirs ...string) ([]string, error) {
 	return fileList, nil
 }
 
-func (s *scriptImpl) getTaskScripts(files []string) []*bo.TaskScript {
+func (s *scriptRepoImpl) getTaskScripts(files []string) []*bo.TaskScript {
 	if len(files) == 0 {
 		return nil
 	}
@@ -129,12 +139,12 @@ func getFileType(file string) vobj.FileType {
 }
 
 func getInterval(file string) time.Duration {
-	parts := strings.Split(file, "_")
+	parts := strings.Split(filepath.Base(file), "_")
 	if len(parts) < 2 {
 		return 0
 	}
 	// Convert 10s, 5s to time.Duration
-	interval, err := time.ParseDuration(parts[1])
+	interval, err := time.ParseDuration(parts[0])
 	if err != nil {
 		return 0
 	}

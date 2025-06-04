@@ -7,6 +7,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/laurel/internal/conf"
 	"github.com/aide-family/moon/pkg/plugin/cache"
+	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 	"github.com/aide-family/moon/pkg/util/safety"
 )
 
@@ -17,11 +18,13 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	var err error
 
 	data := &Data{
-		counterMetrics:   safety.NewMap[string, *prometheus.CounterVec](),
-		gaugeMetrics:     safety.NewMap[string, *prometheus.GaugeVec](),
-		histogramMetrics: safety.NewMap[string, *prometheus.HistogramVec](),
-		summaryMetrics:   safety.NewMap[string, *prometheus.SummaryVec](),
-		helper:           log.NewHelper(log.With(logger, "module", "data")),
+		counterMetrics:          safety.NewMap[string, *prometheus.CounterVec](),
+		gaugeMetrics:            safety.NewMap[string, *prometheus.GaugeVec](),
+		histogramMetrics:        safety.NewMap[string, *prometheus.HistogramVec](),
+		summaryMetrics:          safety.NewMap[string, *prometheus.SummaryVec](),
+		scriptJobEventBus:       make(chan cron_server.CronJob, 100),
+		removeScriptJobEventBus: make(chan cron_server.CronJob, 100),
+		helper:                  log.NewHelper(log.With(logger, "module", "data")),
 	}
 	data.cache, err = cache.NewCache(c.GetCache())
 	if err != nil {
@@ -38,12 +41,14 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 }
 
 type Data struct {
-	cache            cache.Cache
-	counterMetrics   *safety.Map[string, *prometheus.CounterVec]
-	gaugeMetrics     *safety.Map[string, *prometheus.GaugeVec]
-	histogramMetrics *safety.Map[string, *prometheus.HistogramVec]
-	summaryMetrics   *safety.Map[string, *prometheus.SummaryVec]
-	helper           *log.Helper
+	cache                   cache.Cache
+	counterMetrics          *safety.Map[string, *prometheus.CounterVec]
+	gaugeMetrics            *safety.Map[string, *prometheus.GaugeVec]
+	histogramMetrics        *safety.Map[string, *prometheus.HistogramVec]
+	summaryMetrics          *safety.Map[string, *prometheus.SummaryVec]
+	scriptJobEventBus       chan cron_server.CronJob
+	removeScriptJobEventBus chan cron_server.CronJob
+	helper                  *log.Helper
 }
 
 func (d *Data) GetCache() cache.Cache {
@@ -96,4 +101,20 @@ func (d *Data) GetHistogramMetric(name string) (*prometheus.HistogramVec, bool) 
 
 func (d *Data) GetSummaryMetric(name string) (*prometheus.SummaryVec, bool) {
 	return d.summaryMetrics.Get(name)
+}
+
+func (d *Data) OutScriptJobEventBus() <-chan cron_server.CronJob {
+	return d.scriptJobEventBus
+}
+
+func (d *Data) InScriptJobEventBus(job cron_server.CronJob) {
+	d.scriptJobEventBus <- job
+}
+
+func (d *Data) OutRemoveScriptJobEventBus() <-chan cron_server.CronJob {
+	return d.removeScriptJobEventBus
+}
+
+func (d *Data) InRemoveScriptJobEventBus(job cron_server.CronJob) {
+	d.removeScriptJobEventBus <- job
 }
