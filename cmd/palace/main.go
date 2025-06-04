@@ -11,7 +11,6 @@ import (
 	"github.com/aide-family/moon/pkg/hello"
 	"github.com/aide-family/moon/pkg/i18n"
 	mlog "github.com/aide-family/moon/pkg/log"
-	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/server"
 	"github.com/aide-family/moon/pkg/util/load"
 )
@@ -47,8 +46,8 @@ func run(cfgPath string) {
 	hello.SetEnvWithConfig(Version, bc.GetEnvironment(), bc.GetServer())
 	i18nConf := bc.GetI18N()
 	bundle := i18n.New(i18nConf)
-	merr.RegisterBundle(bundle)
-	merr.RegisterGlobalLocalizer(merr.NewLocalizer(bundle))
+	i18n.RegisterBundle(bundle)
+	i18n.RegisterGlobalLocalizer(i18n.NewLocalizer(bundle))
 	logger := mlog.New(bc.IsDev(), bc.GetLog())
 
 	app, cleanup, err := wireApp(&bc, logger)

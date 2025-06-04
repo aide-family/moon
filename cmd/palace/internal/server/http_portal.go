@@ -13,7 +13,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
 	"github.com/aide-family/moon/cmd/palace/internal/service"
 	portal_service "github.com/aide-family/moon/cmd/palace/internal/service/portal"
-	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/i18n"
 	"github.com/aide-family/moon/pkg/middler"
 )
 
@@ -37,7 +37,7 @@ func NewPortalHTTPServer(
 		http.Middleware(
 			recovery.Recovery(),
 			tracing.Server(),
-			merr.I18n(),
+			i18n.I18n(),
 			logging.Server(logger),
 			middleware.BindHeaders(menuService.GetMenuByOperation),
 			authMiddleware,

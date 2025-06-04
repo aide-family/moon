@@ -11,6 +11,7 @@ import (
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"google.golang.org/protobuf/proto"
 
+	mi18n "github.com/aide-family/moon/pkg/i18n"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
@@ -41,8 +42,8 @@ func getMsg(ctx context.Context, constraintId string, msg string) string {
 		constraintId = "REQUIRED"
 	}
 
-	lang := merr.GetLanguage(ctx)
-	localize, localizeErr := i18n.NewLocalizer(merr.GetBundle(), lang).
+	lang := mi18n.GetLanguage(ctx)
+	localize, localizeErr := i18n.NewLocalizer(mi18n.GetBundle(), lang).
 		Localize(&i18n.LocalizeConfig{MessageID: constraintId})
 	if validate.IsNotNil(localizeErr) {
 		log.Warnf("%s => validate error: %v", constraintId, localizeErr)

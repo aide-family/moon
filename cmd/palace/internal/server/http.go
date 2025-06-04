@@ -16,7 +16,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/conf"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
 	"github.com/aide-family/moon/cmd/palace/internal/service"
-	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/i18n"
 	"github.com/aide-family/moon/pkg/metric"
 	"github.com/aide-family/moon/pkg/middler"
 	"github.com/aide-family/moon/pkg/util/docs"
@@ -49,7 +49,7 @@ func NewHTTPServer(
 		http.Middleware(
 			recovery.Recovery(),
 			tracing.Server(),
-			merr.I18n(),
+			i18n.I18n(),
 			logging.Server(logger),
 			middleware.BindHeaders(menuService.GetMenuByOperation),
 			authMiddleware,

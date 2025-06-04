@@ -1,4 +1,4 @@
-package merr
+package i18n
 
 import (
 	"context"

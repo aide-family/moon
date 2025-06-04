@@ -12,7 +12,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/rabbit/internal/conf"
 	"github.com/aide-family/moon/cmd/rabbit/internal/helper/middleware"
-	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/i18n"
 	"github.com/aide-family/moon/pkg/metric"
 	"github.com/aide-family/moon/pkg/middler"
 	"github.com/aide-family/moon/pkg/util/docs"
@@ -35,7 +35,7 @@ func NewHTTPServer(bc *conf.Bootstrap, logger log.Logger) *http.Server {
 		http.Middleware(
 			recovery.Recovery(),
 			tracing.Server(),
-			merr.I18n(),
+			i18n.I18n(),
 			logging.Server(logger),
 			authMiddleware,
 			middler.Validate(),
