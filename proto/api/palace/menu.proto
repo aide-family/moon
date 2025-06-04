@@ -40,6 +40,22 @@ service Menu {
       get: "/api/team/menu/tree"
     };
   }
+
+  // MenuList returns the menu list
+  rpc MenuList (MenuListRequest) returns (MenuListReply) {
+    option (google.api.http) = {
+      post: "/api/menu/list"
+      body: "*"
+    };
+  }
+
+  // TeamMenuList returns the team menu list
+  rpc TeamMenuList (MenuListRequest) returns (MenuListReply) {
+    option (google.api.http) = {
+      post: "/api/team/menu/list"
+      body: "*"
+    };
+  }
 }
 
 // GetMenuRequest represents the request data for retrieving a menu
@@ -106,4 +122,22 @@ message SaveMenuRequest {
   }];
   // Whether the menu is rely on brother
   bool isRelyOnBrother = 11;
+}
+
+// MenuListRequest represents the request data for retrieving the menu list
+message MenuListRequest {
+  api.palace.common.PaginationRequest pagination = 1;
+  api.palace.common.GlobalStatus status = 2;
+  api.palace.common.MenuType menuType = 3;
+  api.palace.common.MenuCategory menuCategory = 4;
+  api.palace.common.MenuProcessType processType = 5;
+  string keyword = 6;
+}
+
+// MenuListReply represents the response data for retrieving the menu list
+message MenuListReply {
+  // List of menu items
+  repeated api.palace.common.MenuTreeItem menus = 1;
+  // Pagination
+  api.palace.common.PaginationReply pagination = 2;
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/data"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
@@ -134,4 +135,39 @@ func (m *menuRepoImpl) ExistByName(ctx context.Context, name string, menuID uint
 		return nil
 	}
 	return merr.ErrorExist("menu name already exists")
+}
+
+func (m *menuRepoImpl) List(ctx context.Context, req *bo.ListMenuParams) (*bo.ListMenuReply, error) {
+	mainQuery := getMainQuery(ctx, m)
+	menu := mainQuery.Menu
+	wrapper := menu.Where()
+	if !req.MenuType.IsUnknown() {
+		wrapper = wrapper.Where(menu.MenuType.Eq(req.MenuType.GetValue()))
+	}
+	if !req.MenuCategory.IsUnknown() {
+		wrapper = wrapper.Where(menu.MenuCategory.Eq(req.MenuCategory.GetValue()))
+	}
+	if !req.Status.IsUnknown() {
+		wrapper = wrapper.Where(menu.Status.Eq(req.Status.GetValue()))
+	}
+	if !req.ProcessType.IsUnknown() {
+		wrapper = wrapper.Where(menu.ProcessType.Eq(req.ProcessType.GetValue()))
+	}
+	if validate.TextIsNotNull(req.Keyword) {
+		or := []gen.Condition{
+			menu.Name.Like(req.Keyword),
+			menu.MenuPath.Like(req.Keyword),
+			menu.ApiPath.Like(req.Keyword),
+			menu.MenuIcon.Like(req.Keyword),
+		}
+		wrapper = wrapper.Where(wrapper.Or(or...))
+	}
+	if req.TeamID > 0 {
+		wrapper = wrapper.Where(menu.MenuType.Eq(vobj.MenuTypeMenuTeam.GetValue()))
+	}
+	menuDos, err := wrapper.WithContext(ctx).Find()
+	if err != nil {
+		return nil, err
+	}
+	return req.ToListReply(slices.Map(menuDos, func(menu *system.Menu) do.Menu { return menu })), nil
 }

@@ -47,6 +47,10 @@ func (m *Menu) GetMenuByOperation(ctx context.Context, operation string) (do.Men
 	return m.cacheRepo.GetMenu(ctx, operation)
 }
 
+func (m *Menu) MenuList(ctx context.Context, req *bo.ListMenuParams) (*bo.ListMenuReply, error) {
+	return m.menuRepo.List(ctx, req)
+}
+
 func (m *Menu) GetMenu(ctx context.Context, id uint32) (do.Menu, error) {
 	menus, err := m.menuRepo.Find(ctx, []uint32{id})
 	if err != nil {

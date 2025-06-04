@@ -16,4 +16,5 @@ type Menu interface {
 	Create(ctx context.Context, menu *bo.SaveMenuRequest) error
 	Update(ctx context.Context, menu *bo.SaveMenuRequest) error
 	ExistByName(ctx context.Context, name string, menuID uint32) error
+	List(ctx context.Context, req *bo.ListMenuParams) (*bo.ListMenuReply, error)
 }
