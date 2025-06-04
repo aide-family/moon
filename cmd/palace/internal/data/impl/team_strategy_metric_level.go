@@ -190,7 +190,7 @@ func (t *teamStrategyMetricLevelRepoImpl) Update(ctx context.Context, params bo.
 		return labelNotice
 	})
 
-	ruleDo, err := t.Get(ctx, params.GetStrategyMetricLevel().GetStrategyMetricID())
+	ruleDo, err := t.Get(ctx, params.GetStrategyMetricLevel().GetID())
 	if err != nil {
 		return err
 	}
