@@ -155,6 +155,13 @@ func (s *SaveTeamMetricStrategyLevelParams) Validate() error {
 	if s.LevelID <= 0 {
 		return merr.ErrorParams("level id is required")
 	}
+	if validate.IsNil(s.GetLevel()) {
+		return merr.ErrorParams("level is not found")
+	}
+	dictIds := s.GetDictIds()
+	if len(s.dicts) != len(dictIds) {
+		return merr.ErrorParams("dicts is not found")
+	}
 	return nil
 }
 

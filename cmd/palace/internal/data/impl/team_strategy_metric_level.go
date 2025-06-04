@@ -58,8 +58,7 @@ func (t *teamStrategyMetricLevelRepoImpl) Create(ctx context.Context, params bo.
 	strategyMetricLevel := &team.StrategyMetricRule{
 		TeamModel:        do.TeamModel{},
 		StrategyMetricID: params.GetStrategyMetric().GetID(),
-		LevelID:          0,
-		Level:            build.ToDict(ctx, params.GetLevel()),
+		LevelID:          params.GetLevel().GetID(),
 		SampleMode:       params.GetSampleMode(),
 		Condition:        params.GetCondition(),
 		Total:            params.GetTotal(),
@@ -69,6 +68,7 @@ func (t *teamStrategyMetricLevelRepoImpl) Create(ctx context.Context, params bo.
 		Notices:          build.ToStrategyNotices(ctx, params.GetNoticeGroupDos()),
 		LabelNotices:     labelNotices,
 		AlarmPages:       build.ToDicts(ctx, params.GetAlarmPages()),
+		StrategyID:       params.GetStrategyMetric().GetStrategyID(),
 	}
 	strategyMetricLevel.WithContext(ctx)
 	tx := getTeamBizQuery(ctx, t)
@@ -132,6 +132,7 @@ func (t *teamStrategyMetricLevelRepoImpl) List(ctx context.Context, params *bo.L
 	ruleQuery := tx.StrategyMetricRule
 	wrapper := ruleQuery.Where(ruleQuery.StrategyMetricID.Eq(params.StrategyMetricID))
 	wrapper = wrapper.Where(ruleQuery.TeamID.Eq(teamId))
+	wrapper = wrapper.Preload(field.Associations)
 
 	if params.LevelId > 0 {
 		wrapper = wrapper.Where(ruleQuery.LevelID.Eq(params.LevelId))
@@ -171,6 +172,7 @@ func (t *teamStrategyMetricLevelRepoImpl) Update(ctx context.Context, params bo.
 		ruleMutation.Total.Value(params.GetTotal()),
 		ruleMutation.Values.Value(team.Values(params.GetValues())),
 		ruleMutation.Duration.Value(params.GetDuration()),
+		ruleMutation.StrategyID.Value(params.GetStrategyMetric().GetStrategyID()),
 	}
 	_, err := tx.StrategyMetricRule.WithContext(ctx).Where(wrapper...).UpdateSimple(mutations...)
 	if err != nil {
