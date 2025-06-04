@@ -1,0 +1,80 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Palace",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/palace/.", // 指定入口文件
+      "args": ["-c", "${workspaceFolder}/cmd/palace/config"], // 传递给程序的参数
+      "cwd": "${workspaceFolder}", // 设置工作目录为项目根目录
+      "env": {
+        "GO111MODULE": "on", // 强制启用模块模式
+        "GO_ENV": "development"
+      },
+      "showLog": true // 显示调试日志
+    },
+    {
+      "name": "Run Rabbit",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/rabbit/.", // 运行当前文件
+      "cwd": "${workspaceFolder}", // 设置工作目录为项目根目录
+      "args": ["-c", "${workspaceFolder}/cmd/rabbit/config"], // 传递给程序的参数
+      "env": {
+        "GO111MODULE": "on", // 强制启用模块模式
+        "GO_ENV": "development"
+      }, // 环境变量
+      "showLog": true // 显示调试日志
+    },
+    {
+      "name": "Run Houyi",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/houyi/.", // 运行当前文件
+      "cwd": "${workspaceFolder}", // 设置工作目录为项目根目录
+      "args": ["-c", "${workspaceFolder}/cmd/houyi/config"], // 传递给程序的参数
+      "env": {
+        "GO111MODULE": "on", // 强制启用模块模式
+        "GO_ENV": "development"
+      }, // 环境变量
+      "showLog": true // 显示调试日志
+    },
+    {
+      "name": "Run Laurel",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/laurel/.", // 运行当前文件
+      "cwd": "${workspaceFolder}", // 设置工作目录为项目根目录
+      "args": ["-c", "${workspaceFolder}/cmd/laurel/config"], // 传递给程序的参数
+      "env": {
+        "GO111MODULE": "on", // 强制启用模块模式
+        "GO_ENV": "development"
+      }, // 环境变量
+      "showLog": true // 显示调试日志
+    },
+    {
+      "name": "Launch Package",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${fileDirname}", // 调试当前文件所在的包
+      "args": [], // 传递给程序的参数
+      "env": {}, // 环境变量
+      "showLog": true // 显示调试日志
+    },
+    {
+      "name": "Launch Test",
+      "type": "go",
+      "request": "launch",
+      "mode": "test",
+      "program": "${fileDirname}", // 调试当前文件所在的测试
+      "args": [], // 传递给测试的参数
+      "env": {} // 环境变量
+    }
+  ]
+}

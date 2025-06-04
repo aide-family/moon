@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "golang.go", // Go 插件
+    "vscode-icons-team.vscode-icons", // 文件图标
+    "streetsidesoftware.code-spell-checker" // 拼写检查
+  ]
+}

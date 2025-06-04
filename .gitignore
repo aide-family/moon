@@ -3,7 +3,6 @@
 *.exe
 *.exe~
 *.dll
-*.dylib
 
 # Test binary, built with `go test -c`
 *.test
@@ -33,7 +32,6 @@ Thumbs.db
 bin/
 
 # Develop tools
-.vscode/
 .idea/
 *.swp
 
