@@ -89,11 +89,11 @@ func validateParams(opts ...protovalidate.ValidatorOption) ValidateHandler {
 			for _, element := range elements {
 				fields = append(fields, element.GetFieldName())
 			}
-			if len(fields) == 0 {
-				continue
-			}
 			constraintId := v.Proto.GetConstraintId()
 			msg := v.Proto.GetMessage()
+			if len(fields) == 0 {
+				return merr.ErrorParams("%s", getMsg(ctx, constraintId, msg))
+			}
 			field := strings.Join(fields, ".")
 			errMap[field] = append(errMap[field], getMsg(ctx, constraintId, msg))
 		}
