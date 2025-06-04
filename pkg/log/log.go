@@ -13,7 +13,7 @@ import (
 func New(isDev bool, cfg *config.Log) (logger log.Logger) {
 	switch cfg.GetDriver() {
 	case config.Log_SUGARED:
-		logger = NewSugaredLogger(isDev, cfg.GetLevel(), cfg.GetSugared())
+		logger = newSugaredLogger(isDev, cfg.GetLevel(), cfg.GetSugared())
 	default:
 		logger = log.NewStdLogger(os.Stdout)
 	}
