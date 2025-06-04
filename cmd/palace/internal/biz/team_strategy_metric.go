@@ -51,16 +51,17 @@ func (t *TeamStrategyMetric) SaveTeamMetricStrategy(ctx context.Context, params 
 	}
 	params.WithDatasource(datasourceDos)
 	return t.transaction.BizExec(ctx, func(ctx context.Context) error {
-		if params.StrategyMetricID <= 0 {
+		strategyMetricDo, err := t.teamStrategyMetricRepo.GetByStrategyId(ctx, params.StrategyID)
+		if err != nil {
+			if !merr.IsNotFound(err) {
+				return err
+			}
 			if err := params.Validate(); err != nil {
 				return err
 			}
 			return t.teamStrategyMetricRepo.Create(ctx, params)
 		}
-		strategyMetricDo, err := t.teamStrategyMetricRepo.Get(ctx, params.StrategyID)
-		if err != nil {
-			return err
-		}
+
 		params.WithStrategyMetric(strategyMetricDo)
 		if err := params.Validate(); err != nil {
 			return err

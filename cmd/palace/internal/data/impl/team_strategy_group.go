@@ -68,7 +68,7 @@ func (t *teamStrategyGroupRepoImpl) Get(ctx context.Context, id uint32) (do.Stra
 		mutation.ID.Eq(id),
 		mutation.TeamID.Eq(teamId),
 	}
-	group, err := mutation.WithContext(ctx).Preload(field.Associations).Where(wrappers...).First()
+	group, err := mutation.WithContext(ctx).Where(wrappers...).Preload(field.Associations).First()
 	if err != nil {
 		return nil, strategyGroupNotFound(err)
 	}

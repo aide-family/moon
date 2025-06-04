@@ -100,8 +100,6 @@ message SaveTeamMetricStrategyRequest {
 	  message: "a valid datasource must be selected"
 	  expression: "this.all(x, x > 0)"
 	}];
-	// Strategy metric id
-	uint32 strategyMetricId = 6;
 }
 
 // DeleteTeamMetricStrategyRequest represents the request data for deleting a team metric strategy

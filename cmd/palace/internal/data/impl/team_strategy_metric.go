@@ -123,16 +123,15 @@ func (t *teamStrategyMetricRepoImpl) Get(ctx context.Context, strategyMetricId u
 		strategyMetricMutation.ID.Eq(strategyMetricId),
 		strategyMetricMutation.TeamID.Eq(teamId),
 	}
-
 	preloads := []field.RelationField{
 		strategyMetricMutation.Strategy.RelationField,
 		strategyMetricMutation.StrategyMetricRules.AlarmPages,
 		strategyMetricMutation.StrategyMetricRules.LabelNotices,
 		strategyMetricMutation.StrategyMetricRules.LabelNotices.Notices,
 		strategyMetricMutation.Datasource,
+		strategyMetricMutation.StrategyMetricRules.Level,
 	}
-	preloads = append(preloads, strategyMetricMutation.StrategyMetricRules.Level)
-	strategyMetricDo, err := strategyMetricMutation.WithContext(ctx).Preload(preloads...).Where(wrapper...).First()
+	strategyMetricDo, err := strategyMetricMutation.WithContext(ctx).Where(wrapper...).Preload(preloads...).First()
 	if err != nil {
 		return nil, strategyMetricNotFound(err)
 	}
@@ -147,8 +146,15 @@ func (t *teamStrategyMetricRepoImpl) GetByStrategyId(ctx context.Context, strate
 		strategyMetricMutation.StrategyID.Eq(strategyId),
 		strategyMetricMutation.TeamID.Eq(teamId),
 	}
-
-	strategyMetricDo, err := strategyMetricMutation.WithContext(ctx).Where(wrapper...).Preload(field.Associations).First()
+	preloads := []field.RelationField{
+		strategyMetricMutation.Strategy.RelationField,
+		strategyMetricMutation.StrategyMetricRules.AlarmPages,
+		strategyMetricMutation.StrategyMetricRules.LabelNotices,
+		strategyMetricMutation.StrategyMetricRules.LabelNotices.Notices,
+		strategyMetricMutation.Datasource,
+		strategyMetricMutation.StrategyMetricRules.Level,
+	}
+	strategyMetricDo, err := strategyMetricMutation.WithContext(ctx).Where(wrapper...).Preload(preloads...).First()
 	if err != nil {
 		return nil, strategyMetricNotFound(err)
 	}

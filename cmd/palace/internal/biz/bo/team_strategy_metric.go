@@ -27,12 +27,11 @@ type UpdateTeamMetricStrategyParams interface {
 }
 
 type SaveTeamMetricStrategyParams struct {
-	StrategyID       uint32
-	StrategyMetricID uint32
-	Expr             string
-	Labels           kv.KeyValues
-	Annotations      kv.StringMap
-	Datasource       []uint32
+	StrategyID  uint32
+	Expr        string
+	Labels      kv.KeyValues
+	Annotations kv.StringMap
+	Datasource  []uint32
 
 	strategyDo       do.Strategy
 	datasourceDos    []do.DatasourceMetric
@@ -106,11 +105,8 @@ func (s *SaveTeamMetricStrategyParams) Validate() error {
 	if s.strategyDo.GetStatus().IsEnable() {
 		return merr.ErrorBadRequest("enabled strategy cannot modify")
 	}
-	if s.StrategyMetricID > 0 {
-		if validate.IsNil(s.strategyMetricDo) {
-			return merr.ErrorParams("strategy metric is not found")
-		}
-		if s.strategyMetricDo.GetID() != s.StrategyMetricID {
+	if validate.IsNotNil(s.strategyMetricDo) {
+		if s.strategyMetricDo.GetStrategy().GetID() != s.StrategyID {
 			return merr.ErrorParams("strategy metric is not found")
 		}
 	}

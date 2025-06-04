@@ -104,7 +104,7 @@ func (t *teamMetricDatasourceRepoImpl) Get(ctx context.Context, datasourceID uin
 		mutation.TeamID.Eq(teamId),
 		mutation.ID.Eq(datasourceID),
 	}
-	datasource, err := mutation.WithContext(ctx).Where(wrapper...).First()
+	datasource, err := mutation.WithContext(ctx).Where(wrapper...).Preload(field.Associations).First()
 	if err != nil {
 		return nil, datasourceNotFound(err)
 	}

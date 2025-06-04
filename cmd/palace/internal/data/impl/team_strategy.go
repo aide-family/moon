@@ -255,7 +255,7 @@ func (t *teamStrategyRepoImpl) FindByIds(ctx context.Context, strategyIds []uint
 func (t *teamStrategyRepoImpl) Get(ctx context.Context, strategyId uint32) (do.Strategy, error) {
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := bizQuery.Strategy.WithContext(ctx).Where(bizQuery.Strategy.TeamID.Eq(teamId), bizQuery.Strategy.ID.Eq(strategyId))
-	strategy, err := wrapper.First()
+	strategy, err := wrapper.Preload(field.Associations).First()
 	if err != nil {
 		return nil, strategyNotFound(err)
 	}

@@ -3,6 +3,9 @@ package impl
 import (
 	"context"
 
+	"gorm.io/gen"
+	"gorm.io/gen/field"
+
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
@@ -12,8 +15,6 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/data/impl/build"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
-	"gorm.io/gen"
-	"gorm.io/gen/field"
 )
 
 func NewTeamStrategyMetricLevelRepo(d *data.Data) repository.TeamStrategyMetricLevel {
@@ -103,7 +104,7 @@ func (t *teamStrategyMetricLevelRepoImpl) Get(ctx context.Context, strategyMetri
 		tx.StrategyMetricRule.ID.Eq(strategyMetricLevelId),
 		tx.StrategyMetricRule.TeamID.Eq(teamId),
 	}
-	strategyMetricRuleDo, err := tx.StrategyMetricRule.WithContext(ctx).Where(wrapper...).First()
+	strategyMetricRuleDo, err := tx.StrategyMetricRule.WithContext(ctx).Where(wrapper...).Preload(field.Associations).First()
 	if err != nil {
 		return nil, strategyMetricRuleNotFound(err)
 	}
@@ -118,7 +119,7 @@ func (t *teamStrategyMetricLevelRepoImpl) GetByLevelId(ctx context.Context, stra
 		tx.StrategyMetricRule.StrategyMetricID.Eq(strategyMetricId),
 		tx.StrategyMetricRule.TeamID.Eq(teamId),
 	}
-	strategyMetricRuleDo, err := tx.StrategyMetricRule.WithContext(ctx).Where(wrapper...).First()
+	strategyMetricRuleDo, err := tx.StrategyMetricRule.WithContext(ctx).Where(wrapper...).Preload(field.Associations).First()
 	if err != nil {
 		return nil, strategyMetricRuleNotFound(err)
 	}

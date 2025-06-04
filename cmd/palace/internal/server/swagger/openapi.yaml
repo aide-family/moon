@@ -4316,10 +4316,6 @@ components:
                         type: integer
                         format: uint32
                     description: Datasource
-                strategyMetricId:
-                    type: integer
-                    description: Strategy metric id
-                    format: uint32
             description: SaveTeamMetricStrategyRequest represents the request data for saving or updating a team metric strategy
         api.palace.SaveTeamNoticeGroupRequest:
             type: object

@@ -221,7 +221,7 @@ func (m *memberRepoImpl) Get(ctx context.Context, id uint32) (do.TeamMember, err
 		memberQuery.TeamID.Eq(teamID),
 		memberQuery.ID.Eq(id),
 	}
-	member, err := memberQuery.WithContext(ctx).Where(wrappers...).First()
+	member, err := memberQuery.WithContext(ctx).Where(wrappers...).Preload(field.Associations).First()
 	if err != nil {
 		return nil, teamMemberNotFound(err)
 	}

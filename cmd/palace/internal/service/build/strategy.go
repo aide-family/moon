@@ -38,12 +38,11 @@ func ToSaveTeamMetricStrategyParams(request *palace.SaveTeamMetricStrategyReques
 	annotations[cnst.AnnotationKeySummary] = request.GetAnnotations().GetSummary()
 	annotations[cnst.AnnotationKeyDescription] = request.GetAnnotations().GetDescription()
 	return &bo.SaveTeamMetricStrategyParams{
-		StrategyID:       request.GetStrategyId(),
-		Expr:             request.GetExpr(),
-		Labels:           labels,
-		Annotations:      annotations,
-		Datasource:       request.GetDatasource(),
-		StrategyMetricID: request.GetStrategyMetricId(),
+		StrategyID:  request.GetStrategyId(),
+		Expr:        request.GetExpr(),
+		Labels:      labels,
+		Annotations: annotations,
+		Datasource:  request.GetDatasource(),
 	}
 }
 

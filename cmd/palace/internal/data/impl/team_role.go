@@ -59,7 +59,7 @@ func (t *teamRoleRepoImpl) Get(ctx context.Context, id uint32) (do.TeamRole, err
 		roleQuery.TeamID.Eq(teamID),
 		roleQuery.ID.Eq(id),
 	}
-	role, err := roleQuery.WithContext(ctx).Where(wrapper...).First()
+	role, err := roleQuery.WithContext(ctx).Where(wrapper...).Preload(field.Associations).First()
 	if err != nil {
 		return nil, teamRoleNotFound(err)
 	}
