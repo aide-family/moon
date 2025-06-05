@@ -7,6 +7,8 @@ import (
 	"github.com/robfig/cron/v3"
 
 	"github.com/aide-family/moon/cmd/laurel/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/laurel/internal/biz/vobj"
+	"github.com/aide-family/moon/pkg/plugin/command"
 	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 	"github.com/aide-family/moon/pkg/util/hash"
 )
@@ -52,6 +54,32 @@ func (s *scriptJob) WithID(id cron.EntryID) cron_server.CronJob {
 
 func (s *scriptJob) Run() {
 	s.helper.Infof("script job run: %s", s.script.FilePath)
+	if s.script.IsDeleted() {
+		s.helper.Infof("script job run: %s, deleted", s.script.FilePath)
+		return
+	}
+	var (
+		content string
+		err     error
+	)
+	switch s.script.FileType {
+	case vobj.FileTypePython:
+		content, err = command.ExecPython(string(s.script.Content))
+	case vobj.FileTypePython3:
+		content, err = command.ExecPython3(string(s.script.Content))
+	case vobj.FileTypeShell:
+		content, err = command.ExecShell(string(s.script.Content))
+	case vobj.FileTypeBash:
+		content, err = command.ExecBash(string(s.script.Content))
+	default:
+		s.helper.Warnf("script job run: %s, file type: %s", s.script.FilePath, s.script.FileType)
+		return
+	}
+	if err != nil {
+		s.helper.Errorf("script job run: %s, error: %v", s.script.FilePath, err)
+		return
+	}
+	s.helper.Info(content)
 }
 
 func (s *scriptJob) ID() cron.EntryID {

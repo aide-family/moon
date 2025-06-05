@@ -103,6 +103,11 @@ func (s *scriptRepoImpl) getTaskScripts(files []string) []*bo.TaskScript {
 		if taskScript.FileType.IsUnknown() || taskScript.Interval < 1*time.Second {
 			continue
 		}
+		content, err := os.ReadFile(file)
+		if err != nil {
+			continue
+		}
+		taskScript.Content = content
 		taskScripts = append(taskScripts, taskScript)
 	}
 	return taskScripts
