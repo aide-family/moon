@@ -127,8 +127,8 @@ func (t *TeamStrategyMetric) UpdateTeamMetricStrategyLevelStatus(ctx context.Con
 	return t.teamStrategyMetricLevelRepo.UpdateStatus(ctx, params)
 }
 
-func (t *TeamStrategyMetric) DeleteTeamMetricStrategyLevel(ctx context.Context, strategyMetricLevelID uint32) error {
-	return t.teamStrategyMetricLevelRepo.Delete(ctx, strategyMetricLevelID)
+func (t *TeamStrategyMetric) DeleteTeamMetricStrategyLevels(ctx context.Context, strategyMetricLevelIds []uint32) error {
+	return t.teamStrategyMetricLevelRepo.Delete(ctx, strategyMetricLevelIds)
 }
 
 func (t *TeamStrategyMetric) GetTeamMetricStrategyLevel(ctx context.Context, strategyMetricLevelID uint32) (do.StrategyMetricRule, error) {

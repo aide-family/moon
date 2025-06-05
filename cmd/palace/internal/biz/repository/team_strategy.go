@@ -34,7 +34,7 @@ type TeamStrategyMetric interface {
 type TeamStrategyMetricLevel interface {
 	Create(ctx context.Context, params bo.CreateTeamMetricStrategyLevelParams) error
 	Update(ctx context.Context, params bo.UpdateTeamMetricStrategyLevelParams) error
-	Delete(ctx context.Context, strategyMetricLevelId uint32) error
+	Delete(ctx context.Context, strategyMetricLevelIds []uint32) error
 	DeleteByStrategyIds(ctx context.Context, strategyIds ...uint32) error
 	List(ctx context.Context, params *bo.ListTeamMetricStrategyLevelsParams) (*bo.ListTeamMetricStrategyLevelsReply, error)
 	UpdateStatus(ctx context.Context, params *bo.UpdateTeamMetricStrategyLevelStatusParams) error

@@ -2365,12 +2365,14 @@ paths:
             description: DeleteTeamMetricStrategyLevel deletes a team metric strategy level
             operationId: TeamStrategyMetric_DeleteTeamMetricStrategyLevel
             parameters:
-                - name: strategyMetricLevelId
+                - name: strategyMetricLevelIds
                   in: query
                   description: Strategy metric level id
                   schema:
-                    type: integer
-                    format: uint32
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
             responses:
                 "200":
                     description: OK

@@ -55,7 +55,7 @@ func (s *TeamStrategyMetricService) SaveTeamMetricStrategyLevel(ctx context.Cont
 }
 
 func (s *TeamStrategyMetricService) DeleteTeamMetricStrategyLevel(ctx context.Context, req *palace.DeleteTeamMetricStrategyLevelRequest) (*palacecommon.EmptyReply, error) {
-	if err := s.teamStrategyMetricBiz.DeleteTeamMetricStrategyLevel(ctx, req.GetStrategyMetricLevelId()); err != nil {
+	if err := s.teamStrategyMetricBiz.DeleteTeamMetricStrategyLevels(ctx, req.GetStrategyMetricLevelIds()); err != nil {
 		return nil, err
 	}
 	return &palacecommon.EmptyReply{}, nil

@@ -76,10 +76,13 @@ func (t *teamStrategyMetricLevelRepoImpl) Create(ctx context.Context, params bo.
 }
 
 // Delete implements repository.TeamStrategyMetricLevel.
-func (t *teamStrategyMetricLevelRepoImpl) Delete(ctx context.Context, strategyMetricLevelId uint32) error {
+func (t *teamStrategyMetricLevelRepoImpl) Delete(ctx context.Context, strategyMetricLevelIds []uint32) error {
+	if len(strategyMetricLevelIds) == 0 {
+		return nil
+	}
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
-		tx.StrategyMetricRule.ID.Eq(strategyMetricLevelId),
+		tx.StrategyMetricRule.ID.In(strategyMetricLevelIds...),
 		tx.StrategyMetricRule.TeamID.Eq(teamId),
 	}
 	_, err := tx.WithContext(ctx).StrategyMetricRule.Where(wrapper...).Delete()

@@ -186,10 +186,10 @@ message SaveTeamMetricStrategyLevelRequest {
 // DeleteTeamMetricStrategyLevelRequest represents the request data for deleting a team metric strategy level
 message DeleteTeamMetricStrategyLevelRequest {
 	// Strategy metric level id
-	uint32 strategyMetricLevelId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		id: "STRATEGY_METRIC_LEVEL_ID_GREATER_THAN_0",
-		message: "must select a strategy metric level"
-		expression: "this > 0"
+	repeated uint32 strategyMetricLevelIds = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		id: "STRATEGY_METRIC_LEVEL_IDS_GREATER_THAN_0",
+		message: "must select at least one strategy metric level"
+		expression: "this.size() > 0 && this.all(x, x > 0)"
 	}];
 }
 
