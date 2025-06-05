@@ -3,6 +3,7 @@ syntax = "proto3";
 package cmd.laurel.internal.conf;
 
 import "config.proto";
+import "google/protobuf/duration.proto";
 
 option go_package = "github.com/aide-family/moon/cmd/laurel/internal/conf;conf";
 
@@ -18,6 +19,7 @@ message Bootstrap {
   config.I18N i18n = 9;
   repeated string taskScripts = 10;
   config.ConfigSource configSource = 11;
+  repeated ScrapeConfig scrapeConfigs = 12;
 }
 
 message Auth {
@@ -59,4 +61,36 @@ message MetricVec {
 	double nativeHistogramMaxZeroThreshold = 16;
 	int64 nativeHistogramMaxExemplars = 17;
 	int64 nativeHistogramExemplarTTL = 18;
+}
+
+message ScrapeConfig {
+  string jobName = 1;
+  repeated ScrapeTarget scrapeTargets = 2;
+  map<string, string> labels = 3;
+  google.protobuf.Duration scrapeInterval = 4;
+}
+
+message BasicAuth {
+  string username = 1;
+  string password = 2;
+}
+
+message TLS {
+  string serverName = 1;
+  string clientCert = 2;
+  string clientKey = 3;
+  bool skipVerify = 4;
+  string ca = 5;
+}
+
+message ScrapeTarget {
+  string target = 1;
+  map<string, string> labels = 2;
+  google.protobuf.Duration timeout = 3;
+  BasicAuth basicAuth = 4;
+  TLS tls = 5;
+  map<string, string> params = 6;
+  map<string, string> headers = 7;
+  string metricsPath = 8;
+  string scheme = 9;
 }
