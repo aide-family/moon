@@ -37,7 +37,7 @@ func (c *CronScriptServer) Start(ctx context.Context) error {
 			}
 		}()
 		for scriptJob := range c.scriptService.OutScriptJobEventBus() {
-			c.AddJob(scriptJob)
+			c.AddJobForce(scriptJob)
 		}
 	}()
 	go func() {

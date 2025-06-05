@@ -11,8 +11,9 @@ type TaskScript struct {
 	FilePath string        `json:"filePath"`
 	FileType vobj.FileType `json:"fileType"`
 	Interval time.Duration `json:"interval"`
-	Deleted  bool          `json:"deleted"`
 	Content  []byte        `json:"content"`
+	Hash     string        `json:"hash"`
+	Deleted  bool          `json:"deleted"`
 }
 
 func (t *TaskScript) IsDeleted() bool {

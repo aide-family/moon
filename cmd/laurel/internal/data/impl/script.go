@@ -1,6 +1,8 @@
 package impl
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"io/fs"
 	"os"
@@ -12,6 +14,7 @@ import (
 	"github.com/aide-family/moon/cmd/laurel/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/laurel/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/laurel/internal/conf"
+	"github.com/aide-family/moon/pkg/util/hash"
 	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/slices"
 )
@@ -57,9 +60,16 @@ func (s *scriptRepoImpl) filterTaskScripts(taskScripts []*bo.TaskScript) []*bo.T
 		}
 	}
 	for _, taskScript := range taskScripts {
-		if _, ok := s.scripts.Get(taskScript.FilePath); !ok {
+		oldTaskScript, ok := s.scripts.Get(taskScript.FilePath)
+		if !ok {
 			filteredTaskScripts = append(filteredTaskScripts, taskScript)
 			s.scripts.Set(taskScript.FilePath, taskScript)
+			continue
+		}
+		if oldTaskScript.Hash != taskScript.Hash {
+			filteredTaskScripts = append(filteredTaskScripts, taskScript)
+			s.scripts.Set(taskScript.FilePath, taskScript)
+			continue
 		}
 	}
 	return filteredTaskScripts
@@ -95,50 +105,49 @@ func (s *scriptRepoImpl) getTaskScripts(files []string) []*bo.TaskScript {
 	}
 	taskScripts := make([]*bo.TaskScript, 0, len(files))
 	for _, file := range files {
+		content, err := os.ReadFile(file)
+		if err != nil {
+			continue
+		}
 		taskScript := &bo.TaskScript{
 			FilePath: file,
-			FileType: getFileType(file),
+			FileType: getFileType(file, content),
 			Interval: getInterval(file),
 		}
 		if taskScript.FileType.IsUnknown() || taskScript.Interval < 1*time.Second {
 			continue
 		}
-		content, err := os.ReadFile(file)
-		if err != nil {
-			continue
-		}
+
 		taskScript.Content = content
+		taskScript.Hash = hash.MD5(string(content))
 		taskScripts = append(taskScripts, taskScript)
 	}
 	return taskScripts
 }
 
-func getFileType(file string) vobj.FileType {
+func getFileType(file string, content []byte) vobj.FileType {
 	switch filepath.Ext(file) {
 	case ".sh":
 		return vobj.FileTypeShell
-	case ".bash":
-		return vobj.FileTypeBash
-	case ".py":
-		return vobj.FileTypePython
-	case ".py3":
-		return vobj.FileTypePython3
-	case "":
+	default:
 		// Read the first line of the file to determine if it's sh or bash
-		firstLine, err := os.ReadFile(file)
+		reader := bufio.NewReader(bytes.NewReader(content))
+		firstLine, err := reader.ReadString('\n')
 		if err != nil {
 			return vobj.FileTypeUnknown
 		}
-		if strings.HasPrefix(string(firstLine), "#!") {
-			if strings.Contains(string(firstLine), "bash") {
+		if strings.HasPrefix(firstLine, "#!") {
+			switch {
+			case strings.Contains(firstLine, "bash"):
 				return vobj.FileTypeBash
-			}
-			if strings.Contains(string(firstLine), "sh") {
+			case strings.Contains(firstLine, "sh"):
 				return vobj.FileTypeShell
+			case strings.Contains(firstLine, "python"):
+				return vobj.FileTypePython
+			case strings.Contains(firstLine, "python3"):
+				return vobj.FileTypePython3
 			}
 		}
-		return vobj.FileTypeUnknown
-	default:
 		return vobj.FileTypeUnknown
 	}
 }
