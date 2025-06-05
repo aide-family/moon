@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 
+	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc/encoding"
 
 	"github.com/aide-family/moon/cmd/laurel/internal/biz"
 	"github.com/aide-family/moon/cmd/laurel/internal/service/build"
@@ -12,15 +14,17 @@ import (
 	"github.com/aide-family/moon/pkg/util/slices"
 )
 
-func NewMetricService(metricManager *biz.MetricManager) *MetricService {
+func NewMetricService(metricManager *biz.MetricManager, logger log.Logger) *MetricService {
 	return &MetricService{
 		metricManager: metricManager,
+		helper:        log.NewHelper(log.With(logger, "module", "service.metric")),
 	}
 }
 
 type MetricService struct {
 	apiv1.UnimplementedMetricServer
 	metricManager *biz.MetricManager
+	helper        *log.Helper
 }
 
 func (s *MetricService) PushMetricData(ctx context.Context, req *apiv1.PushMetricDataRequest) (*apiv1.EmptyReply, error) {
@@ -55,4 +59,27 @@ func (s *MetricService) RegisterMetric(ctx context.Context, req *apiv1.RegisterM
 	})
 
 	return &apiv1.EmptyReply{}, eg.Wait()
+}
+
+func (s *MetricService) PushMetricEvent(ctx context.Context, req []byte) {
+	var metricEvent apicommon.MetricEvent
+	codec := encoding.GetCodec("json")
+	if err := codec.Unmarshal(req, &metricEvent); err != nil {
+		s.helper.Warnf("unmarshal metric event error: %v", err)
+		return
+	}
+	registerMetricVecs := []*apicommon.MetricVec{metricEvent.GetVec()}
+	if _, err := s.RegisterMetric(ctx, &apiv1.RegisterMetricRequest{
+		MetricVecs: registerMetricVecs,
+	}); err != nil {
+		s.helper.Warnf("register metric error: %v", err)
+		return
+	}
+	pushMetricData := []*apicommon.MetricData{metricEvent.GetData()}
+	if _, err := s.PushMetricData(ctx, &apiv1.PushMetricDataRequest{
+		Metrics: pushMetricData,
+	}); err != nil {
+		s.helper.Warnf("push metric data error: %v", err)
+		return
+	}
 }

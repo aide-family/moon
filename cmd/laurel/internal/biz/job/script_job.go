@@ -7,6 +7,7 @@ import (
 	"github.com/robfig/cron/v3"
 
 	"github.com/aide-family/moon/cmd/laurel/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/laurel/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/laurel/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/plugin/command"
 	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
@@ -15,17 +16,19 @@ import (
 
 var _ cron_server.CronJob = (*scriptJob)(nil)
 
-func NewScriptJob(script *bo.TaskScript, logger log.Logger) cron_server.CronJob {
+func NewScriptJob(script *bo.TaskScript, eventBus repository.EventBus, logger log.Logger) cron_server.CronJob {
 	return &scriptJob{
-		script: script,
-		helper: log.NewHelper(log.With(logger, "module", "job.script", "script", script.FilePath)),
+		script:   script,
+		eventBus: eventBus,
+		helper:   log.NewHelper(log.With(logger, "module", "job.script", "script", script.FilePath)),
 	}
 }
 
 type scriptJob struct {
-	script *bo.TaskScript
-	helper *log.Helper
-	id     cron.EntryID
+	script   *bo.TaskScript
+	eventBus repository.EventBus
+	helper   *log.Helper
+	id       cron.EntryID
 }
 
 // Index implements cron_server.CronJob.
@@ -76,10 +79,11 @@ func (s *scriptJob) Run() {
 		return
 	}
 	if err != nil {
-		s.helper.Errorf("script job run: %s, error: %v", s.script.FilePath, err)
+		s.helper.Warnf("script job run: %s, error: %v", s.script.FilePath, err)
 		return
 	}
 	s.helper.Info(content)
+	s.eventBus.InMetricEventBus([]byte(content))
 }
 
 func (s *scriptJob) ID() cron.EntryID {

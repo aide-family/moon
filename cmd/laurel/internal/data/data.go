@@ -24,6 +24,7 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		summaryMetrics:          safety.NewMap[string, *prometheus.SummaryVec](),
 		scriptJobEventBus:       make(chan cron_server.CronJob, 100),
 		removeScriptJobEventBus: make(chan cron_server.CronJob, 100),
+		metricEventBus:          make(chan []byte, 100),
 		helper:                  log.NewHelper(log.With(logger, "module", "data")),
 	}
 	data.cache, err = cache.NewCache(c.GetCache())
@@ -48,6 +49,7 @@ type Data struct {
 	summaryMetrics          *safety.Map[string, *prometheus.SummaryVec]
 	scriptJobEventBus       chan cron_server.CronJob
 	removeScriptJobEventBus chan cron_server.CronJob
+	metricEventBus          chan []byte
 	helper                  *log.Helper
 }
 
@@ -117,4 +119,12 @@ func (d *Data) OutRemoveScriptJobEventBus() <-chan cron_server.CronJob {
 
 func (d *Data) InRemoveScriptJobEventBus(job cron_server.CronJob) {
 	d.removeScriptJobEventBus <- job
+}
+
+func (d *Data) OutMetricEventBus() <-chan []byte {
+	return d.metricEventBus
+}
+
+func (d *Data) InMetricEventBus(event []byte) {
+	d.metricEventBus <- event
 }

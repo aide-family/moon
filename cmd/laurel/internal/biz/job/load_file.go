@@ -4,36 +4,33 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/moon/cmd/laurel/internal/biz/bo"
-	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/robfig/cron/v3"
+
+	"github.com/aide-family/moon/cmd/laurel/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/laurel/internal/biz/repository"
+	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 )
 
 type GetScriptsFunc func(ctx context.Context) ([]*bo.TaskScript, error)
-type InScriptEventBusFunc func(cron_server.CronJob)
-type RemoveScriptFunc func(cron_server.CronJob)
 
 func NewLoadFileJob(
 	getScripts GetScriptsFunc,
-	inScriptEventBus InScriptEventBusFunc,
-	removeScript RemoveScriptFunc,
+	eventBus repository.EventBus,
 	logger log.Logger,
 ) cron_server.CronJob {
 	return &LoadFileJob{
-		getScripts:       getScripts,
-		inScriptEventBus: inScriptEventBus,
-		removeScript:     removeScript,
-		helper:           log.NewHelper(log.With(logger, "module", "job.load_file")),
+		getScripts: getScripts,
+		eventBus:   eventBus,
+		helper:     log.NewHelper(log.With(logger, "module", "job.load_file")),
 	}
 }
 
 type LoadFileJob struct {
-	inScriptEventBus InScriptEventBusFunc
-	removeScript     RemoveScriptFunc
-	getScripts       GetScriptsFunc
-	helper           *log.Helper
-	id               cron.EntryID
+	getScripts GetScriptsFunc
+	eventBus   repository.EventBus
+	helper     *log.Helper
+	id         cron.EntryID
 }
 
 // ID implements cron_server.CronJob.
@@ -62,12 +59,12 @@ func (l *LoadFileJob) Run() {
 	}
 	l.helper.Infof("load %d scripts", len(scripts))
 	for _, script := range scripts {
-		job := NewScriptJob(script, l.helper.Logger())
+		job := NewScriptJob(script, l.eventBus, l.helper.Logger())
 		if script.IsDeleted() {
-			l.removeScript(job)
+			l.eventBus.InRemoveScriptJobEventBus(job)
 			continue
 		}
-		l.inScriptEventBus(job)
+		l.eventBus.InScriptJobEventBus(job)
 	}
 }
 

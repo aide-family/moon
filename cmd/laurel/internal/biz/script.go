@@ -35,7 +35,7 @@ func (s *Script) GetScripts(ctx context.Context) ([]*bo.TaskScript, error) {
 
 func (s *Script) Loads() []cron_server.CronJob {
 	return []cron_server.CronJob{
-		job.NewLoadFileJob(s.GetScripts, s.eventBusRepo.InScriptJobEventBus, s.eventBusRepo.InRemoveScriptJobEventBus, s.helper.Logger()),
+		job.NewLoadFileJob(s.GetScripts, s.eventBusRepo, s.helper.Logger()),
 	}
 }
 
@@ -45,4 +45,8 @@ func (s *Script) OutScriptJobEventBus() <-chan cron_server.CronJob {
 
 func (s *Script) OutRemoveScriptJobEventBus() <-chan cron_server.CronJob {
 	return s.eventBusRepo.OutRemoveScriptJobEventBus()
+}
+
+func (s *Script) OutMetricEventBus() <-chan []byte {
+	return s.eventBusRepo.OutMetricEventBus()
 }

@@ -68,3 +68,8 @@ message MetricVec {
 	uint32 summaryAgeBuckets = 17;
 	uint32 summaryBufCap = 18;
 }
+
+message MetricEvent {
+	MetricVec vec = 1 [(buf.validate.field).required = true];
+	MetricData data = 2 [(buf.validate.field).required = true];
+}

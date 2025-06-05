@@ -26,6 +26,10 @@ func (s *ScriptService) OutRemoveScriptJobEventBus() <-chan cron_server.CronJob 
 	return s.scriptBiz.OutRemoveScriptJobEventBus()
 }
 
+func (s *ScriptService) OutMetricEventBus() <-chan []byte {
+	return s.scriptBiz.OutMetricEventBus()
+}
+
 func (s *ScriptService) Loads() []cron_server.CronJob {
 	return s.scriptBiz.Loads()
 }
