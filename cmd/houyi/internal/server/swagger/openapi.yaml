@@ -879,8 +879,6 @@ components:
                 levelId:
                     type: integer
                     format: uint32
-                levelName:
-                    type: string
                 sampleMode:
                     type: integer
                     format: enum
@@ -1115,7 +1113,9 @@ components:
                     type: string
                     format: date-time
                 strategies:
-                    $ref: '#/components/schemas/api.houyi.common.MetricStrategyItem'
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.houyi.common.MetricStrategyItem'
         api.houyi.v1.PingStrategyRequest:
             type: object
             properties:

@@ -121,7 +121,7 @@ func (t *TeamDatasource) SyncMetricMetadata(ctx context.Context, req *bo.SyncMet
 			_ = t.cacheRepo.Unlock(ctx, key)
 		}
 	}()
-	reply, err := syncClient.MetricMetadata(ctx, &houyiv1.MetricMetadataRequest{
+	reply, err := syncClient.SyncMetricMetadata(ctx, &houyiv1.MetricMetadataRequest{
 		Item:       NewMetricDatasourceItem(datasourceMetricDo),
 		OperatorId: permission.GetUserIDByContextWithDefault(ctx, teamDo.GetCreatorID()),
 	})

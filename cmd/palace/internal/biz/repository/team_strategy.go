@@ -29,6 +29,7 @@ type TeamStrategyMetric interface {
 	GetByStrategyId(ctx context.Context, strategyId uint32) (do.StrategyMetric, error)
 	Delete(ctx context.Context, strategyMetricId uint32) error
 	DeleteByStrategyIds(ctx context.Context, strategyIds ...uint32) error
+	FindByStrategyIds(ctx context.Context, strategyIds []uint32) ([]do.StrategyMetric, error)
 }
 
 type TeamStrategyMetricLevel interface {

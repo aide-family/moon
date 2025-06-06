@@ -97,7 +97,7 @@ service Sync {
 
 message MetricStrategyRequest {
   google.protobuf.Timestamp syncTime = 1;
-  houyi.common.MetricStrategyItem strategies = 2;
+  repeated houyi.common.MetricStrategyItem strategies = 2;
 }
 message CertificateStrategyRequest {
   google.protobuf.Timestamp syncTime = 1;

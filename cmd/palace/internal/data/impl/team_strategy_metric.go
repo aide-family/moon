@@ -12,6 +12,8 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
 	"github.com/aide-family/moon/cmd/palace/internal/data/impl/build"
+	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func NewTeamStrategyMetricRepo(d *data.Data) repository.TeamStrategyMetric {
@@ -159,4 +161,33 @@ func (t *teamStrategyMetricRepoImpl) GetByStrategyId(ctx context.Context, strate
 		return nil, strategyMetricNotFound(err)
 	}
 	return strategyMetricDo, nil
+}
+
+func (t *teamStrategyMetricRepoImpl) FindByStrategyIds(ctx context.Context, strategyIds []uint32) ([]do.StrategyMetric, error) {
+	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+
+	strategyMetricMutation := tx.StrategyMetric
+	wrapper := []gen.Condition{
+		strategyMetricMutation.StrategyID.In(strategyIds...),
+		strategyMetricMutation.TeamID.Eq(teamId),
+	}
+	preloads := []field.RelationField{
+		strategyMetricMutation.Strategy.RelationField,
+		strategyMetricMutation.StrategyMetricRules.AlarmPages,
+		strategyMetricMutation.StrategyMetricRules.LabelNotices,
+		strategyMetricMutation.StrategyMetricRules.LabelNotices.Notices,
+		strategyMetricMutation.Datasource,
+		strategyMetricMutation.StrategyMetricRules.Level,
+	}
+	strategyMetricDos, err := strategyMetricMutation.WithContext(ctx).Where(wrapper...).Preload(preloads...).Find()
+	if err != nil {
+		return nil, err
+	}
+	rows := slices.MapFilter(strategyMetricDos, func(v *team.StrategyMetric) (do.StrategyMetric, bool) {
+		if validate.IsNil(v) {
+			return nil, false
+		}
+		return v, true
+	})
+	return rows, nil
 }

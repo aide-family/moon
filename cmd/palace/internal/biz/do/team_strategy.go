@@ -50,6 +50,7 @@ type StrategyMetricRule interface {
 	GetNotices() []NoticeGroup
 	GetLabelNotices() []StrategyMetricRuleLabelNotice
 	GetAlarmPages() []TeamDict
+	GetStrategyID() uint32
 }
 
 type StrategyMetricRuleLabelNotice interface {

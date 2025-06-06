@@ -64,15 +64,14 @@ message MetricStrategyItem {
   message MetricRuleItem {
     uint32 strategyId = 1;
     uint32 levelId = 2;
-    string levelName = 3;
-    SampleMode sampleMode = 4;
-    int64 count = 5;
-    Condition condition = 6;
-    repeated double values = 7;
-    repeated string receiverRoutes = 8;
-    repeated LabelNotices labelNotices = 9;
-    google.protobuf.Duration duration = 10;
-    bool enable = 11;
+    SampleMode sampleMode = 3;
+    int64 count = 4;
+    Condition condition = 5;
+    repeated double values = 6;
+    repeated string receiverRoutes = 7;
+    repeated LabelNotices labelNotices = 8;
+    google.protobuf.Duration duration = 9;
+    bool enable = 10;
   }
 
   message MetricDatasourceItem {

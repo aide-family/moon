@@ -31,6 +31,13 @@ type StrategyMetricRule struct {
 	AlarmPages       []*Dict                          `gorm:"many2many:team_strategy_metric_rule_alarm_pages" json:"alarmPages"`
 }
 
+func (r *StrategyMetricRule) GetStrategyID() uint32 {
+	if r == nil {
+		return 0
+	}
+	return r.StrategyID
+}
+
 func (r *StrategyMetricRule) GetStrategyMetricID() uint32 {
 	if r == nil {
 		return 0

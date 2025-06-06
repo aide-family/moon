@@ -13,7 +13,9 @@ type Houyi interface {
 }
 
 type HouyiSyncClient interface {
-	MetricMetadata(ctx context.Context, req *houyiv1.MetricMetadataRequest) (*houyiv1.SyncReply, error)
+	SyncMetricMetadata(ctx context.Context, req *houyiv1.MetricMetadataRequest) (*houyiv1.SyncReply, error)
+	SyncMetricDatasource(ctx context.Context, req *houyiv1.MetricDatasourceRequest) (*houyiv1.SyncReply, error)
+	SyncMetricStrategy(ctx context.Context, req *houyiv1.MetricStrategyRequest) (*houyiv1.SyncReply, error)
 }
 
 type HouyiQueryClient interface {
