@@ -23,6 +23,16 @@ type ChangedMetricDatasource ChangedRows
 
 type ChangedMetricStrategy ChangedRows
 
+type ChangedNoticeGroup ChangedRows
+
+type ChangedNoticeUser ChangedRows
+
+type ChangedNoticeSMSConfig ChangedRows
+
+type ChangedNoticeEmailConfig ChangedRows
+
+type ChangedNoticeHookConfig ChangedRows
+
 func ToSyncMetricDatasourceItem(item do.DatasourceMetric, teamDo do.Team) *common.MetricDatasourceItem {
 	if validate.IsNil(item) || validate.IsNil(teamDo) {
 		return nil

@@ -157,3 +157,28 @@ func (b *Server) syncMetricStrategy(ctx context.Context, houyi repository.HouyiS
 	b.helper.WithContext(ctx).Debugf("sync metric strategy: %v", reply)
 	return nil
 }
+
+func (b *Server) SyncNoticeGroup(ctx context.Context, changedNoticeGroup bo.ChangedNoticeGroup) error {
+
+	return nil
+}
+
+func (b *Server) SyncNoticeUser(ctx context.Context, changedNoticeUser bo.ChangedNoticeUser) error {
+
+	return nil
+}
+
+func (b *Server) SyncNoticeSMSConfig(ctx context.Context, changedNoticeSMSConfig bo.ChangedNoticeSMSConfig) error {
+
+	return nil
+}
+
+func (b *Server) SyncNoticeEmailConfig(ctx context.Context, changedNoticeEmailConfig bo.ChangedNoticeEmailConfig) error {
+
+	return nil
+}
+
+func (b *Server) SyncNoticeHookConfig(ctx context.Context, changedNoticeHookConfig bo.ChangedNoticeHookConfig) error {
+
+	return nil
+}
