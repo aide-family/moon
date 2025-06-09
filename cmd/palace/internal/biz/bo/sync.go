@@ -15,6 +15,11 @@ import (
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
+type SyncRequest struct {
+	Rows ChangedRows      `json:"rows"`
+	Type vobj.ChangedType `json:"type"`
+}
+
 // ChangedRows is a map of changed rows.
 //
 //	key: team id
@@ -26,8 +31,6 @@ type ChangedMetricDatasource ChangedRows
 type ChangedMetricStrategy ChangedRows
 
 type ChangedNoticeGroup ChangedRows
-
-type ChangedNoticeUser ChangedRows
 
 type ChangedNoticeSMSConfig ChangedRows
 
