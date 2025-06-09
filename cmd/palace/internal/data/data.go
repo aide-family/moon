@@ -28,15 +28,16 @@ var ProviderSetData = wire.NewSet(New)
 func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	var err error
 	data := &Data{
-		dataConf:   c.GetData(),
-		mainDB:     nil,
-		bizDBMap:   safety.NewMap[uint32, gorm.DB](),
-		eventDBMap: safety.NewMap[uint32, gorm.DB](),
-		cache:      nil,
-		rabbitConn: safety.NewMap[string, *bo.Server](),
-		houyiConn:  safety.NewMap[string, *bo.Server](),
-		laurelConn: safety.NewMap[string, *bo.Server](),
-		helper:     log.NewHelper(log.With(logger, "module", "data")),
+		dataConf:           c.GetData(),
+		mainDB:             nil,
+		bizDBMap:           safety.NewMap[uint32, gorm.DB](),
+		eventDBMap:         safety.NewMap[uint32, gorm.DB](),
+		cache:              nil,
+		rabbitConn:         safety.NewMap[string, *bo.Server](),
+		houyiConn:          safety.NewMap[string, *bo.Server](),
+		laurelConn:         safety.NewMap[string, *bo.Server](),
+		helper:             log.NewHelper(log.With(logger, "module", "data")),
+		dataChangeEventBus: make(chan *bo.SyncRequest, 100),
 	}
 
 	dataConf := c.GetData()
@@ -99,6 +100,7 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 				data.helper.Errorw("method", "close laurel conn", "err", err)
 			}
 		}
+		close(data.dataChangeEventBus)
 	}, nil
 }
 
@@ -110,6 +112,7 @@ type Data struct {
 	rabbitConn           *safety.Map[string, *bo.Server]
 	houyiConn            *safety.Map[string, *bo.Server]
 	laurelConn           *safety.Map[string, *bo.Server]
+	dataChangeEventBus   chan *bo.SyncRequest
 	helper               *log.Helper
 }
 
@@ -218,4 +221,8 @@ func (d *Data) queryTeam(teamID uint32) (*system.Team, error) {
 		return nil, merr.ErrorInternalServer("team query err").WithCause(err)
 	}
 	return teamDo, nil
+}
+
+func (d *Data) GetDataChangeEventBus() chan *bo.SyncRequest {
+	return d.dataChangeEventBus
 }
