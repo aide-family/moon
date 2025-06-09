@@ -8,6 +8,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/pkg/api/houyi/common"
+	rabbitconmmon "github.com/aide-family/moon/pkg/api/rabbit/common"
 	"github.com/aide-family/moon/pkg/util/kv"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -208,5 +209,72 @@ func ToSyncMetricRuleLabelNoticeItem(labelNotice do.StrategyMetricRuleLabelNotic
 		Key:            labelNotice.GetLabelKey(),
 		Value:          labelNotice.GetLabelValue(),
 		ReceiverRoutes: ToSyncReceiverRoutesItems(labelNotice.GetNotices()),
+	}
+}
+
+func ToSyncNoticeGroupItems(groupDos []do.NoticeGroup, teamId string) []*rabbitconmmon.NoticeGroup {
+	if validate.IsNil(groupDos) {
+		return nil
+	}
+	return slices.MapFilter(groupDos, func(groupDo do.NoticeGroup) (*rabbitconmmon.NoticeGroup, bool) {
+		if validate.IsNil(groupDo) {
+			return nil, false
+		}
+		item := ToSyncNoticeGroupItem(groupDo)
+		if validate.IsNil(item) {
+			return nil, false
+		}
+		return item, true
+	})
+}
+
+func ToSyncNoticeGroupItem(groupDo do.NoticeGroup) *rabbitconmmon.NoticeGroup {
+	if validate.IsNil(groupDo) {
+		return nil
+	}
+	return &rabbitconmmon.NoticeGroup{
+		Name:            groupDo.GetName(),
+		SmsConfigName:   groupDo.GetSMSConfig().GetName(),
+		EmailConfigName: groupDo.GetEmailConfig().GetName(),
+		HookConfigNames: slices.MapFilter(groupDo.GetHooks(), func(hookConfig do.NoticeHook) (string, bool) {
+			if validate.IsNil(hookConfig) {
+				return "", false
+			}
+			return hookConfig.GetName(), true
+		}),
+		SmsUserNames: slices.MapFilter(groupDo.GetNoticeMembers(), func(smsUser do.NoticeMember) (string, bool) {
+			if validate.IsNil(smsUser) {
+				return "", false
+			}
+			if !smsUser.GetNoticeType().IsContainsSMS() {
+				return "", false
+			}
+			member := smsUser.GetMember()
+			if validate.IsNil(member) || !member.GetStatus().IsNormal() || member.GetDeletedAt() > 0 {
+				return "", false
+			}
+			user := member.GetUser()
+			if validate.IsNil(user) || user.GetDeletedAt() > 0 || !user.GetStatus().IsNormal() {
+				return "", false
+			}
+			return user.GetPhone(), true
+		}),
+		EmailUserNames: slices.MapFilter(groupDo.GetNoticeMembers(), func(emailUser do.NoticeMember) (string, bool) {
+			if validate.IsNil(emailUser) {
+				return "", false
+			}
+			if !emailUser.GetNoticeType().IsContainsEmail() {
+				return "", false
+			}
+			member := emailUser.GetMember()
+			if validate.IsNil(member) || !member.GetStatus().IsNormal() || member.GetDeletedAt() > 0 {
+				return "", false
+			}
+			user := member.GetUser()
+			if validate.IsNil(user) || user.GetDeletedAt() > 0 || !user.GetStatus().IsNormal() {
+				return "", false
+			}
+			return user.GetEmail(), true
+		}),
 	}
 }

@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
@@ -12,6 +13,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/api/houyi/common"
 	houyiv1 "github.com/aide-family/moon/pkg/api/houyi/v1"
+	rabbitv1 "github.com/aide-family/moon/pkg/api/rabbit/v1"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -20,16 +22,20 @@ import (
 func NewServerBiz(
 	serverRepo repository.Server,
 	houyiRepo repository.Houyi,
+	rabbitRepo repository.Rabbit,
 	metricDatasourceRepo repository.TeamDatasourceMetric,
 	metricStrategyRepo repository.TeamStrategyMetric,
+	noticeGroupRepo repository.TeamNotice,
 	teamRepo repository.Team,
 	logger log.Logger,
 ) *Server {
 	return &Server{
 		serverRepo:           serverRepo,
 		houyiRepo:            houyiRepo,
+		rabbitRepo:           rabbitRepo,
 		metricDatasourceRepo: metricDatasourceRepo,
 		metricStrategyRepo:   metricStrategyRepo,
+		noticeGroupRepo:      noticeGroupRepo,
 		teamRepo:             teamRepo,
 		helper:               log.NewHelper(log.With(logger, "module", "biz.server")),
 	}
@@ -38,8 +44,10 @@ func NewServerBiz(
 type Server struct {
 	serverRepo           repository.Server
 	houyiRepo            repository.Houyi
+	rabbitRepo           repository.Rabbit
 	metricDatasourceRepo repository.TeamDatasourceMetric
 	metricStrategyRepo   repository.TeamStrategyMetric
+	noticeGroupRepo      repository.TeamNotice
 	teamRepo             repository.Team
 	helper               *log.Helper
 }
@@ -159,7 +167,42 @@ func (b *Server) syncMetricStrategy(ctx context.Context, houyi repository.HouyiS
 }
 
 func (b *Server) SyncNoticeGroup(ctx context.Context, changedNoticeGroup bo.ChangedNoticeGroup) error {
+	rabbit, ok := b.rabbitRepo.Sync()
+	if !ok {
+		return merr.ErrorInternalServer("failed to get rabbit client")
+	}
+	eg := new(errgroup.Group)
+	for teamId, rowIds := range changedNoticeGroup {
+		if len(rowIds) == 0 || teamId <= 0 {
+			continue
+		}
+		teamIdTmp := teamId
+		rowIdsTmp := rowIds
+		eg.Go(func() error {
+			return b.syncNoticeGroup(ctx, rabbit, teamIdTmp, rowIdsTmp)
+		})
+	}
+	return eg.Wait()
+}
 
+func (b *Server) syncNoticeGroup(ctx context.Context, rabbit repository.RabbitSyncClient, teamId uint32, rowIds []uint32) error {
+	teamIdStr := strconv.FormatUint(uint64(teamId), 10)
+	ctx = permission.WithTeamIDContext(ctx, teamId)
+	groupDos, err := b.noticeGroupRepo.FindByIds(ctx, rowIds)
+	if err != nil {
+		return merr.ErrorInternalServer("failed to find notice group: %v", err)
+	}
+	if len(groupDos) == 0 {
+		return nil
+	}
+	reply, err := rabbit.NoticeGroup(ctx, &rabbitv1.SyncNoticeGroupRequest{
+		NoticeGroups: bo.ToSyncNoticeGroupItems(groupDos, teamIdStr),
+		TeamId:       teamIdStr,
+	})
+	if err != nil {
+		return merr.ErrorInternalServer("failed to sync notice group: %v", err)
+	}
+	b.helper.WithContext(ctx).Debugf("sync notice group: %v", reply)
 	return nil
 }
 

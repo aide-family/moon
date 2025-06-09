@@ -62,7 +62,7 @@ func (s *sendMessageRepoImpl) localSendEmail(ctx context.Context, params *bo.Sen
 	return nil
 }
 
-func (s *sendMessageRepoImpl) rabbitSendEmail(ctx context.Context, client repository.SendClient, params *bo.SendEmailParams) error {
+func (s *sendMessageRepoImpl) rabbitSendEmail(ctx context.Context, client repository.RabbitSendClient, params *bo.SendEmailParams) error {
 	reply, err := client.Email(ctx, &rabbitv1.SendEmailRequest{
 		Emails:      []string{params.Email},
 		Body:        params.Body,

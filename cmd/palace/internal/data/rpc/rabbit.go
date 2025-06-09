@@ -29,7 +29,7 @@ type rabbitServer struct {
 }
 
 // Send implements repository.Rabbit.
-func (r *rabbitServer) Send() (repository.SendClient, bool) {
+func (r *rabbitServer) Send() (repository.RabbitSendClient, bool) {
 	server, ok := r.FirstServerConn(vobj.ServerTypeRabbit)
 	if !ok {
 		return nil, false
@@ -38,7 +38,7 @@ func (r *rabbitServer) Send() (repository.SendClient, bool) {
 }
 
 // Sync implements repository.Rabbit.
-func (r *rabbitServer) Sync() (repository.SyncClient, bool) {
+func (r *rabbitServer) Sync() (repository.RabbitSyncClient, bool) {
 	server, ok := r.FirstServerConn(vobj.ServerTypeRabbit)
 	if !ok {
 		return nil, false
@@ -47,7 +47,7 @@ func (r *rabbitServer) Sync() (repository.SyncClient, bool) {
 }
 
 // Alert implements repository.Rabbit.
-func (r *rabbitServer) Alert() (repository.AlertClient, bool) {
+func (r *rabbitServer) Alert() (repository.RabbitAlertClient, bool) {
 	server, ok := r.FirstServerConn(vobj.ServerTypeRabbit)
 	if !ok {
 		return nil, false
