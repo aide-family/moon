@@ -12,4 +12,5 @@ type TeamEmailConfig interface {
 	List(ctx context.Context, req *bo.ListEmailConfigRequest) (*bo.ListEmailConfigListReply, error)
 	Create(ctx context.Context, config bo.TeamEmailConfig) error
 	Update(ctx context.Context, config bo.TeamEmailConfig) error
+	FindByIds(ctx context.Context, ids []uint32) ([]do.TeamEmailConfig, error)
 }

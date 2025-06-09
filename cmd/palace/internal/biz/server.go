@@ -27,6 +27,9 @@ func NewServerBiz(
 	metricStrategyRepo repository.TeamStrategyMetric,
 	noticeGroupRepo repository.TeamNotice,
 	teamRepo repository.Team,
+	teamSMSConfigRepo repository.TeamSMSConfig,
+	teamEmailConfigRepo repository.TeamEmailConfig,
+	teamHookConfigRepo repository.TeamHook,
 	logger log.Logger,
 ) *Server {
 	return &Server{
@@ -37,6 +40,9 @@ func NewServerBiz(
 		metricStrategyRepo:   metricStrategyRepo,
 		noticeGroupRepo:      noticeGroupRepo,
 		teamRepo:             teamRepo,
+		teamSMSConfigRepo:    teamSMSConfigRepo,
+		teamEmailConfigRepo:  teamEmailConfigRepo,
+		teamHookConfigRepo:   teamHookConfigRepo,
 		helper:               log.NewHelper(log.With(logger, "module", "biz.server")),
 	}
 }
@@ -49,6 +55,9 @@ type Server struct {
 	metricStrategyRepo   repository.TeamStrategyMetric
 	noticeGroupRepo      repository.TeamNotice
 	teamRepo             repository.Team
+	teamSMSConfigRepo    repository.TeamSMSConfig
+	teamEmailConfigRepo  repository.TeamEmailConfig
+	teamHookConfigRepo   repository.TeamHook
 	helper               *log.Helper
 }
 
@@ -207,16 +216,121 @@ func (b *Server) syncNoticeGroup(ctx context.Context, rabbit repository.RabbitSy
 }
 
 func (b *Server) SyncNoticeSMSConfig(ctx context.Context, changedNoticeSMSConfig bo.ChangedNoticeSMSConfig) error {
+	rabbit, ok := b.rabbitRepo.Sync()
+	if !ok {
+		return merr.ErrorInternalServer("failed to get rabbit client")
+	}
+	eg := new(errgroup.Group)
+	for teamId, rowIds := range changedNoticeSMSConfig {
+		if len(rowIds) == 0 || teamId <= 0 {
+			continue
+		}
+		teamIdTmp := teamId
+		rowIdsTmp := rowIds
+		eg.Go(func() error {
+			return b.syncNoticeSMSConfig(ctx, rabbit, teamIdTmp, rowIdsTmp)
+		})
+	}
+	return eg.Wait()
+}
 
+func (b *Server) syncNoticeSMSConfig(ctx context.Context, rabbit repository.RabbitSyncClient, teamId uint32, rowIds []uint32) error {
+	teamIdStr := strconv.FormatUint(uint64(teamId), 10)
+	ctx = permission.WithTeamIDContext(ctx, teamId)
+	smsDos, err := b.teamSMSConfigRepo.FindByIds(ctx, rowIds)
+	if err != nil {
+		return merr.ErrorInternalServer("failed to find notice sms config: %v", err)
+	}
+	if len(smsDos) == 0 {
+		return nil
+	}
+	reply, err := rabbit.Sms(ctx, &rabbitv1.SyncSmsRequest{
+		Smss:   bo.ToSyncSMSConfigItems(smsDos, teamIdStr),
+		TeamId: teamIdStr,
+	})
+	if err != nil {
+		return merr.ErrorInternalServer("failed to sync notice sms config: %v", err)
+	}
+	b.helper.WithContext(ctx).Debugf("sync notice sms config: %v", reply)
 	return nil
 }
 
 func (b *Server) SyncNoticeEmailConfig(ctx context.Context, changedNoticeEmailConfig bo.ChangedNoticeEmailConfig) error {
+	rabbit, ok := b.rabbitRepo.Sync()
+	if !ok {
+		return merr.ErrorInternalServer("failed to get rabbit client")
+	}
+	eg := new(errgroup.Group)
+	for teamId, rowIds := range changedNoticeEmailConfig {
+		if len(rowIds) == 0 || teamId <= 0 {
+			continue
+		}
+		teamIdTmp := teamId
+		rowIdsTmp := rowIds
+		eg.Go(func() error {
+			return b.syncNoticeEmailConfig(ctx, rabbit, teamIdTmp, rowIdsTmp)
+		})
+	}
+	return eg.Wait()
+}
 
+func (b *Server) syncNoticeEmailConfig(ctx context.Context, rabbit repository.RabbitSyncClient, teamId uint32, rowIds []uint32) error {
+	teamIdStr := strconv.FormatUint(uint64(teamId), 10)
+	ctx = permission.WithTeamIDContext(ctx, teamId)
+	emailDos, err := b.teamEmailConfigRepo.FindByIds(ctx, rowIds)
+	if err != nil {
+		return merr.ErrorInternalServer("failed to find notice email config: %v", err)
+	}
+	if len(emailDos) == 0 {
+		return nil
+	}
+	reply, err := rabbit.Email(ctx, &rabbitv1.SyncEmailRequest{
+		Emails: bo.ToSyncEmailConfigItems(emailDos, teamIdStr),
+		TeamId: teamIdStr,
+	})
+	if err != nil {
+		return merr.ErrorInternalServer("failed to sync notice email config: %v", err)
+	}
+	b.helper.WithContext(ctx).Debugf("sync notice email config: %v", reply)
 	return nil
 }
 
 func (b *Server) SyncNoticeHookConfig(ctx context.Context, changedNoticeHookConfig bo.ChangedNoticeHookConfig) error {
+	rabbit, ok := b.rabbitRepo.Sync()
+	if !ok {
+		return merr.ErrorInternalServer("failed to get rabbit client")
+	}
+	eg := new(errgroup.Group)
+	for teamId, rowIds := range changedNoticeHookConfig {
+		if len(rowIds) == 0 || teamId <= 0 {
+			continue
+		}
+		teamIdTmp := teamId
+		rowIdsTmp := rowIds
+		eg.Go(func() error {
+			return b.syncNoticeHookConfig(ctx, rabbit, teamIdTmp, rowIdsTmp)
+		})
+	}
+	return eg.Wait()
+}
 
+func (b *Server) syncNoticeHookConfig(ctx context.Context, rabbit repository.RabbitSyncClient, teamId uint32, rowIds []uint32) error {
+	teamIdStr := strconv.FormatUint(uint64(teamId), 10)
+	ctx = permission.WithTeamIDContext(ctx, teamId)
+	hookDos, err := b.teamHookConfigRepo.Find(ctx, rowIds)
+	if err != nil {
+		return merr.ErrorInternalServer("failed to find notice hook config: %v", err)
+	}
+	if len(hookDos) == 0 {
+		return nil
+	}
+	reply, err := rabbit.Hook(ctx, &rabbitv1.SyncHookRequest{
+		Hooks:  bo.ToSyncHookConfigItems(hookDos, teamIdStr),
+		TeamId: teamIdStr,
+	})
+	if err != nil {
+		return merr.ErrorInternalServer("failed to sync notice hook config: %v", err)
+	}
+	b.helper.WithContext(ctx).Debugf("sync notice hook config: %v", reply)
 	return nil
 }

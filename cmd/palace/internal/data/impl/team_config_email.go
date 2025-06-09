@@ -99,3 +99,17 @@ func (t *teamConfigEmailRepoImpl) Update(ctx context.Context, config bo.TeamEmai
 	_, err := bizEmailConfigQuery.WithContext(ctx).Where(wrappers...).UpdateColumnSimple(mutations...)
 	return err
 }
+
+func (t *teamConfigEmailRepoImpl) FindByIds(ctx context.Context, ids []uint32) ([]do.TeamEmailConfig, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
+	bizEmailConfigQuery := bizQuery.EmailConfig
+	wrapper := bizEmailConfigQuery.WithContext(ctx).Where(bizEmailConfigQuery.TeamID.Eq(teamID), bizEmailConfigQuery.ID.In(ids...))
+	emailConfigs, err := wrapper.Preload(field.Associations).Find()
+	if err != nil {
+		return nil, err
+	}
+	return slices.Map(emailConfigs, func(emailConfig *team.EmailConfig) do.TeamEmailConfig { return emailConfig }), nil
+}

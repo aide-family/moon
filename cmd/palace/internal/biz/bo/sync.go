@@ -7,6 +7,7 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/api/houyi/common"
 	rabbitconmmon "github.com/aide-family/moon/pkg/api/rabbit/common"
 	"github.com/aide-family/moon/pkg/util/kv"
@@ -277,4 +278,129 @@ func ToSyncNoticeGroupItem(groupDo do.NoticeGroup) *rabbitconmmon.NoticeGroup {
 			return user.GetEmail(), true
 		}),
 	}
+}
+
+func ToSyncSMSConfigItems(smsDos []do.TeamSMSConfig, teamId string) []*rabbitconmmon.SMSConfig {
+	if validate.IsNil(smsDos) {
+		return nil
+	}
+	return slices.MapFilter(smsDos, func(smsDo do.TeamSMSConfig) (*rabbitconmmon.SMSConfig, bool) {
+		if validate.IsNil(smsDo) {
+			return nil, false
+		}
+		item := ToSyncSMSConfigItem(smsDo)
+		if validate.IsNil(item) {
+			return nil, false
+		}
+		return item, true
+	})
+}
+
+func ToSyncSMSConfigItem(smsDo do.TeamSMSConfig) *rabbitconmmon.SMSConfig {
+	if validate.IsNil(smsDo) {
+		return nil
+	}
+	item := &rabbitconmmon.SMSConfig{
+		Type:   rabbitconmmon.SMSConfig_Type(smsDo.GetProviderType().GetValue()),
+		Aliyun: nil,
+		Enable: smsDo.GetStatus().IsEnable() && smsDo.GetDeletedAt() == 0,
+	}
+	switch smsDo.GetProviderType() {
+	case vobj.SMSProviderTypeAliyun:
+		smsConfig := smsDo.GetSMSConfig()
+		if validate.IsNil(smsConfig) {
+			return nil
+		}
+		item.Aliyun = &rabbitconmmon.AliyunSMSConfig{
+			AccessKeyId:     smsConfig.AccessKeyID,
+			AccessKeySecret: smsConfig.AccessKeySecret,
+			SignName:        smsConfig.SignName,
+			Endpoint:        smsConfig.Endpoint,
+			Name:            smsDo.GetName(),
+		}
+	default:
+		return nil
+	}
+	return item
+}
+
+func ToSyncEmailConfigItems(emailDos []do.TeamEmailConfig, teamId string) []*rabbitconmmon.EmailConfig {
+	if validate.IsNil(emailDos) {
+		return nil
+	}
+	return slices.MapFilter(emailDos, func(emailDo do.TeamEmailConfig) (*rabbitconmmon.EmailConfig, bool) {
+		if validate.IsNil(emailDo) {
+			return nil, false
+		}
+		item := ToSyncEmailConfigItem(emailDo)
+		if validate.IsNil(item) {
+			return nil, false
+		}
+		return item, true
+	})
+}
+
+func ToSyncEmailConfigItem(emailDo do.TeamEmailConfig) *rabbitconmmon.EmailConfig {
+	if validate.IsNil(emailDo) {
+		return nil
+	}
+	emailConfig := emailDo.GetEmailConfig()
+	if validate.IsNil(emailConfig) {
+		return nil
+	}
+	return &rabbitconmmon.EmailConfig{
+		Enable: emailDo.GetStatus().IsEnable() && emailDo.GetDeletedAt() == 0,
+		User:   emailConfig.User,
+		Pass:   emailConfig.Pass,
+		Host:   emailConfig.Host,
+		Port:   emailConfig.Port,
+		Name:   emailDo.GetName(),
+	}
+}
+
+func ToSyncHookConfigItems(hookDos []do.NoticeHook, teamId string) []*rabbitconmmon.HookConfig {
+	if validate.IsNil(hookDos) {
+		return nil
+	}
+	return slices.MapFilter(hookDos, func(hookDo do.NoticeHook) (*rabbitconmmon.HookConfig, bool) {
+		if validate.IsNil(hookDo) {
+			return nil, false
+		}
+		item := ToSyncHookConfigItem(hookDo)
+		if validate.IsNil(item) {
+			return nil, false
+		}
+		return item, true
+	})
+}
+
+func ToSyncHookConfigItem(hookDo do.NoticeHook) *rabbitconmmon.HookConfig {
+	if validate.IsNil(hookDo) {
+		return nil
+	}
+	return &rabbitconmmon.HookConfig{
+		Name:     hookDo.GetName(),
+		App:      rabbitconmmon.HookAPP(hookDo.GetApp().GetValue()),
+		Url:      hookDo.GetURL(),
+		Secret:   hookDo.GetSecret(),
+		Token:    hookDo.GetSecret(),
+		Username: "",
+		Password: "",
+		Headers:  ToSyncHookHeadersItem(hookDo.GetHeaders()),
+		Enable:   hookDo.GetStatus().IsEnable() && hookDo.GetDeletedAt() == 0,
+	}
+}
+
+func ToSyncHookHeadersItem(headers []*kv.KV) map[string]string {
+	if validate.IsNil(headers) {
+		return nil
+	}
+	headersMap := make(map[string]string)
+	for _, header := range headers {
+		if validate.IsNil(header) {
+			continue
+		}
+		headersMap[header.Key] = header.Value
+	}
+	return headersMap
 }

@@ -104,3 +104,17 @@ func (t *teamConfigSMSRepoImpl) Get(ctx context.Context, id uint32) (do.TeamSMSC
 	}
 	return smsConfig, nil
 }
+
+func (t *teamConfigSMSRepoImpl) FindByIds(ctx context.Context, ids []uint32) ([]do.TeamSMSConfig, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
+	bizSMSConfigQuery := bizQuery.SmsConfig
+	wrapper := bizSMSConfigQuery.WithContext(ctx).Where(bizSMSConfigQuery.TeamID.Eq(teamID), bizSMSConfigQuery.ID.In(ids...))
+	smsConfigs, err := wrapper.Preload(field.Associations).Find()
+	if err != nil {
+		return nil, err
+	}
+	return slices.Map(smsConfigs, func(smsConfig *team.SmsConfig) do.TeamSMSConfig { return smsConfig }), nil
+}

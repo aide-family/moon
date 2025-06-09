@@ -12,4 +12,5 @@ type TeamSMSConfig interface {
 	List(ctx context.Context, req *bo.ListSMSConfigRequest) (*bo.ListSMSConfigListReply, error)
 	Create(ctx context.Context, config bo.TeamSMSConfig) error
 	Update(ctx context.Context, config bo.TeamSMSConfig) error
+	FindByIds(ctx context.Context, ids []uint32) ([]do.TeamSMSConfig, error)
 }
