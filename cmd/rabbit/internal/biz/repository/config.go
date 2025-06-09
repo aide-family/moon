@@ -23,9 +23,5 @@ type Config interface {
 	GetNoticeGroupConfigs(ctx context.Context, teamID string, names ...string) ([]bo.NoticeGroup, error)
 	SetNoticeGroupConfig(ctx context.Context, teamID string, configs ...bo.NoticeGroup) error
 
-	GetNoticeUserConfig(ctx context.Context, teamID string, name string) (bo.NoticeUser, bool)
-	GetNoticeUserConfigs(ctx context.Context, teamID string, names ...string) ([]bo.NoticeUser, error)
-	SetNoticeUserConfig(ctx context.Context, teamID string, configs ...bo.NoticeUser) error
-
 	RemoveConfig(ctx context.Context, params *bo.RemoveConfigParams) error
 }

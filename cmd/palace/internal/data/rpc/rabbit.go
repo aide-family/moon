@@ -120,18 +120,6 @@ func (s *syncClient) NoticeGroup(ctx context.Context, in *rabbitv1.SyncNoticeGro
 	}
 }
 
-// NoticeUser implements repository.SyncClient.
-func (s *syncClient) NoticeUser(ctx context.Context, in *rabbitv1.SyncNoticeUserRequest) (*rabbitcommon.EmptyReply, error) {
-	switch s.server.Config.Server.GetNetwork() {
-	case config.Network_GRPC:
-		return rabbitv1.NewSyncClient(s.server.Conn).NoticeUser(ctx, in)
-	case config.Network_HTTP:
-		return rabbitv1.NewSyncHTTPClient(s.server.Client).NoticeUser(ctx, in)
-	default:
-		return nil, merr.ErrorInternalServer("network is not supported")
-	}
-}
-
 // Remove implements repository.SyncClient.
 func (s *syncClient) Remove(ctx context.Context, in *rabbitv1.RemoveRequest) (*rabbitcommon.EmptyReply, error) {
 	switch s.server.Config.Server.GetNetwork() {

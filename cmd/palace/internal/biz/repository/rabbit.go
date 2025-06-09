@@ -25,7 +25,6 @@ type RabbitSyncClient interface {
 	Email(ctx context.Context, in *rabbitv1.SyncEmailRequest) (*rabbitcommon.EmptyReply, error)
 	Hook(ctx context.Context, in *rabbitv1.SyncHookRequest) (*rabbitcommon.EmptyReply, error)
 	NoticeGroup(ctx context.Context, in *rabbitv1.SyncNoticeGroupRequest) (*rabbitcommon.EmptyReply, error)
-	NoticeUser(ctx context.Context, in *rabbitv1.SyncNoticeUserRequest) (*rabbitcommon.EmptyReply, error)
 	Remove(ctx context.Context, in *rabbitv1.RemoveRequest) (*rabbitcommon.EmptyReply, error)
 }
 

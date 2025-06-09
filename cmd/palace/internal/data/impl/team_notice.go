@@ -268,7 +268,7 @@ func (t *teamNoticeRepoImpl) FindByIds(ctx context.Context, groupIds []uint32) (
 	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizQuery.NoticeGroup
 	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId), mutation.ID.In(groupIds...))
-	rows, err := wrapper.Find()
+	rows, err := wrapper.Preload(field.Associations).Find()
 	if err != nil {
 		return nil, err
 	}

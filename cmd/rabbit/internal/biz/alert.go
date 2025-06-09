@@ -9,7 +9,6 @@ import (
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
 	"github.com/aide-family/moon/pkg/merr"
-	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/template"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
@@ -55,21 +54,7 @@ func (a *Alert) SendAlert(ctx context.Context, alert *bo.AlertsItem) error {
 }
 
 func (a *Alert) sendEmail(ctx context.Context, noticeGroupConfig bo.NoticeGroup, alert *bo.AlertsItem) {
-	emailNames := noticeGroupConfig.GetEmailUserNames()
-	if len(emailNames) == 0 {
-		return
-	}
-	userConfigs, err := a.configRepo.GetNoticeUserConfigs(ctx, alert.GetTeamID(), emailNames...)
-	if err != nil {
-		a.helper.WithContext(ctx).Warnw("method", "GetNoticeUserConfigs", "err", err)
-		return
-	}
-	emails := slices.MapFilter(userConfigs, func(userConfig bo.NoticeUser) (string, bool) {
-		if email := userConfig.GetEmail(); validate.TextIsNotNull(email) {
-			return email, true
-		}
-		return "", false
-	})
+	emails := noticeGroupConfig.GetEmailUserNames()
 	if len(emails) == 0 {
 		return
 	}
@@ -101,21 +86,7 @@ func (a *Alert) sendEmail(ctx context.Context, noticeGroupConfig bo.NoticeGroup,
 }
 
 func (a *Alert) sendSms(ctx context.Context, noticeGroupConfig bo.NoticeGroup, alert *bo.AlertsItem) {
-	smsNames := noticeGroupConfig.GetSmsUserNames()
-	if len(smsNames) == 0 {
-		return
-	}
-	userConfigs, err := a.configRepo.GetNoticeUserConfigs(ctx, alert.GetTeamID(), smsNames...)
-	if err != nil {
-		a.helper.WithContext(ctx).Warnw("method", "GetNoticeUserConfigs", "err", err)
-		return
-	}
-	phoneNumbers := slices.MapFilter(userConfigs, func(userConfig bo.NoticeUser) (string, bool) {
-		if phone := userConfig.GetPhone(); validate.TextIsNotNull(phone) {
-			return phone, true
-		}
-		return "", false
-	})
+	phoneNumbers := noticeGroupConfig.GetSmsUserNames()
 	if len(phoneNumbers) == 0 {
 		return
 	}

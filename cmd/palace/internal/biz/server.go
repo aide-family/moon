@@ -206,11 +206,6 @@ func (b *Server) syncNoticeGroup(ctx context.Context, rabbit repository.RabbitSy
 	return nil
 }
 
-func (b *Server) SyncNoticeUser(ctx context.Context, changedNoticeUser bo.ChangedNoticeUser) error {
-
-	return nil
-}
-
 func (b *Server) SyncNoticeSMSConfig(ctx context.Context, changedNoticeSMSConfig bo.ChangedNoticeSMSConfig) error {
 
 	return nil

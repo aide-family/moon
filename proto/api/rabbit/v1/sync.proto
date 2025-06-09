@@ -43,13 +43,6 @@ service Sync {
     };
   }
 
-  rpc NoticeUser (SyncNoticeUserRequest) returns (rabbit.common.EmptyReply) {
-    option (google.api.http) = {
-      post: "/v1/sync/notice-user"
-      body: "*"
-    };
-  }
-
   rpc Remove(RemoveRequest) returns (rabbit.common.EmptyReply) {
     option (google.api.http) = {
       post: "/v1/sync/remove"
@@ -75,11 +68,6 @@ message SyncHookRequest {
 
 message SyncNoticeGroupRequest {
   repeated rabbit.common.NoticeGroup noticeGroups = 1;
-  string teamId = 2 [(buf.validate.field).required = true];
-}
-
-message SyncNoticeUserRequest {
-  repeated rabbit.common.NoticeUser noticeUsers = 1;
   string teamId = 2 [(buf.validate.field).required = true];
 }
 

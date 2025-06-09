@@ -94,24 +94,6 @@ func (c *Config) SetNoticeGroupConfig(ctx context.Context, params *bo.SetNoticeG
 	return c.configRepo.SetNoticeGroupConfig(ctx, params.TeamID, params.Configs...)
 }
 
-func (c *Config) GetNoticeUserConfig(ctx context.Context, params *bo.GetNoticeUserConfigParams) bo.NoticeUser {
-	if validate.IsNil(params.Name) || *params.Name == "" {
-		return params.DefaultNoticeUser
-	}
-	noticeUserConfig, ok := c.configRepo.GetNoticeUserConfig(ctx, params.TeamID, *params.Name)
-	if !ok {
-		return params.DefaultNoticeUser
-	}
-	return noticeUserConfig
-}
-
-func (c *Config) SetNoticeUserConfig(ctx context.Context, params *bo.SetNoticeUserConfigParams) error {
-	if len(params.Configs) == 0 {
-		return nil
-	}
-	return c.configRepo.SetNoticeUserConfig(ctx, params.TeamID, params.Configs...)
-}
-
 func (c *Config) RemoveConfig(ctx context.Context, params *bo.RemoveConfigParams) error {
 	return c.configRepo.RemoveConfig(ctx, params)
 }

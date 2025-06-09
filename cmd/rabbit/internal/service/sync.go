@@ -89,20 +89,6 @@ func (s *SyncService) NoticeGroup(ctx context.Context, req *apiv1.SyncNoticeGrou
 	return &common.EmptyReply{}, nil
 }
 
-func (s *SyncService) NoticeUser(ctx context.Context, req *apiv1.SyncNoticeUserRequest) (*common.EmptyReply, error) {
-	noticeUsers := slices.Map(req.GetNoticeUsers(), func(noticeUserItem *common.NoticeUser) bo.NoticeUser {
-		return noticeUserItem
-	})
-	params := &bo.SetNoticeUserConfigParams{
-		TeamID:  req.GetTeamId(),
-		Configs: noticeUsers,
-	}
-	if err := s.configBiz.SetNoticeUserConfig(ctx, params); err != nil {
-		return nil, err
-	}
-	return &common.EmptyReply{}, nil
-}
-
 func (s *SyncService) Remove(ctx context.Context, req *apiv1.RemoveRequest) (*common.EmptyReply, error) {
 	params := &bo.RemoveConfigParams{
 		TeamID: req.GetTeamId(),
