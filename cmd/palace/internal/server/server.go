@@ -20,6 +20,7 @@ var ProviderSetServer = wire.NewSet(
 	NewHTTPServer,
 	NewPortalHTTPServer,
 	NewTickerServer,
+	NewEvent,
 	RegisterService,
 )
 
@@ -30,6 +31,7 @@ func RegisterService(
 	httpSrv *http.Server,
 	portalHttpSrv *PortalHTTPServer,
 	tickerSrv *TickerServer,
+	eventSrv *Event,
 	healthService *service.HealthService,
 	authService *service.AuthService,
 	serverService *service.ServerService,
@@ -79,5 +81,5 @@ func RegisterService(
 	portalapi.RegisterHomeHTTPServer(portalHttpSrv.Server, portalHomeService)
 	portalapi.RegisterPricingHTTPServer(portalHttpSrv.Server, portalPricingService)
 
-	return server.Servers{rpcSrv, httpSrv, portalHttpSrv, tickerSrv}
+	return server.Servers{rpcSrv, httpSrv, portalHttpSrv, tickerSrv, eventSrv}
 }
