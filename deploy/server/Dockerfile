@@ -1,4 +1,4 @@
-FROM ghcr.io/moon-family/moon:builder AS builder
+FROM ghcr.io/aide-family/moon:builder AS builder
 
 ARG APP_NAME=""
 
@@ -9,7 +9,7 @@ COPY ../../ .
 RUN make all
 RUN make build app=${APP_NAME}
 
-FROM ghcr.io/moon-family/moon:deploy
+FROM ghcr.io/aide-family/moon:deploy
 
 ARG APP_NAME=""
 

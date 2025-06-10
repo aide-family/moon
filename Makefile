@@ -240,16 +240,16 @@ migrate-table:
 docker-build:
 	@if [ -z "$(APP_NAME)" ]; then echo "app name is required"; echo "usage: make docker-build app=<app_name>"; exit 1; fi
 	@echo "Building moon app=$(APP_NAME)"
-	docker build -t ghcr.io/moon-family/$(APP_NAME):$(VERSION) \
+	docker build -t ghcr.io/aide-family/$(APP_NAME):$(VERSION) \
       --build-arg APP_NAME=$(APP_NAME) \
       -f deploy/server/Dockerfile .
 
 .PHONY: builder-image
 builder-image:
 	@echo "Building moon builder image"
-	docker build -f deploy/base/DockerfileBuilder -t ghcr.io/moon-family/moon:builder .
+	docker build -f deploy/base/DockerfileBuilder -t ghcr.io/aide-family/moon:builder .
 
 .PHONY: deploy-image
 deploy-image:
 	@echo "Building moon deploy image"
-	docker build -f deploy/base/DockerfileDeploy -t ghcr.io/moon-family/moon:deploy .
+	docker build -f deploy/base/DockerfileDeploy -t ghcr.io/aide-family/moon:deploy .
