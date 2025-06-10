@@ -56,9 +56,9 @@ all:
 	make conf
 	make stringer-$(APP_NAME)
 	make conf-$(APP_NAME)
-	go mod tidy
 	make wire-$(APP_NAME)
 	make gen-$(APP_NAME)
+	go mod tidy
 
 .PHONY: api
 # generate api proto
