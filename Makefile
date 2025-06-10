@@ -247,7 +247,7 @@ docker-build:
 .PHONY: builder-image
 builder-image:
 	@echo "Building moon builder image"
-	docker build -f deploy/base/DockerfileBuilder -t ghcr.io/moon-family/moon:builder --build-arg GOPROXY=https://goproxy.cn .
+	docker build -f deploy/base/DockerfileBuilder -t ghcr.io/moon-family/moon:builder .
 
 .PHONY: deploy-image
 deploy-image:

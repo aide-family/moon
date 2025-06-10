@@ -1,0 +1,16 @@
+name: Docker Image CI FOR BUILDER
+
+on:
+  push:
+    branches: ['builder']
+  pull_request:
+    branches: []
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the Docker image
+        run: make builder-image
