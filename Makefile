@@ -56,9 +56,9 @@ all:
 	make conf
 	make stringer-$(APP_NAME)
 	make conf-$(APP_NAME)
+	go mod tidy
 	make wire-$(APP_NAME)
 	make gen-$(APP_NAME)
-	go mod tidy
 
 .PHONY: api
 # generate api proto
@@ -110,11 +110,6 @@ conf:
 i18n:
 	i18n-gen -O ./i18n/ -P ./proto/api/**.proto -L en,ja,zh -suffix Error
 
-.PHONY: gen-palace
-# generate gorm gen
-gen-palace:
-	rm -rf ./cmd/palace/internal/data/query
-	go run cmd/palace/migrate/gen/gen.go
 
 .PHONY: conf-palace
 # generate palace-config
@@ -198,6 +193,12 @@ stringer-laurel:
 	@echo "Generating laurel stringer"
 	cd ./cmd/laurel/internal/biz/vobj && go generate
 	
+.PHONY: gen-palace
+# generate gorm gen
+gen-palace:
+	rm -rf ./cmd/palace/internal/data/query
+	go run cmd/palace/migrate/gen/gen.go
+
 .PHONY: gen-rabbit
 gen-rabbit:
 	@echo "Generating rabbit db"

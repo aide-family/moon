@@ -610,6 +610,9 @@ other = "must select a strategy metric"
 [VALUES_LENGTH_CONDITION_METRIC_IN_OR_CONDITION_METRIC_NOT_IN]
 other = "values length must be 2 if condition is CONDITION_METRIC_IN or CONDITION_METRIC_NOT_IN, otherwise must be 1"
 
+[STRATEGY_METRIC_LEVEL_IDS_GREATER_THAN_0]
+other = "must select at least one strategy metric level"
+
 [STRATEGY_METRIC_LEVEL_ID_GREATER_THAN_0]
 other = "must select a strategy metric level"
 
