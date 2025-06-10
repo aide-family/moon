@@ -10,7 +10,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
-func ToStrategyNotice(ctx context.Context, route do.NoticeGroup) *team.NoticeGroup {
+func ToTeamNoticeGroup(ctx context.Context, route do.NoticeGroup) *team.NoticeGroup {
 	if validate.IsNil(route) {
 		return nil
 	}
@@ -22,7 +22,7 @@ func ToStrategyNotice(ctx context.Context, route do.NoticeGroup) *team.NoticeGro
 		Name:          route.GetName(),
 		Remark:        route.GetRemark(),
 		Status:        route.GetStatus(),
-		Members:       ToStrategyMembers(ctx, route.GetNoticeMembers()),
+		Members:       ToTeamNoticeMembers(ctx, route.GetNoticeMembers()),
 		Hooks:         ToStrategyHooks(ctx, route.GetHooks()),
 		EmailConfigID: route.GetEmailConfig().GetID(),
 		EmailConfig:   ToStrategyEmailConfig(ctx, route.GetEmailConfig()),
@@ -34,7 +34,7 @@ func ToStrategyNotice(ctx context.Context, route do.NoticeGroup) *team.NoticeGro
 	return group
 }
 
-func ToStrategyNotices(ctx context.Context, routes []do.NoticeGroup) []*team.NoticeGroup {
+func ToTeamNoticeGroups(ctx context.Context, routes []do.NoticeGroup) []*team.NoticeGroup {
 	if len(routes) == 0 {
 		return nil
 	}
@@ -42,11 +42,11 @@ func ToStrategyNotices(ctx context.Context, routes []do.NoticeGroup) []*team.Not
 		if validate.IsNil(route) {
 			return nil, false
 		}
-		return ToStrategyNotice(ctx, route), true
+		return ToTeamNoticeGroup(ctx, route), true
 	})
 }
 
-func ToStrategyHook(ctx context.Context, hook do.NoticeHook) *team.NoticeHook {
+func ToTeamNoticeHook(ctx context.Context, hook do.NoticeHook) *team.NoticeHook {
 	if validate.IsNil(hook) {
 		return nil
 	}
@@ -64,7 +64,7 @@ func ToStrategyHook(ctx context.Context, hook do.NoticeHook) *team.NoticeHook {
 		Method:       hook.GetMethod(),
 		Secret:       crypto.String(hook.GetSecret()),
 		Headers:      crypto.NewObject(hook.GetHeaders()),
-		NoticeGroups: ToStrategyNotices(ctx, hook.GetNoticeGroups()),
+		NoticeGroups: ToTeamNoticeGroups(ctx, hook.GetNoticeGroups()),
 		APP:          hook.GetApp(),
 	}
 	hookDo.WithContext(ctx)
@@ -76,7 +76,7 @@ func ToStrategyHooks(ctx context.Context, hooks []do.NoticeHook) []*team.NoticeH
 		if validate.IsNil(hook) {
 			return nil, false
 		}
-		return ToStrategyHook(ctx, hook), true
+		return ToTeamNoticeHook(ctx, hook), true
 	})
 }
 
@@ -133,7 +133,7 @@ func ToStrategyMetricRuleLabelNotice(ctx context.Context, notice do.StrategyMetr
 		StrategyMetricRuleID: notice.GetStrategyMetricRuleID(),
 		LabelKey:             notice.GetLabelKey(),
 		LabelValue:           notice.GetLabelValue(),
-		Notices:              ToStrategyNotices(ctx, notice.GetNotices()),
+		Notices:              ToTeamNoticeGroups(ctx, notice.GetNotices()),
 	}
 	noticeDo.WithContext(ctx)
 	return noticeDo

@@ -113,13 +113,7 @@ func (t *teamNoticeRepoImpl) Create(ctx context.Context, group bo.SaveNoticeGrou
 		if validate.IsNil(hook) || hook.GetID() <= 0 {
 			return nil, false
 		}
-		hookItem := &team.NoticeHook{
-			TeamModel: do.TeamModel{
-				CreatorModel: do.CreatorModel{
-					BaseModel: do.BaseModel{ID: hook.GetID()},
-				},
-			},
-		}
+		hookItem := build.ToTeamNoticeHook(ctx, hook)
 		hookItem.WithContext(ctx)
 		return hookItem, true
 	})
@@ -167,13 +161,7 @@ func (t *teamNoticeRepoImpl) Update(ctx context.Context, group bo.SaveNoticeGrou
 		if validate.IsNil(hook) || hook.GetID() <= 0 {
 			return nil, false
 		}
-		hookItem := &team.NoticeHook{
-			TeamModel: do.TeamModel{
-				CreatorModel: do.CreatorModel{
-					BaseModel: do.BaseModel{ID: hook.GetID()},
-				},
-			},
-		}
+		hookItem := build.ToTeamNoticeHook(ctx, hook)
 		hookItem.WithContext(ctx)
 		return hookItem, true
 	})

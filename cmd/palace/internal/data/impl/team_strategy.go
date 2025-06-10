@@ -93,7 +93,7 @@ func (t *teamStrategyRepoImpl) Create(ctx context.Context, params bo.CreateTeamS
 	if err := tx.Strategy.WithContext(ctx).Create(strategyDo); err != nil {
 		return err
 	}
-	notices := build.ToStrategyNotices(ctx, params.GetReceiverRoutes())
+	notices := build.ToTeamNoticeGroups(ctx, params.GetReceiverRoutes())
 	if len(notices) > 0 {
 		notice := tx.Strategy.Notices.WithContext(ctx).Model(strategyDo)
 		if err := notice.Append(notices...); err != nil {
@@ -174,7 +174,7 @@ func (t *teamStrategyRepoImpl) Update(ctx context.Context, params bo.UpdateTeamS
 	if err != nil {
 		return err
 	}
-	notices := build.ToStrategyNotices(ctx, params.GetReceiverRoutes())
+	notices := build.ToTeamNoticeGroups(ctx, params.GetReceiverRoutes())
 	strategyDo := &team.Strategy{TeamModel: build.ToTeamModel(ctx, params.GetStrategy())}
 	notice := tx.Strategy.Notices.WithContext(ctx).Model(strategyDo)
 	if len(notices) > 0 {

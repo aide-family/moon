@@ -38,7 +38,7 @@ func ToStrategy(ctx context.Context, params do.Strategy) *team.Strategy {
 	strategy, ok := params.(*team.Strategy)
 	if ok {
 		strategy.StrategyGroup = ToStrategyGroup(ctx, params.GetStrategyGroup())
-		strategy.Notices = ToStrategyNotices(ctx, params.GetNotices())
+		strategy.Notices = ToTeamNoticeGroups(ctx, params.GetNotices())
 		strategy.WithContext(ctx)
 		return strategy
 	}
@@ -48,7 +48,7 @@ func ToStrategy(ctx context.Context, params do.Strategy) *team.Strategy {
 		Remark:          params.GetRemark(),
 		Status:          vobj.GlobalStatusEnable,
 		StrategyType:    params.GetStrategyType(),
-		Notices:         ToStrategyNotices(ctx, params.GetNotices()),
+		Notices:         ToTeamNoticeGroups(ctx, params.GetNotices()),
 		TeamModel:       ToTeamModel(ctx, params),
 		StrategyGroup:   ToStrategyGroup(ctx, params.GetStrategyGroup()),
 	}
@@ -121,7 +121,7 @@ func ToStrategyMetricRule(ctx context.Context, params do.StrategyMetricRule) *te
 		Values:           params.GetValues(),
 		Duration:         params.GetDuration(),
 		Status:           params.GetStatus(),
-		Notices:          ToStrategyNotices(ctx, params.GetNotices()),
+		Notices:          ToTeamNoticeGroups(ctx, params.GetNotices()),
 		LabelNotices:     ToStrategyMetricRuleLabelNotices(ctx, params.GetLabelNotices()),
 		AlarmPages:       ToDicts(ctx, params.GetAlarmPages()),
 	}

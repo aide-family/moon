@@ -50,7 +50,7 @@ func (t *teamStrategyMetricLevelRepoImpl) Create(ctx context.Context, params bo.
 			StrategyMetricRuleID: 0,
 			LabelKey:             item.Key,
 			LabelValue:           item.Value,
-			Notices:              build.ToStrategyNotices(ctx, item.GetNoticeGroupDos()),
+			Notices:              build.ToTeamNoticeGroups(ctx, item.GetNoticeGroupDos()),
 		}
 		labelNotice.WithContext(ctx)
 		return labelNotice
@@ -65,7 +65,7 @@ func (t *teamStrategyMetricLevelRepoImpl) Create(ctx context.Context, params bo.
 		Values:           params.GetValues(),
 		Duration:         params.GetDuration(),
 		Status:           vobj.GlobalStatusEnable,
-		Notices:          build.ToStrategyNotices(ctx, params.GetNoticeGroupDos()),
+		Notices:          build.ToTeamNoticeGroups(ctx, params.GetNoticeGroupDos()),
 		LabelNotices:     labelNotices,
 		AlarmPages:       build.ToDicts(ctx, params.GetAlarmPages()),
 		StrategyID:       params.GetStrategyMetric().GetStrategyID(),
@@ -187,7 +187,7 @@ func (t *teamStrategyMetricLevelRepoImpl) Update(ctx context.Context, params bo.
 			StrategyMetricRuleID: 0,
 			LabelKey:             item.Key,
 			LabelValue:           item.Value,
-			Notices:              build.ToStrategyNotices(ctx, item.GetNoticeGroupDos()),
+			Notices:              build.ToTeamNoticeGroups(ctx, item.GetNoticeGroupDos()),
 		}
 		labelNotice.WithContext(ctx)
 		return labelNotice
