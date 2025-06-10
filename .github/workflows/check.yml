@@ -15,6 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install protobuf
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -23,14 +28,17 @@ jobs:
       - name: Install dependencies
         run: make init
 
+      - name: Build Base
+        run: make all app=palace && make all app=houyi && make all app=rabbit && make all app=laurel
+
       - name: Build Palace
-        run: make all app=palace && make build app=palace
+        run: make build app=palace
 
       - name: Build Houyi
-        run: make all app=houyi && make build app=houyi
+        run: make build app=houyi
 
       - name: Build Rabbit
-        run: make all app=rabbit && make build app=rabbit
+        run: make build app=rabbit
 
       - name: Build Laurel
-        run: make all app=laurel && make build app=laurel
+        run: make build app=laurel
