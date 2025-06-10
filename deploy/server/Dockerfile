@@ -6,7 +6,7 @@ WORKDIR /moon
 
 COPY ../../ .
 
-RUN make all
+RUN make all app=${APP_NAME}
 RUN make build app=${APP_NAME}
 
 FROM ghcr.io/aide-family/moon:deploy
