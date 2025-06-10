@@ -82,7 +82,7 @@ func (m *memberRepoImpl) List(ctx context.Context, req *bo.TeamMemberListRequest
 		wrapper = wrapper.Offset(req.Offset()).Limit(int(req.Limit))
 		req.WithTotal(total)
 	}
-	members, err := wrapper.Find()
+	members, err := wrapper.Preload(field.Associations).Find()
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +242,7 @@ func (m *memberRepoImpl) Find(ctx context.Context, ids []uint32) ([]do.TeamMembe
 		memberQuery.TeamID.Eq(teamID),
 		memberQuery.ID.In(ids...),
 	}
-	members, err := memberQuery.WithContext(ctx).Where(wrappers...).Find()
+	members, err := memberQuery.WithContext(ctx).Where(wrappers...).Preload(field.Associations).Find()
 	if err != nil {
 		return nil, err
 	}
@@ -261,7 +261,7 @@ func (m *memberRepoImpl) FindByUserID(ctx context.Context, userID uint32) (do.Te
 		memberQuery.TeamID.Eq(teamID),
 		memberQuery.UserID.Eq(userID),
 	}
-	member, err := memberQuery.WithContext(ctx).Where(wrappers...).First()
+	member, err := memberQuery.WithContext(ctx).Where(wrappers...).Preload(field.Associations).First()
 	if err != nil {
 		return nil, teamMemberNotFound(err)
 	}
