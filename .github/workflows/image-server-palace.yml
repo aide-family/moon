@@ -7,11 +7,8 @@ name: Docker Palace Server Image
 
 on:
   push:
-    branches: ['v3']
     # Publish semver tags as releases.
     tags: ['v3*.*.*']
-  pull_request:
-    branches: ['v3']
 
 env:
   # Use docker.io for Docker Hub if empty
