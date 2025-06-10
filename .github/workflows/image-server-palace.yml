@@ -16,8 +16,10 @@ on:
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
+  SERVER_NAME: palace
+  ORG_NAME: aide-family
   # github.repository as <account>/<repo>
-  IMAGE_NAME: aide-family/palace
+  IMAGE_NAME: ${ORG_NAME}/${SERVER_NAME}
 
 jobs:
   build:
@@ -73,7 +75,8 @@ jobs:
         with:
           context: .
           file: ./deploy/server/Dockerfile
-          args: --build-arg APP_NAME=palace
+          args: |
+            APP_NAME=${{ env.SERVER_NAME }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
