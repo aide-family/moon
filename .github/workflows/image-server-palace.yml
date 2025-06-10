@@ -73,7 +73,7 @@ jobs:
         with:
           context: .
           file: ./deploy/server/Dockerfile
-          args: |
+          build-args: |
             APP_NAME=${{ env.SERVER_NAME }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
