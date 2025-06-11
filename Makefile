@@ -48,10 +48,10 @@ init:
 all:
 	@echo "Initialization of moon project"
 	@if [ -z "$(APP_NAME)" ]; then echo "app name is required"; echo "usage: make all app=<app_name>"; exit 1; fi
-	make api app=palace
-	make api app=houyi
-	make api app=rabbit
-	make api app=laurel
+	APP_NAME=palace make api
+	APP_NAME=houyi make api
+	APP_NAME=rabbit make api
+	APP_NAME=laurel make api
 	make errors
 	make conf
 	make stringer-$(APP_NAME)
@@ -215,14 +215,14 @@ gen-laurel:
 build:
 	@if [ -z "$(APP_NAME)" ]; then echo "app name is required"; echo "usage: make build app=<app_name>"; exit 1; fi
 	@echo "Building moon app=$(APP_NAME)"
-	make all
+	make all app=$(APP_NAME)
 	mkdir -p bin/ && go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./cmd/$(APP_NAME)
 
 .PHONY: run
 run:
 	@if [ -z "$(APP_NAME)" ]; then echo "app name is required"; echo "usage: make run app=<app_name>"; exit 1; fi
 	@echo "Running moon app=$(APP_NAME)"
-	make all
+	make all app=$(APP_NAME)
 	go run ./cmd/$(APP_NAME) -c ./cmd/$(APP_NAME)/config
 
 .PHONY: simple-run
