@@ -9,8 +9,10 @@ import (
 
 type Team interface {
 	FindByID(ctx context.Context, id uint32) (do.Team, error)
-	Create(ctx context.Context, team bo.CreateTeamRequest) (do.Team, error)
-	Update(ctx context.Context, team bo.UpdateTeamRequest) (do.Team, error)
+	Create(ctx context.Context, team bo.CreateTeamRequest) error
+	Update(ctx context.Context, team bo.UpdateTeamRequest) error
 	Delete(ctx context.Context, id uint32) error
 	List(ctx context.Context, req *bo.TeamListRequest) (*bo.TeamListReply, error)
+	CheckNameUnique(ctx context.Context, name string, teamID uint32) error
+	FindByName(ctx context.Context, name string) (do.Team, error)
 }

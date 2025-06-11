@@ -55,6 +55,9 @@ other = "リソースが開放されていません"
 [REQUIRED]
 other = "パラメーターが必須です"
 
+[CONFLICT]
+other = ""
+
 [UNAUTHORIZED]
 other = "未認証"
 

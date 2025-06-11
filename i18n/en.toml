@@ -55,6 +55,9 @@ other = "Resource not open"
 [REQUIRED]
 other = "Params is required"
 
+[CONFLICT]
+other = ""
+
 [UNAUTHORIZED]
 other = "Unauthorized"
 

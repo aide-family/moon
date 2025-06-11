@@ -55,6 +55,9 @@ other = "资源未开放"
 [REQUIRED]
 other = "参数不能为空"
 
+[CONFLICT]
+other = ""
+
 [UNAUTHORIZED]
 other = "未授权"
 

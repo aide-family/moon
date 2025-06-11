@@ -128,31 +128,12 @@ func (t *Team) getTeamMembers(ctx context.Context, ids []uint32) []do.TeamMember
 }
 
 func (t *Team) SaveTeam(ctx context.Context, req *bo.SaveOneTeamRequest) error {
+	// check team name is unique
+	if err := t.teamRepo.CheckNameUnique(ctx, req.GetName(), req.TeamID); err != nil {
+		return err
+	}
+
 	return t.transaction.MainExec(ctx, func(ctx context.Context) error {
-		var (
-			teamDo do.Team
-			err    error
-		)
-		defer func() {
-			if err != nil {
-				t.helper.WithContext(ctx).Errorw("msg", "save team fail", "err", err)
-				return
-			}
-			if err = t.userRepo.AppendTeam(ctx, teamDo); err != nil {
-				t.helper.WithContext(ctx).Errorw("msg", "append team to user fail", "err", err)
-				return
-			}
-			createMemberParams := &bo.CreateTeamMemberReq{
-				Team:     teamDo,
-				User:     teamDo.GetLeader(),
-				Status:   vobj.MemberStatusNormal,
-				Position: vobj.PositionSuperAdmin,
-			}
-			if err := t.memberRepo.Create(ctx, createMemberParams); err != nil {
-				t.helper.WithContext(ctx).Errorw("msg", "create team member fail", "err", err)
-				return
-			}
-		}()
 		if req.TeamID <= 0 {
 			leaderId, ok := permission.GetUserIDByContext(ctx)
 			if !ok {
@@ -163,16 +144,39 @@ func (t *Team) SaveTeam(ctx context.Context, req *bo.SaveOneTeamRequest) error {
 				return err
 			}
 			createParams := req.WithCreateTeamRequest(leaderDo)
-			teamDo, err = t.teamRepo.Create(ctx, createParams)
-			return err
+			if err := t.teamRepo.Create(ctx, createParams); err != nil {
+				return err
+			}
+		} else {
+			teamInfo, err := t.teamRepo.FindByID(ctx, req.TeamID)
+			if err != nil {
+				return err
+			}
+			updateTeamParams := req.WithUpdateTeamRequest(teamInfo)
+			if err := t.teamRepo.Update(ctx, updateTeamParams); err != nil {
+				return err
+			}
 		}
-		teamInfo, err := t.teamRepo.FindByID(ctx, req.TeamID)
+		teamDo, err := t.teamRepo.FindByName(ctx, req.GetName())
 		if err != nil {
 			return err
 		}
-		updateTeamParams := req.WithUpdateTeamRequest(teamInfo)
-		teamDo, err = t.teamRepo.Update(ctx, updateTeamParams)
-		return err
+
+		if err := t.userRepo.AppendTeam(ctx, teamDo); err != nil {
+			t.helper.WithContext(ctx).Errorw("msg", "append team to user fail", "err", err)
+			return err
+		}
+		createMemberParams := &bo.CreateTeamMemberReq{
+			Team:     teamDo,
+			User:     teamDo.GetLeader(),
+			Status:   vobj.MemberStatusNormal,
+			Position: vobj.PositionSuperAdmin,
+		}
+		if err := t.memberRepo.Create(ctx, createMemberParams); err != nil {
+			t.helper.WithContext(ctx).Errorw("msg", "create team member fail", "err", err)
+			return err
+		}
+		return nil
 	})
 }
 

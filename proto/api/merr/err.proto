@@ -18,6 +18,7 @@ enum ClientError {
   EXIST = 7;
   RESOURCE_NOT_OPEN = 8;
   REQUIRED = 9;
+  CONFLICT = 10;
 }
 
 enum UnauthorizedError {
