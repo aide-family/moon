@@ -86,10 +86,13 @@ func ToTeamListRequest(req *palace.GetTeamListRequest) *bo.TeamListRequest {
 	return &bo.TeamListRequest{
 		PaginationRequest: ToPaginationRequest(req.GetPagination()),
 		Keyword:           req.GetKeyword(),
-		Status:            slices.Map(req.GetStatus(), func(status common.TeamStatus) vobj.TeamStatus { return vobj.TeamStatus(status) }),
-		UserIds:           nil,
-		LeaderId:          req.GetLeaderId(),
-		CreatorId:         req.GetCreatorId(),
+		Status: slices.MapFilter(req.GetStatus(), func(status common.TeamStatus) (vobj.TeamStatus, bool) {
+			vobjStatus := vobj.TeamStatus(status)
+			return vobjStatus, !vobjStatus.IsUnknown() && vobjStatus.Exist()
+		}),
+		UserIds:   nil,
+		LeaderId:  req.GetLeaderId(),
+		CreatorId: req.GetCreatorId(),
 	}
 }
 
@@ -100,9 +103,15 @@ func ToTeamMemberListRequest(req *palace.GetTeamMembersRequest, teamId uint32) *
 	return &bo.TeamMemberListRequest{
 		PaginationRequest: ToPaginationRequest(req.GetPagination()),
 		Keyword:           req.GetKeyword(),
-		Status:            slices.Map(req.GetStatus(), func(status common.MemberStatus) vobj.MemberStatus { return vobj.MemberStatus(status) }),
-		Positions:         slices.Map(req.GetPositions(), func(position common.MemberPosition) vobj.Position { return vobj.Position(position) }),
-		TeamId:            teamId,
+		Status: slices.MapFilter(req.GetStatus(), func(status common.MemberStatus) (vobj.MemberStatus, bool) {
+			vobjStatus := vobj.MemberStatus(status)
+			return vobjStatus, !vobjStatus.IsUnknown() && vobjStatus.Exist()
+		}),
+		Positions: slices.MapFilter(req.GetPositions(), func(position common.MemberPosition) (vobj.Position, bool) {
+			vobjPosition := vobj.Position(position)
+			return vobjPosition, !vobjPosition.IsUnknown() && vobjPosition.Exist()
+		}),
+		TeamId: teamId,
 	}
 }
 
@@ -113,8 +122,11 @@ func ToTeamMemberSelectRequest(req *palace.SelectTeamMembersRequest, teamId uint
 	return &bo.SelectTeamMembersRequest{
 		PaginationRequest: ToPaginationRequest(req.GetPagination()),
 		Keyword:           req.GetKeyword(),
-		Status:            slices.Map(req.GetStatus(), func(status common.MemberStatus) vobj.MemberStatus { return vobj.MemberStatus(status) }),
-		TeamId:            teamId,
+		Status: slices.MapFilter(req.GetStatus(), func(status common.MemberStatus) (vobj.MemberStatus, bool) {
+			vobjStatus := vobj.MemberStatus(status)
+			return vobjStatus, !vobjStatus.IsUnknown() && vobjStatus.Exist()
+		}),
+		TeamId: teamId,
 	}
 }
 
