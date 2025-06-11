@@ -8,6 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 var _ repository.EventBus = (*eventBusImpl)(nil)
@@ -41,14 +42,20 @@ type eventBusImpl struct {
 }
 
 // PublishDataChangeEvent implements repository.EventBus.
-func (e *eventBusImpl) PublishDataChangeEvent(eventType vobj.ChangedType, teamID uint32, id uint32) {
+func (e *eventBusImpl) PublishDataChangeEvent(eventType vobj.ChangedType, teamID uint32, ids ...uint32) {
+	ids = slices.MapFilter(ids, func(id uint32) (uint32, bool) {
+		return id, id > 0
+	})
+	if len(ids) == 0 || teamID == 0 {
+		return
+	}
 	e.lock.Lock()
 	defer e.lock.Unlock()
 	rows, ok := e.rows[eventType]
 	if !ok {
 		rows = make(map[uint32][]uint32)
 	}
-	rows[teamID] = append(rows[teamID], id)
+	rows[teamID] = append(rows[teamID], ids...)
 	e.rows[eventType] = rows
 }
 

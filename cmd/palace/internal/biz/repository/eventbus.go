@@ -6,6 +6,6 @@ import (
 )
 
 type EventBus interface {
-	PublishDataChangeEvent(eventType vobj.ChangedType, teamID uint32, id uint32)
+	PublishDataChangeEvent(eventType vobj.ChangedType, teamID uint32, ids ...uint32)
 	SubscribeDataChangeEvent() <-chan *bo.SyncRequest
 }
