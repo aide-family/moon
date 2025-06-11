@@ -28,6 +28,7 @@ func NewTeamBiz(
 	memberRepo repository.Member,
 	inviteRepo repository.Invite,
 	transaction repository.Transaction,
+	eventBus repository.EventBus,
 	logger log.Logger,
 ) *Team {
 	teamBiz := &Team{
@@ -43,6 +44,7 @@ func NewTeamBiz(
 		memberRepo:          memberRepo,
 		inviteRepo:          inviteRepo,
 		transaction:         transaction,
+		eventBus:            eventBus,
 	}
 	do.RegisterGetTeamFunc(func(id uint32) do.Team {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -74,6 +76,7 @@ type Team struct {
 	memberRepo          repository.Member
 	inviteRepo          repository.Invite
 	transaction         repository.Transaction
+	eventBus            repository.EventBus
 }
 
 func (t *Team) getTeam(ctx context.Context, id uint32) do.Team {
@@ -181,13 +184,23 @@ func (t *Team) SaveTeam(ctx context.Context, req *bo.SaveOneTeamRequest) error {
 }
 
 // SaveEmailConfig saves the email configuration for a team
-func (t *Team) SaveEmailConfig(ctx context.Context, req *bo.SaveEmailConfigRequest) error {
+func (t *Team) SaveEmailConfig(ctx context.Context, req *bo.SaveEmailConfigRequest) (err error) {
 	if err := req.Validate(); err != nil {
 		return err
 	}
+
+	if err := t.teamEmailConfigRepo.CheckNameUnique(ctx, req.GetName(), req.ID); err != nil {
+		return err
+	}
+	emailConfigID := req.ID
+	defer func(id uint32) {
+		teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
+		t.eventBus.PublishDataChangeEvent(vobj.ChangedTypeNoticeEmailConfig, teamID, id)
+	}(emailConfigID)
 	return t.transaction.BizExec(ctx, func(ctx context.Context) error {
 		if req.ID <= 0 {
-			return t.teamEmailConfigRepo.Create(ctx, req)
+			emailConfigID, err = t.teamEmailConfigRepo.Create(ctx, req)
+			return err
 		}
 		emailConfig, err := t.teamEmailConfigRepo.Get(ctx, req.ID)
 		if err != nil {
@@ -212,13 +225,22 @@ func (t *Team) GetEmailConfig(ctx context.Context, emailConfigId uint32) (do.Tea
 }
 
 // SaveSMSConfig saves the SMS configuration for a team
-func (t *Team) SaveSMSConfig(ctx context.Context, req *bo.SaveSMSConfigRequest) error {
+func (t *Team) SaveSMSConfig(ctx context.Context, req *bo.SaveSMSConfigRequest) (err error) {
 	if err := req.Validate(); err != nil {
 		return err
 	}
+	if err := t.teamSMSConfigRepo.CheckNameUnique(ctx, req.GetName(), req.ID); err != nil {
+		return err
+	}
+	smsConfigID := req.ID
+	defer func(id uint32) {
+		teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
+		t.eventBus.PublishDataChangeEvent(vobj.ChangedTypeNoticeSMSConfig, teamID, id)
+	}(smsConfigID)
 	return t.transaction.BizExec(ctx, func(ctx context.Context) error {
 		if req.ID <= 0 {
-			return t.teamSMSConfigRepo.Create(ctx, req)
+			smsConfigID, err = t.teamSMSConfigRepo.Create(ctx, req)
+			return err
 		}
 		smsConfig, err := t.teamSMSConfigRepo.Get(ctx, req.ID)
 		if err != nil {

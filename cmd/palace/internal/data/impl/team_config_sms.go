@@ -5,15 +5,18 @@ import (
 
 	"gorm.io/gen"
 	"gorm.io/gen/field"
+	"gorm.io/gorm"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/crypto"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
+	"github.com/go-kratos/kratos/v2/errors"
 )
 
 func NewTeamConfigSMSRepo(data *data.Data) repository.TeamSMSConfig {
@@ -24,6 +27,30 @@ func NewTeamConfigSMSRepo(data *data.Data) repository.TeamSMSConfig {
 
 type teamConfigSMSRepoImpl struct {
 	*data.Data
+}
+
+// CheckNameUnique implements repository.TeamSMSConfig.
+func (t *teamConfigSMSRepoImpl) CheckNameUnique(ctx context.Context, name string, configID uint32) error {
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
+	bizSMSConfigQuery := bizQuery.SmsConfig
+	wrappers := []gen.Condition{
+		bizSMSConfigQuery.TeamID.Eq(teamID),
+		bizSMSConfigQuery.Name.Eq(name),
+	}
+	if configID != 0 {
+		wrappers = append(wrappers, bizSMSConfigQuery.ID.Neq(configID))
+	}
+	smsConfig, err := bizSMSConfigQuery.WithContext(ctx).Where(wrappers...).First()
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		return err
+	}
+	if smsConfig != nil {
+		return merr.ErrorConflict("name already exists")
+	}
+	return nil
 }
 
 func (t *teamConfigSMSRepoImpl) List(ctx context.Context, req *bo.ListSMSConfigRequest) (*bo.ListSMSConfigListReply, error) {
@@ -58,7 +85,7 @@ func (t *teamConfigSMSRepoImpl) List(ctx context.Context, req *bo.ListSMSConfigR
 	return req.ToListReply(rows), nil
 }
 
-func (t *teamConfigSMSRepoImpl) Create(ctx context.Context, config bo.TeamSMSConfig) error {
+func (t *teamConfigSMSRepoImpl) Create(ctx context.Context, config bo.TeamSMSConfig) (uint32, error) {
 	smsConfigDo := &team.SmsConfig{
 		TeamModel: do.TeamModel{},
 		Name:      config.GetName(),
@@ -70,7 +97,10 @@ func (t *teamConfigSMSRepoImpl) Create(ctx context.Context, config bo.TeamSMSCon
 	smsConfigDo.WithContext(ctx)
 	bizQuery := getTeamBizQuery(ctx, t)
 	bizSMSConfigQuery := bizQuery.SmsConfig
-	return bizSMSConfigQuery.WithContext(ctx).Create(smsConfigDo)
+	if err := bizSMSConfigQuery.WithContext(ctx).Create(smsConfigDo); err != nil {
+		return 0, err
+	}
+	return smsConfigDo.ID, nil
 }
 
 func (t *teamConfigSMSRepoImpl) Update(ctx context.Context, config bo.TeamSMSConfig) error {

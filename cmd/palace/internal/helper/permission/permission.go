@@ -33,6 +33,15 @@ func GetTeamIDByContext(ctx context.Context) (uint32, bool) {
 	return teamID, ok
 }
 
+// GetTeamIDByContextWithZeroValue Retrieve the team id from the context with a zero value.
+func GetTeamIDByContextWithZeroValue(ctx context.Context) uint32 {
+	teamID, ok := GetTeamIDByContext(ctx)
+	if !ok {
+		return 0
+	}
+	return teamID
+}
+
 // WithTeamIDContext Set the team id in the context.
 func WithTeamIDContext(ctx context.Context, teamID uint32) context.Context {
 	return context.WithValue(ctx, teamIDContextKey{}, teamID)

@@ -3,15 +3,18 @@ package impl
 import (
 	"context"
 
+	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
+	"gorm.io/gorm"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/crypto"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -27,6 +30,30 @@ func NewTeamConfigEmailRepo(data *data.Data, logger log.Logger) repository.TeamE
 type teamConfigEmailRepoImpl struct {
 	*data.Data
 	helper *log.Helper
+}
+
+// CheckNameUnique implements repository.TeamEmailConfig.
+func (t *teamConfigEmailRepoImpl) CheckNameUnique(ctx context.Context, name string, configID uint32) error {
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
+	bizEmailConfigQuery := bizQuery.EmailConfig
+	wrappers := []gen.Condition{
+		bizEmailConfigQuery.TeamID.Eq(teamID),
+		bizEmailConfigQuery.Name.Eq(name),
+	}
+	if configID != 0 {
+		wrappers = append(wrappers, bizEmailConfigQuery.ID.Neq(configID))
+	}
+	emailConfig, err := bizEmailConfigQuery.WithContext(ctx).Where(wrappers...).First()
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		return err
+	}
+	if emailConfig != nil {
+		return merr.ErrorConflict("name already exists")
+	}
+	return nil
 }
 
 func (t *teamConfigEmailRepoImpl) Get(ctx context.Context, id uint32) (do.TeamEmailConfig, error) {
@@ -69,7 +96,7 @@ func (t *teamConfigEmailRepoImpl) List(ctx context.Context, req *bo.ListEmailCon
 	return req.ToListReply(rows), nil
 }
 
-func (t *teamConfigEmailRepoImpl) Create(ctx context.Context, config bo.TeamEmailConfig) error {
+func (t *teamConfigEmailRepoImpl) Create(ctx context.Context, config bo.TeamEmailConfig) (uint32, error) {
 	emailConfigDo := &team.EmailConfig{
 		TeamModel: do.TeamModel{},
 		Name:      config.GetName(),
@@ -80,7 +107,10 @@ func (t *teamConfigEmailRepoImpl) Create(ctx context.Context, config bo.TeamEmai
 	emailConfigDo.WithContext(ctx)
 	bizQuery := getTeamBizQuery(ctx, t)
 	bizEmailConfigQuery := bizQuery.EmailConfig
-	return bizEmailConfigQuery.WithContext(ctx).Create(emailConfigDo)
+	if err := bizEmailConfigQuery.WithContext(ctx).Create(emailConfigDo); err != nil {
+		return 0, err
+	}
+	return emailConfigDo.ID, nil
 }
 
 func (t *teamConfigEmailRepoImpl) Update(ctx context.Context, config bo.TeamEmailConfig) error {
