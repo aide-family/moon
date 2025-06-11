@@ -10,29 +10,71 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/job"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 )
 
 func NewMenuBiz(
+	userRepo repository.User,
+	memberRepo repository.Member,
 	menuRepo repository.Menu,
 	cacheRepo repository.Cache,
 	logger log.Logger,
 ) *Menu {
 	return &Menu{
-		menuRepo:  menuRepo,
-		cacheRepo: cacheRepo,
-		helper:    log.NewHelper(log.With(logger, "module", "biz.menu")),
+		userRepo:   userRepo,
+		memberRepo: memberRepo,
+		menuRepo:   menuRepo,
+		cacheRepo:  cacheRepo,
+		helper:     log.NewHelper(log.With(logger, "module", "biz.menu")),
 	}
 }
 
 type Menu struct {
-	menuRepo  repository.Menu
-	cacheRepo repository.Cache
-	helper    *log.Helper
+	userRepo   repository.User
+	memberRepo repository.Member
+	menuRepo   repository.Menu
+	cacheRepo  repository.Cache
+	helper     *log.Helper
 }
 
 func (m *Menu) SelfMenus(ctx context.Context) ([]do.Menu, error) {
-	return m.menuRepo.FindMenusByType(ctx, vobj.MenuTypeMenuUser)
+	userID := permission.GetUserIDByContextWithDefault(ctx, 0)
+	if userID <= 0 {
+		return nil, nil
+	}
+	userDo, err := m.userRepo.Get(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if userDo.GetPosition().IsAdminOrSuperAdmin() {
+		return m.menuRepo.FindAll(ctx)
+	}
+	menus := make([]do.Menu, 0, 100)
+	for _, roleDo := range userDo.GetRoles() {
+		menus = append(menus, roleDo.GetMenus()...)
+	}
+	memberDo, err := m.memberRepo.FindByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if memberDo.GetPosition().IsAdminOrSuperAdmin() {
+		teamMenus, err := m.menuRepo.FindMenusByType(ctx, vobj.MenuTypeMenuTeam)
+		if err != nil {
+			return nil, err
+		}
+		menus = append(menus, teamMenus...)
+	} else {
+		for _, roleDo := range memberDo.GetRoles() {
+			menus = append(menus, roleDo.GetMenus()...)
+		}
+	}
+	userMenus, err := m.menuRepo.FindMenusByType(ctx, vobj.MenuTypeMenuUser)
+	if err != nil {
+		return nil, err
+	}
+	menus = append(menus, userMenus...)
+	return menus, nil
 }
 
 func (m *Menu) TeamMenus(ctx context.Context) ([]do.Menu, error) {
@@ -45,10 +87,6 @@ func (m *Menu) SystemMenus(ctx context.Context) ([]do.Menu, error) {
 
 func (m *Menu) GetMenuByOperation(ctx context.Context, operation string) (do.Menu, error) {
 	return m.cacheRepo.GetMenu(ctx, operation)
-}
-
-func (m *Menu) MenuList(ctx context.Context, req *bo.ListMenuParams) (*bo.ListMenuReply, error) {
-	return m.menuRepo.List(ctx, req)
 }
 
 func (m *Menu) GetMenu(ctx context.Context, id uint32) (do.Menu, error) {

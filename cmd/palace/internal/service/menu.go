@@ -69,31 +69,3 @@ func (s *MenuService) GetMenuByOperation(ctx context.Context, operation string) 
 	}
 	return menu, nil
 }
-
-func (s *MenuService) MenuList(ctx context.Context, req *api.MenuListRequest) (*api.MenuListReply, error) {
-	params := build.ToListMenuParams(req)
-	menus, err := s.menuBiz.MenuList(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	return &api.MenuListReply{
-		Menus:      build.ToMenuTree(menus.Items),
-		Pagination: build.ToPaginationReply(menus.PaginationReply),
-	}, nil
-}
-
-func (s *MenuService) TeamMenuList(ctx context.Context, req *api.MenuListRequest) (*api.MenuListReply, error) {
-	params := build.ToListMenuParams(req)
-	params, err := params.WithTeamID(ctx)
-	if err != nil {
-		return nil, err
-	}
-	menus, err := s.menuBiz.MenuList(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	return &api.MenuListReply{
-		Menus:      build.ToMenuTree(menus.Items),
-		Pagination: build.ToPaginationReply(menus.PaginationReply),
-	}, nil
-}

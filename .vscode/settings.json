@@ -71,6 +71,7 @@
     "strutil",
     "tinyint",
     "transporthttp",
+    "varchar",
     "Vecs",
     "vobj",
     "Warnf",
