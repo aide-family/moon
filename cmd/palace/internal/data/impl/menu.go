@@ -110,7 +110,7 @@ func (m *menuRepoImpl) Update(ctx context.Context, menu *bo.SaveMenuRequest) err
 		menuMutation.MenuCategory.Value(menu.MenuCategory.GetValue()),
 		menuMutation.ApiPath.Value(menu.ApiPath),
 		menuMutation.Status.Value(menu.Status.GetValue()),
-		menuMutation.ProcessType.Value(menu.ProcessType.GetValue()),
+		menuMutation.ProcessType.Value(int8(menu.ProcessType)),
 		menuMutation.ParentID.Value(menu.ParentID),
 		menuMutation.RelyOnBrother.Value(menu.RelyOnBrother),
 	}
