@@ -123,8 +123,14 @@ func ToUserListRequest(req *palace.GetUserListRequest) *bo.UserListRequest {
 	}
 	return &bo.UserListRequest{
 		PaginationRequest: ToPaginationRequest(req.GetPagination()),
-		Status:            slices.Map(req.GetStatus(), func(status common.UserStatus) vobj.UserStatus { return vobj.UserStatus(status) }),
-		Position:          slices.Map(req.GetPosition(), func(position common.UserPosition) vobj.Position { return vobj.Position(position) }),
-		Keyword:           req.GetKeyword(),
+		Status: slices.MapFilter(req.GetStatus(), func(status common.UserStatus) (vobj.UserStatus, bool) {
+			vobjStatus := vobj.UserStatus(status)
+			return vobjStatus, vobjStatus.Exist() && !vobjStatus.IsUnknown()
+		}),
+		Position: slices.MapFilter(req.GetPosition(), func(position common.UserPosition) (vobj.Position, bool) {
+			vobjPosition := vobj.Position(position)
+			return vobjPosition, vobjPosition.Exist() && !vobjPosition.IsUnknown()
+		}),
+		Keyword: req.GetKeyword(),
 	}
 }

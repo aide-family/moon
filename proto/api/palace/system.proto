@@ -265,17 +265,9 @@ message GetUserRequest {
 // GetUserListRequest represents the request data for listing users
 message GetUserListRequest {
   // List of statuses to filter users by
-  repeated api.palace.common.UserStatus status = 1 [(buf.validate.field).cel = {
-    id: "GET_USER_LIST_STATUS_VALIDATOR",
-    message: "status must be one of the following: USER_STATUS_NORMAL, USER_STATUS_FORBIDDEN, USER_STATUS_DELETED"
-    expression: "this in ['USER_STATUS_NORMAL', 'USER_STATUS_FORBIDDEN', 'USER_STATUS_DELETED', 0, 1, 2, 3]"
-  }];
+  repeated api.palace.common.UserStatus status = 1;
   // List of positions to filter users by
-  repeated api.palace.common.UserPosition position = 2 [(buf.validate.field).cel = {
-    id: "GET_USER_LIST_POSITION_VALIDATOR",
-    message: "position must be one of the following: USER_POSITION_SUPER_ADMIN, USER_POSITION_ADMIN, USER_POSITION_USER, USER_POSITION_GUEST"
-    expression: "this in ['USER_POSITION_SUPER_ADMIN', 'USER_POSITION_ADMIN', 'USER_POSITION_USER', 'USER_POSITION_GUEST', 0, 1, 2, 3, 4]"
-  }];
+  repeated api.palace.common.UserPosition position = 2;
   // Pagination request details
   api.palace.common.PaginationRequest pagination = 3 [(buf.validate.field).required = true];
   // Keyword to search users by
@@ -299,11 +291,7 @@ message GetTeamListRequest {
   // Pagination request details
   api.palace.common.PaginationRequest pagination = 1 [(buf.validate.field).required = true];
   // List of statuses to filter teams by
-  repeated api.palace.common.TeamStatus status = 2 [(buf.validate.field).cel = {
-    id: "GET_TEAM_LIST_STATUS_VALIDATOR",
-    message: "status must be one of the following: TEAM_STATUS_NORMAL, TEAM_STATUS_DELETED"
-    expression: "this in ['TEAM_STATUS_NORMAL', 'TEAM_STATUS_DELETED', 0, 1]"
-  }];
+  repeated api.palace.common.TeamStatus status = 2;
   // Keyword to search teams by
   string keyword = 3 [(buf.validate.field).cel = {
     id: "GET_TEAM_LIST_KEYWORD_VALIDATOR",
@@ -333,11 +321,7 @@ message GetSystemRolesRequest {
     expression: "this.size() <= 20"
   }];
   // Status to filter roles by
-  api.palace.common.GlobalStatus status = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "GET_SYSTEM_ROLES_STATUS_VALIDATOR",
-    message: "status must be one of the following: GLOBAL_STATUS_ENABLE, GLOBAL_STATUS_DISABLE"
-    expression: "this in ['GLOBAL_STATUS_ENABLE', 'GLOBAL_STATUS_DISABLE', 0, 1, 2]"
-  }];
+  api.palace.common.GlobalStatus status = 3;
 }
 
 // GetSystemRolesReply contains the response data for listing system roles
@@ -441,11 +425,7 @@ message GetTeamAuditListRequest {
   // Pagination request details
   api.palace.common.PaginationRequest pagination = 1 [(buf.validate.field).required = true];
   // List of statuses to filter team audit records by
-  repeated api.palace.common.TeamAuditStatus status = 2 [(buf.validate.field).cel = {
-    id: "GET_TEAM_AUDIT_LIST_STATUS_VALIDATOR",
-    message: "status must be one of the following: TEAM_AUDIT_STATUS_PENDING, TEAM_AUDIT_STATUS_APPROVED, TEAM_AUDIT_STATUS_REJECTED"
-    expression: "this in ['TEAM_AUDIT_STATUS_PENDING', 'TEAM_AUDIT_STATUS_APPROVED', 'TEAM_AUDIT_STATUS_REJECTED', 0, 1, 2, 3]"
-  }];
+  repeated api.palace.common.TeamAuditStatus status = 2;
   // Keyword to search team audit records by
   string keyword = 3 [(buf.validate.field).cel = {
     id: "GET_TEAM_AUDIT_LIST_KEYWORD_VALIDATOR",
@@ -454,11 +434,7 @@ message GetTeamAuditListRequest {
   }];
   // User Id, optional for filtering audits by user
   uint32 userId = 4;
-  repeated api.palace.common.TeamAuditAction actions = 5 [(buf.validate.field).cel = {
-    id: "GET_TEAM_AUDIT_LIST_ACTIONS_VALIDATOR",
-    message: "actions must be one of the following: TEAM_AUDIT_ACTION_JOIN, TEAM_AUDIT_ACTION_LEAVE"
-    expression: "this in ['TEAM_AUDIT_ACTION_JOIN', 'TEAM_AUDIT_ACTION_LEAVE', 0, 1, 2]"
-  }];
+  repeated api.palace.common.TeamAuditAction actions = 5;
 }
 
 // GetTeamAuditListReply contains the response data for listing team audit records
@@ -496,16 +472,8 @@ message GetSendMessageLogsRequest {
     message: "requestId must be less than 64 characters"
     expression: "this.size() <= 64"
   }];
-  common.MessageType messageType = 2 [(buf.validate.field).cel = {
-    id: "GET_SEND_MESSAGE_LOGS_MESSAGE_TYPE_VALIDATOR",
-    message: "messageType must be one of the following: MESSAGE_TYPE_TEXT, MESSAGE_TYPE_IMAGE, MESSAGE_TYPE_VOICE, MESSAGE_TYPE_VIDEO, MESSAGE_TYPE_FILE"
-    expression: "this in ['MESSAGE_TYPE_TEXT', 'MESSAGE_TYPE_IMAGE', 'MESSAGE_TYPE_VOICE', 'MESSAGE_TYPE_VIDEO', 'MESSAGE_TYPE_FILE', 1, 2, 3, 4, 5]"
-  }];
-  common.SendMessageStatus status = 3 [(buf.validate.field).cel = {
-    id: "GET_SEND_MESSAGE_LOGS_STATUS_VALIDATOR",
-    message: "status must be one of the following: SEND_MESSAGE_STATUS_SUCCESS, SEND_MESSAGE_STATUS_FAILED"
-    expression: "this in ['SEND_MESSAGE_STATUS_SUCCESS', 'SEND_MESSAGE_STATUS_FAILED', 1, 2]"
-  }];
+  common.MessageType messageType = 2;
+  common.SendMessageStatus status = 3;
   string keyword = 4 [(buf.validate.field).cel = {
     id: "GET_SEND_MESSAGE_LOGS_KEYWORD_VALIDATOR",
     message: "keyword must be less than 20 characters"

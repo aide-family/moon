@@ -202,9 +202,6 @@ other = "menuType must be one of the following: MENU_TYPE_SYSTEM, MENU_TYPE_TEAM
 [SAVE_MENU_MENU_CATEGORY_VALIDATOR]
 other = "menuCategory must be one of the following: MENU_CATEGORY_MENU, MENU_CATEGORY_BUTTON"
 
-[SAVE_MENU_PROCESS_TYPE_VALIDATOR]
-other = "processType must be one of the following: MENU_PROCESS_TYPE_LOGIN, MENU_PROCESS_TYPE_TEAM, MENU_PROCESS_TYPE_LOG, MENU_PROCESS_TYPE_DATA_PERMISSION"
-
 [LOGIN_EMAIL_VALIDATOR]
 other = "email is required"
 
