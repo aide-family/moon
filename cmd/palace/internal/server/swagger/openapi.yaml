@@ -226,17 +226,11 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/api.palace.LoginReply'
     /api/auth/self/menu/tree:
-        post:
+        get:
             tags:
                 - Auth
             description: GetSelfMenuTree returns the menu tree
             operationId: Auth_GetSelfMenuTree
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.common.EmptyRequest'
-                required: true
             responses:
                 "200":
                     description: OK
@@ -302,25 +296,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.MenuTreeItem'
-    /api/menu/list:
-        post:
-            tags:
-                - Menu
-            description: MenuList returns the menu list
-            operationId: Menu_MenuList
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.MenuListRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.MenuListReply'
     /api/menu/save:
         put:
             tags:
@@ -1440,25 +1415,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.SelectTeamMembersReply'
-    /api/team/menu/list:
-        post:
-            tags:
-                - Menu
-            description: TeamMenuList returns the team menu list
-            operationId: Menu_TeamMenuList
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.MenuListRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.MenuListReply'
     /api/team/menu/tree:
         get:
             tags:
@@ -3921,39 +3877,6 @@ components:
                     type: string
                     description: Redirect URL after logout, optional
             description: LogoutRequest represents the request data for logging out
-        api.palace.MenuListReply:
-            type: object
-            properties:
-                menus:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.palace.common.MenuTreeItem'
-                    description: List of menu items
-                pagination:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.common.PaginationReply'
-                    description: Pagination
-            description: MenuListReply represents the response data for retrieving the menu list
-        api.palace.MenuListRequest:
-            type: object
-            properties:
-                pagination:
-                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
-                status:
-                    type: integer
-                    format: enum
-                menuType:
-                    type: integer
-                    format: enum
-                menuCategory:
-                    type: integer
-                    format: enum
-                processType:
-                    type: integer
-                    format: enum
-                keyword:
-                    type: string
-            description: MenuListRequest represents the request data for retrieving the menu list
         api.palace.MetricDatasourceProxyRequest:
             type: object
             properties:

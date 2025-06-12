@@ -86,8 +86,7 @@ service Auth {
   // GetSelfMenuTree returns the menu tree
   rpc GetSelfMenuTree(api.palace.common.EmptyRequest) returns (GetSelfMenuTreeReply) {
     option (google.api.http) = {
-      post: "/api/auth/self/menu/tree"
-      body: "*"
+      get: "/api/auth/self/menu/tree"
     };
   }
 

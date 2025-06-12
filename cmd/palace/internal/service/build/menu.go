@@ -83,14 +83,3 @@ func ToSaveMenuRequest(req *api.SaveMenuRequest) *bo.SaveMenuRequest {
 		MenuId:        req.GetMenuId(),
 	}
 }
-
-func ToListMenuParams(req *api.MenuListRequest) *bo.ListMenuParams {
-	return &bo.ListMenuParams{
-		PaginationRequest: ToPaginationRequest(req.GetPagination()),
-		Status:            vobj.GlobalStatus(req.GetStatus()),
-		MenuType:          vobj.MenuType(req.GetMenuType()),
-		MenuCategory:      vobj.MenuCategory(req.GetMenuCategory()),
-		ProcessType:       vobj.MenuProcessType(req.GetProcessType()),
-		Keyword:           req.GetKeyword(),
-	}
-}
