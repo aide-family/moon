@@ -50,7 +50,7 @@ func convertMenuToTreeItemWithMap(menu do.Menu, menuMap map[uint32]do.Menu) *com
 		ApiPath:         menu.GetApiPath(),
 		MenuIcon:        menu.GetMenuIcon(),
 		MenuCategory:    common.MenuCategory(menu.GetMenuCategory().GetValue()),
-		ProcessType:     common.MenuProcessType(menu.GetProcessType().GetValue()),
+		ProcessType:     common.MenuProcessType(menu.GetProcessType()),
 		ParentId:        menu.GetParentID(),
 		IsRelyOnBrother: menu.IsRelyOnBrother(),
 	}
