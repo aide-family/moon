@@ -24,7 +24,7 @@ func NewPermissionBiz(
 ) *Permission {
 	baseHandler := &basePermissionHandler{}
 	// build permission chain
-	permissionChain := []PermissionHandler{
+	permissionChain := []PermissionHandlerFunc{
 		baseHandler.OperationHandler(),
 		baseHandler.MenuHandler(cacheRepo.GetMenu),
 		baseHandler.UserHandler(userRepo.FindByID),
@@ -42,14 +42,14 @@ func NewPermissionBiz(
 }
 
 type Permission struct {
-	permissionChain []PermissionHandler // add permission chain
+	permissionChain []PermissionHandlerFunc // add permission chain
 	helper          *log.Helper
 }
 
 func (a *Permission) VerifyPermission(ctx context.Context) error {
-	pCtx := &PermissionContext{}
+	pCtx := &PermissionContext{Context: ctx}
 	for _, handler := range a.permissionChain {
-		skip, err := handler.Handle(ctx, pCtx)
+		skip, err := handler(pCtx)
 		if err != nil {
 			return err
 		}
@@ -62,6 +62,7 @@ func (a *Permission) VerifyPermission(ctx context.Context) error {
 
 // PermissionContext permission check context
 type PermissionContext struct {
+	context.Context
 	Operation      string
 	Menu           do.Menu
 	User           do.User
@@ -71,17 +72,8 @@ type PermissionContext struct {
 	TeamMember     do.TeamMember
 }
 
-// PermissionHandler permission handler interface
-type PermissionHandler interface {
-	Handle(ctx context.Context, pCtx *PermissionContext) (skip bool, err error)
-}
-
 // PermissionHandlerFunc permission handler function type
-type PermissionHandlerFunc func(ctx context.Context, pCtx *PermissionContext) (skip bool, err error)
-
-func (f PermissionHandlerFunc) Handle(ctx context.Context, pCtx *PermissionContext) (skip bool, err error) {
-	return f(ctx, pCtx)
-}
+type PermissionHandlerFunc func(ctx *PermissionContext) (skip bool, err error)
 
 // base permission handler implementation
 type basePermissionHandler struct{}
@@ -97,29 +89,29 @@ func resourceNotOpen(err error) error {
 }
 
 // OperationHandler operation check
-func (h *basePermissionHandler) OperationHandler() PermissionHandler {
-	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
+func (h *basePermissionHandler) OperationHandler() PermissionHandlerFunc {
+	return func(ctx *PermissionContext) (bool, error) {
 		operation, ok := permission.GetOperationByContext(ctx)
 		if !ok {
 			return true, merr.ErrorBadRequest("operation is invalid")
 		}
-		pCtx.Operation = operation
+		ctx.Operation = operation
 		return false, nil
-	})
+	}
 }
 
 // MenuHandler menu check
-func (h *basePermissionHandler) MenuHandler(findMenuByOperation FindMenuByOperation) PermissionHandler {
-	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
+func (h *basePermissionHandler) MenuHandler(findMenuByOperation FindMenuByOperation) PermissionHandlerFunc {
+	return func(ctx *PermissionContext) (bool, error) {
 		menuDo, ok := do.GetMenuDoContext(ctx)
 		if !ok {
 			var err error
-			menuDo, err = findMenuByOperation(ctx, pCtx.Operation)
+			menuDo, err = findMenuByOperation(ctx, ctx.Operation)
 			if err != nil {
 				return true, resourceNotOpen(err)
 			}
 		}
-		pCtx.Menu = menuDo
+		ctx.Menu = menuDo
 		if !menuDo.GetProcessType().IsContainsLogin() {
 			return true, nil
 		}
@@ -130,15 +122,15 @@ func (h *basePermissionHandler) MenuHandler(findMenuByOperation FindMenuByOperat
 			return true, nil
 		}
 		return false, nil
-	})
+	}
 }
 
 type FindUserByID func(ctx context.Context, userID uint32) (do.User, error)
 type FindMenuByOperation func(ctx context.Context, operation string) (do.Menu, error)
 
 // UserHandler user check
-func (h *basePermissionHandler) UserHandler(findUserByID FindUserByID) PermissionHandler {
-	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
+func (h *basePermissionHandler) UserHandler(findUserByID FindUserByID) PermissionHandlerFunc {
+	return func(ctx *PermissionContext) (bool, error) {
 		userDo, ok := do.GetUserDoContext(ctx)
 		if !ok {
 			var err error
@@ -158,33 +150,33 @@ func (h *basePermissionHandler) UserHandler(findUserByID FindUserByID) Permissio
 		if !userDo.GetStatus().IsNormal() {
 			return true, merr.ErrorUserForbidden("user is forbidden")
 		}
-		pCtx.User = userDo
-		pCtx.SystemPosition = userDo.GetPosition()
-		menuDo := pCtx.Menu
+		ctx.User = userDo
+		ctx.SystemPosition = userDo.GetPosition()
+		menuDo := ctx.Menu
 		if menuDo.GetMenuType().IsMenuUser() {
 			return true, nil
 		}
 		return false, nil
-	})
+	}
 }
 
 // SystemAdminCheckHandler system admin check
-func (h *basePermissionHandler) SystemAdminCheckHandler() PermissionHandler {
-	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
-		return pCtx.SystemPosition.IsAdminOrSuperAdmin(), nil
-	})
+func (h *basePermissionHandler) SystemAdminCheckHandler() PermissionHandlerFunc {
+	return func(ctx *PermissionContext) (bool, error) {
+		return ctx.SystemPosition.IsAdminOrSuperAdmin(), nil
+	}
 }
 
 // SystemRBACHandler system rbac check
-func (h *basePermissionHandler) SystemRBACHandler(checkSystemRBAC func(ctx context.Context, user do.User, menu do.Menu) (bool, error)) PermissionHandler {
-	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
-		return checkSystemRBAC(ctx, pCtx.User, pCtx.Menu)
-	})
+func (h *basePermissionHandler) SystemRBACHandler(checkSystemRBAC func(ctx context.Context, user do.User, menu do.Menu) (bool, error)) PermissionHandlerFunc {
+	return func(ctx *PermissionContext) (bool, error) {
+		return checkSystemRBAC(ctx, ctx.User, ctx.Menu)
+	}
 }
 
 // TeamIDHandler team id check
-func (h *basePermissionHandler) TeamIDHandler(findTeamByID func(ctx context.Context, teamID uint32) (do.Team, error)) PermissionHandler {
-	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
+func (h *basePermissionHandler) TeamIDHandler(findTeamByID func(ctx context.Context, teamID uint32) (do.Team, error)) PermissionHandlerFunc {
+	return func(ctx *PermissionContext) (bool, error) {
 		teamID, ok := permission.GetTeamIDByContext(ctx)
 		if !ok {
 			return true, merr.ErrorPermissionDenied("please select a team")
@@ -196,42 +188,42 @@ func (h *basePermissionHandler) TeamIDHandler(findTeamByID func(ctx context.Cont
 		if !teamItem.GetStatus().IsNormal() {
 			return true, merr.ErrorPermissionDenied("team is invalid")
 		}
-		pCtx.Team = teamItem
+		ctx.Team = teamItem
 		return false, nil
-	})
+	}
 }
 
 // TeamMemberHandler team member check
-func (h *basePermissionHandler) TeamMemberHandler(findTeamMemberByUserID func(ctx context.Context, userID uint32) (do.TeamMember, error)) PermissionHandler {
-	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
-		member, err := findTeamMemberByUserID(ctx, pCtx.User.GetID())
+func (h *basePermissionHandler) TeamMemberHandler(findTeamMemberByUserID func(ctx context.Context, userID uint32) (do.TeamMember, error)) PermissionHandlerFunc {
+	return func(ctx *PermissionContext) (bool, error) {
+		member, err := findTeamMemberByUserID(ctx, ctx.User.GetID())
 		if err != nil {
 			return true, err
 		}
 		if !member.GetStatus().IsNormal() {
 			return true, merr.ErrorPermissionDenied("team member is invalid [%s]", member.GetStatus())
 		}
-		if pCtx.Team.GetID() != member.GetTeamID() {
+		if ctx.Team.GetID() != member.GetTeamID() {
 			return true, merr.ErrorPermissionDenied("selected team is invalid")
 		}
-		pCtx.TeamMember = member
-		pCtx.TeamPosition = member.GetPosition()
+		ctx.TeamMember = member
+		ctx.TeamPosition = member.GetPosition()
 		return false, nil
-	})
+	}
 }
 
 // TeamAdminCheckHandler team admin check
-func (h *basePermissionHandler) TeamAdminCheckHandler() PermissionHandler {
-	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
-		return pCtx.TeamPosition.IsAdminOrSuperAdmin(), nil
-	})
+func (h *basePermissionHandler) TeamAdminCheckHandler() PermissionHandlerFunc {
+	return func(ctx *PermissionContext) (bool, error) {
+		return ctx.TeamPosition.IsAdminOrSuperAdmin(), nil
+	}
 }
 
 // TeamRBACHandler team rbac check
-func (h *basePermissionHandler) TeamRBACHandler(checkTeamRBAC func(ctx context.Context, member do.TeamMember, menu do.Menu) (bool, error)) PermissionHandler {
-	return PermissionHandlerFunc(func(ctx context.Context, pCtx *PermissionContext) (bool, error) {
-		return checkTeamRBAC(ctx, pCtx.TeamMember, pCtx.Menu)
-	})
+func (h *basePermissionHandler) TeamRBACHandler(checkTeamRBAC func(ctx context.Context, member do.TeamMember, menu do.Menu) (bool, error)) PermissionHandlerFunc {
+	return func(ctx *PermissionContext) (bool, error) {
+		return checkTeamRBAC(ctx, ctx.TeamMember, ctx.Menu)
+	}
 }
 
 func checkSystemRBAC(_ context.Context, user do.User, menu do.Menu) (bool, error) {
