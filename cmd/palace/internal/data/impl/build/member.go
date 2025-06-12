@@ -13,16 +13,18 @@ func ToTeamNoticeMember(ctx context.Context, member do.NoticeMember) *team.Notic
 	if validate.IsNil(member) {
 		return nil
 	}
-	if member, ok := member.(*team.NoticeMember); ok {
-		member.WithContext(ctx)
-		return member
-	}
 	memberDo := &team.NoticeMember{
 		TeamModel:     ToTeamModel(ctx, member),
 		NoticeGroupID: member.GetNoticeGroupID(),
 		UserID:        member.GetUserID(),
 		NoticeType:    member.GetNoticeType(),
 		NoticeGroup:   ToTeamNoticeGroup(ctx, member.GetNoticeGroup()),
+		DutyCycle: slices.MapFilter(member.GetDutyCycle(), func(v do.TimeEngine) (*team.TimeEngine, bool) {
+			if validate.IsNil(v) {
+				return nil, false
+			}
+			return ToTimeEngine(ctx, v), true
+		}),
 	}
 	memberDo.WithContext(ctx)
 	return memberDo

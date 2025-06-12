@@ -13,12 +13,7 @@ func ToRole(ctx context.Context, roleDo do.Role) *system.Role {
 	if validate.IsNil(roleDo) {
 		return nil
 	}
-	role, ok := roleDo.(*system.Role)
-	if ok {
-		role.WithContext(ctx)
-		return role
-	}
-	role = &system.Role{
+	role := &system.Role{
 		CreatorModel: ToCreatorModel(ctx, roleDo),
 		Name:         roleDo.GetName(),
 		Remark:       roleDo.GetRemark(),
@@ -43,18 +38,13 @@ func ToTeamRole(ctx context.Context, roleDo do.TeamRole) *system.TeamRole {
 	if validate.IsNil(roleDo) {
 		return nil
 	}
-	role, ok := roleDo.(*system.TeamRole)
-	if ok {
-		role.WithContext(ctx)
-		return role
-	}
-	role = &system.TeamRole{
+	role := &system.TeamRole{
 		TeamModel: ToTeamModel(ctx, roleDo),
 		Name:      roleDo.GetName(),
 		Remark:    roleDo.GetRemark(),
 		Status:    roleDo.GetStatus(),
 		Members:   ToTeamMembers(ctx, roleDo.GetMembers()),
-		Menus:     nil,
+		Menus:     ToMenus(ctx, roleDo.GetMenus()),
 	}
 	role.WithContext(ctx)
 	return role

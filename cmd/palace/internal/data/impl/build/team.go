@@ -14,12 +14,8 @@ func ToTeam(ctx context.Context, teamDo do.Team) *system.Team {
 	if validate.IsNil(teamDo) {
 		return nil
 	}
-	team, ok := teamDo.(*system.Team)
-	if ok {
-		team.WithContext(ctx)
-		return team
-	}
-	team = &system.Team{
+
+	team := &system.Team{
 		CreatorModel:  ToCreatorModel(ctx, teamDo),
 		Name:          teamDo.GetName(),
 		Status:        teamDo.GetStatus(),
@@ -32,6 +28,7 @@ func ToTeam(ctx context.Context, teamDo do.Team) *system.Team {
 		Admins:        ToUsers(ctx, teamDo.GetAdmins()),
 		BizDBConfig:   crypto.NewObject(teamDo.GetBizDBConfig()),
 		AlarmDBConfig: crypto.NewObject(teamDo.GetAlarmDBConfig()),
+		Menus:         ToMenus(ctx, teamDo.GetMenus()),
 	}
 	team.WithContext(ctx)
 	return team
@@ -50,12 +47,7 @@ func ToTeamMember(ctx context.Context, memberDo do.TeamMember) *system.TeamMembe
 	if validate.IsNil(memberDo) {
 		return nil
 	}
-	member, ok := memberDo.(*system.TeamMember)
-	if ok {
-		member.WithContext(ctx)
-		return member
-	}
-	member = &system.TeamMember{
+	member := &system.TeamMember{
 		TeamModel:  ToTeamModel(ctx, memberDo),
 		MemberName: memberDo.GetMemberName(),
 		Remark:     memberDo.GetRemark(),

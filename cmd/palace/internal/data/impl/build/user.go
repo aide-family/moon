@@ -13,12 +13,7 @@ func ToUser(ctx context.Context, userDo do.User) *system.User {
 	if validate.IsNil(userDo) {
 		return nil
 	}
-	user, ok := userDo.(*system.User)
-	if ok {
-		user.WithContext(ctx)
-		return user
-	}
-	user = &system.User{
+	user := &system.User{
 		BaseModel: ToBaseModel(ctx, userDo),
 		Username:  userDo.GetUsername(),
 		Nickname:  userDo.GetNickname(),
@@ -31,6 +26,8 @@ func ToUser(ctx context.Context, userDo do.User) *system.User {
 		Status:    userDo.GetStatus(),
 		Roles:     ToRoles(ctx, userDo.GetRoles()),
 		Teams:     ToTeams(ctx, userDo.GetTeams()),
+		Password:  userDo.GetPassword(),
+		Salt:      userDo.GetSalt(),
 	}
 	user.WithContext(ctx)
 	return user

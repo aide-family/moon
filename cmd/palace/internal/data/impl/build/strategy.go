@@ -14,13 +14,7 @@ func ToStrategyGroup(ctx context.Context, strategyGroup do.StrategyGroup) *team.
 	if validate.IsNil(strategyGroup) {
 		return nil
 	}
-	strategyGroupDo, ok := strategyGroup.(*team.StrategyGroup)
-	if ok {
-		strategyGroupDo.WithContext(ctx)
-		strategyGroupDo.Strategies = ToStrategies(ctx, strategyGroup.GetStrategies())
-		return strategyGroupDo
-	}
-	strategyGroupDo = &team.StrategyGroup{
+	strategyGroupDo := &team.StrategyGroup{
 		Name:       strategyGroup.GetName(),
 		TeamModel:  ToTeamModel(ctx, strategyGroup),
 		Remark:     strategyGroup.GetRemark(),
@@ -35,14 +29,7 @@ func ToStrategy(ctx context.Context, params do.Strategy) *team.Strategy {
 	if validate.IsNil(params) {
 		return nil
 	}
-	strategy, ok := params.(*team.Strategy)
-	if ok {
-		strategy.StrategyGroup = ToStrategyGroup(ctx, params.GetStrategyGroup())
-		strategy.Notices = ToTeamNoticeGroups(ctx, params.GetNotices())
-		strategy.WithContext(ctx)
-		return strategy
-	}
-	strategy = &team.Strategy{
+	strategyDo := &team.Strategy{
 		StrategyGroupID: params.GetStrategyGroupID(),
 		Name:            params.GetName(),
 		Remark:          params.GetRemark(),
@@ -52,8 +39,8 @@ func ToStrategy(ctx context.Context, params do.Strategy) *team.Strategy {
 		TeamModel:       ToTeamModel(ctx, params),
 		StrategyGroup:   ToStrategyGroup(ctx, params.GetStrategyGroup()),
 	}
-	strategy.WithContext(ctx)
-	return strategy
+	strategyDo.WithContext(ctx)
+	return strategyDo
 }
 
 func ToStrategies(ctx context.Context, params []do.Strategy) []*team.Strategy {
@@ -70,14 +57,7 @@ func ToStrategyMetric(ctx context.Context, params do.StrategyMetric) *team.Strat
 	if validate.IsNil(params) {
 		return nil
 	}
-	if strategyMetric, ok := params.(*team.StrategyMetric); ok {
-		strategyMetric.WithContext(ctx)
-		strategyMetric.Strategy = ToStrategy(ctx, params.GetStrategy())
-		for i := range strategyMetric.Datasource {
-			strategyMetric.Datasource[i] = ToDatasourceMetric(ctx, strategyMetric.Datasource[i])
-		}
-		return strategyMetric
-	}
+
 	strategyMetricDo := &team.StrategyMetric{
 		StrategyID:          params.GetID(),
 		Expr:                params.GetExpr(),
@@ -105,10 +85,7 @@ func ToStrategyMetricRule(ctx context.Context, params do.StrategyMetricRule) *te
 	if validate.IsNil(params) {
 		return nil
 	}
-	if strategyMetricRule, ok := params.(*team.StrategyMetricRule); ok {
-		strategyMetricRule.WithContext(ctx)
-		return strategyMetricRule
-	}
+
 	strategyMetricRuleDo := &team.StrategyMetricRule{
 		TeamModel:        ToTeamModel(ctx, params),
 		StrategyMetricID: params.GetID(),
@@ -124,6 +101,7 @@ func ToStrategyMetricRule(ctx context.Context, params do.StrategyMetricRule) *te
 		Notices:          ToTeamNoticeGroups(ctx, params.GetNotices()),
 		LabelNotices:     ToStrategyMetricRuleLabelNotices(ctx, params.GetLabelNotices()),
 		AlarmPages:       ToDicts(ctx, params.GetAlarmPages()),
+		StrategyID:       params.GetStrategyID(),
 	}
 	strategyMetricRuleDo.WithContext(ctx)
 	return strategyMetricRuleDo

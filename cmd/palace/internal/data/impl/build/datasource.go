@@ -15,10 +15,6 @@ func ToDatasourceMetric(ctx context.Context, datasource do.DatasourceMetric) *te
 	if validate.IsNil(datasource) {
 		return nil
 	}
-	if datasource, ok := datasource.(*team.DatasourceMetric); ok {
-		datasource.WithContext(ctx)
-		return datasource
-	}
 	datasourceDo := &team.DatasourceMetric{
 		TeamModel:      ToTeamModel(ctx, datasource),
 		Name:           datasource.GetName(),

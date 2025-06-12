@@ -6,11 +6,15 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/team"
 	"github.com/aide-family/moon/pkg/util/slices"
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 func ToTimeEngineRules(ctx context.Context, rules []do.TimeEngineRule) []*team.TimeEngineRule {
-	return slices.Map(rules, func(v do.TimeEngineRule) *team.TimeEngineRule {
-		return ToTimeEngineRule(ctx, v)
+	return slices.MapFilter(rules, func(v do.TimeEngineRule) (*team.TimeEngineRule, bool) {
+		if validate.IsNil(v) {
+			return nil, false
+		}
+		return ToTimeEngineRule(ctx, v), true
 	})
 }
 
@@ -29,8 +33,11 @@ func ToTimeEngineRule(ctx context.Context, rule do.TimeEngineRule) *team.TimeEng
 }
 
 func ToTimeEngines(ctx context.Context, engines []do.TimeEngine) []*team.TimeEngine {
-	return slices.Map(engines, func(v do.TimeEngine) *team.TimeEngine {
-		return ToTimeEngine(ctx, v)
+	return slices.MapFilter(engines, func(v do.TimeEngine) (*team.TimeEngine, bool) {
+		if validate.IsNil(v) {
+			return nil, false
+		}
+		return ToTimeEngine(ctx, v), true
 	})
 }
 

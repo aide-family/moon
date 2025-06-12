@@ -14,21 +14,25 @@ func ToTeamNoticeGroup(ctx context.Context, route do.NoticeGroup) *team.NoticeGr
 	if validate.IsNil(route) {
 		return nil
 	}
-	if notice, ok := route.(*team.NoticeGroup); ok {
-		notice.WithContext(ctx)
-		return notice
-	}
 	group := &team.NoticeGroup{
 		Name:          route.GetName(),
 		Remark:        route.GetRemark(),
 		Status:        route.GetStatus(),
 		Members:       ToTeamNoticeMembers(ctx, route.GetNoticeMembers()),
 		Hooks:         ToStrategyHooks(ctx, route.GetHooks()),
-		EmailConfigID: route.GetEmailConfig().GetID(),
-		EmailConfig:   ToStrategyEmailConfig(ctx, route.GetEmailConfig()),
-		SMSConfigID:   route.GetSMSConfig().GetID(),
-		SMSConfig:     ToStrategySmsConfig(ctx, route.GetSMSConfig()),
+		EmailConfigID: 0,
+		EmailConfig:   nil,
+		SMSConfigID:   0,
+		SMSConfig:     nil,
 		TeamModel:     ToTeamModel(ctx, route),
+	}
+	if validate.IsNotNil(route.GetEmailConfig()) {
+		group.EmailConfigID = route.GetEmailConfig().GetID()
+		group.EmailConfig = ToStrategyEmailConfig(ctx, route.GetEmailConfig())
+	}
+	if validate.IsNotNil(route.GetSMSConfig()) {
+		group.SMSConfigID = route.GetSMSConfig().GetID()
+		group.SMSConfig = ToStrategySmsConfig(ctx, route.GetSMSConfig())
 	}
 	group.WithContext(ctx)
 	return group
@@ -50,12 +54,7 @@ func ToTeamNoticeHook(ctx context.Context, hook do.NoticeHook) *team.NoticeHook 
 	if validate.IsNil(hook) {
 		return nil
 	}
-	hookDo, ok := hook.(*team.NoticeHook)
-	if ok {
-		hookDo.WithContext(ctx)
-		return hookDo
-	}
-	hookDo = &team.NoticeHook{
+	hookDo := &team.NoticeHook{
 		TeamModel:    ToTeamModel(ctx, hook),
 		Name:         hook.GetName(),
 		Remark:       hook.GetRemark(),
@@ -84,10 +83,6 @@ func ToStrategyEmailConfig(ctx context.Context, config do.TeamEmailConfig) *team
 	if validate.IsNil(config) {
 		return nil
 	}
-	if config, ok := config.(*team.EmailConfig); ok {
-		config.WithContext(ctx)
-		return config
-	}
 
 	emailConfig := &team.EmailConfig{
 		TeamModel: ToTeamModel(ctx, config),
@@ -104,10 +99,6 @@ func ToStrategySmsConfig(ctx context.Context, config do.TeamSMSConfig) *team.Sms
 	if validate.IsNil(config) {
 		return nil
 	}
-	if config, ok := config.(*team.SmsConfig); ok {
-		config.WithContext(ctx)
-		return config
-	}
 	smsConfig := &team.SmsConfig{
 		TeamModel: ToTeamModel(ctx, config),
 		Name:      config.GetName(),
@@ -123,10 +114,6 @@ func ToStrategySmsConfig(ctx context.Context, config do.TeamSMSConfig) *team.Sms
 func ToStrategyMetricRuleLabelNotice(ctx context.Context, notice do.StrategyMetricRuleLabelNotice) *team.StrategyMetricRuleLabelNotice {
 	if validate.IsNil(notice) {
 		return nil
-	}
-	if notice, ok := notice.(*team.StrategyMetricRuleLabelNotice); ok {
-		notice.WithContext(ctx)
-		return notice
 	}
 	noticeDo := &team.StrategyMetricRuleLabelNotice{
 		TeamModel:            ToTeamModel(ctx, notice),

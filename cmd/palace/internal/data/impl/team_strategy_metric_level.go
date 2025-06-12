@@ -44,19 +44,7 @@ func (t *teamStrategyMetricLevelRepoImpl) DeleteByStrategyIds(ctx context.Contex
 
 // Create implements repository.TeamStrategyMetricLevel.
 func (t *teamStrategyMetricLevelRepoImpl) Create(ctx context.Context, params bo.CreateTeamMetricStrategyLevelParams) error {
-	labelNotices := slices.Map(params.GetLabelNotices(), func(item *bo.LabelNoticeParams) *team.StrategyMetricRuleLabelNotice {
-		labelNotice := &team.StrategyMetricRuleLabelNotice{
-			TeamModel:            do.TeamModel{},
-			StrategyMetricRuleID: 0,
-			LabelKey:             item.Key,
-			LabelValue:           item.Value,
-			Notices:              build.ToTeamNoticeGroups(ctx, item.GetNoticeGroupDos()),
-		}
-		labelNotice.WithContext(ctx)
-		return labelNotice
-	})
 	strategyMetricLevel := &team.StrategyMetricRule{
-		TeamModel:        do.TeamModel{},
 		StrategyMetricID: params.GetStrategyMetric().GetID(),
 		LevelID:          params.GetLevel().GetID(),
 		SampleMode:       params.GetSampleMode(),
@@ -66,13 +54,25 @@ func (t *teamStrategyMetricLevelRepoImpl) Create(ctx context.Context, params bo.
 		Duration:         params.GetDuration(),
 		Status:           vobj.GlobalStatusEnable,
 		Notices:          build.ToTeamNoticeGroups(ctx, params.GetNoticeGroupDos()),
-		LabelNotices:     labelNotices,
 		AlarmPages:       build.ToDicts(ctx, params.GetAlarmPages()),
 		StrategyID:       params.GetStrategyMetric().GetStrategyID(),
 	}
 	strategyMetricLevel.WithContext(ctx)
 	tx := getTeamBizQuery(ctx, t)
-	return tx.WithContext(ctx).StrategyMetricRule.Create(strategyMetricLevel)
+	if err := tx.WithContext(ctx).StrategyMetricRule.Create(strategyMetricLevel); err != nil {
+		return err
+	}
+	labelNotices := slices.Map(params.GetLabelNotices(), func(item *bo.LabelNoticeParams) *team.StrategyMetricRuleLabelNotice {
+		labelNotice := &team.StrategyMetricRuleLabelNotice{
+			StrategyMetricRuleID: strategyMetricLevel.ID,
+			LabelKey:             item.Key,
+			LabelValue:           item.Value,
+			Notices:              build.ToTeamNoticeGroups(ctx, item.GetNoticeGroupDos()),
+		}
+		labelNotice.WithContext(ctx)
+		return labelNotice
+	})
+	return tx.WithContext(ctx).StrategyMetricRuleLabelNotice.Create(labelNotices...)
 }
 
 // Delete implements repository.TeamStrategyMetricLevel.
