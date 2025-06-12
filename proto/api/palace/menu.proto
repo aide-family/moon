@@ -99,11 +99,7 @@ message SaveMenuRequest {
     expression: "this in ['MENU_CATEGORY_MENU', 'MENU_CATEGORY_BUTTON', 1, 2]"
   }];
   // Process type of the menu
-  api.palace.common.MenuProcessType processType = 10 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "SAVE_MENU_PROCESS_TYPE_VALIDATOR",
-    message: "processType must be one of the following: MENU_PROCESS_TYPE_LOGIN, MENU_PROCESS_TYPE_TEAM, MENU_PROCESS_TYPE_LOG, MENU_PROCESS_TYPE_DATA_PERMISSION"
-    expression: "this in ['MENU_PROCESS_TYPE_LOGIN', 'MENU_PROCESS_TYPE_TEAM', 'MENU_PROCESS_TYPE_LOG', 'MENU_PROCESS_TYPE_DATA_PERMISSION', 1, 2, 4, 8]"
-  }];
+  api.palace.common.MenuProcessType processType = 10;
   // Whether the menu is rely on brother
   bool isRelyOnBrother = 11;
 }
