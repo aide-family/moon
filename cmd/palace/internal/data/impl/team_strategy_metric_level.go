@@ -225,12 +225,33 @@ func (t *teamStrategyMetricLevelRepoImpl) Update(ctx context.Context, params bo.
 
 // UpdateStatus implements repository.TeamStrategyMetricLevel.
 func (t *teamStrategyMetricLevelRepoImpl) UpdateStatus(ctx context.Context, params *bo.UpdateTeamMetricStrategyLevelStatusParams) error {
+	if len(params.StrategyMetricLevelIds) == 0 {
+		return nil
+	}
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	ruleMutation := tx.StrategyMetricRule
 	wrapper := []gen.Condition{
-		ruleMutation.ID.Eq(params.StrategyMetricLevelID),
+		ruleMutation.ID.In(params.StrategyMetricLevelIds...),
 		ruleMutation.TeamID.Eq(teamId),
 	}
 	_, err := ruleMutation.WithContext(ctx).Where(wrapper...).UpdateSimple(ruleMutation.Status.Value(params.Status.GetValue()))
 	return err
+}
+
+func (t *teamStrategyMetricLevelRepoImpl) FindByIds(ctx context.Context, strategyMetricLevelIds []uint32) ([]do.StrategyMetricRule, error) {
+	if len(strategyMetricLevelIds) == 0 {
+		return nil, nil
+	}
+	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	wrapper := []gen.Condition{
+		tx.StrategyMetricRule.ID.In(strategyMetricLevelIds...),
+		tx.StrategyMetricRule.TeamID.Eq(teamId),
+	}
+	rows, err := tx.StrategyMetricRule.WithContext(ctx).Where(wrapper...).Preload(field.Associations).Find()
+	if err != nil {
+		return nil, err
+	}
+	return slices.Map(rows, func(item *team.StrategyMetricRule) do.StrategyMetricRule {
+		return item
+	}), nil
 }

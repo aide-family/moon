@@ -45,10 +45,13 @@ func (t *teamStrategyRepoImpl) DeleteByStrategyIds(ctx context.Context, strategy
 }
 
 // FindByStrategiesGroupId implements repository.TeamStrategy.
-func (t *teamStrategyRepoImpl) FindByStrategiesGroupId(ctx context.Context, strategyGroupId uint32) ([]do.Strategy, error) {
+func (t *teamStrategyRepoImpl) FindByStrategiesGroupIds(ctx context.Context, strategyGroupIds ...uint32) ([]do.Strategy, error) {
+	if len(strategyGroupIds) == 0 {
+		return nil, nil
+	}
 	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
 	query := tx.Strategy
-	wrapper := query.WithContext(ctx).Where(query.TeamID.Eq(teamId), query.StrategyGroupID.Eq(strategyGroupId))
+	wrapper := query.WithContext(ctx).Where(query.TeamID.Eq(teamId), query.StrategyGroupID.In(strategyGroupIds...))
 	rows, err := wrapper.Find()
 	if err != nil {
 		return nil, err

@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/util/safety"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 func NewTeamStrategyBiz(
@@ -45,11 +46,13 @@ type TeamStrategy struct {
 	helper                      *log.Helper
 }
 
-func (t *TeamStrategy) publishStrategyDataChangeEvent(ctx context.Context, ids ...uint32) {
-	if len(ids) == 0 {
+func (t *TeamStrategy) publishStrategyDataChangeEvent(ctx context.Context, strategyIds ...uint32) {
+	if len(strategyIds) == 0 {
 		return
 	}
-	teamID := permission.GetTeamIDByContextWithZeroValue(safety.CopyValueCtx(ctx))
+	strategyIds = slices.Unique(strategyIds)
+	ctx = safety.CopyValueCtx(ctx)
+	teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
 	go func(teamID uint32, ids ...uint32) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -57,7 +60,7 @@ func (t *TeamStrategy) publishStrategyDataChangeEvent(ctx context.Context, ids .
 			}
 		}()
 		t.eventBus.PublishDataChangeEvent(vobj.ChangedTypeMetricStrategy, teamID, ids...)
-	}(teamID, ids...)
+	}(teamID, strategyIds...)
 }
 
 func (t *TeamStrategy) SaveTeamStrategy(ctx context.Context, params *bo.SaveTeamStrategyParams) (err error) {

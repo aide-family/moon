@@ -3,10 +3,16 @@ package biz
 import (
 	"context"
 
+	"github.com/go-kratos/kratos/v2/log"
+
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/safety"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 func NewTeamStrategyMetricBiz(
@@ -17,6 +23,8 @@ func NewTeamStrategyMetricBiz(
 	noticeGroupRepo repository.TeamNotice,
 	datasourceRepo repository.TeamDatasourceMetric,
 	transaction repository.Transaction,
+	eventBus repository.EventBus,
+	logger log.Logger,
 ) *TeamStrategyMetric {
 	return &TeamStrategyMetric{
 		teamStrategyRepo:            teamStrategyRepo,
@@ -26,6 +34,8 @@ func NewTeamStrategyMetricBiz(
 		noticeGroupRepo:             noticeGroupRepo,
 		datasourceRepo:              datasourceRepo,
 		transaction:                 transaction,
+		eventBus:                    eventBus,
+		helper:                      log.NewHelper(log.With(logger, "module", "biz.team_strategy_metric")),
 	}
 }
 
@@ -37,9 +47,28 @@ type TeamStrategyMetric struct {
 	noticeGroupRepo             repository.TeamNotice
 	datasourceRepo              repository.TeamDatasourceMetric
 	transaction                 repository.Transaction
+	eventBus                    repository.EventBus
+	helper                      *log.Helper
+}
+
+func (t *TeamStrategyMetric) publishStrategyDataChangeEvent(ctx context.Context, strategyIds ...uint32) {
+	if len(strategyIds) == 0 {
+		return
+	}
+	strategyIds = slices.Unique(strategyIds)
+	teamID := permission.GetTeamIDByContextWithZeroValue(safety.CopyValueCtx(ctx))
+	go func(teamID uint32, ids ...uint32) {
+		defer func() {
+			if r := recover(); r != nil {
+				t.helper.Errorw("publishDataChangeEvent", "error", r)
+			}
+		}()
+		t.eventBus.PublishDataChangeEvent(vobj.ChangedTypeMetricStrategy, teamID, ids...)
+	}(teamID, strategyIds...)
 }
 
 func (t *TeamStrategyMetric) SaveTeamMetricStrategy(ctx context.Context, params *bo.SaveTeamMetricStrategyParams) error {
+	defer t.publishStrategyDataChangeEvent(ctx, params.StrategyID)
 	strategyDo, err := t.teamStrategyRepo.Get(ctx, params.StrategyID)
 	if err != nil {
 		return err
@@ -75,6 +104,7 @@ func (t *TeamStrategyMetric) SaveTeamMetricStrategyLevel(ctx context.Context, pa
 	if err != nil {
 		return err
 	}
+	defer t.publishStrategyDataChangeEvent(ctx, strategyMetricDo.GetStrategyID())
 	if strategyMetricDo.GetStrategy().GetStatus().IsEnable() {
 		return merr.ErrorBadRequest("strategy is enabled and cannot be modified")
 	}
@@ -124,10 +154,26 @@ func (t *TeamStrategyMetric) ListTeamMetricStrategyLevels(ctx context.Context, p
 }
 
 func (t *TeamStrategyMetric) UpdateTeamMetricStrategyLevelStatus(ctx context.Context, params *bo.UpdateTeamMetricStrategyLevelStatusParams) error {
+	strategyMetricLevelDos, err := t.teamStrategyMetricLevelRepo.FindByIds(ctx, params.StrategyMetricLevelIds)
+	if err != nil {
+		return err
+	}
+	strategyIds := slices.Map(strategyMetricLevelDos, func(item do.StrategyMetricRule) uint32 {
+		return item.GetStrategyID()
+	})
+	defer t.publishStrategyDataChangeEvent(ctx, strategyIds...)
 	return t.teamStrategyMetricLevelRepo.UpdateStatus(ctx, params)
 }
 
 func (t *TeamStrategyMetric) DeleteTeamMetricStrategyLevels(ctx context.Context, strategyMetricLevelIds []uint32) error {
+	strategyMetricLevelDos, err := t.teamStrategyMetricLevelRepo.FindByIds(ctx, strategyMetricLevelIds)
+	if err != nil {
+		return err
+	}
+	strategyIds := slices.Map(strategyMetricLevelDos, func(item do.StrategyMetricRule) uint32 {
+		return item.GetStrategyID()
+	})
+	defer t.publishStrategyDataChangeEvent(ctx, strategyIds...)
 	return t.teamStrategyMetricLevelRepo.Delete(ctx, strategyMetricLevelIds)
 }
 

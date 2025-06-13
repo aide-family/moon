@@ -81,8 +81,8 @@ func ToUpdateTeamMetricStrategyLevelStatusParams(request *palace.UpdateTeamMetri
 		panic("UpdateTeamMetricStrategyLevelStatusRequest is nil")
 	}
 	return &bo.UpdateTeamMetricStrategyLevelStatusParams{
-		StrategyMetricLevelID: request.GetStrategyMetricLevelId(),
-		Status:                vobj.GlobalStatus(request.GetStatus()),
+		StrategyMetricLevelIds: request.GetStrategyMetricLevelIds(),
+		Status:                 vobj.GlobalStatus(request.GetStatus()),
 	}
 }
 

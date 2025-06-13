@@ -3,9 +3,14 @@ package biz
 import (
 	"context"
 
+	"github.com/go-kratos/kratos/v2/log"
+
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
+	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/slices"
 )
 
@@ -15,6 +20,8 @@ func NewTeamStrategyGroupBiz(
 	teamStrategyMetricRepo repository.TeamStrategyMetric,
 	teamStrategyMetricLevelRepo repository.TeamStrategyMetricLevel,
 	transaction repository.Transaction,
+	eventBus repository.EventBus,
+	logger log.Logger,
 ) *TeamStrategyGroup {
 	return &TeamStrategyGroup{
 		teamStrategyGroupRepo:       teamStrategyGroupRepo,
@@ -22,6 +29,8 @@ func NewTeamStrategyGroupBiz(
 		teamStrategyMetricRepo:      teamStrategyMetricRepo,
 		teamStrategyMetricLevelRepo: teamStrategyMetricLevelRepo,
 		transaction:                 transaction,
+		eventBus:                    eventBus,
+		helper:                      log.NewHelper(log.With(logger, "module", "biz.team_strategy_group")),
 	}
 }
 
@@ -31,6 +40,36 @@ type TeamStrategyGroup struct {
 	teamStrategyMetricRepo      repository.TeamStrategyMetric
 	teamStrategyMetricLevelRepo repository.TeamStrategyMetricLevel
 	transaction                 repository.Transaction
+	eventBus                    repository.EventBus
+	helper                      *log.Helper
+}
+
+func (t *TeamStrategyGroup) publishStrategyDataChangeEvent(ctx context.Context, groupIds ...uint32) {
+	if len(groupIds) == 0 {
+		return
+	}
+	groupIds = slices.Unique(groupIds)
+	ctx = safety.CopyValueCtx(ctx)
+	teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
+	go func(teamID uint32, groupIds ...uint32) {
+		defer func() {
+			if r := recover(); r != nil {
+				t.helper.Errorw("publishDataChangeEvent", "error", r)
+			}
+		}()
+		// query strategy ids by group ids
+		strategyDos, err := t.teamStrategyRepo.FindByStrategiesGroupIds(ctx, groupIds...)
+		if err != nil {
+			return
+		}
+		strategyIds := slices.Map(strategyDos, func(item do.Strategy) uint32 {
+			return item.GetID()
+		})
+		strategyIds = slices.Unique(strategyIds)
+		if len(strategyIds) > 0 {
+			t.eventBus.PublishDataChangeEvent(vobj.ChangedTypeMetricStrategy, teamID, strategyIds...)
+		}
+	}(teamID, groupIds...)
 }
 
 func (t *TeamStrategyGroup) SaveTeamStrategyGroup(ctx context.Context, params *bo.SaveTeamStrategyGroupParams) error {
@@ -41,11 +80,13 @@ func (t *TeamStrategyGroup) SaveTeamStrategyGroup(ctx context.Context, params *b
 }
 
 func (t *TeamStrategyGroup) UpdateTeamStrategyGroupStatus(ctx context.Context, params *bo.UpdateTeamStrategyGroupStatusParams) error {
+	defer t.publishStrategyDataChangeEvent(ctx, params.ID)
 	return t.teamStrategyGroupRepo.UpdateStatus(ctx, params)
 }
 
 func (t *TeamStrategyGroup) DeleteTeamStrategyGroup(ctx context.Context, id uint32) error {
-	strategyDo, err := t.teamStrategyRepo.FindByStrategiesGroupId(ctx, id)
+	defer t.publishStrategyDataChangeEvent(ctx, id)
+	strategyDo, err := t.teamStrategyRepo.FindByStrategiesGroupIds(ctx, id)
 	if err != nil {
 		return err
 	}

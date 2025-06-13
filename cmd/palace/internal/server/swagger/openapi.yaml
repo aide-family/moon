@@ -5048,10 +5048,12 @@ components:
         api.palace.UpdateTeamMetricStrategyLevelStatusRequest:
             type: object
             properties:
-                strategyMetricLevelId:
-                    type: integer
+                strategyMetricLevelIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
                     description: Strategy metric level id
-                    format: uint32
                 status:
                     type: integer
                     description: Status

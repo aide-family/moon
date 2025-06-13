@@ -18,7 +18,7 @@ type TeamStrategy interface {
 	SubscribeList(ctx context.Context, params *bo.SubscribeTeamStrategiesParams) (*bo.SubscribeTeamStrategiesReply, error)
 	Get(ctx context.Context, strategyId uint32) (do.Strategy, error)
 	GetByName(ctx context.Context, name string) (do.Strategy, error)
-	FindByStrategiesGroupId(ctx context.Context, strategyGroupId uint32) ([]do.Strategy, error)
+	FindByStrategiesGroupIds(ctx context.Context, strategyGroupIds ...uint32) ([]do.Strategy, error)
 	DeleteByStrategyIds(ctx context.Context, strategyIds ...uint32) error
 }
 
@@ -40,4 +40,5 @@ type TeamStrategyMetricLevel interface {
 	List(ctx context.Context, params *bo.ListTeamMetricStrategyLevelsParams) (*bo.ListTeamMetricStrategyLevelsReply, error)
 	UpdateStatus(ctx context.Context, params *bo.UpdateTeamMetricStrategyLevelStatusParams) error
 	Get(ctx context.Context, strategyMetricLevelId uint32) (do.StrategyMetricRule, error)
+	FindByIds(ctx context.Context, strategyMetricLevelIds []uint32) ([]do.StrategyMetricRule, error)
 }

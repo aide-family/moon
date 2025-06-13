@@ -230,6 +230,6 @@ func (l *ListTeamMetricStrategyLevelsParams) ToListReply(items []do.StrategyMetr
 type ListTeamMetricStrategyLevelsReply = ListReply[do.StrategyMetricRule]
 
 type UpdateTeamMetricStrategyLevelStatusParams struct {
-	StrategyMetricLevelID uint32
-	Status                vobj.GlobalStatus
+	StrategyMetricLevelIds []uint32
+	Status                 vobj.GlobalStatus
 }
