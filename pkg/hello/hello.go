@@ -8,9 +8,7 @@ import (
 
 const (
 	github = "https://github.com/aide-family/moon"
-)
-
-const logo = `
+	logo   = `
 ┌───────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                       │
 │                        ███╗   ███╗ ██████╗  ██████╗ ███╗   ██╗                        │
@@ -20,39 +18,62 @@ const logo = `
 │                        ██║ ╚═╝ ██║╚██████╔╝╚██████╔╝██║ ╚████║                        │
 │                        ╚═╝     ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝                        │
 │                                  good luck and no bug                                 │`
+	upLine   = `┌───────────────────────────────────────────────────────────────────────────────────────┐`
+	downLine = `└───────────────────────────────────────────────────────────────────────────────────────┘`
+)
+
+var lineLen = utf8.RuneCount([]byte(upLine))
+
+// formatLine 格式化一行内容，确保长度正确并添加右侧边框
+func formatLine(prefix, content string) string {
+	spaces := lineLen - utf8.RuneCount([]byte(prefix)) - utf8.RuneCount([]byte(content)) - 1
+	return prefix + content + strings.Repeat(" ", spaces) + "│"
+}
+
+// formatMetadataLine 格式化metadata行，确保正确对齐
+func formatMetadataLine(prefix, key, value string) string {
+	content := prefix + key + ": " + value
+	spaces := lineLen - utf8.RuneCount([]byte(content)) - 1
+	return content + strings.Repeat(" ", spaces) + "│"
+}
 
 // Hello print logo and system info
 func Hello() {
 	fmt.Println(env.Name() + " service starting...")
-
 	fmt.Println(logo)
 
-	line := `┌───────────────────────────────────────────────────────────────────────────────────────┐`
-	lineLen := utf8.RuneCount([]byte(line))
-	detail := ""
-	name := fmt.Sprintf("├── Name:    %s", env.Name())
-	detail += name + strings.Repeat(" ", lineLen-1-utf8.RuneCount([]byte(name))) + "│"
-	version := fmt.Sprintf("\n├── Version: %s", env.Version())
-	detail += version + strings.Repeat(" ", lineLen-utf8.RuneCount([]byte(version))) + "│"
-	id := fmt.Sprintf("\n├── ID:      %s", env.ID())
-	detail += id + strings.Repeat(" ", lineLen-utf8.RuneCount([]byte(id))) + "│"
-	_env := fmt.Sprintf("\n├── Env:     %s", env.Env())
-	detail += _env + strings.Repeat(" ", lineLen-utf8.RuneCount([]byte(_env))) + "│"
-	_github := fmt.Sprintf("\n├── Github:  %s", github)
-	detail += _github + strings.Repeat(" ", lineLen-utf8.RuneCount([]byte(_github))) + "│"
-	_metadata := fmt.Sprintf("\n├── Metadata: %s", strings.Repeat(" ", lineLen-utf8.RuneCount([]byte("\n├── Metadata: ")))) + "│"
-	index := 1
-	for k, v := range env.Metadata() {
-		if index == len(env.Metadata()) {
-			_metadata += fmt.Sprintf("\n│   └── %s: %s", k, v) + strings.Repeat(" ", lineLen-utf8.RuneCount([]byte(fmt.Sprintf("\n│   └── %s: %s", k, v)))) + "│"
-		} else {
-			_metadata += fmt.Sprintf("\n│   ├── %s: %s", k, v) + strings.Repeat(" ", lineLen-utf8.RuneCount([]byte(fmt.Sprintf("\n│   ├── %s: %s", k, v)))) + "│"
-		}
-		index++
-	}
-	detail += _metadata
-	detail += `
-└───────────────────────────────────────────────────────────────────────────────────────┘`
+	var detail strings.Builder
 
-	fmt.Println(detail)
+	// 添加基本信息行
+	details := []struct {
+		prefix string
+		value  string
+	}{
+		{"├── Name:    ", env.Name()},
+		{"├── Version: ", env.Version()},
+		{"├── ID:      ", env.ID()},
+		{"├── Env:     ", env.Env()},
+		{"├── Github:  ", github},
+	}
+
+	for _, d := range details {
+		detail.WriteString(formatLine(d.prefix, d.value) + "\n")
+	}
+
+	// 添加Metadata部分
+	detail.WriteString(formatLine("├── Metadata: ", "") + "\n")
+	meta := env.Metadata()
+	lastIndex := len(meta)
+	i := 1
+	for k, v := range meta {
+		prefix := "│   ├──"
+		if i == lastIndex {
+			prefix = "│   └──"
+		}
+		detail.WriteString(formatMetadataLine(prefix+" ", k, v) + "\n")
+		i++
+	}
+
+	detail.WriteString(downLine)
+	fmt.Println(detail.String())
 }
