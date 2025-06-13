@@ -2,8 +2,7 @@ environment: ${X_MOON_ENVIRONMENT:DEV}
 
 server:
   name: ${X_MOON_SERVER_NAME:palace}
-  metadata:
-    summary: ${X_MOON_SUMMARY}
+  metadata: ${X_MOON_SERVER_METADATA}
   http:
     network: ${X_MOON_HTTP_NETWORK:tcp}
     addr: ${X_MOON_HTTP_ADDR:0.0.0.0:8000}

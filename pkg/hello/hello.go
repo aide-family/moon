@@ -40,6 +40,17 @@ func Hello() {
 	detail += _env + strings.Repeat(" ", lineLen-utf8.RuneCount([]byte(_env))) + "│"
 	_github := fmt.Sprintf("\n├── Github:  %s", github)
 	detail += _github + strings.Repeat(" ", lineLen-utf8.RuneCount([]byte(_github))) + "│"
+	_metadata := fmt.Sprintf("\n├── Metadata: %s", strings.Repeat(" ", lineLen-utf8.RuneCount([]byte("\n├── Metadata: ")))) + "│"
+	index := 1
+	for k, v := range env.Metadata() {
+		if index == len(env.Metadata()) {
+			_metadata += fmt.Sprintf("\n│   └── %s: %s", k, v) + strings.Repeat(" ", lineLen-utf8.RuneCount([]byte(fmt.Sprintf("\n│   └── %s: %s", k, v)))) + "│"
+		} else {
+			_metadata += fmt.Sprintf("\n│   ├── %s: %s", k, v) + strings.Repeat(" ", lineLen-utf8.RuneCount([]byte(fmt.Sprintf("\n│   ├── %s: %s", k, v)))) + "│"
+		}
+		index++
+	}
+	detail += _metadata
 	detail += `
 └───────────────────────────────────────────────────────────────────────────────────────┘`
 
