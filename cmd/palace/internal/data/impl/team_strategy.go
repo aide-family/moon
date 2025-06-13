@@ -80,7 +80,7 @@ func (t *teamStrategyRepoImpl) NameExists(ctx context.Context, name string, stra
 }
 
 // Create implements repository.TeamStrategy.
-func (t *teamStrategyRepoImpl) Create(ctx context.Context, params bo.CreateTeamStrategyParams) error {
+func (t *teamStrategyRepoImpl) Create(ctx context.Context, params bo.CreateTeamStrategyParams) (uint32, error) {
 	strategyDo := &team.Strategy{
 		StrategyGroupID: params.GetStrategyGroup().GetID(),
 		Name:            params.GetName(),
@@ -91,16 +91,16 @@ func (t *teamStrategyRepoImpl) Create(ctx context.Context, params bo.CreateTeamS
 	strategyDo.WithContext(ctx)
 	tx := getTeamBizQuery(ctx, t)
 	if err := tx.Strategy.WithContext(ctx).Create(strategyDo); err != nil {
-		return err
+		return 0, err
 	}
 	notices := build.ToTeamNoticeGroups(ctx, params.GetReceiverRoutes())
 	if len(notices) > 0 {
 		notice := tx.Strategy.Notices.WithContext(ctx).Model(strategyDo)
 		if err := notice.Append(notices...); err != nil {
-			return err
+			return 0, err
 		}
 	}
-	return nil
+	return strategyDo.ID, nil
 }
 
 // Delete implements repository.TeamStrategy.

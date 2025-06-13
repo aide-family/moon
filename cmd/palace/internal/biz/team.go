@@ -14,6 +14,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
+	"github.com/aide-family/moon/pkg/util/safety"
 )
 
 func NewTeamBiz(
@@ -77,6 +78,36 @@ type Team struct {
 	inviteRepo          repository.Invite
 	transaction         repository.Transaction
 	eventBus            repository.EventBus
+}
+
+func (t *Team) publishNoticeEmailConfigDataChangeEvent(ctx context.Context, ids ...uint32) {
+	if len(ids) == 0 {
+		return
+	}
+	teamID := permission.GetTeamIDByContextWithZeroValue(safety.CopyValueCtx(ctx))
+	go func(teamID uint32, ids ...uint32) {
+		defer func() {
+			if r := recover(); r != nil {
+				t.helper.Errorw("publishDataChangeEvent", "error", r)
+			}
+		}()
+		t.eventBus.PublishDataChangeEvent(vobj.ChangedTypeNoticeEmailConfig, teamID, ids...)
+	}(teamID, ids...)
+}
+
+func (t *Team) publishNoticeSMSConfigDataChangeEvent(ctx context.Context, ids ...uint32) {
+	if len(ids) == 0 {
+		return
+	}
+	teamID := permission.GetTeamIDByContextWithZeroValue(safety.CopyValueCtx(ctx))
+	go func(teamID uint32, ids ...uint32) {
+		defer func() {
+			if r := recover(); r != nil {
+				t.helper.Errorw("publishDataChangeEvent", "error", r)
+			}
+		}()
+		t.eventBus.PublishDataChangeEvent(vobj.ChangedTypeNoticeSMSConfig, teamID, ids...)
+	}(teamID, ids...)
 }
 
 func (t *Team) getTeam(ctx context.Context, id uint32) do.Team {
@@ -193,10 +224,7 @@ func (t *Team) SaveEmailConfig(ctx context.Context, req *bo.SaveEmailConfigReque
 		return err
 	}
 	emailConfigID := req.ID
-	defer func(id uint32) {
-		teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
-		t.eventBus.PublishDataChangeEvent(vobj.ChangedTypeNoticeEmailConfig, teamID, id)
-	}(emailConfigID)
+	defer t.publishNoticeEmailConfigDataChangeEvent(ctx, emailConfigID)
 	return t.transaction.BizExec(ctx, func(ctx context.Context) error {
 		if req.ID <= 0 {
 			emailConfigID, err = t.teamEmailConfigRepo.Create(ctx, req)
@@ -233,10 +261,7 @@ func (t *Team) SaveSMSConfig(ctx context.Context, req *bo.SaveSMSConfigRequest) 
 		return err
 	}
 	smsConfigID := req.ID
-	defer func(id uint32) {
-		teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
-		t.eventBus.PublishDataChangeEvent(vobj.ChangedTypeNoticeSMSConfig, teamID, id)
-	}(smsConfigID)
+	defer t.publishNoticeSMSConfigDataChangeEvent(ctx, smsConfigID)
 	return t.transaction.BizExec(ctx, func(ctx context.Context) error {
 		if req.ID <= 0 {
 			smsConfigID, err = t.teamSMSConfigRepo.Create(ctx, req)

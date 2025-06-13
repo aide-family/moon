@@ -9,7 +9,7 @@ import (
 
 type TeamStrategy interface {
 	NameExists(ctx context.Context, name string, strategyId uint32) error
-	Create(ctx context.Context, params bo.CreateTeamStrategyParams) error
+	Create(ctx context.Context, params bo.CreateTeamStrategyParams) (uint32, error)
 	Update(ctx context.Context, params bo.UpdateTeamStrategyParams) error
 	Delete(ctx context.Context, strategyId uint32) error
 	UpdateStatus(ctx context.Context, params *bo.UpdateTeamStrategiesStatusParams) error

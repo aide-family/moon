@@ -3,8 +3,13 @@ package biz
 import (
 	"context"
 
+	"github.com/go-kratos/kratos/v2/log"
+
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
+	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
+	"github.com/aide-family/moon/pkg/util/safety"
 )
 
 func NewTeamStrategyBiz(
@@ -14,6 +19,8 @@ func NewTeamStrategyBiz(
 	teamStrategyMetricRepo repository.TeamStrategyMetric,
 	teamStrategyMetricLevelRepo repository.TeamStrategyMetricLevel,
 	transactionRepo repository.Transaction,
+	eventBus repository.EventBus,
+	logger log.Logger,
 ) *TeamStrategy {
 	return &TeamStrategy{
 		teamStrategyGroupRepo:       teamStrategyGroupRepo,
@@ -22,6 +29,8 @@ func NewTeamStrategyBiz(
 		teamStrategyMetricRepo:      teamStrategyMetricRepo,
 		teamStrategyMetricLevelRepo: teamStrategyMetricLevelRepo,
 		transactionRepo:             transactionRepo,
+		eventBus:                    eventBus,
+		helper:                      log.NewHelper(log.With(logger, "module", "biz.team_strategy")),
 	}
 }
 
@@ -32,9 +41,26 @@ type TeamStrategy struct {
 	teamStrategyMetricLevelRepo repository.TeamStrategyMetricLevel
 	teamNoticeRepo              repository.TeamNotice
 	transactionRepo             repository.Transaction
+	eventBus                    repository.EventBus
+	helper                      *log.Helper
 }
 
-func (t *TeamStrategy) SaveTeamStrategy(ctx context.Context, params *bo.SaveTeamStrategyParams) error {
+func (t *TeamStrategy) publishStrategyDataChangeEvent(ctx context.Context, ids ...uint32) {
+	if len(ids) == 0 {
+		return
+	}
+	teamID := permission.GetTeamIDByContextWithZeroValue(safety.CopyValueCtx(ctx))
+	go func(teamID uint32, ids ...uint32) {
+		defer func() {
+			if r := recover(); r != nil {
+				t.helper.Errorw("publishDataChangeEvent", "error", r)
+			}
+		}()
+		t.eventBus.PublishDataChangeEvent(vobj.ChangedTypeMetricStrategy, teamID, ids...)
+	}(teamID, ids...)
+}
+
+func (t *TeamStrategy) SaveTeamStrategy(ctx context.Context, params *bo.SaveTeamStrategyParams) (err error) {
 	if err := t.teamStrategyRepo.NameExists(ctx, params.Name, params.ID); err != nil {
 		return err
 	}
@@ -50,12 +76,15 @@ func (t *TeamStrategy) SaveTeamStrategy(ctx context.Context, params *bo.SaveTeam
 	params.WithStrategyGroup(strategyGroup)
 	params.WithReceiverRoutes(receiverRoutes)
 
+	strategyID := params.ID
+	defer t.publishStrategyDataChangeEvent(ctx, strategyID)
 	return t.transactionRepo.BizExec(ctx, func(ctx context.Context) error {
 		if params.ID <= 0 {
 			if err := params.Validate(); err != nil {
 				return err
 			}
-			return t.teamStrategyRepo.Create(ctx, params)
+			strategyID, err = t.teamStrategyRepo.Create(ctx, params)
+			return err
 		}
 		strategyDo, err := t.teamStrategyRepo.Get(ctx, params.ID)
 		if err != nil {
@@ -71,6 +100,7 @@ func (t *TeamStrategy) SaveTeamStrategy(ctx context.Context, params *bo.SaveTeam
 }
 
 func (t *TeamStrategy) DeleteTeamStrategy(ctx context.Context, strategyId uint32) error {
+	defer t.publishStrategyDataChangeEvent(ctx, strategyId)
 	return t.transactionRepo.BizExec(ctx, func(ctx context.Context) error {
 		if err := t.teamStrategyRepo.Delete(ctx, strategyId); err != nil {
 			return err
@@ -86,6 +116,7 @@ func (t *TeamStrategy) DeleteTeamStrategy(ctx context.Context, strategyId uint32
 }
 
 func (t *TeamStrategy) UpdateTeamStrategiesStatus(ctx context.Context, params *bo.UpdateTeamStrategiesStatusParams) error {
+	defer t.publishStrategyDataChangeEvent(ctx, params.StrategyIds...)
 	return t.teamStrategyRepo.UpdateStatus(ctx, params)
 }
 
