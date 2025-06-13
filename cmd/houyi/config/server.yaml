@@ -3,7 +3,7 @@ environment: ${X_MOON_HOUYI_ENVIRONMENT:DEV}
 server:
   name: ${X_MOON_HOUYI_SERVER_NAME:houyi}
   metadata:
-    summary: ${X_MOON_HOUYI_SERVER_SUMMARY:houyi}
+    summary: 'Enterprise-Grade Observability for Cloud-Native Ecosystems'
   teamIds: ${X_MOON_HOUYI_SERVER_TEAM_IDS:[]}
   outEndpoint: ${X_MOON_HOUYI_SERVER_OUT_ENDPOINT:localhost:9000}
   onlineInterval: ${X_MOON_HOUYI_SERVER_ONLINE_INTERVAL:50s}

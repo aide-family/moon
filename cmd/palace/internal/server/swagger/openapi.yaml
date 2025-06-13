@@ -321,6 +321,13 @@ paths:
                 - Menu
             description: GetMenuTree returns the menu tree
             operationId: Menu_GetMenuTree
+            parameters:
+                - name: menuCategory
+                  in: query
+                  description: menu category
+                  schema:
+                    type: integer
+                    format: enum
             responses:
                 "200":
                     description: OK
@@ -1421,6 +1428,13 @@ paths:
                 - Menu
             description: GetTeamMenuTree returns the menu tree
             operationId: Menu_GetTeamMenuTree
+            parameters:
+                - name: menuCategory
+                  in: query
+                  description: menu category
+                  schema:
+                    type: integer
+                    format: enum
             responses:
                 "200":
                     description: OK

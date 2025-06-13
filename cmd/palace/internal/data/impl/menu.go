@@ -136,3 +136,26 @@ func (m *menuRepoImpl) ExistByName(ctx context.Context, name string, menuID uint
 	}
 	return merr.ErrorExist("menu name already exists")
 }
+
+func (m *menuRepoImpl) FindMenus(ctx context.Context, params *bo.GetMenuTreeParams) ([]do.Menu, error) {
+	mainQuery := getMainQuery(ctx, m)
+	menu := mainQuery.Menu
+	wrappers := []gen.Condition{
+		menu.Status.Eq(vobj.GlobalStatusEnable.GetValue()),
+	}
+	if category := params.MenuCategory.GetValue(); category != 0 {
+		wrappers = append(wrappers, menu.MenuCategory.Eq(category))
+	}
+	menuTypes := slices.MapFilter(params.MenuTypes, func(menuType vobj.MenuType) (int8, bool) {
+		value := menuType.GetValue()
+		return int8(value), value != 0
+	})
+	if len(menuTypes) > 0 {
+		wrappers = append(wrappers, menu.MenuType.In(menuTypes...))
+	}
+	menuDos, err := menu.WithContext(ctx).Where(wrappers...).Find()
+	if err != nil {
+		return nil, err
+	}
+	return slices.Map(menuDos, func(menu *system.Menu) do.Menu { return menu }), nil
+}

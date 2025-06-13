@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/service/build"
 	api "github.com/aide-family/moon/pkg/api/palace"
 	palacecommon "github.com/aide-family/moon/pkg/api/palace/common"
@@ -39,8 +41,12 @@ func (s *MenuService) GetMenu(ctx context.Context, req *api.GetMenuRequest) (*pa
 	return build.ToMenuTreeItem(menu), nil
 }
 
-func (s *MenuService) GetMenuTree(ctx context.Context, req *palacecommon.EmptyRequest) (*api.GetMenuTreeReply, error) {
-	menus, err := s.menuBiz.SystemMenus(ctx)
+func (s *MenuService) GetMenuTree(ctx context.Context, req *api.GetMenuTreeRequest) (*api.GetMenuTreeReply, error) {
+	params := &bo.GetMenuTreeParams{
+		MenuCategory: vobj.MenuCategory(req.GetMenuCategory()),
+		MenuTypes:    []vobj.MenuType{vobj.MenuTypeMenuSystem, vobj.MenuTypeMenuUser},
+	}
+	menus, err := s.menuBiz.Menus(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +55,12 @@ func (s *MenuService) GetMenuTree(ctx context.Context, req *palacecommon.EmptyRe
 	}, nil
 }
 
-func (s *MenuService) GetTeamMenuTree(ctx context.Context, req *palacecommon.EmptyRequest) (*api.GetMenuTreeReply, error) {
-	menus, err := s.menuBiz.TeamMenus(ctx)
+func (s *MenuService) GetTeamMenuTree(ctx context.Context, req *api.GetMenuTreeRequest) (*api.GetMenuTreeReply, error) {
+	params := &bo.GetMenuTreeParams{
+		MenuCategory: vobj.MenuCategory(req.GetMenuCategory()),
+		MenuTypes:    []vobj.MenuType{vobj.MenuTypeMenuTeam},
+	}
+	menus, err := s.menuBiz.Menus(ctx, params)
 	if err != nil {
 		return nil, err
 	}

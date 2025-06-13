@@ -22,19 +22,19 @@ const (
 	downLine = `└───────────────────────────────────────────────────────────────────────────────────────┘`
 )
 
-var lineLen = utf8.RuneCount([]byte(upLine))
+var lineLen = utf8.RuneCountInString(upLine)
 
 // formatLine 格式化一行内容，确保长度正确并添加右侧边框
 func formatLine(prefix, content string) string {
-	spaces := lineLen - utf8.RuneCount([]byte(prefix)) - utf8.RuneCount([]byte(content)) - 1
+	spaces := lineLen - utf8.RuneCountInString(prefix) - utf8.RuneCountInString(content) - 1
 	return prefix + content + strings.Repeat(" ", spaces) + "│"
 }
 
 // formatMetadataLine 格式化metadata行，确保正确对齐
 func formatMetadataLine(prefix, key, value string) string {
-	content := prefix + key + ": " + value
-	spaces := lineLen - utf8.RuneCount([]byte(content)) - 1
-	return content + strings.Repeat(" ", spaces) + "│"
+	content := key + ": " + value
+	spaces := lineLen - utf8.RuneCountInString(prefix) - utf8.RuneCountInString(content) - 1
+	return prefix + content + strings.Repeat(" ", spaces) + "│"
 }
 
 // Hello print logo and system info

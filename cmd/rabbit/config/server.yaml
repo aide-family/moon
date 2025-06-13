@@ -3,7 +3,7 @@ environment: ${X_MOON_RABBIT_ENVIRONMENT:DEV}
 server:
   name: ${X_MOON_RABBIT_SERVER_NAME:rabbit}
   metadata:
-    summary: ${X_MOON_RABBIT_SERVER_SUMMARY:rabbit}
+    summary: 'Enterprise-Grade Observability for Cloud-Native Ecosystems'
   teamIds: ${X_MOON_RABBIT_SERVER_TEAM_IDS:[]}
   outEndpoint: ${X_MOON_RABBIT_SERVER_OUT_ENDPOINT:127.0.0.1:9000}
   onlineInterval: ${X_MOON_RABBIT_SERVER_ONLINE_INTERVAL:60s}

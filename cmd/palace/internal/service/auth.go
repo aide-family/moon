@@ -20,6 +20,7 @@ import (
 	"github.com/aide-family/moon/pkg/api/palace"
 	"github.com/aide-family/moon/pkg/api/palace/common"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/strutil"
 )
 
@@ -215,6 +216,9 @@ func (s *AuthService) GetSelfMenuTree(ctx context.Context, _ *common.EmptyReques
 	if err != nil {
 		return nil, err
 	}
+	menus = slices.MapFilter(menus, func(menu do.Menu) (do.Menu, bool) {
+		return menu, menu.GetMenuCategory().IsMenu()
+	})
 	return &palace.GetSelfMenuTreeReply{
 		Items: build.ToMenuTree(menus),
 	}, nil

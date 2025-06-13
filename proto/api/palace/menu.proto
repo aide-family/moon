@@ -28,14 +28,14 @@ service Menu {
   }
 
   // GetMenuTree returns the menu tree
-  rpc GetMenuTree (api.palace.common.EmptyRequest) returns (GetMenuTreeReply) {
+  rpc GetMenuTree (GetMenuTreeRequest) returns (GetMenuTreeReply) {
     option (google.api.http) = {
       get: "/api/menu/tree"
     };
   }
 
   // GetTeamMenuTree returns the menu tree
-  rpc GetTeamMenuTree (api.palace.common.EmptyRequest) returns (GetMenuTreeReply) {
+  rpc GetTeamMenuTree (GetMenuTreeRequest) returns (GetMenuTreeReply) {
     option (google.api.http) = {
       get: "/api/team/menu/tree"
     };
@@ -50,6 +50,12 @@ message GetMenuRequest {
     message: "must select a menu"
     expression: "this > 0"
   }];
+}
+
+// GetMenuTreeRequest represents the request data for retrieving the menu tree
+message GetMenuTreeRequest {
+  // menu category
+  api.palace.common.MenuCategory menuCategory = 1;
 }
 
 // GetMenuTreeReply contains the response data for retrieving the menu tree

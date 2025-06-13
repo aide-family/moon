@@ -17,3 +17,8 @@ type SaveMenuRequest struct {
 	ParentID      uint32
 	RelyOnBrother bool
 }
+
+type GetMenuTreeParams struct {
+	MenuCategory vobj.MenuCategory
+	MenuTypes    []vobj.MenuType
+}

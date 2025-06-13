@@ -87,12 +87,8 @@ func (m *Menu) SelfMenus(ctx context.Context) ([]do.Menu, error) {
 	return menus, nil
 }
 
-func (m *Menu) TeamMenus(ctx context.Context) ([]do.Menu, error) {
-	return m.menuRepo.FindMenusByType(ctx, vobj.MenuTypeMenuTeam)
-}
-
-func (m *Menu) SystemMenus(ctx context.Context) ([]do.Menu, error) {
-	return m.menuRepo.FindMenusByType(ctx, vobj.MenuTypeMenuSystem)
+func (m *Menu) Menus(ctx context.Context, params *bo.GetMenuTreeParams) ([]do.Menu, error) {
+	return m.menuRepo.FindMenus(ctx, params)
 }
 
 func (m *Menu) GetMenuByOperation(ctx context.Context, operation string) (do.Menu, error) {
