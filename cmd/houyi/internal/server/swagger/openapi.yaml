@@ -396,8 +396,9 @@ components:
         api.houyi.common.CertificateStrategyItem:
             type: object
             properties:
-                team:
-                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                teamId:
+                    type: integer
+                    format: uint32
                 datasource:
                     type: array
                     items:
@@ -444,8 +445,9 @@ components:
         api.houyi.common.EventDatasourceItem:
             type: object
             properties:
-                team:
-                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                teamId:
+                    type: integer
+                    format: uint32
                 driver:
                     type: integer
                     format: enum
@@ -508,8 +510,9 @@ components:
         api.houyi.common.EventStrategyItem:
             type: object
             properties:
-                team:
-                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                teamId:
+                    type: integer
+                    format: uint32
                 datasource:
                     type: array
                     items:
@@ -602,8 +605,9 @@ components:
         api.houyi.common.HttpStrategyItem:
             type: object
             properties:
-                team:
-                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                teamId:
+                    type: integer
+                    format: uint32
                 datasource:
                     type: array
                     items:
@@ -667,8 +671,9 @@ components:
         api.houyi.common.LogDatasourceItem:
             type: object
             properties:
-                team:
-                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                teamId:
+                    type: integer
+                    format: uint32
                 driver:
                     type: integer
                     format: enum
@@ -725,8 +730,9 @@ components:
         api.houyi.common.LogsStrategyItem:
             type: object
             properties:
-                team:
-                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                teamId:
+                    type: integer
+                    format: uint32
                 datasource:
                     type: array
                     items:
@@ -783,8 +789,9 @@ components:
         api.houyi.common.MetricDatasourceItem:
             type: object
             properties:
-                team:
-                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                teamId:
+                    type: integer
+                    format: uint32
                 driver:
                     type: integer
                     format: enum
@@ -821,8 +828,9 @@ components:
         api.houyi.common.MetricStrategyItem:
             type: object
             properties:
-                team:
-                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                teamId:
+                    type: integer
+                    format: uint32
                 datasource:
                     type: array
                     items:
@@ -867,7 +875,7 @@ components:
                 driver:
                     type: integer
                     format: enum
-                id:
+                datasourceId:
                     type: integer
                     format: uint32
         api.houyi.common.MetricStrategyItem_MetricRuleItem:
@@ -913,8 +921,9 @@ components:
         api.houyi.common.PingStrategyItem:
             type: object
             properties:
-                team:
-                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                teamId:
+                    type: integer
+                    format: uint32
                 datasource:
                     type: array
                     items:
@@ -984,8 +993,9 @@ components:
         api.houyi.common.ServerPortStrategyItem:
             type: object
             properties:
-                team:
-                    $ref: '#/components/schemas/api.houyi.common.TeamItem'
+                teamId:
+                    type: integer
+                    format: uint32
                 datasource:
                     type: array
                     items:
@@ -1021,14 +1031,6 @@ components:
                     type: string
                 skipVerify:
                     type: boolean
-        api.houyi.common.TeamItem:
-            type: object
-            properties:
-                teamId:
-                    type: integer
-                    format: uint32
-                uuid:
-                    type: string
         api.houyi.v1.CertificateStrategyRequest:
             type: object
             properties:

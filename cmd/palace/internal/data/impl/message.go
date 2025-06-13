@@ -69,11 +69,11 @@ func (s *sendMessageRepoImpl) rabbitSendEmail(ctx context.Context, client reposi
 		Subject:     params.Subject,
 		ContentType: params.ContentType,
 		EmailConfig: s.emailConfig,
-		RequestId:   "",
+		RequestId:   params.RequestID,
 		Attachment:  "",
 		Cc:          []string{},
 		ConfigName:  new(string),
-		TeamId:      "",
+		TeamId:      params.TeamID,
 	})
 	if err != nil {
 		s.helper.WithContext(ctx).Warnw("method", "rabbit send email error", "params", params, "error", err)

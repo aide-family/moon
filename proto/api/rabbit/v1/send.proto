@@ -50,7 +50,7 @@ message SendEmailRequest {
   repeated string cc = 7;
   optional api.rabbit.common.EmailConfig emailConfig = 8;
   optional string configName = 9;
-  string teamId = 10 [(buf.validate.field).required = true];
+  uint32 teamId = 10 [(buf.validate.field).required = true];
 }
 
 message SendSmsRequest {
@@ -66,7 +66,7 @@ message SendSmsRequest {
   string templateCode = 4 [(buf.validate.field).required = true];
   optional api.rabbit.common.SMSConfig smsConfig = 5;
   optional string configName = 6;
-  string teamId = 7 [(buf.validate.field).required = true];
+  uint32 teamId = 7 [(buf.validate.field).required = true];
 }
 
 message SendHookRequest {
@@ -83,6 +83,6 @@ message SendHookRequest {
     expression: "this.size() >= 1 && this.size() <= 100"
   }];
   repeated Body body = 3 [(buf.validate.field).required = true];
-  string teamId = 4 [(buf.validate.field).required = true];
+  uint32 teamId = 4 [(buf.validate.field).required = true];
 }
 

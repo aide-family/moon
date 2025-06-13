@@ -3,7 +3,7 @@ package bo
 import "github.com/aide-family/moon/pkg/api/common"
 
 type RemoveConfigParams struct {
-	TeamID string
+	TeamID uint32
 	Name   string
 	Type   common.NoticeType
 }

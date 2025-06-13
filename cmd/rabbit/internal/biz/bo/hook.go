@@ -37,13 +37,13 @@ type HookConfig interface {
 }
 
 type GetHookConfigParams struct {
-	TeamID            string
+	TeamID            uint32
 	Name              *string
 	DefaultHookConfig HookConfig
 }
 
 type SetHookConfigParams struct {
-	TeamID  string
+	TeamID  uint32
 	Configs []HookConfig
 }
 

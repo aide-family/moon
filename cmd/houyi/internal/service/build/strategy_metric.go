@@ -33,9 +33,9 @@ func ToMetricRules(strategyItems ...*common.MetricStrategyItem) []bo.MetricRule 
 				}
 				annotations := strategyItem.GetAnnotations()
 				item := &do.MetricRule{
-					TeamId:       strategyItem.GetTeam().GetTeamId(),
-					DatasourceId: datasourceItem.GetId(),
-					Datasource:   vobj.MetricDatasourceUniqueKey(datasourceItem.GetDriver(), strategyItem.GetTeam().GetTeamId(), datasourceItem.GetId()),
+					TeamId:       strategyItem.GetTeamId(),
+					DatasourceId: datasourceItem.GetDatasourceId(),
+					Datasource:   vobj.MetricDatasourceUniqueKey(datasourceItem.GetDriver(), strategyItem.GetTeamId(), datasourceItem.GetDatasourceId()),
 					StrategyId:   strategyItem.GetStrategyId(),
 					LevelId:      rule.GetLevelId(),
 					Receiver:     rule.GetReceiverRoutes(),
@@ -44,10 +44,10 @@ func ToMetricRules(strategyItems ...*common.MetricStrategyItem) []bo.MetricRule 
 					}),
 					Expr: strategyItem.GetExpr(),
 					Labels: label.NewLabel(strategyItem.GetLabels()).Appends(map[string]string{
-						cnst.LabelKeyTeamID:       strconv.FormatUint(uint64(strategyItem.GetTeam().GetTeamId()), 10),
+						cnst.LabelKeyTeamID:       strconv.FormatUint(uint64(strategyItem.GetTeamId()), 10),
 						cnst.LabelKeyStrategyID:   strconv.FormatUint(uint64(strategyItem.GetStrategyId()), 10),
 						cnst.LabelKeyLevelID:      strconv.FormatUint(uint64(rule.GetLevelId()), 10),
-						cnst.LabelKeyDatasourceID: strconv.FormatUint(uint64(datasourceItem.GetId()), 10),
+						cnst.LabelKeyDatasourceID: strconv.FormatUint(uint64(datasourceItem.GetDatasourceId()), 10),
 					}),
 					Annotations: label.NewAnnotation(annotations[cnst.AnnotationKeySummary], annotations[cnst.AnnotationKeyDescription]),
 					Duration:    rule.GetDuration().AsDuration(),

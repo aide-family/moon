@@ -35,7 +35,7 @@ func (t *TeamDatasourceQuery) MetricDatasourceQuery(ctx context.Context, req *bo
 		return t.metricDatasourceQuery(ctx, req)
 	}
 	params := &houyiv1.MetricDatasourceQueryRequest{
-		Datasource: NewMetricDatasourceItem(req.Datasource),
+		Datasource: bo.ToSyncMetricDatasourceItem(req.Datasource),
 		Expr:       req.Expr,
 		Time:       req.Time,
 		StartTime:  req.StartTime,

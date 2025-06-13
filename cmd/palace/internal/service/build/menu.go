@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	api "github.com/aide-family/moon/pkg/api/palace"
 	"github.com/aide-family/moon/pkg/api/palace/common"
+	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -13,6 +14,9 @@ func ToMenuTree(menus []do.Menu) []*common.MenuTreeItem {
 	if len(menus) == 0 {
 		return nil
 	}
+	menus = slices.UniqueWithFunc(menus, func(v do.Menu) uint32 {
+		return v.GetID()
+	})
 	menuMap := make(map[uint32]do.Menu)
 	for _, menu := range menus {
 		menuMap[menu.GetID()] = menu

@@ -36,13 +36,13 @@ type EmailConfig interface {
 }
 
 type GetEmailConfigParams struct {
-	TeamID             string
+	TeamID             uint32
 	Name               *string
 	DefaultEmailConfig EmailConfig
 }
 
 type SetEmailConfigParams struct {
-	TeamID  string
+	TeamID  uint32
 	Configs []EmailConfig
 }
 

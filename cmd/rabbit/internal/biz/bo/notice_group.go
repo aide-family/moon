@@ -21,13 +21,13 @@ type NoticeGroup interface {
 }
 
 type GetNoticeGroupConfigParams struct {
-	TeamID             string
+	TeamID             uint32
 	Name               *string
 	DefaultNoticeGroup NoticeGroup
 }
 
 type SetNoticeGroupConfigParams struct {
-	TeamID  string
+	TeamID  uint32
 	Configs []NoticeGroup
 }
 

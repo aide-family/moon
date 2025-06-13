@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
 )
 
@@ -54,9 +55,22 @@ func (m *Menu) SelfMenus(ctx context.Context) ([]do.Menu, error) {
 	for _, roleDo := range userDo.GetRoles() {
 		menus = append(menus, roleDo.GetMenus()...)
 	}
-	memberDo, err := m.memberRepo.FindByUserID(ctx, userID)
+	userMenus, err := m.menuRepo.FindMenusByType(ctx, vobj.MenuTypeMenuUser)
 	if err != nil {
 		return nil, err
+	}
+	menus = append(menus, userMenus...)
+
+	teamID, ok := permission.GetTeamIDByContext(ctx)
+	if !ok || teamID == 0 {
+		return menus, nil
+	}
+	memberDo, err := m.memberRepo.FindByUserID(ctx, userID)
+	if err != nil {
+		if !merr.IsNotFound(err) {
+			return nil, err
+		}
+		return menus, nil
 	}
 	if memberDo.GetPosition().IsAdminOrSuperAdmin() {
 		teamMenus, err := m.menuRepo.FindMenusByType(ctx, vobj.MenuTypeMenuTeam)
@@ -69,11 +83,7 @@ func (m *Menu) SelfMenus(ctx context.Context) ([]do.Menu, error) {
 			menus = append(menus, roleDo.GetMenus()...)
 		}
 	}
-	userMenus, err := m.menuRepo.FindMenusByType(ctx, vobj.MenuTypeMenuUser)
-	if err != nil {
-		return nil, err
-	}
-	menus = append(menus, userMenus...)
+
 	return menus, nil
 }
 

@@ -122,7 +122,7 @@ func (t *TeamDatasource) SyncMetricMetadata(ctx context.Context, req *bo.SyncMet
 		}
 	}()
 	reply, err := syncClient.SyncMetricMetadata(ctx, &houyiv1.MetricMetadataRequest{
-		Item:       NewMetricDatasourceItem(datasourceMetricDo),
+		Item:       bo.ToSyncMetricDatasourceItem(datasourceMetricDo),
 		OperatorId: permission.GetUserIDByContextWithDefault(ctx, teamDo.GetCreatorID()),
 	})
 	if err != nil {

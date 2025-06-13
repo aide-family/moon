@@ -15,7 +15,7 @@ func ToMetricDatasourceConfig(metricItem *common.MetricDatasourceItem) (*do.Data
 		return nil, merr.ErrorParams("config is nil")
 	}
 	return &do.DatasourceMetricConfig{
-		TeamId:   metricItem.GetTeam().GetTeamId(),
+		TeamId:   metricItem.GetTeamId(),
 		ID:       metricItem.GetId(),
 		Name:     metricItem.GetName(),
 		Driver:   metricItem.GetDriver(),

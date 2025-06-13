@@ -48,6 +48,7 @@
     "cnst",
     "Debugf",
     "dingtalk",
+    "durationpb",
     "dysmsapi",
     "errgroup",
     "Errorw",

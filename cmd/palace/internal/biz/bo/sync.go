@@ -38,18 +38,18 @@ type ChangedNoticeEmailConfig ChangedRows
 
 type ChangedNoticeHookConfig ChangedRows
 
-func ToSyncMetricDatasourceItem(item do.DatasourceMetric, teamDo do.Team) *common.MetricDatasourceItem {
-	if validate.IsNil(item) || validate.IsNil(teamDo) {
+func ToSyncMetricDatasourceItem(item do.DatasourceMetric) *common.MetricDatasourceItem {
+	if validate.IsNil(item) {
 		return nil
 	}
 	return &common.MetricDatasourceItem{
-		Team:           ToSyncTeamItem(teamDo),
 		Driver:         common.MetricDatasourceDriver(item.GetDriver().GetValue()),
 		Config:         ToSyncMetricDatasourceConfigItem(item),
 		Enable:         item.GetStatus().IsEnable() && item.GetDeletedAt() == 0,
 		Id:             item.GetID(),
 		Name:           item.GetName(),
 		ScrapeInterval: durationpb.New(item.GetScrapeInterval()),
+		TeamId:         item.GetTeamID(),
 	}
 }
 
@@ -104,23 +104,13 @@ func ToSyncMetricDatasourceTlsItem(tls *do.TLS) *common.TLS {
 	}
 }
 
-func ToSyncTeamItem(teamDo do.Team) *common.TeamItem {
-	if validate.IsNil(teamDo) {
-		return nil
-	}
-	return &common.TeamItem{
-		TeamId: teamDo.GetID(),
-		Uuid:   teamDo.GetUUID().String(),
-	}
-}
-
-func ToSyncMetricStrategyItem(item do.StrategyMetric, teamDo do.Team) *common.MetricStrategyItem {
-	if validate.IsNil(item) || validate.IsNil(teamDo) {
+func ToSyncMetricStrategyItem(item do.StrategyMetric) *common.MetricStrategyItem {
+	if validate.IsNil(item) {
 		return nil
 	}
 	return &common.MetricStrategyItem{
-		Team:           ToSyncTeamItem(teamDo),
-		Datasource:     ToSyncMetricSimpleDatasourceItems(item.GetDatasourceList(), teamDo),
+		TeamId:         item.GetTeamID(),
+		Datasource:     ToSyncMetricSimpleDatasourceItems(item.GetDatasourceList()),
 		Name:           item.GetStrategy().GetName(),
 		Expr:           item.GetExpr(),
 		ReceiverRoutes: ToSyncReceiverRoutesItems(item.GetStrategy().GetNotices()),
@@ -161,7 +151,7 @@ func ToSyncMetricRuleItem(rule do.StrategyMetricRule) *common.MetricStrategyItem
 	}
 }
 
-func ToSyncMetricSimpleDatasourceItems(datasource []do.DatasourceMetric, teamDo do.Team) []*common.MetricStrategyItem_MetricDatasourceItem {
+func ToSyncMetricSimpleDatasourceItems(datasource []do.DatasourceMetric) []*common.MetricStrategyItem_MetricDatasourceItem {
 	if validate.IsNil(datasource) {
 		return nil
 	}
@@ -176,8 +166,8 @@ func ToSyncMetricSimpleDatasourceItem(item do.DatasourceMetric) *common.MetricSt
 		return nil
 	}
 	return &common.MetricStrategyItem_MetricDatasourceItem{
-		Driver: common.MetricDatasourceDriver(item.GetDriver().GetValue()),
-		Id:     item.GetID(),
+		Driver:       common.MetricDatasourceDriver(item.GetDriver().GetValue()),
+		DatasourceId: item.GetID(),
 	}
 }
 
@@ -216,7 +206,7 @@ func ToSyncMetricRuleLabelNoticeItem(labelNotice do.StrategyMetricRuleLabelNotic
 	}
 }
 
-func ToSyncNoticeGroupItems(groupDos []do.NoticeGroup, teamId string) []*rabbitconmmon.NoticeGroup {
+func ToSyncNoticeGroupItems(groupDos []do.NoticeGroup) []*rabbitconmmon.NoticeGroup {
 	if validate.IsNil(groupDos) {
 		return nil
 	}
@@ -283,7 +273,7 @@ func ToSyncNoticeGroupItem(groupDo do.NoticeGroup) *rabbitconmmon.NoticeGroup {
 	}
 }
 
-func ToSyncSMSConfigItems(smsDos []do.TeamSMSConfig, teamId string) []*rabbitconmmon.SMSConfig {
+func ToSyncSMSConfigItems(smsDos []do.TeamSMSConfig) []*rabbitconmmon.SMSConfig {
 	if validate.IsNil(smsDos) {
 		return nil
 	}
@@ -327,7 +317,7 @@ func ToSyncSMSConfigItem(smsDo do.TeamSMSConfig) *rabbitconmmon.SMSConfig {
 	return item
 }
 
-func ToSyncEmailConfigItems(emailDos []do.TeamEmailConfig, teamId string) []*rabbitconmmon.EmailConfig {
+func ToSyncEmailConfigItems(emailDos []do.TeamEmailConfig) []*rabbitconmmon.EmailConfig {
 	if validate.IsNil(emailDos) {
 		return nil
 	}
@@ -361,7 +351,7 @@ func ToSyncEmailConfigItem(emailDo do.TeamEmailConfig) *rabbitconmmon.EmailConfi
 	}
 }
 
-func ToSyncHookConfigItems(hookDos []do.NoticeHook, teamId string) []*rabbitconmmon.HookConfig {
+func ToSyncHookConfigItems(hookDos []do.NoticeHook) []*rabbitconmmon.HookConfig {
 	if validate.IsNil(hookDos) {
 		return nil
 	}

@@ -4,7 +4,6 @@ package api.houyi.common;
 
 import "google/protobuf/duration.proto";
 import "buf/validate/validate.proto";
-import "houyi/common/team.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/houyi/common;common";
 
@@ -72,7 +71,7 @@ message MetricDatasourceItem {
     DatasourceQueryMethod method = 6;
   }
 
-  houyi.common.TeamItem team = 1;
+  uint32 teamId = 1;
   MetricDatasourceDriver driver = 2;
   Config config = 3;
   bool enable = 4;
@@ -118,7 +117,7 @@ message LogDatasourceItem {
     string endpoint = 2;
   }
 
-  houyi.common.TeamItem team = 1;
+  uint32 teamId = 1;
   LogDatasourceDriver driver = 2;
   AliCloud aliCloud = 3;
   ElasticSearch elasticSearch = 4;
@@ -166,7 +165,7 @@ message EventDatasourceItem {
     string version = 7;
   }
 
-  houyi.common.TeamItem team = 1;
+  uint32 teamId = 1;
   EventDatasourceDriver driver = 2;
   RocketMQ rocketmq = 3;
   Mqtt mqtt = 4;

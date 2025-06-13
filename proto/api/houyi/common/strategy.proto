@@ -3,7 +3,6 @@ syntax = "proto3";
 package api.houyi.common;
 
 import "google/protobuf/duration.proto";
-import "houyi/common/team.proto";
 import "houyi/common/datasource.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/houyi/common;common";
@@ -76,10 +75,10 @@ message MetricStrategyItem {
 
   message MetricDatasourceItem {
     houyi.common.MetricDatasourceDriver driver = 1;
-    uint32 id = 2;
+    uint32 datasourceId = 2;
   }
 
-  houyi.common.TeamItem team = 1;
+  uint32 teamId = 1;
   repeated MetricDatasourceItem datasource = 2;
   string name = 3;
   string expr = 4;
@@ -118,7 +117,7 @@ message CertificateStrategyItem {
     repeated string receiverRoutes = 5;
   }
 
-  houyi.common.TeamItem team = 1;
+  uint32 teamId = 1;
   repeated houyi.common.CertificateDatasourceItem datasource = 2;
   string name = 3;
   repeated string receiverRoutes = 4;
@@ -137,7 +136,7 @@ message ServerPortStrategyItem {
     // Close
     CLOSE = 2;
   }
-  houyi.common.TeamItem team = 1;
+  uint32 teamId = 1;
   repeated houyi.common.ServerPortDatasourceItem datasource = 2;
   string name = 3;
   repeated string receiverRoutes = 4;
@@ -181,7 +180,7 @@ message HttpStrategyItem {
     repeated string receiverRoutes = 8;
   }
 
-  houyi.common.TeamItem team = 1;
+  uint32 teamId = 1;
   repeated houyi.common.HttpDatasourceItem datasource = 2;
   string name = 3;
   repeated string receiverRoutes = 4;
@@ -215,7 +214,7 @@ message PingStrategyItem {
     repeated string receiverRoutes = 5;
   }
 
-  houyi.common.TeamItem team = 1;
+  uint32 teamId = 1;
   repeated houyi.common.PingDatasourceItem datasource = 2;
   string name = 3;
   repeated string receiverRoutes = 4;
@@ -298,7 +297,7 @@ message EventStrategyItem {
     repeated LabelNotices labelNotices = 10;
   }
 
-  houyi.common.TeamItem team = 1;
+  uint32 teamId = 1;
   repeated houyi.common.EventDatasourceItem datasource = 2;
   string name = 3;
   string topic = 4;
@@ -337,7 +336,7 @@ message LogsStrategyItem {
     repeated string receiverRoutes = 7;
   }
 
-  houyi.common.TeamItem team = 1;
+  uint32 teamId = 1;
   repeated houyi.common.LogDatasourceItem datasource = 2;
   string name = 3;
   string expr = 4;

@@ -1,7 +1,6 @@
 package bo
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/aide-family/moon/pkg/util/kv/label"
@@ -40,9 +39,9 @@ func (a *AlertsItem) GetReceiver() []string {
 	return strings.Split(a.Receiver, ",")
 }
 
-func (a *AlertsItem) GetTeamID() string {
+func (a *AlertsItem) GetTeamID() uint32 {
 	if a == nil {
-		return ""
+		return 0
 	}
-	return strconv.Itoa(int(a.CommonLabels.GetTeamId()))
+	return a.CommonLabels.GetTeamId()
 }

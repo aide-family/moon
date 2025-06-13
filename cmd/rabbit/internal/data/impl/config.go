@@ -27,7 +27,7 @@ type configImpl struct {
 	*data.Data
 }
 
-func (c *configImpl) GetEmailConfig(ctx context.Context, teamID string, name string) (bo.EmailConfig, bool) {
+func (c *configImpl) GetEmailConfig(ctx context.Context, teamID uint32, name string) (bo.EmailConfig, bool) {
 	key := vobj.EmailCacheKey.Key(teamID)
 	exist, err := c.Data.GetCache().Client().HExists(ctx, key, name).Result()
 	if err != nil {
@@ -46,7 +46,7 @@ func (c *configImpl) GetEmailConfig(ctx context.Context, teamID string, name str
 	return &emailConfig, true
 }
 
-func (c *configImpl) GetEmailConfigs(ctx context.Context, teamID string, names ...string) ([]bo.EmailConfig, error) {
+func (c *configImpl) GetEmailConfigs(ctx context.Context, teamID uint32, names ...string) ([]bo.EmailConfig, error) {
 	key := vobj.EmailCacheKey.Key(teamID)
 	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
@@ -70,7 +70,7 @@ func (c *configImpl) GetEmailConfigs(ctx context.Context, teamID string, names .
 	return slices.Map(emailConfigs, func(v *do.EmailConfig) bo.EmailConfig { return v }), nil
 }
 
-func (c *configImpl) SetEmailConfig(ctx context.Context, teamID string, configs ...bo.EmailConfig) error {
+func (c *configImpl) SetEmailConfig(ctx context.Context, teamID uint32, configs ...bo.EmailConfig) error {
 	configDos := make(map[string]any, len(configs))
 	for _, v := range configs {
 		item := &do.EmailConfig{
@@ -87,7 +87,7 @@ func (c *configImpl) SetEmailConfig(ctx context.Context, teamID string, configs 
 	return c.Data.GetCache().Client().HSet(ctx, vobj.EmailCacheKey.Key(teamID), configDos).Err()
 }
 
-func (c *configImpl) GetSMSConfig(ctx context.Context, teamID string, name string) (bo.SMSConfig, bool) {
+func (c *configImpl) GetSMSConfig(ctx context.Context, teamID uint32, name string) (bo.SMSConfig, bool) {
 	key := vobj.SmsCacheKey.Key(teamID)
 	exist, err := c.Data.GetCache().Client().HExists(ctx, key, name).Result()
 	if err != nil {
@@ -105,7 +105,7 @@ func (c *configImpl) GetSMSConfig(ctx context.Context, teamID string, name strin
 	return &smsConfig, true
 }
 
-func (c *configImpl) GetSMSConfigs(ctx context.Context, teamID string, names ...string) ([]bo.SMSConfig, error) {
+func (c *configImpl) GetSMSConfigs(ctx context.Context, teamID uint32, names ...string) ([]bo.SMSConfig, error) {
 	key := vobj.SmsCacheKey.Key(teamID)
 	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
@@ -129,7 +129,7 @@ func (c *configImpl) GetSMSConfigs(ctx context.Context, teamID string, names ...
 	return slices.Map(smsConfigs, func(v *do.SMSConfig) bo.SMSConfig { return v }), nil
 }
 
-func (c *configImpl) SetSMSConfig(ctx context.Context, teamID string, configs ...bo.SMSConfig) error {
+func (c *configImpl) SetSMSConfig(ctx context.Context, teamID uint32, configs ...bo.SMSConfig) error {
 	configDos := make(map[string]any, len(configs))
 	for _, v := range configs {
 		item := &do.SMSConfig{
@@ -146,7 +146,7 @@ func (c *configImpl) SetSMSConfig(ctx context.Context, teamID string, configs ..
 	return c.Data.GetCache().Client().HSet(ctx, vobj.SmsCacheKey.Key(teamID), configDos).Err()
 }
 
-func (c *configImpl) GetHookConfig(ctx context.Context, teamID string, name string) (bo.HookConfig, bool) {
+func (c *configImpl) GetHookConfig(ctx context.Context, teamID uint32, name string) (bo.HookConfig, bool) {
 	key := vobj.HookCacheKey.Key(teamID)
 	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
@@ -164,7 +164,7 @@ func (c *configImpl) GetHookConfig(ctx context.Context, teamID string, name stri
 	return &hookConfig, true
 }
 
-func (c *configImpl) GetHookConfigs(ctx context.Context, teamID string, names ...string) ([]bo.HookConfig, error) {
+func (c *configImpl) GetHookConfigs(ctx context.Context, teamID uint32, names ...string) ([]bo.HookConfig, error) {
 	key := vobj.HookCacheKey.Key(teamID)
 	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
@@ -188,7 +188,7 @@ func (c *configImpl) GetHookConfigs(ctx context.Context, teamID string, names ..
 	return slices.Map(hookConfigs, func(v *do.HookConfig) bo.HookConfig { return v }), nil
 }
 
-func (c *configImpl) SetHookConfig(ctx context.Context, teamID string, configs ...bo.HookConfig) error {
+func (c *configImpl) SetHookConfig(ctx context.Context, teamID uint32, configs ...bo.HookConfig) error {
 	configDos := make(map[string]any, len(configs))
 	for _, v := range configs {
 		item := &do.HookConfig{
@@ -207,7 +207,7 @@ func (c *configImpl) SetHookConfig(ctx context.Context, teamID string, configs .
 	return c.Data.GetCache().Client().HSet(ctx, vobj.HookCacheKey.Key(teamID), configDos).Err()
 }
 
-func (c *configImpl) GetNoticeGroupConfig(ctx context.Context, teamID string, name string) (bo.NoticeGroup, bool) {
+func (c *configImpl) GetNoticeGroupConfig(ctx context.Context, teamID uint32, name string) (bo.NoticeGroup, bool) {
 	key := vobj.NoticeGroupCacheKey.Key(teamID)
 	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
@@ -225,7 +225,7 @@ func (c *configImpl) GetNoticeGroupConfig(ctx context.Context, teamID string, na
 	return &noticeGroupConfig, true
 }
 
-func (c *configImpl) GetNoticeGroupConfigs(ctx context.Context, teamID string, names ...string) ([]bo.NoticeGroup, error) {
+func (c *configImpl) GetNoticeGroupConfigs(ctx context.Context, teamID uint32, names ...string) ([]bo.NoticeGroup, error) {
 	key := vobj.NoticeGroupCacheKey.Key(teamID)
 	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
@@ -249,7 +249,7 @@ func (c *configImpl) GetNoticeGroupConfigs(ctx context.Context, teamID string, n
 	return slices.Map(noticeGroupConfigs, func(v *do.NoticeGroupConfig) bo.NoticeGroup { return v }), nil
 }
 
-func (c *configImpl) SetNoticeGroupConfig(ctx context.Context, teamID string, configs ...bo.NoticeGroup) error {
+func (c *configImpl) SetNoticeGroupConfig(ctx context.Context, teamID uint32, configs ...bo.NoticeGroup) error {
 	configDos := make(map[string]any, len(configs))
 	for _, v := range configs {
 		templateMap := make(map[common.NoticeType]*do.Template, len(v.GetTemplates()))
@@ -274,7 +274,7 @@ func (c *configImpl) SetNoticeGroupConfig(ctx context.Context, teamID string, co
 	return c.Data.GetCache().Client().HSet(ctx, vobj.NoticeGroupCacheKey.Key(teamID), configDos).Err()
 }
 
-func (c *configImpl) GetNoticeUserConfig(ctx context.Context, teamID string, name string) (bo.NoticeUser, bool) {
+func (c *configImpl) GetNoticeUserConfig(ctx context.Context, teamID uint32, name string) (bo.NoticeUser, bool) {
 	key := vobj.NoticeUserCacheKey.Key(teamID)
 	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
@@ -292,7 +292,7 @@ func (c *configImpl) GetNoticeUserConfig(ctx context.Context, teamID string, nam
 	return &noticeUserConfig, true
 }
 
-func (c *configImpl) GetNoticeUserConfigs(ctx context.Context, teamID string, names ...string) ([]bo.NoticeUser, error) {
+func (c *configImpl) GetNoticeUserConfigs(ctx context.Context, teamID uint32, names ...string) ([]bo.NoticeUser, error) {
 	key := vobj.NoticeUserCacheKey.Key(teamID)
 	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
@@ -316,7 +316,7 @@ func (c *configImpl) GetNoticeUserConfigs(ctx context.Context, teamID string, na
 	return slices.Map(noticeUserConfigs, func(v *do.NoticeUserConfig) bo.NoticeUser { return v }), nil
 }
 
-func (c *configImpl) SetNoticeUserConfig(ctx context.Context, teamID string, configs ...bo.NoticeUser) error {
+func (c *configImpl) SetNoticeUserConfig(ctx context.Context, teamID uint32, configs ...bo.NoticeUser) error {
 	configDos := make(map[string]any, len(configs))
 	for _, v := range configs {
 		item := &do.NoticeUserConfig{

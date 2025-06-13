@@ -283,26 +283,14 @@ other = "position must be one of the following: USER_POSITION_SUPER_ADMIN, USER_
 [GET_USER_USER_ID_VALIDATOR]
 other = "must select a user"
 
-[GET_USER_LIST_STATUS_VALIDATOR]
-other = "status must be one of the following: USER_STATUS_NORMAL, USER_STATUS_FORBIDDEN, USER_STATUS_DELETED"
-
-[GET_USER_LIST_POSITION_VALIDATOR]
-other = "position must be one of the following: USER_POSITION_SUPER_ADMIN, USER_POSITION_ADMIN, USER_POSITION_USER, USER_POSITION_GUEST"
-
 [GET_USER_LIST_KEYWORD_VALIDATOR]
 other = "keyword must be less than 64 characters"
-
-[GET_TEAM_LIST_STATUS_VALIDATOR]
-other = "status must be one of the following: TEAM_STATUS_NORMAL, TEAM_STATUS_DELETED"
 
 [GET_TEAM_LIST_KEYWORD_VALIDATOR]
 other = "keyword must be less than 20 characters"
 
 [GET_SYSTEM_ROLES_KEYWORD_VALIDATOR]
 other = "keyword must be less than 20 characters"
-
-[GET_SYSTEM_ROLES_STATUS_VALIDATOR]
-other = "status must be one of the following: GLOBAL_STATUS_ENABLE, GLOBAL_STATUS_DISABLE"
 
 [SAVE_ROLE_NAME_MAX_LENGTH_VALIDATOR]
 other = "name max length is 32"
@@ -334,14 +322,8 @@ other = "userIds must be greater than 0"
 [GET_SYSTEM_ROLE_ROLE_ID_VALIDATOR]
 other = "must select a role"
 
-[GET_TEAM_AUDIT_LIST_STATUS_VALIDATOR]
-other = "status must be one of the following: TEAM_AUDIT_STATUS_PENDING, TEAM_AUDIT_STATUS_APPROVED, TEAM_AUDIT_STATUS_REJECTED"
-
 [GET_TEAM_AUDIT_LIST_KEYWORD_VALIDATOR]
 other = "keyword must be less than 20 characters"
-
-[GET_TEAM_AUDIT_LIST_ACTIONS_VALIDATOR]
-other = "actions must be one of the following: TEAM_AUDIT_ACTION_JOIN, TEAM_AUDIT_ACTION_LEAVE"
 
 [UPDATE_TEAM_AUDIT_STATUS_AUDIT_ID_VALIDATOR]
 other = "must select a audit"
@@ -351,12 +333,6 @@ other = "status must be one of the following: TEAM_AUDIT_STATUS_PENDING, TEAM_AU
 
 [GET_SEND_MESSAGE_LOGS_REQUEST_ID_VALIDATOR]
 other = "requestId must be less than 64 characters"
-
-[GET_SEND_MESSAGE_LOGS_MESSAGE_TYPE_VALIDATOR]
-other = "messageType must be one of the following: MESSAGE_TYPE_TEXT, MESSAGE_TYPE_IMAGE, MESSAGE_TYPE_VOICE, MESSAGE_TYPE_VIDEO, MESSAGE_TYPE_FILE"
-
-[GET_SEND_MESSAGE_LOGS_STATUS_VALIDATOR]
-other = "status must be one of the following: SEND_MESSAGE_STATUS_SUCCESS, SEND_MESSAGE_STATUS_FAILED"
 
 [GET_SEND_MESSAGE_LOGS_KEYWORD_VALIDATOR]
 other = "keyword must be less than 20 characters"
