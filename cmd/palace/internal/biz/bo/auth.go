@@ -8,16 +8,28 @@ import (
 )
 
 type Captcha struct {
-	Id             string `json:"id"`
-	B64s           string `json:"b64s"`
-	Answer         string `json:"answer"`
-	ExpiredSeconds int64  `json:"expired_seconds"`
+	Id                string `json:"id"`
+	MasterImageBase64 string `json:"masterImageBase64"`
+	ThumbImageBase64  string `json:"thumbImageBase64"`
+	TileWidth         int    `json:"tileWidth"`
+	TileHeight        int    `json:"tileHeight"`
+	TileX             int    `json:"tileX"`
+	TileY             int    `json:"tileY"`
+	Answer            string `json:"answer"`
+	ExpiredSeconds    int64  `json:"expired_seconds"`
+}
+
+type GetCaptchaParam struct {
+	Min int32 `json:"min"`
+	Max int32 `json:"max"`
 }
 
 type CaptchaVerify struct {
-	Id     string `json:"id"`
-	Answer string `json:"answer"`
-	Clear  bool   `json:"clear"`
+	CaptchaID string `json:"captchaID"`
+	Angle     int    `json:"answer"`
+	Sx        int    `json:"sx"`
+	Sy        int    `json:"sy"`
+	Dots      string `json:"dots"`
 }
 
 type LoginByPassword struct {

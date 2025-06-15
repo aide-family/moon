@@ -12,10 +12,13 @@ auth:
       - /api.palace.Auth/OAuthLoginByEmail
       - /api.palace.Auth/OAuth2List
       - /api.palace.Auth/GetFilingInformation
+      - /api.palace.Auth/GetCaptcha
+      - /api.palace.Auth/CaptchaVerify
   captcha:
     prefix: ${X_MOON_AUTH_CAPTCHA_PREFIX}
     timeout: ${X_MOON_AUTH_CAPTCHA_TIMEOUT:10s}
     expire: ${X_MOON_AUTH_CAPTCHA_EXPIRE:60s}
+    type: ${X_MOON_AUTH_CAPTCHA_TYPE:Slide}
   oauth2:
     enable: ${X_MOON_AUTH_OAUTH2_ENABLE:false}
     redirectUri: ${X_MOON_AUTH_OAUTH2_REDIRECT_URI}

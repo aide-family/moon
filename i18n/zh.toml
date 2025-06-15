@@ -103,9 +103,6 @@ other = "must be a valid time, format: 2005-01-02 15:04:05"
 [CAPTCHA_VALIDATE_CAPTCHA_ID_VALIDATOR]
 other = "captchaId is required"
 
-[CAPTCHA_VALIDATE_ANSWER_VALIDATOR]
-other = "answer is required"
-
 [LOGIN_BY_PASSWORD_EMAIL_VALIDATOR]
 other = "email is required"
 
@@ -202,6 +199,12 @@ other = "menuType must be one of the following: MENU_TYPE_SYSTEM, MENU_TYPE_TEAM
 [SAVE_MENU_MENU_CATEGORY_VALIDATOR]
 other = "menuCategory must be one of the following: MENU_CATEGORY_MENU, MENU_CATEGORY_BUTTON"
 
+[DELETE_MENU_MENU_ID_VALIDATOR]
+other = "must select a menu"
+
+[CAPTCHA_VALIDATE_ANSWER_VALIDATOR]
+other = "answer is required"
+
 [LOGIN_EMAIL_VALIDATOR]
 other = "email is required"
 
@@ -244,29 +247,14 @@ other = "email is required"
 [VERIFY_EMAIL_FORMAT_VALIDATOR]
 other = "email is invalid"
 
-[UPDATE_USER_USER_ID_VALIDATOR]
-other = "a valid user must be selected"
-
-[UPDATE_USER_NICKNAME_VALIDATOR]
-other = "nickname is required"
-
-[UPDATE_USER_AVATAR_VALIDATOR]
-other = "avatar is required"
-
-[UPDATE_USER_AVATAR_MAX_LENGTH_VALIDATOR]
-other = "avatar must be less than 256 characters"
-
-[UPDATE_USER_AVATAR_URL_VALIDATOR]
-other = "avatar must be a valid URL"
-
-[UPDATE_USER_GENDER_VALIDATOR]
-other = "gender is required"
-
 [UPDATE_USER_USER_ID_SIZE_VALIDATOR]
 other = "please select user"
 
 [UPDATE_USER_USER_ID_MAX_SIZE_VALIDATOR]
 other = "select user max size is 100"
+
+[UPDATE_USER_USER_ID_VALIDATOR]
+other = "a valid user must be selected"
 
 [UPDATE_USER_STATUS_VALIDATOR]
 other = "status must be one of the following: USER_STATUS_NORMAL, USER_STATUS_FORBIDDEN, USER_STATUS_DELETED"
