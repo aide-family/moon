@@ -17,6 +17,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/captcha"
 	"github.com/aide-family/moon/pkg/util/hash"
 	"github.com/aide-family/moon/pkg/util/password"
 	"github.com/aide-family/moon/pkg/util/safety"
@@ -83,19 +84,19 @@ type Auth struct {
 }
 
 // GetCaptcha get image captchaRepo
-func (a *Auth) GetCaptcha(ctx context.Context) (*bo.Captcha, error) {
+func (a *Auth) GetCaptcha(ctx context.Context) (*captcha.GenResult, error) {
 	return a.captchaRepo.Generate(ctx)
 }
 
 // VerifyCaptcha Captcha
-func (a *Auth) VerifyCaptcha(ctx context.Context, req *bo.CaptchaVerify) error {
+func (a *Auth) VerifyCaptcha(ctx context.Context, req *bo.CaptchaVerify) (bool, error) {
 	verify := a.captchaRepo.Verify(ctx, req)
 	if !verify {
-		return merr.ErrorCaptcha("captcha err").WithMetadata(map[string]string{
+		return false, merr.ErrorCaptcha("captcha err").WithMetadata(map[string]string{
 			"captcha.answer": "The verification code is incorrect. Please retrieve a new one and try again.",
 		})
 	}
-	return nil
+	return verify, nil
 }
 
 // Logout token logout
