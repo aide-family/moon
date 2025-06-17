@@ -36,7 +36,7 @@ func (m *menuRepoImpl) FindMenusByType(ctx context.Context, menuType vobj.MenuTy
 		menu.Status.Eq(vobj.GlobalStatusEnable.GetValue()),
 		menu.MenuType.Eq(menuType.GetValue()),
 	}
-	menuDos, err := menu.WithContext(ctx).Where(wrappers...).Find()
+	menuDos, err := menu.WithContext(ctx).Where(wrappers...).Order(menu.Sort.Desc()).Find()
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (m *menuRepoImpl) Find(ctx context.Context, ids []uint32) ([]do.Menu, error
 	}
 	mainQuery := getMainQuery(ctx, m)
 	menu := mainQuery.Menu
-	menuDo, err := menu.WithContext(ctx).Where(menu.ID.In(ids...)).Find()
+	menuDo, err := menu.WithContext(ctx).Where(menu.ID.In(ids...)).Order(menu.Sort.Desc()).Find()
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (m *menuRepoImpl) FindAll(ctx context.Context, ids ...uint32) ([]do.Menu, e
 	}
 	mainQuery := getMainQuery(ctx, m)
 	menu := mainQuery.Menu
-	menuDos, err := menu.WithContext(ctx).Find()
+	menuDos, err := menu.WithContext(ctx).Order(menu.Sort.Desc()).Find()
 	if err != nil {
 		return nil, err
 	}
@@ -94,6 +94,7 @@ func (m *menuRepoImpl) Create(ctx context.Context, menu *bo.SaveMenuRequest) err
 		ProcessType:   menu.ProcessType,
 		ParentID:      menu.ParentID,
 		RelyOnBrother: menu.RelyOnBrother,
+		Sort:          menu.Sort,
 	}
 	systemMenu.WithContext(ctx)
 	return menuMutation.WithContext(ctx).Create(systemMenu)
@@ -113,6 +114,7 @@ func (m *menuRepoImpl) Update(ctx context.Context, menu *bo.SaveMenuRequest) err
 		menuMutation.ProcessType.Value(int8(menu.ProcessType)),
 		menuMutation.ParentID.Value(menu.ParentID),
 		menuMutation.RelyOnBrother.Value(menu.RelyOnBrother),
+		menuMutation.Sort.Value(menu.Sort),
 	}
 	wrappers := []gen.Condition{
 		menuMutation.ID.Eq(menu.MenuId),
@@ -153,7 +155,7 @@ func (m *menuRepoImpl) FindMenus(ctx context.Context, params *bo.GetMenuTreePara
 	if len(menuTypes) > 0 {
 		wrappers = append(wrappers, menu.MenuType.In(menuTypes...))
 	}
-	menuDos, err := menu.WithContext(ctx).Where(wrappers...).Find()
+	menuDos, err := menu.WithContext(ctx).Where(wrappers...).Order(menu.Sort.Desc()).Find()
 	if err != nil {
 		return nil, err
 	}

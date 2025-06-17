@@ -16,6 +16,7 @@ type SaveMenuRequest struct {
 	ProcessType   vobj.MenuProcessType
 	ParentID      uint32
 	RelyOnBrother bool
+	Sort          uint32
 }
 
 type GetMenuTreeParams struct {

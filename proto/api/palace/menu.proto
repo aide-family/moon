@@ -115,6 +115,8 @@ message SaveMenuRequest {
   api.palace.common.MenuProcessType processType = 10;
   // Whether the menu is rely on brother
   bool isRelyOnBrother = 11;
+  // Sort of the menu
+  uint32 sort = 12;
 }
 
 // DeleteMenuRequest represents the request data for deleting a menu

@@ -4130,6 +4130,10 @@ components:
                 isRelyOnBrother:
                     type: boolean
                     description: Whether the menu is rely on brother
+                sort:
+                    type: integer
+                    description: Sort of the menu
+                    format: uint32
             description: SaveMenuRequest represents the request data for creating or updating a system menu
         api.palace.SaveRoleRequest:
             type: object
@@ -5347,6 +5351,10 @@ components:
                 isRelyOnBrother:
                     type: boolean
                     description: rely on brother
+                sort:
+                    type: integer
+                    description: Sort of the menu tree item
+                    format: uint32
         api.palace.common.NoticeGroupItem:
             type: object
             properties:

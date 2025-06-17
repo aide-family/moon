@@ -57,6 +57,7 @@ func convertMenuToTreeItemWithMap(menu do.Menu, menuMap map[uint32]do.Menu) *com
 		ProcessType:     common.MenuProcessType(menu.GetProcessType()),
 		ParentId:        menu.GetParentID(),
 		IsRelyOnBrother: menu.IsRelyOnBrother(),
+		Sort:            menu.GetSort(),
 	}
 
 	for _, m := range menuMap {
@@ -85,5 +86,6 @@ func ToSaveMenuRequest(req *api.SaveMenuRequest) *bo.SaveMenuRequest {
 		ParentID:      req.GetParentId(),
 		RelyOnBrother: req.GetIsRelyOnBrother(),
 		MenuId:        req.GetMenuId(),
+		Sort:          req.GetSort(),
 	}
 }

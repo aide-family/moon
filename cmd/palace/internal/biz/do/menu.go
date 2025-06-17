@@ -19,4 +19,5 @@ type Menu interface {
 	GetParentID() uint32
 	GetParent() Menu
 	IsRelyOnBrother() bool
+	GetSort() uint32
 }

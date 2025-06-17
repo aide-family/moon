@@ -119,4 +119,6 @@ message MenuTreeItem {
   uint32 parentId = 11;
   // rely on brother
   bool isRelyOnBrother = 12;
+  // Sort of the menu tree item
+  uint32 sort = 13;
 }

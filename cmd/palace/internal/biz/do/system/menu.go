@@ -24,6 +24,7 @@ type Menu struct {
 	ParentID      uint32               `gorm:"column:parent_id;type:int unsigned;not null;default:0;comment:parent ID" json:"parentID"`
 	Parent        *Menu                `gorm:"foreignKey:ParentID;references:ID" json:"parent"`
 	RelyOnBrother bool                 `gorm:"column:rely_on_brother;type:tinyint(1);not null;default:0;comment:whether to rely on sibling node" json:"relyOnBrother"`
+	Sort          uint32               `gorm:"column:sort;type:int unsigned;not null;default:0;comment:sort" json:"sort"`
 }
 
 func (u *Menu) GetName() string {
@@ -68,6 +69,10 @@ func (u *Menu) GetParent() do.Menu {
 
 func (u *Menu) IsRelyOnBrother() bool {
 	return u.RelyOnBrother
+}
+
+func (u *Menu) GetSort() uint32 {
+	return u.Sort
 }
 
 func (u *Menu) MarshalBinary() ([]byte, error) {
