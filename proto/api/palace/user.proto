@@ -29,6 +29,14 @@ service User {
     };
   }
 
+  // UpdateSelfAvatar updates the current user's avatar
+  rpc UpdateSelfAvatar (UpdateSelfAvatarRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/user/self/avatar"
+      body: "*"
+    };
+  }
+
   // UpdateSelfPassword updates the current user's password
   rpc UpdateSelfPassword (UpdateSelfPasswordRequest) returns (api.palace.common.EmptyReply) {
     option (google.api.http) = {
@@ -81,10 +89,20 @@ service User {
 message UpdateSelfInfoRequest {
   // User nickname
   string nickname = 1 [(buf.validate.field).required = true];
-  // User avatar URL
-  string avatar = 2 [(buf.validate.field).required = true];
+  // User remark or description
+  string remark = 2 [(buf.validate.field).cel = {
+    message: "remark max length is 200"
+    expression: "this.size() <= 200"
+  }];
   // User gender
   api.palace.common.Gender gender = 3 [(buf.validate.field).required = true];
+}
+
+// UpdateSelfAvatarRequest represents the request data for updating the current user's avatar
+
+message UpdateSelfAvatarRequest {
+  // User avatar URL
+  string avatar = 1 [(buf.validate.field).required = true];
 }
 
 // UpdateSelfPasswordRequest represents the request data for updating the current user's password

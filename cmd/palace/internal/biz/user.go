@@ -98,15 +98,18 @@ func (b *UserBiz) UpdateSelfInfo(ctx context.Context, userUpdateInfo *bo.UserUpd
 	return nil
 }
 
-func (b *UserBiz) UpdateUserBaseInfo(ctx context.Context, userUpdateInfo *bo.UserUpdateInfo) error {
-	user, err := b.userRepo.FindByID(ctx, userUpdateInfo.GetUserID())
+func (b *UserBiz) UpdateSelfAvatar(ctx context.Context, avatar string) error {
+	userID, ok := permission.GetUserIDByContext(ctx)
+	if !ok {
+		return merr.ErrorUnauthorized("user not found in context")
+	}
+
+	user, err := b.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return err
 	}
-	if err = b.userRepo.UpdateUserInfo(ctx, userUpdateInfo.WithUser(user)); err != nil {
-		return merr.ErrorInternalServer("failed to update user info").WithCause(err)
-	}
-	return nil
+
+	return b.userRepo.UpdateUserAvatar(ctx, user.GetID(), avatar)
 }
 
 // UpdateSelfPassword updates the current user's password

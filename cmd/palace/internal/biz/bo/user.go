@@ -12,7 +12,7 @@ type UserUpdateInfo struct {
 	do.User
 	UserID   uint32
 	Nickname string
-	Avatar   string
+	Remark   string
 	Gender   vobj.Gender
 }
 
@@ -38,11 +38,11 @@ func (u *UserUpdateInfo) GetNickname() string {
 	return u.Nickname
 }
 
-func (u *UserUpdateInfo) GetAvatar() string {
+func (u *UserUpdateInfo) GetRemark() string {
 	if u == nil {
 		return ""
 	}
-	return u.Avatar
+	return u.Remark
 }
 
 func (u *UserUpdateInfo) GetGender() vobj.Gender {

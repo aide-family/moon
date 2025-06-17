@@ -14,6 +14,7 @@ type User interface {
 	SetEmail(ctx context.Context, user do.User, sendEmailFunc bo.SendEmailFun) (do.User, error)
 	Create(ctx context.Context, user do.User, sendEmailFunc bo.SendEmailFun) (do.User, error)
 	UpdateUserInfo(ctx context.Context, user do.User) error
+	UpdateUserAvatar(ctx context.Context, userID uint32, avatar string) error
 	UpdatePassword(ctx context.Context, updateUserPasswordInfo *bo.UpdateUserPasswordInfo) error
 	GetTeamsByUserID(ctx context.Context, userID uint32) ([]do.Team, error)
 	AppendTeam(ctx context.Context, team do.Team) error

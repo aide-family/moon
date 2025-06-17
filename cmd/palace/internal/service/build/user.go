@@ -85,21 +85,8 @@ func ToSelfUpdateInfo(req *palace.UpdateSelfInfoRequest) *bo.UserUpdateInfo {
 	}
 
 	return &bo.UserUpdateInfo{
-		Nickname: req.Nickname,
-		Avatar:   req.Avatar,
-		Gender:   vobj.Gender(req.Gender),
-	}
-}
-
-func ToUserUpdateInfo(req *palace.UpdateUserRequest) *bo.UserUpdateInfo {
-	if req == nil {
-		panic("UpdateUserRequest is nil")
-	}
-
-	return &bo.UserUpdateInfo{
-		UserID:   req.GetUserId(),
 		Nickname: req.GetNickname(),
-		Avatar:   req.GetAvatar(),
+		Remark:   req.GetRemark(),
 		Gender:   vobj.Gender(req.GetGender()),
 	}
 }

@@ -15,14 +15,6 @@ option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
 
 // System service provides operations for managing system users, roles, teams, and audits
 service System {
-  // UpdateUser updates user information
-  rpc UpdateUser (UpdateUserRequest) returns (api.palace.common.EmptyReply) {
-    option (google.api.http) = {
-      put: "/api/system/user"
-      body: "*"
-    };
-  }
-
   // UpdateUserStatus updates the status of multiple users
   rpc UpdateUserStatus (UpdateUserStatusRequest) returns (api.palace.common.EmptyReply) {
     option (google.api.http) = {
@@ -165,42 +157,6 @@ service System {
       body: "*"
     };
   }
-}
-
-// UpdateUserRequest represents the request data for updating user information
-message UpdateUserRequest {
-  // User Id
-  uint32 userId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_USER_USER_ID_VALIDATOR",
-    message: "must select a user"
-    expression: "this > 0"
-  }];
-  // User nickname
-  string nickname = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_USER_NICKNAME_VALIDATOR",
-    message: "nickname is required"
-    expression: "this.size() > 0"
-  }];
-  // User avatar URL
-  string avatar = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_USER_AVATAR_VALIDATOR",
-    message: "avatar is required"
-    expression: "this.size() > 0"
-  }, (buf.validate.field).cel = {
-    id: "UPDATE_USER_AVATAR_MAX_LENGTH_VALIDATOR",
-    message: "avatar must be less than 256 characters"
-    expression: "this.size() <= 256"
-  }, (buf.validate.field).cel = {
-    id: "UPDATE_USER_AVATAR_URL_VALIDATOR",
-    message: "avatar must be a valid URL"
-    expression: "this.isUri()"
-  }];
-  // User gender
-  api.palace.common.Gender gender = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-    id: "UPDATE_USER_GENDER_VALIDATOR",
-    message: "gender is required"
-    expression: "this in ['GENDER_MALE', 'GENDER_FEMALE', 'GENDER_OTHER', 1, 2, 3]"
-  }];
 }
 
 // UpdateUserStatusRequest represents the request data for updating user status

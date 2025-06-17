@@ -672,25 +672,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.GetTeamListReply'
-    /api/system/user:
-        put:
-            tags:
-                - System
-            description: UpdateUser updates user information
-            operationId: System_UpdateUser
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.UpdateUserRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
     /api/system/user/detail:
         get:
             tags:
@@ -2760,6 +2741,25 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/api.palace.UpdateSelfInfoRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/user/self/avatar:
+        put:
+            tags:
+                - User
+            description: UpdateSelfAvatar updates the current user's avatar
+            operationId: User_UpdateSelfAvatar
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.UpdateSelfAvatarRequest'
                 required: true
             responses:
                 "200":
@@ -4961,15 +4961,21 @@ components:
                         format: uint32
                     description: List of user Ids to assign to the role
             description: UpdateRoleUsersRequest represents the request data for updating role users
+        api.palace.UpdateSelfAvatarRequest:
+            type: object
+            properties:
+                avatar:
+                    type: string
+                    description: User avatar URL
         api.palace.UpdateSelfInfoRequest:
             type: object
             properties:
                 nickname:
                     type: string
                     description: User nickname
-                avatar:
+                remark:
                     type: string
-                    description: User avatar URL
+                    description: User remark or description
                 gender:
                     type: integer
                     description: User gender
@@ -5148,24 +5154,6 @@ components:
                     description: New position for the user
                     format: enum
             description: UpdateUserPositionRequest represents the request data for updating user position
-        api.palace.UpdateUserRequest:
-            type: object
-            properties:
-                userId:
-                    type: integer
-                    description: User Id
-                    format: uint32
-                nickname:
-                    type: string
-                    description: User nickname
-                avatar:
-                    type: string
-                    description: User avatar URL
-                gender:
-                    type: integer
-                    description: User gender
-                    format: enum
-            description: UpdateUserRequest represents the request data for updating user information
         api.palace.UpdateUserRolesRequest:
             type: object
             properties:

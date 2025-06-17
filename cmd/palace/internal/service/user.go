@@ -56,6 +56,14 @@ func (s *UserService) UpdateSelfInfo(ctx context.Context, req *palace.UpdateSelf
 	return &common.EmptyReply{}, nil
 }
 
+// UpdateSelfAvatar updates the current user's avatar.
+func (s *UserService) UpdateSelfAvatar(ctx context.Context, req *palace.UpdateSelfAvatarRequest) (*common.EmptyReply, error) {
+	if err := s.userBiz.UpdateSelfAvatar(ctx, req.GetAvatar()); err != nil {
+		return nil, err
+	}
+	return &common.EmptyReply{}, nil
+}
+
 // UpdateSelfPassword updates the current user's password.
 func (s *UserService) UpdateSelfPassword(ctx context.Context, req *palace.UpdateSelfPasswordRequest) (*common.EmptyReply, error) {
 	// Call business logic to update password

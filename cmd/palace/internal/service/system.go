@@ -36,14 +36,6 @@ type SystemService struct {
 	logsBiz    *biz.Logs
 }
 
-func (s *SystemService) UpdateUser(ctx context.Context, req *palace.UpdateUserRequest) (*common.EmptyReply, error) {
-	params := build.ToUserUpdateInfo(req)
-	if err := s.userBiz.UpdateUserBaseInfo(ctx, params); err != nil {
-		return nil, err
-	}
-	return &common.EmptyReply{}, nil
-}
-
 func (s *SystemService) UpdateUserStatus(ctx context.Context, req *palace.UpdateUserStatusRequest) (*common.EmptyReply, error) {
 	params := &bo.UpdateUserStatusRequest{
 		UserIds: req.GetUserIds(),

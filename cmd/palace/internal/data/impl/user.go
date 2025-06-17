@@ -287,6 +287,14 @@ func (u *userRepoImpl) UpdateUserInfo(ctx context.Context, user do.User) error {
 	return nil
 }
 
+func (u *userRepoImpl) UpdateUserAvatar(ctx context.Context, userID uint32, avatar string) error {
+	userMutation := getMainQuery(ctx, u).User
+	_, err := userMutation.WithContext(ctx).
+		Where(userMutation.ID.Eq(userID)).
+		UpdateSimple(userMutation.Avatar.Value(avatar))
+	return err
+}
+
 //go:embed template/password_changed.html
 var passwordChangedEmailBody string
 
