@@ -79,3 +79,10 @@ func (s *MenuService) GetMenuByOperation(ctx context.Context, operation string) 
 	}
 	return menu, nil
 }
+
+func (s *MenuService) DeleteMenu(ctx context.Context, req *api.DeleteMenuRequest) (*palacecommon.EmptyReply, error) {
+	if err := s.menuBiz.DeleteMenu(ctx, req.GetMenuId()); err != nil {
+		return nil, err
+	}
+	return &palacecommon.EmptyReply{}, nil
+}

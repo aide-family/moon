@@ -159,3 +159,10 @@ func (m *menuRepoImpl) FindMenus(ctx context.Context, params *bo.GetMenuTreePara
 	}
 	return slices.Map(menuDos, func(menu *system.Menu) do.Menu { return menu }), nil
 }
+
+func (m *menuRepoImpl) Delete(ctx context.Context, menuID uint32) error {
+	mainQuery := getMainQuery(ctx, m)
+	menu := mainQuery.Menu
+	_, err := menu.WithContext(ctx).Where(menu.ID.Eq(menuID)).Delete()
+	return err
+}

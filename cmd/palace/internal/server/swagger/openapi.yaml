@@ -276,6 +276,26 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.VerifyEmailReply'
+    /api/menu/delete:
+        delete:
+            tags:
+                - Menu
+            description: DeleteMenu deletes a menu by Id
+            operationId: Menu_DeleteMenu
+            parameters:
+                - name: menuId
+                  in: query
+                  description: Id of the menu to delete
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
     /api/menu/detail:
         get:
             tags:

@@ -134,3 +134,7 @@ func (m *Menu) Jobs() []cron_server.CronJob {
 		job.NewMenuJob(m.menuRepo, m.cacheRepo, m.helper.Logger()),
 	}
 }
+
+func (m *Menu) DeleteMenu(ctx context.Context, menuID uint32) error {
+	return m.menuRepo.Delete(ctx, menuID)
+}
