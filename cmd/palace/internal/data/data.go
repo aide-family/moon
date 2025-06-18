@@ -39,7 +39,7 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		laurelConn:         safety.NewMap[string, *bo.Server](),
 		helper:             log.NewHelper(log.With(logger, "module", "data")),
 		dataChangeEventBus: make(chan *bo.SyncRequest, 100),
-		ringBuffer:         nil,
+		ringBuffer:         ringbuffer.New[*bo.SyncRequest](200, 1*time.Minute, logger),
 	}
 
 	dataConf := c.GetData()
@@ -49,11 +49,6 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		return nil, nil, err
 	}
 	data.cache, err = cache.NewCache(c.GetCache())
-	if err != nil {
-		return nil, nil, err
-	}
-
-	data.ringBuffer, err = ringbuffer.New[*bo.SyncRequest](200, 100, 10*time.Second, logger)
 	if err != nil {
 		return nil, nil, err
 	}

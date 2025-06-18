@@ -11,12 +11,9 @@ import (
 )
 
 func TestRingBuffer(t *testing.T) {
-	rb, err := ringbuffer.New[string](10, 5, 3*time.Second, log.DefaultLogger)
-	if err != nil {
-		t.Fatalf("New() error = %v", err)
-	}
+	rb := ringbuffer.New[string](10, 10*time.Second, log.DefaultLogger)
 	rb.RegisterOnTrigger(func(items []string) {
-		fmt.Println("Flushed:", items)
+		log.Infof("Flushed: %v", items)
 	})
 
 	for i := 0; i < 12; i++ {

@@ -57,7 +57,7 @@ func (e *eventBusImpl) syncRequest(items []*bo.SyncRequest) {
 			if _, ok := pushedItem[item.Type][teamID]; !ok {
 				pushedItem[item.Type][teamID] = make([]uint32, 0, len(ids))
 			}
-			pushedItem[item.Type][teamID] = append(pushedItem[item.Type][teamID], ids...)
+			pushedItem[item.Type][teamID] = slices.Unique(append(pushedItem[item.Type][teamID], ids...))
 		}
 	}
 	for eventType, rows := range pushedItem {

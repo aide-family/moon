@@ -1,7 +1,6 @@
 package ringbuffer
 
 import (
-	"errors"
 	"sync"
 	"time"
 
@@ -9,9 +8,8 @@ import (
 )
 
 type RingBuffer[T any] struct {
-	data      []T
-	capacity  int
-	threshold int
+	data     []T
+	capacity int
 
 	mutex sync.Mutex
 	start int
@@ -26,21 +24,17 @@ type RingBuffer[T any] struct {
 }
 
 // New create a new ring buffer
-func New[T any](capacity int, threshold int, interval time.Duration, logger log.Logger) (*RingBuffer[T], error) {
-	if threshold <= 0 || threshold > capacity {
-		return nil, errors.New("threshold must be > 0 and <= capacity")
-	}
+func New[T any](capacity int, interval time.Duration, logger log.Logger) *RingBuffer[T] {
 	rb := &RingBuffer[T]{
 		data:      make([]T, capacity),
 		capacity:  capacity,
-		threshold: threshold,
 		interval:  interval,
 		onTrigger: func([]T) {},
 		closed:    make(chan struct{}),
 		helper:    log.NewHelper(log.With(logger, "module", "ringbuffer")),
 	}
 	rb.startTicker()
-	return rb, nil
+	return rb
 }
 
 // RegisterOnTrigger register the on trigger function
@@ -69,7 +63,7 @@ func (rb *RingBuffer[T]) Add(item T) {
 	rb.end = (rb.end + 1) % rb.capacity
 	rb.count++
 
-	if rb.count >= rb.threshold {
+	if rb.count == rb.capacity {
 		rb.flushLocked()
 	}
 }
