@@ -23,7 +23,7 @@ type RingBuffer[T any] struct {
 }
 
 // New create a new ring buffer
-func New[T any](capacity int, threshold int, interval time.Duration, onTrigger func([]T)) (*RingBuffer[T], error) {
+func New[T any](capacity int, threshold int, interval time.Duration) (*RingBuffer[T], error) {
 	if threshold <= 0 || threshold > capacity {
 		return nil, errors.New("threshold must be > 0 and <= capacity")
 	}
@@ -32,11 +32,16 @@ func New[T any](capacity int, threshold int, interval time.Duration, onTrigger f
 		capacity:  capacity,
 		threshold: threshold,
 		interval:  interval,
-		onTrigger: onTrigger,
+		onTrigger: func([]T) {},
 		closed:    make(chan struct{}),
 	}
 	rb.startTicker()
 	return rb, nil
+}
+
+// RegisterOnTrigger register the on trigger function
+func (rb *RingBuffer[T]) RegisterOnTrigger(onTrigger func([]T)) {
+	rb.onTrigger = onTrigger
 }
 
 // Add add an item to the ring buffer

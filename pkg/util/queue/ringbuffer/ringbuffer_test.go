@@ -9,12 +9,13 @@ import (
 )
 
 func TestRingBuffer(t *testing.T) {
-	rb, err := ringbuffer.New[string](10, 5, 3*time.Second, func(items []string) {
-		fmt.Println("Flushed:", items)
-	})
+	rb, err := ringbuffer.New[string](10, 5, 3*time.Second)
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
+	rb.RegisterOnTrigger(func(items []string) {
+		fmt.Println("Flushed:", items)
+	})
 
 	for i := 0; i < 12; i++ {
 		rb.Add(fmt.Sprintf("item-%d", i))

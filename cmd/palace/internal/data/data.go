@@ -17,6 +17,7 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/plugin/gorm"
+	"github.com/aide-family/moon/pkg/util/queue/ringbuffer"
 	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
@@ -38,6 +39,7 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		laurelConn:         safety.NewMap[string, *bo.Server](),
 		helper:             log.NewHelper(log.With(logger, "module", "data")),
 		dataChangeEventBus: make(chan *bo.SyncRequest, 100),
+		ringBuffer:         nil,
 	}
 
 	dataConf := c.GetData()
@@ -47,6 +49,11 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		return nil, nil, err
 	}
 	data.cache, err = cache.NewCache(c.GetCache())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	data.ringBuffer, err = ringbuffer.New[*bo.SyncRequest](200, 100, 10*time.Second)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -100,6 +107,9 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 				data.helper.Errorw("method", "close laurel conn", "err", err)
 			}
 		}
+		if ringBuffer := data.ringBuffer; validate.IsNotNil(ringBuffer) {
+			ringBuffer.Stop()
+		}
 		close(data.dataChangeEventBus)
 	}, nil
 }
@@ -112,6 +122,7 @@ type Data struct {
 	rabbitConn           *safety.Map[string, *bo.Server]
 	houyiConn            *safety.Map[string, *bo.Server]
 	laurelConn           *safety.Map[string, *bo.Server]
+	ringBuffer           *ringbuffer.RingBuffer[*bo.SyncRequest]
 	dataChangeEventBus   chan *bo.SyncRequest
 	helper               *log.Helper
 }
@@ -225,4 +236,8 @@ func (d *Data) queryTeam(teamID uint32) (*system.Team, error) {
 
 func (d *Data) GetDataChangeEventBus() chan *bo.SyncRequest {
 	return d.dataChangeEventBus
+}
+
+func (d *Data) GetRingBuffer() *ringbuffer.RingBuffer[*bo.SyncRequest] {
+	return d.ringBuffer
 }
