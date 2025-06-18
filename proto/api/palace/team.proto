@@ -284,7 +284,7 @@ message GetTeamRoleRequest {
 // SaveTeamRoleRequest represents the request data for saving or updating a team role
 message SaveTeamRoleRequest {
   // Role Id, optional for new roles
-  uint32 roleId = 1 [(buf.validate.field).required = true];
+  uint32 roleId = 1;
   // Role name
   string name = 2 [(buf.validate.field).cel = {
     message: "name max length is 32"
