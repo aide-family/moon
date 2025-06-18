@@ -12,9 +12,7 @@ type RingBuffer[T any] struct {
 	capacity int
 
 	mutex sync.Mutex
-	start int
-	end   int
-	count int
+	index int
 
 	ticker    *time.Ticker
 	interval  time.Duration
@@ -54,33 +52,22 @@ func (rb *RingBuffer[T]) Add(item T) {
 	rb.mutex.Lock()
 	defer rb.mutex.Unlock()
 
-	if rb.count == rb.capacity {
-		// overwrite the oldest item
-		rb.start = (rb.start + 1) % rb.capacity
-		rb.count--
-	}
-	rb.data[rb.end] = item
-	rb.end = (rb.end + 1) % rb.capacity
-	rb.count++
+	rb.data[rb.index] = item
+	rb.index++
 
-	if rb.count == rb.capacity {
+	if rb.index == rb.capacity {
 		rb.flushLocked()
 	}
 }
 
 // flushLocked flush the ring buffer when the lock is held
 func (rb *RingBuffer[T]) flushLocked() {
-	if rb.count == 0 {
+	if rb.index == 0 {
 		return
 	}
-	items := make([]T, rb.count)
-	for i := 0; i < rb.count; i++ {
-		idx := (rb.start + i) % rb.capacity
-		items[i] = rb.data[idx]
-	}
-	rb.start = 0
-	rb.end = 0
-	rb.count = 0
+	items := make([]T, rb.index)
+	copy(items, rb.data[:rb.index])
+	rb.index = 0
 
 	go rb.onTrigger(items)
 }
@@ -101,6 +88,10 @@ func (rb *RingBuffer[T]) Stop() {
 
 // startTicker start the ticker
 func (rb *RingBuffer[T]) startTicker() {
+	if rb.interval <= 0 {
+		rb.helper.Warnf("interval is 0, set to 10 seconds")
+		rb.interval = 10 * time.Second
+	}
 	rb.ticker = time.NewTicker(rb.interval)
 	go func() {
 		for {

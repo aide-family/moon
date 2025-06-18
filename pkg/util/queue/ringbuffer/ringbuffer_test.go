@@ -11,14 +11,14 @@ import (
 )
 
 func TestRingBuffer(t *testing.T) {
-	rb := ringbuffer.New[string](10, 10*time.Second, log.DefaultLogger)
+	rb := ringbuffer.New[string](5, 0*time.Second, log.DefaultLogger)
 	rb.RegisterOnTrigger(func(items []string) {
-		log.Infof("Flushed: %v", items)
+		log.Infof("%s Flushed: %v", time.Now().Format("15:04:05"), items)
 	})
 
 	for i := 0; i < 12; i++ {
 		rb.Add(fmt.Sprintf("item-%d", i))
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 	}
 
 	time.Sleep(5 * time.Second)
