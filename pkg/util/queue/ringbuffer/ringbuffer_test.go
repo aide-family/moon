@@ -5,11 +5,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-kratos/kratos/v2/log"
+
 	"github.com/aide-family/moon/pkg/util/queue/ringbuffer"
 )
 
 func TestRingBuffer(t *testing.T) {
-	rb, err := ringbuffer.New[string](10, 5, 3*time.Second)
+	rb, err := ringbuffer.New[string](10, 5, 3*time.Second, log.DefaultLogger)
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}

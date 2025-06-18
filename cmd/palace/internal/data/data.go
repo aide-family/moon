@@ -53,7 +53,7 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		return nil, nil, err
 	}
 
-	data.ringBuffer, err = ringbuffer.New[*bo.SyncRequest](200, 100, 10*time.Second)
+	data.ringBuffer, err = ringbuffer.New[*bo.SyncRequest](200, 100, 10*time.Second, logger)
 	if err != nil {
 		return nil, nil, err
 	}

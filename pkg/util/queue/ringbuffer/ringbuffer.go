@@ -4,6 +4,8 @@ import (
 	"errors"
 	"sync"
 	"time"
+
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type RingBuffer[T any] struct {
@@ -20,10 +22,11 @@ type RingBuffer[T any] struct {
 	interval  time.Duration
 	onTrigger func([]T)
 	closed    chan struct{}
+	helper    *log.Helper
 }
 
 // New create a new ring buffer
-func New[T any](capacity int, threshold int, interval time.Duration) (*RingBuffer[T], error) {
+func New[T any](capacity int, threshold int, interval time.Duration, logger log.Logger) (*RingBuffer[T], error) {
 	if threshold <= 0 || threshold > capacity {
 		return nil, errors.New("threshold must be > 0 and <= capacity")
 	}
@@ -34,6 +37,7 @@ func New[T any](capacity int, threshold int, interval time.Duration) (*RingBuffe
 		interval:  interval,
 		onTrigger: func([]T) {},
 		closed:    make(chan struct{}),
+		helper:    log.NewHelper(log.With(logger, "module", "ringbuffer")),
 	}
 	rb.startTicker()
 	return rb, nil
@@ -41,7 +45,14 @@ func New[T any](capacity int, threshold int, interval time.Duration) (*RingBuffe
 
 // RegisterOnTrigger register the on trigger function
 func (rb *RingBuffer[T]) RegisterOnTrigger(onTrigger func([]T)) {
-	rb.onTrigger = onTrigger
+	rb.onTrigger = func(items []T) {
+		defer func() {
+			if err := recover(); err != nil {
+				rb.helper.Errorw("method", "onTrigger", "err", err)
+			}
+		}()
+		onTrigger(items)
+	}
 }
 
 // Add add an item to the ring buffer
@@ -86,6 +97,12 @@ func (rb *RingBuffer[T]) Stop() {
 	if rb.ticker != nil {
 		rb.ticker.Stop()
 	}
+	rb.data = nil
+	rb.onTrigger = nil
+	rb.closed = nil
+	rb.ticker = nil
+	rb.interval = 0
+	rb.helper.Info("ringbuffer stopped")
 }
 
 // startTicker start the ticker
