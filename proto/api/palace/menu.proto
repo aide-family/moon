@@ -63,6 +63,8 @@ message GetMenuRequest {
 message GetMenuTreeRequest {
   // menu category
   api.palace.common.MenuCategory menuCategory = 1;
+  // menu type
+  repeated api.palace.common.MenuType menuTypes = 2;
 }
 
 // GetMenuTreeReply contains the response data for retrieving the menu tree

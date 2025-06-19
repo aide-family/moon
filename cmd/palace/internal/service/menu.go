@@ -11,6 +11,7 @@ import (
 	api "github.com/aide-family/moon/pkg/api/palace"
 	palacecommon "github.com/aide-family/moon/pkg/api/palace/common"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/slices"
 )
 
 func NewMenuService(menuBiz *biz.Menu) *MenuService {
@@ -45,6 +46,13 @@ func (s *MenuService) GetMenuTree(ctx context.Context, req *api.GetMenuTreeReque
 	params := &bo.GetMenuTreeParams{
 		MenuCategory: vobj.MenuCategory(req.GetMenuCategory()),
 		MenuTypes:    []vobj.MenuType{vobj.MenuTypeMenuSystem, vobj.MenuTypeMenuUser},
+	}
+	menuTypes := slices.MapFilter(req.GetMenuTypes(), func(v palacecommon.MenuType) (vobj.MenuType, bool) {
+		menuType := vobj.MenuType(v)
+		return menuType, menuType.Exist() && !menuType.IsUnknown()
+	})
+	if len(menuTypes) > 0 {
+		params.MenuTypes = menuTypes
 	}
 	menus, err := s.menuBiz.Menus(ctx, params)
 	if err != nil {

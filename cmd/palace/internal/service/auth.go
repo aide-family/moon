@@ -217,7 +217,7 @@ func (s *AuthService) GetSelfMenuTree(ctx context.Context, _ *common.EmptyReques
 		return nil, err
 	}
 	menus = slices.MapFilter(menus, func(menu do.Menu) (do.Menu, bool) {
-		return menu, menu.GetMenuCategory().IsMenu()
+		return menu, menu.GetMenuCategory().IsMenu() && menu.GetStatus().IsEnable()
 	})
 	return &palace.GetSelfMenuTreeReply{
 		Items: build.ToMenuTree(menus),

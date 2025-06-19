@@ -348,6 +348,14 @@ paths:
                   schema:
                     type: integer
                     format: enum
+                - name: menuTypes
+                  in: query
+                  description: menu type
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
             responses:
                 "200":
                     description: OK
@@ -1436,6 +1444,14 @@ paths:
                   schema:
                     type: integer
                     format: enum
+                - name: menuTypes
+                  in: query
+                  description: menu type
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
             responses:
                 "200":
                     description: OK
