@@ -89,14 +89,14 @@ func (a *Auth) GetCaptcha(ctx context.Context) (*captcha.GenResult, error) {
 }
 
 // VerifyCaptcha Captcha
-func (a *Auth) VerifyCaptcha(ctx context.Context, req *bo.CaptchaVerify) (bool, error) {
+func (a *Auth) VerifyCaptcha(ctx context.Context, req *bo.CaptchaVerify) error {
 	verify := a.captchaRepo.Verify(ctx, req)
 	if !verify {
-		return false, merr.ErrorCaptcha("captcha err").WithMetadata(map[string]string{
+		return merr.ErrorCaptcha("captcha err").WithMetadata(map[string]string{
 			"captcha.answer": "The verification code is incorrect. Please retrieve a new one and try again.",
 		})
 	}
-	return verify, nil
+	return nil
 }
 
 // Logout token logout

@@ -84,24 +84,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.GetCaptchaReply'
-    /api/auth/captcha/verify:
-        post:
-            tags:
-                - Auth
-            operationId: Auth_CaptchaVerify
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.palace.CaptchaValidateRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.palace.CaptchaValidateReply'
     /api/auth/filing/information:
         post:
             tags:
@@ -3154,11 +3136,6 @@ components:
                 strategyType:
                     type: integer
                     format: enum
-        api.palace.CaptchaValidateReply:
-            type: object
-            properties:
-                isSuccess:
-                    type: boolean
         api.palace.CaptchaValidateRequest:
             type: object
             properties:
@@ -3944,6 +3921,8 @@ components:
                 password:
                     type: string
                     description: User password
+                captcha:
+                    $ref: '#/components/schemas/api.palace.CaptchaValidateRequest'
             description: LoginByPasswordRequest represents the request data for logging in with password
         api.palace.LoginReply:
             type: object
@@ -5283,6 +5262,8 @@ components:
                 email:
                     type: string
                     description: Email to verify
+                captcha:
+                    $ref: '#/components/schemas/api.palace.CaptchaValidateRequest'
             description: VerifyEmailRequest represents the request data for email verification
         api.palace.common.AnnotationsItem:
             type: object

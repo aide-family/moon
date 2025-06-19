@@ -105,13 +105,6 @@ service Auth {
       body: "*"
     };
   }
-
-  rpc CaptchaVerify(CaptchaValidateRequest) returns (CaptchaValidateReply) {
-    option (google.api.http) = {
-      post: "/api/auth/captcha/verify"
-      body: "*"
-    };
-  }
 }
 
 // CaptchaValidateRequest is used to validate the captcha
@@ -166,6 +159,7 @@ message LoginByPasswordRequest {
     message: "password max length is 32"
     expression: "this.size() <= 32"
   }];
+  CaptchaValidateRequest captcha = 3 [(buf.validate.field).required = true];
 }
 
 // LoginByEmailRequest represents the request data for logging in with email verification code
@@ -284,6 +278,7 @@ message VerifyEmailRequest {
     message: "email is invalid"
     expression: "this.isEmail()"
   }];
+  CaptchaValidateRequest captcha = 2 [(buf.validate.field).required = true];
 }
 
 // VerifyEmailReply contains the response data for successful email verification
