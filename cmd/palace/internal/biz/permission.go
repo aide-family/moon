@@ -163,7 +163,14 @@ func (h *basePermissionHandler) UserHandler(findUserByID FindUserByID) Permissio
 // SystemAdminCheckHandler system admin check
 func (h *basePermissionHandler) SystemAdminCheckHandler() PermissionHandlerFunc {
 	return func(ctx *PermissionContext) (bool, error) {
-		return ctx.SystemPosition.IsAdminOrSuperAdmin(), nil
+		if ctx.SystemPosition.IsAdminOrSuperAdmin() {
+			return true, nil
+		}
+		menuDo := ctx.Menu
+		if menuDo.GetMenuType().IsMenuSystem() && menuDo.GetProcessType().IsContainsAdmin() {
+			return false, merr.ErrorPermissionDenied("this menu is only available to system administrators")
+		}
+		return false, nil
 	}
 }
 
@@ -215,7 +222,14 @@ func (h *basePermissionHandler) TeamMemberHandler(findTeamMemberByUserID func(ct
 // TeamAdminCheckHandler team admin check
 func (h *basePermissionHandler) TeamAdminCheckHandler() PermissionHandlerFunc {
 	return func(ctx *PermissionContext) (bool, error) {
-		return ctx.TeamPosition.IsAdminOrSuperAdmin(), nil
+		if ctx.TeamPosition.IsAdminOrSuperAdmin() {
+			return true, nil
+		}
+		menuDo := ctx.Menu
+		if menuDo.GetMenuType().IsMenuTeam() && menuDo.GetProcessType().IsContainsAdmin() {
+			return false, merr.ErrorPermissionDenied("this menu is only available to team administrators")
+		}
+		return false, nil
 	}
 }
 
