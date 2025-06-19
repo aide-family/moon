@@ -35,5 +35,6 @@ func (m MenuProcessType) IsContainsAdmin() bool {
 }
 
 func (m MenuProcessType) IsContainsAll() bool {
-	return m.IsContainsLogin() && m.IsContainsTeam() && m.IsContainsLog() && m.IsContainsDataPermission() && m.IsContainsAdmin()
+	allTypes := MenuProcessTypeLogin | MenuProcessTypeTeam | MenuProcessTypeLog | MenuProcessTypeDataPermission | MenuProcessTypeAdmin
+	return m&allTypes == allTypes
 }
