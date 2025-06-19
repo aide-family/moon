@@ -62,6 +62,7 @@ enum MenuProcessType {
   MENU_PROCESS_TYPE_TEAM = 2;
   MENU_PROCESS_TYPE_LOG = 4;
   MENU_PROCESS_TYPE_DATA_PERMISSION = 8;
+  MENU_PROCESS_TYPE_ADMIN = 16;
 }
 
 enum DatasourceDriverMetric {

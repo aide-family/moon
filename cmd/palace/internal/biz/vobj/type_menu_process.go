@@ -11,6 +11,7 @@ const (
 	MenuProcessTypeTeam
 	MenuProcessTypeLog
 	MenuProcessTypeDataPermission
+	MenuProcessTypeAdmin
 )
 
 func (m MenuProcessType) IsContainsLogin() bool {
@@ -29,6 +30,10 @@ func (m MenuProcessType) IsContainsDataPermission() bool {
 	return m&MenuProcessTypeDataPermission == MenuProcessTypeDataPermission
 }
 
+func (m MenuProcessType) IsContainsAdmin() bool {
+	return m&MenuProcessTypeAdmin == MenuProcessTypeAdmin
+}
+
 func (m MenuProcessType) IsContainsAll() bool {
-	return m.IsContainsLogin() && m.IsContainsTeam() && m.IsContainsLog() && m.IsContainsDataPermission()
+	return m.IsContainsLogin() && m.IsContainsTeam() && m.IsContainsLog() && m.IsContainsDataPermission() && m.IsContainsAdmin()
 }
