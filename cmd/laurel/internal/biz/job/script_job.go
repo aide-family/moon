@@ -1,6 +1,7 @@
 package job
 
 import (
+	"context"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -43,10 +44,15 @@ func (s *scriptJob) IsImmediate() bool {
 
 // Spec implements cron_server.CronJob.
 func (s *scriptJob) Spec() cron_server.CronSpec {
+	return cron_server.CronSpecEvery(s.getInterval())
+}
+
+// getInterval returns the interval of the script job
+func (s *scriptJob) getInterval() time.Duration {
 	if s.script.Interval <= 1*time.Second {
-		return cron_server.CronSpecEvery(1 * time.Minute)
+		return 1 * time.Minute
 	}
-	return cron_server.CronSpecEvery(s.script.Interval)
+	return s.script.Interval
 }
 
 // WithID implements cron_server.CronJob.
@@ -65,24 +71,26 @@ func (s *scriptJob) Run() {
 		content string
 		err     error
 	)
+	ctx, cancel := context.WithTimeout(context.Background(), s.getInterval())
+	defer cancel()
 	switch s.script.FileType {
 	case vobj.FileTypePython:
-		content, err = command.ExecPython(string(s.script.Content))
+		content, err = command.ExecPython(ctx, string(s.script.Content))
 	case vobj.FileTypePython3:
-		content, err = command.ExecPython3(string(s.script.Content))
+		content, err = command.ExecPython3(ctx, string(s.script.Content))
 	case vobj.FileTypeShell:
-		content, err = command.ExecShell(string(s.script.Content))
+		content, err = command.ExecShell(ctx, string(s.script.Content))
 	case vobj.FileTypeBash:
-		content, err = command.ExecBash(string(s.script.Content))
+		content, err = command.ExecBash(ctx, string(s.script.Content))
 	default:
-		s.helper.Warnf("script job run: %s, file type: %s", s.script.FilePath, s.script.FileType)
+		s.helper.WithContext(ctx).Warnf("script job run: %s, file type: %s", s.script.FilePath, s.script.FileType)
 		return
 	}
 	if err != nil {
-		s.helper.Warnf("script job run: %s, error: %v", s.script.FilePath, err)
+		s.helper.WithContext(ctx).Warnf("script job run: %s, error: %v", s.script.FilePath, err)
 		return
 	}
-	s.helper.Info(content)
+	s.helper.WithContext(ctx).Info(content)
 	s.eventBus.InMetricEventBus([]byte(content))
 }
 
