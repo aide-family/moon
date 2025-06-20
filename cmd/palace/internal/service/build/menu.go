@@ -26,7 +26,7 @@ func ToMenuTree(menus []do.Menu) []*common.MenuTreeItem {
 	var roots []*common.MenuTreeItem
 	for _, menu := range menus {
 		if menu.GetParentID() == 0 {
-			roots = append(roots, convertMenuToTreeItemWithMap(menu, menuMap))
+			roots = append(roots, convertMenuToTreeItemWithChildren(menu, menuMap))
 		}
 	}
 
@@ -37,10 +37,10 @@ func ToMenuTreeItem(menu do.Menu) *common.MenuTreeItem {
 	if validate.IsNil(menu) {
 		return nil
 	}
-	return convertMenuToTreeItemWithMap(menu, nil)
+	return convertMenuToTreeItemWithChildren(menu, nil)
 }
 
-func convertMenuToTreeItemWithMap(menu do.Menu, menuMap map[uint32]do.Menu) *common.MenuTreeItem {
+func convertMenuToTreeItemWithChildren(menu do.Menu, menuMap map[uint32]do.Menu) *common.MenuTreeItem {
 	if validate.IsNil(menu) {
 		return nil
 	}
@@ -62,7 +62,7 @@ func convertMenuToTreeItemWithMap(menu do.Menu, menuMap map[uint32]do.Menu) *com
 
 	for _, m := range menuMap {
 		if m.GetParentID() == menu.GetID() {
-			child := convertMenuToTreeItemWithMap(m, menuMap)
+			child := convertMenuToTreeItemWithChildren(m, menuMap)
 			if treeItem.Children == nil {
 				treeItem.Children = make([]*common.MenuTreeItem, 0)
 			}
