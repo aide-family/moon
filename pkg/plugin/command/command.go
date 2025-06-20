@@ -16,6 +16,9 @@ const (
 	Python3 Interpreter = "python3"
 	Shell   Interpreter = "sh"
 	Bash    Interpreter = "bash"
+	py                  = "py"
+	py3                 = "py3"
+	shell               = "shell"
 )
 
 var (

@@ -18,19 +18,16 @@
    - 支持的单位：`ns`, `us` (或 `µs`), `ms`, `s`, `m`, `h`
    - 示例：`5s`, `10s`, `1m`, `30s`
 
-2. **解释器类型** (第1个部分)
-   - `python` - Python 2.x
-   - `python3` - Python 3.x
-   - `sh` - Shell脚本
+2. **解释器名称** (第1个部分)
+   - `python` - Python 2.x 或 `py`
+   - `python3` - Python 3.x 或 `py3`
+   - `sh` - Shell脚本 或 `shell`
    - `bash` - Bash脚本
 
 3. **脚本名称** (第2个部分及之后)
    - 描述性名称，使用下划线分隔
    - 示例：`hello_world`, `system_metrics`
 
-4. **文件扩展名**
-   - `.py` - Python脚本
-   - `.sh` - Shell/Bash脚本
 
 ### 命名示例
 

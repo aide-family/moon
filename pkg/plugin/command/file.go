@@ -20,11 +20,11 @@ func GetFileTypeByPrefix(file string, index int) Interpreter {
 	}
 	interpreter := parts[index]
 	switch Interpreter(interpreter) {
-	case Python:
+	case Python, py:
 		return Python
-	case Python3:
+	case Python3, py3:
 		return Python3
-	case Shell:
+	case Shell, shell:
 		return Shell
 	case Bash:
 		return Bash

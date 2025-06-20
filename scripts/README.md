@@ -19,18 +19,15 @@ This system supports automatic identification and execution of multiple script l
    - Examples: `5s`, `10s`, `1m`, `30s`
 
 2. **Interpreter Type** (1st part)
-   - `python` - Python 2.x
-   - `python3` - Python 3.x
-   - `sh` - Shell script
+   - `python` - Python 2.x or `py`
+   - `python3` - Python 3.x or `py3`
+   - `sh` - Shell script or `shell`
    - `bash` - Bash script
 
 3. **Script Name** (2nd part and beyond)
    - Descriptive name, separated by underscores
    - Examples: `hello_world`, `system_metrics`
 
-4. **File Extension**
-   - `.py` - Python scripts
-   - `.sh` - Shell/Bash scripts
 
 ### Naming Examples
 
