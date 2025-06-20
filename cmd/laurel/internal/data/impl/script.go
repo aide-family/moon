@@ -142,10 +142,10 @@ func getFileType(file string, content []byte) vobj.FileType {
 				return vobj.FileTypeBash
 			case strings.Contains(firstLine, "sh"):
 				return vobj.FileTypeShell
-			case strings.Contains(firstLine, "python"):
-				return vobj.FileTypePython
 			case strings.Contains(firstLine, "python3"):
 				return vobj.FileTypePython3
+			case strings.Contains(firstLine, "python"):
+				return vobj.FileTypePython
 			}
 		}
 		return vobj.FileTypeUnknown
