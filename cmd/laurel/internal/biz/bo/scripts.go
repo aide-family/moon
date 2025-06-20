@@ -22,3 +22,11 @@ func (t *TaskScript) IsDeleted() bool {
 	}
 	return t.Deleted
 }
+
+// IsValid returns true if the script is valid
+func (t *TaskScript) IsValid() bool {
+	if validate.IsNil(t) {
+		return false
+	}
+	return !t.FileType.IsUnknown() && t.Interval > 0
+}

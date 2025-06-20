@@ -1,19 +1,16 @@
 package impl
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
-	"time"
 
 	"github.com/aide-family/moon/cmd/laurel/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/laurel/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/laurel/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/laurel/internal/conf"
+	"github.com/aide-family/moon/pkg/plugin/command"
 	"github.com/aide-family/moon/pkg/util/hash"
 	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/slices"
@@ -105,62 +102,21 @@ func (s *scriptRepoImpl) getTaskScripts(files []string) []*bo.TaskScript {
 	}
 	taskScripts := make([]*bo.TaskScript, 0, len(files))
 	for _, file := range files {
+		taskScript := &bo.TaskScript{
+			FilePath: file,
+			Interval: command.GetIntervalByPrefix(file, 0),
+			FileType: vobj.ToFileType(command.GetFileTypeByPrefix(file, 1)),
+		}
+		if !taskScript.IsValid() {
+			continue
+		}
 		content, err := os.ReadFile(file)
 		if err != nil {
 			continue
 		}
-		taskScript := &bo.TaskScript{
-			FilePath: file,
-			FileType: getFileType(file, content),
-			Interval: getInterval(file),
-		}
-		if taskScript.FileType.IsUnknown() || taskScript.Interval < 1*time.Second {
-			continue
-		}
-
 		taskScript.Content = content
 		taskScript.Hash = hash.MD5Bytes(content)
 		taskScripts = append(taskScripts, taskScript)
 	}
 	return taskScripts
-}
-
-func getFileType(file string, content []byte) vobj.FileType {
-	switch filepath.Ext(file) {
-	case ".sh":
-		return vobj.FileTypeShell
-	default:
-		// Read the first line of the file to determine if it's sh or bash
-		reader := bufio.NewReader(bytes.NewReader(content))
-		firstLine, err := reader.ReadString('\n')
-		if err != nil {
-			return vobj.FileTypeUnknown
-		}
-		if strings.HasPrefix(firstLine, "#!") {
-			switch {
-			case strings.Contains(firstLine, "bash"):
-				return vobj.FileTypeBash
-			case strings.Contains(firstLine, "sh"):
-				return vobj.FileTypeShell
-			case strings.Contains(firstLine, "python3"):
-				return vobj.FileTypePython3
-			case strings.Contains(firstLine, "python"):
-				return vobj.FileTypePython
-			}
-		}
-		return vobj.FileTypeUnknown
-	}
-}
-
-func getInterval(file string) time.Duration {
-	parts := strings.Split(filepath.Base(file), "_")
-	if len(parts) < 2 {
-		return 0
-	}
-	// Convert 10s, 5s to time.Duration
-	interval, err := time.ParseDuration(parts[0])
-	if err != nil {
-		return 0
-	}
-	return interval
 }
