@@ -119,7 +119,7 @@ func (s *scriptRepoImpl) getTaskScripts(files []string) []*bo.TaskScript {
 		}
 
 		taskScript.Content = content
-		taskScript.Hash = hash.MD5(string(content))
+		taskScript.Hash = hash.MD5Bytes(content)
 		taskScripts = append(taskScripts, taskScript)
 	}
 	return taskScripts
