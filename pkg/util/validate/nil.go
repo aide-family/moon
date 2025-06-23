@@ -10,11 +10,18 @@ func IsNil(i interface{}) bool {
 		return true
 	}
 	v := reflect.ValueOf(i)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Func:
-		return v.IsNil()
-	default:
-		return false
+	for {
+		switch v.Kind() {
+		case reflect.Ptr, reflect.Interface:
+			if v.IsNil() {
+				return true
+			}
+			v = v.Elem()
+		case reflect.Func, reflect.Slice, reflect.Map, reflect.Chan:
+			return v.IsNil()
+		default:
+			return false
+		}
 	}
 }
 
