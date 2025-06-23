@@ -13,3 +13,20 @@ func Get[T any](p *T) T {
 	var zero T
 	return zero
 }
+
+// GetOr returns the value pointed to by the given pointer.
+func GetOr[T any](p *T, def T) T {
+	if p != nil {
+		return *p
+	}
+	return def
+}
+
+// GetOrNil returns the value pointed to by the given pointer.
+func GetOrZero[T any](p *T) (T, bool) {
+	if p != nil {
+		return *p, true
+	}
+	var zero T
+	return zero, false
+}
