@@ -1,6 +1,7 @@
 package safety
 
 import (
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -478,6 +479,198 @@ func BenchmarkMap_Concurrent(b *testing.B) {
 		for pb.Next() {
 			m.Set(i, "value")
 			m.Get(i)
+			i++
+		}
+	})
+}
+
+// TestMap_RaceConditions 测试 Map 的竞态条件
+func TestMap_RaceConditions(t *testing.T) {
+	m := NewMap[int, string]()
+	const numGoroutines = 100
+	const operationsPerGoroutine = 1000
+
+	var wg sync.WaitGroup
+
+	// 并发读写测试
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			for j := 0; j < operationsPerGoroutine; j++ {
+				key := id*operationsPerGoroutine + j
+				m.Set(key, "value")
+				m.Get(key)
+				m.Len()
+			}
+		}(i)
+	}
+
+	// 并发删除测试
+	for i := 0; i < numGoroutines/2; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			for j := 0; j < operationsPerGoroutine; j++ {
+				key := id*operationsPerGoroutine + j
+				m.Delete(key)
+			}
+		}(i)
+	}
+
+	wg.Wait()
+}
+
+// TestMap_MemoryLeak 测试 Map 内存泄漏
+func TestMap_MemoryLeak(t *testing.T) {
+	// 记录初始内存使用
+	runtime.GC()
+	var m1, m2 runtime.MemStats
+	runtime.ReadMemStats(&m1)
+
+	m := NewMap[int, string]()
+
+	// 大量插入和删除操作
+	for i := 0; i < 10000; i++ {
+		m.Set(i, "value")
+	}
+
+	for i := 0; i < 10000; i++ {
+		m.Delete(i)
+	}
+
+	// 强制垃圾回收
+	runtime.GC()
+	runtime.ReadMemStats(&m2)
+
+	// 检查内存增长是否合理（允许一定的增长）
+	memoryGrowth := int64(m2.Alloc) - int64(m1.Alloc)
+	if memoryGrowth > 1024*1024 { // 1MB
+		t.Errorf("Potential memory leak detected: memory growth %d bytes", memoryGrowth)
+	}
+}
+
+// TestMap_StressTestRace 压力测试
+func TestMap_StressTestRace(t *testing.T) {
+	m := NewMap[int, string]()
+	const numOperations = 100000
+
+	// 并发压力测试
+	var wg sync.WaitGroup
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			for j := 0; j < numOperations/10; j++ {
+				key := id*(numOperations/10) + j
+				m.Set(key, "value")
+				m.Get(key)
+				if j%10 == 0 {
+					m.Delete(key)
+				}
+			}
+		}(i)
+	}
+
+	wg.Wait()
+
+	// 验证最终状态
+	expectedLen := numOperations - (numOperations / 10)
+	if m.Len() != expectedLen {
+		t.Errorf("Expected length %d, got %d", expectedLen, m.Len())
+	}
+}
+
+// TestMap_ConcurrentModification 测试并发修改
+func TestMap_ConcurrentModification(t *testing.T) {
+	m := NewMap[int, string]()
+	const numGoroutines = 20
+	const duration = 100 * time.Millisecond
+
+	done := make(chan bool)
+
+	// 启动多个 goroutine 进行并发修改
+	for i := 0; i < numGoroutines; i++ {
+		go func(id int) {
+			ticker := time.NewTicker(time.Millisecond)
+			defer ticker.Stop()
+
+			for {
+				select {
+				case <-done:
+					return
+				case <-ticker.C:
+					key := id*100 + int(time.Now().UnixNano()%1000)
+					m.Set(key, "value")
+					m.Get(key)
+					m.Delete(key)
+				}
+			}
+		}(i)
+	}
+
+	// 运行一段时间
+	time.Sleep(duration)
+	close(done)
+
+	// 验证 map 仍然可用
+	m.Set(999, "test")
+	val, ok := m.Get(999)
+	if !ok || val != "test" {
+		t.Error("Map became unusable after concurrent modification")
+	}
+}
+
+// TestGoroutineLeak 测试 goroutine 泄漏
+func TestGoroutineLeak(t *testing.T) {
+	initialGoroutines := runtime.NumGoroutine()
+
+	// 执行大量并发操作
+	m := NewMap[int, string]()
+	s := NewSlice[int](0)
+
+	var wg sync.WaitGroup
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			for j := 0; j < 100; j++ {
+				key := id*100 + j
+				m.Set(key, "value")
+				s.Append(key)
+				m.Get(key)
+				if s.Len() > 0 {
+					s.Pop()
+				}
+			}
+		}(i)
+	}
+
+	wg.Wait()
+
+	// 等待一段时间让所有 goroutine 完成
+	time.Sleep(100 * time.Millisecond)
+
+	finalGoroutines := runtime.NumGoroutine()
+	goroutineGrowth := finalGoroutines - initialGoroutines
+
+	// 允许少量 goroutine 增长（测试框架等）
+	if goroutineGrowth > 10 {
+		t.Errorf("Potential goroutine leak detected: goroutine growth %d", goroutineGrowth)
+	}
+}
+
+// BenchmarkMap_ConcurrentReadWrite 并发读写基准测试
+func BenchmarkMap_ConcurrentReadWrite(b *testing.B) {
+	m := NewMap[int, string]()
+	b.ResetTimer()
+
+	b.RunParallel(func(pb *testing.PB) {
+		i := 0
+		for pb.Next() {
+			m.Set(i, "value")
+			m.Get(i)
+			m.Len()
 			i++
 		}
 	})
