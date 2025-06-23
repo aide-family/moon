@@ -2,8 +2,6 @@ package safety
 
 import (
 	"sync"
-
-	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 // NewMap Create a thread-safe map.
@@ -59,8 +57,11 @@ func (m *Map[K, T]) Get(key K) (T, bool) {
 
 // Set the value in the map.
 func (m *Map[K, T]) Set(key K, value T) {
+	_, existed := m.m.Load(key)
 	m.m.Store(key, value)
-	m.addLen(1)
+	if !existed {
+		m.addLen(1)
+	}
 }
 
 // Append the value to the map.
@@ -74,8 +75,10 @@ func (m *Map[K, T]) Append(values ...map[K]T) {
 
 // Delete the value from the map.
 func (m *Map[K, T]) Delete(key K) {
-	m.m.Delete(key)
-	m.addLen(-1)
+	_, existed := m.m.LoadAndDelete(key)
+	if existed {
+		m.addLen(-1)
+	}
 }
 
 // List Retrieve all values from the map.
@@ -96,9 +99,11 @@ func (m *Map[K, T]) Clear() {
 
 func (m *Map[K, T]) First() (T, bool) {
 	var first T
+	found := false
 	m.m.Range(func(key, value any) bool {
 		first = value.(T)
+		found = true
 		return false
 	})
-	return first, validate.IsNotNil(first)
+	return first, found
 }
