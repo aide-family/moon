@@ -61,18 +61,14 @@ Moon 是一个开源项目，我们欢迎全球的开发者和技术爱好者加
 
 感谢所有为 Moon 项目做出贡献的开发者们！你们的努力让 Moon 变得更加强大和易用。
 
-<a href="https://github.com/aide-family/moon/graphs/contributors"><img src="https://contributors-img.web.app/image?repo=moon-monitor/moon" /></a>
+<a href="https://github.com/aide-family/moon/graphs/contributors"><img src="https://contributors-img.web.app/image?repo=aide-family/moon" /></a>
 
 # 许可证
 
 Moon 采用 [MIT 许可证](../LICENSE) 开源协议，欢迎自由使用和修改。
 
----
-
 # Moon - 让监控更简单，让运维更智能。
 
-[GitHub]() | [文档]() | [社区论坛]()
-
----
+[GitHub](https://github.com/aide-family/moon) | [文档](https://aide-family.github.io) | [社区论坛](https://github.com/aide-family/moon/discussions) | [飞书](https://scndfkxos6vi.feishu.cn/invite/member/oN40o7VhHzI)
 
 Moon 项目由全球开发者共同维护，期待你的加入！

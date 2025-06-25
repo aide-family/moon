@@ -57,18 +57,14 @@ Moon is an open-source project, and we welcome developers and technology enthusi
 
 Thank you to all the developers who have contributed to the Moon project! Your efforts have made Moon stronger and more user-friendly.
 
-<a href="https://github.com/aide-family/moon/graphs/contributors"><img src="https://contributors-img.web.app/image?repo=moon-monitor/moon" /></a>
+<a href="https://github.com/aide-family/moon/graphs/contributors"><img src="https://contributors-img.web.app/image?repo=aide-family/moon" /></a>
 
 # License
 
 Moon is open-source under the [MIT License](LICENSE), and you are free to use and modify it.
 
----
-
 # Moon - Simplifying Monitoring, Empowering Operations.
 
-[GitHub]() | [Documentation]() | [Community Forum]()
-
----
+[GitHub](https://github.com/aide-family/moon) | [Documentation](https://aide-family.github.io) | [Community Forum](https://github.com/aide-family/moon/discussions) | [Discord](https://discord.gg/rQT7psPESG)
 
 The Moon project is maintained by developers worldwide. We look forward to your participation!
