@@ -7,6 +7,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/laurel/internal/service"
 	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
+	"github.com/aide-family/moon/pkg/util/safety"
 )
 
 type CronScriptServer struct {
@@ -30,36 +31,21 @@ func NewCronScriptServer(
 }
 
 func (c *CronScriptServer) Start(ctx context.Context) error {
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				c.helper.Errorw("method", "watchEventBus", "panic", err)
-			}
-		}()
+	safety.Go("watchScriptJobEventBus", func() {
 		for scriptJob := range c.scriptService.OutScriptJobEventBus() {
 			c.AddJobForce(scriptJob)
 		}
-	}()
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				c.helper.Errorw("method", "watchEventBus", "panic", err)
-			}
-		}()
+	}, c.helper.Logger())
+	safety.Go("watchRemoveScriptJobEventBus", func() {
 		for scriptJob := range c.scriptService.OutRemoveScriptJobEventBus() {
 			c.RemoveJob(scriptJob)
 		}
-	}()
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				c.helper.Errorw("method", "watchEventBus", "panic", err)
-			}
-		}()
+	}, c.helper.Logger())
+	safety.Go("watchMetricEventBus", func() {
 		for metricEvent := range c.scriptService.OutMetricEventBus() {
 			c.metricService.PushMetricEvent(context.Background(), metricEvent)
 		}
-	}()
+	}, c.helper.Logger())
 	for _, job := range c.scriptService.Loads() {
 		c.AddJobForce(job)
 	}

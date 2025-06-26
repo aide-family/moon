@@ -85,14 +85,9 @@ func (t *Team) publishNoticeEmailConfigDataChangeEvent(ctx context.Context, ids 
 		return
 	}
 	teamID := permission.GetTeamIDByContextWithZeroValue(safety.CopyValueCtx(ctx))
-	go func(teamID uint32, ids ...uint32) {
-		defer func() {
-			if r := recover(); r != nil {
-				t.helper.Errorw("publishDataChangeEvent", "error", r)
-			}
-		}()
+	safety.Go("publishNoticeEmailConfigDataChangeEvent", func() {
 		t.eventBus.PublishDataChangeEvent(vobj.ChangedTypeNoticeEmailConfig, teamID, ids...)
-	}(teamID, ids...)
+	}, t.helper.Logger())
 }
 
 func (t *Team) publishNoticeSMSConfigDataChangeEvent(ctx context.Context, ids ...uint32) {
@@ -100,14 +95,9 @@ func (t *Team) publishNoticeSMSConfigDataChangeEvent(ctx context.Context, ids ..
 		return
 	}
 	teamID := permission.GetTeamIDByContextWithZeroValue(safety.CopyValueCtx(ctx))
-	go func(teamID uint32, ids ...uint32) {
-		defer func() {
-			if r := recover(); r != nil {
-				t.helper.Errorw("publishDataChangeEvent", "error", r)
-			}
-		}()
+	safety.Go("publishNoticeSMSConfigDataChangeEvent", func() {
 		t.eventBus.PublishDataChangeEvent(vobj.ChangedTypeNoticeSMSConfig, teamID, ids...)
-	}(teamID, ids...)
+	}, t.helper.Logger())
 }
 
 func (t *Team) getTeam(ctx context.Context, id uint32) do.Team {

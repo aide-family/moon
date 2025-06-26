@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -93,7 +94,7 @@ func (rb *RingBuffer[T]) startTicker() {
 		rb.interval = 10 * time.Second
 	}
 	rb.ticker = time.NewTicker(rb.interval)
-	go func() {
+	safety.Go("ringbuffer.startTicker", func() {
 		for {
 			select {
 			case <-rb.ticker.C:
@@ -104,5 +105,5 @@ func (rb *RingBuffer[T]) startTicker() {
 				return
 			}
 		}
-	}()
+	}, rb.helper.Logger())
 }

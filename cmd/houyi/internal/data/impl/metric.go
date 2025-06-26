@@ -14,6 +14,7 @@ import (
 	"github.com/aide-family/moon/pkg/plugin/datasource"
 	"github.com/aide-family/moon/pkg/plugin/datasource/prometheus"
 	"github.com/aide-family/moon/pkg/plugin/datasource/victoria"
+	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -129,13 +130,8 @@ func (m *metricInstance) Metadata(ctx context.Context) (<-chan []*do.MetricItem,
 		return nil, err
 	}
 	ch := make(chan []*do.MetricItem)
-	go func() {
-		defer func() {
-			close(ch)
-			if r := recover(); r != nil {
-				m.helper.Errorw("msg", "panic occurred", "err", r)
-			}
-		}()
+	safety.Go("metricInstance.Metadata", func() {
+		defer close(ch)
 		for metadata := range metricMetadata {
 			syncList := make([]*do.MetricItem, 0, len(metadata.Metric))
 			for _, metricMetadataItem := range metadata.Metric {
@@ -150,6 +146,6 @@ func (m *metricInstance) Metadata(ctx context.Context) (<-chan []*do.MetricItem,
 			}
 			ch <- syncList
 		}
-	}()
+	}, m.helper.Logger())
 	return ch, nil
 }

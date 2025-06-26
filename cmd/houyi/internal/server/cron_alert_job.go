@@ -8,6 +8,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/houyi/internal/service"
 	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
+	"github.com/aide-family/moon/pkg/util/safety"
 )
 
 var _ transport.Server = (*CronAlertJobServer)(nil)
@@ -34,12 +35,7 @@ type CronAlertJobServer struct {
 }
 
 func (c *CronAlertJobServer) Start(ctx context.Context) error {
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				c.helper.Errorw("method", "watchEventBus", "panic", err)
-			}
-		}()
+	safety.Go("watchAlertJobEventBus", func() {
 		for alertJob := range c.evaluateService.OutAlertJobEventBus() {
 			if alertJob.GetAlert().IsResolved() {
 				c.helper.Debugw("method", "watchEventBus", "alertJobResolved", alertJob.GetAlert().GetFingerprint())
@@ -48,7 +44,7 @@ func (c *CronAlertJobServer) Start(ctx context.Context) error {
 			}
 			c.AddJob(alertJob)
 		}
-	}()
+	}, c.helper.Logger())
 	return c.CronJobServer.Start(ctx)
 }
 

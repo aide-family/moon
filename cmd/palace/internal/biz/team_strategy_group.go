@@ -51,15 +51,11 @@ func (t *TeamStrategyGroup) publishStrategyDataChangeEvent(ctx context.Context, 
 	groupIds = slices.Unique(groupIds)
 	ctx = safety.CopyValueCtx(ctx)
 	teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
-	go func(teamID uint32, groupIds ...uint32) {
-		defer func() {
-			if r := recover(); r != nil {
-				t.helper.Errorw("publishDataChangeEvent", "error", r)
-			}
-		}()
+	safety.Go("publishStrategyDataChangeEvent", func() {
 		// query strategy ids by group ids
 		strategyDos, err := t.teamStrategyRepo.FindByStrategiesGroupIds(ctx, groupIds...)
 		if err != nil {
+			t.helper.Errorw("publishStrategyDataChangeEvent", "error", err)
 			return
 		}
 		strategyIds := slices.Map(strategyDos, func(item do.Strategy) uint32 {
@@ -69,7 +65,7 @@ func (t *TeamStrategyGroup) publishStrategyDataChangeEvent(ctx context.Context, 
 		if len(strategyIds) > 0 {
 			t.eventBus.PublishDataChangeEvent(vobj.ChangedTypeMetricStrategy, teamID, strategyIds...)
 		}
-	}(teamID, groupIds...)
+	}, t.helper.Logger())
 }
 
 func (t *TeamStrategyGroup) SaveTeamStrategyGroup(ctx context.Context, params *bo.SaveTeamStrategyGroupParams) error {

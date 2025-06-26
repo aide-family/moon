@@ -57,14 +57,9 @@ func (t *TeamStrategyMetric) publishStrategyDataChangeEvent(ctx context.Context,
 	}
 	strategyIds = slices.Unique(strategyIds)
 	teamID := permission.GetTeamIDByContextWithZeroValue(safety.CopyValueCtx(ctx))
-	go func(teamID uint32, ids ...uint32) {
-		defer func() {
-			if r := recover(); r != nil {
-				t.helper.Errorw("publishDataChangeEvent", "error", r)
-			}
-		}()
-		t.eventBus.PublishDataChangeEvent(vobj.ChangedTypeMetricStrategy, teamID, ids...)
-	}(teamID, strategyIds...)
+	safety.Go("publishStrategyDataChangeEvent", func() {
+		t.eventBus.PublishDataChangeEvent(vobj.ChangedTypeMetricStrategy, teamID, strategyIds...)
+	}, t.helper.Logger())
 }
 
 func (t *TeamStrategyMetric) SaveTeamMetricStrategy(ctx context.Context, params *bo.SaveTeamMetricStrategyParams) error {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/houyi/internal/service"
 	"github.com/aide-family/moon/pkg/plugin/server/cron_server"
+	"github.com/aide-family/moon/pkg/util/safety"
 )
 
 var _ transport.Server = (*CronStrategyJobServer)(nil)
@@ -27,12 +28,7 @@ type CronStrategyJobServer struct {
 }
 
 func (c *CronStrategyJobServer) Start(ctx context.Context) error {
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				c.helper.Errorw("method", "watchEventBus", "panic", err)
-			}
-		}()
+	safety.Go("watchStrategyJobEventBus", func() {
 		for strategyJob := range c.evaluateService.OutStrategyJobEventBus() {
 			if strategyJob.GetEnable() {
 				c.AddJobForce(strategyJob)
@@ -40,7 +36,7 @@ func (c *CronStrategyJobServer) Start(ctx context.Context) error {
 				c.RemoveJob(strategyJob)
 			}
 		}
-	}()
+	}, c.helper.Logger())
 	return c.CronJobServer.Start(ctx)
 }
 

@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/datasource"
 	"github.com/aide-family/moon/pkg/util/httpx"
+	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/timex"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -56,15 +57,10 @@ func (v *Victoria) Metadata(ctx context.Context) (<-chan *datasource.MetricMetad
 	}
 
 	send := make(chan *datasource.MetricMetadata, 20)
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				log.Warnw("method", "victoriametrics.metadata", "err", err)
-			}
-		}()
+	safety.Go("victoriametrics.metadata", func() {
 		defer close(send)
 		v.sendMetadata(send, metadataInfo)
-	}()
+	}, v.helper.Logger())
 
 	return send, nil
 }

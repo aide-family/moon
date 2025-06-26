@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/cmd/houyi/internal/service"
+	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -30,12 +31,7 @@ type EventBusServer struct {
 
 func (e *EventBusServer) Start(ctx context.Context) error {
 	defer e.helper.WithContext(ctx).Info("[EventBus] server is started")
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				e.helper.Errorw("method", "watchEventBus", "panic", err)
-			}
-		}()
+	safety.Go("watchEventBus", func() {
 		for {
 			select {
 			case <-e.stop:
@@ -47,7 +43,7 @@ func (e *EventBusServer) Start(ctx context.Context) error {
 				e.alertService.InnerPush(ctx, alert)
 			}
 		}
-	}()
+	}, e.helper.Logger())
 
 	return nil
 }

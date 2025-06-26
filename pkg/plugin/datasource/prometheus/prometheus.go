@@ -115,15 +115,10 @@ func (p *Prometheus) Metadata(ctx context.Context) (<-chan *datasource.MetricMet
 
 	send := make(chan *datasource.MetricMetadata, 20)
 
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				log.Warnw("method", "prometheus.metadata", "err", err)
-			}
-		}()
+	safety.Go("prometheus.metadata", func() {
 		defer close(send)
 		p.sendMetadata(send, safety.NewMap(metadataInfo))
-	}()
+	}, p.helper.Logger())
 
 	return send, nil
 }

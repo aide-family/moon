@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aide-family/moon/pkg/util/safety"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
 	"golang.org/x/sync/errgroup"
@@ -61,12 +62,7 @@ func WithTickerImmediate(immediate bool) TickerOption {
 
 func (t *Ticker) Start(ctx context.Context) error {
 	t.ticker = time.NewTicker(t.interval)
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				t.helper.Errorw("method", "Start", "panic", err)
-			}
-		}()
+	safety.Go("ticker.Start", func() {
 		if t.immediate {
 			t.call(ctx, false)
 		}
@@ -80,7 +76,7 @@ func (t *Ticker) Start(ctx context.Context) error {
 				return
 			}
 		}
-	}()
+	}, t.helper.Logger())
 	return nil
 }
 
