@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
+	"github.com/aide-family/moon/pkg/util/ips"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -21,7 +22,7 @@ func ToOperateLogParams(ctx context.Context, menuDo do.Menu, req *middleware.Ope
 		Duration:      req.Duration,
 		RequestTime:   req.RequestTime,
 		ReplyTime:     req.ReplyTime,
-		ClientIP:      "",
+		ClientIP:      ips.GetClientIP(req.OriginRequest),
 		UserID:        0,
 		TeamID:        0,
 		UserAgent:     "",
@@ -56,7 +57,6 @@ func ToOperateLogParams(ctx context.Context, menuDo do.Menu, req *middleware.Ope
 	}
 
 	if request := req.OriginRequest; validate.IsNotNil(request) {
-		item.ClientIP = request.RemoteAddr
 		item.UserAgent = request.UserAgent()
 		if originRequest, err := bo.NewHttpRequest(request); validate.IsNil(err) {
 			item.OriginRequest = originRequest.String()

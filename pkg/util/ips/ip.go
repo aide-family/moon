@@ -5,6 +5,8 @@ import (
 	"net"
 	"net/http"
 	"strings"
+
+	"github.com/aide-family/moon/pkg/util/validate"
 )
 
 // LocalIP returns the local IP address.
@@ -45,6 +47,9 @@ func LocalIPs() ([]string, error) {
 // GetClientIP returns the real client IP address from HTTP request.
 // It checks X-Forwarded-For, X-Real-IP, and RemoteAddr headers in order.
 func GetClientIP(r *http.Request) string {
+	if validate.IsNil(r) {
+		return ""
+	}
 	// Check X-Forwarded-For header first
 	if xForwardedFor := r.Header.Get("X-Forwarded-For"); xForwardedFor != "" {
 		// X-Forwarded-For can contain multiple IPs, take the first one
