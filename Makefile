@@ -47,17 +47,25 @@ init:
 .PHONY: all
 all:
 	@echo "Initialization of moon project"
-	@if [ -z "$(APP_NAME)" ]; then echo "app name is required"; echo "usage: make all app=<app_name>"; exit 1; fi
 	APP_NAME=palace make api
 	APP_NAME=houyi make api
 	APP_NAME=rabbit make api
 	APP_NAME=laurel make api
 	make errors
 	make conf
-	make stringer-$(APP_NAME)
-	make conf-$(APP_NAME)
-	make wire-$(APP_NAME)
-	make gen-$(APP_NAME)
+	make stringer-palace
+	make stringer-rabbit
+	make stringer-houyi
+	make stringer-laurel
+	make conf-palace
+	make conf-rabbit
+	make conf-houyi
+	make conf-laurel
+	make wire-palace
+	make wire-rabbit
+	make wire-houyi
+	make wire-laurel
+	make gen-palace
 	go mod tidy
 
 .PHONY: api
@@ -199,17 +207,6 @@ gen-palace:
 	rm -rf ./cmd/palace/internal/data/query
 	go run cmd/palace/migrate/gen/gen.go
 
-.PHONY: gen-rabbit
-gen-rabbit:
-	@echo "Generating rabbit db"
-
-.PHONY: gen-houyi
-gen-houyi:
-	@echo "Generating houyi db"
-
-.PHONY: gen-laurel
-gen-laurel:
-	@echo "Generating laurel db"
 
 .PHONY: build
 build:
