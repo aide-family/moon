@@ -74,6 +74,9 @@ func (m *metricInstance) Query(ctx context.Context, req *bo.MetricQueryRequest) 
 		m.helper.WithContext(ctx).Warnw("msg", "query metric failed", "err", err)
 		return nil, err
 	}
+	if validate.IsNil(metricQueryResponse) || validate.IsNil(metricQueryResponse.Data) {
+		return nil, nil
+	}
 	list := make([]*do.MetricQueryReply, 0, len(metricQueryResponse.Data.Result))
 	for _, result := range metricQueryResponse.Data.Result {
 		queryValue := result.GetMetricQueryValue()
@@ -103,6 +106,9 @@ func (m *metricInstance) QueryRange(ctx context.Context, req *bo.MetricRangeQuer
 	if err != nil {
 		m.helper.Warnw("msg", "query metric range failed", "err", err)
 		return nil, err
+	}
+	if validate.IsNil(metricQueryResponse) || validate.IsNil(metricQueryResponse.Data) {
+		return nil, nil
 	}
 	list := make([]*do.MetricQueryRangeReply, 0, len(metricQueryResponse.Data.Result))
 	for _, result := range metricQueryResponse.Data.Result {
