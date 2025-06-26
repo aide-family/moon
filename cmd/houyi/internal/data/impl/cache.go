@@ -24,9 +24,9 @@ type cacheImpl struct {
 }
 
 func (c *cacheImpl) Lock(ctx context.Context, key string, expiration time.Duration) (bool, error) {
-	return c.Data.GetCache().Client().SetNX(ctx, key, 1, expiration).Result()
+	return c.GetCache().Client().SetNX(ctx, key, 1, expiration).Result()
 }
 
 func (c *cacheImpl) Unlock(ctx context.Context, key string) error {
-	return c.Data.GetCache().Client().Del(ctx, key).Err()
+	return c.GetCache().Client().Del(ctx, key).Err()
 }

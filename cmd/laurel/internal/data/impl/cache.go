@@ -44,7 +44,7 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 		for _, metric := range counterMetrics {
 			values[metric.GetMetricName()] = metric
 		}
-		if err := c.Data.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
+		if err := c.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
 			c.helper.WithContext(ctx).Errorw("method", "counterMetrics.HSet", "err", err)
 		}
 	}
@@ -54,7 +54,7 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 		for _, metric := range gaugeMetrics {
 			values[metric.GetMetricName()] = metric
 		}
-		if err := c.Data.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
+		if err := c.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
 			c.helper.WithContext(ctx).Errorw("method", "gaugeMetrics.HSet", "err", err)
 		}
 	}
@@ -64,7 +64,7 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 		for _, metric := range histogramMetrics {
 			values[metric.GetMetricName()] = metric
 		}
-		if err := c.Data.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
+		if err := c.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
 			c.helper.WithContext(ctx).Errorw("method", "histogramMetrics.HSet", "err", err)
 		}
 	}
@@ -74,7 +74,7 @@ func (c *cacheImpl) StorageMetric(ctx context.Context, metrics ...bo.MetricVec) 
 		for _, metric := range summaryMetrics {
 			values[metric.GetMetricName()] = metric
 		}
-		if err := c.Data.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
+		if err := c.GetCache().Client().HSet(ctx, key, values).Err(); err != nil {
 			c.helper.WithContext(ctx).Errorw("method", "summaryMetrics.HSet", "err", err)
 		}
 	}
@@ -133,7 +133,7 @@ func (c *cacheImpl) GetMetric(ctx context.Context, metricType vobj.MetricType, m
 	case vobj.MetricTypeCounter:
 		key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeCounter)
 		var metric bo.CounterMetricVec
-		err := c.Data.GetCache().Client().HGet(ctx, key, metricName).Scan(&metric)
+		err := c.GetCache().Client().HGet(ctx, key, metricName).Scan(&metric)
 		if err != nil {
 			return nil, err
 		}
@@ -141,7 +141,7 @@ func (c *cacheImpl) GetMetric(ctx context.Context, metricType vobj.MetricType, m
 	case vobj.MetricTypeGauge:
 		key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeGauge)
 		var metric bo.GaugeMetricVec
-		err := c.Data.GetCache().Client().HGet(ctx, key, metricName).Scan(&metric)
+		err := c.GetCache().Client().HGet(ctx, key, metricName).Scan(&metric)
 		if err != nil {
 			return nil, err
 		}
@@ -149,7 +149,7 @@ func (c *cacheImpl) GetMetric(ctx context.Context, metricType vobj.MetricType, m
 	case vobj.MetricTypeHistogram:
 		key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeHistogram)
 		var metric bo.HistogramMetricVec
-		err := c.Data.GetCache().Client().HGet(ctx, key, metricName).Scan(&metric)
+		err := c.GetCache().Client().HGet(ctx, key, metricName).Scan(&metric)
 		if err != nil {
 			return nil, err
 		}
@@ -157,7 +157,7 @@ func (c *cacheImpl) GetMetric(ctx context.Context, metricType vobj.MetricType, m
 	case vobj.MetricTypeSummary:
 		key := vobj.MetricCacheKeyPrefix.Key(vobj.MetricTypeSummary)
 		var metric bo.SummaryMetricVec
-		err := c.Data.GetCache().Client().HGet(ctx, key, metricName).Scan(&metric)
+		err := c.GetCache().Client().HGet(ctx, key, metricName).Scan(&metric)
 		if err != nil {
 			return nil, err
 		}
@@ -168,9 +168,9 @@ func (c *cacheImpl) GetMetric(ctx context.Context, metricType vobj.MetricType, m
 }
 
 func (c *cacheImpl) Lock(ctx context.Context, key string, expiration time.Duration) (bool, error) {
-	return c.Data.GetCache().Client().SetNX(ctx, key, 1, expiration).Result()
+	return c.GetCache().Client().SetNX(ctx, key, 1, expiration).Result()
 }
 
 func (c *cacheImpl) Unlock(ctx context.Context, key string) error {
-	return c.Data.GetCache().Client().Del(ctx, key).Err()
+	return c.GetCache().Client().Del(ctx, key).Err()
 }

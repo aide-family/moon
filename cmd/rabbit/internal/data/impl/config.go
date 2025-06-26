@@ -29,7 +29,7 @@ type configImpl struct {
 
 func (c *configImpl) GetEmailConfig(ctx context.Context, teamID uint32, name string) (bo.EmailConfig, bool) {
 	key := vobj.EmailCacheKey.Key(teamID)
-	exist, err := c.Data.GetCache().Client().HExists(ctx, key, name).Result()
+	exist, err := c.GetCache().Client().HExists(ctx, key, name).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetEmailConfig", "err", err)
 		return nil, false
@@ -38,7 +38,7 @@ func (c *configImpl) GetEmailConfig(ctx context.Context, teamID uint32, name str
 		return nil, false
 	}
 	var emailConfig do.EmailConfig
-	if err := c.Data.GetCache().Client().HGet(ctx, key, name).Scan(&emailConfig); err != nil {
+	if err := c.GetCache().Client().HGet(ctx, key, name).Scan(&emailConfig); err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetEmailConfig", "err", err)
 		return nil, false
 	}
@@ -48,7 +48,7 @@ func (c *configImpl) GetEmailConfig(ctx context.Context, teamID uint32, name str
 
 func (c *configImpl) GetEmailConfigs(ctx context.Context, teamID uint32, names ...string) ([]bo.EmailConfig, error) {
 	key := vobj.EmailCacheKey.Key(teamID)
-	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
+	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetEmailConfig", "err", err)
 		return nil, err
@@ -56,7 +56,7 @@ func (c *configImpl) GetEmailConfigs(ctx context.Context, teamID uint32, names .
 	if exist == 0 {
 		return nil, nil
 	}
-	all, err := c.Data.GetCache().Client().HMGet(ctx, key, names...).Result()
+	all, err := c.GetCache().Client().HMGet(ctx, key, names...).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetEmailConfig", "err", err)
 		return nil, err
@@ -84,12 +84,12 @@ func (c *configImpl) SetEmailConfig(ctx context.Context, teamID uint32, configs 
 		configDos[item.UniqueKey()] = item
 	}
 
-	return c.Data.GetCache().Client().HSet(ctx, vobj.EmailCacheKey.Key(teamID), configDos).Err()
+	return c.GetCache().Client().HSet(ctx, vobj.EmailCacheKey.Key(teamID), configDos).Err()
 }
 
 func (c *configImpl) GetSMSConfig(ctx context.Context, teamID uint32, name string) (bo.SMSConfig, bool) {
 	key := vobj.SmsCacheKey.Key(teamID)
-	exist, err := c.Data.GetCache().Client().HExists(ctx, key, name).Result()
+	exist, err := c.GetCache().Client().HExists(ctx, key, name).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetSMSConfig", "err", err)
 		return nil, false
@@ -98,7 +98,7 @@ func (c *configImpl) GetSMSConfig(ctx context.Context, teamID uint32, name strin
 		return nil, false
 	}
 	var smsConfig do.SMSConfig
-	if err := c.Data.GetCache().Client().HGet(ctx, key, name).Scan(&smsConfig); err != nil {
+	if err := c.GetCache().Client().HGet(ctx, key, name).Scan(&smsConfig); err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetSMSConfig", "err", err)
 		return nil, false
 	}
@@ -107,7 +107,7 @@ func (c *configImpl) GetSMSConfig(ctx context.Context, teamID uint32, name strin
 
 func (c *configImpl) GetSMSConfigs(ctx context.Context, teamID uint32, names ...string) ([]bo.SMSConfig, error) {
 	key := vobj.SmsCacheKey.Key(teamID)
-	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
+	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetSMSConfig", "err", err)
 		return nil, err
@@ -115,7 +115,7 @@ func (c *configImpl) GetSMSConfigs(ctx context.Context, teamID uint32, names ...
 	if exist == 0 {
 		return nil, nil
 	}
-	all, err := c.Data.GetCache().Client().HMGet(ctx, key, names...).Result()
+	all, err := c.GetCache().Client().HMGet(ctx, key, names...).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetSMSConfig", "err", err)
 		return nil, err
@@ -143,12 +143,12 @@ func (c *configImpl) SetSMSConfig(ctx context.Context, teamID uint32, configs ..
 		}
 		configDos[item.UniqueKey()] = item
 	}
-	return c.Data.GetCache().Client().HSet(ctx, vobj.SmsCacheKey.Key(teamID), configDos).Err()
+	return c.GetCache().Client().HSet(ctx, vobj.SmsCacheKey.Key(teamID), configDos).Err()
 }
 
 func (c *configImpl) GetHookConfig(ctx context.Context, teamID uint32, name string) (bo.HookConfig, bool) {
 	key := vobj.HookCacheKey.Key(teamID)
-	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
+	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetHookConfig", "err", err)
 		return nil, false
@@ -157,7 +157,7 @@ func (c *configImpl) GetHookConfig(ctx context.Context, teamID uint32, name stri
 		return nil, false
 	}
 	var hookConfig do.HookConfig
-	if err := c.Data.GetCache().Client().HGet(ctx, key, name).Scan(&hookConfig); err != nil {
+	if err := c.GetCache().Client().HGet(ctx, key, name).Scan(&hookConfig); err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetHookConfig", "err", err)
 		return nil, false
 	}
@@ -166,7 +166,7 @@ func (c *configImpl) GetHookConfig(ctx context.Context, teamID uint32, name stri
 
 func (c *configImpl) GetHookConfigs(ctx context.Context, teamID uint32, names ...string) ([]bo.HookConfig, error) {
 	key := vobj.HookCacheKey.Key(teamID)
-	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
+	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetHookConfig", "err", err)
 		return nil, err
@@ -174,7 +174,7 @@ func (c *configImpl) GetHookConfigs(ctx context.Context, teamID uint32, names ..
 	if exist == 0 {
 		return nil, nil
 	}
-	all, err := c.Data.GetCache().Client().HMGet(ctx, key, names...).Result()
+	all, err := c.GetCache().Client().HMGet(ctx, key, names...).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetHookConfig", "err", err)
 		return nil, err
@@ -204,12 +204,12 @@ func (c *configImpl) SetHookConfig(ctx context.Context, teamID uint32, configs .
 		}
 		configDos[item.UniqueKey()] = item
 	}
-	return c.Data.GetCache().Client().HSet(ctx, vobj.HookCacheKey.Key(teamID), configDos).Err()
+	return c.GetCache().Client().HSet(ctx, vobj.HookCacheKey.Key(teamID), configDos).Err()
 }
 
 func (c *configImpl) GetNoticeGroupConfig(ctx context.Context, teamID uint32, name string) (bo.NoticeGroup, bool) {
 	key := vobj.NoticeGroupCacheKey.Key(teamID)
-	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
+	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetNoticeGroupConfig", "err", err)
 		return nil, false
@@ -218,7 +218,7 @@ func (c *configImpl) GetNoticeGroupConfig(ctx context.Context, teamID uint32, na
 		return nil, false
 	}
 	var noticeGroupConfig do.NoticeGroupConfig
-	if err := c.Data.GetCache().Client().HGet(ctx, key, name).Scan(&noticeGroupConfig); err != nil {
+	if err := c.GetCache().Client().HGet(ctx, key, name).Scan(&noticeGroupConfig); err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetNoticeGroupConfig", "err", err)
 		return nil, false
 	}
@@ -227,7 +227,7 @@ func (c *configImpl) GetNoticeGroupConfig(ctx context.Context, teamID uint32, na
 
 func (c *configImpl) GetNoticeGroupConfigs(ctx context.Context, teamID uint32, names ...string) ([]bo.NoticeGroup, error) {
 	key := vobj.NoticeGroupCacheKey.Key(teamID)
-	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
+	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetNoticeGroupConfig", "err", err)
 		return nil, err
@@ -235,7 +235,7 @@ func (c *configImpl) GetNoticeGroupConfigs(ctx context.Context, teamID uint32, n
 	if exist == 0 {
 		return nil, nil
 	}
-	all, err := c.Data.GetCache().Client().HMGet(ctx, key, names...).Result()
+	all, err := c.GetCache().Client().HMGet(ctx, key, names...).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetNoticeGroupConfig", "err", err)
 		return nil, err
@@ -271,12 +271,12 @@ func (c *configImpl) SetNoticeGroupConfig(ctx context.Context, teamID uint32, co
 		}
 		configDos[item.UniqueKey()] = item
 	}
-	return c.Data.GetCache().Client().HSet(ctx, vobj.NoticeGroupCacheKey.Key(teamID), configDos).Err()
+	return c.GetCache().Client().HSet(ctx, vobj.NoticeGroupCacheKey.Key(teamID), configDos).Err()
 }
 
 func (c *configImpl) GetNoticeUserConfig(ctx context.Context, teamID uint32, name string) (bo.NoticeUser, bool) {
 	key := vobj.NoticeUserCacheKey.Key(teamID)
-	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
+	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetNoticeUserConfig", "err", err)
 		return nil, false
@@ -285,7 +285,7 @@ func (c *configImpl) GetNoticeUserConfig(ctx context.Context, teamID uint32, nam
 		return nil, false
 	}
 	var noticeUserConfig do.NoticeUserConfig
-	if err := c.Data.GetCache().Client().HGet(ctx, key, name).Scan(&noticeUserConfig); err != nil {
+	if err := c.GetCache().Client().HGet(ctx, key, name).Scan(&noticeUserConfig); err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetNoticeUserConfig", "err", err)
 		return nil, false
 	}
@@ -294,7 +294,7 @@ func (c *configImpl) GetNoticeUserConfig(ctx context.Context, teamID uint32, nam
 
 func (c *configImpl) GetNoticeUserConfigs(ctx context.Context, teamID uint32, names ...string) ([]bo.NoticeUser, error) {
 	key := vobj.NoticeUserCacheKey.Key(teamID)
-	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
+	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetNoticeUserConfig", "err", err)
 		return nil, err
@@ -302,7 +302,7 @@ func (c *configImpl) GetNoticeUserConfigs(ctx context.Context, teamID uint32, na
 	if exist == 0 {
 		return nil, nil
 	}
-	all, err := c.Data.GetCache().Client().HMGet(ctx, key, names...).Result()
+	all, err := c.GetCache().Client().HMGet(ctx, key, names...).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetNoticeUserConfig", "err", err)
 		return nil, err
@@ -326,7 +326,7 @@ func (c *configImpl) SetNoticeUserConfig(ctx context.Context, teamID uint32, con
 		}
 		configDos[item.UniqueKey()] = item
 	}
-	return c.Data.GetCache().Client().HSet(ctx, vobj.NoticeUserCacheKey.Key(teamID), configDos).Err()
+	return c.GetCache().Client().HSet(ctx, vobj.NoticeUserCacheKey.Key(teamID), configDos).Err()
 }
 
 func (c *configImpl) RemoveConfig(ctx context.Context, params *bo.RemoveConfigParams) error {
@@ -341,5 +341,5 @@ func (c *configImpl) RemoveConfig(ctx context.Context, params *bo.RemoveConfigPa
 	default:
 		return nil
 	}
-	return c.Data.GetCache().Client().HDel(ctx, key.Key(params.TeamID), params.Name).Err()
+	return c.GetCache().Client().HDel(ctx, key.Key(params.TeamID), params.Name).Err()
 }

@@ -28,7 +28,7 @@ type configImpl struct {
 
 func (c *configImpl) GetMetricDatasourceConfig(ctx context.Context, id string) (bo.MetricDatasourceConfig, bool) {
 	key := vobj.DatasourceCacheKey.Key()
-	exist, err := c.Data.GetCache().Client().HExists(ctx, key, id).Result()
+	exist, err := c.GetCache().Client().HExists(ctx, key, id).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetMetricDatasourceConfig", "err", err)
 		return nil, false
@@ -37,7 +37,7 @@ func (c *configImpl) GetMetricDatasourceConfig(ctx context.Context, id string) (
 		return nil, false
 	}
 	var metricDatasourceConfig do.DatasourceMetricConfig
-	if err := c.Data.GetCache().Client().HGet(ctx, key, id).Scan(&metricDatasourceConfig); err != nil {
+	if err := c.GetCache().Client().HGet(ctx, key, id).Scan(&metricDatasourceConfig); err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetMetricDatasourceConfig", "err", err)
 		return nil, false
 	}
@@ -78,7 +78,7 @@ func (c *configImpl) SetMetricDatasourceConfig(ctx context.Context, configs ...b
 		}
 		configDos[item.UniqueKey()] = item
 	}
-	return c.Data.GetCache().Client().HSet(ctx, vobj.DatasourceCacheKey.Key(), configDos).Err()
+	return c.GetCache().Client().HSet(ctx, vobj.DatasourceCacheKey.Key(), configDos).Err()
 }
 
 func (c *configImpl) SetMetricRules(ctx context.Context, rules ...bo.MetricRule) error {
@@ -112,12 +112,12 @@ func (c *configImpl) SetMetricRules(ctx context.Context, rules ...bo.MetricRule)
 		}
 		configDos[v.UniqueKey()] = item
 	}
-	return c.Data.GetCache().Client().HSet(ctx, vobj.MetricRuleCacheKey.Key(), configDos).Err()
+	return c.GetCache().Client().HSet(ctx, vobj.MetricRuleCacheKey.Key(), configDos).Err()
 }
 
 func (c *configImpl) GetMetricRules(ctx context.Context) ([]bo.MetricRule, error) {
 	key := vobj.MetricRuleCacheKey.Key()
-	exist, err := c.Data.GetCache().Client().Exists(ctx, key).Result()
+	exist, err := c.GetCache().Client().Exists(ctx, key).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetMetricRules", "err", err)
 		return nil, err
@@ -126,7 +126,7 @@ func (c *configImpl) GetMetricRules(ctx context.Context) ([]bo.MetricRule, error
 		return nil, nil
 	}
 
-	metricRulesMap, err := c.Data.GetCache().Client().HGetAll(ctx, key).Result()
+	metricRulesMap, err := c.GetCache().Client().HGetAll(ctx, key).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetMetricRules", "err", err)
 		return nil, err
@@ -144,7 +144,7 @@ func (c *configImpl) GetMetricRules(ctx context.Context) ([]bo.MetricRule, error
 
 func (c *configImpl) GetMetricRule(ctx context.Context, id string) (bo.MetricRule, bool) {
 	key := vobj.MetricRuleCacheKey.Key()
-	exist, err := c.Data.GetCache().Client().HExists(ctx, key, id).Result()
+	exist, err := c.GetCache().Client().HExists(ctx, key, id).Result()
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetMetricRule", "err", err)
 		return nil, false
@@ -153,7 +153,7 @@ func (c *configImpl) GetMetricRule(ctx context.Context, id string) (bo.MetricRul
 		return nil, false
 	}
 	var metricRule do.MetricRule
-	if err := c.Data.GetCache().Client().HGet(ctx, key, id).Scan(&metricRule); err != nil {
+	if err := c.GetCache().Client().HGet(ctx, key, id).Scan(&metricRule); err != nil {
 		c.helper.WithContext(ctx).Errorw("method", "GetMetricRule", "err", err)
 		return nil, false
 	}
@@ -161,5 +161,5 @@ func (c *configImpl) GetMetricRule(ctx context.Context, id string) (bo.MetricRul
 }
 
 func (c *configImpl) DeleteMetricRules(ctx context.Context, ids ...string) error {
-	return c.Data.GetCache().Client().HDel(ctx, vobj.MetricRuleCacheKey.Key(), ids...).Err()
+	return c.GetCache().Client().HDel(ctx, vobj.MetricRuleCacheKey.Key(), ids...).Err()
 }
