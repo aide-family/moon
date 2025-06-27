@@ -108,6 +108,25 @@ func TestSlice_Delete(t *testing.T) {
 	assert.Equal(t, 2, s.Len())
 }
 
+func TestSlice_Shift(t *testing.T) {
+	s := NewSlice[string](2)
+	v, ok := s.Shift()
+	assert.False(t, ok)
+	assert.Equal(t, "", v)
+	s.Append("a")
+	s.Append("b")
+	v, ok = s.Shift()
+	assert.True(t, ok)
+	assert.Equal(t, "a", v)
+	assert.Equal(t, 1, s.Len())
+	v, ok = s.Shift()
+	assert.True(t, ok)
+	assert.Equal(t, "b", v)
+	assert.Equal(t, 0, s.Len())
+	v, ok = s.Shift()
+	assert.False(t, ok)
+}
+
 func TestSlice_Pop(t *testing.T) {
 	s := NewSlice[string](2)
 	v, ok := s.Pop()
@@ -117,32 +136,13 @@ func TestSlice_Pop(t *testing.T) {
 	s.Append("b")
 	v, ok = s.Pop()
 	assert.True(t, ok)
-	assert.Equal(t, "a", v)
+	assert.Equal(t, "b", v)
 	assert.Equal(t, 1, s.Len())
 	v, ok = s.Pop()
 	assert.True(t, ok)
-	assert.Equal(t, "b", v)
-	assert.Equal(t, 0, s.Len())
-	v, ok = s.Pop()
-	assert.False(t, ok)
-}
-
-func TestSlice_PopLast(t *testing.T) {
-	s := NewSlice[string](2)
-	v, ok := s.PopLast()
-	assert.False(t, ok)
-	assert.Equal(t, "", v)
-	s.Append("a")
-	s.Append("b")
-	v, ok = s.PopLast()
-	assert.True(t, ok)
-	assert.Equal(t, "b", v)
-	assert.Equal(t, 1, s.Len())
-	v, ok = s.PopLast()
-	assert.True(t, ok)
 	assert.Equal(t, "a", v)
 	assert.Equal(t, 0, s.Len())
-	v, ok = s.PopLast()
+	v, ok = s.Pop()
 	assert.False(t, ok)
 }
 
@@ -201,7 +201,7 @@ func TestSlice_RaceConditions(t *testing.T) {
 			defer wg.Done()
 			for j := 0; j < operationsPerGoroutine; j++ {
 				if s.Len() > 0 {
-					s.Pop()
+					s.Shift()
 				}
 			}
 		}()
@@ -225,7 +225,7 @@ func TestSlice_MemoryLeak(t *testing.T) {
 	}
 
 	for i := 0; i < 10000; i++ {
-		s.Pop()
+		s.Shift()
 	}
 
 	// 强制垃圾回收
@@ -254,7 +254,7 @@ func TestSlice_StressTestRace(t *testing.T) {
 				value := id*(numOperations/5) + j
 				s.Append(value)
 				if j%5 == 0 && s.Len() > 0 {
-					s.Pop()
+					s.Shift()
 				}
 			}
 		}(i)
@@ -290,7 +290,7 @@ func TestSlice_ConcurrentModification(t *testing.T) {
 				case <-ticker.C:
 					s.Append(id)
 					if s.Len() > 0 {
-						s.Pop()
+						s.Shift()
 					}
 				}
 			}
@@ -303,7 +303,7 @@ func TestSlice_ConcurrentModification(t *testing.T) {
 
 	// 验证 slice 仍然可用
 	s.Append(999)
-	val, ok := s.Pop()
+	val, ok := s.Shift()
 	if !ok || val != 999 {
 		t.Error("Slice became unusable after concurrent modification")
 	}
@@ -319,7 +319,7 @@ func BenchmarkSlice_ConcurrentAppendPop(b *testing.B) {
 		for pb.Next() {
 			s.Append(i)
 			if s.Len() > 0 {
-				s.Pop()
+				s.Shift()
 			}
 			i++
 		}
