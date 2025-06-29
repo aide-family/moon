@@ -103,6 +103,7 @@ func GenerateClickCaptcha() (*GenResult, error) {
 		MasterImageBase64: masterImageBase64,
 		ThumbImageBase64:  thumbImageBase64,
 		DotData:           string(dotsByte),
+		CaptchaType:       config.Captcha_Click,
 	}, nil
 }
 
@@ -168,6 +169,7 @@ func GenerateSlideCaptcha() (*GenResult, error) {
 		TileHeight:        blockData.Height,
 		TileX:             blockData.DX,
 		TileY:             blockData.DY,
+		CaptchaType:       config.Captcha_Slide,
 	}, nil
 }
 
@@ -220,5 +222,6 @@ func GenerateRotateCaptcha() (*GenResult, error) {
 		ThumbImageBase64:  thumbImageBase64,
 		ThumbSize:         blockData.Width,
 		Angle:             blockData.Angle,
+		CaptchaType:       config.Captcha_Rotate,
 	}, nil
 }

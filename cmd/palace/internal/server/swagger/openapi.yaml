@@ -66,17 +66,6 @@ paths:
                 - Auth
             description: GetCaptcha sends a captcha image to the client
             operationId: Auth_GetCaptcha
-            parameters:
-                - name: min
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: max
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
             responses:
                 "200":
                     description: OK
@@ -3214,6 +3203,9 @@ components:
                 tileHeight:
                     type: integer
                     format: int32
+                captchaType:
+                    type: integer
+                    format: enum
             description: GetCaptchaReply contains the response data for the GetCaptcha method
         api.palace.GetEmailConfigsReply:
             type: object

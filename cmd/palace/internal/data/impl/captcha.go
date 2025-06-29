@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -62,31 +63,28 @@ func (c *captchaRepoImpl) Generate(ctx context.Context) (*captcha.GenResult, err
 }
 
 func (c *captchaRepoImpl) GenerateCaptcha(_ context.Context) (*captcha.GenResult, error) {
-	switch c.captchaType {
-	case config.Captcha_Click:
-		clickCaptcha, err := captcha.GenerateClickCaptcha()
-		if err != nil {
-			return nil, err
-		}
-		clickCaptcha.CaptchaType = config.Captcha_Click
-		return clickCaptcha, nil
-	case config.Captcha_Slide:
-		slideCaptcha, err := captcha.GenerateSlideCaptcha()
-		if err != nil {
-			return nil, err
-		}
-		slideCaptcha.CaptchaType = config.Captcha_Slide
-		return slideCaptcha, nil
-	case config.Captcha_Rotate:
-		rotateCaptcha, err := captcha.GenerateRotateCaptcha()
-		if err != nil {
-			return nil, err
-		}
-		rotateCaptcha.CaptchaType = config.Captcha_Rotate
-		return rotateCaptcha, nil
-	default:
+	// 定义可用的验证码类型列表
+	captchaTypes := []config.Captcha{
+		config.Captcha_Click,
+		config.Captcha_Slide,
+		config.Captcha_Rotate,
+	}
+
+	// 随机选择一个验证码类型
+	randomIndex := rand.Intn(len(captchaTypes))
+	selectedType := captchaTypes[randomIndex]
+
+	// 使用 map 映射到对应的处理函数
+	handler, ok := map[config.Captcha]func() (*captcha.GenResult, error){
+		config.Captcha_Click:  captcha.GenerateClickCaptcha,
+		config.Captcha_Slide:  captcha.GenerateSlideCaptcha,
+		config.Captcha_Rotate: captcha.GenerateRotateCaptcha,
+	}[selectedType]
+
+	if !ok {
 		return nil, fmt.Errorf("captcha type not support")
 	}
+	return handler()
 }
 
 func (c *captchaRepoImpl) Verify(ctx context.Context, req *bo.CaptchaVerify) bool {

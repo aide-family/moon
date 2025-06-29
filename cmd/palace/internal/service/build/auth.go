@@ -85,6 +85,7 @@ func ToGetCaptchaReply(res *captcha.GenResult) *palace.GetCaptchaReply {
 		ThumbSize:         int32(res.ThumbSize),
 		TileWidth:         int32(res.TileWidth),
 		TileHeight:        int32(res.TileHeight),
+		CaptchaType:       res.CaptchaType,
 	}
 }
 
