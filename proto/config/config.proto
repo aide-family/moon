@@ -22,6 +22,13 @@ enum Network {
   GRPC = 2;
 }
 
+enum  Captcha {
+  Unknown = 0;
+  Click = 1;
+  Slide = 2;
+  Rotate = 3;
+}
+
 enum I18nFormat {
   TOML = 0;
   JSON = 1;

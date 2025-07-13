@@ -79,29 +79,20 @@ func login(loginSign *bo.LoginSign, err error) (*palace.LoginReply, error) {
 	return build.LoginReply(loginSign), nil
 }
 
-func (s *AuthService) GetCaptcha(ctx context.Context, _ *common.EmptyRequest) (*palace.GetCaptchaReply, error) {
-	captchaBo, err := s.authBiz.GetCaptcha(ctx)
+func (s *AuthService) GetCaptcha(ctx context.Context, _ *palace.GetCaptchaRequest) (*palace.GetCaptchaReply, error) {
+	res, err := s.authBiz.GetCaptcha(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return &palace.GetCaptchaReply{
-		CaptchaId:      captchaBo.Id,
-		CaptchaImg:     captchaBo.B64s,
-		ExpiredSeconds: int32(captchaBo.ExpiredSeconds),
-	}, nil
+	return build.ToGetCaptchaReply(res), nil
 }
 
 func (s *AuthService) LoginByPassword(ctx context.Context, req *palace.LoginByPasswordRequest) (*palace.LoginReply, error) {
-	captchaReq := req.GetCaptcha()
-	captchaVerify := &bo.CaptchaVerify{
-		Id:     captchaReq.GetCaptchaId(),
-		Answer: captchaReq.GetAnswer(),
-		Clear:  true,
-	}
-
-	if err := s.authBiz.VerifyCaptcha(ctx, captchaVerify); err != nil {
+	err := s.authBiz.VerifyCaptcha(ctx, build.ToCaptchaValidateRequest(req.GetCaptcha()))
+	if err != nil {
 		return nil, err
 	}
+
 	loginReq := &bo.LoginByPassword{
 		Email:    req.GetEmail(),
 		Password: req.GetPassword(),
@@ -121,16 +112,11 @@ func (s *AuthService) Logout(ctx context.Context, req *palace.LogoutRequest) (*p
 }
 
 func (s *AuthService) VerifyEmail(ctx context.Context, req *palace.VerifyEmailRequest) (*palace.VerifyEmailReply, error) {
-	captchaReq := req.GetCaptcha()
-	captchaVerify := &bo.CaptchaVerify{
-		Id:     captchaReq.GetCaptchaId(),
-		Answer: captchaReq.GetAnswer(),
-		Clear:  true,
-	}
-
-	if err := s.authBiz.VerifyCaptcha(ctx, captchaVerify); err != nil {
+	err := s.authBiz.VerifyCaptcha(ctx, build.ToCaptchaValidateRequest(req.GetCaptcha()))
+	if err != nil {
 		return nil, err
 	}
+
 	params := &bo.VerifyEmailParams{
 		Email:        req.GetEmail(),
 		SendEmailFun: s.messageBiz.SendEmail,

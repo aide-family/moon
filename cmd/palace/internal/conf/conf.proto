@@ -32,6 +32,7 @@ message Auth {
     string prefix = 1;
     google.protobuf.Duration timeout = 2;
     google.protobuf.Duration expire = 3;
+    config.Captcha type = 4;
   }
   message OAuth2 {
     enum APP {

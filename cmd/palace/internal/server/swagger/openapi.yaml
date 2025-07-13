@@ -3131,9 +3131,17 @@ components:
                 captchaId:
                     type: string
                     description: Captcha Id, used to identify the captcha image
-                answer:
+                angle:
+                    type: integer
+                    format: int32
+                sx:
+                    type: integer
+                    format: int32
+                sy:
+                    type: integer
+                    format: int32
+                dots:
                     type: string
-                    description: User's captcha answer
             description: CaptchaValidateRequest is used to validate the captcha
         api.palace.CreateTeamRequest:
             type: object
@@ -3179,13 +3187,25 @@ components:
                 captchaId:
                     type: string
                     description: Unique identifier for the captcha
-                captchaImg:
+                masterImageBase64:
                     type: string
-                    description: Base64 encoded captcha image data
                 expiredSeconds:
                     type: integer
-                    description: Captcha expiration time in seconds
                     format: int32
+                thumbImageBase64:
+                    type: string
+                thumbSize:
+                    type: integer
+                    format: int32
+                tileWidth:
+                    type: integer
+                    format: int32
+                tileHeight:
+                    type: integer
+                    format: int32
+                captchaType:
+                    type: integer
+                    format: enum
             description: GetCaptchaReply contains the response data for the GetCaptcha method
         api.palace.GetEmailConfigsReply:
             type: object
@@ -3894,9 +3914,7 @@ components:
                     type: string
                     description: User password
                 captcha:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.CaptchaValidateRequest'
-                    description: Captcha validation information
+                    $ref: '#/components/schemas/api.palace.CaptchaValidateRequest'
             description: LoginByPasswordRequest represents the request data for logging in with password
         api.palace.LoginReply:
             type: object
@@ -5237,9 +5255,7 @@ components:
                     type: string
                     description: Email to verify
                 captcha:
-                    allOf:
-                        - $ref: '#/components/schemas/api.palace.CaptchaValidateRequest'
-                    description: Captcha validation information
+                    $ref: '#/components/schemas/api.palace.CaptchaValidateRequest'
             description: VerifyEmailRequest represents the request data for email verification
         api.palace.common.AnnotationsItem:
             type: object
@@ -6650,8 +6666,8 @@ components:
 tags:
     - name: Alert
     - name: Auth
-    - name: Auth
       description: Auth service provides authentication related operations
+    - name: Auth
     - name: Callback
     - name: Health
       description: Health Check API
