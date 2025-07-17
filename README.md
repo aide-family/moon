@@ -65,6 +65,6 @@ Moon is open-source under the [MIT License](LICENSE), and you are free to use an
 
 # Moon - Simplifying Monitoring, Empowering Operations.
 
-[GitHub](https://github.com/aide-family/moon) | [Documentation](https://aide-family.github.io) | [Community Forum](https://github.com/aide-family/moon/discussions) | [Discord](https://discord.gg/rQT7psPESG)
+[GitHub](https://github.com/aide-family/moon) | [Documentation](https://aide-family.github.io) | [Community Forum](https://github.com/aide-family/moon/discussions) | [Discord](https://discord.gg/rQT7psPESG) | [Feishu](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=386t3219-195d-4e4d-a11c-0f1bbcb1d705) | [brainstorming](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=aaese146-0703-4cc8-8d3a-a974469349bd)
 
 The Moon project is maintained by developers worldwide. We look forward to your participation!

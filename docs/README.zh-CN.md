@@ -69,6 +69,7 @@ Moon 采用 [MIT 许可证](../LICENSE) 开源协议，欢迎自由使用和修�
 
 # Moon - 让监控更简单，让运维更智能。
 
-[GitHub](https://github.com/aide-family/moon) | [文档](https://aide-family.github.io) | [社区论坛](https://github.com/aide-family/moon/discussions) | [飞书](https://scndfkxos6vi.feishu.cn/invite/member/oN40o7VhHzI)
+[GitHub](https://github.com/aide-family/moon) | [文档](https://aide-family.github.io) | [社区论坛](https://github.com/aide-family/moon/discussions) | [飞书](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=386t3219-195d-4e4d-a11c-0f1bbcb1d705)| [头脑风暴](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=aaese146-0703-4cc8-8d3a-a974469349bd)
+
 
 Moon 项目由全球开发者共同维护，期待你的加入！
