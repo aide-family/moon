@@ -36,7 +36,7 @@ server:
 
 portal:
   network: ${X_MOON_PORTAL_NETWORK:tcp}
-  addr: ${X_MOON_PORTAL_ADDR:0.0.0.0:8888}
+  addr: ${X_MOON_PORTAL_ADDR:0.0.0.0:8889}
   timeout: ${X_MOON_PORTAL_TIMEOUT:50s}
   allowHeaders: ${X_MOON_PORTAL_ALLOW_HEADERS:['*']}
   allowMethods: ${X_MOON_PORTAL_ALLOW_METHODS:['*']}

@@ -17,6 +17,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/captcha"
 	"github.com/aide-family/moon/pkg/util/hash"
 	"github.com/aide-family/moon/pkg/util/password"
 	"github.com/aide-family/moon/pkg/util/safety"
@@ -83,7 +84,7 @@ type Auth struct {
 }
 
 // GetCaptcha get image captchaRepo
-func (a *Auth) GetCaptcha(ctx context.Context) (*bo.Captcha, error) {
+func (a *Auth) GetCaptcha(ctx context.Context) (*captcha.GenResult, error) {
 	return a.captchaRepo.Generate(ctx)
 }
 

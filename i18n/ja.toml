@@ -103,9 +103,6 @@ other = "must be a valid time, format: 2005-01-02 15:04:05"
 [CAPTCHA_VALIDATE_CAPTCHA_ID_VALIDATOR]
 other = "captchaId is required"
 
-[CAPTCHA_VALIDATE_ANSWER_VALIDATOR]
-other = "answer is required"
-
 [LOGIN_BY_PASSWORD_EMAIL_VALIDATOR]
 other = "email is required"
 
@@ -204,6 +201,9 @@ other = "menuCategory must be one of the following: MENU_CATEGORY_MENU, MENU_CAT
 
 [DELETE_MENU_MENU_ID_VALIDATOR]
 other = "must select a menu"
+
+[CAPTCHA_VALIDATE_ANSWER_VALIDATOR]
+other = "answer is required"
 
 [LOGIN_EMAIL_VALIDATOR]
 other = "email is required"

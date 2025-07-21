@@ -46,4 +46,6 @@ const (
 	TeamMemberCacheKey                  cache.K = "palace:team:member:cache"
 	TeamDatasourceMetricMetadataSyncKey cache.K = "palace:team:datasource:metric:metadata:sync"
 	MenuCacheKey                        cache.K = "palace:menu:cache"
+
+	CaptchaCacheKey cache.K = "palace:captcha:cache"
 )

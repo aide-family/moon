@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
 	"github.com/aide-family/moon/pkg/api/palace"
 	"github.com/aide-family/moon/pkg/api/palace/common"
+	"github.com/aide-family/moon/pkg/util/captcha"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -69,5 +70,34 @@ func ToBasicAuthItem(basicAuth *do.BasicAuth) *common.BasicAuth {
 	return &common.BasicAuth{
 		Username: basicAuth.Username,
 		Password: basicAuth.Password,
+	}
+}
+
+func ToGetCaptchaReply(res *captcha.GenResult) *palace.GetCaptchaReply {
+	if validate.IsNil(res) {
+		return nil
+	}
+
+	return &palace.GetCaptchaReply{
+		CaptchaId:         res.CaptchaKey,
+		MasterImageBase64: res.MasterImageBase64,
+		ThumbImageBase64:  res.ThumbImageBase64,
+		ThumbSize:         int32(res.ThumbSize),
+		TileWidth:         int32(res.TileWidth),
+		TileHeight:        int32(res.TileHeight),
+		CaptchaType:       res.CaptchaType,
+	}
+}
+
+func ToCaptchaValidateRequest(req *palace.CaptchaValidateRequest) *bo.CaptchaVerify {
+	if validate.IsNil(req) {
+		return nil
+	}
+	return &bo.CaptchaVerify{
+		CaptchaID: req.GetCaptchaId(),
+		Angle:     int(req.GetAngle()),
+		Sx:        int(req.GetSx()),
+		Sy:        int(req.GetSy()),
+		Dots:      req.GetDots(),
 	}
 }

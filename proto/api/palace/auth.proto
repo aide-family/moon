@@ -7,13 +7,14 @@ import "buf/validate/validate.proto";
 import "palace/common/system.proto";
 import "palace/common/system_enum.proto";
 import "palace/common/common.proto";
+import "config.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
 
 // Auth service provides authentication related operations
 service Auth {
   // GetCaptcha sends a captcha image to the client
-  rpc GetCaptcha(api.palace.common.EmptyRequest) returns (GetCaptchaReply) {
+  rpc GetCaptcha(GetCaptchaRequest) returns (GetCaptchaReply) {
     option (google.api.http) = {
       get: "/api/auth/captcha"
     };
@@ -115,22 +116,32 @@ message CaptchaValidateRequest {
     message: "captchaId is required"
     expression: "this.size() > 0"
   }];
-  // User's captcha answer
-  string answer = 2 [(buf.validate.field).cel = {
-    id: "CAPTCHA_VALIDATE_ANSWER_VALIDATOR",
-    message: "answer is required"
-    expression: "this.size() > 0"
-  }];
+
+  int32  angle = 2 ;
+  int32  sx = 3 ;
+  int32 sy = 4 ;
+  string dots = 5 ;
+}
+
+message CaptchaValidateReply {
+  bool isSuccess = 1;
+}
+
+
+message GetCaptchaRequest {
 }
 
 // GetCaptchaReply contains the response data for the GetCaptcha method
 message GetCaptchaReply {
   // Unique identifier for the captcha
   string captchaId = 1;
-  // Base64 encoded captcha image data
-  string captchaImg = 2;
-  // Captcha expiration time in seconds
+  string masterImageBase64 = 2;
   int32 expiredSeconds = 3;
+  string thumbImageBase64 = 4;
+  int32  thumbSize = 5;
+  int32  tileWidth = 6;
+  int32  tileHeight = 7;
+  config.Captcha captchaType = 8;
 }
 
 // LoginByPasswordRequest represents the request data for logging in with password
@@ -154,7 +165,6 @@ message LoginByPasswordRequest {
     message: "password max length is 32"
     expression: "this.size() <= 32"
   }];
-  // Captcha validation information
   CaptchaValidateRequest captcha = 3 [(buf.validate.field).required = true];
 }
 
@@ -235,7 +245,7 @@ message OAuthLoginByEmailRequest {
   // Application Id, to identify the application
   int32 app = 5 [(buf.validate.field).cel = {
     id: "OAUTH_LOGIN_BY_EMAIL_APP_VALIDATOR",
-    message: "app is required"  
+    message: "app is required"
     expression: "this > 0"
   }];
 }
@@ -274,7 +284,6 @@ message VerifyEmailRequest {
     message: "email is invalid"
     expression: "this.isEmail()"
   }];
-  // Captcha validation information
   CaptchaValidateRequest captcha = 2 [(buf.validate.field).required = true];
 }
 
