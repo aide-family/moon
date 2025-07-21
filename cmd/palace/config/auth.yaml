@@ -20,31 +20,37 @@ auth:
     enable: ${X_MOON_AUTH_OAUTH2_ENABLE:false}
     redirectUri: ${X_MOON_AUTH_OAUTH2_REDIRECT_URI}
     configs:
-      - app: ${X_MOON_AUTH_OAUTH2_APP_GITHUB:0}
+      - app: GITHUB
         clientId: ${X_MOON_AUTH_OAUTH2_CLIENT_ID_GITHUB}
         clientSecret: ${X_MOON_AUTH_OAUTH2_CLIENT_SECRET_GITHUB}
         callbackUri: ${X_MOON_AUTH_OAUTH2_CALLBACK_URI_GITHUB}
         authUrl: ${X_MOON_AUTH_OAUTH2_AUTH_URL_GITHUB}
         tokenUrl: ${X_MOON_AUTH_OAUTH2_TOKEN_URL_GITHUB}
-        scopes: ${X_MOON_AUTH_OAUTH2_SCOPES_GITHUB:[]}
+        scopes:
+          - user
+          - email
         loginUrl: ${X_MOON_AUTH_OAUTH2_LOGIN_URL_GITHUB}
 
-      - app: ${X_MOON_AUTH_OAUTH2_APP_GITEE:0}
+      - app: GITEE
         clientId: ${X_MOON_AUTH_OAUTH2_CLIENT_ID_GITEE}
         clientSecret: ${X_MOON_AUTH_OAUTH2_CLIENT_SECRET_GITEE}
         callbackUri: ${X_MOON_AUTH_OAUTH2_CALLBACK_URI_GITEE}
         authUrl: ${X_MOON_AUTH_OAUTH2_AUTH_URL_GITEE}
         tokenUrl: ${X_MOON_AUTH_OAUTH2_TOKEN_URL_GITEE}
-        scopes: ${X_MOON_AUTH_OAUTH2_SCOPES_GITEE:[]}
+        scopes:
+          - user_info
+          - emails
         loginUrl: ${X_MOON_AUTH_OAUTH2_LOGIN_URL_GITEE}
 
-      - app: ${X_MOON_AUTH_OAUTH2_APP_FEISHU:0}
+      - app: FEISHU
         clientId: ${X_MOON_AUTH_OAUTH2_CLIENT_ID_FEISHU}
         clientSecret: ${X_MOON_AUTH_OAUTH2_CLIENT_SECRET_FEISHU}
         callbackUri: ${X_MOON_AUTH_OAUTH2_CALLBACK_URI_FEISHU}
         authUrl: ${X_MOON_AUTH_OAUTH2_AUTH_URL_FEISHU}
         tokenUrl: ${X_MOON_AUTH_OAUTH2_TOKEN_URL_FEISHU}
-        scopes: ${X_MOON_AUTH_OAUTH2_SCOPES_FEISHU:[]}
+        scopes:
+          - user_info
+          - emails
         loginUrl: ${X_MOON_AUTH_OAUTH2_LOGIN_URL_FEISHU}
   oauth2Portal:
     enable: ${X_MOON_AUTH_OAUTH2_PORTAL_ENABLE:false}
