@@ -1,3 +1,4 @@
+// Package permission is a permission package for kratos.
 package permission
 
 import (

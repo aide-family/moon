@@ -49,7 +49,7 @@ func (s *SystemService) UpdateUserStatus(ctx context.Context, req *palace.Update
 
 func (s *SystemService) ResetUserPassword(ctx context.Context, req *palace.ResetUserPasswordRequest) (*common.EmptyReply, error) {
 	params := &bo.ResetUserPasswordRequest{
-		UserId:       req.GetUserId(),
+		UserID:       req.GetUserId(),
 		SendEmailFun: s.messageBiz.SendEmail,
 	}
 	if err := s.userBiz.ResetUserPassword(ctx, params); err != nil {
@@ -60,7 +60,7 @@ func (s *SystemService) ResetUserPassword(ctx context.Context, req *palace.Reset
 
 func (s *SystemService) UpdateUserPosition(ctx context.Context, req *palace.UpdateUserPositionRequest) (*common.EmptyReply, error) {
 	params := &bo.UpdateUserPositionRequest{
-		UserId:   req.GetUserId(),
+		UserID:   req.GetUserId(),
 		Position: vobj.Position(req.GetPosition()),
 	}
 	if err := s.userBiz.UpdateUserPosition(ctx, params); err != nil {

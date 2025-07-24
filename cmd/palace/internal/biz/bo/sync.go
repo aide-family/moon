@@ -62,7 +62,7 @@ func ToSyncMetricDatasourceConfigItem(item do.DatasourceMetric) *common.MetricDa
 		BasicAuth: ToSyncMetricDatasourceBasicAuthItem(item.GetBasicAuth()),
 		Headers:   ToSyncMetricDatasourceHeadersItem(item.GetHeaders()),
 		Ca:        item.GetCA(),
-		Tls:       ToSyncMetricDatasourceTlsItem(item.GetTLS()),
+		Tls:       ToSyncMetricDatasourceTLSItem(item.GetTLS()),
 		Method:    common.DatasourceQueryMethod(item.GetQueryMethod().GetValue()),
 	}
 }
@@ -92,7 +92,7 @@ func ToSyncMetricDatasourceHeadersItem(headers []*kv.KV) []*common.KeyValueItem 
 	})
 }
 
-func ToSyncMetricDatasourceTlsItem(tls *do.TLS) *common.TLS {
+func ToSyncMetricDatasourceTLSItem(tls *do.TLS) *common.TLS {
 	if validate.IsNil(tls) {
 		return nil
 	}

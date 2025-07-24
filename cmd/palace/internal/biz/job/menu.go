@@ -1,3 +1,4 @@
+// Package job is a job package for kratos.
 package job
 
 import (

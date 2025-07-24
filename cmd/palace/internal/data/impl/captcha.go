@@ -45,7 +45,7 @@ func (c *captchaRepoImpl) Generate(_ context.Context) (*bo.Captcha, error) {
 		return nil, err
 	}
 	return &bo.Captcha{
-		Id:             id,
+		ID:             id,
 		B64s:           b64s,
 		Answer:         answer,
 		ExpiredSeconds: int64(c.expired.Seconds()),
@@ -53,5 +53,5 @@ func (c *captchaRepoImpl) Generate(_ context.Context) (*bo.Captcha, error) {
 }
 
 func (c *captchaRepoImpl) Verify(_ context.Context, req *bo.CaptchaVerify) bool {
-	return c.Captcha.Verify(req.Id, req.Answer, req.Clear)
+	return c.Captcha.Verify(req.ID, req.Answer, req.Clear)
 }

@@ -27,11 +27,11 @@ type serverRepoImpl struct {
 
 func (s *serverRepoImpl) DeregisterServer(ctx context.Context, req *bo.ServerRegisterReq) error {
 	s.helper.WithContext(ctx).Debugf("deregister %s server: %v", req.ServerType, req)
-	serverConn, ok := s.data.GetServerConn(req.ServerType, req.Uuid)
+	serverConn, ok := s.data.GetServerConn(req.ServerType, req.UUID)
 	if !ok {
 		return nil
 	}
-	defer s.data.RemoveServerConn(req.ServerType, req.Uuid)
+	defer s.data.RemoveServerConn(req.ServerType, req.UUID)
 	if err := serverConn.Close(); err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (s *serverRepoImpl) DeregisterServer(ctx context.Context, req *bo.ServerReg
 }
 
 func (s *serverRepoImpl) RegisterServer(ctx context.Context, req *bo.ServerRegisterReq) error {
-	s.helper.WithContext(ctx).Debugf("register %s server: %s", req.ServerType, req.Uuid)
+	s.helper.WithContext(ctx).Debugf("register %s server: %s", req.ServerType, req.UUID)
 	initConfig := &server.InitConfig{
 		MicroConfig: req.Server,
 		Registry:    (*config.Registry)(req.Discovery),
@@ -61,6 +61,6 @@ func (s *serverRepoImpl) RegisterServer(ctx context.Context, req *bo.ServerRegis
 	default:
 		return merr.ErrorInvalidArgument("unsupported network: %s", req.Server.GetNetwork())
 	}
-	s.data.SetServerConn(req.ServerType, req.Uuid, serverBo)
+	s.data.SetServerConn(req.ServerType, req.UUID, serverBo)
 	return nil
 }

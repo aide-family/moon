@@ -1,3 +1,4 @@
+// Package bo is a business object package for kratos.
 package bo
 
 import (

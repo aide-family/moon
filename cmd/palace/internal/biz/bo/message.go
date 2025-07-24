@@ -36,11 +36,11 @@ type GetSendMessageLogParams struct {
 }
 
 func (p *GetSendMessageLogParams) WithTeamID(ctx context.Context) (*GetSendMessageLogParams, error) {
-	teamId, ok := permission.GetTeamIDByContext(ctx)
+	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorUnauthorized("team id is not found")
 	}
-	p.TeamID = teamId
+	p.TeamID = teamID
 	return p, nil
 }
 
@@ -51,11 +51,11 @@ type RetrySendMessageParams struct {
 }
 
 func (p *RetrySendMessageParams) WithTeamID(ctx context.Context) (*RetrySendMessageParams, error) {
-	teamId, ok := permission.GetTeamIDByContext(ctx)
+	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorUnauthorized("team id is not found")
 	}
-	p.TeamID = teamId
+	p.TeamID = teamID
 	return p, nil
 }
 
@@ -70,11 +70,11 @@ type ListSendMessageLogParams struct {
 }
 
 func (p *ListSendMessageLogParams) WithTeamID(ctx context.Context) (*ListSendMessageLogParams, error) {
-	teamId, ok := permission.GetTeamIDByContext(ctx)
+	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorUnauthorized("team id is not found")
 	}
-	p.TeamID = teamId
+	p.TeamID = teamID
 	return p, nil
 }
 

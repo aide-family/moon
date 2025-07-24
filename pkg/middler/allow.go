@@ -1,3 +1,4 @@
+// Package middler is a middleware package for kratos.
 package middler
 
 import (

@@ -29,14 +29,14 @@ func (t *TimeEngine) SaveTimeEngine(ctx context.Context, req *bo.SaveTimeEngineR
 		return err
 	}
 	req.WithRules(rules)
-	if req.TimeEngineId == 0 {
+	if req.TimeEngineID == 0 {
 		if err := req.Validate(); err != nil {
 			return err
 		}
 		return t.timeEngineRepo.CreateTimeEngine(ctx, req)
 	}
 	timeEngine, err := t.timeEngineRepo.GetTimeEngine(ctx, &bo.GetTimeEngineRequest{
-		TimeEngineId: req.TimeEngineId,
+		TimeEngineID: req.TimeEngineID,
 	})
 	if err != nil {
 		return err
@@ -45,7 +45,7 @@ func (t *TimeEngine) SaveTimeEngine(ctx context.Context, req *bo.SaveTimeEngineR
 	if err := req.Validate(); err != nil {
 		return err
 	}
-	return t.timeEngineRepo.UpdateTimeEngine(ctx, req.TimeEngineId, req)
+	return t.timeEngineRepo.UpdateTimeEngine(ctx, req.TimeEngineID, req)
 }
 
 // UpdateTimeEngineStatus updates the status of a time engine
@@ -81,10 +81,10 @@ func (t *TimeEngine) SaveTimeEngineRule(ctx context.Context, req *bo.SaveTimeEng
 	if err := req.Validate(); err != nil {
 		return err
 	}
-	if req.TimeEngineRuleId == 0 {
+	if req.TimeEngineRuleID == 0 {
 		return t.timeEngineRuleRepo.CreateTimeEngineRule(ctx, req)
 	}
-	return t.timeEngineRuleRepo.UpdateTimeEngineRule(ctx, req.TimeEngineRuleId, req)
+	return t.timeEngineRuleRepo.UpdateTimeEngineRule(ctx, req.TimeEngineRuleID, req)
 }
 
 // UpdateTimeEngineRuleStatus updates the status of a time engine rule

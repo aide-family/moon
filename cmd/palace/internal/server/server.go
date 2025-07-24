@@ -1,3 +1,4 @@
+// Package server is a server package for kratos.
 package server
 
 import (
@@ -29,7 +30,7 @@ func RegisterService(
 	c *conf.Bootstrap,
 	rpcSrv *grpc.Server,
 	httpSrv *http.Server,
-	portalHttpSrv *PortalHTTPServer,
+	portalHTTPSrv *PortalHTTPServer,
 	tickerSrv *TickerServer,
 	eventSrv *Event,
 	healthService *service.HealthService,
@@ -77,9 +78,9 @@ func RegisterService(
 	palace.RegisterTeamStrategyMetricHTTPServer(httpSrv, teamStrategyMetricService)
 
 	// portal
-	portalapi.RegisterAuthHTTPServer(portalHttpSrv.Server, portalAuthService)
-	portalapi.RegisterHomeHTTPServer(portalHttpSrv.Server, portalHomeService)
-	portalapi.RegisterPricingHTTPServer(portalHttpSrv.Server, portalPricingService)
+	portalapi.RegisterAuthHTTPServer(portalHTTPSrv.Server, portalAuthService)
+	portalapi.RegisterHomeHTTPServer(portalHTTPSrv.Server, portalHomeService)
+	portalapi.RegisterPricingHTTPServer(portalHTTPSrv.Server, portalPricingService)
 
-	return server.Servers{rpcSrv, httpSrv, portalHttpSrv, tickerSrv, eventSrv}
+	return server.Servers{rpcSrv, httpSrv, portalHTTPSrv, tickerSrv, eventSrv}
 }

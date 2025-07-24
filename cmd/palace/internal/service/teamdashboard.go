@@ -102,7 +102,7 @@ func (s *TeamDashboardService) SaveTeamDashboardChart(ctx context.Context, req *
 		DashboardID: req.GetDashboardId(),
 		Title:       req.GetTitle(),
 		Remark:      req.GetRemark(),
-		Url:         req.GetUrl(),
+		URL:         req.GetUrl(),
 		Width:       req.GetWidth(),
 		Height:      req.GetHeight(),
 	}

@@ -13,7 +13,7 @@ type Menu interface {
 	GetMenuIcon() string
 	GetMenuType() vobj.MenuType
 	GetMenuCategory() vobj.MenuCategory
-	GetApiPath() string
+	GetAPIPath() string
 	GetStatus() vobj.GlobalStatus
 	GetProcessType() vobj.MenuProcessType
 	GetParentID() uint32

@@ -3,13 +3,13 @@ package biz
 import (
 	"context"
 
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 )
 
 func NewSystemBiz(
@@ -39,8 +39,8 @@ type System struct {
 	helper          *log.Helper
 }
 
-func (s *System) GetRole(ctx context.Context, roleId uint32) (do.Role, error) {
-	return s.roleRepo.Get(ctx, roleId)
+func (s *System) GetRole(ctx context.Context, roleID uint32) (do.Role, error) {
+	return s.roleRepo.Get(ctx, roleID)
 }
 
 func (s *System) GetRoles(ctx context.Context, req *bo.ListRoleReq) (*bo.ListRoleReply, error) {
@@ -66,11 +66,11 @@ func (s *System) UpdateRoleStatus(ctx context.Context, req *bo.UpdateRoleStatusR
 }
 
 func (s *System) UpdateRoleUsers(ctx context.Context, req *bo.UpdateRoleUsersReq) error {
-	operatorId, ok := permission.GetUserIDByContext(ctx)
+	operatorID, ok := permission.GetUserIDByContext(ctx)
 	if !ok {
 		return merr.ErrorUnauthorized("user not found in context")
 	}
-	operatorDo, err := s.userRepo.Get(ctx, operatorId)
+	operatorDo, err := s.userRepo.Get(ctx, operatorID)
 	if err != nil {
 		return err
 	}
@@ -92,11 +92,11 @@ func (s *System) UpdateRoleUsers(ctx context.Context, req *bo.UpdateRoleUsersReq
 }
 
 func (s *System) UpdateUserRoles(ctx context.Context, req *bo.UpdateUserRolesReq) error {
-	userId, ok := permission.GetUserIDByContext(ctx)
+	userID, ok := permission.GetUserIDByContext(ctx)
 	if !ok {
 		return merr.ErrorUnauthorized("user not found in context")
 	}
-	operatorDo, err := s.userRepo.Get(ctx, userId)
+	operatorDo, err := s.userRepo.Get(ctx, userID)
 	if err != nil {
 		return err
 	}

@@ -51,10 +51,10 @@ func (t *teamMetricDatasourceRepoImpl) Create(ctx context.Context, req *bo.SaveT
 }
 
 func (t *teamMetricDatasourceRepoImpl) Update(ctx context.Context, req *bo.SaveTeamMetricDatasource) error {
-	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	bizMutation, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizMutation.DatasourceMetric
 	wrapper := []gen.Condition{
-		mutation.TeamID.Eq(teamId),
+		mutation.TeamID.Eq(teamID),
 		mutation.ID.Eq(req.ID),
 	}
 	mutations := []field.AssignExpr{
@@ -76,10 +76,10 @@ func (t *teamMetricDatasourceRepoImpl) Update(ctx context.Context, req *bo.SaveT
 }
 
 func (t *teamMetricDatasourceRepoImpl) UpdateStatus(ctx context.Context, req *bo.UpdateTeamMetricDatasourceStatusRequest) error {
-	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	bizMutation, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizMutation.DatasourceMetric
 	wrapper := []gen.Condition{
-		mutation.TeamID.Eq(teamId),
+		mutation.TeamID.Eq(teamID),
 		mutation.ID.Eq(req.DatasourceID),
 	}
 	_, err := mutation.WithContext(ctx).Where(wrapper...).UpdateSimple(mutation.Status.Value(req.Status.GetValue()))
@@ -87,10 +87,10 @@ func (t *teamMetricDatasourceRepoImpl) UpdateStatus(ctx context.Context, req *bo
 }
 
 func (t *teamMetricDatasourceRepoImpl) Delete(ctx context.Context, datasourceID uint32) error {
-	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	bizMutation, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizMutation.DatasourceMetric
 	wrapper := []gen.Condition{
-		mutation.TeamID.Eq(teamId),
+		mutation.TeamID.Eq(teamID),
 		mutation.ID.Eq(datasourceID),
 	}
 	_, err := mutation.WithContext(ctx).Where(wrapper...).Delete()
@@ -98,10 +98,10 @@ func (t *teamMetricDatasourceRepoImpl) Delete(ctx context.Context, datasourceID 
 }
 
 func (t *teamMetricDatasourceRepoImpl) Get(ctx context.Context, datasourceID uint32) (do.DatasourceMetric, error) {
-	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizQuery.DatasourceMetric
 	wrapper := []gen.Condition{
-		mutation.TeamID.Eq(teamId),
+		mutation.TeamID.Eq(teamID),
 		mutation.ID.Eq(datasourceID),
 	}
 	datasource, err := mutation.WithContext(ctx).Where(wrapper...).Preload(field.Associations).First()
@@ -112,9 +112,9 @@ func (t *teamMetricDatasourceRepoImpl) Get(ctx context.Context, datasourceID uin
 }
 
 func (t *teamMetricDatasourceRepoImpl) List(ctx context.Context, req *bo.ListTeamMetricDatasource) (*bo.ListTeamMetricDatasourceReply, error) {
-	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizQuery.DatasourceMetric
-	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId))
+	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamID))
 
 	if !req.Status.IsUnknown() {
 		wrapper = wrapper.Where(mutation.Status.Eq(req.Status.GetValue()))
@@ -147,9 +147,9 @@ func (t *teamMetricDatasourceRepoImpl) FindByIds(ctx context.Context, datasource
 	if len(datasourceIds) == 0 {
 		return nil, nil
 	}
-	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizQuery.DatasourceMetric
-	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId), mutation.ID.In(datasourceIds...))
+	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamID), mutation.ID.In(datasourceIds...))
 	rows, err := wrapper.Find()
 	if err != nil {
 		return nil, err
@@ -158,9 +158,9 @@ func (t *teamMetricDatasourceRepoImpl) FindByIds(ctx context.Context, datasource
 }
 
 func (t *teamMetricDatasourceRepoImpl) Select(ctx context.Context, req *bo.DatasourceSelect) (*bo.DatasourceSelectReply, error) {
-	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizQuery.DatasourceMetric
-	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId))
+	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamID))
 	if !req.Status.IsUnknown() {
 		wrapper = wrapper.Where(mutation.Status.Eq(req.Status.GetValue()))
 	}

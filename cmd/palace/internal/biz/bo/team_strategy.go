@@ -151,12 +151,12 @@ func (s *SubscribeTeamStrategiesParams) ToListReply(items []do.TeamStrategySubsc
 type SubscribeTeamStrategiesReply = ListReply[do.TeamStrategySubscriber]
 
 type SubscribeTeamStrategyParams struct {
-	StrategyId uint32
+	StrategyID uint32
 	NoticeType vobj.NoticeType
 }
 
 func (s *SubscribeTeamStrategyParams) Validate() error {
-	if s.StrategyId <= 0 {
+	if s.StrategyID <= 0 {
 		return merr.ErrorParams("strategy id is required")
 	}
 	if !s.NoticeType.Exist() {

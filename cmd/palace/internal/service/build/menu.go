@@ -51,7 +51,7 @@ func convertMenuToTreeItemWithChildren(menu do.Menu, menuMap map[uint32]do.Menu)
 		Children:        nil,
 		MenuType:        common.MenuType(menu.GetMenuType().GetValue()),
 		MenuPath:        menu.GetMenuPath(),
-		ApiPath:         menu.GetApiPath(),
+		ApiPath:         menu.GetAPIPath(),
 		MenuIcon:        menu.GetMenuIcon(),
 		MenuCategory:    common.MenuCategory(menu.GetMenuCategory().GetValue()),
 		ProcessType:     common.MenuProcessType(menu.GetProcessType()),
@@ -80,12 +80,12 @@ func ToSaveMenuRequest(req *api.SaveMenuRequest) *bo.SaveMenuRequest {
 		MenuIcon:      req.GetMenuIcon(),
 		MenuType:      vobj.MenuType(req.GetMenuType()),
 		MenuCategory:  vobj.MenuCategory(req.GetMenuCategory()),
-		ApiPath:       req.GetApiPath(),
+		APIPath:       req.GetApiPath(),
 		Status:        vobj.GlobalStatus(req.GetStatus()),
 		ProcessType:   vobj.MenuProcessType(req.GetProcessType()),
 		ParentID:      req.GetParentId(),
 		RelyOnBrother: req.GetIsRelyOnBrother(),
-		MenuId:        req.GetMenuId(),
+		MenuID:        req.GetMenuId(),
 		Sort:          req.GetSort(),
 	}
 }

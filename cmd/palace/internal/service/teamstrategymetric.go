@@ -39,7 +39,7 @@ func (s *TeamStrategyMetricService) DeleteTeamMetricStrategy(ctx context.Context
 }
 
 func (s *TeamStrategyMetricService) TeamMetricStrategyDetail(ctx context.Context, req *palace.TeamMetricStrategyDetailRequest) (*palacecommon.TeamStrategyMetricItem, error) {
-	strategyMetricDo, err := s.teamStrategyMetricBiz.GetTeamMetricStrategyByStrategyId(ctx, req.GetStrategyId())
+	strategyMetricDo, err := s.teamStrategyMetricBiz.GetTeamMetricStrategyByStrategyID(ctx, req.GetStrategyId())
 	if err != nil {
 		return nil, err
 	}

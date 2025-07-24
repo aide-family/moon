@@ -20,7 +20,7 @@ type Menu struct {
 	MenuIcon      string                `gorm:"column:menu_icon;type:varchar(64);not null;default:'';comment:menu icon" json:"menuIcon"`
 	MenuType      vobj.MenuType         `gorm:"column:menu_type;type:tinyint(2);not null;default:0;comment:menu system type" json:"menuType"`
 	MenuCategory  vobj.MenuCategory     `gorm:"column:menu_category;type:tinyint(2);not null;default:0;comment:menu category" json:"menuCategory"`
-	ApiPath       string                `gorm:"column:api_path;type:varchar(255);not null;default:'';comment:API path" json:"apiPath"`
+	APIPath       string                `gorm:"column:api_path;type:varchar(255);not null;default:'';comment:API path" json:"apiPath"`
 	Status        vobj.GlobalStatus     `gorm:"column:status;type:tinyint(2);not null;default:0;comment:status" json:"status"`
 	ProcessType   vobj.MenuProcessType  `gorm:"column:process_type;type:tinyint(2);not null;default:0;comment:process type" json:"processType"`
 	ParentID      uint32                `gorm:"column:parent_id;type:int unsigned;not null;default:0;comment:parent ID" json:"parentID"`
@@ -53,8 +53,8 @@ func (u *Menu) GetMenuCategory() vobj.MenuCategory {
 	return u.MenuCategory
 }
 
-func (u *Menu) GetApiPath() string {
-	return u.ApiPath
+func (u *Menu) GetAPIPath() string {
+	return u.APIPath
 }
 
 func (u *Menu) GetStatus() vobj.GlobalStatus {
@@ -90,7 +90,7 @@ func (u *Menu) UnmarshalBinary(data []byte) error {
 }
 
 func (u *Menu) UniqueKey() string {
-	return u.ApiPath
+	return u.APIPath
 }
 
 func (u *Menu) TableName() string {

@@ -34,11 +34,11 @@ func (t *teamHookRepoImpl) Find(ctx context.Context, ids []uint32) ([]do.NoticeH
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 
 	hookQuery := bizQuery.NoticeHook
 	wrapper := []gen.Condition{
-		hookQuery.TeamID.Eq(teamId),
+		hookQuery.TeamID.Eq(teamID),
 		hookQuery.ID.In(ids...),
 	}
 	hooks, err := hookQuery.WithContext(ctx).Where(wrapper...).Find()

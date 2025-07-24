@@ -56,8 +56,8 @@ func (m *memberRepoImpl) List(ctx context.Context, req *bo.TeamMemberListRequest
 
 	memberQuery := getMainQuery(ctx, m).TeamMember
 	wrapper := memberQuery.WithContext(ctx)
-	if req.TeamId > 0 {
-		wrapper = wrapper.Where(memberQuery.TeamID.Eq(req.TeamId))
+	if req.TeamID > 0 {
+		wrapper = wrapper.Where(memberQuery.TeamID.Eq(req.TeamID))
 	}
 	if !validate.TextIsNull(req.Keyword) {
 		ors := []gen.Condition{
@@ -97,7 +97,7 @@ func (m *memberRepoImpl) Select(ctx context.Context, req *bo.SelectTeamMembersRe
 	mainQuery := getMainQuery(ctx, m)
 	memberQuery := mainQuery.TeamMember
 	userQuery := mainQuery.User
-	wrapper := memberQuery.WithContext(ctx).Where(memberQuery.TeamID.Eq(req.TeamId))
+	wrapper := memberQuery.WithContext(ctx).Where(memberQuery.TeamID.Eq(req.TeamID))
 	if !validate.TextIsNull(req.Keyword) {
 		wrapper = wrapper.Where(memberQuery.MemberName.Like(req.Keyword))
 	}
@@ -144,7 +144,7 @@ func (m *memberRepoImpl) UpdateStatus(ctx context.Context, req bo.UpdateMemberSt
 	if len(req.GetMembers()) == 0 {
 		return nil
 	}
-	teamId, ok := permission.GetTeamIDByContext(ctx)
+	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return merr.ErrorPermissionDenied("team id not found")
 	}
@@ -159,7 +159,7 @@ func (m *memberRepoImpl) UpdateStatus(ctx context.Context, req bo.UpdateMemberSt
 	}
 	memberQuery := getMainQuery(ctx, m).TeamMember
 	wrappers := []gen.Condition{
-		memberQuery.TeamID.Eq(teamId),
+		memberQuery.TeamID.Eq(teamID),
 		memberQuery.ID.In(memberIds...),
 	}
 	_, err := memberQuery.WithContext(ctx).Where(wrappers...).UpdateSimple(memberQuery.Status.Value(req.GetStatus().GetValue()))

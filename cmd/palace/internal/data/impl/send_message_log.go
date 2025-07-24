@@ -41,15 +41,15 @@ func (s *sendMessageLogRepoImpl) Retry(ctx context.Context, params *bo.RetrySend
 }
 
 func (s *sendMessageLogRepoImpl) getTeamSendMessageLogTableName(ctx context.Context, sendAt time.Time) (string, error) {
-	teamId, ok := permission.GetTeamIDByContext(ctx)
+	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return "", merr.ErrorPermissionDenied("team id not found")
 	}
-	bizDB, err := s.GetEventDB(teamId)
+	bizDB, err := s.GetEventDB(teamID)
 	if err != nil {
 		return "", err
 	}
-	return event.GetSendMessageLogTableName(teamId, sendAt, bizDB.GetDB())
+	return event.GetSendMessageLogTableName(teamID, sendAt, bizDB.GetDB())
 }
 
 func (s *sendMessageLogRepoImpl) getSystemSendMessageLogTableName(sendAt time.Time) (string, error) {
@@ -58,14 +58,14 @@ func (s *sendMessageLogRepoImpl) getSystemSendMessageLogTableName(sendAt time.Ti
 }
 
 func (s *sendMessageLogRepoImpl) retryTeamSendMessageLog(ctx context.Context, params *bo.RetrySendMessageParams) error {
-	tx, teamId := getTeamEventQueryWithTeamID(ctx, s)
+	tx, teamID := getTeamEventQueryWithTeamID(ctx, s)
 	tableName, err := s.getTeamSendMessageLogTableName(ctx, params.SendAt)
 	if err != nil {
 		return err
 	}
 	sendMessageLogTx := tx.SendMessageLog.Table(tableName)
 	wrapper := sendMessageLogTx.WithContext(ctx)
-	wrapper = wrapper.Where(sendMessageLogTx.TeamID.Eq(teamId), sendMessageLogTx.RequestID.Eq(params.RequestID))
+	wrapper = wrapper.Where(sendMessageLogTx.TeamID.Eq(teamID), sendMessageLogTx.RequestID.Eq(params.RequestID))
 	_, err = wrapper.UpdateSimple(sendMessageLogTx.RetryCount.Add(1))
 	return err
 }
@@ -157,7 +157,7 @@ func (s *sendMessageLogRepoImpl) createSystemSendMessageLog(ctx context.Context,
 
 func (s *sendMessageLogRepoImpl) getTeamSendMessageLog(ctx context.Context, params *bo.GetSendMessageLogParams) (do.SendMessageLog, error) {
 	ctx = permission.WithTeamIDContext(ctx, params.TeamID)
-	tx, teamId := getTeamEventQueryWithTeamID(ctx, s)
+	tx, teamID := getTeamEventQueryWithTeamID(ctx, s)
 	tableName, err := s.getTeamSendMessageLogTableName(ctx, params.SendAt)
 	if err != nil {
 		return nil, err
@@ -165,7 +165,7 @@ func (s *sendMessageLogRepoImpl) getTeamSendMessageLog(ctx context.Context, para
 	sendMessageLogTx := tx.SendMessageLog.Table(tableName)
 	wrapper := sendMessageLogTx.WithContext(ctx)
 	wrappers := []gen.Condition{
-		sendMessageLogTx.TeamID.Eq(teamId),
+		sendMessageLogTx.TeamID.Eq(teamID),
 		sendMessageLogTx.RequestID.Eq(params.RequestID),
 	}
 	sendMessageLog, err := wrapper.Where(wrappers...).First()
@@ -195,7 +195,7 @@ func (s *sendMessageLogRepoImpl) getSystemSendMessageLog(ctx context.Context, pa
 
 func (s *sendMessageLogRepoImpl) updateTeamSendMessageLog(ctx context.Context, params *bo.UpdateSendMessageLogStatusParams) error {
 	ctx = permission.WithTeamIDContext(ctx, params.TeamID)
-	tx, teamId := getTeamEventQueryWithTeamID(ctx, s)
+	tx, teamID := getTeamEventQueryWithTeamID(ctx, s)
 	tableName, err := s.getTeamSendMessageLogTableName(ctx, params.SendAt)
 	if err != nil {
 		return err
@@ -203,7 +203,7 @@ func (s *sendMessageLogRepoImpl) updateTeamSendMessageLog(ctx context.Context, p
 	sendMessageLogTx := tx.SendMessageLog.Table(tableName)
 	wrapper := sendMessageLogTx.WithContext(ctx)
 	wrappers := []gen.Condition{
-		sendMessageLogTx.TeamID.Eq(teamId),
+		sendMessageLogTx.TeamID.Eq(teamID),
 		sendMessageLogTx.RequestID.Eq(params.RequestID),
 	}
 	sendMessageLog, err := wrapper.Where(wrappers...).First()

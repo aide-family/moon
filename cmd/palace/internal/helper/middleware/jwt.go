@@ -1,3 +1,4 @@
+// Package middleware is a middleware package for kratos.
 package middleware
 
 import (

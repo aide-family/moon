@@ -72,7 +72,7 @@ type UpdateUserStatusRequest struct {
 }
 
 type ResetUserPasswordRequest struct {
-	UserId       uint32
+	UserID       uint32
 	SendEmailFun SendEmailFun
 }
 
@@ -84,7 +84,7 @@ type UpdateUserPosition interface {
 type UpdateUserPositionRequest struct {
 	operator do.User
 	user     do.User
-	UserId   uint32
+	UserID   uint32
 	Position vobj.Position
 }
 

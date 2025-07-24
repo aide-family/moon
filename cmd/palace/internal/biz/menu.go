@@ -108,7 +108,7 @@ func (m *Menu) GetMenu(ctx context.Context, id uint32) (do.Menu, error) {
 
 func (m *Menu) SaveMenu(ctx context.Context, menu *bo.SaveMenuRequest) error {
 	defer func() {
-		apiPath := menu.ApiPath
+		apiPath := menu.APIPath
 		if apiPath == "" {
 			return
 		}
@@ -120,10 +120,10 @@ func (m *Menu) SaveMenu(ctx context.Context, menu *bo.SaveMenuRequest) error {
 			m.helper.WithContext(ctx).Warnw("method", "menu.SaveMenu", "err", err)
 		}
 	}()
-	if err := m.menuRepo.ExistByName(ctx, menu.Name, menu.MenuId); err != nil {
+	if err := m.menuRepo.ExistByName(ctx, menu.Name, menu.MenuID); err != nil {
 		return err
 	}
-	if menu.MenuId == 0 {
+	if menu.MenuID == 0 {
 		return m.menuRepo.Create(ctx, menu)
 	}
 	return m.menuRepo.Update(ctx, menu)

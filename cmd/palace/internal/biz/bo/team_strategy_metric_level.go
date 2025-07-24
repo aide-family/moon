@@ -215,7 +215,7 @@ func (s *SaveTeamMetricStrategyLevelParams) GetLabelNotices() []*LabelNoticePara
 type ListTeamMetricStrategyLevelsParams struct {
 	*PaginationRequest
 	StrategyMetricID uint32
-	LevelId          uint32
+	LevelID          uint32
 	Status           vobj.GlobalStatus
 	Keyword          string
 }

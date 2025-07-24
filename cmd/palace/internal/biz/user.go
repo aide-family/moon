@@ -175,7 +175,7 @@ func (b *UserBiz) UpdateUserStatus(ctx context.Context, req *bo.UpdateUserStatus
 }
 
 func (b *UserBiz) ResetUserPassword(ctx context.Context, req *bo.ResetUserPasswordRequest) error {
-	user, err := b.userRepo.FindByID(ctx, req.UserId)
+	user, err := b.userRepo.FindByID(ctx, req.UserID)
 	if err != nil {
 		return err
 	}
@@ -205,7 +205,7 @@ func (b *UserBiz) UpdateUserPosition(ctx context.Context, req *bo.UpdateUserPosi
 		return err
 	}
 	req.WithOperator(operator)
-	user, err := b.userRepo.FindByID(ctx, req.UserId)
+	user, err := b.userRepo.FindByID(ctx, req.UserID)
 	if err != nil {
 		return err
 	}

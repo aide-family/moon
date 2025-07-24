@@ -128,9 +128,9 @@ func (o *operateLogRepoImpl) TeamList(ctx context.Context, req *bo.OperateLogLis
 	if validate.IsNil(req) {
 		return nil, nil
 	}
-	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, o)
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, o)
 	operateLogQuery := bizQuery.OperateLog
-	wrapper := operateLogQuery.WithContext(ctx).Where(operateLogQuery.TeamID.Eq(teamId))
+	wrapper := operateLogQuery.WithContext(ctx).Where(operateLogQuery.TeamID.Eq(teamID))
 
 	if !validate.TextIsNull(req.Keyword) {
 		ors := []gen.Condition{

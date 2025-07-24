@@ -72,7 +72,7 @@ func ToListTeamMetricStrategyLevelsParams(request *palace.TeamMetricStrategyLeve
 	return &bo.ListTeamMetricStrategyLevelsParams{
 		PaginationRequest: ToPaginationRequest(request.GetPagination()),
 		StrategyMetricID:  request.GetStrategyMetricId(),
-		LevelId:           request.GetLevelId(),
+		LevelID:           request.GetLevelId(),
 	}
 }
 
@@ -154,7 +154,7 @@ func ToSubscribeTeamStrategyParams(request *palace.SubscribeTeamStrategyRequest)
 		panic("SubscribeTeamStrategyRequest is nil")
 	}
 	return &bo.SubscribeTeamStrategyParams{
-		StrategyId: request.GetStrategyId(),
+		StrategyID: request.GetStrategyId(),
 		NoticeType: vobj.NoticeType(request.GetSubscribeType()),
 	}
 }

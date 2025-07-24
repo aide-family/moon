@@ -42,12 +42,12 @@ func (r *timeEngineRuleRepoImpl) CreateTimeEngineRule(ctx context.Context, req *
 }
 
 // UpdateTimeEngineRule updates a time engine rule
-func (r *timeEngineRuleRepoImpl) UpdateTimeEngineRule(ctx context.Context, timeEngineRuleId uint32, req *bo.SaveTimeEngineRuleRequest) error {
-	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, r)
+func (r *timeEngineRuleRepoImpl) UpdateTimeEngineRule(ctx context.Context, timeEngineRuleID uint32, req *bo.SaveTimeEngineRuleRequest) error {
+	bizMutation, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleMutation := bizMutation.TimeEngineRule
 	wrappers := []gen.Condition{
-		timeEngineRuleMutation.ID.Eq(timeEngineRuleId),
-		timeEngineRuleMutation.TeamID.Eq(teamId),
+		timeEngineRuleMutation.ID.Eq(timeEngineRuleID),
+		timeEngineRuleMutation.TeamID.Eq(teamID),
 	}
 	columns := []field.AssignExpr{
 		timeEngineRuleMutation.Name.Value(req.Name),
@@ -65,11 +65,11 @@ func (r *timeEngineRuleRepoImpl) UpdateTimeEngineRuleStatus(ctx context.Context,
 	if len(req.TimeEngineRuleIds) == 0 {
 		return nil
 	}
-	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, r)
+	bizMutation, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleMutation := bizMutation.TimeEngineRule
 	wrappers := []gen.Condition{
 		timeEngineRuleMutation.ID.In(req.TimeEngineRuleIds...),
-		timeEngineRuleMutation.TeamID.Eq(teamId),
+		timeEngineRuleMutation.TeamID.Eq(teamID),
 	}
 	columns := []field.AssignExpr{
 		timeEngineRuleMutation.Status.Value(req.Status.GetValue()),
@@ -80,11 +80,11 @@ func (r *timeEngineRuleRepoImpl) UpdateTimeEngineRuleStatus(ctx context.Context,
 
 // DeleteTimeEngineRule deletes a time engine rule
 func (r *timeEngineRuleRepoImpl) DeleteTimeEngineRule(ctx context.Context, req *bo.DeleteTimeEngineRuleRequest) error {
-	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, r)
+	bizMutation, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleMutation := bizMutation.TimeEngineRule
 	wrappers := []gen.Condition{
-		timeEngineRuleMutation.ID.Eq(req.TimeEngineRuleId),
-		timeEngineRuleMutation.TeamID.Eq(teamId),
+		timeEngineRuleMutation.ID.Eq(req.TimeEngineRuleID),
+		timeEngineRuleMutation.TeamID.Eq(teamID),
 	}
 	_, err := timeEngineRuleMutation.WithContext(ctx).Where(wrappers...).Delete()
 	return err
@@ -92,10 +92,10 @@ func (r *timeEngineRuleRepoImpl) DeleteTimeEngineRule(ctx context.Context, req *
 
 // GetTimeEngineRule gets the details of a time engine rule
 func (r *timeEngineRuleRepoImpl) GetTimeEngineRule(ctx context.Context, req *bo.GetTimeEngineRuleRequest) (do.TimeEngineRule, error) {
-	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleQuery := bizQuery.TimeEngineRule
 	timeEngineRule, err := timeEngineRuleQuery.WithContext(ctx).
-		Where(timeEngineRuleQuery.ID.Eq(req.TimeEngineRuleId), timeEngineRuleQuery.TeamID.Eq(teamId)).
+		Where(timeEngineRuleQuery.ID.Eq(req.TimeEngineRuleID), timeEngineRuleQuery.TeamID.Eq(teamID)).
 		First()
 	if err != nil {
 		return nil, teamTimeEngineRuleNotFound(err)
@@ -106,9 +106,9 @@ func (r *timeEngineRuleRepoImpl) GetTimeEngineRule(ctx context.Context, req *bo.
 
 // ListTimeEngineRule gets the list of time engine rules
 func (r *timeEngineRuleRepoImpl) ListTimeEngineRule(ctx context.Context, req *bo.ListTimeEngineRuleRequest) (*bo.ListTimeEngineRuleReply, error) {
-	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleQuery := bizQuery.TimeEngineRule
-	timeEngineRuleWrapper := timeEngineRuleQuery.Where(timeEngineRuleQuery.TeamID.Eq(teamId))
+	timeEngineRuleWrapper := timeEngineRuleQuery.Where(timeEngineRuleQuery.TeamID.Eq(teamID))
 
 	if !req.Status.IsUnknown() {
 		timeEngineRuleWrapper = timeEngineRuleWrapper.Where(timeEngineRuleQuery.Status.Eq(req.Status.GetValue()))
@@ -152,9 +152,9 @@ func (r *timeEngineRuleRepoImpl) ListTimeEngineRule(ctx context.Context, req *bo
 
 // SelectTimeEngineRule gets the list of time engine rules
 func (r *timeEngineRuleRepoImpl) SelectTimeEngineRule(ctx context.Context, req *bo.SelectTimeEngineRuleRequest) (*bo.SelectTimeEngineRuleReply, error) {
-	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleQuery := bizQuery.TimeEngineRule
-	timeEngineRuleWrapper := timeEngineRuleQuery.Where(timeEngineRuleQuery.TeamID.Eq(teamId))
+	timeEngineRuleWrapper := timeEngineRuleQuery.Where(timeEngineRuleQuery.TeamID.Eq(teamID))
 
 	if !req.Status.IsUnknown() {
 		timeEngineRuleWrapper = timeEngineRuleWrapper.Where(timeEngineRuleQuery.Status.Eq(req.Status.GetValue()))
@@ -186,9 +186,9 @@ func (r *timeEngineRuleRepoImpl) SelectTimeEngineRule(ctx context.Context, req *
 
 // Find gets the list of time engine rules
 func (r *timeEngineRuleRepoImpl) Find(ctx context.Context, ruleIds ...uint32) ([]do.TimeEngineRule, error) {
-	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, r)
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, r)
 	timeEngineRuleQuery := bizQuery.TimeEngineRule
-	wrappers := timeEngineRuleQuery.Where(timeEngineRuleQuery.TeamID.Eq(teamId))
+	wrappers := timeEngineRuleQuery.Where(timeEngineRuleQuery.TeamID.Eq(teamID))
 	if len(ruleIds) > 0 {
 		wrappers = wrappers.Where(timeEngineRuleQuery.ID.In(ruleIds...))
 	}

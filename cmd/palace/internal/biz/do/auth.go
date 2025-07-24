@@ -28,7 +28,7 @@ type TLS struct {
 	SkipVerify bool   `json:"skipVerify"`
 }
 
-// GetClientCertificate implements datasource.TLS.
+// GetClientCert implements datasource.TLS.
 func (t *TLS) GetClientCert() string {
 	return t.ClientCert
 }

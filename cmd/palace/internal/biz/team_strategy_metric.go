@@ -75,7 +75,7 @@ func (t *TeamStrategyMetric) SaveTeamMetricStrategy(ctx context.Context, params 
 	}
 	params.WithDatasource(datasourceDos)
 	return t.transaction.BizExec(ctx, func(ctx context.Context) error {
-		strategyMetricDo, err := t.teamStrategyMetricRepo.GetByStrategyId(ctx, params.StrategyID)
+		strategyMetricDo, err := t.teamStrategyMetricRepo.GetByStrategyID(ctx, params.StrategyID)
 		if err != nil {
 			if !merr.IsNotFound(err) {
 				return err
@@ -136,12 +136,12 @@ func (t *TeamStrategyMetric) SaveTeamMetricStrategyLevel(ctx context.Context, pa
 	})
 }
 
-func (t *TeamStrategyMetric) GetTeamMetricStrategy(ctx context.Context, strategyId uint32) (do.StrategyMetric, error) {
-	return t.teamStrategyMetricRepo.Get(ctx, strategyId)
+func (t *TeamStrategyMetric) GetTeamMetricStrategy(ctx context.Context, strategyID uint32) (do.StrategyMetric, error) {
+	return t.teamStrategyMetricRepo.Get(ctx, strategyID)
 }
 
-func (t *TeamStrategyMetric) GetTeamMetricStrategyByStrategyId(ctx context.Context, strategyId uint32) (do.StrategyMetric, error) {
-	return t.teamStrategyMetricRepo.GetByStrategyId(ctx, strategyId)
+func (t *TeamStrategyMetric) GetTeamMetricStrategyByStrategyID(ctx context.Context, strategyID uint32) (do.StrategyMetric, error) {
+	return t.teamStrategyMetricRepo.GetByStrategyID(ctx, strategyID)
 }
 
 func (t *TeamStrategyMetric) ListTeamMetricStrategyLevels(ctx context.Context, params *bo.ListTeamMetricStrategyLevelsParams) (*bo.ListTeamMetricStrategyLevelsReply, error) {

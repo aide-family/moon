@@ -41,11 +41,11 @@ func (t *teamStrategyGroupRepoImpl) Create(ctx context.Context, params *bo.SaveT
 
 // Delete implements repository.TeamStrategyGroup.
 func (t *teamStrategyGroupRepoImpl) Delete(ctx context.Context, id uint32) error {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
 	wrappers := []gen.Condition{
 		mutation.ID.Eq(id),
-		mutation.TeamID.Eq(teamId),
+		mutation.TeamID.Eq(teamID),
 	}
 	_, err := mutation.WithContext(ctx).Where(wrappers...).Delete()
 	if err != nil {
@@ -54,7 +54,7 @@ func (t *teamStrategyGroupRepoImpl) Delete(ctx context.Context, id uint32) error
 	strategyMutation := tx.Strategy
 	wrappers = []gen.Condition{
 		strategyMutation.StrategyGroupID.Eq(id),
-		strategyMutation.TeamID.Eq(teamId),
+		strategyMutation.TeamID.Eq(teamID),
 	}
 	_, err = strategyMutation.WithContext(ctx).Where(wrappers...).Delete()
 	return err
@@ -62,11 +62,11 @@ func (t *teamStrategyGroupRepoImpl) Delete(ctx context.Context, id uint32) error
 
 // Get implements repository.TeamStrategyGroup.
 func (t *teamStrategyGroupRepoImpl) Get(ctx context.Context, id uint32) (do.StrategyGroup, error) {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
 	wrappers := []gen.Condition{
 		mutation.ID.Eq(id),
-		mutation.TeamID.Eq(teamId),
+		mutation.TeamID.Eq(teamID),
 	}
 	group, err := mutation.WithContext(ctx).Where(wrappers...).Preload(field.Associations).First()
 	if err != nil {
@@ -77,9 +77,9 @@ func (t *teamStrategyGroupRepoImpl) Get(ctx context.Context, id uint32) (do.Stra
 
 // List implements repository.TeamStrategyGroup.
 func (t *teamStrategyGroupRepoImpl) List(ctx context.Context, listParams *bo.ListTeamStrategyGroupParams) (*bo.ListTeamStrategyGroupReply, error) {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
-	wrappers := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId))
+	wrappers := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamID))
 	if validate.TextIsNotNull(listParams.Keyword) {
 		wrappers = wrappers.Where(mutation.Name.Like(listParams.Keyword))
 	}
@@ -104,9 +104,9 @@ func (t *teamStrategyGroupRepoImpl) List(ctx context.Context, listParams *bo.Lis
 
 // Select implements repository.TeamStrategyGroup.
 func (t *teamStrategyGroupRepoImpl) Select(ctx context.Context, selectParams *bo.SelectTeamStrategyGroupRequest) (*bo.SelectTeamStrategyGroupReply, error) {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
-	wrappers := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId))
+	wrappers := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamID))
 	if validate.TextIsNotNull(selectParams.Keyword) {
 		wrappers = wrappers.Where(mutation.Name.Like(selectParams.Keyword))
 	}
@@ -138,11 +138,11 @@ func (t *teamStrategyGroupRepoImpl) Select(ctx context.Context, selectParams *bo
 
 // Update implements repository.TeamStrategyGroup.
 func (t *teamStrategyGroupRepoImpl) Update(ctx context.Context, params *bo.SaveTeamStrategyGroupParams) error {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
 	wrappers := []gen.Condition{
 		mutation.ID.Eq(params.ID),
-		mutation.TeamID.Eq(teamId),
+		mutation.TeamID.Eq(teamID),
 	}
 	mutations := []field.AssignExpr{
 		mutation.Name.Value(params.Name),
@@ -154,11 +154,11 @@ func (t *teamStrategyGroupRepoImpl) Update(ctx context.Context, params *bo.SaveT
 
 // UpdateStatus implements repository.TeamStrategyGroup.
 func (t *teamStrategyGroupRepoImpl) UpdateStatus(ctx context.Context, params *bo.UpdateTeamStrategyGroupStatusParams) error {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyGroup
 	wrappers := []gen.Condition{
 		mutation.ID.Eq(params.ID),
-		mutation.TeamID.Eq(teamId),
+		mutation.TeamID.Eq(teamID),
 	}
 	_, err := mutation.WithContext(ctx).Where(wrappers...).
 		UpdateSimple(mutation.Status.Value(params.Status.GetValue()))

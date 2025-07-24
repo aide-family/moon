@@ -97,16 +97,16 @@ func (t *TeamStrategy) SaveTeamStrategy(ctx context.Context, params *bo.SaveTeam
 	})
 }
 
-func (t *TeamStrategy) DeleteTeamStrategy(ctx context.Context, strategyId uint32) error {
-	defer t.publishStrategyDataChangeEvent(ctx, strategyId)
+func (t *TeamStrategy) DeleteTeamStrategy(ctx context.Context, strategyID uint32) error {
+	defer t.publishStrategyDataChangeEvent(ctx, strategyID)
 	return t.transactionRepo.BizExec(ctx, func(ctx context.Context) error {
-		if err := t.teamStrategyRepo.Delete(ctx, strategyId); err != nil {
+		if err := t.teamStrategyRepo.Delete(ctx, strategyID); err != nil {
 			return err
 		}
-		if err := t.teamStrategyMetricRepo.DeleteByStrategyIds(ctx, strategyId); err != nil {
+		if err := t.teamStrategyMetricRepo.DeleteByStrategyIds(ctx, strategyID); err != nil {
 			return err
 		}
-		if err := t.teamStrategyMetricLevelRepo.DeleteByStrategyIds(ctx, strategyId); err != nil {
+		if err := t.teamStrategyMetricLevelRepo.DeleteByStrategyIds(ctx, strategyID); err != nil {
 			return err
 		}
 		return nil

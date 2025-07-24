@@ -33,9 +33,9 @@ func (t *teamNoticeRepoImpl) List(ctx context.Context, req *bo.ListNoticeGroupRe
 	if validate.IsNil(req) {
 		return nil, nil
 	}
-	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	noticeGroupQuery := bizQuery.NoticeGroup
-	wrapper := noticeGroupQuery.WithContext(ctx).Where(noticeGroupQuery.TeamID.Eq(teamId))
+	wrapper := noticeGroupQuery.WithContext(ctx).Where(noticeGroupQuery.TeamID.Eq(teamID))
 	if !req.Status.IsUnknown() {
 		wrapper = wrapper.Where(noticeGroupQuery.Status.Eq(req.Status.GetValue()))
 	}
@@ -130,9 +130,9 @@ func (t *teamNoticeRepoImpl) Update(ctx context.Context, group bo.SaveNoticeGrou
 	if validate.IsNil(group) {
 		return nil
 	}
-	noticeGroupMutation, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	noticeGroupMutation, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
-		noticeGroupMutation.NoticeGroup.TeamID.Eq(teamId),
+		noticeGroupMutation.NoticeGroup.TeamID.Eq(teamID),
 		noticeGroupMutation.NoticeGroup.ID.Eq(group.GetID()),
 	}
 	mutations := []field.AssignExpr{
@@ -216,9 +216,9 @@ func (t *teamNoticeRepoImpl) UpdateStatus(ctx context.Context, req *bo.UpdateTea
 		return nil
 	}
 
-	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	bizMutation, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
-		bizMutation.NoticeGroup.TeamID.Eq(teamId),
+		bizMutation.NoticeGroup.TeamID.Eq(teamID),
 		bizMutation.NoticeGroup.ID.In(groupIds...),
 	}
 	_, err := bizMutation.NoticeGroup.WithContext(ctx).Where(wrapper...).
@@ -227,9 +227,9 @@ func (t *teamNoticeRepoImpl) UpdateStatus(ctx context.Context, req *bo.UpdateTea
 }
 
 func (t *teamNoticeRepoImpl) Delete(ctx context.Context, groupID uint32) error {
-	bizMutation, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	bizMutation, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
-		bizMutation.NoticeGroup.TeamID.Eq(teamId),
+		bizMutation.NoticeGroup.TeamID.Eq(teamID),
 		bizMutation.NoticeGroup.ID.Eq(groupID),
 	}
 	_, err := bizMutation.NoticeGroup.WithContext(ctx).Where(wrapper...).Delete()
@@ -237,9 +237,9 @@ func (t *teamNoticeRepoImpl) Delete(ctx context.Context, groupID uint32) error {
 }
 
 func (t *teamNoticeRepoImpl) Get(ctx context.Context, groupID uint32) (do.NoticeGroup, error) {
-	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
-		bizQuery.NoticeGroup.TeamID.Eq(teamId),
+		bizQuery.NoticeGroup.TeamID.Eq(teamID),
 		bizQuery.NoticeGroup.ID.Eq(groupID),
 	}
 	noticeGroup, err := bizQuery.NoticeGroup.WithContext(ctx).Where(wrapper...).Preload(field.Associations).First()
@@ -253,9 +253,9 @@ func (t *teamNoticeRepoImpl) FindByIds(ctx context.Context, groupIds []uint32) (
 	if len(groupIds) == 0 {
 		return nil, nil
 	}
-	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizQuery.NoticeGroup
-	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId), mutation.ID.In(groupIds...))
+	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamID), mutation.ID.In(groupIds...))
 	rows, err := wrapper.Preload(field.Associations).Find()
 	if err != nil {
 		return nil, err
@@ -267,9 +267,9 @@ func (t *teamNoticeRepoImpl) FindLabelNotices(ctx context.Context, labelNoticeId
 	if len(labelNoticeIds) == 0 {
 		return nil, nil
 	}
-	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := bizQuery.StrategyMetricRuleLabelNotice
-	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamId), mutation.ID.In(labelNoticeIds...))
+	wrapper := mutation.WithContext(ctx).Where(mutation.TeamID.Eq(teamID), mutation.ID.In(labelNoticeIds...))
 	rows, err := wrapper.Find()
 	if err != nil {
 		return nil, err
@@ -278,8 +278,8 @@ func (t *teamNoticeRepoImpl) FindLabelNotices(ctx context.Context, labelNoticeId
 }
 
 func (t *teamNoticeRepoImpl) Select(ctx context.Context, req *bo.TeamNoticeGroupSelectRequest) (*bo.TeamNoticeGroupSelectReply, error) {
-	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
-	noticeGroupQuery := query.NoticeGroup
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t)
+	noticeGroupQuery := bizQuery.NoticeGroup
 	wrapper := noticeGroupQuery.WithContext(ctx).Where(noticeGroupQuery.TeamID.Eq(teamID))
 	if !req.Status.IsUnknown() {
 		wrapper = wrapper.Where(noticeGroupQuery.Status.Eq(req.Status.GetValue()))

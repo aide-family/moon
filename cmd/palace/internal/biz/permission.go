@@ -14,7 +14,7 @@ import (
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
-// NewPermission create a new permission biz
+// NewPermissionBiz create a new permission biz
 func NewPermissionBiz(
 	cacheRepo repository.Cache,
 	userRepo repository.User,

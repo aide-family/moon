@@ -1,3 +1,4 @@
+// Package biz is a biz package for kratos.
 package biz
 
 import (

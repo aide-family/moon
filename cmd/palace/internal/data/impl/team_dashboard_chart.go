@@ -48,7 +48,7 @@ func (r *dashboardChartRepoImpl) CreateDashboardChart(ctx context.Context, chart
 		Title:       chart.GetTitle(),
 		Remark:      chart.GetRemark(),
 		Status:      vobj.GlobalStatusEnable,
-		Url:         chart.GetUrl(),
+		Url:         chart.GetURL(),
 		Width:       chart.GetWidth(),
 		Height:      chart.GetHeight(),
 	}
@@ -67,7 +67,7 @@ func (r *dashboardChartRepoImpl) UpdateDashboardChart(ctx context.Context, chart
 	updates := []field.AssignExpr{
 		mutation.Title.Value(chart.GetTitle()),
 		mutation.Remark.Value(chart.GetRemark()),
-		mutation.Url.Value(chart.GetUrl()),
+		mutation.Url.Value(chart.GetURL()),
 		mutation.Width.Value(chart.GetWidth()),
 		mutation.Height.Value(chart.GetHeight()),
 	}

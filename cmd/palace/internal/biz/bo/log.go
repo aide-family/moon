@@ -49,7 +49,7 @@ type OperateLogParams struct {
 	TeamID        uint32
 }
 
-type HttpRequest struct {
+type HTTPRequest struct {
 	Method           string          `json:"method"`
 	URL              *url.URL        `json:"url"`
 	Proto            string          `json:"proto"`
@@ -69,14 +69,14 @@ type HttpRequest struct {
 	Pattern          string          `json:"pattern"`
 }
 
-func (r *HttpRequest) String() string {
+func (r *HTTPRequest) String() string {
 	body, _ := json.Marshal(r)
 	return string(body)
 }
 
-// NewHttpRequest creates a new HttpRequest from an http.Request.
+// NewHTTPRequest creates a new HTTPRequest from an http.Request.
 // It reads and preserves the request body for logging purposes.
-func NewHttpRequest(request *http.Request) (*HttpRequest, error) {
+func NewHTTPRequest(request *http.Request) (*HTTPRequest, error) {
 	body, err := io.ReadAll(request.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read request body: %w", err)
@@ -84,7 +84,7 @@ func NewHttpRequest(request *http.Request) (*HttpRequest, error) {
 	// Restore the body for subsequent reads
 	request.Body = io.NopCloser(bytes.NewBuffer(body))
 
-	return &HttpRequest{
+	return &HTTPRequest{
 		Method:           request.Method,
 		URL:              request.URL,
 		Proto:            request.Proto,

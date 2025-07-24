@@ -85,7 +85,7 @@ func (s *AuthService) GetCaptcha(ctx context.Context, _ *common.EmptyRequest) (*
 		return nil, err
 	}
 	return &palace.GetCaptchaReply{
-		CaptchaId:      captchaBo.Id,
+		CaptchaId:      captchaBo.ID,
 		CaptchaImg:     captchaBo.B64s,
 		ExpiredSeconds: int32(captchaBo.ExpiredSeconds),
 	}, nil
@@ -94,7 +94,7 @@ func (s *AuthService) GetCaptcha(ctx context.Context, _ *common.EmptyRequest) (*
 func (s *AuthService) LoginByPassword(ctx context.Context, req *palace.LoginByPasswordRequest) (*palace.LoginReply, error) {
 	captchaReq := req.GetCaptcha()
 	captchaVerify := &bo.CaptchaVerify{
-		Id:     captchaReq.GetCaptchaId(),
+		ID:     captchaReq.GetCaptchaId(),
 		Answer: captchaReq.GetAnswer(),
 		Clear:  true,
 	}
@@ -123,7 +123,7 @@ func (s *AuthService) Logout(ctx context.Context, req *palace.LogoutRequest) (*p
 func (s *AuthService) VerifyEmail(ctx context.Context, req *palace.VerifyEmailRequest) (*palace.VerifyEmailReply, error) {
 	captchaReq := req.GetCaptcha()
 	captchaVerify := &bo.CaptchaVerify{
-		Id:     captchaReq.GetCaptchaId(),
+		ID:     captchaReq.GetCaptchaId(),
 		Answer: captchaReq.GetAnswer(),
 		Clear:  true,
 	}

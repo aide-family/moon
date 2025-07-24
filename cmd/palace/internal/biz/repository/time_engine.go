@@ -12,7 +12,7 @@ type TimeEngine interface {
 	// CreateTimeEngine create time engine
 	CreateTimeEngine(ctx context.Context, req *bo.SaveTimeEngineRequest) error
 	// UpdateTimeEngine update time engine
-	UpdateTimeEngine(ctx context.Context, timeEngineId uint32, req *bo.SaveTimeEngineRequest) error
+	UpdateTimeEngine(ctx context.Context, timeEngineID uint32, req *bo.SaveTimeEngineRequest) error
 	// UpdateTimeEngineStatus update time engine status
 	UpdateTimeEngineStatus(ctx context.Context, req *bo.UpdateTimeEngineStatusRequest) error
 	// DeleteTimeEngine delete time engine
@@ -33,7 +33,7 @@ type TimeEngineRule interface {
 	// CreateTimeEngineRule create time engine rule
 	CreateTimeEngineRule(ctx context.Context, req *bo.SaveTimeEngineRuleRequest) error
 	// UpdateTimeEngineRule update time engine rule
-	UpdateTimeEngineRule(ctx context.Context, timeEngineRuleId uint32, req *bo.SaveTimeEngineRuleRequest) error
+	UpdateTimeEngineRule(ctx context.Context, timeEngineRuleID uint32, req *bo.SaveTimeEngineRuleRequest) error
 	// UpdateTimeEngineRuleStatus update time engine rule status
 	UpdateTimeEngineRuleStatus(ctx context.Context, req *bo.UpdateTimeEngineRuleStatusRequest) error
 	// DeleteTimeEngineRule delete time engine rule

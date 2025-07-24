@@ -17,6 +17,6 @@ func ToServerRegisterReq(req *common.ServerRegisterRequest) *bo.ServerRegisterRe
 		Discovery:  req.GetDiscovery(),
 		TeamIds:    req.GetTeamIds(),
 		IsOnline:   req.GetIsOnline(),
-		Uuid:       req.GetUuid(),
+		UUID:       req.GetUuid(),
 	}
 }

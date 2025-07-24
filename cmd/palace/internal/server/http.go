@@ -40,6 +40,7 @@ func NewHTTPServer(
 
 	selectorMiddleware := []middle.Middleware{
 		middleware.JwtServer(jwtConf.GetSignKey()),
+		middleware.BindHeaders(menuService.GetMenuByOperation),
 		middleware.MustLogin(authService.VerifyToken),
 		middleware.MustPermission(authService.VerifyPermission),
 	}
@@ -51,7 +52,6 @@ func NewHTTPServer(
 			tracing.Server(),
 			i18n.I18n(),
 			logging.Server(logger),
-			middleware.BindHeaders(menuService.GetMenuByOperation),
 			authMiddleware,
 			middler.Validate(),
 			middleware.OperateLog(healthService.CreateOperateLog),

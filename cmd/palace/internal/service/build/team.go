@@ -91,12 +91,12 @@ func ToTeamListRequest(req *palace.GetTeamListRequest) *bo.TeamListRequest {
 			return vobjStatus, !vobjStatus.IsUnknown() && vobjStatus.Exist()
 		}),
 		UserIds:   nil,
-		LeaderId:  req.GetLeaderId(),
-		CreatorId: req.GetCreatorId(),
+		LeaderID:  req.GetLeaderId(),
+		CreatorID: req.GetCreatorId(),
 	}
 }
 
-func ToTeamMemberListRequest(req *palace.GetTeamMembersRequest, teamId uint32) *bo.TeamMemberListRequest {
+func ToTeamMemberListRequest(req *palace.GetTeamMembersRequest, teamID uint32) *bo.TeamMemberListRequest {
 	if validate.IsNil(req) {
 		return nil
 	}
@@ -111,11 +111,11 @@ func ToTeamMemberListRequest(req *palace.GetTeamMembersRequest, teamId uint32) *
 			vobjPosition := vobj.Position(position)
 			return vobjPosition, !vobjPosition.IsUnknown() && vobjPosition.Exist()
 		}),
-		TeamId: teamId,
+		TeamID: teamID,
 	}
 }
 
-func ToTeamMemberSelectRequest(req *palace.SelectTeamMembersRequest, teamId uint32) *bo.SelectTeamMembersRequest {
+func ToTeamMemberSelectRequest(req *palace.SelectTeamMembersRequest, teamID uint32) *bo.SelectTeamMembersRequest {
 	if validate.IsNil(req) {
 		return nil
 	}
@@ -126,7 +126,7 @@ func ToTeamMemberSelectRequest(req *palace.SelectTeamMembersRequest, teamId uint
 			vobjStatus := vobj.MemberStatus(status)
 			return vobjStatus, !vobjStatus.IsUnknown() && vobjStatus.Exist()
 		}),
-		TeamId: teamId,
+		TeamID: teamID,
 	}
 }
 

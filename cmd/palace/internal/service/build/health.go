@@ -48,8 +48,8 @@ func ToOperateLogParams(ctx context.Context, menuDo do.Menu, req *middleware.Ope
 	if userDo, ok := do.GetUserDoContext(ctx); ok && validate.IsNotNil(userDo) {
 		item.UserID = userDo.GetID()
 		userBase := ToUserBaseItem(userDo)
-		userBaseJson, _ := json.Marshal(userBase)
-		item.UserBaseInfo = string(userBaseJson)
+		userBaseJSON, _ := json.Marshal(userBase)
+		item.UserBaseInfo = string(userBaseJSON)
 	}
 
 	if teamID, ok := permission.GetTeamIDByContext(ctx); ok {
@@ -58,7 +58,7 @@ func ToOperateLogParams(ctx context.Context, menuDo do.Menu, req *middleware.Ope
 
 	if request := req.OriginRequest; validate.IsNotNil(request) {
 		item.UserAgent = request.UserAgent()
-		if originRequest, err := bo.NewHttpRequest(request); validate.IsNil(err) {
+		if originRequest, err := bo.NewHTTPRequest(request); validate.IsNil(err) {
 			item.OriginRequest = originRequest.String()
 		} else {
 			item.OriginRequest = fmt.Sprintf(`{"result": "%v", "error": "%v"}`, request, err)

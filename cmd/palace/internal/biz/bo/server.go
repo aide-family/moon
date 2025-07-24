@@ -14,7 +14,7 @@ type ServerRegisterReq struct {
 	Discovery  *config.Discovery
 	TeamIds    []uint32
 	IsOnline   bool
-	Uuid       string
+	UUID       string
 }
 
 type Server struct {

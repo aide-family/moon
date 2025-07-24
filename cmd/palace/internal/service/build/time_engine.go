@@ -17,7 +17,7 @@ func ToSaveTimeEngineRequest(req *api.SaveTimeEngineRequest) *bo.SaveTimeEngineR
 		return nil
 	}
 	return &bo.SaveTimeEngineRequest{
-		TimeEngineId: req.TimeEngineId,
+		TimeEngineID: req.TimeEngineId,
 		Name:         req.Name,
 		Remark:       req.Remark,
 		RuleIds:      req.RuleIds,
@@ -30,7 +30,7 @@ func ToDeleteTimeEngineRequest(req *api.DeleteTimeEngineRequest) *bo.DeleteTimeE
 		return nil
 	}
 	return &bo.DeleteTimeEngineRequest{
-		TimeEngineId: req.TimeEngineId,
+		TimeEngineID: req.TimeEngineId,
 	}
 }
 
@@ -40,7 +40,7 @@ func ToGetTimeEngineRequest(req *api.GetTimeEngineRequest) *bo.GetTimeEngineRequ
 		return nil
 	}
 	return &bo.GetTimeEngineRequest{
-		TimeEngineId: req.TimeEngineId,
+		TimeEngineID: req.TimeEngineId,
 	}
 }
 
@@ -74,7 +74,7 @@ func ToSaveTimeEngineRuleRequest(req *api.SaveTimeEngineRuleRequest) *bo.SaveTim
 		return nil
 	}
 	return &bo.SaveTimeEngineRuleRequest{
-		TimeEngineRuleId: req.TimeEngineRuleId,
+		TimeEngineRuleID: req.TimeEngineRuleId,
 		Name:             req.Name,
 		Remark:           req.Remark,
 		Type:             vobj.TimeEngineRuleType(req.Type),
@@ -88,7 +88,7 @@ func ToDeleteTimeEngineRuleRequest(req *api.DeleteTimeEngineRuleRequest) *bo.Del
 		return nil
 	}
 	return &bo.DeleteTimeEngineRuleRequest{
-		TimeEngineRuleId: req.TimeEngineRuleId,
+		TimeEngineRuleID: req.TimeEngineRuleId,
 	}
 }
 
@@ -98,7 +98,7 @@ func ToGetTimeEngineRuleRequest(req *api.GetTimeEngineRuleRequest) *bo.GetTimeEn
 		return nil
 	}
 	return &bo.GetTimeEngineRuleRequest{
-		TimeEngineRuleId: req.TimeEngineRuleId,
+		TimeEngineRuleID: req.TimeEngineRuleId,
 	}
 }
 

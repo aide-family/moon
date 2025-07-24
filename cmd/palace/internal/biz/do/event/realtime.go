@@ -100,36 +100,36 @@ func (r *Realtime) TableName() string {
 	return genRealtimeTableName(r.TeamID, r.StartsAt)
 }
 
-func createRealtimeTable(teamId uint32, t time.Time, tx *gorm.DB) (err error) {
-	tableName := genRealtimeTableName(teamId, t)
-	if do.HasTable(teamId, tx, tableName) {
+func createRealtimeTable(teamID uint32, t time.Time, tx *gorm.DB) (err error) {
+	tableName := genRealtimeTableName(teamID, t)
+	if do.HasTable(teamID, tx, tableName) {
 		return
 	}
 	r := &Realtime{
-		TeamID:   teamId,
+		TeamID:   teamID,
 		StartsAt: t,
 	}
 
-	if err := do.CreateTable(teamId, tx, tableName, r); err != nil {
+	if err := do.CreateTable(teamID, tx, tableName, r); err != nil {
 		return err
 	}
 	return
 }
 
-func genRealtimeTableName(teamId uint32, t time.Time) string {
+func genRealtimeTableName(teamID uint32, t time.Time) string {
 	weekStart := do.GetPreviousMonday(t)
-	return fmt.Sprintf("%s_%d_%s", tableNameRealtime, teamId, weekStart.Format("20060102"))
+	return fmt.Sprintf("%s_%d_%s", tableNameRealtime, teamID, weekStart.Format("20060102"))
 }
 
-func GetRealtimeTableName(teamId uint32, t time.Time, tx *gorm.DB) (string, error) {
-	tableName := genRealtimeTableName(teamId, t)
-	if !do.HasTable(teamId, tx, tableName) {
-		return tableName, createRealtimeTable(teamId, t, tx)
+func GetRealtimeTableName(teamID uint32, t time.Time, tx *gorm.DB) (string, error) {
+	tableName := genRealtimeTableName(teamID, t)
+	if !do.HasTable(teamID, tx, tableName) {
+		return tableName, createRealtimeTable(teamID, t, tx)
 	}
 	return tableName, nil
 }
 
-func GetRealtimeTableNames(teamId uint32, start, end time.Time, tx *gorm.DB) []string {
+func GetRealtimeTableNames(teamID uint32, start, end time.Time, tx *gorm.DB) []string {
 	// Validate time range
 	if start.After(end) {
 		return nil
@@ -146,8 +146,8 @@ func GetRealtimeTableNames(teamId uint32, start, end time.Time, tx *gorm.DB) []s
 		if currentMonday.AddDate(0, 0, 6).Before(start) {
 			continue
 		}
-		if do.HasTable(teamId, tx, genRealtimeTableName(teamId, currentMonday)) {
-			tableNames = append(tableNames, genRealtimeTableName(teamId, currentMonday))
+		if do.HasTable(teamID, tx, genRealtimeTableName(teamID, currentMonday)) {
+			tableNames = append(tableNames, genRealtimeTableName(teamID, currentMonday))
 		}
 	}
 

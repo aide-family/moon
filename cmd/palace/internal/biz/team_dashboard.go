@@ -10,7 +10,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 )
 
-// NewDashboard creates a new dashboard business logic.
+// NewDashboardBiz creates a new dashboard business logic.
 func NewDashboardBiz(
 	dashboardRepo repository.Dashboard,
 	dashboardChartRepo repository.DashboardChart,

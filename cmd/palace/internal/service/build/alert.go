@@ -1,3 +1,4 @@
+// Package build is a build package for kratos.
 package build
 
 import (

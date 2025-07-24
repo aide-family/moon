@@ -11,7 +11,7 @@ import (
 
 // SaveTimeEngineRequest represents the request parameters for saving a time engine
 type SaveTimeEngineRequest struct {
-	TimeEngineId uint32
+	TimeEngineID uint32
 	Name         string
 	Remark       string
 	RuleIds      []uint32
@@ -50,12 +50,12 @@ func (r *SaveTimeEngineRequest) GetTimeEngine() do.TimeEngine {
 
 // DeleteTimeEngineRequest represents the request parameters for deleting a time engine
 type DeleteTimeEngineRequest struct {
-	TimeEngineId uint32
+	TimeEngineID uint32
 }
 
 // GetTimeEngineRequest represents the request parameters for getting time engine details
 type GetTimeEngineRequest struct {
-	TimeEngineId uint32
+	TimeEngineID uint32
 }
 
 // ListTimeEngineRequest represents the request parameters for listing time engines
@@ -100,7 +100,7 @@ type SelectTimeEngineReply = ListReply[SelectItem]
 
 // SaveTimeEngineRuleRequest represents the request parameters for saving a time engine rule
 type SaveTimeEngineRuleRequest struct {
-	TimeEngineRuleId uint32
+	TimeEngineRuleID uint32
 	Name             string
 	Remark           string
 	Type             vobj.TimeEngineRuleType
@@ -138,12 +138,12 @@ func validateTimeEngineRule(rules []int, ruleType vobj.TimeEngineRuleType) error
 
 // DeleteTimeEngineRuleRequest represents the request parameters for deleting a time engine rule
 type DeleteTimeEngineRuleRequest struct {
-	TimeEngineRuleId uint32
+	TimeEngineRuleID uint32
 }
 
 // GetTimeEngineRuleRequest represents the request parameters for getting time engine rule details
 type GetTimeEngineRuleRequest struct {
-	TimeEngineRuleId uint32
+	TimeEngineRuleID uint32
 }
 
 // ListTimeEngineRuleRequest represents the request parameters for listing time engine rules

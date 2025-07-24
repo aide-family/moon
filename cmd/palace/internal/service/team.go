@@ -133,7 +133,7 @@ func (s *TeamService) UpdateMemberStatus(ctx context.Context, req *palace.Update
 
 func (s *TeamService) UpdateMemberRoles(ctx context.Context, req *palace.UpdateMemberRolesRequest) (*common.EmptyReply, error) {
 	params := &bo.UpdateMemberRolesReq{
-		MemberId: req.GetMemberId(),
+		MemberID: req.GetMemberId(),
 		RoleIds:  req.GetRoleIds(),
 	}
 	if err := s.teamBiz.UpdateMemberRoles(ctx, params); err != nil {

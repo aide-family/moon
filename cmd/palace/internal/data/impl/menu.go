@@ -73,7 +73,7 @@ func (m *menuRepoImpl) FindAll(ctx context.Context, ids ...uint32) ([]do.Menu, e
 func (m *menuRepoImpl) GetMenuByOperation(ctx context.Context, operation string) (do.Menu, error) {
 	mainQuery := getMainQuery(ctx, m)
 	menu := mainQuery.Menu
-	menuDo, err := menu.WithContext(ctx).Where(menu.ApiPath.Eq(operation)).First()
+	menuDo, err := menu.WithContext(ctx).Where(menu.APIPath.Eq(operation)).First()
 	if err != nil {
 		return nil, menuNotFound(err)
 	}
@@ -89,7 +89,7 @@ func (m *menuRepoImpl) Create(ctx context.Context, menu *bo.SaveMenuRequest) err
 		MenuIcon:      menu.MenuIcon,
 		MenuType:      menu.MenuType,
 		MenuCategory:  menu.MenuCategory,
-		ApiPath:       menu.ApiPath,
+		APIPath:       menu.APIPath,
 		Status:        menu.Status,
 		ProcessType:   menu.ProcessType,
 		ParentID:      menu.ParentID,
@@ -109,7 +109,7 @@ func (m *menuRepoImpl) Update(ctx context.Context, menu *bo.SaveMenuRequest) err
 		menuMutation.MenuIcon.Value(menu.MenuIcon),
 		menuMutation.MenuType.Value(menu.MenuType.GetValue()),
 		menuMutation.MenuCategory.Value(menu.MenuCategory.GetValue()),
-		menuMutation.ApiPath.Value(menu.ApiPath),
+		menuMutation.APIPath.Value(menu.APIPath),
 		menuMutation.Status.Value(menu.Status.GetValue()),
 		menuMutation.ProcessType.Value(int8(menu.ProcessType)),
 		menuMutation.ParentID.Value(menu.ParentID),
@@ -117,7 +117,7 @@ func (m *menuRepoImpl) Update(ctx context.Context, menu *bo.SaveMenuRequest) err
 		menuMutation.Sort.Value(menu.Sort),
 	}
 	wrappers := []gen.Condition{
-		menuMutation.ID.Eq(menu.MenuId),
+		menuMutation.ID.Eq(menu.MenuID),
 	}
 	_, err := menuMutation.WithContext(ctx).Where(wrappers...).UpdateColumnSimple(mutations...)
 	return err

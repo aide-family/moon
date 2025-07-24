@@ -97,8 +97,8 @@ type TeamListRequest struct {
 	Keyword   string
 	Status    []vobj.TeamStatus
 	UserIds   []uint32
-	LeaderId  uint32
-	CreatorId uint32
+	LeaderID  uint32
+	CreatorID uint32
 }
 
 func (r *TeamListRequest) ToListReply(items []do.Team) *TeamListReply {
@@ -115,7 +115,7 @@ type TeamMemberListRequest struct {
 	Keyword   string
 	Status    []vobj.MemberStatus
 	Positions []vobj.Position
-	TeamId    uint32
+	TeamID    uint32
 }
 
 func (r *TeamMemberListRequest) ToListReply(items []do.TeamMember) *TeamMemberListReply {
@@ -131,7 +131,7 @@ type SelectTeamMembersRequest struct {
 	*PaginationRequest
 	Keyword string
 	Status  []vobj.MemberStatus
-	TeamId  uint32
+	TeamID  uint32
 }
 
 func (r *SelectTeamMembersRequest) ToSelectReply(items []do.TeamMember) *SelectTeamMembersReply {
@@ -286,7 +286,7 @@ type UpdateMemberRolesReq struct {
 	operator do.TeamMember
 	member   do.TeamMember
 	roles    []do.TeamRole
-	MemberId uint32
+	MemberID uint32
 	RoleIds  []uint32
 }
 

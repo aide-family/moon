@@ -159,11 +159,11 @@ func (t *Team) SaveTeam(ctx context.Context, req *bo.SaveOneTeamRequest) error {
 
 	return t.transaction.MainExec(ctx, func(ctx context.Context) error {
 		if req.TeamID <= 0 {
-			leaderId, ok := permission.GetUserIDByContext(ctx)
+			leaderID, ok := permission.GetUserIDByContext(ctx)
 			if !ok {
 				return merr.ErrorUnauthorized("user not found in context")
 			}
-			leaderDo, err := t.userRepo.FindByID(ctx, leaderId)
+			leaderDo, err := t.userRepo.FindByID(ctx, leaderID)
 			if err != nil {
 				return err
 			}
@@ -238,8 +238,8 @@ func (t *Team) GetEmailConfigs(ctx context.Context, req *bo.ListEmailConfigReque
 	return configListReply, nil
 }
 
-func (t *Team) GetEmailConfig(ctx context.Context, emailConfigId uint32) (do.TeamEmailConfig, error) {
-	return t.teamEmailConfigRepo.Get(ctx, emailConfigId)
+func (t *Team) GetEmailConfig(ctx context.Context, emailConfigID uint32) (do.TeamEmailConfig, error) {
+	return t.teamEmailConfigRepo.Get(ctx, emailConfigID)
 }
 
 // SaveSMSConfig saves the SMS configuration for a team
@@ -270,8 +270,8 @@ func (t *Team) GetSMSConfigs(ctx context.Context, req *bo.ListSMSConfigRequest) 
 	return t.teamSMSConfigRepo.List(ctx, req)
 }
 
-func (t *Team) GetSMSConfig(ctx context.Context, smsConfigId uint32) (do.TeamSMSConfig, error) {
-	return t.teamSMSConfigRepo.Get(ctx, smsConfigId)
+func (t *Team) GetSMSConfig(ctx context.Context, smsConfigID uint32) (do.TeamSMSConfig, error) {
+	return t.teamSMSConfigRepo.Get(ctx, smsConfigID)
 }
 
 func (t *Team) SaveTeamRole(ctx context.Context, req *bo.SaveTeamRoleReq) error {
@@ -332,11 +332,11 @@ func (t *Team) SelectTeamMembers(ctx context.Context, req *bo.SelectTeamMembersR
 }
 
 func (t *Team) UpdateMemberPosition(ctx context.Context, req *bo.UpdateMemberPositionReq) error {
-	userId, ok := permission.GetUserIDByContext(ctx)
+	userID, ok := permission.GetUserIDByContext(ctx)
 	if !ok {
 		return merr.ErrorUnauthorized("user not found in context")
 	}
-	operatorDo, err := t.memberRepo.FindByUserID(ctx, userId)
+	operatorDo, err := t.memberRepo.FindByUserID(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -353,11 +353,11 @@ func (t *Team) UpdateMemberPosition(ctx context.Context, req *bo.UpdateMemberPos
 }
 
 func (t *Team) UpdateMemberStatus(ctx context.Context, req *bo.UpdateMemberStatusReq) error {
-	userId, ok := permission.GetUserIDByContext(ctx)
+	userID, ok := permission.GetUserIDByContext(ctx)
 	if !ok {
 		return merr.ErrorUnauthorized("user not found in context")
 	}
-	operatorDo, err := t.memberRepo.FindByUserID(ctx, userId)
+	operatorDo, err := t.memberRepo.FindByUserID(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -374,16 +374,16 @@ func (t *Team) UpdateMemberStatus(ctx context.Context, req *bo.UpdateMemberStatu
 }
 
 func (t *Team) UpdateMemberRoles(ctx context.Context, req *bo.UpdateMemberRolesReq) error {
-	userId, ok := permission.GetUserIDByContext(ctx)
+	userID, ok := permission.GetUserIDByContext(ctx)
 	if !ok {
 		return merr.ErrorUnauthorized("user not found in context")
 	}
-	operatorDo, err := t.memberRepo.FindByUserID(ctx, userId)
+	operatorDo, err := t.memberRepo.FindByUserID(ctx, userID)
 	if err != nil {
 		return err
 	}
 	req.WithOperator(operatorDo)
-	memberDo, err := t.memberRepo.Get(ctx, req.MemberId)
+	memberDo, err := t.memberRepo.Get(ctx, req.MemberID)
 	if err != nil {
 		return err
 	}
@@ -400,11 +400,11 @@ func (t *Team) UpdateMemberRoles(ctx context.Context, req *bo.UpdateMemberRolesR
 }
 
 func (t *Team) RemoveMember(ctx context.Context, req *bo.RemoveMemberReq) error {
-	userId, ok := permission.GetUserIDByContext(ctx)
+	userID, ok := permission.GetUserIDByContext(ctx)
 	if !ok {
 		return merr.ErrorUnauthorized("user not found in context")
 	}
-	operatorDo, err := t.memberRepo.FindByUserID(ctx, userId)
+	operatorDo, err := t.memberRepo.FindByUserID(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -421,11 +421,11 @@ func (t *Team) RemoveMember(ctx context.Context, req *bo.RemoveMemberReq) error 
 }
 
 func (t *Team) InviteMember(ctx context.Context, req *bo.InviteMemberReq) error {
-	userId, ok := permission.GetUserIDByContext(ctx)
+	userID, ok := permission.GetUserIDByContext(ctx)
 	if !ok {
 		return merr.ErrorUnauthorized("user not found in context")
 	}
-	operatorDo, err := t.memberRepo.FindByUserID(ctx, userId)
+	operatorDo, err := t.memberRepo.FindByUserID(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -435,11 +435,11 @@ func (t *Team) InviteMember(ctx context.Context, req *bo.InviteMemberReq) error 
 		return err
 	}
 	req.WithInviteUser(inviterDo)
-	teamId, ok := permission.GetTeamIDByContext(ctx)
+	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return merr.ErrorUnauthorized("team not found in context")
 	}
-	teamDo, err := t.teamRepo.FindByID(ctx, teamId)
+	teamDo, err := t.teamRepo.FindByID(ctx, teamID)
 	if err != nil {
 		return err
 	}

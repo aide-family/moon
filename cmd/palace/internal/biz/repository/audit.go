@@ -1,3 +1,4 @@
+// Package repository is a repository package for kratos.
 package repository
 
 import (

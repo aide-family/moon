@@ -11,7 +11,7 @@ type DashboardChart interface {
 	GetDashboardID() uint32
 	GetTitle() string
 	GetRemark() string
-	GetUrl() string
+	GetURL() string
 	GetWidth() uint32
 	GetHeight() string
 }
@@ -22,7 +22,7 @@ type SaveDashboardChartReq struct {
 	DashboardID uint32
 	Title       string
 	Remark      string
-	Url         string
+	URL         string
 	Width       uint32
 	Height      string
 }
@@ -55,11 +55,11 @@ func (d *SaveDashboardChartReq) GetRemark() string {
 	return d.Remark
 }
 
-func (d *SaveDashboardChartReq) GetUrl() string {
+func (d *SaveDashboardChartReq) GetURL() string {
 	if d == nil {
 		return ""
 	}
-	return d.Url
+	return d.URL
 }
 
 func (d *SaveDashboardChartReq) GetWidth() uint32 {

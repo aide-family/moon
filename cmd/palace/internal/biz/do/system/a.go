@@ -1,3 +1,4 @@
+// Package system is a system package for kratos.
 package system
 
 func Models() []any {

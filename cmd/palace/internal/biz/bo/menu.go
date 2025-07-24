@@ -5,13 +5,13 @@ import (
 )
 
 type SaveMenuRequest struct {
-	MenuId        uint32
+	MenuID        uint32
 	Name          string
 	MenuPath      string
 	MenuIcon      string
 	MenuType      vobj.MenuType
 	MenuCategory  vobj.MenuCategory
-	ApiPath       string
+	APIPath       string
 	Status        vobj.GlobalStatus
 	ProcessType   vobj.MenuProcessType
 	ParentID      uint32

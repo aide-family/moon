@@ -1,3 +1,4 @@
+// Package do is a data object package for kratos.
 package do
 
 import (
@@ -267,7 +268,7 @@ func (u *TeamModel) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
 
-func HasTable(teamId uint32, tx *gorm.DB, tableName string) bool {
+func HasTable(teamID uint32, tx *gorm.DB, tableName string) bool {
 	if validate.IsNil(hasTable) {
 		if validate.IsNil(tx) {
 			return false
@@ -276,21 +277,21 @@ func HasTable(teamId uint32, tx *gorm.DB, tableName string) bool {
 			return false
 		}
 		if cacheTableFlag != nil {
-			_ = cacheTableFlag(teamId, tableName)
+			_ = cacheTableFlag(teamID, tableName)
 		}
 		return true
 	}
-	return hasTable(teamId, tableName)
+	return hasTable(teamID, tableName)
 }
 
-func CreateTable(teamId uint32, tx *gorm.DB, tableName string, model any) error {
+func CreateTable(teamID uint32, tx *gorm.DB, tableName string, model any) error {
 	if err := tx.Table(tableName).AutoMigrate(model); err != nil {
 		return err
 	}
 	if validate.IsNil(cacheTableFlag) {
 		return nil
 	}
-	return cacheTableFlag(teamId, tableName)
+	return cacheTableFlag(teamID, tableName)
 }
 
 // GetPreviousMonday returns the Monday of the week containing the given date

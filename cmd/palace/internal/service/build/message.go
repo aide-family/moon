@@ -39,10 +39,10 @@ func ToListSendMessageLogParams(req GetSendMessageLogsRequest) (*bo.ListSendMess
 	}, nil
 }
 
-func ToGetSendMessageLogParams(requestId string) *bo.GetSendMessageLogParams {
+func ToGetSendMessageLogParams(requestID string) *bo.GetSendMessageLogParams {
 	return &bo.GetSendMessageLogParams{
 		TeamID:    0,
-		RequestID: requestId,
+		RequestID: requestID,
 	}
 }
 

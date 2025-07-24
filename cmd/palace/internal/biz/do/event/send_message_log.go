@@ -86,36 +86,36 @@ func (s *SendMessageLog) TableName() string {
 	return genSendMessageLogTableName(s.TeamID, s.SentAt)
 }
 
-func createSendMessageLogTable(teamId uint32, t time.Time, tx *gorm.DB) (err error) {
-	tableName := genSendMessageLogTableName(teamId, t)
-	if do.HasTable(teamId, tx, tableName) {
+func createSendMessageLogTable(teamID uint32, t time.Time, tx *gorm.DB) (err error) {
+	tableName := genSendMessageLogTableName(teamID, t)
+	if do.HasTable(teamID, tx, tableName) {
 		return
 	}
 	s := &SendMessageLog{
-		TeamID: teamId,
+		TeamID: teamID,
 		SentAt: t,
 	}
-	if err := do.CreateTable(teamId, tx, tableName, s); err != nil {
+	if err := do.CreateTable(teamID, tx, tableName, s); err != nil {
 		return err
 	}
 	return
 }
 
-func genSendMessageLogTableName(teamId uint32, t time.Time) string {
+func genSendMessageLogTableName(teamID uint32, t time.Time) string {
 	weekStart := do.GetPreviousMonday(t)
 
-	return fmt.Sprintf("%s_%d_%s", tableNameSendMessageLog, teamId, weekStart.Format("20060102"))
+	return fmt.Sprintf("%s_%d_%s", tableNameSendMessageLog, teamID, weekStart.Format("20060102"))
 }
 
-func GetSendMessageLogTableName(teamId uint32, t time.Time, tx *gorm.DB) (string, error) {
-	tableName := genSendMessageLogTableName(teamId, t)
-	if !do.HasTable(teamId, tx, tableName) {
-		return tableName, createSendMessageLogTable(teamId, t, tx)
+func GetSendMessageLogTableName(teamID uint32, t time.Time, tx *gorm.DB) (string, error) {
+	tableName := genSendMessageLogTableName(teamID, t)
+	if !do.HasTable(teamID, tx, tableName) {
+		return tableName, createSendMessageLogTable(teamID, t, tx)
 	}
 	return tableName, nil
 }
 
-func GetSendMessageLogTableNames(teamId uint32, start, end time.Time, tx *gorm.DB) []string {
+func GetSendMessageLogTableNames(teamID uint32, start, end time.Time, tx *gorm.DB) []string {
 	if start.After(end) {
 		return nil
 	}
@@ -130,8 +130,8 @@ func GetSendMessageLogTableNames(teamId uint32, start, end time.Time, tx *gorm.D
 		if currentMonday.AddDate(0, 0, 6).Before(start) {
 			continue
 		}
-		if do.HasTable(teamId, tx, genSendMessageLogTableName(teamId, currentMonday)) {
-			tableNames = append(tableNames, genSendMessageLogTableName(teamId, currentMonday))
+		if do.HasTable(teamID, tx, genSendMessageLogTableName(teamID, currentMonday)) {
+			tableNames = append(tableNames, genSendMessageLogTableName(teamID, currentMonday))
 		}
 	}
 

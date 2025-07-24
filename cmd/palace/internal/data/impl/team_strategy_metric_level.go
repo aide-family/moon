@@ -32,10 +32,10 @@ func (t *teamStrategyMetricLevelRepoImpl) DeleteByStrategyIds(ctx context.Contex
 	if len(strategyIds) == 0 {
 		return nil
 	}
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyMetricRule
 	wrappers := []gen.Condition{
-		mutation.TeamID.Eq(teamId),
+		mutation.TeamID.Eq(teamID),
 		mutation.StrategyID.In(strategyIds...),
 	}
 	_, err := mutation.WithContext(ctx).Where(wrappers...).Delete()
@@ -80,32 +80,32 @@ func (t *teamStrategyMetricLevelRepoImpl) Delete(ctx context.Context, strategyMe
 	if len(strategyMetricLevelIds) == 0 {
 		return nil
 	}
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
 		tx.StrategyMetricRule.ID.In(strategyMetricLevelIds...),
-		tx.StrategyMetricRule.TeamID.Eq(teamId),
+		tx.StrategyMetricRule.TeamID.Eq(teamID),
 	}
 	_, err := tx.WithContext(ctx).StrategyMetricRule.Where(wrapper...).Delete()
 	return err
 }
 
-// DeleteByStrategyId implements repository.TeamStrategyMetricLevel.
-func (t *teamStrategyMetricLevelRepoImpl) DeleteByStrategyId(ctx context.Context, strategyId uint32) error {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+// DeleteByStrategyID implements repository.TeamStrategyMetricLevel.
+func (t *teamStrategyMetricLevelRepoImpl) DeleteByStrategyID(ctx context.Context, strategyID uint32) error {
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
-		tx.StrategyMetricRule.StrategyID.Eq(strategyId),
-		tx.StrategyMetricRule.TeamID.Eq(teamId),
+		tx.StrategyMetricRule.StrategyID.Eq(strategyID),
+		tx.StrategyMetricRule.TeamID.Eq(teamID),
 	}
 	_, err := tx.WithContext(ctx).StrategyMetricRule.Where(wrapper...).Delete()
 	return err
 }
 
 // Get implements repository.TeamStrategyMetricLevel.
-func (t *teamStrategyMetricLevelRepoImpl) Get(ctx context.Context, strategyMetricLevelId uint32) (do.StrategyMetricRule, error) {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+func (t *teamStrategyMetricLevelRepoImpl) Get(ctx context.Context, strategyMetricLevelID uint32) (do.StrategyMetricRule, error) {
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
-		tx.StrategyMetricRule.ID.Eq(strategyMetricLevelId),
-		tx.StrategyMetricRule.TeamID.Eq(teamId),
+		tx.StrategyMetricRule.ID.Eq(strategyMetricLevelID),
+		tx.StrategyMetricRule.TeamID.Eq(teamID),
 	}
 	strategyMetricRuleDo, err := tx.StrategyMetricRule.WithContext(ctx).Where(wrapper...).Preload(field.Associations).First()
 	if err != nil {
@@ -114,13 +114,13 @@ func (t *teamStrategyMetricLevelRepoImpl) Get(ctx context.Context, strategyMetri
 	return strategyMetricRuleDo, nil
 }
 
-// GetByLevelId implements repository.TeamStrategyMetricLevel.
-func (t *teamStrategyMetricLevelRepoImpl) GetByLevelId(ctx context.Context, strategyMetricId uint32, levelId uint32) (do.StrategyMetricRule, error) {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+// GetByLevelID implements repository.TeamStrategyMetricLevel.
+func (t *teamStrategyMetricLevelRepoImpl) GetByLevelID(ctx context.Context, strategyMetricID uint32, levelID uint32) (do.StrategyMetricRule, error) {
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
-		tx.StrategyMetricRule.LevelID.Eq(levelId),
-		tx.StrategyMetricRule.StrategyMetricID.Eq(strategyMetricId),
-		tx.StrategyMetricRule.TeamID.Eq(teamId),
+		tx.StrategyMetricRule.LevelID.Eq(levelID),
+		tx.StrategyMetricRule.StrategyMetricID.Eq(strategyMetricID),
+		tx.StrategyMetricRule.TeamID.Eq(teamID),
 	}
 	strategyMetricRuleDo, err := tx.StrategyMetricRule.WithContext(ctx).Where(wrapper...).Preload(field.Associations).First()
 	if err != nil {
@@ -131,14 +131,14 @@ func (t *teamStrategyMetricLevelRepoImpl) GetByLevelId(ctx context.Context, stra
 
 // List implements repository.TeamStrategyMetricLevel.
 func (t *teamStrategyMetricLevelRepoImpl) List(ctx context.Context, params *bo.ListTeamMetricStrategyLevelsParams) (*bo.ListTeamMetricStrategyLevelsReply, error) {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	ruleQuery := tx.StrategyMetricRule
 	wrapper := ruleQuery.Where(ruleQuery.StrategyMetricID.Eq(params.StrategyMetricID))
-	wrapper = wrapper.Where(ruleQuery.TeamID.Eq(teamId))
+	wrapper = wrapper.Where(ruleQuery.TeamID.Eq(teamID))
 	wrapper = wrapper.Preload(field.Associations)
 
-	if params.LevelId > 0 {
-		wrapper = wrapper.Where(ruleQuery.LevelID.Eq(params.LevelId))
+	if params.LevelID > 0 {
+		wrapper = wrapper.Where(ruleQuery.LevelID.Eq(params.LevelID))
 	}
 	if validate.IsNotNil(params.PaginationRequest) {
 		total, err := wrapper.WithContext(ctx).Count()
@@ -161,10 +161,10 @@ func (t *teamStrategyMetricLevelRepoImpl) List(ctx context.Context, params *bo.L
 
 // Update implements repository.TeamStrategyMetricLevel.
 func (t *teamStrategyMetricLevelRepoImpl) Update(ctx context.Context, params bo.UpdateTeamMetricStrategyLevelParams) error {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
 		tx.StrategyMetricRule.ID.Eq(params.GetStrategyMetricLevel().GetID()),
-		tx.StrategyMetricRule.TeamID.Eq(teamId),
+		tx.StrategyMetricRule.TeamID.Eq(teamID),
 	}
 	ruleMutation := tx.StrategyMetricRule
 
@@ -228,11 +228,11 @@ func (t *teamStrategyMetricLevelRepoImpl) UpdateStatus(ctx context.Context, para
 	if len(params.StrategyMetricLevelIds) == 0 {
 		return nil
 	}
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	ruleMutation := tx.StrategyMetricRule
 	wrapper := []gen.Condition{
 		ruleMutation.ID.In(params.StrategyMetricLevelIds...),
-		ruleMutation.TeamID.Eq(teamId),
+		ruleMutation.TeamID.Eq(teamID),
 	}
 	_, err := ruleMutation.WithContext(ctx).Where(wrapper...).UpdateSimple(ruleMutation.Status.Value(params.Status.GetValue()))
 	return err
@@ -242,10 +242,10 @@ func (t *teamStrategyMetricLevelRepoImpl) FindByIds(ctx context.Context, strateg
 	if len(strategyMetricLevelIds) == 0 {
 		return nil, nil
 	}
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	wrapper := []gen.Condition{
 		tx.StrategyMetricRule.ID.In(strategyMetricLevelIds...),
-		tx.StrategyMetricRule.TeamID.Eq(teamId),
+		tx.StrategyMetricRule.TeamID.Eq(teamID),
 	}
 	rows, err := tx.StrategyMetricRule.WithContext(ctx).Where(wrapper...).Preload(field.Associations).Find()
 	if err != nil {

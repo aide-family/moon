@@ -46,11 +46,11 @@ func (t *teamDatasourceMetricMetadataRepoImpl) BatchSave(ctx context.Context, re
 }
 
 func (t *teamDatasourceMetricMetadataRepoImpl) List(ctx context.Context, req *bo.ListTeamMetricDatasourceMetadata) (*bo.ListTeamMetricDatasourceMetadataReply, error) {
-	bizQuery, teamId := getTeamBizQueryWithTeamID(ctx, t.Data)
+	bizQuery, teamID := getTeamBizQueryWithTeamID(ctx, t.Data)
 	datasourceMetricMetadataMutation := bizQuery.DatasourceMetricMetadata
 	wrapper := datasourceMetricMetadataMutation.WithContext(ctx)
 	wrapper = wrapper.Where(datasourceMetricMetadataMutation.DatasourceMetricID.Eq(req.DatasourceID))
-	wrapper = wrapper.Where(datasourceMetricMetadataMutation.TeamID.Eq(teamId))
+	wrapper = wrapper.Where(datasourceMetricMetadataMutation.TeamID.Eq(teamID))
 	if validate.TextIsNotNull(req.Keyword) {
 		or := []gen.Condition{
 			datasourceMetricMetadataMutation.Name.Like(req.Keyword),
@@ -82,13 +82,13 @@ func (t *teamDatasourceMetricMetadataRepoImpl) List(ctx context.Context, req *bo
 }
 
 func (t *teamDatasourceMetricMetadataRepoImpl) Update(ctx context.Context, req *bo.UpdateMetricDatasourceMetadataRequest) error {
-	query, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	query, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	datasourceMetricMetadataMutation := query.DatasourceMetricMetadata
 	wrapper := datasourceMetricMetadataMutation.WithContext(ctx)
 	wrappers := []gen.Condition{
 		datasourceMetricMetadataMutation.ID.Eq(req.MetadataID),
 		datasourceMetricMetadataMutation.DatasourceMetricID.Eq(req.DatasourceID),
-		datasourceMetricMetadataMutation.TeamID.Eq(teamId),
+		datasourceMetricMetadataMutation.TeamID.Eq(teamID),
 	}
 	mutations := []field.AssignExpr{
 		datasourceMetricMetadataMutation.Help.Value(req.Help),

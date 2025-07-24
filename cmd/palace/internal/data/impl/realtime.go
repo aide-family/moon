@@ -32,15 +32,15 @@ type realtimeRepoImpl struct {
 }
 
 func (r *realtimeRepoImpl) getRealtimeTableName(ctx context.Context, alertStartsAt time.Time) (string, error) {
-	teamId, ok := permission.GetTeamIDByContext(ctx)
+	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return "", merr.ErrorPermissionDenied("team id not found")
 	}
-	eventDB, err := r.GetEventDB(teamId)
+	eventDB, err := r.GetEventDB(teamID)
 	if err != nil {
 		return "", err
 	}
-	tableName, err := event.GetRealtimeTableName(teamId, alertStartsAt, eventDB.GetDB())
+	tableName, err := event.GetRealtimeTableName(teamID, alertStartsAt, eventDB.GetDB())
 	if err != nil {
 		return "", err
 	}
@@ -50,7 +50,7 @@ func (r *realtimeRepoImpl) getRealtimeTableName(ctx context.Context, alertStarts
 // Exists implements repository.Realtime.
 func (r *realtimeRepoImpl) Exists(ctx context.Context, alert *bo.GetAlertParams) (bool, error) {
 	ctx = permission.WithTeamIDContext(ctx, alert.TeamID)
-	tx, teamId := getTeamEventQueryWithTeamID(ctx, r)
+	tx, teamID := getTeamEventQueryWithTeamID(ctx, r)
 	tableName, err := r.getRealtimeTableName(ctx, alert.StartsAt)
 	if err != nil {
 		return false, err
@@ -58,7 +58,7 @@ func (r *realtimeRepoImpl) Exists(ctx context.Context, alert *bo.GetAlertParams)
 	realtimeQuery := tx.Realtime.Table(tableName)
 	wrappers := []gen.Condition{
 		realtimeQuery.Fingerprint.Eq(alert.Fingerprint),
-		realtimeQuery.TeamID.Eq(teamId),
+		realtimeQuery.TeamID.Eq(teamID),
 	}
 
 	count, err := realtimeQuery.WithContext(ctx).
@@ -74,7 +74,7 @@ func (r *realtimeRepoImpl) Exists(ctx context.Context, alert *bo.GetAlertParams)
 // GetAlert implements repository.Realtime.
 func (r *realtimeRepoImpl) GetAlert(ctx context.Context, alert *bo.GetAlertParams) (do.Realtime, error) {
 	ctx = permission.WithTeamIDContext(ctx, alert.TeamID)
-	tx, teamId := getTeamEventQueryWithTeamID(ctx, r)
+	tx, teamID := getTeamEventQueryWithTeamID(ctx, r)
 	tableName, err := r.getRealtimeTableName(ctx, alert.StartsAt)
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func (r *realtimeRepoImpl) GetAlert(ctx context.Context, alert *bo.GetAlertParam
 	realtimeQuery := tx.Realtime.Table(tableName)
 	wrappers := []gen.Condition{
 		realtimeQuery.Fingerprint.Eq(alert.Fingerprint),
-		realtimeQuery.TeamID.Eq(teamId),
+		realtimeQuery.TeamID.Eq(teamID),
 	}
 
 	realtimeDo, err := realtimeQuery.WithContext(ctx).
@@ -97,7 +97,7 @@ func (r *realtimeRepoImpl) GetAlert(ctx context.Context, alert *bo.GetAlertParam
 // CreateAlert implements repository.Realtime.
 func (r *realtimeRepoImpl) CreateAlert(ctx context.Context, alert *bo.Alert) error {
 	ctx = permission.WithTeamIDContext(ctx, alert.TeamID)
-	tx, teamId := getTeamEventQueryWithTeamID(ctx, r)
+	tx, teamID := getTeamEventQueryWithTeamID(ctx, r)
 
 	tableName, err := r.getRealtimeTableName(ctx, alert.StartsAt)
 	if err != nil {
@@ -105,7 +105,7 @@ func (r *realtimeRepoImpl) CreateAlert(ctx context.Context, alert *bo.Alert) err
 	}
 	realtimeMutation := tx.Realtime.Table(tableName)
 	realtimeDo := &event.Realtime{
-		TeamID:       teamId,
+		TeamID:       teamID,
 		Fingerprint:  alert.Fingerprint,
 		Labels:       alert.Labels,
 		Summary:      alert.Summary,
@@ -122,7 +122,7 @@ func (r *realtimeRepoImpl) CreateAlert(ctx context.Context, alert *bo.Alert) err
 // UpdateAlert implements repository.Realtime.
 func (r *realtimeRepoImpl) UpdateAlert(ctx context.Context, alert *bo.Alert) error {
 	ctx = permission.WithTeamIDContext(ctx, alert.TeamID)
-	tx, teamId := getTeamEventQueryWithTeamID(ctx, r)
+	tx, teamID := getTeamEventQueryWithTeamID(ctx, r)
 	tableName, err := r.getRealtimeTableName(ctx, alert.StartsAt)
 	if err != nil {
 		return err
@@ -130,7 +130,7 @@ func (r *realtimeRepoImpl) UpdateAlert(ctx context.Context, alert *bo.Alert) err
 	realtimeMutation := tx.Realtime.Table(tableName)
 	wrappers := []gen.Condition{
 		realtimeMutation.Fingerprint.Eq(alert.Fingerprint),
-		realtimeMutation.TeamID.Eq(teamId),
+		realtimeMutation.TeamID.Eq(teamID),
 	}
 	mutations := []field.AssignExpr{
 		realtimeMutation.Status.Value(alert.Status.GetValue()),

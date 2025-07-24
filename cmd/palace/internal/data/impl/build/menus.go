@@ -26,7 +26,7 @@ func ToMenu(ctx context.Context, menu do.Menu) *system.Menu {
 		MenuIcon:      menu.GetMenuIcon(),
 		MenuType:      menu.GetMenuType(),
 		MenuCategory:  menu.GetMenuCategory(),
-		ApiPath:       menu.GetApiPath(),
+		APIPath:       menu.GetAPIPath(),
 		Status:        menu.GetStatus(),
 		ProcessType:   menu.GetProcessType(),
 		ParentID:      menu.GetParentID(),

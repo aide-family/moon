@@ -31,10 +31,10 @@ func (t *teamStrategyMetricRepoImpl) DeleteByStrategyIds(ctx context.Context, st
 	if len(strategyIds) == 0 {
 		return nil
 	}
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 	mutation := tx.StrategyMetric
 	wrappers := []gen.Condition{
-		mutation.TeamID.Eq(teamId),
+		mutation.TeamID.Eq(teamID),
 		mutation.StrategyID.In(strategyIds...),
 	}
 	_, err := mutation.WithContext(ctx).Where(wrappers...).Delete()
@@ -70,12 +70,12 @@ func (t *teamStrategyMetricRepoImpl) Create(ctx context.Context, params bo.Creat
 
 // Update implements repository.TeamStrategyMetric.
 func (t *teamStrategyMetricRepoImpl) Update(ctx context.Context, params bo.UpdateTeamMetricStrategyParams) error {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 
 	strategyMetricMutation := tx.StrategyMetric
 	wrapper := []gen.Condition{
 		strategyMetricMutation.StrategyID.Eq(params.GetStrategy().GetID()),
-		strategyMetricMutation.TeamID.Eq(teamId),
+		strategyMetricMutation.TeamID.Eq(teamID),
 	}
 
 	strategyMetricMutations := []field.AssignExpr{
@@ -103,13 +103,13 @@ func (t *teamStrategyMetricRepoImpl) Update(ctx context.Context, params bo.Updat
 }
 
 // Delete implements repository.TeamStrategyMetric.
-func (t *teamStrategyMetricRepoImpl) Delete(ctx context.Context, strategyMetricId uint32) error {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+func (t *teamStrategyMetricRepoImpl) Delete(ctx context.Context, strategyMetricID uint32) error {
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 
 	strategyMetricMutation := tx.StrategyMetric
 	wrapper := []gen.Condition{
-		strategyMetricMutation.ID.Eq(strategyMetricId),
-		strategyMetricMutation.TeamID.Eq(teamId),
+		strategyMetricMutation.ID.Eq(strategyMetricID),
+		strategyMetricMutation.TeamID.Eq(teamID),
 	}
 
 	_, err := strategyMetricMutation.WithContext(ctx).Where(wrapper...).Delete()
@@ -117,13 +117,13 @@ func (t *teamStrategyMetricRepoImpl) Delete(ctx context.Context, strategyMetricI
 }
 
 // Get implements repository.TeamStrategyMetric.
-func (t *teamStrategyMetricRepoImpl) Get(ctx context.Context, strategyMetricId uint32) (do.StrategyMetric, error) {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+func (t *teamStrategyMetricRepoImpl) Get(ctx context.Context, strategyMetricID uint32) (do.StrategyMetric, error) {
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 
 	strategyMetricMutation := tx.StrategyMetric
 	wrapper := []gen.Condition{
-		strategyMetricMutation.ID.Eq(strategyMetricId),
-		strategyMetricMutation.TeamID.Eq(teamId),
+		strategyMetricMutation.ID.Eq(strategyMetricID),
+		strategyMetricMutation.TeamID.Eq(teamID),
 	}
 	preloads := []field.RelationField{
 		strategyMetricMutation.Strategy.RelationField,
@@ -140,13 +140,13 @@ func (t *teamStrategyMetricRepoImpl) Get(ctx context.Context, strategyMetricId u
 	return strategyMetricDo, nil
 }
 
-func (t *teamStrategyMetricRepoImpl) GetByStrategyId(ctx context.Context, strategyId uint32) (do.StrategyMetric, error) {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+func (t *teamStrategyMetricRepoImpl) GetByStrategyID(ctx context.Context, strategyID uint32) (do.StrategyMetric, error) {
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 
 	strategyMetricMutation := tx.StrategyMetric
 	wrapper := []gen.Condition{
-		strategyMetricMutation.StrategyID.Eq(strategyId),
-		strategyMetricMutation.TeamID.Eq(teamId),
+		strategyMetricMutation.StrategyID.Eq(strategyID),
+		strategyMetricMutation.TeamID.Eq(teamID),
 	}
 	preloads := []field.RelationField{
 		strategyMetricMutation.Strategy.RelationField,
@@ -164,12 +164,12 @@ func (t *teamStrategyMetricRepoImpl) GetByStrategyId(ctx context.Context, strate
 }
 
 func (t *teamStrategyMetricRepoImpl) FindByStrategyIds(ctx context.Context, strategyIds []uint32) ([]do.StrategyMetric, error) {
-	tx, teamId := getTeamBizQueryWithTeamID(ctx, t)
+	tx, teamID := getTeamBizQueryWithTeamID(ctx, t)
 
 	strategyMetricMutation := tx.StrategyMetric
 	wrapper := []gen.Condition{
 		strategyMetricMutation.StrategyID.In(strategyIds...),
-		strategyMetricMutation.TeamID.Eq(teamId),
+		strategyMetricMutation.TeamID.Eq(teamID),
 	}
 	preloads := []field.RelationField{
 		strategyMetricMutation.Strategy.RelationField,
