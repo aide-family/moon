@@ -43,6 +43,11 @@ func ToOperateLogParams(ctx context.Context, menuDo do.Menu, req *middleware.Ope
 	if validate.IsNotNil(menuDo) {
 		item.MenuName = menuDo.GetName()
 		item.MenuID = menuDo.GetID()
+		if menuDo.GetMenuType().IsMenuTeam() {
+			if teamID, ok := permission.GetTeamIDByContext(ctx); ok {
+				item.TeamID = teamID
+			}
+		}
 	}
 
 	if userDo, ok := do.GetUserDoContext(ctx); ok && validate.IsNotNil(userDo) {
@@ -50,10 +55,6 @@ func ToOperateLogParams(ctx context.Context, menuDo do.Menu, req *middleware.Ope
 		userBase := ToUserBaseItem(userDo)
 		userBaseJSON, _ := json.Marshal(userBase)
 		item.UserBaseInfo = string(userBaseJSON)
-	}
-
-	if teamID, ok := permission.GetTeamIDByContext(ctx); ok {
-		item.TeamID = teamID
 	}
 
 	if request := req.OriginRequest; validate.IsNotNil(request) {
