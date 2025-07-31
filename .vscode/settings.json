@@ -18,7 +18,7 @@
     "staticcheck": true // 启用 staticcheck
   },
   "go.gopath": "~/go", // 设置 GOPATH 为当前项目目录
-  "go.goroot": "~/go/go1.24.1", // 设置 GOROOT（根据你的 Go 安装路径调整）
+  "go.goroot": "~/sdk/go1.24.5", // 设置 GOROOT（根据你的 Go 安装路径调整）
   "go.useLanguageServer": true, // 启用 gopls
   "go.languageServerFlags": [
     "--remote=auto" // 配置 gopls 的远程模式
@@ -60,6 +60,8 @@
     "Infof",
     "kratos",
     "merr",
+    "mlog",
+    "nhttp",
     "nicksnyder",
     "palacecommon",
     "PATHSEP",
@@ -69,6 +71,8 @@
     "rabbitcommon",
     "rabbitconmmon",
     "rabbitv",
+    "Smss",
+    "srvs",
     "strutil",
     "tinyint",
     "transporthttp",

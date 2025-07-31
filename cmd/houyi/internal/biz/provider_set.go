@@ -1,3 +1,4 @@
+// Package biz provides the business logic for the houyi service.
 package biz
 
 import (

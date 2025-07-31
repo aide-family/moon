@@ -17,7 +17,13 @@ import (
 
 // Version is the version of the compiled software.
 var Version string
-var cfgPath string
+var (
+	cfgPath           string
+	metricDatasources []string
+	logsDatasources   []string
+	eventDatasources  []string
+)
+
 var rootCmd = &cobra.Command{
 	Use:   "moon",
 	Short: "CLI for managing Moon monitor houyi Server",
@@ -30,6 +36,9 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgPath, "conf", "c", "./cmd/houyi/config", "Path to the configuration files")
+	rootCmd.PersistentFlags().StringSliceVarP(&metricDatasources, "metric-datasources", "m", []string{}, "Metric datasources to be loaded")
+	rootCmd.PersistentFlags().StringSliceVarP(&logsDatasources, "logs-datasources", "l", []string{}, "Logs datasources to be loaded")
+	rootCmd.PersistentFlags().StringSliceVarP(&eventDatasources, "event-datasources", "e", []string{}, "Event datasources to be loaded")
 }
 
 func main() {
@@ -39,6 +48,9 @@ func main() {
 }
 
 func run(cfgPath string) {
+	log.Infof("metricDatasources: %v", metricDatasources)
+	log.Infof("logsDatasources: %v", logsDatasources)
+	log.Infof("eventDatasources: %v", eventDatasources)
 	var bc conf.Bootstrap
 	if err := load.Load(cfgPath, &bc); err != nil {
 		panic(err)

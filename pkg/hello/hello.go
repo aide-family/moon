@@ -1,3 +1,4 @@
+// Package hello provides a logo and system info for the service.
 package hello
 
 import (
