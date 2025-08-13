@@ -11,11 +11,13 @@ import (
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/conf"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
+	"github.com/aide-family/moon/cmd/palace/internal/service/build"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/hash"
 	"github.com/aide-family/moon/pkg/util/password"
@@ -96,6 +98,27 @@ func (a *Auth) VerifyCaptcha(ctx context.Context, req *bo.CaptchaVerify) error {
 		})
 	}
 	return nil
+}
+
+// createUserWithPassword creates a user with the specified password
+func (a *Auth) createUserWithPassword(ctx context.Context, user do.User, passwordStr string) (do.User, error) {
+	// Create password object with the provided password
+	pass := password.New(passwordStr)
+	enValue, err := pass.EnValue()
+	if err != nil {
+		return nil, err
+	}
+
+	// Use build function to create user with password
+	userWithPassword := build.ToUserWithPassword(user, enValue, pass.Salt())
+	userWithPassword.WithContext(ctx)
+
+	// Use the existing Create method with a no-op email function
+	noOpEmailFunc := func(ctx context.Context, params *bo.SendEmailParams) error {
+		return nil // Don't send email for registration
+	}
+
+	return a.userRepo.Create(ctx, userWithPassword, noOpEmailFunc)
 }
 
 // Logout token logout
@@ -463,4 +486,44 @@ func (a *Auth) ReplaceUserRole(ctx context.Context, req *bo.ReplaceUserRoleReq) 
 
 func (a *Auth) ReplaceMemberRole(ctx context.Context, req *bo.ReplaceMemberRoleReq) error {
 	return nil
+}
+
+// RegisterWithEmail registers a new user with email verification code
+func (a *Auth) RegisterWithEmail(ctx context.Context, req *bo.RegisterWithEmailParams) (*bo.LoginSign, error) {
+	// Verify email verification code
+	verifyParams := &bo.VerifyEmailCodeParams{
+		Email: req.Email,
+		Code:  req.Code,
+	}
+	if err := a.cacheRepo.VerifyEmailCode(ctx, verifyParams); err != nil {
+		return nil, err
+	}
+
+	// Check if user already exists
+	existingUser, err := a.userRepo.FindByEmail(ctx, req.Email)
+	if err == nil && existingUser != nil {
+		return nil, merr.ErrorBadRequest("user with this email already exists")
+	}
+	if err != nil && !merr.IsUserNotFound(err) {
+		return nil, err
+	}
+
+	// Create new user
+	userDo := &system.User{
+		Username: req.Username,
+		Nickname: req.Username,
+		Email:    req.Email,
+		Gender:   vobj.GenderUnknown,
+		Position: vobj.PositionUser,
+		Status:   vobj.UserStatusNormal,
+	}
+
+	// Create user with custom password handling
+	createdUser, err := a.createUserWithPassword(ctx, userDo, req.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	// Login the user and return login info
+	return a.login(createdUser)
 }
