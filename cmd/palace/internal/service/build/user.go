@@ -3,6 +3,7 @@ package build
 import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
+	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/api/palace"
 	"github.com/aide-family/moon/pkg/api/palace/common"
@@ -120,4 +121,28 @@ func ToUserListRequest(req *palace.GetUserListRequest) *bo.UserListRequest {
 		}),
 		Keyword: req.GetKeyword(),
 	}
+}
+
+// ToUserWithPassword creates a new system.User with encrypted password and salt
+func ToUserWithPassword(user do.User, encryptedPassword, salt string) *system.User {
+	if validate.IsNil(user) {
+		return nil
+	}
+
+	// Create a new user object with the password and salt
+	userWithPassword := &system.User{
+		Username: user.GetUsername(),
+		Nickname: user.GetNickname(),
+		Password: encryptedPassword,
+		Email:    user.GetEmail(),
+		Phone:    user.GetPhone(),
+		Remark:   user.GetRemark(),
+		Avatar:   user.GetAvatar(),
+		Salt:     salt,
+		Gender:   user.GetGender(),
+		Position: user.GetPosition(),
+		Status:   user.GetStatus(),
+	}
+
+	return userWithPassword
 }

@@ -50,6 +50,14 @@ type OAuthLoginParams struct {
 	SendEmailFun SendEmailFun
 }
 
+// RegisterWithEmailParams represents the parameters for email registration
+type RegisterWithEmailParams struct {
+	Email    string
+	Code     string
+	Password string
+	Username string
+}
+
 func NewOAuthRowData(app vobj.OAuthAPP, row string) (IOAuthUser, error) {
 	switch app {
 	case vobj.OAuthAPPGithub:

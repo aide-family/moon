@@ -105,6 +105,14 @@ service Auth {
       body: "*"
     };
   }
+
+  // RegisterWithEmail registers a new user with email verification code
+  rpc RegisterWithEmail(RegisterWithEmailRequest) returns (LoginReply) {
+    option (google.api.http) = {
+      post: "/v1/authorization/register_with_email"
+      body: "*"
+    };
+  }
 }
 
 // CaptchaValidateRequest is used to validate the captcha
@@ -332,4 +340,48 @@ message ReplaceMemberRoleRequest {
     expression: "this > 0"
   }];
   repeated uint32 roleIds = 2;
+}
+
+// RegisterWithEmailRequest represents the request data for registering with email
+message RegisterWithEmailRequest {
+  // User email
+  string email = 1 [(buf.validate.field).cel = {
+    id: "REGISTER_WITH_EMAIL_EMAIL_VALIDATOR",
+    message: "email is required"
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    id: "REGISTER_WITH_EMAIL_EMAIL_FORMAT_VALIDATOR",
+    message: "email is invalid"
+    expression: "this.isEmail()"
+  }];
+  // Email verification code
+  string code = 2 [(buf.validate.field).cel = {
+    id: "REGISTER_WITH_EMAIL_CODE_VALIDATOR",
+    message: "code is required"
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    id: "REGISTER_WITH_EMAIL_CODE_MAX_LENGTH_VALIDATOR",
+    message: "code max length is 32"
+    expression: "this.size() <= 32"
+  }];
+  // User password
+  string password = 3 [(buf.validate.field).cel = {
+    id: "REGISTER_WITH_EMAIL_PASSWORD_VALIDATOR",
+    message: "password is required"
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    id: "REGISTER_WITH_EMAIL_PASSWORD_MAX_LENGTH_VALIDATOR",
+    message: "password max length is 32"
+    expression: "this.size() <= 32"
+  }];
+  // Username
+  string username = 4 [(buf.validate.field).cel = {
+    id: "REGISTER_WITH_EMAIL_USERNAME_VALIDATOR",
+    message: "username is required"
+    expression: "this.size() > 0"
+  }, (buf.validate.field).cel = {
+    id: "REGISTER_WITH_EMAIL_USERNAME_MAX_LENGTH_VALIDATOR",
+    message: "username max length is 32"
+    expression: "this.size() <= 32"
+  }];
 }
