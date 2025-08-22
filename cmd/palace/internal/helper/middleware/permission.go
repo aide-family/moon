@@ -12,9 +12,10 @@ type permissionValidateFunc func(ctx context.Context) error
 func MustPermission(validate permissionValidateFunc) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req any) (any, error) {
-			if err := validate(ctx); err != nil {
-				return nil, err
-			}
+			// TODO 开启权限验证
+			//if err := validate(ctx); err != nil {
+			//	return nil, err
+			//}
 			return handler(ctx, req)
 		}
 	}
