@@ -2920,6 +2920,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.common.CheckReply'
+    /v1/authorization/register_with_email:
+        post:
+            tags:
+                - Auth
+            description: RegisterWithEmail registers a new user with email verification code
+            operationId: Auth_RegisterWithEmail
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.RegisterWithEmailRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.LoginReply'
     /v1/server/register:
         post:
             tags:
@@ -4407,6 +4426,22 @@ components:
                     type: string
                 endsAt:
                     type: string
+        api.palace.RegisterWithEmailRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                    description: User email
+                code:
+                    type: string
+                    description: Email verification code
+                password:
+                    type: string
+                    description: User password
+                username:
+                    type: string
+                    description: Username
+            description: RegisterWithEmailRequest represents the request data for registering with email
         api.palace.RemoveMemberRequest:
             type: object
             properties:

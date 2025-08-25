@@ -294,3 +294,20 @@ func (s *AuthService) OAuthLoginCallback(app vobj.OAuthAPP) http.HandlerFunc {
 		return nil
 	}
 }
+
+// RegisterWithEmail registers a new user with email verification code
+func (s *AuthService) RegisterWithEmail(ctx context.Context, req *palace.RegisterWithEmailRequest) (*palace.LoginReply, error) {
+	params := &bo.RegisterWithEmailParams{
+		Email:    req.GetEmail(),
+		Code:     req.GetCode(),
+		Password: req.GetPassword(),
+		Username: req.GetUsername(),
+	}
+
+	loginSign, err := s.authBiz.RegisterWithEmail(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return login(loginSign, nil)
+}
