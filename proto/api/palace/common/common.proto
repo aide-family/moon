@@ -199,3 +199,8 @@ message OperateLogListReply {
   // Pagination response details
   api.palace.common.PaginationReply pagination = 2;
 }
+
+message TimeRangeReq {
+  int64 start = 1;
+  int64 end = 2;
+}

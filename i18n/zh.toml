@@ -79,6 +79,9 @@ other = "服务器内部错误"
 [INVALID_ARGUMENT]
 other = "无效的参数"
 
+[ALERT_STATISTICS_TIME_RANGE_VALIDATOR]
+other = "must be a valid time range"
+
 [LIST_ALERT_TIME_RANGE_VALIDATOR]
 other = "时间查询格式错误"
 

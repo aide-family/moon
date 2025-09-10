@@ -79,6 +79,9 @@ other = "Internal Server Error"
 [INVALID_ARGUMENT]
 other = "Invalid Argument"
 
+[ALERT_STATISTICS_TIME_RANGE_VALIDATOR]
+other = "must be a valid time range"
+
 [LIST_ALERT_TIME_RANGE_VALIDATOR]
 other = "timeRange must be a valid time range"
 
