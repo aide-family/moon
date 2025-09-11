@@ -72,6 +72,23 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.houyi.v1.SyncReply'
+    /v1/server/list:
+        get:
+            tags:
+                - Server
+            operationId: Server_GetServerList
+            parameters:
+                - name: type
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.common.GetServerListReply'
     /v1/server/register:
         post:
             tags:
@@ -331,6 +348,13 @@ components:
                     type: string
                 time:
                     type: string
+        api.common.GetServerListReply:
+            type: object
+            properties:
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/config.MicroServer'
         api.common.MetricDatasourceQueryReply:
             type: object
             properties:
