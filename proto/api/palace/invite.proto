@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package api.palace;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "palace/common/common.proto";
+import "palace/common/common_enum.proto";
+
+option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
+
+
+service Invite {
+  // 邀请User加入团队
+  rpc InviteUser (InviteUserRequest) returns (InviteUserReply){
+    option (google.api.http) = {
+      post: "/v1/admin/invite/user"
+      body: "*"
+    };
+  };
+  // 更新邀请状态
+  rpc UpdateInviteStatus (UpdateInviteStatusRequest) returns (UpdateInviteStatusReply){
+    option (google.api.http) = {
+      post: "/v1/admin/invite/status"
+      body: "*"
+    };
+  };
+  // 删除邀请
+  rpc DeleteInvite (DeleteInviteRequest) returns (DeleteInviteReply){
+    option (google.api.http) = {
+      delete: "/v1/admin/invite/delete"
+    };
+  };
+  // 获取邀请详情
+  rpc GetInvite (GetInviteRequest) returns (GetInviteReply){
+    option (google.api.http) = {
+      get: "/v1/admin/invite/detail/{id}"
+    };
+  };
+  // 获取当前用户邀请列表
+  rpc UserInviteList (ListUserInviteRequest) returns (ListUserInviteReply){
+    option (google.api.http) = {
+      post: "/v1/admin/invite/list"
+      body: "*"
+    };
+  };
+}
+
+message InviteUserRequest {
+  repeated uint32  roleIds = 1[(buf.validate.field).cel = {
+    message: "必须保证修改对象数据唯一",
+    expression: "this.unique()"
+  }];
+  // 邮箱或手机号
+  string inviteCode = 2 [(buf.validate.field).cel = {
+    message: "请输入邮箱或手机号",
+    expression: "this.size() != 0"
+  }];
+}
+message InviteUserReply {}
+
+message UpdateInviteStatusRequest {
+  api.palace.common.InviteType type = 1 [(buf.validate.field).cel = {
+    message: "请选择状态",
+    expression: "this > 0"
+  }];
+  uint32  id = 2 [(buf.validate.field).cel = {
+    message: "请输入邀请ID",
+    expression: "this > 0"
+  }];
+}
+message UpdateInviteStatusReply {}
+
+message DeleteInviteRequest {
+  uint32 id = 1 [(buf.validate.field).cel = {
+    message: "请输入ID",
+    expression: "this > 0"
+  }];
+}
+message DeleteInviteReply {}
+
+message GetInviteRequest {
+  uint32 id = 1 [(buf.validate.field).cel = {
+    message: "请输入邀请ID",
+    expression: "this > 0"
+  }];
+}
+
+message GetInviteReply {
+  InviteItem item = 1;
+}
+
+message ListUserInviteRequest {
+  api.palace.common.PaginationRequest pagination = 1;
+  api.palace.common.InviteType type = 2;
+}
+message ListUserInviteReply {
+  api.palace.common.PaginationReply pagination = 1;
+  repeated InviteItem list = 2;
+}
+
+// invite item
+message InviteItem{
+  uint32 id = 1;
+  api.palace.common.InviteType inviteType = 2;
+}

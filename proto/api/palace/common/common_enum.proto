@@ -184,3 +184,13 @@ enum TimeEngineRuleType {
   TIME_ENGINE_RULE_TYPE_MONTH = 6;
 }
 
+enum InviteType {
+  // UNKNOWN 未知
+  INVITE_TYPE_UNKNOWN = 0;
+  // 已加入
+  INVITE_TYPE_JOINED = 1;
+  // 邀请中
+  INVITE_TYPE_UNDER_REVIEW = 2;
+  // 邀请加入项目
+  INVITE_TYPE_REJECTED = 3;
+}

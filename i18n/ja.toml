@@ -79,6 +79,9 @@ other = "サーバーエラー"
 [INVALID_ARGUMENT]
 other = "無効な引数"
 
+[ALERT_STATISTICS_TIME_RANGE_VALIDATOR]
+other = "must be a valid time range"
+
 [LIST_ALERT_TIME_RANGE_VALIDATOR]
 other = "timeRange must be a valid time range"
 

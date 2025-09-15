@@ -346,14 +346,16 @@ paths:
                   in: query
                   description: menu category
                   schema:
-                    $ref: '#/components/schemas/MenuCategory'
+                    type: integer
+                    format: enum
                 - name: menuTypes
                   in: query
                   description: menu type
                   schema:
                     type: array
                     items:
-                        $ref: '#/components/schemas/MenuType'
+                        type: integer
+                        format: enum
             responses:
                 "200":
                     description: OK
@@ -507,6 +509,120 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.portal.ListPackageReply'
+    /api/statistics/alarm/latest/event:
+        get:
+            tags:
+                - Alert
+            operationId: Alert_LatestAlarmEvent
+            parameters:
+                - name: timeRange.start
+                  in: query
+                  schema:
+                    type: string
+                - name: timeRange.end
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  description: 指定top数量，默认10
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.LatestAlarmEventReply'
+    /api/statistics/alarm/latest/intervention:
+        get:
+            tags:
+                - Alert
+            operationId: Alert_LatestInterventionEvent
+            parameters:
+                - name: timeRange.start
+                  in: query
+                  schema:
+                    type: string
+                - name: timeRange.end
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  description: 指定top数量，默认10
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.LatestInterventionEventReply'
+    /api/statistics/alarm/summary:
+        get:
+            tags:
+                - Alert
+            operationId: Alert_SummaryAlarm
+            parameters:
+                - name: timeRange.start
+                  in: query
+                  schema:
+                    type: string
+                - name: timeRange.end
+                  in: query
+                  schema:
+                    type: string
+                - name: level
+                  in: query
+                  description: 指定告警等级
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: inComparison
+                  in: query
+                  description: 环比周期，默认1天
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.SummaryAlarmReply'
+    /api/statistics/alarm/top/strategy:
+        get:
+            tags:
+                - Alert
+            operationId: Alert_TopStrategyAlarm
+            parameters:
+                - name: timeRange.start
+                  in: query
+                  schema:
+                    type: string
+                - name: timeRange.end
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  description: 指定top数量，默认10
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.TopStrategyAlarmReply'
     /api/system/operate/log/list:
         post:
             tags:
@@ -1440,14 +1556,16 @@ paths:
                   in: query
                   description: menu category
                   schema:
-                    $ref: '#/components/schemas/MenuCategory'
+                    type: integer
+                    format: enum
                 - name: menuTypes
                   in: query
                   description: menu type
                   schema:
                     type: array
                     items:
-                        $ref: '#/components/schemas/MenuType'
+                        type: integer
+                        format: enum
             responses:
                 "200":
                     description: OK
@@ -2750,6 +2868,82 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/user/messages:
+        post:
+            tags:
+                - Message
+            description: 获取消息列表， 用于获取我的未读消息
+            operationId: Message_ListMessage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.ListMessageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.ListMessageReply'
+    /api/user/messages/cancel:
+        post:
+            tags:
+                - Message
+            description: 取消消息
+            operationId: Message_CancelMessage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.CancelMessageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.CancelMessageReply'
+    /api/user/messages/confirm:
+        post:
+            tags:
+                - Message
+            description: 确认消息
+            operationId: Message_ConfirmMessage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.ConfirmMessageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.ConfirmMessageReply'
+    /api/user/messages/read:
+        post:
+            tags:
+                - Message
+            description: 删除消息， 用于清除所有通知
+            operationId: Message_DeleteMessages
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.DeleteMessagesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.DeleteMessagesReply'
     /api/user/self:
         get:
             tags:
@@ -2920,6 +3114,119 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.common.CheckReply'
+    /v1/admin/invite/delete:
+        delete:
+            tags:
+                - Invite
+            description: 删除邀请
+            operationId: Invite_DeleteInvite
+            parameters:
+                - name: id
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.DeleteInviteReply'
+    /v1/admin/invite/detail/{id}:
+        get:
+            tags:
+                - Invite
+            description: 获取邀请详情
+            operationId: Invite_GetInvite
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.GetInviteReply'
+    /v1/admin/invite/list:
+        post:
+            tags:
+                - Invite
+            description: 获取当前用户邀请列表
+            operationId: Invite_UserInviteList
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.ListUserInviteRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.ListUserInviteReply'
+    /v1/admin/invite/status:
+        post:
+            tags:
+                - Invite
+            description: 更新邀请状态
+            operationId: Invite_UpdateInviteStatus
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.UpdateInviteStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.UpdateInviteStatusReply'
+    /v1/admin/invite/user:
+        post:
+            tags:
+                - Invite
+            description: 邀请User加入团队
+            operationId: Invite_InviteUser
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.InviteUserRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.InviteUserReply'
+    /v1/server/list:
+        get:
+            tags:
+                - Server
+            operationId: Server_GetServerList
+            parameters:
+                - name: type
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.common.GetServerListReply'
     /v1/server/register:
         post:
             tags:
@@ -2976,419 +3283,13 @@ paths:
                                 $ref: '#/components/schemas/api.palace.SyncMetadataReply'
 components:
     schemas:
-        AlertStatus:
-            enum:
-                - ALERT_STATUS_UNKNOWN
-                - pending
-                - firing
-                - resolved
-            type: string
-            format: enum
-        Cache_Driver:
-            enum:
-                - MEMORY
-                - REDIS
-            type: string
-            format: enum
-        ConditionMetric:
-            enum:
-                - CONDITION_METRIC_UNKNOWN
-                - CONDITION_METRIC_EQ
-                - CONDITION_METRIC_NE
-                - CONDITION_METRIC_GT
-                - CONDITION_METRIC_GTE
-                - CONDITION_METRIC_LT
-                - CONDITION_METRIC_LTE
-                - CONDITION_METRIC_IN
-                - CONDITION_METRIC_NOT_IN
-            type: string
-            format: enum
-        Crypto_AesConfig_MODE:
-            enum:
-                - ECB
-                - CBC
-                - GCM
-            type: string
-            format: enum
-        Database_Driver:
-            enum:
-                - MYSQL
-            type: string
-            format: enum
-        DatasourceDriverMetric:
-            enum:
-                - DATASOURCE_DRIVER_METRIC_UNKNOWN
-                - DATASOURCE_DRIVER_METRIC_PROMETHEUS
-                - DATASOURCE_DRIVER_METRIC_VICTORIAMETRICS
-            type: string
-            format: enum
-        DatasourceType:
-            enum:
-                - DATASOURCE_TYPE_UNSPECIFIED
-                - DATASOURCE_TYPE_METRIC
-                - DATASOURCE_TYPE_LOG
-                - DATASOURCE_TYPE_EVENT
-                - DATASOURCE_TYPE_TRACE
-            type: string
-            format: enum
-        DictType:
-            enum:
-                - DICT_TYPE_UNKNOWN
-                - DICT_TYPE_ALARM_LEVEL
-                - DICT_TYPE_ALARM_PAGE
-            type: string
-            format: enum
-        Environment:
-            enum:
-                - UNKNOWN
-                - DEV
-                - TEST
-                - PROD
-            type: string
-            format: enum
-        Event_Driver:
-            enum:
-                - UNKNOWN
-                - ROCKETMQ
-                - MQTT
-                - KAFKA
-            type: string
-            format: enum
-        FieldDescriptorProto_Label:
-            enum:
-                - LABEL_OPTIONAL
-                - LABEL_REQUIRED
-                - LABEL_REPEATED
-            type: string
-            format: enum
-        FieldDescriptorProto_Type:
-            enum:
-                - TYPE_DOUBLE
-                - TYPE_FLOAT
-                - TYPE_INT64
-                - TYPE_UINT64
-                - TYPE_INT32
-                - TYPE_FIXED64
-                - TYPE_FIXED32
-                - TYPE_BOOL
-                - TYPE_STRING
-                - TYPE_GROUP
-                - TYPE_MESSAGE
-                - TYPE_BYTES
-                - TYPE_UINT32
-                - TYPE_ENUM
-                - TYPE_SFIXED32
-                - TYPE_SFIXED64
-                - TYPE_SINT32
-                - TYPE_SINT64
-            type: string
-            format: enum
-        FieldOptions_CType:
-            enum:
-                - STRING
-                - CORD
-                - STRING_PIECE
-            type: string
-            format: enum
-        FieldOptions_JSType:
-            enum:
-                - JS_NORMAL
-                - JS_STRING
-                - JS_NUMBER
-            type: string
-            format: enum
-        FileOptions_OptimizeMode:
-            enum:
-                - SPEED
-                - CODE_SIZE
-                - LITE_RUNTIME
-            type: string
-            format: enum
-        Gender:
-            enum:
-                - GENDER_UNSPECIFIED
-                - GENDER_MALE
-                - GENDER_FEMALE
-                - GENDER_OTHER
-            type: string
-            format: enum
-        GlobalStatus:
-            enum:
-                - GLOBAL_STATUS_UNKNOWN
-                - GLOBAL_STATUS_ENABLE
-                - GLOBAL_STATUS_DISABLE
-            type: string
-            format: enum
-        HTTPMethod:
-            enum:
-                - HTTP_METHOD_UNKNOWN
-                - HTTP_METHOD_GET
-                - HTTP_METHOD_POST
-                - HTTP_METHOD_PUT
-                - HTTP_METHOD_DELETE
-                - HTTP_METHOD_HEAD
-                - HTTP_METHOD_OPTIONS
-                - HTTP_METHOD_PATCH
-            type: string
-            format: enum
-        HookAPP:
-            enum:
-                - HOOK_APP_UNKNOWN
-                - HOOK_APP_OTHER
-                - HOOK_APP_DING_TALK
-                - HOOK_APP_WECHAT
-                - HOOK_APP_FEI_SHU
-            type: string
-            format: enum
-        I18nFormat:
-            enum:
-                - TOML
-                - JSON
-            type: string
-            format: enum
-        KnownRegex:
-            enum:
-                - KNOWN_REGEX_UNSPECIFIED
-                - KNOWN_REGEX_HTTP_HEADER_NAME
-                - KNOWN_REGEX_HTTP_HEADER_VALUE
-            type: string
-            format: enum
-        Log_Driver:
-            enum:
-                - DEFAULT
-                - SUGARED
-            type: string
-            format: enum
-        Log_Level:
-            enum:
-                - DEBUG
-                - INFO
-                - WARN
-                - ERROR
-                - FATAL
-            type: string
-            format: enum
-        MemberPosition:
-            enum:
-                - MEMBER_POSITION_UNKNOWN
-                - MEMBER_POSITION_SUPER_ADMIN
-                - MEMBER_POSITION_ADMIN
-                - MEMBER_POSITION_MEMBER
-                - MEMBER_POSITION_GUEST
-            type: string
-            format: enum
-        MemberStatus:
-            enum:
-                - MEMBER_STATUS_UNKNOWN
-                - MEMBER_STATUS_NORMAL
-                - MEMBER_STATUS_FORBIDDEN
-                - MEMBER_STATUS_DELETED
-                - MEMBER_STATUS_PENDING_CONFIRM
-                - MEMBER_STATUS_DEPARTED
-            type: string
-            format: enum
-        MenuCategory:
-            enum:
-                - MENU_CATEGORY_UNKNOWN
-                - MENU_CATEGORY_MENU
-                - MENU_CATEGORY_BUTTON
-            type: string
-            format: enum
-        MenuProcessType:
-            enum:
-                - MENU_PROCESS_TYPE_UNKNOWN
-                - MENU_PROCESS_TYPE_LOGIN
-                - MENU_PROCESS_TYPE_TEAM
-                - MENU_PROCESS_TYPE_LOG
-                - MENU_PROCESS_TYPE_DATA_PERMISSION
-                - MENU_PROCESS_TYPE_ADMIN
-            type: string
-            format: enum
-        MenuType:
-            enum:
-                - MENU_TYPE_UNKNOWN
-                - MENU_TYPE_SYSTEM
-                - MENU_TYPE_TEAM
-                - MENU_TYPE_USER
-                - MENU_TYPE_NONE
-            type: string
-            format: enum
-        MessageType:
-            enum:
-                - MESSAGE_TYPE_UNKNOWN
-                - MESSAGE_TYPE_EMAIL
-                - MESSAGE_TYPE_SMS
-                - MESSAGE_TYPE_VOICE
-                - MESSAGE_TYPE_HOOK_DING_TALK
-                - MESSAGE_TYPE_HOOK_WECHAT
-                - MESSAGE_TYPE_HOOK_FEI_SHU
-                - MESSAGE_TYPE_HOOK_WEBHOOK
-            type: string
-            format: enum
-        MethodOptions_IdempotencyLevel:
-            enum:
-                - IDEMPOTENCY_UNKNOWN
-                - NO_SIDE_EFFECTS
-                - IDEMPOTENT
-            type: string
-            format: enum
-        Network:
-            enum:
-                - HTTP
-                - HTTPS
-                - GRPC
-            type: string
-            format: enum
-        NoticeType:
-            enum:
-                - NOTICE_TYPE_UNKNOWN
-                - NOTICE_TYPE_EMAIL
-                - NOTICE_TYPE_SMS
-                - NOTICE_TYPE_VOICE
-            type: string
-            format: enum
-        OperateType:
-            enum:
-                - OPERATE_TYPE_UNKNOWN
-                - OPERATE_TYPE_QUERY
-                - OPERATE_TYPE_ADD
-                - OPERATE_TYPE_UPDATE
-                - OPERATE_TYPE_DELETE
-                - OPERATE_TYPE_LOGIN
-                - OPERATE_TYPE_LOGOUT
-                - OPERATE_TYPE_EXPORT
-                - OPERATE_TYPE_IMPORT
-            type: string
-            format: enum
-        Oss_Driver:
-            enum:
-                - UNKNOWN
-                - MINIO
-                - TENCENT
-                - ALI
-                - LOCAL
-            type: string
-            format: enum
-        RegistryDriver:
-            enum:
-                - REGISTRY_DRIVER_UNKNOWN
-                - ETCD
-                - CONSUL
-            type: string
-            format: enum
-        SMSProviderType:
-            enum:
-                - SMS_PROVIDER_TYPE_UNKNOWN
-                - SMS_PROVIDER_TYPE_ALIYUN
-                - SMS_PROVIDER_TYPE_TENCENT
-                - SMS_PROVIDER_TYPE_TWILIO
-            type: string
-            format: enum
-        SampleMode:
-            enum:
-                - SAMPLE_MODE_UNKNOWN
-                - SAMPLE_MODE_FOR
-                - SAMPLE_MODE_MAX
-                - SAMPLE_MODE_MIN
-            type: string
-            format: enum
-        SendMessageStatus:
-            enum:
-                - SEND_MESSAGE_STATUS_UNKNOWN
-                - SEND_MESSAGE_STATUS_SUCCESS
-                - SEND_MESSAGE_STATUS_FAILED
-                - SEND_MESSAGE_STATUS_PENDING
-                - SEND_MESSAGE_STATUS_SENDING
-                - SEND_MESSAGE_STATUS_RETRY
-            type: string
-            format: enum
-        ServerRegisterRequest_ServerType:
-            enum:
-                - UNKNOWN
-                - PALACE
-                - HOUYI
-                - RABBIT
-                - LAUREL
-            type: string
-            format: enum
-        StrategyType:
-            enum:
-                - STRATEGY_TYPE_UNKNOWN
-                - STRATEGY_TYPE_METRIC
-                - STRATEGY_TYPE_EVENT
-                - STRATEGY_TYPE_LOGS
-                - STRATEGY_TYPE_PORT
-                - STRATEGY_TYPE_HTTP
-                - STRATEGY_TYPE_PING
-                - STRATEGY_TYPE_CERT
-            type: string
-            format: enum
-        TeamAuditAction:
-            enum:
-                - TEAM_AUDIT_ACTION_UNKNOWN
-                - TEAM_AUDIT_ACTION_JOIN
-                - TEAM_AUDIT_ACTION_LEAVE
-            type: string
-            format: enum
-        TeamAuditStatus:
-            enum:
-                - TEAM_AUDIT_STATUS_UNKNOWN
-                - TEAM_AUDIT_STATUS_PENDING
-                - TEAM_AUDIT_STATUS_APPROVED
-                - TEAM_AUDIT_STATUS_REJECTED
-            type: string
-            format: enum
-        TeamStatus:
-            enum:
-                - TEAM_STATUS_UNKNOWN
-                - TEAM_STATUS_NORMAL
-                - TEAM_STATUS_FORBIDDEN
-                - TEAM_STATUS_DELETED
-                - TEAM_STATUS_APPROVAL
-                - TEAM_STATUS_REJECTED
-            type: string
-            format: enum
-        TimeEngineRuleType:
-            enum:
-                - TIME_ENGINE_RULE_TYPE_UNKNOWN
-                - TIME_ENGINE_RULE_TYPE_HOUR_RANGE
-                - TIME_ENGINE_RULE_TYPE_HOUR
-                - TIME_ENGINE_RULE_TYPE_HOUR_MINUTE_RANGE
-                - TIME_ENGINE_RULE_TYPE_DAYS_OF_WEEK
-                - TIME_ENGINE_RULE_TYPE_DAY_OF_MONTH
-                - TIME_ENGINE_RULE_TYPE_MONTH
-            type: string
-            format: enum
-        Tracer_Driver:
-            enum:
-                - UNKNOWN
-                - JAEGER
-            type: string
-            format: enum
-        UserPosition:
-            enum:
-                - USER_POSITION_UNKNOWN
-                - USER_POSITION_SUPER_ADMIN
-                - USER_POSITION_ADMIN
-                - USER_POSITION_USER
-                - USER_POSITION_GUEST
-            type: string
-            format: enum
-        UserStatus:
-            enum:
-                - USER_STATUS_UNKNOWN
-                - USER_STATUS_NORMAL
-                - USER_STATUS_FORBIDDEN
-                - USER_STATUS_DELETED
-            type: string
-            format: enum
         api.common.AlertItem:
             type: object
             properties:
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/AlertStatus'
+                    type: integer
                     description: status of the alert
+                    format: enum
                 labels:
                     type: object
                     additionalProperties:
@@ -3423,6 +3324,13 @@ components:
                     type: string
                 time:
                     type: string
+        api.common.GetServerListReply:
+            type: object
+            properties:
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/config.MicroServer'
         api.common.MetricDatasourceQueryReply:
             type: object
             properties:
@@ -3485,7 +3393,8 @@ components:
             type: object
             properties:
                 serverType:
-                    $ref: '#/components/schemas/ServerRegisterRequest_ServerType'
+                    type: integer
+                    format: enum
                 server:
                     $ref: '#/components/schemas/config.MicroServer'
                 discovery:
@@ -3524,7 +3433,18 @@ components:
                     type: integer
                     format: uint32
                 strategyType:
-                    $ref: '#/components/schemas/StrategyType'
+                    type: integer
+                    format: enum
+        api.palace.CancelMessageReply:
+            type: object
+            properties: {}
+        api.palace.CancelMessageRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: 消息ID
+                    format: uint32
         api.palace.CaptchaValidateRequest:
             type: object
             properties:
@@ -3535,6 +3455,16 @@ components:
                     type: string
                     description: User's captcha answer
             description: CaptchaValidateRequest is used to validate the captcha
+        api.palace.ConfirmMessageReply:
+            type: object
+            properties: {}
+        api.palace.ConfirmMessageRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    description: 消息ID
+                    format: uint32
         api.palace.CreateTeamRequest:
             type: object
             properties:
@@ -3566,11 +3496,29 @@ components:
                     type: integer
                     format: uint32
                 type:
-                    $ref: '#/components/schemas/DatasourceType'
+                    type: integer
+                    format: enum
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
+        api.palace.DeleteInviteReply:
+            type: object
+            properties: {}
+        api.palace.DeleteMessagesReply:
+            type: object
+            properties: {}
+        api.palace.DeleteMessagesRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                all:
+                    type: boolean
         api.palace.GetCaptchaReply:
             type: object
             properties:
@@ -3607,9 +3555,9 @@ components:
                     type: string
                     description: Keyword to search email configurations by
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Status to filter email configurations by
+                    format: enum
             description: GetEmailConfigsRequest represents the request data for retrieving the email configuration
         api.palace.GetFilingInformationReply:
             type: object
@@ -3621,6 +3569,11 @@ components:
                     type: string
                     description: Filing information
             description: GetFilingInformationReply contains the response data for getting the filing information
+        api.palace.GetInviteReply:
+            type: object
+            properties:
+                item:
+                    $ref: '#/components/schemas/api.palace.InviteItem'
         api.palace.GetMenuTreeReply:
             type: object
             properties:
@@ -3652,13 +3605,13 @@ components:
                     type: string
                     description: Keyword to search SMS configurations by
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Status to filter SMS configurations by
+                    format: enum
                 provider:
-                    allOf:
-                        - $ref: '#/components/schemas/SMSProviderType'
+                    type: integer
                     description: Provider to filter SMS configurations by
+                    format: enum
             description: GetSMSConfigsRequest represents the request data for retrieving the SMS configuration
         api.palace.GetSelfMenuTreeReply:
             type: object
@@ -3684,9 +3637,11 @@ components:
                 requestId:
                     type: string
                 messageType:
-                    $ref: '#/components/schemas/MessageType'
+                    type: integer
+                    format: enum
                 status:
-                    $ref: '#/components/schemas/SendMessageStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
                 pagination:
@@ -3719,9 +3674,9 @@ components:
                     type: string
                     description: Keyword to search roles by
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Status to filter roles by
+                    format: enum
             description: GetSystemRolesRequest represents the request data for listing system roles
         api.palace.GetTeamAuditListReply:
             type: object
@@ -3746,7 +3701,8 @@ components:
                 status:
                     type: array
                     items:
-                        $ref: '#/components/schemas/TeamAuditStatus'
+                        type: integer
+                        format: enum
                     description: List of statuses to filter team audit records by
                 keyword:
                     type: string
@@ -3758,7 +3714,8 @@ components:
                 actions:
                     type: array
                     items:
-                        $ref: '#/components/schemas/TeamAuditAction'
+                        type: integer
+                        format: enum
             description: GetTeamAuditListRequest represents the request data for listing team audit records
         api.palace.GetTeamListReply:
             type: object
@@ -3783,7 +3740,8 @@ components:
                 status:
                     type: array
                     items:
-                        $ref: '#/components/schemas/TeamStatus'
+                        type: integer
+                        format: enum
                     description: List of statuses to filter teams by
                 keyword:
                     type: string
@@ -3816,11 +3774,13 @@ components:
                 status:
                     type: array
                     items:
-                        $ref: '#/components/schemas/MemberStatus'
+                        type: integer
+                        format: enum
                 positions:
                     type: array
                     items:
-                        $ref: '#/components/schemas/MemberPosition'
+                        type: integer
+                        format: enum
         api.palace.GetTeamRolesReply:
             type: object
             properties:
@@ -3845,9 +3805,9 @@ components:
                     type: string
                     description: Keyword to search roles by
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Status to filter roles by
+                    format: enum
             description: GetTeamRolesRequest represents the request data for retrieving team roles
         api.palace.GetTeamSendMessageLogsReply:
             type: object
@@ -3864,9 +3824,11 @@ components:
                 requestId:
                     type: string
                 messageType:
-                    $ref: '#/components/schemas/MessageType'
+                    type: integer
+                    format: enum
                 status:
-                    $ref: '#/components/schemas/SendMessageStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
                 pagination:
@@ -3894,12 +3856,14 @@ components:
                 status:
                     type: array
                     items:
-                        $ref: '#/components/schemas/UserStatus'
+                        type: integer
+                        format: enum
                     description: List of statuses to filter users by
                 position:
                     type: array
                     items:
-                        $ref: '#/components/schemas/UserPosition'
+                        type: integer
+                        format: enum
                     description: List of positions to filter users by
                 pagination:
                     allOf:
@@ -3909,6 +3873,16 @@ components:
                     type: string
                     description: Keyword to search users by
             description: GetUserListRequest represents the request data for listing users
+        api.palace.InviteItem:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+                inviteType:
+                    type: integer
+                    format: enum
+            description: invite item
         api.palace.InviteMemberRequest:
             type: object
             properties:
@@ -3916,9 +3890,9 @@ components:
                     type: string
                     description: Email of the user to invite
                 position:
-                    allOf:
-                        - $ref: '#/components/schemas/MemberPosition'
+                    type: integer
                     description: Position of the new member
+                    format: enum
                 roleIds:
                     type: array
                     items:
@@ -3926,6 +3900,20 @@ components:
                         format: uint32
                     description: List of role Ids to assign to the new member
             description: InviteMemberRequest represents the request data for inviting a new member to the team
+        api.palace.InviteUserReply:
+            type: object
+            properties: {}
+        api.palace.InviteUserRequest:
+            type: object
+            properties:
+                roleIds:
+                    type: array
+                    items:
+                        type: integer
+                        format: uint32
+                inviteCode:
+                    type: string
+                    description: 邮箱或手机号
         api.palace.JoinTeamRequest:
             type: object
             properties:
@@ -3936,6 +3924,67 @@ components:
                     type: string
                     description: Reason for joining the team
             description: JoinTeamRequest represents the request data for joining a team
+        api.palace.LatestAlarmEventReply:
+            type: object
+            properties:
+                events:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.LatestAlarmEventReply_LatestAlarmEvent'
+                    description: 最新告警事件
+        api.palace.LatestAlarmEventReply_LatestAlarmEvent:
+            type: object
+            properties:
+                fingerprint:
+                    type: string
+                    description: 告警指纹
+                level:
+                    type: string
+                    description: 告警等级
+                eventTime:
+                    type: string
+                    description: 告警时间
+                summary:
+                    type: string
+                    description: 告警摘要
+                status:
+                    type: integer
+                    description: 告警状态
+                    format: uint32
+        api.palace.LatestInterventionEventReply:
+            type: object
+            properties:
+                events:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.LatestInterventionEventReply_LatestInterventionEvent'
+                    description: 最新介入事件
+        api.palace.LatestInterventionEventReply_LatestInterventionEvent:
+            type: object
+            properties:
+                fingerprint:
+                    type: string
+                    description: 告警指纹
+                eventTime:
+                    type: string
+                    description: 告警时间
+                summary:
+                    type: string
+                    description: 告警摘要
+                level:
+                    type: string
+                    description: 告警等级
+                status:
+                    type: integer
+                    description: 告警状态
+                    format: uint32
+                handler:
+                    allOf:
+                        - $ref: '#/components/schemas/api.palace.common.UserItem'
+                    description: 告警处理人
+                handledAt:
+                    type: string
+                    description: 告警处理时间
         api.palace.LeaveTeamRequest:
             type: object
             properties:
@@ -3961,7 +4010,8 @@ components:
                 keyword:
                     type: string
                 status:
-                    $ref: '#/components/schemas/AlertStatus'
+                    type: integer
+                    format: enum
         api.palace.ListAlertReply:
             type: object
             properties:
@@ -3971,6 +4021,22 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.palace.RealtimeAlertItem'
+        api.palace.ListMessageReply:
+            type: object
+            properties:
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.NoticeUserMessage'
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+        api.palace.ListMessageRequest:
+            type: object
+            properties:
+                keyword:
+                    type: string
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
         api.palace.ListMetricDatasourceMetadataReply:
             type: object
             properties:
@@ -4010,7 +4076,8 @@ components:
                     type: integer
                     format: uint32
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
         api.palace.ListTeamDashboardReply:
@@ -4028,7 +4095,8 @@ components:
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationRequest'
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
         api.palace.ListTeamDictReply:
@@ -4048,9 +4116,11 @@ components:
                 dictTypes:
                     type: array
                     items:
-                        $ref: '#/components/schemas/DictType'
+                        type: integer
+                        format: enum
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
                 langs:
@@ -4074,9 +4144,11 @@ components:
                 keyword:
                     type: string
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 driver:
-                    $ref: '#/components/schemas/DatasourceDriverMetric'
+                    type: integer
+                    format: enum
         api.palace.ListTeamNoticeGroupReply:
             type: object
             properties:
@@ -4097,7 +4169,8 @@ components:
                         type: integer
                         format: uint32
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
                 hookIds:
@@ -4122,9 +4195,11 @@ components:
                 apps:
                     type: array
                     items:
-                        $ref: '#/components/schemas/HookAPP'
+                        type: integer
+                        format: enum
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
                 url:
@@ -4153,9 +4228,9 @@ components:
                     type: string
                     description: Keyword to search strategy groups by
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: List of statuses to filter strategy groups by
+                    format: enum
             description: ListTeamStrategyGroupRequest represents the request data for listing team strategy groups
         api.palace.ListTeamStrategyReply:
             type: object
@@ -4180,9 +4255,9 @@ components:
                     type: string
                     description: Keyword to search strategies by
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: List of statuses to filter strategies by
+                    format: enum
                 groupIds:
                     type: array
                     items:
@@ -4192,7 +4267,8 @@ components:
                 strategyTypes:
                     type: array
                     items:
-                        $ref: '#/components/schemas/StrategyType'
+                        type: integer
+                        format: enum
                     description: Strategy type
         api.palace.ListTimeEngineReply:
             type: object
@@ -4209,7 +4285,8 @@ components:
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationRequest'
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
         api.palace.ListTimeEngineRuleReply:
@@ -4227,13 +4304,32 @@ components:
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationRequest'
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
                 types:
                     type: array
                     items:
-                        $ref: '#/components/schemas/TimeEngineRuleType'
+                        type: integer
+                        format: enum
+        api.palace.ListUserInviteReply:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationReply'
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.InviteItem'
+        api.palace.ListUserInviteRequest:
+            type: object
+            properties:
+                pagination:
+                    $ref: '#/components/schemas/api.palace.common.PaginationRequest'
+                type:
+                    type: integer
+                    format: enum
         api.palace.LoginByEmailRequest:
             type: object
             properties:
@@ -4253,9 +4349,9 @@ components:
                     type: string
                     description: Remark, for additional information
                 gender:
-                    allOf:
-                        - $ref: '#/components/schemas/Gender'
+                    type: integer
                     description: User gender, optional
+                    format: enum
             description: LoginByEmailRequest represents the request data for logging in with email verification code
         api.palace.LoginByPasswordRequest:
             type: object
@@ -4325,6 +4421,25 @@ components:
                 step:
                     type: integer
                     format: uint32
+        api.palace.NoticeUserMessage:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+                category:
+                    type: string
+                    description: 消息类型 'info' | 'success' | 'warning' | 'error'
+                content:
+                    type: string
+                timestamp:
+                    type: string
+                biz:
+                    type: string
+                    description: 业务类型 'invitation' | 'notice'
+                bizID:
+                    type: integer
+                    format: uint32
         api.palace.OAuth2ListReply:
             type: object
             properties:
@@ -4388,7 +4503,8 @@ components:
                     type: integer
                     format: uint32
                 status:
-                    $ref: '#/components/schemas/AlertStatus'
+                    type: integer
+                    format: enum
                 fingerprint:
                     type: string
                 labels:
@@ -4462,9 +4578,9 @@ components:
                     description: Email server port
                     format: uint32
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Enable email configuration
+                    format: enum
                 name:
                     type: string
                     description: Name of the email configuration
@@ -4493,9 +4609,9 @@ components:
                     type: string
                     description: Api path of the menu
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Status of the menu
+                    format: enum
                 menuIcon:
                     type: string
                     description: Icon of the menu
@@ -4504,17 +4620,17 @@ components:
                     description: Parent menu Id (0 for root menu)
                     format: uint32
                 menuType:
-                    allOf:
-                        - $ref: '#/components/schemas/MenuType'
+                    type: integer
                     description: Type of the menu
+                    format: enum
                 menuCategory:
-                    allOf:
-                        - $ref: '#/components/schemas/MenuCategory'
+                    type: integer
                     description: Category of the menu
+                    format: enum
                 processType:
-                    allOf:
-                        - $ref: '#/components/schemas/MenuProcessType'
+                    type: integer
                     description: Process type of the menu
+                    format: enum
                 isRelyOnBrother:
                     type: boolean
                     description: Whether the menu is rely on brother
@@ -4547,9 +4663,9 @@ components:
             type: object
             properties:
                 provider:
-                    allOf:
-                        - $ref: '#/components/schemas/SMSProviderType'
+                    type: integer
                     description: SMS provider type
+                    format: enum
                 accessKeyId:
                     type: string
                     description: Access Key Id for the SMS provider
@@ -4569,9 +4685,9 @@ components:
                     type: string
                     description: Remark of the SMS configuration
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Enable SMS configuration
+                    format: enum
                 smsConfigId:
                     type: integer
                     description: smsConfigId of the SMS configuration
@@ -4621,7 +4737,8 @@ components:
                 color:
                     type: string
                 dictType:
-                    $ref: '#/components/schemas/DictType'
+                    type: integer
+                    format: enum
                 dictId:
                     type: integer
                     format: uint32
@@ -4629,7 +4746,8 @@ components:
             type: object
             properties:
                 driver:
-                    $ref: '#/components/schemas/DatasourceDriverMetric'
+                    type: integer
+                    format: enum
                 datasourceId:
                     type: integer
                     format: uint32
@@ -4646,7 +4764,8 @@ components:
                     items:
                         $ref: '#/components/schemas/api.palace.common.KeyValueItem'
                 queryMethod:
-                    $ref: '#/components/schemas/HTTPMethod'
+                    type: integer
+                    format: enum
                 ca:
                     type: string
                 tls:
@@ -4665,16 +4784,16 @@ components:
                     description: Level Id of dict item
                     format: uint32
                 sampleMode:
-                    allOf:
-                        - $ref: '#/components/schemas/SampleMode'
+                    type: integer
                     description: Sample mode
+                    format: enum
                 total:
                     type: string
                     description: Total
                 condition:
-                    allOf:
-                        - $ref: '#/components/schemas/ConditionMetric'
+                    type: integer
                     description: Condition
+                    format: enum
                 values:
                     type: array
                     items:
@@ -4768,7 +4887,8 @@ components:
                     type: integer
                     format: uint32
                 noticeType:
-                    $ref: '#/components/schemas/NoticeType'
+                    type: integer
+                    format: enum
                 dutyCycleIds:
                     type: array
                     items:
@@ -4786,13 +4906,15 @@ components:
                 secret:
                     type: string
                 method:
-                    $ref: '#/components/schemas/HTTPMethod'
+                    type: integer
+                    format: enum
                 headers:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.palace.common.KeyValueItem'
                 app:
-                    $ref: '#/components/schemas/HookAPP'
+                    type: integer
+                    format: enum
                 hookId:
                     type: integer
                     format: uint32
@@ -4860,9 +4982,9 @@ components:
                     type: string
                     description: Strategy item remark or description
                 strategyType:
-                    allOf:
-                        - $ref: '#/components/schemas/StrategyType'
+                    type: integer
                     description: Strategy item type
+                    format: enum
                 receiverRoutes:
                     type: array
                     items:
@@ -4898,7 +5020,8 @@ components:
                 remark:
                     type: string
                 type:
-                    $ref: '#/components/schemas/TimeEngineRuleType'
+                    type: integer
+                    format: enum
                 ruleIds:
                     type: array
                     items:
@@ -4922,7 +5045,8 @@ components:
                     type: integer
                     format: uint32
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
         api.palace.SelectTeamDashboardReply:
@@ -4940,7 +5064,8 @@ components:
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationRequest'
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
         api.palace.SelectTeamDictReply:
@@ -4960,9 +5085,11 @@ components:
                 dictTypes:
                     type: array
                     items:
-                        $ref: '#/components/schemas/DictType'
+                        type: integer
+                        format: enum
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
                 langs:
@@ -4990,7 +5117,8 @@ components:
                 status:
                     type: array
                     items:
-                        $ref: '#/components/schemas/MemberStatus'
+                        type: integer
+                        format: enum
             description: SelectTeamMembersRequest represents the request data for selecting team members
         api.palace.SelectTeamStrategyGroupReply:
             type: object
@@ -5018,7 +5146,8 @@ components:
                 status:
                     type: array
                     items:
-                        $ref: '#/components/schemas/GlobalStatus'
+                        type: integer
+                        format: enum
                     description: List of statuses to filter strategy groups by
             description: SelectTeamStrategyGroupRequest represents the request data for selecting team strategy groups
         api.palace.SelectTimeEngineReply:
@@ -5036,7 +5165,8 @@ components:
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationRequest'
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
         api.palace.SelectTimeEngineRuleReply:
@@ -5054,13 +5184,15 @@ components:
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationRequest'
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
                 types:
                     type: array
                     items:
-                        $ref: '#/components/schemas/TimeEngineRuleType'
+                        type: integer
+                        format: enum
         api.palace.SelfSubscribeTeamStrategiesReply:
             type: object
             properties:
@@ -5138,9 +5270,9 @@ components:
                         format: uint32
                     description: subscribers
                 subscribeType:
-                    allOf:
-                        - $ref: '#/components/schemas/NoticeType'
+                    type: integer
                     description: subscribe type
+                    format: enum
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationRequest'
         api.palace.SubscribeTeamStrategyRequest:
@@ -5151,9 +5283,42 @@ components:
                     description: Strategy id
                     format: uint32
                 subscribeType:
-                    allOf:
-                        - $ref: '#/components/schemas/NoticeType'
+                    type: integer
                     description: subscribe type
+                    format: enum
+        api.palace.SummaryAlarmReply:
+            type: object
+            properties:
+                total:
+                    type: string
+                    description: 告警总数
+                ongoing:
+                    type: string
+                    description: 正在告警
+                recovered:
+                    type: string
+                    description: 已恢复
+                highestPriority:
+                    type: string
+                    description: 最高优先级的告警
+                chartData:
+                    type: array
+                    items:
+                        type: number
+                        format: double
+                    description: 图表数据
+                totalComparison:
+                    type: string
+                    description: 总数环比
+                ongoingComparison:
+                    type: string
+                    description: 正在告警环比
+                recoveredComparison:
+                    type: string
+                    description: 已恢复环比
+                highestPriorityComparison:
+                    type: string
+                    description: 最高优先级告警环比
         api.palace.SyncMetadataReply:
             type: object
             properties:
@@ -5215,9 +5380,9 @@ components:
                     type: string
                     description: Keyword
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Status
+                    format: enum
                 levelId:
                     type: integer
                     description: Level id
@@ -5238,7 +5403,8 @@ components:
                 pagination:
                     $ref: '#/components/schemas/api.palace.common.PaginationRequest'
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
         api.palace.TeamNoticeHookSelectReply:
@@ -5258,13 +5424,35 @@ components:
                 apps:
                     type: array
                     items:
-                        $ref: '#/components/schemas/HookAPP'
+                        type: integer
+                        format: enum
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 keyword:
                     type: string
                 url:
                     type: string
+        api.palace.TopStrategyAlarmReply:
+            type: object
+            properties:
+                topN:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.palace.TopStrategyAlarmReply_StrategyAlarmTopN'
+                    description: 策略告警数量TopN
+        api.palace.TopStrategyAlarmReply_StrategyAlarmTopN:
+            type: object
+            properties:
+                strategyId:
+                    type: string
+                    description: 策略ID
+                total:
+                    type: string
+                    description: 告警数量
+                strategyName:
+                    type: string
+                    description: 策略名称
         api.palace.TransferTeamRequest:
             type: object
             properties:
@@ -5273,6 +5461,18 @@ components:
                     description: New leader's user Id
                     format: uint32
             description: TransferTeamRequest represents the request data for transferring team leadership
+        api.palace.UpdateInviteStatusReply:
+            type: object
+            properties: {}
+        api.palace.UpdateInviteStatusRequest:
+            type: object
+            properties:
+                type:
+                    type: integer
+                    format: enum
+                id:
+                    type: integer
+                    format: uint32
         api.palace.UpdateMemberPositionRequest:
             type: object
             properties:
@@ -5281,9 +5481,9 @@ components:
                     description: Member Id
                     format: uint32
                 position:
-                    allOf:
-                        - $ref: '#/components/schemas/MemberPosition'
+                    type: integer
                     description: New position for the member
+                    format: enum
             description: UpdateMemberPositionRequest represents the request data for updating a member's position
         api.palace.UpdateMemberRolesRequest:
             type: object
@@ -5309,9 +5509,9 @@ components:
                         format: uint32
                     description: List of member Ids to update
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/MemberStatus'
+                    type: integer
                     description: New status for the members
+                    format: enum
             description: UpdateMemberStatusRequest represents the request data for updating the status of multiple members
         api.palace.UpdateMetricDatasourceMetadataRequest:
             type: object
@@ -5336,9 +5536,9 @@ components:
                     description: Role Id
                     format: uint32
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: New status for the role
+                    format: enum
             description: UpdateRoleStatusRequest represents the request data for updating role status
         api.palace.UpdateRoleUsersRequest:
             type: object
@@ -5370,9 +5570,9 @@ components:
                     type: string
                     description: User remark or description
                 gender:
-                    allOf:
-                        - $ref: '#/components/schemas/Gender'
+                    type: integer
                     description: User gender
+                    format: enum
             description: UpdateSelfInfoRequest represents the request data for updating the current user's information
         api.palace.UpdateSelfPasswordRequest:
             type: object
@@ -5392,9 +5592,9 @@ components:
                     description: Audit Id
                     format: uint32
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/TeamAuditStatus'
+                    type: integer
                     description: New status for the team audit record
+                    format: enum
                 reason:
                     type: string
                     description: Reason for the status update
@@ -5411,7 +5611,8 @@ components:
                         type: integer
                         format: uint32
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
         api.palace.UpdateTeamDashboardStatusRequest:
             type: object
             properties:
@@ -5421,7 +5622,8 @@ components:
                         type: integer
                         format: uint32
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
         api.palace.UpdateTeamDictStatusRequest:
             type: object
             properties:
@@ -5431,7 +5633,8 @@ components:
                         type: integer
                         format: uint32
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
         api.palace.UpdateTeamMetricDatasourceStatusRequest:
             type: object
             properties:
@@ -5439,7 +5642,8 @@ components:
                     type: integer
                     format: uint32
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
         api.palace.UpdateTeamMetricStrategyLevelStatusRequest:
             type: object
             properties:
@@ -5450,9 +5654,9 @@ components:
                         format: uint32
                     description: Strategy metric level id
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Status
+                    format: enum
             description: UpdateTeamMetricStrategyLevelStatusRequest represents the request data for updating the status of a team metric strategy level
         api.palace.UpdateTeamNoticeGroupStatusRequest:
             type: object
@@ -5461,7 +5665,8 @@ components:
                     type: integer
                     format: uint32
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
         api.palace.UpdateTeamNoticeHookStatusRequest:
             type: object
             properties:
@@ -5469,7 +5674,8 @@ components:
                     type: integer
                     format: uint32
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
         api.palace.UpdateTeamRoleStatusRequest:
             type: object
             properties:
@@ -5478,9 +5684,9 @@ components:
                     description: Role Id
                     format: uint32
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: New status for the role
+                    format: enum
             description: UpdateTeamRoleStatusRequest represents the request data for updating role status
         api.palace.UpdateTeamStrategiesStatusRequest:
             type: object
@@ -5492,9 +5698,9 @@ components:
                         format: uint32
                     description: Strategy ids
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Status
+                    format: enum
         api.palace.UpdateTeamStrategyGroupStatusRequest:
             type: object
             properties:
@@ -5503,9 +5709,9 @@ components:
                     description: Strategy group Id
                     format: uint32
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: New status for the strategy group
+                    format: enum
             description: UpdateTeamStrategyGroupStatusRequest represents the request data for updating the status of a team strategy group
         api.palace.UpdateTimeEngineRuleStatusRequest:
             type: object
@@ -5516,7 +5722,8 @@ components:
                         type: integer
                         format: uint32
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
         api.palace.UpdateTimeEngineStatusRequest:
             type: object
             properties:
@@ -5526,7 +5733,8 @@ components:
                         type: integer
                         format: uint32
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
         api.palace.UpdateUserPositionRequest:
             type: object
             properties:
@@ -5535,9 +5743,9 @@ components:
                     description: User Id
                     format: uint32
                 position:
-                    allOf:
-                        - $ref: '#/components/schemas/UserPosition'
+                    type: integer
                     description: New position for the user
+                    format: enum
             description: UpdateUserPositionRequest represents the request data for updating user position
         api.palace.UpdateUserRolesRequest:
             type: object
@@ -5563,9 +5771,9 @@ components:
                         format: uint32
                     description: List of user Ids to update
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/UserStatus'
+                    type: integer
                     description: New status for the users
+                    format: enum
             description: UpdateUserStatusRequest represents the request data for updating user status
         api.palace.VerifyEmailReply:
             type: object
@@ -5617,9 +5825,9 @@ components:
                     description: Email server port
                     format: uint32
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Enable email configuration
+                    format: enum
                 name:
                     type: string
                     description: Name of the email configuration
@@ -5682,9 +5890,9 @@ components:
                     type: string
                     description: api path
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Status of the menu tree item
+                    format: enum
                 menuIcon:
                     type: string
                     description: Icon of the menu tree item
@@ -5694,17 +5902,17 @@ components:
                         $ref: '#/components/schemas/api.palace.common.MenuTreeItem'
                     description: children of the menu tree item
                 menuType:
-                    allOf:
-                        - $ref: '#/components/schemas/MenuType'
+                    type: integer
                     description: Type of the menu tree item
+                    format: enum
                 menuCategory:
-                    allOf:
-                        - $ref: '#/components/schemas/MenuCategory'
+                    type: integer
                     description: Category of the menu tree item
+                    format: enum
                 processType:
-                    allOf:
-                        - $ref: '#/components/schemas/MenuProcessType'
+                    type: integer
                     description: Process type of the menu tree item
+                    format: enum
                 parentId:
                     type: integer
                     description: Parent menu id
@@ -5731,7 +5939,8 @@ components:
                 remark:
                     type: string
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 noticeMembers:
                     type: array
                     items:
@@ -5757,11 +5966,13 @@ components:
                 remark:
                     type: string
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 url:
                     type: string
                 method:
-                    $ref: '#/components/schemas/HTTPMethod'
+                    type: integer
+                    format: enum
                 secret:
                     type: string
                 headers:
@@ -5769,7 +5980,8 @@ components:
                     items:
                         $ref: '#/components/schemas/api.palace.common.KeyValueItem'
                 app:
-                    $ref: '#/components/schemas/HookAPP'
+                    type: integer
+                    format: enum
                 creator:
                     $ref: '#/components/schemas/api.palace.common.UserBaseItem'
                 noticeGroups:
@@ -5786,7 +5998,8 @@ components:
                     type: integer
                     format: uint32
                 noticeType:
-                    $ref: '#/components/schemas/NoticeType'
+                    type: integer
+                    format: enum
                 noticeGroup:
                     $ref: '#/components/schemas/api.palace.common.NoticeGroupItem'
                 member:
@@ -5851,7 +6064,8 @@ components:
                 operateTypes:
                     type: array
                     items:
-                        $ref: '#/components/schemas/OperateType'
+                        type: integer
+                        format: enum
                     description: List of types to filter operation logs by
                 keyword:
                     type: string
@@ -5903,9 +6117,9 @@ components:
             type: object
             properties:
                 providerType:
-                    allOf:
-                        - $ref: '#/components/schemas/SMSProviderType'
+                    type: integer
                     description: SMS provider type
+                    format: enum
                 accessKeyId:
                     type: string
                     description: Access Key Id for the SMS provider
@@ -5929,9 +6143,9 @@ components:
                     description: smsConfigId of the SMS configuration
                     format: uint32
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Enable SMS configuration
+                    format: enum
                 creator:
                     allOf:
                         - $ref: '#/components/schemas/api.palace.common.UserBaseItem'
@@ -5971,9 +6185,11 @@ components:
                 message:
                     type: string
                 messageType:
-                    $ref: '#/components/schemas/MessageType'
+                    type: integer
+                    format: enum
                 status:
-                    $ref: '#/components/schemas/SendMessageStatus'
+                    type: integer
+                    format: enum
                 error:
                     type: string
                 retryCount:
@@ -6010,9 +6226,9 @@ components:
                 user:
                     $ref: '#/components/schemas/api.palace.common.UserBaseItem'
                 subscribeType:
-                    allOf:
-                        - $ref: '#/components/schemas/NoticeType'
+                    type: integer
                     description: subscribe type
+                    format: enum
                 strategy:
                     allOf:
                         - $ref: '#/components/schemas/api.palace.common.TeamStrategyItem'
@@ -6035,9 +6251,9 @@ components:
                     type: string
                     description: Remarks about the system role
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Status of the system role
+                    format: enum
                 createdAt:
                     type: string
                     description: Creation time of the system role
@@ -6079,9 +6295,9 @@ components:
                         - $ref: '#/components/schemas/api.palace.common.UserBaseItem'
                     description: User information of the audit requester
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/TeamAuditStatus'
+                    type: integer
                     description: Status of the team audit
+                    format: enum
                 reason:
                     type: string
                     description: Reason for the audit result
@@ -6093,7 +6309,8 @@ components:
                         - $ref: '#/components/schemas/api.palace.common.TeamBaseItem'
                     description: Team information being audited
                 action:
-                    $ref: '#/components/schemas/TeamAuditAction'
+                    type: integer
+                    format: enum
         api.palace.common.TeamBaseItem:
             type: object
             properties:
@@ -6124,7 +6341,8 @@ components:
                 remark:
                     type: string
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 url:
                     type: string
                 width:
@@ -6147,7 +6365,8 @@ components:
                 remark:
                     type: string
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 colorHex:
                     type: string
                 createdAt:
@@ -6176,9 +6395,11 @@ components:
                 color:
                     type: string
                 dictType:
-                    $ref: '#/components/schemas/DictType'
+                    type: integer
+                    format: enum
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 creator:
                     $ref: '#/components/schemas/api.palace.common.UserBaseItem'
         api.palace.common.TeamItem:
@@ -6201,9 +6422,9 @@ components:
                     type: string
                     description: URL or path to the team's logo.
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/TeamStatus'
+                    type: integer
                     description: Status of the team.
+                    format: enum
                 creator:
                     allOf:
                         - $ref: '#/components/schemas/api.palace.common.UserBaseItem'
@@ -6244,9 +6465,11 @@ components:
                 remark:
                     type: string
                 position:
-                    $ref: '#/components/schemas/MemberPosition'
+                    type: integer
+                    format: enum
                 status:
-                    $ref: '#/components/schemas/MemberStatus'
+                    type: integer
+                    format: enum
                 createdAt:
                     type: string
                 updatedAt:
@@ -6265,13 +6488,13 @@ components:
                         - $ref: '#/components/schemas/api.palace.common.UserBaseItem'
                     description: Information about the user who is a member.
                 position:
-                    allOf:
-                        - $ref: '#/components/schemas/MemberPosition'
+                    type: integer
                     description: Position of the member within the team.
+                    format: enum
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/MemberStatus'
+                    type: integer
                     description: Status of the member.
+                    format: enum
                 inviter:
                     allOf:
                         - $ref: '#/components/schemas/api.palace.common.UserBaseItem'
@@ -6306,7 +6529,8 @@ components:
                 remark:
                     type: string
                 driver:
-                    $ref: '#/components/schemas/DatasourceDriverMetric'
+                    type: integer
+                    format: enum
                 endpoint:
                     type: string
                 scrapeInterval:
@@ -6316,7 +6540,8 @@ components:
                     items:
                         $ref: '#/components/schemas/api.palace.common.KeyValueItem'
                 queryMethod:
-                    $ref: '#/components/schemas/HTTPMethod'
+                    type: integer
+                    format: enum
                 ca:
                     type: string
                 tls:
@@ -6328,7 +6553,8 @@ components:
                     items:
                         $ref: '#/components/schemas/api.palace.common.KeyValueItem'
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 creator:
                     $ref: '#/components/schemas/api.palace.common.UserBaseItem'
         api.palace.common.TeamMetricDatasourceMetadataItem:
@@ -6379,9 +6605,9 @@ components:
                     type: string
                     description: Remarks or additional information about the role.
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Status of the role.
+                    format: enum
                 menus:
                     type: array
                     items:
@@ -6415,9 +6641,9 @@ components:
                     type: string
                     description: Remarks or additional information about the group.
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Status of the strategy group.
+                    format: enum
                 strategyCount:
                     type: string
                     description: Total number of strategies in the group.
@@ -6453,9 +6679,9 @@ components:
                     type: string
                     description: Remarks or additional information about the strategy.
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
                     description: Status of the strategy.
+                    format: enum
                 creator:
                     allOf:
                         - $ref: '#/components/schemas/api.palace.common.UserBaseItem'
@@ -6475,7 +6701,8 @@ components:
                     items:
                         $ref: '#/components/schemas/api.palace.common.NoticeGroupItem'
                 strategyType:
-                    $ref: '#/components/schemas/StrategyType'
+                    type: integer
+                    format: enum
                 group:
                     $ref: '#/components/schemas/api.palace.common.TeamStrategyGroupItem'
             description: TeamStrategyItem represents the structure of a team strategy item.
@@ -6517,9 +6744,11 @@ components:
                     type: integer
                     format: uint32
                 sampleMode:
-                    $ref: '#/components/schemas/SampleMode'
+                    type: integer
+                    format: enum
                 condition:
-                    $ref: '#/components/schemas/ConditionMetric'
+                    type: integer
+                    format: enum
                 total:
                     type: string
                 values:
@@ -6530,7 +6759,8 @@ components:
                 duration:
                     type: string
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 receiverRoutes:
                     type: array
                     items:
@@ -6554,7 +6784,8 @@ components:
                 remark:
                     type: string
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 rules:
                     type: array
                     items:
@@ -6576,13 +6807,15 @@ components:
                 remark:
                     type: string
                 status:
-                    $ref: '#/components/schemas/GlobalStatus'
+                    type: integer
+                    format: enum
                 engines:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.palace.common.TimeEngineItem'
                 type:
-                    $ref: '#/components/schemas/TimeEngineRuleType'
+                    type: integer
+                    format: enum
                 rules:
                     type: array
                     items:
@@ -6606,9 +6839,9 @@ components:
                     type: string
                     description: User's avatar URL
                 gender:
-                    allOf:
-                        - $ref: '#/components/schemas/Gender'
+                    type: integer
                     description: User's gender
+                    format: enum
                 userId:
                     type: integer
                     description: User's unique identifier
@@ -6626,9 +6859,9 @@ components:
                     type: string
                     description: User's avatar URL
                 gender:
-                    allOf:
-                        - $ref: '#/components/schemas/Gender'
+                    type: integer
                     description: User's gender
+                    format: enum
                 email:
                     type: string
                     description: User's email address (encrypted)
@@ -6639,13 +6872,13 @@ components:
                     type: string
                     description: Remarks about the user
                 position:
-                    allOf:
-                        - $ref: '#/components/schemas/UserPosition'
+                    type: integer
                     description: User's position/role in the system
+                    format: enum
                 status:
-                    allOf:
-                        - $ref: '#/components/schemas/UserStatus'
+                    type: integer
                     description: User's status
+                    format: enum
                 createdAt:
                     type: string
                     description: User's creation time
@@ -6891,7 +7124,8 @@ components:
             type: object
             properties:
                 driver:
-                    $ref: '#/components/schemas/RegistryDriver'
+                    type: integer
+                    format: enum
                 enable:
                     type: boolean
                 etcd:
@@ -6953,9 +7187,9 @@ components:
                     type: string
                     description: timeout
                 network:
-                    allOf:
-                        - $ref: '#/components/schemas/Network'
+                    type: integer
                     description: network type, http, https, grpc
+                    format: enum
                 version:
                     type: string
                     description: node version
@@ -6975,8 +7209,11 @@ tags:
     - name: Health
       description: Health Check API
     - name: Home
+    - name: Invite
     - name: Menu
       description: Menu service provides operations for managing menus
+    - name: Message
+      description: 用户个人消息模块
     - name: Pricing
     - name: Server
     - name: System

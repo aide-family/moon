@@ -6,95 +6,252 @@ import "google/api/annotations.proto";
 import "common/alert.proto";
 import "palace/common/common.proto";
 import "palace/common/common_enum.proto";
+import "palace/common/system.proto";
 import "buf/validate/validate.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
 
 service Alert {
-	rpc PushAlert (api.common.AlertItem) returns (api.palace.common.EmptyReply) {
-		option (google.api.http) = {
-			post: "/api/alert/push"
-			body: "*"
-		};
-	}
-	rpc ListAlerts (ListAlertParams) returns (ListAlertReply) {
-		option (google.api.http) = {
-			post: "/api/alert/list"
-			body: "*"
-		};
-	}
-	rpc AlertDetail (AlertDetailParams) returns (AlertDetailReply) {
-		option (google.api.http) = {
-			post: "/api/alert/detail"
-			body: "*"
-		};
-	}
+  rpc PushAlert (api.common.AlertItem) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      post: "/api/alert/push"
+      body: "*"
+    };
+  }
+  rpc ListAlerts (ListAlertParams) returns (ListAlertReply) {
+    option (google.api.http) = {
+      post: "/api/alert/list"
+      body: "*"
+    };
+  }
+  rpc AlertDetail (AlertDetailParams) returns (AlertDetailReply) {
+    option (google.api.http) = {
+      post: "/api/alert/detail"
+      body: "*"
+    };
+  }
+  rpc SummaryAlarm (SummaryAlarmRequest) returns (SummaryAlarmReply) {
+    option (google.api.http) = {
+      get: "/api/statistics/alarm/summary"
+    };
+  }
+  rpc TopStrategyAlarm (TopStrategyAlarmRequest) returns (TopStrategyAlarmReply) {
+    option (google.api.http) = {
+      get: "/api/statistics/alarm/top/strategy"
+    };
+  }
+  rpc LatestAlarmEvent (LatestAlarmEventRequest) returns (LatestAlarmEventReply) {
+    option (google.api.http) = {
+      get: "/api/statistics/alarm/latest/event"
+    };
+  }
+  rpc LatestInterventionEvent (LatestInterventionEventRequest) returns (LatestInterventionEventReply) {
+    option (google.api.http) = {
+      get: "/api/statistics/alarm/latest/intervention"
+    };
+  }
+
+}
+
+message AlertStatisticsParams {
+  repeated string timeRange = 1 [(buf.validate.field).cel = {
+    id: "ALERT_STATISTICS_TIME_RANGE_VALIDATOR",
+    message: "must be a valid time range",
+    expression: "this.size() == 2 && this.all(x, x.size() == 19)"
+  }];
+}
+
+
+message AlertStatisticsReply {
+  AlarmStatisticsItem items = 2;
+}
+
+// 告警汇总
+message SummaryAlarmRequest {
+  api.palace.common.TimeRangeReq timeRange = 1;
+  // 指定告警等级
+  uint32 level = 2;
+  // 环比周期，默认1天
+  uint32 inComparison = 3;
+}
+
+message SummaryAlarmReply {
+  // 告警总数
+  int64 total = 1;
+  // 正在告警
+  int64 ongoing = 2;
+  // 已恢复
+  int64 recovered = 3;
+  // 最高优先级的告警
+  int64 highestPriority = 4;
+  // 图表数据
+  repeated double chartData = 5;
+  // 总数环比
+  string totalComparison = 6;
+  // 正在告警环比
+  string ongoingComparison = 7;
+  // 已恢复环比
+  string recoveredComparison = 8;
+  // 最高优先级告警环比
+  string highestPriorityComparison = 9;
+}
+
+// 策略告警数量TopN
+message TopStrategyAlarmRequest {
+  api.palace.common.TimeRangeReq timeRange = 1;
+  // 指定top数量，默认10
+  uint32 limit = 2;
+}
+message TopStrategyAlarmReply {
+  message StrategyAlarmTopN {
+    // 策略ID
+    uint64 strategyId = 1;
+    // 告警数量
+    int64 total = 2;
+    // 策略名称
+    string strategyName = 3;
+  }
+  // 策略告警数量TopN
+  repeated StrategyAlarmTopN topN = 1;
+}
+
+// 最新告警事件
+message LatestAlarmEventRequest {
+  api.palace.common.TimeRangeReq timeRange = 1;
+  // 指定top数量，默认10
+  uint32 limit = 2;
+}
+message LatestAlarmEventReply {
+  message LatestAlarmEvent {
+    // 告警指纹
+    string fingerprint = 1;
+    // 告警等级
+    string level = 2;
+    // 告警时间
+    string eventTime = 3;
+    // 告警摘要
+    string summary = 4;
+    // 告警状态
+    uint32 status = 5;
+  }
+  // 最新告警事件
+  repeated LatestAlarmEvent events = 1;
 }
 
 message ListAlertParams {
-	api.palace.common.PaginationRequest pagination = 1;
-	repeated string timeRange = 2 [(buf.validate.field).cel = {
-		id: "LIST_ALERT_TIME_RANGE_VALIDATOR",
-		message: "must be a valid time range",
-		expression: "this.size() == 2 && this.all(x, x.size() == 19)"
-	}];
-	string fingerprint = 3 [(buf.validate.field).cel = {
-		id: "LIST_ALERT_FINGERPRINT_VALIDATOR",
-		message: "must be less than 64 characters",
-		expression: "this.size() <= 64"
-	}];
-	string keyword = 4 [(buf.validate.field).cel = {
-		id: "LIST_ALERT_KEYWORD_VALIDATOR",
-		message: "must be less than 64 characters",
-		expression: "this.size() <= 64"
-	}];
-	api.common.AlertStatus status = 5 [(buf.validate.field).cel = {
-		id: "LIST_ALERT_STATUS_VALIDATOR",
-		message: "must be a valid status",
-		expression: "this in ['pending', 'firing', 'resolved', 0]"
-	}];
+  api.palace.common.PaginationRequest pagination = 1;
+  repeated string timeRange = 2 [(buf.validate.field).cel = {
+    id: "LIST_ALERT_TIME_RANGE_VALIDATOR",
+    message: "must be a valid time range",
+    expression: "this.size() == 2 && this.all(x, x.size() == 19)"
+  }];
+  string fingerprint = 3 [(buf.validate.field).cel = {
+    id: "LIST_ALERT_FINGERPRINT_VALIDATOR",
+    message: "must be less than 64 characters",
+    expression: "this.size() <= 64"
+  }];
+  string keyword = 4 [(buf.validate.field).cel = {
+    id: "LIST_ALERT_KEYWORD_VALIDATOR",
+    message: "must be less than 64 characters",
+    expression: "this.size() <= 64"
+  }];
+  api.common.AlertStatus status = 5 [(buf.validate.field).cel = {
+    id: "LIST_ALERT_STATUS_VALIDATOR",
+    message: "must be a valid status",
+    expression: "this in ['pending', 'firing', 'resolved', 0]"
+  }];
 }
 
 message RealtimeAlertItem {
-	uint32 alertId = 1;
-	api.common.AlertStatus status = 2;
-	string fingerprint = 3;
-	map<string, string> labels = 4;
-	string summary = 5;
-	string description = 6;
-	string value = 7;
-	string generatorURL = 8;
-	string startsAt = 9;
-	string endsAt = 10;
+  uint32 alertId = 1;
+  api.common.AlertStatus status = 2;
+  string fingerprint = 3;
+  map<string, string> labels = 4;
+  string summary = 5;
+  string description = 6;
+  string value = 7;
+  string generatorURL = 8;
+  string startsAt = 9;
+  string endsAt = 10;
 }
 
+message AlarmStatisticsItem {
+  // 总告警数
+  int32 total = 1;
+  // 总告警数对比
+  int32 totalComparison = 2;
+  // 进行中告警数
+  int32 ongoing = 3;
+  // 进行中告警数对比
+  int32 ongoingComparison = 4;
+  // 最高优先级告警数
+  int32 highestPriority = 5;
+  // 最高优先级告警数对比
+  int32 highestPriorityComparison = 6;
+  // 图表数据
+  repeated ChartData chartData = 7;
+  message ChartData {
+    string date = 1;
+    int32 count = 2;
+  }
+}
+
+
+// 最新介入事件
+message LatestInterventionEventRequest {
+  api.palace.common.TimeRangeReq timeRange = 1;
+  // 指定top数量，默认10
+  uint32 limit = 2;
+}
+message LatestInterventionEventReply {
+  message LatestInterventionEvent {
+    // 告警指纹
+    string fingerprint = 1;
+    // 告警时间
+    string eventTime = 2;
+    // 告警摘要
+    string summary = 3;
+    // 告警等级
+    string level = 4;
+    // 告警状态
+    uint32 status = 5;
+    // 告警处理人
+    api.palace.common.UserItem handler = 6;
+    // 告警处理时间
+    string handledAt = 7;
+  }
+  // 最新介入事件
+  repeated LatestInterventionEvent events = 1;
+}
+
+
 message ListAlertReply {
-	api.palace.common.PaginationReply pagination = 1;
-	repeated RealtimeAlertItem items = 2;
+  api.palace.common.PaginationReply pagination = 1;
+  repeated RealtimeAlertItem items = 2;
 }
 
 message AlertDetailParams {
-	uint32 alertId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		id: "ALERT_DETAIL_ALERT_ID_VALIDATOR",
-		message: "must select an alert",
-		expression: "this > 0"
-	}];
-	string fingerprint = 2 [(buf.validate.field).cel = {
-		id: "ALERT_DETAIL_FINGERPRINT_VALIDATOR",
-		message: "must be less than 64 characters",
-		expression: "this.size() <= 64"
-	}];
-	string createdAt = 3 [(buf.validate.field).cel = {
-		id: "ALERT_DETAIL_CREATED_AT_VALIDATOR",
-		message: "must be a valid time, format: 2005-01-02 15:04:05",
-		expression: "this.size() == 19"
-	}];
+  uint32 alertId = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    id: "ALERT_DETAIL_ALERT_ID_VALIDATOR",
+    message: "must select an alert",
+    expression: "this > 0"
+  }];
+  string fingerprint = 2 [(buf.validate.field).cel = {
+    id: "ALERT_DETAIL_FINGERPRINT_VALIDATOR",
+    message: "must be less than 64 characters",
+    expression: "this.size() <= 64"
+  }];
+  string createdAt = 3 [(buf.validate.field).cel = {
+    id: "ALERT_DETAIL_CREATED_AT_VALIDATOR",
+    message: "must be a valid time, format: 2005-01-02 15:04:05",
+    expression: "this.size() == 19"
+  }];
 }
 
 message AlertDetailReply {
-	RealtimeAlertItem alert = 1;
-	uint32 strategyId = 2;
-	uint32 strategyGroupId = 3;
-	uint32 strategyLevelId = 4;
-	api.palace.common.StrategyType strategyType = 5;
+  RealtimeAlertItem alert = 1;
+  uint32 strategyId = 2;
+  uint32 strategyGroupId = 3;
+  uint32 strategyLevelId = 4;
+  api.palace.common.StrategyType strategyType = 5;
 }
