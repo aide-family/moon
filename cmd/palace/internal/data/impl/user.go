@@ -279,6 +279,7 @@ func (u *userRepoImpl) UpdateUserInfo(ctx context.Context, user do.User) error {
 			userMutation.Nickname.Value(user.GetNickname()),
 			userMutation.Avatar.Value(user.GetAvatar()),
 			userMutation.Gender.Value(int8(user.GetGender())),
+			userMutation.Remark.Value(user.GetRemark()),
 		)
 	if err != nil {
 		return err
@@ -292,6 +293,22 @@ func (u *userRepoImpl) UpdateUserAvatar(ctx context.Context, userID uint32, avat
 	_, err := userMutation.WithContext(ctx).
 		Where(userMutation.ID.Eq(userID)).
 		UpdateSimple(userMutation.Avatar.Value(avatar))
+	return err
+}
+
+func (u *userRepoImpl) UpdateUserPhone(ctx context.Context, userID uint32, phone string) error {
+	userMutation := getMainQuery(ctx, u).User
+	_, err := userMutation.WithContext(ctx).
+		Where(userMutation.ID.Eq(userID)).
+		UpdateSimple(userMutation.Phone.Value(phone))
+	return err
+}
+
+func (u *userRepoImpl) UpdateUserEmail(ctx context.Context, userID uint32, email string) error {
+	userMutation := getMainQuery(ctx, u).User
+	_, err := userMutation.WithContext(ctx).
+		Where(userMutation.ID.Eq(userID)).
+		UpdateSimple(userMutation.Email.Value(email))
 	return err
 }
 
