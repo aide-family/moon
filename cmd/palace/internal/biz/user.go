@@ -155,6 +155,64 @@ func (b *UserBiz) UpdateSelfPassword(ctx context.Context, passwordUpdateInfo *bo
 	return nil
 }
 
+// UpdateSelfPhone updates the current user's phone number
+func (b *UserBiz) UpdateSelfPhone(ctx context.Context, phone string) error {
+	userID, ok := permission.GetUserIDByContext(ctx)
+	if !ok {
+		return merr.ErrorUnauthorized("user not found in context")
+	}
+
+	user, err := b.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return merr.ErrorInternalServer("failed to find user").WithCause(err)
+	}
+
+	if validate.IsNil(user) {
+		return merr.ErrorUserNotFound("user not found")
+	}
+
+	// Update phone through repository
+	if err = b.userRepo.UpdateUserPhone(ctx, userID, phone); err != nil {
+		return merr.ErrorInternalServer("failed to update phone").WithCause(err)
+	}
+
+	return nil
+}
+
+// UpdateSelfEmail updates the current user's email
+func (b *UserBiz) UpdateSelfEmail(ctx context.Context, email string) error {
+	userID, ok := permission.GetUserIDByContext(ctx)
+	if !ok {
+		return merr.ErrorUnauthorized("user not found in context")
+	}
+
+	user, err := b.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return merr.ErrorInternalServer("failed to find user").WithCause(err)
+	}
+
+	if validate.IsNil(user) {
+		return merr.ErrorUserNotFound("user not found")
+	}
+
+	// Check if email already exists
+	existingUser, err := b.userRepo.FindByEmail(ctx, email)
+	if err != nil && !merr.IsUserNotFound(err) {
+		return merr.ErrorInternalServer("failed to check email existence").WithCause(err)
+	}
+
+	if !validate.IsNil(existingUser) && existingUser.GetID() != userID {
+		return merr.ErrorExist("email already exists")
+	}
+
+	// Update email through repository
+	if err = b.userRepo.UpdateUserEmail(ctx, userID, email); err != nil {
+		return merr.ErrorInternalServer("failed to update email").WithCause(err)
+	}
+
+	return nil
+}
+
 // GetUserTeams retrieves all teams that the user is a member of
 func (b *UserBiz) GetUserTeams(ctx context.Context) ([]do.Team, error) {
 	userID, ok := permission.GetUserIDByContext(ctx)

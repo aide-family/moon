@@ -45,6 +45,22 @@ service User {
     };
   }
 
+  // UpdateSelfPhone updates the current user's phone number
+  rpc UpdateSelfPhone (UpdateSelfPhoneRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/user/self/phone"
+      body: "*"
+    };
+  }
+
+  // UpdateSelfEmail updates the current user's email
+  rpc UpdateSelfEmail (UpdateSelfEmailRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/user/self/email"
+      body: "*"
+    };
+  }
+
   // LeaveTeam allows the current user to leave a team
   rpc LeaveTeam (LeaveTeamRequest) returns (api.palace.common.EmptyReply) {
     option (google.api.http) = {
@@ -111,6 +127,18 @@ message UpdateSelfPasswordRequest {
   string oldPassword = 1 [(buf.validate.field).required = true];
   // New password
   string newPassword = 2 [(buf.validate.field).required = true];
+}
+
+// UpdateSelfPhoneRequest represents the request data for updating the current user's phone number
+message UpdateSelfPhoneRequest {
+  // New phone number
+  string phone = 1 [(buf.validate.field).required = true];
+}
+
+// UpdateSelfEmailRequest represents the request data for updating the current user's email
+message UpdateSelfEmailRequest {
+  // New email address
+  string email = 1 [(buf.validate.field).required = true];
 }
 
 // LeaveTeamRequest represents the request data for leaving a team
