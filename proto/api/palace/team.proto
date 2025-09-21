@@ -183,6 +183,14 @@ service Team {
       body: "*"
     };
   }
+
+  // UpdateTeamStatus updates the status of a team
+  rpc UpdateTeamStatus (UpdateTeamStatusRequest) returns (api.palace.common.EmptyReply) {
+    option (google.api.http) = {
+      put: "/api/team/status"
+      body: "*"
+    };
+  }
 }
 
 // SaveTeamRequest represents the request data for saving or updating a team
@@ -446,4 +454,12 @@ message GetSMSConfigsReply {
 message GetSMSConfigRequest {
   // SMS configuration Id
   uint32 smsConfigId = 1 [(buf.validate.field).required = true];
+}
+
+// UpdateTeamStatusRequest represents the request data for updating team status
+message UpdateTeamStatusRequest {
+  // Team Id
+  uint32 teamId = 1 [(buf.validate.field).required = true];
+  // New status for the team
+  api.palace.common.TeamStatus status = 2 [(buf.validate.field).required = true];
 }

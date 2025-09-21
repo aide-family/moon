@@ -2194,6 +2194,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.GetSMSConfigsReply'
+    /api/team/status:
+        put:
+            tags:
+                - Team
+            description: UpdateTeamStatus updates the status of a team
+            operationId: Team_UpdateTeamStatus
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.UpdateTeamStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
     /api/team/strategy:
         post:
             tags:
@@ -5740,6 +5759,18 @@ components:
                     description: New status for the role
                     format: enum
             description: UpdateTeamRoleStatusRequest represents the request data for updating role status
+        api.palace.UpdateTeamStatusRequest:
+            type: object
+            properties:
+                teamId:
+                    type: integer
+                    description: Team Id
+                    format: uint32
+                status:
+                    type: integer
+                    description: New status for the team
+                    format: enum
+            description: UpdateTeamStatusRequest represents the request data for updating team status
         api.palace.UpdateTeamStrategiesStatusRequest:
             type: object
             properties:
