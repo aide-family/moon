@@ -12,10 +12,14 @@
       "--go_out=gen/go"
     ]
   },
+  "editor.lineHeight": 1.8,
+  "editor.fontFamily": "'Menlo', 'Droid Sans Mono', 'monospace', monospace",
   "gopls": {
     "usePlaceholders": true, // 启用占位符
     "completeUnimported": true, // 补全未导入的包
-    "staticcheck": true // 启用 staticcheck
+    "staticcheck": true, // 启用 staticcheck
+    "ui.semanticTokens": true, // 启用语义标记
+    "formatting.gofumpt": true // 使用 gofumpt 进行代码格式化，比 go fmt 更加严格和美观。
   },
   "go.gopath": "~/go", // 设置 GOPATH 为当前项目目录
   "go.goroot": "~/sdk/go1.24.5", // 设置 GOROOT（根据你的 Go 安装路径调整）
@@ -24,7 +28,9 @@
     "--remote=auto" // 配置 gopls 的远程模式
   ],
   "go.formatTool": "goimports", // 使用 goimports 格式化代码
-  "go.testFlags": ["-v"], // 运行测试时添加 -v 标志
+  "go.testFlags": [
+    "-v"
+  ], // 运行测试时添加 -v 标志
   "go.testOnSave": false, // 保存时不自动运行测试
   "go.buildFlags": [], // 构建时的额外标志
   "go.lintTool": "staticcheck", // 使用 staticcheck 进行静态分析
