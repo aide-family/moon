@@ -2194,6 +2194,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.GetSMSConfigsReply'
+    /api/team/status:
+        put:
+            tags:
+                - Team
+            description: UpdateTeamStatus updates the status of a team
+            operationId: Team_UpdateTeamStatus
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.UpdateTeamStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
     /api/team/strategy:
         post:
             tags:
@@ -3013,6 +3032,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/user/self/email:
+        put:
+            tags:
+                - User
+            description: UpdateSelfEmail updates the current user's email
+            operationId: User_UpdateSelfEmail
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.UpdateSelfEmailRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
     /api/user/self/join-team:
         post:
             tags:
@@ -3062,6 +3100,25 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/api.palace.UpdateSelfPasswordRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.palace.common.EmptyReply'
+    /api/user/self/phone:
+        put:
+            tags:
+                - User
+            description: UpdateSelfPhone updates the current user's phone number
+            operationId: User_UpdateSelfPhone
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.palace.UpdateSelfPhoneRequest'
                 required: true
             responses:
                 "200":
@@ -5560,6 +5617,13 @@ components:
                 avatar:
                     type: string
                     description: User avatar URL
+        api.palace.UpdateSelfEmailRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                    description: New email address
+            description: UpdateSelfEmailRequest represents the request data for updating the current user's email
         api.palace.UpdateSelfInfoRequest:
             type: object
             properties:
@@ -5584,6 +5648,13 @@ components:
                     type: string
                     description: New password
             description: UpdateSelfPasswordRequest represents the request data for updating the current user's password
+        api.palace.UpdateSelfPhoneRequest:
+            type: object
+            properties:
+                phone:
+                    type: string
+                    description: New phone number
+            description: UpdateSelfPhoneRequest represents the request data for updating the current user's phone number
         api.palace.UpdateTeamAuditStatusRequest:
             type: object
             properties:
@@ -5688,6 +5759,18 @@ components:
                     description: New status for the role
                     format: enum
             description: UpdateTeamRoleStatusRequest represents the request data for updating role status
+        api.palace.UpdateTeamStatusRequest:
+            type: object
+            properties:
+                teamId:
+                    type: integer
+                    description: Team Id
+                    format: uint32
+                status:
+                    type: integer
+                    description: New status for the team
+                    format: enum
+            description: UpdateTeamStatusRequest represents the request data for updating team status
         api.palace.UpdateTeamStrategiesStatusRequest:
             type: object
             properties:
@@ -7203,8 +7286,8 @@ components:
 tags:
     - name: Alert
     - name: Auth
-    - name: Auth
       description: Auth service provides authentication related operations
+    - name: Auth
     - name: Callback
     - name: Health
       description: Health Check API

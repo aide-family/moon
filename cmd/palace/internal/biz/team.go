@@ -452,6 +452,26 @@ func (t *Team) InviteMember(ctx context.Context, req *bo.InviteMemberReq) error 
 	})
 }
 
+// UpdateTeamStatus updates the status of a team
+func (t *Team) UpdateTeamStatus(ctx context.Context, teamID uint32, status vobj.TeamStatus) error {
+	// Check if team exists
+	team, err := t.teamRepo.FindByID(ctx, teamID)
+	if err != nil {
+		return merr.ErrorInternalServer("failed to find team").WithCause(err)
+	}
+
+	if team == nil {
+		return merr.ErrorNotFound("team not found")
+	}
+
+	// Update team status
+	if err := t.teamRepo.UpdateStatus(ctx, teamID, status); err != nil {
+		return merr.ErrorInternalServer("failed to update team status").WithCause(err)
+	}
+
+	return nil
+}
+
 func (t *Team) Jobs() []cron_server.CronJob {
 	return []cron_server.CronJob{
 		job.NewTeamJob(t.teamRepo, t.cacheRepo, t.helper.Logger()),

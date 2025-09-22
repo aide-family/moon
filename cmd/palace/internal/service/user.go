@@ -74,6 +74,26 @@ func (s *UserService) UpdateSelfPassword(ctx context.Context, req *palace.Update
 	return &common.EmptyReply{}, nil
 }
 
+// UpdateSelfPhone updates the current user's phone number.
+func (s *UserService) UpdateSelfPhone(ctx context.Context, req *palace.UpdateSelfPhoneRequest) (*common.EmptyReply, error) {
+	// Call business logic to update phone
+	if err := s.userBiz.UpdateSelfPhone(ctx, req.GetPhone()); err != nil {
+		return nil, err
+	}
+
+	return &common.EmptyReply{}, nil
+}
+
+// UpdateSelfEmail updates the current user's email.
+func (s *UserService) UpdateSelfEmail(ctx context.Context, req *palace.UpdateSelfEmailRequest) (*common.EmptyReply, error) {
+	// Call business logic to update email
+	if err := s.userBiz.UpdateSelfEmail(ctx, req.GetEmail()); err != nil {
+		return nil, err
+	}
+
+	return &common.EmptyReply{}, nil
+}
+
 // LeaveTeam allows the current user to leave a team.
 func (s *UserService) LeaveTeam(ctx context.Context, req *palace.LeaveTeamRequest) (*common.EmptyReply, error) {
 	// TODO: implement the logic

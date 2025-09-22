@@ -247,3 +247,12 @@ func (s *TeamService) OperateLogList(ctx context.Context, req *common.OperateLog
 		Pagination: build.ToPaginationReply(operateLogReply.PaginationReply),
 	}, nil
 }
+
+func (s *TeamService) UpdateTeamStatus(ctx context.Context, req *palace.UpdateTeamStatusRequest) (*common.EmptyReply, error) {
+	// Call business logic to update team status
+	if err := s.teamBiz.UpdateTeamStatus(ctx, req.GetTeamId(), vobj.TeamStatus(req.Status)); err != nil {
+		return nil, err
+	}
+
+	return &common.EmptyReply{}, nil
+}

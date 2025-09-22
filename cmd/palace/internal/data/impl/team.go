@@ -67,6 +67,15 @@ func (r *teamRepoImpl) Update(ctx context.Context, team bo.UpdateTeamRequest) er
 	return err
 }
 
+func (r *teamRepoImpl) UpdateStatus(ctx context.Context, teamID uint32, status vobj.TeamStatus) error {
+	teamMutation := getMainQuery(ctx, r).Team
+	wrappers := []gen.Condition{
+		teamMutation.ID.Eq(teamID),
+	}
+	_, err := teamMutation.WithContext(ctx).Where(wrappers...).UpdateSimple(teamMutation.Status.Value(int8(status)))
+	return err
+}
+
 func (r *teamRepoImpl) Delete(ctx context.Context, id uint32) error {
 	teamMutation := getMainQuery(ctx, r).Team
 	wrappers := []gen.Condition{
