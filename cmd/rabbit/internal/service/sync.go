@@ -24,6 +24,7 @@ func NewSyncService(configBiz *biz.Config, logger log.Logger) *SyncService {
 		helper:    log.NewHelper(log.With(logger, "module", "service.sync")),
 	}
 }
+
 func (s *SyncService) Sms(ctx context.Context, req *apiv1.SyncSmsRequest) (*common.EmptyReply, error) {
 	smss := build.ToSMSConfigs(req.GetSmss())
 	params := &bo.SetSMSConfigParams{
@@ -73,9 +74,9 @@ func (s *SyncService) NoticeGroup(ctx context.Context, req *apiv1.SyncNoticeGrou
 			bo.WithNoticeGroupOptionName(noticeGroupItem.GetName()),
 			bo.WithNoticeGroupOptionSmsConfigName(noticeGroupItem.GetSmsConfigName()),
 			bo.WithNoticeGroupOptionEmailConfigName(noticeGroupItem.GetEmailConfigName()),
-			bo.WithNoticeGroupOptionHookConfigNames(noticeGroupItem.GetHookConfigNames()),
-			bo.WithNoticeGroupOptionSmsUserNames(noticeGroupItem.GetSmsUserNames()),
-			bo.WithNoticeGroupOptionEmailUserNames(noticeGroupItem.GetEmailUserNames()),
+			bo.WithNoticeGroupOptionHookReceivers(noticeGroupItem.GetHookReceivers()),
+			bo.WithNoticeGroupOptionSmsReceivers(noticeGroupItem.GetSmsReceivers()),
+			bo.WithNoticeGroupOptionEmailReceivers(noticeGroupItem.GetEmailReceivers()),
 			bo.WithNoticeGroupOptionTemplates(templates),
 		)
 	})

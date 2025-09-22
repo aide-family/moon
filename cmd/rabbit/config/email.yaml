@@ -1,4 +1,4 @@
-email_config:
+emailConfig:
   - name: 'default'
     host: ${X_MOON_RABBIT_EMAIL_HOST:smtp.example.com}
     port: ${X_MOON_RABBIT_EMAIL_PORT:587}

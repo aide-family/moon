@@ -13,13 +13,14 @@ enum HookAPP {
 }
 
 message HookConfig {
-  string name = 1;
-  HookAPP app = 2;
-  string url = 3;
-  string secret = 4;
-  string token = 5;
-  string username = 6;
-  string password = 7;
-  map<string, string> headers = 8;
-  bool enable = 9;
+  uint32 teamId = 1;
+  string name = 2;
+  HookAPP app = 3;
+  string url = 4;
+  string secret = 5;
+  string token = 6;
+  string username = 7;
+  string password = 8;
+  map<string, string> headers = 9;
+  bool enable = 10;
 }

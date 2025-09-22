@@ -13,12 +13,13 @@ message NoticeGroup {
 	  string templateParameters = 3;
 	  string subject = 4;
 	}
-	string name = 1;
-	string smsConfigName = 2;
-	string emailConfigName = 3;
-	repeated string hookConfigNames = 4;
-	repeated string smsUserNames = 5;
-	repeated string emailUserNames = 6;
-	repeated Template templates = 7;
+	uint32 teamId = 1;
+	string name = 2;
+	string smsConfigName = 3;
+	string emailConfigName = 4;
+	repeated string hookReceivers = 5;
+	repeated string smsReceivers = 6;
+	repeated string emailReceivers = 7;
+	repeated Template templates = 8;
   }
   

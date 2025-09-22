@@ -16,9 +16,9 @@ type NoticeGroupConfig struct {
 	Name            string                          `json:"name"`
 	SMSConfigName   string                          `json:"smsConfigName"`
 	EmailConfigName string                          `json:"emailConfigName"`
-	HookConfigNames []string                        `json:"hookConfigNames"`
-	SMSUserNames    []string                        `json:"smsUserNames"`
-	EmailUserNames  []string                        `json:"emailUserNames"`
+	HookReceivers   []string                        `json:"hookReceivers"`
+	SMSReceivers    []string                        `json:"smsReceivers"`
+	EmailReceivers  []string                        `json:"emailReceivers"`
 	Templates       map[common.NoticeType]*Template `json:"templates"`
 }
 
@@ -38,20 +38,20 @@ func (n *NoticeGroupConfig) GetEmailTemplate() bo.Template {
 	return n.Templates[common.NoticeType_NOTICE_TYPE_EMAIL]
 }
 
-// GetEmailUserNames implements bo.NoticeGroup.
-func (n *NoticeGroupConfig) GetEmailUserNames() []string {
+// GetEmailReceivers implements bo.NoticeGroup.
+func (n *NoticeGroupConfig) GetEmailReceivers() []string {
 	if n == nil {
 		return nil
 	}
-	return n.EmailUserNames
+	return n.EmailReceivers
 }
 
 // GetHookConfigNames implements bo.NoticeGroup.
-func (n *NoticeGroupConfig) GetHookConfigNames() []string {
+func (n *NoticeGroupConfig) GetHookReceivers() []string {
 	if n == nil {
 		return nil
 	}
-	return n.HookConfigNames
+	return n.HookReceivers
 }
 
 // GetHookTemplate implements bo.NoticeGroup.
@@ -90,12 +90,12 @@ func (n *NoticeGroupConfig) GetSmsTemplate() bo.Template {
 	return n.Templates[common.NoticeType_NOTICE_TYPE_SMS]
 }
 
-// GetSmsUserNames implements bo.NoticeGroup.
-func (n *NoticeGroupConfig) GetSmsUserNames() []string {
+// GetSmsReceivers implements bo.NoticeGroup.
+func (n *NoticeGroupConfig) GetSmsReceivers() []string {
 	if n == nil {
 		return nil
 	}
-	return n.SMSUserNames
+	return n.SMSReceivers
 }
 
 // GetTemplate implements bo.NoticeGroup.

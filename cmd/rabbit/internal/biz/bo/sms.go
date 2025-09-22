@@ -33,9 +33,8 @@ type SMSConfig interface {
 }
 
 type GetSMSConfigParams struct {
-	TeamID           uint32
-	Name             *string
-	DefaultSMSConfig SMSConfig
+	TeamID uint32
+	Name   string
 }
 
 type SetSMSConfigParams struct {

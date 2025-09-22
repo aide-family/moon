@@ -7286,8 +7286,8 @@ components:
 tags:
     - name: Alert
     - name: Auth
-      description: Auth service provides authentication related operations
     - name: Auth
+      description: Auth service provides authentication related operations
     - name: Callback
     - name: Health
       description: Health Check API

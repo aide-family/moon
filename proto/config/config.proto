@@ -228,12 +228,13 @@ message Discovery {
 
 // email config
 message EmailConfig {
-  string user = 1;
-  string pass = 2;
-  string host = 3;
-  uint32 port = 4;
-  bool enable = 5;
-  string name = 6;
+  uint32 teamId = 1;
+  string user = 2;
+  string pass = 3;
+  string host = 4;
+  uint32 port = 5;
+  bool enable = 6;
+  string name = 7;
 }
 
 message Log {
@@ -394,11 +395,12 @@ message Event {
 }
 
 message AliyunSMSConfig {
-  string accessKeyId = 1;
-  string accessKeySecret = 2;
-  string signName = 3;
-  string endpoint = 4;
-  string name = 5;
+  uint32 teamId = 1;
+  string accessKeyId = 2;
+  string accessKeySecret = 3;
+  string signName = 4;
+  string endpoint = 5;
+  string name = 6;
 }
 
 message Consul {

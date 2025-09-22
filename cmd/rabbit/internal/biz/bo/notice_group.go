@@ -10,9 +10,9 @@ type NoticeGroup interface {
 	GetName() string
 	GetSmsConfigName() string
 	GetEmailConfigName() string
-	GetSmsUserNames() []string
-	GetEmailUserNames() []string
-	GetHookConfigNames() []string
+	GetSmsReceivers() []string
+	GetEmailReceivers() []string
+	GetHookReceivers() []string
 	GetTemplates() map[common.NoticeType]Template
 	GetTemplate(noticeType common.NoticeType) Template
 	GetSmsTemplate() Template
@@ -21,9 +21,8 @@ type NoticeGroup interface {
 }
 
 type GetNoticeGroupConfigParams struct {
-	TeamID             uint32
-	Name               *string
-	DefaultNoticeGroup NoticeGroup
+	TeamID uint32
+	Name   string
 }
 
 type SetNoticeGroupConfigParams struct {
@@ -47,25 +46,25 @@ type noticeGroup struct {
 	name            string
 	smsConfigName   string
 	emailConfigName string
-	smsUserNames    []string
-	emailUserNames  []string
-	hookConfigNames []string
+	smsReceivers    []string
+	emailReceivers  []string
+	hookReceivers   []string
 	templates       map[common.NoticeType]Template
 }
 
-// GetSmsUserNames implements NoticeGroup.
-func (n *noticeGroup) GetSmsUserNames() []string {
-	return n.smsUserNames
+// GetSmsReceivers implements NoticeGroup.
+func (n *noticeGroup) GetSmsReceivers() []string {
+	return n.smsReceivers
 }
 
-// GetEmails implements NoticeGroup.
-func (n *noticeGroup) GetEmailUserNames() []string {
-	return n.emailUserNames
+// GetEmailReceivers implements NoticeGroup.
+func (n *noticeGroup) GetEmailReceivers() []string {
+	return n.emailReceivers
 }
 
-// GetHooks implements NoticeGroup.
-func (n *noticeGroup) GetHookConfigNames() []string {
-	return n.hookConfigNames
+// GetHookReceivers implements NoticeGroup.
+func (n *noticeGroup) GetHookReceivers() []string {
+	return n.hookReceivers
 }
 
 // GetName implements NoticeGroup.
@@ -137,21 +136,21 @@ func WithNoticeGroupOptionEmailConfigName(emailConfigName string) NoticeGroupOpt
 	}
 }
 
-func WithNoticeGroupOptionHookConfigNames(hookConfigNames []string) NoticeGroupOption {
+func WithNoticeGroupOptionHookReceivers(hookReceivers []string) NoticeGroupOption {
 	return func(noticeGroup *noticeGroup) {
-		noticeGroup.hookConfigNames = hookConfigNames
+		noticeGroup.hookReceivers = hookReceivers
 	}
 }
 
-func WithNoticeGroupOptionSmsUserNames(smsUserNames []string) NoticeGroupOption {
+func WithNoticeGroupOptionSmsReceivers(smsReceivers []string) NoticeGroupOption {
 	return func(noticeGroup *noticeGroup) {
-		noticeGroup.smsUserNames = smsUserNames
+		noticeGroup.smsReceivers = smsReceivers
 	}
 }
 
-func WithNoticeGroupOptionEmailUserNames(emailUserNames []string) NoticeGroupOption {
+func WithNoticeGroupOptionEmailReceivers(emailReceivers []string) NoticeGroupOption {
 	return func(noticeGroup *noticeGroup) {
-		noticeGroup.emailUserNames = emailUserNames
+		noticeGroup.emailReceivers = emailReceivers
 	}
 }
 

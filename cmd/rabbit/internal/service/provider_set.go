@@ -1,3 +1,4 @@
+// Package service is a service package for kratos.
 package service
 
 import "github.com/google/wire"

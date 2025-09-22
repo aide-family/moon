@@ -68,11 +68,10 @@ func (s *sendMessageRepoImpl) rabbitSendEmail(ctx context.Context, client reposi
 		Body:        params.Body,
 		Subject:     params.Subject,
 		ContentType: params.ContentType,
-		EmailConfig: s.emailConfig,
 		RequestId:   params.RequestID,
 		Attachment:  "",
 		Cc:          []string{},
-		ConfigName:  new(string),
+		ConfigName:  s.emailConfig.GetName(),
 		TeamId:      params.TeamID,
 	})
 	if err != nil {

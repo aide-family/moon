@@ -4,9 +4,6 @@ package api.rabbit.v1;
 
 import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
-import "rabbit/common/hook.proto";
-import "rabbit/common/email.proto";
-import "rabbit/common/sms.proto";
 import "rabbit/common/common.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/rabbit/v1;v1";
@@ -48,9 +45,8 @@ message SendEmailRequest {
   string contentType = 5;
   string attachment = 6;
   repeated string cc = 7;
-  optional api.rabbit.common.EmailConfig emailConfig = 8;
-  optional string configName = 9;
-  uint32 teamId = 10 [(buf.validate.field).required = true];
+  string configName = 8;
+  uint32 teamId = 9 [(buf.validate.field).required = true];
 }
 
 message SendSmsRequest {
@@ -64,25 +60,17 @@ message SendSmsRequest {
   }];
   string templateParameters = 3 [(buf.validate.field).required = true];
   string templateCode = 4 [(buf.validate.field).required = true];
-  optional api.rabbit.common.SMSConfig smsConfig = 5;
-  optional string configName = 6;
-  uint32 teamId = 7 [(buf.validate.field).required = true];
+  string configName = 5;
+  uint32 teamId = 6 [(buf.validate.field).required = true];
 }
 
 message SendHookRequest {
-  message Body {
-    string appName = 1 [(buf.validate.field).required = true];
-    string body = 2 [(buf.validate.field).required = true];
-  }
   string requestId = 1 [(buf.validate.field).required = true, (buf.validate.field).string = {
     min_len: 32,
     max_len: 36,
   }];
-  repeated api.rabbit.common.HookConfig hooks = 2 [(buf.validate.field).cel = {
-    message: "hooks must be between 1 and 100"
-    expression: "this.size() >= 1 && this.size() <= 100"
-  }];
-  repeated Body body = 3 [(buf.validate.field).required = true];
+  repeated string body = 2 [(buf.validate.field).required = true];
+  string configName = 3;
   uint32 teamId = 4 [(buf.validate.field).required = true];
 }
 

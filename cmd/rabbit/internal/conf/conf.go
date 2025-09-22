@@ -1,3 +1,4 @@
+// Package conf is a configuration package for kratos.
 package conf
 
 import (

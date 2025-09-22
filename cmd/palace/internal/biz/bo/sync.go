@@ -230,13 +230,13 @@ func ToSyncNoticeGroupItem(groupDo do.NoticeGroup) *rabbitconmmon.NoticeGroup {
 		Name:            groupDo.GetName(),
 		SmsConfigName:   groupDo.GetSMSConfig().GetName(),
 		EmailConfigName: groupDo.GetEmailConfig().GetName(),
-		HookConfigNames: slices.MapFilter(groupDo.GetHooks(), func(hookConfig do.NoticeHook) (string, bool) {
+		HookReceivers: slices.MapFilter(groupDo.GetHooks(), func(hookConfig do.NoticeHook) (string, bool) {
 			if validate.IsNil(hookConfig) {
 				return "", false
 			}
 			return hookConfig.GetName(), true
 		}),
-		SmsUserNames: slices.MapFilter(groupDo.GetNoticeMembers(), func(smsUser do.NoticeMember) (string, bool) {
+		SmsReceivers: slices.MapFilter(groupDo.GetNoticeMembers(), func(smsUser do.NoticeMember) (string, bool) {
 			if validate.IsNil(smsUser) {
 				return "", false
 			}
@@ -253,7 +253,7 @@ func ToSyncNoticeGroupItem(groupDo do.NoticeGroup) *rabbitconmmon.NoticeGroup {
 			}
 			return user.GetPhone(), true
 		}),
-		EmailUserNames: slices.MapFilter(groupDo.GetNoticeMembers(), func(emailUser do.NoticeMember) (string, bool) {
+		EmailReceivers: slices.MapFilter(groupDo.GetNoticeMembers(), func(emailUser do.NoticeMember) (string, bool) {
 			if validate.IsNil(emailUser) {
 				return "", false
 			}

@@ -3,6 +3,8 @@ syntax = "proto3";
 package cmd.rabbit.internal.conf;
 
 import "config.proto";
+import "rabbit/common/hook.proto";
+import "rabbit/common/notice_group.proto";
 
 option go_package = "github.com/aide-family/moon/cmd/rabbit/internal/conf;conf";
 
@@ -14,11 +16,13 @@ message Bootstrap {
   config.Log log = 5;
   config.Registry registry = 6;
   Auth auth = 7;
-  repeated config.EmailConfig email_config = 8;
-  repeated config.AliyunSMSConfig aliyun_sms_config = 9;
+  repeated config.EmailConfig emailConfig = 8;
+  repeated config.AliyunSMSConfig aliyunSMSConfig = 9;
   config.MicroServer palace = 10;
   config.I18N i18n = 11;
   config.ConfigSource configSource = 12;
+  repeated api.rabbit.common.HookConfig hookConfig = 13;
+  repeated api.rabbit.common.NoticeGroup noticeGroupConfig = 14;
 }
 
 message Data {

@@ -1,3 +1,4 @@
+// Package do is a domain object package for kratos.
 package do
 
 import (

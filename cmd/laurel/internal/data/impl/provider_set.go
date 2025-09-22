@@ -1,3 +1,4 @@
+// Package impl is a implementation package for kratos.
 package impl
 
 import (

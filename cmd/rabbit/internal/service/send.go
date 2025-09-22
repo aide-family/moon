@@ -7,13 +7,9 @@ import (
 
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/rabbit/internal/biz/do"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/rabbit/internal/service/build"
 	"github.com/aide-family/moon/pkg/api/rabbit/common"
 	rabbitv1 "github.com/aide-family/moon/pkg/api/rabbit/v1"
-	"github.com/aide-family/moon/pkg/util/pointer"
-	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -50,11 +46,13 @@ func (s *SendService) Email(ctx context.Context, req *rabbitv1.SendEmailRequest)
 		return &common.EmptyReply{}, nil
 	}
 	params := &bo.GetEmailConfigParams{
-		TeamID:             req.GetTeamId(),
-		Name:               req.ConfigName,
-		DefaultEmailConfig: req.EmailConfig,
+		TeamID: req.GetTeamId(),
+		Name:   req.ConfigName,
 	}
-	emailConfig := s.configBiz.GetEmailConfig(ctx, params)
+	emailConfig, err := s.configBiz.GetEmailConfig(ctx, params)
+	if err != nil {
+		return nil, err
+	}
 	if validate.IsNil(emailConfig) || !emailConfig.GetEnable() {
 		// no email config
 		return &common.EmptyReply{}, nil
@@ -81,13 +79,14 @@ func (s *SendService) Sms(ctx context.Context, req *rabbitv1.SendSmsRequest) (*c
 	if !s.lockBiz.LockByAPP(ctx, req.GetRequestId(), vobj.APPSms) {
 		return &common.EmptyReply{}, nil
 	}
-	smsConfig, _ := build.ToSMSConfig(req.GetSmsConfig())
 	params := &bo.GetSMSConfigParams{
-		TeamID:           req.GetTeamId(),
-		Name:             req.ConfigName,
-		DefaultSMSConfig: smsConfig,
+		TeamID: req.GetTeamId(),
+		Name:   req.ConfigName,
 	}
-	smsConfig = s.configBiz.GetSMSConfig(ctx, params)
+	smsConfig, err := s.configBiz.GetSMSConfig(ctx, params)
+	if err != nil {
+		return nil, err
+	}
 	if validate.IsNil(smsConfig) || !smsConfig.GetEnable() {
 		// no sms config
 		return &common.EmptyReply{}, nil
@@ -108,49 +107,28 @@ func (s *SendService) Sms(ctx context.Context, req *rabbitv1.SendSmsRequest) (*c
 }
 
 func (s *SendService) Hook(ctx context.Context, req *rabbitv1.SendHookRequest) (*common.EmptyReply, error) {
-	hookConfigs := slices.MapFilter(req.GetHooks(), func(hookItem *common.HookConfig) (bo.HookConfig, bool) {
-		if !s.lockBiz.LockByAPP(ctx, req.GetRequestId(), build.ToSendHookAPP(hookItem.GetApp())) {
-			return nil, false
-		}
-		opts := []do.HookConfigOption{
-			do.WithHookConfigOptionApp(hookItem.App),
-			do.WithHookConfigOptionEnable(hookItem.Enable),
-			do.WithHookConfigOptionHeaders(hookItem.Headers),
-			do.WithHookConfigOptionName(hookItem.Name),
-			do.WithHookConfigOptionPassword(hookItem.Password),
-			do.WithHookConfigOptionSecret(hookItem.Secret),
-			do.WithHookConfigOptionToken(hookItem.Token),
-			do.WithHookConfigOptionUsername(hookItem.Username),
-		}
-		hookConfig, err := do.NewHookConfig(hookItem.Url, opts...)
-		if err != nil {
-			return nil, false
-		}
-		params := &bo.GetHookConfigParams{
-			TeamID:            req.GetTeamId(),
-			Name:              pointer.Of(hookItem.Name),
-			DefaultHookConfig: hookConfig,
-		}
-		hookConfigDo := s.configBiz.GetHookConfig(ctx, params)
-		if validate.IsNil(hookConfigDo) || !hookConfigDo.GetEnable() {
-			return nil, false
-		}
-		return hookConfig, true
-	})
-	if len(hookConfigs) == 0 || len(req.GetBody()) == 0 {
+	params := &bo.GetHookConfigParams{
+		TeamID: req.GetTeamId(),
+		Name:   req.ConfigName,
+	}
+	hookConfig, err := s.configBiz.GetHookConfig(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	if validate.IsNil(hookConfig) || !hookConfig.GetEnable() {
 		return &common.EmptyReply{}, nil
 	}
 	bodyMap := make([]*bo.HookBody, 0, len(req.GetBody()))
 	for _, body := range req.GetBody() {
 		bodyMap = append(bodyMap, &bo.HookBody{
-			AppName: body.GetAppName(),
-			Body:    []byte(body.GetBody()),
+			AppName: body,
+			Body:    []byte(body),
 		})
 	}
 	opts := []bo.SendHookParamsOption{
 		bo.WithSendHookParamsOptionBody(bodyMap),
 	}
-	sendHookParams, err := bo.NewSendHookParams(hookConfigs, opts...)
+	sendHookParams, err := bo.NewSendHookParams([]bo.HookConfig{hookConfig}, opts...)
 	if err != nil {
 		return nil, err
 	}

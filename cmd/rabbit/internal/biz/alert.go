@@ -54,7 +54,7 @@ func (a *Alert) SendAlert(ctx context.Context, alert *bo.AlertsItem) error {
 }
 
 func (a *Alert) sendEmail(ctx context.Context, noticeGroupConfig bo.NoticeGroup, alert *bo.AlertsItem) {
-	emails := noticeGroupConfig.GetEmailUserNames()
+	emails := noticeGroupConfig.GetEmailReceivers()
 	if len(emails) == 0 {
 		return
 	}
@@ -86,7 +86,7 @@ func (a *Alert) sendEmail(ctx context.Context, noticeGroupConfig bo.NoticeGroup,
 }
 
 func (a *Alert) sendSms(ctx context.Context, noticeGroupConfig bo.NoticeGroup, alert *bo.AlertsItem) {
-	phoneNumbers := noticeGroupConfig.GetSmsUserNames()
+	phoneNumbers := noticeGroupConfig.GetSmsReceivers()
 	if len(phoneNumbers) == 0 {
 		return
 	}
@@ -116,8 +116,9 @@ func (a *Alert) sendSms(ctx context.Context, noticeGroupConfig bo.NoticeGroup, a
 		a.helper.WithContext(ctx).Warnw("method", "sendSms", "err", err)
 	}
 }
+
 func (a *Alert) sendHook(ctx context.Context, noticeGroupConfig bo.NoticeGroup, alert *bo.AlertsItem) {
-	hookNames := noticeGroupConfig.GetHookConfigNames()
+	hookNames := noticeGroupConfig.GetHookReceivers()
 	if len(hookNames) == 0 {
 		return
 	}

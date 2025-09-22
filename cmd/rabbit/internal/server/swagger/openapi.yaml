@@ -388,15 +388,15 @@ components:
                     type: string
                 emailConfigName:
                     type: string
-                hookConfigNames:
+                hookReceivers:
                     type: array
                     items:
                         type: string
-                smsUserNames:
+                smsReceivers:
                     type: array
                     items:
                         type: string
-                emailUserNames:
+                emailReceivers:
                     type: array
                     items:
                         type: string
@@ -458,8 +458,6 @@ components:
                     type: array
                     items:
                         type: string
-                emailConfig:
-                    $ref: '#/components/schemas/api.rabbit.common.EmailConfig'
                 configName:
                     type: string
                 teamId:
@@ -470,24 +468,15 @@ components:
             properties:
                 requestId:
                     type: string
-                hooks:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.rabbit.common.HookConfig'
                 body:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.rabbit.v1.SendHookRequest_Body'
+                        type: string
+                configName:
+                    type: string
                 teamId:
                     type: integer
                     format: uint32
-        api.rabbit.v1.SendHookRequest_Body:
-            type: object
-            properties:
-                appName:
-                    type: string
-                body:
-                    type: string
         api.rabbit.v1.SendSmsRequest:
             type: object
             properties:
@@ -501,8 +490,6 @@ components:
                     type: string
                 templateCode:
                     type: string
-                smsConfig:
-                    $ref: '#/components/schemas/api.rabbit.common.SMSConfig'
                 configName:
                     type: string
                 teamId:
