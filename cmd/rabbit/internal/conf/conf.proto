@@ -3,8 +3,6 @@ syntax = "proto3";
 package cmd.rabbit.internal.conf;
 
 import "config.proto";
-import "rabbit/common/hook.proto";
-import "rabbit/common/notice_group.proto";
 
 option go_package = "github.com/aide-family/moon/cmd/rabbit/internal/conf;conf";
 
@@ -16,13 +14,13 @@ message Bootstrap {
   config.Log log = 5;
   config.Registry registry = 6;
   Auth auth = 7;
-  repeated config.EmailConfig emailConfig = 8;
-  repeated config.AliyunSMSConfig aliyunSMSConfig = 9;
-  config.MicroServer palace = 10;
-  config.I18N i18n = 11;
-  config.ConfigSource configSource = 12;
-  repeated api.rabbit.common.HookConfig hookConfig = 13;
-  repeated api.rabbit.common.NoticeGroup noticeGroupConfig = 14;
+  config.MicroServer palace = 8;
+  config.I18N i18n = 9;
+  config.ConfigSource configSource = 10;
+  repeated EmailConfigs emailConfigs = 11;
+  repeated SMSConfigs smsConfigs = 12;
+  repeated HookConfigs hookConfigs = 13;
+  repeated NoticeGroupConfigs noticeGroupConfigs = 14;
 }
 
 message Data {
@@ -35,5 +33,106 @@ message Auth {
   }
   config.JWT jwt = 1;
   repeated Token tokens = 2;
+}
+
+// email config
+message EmailConfig { 
+  string user = 1;
+  string pass = 2;
+  string host = 3;
+  uint32 port = 4;
+  bool enable = 5;
+  string name = 6;
+}
+
+message EmailConfigs {
+  uint32 teamId = 1;
+  string name = 2;
+  repeated EmailConfig configs = 3;
+}
+
+message AliyunSMSConfig {
+  string accessKeyId = 1;
+  string accessKeySecret = 2;
+  string signName = 3;
+  string endpoint = 4;
+  string name = 5;
+}
+
+message SMSConfig {
+  enum Type {
+    UNKNOWN = 0;
+    ALIYUN = 1;
+  }
+  Type type = 1;
+  AliyunSMSConfig aliyun = 2;
+  bool enable = 3;
+}
+
+message SMSConfigs {
+  uint32 teamId = 1;
+  string name = 2;
+  repeated SMSConfig configs = 3;
+}
+
+enum HookAPP {
+  UNKNOWN = 0;
+  OTHER = 1;
+  DINGTALK = 2;
+  WECHAT = 3;
+  FEISHU = 4;
+}
+
+message HookConfig {
+  string name = 1;
+  HookAPP app = 2;
+  string url = 3;
+  string secret = 4;
+  string token = 5;
+  string username = 6;
+  string password = 7;
+  map<string, string> headers = 8;
+  bool enable = 9;
+}
+
+message HookConfigs {
+  uint32 teamId = 1;
+  string name = 2;
+  repeated HookConfig configs = 3;
+}
+
+
+enum NoticeType {
+  UNKNOWN = 0;
+  EMAIL = 1;
+  SMS = 2;
+  VOICE = 3;
+  HOOK_DINGTALK = 4;
+  HOOK_WECHAT = 5;
+  HOOK_FEISHU = 6;
+  HOOK_OTHER = 7;
+}
+
+message NoticeGroupConfig {
+	message Template {
+	  NoticeType type = 1;
+	  string template = 2;
+	  string templateParameters = 3;
+	  string subject = 4;
+	}
+
+	string name = 1;
+	string smsConfigName = 2;
+	string emailConfigName = 3;
+	repeated string hookReceivers = 4;
+	repeated string smsReceivers = 5;
+	repeated string emailReceivers = 6;
+	repeated Template templates = 7;
+}
+
+message NoticeGroupConfigs {
+  uint32 teamId = 1;
+  string name = 2;
+  repeated NoticeGroupConfig configs = 3;
 }
 

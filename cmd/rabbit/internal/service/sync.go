@@ -66,8 +66,8 @@ func (s *SyncService) Hook(ctx context.Context, req *apiv1.SyncHookRequest) (*co
 }
 
 func (s *SyncService) NoticeGroup(ctx context.Context, req *apiv1.SyncNoticeGroupRequest) (*common.EmptyReply, error) {
-	noticeGroups := slices.Map(req.GetNoticeGroups(), func(noticeGroupItem *common.NoticeGroup) bo.NoticeGroup {
-		templates := slices.Map(noticeGroupItem.GetTemplates(), func(templateItem *common.NoticeGroup_Template) bo.Template {
+	noticeGroups := slices.Map(req.GetNoticeGroups(), func(noticeGroupItem *common.NoticeGroupConfig) bo.NoticeGroup {
+		templates := slices.Map(noticeGroupItem.GetTemplates(), func(templateItem *common.NoticeGroupConfig_Template) bo.Template {
 			return templateItem
 		})
 		return bo.NewNoticeGroup(

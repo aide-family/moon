@@ -1,4 +1,4 @@
-aliyunSMSConfig:
+aliyunSMSConfigs:
   - name: 'default'
     accessKeyId: ${X_MOON_RABBIT_ALIYUN_SMS_ACCESS_KEY_ID}
     accessKeySecret: ${X_MOON_RABBIT_ALIYUN_SMS_ACCESS_KEY_SECRET}

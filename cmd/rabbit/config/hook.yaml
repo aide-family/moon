@@ -1,11 +1,11 @@
-hookConfig:
-- name: dingtalk
-  app: DINGTALK
-  url: https://oapi.dingtalk.com/robot/send
-  secret: secret
-  token: token
-  username: username
-  password: password
-  headers:
-    Content-Type: application/json
-  enable: true
+hookConfigs:
+  - name: dingtalk
+    app: DINGTALK
+    url: https://oapi.dingtalk.com/robot/send
+    secret: secret
+    token: token
+    username: username
+    password: password
+    headers:
+      Content-Type: application/json
+    enable: true

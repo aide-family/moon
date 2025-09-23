@@ -66,7 +66,7 @@ message SyncHookRequest {
 }
 
 message SyncNoticeGroupRequest {
-  repeated rabbit.common.NoticeGroup noticeGroups = 1;
+  repeated rabbit.common.NoticeGroupConfig noticeGroups = 1;
   uint32 teamId = 2 [(buf.validate.field).required = true];
 }
 

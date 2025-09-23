@@ -206,11 +206,11 @@ func ToSyncMetricRuleLabelNoticeItem(labelNotice do.StrategyMetricRuleLabelNotic
 	}
 }
 
-func ToSyncNoticeGroupItems(groupDos []do.NoticeGroup) []*rabbitconmmon.NoticeGroup {
+func ToSyncNoticeGroupItems(groupDos []do.NoticeGroup) []*rabbitconmmon.NoticeGroupConfig {
 	if validate.IsNil(groupDos) {
 		return nil
 	}
-	return slices.MapFilter(groupDos, func(groupDo do.NoticeGroup) (*rabbitconmmon.NoticeGroup, bool) {
+	return slices.MapFilter(groupDos, func(groupDo do.NoticeGroup) (*rabbitconmmon.NoticeGroupConfig, bool) {
 		if validate.IsNil(groupDo) {
 			return nil, false
 		}
@@ -222,11 +222,11 @@ func ToSyncNoticeGroupItems(groupDos []do.NoticeGroup) []*rabbitconmmon.NoticeGr
 	})
 }
 
-func ToSyncNoticeGroupItem(groupDo do.NoticeGroup) *rabbitconmmon.NoticeGroup {
+func ToSyncNoticeGroupItem(groupDo do.NoticeGroup) *rabbitconmmon.NoticeGroupConfig {
 	if validate.IsNil(groupDo) {
 		return nil
 	}
-	return &rabbitconmmon.NoticeGroup{
+	return &rabbitconmmon.NoticeGroupConfig{
 		Name:            groupDo.GetName(),
 		SmsConfigName:   groupDo.GetSMSConfig().GetName(),
 		EmailConfigName: groupDo.GetEmailConfig().GetName(),

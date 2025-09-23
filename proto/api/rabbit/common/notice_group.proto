@@ -6,7 +6,7 @@ import "common/notice.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/rabbit/common;common";
 
-message NoticeGroup {
+message NoticeGroupConfig {
 	message Template {
 	  api.common.NoticeType type = 1;
 	  string template = 2;
@@ -21,5 +21,5 @@ message NoticeGroup {
 	repeated string smsReceivers = 6;
 	repeated string emailReceivers = 7;
 	repeated Template templates = 8;
-  }
+}
   

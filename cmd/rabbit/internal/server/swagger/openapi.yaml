@@ -358,6 +358,9 @@ components:
         api.rabbit.common.HookConfig:
             type: object
             properties:
+                teamId:
+                    type: integer
+                    format: uint32
                 name:
                     type: string
                 app:
@@ -379,9 +382,12 @@ components:
                         type: string
                 enable:
                     type: boolean
-        api.rabbit.common.NoticeGroup:
+        api.rabbit.common.NoticeGroupConfig:
             type: object
             properties:
+                teamId:
+                    type: integer
+                    format: uint32
                 name:
                     type: string
                 smsConfigName:
@@ -403,8 +409,8 @@ components:
                 templates:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.rabbit.common.NoticeGroup_Template'
-        api.rabbit.common.NoticeGroup_Template:
+                        $ref: '#/components/schemas/api.rabbit.common.NoticeGroupConfig_Template'
+        api.rabbit.common.NoticeGroupConfig_Template:
             type: object
             properties:
                 type:
@@ -521,7 +527,7 @@ components:
                 noticeGroups:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.rabbit.common.NoticeGroup'
+                        $ref: '#/components/schemas/api.rabbit.common.NoticeGroupConfig'
                 teamId:
                     type: integer
                     format: uint32

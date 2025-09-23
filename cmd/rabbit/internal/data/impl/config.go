@@ -9,25 +9,22 @@ import (
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/do"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/rabbit/internal/conf"
 	"github.com/aide-family/moon/cmd/rabbit/internal/data"
 	"github.com/aide-family/moon/pkg/api/common"
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/slices"
 )
 
-func NewConfigRepo(d *data.Data, bc *conf.Bootstrap, logger log.Logger) repository.Config {
+func NewConfigRepo(d *data.Data, logger log.Logger) repository.Config {
 	return &configImpl{
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.config")),
 		Data:   d,
-		bc:     bc,
 	}
 }
 
 type configImpl struct {
 	helper *log.Helper
 	*data.Data
-	bc *conf.Bootstrap
 }
 
 func (c *configImpl) GetEmailConfig(ctx context.Context, teamID uint32, name string) (bo.EmailConfig, bool) {
