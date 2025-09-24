@@ -13,6 +13,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/rabbit/internal/conf"
 	"github.com/aide-family/moon/cmd/rabbit/internal/helper/middleware"
+	"github.com/aide-family/moon/pkg/hello"
 	"github.com/aide-family/moon/pkg/i18n"
 	"github.com/aide-family/moon/pkg/metric"
 	"github.com/aide-family/moon/pkg/middler"
@@ -40,6 +41,7 @@ func NewHTTPServer(bc *conf.Bootstrap, logger log.Logger) *http.Server {
 			middler.ExtractMetadata(),
 			i18n.I18n(),
 			logging.Server(logger),
+			metric.Server(hello.GetEnv().Name()),
 			authMiddleware,
 			middler.Validate(),
 		),

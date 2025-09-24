@@ -1,3 +1,4 @@
+// Package server is a server package for kratos.
 package server
 
 import (

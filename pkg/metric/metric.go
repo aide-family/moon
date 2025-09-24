@@ -1,3 +1,4 @@
+// Package metric is a metric package for kratos.
 package metric
 
 import "github.com/prometheus/client_golang/prometheus"
