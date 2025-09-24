@@ -64,8 +64,6 @@ func newRedisWithMiniRedis(c *config.Cache) (*redis.Client, error) {
 	options := newDefaultOptions(c)
 	options.Network = "tcp"
 	options.Addr = cli.Addr()
-	options.Username = ""
-	options.Password = ""
 	return redis.NewClient(options), nil
 }
 
@@ -77,8 +75,8 @@ func newDefaultOptions(c *config.Cache) *redis.Options {
 		Dialer:                     nil,
 		OnConnect:                  nil,
 		Protocol:                   int(c.GetProtocol()),
-		Username:                   "",
-		Password:                   "redis",
+		Username:                   c.GetUsername(),
+		Password:                   c.GetPassword(),
 		CredentialsProvider:        nil,
 		CredentialsProviderContext: nil,
 		DB:                         int(c.GetDb()),
