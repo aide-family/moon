@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
-	"github.com/aide-family/moon/pkg/api/common"
-	apicommon "github.com/aide-family/moon/pkg/api/rabbit/common"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
@@ -13,13 +12,13 @@ import (
 var _ cache.Object = (*NoticeGroupConfig)(nil)
 
 type NoticeGroupConfig struct {
-	Name            string                          `json:"name"`
-	SMSConfigName   string                          `json:"smsConfigName"`
-	EmailConfigName string                          `json:"emailConfigName"`
-	HookReceivers   []string                        `json:"hookReceivers"`
-	SMSReceivers    []string                        `json:"smsReceivers"`
-	EmailReceivers  []string                        `json:"emailReceivers"`
-	Templates       map[common.NoticeType]*Template `json:"templates"`
+	Name            string                 `json:"name"`
+	SMSConfigName   string                 `json:"smsConfigName"`
+	EmailConfigName string                 `json:"emailConfigName"`
+	HookReceivers   []string               `json:"hookReceivers"`
+	SMSReceivers    []string               `json:"smsReceivers"`
+	EmailReceivers  []string               `json:"emailReceivers"`
+	Templates       map[vobj.APP]*Template `json:"templates"`
 }
 
 // GetEmailConfigName implements bo.NoticeGroup.
@@ -35,7 +34,7 @@ func (n *NoticeGroupConfig) GetEmailTemplate() bo.Template {
 	if n == nil {
 		return nil
 	}
-	return n.Templates[common.NoticeType_NOTICE_TYPE_EMAIL]
+	return n.Templates[vobj.APPEmail]
 }
 
 // GetEmailReceivers implements bo.NoticeGroup.
@@ -46,7 +45,6 @@ func (n *NoticeGroupConfig) GetEmailReceivers() []string {
 	return n.EmailReceivers
 }
 
-// GetHookConfigNames implements bo.NoticeGroup.
 func (n *NoticeGroupConfig) GetHookReceivers() []string {
 	if n == nil {
 		return nil
@@ -55,11 +53,11 @@ func (n *NoticeGroupConfig) GetHookReceivers() []string {
 }
 
 // GetHookTemplate implements bo.NoticeGroup.
-func (n *NoticeGroupConfig) GetHookTemplate(app apicommon.HookAPP) string {
+func (n *NoticeGroupConfig) GetHookTemplate(app vobj.APP) string {
 	if n == nil {
 		return ""
 	}
-	t, ok := n.Templates[common.NoticeType_NOTICE_TYPE_HOOK_DINGTALK]
+	t, ok := n.Templates[vobj.APPHookDingTalk]
 	if !ok || validate.IsNil(t) {
 		return ""
 	}
@@ -87,7 +85,7 @@ func (n *NoticeGroupConfig) GetSmsTemplate() bo.Template {
 	if n == nil {
 		return nil
 	}
-	return n.Templates[common.NoticeType_NOTICE_TYPE_SMS]
+	return n.Templates[vobj.APPSms]
 }
 
 // GetSmsReceivers implements bo.NoticeGroup.
@@ -99,7 +97,7 @@ func (n *NoticeGroupConfig) GetSmsReceivers() []string {
 }
 
 // GetTemplate implements bo.NoticeGroup.
-func (n *NoticeGroupConfig) GetTemplate(noticeType common.NoticeType) bo.Template {
+func (n *NoticeGroupConfig) GetTemplate(noticeType vobj.APP) bo.Template {
 	if n == nil {
 		return nil
 	}
@@ -107,11 +105,11 @@ func (n *NoticeGroupConfig) GetTemplate(noticeType common.NoticeType) bo.Templat
 }
 
 // GetTemplates implements bo.NoticeGroup.
-func (n *NoticeGroupConfig) GetTemplates() map[common.NoticeType]bo.Template {
+func (n *NoticeGroupConfig) GetTemplates() map[vobj.APP]bo.Template {
 	if n == nil {
 		return nil
 	}
-	templates := make(map[common.NoticeType]bo.Template, len(n.Templates))
+	templates := make(map[vobj.APP]bo.Template, len(n.Templates))
 	for k, v := range n.Templates {
 		templates[k] = v
 	}
@@ -119,10 +117,10 @@ func (n *NoticeGroupConfig) GetTemplates() map[common.NoticeType]bo.Template {
 }
 
 type Template struct {
-	Type           common.NoticeType `json:"type"`
-	Template       string            `json:"template"`
-	TemplateParams string            `json:"templateParams"`
-	Subject        string            `json:"subject"`
+	Type           vobj.APP `json:"type"`
+	Template       string   `json:"template"`
+	TemplateParams string   `json:"templateParams"`
+	Subject        string   `json:"subject"`
 }
 
 // GetTemplate implements bo.Template.
@@ -150,9 +148,9 @@ func (t *Template) GetSubject() string {
 }
 
 // GetType implements bo.Template.
-func (t *Template) GetType() common.NoticeType {
+func (t *Template) GetType() vobj.APP {
 	if t == nil {
-		return common.NoticeType_NOTICE_TYPE_UNKNOWN
+		return vobj.APPUnknown
 	}
 	return t.Type
 }

@@ -1,7 +1,7 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/pkg/api/rabbit/common"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/slices"
 )
@@ -26,8 +26,8 @@ func NewSendHookParams(configs []HookConfig, opts ...SendHookParamsOption) (Send
 
 type HookConfig interface {
 	GetName() string
-	GetApp() common.HookAPP
-	GetUrl() string
+	GetApp() vobj.APP
+	GetURL() string
 	GetSecret() string
 	GetToken() string
 	GetUsername() string
@@ -67,7 +67,7 @@ func (s *sendHookParams) GetConfigs() []HookConfig {
 	if s == nil {
 		return nil
 	}
-	return slices.UniqueWithFunc(s.Configs, func(configItem HookConfig) string { return configItem.GetUrl() })
+	return slices.UniqueWithFunc(s.Configs, func(configItem HookConfig) string { return configItem.GetURL() })
 }
 
 type SendHookParamsOption func(params *sendHookParams) error

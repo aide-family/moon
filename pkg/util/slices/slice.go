@@ -1,8 +1,10 @@
+// Package slices provides some useful functions for slices.
 package slices
 
 import (
 	"encoding"
 	"encoding/json"
+	"slices"
 
 	"github.com/aide-family/moon/pkg/util/validate"
 )
@@ -63,10 +65,18 @@ func UniqueWithFunc[T any, K comparable](s []T, f func(v T) K) []T {
 	return r
 }
 
-func ToMap[T any, K comparable](s []T, f func(v T) K) map[K]T {
+func ToMap[T any, K comparable](s []T, f func(v T) K, isCover ...bool) map[K]T {
 	m := make(map[K]T)
+	cover := len(isCover) > 0 && isCover[0]
+
 	for _, v := range s {
-		m[f(v)] = v
+		if cover {
+			m[f(v)] = v
+			continue
+		}
+		if _, ok := m[f(v)]; !ok {
+			m[f(v)] = v
+		}
 	}
 	return m
 }
@@ -112,11 +122,18 @@ func GroupBy[T any, K comparable](s []T, f func(v T) K) map[K][]T {
 	return m
 }
 
-func Contains[T comparable](s []T, v T) bool {
-	for _, item := range s {
-		if item == v {
-			return true
+func GroupByWithValue[T any, R any, K comparable](s []T, f func(v T) (K, R)) map[K][]R {
+	m := make(map[K][]R)
+	for _, v := range s {
+		key, value := f(v)
+		if _, ok := m[key]; !ok {
+			m[key] = make([]R, 0, len(s))
 		}
+		m[key] = append(m[key], value)
 	}
-	return false
+	return m
+}
+
+func Contains[T comparable](s []T, v T) bool {
+	return slices.Contains(s, v)
 }

@@ -1,7 +1,8 @@
+// Package bo provides the business objects for the SMS.
 package bo
 
 import (
-	"github.com/aide-family/moon/pkg/api/rabbit/common"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -23,8 +24,8 @@ func NewSendSMSParams(config SMSConfig, opts ...SendSMSParamsOption) (SendSMSPar
 }
 
 type SMSConfig interface {
-	GetType() common.SMSConfig_Type
-	GetAccessKeyId() string
+	GetType() vobj.SMSProviderType
+	GetAccessKeyID() string
 	GetAccessKeySecret() string
 	GetSignName() string
 	GetEndpoint() string

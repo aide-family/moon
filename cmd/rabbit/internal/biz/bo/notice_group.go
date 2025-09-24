@@ -1,8 +1,7 @@
 package bo
 
 import (
-	"github.com/aide-family/moon/pkg/api/common"
-	apicommon "github.com/aide-family/moon/pkg/api/rabbit/common"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -13,11 +12,11 @@ type NoticeGroup interface {
 	GetSmsReceivers() []string
 	GetEmailReceivers() []string
 	GetHookReceivers() []string
-	GetTemplates() map[common.NoticeType]Template
-	GetTemplate(noticeType common.NoticeType) Template
+	GetTemplates() map[vobj.APP]Template
+	GetTemplate(noticeType vobj.APP) Template
 	GetSmsTemplate() Template
 	GetEmailTemplate() Template
-	GetHookTemplate(app apicommon.HookAPP) string
+	GetHookTemplate(app vobj.APP) string
 }
 
 type GetNoticeGroupConfigParams struct {
@@ -32,7 +31,7 @@ type SetNoticeGroupConfigParams struct {
 
 func NewNoticeGroup(opts ...NoticeGroupOption) NoticeGroup {
 	noticeGroup := &noticeGroup{
-		templates: make(map[common.NoticeType]Template, 7),
+		templates: make(map[vobj.APP]Template, 7),
 	}
 	for _, opt := range opts {
 		opt(noticeGroup)
@@ -49,7 +48,7 @@ type noticeGroup struct {
 	smsReceivers    []string
 	emailReceivers  []string
 	hookReceivers   []string
-	templates       map[common.NoticeType]Template
+	templates       map[vobj.APP]Template
 }
 
 // GetSmsReceivers implements NoticeGroup.
@@ -83,34 +82,34 @@ func (n *noticeGroup) GetEmailConfigName() string {
 }
 
 // GetTemplates implements NoticeGroup.
-func (n *noticeGroup) GetTemplates() map[common.NoticeType]Template {
+func (n *noticeGroup) GetTemplates() map[vobj.APP]Template {
 	return n.templates
 }
 
-func (n *noticeGroup) GetTemplate(noticeType common.NoticeType) Template {
+func (n *noticeGroup) GetTemplate(noticeType vobj.APP) Template {
 	return n.templates[noticeType]
 }
 
 func (n *noticeGroup) GetSmsTemplate() Template {
-	return n.templates[common.NoticeType_NOTICE_TYPE_SMS]
+	return n.templates[vobj.APPSms]
 }
 
 func (n *noticeGroup) GetEmailTemplate() Template {
-	return n.templates[common.NoticeType_NOTICE_TYPE_EMAIL]
+	return n.templates[vobj.APPEmail]
 }
 
-func (n *noticeGroup) GetHookTemplate(app apicommon.HookAPP) string {
+func (n *noticeGroup) GetHookTemplate(app vobj.APP) string {
 	var template Template
 	var ok bool
 	switch app {
-	case apicommon.HookAPP_DINGTALK:
-		template, ok = n.templates[common.NoticeType_NOTICE_TYPE_HOOK_DINGTALK]
-	case apicommon.HookAPP_WECHAT:
-		template, ok = n.templates[common.NoticeType_NOTICE_TYPE_HOOK_WECHAT]
-	case apicommon.HookAPP_FEISHU:
-		template, ok = n.templates[common.NoticeType_NOTICE_TYPE_HOOK_FEISHU]
-	case apicommon.HookAPP_OTHER:
-		template, ok = n.templates[common.NoticeType_NOTICE_TYPE_HOOK_WEBHOOK]
+	case vobj.APPHookDingTalk:
+		template, ok = n.templates[vobj.APPHookDingTalk]
+	case vobj.APPHookWechat:
+		template, ok = n.templates[vobj.APPHookWechat]
+	case vobj.APPHookFeiShu:
+		template, ok = n.templates[vobj.APPHookFeiShu]
+	case vobj.APPHookOther:
+		template, ok = n.templates[vobj.APPHookOther]
 	}
 	if !ok || validate.IsNil(template) {
 		return ""
@@ -155,7 +154,7 @@ func WithNoticeGroupOptionEmailReceivers(emailReceivers []string) NoticeGroupOpt
 }
 
 type Template interface {
-	GetType() common.NoticeType
+	GetType() vobj.APP
 	GetTemplate() string
 	GetTemplateParameters() string
 	GetSubject() string

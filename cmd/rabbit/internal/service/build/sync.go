@@ -1,8 +1,10 @@
+// Package build provides the build functions for the sync.
 package build
 
 import (
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/do"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/api/rabbit/common"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -16,12 +18,12 @@ func ToSMSConfig(smsItem *common.SMSConfig) (bo.SMSConfig, bool) {
 	case common.SMSConfig_ALIYUN:
 		aliyunConfig := smsItem.GetAliyun()
 		return &do.SMSConfig{
-			AccessKeyId:     aliyunConfig.GetAccessKeyId(),
+			AccessKeyID:     aliyunConfig.GetAccessKeyId(),
 			AccessKeySecret: aliyunConfig.GetAccessKeySecret(),
 			Endpoint:        aliyunConfig.GetEndpoint(),
 			Name:            aliyunConfig.GetName(),
 			SignName:        aliyunConfig.GetSignName(),
-			Type:            smsItem.GetType(),
+			Type:            vobj.SMSProviderType(smsItem.GetType()),
 			Enable:          smsItem.GetEnable(),
 		}, true
 	default:

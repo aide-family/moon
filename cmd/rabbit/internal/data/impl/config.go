@@ -2,6 +2,7 @@ package impl
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
 
@@ -9,22 +10,140 @@ import (
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/do"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
+	"github.com/aide-family/moon/cmd/rabbit/internal/conf"
 	"github.com/aide-family/moon/cmd/rabbit/internal/data"
 	"github.com/aide-family/moon/pkg/api/common"
+	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/slices"
 )
 
-func NewConfigRepo(d *data.Data, logger log.Logger) repository.Config {
-	return &configImpl{
+func NewConfigRepo(d *data.Data, bc *conf.Bootstrap, logger log.Logger) (repository.Config, error) {
+	configRepo := &configImpl{
 		helper: log.NewHelper(log.With(logger, "module", "data.repo.config")),
+		bc:     bc,
 		Data:   d,
 	}
+	if err := configRepo.initConfig(); err != nil {
+		return nil, err
+	}
+	return configRepo, nil
 }
 
 type configImpl struct {
 	helper *log.Helper
+	bc     *conf.Bootstrap
 	*data.Data
+}
+
+func (c *configImpl) initConfig() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := c.initEmailConfig(ctx, c.bc.GetEmailConfigs()); err != nil {
+		return err
+	}
+	if err := c.initSMSConfig(ctx, c.bc.GetSmsConfigs()); err != nil {
+		return err
+	}
+	if err := c.initHookConfig(ctx, c.bc.GetHookConfigs()); err != nil {
+		return err
+	}
+	if err := c.initNoticeGroupConfig(ctx, c.bc.GetNoticeGroupConfigs()); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *configImpl) initEmailConfig(ctx context.Context, configs []*conf.EmailConfigs) error {
+	emailGroup := make(map[uint32][]bo.EmailConfig)
+	for _, v := range configs {
+		teamID := v.GetTeamId()
+		emailConfigs := v.GetConfigs()
+		if _, ok := emailGroup[teamID]; !ok {
+			emailGroup[teamID] = make([]bo.EmailConfig, 0, len(emailConfigs))
+		}
+		for _, v := range emailConfigs {
+			emailGroup[teamID] = append(emailGroup[teamID], v)
+		}
+	}
+	for teamID, v := range emailGroup {
+		if err := c.SetEmailConfig(ctx, teamID, v...); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *configImpl) initSMSConfig(ctx context.Context, configs []*conf.SMSConfigs) error {
+	smsGroup := make(map[uint32][]bo.SMSConfig)
+	for _, v := range configs {
+		teamID := v.GetTeamId()
+		smsConfigs := v.GetConfigs()
+		if _, ok := smsGroup[teamID]; !ok {
+			smsGroup[teamID] = make([]bo.SMSConfig, 0, len(smsConfigs))
+		}
+		for _, v := range smsConfigs {
+			provider := v.GetType()
+			var smsConfig *do.SMSConfig
+			switch provider {
+			case conf.SMSConfig_ALIYUN:
+				aliyunConfig := v.GetAliyun()
+				smsConfig = &do.SMSConfig{
+					AccessKeyID:     aliyunConfig.GetAccessKeyId(),
+					AccessKeySecret: aliyunConfig.GetAccessKeySecret(),
+					Endpoint:        aliyunConfig.GetEndpoint(),
+					Name:            aliyunConfig.GetName(),
+					SignName:        aliyunConfig.GetSignName(),
+					Type:            vobj.SMSProviderTypeAliyun,
+					Enable:          v.GetEnable(),
+				}
+			default:
+				c.helper.WithContext(ctx).Warnw("method", "initSMSConfig", "err", merr.ErrorParams("No SMS configuration is available"))
+				continue
+			}
+			smsGroup[teamID] = append(smsGroup[teamID], smsConfig)
+		}
+	}
+	for teamID, v := range smsGroup {
+		if err := c.SetSMSConfig(ctx, teamID, v...); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *configImpl) initHookConfig(ctx context.Context, configs []*conf.HookConfigs) error {
+	hookGroup := make(map[uint32][]bo.HookConfig)
+	for _, v := range configs {
+		teamID := v.GetTeamId()
+		hookConfigs := v.GetConfigs()
+		if _, ok := hookGroup[teamID]; !ok {
+			hookGroup[teamID] = make([]bo.HookConfig, 0, len(hookConfigs))
+		}
+		for _, v := range hookConfigs {
+			hookGroup[teamID] = append(hookGroup[teamID], &do.HookConfig{
+				Name:     v.GetName(),
+				App:      vobj.APP(v.GetApp()),
+				URL:      v.GetUrl(),
+				Secret:   v.GetSecret(),
+				Token:    v.GetToken(),
+				Username: v.GetUsername(),
+				Password: v.GetPassword(),
+				Headers:  v.GetHeaders(),
+				Enable:   v.GetEnable(),
+			})
+		}
+	}
+	for teamID, v := range hookGroup {
+		if err := c.SetHookConfig(ctx, teamID, v...); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *configImpl) initNoticeGroupConfig(ctx context.Context, configs []*conf.NoticeGroupConfigs) error {
+	return nil
 }
 
 func (c *configImpl) GetEmailConfig(ctx context.Context, teamID uint32, name string) (bo.EmailConfig, bool) {
@@ -133,7 +252,7 @@ func (c *configImpl) SetSMSConfig(ctx context.Context, teamID uint32, configs ..
 	configDos := make(map[string]any, len(configs))
 	for _, v := range configs {
 		item := &do.SMSConfig{
-			AccessKeyId:     v.GetAccessKeyId(),
+			AccessKeyID:     v.GetAccessKeyID(),
 			AccessKeySecret: v.GetAccessKeySecret(),
 			Endpoint:        v.GetEndpoint(),
 			Name:            v.GetName(),
@@ -194,7 +313,7 @@ func (c *configImpl) SetHookConfig(ctx context.Context, teamID uint32, configs .
 		item := &do.HookConfig{
 			Name:     v.GetName(),
 			App:      v.GetApp(),
-			Url:      v.GetUrl(),
+			URL:      v.GetURL(),
 			Secret:   v.GetSecret(),
 			Token:    v.GetToken(),
 			Username: v.GetUsername(),
@@ -252,7 +371,7 @@ func (c *configImpl) GetNoticeGroupConfigs(ctx context.Context, teamID uint32, n
 func (c *configImpl) SetNoticeGroupConfig(ctx context.Context, teamID uint32, configs ...bo.NoticeGroup) error {
 	configDos := make(map[string]any, len(configs))
 	for _, v := range configs {
-		templateMap := make(map[common.NoticeType]*do.Template, len(v.GetTemplates()))
+		templateMap := make(map[vobj.APP]*do.Template, len(v.GetTemplates()))
 		for _, t := range v.GetTemplates() {
 			templateMap[t.GetType()] = &do.Template{
 				Type:           t.GetType(),

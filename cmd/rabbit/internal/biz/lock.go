@@ -22,8 +22,8 @@ type Lock struct {
 	helper    *log.Helper
 }
 
-func (l *Lock) LockByAPP(ctx context.Context, requestId string, app vobj.APP) bool {
-	key := vobj.SendLockKey.Key(requestId, app.String())
+func (l *Lock) LockByAPP(ctx context.Context, requestID string, app vobj.APP) bool {
+	key := vobj.SendLockKey.Key(requestID, app.String())
 	locked, err := l.cacheRepo.Lock(ctx, key, 2*time.Hour)
 	if err != nil {
 		l.helper.WithContext(ctx).Warnw("msg", "failed to lock", "key", key, "err", err)
@@ -32,8 +32,8 @@ func (l *Lock) LockByAPP(ctx context.Context, requestId string, app vobj.APP) bo
 	return locked
 }
 
-func (l *Lock) UnlockByAPP(ctx context.Context, requestId string, app vobj.APP) {
-	key := vobj.SendLockKey.Key(requestId, app.String())
+func (l *Lock) UnlockByAPP(ctx context.Context, requestID string, app vobj.APP) {
+	key := vobj.SendLockKey.Key(requestID, app.String())
 	err := l.cacheRepo.Unlock(ctx, key)
 	if err != nil {
 		l.helper.WithContext(ctx).Warnw("msg", "failed to unlock", "key", key, "err", err)

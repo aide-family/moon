@@ -1,3 +1,4 @@
+// Package alicloud provides the Alibaba Cloud SMS service.
 package alicloud
 
 import (
@@ -18,7 +19,7 @@ var _ sms.Sender = (*aliCloudImpl)(nil)
 
 func New(c Config, opts ...Option) (sms.Sender, error) {
 	a := &aliCloudImpl{
-		accessKeyID:     c.GetAccessKeyId(),
+		accessKeyID:     c.GetAccessKeyID(),
 		accessKeySecret: c.GetAccessKeySecret(),
 		signName:        c.GetSignName(),
 		endpoint:        c.GetEndpoint(),
@@ -41,7 +42,7 @@ func New(c Config, opts ...Option) (sms.Sender, error) {
 
 type Config interface {
 	GetAccessKeySecret() string
-	GetAccessKeyId() string
+	GetAccessKeyID() string
 	GetSignName() string
 	GetEndpoint() string
 }
@@ -107,25 +108,25 @@ func (a *aliCloudImpl) SendBatch(ctx context.Context, phoneNumbers []string, mes
 		templateParams = append(templateParams, message.TemplateParam)
 	}
 
-	phoneNumberJson, err := json.Marshal(phoneNumbers)
+	phoneNumberBytes, err := json.Marshal(phoneNumbers)
 	if err != nil {
 		a.helper.WithContext(ctx).Errorf("Failed to marshal phone numbers: %v", err)
 		return merr.ErrorBadRequest("Failed to marshal phone numbers").WithCause(err)
 	}
-	signNameJson, err := json.Marshal(signNames)
+	signNameBytes, err := json.Marshal(signNames)
 	if err != nil {
 		a.helper.WithContext(ctx).Errorf("Failed to marshal sign names: %v", err)
 		return merr.ErrorBadRequest("Failed to marshal sign names").WithCause(err)
 	}
-	templateParamJson, err := json.Marshal(templateParams)
+	templateParamBytes, err := json.Marshal(templateParams)
 	if err != nil {
 		a.helper.WithContext(ctx).Errorf("Failed to marshal template params: %v", err)
 		return merr.ErrorBadRequest("Failed to marshal template params").WithCause(err)
 	}
 	sendBatchSmsRequest := &dysmsapiV3.SendBatchSmsRequest{
-		PhoneNumberJson:   pointer.Of(string(phoneNumberJson)),
-		SignNameJson:      pointer.Of(string(signNameJson)),
-		TemplateParamJson: pointer.Of(string(templateParamJson)),
+		PhoneNumberJson:   pointer.Of(string(phoneNumberBytes)),
+		SignNameJson:      pointer.Of(string(signNameBytes)),
+		TemplateParamJson: pointer.Of(string(templateParamBytes)),
 		TemplateCode:      pointer.Of(message.TemplateCode),
 	}
 

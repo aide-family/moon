@@ -5,10 +5,12 @@ import (
 
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
-	"github.com/aide-family/moon/cmd/rabbit/internal/helper/permission"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/do"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/rabbit/internal/service/build"
 	"github.com/aide-family/moon/pkg/api/rabbit/common"
 	apiv1 "github.com/aide-family/moon/pkg/api/rabbit/v1"
+	"github.com/aide-family/moon/pkg/middler/permission"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -57,7 +59,17 @@ func (s *SyncService) Email(ctx context.Context, req *apiv1.SyncEmailRequest) (*
 func (s *SyncService) Hook(ctx context.Context, req *apiv1.SyncHookRequest) (*common.EmptyReply, error) {
 	teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
 	hooks := slices.Map(req.GetHooks(), func(hookItem *common.HookConfig) bo.HookConfig {
-		return hookItem
+		return &do.HookConfig{
+			Name:     hookItem.GetName(),
+			App:      vobj.APP(hookItem.GetApp()),
+			URL:      hookItem.GetUrl(),
+			Secret:   hookItem.GetSecret(),
+			Token:    hookItem.GetToken(),
+			Username: hookItem.GetUsername(),
+			Password: hookItem.GetPassword(),
+			Headers:  hookItem.GetHeaders(),
+			Enable:   hookItem.GetEnable(),
+		}
 	})
 	params := &bo.SetHookConfigParams{
 		TeamID:  teamID,
@@ -73,7 +85,12 @@ func (s *SyncService) NoticeGroup(ctx context.Context, req *apiv1.SyncNoticeGrou
 	teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
 	noticeGroups := slices.Map(req.GetNoticeGroups(), func(noticeGroupItem *common.NoticeGroupConfig) bo.NoticeGroup {
 		templates := slices.Map(noticeGroupItem.GetTemplates(), func(templateItem *common.NoticeGroupConfig_Template) bo.Template {
-			return templateItem
+			return &do.Template{
+				Type:           vobj.APP(templateItem.GetType()),
+				Template:       templateItem.GetTemplate(),
+				TemplateParams: templateItem.GetTemplateParameters(),
+				Subject:        templateItem.GetSubject(),
+			}
 		})
 		return bo.NewNoticeGroup(
 			bo.WithNoticeGroupOptionName(noticeGroupItem.GetName()),

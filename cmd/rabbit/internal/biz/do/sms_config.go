@@ -3,20 +3,20 @@ package do
 import (
 	"encoding/json"
 
-	"github.com/aide-family/moon/pkg/api/rabbit/common"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/plugin/cache"
 )
 
 var _ cache.Object = (*SMSConfig)(nil)
 
 type SMSConfig struct {
-	AccessKeyId     string                `json:"accessKeyId"`
-	AccessKeySecret string                `json:"accessKeySecret"`
-	Endpoint        string                `json:"endpoint"`
-	Name            string                `json:"name"`
-	SignName        string                `json:"signName"`
-	Type            common.SMSConfig_Type `json:"type"`
-	Enable          bool                  `json:"enable"`
+	AccessKeyID     string               `json:"accessKeyId"`
+	AccessKeySecret string               `json:"accessKeySecret"`
+	Endpoint        string               `json:"endpoint"`
+	Name            string               `json:"name"`
+	SignName        string               `json:"signName"`
+	Type            vobj.SMSProviderType `json:"type"`
+	Enable          bool                 `json:"enable"`
 }
 
 func (s *SMSConfig) GetEnable() bool {
@@ -26,18 +26,18 @@ func (s *SMSConfig) GetEnable() bool {
 	return s.Enable
 }
 
-func (s *SMSConfig) GetType() common.SMSConfig_Type {
+func (s *SMSConfig) GetType() vobj.SMSProviderType {
 	if s == nil {
-		return common.SMSConfig_UNKNOWN
+		return vobj.SMSProviderTypeUnknown
 	}
 	return s.Type
 }
 
-func (s *SMSConfig) GetAccessKeyId() string {
+func (s *SMSConfig) GetAccessKeyID() string {
 	if s == nil {
 		return ""
 	}
-	return s.AccessKeyId
+	return s.AccessKeyID
 }
 
 func (s *SMSConfig) GetAccessKeySecret() string {

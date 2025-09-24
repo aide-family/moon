@@ -3,7 +3,7 @@ package do
 import (
 	"encoding/json"
 
-	"github.com/aide-family/moon/pkg/api/rabbit/common"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/cache"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -15,7 +15,7 @@ func NewHookConfig(url string, opts ...HookConfigOption) (*HookConfig, error) {
 	if err := validate.CheckURL(url); err != nil {
 		return nil, err
 	}
-	h := &HookConfig{Url: url}
+	h := &HookConfig{URL: url}
 	for _, opt := range opts {
 		if err := opt(h); err != nil {
 			return nil, err
@@ -34,7 +34,7 @@ func WithHookConfigOptionName(name string) HookConfigOption {
 	}
 }
 
-func WithHookConfigOptionApp(app common.HookAPP) HookConfigOption {
+func WithHookConfigOptionApp(app vobj.APP) HookConfigOption {
 	return func(h *HookConfig) error {
 		if app < 0 {
 			return merr.ErrorParams("app is empty")
@@ -88,8 +88,8 @@ func WithHookConfigOptionEnable(enable bool) HookConfigOption {
 
 type HookConfig struct {
 	Name     string            `json:"name"`
-	App      common.HookAPP    `json:"app"`
-	Url      string            `json:"url"`
+	App      vobj.APP          `json:"app"`
+	URL      string            `json:"url"`
 	Secret   string            `json:"secret"`
 	Token    string            `json:"token"`
 	Username string            `json:"username"`
@@ -107,18 +107,18 @@ func (h *HookConfig) GetName() string {
 	return h.Name
 }
 
-func (h *HookConfig) GetApp() common.HookAPP {
+func (h *HookConfig) GetApp() vobj.APP {
 	if h == nil {
 		return 0
 	}
 	return h.App
 }
 
-func (h *HookConfig) GetUrl() string {
+func (h *HookConfig) GetURL() string {
 	if h == nil {
 		return ""
 	}
-	return h.Url
+	return h.URL
 }
 
 func (h *HookConfig) GetSecret() string {

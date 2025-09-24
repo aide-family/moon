@@ -8,6 +8,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
+	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/rabbit/internal/data"
 	"github.com/aide-family/moon/pkg/api/rabbit/common"
 	"github.com/aide-family/moon/pkg/merr"
@@ -116,7 +117,7 @@ func (s *sendImpl) Hook(ctx context.Context, params bo.SendHookParams) error {
 
 func (s *sendImpl) newSms(config bo.SMSConfig) (sms.Sender, error) {
 	switch config.GetType() {
-	case common.SMSConfig_ALIYUN:
+	case vobj.SMSProviderTypeAliyun:
 		return alicloud.New(config, alicloud.WithLogger(s.helper.Logger()))
 	default:
 		return nil, merr.ErrorParams("No SMS configuration is available")

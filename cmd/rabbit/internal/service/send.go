@@ -8,9 +8,9 @@ import (
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/rabbit/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/api/rabbit/common"
 	rabbitv1 "github.com/aide-family/moon/pkg/api/rabbit/v1"
+	"github.com/aide-family/moon/pkg/middler/permission"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
