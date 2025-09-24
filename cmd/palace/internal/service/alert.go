@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/cmd/palace/internal/service/build"
 	apicommon "github.com/aide-family/moon/pkg/api/common"
 	"github.com/aide-family/moon/pkg/api/palace"
 	"github.com/aide-family/moon/pkg/api/palace/common"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/middler/permission"
 )
 
 func NewAlertService(realtimeBiz *biz.Realtime) *AlertService {

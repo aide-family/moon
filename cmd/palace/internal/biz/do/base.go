@@ -11,8 +11,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
 
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/middler/permission"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
 
@@ -50,8 +50,10 @@ type HasTableFun func(teamId uint32, tableName string) bool
 
 type CacheTableFlag func(teamId uint32, tableName string) error
 
-var registerGetUserFuncOnce sync.Once
-var getUser GetUserFun
+var (
+	registerGetUserFuncOnce sync.Once
+	getUser                 GetUserFun
+)
 
 func RegisterGetUserFunc(getUserFunc GetUserFun) {
 	registerGetUserFuncOnce.Do(func() {
@@ -63,8 +65,10 @@ func GetUser(id uint32) User {
 	return getUser(id)
 }
 
-var registerGetTeamFuncOnce sync.Once
-var getTeam GetTeamFun
+var (
+	registerGetTeamFuncOnce sync.Once
+	getTeam                 GetTeamFun
+)
 
 func RegisterGetTeamFunc(getTeamFunc GetTeamFun) {
 	registerGetTeamFuncOnce.Do(func() {
@@ -76,9 +80,11 @@ func GetTeam(id uint32) Team {
 	return getTeam(id)
 }
 
-var registerGetTeamMemberFuncOnce sync.Once
-var getTeamMember GetTeamMemberFun
-var getTeamMembers GetTeamMembersFun
+var (
+	registerGetTeamMemberFuncOnce sync.Once
+	getTeamMember                 GetTeamMemberFun
+	getTeamMembers                GetTeamMembersFun
+)
 
 func RegisterGetTeamMemberFunc(getTeamMemberFunc GetTeamMemberFun, getTeamMembersFunc GetTeamMembersFun) {
 	registerGetTeamMemberFuncOnce.Do(func() {
@@ -95,8 +101,10 @@ func GetTeamMembers(ids []uint32) []TeamMember {
 	return getTeamMembers(ids)
 }
 
-var registerHasTableFuncOnce sync.Once
-var hasTable HasTableFun = nil
+var (
+	registerHasTableFuncOnce sync.Once
+	hasTable                 HasTableFun = nil
+)
 
 func RegisterHasTableFunc(hasTableFunc HasTableFun) {
 	registerHasTableFuncOnce.Do(func() {
@@ -104,8 +112,10 @@ func RegisterHasTableFunc(hasTableFunc HasTableFun) {
 	})
 }
 
-var registerCacheTableFlagOnce sync.Once
-var cacheTableFlag CacheTableFlag = nil
+var (
+	registerCacheTableFlagOnce sync.Once
+	cacheTableFlag             CacheTableFlag = nil
+)
 
 func RegisterCacheTableFlag(cacheTableFlagFunc CacheTableFlag) {
 	registerCacheTableFlagOnce.Do(func() {

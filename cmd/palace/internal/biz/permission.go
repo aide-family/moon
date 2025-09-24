@@ -8,8 +8,8 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/middler/permission"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
@@ -125,8 +125,10 @@ func (h *basePermissionHandler) MenuHandler(findMenuByOperation FindMenuByOperat
 	}
 }
 
-type FindUserByID func(ctx context.Context, userID uint32) (do.User, error)
-type FindMenuByOperation func(ctx context.Context, operation string) (do.Menu, error)
+type (
+	FindUserByID        func(ctx context.Context, userID uint32) (do.User, error)
+	FindMenuByOperation func(ctx context.Context, operation string) (do.Menu, error)
+)
 
 // UserHandler user check
 func (h *basePermissionHandler) UserHandler(findUserByID FindUserByID) PermissionHandlerFunc {

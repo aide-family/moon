@@ -37,7 +37,7 @@ func NewHTTPServer(bc *conf.Bootstrap, logger log.Logger) *http.Server {
 			recovery.Recovery(),
 			tracing.Server(),
 			metadata.Server(),
-			middleware.ExtractMetadata(),
+			middler.ExtractMetadata(),
 			i18n.I18n(),
 			logging.Server(logger),
 			authMiddleware,

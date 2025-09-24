@@ -11,8 +11,8 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do/system"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/middler/permission"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )

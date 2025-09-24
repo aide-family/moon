@@ -8,8 +8,8 @@ import (
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/data"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/middler/permission"
 )
 
 // mainContextTxKey The context used to host the transaction

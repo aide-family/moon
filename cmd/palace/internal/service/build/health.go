@@ -8,7 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
+	"github.com/aide-family/moon/pkg/middler/permission"
 	"github.com/aide-family/moon/pkg/util/ips"
 	"github.com/aide-family/moon/pkg/util/validate"
 )

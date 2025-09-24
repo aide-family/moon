@@ -10,12 +10,12 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/cmd/palace/internal/service/build"
 	"github.com/aide-family/moon/pkg/api/common"
 	"github.com/aide-family/moon/pkg/api/palace"
 	palacecommon "github.com/aide-family/moon/pkg/api/palace/common"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/middler/permission"
 	"github.com/aide-family/moon/pkg/util/cnst"
 )
 

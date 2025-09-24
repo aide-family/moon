@@ -11,9 +11,9 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/do"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	houyiv1 "github.com/aide-family/moon/pkg/api/houyi/v1"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/middler/permission"
 )
 
 func NewTeamDatasourceBiz(

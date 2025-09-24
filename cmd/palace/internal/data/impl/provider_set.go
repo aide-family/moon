@@ -9,8 +9,8 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/data/query/eventgen"
 	"github.com/aide-family/moon/cmd/palace/internal/data/query/systemgen"
 	"github.com/aide-family/moon/cmd/palace/internal/data/query/teamgen"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/middler/permission"
 	"github.com/aide-family/moon/pkg/plugin/gorm"
 )
 

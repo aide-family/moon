@@ -30,7 +30,7 @@ func NewGRPCServer(bc *conf.Bootstrap, logger log.Logger) *grpc.Server {
 			recovery.Recovery(),
 			tracing.Server(),
 			metadata.Server(),
-			middleware.ExtractMetadata(),
+			middler.ExtractMetadata(),
 			i18n.I18n(),
 			logging.Server(logger),
 			authMiddleware,

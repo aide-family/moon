@@ -7,7 +7,7 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/transport/http"
 
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
+	"github.com/aide-family/moon/pkg/middler/permission"
 	"github.com/aide-family/moon/pkg/util/timex"
 )
 

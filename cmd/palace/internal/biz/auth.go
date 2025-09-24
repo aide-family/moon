@@ -15,8 +15,8 @@ import (
 	"github.com/aide-family/moon/cmd/palace/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/palace/internal/conf"
 	"github.com/aide-family/moon/cmd/palace/internal/helper/middleware"
-	"github.com/aide-family/moon/cmd/palace/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/middler/permission"
 	"github.com/aide-family/moon/pkg/util/hash"
 	"github.com/aide-family/moon/pkg/util/password"
 	"github.com/aide-family/moon/pkg/util/safety"
@@ -274,7 +274,6 @@ func (a *Auth) feiShuLogin(ctx context.Context, req *bo.OAuthLoginParams) (strin
 
 	verifier := oauth2.GenerateVerifier()
 	token, err := oAuthConf.Exchange(ctx, req.Code, oauth2.VerifierOption(verifier))
-
 	if err != nil {
 		return "", err
 	}
