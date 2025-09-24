@@ -10,7 +10,6 @@ import (
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/repository"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
 	"github.com/aide-family/moon/cmd/rabbit/internal/data"
-	"github.com/aide-family/moon/pkg/api/rabbit/common"
 	"github.com/aide-family/moon/pkg/merr"
 	"github.com/aide-family/moon/pkg/plugin/email"
 	"github.com/aide-family/moon/pkg/plugin/hook"
@@ -126,28 +125,28 @@ func (s *sendImpl) newSms(config bo.SMSConfig) (sms.Sender, error) {
 
 func (s *sendImpl) newHook(config bo.HookConfig) (hook.Sender, error) {
 	switch config.GetApp() {
-	case common.HookAPP_OTHER:
+	case vobj.APPHookOther:
 		opts := []other.Option{
 			other.WithBasicAuth(config.GetUsername(), config.GetPassword()),
 			other.WithLogger(s.helper.Logger()),
 			other.WithHeader(config.GetHeaders()),
 		}
-		return other.New(config.GetUrl(), opts...), nil
-	case common.HookAPP_DINGTALK:
+		return other.New(config.GetURL(), opts...), nil
+	case vobj.APPHookDingTalk:
 		opts := []dingtalk.Option{
 			dingtalk.WithLogger(s.helper.Logger()),
 		}
-		return dingtalk.New(config.GetUrl(), config.GetSecret(), opts...), nil
-	case common.HookAPP_WECHAT:
+		return dingtalk.New(config.GetURL(), config.GetSecret(), opts...), nil
+	case vobj.APPHookWechat:
 		opts := []wechat.Option{
 			wechat.WithLogger(s.helper.Logger()),
 		}
-		return wechat.New(config.GetUrl(), opts...), nil
-	case common.HookAPP_FEISHU:
+		return wechat.New(config.GetURL(), opts...), nil
+	case vobj.APPHookFeiShu:
 		opts := []feishu.Option{
 			feishu.WithLogger(s.helper.Logger()),
 		}
-		return feishu.New(config.GetUrl(), config.GetSecret(), opts...), nil
+		return feishu.New(config.GetURL(), config.GetSecret(), opts...), nil
 	default:
 		return nil, merr.ErrorParams("No hook configuration is available")
 	}
