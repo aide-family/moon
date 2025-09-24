@@ -72,6 +72,7 @@
     "palacecommon",
     "PATHSEP",
     "protoc",
+    "protojson",
     "protovalidate",
     "PSEP",
     "rabbitcommon",

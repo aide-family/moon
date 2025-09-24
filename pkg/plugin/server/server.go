@@ -1,3 +1,4 @@
+// Package server is a server package for kratos.
 package server
 
 import (
@@ -6,6 +7,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
+// init initializes the json.MarshalOptions.
 func init() {
 	json.MarshalOptions = protojson.MarshalOptions{
 		UseEnumNumbers:  true, // Emit enum values as numbers instead of their string representation (default is string).

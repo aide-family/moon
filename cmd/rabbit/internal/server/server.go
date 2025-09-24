@@ -1,3 +1,4 @@
+// Package server is a server package for kratos.
 package server
 
 import (
@@ -16,7 +17,7 @@ import (
 // ProviderSetServer is server providers.
 var ProviderSetServer = wire.NewSet(NewGRPCServer, NewHTTPServer, NewTicker, RegisterService)
 
-// RegisterService register service
+// RegisterService registers the service.
 func RegisterService(
 	c *conf.Bootstrap,
 	rpcSrv *grpc.Server,

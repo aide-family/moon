@@ -5,6 +5,7 @@ import (
 
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
+	"github.com/aide-family/moon/cmd/rabbit/internal/helper/permission"
 	"github.com/aide-family/moon/cmd/rabbit/internal/service/build"
 	"github.com/aide-family/moon/pkg/api/rabbit/common"
 	apiv1 "github.com/aide-family/moon/pkg/api/rabbit/v1"
@@ -26,9 +27,10 @@ func NewSyncService(configBiz *biz.Config, logger log.Logger) *SyncService {
 }
 
 func (s *SyncService) Sms(ctx context.Context, req *apiv1.SyncSmsRequest) (*common.EmptyReply, error) {
+	teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
 	smss := build.ToSMSConfigs(req.GetSmss())
 	params := &bo.SetSMSConfigParams{
-		TeamID:  req.GetTeamId(),
+		TeamID:  teamID,
 		Configs: smss,
 	}
 	if err := s.configBiz.SetSMSConfig(ctx, params); err != nil {
@@ -38,11 +40,12 @@ func (s *SyncService) Sms(ctx context.Context, req *apiv1.SyncSmsRequest) (*comm
 }
 
 func (s *SyncService) Email(ctx context.Context, req *apiv1.SyncEmailRequest) (*common.EmptyReply, error) {
+	teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
 	emails := slices.Map(req.GetEmails(), func(emailItem *common.EmailConfig) bo.EmailConfig {
 		return emailItem
 	})
 	params := &bo.SetEmailConfigParams{
-		TeamID:  req.GetTeamId(),
+		TeamID:  teamID,
 		Configs: emails,
 	}
 	if err := s.configBiz.SetEmailConfig(ctx, params); err != nil {
@@ -52,11 +55,12 @@ func (s *SyncService) Email(ctx context.Context, req *apiv1.SyncEmailRequest) (*
 }
 
 func (s *SyncService) Hook(ctx context.Context, req *apiv1.SyncHookRequest) (*common.EmptyReply, error) {
+	teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
 	hooks := slices.Map(req.GetHooks(), func(hookItem *common.HookConfig) bo.HookConfig {
 		return hookItem
 	})
 	params := &bo.SetHookConfigParams{
-		TeamID:  req.GetTeamId(),
+		TeamID:  teamID,
 		Configs: hooks,
 	}
 	if err := s.configBiz.SetHookConfig(ctx, params); err != nil {
@@ -66,6 +70,7 @@ func (s *SyncService) Hook(ctx context.Context, req *apiv1.SyncHookRequest) (*co
 }
 
 func (s *SyncService) NoticeGroup(ctx context.Context, req *apiv1.SyncNoticeGroupRequest) (*common.EmptyReply, error) {
+	teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
 	noticeGroups := slices.Map(req.GetNoticeGroups(), func(noticeGroupItem *common.NoticeGroupConfig) bo.NoticeGroup {
 		templates := slices.Map(noticeGroupItem.GetTemplates(), func(templateItem *common.NoticeGroupConfig_Template) bo.Template {
 			return templateItem
@@ -81,7 +86,7 @@ func (s *SyncService) NoticeGroup(ctx context.Context, req *apiv1.SyncNoticeGrou
 		)
 	})
 	params := &bo.SetNoticeGroupConfigParams{
-		TeamID:  req.GetTeamId(),
+		TeamID:  teamID,
 		Configs: noticeGroups,
 	}
 	if err := s.configBiz.SetNoticeGroupConfig(ctx, params); err != nil {
@@ -91,8 +96,9 @@ func (s *SyncService) NoticeGroup(ctx context.Context, req *apiv1.SyncNoticeGrou
 }
 
 func (s *SyncService) Remove(ctx context.Context, req *apiv1.RemoveRequest) (*common.EmptyReply, error) {
+	teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
 	params := &bo.RemoveConfigParams{
-		TeamID: req.GetTeamId(),
+		TeamID: teamID,
 		Name:   req.GetName(),
 		Type:   req.GetType(),
 	}

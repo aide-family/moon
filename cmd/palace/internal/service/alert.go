@@ -32,7 +32,7 @@ func (s *AlertService) PushAlert(ctx context.Context, req *apicommon.AlertItem) 
 }
 
 func (s *AlertService) ListAlerts(ctx context.Context, req *palace.ListAlertParams) (*palace.ListAlertReply, error) {
-	teamId, ok := permission.GetTeamIDByContext(ctx)
+	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorPermissionDenied("team id not found")
 	}
@@ -40,7 +40,7 @@ func (s *AlertService) ListAlerts(ctx context.Context, req *palace.ListAlertPara
 	if err != nil {
 		return nil, err
 	}
-	params.TeamID = teamId
+	params.TeamID = teamID
 	reply, err := s.realtimeBiz.ListAlerts(ctx, params)
 	if err != nil {
 		return nil, err

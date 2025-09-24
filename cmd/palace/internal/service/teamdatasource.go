@@ -170,14 +170,14 @@ func (s *TeamDatasourceService) UpdateMetricDatasourceMetadata(ctx context.Conte
 func (s *TeamDatasourceService) MetricDatasourceProxyHandler(httpCtx http.Context) error {
 	isContentType := false
 	for k := range httpCtx.Request().Header {
-		if strings.EqualFold(k, cnst.HttpHeaderContentType) {
+		if strings.EqualFold(k, cnst.HTTPHeaderContentType) {
 			isContentType = true
 			break
 		}
 	}
 	if !isContentType {
-		httpCtx.Header().Set(cnst.HttpHeaderContentType, cnst.HttpHeaderContentTypeJSON)
-		httpCtx.Request().Header.Set(cnst.HttpHeaderContentType, cnst.HttpHeaderContentTypeJSON)
+		httpCtx.Header().Set(cnst.HTTPHeaderContentType, cnst.HTTPHeaderContentTypeJSON)
+		httpCtx.Request().Header.Set(cnst.HTTPHeaderContentType, cnst.HTTPHeaderContentTypeJSON)
 	}
 	var in palace.MetricDatasourceProxyRequest
 	if err := httpCtx.Bind(&in); err != nil {

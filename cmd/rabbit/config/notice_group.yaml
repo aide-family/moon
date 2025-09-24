@@ -1,19 +1,22 @@
 noticeGroupConfigs:
-  - name: notice_group
-    smsConfigName: sms_config
-    emailConfigName: email_config
-    hookReceivers:
-      - dingtalk
-      - wechat
-      - feishu
-    smsReceivers:
-      - 13800138000
-      - 13800138001
-    emailReceivers:
-      - test@test.com
-      - test2@test.com
-    templates:
-      - type: EMAIL
-        template: test
-        templateParameters: test
-        subject: test
+  - teamId: 0
+    name: notice_group
+    configs:
+      - name: notice_group
+        smsConfigName: sms_config
+        emailConfigName: email_config
+        hookReceivers:
+          - dingtalk
+          - wechat
+          - feishu
+        smsReceivers:
+          - 13800138000
+          - 13800138001
+        emailReceivers:
+          - test@test.com
+          - test2@test.com
+        templates:
+          - type: EMAIL
+            template: test
+            templateParameters: test
+            subject: test

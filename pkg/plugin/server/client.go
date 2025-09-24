@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
+	"github.com/go-kratos/kratos/v2/middleware/metadata"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/selector"
 	"github.com/go-kratos/kratos/v2/selector/filter"
@@ -37,6 +38,7 @@ func InitHTTPClient(initConfig *InitConfig) (*http.Client, error) {
 	middlewares := []middleware.Middleware{
 		recovery.Recovery(),
 		middler.Validate(),
+		metadata.Client(),
 	}
 	if initConfig.MicroConfig.GetSecret() != "" {
 		middlewares = append(middlewares, jwt.Client(func(token *jwtv5.Token) (interface{}, error) {
@@ -79,6 +81,7 @@ func InitGRPCClient(initConfig *InitConfig) (*ggrpc.ClientConn, error) {
 	middlewares := []middleware.Middleware{
 		recovery.Recovery(),
 		middler.Validate(),
+		metadata.Client(),
 	}
 	if initConfig.MicroConfig.GetSecret() != "" {
 		middlewares = append(middlewares, jwt.Client(func(token *jwtv5.Token) (interface{}, error) {

@@ -93,11 +93,11 @@ func (l *localizer) Localize(ctx context.Context, err error) error {
 
 func GetLanguage(ctx context.Context) string {
 	if md, ok := metadata.FromServerContext(ctx); ok {
-		return md.Get(cnst.HttpHeaderAcceptLang)
+		return md.Get(cnst.HTTPHeaderAcceptLang)
 	}
 	tr, ok := transport.FromServerContext(ctx)
 	if !ok {
 		return ""
 	}
-	return tr.RequestHeader().Get(cnst.HttpHeaderAcceptLang)
+	return tr.RequestHeader().Get(cnst.HTTPHeaderAcceptLang)
 }

@@ -2,8 +2,10 @@ package biz
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/metadata"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
@@ -14,6 +16,7 @@ import (
 	houyiv1 "github.com/aide-family/moon/pkg/api/houyi/v1"
 	rabbitv1 "github.com/aide-family/moon/pkg/api/rabbit/v1"
 	"github.com/aide-family/moon/pkg/merr"
+	"github.com/aide-family/moon/pkg/util/cnst"
 	"github.com/aide-family/moon/pkg/util/slices"
 	"github.com/aide-family/moon/pkg/util/validate"
 )
@@ -131,6 +134,7 @@ func (b *Server) SyncMetricStrategy(ctx context.Context, changedMetricStrategy b
 
 func (b *Server) syncMetricDatasource(ctx context.Context, houyi repository.HouyiSyncClient, teamID uint32, rowIds []uint32) error {
 	ctx = permission.WithTeamIDContext(ctx, teamID)
+	ctx = metadata.AppendToClientContext(ctx, cnst.MetadataGlobalKeyTeamID, strconv.FormatUint(uint64(teamID), 10))
 	datasourceDos, err := b.metricDatasourceRepo.FindByIds(ctx, rowIds)
 	if err != nil {
 		return merr.ErrorInternalServer("failed to find metric datasource: %v", err)
@@ -149,6 +153,7 @@ func (b *Server) syncMetricDatasource(ctx context.Context, houyi repository.Houy
 }
 
 func (b *Server) syncMetricStrategy(ctx context.Context, houyi repository.HouyiSyncClient, teamID uint32, rowIds []uint32) error {
+	ctx = metadata.AppendToClientContext(ctx, cnst.MetadataGlobalKeyTeamID, strconv.FormatUint(uint64(teamID), 10))
 	ctx = permission.WithTeamIDContext(ctx, teamID)
 	strategyMetricDos, err := b.metricStrategyRepo.FindByStrategyIds(ctx, rowIds)
 	if err != nil {
@@ -187,6 +192,7 @@ func (b *Server) SyncNoticeGroup(ctx context.Context, changedNoticeGroup bo.Chan
 
 func (b *Server) syncNoticeGroup(ctx context.Context, rabbit repository.RabbitSyncClient, teamID uint32, rowIds []uint32) error {
 	ctx = permission.WithTeamIDContext(ctx, teamID)
+	ctx = metadata.AppendToClientContext(ctx, cnst.MetadataGlobalKeyTeamID, strconv.FormatUint(uint64(teamID), 10))
 	groupDos, err := b.noticeGroupRepo.FindByIds(ctx, rowIds)
 	if err != nil {
 		return merr.ErrorInternalServer("failed to find notice group: %v", err)
@@ -196,7 +202,6 @@ func (b *Server) syncNoticeGroup(ctx context.Context, rabbit repository.RabbitSy
 	}
 	reply, err := rabbit.NoticeGroup(ctx, &rabbitv1.SyncNoticeGroupRequest{
 		NoticeGroups: bo.ToSyncNoticeGroupItems(groupDos),
-		TeamId:       teamID,
 	})
 	if err != nil {
 		return merr.ErrorInternalServer("failed to sync notice group: %v", err)
@@ -226,6 +231,7 @@ func (b *Server) SyncNoticeSMSConfig(ctx context.Context, changedNoticeSMSConfig
 
 func (b *Server) syncNoticeSMSConfig(ctx context.Context, rabbit repository.RabbitSyncClient, teamID uint32, rowIds []uint32) error {
 	ctx = permission.WithTeamIDContext(ctx, teamID)
+	ctx = metadata.AppendToClientContext(ctx, cnst.MetadataGlobalKeyTeamID, strconv.FormatUint(uint64(teamID), 10))
 	smsDos, err := b.teamSMSConfigRepo.FindByIds(ctx, rowIds)
 	if err != nil {
 		return merr.ErrorInternalServer("failed to find notice sms config: %v", err)
@@ -234,8 +240,7 @@ func (b *Server) syncNoticeSMSConfig(ctx context.Context, rabbit repository.Rabb
 		return nil
 	}
 	reply, err := rabbit.Sms(ctx, &rabbitv1.SyncSmsRequest{
-		Smss:   bo.ToSyncSMSConfigItems(smsDos),
-		TeamId: teamID,
+		Smss: bo.ToSyncSMSConfigItems(smsDos),
 	})
 	if err != nil {
 		return merr.ErrorInternalServer("failed to sync notice sms config: %v", err)
@@ -265,6 +270,7 @@ func (b *Server) SyncNoticeEmailConfig(ctx context.Context, changedNoticeEmailCo
 
 func (b *Server) syncNoticeEmailConfig(ctx context.Context, rabbit repository.RabbitSyncClient, teamID uint32, rowIds []uint32) error {
 	ctx = permission.WithTeamIDContext(ctx, teamID)
+	ctx = metadata.AppendToClientContext(ctx, cnst.MetadataGlobalKeyTeamID, strconv.FormatUint(uint64(teamID), 10))
 	emailDos, err := b.teamEmailConfigRepo.FindByIds(ctx, rowIds)
 	if err != nil {
 		return merr.ErrorInternalServer("failed to find notice email config: %v", err)
@@ -274,7 +280,6 @@ func (b *Server) syncNoticeEmailConfig(ctx context.Context, rabbit repository.Ra
 	}
 	reply, err := rabbit.Email(ctx, &rabbitv1.SyncEmailRequest{
 		Emails: bo.ToSyncEmailConfigItems(emailDos),
-		TeamId: teamID,
 	})
 	if err != nil {
 		return merr.ErrorInternalServer("failed to sync notice email config: %v", err)
@@ -304,6 +309,7 @@ func (b *Server) SyncNoticeHookConfig(ctx context.Context, changedNoticeHookConf
 
 func (b *Server) syncNoticeHookConfig(ctx context.Context, rabbit repository.RabbitSyncClient, teamID uint32, rowIds []uint32) error {
 	ctx = permission.WithTeamIDContext(ctx, teamID)
+	ctx = metadata.AppendToClientContext(ctx, cnst.MetadataGlobalKeyTeamID, strconv.FormatUint(uint64(teamID), 10))
 	hookDos, err := b.teamHookConfigRepo.Find(ctx, rowIds)
 	if err != nil {
 		return merr.ErrorInternalServer("failed to find notice hook config: %v", err)
@@ -312,8 +318,7 @@ func (b *Server) syncNoticeHookConfig(ctx context.Context, rabbit repository.Rab
 		return nil
 	}
 	reply, err := rabbit.Hook(ctx, &rabbitv1.SyncHookRequest{
-		Hooks:  bo.ToSyncHookConfigItems(hookDos),
-		TeamId: teamID,
+		Hooks: bo.ToSyncHookConfigItems(hookDos),
 	})
 	if err != nil {
 		return merr.ErrorInternalServer("failed to sync notice hook config: %v", err)

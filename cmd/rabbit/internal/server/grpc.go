@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/logging"
+	"github.com/go-kratos/kratos/v2/middleware/metadata"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
@@ -28,6 +29,8 @@ func NewGRPCServer(bc *conf.Bootstrap, logger log.Logger) *grpc.Server {
 		grpc.Middleware(
 			recovery.Recovery(),
 			tracing.Server(),
+			metadata.Server(),
+			middleware.ExtractMetadata(),
 			i18n.I18n(),
 			logging.Server(logger),
 			authMiddleware,

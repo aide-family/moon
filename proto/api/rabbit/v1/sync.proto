@@ -52,26 +52,21 @@ service Sync {
 
 message SyncSmsRequest {
   repeated rabbit.common.SMSConfig smss = 1;
-  uint32 teamId = 2 [(buf.validate.field).required = true];
 }
 
 message SyncEmailRequest {
   repeated rabbit.common.EmailConfig emails = 1;
-  uint32 teamId = 2 [(buf.validate.field).required = true];
 }
 
 message SyncHookRequest {
   repeated rabbit.common.HookConfig hooks = 1;
-  uint32 teamId = 2 [(buf.validate.field).required = true];
 }
 
 message SyncNoticeGroupRequest {
   repeated rabbit.common.NoticeGroupConfig noticeGroups = 1;
-  uint32 teamId = 2 [(buf.validate.field).required = true];
 }
 
 message RemoveRequest {
-  uint32 teamId = 1 [(buf.validate.field).required = true];
-  string name = 2 [(buf.validate.field).required = true];
-  api.common.NoticeType type = 3 [(buf.validate.field).required = true];
+  string name = 1 [(buf.validate.field).required = true];
+  api.common.NoticeType type = 2 [(buf.validate.field).required = true];
 }

@@ -46,7 +46,6 @@ message SendEmailRequest {
   string attachment = 6;
   repeated string cc = 7;
   string configName = 8;
-  uint32 teamId = 9 [(buf.validate.field).required = true];
 }
 
 message SendSmsRequest {
@@ -61,7 +60,6 @@ message SendSmsRequest {
   string templateParameters = 3 [(buf.validate.field).required = true];
   string templateCode = 4 [(buf.validate.field).required = true];
   string configName = 5;
-  uint32 teamId = 6 [(buf.validate.field).required = true];
 }
 
 message SendHookRequest {
@@ -71,6 +69,5 @@ message SendHookRequest {
   }];
   repeated string body = 2 [(buf.validate.field).required = true];
   string configName = 3;
-  uint32 teamId = 4 [(buf.validate.field).required = true];
 }
 

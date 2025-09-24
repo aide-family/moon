@@ -39,11 +39,11 @@ func (s *TeamService) SaveTeam(ctx context.Context, req *palace.SaveTeamRequest)
 }
 
 func (s *TeamService) GetTeam(ctx context.Context, _ *common.EmptyRequest) (*common.TeamItem, error) {
-	teamId, ok := permission.GetTeamIDByContext(ctx)
+	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorPermissionDenied("please select team")
 	}
-	teamDo, err := s.teamBiz.GetTeamByID(ctx, teamId)
+	teamDo, err := s.teamBiz.GetTeamByID(ctx, teamID)
 	if err != nil {
 		return nil, err
 	}
@@ -78,11 +78,11 @@ func (s *TeamService) RemoveMember(ctx context.Context, req *palace.RemoveMember
 }
 
 func (s *TeamService) GetTeamMembers(ctx context.Context, req *palace.GetTeamMembersRequest) (*palace.GetTeamMembersReply, error) {
-	teamId, ok := permission.GetTeamIDByContext(ctx)
+	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorPermissionDenied("please select team")
 	}
-	params := build.ToTeamMemberListRequest(req, teamId)
+	params := build.ToTeamMemberListRequest(req, teamID)
 	membersReply, err := s.teamBiz.GetTeamMembers(ctx, params)
 	if err != nil {
 		return nil, err
@@ -94,11 +94,11 @@ func (s *TeamService) GetTeamMembers(ctx context.Context, req *palace.GetTeamMem
 }
 
 func (s *TeamService) SelectTeamMembers(ctx context.Context, req *palace.SelectTeamMembersRequest) (*palace.SelectTeamMembersReply, error) {
-	teamId, ok := permission.GetTeamIDByContext(ctx)
+	teamID, ok := permission.GetTeamIDByContext(ctx)
 	if !ok {
 		return nil, merr.ErrorPermissionDenied("please select team")
 	}
-	params := build.ToTeamMemberSelectRequest(req, teamId)
+	params := build.ToTeamMemberSelectRequest(req, teamID)
 	membersReply, err := s.teamBiz.SelectTeamMembers(ctx, params)
 	if err != nil {
 		return nil, err

@@ -2,8 +2,10 @@ package impl
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/metadata"
 
 	"github.com/aide-family/moon/cmd/palace/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/palace/internal/biz/repository"
@@ -11,6 +13,7 @@ import (
 	"github.com/aide-family/moon/pkg/api/rabbit/common"
 	rabbitv1 "github.com/aide-family/moon/pkg/api/rabbit/v1"
 	"github.com/aide-family/moon/pkg/plugin/email"
+	"github.com/aide-family/moon/pkg/util/cnst"
 )
 
 func NewSendMessageRepo(
@@ -41,6 +44,7 @@ type sendMessageRepoImpl struct {
 
 // SendEmail implements repository.SendMessage.
 func (s *sendMessageRepoImpl) SendEmail(ctx context.Context, params *bo.SendEmailParams) error {
+	ctx = metadata.AppendToClientContext(ctx, cnst.MetadataGlobalKeyTeamID, strconv.FormatUint(uint64(params.TeamID), 10))
 	sendClient, ok := s.rabbitRepo.Send()
 	if !ok {
 		// call local send email
@@ -72,7 +76,6 @@ func (s *sendMessageRepoImpl) rabbitSendEmail(ctx context.Context, client reposi
 		Attachment:  "",
 		Cc:          []string{},
 		ConfigName:  s.emailConfig.GetName(),
-		TeamId:      params.TeamID,
 	})
 	if err != nil {
 		s.helper.WithContext(ctx).Warnw("method", "rabbit send email error", "params", params, "error", err)

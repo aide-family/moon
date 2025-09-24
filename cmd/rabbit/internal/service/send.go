@@ -8,6 +8,7 @@ import (
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/bo"
 	"github.com/aide-family/moon/cmd/rabbit/internal/biz/vobj"
+	"github.com/aide-family/moon/cmd/rabbit/internal/helper/permission"
 	"github.com/aide-family/moon/pkg/api/rabbit/common"
 	rabbitv1 "github.com/aide-family/moon/pkg/api/rabbit/v1"
 	"github.com/aide-family/moon/pkg/util/validate"
@@ -45,8 +46,9 @@ func (s *SendService) Email(ctx context.Context, req *rabbitv1.SendEmailRequest)
 	if !s.lockBiz.LockByAPP(ctx, req.GetRequestId(), vobj.APPEmail) {
 		return &common.EmptyReply{}, nil
 	}
+	teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
 	params := &bo.GetEmailConfigParams{
-		TeamID: req.GetTeamId(),
+		TeamID: teamID,
 		Name:   req.ConfigName,
 	}
 	emailConfig, err := s.configBiz.GetEmailConfig(ctx, params)
@@ -76,11 +78,12 @@ func (s *SendService) Email(ctx context.Context, req *rabbitv1.SendEmailRequest)
 }
 
 func (s *SendService) Sms(ctx context.Context, req *rabbitv1.SendSmsRequest) (*common.EmptyReply, error) {
+	teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
 	if !s.lockBiz.LockByAPP(ctx, req.GetRequestId(), vobj.APPSms) {
 		return &common.EmptyReply{}, nil
 	}
 	params := &bo.GetSMSConfigParams{
-		TeamID: req.GetTeamId(),
+		TeamID: teamID,
 		Name:   req.ConfigName,
 	}
 	smsConfig, err := s.configBiz.GetSMSConfig(ctx, params)
@@ -107,8 +110,9 @@ func (s *SendService) Sms(ctx context.Context, req *rabbitv1.SendSmsRequest) (*c
 }
 
 func (s *SendService) Hook(ctx context.Context, req *rabbitv1.SendHookRequest) (*common.EmptyReply, error) {
+	teamID := permission.GetTeamIDByContextWithZeroValue(ctx)
 	params := &bo.GetHookConfigParams{
-		TeamID: req.GetTeamId(),
+		TeamID: teamID,
 		Name:   req.ConfigName,
 	}
 	hookConfig, err := s.configBiz.GetHookConfig(ctx, params)

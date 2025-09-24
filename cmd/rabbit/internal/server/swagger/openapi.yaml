@@ -435,9 +435,6 @@ components:
         api.rabbit.v1.RemoveRequest:
             type: object
             properties:
-                teamId:
-                    type: integer
-                    format: uint32
                 name:
                     type: string
                 type:
@@ -466,9 +463,6 @@ components:
                         type: string
                 configName:
                     type: string
-                teamId:
-                    type: integer
-                    format: uint32
         api.rabbit.v1.SendHookRequest:
             type: object
             properties:
@@ -480,9 +474,6 @@ components:
                         type: string
                 configName:
                     type: string
-                teamId:
-                    type: integer
-                    format: uint32
         api.rabbit.v1.SendSmsRequest:
             type: object
             properties:
@@ -498,9 +489,6 @@ components:
                     type: string
                 configName:
                     type: string
-                teamId:
-                    type: integer
-                    format: uint32
         api.rabbit.v1.SyncEmailRequest:
             type: object
             properties:
@@ -508,9 +496,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.rabbit.common.EmailConfig'
-                teamId:
-                    type: integer
-                    format: uint32
         api.rabbit.v1.SyncHookRequest:
             type: object
             properties:
@@ -518,9 +503,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.rabbit.common.HookConfig'
-                teamId:
-                    type: integer
-                    format: uint32
         api.rabbit.v1.SyncNoticeGroupRequest:
             type: object
             properties:
@@ -528,9 +510,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.rabbit.common.NoticeGroupConfig'
-                teamId:
-                    type: integer
-                    format: uint32
         api.rabbit.v1.SyncSmsRequest:
             type: object
             properties:
@@ -538,9 +517,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.rabbit.common.SMSConfig'
-                teamId:
-                    type: integer
-                    format: uint32
         config.Consul:
             type: object
             properties:
