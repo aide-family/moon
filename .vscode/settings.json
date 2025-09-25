@@ -66,6 +66,7 @@
     "Infof",
     "kratos",
     "merr",
+    "miniredis",
     "mlog",
     "nhttp",
     "nicksnyder",

@@ -1,3 +1,4 @@
+// Package data is a data package for kratos.
 package data
 
 import (
@@ -17,7 +18,7 @@ var ProviderSetData = wire.NewSet(New)
 
 func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 	var err error
-	dataConf := c.Data
+	dataConf := c.GetData()
 	data := &Data{
 		dataConf: dataConf,
 		emails:   safety.NewMap[string, email.Email](),
@@ -25,7 +26,7 @@ func New(c *conf.Bootstrap, logger log.Logger) (*Data, func(), error) {
 		hooks:    safety.NewMap[string, hook.Sender](),
 		helper:   log.NewHelper(log.With(logger, "module", "data")),
 	}
-	data.cache, err = cache.NewCache(c.GetCache())
+	data.cache, err = cache.NewCache(dataConf.GetCache())
 	if err != nil {
 		return nil, nil, err
 	}

@@ -1,3 +1,4 @@
+// Package cache is a cache package for kratos.
 package cache
 
 import (
@@ -71,36 +72,13 @@ func newRedisWithMiniRedis(c *config.Cache) (*redis.Client, error) {
 
 func newDefaultOptions(c *config.Cache) *redis.Options {
 	return &redis.Options{
-		Network:                    c.GetNetwork(),
-		Addr:                       c.GetAddr(),
-		ClientName:                 c.GetClientName(),
-		Dialer:                     nil,
-		OnConnect:                  nil,
-		Protocol:                   int(c.GetProtocol()),
-		Username:                   "",
-		Password:                   "redis",
-		CredentialsProvider:        nil,
-		CredentialsProviderContext: nil,
-		DB:                         int(c.GetDb()),
-		MaxRetries:                 int(c.GetMaxRetries()),
-		MinRetryBackoff:            c.GetMinRetryBackoff().AsDuration(),
-		MaxRetryBackoff:            c.GetMaxRetryBackoff().AsDuration(),
-		DialTimeout:                c.GetDialTimeout().AsDuration(),
-		ReadTimeout:                c.GetReadTimeout().AsDuration(),
-		WriteTimeout:               c.GetWriteTimeout().AsDuration(),
-		ContextTimeoutEnabled:      c.GetContextTimeoutEnabled(),
-		PoolFIFO:                   c.GetPoolFifo(),
-		PoolSize:                   int(c.GetPoolSize()),
-		PoolTimeout:                c.GetPoolTimeout().AsDuration(),
-		MinIdleConns:               int(c.GetMinIdleConns()),
-		MaxIdleConns:               int(c.GetMaxIdleConns()),
-		MaxActiveConns:             int(c.GetMaxActiveConns()),
-		ConnMaxIdleTime:            c.GetConnMaxIdleTime().AsDuration(),
-		ConnMaxLifetime:            c.GetConnMaxLifetime().AsDuration(),
-		TLSConfig:                  nil,
-		Limiter:                    nil,
-		DisableIndentity:           c.GetDisableIdentity(),
-		IdentitySuffix:             c.GetIdentitySuffix(),
-		UnstableResp3:              c.GetUnstableResp3(),
+		Network:      c.GetNetwork(),
+		Addr:         c.GetAddr(),
+		Username:     c.GetUsername(),
+		Password:     c.GetPassword(),
+		DB:           int(c.GetDb()),
+		DialTimeout:  c.GetDialTimeout().AsDuration(),
+		ReadTimeout:  c.GetReadTimeout().AsDuration(),
+		WriteTimeout: c.GetWriteTimeout().AsDuration(),
 	}
 }

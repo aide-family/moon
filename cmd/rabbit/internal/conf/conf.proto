@@ -10,20 +10,20 @@ message Bootstrap {
   config.Environment environment = 1;
   config.Server server = 2;
   Data data = 3;
-  config.Cache cache = 4;
-  config.Log log = 5;
-  config.Registry registry = 6;
-  Auth auth = 7;
-  config.MicroServer palace = 8;
-  config.I18N i18n = 9;
-  config.ConfigSource configSource = 10;
-  repeated EmailConfigs emailConfigs = 11;
-  repeated SMSConfigs smsConfigs = 12;
-  repeated HookConfigs hookConfigs = 13;
-  repeated NoticeGroupConfigs noticeGroupConfigs = 14;
+  config.Log log = 4;
+  config.Registry registry = 5;
+  Auth auth = 6;
+  config.MicroServer palace = 7;
+  config.I18N i18n = 8;
+  config.ConfigSource configSource = 9;
+  repeated EmailConfigs emailConfigs = 10;
+  repeated SMSConfigs smsConfigs = 11;
+  repeated HookConfigs hookConfigs = 12;
+  repeated NoticeGroupConfigs noticeGroupConfigs = 13;
 }
 
 message Data {
+  config.Cache cache = 1;
 }
 
 message Auth {

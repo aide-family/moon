@@ -105,34 +105,18 @@ message Cache {
   string network = 2;
   // address
   string addr = 3;
+  // username
+  string username = 4;
   // password
-  string password = 4;
+  string password = 5;
   // database
-  uint32 db = 5;
+  uint32 db = 6;
   // read timeout
-  google.protobuf.Duration readTimeout = 6;
+  google.protobuf.Duration readTimeout = 7;
   // write timeout
-  google.protobuf.Duration writeTimeout = 7;
+  google.protobuf.Duration writeTimeout = 8;
   // dial timeout
-  google.protobuf.Duration dialTimeout = 8;
-  string clientName = 9;
-  int64 protocol = 10;
-  string username = 11;
-  int64 maxRetries = 12;
-  google.protobuf.Duration minRetryBackoff = 13;
-  google.protobuf.Duration maxRetryBackoff = 14;
-  bool contextTimeoutEnabled = 15;
-  bool poolFifo = 16;
-  int64 poolSize = 17;
-  google.protobuf.Duration poolTimeout = 18;
-  int64 minIdleConns = 19;
-  int64 maxIdleConns = 20;
-  int64 maxActiveConns = 21;
-  google.protobuf.Duration connMaxIdleTime = 22;
-  google.protobuf.Duration connMaxLifetime = 23;
-  bool disableIdentity = 24;
-  string identitySuffix = 25;
-  bool unstableResp3 = 26;
+  google.protobuf.Duration dialTimeout = 9;
 }
 
 message Crypto {
