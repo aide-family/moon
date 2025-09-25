@@ -1,8 +1,9 @@
+// Package rpc is a rpc package for kratos.
 package rpc
 
 import "github.com/google/wire"
 
-// ProviderSetRpc is a provider set for rpc.
-var ProviderSetRpc = wire.NewSet(
+// ProviderSetRPC is a provider set for rpc.
+var ProviderSetRPC = wire.NewSet(
 	NewServerRegisterRepo,
 )

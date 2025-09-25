@@ -55,19 +55,26 @@ func (c *configImpl) initConfig() error {
 }
 
 func (c *configImpl) initEmailConfig(ctx context.Context, configs []*conf.EmailConfigs) error {
-	emailGroup := make(map[uint32][]bo.EmailConfig)
+	emailGroup := make(map[uint32][]*do.EmailConfig)
 	for _, v := range configs {
 		teamID := v.GetTeamId()
 		emailConfigs := v.GetConfigs()
 		if _, ok := emailGroup[teamID]; !ok {
-			emailGroup[teamID] = make([]bo.EmailConfig, 0, len(emailConfigs))
+			emailGroup[teamID] = make([]*do.EmailConfig, 0, len(emailConfigs))
 		}
 		for _, v := range emailConfigs {
-			emailGroup[teamID] = append(emailGroup[teamID], v)
+			emailGroup[teamID] = append(emailGroup[teamID], &do.EmailConfig{
+				User:   v.GetUser(),
+				Pass:   v.GetPass(),
+				Host:   v.GetHost(),
+				Port:   v.GetPort(),
+				Enable: v.GetEnable(),
+				Name:   v.GetName(),
+			})
 		}
 	}
 	for teamID, v := range emailGroup {
-		if err := c.SetEmailConfig(ctx, teamID, v...); err != nil {
+		if err := c.setEmailConfig(ctx, teamID, v...); err != nil {
 			return err
 		}
 	}
@@ -75,12 +82,12 @@ func (c *configImpl) initEmailConfig(ctx context.Context, configs []*conf.EmailC
 }
 
 func (c *configImpl) initSMSConfig(ctx context.Context, configs []*conf.SMSConfigs) error {
-	smsGroup := make(map[uint32][]bo.SMSConfig)
+	smsGroup := make(map[uint32][]*do.SMSConfig)
 	for _, v := range configs {
 		teamID := v.GetTeamId()
 		smsConfigs := v.GetConfigs()
 		if _, ok := smsGroup[teamID]; !ok {
-			smsGroup[teamID] = make([]bo.SMSConfig, 0, len(smsConfigs))
+			smsGroup[teamID] = make([]*do.SMSConfig, 0, len(smsConfigs))
 		}
 		for _, v := range smsConfigs {
 			provider := v.GetType()
@@ -105,7 +112,7 @@ func (c *configImpl) initSMSConfig(ctx context.Context, configs []*conf.SMSConfi
 		}
 	}
 	for teamID, v := range smsGroup {
-		if err := c.SetSMSConfig(ctx, teamID, v...); err != nil {
+		if err := c.setSMSConfig(ctx, teamID, v...); err != nil {
 			return err
 		}
 	}
@@ -113,12 +120,12 @@ func (c *configImpl) initSMSConfig(ctx context.Context, configs []*conf.SMSConfi
 }
 
 func (c *configImpl) initHookConfig(ctx context.Context, configs []*conf.HookConfigs) error {
-	hookGroup := make(map[uint32][]bo.HookConfig)
+	hookGroup := make(map[uint32][]*do.HookConfig)
 	for _, v := range configs {
 		teamID := v.GetTeamId()
 		hookConfigs := v.GetConfigs()
 		if _, ok := hookGroup[teamID]; !ok {
-			hookGroup[teamID] = make([]bo.HookConfig, 0, len(hookConfigs))
+			hookGroup[teamID] = make([]*do.HookConfig, 0, len(hookConfigs))
 		}
 		for _, v := range hookConfigs {
 			hookGroup[teamID] = append(hookGroup[teamID], &do.HookConfig{
@@ -135,7 +142,7 @@ func (c *configImpl) initHookConfig(ctx context.Context, configs []*conf.HookCon
 		}
 	}
 	for teamID, v := range hookGroup {
-		if err := c.SetHookConfig(ctx, teamID, v...); err != nil {
+		if err := c.setHookConfig(ctx, teamID, v...); err != nil {
 			return err
 		}
 	}
@@ -143,6 +150,38 @@ func (c *configImpl) initHookConfig(ctx context.Context, configs []*conf.HookCon
 }
 
 func (c *configImpl) initNoticeGroupConfig(ctx context.Context, configs []*conf.NoticeGroupConfigs) error {
+	noticeGroupGroup := make(map[uint32][]*do.NoticeGroupConfig)
+	for _, v := range configs {
+		teamID := v.GetTeamId()
+		noticeGroupConfigs := v.GetConfigs()
+		if _, ok := noticeGroupGroup[teamID]; !ok {
+			noticeGroupGroup[teamID] = make([]*do.NoticeGroupConfig, 0, len(noticeGroupConfigs))
+		}
+		for _, v := range noticeGroupConfigs {
+			templates := slices.ToMapWithValue(v.GetTemplates(), func(v *conf.NoticeGroupConfig_Template) (vobj.APP, *do.Template) {
+				return vobj.APP(v.GetType()), &do.Template{
+					Type:           vobj.APP(v.GetType()),
+					Template:       v.GetTemplate(),
+					TemplateParams: v.GetTemplateParameters(),
+					Subject:        v.GetSubject(),
+				}
+			})
+			noticeGroupGroup[teamID] = append(noticeGroupGroup[teamID], &do.NoticeGroupConfig{
+				Name:            v.GetName(),
+				SMSConfigName:   v.GetSmsConfigName(),
+				EmailConfigName: v.GetEmailConfigName(),
+				HookReceivers:   v.GetHookReceivers(),
+				SMSReceivers:    v.GetSmsReceivers(),
+				EmailReceivers:  v.GetEmailReceivers(),
+				Templates:       templates,
+			})
+		}
+	}
+	for teamID, v := range noticeGroupGroup {
+		if err := c.setNoticeGroupConfig(ctx, teamID, v...); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -190,9 +229,8 @@ func (c *configImpl) GetEmailConfigs(ctx context.Context, teamID uint32, names .
 }
 
 func (c *configImpl) SetEmailConfig(ctx context.Context, teamID uint32, configs ...bo.EmailConfig) error {
-	configDos := make(map[string]any, len(configs))
-	for _, v := range configs {
-		item := &do.EmailConfig{
+	configDos := slices.Map(configs, func(v bo.EmailConfig) *do.EmailConfig {
+		return &do.EmailConfig{
 			User:   v.GetUser(),
 			Pass:   v.GetPass(),
 			Host:   v.GetHost(),
@@ -200,9 +238,13 @@ func (c *configImpl) SetEmailConfig(ctx context.Context, teamID uint32, configs 
 			Enable: v.GetEnable(),
 			Name:   v.GetName(),
 		}
-		configDos[item.UniqueKey()] = item
-	}
+	})
 
+	return c.setEmailConfig(ctx, teamID, configDos...)
+}
+
+func (c *configImpl) setEmailConfig(ctx context.Context, teamID uint32, configs ...*do.EmailConfig) error {
+	configDos := slices.ToMapWithValue(configs, func(v *do.EmailConfig) (string, any) { return v.UniqueKey(), v })
 	return c.GetCache().Client().HSet(ctx, vobj.EmailCacheKey.Key(teamID), configDos).Err()
 }
 
@@ -249,9 +291,8 @@ func (c *configImpl) GetSMSConfigs(ctx context.Context, teamID uint32, names ...
 }
 
 func (c *configImpl) SetSMSConfig(ctx context.Context, teamID uint32, configs ...bo.SMSConfig) error {
-	configDos := make(map[string]any, len(configs))
-	for _, v := range configs {
-		item := &do.SMSConfig{
+	configDos := slices.Map(configs, func(v bo.SMSConfig) *do.SMSConfig {
+		return &do.SMSConfig{
 			AccessKeyID:     v.GetAccessKeyID(),
 			AccessKeySecret: v.GetAccessKeySecret(),
 			Endpoint:        v.GetEndpoint(),
@@ -260,8 +301,12 @@ func (c *configImpl) SetSMSConfig(ctx context.Context, teamID uint32, configs ..
 			Type:            v.GetType(),
 			Enable:          v.GetEnable(),
 		}
-		configDos[item.UniqueKey()] = item
-	}
+	})
+	return c.setSMSConfig(ctx, teamID, configDos...)
+}
+
+func (c *configImpl) setSMSConfig(ctx context.Context, teamID uint32, configs ...*do.SMSConfig) error {
+	configDos := slices.ToMapWithValue(configs, func(v *do.SMSConfig) (string, any) { return v.UniqueKey(), v })
 	return c.GetCache().Client().HSet(ctx, vobj.SmsCacheKey.Key(teamID), configDos).Err()
 }
 
@@ -308,9 +353,8 @@ func (c *configImpl) GetHookConfigs(ctx context.Context, teamID uint32, names ..
 }
 
 func (c *configImpl) SetHookConfig(ctx context.Context, teamID uint32, configs ...bo.HookConfig) error {
-	configDos := make(map[string]any, len(configs))
-	for _, v := range configs {
-		item := &do.HookConfig{
+	configDos := slices.Map(configs, func(v bo.HookConfig) *do.HookConfig {
+		return &do.HookConfig{
 			Name:     v.GetName(),
 			App:      v.GetApp(),
 			URL:      v.GetURL(),
@@ -321,8 +365,12 @@ func (c *configImpl) SetHookConfig(ctx context.Context, teamID uint32, configs .
 			Headers:  v.GetHeaders(),
 			Enable:   v.GetEnable(),
 		}
-		configDos[item.UniqueKey()] = item
-	}
+	})
+	return c.setHookConfig(ctx, teamID, configDos...)
+}
+
+func (c *configImpl) setHookConfig(ctx context.Context, teamID uint32, configs ...*do.HookConfig) error {
+	configDos := slices.ToMapWithValue(configs, func(v *do.HookConfig) (string, any) { return v.UniqueKey(), v })
 	return c.GetCache().Client().HSet(ctx, vobj.HookCacheKey.Key(teamID), configDos).Err()
 }
 
@@ -369,27 +417,32 @@ func (c *configImpl) GetNoticeGroupConfigs(ctx context.Context, teamID uint32, n
 }
 
 func (c *configImpl) SetNoticeGroupConfig(ctx context.Context, teamID uint32, configs ...bo.NoticeGroup) error {
-	configDos := make(map[string]any, len(configs))
-	for _, v := range configs {
-		templateMap := make(map[vobj.APP]*do.Template, len(v.GetTemplates()))
+	configDos := slices.Map(configs, func(v bo.NoticeGroup) *do.NoticeGroupConfig {
+		templates := make(map[vobj.APP]*do.Template, len(v.GetTemplates()))
 		for _, t := range v.GetTemplates() {
-			templateMap[t.GetType()] = &do.Template{
+			templates[t.GetType()] = &do.Template{
 				Type:           t.GetType(),
 				Template:       t.GetTemplate(),
 				TemplateParams: t.GetTemplateParameters(),
+				Subject:        t.GetSubject(),
 			}
 		}
-		item := &do.NoticeGroupConfig{
+		return &do.NoticeGroupConfig{
 			Name:            v.GetName(),
 			SMSConfigName:   v.GetSmsConfigName(),
 			EmailConfigName: v.GetEmailConfigName(),
 			HookReceivers:   v.GetHookReceivers(),
 			SMSReceivers:    v.GetSmsReceivers(),
 			EmailReceivers:  v.GetEmailReceivers(),
-			Templates:       templateMap,
+			Templates:       templates,
 		}
-		configDos[item.UniqueKey()] = item
-	}
+	})
+
+	return c.setNoticeGroupConfig(ctx, teamID, configDos...)
+}
+
+func (c *configImpl) setNoticeGroupConfig(ctx context.Context, teamID uint32, configs ...*do.NoticeGroupConfig) error {
+	configDos := slices.ToMapWithValue(configs, func(v *do.NoticeGroupConfig) (string, any) { return v.UniqueKey(), v })
 	return c.GetCache().Client().HSet(ctx, vobj.NoticeGroupCacheKey.Key(teamID), configDos).Err()
 }
 

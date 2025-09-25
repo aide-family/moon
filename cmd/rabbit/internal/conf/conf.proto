@@ -64,6 +64,7 @@ message SMSConfig {
     UNKNOWN = 0;
     ALIYUN = 1;
   }
+  
   Type type = 1;
   AliyunSMSConfig aliyun = 2;
   bool enable = 3;
@@ -75,15 +76,15 @@ message SMSConfigs {
   repeated SMSConfig configs = 3;
 }
 
-enum HookAPP {
-  UNKNOWN = 0;
-  OTHER = 1;
-  DINGTALK = 2;
-  WECHAT = 3;
-  FEISHU = 4;
-}
-
 message HookConfig {
+  enum HookAPP {
+    UNKNOWN = 0;
+    OTHER = 1;
+    DINGTALK = 2;
+    WECHAT = 3;
+    FEISHU = 4;
+  }
+
   string name = 1;
   HookAPP app = 2;
   string url = 3;
@@ -101,20 +102,19 @@ message HookConfigs {
   repeated HookConfig configs = 3;
 }
 
-
-enum NoticeType {
-  UNKNOWN = 0;
-  EMAIL = 1;
-  SMS = 2;
-  VOICE = 3;
-  HOOK_DINGTALK = 4;
-  HOOK_WECHAT = 5;
-  HOOK_FEISHU = 6;
-  HOOK_OTHER = 7;
-}
-
 message NoticeGroupConfig {
 	message Template {
+    enum NoticeType {
+      UNKNOWN = 0;
+      EMAIL = 1;
+      SMS = 2;
+      VOICE = 3;
+      HOOK_DINGTALK = 4;
+      HOOK_WECHAT = 5;
+      HOOK_FEISHU = 6;
+      HOOK_OTHER = 7;
+    }
+
 	  NoticeType type = 1;
 	  string template = 2;
 	  string templateParameters = 3;

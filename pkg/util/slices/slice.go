@@ -81,6 +81,22 @@ func ToMap[T any, K comparable](s []T, f func(v T) K, isCover ...bool) map[K]T {
 	return m
 }
 
+func ToMapWithValue[T, R any, K comparable](s []T, f func(v T) (K, R), isCover ...bool) map[K]R {
+	m := make(map[K]R)
+	cover := len(isCover) > 0 && isCover[0]
+	for _, v := range s {
+		key, value := f(v)
+		if cover {
+			m[key] = value
+			continue
+		}
+		if _, ok := m[key]; !ok {
+			m[key] = value
+		}
+	}
+	return m
+}
+
 func UnmarshalBinary[T any](data []any, src *[]*T) error {
 	if validate.IsNil(src) {
 		return nil
