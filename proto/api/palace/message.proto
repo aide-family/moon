@@ -3,7 +3,6 @@ syntax = "proto3";
 package api.palace;
 
 import "google/api/annotations.proto";
-import "buf/validate/validate.proto";
 import "palace/common/common.proto";
 
 option go_package = "github.com/aide-family/moon/pkg/api/palace;palace";
