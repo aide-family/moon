@@ -30,9 +30,6 @@ func (t *TimeEngine) SaveTimeEngine(ctx context.Context, req *bo.SaveTimeEngineR
 	}
 	req.WithRules(rules)
 	if req.TimeEngineID == 0 {
-		if err := req.Validate(); err != nil {
-			return err
-		}
 		return t.timeEngineRepo.CreateTimeEngine(ctx, req)
 	}
 	timeEngine, err := t.timeEngineRepo.GetTimeEngine(ctx, &bo.GetTimeEngineRequest{
