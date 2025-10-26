@@ -12,11 +12,19 @@ const tableNameNoticeMember = "team_notice_members"
 
 type NoticeMember struct {
 	do.TeamModel
+	MemberID      uint32          `gorm:"column:member_id;type:int(10) unsigned;not null;comment:team member ID" json:"memberID"`
 	NoticeGroupID uint32          `gorm:"column:notice_group_id;type:int(10) unsigned;not null;comment:notice group ID" json:"noticeGroupID"`
 	UserID        uint32          `gorm:"column:user_id;type:int(10) unsigned;not null;comment:user ID" json:"userID"`
 	NoticeType    vobj.NoticeType `gorm:"column:notice_type;type:int(10) unsigned;not null;comment:notice type" json:"noticeType"`
 	NoticeGroup   *NoticeGroup    `gorm:"foreignKey:NoticeGroupID;references:ID" json:"noticeGroup"`
 	DutyCycle     []*TimeEngine   `gorm:"many2many:team_notice_member_duty_cycles" json:"dutyCycle"`
+}
+
+func (n *NoticeMember) GetMemberID() uint32 {
+	if n == nil {
+		return 0
+	}
+	return n.MemberID
 }
 
 func (n *NoticeMember) GetMember() do.TeamMember {

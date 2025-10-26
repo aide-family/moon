@@ -75,6 +75,7 @@ func (t *teamNoticeRepoImpl) Create(ctx context.Context, group bo.SaveNoticeGrou
 			return nil, false
 		}
 		item := &team.NoticeMember{
+			MemberID:      member.MemberID,
 			UserID:        member.UserID,
 			NoticeType:    member.NoticeType,
 			TeamModel:     do.TeamModel{},

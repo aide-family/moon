@@ -41,4 +41,5 @@ type NoticeMember interface {
 	GetNoticeGroup() NoticeGroup
 	GetMember() TeamMember
 	GetDutyCycle() []TimeEngine
+	GetMemberID() uint32
 }
