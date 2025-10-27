@@ -13,7 +13,7 @@ service TimeEngine {
 	rpc SaveTimeEngine (SaveTimeEngineRequest) returns (api.palace.common.EmptyReply) {
 		option (google.api.http) = {
 			post: "/api/time/engine/save"
-			body: "*"	
+			body: "*"
 		};
 	}
 
@@ -63,19 +63,19 @@ service TimeEngine {
 			body: "*"
 		};
 	}
-	
+
 	rpc DeleteTimeEngineRule (DeleteTimeEngineRuleRequest) returns (api.palace.common.EmptyReply) {
 		option (google.api.http) = {
 			delete: "/api/time/engine/rule/delete"
 		};
 	}
-	
+
 	rpc GetTimeEngineRule (GetTimeEngineRuleRequest) returns (api.palace.common.TimeEngineItemRule) {
 		option (google.api.http) = {
 			get: "/api/time/engine/rule/detail"
 		};
 	}
-	
+
 	rpc ListTimeEngineRule (ListTimeEngineRuleRequest) returns (ListTimeEngineRuleReply) {
 		option (google.api.http) = {
 			post: "/api/time/engine/rule/list"
@@ -110,11 +110,11 @@ message UpdateTimeEngineStatusRequest {
 }
 
 message DeleteTimeEngineRequest {
-	uint32 timeEngineId = 1 [(buf.validate.field).uint32.lt = 0];
+	uint32 timeEngineId = 1 [(buf.validate.field).uint32.gt = 0];
 }
 
 message GetTimeEngineRequest {
-	uint32 timeEngineId = 1 [(buf.validate.field).uint32.lt = 0];
+	uint32 timeEngineId = 1 [(buf.validate.field).uint32.gt = 0];
 }
 
 message ListTimeEngineRequest {
@@ -163,11 +163,11 @@ message UpdateTimeEngineRuleStatusRequest {
 }
 
 message DeleteTimeEngineRuleRequest {
-	uint32 timeEngineRuleId = 1 [(buf.validate.field).uint32.lt = 0];
+	uint32 timeEngineRuleId = 1 [(buf.validate.field).uint32.gt = 0];
 }
 
 message GetTimeEngineRuleRequest {
-	uint32 timeEngineRuleId = 1 [(buf.validate.field).uint32.lt = 0];
+	uint32 timeEngineRuleId = 1 [(buf.validate.field).uint32.gt = 0];
 }
 
 message ListTimeEngineRuleRequest {
