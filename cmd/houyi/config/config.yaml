@@ -1,7 +1,0 @@
-config:
-  syncInterval: ${X_MOON_HOUYI_CONFIG_SYNC_INTERVAL:3600s}
-  syncTimeout: ${X_MOON_HOUYI_CONFIG_SYNC_TIMEOUT:10s}
-
-alert:
-  syncInterval: ${X_MOON_HOUYI_ALERT_SYNC_INTERVAL:3600s}
-  syncTimeout: ${X_MOON_HOUYI_ALERT_SYNC_TIMEOUT:10s}

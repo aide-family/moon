@@ -1,6 +1,0 @@
-email:
-  user: ${X_MOON_EMAIL_USER}
-  pass: ${X_MOON_EMAIL_PASS}
-  host: ${X_MOON_EMAIL_HOST}
-  port: ${X_MOON_EMAIL_PORT:25}
-  name: ${X_MOON_EMAIL_NAME:__moon-default__}

@@ -3,37 +3,51 @@
     "path": "/opt/homebrew/bin/protoc",
     "compile_on_save": false,
     "options": [
-      "--proto_path=protos/v3",
-      "--proto_path=protos/v2",
-      "--proto_path=${workspaceRoot}/proto",
-      "--proto_path=${workspaceRoot}/config",
-      "--proto_path=${workspaceRoot}/merr",
-      "--proto_path=${workspaceRoot}/third_party",
+      "--proto_path=${workspaceRoot}/pkg/magicbox/proto",
+      "--proto_path=${workspaceRoot}/pkg/magicbox/proto/third_party",
       "--go_out=gen/go"
     ]
   },
   "editor.lineHeight": 1.8,
   "editor.fontFamily": "'Menlo', 'Droid Sans Mono', 'monospace', monospace",
+  "files.associations": {
+    ".env": "dotenv",
+    ".env.*": "dotenv",
+    "*.env": "dotenv"
+  },
+  // dotenv 文件配置
+  "[dotenv]": {
+    "editor.formatOnSave": false,
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true
+    },
+    "editor.wordBasedSuggestions": "off"
+  },
   "gopls": {
     "usePlaceholders": true, // 启用占位符
     "completeUnimported": true, // 补全未导入的包
     "staticcheck": true, // 启用 staticcheck
     "ui.semanticTokens": true, // 启用语义标记
-    "formatting.gofumpt": true // 使用 gofumpt 进行代码格式化，比 go fmt 更加严格和美观。
+    "formatting.gofumpt": true, // 使用 gofumpt 进行代码格式化，比 go fmt 更加严格和美观。
+    "buildFlags": [
+      "-tags=wireinject,!wireinject",
+    ] // 支持 wireinject 和 !wireinject 构建标签
   },
   "go.gopath": "~/go", // 设置 GOPATH 为当前项目目录
-  "go.goroot": "~/sdk/go1.24.5", // 设置 GOROOT（根据你的 Go 安装路径调整）
+  "go.goroot": "~/go/sdk/go1.25.3", // 设置 GOROOT（根据你的 Go 安装路径调整）
   "go.useLanguageServer": true, // 启用 gopls
   "go.languageServerFlags": [
     "--remote=auto" // 配置 gopls 的远程模式
   ],
-  "go.formatTool": "goimports", // 使用 goimports 格式化代码
+  // "go.formatTool": "goimports", // 使用 goimports 格式化代码
   "go.testFlags": [
     "-v"
   ], // 运行测试时添加 -v 标志
   "go.testOnSave": false, // 保存时不自动运行测试
   "go.buildFlags": [], // 构建时的额外标志
-  "go.lintTool": "staticcheck", // 使用 staticcheck 进行静态分析
+  // "go.lintTool": "staticcheck", // 使用 staticcheck 进行静态分析
   "go.lintFlags": [], // 静态分析的额外标志
   "go.autocompleteUnimportedPackages": true, // 自动补全未导入的包
   "editor.formatOnSave": true, // 保存时自动格式化
@@ -59,15 +73,22 @@
     "errgroup",
     "Errorw",
     "feishu",
+    "ggrpc",
     "GOHOSTOS",
     "gorm",
+    "gormlog",
     "houyi",
     "houyiv",
     "Infof",
+    "Infow",
+    "klog",
     "kratos",
+    "linecomment",
+    "magicbox",
     "merr",
     "miniredis",
     "mlog",
+    "nethttp",
     "nhttp",
     "nicksnyder",
     "palacecommon",
@@ -82,6 +103,7 @@
     "Smss",
     "srvs",
     "strutil",
+    "timestamppb",
     "tinyint",
     "transporthttp",
     "varchar",
@@ -89,6 +111,9 @@
     "vobj",
     "Warnf",
     "Warnw",
-    "Wechat"
-  ]
+    "Wechat",
+    "wireinject"
+  ],
+  "editor.tabCompletion": "on",
+  "sqltools.connections": []
 }

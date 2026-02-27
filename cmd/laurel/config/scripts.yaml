@@ -1,1 +1,0 @@
-taskScripts: ${X_MOON_LAUREL_TASK_SCRIPTS_DIR:['./scripts']}

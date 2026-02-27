@@ -1,9 +1,0 @@
-log:
-  driver: ${X_MOON_LAUREL_LOG_DRIVER:DEFAULT}
-  level: ${X_MOON_LAUREL_LOG_LEVEL:INFO}
-  sugared:
-    format: ${X_MOON_LAUREL_LOG_SUGARED_FORMAT:console}
-    output: ${X_MOON_LAUREL_LOG_SUGARED_OUTPUT:stdout}
-    disableCaller: ${X_MOON_LAUREL_LOG_SUGARED_DISABLE_CALLER:false}
-    disableStacktrace: ${X_MOON_LAUREL_LOG_SUGARED_DISABLE_STACKTRACE:true}
-    enableColor: ${X_MOON_LAUREL_LOG_SUGARED_ENABLE_COLOR:true}

@@ -1,5 +1,0 @@
-FROM debian:stable-slim
-
-RUN apt update && apt install -y ca-certificates curl wget vim && \
-    update-ca-certificates && \
-    rm -rf /var/lib/apt/lists/*

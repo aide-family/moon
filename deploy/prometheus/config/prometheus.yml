@@ -1,8 +1,0 @@
-global:
-  scrape_interval: 15s # 采样周期
-  evaluation_interval: 15s # 告警规则计算周期
-
-scrape_configs:
-  - job_name: 'prometheus_server'
-    static_configs:
-      - targets: ['prom:9090']

@@ -2,6 +2,7 @@
   "recommendations": [
     "golang.go", // Go 插件
     "vscode-icons-team.vscode-icons", // 文件图标
-    "streetsidesoftware.code-spell-checker" // 拼写检查
+    "streetsidesoftware.code-spell-checker", // 拼写检查
+    "mikestead.dotenv" // dotenv 文件支持，提供语法高亮和智能提示
   ]
 }
