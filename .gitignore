@@ -32,19 +32,10 @@ go.work.sum
 .vscode/
 .DS_Store
 
-description.txt
-
-# generated files
-internal/**/*.pb.go
-cmd/**/*_gen.go
-
-
 # deploy
 deploy/*/data
-description.txt
 .rabbit/
 *.log
-*__string.go
 
 # database
 *.db
