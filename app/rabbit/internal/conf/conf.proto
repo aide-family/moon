@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package internal.conf;
+
+import "google/protobuf/duration.proto";
+import "magicbox/config/config.proto";
+import "magicbox/enum/enum.proto";
+
+option go_package = "github.com/aide-family/rabbit/internal/conf;conf";
+
+message Bootstrap {
+	magicbox.enum.Environment environment = 1;
+	string useRandomID = 2;
+	Server server = 3;
+	magicbox.config.JWT jwt = 4;
+	magicbox.config.BasicAuthConfig swaggerBasicAuth = 5;
+	magicbox.config.BasicAuthConfig metricsBasicAuth = 6;
+	string enableSwagger = 7;
+	string enableMetrics = 8;
+	string enableClientConfig = 9;
+	magicbox.config.ReportConfig report = 10;
+	magicbox.config.OAuth2 oauth2 = 11;
+	magicbox.config.DomainConfig namespaceConfig = 12;
+	magicbox.config.DomainConfig memberConfig = 13;
+	magicbox.config.DomainConfig loginConfig = 14;
+	magicbox.config.ClusterConfig jobClusters = 15;
+	JobCore jobCore = 16;
+	magicbox.config.ORMConfig database = 17;
+}
+
+message Server {
+	message ServerConfig {
+		string address = 1;
+		string network = 2;
+		google.protobuf.Duration timeout = 3;
+		magicbox.config.Protocol protocol = 4;
+	}
+	
+	string name = 1;
+	map<string, string> metadata = 2;
+	ServerConfig http = 3;
+	ServerConfig grpc = 4;
+	ServerConfig job = 5;
+}
+
+message JobCore {
+	int32 workerTotal = 1;
+	google.protobuf.Duration timeout = 2;
+	uint32 bufferSize = 3;
+	uint32 maxRetry = 4;
+}

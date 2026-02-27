@@ -1,0 +1,321 @@
+syntax = "proto3";
+
+package marksman.api.v1;
+
+option go_package = "github.com/aide-family/marksman/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "marksman.api.v1";
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "magicbox/enum/enum.proto";
+
+service Strategy {
+	rpc CreateStrategyGroup (CreateStrategyGroupRequest) returns (CreateStrategyGroupReply) {
+		option (google.api.http) = {
+			post: "/v1/strategy-group"
+			body: "*"
+		};
+	}
+	rpc UpdateStrategyGroup (UpdateStrategyGroupRequest) returns (UpdateStrategyGroupReply) {
+		option (google.api.http) = {
+			put: "/v1/strategy-group/{uid}"
+			body: "*"
+		};
+	}
+	rpc UpdateStrategyGroupStatus (UpdateStrategyGroupStatusRequest) returns (UpdateStrategyGroupStatusReply) {
+		option (google.api.http) = {
+			put: "/v1/strategy-group/{uid}/status"
+			body: "*"
+		};
+	}
+	rpc DeleteStrategyGroup (DeleteStrategyGroupRequest) returns (DeleteStrategyGroupReply) {
+		option (google.api.http) = {
+			delete: "/v1/strategy-group/{uid}"
+		};
+	}
+	rpc GetStrategyGroup (GetStrategyGroupRequest) returns (StrategyGroupItem) {
+		option (google.api.http) = {
+			get: "/v1/strategy-group/{uid}"
+		};
+	}
+	rpc ListStrategyGroup (ListStrategyGroupRequest) returns (ListStrategyGroupReply) {
+		option (google.api.http) = {
+			get: "/v1/strategy-groups"
+		};
+	}
+	rpc SelectStrategyGroup (SelectStrategyGroupRequest) returns (SelectStrategyGroupReply) {
+		option (google.api.http) = {
+			get: "/v1/strategy-groups/select"
+		};
+	}
+	rpc StrategyGroupBindReceivers (StrategyGroupBindReceiversRequest) returns (StrategyGroupBindReceiversReply) {
+		option (google.api.http) = {
+			post: "/v1/strategy-group/{uid}/receivers"
+			body: "*"
+		};
+	}
+	rpc CreateStrategy (CreateStrategyRequest) returns (CreateStrategyReply) {
+		option (google.api.http) = {
+			post: "/v1/strategy"
+			body: "*"
+		};
+	}
+	rpc UpdateStrategy (UpdateStrategyRequest) returns (UpdateStrategyReply) {
+		option (google.api.http) = {
+			put: "/v1/strategy/{uid}"
+			body: "*"
+		};
+	}
+	rpc UpdateStrategyStatus (UpdateStrategyStatusRequest) returns (UpdateStrategyStatusReply) {
+		option (google.api.http) = {
+			put: "/v1/strategy/{uid}/status"
+			body: "*"
+		};
+	}
+	rpc DeleteStrategy (DeleteStrategyRequest) returns (DeleteStrategyReply) {
+		option (google.api.http) = {
+			delete: "/v1/strategy/{uid}"
+		};
+	}
+	rpc GetStrategy (GetStrategyRequest) returns (StrategyItem) {
+		option (google.api.http) = {
+			get: "/v1/strategy/{uid}"
+		};
+	}
+	rpc ListStrategy (ListStrategyRequest) returns (ListStrategyReply) {
+		option (google.api.http) = {
+			get: "/v1/strategies"
+		};
+	}
+}
+
+message StrategyGroupItem {
+	int64 uid = 1;
+	string name = 2;
+	string remark = 3;
+	magicbox.enum.GlobalStatus status = 4;
+	map<string, string> metadata = 5;
+	string createdAt = 6;
+	string updatedAt = 7;
+}
+
+message StrategyItem {
+	int64 uid = 1;
+	string name = 2;
+	string remark = 3;
+	magicbox.enum.DatasourceType type = 4;
+	magicbox.enum.DatasourceDriver driver = 5;
+	magicbox.enum.GlobalStatus status = 6;
+	map<string, string> metadata = 7;
+	string createdAt = 8;
+	string updatedAt = 9;
+}
+
+message StrategyItemSelect {
+	int64 value = 1;
+	string label = 2;
+	bool disabled = 3;
+	string tooltip = 4;
+}
+
+message StrategyGroupItemSelect {
+	int64 value = 1;
+	string label = 2;
+	bool disabled = 3;
+	string tooltip = 4;
+}
+
+message CreateStrategyGroupRequest {
+	string name = 1 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 3,
+		max_len: 100,
+	}];
+	string remark = 2;
+	map<string, string> metadata = 3;
+}
+message CreateStrategyGroupReply {}
+
+message UpdateStrategyGroupRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+	string name = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 3,
+		max_len: 100,
+	}];
+	string remark = 3;
+	map<string, string> metadata = 4;
+}
+message UpdateStrategyGroupReply {}
+
+message UpdateStrategyGroupStatusRequest {
+	string uid = 1 [(buf.validate.field).required = true];
+	magicbox.enum.GlobalStatus status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
+		message: "status must be in ['ENABLED', 'DISABLED']",
+	}];
+}
+message UpdateStrategyGroupStatusReply {}
+
+message DeleteStrategyGroupRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+message DeleteStrategyGroupReply {}
+
+message GetStrategyGroupRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message ListStrategyGroupRequest {
+	string keyword = 1 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword must be less than or equal to 100",
+	}];
+	int32 page = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1",
+		message: "page must be greater than or equal to 1",
+	}];
+	int32 pageSize = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 200",
+		message: "pageSize must be greater than or equal to 1 and less than or equal to 200",
+	}];
+	magicbox.enum.GlobalStatus status = 4;
+}
+message ListStrategyGroupReply {
+	repeated StrategyGroupItem items = 1;
+	int64 total = 2;
+	int32 page = 3;
+	int32 pageSize = 4;
+}
+
+message SelectStrategyGroupRequest {
+	string keyword = 1 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword must be less than or equal to 100",
+	}];
+	int32 limit = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 100",
+		message: "limit must be greater than or equal to 1 and less than or equal to 100",
+	}];
+	int64 lastUID = 4;
+	magicbox.enum.GlobalStatus status = 5;
+}
+message SelectStrategyGroupReply {
+	repeated StrategyGroupItemSelect items = 1;
+	int64 total = 2;
+	bool hasMore = 3;
+	uint32 nextUID = 4;
+}
+
+message StrategyGroupBindReceiversRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+	repeated int64 receiverUIDs = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this.size() > 0",
+		message: "receiverUIDs must be greater than 0",
+	}];
+}
+message StrategyGroupBindReceiversReply {}
+
+message CreateStrategyRequest {
+	string name = 1 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 3,
+		max_len: 100,
+	}];
+	string remark = 2 [(buf.validate.field).string = {
+		max_len: 1000,
+	}];
+	magicbox.enum.DatasourceType type = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.DatasourceType.METRICS, magicbox.enum.DatasourceType.LOGS, magicbox.enum.DatasourceType.TRACE]",
+		message: "type must be in ['METRICS', 'LOGS', 'TRACE']",
+	}];
+	magicbox.enum.DatasourceDriver driver = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.DatasourceDriver.METRICS_PROMETHEUS, magicbox.enum.DatasourceDriver.METRICS_VICTORIA_METRICS, magicbox.enum.DatasourceDriver.LOGS_ELASTICSEARCH, magicbox.enum.DatasourceDriver.TRACE_JAEGER]",
+		message: "driver must be in ['METRICS_PROMETHEUS', 'METRICS_VICTORIA_METRICS', 'LOGS_ELASTICSEARCH', 'TRACE_JAEGER']",
+	}];
+	map<string, string> metadata = 5;
+	int64 strategyGroupUID = 6 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "strategyGroupUID must be greater than 0",
+	}];
+	magicbox.enum.GlobalStatus status = 7 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
+		message: "status must be in ['ENABLED', 'DISABLED']",
+	}];
+}
+message CreateStrategyReply {}
+
+message UpdateStrategyRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+	string name = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 3,
+		max_len: 100,
+	}];
+	string remark = 3 [(buf.validate.field).string = {
+		max_len: 1000,
+	}];
+	map<string, string> metadata = 4;
+	int64 strategyGroupUID = 5 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "strategyGroupUID must be greater than 0",
+	}];
+	magicbox.enum.DatasourceType type = 6 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.DatasourceType.METRICS, magicbox.enum.DatasourceType.LOGS, magicbox.enum.DatasourceType.TRACE]",
+		message: "type must be in ['METRICS', 'LOGS', 'TRACE']",
+	}];
+	magicbox.enum.DatasourceDriver driver = 7 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.DatasourceDriver.METRICS_PROMETHEUS, magicbox.enum.DatasourceDriver.METRICS_VICTORIA_METRICS, magicbox.enum.DatasourceDriver.LOGS_ELASTICSEARCH, magicbox.enum.DatasourceDriver.TRACE_JAEGER]",
+		message: "driver must be in ['METRICS_PROMETHEUS', 'METRICS_VICTORIA_METRICS', 'LOGS_ELASTICSEARCH', 'TRACE_JAEGER']",
+	}];
+}
+message UpdateStrategyReply {}
+
+message UpdateStrategyStatusRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	magicbox.enum.GlobalStatus status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
+		message: "status must be in ['ENABLED', 'DISABLED']",
+	}];
+}
+message UpdateStrategyStatusReply {}
+
+message DeleteStrategyRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+message DeleteStrategyReply {}
+
+message GetStrategyRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message ListStrategyRequest {
+	string keyword = 1 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword must be less than or equal to 100",
+	}];
+	int32 page = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1",
+		message: "page must be greater than or equal to 1",
+	}];
+	int32 pageSize = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 200",
+		message: "pageSize must be greater than or equal to 1 and less than or equal to 200",
+	}];
+	magicbox.enum.GlobalStatus status = 4;
+	int64 strategyGroupUID = 5;
+	magicbox.enum.DatasourceType type = 6;
+	magicbox.enum.DatasourceDriver driver = 7;
+}
+message ListStrategyReply {
+	repeated StrategyItem items = 1;
+	int64 total = 2;
+	int32 page = 3;
+	int32 pageSize = 4;
+}

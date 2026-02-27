@@ -1,0 +1,187 @@
+syntax = "proto3";
+
+package marksman.api.v1;
+
+option go_package = "github.com/aide-family/marksman/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "marksman.api.v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/duration.proto";
+import "buf/validate/validate.proto";
+import "magicbox/enum/enum.proto";
+import "magicbox/enum/strategy.proto";
+import "marksman/api/v1/level.proto";
+
+service StrategyMetric {
+	rpc SaveStrategyMetric (SaveStrategyMetricRequest) returns (SaveStrategyMetricReply) {
+		option (google.api.http) = {
+			post: "/v1/metric/strategy/{strategyUID}"
+			body: "*"
+		};
+	}
+	rpc GetStrategyMetric (GetStrategyMetricRequest) returns (StrategyMetricItem) {
+		option (google.api.http) = {
+			get: "/v1/metric/strategy/{strategyUID}"
+		};
+	}
+
+	rpc SaveStrategyMetricLevel (SaveStrategyMetricLevelRequest) returns (SaveStrategyMetricLevelReply) {
+		option (google.api.http) = {
+			post: "/v1/metric/strategy/{strategyUID}/level"
+			body: "*"
+		};
+	}
+	rpc UpdateStrategyMetricLevelStatus (UpdateStrategyMetricLevelStatusRequest) returns (UpdateStrategyMetricLevelStatusReply) {
+		option (google.api.http) = {
+			put: "/v1/metric/strategy/{strategyUID}/level/{uid}/status"
+			body: "*"
+		};
+	}
+	rpc DeleteStrategyMetricLevel (DeleteStrategyMetricLevelRequest) returns (DeleteStrategyMetricLevelReply) {
+		option (google.api.http) = {
+			delete: "/v1/metric/strategy/{strategyUID}/level/{uid}"
+		};
+	}
+	rpc GetStrategyMetricLevel (GetStrategyMetricLevelRequest) returns (StrategyMetricLevelItem) {
+		option (google.api.http) = {
+			get: "/v1/metric/strategy/{strategyUID}/level/{uid}"
+		};
+	}
+	rpc StrategyMetricBindReceivers (StrategyMetricBindReceiversRequest) returns (StrategyMetricBindReceiversReply) {
+		option (google.api.http) = {
+			post: "/v1/metric/strategy/{strategyUID}/receivers"
+			body: "*"
+		};
+	}
+}
+
+message StrategyMetricItem {
+	int64 strategyUID = 1;
+	string expr = 2;
+	map<string, string> labels = 3;
+	string summary = 4;
+	string description = 5;
+	magicbox.enum.GlobalStatus status = 6;
+	repeated int64 datasourceUIDs = 7;
+	repeated StrategyMetricLevelItem levels = 8;
+	string createdAt = 9;
+	string updatedAt = 10;
+}
+
+message StrategyMetricLevelItem {
+	int64 uid = 1;
+	int64 strategyUID = 2;
+	marksman.api.v1.LevelItem level = 3;
+	magicbox.enum.SampleMode mode = 4;
+	magicbox.enum.ConditionMetric condition = 5;
+	repeated double values = 6;
+	google.protobuf.Duration duration = 7;
+	magicbox.enum.GlobalStatus status = 8;
+}
+
+message SaveStrategyMetricRequest {
+	int64 strategyUID = 1 [(buf.validate.field).required = true];
+	string expr = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 3,
+		max_len: 100,
+	}];
+	map<string, string> labels = 3;
+	repeated int64 datasourceUIDs = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this.size() > 0",
+		message: "datasourceUIDs must be greater than 0",
+	}];
+	string summary = 5;
+	string description = 6;
+	magicbox.enum.GlobalStatus status = 7 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
+		message: "status must be in ['ENABLED', 'DISABLED']",
+	}];
+}
+message SaveStrategyMetricReply {}
+
+message GetStrategyMetricRequest {
+	int64 strategyUID = 1 [(buf.validate.field).required = true];
+}
+
+message SaveStrategyMetricLevelRequest {
+	int64 strategyUID = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "strategyUID must be greater than 0",
+	}];
+	int64 levelUID = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "levelUID must be greater than 0",
+	}];
+	magicbox.enum.SampleMode mode = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.SampleMode.SAMPLE_MODE_FOR, magicbox.enum.SampleMode.SAMPLE_MODE_MAX, magicbox.enum.SampleMode.SAMPLE_MODE_MIN]",
+		message: "mode must be in ['SAMPLE_MODE_FOR', 'SAMPLE_MODE_MAX', 'SAMPLE_MODE_MIN']",
+	}];
+	magicbox.enum.ConditionMetric condition = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.ConditionMetric.CONDITION_METRIC_EQ, magicbox.enum.ConditionMetric.CONDITION_METRIC_NE, magicbox.enum.ConditionMetric.CONDITION_METRIC_GT, magicbox.enum.ConditionMetric.CONDITION_METRIC_GTE, magicbox.enum.ConditionMetric.CONDITION_METRIC_LT, magicbox.enum.ConditionMetric.CONDITION_METRIC_LTE, magicbox.enum.ConditionMetric.CONDITION_METRIC_IN, magicbox.enum.ConditionMetric.CONDITION_METRIC_NOT_IN]",
+		message: "condition must be in ['CONDITION_METRIC_EQ', 'CONDITION_METRIC_NE', 'CONDITION_METRIC_GT', 'CONDITION_METRIC_GTE', 'CONDITION_METRIC_LT', 'CONDITION_METRIC_LTE', 'CONDITION_METRIC_IN', 'CONDITION_METRIC_NOT_IN']",
+	}];
+	repeated double values = 5 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this.size() == 1 || this.size() == 2",
+		message: "values must be 1 or 2",
+	}];
+	google.protobuf.Duration duration = 6 [(buf.validate.field).required = true];
+	magicbox.enum.GlobalStatus status = 7 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
+		message: "status must be in ['ENABLED', 'DISABLED']",
+	}];
+}
+message SaveStrategyMetricLevelReply {}
+
+message UpdateStrategyMetricLevelStatusRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+	int64 strategyUID = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "strategyUID must be greater than 0",
+	}];
+	magicbox.enum.GlobalStatus status = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
+		message: "status must be in ['ENABLED', 'DISABLED']",
+	}];	
+}
+message UpdateStrategyMetricLevelStatusReply {}
+
+message DeleteStrategyMetricLevelRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+	int64 strategyUID = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "strategyUID must be greater than 0",
+	}];
+}
+message DeleteStrategyMetricLevelReply {}
+
+message GetStrategyMetricLevelRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+	int64 strategyUID = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "strategyUID must be greater than 0",
+	}];
+}
+
+message StrategyMetricBindReceiversRequest {
+	int64 strategyUID = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "strategyUID must be greater than 0",
+	}];
+	repeated int64 receiverUIDs = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this.size() > 0",
+		message: "receiverUIDs must be greater than 0",
+	}];
+	// optional levelUID
+	int64 levelUID = 3;
+}
+message StrategyMetricBindReceiversReply {}

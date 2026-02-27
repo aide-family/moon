@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package rabbit.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aide-family/rabbit/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "rabbit.api.v1";
+
+service Sender {
+	rpc SendMessage (SendMessageRequest) returns (SendReply) {
+		option (google.api.http) = {
+			post: "/v1/sender/message"
+			body: "*"
+		};
+	}
+	rpc SendEmail (SendEmailRequest) returns (SendReply) {
+		option (google.api.http) = {
+			post: "/v1/sender/email/{uid}"
+			body: "*"
+		};
+	}
+	rpc SendEmailWithTemplate (SendEmailWithTemplateRequest) returns (SendReply) {
+		option (google.api.http) = {
+			post: "/v1/sender/email/{uid}/template"
+			body: "*"
+		};
+	}
+
+	rpc SendWebhook (SendWebhookRequest) returns (SendReply) {
+		option (google.api.http) = {
+			post: "/v1/sender/webhook/{uid}"
+			body: "*"
+		};
+	}
+	rpc SendWebhookWithTemplate (SendWebhookWithTemplateRequest) returns (SendReply) {
+		option (google.api.http) = {
+			post: "/v1/sender/webhook/{uid}/template"
+			body: "*"
+		};
+	}
+}
+
+message SendReply {
+	int64 uid = 1;
+}
+
+message SendMessageRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message SendEmailRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	string subject = 2;
+	string body = 3 [(buf.validate.field).required = true];
+	repeated string to = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this.size() > 0",
+		message: "to must be greater than 0",
+	}];
+	repeated string cc = 5;
+	string contentType = 6 ;
+	map<string, string> headers = 7;
+}
+
+message SendEmailWithTemplateRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	int64 templateUID = 2 [(buf.validate.field).required = true];
+	string jsonData = 3 [(buf.validate.field).required = true];
+	repeated string to = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this.size() > 0",
+		message: "to must be greater than 0",
+	}];
+	repeated string cc = 5;
+}
+
+message SendWebhookRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	string data = 5 [(buf.validate.field).required = true];
+}
+message SendWebhookWithTemplateRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	int64 templateUID = 2 [(buf.validate.field).required = true];
+	string jsonData = 3 [(buf.validate.field).required = true];
+}

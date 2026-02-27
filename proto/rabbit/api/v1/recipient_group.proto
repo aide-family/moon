@@ -1,0 +1,171 @@
+syntax = "proto3";
+
+package rabbit.api.v1;
+
+option go_package = "github.com/aide-family/rabbit/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "rabbit.api.v1";
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "magicbox/enum/enum.proto";
+import "rabbit/api/v1/template.proto";
+import "rabbit/api/v1/email.proto";
+import "rabbit/api/v1/webhook.proto";
+import "magicbox/api/v1/member.proto";
+
+service RecipientGroupService {
+    rpc CreateRecipientGroup(CreateRecipientGroupRequest) returns (CreateRecipientGroupReply) {
+        option (google.api.http) = {
+            post: "/v1/recipient-group"
+            body: "*"
+        };
+    };
+    rpc GetRecipientGroup(GetRecipientGroupRequest) returns (RecipientGroupItem) {
+        option (google.api.http) = {
+            get: "/v1/recipient-group/{uid}"
+        };
+    };
+    rpc UpdateRecipientGroup(UpdateRecipientGroupRequest) returns (UpdateRecipientGroupReply) {
+        option (google.api.http) = {
+            put: "/v1/recipient-group/{uid}"
+            body: "*"
+        };
+    };
+    rpc DeleteRecipientGroup(DeleteRecipientGroupRequest) returns (DeleteRecipientGroupReply) {
+        option (google.api.http) = {
+            delete: "/v1/recipient-group/{uid}"
+        };
+    };
+    rpc ListRecipientGroup(ListRecipientGroupRequest) returns (ListRecipientGroupReply) {
+        option (google.api.http) = {
+            get: "/v1/recipient-groups"
+        };
+    };
+    rpc SelectRecipientGroup(SelectRecipientGroupRequest) returns (SelectRecipientGroupReply) {
+        option (google.api.http) = {
+            get: "/v1/recipient-groups/select"
+        };
+    };
+    rpc UpdateRecipientGroupStatus(UpdateRecipientGroupStatusRequest) returns (UpdateRecipientGroupStatusReply) {
+        option (google.api.http) = {
+            put: "/v1/recipient-group/{uid}/status"
+            body: "*"
+        };
+    };
+}
+
+message RecipientGroupItem {
+    int64 uid = 1;
+    string name = 2;
+    map<string, string> metadata = 3;
+    repeated rabbit.api.v1.TemplateItem templates = 4;
+    repeated rabbit.api.v1.EmailConfigItem emailConfigs = 5;
+    repeated rabbit.api.v1.WebhookItem webhookConfigs = 6;
+    repeated magicbox.api.v1.MemberItem members = 8;
+    magicbox.enum.GlobalStatus status = 9;
+    string createdAt = 10;
+    string updatedAt = 11;
+}
+
+message SelectRecipientGroupItem {
+    int64 value = 1;
+    string label = 2;
+    bool disabled = 3;
+    string tooltip = 4;
+}
+
+message CreateRecipientGroupRequest {
+    string name = 1 [(buf.validate.field).required = true, (buf.validate.field).string = {
+        min_len: 3,
+        max_len: 100,
+    }];
+    map<string, string> metadata = 2;
+    repeated int64 templates = 3;
+    repeated int64 emailConfigs = 4;
+    repeated int64 smsConfigs = 5;
+    repeated int64 webhookConfigs = 6;
+    repeated int64 members = 7;
+}
+
+message CreateRecipientGroupReply{
+    int64 uid = 1;
+}
+
+message GetRecipientGroupRequest {
+    int64 uid = 1;
+}
+
+message DeleteRecipientGroupRequest {
+    int64 uid = 1;
+}
+
+message DeleteRecipientGroupReply {}
+
+message UpdateRecipientGroupRequest {
+    int64 uid = 1;
+    string name = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
+        min_len: 3,
+        max_len: 100,
+    }];
+    map<string, string> metadata = 3;
+    repeated int64 templates = 4;
+    repeated int64 emailConfigs = 5;
+    repeated int64 smsConfigs = 6;
+    repeated int64 webhookConfigs = 7;
+    repeated int64 members = 8;
+}
+
+message UpdateRecipientGroupReply {}
+
+message ListRecipientGroupRequest {
+    int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1",
+        message: "page must be greater than or equal to 1",
+    }];
+    int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 200",
+        message: "pageSize must be greater than or equal to 1 and less than or equal to 200",
+    }];
+    string keyword = 3 [(buf.validate.field).cel = {
+        expression: "this.size() <= 100",
+        message: "keyword must be less than or equal to 100",
+    }];
+    magicbox.enum.GlobalStatus status = 4;
+}
+
+message ListRecipientGroupReply {
+    repeated RecipientGroupItem items = 1;
+    int64 total = 2;
+    int32 page = 3;
+    int32 pageSize = 4;
+}
+
+message SelectRecipientGroupRequest {
+    string keyword = 1 [(buf.validate.field).cel = {
+        expression: "this.size() <= 100",
+        message: "keyword must be less than or equal to 100",
+    }];
+    int32 limit = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 100",
+        message: "limit must be greater than or equal to 1 and less than or equal to 100",
+    }];
+    int64 lastUID = 3;
+    magicbox.enum.GlobalStatus status = 4;
+}
+
+message SelectRecipientGroupReply {
+    repeated SelectRecipientGroupItem items = 1;
+    int64 total = 2;
+    int64 lastUID = 3;
+    bool hasMore = 4;
+}
+
+message UpdateRecipientGroupStatusRequest {
+    int64 uid = 1;
+    magicbox.enum.GlobalStatus status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
+        message: "status must be in ['ENABLED', 'DISABLED']",
+    }];
+}
+message UpdateRecipientGroupStatusReply {}

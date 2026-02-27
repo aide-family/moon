@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package magicbox.merr;
+
+import "errors/errors.proto";
+
+option go_package = "github.com/aide-family/magicbox/merr;merr";
+
+enum ClientError {
+  option (errors.default_code) = 400;
+  // BAD_REQUEST Request Parameter Issues
+  //  - Incorrect Request Format: The data format sent by the client does not meet the requirements of the API.
+  //  - Invalid Parameter Values: The provided parameter values do not comply with business rules or format requirements.
+  //  - Missing Necessary Parameters: The required parameters for the API are not provided.
+  //  - Invalid Parameter Format: The provided parameter format is incorrect. 
+  BAD_REQUEST = 0;
+  // NOT_FOUND Resource Not Found
+  //  - The requested resource does not exist or is not available.
+  NOT_FOUND = 1;
+  // CAPTCHA Captcha Verification Failed
+  //  - Incorrect Captcha: The provided captcha code is incorrect.
+  //  - Captcha Expired: The captcha code has expired and cannot be used.
+  //  - Captcha Not Provided: The captcha code is required but not provided.
+  CAPTCHA = 2;
+  // PARAMS Invalid Parameters
+  //  - Invalid Parameter Values: The provided parameter values do not comply with business rules or format requirements.
+  //  - Missing Necessary Parameters: The required parameters for the API are not provided. 
+  PARAMS = 3;
+  // EXIST Resource Already Exists
+  //  - The requested resource already exists.
+  //  - The requested resource already error
+  EXIST = 4;
+  // REQUIRED Required
+  //  - The requested parameter is required.
+  REQUIRED = 5;
+  // CONFLICT Conflict
+  //  - The requested resource already exists.
+  //  - The requested resource already error.
+  CONFLICT = 6;
+}
+
+enum UnauthorizedError {
+  option (errors.default_code) = 401;
+  // UNAUTHORIZED Authentication Issues
+  // - The user is not authenticated or does not have the required permissions to access the resource.
+  UNAUTHORIZED = 0;
+  // UNAUTHORIZED_INVALID_TOKEN Invalid Token
+  //  - The provided authentication token is invalid or does not have the required permissions.
+  TOKEN_INVALID = 1;
+  // TOKEN_EXPIRED Token Expired
+  //  - The provided authentication token has expired.
+  TOKEN_EXPIRED = 2;
+  // USER_FORBIDDEN User Forbidden
+  //  - The user account is disabled and cannot access the resource.
+  USER_FORBIDDEN = 3;
+  // USER_NOT_FOUND User Not Found
+  //  - The requested user does not exist.
+  USER_NOT_FOUND = 4;
+}
+
+enum ForbiddenError { 
+  option (errors.default_code) = 403;
+  // ## Permission Denied
+  // - The user does not have the necessary permissions to access the resource.
+  FORBIDDEN = 0;
+  // ## Resource Not Open
+  // - The requested resource is not open to the public.
+  RESOURCE_NOT_OPEN = 1;
+  // ## Invalid Password
+  // - The provided password is invalid.
+  // - The user account is disabled and cannot access the resource.
+  PASSWORD = 4;
+  // ## Permission Denied
+  // - The user does not have the necessary permissions to access the resource.
+  // - The member account is disabled and cannot access the resource.
+  PERMISSION_DENIED = 5;
+}
+
+enum ServerError {
+  option (errors.default_code) = 500;
+  // ## Server Error
+  // - The server encountered an unexpected error.
+  // - The server is temporarily unavailable.
+  INTERNAL_SERVER = 0;
+  // ## Invalid Argument
+  // - The provided argument is invalid or does not meet the requirements.
+  // - The provided argument is out of range.
+  // - The provided argument is not supported.
+  INVALID_ARGUMENT = 1;
+}

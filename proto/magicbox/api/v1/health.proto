@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package magicbox.api.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aide-family/magicbox/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "magicbox.api.v1";
+
+service Health {
+	rpc HealthCheck (HealthCheckRequest) returns (HealthCheckReply) {
+		option (google.api.http) = {
+			get: "/health"
+		};
+	}
+}
+
+message HealthCheckRequest {}
+message HealthCheckReply {
+	string status = 1;
+	string message = 2;
+	google.protobuf.Timestamp uptime = 3;
+	string duration = 4;
+}

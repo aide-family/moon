@@ -1,0 +1,158 @@
+syntax = "proto3";
+
+package magicbox.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "magicbox/enum/enum.proto";
+
+option go_package = "github.com/aide-family/magicbox/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "magicbox.api.v1";
+
+service Namespace {
+	rpc CreateNamespace (CreateNamespaceRequest) returns (CreateNamespaceReply) {
+		option (google.api.http) = {
+			post: "/v1/namespace"
+			body: "*"
+		};
+	}
+	rpc UpdateNamespace (UpdateNamespaceRequest) returns (UpdateNamespaceReply) {
+		option (google.api.http) = {
+			put: "/v1/namespace/{uid}"
+			body: "*"
+		};
+	}
+	rpc UpdateNamespaceStatus (UpdateNamespaceStatusRequest) returns (UpdateNamespaceStatusReply) {
+		option (google.api.http) = {
+			put: "/v1/namespace/{uid}/status"
+			body: "*"
+		};
+	}
+	rpc DeleteNamespace (DeleteNamespaceRequest) returns (DeleteNamespaceReply) {
+		option (google.api.http) = {
+			delete: "/v1/namespace/{uid}"
+		};
+	}
+	rpc GetNamespace (GetNamespaceRequest) returns (NamespaceItem) {
+		option (google.api.http) = {
+			get: "/v1/namespace/{uid}"
+		};
+	}
+	rpc ListNamespace (ListNamespaceRequest) returns (ListNamespaceReply) {
+		option (google.api.http) = {
+			get: "/v1/namespaces"
+		};
+	}
+	rpc SelectNamespace (SelectNamespaceRequest) returns (SelectNamespaceReply) {
+		option (google.api.http) = {
+			get: "/v1/namespaces/select"
+		};
+	}
+}
+
+message CreateNamespaceRequest {
+	string name = 1 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 3,
+		max_len: 100,
+	}, (buf.validate.field).cel = {
+		expression: "this.matches('^[a-zA-Z0-9_-]+$')",
+		message: "name must be a valid name, only letters, numbers, underscores, and hyphens are allowed",
+	}];
+	map<string, string> metadata = 2;
+	string remark = 3 [(buf.validate.field).string = {
+		max_len: 1000,
+	}];
+}
+message CreateNamespaceReply {
+	int64 uid = 1;
+}
+
+message UpdateNamespaceRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	string name = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 3,
+		max_len: 100,
+	}];
+	map<string, string> metadata = 3;
+	string remark = 4 [(buf.validate.field).string = {
+		max_len: 1000,
+	}];
+}
+message UpdateNamespaceReply {}
+
+message UpdateNamespaceStatusRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	magicbox.enum.GlobalStatus status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
+		message: "status must be in ['ENABLED', 'DISABLED']",
+	}];
+}
+message UpdateNamespaceStatusReply {}
+
+message DeleteNamespaceRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+message DeleteNamespaceReply {}
+
+message GetNamespaceRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message ListNamespaceRequest {
+	int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1",
+		message: "page must be greater than or equal to 1",
+	}];
+	int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 200",
+		message: "pageSize must be greater than or equal to 1 and less than or equal to 200",
+	}];
+	string keyword = 3 [(buf.validate.field).cel = {
+		expression: "this.size() <= 200",
+		message: "keyword must be less than or equal to 200",
+	}];
+	magicbox.enum.GlobalStatus status = 4;
+}
+message ListNamespaceReply {
+	int64 total = 1;
+	int32 page = 2;
+	int32 pageSize = 3;
+	repeated NamespaceItem items = 4;
+}
+
+message NamespaceItem {
+	int64 uid = 1;
+	string name = 2;
+	map<string, string> metadata = 3;
+	string remark = 4;
+	string createdAt = 5;
+	string updatedAt = 6;
+	magicbox.enum.GlobalStatus status = 7;
+}
+
+message NamespaceItemSelect {
+	int64 value = 1;
+	string label = 2;
+	bool disabled = 3;
+	string tooltip = 4;
+}
+
+message SelectNamespaceRequest {
+	string keyword = 1 [(buf.validate.field).cel = {
+		expression: "this.size() <= 200",
+		message: "keyword must be less than or equal to 200",
+	}];
+	int32 limit = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 100",
+		message: "limit must be greater than or equal to 1 and less than or equal to 100",
+	}];
+	int64 lastUID = 3;
+	magicbox.enum.GlobalStatus status = 4;
+}
+message SelectNamespaceReply {
+	repeated NamespaceItemSelect items = 1;
+	int64 total = 2;
+	int64 lastUID = 3;
+	bool hasMore = 4;
+}

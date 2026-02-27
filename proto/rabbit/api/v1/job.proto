@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package rabbit.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aide-family/rabbit/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "rabbit.api.v1";
+
+service Job {
+	rpc SendMessage (JobSendMessageRequest) returns (JobSendReply) {
+		option (google.api.http) = {
+			post: "/v1/sender/message"
+			body: "*"
+		};
+	}
+}
+
+message JobSendReply {
+	int64 uid = 1;
+}
+
+message JobSendMessageRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}

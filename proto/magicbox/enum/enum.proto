@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package magicbox.enum;
+
+option go_package = "github.com/aide-family/magicbox/enum;enum";
+option java_multiple_files = true;
+option java_package = "magicbox.enum";
+
+enum Environment {
+	UNKNOWN = 0;
+	DEV = 1;
+	TEST = 2;
+	PREVIEW = 3;
+	PROD = 4;
+}
+
+enum GlobalStatus {
+	GlobalStatus_UNKNOWN = 0;
+	ENABLED = 1;
+	DISABLED = 2;
+}
+
+
+enum WebhookAPP {
+	WebhookAPP_UNKNOWN = 0;
+	OTHER = 2000;
+	DINGTALK = 2001;
+	WECHAT = 2002;
+	FEISHU = 2003;
+}
+
+enum HTTPMethod {
+	HTTPMethod_UNKNOWN = 0;
+	GET = 1;
+	POST = 2;
+	PUT = 3;
+	DELETE = 4;
+	PATCH = 5;
+}
+
+enum MessageStatus {
+	MessageStatus_UNKNOWN = 0;
+	PENDING = 1;
+	SENDING = 2;
+	SENT = 3;
+	FAILED = 4;
+	CANCELLED = 5;
+}
+
+enum MessageType {
+	MessageType_UNKNOWN = 0;
+	EMAIL = 1;
+	SMS_ALICLOUD = 1000;
+	WEBHOOK_OTHER = 2000;
+	WEBHOOK_DINGTALK = 2001;
+	WEBHOOK_WECHAT = 2002;
+	WEBHOOK_FEISHU = 2003;
+}
+
+enum DatasourceType {
+	DatasourceType_UNKNOWN = 0;
+	METRICS = 1;
+	LOGS = 1000;
+	TRACE = 2000;
+}
+
+enum DatasourceDriver {
+	DatasourceDriver_UNKNOWN = 0;
+	METRICS_PROMETHEUS = 1;
+	METRICS_VICTORIA_METRICS = 2;
+	LOGS_ELASTICSEARCH = 1000;
+	TRACE_JAEGER = 2000;
+}
+
+enum UserStatus {
+	UserStatus_UNKNOWN = 0;
+	ACTIVE = 1;
+	BANNED = 2;
+}
+
+enum MemberStatus {
+	MemberStatus_UNKNOWN = 0;
+	JOINED = 1;
+	INVITED = 2;
+	EXPIRED = 3;
+}

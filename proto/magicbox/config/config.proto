@@ -1,0 +1,180 @@
+syntax = "proto3";
+
+package magicbox.config;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+import "magicbox/enum/enum.proto";
+
+option go_package = "github.com/aide-family/magicbox/config;config";
+
+message ClientConfig {
+	ClusterConfig cluster = 1;
+	string jwtToken = 2;
+	ReportConfig report = 3;
+	string namespace = 4;
+}
+
+message JWT {
+	string secret = 1;
+	google.protobuf.Duration expire = 2;
+	string issuer = 3;
+}
+
+enum Protocol {
+	PROTOCOL_UNKNOWN = 0;
+	GRPC = 1;
+	HTTP = 2;
+}
+
+message ClusterConfig {
+	string name = 1;
+	string endpoints = 2;
+	google.protobuf.Duration timeout = 3;
+	Protocol protocol = 4;
+}
+
+message ORMConfig {
+	enum Dialector {
+		TYPE_UNKNOWN = 0;
+		MYSQL = 1;
+		SQLITE = 2;
+		POSTGRES = 3;
+	}
+	Dialector dialector = 1;
+	google.protobuf.Any options = 2;
+	string debug = 3;
+	string useSystemLogger = 4;
+}
+
+message MySQLOptions {
+	string username = 1;
+	string password = 2;
+	string host = 3;
+	int32 port = 4;
+	string database = 5;
+	map<string, string> parameters = 6;
+}
+
+message SQLiteOptions {
+	string dsn = 1;
+}
+
+message PostgreSQLOptions {
+	string username = 1;
+	string password = 2;
+	string host = 3;
+	int32 port = 4;
+	string database = 5;
+	map<string, string> parameters = 6;
+}
+
+message ReportConfig {
+	enum ReportType {
+		REPORT_TYPE_UNKNOWN = 0;
+		ETCD = 1;
+		KUBERNETES = 2;
+	}
+	ReportType reportType = 1;
+	google.protobuf.Any options = 2;
+	string namespace = 3;
+}
+
+message ETCDOptions {
+	string endpoints = 1;
+	string username = 2;
+	string password = 3;
+	google.protobuf.Duration dialTimeout = 4;
+}
+
+message KubernetesOptions {
+	string kubeConfig = 1;
+}
+
+message BasicAuthConfig {
+	string username = 1;
+	string password = 2;
+	string enabled = 3;
+}
+
+message DomainConfig {
+	enum Driver {
+		FILE = 0;
+		GORM = 1;
+		ETCD = 2;
+		OUTER = 3;
+	}
+	Driver driver = 1;
+    string version = 2;
+    google.protobuf.Any options = 3;
+}
+
+message FileConfig {
+	enum FileType {
+		YAML = 0;
+		JSON = 1;
+	}
+	string path = 1;
+	FileType fileType = 2;
+	string filename = 3;
+	google.protobuf.Duration storageInterval = 4;
+}
+
+message OuterServerConfig {
+	string address = 1;
+	string network = 2;
+	google.protobuf.Duration timeout = 3;
+	Protocol protocol = 4;
+}
+
+message OAuth2 {
+   enum APP {
+     UNKNOWN = 0;
+     GITHUB = 1;
+     GITEE = 2;
+     FEISHU = 3;
+   }
+   
+   message Config {
+	 APP app = 1;
+     string clientId = 2;
+     string clientSecret = 3;
+     string callbackUri = 4;
+     string authUrl = 5;
+     string tokenUrl = 6;
+     repeated string scopes = 7;
+     string loginUrl = 8;
+   }
+
+   string enable = 1;
+   string redirectUri = 2;
+   repeated Config configs = 3;
+}
+
+
+message MessageConfig {
+	magicbox.enum.MessageType messageType = 1;
+	google.protobuf.Any options = 2;
+}
+
+message MessageSMSAliCloudConfig {
+	string accessKeyID = 1;
+	string accessKeySecret = 2;
+	string signName = 3;
+	string endpoint = 4;
+}
+
+message MessageWebhookConfig {
+	magicbox.enum.WebhookAPP app = 1;
+	string url = 2;
+	string secret = 3;
+	magicbox.enum.HTTPMethod method = 4;
+	map<string, string> headers = 5;
+}
+
+message MessageEmailConfig {
+	string host = 1;
+	int32 port = 2;
+	string username = 3;
+	string password = 4;
+}

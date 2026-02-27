@@ -1,0 +1,191 @@
+syntax = "proto3";
+
+package rabbit.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "magicbox/enum/enum.proto";
+
+option go_package = "github.com/aide-family/rabbit/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "rabbit.api.v1";
+
+service Template {
+	rpc CreateTemplate (CreateTemplateRequest) returns (CreateTemplateReply) {
+		option (google.api.http) = {
+			post: "/v1/template"
+			body: "*"
+		};
+	}
+	rpc UpdateTemplate (UpdateTemplateRequest) returns (UpdateTemplateReply) {
+		option (google.api.http) = {
+			put: "/v1/template/{uid}"
+			body: "*"
+		};
+	}
+	rpc UpdateTemplateStatus (UpdateTemplateStatusRequest) returns (UpdateTemplateStatusReply) {
+		option (google.api.http) = {
+			put: "/v1/template/{uid}/status"
+			body: "*"
+		};
+	}
+	rpc DeleteTemplate (DeleteTemplateRequest) returns (DeleteTemplateReply) {
+		option (google.api.http) = {
+			delete: "/v1/template/{uid}"
+		};
+	}
+	rpc GetTemplate (GetTemplateRequest) returns (TemplateItem) {
+		option (google.api.http) = {
+			get: "/v1/template/{uid}"
+		};
+	}
+	rpc ListTemplate (ListTemplateRequest) returns (ListTemplateReply) {
+		option (google.api.http) = {
+			get: "/v1/templates"
+		};
+	}
+	rpc SelectTemplate (SelectTemplateRequest) returns (SelectTemplateReply) {
+		option (google.api.http) = {
+			get: "/v1/templates/select"
+		};
+	}
+}
+
+message TemplateItem {
+	int64 uid = 1;
+	string name = 2;
+	magicbox.enum.MessageType messageType = 3;
+	string jsonData = 4; // JSONData in Go code
+	string createdAt = 5;
+	string updatedAt = 6;
+	magicbox.enum.GlobalStatus status = 7;
+}
+
+message TemplateItemSelect {
+	int64 value = 1;
+	string label = 2;
+	bool disabled = 3;
+	string tooltip = 4;
+}
+
+message CreateTemplateRequest {
+	string name = 1 [(buf.validate.field).required = true];
+	magicbox.enum.MessageType messageType = 2 [(buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.MessageType.EMAIL, magicbox.enum.MessageType.SMS_ALICLOUD, magicbox.enum.MessageType.WEBHOOK_OTHER, magicbox.enum.MessageType.WEBHOOK_DINGTALK, magicbox.enum.MessageType.WEBHOOK_WECHAT, magicbox.enum.MessageType.WEBHOOK_FEISHU]",
+		message: "messageType must be in ['EMAIL', 'SMS_ALICLOUD', 'WEBHOOK_OTHER', 'WEBHOOK_DINGTALK', 'WEBHOOK_WECHAT', 'WEBHOOK_FEISHU']",
+	}];
+	// 邮件模板数据结构:
+	// {
+	// 	"subject": "string",
+	// 	"body": "string",
+	// 	"content_type": "string",
+	// 	"headers": {
+	// 		"key": ["value1", "value2"]
+	// 	}
+	// }
+	// SMS模板数据结构:
+	// {
+	// 	"content": "string",
+	// 	"params": {
+	// 		"key": "value"
+	// 	}
+	// }
+	// Webhook模板数据结构:
+	// {
+	// }
+	string jsonData = 3 [(buf.validate.field).required = true];
+}
+message CreateTemplateReply {
+	int64 uid = 1;
+}
+
+message UpdateTemplateRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	string name = 2 [(buf.validate.field).required = true];
+	magicbox.enum.MessageType messageType = 3 [(buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.MessageType.EMAIL, magicbox.enum.MessageType.SMS_ALICLOUD, magicbox.enum.MessageType.WEBHOOK_OTHER, magicbox.enum.MessageType.WEBHOOK_DINGTALK, magicbox.enum.MessageType.WEBHOOK_WECHAT, magicbox.enum.MessageType.WEBHOOK_FEISHU]",
+		message: "messageType must be in ['EMAIL', 'SMS_ALICLOUD', 'WEBHOOK_OTHER', 'WEBHOOK_DINGTALK', 'WEBHOOK_WECHAT', 'WEBHOOK_FEISHU']",
+	}];
+	// 邮件模板数据结构:
+	// {
+	// 	"subject": "string",
+	// 	"body": "string",
+	// 	"content_type": "string",
+	// 	"headers": {
+	// 		"key": ["value1", "value2"]
+	// 	}
+	// }
+	// SMS模板数据结构:
+	// {
+	// 	"content": "string",
+	// 	"params": {
+	// 		"key": "value"
+	// 	}
+	// }
+	// Webhook模板数据结构:
+	// {
+	// }
+	string jsonData = 4 [(buf.validate.field).required = true];
+}
+message UpdateTemplateReply {}
+
+message UpdateTemplateStatusRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	magicbox.enum.GlobalStatus status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
+		message: "status must be in ['ENABLED', 'DISABLED']",
+	}];
+}
+message UpdateTemplateStatusReply {}
+
+message DeleteTemplateRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+message DeleteTemplateReply {}
+
+message GetTemplateRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message ListTemplateRequest {
+	int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1",
+		message: "page must be greater than or equal to 1",
+	}];
+	int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 200",
+		message: "pageSize must be greater than or equal to 1 and less than or equal to 200",
+	}];
+	string keyword = 3 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword must be less than or equal to 100",
+	}];
+	magicbox.enum.GlobalStatus status = 4;
+	magicbox.enum.MessageType messageType = 5;
+}
+message ListTemplateReply {
+	repeated TemplateItem items = 1;
+	int64 total = 2;
+	int32 page = 3;
+	int32 pageSize = 4;
+}
+
+message SelectTemplateRequest {
+	magicbox.enum.MessageType messageType = 1;
+	string keyword = 2 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword must be less than or equal to 100",
+	}];
+	int32 limit = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 100",
+		message: "limit must be greater than or equal to 1 and less than or equal to 100",
+	}];
+	int64 lastUID = 4;
+	magicbox.enum.GlobalStatus status = 5;
+}
+message SelectTemplateReply {
+	repeated TemplateItemSelect items = 1;
+	int64 total = 2;
+	int64 lastUID = 3;
+	bool hasMore = 4;
+}

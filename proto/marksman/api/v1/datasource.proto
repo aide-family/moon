@@ -1,0 +1,123 @@
+syntax = "proto3";
+
+package marksman.api.v1;
+
+option go_package = "github.com/aide-family/marksman/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "marksman.api.v1";
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "magicbox/enum/enum.proto";
+
+service Datasource {
+	rpc CreateDatasource (CreateDatasourceRequest) returns (CreateDatasourceReply) {
+		option (google.api.http) = {
+			post: "/v1/datasource"
+			body: "*"
+		};
+	}
+	rpc UpdateDatasource (UpdateDatasourceRequest) returns (UpdateDatasourceReply) {
+		option (google.api.http) = {
+			put: "/v1/datasource/{uid}"
+			body: "*"
+		};
+	}
+	rpc DeleteDatasource (DeleteDatasourceRequest) returns (DeleteDatasourceReply) {
+		option (google.api.http) = {
+			delete: "/v1/datasource/{uid}"
+		};
+	}
+	rpc GetDatasource (GetDatasourceRequest) returns (DatasourceItem) {
+		option (google.api.http) = {
+			get: "/v1/datasource/{uid}"
+		};
+	}
+	rpc ListDatasource (ListDatasourceRequest) returns (ListDatasourceReply) {
+		option (google.api.http) = {
+			get: "/v1/datasources"
+		};
+	}
+}
+
+message DatasourceItem {
+	int64 uid = 1;
+	string name = 2;
+	magicbox.enum.DatasourceType type = 3;
+	magicbox.enum.DatasourceDriver driver = 4;
+	map<string, string> metadata = 5;
+	magicbox.enum.GlobalStatus status = 6;
+	string createdAt = 7;
+	string updatedAt = 8;
+}
+
+message CreateDatasourceRequest {
+	string name = 1 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 3,
+		max_len: 100,
+	}];
+	magicbox.enum.DatasourceType type = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.DatasourceType.METRICS, magicbox.enum.DatasourceType.LOGS, magicbox.enum.DatasourceType.TRACE]",
+		message: "type must be in ['METRICS', 'LOGS', 'TRACE']",
+	}];
+	magicbox.enum.DatasourceDriver driver = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.DatasourceDriver.METRICS_PROMETHEUS, magicbox.enum.DatasourceDriver.METRICS_VICTORIA_METRICS, magicbox.enum.DatasourceDriver.LOGS_ELASTICSEARCH, magicbox.enum.DatasourceDriver.TRACE_JAEGER]",
+		message: "driver must be in ['METRICS_PROMETHEUS', 'METRICS_VICTORIA_METRICS', 'LOGS_ELASTICSEARCH', 'TRACE_JAEGER']",
+	}];
+	map<string, string> metadata = 4;
+}
+message CreateDatasourceReply {}
+
+message UpdateDatasourceRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+	string name = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 3,
+		max_len: 100,
+	}];
+	magicbox.enum.DatasourceType type = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.DatasourceType.METRICS, magicbox.enum.DatasourceType.LOGS, magicbox.enum.DatasourceType.TRACE]",
+		message: "type must be in ['METRICS', 'LOGS', 'TRACE']",
+	}];
+	magicbox.enum.DatasourceDriver driver = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.DatasourceDriver.METRICS_PROMETHEUS, magicbox.enum.DatasourceDriver.METRICS_VICTORIA_METRICS, magicbox.enum.DatasourceDriver.LOGS_ELASTICSEARCH, magicbox.enum.DatasourceDriver.TRACE_JAEGER]",
+		message: "driver must be in ['METRICS_PROMETHEUS', 'METRICS_VICTORIA_METRICS', 'LOGS_ELASTICSEARCH', 'TRACE_JAEGER']",
+	}];
+	map<string, string> metadata = 5;
+}
+message UpdateDatasourceReply {}
+
+message DeleteDatasourceRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+message DeleteDatasourceReply {}
+
+message GetDatasourceRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message ListDatasourceRequest {
+	string keyword = 1 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword must be less than or equal to 100",
+	}];
+	int32 page = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1",
+		message: "page must be greater than or equal to 1",
+	}];
+	int32 pageSize = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 200",
+		message: "pageSize must be greater than or equal to 1 and less than or equal to 200",
+	}];
+	magicbox.enum.DatasourceType type = 4;
+	magicbox.enum.DatasourceDriver driver = 5;
+	magicbox.enum.GlobalStatus status = 6;
+}
+message ListDatasourceReply {
+	repeated DatasourceItem items = 1;
+	int64 total = 2;
+	int32 page = 3;
+	int32 pageSize = 4;
+}

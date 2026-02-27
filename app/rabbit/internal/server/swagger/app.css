@@ -1,0 +1,277 @@
+#btnSave {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    padding: 0px 12px;
+    background: #1677ff;
+    color: #fff;
+    font-size: 14px;
+    border-radius: 0 6px 6px 0;
+    border: 0;
+    box-shadow: 0 2px 0 rgba(5, 145, 255, .1);
+    outline: none;
+    display: inline-block;
+    font-weight: 400;
+    white-space: nowrap;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s cubic-bezier(.645, .045, .355, 1);
+    user-select: none;
+    touch-action: manipulation;
+    line-height: 1.5714285714285714;
+    height: 40px;
+}
+
+#auth {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: start;
+    width: 100%;
+    padding: 10px;
+    gap: 10px;
+}
+
+.header-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    padding: 10px;
+    background: #fafafa;
+}
+
+.header-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.header-set-select {
+    flex: 1;
+    min-width: 200px;
+    padding: 6px 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+}
+
+.btn-primary {
+    padding: 6px 16px;
+    background: #1677ff;
+    color: #fff;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all .2s;
+}
+
+.btn-primary:hover {
+    background: #0958d9;
+}
+
+.btn-danger {
+    padding: 6px 16px;
+    background: #ff4d4f;
+    color: #fff;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all .2s;
+}
+
+.btn-danger:hover {
+    background: #cf1322;
+}
+
+.btn-secondary {
+    padding: 6px 16px;
+    background: #52c41a;
+    color: #fff;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all .2s;
+}
+
+.btn-secondary:hover {
+    background: #389e0d;
+}
+
+.header-input-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.header-input {
+    flex: 1;
+    min-width: 150px;
+    padding: 6px 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+}
+
+.header-input:focus {
+    border-color: #1677ff;
+}
+
+.header-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.header-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+}
+
+.header-item-key {
+    flex: 1;
+    font-weight: 500;
+    color: #1677ff;
+}
+
+.header-item-value {
+    flex: 2;
+    color: #666;
+    word-break: break-all;
+}
+
+.header-item-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.btn-small {
+    padding: 2px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: 0;
+    cursor: pointer;
+    transition: all .2s;
+}
+
+.btn-edit {
+    background: #1677ff;
+    color: #fff;
+}
+
+.btn-edit:hover {
+    background: #0958d9;
+}
+
+.btn-delete {
+    background: #ff4d4f;
+    color: #fff;
+}
+
+.btn-delete:hover {
+    background: #cf1322;
+}
+
+.set-name-input {
+    flex: 1;
+    min-width: 200px;
+    padding: 6px 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+}
+
+.set-name-input:focus {
+    border-color: #1677ff;
+}
+
+.toggle-section {
+    background: #1677ff;
+    color: #fff;
+    border: 0;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.toggle-section:hover {
+    background: #0958d9;
+}
+
+.header-form {
+    display: none;
+}
+
+.header-form.active {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.header-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e8e8e8;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: #666;
+}
+
+.btn-import {
+    background: #722ed1;
+    color: #fff;
+    padding: 6px 12px;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all .2s;
+}
+
+.btn-import:hover {
+    background: #531dab;
+}
+
+.btn-export {
+    background: #13c2c2;
+    color: #fff;
+    padding: 6px 12px;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all .2s;
+}
+
+.btn-export:hover {
+    background: #0db9b9;
+}
+
+.file-input {
+    display: none;
+}

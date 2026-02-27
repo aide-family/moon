@@ -1,0 +1,181 @@
+syntax = "proto3";
+
+package rabbit.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "magicbox/enum/enum.proto";
+
+option go_package = "github.com/aide-family/rabbit/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "rabbit.api.v1";
+
+service Webhook {
+	rpc CreateWebhook (CreateWebhookRequest) returns (CreateWebhookReply) {
+		option (google.api.http) = {
+			post: "/v1/webhook/config"
+			body: "*"
+		};
+	}
+	rpc UpdateWebhook (UpdateWebhookRequest) returns (UpdateWebhookReply) {
+		option (google.api.http) = {
+			put: "/v1/webhook/config/{uid}"
+			body: "*"
+		};
+	}
+	rpc UpdateWebhookStatus (UpdateWebhookStatusRequest) returns (UpdateWebhookStatusReply) {
+		option (google.api.http) = {
+			put: "/v1/webhook/config/{uid}/status"
+			body: "*"
+		};
+	}
+	rpc DeleteWebhook (DeleteWebhookRequest) returns (DeleteWebhookReply) {
+		option (google.api.http) = {
+			delete: "/v1/webhook/config/{uid}"
+		};
+	}
+	rpc GetWebhook (GetWebhookRequest) returns (WebhookItem) {
+		option (google.api.http) = {
+			get: "/v1/webhook/config/{uid}"
+		};
+	}
+	rpc ListWebhook (ListWebhookRequest) returns (ListWebhookReply) {
+		option (google.api.http) = {
+			get: "/v1/webhook/configs"
+		};
+	}
+	rpc SelectWebhook (SelectWebhookRequest) returns (SelectWebhookReply) {
+		option (google.api.http) = {
+			get: "/v1/webhook/configs/select"
+		};
+	}
+}
+
+message WebhookItem {
+	int64 uid = 1;
+	magicbox.enum.WebhookAPP app = 2;
+	string name = 3;
+	string url = 4;
+	magicbox.enum.HTTPMethod method = 5;
+	map<string, string> headers = 6;
+	string secret = 7;
+	string createdAt = 8;
+	string updatedAt = 9;
+	magicbox.enum.GlobalStatus status = 10;
+}
+
+message CreateWebhookRequest {
+	magicbox.enum.WebhookAPP app = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.WebhookAPP.OTHER, magicbox.enum.WebhookAPP.DINGTALK, magicbox.enum.WebhookAPP.WECHAT, magicbox.enum.WebhookAPP.FEISHU]",
+		message: "app must be in ['OTHER', 'DINGTALK', 'WECHAT', 'FEISHU']",
+	}];
+	string name = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this.size() > 0",
+		message: "name must be greater than 0",
+	}];
+	string url = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this.size() > 0",
+		message: "url must be greater than 0",
+	}];
+	magicbox.enum.HTTPMethod method = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.HTTPMethod.GET, magicbox.enum.HTTPMethod.POST, magicbox.enum.HTTPMethod.PUT, magicbox.enum.HTTPMethod.DELETE, magicbox.enum.HTTPMethod.PATCH]",
+		message: "method must be in ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']",
+	}];
+	map<string, string> headers = 5;
+	string secret = 6;
+}
+message CreateWebhookReply {
+	int64 uid = 1;
+}
+
+message UpdateWebhookRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	magicbox.enum.WebhookAPP app = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.WebhookAPP.OTHER, magicbox.enum.WebhookAPP.DINGTALK, magicbox.enum.WebhookAPP.WECHAT, magicbox.enum.WebhookAPP.FEISHU]",
+		message: "app must be in ['OTHER', 'DINGTALK', 'WECHAT', 'FEISHU']",
+	}];
+	string name = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this.size() > 0",
+		message: "name must be greater than 0",
+	}];
+	string url = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this.size() > 0",
+		message: "url must be greater than 0",
+	}];
+	magicbox.enum.HTTPMethod method = 5 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.HTTPMethod.GET, magicbox.enum.HTTPMethod.POST, magicbox.enum.HTTPMethod.PUT, magicbox.enum.HTTPMethod.DELETE, magicbox.enum.HTTPMethod.PATCH]",
+		message: "method must be in ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']",
+	}];
+	map<string, string> headers = 6;
+	string secret = 7;
+}
+message UpdateWebhookReply {}
+
+message UpdateWebhookStatusRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	magicbox.enum.GlobalStatus status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
+		message: "status must be in ['ENABLED', 'DISABLED']",
+	}];
+}
+message UpdateWebhookStatusReply {}
+
+message DeleteWebhookRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+message DeleteWebhookReply {}
+
+message GetWebhookRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message ListWebhookRequest {
+	int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1",
+		message: "page must be greater than or equal to 1",
+	}];
+	int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 200",
+		message: "pageSize must be greater than or equal to 1 and less than or equal to 200",
+	}];
+	magicbox.enum.WebhookAPP app = 3;
+	string keyword = 4 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword must be less than or equal to 100",
+	}];
+	magicbox.enum.GlobalStatus status = 5;
+}
+message ListWebhookReply {
+	repeated WebhookItem items = 1;
+	int64 total = 2;
+	int32 page = 3;
+	int32 pageSize = 4;
+}
+
+message WebhookItemSelect {
+	int64 value = 1;
+	string label = 2;
+	bool disabled = 3;
+	string tooltip = 4;
+	magicbox.enum.WebhookAPP app = 5;
+}
+
+message SelectWebhookRequest {
+	magicbox.enum.WebhookAPP app = 1;
+	string keyword = 2 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword must be less than or equal to 100",
+	}];
+	int32 limit = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 100",
+		message: "limit must be greater than or equal to 1 and less than or equal to 100",
+	}];
+	int64 lastUID = 4;
+	magicbox.enum.GlobalStatus status = 5;
+}
+message SelectWebhookReply {
+	repeated WebhookItemSelect items = 1;
+	int64 total = 2;
+	int64 lastUID = 3;
+	bool hasMore = 4;
+}

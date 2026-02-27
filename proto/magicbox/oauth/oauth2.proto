@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package magicbox.oauth;
+
+option go_package = "github.com/aide-family/magicbox/oauth;oauth";
+option java_multiple_files = true;
+option java_package = "magicbox.oauth";
+
+import "buf/validate/validate.proto";
+import "magicbox/config/config.proto";
+
+message OAuth2ReportItem {
+	string app = 1;
+	string loginUrl = 2;
+}
+
+message OAuth2User {
+	string openID = 1;
+	string name = 2;
+	string nickname = 3;
+	string email = 4 [(buf.validate.field).cel = {
+		expression: "this.isEmail()",
+		message: "email must be a valid email address",
+	}];
+	string avatar = 5;
+	magicbox.config.OAuth2.APP app = 6;
+	string remark = 7;
+	bytes raw = 8;
+}
+
+message OAuth2LoginRequest {
+	magicbox.config.OAuth2.APP app = 1 [(buf.validate.field).required = true];
+	magicbox.config.OAuth2.Config config = 2 [(buf.validate.field).required = true];
+	OAuth2User user = 3 [(buf.validate.field).required = true];
+	string portal = 4 [(buf.validate.field).cel = {
+		expression: "this.isUri()",
+		message: "portal must be a valid URI",
+	}];
+}

@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package magicbox.api.v1;
+
+option go_package = "github.com/aide-family/magicbox/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "magicbox.api.v1";
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "magicbox/api/v1/user.proto";
+import "magicbox/api/v1/namespace.proto";
+
+service Self {
+    rpc Info(InfoRequest) returns (magicbox.api.v1.UserItem) {
+        option (google.api.http) = {
+            get: "/v1/self/info"
+        };
+    }
+    rpc Namespaces(InfoRequest) returns (NamespacesReply) {
+        option (google.api.http) = {
+            get: "/v1/self/namespaces"
+        };
+    }
+    rpc ChangeEmail(ChangeEmailRequest) returns (ChangeEmailReply) {
+        option (google.api.http) = {
+            put: "/v1/self/change-email"
+            body: "*"
+        };
+    }
+    rpc ChangeAvatar(ChangeAvatarRequest) returns (ChangeAvatarReply) {
+        option (google.api.http) = {
+            put: "/v1/self/change-avatar"
+            body: "*"
+        };
+    }
+    rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenReply) {
+        option (google.api.http) = {
+            get: "/v1/self/refresh-token"
+        };
+    }
+}
+
+message InfoRequest {}
+
+message NamespacesReply {
+    repeated magicbox.api.v1.NamespaceItem namespaces = 1;
+}
+
+message ChangeEmailRequest {
+    string email = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.isEmail()",
+        message: "email must be a valid email address",
+    }];
+}
+message ChangeEmailReply {
+    string message = 1;
+}
+
+message ChangeAvatarRequest {
+    string avatar = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() <= 200",
+        message: "avatar must be less than or equal to 200",
+    }];
+}
+message ChangeAvatarReply {
+    string message = 1;
+}
+
+message RefreshTokenRequest {}
+message RefreshTokenReply {
+    string token = 1;
+}

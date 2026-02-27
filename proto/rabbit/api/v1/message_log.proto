@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package rabbit.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "magicbox/enum/enum.proto";
+
+option go_package = "github.com/aide-family/rabbit/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "rabbit.api.v1";
+
+service MessageLog {
+	rpc RetryMessage (RetryMessageLogRequest) returns (RetryMessageLogReply) {
+		option (google.api.http) = {
+			put: "/v1/message-log/{uid}/retry"
+			body: "*"
+		};
+	}
+	rpc CancelMessage (CancelMessageLogRequest) returns (CancelMessageLogReply) {
+		option (google.api.http) = {
+			put: "/v1/message-log/{uid}/cancel"
+			body: "*"
+		};
+	}
+	rpc GetMessageLog (GetMessageLogRequest) returns (MessageLogItem) {
+		option (google.api.http) = {
+			get: "/v1/message-log/{uid}"
+		};
+	}
+	rpc ListMessageLog (ListMessageLogRequest) returns (ListMessageLogReply) {
+		option (google.api.http) = {
+			get: "/v1/message-logs"
+		};
+	}
+}
+
+message MessageLogItem {
+	int64 uid = 1;
+	magicbox.enum.MessageType messageType = 2;
+	magicbox.enum.MessageStatus status = 3;
+	string sendAt = 4;
+	string message = 5;
+	string config = 6;
+	int32 retryTotal = 7;
+	string lastError = 8;
+	string createdAt = 9;
+	string updatedAt = 10;
+}
+
+message RetryMessageLogRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+message RetryMessageLogReply {}
+
+message CancelMessageLogRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+message CancelMessageLogReply {}
+
+message GetMessageLogRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message ListMessageLogRequest {
+	int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1",
+		message: "page must be greater than or equal to 1",
+	}];
+	int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 200",
+		message: "pageSize must be greater than or equal to 1 and less than or equal to 200",
+	}];
+	magicbox.enum.MessageStatus status = 4;
+	magicbox.enum.MessageType messageType = 5;
+	int64 startAtUnix = 6 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 0",
+		message: "startAtUnix must be greater than or equal to 0",
+	}];
+	int64 endAtUnix = 7 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 0",
+		message: "endAtUnix must be greater than or equal to 0",
+	}];
+	// startAtUnix < endAtUnix
+	option (buf.validate.message).cel = {
+		expression: "this.startAtUnix < this.endAtUnix",
+		message: "startAtUnix must be less than endAtUnix",
+	};
+
+	//  endAtUnix - startAtUnix <= 31 days
+	option (buf.validate.message).cel = {
+		expression: "this.endAtUnix - this.startAtUnix <= 31 * 24 * 60 * 60",
+		message: "endAtUnix - startAtUnix must be less than or equal to 31 days",
+	};
+}
+message ListMessageLogReply {
+	repeated MessageLogItem items = 1;
+	int64 total = 2;
+	int32 page = 3;
+	int32 pageSize = 4;
+}

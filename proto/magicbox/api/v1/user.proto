@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package magicbox.api.v1;
+
+option go_package = "github.com/aide-family/magicbox/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "magicbox.api.v1";
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "magicbox/enum/enum.proto";
+
+service User {
+    rpc GetUser(GetUserRequest) returns (UserItem) {
+        option (google.api.http) = {
+            get: "/v1/user/{uid}"
+        };
+    }
+    rpc ListUser(ListUserRequest) returns (ListUserReply) {
+        option (google.api.http) = {
+            get: "/v1/users"
+        };
+    }
+    rpc SelectUser(SelectUserRequest) returns (SelectUserReply) {
+        option (google.api.http) = {
+            get: "/v1/users/select"
+        };
+    }
+    rpc BanUser(BanUserRequest) returns (BanUserReply) {
+        option (google.api.http) = {
+            put: "/v1/user/ban/{uid}",
+            body: "*"
+        };
+    }
+    rpc PermitUser(PermitUserRequest) returns (PermitUserReply) {
+        option (google.api.http) = {
+            put: "/v1/user/permit/{uid}",
+            body: "*"
+        };
+    }
+}
+
+message UserItem {
+    int64 uid = 1;
+    string email = 2;
+    string phone = 3;
+    magicbox.enum.UserStatus status = 4;
+    string createdAt = 5;
+    string updatedAt = 6;
+    string name = 8;
+    string nickname = 9;
+    string avatar = 10;
+    string remark = 11;
+}
+
+message SelectUserItem {
+    int64 value = 1;
+    string label = 2;
+    bool disabled = 3;
+    string tooltip = 4;
+}
+
+message GetUserRequest {
+    int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message ListUserRequest {
+    int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1",
+        message: "page must be greater than or equal to 1",
+    }];
+    int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 200",
+        message: "pageSize must be greater than or equal to 1 and less than or equal to 200",
+    }];
+    string email = 3 [(buf.validate.field).cel = {
+        expression: "this.size() <= 200",
+        message: "email must be less than or equal to 200",
+    }];
+    string keyword = 4 [(buf.validate.field).cel = {
+        expression: "this.size() <= 200",
+        message: "keyword must be less than or equal to 200",
+    }];
+    magicbox.enum.UserStatus status = 5;
+}
+message ListUserReply {
+    repeated UserItem items = 1;
+    int64 total = 2;
+    int32 page = 3;
+    int32 pageSize = 4;
+}
+
+message SelectUserRequest {
+    string keyword = 1 [(buf.validate.field).cel = {
+        expression: "this.size() <= 200",
+        message: "keyword must be less than or equal to 200",
+    }];
+    int32 limit = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 100",
+        message: "limit must be greater than or equal to 1 and less than or equal to 100",
+    }];
+    int64 lastUID = 3;
+    magicbox.enum.UserStatus status = 4;
+}
+message SelectUserReply {
+    repeated SelectUserItem items = 1;
+    int64 total = 2;
+    int64 lastUID = 3;
+    bool hasMore = 4;
+}
+
+message BanUserRequest {
+    int64 uid = 1 [(buf.validate.field).required = true];
+    string reason = 2 [(buf.validate.field).cel = {
+        expression: "this.size() <= 1000 && this.size() > 0",
+        message: "reason must be less than or equal to 1000",
+    }];
+}
+message BanUserReply {
+    string message = 1;
+}
+
+message PermitUserRequest {
+    int64 uid = 1 [(buf.validate.field).required = true];
+    string reason = 2 [(buf.validate.field).cel = {
+        expression: "this.size() <= 1000 && this.size() > 0",
+        message: "reason must be less than or equal to 1000",
+    }];
+}
+message PermitUserReply {
+    string message = 1;
+}

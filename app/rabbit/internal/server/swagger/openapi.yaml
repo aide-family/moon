@@ -1,0 +1,1615 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: ""
+    version: 0.0.1
+paths:
+    /v1/email/config:
+        post:
+            tags:
+                - Email
+            operationId: Email_CreateEmailConfig
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.CreateEmailConfigRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.CreateEmailConfigReply'
+    /v1/email/config/{uid}:
+        get:
+            tags:
+                - Email
+            operationId: Email_GetEmailConfig
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.EmailConfigItem'
+        put:
+            tags:
+                - Email
+            operationId: Email_UpdateEmailConfig
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.UpdateEmailConfigRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.UpdateEmailConfigReply'
+        delete:
+            tags:
+                - Email
+            operationId: Email_DeleteEmailConfig
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.DeleteEmailConfigReply'
+    /v1/email/config/{uid}/status:
+        put:
+            tags:
+                - Email
+            operationId: Email_UpdateEmailConfigStatus
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.UpdateEmailConfigStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.UpdateEmailConfigStatusReply'
+    /v1/email/configs:
+        get:
+            tags:
+                - Email
+            operationId: Email_ListEmailConfig
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.ListEmailConfigReply'
+    /v1/email/configs/select:
+        get:
+            tags:
+                - Email
+            operationId: Email_SelectEmailConfig
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: lastUID
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.SelectEmailConfigReply'
+    /v1/message-log/{uid}:
+        get:
+            tags:
+                - MessageLog
+            operationId: MessageLog_GetMessageLog
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.MessageLogItem'
+    /v1/message-log/{uid}/cancel:
+        put:
+            tags:
+                - MessageLog
+            operationId: MessageLog_CancelMessage
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.CancelMessageLogRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.CancelMessageLogReply'
+    /v1/message-log/{uid}/retry:
+        put:
+            tags:
+                - MessageLog
+            operationId: MessageLog_RetryMessage
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.RetryMessageLogRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.RetryMessageLogReply'
+    /v1/message-logs:
+        get:
+            tags:
+                - MessageLog
+            operationId: MessageLog_ListMessageLog
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: messageType
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: startAtUnix
+                  in: query
+                  schema:
+                    type: string
+                - name: endAtUnix
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.ListMessageLogReply'
+    /v1/recipient-group:
+        post:
+            tags:
+                - RecipientGroupService
+            operationId: RecipientGroupService_CreateRecipientGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.CreateRecipientGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.CreateRecipientGroupReply'
+    /v1/recipient-group/{uid}:
+        get:
+            tags:
+                - RecipientGroupService
+            operationId: RecipientGroupService_GetRecipientGroup
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.RecipientGroupItem'
+        put:
+            tags:
+                - RecipientGroupService
+            operationId: RecipientGroupService_UpdateRecipientGroup
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.UpdateRecipientGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.UpdateRecipientGroupReply'
+        delete:
+            tags:
+                - RecipientGroupService
+            operationId: RecipientGroupService_DeleteRecipientGroup
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.DeleteRecipientGroupReply'
+    /v1/recipient-group/{uid}/status:
+        put:
+            tags:
+                - RecipientGroupService
+            operationId: RecipientGroupService_UpdateRecipientGroupStatus
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.UpdateRecipientGroupStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.UpdateRecipientGroupStatusReply'
+    /v1/recipient-groups:
+        get:
+            tags:
+                - RecipientGroupService
+            operationId: RecipientGroupService_ListRecipientGroup
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.ListRecipientGroupReply'
+    /v1/recipient-groups/select:
+        get:
+            tags:
+                - RecipientGroupService
+            operationId: RecipientGroupService_SelectRecipientGroup
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: lastUID
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.SelectRecipientGroupReply'
+    /v1/sender/email/{uid}:
+        post:
+            tags:
+                - Sender
+            operationId: Sender_SendEmail
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.SendEmailRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.SendReply'
+    /v1/sender/email/{uid}/template:
+        post:
+            tags:
+                - Sender
+            operationId: Sender_SendEmailWithTemplate
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.SendEmailWithTemplateRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.SendReply'
+    /v1/sender/message:
+        post:
+            tags:
+                - Sender
+            operationId: Sender_SendMessage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.SendMessageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.SendReply'
+    /v1/sender/webhook/{uid}:
+        post:
+            tags:
+                - Sender
+            operationId: Sender_SendWebhook
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.SendWebhookRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.SendReply'
+    /v1/sender/webhook/{uid}/template:
+        post:
+            tags:
+                - Sender
+            operationId: Sender_SendWebhookWithTemplate
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.SendWebhookWithTemplateRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.SendReply'
+    /v1/template:
+        post:
+            tags:
+                - Template
+            operationId: Template_CreateTemplate
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.CreateTemplateRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.CreateTemplateReply'
+    /v1/template/{uid}:
+        get:
+            tags:
+                - Template
+            operationId: Template_GetTemplate
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.TemplateItem'
+        put:
+            tags:
+                - Template
+            operationId: Template_UpdateTemplate
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.UpdateTemplateRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.UpdateTemplateReply'
+        delete:
+            tags:
+                - Template
+            operationId: Template_DeleteTemplate
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.DeleteTemplateReply'
+    /v1/template/{uid}/status:
+        put:
+            tags:
+                - Template
+            operationId: Template_UpdateTemplateStatus
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.UpdateTemplateStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.UpdateTemplateStatusReply'
+    /v1/templates:
+        get:
+            tags:
+                - Template
+            operationId: Template_ListTemplate
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: messageType
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.ListTemplateReply'
+    /v1/templates/select:
+        get:
+            tags:
+                - Template
+            operationId: Template_SelectTemplate
+            parameters:
+                - name: messageType
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: lastUID
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.SelectTemplateReply'
+    /v1/webhook/config:
+        post:
+            tags:
+                - Webhook
+            operationId: Webhook_CreateWebhook
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.CreateWebhookRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.CreateWebhookReply'
+    /v1/webhook/config/{uid}:
+        get:
+            tags:
+                - Webhook
+            operationId: Webhook_GetWebhook
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.WebhookItem'
+        put:
+            tags:
+                - Webhook
+            operationId: Webhook_UpdateWebhook
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.UpdateWebhookRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.UpdateWebhookReply'
+        delete:
+            tags:
+                - Webhook
+            operationId: Webhook_DeleteWebhook
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.DeleteWebhookReply'
+    /v1/webhook/config/{uid}/status:
+        put:
+            tags:
+                - Webhook
+            operationId: Webhook_UpdateWebhookStatus
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.UpdateWebhookStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.UpdateWebhookStatusReply'
+    /v1/webhook/configs:
+        get:
+            tags:
+                - Webhook
+            operationId: Webhook_ListWebhook
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: app
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.ListWebhookReply'
+    /v1/webhook/configs/select:
+        get:
+            tags:
+                - Webhook
+            operationId: Webhook_SelectWebhook
+            parameters:
+                - name: app
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: lastUID
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.SelectWebhookReply'
+components:
+    schemas:
+        magicbox.api.v1.MemberItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                email:
+                    type: string
+                phone:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                userUID:
+                    type: string
+                name:
+                    type: string
+                nickname:
+                    type: string
+                avatar:
+                    type: string
+                remark:
+                    type: string
+                namespaceUID:
+                    type: string
+        rabbit.api.v1.CancelMessageLogReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.CancelMessageLogRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+        rabbit.api.v1.CreateEmailConfigReply:
+            type: object
+            properties:
+                uid:
+                    type: string
+        rabbit.api.v1.CreateEmailConfigRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                host:
+                    type: string
+                port:
+                    type: integer
+                    format: int32
+                username:
+                    type: string
+                password:
+                    type: string
+        rabbit.api.v1.CreateRecipientGroupReply:
+            type: object
+            properties:
+                uid:
+                    type: string
+        rabbit.api.v1.CreateRecipientGroupRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                templates:
+                    type: array
+                    items:
+                        type: string
+                emailConfigs:
+                    type: array
+                    items:
+                        type: string
+                smsConfigs:
+                    type: array
+                    items:
+                        type: string
+                webhookConfigs:
+                    type: array
+                    items:
+                        type: string
+                members:
+                    type: array
+                    items:
+                        type: string
+        rabbit.api.v1.CreateTemplateReply:
+            type: object
+            properties:
+                uid:
+                    type: string
+        rabbit.api.v1.CreateTemplateRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                messageType:
+                    type: integer
+                    format: enum
+                jsonData:
+                    type: string
+                    description: |-
+                        邮件模板数据结构:
+                         {
+                         	"subject": "string",
+                         	"body": "string",
+                         	"content_type": "string",
+                         	"headers": {
+                         		"key": ["value1", "value2"]
+                         	}
+                         }
+                         SMS模板数据结构:
+                         {
+                         	"content": "string",
+                         	"params": {
+                         		"key": "value"
+                         	}
+                         }
+                         Webhook模板数据结构:
+                         {
+                         }
+        rabbit.api.v1.CreateWebhookReply:
+            type: object
+            properties:
+                uid:
+                    type: string
+        rabbit.api.v1.CreateWebhookRequest:
+            type: object
+            properties:
+                app:
+                    type: integer
+                    format: enum
+                name:
+                    type: string
+                url:
+                    type: string
+                method:
+                    type: integer
+                    format: enum
+                headers:
+                    type: object
+                    additionalProperties:
+                        type: string
+                secret:
+                    type: string
+        rabbit.api.v1.DeleteEmailConfigReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.DeleteRecipientGroupReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.DeleteTemplateReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.DeleteWebhookReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.EmailConfigItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                host:
+                    type: string
+                port:
+                    type: integer
+                    format: int32
+                username:
+                    type: string
+                password:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        rabbit.api.v1.EmailConfigItemSelect:
+            type: object
+            properties:
+                value:
+                    type: string
+                label:
+                    type: string
+                disabled:
+                    type: boolean
+                tooltip:
+                    type: string
+        rabbit.api.v1.JobSendMessageRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+        rabbit.api.v1.JobSendReply:
+            type: object
+            properties:
+                uid:
+                    type: string
+        rabbit.api.v1.ListEmailConfigReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.EmailConfigItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        rabbit.api.v1.ListMessageLogReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.MessageLogItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        rabbit.api.v1.ListRecipientGroupReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.RecipientGroupItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        rabbit.api.v1.ListTemplateReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.TemplateItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        rabbit.api.v1.ListWebhookReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.WebhookItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        rabbit.api.v1.MessageLogItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                messageType:
+                    type: integer
+                    format: enum
+                status:
+                    type: integer
+                    format: enum
+                sendAt:
+                    type: string
+                message:
+                    type: string
+                config:
+                    type: string
+                retryTotal:
+                    type: integer
+                    format: int32
+                lastError:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        rabbit.api.v1.RecipientGroupItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                templates:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.TemplateItem'
+                emailConfigs:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.EmailConfigItem'
+                webhookConfigs:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.WebhookItem'
+                members:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/magicbox.api.v1.MemberItem'
+                status:
+                    type: integer
+                    format: enum
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        rabbit.api.v1.RetryMessageLogReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.RetryMessageLogRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+        rabbit.api.v1.SelectEmailConfigReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.EmailConfigItemSelect'
+                total:
+                    type: string
+                lastUID:
+                    type: string
+                hasMore:
+                    type: boolean
+        rabbit.api.v1.SelectRecipientGroupItem:
+            type: object
+            properties:
+                value:
+                    type: string
+                label:
+                    type: string
+                disabled:
+                    type: boolean
+                tooltip:
+                    type: string
+        rabbit.api.v1.SelectRecipientGroupReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.SelectRecipientGroupItem'
+                total:
+                    type: string
+                lastUID:
+                    type: string
+                hasMore:
+                    type: boolean
+        rabbit.api.v1.SelectTemplateReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.TemplateItemSelect'
+                total:
+                    type: string
+                lastUID:
+                    type: string
+                hasMore:
+                    type: boolean
+        rabbit.api.v1.SelectWebhookReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.WebhookItemSelect'
+                total:
+                    type: string
+                lastUID:
+                    type: string
+                hasMore:
+                    type: boolean
+        rabbit.api.v1.SendEmailRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                subject:
+                    type: string
+                body:
+                    type: string
+                to:
+                    type: array
+                    items:
+                        type: string
+                cc:
+                    type: array
+                    items:
+                        type: string
+                contentType:
+                    type: string
+                headers:
+                    type: object
+                    additionalProperties:
+                        type: string
+        rabbit.api.v1.SendEmailWithTemplateRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                templateUID:
+                    type: string
+                jsonData:
+                    type: string
+                to:
+                    type: array
+                    items:
+                        type: string
+                cc:
+                    type: array
+                    items:
+                        type: string
+        rabbit.api.v1.SendMessageRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+        rabbit.api.v1.SendReply:
+            type: object
+            properties:
+                uid:
+                    type: string
+        rabbit.api.v1.SendWebhookRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                data:
+                    type: string
+        rabbit.api.v1.SendWebhookWithTemplateRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                templateUID:
+                    type: string
+                jsonData:
+                    type: string
+        rabbit.api.v1.TemplateItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                messageType:
+                    type: integer
+                    format: enum
+                jsonData:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        rabbit.api.v1.TemplateItemSelect:
+            type: object
+            properties:
+                value:
+                    type: string
+                label:
+                    type: string
+                disabled:
+                    type: boolean
+                tooltip:
+                    type: string
+        rabbit.api.v1.UpdateEmailConfigReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.UpdateEmailConfigRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                host:
+                    type: string
+                port:
+                    type: integer
+                    format: int32
+                username:
+                    type: string
+                password:
+                    type: string
+        rabbit.api.v1.UpdateEmailConfigStatusReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.UpdateEmailConfigStatusRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        rabbit.api.v1.UpdateRecipientGroupReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.UpdateRecipientGroupRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                templates:
+                    type: array
+                    items:
+                        type: string
+                emailConfigs:
+                    type: array
+                    items:
+                        type: string
+                smsConfigs:
+                    type: array
+                    items:
+                        type: string
+                webhookConfigs:
+                    type: array
+                    items:
+                        type: string
+                members:
+                    type: array
+                    items:
+                        type: string
+        rabbit.api.v1.UpdateRecipientGroupStatusReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.UpdateRecipientGroupStatusRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        rabbit.api.v1.UpdateTemplateReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.UpdateTemplateRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                messageType:
+                    type: integer
+                    format: enum
+                jsonData:
+                    type: string
+                    description: |-
+                        邮件模板数据结构:
+                         {
+                         	"subject": "string",
+                         	"body": "string",
+                         	"content_type": "string",
+                         	"headers": {
+                         		"key": ["value1", "value2"]
+                         	}
+                         }
+                         SMS模板数据结构:
+                         {
+                         	"content": "string",
+                         	"params": {
+                         		"key": "value"
+                         	}
+                         }
+                         Webhook模板数据结构:
+                         {
+                         }
+        rabbit.api.v1.UpdateTemplateStatusReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.UpdateTemplateStatusRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        rabbit.api.v1.UpdateWebhookReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.UpdateWebhookRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                app:
+                    type: integer
+                    format: enum
+                name:
+                    type: string
+                url:
+                    type: string
+                method:
+                    type: integer
+                    format: enum
+                headers:
+                    type: object
+                    additionalProperties:
+                        type: string
+                secret:
+                    type: string
+        rabbit.api.v1.UpdateWebhookStatusReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.UpdateWebhookStatusRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        rabbit.api.v1.WebhookItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                app:
+                    type: integer
+                    format: enum
+                name:
+                    type: string
+                url:
+                    type: string
+                method:
+                    type: integer
+                    format: enum
+                headers:
+                    type: object
+                    additionalProperties:
+                        type: string
+                secret:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        rabbit.api.v1.WebhookItemSelect:
+            type: object
+            properties:
+                value:
+                    type: string
+                label:
+                    type: string
+                disabled:
+                    type: boolean
+                tooltip:
+                    type: string
+                app:
+                    type: integer
+                    format: enum
+tags:
+    - name: Email
+    - name: Job
+    - name: MessageLog
+    - name: RecipientGroupService
+    - name: Sender
+    - name: Template
+    - name: Webhook

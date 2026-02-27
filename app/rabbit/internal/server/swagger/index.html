@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <link rel="shortcut icon" href="./logo.svg">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1,user-scalable=yes">
+    <title>API 文档</title>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.1/build/styles/default.min.css">
+    <link rel="stylesheet" href="./app.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.1/build/highlight.min.js"></script>
+    <script defer="defer" src="rapidoc-min.js"></script>
+    <script defer src="./app.js"></script>
+</head>
+
+<body>
+
+    <rapi-doc spec-url="./openapi.yaml" id="thedoc" render-style="focus" schema-style="table"
+        show-method-in-nav-bar="true" use-path-in-nav-bar="true" show-components="true" show-info="false"
+        show-header="false" allow-search="true" allow-advanced-search="true" allow-spec-url-load="false"
+        allow-spec-file-download="false" allow-server-selection="false" allow-authentication="true" update-route="false"
+        match-type="regex" persist-auth="true" regular-font="Nunito">
+        <img slot="nav-logo" src="./logo.svg" width="60px" />
+        <div slot="auth" style="margin-left: 10px;" id="auth">
+            <button class="toggle-section" onclick="toggleHeaderSection()">🔧 管理 HTTP Headers</button>
+
+            <div class="header-section" id="headerSection">
+                <div class="header-controls">
+                    <select class="header-set-select" id="headerSetSelect" onchange="loadHeaderSet()">
+                        <option value="">-- 选择 Header 组 --</option>
+                    </select>
+                    <button class="btn-primary" onclick="showNewHeaderSet()">新建组</button>
+                    <button class="btn-danger" onclick="deleteHeaderSet()">删除组</button>
+                    <button class="btn-import" onclick="document.getElementById('importFile').click()">导入全部配置</button>
+                    <button class="btn-export" onclick="exportHeaderSets()">导出全部配置</button>
+                    <input type="file" id="importFile" class="file-input" accept=".json"
+                        onchange="importHeaderSets(event)" />
+                </div>
+
+                <div class="header-form" id="newSetForm">
+                    <input type="text" class="set-name-input" id="newSetName" placeholder="输入 Header 组名称" />
+                    <button class="btn-secondary" onclick="createNewHeaderSet()">创建组</button>
+                </div>
+
+                <div class="header-form active" id="editSetForm" style="display: none;">
+                    <div class="header-stats">
+                        <span id="headerStats">当前组: 未选择 | Headers: 0</span>
+                        <span>支持多组管理，自动保存到本地</span>
+                    </div>
+
+                    <div class="header-input-group">
+                        <input type="text" class="header-input" id="headerKey"
+                            placeholder="Header Key (例如: Authorization)" />
+                        <input type="text" class="header-input" id="headerValue"
+                            placeholder="Header Value (例如: Bearer token)" />
+                        <button class="btn-secondary" onclick="addHeader()">添加</button>
+                    </div>
+
+                    <div class="header-items" id="headerItems"></div>
+
+
+                    <button class="btn-primary" onclick="saveHeaderSet()">💾 保存当前组</button>
+                </div>
+            </div>
+        </div>
+    </rapi-doc>
+</body>
+<script defer src="./app.js"></script>
+
+</html>
+
+</html>

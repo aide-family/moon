@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package magicbox.enum;
+
+option go_package = "github.com/aide-family/magicbox/enum;enum";
+option java_multiple_files = true;
+option java_package = "magicbox.enum";
+
+// SampleMode represents the sampling mode
+// (e.g., how many times an event occurs within a period)
+enum SampleMode {
+  // Unknown
+  SAMPLE_MODE_UNKNOWN = 0;
+  // Occurs n times consecutively within m time
+  SAMPLE_MODE_FOR = 1;
+  // Occurs at most n times within m time
+  SAMPLE_MODE_MAX = 2;
+  // Occurs at least n times within m time
+  SAMPLE_MODE_MIN = 3;
+}
+
+enum ConditionMetric {
+  CONDITION_METRIC_UNKNOWN = 0;
+  // Equal to
+  CONDITION_METRIC_EQ = 1;
+  // Not equal to
+  CONDITION_METRIC_NE = 2;
+  // Greater than
+  CONDITION_METRIC_GT = 3;
+  // Greater than or equal to
+  CONDITION_METRIC_GTE = 4;
+  // Less than
+  CONDITION_METRIC_LT = 5;
+  // Less than or equal to
+  CONDITION_METRIC_LTE = 6;
+  // In range
+  CONDITION_METRIC_IN = 7;
+  // Not in range
+  CONDITION_METRIC_NOT_IN = 8;
+}
