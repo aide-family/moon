@@ -3,8 +3,8 @@
     "path": "/opt/homebrew/bin/protoc",
     "compile_on_save": false,
     "options": [
-      "--proto_path=${workspaceRoot}/pkg/magicbox/proto",
-      "--proto_path=${workspaceRoot}/pkg/magicbox/proto/third_party",
+      "--proto_path=${workspaceRoot}/proto",
+      "--proto_path=${workspaceRoot}/proto/third_party",
       "--go_out=gen/go"
     ]
   },

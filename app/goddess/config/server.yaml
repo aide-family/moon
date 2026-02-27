@@ -1,0 +1,78 @@
+environment: ${MOON_GODDESS_ENVIRONMENT:PROD}
+enableSwagger: ${MOON_GODDESS_ENABLE_SWAGGER:true}
+enableMetrics: ${MOON_GODDESS_ENABLE_METRICS:true}
+useRandomID: ${MOON_GODDESS_USE_RANDOM_NODE_ID:false}
+
+server:
+  name: ${MOON_GODDESS_SERVER_NAME:goddess}
+  metadata:
+    tag: ${MOON_GODDESS_METADATA_TAG:goddess}
+    repository: ${MOON_GODDESS_METADATA_REPOSITORY:https://github.com/aide-family/goddess}
+    author: ${MOON_GODDESS_METADATA_AUTHOR:Aide Family}
+    email: ${MOON_GODDESS_METADATA_EMAIL:aidecloud@163.com}
+  http:
+    address: "${MOON_GODDESS_HTTP_ADDRESS:0.0.0.0:18080}"
+    network: "${MOON_GODDESS_HTTP_NETWORK:tcp}"
+    timeout: "${MOON_GODDESS_HTTP_TIMEOUT:10s}"
+    protocol: HTTP
+  grpc:
+    address: "${MOON_GODDESS_GRPC_ADDRESS:0.0.0.0:19090}"
+    network: "${MOON_GODDESS_GRPC_NETWORK:tcp}"
+    timeout: "${MOON_GODDESS_GRPC_TIMEOUT:10s}"
+    protocol: GRPC
+
+jwt:
+  secret: "${MOON_GODDESS_JWT_SECRET:xxx}"
+  expire: "${MOON_GODDESS_JWT_EXPIRE:600s}"
+  issuer: "${MOON_GODDESS_JWT_ISSUER:goddess}"
+
+swaggerBasicAuth:
+  enabled: ${MOON_GODDESS_SWAGGER_BASIC_AUTH_ENABLED:false}  
+  username: ${MOON_GODDESS_SWAGGER_BASIC_AUTH_USERNAME:moon.goddess}
+  password: ${MOON_GODDESS_SWAGGER_BASIC_AUTH_PASSWORD:goddess.swagger}
+
+metricsBasicAuth:
+  enabled: ${MOON_GODDESS_METRICS_BASIC_AUTH_ENABLED:false}
+  username: ${MOON_GODDESS_METRICS_BASIC_AUTH_USERNAME:moon.goddess}
+  password: ${MOON_GODDESS_METRICS_BASIC_AUTH_PASSWORD:goddess.metrics}
+
+database:
+  dialector: ${MOON_GODDESS_DATABASE_DIALECTOR:SQLITE}
+  debug: ${MOON_GODDESS_DATABASE_DEBUG:true}
+  useSystemLogger: ${MOON_GODDESS_DATABASE_USE_SYSTEM_LOGGER:false}
+  options:
+    '@type': "${MOON_GODDESS_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}"
+    dsn: "${MOON_GODDESS_DATABASE_SQLITE_OPTIONS_DSN:file:./goddess.db?cache=shared}"
+
+oauth2:
+  enable: ${MOON_GODDESS_OAUTH2_ENABLE:true}
+  redirectUri: ${MOON_GODDESS_OAUTH2_REDIRECT_URI:http://localhost:18080/oauth2/callback}
+  configs:
+    - app: GITHUB
+      clientId: ${MOON_GODDESS_OAUTH2_GITHUB_CONFIGS_CLIENT_ID:github.client.id}
+      clientSecret: ${MOON_GODDESS_OAUTH2_GITHUB_CONFIGS_CLIENT_SECRET:github.client.secret}
+      callbackUri: ${MOON_GODDESS_OAUTH2_GITHUB_CONFIGS_CALLBACK_URI:http://localhost:18080/oauth2/login/github/callback?portal=http%3A%2F%2Flocalhost%3A5172}
+      authUrl: ${MOON_GODDESS_OAUTH2_GITHUB_CONFIGS_AUTH_URL:https://github.com/login/oauth/authorize}
+      tokenUrl: ${MOON_GODDESS_OAUTH2_GITHUB_CONFIGS_TOKEN_URL:https://github.com/login/oauth/access_token}
+      scopes:
+        - user:email
+      loginUrl: ${MOON_GODDESS_OAUTH2_GITHUB_CONFIGS_LOGIN_URL:http://localhost:18080/oauth2/login/github}
+    - app: GITEE
+      clientId: ${MOON_GODDESS_OAUTH2_GITEE_CONFIGS_CLIENT_ID:gitee.client.id}
+      clientSecret: ${MOON_GODDESS_OAUTH2_GITEE_CONFIGS_CLIENT_SECRET:gitee.client.secret}
+      callbackUri: ${MOON_GODDESS_OAUTH2_GITEE_CONFIGS_CALLBACK_URI:http://localhost:18080/oauth2/login/gitee/callback?portal=http%3A%2F%2Flocalhost%3A5172}
+      authUrl: ${MOON_GODDESS_OAUTH2_GITEE_CONFIGS_AUTH_URL:https://gitee.com/oauth/authorize}
+      tokenUrl: ${MOON_GODDESS_OAUTH2_GITEE_CONFIGS_TOKEN_URL:https://gitee.com/oauth/token}
+      scopes:
+        - user_info
+        - emails
+      loginUrl: ${MOON_GODDESS_OAUTH2_GITEE_CONFIGS_LOGIN_URL:http://localhost:18080/oauth2/login/gitee}
+    - app: FEISHU
+      clientId: ${MOON_GODDESS_OAUTH2_FEISHU_CONFIGS_CLIENT_ID:feishu.client.id}
+      clientSecret: ${MOON_GODDESS_OAUTH2_FEISHU_CONFIGS_CLIENT_SECRET:feishu.client.secret}
+      callbackUri: ${MOON_GODDESS_OAUTH2_FEISHU_CONFIGS_CALLBACK_URI:http://localhost:18080/oauth2/login/feishu/callback?portal=http%3A%2F%2Flocalhost%3A5172}
+      authUrl: ${MOON_GODDESS_OAUTH2_FEISHU_CONFIGS_AUTH_URL:https://open.feishu.cn/open-apis/authen/v1/authorize}
+      tokenUrl: ${MOON_GODDESS_OAUTH2_FEISHU_CONFIGS_TOKEN_URL:https://open.feishu.cn/open-apis/authen/v1/access_token}
+      scopes:
+        - user:email
+      loginUrl: ${MOON_GODDESS_OAUTH2_FEISHU_CONFIGS_LOGIN_URL:http://localhost:18080/oauth2/login/feishu}

@@ -1,0 +1,24 @@
+[PARAMS]
+other = ""
+
+[INTERNAL]
+other = ""
+
+[NOT_FOUND]
+other = ""
+
+[UNAUTHORIZED]
+other = ""
+
+[FORBIDDEN]
+other = ""
+
+[TOO_MANY_REQUESTS]
+other = ""
+
+[INTERNAL_SERVER]
+other = ""
+
+[INVALID_ARGUMENT]
+other = ""
+

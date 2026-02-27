@@ -1,0 +1,120 @@
+GOHOSTOS:=$(shell go env GOHOSTOS)
+VERSION=$(shell git describe --tags --always)
+BUILD_TIME=$(shell date '+%Y-%m-%dT%H:%M:%SZ')
+AUTHOR=$(shell git log -1 --format='%an')
+AUTHOR_EMAIL=$(shell git log -1 --format='%ae')
+REPO=$(shell git config remote.origin.url)
+
+ifeq ($(GOHOSTOS), windows)
+	#the `find.exe` is different from `find` in bash/shell.
+	#to see https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/find.
+	#changed to use git-bash.exe to run find cli or other cli friendly, caused of every developer has a Git.
+	Git_Bash=$(subst \,/,$(subst cmd\,bin\bash.exe,$(dir $(shell where git))))
+	API_PROTO_FILES=$(shell $(Git_Bash) -c "find ../../proto/goddess -name '*.proto'")
+	# Use mkdir -p equivalent for Windows
+	MKDIR=mkdir
+	RM=del /f /q
+else
+	API_PROTO_FILES=$(shell find ../../proto/goddess -name '*.proto')
+	MKDIR=mkdir -p
+	RM=rm -f
+endif
+
+.PHONY: init
+# initialize the goddess environment
+init:
+	@echo "Initializing goddess environment"
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.3
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
+	go install github.com/go-kratos/kratos/cmd/protoc-gen-go-http/v2@latest
+	go install github.com/go-kratos/kratos/cmd/protoc-gen-go-errors/v2@latest
+	go install github.com/google/gnostic/cmd/protoc-gen-openapi@latest
+	go install github.com/google/wire/cmd/wire@latest
+	go install github.com/aide-family/stringer@v1.1.3
+	go install github.com/protoc-gen/i18n-gen@latest
+	go install golang.org/x/tools/gopls@latest
+	go install github.com/go-kratos/kratos/cmd/kratos/v2@latest
+
+.PHONY: conf
+# generate the conf files
+conf:
+	@echo "Generating conf files"
+	protoc --proto_path=./internal/conf \
+           --proto_path=../../proto \
+           --proto_path=../../proto/third_party \
+           --go_out=paths=source_relative:./internal/conf \
+           --experimental_allow_proto3_optional \
+           ./internal/conf/*.proto
+
+.PHONY: api
+# generate the api files（protoc 按 proto 路径生成到 pkg/goddess/，再提到 pkg/api/v1）
+api:
+	@echo "Generating api files"
+#	protoc --proto_path=./pkg/magicbox/proto \
+#	       --proto_path=./pkg/magicbox/proto/third_party \
+#	       --go_out=. --go_opt=module=github.com/aide-family/goddess \
+#	       --go-http_out=. --go-http_opt=module=github.com/aide-family/goddess \
+#	       --go-grpc_out=. --go-grpc_opt=module=github.com/aide-family/goddess \
+#	       --openapi_out=fq_schema_naming=true,default_response=false:./internal/server/swagger \
+#	       --experimental_allow_proto3_optional \
+#	       $(API_PROTO_FILES) \
+
+.PHONY: wire
+# generate the wire files
+wire:
+	@echo "Generating wire files"
+	wire ./...
+
+.PHONY: all
+# generate all files
+all: 
+	@git log -1 --format='%B' > description.txt
+	make api conf wire
+
+.PHONY: submodule
+# update the submodule
+submodule:
+	@echo "Updating submodule"
+	git submodule update --remote --recursive
+
+.PHONY: build
+# build the goddess binary
+build: all
+	@echo "Building goddess"
+	@echo "VERSION: $(VERSION)"
+	@echo "BUILD_TIME: $(BUILD_TIME)"
+	@echo "AUTHOR: $(AUTHOR)"
+	@echo "AUTHOR_EMAIL: $(AUTHOR_EMAIL)"
+	@git log -1 --format='%B' > description.txt
+	go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/goddess main.go
+
+.PHONY: dev
+# run the goddess binary in development mode
+dev:
+	@echo "Running goddess in development mode"
+	go run . run all --log-level=DEBUG
+
+.PHONY: test
+# run the tests
+test: all
+	@echo "Running tests"
+	go test ./...
+
+# show help
+help:
+	@echo ''
+	@echo 'Usage:'
+	@echo ' make [target]'
+	@echo ''
+	@echo 'Targets:'
+	@awk '/^[a-zA-Z\-\_0-9]+:/ { \
+	helpMessage = match(lastLine, /^# (.*)/); \
+		if (helpMessage) { \
+			helpCommand = substr($$1, 0, index($$1, ":")); \
+			helpMessage = substr(lastLine, RSTART + 2, RLENGTH); \
+			printf "\033[36m%-22s\033[0m %s\n", helpCommand,helpMessage; \
+		} \
+	} \
+	{ lastLine = $$0 }' $(MAKEFILE_LIST)
+
+.DEFAULT_GOAL := help

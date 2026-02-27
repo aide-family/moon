@@ -1,0 +1,355 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: ""
+    version: 0.0.1
+paths:
+    /v1/self/change-avatar:
+        put:
+            tags:
+                - Self
+            operationId: Self_ChangeAvatar
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/goddess.api.v1.ChangeAvatarRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.ChangeAvatarReply'
+    /v1/self/change-email:
+        put:
+            tags:
+                - Self
+            operationId: Self_ChangeEmail
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/goddess.api.v1.ChangeEmailRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.ChangeEmailReply'
+    /v1/self/info:
+        get:
+            tags:
+                - Self
+            operationId: Self_Info
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.UserItem'
+    /v1/self/namespaces:
+        get:
+            tags:
+                - Self
+            operationId: Self_Namespaces
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.NamespacesReply'
+    /v1/self/refresh-token:
+        get:
+            tags:
+                - Self
+            operationId: Self_RefreshToken
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.RefreshTokenReply'
+    /v1/user/ban/{uid}:
+        put:
+            tags:
+                - User
+            operationId: User_BanUser
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/goddess.api.v1.BanUserRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.BanUserReply'
+    /v1/user/permit/{uid}:
+        put:
+            tags:
+                - User
+            operationId: User_PermitUser
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/goddess.api.v1.PermitUserRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.PermitUserReply'
+    /v1/user/{uid}:
+        get:
+            tags:
+                - User
+            operationId: User_GetUser
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.UserItem'
+    /v1/users:
+        get:
+            tags:
+                - User
+            operationId: User_ListUser
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: email
+                  in: query
+                  schema:
+                    type: string
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.ListUserReply'
+    /v1/users/select:
+        get:
+            tags:
+                - User
+            operationId: User_SelectUser
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: lastUID
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.SelectUserReply'
+components:
+    schemas:
+        goddess.api.v1.BanUserReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        goddess.api.v1.BanUserRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                reason:
+                    type: string
+        goddess.api.v1.ChangeAvatarReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        goddess.api.v1.ChangeAvatarRequest:
+            type: object
+            properties:
+                avatar:
+                    type: string
+        goddess.api.v1.ChangeEmailReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        goddess.api.v1.ChangeEmailRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+        goddess.api.v1.ListUserReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/goddess.api.v1.UserItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        goddess.api.v1.NamespacesReply:
+            type: object
+            properties:
+                namespaces:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/magicbox.api.v1.NamespaceItem'
+        goddess.api.v1.PermitUserReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        goddess.api.v1.PermitUserRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                reason:
+                    type: string
+        goddess.api.v1.RefreshTokenReply:
+            type: object
+            properties:
+                token:
+                    type: string
+        goddess.api.v1.SelectUserItem:
+            type: object
+            properties:
+                value:
+                    type: string
+                label:
+                    type: string
+                disabled:
+                    type: boolean
+                tooltip:
+                    type: string
+        goddess.api.v1.SelectUserReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/goddess.api.v1.SelectUserItem'
+                total:
+                    type: string
+                lastUID:
+                    type: string
+                hasMore:
+                    type: boolean
+        goddess.api.v1.UserItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                email:
+                    type: string
+                username:
+                    type: string
+                nickname:
+                    type: string
+                avatar:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                remark:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        magicbox.api.v1.NamespaceItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                remark:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+tags:
+    - name: Self
+    - name: User
