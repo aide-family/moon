@@ -14,7 +14,7 @@ func ToLevelItemBo(m *do.Level) *bo.LevelItemBo {
 		return nil
 	}
 	return &bo.LevelItemBo{
-		UID:       m.UID,
+		UID:       m.ID,
 		Name:      m.Name,
 		Remark:    m.Remark,
 		Status:    m.Status,
@@ -29,7 +29,7 @@ func ToLevelItemSelectBo(m *do.Level) *bo.LevelItemSelectBo {
 		return nil
 	}
 	return &bo.LevelItemSelectBo{
-		Value:    m.UID.Int64(),
+		Value:    m.ID.Int64(),
 		Label:    m.Name,
 		Disabled: m.Status != enum.GlobalStatus_ENABLED || m.DeletedAt.Valid,
 		Tooltip:  m.Remark,

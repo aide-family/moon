@@ -41,21 +41,11 @@ func (b *RecipientGroup) CreateRecipientGroup(ctx context.Context, req *bo.Creat
 		b.helper.Errorw("msg", "check recipient group exists failed", "error", err, "name", req.Name)
 		return 0, merr.ErrorInternalServer("create recipient group failed").WithCause(err)
 	}
-	membersReq := &magicboxapiv1.ListMemberRequest{
-		Page:     1,
-		PageSize: 200,
-		Status:   enum.MemberStatus_JOINED,
-		Uids:     req.Members,
-	}
-	members, err := b.memberRepo.ListMember(ctx, membersReq)
-	if err != nil {
-		b.helper.Errorw("msg", "list member failed", "error", err)
-		return 0, merr.ErrorInternalServer("list member failed").WithCause(err)
-	}
-
-	if err := b.recipientMemberRepo.CreateRecipientMember(ctx, bo.NewRecipientMemberItemBo(members.Items)); err != nil {
-		b.helper.Errorw("msg", "create recipient member failed", "error", err)
-		return 0, merr.ErrorInternalServer("create recipient member failed").WithCause(err)
+	if len(req.Members) > 0 {
+		if err := b.createRecipientMember(ctx, req.Members); err != nil {
+			b.helper.Errorw("msg", "create recipient member failed", "error", err)
+			return 0, merr.ErrorInternalServer("create recipient member failed").WithCause(err)
+		}
 	}
 	uid, err := b.recipientGroupRepo.CreateRecipientGroup(ctx, req)
 	if err != nil {
@@ -63,6 +53,26 @@ func (b *RecipientGroup) CreateRecipientGroup(ctx context.Context, req *bo.Creat
 		return 0, merr.ErrorInternalServer("create recipient group failed").WithCause(err)
 	}
 	return uid, nil
+}
+
+func (b *RecipientGroup) createRecipientMember(ctx context.Context, memberUIDs []int64) error {
+	membersReq := &magicboxapiv1.ListMemberRequest{
+		Page:     1,
+		PageSize: 200,
+		Status:   enum.MemberStatus_JOINED,
+		Uids:     memberUIDs,
+	}
+	members, err := b.memberRepo.ListMember(ctx, membersReq)
+	if err != nil {
+		b.helper.Errorw("msg", "list member failed", "error", err)
+		return merr.ErrorInternalServer("list member failed").WithCause(err)
+	}
+
+	if err := b.recipientMemberRepo.CreateRecipientMember(ctx, bo.NewRecipientMemberItemBo(members.Items)); err != nil {
+		b.helper.Errorw("msg", "create recipient member failed", "error", err)
+		return merr.ErrorInternalServer("create recipient member failed").WithCause(err)
+	}
+	return nil
 }
 
 func (b *RecipientGroup) GetRecipientGroup(ctx context.Context, uid snowflake.ID) (*bo.RecipientGroupDetailBo, error) {

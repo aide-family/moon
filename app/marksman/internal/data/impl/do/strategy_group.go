@@ -1,8 +1,6 @@
 package do
 
 import (
-	"errors"
-
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/safety"
 	"github.com/bwmarrin/snowflake"
@@ -26,14 +24,4 @@ func (StrategyGroup) TableName() string {
 func (s *StrategyGroup) WithNamespace(namespace snowflake.ID) *StrategyGroup {
 	s.NamespaceUID = namespace
 	return s
-}
-
-func (s *StrategyGroup) BeforeCreate(tx *gorm.DB) (err error) {
-	if s.NamespaceUID == 0 {
-		return errors.New("namespace uid is required")
-	}
-	if s.Name == "" {
-		return errors.New("name is required")
-	}
-	return nil
 }

@@ -42,7 +42,7 @@ func (r *strategyGroupRepository) UpdateStrategyGroup(ctx context.Context, req *
 	}
 	_, err := sg.WithContext(ctx).Where(
 		sg.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
-		sg.UID.Eq(req.UID.Int64()),
+		sg.ID.Eq(req.UID.Int64()),
 	).UpdateColumnSimple(columns...)
 	return err
 }
@@ -51,7 +51,7 @@ func (r *strategyGroupRepository) UpdateStrategyGroupStatus(ctx context.Context,
 	sg := query.StrategyGroup
 	info, err := query.StrategyGroup.WithContext(ctx).Where(
 		sg.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
-		sg.UID.Eq(req.UID.Int64()),
+		sg.ID.Eq(req.UID.Int64()),
 	).Update(sg.Status, req.Status)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func (r *strategyGroupRepository) DeleteStrategyGroup(ctx context.Context, uid s
 	sg := query.StrategyGroup
 	info, err := query.StrategyGroup.WithContext(ctx).Where(
 		sg.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
-		sg.UID.Eq(uid.Int64()),
+		sg.ID.Eq(uid.Int64()),
 	).Delete()
 	if err != nil {
 		return err
@@ -81,7 +81,7 @@ func (r *strategyGroupRepository) GetStrategyGroup(ctx context.Context, uid snow
 	sg := query.StrategyGroup
 	m, err := query.StrategyGroup.WithContext(ctx).Where(
 		sg.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
-		sg.UID.Eq(uid.Int64()),
+		sg.ID.Eq(uid.Int64()),
 	).First()
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -110,7 +110,7 @@ func (r *strategyGroupRepository) ListStrategyGroup(ctx context.Context, req *bo
 	if req.Page > 0 && req.PageSize > 0 {
 		wrappers = wrappers.Offset(req.Offset()).Limit(req.Limit())
 	}
-	list, err := wrappers.Order(sg.UID.Desc()).Find()
+	list, err := wrappers.Order(sg.ID.Desc()).Find()
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (r *strategyGroupRepository) SelectStrategyGroup(ctx context.Context, req *
 		return nil, err
 	}
 	if req.LastUID.Int64() > 0 {
-		wrappers = wrappers.Where(sg.UID.Gt(req.LastUID.Int64()))
+		wrappers = wrappers.Where(sg.ID.Gt(req.LastUID.Int64()))
 	}
 	if req.Limit > 0 {
 		wrappers = wrappers.Limit(int(req.Limit))

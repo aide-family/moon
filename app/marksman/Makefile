@@ -46,6 +46,12 @@ conf:
            --experimental_allow_proto3_optional \
            ./internal/conf/*.proto
 
+.PHONY: gen
+# generate the gen files
+gen:
+	@echo "Generating gen files"
+	go test -tags=generate ./internal/data/impl/do -run TestGenerate
+
 .PHONY: api
 # generate the api files
 api:
@@ -95,7 +101,7 @@ build-exe: all
 dev:
 	@echo "Running marksman in development mode"
 	go run . run all --log-level=DEBUG
-	
+
 # show help
 help:
 	@echo ''

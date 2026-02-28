@@ -45,7 +45,7 @@ func (r *strategyRepository) UpdateStrategy(ctx context.Context, req *bo.UpdateS
 	}
 	_, err := s.WithContext(ctx).Where(
 		s.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
-		s.UID.Eq(req.UID.Int64()),
+		s.ID.Eq(req.UID.Int64()),
 	).UpdateColumnSimple(columns...)
 	return err
 }
@@ -54,7 +54,7 @@ func (r *strategyRepository) UpdateStrategyStatus(ctx context.Context, req *bo.U
 	s := query.Strategy
 	info, err := query.Strategy.WithContext(ctx).Where(
 		s.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
-		s.UID.Eq(req.UID.Int64()),
+		s.ID.Eq(req.UID.Int64()),
 	).Update(s.Status, req.Status)
 	if err != nil {
 		return err
@@ -69,7 +69,7 @@ func (r *strategyRepository) DeleteStrategy(ctx context.Context, uid snowflake.I
 	s := query.Strategy
 	info, err := query.Strategy.WithContext(ctx).Where(
 		s.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
-		s.UID.Eq(uid.Int64()),
+		s.ID.Eq(uid.Int64()),
 	).Delete()
 	if err != nil {
 		return err
@@ -84,7 +84,7 @@ func (r *strategyRepository) GetStrategy(ctx context.Context, uid snowflake.ID) 
 	s := query.Strategy
 	m, err := query.Strategy.WithContext(ctx).Where(
 		s.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
-		s.UID.Eq(uid.Int64()),
+		s.ID.Eq(uid.Int64()),
 	).First()
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -123,7 +123,7 @@ func (r *strategyRepository) ListStrategy(ctx context.Context, req *bo.ListStrat
 	if req.Page > 0 && req.PageSize > 0 {
 		wrappers = wrappers.Offset(req.Offset()).Limit(req.Limit())
 	}
-	list, err := wrappers.Order(s.UID.Desc()).Find()
+	list, err := wrappers.Order(s.ID.Desc()).Find()
 	if err != nil {
 		return nil, err
 	}

@@ -1,14 +1,12 @@
+//go:build generate
+
 package do_test
 
 import (
-	"os"
 	"testing"
 
-	"github.com/glebarez/sqlite"
 	klog "github.com/go-kratos/kratos/v2/log"
-	"gorm.io/driver/mysql"
 	"gorm.io/gen"
-	"gorm.io/gorm"
 
 	"github.com/aide-family/goddess/internal/data/impl/do"
 )
@@ -31,10 +29,6 @@ var genConfig = gen.Config{
 }
 
 func generate() {
-	klog.Debugw("msg", "remove all files")
-	os.RemoveAll(genConfig.OutPath)
-	klog.Debugw("msg", "remove all files success", "path", genConfig.OutPath)
-
 	g := gen.NewGenerator(genConfig)
 
 	klog.Debugw("msg", "generate code start")
@@ -43,38 +37,6 @@ func generate() {
 	klog.Debugw("msg", "generate code success")
 }
 
-func migrateMysql() {
-	dsn := "root:123456@tcp(localhost:3306)/goddess?charset=utf8mb4&parseTime=True&loc=Local"
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		DisableForeignKeyConstraintWhenMigrating: true,
-	})
-	if err != nil {
-		panic("failed to connect database")
-	}
-	db.AutoMigrate(do.Models()...)
-}
-
-func migrateSQLite() error {
-	dsn := "file:../../../../goddess.db?cache=shared"
-	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{
-		DisableForeignKeyConstraintWhenMigrating: true,
-	})
-	if err != nil {
-		return err
-	}
-	return db.AutoMigrate(do.Models()...)
-}
-
 func TestGenerate(t *testing.T) {
 	generate()
-}
-
-func TestMigrateMysql(t *testing.T) {
-	// migrateMysql()
-}
-
-func TestMigrateSQLite(t *testing.T) {
-	if err := migrateSQLite(); err != nil {
-		t.Fatalf("migrateSQLite failed: %v", err)
-	}
 }

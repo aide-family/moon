@@ -32,6 +32,8 @@ func newOAuth2User(db *gorm.DB, opts ...gen.DOOption) oAuth2User {
 	_oAuth2User.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_oAuth2User.OpenID = field.NewString(tableName, "open_id")
 	_oAuth2User.Name = field.NewString(tableName, "name")
+	_oAuth2User.Nickname = field.NewString(tableName, "nickname")
+	_oAuth2User.Remark = field.NewString(tableName, "remark")
 	_oAuth2User.Email = field.NewString(tableName, "email")
 	_oAuth2User.Avatar = field.NewString(tableName, "avatar")
 	_oAuth2User.APP = field.NewString(tableName, "app")
@@ -57,6 +59,8 @@ type oAuth2User struct {
 	UpdatedAt field.Time
 	OpenID    field.String
 	Name      field.String
+	Nickname  field.String
+	Remark    field.String
 	Email     field.String
 	Avatar    field.String
 	APP       field.String
@@ -84,6 +88,8 @@ func (o *oAuth2User) updateTableName(table string) *oAuth2User {
 	o.UpdatedAt = field.NewTime(table, "updated_at")
 	o.OpenID = field.NewString(table, "open_id")
 	o.Name = field.NewString(table, "name")
+	o.Nickname = field.NewString(table, "nickname")
+	o.Remark = field.NewString(table, "remark")
 	o.Email = field.NewString(table, "email")
 	o.Avatar = field.NewString(table, "avatar")
 	o.APP = field.NewString(table, "app")
@@ -105,12 +111,14 @@ func (o *oAuth2User) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (o *oAuth2User) fillFieldMap() {
-	o.fieldMap = make(map[string]field.Expr, 11)
+	o.fieldMap = make(map[string]field.Expr, 13)
 	o.fieldMap["id"] = o.ID
 	o.fieldMap["created_at"] = o.CreatedAt
 	o.fieldMap["updated_at"] = o.UpdatedAt
 	o.fieldMap["open_id"] = o.OpenID
 	o.fieldMap["name"] = o.Name
+	o.fieldMap["nickname"] = o.Nickname
+	o.fieldMap["remark"] = o.Remark
 	o.fieldMap["email"] = o.Email
 	o.fieldMap["avatar"] = o.Avatar
 	o.fieldMap["app"] = o.APP

@@ -27,8 +27,7 @@ func newStrategyMetricReceiver(db *gorm.DB, opts ...gen.DOOption) strategyMetric
 
 	tableName := _strategyMetricReceiver.strategyMetricReceiverDo.TableName()
 	_strategyMetricReceiver.ALL = field.NewAsterisk(tableName)
-	_strategyMetricReceiver.ID = field.NewUint32(tableName, "id")
-	_strategyMetricReceiver.UID = field.NewInt64(tableName, "uid")
+	_strategyMetricReceiver.ID = field.NewInt64(tableName, "id")
 	_strategyMetricReceiver.CreatedAt = field.NewTime(tableName, "created_at")
 	_strategyMetricReceiver.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_strategyMetricReceiver.Creator = field.NewInt64(tableName, "creator")
@@ -47,8 +46,7 @@ type strategyMetricReceiver struct {
 	strategyMetricReceiverDo
 
 	ALL          field.Asterisk
-	ID           field.Uint32
-	UID          field.Int64
+	ID           field.Int64
 	CreatedAt    field.Time
 	UpdatedAt    field.Time
 	Creator      field.Int64
@@ -73,8 +71,7 @@ func (s strategyMetricReceiver) As(alias string) *strategyMetricReceiver {
 
 func (s *strategyMetricReceiver) updateTableName(table string) *strategyMetricReceiver {
 	s.ALL = field.NewAsterisk(table)
-	s.ID = field.NewUint32(table, "id")
-	s.UID = field.NewInt64(table, "uid")
+	s.ID = field.NewInt64(table, "id")
 	s.CreatedAt = field.NewTime(table, "created_at")
 	s.UpdatedAt = field.NewTime(table, "updated_at")
 	s.Creator = field.NewInt64(table, "creator")
@@ -99,9 +96,8 @@ func (s *strategyMetricReceiver) GetFieldByName(fieldName string) (field.OrderEx
 }
 
 func (s *strategyMetricReceiver) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 10)
+	s.fieldMap = make(map[string]field.Expr, 9)
 	s.fieldMap["id"] = s.ID
-	s.fieldMap["uid"] = s.UID
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
 	s.fieldMap["creator"] = s.Creator

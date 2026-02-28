@@ -39,7 +39,7 @@ func (r *levelRepository) UpdateLevel(ctx context.Context, req *bo.UpdateLevelBo
 		l.Remark.Value(req.Remark),
 		l.Metadata.Value(safety.NewMap(req.Metadata)),
 	}
-	_, err := l.WithContext(ctx).Where(l.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()), l.UID.Eq(req.UID.Int64())).UpdateColumnSimple(columns...)
+	_, err := l.WithContext(ctx).Where(l.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()), l.ID.Eq(req.UID.Int64())).UpdateColumnSimple(columns...)
 	return err
 }
 
@@ -47,7 +47,7 @@ func (r *levelRepository) UpdateLevelStatus(ctx context.Context, req *bo.UpdateL
 	l := query.Level
 	info, err := query.Level.WithContext(ctx).Where(
 		l.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
-		l.UID.Eq(req.UID.Int64()),
+		l.ID.Eq(req.UID.Int64()),
 	).Update(l.Status, req.Status)
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func (r *levelRepository) DeleteLevel(ctx context.Context, uid snowflake.ID) err
 	l := query.Level
 	info, err := query.Level.WithContext(ctx).Where(
 		l.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
-		l.UID.Eq(uid.Int64()),
+		l.ID.Eq(uid.Int64()),
 	).Delete()
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func (r *levelRepository) GetLevel(ctx context.Context, uid snowflake.ID) (*bo.L
 	l := query.Level
 	m, err := query.Level.WithContext(ctx).Where(
 		l.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
-		l.UID.Eq(uid.Int64()),
+		l.ID.Eq(uid.Int64()),
 	).First()
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -132,7 +132,7 @@ func (r *levelRepository) SelectLevel(ctx context.Context, req *bo.SelectLevelBo
 		return nil, err
 	}
 	if req.LastUID > 0 {
-		wrappers = wrappers.Where(l.UID.Gt(req.LastUID.Int64()))
+		wrappers = wrappers.Where(l.ID.Gt(req.LastUID.Int64()))
 	}
 	wrappers = wrappers.Limit(int(req.Limit))
 	list, err := wrappers.Find()
@@ -145,7 +145,7 @@ func (r *levelRepository) SelectLevel(ctx context.Context, req *bo.SelectLevelBo
 	}
 	var lastUID snowflake.ID
 	if len(list) > 0 {
-		lastUID = list[len(list)-1].UID
+		lastUID = list[len(list)-1].ID
 	}
 	return &bo.SelectLevelBoResult{
 		Items:   levelItems,

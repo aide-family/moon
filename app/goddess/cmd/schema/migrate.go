@@ -27,8 +27,8 @@ func newMigrateCmd() *cobra.Command {
 	migrateCmd.PersistentFlags().StringVar(&dsn, "dsn", "", `Database DSN.
 Example:
 - sqlite: file::memory:?cache=shared
-- mysql: root:123456@tcp(localhost:3306)/rabbit?charset=utf8mb4&parseTime=True&loc=Local
-- postgres: host=localhost user=root password=123456 port=5432 dbname=rabbit sslmode=disable
+- mysql: root:123456@tcp(localhost:3306)/goddess?charset=utf8mb4&parseTime=True&loc=Local
+- postgres: host=localhost user=root password=123456 port=5432 dbname=goddess sslmode=disable
 	`)
 	migrateCmd.AddCommand(newSQLiteMigrateCmd(), newMySQLMigrateCmd(), newPostgresMigrateCmd())
 	return migrateCmd
@@ -72,7 +72,7 @@ func newMySQLMigrateCmd() *cobra.Command {
 		},
 		RunE: func(c *cobra.Command, args []string) error {
 			if dsn == "" {
-				dsn = "root:123456@tcp(localhost:3306)/rabbit?charset=utf8mb4&parseTime=True&loc=Local"
+				dsn = "root:123456@tcp(localhost:3306)/goddess?charset=utf8mb4&parseTime=True&loc=Local"
 			}
 			db, err := gorm.Open(mysql.Open(dsn), gormConfig)
 			if err != nil {
@@ -100,7 +100,7 @@ func newPostgresMigrateCmd() *cobra.Command {
 		},
 		RunE: func(c *cobra.Command, args []string) error {
 			if dsn == "" {
-				dsn = "host=localhost user=root password=123456 port=5432 dbname=rabbit sslmode=disable TimeZone=Asia/Shanghai"
+				dsn = "host=localhost user=root password=123456 port=5432 dbname=goddess sslmode=disable TimeZone=Asia/Shanghai"
 			}
 			db, err := gorm.Open(postgres.Open(dsn), gormConfig)
 			if err != nil {

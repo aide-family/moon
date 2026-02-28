@@ -77,13 +77,13 @@ func (r *strategyMetricRepository) GetStrategyMetric(ctx context.Context, strate
 		return v.Int64()
 	})
 	levelQuery := query.Level
-	levelDos, err := levelQuery.WithContext(ctx).Where(levelQuery.UID.In(levelUIDsInt64s...)).Find()
+	levelDos, err := levelQuery.WithContext(ctx).Where(levelQuery.ID.In(levelUIDsInt64s...)).Find()
 	if err != nil {
 		return nil, err
 	}
 	levelMap := make(map[snowflake.ID]*do.Level)
 	for _, levelDo := range levelDos {
-		levelMap[levelDo.UID] = levelDo
+		levelMap[levelDo.ID] = levelDo
 	}
 
 	levels := make([]*bo.StrategyMetricLevelItemBo, 0, len(strategyMetricLevelDos))
@@ -119,7 +119,7 @@ func (r *strategyMetricRepository) UpdateStrategyMetricLevelStatus(ctx context.C
 	sml := query.StrategyMetricLevel
 	info, err := sml.WithContext(ctx).Where(
 		sml.StrategyUID.Eq(req.StrategyUID.Int64()),
-		sml.UID.Eq(req.UID.Int64()),
+		sml.ID.Eq(req.UID.Int64()),
 	).Update(sml.Status, req.Status)
 	if err != nil {
 		return err
@@ -134,7 +134,7 @@ func (r *strategyMetricRepository) DeleteStrategyMetricLevel(ctx context.Context
 	sml := query.StrategyMetricLevel
 	info, err := sml.WithContext(ctx).Where(
 		sml.StrategyUID.Eq(strategyUID.Int64()),
-		sml.UID.Eq(uid.Int64()),
+		sml.ID.Eq(uid.Int64()),
 	).Delete()
 	if err != nil {
 		return err
@@ -149,7 +149,7 @@ func (r *strategyMetricRepository) GetStrategyMetricLevel(ctx context.Context, u
 	sml := query.StrategyMetricLevel
 	row, err := sml.WithContext(ctx).Where(
 		sml.StrategyUID.Eq(strategyUID.Int64()),
-		sml.UID.Eq(uid.Int64()),
+		sml.ID.Eq(uid.Int64()),
 	).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -159,7 +159,7 @@ func (r *strategyMetricRepository) GetStrategyMetricLevel(ctx context.Context, u
 	}
 	var levelDo *do.Level
 	if row.LevelUID != 0 {
-		levelDo, err = query.Level.WithContext(ctx).Where(query.Level.UID.Eq(row.LevelUID.Int64())).First()
+		levelDo, err = query.Level.WithContext(ctx).Where(query.Level.ID.Eq(row.LevelUID.Int64())).First()
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil, merr.ErrorNotFound("strategy metric level level not found")

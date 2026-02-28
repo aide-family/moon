@@ -62,7 +62,7 @@ func (u *userRepository) ListUser(ctx context.Context, req *bo.ListUserBo) (*bo.
 			Or(mutation.Nickname.Like(keyword))
 	}
 	if req.Status > enum.UserStatus_UserStatus_UNKNOWN {
-		wrappers = wrappers.Where(mutation.Status.Eq(uint8(req.Status)))
+		wrappers = wrappers.Where(mutation.Status.Eq(int32(req.Status)))
 	}
 	if req.Page > 0 && req.PageSize > 0 {
 		countWrappers := wrappers
@@ -94,7 +94,7 @@ func (u *userRepository) SelectUser(ctx context.Context, req *bo.SelectUserBo) (
 			Or(mutation.Nickname.Like(keyword))
 	}
 	if req.Status > enum.UserStatus_UserStatus_UNKNOWN {
-		wrappers = wrappers.Where(mutation.Status.Eq(uint8(req.Status)))
+		wrappers = wrappers.Where(mutation.Status.Eq(int32(req.Status)))
 	}
 	if req.LastUID > 0 {
 		wrappers = wrappers.Where(mutation.UID.Lt(req.LastUID.Int64()))
@@ -129,20 +129,20 @@ func (u *userRepository) SelectUser(ctx context.Context, req *bo.SelectUserBo) (
 	}, nil
 }
 
-func (u *userRepository) UpdateUserStatus(ctx context.Context, uid snowflake.ID, status int32) error {
+func (u *userRepository) UpdateUserStatus(ctx context.Context, uid snowflake.ID, status enum.UserStatus) error {
 	mutation := query.User
-	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).Update(mutation.Status, uint8(status))
+	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).UpdateColumnSimple(mutation.Status.Value(int32(status)))
 	return err
 }
 
 func (u *userRepository) UpdateUserEmail(ctx context.Context, uid snowflake.ID, email string) error {
 	mutation := query.User
-	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).Update(mutation.Email, email)
+	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).UpdateColumnSimple(mutation.Email.Value(email))
 	return err
 }
 
 func (u *userRepository) UpdateUserAvatar(ctx context.Context, uid snowflake.ID, avatar string) error {
 	mutation := query.User
-	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).Update(mutation.Avatar, avatar)
+	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).UpdateColumnSimple(mutation.Avatar.Value(avatar))
 	return err
 }

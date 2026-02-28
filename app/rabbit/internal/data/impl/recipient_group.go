@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/magicbox/pointer"
 	"github.com/aide-family/magicbox/strutil"
 	"github.com/bwmarrin/snowflake"
+	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
 
@@ -33,10 +34,12 @@ type recipientGroupRepository struct {
 // GetRecipientGroupByName implements [repository.RecipientGroup].
 func (r *recipientGroupRepository) GetRecipientGroupByName(ctx context.Context, name string) (*bo.RecipientGroupItemBo, error) {
 	ns := contextx.GetNamespace(ctx)
-	q := query.RecipientGroup.WithContext(ctx).Where(
-		query.RecipientGroup.NamespaceUID.Eq(ns.Int64()),
-		query.RecipientGroup.Name.Eq(name),
+	recipientGroup := query.RecipientGroup
+	q := recipientGroup.WithContext(ctx).Where(
+		recipientGroup.NamespaceUID.Eq(ns.Int64()),
+		recipientGroup.Name.Eq(name),
 	)
+
 	group, err := q.First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -94,11 +97,7 @@ func (r *recipientGroupRepository) GetRecipientGroup(ctx context.Context, uid sn
 		query.RecipientGroup.NamespaceUID.Eq(ns.Int64()),
 		query.RecipientGroup.ID.Eq(uid.Int64()),
 	)
-	group, err := q.Preload(query.RecipientGroup.Templates).
-		Preload(query.RecipientGroup.EmailConfigs).
-		Preload(query.RecipientGroup.Webhooks).
-		Preload(query.RecipientGroup.Members).
-		First()
+	group, err := q.Preload(field.Associations).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotFound("recipient group not found")
@@ -111,10 +110,11 @@ func (r *recipientGroupRepository) GetRecipientGroup(ctx context.Context, uid sn
 func (r *recipientGroupRepository) UpdateRecipientGroup(ctx context.Context, req *bo.UpdateRecipientGroupBo) error {
 	ns := contextx.GetNamespace(ctx)
 	queryMutation := query.RecipientGroup
-	q := queryMutation.WithContext(ctx).Where(
+	wrappers := []gen.Condition{
 		queryMutation.NamespaceUID.Eq(ns.Int64()),
 		queryMutation.ID.Eq(req.UID.Int64()),
-	)
+	}
+	q := queryMutation.WithContext(ctx).Where(wrappers...)
 	group, err := q.First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -129,7 +129,7 @@ func (r *recipientGroupRepository) UpdateRecipientGroup(ctx context.Context, req
 
 	return r.DB().Transaction(func(tx *gorm.DB) error {
 		mutation := query.Use(tx).RecipientGroup
-		if _, err := mutation.UpdateColumnSimple(columns...); err != nil {
+		if _, err := mutation.WithContext(ctx).Where(wrappers...).UpdateColumnSimple(columns...); err != nil {
 			return err
 		}
 
@@ -201,7 +201,7 @@ func (r *recipientGroupRepository) ListRecipientGroup(ctx context.Context, req *
 		req.WithTotal(total)
 		q = q.Limit(req.Limit()).Offset(req.Offset())
 	}
-	list, err := q.Order(query.RecipientGroup.CreatedAt.Desc()).Find()
+	list, err := q.Order(query.RecipientGroup.CreatedAt.Desc()).Preload(field.Associations).Find()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return bo.NewPageResponseBo(req.PageRequestBo, []*bo.RecipientGroupItemBo{}), nil

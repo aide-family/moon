@@ -100,7 +100,7 @@ func newMySQLCmd() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("open mysql: %w", err)
 				}
-				database = "rabbit_schema_tmp"
+				database = "marksman_schema_tmp"
 				if err := conn.Exec("CREATE DATABASE IF NOT EXISTS `" + database + "`").Error; err != nil {
 					return fmt.Errorf("create database: %w", err)
 				}
@@ -161,7 +161,7 @@ func newPostgresCmd() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("open postgres: %w", err)
 				}
-				database = "rabbit_schema_tmp"
+				database = "marksman_schema_tmp"
 				err = conn.Exec(`CREATE DATABASE "` + database + `"`).Error
 				if err != nil && !strings.Contains(err.Error(), "already exists") {
 					return fmt.Errorf("create database: %w", err)

@@ -1,12 +1,26 @@
 # app subdirs only (basename), e.g. rabbit, marksman
 APPS := $(notdir $(shell find app -maxdepth 1 -mindepth 1 -type d))
 
+.PHONY: $(APPS)
+# run the app binary in development mode
+$(APPS):
+	cd app/$@ && make dev
+
 .PHONY: all
 # run all apps in development mode
 all:
 	@for app in $(APPS); do \
-		echo "=========generate $$app =========="; \
+		echo "=========build $$app =========="; \
 		cd app/$$app && make all; \
+		cd -; \
+	done
+
+.PHONY: gen
+# generate the gen files
+gen:
+	@for app in $(APPS); do \
+		echo "=========generate $$app =========="; \
+		cd app/$$app && make gen; \
 		cd -; \
 	done
 

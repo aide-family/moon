@@ -27,8 +27,7 @@ func newStrategyMetric(db *gorm.DB, opts ...gen.DOOption) strategyMetric {
 
 	tableName := _strategyMetric.strategyMetricDo.TableName()
 	_strategyMetric.ALL = field.NewAsterisk(tableName)
-	_strategyMetric.ID = field.NewUint32(tableName, "id")
-	_strategyMetric.UID = field.NewInt64(tableName, "uid")
+	_strategyMetric.ID = field.NewInt64(tableName, "id")
 	_strategyMetric.CreatedAt = field.NewTime(tableName, "created_at")
 	_strategyMetric.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_strategyMetric.Creator = field.NewInt64(tableName, "creator")
@@ -51,8 +50,7 @@ type strategyMetric struct {
 	strategyMetricDo
 
 	ALL            field.Asterisk
-	ID             field.Uint32
-	UID            field.Int64
+	ID             field.Int64
 	CreatedAt      field.Time
 	UpdatedAt      field.Time
 	Creator        field.Int64
@@ -81,8 +79,7 @@ func (s strategyMetric) As(alias string) *strategyMetric {
 
 func (s *strategyMetric) updateTableName(table string) *strategyMetric {
 	s.ALL = field.NewAsterisk(table)
-	s.ID = field.NewUint32(table, "id")
-	s.UID = field.NewInt64(table, "uid")
+	s.ID = field.NewInt64(table, "id")
 	s.CreatedAt = field.NewTime(table, "created_at")
 	s.UpdatedAt = field.NewTime(table, "updated_at")
 	s.Creator = field.NewInt64(table, "creator")
@@ -111,9 +108,8 @@ func (s *strategyMetric) GetFieldByName(fieldName string) (field.OrderExpr, bool
 }
 
 func (s *strategyMetric) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 14)
+	s.fieldMap = make(map[string]field.Expr, 13)
 	s.fieldMap["id"] = s.ID
-	s.fieldMap["uid"] = s.UID
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
 	s.fieldMap["creator"] = s.Creator

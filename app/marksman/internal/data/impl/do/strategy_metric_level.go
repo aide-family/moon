@@ -1,8 +1,6 @@
 package do
 
 import (
-	"errors"
-
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/safety"
 	"github.com/bwmarrin/snowflake"
@@ -29,17 +27,4 @@ func (StrategyMetricLevel) TableName() string {
 func (s *StrategyMetricLevel) WithNamespace(namespace snowflake.ID) *StrategyMetricLevel {
 	s.NamespaceUID = namespace
 	return s
-}
-
-func (s *StrategyMetricLevel) BeforeCreate(tx *gorm.DB) (err error) {
-	if s.NamespaceUID == 0 {
-		return errors.New("namespace uid is required")
-	}
-	if s.StrategyUID == 0 {
-		return errors.New("strategy uid is required")
-	}
-	if s.LevelUID == 0 {
-		return errors.New("level uid is required")
-	}
-	return nil
 }

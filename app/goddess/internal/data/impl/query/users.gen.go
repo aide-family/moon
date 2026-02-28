@@ -37,7 +37,7 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.Email = field.NewString(tableName, "email")
 	_user.Avatar = field.NewString(tableName, "avatar")
 	_user.Remark = field.NewString(tableName, "remark")
-	_user.Status = field.NewUint8(tableName, "status")
+	_user.Status = field.NewInt32(tableName, "status")
 
 	_user.fillFieldMap()
 
@@ -58,7 +58,7 @@ type user struct {
 	Email     field.String
 	Avatar    field.String
 	Remark    field.String
-	Status    field.Uint8
+	Status    field.Int32
 
 	fieldMap map[string]field.Expr
 }
@@ -85,7 +85,7 @@ func (u *user) updateTableName(table string) *user {
 	u.Email = field.NewString(table, "email")
 	u.Avatar = field.NewString(table, "avatar")
 	u.Remark = field.NewString(table, "remark")
-	u.Status = field.NewUint8(table, "status")
+	u.Status = field.NewInt32(table, "status")
 
 	u.fillFieldMap()
 

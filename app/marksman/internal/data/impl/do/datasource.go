@@ -1,10 +1,6 @@
 package do
 
 import (
-	"errors"
-	"time"
-
-	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/safety"
 	"github.com/bwmarrin/snowflake"
@@ -12,11 +8,7 @@ import (
 )
 
 type Datasource struct {
-	ID           uint32                      `gorm:"column:id;primaryKey;autoIncrement"`
-	UID          snowflake.ID                `gorm:"column:uid;uniqueIndex"`
-	CreatedAt    time.Time                   `gorm:"column:created_at;"`
-	UpdatedAt    time.Time                   `gorm:"column:updated_at;"`
-	Creator      snowflake.ID                `gorm:"column:creator;index"`
+	BaseModel
 	DeletedAt    gorm.DeletedAt              `gorm:"column:deleted_at;uniqueIndex:idx__datasources__namespace_uid__deleted_at__name"`
 	NamespaceUID snowflake.ID                `gorm:"column:namespace_uid;uniqueIndex:idx__datasources__namespace_uid__deleted_at__name"`
 	Name         string                      `gorm:"column:name;type:varchar(100);uniqueIndex:idx__datasources__namespace_uid__deleted_at__name"`
@@ -33,18 +25,4 @@ func (Datasource) TableName() string {
 func (d *Datasource) WithNamespace(namespace snowflake.ID) *Datasource {
 	d.NamespaceUID = namespace
 	return d
-}
-
-func (d *Datasource) BeforeCreate(tx *gorm.DB) (err error) {
-	ctx := tx.Statement.Context
-	if d.Creator == 0 {
-		d.Creator = contextx.GetUserUID(ctx)
-	}
-	if d.NamespaceUID == 0 {
-		return errors.New("namespace uid is required")
-	}
-	if d.Name == "" {
-		return errors.New("name is required")
-	}
-	return nil
 }

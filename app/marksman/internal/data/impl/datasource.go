@@ -43,7 +43,7 @@ func (r *datasourceRepository) UpdateDatasource(ctx context.Context, req *bo.Upd
 	}
 	_, err := d.WithContext(ctx).Where(
 		d.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
-		d.UID.Eq(req.UID.Int64()),
+		d.ID.Eq(req.UID.Int64()),
 	).UpdateColumnSimple(columns...)
 	return err
 }
@@ -52,7 +52,7 @@ func (r *datasourceRepository) DeleteDatasource(ctx context.Context, uid snowfla
 	d := query.Datasource
 	info, err := query.Datasource.WithContext(ctx).Where(
 		d.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
-		d.UID.Eq(uid.Int64()),
+		d.ID.Eq(uid.Int64()),
 	).Delete()
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func (r *datasourceRepository) GetDatasource(ctx context.Context, uid snowflake.
 	d := query.Datasource
 	m, err := query.Datasource.WithContext(ctx).Where(
 		d.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
-		d.UID.Eq(uid.Int64()),
+		d.ID.Eq(uid.Int64()),
 	).First()
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -103,7 +103,7 @@ func (r *datasourceRepository) ListDatasource(ctx context.Context, req *bo.ListD
 	if req.Page > 0 && req.PageSize > 0 {
 		wrappers = wrappers.Offset(req.Offset()).Limit(req.Limit())
 	}
-	list, err := wrappers.Order(d.UID.Desc()).Find()
+	list, err := wrappers.Order(d.ID.Desc()).Find()
 	if err != nil {
 		return nil, err
 	}

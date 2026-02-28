@@ -27,8 +27,7 @@ func newLevel(db *gorm.DB, opts ...gen.DOOption) level {
 
 	tableName := _level.levelDo.TableName()
 	_level.ALL = field.NewAsterisk(tableName)
-	_level.ID = field.NewUint32(tableName, "id")
-	_level.UID = field.NewInt64(tableName, "uid")
+	_level.ID = field.NewInt64(tableName, "id")
 	_level.CreatedAt = field.NewTime(tableName, "created_at")
 	_level.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_level.Creator = field.NewInt64(tableName, "creator")
@@ -48,8 +47,7 @@ type level struct {
 	levelDo
 
 	ALL          field.Asterisk
-	ID           field.Uint32
-	UID          field.Int64
+	ID           field.Int64
 	CreatedAt    field.Time
 	UpdatedAt    field.Time
 	Creator      field.Int64
@@ -75,8 +73,7 @@ func (l level) As(alias string) *level {
 
 func (l *level) updateTableName(table string) *level {
 	l.ALL = field.NewAsterisk(table)
-	l.ID = field.NewUint32(table, "id")
-	l.UID = field.NewInt64(table, "uid")
+	l.ID = field.NewInt64(table, "id")
 	l.CreatedAt = field.NewTime(table, "created_at")
 	l.UpdatedAt = field.NewTime(table, "updated_at")
 	l.Creator = field.NewInt64(table, "creator")
@@ -102,9 +99,8 @@ func (l *level) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (l *level) fillFieldMap() {
-	l.fieldMap = make(map[string]field.Expr, 11)
+	l.fieldMap = make(map[string]field.Expr, 10)
 	l.fieldMap["id"] = l.ID
-	l.fieldMap["uid"] = l.UID
 	l.fieldMap["created_at"] = l.CreatedAt
 	l.fieldMap["updated_at"] = l.UpdatedAt
 	l.fieldMap["creator"] = l.Creator

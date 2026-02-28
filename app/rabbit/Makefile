@@ -102,6 +102,12 @@ dev:
 	@echo "Running rabbit in development mode"
 	go run . run all --log-level=DEBUG
 
+.PHONY: gen
+# generate the gen files
+gen:
+	@echo "Generating gen files"
+	go test -tags=generate ./internal/data/impl/do -run TestGenerate
+
 # show help
 help:
 	@echo ''

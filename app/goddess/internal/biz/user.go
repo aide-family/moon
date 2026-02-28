@@ -55,7 +55,7 @@ func (u *User) SelectUser(ctx context.Context, req *bo.SelectUserBo) (*bo.Select
 }
 
 func (u *User) BanUser(ctx context.Context, uid snowflake.ID) error {
-	if err := u.userRepo.UpdateUserStatus(ctx, uid, int32(enum.GlobalStatus_DISABLED)); err != nil {
+	if err := u.userRepo.UpdateUserStatus(ctx, uid, enum.UserStatus_BANNED); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("user %s not found", uid)
 		}
@@ -66,7 +66,7 @@ func (u *User) BanUser(ctx context.Context, uid snowflake.ID) error {
 }
 
 func (u *User) PermitUser(ctx context.Context, uid snowflake.ID) error {
-	if err := u.userRepo.UpdateUserStatus(ctx, uid, int32(enum.GlobalStatus_ENABLED)); err != nil {
+	if err := u.userRepo.UpdateUserStatus(ctx, uid, enum.UserStatus_ACTIVE); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("user %s not found", uid)
 		}

@@ -1,8 +1,6 @@
 package do
 
 import (
-	"errors"
-
 	"github.com/bwmarrin/snowflake"
 	"gorm.io/gorm"
 )
@@ -20,15 +18,7 @@ func (StrategyGroupReceiver) TableName() string {
 	return "strategy_group_receivers"
 }
 
-func (s *StrategyGroupReceiver) BeforeCreate(tx *gorm.DB) (err error) {
-	if s.NamespaceUID == 0 {
-		return errors.New("namespace uid is required")
-	}
-	if s.StrategyGroupUID == 0 {
-		return errors.New("strategy group uid is required")
-	}
-	if s.ReceiverUID == 0 {
-		return errors.New("receiver uid is required")
-	}
-	return nil
+func (s *StrategyGroupReceiver) WithNamespace(namespace snowflake.ID) *StrategyGroupReceiver {
+	s.NamespaceUID = namespace
+	return s
 }

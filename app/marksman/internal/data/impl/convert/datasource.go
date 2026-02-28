@@ -13,7 +13,7 @@ func ToDatasourceItemBo(m *do.Datasource) *bo.DatasourceItemBo {
 		return nil
 	}
 	return &bo.DatasourceItemBo{
-		UID:       m.UID,
+		UID:       m.ID,
 		Name:      m.Name,
 		Type:      m.Type,
 		Driver:    m.Driver,
