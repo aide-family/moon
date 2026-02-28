@@ -1,12 +1,8 @@
 package cmd
 
 import (
-	"os"
-
 	"github.com/spf13/cobra"
 )
-
-var hostname, _ = os.Hostname()
 
 type GlobalFlags struct {
 	Name        string `json:"name" yaml:"name"`

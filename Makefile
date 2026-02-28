@@ -1,12 +1,14 @@
-.PHONY: rabbit
-# run the rabbit binary in development mode
-rabbit:
-	cd app/rabbit && make dev
+# app subdirs only (basename), e.g. rabbit, marksman
+APPS := $(notdir $(shell find app -maxdepth 1 -mindepth 1 -type d))
 
-.PHONY: goddess
-# run the goddess binary in development mode
-goddess:
-	cd app/goddess && make dev
+.PHONY: all
+# run all apps in development mode
+all:
+	@for app in $(APPS); do \
+		echo "=========generate $$app =========="; \
+		cd app/$$app && make all; \
+		cd -; \
+	done
 
 # show help
 help:

@@ -18,11 +18,12 @@
 
 | 路径 | 名称 | 说明 |
 |------|------|------|
-| [`magicbox/`](magicbox/) | Magic Box | 通用开发工具库，被各应用引用 |
+| [`magicbox/`](magicbox/) | Magic Box (月光宝盒) | 通用开发工具库，被各应用引用 |
 | [`app/goddess/`](app/goddess/) | Goddess（嫦娥） | 通用认证与授权服务 |
-| [`app/rabbit/`](app/rabbit/) | Rabbit（玉兔） | 业务服务（如时间引擎等相关能力） |
+| [`app/rabbit/`](app/rabbit/) | Rabbit（玉兔） | 消息服务 |
+| [`app/marksman/`](app/marksman/) | Marksman（后羿） | 事件服务 |
 
-- **magicbox** 为独立 Go 模块，**goddess** 与 **rabbit** 通过各自 `go.mod` 中的 `replace` 引用本地 magicbox。
+- **magicbox** 为独立 Go 模块，**goddess**、**rabbit** 与 **marksman** 通过各自 `go.mod` 中的 `replace` 引用本地 magicbox。
 - 各应用拥有独立的 `go.mod`、Makefile 及详细 README（中英双语）。
 
 ## 环境要求
@@ -35,24 +36,10 @@
 在仓库根目录执行：
 
 ```bash
-# 以开发模式运行 Goddess（认证服务）
-make goddess
+# 以开发模式运行所有应用
+make all
 
-# 以开发模式运行 Rabbit
-make rabbit
-
-# 查看所有 make 目标
-make help
-```
-
-若需在子目录中单独构建与运行，可进入对应应用目录操作：
-
-```bash
-# Goddess
-cd app/goddess && make init && make build && ./bin/goddess run all -h
-
-# Rabbit
-cd app/rabbit && make init && make build && ./bin/rabbit run all -h
+cd app/{app} && make dev
 ```
 
 ## 开发说明
@@ -70,7 +57,8 @@ cd app/rabbit && make init && make build && ./bin/rabbit run all -h
 
    - [Goddess README](app/goddess/README.md)（英文）/ [中文](app/goddess/README-zh_CN.md)
    - [Rabbit README](app/rabbit/README.md)（英文）/ [中文](app/rabbit/README-zh_CN.md)
-   - [Magic Box README](magicbox/README.md)
+   - [Marksman README](app/marksman/README.md)（英文）/ [中文](app/marksman/README-zh_CN.md)
+   - [Magic Box README](magicbox/README.md)（英文）/ [中文](magicbox/README-zh_CN.md)
 
 3. **根目录 Makefile**
 

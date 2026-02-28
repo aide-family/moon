@@ -68,7 +68,6 @@ wire:
 .PHONY: all
 # generate all files
 all:
-	@git log -1 --format='%B' > description.txt
 	make api conf wire
 
 .PHONY: build
@@ -79,7 +78,6 @@ build: all
 	@echo "BUILD_TIME: $(BUILD_TIME)"
 	@echo "AUTHOR: $(AUTHOR)"
 	@echo "AUTHOR_EMAIL: $(AUTHOR_EMAIL)"
-	@git log -1 --format='%B' > description.txt
 	go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/marksman main.go
 
 .PHONY: build-exe
@@ -90,22 +88,14 @@ build-exe: all
 	@echo "BUILD_TIME: $(BUILD_TIME)"
 	@echo "AUTHOR: $(AUTHOR)"
 	@echo "AUTHOR_EMAIL: $(AUTHOR_EMAIL)"
-	@git log -1 --format='%B' > description.txt
 	GOOS=windows GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/marksman.exe main.go
-
 
 .PHONY: dev
 # run the marksman binary in development mode
 dev:
 	@echo "Running marksman in development mode"
 	go run . run all --log-level=DEBUG
-
-.PHONY: migrate-sqlite
-# run the tests
-migrate-sqlite:
-	@echo "Migrating sqlite database"
-	go test -v -run 'TestGenerate|TestMigrateSQLite' ./internal/data/impl/do
-
+	
 # show help
 help:
 	@echo ''

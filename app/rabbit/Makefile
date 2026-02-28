@@ -68,14 +68,7 @@ wire:
 .PHONY: all
 # generate all files
 all: 
-	@git log -1 --format='%B' > description.txt
 	make api conf wire
-
-.PHONY: submodule
-# update the submodule
-submodule:
-	@echo "Updating submodule"
-	git submodule update --remote --recursive --force
 
 .PHONY: build
 # build the rabbit binary
@@ -85,7 +78,6 @@ build: all
 	@echo "BUILD_TIME: $(BUILD_TIME)"
 	@echo "AUTHOR: $(AUTHOR)"
 	@echo "AUTHOR_EMAIL: $(AUTHOR_EMAIL)"
-	@git log -1 --format='%B' > description.txt
 	go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/rabbit main.go
 
 .PHONY: build-exe
@@ -96,7 +88,6 @@ build-exe: all
 	@echo "BUILD_TIME: $(BUILD_TIME)"
 	@echo "AUTHOR: $(AUTHOR)"
 	@echo "AUTHOR_EMAIL: $(AUTHOR_EMAIL)"
-	@git log -1 --format='%B' > description.txt
 	GOOS=windows GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/rabbit.exe main.go
 
 .PHONY: clean
@@ -110,18 +101,6 @@ clean:
 dev:
 	@echo "Running rabbit in development mode"
 	go run . run all --log-level=DEBUG
-
-.PHONY: migrate-sqlite
-# run the tests
-migrate-sqlite:
-	@echo "Running migrate-sqlite"
-	go test -v -run 'TestGenerate|TestMigrateSQLite' ./internal/data/impl/do
-
-.PHONY: schema-sql
-# generate full DDL from table models (deploy/sql/schema.sql)
-schema-sql:
-	@echo "Generating schema SQL from models"
-	go run . schema sql sqlite -o deploy/sql/schema.sql
 
 # show help
 help:

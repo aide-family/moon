@@ -32,9 +32,6 @@ var (
 	hostname, _ = os.Hostname()
 )
 
-//go:embed description.txt
-var Description string
-
 //go:embed config/server.yaml
 var defaultServerConfig []byte
 
@@ -51,7 +48,6 @@ func init() {
 		cmd.WithGlobalFlagsAuthor(Author),
 		cmd.WithGlobalFlagsEmail(Email),
 		cmd.WithGlobalFlagsREPO(Repo),
-		cmd.WithGlobalFlagsDescription(Description),
 	)
 
 	logger, err := log.NewLogger(stdio.LoggerDriver())

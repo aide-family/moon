@@ -68,14 +68,7 @@ wire:
 .PHONY: all
 # generate all files
 all: 
-	@git log -1 --format='%B' > description.txt
 	make api conf wire
-
-.PHONY: submodule
-# update the submodule
-submodule:
-	@echo "Updating submodule"
-	git submodule update --remote --recursive
 
 .PHONY: build
 # build the goddess binary
@@ -85,7 +78,6 @@ build: all
 	@echo "BUILD_TIME: $(BUILD_TIME)"
 	@echo "AUTHOR: $(AUTHOR)"
 	@echo "AUTHOR_EMAIL: $(AUTHOR_EMAIL)"
-	@git log -1 --format='%B' > description.txt
 	go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/goddess main.go
 
 .PHONY: dev

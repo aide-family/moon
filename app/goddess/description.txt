@@ -1,8 +1,0 @@
-refactor(rabbit): clean up .gitignore and add description file
-
-- Remove unnecessary entries from the main .gitignore file, including generated files and duplicate entries.
-- Delete the app/rabbit/.gitignore file as it was redundant.
-- Introduce a new description.txt file in the app/rabbit directory to provide context for the feature related to the time engine.
-
-These changes streamline the project's ignore settings and improve documentation clarity.
-

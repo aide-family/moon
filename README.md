@@ -18,11 +18,12 @@
 
 | Path | Name | Description |
 |------|------|-------------|
-| [`magicbox/`](magicbox/) | Magic Box | Common development toolkit and shared library used by apps |
+| [`magicbox/`](magicbox/) | Magic Box (月光宝盒) | Common development toolkit and shared library used by apps |
 | [`app/goddess/`](app/goddess/) | Goddess (嫦娥) | Universal authentication and authorization service |
 | [`app/rabbit/`](app/rabbit/) | Rabbit (玉兔) | Business service (e.g. time engine and related features) |
+| [`app/marksman/`](app/marksman/) | Marksman (后羿) | Event service |
 
-- **magicbox** is a Go module consumed by both **goddess** and **rabbit** via `replace` in their `go.mod`.
+- **magicbox** is a Go module consumed by both **goddess**, **rabbit** and **marksman** via `replace` in their `go.mod`.
 - Each app has its own `go.mod`, Makefile, and detailed README (with EN/ZH).
 
 ## Prerequisites
@@ -35,24 +36,9 @@
 From the repository root:
 
 ```bash
-# Run Goddess (auth service) in development mode
-make goddess
+make all
 
-# Run Rabbit in development mode
-make rabbit
-
-# Show available make targets
-make help
-```
-
-To build and run a specific app, see its directory:
-
-```bash
-# Goddess
-cd app/goddess && make init && make build && ./bin/goddess run all -h
-
-# Rabbit
-cd app/rabbit && make init && make build && ./bin/rabbit run all -h
+cd app/{app} && make dev
 ```
 
 ## Development
@@ -70,8 +56,8 @@ cd app/rabbit && make init && make build && ./bin/rabbit run all -h
 
    - [Goddess README](app/goddess/README.md) (EN) / [中文](app/goddess/README-zh_CN.md)
    - [Rabbit README](app/rabbit/README.md) (EN) / [中文](app/rabbit/README-zh_CN.md)
-   - [Magic Box README](magicbox/README.md)
-
+   - [Magic Box README](magicbox/README.md) (EN) / [中文](magicbox/README-zh_CN.md)
+   - [Marksman README](app/marksman/README.md) (EN) / [中文](app/marksman/README-zh_CN.md)
 3. **Root Makefile**
 
    The root [Makefile](Makefile) provides shortcuts to run apps in dev mode; run `make help` for the list of targets.
