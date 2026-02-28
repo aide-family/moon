@@ -1,6 +1,9 @@
 package convert
 
 import (
+	"context"
+
+	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/safety"
 
 	"github.com/aide-family/marksman/internal/biz/bo"
@@ -25,11 +28,11 @@ func ToStrategyItemBo(m *do.Strategy) *bo.StrategyItemBo {
 	}
 }
 
-func ToStrategyDo(req *bo.CreateStrategyBo) *do.Strategy {
+func ToStrategyDo(ctx context.Context, req *bo.CreateStrategyBo) *do.Strategy {
 	if req == nil {
 		return nil
 	}
-	return &do.Strategy{
+	model := &do.Strategy{
 		Name:             req.Name,
 		Remark:           req.Remark,
 		Type:             req.Type,
@@ -38,4 +41,6 @@ func ToStrategyDo(req *bo.CreateStrategyBo) *do.Strategy {
 		Metadata:         safety.NewMap(req.Metadata),
 		Status:           req.Status,
 	}
+	model.WithNamespace(contextx.GetNamespace(ctx)).WithCreator(contextx.GetUserUID(ctx))
+	return model
 }

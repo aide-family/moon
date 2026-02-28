@@ -1,6 +1,9 @@
 package convert
 
 import (
+	"context"
+
+	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/safety"
 	"github.com/aide-family/marksman/internal/biz/bo"
 	"github.com/aide-family/marksman/internal/data/impl/do"
@@ -40,11 +43,11 @@ func ToStrategyMetricLevelItemBo(m *do.StrategyMetricLevel, levelDo *do.Level) *
 	}
 }
 
-func ToStrategyMetricDo(req *bo.SaveStrategyMetricBo) *do.StrategyMetric {
+func ToStrategyMetricDo(ctx context.Context, req *bo.SaveStrategyMetricBo) *do.StrategyMetric {
 	if req == nil {
 		return nil
 	}
-	return &do.StrategyMetric{
+	model := &do.StrategyMetric{
 		StrategyUID:    req.StrategyUID,
 		Expr:           req.Expr,
 		Labels:         safety.NewMap(req.Labels),
@@ -53,13 +56,15 @@ func ToStrategyMetricDo(req *bo.SaveStrategyMetricBo) *do.StrategyMetric {
 		Status:         req.Status,
 		DatasourceUIDs: safety.NewSlice(req.DatasourceUIDs),
 	}
+	model.WithNamespace(contextx.GetNamespace(ctx)).WithCreator(contextx.GetUserUID(ctx))
+	return model
 }
 
-func ToStrategyMetricLevelDo(req *bo.SaveStrategyMetricLevelBo) *do.StrategyMetricLevel {
+func ToStrategyMetricLevelDo(ctx context.Context, req *bo.SaveStrategyMetricLevelBo) *do.StrategyMetricLevel {
 	if req == nil {
 		return nil
 	}
-	return &do.StrategyMetricLevel{
+	model := &do.StrategyMetricLevel{
 		StrategyUID: req.StrategyUID,
 		LevelUID:    req.LevelUID,
 		Mode:        req.Mode,
@@ -68,4 +73,6 @@ func ToStrategyMetricLevelDo(req *bo.SaveStrategyMetricLevelBo) *do.StrategyMetr
 		DurationSec: req.DurationSec,
 		Status:      req.Status,
 	}
+	model.WithNamespace(contextx.GetNamespace(ctx)).WithCreator(contextx.GetUserUID(ctx))
+	return model
 }

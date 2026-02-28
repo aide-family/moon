@@ -29,7 +29,7 @@ type strategyMetricRepository struct {
 }
 
 func (r *strategyMetricRepository) CreateStrategyMetric(ctx context.Context, req *bo.SaveStrategyMetricBo) error {
-	m := convert.ToStrategyMetricDo(req)
+	m := convert.ToStrategyMetricDo(ctx, req)
 	return query.StrategyMetric.WithContext(ctx).Create(m)
 }
 
@@ -95,7 +95,7 @@ func (r *strategyMetricRepository) GetStrategyMetric(ctx context.Context, strate
 }
 
 func (r *strategyMetricRepository) CreateStrategyMetricLevel(ctx context.Context, req *bo.SaveStrategyMetricLevelBo) error {
-	m := convert.ToStrategyMetricLevelDo(req)
+	m := convert.ToStrategyMetricLevelDo(ctx, req)
 	return query.StrategyMetricLevel.WithContext(ctx).Create(m)
 }
 

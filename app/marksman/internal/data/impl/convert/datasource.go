@@ -1,6 +1,9 @@
 package convert
 
 import (
+	"context"
+
+	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/safety"
 
@@ -24,15 +27,17 @@ func ToDatasourceItemBo(m *do.Datasource) *bo.DatasourceItemBo {
 	}
 }
 
-func ToDatasourceDo(req *bo.CreateDatasourceBo) *do.Datasource {
+func ToDatasourceDo(ctx context.Context, req *bo.CreateDatasourceBo) *do.Datasource {
 	if req == nil {
 		return nil
 	}
-	return &do.Datasource{
+	model := &do.Datasource{
 		Name:     req.Name,
 		Type:     req.Type,
 		Driver:   req.Driver,
 		Metadata: safety.NewMap(req.Metadata),
 		Status:   enum.GlobalStatus_ENABLED,
 	}
+	model.WithNamespace(contextx.GetNamespace(ctx)).WithCreator(contextx.GetUserUID(ctx))
+	return model
 }

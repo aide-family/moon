@@ -29,7 +29,7 @@ type datasourceRepository struct {
 }
 
 func (r *datasourceRepository) CreateDatasource(ctx context.Context, req *bo.CreateDatasourceBo) error {
-	m := convert.ToDatasourceDo(req)
+	m := convert.ToDatasourceDo(ctx, req)
 	return query.Datasource.WithContext(ctx).Create(m)
 }
 

@@ -29,7 +29,7 @@ type strategyGroupRepository struct {
 }
 
 func (r *strategyGroupRepository) CreateStrategyGroup(ctx context.Context, req *bo.CreateStrategyGroupBo) error {
-	m := convert.ToStrategyGroupDo(req)
+	m := convert.ToStrategyGroupDo(ctx, req)
 	return query.StrategyGroup.WithContext(ctx).Create(m)
 }
 

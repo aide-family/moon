@@ -28,7 +28,7 @@ type levelRepository struct {
 }
 
 func (r *levelRepository) CreateLevel(ctx context.Context, req *bo.CreateLevelBo) error {
-	m := convert.ToLevelDo(req)
+	m := convert.ToLevelDo(ctx, req)
 	return query.Level.WithContext(ctx).Create(m)
 }
 

@@ -1,6 +1,9 @@
 package convert
 
 import (
+	"context"
+
+	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/safety"
 
@@ -35,14 +38,16 @@ func ToStrategyGroupItemSelectBo(m *do.StrategyGroup) *bo.StrategyGroupItemSelec
 	}
 }
 
-func ToStrategyGroupDo(req *bo.CreateStrategyGroupBo) *do.StrategyGroup {
+func ToStrategyGroupDo(ctx context.Context, req *bo.CreateStrategyGroupBo) *do.StrategyGroup {
 	if req == nil {
 		return nil
 	}
-	return &do.StrategyGroup{
+	model := &do.StrategyGroup{
 		Name:     req.Name,
 		Remark:   req.Remark,
 		Metadata: safety.NewMap(req.Metadata),
 		Status:   enum.GlobalStatus_ENABLED,
 	}
+	model.WithNamespace(contextx.GetNamespace(ctx)).WithCreator(contextx.GetUserUID(ctx))
+	return model
 }

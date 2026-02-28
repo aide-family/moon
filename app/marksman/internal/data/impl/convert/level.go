@@ -2,6 +2,9 @@
 package convert
 
 import (
+	"context"
+
+	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/safety"
 
@@ -36,14 +39,16 @@ func ToLevelItemSelectBo(m *do.Level) *bo.LevelItemSelectBo {
 	}
 }
 
-func ToLevelDo(req *bo.CreateLevelBo) *do.Level {
+func ToLevelDo(ctx context.Context, req *bo.CreateLevelBo) *do.Level {
 	if req == nil {
 		return nil
 	}
-	return &do.Level{
+	model := &do.Level{
 		Name:     req.Name,
 		Remark:   req.Remark,
 		Metadata: safety.NewMap(req.Metadata),
 		Status:   enum.GlobalStatus_ENABLED,
 	}
+	model.WithNamespace(contextx.GetNamespace(ctx)).WithCreator(contextx.GetUserUID(ctx))
+	return model
 }
