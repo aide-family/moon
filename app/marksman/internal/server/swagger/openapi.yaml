@@ -1,0 +1,1334 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: ""
+    version: 0.0.1
+paths:
+    /v1/datasource:
+        post:
+            tags:
+                - Datasource
+            operationId: Datasource_CreateDatasource
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.CreateDatasourceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.CreateDatasourceReply'
+    /v1/datasource/{uid}:
+        get:
+            tags:
+                - Datasource
+            operationId: Datasource_GetDatasource
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.DatasourceItem'
+        put:
+            tags:
+                - Datasource
+            operationId: Datasource_UpdateDatasource
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.UpdateDatasourceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.UpdateDatasourceReply'
+        delete:
+            tags:
+                - Datasource
+            operationId: Datasource_DeleteDatasource
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.DeleteDatasourceReply'
+    /v1/datasources:
+        get:
+            tags:
+                - Datasource
+            operationId: Datasource_ListDatasource
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: type
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: driver
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.ListDatasourceReply'
+    /v1/level:
+        post:
+            tags:
+                - Level
+            operationId: Level_CreateLevel
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.CreateLevelRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.CreateLevelReply'
+    /v1/level/{uid}:
+        get:
+            tags:
+                - Level
+            operationId: Level_GetLevel
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.LevelItem'
+        put:
+            tags:
+                - Level
+            operationId: Level_UpdateLevel
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.UpdateLevelRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.UpdateLevelReply'
+        delete:
+            tags:
+                - Level
+            operationId: Level_DeleteLevel
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.DeleteLevelReply'
+    /v1/level/{uid}/status:
+        put:
+            tags:
+                - Level
+            operationId: Level_UpdateLevelStatus
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.UpdateLevelStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.UpdateLevelStatusReply'
+    /v1/levels:
+        get:
+            tags:
+                - Level
+            operationId: Level_ListLevel
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.ListLevelReply'
+    /v1/levels/select:
+        get:
+            tags:
+                - Level
+            operationId: Level_SelectLevel
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: lastUID
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.SelectLevelReply'
+    /v1/metric/strategy/{strategyUID}:
+        get:
+            tags:
+                - StrategyMetric
+            operationId: StrategyMetric_GetStrategyMetric
+            parameters:
+                - name: strategyUID
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.StrategyMetricItem'
+        post:
+            tags:
+                - StrategyMetric
+            operationId: StrategyMetric_SaveStrategyMetric
+            parameters:
+                - name: strategyUID
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.SaveStrategyMetricRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.SaveStrategyMetricReply'
+    /v1/metric/strategy/{strategyUID}/level:
+        post:
+            tags:
+                - StrategyMetric
+            operationId: StrategyMetric_SaveStrategyMetricLevel
+            parameters:
+                - name: strategyUID
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.SaveStrategyMetricLevelRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.SaveStrategyMetricLevelReply'
+    /v1/metric/strategy/{strategyUID}/level/{uid}:
+        get:
+            tags:
+                - StrategyMetric
+            operationId: StrategyMetric_GetStrategyMetricLevel
+            parameters:
+                - name: strategyUID
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.StrategyMetricLevelItem'
+        delete:
+            tags:
+                - StrategyMetric
+            operationId: StrategyMetric_DeleteStrategyMetricLevel
+            parameters:
+                - name: strategyUID
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.DeleteStrategyMetricLevelReply'
+    /v1/metric/strategy/{strategyUID}/level/{uid}/status:
+        put:
+            tags:
+                - StrategyMetric
+            operationId: StrategyMetric_UpdateStrategyMetricLevelStatus
+            parameters:
+                - name: strategyUID
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.UpdateStrategyMetricLevelStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.UpdateStrategyMetricLevelStatusReply'
+    /v1/metric/strategy/{strategyUID}/receivers:
+        post:
+            tags:
+                - StrategyMetric
+            operationId: StrategyMetric_StrategyMetricBindReceivers
+            parameters:
+                - name: strategyUID
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.StrategyMetricBindReceiversRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.StrategyMetricBindReceiversReply'
+    /v1/strategies:
+        get:
+            tags:
+                - Strategy
+            operationId: Strategy_ListStrategy
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: strategyGroupUID
+                  in: query
+                  schema:
+                    type: string
+                - name: type
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: driver
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.ListStrategyReply'
+    /v1/strategy:
+        post:
+            tags:
+                - Strategy
+            operationId: Strategy_CreateStrategy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.CreateStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.CreateStrategyReply'
+    /v1/strategy-group:
+        post:
+            tags:
+                - Strategy
+            operationId: Strategy_CreateStrategyGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.CreateStrategyGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.CreateStrategyGroupReply'
+    /v1/strategy-group/{uid}:
+        get:
+            tags:
+                - Strategy
+            operationId: Strategy_GetStrategyGroup
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.StrategyGroupItem'
+        put:
+            tags:
+                - Strategy
+            operationId: Strategy_UpdateStrategyGroup
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.UpdateStrategyGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.UpdateStrategyGroupReply'
+        delete:
+            tags:
+                - Strategy
+            operationId: Strategy_DeleteStrategyGroup
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.DeleteStrategyGroupReply'
+    /v1/strategy-group/{uid}/receivers:
+        post:
+            tags:
+                - Strategy
+            operationId: Strategy_StrategyGroupBindReceivers
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.StrategyGroupBindReceiversRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.StrategyGroupBindReceiversReply'
+    /v1/strategy-group/{uid}/status:
+        put:
+            tags:
+                - Strategy
+            operationId: Strategy_UpdateStrategyGroupStatus
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.UpdateStrategyGroupStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.UpdateStrategyGroupStatusReply'
+    /v1/strategy-groups:
+        get:
+            tags:
+                - Strategy
+            operationId: Strategy_ListStrategyGroup
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.ListStrategyGroupReply'
+    /v1/strategy-groups/select:
+        get:
+            tags:
+                - Strategy
+            operationId: Strategy_SelectStrategyGroup
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: lastUID
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.SelectStrategyGroupReply'
+    /v1/strategy/{uid}:
+        get:
+            tags:
+                - Strategy
+            operationId: Strategy_GetStrategy
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.StrategyItem'
+        put:
+            tags:
+                - Strategy
+            operationId: Strategy_UpdateStrategy
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.UpdateStrategyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.UpdateStrategyReply'
+        delete:
+            tags:
+                - Strategy
+            operationId: Strategy_DeleteStrategy
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.DeleteStrategyReply'
+    /v1/strategy/{uid}/status:
+        put:
+            tags:
+                - Strategy
+            operationId: Strategy_UpdateStrategyStatus
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.UpdateStrategyStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.UpdateStrategyStatusReply'
+components:
+    schemas:
+        marksman.api.v1.CreateDatasourceReply:
+            type: object
+            properties: {}
+        marksman.api.v1.CreateDatasourceRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                type:
+                    type: integer
+                    format: enum
+                driver:
+                    type: integer
+                    format: enum
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+        marksman.api.v1.CreateLevelReply:
+            type: object
+            properties: {}
+        marksman.api.v1.CreateLevelRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                remark:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+        marksman.api.v1.CreateStrategyGroupReply:
+            type: object
+            properties: {}
+        marksman.api.v1.CreateStrategyGroupRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                remark:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+        marksman.api.v1.CreateStrategyReply:
+            type: object
+            properties: {}
+        marksman.api.v1.CreateStrategyRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                remark:
+                    type: string
+                type:
+                    type: integer
+                    format: enum
+                driver:
+                    type: integer
+                    format: enum
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                strategyGroupUID:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        marksman.api.v1.DatasourceItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                type:
+                    type: integer
+                    format: enum
+                driver:
+                    type: integer
+                    format: enum
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                status:
+                    type: integer
+                    format: enum
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        marksman.api.v1.DeleteDatasourceReply:
+            type: object
+            properties: {}
+        marksman.api.v1.DeleteLevelReply:
+            type: object
+            properties: {}
+        marksman.api.v1.DeleteStrategyGroupReply:
+            type: object
+            properties: {}
+        marksman.api.v1.DeleteStrategyMetricLevelReply:
+            type: object
+            properties: {}
+        marksman.api.v1.DeleteStrategyReply:
+            type: object
+            properties: {}
+        marksman.api.v1.LevelItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                remark:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        marksman.api.v1.LevelItemSelect:
+            type: object
+            properties:
+                value:
+                    type: string
+                label:
+                    type: string
+                disabled:
+                    type: boolean
+                tooltip:
+                    type: string
+        marksman.api.v1.ListDatasourceReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.DatasourceItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        marksman.api.v1.ListLevelReply:
+            type: object
+            properties:
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.LevelItem'
+        marksman.api.v1.ListStrategyGroupReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.StrategyGroupItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        marksman.api.v1.ListStrategyReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.StrategyItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        marksman.api.v1.SaveStrategyMetricLevelReply:
+            type: object
+            properties: {}
+        marksman.api.v1.SaveStrategyMetricLevelRequest:
+            type: object
+            properties:
+                strategyUID:
+                    type: string
+                levelUID:
+                    type: string
+                mode:
+                    type: integer
+                    format: enum
+                condition:
+                    type: integer
+                    format: enum
+                values:
+                    type: array
+                    items:
+                        type: number
+                        format: double
+                duration:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        marksman.api.v1.SaveStrategyMetricReply:
+            type: object
+            properties: {}
+        marksman.api.v1.SaveStrategyMetricRequest:
+            type: object
+            properties:
+                strategyUID:
+                    type: string
+                expr:
+                    type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                datasourceUIDs:
+                    type: array
+                    items:
+                        type: string
+                summary:
+                    type: string
+                description:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        marksman.api.v1.SelectLevelReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.LevelItemSelect'
+                total:
+                    type: string
+                lastUID:
+                    type: string
+                hasMore:
+                    type: boolean
+        marksman.api.v1.SelectStrategyGroupReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.StrategyGroupItemSelect'
+                total:
+                    type: string
+                hasMore:
+                    type: boolean
+                nextUID:
+                    type: integer
+                    format: uint32
+        marksman.api.v1.StrategyGroupBindReceiversReply:
+            type: object
+            properties: {}
+        marksman.api.v1.StrategyGroupBindReceiversRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                receiverUIDs:
+                    type: array
+                    items:
+                        type: string
+        marksman.api.v1.StrategyGroupItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                remark:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        marksman.api.v1.StrategyGroupItemSelect:
+            type: object
+            properties:
+                value:
+                    type: string
+                label:
+                    type: string
+                disabled:
+                    type: boolean
+                tooltip:
+                    type: string
+        marksman.api.v1.StrategyItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                remark:
+                    type: string
+                type:
+                    type: integer
+                    format: enum
+                driver:
+                    type: integer
+                    format: enum
+                status:
+                    type: integer
+                    format: enum
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        marksman.api.v1.StrategyMetricBindReceiversReply:
+            type: object
+            properties: {}
+        marksman.api.v1.StrategyMetricBindReceiversRequest:
+            type: object
+            properties:
+                strategyUID:
+                    type: string
+                receiverUIDs:
+                    type: array
+                    items:
+                        type: string
+                levelUID:
+                    type: string
+                    description: optional levelUID
+        marksman.api.v1.StrategyMetricItem:
+            type: object
+            properties:
+                strategyUID:
+                    type: string
+                expr:
+                    type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                summary:
+                    type: string
+                description:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                datasourceUIDs:
+                    type: array
+                    items:
+                        type: string
+                levels:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.StrategyMetricLevelItem'
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        marksman.api.v1.StrategyMetricLevelItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                strategyUID:
+                    type: string
+                level:
+                    $ref: '#/components/schemas/marksman.api.v1.LevelItem'
+                mode:
+                    type: integer
+                    format: enum
+                condition:
+                    type: integer
+                    format: enum
+                values:
+                    type: array
+                    items:
+                        type: number
+                        format: double
+                duration:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        marksman.api.v1.UpdateDatasourceReply:
+            type: object
+            properties: {}
+        marksman.api.v1.UpdateDatasourceRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                type:
+                    type: integer
+                    format: enum
+                driver:
+                    type: integer
+                    format: enum
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+        marksman.api.v1.UpdateLevelReply:
+            type: object
+            properties: {}
+        marksman.api.v1.UpdateLevelRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                remark:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+        marksman.api.v1.UpdateLevelStatusReply:
+            type: object
+            properties: {}
+        marksman.api.v1.UpdateLevelStatusRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        marksman.api.v1.UpdateStrategyGroupReply:
+            type: object
+            properties: {}
+        marksman.api.v1.UpdateStrategyGroupRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                remark:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+        marksman.api.v1.UpdateStrategyGroupStatusReply:
+            type: object
+            properties: {}
+        marksman.api.v1.UpdateStrategyGroupStatusRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        marksman.api.v1.UpdateStrategyMetricLevelStatusReply:
+            type: object
+            properties: {}
+        marksman.api.v1.UpdateStrategyMetricLevelStatusRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                strategyUID:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        marksman.api.v1.UpdateStrategyReply:
+            type: object
+            properties: {}
+        marksman.api.v1.UpdateStrategyRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                remark:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                strategyGroupUID:
+                    type: string
+                type:
+                    type: integer
+                    format: enum
+                driver:
+                    type: integer
+                    format: enum
+        marksman.api.v1.UpdateStrategyStatusReply:
+            type: object
+            properties: {}
+        marksman.api.v1.UpdateStrategyStatusRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+tags:
+    - name: Datasource
+    - name: Level
+    - name: Strategy
+    - name: StrategyMetric

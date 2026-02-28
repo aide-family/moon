@@ -1,0 +1,8 @@
+feat: add bilingual README files for project documentation
+
+- Introduce README files in both English and Chinese to provide comprehensive project documentation.
+- Include project introduction, structure, prerequisites, quick start instructions, development guidelines, license information, and acknowledgments.
+- Enhance accessibility for a wider audience by offering documentation in two languages.
+
+These changes improve the overall documentation quality and user experience for the Moon project.
+

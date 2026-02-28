@@ -1,0 +1,117 @@
+environment: ${MOON_MARKSMAN_ENVIRONMENT:PROD}
+enableSwagger: ${MOON_MARKSMAN_ENABLE_SWAGGER:true}
+enableMetrics: ${MOON_MARKSMAN_ENABLE_METRICS:true}
+useRandomID: ${MOON_MARKSMAN_USE_RANDOM_NODE_ID:false}
+
+server:
+  name: ${MOON_MARKSMAN_SERVER_NAME:marksman}
+  metadata:
+    tag: ${MOON_MARKSMAN_METADATA_TAG:marksman}
+    repository: ${MOON_MARKSMAN_METADATA_REPOSITORY:https://github.com/aide-family/marksman}
+    author: ${MOON_MARKSMAN_METADATA_AUTHOR:Aide Family}
+    email: ${MOON_MARKSMAN_METADATA_EMAIL:aidecloud@163.com}
+  http:
+    address: "${MOON_MARKSMAN_HTTP_ADDRESS:0.0.0.0:18080}"
+    network: "${MOON_MARKSMAN_HTTP_NETWORK:tcp}"
+    timeout: "${MOON_MARKSMAN_HTTP_TIMEOUT:10s}"
+    protocol: HTTP
+  grpc:
+    address: "${MOON_MARKSMAN_GRPC_ADDRESS:0.0.0.0:19090}"
+    network: "${MOON_MARKSMAN_GRPC_NETWORK:tcp}"
+    timeout: "${MOON_MARKSMAN_GRPC_TIMEOUT:10s}"
+    protocol: GRPC
+  job:
+    address: "${MOON_MARKSMAN_JOB_ADDRESS:0.0.0.0:17070}"
+    network: "${MOON_MARKSMAN_JOB_NETWORK:tcp}"
+    timeout: "${MOON_MARKSMAN_JOB_TIMEOUT:10s}"
+    protocol: GRPC
+
+jwt:
+  secret: "${MOON_MARKSMAN_JWT_SECRET:xxx}"
+  expire: "${MOON_MARKSMAN_JWT_EXPIRE:600s}"
+  issuer: "${MOON_MARKSMAN_JWT_ISSUER:marksman}"
+
+namespaceConfig:
+  driver: ${MOON_MARKSMAN_NAMESPACE_DRIVER:GORM}
+  version: ${MOON_MARKSMAN_NAMESPACE_VERSION:v1}
+  options:
+    '@type': "${MOON_MARKSMAN_NAMESPACE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.ORMConfig}"
+    dialector: ${MOON_MARKSMAN_NAMESPACE_DIALECTOR:SQLITE}
+    debug: ${MOON_MARKSMAN_NAMESPACE_DEBUG:true}
+    useSystemLogger: ${MOON_MARKSMAN_NAMESPACE_USE_SYSTEM_LOGGER:false}
+    options:
+      '@type': "${MOON_MARKSMAN_NAMESPACE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}"
+      dsn: "${MOON_MARKSMAN_NAMESPACE_SQLITE_OPTIONS_DSN:file:./marksman.db?cache=shared}"
+
+loginConfig:
+  driver: ${MOON_MARKSMAN_LOGIN_DRIVER:GORM}
+  version: ${MOON_MARKSMAN_LOGIN_VERSION:v1}
+  options:
+    '@type': "${MOON_MARKSMAN_LOGIN_OPTIONS_TYPE:type.googleapis.com/magicbox.config.ORMConfig}"
+    dialector: ${MOON_MARKSMAN_LOGIN_DIALECTOR:SQLITE}
+    debug: ${MOON_MARKSMAN_LOGIN_DEBUG:true}
+    useSystemLogger: ${MOON_MARKSMAN_LOGIN_USE_SYSTEM_LOGGER:false}
+    options:
+      '@type': "${MOON_MARKSMAN_LOGIN_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}"
+      dsn: "${MOON_MARKSMAN_LOGIN_SQLITE_OPTIONS_DSN:file:./marksman.db?cache=shared}"
+
+swaggerBasicAuth:
+  enabled: ${MOON_MARKSMAN_SWAGGER_BASIC_AUTH_ENABLED:false}  
+  username: ${MOON_MARKSMAN_SWAGGER_BASIC_AUTH_USERNAME:moon.marksman}
+  password: ${MOON_MARKSMAN_SWAGGER_BASIC_AUTH_PASSWORD:marksman.swagger}
+
+metricsBasicAuth:
+  enabled: ${MOON_MARKSMAN_METRICS_BASIC_AUTH_ENABLED:false}
+  username: ${MOON_MARKSMAN_METRICS_BASIC_AUTH_USERNAME:moon.marksman}
+  password: ${MOON_MARKSMAN_METRICS_BASIC_AUTH_PASSWORD:marksman.metrics}
+
+jobCore:
+  workerTotal: ${MOON_MARKSMAN_JOB_CORE_WORKER_TOTAL:10}
+  timeout: "${MOON_MARKSMAN_JOB_CORE_TIMEOUT:10s}"
+  bufferSize: ${MOON_MARKSMAN_JOB_CORE_BUFFER_SIZE:1000}
+
+oauth2:
+  enable: ${MOON_MARKSMAN_OAUTH2_ENABLE:true}
+  redirectUri: ${MOON_MARKSMAN_OAUTH2_REDIRECT_URI:http://localhost:18080/oauth2/callback}
+  configs:
+    - app: GITHUB
+      clientId: ${MOON_MARKSMAN_OAUTH2_GITHUB_CONFIGS_CLIENT_ID:github.client.id}
+      clientSecret: ${MOON_MARKSMAN_OAUTH2_GITHUB_CONFIGS_CLIENT_SECRET:github.client.secret}
+      callbackUri: ${MOON_MARKSMAN_OAUTH2_GITHUB_CONFIGS_CALLBACK_URI:http://localhost:18080/oauth2/callback}
+      authUrl: ${MOON_MARKSMAN_OAUTH2_GITHUB_CONFIGS_AUTH_URL:https://github.com/login/oauth/authorize}
+      tokenUrl: ${MOON_MARKSMAN_OAUTH2_GITHUB_CONFIGS_TOKEN_URL:https://github.com/login/oauth/access_token}
+      scopes:
+        - user:email
+      loginUrl: ${MOON_MARKSMAN_OAUTH2_GITHUB_CONFIGS_LOGIN_URL:https://github.com/login/oauth/authorize}
+    - app: GITEE
+      clientId: ${MOON_MARKSMAN_OAUTH2_GITEE_CONFIGS_CLIENT_ID:gitee.client.id}
+      clientSecret: ${MOON_MARKSMAN_OAUTH2_GITEE_CONFIGS_CLIENT_SECRET:gitee.client.secret}
+      callbackUri: ${MOON_MARKSMAN_OAUTH2_GITEE_CONFIGS_CALLBACK_URI:http://localhost:18080/oauth2/callback}
+      authUrl: ${MOON_MARKSMAN_OAUTH2_GITEE_CONFIGS_AUTH_URL:https://gitee.com/oauth/authorize}
+      tokenUrl: ${MOON_MARKSMAN_OAUTH2_GITEE_CONFIGS_TOKEN_URL:https://gitee.com/oauth/access_token}
+      scopes:
+        - user:email
+      loginUrl: ${MOON_MARKSMAN_OAUTH2_GITEE_CONFIGS_LOGIN_URL:https://gitee.com/oauth/authorize}
+    - app: FEISHU
+      clientId: ${MOON_MARKSMAN_OAUTH2_FEISHU_CONFIGS_CLIENT_ID:feishu.client.id}
+      clientSecret: ${MOON_MARKSMAN_OAUTH2_FEISHU_CONFIGS_CLIENT_SECRET:feishu.client.secret}
+      callbackUri: ${MOON_MARKSMAN_OAUTH2_FEISHU_CONFIGS_CALLBACK_URI:http://localhost:18080/oauth2/callback}
+      authUrl: ${MOON_MARKSMAN_OAUTH2_FEISHU_CONFIGS_AUTH_URL:https://open.feishu.cn/open-apis/authen/v1/authorize}
+      tokenUrl: ${MOON_MARKSMAN_OAUTH2_FEISHU_CONFIGS_TOKEN_URL:https://open.feishu.cn/open-apis/authen/v1/access_token}
+      scopes:
+        - user:email
+      loginUrl: ${MOON_MARKSMAN_OAUTH2_FEISHU_CONFIGS_LOGIN_URL:https://open.feishu.cn/open-apis/authen/v1/authorize}
+
+database:
+  dialector: ${MOON_MARKSMAN_DATABASE_DIALECTOR:SQLITE}
+  debug: ${MOON_MARKSMAN_DATABASE_DEBUG:true}
+  useSystemLogger: ${MOON_MARKSMAN_DATABASE_USE_SYSTEM_LOGGER:false}
+  options:
+    '@type': "${MOON_MARKSMAN_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}"
+    dsn: "${MOON_MARKSMAN_DATABASE_SQLITE_OPTIONS_DSN:file:./marksman.db?cache=shared}"
+
+jobCluster:
+  name: ${MOON_MARKSMAN_JOB_CLUSTER_NAME:marksman}
+  endpoints: ${MOON_MARKSMAN_JOB_CLUSTER_ENDPOINTS:http://localhost:18081}
+  timeout: "${MOON_MARKSMAN_JOB_CLUSTER_TIMEOUT:10s}"
+  protocol: ${MOON_MARKSMAN_JOB_CLUSTER_PROTOCOL:HTTP}
