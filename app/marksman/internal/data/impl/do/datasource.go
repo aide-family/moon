@@ -16,6 +16,8 @@ type Datasource struct {
 	Driver       enum.DatasourceDriver       `gorm:"column:driver;type:tinyint;default:0"`
 	Metadata     *safety.Map[string, string] `gorm:"column:metadata;type:json;"`
 	Status       enum.GlobalStatus           `gorm:"column:status;type:tinyint;default:0"`
+	URL          string                      `gorm:"column:url;type:varchar(255)"`
+	Remark       string                      `gorm:"column:remark;type:varchar(100);default:''"`
 }
 
 func (Datasource) TableName() string {

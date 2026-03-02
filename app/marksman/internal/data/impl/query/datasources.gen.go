@@ -38,6 +38,8 @@ func newDatasource(db *gorm.DB, opts ...gen.DOOption) datasource {
 	_datasource.Driver = field.NewInt32(tableName, "driver")
 	_datasource.Metadata = field.NewField(tableName, "metadata")
 	_datasource.Status = field.NewInt32(tableName, "status")
+	_datasource.URL = field.NewString(tableName, "url")
+	_datasource.Remark = field.NewString(tableName, "remark")
 
 	_datasource.fillFieldMap()
 
@@ -59,6 +61,8 @@ type datasource struct {
 	Driver       field.Int32
 	Metadata     field.Field
 	Status       field.Int32
+	URL          field.String
+	Remark       field.String
 
 	fieldMap map[string]field.Expr
 }
@@ -86,6 +90,8 @@ func (d *datasource) updateTableName(table string) *datasource {
 	d.Driver = field.NewInt32(table, "driver")
 	d.Metadata = field.NewField(table, "metadata")
 	d.Status = field.NewInt32(table, "status")
+	d.URL = field.NewString(table, "url")
+	d.Remark = field.NewString(table, "remark")
 
 	d.fillFieldMap()
 
@@ -102,7 +108,7 @@ func (d *datasource) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (d *datasource) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 11)
+	d.fieldMap = make(map[string]field.Expr, 13)
 	d.fieldMap["id"] = d.ID
 	d.fieldMap["created_at"] = d.CreatedAt
 	d.fieldMap["updated_at"] = d.UpdatedAt
@@ -114,6 +120,8 @@ func (d *datasource) fillFieldMap() {
 	d.fieldMap["driver"] = d.Driver
 	d.fieldMap["metadata"] = d.Metadata
 	d.fieldMap["status"] = d.Status
+	d.fieldMap["url"] = d.URL
+	d.fieldMap["remark"] = d.Remark
 }
 
 func (d datasource) clone(db *gorm.DB) datasource {

@@ -24,6 +24,7 @@ const (
 	Datasource_DeleteDatasource_FullMethodName = "/marksman.api.v1.Datasource/DeleteDatasource"
 	Datasource_GetDatasource_FullMethodName    = "/marksman.api.v1.Datasource/GetDatasource"
 	Datasource_ListDatasource_FullMethodName   = "/marksman.api.v1.Datasource/ListDatasource"
+	Datasource_SelectDatasource_FullMethodName = "/marksman.api.v1.Datasource/SelectDatasource"
 )
 
 // DatasourceClient is the client API for Datasource service.
@@ -35,6 +36,7 @@ type DatasourceClient interface {
 	DeleteDatasource(ctx context.Context, in *DeleteDatasourceRequest, opts ...grpc.CallOption) (*DeleteDatasourceReply, error)
 	GetDatasource(ctx context.Context, in *GetDatasourceRequest, opts ...grpc.CallOption) (*DatasourceItem, error)
 	ListDatasource(ctx context.Context, in *ListDatasourceRequest, opts ...grpc.CallOption) (*ListDatasourceReply, error)
+	SelectDatasource(ctx context.Context, in *SelectDatasourceRequest, opts ...grpc.CallOption) (*SelectDatasourceReply, error)
 }
 
 type datasourceClient struct {
@@ -95,6 +97,16 @@ func (c *datasourceClient) ListDatasource(ctx context.Context, in *ListDatasourc
 	return out, nil
 }
 
+func (c *datasourceClient) SelectDatasource(ctx context.Context, in *SelectDatasourceRequest, opts ...grpc.CallOption) (*SelectDatasourceReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SelectDatasourceReply)
+	err := c.cc.Invoke(ctx, Datasource_SelectDatasource_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DatasourceServer is the server API for Datasource service.
 // All implementations must embed UnimplementedDatasourceServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type DatasourceServer interface {
 	DeleteDatasource(context.Context, *DeleteDatasourceRequest) (*DeleteDatasourceReply, error)
 	GetDatasource(context.Context, *GetDatasourceRequest) (*DatasourceItem, error)
 	ListDatasource(context.Context, *ListDatasourceRequest) (*ListDatasourceReply, error)
+	SelectDatasource(context.Context, *SelectDatasourceRequest) (*SelectDatasourceReply, error)
 	mustEmbedUnimplementedDatasourceServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedDatasourceServer) GetDatasource(context.Context, *GetDatasour
 }
 func (UnimplementedDatasourceServer) ListDatasource(context.Context, *ListDatasourceRequest) (*ListDatasourceReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDatasource not implemented")
+}
+func (UnimplementedDatasourceServer) SelectDatasource(context.Context, *SelectDatasourceRequest) (*SelectDatasourceReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SelectDatasource not implemented")
 }
 func (UnimplementedDatasourceServer) mustEmbedUnimplementedDatasourceServer() {}
 func (UnimplementedDatasourceServer) testEmbeddedByValue()                    {}
@@ -240,6 +256,24 @@ func _Datasource_ListDatasource_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Datasource_SelectDatasource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SelectDatasourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DatasourceServer).SelectDatasource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Datasource_SelectDatasource_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DatasourceServer).SelectDatasource(ctx, req.(*SelectDatasourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Datasource_ServiceDesc is the grpc.ServiceDesc for Datasource service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +300,10 @@ var Datasource_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListDatasource",
 			Handler:    _Datasource_ListDatasource_Handler,
+		},
+		{
+			MethodName: "SelectDatasource",
+			Handler:    _Datasource_SelectDatasource_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -38,6 +38,11 @@ service Datasource {
 			get: "/v1/datasources"
 		};
 	}
+	rpc SelectDatasource (SelectDatasourceRequest) returns (SelectDatasourceReply) {
+		option (google.api.http) = {
+			get: "/v1/datasources/select"
+		};
+	}
 }
 
 message DatasourceItem {
@@ -49,6 +54,8 @@ message DatasourceItem {
 	magicbox.enum.GlobalStatus status = 6;
 	string createdAt = 7;
 	string updatedAt = 8;
+	string url = 9;
+	string remark = 10;
 }
 
 message CreateDatasourceRequest {
@@ -65,6 +72,13 @@ message CreateDatasourceRequest {
 		message: "driver must be in ['METRICS_PROMETHEUS', 'METRICS_VICTORIA_METRICS', 'LOGS_ELASTICSEARCH', 'TRACE_JAEGER']",
 	}];
 	map<string, string> metadata = 4;
+	string url = 5 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this.isUri()",
+		message: "url must be a valid URL",
+	}];
+	string remark = 6 [(buf.validate.field).string = {
+		max_len: 1000,
+	}];
 }
 message CreateDatasourceReply {}
 
@@ -86,6 +100,13 @@ message UpdateDatasourceRequest {
 		message: "driver must be in ['METRICS_PROMETHEUS', 'METRICS_VICTORIA_METRICS', 'LOGS_ELASTICSEARCH', 'TRACE_JAEGER']",
 	}];
 	map<string, string> metadata = 5;
+	string url = 6 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this.isUri()",
+		message: "url must be a valid URL",
+	}];
+	string remark = 7 [(buf.validate.field).string = {
+		max_len: 1000,
+	}];
 }
 message UpdateDatasourceReply {}
 
@@ -120,4 +141,35 @@ message ListDatasourceReply {
 	int64 total = 2;
 	int32 page = 3;
 	int32 pageSize = 4;
+}
+
+message SelectDatasourceRequest {
+	string keyword = 1 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword must be less than or equal to 100",
+	}];
+	int32 limit = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 100",
+		message: "limit must be greater than or equal to 1 and less than or equal to 100",
+	}];
+	int64 lastUID = 3;
+	magicbox.enum.DatasourceType type = 4;
+	magicbox.enum.DatasourceDriver driver = 5;
+	magicbox.enum.GlobalStatus status = 6;
+	repeated int64 uids = 7;
+}
+message SelectDatasourceItem {
+	int64 value = 1;
+	string label = 2;
+	bool disabled = 3;
+	string tooltip = 4;
+	magicbox.enum.DatasourceType type = 5;
+	magicbox.enum.DatasourceDriver driver = 6;
+	string url = 7;
+}
+message SelectDatasourceReply {
+	repeated SelectDatasourceItem items = 1;
+	int64 total = 2;
+	int64 lastUID = 3;
+	bool hasMore = 4;
 }

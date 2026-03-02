@@ -27,6 +27,10 @@ type DatasourceBiz struct {
 }
 
 func (d *DatasourceBiz) CreateDatasource(ctx context.Context, req *bo.CreateDatasourceBo) error {
+	if err := d.datasourceRepo.CheckDatasourceNameExist(ctx, req.Name); err != nil {
+		d.helper.Errorw("msg", "check datasource name exist failed", "error", err, "req", req)
+		return merr.ErrorInternalServer("check datasource name exist failed").WithCause(err)
+	}
 	if err := d.datasourceRepo.CreateDatasource(ctx, req); err != nil {
 		d.helper.Errorw("msg", "create datasource failed", "error", err, "req", req)
 		return merr.ErrorInternalServer("create datasource failed").WithCause(err)
@@ -35,6 +39,10 @@ func (d *DatasourceBiz) CreateDatasource(ctx context.Context, req *bo.CreateData
 }
 
 func (d *DatasourceBiz) UpdateDatasource(ctx context.Context, req *bo.UpdateDatasourceBo) error {
+	if err := d.datasourceRepo.CheckDatasourceNameExist(ctx, req.Name, req.UID); err != nil {
+		d.helper.Errorw("msg", "check datasource name exist failed", "error", err, "req", req)
+		return merr.ErrorInternalServer("check datasource name exist failed").WithCause(err)
+	}
 	if err := d.datasourceRepo.UpdateDatasource(ctx, req); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("datasource %d not found", req.UID.Int64())
@@ -73,6 +81,15 @@ func (d *DatasourceBiz) ListDatasource(ctx context.Context, req *bo.ListDatasour
 	if err != nil {
 		d.helper.Errorw("msg", "list datasource failed", "error", err, "req", req)
 		return nil, merr.ErrorInternalServer("list datasource failed").WithCause(err)
+	}
+	return result, nil
+}
+
+func (d *DatasourceBiz) SelectDatasource(ctx context.Context, req *bo.SelectDatasourceBo) (*bo.SelectDatasourceReplyBo, error) {
+	result, err := d.datasourceRepo.SelectDatasource(ctx, req)
+	if err != nil {
+		d.helper.Errorw("msg", "select datasource failed", "error", err, "req", req)
+		return nil, merr.ErrorInternalServer("select datasource failed").WithCause(err)
 	}
 	return result, nil
 }

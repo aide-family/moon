@@ -24,6 +24,8 @@ func ToDatasourceItemBo(m *do.Datasource) *bo.DatasourceItemBo {
 		Status:    m.Status,
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
+		URL:       m.URL,
+		Remark:    m.Remark,
 	}
 }
 
@@ -37,7 +39,24 @@ func ToDatasourceDo(ctx context.Context, req *bo.CreateDatasourceBo) *do.Datasou
 		Driver:   req.Driver,
 		Metadata: safety.NewMap(req.Metadata),
 		Status:   enum.GlobalStatus_ENABLED,
+		URL:      req.URL,
+		Remark:   req.Remark,
 	}
 	model.WithNamespace(contextx.GetNamespace(ctx)).WithCreator(contextx.GetUserUID(ctx))
 	return model
+}
+
+func ToSelectDatasourceItemBo(m *do.Datasource) *bo.SelectDatasourceItemBo {
+	if m == nil {
+		return nil
+	}
+	return &bo.SelectDatasourceItemBo{
+		Value:    m.ID,
+		Label:    m.Name,
+		Disabled: m.Status != enum.GlobalStatus_ENABLED || m.DeletedAt.Valid,
+		Tooltip:  m.Remark,
+		Type:     m.Type,
+		Driver:   m.Driver,
+		URL:      m.URL,
+	}
 }

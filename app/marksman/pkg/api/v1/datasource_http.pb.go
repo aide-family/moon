@@ -23,6 +23,7 @@ const OperationDatasourceCreateDatasource = "/marksman.api.v1.Datasource/CreateD
 const OperationDatasourceDeleteDatasource = "/marksman.api.v1.Datasource/DeleteDatasource"
 const OperationDatasourceGetDatasource = "/marksman.api.v1.Datasource/GetDatasource"
 const OperationDatasourceListDatasource = "/marksman.api.v1.Datasource/ListDatasource"
+const OperationDatasourceSelectDatasource = "/marksman.api.v1.Datasource/SelectDatasource"
 const OperationDatasourceUpdateDatasource = "/marksman.api.v1.Datasource/UpdateDatasource"
 
 type DatasourceHTTPServer interface {
@@ -30,6 +31,7 @@ type DatasourceHTTPServer interface {
 	DeleteDatasource(context.Context, *DeleteDatasourceRequest) (*DeleteDatasourceReply, error)
 	GetDatasource(context.Context, *GetDatasourceRequest) (*DatasourceItem, error)
 	ListDatasource(context.Context, *ListDatasourceRequest) (*ListDatasourceReply, error)
+	SelectDatasource(context.Context, *SelectDatasourceRequest) (*SelectDatasourceReply, error)
 	UpdateDatasource(context.Context, *UpdateDatasourceRequest) (*UpdateDatasourceReply, error)
 }
 
@@ -40,6 +42,7 @@ func RegisterDatasourceHTTPServer(s *http.Server, srv DatasourceHTTPServer) {
 	r.DELETE("/v1/datasource/{uid}", _Datasource_DeleteDatasource0_HTTP_Handler(srv))
 	r.GET("/v1/datasource/{uid}", _Datasource_GetDatasource0_HTTP_Handler(srv))
 	r.GET("/v1/datasources", _Datasource_ListDatasource0_HTTP_Handler(srv))
+	r.GET("/v1/datasources/select", _Datasource_SelectDatasource0_HTTP_Handler(srv))
 }
 
 func _Datasource_CreateDatasource0_HTTP_Handler(srv DatasourceHTTPServer) func(ctx http.Context) error {
@@ -152,11 +155,31 @@ func _Datasource_ListDatasource0_HTTP_Handler(srv DatasourceHTTPServer) func(ctx
 	}
 }
 
+func _Datasource_SelectDatasource0_HTTP_Handler(srv DatasourceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SelectDatasourceRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDatasourceSelectDatasource)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SelectDatasource(ctx, req.(*SelectDatasourceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SelectDatasourceReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type DatasourceHTTPClient interface {
 	CreateDatasource(ctx context.Context, req *CreateDatasourceRequest, opts ...http.CallOption) (rsp *CreateDatasourceReply, err error)
 	DeleteDatasource(ctx context.Context, req *DeleteDatasourceRequest, opts ...http.CallOption) (rsp *DeleteDatasourceReply, err error)
 	GetDatasource(ctx context.Context, req *GetDatasourceRequest, opts ...http.CallOption) (rsp *DatasourceItem, err error)
 	ListDatasource(ctx context.Context, req *ListDatasourceRequest, opts ...http.CallOption) (rsp *ListDatasourceReply, err error)
+	SelectDatasource(ctx context.Context, req *SelectDatasourceRequest, opts ...http.CallOption) (rsp *SelectDatasourceReply, err error)
 	UpdateDatasource(ctx context.Context, req *UpdateDatasourceRequest, opts ...http.CallOption) (rsp *UpdateDatasourceReply, err error)
 }
 
@@ -212,6 +235,19 @@ func (c *DatasourceHTTPClientImpl) ListDatasource(ctx context.Context, in *ListD
 	pattern := "/v1/datasources"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationDatasourceListDatasource))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *DatasourceHTTPClientImpl) SelectDatasource(ctx context.Context, in *SelectDatasourceRequest, opts ...http.CallOption) (*SelectDatasourceReply, error) {
+	var out SelectDatasourceReply
+	pattern := "/v1/datasources/select"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationDatasourceSelectDatasource))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

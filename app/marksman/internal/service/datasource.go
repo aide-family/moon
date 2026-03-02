@@ -3,10 +3,11 @@ package service
 import (
 	"context"
 
+	"github.com/bwmarrin/snowflake"
+
 	"github.com/aide-family/marksman/internal/biz"
 	"github.com/aide-family/marksman/internal/biz/bo"
 	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
-	"github.com/bwmarrin/snowflake"
 )
 
 func NewDatasourceService(datasourceBiz *biz.DatasourceBiz) *DatasourceService {
@@ -58,4 +59,12 @@ func (s *DatasourceService) ListDatasource(ctx context.Context, req *apiv1.ListD
 		return nil, err
 	}
 	return bo.ToAPIV1ListDatasourceReply(result), nil
+}
+
+func (s *DatasourceService) SelectDatasource(ctx context.Context, req *apiv1.SelectDatasourceRequest) (*apiv1.SelectDatasourceReply, error) {
+	result, err := s.datasourceBiz.SelectDatasource(ctx, bo.NewSelectDatasourceBo(req))
+	if err != nil {
+		return nil, err
+	}
+	return bo.ToAPIV1SelectDatasourceReply(result), nil
 }

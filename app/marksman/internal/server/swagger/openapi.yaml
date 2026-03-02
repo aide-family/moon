@@ -124,6 +124,53 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.ListDatasourceReply'
+    /v1/datasources/select:
+        get:
+            tags:
+                - Datasource
+            operationId: Datasource_SelectDatasource
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: lastUID
+                  in: query
+                  schema:
+                    type: string
+                - name: type
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: driver
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: uids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.SelectDatasourceReply'
     /v1/level:
         post:
             tags:
@@ -803,6 +850,10 @@ components:
                     type: object
                     additionalProperties:
                         type: string
+                url:
+                    type: string
+                remark:
+                    type: string
         marksman.api.v1.CreateLevelReply:
             type: object
             properties: {}
@@ -879,6 +930,10 @@ components:
                 createdAt:
                     type: string
                 updatedAt:
+                    type: string
+                url:
+                    type: string
+                remark:
                     type: string
         marksman.api.v1.DeleteDatasourceReply:
             type: object
@@ -1038,6 +1093,38 @@ components:
                 status:
                     type: integer
                     format: enum
+        marksman.api.v1.SelectDatasourceItem:
+            type: object
+            properties:
+                value:
+                    type: string
+                label:
+                    type: string
+                disabled:
+                    type: boolean
+                tooltip:
+                    type: string
+                type:
+                    type: integer
+                    format: enum
+                driver:
+                    type: integer
+                    format: enum
+                url:
+                    type: string
+        marksman.api.v1.SelectDatasourceReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.SelectDatasourceItem'
+                total:
+                    type: string
+                lastUID:
+                    type: string
+                hasMore:
+                    type: boolean
         marksman.api.v1.SelectLevelReply:
             type: object
             properties:
@@ -1225,6 +1312,10 @@ components:
                     type: object
                     additionalProperties:
                         type: string
+                url:
+                    type: string
+                remark:
+                    type: string
         marksman.api.v1.UpdateLevelReply:
             type: object
             properties: {}
