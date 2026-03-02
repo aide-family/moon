@@ -30,7 +30,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	bizNamespace := biz.NewNamespace(namespace, helper)
+	bizNamespace := biz.NewNamespace(namespace)
 	namespaceService := service.NewNamespaceService(bizNamespace)
 	grpcServer := server.NewGRPCServer(bc, namespaceService, helper)
 	health := impl.NewHealthRepository(dataData)

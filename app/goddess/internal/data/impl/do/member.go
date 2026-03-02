@@ -11,8 +11,7 @@ import (
 )
 
 type Member struct {
-	ID           uint32            `gorm:"column:id;primaryKey;autoIncrement"`
-	UID          snowflake.ID      `gorm:"column:uid;not null;uniqueIndex"`
+	UID          snowflake.ID      `gorm:"column:uid;not null;primaryKey"`
 	CreatedAt    time.Time         `gorm:"column:created_at;type:datetime;not null;"`
 	UpdatedAt    time.Time         `gorm:"column:updated_at;type:datetime;not null;"`
 	DeletedAt    gorm.DeletedAt    `gorm:"column:deleted_at;type:datetime;index"`

@@ -18,11 +18,16 @@ import (
 )
 
 func NewUserRepository(d *data.Data) repository.User {
-	return &userRepository{Data: d}
+	return NewUserRepositoryWithDB(d.DB())
+}
+
+func NewUserRepositoryWithDB(db *gorm.DB) repository.User {
+	query.SetDefault(db)
+	return &userRepository{db: db}
 }
 
 type userRepository struct {
-	*data.Data
+	db *gorm.DB
 }
 
 func (u *userRepository) GetUser(ctx context.Context, uid snowflake.ID) (*bo.UserItemBo, error) {

@@ -21,11 +21,16 @@ import (
 )
 
 func NewNamespaceRepository(d *data.Data) repository.Namespace {
-	return &namespaceRepository{Data: d}
+	return NewNamespaceRepositoryWithDB(d.DB())
+}
+
+func NewNamespaceRepositoryWithDB(db *gorm.DB) repository.Namespace {
+	query.SetDefault(db)
+	return &namespaceRepository{db: db}
 }
 
 type namespaceRepository struct {
-	*data.Data
+	db *gorm.DB
 }
 
 // AllNamespaces implements [repository.Namespace].

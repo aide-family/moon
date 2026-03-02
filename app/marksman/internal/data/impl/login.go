@@ -3,7 +3,8 @@ package impl
 import (
 	"context"
 
-	authv1 "github.com/aide-family/magicbox/domain/auth/v1"
+	authv1 "github.com/aide-family/goddess/domain/auth/v1"
+	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/oauth"
 	klog "github.com/go-kratos/kratos/v2/log"
@@ -14,7 +15,7 @@ import (
 )
 
 type loginRepository struct {
-	repo authv1.Repository
+	repo goddessv1.AuthServiceServer
 }
 
 func NewLoginRepository(c *conf.Bootstrap, d *data.Data) (repository.LoginRepository, error) {
@@ -38,10 +39,10 @@ func NewLoginRepository(c *conf.Bootstrap, d *data.Data) (repository.LoginReposi
 }
 
 func (l *loginRepository) Login(ctx context.Context, req *oauth.OAuth2LoginRequest) (string, error) {
-	redirectURL, err := l.repo.Login(ctx, req)
+	redirectURL, err := l.repo.OAuth2Login(ctx, req)
 	if err != nil {
 		klog.Context(ctx).Debugw("msg", "login failed", "error", err)
 		return "", err
 	}
-	return redirectURL, nil
+	return redirectURL.Token, nil
 }

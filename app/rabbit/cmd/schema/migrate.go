@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/aide-family/rabbit/cmd"
+	"github.com/aide-family/rabbit/internal/data/impl/do"
 )
 
 var dsn string
@@ -53,7 +54,7 @@ func newSQLiteMigrateCmd() *cobra.Command {
 			if debug {
 				db = db.Debug()
 			}
-			if err := db.AutoMigrate(models()...); err != nil {
+			if err := db.AutoMigrate(do.Models()...); err != nil {
 				return fmt.Errorf("migrate models: %w", err)
 			}
 			return nil
@@ -81,7 +82,7 @@ func newMySQLMigrateCmd() *cobra.Command {
 			if debug {
 				db = db.Debug()
 			}
-			if err := db.AutoMigrate(models()...); err != nil {
+			if err := db.AutoMigrate(do.Models()...); err != nil {
 				return fmt.Errorf("migrate models: %w", err)
 			}
 			return nil
@@ -109,7 +110,7 @@ func newPostgresMigrateCmd() *cobra.Command {
 			if debug {
 				db = db.Debug()
 			}
-			if err := db.AutoMigrate(models()...); err != nil {
+			if err := db.AutoMigrate(do.Models()...); err != nil {
 				return fmt.Errorf("migrate models: %w", err)
 			}
 			return nil

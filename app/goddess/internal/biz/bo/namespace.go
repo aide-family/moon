@@ -6,7 +6,7 @@ import (
 	"github.com/aide-family/magicbox/enum"
 	"github.com/bwmarrin/snowflake"
 
-	magicboxv1 "github.com/aide-family/magicbox/api/v1"
+	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 type CreateNamespaceBo struct {
@@ -15,7 +15,7 @@ type CreateNamespaceBo struct {
 	Status   enum.GlobalStatus
 }
 
-func NewCreateNamespaceBo(req *magicboxv1.CreateNamespaceRequest) *CreateNamespaceBo {
+func NewCreateNamespaceBo(req *goddessv1.CreateNamespaceRequest) *CreateNamespaceBo {
 	return &CreateNamespaceBo{
 		Name:     req.Name,
 		Metadata: req.Metadata,
@@ -29,7 +29,7 @@ type UpdateNamespaceBo struct {
 	Metadata map[string]string
 }
 
-func NewUpdateNamespaceBo(req *magicboxv1.UpdateNamespaceRequest) *UpdateNamespaceBo {
+func NewUpdateNamespaceBo(req *goddessv1.UpdateNamespaceRequest) *UpdateNamespaceBo {
 	return &UpdateNamespaceBo{
 		UID:      snowflake.ParseInt64(req.Uid),
 		Name:     req.Name,
@@ -57,8 +57,8 @@ type NamespaceItemBo struct {
 	UpdatedAt time.Time
 }
 
-func (b *NamespaceItemBo) ToAPIV1NamespaceItem() *magicboxv1.NamespaceItem {
-	return &magicboxv1.NamespaceItem{
+func (b *NamespaceItemBo) ToAPIV1NamespaceItem() *goddessv1.NamespaceItem {
+	return &goddessv1.NamespaceItem{
 		Uid:       b.UID.Int64(),
 		Name:      b.Name,
 		Metadata:  b.Metadata,
@@ -68,14 +68,14 @@ func (b *NamespaceItemBo) ToAPIV1NamespaceItem() *magicboxv1.NamespaceItem {
 	}
 }
 
-func NewUpdateNamespaceStatusBo(req *magicboxv1.UpdateNamespaceStatusRequest) *UpdateNamespaceStatusBo {
+func NewUpdateNamespaceStatusBo(req *goddessv1.UpdateNamespaceStatusRequest) *UpdateNamespaceStatusBo {
 	return &UpdateNamespaceStatusBo{
 		UID:    snowflake.ParseInt64(req.Uid),
 		Status: req.Status,
 	}
 }
 
-func NewListNamespaceBo(req *magicboxv1.ListNamespaceRequest) *ListNamespaceBo {
+func NewListNamespaceBo(req *goddessv1.ListNamespaceRequest) *ListNamespaceBo {
 	return &ListNamespaceBo{
 		PageRequestBo: NewPageRequestBo(req.Page, req.PageSize),
 		Keyword:       req.Keyword,
@@ -83,12 +83,12 @@ func NewListNamespaceBo(req *magicboxv1.ListNamespaceRequest) *ListNamespaceBo {
 	}
 }
 
-func ToAPIV1ListNamespaceReply(pageResponseBo *PageResponseBo[*NamespaceItemBo]) *magicboxv1.ListNamespaceReply {
-	items := make([]*magicboxv1.NamespaceItem, 0, len(pageResponseBo.GetItems()))
+func ToAPIV1ListNamespaceReply(pageResponseBo *PageResponseBo[*NamespaceItemBo]) *goddessv1.ListNamespaceReply {
+	items := make([]*goddessv1.NamespaceItem, 0, len(pageResponseBo.GetItems()))
 	for _, item := range pageResponseBo.GetItems() {
 		items = append(items, item.ToAPIV1NamespaceItem())
 	}
-	return &magicboxv1.ListNamespaceReply{
+	return &goddessv1.ListNamespaceReply{
 		Items:    items,
 		Total:    pageResponseBo.GetTotal(),
 		Page:     pageResponseBo.GetPage(),
@@ -105,7 +105,7 @@ type SelectNamespaceBo struct {
 }
 
 // NewSelectNamespaceBo 从 API 请求创建 BO
-func NewSelectNamespaceBo(req *magicboxv1.SelectNamespaceRequest) *SelectNamespaceBo {
+func NewSelectNamespaceBo(req *goddessv1.SelectNamespaceRequest) *SelectNamespaceBo {
 	var lastUID snowflake.ID
 	if req.LastUID > 0 {
 		lastUID = snowflake.ParseInt64(req.LastUID)
@@ -128,8 +128,8 @@ type NamespaceItemSelectBo struct {
 }
 
 // ToAPIV1NamespaceItemSelect 转换为 API 响应
-func (b *NamespaceItemSelectBo) ToAPIV1NamespaceItemSelect() *magicboxv1.NamespaceItemSelect {
-	return &magicboxv1.NamespaceItemSelect{
+func (b *NamespaceItemSelectBo) ToAPIV1NamespaceItemSelect() *goddessv1.NamespaceItemSelect {
+	return &goddessv1.NamespaceItemSelect{
 		Value:    b.UID.Int64(),
 		Label:    b.Name,
 		Disabled: b.Disabled,
@@ -146,13 +146,13 @@ type SelectNamespaceBoResult struct {
 }
 
 // ToAPIV1SelectNamespaceReply 转换为 API 响应
-func ToAPIV1SelectNamespaceReply(result *SelectNamespaceBoResult) *magicboxv1.SelectNamespaceReply {
-	selectItems := make([]*magicboxv1.NamespaceItemSelect, 0, len(result.Items))
+func ToAPIV1SelectNamespaceReply(result *SelectNamespaceBoResult) *goddessv1.SelectNamespaceReply {
+	selectItems := make([]*goddessv1.NamespaceItemSelect, 0, len(result.Items))
 	for _, item := range result.Items {
 		selectItems = append(selectItems, item.ToAPIV1NamespaceItemSelect())
 	}
 
-	return &magicboxv1.SelectNamespaceReply{
+	return &goddessv1.SelectNamespaceReply{
 		Items:   selectItems,
 		Total:   result.Total,
 		LastUID: result.LastUID.Int64(),

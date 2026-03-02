@@ -7,7 +7,7 @@ import (
 
 	"github.com/aide-family/goddess/internal/biz"
 	"github.com/aide-family/goddess/internal/biz/bo"
-	magicboxv1 "github.com/aide-family/magicbox/api/v1"
+	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 func NewMemberService(memberBiz *biz.Member) *MemberService {
@@ -17,12 +17,12 @@ func NewMemberService(memberBiz *biz.Member) *MemberService {
 }
 
 type MemberService struct {
-	magicboxv1.UnimplementedMemberServer
+	goddessv1.UnimplementedMemberServer
 
 	memberBiz *biz.Member
 }
 
-func (s *MemberService) InviteMember(ctx context.Context, req *magicboxv1.InviteMemberRequest) (*magicboxv1.InviteMemberReply, error) {
+func (s *MemberService) InviteMember(ctx context.Context, req *goddessv1.InviteMemberRequest) (*goddessv1.InviteMemberReply, error) {
 	inviteBo := &bo.InviteMemberBo{
 		Email:   req.Email,
 		RoleUID: req.RoleUID,
@@ -30,17 +30,17 @@ func (s *MemberService) InviteMember(ctx context.Context, req *magicboxv1.Invite
 	if err := s.memberBiz.InviteMember(ctx, inviteBo); err != nil {
 		return nil, err
 	}
-	return &magicboxv1.InviteMemberReply{Message: "invitation sent successfully"}, nil
+	return &goddessv1.InviteMemberReply{Message: "invitation sent successfully"}, nil
 }
 
-func (s *MemberService) DismissMember(ctx context.Context, req *magicboxv1.DismissMemberRequest) (*magicboxv1.DismissMemberReply, error) {
+func (s *MemberService) DismissMember(ctx context.Context, req *goddessv1.DismissMemberRequest) (*goddessv1.DismissMemberReply, error) {
 	if err := s.memberBiz.DismissMember(ctx, snowflake.ParseInt64(req.Uid)); err != nil {
 		return nil, err
 	}
-	return &magicboxv1.DismissMemberReply{Message: "member dismissed successfully"}, nil
+	return &goddessv1.DismissMemberReply{Message: "member dismissed successfully"}, nil
 }
 
-func (s *MemberService) GetMember(ctx context.Context, req *magicboxv1.GetMemberRequest) (*magicboxv1.MemberItem, error) {
+func (s *MemberService) GetMember(ctx context.Context, req *goddessv1.GetMemberRequest) (*goddessv1.MemberItem, error) {
 	member, err := s.memberBiz.GetMember(ctx, snowflake.ParseInt64(req.Uid))
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (s *MemberService) GetMember(ctx context.Context, req *magicboxv1.GetMember
 	return member.ToAPIV1MemberItem(), nil
 }
 
-func (s *MemberService) ListMember(ctx context.Context, req *magicboxv1.ListMemberRequest) (*magicboxv1.ListMemberReply, error) {
+func (s *MemberService) ListMember(ctx context.Context, req *goddessv1.ListMemberRequest) (*goddessv1.ListMemberReply, error) {
 	listBo := bo.NewListMemberBo(req)
 	page, err := s.memberBiz.ListMember(ctx, listBo)
 	if err != nil {
@@ -57,7 +57,7 @@ func (s *MemberService) ListMember(ctx context.Context, req *magicboxv1.ListMemb
 	return bo.ToAPIV1ListMemberReply(page), nil
 }
 
-func (s *MemberService) SelectMember(ctx context.Context, req *magicboxv1.SelectMemberRequest) (*magicboxv1.SelectMemberReply, error) {
+func (s *MemberService) SelectMember(ctx context.Context, req *goddessv1.SelectMemberRequest) (*goddessv1.SelectMemberReply, error) {
 	selectBo := bo.NewSelectMemberBo(req)
 	result, err := s.memberBiz.SelectMember(ctx, selectBo)
 	if err != nil {
@@ -66,9 +66,9 @@ func (s *MemberService) SelectMember(ctx context.Context, req *magicboxv1.Select
 	return bo.ToAPIV1SelectMemberReply(result), nil
 }
 
-func (s *MemberService) UpdateMemberStatus(ctx context.Context, req *magicboxv1.UpdateMemberStatusRequest) (*magicboxv1.UpdateMemberStatusReply, error) {
+func (s *MemberService) UpdateMemberStatus(ctx context.Context, req *goddessv1.UpdateMemberStatusRequest) (*goddessv1.UpdateMemberStatusReply, error) {
 	if err := s.memberBiz.UpdateMemberStatus(ctx, snowflake.ParseInt64(req.Uid), int32(req.Status)); err != nil {
 		return nil, err
 	}
-	return &magicboxv1.UpdateMemberStatusReply{Message: "status updated successfully"}, nil
+	return &goddessv1.UpdateMemberStatusReply{Message: "status updated successfully"}, nil
 }

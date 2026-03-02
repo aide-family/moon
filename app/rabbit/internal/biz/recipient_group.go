@@ -3,12 +3,12 @@ package biz
 import (
 	"context"
 
-	magicboxapiv1 "github.com/aide-family/magicbox/api/v1"
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/bwmarrin/snowflake"
 	klog "github.com/go-kratos/kratos/v2/log"
 
+	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	"github.com/aide-family/rabbit/internal/biz/bo"
 	"github.com/aide-family/rabbit/internal/biz/repository"
 )
@@ -56,7 +56,7 @@ func (b *RecipientGroup) CreateRecipientGroup(ctx context.Context, req *bo.Creat
 }
 
 func (b *RecipientGroup) createRecipientMember(ctx context.Context, memberUIDs []int64) error {
-	membersReq := &magicboxapiv1.ListMemberRequest{
+	membersReq := &goddessv1.ListMemberRequest{
 		Page:     1,
 		PageSize: 200,
 		Status:   enum.MemberStatus_JOINED,

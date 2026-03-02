@@ -7,12 +7,10 @@ import (
 	"strings"
 
 	"github.com/aide-family/magicbox/config"
-	"github.com/aide-family/magicbox/hello"
 	"github.com/aide-family/magicbox/jwt"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/pointer"
 	"github.com/aide-family/magicbox/strutil"
-	"github.com/bwmarrin/snowflake"
 	klog "github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 
@@ -25,19 +23,18 @@ import (
 	"github.com/aide-family/goddess/internal/data/impl/query"
 )
 
-type loginRepository struct {
-	*data.Data
-	jwtConfig *config.JWT
-	node      *snowflake.Node
+func NewLoginRepository(bc *conf.Bootstrap, d *data.Data) (repository.LoginRepository, error) {
+	return NewLoginRepositoryWithDB(d.DB(), bc.GetJwt()), nil
 }
 
-func NewLoginRepository(bc *conf.Bootstrap, d *data.Data) (repository.LoginRepository, error) {
-	node, err := snowflake.NewNode(hello.NodeID())
-	if err != nil {
-		return nil, err
-	}
-	query.SetDefault(d.DB())
-	return &loginRepository{Data: d, node: node, jwtConfig: bc.GetJwt()}, nil
+func NewLoginRepositoryWithDB(db *gorm.DB, jwtConfig *config.JWT) repository.LoginRepository {
+	query.SetDefault(db)
+	return &loginRepository{db: db, jwtConfig: jwtConfig}
+}
+
+type loginRepository struct {
+	db        *gorm.DB
+	jwtConfig *config.JWT
 }
 
 // Login implements [authv1.Repository].

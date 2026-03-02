@@ -901,7 +901,7 @@ paths:
                                 $ref: '#/components/schemas/rabbit.api.v1.SelectWebhookReply'
 components:
     schemas:
-        magicbox.api.v1.MemberItem:
+        goddess.api.v1.MemberItem:
             type: object
             properties:
                 uid:
@@ -1232,7 +1232,7 @@ components:
                 members:
                     type: array
                     items:
-                        $ref: '#/components/schemas/magicbox.api.v1.MemberItem'
+                        $ref: '#/components/schemas/goddess.api.v1.MemberItem'
                 status:
                     type: integer
                     format: enum

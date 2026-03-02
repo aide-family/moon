@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package goddess.api.v1;
+
+option go_package = "github.com/aide-family/goddess/pkg/api/v1";
+
+import "magicbox/oauth/oauth2.proto";
+
+service AuthService {
+    rpc OAuth2Login(magicbox.oauth.OAuth2LoginRequest) returns (LoginReply);
+}
+
+message LoginReply {
+    string token = 1;
+}

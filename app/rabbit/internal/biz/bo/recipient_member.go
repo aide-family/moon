@@ -2,9 +2,10 @@
 package bo
 
 import (
-	magicboxapiv1 "github.com/aide-family/magicbox/api/v1"
 	"github.com/aide-family/magicbox/enum"
 	"github.com/bwmarrin/snowflake"
+
+	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 type RecipientMemberItemBo struct {
@@ -20,8 +21,8 @@ type RecipientMemberItemBo struct {
 	Status       enum.MemberStatus `json:"status"`
 }
 
-func (b *RecipientMemberItemBo) ToAPIV1MemberItem() *magicboxapiv1.MemberItem {
-	return &magicboxapiv1.MemberItem{
+func (b *RecipientMemberItemBo) ToAPIV1MemberItem() *goddessv1.MemberItem {
+	return &goddessv1.MemberItem{
 		Uid:          b.UID.Int64(),
 		NamespaceUID: b.NamespaceUID.Int64(),
 		UserUID:      b.UserUID.Int64(),
@@ -35,7 +36,7 @@ func (b *RecipientMemberItemBo) ToAPIV1MemberItem() *magicboxapiv1.MemberItem {
 	}
 }
 
-func NewRecipientMemberItemBo(members []*magicboxapiv1.MemberItem) []*RecipientMemberItemBo {
+func NewRecipientMemberItemBo(members []*goddessv1.MemberItem) []*RecipientMemberItemBo {
 	out := make([]*RecipientMemberItemBo, 0, len(members))
 	for _, m := range members {
 		out = append(out, &RecipientMemberItemBo{

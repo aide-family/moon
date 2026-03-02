@@ -6,6 +6,333 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /v1/member/invite:
+        post:
+            tags:
+                - Member
+            operationId: Member_InviteMember
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/goddess.api.v1.InviteMemberRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.InviteMemberReply'
+    /v1/member/{uid}:
+        get:
+            tags:
+                - Member
+            operationId: Member_GetMember
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.MemberItem'
+        delete:
+            tags:
+                - Member
+            operationId: Member_DismissMember
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.DismissMemberReply'
+    /v1/member/{uid}/status:
+        put:
+            tags:
+                - Member
+            operationId: Member_UpdateMemberStatus
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/goddess.api.v1.UpdateMemberStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.UpdateMemberStatusReply'
+    /v1/members:
+        get:
+            tags:
+                - Member
+            operationId: Member_ListMember
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: userUID
+                  in: query
+                  schema:
+                    type: string
+                - name: email
+                  in: query
+                  schema:
+                    type: string
+                - name: phone
+                  in: query
+                  schema:
+                    type: string
+                - name: uids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.ListMemberReply'
+    /v1/members/select:
+        get:
+            tags:
+                - Member
+            operationId: Member_SelectMember
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: lastUID
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: uids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.SelectMemberReply'
+    /v1/namespace:
+        post:
+            tags:
+                - Namespace
+            operationId: Namespace_CreateNamespace
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/goddess.api.v1.CreateNamespaceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.CreateNamespaceReply'
+    /v1/namespace/{uid}:
+        get:
+            tags:
+                - Namespace
+            operationId: Namespace_GetNamespace
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.NamespaceItem'
+        put:
+            tags:
+                - Namespace
+            operationId: Namespace_UpdateNamespace
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/goddess.api.v1.UpdateNamespaceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.UpdateNamespaceReply'
+        delete:
+            tags:
+                - Namespace
+            operationId: Namespace_DeleteNamespace
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.DeleteNamespaceReply'
+    /v1/namespace/{uid}/status:
+        put:
+            tags:
+                - Namespace
+            operationId: Namespace_UpdateNamespaceStatus
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/goddess.api.v1.UpdateNamespaceStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.UpdateNamespaceStatusReply'
+    /v1/namespaces:
+        get:
+            tags:
+                - Namespace
+            operationId: Namespace_ListNamespace
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.ListNamespaceReply'
+    /v1/namespaces/select:
+        get:
+            tags:
+                - Namespace
+            operationId: Namespace_SelectNamespace
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: lastUID
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.SelectNamespaceReply'
     /v1/self/change-avatar:
         put:
             tags:
@@ -245,6 +572,73 @@ components:
             properties:
                 email:
                     type: string
+        goddess.api.v1.CreateNamespaceReply:
+            type: object
+            properties:
+                uid:
+                    type: string
+        goddess.api.v1.CreateNamespaceRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                remark:
+                    type: string
+        goddess.api.v1.DeleteNamespaceReply:
+            type: object
+            properties: {}
+        goddess.api.v1.DismissMemberReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        goddess.api.v1.InviteMemberReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        goddess.api.v1.InviteMemberRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                roleUID:
+                    type: integer
+                    format: uint32
+        goddess.api.v1.ListMemberReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/goddess.api.v1.MemberItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        goddess.api.v1.ListNamespaceReply:
+            type: object
+            properties:
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/goddess.api.v1.NamespaceItem'
         goddess.api.v1.ListUserReply:
             type: object
             properties:
@@ -260,13 +654,72 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        goddess.api.v1.MemberItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                email:
+                    type: string
+                phone:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                userUID:
+                    type: string
+                name:
+                    type: string
+                nickname:
+                    type: string
+                avatar:
+                    type: string
+                remark:
+                    type: string
+                namespaceUID:
+                    type: string
+        goddess.api.v1.NamespaceItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                remark:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        goddess.api.v1.NamespaceItemSelect:
+            type: object
+            properties:
+                value:
+                    type: string
+                label:
+                    type: string
+                disabled:
+                    type: boolean
+                tooltip:
+                    type: string
         goddess.api.v1.NamespacesReply:
             type: object
             properties:
                 namespaces:
                     type: array
                     items:
-                        $ref: '#/components/schemas/magicbox.api.v1.NamespaceItem'
+                        $ref: '#/components/schemas/goddess.api.v1.NamespaceItem'
         goddess.api.v1.PermitUserReply:
             type: object
             properties:
@@ -284,6 +737,43 @@ components:
             properties:
                 token:
                     type: string
+        goddess.api.v1.SelectMemberItem:
+            type: object
+            properties:
+                value:
+                    type: string
+                label:
+                    type: string
+                disabled:
+                    type: boolean
+                tooltip:
+                    type: string
+        goddess.api.v1.SelectMemberReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/goddess.api.v1.SelectMemberItem'
+                total:
+                    type: string
+                lastUID:
+                    type: string
+                hasMore:
+                    type: boolean
+        goddess.api.v1.SelectNamespaceReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/goddess.api.v1.NamespaceItemSelect'
+                total:
+                    type: string
+                lastUID:
+                    type: string
+                hasMore:
+                    type: boolean
         goddess.api.v1.SelectUserItem:
             type: object
             properties:
@@ -308,29 +798,23 @@ components:
                     type: string
                 hasMore:
                     type: boolean
-        goddess.api.v1.UserItem:
+        goddess.api.v1.UpdateMemberStatusReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        goddess.api.v1.UpdateMemberStatusRequest:
             type: object
             properties:
                 uid:
                     type: string
-                email:
-                    type: string
-                username:
-                    type: string
-                nickname:
-                    type: string
-                avatar:
-                    type: string
                 status:
                     type: integer
                     format: enum
-                remark:
-                    type: string
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
-        magicbox.api.v1.NamespaceItem:
+        goddess.api.v1.UpdateNamespaceReply:
+            type: object
+            properties: {}
+        goddess.api.v1.UpdateNamespaceRequest:
             type: object
             properties:
                 uid:
@@ -343,13 +827,43 @@ components:
                         type: string
                 remark:
                     type: string
-                createdAt:
-                    type: string
-                updatedAt:
+        goddess.api.v1.UpdateNamespaceStatusReply:
+            type: object
+            properties: {}
+        goddess.api.v1.UpdateNamespaceStatusRequest:
+            type: object
+            properties:
+                uid:
                     type: string
                 status:
                     type: integer
                     format: enum
+        goddess.api.v1.UserItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                email:
+                    type: string
+                phone:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                name:
+                    type: string
+                nickname:
+                    type: string
+                avatar:
+                    type: string
+                remark:
+                    type: string
 tags:
+    - name: Member
+    - name: Namespace
     - name: Self
     - name: User

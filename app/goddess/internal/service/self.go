@@ -9,7 +9,7 @@ import (
 	"github.com/aide-family/magicbox/strutil/cnst"
 
 	"github.com/aide-family/goddess/internal/biz"
-	magicboxv1 "github.com/aide-family/magicbox/api/v1"
+	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 func NewSelfService(userBiz *biz.User, memberBiz *biz.Member, namespaceBiz *biz.Namespace, loginBiz *biz.LoginBiz) *SelfService {
@@ -22,7 +22,7 @@ func NewSelfService(userBiz *biz.User, memberBiz *biz.Member, namespaceBiz *biz.
 }
 
 type SelfService struct {
-	magicboxv1.UnimplementedSelfServer
+	goddessv1.UnimplementedSelfServer
 
 	userBiz      *biz.User
 	memberBiz    *biz.Member
@@ -30,7 +30,7 @@ type SelfService struct {
 	loginBiz     *biz.LoginBiz
 }
 
-func (s *SelfService) Info(ctx context.Context, _ *magicboxv1.InfoRequest) (*magicboxv1.UserItem, error) {
+func (s *SelfService) Info(ctx context.Context, _ *goddessv1.InfoRequest) (*goddessv1.UserItem, error) {
 	userUID := contextx.GetUserUID(ctx)
 	if userUID <= 0 {
 		return nil, merr.ErrorUnauthorized("%s is required", cnst.HTTPHeaderAuthorization)
@@ -42,7 +42,7 @@ func (s *SelfService) Info(ctx context.Context, _ *magicboxv1.InfoRequest) (*mag
 	return user.ToAPIV1UserItem(), nil
 }
 
-func (s *SelfService) Namespaces(ctx context.Context, _ *magicboxv1.InfoRequest) (*magicboxv1.NamespacesReply, error) {
+func (s *SelfService) Namespaces(ctx context.Context, _ *goddessv1.InfoRequest) (*goddessv1.NamespacesReply, error) {
 	userUID := contextx.GetUserUID(ctx)
 	if userUID <= 0 {
 		return nil, merr.ErrorUnauthorized("%s is required", cnst.HTTPHeaderAuthorization)
@@ -55,14 +55,14 @@ func (s *SelfService) Namespaces(ctx context.Context, _ *magicboxv1.InfoRequest)
 	if err != nil {
 		return nil, err
 	}
-	namespaces := make([]*magicboxv1.NamespaceItem, 0, len(nsList))
+	namespaces := make([]*goddessv1.NamespaceItem, 0, len(nsList))
 	for _, ns := range nsList {
 		namespaces = append(namespaces, ns.ToAPIV1NamespaceItem())
 	}
-	return &magicboxv1.NamespacesReply{Namespaces: namespaces}, nil
+	return &goddessv1.NamespacesReply{Namespaces: namespaces}, nil
 }
 
-func (s *SelfService) ChangeEmail(ctx context.Context, req *magicboxv1.ChangeEmailRequest) (*magicboxv1.ChangeEmailReply, error) {
+func (s *SelfService) ChangeEmail(ctx context.Context, req *goddessv1.ChangeEmailRequest) (*goddessv1.ChangeEmailReply, error) {
 	userUID := contextx.GetUserUID(ctx)
 	if userUID <= 0 {
 		return nil, merr.ErrorUnauthorized("%s is required", cnst.HTTPHeaderAuthorization)
@@ -70,10 +70,10 @@ func (s *SelfService) ChangeEmail(ctx context.Context, req *magicboxv1.ChangeEma
 	if err := s.userBiz.ChangeEmail(ctx, userUID, req.Email); err != nil {
 		return nil, err
 	}
-	return &magicboxv1.ChangeEmailReply{Message: "email changed successfully"}, nil
+	return &goddessv1.ChangeEmailReply{Message: "email changed successfully"}, nil
 }
 
-func (s *SelfService) ChangeAvatar(ctx context.Context, req *magicboxv1.ChangeAvatarRequest) (*magicboxv1.ChangeAvatarReply, error) {
+func (s *SelfService) ChangeAvatar(ctx context.Context, req *goddessv1.ChangeAvatarRequest) (*goddessv1.ChangeAvatarReply, error) {
 	userUID := contextx.GetUserUID(ctx)
 	if userUID <= 0 {
 		return nil, merr.ErrorUnauthorized("%s is required", cnst.HTTPHeaderAuthorization)
@@ -81,10 +81,10 @@ func (s *SelfService) ChangeAvatar(ctx context.Context, req *magicboxv1.ChangeAv
 	if err := s.userBiz.ChangeAvatar(ctx, userUID, req.Avatar); err != nil {
 		return nil, err
 	}
-	return &magicboxv1.ChangeAvatarReply{Message: "avatar changed successfully"}, nil
+	return &goddessv1.ChangeAvatarReply{Message: "avatar changed successfully"}, nil
 }
 
-func (s *SelfService) RefreshToken(ctx context.Context, _ *magicboxv1.RefreshTokenRequest) (*magicboxv1.RefreshTokenReply, error) {
+func (s *SelfService) RefreshToken(ctx context.Context, _ *goddessv1.RefreshTokenRequest) (*goddessv1.RefreshTokenReply, error) {
 	userUID := contextx.GetUserUID(ctx)
 	if userUID <= 0 {
 		return nil, merr.ErrorUnauthorized("%s is required", cnst.HTTPHeaderAuthorization)
@@ -100,5 +100,5 @@ func (s *SelfService) RefreshToken(ctx context.Context, _ *magicboxv1.RefreshTok
 	if err != nil {
 		return nil, err
 	}
-	return &magicboxv1.RefreshTokenReply{Token: token}, nil
+	return &goddessv1.RefreshTokenReply{Token: token}, nil
 }

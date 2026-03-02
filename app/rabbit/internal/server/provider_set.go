@@ -6,8 +6,9 @@ import (
 	nethttp "net/http"
 	"strings"
 
+	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	magicboxapiv1 "github.com/aide-family/magicbox/api/v1"
-	"github.com/aide-family/magicbox/domain/auth/basic"
+	"github.com/aide-family/magicbox/auth/basic"
 	"github.com/aide-family/magicbox/oauth"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
@@ -147,8 +148,8 @@ func RegisterHTTPService(
 	recipientGroupService *service.RecipientGroupService,
 ) Servers {
 	magicboxapiv1.RegisterHealthHTTPServer(httpSrv, healthService)
-	magicboxapiv1.RegisterNamespaceHTTPServer(httpSrv, namespaceService)
-	magicboxapiv1.RegisterMemberHTTPServer(httpSrv, memberService)
+	goddessv1.RegisterNamespaceHTTPServer(httpSrv, namespaceService)
+	goddessv1.RegisterMemberHTTPServer(httpSrv, memberService)
 	apiv1.RegisterEmailHTTPServer(httpSrv, emailService)
 	apiv1.RegisterWebhookHTTPServer(httpSrv, webhookService)
 	apiv1.RegisterSenderHTTPServer(httpSrv, senderService)
@@ -178,8 +179,8 @@ func RegisterGRPCService(
 	recipientGroupService *service.RecipientGroupService,
 ) Servers {
 	magicboxapiv1.RegisterHealthServer(grpcSrv, healthService)
-	magicboxapiv1.RegisterNamespaceServer(grpcSrv, namespaceService)
-	magicboxapiv1.RegisterMemberServer(grpcSrv, memberService)
+	goddessv1.RegisterNamespaceServer(grpcSrv, namespaceService)
+	goddessv1.RegisterMemberServer(grpcSrv, memberService)
 	apiv1.RegisterEmailServer(grpcSrv, emailService)
 	apiv1.RegisterWebhookServer(grpcSrv, webhookService)
 	apiv1.RegisterSenderServer(grpcSrv, senderService)
@@ -190,13 +191,13 @@ func RegisterGRPCService(
 }
 
 var namespaceAllowList = []string{
-	magicboxapiv1.OperationNamespaceCreateNamespace,
-	magicboxapiv1.OperationNamespaceUpdateNamespace,
-	magicboxapiv1.OperationNamespaceUpdateNamespaceStatus,
-	magicboxapiv1.OperationNamespaceDeleteNamespace,
-	magicboxapiv1.OperationNamespaceGetNamespace,
-	magicboxapiv1.OperationNamespaceListNamespace,
-	magicboxapiv1.OperationNamespaceSelectNamespace,
+	goddessv1.OperationNamespaceCreateNamespace,
+	goddessv1.OperationNamespaceUpdateNamespace,
+	goddessv1.OperationNamespaceUpdateNamespaceStatus,
+	goddessv1.OperationNamespaceDeleteNamespace,
+	goddessv1.OperationNamespaceGetNamespace,
+	goddessv1.OperationNamespaceListNamespace,
+	goddessv1.OperationNamespaceSelectNamespace,
 }
 
 var authAllowList = []string{

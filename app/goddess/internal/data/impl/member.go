@@ -20,11 +20,16 @@ import (
 )
 
 func NewMemberRepository(d *data.Data) repository.Member {
-	return &memberRepository{Data: d}
+	return NewMemberRepositoryWithDB(d.DB())
+}
+
+func NewMemberRepositoryWithDB(db *gorm.DB) repository.Member {
+	query.SetDefault(db)
+	return &memberRepository{db: db}
 }
 
 type memberRepository struct {
-	*data.Data
+	db *gorm.DB
 }
 
 func (m *memberRepository) CreateMember(ctx context.Context, req *bo.CreateMemberBo) error {

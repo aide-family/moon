@@ -1,7 +1,7 @@
 package repository
 
-import magicboxapiv1 "github.com/aide-family/magicbox/api/v1"
+import goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 
 type Namespace interface {
-	magicboxapiv1.NamespaceServer
+	goddessv1.NamespaceServer
 }

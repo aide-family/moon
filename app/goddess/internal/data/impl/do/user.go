@@ -11,18 +11,16 @@ import (
 )
 
 type User struct {
-	ID        uint32         `gorm:"column:id;primaryKey;autoIncrement"`
-	UID       snowflake.ID   `gorm:"column:uid;not null;uniqueIndex"`
-	CreatedAt time.Time      `gorm:"column:created_at;type:datetime;not null;"`
-	UpdatedAt time.Time      `gorm:"column:updated_at;type:datetime;not null;"`
-	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;type:datetime;index"`
-
-	Name     string          `gorm:"column:name;type:varchar(100);not null;index:idx__user__name"`
-	Nickname string          `gorm:"column:nickname;type:varchar(200);not null;default:''"`
-	Email    string          `gorm:"column:email;type:varchar(100);not null;uniqueIndex:idx__user__email;default:''"`
-	Avatar   string          `gorm:"column:avatar;type:varchar(100);not null;default:''"`
-	Remark   string          `gorm:"column:remark;type:varchar(100);not null;default:''"`
-	Status   enum.UserStatus `gorm:"column:status;type:tinyint;not null;default:0"`
+	UID       snowflake.ID    `gorm:"column:uid;not null;primaryKey"`
+	CreatedAt time.Time       `gorm:"column:created_at;type:datetime;not null;"`
+	UpdatedAt time.Time       `gorm:"column:updated_at;type:datetime;not null;"`
+	DeletedAt gorm.DeletedAt  `gorm:"column:deleted_at;type:datetime;index"`
+	Name      string          `gorm:"column:name;type:varchar(100);not null;index:idx__user__name"`
+	Nickname  string          `gorm:"column:nickname;type:varchar(200);not null;default:''"`
+	Email     string          `gorm:"column:email;type:varchar(100);not null;uniqueIndex:idx__user__email;default:''"`
+	Avatar    string          `gorm:"column:avatar;type:varchar(100);not null;default:''"`
+	Remark    string          `gorm:"column:remark;type:varchar(100);not null;default:''"`
+	Status    enum.UserStatus `gorm:"column:status;type:tinyint;not null;default:0"`
 }
 
 func (User) TableName() string {

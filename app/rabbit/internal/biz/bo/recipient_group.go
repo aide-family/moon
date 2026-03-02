@@ -5,7 +5,7 @@ import (
 	"github.com/aide-family/magicbox/enum"
 	"github.com/bwmarrin/snowflake"
 
-	magicboxapiv1 "github.com/aide-family/magicbox/api/v1"
+	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	apiv1 "github.com/aide-family/rabbit/pkg/api/v1"
 )
 
@@ -23,7 +23,7 @@ type RecipientGroupItemBo struct {
 
 // ToAPIV1RecipientGroupItem 转为 API
 func (b *RecipientGroupItemBo) ToAPIV1RecipientGroupItem() *apiv1.RecipientGroupItem {
-	members := make([]*magicboxapiv1.MemberItem, 0, len(b.Members))
+	members := make([]*goddessv1.MemberItem, 0, len(b.Members))
 	for _, m := range b.Members {
 		members = append(members, m.ToAPIV1MemberItem())
 	}

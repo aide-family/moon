@@ -1,0 +1,47 @@
+package selfv1
+
+import (
+	"github.com/aide-family/magicbox/config"
+	"github.com/aide-family/magicbox/connect"
+	"github.com/aide-family/magicbox/merr"
+	"github.com/aide-family/magicbox/pointer"
+	klog "github.com/go-kratos/kratos/v2/log"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
+
+	"github.com/aide-family/goddess/internal/biz"
+	"github.com/aide-family/goddess/internal/data/impl"
+	"github.com/aide-family/goddess/internal/service"
+	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
+)
+
+func init() {
+	RegisterSelfFactoryV1(config.DomainConfig_GORM, NewSelfRepository)
+}
+
+func NewSelfRepository(c *config.DomainConfig, jwtConfig *config.JWT) (goddessv1.SelfServer, func() error, error) {
+	ormConfig := &config.ORMConfig{}
+	if pointer.IsNotNil(c.GetOptions()) {
+		if err := anypb.UnmarshalTo(c.GetOptions(), ormConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
+			return nil, nil, merr.ErrorInternalServer("unmarshal orm config failed: %v", err)
+		}
+	}
+	db, close, err := connect.NewDB(ormConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+	helper := klog.NewHelper(klog.With(klog.GetLogger(), "module", "self"))
+	userRepo := impl.NewUserRepositoryWithDB(db)
+	memberRepo := impl.NewMemberRepositoryWithDB(db)
+	namespaceRepo := impl.NewNamespaceRepositoryWithDB(db)
+	loginRepo := impl.NewLoginRepositoryWithDB(db, jwtConfig)
+	userBiz := biz.NewUser(userRepo, helper)
+	memberBiz := biz.NewMember(memberRepo, userRepo, namespaceRepo, helper)
+	namespaceBiz := biz.NewNamespace(namespaceRepo, helper)
+	loginBiz := biz.NewLoginBiz(loginRepo)
+	return &selfRepository{SelfServer: service.NewSelfService(userBiz, memberBiz, namespaceBiz, loginBiz)}, close, nil
+}
+
+type selfRepository struct {
+	goddessv1.SelfServer
+}

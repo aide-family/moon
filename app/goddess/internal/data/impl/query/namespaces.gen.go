@@ -27,7 +27,6 @@ func newNamespace(db *gorm.DB, opts ...gen.DOOption) namespace {
 
 	tableName := _namespace.namespaceDo.TableName()
 	_namespace.ALL = field.NewAsterisk(tableName)
-	_namespace.ID = field.NewUint32(tableName, "id")
 	_namespace.UID = field.NewInt64(tableName, "uid")
 	_namespace.CreatedAt = field.NewTime(tableName, "created_at")
 	_namespace.UpdatedAt = field.NewTime(tableName, "updated_at")
@@ -46,7 +45,6 @@ type namespace struct {
 	namespaceDo
 
 	ALL       field.Asterisk
-	ID        field.Uint32
 	UID       field.Int64
 	CreatedAt field.Time
 	UpdatedAt field.Time
@@ -71,7 +69,6 @@ func (n namespace) As(alias string) *namespace {
 
 func (n *namespace) updateTableName(table string) *namespace {
 	n.ALL = field.NewAsterisk(table)
-	n.ID = field.NewUint32(table, "id")
 	n.UID = field.NewInt64(table, "uid")
 	n.CreatedAt = field.NewTime(table, "created_at")
 	n.UpdatedAt = field.NewTime(table, "updated_at")
@@ -96,8 +93,7 @@ func (n *namespace) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (n *namespace) fillFieldMap() {
-	n.fieldMap = make(map[string]field.Expr, 9)
-	n.fieldMap["id"] = n.ID
+	n.fieldMap = make(map[string]field.Expr, 8)
 	n.fieldMap["uid"] = n.UID
 	n.fieldMap["created_at"] = n.CreatedAt
 	n.fieldMap["updated_at"] = n.UpdatedAt

@@ -2,12 +2,14 @@
 package server
 
 import (
+	"context"
 	"embed"
 	nethttp "net/http"
 	"strings"
 
 	"buf.build/go/protoyaml"
-	"github.com/aide-family/magicbox/domain/auth/basic"
+	magicboxv1 "github.com/aide-family/magicbox/api/v1"
+	"github.com/aide-family/magicbox/auth/basic"
 	"github.com/aide-family/magicbox/oauth"
 	"github.com/go-kratos/kratos/v2/encoding"
 	"github.com/go-kratos/kratos/v2/encoding/json"
@@ -22,7 +24,7 @@ import (
 
 	"github.com/aide-family/goddess/internal/conf"
 	"github.com/aide-family/goddess/internal/service"
-	magicboxv1 "github.com/aide-family/magicbox/api/v1"
+	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 //go:embed swagger
@@ -181,12 +183,18 @@ func RegisterHTTPService(
 	selfService *service.SelfService,
 ) Servers {
 	magicboxv1.RegisterHealthHTTPServer(httpSrv, healthService)
-	magicboxv1.RegisterNamespaceHTTPServer(httpSrv, namespaceService)
-	magicboxv1.RegisterUserHTTPServer(httpSrv, userService)
-	magicboxv1.RegisterMemberHTTPServer(httpSrv, memberService)
-	magicboxv1.RegisterSelfHTTPServer(httpSrv, selfService)
+	goddessv1.RegisterNamespaceHTTPServer(httpSrv, namespaceService)
+	goddessv1.RegisterUserHTTPServer(httpSrv, userService)
+	goddessv1.RegisterMemberHTTPServer(httpSrv, memberService)
+	goddessv1.RegisterSelfHTTPServer(httpSrv, selfService)
 
-	oauth2Handler := oauth.NewOAuth2Handler(c.GetOauth2(), authService.Login)
+	oauth2Handler := oauth.NewOAuth2Handler(c.GetOauth2(), func(ctx context.Context, req *oauth.OAuth2LoginRequest) (string, error) {
+		reply, err := authService.OAuth2Login(ctx, req)
+		if err != nil {
+			return "", err
+		}
+		return reply.Token, nil
+	})
 	if err := oauth2Handler.Handler(httpSrv); err != nil {
 		panic(err)
 	}
@@ -204,32 +212,32 @@ func RegisterGRPCService(
 	selfService *service.SelfService,
 ) Servers {
 	magicboxv1.RegisterHealthServer(grpcSrv, healthService)
-	magicboxv1.RegisterNamespaceServer(grpcSrv, namespaceService)
-	magicboxv1.RegisterUserServer(grpcSrv, userService)
-	magicboxv1.RegisterMemberServer(grpcSrv, memberService)
-	magicboxv1.RegisterSelfServer(grpcSrv, selfService)
+	goddessv1.RegisterNamespaceServer(grpcSrv, namespaceService)
+	goddessv1.RegisterUserServer(grpcSrv, userService)
+	goddessv1.RegisterMemberServer(grpcSrv, memberService)
+	goddessv1.RegisterSelfServer(grpcSrv, selfService)
 	return Servers{newServer("grpc", grpcSrv)}
 }
 
 var namespaceAllowList = []string{
-	magicboxv1.OperationNamespaceCreateNamespace,
-	magicboxv1.OperationNamespaceUpdateNamespace,
-	magicboxv1.OperationNamespaceUpdateNamespaceStatus,
-	magicboxv1.OperationNamespaceDeleteNamespace,
-	magicboxv1.OperationNamespaceGetNamespace,
-	magicboxv1.OperationNamespaceListNamespace,
-	magicboxv1.OperationNamespaceSelectNamespace,
+	goddessv1.OperationNamespaceCreateNamespace,
+	goddessv1.OperationNamespaceUpdateNamespace,
+	goddessv1.OperationNamespaceUpdateNamespaceStatus,
+	goddessv1.OperationNamespaceDeleteNamespace,
+	goddessv1.OperationNamespaceGetNamespace,
+	goddessv1.OperationNamespaceListNamespace,
+	goddessv1.OperationNamespaceSelectNamespace,
 	magicboxv1.OperationHealthHealthCheck,
-	magicboxv1.OperationSelfInfo,
-	magicboxv1.OperationSelfNamespaces,
-	magicboxv1.OperationSelfChangeEmail,
-	magicboxv1.OperationSelfChangeAvatar,
-	magicboxv1.OperationSelfRefreshToken,
-	magicboxv1.OperationUserGetUser,
-	magicboxv1.OperationUserListUser,
-	magicboxv1.OperationUserSelectUser,
-	magicboxv1.OperationUserBanUser,
-	magicboxv1.OperationUserPermitUser,
+	goddessv1.OperationSelfInfo,
+	goddessv1.OperationSelfNamespaces,
+	goddessv1.OperationSelfChangeEmail,
+	goddessv1.OperationSelfChangeAvatar,
+	goddessv1.OperationSelfRefreshToken,
+	goddessv1.OperationUserGetUser,
+	goddessv1.OperationUserListUser,
+	goddessv1.OperationUserSelectUser,
+	goddessv1.OperationUserBanUser,
+	goddessv1.OperationUserPermitUser,
 }
 
 var authAllowList = []string{

@@ -6,7 +6,7 @@ import (
 	"github.com/aide-family/magicbox/enum"
 	"github.com/bwmarrin/snowflake"
 
-	apiv1 "github.com/aide-family/magicbox/api/v1"
+	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 type UserItemBo struct {
@@ -21,8 +21,8 @@ type UserItemBo struct {
 	UpdatedAt time.Time
 }
 
-func (b *UserItemBo) ToAPIV1UserItem() *apiv1.UserItem {
-	return &apiv1.UserItem{
+func (b *UserItemBo) ToAPIV1UserItem() *goddessv1.UserItem {
+	return &goddessv1.UserItem{
 		Uid:       b.UID.Int64(),
 		Email:     b.Email,
 		Name:      b.Name,
@@ -42,7 +42,7 @@ type ListUserBo struct {
 	Status  enum.UserStatus
 }
 
-func NewListUserBo(req *apiv1.ListUserRequest) *ListUserBo {
+func NewListUserBo(req *goddessv1.ListUserRequest) *ListUserBo {
 	return &ListUserBo{
 		PageRequestBo: NewPageRequestBo(req.Page, req.PageSize),
 		Email:         req.Email,
@@ -51,12 +51,12 @@ func NewListUserBo(req *apiv1.ListUserRequest) *ListUserBo {
 	}
 }
 
-func ToAPIV1ListUserReply(pageResponseBo *PageResponseBo[*UserItemBo]) *apiv1.ListUserReply {
-	items := make([]*apiv1.UserItem, 0, len(pageResponseBo.GetItems()))
+func ToAPIV1ListUserReply(pageResponseBo *PageResponseBo[*UserItemBo]) *goddessv1.ListUserReply {
+	items := make([]*goddessv1.UserItem, 0, len(pageResponseBo.GetItems()))
 	for _, item := range pageResponseBo.GetItems() {
 		items = append(items, item.ToAPIV1UserItem())
 	}
-	return &apiv1.ListUserReply{
+	return &goddessv1.ListUserReply{
 		Items:    items,
 		Total:    pageResponseBo.GetTotal(),
 		Page:     pageResponseBo.GetPage(),
@@ -71,7 +71,7 @@ type SelectUserBo struct {
 	Status  enum.UserStatus
 }
 
-func NewSelectUserBo(req *apiv1.SelectUserRequest) *SelectUserBo {
+func NewSelectUserBo(req *goddessv1.SelectUserRequest) *SelectUserBo {
 	var lastUID snowflake.ID
 	if req.LastUID > 0 {
 		lastUID = snowflake.ParseInt64(req.LastUID)
@@ -98,17 +98,17 @@ type SelectUserBoResult struct {
 	HasMore bool
 }
 
-func ToAPIV1SelectUserReply(result *SelectUserBoResult) *apiv1.SelectUserReply {
-	items := make([]*apiv1.SelectUserItem, 0, len(result.Items))
+func ToAPIV1SelectUserReply(result *SelectUserBoResult) *goddessv1.SelectUserReply {
+	items := make([]*goddessv1.SelectUserItem, 0, len(result.Items))
 	for _, item := range result.Items {
-		items = append(items, &apiv1.SelectUserItem{
+		items = append(items, &goddessv1.SelectUserItem{
 			Value:    item.Value.Int64(),
 			Label:    item.Label,
 			Disabled: item.Disabled,
 			Tooltip:  item.Tooltip,
 		})
 	}
-	return &apiv1.SelectUserReply{
+	return &goddessv1.SelectUserReply{
 		Items:   items,
 		Total:   result.Total,
 		LastUID: result.LastUID.Int64(),

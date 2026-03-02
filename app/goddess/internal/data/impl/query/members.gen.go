@@ -27,7 +27,6 @@ func newMember(db *gorm.DB, opts ...gen.DOOption) member {
 
 	tableName := _member.memberDo.TableName()
 	_member.ALL = field.NewAsterisk(tableName)
-	_member.ID = field.NewUint32(tableName, "id")
 	_member.UID = field.NewInt64(tableName, "uid")
 	_member.CreatedAt = field.NewTime(tableName, "created_at")
 	_member.UpdatedAt = field.NewTime(tableName, "updated_at")
@@ -50,7 +49,6 @@ type member struct {
 	memberDo
 
 	ALL          field.Asterisk
-	ID           field.Uint32
 	UID          field.Int64
 	CreatedAt    field.Time
 	UpdatedAt    field.Time
@@ -79,7 +77,6 @@ func (m member) As(alias string) *member {
 
 func (m *member) updateTableName(table string) *member {
 	m.ALL = field.NewAsterisk(table)
-	m.ID = field.NewUint32(table, "id")
 	m.UID = field.NewInt64(table, "uid")
 	m.CreatedAt = field.NewTime(table, "created_at")
 	m.UpdatedAt = field.NewTime(table, "updated_at")
@@ -108,8 +105,7 @@ func (m *member) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (m *member) fillFieldMap() {
-	m.fieldMap = make(map[string]field.Expr, 13)
-	m.fieldMap["id"] = m.ID
+	m.fieldMap = make(map[string]field.Expr, 12)
 	m.fieldMap["uid"] = m.UID
 	m.fieldMap["created_at"] = m.CreatedAt
 	m.fieldMap["updated_at"] = m.UpdatedAt

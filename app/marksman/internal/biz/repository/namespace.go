@@ -1,14 +1,9 @@
 package repository
 
 import (
-	"context"
-
-	"github.com/bwmarrin/snowflake"
-
-	"github.com/aide-family/marksman/internal/biz/bo"
+	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 type Namespace interface {
-	GetNamespace(ctx context.Context, uid snowflake.ID) (*bo.NamespaceItemBo, error)
-	SelectNamespace(ctx context.Context, req *bo.SelectNamespaceBo) (*bo.SelectNamespaceBoResult, error)
+	goddessv1.NamespaceServer
 }

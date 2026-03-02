@@ -4,6 +4,7 @@ go 1.25.0
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.11-20251209175733-2a1774d88802.1
+	github.com/aide-family/goddess v0.0.4
 	github.com/aide-family/magicbox v0.0.4
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.14
 	github.com/alibabacloud-go/dysmsapi-20170525/v3 v3.0.6
@@ -29,6 +30,8 @@ require (
 )
 
 replace github.com/aide-family/magicbox => ../../magicbox
+
+replace github.com/aide-family/goddess => ../goddess
 
 require (
 	buf.build/go/protovalidate v1.1.0 // indirect

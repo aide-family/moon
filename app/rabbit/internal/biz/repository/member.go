@@ -1,7 +1,7 @@
 package repository
 
-import magicboxapiv1 "github.com/aide-family/magicbox/api/v1"
+import goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 
 type Member interface {
-	magicboxapiv1.MemberServer
+	goddessv1.MemberServer
 }

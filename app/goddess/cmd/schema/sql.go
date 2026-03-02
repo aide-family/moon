@@ -8,9 +8,6 @@ import (
 	"strings"
 
 	schematool "github.com/aide-family/magicbox/connect/schema"
-	authmodel "github.com/aide-family/magicbox/domain/auth/v1/gormimpl/model"
-	membermodel "github.com/aide-family/magicbox/domain/member/v1/gormimpl/model"
-	namespacemodel "github.com/aide-family/magicbox/domain/namespace/v1/gormimpl/model"
 	"github.com/glebarez/sqlite"
 	klog "github.com/go-kratos/kratos/v2/log"
 	"github.com/spf13/cobra"
@@ -30,14 +27,6 @@ var (
 		DisableForeignKeyConstraintWhenMigrating: true,
 	}
 )
-
-// models returns all models in migration order: namespace and auth first (referenced by do models), then do models.
-func models() []any {
-	models := append(namespacemodel.Models(), authmodel.Models()...)
-	models = append(models, membermodel.Models()...)
-	models = append(models, do.Models()...)
-	return models
-}
 
 func newSQLCmd() *cobra.Command {
 	sqlCmd := &cobra.Command{
@@ -66,7 +55,7 @@ func newSQLiteCmd() *cobra.Command {
 				db = db.Debug()
 			}
 			if !onlyDB {
-				if err := db.AutoMigrate(models()...); err != nil {
+				if err := db.AutoMigrate(do.Models()...); err != nil {
 					return fmt.Errorf("migrate models: %w", err)
 				}
 			}
@@ -123,7 +112,7 @@ func newMySQLCmd() *cobra.Command {
 				db = db.Debug()
 			}
 			if !onlyDB {
-				if err := db.AutoMigrate(models()...); err != nil {
+				if err := db.AutoMigrate(do.Models()...); err != nil {
 					return fmt.Errorf("migrate models: %w", err)
 				}
 			}
@@ -187,8 +176,8 @@ func newPostgresCmd() *cobra.Command {
 			}
 			if !onlyDB {
 				// Drop tables first so we always create from scratch.
-				_ = db.Migrator().DropTable(models()...)
-				if err := db.AutoMigrate(models()...); err != nil {
+				_ = db.Migrator().DropTable(do.Models()...)
+				if err := db.AutoMigrate(do.Models()...); err != nil {
 					return fmt.Errorf("migrate models: %w", err)
 				}
 			}

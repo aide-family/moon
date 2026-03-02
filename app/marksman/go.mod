@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.11-20251209175733-2a1774d88802.1
-	buf.build/go/protoyaml v0.6.0
+	github.com/aide-family/goddess v0.0.4
 	github.com/aide-family/magicbox v0.0.4
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/glebarez/sqlite v1.11.0
@@ -13,7 +13,6 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/prometheus/client_golang v1.23.2
 	github.com/spf13/cobra v1.10.2
-	go.yaml.in/yaml/v2 v2.4.3
 	google.golang.org/genproto/googleapis/api v0.0.0-20251213004720-97cd9d5aeac2
 	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.11
@@ -25,6 +24,8 @@ require (
 )
 
 replace github.com/aide-family/magicbox => ../../magicbox
+
+replace github.com/aide-family/goddess => ../goddess
 
 require (
 	buf.build/go/protovalidate v1.1.0 // indirect
@@ -102,6 +103,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.38.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
+	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/crypto v0.47.0 // indirect
 	golang.org/x/exp v0.0.0-20260112195511-716be5621a96 // indirect

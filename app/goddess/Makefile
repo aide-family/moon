@@ -50,14 +50,14 @@ conf:
 # generate the api files（protoc 按 proto 路径生成到 pkg/goddess/，再提到 pkg/api/v1）
 api:
 	@echo "Generating api files"
-#	protoc --proto_path=./pkg/magicbox/proto \
-#	       --proto_path=./pkg/magicbox/proto/third_party \
-#	       --go_out=. --go_opt=module=github.com/aide-family/goddess \
-#	       --go-http_out=. --go-http_opt=module=github.com/aide-family/goddess \
-#	       --go-grpc_out=. --go-grpc_opt=module=github.com/aide-family/goddess \
-#	       --openapi_out=fq_schema_naming=true,default_response=false:./internal/server/swagger \
-#	       --experimental_allow_proto3_optional \
-#	       $(API_PROTO_FILES) \
+	protoc --proto_path=../../proto \
+	       --proto_path=../../proto/third_party \
+	       --go_out=. --go_opt=module=github.com/aide-family/goddess \
+	       --go-http_out=. --go-http_opt=module=github.com/aide-family/goddess \
+	       --go-grpc_out=. --go-grpc_opt=module=github.com/aide-family/goddess \
+	       --openapi_out=fq_schema_naming=true,default_response=false:./internal/server/swagger \
+	       --experimental_allow_proto3_optional \
+	       $(API_PROTO_FILES)
 
 .PHONY: wire
 # generate the wire files

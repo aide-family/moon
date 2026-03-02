@@ -6,7 +6,7 @@ import (
 	"github.com/aide-family/magicbox/enum"
 	"github.com/bwmarrin/snowflake"
 
-	magicboxv1 "github.com/aide-family/magicbox/api/v1"
+	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 type MemberItemBo struct {
@@ -22,8 +22,8 @@ type MemberItemBo struct {
 	Remark    string
 }
 
-func (b *MemberItemBo) ToAPIV1MemberItem() *magicboxv1.MemberItem {
-	return &magicboxv1.MemberItem{
+func (b *MemberItemBo) ToAPIV1MemberItem() *goddessv1.MemberItem {
+	return &goddessv1.MemberItem{
 		Uid:       b.UID.Int64(),
 		Email:     b.Email,
 		Status:    b.Status,
@@ -61,7 +61,7 @@ type ListMemberBo struct {
 	Phone   string
 }
 
-func NewListMemberBo(req *magicboxv1.ListMemberRequest) *ListMemberBo {
+func NewListMemberBo(req *goddessv1.ListMemberRequest) *ListMemberBo {
 	return &ListMemberBo{
 		PageRequestBo: NewPageRequestBo(req.Page, req.PageSize),
 		UserUID:       snowflake.ParseInt64(req.UserUID),
@@ -73,12 +73,12 @@ func NewListMemberBo(req *magicboxv1.ListMemberRequest) *ListMemberBo {
 	}
 }
 
-func ToAPIV1ListMemberReply(pageResponseBo *PageResponseBo[*MemberItemBo]) *magicboxv1.ListMemberReply {
-	items := make([]*magicboxv1.MemberItem, 0, len(pageResponseBo.GetItems()))
+func ToAPIV1ListMemberReply(pageResponseBo *PageResponseBo[*MemberItemBo]) *goddessv1.ListMemberReply {
+	items := make([]*goddessv1.MemberItem, 0, len(pageResponseBo.GetItems()))
 	for _, item := range pageResponseBo.GetItems() {
 		items = append(items, item.ToAPIV1MemberItem())
 	}
-	return &magicboxv1.ListMemberReply{
+	return &goddessv1.ListMemberReply{
 		Items:    items,
 		Total:    pageResponseBo.GetTotal(),
 		Page:     pageResponseBo.GetPage(),
@@ -93,7 +93,7 @@ type SelectMemberBo struct {
 	Status  enum.MemberStatus
 }
 
-func NewSelectMemberBo(req *magicboxv1.SelectMemberRequest) *SelectMemberBo {
+func NewSelectMemberBo(req *goddessv1.SelectMemberRequest) *SelectMemberBo {
 	var lastUID snowflake.ID
 	if req.LastUID > 0 {
 		lastUID = snowflake.ParseInt64(req.LastUID)
@@ -120,17 +120,17 @@ type SelectMemberBoResult struct {
 	HasMore bool
 }
 
-func ToAPIV1SelectMemberReply(result *SelectMemberBoResult) *magicboxv1.SelectMemberReply {
-	items := make([]*magicboxv1.SelectMemberItem, 0, len(result.Items))
+func ToAPIV1SelectMemberReply(result *SelectMemberBoResult) *goddessv1.SelectMemberReply {
+	items := make([]*goddessv1.SelectMemberItem, 0, len(result.Items))
 	for _, item := range result.Items {
-		items = append(items, &magicboxv1.SelectMemberItem{
+		items = append(items, &goddessv1.SelectMemberItem{
 			Value:    item.Value.Int64(),
 			Label:    item.Label,
 			Disabled: item.Disabled,
 			Tooltip:  item.Tooltip,
 		})
 	}
-	return &magicboxv1.SelectMemberReply{
+	return &goddessv1.SelectMemberReply{
 		Items:   items,
 		Total:   result.Total,
 		LastUID: result.LastUID.Int64(),

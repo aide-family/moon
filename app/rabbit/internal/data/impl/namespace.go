@@ -1,8 +1,8 @@
 package impl
 
 import (
-	magicboxapiv1 "github.com/aide-family/magicbox/api/v1"
-	namespacev1 "github.com/aide-family/magicbox/domain/namespace/v1"
+	namespacev1 "github.com/aide-family/goddess/domain/namespace/v1"
+	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	"github.com/aide-family/magicbox/merr"
 
 	"github.com/aide-family/rabbit/internal/biz/repository"
@@ -30,5 +30,5 @@ func NewNamespaceRepository(c *conf.Bootstrap, d *data.Data) (repository.Namespa
 }
 
 type namespaceRepository struct {
-	magicboxapiv1.NamespaceServer
+	goddessv1.NamespaceServer
 }
