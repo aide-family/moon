@@ -21,13 +21,15 @@ const _ = http.SupportPackageIsVersion1
 
 const OperationSelfChangeAvatar = "/goddess.api.v1.Self/ChangeAvatar"
 const OperationSelfChangeEmail = "/goddess.api.v1.Self/ChangeEmail"
+const OperationSelfChangeRemark = "/goddess.api.v1.Self/ChangeRemark"
 const OperationSelfInfo = "/goddess.api.v1.Self/Info"
 const OperationSelfNamespaces = "/goddess.api.v1.Self/Namespaces"
 const OperationSelfRefreshToken = "/goddess.api.v1.Self/RefreshToken"
 
 type SelfHTTPServer interface {
-	ChangeAvatar(context.Context, *ChangeAvatarRequest) (*ChangeAvatarReply, error)
-	ChangeEmail(context.Context, *ChangeEmailRequest) (*ChangeEmailReply, error)
+	ChangeAvatar(context.Context, *ChangeAvatarRequest) (*ChangeReply, error)
+	ChangeEmail(context.Context, *ChangeEmailRequest) (*ChangeReply, error)
+	ChangeRemark(context.Context, *ChangeRemarkRequest) (*ChangeReply, error)
 	Info(context.Context, *InfoRequest) (*UserItem, error)
 	Namespaces(context.Context, *InfoRequest) (*NamespacesReply, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenReply, error)
@@ -39,6 +41,7 @@ func RegisterSelfHTTPServer(s *http.Server, srv SelfHTTPServer) {
 	r.GET("/v1/self/namespaces", _Self_Namespaces0_HTTP_Handler(srv))
 	r.PUT("/v1/self/change-email", _Self_ChangeEmail0_HTTP_Handler(srv))
 	r.PUT("/v1/self/change-avatar", _Self_ChangeAvatar0_HTTP_Handler(srv))
+	r.PUT("/v1/self/change-remark", _Self_ChangeRemark0_HTTP_Handler(srv))
 	r.GET("/v1/self/refresh-token", _Self_RefreshToken0_HTTP_Handler(srv))
 }
 
@@ -97,7 +100,7 @@ func _Self_ChangeEmail0_HTTP_Handler(srv SelfHTTPServer) func(ctx http.Context) 
 		if err != nil {
 			return err
 		}
-		reply := out.(*ChangeEmailReply)
+		reply := out.(*ChangeReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -119,7 +122,29 @@ func _Self_ChangeAvatar0_HTTP_Handler(srv SelfHTTPServer) func(ctx http.Context)
 		if err != nil {
 			return err
 		}
-		reply := out.(*ChangeAvatarReply)
+		reply := out.(*ChangeReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Self_ChangeRemark0_HTTP_Handler(srv SelfHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ChangeRemarkRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSelfChangeRemark)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ChangeRemark(ctx, req.(*ChangeRemarkRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ChangeReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -144,8 +169,9 @@ func _Self_RefreshToken0_HTTP_Handler(srv SelfHTTPServer) func(ctx http.Context)
 }
 
 type SelfHTTPClient interface {
-	ChangeAvatar(ctx context.Context, req *ChangeAvatarRequest, opts ...http.CallOption) (rsp *ChangeAvatarReply, err error)
-	ChangeEmail(ctx context.Context, req *ChangeEmailRequest, opts ...http.CallOption) (rsp *ChangeEmailReply, err error)
+	ChangeAvatar(ctx context.Context, req *ChangeAvatarRequest, opts ...http.CallOption) (rsp *ChangeReply, err error)
+	ChangeEmail(ctx context.Context, req *ChangeEmailRequest, opts ...http.CallOption) (rsp *ChangeReply, err error)
+	ChangeRemark(ctx context.Context, req *ChangeRemarkRequest, opts ...http.CallOption) (rsp *ChangeReply, err error)
 	Info(ctx context.Context, req *InfoRequest, opts ...http.CallOption) (rsp *UserItem, err error)
 	Namespaces(ctx context.Context, req *InfoRequest, opts ...http.CallOption) (rsp *NamespacesReply, err error)
 	RefreshToken(ctx context.Context, req *RefreshTokenRequest, opts ...http.CallOption) (rsp *RefreshTokenReply, err error)
@@ -159,8 +185,8 @@ func NewSelfHTTPClient(client *http.Client) SelfHTTPClient {
 	return &SelfHTTPClientImpl{client}
 }
 
-func (c *SelfHTTPClientImpl) ChangeAvatar(ctx context.Context, in *ChangeAvatarRequest, opts ...http.CallOption) (*ChangeAvatarReply, error) {
-	var out ChangeAvatarReply
+func (c *SelfHTTPClientImpl) ChangeAvatar(ctx context.Context, in *ChangeAvatarRequest, opts ...http.CallOption) (*ChangeReply, error) {
+	var out ChangeReply
 	pattern := "/v1/self/change-avatar"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationSelfChangeAvatar))
@@ -172,11 +198,24 @@ func (c *SelfHTTPClientImpl) ChangeAvatar(ctx context.Context, in *ChangeAvatarR
 	return &out, nil
 }
 
-func (c *SelfHTTPClientImpl) ChangeEmail(ctx context.Context, in *ChangeEmailRequest, opts ...http.CallOption) (*ChangeEmailReply, error) {
-	var out ChangeEmailReply
+func (c *SelfHTTPClientImpl) ChangeEmail(ctx context.Context, in *ChangeEmailRequest, opts ...http.CallOption) (*ChangeReply, error) {
+	var out ChangeReply
 	pattern := "/v1/self/change-email"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationSelfChangeEmail))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SelfHTTPClientImpl) ChangeRemark(ctx context.Context, in *ChangeRemarkRequest, opts ...http.CallOption) (*ChangeReply, error) {
+	var out ChangeReply
+	pattern := "/v1/self/change-remark"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSelfChangeRemark))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {

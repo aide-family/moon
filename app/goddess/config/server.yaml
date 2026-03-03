@@ -76,3 +76,9 @@ oauth2:
       scopes:
         - user:email
       loginUrl: ${MOON_GODDESS_OAUTH2_FEISHU_CONFIGS_LOGIN_URL:http://localhost:18080/oauth2/login/feishu}
+
+globalEmail:
+  host: ${MOON_GODDESS_EMAIL_HOST:smtp.gmail.com}
+  port: ${MOON_GODDESS_EMAIL_PORT:587}
+  username: ${MOON_GODDESS_EMAIL_USERNAME:your.email@gmail.com}
+  password: ${MOON_GODDESS_EMAIL_PASSWORD:your.password}

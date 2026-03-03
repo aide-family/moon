@@ -17,4 +17,5 @@ type User interface {
 	UpdateUserStatus(ctx context.Context, uid snowflake.ID, status enum.UserStatus) error
 	UpdateUserEmail(ctx context.Context, uid snowflake.ID, email string) error
 	UpdateUserAvatar(ctx context.Context, uid snowflake.ID, avatar string) error
+	UpdateUserRemark(ctx context.Context, uid snowflake.ID, remark string) error
 }

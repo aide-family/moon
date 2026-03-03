@@ -22,15 +22,21 @@ service Self {
             get: "/v1/self/namespaces"
         };
     }
-    rpc ChangeEmail(ChangeEmailRequest) returns (ChangeEmailReply) {
+    rpc ChangeEmail(ChangeEmailRequest) returns (ChangeReply) {
         option (google.api.http) = {
             put: "/v1/self/change-email"
             body: "*"
         };
     }
-    rpc ChangeAvatar(ChangeAvatarRequest) returns (ChangeAvatarReply) {
+    rpc ChangeAvatar(ChangeAvatarRequest) returns (ChangeReply) {
         option (google.api.http) = {
             put: "/v1/self/change-avatar"
+            body: "*"
+        };
+    }
+    rpc ChangeRemark(ChangeRemarkRequest) returns (ChangeReply) {
+        option (google.api.http) = {
+            put: "/v1/self/change-remark"
             body: "*"
         };
     }
@@ -53,9 +59,6 @@ message ChangeEmailRequest {
         message: "email must be a valid email address",
     }];
 }
-message ChangeEmailReply {
-    string message = 1;
-}
 
 message ChangeAvatarRequest {
     string avatar = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
@@ -63,7 +66,14 @@ message ChangeAvatarRequest {
         message: "avatar must be less than or equal to 200",
     }];
 }
-message ChangeAvatarReply {
+
+message ChangeRemarkRequest {
+    string remark = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() <= 200",
+        message: "remark must be less than or equal to 200",
+    }];
+}
+message ChangeReply {
     string message = 1;
 }
 

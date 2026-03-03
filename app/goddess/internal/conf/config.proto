@@ -21,6 +21,7 @@ message Bootstrap {
 	magicbox.config.ReportConfig report = 10;
 	magicbox.config.OAuth2 oauth2 = 11;
 	magicbox.config.ORMConfig database = 12;
+	magicbox.config.MessageEmailConfig globalEmail = 13;
 }
 
 message Server {

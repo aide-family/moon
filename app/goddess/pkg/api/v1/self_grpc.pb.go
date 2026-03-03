@@ -23,6 +23,7 @@ const (
 	Self_Namespaces_FullMethodName   = "/goddess.api.v1.Self/Namespaces"
 	Self_ChangeEmail_FullMethodName  = "/goddess.api.v1.Self/ChangeEmail"
 	Self_ChangeAvatar_FullMethodName = "/goddess.api.v1.Self/ChangeAvatar"
+	Self_ChangeRemark_FullMethodName = "/goddess.api.v1.Self/ChangeRemark"
 	Self_RefreshToken_FullMethodName = "/goddess.api.v1.Self/RefreshToken"
 )
 
@@ -32,8 +33,9 @@ const (
 type SelfClient interface {
 	Info(ctx context.Context, in *InfoRequest, opts ...grpc.CallOption) (*UserItem, error)
 	Namespaces(ctx context.Context, in *InfoRequest, opts ...grpc.CallOption) (*NamespacesReply, error)
-	ChangeEmail(ctx context.Context, in *ChangeEmailRequest, opts ...grpc.CallOption) (*ChangeEmailReply, error)
-	ChangeAvatar(ctx context.Context, in *ChangeAvatarRequest, opts ...grpc.CallOption) (*ChangeAvatarReply, error)
+	ChangeEmail(ctx context.Context, in *ChangeEmailRequest, opts ...grpc.CallOption) (*ChangeReply, error)
+	ChangeAvatar(ctx context.Context, in *ChangeAvatarRequest, opts ...grpc.CallOption) (*ChangeReply, error)
+	ChangeRemark(ctx context.Context, in *ChangeRemarkRequest, opts ...grpc.CallOption) (*ChangeReply, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenReply, error)
 }
 
@@ -65,9 +67,9 @@ func (c *selfClient) Namespaces(ctx context.Context, in *InfoRequest, opts ...gr
 	return out, nil
 }
 
-func (c *selfClient) ChangeEmail(ctx context.Context, in *ChangeEmailRequest, opts ...grpc.CallOption) (*ChangeEmailReply, error) {
+func (c *selfClient) ChangeEmail(ctx context.Context, in *ChangeEmailRequest, opts ...grpc.CallOption) (*ChangeReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ChangeEmailReply)
+	out := new(ChangeReply)
 	err := c.cc.Invoke(ctx, Self_ChangeEmail_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -75,10 +77,20 @@ func (c *selfClient) ChangeEmail(ctx context.Context, in *ChangeEmailRequest, op
 	return out, nil
 }
 
-func (c *selfClient) ChangeAvatar(ctx context.Context, in *ChangeAvatarRequest, opts ...grpc.CallOption) (*ChangeAvatarReply, error) {
+func (c *selfClient) ChangeAvatar(ctx context.Context, in *ChangeAvatarRequest, opts ...grpc.CallOption) (*ChangeReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ChangeAvatarReply)
+	out := new(ChangeReply)
 	err := c.cc.Invoke(ctx, Self_ChangeAvatar_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *selfClient) ChangeRemark(ctx context.Context, in *ChangeRemarkRequest, opts ...grpc.CallOption) (*ChangeReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ChangeReply)
+	err := c.cc.Invoke(ctx, Self_ChangeRemark_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -101,8 +113,9 @@ func (c *selfClient) RefreshToken(ctx context.Context, in *RefreshTokenRequest, 
 type SelfServer interface {
 	Info(context.Context, *InfoRequest) (*UserItem, error)
 	Namespaces(context.Context, *InfoRequest) (*NamespacesReply, error)
-	ChangeEmail(context.Context, *ChangeEmailRequest) (*ChangeEmailReply, error)
-	ChangeAvatar(context.Context, *ChangeAvatarRequest) (*ChangeAvatarReply, error)
+	ChangeEmail(context.Context, *ChangeEmailRequest) (*ChangeReply, error)
+	ChangeAvatar(context.Context, *ChangeAvatarRequest) (*ChangeReply, error)
+	ChangeRemark(context.Context, *ChangeRemarkRequest) (*ChangeReply, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenReply, error)
 	mustEmbedUnimplementedSelfServer()
 }
@@ -120,11 +133,14 @@ func (UnimplementedSelfServer) Info(context.Context, *InfoRequest) (*UserItem, e
 func (UnimplementedSelfServer) Namespaces(context.Context, *InfoRequest) (*NamespacesReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Namespaces not implemented")
 }
-func (UnimplementedSelfServer) ChangeEmail(context.Context, *ChangeEmailRequest) (*ChangeEmailReply, error) {
+func (UnimplementedSelfServer) ChangeEmail(context.Context, *ChangeEmailRequest) (*ChangeReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangeEmail not implemented")
 }
-func (UnimplementedSelfServer) ChangeAvatar(context.Context, *ChangeAvatarRequest) (*ChangeAvatarReply, error) {
+func (UnimplementedSelfServer) ChangeAvatar(context.Context, *ChangeAvatarRequest) (*ChangeReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangeAvatar not implemented")
+}
+func (UnimplementedSelfServer) ChangeRemark(context.Context, *ChangeRemarkRequest) (*ChangeReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChangeRemark not implemented")
 }
 func (UnimplementedSelfServer) RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
@@ -222,6 +238,24 @@ func _Self_ChangeAvatar_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Self_ChangeRemark_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangeRemarkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SelfServer).ChangeRemark(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Self_ChangeRemark_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SelfServer).ChangeRemark(ctx, req.(*ChangeRemarkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Self_RefreshToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RefreshTokenRequest)
 	if err := dec(in); err != nil {
@@ -262,6 +296,10 @@ var Self_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangeAvatar",
 			Handler:    _Self_ChangeAvatar_Handler,
+		},
+		{
+			MethodName: "ChangeRemark",
+			Handler:    _Self_ChangeRemark_Handler,
 		},
 		{
 			MethodName: "RefreshToken",

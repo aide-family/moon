@@ -32,7 +32,7 @@ func NewAuthRepository(c *config.DomainConfig, jwtConfig *config.JWT) (goddessv1
 	}
 	loginRepo := impl.NewLoginRepositoryWithDB(db, jwtConfig)
 	loginBiz := biz.NewLoginBiz(loginRepo)
-	return &authRepository{AuthService: service.NewAuthService(loginBiz)}, close, nil
+	return &authRepository{AuthService: service.NewDomainAuthService(loginBiz)}, close, nil
 }
 
 type authRepository struct {

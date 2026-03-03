@@ -62,7 +62,7 @@ func (s *SelfService) Namespaces(ctx context.Context, _ *goddessv1.InfoRequest) 
 	return &goddessv1.NamespacesReply{Namespaces: namespaces}, nil
 }
 
-func (s *SelfService) ChangeEmail(ctx context.Context, req *goddessv1.ChangeEmailRequest) (*goddessv1.ChangeEmailReply, error) {
+func (s *SelfService) ChangeEmail(ctx context.Context, req *goddessv1.ChangeEmailRequest) (*goddessv1.ChangeReply, error) {
 	userUID := contextx.GetUserUID(ctx)
 	if userUID <= 0 {
 		return nil, merr.ErrorUnauthorized("%s is required", cnst.HTTPHeaderAuthorization)
@@ -70,10 +70,10 @@ func (s *SelfService) ChangeEmail(ctx context.Context, req *goddessv1.ChangeEmai
 	if err := s.userBiz.ChangeEmail(ctx, userUID, req.Email); err != nil {
 		return nil, err
 	}
-	return &goddessv1.ChangeEmailReply{Message: "email changed successfully"}, nil
+	return &goddessv1.ChangeReply{Message: "email changed successfully"}, nil
 }
 
-func (s *SelfService) ChangeAvatar(ctx context.Context, req *goddessv1.ChangeAvatarRequest) (*goddessv1.ChangeAvatarReply, error) {
+func (s *SelfService) ChangeAvatar(ctx context.Context, req *goddessv1.ChangeAvatarRequest) (*goddessv1.ChangeReply, error) {
 	userUID := contextx.GetUserUID(ctx)
 	if userUID <= 0 {
 		return nil, merr.ErrorUnauthorized("%s is required", cnst.HTTPHeaderAuthorization)
@@ -81,7 +81,18 @@ func (s *SelfService) ChangeAvatar(ctx context.Context, req *goddessv1.ChangeAva
 	if err := s.userBiz.ChangeAvatar(ctx, userUID, req.Avatar); err != nil {
 		return nil, err
 	}
-	return &goddessv1.ChangeAvatarReply{Message: "avatar changed successfully"}, nil
+	return &goddessv1.ChangeReply{Message: "avatar changed successfully"}, nil
+}
+
+func (s *SelfService) ChangeRemark(ctx context.Context, req *goddessv1.ChangeRemarkRequest) (*goddessv1.ChangeReply, error) {
+	userUID := contextx.GetUserUID(ctx)
+	if userUID <= 0 {
+		return nil, merr.ErrorUnauthorized("%s is required", cnst.HTTPHeaderAuthorization)
+	}
+	if err := s.userBiz.ChangeRemark(ctx, userUID, req.Remark); err != nil {
+		return nil, err
+	}
+	return &goddessv1.ChangeReply{Message: "remark changed successfully"}, nil
 }
 
 func (s *SelfService) RefreshToken(ctx context.Context, _ *goddessv1.RefreshTokenRequest) (*goddessv1.RefreshTokenReply, error) {

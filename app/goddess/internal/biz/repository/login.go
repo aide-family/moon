@@ -9,6 +9,7 @@ import (
 )
 
 type LoginRepository interface {
-	Login(ctx context.Context, req *bo.OAuth2LoginBo) (string, error)
+	LoginByOAuth2(ctx context.Context, req *bo.OAuth2LoginBo) (string, error)
+	LoginByEmail(ctx context.Context, email string) (string, error)
 	RefreshToken(ctx context.Context, baseInfo jwt.BaseInfo) (string, error)
 }

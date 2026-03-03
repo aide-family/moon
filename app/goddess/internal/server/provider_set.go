@@ -105,6 +105,7 @@ func RegisterService(
 		captchaService,
 	)...)
 	srvs = append(srvs, RegisterGRPCService(c, grpcSrv,
+		authService,
 		healthService,
 		namespaceService,
 		userService,
@@ -128,6 +129,7 @@ func RegisterHTTPService(
 	captchaService *service.CaptchaService,
 ) Servers {
 	magicboxv1.RegisterHealthHTTPServer(httpSrv, healthService)
+	goddessv1.RegisterAuthServiceHTTPServer(httpSrv, authService)
 	goddessv1.RegisterNamespaceHTTPServer(httpSrv, namespaceService)
 	goddessv1.RegisterUserHTTPServer(httpSrv, userService)
 	goddessv1.RegisterMemberHTTPServer(httpSrv, memberService)
@@ -151,6 +153,7 @@ func RegisterHTTPService(
 func RegisterGRPCService(
 	c *conf.Bootstrap,
 	grpcSrv *grpc.Server,
+	authService *service.AuthService,
 	healthService *service.HealthService,
 	namespaceService *service.NamespaceService,
 	userService *service.UserService,
@@ -159,6 +162,7 @@ func RegisterGRPCService(
 	captchaService *service.CaptchaService,
 ) Servers {
 	magicboxv1.RegisterHealthServer(grpcSrv, healthService)
+	goddessv1.RegisterAuthServiceServer(grpcSrv, authService)
 	goddessv1.RegisterNamespaceServer(grpcSrv, namespaceService)
 	goddessv1.RegisterUserServer(grpcSrv, userService)
 	goddessv1.RegisterMemberServer(grpcSrv, memberService)
@@ -193,5 +197,7 @@ var authAllowList = []string{
 	oauth.OperationOAuth2Reports,
 	oauth.OperationOAuth2Login,
 	oauth.OperationOAuth2Callback,
+	goddessv1.OperationAuthServiceEmailLogin,
+	goddessv1.OperationAuthServiceSendEmailLoginCode,
 	goddessv1.OperationCaptchaGetCaptcha,
 }

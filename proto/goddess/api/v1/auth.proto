@@ -5,11 +5,45 @@ package goddess.api.v1;
 option go_package = "github.com/aide-family/goddess/pkg/api/v1";
 
 import "magicbox/oauth/oauth2.proto";
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
 
 service AuthService {
     rpc OAuth2Login(magicbox.oauth.OAuth2LoginRequest) returns (LoginReply);
+    rpc SendEmailLoginCode(SendEmailLoginCodeRequest) returns (SendEmailLoginCodeReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/email/login/code"
+            body: "*"
+        };
+    }
+    rpc EmailLogin(EmailLoginRequest) returns (LoginReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/email/login"
+            body: "*"
+        };
+    }
 }
 
 message LoginReply {
     string token = 1;
+}
+
+message SendEmailLoginCodeRequest {
+    string email = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.isEmail()",
+        message: "email must be a valid email address",
+    }];
+    string captchaId = 2 [(buf.validate.field).required = true];
+    string captchaAnswer = 3 [(buf.validate.field).required = true];
+}
+message SendEmailLoginCodeReply {
+    string message = 1;
+}
+
+message EmailLoginRequest {
+    string email = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.isEmail()",
+        message: "email must be a valid email address",
+    }];
+    string code = 2 [(buf.validate.field).required = true];
 }

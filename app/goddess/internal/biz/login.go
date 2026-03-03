@@ -18,13 +18,13 @@ type LoginBiz struct {
 }
 
 func (b *LoginBiz) Login(ctx context.Context, req *bo.OAuth2LoginBo) (string, error) {
-	redirectURL, err := b.authRepo.Login(ctx, req)
-	if err != nil {
-		return "", err
-	}
-	return redirectURL, nil
+	return b.authRepo.LoginByOAuth2(ctx, req)
 }
 
 func (b *LoginBiz) RefreshToken(ctx context.Context, baseInfo jwt.BaseInfo) (string, error) {
 	return b.authRepo.RefreshToken(ctx, baseInfo)
+}
+
+func (b *LoginBiz) EmailLogin(ctx context.Context, email string) (string, error) {
+	return b.authRepo.LoginByEmail(ctx, email)
 }

@@ -97,3 +97,14 @@ func (u *User) ChangeAvatar(ctx context.Context, uid snowflake.ID, avatar string
 	}
 	return nil
 }
+
+func (u *User) ChangeRemark(ctx context.Context, uid snowflake.ID, remark string) error {
+	if err := u.userRepo.UpdateUserRemark(ctx, uid, remark); err != nil {
+		if merr.IsNotFound(err) {
+			return merr.ErrorNotFound("user %s not found", uid)
+		}
+		u.helper.Errorw("msg", "change remark failed", "error", err, "uid", uid)
+		return merr.ErrorInternalServer("change remark failed").WithCause(err)
+	}
+	return nil
+}

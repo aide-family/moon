@@ -151,3 +151,9 @@ func (u *userRepository) UpdateUserAvatar(ctx context.Context, uid snowflake.ID,
 	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).UpdateColumnSimple(mutation.Avatar.Value(avatar))
 	return err
 }
+
+func (u *userRepository) UpdateUserRemark(ctx context.Context, uid snowflake.ID, remark string) error {
+	mutation := query.User
+	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).UpdateColumnSimple(mutation.Remark.Value(remark))
+	return err
+}

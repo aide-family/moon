@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/aide-family/magicbox/config"
+	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/jwt"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/pointer"
@@ -37,8 +38,35 @@ type loginRepository struct {
 	jwtConfig *config.JWT
 }
 
+func (g *loginRepository) LoginByEmail(ctx context.Context, email string) (string, error) {
+	user, err := g.findOrCreateUserByEmail(ctx, email)
+	if err != nil {
+		return "", err
+	}
+	return g.generateToken(user)
+}
+
+func (g *loginRepository) findOrCreateUserByEmail(ctx context.Context, email string) (*do.User, error) {
+	userMutation := query.User
+	userDO, err := userMutation.WithContext(ctx).Where(userMutation.Email.Eq(email)).First()
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, merr.ErrorInternalServer("find user by email failed").WithCause(err)
+		}
+		userDO = &do.User{
+			Email:  email,
+			Name:   email,
+			Status: enum.UserStatus_ACTIVE,
+		}
+		if err := userMutation.WithContext(ctx).Create(userDO); err != nil {
+			return nil, merr.ErrorInternalServer("create user by email failed").WithCause(err)
+		}
+	}
+	return userDO, nil
+}
+
 // Login implements [authv1.Repository].
-func (g *loginRepository) Login(ctx context.Context, req *bo.OAuth2LoginBo) (string, error) {
+func (g *loginRepository) LoginByOAuth2(ctx context.Context, req *bo.OAuth2LoginBo) (string, error) {
 	user, oauthConfig := req.User, req.Config
 	if pointer.IsNil(user) {
 		klog.Context(ctx).Debugw("msg", "user is nil")

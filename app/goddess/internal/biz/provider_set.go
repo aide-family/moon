@@ -10,4 +10,5 @@ var ProviderSetBiz = wire.NewSet(
 	NewUser,
 	NewMember,
 	NewCaptcha,
+	NewEmail,
 )

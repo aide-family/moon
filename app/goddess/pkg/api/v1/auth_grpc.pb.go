@@ -20,7 +20,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_OAuth2Login_FullMethodName = "/goddess.api.v1.AuthService/OAuth2Login"
+	AuthService_OAuth2Login_FullMethodName        = "/goddess.api.v1.AuthService/OAuth2Login"
+	AuthService_SendEmailLoginCode_FullMethodName = "/goddess.api.v1.AuthService/SendEmailLoginCode"
+	AuthService_EmailLogin_FullMethodName         = "/goddess.api.v1.AuthService/EmailLogin"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -28,6 +30,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthServiceClient interface {
 	OAuth2Login(ctx context.Context, in *oauth.OAuth2LoginRequest, opts ...grpc.CallOption) (*LoginReply, error)
+	SendEmailLoginCode(ctx context.Context, in *SendEmailLoginCodeRequest, opts ...grpc.CallOption) (*SendEmailLoginCodeReply, error)
+	EmailLogin(ctx context.Context, in *EmailLoginRequest, opts ...grpc.CallOption) (*LoginReply, error)
 }
 
 type authServiceClient struct {
@@ -48,11 +52,33 @@ func (c *authServiceClient) OAuth2Login(ctx context.Context, in *oauth.OAuth2Log
 	return out, nil
 }
 
+func (c *authServiceClient) SendEmailLoginCode(ctx context.Context, in *SendEmailLoginCodeRequest, opts ...grpc.CallOption) (*SendEmailLoginCodeReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendEmailLoginCodeReply)
+	err := c.cc.Invoke(ctx, AuthService_SendEmailLoginCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) EmailLogin(ctx context.Context, in *EmailLoginRequest, opts ...grpc.CallOption) (*LoginReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LoginReply)
+	err := c.cc.Invoke(ctx, AuthService_EmailLogin_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
 type AuthServiceServer interface {
 	OAuth2Login(context.Context, *oauth.OAuth2LoginRequest) (*LoginReply, error)
+	SendEmailLoginCode(context.Context, *SendEmailLoginCodeRequest) (*SendEmailLoginCodeReply, error)
+	EmailLogin(context.Context, *EmailLoginRequest) (*LoginReply, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -65,6 +91,12 @@ type UnimplementedAuthServiceServer struct{}
 
 func (UnimplementedAuthServiceServer) OAuth2Login(context.Context, *oauth.OAuth2LoginRequest) (*LoginReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OAuth2Login not implemented")
+}
+func (UnimplementedAuthServiceServer) SendEmailLoginCode(context.Context, *SendEmailLoginCodeRequest) (*SendEmailLoginCodeReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendEmailLoginCode not implemented")
+}
+func (UnimplementedAuthServiceServer) EmailLogin(context.Context, *EmailLoginRequest) (*LoginReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EmailLogin not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -105,6 +137,42 @@ func _AuthService_OAuth2Login_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_SendEmailLoginCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendEmailLoginCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).SendEmailLoginCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_SendEmailLoginCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).SendEmailLoginCode(ctx, req.(*SendEmailLoginCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_EmailLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmailLoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).EmailLogin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_EmailLogin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).EmailLogin(ctx, req.(*EmailLoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -115,6 +183,14 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "OAuth2Login",
 			Handler:    _AuthService_OAuth2Login_Handler,
+		},
+		{
+			MethodName: "SendEmailLoginCode",
+			Handler:    _AuthService_SendEmailLoginCode_Handler,
+		},
+		{
+			MethodName: "EmailLogin",
+			Handler:    _AuthService_EmailLogin_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

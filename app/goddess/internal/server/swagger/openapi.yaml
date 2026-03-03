@@ -6,6 +6,42 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /v1/auth/email/login:
+        post:
+            tags:
+                - AuthService
+            operationId: AuthService_EmailLogin
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/goddess.api.v1.EmailLoginRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.LoginReply'
+    /v1/auth/email/login/code:
+        post:
+            tags:
+                - AuthService
+            operationId: AuthService_SendEmailLoginCode
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/goddess.api.v1.SendEmailLoginCodeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.SendEmailLoginCodeReply'
     /v1/captcha:
         get:
             tags:
@@ -362,7 +398,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/goddess.api.v1.ChangeAvatarReply'
+                                $ref: '#/components/schemas/goddess.api.v1.ChangeReply'
     /v1/self/change-email:
         put:
             tags:
@@ -380,7 +416,25 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/goddess.api.v1.ChangeEmailReply'
+                                $ref: '#/components/schemas/goddess.api.v1.ChangeReply'
+    /v1/self/change-remark:
+        put:
+            tags:
+                - Self
+            operationId: Self_ChangeRemark
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/goddess.api.v1.ChangeRemarkRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.ChangeReply'
     /v1/self/info:
         get:
             tags:
@@ -564,25 +618,25 @@ components:
                     type: string
                 reason:
                     type: string
-        goddess.api.v1.ChangeAvatarReply:
-            type: object
-            properties:
-                message:
-                    type: string
         goddess.api.v1.ChangeAvatarRequest:
             type: object
             properties:
                 avatar:
                     type: string
-        goddess.api.v1.ChangeEmailReply:
-            type: object
-            properties:
-                message:
-                    type: string
         goddess.api.v1.ChangeEmailRequest:
             type: object
             properties:
                 email:
+                    type: string
+        goddess.api.v1.ChangeRemarkRequest:
+            type: object
+            properties:
+                remark:
+                    type: string
+        goddess.api.v1.ChangeReply:
+            type: object
+            properties:
+                message:
                     type: string
         goddess.api.v1.CreateNamespaceReply:
             type: object
@@ -607,6 +661,13 @@ components:
             type: object
             properties:
                 message:
+                    type: string
+        goddess.api.v1.EmailLoginRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                code:
                     type: string
         goddess.api.v1.GetCaptchaReply:
             type: object
@@ -673,6 +734,11 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        goddess.api.v1.LoginReply:
+            type: object
+            properties:
+                token:
+                    type: string
         goddess.api.v1.MemberItem:
             type: object
             properties:
@@ -817,6 +883,20 @@ components:
                     type: string
                 hasMore:
                     type: boolean
+        goddess.api.v1.SendEmailLoginCodeReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        goddess.api.v1.SendEmailLoginCodeRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                captchaId:
+                    type: string
+                captchaAnswer:
+                    type: string
         goddess.api.v1.UpdateMemberStatusReply:
             type: object
             properties:
@@ -882,6 +962,7 @@ components:
                 remark:
                     type: string
 tags:
+    - name: AuthService
     - name: Captcha
     - name: Member
     - name: Namespace

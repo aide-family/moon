@@ -29,6 +29,15 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	bizNamespace := biz.NewNamespace(namespace, helper)
 	namespaceService := service.NewNamespaceService(bizNamespace)
 	grpcServer := server.NewGRPCServer(bc, namespaceService, helper)
+	loginRepository, err := impl.NewLoginRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	loginBiz := biz.NewLoginBiz(loginRepository)
+	email := biz.NewEmail(bc)
+	captcha := biz.NewCaptcha()
+	authService := service.NewAuthService(loginBiz, email, captcha)
 	health := impl.NewHealthRepository(dataData)
 	bizHealth := biz.NewHealth(health)
 	healthService := service.NewHealthService(bizHealth)
@@ -38,16 +47,9 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	member := impl.NewMemberRepository(dataData)
 	bizMember := biz.NewMember(member, user, namespace, helper)
 	memberService := service.NewMemberService(bizMember)
-	loginRepository, err := impl.NewLoginRepository(bc, dataData)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	loginBiz := biz.NewLoginBiz(loginRepository)
 	selfService := service.NewSelfService(bizUser, bizMember, bizNamespace, loginBiz)
-	captcha := biz.NewCaptcha()
 	captchaService := service.NewCaptchaService(captcha)
-	servers := server.RegisterGRPCService(bc, grpcServer, healthService, namespaceService, userService, memberService, selfService, captchaService)
+	servers := server.RegisterGRPCService(bc, grpcServer, authService, healthService, namespaceService, userService, memberService, selfService, captchaService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()
