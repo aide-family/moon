@@ -7,7 +7,7 @@ import (
 
 	"github.com/aide-family/goddess/internal/biz"
 	"github.com/aide-family/goddess/internal/biz/bo"
-	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
+	apiv1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 func NewUserService(userBiz *biz.User) *UserService {
@@ -17,12 +17,12 @@ func NewUserService(userBiz *biz.User) *UserService {
 }
 
 type UserService struct {
-	goddessv1.UnimplementedUserServer
+	apiv1.UnimplementedUserServer
 
 	userBiz *biz.User
 }
 
-func (s *UserService) GetUser(ctx context.Context, req *goddessv1.GetUserRequest) (*goddessv1.UserItem, error) {
+func (s *UserService) GetUser(ctx context.Context, req *apiv1.GetUserRequest) (*apiv1.UserItem, error) {
 	user, err := s.userBiz.GetUser(ctx, snowflake.ParseInt64(req.Uid))
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func (s *UserService) GetUser(ctx context.Context, req *goddessv1.GetUserRequest
 	return user.ToAPIV1UserItem(), nil
 }
 
-func (s *UserService) ListUser(ctx context.Context, req *goddessv1.ListUserRequest) (*goddessv1.ListUserReply, error) {
+func (s *UserService) ListUser(ctx context.Context, req *apiv1.ListUserRequest) (*apiv1.ListUserReply, error) {
 	listBo := bo.NewListUserBo(req)
 	page, err := s.userBiz.ListUser(ctx, listBo)
 	if err != nil {
@@ -39,7 +39,7 @@ func (s *UserService) ListUser(ctx context.Context, req *goddessv1.ListUserReque
 	return bo.ToAPIV1ListUserReply(page), nil
 }
 
-func (s *UserService) SelectUser(ctx context.Context, req *goddessv1.SelectUserRequest) (*goddessv1.SelectUserReply, error) {
+func (s *UserService) SelectUser(ctx context.Context, req *apiv1.SelectUserRequest) (*apiv1.SelectUserReply, error) {
 	selectBo := bo.NewSelectUserBo(req)
 	result, err := s.userBiz.SelectUser(ctx, selectBo)
 	if err != nil {
@@ -48,16 +48,16 @@ func (s *UserService) SelectUser(ctx context.Context, req *goddessv1.SelectUserR
 	return bo.ToAPIV1SelectUserReply(result), nil
 }
 
-func (s *UserService) BanUser(ctx context.Context, req *goddessv1.BanUserRequest) (*goddessv1.BanUserReply, error) {
+func (s *UserService) BanUser(ctx context.Context, req *apiv1.BanUserRequest) (*apiv1.BanUserReply, error) {
 	if err := s.userBiz.BanUser(ctx, snowflake.ParseInt64(req.Uid)); err != nil {
 		return nil, err
 	}
-	return &goddessv1.BanUserReply{Message: "user has been banned"}, nil
+	return &apiv1.BanUserReply{Message: "user has been banned"}, nil
 }
 
-func (s *UserService) PermitUser(ctx context.Context, req *goddessv1.PermitUserRequest) (*goddessv1.PermitUserReply, error) {
+func (s *UserService) PermitUser(ctx context.Context, req *apiv1.PermitUserRequest) (*apiv1.PermitUserReply, error) {
 	if err := s.userBiz.PermitUser(ctx, snowflake.ParseInt64(req.Uid)); err != nil {
 		return nil, err
 	}
-	return &goddessv1.PermitUserReply{Message: "user has been permitted"}, nil
+	return &apiv1.PermitUserReply{Message: "user has been permitted"}, nil
 }

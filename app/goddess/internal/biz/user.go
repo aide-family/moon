@@ -3,8 +3,10 @@ package biz
 import (
 	"context"
 
+	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
+	"github.com/aide-family/magicbox/strutil/cnst"
 	"github.com/bwmarrin/snowflake"
 	klog "github.com/go-kratos/kratos/v2/log"
 
@@ -22,6 +24,14 @@ func NewUser(userRepo repository.User, helper *klog.Helper) *User {
 type User struct {
 	helper   *klog.Helper
 	userRepo repository.User
+}
+
+func (u *User) GetUserUID(ctx context.Context) (snowflake.ID, error) {
+	userUID := contextx.GetUserUID(ctx)
+	if userUID <= 0 {
+		return 0, merr.ErrorUnauthorized("%s is required", cnst.HTTPHeaderAuthorization)
+	}
+	return userUID, nil
 }
 
 func (u *User) GetUser(ctx context.Context, uid snowflake.ID) (*bo.UserItemBo, error) {

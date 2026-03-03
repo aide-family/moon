@@ -35,6 +35,17 @@ func (b *UserItemBo) ToAPIV1UserItem() *goddessv1.UserItem {
 	}
 }
 
+func (b *UserItemBo) ToCreateMemberBo(namespaceUID snowflake.ID) *CreateMemberBo {
+	return &CreateMemberBo{
+		Creator:      b.UID,
+		Name:         b.Name,
+		Nickname:     b.Nickname,
+		Avatar:       b.Avatar,
+		NamespaceUID: namespaceUID,
+		UserUID:      b.UID,
+	}
+}
+
 type ListUserBo struct {
 	*PageRequestBo
 	Email   string

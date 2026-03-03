@@ -9,11 +9,11 @@ import (
 
 	"github.com/aide-family/goddess/internal/biz"
 	"github.com/aide-family/goddess/internal/biz/bo"
-	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
+	apiv1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 type AuthService struct {
-	goddessv1.UnimplementedAuthServiceServer
+	apiv1.UnimplementedAuthServiceServer
 	loginBiz    *biz.LoginBiz
 	emailBiz    *biz.Email
 	captchaBiz  *biz.Captcha
@@ -21,7 +21,7 @@ type AuthService struct {
 }
 
 type DomainAuthService struct {
-	goddessv1.UnimplementedAuthServiceServer
+	apiv1.UnimplementedAuthServiceServer
 	loginBiz *biz.LoginBiz
 }
 
@@ -38,16 +38,16 @@ func NewAuthService(loginBiz *biz.LoginBiz, emailBiz *biz.Email, captchaBiz *biz
 	}
 }
 
-func (s *AuthService) OAuth2Login(ctx context.Context, req *oauth.OAuth2LoginRequest) (*goddessv1.LoginReply, error) {
+func (s *AuthService) OAuth2Login(ctx context.Context, req *oauth.OAuth2LoginRequest) (*apiv1.LoginReply, error) {
 	loginBo := bo.NewOAuth2LoginBo(req)
 	token, err := s.loginBiz.Login(ctx, loginBo)
 	if err != nil {
 		return nil, err
 	}
-	return &goddessv1.LoginReply{Token: token}, nil
+	return &apiv1.LoginReply{Token: token}, nil
 }
 
-func (s *AuthService) SendEmailLoginCode(ctx context.Context, req *goddessv1.SendEmailLoginCodeRequest) (*goddessv1.SendEmailLoginCodeReply, error) {
+func (s *AuthService) SendEmailLoginCode(ctx context.Context, req *apiv1.SendEmailLoginCodeRequest) (*apiv1.SendEmailLoginCodeReply, error) {
 	if err := s.captchaBiz.Verify(ctx, req.GetCaptchaId(), req.GetCaptchaAnswer()); err != nil {
 		return nil, err
 	}
@@ -59,10 +59,10 @@ func (s *AuthService) SendEmailLoginCode(ctx context.Context, req *goddessv1.Sen
 		return nil, err
 	}
 	s.sendedEmail.Set(req.GetEmail(), codeID)
-	return &goddessv1.SendEmailLoginCodeReply{Message: "Email login code sent successfully"}, nil
+	return &apiv1.SendEmailLoginCodeReply{Message: "Email login code sent successfully"}, nil
 }
 
-func (s *AuthService) EmailLogin(ctx context.Context, req *goddessv1.EmailLoginRequest) (*goddessv1.LoginReply, error) {
+func (s *AuthService) EmailLogin(ctx context.Context, req *apiv1.EmailLoginRequest) (*apiv1.LoginReply, error) {
 	codeID, ok := s.sendedEmail.Get(req.GetEmail())
 	if !ok {
 		return nil, merr.ErrorNotFound("Please send email login code first")
@@ -74,5 +74,5 @@ func (s *AuthService) EmailLogin(ctx context.Context, req *goddessv1.EmailLoginR
 	if err != nil {
 		return nil, err
 	}
-	return &goddessv1.LoginReply{Token: token}, nil
+	return &apiv1.LoginReply{Token: token}, nil
 }

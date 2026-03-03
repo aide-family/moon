@@ -31,8 +31,12 @@ func NewDefaultNamespace(c *config.DomainConfig) (goddessv1.NamespaceServer, fun
 		return nil, nil, err
 	}
 	namespaceRepo := impl.NewNamespaceRepositoryWithDB(db)
+	userRepo := impl.NewUserRepositoryWithDB(db)
+	memberRepo := impl.NewMemberRepositoryWithDB(db)
 	helper := klog.NewHelper(klog.With(klog.GetLogger(), "module", "namespace"))
-	namespaceBiz := biz.NewNamespace(namespaceRepo, helper)
+	userBiz := biz.NewUser(userRepo, helper)
+	memberBiz := biz.NewMember(memberRepo, userRepo, namespaceRepo, helper)
+	namespaceBiz := biz.NewNamespace(namespaceRepo, userBiz, memberBiz, helper)
 	return &defaultNamespace{
 		NamespaceServer: service.NewNamespaceService(namespaceBiz),
 	}, close, nil

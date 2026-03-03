@@ -48,10 +48,13 @@ func (n *namespaceRepository) AllNamespaces(ctx context.Context) ([]*bo.Namespac
 }
 
 // CreateNamespace implements [repository.Namespace].
-func (n *namespaceRepository) CreateNamespace(ctx context.Context, req *bo.CreateNamespaceBo) error {
+func (n *namespaceRepository) CreateNamespace(ctx context.Context, req *bo.CreateNamespaceBo) (snowflake.ID, error) {
 	namespaceModel := convert.NamespaceToDo(ctx, req)
 	mutation := query.Namespace
-	return mutation.WithContext(ctx).Create(namespaceModel)
+	if err := mutation.WithContext(ctx).Create(namespaceModel); err != nil {
+		return 0, err
+	}
+	return namespaceModel.UID, nil
 }
 
 // DeleteNamespace implements [repository.Namespace].

@@ -37,7 +37,7 @@ func NewSelfRepository(c *config.DomainConfig, jwtConfig *config.JWT) (goddessv1
 	loginRepo := impl.NewLoginRepositoryWithDB(db, jwtConfig)
 	userBiz := biz.NewUser(userRepo, helper)
 	memberBiz := biz.NewMember(memberRepo, userRepo, namespaceRepo, helper)
-	namespaceBiz := biz.NewNamespace(namespaceRepo, helper)
+	namespaceBiz := biz.NewNamespace(namespaceRepo, userBiz, memberBiz, helper)
 	loginBiz := biz.NewLoginBiz(loginRepo)
 	return &selfRepository{SelfServer: service.NewSelfService(userBiz, memberBiz, namespaceBiz, loginBiz)}, close, nil
 }

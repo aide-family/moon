@@ -117,3 +117,11 @@ func (m *Member) UpdateMemberStatus(ctx context.Context, memberUID snowflake.ID,
 func (m *Member) GetNamespaceUIDsByUserUID(ctx context.Context, userUID snowflake.ID) ([]snowflake.ID, error) {
 	return m.memberRepo.GetNamespaceUIDsByUserUID(ctx, userUID)
 }
+
+func (m *Member) CreateMember(ctx context.Context, req *bo.CreateMemberBo) error {
+	if err := m.memberRepo.CreateMember(ctx, req); err != nil {
+		m.helper.Errorw("msg", "create member failed", "error", err, "req", req)
+		return merr.ErrorInternalServer("create member failed").WithCause(err)
+	}
+	return nil
+}
