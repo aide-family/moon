@@ -2,6 +2,7 @@ environment: ${MOON_GODDESS_ENVIRONMENT:PROD}
 enableSwagger: ${MOON_GODDESS_ENABLE_SWAGGER:true}
 enableMetrics: ${MOON_GODDESS_ENABLE_METRICS:true}
 useRandomID: ${MOON_GODDESS_USE_RANDOM_NODE_ID:false}
+siteDomain: ${MOON_GODDESS_SITE_DOMAIN:localhost:5172}
 
 server:
   name: ${MOON_GODDESS_SERVER_NAME:goddess}

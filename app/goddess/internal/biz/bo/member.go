@@ -49,6 +49,7 @@ type CreateMemberBo struct {
 	Name         string
 	Nickname     string
 	Avatar       string
+	Status       enum.MemberStatus
 }
 
 type ListMemberBo struct {

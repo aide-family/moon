@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/aide-family/goddess/internal/biz"
+	"github.com/aide-family/goddess/internal/conf"
 	"github.com/aide-family/goddess/internal/data/impl"
 	"github.com/aide-family/goddess/internal/service"
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
@@ -30,12 +31,14 @@ func NewDefaultNamespace(c *config.DomainConfig) (goddessv1.NamespaceServer, fun
 	if err != nil {
 		return nil, nil, err
 	}
+	bootstrap := &conf.Bootstrap{}
 	namespaceRepo := impl.NewNamespaceRepositoryWithDB(db)
 	userRepo := impl.NewUserRepositoryWithDB(db)
 	memberRepo := impl.NewMemberRepositoryWithDB(db)
+	emailRepo := impl.NewEmailRepository(bootstrap)
 	helper := klog.NewHelper(klog.With(klog.GetLogger(), "module", "namespace"))
 	userBiz := biz.NewUser(userRepo, helper)
-	memberBiz := biz.NewMember(memberRepo, userRepo, namespaceRepo, helper)
+	memberBiz := biz.NewMember(bootstrap, memberRepo, userRepo, namespaceRepo, emailRepo, helper)
 	namespaceBiz := biz.NewNamespace(namespaceRepo, userBiz, memberBiz, helper)
 	return &defaultNamespace{
 		NamespaceServer: service.NewNamespaceService(namespaceBiz),

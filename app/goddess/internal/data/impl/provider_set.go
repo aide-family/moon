@@ -10,4 +10,5 @@ var ProviderSetImpl = wire.NewSet(
 	NewNamespaceRepository,
 	NewUserRepository,
 	NewMemberRepository,
+	NewEmailRepository,
 )

@@ -22,6 +22,7 @@ message Bootstrap {
 	magicbox.config.OAuth2 oauth2 = 11;
 	magicbox.config.ORMConfig database = 12;
 	magicbox.config.MessageEmailConfig globalEmail = 13;
+	string siteDomain = 14;
 }
 
 message Server {

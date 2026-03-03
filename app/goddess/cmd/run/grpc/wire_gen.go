@@ -29,7 +29,8 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	user := impl.NewUserRepository(dataData)
 	bizUser := biz.NewUser(user, helper)
 	member := impl.NewMemberRepository(dataData)
-	bizMember := biz.NewMember(member, user, namespace, helper)
+	email := impl.NewEmailRepository(bc)
+	bizMember := biz.NewMember(bc, member, user, namespace, email, helper)
 	bizNamespace := biz.NewNamespace(namespace, bizUser, bizMember, helper)
 	namespaceService := service.NewNamespaceService(bizNamespace)
 	grpcServer := server.NewGRPCServer(bc, namespaceService, helper)
@@ -39,9 +40,9 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		return nil, nil, err
 	}
 	loginBiz := biz.NewLoginBiz(loginRepository)
-	email := biz.NewEmail(bc)
+	bizEmail := biz.NewEmail(email)
 	captcha := biz.NewCaptcha()
-	authService := service.NewAuthService(loginBiz, email, captcha)
+	authService := service.NewAuthService(loginBiz, bizEmail, captcha)
 	health := impl.NewHealthRepository(dataData)
 	bizHealth := biz.NewHealth(health)
 	healthService := service.NewHealthService(bizHealth)

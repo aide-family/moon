@@ -2,21 +2,38 @@ package biz
 
 import (
 	"context"
+	_ "embed"
+	"fmt"
 
 	"github.com/aide-family/magicbox/contextx"
+	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
+	"github.com/aide-family/magicbox/strutil"
 	"github.com/bwmarrin/snowflake"
 	klog "github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/goddess/internal/biz/bo"
 	"github.com/aide-family/goddess/internal/biz/repository"
+	"github.com/aide-family/goddess/internal/conf"
 )
 
-func NewMember(memberRepo repository.Member, userRepo repository.User, namespaceRepo repository.Namespace, helper *klog.Helper) *Member {
+//go:embed templates/invite_member.html
+var inviteMemberTemplate string
+
+func NewMember(
+	c *conf.Bootstrap,
+	memberRepo repository.Member,
+	userRepo repository.User,
+	namespaceRepo repository.Namespace,
+	emailRepo repository.Email,
+	helper *klog.Helper,
+) *Member {
 	return &Member{
+		siteDomain:    c.GetSiteDomain(),
 		memberRepo:    memberRepo,
 		userRepo:      userRepo,
 		namespaceRepo: namespaceRepo,
+		emailRepo:     emailRepo,
 		helper:        klog.NewHelper(klog.With(helper.Logger(), "biz", "member")),
 	}
 }
@@ -26,6 +43,8 @@ type Member struct {
 	memberRepo    repository.Member
 	userRepo      repository.User
 	namespaceRepo repository.Namespace
+	emailRepo     repository.Email
+	siteDomain    string
 }
 
 func (m *Member) InviteMember(ctx context.Context, req *bo.InviteMemberBo) error {
@@ -50,6 +69,11 @@ func (m *Member) InviteMember(ctx context.Context, req *bo.InviteMemberBo) error
 		return merr.ErrorInternalServer("invite member failed").WithCause(err)
 	}
 	creator := contextx.GetUserUID(ctx)
+	namespace, err := m.namespaceRepo.GetNamespace(ctx, namespaceUID)
+	if err != nil {
+		m.helper.Errorw("msg", "get namespace failed", "error", err, "namespaceUID", namespaceUID)
+		return merr.ErrorInternalServer("invite member failed").WithCause(err)
+	}
 	createBo := &bo.CreateMemberBo{
 		Creator:      creator,
 		NamespaceUID: namespaceUID,
@@ -57,10 +81,33 @@ func (m *Member) InviteMember(ctx context.Context, req *bo.InviteMemberBo) error
 		Name:         user.Name,
 		Nickname:     user.Nickname,
 		Avatar:       user.Avatar,
+		Status:       enum.MemberStatus_JOINED,
 	}
 	if err := m.memberRepo.CreateMember(ctx, createBo); err != nil {
 		m.helper.Errorw("msg", "create member failed", "error", err, "email", req.Email)
 		return merr.ErrorInternalServer("invite member failed").WithCause(err)
+	}
+	templateData := map[string]any{
+		"Name":          createBo.Name,
+		"Inviter":       contextx.GetUsername(ctx),
+		"NamespaceName": namespace.Name,
+		"InviteLink":    m.siteDomain,
+	}
+	inviteBody, err := strutil.ExecuteHTMLTemplateFile(inviteMemberTemplate, templateData)
+	if err != nil {
+		m.helper.Errorw("msg", "parse invite template failed", "error", err)
+		return merr.ErrorInternalServer("invite member failed").WithCause(err)
+	}
+
+	sendEmailBo := &bo.SendEmailBo{
+		To:          []string{req.Email},
+		Subject:     fmt.Sprintf("%s invited you to join the moon family", contextx.GetUsername(ctx)),
+		Body:        inviteBody,
+		ContentType: "text/html",
+	}
+	if err := m.emailRepo.SendEmail(ctx, sendEmailBo); err != nil {
+		m.helper.Errorw("msg", "send email failed", "error", err, "email", req.Email)
+		return merr.ErrorInternalServer("send email failed").WithCause(err)
 	}
 	return nil
 }

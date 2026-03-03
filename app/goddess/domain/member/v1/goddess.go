@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/aide-family/goddess/internal/biz"
+	"github.com/aide-family/goddess/internal/conf"
 	"github.com/aide-family/goddess/internal/data/impl"
 	"github.com/aide-family/goddess/internal/service"
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
@@ -30,11 +31,13 @@ func NewDefaultMember(c *config.DomainConfig) (goddessv1.MemberServer, func() er
 	if err != nil {
 		return nil, nil, err
 	}
+	bootstrap := &conf.Bootstrap{}
+	emailRepo := impl.NewEmailRepository(bootstrap)
 	memberRepo := impl.NewMemberRepositoryWithDB(db)
 	userRepo := impl.NewUserRepositoryWithDB(db)
 	namespaceRepo := impl.NewNamespaceRepositoryWithDB(db)
 	helper := klog.NewHelper(klog.With(klog.GetLogger(), "module", "member"))
-	memberBiz := biz.NewMember(memberRepo, userRepo, namespaceRepo, helper)
+	memberBiz := biz.NewMember(bootstrap, memberRepo, userRepo, namespaceRepo, emailRepo, helper)
 	return &defaultMember{
 		MemberServer: service.NewMemberService(memberBiz),
 	}, close, nil
