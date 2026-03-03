@@ -80,6 +80,22 @@ build: all
 	@echo "AUTHOR_EMAIL: $(AUTHOR_EMAIL)"
 	go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/goddess main.go
 
+.PHONY: build-exe
+# build the goddess binary for windows
+build-exe: all
+	@echo "Building goddess"
+	@echo "VERSION: $(VERSION)"
+	@echo "BUILD_TIME: $(BUILD_TIME)"
+	@echo "AUTHOR: $(AUTHOR)"
+	@echo "AUTHOR_EMAIL: $(AUTHOR_EMAIL)"
+	GOOS=windows GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/goddess.exe main.go
+
+.PHONY: clean
+# clean the goddess binary
+clean:
+	@echo "Cleaning goddess"
+	rm -rf ./bin
+
 .PHONY: dev
 # run the goddess binary in development mode
 dev:

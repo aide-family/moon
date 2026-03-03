@@ -6,6 +6,18 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /v1/captcha:
+        get:
+            tags:
+                - Captcha
+            operationId: Captcha_GetCaptcha
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.GetCaptchaReply'
     /v1/member/invite:
         post:
             tags:
@@ -596,6 +608,13 @@ components:
             properties:
                 message:
                     type: string
+        goddess.api.v1.GetCaptchaReply:
+            type: object
+            properties:
+                captchaId:
+                    type: string
+                captchaB64s:
+                    type: string
         goddess.api.v1.InviteMemberReply:
             type: object
             properties:
@@ -863,6 +882,7 @@ components:
                 remark:
                     type: string
 tags:
+    - name: Captcha
     - name: Member
     - name: Namespace
     - name: Self

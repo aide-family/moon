@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package goddess.api.v1;
+
+option go_package = "github.com/aide-family/goddess/pkg/api/v1";
+
+import "google/api/annotations.proto";
+
+service Captcha {
+    rpc GetCaptcha(GetCaptchaRequest) returns (GetCaptchaReply) {
+        option (google.api.http) = {
+            get: "/v1/captcha"
+        };
+    }
+}
+
+message GetCaptchaRequest {}
+message GetCaptchaReply {
+    string captchaId = 1;
+    string captchaB64s = 2;
+}

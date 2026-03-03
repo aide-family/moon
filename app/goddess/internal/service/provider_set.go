@@ -7,6 +7,7 @@ import "github.com/google/wire"
 var ProviderSetService = wire.NewSet(
 	NewHealthService,
 	NewAuthService,
+	NewCaptchaService,
 	NewNamespaceService,
 	NewUserService,
 	NewMemberService,

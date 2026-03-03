@@ -1,11 +1,12 @@
+// Package captcha provides a captcha service.
 package captcha
 
 import (
 	captcha "github.com/mojocn/base64Captcha"
 )
 
-// NewCaptcha creates a new captcha instance.
-func NewCaptcha(opts ...Option) *captcha.Captcha {
+// New creates a new captcha instance.
+func New(opts ...Option) *captcha.Captcha {
 	c := &config{
 		driver: captcha.NewDriverDigit(80, 240, 6, 0.7, 80),
 		store:  captcha.DefaultMemStore,

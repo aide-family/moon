@@ -46,7 +46,9 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	bizMember := biz.NewMember(member, user, namespace, helper)
 	memberService := service.NewMemberService(bizMember)
 	selfService := service.NewSelfService(bizUser, bizMember, bizNamespace, loginBiz)
-	servers := server.RegisterHTTPService(bc, httpServer, authService, healthService, namespaceService, userService, memberService, selfService)
+	captcha := biz.NewCaptcha()
+	captchaService := service.NewCaptchaService(captcha)
+	servers := server.RegisterHTTPService(bc, httpServer, authService, healthService, namespaceService, userService, memberService, selfService, captchaService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()
