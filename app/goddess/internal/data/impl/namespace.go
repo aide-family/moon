@@ -3,7 +3,6 @@ package impl
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
@@ -188,7 +187,7 @@ func (n *namespaceRepository) UpdateNamespace(ctx context.Context, req *bo.Updat
 		mutation.Name.Value(req.Name),
 		mutation.Metadata.Value(safety.NewMap(req.Metadata)),
 		mutation.Logo.Value(req.Logo),
-		mutation.Banners.Value(strings.Join(req.Banners, ",")),
+		mutation.Banners.Value(safety.NewSlice(req.Banners)),
 		mutation.Remark.Value(req.Remark),
 	}
 

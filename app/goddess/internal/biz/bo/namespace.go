@@ -1,6 +1,7 @@
 package bo
 
 import (
+	"strings"
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
@@ -27,7 +28,7 @@ func NewCreateNamespaceBo(req *goddessv1.CreateNamespaceRequest, leader snowflak
 		Metadata: req.Metadata,
 		Status:   enum.GlobalStatus_ENABLED,
 		Logo:     req.Logo,
-		Secret:   strutil.RandomString(16),
+		Secret:   strings.ToUpper(strutil.RandomID(16)),
 		Banners:  req.Banners,
 		Remark:   req.Remark,
 		Leader:   leader,

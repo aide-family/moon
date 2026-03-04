@@ -927,8 +927,9 @@ components:
                     type: string
                 remark:
                     type: string
-                namespaceUID:
-                    type: string
+                role:
+                    type: integer
+                    format: enum
         rabbit.api.v1.CancelMessageLogReply:
             type: object
             properties: {}

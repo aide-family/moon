@@ -31,15 +31,14 @@ func ToRecipientMemberDo(ctx context.Context, req *bo.RecipientMemberItemBo) *do
 
 func ToRecipientMemberBO(d *do.RecipientMember) *bo.RecipientMemberItemBo {
 	return &bo.RecipientMemberItemBo{
-		UID:          d.ID,
-		NamespaceUID: d.NamespaceUID,
-		UserUID:      d.UserUID,
-		Email:        string(d.Email),
-		Phone:        string(d.Phone),
-		Status:       d.Status,
-		Name:         d.Name,
-		Nickname:     d.Nickname,
-		Avatar:       d.Avatar,
-		Remark:       d.Remark,
+		UID:      d.ID,
+		UserUID:  d.UserUID,
+		Email:    string(d.Email),
+		Phone:    string(d.Phone),
+		Status:   d.Status,
+		Name:     d.Name,
+		Nickname: d.Nickname,
+		Avatar:   d.Avatar,
+		Remark:   d.Remark,
 	}
 }

@@ -48,7 +48,7 @@ namespaceConfig:
       useSystemLogger: ${MOON_RABBIT_NAMESPACE_DATABASE_USE_SYSTEM_LOGGER:false}
       options:
         '@type': '${MOON_RABBIT_NAMESPACE_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
-        dsn: '${MOON_RABBIT_NAMESPACE_DATABASE_SQLITE_OPTIONS_DSN:file:./rabbit.db?cache=shared}'
+        dsn: '${MOON_RABBIT_NAMESPACE_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
     jwt:
       secret: ${MOON_RABBIT_DEFAULT_CONFIG_JWT_SECRET:xxx}
       expire: ${MOON_RABBIT_DEFAULT_CONFIG_JWT_EXPIRE:600s}
@@ -71,7 +71,7 @@ memberConfig:
       useSystemLogger: ${MOON_RABBIT_MEMBER_DATABASE_USE_SYSTEM_LOGGER:false}
       options:
         '@type': '${MOON_RABBIT_MEMBER_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
-        dsn: '${MOON_RABBIT_MEMBER_DATABASE_SQLITE_OPTIONS_DSN:file:./rabbit.db?cache=shared}'
+        dsn: '${MOON_RABBIT_MEMBER_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
     jwt:
       secret: ${MOON_RABBIT_DEFAULT_CONFIG_JWT_SECRET:xxx}
       expire: ${MOON_RABBIT_DEFAULT_CONFIG_JWT_EXPIRE:600s}
@@ -94,7 +94,7 @@ loginConfig:
       useSystemLogger: ${MOON_RABBIT_LOGIN_DATABASE_USE_SYSTEM_LOGGER:false}
       options:
         '@type': '${MOON_RABBIT_LOGIN_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
-        dsn: '${MOON_RABBIT_LOGIN_DATABASE_SQLITE_OPTIONS_DSN:file:./rabbit.db?cache=shared}'
+        dsn: '${MOON_RABBIT_LOGIN_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
     jwt:
       secret: ${MOON_RABBIT_DEFAULT_CONFIG_JWT_SECRET:xxx}
       expire: ${MOON_RABBIT_DEFAULT_CONFIG_JWT_EXPIRE:600s}

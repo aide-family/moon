@@ -37,7 +37,7 @@ func newNamespace(db *gorm.DB, opts ...gen.DOOption) namespace {
 	_namespace.Status = field.NewInt32(tableName, "status")
 	_namespace.Logo = field.NewString(tableName, "logo")
 	_namespace.Secret = field.NewString(tableName, "secret")
-	_namespace.Banners = field.NewString(tableName, "banners")
+	_namespace.Banners = field.NewField(tableName, "banners")
 	_namespace.Remark = field.NewString(tableName, "remark")
 	_namespace.Leader = field.NewInt64(tableName, "leader")
 
@@ -60,7 +60,7 @@ type namespace struct {
 	Status    field.Int32
 	Logo      field.String
 	Secret    field.String
-	Banners   field.String // 'banner images, separated by comma'
+	Banners   field.Field
 	Remark    field.String
 	Leader    field.Int64
 
@@ -89,7 +89,7 @@ func (n *namespace) updateTableName(table string) *namespace {
 	n.Status = field.NewInt32(table, "status")
 	n.Logo = field.NewString(table, "logo")
 	n.Secret = field.NewString(table, "secret")
-	n.Banners = field.NewString(table, "banners")
+	n.Banners = field.NewField(table, "banners")
 	n.Remark = field.NewString(table, "remark")
 	n.Leader = field.NewInt64(table, "leader")
 

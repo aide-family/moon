@@ -23,6 +23,10 @@ func RandomStringWithCharset(length int, charset string) string {
 	return string(b)
 }
 
-func RandomID() string {
-	return RandomStringWithCharset(10, "abcdefghijklmnopqrstuvwxyz0123456789")
+func RandomID(length ...int) string {
+	l := 10
+	if len(length) > 0 && length[0] > 0 {
+		l = length[0]
+	}
+	return RandomStringWithCharset(l, "abcdefghijklmnopqrstuvwxyz0123456789")
 }

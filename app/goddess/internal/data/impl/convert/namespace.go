@@ -2,7 +2,6 @@ package convert
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/enum"
@@ -26,7 +25,7 @@ func NamespaceToBo(namespace *do.Namespace) *bo.NamespaceItemBo {
 		Status:    namespace.Status,
 		Logo:      namespace.Logo,
 		Secret:    namespace.Secret,
-		Banners:   namespace.GetBanners(),
+		Banners:   namespace.Banners.List(),
 		Remark:    namespace.Remark,
 		Leader:    namespace.Leader,
 	}
@@ -39,7 +38,7 @@ func NamespaceToDo(ctx context.Context, itemBo *bo.CreateNamespaceBo) *do.Namesp
 		Status:   itemBo.Status,
 		Logo:     itemBo.Logo,
 		Secret:   itemBo.Secret,
-		Banners:  strings.Join(itemBo.Banners, ","),
+		Banners:  safety.NewSlice(itemBo.Banners),
 		Remark:   itemBo.Remark,
 		Leader:   itemBo.Leader,
 	}

@@ -2,7 +2,6 @@ package do
 
 import (
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
@@ -23,7 +22,7 @@ type Namespace struct {
 	Status    enum.GlobalStatus           `gorm:"column:status;type:tinyint;not null;default:0"`
 	Logo      string                      `gorm:"column:logo;type:varchar(100);not null;default:''"`
 	Secret    string                      `gorm:"column:secret;type:varchar(100);not null;default:''"`
-	Banners   string                      `gorm:"column:banners;type:varchar(500);not null;default:'';comment:'banner images, separated by comma'"`
+	Banners   *safety.Slice[string]       `gorm:"column:banners;type:json;not null;default:'[]'"`
 	Remark    string                      `gorm:"column:remark;type:varchar(200);not null;default:''"`
 	Leader    snowflake.ID                `gorm:"column:leader;not null;index;default:0"`
 }
@@ -51,11 +50,4 @@ func (n *Namespace) BeforeCreate(tx *gorm.DB) (err error) {
 		return errors.New("status is required")
 	}
 	return
-}
-
-func (n *Namespace) GetBanners() []string {
-	if n.Banners == "" {
-		return nil
-	}
-	return strings.Split(n.Banners, ",")
 }
