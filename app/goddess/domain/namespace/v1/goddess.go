@@ -17,21 +17,25 @@ import (
 )
 
 func init() {
-	RegisterNamespaceV1Factory(config.DomainConfig_GORM, NewDefaultNamespace)
+	RegisterNamespaceV1Factory(config.DomainConfig_DEFAULT, NewDefaultNamespace)
 }
 
 func NewDefaultNamespace(c *config.DomainConfig) (goddessv1.NamespaceServer, func() error, error) {
-	ormConfig := &config.ORMConfig{}
+	defaultConfig := &config.DefaultConfig{}
 	if pointer.IsNotNil(c.GetOptions()) {
-		if err := anypb.UnmarshalTo(c.GetOptions(), ormConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
-			return nil, nil, merr.ErrorInternalServer("unmarshal orm config failed: %v", err)
+		if err := anypb.UnmarshalTo(c.GetOptions(), defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
+			return nil, nil, merr.ErrorInternalServer("unmarshal default config failed: %v", err)
 		}
 	}
-	db, close, err := connect.NewDB(ormConfig)
+	db, close, err := connect.NewDB(defaultConfig.GetDatabase())
 	if err != nil {
 		return nil, nil, err
 	}
-	bootstrap := &conf.Bootstrap{}
+	bootstrap := &conf.Bootstrap{
+		GlobalEmail: defaultConfig.GetGlobalEmail(),
+		SiteDomain:  defaultConfig.GetSiteDomain(),
+		Jwt:         defaultConfig.GetJwt(),
+	}
 	namespaceRepo := impl.NewNamespaceRepositoryWithDB(db)
 	userRepo := impl.NewUserRepositoryWithDB(db)
 	memberRepo := impl.NewMemberRepositoryWithDB(db)

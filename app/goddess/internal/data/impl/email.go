@@ -22,11 +22,15 @@ type emailRepositoryImpl struct {
 
 // SendEmail implements [repository.Email].
 func (e *emailRepositoryImpl) SendEmail(ctx context.Context, req *bo.SendEmailBo) error {
-	log.Context(ctx).Debugw("msg", "send email login code", "params", req)
+	log.Context(ctx).Debugw("msg", "send email", "params", req)
 	msg := gomail.NewMessage(gomail.SetCharset("UTF-8"), gomail.SetEncoding(gomail.Base64))
 	msg.SetHeader("From", e.dialer.Username)
 	msg.SetHeader("To", req.To...)
-	msg.SetHeader("Subject", "Moon Goddess Email Login Code")
+	msg.SetHeader("Cc", req.Cc...)
+	msg.SetHeader("Subject", req.Subject)
 	msg.SetBody(req.ContentType, req.Body)
+	for key, values := range req.Headers {
+		msg.SetHeader(key, values...)
+	}
 	return e.dialer.DialAndSend(msg)
 }

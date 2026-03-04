@@ -28,7 +28,7 @@ func NewLoginRepository(c *conf.Bootstrap, d *data.Data) (repository.LoginReposi
 		if !ok {
 			return nil, merr.ErrorInternalServer("auth repository factory not found")
 		}
-		repoImpl, close, err := factory(repoConfig, c.GetJwt())
+		repoImpl, close, err := factory(repoConfig)
 		if err != nil {
 			return nil, err
 		}

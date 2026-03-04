@@ -16,17 +16,17 @@ import (
 )
 
 func init() {
-	RegisterUserFactoryV1(config.DomainConfig_GORM, NewUserRepository)
+	RegisterUserFactoryV1(config.DomainConfig_DEFAULT, NewDefaultUser)
 }
 
-func NewUserRepository(c *config.DomainConfig) (goddessv1.UserServer, func() error, error) {
-	ormConfig := &config.ORMConfig{}
+func NewDefaultUser(c *config.DomainConfig) (goddessv1.UserServer, func() error, error) {
+	defaultConfig := &config.DefaultConfig{}
 	if pointer.IsNotNil(c.GetOptions()) {
-		if err := anypb.UnmarshalTo(c.GetOptions(), ormConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
-			return nil, nil, merr.ErrorInternalServer("unmarshal orm config failed: %v", err)
+		if err := anypb.UnmarshalTo(c.GetOptions(), defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
+			return nil, nil, merr.ErrorInternalServer("unmarshal default config failed: %v", err)
 		}
 	}
-	db, close, err := connect.NewDB(ormConfig)
+	db, close, err := connect.NewDB(defaultConfig.GetDatabase())
 	if err != nil {
 		return nil, nil, err
 	}

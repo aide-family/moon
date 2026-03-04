@@ -24,7 +24,7 @@ type (
 	}
 
 	// AuthFactoryV1 is the factory function for the auth service.
-	AuthFactoryV1 func(c *config.DomainConfig, jwtConfig *config.JWT) (goddessv1.AuthServiceServer, func() error, error)
+	AuthFactoryV1 func(c *config.DomainConfig) (goddessv1.AuthServiceServer, func() error, error)
 )
 
 type registry struct {

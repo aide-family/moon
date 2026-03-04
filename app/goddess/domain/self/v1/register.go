@@ -18,7 +18,7 @@ func NewRegistry() Registry {
 
 // SelfFactoryV1 is the factory function for the self service.
 type (
-	SelfFactoryV1 func(c *config.DomainConfig, jwtConfig *config.JWT) (goddessv1.SelfServer, func() error, error)
+	SelfFactoryV1 func(c *config.DomainConfig) (goddessv1.SelfServer, func() error, error)
 	Registry      interface {
 		RegisterSelfFactoryV1(name config.DomainConfig_Driver, factory SelfFactoryV1)
 		GetSelfFactoryV1(name config.DomainConfig_Driver) (SelfFactoryV1, bool)

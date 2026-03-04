@@ -99,7 +99,7 @@ message BasicAuthConfig {
 
 message DomainConfig {
 	enum Driver {
-		FILE = 0;
+		DEFAULT = 0;
 		GORM = 1;
 		ETCD = 2;
 		OUTER = 3;
@@ -109,15 +109,11 @@ message DomainConfig {
     google.protobuf.Any options = 3;
 }
 
-message FileConfig {
-	enum FileType {
-		YAML = 0;
-		JSON = 1;
-	}
-	string path = 1;
-	FileType fileType = 2;
-	string filename = 3;
-	google.protobuf.Duration storageInterval = 4;
+message DefaultConfig {
+	string siteDomain = 1;
+	MessageEmailConfig globalEmail = 2;
+	ORMConfig database = 3;
+	JWT jwt = 4;
 }
 
 message OuterServerConfig {

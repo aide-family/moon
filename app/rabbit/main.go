@@ -37,7 +37,7 @@ var defaultServerConfig []byte
 
 func init() {
 	if err := godotenv.Load(); err != nil {
-		panic(merr.ErrorInternalServer("load env failed with error: %v", err).WithCause(err))
+		klog.Warnf("load env failed with error: %v", err)
 	}
 
 	cmd.SetGlobalFlags(

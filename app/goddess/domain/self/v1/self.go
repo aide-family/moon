@@ -17,26 +17,30 @@ import (
 )
 
 func init() {
-	RegisterSelfFactoryV1(config.DomainConfig_GORM, NewSelfRepository)
+	RegisterSelfFactoryV1(config.DomainConfig_DEFAULT, NewDefaultSelf)
 }
 
-func NewSelfRepository(c *config.DomainConfig, jwtConfig *config.JWT) (goddessv1.SelfServer, func() error, error) {
-	ormConfig := &config.ORMConfig{}
+func NewDefaultSelf(c *config.DomainConfig) (goddessv1.SelfServer, func() error, error) {
+	defaultConfig := &config.DefaultConfig{}
 	if pointer.IsNotNil(c.GetOptions()) {
-		if err := anypb.UnmarshalTo(c.GetOptions(), ormConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
-			return nil, nil, merr.ErrorInternalServer("unmarshal orm config failed: %v", err)
+		if err := anypb.UnmarshalTo(c.GetOptions(), defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
+			return nil, nil, merr.ErrorInternalServer("unmarshal default config failed: %v", err)
 		}
 	}
-	db, close, err := connect.NewDB(ormConfig)
+	db, close, err := connect.NewDB(defaultConfig.GetDatabase())
 	if err != nil {
 		return nil, nil, err
 	}
-	bootstrap := &conf.Bootstrap{}
+	bootstrap := &conf.Bootstrap{
+		GlobalEmail: defaultConfig.GetGlobalEmail(),
+		SiteDomain:  defaultConfig.GetSiteDomain(),
+		Jwt:         defaultConfig.GetJwt(),
+	}
 	helper := klog.NewHelper(klog.With(klog.GetLogger(), "module", "self"))
 	userRepo := impl.NewUserRepositoryWithDB(db)
 	memberRepo := impl.NewMemberRepositoryWithDB(db)
 	namespaceRepo := impl.NewNamespaceRepositoryWithDB(db)
-	loginRepo := impl.NewLoginRepositoryWithDB(db, jwtConfig)
+	loginRepo := impl.NewLoginRepositoryWithDB(db, bootstrap.GetJwt())
 	emailRepo := impl.NewEmailRepository(bootstrap)
 	userBiz := biz.NewUser(userRepo, helper)
 	memberBiz := biz.NewMember(bootstrap, memberRepo, userRepo, namespaceRepo, emailRepo, helper)

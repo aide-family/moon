@@ -16,21 +16,21 @@ import (
 )
 
 func init() {
-	RegisterAuthV1Factory(config.DomainConfig_GORM, NewAuthRepository)
+	RegisterAuthV1Factory(config.DomainConfig_DEFAULT, NewDefaultAuth)
 }
 
-func NewAuthRepository(c *config.DomainConfig, jwtConfig *config.JWT) (goddessv1.AuthServiceServer, func() error, error) {
-	ormConfig := &config.ORMConfig{}
+func NewDefaultAuth(c *config.DomainConfig) (goddessv1.AuthServiceServer, func() error, error) {
+	defaultConfig := &config.DefaultConfig{}
 	if pointer.IsNotNil(c.GetOptions()) {
-		if err := anypb.UnmarshalTo(c.GetOptions(), ormConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
-			return nil, nil, merr.ErrorInternalServer("unmarshal orm config failed: %v", err)
+		if err := anypb.UnmarshalTo(c.GetOptions(), defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
+			return nil, nil, merr.ErrorInternalServer("unmarshal default config failed: %v", err)
 		}
 	}
-	db, close, err := connect.NewDB(ormConfig)
+	db, close, err := connect.NewDB(defaultConfig.GetDatabase())
 	if err != nil {
 		return nil, nil, err
 	}
-	loginRepo := impl.NewLoginRepositoryWithDB(db, jwtConfig)
+	loginRepo := impl.NewLoginRepositoryWithDB(db, defaultConfig.GetJwt())
 	loginBiz := biz.NewLoginBiz(loginRepo)
 	return &authRepository{AuthService: service.NewDomainAuthService(loginBiz)}, close, nil
 }
