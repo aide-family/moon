@@ -20,5 +20,6 @@ func MemberToBo(member *do.Member, email string) *bo.MemberItemBo {
 		Nickname:  member.Nickname,
 		Avatar:    member.Avatar,
 		Remark:    member.Remark,
+		Role:      member.Role,
 	}
 }

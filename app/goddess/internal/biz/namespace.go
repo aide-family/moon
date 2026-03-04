@@ -12,12 +12,14 @@ import (
 )
 
 func NewNamespace(
+	transaction repository.Transaction,
 	namespaceRepo repository.Namespace,
 	userBiz *User,
 	memberBiz *Member,
 	helper *klog.Helper,
 ) *Namespace {
 	return &Namespace{
+		transaction:   transaction,
 		namespaceRepo: namespaceRepo,
 		userBiz:       userBiz,
 		memberBiz:     memberBiz,
@@ -27,6 +29,7 @@ func NewNamespace(
 
 type Namespace struct {
 	helper        *klog.Helper
+	transaction   repository.Transaction
 	namespaceRepo repository.Namespace
 	userBiz       *User
 	memberBiz     *Member
@@ -39,11 +42,7 @@ func (n *Namespace) CreateNamespace(ctx context.Context, req *bo.CreateNamespace
 		n.helper.Errorw("msg", "check namespace exists failed", "error", err, "name", req.Name)
 		return 0, merr.ErrorInternalServer("create namespace %s failed", req.Name).WithCause(err)
 	}
-	namespaceUID, err := n.namespaceRepo.CreateNamespace(ctx, req)
-	if err != nil {
-		n.helper.Errorw("msg", "create namespace failed", "error", err, "name", req.Name)
-		return 0, merr.ErrorInternalServer("create namespace %s failed", req.Name).WithCause(err)
-	}
+
 	userUID, err := n.userBiz.GetUserUID(ctx)
 	if err != nil {
 		return 0, err
@@ -54,11 +53,21 @@ func (n *Namespace) CreateNamespace(ctx context.Context, req *bo.CreateNamespace
 		return 0, err
 	}
 
-	if err := n.memberBiz.CreateMember(ctx, userBo.ToCreateMemberBo(namespaceUID)); err != nil {
-		n.helper.Errorw("msg", "create member failed", "error", err, "namespaceUID", namespaceUID, "userUID", userUID)
-		return 0, merr.ErrorInternalServer("create member failed").WithCause(err)
-	}
-	return namespaceUID, nil
+	var namespaceUID snowflake.ID
+	err = n.transaction.Transaction(ctx, func(ctx context.Context) error {
+		namespaceUID, err = n.namespaceRepo.CreateNamespace(ctx, req)
+		if err != nil {
+			n.helper.Errorw("msg", "create namespace failed", "error", err, "name", req.Name)
+			return merr.ErrorInternalServer("create namespace %s failed", req.Name).WithCause(err)
+		}
+
+		if err := n.memberBiz.CreateMember(ctx, userBo.ToCreateMemberBo(namespaceUID)); err != nil {
+			n.helper.Errorw("msg", "create member failed", "error", err, "namespaceUID", namespaceUID, "userUID", userUID)
+			return merr.ErrorInternalServer("create member failed").WithCause(err)
+		}
+		return nil
+	})
+	return namespaceUID, err
 }
 
 func (n *Namespace) UpdateNamespace(ctx context.Context, req *bo.UpdateNamespaceBo) error {

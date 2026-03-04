@@ -118,3 +118,18 @@ func (u *User) ChangeRemark(ctx context.Context, uid snowflake.ID, remark string
 	}
 	return nil
 }
+
+func (u *User) ValidateUser(ctx context.Context, userUID snowflake.ID) error {
+	user, err := u.userRepo.GetUser(ctx, userUID)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return merr.ErrorUnauthorized("user is not allowed to access this resource")
+		}
+		u.helper.Errorw("msg", "validate user failed", "error", err, "userUID", userUID)
+		return merr.ErrorInternalServer("validate user failed").WithCause(err)
+	}
+	if user.Status != enum.UserStatus_ACTIVE {
+		return merr.ErrorUnauthorized("user is not active")
+	}
+	return nil
+}

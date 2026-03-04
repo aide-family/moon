@@ -82,6 +82,8 @@ func (m *Member) InviteMember(ctx context.Context, req *bo.InviteMemberBo) error
 		Nickname:     user.Nickname,
 		Avatar:       user.Avatar,
 		Status:       enum.MemberStatus_JOINED,
+		Role:         req.Role,
+		Remark:       user.Remark,
 	}
 	if err := m.memberRepo.CreateMember(ctx, createBo); err != nil {
 		m.helper.Errorw("msg", "create member failed", "error", err, "email", req.Email)

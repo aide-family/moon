@@ -84,3 +84,10 @@ enum MemberStatus {
 	INVITED = 2;
 	EXPIRED = 3;
 }
+
+enum MemberRole {
+	MEMBER = 0;
+	OWNER = 1;
+	ADMIN = 2;
+	VIEW = 3;
+}

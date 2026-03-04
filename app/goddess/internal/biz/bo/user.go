@@ -44,6 +44,7 @@ func (b *UserItemBo) ToCreateMemberBo(namespaceUID snowflake.ID) *CreateMemberBo
 		NamespaceUID: namespaceUID,
 		UserUID:      b.UID,
 		Status:       enum.MemberStatus_JOINED,
+		Role:         enum.MemberRole_OWNER,
 	}
 }
 

@@ -2,6 +2,7 @@ package convert
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/enum"
@@ -23,14 +24,24 @@ func NamespaceToBo(namespace *do.Namespace) *bo.NamespaceItemBo {
 		UpdatedAt: namespace.UpdatedAt,
 		Metadata:  namespace.Metadata.Map(),
 		Status:    namespace.Status,
+		Logo:      namespace.Logo,
+		Secret:    namespace.Secret,
+		Banners:   namespace.GetBanners(),
+		Remark:    namespace.Remark,
+		Leader:    namespace.Leader,
 	}
 }
 
-func NamespaceToDo(ctx context.Context, bo *bo.CreateNamespaceBo) *do.Namespace {
+func NamespaceToDo(ctx context.Context, itemBo *bo.CreateNamespaceBo) *do.Namespace {
 	namespaceModel := &do.Namespace{
-		Name:     bo.Name,
-		Metadata: safety.NewMap(bo.Metadata),
-		Status:   bo.Status,
+		Name:     itemBo.Name,
+		Metadata: safety.NewMap(itemBo.Metadata),
+		Status:   itemBo.Status,
+		Logo:     itemBo.Logo,
+		Secret:   itemBo.Secret,
+		Banners:  strings.Join(itemBo.Banners, ","),
+		Remark:   itemBo.Remark,
+		Leader:   itemBo.Leader,
 	}
 	namespaceModel.WithCreator(contextx.GetUserUID(ctx))
 	return namespaceModel

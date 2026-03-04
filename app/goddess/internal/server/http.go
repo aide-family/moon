@@ -17,11 +17,11 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(bc *conf.Bootstrap, namespaceService *service.NamespaceService, helper *klog.Helper) *http.Server {
-	return newHTTPServer(bc.GetServer().GetHttp(), bc.GetJwt(), namespaceService, helper)
+func NewHTTPServer(bc *conf.Bootstrap, namespaceService *service.NamespaceService, userService *service.UserService, helper *klog.Helper) *http.Server {
+	return newHTTPServer(bc.GetServer().GetHttp(), bc.GetJwt(), namespaceService, userService, helper)
 }
 
-func newHTTPServer(httpConf conf.ServerConfig, jwtConf conf.JWTConfig, namespaceService *service.NamespaceService, helper *klog.Helper) *http.Server {
+func newHTTPServer(httpConf conf.ServerConfig, jwtConf conf.JWTConfig, namespaceService *service.NamespaceService, userService *service.UserService, helper *klog.Helper) *http.Server {
 	selectorNamespaceMiddlewares := []middleware.Middleware{
 		middler.MustNamespace(),
 		middler.MustNamespaceExist(namespaceService.HasNamespace),
@@ -32,6 +32,7 @@ func newHTTPServer(httpConf conf.ServerConfig, jwtConf conf.JWTConfig, namespace
 		middler.JwtServe(jwtConf.GetSecret(), &jwt.JwtClaims{}),
 		middler.MustLogin(),
 		middler.BindJwtToken(),
+		middler.ValidateUser(userService.ValidateUser),
 		namespaceMiddleware,
 	}
 	authMiddleware := selector.Server(selectorMustAuthMiddlewares...).Match(middler.AllowListMatcher(authAllowList...)).Build()

@@ -61,3 +61,7 @@ func (s *UserService) PermitUser(ctx context.Context, req *apiv1.PermitUserReque
 	}
 	return &apiv1.PermitUserReply{Message: "user has been permitted"}, nil
 }
+
+func (s *UserService) ValidateUser(ctx context.Context, userUID snowflake.ID) error {
+	return s.userBiz.ValidateUser(ctx, userUID)
+}

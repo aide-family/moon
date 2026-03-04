@@ -39,6 +39,7 @@ func newMember(db *gorm.DB, opts ...gen.DOOption) member {
 	_member.Nickname = field.NewString(tableName, "nickname")
 	_member.Avatar = field.NewString(tableName, "avatar")
 	_member.Remark = field.NewString(tableName, "remark")
+	_member.Role = field.NewInt32(tableName, "role")
 
 	_member.fillFieldMap()
 
@@ -61,6 +62,7 @@ type member struct {
 	Nickname     field.String
 	Avatar       field.String
 	Remark       field.String
+	Role         field.Int32
 
 	fieldMap map[string]field.Expr
 }
@@ -89,6 +91,7 @@ func (m *member) updateTableName(table string) *member {
 	m.Nickname = field.NewString(table, "nickname")
 	m.Avatar = field.NewString(table, "avatar")
 	m.Remark = field.NewString(table, "remark")
+	m.Role = field.NewInt32(table, "role")
 
 	m.fillFieldMap()
 
@@ -105,7 +108,7 @@ func (m *member) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (m *member) fillFieldMap() {
-	m.fieldMap = make(map[string]field.Expr, 12)
+	m.fieldMap = make(map[string]field.Expr, 13)
 	m.fieldMap["uid"] = m.UID
 	m.fieldMap["created_at"] = m.CreatedAt
 	m.fieldMap["updated_at"] = m.UpdatedAt
@@ -118,6 +121,7 @@ func (m *member) fillFieldMap() {
 	m.fieldMap["nickname"] = m.Nickname
 	m.fieldMap["avatar"] = m.Avatar
 	m.fieldMap["remark"] = m.Remark
+	m.fieldMap["role"] = m.Role
 }
 
 func (m member) clone(db *gorm.DB) member {

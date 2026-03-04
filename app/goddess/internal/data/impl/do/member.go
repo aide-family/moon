@@ -23,6 +23,7 @@ type Member struct {
 	Nickname     string            `gorm:"column:nickname;type:varchar(100);not null;default:''"`
 	Avatar       string            `gorm:"column:avatar;type:varchar(100);not null;default:''"`
 	Remark       string            `gorm:"column:remark;type:varchar(100);not null;default:''"`
+	Role         enum.MemberRole   `gorm:"column:role;not null;default:0"`
 }
 
 func (m *Member) TableName() string {
@@ -40,6 +41,9 @@ func (m *Member) BeforeCreate(tx *gorm.DB) error {
 	m.UID = node.Generate()
 	if m.Status <= 0 {
 		m.Status = enum.MemberStatus_JOINED
+	}
+	if m.Role <= 0 {
+		m.Role = enum.MemberRole_MEMBER
 	}
 	return nil
 }

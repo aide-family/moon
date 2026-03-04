@@ -40,6 +40,9 @@ func (m *memberRepository) CreateMember(ctx context.Context, req *bo.CreateMembe
 		Name:         req.Name,
 		Nickname:     req.Nickname,
 		Avatar:       req.Avatar,
+		Role:         req.Role,
+		Remark:       req.Remark,
+		Status:       req.Status,
 	}
 	return query.Member.WithContext(ctx).Create(member)
 }

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
+	"github.com/aide-family/magicbox/strutil"
 	"github.com/bwmarrin/snowflake"
 
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
@@ -13,13 +14,23 @@ type CreateNamespaceBo struct {
 	Name     string
 	Metadata map[string]string
 	Status   enum.GlobalStatus
+	Logo     string
+	Secret   string
+	Banners  []string
+	Remark   string
+	Leader   snowflake.ID
 }
 
-func NewCreateNamespaceBo(req *goddessv1.CreateNamespaceRequest) *CreateNamespaceBo {
+func NewCreateNamespaceBo(req *goddessv1.CreateNamespaceRequest, leader snowflake.ID) *CreateNamespaceBo {
 	return &CreateNamespaceBo{
 		Name:     req.Name,
 		Metadata: req.Metadata,
 		Status:   enum.GlobalStatus_ENABLED,
+		Logo:     req.Logo,
+		Secret:   strutil.RandomString(16),
+		Banners:  req.Banners,
+		Remark:   req.Remark,
+		Leader:   leader,
 	}
 }
 
@@ -27,6 +38,9 @@ type UpdateNamespaceBo struct {
 	UID      snowflake.ID
 	Name     string
 	Metadata map[string]string
+	Logo     string
+	Banners  []string
+	Remark   string
 }
 
 func NewUpdateNamespaceBo(req *goddessv1.UpdateNamespaceRequest) *UpdateNamespaceBo {
@@ -34,6 +48,9 @@ func NewUpdateNamespaceBo(req *goddessv1.UpdateNamespaceRequest) *UpdateNamespac
 		UID:      snowflake.ParseInt64(req.Uid),
 		Name:     req.Name,
 		Metadata: req.Metadata,
+		Logo:     req.Logo,
+		Banners:  req.Banners,
+		Remark:   req.Remark,
 	}
 }
 
@@ -55,6 +72,11 @@ type NamespaceItemBo struct {
 	Status    enum.GlobalStatus
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	Logo      string
+	Secret    string
+	Banners   []string
+	Remark    string
+	Leader    snowflake.ID
 }
 
 func (b *NamespaceItemBo) ToAPIV1NamespaceItem() *goddessv1.NamespaceItem {
@@ -65,6 +87,11 @@ func (b *NamespaceItemBo) ToAPIV1NamespaceItem() *goddessv1.NamespaceItem {
 		Status:    b.Status,
 		CreatedAt: b.CreatedAt.Format(time.DateTime),
 		UpdatedAt: b.UpdatedAt.Format(time.DateTime),
+		Logo:      b.Logo,
+		Secret:    b.Secret,
+		Banners:   b.Banners,
+		Remark:    b.Remark,
+		Leader:    b.Leader.Int64(),
 	}
 }
 

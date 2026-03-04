@@ -20,6 +20,7 @@ type MemberItemBo struct {
 	Nickname  string
 	Avatar    string
 	Remark    string
+	Role      enum.MemberRole
 }
 
 func (b *MemberItemBo) ToAPIV1MemberItem() *goddessv1.MemberItem {
@@ -34,12 +35,13 @@ func (b *MemberItemBo) ToAPIV1MemberItem() *goddessv1.MemberItem {
 		Nickname:  b.Nickname,
 		Avatar:    b.Avatar,
 		Remark:    b.Remark,
+		Role:      b.Role,
 	}
 }
 
 type InviteMemberBo struct {
-	Email   string
-	RoleUID uint32
+	Email string
+	Role  enum.MemberRole
 }
 
 type CreateMemberBo struct {
@@ -50,6 +52,8 @@ type CreateMemberBo struct {
 	Nickname     string
 	Avatar       string
 	Status       enum.MemberStatus
+	Role         enum.MemberRole
+	Remark       string
 }
 
 type ListMemberBo struct {

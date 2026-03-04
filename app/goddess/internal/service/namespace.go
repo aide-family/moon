@@ -27,7 +27,7 @@ type NamespaceService struct {
 }
 
 func (s *NamespaceService) CreateNamespace(ctx context.Context, req *apiv1.CreateNamespaceRequest) (*apiv1.CreateNamespaceReply, error) {
-	createNamespaceBo := bo.NewCreateNamespaceBo(req)
+	createNamespaceBo := bo.NewCreateNamespaceBo(req, contextx.GetUserUID(ctx))
 	namespaceUID, err := s.namespaceBiz.CreateNamespace(ctx, createNamespaceBo)
 	if err != nil {
 		return nil, err

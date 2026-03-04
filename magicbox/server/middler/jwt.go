@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/magicbox/pointer"
 	"github.com/aide-family/magicbox/strutil"
 	"github.com/aide-family/magicbox/strutil/cnst"
+	"github.com/bwmarrin/snowflake"
 	"github.com/go-kratos/kratos/v2/metadata"
 	"github.com/go-kratos/kratos/v2/middleware"
 	kjwt "github.com/go-kratos/kratos/v2/middleware/auth/jwt"
@@ -101,6 +102,21 @@ func BindJwtToken() middleware.Middleware {
 			}
 
 			tr.RequestHeader().Set(cnst.MetadataGlobalKeyAuthorization, authToken)
+			return handler(ctx, req)
+		}
+	}
+}
+
+func ValidateUser(validator func(ctx context.Context, userUID snowflake.ID) error) middleware.Middleware {
+	return func(handler middleware.Handler) middleware.Handler {
+		return func(ctx context.Context, req any) (any, error) {
+			userUID := contextx.GetUserUID(ctx)
+			if userUID == 0 {
+				return nil, merr.ErrorUnauthorized("user is not authenticated")
+			}
+			if err := validator(ctx, userUID); err != nil {
+				return nil, err
+			}
 			return handler(ctx, req)
 		}
 	}

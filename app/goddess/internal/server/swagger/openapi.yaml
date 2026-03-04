@@ -654,6 +654,12 @@ components:
                         type: string
                 remark:
                     type: string
+                logo:
+                    type: string
+                banners:
+                    type: array
+                    items:
+                        type: string
         goddess.api.v1.DeleteNamespaceReply:
             type: object
             properties: {}
@@ -686,9 +692,9 @@ components:
             properties:
                 email:
                     type: string
-                roleUID:
+                role:
                     type: integer
-                    format: uint32
+                    format: enum
         goddess.api.v1.ListMemberReply:
             type: object
             properties:
@@ -765,8 +771,9 @@ components:
                     type: string
                 remark:
                     type: string
-                namespaceUID:
-                    type: string
+                role:
+                    type: integer
+                    format: enum
         goddess.api.v1.NamespaceItem:
             type: object
             properties:
@@ -787,6 +794,16 @@ components:
                 status:
                     type: integer
                     format: enum
+                logo:
+                    type: string
+                secret:
+                    type: string
+                banners:
+                    type: array
+                    items:
+                        type: string
+                leader:
+                    type: string
         goddess.api.v1.NamespaceItemSelect:
             type: object
             properties:
@@ -926,6 +943,12 @@ components:
                         type: string
                 remark:
                     type: string
+                logo:
+                    type: string
+                banners:
+                    type: array
+                    items:
+                        type: string
         goddess.api.v1.UpdateNamespaceStatusReply:
             type: object
             properties: {}

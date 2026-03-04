@@ -25,15 +25,17 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	if err != nil {
 		return nil, nil, err
 	}
+	transaction := impl.NewTransaction(dataData)
 	namespace := impl.NewNamespaceRepository(dataData)
 	user := impl.NewUserRepository(dataData)
 	bizUser := biz.NewUser(user, helper)
 	member := impl.NewMemberRepository(dataData)
 	email := impl.NewEmailRepository(bc)
 	bizMember := biz.NewMember(bc, member, user, namespace, email, helper)
-	bizNamespace := biz.NewNamespace(namespace, bizUser, bizMember, helper)
+	bizNamespace := biz.NewNamespace(transaction, namespace, bizUser, bizMember, helper)
 	namespaceService := service.NewNamespaceService(bizNamespace)
-	grpcServer := server.NewGRPCServer(bc, namespaceService, helper)
+	userService := service.NewUserService(bizUser)
+	grpcServer := server.NewGRPCServer(bc, namespaceService, userService, helper)
 	loginRepository, err := impl.NewLoginRepository(bc, dataData)
 	if err != nil {
 		cleanup()
@@ -46,7 +48,6 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	health := impl.NewHealthRepository(dataData)
 	bizHealth := biz.NewHealth(health)
 	healthService := service.NewHealthService(bizHealth)
-	userService := service.NewUserService(bizUser)
 	memberService := service.NewMemberService(bizMember)
 	selfService := service.NewSelfService(bizUser, bizMember, bizNamespace, loginBiz)
 	captchaService := service.NewCaptchaService(captcha)

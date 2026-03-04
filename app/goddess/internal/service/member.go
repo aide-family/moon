@@ -24,8 +24,8 @@ type MemberService struct {
 
 func (s *MemberService) InviteMember(ctx context.Context, req *apiv1.InviteMemberRequest) (*apiv1.InviteMemberReply, error) {
 	inviteBo := &bo.InviteMemberBo{
-		Email:   req.Email,
-		RoleUID: req.RoleUID,
+		Email: req.Email,
+		Role:  req.Role,
 	}
 	if err := s.memberBiz.InviteMember(ctx, inviteBo); err != nil {
 		return nil, err

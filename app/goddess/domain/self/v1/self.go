@@ -36,6 +36,7 @@ func NewDefaultSelf(c *config.DomainConfig) (goddessv1.SelfServer, func() error,
 		SiteDomain:  defaultConfig.GetSiteDomain(),
 		Jwt:         defaultConfig.GetJwt(),
 	}
+	transaction := impl.NewTransactionWithDB(db)
 	helper := klog.NewHelper(klog.With(klog.GetLogger(), "module", "self"))
 	userRepo := impl.NewUserRepositoryWithDB(db)
 	memberRepo := impl.NewMemberRepositoryWithDB(db)
@@ -44,7 +45,7 @@ func NewDefaultSelf(c *config.DomainConfig) (goddessv1.SelfServer, func() error,
 	emailRepo := impl.NewEmailRepository(bootstrap)
 	userBiz := biz.NewUser(userRepo, helper)
 	memberBiz := biz.NewMember(bootstrap, memberRepo, userRepo, namespaceRepo, emailRepo, helper)
-	namespaceBiz := biz.NewNamespace(namespaceRepo, userBiz, memberBiz, helper)
+	namespaceBiz := biz.NewNamespace(transaction, namespaceRepo, userBiz, memberBiz, helper)
 	loginBiz := biz.NewLoginBiz(loginRepo)
 	return &selfRepository{SelfServer: service.NewSelfService(userBiz, memberBiz, namespaceBiz, loginBiz)}, close, nil
 }

@@ -11,4 +11,5 @@ var ProviderSetImpl = wire.NewSet(
 	NewUserRepository,
 	NewMemberRepository,
 	NewEmailRepository,
+	NewTransaction,
 )

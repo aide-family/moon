@@ -57,7 +57,7 @@ message MemberItem {
     string nickname = 9;
     string avatar = 10;
     string remark = 11;
-    int64 namespaceUID = 12;
+    magicbox.enum.MemberRole role = 12;
 }
 
 message SelectMemberItem {
@@ -129,7 +129,10 @@ message InviteMemberRequest {
       expression: "this.isEmail()",
       message: "email must be a valid email address",
     }];
-    uint32 roleUID = 2;
+    magicbox.enum.MemberRole role = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this in [magicbox.enum.MemberRole.MEMBER, magicbox.enum.MemberRole.OWNER, magicbox.enum.MemberRole.ADMIN, magicbox.enum.MemberRole.VIEW]",
+        message: "role must be in [MEMBER, OWNER, ADMIN, VIEW]",
+    }];
 }
 message InviteMemberReply {
     string message = 1;

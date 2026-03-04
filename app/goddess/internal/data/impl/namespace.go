@@ -3,6 +3,7 @@ package impl
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
@@ -186,6 +187,9 @@ func (n *namespaceRepository) UpdateNamespace(ctx context.Context, req *bo.Updat
 	columns := []field.AssignExpr{
 		mutation.Name.Value(req.Name),
 		mutation.Metadata.Value(safety.NewMap(req.Metadata)),
+		mutation.Logo.Value(req.Logo),
+		mutation.Banners.Value(strings.Join(req.Banners, ",")),
+		mutation.Remark.Value(req.Remark),
 	}
 
 	_, err := mutation.WithContext(ctx).Where(wrappers...).UpdateColumnSimple(columns...)
