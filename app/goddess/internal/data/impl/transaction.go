@@ -22,7 +22,7 @@ type transaction struct {
 }
 
 func (t *transaction) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
-	tx, ok := GetTransaction(ctx)
+	tx, ok := GetTransaction(ctx, t.db)
 	if ok {
 		return fn(WithTransaction(ctx, tx))
 	}
@@ -37,7 +37,18 @@ func WithTransaction(ctx context.Context, tx *gorm.DB) context.Context {
 	return context.WithValue(ctx, transactionContext{}, tx)
 }
 
-func GetTransaction(ctx context.Context) (*gorm.DB, bool) {
+func GetTransaction(ctx context.Context, db *gorm.DB) (*gorm.DB, bool) {
 	tx, ok := ctx.Value(transactionContext{}).(*gorm.DB)
-	return tx, ok
+	if ok {
+		return tx, ok
+	}
+	return db, false
+}
+
+func getDBWithTransaction(ctx context.Context, db *gorm.DB) *gorm.DB {
+	tx, ok := GetTransaction(ctx, db)
+	if ok {
+		return tx
+	}
+	return db
 }

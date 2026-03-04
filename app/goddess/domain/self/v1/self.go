@@ -44,9 +44,9 @@ func NewDefaultSelf(c *config.DomainConfig) (goddessv1.SelfServer, func() error,
 	loginRepo := impl.NewLoginRepositoryWithDB(db, bootstrap.GetJwt())
 	emailRepo := impl.NewEmailRepository(bootstrap)
 	userBiz := biz.NewUser(userRepo, helper)
-	memberBiz := biz.NewMember(bootstrap, memberRepo, userRepo, namespaceRepo, emailRepo, helper)
+	memberBiz := biz.NewMember(bootstrap, transaction, memberRepo, userRepo, namespaceRepo, emailRepo, helper)
 	namespaceBiz := biz.NewNamespace(transaction, namespaceRepo, userBiz, memberBiz, helper)
-	loginBiz := biz.NewLoginBiz(loginRepo)
+	loginBiz := biz.NewLoginBiz(transaction, loginRepo)
 	return &selfRepository{SelfServer: service.NewSelfService(userBiz, memberBiz, namespaceBiz, loginBiz)}, close, nil
 }
 

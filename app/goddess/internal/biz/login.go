@@ -9,16 +9,26 @@ import (
 	"github.com/aide-family/goddess/internal/biz/repository"
 )
 
-func NewLoginBiz(authRepo repository.LoginRepository) *LoginBiz {
-	return &LoginBiz{authRepo: authRepo}
+func NewLoginBiz(transaction repository.Transaction, authRepo repository.LoginRepository) *LoginBiz {
+	return &LoginBiz{transaction: transaction, authRepo: authRepo}
 }
 
 type LoginBiz struct {
-	authRepo repository.LoginRepository
+	transaction repository.Transaction
+	authRepo    repository.LoginRepository
 }
 
 func (b *LoginBiz) Login(ctx context.Context, req *bo.OAuth2LoginBo) (string, error) {
-	return b.authRepo.LoginByOAuth2(ctx, req)
+	var token string
+	var err error
+	err = b.transaction.Transaction(ctx, func(ctx context.Context) error {
+		token, err = b.authRepo.LoginByOAuth2(ctx, req)
+		return err
+	})
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
 
 func (b *LoginBiz) RefreshToken(ctx context.Context, baseInfo jwt.BaseInfo) (string, error) {
@@ -26,5 +36,14 @@ func (b *LoginBiz) RefreshToken(ctx context.Context, baseInfo jwt.BaseInfo) (str
 }
 
 func (b *LoginBiz) EmailLogin(ctx context.Context, email string) (string, error) {
-	return b.authRepo.LoginByEmail(ctx, email)
+	var token string
+	var err error
+	err = b.transaction.Transaction(ctx, func(ctx context.Context) error {
+		token, err = b.authRepo.LoginByEmail(ctx, email)
+		return err
+	})
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }

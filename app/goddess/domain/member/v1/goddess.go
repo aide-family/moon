@@ -36,12 +36,13 @@ func NewDefaultMember(c *config.DomainConfig) (goddessv1.MemberServer, func() er
 		SiteDomain:  defaultConfig.GetSiteDomain(),
 		Jwt:         defaultConfig.GetJwt(),
 	}
+	transaction := impl.NewTransactionWithDB(db)
 	emailRepo := impl.NewEmailRepository(bootstrap)
 	memberRepo := impl.NewMemberRepositoryWithDB(db)
 	userRepo := impl.NewUserRepositoryWithDB(db)
 	namespaceRepo := impl.NewNamespaceRepositoryWithDB(db)
 	helper := klog.NewHelper(klog.With(klog.GetLogger(), "module", "member"))
-	memberBiz := biz.NewMember(bootstrap, memberRepo, userRepo, namespaceRepo, emailRepo, helper)
+	memberBiz := biz.NewMember(bootstrap, transaction, memberRepo, userRepo, namespaceRepo, emailRepo, helper)
 	return &defaultMember{
 		MemberServer: service.NewMemberService(memberBiz),
 	}, close, nil

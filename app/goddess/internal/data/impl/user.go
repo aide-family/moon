@@ -31,7 +31,7 @@ type userRepository struct {
 }
 
 func (u *userRepository) GetUser(ctx context.Context, uid snowflake.ID) (*bo.UserItemBo, error) {
-	mutation := query.User
+	mutation := query.Use(getDBWithTransaction(ctx, u.db)).User
 	user, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -43,7 +43,7 @@ func (u *userRepository) GetUser(ctx context.Context, uid snowflake.ID) (*bo.Use
 }
 
 func (u *userRepository) GetUserByEmail(ctx context.Context, email string) (*bo.UserItemBo, error) {
-	mutation := query.User
+	mutation := query.Use(getDBWithTransaction(ctx, u.db)).User
 	user, err := mutation.WithContext(ctx).Where(mutation.Email.Eq(email)).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -55,7 +55,7 @@ func (u *userRepository) GetUserByEmail(ctx context.Context, email string) (*bo.
 }
 
 func (u *userRepository) ListUser(ctx context.Context, req *bo.ListUserBo) (*bo.PageResponseBo[*bo.UserItemBo], error) {
-	mutation := query.User
+	mutation := query.Use(getDBWithTransaction(ctx, u.db)).User
 	wrappers := mutation.WithContext(ctx)
 	if strutil.IsNotEmpty(req.Email) {
 		wrappers = wrappers.Where(mutation.Email.Like("%" + req.Email + "%"))
@@ -90,7 +90,7 @@ func (u *userRepository) ListUser(ctx context.Context, req *bo.ListUserBo) (*bo.
 }
 
 func (u *userRepository) SelectUser(ctx context.Context, req *bo.SelectUserBo) (*bo.SelectUserBoResult, error) {
-	mutation := query.User
+	mutation := query.Use(getDBWithTransaction(ctx, u.db)).User
 	wrappers := mutation.WithContext(ctx)
 	if strutil.IsNotEmpty(req.Keyword) {
 		keyword := "%" + req.Keyword + "%"
@@ -135,25 +135,25 @@ func (u *userRepository) SelectUser(ctx context.Context, req *bo.SelectUserBo) (
 }
 
 func (u *userRepository) UpdateUserStatus(ctx context.Context, uid snowflake.ID, status enum.UserStatus) error {
-	mutation := query.User
+	mutation := query.Use(getDBWithTransaction(ctx, u.db)).User
 	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).UpdateColumnSimple(mutation.Status.Value(int32(status)))
 	return err
 }
 
 func (u *userRepository) UpdateUserEmail(ctx context.Context, uid snowflake.ID, email string) error {
-	mutation := query.User
+	mutation := query.Use(getDBWithTransaction(ctx, u.db)).User
 	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).UpdateColumnSimple(mutation.Email.Value(email))
 	return err
 }
 
 func (u *userRepository) UpdateUserAvatar(ctx context.Context, uid snowflake.ID, avatar string) error {
-	mutation := query.User
+	mutation := query.Use(getDBWithTransaction(ctx, u.db)).User
 	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).UpdateColumnSimple(mutation.Avatar.Value(avatar))
 	return err
 }
 
 func (u *userRepository) UpdateUserRemark(ctx context.Context, uid snowflake.ID, remark string) error {
-	mutation := query.User
+	mutation := query.Use(getDBWithTransaction(ctx, u.db)).User
 	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).UpdateColumnSimple(mutation.Remark.Value(remark))
 	return err
 }

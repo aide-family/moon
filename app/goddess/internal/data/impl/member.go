@@ -44,17 +44,17 @@ func (m *memberRepository) CreateMember(ctx context.Context, req *bo.CreateMembe
 		Remark:       req.Remark,
 		Status:       req.Status,
 	}
-	return query.Member.WithContext(ctx).Create(member)
+	return query.Use(getDBWithTransaction(ctx, m.db)).Member.WithContext(ctx).Create(member)
 }
 
 func (m *memberRepository) DeleteMember(ctx context.Context, uid snowflake.ID) error {
-	mutation := query.Member
+	mutation := query.Use(getDBWithTransaction(ctx, m.db)).Member
 	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).Delete()
 	return err
 }
 
 func (m *memberRepository) GetMember(ctx context.Context, uid snowflake.ID) (*bo.MemberItemBo, error) {
-	mutation := query.Member
+	mutation := query.Use(getDBWithTransaction(ctx, m.db)).Member
 	member, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -67,7 +67,7 @@ func (m *memberRepository) GetMember(ctx context.Context, uid snowflake.ID) (*bo
 }
 
 func (m *memberRepository) GetMemberByNamespaceAndUser(ctx context.Context, namespaceUID, userUID snowflake.ID) (*bo.MemberItemBo, error) {
-	mutation := query.Member
+	mutation := query.Use(getDBWithTransaction(ctx, m.db)).Member
 	member, err := mutation.WithContext(ctx).
 		Where(mutation.NamespaceUID.Eq(namespaceUID.Int64())).
 		Where(mutation.UserUID.Eq(userUID.Int64())).
@@ -83,7 +83,7 @@ func (m *memberRepository) GetMemberByNamespaceAndUser(ctx context.Context, name
 }
 
 func (m *memberRepository) getUserEmail(ctx context.Context, userUID snowflake.ID) string {
-	user, err := query.User.WithContext(ctx).Where(query.User.UID.Eq(userUID.Int64())).First()
+	user, err := query.Use(getDBWithTransaction(ctx, m.db)).User.WithContext(ctx).Where(query.User.UID.Eq(userUID.Int64())).First()
 	if err != nil {
 		return ""
 	}
@@ -94,7 +94,7 @@ func (m *memberRepository) getEmailsByUserUIDs(ctx context.Context, userUIDs []i
 	if len(userUIDs) == 0 {
 		return nil
 	}
-	users, err := query.User.WithContext(ctx).Where(query.User.UID.In(userUIDs...)).Find()
+	users, err := query.Use(getDBWithTransaction(ctx, m.db)).User.WithContext(ctx).Where(query.User.UID.In(userUIDs...)).Find()
 	if err != nil {
 		return nil
 	}
@@ -111,7 +111,7 @@ func (m *memberRepository) ListMember(ctx context.Context, req *bo.ListMemberBo)
 		return nil, merr.ErrorInvalidArgument("namespace is required")
 	}
 
-	mutation := query.Member
+	mutation := query.Use(getDBWithTransaction(ctx, m.db)).Member
 	wrappers := mutation.WithContext(ctx).Where(mutation.NamespaceUID.Eq(namespaceUID.Int64()))
 	if req.UserUID > 0 {
 		wrappers = wrappers.Where(mutation.UserUID.Eq(req.UserUID.Int64()))
@@ -128,7 +128,7 @@ func (m *memberRepository) ListMember(ctx context.Context, req *bo.ListMemberBo)
 			Or(mutation.Nickname.Like(keyword))
 	}
 	if strutil.IsNotEmpty(req.Email) {
-		users, _ := query.User.WithContext(ctx).
+		users, _ := query.Use(getDBWithTransaction(ctx, m.db)).User.WithContext(ctx).
 			Where(query.User.Email.Like("%" + req.Email + "%")).
 			Find()
 		if len(users) > 0 {
@@ -169,7 +169,7 @@ func (m *memberRepository) SelectMember(ctx context.Context, req *bo.SelectMembe
 		return nil, merr.ErrorInvalidArgument("namespace is required")
 	}
 
-	mutation := query.Member
+	mutation := query.Use(getDBWithTransaction(ctx, m.db)).Member
 	wrappers := mutation.WithContext(ctx).Where(mutation.NamespaceUID.Eq(namespaceUID.Int64()))
 	if strutil.IsNotEmpty(req.Keyword) {
 		keyword := "%" + req.Keyword + "%"
@@ -221,13 +221,13 @@ func (m *memberRepository) SelectMember(ctx context.Context, req *bo.SelectMembe
 }
 
 func (m *memberRepository) UpdateMemberStatus(ctx context.Context, uid snowflake.ID, status int32) error {
-	mutation := query.Member
+	mutation := query.Use(getDBWithTransaction(ctx, m.db)).Member
 	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).Update(mutation.Status, status)
 	return err
 }
 
 func (m *memberRepository) GetNamespaceUIDsByUserUID(ctx context.Context, userUID snowflake.ID) ([]snowflake.ID, error) {
-	mutation := query.Member
+	mutation := query.Use(getDBWithTransaction(ctx, m.db)).Member
 	members, err := mutation.WithContext(ctx).
 		Where(mutation.UserUID.Eq(userUID.Int64())).
 		Select(mutation.NamespaceUID).

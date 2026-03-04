@@ -31,7 +31,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	bizUser := biz.NewUser(user, helper)
 	member := impl.NewMemberRepository(dataData)
 	email := impl.NewEmailRepository(bc)
-	bizMember := biz.NewMember(bc, member, user, namespace, email, helper)
+	bizMember := biz.NewMember(bc, transaction, member, user, namespace, email, helper)
 	bizNamespace := biz.NewNamespace(transaction, namespace, bizUser, bizMember, helper)
 	namespaceService := service.NewNamespaceService(bizNamespace)
 	userService := service.NewUserService(bizUser)
@@ -41,7 +41,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	loginBiz := biz.NewLoginBiz(loginRepository)
+	loginBiz := biz.NewLoginBiz(transaction, loginRepository)
 	bizEmail := biz.NewEmail(email)
 	captcha := biz.NewCaptcha()
 	authService := service.NewAuthService(loginBiz, bizEmail, captcha)

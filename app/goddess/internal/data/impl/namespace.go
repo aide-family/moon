@@ -36,7 +36,7 @@ type namespaceRepository struct {
 
 // AllNamespaces implements [repository.Namespace].
 func (n *namespaceRepository) AllNamespaces(ctx context.Context) ([]*bo.NamespaceItemBo, error) {
-	namespaceMutation := query.Namespace
+	namespaceMutation := query.Use(getDBWithTransaction(ctx, n.db)).Namespace
 	namespaces, err := namespaceMutation.WithContext(ctx).Find()
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (n *namespaceRepository) AllNamespaces(ctx context.Context) ([]*bo.Namespac
 // CreateNamespace implements [repository.Namespace].
 func (n *namespaceRepository) CreateNamespace(ctx context.Context, req *bo.CreateNamespaceBo) (snowflake.ID, error) {
 	namespaceModel := convert.NamespaceToDo(ctx, req)
-	mutation := query.Namespace
+	mutation := query.Use(getDBWithTransaction(ctx, n.db)).Namespace
 	if err := mutation.WithContext(ctx).Create(namespaceModel); err != nil {
 		return 0, err
 	}
@@ -60,14 +60,14 @@ func (n *namespaceRepository) CreateNamespace(ctx context.Context, req *bo.Creat
 
 // DeleteNamespace implements [repository.Namespace].
 func (n *namespaceRepository) DeleteNamespace(ctx context.Context, uid snowflake.ID) error {
-	mutation := query.Namespace
+	mutation := query.Use(getDBWithTransaction(ctx, n.db)).Namespace
 	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).Delete()
 	return err
 }
 
 // GetNamespace implements [repository.Namespace].
 func (n *namespaceRepository) GetNamespace(ctx context.Context, uid snowflake.ID) (*bo.NamespaceItemBo, error) {
-	mutation := query.Namespace
+	mutation := query.Use(getDBWithTransaction(ctx, n.db)).Namespace
 	namespace, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64())).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -87,7 +87,7 @@ func (n *namespaceRepository) ListNamespacesByUIDs(ctx context.Context, uids []s
 	for _, uid := range uids {
 		ids = append(ids, uid.Int64())
 	}
-	mutation := query.Namespace
+	mutation := query.Use(getDBWithTransaction(ctx, n.db)).Namespace
 	namespaces, err := mutation.WithContext(ctx).Where(mutation.UID.In(ids...)).Find()
 	if err != nil {
 		return nil, merr.ErrorInternalServer("list namespaces by uids failed: %v", err)
@@ -101,7 +101,7 @@ func (n *namespaceRepository) ListNamespacesByUIDs(ctx context.Context, uids []s
 
 // GetNamespaceByName implements [repository.Namespace].
 func (n *namespaceRepository) GetNamespaceByName(ctx context.Context, name string) (*bo.NamespaceItemBo, error) {
-	mutation := query.Namespace
+	mutation := query.Use(getDBWithTransaction(ctx, n.db)).Namespace
 	namespace, err := mutation.WithContext(ctx).Where(mutation.Name.Eq(name)).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -114,7 +114,7 @@ func (n *namespaceRepository) GetNamespaceByName(ctx context.Context, name strin
 
 // ListNamespace implements [repository.Namespace].
 func (n *namespaceRepository) ListNamespace(ctx context.Context, req *bo.ListNamespaceBo) (*bo.PageResponseBo[*bo.NamespaceItemBo], error) {
-	mutation := query.Namespace
+	mutation := query.Use(getDBWithTransaction(ctx, n.db)).Namespace
 	wrappers := mutation.WithContext(ctx)
 	if strutil.IsNotEmpty(req.Keyword) {
 		wrappers = wrappers.Where(mutation.Name.Like("%" + req.Keyword + "%"))
@@ -144,7 +144,7 @@ func (n *namespaceRepository) ListNamespace(ctx context.Context, req *bo.ListNam
 
 // SelectNamespace implements [repository.Namespace].
 func (n *namespaceRepository) SelectNamespace(ctx context.Context, req *bo.SelectNamespaceBo) (*bo.SelectNamespaceBoResult, error) {
-	mutation := query.Namespace
+	mutation := query.Use(getDBWithTransaction(ctx, n.db)).Namespace
 	wrappers := mutation.WithContext(ctx)
 	if strutil.IsNotEmpty(req.Keyword) {
 		wrappers = wrappers.Where(mutation.Name.Like("%" + req.Keyword + "%"))
@@ -180,7 +180,7 @@ func (n *namespaceRepository) SelectNamespace(ctx context.Context, req *bo.Selec
 
 // UpdateNamespace implements [repository.Namespace].
 func (n *namespaceRepository) UpdateNamespace(ctx context.Context, req *bo.UpdateNamespaceBo) error {
-	mutation := query.Namespace
+	mutation := query.Use(getDBWithTransaction(ctx, n.db)).Namespace
 	wrappers := []gen.Condition{
 		mutation.UID.Eq(req.UID.Int64()),
 	}
@@ -198,7 +198,7 @@ func (n *namespaceRepository) UpdateNamespace(ctx context.Context, req *bo.Updat
 
 // UpdateNamespaceStatus implements [repository.Namespace].
 func (n *namespaceRepository) UpdateNamespaceStatus(ctx context.Context, req *bo.UpdateNamespaceStatusBo) error {
-	mutation := query.Namespace
+	mutation := query.Use(getDBWithTransaction(ctx, n.db)).Namespace
 	_, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(req.UID.Int64())).Update(mutation.Status, req.Status)
 	return err
 }

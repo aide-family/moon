@@ -47,7 +47,7 @@ func (g *loginRepository) LoginByEmail(ctx context.Context, email string) (strin
 }
 
 func (g *loginRepository) findOrCreateUserByEmail(ctx context.Context, email string) (*do.User, error) {
-	userMutation := query.User
+	userMutation := query.Use(getDBWithTransaction(ctx, g.db)).User
 	userDO, err := userMutation.WithContext(ctx).Where(userMutation.Email.Eq(email)).First()
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -113,7 +113,7 @@ func (g *loginRepository) LoginByOAuth2(ctx context.Context, req *bo.OAuth2Login
 }
 
 func (g *loginRepository) findOrCreateOAuth2User(ctx context.Context, user *bo.OAuth2UserBo) (*do.OAuth2User, error) {
-	oauth2Mutation := query.OAuth2User
+	oauth2Mutation := query.Use(getDBWithTransaction(ctx, g.db)).OAuth2User
 	oauth2UserDO, err := oauth2Mutation.WithContext(ctx).Where(oauth2Mutation.OpenID.Eq(user.OpenID), oauth2Mutation.APP.Eq(user.App.String())).First()
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -139,7 +139,7 @@ func (g *loginRepository) findOrCreateOAuth2User(ctx context.Context, user *bo.O
 }
 
 func (g *loginRepository) findOrCreateUser(ctx context.Context, user *do.OAuth2User) (*do.User, error) {
-	userMutation := query.User
+	userMutation := query.Use(getDBWithTransaction(ctx, g.db)).User
 	var userDO *do.User
 	var err error
 	if user.UID > 0 {
@@ -169,7 +169,7 @@ func (g *loginRepository) bindUserAndOAuth2User(ctx context.Context, user *do.Us
 	if int64(oauth2User.UID) == int64(user.UID) {
 		return nil
 	}
-	oauth2Mutation := query.OAuth2User
+	oauth2Mutation := query.Use(getDBWithTransaction(ctx, g.db)).OAuth2User
 	if _, err := oauth2Mutation.WithContext(ctx).Where(oauth2Mutation.UID.Eq(int64(oauth2User.UID))).Update(oauth2Mutation.UID, int64(user.UID)); err != nil {
 		klog.Context(ctx).Debugw("msg", "update oauth2 user failed", "error", err, "oauth2UserUID", oauth2User.UID, "userUID", user.UID)
 		return merr.ErrorInternalServer("update oauth2 user failed").WithCause(err)

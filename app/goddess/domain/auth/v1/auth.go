@@ -30,8 +30,9 @@ func NewDefaultAuth(c *config.DomainConfig) (goddessv1.AuthServiceServer, func()
 	if err != nil {
 		return nil, nil, err
 	}
+	transaction := impl.NewTransactionWithDB(db)
 	loginRepo := impl.NewLoginRepositoryWithDB(db, defaultConfig.GetJwt())
-	loginBiz := biz.NewLoginBiz(loginRepo)
+	loginBiz := biz.NewLoginBiz(transaction, loginRepo)
 	return &authRepository{AuthService: service.NewDomainAuthService(loginBiz)}, close, nil
 }
 

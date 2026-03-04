@@ -22,6 +22,7 @@ var inviteMemberTemplate string
 
 func NewMember(
 	c *conf.Bootstrap,
+	transaction repository.Transaction,
 	memberRepo repository.Member,
 	userRepo repository.User,
 	namespaceRepo repository.Namespace,
@@ -30,6 +31,7 @@ func NewMember(
 ) *Member {
 	return &Member{
 		siteDomain:    c.GetSiteDomain(),
+		transaction:   transaction,
 		memberRepo:    memberRepo,
 		userRepo:      userRepo,
 		namespaceRepo: namespaceRepo,
@@ -40,6 +42,7 @@ func NewMember(
 
 type Member struct {
 	helper        *klog.Helper
+	transaction   repository.Transaction
 	memberRepo    repository.Member
 	userRepo      repository.User
 	namespaceRepo repository.Namespace
@@ -85,10 +88,6 @@ func (m *Member) InviteMember(ctx context.Context, req *bo.InviteMemberBo) error
 		Role:         req.Role,
 		Remark:       user.Remark,
 	}
-	if err := m.memberRepo.CreateMember(ctx, createBo); err != nil {
-		m.helper.Errorw("msg", "create member failed", "error", err, "email", req.Email)
-		return merr.ErrorInternalServer("invite member failed").WithCause(err)
-	}
 	templateData := map[string]any{
 		"Name":          createBo.Name,
 		"Inviter":       contextx.GetUsername(ctx),
@@ -100,18 +99,24 @@ func (m *Member) InviteMember(ctx context.Context, req *bo.InviteMemberBo) error
 		m.helper.Errorw("msg", "parse invite template failed", "error", err)
 		return merr.ErrorInternalServer("invite member failed").WithCause(err)
 	}
-
 	sendEmailBo := &bo.SendEmailBo{
 		To:          []string{req.Email},
 		Subject:     fmt.Sprintf("%s invited you to join the moon family", contextx.GetUsername(ctx)),
 		Body:        inviteBody,
 		ContentType: "text/html",
 	}
-	if err := m.emailRepo.SendEmail(ctx, sendEmailBo); err != nil {
-		m.helper.Errorw("msg", "send email failed", "error", err, "email", req.Email)
-		return merr.ErrorInternalServer("send email failed").WithCause(err)
-	}
-	return nil
+	return m.transaction.Transaction(ctx, func(ctx context.Context) error {
+		if err := m.memberRepo.CreateMember(ctx, createBo); err != nil {
+			m.helper.Errorw("msg", "create member failed", "error", err, "email", req.Email)
+			return merr.ErrorInternalServer("invite member failed").WithCause(err)
+		}
+
+		if err := m.emailRepo.SendEmail(ctx, sendEmailBo); err != nil {
+			m.helper.Errorw("msg", "send email failed", "error", err, "email", req.Email)
+			return merr.ErrorInternalServer("send email failed").WithCause(err)
+		}
+		return nil
+	})
 }
 
 func (m *Member) DismissMember(ctx context.Context, memberUID snowflake.ID) error {
