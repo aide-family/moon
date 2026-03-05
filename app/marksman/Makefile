@@ -102,6 +102,12 @@ dev:
 	@echo "Running marksman in development mode"
 	go run . run all --log-level=DEBUG
 
+.PHONY: clean
+# clean the marksman binary
+clean:
+	@echo "Cleaning marksman"
+	rm -rf bin/*
+
 # show help
 help:
 	@echo ''

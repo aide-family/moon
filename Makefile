@@ -24,6 +24,24 @@ gen:
 		cd -; \
 	done
 
+.PHONY: build-exe
+# build the exe files
+build-exe:
+	@mkdir -p package
+	@for app in $(APPS); do \
+		echo "=========build-exe $$app =========="; \
+		cd app/$$app; \
+		make clean; \
+		make build-exe; \
+		cp .env bin/; \
+		mv bin $$app; \
+		zip -r $$app-exe.zip $$app/; \
+		rm -rf $$app; \
+		cd -; \
+		mv app/$$app/$$app-exe.zip package/; \
+		rm -rf app/$$app/$$app-exe.zip; \
+	done
+
 # show help
 help:
 	@echo ''

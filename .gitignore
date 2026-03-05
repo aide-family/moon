@@ -35,6 +35,7 @@ go.work.sum
 .DS_Store
 
 # deploy
+package
 deploy/*/data
 .rabbit/
 *.log
