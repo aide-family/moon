@@ -11,17 +11,17 @@ server:
     author: ${MOON_RABBIT_METADATA_AUTHOR:Aide Family}
     email: ${MOON_RABBIT_METADATA_EMAIL:aidecloud@163.com}
   http:
-    address: '${MOON_RABBIT_HTTP_ADDRESS:0.0.0.0:18080}'
+    address: '${MOON_RABBIT_HTTP_ADDRESS:0.0.0.0:8001}'
     network: '${MOON_RABBIT_HTTP_NETWORK:tcp}'
     timeout: '${MOON_RABBIT_HTTP_TIMEOUT:10s}'
     protocol: HTTP
   grpc:
-    address: '${MOON_RABBIT_GRPC_ADDRESS:0.0.0.0:19090}'
+    address: '${MOON_RABBIT_GRPC_ADDRESS:0.0.0.0:9001}'
     network: '${MOON_RABBIT_GRPC_NETWORK:tcp}'
     timeout: '${MOON_RABBIT_GRPC_TIMEOUT:10s}'
     protocol: GRPC
   job:
-    address: '${MOON_RABBIT_JOB_ADDRESS:0.0.0.0:17070}'
+    address: '${MOON_RABBIT_JOB_ADDRESS:0.0.0.0:7001}'
     network: '${MOON_RABBIT_JOB_NETWORK:tcp}'
     timeout: '${MOON_RABBIT_JOB_TIMEOUT:10s}'
     protocol: GRPC

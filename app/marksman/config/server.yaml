@@ -11,31 +11,31 @@ server:
     author: ${MOON_MARKSMAN_METADATA_AUTHOR:Aide Family}
     email: ${MOON_MARKSMAN_METADATA_EMAIL:aidecloud@163.com}
   http:
-    address: "${MOON_MARKSMAN_HTTP_ADDRESS:0.0.0.0:18080}"
-    network: "${MOON_MARKSMAN_HTTP_NETWORK:tcp}"
-    timeout: "${MOON_MARKSMAN_HTTP_TIMEOUT:10s}"
+    address: '${MOON_MARKSMAN_HTTP_ADDRESS:0.0.0.0:8003}'
+    network: '${MOON_MARKSMAN_HTTP_NETWORK:tcp}'
+    timeout: '${MOON_MARKSMAN_HTTP_TIMEOUT:10s}'
     protocol: HTTP
   grpc:
-    address: "${MOON_MARKSMAN_GRPC_ADDRESS:0.0.0.0:19090}"
-    network: "${MOON_MARKSMAN_GRPC_NETWORK:tcp}"
-    timeout: "${MOON_MARKSMAN_GRPC_TIMEOUT:10s}"
+    address: '${MOON_MARKSMAN_GRPC_ADDRESS:0.0.0.0:9003}'
+    network: '${MOON_MARKSMAN_GRPC_NETWORK:tcp}'
+    timeout: '${MOON_MARKSMAN_GRPC_TIMEOUT:10s}'
     protocol: GRPC
   job:
-    address: "${MOON_MARKSMAN_JOB_ADDRESS:0.0.0.0:17070}"
-    network: "${MOON_MARKSMAN_JOB_NETWORK:tcp}"
-    timeout: "${MOON_MARKSMAN_JOB_TIMEOUT:10s}"
+    address: '${MOON_MARKSMAN_JOB_ADDRESS:0.0.0.0:7003}'
+    network: '${MOON_MARKSMAN_JOB_NETWORK:tcp}'
+    timeout: '${MOON_MARKSMAN_JOB_TIMEOUT:10s}'
     protocol: GRPC
 
 jwt:
-  secret: "${MOON_MARKSMAN_JWT_SECRET:xxx}"
-  expire: "${MOON_MARKSMAN_JWT_EXPIRE:600s}"
-  issuer: "${MOON_MARKSMAN_JWT_ISSUER:marksman}"
+  secret: '${MOON_MARKSMAN_JWT_SECRET:xxx}'
+  expire: '${MOON_MARKSMAN_JWT_EXPIRE:600s}'
+  issuer: '${MOON_MARKSMAN_JWT_ISSUER:marksman}'
 
 namespaceConfig:
   driver: ${MOON_MARKSMAN_NAMESPACE_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_NAMESPACE_VERSION:v1}
   options:
-    '@type': "${MOON_MARKSMAN_NAMESPACE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}"
+    '@type': '${MOON_MARKSMAN_NAMESPACE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}'
     siteDomain: ${MOON_MARKSMAN_NAMESPACE_SITE_DOMAIN:localhost:5175}
     globalEmail:
       host: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_HOST:localhost}
@@ -47,8 +47,8 @@ namespaceConfig:
       debug: ${MOON_MARKSMAN_NAMESPACE_DATABASE_DEBUG:true}
       useSystemLogger: ${MOON_MARKSMAN_NAMESPACE_DATABASE_USE_SYSTEM_LOGGER:false}
       options:
-        '@type': "${MOON_MARKSMAN_NAMESPACE_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}"
-        dsn: "${MOON_MARKSMAN_NAMESPACE_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}"
+        '@type': '${MOON_MARKSMAN_NAMESPACE_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
+        dsn: '${MOON_MARKSMAN_NAMESPACE_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
     jwt:
       secret: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_SECRET:xxx}
       expire: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_EXPIRE:600s}
@@ -58,7 +58,7 @@ loginConfig:
   driver: ${MOON_MARKSMAN_LOGIN_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_LOGIN_VERSION:v1}
   options:
-    '@type': "${MOON_MARKSMAN_LOGIN_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}"
+    '@type': '${MOON_MARKSMAN_LOGIN_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}'
     siteDomain: ${MOON_MARKSMAN_LOGIN_SITE_DOMAIN:localhost:5175}
     globalEmail:
       host: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_HOST:localhost}
@@ -70,8 +70,8 @@ loginConfig:
       debug: ${MOON_MARKSMAN_LOGIN_DATABASE_DEBUG:true}
       useSystemLogger: ${MOON_MARKSMAN_LOGIN_DATABASE_USE_SYSTEM_LOGGER:false}
       options:
-        '@type': "${MOON_MARKSMAN_LOGIN_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}"
-        dsn: "${MOON_MARKSMAN_LOGIN_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}"
+        '@type': '${MOON_MARKSMAN_LOGIN_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
+        dsn: '${MOON_MARKSMAN_LOGIN_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
     jwt:
       secret: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_SECRET:xxx}
       expire: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_EXPIRE:600s}
@@ -81,7 +81,7 @@ selfConfig:
   driver: ${MOON_MARKSMAN_SELF_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_SELF_VERSION:v1}
   options:
-    '@type': "${MOON_MARKSMAN_SELF_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}"
+    '@type': '${MOON_MARKSMAN_SELF_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}'
     siteDomain: ${MOON_MARKSMAN_SELF_SITE_DOMAIN:localhost:5175}
     globalEmail:
       host: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_HOST:localhost}
@@ -93,8 +93,8 @@ selfConfig:
       debug: ${MOON_MARKSMAN_SELF_DATABASE_DEBUG:true}
       useSystemLogger: ${MOON_MARKSMAN_SELF_DATABASE_USE_SYSTEM_LOGGER:false}
       options:
-        '@type': "${MOON_MARKSMAN_SELF_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}"
-        dsn: "${MOON_MARKSMAN_SELF_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}"
+        '@type': '${MOON_MARKSMAN_SELF_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
+        dsn: '${MOON_MARKSMAN_SELF_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
     jwt:
       secret: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_SECRET:xxx}
       expire: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_EXPIRE:600s}
@@ -104,20 +104,20 @@ userConfig:
   driver: ${MOON_MARKSMAN_USER_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_USER_VERSION:v1}
   options:
-    '@type': "${MOON_MARKSMAN_USER_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}"
+    '@type': '${MOON_MARKSMAN_USER_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}'
     database:
       dialector: ${MOON_MARKSMAN_USER_DATABASE_DIALECTOR:SQLITE}
       debug: ${MOON_MARKSMAN_USER_DATABASE_DEBUG:true}
       useSystemLogger: ${MOON_MARKSMAN_USER_DATABASE_USE_SYSTEM_LOGGER:false}
       options:
-        '@type': "${MOON_MARKSMAN_USER_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}"
-        dsn: "${MOON_MARKSMAN_USER_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}"
+        '@type': '${MOON_MARKSMAN_USER_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
+        dsn: '${MOON_MARKSMAN_USER_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
 
 memberConfig:
   driver: ${MOON_MARKSMAN_MEMBER_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_MEMBER_VERSION:v1}
   options:
-    '@type': "${MOON_MARKSMAN_MEMBER_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}"
+    '@type': '${MOON_MARKSMAN_MEMBER_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}'
     siteDomain: ${MOON_MARKSMAN_MEMBER_SITE_DOMAIN:localhost:5175}
     globalEmail:
       host: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_HOST:localhost}
@@ -129,8 +129,8 @@ memberConfig:
       debug: ${MOON_MARKSMAN_MEMBER_DATABASE_DEBUG:true}
       useSystemLogger: ${MOON_MARKSMAN_MEMBER_DATABASE_USE_SYSTEM_LOGGER:false}
       options:
-        '@type': "${MOON_MARKSMAN_MEMBER_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}"
-        dsn: "${MOON_MARKSMAN_MEMBER_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}"
+        '@type': '${MOON_MARKSMAN_MEMBER_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
+        dsn: '${MOON_MARKSMAN_MEMBER_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
     jwt:
       secret: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_SECRET:xxx}
       expire: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_EXPIRE:600s}
@@ -141,7 +141,7 @@ captchaConfig:
   version: ${MOON_MARKSMAN_CAPTCHA_VERSION:v1}
 
 swaggerBasicAuth:
-  enabled: ${MOON_MARKSMAN_SWAGGER_BASIC_AUTH_ENABLED:false}  
+  enabled: ${MOON_MARKSMAN_SWAGGER_BASIC_AUTH_ENABLED:false}
   username: ${MOON_MARKSMAN_SWAGGER_BASIC_AUTH_USERNAME:moon.marksman}
   password: ${MOON_MARKSMAN_SWAGGER_BASIC_AUTH_PASSWORD:marksman.swagger}
 
@@ -152,7 +152,7 @@ metricsBasicAuth:
 
 jobCore:
   workerTotal: ${MOON_MARKSMAN_JOB_CORE_WORKER_TOTAL:10}
-  timeout: "${MOON_MARKSMAN_JOB_CORE_TIMEOUT:10s}"
+  timeout: '${MOON_MARKSMAN_JOB_CORE_TIMEOUT:10s}'
   bufferSize: ${MOON_MARKSMAN_JOB_CORE_BUFFER_SIZE:1000}
 
 oauth2:
@@ -193,11 +193,11 @@ database:
   debug: ${MOON_MARKSMAN_DATABASE_DEBUG:true}
   useSystemLogger: ${MOON_MARKSMAN_DATABASE_USE_SYSTEM_LOGGER:false}
   options:
-    '@type': "${MOON_MARKSMAN_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}"
-    dsn: "${MOON_MARKSMAN_DATABASE_SQLITE_OPTIONS_DSN:file:./marksman.db?cache=shared}"
+    '@type': '${MOON_MARKSMAN_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
+    dsn: '${MOON_MARKSMAN_DATABASE_SQLITE_OPTIONS_DSN:file:./marksman.db?cache=shared}'
 
 jobCluster:
   name: ${MOON_MARKSMAN_JOB_CLUSTER_NAME:marksman}
   endpoints: ${MOON_MARKSMAN_JOB_CLUSTER_ENDPOINTS:http://localhost:18081}
-  timeout: "${MOON_MARKSMAN_JOB_CLUSTER_TIMEOUT:10s}"
+  timeout: '${MOON_MARKSMAN_JOB_CLUSTER_TIMEOUT:10s}'
   protocol: ${MOON_MARKSMAN_JOB_CLUSTER_PROTOCOL:HTTP}

@@ -126,6 +126,7 @@ func RegisterService(
 	srvs = append(srvs, RegisterGRPCService(c, grpcSrv,
 		healthService,
 		namespaceService,
+		authService,
 		selfService,
 		userService,
 		memberService,
@@ -161,6 +162,7 @@ func RegisterHTTPService(
 ) Servers {
 	magicboxapiv1.RegisterHealthHTTPServer(httpSrv, healthService)
 	goddessv1.RegisterNamespaceHTTPServer(httpSrv, namespaceService)
+	goddessv1.RegisterAuthServiceHTTPServer(httpSrv, authService)
 	goddessv1.RegisterSelfHTTPServer(httpSrv, selfService)
 	goddessv1.RegisterUserHTTPServer(httpSrv, userService)
 	goddessv1.RegisterMemberHTTPServer(httpSrv, memberService)
@@ -185,6 +187,7 @@ func RegisterGRPCService(
 	grpcSrv *grpc.Server,
 	healthService *service.HealthService,
 	namespaceService *service.NamespaceService,
+	authService *service.AuthService,
 	selfService *service.SelfService,
 	userService *service.UserService,
 	memberService *service.MemberService,
@@ -198,6 +201,7 @@ func RegisterGRPCService(
 ) Servers {
 	magicboxapiv1.RegisterHealthServer(grpcSrv, healthService)
 	goddessv1.RegisterNamespaceServer(grpcSrv, namespaceService)
+	goddessv1.RegisterAuthServiceServer(grpcSrv, authService)
 	goddessv1.RegisterSelfServer(grpcSrv, selfService)
 	goddessv1.RegisterUserServer(grpcSrv, userService)
 	goddessv1.RegisterMemberServer(grpcSrv, memberService)

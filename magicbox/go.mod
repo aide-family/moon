@@ -7,6 +7,7 @@ require (
 	buf.build/go/protovalidate v0.14.0
 	buf.build/go/protoyaml v0.6.0
 	github.com/alicebob/miniredis/v2 v2.35.0
+	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/go-kratos/kratos/contrib/registry/etcd/v2 v2.0.0-20260105075216-c7a58ff59f80

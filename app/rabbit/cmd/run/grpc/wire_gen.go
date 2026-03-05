@@ -40,6 +40,13 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	health := impl.NewHealthRepository(dataData)
 	bizHealth := biz.NewHealth(health)
 	healthService := service.NewHealthService(bizHealth)
+	loginRepository, err := impl.NewLoginRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	loginBiz := biz.NewLoginBiz(loginRepository)
+	authService := service.NewAuthService(loginBiz)
 	self, err := impl.NewSelfRepository(bc, dataData)
 	if err != nil {
 		cleanup()
@@ -111,7 +118,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	recipientMember := impl.NewRecipientMemberRepository(dataData)
 	bizRecipientGroup := biz.NewRecipientGroup(member, recipientGroup, recipientMember, helper)
 	recipientGroupService := service.NewRecipientGroupService(bizRecipientGroup)
-	servers := server.RegisterGRPCService(bc, grpcServer, healthService, namespaceService, selfService, userService, memberService, captchaService, emailService, webhookService, senderService, templateService, messageLogService, recipientGroupService)
+	servers := server.RegisterGRPCService(bc, grpcServer, healthService, namespaceService, authService, selfService, userService, memberService, captchaService, emailService, webhookService, senderService, templateService, messageLogService, recipientGroupService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

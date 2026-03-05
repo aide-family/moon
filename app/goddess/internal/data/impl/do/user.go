@@ -58,12 +58,3 @@ type OAuth2User struct {
 func (OAuth2User) TableName() string {
 	return "user_oauth2s"
 }
-
-func (u *OAuth2User) BeforeCreate(tx *gorm.DB) error {
-	node, err := snowflake.NewNode(hello.NodeID())
-	if err != nil {
-		return err
-	}
-	u.UID = node.Generate()
-	return nil
-}

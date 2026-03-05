@@ -3,7 +3,6 @@ package impl
 import (
 	"context"
 	"net/url"
-	"strings"
 
 	"github.com/aide-family/magicbox/config"
 	"github.com/aide-family/magicbox/enum"
@@ -11,8 +10,10 @@ import (
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/pointer"
 	"github.com/aide-family/magicbox/strutil"
+	"github.com/asaskevich/govalidator"
 	"github.com/go-kratos/kratos/v2/errors"
 	klog "github.com/go-kratos/kratos/v2/log"
+	"gorm.io/gen/field"
 	"gorm.io/gorm"
 
 	"github.com/aide-family/goddess/internal/biz/bo"
@@ -80,6 +81,10 @@ func (g *loginRepository) LoginByOAuth2(ctx context.Context, req *bo.OAuth2Login
 		klog.Context(ctx).Debugw("msg", "email is empty")
 		return "", merr.ErrorInvalidArgument("email is empty")
 	}
+	if !govalidator.IsEmail(user.Email) {
+		klog.Context(ctx).Debugw("msg", "email is invalid", "email", user.Email)
+		return "", merr.ErrorInvalidArgument("email is invalid")
+	}
 
 	// 1. check if outh2 user exists
 	oauth2UserDO, err := g.findOrCreateOAuth2User(ctx, user)
@@ -112,6 +117,22 @@ func (g *loginRepository) LoginByOAuth2(ctx context.Context, req *bo.OAuth2Login
 	return redirectURL, nil
 }
 
+func (g *loginRepository) oauth2UserEqual(oauth2UserDO *do.OAuth2User, user *bo.OAuth2UserBo) bool {
+	return oauth2UserDO.Email == user.Email &&
+		oauth2UserDO.Name == user.Name &&
+		oauth2UserDO.Avatar == user.Avatar &&
+		oauth2UserDO.Remark == user.Remark &&
+		oauth2UserDO.Nickname == user.Nickname
+}
+
+func (g *loginRepository) userEqual(userDO *do.User, user *do.OAuth2User) bool {
+	return userDO.Email == user.Email &&
+		userDO.Name == user.Name &&
+		userDO.Avatar == user.Avatar &&
+		userDO.Remark == user.Remark &&
+		userDO.Nickname == user.Nickname
+}
+
 func (g *loginRepository) findOrCreateOAuth2User(ctx context.Context, user *bo.OAuth2UserBo) (*do.OAuth2User, error) {
 	oauth2Mutation := query.Use(getDBWithTransaction(ctx, g.db)).OAuth2User
 	oauth2UserDO, err := oauth2Mutation.WithContext(ctx).Where(oauth2Mutation.OpenID.Eq(user.OpenID), oauth2Mutation.APP.Eq(user.App.String())).First()
@@ -126,11 +147,18 @@ func (g *loginRepository) findOrCreateOAuth2User(ctx context.Context, user *bo.O
 			return nil, merr.ErrorInternalServer("create oauth2 user failed").WithCause(err)
 		}
 	}
-	if strings.EqualFold(user.Email, oauth2UserDO.Email) {
+	if g.oauth2UserEqual(oauth2UserDO, user) {
 		return oauth2UserDO, nil
 	}
-	oauth2UserDO.Email = user.Email
-	_, err = oauth2Mutation.WithContext(ctx).Where(oauth2Mutation.UID.Eq(int64(oauth2UserDO.UID))).UpdateColumn(oauth2Mutation.Email, oauth2UserDO.Email)
+	updateColumns := []field.AssignExpr{
+		oauth2Mutation.Email.Value(user.Email),
+		oauth2Mutation.Name.Value(user.Name),
+		oauth2Mutation.Avatar.Value(user.Avatar),
+		oauth2Mutation.Remark.Value(user.Remark),
+		oauth2Mutation.Nickname.Value(user.Nickname),
+		oauth2Mutation.Raw.Value(user.Raw),
+	}
+	_, err = oauth2Mutation.WithContext(ctx).Where(oauth2Mutation.UID.Eq(int64(oauth2UserDO.UID))).UpdateColumnSimple(updateColumns...)
 	if err != nil {
 		klog.Context(ctx).Debugw("msg", "update oauth2 user email failed", "error", err, "oauth2UserUID", oauth2UserDO.UID, "email", oauth2UserDO.Email)
 		return nil, merr.ErrorInternalServer("update oauth2 user email failed").WithCause(err)
@@ -142,11 +170,7 @@ func (g *loginRepository) findOrCreateUser(ctx context.Context, user *do.OAuth2U
 	userMutation := query.Use(getDBWithTransaction(ctx, g.db)).User
 	var userDO *do.User
 	var err error
-	if user.UID > 0 {
-		userDO, err = userMutation.WithContext(ctx).Where(userMutation.UID.Eq(int64(user.UID))).First()
-	} else {
-		userDO, err = userMutation.WithContext(ctx).Where(userMutation.Email.Eq(user.Email)).First()
-	}
+	userDO, err = userMutation.WithContext(ctx).Where(userMutation.Email.Eq(user.Email)).First()
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			klog.Context(ctx).Debugw("msg", "get user failed", "error", err, "userUID", user.UID)
@@ -159,8 +183,18 @@ func (g *loginRepository) findOrCreateUser(ctx context.Context, user *do.OAuth2U
 		}
 		return userDO, nil
 	}
-	if !strings.EqualFold(user.Email, userDO.Email) {
-		return nil, merr.ErrorInvalidArgument("email mismatch")
+	if g.userEqual(userDO, user) {
+		return userDO, nil
+	}
+	updateColumns := []field.AssignExpr{
+		userMutation.Name.Value(user.Name),
+		userMutation.Nickname.Value(user.Nickname),
+		userMutation.Avatar.Value(user.Avatar),
+		userMutation.Remark.Value(user.Remark),
+	}
+	_, err = userMutation.WithContext(ctx).Where(userMutation.UID.Eq(int64(userDO.UID))).UpdateColumnSimple(updateColumns...)
+	if err != nil {
+		klog.Context(ctx).Warnw("msg", "update user failed", "error", err, "userUID", userDO.UID)
 	}
 	return userDO, nil
 }

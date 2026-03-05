@@ -12,23 +12,23 @@ server:
     author: ${MOON_GODDESS_METADATA_AUTHOR:Aide Family}
     email: ${MOON_GODDESS_METADATA_EMAIL:aidecloud@163.com}
   http:
-    address: "${MOON_GODDESS_HTTP_ADDRESS:0.0.0.0:18080}"
-    network: "${MOON_GODDESS_HTTP_NETWORK:tcp}"
-    timeout: "${MOON_GODDESS_HTTP_TIMEOUT:10s}"
+    address: '${MOON_GODDESS_HTTP_ADDRESS:0.0.0.0:8000}'
+    network: '${MOON_GODDESS_HTTP_NETWORK:tcp}'
+    timeout: '${MOON_GODDESS_HTTP_TIMEOUT:10s}'
     protocol: HTTP
   grpc:
-    address: "${MOON_GODDESS_GRPC_ADDRESS:0.0.0.0:19090}"
-    network: "${MOON_GODDESS_GRPC_NETWORK:tcp}"
-    timeout: "${MOON_GODDESS_GRPC_TIMEOUT:10s}"
+    address: '${MOON_GODDESS_GRPC_ADDRESS:0.0.0.0:9000}'
+    network: '${MOON_GODDESS_GRPC_NETWORK:tcp}'
+    timeout: '${MOON_GODDESS_GRPC_TIMEOUT:10s}'
     protocol: GRPC
 
 jwt:
-  secret: "${MOON_GODDESS_JWT_SECRET:xxx}"
-  expire: "${MOON_GODDESS_JWT_EXPIRE:600s}"
-  issuer: "${MOON_GODDESS_JWT_ISSUER:goddess}"
+  secret: '${MOON_GODDESS_JWT_SECRET:xxx}'
+  expire: '${MOON_GODDESS_JWT_EXPIRE:600s}'
+  issuer: '${MOON_GODDESS_JWT_ISSUER:goddess}'
 
 swaggerBasicAuth:
-  enabled: ${MOON_GODDESS_SWAGGER_BASIC_AUTH_ENABLED:false}  
+  enabled: ${MOON_GODDESS_SWAGGER_BASIC_AUTH_ENABLED:false}
   username: ${MOON_GODDESS_SWAGGER_BASIC_AUTH_USERNAME:moon.goddess}
   password: ${MOON_GODDESS_SWAGGER_BASIC_AUTH_PASSWORD:goddess.swagger}
 
@@ -42,8 +42,8 @@ database:
   debug: ${MOON_GODDESS_DATABASE_DEBUG:true}
   useSystemLogger: ${MOON_GODDESS_DATABASE_USE_SYSTEM_LOGGER:false}
   options:
-    '@type': "${MOON_GODDESS_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}"
-    dsn: "${MOON_GODDESS_DATABASE_SQLITE_OPTIONS_DSN:file:./goddess.db?cache=shared}"
+    '@type': '${MOON_GODDESS_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
+    dsn: '${MOON_GODDESS_DATABASE_SQLITE_OPTIONS_DSN:file:./goddess.db?cache=shared}'
 
 oauth2:
   enable: ${MOON_GODDESS_OAUTH2_ENABLE:true}
