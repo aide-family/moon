@@ -1,87 +1,200 @@
-# marksman (后羿)
+# Marksman (后羿)
 
-<div align="right">
+<p align="center">
+  <strong>Event and alerting service for the Moon platform</strong>
+</p>
 
-[English](README.md) | [中文](README-zh_CN.md)
+<p align="center">
+  <a href="README-zh_CN.md">中文</a> · <a href="README.md">English</a>
+</p>
 
-</div>
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
+  <a href="https://go.dev/"><img src="https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go" alt="Go"></a>
+  <a href="https://github.com/go-kratos/kratos"><img src="https://img.shields.io/badge/Kratos-v2.9.2-00ADD8?style=flat&logo=go" alt="Kratos"></a>
+  <a href="https://github.com/spf13/cobra"><img src="https://img.shields.io/badge/Cobra-v1.10-00ADD8?style=flat&logo=go" alt="Cobra"></a>
+</p>
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go)](https://golang.org/)
-[![Kratos](https://img.shields.io/badge/Kratos-v2.9.2-00ADD8?style=flat&logo=go)](https://github.com/go-kratos/kratos)
-[![Cobra](https://img.shields.io/badge/Cobra-v1.10.2-00ADD8?style=flat&logo=go)](https://github.com/spf13/cobra)
+---
 
-## 📖 Introduction
+## Table of Contents
 
-marksman (后羿) 是作为 moon 体系通用的事件服务项目
+- [About](#about)
+- [Features](#features)
+- [API Overview](#api-overview)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Common Usage](#common-usage)
+- [Development](#development)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
 
-## 🚀 Quick Start
+---
+
+## About
+
+**Marksman** (后羿) is the Moon platform’s event and alerting service. It manages datasources (Prometheus, VictoriaMetrics, Elasticsearch, Jaeger), strategy groups and strategies, alert levels, and strategy metrics (expressions, levels, receivers binding).
+
+- **Proto definitions**: `proto/marksman/api/v1/`
+- **HTTP + gRPC** via Kratos; CLI via Cobra.
+
+---
+
+## Features
+
+- **Datasource**: CRUD, list, select for metrics/logs/trace backends (Prometheus, VictoriaMetrics, Elasticsearch, Jaeger)
+- **Strategy group**: CRUD, list, select, status; bind receivers (recipient groups)
+- **Strategy**: CRUD, list, status; link to strategy group; type (METRICS/LOGS/TRACE) and driver
+- **Level**: Alert level CRUD, list, select, status (for grouping alert severity)
+- **Strategy metric**: Save/get metric config (expr, labels, datasourceUIDs, levels); save/update/delete/get metric levels (mode, condition, values, duration); bind receivers per strategy (optional levelUID)
+
+---
+
+## API Overview
+
+| Service | Method / HTTP | Description |
+|---------|----------------|-------------|
+| **Datasource** | `POST /v1/datasource` | Create datasource (name, type, driver, url, metadata, remark) |
+| | `PUT /v1/datasource/{uid}` | Update datasource |
+| | `DELETE /v1/datasource/{uid}` | Delete datasource |
+| | `GET /v1/datasource/{uid}` | Get datasource |
+| | `GET /v1/datasources` | List (keyword, page, pageSize, type, driver, status) |
+| | `GET /v1/datasources/select` | Select for dropdown |
+| **Strategy** (group) | `POST /v1/strategy-group` | Create strategy group |
+| | `PUT /v1/strategy-group/{uid}` | Update strategy group |
+| | `PUT /v1/strategy-group/{uid}/status` | Update status (ENABLED/DISABLED) |
+| | `DELETE /v1/strategy-group/{uid}` | Delete strategy group |
+| | `GET /v1/strategy-group/{uid}` | Get strategy group |
+| | `GET /v1/strategy-groups` | List strategy groups |
+| | `GET /v1/strategy-groups/select` | Select for dropdown |
+| | `POST /v1/strategy-group/{uid}/receivers` | Bind receivers (receiverUIDs) to group |
+| **Strategy** (item) | `POST /v1/strategy` | Create strategy (name, type, driver, strategyGroupUID, status, etc.) |
+| | `PUT /v1/strategy/{uid}` | Update strategy |
+| | `PUT /v1/strategy/{uid}/status` | Update status |
+| | `DELETE /v1/strategy/{uid}` | Delete strategy |
+| | `GET /v1/strategy/{uid}` | Get strategy |
+| | `GET /v1/strategies` | List strategies (keyword, page, pageSize, status, strategyGroupUID, type, driver) |
+| **Level** | `POST /v1/level` | Create level (name, remark, metadata) |
+| | `PUT /v1/level/{uid}` | Update level |
+| | `PUT /v1/level/{uid}/status` | Update status |
+| | `DELETE /v1/level/{uid}` | Delete level |
+| | `GET /v1/level/{uid}` | Get level |
+| | `GET /v1/levels` | List levels (page, pageSize, keyword, status) |
+| | `GET /v1/levels/select` | Select for dropdown |
+| **StrategyMetric** | `POST /v1/metric/strategy/{strategyUID}` | Save strategy metric (expr, labels, datasourceUIDs, summary, description, status) |
+| | `GET /v1/metric/strategy/{strategyUID}` | Get strategy metric (with levels) |
+| | `POST /v1/metric/strategy/{strategyUID}/level` | Save metric level (levelUID, mode, condition, values, duration, status) |
+| | `PUT /v1/metric/strategy/{strategyUID}/level/{uid}/status` | Update metric level status |
+| | `DELETE /v1/metric/strategy/{strategyUID}/level/{uid}` | Delete metric level |
+| | `GET /v1/metric/strategy/{strategyUID}/level/{uid}` | Get metric level |
+| | `POST /v1/metric/strategy/{strategyUID}/receivers` | Bind receivers (receiverUIDs; optional levelUID) |
+
+**Types**: `DatasourceType`: METRICS, LOGS, TRACE. **Drivers**: METRICS_PROMETHEUS, METRICS_VICTORIA_METRICS, LOGS_ELASTICSEARCH, TRACE_JAEGER.
+
+API is defined in `proto/marksman/api/v1/` (e.g. `datasource.proto`, `strategy.proto`, `level.proto`, `strategy_metric.proto`). OpenAPI can be generated via `make api`.
+
+---
+
+## Prerequisites
+
+- [Go](https://go.dev/) 1.25+
+- [Make](https://www.gnu.org/software/make/)
+
+---
+
+## Installation
+
+From the Moon repo root or from this directory:
 
 ```bash
-make init
-make build
+cd app/marksman   # if at repo root
+make init         # install protoc plugins, wire, etc.
+make build        # generate API/conf/wire and build binary → bin/marksman
 ```
 
-### run the binary
+---
 
-- help
+## Quick Start
 
 ```bash
+# Build
+make init && make build
+
+# Run all (HTTP + gRPC) in development
+./bin/marksman run all --log-level=DEBUG
+# or
+make dev
+```
+
+---
+
+## Common Usage
+
+### CLI
+
+```bash
+# Help
 ./bin/marksman -h
-```
-
-- version
-
-```bash
 ./bin/marksman version
-```
-
-- run all
-
-```bash
 ./bin/marksman run all -h
-```
-
-- run grpc
-
-```bash
 ./bin/marksman run grpc -h
-```
-
-- run http
-
-```bash
 ./bin/marksman run http -h
 ```
 
+### Run modes
+
+| Command | Description |
+|--------|-------------|
+| `./bin/marksman run all` | Run both HTTP and gRPC servers |
+| `./bin/marksman run http` | HTTP only |
+| `./bin/marksman run grpc` | gRPC only |
+
+### Make targets
+
+| Target | Description |
+|--------|-------------|
+| `make init` | Install protoc plugins, wire, kratos, etc. |
+| `make conf` | Generate config from proto |
+| `make api` | Generate Go/HTTP/gRPC/OpenAPI from `proto/marksman` |
+| `make wire` | Generate Wire DI |
+| `make all` | api + conf + wire |
+| `make build` | all + build binary to `bin/marksman` |
+| `make dev` | `go run . run all --log-level=DEBUG` |
+| `make gen` | Generate DO/data layer (e.g. test with generate tag) |
+| `make clean` | Remove `bin/` |
+| `make help` | List all targets |
+
+---
+
 ## Development
 
-```bash
-make init
-make all
-```
+1. **Regenerate after proto changes**
 
-### run the application
+   ```bash
+   make api
+   make wire   # if service graph changed
+   ```
 
-- run all
+2. **Run without building**
 
-```bash
-go run . run all
-```
+   ```bash
+   go run . run all
+   go run . run http
+   go run . run grpc
+   ```
 
-- run grpc
+3. **Config**: See `internal/conf/`; set config path via flag or env.
 
-```bash
-go run . run grpc
-```
+---
 
-- run http
+## License
 
-```bash
-go run . run http
-```
+[MIT](LICENSE)
+
+---
 
 ## Acknowledgments
 
-- [kratos](https://github.com/go-kratos/kratos)
-- [cobra](https://github.com/spf13/cobra)
+- [Kratos](https://github.com/go-kratos/kratos)
+- [Cobra](https://github.com/spf13/cobra)

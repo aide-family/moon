@@ -1,86 +1,199 @@
-# marksman (后羿)
+# Marksman（后羿）
 
-<div align="right">
+<p align="center">
+  <strong>Moon 平台事件与告警服务</strong>
+</p>
 
-[English](README.md) | [中文](README-zh_CN.md)
+<p align="center">
+  <a href="README-zh_CN.md">中文</a> · <a href="README.md">English</a>
+</p>
 
-</div>
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
+  <a href="https://go.dev/"><img src="https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go" alt="Go"></a>
+  <a href="https://github.com/go-kratos/kratos"><img src="https://img.shields.io/badge/Kratos-v2.9.2-00ADD8?style=flat&logo=go" alt="Kratos"></a>
+  <a href="https://github.com/spf13/cobra"><img src="https://img.shields.io/badge/Cobra-v1.10-00ADD8?style=flat&logo=go" alt="Cobra"></a>
+</p>
 
-[![许可证](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Go 版本](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go)](https://golang.org/)
-[![Kratos](https://img.shields.io/badge/Kratos-v2.9.2-00ADD8?style=flat&logo=go)](https://github.com/go-kratos/kratos)
-[![Cobra](https://img.shields.io/badge/Cobra-v1.10.2-00ADD8?style=flat&logo=go)](https://github.com/spf13/cobra)
+---
 
-## 📖 项目介绍
+## 目录
 
-marksman (后羿) 是作为 moon 体系通用的事件服务项目
+- [项目简介](#项目简介)
+- [功能特性](#功能特性)
+- [接口概览](#接口概览)
+- [环境要求](#环境要求)
+- [安装](#安装)
+- [快速开始](#快速开始)
+- [常用用法](#常用用法)
+- [开发说明](#开发说明)
+- [许可证](#许可证)
+- [致谢](#致谢)
 
-## 🚀 快速开始
+---
+
+## 项目简介
+
+**Marksman**（后羿）是 Moon 平台的事件与告警服务，负责数据源（Prometheus、VictoriaMetrics、Elasticsearch、Jaeger）、策略组与策略、告警级别、以及策略指标（表达式、级别、接收人绑定）的管理。
+
+- **接口定义**：`proto/marksman/api/v1/`
+- 基于 Kratos 提供 **HTTP + gRPC**，CLI 基于 Cobra。
+
+---
+
+## 功能特性
+
+- **数据源（Datasource）**：指标/日志/链路数据源增删改查、列表、下拉选择（Prometheus、VictoriaMetrics、Elasticsearch、Jaeger）
+- **策略组（Strategy group）**：增删改查、列表、选择、状态；绑定接收人（收件人组）
+- **策略（Strategy）**：增删改查、列表、状态；归属策略组；类型（METRICS/LOGS/TRACE）与驱动
+- **级别（Level）**：告警级别增删改查、列表、选择、状态（用于告警严重程度分组）
+- **策略指标（Strategy metric）**：保存/查询指标配置（expr、labels、datasourceUIDs、levels）；指标级别的增删改查（mode、condition、values、duration）；按策略绑定接收人（可选 levelUID）
+
+---
+
+## 接口概览
+
+| 服务 | 方法 / HTTP | 说明 |
+|------|-------------|------|
+| **Datasource** | `POST /v1/datasource` | 创建数据源（name、type、driver、url、metadata、remark） |
+| | `PUT /v1/datasource/{uid}` | 更新数据源 |
+| | `DELETE /v1/datasource/{uid}` | 删除数据源 |
+| | `GET /v1/datasource/{uid}` | 获取数据源 |
+| | `GET /v1/datasources` | 列表（keyword、page、pageSize、type、driver、status） |
+| | `GET /v1/datasources/select` | 下拉选择 |
+| **Strategy**（策略组） | `POST /v1/strategy-group` | 创建策略组 |
+| | `PUT /v1/strategy-group/{uid}` | 更新策略组 |
+| | `PUT /v1/strategy-group/{uid}/status` | 更新状态（ENABLED/DISABLED） |
+| | `DELETE /v1/strategy-group/{uid}` | 删除策略组 |
+| | `GET /v1/strategy-group/{uid}` | 获取策略组 |
+| | `GET /v1/strategy-groups` | 策略组列表 |
+| | `GET /v1/strategy-groups/select` | 下拉选择 |
+| | `POST /v1/strategy-group/{uid}/receivers` | 绑定接收人（receiverUIDs） |
+| **Strategy**（策略） | `POST /v1/strategy` | 创建策略（name、type、driver、strategyGroupUID、status 等） |
+| | `PUT /v1/strategy/{uid}` | 更新策略 |
+| | `PUT /v1/strategy/{uid}/status` | 更新状态 |
+| | `DELETE /v1/strategy/{uid}` | 删除策略 |
+| | `GET /v1/strategy/{uid}` | 获取策略 |
+| | `GET /v1/strategies` | 列表（keyword、page、pageSize、status、strategyGroupUID、type、driver） |
+| **Level** | `POST /v1/level` | 创建级别（name、remark、metadata） |
+| | `PUT /v1/level/{uid}` | 更新级别 |
+| | `PUT /v1/level/{uid}/status` | 更新状态 |
+| | `DELETE /v1/level/{uid}` | 删除级别 |
+| | `GET /v1/level/{uid}` | 获取级别 |
+| | `GET /v1/levels` | 列表（page、pageSize、keyword、status） |
+| | `GET /v1/levels/select` | 下拉选择 |
+| **StrategyMetric** | `POST /v1/metric/strategy/{strategyUID}` | 保存策略指标（expr、labels、datasourceUIDs、summary、description、status） |
+| | `GET /v1/metric/strategy/{strategyUID}` | 获取策略指标（含 levels） |
+| | `POST /v1/metric/strategy/{strategyUID}/level` | 保存指标级别（levelUID、mode、condition、values、duration、status） |
+| | `PUT /v1/metric/strategy/{strategyUID}/level/{uid}/status` | 更新指标级别状态 |
+| | `DELETE /v1/metric/strategy/{strategyUID}/level/{uid}` | 删除指标级别 |
+| | `GET /v1/metric/strategy/{strategyUID}/level/{uid}` | 获取指标级别 |
+| | `POST /v1/metric/strategy/{strategyUID}/receivers` | 绑定接收人（receiverUIDs；可选 levelUID） |
+
+**类型**：`DatasourceType`: METRICS, LOGS, TRACE。**驱动**：METRICS_PROMETHEUS, METRICS_VICTORIA_METRICS, LOGS_ELASTICSEARCH, TRACE_JAEGER。
+
+接口定义位于 `proto/marksman/api/v1/`（如 `datasource.proto`、`strategy.proto`、`level.proto`、`strategy_metric.proto`）。可通过 `make api` 生成 OpenAPI。
+
+---
+
+## 环境要求
+
+- [Go](https://go.dev/) 1.25+
+- [Make](https://www.gnu.org/software/make/)
+
+---
+
+## 安装
+
+在 Moon 仓库根目录或本应用目录下执行：
+
 ```bash
-make init
-make build
+cd app/marksman   # 若在仓库根目录
+make init         # 安装 protoc 插件、wire 等
+make build        # 生成 API/conf/wire 并编译 → bin/marksman
 ```
 
-### 运行二进制文件
+---
 
-- 帮助
+## 快速开始
+
+```bash
+# 编译
+make init && make build
+
+# 开发模式运行（HTTP + gRPC）
+./bin/marksman run all --log-level=DEBUG
+# 或
+make dev
+```
+
+---
+
+## 常用用法
+
+### 命令行
 
 ```bash
 ./bin/marksman -h
-```
-
-- 版本
-
-```bash
 ./bin/marksman version
-```
-
-- 运行所有服务
-
-```bash
 ./bin/marksman run all -h
-```
-
-- 运行 gRPC 服务
-
-```bash
 ./bin/marksman run grpc -h
-```
-
-- 运行 HTTP 服务
-
-```bash
 ./bin/marksman run http -h
 ```
 
-## 开发
+### 运行模式
 
-```bash
-make init
-make all
-```
+| 命令 | 说明 |
+|------|------|
+| `./bin/marksman run all` | 同时启动 HTTP 与 gRPC |
+| `./bin/marksman run http` | 仅 HTTP |
+| `./bin/marksman run grpc` | 仅 gRPC |
 
-### 运行应用程序
+### Make 目标
 
-- run all
+| 目标 | 说明 |
+|------|------|
+| `make init` | 安装 protoc 插件、wire、kratos 等 |
+| `make conf` | 从 proto 生成配置 |
+| `make api` | 从 `proto/marksman` 生成 Go/HTTP/gRPC/OpenAPI |
+| `make wire` | 生成 Wire 依赖注入 |
+| `make all` | api + conf + wire |
+| `make build` | all + 编译到 `bin/marksman` |
+| `make dev` | `go run . run all --log-level=DEBUG` |
+| `make gen` | 生成 DO/数据层（如带 generate tag 的测试） |
+| `make clean` | 删除 `bin/` |
+| `make help` | 列出所有目标 |
 
-```bash
-go run . run all
-```
+---
 
-- run grpc
+## 开发说明
 
-```bash
-go run . run grpc
-```
+1. **修改 proto 后重新生成**
 
-- run http
+   ```bash
+   make api
+   make wire   # 若依赖有变更
+   ```
 
-```bash
-go run . run http
-```
+2. **不编译直接运行**
+
+   ```bash
+   go run . run all
+   go run . run http
+   go run . run grpc
+   ```
+
+3. **配置**：见 `internal/conf/`；配置文件路径通过启动参数或环境变量指定。
+
+---
+
+## 许可证
+
+[MIT](LICENSE)
+
+---
 
 ## 致谢
 
-- [kratos](https://github.com/go-kratos/kratos)
-- [cobra](https://github.com/spf13/cobra)
+- [Kratos](https://github.com/go-kratos/kratos)
+- [Cobra](https://github.com/spf13/cobra)

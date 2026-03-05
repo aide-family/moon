@@ -92,3 +92,10 @@ import (
 - 新增「领域」时在此目录下新增包并注册；仅扩展现有 API 时在 `internal/service` 与 `internal/biz` 按上述流程即可，无需动 domain。
 
 完成模块后，用 SKILL.md 末尾的检查清单自检，并确保未引入新目录或与现有 app 不一致的包结构。
+
+## 7. README 维护（与 SKILL 同步）
+
+- **位置**：每个应用有 `README.md`、`README-zh_CN.md`；根目录与 magicbox 同理。见 SKILL.md「README 与文档同步」。
+- **API 来源**：README 中的「API Overview / 接口概览」必须与 `proto/<app>/api/v1/*.proto` 中的 `service`、`rpc` 及 `option (google.api.http)` 一致；修改/增删 RPC 或 HTTP 路径后，必须同步改两张表（中英文）。
+- **表格格式**：列为「Service / 服务」「Method / HTTP」「Description / 说明」；新增一行即按现有格式补全三列，删除则整行去掉。
+- **禁止臆造**：路径、方法名、服务名以 proto 与生成代码为准，不确定时直接查 proto 文件。

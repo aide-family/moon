@@ -1,6 +1,6 @@
 ---
 name: proto-backend-module
-description: Implements backend modules from proto definitions for goddess, marksman, and rabbit apps. Keeps style consistent with existing project structure, reuses magicbox and in-app code, and follows Go and project conventions. Use when the user says "帮我完成某某模块" or manually @ this skill to implement a module based on proto.
+description: Implements backend modules from proto definitions for goddess, marksman, and rabbit apps. Keeps style consistent with existing project structure, reuses magicbox and in-app code, follows Go and project conventions, and requires syncing README (API overview, features, usage) when adding, modifying, or removing modules or APIs. Use when the user says "帮我完成某某模块" or manually @ this skill to implement a module based on proto.
 ---
 
 # Proto 后端模块实现
@@ -82,6 +82,45 @@ description: Implements backend modules from proto definitions for goddess, mark
 11. **wire**  
     - 若 wire 为自动生成，运行 `wire ./cmd/run/...` 等以更新注入；否则在对应 `wire.go` 中确保 server、service、biz、impl、data 的 ProviderSet 已包含新模块。
 
+12. **README 与文档同步**  
+    - 对模块或 API 做**新增、修改、删除**时，必须同步更新对应应用的 README，保证「接口说明、功能说明、常用用法」与代码一致。  
+    - 详见下方 [README 与文档同步](#readme-与文档同步) 小节。
+
+## README 与文档同步
+
+为保证项目质量，**对 proto/模块/功能做任何变更时，必须同步维护 README**，避免文档与实现脱节。
+
+### 何时需要更新 README
+
+| 变更类型 | 需更新的 README | 更新内容 |
+|----------|-----------------|----------|
+| **新增** RPC / Service / 模块 | 该应用下的 `README.md`、`README-zh_CN.md` | Features、API Overview 表：补充新接口/新服务说明；必要时补充常用用法 |
+| **修改** RPC 路径、方法名、请求/响应语义 | 同上 | API Overview 表：修正 HTTP 路径、方法描述；若影响功能描述则更新 Features |
+| **删除** RPC / Service / 模块 | 同上 | 从 Features、API Overview 表中移除对应项；若整模块删除则从「接口概览」整块移除 |
+| 新增/删除/重命名**应用**（如新 app） | 仓库根目录 `README.md`、`README-zh_CN.md` | Project Structure 表、Documentation 表、Quick Start 中应用列表 |
+| **magicbox** 新增/删除/重命名包或对外能力 | `magicbox/README.md`、`magicbox/README-zh_CN.md` | Module Overview 表、Features；若新增 proto 则更新 Proto 定义表 |
+
+### README 文件位置
+
+- **根目录**：`README.md`、`README-zh_CN.md`（项目结构、各应用入口、文档链接）
+- **Goddess**：`app/goddess/README.md`、`app/goddess/README-zh_CN.md`
+- **Rabbit**：`app/rabbit/README.md`、`app/rabbit/README-zh_CN.md`
+- **Marksman**：`app/marksman/README.md`、`app/marksman/README-zh_CN.md`
+- **Magic Box**：`magicbox/README.md`、`magicbox/README-zh_CN.md`
+
+### 更新规范
+
+1. **中英文同步**：同一变更必须同时改 `README.md` 与 `README-zh_CN.md`，结构和表格一一对应，仅语言不同。
+2. **API Overview 表**：  
+   - 行内容为「Service / 服务」「Method / HTTP」「Description / 说明」。  
+   - 新增 RPC：按现有表格格式增加一行（HTTP 方法 + 路径 + 简短说明）。  
+   - 修改：只改对应行，不改变整体表格风格。  
+   - 删除：整行删除，保持表格连贯。
+3. **Features**：若新增/删除的是「能力维度」（如新服务、新一类接口），在 Features 列表里增删一句描述。
+4. **不臆造**：README 中的路径、方法名、服务名必须与 **当前 proto 与生成代码** 一致；不确定时查 `proto/<app>/api/v1/*.proto` 与 `google.api.http` 注解。
+
+完成模块实现或 proto 变更后，在自检时必须勾选「README 已同步」。
+
 ## Go 规范
 
 - **Import 顺序**（严格）：  
@@ -118,5 +157,6 @@ description: Implements backend modules from proto definitions for goddess, mark
 - [ ] Import 顺序：标准库 → 空白 → 第三方 → 当前项目
 - [ ] 新增的 repository、biz、service、impl 已在对应 ProviderSet 与 Register* 中注册
 - [ ] 公共可复用函数或方法已添加测试
+- [ ] **README 已同步**：若有模块/API 新增、修改或删除，已更新对应应用的 `README.md` 与 `README-zh_CN.md`（API 概览表、Features、常用用法），中英文一致且与当前 proto 一致
 
 更多分层与文件命名细节见 [reference.md](reference.md)。
