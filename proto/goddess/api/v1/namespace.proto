@@ -49,6 +49,19 @@ service Namespace {
 			get: "/v1/namespaces/select"
 		};
 	}
+	// GetNamespaceSimple returns namespace detail by uid and secret, no auth required.
+	rpc GetNamespaceSimple (GetNamespaceSimpleRequest) returns (NamespaceItem) {
+		option (google.api.http) = {
+			get: "/v1/namespaces/simple"
+		};
+	}
+}
+
+message GetNamespaceSimpleRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	string secret = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 1,
+	}];
 }
 
 message CreateNamespaceRequest {

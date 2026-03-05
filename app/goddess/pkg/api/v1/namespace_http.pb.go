@@ -22,6 +22,7 @@ const _ = http.SupportPackageIsVersion1
 const OperationNamespaceCreateNamespace = "/goddess.api.v1.Namespace/CreateNamespace"
 const OperationNamespaceDeleteNamespace = "/goddess.api.v1.Namespace/DeleteNamespace"
 const OperationNamespaceGetNamespace = "/goddess.api.v1.Namespace/GetNamespace"
+const OperationNamespaceGetNamespaceSimple = "/goddess.api.v1.Namespace/GetNamespaceSimple"
 const OperationNamespaceListNamespace = "/goddess.api.v1.Namespace/ListNamespace"
 const OperationNamespaceSelectNamespace = "/goddess.api.v1.Namespace/SelectNamespace"
 const OperationNamespaceUpdateNamespace = "/goddess.api.v1.Namespace/UpdateNamespace"
@@ -31,6 +32,8 @@ type NamespaceHTTPServer interface {
 	CreateNamespace(context.Context, *CreateNamespaceRequest) (*CreateNamespaceReply, error)
 	DeleteNamespace(context.Context, *DeleteNamespaceRequest) (*DeleteNamespaceReply, error)
 	GetNamespace(context.Context, *GetNamespaceRequest) (*NamespaceItem, error)
+	// GetNamespaceSimple GetNamespaceSimple returns namespace detail by uid and secret, no auth required.
+	GetNamespaceSimple(context.Context, *GetNamespaceSimpleRequest) (*NamespaceItem, error)
 	ListNamespace(context.Context, *ListNamespaceRequest) (*ListNamespaceReply, error)
 	SelectNamespace(context.Context, *SelectNamespaceRequest) (*SelectNamespaceReply, error)
 	UpdateNamespace(context.Context, *UpdateNamespaceRequest) (*UpdateNamespaceReply, error)
@@ -46,6 +49,7 @@ func RegisterNamespaceHTTPServer(s *http.Server, srv NamespaceHTTPServer) {
 	r.GET("/v1/namespace/{uid}", _Namespace_GetNamespace0_HTTP_Handler(srv))
 	r.GET("/v1/namespaces", _Namespace_ListNamespace0_HTTP_Handler(srv))
 	r.GET("/v1/namespaces/select", _Namespace_SelectNamespace0_HTTP_Handler(srv))
+	r.GET("/v1/namespaces/simple", _Namespace_GetNamespaceSimple0_HTTP_Handler(srv))
 }
 
 func _Namespace_CreateNamespace0_HTTP_Handler(srv NamespaceHTTPServer) func(ctx http.Context) error {
@@ -202,10 +206,31 @@ func _Namespace_SelectNamespace0_HTTP_Handler(srv NamespaceHTTPServer) func(ctx 
 	}
 }
 
+func _Namespace_GetNamespaceSimple0_HTTP_Handler(srv NamespaceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetNamespaceSimpleRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNamespaceGetNamespaceSimple)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetNamespaceSimple(ctx, req.(*GetNamespaceSimpleRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*NamespaceItem)
+		return ctx.Result(200, reply)
+	}
+}
+
 type NamespaceHTTPClient interface {
 	CreateNamespace(ctx context.Context, req *CreateNamespaceRequest, opts ...http.CallOption) (rsp *CreateNamespaceReply, err error)
 	DeleteNamespace(ctx context.Context, req *DeleteNamespaceRequest, opts ...http.CallOption) (rsp *DeleteNamespaceReply, err error)
 	GetNamespace(ctx context.Context, req *GetNamespaceRequest, opts ...http.CallOption) (rsp *NamespaceItem, err error)
+	// GetNamespaceSimple GetNamespaceSimple returns namespace detail by uid and secret, no auth required.
+	GetNamespaceSimple(ctx context.Context, req *GetNamespaceSimpleRequest, opts ...http.CallOption) (rsp *NamespaceItem, err error)
 	ListNamespace(ctx context.Context, req *ListNamespaceRequest, opts ...http.CallOption) (rsp *ListNamespaceReply, err error)
 	SelectNamespace(ctx context.Context, req *SelectNamespaceRequest, opts ...http.CallOption) (rsp *SelectNamespaceReply, err error)
 	UpdateNamespace(ctx context.Context, req *UpdateNamespaceRequest, opts ...http.CallOption) (rsp *UpdateNamespaceReply, err error)
@@ -251,6 +276,20 @@ func (c *NamespaceHTTPClientImpl) GetNamespace(ctx context.Context, in *GetNames
 	pattern := "/v1/namespace/{uid}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationNamespaceGetNamespace))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetNamespaceSimple GetNamespaceSimple returns namespace detail by uid and secret, no auth required.
+func (c *NamespaceHTTPClientImpl) GetNamespaceSimple(ctx context.Context, in *GetNamespaceSimpleRequest, opts ...http.CallOption) (*NamespaceItem, error) {
+	var out NamespaceItem
+	pattern := "/v1/namespaces/simple"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationNamespaceGetNamespaceSimple))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

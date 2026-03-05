@@ -1,0 +1,122 @@
+---
+name: proto-backend-module
+description: Implements backend modules from proto definitions for goddess, marksman, and rabbit apps. Keeps style consistent with existing project structure, reuses magicbox and in-app code, and follows Go and project conventions. Use when the user says "帮我完成某某模块" or manually @ this skill to implement a module based on proto.
+---
+
+# Proto 后端模块实现
+
+根据 proto 定义在 goddess、marksman、rabbit 中完成后端功能时，严格遵循本技能中的分层、命名和复用约定。
+
+## 何时使用
+
+- 用户说「帮我完成某某模块」或「完成 XX 模块」时
+- 用户手动 @ 本 skill 并要求基于 proto 实现后端时
+
+## 核心原则
+
+1. **风格与项目一致**：目录、包名、接口命名、错误处理、日志风格必须与现有模块一致。
+2. **能复用则复用**：优先使用 magicbox 公共包和当前 app 内已有类型（bo、enum、merr、contextx、safety 等），不重复造轮子。
+3. **不创造突兀结构**：除非用户明确要求，不得新建与现有 app 结构不符的目录或包；新代码必须落在已有分层内。
+4. **命名与导入**：遵循 Go 官方规范；import 顺序见下文。
+
+## 项目结构速查
+
+- **Proto**：`proto/<app>/api/v1/*.proto`，生成到 `app/<app>/pkg/api/v1/*.pb.go`（由 buf/kratos 生成，勿手改）。
+- **App 分层**（以 rabbit 为例，goddess/marksman 类似）：
+  - `cmd/run/{http,grpc,job,all}/wire.go`：wire 注入
+  - `internal/conf`：配置
+  - `internal/server`：HTTP/gRPC 注册（RegisterHTTPService / RegisterGRPCService / RegisterService）
+  - `internal/service`：对接 proto 生成的 Server 接口，调 biz
+  - `internal/biz`：业务逻辑；`biz/repository` 接口；`biz/bo` 请求/响应 BO
+  - `internal/data`：`data/impl` 实现 repository；`impl/do` GORM 模型；`impl/convert` do↔bo 转换；`impl/query` 为 gorm gen 生成
+- **magicbox**：公共能力（enum、merr、contextx、safety、strutil、encoding、hello 等），在 `magicbox/` 下按包使用。
+
+实现新模块时，只在这些既有分层中新增或修改文件，不要新增顶层包或与现有命名风格不符的目录。
+
+## 实现流程（按顺序）
+
+1. **确认 proto 与生成代码**  
+   - Proto 在 `proto/<app>/api/v1/`，`go_package` 指向 `github.com/aide-family/<app>/pkg/api/v1`。  
+   - 确保已生成 `pkg/api/v1/*.pb.go`（如未生成，提醒用户执行项目既定 make/buf 命令）。  
+   - **HTTP 路由勿与已有路径冲突**：若已有 `GET /v1/resource/{uid}` 这类带路径参数的 route，不要新增 `GET /v1/resource/xxx`（会被匹配成 `uid=xxx`，导致解析错误）。应使用不同前缀或层级，例如 `GET /v1/resources/xxx`（复数前缀）、`GET /v1/resource/action/xxx`（多段），或单独资源名如 `GET /v1/namespaces/simple`。新增/修改 proto 的 `google.api.http` 后需执行 `make api` 并确认生成的路由表无冲突。
+
+2. **biz/bo**  
+   - 在 `internal/biz/bo/` 下为当前模块增加类型（如 `CreateXxxBo`、`UpdateXxxBo`、`XxxItemBo`、`ListXxxBo` 等），与 proto 的 Request/Reply/Item 对应。  
+   - 提供从 `*apiv1.*Request` 构造 BO 的构造函数（如 `NewCreateXxxBo(req *apiv1.CreateXxxRequest)`）。  
+   - 提供 BO → proto 响应的转换（如 `ToAPIV1XxxItem`、`ToAPIV1ListXxxReply`）。  
+   - 分页复用现有 `PageRequestBo` / `PageResponseBo[T]`（见 `biz/bo/page.go`），不要新建分页类型。
+
+3. **biz/repository**  
+   - 在 `internal/biz/repository/` 下新增接口（如 `XxxConfig`），方法签名使用 `context.Context`、`*bo.*Bo`、`snowflake.ID` 等，返回业务所需类型（含 `*bo.PageResponseBo[*bo.XxxItemBo]` 等）。  
+   - 与 proto 的 RPC 一一对应，但接口命名保持「领域+动作」（如 `CreateXxxConfig`、`ListXxxConfig`）。
+
+4. **data/impl/do**  
+   - 在 `internal/data/impl/do/` 下新增 GORM 模型（嵌入 `BaseModel`，使用 `snowflake.ID`、`gorm` 标签、`TableName()`）。  
+   - 敏感字段使用 magicbox 类型（如 `strutil.EncryptString`、`safety.Map`）。  
+   - 将新 model 加入 `do.Models()` 的返回切片，以便迁移与 gen。
+
+5. **data/impl/convert**  
+   - 在 `internal/data/impl/convert/` 下实现 do ↔ bo 的转换（如 `ToXxxConfigDO`、`ToXxxConfigItemBo`），使用 `contextx.GetNamespace(ctx)`、`contextx.GetUserUID(ctx)` 等填充创建人/命名空间。
+
+6. **data/impl/query（gorm gen）**  
+   - 项目使用 gorm.io/gen 生成 query。新增 do 后需重新生成 query（见项目 Makefile/cmd），并在 impl 层用 `query.Xxx.WithContext(ctx).Where(...)` 等调用。
+
+7. **data/impl**  
+   - 在 `internal/data/impl/` 下新增 `xxx.go`，实现 `repository.XxxConfig`：  
+     - 构造函数 `NewXxxConfigRepository(d *data.Data) repository.XxxConfig`，内部调用 `query.SetDefault(d.DB())`（若该 app 使用 SetDefault）。  
+     - 各方法用 `query.Xxx`、`convert.*`、`contextx.GetNamespace(ctx)` 等实现，错误用 `merr.ErrorNotFound` / `merr.ErrorInvalidArgument` 等（与现有 impl 一致）。  
+   - 在 `impl/provider_set.go` 的 `ProviderSetImpl` 中注册 `NewXxxConfigRepository`。
+
+8. **internal/biz**  
+   - 新增 `xxx_config.go`（或与模块同名的 biz 文件），实现 `NewXxxConfig(repo repository.XxxConfig, helper *klog.Helper) *XxxConfig`，方法内调 repo、用 `merr` 和 `helper.Errorw` 处理错误与日志。  
+   - 在 `biz/provider_set.go` 的 `ProviderSetBiz` 中注册 `NewXxxConfig`。
+
+9. **internal/service**  
+   - 新增 `xxx.go`，实现 proto 生成的 `XxxServer` 接口（嵌入 `apiv1.UnimplementedXxxServer`），各 RPC 方法：将 `*apiv1.*Request` 转为 bo、调 biz、将 bo 转为 `*apiv1.*Reply`。  
+   - 在 `service/provider_set.go` 的 `ProviderSetService` 中注册 `NewXxxService`。
+
+10. **internal/server**  
+    - 在 `RegisterHTTPService` / `RegisterGRPCService`（以及如需全量的 `RegisterService`）中增加对新 service 的依赖参数，并调用 `apiv1.RegisterXxxHTTPServer` / `apiv1.RegisterXxxServer`。  
+    - 若该服务有「允许未登录/未命名空间」的接口，在 `namespaceAllowList` 或 `authAllowList` 中加上对应 Operation 常量。
+
+11. **wire**  
+    - 若 wire 为自动生成，运行 `wire ./cmd/run/...` 等以更新注入；否则在对应 `wire.go` 中确保 server、service、biz、impl、data 的 ProviderSet 已包含新模块。
+
+## Go 规范
+
+- **Import 顺序**（严格）：  
+  1）标准库  
+  2）空白导入（`_ "..."`）  
+  3）第三方包（建议先 magicbox，再 kratos、snowflake、gorm、wire 等）  
+  4）当前项目包（`github.com/aide-family/<app>/...`）  
+  每组之间空一行。
+- **命名**：遵循 [Effective Go](https://go.dev/doc/effective_go) 与 Go 官方命名约定；包名简短小写，接口名单词首字母大写，方法名与 proto RPC 对应但用 Go 风格（如 `CreateXxx`）。
+- **公共函数/方法**：对外暴露的包级函数或可复用方法需有单元测试（`*_test.go`），与现有 magicbox 和 app 内测试风格一致。
+
+## 复用清单（优先使用，勿重复实现）
+
+- 分页：`biz/bo/page.go` 的 `PageRequestBo`、`PageResponseBo[T]`
+- 错误：`magicbox/merr`（如 `ErrorNotFound`、`ErrorInvalidArgument`、`ErrorParams`、`IsNotFound`）
+- 上下文：`magicbox/contextx`（如 `GetNamespace`、`GetUserUID`）
+- 枚举：`magicbox/enum`（与 proto 一致）
+- 安全/敏感：`magicbox/strutil.EncryptString`、`magicbox/safety.Map`
+- 日志：`klog.Helper` 的 `Errorw` 等，与现有 biz 一致
+- ID：`github.com/bwmarrin/snowflake`，`snowflake.ParseInt64`、`uid.Int64()`
+
+## Goddess 特殊说明
+
+- goddess 存在 `domain/<domain>/v1/` 的领域注册（如 `namespace`、`user`），新领域实现需在对应 `domain/xxx/v1/` 下实现并注册；若只是扩展现有 API，在 `internal/service` 与 `internal/biz` 中按上述流程即可。
+- 跨 app 调用：rabbit/marksman 可能依赖 goddess 的 API 客户端（如 `goddessv1 "github.com/aide-family/goddess/pkg/api/v1"`），仅引用已有客户端与接口，不新建 goddess 端未定义的包。
+
+## 检查清单（完成前自检）
+
+- [ ] Proto 已生成到 `pkg/api/v1`，未手改生成代码
+- [ ] 新增 HTTP 路径与已有路径无冲突（尤其已有 `/resource/{id}` 时，勿用 `/resource/word`，改用 `/resources/word` 等）
+- [ ] 未新建与现有 app 结构不符的目录或包
+- [ ] bo/repository/do/convert/impl/biz/service 分层与现有模块一致
+- [ ] 分页、错误、上下文、枚举、ID 均使用项目与 magicbox 既有类型
+- [ ] Import 顺序：标准库 → 空白 → 第三方 → 当前项目
+- [ ] 新增的 repository、biz、service、impl 已在对应 ProviderSet 与 Register* 中注册
+- [ ] 公共可复用函数或方法已添加测试
+
+更多分层与文件命名细节见 [reference.md](reference.md)。

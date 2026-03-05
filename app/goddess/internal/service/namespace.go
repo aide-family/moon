@@ -84,6 +84,14 @@ func (s *NamespaceService) SelectNamespace(ctx context.Context, req *apiv1.Selec
 	return bo.ToAPIV1SelectNamespaceReply(result), nil
 }
 
+func (s *NamespaceService) GetNamespaceSimple(ctx context.Context, req *apiv1.GetNamespaceSimpleRequest) (*apiv1.NamespaceItem, error) {
+	namespaceItemBo, err := s.namespaceBiz.GetNamespaceByUIDAndSecret(ctx, snowflake.ParseInt64(req.Uid), req.Secret)
+	if err != nil {
+		return nil, err
+	}
+	return namespaceItemBo.ToAPIV1NamespaceItem(), nil
+}
+
 func (s *NamespaceService) HasNamespace(ctx context.Context) (snowflake.ID, error) {
 	namespace := contextx.GetNamespace(ctx)
 	if namespace <= 0 {

@@ -200,4 +200,5 @@ var authAllowList = []string{
 	goddessv1.OperationAuthServiceEmailLogin,
 	goddessv1.OperationAuthServiceSendEmailLoginCode,
 	goddessv1.OperationCaptchaGetCaptcha,
+	goddessv1.OperationNamespaceGetNamespaceSimple,
 }

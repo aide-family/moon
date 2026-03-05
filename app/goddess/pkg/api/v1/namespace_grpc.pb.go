@@ -26,6 +26,7 @@ const (
 	Namespace_GetNamespace_FullMethodName          = "/goddess.api.v1.Namespace/GetNamespace"
 	Namespace_ListNamespace_FullMethodName         = "/goddess.api.v1.Namespace/ListNamespace"
 	Namespace_SelectNamespace_FullMethodName       = "/goddess.api.v1.Namespace/SelectNamespace"
+	Namespace_GetNamespaceSimple_FullMethodName    = "/goddess.api.v1.Namespace/GetNamespaceSimple"
 )
 
 // NamespaceClient is the client API for Namespace service.
@@ -39,6 +40,8 @@ type NamespaceClient interface {
 	GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*NamespaceItem, error)
 	ListNamespace(ctx context.Context, in *ListNamespaceRequest, opts ...grpc.CallOption) (*ListNamespaceReply, error)
 	SelectNamespace(ctx context.Context, in *SelectNamespaceRequest, opts ...grpc.CallOption) (*SelectNamespaceReply, error)
+	// GetNamespaceSimple returns namespace detail by uid and secret, no auth required.
+	GetNamespaceSimple(ctx context.Context, in *GetNamespaceSimpleRequest, opts ...grpc.CallOption) (*NamespaceItem, error)
 }
 
 type namespaceClient struct {
@@ -119,6 +122,16 @@ func (c *namespaceClient) SelectNamespace(ctx context.Context, in *SelectNamespa
 	return out, nil
 }
 
+func (c *namespaceClient) GetNamespaceSimple(ctx context.Context, in *GetNamespaceSimpleRequest, opts ...grpc.CallOption) (*NamespaceItem, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NamespaceItem)
+	err := c.cc.Invoke(ctx, Namespace_GetNamespaceSimple_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NamespaceServer is the server API for Namespace service.
 // All implementations must embed UnimplementedNamespaceServer
 // for forward compatibility.
@@ -130,6 +143,8 @@ type NamespaceServer interface {
 	GetNamespace(context.Context, *GetNamespaceRequest) (*NamespaceItem, error)
 	ListNamespace(context.Context, *ListNamespaceRequest) (*ListNamespaceReply, error)
 	SelectNamespace(context.Context, *SelectNamespaceRequest) (*SelectNamespaceReply, error)
+	// GetNamespaceSimple returns namespace detail by uid and secret, no auth required.
+	GetNamespaceSimple(context.Context, *GetNamespaceSimpleRequest) (*NamespaceItem, error)
 	mustEmbedUnimplementedNamespaceServer()
 }
 
@@ -160,6 +175,9 @@ func (UnimplementedNamespaceServer) ListNamespace(context.Context, *ListNamespac
 }
 func (UnimplementedNamespaceServer) SelectNamespace(context.Context, *SelectNamespaceRequest) (*SelectNamespaceReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SelectNamespace not implemented")
+}
+func (UnimplementedNamespaceServer) GetNamespaceSimple(context.Context, *GetNamespaceSimpleRequest) (*NamespaceItem, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetNamespaceSimple not implemented")
 }
 func (UnimplementedNamespaceServer) mustEmbedUnimplementedNamespaceServer() {}
 func (UnimplementedNamespaceServer) testEmbeddedByValue()                   {}
@@ -308,6 +326,24 @@ func _Namespace_SelectNamespace_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Namespace_GetNamespaceSimple_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNamespaceSimpleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NamespaceServer).GetNamespaceSimple(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Namespace_GetNamespaceSimple_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NamespaceServer).GetNamespaceSimple(ctx, req.(*GetNamespaceSimpleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Namespace_ServiceDesc is the grpc.ServiceDesc for Namespace service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -342,6 +378,10 @@ var Namespace_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SelectNamespace",
 			Handler:    _Namespace_SelectNamespace_Handler,
+		},
+		{
+			MethodName: "GetNamespaceSimple",
+			Handler:    _Namespace_GetNamespaceSimple_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

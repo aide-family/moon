@@ -19,4 +19,5 @@ type Namespace interface {
 	ListNamespacesByUIDs(ctx context.Context, uids []snowflake.ID) ([]*bo.NamespaceItemBo, error)
 	ListNamespace(ctx context.Context, req *bo.ListNamespaceBo) (*bo.PageResponseBo[*bo.NamespaceItemBo], error)
 	SelectNamespace(ctx context.Context, req *bo.SelectNamespaceBo) (*bo.SelectNamespaceBoResult, error)
+	GetNamespaceByUIDAndSecret(ctx context.Context, uid snowflake.ID, secret string) (*bo.NamespaceItemBo, error)
 }

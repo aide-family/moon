@@ -19,6 +19,7 @@ Review the given code for **correctness and potential bugs**. For each issue fou
    - Error handling gaps (ignored errors, wrong propagation)
    - Resource leaks (unclosed handles, connections)
    - Incorrect assumptions about types, APIs, or data
+   - **HTTP route conflicts**: e.g. a new route `GET /v1/resource/simple` while `GET /v1/resource/{id}` exists causes the former URL to be matched as `id=simple` and can lead to parse errors (e.g. strconv.ParseInt "parsing \"simple\": invalid syntax"). Check that no new path is a prefix or literal segment that would be captured by an existing path parameter.
 3. **For each finding**: state file path, line number(s), and a short recommended solution.
 
 ## Output Format
@@ -47,6 +48,10 @@ Use this structure for the review:
 - **High**: Clear bug under common usage.
 - **Medium**: Edge-case bug or maintainability/robustness concern.
 - **Low**: Minor or speculative; worth fixing when touching the area.
+
+## Checklist (when reviewing API / proto changes)
+
+- [ ] **Route conflict**: If the change adds or modifies HTTP routes (e.g. in proto `google.api.http` or generated `*_http.pb.go`), verify that no new path is matched by an existing parameterized route (e.g. `/v1/foo/{id}` matching `/v1/foo/simple`). Resolve by using a distinct path prefix (e.g. `/v1/foos/simple`) or extra segment.
 
 ## Rules
 

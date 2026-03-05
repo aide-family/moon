@@ -156,3 +156,15 @@ func (n *Namespace) SelectNamespace(ctx context.Context, req *bo.SelectNamespace
 		LastUID: result.LastUID,
 	}, nil
 }
+
+func (n *Namespace) GetNamespaceByUIDAndSecret(ctx context.Context, uid snowflake.ID, secret string) (*bo.NamespaceItemBo, error) {
+	namespaceItemBo, err := n.namespaceRepo.GetNamespaceByUIDAndSecret(ctx, uid, secret)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return nil, merr.ErrorNotFound("namespace not found or secret mismatch")
+		}
+		n.helper.Errorw("msg", "get namespace by uid and secret failed", "error", err, "uid", uid)
+		return nil, merr.ErrorInternalServer("get namespace failed").WithCause(err)
+	}
+	return namespaceItemBo, nil
+}

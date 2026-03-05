@@ -381,6 +381,28 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/goddess.api.v1.SelectNamespaceReply'
+    /v1/namespaces/simple:
+        get:
+            tags:
+                - Namespace
+            description: GetNamespaceSimple returns namespace detail by uid and secret, no auth required.
+            operationId: Namespace_GetNamespaceSimple
+            parameters:
+                - name: uid
+                  in: query
+                  schema:
+                    type: string
+                - name: secret
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.NamespaceItem'
     /v1/self/change-avatar:
         put:
             tags:

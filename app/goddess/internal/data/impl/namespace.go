@@ -77,6 +77,19 @@ func (n *namespaceRepository) GetNamespace(ctx context.Context, uid snowflake.ID
 	return convert.NamespaceToBo(namespace), nil
 }
 
+// GetNamespaceByUIDAndSecret implements [repository.Namespace].
+func (n *namespaceRepository) GetNamespaceByUIDAndSecret(ctx context.Context, uid snowflake.ID, secret string) (*bo.NamespaceItemBo, error) {
+	mutation := query.Use(getDBWithTransaction(ctx, n.db)).Namespace
+	namespace, err := mutation.WithContext(ctx).Where(mutation.UID.Eq(uid.Int64()), mutation.Secret.Eq(secret)).First()
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, merr.ErrorNotFound("namespace not found or secret mismatch")
+		}
+		return nil, err
+	}
+	return convert.NamespaceToBo(namespace), nil
+}
+
 // ListNamespacesByUIDs implements [repository.Namespace].
 func (n *namespaceRepository) ListNamespacesByUIDs(ctx context.Context, uids []snowflake.ID) ([]*bo.NamespaceItemBo, error) {
 	if len(uids) == 0 {

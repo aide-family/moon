@@ -35,12 +35,12 @@ func Validate(opts ...protovalidate.ValidatorOption) middleware.Middleware {
 	}
 }
 
-func getMsg(ctx context.Context, constraintId string, msg string) string {
-	if strutil.IsEmpty(constraintId) {
+func getMsg(ctx context.Context, constraintID string, msg string) string {
+	if strutil.IsEmpty(constraintID) {
 		return msg
 	}
-	if strings.EqualFold(constraintId, "required") {
-		constraintId = "REQUIRED"
+	if strings.EqualFold(constraintID, "required") {
+		constraintID = "REQUIRED"
 	}
 
 	lang := mi18n.GetLanguage(ctx)
@@ -49,9 +49,9 @@ func getMsg(ctx context.Context, constraintId string, msg string) string {
 		return msg
 	}
 	localize, localizeErr := i18n.NewLocalizer(bundle, lang).
-		Localize(&i18n.LocalizeConfig{MessageID: constraintId})
+		Localize(&i18n.LocalizeConfig{MessageID: constraintID})
 	if pointer.IsNotNil(localizeErr) {
-		log.Warnf("%s => validate error: %v", constraintId, localizeErr)
+		log.Warnf("%s => validate error: %v", constraintID, localizeErr)
 		return msg
 	}
 
@@ -63,11 +63,11 @@ type ValidateHandler func(ctx context.Context, req interface{}) error
 
 // validateParams validate params
 func validateParams(opts ...protovalidate.ValidatorOption) ValidateHandler {
-	validator, err := protovalidate.New(opts...)
+	validator, err := protovalidate.New(append(opts, protovalidate.WithMessages())...)
 	if err != nil {
 		panic(err)
 	}
-	protovalidate.WithMessages()
+
 	return func(ctx context.Context, req interface{}) error {
 		message, isOk := req.(proto.Message)
 		if !isOk {
