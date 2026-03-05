@@ -84,6 +84,7 @@ description: Implements backend modules from proto definitions for goddess, mark
 
 12. **README 与文档同步**  
     - 对模块或 API 做**新增、修改、删除**时，必须同步更新对应应用的 README，保证「接口说明、功能说明、常用用法」与代码一致。  
+    - **必须同时更新**：① **功能特性（Features）**：在功能列表中补充/修改/删除该模块或能力的一句话描述；② **接口概览（API Overview）表**：在表格中补充/修改/删除对应服务与 HTTP 路径、说明；③ **中英文双版本**：同一变更需同时改 `README.md` 与 `README-zh_CN.md`，结构和表格一一对应。  
     - 详见下方 [README 与文档同步](#readme-与文档同步) 小节。
 
 ## README 与文档同步
@@ -94,9 +95,9 @@ description: Implements backend modules from proto definitions for goddess, mark
 
 | 变更类型 | 需更新的 README | 更新内容 |
 |----------|-----------------|----------|
-| **新增** RPC / Service / 模块 | 该应用下的 `README.md`、`README-zh_CN.md` | Features、API Overview 表：补充新接口/新服务说明；必要时补充常用用法 |
-| **修改** RPC 路径、方法名、请求/响应语义 | 同上 | API Overview 表：修正 HTTP 路径、方法描述；若影响功能描述则更新 Features |
-| **删除** RPC / Service / 模块 | 同上 | 从 Features、API Overview 表中移除对应项；若整模块删除则从「接口概览」整块移除 |
+| **新增** RPC / Service / 模块 | 该应用下的 `README.md`**与** `README-zh_CN.md`（二者都改） | **Features**：补充一条新能力描述；**API Overview 表**：补充新接口/新服务；必要时补充常用用法 |
+| **修改** RPC 路径、方法名、请求/响应语义 | 同上 | **API Overview 表**：修正 HTTP 路径、方法描述；若影响功能描述则同步更新 **Features** |
+| **删除** RPC / Service / 模块 | 同上 | 从 **Features**、**API Overview 表**中移除对应项；若整模块删除则从接口概览整块移除 |
 | 新增/删除/重命名**应用**（如新 app） | 仓库根目录 `README.md`、`README-zh_CN.md` | Project Structure 表、Documentation 表、Quick Start 中应用列表 |
 | **magicbox** 新增/删除/重命名包或对外能力 | `magicbox/README.md`、`magicbox/README-zh_CN.md` | Module Overview 表、Features；若新增 proto 则更新 Proto 定义表 |
 
@@ -110,16 +111,19 @@ description: Implements backend modules from proto definitions for goddess, mark
 
 ### 更新规范
 
-1. **中英文同步**：同一变更必须同时改 `README.md` 与 `README-zh_CN.md`，结构和表格一一对应，仅语言不同。
-2. **API Overview 表**：  
+1. **中英文同步**：同一变更必须同时改 `README.md` 与 `README-zh_CN.md`，结构和表格一一对应，仅语言不同。**只改中文或只改英文视为未完成。**
+2. **Features（功能特性）**：  
+   - 新增模块/服务：在 Features 列表中增加一条该能力的一句话描述（与 API Overview 中出现的服务对应）。  
+   - 修改/删除模块：同步修改或删除 Features 中对应条目。  
+   - 避免只改「接口概览」而漏改「功能特性」。
+3. **API Overview 表**：  
    - 行内容为「Service / 服务」「Method / HTTP」「Description / 说明」。  
    - 新增 RPC：按现有表格格式增加一行（HTTP 方法 + 路径 + 简短说明）。  
    - 修改：只改对应行，不改变整体表格风格。  
    - 删除：整行删除，保持表格连贯。
-3. **Features**：若新增/删除的是「能力维度」（如新服务、新一类接口），在 Features 列表里增删一句描述。
 4. **不臆造**：README 中的路径、方法名、服务名必须与 **当前 proto 与生成代码** 一致；不确定时查 `proto/<app>/api/v1/*.proto` 与 `google.api.http` 注解。
 
-完成模块实现或 proto 变更后，在自检时必须勾选「README 已同步」。
+完成模块实现或 proto 变更后，在自检时必须勾选「README 已同步」，并确认：**Features 已更新、API Overview 已更新、README.md 与 README-zh_CN.md 均已更新。**
 
 ## Go 规范
 
@@ -157,6 +161,6 @@ description: Implements backend modules from proto definitions for goddess, mark
 - [ ] Import 顺序：标准库 → 空白 → 第三方 → 当前项目
 - [ ] 新增的 repository、biz、service、impl 已在对应 ProviderSet 与 Register* 中注册
 - [ ] 公共可复用函数或方法已添加测试
-- [ ] **README 已同步**：若有模块/API 新增、修改或删除，已更新对应应用的 `README.md` 与 `README-zh_CN.md`（API 概览表、Features、常用用法），中英文一致且与当前 proto 一致
+- [ ] **README 已同步**：若有模块/API 新增、修改或删除，已同时更新对应应用的 `README.md` 与 `README-zh_CN.md`；且 **功能特性（Features）** 与 **接口概览（API Overview）表** 均已补充/修改/删除对应内容，中英文一一对应，与当前 proto 一致
 
 更多分层与文件命名细节见 [reference.md](reference.md)。

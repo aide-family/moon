@@ -43,6 +43,11 @@
 
 ## 功能特性
 
+- **当前用户（Self，goddess）**：当前用户信息、命名空间列表、修改邮箱/头像/备注、刷新 Token
+- **用户（User，goddess）**：用户增删改查、列表、下拉选择、封禁/解封
+- **成员（Member，goddess）**：命名空间内成员列表/获取/选择、邀请成员、移除成员、更新状态
+- **命名空间（Namespace，goddess）**：命名空间管理（与 goddess 共用能力，需配置 namespaceConfig）
+- **验证码（Captcha，goddess）**：图形验证码获取（id、base64 图片），用于登录等无需鉴权场景
 - **数据源（Datasource）**：指标/日志/链路数据源增删改查、列表、下拉选择（Prometheus、VictoriaMetrics、Elasticsearch、Jaeger）
 - **策略组（Strategy group）**：增删改查、列表、选择、状态；绑定接收人（收件人组）
 - **策略（Strategy）**：增删改查、列表、状态；归属策略组；类型（METRICS/LOGS/TRACE）与驱动
@@ -55,6 +60,17 @@
 
 | 服务 | 方法 / HTTP | 说明 |
 |------|-------------|------|
+| **Self**（goddess） | `GET /v1/self/info` | 当前用户信息 |
+| | `GET /v1/self/namespaces` | 当前用户命名空间列表 |
+| | `PUT /v1/self/change-email`、`change-avatar`、`change-remark` | 修改邮箱/头像/备注 |
+| | `GET /v1/self/refresh-token` | 刷新 Token |
+| **User**（goddess） | `GET /v1/user/{uid}` | 获取用户 |
+| | `GET /v1/users`、`GET /v1/users/select` | 用户列表、下拉选择 |
+| | `PUT /v1/user/ban/{uid}`、`PUT /v1/user/permit/{uid}` | 封禁/解封用户 |
+| **Member**（goddess） | `GET /v1/members`、`GET /v1/member/{uid}`、`GET /v1/members/select` | 成员列表、获取、下拉选择 |
+| | `POST /v1/member/invite` | 邀请成员（email、role） |
+| | `DELETE /v1/member/{uid}`、`PUT /v1/member/{uid}/status` | 移除成员、更新状态 |
+| **Captcha**（goddess） | `GET /v1/captcha` | 获取图形验证码（返回 captchaId、captchaB64s） |
 | **Datasource** | `POST /v1/datasource` | 创建数据源（name、type、driver、url、metadata、remark） |
 | | `PUT /v1/datasource/{uid}` | 更新数据源 |
 | | `DELETE /v1/datasource/{uid}` | 删除数据源 |
@@ -92,7 +108,7 @@
 
 **类型**：`DatasourceType`: METRICS, LOGS, TRACE。**驱动**：METRICS_PROMETHEUS, METRICS_VICTORIA_METRICS, LOGS_ELASTICSEARCH, TRACE_JAEGER。
 
-接口定义位于 `proto/marksman/api/v1/`（如 `datasource.proto`、`strategy.proto`、`level.proto`、`strategy_metric.proto`）。可通过 `make api` 生成 OpenAPI。
+接口定义：Marksman 自有 API 位于 `proto/marksman/api/v1/`（如 `datasource.proto`、`strategy.proto`、`level.proto`、`strategy_metric.proto`）；Self、User、Member、Namespace、Captcha 等来自 `goddess` 的 `proto/goddess/api/v1/`。可通过 `make api` 生成 OpenAPI。
 
 ---
 

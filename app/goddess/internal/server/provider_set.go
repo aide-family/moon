@@ -179,7 +179,6 @@ var namespaceAllowList = []string{
 	goddessv1.OperationNamespaceGetNamespace,
 	goddessv1.OperationNamespaceListNamespace,
 	goddessv1.OperationNamespaceSelectNamespace,
-	magicboxv1.OperationHealthHealthCheck,
 	goddessv1.OperationSelfInfo,
 	goddessv1.OperationSelfNamespaces,
 	goddessv1.OperationSelfChangeEmail,

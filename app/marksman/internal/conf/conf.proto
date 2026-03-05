@@ -25,6 +25,10 @@ message Bootstrap {
 	magicbox.config.ClusterConfig jobClusters = 14;
 	JobCore jobCore = 15;
 	magicbox.config.ORMConfig database = 16;
+	magicbox.config.DomainConfig selfConfig = 17;
+	magicbox.config.DomainConfig userConfig = 18;
+	magicbox.config.DomainConfig memberConfig = 19;
+	magicbox.config.DomainConfig captchaConfig = 20;
 }
 
 message Server {

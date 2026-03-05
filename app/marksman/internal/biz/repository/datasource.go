@@ -16,4 +16,7 @@ type Datasource interface {
 	GetDatasource(ctx context.Context, uid snowflake.ID) (*bo.DatasourceItemBo, error)
 	ListDatasource(ctx context.Context, req *bo.ListDatasourceBo) (*bo.PageResponseBo[*bo.DatasourceItemBo], error)
 	SelectDatasource(ctx context.Context, req *bo.SelectDatasourceBo) (*bo.SelectDatasourceReplyBo, error)
+	// ListAllForProbe returns all enabled-status datasources for health probing (e.g. metrics).
+	// No namespace filter; fetches in batches (batchSize) until all enabled datasources are returned.
+	ListAllForProbe(ctx context.Context, batchSize int) ([]*bo.DatasourceItemBo, error)
 }

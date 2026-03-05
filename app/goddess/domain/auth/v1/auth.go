@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/aide-family/goddess/internal/biz"
+	"github.com/aide-family/goddess/internal/conf"
 	"github.com/aide-family/goddess/internal/data/impl"
 	"github.com/aide-family/goddess/internal/service"
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
@@ -30,10 +31,18 @@ func NewDefaultAuth(c *config.DomainConfig) (goddessv1.AuthServiceServer, func()
 	if err != nil {
 		return nil, nil, err
 	}
+	bootstrap := &conf.Bootstrap{
+		GlobalEmail: defaultConfig.GetGlobalEmail(),
+		SiteDomain:  defaultConfig.GetSiteDomain(),
+		Jwt:         defaultConfig.GetJwt(),
+	}
 	transaction := impl.NewTransactionWithDB(db)
-	loginRepo := impl.NewLoginRepositoryWithDB(db, defaultConfig.GetJwt())
+	loginRepo := impl.NewLoginRepositoryWithDB(db, bootstrap.GetJwt())
+	emailRepo := impl.NewEmailRepository(bootstrap)
+	emailBiz := biz.NewEmail(emailRepo)
+	captchaBiz := biz.NewCaptcha()
 	loginBiz := biz.NewLoginBiz(transaction, loginRepo)
-	return &authRepository{AuthService: service.NewDomainAuthService(loginBiz)}, close, nil
+	return &authRepository{AuthService: service.NewAuthService(loginBiz, emailBiz, captchaBiz)}, close, nil
 }
 
 type authRepository struct {

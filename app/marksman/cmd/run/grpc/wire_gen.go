@@ -36,6 +36,41 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	health := impl.NewHealthRepository(dataData)
 	bizHealth := biz.NewHealth(health)
 	healthService := service.NewHealthService(bizHealth)
+	loginRepository, err := impl.NewLoginRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	loginBiz := biz.NewLoginBiz(loginRepository)
+	authService := service.NewAuthService(loginBiz)
+	self, err := impl.NewSelfRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	bizSelf := biz.NewSelf(self)
+	selfService := service.NewSelfService(bizSelf)
+	user, err := impl.NewUserRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	bizUser := biz.NewUser(user)
+	userService := service.NewUserService(bizUser)
+	member, err := impl.NewMemberRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	bizMember := biz.NewMember(member)
+	memberService := service.NewMemberService(bizMember)
+	captcha, err := impl.NewCaptchaRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	bizCaptcha := biz.NewCaptcha(captcha)
+	captchaService := service.NewCaptchaService(bizCaptcha)
 	level, err := impl.NewLevelRepository(dataData)
 	if err != nil {
 		cleanup()
@@ -69,7 +104,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	}
 	strategyMetricBiz := biz.NewStrategyMetric(strategyMetric, helper)
 	strategyMetricService := service.NewStrategyMetricService(strategyMetricBiz)
-	servers := server.RegisterGRPCService(bc, grpcServer, healthService, namespaceService, levelService, datasourceService, strategyService, strategyMetricService)
+	servers := server.RegisterGRPCService(bc, grpcServer, healthService, namespaceService, authService, selfService, userService, memberService, captchaService, levelService, datasourceService, strategyService, strategyMetricService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

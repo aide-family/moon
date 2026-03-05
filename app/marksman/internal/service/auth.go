@@ -9,13 +9,17 @@ import (
 )
 
 type AuthService struct {
-	loginBiz *biz.LoginBiz
+	*biz.LoginBiz
 }
 
 func NewAuthService(loginBiz *biz.LoginBiz) *AuthService {
-	return &AuthService{loginBiz: loginBiz}
+	return &AuthService{LoginBiz: loginBiz}
 }
 
 func (s *AuthService) Login(ctx context.Context, req *oauth.OAuth2LoginRequest) (string, error) {
-	return s.loginBiz.Login(ctx, req)
+	reply, err := s.LoginRepository.OAuth2Login(ctx, req)
+	if err != nil {
+		return "", err
+	}
+	return reply.Token, nil
 }

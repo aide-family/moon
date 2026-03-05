@@ -1,11 +1,7 @@
 package repository
 
-import (
-	"context"
-
-	"github.com/aide-family/magicbox/oauth"
-)
+import goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 
 type LoginRepository interface {
-	Login(ctx context.Context, req *oauth.OAuth2LoginRequest) (string, error)
+	goddessv1.AuthServiceServer
 }

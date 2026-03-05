@@ -20,7 +20,6 @@ func NewNamespaceService(namespaceBiz *biz.Namespace) *NamespaceService {
 }
 
 type NamespaceService struct {
-	goddessv1.UnimplementedNamespaceServer
 	*biz.Namespace
 }
 

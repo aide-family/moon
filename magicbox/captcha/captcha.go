@@ -2,7 +2,14 @@
 package captcha
 
 import (
+	"sync"
+
 	captcha "github.com/mojocn/base64Captcha"
+)
+
+var (
+	global *captcha.Captcha
+	once   sync.Once
 )
 
 // New creates a new captcha instance.
@@ -15,6 +22,13 @@ func New(opts ...Option) *captcha.Captcha {
 		opt(c)
 	}
 	return captcha.NewCaptcha(c.GetDriver(), c.GetStore())
+}
+
+func Global() *captcha.Captcha {
+	once.Do(func() {
+		global = New()
+	})
+	return global
 }
 
 type config struct {

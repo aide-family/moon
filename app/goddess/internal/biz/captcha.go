@@ -11,7 +11,7 @@ import (
 )
 
 func NewCaptcha() *Captcha {
-	return &Captcha{captcha: captcha.New()}
+	return &Captcha{captcha: captcha.Global()}
 }
 
 type Captcha struct {

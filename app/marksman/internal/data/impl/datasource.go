@@ -181,3 +181,29 @@ func (r *datasourceRepository) SelectDatasource(ctx context.Context, req *bo.Sel
 		HasMore: len(list) >= int(req.Limit),
 	}, nil
 }
+
+func (r *datasourceRepository) ListAllForProbe(ctx context.Context, batchSize int) ([]*bo.DatasourceItemBo, error) {
+	if batchSize <= 0 {
+		batchSize = 200
+	}
+	d := query.Datasource
+	var all []*bo.DatasourceItemBo
+	for offset := 0; ; offset += batchSize {
+		list, err := d.WithContext(ctx).
+			Where(d.Status.Eq(int32(enum.GlobalStatus_ENABLED))).
+			Order(d.ID.Desc()).
+			Offset(offset).
+			Limit(batchSize).
+			Find()
+		if err != nil {
+			return nil, err
+		}
+		for _, m := range list {
+			all = append(all, convert.ToDatasourceItemBo(m))
+		}
+		if len(list) < batchSize {
+			break
+		}
+	}
+	return all, nil
+}

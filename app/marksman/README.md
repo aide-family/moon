@@ -43,6 +43,11 @@
 
 ## Features
 
+- **Self** (goddess): Current user info, namespaces list, change email/avatar/remark, refresh token
+- **User** (goddess): User CRUD, list, select, ban/permit
+- **Member** (goddess): List/get/select members in namespace, invite, dismiss, update status
+- **Namespace** (goddess): Namespace management (shared with goddess; requires `namespaceConfig`)
+- **Captcha** (goddess): Get graphic captcha (id, base64 image) for login and other unauthenticated flows
 - **Datasource**: CRUD, list, select for metrics/logs/trace backends (Prometheus, VictoriaMetrics, Elasticsearch, Jaeger)
 - **Strategy group**: CRUD, list, select, status; bind receivers (recipient groups)
 - **Strategy**: CRUD, list, status; link to strategy group; type (METRICS/LOGS/TRACE) and driver
@@ -55,6 +60,17 @@
 
 | Service | Method / HTTP | Description |
 |---------|----------------|-------------|
+| **Self** (goddess) | `GET /v1/self/info` | Current user info |
+| | `GET /v1/self/namespaces` | Current user namespaces list |
+| | `PUT /v1/self/change-email`, `change-avatar`, `change-remark` | Change email / avatar / remark |
+| | `GET /v1/self/refresh-token` | Refresh token |
+| **User** (goddess) | `GET /v1/user/{uid}` | Get user |
+| | `GET /v1/users`, `GET /v1/users/select` | List users, select for dropdown |
+| | `PUT /v1/user/ban/{uid}`, `PUT /v1/user/permit/{uid}` | Ban / permit user |
+| **Member** (goddess) | `GET /v1/members`, `GET /v1/member/{uid}`, `GET /v1/members/select` | List members, get member, select |
+| | `POST /v1/member/invite` | Invite member (email, role) |
+| | `DELETE /v1/member/{uid}`, `PUT /v1/member/{uid}/status` | Dismiss member, update status |
+| **Captcha** (goddess) | `GET /v1/captcha` | Get graphic captcha (returns captchaId, captchaB64s) |
 | **Datasource** | `POST /v1/datasource` | Create datasource (name, type, driver, url, metadata, remark) |
 | | `PUT /v1/datasource/{uid}` | Update datasource |
 | | `DELETE /v1/datasource/{uid}` | Delete datasource |
@@ -92,7 +108,7 @@
 
 **Types**: `DatasourceType`: METRICS, LOGS, TRACE. **Drivers**: METRICS_PROMETHEUS, METRICS_VICTORIA_METRICS, LOGS_ELASTICSEARCH, TRACE_JAEGER.
 
-API is defined in `proto/marksman/api/v1/` (e.g. `datasource.proto`, `strategy.proto`, `level.proto`, `strategy_metric.proto`). OpenAPI can be generated via `make api`.
+API definitions: Marksman-owned APIs are in `proto/marksman/api/v1/` (e.g. `datasource.proto`, `strategy.proto`, `level.proto`, `strategy_metric.proto`). Self, User, Member, Namespace, Captcha, etc. come from goddess at `proto/goddess/api/v1/`. OpenAPI can be generated via `make api`.
 
 ---
 

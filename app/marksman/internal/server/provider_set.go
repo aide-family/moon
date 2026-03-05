@@ -14,8 +14,11 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/google/wire"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
+	"github.com/aide-family/marksman/internal/biz/collector"
+	"github.com/aide-family/marksman/internal/biz/repository"
 	"github.com/aide-family/marksman/internal/conf"
 	"github.com/aide-family/marksman/internal/service"
 	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
@@ -25,10 +28,20 @@ import (
 var docFS embed.FS
 
 var (
-	ProviderSetServerAll  = wire.NewSet(NewHTTPServer, NewGRPCServer, RegisterService)
+	ProviderSetServerAll  = wire.NewSet(NewHTTPServer, NewGRPCServer, RegisterDatasourceMetrics, RegisterService)
 	ProviderSetServerHTTP = wire.NewSet(NewHTTPServer, RegisterHTTPService)
 	ProviderSetServerGRPC = wire.NewSet(NewGRPCServer, RegisterGRPCService)
 )
+
+// datasourceMetricsReg ensures the datasource status collector is registered with Prometheus when wire builds the graph.
+type datasourceMetricsReg struct{}
+
+// RegisterDatasourceMetrics registers the datasource status collector (HTTP probe, marksman_datasource_status) with the default Prometheus registry.
+func RegisterDatasourceMetrics(datasourceRepo repository.Datasource) (datasourceMetricsReg, error) {
+	lister := collector.NewDatasourceListerFromRepo(datasourceRepo)
+	prometheus.MustRegister(collector.NewDatasourceCollector(lister))
+	return datasourceMetricsReg{}, nil
+}
 
 type Server interface {
 	transport.Server
@@ -82,12 +95,17 @@ func BindMetrics(httpSrv *http.Server, bc *conf.Bootstrap) {
 
 // RegisterService registers the service.
 func RegisterService(
+	_ datasourceMetricsReg,
 	c *conf.Bootstrap,
 	httpSrv *http.Server,
 	grpcSrv *grpc.Server,
 	authService *service.AuthService,
 	healthService *service.HealthService,
 	namespaceService *service.NamespaceService,
+	selfService *service.SelfService,
+	userService *service.UserService,
+	memberService *service.MemberService,
+	captchaService *service.CaptchaService,
 	levelService *service.LevelService,
 	datasourceService *service.DatasourceService,
 	strategyService *service.StrategyService,
@@ -99,12 +117,29 @@ func RegisterService(
 		authService,
 		healthService,
 		namespaceService,
+		selfService,
+		userService,
+		memberService,
+		captchaService,
 		levelService,
 		datasourceService,
 		strategyService,
 		strategyMetricService,
 	)...)
-	srvs = append(srvs, RegisterGRPCService(c, grpcSrv, healthService, namespaceService, levelService, datasourceService, strategyService, strategyMetricService)...)
+	srvs = append(srvs, RegisterGRPCService(c,
+		grpcSrv,
+		healthService,
+		namespaceService,
+		authService,
+		selfService,
+		userService,
+		memberService,
+		captchaService,
+		levelService,
+		datasourceService,
+		strategyService,
+		strategyMetricService,
+	)...)
 	return srvs
 }
 
@@ -115,13 +150,22 @@ func RegisterHTTPService(
 	authService *service.AuthService,
 	healthService *service.HealthService,
 	namespaceService *service.NamespaceService,
+	selfService *service.SelfService,
+	userService *service.UserService,
+	memberService *service.MemberService,
+	captchaService *service.CaptchaService,
 	levelService *service.LevelService,
 	datasourceService *service.DatasourceService,
 	strategyService *service.StrategyService,
 	strategyMetricService *service.StrategyMetricService,
 ) Servers {
 	magicboxapiv1.RegisterHealthHTTPServer(httpSrv, healthService)
+	goddessv1.RegisterAuthServiceHTTPServer(httpSrv, authService)
 	goddessv1.RegisterNamespaceHTTPServer(httpSrv, namespaceService)
+	goddessv1.RegisterSelfHTTPServer(httpSrv, selfService)
+	goddessv1.RegisterUserHTTPServer(httpSrv, userService)
+	goddessv1.RegisterMemberHTTPServer(httpSrv, memberService)
+	goddessv1.RegisterCaptchaHTTPServer(httpSrv, captchaService)
 	apiv1.RegisterLevelHTTPServer(httpSrv, levelService)
 	apiv1.RegisterDatasourceHTTPServer(httpSrv, datasourceService)
 	apiv1.RegisterStrategyHTTPServer(httpSrv, strategyService)
@@ -140,13 +184,23 @@ func RegisterGRPCService(
 	grpcSrv *grpc.Server,
 	healthService *service.HealthService,
 	namespaceService *service.NamespaceService,
+	authService *service.AuthService,
+	selfService *service.SelfService,
+	userService *service.UserService,
+	memberService *service.MemberService,
+	captchaService *service.CaptchaService,
 	levelService *service.LevelService,
 	datasourceService *service.DatasourceService,
 	strategyService *service.StrategyService,
 	strategyMetricService *service.StrategyMetricService,
 ) Servers {
 	magicboxapiv1.RegisterHealthServer(grpcSrv, healthService)
+	goddessv1.RegisterAuthServiceServer(grpcSrv, authService)
 	goddessv1.RegisterNamespaceServer(grpcSrv, namespaceService)
+	goddessv1.RegisterSelfServer(grpcSrv, selfService)
+	goddessv1.RegisterUserServer(grpcSrv, userService)
+	goddessv1.RegisterMemberServer(grpcSrv, memberService)
+	goddessv1.RegisterCaptchaServer(grpcSrv, captchaService)
 	apiv1.RegisterLevelServer(grpcSrv, levelService)
 	apiv1.RegisterDatasourceServer(grpcSrv, datasourceService)
 	apiv1.RegisterStrategyServer(grpcSrv, strategyService)
@@ -162,6 +216,16 @@ var namespaceAllowList = []string{
 	goddessv1.OperationNamespaceGetNamespace,
 	goddessv1.OperationNamespaceListNamespace,
 	goddessv1.OperationNamespaceSelectNamespace,
+	goddessv1.OperationSelfInfo,
+	goddessv1.OperationSelfNamespaces,
+	goddessv1.OperationSelfChangeEmail,
+	goddessv1.OperationSelfChangeAvatar,
+	goddessv1.OperationSelfRefreshToken,
+	goddessv1.OperationUserGetUser,
+	goddessv1.OperationUserListUser,
+	goddessv1.OperationUserSelectUser,
+	goddessv1.OperationUserBanUser,
+	goddessv1.OperationUserPermitUser,
 }
 
 var authAllowList = []string{
@@ -169,4 +233,8 @@ var authAllowList = []string{
 	oauth.OperationOAuth2Reports,
 	oauth.OperationOAuth2Login,
 	oauth.OperationOAuth2Callback,
+	goddessv1.OperationAuthServiceEmailLogin,
+	goddessv1.OperationAuthServiceSendEmailLoginCode,
+	goddessv1.OperationCaptchaGetCaptcha,
+	goddessv1.OperationNamespaceGetNamespaceSimple,
 }

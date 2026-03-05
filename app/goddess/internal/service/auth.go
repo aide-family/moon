@@ -20,15 +20,6 @@ type AuthService struct {
 	sendedEmail *safety.SyncMap[string, string]
 }
 
-type DomainAuthService struct {
-	apiv1.UnimplementedAuthServiceServer
-	loginBiz *biz.LoginBiz
-}
-
-func NewDomainAuthService(loginBiz *biz.LoginBiz) *AuthService {
-	return &AuthService{loginBiz: loginBiz}
-}
-
 func NewAuthService(loginBiz *biz.LoginBiz, emailBiz *biz.Email, captchaBiz *biz.Captcha) *AuthService {
 	return &AuthService{
 		loginBiz:    loginBiz,

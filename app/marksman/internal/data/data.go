@@ -5,8 +5,11 @@ import (
 	"context"
 
 	_ "github.com/aide-family/goddess/domain/auth/v1"
+	_ "github.com/aide-family/goddess/domain/captcha/v1"
 	_ "github.com/aide-family/goddess/domain/member/v1"
 	_ "github.com/aide-family/goddess/domain/namespace/v1"
+	_ "github.com/aide-family/goddess/domain/self/v1"
+	_ "github.com/aide-family/goddess/domain/user/v1"
 	_ "github.com/aide-family/magicbox/connect/orm/mysql"
 	_ "github.com/aide-family/magicbox/connect/orm/postgres"
 	_ "github.com/aide-family/magicbox/connect/orm/sqlite"
