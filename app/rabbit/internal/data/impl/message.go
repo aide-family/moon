@@ -246,6 +246,7 @@ func (m *messageRepository) Start(ctx context.Context) error {
 func (m *messageRepository) Stop(_ context.Context) error {
 	close(m.stopChan)
 	m.wg.Wait()
+	close(m.messageChan)
 	klog.Infow("msg", "message worker stopped")
 	for _, cluster := range m.clusters.Values() {
 		if err := cluster.Close(); err != nil {

@@ -38,7 +38,7 @@ func (w *Webhook) AppendWebhookMessage(ctx context.Context, req *bo.SendWebhookB
 	webhookConfig, err := w.webhookConfigBiz.GetWebhook(ctx, req.UID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return 0, merr.ErrorParams("webhook config not found")
+			return 0, merr.ErrorNotFound("webhook config not found")
 		}
 		w.helper.Errorw("msg", "get webhook config failed", "error", err)
 		return 0, merr.ErrorInternalServer("get webhook config failed").WithCause(err)
@@ -62,15 +62,15 @@ func (w *Webhook) AppendWebhookMessageWithTemplate(ctx context.Context, req *bo.
 	templateDo, err := w.templateBiz.GetTemplate(ctx, req.TemplateUID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return 0, merr.ErrorParams("template not found")
+			return 0, merr.ErrorNotFound("template not found")
 		}
 		w.helper.Errorw("msg", "get template failed", "error", err)
-		return 0, merr.ErrorInternalServer("get template failed")
+		return 0, merr.ErrorInternalServer("get template failed").WithCause(err)
 	}
 	sendWebhookBo, err := req.ToSendWebhookBo(templateDo)
 	if err != nil {
 		w.helper.Errorw("msg", "convert template to webhook template data failed", "error", err)
-		return 0, merr.ErrorInternalServer("convert template to webhook template data failed")
+		return 0, merr.ErrorInternalServer("convert template to webhook template data failed").WithCause(err)
 	}
 	return w.AppendWebhookMessage(ctx, sendWebhookBo)
 }

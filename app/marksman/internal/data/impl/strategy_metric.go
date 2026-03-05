@@ -2,11 +2,11 @@ package impl
 
 import (
 	"context"
-	"errors"
 
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/safety"
 	"github.com/bwmarrin/snowflake"
+	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
@@ -51,7 +51,7 @@ func (r *strategyMetricRepository) GetStrategyMetric(ctx context.Context, strate
 	strategyMetricQuery := query.StrategyMetric
 	m, err := strategyMetricQuery.WithContext(ctx).Where(strategyMetricQuery.StrategyUID.Eq(strategyUID.Int64())).First()
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotFound("strategy metric not found")
 		}
 		return nil, err

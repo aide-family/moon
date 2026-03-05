@@ -8,6 +8,7 @@ import (
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/safety"
 	"github.com/bwmarrin/snowflake"
+	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
 
@@ -80,7 +81,7 @@ func (r *levelRepository) GetLevel(ctx context.Context, uid snowflake.ID) (*bo.L
 		l.ID.Eq(uid.Int64()),
 	).First()
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotFound("level not found")
 		}
 		return nil, err

@@ -123,7 +123,7 @@ func (g *loginRepository) findOrCreateOAuth2User(ctx context.Context, user *bo.O
 		oauth2UserDO = convert.OAuth2UserToDo(user)
 		if err := oauth2Mutation.WithContext(ctx).Create(oauth2UserDO); err != nil {
 			klog.Context(ctx).Debugw("msg", "create oauth2 user failed", "error", err, "oauth2UserUID", oauth2UserDO.UID)
-			return nil, merr.ErrorInternalServer("create oauth2 user failed").WithCause(err).WithCause(err)
+			return nil, merr.ErrorInternalServer("create oauth2 user failed").WithCause(err)
 		}
 	}
 	if strings.EqualFold(user.Email, oauth2UserDO.Email) {
@@ -192,9 +192,15 @@ func (g *loginRepository) RefreshToken(ctx context.Context, baseInfo jwt.BaseInf
 }
 
 func (g *loginRepository) buildRedirectURL(token, redirectURL string) (string, error) {
+	if strutil.IsEmpty(redirectURL) {
+		return "", merr.ErrorInvalidArgument("redirect URL is empty")
+	}
 	urlObj, err := url.Parse(redirectURL)
 	if err != nil {
 		return "", merr.ErrorInvalidArgument("invalid redirect URL").WithCause(err)
+	}
+	if urlObj.Scheme != "" && urlObj.Scheme != "https" && urlObj.Scheme != "http" {
+		return "", merr.ErrorInvalidArgument("redirect URL scheme not allowed")
 	}
 	query := urlObj.Query()
 	query.Set("token", token)

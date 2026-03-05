@@ -20,8 +20,8 @@ type LoginBiz struct {
 
 func (b *LoginBiz) Login(ctx context.Context, req *bo.OAuth2LoginBo) (string, error) {
 	var token string
-	var err error
-	err = b.transaction.Transaction(ctx, func(ctx context.Context) error {
+	err := b.transaction.Transaction(ctx, func(ctx context.Context) error {
+		var err error
 		token, err = b.authRepo.LoginByOAuth2(ctx, req)
 		return err
 	})
