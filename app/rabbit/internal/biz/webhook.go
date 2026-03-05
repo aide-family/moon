@@ -2,10 +2,10 @@ package biz
 
 import (
 	"context"
-	"errors"
 
 	"github.com/aide-family/magicbox/merr"
 	"github.com/bwmarrin/snowflake"
+	"github.com/go-kratos/kratos/v2/errors"
 	klog "github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 

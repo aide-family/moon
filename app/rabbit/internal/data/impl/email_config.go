@@ -2,7 +2,6 @@ package impl
 
 import (
 	"context"
-	"errors"
 
 	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/enum"
@@ -10,6 +9,7 @@ import (
 	"github.com/aide-family/magicbox/pointer"
 	"github.com/aide-family/magicbox/strutil"
 	"github.com/bwmarrin/snowflake"
+	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
 

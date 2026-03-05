@@ -3,7 +3,6 @@ package feishu
 
 import (
 	"encoding/json"
-	"errors"
 
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"golang.org/x/oauth2"
@@ -12,6 +11,7 @@ import (
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/oauth"
 	"github.com/aide-family/magicbox/pointer"
+	"github.com/go-kratos/kratos/v2/errors"
 )
 
 func init() {
@@ -39,7 +39,7 @@ func Login(ctx http.Context, oauthConfig *oauth2.Config) (*oauth.OAuth2User, err
 		return nil, merr.ErrorInternalServer("decode user info failed").WithCause(err)
 	}
 	if userResponse.Code != 0 || pointer.IsNil(userResponse.Data) {
-		return nil, merr.ErrorInternalServer("get user info failed").WithCause(errors.New(userResponse.Msg))
+		return nil, merr.ErrorInternalServer("get user info failed").WithCause(errors.New(400, "GET_USER_INFO_FAILED", userResponse.Msg))
 	}
 	return userResponse.Data.Parse(), nil
 }

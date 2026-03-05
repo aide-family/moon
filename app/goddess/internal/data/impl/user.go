@@ -2,12 +2,12 @@ package impl
 
 import (
 	"context"
-	"errors"
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/strutil"
 	"github.com/bwmarrin/snowflake"
+	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
 
 	"github.com/aide-family/goddess/internal/biz/bo"

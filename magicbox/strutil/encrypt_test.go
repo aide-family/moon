@@ -3,10 +3,10 @@ package strutil_test
 import (
 	"database/sql/driver"
 	"encoding/base64"
-	"errors"
 	"testing"
 
 	"github.com/aide-family/magicbox/strutil"
+	"github.com/go-kratos/kratos/v2/errors"
 )
 
 // TestDefaultBase64Encrypt_Encrypt 测试默认 Base64 加密器的 Encrypt 方法
@@ -462,7 +462,7 @@ func (m *mockEncrypt) Decrypt(s string) (string, error) {
 	if len(s) > 10 && s[:10] == "encrypted:" {
 		return s[10:], nil
 	}
-	return "", errors.New("invalid encrypted string")
+	return "", errors.New(500, "INVALID_ENCRYPTED_STRING", "invalid encrypted string")
 }
 
 // TestSetEncrypt 测试 SetEncrypt 函数
@@ -481,7 +481,7 @@ func TestSetEncrypt(t *testing.T) {
 			if len(s) > 15 && s[:15] == "mock_encrypted:" {
 				return s[15:], nil
 			}
-			return "", errors.New("invalid mock encrypted string")
+			return "", errors.New(500, "INVALID_MOCK_ENCRYPTED_STRING", "invalid mock encrypted string")
 		},
 	}
 

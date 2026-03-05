@@ -11,10 +11,12 @@ import (
 	"sync"
 )
 
-var _ encoding.BinaryMarshaler = (*Slice[any])(nil)
-var _ encoding.BinaryUnmarshaler = (*Slice[any])(nil)
-var _ sql.Scanner = (*Slice[any])(nil)
-var _ driver.Valuer = (*Slice[any])(nil)
+var (
+	_ encoding.BinaryMarshaler   = (*Slice[any])(nil)
+	_ encoding.BinaryUnmarshaler = (*Slice[any])(nil)
+	_ sql.Scanner                = (*Slice[any])(nil)
+	_ driver.Valuer              = (*Slice[any])(nil)
+)
 
 type Slice[T any] struct {
 	mu sync.RWMutex
@@ -22,12 +24,19 @@ type Slice[T any] struct {
 }
 
 func NewSlice[T any](s []T) *Slice[T] {
+	if s == nil {
+		return &Slice[T]{s: []T{}}
+	}
 	return &Slice[T]{s: slices.Clone(s)}
 }
 
 func (s *Slice[T]) Get(i int) T {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+	if i < 0 || i >= len(s.s) {
+		var zero T
+		return zero
+	}
 	return s.s[i]
 }
 
@@ -42,6 +51,13 @@ func (s *Slice[T]) Append(v T) *Slice[T] {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.s = append(s.s, v)
+	return s
+}
+
+func (s *Slice[T]) Prepend(v T) *Slice[T] {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.s = append([]T{v}, s.s...)
 	return s
 }
 

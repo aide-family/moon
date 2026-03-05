@@ -2,12 +2,13 @@
 package do
 
 import (
-	"errors"
 	"time"
 
-	"github.com/aide-family/magicbox/hello"
 	"github.com/bwmarrin/snowflake"
 	"gorm.io/gorm"
+
+	"github.com/aide-family/magicbox/hello"
+	"github.com/aide-family/magicbox/merr"
 )
 
 func Models() []any {
@@ -37,11 +38,11 @@ func (b *BaseModel) WithCreator(creator snowflake.ID) *BaseModel {
 
 func (b *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
 	if b.Creator == 0 {
-		return errors.New("creator is required")
+		return merr.ErrorInvalidArgument("creator is required")
 	}
 	node, err := snowflake.NewNode(hello.NodeID())
 	if err != nil {
-		return err
+		return merr.ErrorInternalServer("create snowflake node failed").WithCause(err)
 	}
 	b.ID = node.Generate()
 	return nil

@@ -2,11 +2,11 @@ package safety_test
 
 import (
 	"context"
-	"errors"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/safety"
 )
 
@@ -39,7 +39,7 @@ func TestGo_Success(t *testing.T) {
 // TestGo_Error 测试 Go 函数处理错误的情况
 func TestGo_Error(t *testing.T) {
 	ctx := context.Background()
-	testErr := errors.New("test error")
+	testErr := merr.ErrorInternalServer("test error")
 	executed := make(chan bool, 1)
 	var executedOnce sync.Once
 
@@ -158,7 +158,6 @@ func TestGo_ConcurrentExecution(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		t.Fatal("Not all goroutines completed within timeout")
 	}
-
 }
 
 // TestGo_WithCancelledContext 测试 Go 函数处理已取消的 context

@@ -2,7 +2,6 @@ package impl
 
 import (
 	"context"
-	"errors"
 	"strings"
 	"sync"
 	"time"
@@ -106,7 +105,7 @@ func (m *messageRepository) sendingMessageTaskProcess(ctx context.Context, task 
 		if err != nil {
 			changed, _err := m.messageLogRepo.UpdateMessageLogLastErrorIf(ctx, task.MessageUID, enum.MessageStatus_SENDING, err.Error())
 			if _err != nil {
-				err = errors.Join(err, _err)
+				err = merr.ErrorInternalServer("update message log last error failed").WithCause(_err)
 			}
 			if changed {
 				task.SetNextStatus(enum.MessageStatus_FAILED)
@@ -245,8 +244,8 @@ func (m *messageRepository) Start(ctx context.Context) error {
 // Stop implements [repository.Message].
 func (m *messageRepository) Stop(_ context.Context) error {
 	close(m.stopChan)
-	m.wg.Wait()
 	close(m.messageChan)
+	m.wg.Wait()
 	klog.Infow("msg", "message worker stopped")
 	for _, cluster := range m.clusters.Values() {
 		if err := cluster.Close(); err != nil {

@@ -18,6 +18,13 @@ var (
 	_ driver.Valuer              = (*Map[string, any])(nil)
 )
 
+func NewMap[K comparable, V any](m map[K]V) *Map[K, V] {
+	if m == nil {
+		return &Map[K, V]{m: make(map[K]V)}
+	}
+	return &Map[K, V]{m: maps.Clone(m)}
+}
+
 type Map[K comparable, V any] struct {
 	mu sync.RWMutex
 	m  map[K]V
@@ -41,10 +48,6 @@ func (m *Map[K, V]) Scan(src any) error {
 	default:
 		return fmt.Errorf("unsupported type: %T, expected []byte or string", src)
 	}
-}
-
-func NewMap[K comparable, V any](m map[K]V) *Map[K, V] {
-	return &Map[K, V]{m: maps.Clone(m)}
 }
 
 func (m *Map[K, V]) Get(k K) (V, bool) {

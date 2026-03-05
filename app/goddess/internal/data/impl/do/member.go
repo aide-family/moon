@@ -1,11 +1,11 @@
 package do
 
 import (
-	"errors"
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/hello"
+	"github.com/aide-family/magicbox/merr"
 	"github.com/bwmarrin/snowflake"
 	"gorm.io/gorm"
 )
@@ -32,7 +32,7 @@ func (m *Member) TableName() string {
 
 func (m *Member) BeforeCreate(tx *gorm.DB) error {
 	if m.Creator == 0 {
-		return errors.New("creator is required")
+		return merr.ErrorInvalidArgument("creator is required")
 	}
 	node, err := snowflake.NewNode(hello.NodeID())
 	if err != nil {

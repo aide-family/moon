@@ -2,10 +2,10 @@ package middler
 
 import (
 	"context"
-	"errors"
 	"strings"
 
 	"buf.build/go/protovalidate"
+	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -94,13 +94,13 @@ func validateParams(opts ...protovalidate.ValidatorOption) ValidateHandler {
 			for _, element := range elements {
 				fields = append(fields, element.GetFieldName())
 			}
-			constraintId := v.Proto.GetRuleId()
+			constraintID := v.Proto.GetRuleId()
 			msg := v.Proto.GetMessage()
 			if len(fields) == 0 {
-				return merr.ErrorParams("%s", getMsg(ctx, constraintId, msg))
+				return merr.ErrorParams("%s", getMsg(ctx, constraintID, msg))
 			}
 			field := strings.Join(fields, ".")
-			errMap[field] = append(errMap[field], getMsg(ctx, constraintId, msg))
+			errMap[field] = append(errMap[field], getMsg(ctx, constraintID, msg))
 		}
 
 		msgMap := make(map[string]string)

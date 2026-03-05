@@ -2,7 +2,6 @@ package impl
 
 import (
 	"context"
-	"errors"
 	"net/url"
 	"strings"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/pointer"
 	"github.com/aide-family/magicbox/strutil"
+	"github.com/go-kratos/kratos/v2/errors"
 	klog "github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 

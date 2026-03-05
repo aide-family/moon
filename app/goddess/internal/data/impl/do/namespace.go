@@ -1,11 +1,11 @@
 package do
 
 import (
-	"errors"
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/hello"
+	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/safety"
 	"github.com/bwmarrin/snowflake"
 	"gorm.io/gorm"
@@ -38,7 +38,7 @@ func (n *Namespace) WithCreator(creator snowflake.ID) *Namespace {
 
 func (n *Namespace) BeforeCreate(tx *gorm.DB) (err error) {
 	if n.Creator == 0 {
-		return errors.New("creator is required")
+		return merr.ErrorInvalidArgument("creator is required")
 	}
 
 	node, err := snowflake.NewNode(hello.NodeID())
@@ -47,7 +47,7 @@ func (n *Namespace) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	n.UID = node.Generate()
 	if n.Status <= 0 {
-		return errors.New("status is required")
+		return merr.ErrorInvalidArgument("status is required")
 	}
 	return
 }
