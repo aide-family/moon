@@ -43,6 +43,7 @@
 
 ## 功能特性
 
+- **领域（Goddess）**：命名空间增删改查与选择；当前用户（Self）信息、命名空间列表、修改邮箱/头像/备注、刷新 Token；用户（User）查询/列表/选择/封禁/解封；成员（Member）列表、邀请、删除、状态；验证码（Captcha）获取；认证（邮箱登录、发送验证码）
 - **邮件**：SMTP 配置增删改查、列表、下拉选择；发送原始邮件或按模板发送
 - **Webhook**：Webhook 配置增删改查、列表、下拉选择（钉钉、企微、飞书、自定义等）；原始或模板发送
 - **模板**：消息模板增删改查、列表、下拉选择（EMAIL、SMS_ALICLOUD、WEBHOOK_*）
@@ -56,6 +57,34 @@
 
 | 服务 | 方法 / HTTP | 说明 |
 |------|-------------|------|
+| **Namespace** | `POST /v1/namespace` | 创建命名空间 |
+| | `PUT /v1/namespace/{uid}` | 更新命名空间 |
+| | `PUT /v1/namespace/{uid}/status` | 更新命名空间状态 |
+| | `DELETE /v1/namespace/{uid}` | 删除命名空间 |
+| | `GET /v1/namespace/{uid}` | 获取命名空间 |
+| | `GET /v1/namespaces` | 列表 |
+| | `GET /v1/namespaces/select` | 下拉选择 |
+| | `GET /v1/namespaces/simple` | 获取命名空间简要（可未登录） |
+| **Self** | `GET /v1/self/info` | 获取当前用户信息 |
+| | `GET /v1/self/namespaces` | 获取当前用户命名空间列表 |
+| | `PUT /v1/self/change-email` | 修改邮箱 |
+| | `PUT /v1/self/change-avatar` | 修改头像 |
+| | `PUT /v1/self/change-remark` | 修改备注 |
+| | `GET /v1/self/refresh-token` | 刷新 Token |
+| **User** | `GET /v1/user/{uid}` | 获取用户 |
+| | `GET /v1/users` | 用户列表 |
+| | `GET /v1/users/select` | 用户下拉选择 |
+| | `PUT /v1/user/ban/{uid}` | 封禁用户 |
+| | `PUT /v1/user/permit/{uid}` | 解封用户 |
+| **Member** | `GET /v1/members` | 成员列表 |
+| | `GET /v1/member/{uid}` | 获取成员 |
+| | `GET /v1/members/select` | 成员下拉选择 |
+| | `POST /v1/member/invite` | 邀请成员 |
+| | `DELETE /v1/member/{uid}` | 删除成员 |
+| | `PUT /v1/member/{uid}/status` | 更新成员状态 |
+| **Captcha** | `GET /v1/captcha` | 获取验证码图片（可未登录） |
+| **Auth** | `POST /v1/auth/email/login/code` | 发送邮箱登录验证码 |
+| | `POST /v1/auth/email/login` | 邮箱登录 |
 | **Email** | `POST /v1/email/config` | 创建邮件配置（SMTP） |
 | | `PUT /v1/email/config/{uid}` | 更新邮件配置 |
 | | `PUT /v1/email/config/{uid}/status` | 更新状态（ENABLED/DISABLED） |

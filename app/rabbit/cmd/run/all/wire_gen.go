@@ -61,6 +61,28 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	health := impl.NewHealthRepository(dataData)
 	bizHealth := biz.NewHealth(health)
 	healthService := service.NewHealthService(bizHealth)
+	self, err := impl.NewSelfRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	bizSelf := biz.NewSelf(self)
+	selfService, err := service.NewSelfService(bizSelf)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	user, err := impl.NewUserRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	bizUser := biz.NewUser(user)
+	userService, err := service.NewUserService(bizUser)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	member, err := impl.NewMemberRepository(bc, dataData)
 	if err != nil {
 		cleanup()
@@ -68,6 +90,17 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	}
 	bizMember := biz.NewMember(member, helper)
 	memberService, err := service.NewMemberService(bizMember)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	captcha, err := impl.NewCaptchaRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	bizCaptcha := biz.NewCaptcha(captcha)
+	captchaService, err := service.NewCaptchaService(bizCaptcha)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
@@ -92,7 +125,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	recipientMember := impl.NewRecipientMemberRepository(dataData)
 	bizRecipientGroup := biz.NewRecipientGroup(member, recipientGroup, recipientMember, helper)
 	recipientGroupService := service.NewRecipientGroupService(bizRecipientGroup)
-	servers := server.RegisterService(bc, httpServer, grpcServer, jobServer, jobService, authService, healthService, namespaceService, memberService, emailService, webhookService, senderService, templateService, messageLogService, recipientGroupService)
+	servers := server.RegisterService(bc, httpServer, grpcServer, jobServer, jobService, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, emailService, webhookService, senderService, templateService, messageLogService, recipientGroupService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

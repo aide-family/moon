@@ -22,9 +22,10 @@ description: Implements backend modules from proto definitions for goddess, mark
 ## 项目结构速查
 
 - **Proto**：`proto/<app>/api/v1/*.proto`，生成到 `app/<app>/pkg/api/v1/*.pb.go`（由 buf/kratos 生成，勿手改）。
+- **配置**：`internal/conf/conf.proto` 定义 Bootstrap；**运行时配置**（如 `app/<app>/config/server.yaml`）必须与 conf.proto 的字段同步，否则新增字段无法生效。修改 conf.proto 后必须同步修改实际使用的 YAML/配置文件。
 - **App 分层**（以 rabbit 为例，goddess/marksman 类似）：
   - `cmd/run/{http,grpc,job,all}/wire.go`：wire 注入
-  - `internal/conf`：配置
+  - `internal/conf`：配置定义与生成
   - `internal/server`：HTTP/gRPC 注册（RegisterHTTPService / RegisterGRPCService / RegisterService）
   - `internal/service`：对接 proto 生成的 Server 接口，调 biz
   - `internal/biz`：业务逻辑；`biz/repository` 接口；`biz/bo` 请求/响应 BO
@@ -82,7 +83,11 @@ description: Implements backend modules from proto definitions for goddess, mark
 11. **wire**  
     - 若 wire 为自动生成，运行 `wire ./cmd/run/...` 等以更新注入；否则在对应 `wire.go` 中确保 server、service、biz、impl、data 的 ProviderSet 已包含新模块。
 
-12. **README 与文档同步**  
+12. **配置与 conf.proto 同步**  
+    - 若修改了 `internal/conf/conf.proto`（如在 Bootstrap 中新增、删除或重命名字段），必须**同步修改**该应用实际使用的**运行时配置文件**（如 `app/<app>/config/server.yaml` 或 `config/*.yaml`），为新增字段补充对应配置项，否则启动时可能缺省或报错。  
+    - 配置项命名与 conf.proto 中字段的 camelCase 一致（如 `selfConfig`、`userConfig`）；结构需与 magicbox 或现有同类型配置一致（如 DomainConfig 的 driver、version、options）。
+
+13. **README 与文档同步**  
     - 对模块或 API 做**新增、修改、删除**时，必须同步更新对应应用的 README，保证「接口说明、功能说明、常用用法」与代码一致。  
     - **必须同时更新**：① **功能特性（Features）**：在功能列表中补充/修改/删除该模块或能力的一句话描述；② **接口概览（API Overview）表**：在表格中补充/修改/删除对应服务与 HTTP 路径、说明；③ **中英文双版本**：同一变更需同时改 `README.md` 与 `README-zh_CN.md`，结构和表格一一对应。  
     - 详见下方 [README 与文档同步](#readme-与文档同步) 小节。
@@ -90,6 +95,15 @@ description: Implements backend modules from proto definitions for goddess, mark
 ## README 与文档同步
 
 为保证项目质量，**对 proto/模块/功能做任何变更时，必须同步维护 README**，避免文档与实现脱节。
+
+### 何时需要更新运行时配置
+
+| 变更类型 | 需更新的配置 | 更新内容 |
+|----------|--------------|----------|
+| **conf.proto 新增** Bootstrap 字段 | 该应用实际使用的配置文件（如 `app/<app>/config/server.yaml`） | 在 YAML 中新增与字段名一致的配置项（如 `selfConfig`、`userConfig`），结构参考同类型已有配置（如 `namespaceConfig`） |
+| **conf.proto 删除/重命名** 字段 | 同上 | 从配置文件中删除或重命名对应项，避免遗留无效配置 |
+
+**说明**：仅改 conf.proto 并执行 `make conf` 生成 conf.pb.go 不够，运行时加载的是 YAML 等配置文件；若不同步修改配置文件，新字段在运行时为 nil 或零值，依赖该配置的模块可能报错（如 "selfConfig is required"）。
 
 ### 何时需要更新 README
 
@@ -154,6 +168,7 @@ description: Implements backend modules from proto definitions for goddess, mark
 ## 检查清单（完成前自检）
 
 - [ ] Proto 已生成到 `pkg/api/v1`，未手改生成代码
+- [ ] **conf 与运行时配置已同步**：若修改了 `internal/conf/conf.proto`，已执行 `make conf`（或项目约定的 conf 生成命令），并已**同步修改**该应用实际使用的配置文件（如 `config/server.yaml`），为新增/变更的 Bootstrap 字段补充对应配置项
 - [ ] 新增 HTTP 路径与已有路径无冲突（尤其已有 `/resource/{id}` 时，勿用 `/resource/word`，改用 `/resources/word` 等）
 - [ ] 未新建与现有 app 结构不符的目录或包
 - [ ] bo/repository/do/convert/impl/biz/service 分层与现有模块一致

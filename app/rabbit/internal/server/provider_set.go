@@ -95,7 +95,10 @@ func RegisterService(
 	authService *service.AuthService,
 	healthService *service.HealthService,
 	namespaceService *service.NamespaceService,
+	selfService *service.SelfService,
+	userService *service.UserService,
 	memberService *service.MemberService,
+	captchaService *service.CaptchaService,
 	emailService *service.EmailService,
 	webhookService *service.WebhookService,
 	senderService *service.SenderService,
@@ -109,7 +112,10 @@ func RegisterService(
 		authService,
 		healthService,
 		namespaceService,
+		selfService,
+		userService,
 		memberService,
+		captchaService,
 		emailService,
 		webhookService,
 		senderService,
@@ -120,7 +126,10 @@ func RegisterService(
 	srvs = append(srvs, RegisterGRPCService(c, grpcSrv,
 		healthService,
 		namespaceService,
+		selfService,
+		userService,
 		memberService,
+		captchaService,
 		emailService,
 		webhookService,
 		senderService,
@@ -139,7 +148,10 @@ func RegisterHTTPService(
 	authService *service.AuthService,
 	healthService *service.HealthService,
 	namespaceService *service.NamespaceService,
+	selfService *service.SelfService,
+	userService *service.UserService,
 	memberService *service.MemberService,
+	captchaService *service.CaptchaService,
 	emailService *service.EmailService,
 	webhookService *service.WebhookService,
 	senderService *service.SenderService,
@@ -149,7 +161,10 @@ func RegisterHTTPService(
 ) Servers {
 	magicboxapiv1.RegisterHealthHTTPServer(httpSrv, healthService)
 	goddessv1.RegisterNamespaceHTTPServer(httpSrv, namespaceService)
+	goddessv1.RegisterSelfHTTPServer(httpSrv, selfService)
+	goddessv1.RegisterUserHTTPServer(httpSrv, userService)
 	goddessv1.RegisterMemberHTTPServer(httpSrv, memberService)
+	goddessv1.RegisterCaptchaHTTPServer(httpSrv, captchaService)
 	apiv1.RegisterEmailHTTPServer(httpSrv, emailService)
 	apiv1.RegisterWebhookHTTPServer(httpSrv, webhookService)
 	apiv1.RegisterSenderHTTPServer(httpSrv, senderService)
@@ -170,7 +185,10 @@ func RegisterGRPCService(
 	grpcSrv *grpc.Server,
 	healthService *service.HealthService,
 	namespaceService *service.NamespaceService,
+	selfService *service.SelfService,
+	userService *service.UserService,
 	memberService *service.MemberService,
+	captchaService *service.CaptchaService,
 	emailService *service.EmailService,
 	webhookService *service.WebhookService,
 	senderService *service.SenderService,
@@ -180,7 +198,10 @@ func RegisterGRPCService(
 ) Servers {
 	magicboxapiv1.RegisterHealthServer(grpcSrv, healthService)
 	goddessv1.RegisterNamespaceServer(grpcSrv, namespaceService)
+	goddessv1.RegisterSelfServer(grpcSrv, selfService)
+	goddessv1.RegisterUserServer(grpcSrv, userService)
 	goddessv1.RegisterMemberServer(grpcSrv, memberService)
+	goddessv1.RegisterCaptchaServer(grpcSrv, captchaService)
 	apiv1.RegisterEmailServer(grpcSrv, emailService)
 	apiv1.RegisterWebhookServer(grpcSrv, webhookService)
 	apiv1.RegisterSenderServer(grpcSrv, senderService)
@@ -198,6 +219,16 @@ var namespaceAllowList = []string{
 	goddessv1.OperationNamespaceGetNamespace,
 	goddessv1.OperationNamespaceListNamespace,
 	goddessv1.OperationNamespaceSelectNamespace,
+	goddessv1.OperationSelfInfo,
+	goddessv1.OperationSelfNamespaces,
+	goddessv1.OperationSelfChangeEmail,
+	goddessv1.OperationSelfChangeAvatar,
+	goddessv1.OperationSelfRefreshToken,
+	goddessv1.OperationUserGetUser,
+	goddessv1.OperationUserListUser,
+	goddessv1.OperationUserSelectUser,
+	goddessv1.OperationUserBanUser,
+	goddessv1.OperationUserPermitUser,
 }
 
 var authAllowList = []string{
@@ -205,4 +236,8 @@ var authAllowList = []string{
 	oauth.OperationOAuth2Reports,
 	oauth.OperationOAuth2Login,
 	oauth.OperationOAuth2Callback,
+	goddessv1.OperationAuthServiceEmailLogin,
+	goddessv1.OperationAuthServiceSendEmailLoginCode,
+	goddessv1.OperationCaptchaGetCaptcha,
+	goddessv1.OperationNamespaceGetNamespaceSimple,
 }

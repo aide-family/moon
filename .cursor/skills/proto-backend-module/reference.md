@@ -93,7 +93,15 @@ import (
 
 完成模块后，用 SKILL.md 末尾的检查清单自检，并确保未引入新目录或与现有 app 不一致的包结构。
 
-## 7. README 维护（与 SKILL 同步）
+## 7. 配置与 conf.proto 同步
+
+- **conf.proto**：定义在 `app/<app>/internal/conf/conf.proto`，描述 Bootstrap 等配置结构；生成 `conf.pb.go` 需执行该应用的 `make conf`（或项目约定的命令）。
+- **运行时配置**：应用启动时加载的是 YAML 等文件（如 `app/<app>/config/server.yaml`），**不是** conf.proto。因此：
+  - **新增** Bootstrap 字段时：除执行 `make conf` 外，必须在实际使用的配置文件中**新增对应配置项**（键名与 proto 字段 camelCase 一致，如 `selfConfig`、`userConfig`），结构参考同类型已有项（如 `namespaceConfig` 的 driver、version、options）。
+  - **删除或重命名**字段时：同步从配置文件中删除或重命名对应项。
+- 未同步时，新字段在运行时为 nil/零值，依赖该配置的代码可能报错（如 "xxxConfig is required"）。详见 SKILL.md「配置与 conf.proto 同步」与「何时需要更新运行时配置」。
+
+## 8. README 维护（与 SKILL 同步）
 
 - **位置**：每个应用有 `README.md`、`README-zh_CN.md`；根目录与 magicbox 同理。见 SKILL.md「README 与文档同步」。
 - **API 来源**：README 中的「API Overview / 接口概览」必须与 `proto/<app>/api/v1/*.proto` 中的 `service`、`rpc` 及 `option (google.api.http)` 一致；修改/增删 RPC 或 HTTP 路径后，必须同步改两张表（中英文）。

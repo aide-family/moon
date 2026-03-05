@@ -43,6 +43,7 @@
 
 ## Features
 
+- **Domain (Goddess)**: Namespace CRUD and select; Self (current user info, namespaces, change email/avatar/remark, refresh token); User (get/list/select/ban/permit); Member (list, invite, delete, status); Captcha (get captcha image); Auth (email login, send code)
 - **Email**: SMTP config CRUD, list, select; send raw email or send with template
 - **Webhook**: Webhook config CRUD, list, select (e.g. DingTalk, WeChat, Feishu, custom); send raw or template
 - **Template**: Message template CRUD, list, select (EMAIL, SMS_ALICLOUD, WEBHOOK_*)
@@ -56,6 +57,34 @@
 
 | Service | Method / HTTP | Description |
 |---------|----------------|-------------|
+| **Namespace** | `POST /v1/namespace` | Create namespace |
+| | `PUT /v1/namespace/{uid}` | Update namespace |
+| | `PUT /v1/namespace/{uid}/status` | Update namespace status |
+| | `DELETE /v1/namespace/{uid}` | Delete namespace |
+| | `GET /v1/namespace/{uid}` | Get namespace |
+| | `GET /v1/namespaces` | List namespaces |
+| | `GET /v1/namespaces/select` | Select namespaces for dropdown |
+| | `GET /v1/namespaces/simple` | Get namespace simple (allow unauthenticated) |
+| **Self** | `GET /v1/self/info` | Get current user info |
+| | `GET /v1/self/namespaces` | Get current user's namespaces |
+| | `PUT /v1/self/change-email` | Change email |
+| | `PUT /v1/self/change-avatar` | Change avatar |
+| | `PUT /v1/self/change-remark` | Change remark |
+| | `GET /v1/self/refresh-token` | Refresh token |
+| **User** | `GET /v1/user/{uid}` | Get user |
+| | `GET /v1/users` | List users |
+| | `GET /v1/users/select` | Select users for dropdown |
+| | `PUT /v1/user/ban/{uid}` | Ban user |
+| | `PUT /v1/user/permit/{uid}` | Permit user |
+| **Member** | `GET /v1/members` | List members |
+| | `GET /v1/member/{uid}` | Get member |
+| | `GET /v1/members/select` | Select members for dropdown |
+| | `POST /v1/member/invite` | Invite member |
+| | `DELETE /v1/member/{uid}` | Delete member |
+| | `PUT /v1/member/{uid}/status` | Update member status |
+| **Captcha** | `GET /v1/captcha` | Get captcha image (allow unauthenticated) |
+| **Auth** | `POST /v1/auth/email/login/code` | Send email login code |
+| | `POST /v1/auth/email/login` | Email login |
 | **Email** | `POST /v1/email/config` | Create email config (SMTP) |
 | | `PUT /v1/email/config/{uid}` | Update email config |
 | | `PUT /v1/email/config/{uid}/status` | Update status (ENABLED/DISABLED) |

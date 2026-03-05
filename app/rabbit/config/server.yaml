@@ -100,6 +100,65 @@ loginConfig:
       expire: ${MOON_RABBIT_DEFAULT_CONFIG_JWT_EXPIRE:600s}
       issuer: ${MOON_RABBIT_DEFAULT_CONFIG_JWT_ISSUER:rabbit}
 
+selfConfig:
+  driver: ${MOON_RABBIT_SELF_DRIVER:DEFAULT}
+  version: ${MOON_RABBIT_SELF_VERSION:v1}
+  options:
+    '@type': '${MOON_RABBIT_SELF_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}'
+    siteDomain: ${MOON_RABBIT_SELF_SITE_DOMAIN:localhost:5175}
+    globalEmail:
+      host: ${MOON_RABBIT_DEFAULT_CONFIG_GLOBAL_EMAIL_HOST:localhost}
+      port: ${MOON_RABBIT_DEFAULT_CONFIG_GLOBAL_EMAIL_PORT:587}
+      username: ${MOON_RABBIT_DEFAULT_CONFIG_GLOBAL_EMAIL_USERNAME:root}
+      password: ${MOON_RABBIT_DEFAULT_CONFIG_GLOBAL_EMAIL_PASSWORD:123456}
+    database:
+      dialector: ${MOON_RABBIT_SELF_DATABASE_DIALECTOR:SQLITE}
+      debug: ${MOON_RABBIT_SELF_DATABASE_DEBUG:true}
+      useSystemLogger: ${MOON_RABBIT_SELF_DATABASE_USE_SYSTEM_LOGGER:false}
+      options:
+        '@type': '${MOON_RABBIT_SELF_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
+        dsn: '${MOON_RABBIT_SELF_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
+    jwt:
+      secret: ${MOON_RABBIT_DEFAULT_CONFIG_JWT_SECRET:xxx}
+      expire: ${MOON_RABBIT_DEFAULT_CONFIG_JWT_EXPIRE:600s}
+      issuer: ${MOON_RABBIT_DEFAULT_CONFIG_JWT_ISSUER:rabbit}
+
+userConfig:
+  driver: ${MOON_RABBIT_USER_DRIVER:DEFAULT}
+  version: ${MOON_RABBIT_USER_VERSION:v1}
+  options:
+    '@type': '${MOON_RABBIT_USER_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}'
+    siteDomain: ${MOON_RABBIT_USER_SITE_DOMAIN:localhost:5175}
+    globalEmail:
+      host: ${MOON_RABBIT_DEFAULT_CONFIG_GLOBAL_EMAIL_HOST:localhost}
+      port: ${MOON_RABBIT_DEFAULT_CONFIG_GLOBAL_EMAIL_PORT:587}
+      username: ${MOON_RABBIT_DEFAULT_CONFIG_GLOBAL_EMAIL_USERNAME:root}
+      password: ${MOON_RABBIT_DEFAULT_CONFIG_GLOBAL_EMAIL_PASSWORD:123456}
+    database:
+      dialector: ${MOON_RABBIT_USER_DATABASE_DIALECTOR:SQLITE}
+      debug: ${MOON_RABBIT_USER_DATABASE_DEBUG:true}
+      useSystemLogger: ${MOON_RABBIT_USER_DATABASE_USE_SYSTEM_LOGGER:false}
+      options:
+        '@type': '${MOON_RABBIT_USER_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
+        dsn: '${MOON_RABBIT_USER_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
+    jwt:
+      secret: ${MOON_RABBIT_DEFAULT_CONFIG_JWT_SECRET:xxx}
+      expire: ${MOON_RABBIT_DEFAULT_CONFIG_JWT_EXPIRE:600s}
+      issuer: ${MOON_RABBIT_DEFAULT_CONFIG_JWT_ISSUER:rabbit}
+
+captchaConfig:
+  driver: ${MOON_RABBIT_CAPTCHA_DRIVER:DEFAULT}
+  options:
+    '@type': '${MOON_RABBIT_CAPTCHA_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}'
+    siteDomain: ${MOON_RABBIT_CAPTCHA_SITE_DOMAIN:localhost:5175}
+    database:
+      dialector: ${MOON_RABBIT_CAPTCHA_DATABASE_DIALECTOR:SQLITE}
+      debug: ${MOON_RABBIT_CAPTCHA_DATABASE_DEBUG:true}
+      useSystemLogger: ${MOON_RABBIT_CAPTCHA_DATABASE_USE_SYSTEM_LOGGER:false}
+      options:
+        '@type': '${MOON_RABBIT_CAPTCHA_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
+        dsn: '${MOON_RABBIT_CAPTCHA_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
+
 swaggerBasicAuth:
   enabled: ${MOON_RABBIT_SWAGGER_BASIC_AUTH_ENABLED:false}
   username: ${MOON_RABBIT_SWAGGER_BASIC_AUTH_USERNAME:moon.rabbit}
