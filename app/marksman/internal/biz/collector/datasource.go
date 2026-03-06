@@ -112,9 +112,10 @@ func fromDatasourceItemBo(b *bo.DatasourceItemBo) DatasourceItem {
 	}
 }
 
-// probeURL performs a HEAD request to url. Returns true if response is 2xx.
+// probeURL performs a GET request to url. Returns true if response is 2xx.
+// GET is used because many metrics endpoints (e.g. Prometheus) do not support HEAD (405).
 func probeURL(client *http.Client, url string) bool {
-	req, err := http.NewRequest(http.MethodHead, url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return false
 	}

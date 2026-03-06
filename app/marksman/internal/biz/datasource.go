@@ -13,10 +13,12 @@ import (
 
 func NewDatasource(
 	datasourceRepo repository.Datasource,
+	statusQuerier repository.DatasourceStatusQuerier,
 	helper *klog.Helper,
 ) *DatasourceBiz {
 	return &DatasourceBiz{
 		datasourceRepo: datasourceRepo,
+		statusQuerier:  statusQuerier,
 		helper:         klog.NewHelper(klog.With(helper.Logger(), "biz", "datasource")),
 	}
 }
@@ -24,6 +26,7 @@ func NewDatasource(
 type DatasourceBiz struct {
 	helper         *klog.Helper
 	datasourceRepo repository.Datasource
+	statusQuerier  repository.DatasourceStatusQuerier
 }
 
 func (d *DatasourceBiz) CreateDatasource(ctx context.Context, req *bo.CreateDatasourceBo) error {
@@ -92,4 +95,8 @@ func (d *DatasourceBiz) SelectDatasource(ctx context.Context, req *bo.SelectData
 		return nil, merr.ErrorInternalServer("select datasource failed").WithCause(err)
 	}
 	return result, nil
+}
+
+func (d *DatasourceBiz) GetDatasourceStatus(ctx context.Context, req *bo.GetDatasourceStatusRequest) ([]*bo.DatasourceStatusSeriesBo, error) {
+	return d.statusQuerier.QueryDatasourceStatus(ctx, req)
 }

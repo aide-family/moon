@@ -29,6 +29,17 @@ message Bootstrap {
 	magicbox.config.DomainConfig userConfig = 18;
 	magicbox.config.DomainConfig memberConfig = 19;
 	magicbox.config.DomainConfig captchaConfig = 20;
+	// Main time-series DB for querying datasource status history (Prometheus / VictoriaMetrics).
+	MainTsdb mainTsdb = 21;
+}
+
+// MainTsdb config for querying metrics (e.g. marksman_datasource_status).
+message MainTsdb {
+	// Driver: "prometheus" or "victoria_metrics".
+	magicbox.enum.DatasourceDriver driver = 1;
+	// Base URL, e.g. http://localhost:9090
+	string url = 2;
+	magicbox.config.BasicAuthConfig basicAuth = 3;
 }
 
 message Server {

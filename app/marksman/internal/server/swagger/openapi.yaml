@@ -82,6 +82,43 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.DeleteDatasourceReply'
+    /v1/datasource/{uid}/status:
+        get:
+            tags:
+                - Datasource
+            description: GetDatasourceStatus returns recent status series (last 1h by default) from main time-series DB (Prometheus/VM).
+            operationId: Datasource_GetDatasourceStatus
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: startTime
+                  in: query
+                  description: 'Unix timestamp (seconds). Default: now - 1h.'
+                  schema:
+                    type: string
+                - name: endTime
+                  in: query
+                  description: 'Unix timestamp (seconds). Default: now.'
+                  schema:
+                    type: string
+                - name: stepSeconds
+                  in: query
+                  description: |-
+                    Step in seconds for downsampling. Default: 60.
+                     Step in seconds (15–3600). Default 60 if not set.
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.GetDatasourceStatusReply'
     /v1/datasources:
         get:
             tags:
@@ -935,6 +972,25 @@ components:
                     type: string
                 remark:
                     type: string
+        marksman.api.v1.DatasourceStatusPoint:
+            type: object
+            properties:
+                timestamp:
+                    type: string
+                value:
+                    type: number
+                    format: double
+        marksman.api.v1.DatasourceStatusSeries:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                points:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.DatasourceStatusPoint'
         marksman.api.v1.DeleteDatasourceReply:
             type: object
             properties: {}
@@ -950,6 +1006,13 @@ components:
         marksman.api.v1.DeleteStrategyReply:
             type: object
             properties: {}
+        marksman.api.v1.GetDatasourceStatusReply:
+            type: object
+            properties:
+                series:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.DatasourceStatusSeries'
         marksman.api.v1.LevelItem:
             type: object
             properties:

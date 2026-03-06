@@ -48,7 +48,7 @@
 - **成员（Member，goddess）**：命名空间内成员列表/获取/选择、邀请成员、移除成员、更新状态
 - **命名空间（Namespace，goddess）**：命名空间管理（与 goddess 共用能力，需配置 namespaceConfig）
 - **验证码（Captcha，goddess）**：图形验证码获取（id、base64 图片），用于登录等无需鉴权场景
-- **数据源（Datasource）**：指标/日志/链路数据源增删改查、列表、下拉选择（Prometheus、VictoriaMetrics、Elasticsearch、Jaeger）
+- **数据源（Datasource）**：指标/日志/链路数据源增删改查、列表、下拉选择、按数据源的状态时序（主时序库）（Prometheus、VictoriaMetrics、Elasticsearch、Jaeger）
 - **策略组（Strategy group）**：增删改查、列表、选择、状态；绑定接收人（收件人组）
 - **策略（Strategy）**：增删改查、列表、状态；归属策略组；类型（METRICS/LOGS/TRACE）与驱动
 - **级别（Level）**：告警级别增删改查、列表、选择、状态（用于告警严重程度分组）
@@ -77,6 +77,7 @@
 | | `GET /v1/datasource/{uid}` | 获取数据源 |
 | | `GET /v1/datasources` | 列表（keyword、page、pageSize、type、driver、status） |
 | | `GET /v1/datasources/select` | 下拉选择 |
+| | `GET /v1/datasource/{uid}/status` | 单个数据源状态时序（从主时序库查询；参数 startTime、endTime、stepSeconds；默认最近 1 小时，步长 60s） |
 | **Strategy**（策略组） | `POST /v1/strategy-group` | 创建策略组 |
 | | `PUT /v1/strategy-group/{uid}` | 更新策略组 |
 | | `PUT /v1/strategy-group/{uid}/status` | 更新状态（ENABLED/DISABLED） |
@@ -199,7 +200,7 @@ make dev
    go run . run grpc
    ```
 
-3. **配置**：见 `internal/conf/`；配置文件路径通过启动参数或环境变量指定。
+3. **配置**：见 `internal/conf/`；配置文件路径通过启动参数或环境变量指定。数据源状态时序接口（`GET /v1/datasource/{uid}/status`）需在 `config/server.yaml` 中配置 **mainTsdb**：`driver`（`prometheus` 或 `victoria_metrics`）、`url`；环境变量覆盖：`MARKSMAN_MAIN_TSDB_DRIVER`、`MARKSMAN_MAIN_TSDB_URL`。
 
 ---
 

@@ -1,6 +1,8 @@
+// Package datasource provides a client for datasource.
 package datasource
 
 import (
+	"context"
 	"crypto/tls"
 	"net/http"
 	"time"
@@ -16,4 +18,12 @@ type MetricConfig interface {
 	GetTLS() *tls.ConnectionState
 	GetCA() string
 	GetScrapeInterval() time.Duration
+}
+
+type MetricClient interface {
+	Proxy(ctx context.Context, w http.ResponseWriter, r *http.Request, target string) error
+	QueryRange(ctx context.Context, query string, start, end time.Time, step time.Duration) (*QueryRangeResponse, error)
+	Query(ctx context.Context, query string, time time.Time) (*QueryResponse, error)
+	Series(ctx context.Context, start, end time.Time, match []string) (*SeriesResponse, error)
+	Metadata(ctx context.Context, metric string) (*MetadataResponse, error)
 }

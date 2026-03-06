@@ -140,6 +140,15 @@ captchaConfig:
   driver: ${MOON_MARKSMAN_CAPTCHA_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_CAPTCHA_VERSION:v1}
 
+# Main time-series DB for datasource status history (prometheus / victoria_metrics).
+mainTsdb:
+  driver: ${MOON_MARKSMAN_MAIN_TSDB_DRIVER:METRICS_PROMETHEUS}
+  url: ${MOON_MARKSMAN_MAIN_TSDB_URL:http://localhost:9090}
+  basicAuth:
+    enabled: ${MOON_MARKSMAN_MAIN_TSDB_BASIC_AUTH_ENABLED:false}
+    username: ${MOON_MARKSMAN_MAIN_TSDB_BASIC_AUTH_USERNAME:moon.marksman}
+    password: ${MOON_MARKSMAN_MAIN_TSDB_BASIC_AUTH_PASSWORD:marksman.metrics}
+
 swaggerBasicAuth:
   enabled: ${MOON_MARKSMAN_SWAGGER_BASIC_AUTH_ENABLED:false}
   username: ${MOON_MARKSMAN_SWAGGER_BASIC_AUTH_USERNAME:moon.marksman}

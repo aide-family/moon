@@ -1,0 +1,18 @@
+# Prometheus config for Marksman
+# Scrape Marksman when it runs on host: use host.docker.internal (Docker Desktop) or host network.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Prometheus self
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Marksman app (when running on host; adjust host if needed)
+  - job_name: marksman
+    static_configs:
+      - targets: ["192.168.1.196:8003"]
+    metrics_path: /metrics
+    scrape_interval: 30s

@@ -68,3 +68,15 @@ func (s *DatasourceService) SelectDatasource(ctx context.Context, req *apiv1.Sel
 	}
 	return bo.ToAPIV1SelectDatasourceReply(result), nil
 }
+
+func (s *DatasourceService) GetDatasourceStatus(ctx context.Context, req *apiv1.GetDatasourceStatusRequest) (*apiv1.GetDatasourceStatusReply, error) {
+	datasource, err := s.datasourceBiz.GetDatasource(ctx, snowflake.ParseInt64(req.GetUid()))
+	if err != nil {
+		return nil, err
+	}
+	series, err := s.datasourceBiz.GetDatasourceStatus(ctx, bo.NewGetDatasourceStatusRequest(req, datasource))
+	if err != nil {
+		return nil, err
+	}
+	return bo.ToAPIV1GetDatasourceStatusReply(series), nil
+}

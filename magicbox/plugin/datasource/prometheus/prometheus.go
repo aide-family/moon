@@ -14,12 +14,14 @@ import (
 	"github.com/aide-family/magicbox/plugin/datasource"
 )
 
-type Client struct {
-	c datasource.MetricConfig
-}
+var _ datasource.MetricClient = (*Client)(nil)
 
 func NewClient(c datasource.MetricConfig) *Client {
 	return &Client{c: c}
+}
+
+type Client struct {
+	c datasource.MetricConfig
 }
 
 func (p *Client) Proxy(ctx context.Context, w http.ResponseWriter, r *http.Request, target string) error {
@@ -29,7 +31,7 @@ func (p *Client) Proxy(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	return proxyClient.Proxy(ctx, w, r, target)
 }
 
-func (p *Client) QueryRange(ctx context.Context, query string, start, end time.Time, step time.Duration) (*QueryRangeResponse, error) {
+func (p *Client) QueryRange(ctx context.Context, query string, start, end time.Time, step time.Duration) (*datasource.QueryRangeResponse, error) {
 	hx := httpx.NewClient(httpx.GetHTTPClient())
 
 	api, err := url.JoinPath(p.c.GetEndpoint(), "/api/v1/query_range")
@@ -53,7 +55,7 @@ func (p *Client) QueryRange(ctx context.Context, query string, start, end time.T
 			"query": {query},
 			"start": {strconv.FormatInt(start.Unix(), 10)},
 			"end":   {strconv.FormatInt(end.Unix(), 10)},
-			"step":  {strconv.FormatInt(int64(step), 10)},
+			"step":  {strconv.FormatInt(int64(step.Seconds()), 10)},
 		}),
 	}
 	resp, err := hx.Do(ctx, httpx.MethodGet, toURL.String(), opts...)
@@ -66,7 +68,7 @@ func (p *Client) QueryRange(ctx context.Context, query string, start, end time.T
 		return nil, fmt.Errorf("prometheus query range response status: %s", resp.Status)
 	}
 
-	var queryRangeResponse QueryRangeResponse
+	var queryRangeResponse datasource.QueryRangeResponse
 	if err := json.NewDecoder(resp.Body).Decode(&queryRangeResponse); err != nil {
 		return nil, err
 	}
@@ -77,7 +79,7 @@ func (p *Client) QueryRange(ctx context.Context, query string, start, end time.T
 	return &queryRangeResponse, nil
 }
 
-func (p *Client) Query(ctx context.Context, query string, time time.Time) (*QueryResponse, error) {
+func (p *Client) Query(ctx context.Context, query string, time time.Time) (*datasource.QueryResponse, error) {
 	hx := httpx.NewClient(httpx.GetHTTPClient())
 
 	api, err := url.JoinPath(p.c.GetEndpoint(), "/api/v1/query")
@@ -112,7 +114,7 @@ func (p *Client) Query(ctx context.Context, query string, time time.Time) (*Quer
 		return nil, fmt.Errorf("prometheus query response status: %s", resp.Status)
 	}
 
-	var queryResponse QueryResponse
+	var queryResponse datasource.QueryResponse
 	if err := json.NewDecoder(resp.Body).Decode(&queryResponse); err != nil {
 		return nil, err
 	}
@@ -123,7 +125,7 @@ func (p *Client) Query(ctx context.Context, query string, time time.Time) (*Quer
 	return &queryResponse, nil
 }
 
-func (p *Client) Series(ctx context.Context, start, end time.Time, match []string) (*SeriesResponse, error) {
+func (p *Client) Series(ctx context.Context, start, end time.Time, match []string) (*datasource.SeriesResponse, error) {
 	hx := httpx.NewClient(httpx.GetHTTPClient())
 
 	api, err := url.JoinPath(p.c.GetEndpoint(), "/api/v1/series")
@@ -160,7 +162,7 @@ func (p *Client) Series(ctx context.Context, start, end time.Time, match []strin
 		return nil, fmt.Errorf("prometheus series response status: %s", resp.Status)
 	}
 
-	var seriesResponse SeriesResponse
+	var seriesResponse datasource.SeriesResponse
 	if err := json.NewDecoder(resp.Body).Decode(&seriesResponse); err != nil {
 		return nil, err
 	}
@@ -171,7 +173,7 @@ func (p *Client) Series(ctx context.Context, start, end time.Time, match []strin
 	return &seriesResponse, nil
 }
 
-func (p *Client) Metadata(ctx context.Context, metric string) (*MetadataResponse, error) {
+func (p *Client) Metadata(ctx context.Context, metric string) (*datasource.MetadataResponse, error) {
 	hx := httpx.NewClient(httpx.GetHTTPClient())
 
 	api, err := url.JoinPath(p.c.GetEndpoint(), "/api/v1/metadata")
@@ -202,7 +204,7 @@ func (p *Client) Metadata(ctx context.Context, metric string) (*MetadataResponse
 		return nil, fmt.Errorf("prometheus metadata response status: %s", resp.Status)
 	}
 
-	var metadataResponse MetadataResponse
+	var metadataResponse datasource.MetadataResponse
 	if err := json.NewDecoder(resp.Body).Decode(&metadataResponse); err != nil {
 		return nil, err
 	}

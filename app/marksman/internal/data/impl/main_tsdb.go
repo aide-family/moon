@@ -1,0 +1,118 @@
+package impl
+
+import (
+	"context"
+	"crypto/tls"
+	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/aide-family/magicbox/config"
+	"github.com/aide-family/magicbox/enum"
+	"github.com/aide-family/magicbox/httpx"
+	"github.com/aide-family/magicbox/merr"
+	"github.com/aide-family/magicbox/plugin/datasource"
+	"github.com/aide-family/magicbox/plugin/datasource/prometheus"
+	"github.com/aide-family/magicbox/plugin/datasource/victoriametrics"
+
+	"github.com/aide-family/marksman/internal/biz/bo"
+	"github.com/aide-family/marksman/internal/biz/repository"
+	"github.com/aide-family/marksman/internal/conf"
+)
+
+const (
+	metricName            = "marksman_datasource_status"
+	driverPrometheus      = "prometheus"
+	driverVictoriaMetrics = "victoria_metrics"
+)
+
+// mainTsdbMetricConfig adapts conf.MainTsdb to datasource.MetricConfig (Prometheus/VM use same API).
+type mainTsdbMetricConfig struct {
+	url       string
+	basicAuth *config.BasicAuthConfig
+}
+
+func (c *mainTsdbMetricConfig) GetEndpoint() string     { return c.url }
+func (c *mainTsdbMetricConfig) GetHeaders() http.Header { return nil }
+func (c *mainTsdbMetricConfig) GetMethod() httpx.Method { return httpx.MethodGet }
+func (c *mainTsdbMetricConfig) GetBasicAuth() *httpx.BasicAuth {
+	basicAuth := c.basicAuth
+	if basicAuth == nil || !strings.EqualFold(basicAuth.GetEnabled(), "true") {
+		return nil
+	}
+	return &httpx.BasicAuth{
+		Username: basicAuth.GetUsername(),
+		Password: basicAuth.GetPassword(),
+	}
+}
+func (c *mainTsdbMetricConfig) GetTLS() *tls.ConnectionState     { return nil }
+func (c *mainTsdbMetricConfig) GetCA() string                    { return "" }
+func (c *mainTsdbMetricConfig) GetScrapeInterval() time.Duration { return 0 }
+
+// NewMainTsdbQuerier returns a DatasourceStatusQuerier that uses the main TSDB (Prometheus or VictoriaMetrics).
+// If mainTsdb config is missing or invalid, returns a no-op querier that returns empty result.
+func NewMainTsdbQuerier(bc *conf.Bootstrap) repository.DatasourceStatusQuerier {
+	cfg := bc.GetMainTsdb()
+	if cfg == nil || strings.TrimSpace(cfg.GetUrl()) == "" {
+		return &noopStatusQuerier{}
+	}
+	driver := cfg.GetDriver()
+	switch driver {
+	case enum.DatasourceDriver_METRICS_PROMETHEUS:
+		adapter := &mainTsdbMetricConfig{url: strings.TrimRight(cfg.GetUrl(), "/"), basicAuth: cfg.GetBasicAuth()}
+		client := prometheus.NewClient(adapter)
+		return &mainTsdbQuerier{client: client}
+	case enum.DatasourceDriver_METRICS_VICTORIA_METRICS:
+		adapter := &mainTsdbMetricConfig{url: strings.TrimRight(cfg.GetUrl(), "/"), basicAuth: cfg.GetBasicAuth()}
+		client := victoriametrics.NewClient(adapter)
+		return &mainTsdbQuerier{client: client}
+	default:
+		return &noopStatusQuerier{}
+	}
+}
+
+type noopStatusQuerier struct{}
+
+func (n *noopStatusQuerier) QueryDatasourceStatus(_ context.Context, _ *bo.GetDatasourceStatusRequest) ([]*bo.DatasourceStatusSeriesBo, error) {
+	return nil, nil
+}
+
+type mainTsdbQuerier struct {
+	client datasource.MetricClient
+}
+
+func (q *mainTsdbQuerier) QueryDatasourceStatus(ctx context.Context, req *bo.GetDatasourceStatusRequest) ([]*bo.DatasourceStatusSeriesBo, error) {
+	// Prometheus expects label values in double quotes; step must be in seconds (handled by client).
+	query := fmt.Sprintf(`%s{uid="%s",name="%s"}`, metricName, strconv.FormatInt(req.GetUID(), 10), req.GetName())
+	resp, err := q.client.QueryRange(ctx, query, time.Unix(req.GetStartTime(), 0), time.Unix(req.GetEndTime(), 0), req.GetStep())
+	if err != nil {
+		return nil, merr.ErrorInternalServer("query main tsdb failed").WithCause(err)
+	}
+	if errStr := resp.Error(); errStr != "" {
+		return nil, merr.ErrorInternalServer("main tsdb query error: %s", errStr)
+	}
+	if resp.Data == nil || resp.Data.Result == nil {
+		return nil, nil
+	}
+	out := make([]*bo.DatasourceStatusSeriesBo, 0, len(resp.Data.Result))
+	for _, item := range resp.Data.Result {
+		name := item.Metric.Name()
+		points := make([]bo.DatasourceStatusPointBo, 0, len(item.Values))
+		for _, v := range item.Values {
+			points = append(points, bo.DatasourceStatusPointBo{
+				Timestamp: int64(v.Timestamp()),
+				Value:     v.Value(),
+			})
+		}
+		out = append(out, &bo.DatasourceStatusSeriesBo{
+			UID:    req.GetUID(),
+			Name:   name,
+			Points: points,
+		})
+	}
+	return out, nil
+}
+
+var _ datasource.MetricConfig = (*mainTsdbMetricConfig)(nil)

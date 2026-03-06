@@ -43,6 +43,12 @@ service Datasource {
 			get: "/v1/datasources/select"
 		};
 	}
+	// GetDatasourceStatus returns recent status series (last 1h by default) from main time-series DB (Prometheus/VM).
+	rpc GetDatasourceStatus (GetDatasourceStatusRequest) returns (GetDatasourceStatusReply) {
+		option (google.api.http) = {
+			get: "/v1/datasource/{uid}/status"
+		};
+	}
 }
 
 message DatasourceItem {
@@ -172,4 +178,27 @@ message SelectDatasourceReply {
 	int64 total = 2;
 	int64 lastUID = 3;
 	bool hasMore = 4;
+}
+
+message GetDatasourceStatusRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	// Unix timestamp (seconds). Default: now - 1h.
+	int64 startTime = 2;
+	// Unix timestamp (seconds). Default: now.
+	int64 endTime = 3;
+	// Step in seconds for downsampling. Default: 60.
+	// Step in seconds (15–3600). Default 60 if not set.
+	int32 stepSeconds = 4;
+}
+message GetDatasourceStatusReply {
+	repeated DatasourceStatusSeries series = 1;
+}
+message DatasourceStatusSeries {
+	int64 uid = 1;
+	string name = 2;
+	repeated DatasourceStatusPoint points = 3;
+}
+message DatasourceStatusPoint {
+	int64 timestamp = 1;  // Unix seconds
+	double value = 2;     // 1 = healthy, 0 = unhealthy
 }

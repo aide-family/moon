@@ -17,16 +17,16 @@ import (
 func TestGetJwtToken(t *testing.T) {
 	var id snowflake.ID
 	t.Log(id.Int64())
-	node, err := snowflake.NewNode(hello.NodeID())
-	if err != nil {
-		t.Fatalf("NewNode failed: %v", err)
-	}
+	// node, err := snowflake.NewNode(hello.NodeID())
+	// if err != nil {
+	// 	t.Fatalf("NewNode failed: %v", err)
+	// }
 	claims := jwt.NewJwtClaims(&config.JWT{
 		Secret: "xxx",
 		Expire: durationpb.New(24 * 365 * time.Hour),
 		Issuer: "magicbox-test",
 	}, jwt.BaseInfo{
-		UID:      node.Generate(),
+		UID:      2027278335547883520,
 		Username: hello.ID(),
 	})
 	token, err := claims.GenerateToken()

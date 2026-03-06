@@ -11,6 +11,7 @@ var ProviderSetImpl = wire.NewSet(
 	NewUserRepository,
 	NewMemberRepository,
 	NewCaptchaRepository,
+	NewMainTsdbQuerier,
 	NewLevelRepository,
 	NewDatasourceRepository,
 	NewLoginRepository,

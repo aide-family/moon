@@ -1,8 +1,9 @@
-package prometheus
+package datasource
 
 import (
 	"fmt"
 	"maps"
+	"strconv"
 )
 
 type SeriesResponse struct {
@@ -81,11 +82,24 @@ type QueryResponseDataResultItem struct {
 type QueryResponseValue []any
 
 func (q QueryResponseValue) Timestamp() float64 {
-	return q[0].(float64)
+	return toFloat64(q[0])
 }
 
 func (q QueryResponseValue) Value() float64 {
-	return q[1].(float64)
+	return toFloat64(q[1])
+}
+
+// toFloat64 converts JSON-decoded value (float64 or string) to float64; Prometheus may return numbers as strings.
+func toFloat64(v any) float64 {
+	switch x := v.(type) {
+	case float64:
+		return x
+	case string:
+		f, _ := strconv.ParseFloat(x, 64)
+		return f
+	default:
+		return 0
+	}
 }
 
 type QueryRangeResponse struct {

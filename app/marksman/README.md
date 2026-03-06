@@ -48,7 +48,7 @@
 - **Member** (goddess): List/get/select members in namespace, invite, dismiss, update status
 - **Namespace** (goddess): Namespace management (shared with goddess; requires `namespaceConfig`)
 - **Captcha** (goddess): Get graphic captcha (id, base64 image) for login and other unauthenticated flows
-- **Datasource**: CRUD, list, select for metrics/logs/trace backends (Prometheus, VictoriaMetrics, Elasticsearch, Jaeger)
+- **Datasource**: CRUD, list, select, status time series (per uid, from main TSDB) for metrics/logs/trace backends (Prometheus, VictoriaMetrics, Elasticsearch, Jaeger)
 - **Strategy group**: CRUD, list, select, status; bind receivers (recipient groups)
 - **Strategy**: CRUD, list, status; link to strategy group; type (METRICS/LOGS/TRACE) and driver
 - **Level**: Alert level CRUD, list, select, status (for grouping alert severity)
@@ -77,6 +77,7 @@
 | | `GET /v1/datasource/{uid}` | Get datasource |
 | | `GET /v1/datasources` | List (keyword, page, pageSize, type, driver, status) |
 | | `GET /v1/datasources/select` | Select for dropdown |
+| | `GET /v1/datasource/{uid}/status` | Status time series for one datasource (from main TSDB; query: startTime, endTime, stepSeconds; default last 1h, step 60s) |
 | **Strategy** (group) | `POST /v1/strategy-group` | Create strategy group |
 | | `PUT /v1/strategy-group/{uid}` | Update strategy group |
 | | `PUT /v1/strategy-group/{uid}/status` | Update status (ENABLED/DISABLED) |
@@ -200,7 +201,7 @@ make dev
    go run . run grpc
    ```
 
-3. **Config**: See `internal/conf/`; set config path via flag or env.
+3. **Config**: See `internal/conf/`; set config path via flag or env. For datasource status time series (`GET /v1/datasource/{uid}/status`), configure **mainTsdb** in `config/server.yaml`: `driver` (`prometheus` or `victoria_metrics`) and `url`; env overrides: `MARKSMAN_MAIN_TSDB_DRIVER`, `MARKSMAN_MAIN_TSDB_URL`.
 
 ---
 
