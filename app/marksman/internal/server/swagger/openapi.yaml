@@ -82,6 +82,63 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.DeleteDatasourceReply'
+    /v1/datasource/{uid}/metric/{metric}:
+        get:
+            tags:
+                - Datasource
+            description: GetMetricLabelDetail returns one metric's labels and each label's values (detail view for a single metric).
+            operationId: Datasource_GetMetricDetail
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: metric
+                  in: path
+                  description: Metric name to query label detail for (e.g. "http_requests_total", "up").
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.MetricDetailItem'
+    /v1/datasource/{uid}/metrics:
+        get:
+            tags:
+                - Datasource
+            description: ListMetrics returns the list of metric names with basic metadata (name, description, unit, type) for a metrics datasource.
+            operationId: Datasource_ListMetrics
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: match
+                  in: query
+                  description: Optional match[] selectors to scope which metrics to return (e.g. "up", "http_requests_total").
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: limit
+                  in: query
+                  description: Max number of metrics to return. Default 100, max 500.
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.ListMetricsReply'
     /v1/datasource/{uid}/status:
         get:
             tags:
@@ -1074,6 +1131,13 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/marksman.api.v1.LevelItem'
+        marksman.api.v1.ListMetricsReply:
+            type: object
+            properties:
+                metrics:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.MetricSummaryItem'
         marksman.api.v1.ListStrategyGroupReply:
             type: object
             properties:
@@ -1104,6 +1168,42 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        marksman.api.v1.MetricDetailItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                help:
+                    type: string
+                unit:
+                    type: string
+                type:
+                    type: string
+                labels:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.MetricLabelItem'
+        marksman.api.v1.MetricLabelItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                values:
+                    type: array
+                    items:
+                        type: string
+        marksman.api.v1.MetricSummaryItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                description:
+                    type: string
+                unit:
+                    type: string
+                type:
+                    type: string
+            description: 'MetricSummaryItem: metric list item (no label detail).'
         marksman.api.v1.SaveStrategyMetricLevelReply:
             type: object
             properties: {}

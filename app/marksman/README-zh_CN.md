@@ -48,7 +48,7 @@
 - **成员（Member，goddess）**：命名空间内成员列表/获取/选择、邀请成员、移除成员、更新状态
 - **命名空间（Namespace，goddess）**：命名空间管理（与 goddess 共用能力，需配置 namespaceConfig）
 - **验证码（Captcha，goddess）**：图形验证码获取（id、base64 图片），用于登录等无需鉴权场景
-- **数据源（Datasource）**：指标/日志/链路数据源增删改查、列表、下拉选择、按数据源的状态时序（主时序库）（Prometheus、VictoriaMetrics、Elasticsearch、Jaeger）
+- **数据源（Datasource）**：指标/日志/链路数据源增删改查、列表、下拉选择、按数据源的状态时序（主时序库）、指标元数据（label 名与各 label 取值）查询（Prometheus、VictoriaMetrics、Elasticsearch、Jaeger）
 - **策略组（Strategy group）**：增删改查、列表、选择、状态；绑定接收人（收件人组）
 - **策略（Strategy）**：增删改查、列表、状态；归属策略组；类型（METRICS/LOGS/TRACE）与驱动
 - **级别（Level）**：告警级别增删改查、列表、选择、状态（用于告警严重程度分组）
@@ -78,6 +78,8 @@
 | | `GET /v1/datasources` | 列表（keyword、page、pageSize、type、driver、status） |
 | | `GET /v1/datasources/select` | 下拉选择 |
 | | `GET /v1/datasource/{uid}/status` | 单个数据源状态时序（从主时序库查询；参数 startTime、endTime、stepSeconds；默认最近 1 小时，步长 60s） |
+| | `GET /v1/datasource/{uid}/metrics` | 指标列表（仅名称、说明、unit、type；可选 match[]、limit；默认 limit 100） |
+| | `GET /v1/datasource/{uid}/metric-label-detail` | 单个 metric 的 label 明细：labels 及各 label 的取值（查询参数 metric=名称） |
 | **Strategy**（策略组） | `POST /v1/strategy-group` | 创建策略组 |
 | | `PUT /v1/strategy-group/{uid}` | 更新策略组 |
 | | `PUT /v1/strategy-group/{uid}/status` | 更新状态（ENABLED/DISABLED） |

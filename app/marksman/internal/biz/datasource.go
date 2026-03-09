@@ -14,19 +14,22 @@ import (
 func NewDatasource(
 	datasourceRepo repository.Datasource,
 	statusQuerier repository.DatasourceStatusQuerier,
+	datasourceQuerier repository.MetricDatasourceQuerier,
 	helper *klog.Helper,
 ) *DatasourceBiz {
 	return &DatasourceBiz{
-		datasourceRepo: datasourceRepo,
-		statusQuerier:  statusQuerier,
-		helper:         klog.NewHelper(klog.With(helper.Logger(), "biz", "datasource")),
+		datasourceRepo:    datasourceRepo,
+		statusQuerier:     statusQuerier,
+		datasourceQuerier: datasourceQuerier,
+		helper:            klog.NewHelper(klog.With(helper.Logger(), "biz", "datasource")),
 	}
 }
 
 type DatasourceBiz struct {
-	helper         *klog.Helper
-	datasourceRepo repository.Datasource
-	statusQuerier  repository.DatasourceStatusQuerier
+	helper            *klog.Helper
+	datasourceRepo    repository.Datasource
+	statusQuerier     repository.DatasourceStatusQuerier
+	datasourceQuerier repository.MetricDatasourceQuerier
 }
 
 func (d *DatasourceBiz) CreateDatasource(ctx context.Context, req *bo.CreateDatasourceBo) error {
@@ -99,4 +102,28 @@ func (d *DatasourceBiz) SelectDatasource(ctx context.Context, req *bo.SelectData
 
 func (d *DatasourceBiz) GetDatasourceStatus(ctx context.Context, req *bo.GetDatasourceStatusRequest) ([]*bo.DatasourceStatusSeriesBo, error) {
 	return d.statusQuerier.QueryDatasourceStatus(ctx, req)
+}
+
+func (d *DatasourceBiz) ListMetrics(ctx context.Context, uid snowflake.ID) ([]*bo.MetricSummaryItemBo, error) {
+	ds, err := d.datasourceRepo.GetDatasource(ctx, uid)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return nil, merr.ErrorNotFound("datasource %d not found", uid.Int64())
+		}
+		d.helper.Errorw("msg", "get datasource failed", "error", err, "uid", uid)
+		return nil, merr.ErrorInternalServer("get datasource failed").WithCause(err)
+	}
+	return d.datasourceQuerier.ListMetrics(ctx, ds)
+}
+
+func (d *DatasourceBiz) GetMetricDetail(ctx context.Context, uid snowflake.ID, metric string) (*bo.MetricDetailItemBo, error) {
+	ds, err := d.datasourceRepo.GetDatasource(ctx, uid)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return nil, merr.ErrorNotFound("datasource %d not found", uid.Int64())
+		}
+		d.helper.Errorw("msg", "get datasource failed", "error", err, "uid", uid)
+		return nil, merr.ErrorInternalServer("get datasource failed").WithCause(err)
+	}
+	return d.datasourceQuerier.GetMetricDetail(ctx, ds, metric)
 }

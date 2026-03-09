@@ -26,6 +26,8 @@ const (
 	Datasource_ListDatasource_FullMethodName      = "/marksman.api.v1.Datasource/ListDatasource"
 	Datasource_SelectDatasource_FullMethodName    = "/marksman.api.v1.Datasource/SelectDatasource"
 	Datasource_GetDatasourceStatus_FullMethodName = "/marksman.api.v1.Datasource/GetDatasourceStatus"
+	Datasource_ListMetrics_FullMethodName         = "/marksman.api.v1.Datasource/ListMetrics"
+	Datasource_GetMetricDetail_FullMethodName     = "/marksman.api.v1.Datasource/GetMetricDetail"
 )
 
 // DatasourceClient is the client API for Datasource service.
@@ -40,6 +42,10 @@ type DatasourceClient interface {
 	SelectDatasource(ctx context.Context, in *SelectDatasourceRequest, opts ...grpc.CallOption) (*SelectDatasourceReply, error)
 	// GetDatasourceStatus returns recent status series (last 1h by default) from main time-series DB (Prometheus/VM).
 	GetDatasourceStatus(ctx context.Context, in *GetDatasourceStatusRequest, opts ...grpc.CallOption) (*GetDatasourceStatusReply, error)
+	// ListMetrics returns the list of metric names with basic metadata (name, description, unit, type) for a metrics datasource.
+	ListMetrics(ctx context.Context, in *ListMetricsRequest, opts ...grpc.CallOption) (*ListMetricsReply, error)
+	// GetMetricLabelDetail returns one metric's labels and each label's values (detail view for a single metric).
+	GetMetricDetail(ctx context.Context, in *GetMetricDetailRequest, opts ...grpc.CallOption) (*MetricDetailItem, error)
 }
 
 type datasourceClient struct {
@@ -120,6 +126,26 @@ func (c *datasourceClient) GetDatasourceStatus(ctx context.Context, in *GetDatas
 	return out, nil
 }
 
+func (c *datasourceClient) ListMetrics(ctx context.Context, in *ListMetricsRequest, opts ...grpc.CallOption) (*ListMetricsReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMetricsReply)
+	err := c.cc.Invoke(ctx, Datasource_ListMetrics_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *datasourceClient) GetMetricDetail(ctx context.Context, in *GetMetricDetailRequest, opts ...grpc.CallOption) (*MetricDetailItem, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MetricDetailItem)
+	err := c.cc.Invoke(ctx, Datasource_GetMetricDetail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DatasourceServer is the server API for Datasource service.
 // All implementations must embed UnimplementedDatasourceServer
 // for forward compatibility.
@@ -132,6 +158,10 @@ type DatasourceServer interface {
 	SelectDatasource(context.Context, *SelectDatasourceRequest) (*SelectDatasourceReply, error)
 	// GetDatasourceStatus returns recent status series (last 1h by default) from main time-series DB (Prometheus/VM).
 	GetDatasourceStatus(context.Context, *GetDatasourceStatusRequest) (*GetDatasourceStatusReply, error)
+	// ListMetrics returns the list of metric names with basic metadata (name, description, unit, type) for a metrics datasource.
+	ListMetrics(context.Context, *ListMetricsRequest) (*ListMetricsReply, error)
+	// GetMetricLabelDetail returns one metric's labels and each label's values (detail view for a single metric).
+	GetMetricDetail(context.Context, *GetMetricDetailRequest) (*MetricDetailItem, error)
 	mustEmbedUnimplementedDatasourceServer()
 }
 
@@ -162,6 +192,12 @@ func (UnimplementedDatasourceServer) SelectDatasource(context.Context, *SelectDa
 }
 func (UnimplementedDatasourceServer) GetDatasourceStatus(context.Context, *GetDatasourceStatusRequest) (*GetDatasourceStatusReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDatasourceStatus not implemented")
+}
+func (UnimplementedDatasourceServer) ListMetrics(context.Context, *ListMetricsRequest) (*ListMetricsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListMetrics not implemented")
+}
+func (UnimplementedDatasourceServer) GetMetricDetail(context.Context, *GetMetricDetailRequest) (*MetricDetailItem, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMetricDetail not implemented")
 }
 func (UnimplementedDatasourceServer) mustEmbedUnimplementedDatasourceServer() {}
 func (UnimplementedDatasourceServer) testEmbeddedByValue()                    {}
@@ -310,6 +346,42 @@ func _Datasource_GetDatasourceStatus_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Datasource_ListMetrics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMetricsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DatasourceServer).ListMetrics(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Datasource_ListMetrics_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DatasourceServer).ListMetrics(ctx, req.(*ListMetricsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Datasource_GetMetricDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMetricDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DatasourceServer).GetMetricDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Datasource_GetMetricDetail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DatasourceServer).GetMetricDetail(ctx, req.(*GetMetricDetailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Datasource_ServiceDesc is the grpc.ServiceDesc for Datasource service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -344,6 +416,14 @@ var Datasource_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetDatasourceStatus",
 			Handler:    _Datasource_GetDatasourceStatus_Handler,
+		},
+		{
+			MethodName: "ListMetrics",
+			Handler:    _Datasource_ListMetrics_Handler,
+		},
+		{
+			MethodName: "GetMetricDetail",
+			Handler:    _Datasource_GetMetricDetail_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

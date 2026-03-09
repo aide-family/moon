@@ -49,6 +49,18 @@ service Datasource {
 			get: "/v1/datasource/{uid}/status"
 		};
 	}
+	// ListMetrics returns the list of metric names with basic metadata (name, description, unit, type) for a metrics datasource.
+	rpc ListMetrics (ListMetricsRequest) returns (ListMetricsReply) {
+		option (google.api.http) = {
+			get: "/v1/datasource/{uid}/metrics"
+		};
+	}
+	// GetMetricLabelDetail returns one metric's labels and each label's values (detail view for a single metric).
+	rpc GetMetricDetail (GetMetricDetailRequest) returns (MetricDetailItem) {
+		option (google.api.http) = {
+			get: "/v1/datasource/{uid}/metric/{metric}"
+		};
+	}
 }
 
 message DatasourceItem {
@@ -201,4 +213,55 @@ message DatasourceStatusSeries {
 message DatasourceStatusPoint {
 	int64 timestamp = 1;  // Unix seconds
 	double value = 2;     // 1 = healthy, 0 = unhealthy
+}
+
+message ListMetricsRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+	// Optional match[] selectors to scope which metrics to return (e.g. "up", "http_requests_total").
+	repeated string match = 2 [(buf.validate.field).cel = {
+		expression: "this.size() <= 10",
+		message: "match must have at most 10 items",
+	}];
+	// Max number of metrics to return. Default 100, max 500.
+	int32 limit = 3 [(buf.validate.field).cel = {
+		expression: "this == 0 || (this >= 1 && this <= 500)",
+		message: "limit must be 0 (use default) or between 1 and 500",
+	}];
+}
+message ListMetricsReply {
+	repeated MetricSummaryItem metrics = 1;
+}
+// MetricSummaryItem: metric list item (no label detail).
+message MetricSummaryItem {
+	string name = 1;
+	string description = 2;  // help text (说明信息)
+	string unit = 3;
+	string type = 4;  // e.g. "counter", "gauge"
+}
+
+message GetMetricDetailRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+	// Metric name to query label detail for (e.g. "http_requests_total", "up").
+	string metric = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 1,
+		max_len: 512,
+	}];
+}
+
+message MetricDetailItem {
+	string name = 1;
+	string help = 2;
+	string unit = 3;
+	string type = 4;
+	repeated MetricLabelItem labels = 5;
+}
+message MetricLabelItem {
+	string name = 1;
+	repeated string values = 2;
 }

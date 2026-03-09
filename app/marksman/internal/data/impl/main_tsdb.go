@@ -16,6 +16,8 @@ import (
 	"github.com/aide-family/magicbox/plugin/datasource"
 	"github.com/aide-family/magicbox/plugin/datasource/prometheus"
 	"github.com/aide-family/magicbox/plugin/datasource/victoriametrics"
+	prometheusv1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/common/model"
 
 	"github.com/aide-family/marksman/internal/biz/bo"
 	"github.com/aide-family/marksman/internal/biz/repository"
@@ -84,31 +86,35 @@ type mainTsdbQuerier struct {
 }
 
 func (q *mainTsdbQuerier) QueryDatasourceStatus(ctx context.Context, req *bo.GetDatasourceStatusRequest) ([]*bo.DatasourceStatusSeriesBo, error) {
-	// Prometheus expects label values in double quotes; step must be in seconds (handled by client).
+	// Prometheus expects label values in double quotes; Step is already time.Duration from GetStep().
 	query := fmt.Sprintf(`%s{uid="%s",name="%s"}`, metricName, strconv.FormatInt(req.GetUID(), 10), req.GetName())
-	resp, err := q.client.QueryRange(ctx, query, time.Unix(req.GetStartTime(), 0), time.Unix(req.GetEndTime(), 0), req.GetStep())
+	queryRange := prometheusv1.Range{
+		Start: time.Unix(req.GetStartTime(), 0),
+		End:   time.Unix(req.GetEndTime(), 0),
+		Step:  req.GetStep(),
+	}
+	value, _, err := q.client.QueryRange(ctx, query, queryRange)
 	if err != nil {
 		return nil, merr.ErrorInternalServer("query main tsdb failed").WithCause(err)
 	}
-	if errStr := resp.Error(); errStr != "" {
-		return nil, merr.ErrorInternalServer("main tsdb query error: %s", errStr)
+
+	matrix, ok := value.(model.Matrix)
+	if !ok || len(matrix) == 0 {
+		return []*bo.DatasourceStatusSeriesBo{}, nil
 	}
-	if resp.Data == nil || resp.Data.Result == nil {
-		return nil, nil
-	}
-	out := make([]*bo.DatasourceStatusSeriesBo, 0, len(resp.Data.Result))
-	for _, item := range resp.Data.Result {
-		name := item.Metric.Name()
-		points := make([]bo.DatasourceStatusPointBo, 0, len(item.Values))
-		for _, v := range item.Values {
+
+	out := make([]*bo.DatasourceStatusSeriesBo, 0, len(matrix))
+	for _, stream := range matrix {
+		points := make([]bo.DatasourceStatusPointBo, 0, len(stream.Values))
+		for _, p := range stream.Values {
 			points = append(points, bo.DatasourceStatusPointBo{
-				Timestamp: int64(v.Timestamp()),
-				Value:     v.Value(),
+				Timestamp: int64(p.Timestamp) / 1000, // Prometheus model.Time is milliseconds
+				Value:     float64(p.Value),
 			})
 		}
 		out = append(out, &bo.DatasourceStatusSeriesBo{
 			UID:    req.GetUID(),
-			Name:   name,
+			Name:   req.GetName(),
 			Points: points,
 		})
 	}

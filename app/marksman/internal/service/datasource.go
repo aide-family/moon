@@ -80,3 +80,19 @@ func (s *DatasourceService) GetDatasourceStatus(ctx context.Context, req *apiv1.
 	}
 	return bo.ToAPIV1GetDatasourceStatusReply(series), nil
 }
+
+func (s *DatasourceService) ListMetrics(ctx context.Context, req *apiv1.ListMetricsRequest) (*apiv1.ListMetricsReply, error) {
+	metrics, err := s.datasourceBiz.ListMetrics(ctx, snowflake.ParseInt64(req.GetUid()))
+	if err != nil {
+		return nil, err
+	}
+	return bo.ToAPIV1ListMetricsReply(metrics), nil
+}
+
+func (s *DatasourceService) GetMetricDetail(ctx context.Context, req *apiv1.GetMetricDetailRequest) (*apiv1.MetricDetailItem, error) {
+	metric, err := s.datasourceBiz.GetMetricDetail(ctx, snowflake.ParseInt64(req.GetUid()), req.GetMetric())
+	if err != nil {
+		return nil, err
+	}
+	return bo.ToAPIV1GetMetricDetailReply(metric), nil
+}

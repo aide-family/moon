@@ -50,6 +50,38 @@ type MetadataResponseDataItem struct {
 	Type string `json:"type"`
 }
 
+// LabelNamesResponse is the response for /api/v1/labels (Prometheus-compatible).
+type LabelNamesResponse struct {
+	Status string   `json:"status"`
+	Data   []string `json:"data"`
+}
+
+func (l *LabelNamesResponse) Error() string {
+	if l != nil && l.Status == "success" {
+		return ""
+	}
+	if l != nil && l.Status != "" {
+		return fmt.Sprintf("label names response status: %s", l.Status)
+	}
+	return "label names response error"
+}
+
+// LabelValuesResponse is the response for /api/v1/label/<name>/values (Prometheus-compatible).
+type LabelValuesResponse struct {
+	Status string   `json:"status"`
+	Data   []string `json:"data"`
+}
+
+func (l *LabelValuesResponse) Error() string {
+	if l != nil && l.Status == "success" {
+		return ""
+	}
+	if l != nil && l.Status != "" {
+		return fmt.Sprintf("label values response status: %s", l.Status)
+	}
+	return "label values response error"
+}
+
 type QueryResponse struct {
 	Status string             `json:"status"`
 	Data   *QueryResponseData `json:"data"`

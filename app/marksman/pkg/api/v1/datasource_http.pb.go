@@ -23,7 +23,9 @@ const OperationDatasourceCreateDatasource = "/marksman.api.v1.Datasource/CreateD
 const OperationDatasourceDeleteDatasource = "/marksman.api.v1.Datasource/DeleteDatasource"
 const OperationDatasourceGetDatasource = "/marksman.api.v1.Datasource/GetDatasource"
 const OperationDatasourceGetDatasourceStatus = "/marksman.api.v1.Datasource/GetDatasourceStatus"
+const OperationDatasourceGetMetricDetail = "/marksman.api.v1.Datasource/GetMetricDetail"
 const OperationDatasourceListDatasource = "/marksman.api.v1.Datasource/ListDatasource"
+const OperationDatasourceListMetrics = "/marksman.api.v1.Datasource/ListMetrics"
 const OperationDatasourceSelectDatasource = "/marksman.api.v1.Datasource/SelectDatasource"
 const OperationDatasourceUpdateDatasource = "/marksman.api.v1.Datasource/UpdateDatasource"
 
@@ -33,7 +35,11 @@ type DatasourceHTTPServer interface {
 	GetDatasource(context.Context, *GetDatasourceRequest) (*DatasourceItem, error)
 	// GetDatasourceStatus GetDatasourceStatus returns recent status series (last 1h by default) from main time-series DB (Prometheus/VM).
 	GetDatasourceStatus(context.Context, *GetDatasourceStatusRequest) (*GetDatasourceStatusReply, error)
+	// GetMetricDetail GetMetricLabelDetail returns one metric's labels and each label's values (detail view for a single metric).
+	GetMetricDetail(context.Context, *GetMetricDetailRequest) (*MetricDetailItem, error)
 	ListDatasource(context.Context, *ListDatasourceRequest) (*ListDatasourceReply, error)
+	// ListMetrics ListMetrics returns the list of metric names with basic metadata (name, description, unit, type) for a metrics datasource.
+	ListMetrics(context.Context, *ListMetricsRequest) (*ListMetricsReply, error)
 	SelectDatasource(context.Context, *SelectDatasourceRequest) (*SelectDatasourceReply, error)
 	UpdateDatasource(context.Context, *UpdateDatasourceRequest) (*UpdateDatasourceReply, error)
 }
@@ -47,6 +53,8 @@ func RegisterDatasourceHTTPServer(s *http.Server, srv DatasourceHTTPServer) {
 	r.GET("/v1/datasources", _Datasource_ListDatasource0_HTTP_Handler(srv))
 	r.GET("/v1/datasources/select", _Datasource_SelectDatasource0_HTTP_Handler(srv))
 	r.GET("/v1/datasource/{uid}/status", _Datasource_GetDatasourceStatus0_HTTP_Handler(srv))
+	r.GET("/v1/datasource/{uid}/metrics", _Datasource_ListMetrics0_HTTP_Handler(srv))
+	r.GET("/v1/datasource/{uid}/metric/{metric}", _Datasource_GetMetricDetail0_HTTP_Handler(srv))
 }
 
 func _Datasource_CreateDatasource0_HTTP_Handler(srv DatasourceHTTPServer) func(ctx http.Context) error {
@@ -200,13 +208,61 @@ func _Datasource_GetDatasourceStatus0_HTTP_Handler(srv DatasourceHTTPServer) fun
 	}
 }
 
+func _Datasource_ListMetrics0_HTTP_Handler(srv DatasourceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListMetricsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDatasourceListMetrics)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListMetrics(ctx, req.(*ListMetricsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListMetricsReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Datasource_GetMetricDetail0_HTTP_Handler(srv DatasourceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetMetricDetailRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDatasourceGetMetricDetail)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetMetricDetail(ctx, req.(*GetMetricDetailRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*MetricDetailItem)
+		return ctx.Result(200, reply)
+	}
+}
+
 type DatasourceHTTPClient interface {
 	CreateDatasource(ctx context.Context, req *CreateDatasourceRequest, opts ...http.CallOption) (rsp *CreateDatasourceReply, err error)
 	DeleteDatasource(ctx context.Context, req *DeleteDatasourceRequest, opts ...http.CallOption) (rsp *DeleteDatasourceReply, err error)
 	GetDatasource(ctx context.Context, req *GetDatasourceRequest, opts ...http.CallOption) (rsp *DatasourceItem, err error)
 	// GetDatasourceStatus GetDatasourceStatus returns recent status series (last 1h by default) from main time-series DB (Prometheus/VM).
 	GetDatasourceStatus(ctx context.Context, req *GetDatasourceStatusRequest, opts ...http.CallOption) (rsp *GetDatasourceStatusReply, err error)
+	// GetMetricDetail GetMetricLabelDetail returns one metric's labels and each label's values (detail view for a single metric).
+	GetMetricDetail(ctx context.Context, req *GetMetricDetailRequest, opts ...http.CallOption) (rsp *MetricDetailItem, err error)
 	ListDatasource(ctx context.Context, req *ListDatasourceRequest, opts ...http.CallOption) (rsp *ListDatasourceReply, err error)
+	// ListMetrics ListMetrics returns the list of metric names with basic metadata (name, description, unit, type) for a metrics datasource.
+	ListMetrics(ctx context.Context, req *ListMetricsRequest, opts ...http.CallOption) (rsp *ListMetricsReply, err error)
 	SelectDatasource(ctx context.Context, req *SelectDatasourceRequest, opts ...http.CallOption) (rsp *SelectDatasourceReply, err error)
 	UpdateDatasource(ctx context.Context, req *UpdateDatasourceRequest, opts ...http.CallOption) (rsp *UpdateDatasourceReply, err error)
 }
@@ -272,11 +328,39 @@ func (c *DatasourceHTTPClientImpl) GetDatasourceStatus(ctx context.Context, in *
 	return &out, nil
 }
 
+// GetMetricDetail GetMetricLabelDetail returns one metric's labels and each label's values (detail view for a single metric).
+func (c *DatasourceHTTPClientImpl) GetMetricDetail(ctx context.Context, in *GetMetricDetailRequest, opts ...http.CallOption) (*MetricDetailItem, error) {
+	var out MetricDetailItem
+	pattern := "/v1/datasource/{uid}/metric/{metric}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationDatasourceGetMetricDetail))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *DatasourceHTTPClientImpl) ListDatasource(ctx context.Context, in *ListDatasourceRequest, opts ...http.CallOption) (*ListDatasourceReply, error) {
 	var out ListDatasourceReply
 	pattern := "/v1/datasources"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationDatasourceListDatasource))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListMetrics ListMetrics returns the list of metric names with basic metadata (name, description, unit, type) for a metrics datasource.
+func (c *DatasourceHTTPClientImpl) ListMetrics(ctx context.Context, in *ListMetricsRequest, opts ...http.CallOption) (*ListMetricsReply, error) {
+	var out ListMetricsReply
+	pattern := "/v1/datasource/{uid}/metrics"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationDatasourceListMetrics))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

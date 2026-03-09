@@ -1143,6 +1143,362 @@ func (x *DatasourceStatusPoint) GetValue() float64 {
 	return 0
 }
 
+type ListMetricsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Uid   int64                  `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// Optional match[] selectors to scope which metrics to return (e.g. "up", "http_requests_total").
+	Match []string `protobuf:"bytes,2,rep,name=match,proto3" json:"match,omitempty"`
+	// Max number of metrics to return. Default 100, max 500.
+	Limit         int32 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMetricsRequest) Reset() {
+	*x = ListMetricsRequest{}
+	mi := &file_marksman_api_v1_datasource_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMetricsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMetricsRequest) ProtoMessage() {}
+
+func (x *ListMetricsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_marksman_api_v1_datasource_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMetricsRequest.ProtoReflect.Descriptor instead.
+func (*ListMetricsRequest) Descriptor() ([]byte, []int) {
+	return file_marksman_api_v1_datasource_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *ListMetricsRequest) GetUid() int64 {
+	if x != nil {
+		return x.Uid
+	}
+	return 0
+}
+
+func (x *ListMetricsRequest) GetMatch() []string {
+	if x != nil {
+		return x.Match
+	}
+	return nil
+}
+
+func (x *ListMetricsRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type ListMetricsReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Metrics       []*MetricSummaryItem   `protobuf:"bytes,1,rep,name=metrics,proto3" json:"metrics,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMetricsReply) Reset() {
+	*x = ListMetricsReply{}
+	mi := &file_marksman_api_v1_datasource_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMetricsReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMetricsReply) ProtoMessage() {}
+
+func (x *ListMetricsReply) ProtoReflect() protoreflect.Message {
+	mi := &file_marksman_api_v1_datasource_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMetricsReply.ProtoReflect.Descriptor instead.
+func (*ListMetricsReply) Descriptor() ([]byte, []int) {
+	return file_marksman_api_v1_datasource_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *ListMetricsReply) GetMetrics() []*MetricSummaryItem {
+	if x != nil {
+		return x.Metrics
+	}
+	return nil
+}
+
+// MetricSummaryItem: metric list item (no label detail).
+type MetricSummaryItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"` // help text (说明信息)
+	Unit          string                 `protobuf:"bytes,3,opt,name=unit,proto3" json:"unit,omitempty"`
+	Type          string                 `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"` // e.g. "counter", "gauge"
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MetricSummaryItem) Reset() {
+	*x = MetricSummaryItem{}
+	mi := &file_marksman_api_v1_datasource_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MetricSummaryItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MetricSummaryItem) ProtoMessage() {}
+
+func (x *MetricSummaryItem) ProtoReflect() protoreflect.Message {
+	mi := &file_marksman_api_v1_datasource_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MetricSummaryItem.ProtoReflect.Descriptor instead.
+func (*MetricSummaryItem) Descriptor() ([]byte, []int) {
+	return file_marksman_api_v1_datasource_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *MetricSummaryItem) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *MetricSummaryItem) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *MetricSummaryItem) GetUnit() string {
+	if x != nil {
+		return x.Unit
+	}
+	return ""
+}
+
+func (x *MetricSummaryItem) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+type GetMetricDetailRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Uid   int64                  `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// Metric name to query label detail for (e.g. "http_requests_total", "up").
+	Metric        string `protobuf:"bytes,2,opt,name=metric,proto3" json:"metric,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMetricDetailRequest) Reset() {
+	*x = GetMetricDetailRequest{}
+	mi := &file_marksman_api_v1_datasource_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMetricDetailRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMetricDetailRequest) ProtoMessage() {}
+
+func (x *GetMetricDetailRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_marksman_api_v1_datasource_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMetricDetailRequest.ProtoReflect.Descriptor instead.
+func (*GetMetricDetailRequest) Descriptor() ([]byte, []int) {
+	return file_marksman_api_v1_datasource_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GetMetricDetailRequest) GetUid() int64 {
+	if x != nil {
+		return x.Uid
+	}
+	return 0
+}
+
+func (x *GetMetricDetailRequest) GetMetric() string {
+	if x != nil {
+		return x.Metric
+	}
+	return ""
+}
+
+type MetricDetailItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Help          string                 `protobuf:"bytes,2,opt,name=help,proto3" json:"help,omitempty"`
+	Unit          string                 `protobuf:"bytes,3,opt,name=unit,proto3" json:"unit,omitempty"`
+	Type          string                 `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`
+	Labels        []*MetricLabelItem     `protobuf:"bytes,5,rep,name=labels,proto3" json:"labels,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MetricDetailItem) Reset() {
+	*x = MetricDetailItem{}
+	mi := &file_marksman_api_v1_datasource_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MetricDetailItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MetricDetailItem) ProtoMessage() {}
+
+func (x *MetricDetailItem) ProtoReflect() protoreflect.Message {
+	mi := &file_marksman_api_v1_datasource_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MetricDetailItem.ProtoReflect.Descriptor instead.
+func (*MetricDetailItem) Descriptor() ([]byte, []int) {
+	return file_marksman_api_v1_datasource_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *MetricDetailItem) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *MetricDetailItem) GetHelp() string {
+	if x != nil {
+		return x.Help
+	}
+	return ""
+}
+
+func (x *MetricDetailItem) GetUnit() string {
+	if x != nil {
+		return x.Unit
+	}
+	return ""
+}
+
+func (x *MetricDetailItem) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *MetricDetailItem) GetLabels() []*MetricLabelItem {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+type MetricLabelItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Values        []string               `protobuf:"bytes,2,rep,name=values,proto3" json:"values,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MetricLabelItem) Reset() {
+	*x = MetricLabelItem{}
+	mi := &file_marksman_api_v1_datasource_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MetricLabelItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MetricLabelItem) ProtoMessage() {}
+
+func (x *MetricLabelItem) ProtoReflect() protoreflect.Message {
+	mi := &file_marksman_api_v1_datasource_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MetricLabelItem.ProtoReflect.Descriptor instead.
+func (*MetricLabelItem) Descriptor() ([]byte, []int) {
+	return file_marksman_api_v1_datasource_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *MetricLabelItem) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *MetricLabelItem) GetValues() []string {
+	if x != nil {
+		return x.Values
+	}
+	return nil
+}
+
 var File_marksman_api_v1_datasource_proto protoreflect.FileDescriptor
 
 var file_marksman_api_v1_datasource_proto_rawDesc = []byte{
@@ -1438,7 +1794,60 @@ var file_marksman_api_v1_datasource_proto_rawDesc = []byte{
 	0x75, 0x73, 0x50, 0x6f, 0x69, 0x6e, 0x74, 0x12, 0x1c, 0x0a, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73,
 	0x74, 0x61, 0x6d, 0x70, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x09, 0x74, 0x69, 0x6d, 0x65,
 	0x73, 0x74, 0x61, 0x6d, 0x70, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x01, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x32, 0xa6, 0x07, 0x0a, 0x0a,
+	0x20, 0x01, 0x28, 0x01, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0xa5, 0x02, 0x0a, 0x12,
+	0x4c, 0x69, 0x73, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x41, 0x0a, 0x03, 0x75, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x42,
+	0x2f, 0xba, 0x48, 0x2c, 0xba, 0x01, 0x26, 0x12, 0x1a, 0x75, 0x69, 0x64, 0x20, 0x6d, 0x75, 0x73,
+	0x74, 0x20, 0x62, 0x65, 0x20, 0x67, 0x72, 0x65, 0x61, 0x74, 0x65, 0x72, 0x20, 0x74, 0x68, 0x61,
+	0x6e, 0x20, 0x30, 0x1a, 0x08, 0x74, 0x68, 0x69, 0x73, 0x20, 0x3e, 0x20, 0x30, 0xc8, 0x01, 0x01,
+	0x52, 0x03, 0x75, 0x69, 0x64, 0x12, 0x51, 0x0a, 0x05, 0x6d, 0x61, 0x74, 0x63, 0x68, 0x18, 0x02,
+	0x20, 0x03, 0x28, 0x09, 0x42, 0x3b, 0xba, 0x48, 0x38, 0xba, 0x01, 0x35, 0x12, 0x20, 0x6d, 0x61,
+	0x74, 0x63, 0x68, 0x20, 0x6d, 0x75, 0x73, 0x74, 0x20, 0x68, 0x61, 0x76, 0x65, 0x20, 0x61, 0x74,
+	0x20, 0x6d, 0x6f, 0x73, 0x74, 0x20, 0x31, 0x30, 0x20, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x1a, 0x11,
+	0x74, 0x68, 0x69, 0x73, 0x2e, 0x73, 0x69, 0x7a, 0x65, 0x28, 0x29, 0x20, 0x3c, 0x3d, 0x20, 0x31,
+	0x30, 0x52, 0x05, 0x6d, 0x61, 0x74, 0x63, 0x68, 0x12, 0x79, 0x0a, 0x05, 0x6c, 0x69, 0x6d, 0x69,
+	0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x42, 0x63, 0xba, 0x48, 0x60, 0xba, 0x01, 0x5d, 0x12,
+	0x32, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x20, 0x6d, 0x75, 0x73, 0x74, 0x20, 0x62, 0x65, 0x20, 0x30,
+	0x20, 0x28, 0x75, 0x73, 0x65, 0x20, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x29, 0x20, 0x6f,
+	0x72, 0x20, 0x62, 0x65, 0x74, 0x77, 0x65, 0x65, 0x6e, 0x20, 0x31, 0x20, 0x61, 0x6e, 0x64, 0x20,
+	0x35, 0x30, 0x30, 0x1a, 0x27, 0x74, 0x68, 0x69, 0x73, 0x20, 0x3d, 0x3d, 0x20, 0x30, 0x20, 0x7c,
+	0x7c, 0x20, 0x28, 0x74, 0x68, 0x69, 0x73, 0x20, 0x3e, 0x3d, 0x20, 0x31, 0x20, 0x26, 0x26, 0x20,
+	0x74, 0x68, 0x69, 0x73, 0x20, 0x3c, 0x3d, 0x20, 0x35, 0x30, 0x30, 0x29, 0x52, 0x05, 0x6c, 0x69,
+	0x6d, 0x69, 0x74, 0x22, 0x50, 0x0a, 0x10, 0x4c, 0x69, 0x73, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69,
+	0x63, 0x73, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x3c, 0x0a, 0x07, 0x6d, 0x65, 0x74, 0x72, 0x69,
+	0x63, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x6d, 0x61, 0x72, 0x6b, 0x73,
+	0x6d, 0x61, 0x6e, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69,
+	0x63, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x07, 0x6d, 0x65,
+	0x74, 0x72, 0x69, 0x63, 0x73, 0x22, 0x71, 0x0a, 0x11, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x53,
+	0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61,
+	0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x20,
+	0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e,
+	0x12, 0x12, 0x0a, 0x04, 0x75, 0x6e, 0x69, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04,
+	0x75, 0x6e, 0x69, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x04, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22, 0x82, 0x01, 0x0a, 0x16, 0x47, 0x65, 0x74,
+	0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x12, 0x41, 0x0a, 0x03, 0x75, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03,
+	0x42, 0x2f, 0xba, 0x48, 0x2c, 0xba, 0x01, 0x26, 0x12, 0x1a, 0x75, 0x69, 0x64, 0x20, 0x6d, 0x75,
+	0x73, 0x74, 0x20, 0x62, 0x65, 0x20, 0x67, 0x72, 0x65, 0x61, 0x74, 0x65, 0x72, 0x20, 0x74, 0x68,
+	0x61, 0x6e, 0x20, 0x30, 0x1a, 0x08, 0x74, 0x68, 0x69, 0x73, 0x20, 0x3e, 0x20, 0x30, 0xc8, 0x01,
+	0x01, 0x52, 0x03, 0x75, 0x69, 0x64, 0x12, 0x25, 0x0a, 0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x0d, 0xba, 0x48, 0x0a, 0xc8, 0x01, 0x01, 0x72, 0x05,
+	0x10, 0x01, 0x18, 0x80, 0x04, 0x52, 0x06, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x22, 0x9c, 0x01,
+	0x0a, 0x10, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x49, 0x74,
+	0x65, 0x6d, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x68, 0x65, 0x6c, 0x70, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x68, 0x65, 0x6c, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x75, 0x6e,
+	0x69, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x75, 0x6e, 0x69, 0x74, 0x12, 0x12,
+	0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79,
+	0x70, 0x65, 0x12, 0x38, 0x0a, 0x06, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x18, 0x05, 0x20, 0x03,
+	0x28, 0x0b, 0x32, 0x20, 0x2e, 0x6d, 0x61, 0x72, 0x6b, 0x73, 0x6d, 0x61, 0x6e, 0x2e, 0x61, 0x70,
+	0x69, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x4c, 0x61, 0x62, 0x65, 0x6c,
+	0x49, 0x74, 0x65, 0x6d, 0x52, 0x06, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x22, 0x3d, 0x0a, 0x0f,
+	0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x49, 0x74, 0x65, 0x6d, 0x12,
+	0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e,
+	0x61, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x18, 0x02, 0x20,
+	0x03, 0x28, 0x09, 0x52, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x32, 0xb1, 0x09, 0x0a, 0x0a,
 	0x44, 0x61, 0x74, 0x61, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x12, 0x7f, 0x0a, 0x10, 0x43, 0x72,
 	0x65, 0x61, 0x74, 0x65, 0x44, 0x61, 0x74, 0x61, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x12, 0x28,
 	0x2e, 0x6d, 0x61, 0x72, 0x6b, 0x73, 0x6d, 0x61, 0x6e, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x76, 0x31,
@@ -1497,11 +1906,28 @@ var file_marksman_api_v1_datasource_proto_rawDesc = []byte{
 	0x75, 0x72, 0x63, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22,
 	0x23, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1d, 0x12, 0x1b, 0x2f, 0x76, 0x31, 0x2f, 0x64, 0x61, 0x74,
 	0x61, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x2f, 0x7b, 0x75, 0x69, 0x64, 0x7d, 0x2f, 0x73, 0x74,
-	0x61, 0x74, 0x75, 0x73, 0x42, 0x42, 0x0a, 0x0f, 0x6d, 0x61, 0x72, 0x6b, 0x73, 0x6d, 0x61, 0x6e,
-	0x2e, 0x61, 0x70, 0x69, 0x2e, 0x76, 0x31, 0x50, 0x01, 0x5a, 0x2d, 0x67, 0x69, 0x74, 0x68, 0x75,
-	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x69, 0x64, 0x65, 0x2d, 0x66, 0x61, 0x6d, 0x69, 0x6c,
-	0x79, 0x2f, 0x6d, 0x61, 0x72, 0x6b, 0x73, 0x6d, 0x61, 0x6e, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x61,
-	0x70, 0x69, 0x2f, 0x76, 0x31, 0x3b, 0x76, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x61, 0x74, 0x75, 0x73, 0x12, 0x7b, 0x0a, 0x0b, 0x4c, 0x69, 0x73, 0x74, 0x4d, 0x65, 0x74, 0x72,
+	0x69, 0x63, 0x73, 0x12, 0x23, 0x2e, 0x6d, 0x61, 0x72, 0x6b, 0x73, 0x6d, 0x61, 0x6e, 0x2e, 0x61,
+	0x70, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63,
+	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x6d, 0x61, 0x72, 0x6b, 0x73,
+	0x6d, 0x61, 0x6e, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x4d,
+	0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x24, 0x82, 0xd3, 0xe4,
+	0x93, 0x02, 0x1e, 0x12, 0x1c, 0x2f, 0x76, 0x31, 0x2f, 0x64, 0x61, 0x74, 0x61, 0x73, 0x6f, 0x75,
+	0x72, 0x63, 0x65, 0x2f, 0x7b, 0x75, 0x69, 0x64, 0x7d, 0x2f, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63,
+	0x73, 0x12, 0x8b, 0x01, 0x0a, 0x0f, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x44,
+	0x65, 0x74, 0x61, 0x69, 0x6c, 0x12, 0x27, 0x2e, 0x6d, 0x61, 0x72, 0x6b, 0x73, 0x6d, 0x61, 0x6e,
+	0x2e, 0x61, 0x70, 0x69, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x74, 0x72, 0x69,
+	0x63, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21,
+	0x2e, 0x6d, 0x61, 0x72, 0x6b, 0x73, 0x6d, 0x61, 0x6e, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x76, 0x31,
+	0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x49, 0x74, 0x65,
+	0x6d, 0x22, 0x2c, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x26, 0x12, 0x24, 0x2f, 0x76, 0x31, 0x2f, 0x64,
+	0x61, 0x74, 0x61, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x2f, 0x7b, 0x75, 0x69, 0x64, 0x7d, 0x2f,
+	0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x2f, 0x7b, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x7d, 0x42,
+	0x42, 0x0a, 0x0f, 0x6d, 0x61, 0x72, 0x6b, 0x73, 0x6d, 0x61, 0x6e, 0x2e, 0x61, 0x70, 0x69, 0x2e,
+	0x76, 0x31, 0x50, 0x01, 0x5a, 0x2d, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x2f, 0x61, 0x69, 0x64, 0x65, 0x2d, 0x66, 0x61, 0x6d, 0x69, 0x6c, 0x79, 0x2f, 0x6d, 0x61, 0x72,
+	0x6b, 0x73, 0x6d, 0x61, 0x6e, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x31,
+	0x3b, 0x76, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1516,7 +1942,7 @@ func file_marksman_api_v1_datasource_proto_rawDescGZIP() []byte {
 	return file_marksman_api_v1_datasource_proto_rawDescData
 }
 
-var file_marksman_api_v1_datasource_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_marksman_api_v1_datasource_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_marksman_api_v1_datasource_proto_goTypes = []any{
 	(*DatasourceItem)(nil),             // 0: marksman.api.v1.DatasourceItem
 	(*CreateDatasourceRequest)(nil),    // 1: marksman.api.v1.CreateDatasourceRequest
@@ -1535,55 +1961,67 @@ var file_marksman_api_v1_datasource_proto_goTypes = []any{
 	(*GetDatasourceStatusReply)(nil),   // 14: marksman.api.v1.GetDatasourceStatusReply
 	(*DatasourceStatusSeries)(nil),     // 15: marksman.api.v1.DatasourceStatusSeries
 	(*DatasourceStatusPoint)(nil),      // 16: marksman.api.v1.DatasourceStatusPoint
-	nil,                                // 17: marksman.api.v1.DatasourceItem.MetadataEntry
-	nil,                                // 18: marksman.api.v1.CreateDatasourceRequest.MetadataEntry
-	nil,                                // 19: marksman.api.v1.UpdateDatasourceRequest.MetadataEntry
-	(enum.DatasourceType)(0),           // 20: magicbox.enum.DatasourceType
-	(enum.DatasourceDriver)(0),         // 21: magicbox.enum.DatasourceDriver
-	(enum.GlobalStatus)(0),             // 22: magicbox.enum.GlobalStatus
+	(*ListMetricsRequest)(nil),         // 17: marksman.api.v1.ListMetricsRequest
+	(*ListMetricsReply)(nil),           // 18: marksman.api.v1.ListMetricsReply
+	(*MetricSummaryItem)(nil),          // 19: marksman.api.v1.MetricSummaryItem
+	(*GetMetricDetailRequest)(nil),     // 20: marksman.api.v1.GetMetricDetailRequest
+	(*MetricDetailItem)(nil),           // 21: marksman.api.v1.MetricDetailItem
+	(*MetricLabelItem)(nil),            // 22: marksman.api.v1.MetricLabelItem
+	nil,                                // 23: marksman.api.v1.DatasourceItem.MetadataEntry
+	nil,                                // 24: marksman.api.v1.CreateDatasourceRequest.MetadataEntry
+	nil,                                // 25: marksman.api.v1.UpdateDatasourceRequest.MetadataEntry
+	(enum.DatasourceType)(0),           // 26: magicbox.enum.DatasourceType
+	(enum.DatasourceDriver)(0),         // 27: magicbox.enum.DatasourceDriver
+	(enum.GlobalStatus)(0),             // 28: magicbox.enum.GlobalStatus
 }
 var file_marksman_api_v1_datasource_proto_depIdxs = []int32{
-	20, // 0: marksman.api.v1.DatasourceItem.type:type_name -> magicbox.enum.DatasourceType
-	21, // 1: marksman.api.v1.DatasourceItem.driver:type_name -> magicbox.enum.DatasourceDriver
-	17, // 2: marksman.api.v1.DatasourceItem.metadata:type_name -> marksman.api.v1.DatasourceItem.MetadataEntry
-	22, // 3: marksman.api.v1.DatasourceItem.status:type_name -> magicbox.enum.GlobalStatus
-	20, // 4: marksman.api.v1.CreateDatasourceRequest.type:type_name -> magicbox.enum.DatasourceType
-	21, // 5: marksman.api.v1.CreateDatasourceRequest.driver:type_name -> magicbox.enum.DatasourceDriver
-	18, // 6: marksman.api.v1.CreateDatasourceRequest.metadata:type_name -> marksman.api.v1.CreateDatasourceRequest.MetadataEntry
-	20, // 7: marksman.api.v1.UpdateDatasourceRequest.type:type_name -> magicbox.enum.DatasourceType
-	21, // 8: marksman.api.v1.UpdateDatasourceRequest.driver:type_name -> magicbox.enum.DatasourceDriver
-	19, // 9: marksman.api.v1.UpdateDatasourceRequest.metadata:type_name -> marksman.api.v1.UpdateDatasourceRequest.MetadataEntry
-	20, // 10: marksman.api.v1.ListDatasourceRequest.type:type_name -> magicbox.enum.DatasourceType
-	21, // 11: marksman.api.v1.ListDatasourceRequest.driver:type_name -> magicbox.enum.DatasourceDriver
-	22, // 12: marksman.api.v1.ListDatasourceRequest.status:type_name -> magicbox.enum.GlobalStatus
+	26, // 0: marksman.api.v1.DatasourceItem.type:type_name -> magicbox.enum.DatasourceType
+	27, // 1: marksman.api.v1.DatasourceItem.driver:type_name -> magicbox.enum.DatasourceDriver
+	23, // 2: marksman.api.v1.DatasourceItem.metadata:type_name -> marksman.api.v1.DatasourceItem.MetadataEntry
+	28, // 3: marksman.api.v1.DatasourceItem.status:type_name -> magicbox.enum.GlobalStatus
+	26, // 4: marksman.api.v1.CreateDatasourceRequest.type:type_name -> magicbox.enum.DatasourceType
+	27, // 5: marksman.api.v1.CreateDatasourceRequest.driver:type_name -> magicbox.enum.DatasourceDriver
+	24, // 6: marksman.api.v1.CreateDatasourceRequest.metadata:type_name -> marksman.api.v1.CreateDatasourceRequest.MetadataEntry
+	26, // 7: marksman.api.v1.UpdateDatasourceRequest.type:type_name -> magicbox.enum.DatasourceType
+	27, // 8: marksman.api.v1.UpdateDatasourceRequest.driver:type_name -> magicbox.enum.DatasourceDriver
+	25, // 9: marksman.api.v1.UpdateDatasourceRequest.metadata:type_name -> marksman.api.v1.UpdateDatasourceRequest.MetadataEntry
+	26, // 10: marksman.api.v1.ListDatasourceRequest.type:type_name -> magicbox.enum.DatasourceType
+	27, // 11: marksman.api.v1.ListDatasourceRequest.driver:type_name -> magicbox.enum.DatasourceDriver
+	28, // 12: marksman.api.v1.ListDatasourceRequest.status:type_name -> magicbox.enum.GlobalStatus
 	0,  // 13: marksman.api.v1.ListDatasourceReply.items:type_name -> marksman.api.v1.DatasourceItem
-	20, // 14: marksman.api.v1.SelectDatasourceRequest.type:type_name -> magicbox.enum.DatasourceType
-	21, // 15: marksman.api.v1.SelectDatasourceRequest.driver:type_name -> magicbox.enum.DatasourceDriver
-	22, // 16: marksman.api.v1.SelectDatasourceRequest.status:type_name -> magicbox.enum.GlobalStatus
-	20, // 17: marksman.api.v1.SelectDatasourceItem.type:type_name -> magicbox.enum.DatasourceType
-	21, // 18: marksman.api.v1.SelectDatasourceItem.driver:type_name -> magicbox.enum.DatasourceDriver
+	26, // 14: marksman.api.v1.SelectDatasourceRequest.type:type_name -> magicbox.enum.DatasourceType
+	27, // 15: marksman.api.v1.SelectDatasourceRequest.driver:type_name -> magicbox.enum.DatasourceDriver
+	28, // 16: marksman.api.v1.SelectDatasourceRequest.status:type_name -> magicbox.enum.GlobalStatus
+	26, // 17: marksman.api.v1.SelectDatasourceItem.type:type_name -> magicbox.enum.DatasourceType
+	27, // 18: marksman.api.v1.SelectDatasourceItem.driver:type_name -> magicbox.enum.DatasourceDriver
 	11, // 19: marksman.api.v1.SelectDatasourceReply.items:type_name -> marksman.api.v1.SelectDatasourceItem
 	15, // 20: marksman.api.v1.GetDatasourceStatusReply.series:type_name -> marksman.api.v1.DatasourceStatusSeries
 	16, // 21: marksman.api.v1.DatasourceStatusSeries.points:type_name -> marksman.api.v1.DatasourceStatusPoint
-	1,  // 22: marksman.api.v1.Datasource.CreateDatasource:input_type -> marksman.api.v1.CreateDatasourceRequest
-	3,  // 23: marksman.api.v1.Datasource.UpdateDatasource:input_type -> marksman.api.v1.UpdateDatasourceRequest
-	5,  // 24: marksman.api.v1.Datasource.DeleteDatasource:input_type -> marksman.api.v1.DeleteDatasourceRequest
-	7,  // 25: marksman.api.v1.Datasource.GetDatasource:input_type -> marksman.api.v1.GetDatasourceRequest
-	8,  // 26: marksman.api.v1.Datasource.ListDatasource:input_type -> marksman.api.v1.ListDatasourceRequest
-	10, // 27: marksman.api.v1.Datasource.SelectDatasource:input_type -> marksman.api.v1.SelectDatasourceRequest
-	13, // 28: marksman.api.v1.Datasource.GetDatasourceStatus:input_type -> marksman.api.v1.GetDatasourceStatusRequest
-	2,  // 29: marksman.api.v1.Datasource.CreateDatasource:output_type -> marksman.api.v1.CreateDatasourceReply
-	4,  // 30: marksman.api.v1.Datasource.UpdateDatasource:output_type -> marksman.api.v1.UpdateDatasourceReply
-	6,  // 31: marksman.api.v1.Datasource.DeleteDatasource:output_type -> marksman.api.v1.DeleteDatasourceReply
-	0,  // 32: marksman.api.v1.Datasource.GetDatasource:output_type -> marksman.api.v1.DatasourceItem
-	9,  // 33: marksman.api.v1.Datasource.ListDatasource:output_type -> marksman.api.v1.ListDatasourceReply
-	12, // 34: marksman.api.v1.Datasource.SelectDatasource:output_type -> marksman.api.v1.SelectDatasourceReply
-	14, // 35: marksman.api.v1.Datasource.GetDatasourceStatus:output_type -> marksman.api.v1.GetDatasourceStatusReply
-	29, // [29:36] is the sub-list for method output_type
-	22, // [22:29] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	19, // 22: marksman.api.v1.ListMetricsReply.metrics:type_name -> marksman.api.v1.MetricSummaryItem
+	22, // 23: marksman.api.v1.MetricDetailItem.labels:type_name -> marksman.api.v1.MetricLabelItem
+	1,  // 24: marksman.api.v1.Datasource.CreateDatasource:input_type -> marksman.api.v1.CreateDatasourceRequest
+	3,  // 25: marksman.api.v1.Datasource.UpdateDatasource:input_type -> marksman.api.v1.UpdateDatasourceRequest
+	5,  // 26: marksman.api.v1.Datasource.DeleteDatasource:input_type -> marksman.api.v1.DeleteDatasourceRequest
+	7,  // 27: marksman.api.v1.Datasource.GetDatasource:input_type -> marksman.api.v1.GetDatasourceRequest
+	8,  // 28: marksman.api.v1.Datasource.ListDatasource:input_type -> marksman.api.v1.ListDatasourceRequest
+	10, // 29: marksman.api.v1.Datasource.SelectDatasource:input_type -> marksman.api.v1.SelectDatasourceRequest
+	13, // 30: marksman.api.v1.Datasource.GetDatasourceStatus:input_type -> marksman.api.v1.GetDatasourceStatusRequest
+	17, // 31: marksman.api.v1.Datasource.ListMetrics:input_type -> marksman.api.v1.ListMetricsRequest
+	20, // 32: marksman.api.v1.Datasource.GetMetricDetail:input_type -> marksman.api.v1.GetMetricDetailRequest
+	2,  // 33: marksman.api.v1.Datasource.CreateDatasource:output_type -> marksman.api.v1.CreateDatasourceReply
+	4,  // 34: marksman.api.v1.Datasource.UpdateDatasource:output_type -> marksman.api.v1.UpdateDatasourceReply
+	6,  // 35: marksman.api.v1.Datasource.DeleteDatasource:output_type -> marksman.api.v1.DeleteDatasourceReply
+	0,  // 36: marksman.api.v1.Datasource.GetDatasource:output_type -> marksman.api.v1.DatasourceItem
+	9,  // 37: marksman.api.v1.Datasource.ListDatasource:output_type -> marksman.api.v1.ListDatasourceReply
+	12, // 38: marksman.api.v1.Datasource.SelectDatasource:output_type -> marksman.api.v1.SelectDatasourceReply
+	14, // 39: marksman.api.v1.Datasource.GetDatasourceStatus:output_type -> marksman.api.v1.GetDatasourceStatusReply
+	18, // 40: marksman.api.v1.Datasource.ListMetrics:output_type -> marksman.api.v1.ListMetricsReply
+	21, // 41: marksman.api.v1.Datasource.GetMetricDetail:output_type -> marksman.api.v1.MetricDetailItem
+	33, // [33:42] is the sub-list for method output_type
+	24, // [24:33] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_marksman_api_v1_datasource_proto_init() }
@@ -1597,7 +2035,7 @@ func file_marksman_api_v1_datasource_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_marksman_api_v1_datasource_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
