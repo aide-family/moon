@@ -47,3 +47,4 @@ deploy/*/data
 bin/
 
 .data/
+prometheus/

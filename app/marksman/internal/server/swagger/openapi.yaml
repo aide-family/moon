@@ -119,19 +119,6 @@ paths:
                   required: true
                   schema:
                     type: string
-                - name: match
-                  in: query
-                  description: Optional match[] selectors to scope which metrics to return (e.g. "up", "http_requests_total").
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: limit
-                  in: query
-                  description: Max number of metrics to return. Default 100, max 500.
-                  schema:
-                    type: integer
-                    format: int32
             responses:
                 "200":
                     description: OK

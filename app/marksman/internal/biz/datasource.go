@@ -2,34 +2,39 @@ package biz
 
 import (
 	"context"
+	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/aide-family/magicbox/merr"
 	"github.com/bwmarrin/snowflake"
 	klog "github.com/go-kratos/kratos/v2/log"
+	prometheusv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 
 	"github.com/aide-family/marksman/internal/biz/bo"
 	"github.com/aide-family/marksman/internal/biz/repository"
 )
 
+const (
+	metricName = "marksman_datasource_status"
+)
+
 func NewDatasource(
 	datasourceRepo repository.Datasource,
-	statusQuerier repository.DatasourceStatusQuerier,
-	datasourceQuerier repository.MetricDatasourceQuerier,
+	metricDatasourceQuerier repository.MetricDatasourceQuerier,
 	helper *klog.Helper,
 ) *DatasourceBiz {
 	return &DatasourceBiz{
-		datasourceRepo:    datasourceRepo,
-		statusQuerier:     statusQuerier,
-		datasourceQuerier: datasourceQuerier,
-		helper:            klog.NewHelper(klog.With(helper.Logger(), "biz", "datasource")),
+		datasourceRepo:          datasourceRepo,
+		metricDatasourceQuerier: metricDatasourceQuerier,
+		helper:                  klog.NewHelper(klog.With(helper.Logger(), "biz", "datasource")),
 	}
 }
 
 type DatasourceBiz struct {
-	helper            *klog.Helper
-	datasourceRepo    repository.Datasource
-	statusQuerier     repository.DatasourceStatusQuerier
-	datasourceQuerier repository.MetricDatasourceQuerier
+	helper                  *klog.Helper
+	datasourceRepo          repository.Datasource
+	metricDatasourceQuerier repository.MetricDatasourceQuerier
 }
 
 func (d *DatasourceBiz) CreateDatasource(ctx context.Context, req *bo.CreateDatasourceBo) error {
@@ -101,7 +106,41 @@ func (d *DatasourceBiz) SelectDatasource(ctx context.Context, req *bo.SelectData
 }
 
 func (d *DatasourceBiz) GetDatasourceStatus(ctx context.Context, req *bo.GetDatasourceStatusRequest) ([]*bo.DatasourceStatusSeriesBo, error) {
-	return d.statusQuerier.QueryDatasourceStatus(ctx, req)
+	ds, err := d.datasourceRepo.GetDatasource(ctx, req.UID)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return nil, merr.ErrorNotFound("datasource %d not found", req.UID.Int64())
+		}
+		d.helper.Errorw("msg", "get datasource failed", "error", err, "uid", req.UID)
+		return nil, merr.ErrorInternalServer("get datasource failed").WithCause(err)
+	}
+	query := fmt.Sprintf(`%s{uid="%s",name="%s"}`, metricName, strconv.FormatInt(req.GetUID(), 10), req.GetName())
+	rangeParams := prometheusv1.Range{
+		Start: time.Unix(req.GetStartTime(), 0),
+		End:   time.Unix(req.GetEndTime(), 0),
+		Step:  req.GetStep(),
+	}
+	matrix, err := d.metricDatasourceQuerier.QueryRange(ctx, ds, query, rangeParams)
+	if err != nil {
+		d.helper.Errorw("msg", "query datasource status failed", "error", err, "uid", req.UID)
+		return nil, merr.ErrorInternalServer("query datasource status failed").WithCause(err)
+	}
+	out := make([]*bo.DatasourceStatusSeriesBo, 0, len(matrix))
+	for _, stream := range matrix {
+		points := make([]bo.DatasourceStatusPointBo, 0, len(stream.Values))
+		for _, p := range stream.Values {
+			points = append(points, bo.DatasourceStatusPointBo{
+				Timestamp: int64(p.Timestamp) / 1000, // Prometheus model.Time is milliseconds
+				Value:     float64(p.Value),
+			})
+		}
+		out = append(out, &bo.DatasourceStatusSeriesBo{
+			UID:    req.GetUID(),
+			Name:   req.GetName(),
+			Points: points,
+		})
+	}
+	return out, nil
 }
 
 func (d *DatasourceBiz) ListMetrics(ctx context.Context, uid snowflake.ID) ([]*bo.MetricSummaryItemBo, error) {
@@ -113,7 +152,7 @@ func (d *DatasourceBiz) ListMetrics(ctx context.Context, uid snowflake.ID) ([]*b
 		d.helper.Errorw("msg", "get datasource failed", "error", err, "uid", uid)
 		return nil, merr.ErrorInternalServer("get datasource failed").WithCause(err)
 	}
-	return d.datasourceQuerier.ListMetrics(ctx, ds)
+	return d.metricDatasourceQuerier.ListMetrics(ctx, ds)
 }
 
 func (d *DatasourceBiz) GetMetricDetail(ctx context.Context, uid snowflake.ID, metric string) (*bo.MetricDetailItemBo, error) {
@@ -125,5 +164,5 @@ func (d *DatasourceBiz) GetMetricDetail(ctx context.Context, uid snowflake.ID, m
 		d.helper.Errorw("msg", "get datasource failed", "error", err, "uid", uid)
 		return nil, merr.ErrorInternalServer("get datasource failed").WithCause(err)
 	}
-	return d.datasourceQuerier.GetMetricDetail(ctx, ds, metric)
+	return d.metricDatasourceQuerier.GetMetricDetail(ctx, ds, metric)
 }

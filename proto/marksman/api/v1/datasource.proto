@@ -220,16 +220,6 @@ message ListMetricsRequest {
 		expression: "this > 0",
 		message: "uid must be greater than 0",
 	}];
-	// Optional match[] selectors to scope which metrics to return (e.g. "up", "http_requests_total").
-	repeated string match = 2 [(buf.validate.field).cel = {
-		expression: "this.size() <= 10",
-		message: "match must have at most 10 items",
-	}];
-	// Max number of metrics to return. Default 100, max 500.
-	int32 limit = 3 [(buf.validate.field).cel = {
-		expression: "this == 0 || (this >= 1 && this <= 500)",
-		message: "limit must be 0 (use default) or between 1 and 500",
-	}];
 }
 message ListMetricsReply {
 	repeated MetricSummaryItem metrics = 1;

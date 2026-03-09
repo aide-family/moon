@@ -83,9 +83,8 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	datasourceStatusQuerier := impl.NewMainTsdbQuerier(bc)
 	metricDatasourceQuerier := impl.NewMetricDatasourceQuerier()
-	datasourceBiz := biz.NewDatasource(datasource, datasourceStatusQuerier, metricDatasourceQuerier, helper)
+	datasourceBiz := biz.NewDatasource(datasource, metricDatasourceQuerier, helper)
 	datasourceService := service.NewDatasourceService(datasourceBiz)
 	strategyGroup, err := impl.NewStrategyGroupRepository(dataData)
 	if err != nil {

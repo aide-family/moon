@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 	"time"
 
 	prometheusv1 "github.com/prometheus/client_golang/api/prometheus/v1"
@@ -27,15 +28,6 @@ type MetricConfig interface {
 
 type MetricClient interface {
 	prometheusv1.API
-	// Proxy(ctx context.Context, w http.ResponseWriter, r *http.Request, target string) error
-	// QueryRange(ctx context.Context, query string, start, end time.Time, step time.Duration) (*QueryRangeResponse, error)
-	// Query(ctx context.Context, query string, time time.Time) (*QueryResponse, error)
-	// Series(ctx context.Context, start, end time.Time, match []string) (*SeriesResponse, error)
-	// Metadata(ctx context.Context, metric string) (*MetadataResponse, error)
-	// // LabelNames returns all label names, optionally filtered by match[] selectors.
-	// LabelNames(ctx context.Context, match []string) (*LabelNamesResponse, error)
-	// // LabelValues returns all values for the given label name, optionally filtered by match[] selectors.
-	// LabelValues(ctx context.Context, label string, match []string) (*LabelValuesResponse, error)
 }
 
 type metricClient struct {
@@ -57,13 +49,21 @@ func (m *metricClient) Do(ctx context.Context, req *http.Request) (*http.Respons
 	return resp, body, nil
 }
 
-// URL implements [api.Client].
+// URL implements [api.Client]. Path args (e.g. :name in "/label/:name/values") must be
+// replaced in the path; the Prometheus client passes them in args and expects substitution.
 func (m *metricClient) URL(ep string, args map[string]string) *url.URL {
 	u, err := url.Parse(m.c.GetEndpoint())
 	if err != nil {
 		return nil
 	}
-	u.Path = path.Join(u.Path, ep)
+	p := path.Join(u.Path, ep)
+	for k, v := range args {
+		p = strings.ReplaceAll(p, ":"+k, v)
+	}
+	if p != "" && p[0] != '/' {
+		p = "/" + p
+	}
+	u.Path = p
 	q := u.Query()
 	for k, v := range args {
 		q.Set(k, v)
