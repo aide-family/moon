@@ -17,6 +17,7 @@ import (
 	"github.com/aide-family/marksman/cmd/run/all"
 	"github.com/aide-family/marksman/cmd/run/grpc"
 	"github.com/aide-family/marksman/cmd/run/http"
+	"github.com/aide-family/marksman/cmd/run/metriccron"
 	"github.com/aide-family/marksman/cmd/schema"
 	"github.com/aide-family/marksman/cmd/version"
 )
@@ -62,7 +63,7 @@ func init() {
 
 func main() {
 	runCmd := run.NewCmd(defaultServerConfig)
-	runCmd.AddCommand(grpc.NewCmd(), http.NewCmd(), all.NewCmd())
+	runCmd.AddCommand(grpc.NewCmd(), http.NewCmd(), all.NewCmd(), metriccron.NewCmd())
 
 	children := []*cobra.Command{
 		version.NewCmd(),

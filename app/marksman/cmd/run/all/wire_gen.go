@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/marksman/internal/data"
 	"github.com/aide-family/marksman/internal/data/impl"
 	"github.com/aide-family/marksman/internal/server"
+	"github.com/aide-family/marksman/internal/server/cron"
 	"github.com/aide-family/marksman/internal/service"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
@@ -44,6 +45,8 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	namespaceService := service.NewNamespaceService(bizNamespace)
 	httpServer := server.NewHTTPServer(bc, namespaceService, helper)
 	grpcServer := server.NewGRPCServer(bc, namespaceService, helper)
+	evaluateService := service.NewEvaluateService()
+	metricCronServer := cron.NewMetricCronServer(evaluateService, helper)
 	loginRepository, err := impl.NewLoginRepository(bc, dataData)
 	if err != nil {
 		cleanup()
@@ -111,7 +114,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	}
 	strategyMetricBiz := biz.NewStrategyMetric(strategyMetric, helper)
 	strategyMetricService := service.NewStrategyMetricService(strategyMetricBiz)
-	servers := server.RegisterService(datasourceMetricsReg, bc, httpServer, grpcServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, strategyService, strategyMetricService)
+	servers := server.RegisterService(datasourceMetricsReg, bc, httpServer, grpcServer, metricCronServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, strategyService, strategyMetricService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

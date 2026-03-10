@@ -20,6 +20,7 @@ import (
 	"github.com/aide-family/marksman/internal/biz/collector"
 	"github.com/aide-family/marksman/internal/biz/repository"
 	"github.com/aide-family/marksman/internal/conf"
+	"github.com/aide-family/marksman/internal/server/cron"
 	"github.com/aide-family/marksman/internal/service"
 	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
 )
@@ -28,9 +29,24 @@ import (
 var docFS embed.FS
 
 var (
-	ProviderSetServerAll  = wire.NewSet(NewHTTPServer, NewGRPCServer, RegisterDatasourceMetrics, RegisterService)
-	ProviderSetServerHTTP = wire.NewSet(NewHTTPServer, RegisterHTTPService)
-	ProviderSetServerGRPC = wire.NewSet(NewGRPCServer, RegisterGRPCService)
+	ProviderSetServerAll = wire.NewSet(NewHTTPServer,
+		NewGRPCServer,
+		RegisterDatasourceMetrics,
+		RegisterService,
+		cron.NewMetricCronServer,
+	)
+	ProviderSetServerHTTP = wire.NewSet(
+		NewHTTPServer,
+		RegisterHTTPService,
+	)
+	ProviderSetServerGRPC = wire.NewSet(
+		NewGRPCServer,
+		RegisterGRPCService,
+	)
+	ProviderSetServerMetricCron = wire.NewSet(
+		cron.NewMetricCronServer,
+		RegisterMetricCronService,
+	)
 )
 
 // datasourceMetricsReg ensures the datasource status collector is registered with Prometheus when wire builds the graph.
@@ -99,6 +115,7 @@ func RegisterService(
 	c *conf.Bootstrap,
 	httpSrv *http.Server,
 	grpcSrv *grpc.Server,
+	metricCronSrv *cron.MetricCronServer,
 	authService *service.AuthService,
 	healthService *service.HealthService,
 	namespaceService *service.NamespaceService,
@@ -113,7 +130,8 @@ func RegisterService(
 ) Servers {
 	var srvs Servers
 
-	srvs = append(srvs, RegisterHTTPService(c, httpSrv,
+	srvs = append(srvs, RegisterHTTPService(c,
+		httpSrv,
 		authService,
 		healthService,
 		namespaceService,
@@ -140,6 +158,7 @@ func RegisterService(
 		strategyService,
 		strategyMetricService,
 	)...)
+	srvs = append(srvs, RegisterMetricCronService(metricCronSrv)...)
 	return srvs
 }
 
@@ -206,6 +225,10 @@ func RegisterGRPCService(
 	apiv1.RegisterStrategyServer(grpcSrv, strategyService)
 	apiv1.RegisterStrategyMetricServer(grpcSrv, strategyMetricService)
 	return Servers{newServer("grpc", grpcSrv)}
+}
+
+func RegisterMetricCronService(metricCronSrv *cron.MetricCronServer) Servers {
+	return Servers{newServer("metric-cron", metricCronSrv)}
 }
 
 var namespaceAllowList = []string{

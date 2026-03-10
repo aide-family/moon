@@ -4,7 +4,6 @@ package cron
 import (
 	"context"
 	"fmt"
-
 	"time"
 
 	klog "github.com/go-kratos/kratos/v2/log"
@@ -15,12 +14,12 @@ import (
 	"github.com/aide-family/magicbox/safety"
 )
 
-var _ transport.Server = (*cronJobServer)(nil)
+var _ transport.Server = (*Server)(nil)
 
-type Option func(*cronJobServer)
+type Option func(*Server)
 
 func WithCronJobs(jobs ...CronJob) Option {
-	return func(c *cronJobServer) {
+	return func(c *Server) {
 		for _, job := range jobs {
 			wrappedJob := WrapCronJobWithMetrics(job)
 			id, err := c.cron.AddJob(string(wrappedJob.Spec()), wrappedJob)
@@ -41,7 +40,7 @@ func WithCronJobs(jobs ...CronJob) Option {
 }
 
 func WithCronJobChannel(ch <-chan CronJob) Option {
-	return func(c *cronJobServer) {
+	return func(c *Server) {
 		ctx := context.Background()
 		safety.Go(ctx, "cron-job-channel", func(ctx context.Context) error {
 			for job := range ch {
@@ -53,7 +52,7 @@ func WithCronJobChannel(ch <-chan CronJob) Option {
 }
 
 func WithRemoveJobChannel(ch <-chan string) Option {
-	return func(c *cronJobServer) {
+	return func(c *Server) {
 		ctx := context.Background()
 		safety.Go(ctx, "cron-job-remove-channel", func(ctx context.Context) error {
 			for jobKey := range ch {
@@ -70,10 +69,10 @@ func WithRemoveJobChannel(ch <-chan string) Option {
 	}
 }
 
-func NewCronJobServer(name string, logger log.Interface, opts ...Option) transport.Server {
-	c := &cronJobServer{
+func New(name string, logger log.Interface, opts ...Option) *Server {
+	c := &Server{
 		name:   name,
-		helper: klog.NewHelper(klog.With(logger, "module", name)),
+		helper: klog.NewHelper(logger),
 		jobs:   safety.NewMap(map[string]CronJob{}),
 		runner: safety.NewMap(map[string]cron.EntryID{}),
 		cron:   cron.New(cron.WithSeconds()),
@@ -84,7 +83,7 @@ func NewCronJobServer(name string, logger log.Interface, opts ...Option) transpo
 	return c
 }
 
-type cronJobServer struct {
+type Server struct {
 	name   string
 	helper *klog.Helper
 	jobs   *safety.Map[string, CronJob]
@@ -93,14 +92,14 @@ type cronJobServer struct {
 }
 
 // Start implements transport.Server.
-func (c *cronJobServer) Start(ctx context.Context) error {
+func (c *Server) Start(ctx context.Context) error {
 	defer c.helper.WithContext(ctx).Infof("[CronJob] %s server started", c.name)
 	c.cron.Start()
 	return nil
 }
 
 // Stop implements transport.Server.
-func (c *cronJobServer) Stop(ctx context.Context) error {
+func (c *Server) Stop(ctx context.Context) error {
 	defer c.helper.WithContext(ctx).Infof("[CronJob] %s server stopped", c.name)
 	c.cron.Stop()
 	c.jobs.Clear()
