@@ -49,9 +49,12 @@ func (r *datasourceRepository) CheckDatasourceNameExist(ctx context.Context, nam
 	return merr.ErrorParams("datasource name already exists, uid: %d", datasourceDo.ID.Int64())
 }
 
-func (r *datasourceRepository) CreateDatasource(ctx context.Context, req *bo.CreateDatasourceBo) error {
+func (r *datasourceRepository) CreateDatasource(ctx context.Context, req *bo.CreateDatasourceBo) (snowflake.ID, error) {
 	m := convert.ToDatasourceDo(ctx, req)
-	return query.Datasource.WithContext(ctx).Create(m)
+	if err := query.Datasource.WithContext(ctx).Create(m); err != nil {
+		return 0, err
+	}
+	return m.ID, nil
 }
 
 func (r *datasourceRepository) UpdateDatasource(ctx context.Context, req *bo.UpdateDatasourceBo) error {

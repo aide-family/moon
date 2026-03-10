@@ -915,7 +915,9 @@ components:
     schemas:
         marksman.api.v1.CreateDatasourceReply:
             type: object
-            properties: {}
+            properties:
+                uid:
+                    type: string
         marksman.api.v1.CreateDatasourceRequest:
             type: object
             properties:

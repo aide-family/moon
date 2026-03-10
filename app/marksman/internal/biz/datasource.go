@@ -37,16 +37,17 @@ type DatasourceBiz struct {
 	metricDatasourceQuerier repository.MetricDatasourceQuerier
 }
 
-func (d *DatasourceBiz) CreateDatasource(ctx context.Context, req *bo.CreateDatasourceBo) error {
+func (d *DatasourceBiz) CreateDatasource(ctx context.Context, req *bo.CreateDatasourceBo) (snowflake.ID, error) {
 	if err := d.datasourceRepo.CheckDatasourceNameExist(ctx, req.Name); err != nil {
 		d.helper.Errorw("msg", "check datasource name exist failed", "error", err, "req", req)
-		return merr.ErrorInternalServer("check datasource name exist failed").WithCause(err)
+		return 0, merr.ErrorInternalServer("check datasource name exist failed").WithCause(err)
 	}
-	if err := d.datasourceRepo.CreateDatasource(ctx, req); err != nil {
+	uid, err := d.datasourceRepo.CreateDatasource(ctx, req)
+	if err != nil {
 		d.helper.Errorw("msg", "create datasource failed", "error", err, "req", req)
-		return merr.ErrorInternalServer("create datasource failed").WithCause(err)
+		return 0, merr.ErrorInternalServer("create datasource failed").WithCause(err)
 	}
-	return nil
+	return uid, nil
 }
 
 func (d *DatasourceBiz) UpdateDatasource(ctx context.Context, req *bo.UpdateDatasourceBo) error {

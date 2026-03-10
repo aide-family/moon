@@ -19,5 +19,23 @@
       }, // 环境变量
       "showLog": true // 显示调试日志
     },
+    {
+      "name": "Run Marksman",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/app/marksman/.",
+      "cwd": "${workspaceFolder}/app/marksman",
+      "args": [
+        "run",
+        "all",
+        "--log-level=debug"
+      ],
+      "env": {
+        "GO111MODULE": "on",
+        "GO_ENV": "development"
+      },
+      "showLog": true
+    }
   ]
 }

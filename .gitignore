@@ -31,7 +31,6 @@ go.work.sum
 
 # Editor/IDE
 .idea/
-.vscode/
 .DS_Store
 
 # deploy
@@ -47,4 +46,3 @@ deploy/*/data
 bin/
 
 .data/
-prometheus/

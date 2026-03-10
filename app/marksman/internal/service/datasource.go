@@ -24,10 +24,11 @@ type DatasourceService struct {
 
 func (s *DatasourceService) CreateDatasource(ctx context.Context, req *apiv1.CreateDatasourceRequest) (*apiv1.CreateDatasourceReply, error) {
 	createBo := bo.NewCreateDatasourceBo(req)
-	if err := s.datasourceBiz.CreateDatasource(ctx, createBo); err != nil {
+	uid, err := s.datasourceBiz.CreateDatasource(ctx, createBo)
+	if err != nil {
 		return nil, err
 	}
-	return &apiv1.CreateDatasourceReply{}, nil
+	return &apiv1.CreateDatasourceReply{Uid: uid.Int64()}, nil
 }
 
 func (s *DatasourceService) UpdateDatasource(ctx context.Context, req *apiv1.UpdateDatasourceRequest) (*apiv1.UpdateDatasourceReply, error) {

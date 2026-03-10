@@ -98,7 +98,9 @@ message CreateDatasourceRequest {
 		max_len: 1000,
 	}];
 }
-message CreateDatasourceReply {}
+message CreateDatasourceReply {
+	int64 uid = 1;
+}
 
 message UpdateDatasourceRequest {
 	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
