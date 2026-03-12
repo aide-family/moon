@@ -60,16 +60,16 @@ enum MessageType {
 enum DatasourceType {
 	DatasourceType_UNKNOWN = 0;
 	METRICS = 1;
-	LOGS = 1000;
-	TRACE = 2000;
+	LOGS = 1001;
+	TRACE = 2001;
 }
 
 enum DatasourceDriver {
 	DatasourceDriver_UNKNOWN = 0;
 	METRICS_PROMETHEUS = 1;
 	METRICS_VICTORIA_METRICS = 2;
-	LOGS_ELASTICSEARCH = 1000;
-	TRACE_JAEGER = 2000;
+	LOGS_ELASTICSEARCH = 1001;
+	TRACE_JAEGER = 2001;
 }
 
 enum UserStatus {

@@ -83,7 +83,11 @@ func (s *StrategyService) StrategyGroupBindReceivers(ctx context.Context, req *a
 }
 
 func (s *StrategyService) CreateStrategy(ctx context.Context, req *apiv1.CreateStrategyRequest) (*apiv1.CreateStrategyReply, error) {
-	uid, err := s.strategyBiz.CreateStrategy(ctx, bo.NewCreateStrategyBo(req))
+	createStrategyBo, err := bo.NewCreateStrategyBo(req)
+	if err != nil {
+		return nil, err
+	}
+	uid, err := s.strategyBiz.CreateStrategy(ctx, createStrategyBo)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +95,11 @@ func (s *StrategyService) CreateStrategy(ctx context.Context, req *apiv1.CreateS
 }
 
 func (s *StrategyService) UpdateStrategy(ctx context.Context, req *apiv1.UpdateStrategyRequest) (*apiv1.UpdateStrategyReply, error) {
-	if err := s.strategyBiz.UpdateStrategy(ctx, bo.NewUpdateStrategyBo(req)); err != nil {
+	updateStrategyBo, err := bo.NewUpdateStrategyBo(req)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.strategyBiz.UpdateStrategy(ctx, updateStrategyBo); err != nil {
 		return nil, err
 	}
 	return &apiv1.UpdateStrategyReply{}, nil

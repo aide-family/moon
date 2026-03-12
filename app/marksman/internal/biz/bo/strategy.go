@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
+	"github.com/aide-family/magicbox/merr"
 	"github.com/bwmarrin/snowflake"
 
 	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
@@ -19,8 +20,12 @@ type CreateStrategyBo struct {
 	Status           enum.GlobalStatus
 }
 
-func NewCreateStrategyBo(req *apiv1.CreateStrategyRequest) *CreateStrategyBo {
-	return &CreateStrategyBo{
+func (c *CreateStrategyBo) Validate() error {
+	return validateDatasourceTypeDriver(c.Type, c.Driver)
+}
+
+func NewCreateStrategyBo(req *apiv1.CreateStrategyRequest) (*CreateStrategyBo, error) {
+	bo := &CreateStrategyBo{
 		Name:             req.GetName(),
 		Remark:           req.GetRemark(),
 		Type:             req.GetType(),
@@ -29,6 +34,10 @@ func NewCreateStrategyBo(req *apiv1.CreateStrategyRequest) *CreateStrategyBo {
 		Metadata:         req.GetMetadata(),
 		Status:           req.GetStatus(),
 	}
+	if err := bo.Validate(); err != nil {
+		return nil, err
+	}
+	return bo, nil
 }
 
 type UpdateStrategyBo struct {
@@ -41,8 +50,12 @@ type UpdateStrategyBo struct {
 	Metadata         map[string]string
 }
 
-func NewUpdateStrategyBo(req *apiv1.UpdateStrategyRequest) *UpdateStrategyBo {
-	return &UpdateStrategyBo{
+func (u *UpdateStrategyBo) Validate() error {
+	return validateDatasourceTypeDriver(u.Type, u.Driver)
+}
+
+func NewUpdateStrategyBo(req *apiv1.UpdateStrategyRequest) (*UpdateStrategyBo, error) {
+	bo := &UpdateStrategyBo{
 		UID:              snowflake.ParseInt64(req.GetUid()),
 		Name:             req.GetName(),
 		Remark:           req.GetRemark(),
@@ -51,6 +64,10 @@ func NewUpdateStrategyBo(req *apiv1.UpdateStrategyRequest) *UpdateStrategyBo {
 		Driver:           req.GetDriver(),
 		Metadata:         req.GetMetadata(),
 	}
+	if err := bo.Validate(); err != nil {
+		return nil, err
+	}
+	return bo, nil
 }
 
 type UpdateStrategyStatusBo struct {
@@ -127,5 +144,40 @@ func ToAPIV1ListStrategyReply(pageResponseBo *PageResponseBo[*StrategyItemBo]) *
 		Page:     pageResponseBo.GetPage(),
 		PageSize: pageResponseBo.GetPageSize(),
 		Items:    items,
+	}
+}
+
+// Driver value ranges by datasource type (proto convention): METRICS 1-1000, LOGS 1001-2000, TRACE 2001-3000.
+const (
+	gap                   = 999
+	driverRangeMETRICSMin = int32(enum.DatasourceType_METRICS)
+	driverRangeMETRICSMax = int32(enum.DatasourceType_METRICS) + gap
+	driverRangeLOGSMin    = int32(enum.DatasourceType_LOGS)
+	driverRangeLOGSMax    = int32(enum.DatasourceType_LOGS) + gap
+	driverRangeTRACEMin   = int32(enum.DatasourceType_TRACE)
+	driverRangeTRACEMax   = int32(enum.DatasourceType_TRACE) + gap
+)
+
+// validateDatasourceTypeDriver ensures driver falls in the range for the given type so new drivers need no code change.
+func validateDatasourceTypeDriver(dsType enum.DatasourceType, driver enum.DatasourceDriver) error {
+	d := int32(driver)
+	switch dsType {
+	case enum.DatasourceType_METRICS:
+		if d < driverRangeMETRICSMin || d > driverRangeMETRICSMax {
+			return merr.ErrorParams("when type is METRICS, driver must be a METRICS driver (value 1-1000)")
+		}
+		return nil
+	case enum.DatasourceType_LOGS:
+		if d < driverRangeLOGSMin || d > driverRangeLOGSMax {
+			return merr.ErrorParams("when type is LOGS, driver must be a LOGS driver (value 1001-2000)")
+		}
+		return nil
+	case enum.DatasourceType_TRACE:
+		if d < driverRangeTRACEMin || d > driverRangeTRACEMax {
+			return merr.ErrorParams("when type is TRACE, driver must be a TRACE driver (value 2001-3000)")
+		}
+		return nil
+	default:
+		return merr.ErrorParams("unknown datasource type, driver must match type")
 	}
 }
