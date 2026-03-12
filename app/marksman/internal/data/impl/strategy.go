@@ -70,8 +70,9 @@ func (r *strategyRepository) UpdateStrategyStatus(ctx context.Context, req *bo.U
 }
 
 func (r *strategyRepository) DeleteStrategy(ctx context.Context, uid snowflake.ID) error {
-	s := query.Strategy
-	info, err := query.Strategy.WithContext(ctx).Where(
+	q := query.Use(getDBWithTransaction(ctx, r.db))
+	s := q.Strategy
+	info, err := q.Strategy.WithContext(ctx).Where(
 		s.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
 		s.ID.Eq(uid.Int64()),
 	).Delete()

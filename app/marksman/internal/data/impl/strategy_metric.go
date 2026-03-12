@@ -207,6 +207,42 @@ func (r *strategyMetricRepository) DeleteStrategyMetricLevel(ctx context.Context
 	return nil
 }
 
+// DeleteStrategyMetricReceiversByStrategyUID deletes strategy_metric_receivers by strategy_uid (single table). Uses tx from ctx when inside Transaction().
+func (r *strategyMetricRepository) DeleteStrategyMetricReceiversByStrategyUID(ctx context.Context, strategyUID snowflake.ID) error {
+	ns := contextx.GetNamespace(ctx)
+	q := query.Use(getDBWithTransaction(ctx, r.db))
+	smr := q.StrategyMetricReceiver
+	_, err := smr.WithContext(ctx).Where(
+		smr.NamespaceUID.Eq(ns.Int64()),
+		smr.StrategyUID.Eq(strategyUID.Int64()),
+	).Delete()
+	return err
+}
+
+// DeleteStrategyMetricLevelsByStrategyUID deletes strategy_metric_levels by strategy_uid (single table). Uses tx from ctx when inside Transaction().
+func (r *strategyMetricRepository) DeleteStrategyMetricLevelsByStrategyUID(ctx context.Context, strategyUID snowflake.ID) error {
+	ns := contextx.GetNamespace(ctx)
+	q := query.Use(getDBWithTransaction(ctx, r.db))
+	sml := q.StrategyMetricLevel
+	_, err := sml.WithContext(ctx).Where(
+		sml.NamespaceUID.Eq(ns.Int64()),
+		sml.StrategyUID.Eq(strategyUID.Int64()),
+	).Delete()
+	return err
+}
+
+// DeleteStrategyMetricByStrategyUID deletes strategy_metrics row by strategy_uid (single table). Uses tx from ctx when inside Transaction().
+func (r *strategyMetricRepository) DeleteStrategyMetricByStrategyUID(ctx context.Context, strategyUID snowflake.ID) error {
+	ns := contextx.GetNamespace(ctx)
+	q := query.Use(getDBWithTransaction(ctx, r.db))
+	sm := q.StrategyMetric
+	_, err := sm.WithContext(ctx).Where(
+		sm.NamespaceUID.Eq(ns.Int64()),
+		sm.StrategyUID.Eq(strategyUID.Int64()),
+	).Delete()
+	return err
+}
+
 func (r *strategyMetricRepository) GetStrategyMetricLevelByStrategyAndLevel(ctx context.Context, strategyUID snowflake.ID, levelUID snowflake.ID) (*bo.StrategyMetricLevelItemBo, error) {
 	sml := query.StrategyMetricLevel
 	row, err := sml.WithContext(ctx).Where(

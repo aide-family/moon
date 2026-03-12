@@ -3,7 +3,9 @@ package biz
 import (
 	"context"
 
+	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
+	"github.com/aide-family/magicbox/safety"
 	"github.com/bwmarrin/snowflake"
 	klog "github.com/go-kratos/kratos/v2/log"
 
@@ -12,21 +14,35 @@ import (
 )
 
 func NewStrategy(
+	transaction repository.Transaction,
 	strategyGroupRepo repository.StrategyGroup,
 	strategyRepo repository.Strategy,
+	strategyMetricRepo repository.StrategyMetric,
 	helper *klog.Helper,
 ) *StrategyBiz {
-	return &StrategyBiz{
-		strategyGroupRepo: strategyGroupRepo,
-		strategyRepo:      strategyRepo,
-		helper:            klog.NewHelper(klog.With(helper.Logger(), "biz", "strategy")),
+	b := &StrategyBiz{
+		transaction:        transaction,
+		strategyGroupRepo:  strategyGroupRepo,
+		strategyRepo:       strategyRepo,
+		strategyMetricRepo: strategyMetricRepo,
+		helper:             klog.NewHelper(klog.With(helper.Logger(), "biz", "strategy")),
 	}
+	deleteStrategyFunc := safety.NewMap(map[enum.DatasourceType]func(ctx context.Context, strategyUID snowflake.ID) error{
+		enum.DatasourceType_METRICS: b.deleteStrategyMetric,
+		enum.DatasourceType_LOGS:    b.deleteStrategyLogs,
+		enum.DatasourceType_TRACE:   b.deleteStrategyTrace,
+	})
+	b.deleteStrategyFunc = deleteStrategyFunc
+	return b
 }
 
 type StrategyBiz struct {
-	helper            *klog.Helper
-	strategyGroupRepo repository.StrategyGroup
-	strategyRepo      repository.Strategy
+	transaction        repository.Transaction
+	helper             *klog.Helper
+	strategyGroupRepo  repository.StrategyGroup
+	strategyRepo       repository.Strategy
+	strategyMetricRepo repository.StrategyMetric
+	deleteStrategyFunc *safety.Map[enum.DatasourceType, func(ctx context.Context, strategyUID snowflake.ID) error]
 }
 
 func (b *StrategyBiz) CreateStrategyGroup(ctx context.Context, req *bo.CreateStrategyGroupBo) (snowflake.ID, error) {
@@ -143,17 +159,6 @@ func (b *StrategyBiz) UpdateStrategyStatus(ctx context.Context, req *bo.UpdateSt
 	return nil
 }
 
-func (b *StrategyBiz) DeleteStrategy(ctx context.Context, uid snowflake.ID) error {
-	if err := b.strategyRepo.DeleteStrategy(ctx, uid); err != nil {
-		if merr.IsNotFound(err) {
-			return merr.ErrorNotFound("strategy %d not found", uid.Int64())
-		}
-		b.helper.Errorw("msg", "delete strategy failed", "error", err, "uid", uid)
-		return merr.ErrorInternalServer("delete strategy failed").WithCause(err)
-	}
-	return nil
-}
-
 func (b *StrategyBiz) GetStrategy(ctx context.Context, uid snowflake.ID) (*bo.StrategyItemBo, error) {
 	item, err := b.strategyRepo.GetStrategy(ctx, uid)
 	if err != nil {
@@ -173,4 +178,50 @@ func (b *StrategyBiz) ListStrategy(ctx context.Context, req *bo.ListStrategyBo) 
 		return nil, merr.ErrorInternalServer("list strategy failed").WithCause(err)
 	}
 	return result, nil
+}
+
+func (b *StrategyBiz) DeleteStrategy(ctx context.Context, uid snowflake.ID) error {
+	strategyInfo, err := b.GetStrategy(ctx, uid)
+	if err != nil {
+		return err
+	}
+	return b.transaction.Transaction(ctx, func(ctx context.Context) error {
+		if deleteStrategyFunc, ok := b.deleteStrategyFunc.Get(strategyInfo.Type); ok {
+			if err := deleteStrategyFunc(ctx, uid); err != nil {
+				return err
+			}
+		}
+		if err := b.strategyRepo.DeleteStrategy(ctx, uid); err != nil {
+			if merr.IsNotFound(err) {
+				return merr.ErrorNotFound("strategy %d not found", uid.Int64())
+			}
+			b.helper.Errorw("msg", "delete strategy failed", "error", err, "uid", uid)
+			return merr.ErrorInternalServer("delete strategy failed").WithCause(err)
+		}
+		return nil
+	})
+}
+
+func (b *StrategyBiz) deleteStrategyMetric(ctx context.Context, strategyUID snowflake.ID) error {
+	if err := b.strategyMetricRepo.DeleteStrategyMetricReceiversByStrategyUID(ctx, strategyUID); err != nil {
+		b.helper.Errorw("msg", "delete strategy metric receivers failed", "error", err, "strategyUID", strategyUID)
+		return merr.ErrorInternalServer("delete strategy related data failed").WithCause(err)
+	}
+	if err := b.strategyMetricRepo.DeleteStrategyMetricLevelsByStrategyUID(ctx, strategyUID); err != nil {
+		b.helper.Errorw("msg", "delete strategy metric levels failed", "error", err, "strategyUID", strategyUID)
+		return merr.ErrorInternalServer("delete strategy related data failed").WithCause(err)
+	}
+	if err := b.strategyMetricRepo.DeleteStrategyMetricByStrategyUID(ctx, strategyUID); err != nil {
+		b.helper.Errorw("msg", "delete strategy metric failed", "error", err, "strategyUID", strategyUID)
+		return merr.ErrorInternalServer("delete strategy related data failed").WithCause(err)
+	}
+	return nil
+}
+
+func (b *StrategyBiz) deleteStrategyLogs(ctx context.Context, strategyUID snowflake.ID) error {
+	return nil
+}
+
+func (b *StrategyBiz) deleteStrategyTrace(ctx context.Context, strategyUID snowflake.ID) error {
+	return nil
 }

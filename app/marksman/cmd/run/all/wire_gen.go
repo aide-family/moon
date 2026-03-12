@@ -102,6 +102,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	metricDatasourceQuerier := impl.NewMetricDatasourceQuerier()
 	datasourceBiz := biz.NewDatasource(datasource, metricDatasourceQuerier, helper)
 	datasourceService := service.NewDatasourceService(datasourceBiz)
+	transaction := impl.NewTransaction(dataData)
 	strategyGroup, err := impl.NewStrategyGroupRepository(dataData)
 	if err != nil {
 		cleanup()
@@ -112,7 +113,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	strategyBiz := biz.NewStrategy(strategyGroup, strategy, helper)
+	strategyBiz := biz.NewStrategy(transaction, strategyGroup, strategy, strategyMetric, helper)
 	strategyService := service.NewStrategyService(strategyBiz)
 	strategyMetricBiz := biz.NewStrategyMetric(strategy, strategyMetric, helper)
 	strategyMetricService := service.NewStrategyMetricService(strategyMetricBiz)
