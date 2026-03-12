@@ -5,12 +5,28 @@ import (
 
 	"github.com/aide-family/magicbox/server/cron"
 	"github.com/aide-family/marksman/internal/biz/repository"
+	"github.com/aide-family/marksman/internal/conf"
 	"github.com/aide-family/marksman/internal/data"
 )
 
-func NewJobChannel(d *data.Data) repository.JobChannel {
-	metricAppendJobChannel := make(chan cron.CronJob, 100)
-	metricRemoveJobChannel := make(chan string, 100)
+const (
+	defaultAppendChannelCapacity  = 100
+	defaultRemoveChannelCapacity  = 100
+)
+
+func NewJobChannel(bc *conf.Bootstrap, d *data.Data) repository.JobChannel {
+	appendCap := defaultAppendChannelCapacity
+	removeCap := defaultRemoveChannelCapacity
+	if cfg := bc.GetEvaluateConfig(); cfg != nil {
+		if cfg.GetAppendChannelCapacity() > 0 {
+			appendCap = int(cfg.GetAppendChannelCapacity())
+		}
+		if cfg.GetRemoveChannelCapacity() > 0 {
+			removeCap = int(cfg.GetRemoveChannelCapacity())
+		}
+	}
+	metricAppendJobChannel := make(chan cron.CronJob, appendCap)
+	metricRemoveJobChannel := make(chan string, removeCap)
 	jobImpl := &jobChannelRepositoryImpl{
 		metricAppendJobChannel: metricAppendJobChannel,
 		metricRemoveJobChannel: metricRemoveJobChannel,

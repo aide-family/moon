@@ -31,6 +31,22 @@ message Bootstrap {
 	magicbox.config.DomainConfig captchaConfig = 20;
 	// Main time-series DB for querying datasource status history (Prometheus / VictoriaMetrics).
 	MainTsdb mainTsdb = 21;
+	// Evaluate (metric cron) concurrency, timeouts and channel capacity.
+	EvaluateConfig evaluateConfig = 22;
+}
+
+// EvaluateConfig configures the metric evaluate cron: concurrency, timeouts and job channel capacity.
+message EvaluateConfig {
+	// Concurrency limit for errgroup when loading strategy metrics (default 10).
+	int32 concurrencyLimit = 1;
+	// Delay before starting to load all strategy metrics (default 10s).
+	google.protobuf.Duration startupDelay = 2;
+	// Timeout for query when loading (default 10s).
+	google.protobuf.Duration queryTimeout = 3;
+	// Capacity of the metric-append job channel (default 100).
+	uint32 appendChannelCapacity = 4;
+	// Capacity of the metric-remove job channel (default 100).
+	uint32 removeChannelCapacity = 5;
 }
 
 // MainTsdb config for querying metrics (e.g. marksman_datasource_status).

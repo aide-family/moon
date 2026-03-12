@@ -14,20 +14,44 @@ import (
 
 	"github.com/aide-family/marksman/internal/biz/evaluator"
 	"github.com/aide-family/marksman/internal/biz/repository"
+	"github.com/aide-family/marksman/internal/conf"
+)
+
+const (
+	defaultConcurrencyLimit = 10
+	defaultStartupDelay     = 10 * time.Second
+	defaultQueryTimeout     = 10 * time.Second
 )
 
 func NewEvaluateBiz(
+	bc *conf.Bootstrap,
 	namespaceRepo repository.Namespace,
 	strategyMetricRepo repository.StrategyMetric,
 	jobChannelRepo repository.JobChannel,
 ) *Evaluate {
+	limit := defaultConcurrencyLimit
+	startupDelay := defaultStartupDelay
+	queryTimeout := defaultQueryTimeout
+	if cfg := bc.GetEvaluateConfig(); cfg != nil {
+		if cfg.GetConcurrencyLimit() > 0 {
+			limit = int(cfg.GetConcurrencyLimit())
+		}
+		if cfg.GetStartupDelay() != nil {
+			startupDelay = cfg.GetStartupDelay().AsDuration()
+		}
+		if cfg.GetQueryTimeout() != nil {
+			queryTimeout = cfg.GetQueryTimeout().AsDuration()
+		}
+	}
 	eg := new(errgroup.Group)
-	eg.SetLimit(10)
+	eg.SetLimit(limit)
 	eva := &Evaluate{
 		namespaceRepo:      namespaceRepo,
 		strategyMetricRepo: strategyMetricRepo,
 		jobChannelRepo:     jobChannelRepo,
 		eg:                 eg,
+		startupDelay:       startupDelay,
+		queryTimeout:       queryTimeout,
 	}
 	jobChannelRepo.AppendClose(eva.Stop)
 	eva.Start()
@@ -39,11 +63,13 @@ type Evaluate struct {
 	strategyMetricRepo repository.StrategyMetric
 	jobChannelRepo     repository.JobChannel
 	eg                 *errgroup.Group
+	startupDelay       time.Duration
+	queryTimeout       time.Duration
 }
 
 func (e *Evaluate) Start() {
 	e.eg.Go(func() error {
-		time.Sleep(10 * time.Second)
+		time.Sleep(e.startupDelay)
 		e.loadAllStrategyMetrics(e.eg)
 		return nil
 	})
@@ -67,15 +93,15 @@ func (e *Evaluate) loadAllStrategyMetrics(eg *errgroup.Group) {
 		Status:  enum.GlobalStatus_ENABLED,
 		LastUID: 0,
 	}
-	ctx := context.Background()
+
 	for {
-		namespaces, lastUID, hasMore, err := e.getNamespaces(ctx, req)
+		namespaces, lastUID, hasMore, err := e.getNamespaces(req)
 		if err != nil {
 			klog.Errorw("msg", "select namespace failed", "error", err)
 			break
 		}
 		for _, namespace := range namespaces {
-			e.localStrategyMetricsByNamespace(ctx, eg, snowflake.ID(namespace.Value))
+			e.localStrategyMetricsByNamespace(eg, snowflake.ID(namespace.Value))
 		}
 		if !hasMore {
 			break
@@ -84,8 +110,8 @@ func (e *Evaluate) loadAllStrategyMetrics(eg *errgroup.Group) {
 	}
 }
 
-func (e *Evaluate) getNamespaces(ctx context.Context, req *goddessv1.SelectNamespaceRequest) ([]*goddessv1.NamespaceItemSelect, int64, bool, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+func (e *Evaluate) getNamespaces(req *goddessv1.SelectNamespaceRequest) ([]*goddessv1.NamespaceItemSelect, int64, bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), e.queryTimeout)
 	defer cancel()
 	namespacesReply, err := e.namespaceRepo.SelectNamespace(ctx, req)
 	if err != nil {
@@ -94,9 +120,11 @@ func (e *Evaluate) getNamespaces(ctx context.Context, req *goddessv1.SelectNames
 	return namespacesReply.Items, namespacesReply.LastUID, namespacesReply.HasMore, nil
 }
 
-func (e *Evaluate) localStrategyMetricsByNamespace(ctx context.Context, eg *errgroup.Group, namespaceUID snowflake.ID) {
-	ctx = contextx.WithNamespace(ctx, namespaceUID)
+func (e *Evaluate) localStrategyMetricsByNamespace(eg *errgroup.Group, namespaceUID snowflake.ID) {
 	eg.Go(func() error {
+		ctx := contextx.WithNamespace(context.Background(), namespaceUID)
+		ctx, cancel := context.WithTimeout(ctx, e.queryTimeout)
+		defer cancel()
 		strategies, err := e.strategyMetricRepo.GetEvaluateMetricStrategies(ctx)
 		if err != nil {
 			klog.Errorw("msg", "get evaluate metric strategies failed", "error", err, "namespaceUID", namespaceUID)

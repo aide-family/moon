@@ -140,6 +140,14 @@ captchaConfig:
   driver: ${MOON_MARKSMAN_CAPTCHA_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_CAPTCHA_VERSION:v1}
 
+# Metric evaluate cron: concurrency, timeouts and job channel capacity.
+evaluateConfig:
+  concurrencyLimit: ${MOON_MARKSMAN_EVALUATE_CONCURRENCY_LIMIT:10}
+  startupDelay: '${MOON_MARKSMAN_EVALUATE_STARTUP_DELAY:10s}'
+  queryTimeout: '${MOON_MARKSMAN_EVALUATE_QUERY_TIMEOUT:10s}'
+  appendChannelCapacity: ${MOON_MARKSMAN_EVALUATE_APPEND_CHANNEL_CAPACITY:100}
+  removeChannelCapacity: ${MOON_MARKSMAN_EVALUATE_REMOVE_CHANNEL_CAPACITY:100}
+
 # Main time-series DB for datasource status history (prometheus / victoria_metrics).
 mainTsdb:
   driver: ${MOON_MARKSMAN_MAIN_TSDB_DRIVER:METRICS_PROMETHEUS}

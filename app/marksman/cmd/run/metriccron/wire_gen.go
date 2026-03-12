@@ -36,8 +36,8 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	jobChannel := impl.NewJobChannel(dataData)
-	evaluate := biz.NewEvaluateBiz(namespace, strategyMetric, jobChannel)
+	jobChannel := impl.NewJobChannel(bc, dataData)
+	evaluate := biz.NewEvaluateBiz(bc, namespace, strategyMetric, jobChannel)
 	evaluateService := service.NewEvaluateService(evaluate)
 	metricCronServer := cron.NewMetricCronServer(evaluateService, helper)
 	servers := server.RegisterMetricCronService(metricCronServer)
