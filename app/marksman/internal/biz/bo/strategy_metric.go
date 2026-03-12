@@ -153,3 +153,18 @@ func NewStrategyMetricBindReceiversBo(req *apiv1.StrategyMetricBindReceiversRequ
 		LevelUID:     snowflake.ParseInt64(req.GetLevelUID()),
 	}
 }
+
+type EvaluateMetricStrategyBo struct {
+	StrategyUID  snowflake.ID
+	NamespaceUID snowflake.ID
+	Datasource   *DatasourceItemBo
+	Expr         string
+	Labels       map[string]string
+	Summary      string
+	Description  string
+	Level        *LevelItemBo
+	Mode         enum.SampleMode
+	Condition    enum.ConditionMetric
+	Values       []float64
+	DurationSec  int64
+}

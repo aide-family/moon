@@ -3,6 +3,8 @@ package impl
 import (
 	"context"
 
+	"github.com/aide-family/magicbox/contextx"
+	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/safety"
 	"github.com/bwmarrin/snowflake"
@@ -26,6 +28,73 @@ func NewStrategyMetricRepository(d *data.Data) (repository.StrategyMetric, error
 
 type strategyMetricRepository struct {
 	db *gorm.DB
+}
+
+// GetEvaluateMetricStrategies implements [repository.StrategyMetric].
+func (r *strategyMetricRepository) GetEvaluateMetricStrategies(ctx context.Context) ([]*bo.EvaluateMetricStrategyBo, error) {
+	ns := contextx.GetNamespace(ctx)
+	strategyMetricQuery := query.StrategyMetric
+	strategies, err := strategyMetricQuery.WithContext(ctx).Where(
+		strategyMetricQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED)),
+		strategyMetricQuery.NamespaceUID.Eq(ns.Int64()),
+	).Find()
+	if err != nil {
+		return nil, err
+	}
+	datasourceIds := make([]int64, 0, len(strategies))
+	strategyIds := make([]int64, 0, len(strategies))
+	strategyMap := make(map[int64]*do.StrategyMetric)
+	for _, strategy := range strategies {
+		datasourceIds = append(datasourceIds, strategy.DatasourceUIDs.List()...)
+		strategyIds = append(strategyIds, strategy.StrategyUID.Int64())
+		strategyMap[strategy.StrategyUID.Int64()] = strategy
+	}
+	datasourceIdsSlice := safety.NewSlice(datasourceIds).Sort(func(a int64, b int64) bool {
+		return a < b
+	}).Uniq(func(a int64, b int64) bool {
+		return a == b
+	})
+	datasourceIds = datasourceIdsSlice.List()
+	if len(strategyIds) == 0 || len(datasourceIds) == 0 {
+		return nil, nil
+	}
+
+	strategyMetricLevelQuery := query.StrategyMetricLevel
+	strategyLevels, err := strategyMetricLevelQuery.WithContext(ctx).Where(
+		strategyMetricLevelQuery.StrategyUID.In(strategyIds...),
+		strategyMetricLevelQuery.NamespaceUID.Eq(ns.Int64()),
+	).Preload(field.Associations).Find()
+	if err != nil {
+		return nil, err
+	}
+	datasourceQuery := query.Datasource
+	datasourceList, err := datasourceQuery.WithContext(ctx).Where(
+		datasourceQuery.ID.In(datasourceIds...),
+		datasourceQuery.NamespaceUID.Eq(ns.Int64()),
+	).Find()
+	if err != nil {
+		return nil, err
+	}
+	datasourceMap := make(map[int64]*do.Datasource)
+	for _, datasource := range datasourceList {
+		datasourceMap[datasource.ID.Int64()] = datasource
+	}
+
+	evaluateStrategies := make([]*bo.EvaluateMetricStrategyBo, 0, len(strategies))
+	for _, strategyLevel := range strategyLevels {
+		strategyDetail, ok := strategyMap[strategyLevel.StrategyUID.Int64()]
+		if !ok {
+			continue
+		}
+		for _, datasourceUID := range strategyDetail.DatasourceUIDs.List() {
+			datasourceDetail, ok := datasourceMap[datasourceUID]
+			if !ok {
+				continue
+			}
+			evaluateStrategies = append(evaluateStrategies, convert.ToEvaluateMetricStrategyBo(strategyDetail, strategyLevel, datasourceDetail))
+		}
+	}
+	return evaluateStrategies, nil
 }
 
 func (r *strategyMetricRepository) CreateStrategyMetric(ctx context.Context, req *bo.SaveStrategyMetricBo) error {

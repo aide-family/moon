@@ -10,8 +10,10 @@ import (
 	"github.com/google/wire"
 
 	"github.com/aide-family/marksman/cmd/run"
+	"github.com/aide-family/marksman/internal/biz"
 	"github.com/aide-family/marksman/internal/conf"
 	"github.com/aide-family/marksman/internal/data"
+	"github.com/aide-family/marksman/internal/data/impl"
 	"github.com/aide-family/marksman/internal/server"
 	"github.com/aide-family/marksman/internal/service"
 )
@@ -20,6 +22,8 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *klog.Helper) ([]*kr
 	panic(wire.Build(
 		server.ProviderSetServerMetricCron,
 		service.ProviderSetService,
+		biz.ProviderSetBiz,
+		impl.ProviderSetImpl,
 		data.ProviderSetData,
 		run.NewApp,
 	))

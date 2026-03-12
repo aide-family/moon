@@ -18,6 +18,7 @@ type StrategyMetricLevel struct {
 	Values       *safety.Slice[float64] `gorm:"column:values;type:json;serializer:json"`
 	DurationSec  int64                  `gorm:"column:duration_sec;default:0"`
 	Status       enum.GlobalStatus      `gorm:"column:status;type:tinyint;default:0"`
+	Level        *Level                 `gorm:"foreignKey:LevelUID;references:ID"`
 }
 
 func (StrategyMetricLevel) TableName() string {

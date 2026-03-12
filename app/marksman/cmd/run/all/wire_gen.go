@@ -45,7 +45,14 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	namespaceService := service.NewNamespaceService(bizNamespace)
 	httpServer := server.NewHTTPServer(bc, namespaceService, helper)
 	grpcServer := server.NewGRPCServer(bc, namespaceService, helper)
-	evaluateService := service.NewEvaluateService()
+	strategyMetric, err := impl.NewStrategyMetricRepository(dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	jobChannel := impl.NewJobChannel(dataData)
+	evaluate := biz.NewEvaluateBiz(namespace, strategyMetric, jobChannel)
+	evaluateService := service.NewEvaluateService(evaluate)
 	metricCronServer := cron.NewMetricCronServer(evaluateService, helper)
 	loginRepository, err := impl.NewLoginRepository(bc, dataData)
 	if err != nil {
@@ -107,11 +114,6 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	}
 	strategyBiz := biz.NewStrategy(strategyGroup, strategy, helper)
 	strategyService := service.NewStrategyService(strategyBiz)
-	strategyMetric, err := impl.NewStrategyMetricRepository(dataData)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
 	strategyMetricBiz := biz.NewStrategyMetric(strategyMetric, helper)
 	strategyMetricService := service.NewStrategyMetricService(strategyMetricBiz)
 	servers := server.RegisterService(datasourceMetricsReg, bc, httpServer, grpcServer, metricCronServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, strategyService, strategyMetricService)

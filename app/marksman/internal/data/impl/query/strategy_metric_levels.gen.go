@@ -40,6 +40,11 @@ func newStrategyMetricLevel(db *gorm.DB, opts ...gen.DOOption) strategyMetricLev
 	_strategyMetricLevel.Values = field.NewField(tableName, "values")
 	_strategyMetricLevel.DurationSec = field.NewInt64(tableName, "duration_sec")
 	_strategyMetricLevel.Status = field.NewInt32(tableName, "status")
+	_strategyMetricLevel.Level = strategyMetricLevelBelongsToLevel{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Level", "do.Level"),
+	}
 
 	_strategyMetricLevel.fillFieldMap()
 
@@ -63,6 +68,7 @@ type strategyMetricLevel struct {
 	Values       field.Field
 	DurationSec  field.Int64
 	Status       field.Int32
+	Level        strategyMetricLevelBelongsToLevel
 
 	fieldMap map[string]field.Expr
 }
@@ -108,7 +114,7 @@ func (s *strategyMetricLevel) GetFieldByName(fieldName string) (field.OrderExpr,
 }
 
 func (s *strategyMetricLevel) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 13)
+	s.fieldMap = make(map[string]field.Expr, 14)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
@@ -122,16 +128,101 @@ func (s *strategyMetricLevel) fillFieldMap() {
 	s.fieldMap["values"] = s.Values
 	s.fieldMap["duration_sec"] = s.DurationSec
 	s.fieldMap["status"] = s.Status
+
 }
 
 func (s strategyMetricLevel) clone(db *gorm.DB) strategyMetricLevel {
 	s.strategyMetricLevelDo.ReplaceConnPool(db.Statement.ConnPool)
+	s.Level.db = db.Session(&gorm.Session{Initialized: true})
+	s.Level.db.Statement.ConnPool = db.Statement.ConnPool
 	return s
 }
 
 func (s strategyMetricLevel) replaceDB(db *gorm.DB) strategyMetricLevel {
 	s.strategyMetricLevelDo.ReplaceDB(db)
+	s.Level.db = db.Session(&gorm.Session{})
 	return s
+}
+
+type strategyMetricLevelBelongsToLevel struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a strategyMetricLevelBelongsToLevel) Where(conds ...field.Expr) *strategyMetricLevelBelongsToLevel {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a strategyMetricLevelBelongsToLevel) WithContext(ctx context.Context) *strategyMetricLevelBelongsToLevel {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a strategyMetricLevelBelongsToLevel) Session(session *gorm.Session) *strategyMetricLevelBelongsToLevel {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a strategyMetricLevelBelongsToLevel) Model(m *do.StrategyMetricLevel) *strategyMetricLevelBelongsToLevelTx {
+	return &strategyMetricLevelBelongsToLevelTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a strategyMetricLevelBelongsToLevel) Unscoped() *strategyMetricLevelBelongsToLevel {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
+type strategyMetricLevelBelongsToLevelTx struct{ tx *gorm.Association }
+
+func (a strategyMetricLevelBelongsToLevelTx) Find() (result *do.Level, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a strategyMetricLevelBelongsToLevelTx) Append(values ...*do.Level) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a strategyMetricLevelBelongsToLevelTx) Replace(values ...*do.Level) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a strategyMetricLevelBelongsToLevelTx) Delete(values ...*do.Level) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a strategyMetricLevelBelongsToLevelTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a strategyMetricLevelBelongsToLevelTx) Count() int64 {
+	return a.tx.Count()
+}
+
+func (a strategyMetricLevelBelongsToLevelTx) Unscoped() *strategyMetricLevelBelongsToLevelTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type strategyMetricLevelDo struct{ gen.DO }

@@ -18,4 +18,5 @@ type StrategyMetric interface {
 	DeleteStrategyMetricLevel(ctx context.Context, uid snowflake.ID, strategyUID snowflake.ID) error
 	GetStrategyMetricLevel(ctx context.Context, uid snowflake.ID, strategyUID snowflake.ID) (*bo.StrategyMetricLevelItemBo, error)
 	StrategyMetricBindReceivers(ctx context.Context, req *bo.StrategyMetricBindReceiversBo) error
+	GetEvaluateMetricStrategies(ctx context.Context) ([]*bo.EvaluateMetricStrategyBo, error)
 }

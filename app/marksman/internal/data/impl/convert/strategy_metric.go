@@ -76,3 +76,23 @@ func ToStrategyMetricLevelDo(ctx context.Context, req *bo.SaveStrategyMetricLeve
 	model.WithNamespace(contextx.GetNamespace(ctx)).WithCreator(contextx.GetUserUID(ctx))
 	return model
 }
+
+func ToEvaluateMetricStrategyBo(strategy *do.StrategyMetric, strategyLevel *do.StrategyMetricLevel, datasource *do.Datasource) *bo.EvaluateMetricStrategyBo {
+	if strategy == nil {
+		return nil
+	}
+	return &bo.EvaluateMetricStrategyBo{
+		StrategyUID:  strategy.StrategyUID,
+		NamespaceUID: strategy.NamespaceUID,
+		Datasource:   ToDatasourceItemBo(datasource),
+		Expr:         strategy.Expr,
+		Labels:       strategy.Labels.Map(),
+		Summary:      strategy.Summary,
+		Description:  strategy.Description,
+		Level:        ToLevelItemBo(strategyLevel.Level),
+		Mode:         strategyLevel.Mode,
+		Condition:    strategyLevel.Condition,
+		Values:       strategyLevel.Values.List(),
+		DurationSec:  strategyLevel.DurationSec,
+	}
+}

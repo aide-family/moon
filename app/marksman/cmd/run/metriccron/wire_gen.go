@@ -8,8 +8,10 @@ package metriccron
 
 import (
 	"github.com/aide-family/marksman/cmd/run"
+	"github.com/aide-family/marksman/internal/biz"
 	"github.com/aide-family/marksman/internal/conf"
 	"github.com/aide-family/marksman/internal/data"
+	"github.com/aide-family/marksman/internal/data/impl"
 	"github.com/aide-family/marksman/internal/server"
 	"github.com/aide-family/marksman/internal/server/cron"
 	"github.com/aide-family/marksman/internal/service"
@@ -24,7 +26,19 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	if err != nil {
 		return nil, nil, err
 	}
-	evaluateService := service.NewEvaluateService()
+	namespace, err := impl.NewNamespaceRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	strategyMetric, err := impl.NewStrategyMetricRepository(dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	jobChannel := impl.NewJobChannel(dataData)
+	evaluate := biz.NewEvaluateBiz(namespace, strategyMetric, jobChannel)
+	evaluateService := service.NewEvaluateService(evaluate)
 	metricCronServer := cron.NewMetricCronServer(evaluateService, helper)
 	servers := server.RegisterMetricCronService(metricCronServer)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
