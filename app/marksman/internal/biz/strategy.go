@@ -29,12 +29,13 @@ type StrategyBiz struct {
 	strategyRepo      repository.Strategy
 }
 
-func (b *StrategyBiz) CreateStrategyGroup(ctx context.Context, req *bo.CreateStrategyGroupBo) error {
-	if err := b.strategyGroupRepo.CreateStrategyGroup(ctx, req); err != nil {
+func (b *StrategyBiz) CreateStrategyGroup(ctx context.Context, req *bo.CreateStrategyGroupBo) (snowflake.ID, error) {
+	uid, err := b.strategyGroupRepo.CreateStrategyGroup(ctx, req)
+	if err != nil {
 		b.helper.Errorw("msg", "create strategy group failed", "error", err, "req", req)
-		return merr.ErrorInternalServer("create strategy group failed").WithCause(err)
+		return 0, merr.ErrorInternalServer("create strategy group failed").WithCause(err)
 	}
-	return nil
+	return uid, nil
 }
 
 func (b *StrategyBiz) UpdateStrategyGroup(ctx context.Context, req *bo.UpdateStrategyGroupBo) error {
@@ -111,12 +112,13 @@ func (b *StrategyBiz) StrategyGroupBindReceivers(ctx context.Context, req *bo.St
 	return nil
 }
 
-func (b *StrategyBiz) CreateStrategy(ctx context.Context, req *bo.CreateStrategyBo) error {
-	if err := b.strategyRepo.CreateStrategy(ctx, req); err != nil {
+func (b *StrategyBiz) CreateStrategy(ctx context.Context, req *bo.CreateStrategyBo) (snowflake.ID, error) {
+	uid, err := b.strategyRepo.CreateStrategy(ctx, req)
+	if err != nil {
 		b.helper.Errorw("msg", "create strategy failed", "error", err, "req", req)
-		return merr.ErrorInternalServer("create strategy failed").WithCause(err)
+		return 0, merr.ErrorInternalServer("create strategy failed").WithCause(err)
 	}
-	return nil
+	return uid, nil
 }
 
 func (b *StrategyBiz) UpdateStrategy(ctx context.Context, req *bo.UpdateStrategyBo) error {

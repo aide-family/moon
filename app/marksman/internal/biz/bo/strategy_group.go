@@ -66,7 +66,10 @@ type StrategyGroupItemBo struct {
 	UpdatedAt time.Time
 }
 
-func (b *StrategyGroupItemBo) ToAPIV1StrategyGroupItem() *apiv1.StrategyGroupItem {
+func ToAPIV1StrategyGroupItem(b *StrategyGroupItemBo) *apiv1.StrategyGroupItem {
+	if b == nil {
+		return nil
+	}
 	return &apiv1.StrategyGroupItem{
 		Uid:       b.UID.Int64(),
 		Name:      b.Name,
@@ -87,15 +90,15 @@ type ListStrategyGroupBo struct {
 func NewListStrategyGroupBo(req *apiv1.ListStrategyGroupRequest) *ListStrategyGroupBo {
 	return &ListStrategyGroupBo{
 		PageRequestBo: NewPageRequestBo(req.GetPage(), req.GetPageSize()),
-		Keyword:      req.GetKeyword(),
-		Status:       req.GetStatus(),
+		Keyword:       req.GetKeyword(),
+		Status:        req.GetStatus(),
 	}
 }
 
 func ToAPIV1ListStrategyGroupReply(pageResponseBo *PageResponseBo[*StrategyGroupItemBo]) *apiv1.ListStrategyGroupReply {
 	items := make([]*apiv1.StrategyGroupItem, 0, len(pageResponseBo.GetItems()))
 	for _, item := range pageResponseBo.GetItems() {
-		items = append(items, item.ToAPIV1StrategyGroupItem())
+		items = append(items, ToAPIV1StrategyGroupItem(item))
 	}
 	return &apiv1.ListStrategyGroupReply{
 		Total:    pageResponseBo.GetTotal(),
@@ -128,7 +131,10 @@ type StrategyGroupItemSelectBo struct {
 	Tooltip  string
 }
 
-func (b *StrategyGroupItemSelectBo) ToAPIV1StrategyGroupItemSelect() *apiv1.StrategyGroupItemSelect {
+func ToAPIV1StrategyGroupItemSelect(b *StrategyGroupItemSelectBo) *apiv1.StrategyGroupItemSelect {
+	if b == nil {
+		return nil
+	}
 	return &apiv1.StrategyGroupItemSelect{
 		Value:    b.Value,
 		Label:    b.Label,
@@ -147,7 +153,7 @@ type SelectStrategyGroupBoResult struct {
 func ToAPIV1SelectStrategyGroupReply(result *SelectStrategyGroupBoResult) *apiv1.SelectStrategyGroupReply {
 	selectItems := make([]*apiv1.StrategyGroupItemSelect, 0, len(result.Items))
 	for _, item := range result.Items {
-		selectItems = append(selectItems, item.ToAPIV1StrategyGroupItemSelect())
+		selectItems = append(selectItems, ToAPIV1StrategyGroupItemSelect(item))
 	}
 	nextUID := uint32(0)
 	if result.LastUID.Int64() > 0 && result.LastUID.Int64() <= 0xFFFFFFFF {

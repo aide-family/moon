@@ -4,12 +4,12 @@ import (
 	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
 )
 
-// MetricSummaryItemBo is a metric list item: name, description, unit, type (no labels).
+// MetricSummaryItemBo is a metric list item: name, help, unit, type (no labels). Help aligns with Prometheus metadata.
 type MetricSummaryItemBo struct {
-	Name        string
-	Description string
-	Unit        string
-	Type        string
+	Name   string
+	Help   string
+	Unit   string
+	Type   string
 }
 
 // ToAPIV1ListMetricsReply converts BO to proto.
@@ -20,10 +20,10 @@ func ToAPIV1ListMetricsReply(rs []*MetricSummaryItemBo) *apiv1.ListMetricsReply 
 	out := make([]*apiv1.MetricSummaryItem, 0, len(rs))
 	for _, m := range rs {
 		out = append(out, &apiv1.MetricSummaryItem{
-			Name:        m.Name,
-			Description: m.Description,
-			Unit:        m.Unit,
-			Type:        m.Type,
+			Name: m.Name,
+			Help: m.Help,
+			Unit: m.Unit,
+			Type: m.Type,
 		})
 	}
 	return &apiv1.ListMetricsReply{Metrics: out}

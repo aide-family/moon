@@ -28,9 +28,12 @@ type levelRepository struct {
 	db *gorm.DB
 }
 
-func (r *levelRepository) CreateLevel(ctx context.Context, req *bo.CreateLevelBo) error {
+func (r *levelRepository) CreateLevel(ctx context.Context, req *bo.CreateLevelBo) (snowflake.ID, error) {
 	m := convert.ToLevelDo(ctx, req)
-	return query.Level.WithContext(ctx).Create(m)
+	if err := query.Level.WithContext(ctx).Create(m); err != nil {
+		return 0, err
+	}
+	return m.ID, nil
 }
 
 func (r *levelRepository) UpdateLevel(ctx context.Context, req *bo.UpdateLevelBo) error {

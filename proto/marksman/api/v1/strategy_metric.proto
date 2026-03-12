@@ -12,6 +12,7 @@ import "buf/validate/validate.proto";
 import "magicbox/enum/enum.proto";
 import "magicbox/enum/strategy.proto";
 import "marksman/api/v1/level.proto";
+import "marksman/api/v1/strategy.proto";
 
 service StrategyMetric {
 	rpc SaveStrategyMetric (SaveStrategyMetricRequest) returns (SaveStrategyMetricReply) {
@@ -34,18 +35,18 @@ service StrategyMetric {
 	}
 	rpc UpdateStrategyMetricLevelStatus (UpdateStrategyMetricLevelStatusRequest) returns (UpdateStrategyMetricLevelStatusReply) {
 		option (google.api.http) = {
-			put: "/v1/metric/strategy/{strategyUID}/level/{uid}/status"
+			put: "/v1/metric/strategy/{strategyUID}/level/{levelUID}/status"
 			body: "*"
 		};
 	}
 	rpc DeleteStrategyMetricLevel (DeleteStrategyMetricLevelRequest) returns (DeleteStrategyMetricLevelReply) {
 		option (google.api.http) = {
-			delete: "/v1/metric/strategy/{strategyUID}/level/{uid}"
+			delete: "/v1/metric/strategy/{strategyUID}/level/{levelUID}"
 		};
 	}
 	rpc GetStrategyMetricLevel (GetStrategyMetricLevelRequest) returns (StrategyMetricLevelItem) {
 		option (google.api.http) = {
-			get: "/v1/metric/strategy/{strategyUID}/level/{uid}"
+			get: "/v1/metric/strategy/{strategyUID}/level/{levelUID}"
 		};
 	}
 	rpc StrategyMetricBindReceivers (StrategyMetricBindReceiversRequest) returns (StrategyMetricBindReceiversReply) {
@@ -62,15 +63,15 @@ message StrategyMetricItem {
 	map<string, string> labels = 3;
 	string summary = 4;
 	string description = 5;
-	magicbox.enum.GlobalStatus status = 6;
-	repeated int64 datasourceUIDs = 7;
-	repeated StrategyMetricLevelItem levels = 8;
-	string createdAt = 9;
-	string updatedAt = 10;
+	repeated int64 datasourceUIDs = 6;
+	repeated StrategyMetricLevelItem levels = 7;
+	string createdAt = 8;	
+	string updatedAt = 9;
+	StrategyItem strategy = 10;
 }
 
 message StrategyMetricLevelItem {
-	int64 uid = 1;
+	int64 levelUID = 1;
 	int64 strategyUID = 2;
 	marksman.api.v1.LevelItem level = 3;
 	magicbox.enum.SampleMode mode = 4;
@@ -82,21 +83,11 @@ message StrategyMetricLevelItem {
 
 message SaveStrategyMetricRequest {
 	int64 strategyUID = 1 [(buf.validate.field).required = true];
-	string expr = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
-		min_len: 3,
-		max_len: 100,
-	}];
+	string expr = 2 [(buf.validate.field).required = true];
 	map<string, string> labels = 3;
-	repeated int64 datasourceUIDs = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		expression: "this.size() > 0",
-		message: "datasourceUIDs must be greater than 0",
-	}];
+	repeated int64 datasourceUIDs = 4;
 	string summary = 5;
 	string description = 6;
-	magicbox.enum.GlobalStatus status = 7 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
-		message: "status must be in ['ENABLED', 'DISABLED']",
-	}];
 }
 message SaveStrategyMetricReply {}
 
@@ -134,13 +125,13 @@ message SaveStrategyMetricLevelRequest {
 message SaveStrategyMetricLevelReply {}
 
 message UpdateStrategyMetricLevelStatusRequest {
-	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		expression: "this > 0",
-		message: "uid must be greater than 0",
-	}];
-	int64 strategyUID = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+	int64 strategyUID = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
 		expression: "this > 0",
 		message: "strategyUID must be greater than 0",
+	}];
+	int64 levelUID = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "levelUID must be greater than 0",
 	}];
 	magicbox.enum.GlobalStatus status = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
 		expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
@@ -150,25 +141,25 @@ message UpdateStrategyMetricLevelStatusRequest {
 message UpdateStrategyMetricLevelStatusReply {}
 
 message DeleteStrategyMetricLevelRequest {
-	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		expression: "this > 0",
-		message: "uid must be greater than 0",
-	}];
-	int64 strategyUID = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+	int64 strategyUID = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
 		expression: "this > 0",
 		message: "strategyUID must be greater than 0",
+	}];
+	int64 levelUID = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "levelUID must be greater than 0",
 	}];
 }
 message DeleteStrategyMetricLevelReply {}
 
 message GetStrategyMetricLevelRequest {
-	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		expression: "this > 0",
-		message: "uid must be greater than 0",
-	}];
-	int64 strategyUID = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+	int64 strategyUID = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
 		expression: "this > 0",
 		message: "strategyUID must be greater than 0",
+	}];
+	int64 levelUID = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "levelUID must be greater than 0",
 	}];
 }
 

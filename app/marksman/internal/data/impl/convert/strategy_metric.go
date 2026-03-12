@@ -9,17 +9,22 @@ import (
 	"github.com/aide-family/marksman/internal/data/impl/do"
 )
 
-func ToStrategyMetricItemBo(m *do.StrategyMetric, levels []*bo.StrategyMetricLevelItemBo) *bo.StrategyMetricItemBo {
+func ToStrategyMetricItemBo(m *do.StrategyMetric) *bo.StrategyMetricItemBo {
 	if m == nil {
 		return nil
 	}
+	levels := make([]*bo.StrategyMetricLevelItemBo, 0, len(m.StrategyLevels))
+	for _, level := range m.StrategyLevels {
+		levels = append(levels, ToStrategyMetricLevelItemBo(level, level.Level))
+	}
 	return &bo.StrategyMetricItemBo{
+		UID:            m.ID,
 		StrategyUID:    m.StrategyUID,
+		Strategy:       ToStrategyItemBo(m.Strategy),
 		Expr:           m.Expr,
 		Labels:         m.Labels.Map(),
 		Summary:        m.Summary,
 		Description:    m.Description,
-		Status:         m.Status,
 		DatasourceUIDs: m.DatasourceUIDs.List(),
 		Levels:         levels,
 		CreatedAt:      m.CreatedAt,
@@ -32,7 +37,7 @@ func ToStrategyMetricLevelItemBo(m *do.StrategyMetricLevel, levelDo *do.Level) *
 		return nil
 	}
 	return &bo.StrategyMetricLevelItemBo{
-		UID:         m.ID,
+		LevelUID:    m.LevelUID,
 		StrategyUID: m.StrategyUID,
 		Level:       ToLevelItemBo(levelDo),
 		Mode:        m.Mode,
@@ -53,7 +58,6 @@ func ToStrategyMetricDo(ctx context.Context, req *bo.SaveStrategyMetricBo) *do.S
 		Labels:         safety.NewMap(req.Labels),
 		Summary:        req.Summary,
 		Description:    req.Description,
-		Status:         req.Status,
 		DatasourceUIDs: safety.NewSlice(req.DatasourceUIDs),
 	}
 	model.WithNamespace(contextx.GetNamespace(ctx)).WithCreator(contextx.GetUserUID(ctx))

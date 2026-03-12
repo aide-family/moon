@@ -34,7 +34,7 @@ func (s *StrategyMetricService) GetStrategyMetric(ctx context.Context, req *apiv
 	if err != nil {
 		return nil, err
 	}
-	return item.ToAPIV1StrategyMetricItem(), nil
+	return bo.ToAPIV1StrategyMetricItem(item), nil
 }
 
 func (s *StrategyMetricService) SaveStrategyMetricLevel(ctx context.Context, req *apiv1.SaveStrategyMetricLevelRequest) (*apiv1.SaveStrategyMetricLevelReply, error) {
@@ -52,18 +52,18 @@ func (s *StrategyMetricService) UpdateStrategyMetricLevelStatus(ctx context.Cont
 }
 
 func (s *StrategyMetricService) DeleteStrategyMetricLevel(ctx context.Context, req *apiv1.DeleteStrategyMetricLevelRequest) (*apiv1.DeleteStrategyMetricLevelReply, error) {
-	if err := s.strategyMetricBiz.DeleteStrategyMetricLevel(ctx, snowflake.ParseInt64(req.GetUid()), snowflake.ParseInt64(req.GetStrategyUID())); err != nil {
+	if err := s.strategyMetricBiz.DeleteStrategyMetricLevel(ctx, snowflake.ParseInt64(req.GetLevelUID()), snowflake.ParseInt64(req.GetStrategyUID())); err != nil {
 		return nil, err
 	}
 	return &apiv1.DeleteStrategyMetricLevelReply{}, nil
 }
 
 func (s *StrategyMetricService) GetStrategyMetricLevel(ctx context.Context, req *apiv1.GetStrategyMetricLevelRequest) (*apiv1.StrategyMetricLevelItem, error) {
-	item, err := s.strategyMetricBiz.GetStrategyMetricLevel(ctx, snowflake.ParseInt64(req.GetUid()), snowflake.ParseInt64(req.GetStrategyUID()))
+	item, err := s.strategyMetricBiz.GetStrategyMetricLevel(ctx, snowflake.ParseInt64(req.GetLevelUID()), snowflake.ParseInt64(req.GetStrategyUID()))
 	if err != nil {
 		return nil, err
 	}
-	return item.ToAPIV1StrategyMetricLevelItem(), nil
+	return bo.ToAPIV1StrategyMetricLevelItem(item), nil
 }
 
 func (s *StrategyMetricService) StrategyMetricBindReceivers(ctx context.Context, req *apiv1.StrategyMetricBindReceiversRequest) (*apiv1.StrategyMetricBindReceiversReply, error) {

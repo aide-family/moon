@@ -42,9 +42,9 @@ func RegisterStrategyMetricHTTPServer(s *http.Server, srv StrategyMetricHTTPServ
 	r.POST("/v1/metric/strategy/{strategyUID}", _StrategyMetric_SaveStrategyMetric0_HTTP_Handler(srv))
 	r.GET("/v1/metric/strategy/{strategyUID}", _StrategyMetric_GetStrategyMetric0_HTTP_Handler(srv))
 	r.POST("/v1/metric/strategy/{strategyUID}/level", _StrategyMetric_SaveStrategyMetricLevel0_HTTP_Handler(srv))
-	r.PUT("/v1/metric/strategy/{strategyUID}/level/{uid}/status", _StrategyMetric_UpdateStrategyMetricLevelStatus0_HTTP_Handler(srv))
-	r.DELETE("/v1/metric/strategy/{strategyUID}/level/{uid}", _StrategyMetric_DeleteStrategyMetricLevel0_HTTP_Handler(srv))
-	r.GET("/v1/metric/strategy/{strategyUID}/level/{uid}", _StrategyMetric_GetStrategyMetricLevel0_HTTP_Handler(srv))
+	r.PUT("/v1/metric/strategy/{strategyUID}/level/{levelUID}/status", _StrategyMetric_UpdateStrategyMetricLevelStatus0_HTTP_Handler(srv))
+	r.DELETE("/v1/metric/strategy/{strategyUID}/level/{levelUID}", _StrategyMetric_DeleteStrategyMetricLevel0_HTTP_Handler(srv))
+	r.GET("/v1/metric/strategy/{strategyUID}/level/{levelUID}", _StrategyMetric_GetStrategyMetricLevel0_HTTP_Handler(srv))
 	r.POST("/v1/metric/strategy/{strategyUID}/receivers", _StrategyMetric_StrategyMetricBindReceivers0_HTTP_Handler(srv))
 }
 
@@ -234,7 +234,7 @@ func NewStrategyMetricHTTPClient(client *http.Client) StrategyMetricHTTPClient {
 
 func (c *StrategyMetricHTTPClientImpl) DeleteStrategyMetricLevel(ctx context.Context, in *DeleteStrategyMetricLevelRequest, opts ...http.CallOption) (*DeleteStrategyMetricLevelReply, error) {
 	var out DeleteStrategyMetricLevelReply
-	pattern := "/v1/metric/strategy/{strategyUID}/level/{uid}"
+	pattern := "/v1/metric/strategy/{strategyUID}/level/{levelUID}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationStrategyMetricDeleteStrategyMetricLevel))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -260,7 +260,7 @@ func (c *StrategyMetricHTTPClientImpl) GetStrategyMetric(ctx context.Context, in
 
 func (c *StrategyMetricHTTPClientImpl) GetStrategyMetricLevel(ctx context.Context, in *GetStrategyMetricLevelRequest, opts ...http.CallOption) (*StrategyMetricLevelItem, error) {
 	var out StrategyMetricLevelItem
-	pattern := "/v1/metric/strategy/{strategyUID}/level/{uid}"
+	pattern := "/v1/metric/strategy/{strategyUID}/level/{levelUID}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationStrategyMetricGetStrategyMetricLevel))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -312,7 +312,7 @@ func (c *StrategyMetricHTTPClientImpl) StrategyMetricBindReceivers(ctx context.C
 
 func (c *StrategyMetricHTTPClientImpl) UpdateStrategyMetricLevelStatus(ctx context.Context, in *UpdateStrategyMetricLevelStatusRequest, opts ...http.CallOption) (*UpdateStrategyMetricLevelStatusReply, error) {
 	var out UpdateStrategyMetricLevelStatusReply
-	pattern := "/v1/metric/strategy/{strategyUID}/level/{uid}/status"
+	pattern := "/v1/metric/strategy/{strategyUID}/level/{levelUID}/status"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationStrategyMetricUpdateStrategyMetricLevelStatus))
 	opts = append(opts, http.PathTemplate(pattern))

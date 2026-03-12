@@ -26,12 +26,13 @@ type LevelBiz struct {
 	levelRepo repository.Level
 }
 
-func (l *LevelBiz) CreateLevel(ctx context.Context, req *bo.CreateLevelBo) error {
-	if err := l.levelRepo.CreateLevel(ctx, req); err != nil {
+func (l *LevelBiz) CreateLevel(ctx context.Context, req *bo.CreateLevelBo) (snowflake.ID, error) {
+	uid, err := l.levelRepo.CreateLevel(ctx, req)
+	if err != nil {
 		l.helper.Errorw("msg", "create level failed", "error", err, "req", req)
-		return merr.ErrorInternalServer("create level failed").WithCause(err)
+		return 0, merr.ErrorInternalServer("create level failed").WithCause(err)
 	}
-	return nil
+	return uid, nil
 }
 
 func (l *LevelBiz) UpdateLevel(ctx context.Context, req *bo.UpdateLevelBo) error {

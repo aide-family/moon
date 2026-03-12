@@ -51,7 +51,7 @@ func (s *DatasourceService) GetDatasource(ctx context.Context, req *apiv1.GetDat
 	if err != nil {
 		return nil, err
 	}
-	return item.ToAPIV1DatasourceItem(), nil
+	return bo.ToAPIV1DatasourceItem(item), nil
 }
 
 func (s *DatasourceService) ListDatasource(ctx context.Context, req *apiv1.ListDatasourceRequest) (*apiv1.ListDatasourceReply, error) {

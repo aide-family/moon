@@ -61,7 +61,10 @@ type LevelItemBo struct {
 	UpdatedAt time.Time
 }
 
-func (b *LevelItemBo) ToAPIV1LevelItem() *apiv1.LevelItem {
+func ToAPIV1LevelItem(b *LevelItemBo) *apiv1.LevelItem {
+	if b == nil {
+		return nil
+	}
 	return &apiv1.LevelItem{
 		Uid:       b.UID.Int64(),
 		Name:      b.Name,
@@ -90,7 +93,7 @@ func NewListLevelBo(req *apiv1.ListLevelRequest) *ListLevelBo {
 func ToAPIV1ListLevelReply(pageResponseBo *PageResponseBo[*LevelItemBo]) *apiv1.ListLevelReply {
 	items := make([]*apiv1.LevelItem, 0, len(pageResponseBo.GetItems()))
 	for _, item := range pageResponseBo.GetItems() {
-		items = append(items, item.ToAPIV1LevelItem())
+		items = append(items, ToAPIV1LevelItem(item))
 	}
 	return &apiv1.ListLevelReply{
 		Total:    pageResponseBo.GetTotal(),
@@ -123,7 +126,10 @@ type LevelItemSelectBo struct {
 	Tooltip  string
 }
 
-func (b *LevelItemSelectBo) ToAPIV1LevelItemSelect() *apiv1.LevelItemSelect {
+func ToAPIV1LevelItemSelect(b *LevelItemSelectBo) *apiv1.LevelItemSelect {
+	if b == nil {
+		return nil
+	}
 	return &apiv1.LevelItemSelect{
 		Value:    b.Value,
 		Label:    b.Label,
@@ -142,7 +148,7 @@ type SelectLevelBoResult struct {
 func ToAPIV1SelectLevelReply(result *SelectLevelBoResult) *apiv1.SelectLevelReply {
 	selectItems := make([]*apiv1.LevelItemSelect, 0, len(result.Items))
 	for _, item := range result.Items {
-		selectItems = append(selectItems, item.ToAPIV1LevelItemSelect())
+		selectItems = append(selectItems, ToAPIV1LevelItemSelect(item))
 	}
 	return &apiv1.SelectLevelReply{
 		Items:   selectItems,

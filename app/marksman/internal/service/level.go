@@ -24,10 +24,11 @@ type LevelService struct {
 
 func (s *LevelService) CreateLevel(ctx context.Context, req *apiv1.CreateLevelRequest) (*apiv1.CreateLevelReply, error) {
 	createBo := bo.NewCreateLevelBo(req)
-	if err := s.levelBiz.CreateLevel(ctx, createBo); err != nil {
+	uid, err := s.levelBiz.CreateLevel(ctx, createBo)
+	if err != nil {
 		return nil, err
 	}
-	return &apiv1.CreateLevelReply{}, nil
+	return &apiv1.CreateLevelReply{Uid: uid.Int64()}, nil
 }
 
 func (s *LevelService) UpdateLevel(ctx context.Context, req *apiv1.UpdateLevelRequest) (*apiv1.UpdateLevelReply, error) {
@@ -58,7 +59,7 @@ func (s *LevelService) GetLevel(ctx context.Context, req *apiv1.GetLevelRequest)
 	if err != nil {
 		return nil, err
 	}
-	return item.ToAPIV1LevelItem(), nil
+	return bo.ToAPIV1LevelItem(item), nil
 }
 
 func (s *LevelService) ListLevel(ctx context.Context, req *apiv1.ListLevelRequest) (*apiv1.ListLevelReply, error) {

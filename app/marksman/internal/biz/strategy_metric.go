@@ -12,10 +12,12 @@ import (
 )
 
 func NewStrategyMetric(
+	strategyRepo repository.Strategy,
 	strategyMetricRepo repository.StrategyMetric,
 	helper *klog.Helper,
 ) *StrategyMetricBiz {
 	return &StrategyMetricBiz{
+		strategyRepo:       strategyRepo,
 		strategyMetricRepo: strategyMetricRepo,
 		helper:             klog.NewHelper(klog.With(helper.Logger(), "biz", "strategy_metric")),
 	}
@@ -23,6 +25,7 @@ func NewStrategyMetric(
 
 type StrategyMetricBiz struct {
 	helper             *klog.Helper
+	strategyRepo       repository.Strategy
 	strategyMetricRepo repository.StrategyMetric
 }
 
@@ -47,10 +50,21 @@ func (b *StrategyMetricBiz) SaveStrategyMetric(ctx context.Context, req *bo.Save
 }
 
 func (b *StrategyMetricBiz) GetStrategyMetric(ctx context.Context, strategyUID snowflake.ID) (*bo.StrategyMetricItemBo, error) {
+	strategyBo, err := b.strategyRepo.GetStrategy(ctx, strategyUID)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return nil, merr.ErrorNotFound("strategy not found")
+		}
+		b.helper.Errorw("msg", "get strategy failed", "error", err, "strategyUID", strategyUID)
+		return nil, merr.ErrorInternalServer("get strategy failed").WithCause(err)
+	}
 	item, err := b.strategyMetricRepo.GetStrategyMetric(ctx, strategyUID)
 	if err != nil {
 		if merr.IsNotFound(err) {
-			return nil, merr.ErrorNotFound("strategy metric %d not found", strategyUID.Int64())
+			return &bo.StrategyMetricItemBo{
+				StrategyUID: strategyUID,
+				Strategy:    strategyBo,
+			}, nil
 		}
 		b.helper.Errorw("msg", "get strategy metric failed", "error", err, "strategyUID", strategyUID)
 		return nil, merr.ErrorInternalServer("get strategy metric failed").WithCause(err)
@@ -59,7 +73,7 @@ func (b *StrategyMetricBiz) GetStrategyMetric(ctx context.Context, strategyUID s
 }
 
 func (b *StrategyMetricBiz) SaveStrategyMetricLevel(ctx context.Context, req *bo.SaveStrategyMetricLevelBo) error {
-	_, err := b.strategyMetricRepo.GetStrategyMetricLevel(ctx, req.StrategyUID, req.LevelUID)
+	_, err := b.strategyMetricRepo.GetStrategyMetricLevelByStrategyAndLevel(ctx, req.StrategyUID, req.LevelUID)
 	if err != nil {
 		if !merr.IsNotFound(err) {
 			b.helper.Errorw("msg", "get strategy metric level failed", "error", err, "strategyUID", req.StrategyUID, "levelUID", req.LevelUID)
@@ -89,24 +103,24 @@ func (b *StrategyMetricBiz) UpdateStrategyMetricLevelStatus(ctx context.Context,
 	return nil
 }
 
-func (b *StrategyMetricBiz) DeleteStrategyMetricLevel(ctx context.Context, uid snowflake.ID, strategyUID snowflake.ID) error {
-	if err := b.strategyMetricRepo.DeleteStrategyMetricLevel(ctx, uid, strategyUID); err != nil {
+func (b *StrategyMetricBiz) DeleteStrategyMetricLevel(ctx context.Context, levelUID snowflake.ID, strategyUID snowflake.ID) error {
+	if err := b.strategyMetricRepo.DeleteStrategyMetricLevel(ctx, levelUID, strategyUID); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("strategy metric level not found")
 		}
-		b.helper.Errorw("msg", "delete strategy metric level failed", "error", err, "uid", uid)
+		b.helper.Errorw("msg", "delete strategy metric level failed", "error", err, "levelUID", levelUID)
 		return merr.ErrorInternalServer("delete strategy metric level failed").WithCause(err)
 	}
 	return nil
 }
 
-func (b *StrategyMetricBiz) GetStrategyMetricLevel(ctx context.Context, uid snowflake.ID, strategyUID snowflake.ID) (*bo.StrategyMetricLevelItemBo, error) {
-	item, err := b.strategyMetricRepo.GetStrategyMetricLevel(ctx, uid, strategyUID)
+func (b *StrategyMetricBiz) GetStrategyMetricLevel(ctx context.Context, levelUID snowflake.ID, strategyUID snowflake.ID) (*bo.StrategyMetricLevelItemBo, error) {
+	item, err := b.strategyMetricRepo.GetStrategyMetricLevelByStrategyAndLevel(ctx, strategyUID, levelUID)
 	if err != nil {
 		if merr.IsNotFound(err) {
 			return nil, merr.ErrorNotFound("strategy metric level not found")
 		}
-		b.helper.Errorw("msg", "get strategy metric level failed", "error", err, "uid", uid)
+		b.helper.Errorw("msg", "get strategy metric level failed", "error", err, "levelUID", levelUID)
 		return nil, merr.ErrorInternalServer("get strategy metric level failed").WithCause(err)
 	}
 	return item, nil

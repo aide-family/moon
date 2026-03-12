@@ -29,9 +29,12 @@ type strategyRepository struct {
 	db *gorm.DB
 }
 
-func (r *strategyRepository) CreateStrategy(ctx context.Context, req *bo.CreateStrategyBo) error {
+func (r *strategyRepository) CreateStrategy(ctx context.Context, req *bo.CreateStrategyBo) (snowflake.ID, error) {
 	m := convert.ToStrategyDo(ctx, req)
-	return query.Strategy.WithContext(ctx).Create(m)
+	if err := query.Strategy.WithContext(ctx).Create(m); err != nil {
+		return 0, err
+	}
+	return m.ID, nil
 }
 
 func (r *strategyRepository) UpdateStrategy(ctx context.Context, req *bo.UpdateStrategyBo) error {

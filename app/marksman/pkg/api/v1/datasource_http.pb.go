@@ -38,7 +38,7 @@ type DatasourceHTTPServer interface {
 	// GetMetricDetail GetMetricLabelDetail returns one metric's labels and each label's values (detail view for a single metric).
 	GetMetricDetail(context.Context, *GetMetricDetailRequest) (*MetricDetailItem, error)
 	ListDatasource(context.Context, *ListDatasourceRequest) (*ListDatasourceReply, error)
-	// ListMetrics ListMetrics returns the list of metric names with basic metadata (name, description, unit, type) for a metrics datasource.
+	// ListMetrics ListMetrics returns the list of metric names with basic metadata (name, help, unit, type) for a metrics datasource.
 	ListMetrics(context.Context, *ListMetricsRequest) (*ListMetricsReply, error)
 	SelectDatasource(context.Context, *SelectDatasourceRequest) (*SelectDatasourceReply, error)
 	UpdateDatasource(context.Context, *UpdateDatasourceRequest) (*UpdateDatasourceReply, error)
@@ -261,7 +261,7 @@ type DatasourceHTTPClient interface {
 	// GetMetricDetail GetMetricLabelDetail returns one metric's labels and each label's values (detail view for a single metric).
 	GetMetricDetail(ctx context.Context, req *GetMetricDetailRequest, opts ...http.CallOption) (rsp *MetricDetailItem, err error)
 	ListDatasource(ctx context.Context, req *ListDatasourceRequest, opts ...http.CallOption) (rsp *ListDatasourceReply, err error)
-	// ListMetrics ListMetrics returns the list of metric names with basic metadata (name, description, unit, type) for a metrics datasource.
+	// ListMetrics ListMetrics returns the list of metric names with basic metadata (name, help, unit, type) for a metrics datasource.
 	ListMetrics(ctx context.Context, req *ListMetricsRequest, opts ...http.CallOption) (rsp *ListMetricsReply, err error)
 	SelectDatasource(ctx context.Context, req *SelectDatasourceRequest, opts ...http.CallOption) (rsp *SelectDatasourceReply, err error)
 	UpdateDatasource(ctx context.Context, req *UpdateDatasourceRequest, opts ...http.CallOption) (rsp *UpdateDatasourceReply, err error)
@@ -355,7 +355,7 @@ func (c *DatasourceHTTPClientImpl) ListDatasource(ctx context.Context, in *ListD
 	return &out, nil
 }
 
-// ListMetrics ListMetrics returns the list of metric names with basic metadata (name, description, unit, type) for a metrics datasource.
+// ListMetrics ListMetrics returns the list of metric names with basic metadata (name, help, unit, type) for a metrics datasource.
 func (c *DatasourceHTTPClientImpl) ListMetrics(ctx context.Context, in *ListMetricsRequest, opts ...http.CallOption) (*ListMetricsReply, error) {
 	var out ListMetricsReply
 	pattern := "/v1/datasource/{uid}/metrics"

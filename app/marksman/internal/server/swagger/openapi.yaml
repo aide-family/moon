@@ -111,7 +111,7 @@ paths:
         get:
             tags:
                 - Datasource
-            description: ListMetrics returns the list of metric names with basic metadata (name, description, unit, type) for a metrics datasource.
+            description: ListMetrics returns the list of metric names with basic metadata (name, help, unit, type) for a metrics datasource.
             operationId: Datasource_ListMetrics
             parameters:
                 - name: uid
@@ -480,7 +480,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.SaveStrategyMetricLevelReply'
-    /v1/metric/strategy/{strategyUID}/level/{uid}:
+    /v1/metric/strategy/{strategyUID}/level/{levelUID}:
         get:
             tags:
                 - StrategyMetric
@@ -491,7 +491,7 @@ paths:
                   required: true
                   schema:
                     type: string
-                - name: uid
+                - name: levelUID
                   in: path
                   required: true
                   schema:
@@ -513,7 +513,7 @@ paths:
                   required: true
                   schema:
                     type: string
-                - name: uid
+                - name: levelUID
                   in: path
                   required: true
                   schema:
@@ -525,7 +525,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.DeleteStrategyMetricLevelReply'
-    /v1/metric/strategy/{strategyUID}/level/{uid}/status:
+    /v1/metric/strategy/{strategyUID}/level/{levelUID}/status:
         put:
             tags:
                 - StrategyMetric
@@ -536,7 +536,7 @@ paths:
                   required: true
                   schema:
                     type: string
-                - name: uid
+                - name: levelUID
                   in: path
                   required: true
                   schema:
@@ -939,7 +939,9 @@ components:
                     type: string
         marksman.api.v1.CreateLevelReply:
             type: object
-            properties: {}
+            properties:
+                uid:
+                    type: string
         marksman.api.v1.CreateLevelRequest:
             type: object
             properties:
@@ -953,7 +955,9 @@ components:
                         type: string
         marksman.api.v1.CreateStrategyGroupReply:
             type: object
-            properties: {}
+            properties:
+                uid:
+                    type: string
         marksman.api.v1.CreateStrategyGroupRequest:
             type: object
             properties:
@@ -967,7 +971,9 @@ components:
                         type: string
         marksman.api.v1.CreateStrategyReply:
             type: object
-            properties: {}
+            properties:
+                uid:
+                    type: string
         marksman.api.v1.CreateStrategyRequest:
             type: object
             properties:
@@ -1186,13 +1192,13 @@ components:
             properties:
                 name:
                     type: string
-                description:
+                help:
                     type: string
                 unit:
                     type: string
                 type:
                     type: string
-            description: 'MetricSummaryItem: metric list item (no label detail).'
+            description: 'MetricSummaryItem: metric list item (no label detail). Uses help to align with Prometheus metadata.'
         marksman.api.v1.SaveStrategyMetricLevelReply:
             type: object
             properties: {}
@@ -1242,9 +1248,6 @@ components:
                     type: string
                 description:
                     type: string
-                status:
-                    type: integer
-                    format: enum
         marksman.api.v1.SelectDatasourceItem:
             type: object
             properties:
@@ -1373,6 +1376,8 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                strategyGroup:
+                    $ref: '#/components/schemas/marksman.api.v1.StrategyGroupItem'
         marksman.api.v1.StrategyMetricBindReceiversReply:
             type: object
             properties: {}
@@ -1403,9 +1408,6 @@ components:
                     type: string
                 description:
                     type: string
-                status:
-                    type: integer
-                    format: enum
                 datasourceUIDs:
                     type: array
                     items:
@@ -1418,10 +1420,12 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                strategy:
+                    $ref: '#/components/schemas/marksman.api.v1.StrategyItem'
         marksman.api.v1.StrategyMetricLevelItem:
             type: object
             properties:
-                uid:
+                levelUID:
                     type: string
                 strategyUID:
                     type: string
@@ -1528,9 +1532,9 @@ components:
         marksman.api.v1.UpdateStrategyMetricLevelStatusRequest:
             type: object
             properties:
-                uid:
-                    type: string
                 strategyUID:
+                    type: string
+                levelUID:
                     type: string
                 status:
                     type: integer

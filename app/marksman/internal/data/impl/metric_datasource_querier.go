@@ -20,7 +20,7 @@ func NewMetricDatasourceQuerier() repository.MetricDatasourceQuerier {
 
 type metricDatasourceQuerier struct{}
 
-// ListMetrics returns metric list with name, description, unit, type only (no label queries).
+// ListMetrics returns metric list with name, help, unit, type only (no label queries).
 func (q *metricDatasourceQuerier) ListMetrics(ctx context.Context, ds *bo.DatasourceItemBo) ([]*bo.MetricSummaryItemBo, error) {
 	client, err := NewMetricClientFromDatasource(ds)
 	if err != nil {
@@ -52,7 +52,7 @@ func (q *metricDatasourceQuerier) ListMetrics(ctx context.Context, ds *bo.Dataso
 		if metaResp != nil {
 			metricMetadata, ok := metaResp[string(name)]
 			if ok && len(metricMetadata) > 0 {
-				item.Description = metricMetadata[0].Help
+				item.Help = metricMetadata[0].Help
 				item.Unit = metricMetadata[0].Unit
 				item.Type = string(metricMetadata[0].Type)
 			}

@@ -64,7 +64,10 @@ type DatasourceItemBo struct {
 	Remark    string
 }
 
-func (b *DatasourceItemBo) ToAPIV1DatasourceItem() *apiv1.DatasourceItem {
+func ToAPIV1DatasourceItem(b *DatasourceItemBo) *apiv1.DatasourceItem {
+	if b == nil {
+		return nil
+	}
 	return &apiv1.DatasourceItem{
 		Uid:       b.UID.Int64(),
 		Name:      b.Name,
@@ -100,7 +103,7 @@ func NewListDatasourceBo(req *apiv1.ListDatasourceRequest) *ListDatasourceBo {
 func ToAPIV1ListDatasourceReply(pageResponseBo *PageResponseBo[*DatasourceItemBo]) *apiv1.ListDatasourceReply {
 	items := make([]*apiv1.DatasourceItem, 0, len(pageResponseBo.GetItems()))
 	for _, item := range pageResponseBo.GetItems() {
-		items = append(items, item.ToAPIV1DatasourceItem())
+		items = append(items, ToAPIV1DatasourceItem(item))
 	}
 	return &apiv1.ListDatasourceReply{
 		Total:    pageResponseBo.GetTotal(),
@@ -142,7 +145,7 @@ type SelectDatasourceItemBo struct {
 	URL      string
 }
 
-func (b *SelectDatasourceItemBo) ToAPIV1SelectDatasourceItem() *apiv1.SelectDatasourceItem {
+func ToAPIV1SelectDatasourceItem(b *SelectDatasourceItemBo) *apiv1.SelectDatasourceItem {
 	if b == nil {
 		return nil
 	}
@@ -167,7 +170,7 @@ type SelectDatasourceReplyBo struct {
 func ToAPIV1SelectDatasourceReply(replyBo *SelectDatasourceReplyBo) *apiv1.SelectDatasourceReply {
 	items := make([]*apiv1.SelectDatasourceItem, 0, len(replyBo.Items))
 	for _, item := range replyBo.Items {
-		items = append(items, item.ToAPIV1SelectDatasourceItem())
+		items = append(items, ToAPIV1SelectDatasourceItem(item))
 	}
 	return &apiv1.SelectDatasourceReply{
 		Items:   items,

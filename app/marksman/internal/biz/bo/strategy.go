@@ -76,19 +76,24 @@ type StrategyItemBo struct {
 	StrategyGroupUID snowflake.ID
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
+	StrategyGroup    *StrategyGroupItemBo
 }
 
-func (b *StrategyItemBo) ToAPIV1StrategyItem() *apiv1.StrategyItem {
+func ToAPIV1StrategyItem(b *StrategyItemBo) *apiv1.StrategyItem {
+	if b == nil {
+		return nil
+	}
 	return &apiv1.StrategyItem{
-		Uid:       b.UID.Int64(),
-		Name:      b.Name,
-		Remark:    b.Remark,
-		Type:      b.Type,
-		Driver:    b.Driver,
-		Status:    b.Status,
-		Metadata:  b.Metadata,
-		CreatedAt: b.CreatedAt.Format(time.DateTime),
-		UpdatedAt: b.UpdatedAt.Format(time.DateTime),
+		Uid:           b.UID.Int64(),
+		Name:          b.Name,
+		Remark:        b.Remark,
+		Type:          b.Type,
+		Driver:        b.Driver,
+		Status:        b.Status,
+		Metadata:      b.Metadata,
+		StrategyGroup: ToAPIV1StrategyGroupItem(b.StrategyGroup),
+		CreatedAt:     b.CreatedAt.Format(time.DateTime),
+		UpdatedAt:     b.UpdatedAt.Format(time.DateTime),
 	}
 }
 
@@ -115,7 +120,7 @@ func NewListStrategyBo(req *apiv1.ListStrategyRequest) *ListStrategyBo {
 func ToAPIV1ListStrategyReply(pageResponseBo *PageResponseBo[*StrategyItemBo]) *apiv1.ListStrategyReply {
 	items := make([]*apiv1.StrategyItem, 0, len(pageResponseBo.GetItems()))
 	for _, item := range pageResponseBo.GetItems() {
-		items = append(items, item.ToAPIV1StrategyItem())
+		items = append(items, ToAPIV1StrategyItem(item))
 	}
 	return &apiv1.ListStrategyReply{
 		Total:    pageResponseBo.GetTotal(),

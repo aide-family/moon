@@ -33,65 +33,87 @@ type strategyMetricRepository struct {
 // GetEvaluateMetricStrategies implements [repository.StrategyMetric].
 func (r *strategyMetricRepository) GetEvaluateMetricStrategies(ctx context.Context) ([]*bo.EvaluateMetricStrategyBo, error) {
 	ns := contextx.GetNamespace(ctx)
-	strategyMetricQuery := query.StrategyMetric
-	strategies, err := strategyMetricQuery.WithContext(ctx).Where(
-		strategyMetricQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED)),
-		strategyMetricQuery.NamespaceUID.Eq(ns.Int64()),
-	).Find()
+	strategyGroupQuery := query.StrategyGroup
+	strategyGroupQueryWrapper := strategyGroupQuery.WithContext(ctx)
+	strategyGroupQueryWrapper = strategyGroupQueryWrapper.Where(
+		strategyGroupQuery.NamespaceUID.Eq(ns.Int64()),
+		strategyGroupQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED)),
+	)
+	strategyGroups, err := strategyGroupQueryWrapper.Select(strategyGroupQuery.ID).Find()
 	if err != nil {
 		return nil, err
 	}
-	datasourceIds := make([]int64, 0, len(strategies))
-	strategyIds := make([]int64, 0, len(strategies))
-	strategyMap := make(map[int64]*do.StrategyMetric)
-	for _, strategy := range strategies {
-		datasourceIds = append(datasourceIds, strategy.DatasourceUIDs.List()...)
-		strategyIds = append(strategyIds, strategy.StrategyUID.Int64())
-		strategyMap[strategy.StrategyUID.Int64()] = strategy
-	}
-	datasourceIdsSlice := safety.NewSlice(datasourceIds).Sort(func(a int64, b int64) bool {
-		return a < b
-	}).Uniq(func(a int64, b int64) bool {
-		return a == b
-	})
-	datasourceIds = datasourceIdsSlice.List()
-	if len(strategyIds) == 0 || len(datasourceIds) == 0 {
+	if len(strategyGroups) == 0 {
 		return nil, nil
 	}
-
-	strategyMetricLevelQuery := query.StrategyMetricLevel
-	strategyLevels, err := strategyMetricLevelQuery.WithContext(ctx).Where(
-		strategyMetricLevelQuery.StrategyUID.In(strategyIds...),
-		strategyMetricLevelQuery.NamespaceUID.Eq(ns.Int64()),
-	).Preload(field.Associations).Find()
+	strategyGroupIds := make([]int64, 0, len(strategyGroups))
+	for _, strategyGroup := range strategyGroups {
+		strategyGroupIds = append(strategyGroupIds, strategyGroup.ID.Int64())
+	}
+	strategyQuery := query.Strategy
+	strategyQueryWrapper := strategyQuery.WithContext(ctx)
+	strategyQueryWrapper = strategyQueryWrapper.Where(
+		strategyQuery.NamespaceUID.Eq(ns.Int64()),
+		strategyQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED)),
+		strategyQuery.StrategyGroupUID.In(strategyGroupIds...),
+	)
+	var strategyIds []int64
+	strategies, err := strategyQueryWrapper.Select(strategyQuery.ID).Find()
 	if err != nil {
 		return nil, err
 	}
-	datasourceQuery := query.Datasource
-	datasourceList, err := datasourceQuery.WithContext(ctx).Where(
-		datasourceQuery.ID.In(datasourceIds...),
-		datasourceQuery.NamespaceUID.Eq(ns.Int64()),
+	if len(strategies) == 0 {
+		return nil, nil
+	}
+	for _, strategy := range strategies {
+		strategyIds = append(strategyIds, strategy.ID.Int64())
+	}
+	strategyMetricQuery := query.StrategyMetric
+	strategyMetricLevelQuery := query.StrategyMetricLevel
+	levelQuery := query.Level
+	strategyMetrics, err := strategyMetricQuery.WithContext(ctx).Where(
+		strategyMetricQuery.NamespaceUID.Eq(ns.Int64()),
+		strategyMetricQuery.StrategyUID.In(strategyIds...),
+	).Preload(
+		strategyMetricQuery.StrategyLevels.On(strategyMetricLevelQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED))),
+		strategyMetricQuery.StrategyLevels.Level.On(levelQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED))),
 	).Find()
+	if err != nil {
+		return nil, err
+	}
+
+	datasourceQuery := query.Datasource
+	datasourceQueryWrapper := datasourceQuery.WithContext(ctx)
+	datasourceQueryWrapper = datasourceQueryWrapper.Where(
+		datasourceQuery.NamespaceUID.Eq(ns.Int64()),
+		datasourceQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED)),
+	)
+	datasourceList, err := datasourceQueryWrapper.Find()
 	if err != nil {
 		return nil, err
 	}
 	datasourceMap := make(map[int64]*do.Datasource)
+	datasourceIds := make([]int64, 0, len(datasourceList))
 	for _, datasource := range datasourceList {
 		datasourceMap[datasource.ID.Int64()] = datasource
+		datasourceIds = append(datasourceIds, datasource.ID.Int64())
 	}
 
 	evaluateStrategies := make([]*bo.EvaluateMetricStrategyBo, 0, len(strategies))
-	for _, strategyLevel := range strategyLevels {
-		strategyDetail, ok := strategyMap[strategyLevel.StrategyUID.Int64()]
-		if !ok {
-			continue
-		}
-		for _, datasourceUID := range strategyDetail.DatasourceUIDs.List() {
-			datasourceDetail, ok := datasourceMap[datasourceUID]
-			if !ok {
-				continue
+	for _, strategyDetail := range strategyMetrics {
+		for _, strategyLevel := range strategyDetail.StrategyLevels {
+			datasources := strategyDetail.DatasourceUIDs.List()
+			if len(datasources) == 0 {
+				datasources = datasourceIds
 			}
-			evaluateStrategies = append(evaluateStrategies, convert.ToEvaluateMetricStrategyBo(strategyDetail, strategyLevel, datasourceDetail))
+
+			for _, datasourceUID := range datasources {
+				datasourceDetail, ok := datasourceMap[datasourceUID]
+				if !ok {
+					continue
+				}
+				evaluateStrategies = append(evaluateStrategies, convert.ToEvaluateMetricStrategyBo(strategyDetail, strategyLevel, datasourceDetail))
+			}
 		}
 	}
 	return evaluateStrategies, nil
@@ -109,7 +131,6 @@ func (r *strategyMetricRepository) UpdateStrategyMetric(ctx context.Context, req
 		strategyMetricMutation.Labels.Value(safety.NewMap(req.Labels)),
 		strategyMetricMutation.Summary.Value(req.Summary),
 		strategyMetricMutation.Description.Value(req.Description),
-		strategyMetricMutation.Status.Value(int32(req.Status)),
 		strategyMetricMutation.DatasourceUIDs.Value(safety.NewSlice(req.DatasourceUIDs)),
 	}
 	_, err := strategyMetricMutation.WithContext(ctx).Where(strategyMetricMutation.StrategyUID.Eq(req.StrategyUID.Int64())).UpdateColumnSimple(columns...)
@@ -118,49 +139,21 @@ func (r *strategyMetricRepository) UpdateStrategyMetric(ctx context.Context, req
 
 func (r *strategyMetricRepository) GetStrategyMetric(ctx context.Context, strategyUID snowflake.ID) (*bo.StrategyMetricItemBo, error) {
 	strategyMetricQuery := query.StrategyMetric
-	m, err := strategyMetricQuery.WithContext(ctx).Where(strategyMetricQuery.StrategyUID.Eq(strategyUID.Int64())).First()
+	wrapper := strategyMetricQuery.WithContext(ctx).Where(strategyMetricQuery.StrategyUID.Eq(strategyUID.Int64()))
+	wrapper = wrapper.Preload(
+		field.Associations,
+		strategyMetricQuery.StrategyLevels.Level,
+		strategyMetricQuery.Strategy.StrategyGroup,
+	)
+	m, err := wrapper.First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotFound("strategy metric not found")
 		}
 		return nil, err
 	}
-	// load levels
-	strategyMetricLevelQuery := query.StrategyMetricLevel
-	strategyMetricLevelDos, err := strategyMetricLevelQuery.WithContext(ctx).Where(strategyMetricLevelQuery.StrategyUID.Eq(strategyUID.Int64())).Find()
-	if err != nil {
-		return nil, err
-	}
 
-	levelUIDs := make([]snowflake.ID, 0, len(strategyMetricLevelDos))
-	for _, row := range strategyMetricLevelDos {
-		levelUIDs = append(levelUIDs, row.LevelUID)
-	}
-	levelUIDsSlice := safety.NewSlice(levelUIDs).Sort(func(a snowflake.ID, b snowflake.ID) bool {
-		return a < b
-	}).Uniq(func(a snowflake.ID, b snowflake.ID) bool {
-		return a == b
-	})
-
-	levelUIDsInt64s := safety.ConvertSlice(levelUIDsSlice.List(), func(v snowflake.ID) int64 {
-		return v.Int64()
-	})
-	levelQuery := query.Level
-	levelDos, err := levelQuery.WithContext(ctx).Where(levelQuery.ID.In(levelUIDsInt64s...)).Find()
-	if err != nil {
-		return nil, err
-	}
-	levelMap := make(map[snowflake.ID]*do.Level)
-	for _, levelDo := range levelDos {
-		levelMap[levelDo.ID] = levelDo
-	}
-
-	levels := make([]*bo.StrategyMetricLevelItemBo, 0, len(strategyMetricLevelDos))
-	for _, row := range strategyMetricLevelDos {
-		levelDo := levelMap[row.LevelUID]
-		levels = append(levels, convert.ToStrategyMetricLevelItemBo(row, levelDo))
-	}
-	return convert.ToStrategyMetricItemBo(m, levels), nil
+	return convert.ToStrategyMetricItemBo(m), nil
 }
 
 func (r *strategyMetricRepository) CreateStrategyMetricLevel(ctx context.Context, req *bo.SaveStrategyMetricLevelBo) error {
@@ -188,7 +181,7 @@ func (r *strategyMetricRepository) UpdateStrategyMetricLevelStatus(ctx context.C
 	sml := query.StrategyMetricLevel
 	info, err := sml.WithContext(ctx).Where(
 		sml.StrategyUID.Eq(req.StrategyUID.Int64()),
-		sml.ID.Eq(req.UID.Int64()),
+		sml.LevelUID.Eq(req.LevelUID.Int64()),
 	).Update(sml.Status, req.Status)
 	if err != nil {
 		return err
@@ -199,11 +192,11 @@ func (r *strategyMetricRepository) UpdateStrategyMetricLevelStatus(ctx context.C
 	return nil
 }
 
-func (r *strategyMetricRepository) DeleteStrategyMetricLevel(ctx context.Context, uid snowflake.ID, strategyUID snowflake.ID) error {
+func (r *strategyMetricRepository) DeleteStrategyMetricLevel(ctx context.Context, levelUID snowflake.ID, strategyUID snowflake.ID) error {
 	sml := query.StrategyMetricLevel
 	info, err := sml.WithContext(ctx).Where(
 		sml.StrategyUID.Eq(strategyUID.Int64()),
-		sml.ID.Eq(uid.Int64()),
+		sml.LevelUID.Eq(levelUID.Int64()),
 	).Delete()
 	if err != nil {
 		return err
@@ -214,11 +207,11 @@ func (r *strategyMetricRepository) DeleteStrategyMetricLevel(ctx context.Context
 	return nil
 }
 
-func (r *strategyMetricRepository) GetStrategyMetricLevel(ctx context.Context, uid snowflake.ID, strategyUID snowflake.ID) (*bo.StrategyMetricLevelItemBo, error) {
+func (r *strategyMetricRepository) GetStrategyMetricLevelByStrategyAndLevel(ctx context.Context, strategyUID snowflake.ID, levelUID snowflake.ID) (*bo.StrategyMetricLevelItemBo, error) {
 	sml := query.StrategyMetricLevel
 	row, err := sml.WithContext(ctx).Where(
 		sml.StrategyUID.Eq(strategyUID.Int64()),
-		sml.ID.Eq(uid.Int64()),
+		sml.LevelUID.Eq(levelUID.Int64()),
 	).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

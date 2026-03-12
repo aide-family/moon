@@ -103,7 +103,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	strategyMetricBiz := biz.NewStrategyMetric(strategyMetric, helper)
+	strategyMetricBiz := biz.NewStrategyMetric(strategy, strategyMetric, helper)
 	strategyMetricService := service.NewStrategyMetricService(strategyMetricBiz)
 	servers := server.RegisterGRPCService(bc, grpcServer, healthService, namespaceService, authService, selfService, userService, memberService, captchaService, levelService, datasourceService, strategyService, strategyMetricService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)

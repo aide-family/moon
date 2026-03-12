@@ -76,7 +76,9 @@ message CreateLevelRequest {
 	string remark = 2;
 	map<string, string> metadata = 3;
 }
-message CreateLevelReply {}
+message CreateLevelReply {
+	int64 uid = 1;
+}
 
 message UpdateLevelRequest {
 	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {

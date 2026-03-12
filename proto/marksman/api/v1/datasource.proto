@@ -49,7 +49,7 @@ service Datasource {
 			get: "/v1/datasource/{uid}/status"
 		};
 	}
-	// ListMetrics returns the list of metric names with basic metadata (name, description, unit, type) for a metrics datasource.
+	// ListMetrics returns the list of metric names with basic metadata (name, help, unit, type) for a metrics datasource.
 	rpc ListMetrics (ListMetricsRequest) returns (ListMetricsReply) {
 		option (google.api.http) = {
 			get: "/v1/datasource/{uid}/metrics"
@@ -226,12 +226,12 @@ message ListMetricsRequest {
 message ListMetricsReply {
 	repeated MetricSummaryItem metrics = 1;
 }
-// MetricSummaryItem: metric list item (no label detail).
+// MetricSummaryItem: metric list item (no label detail). Uses help to align with Prometheus metadata.
 message MetricSummaryItem {
 	string name = 1;
-	string description = 2;  // help text (说明信息)
+	string help = 2;   // Prometheus metadata help (说明信息)
 	string unit = 3;
-	string type = 4;  // e.g. "counter", "gauge"
+	string type = 4;   // e.g. "counter", "gauge"
 }
 
 message GetMetricDetailRequest {

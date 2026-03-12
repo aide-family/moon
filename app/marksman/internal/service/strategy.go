@@ -23,10 +23,11 @@ type StrategyService struct {
 }
 
 func (s *StrategyService) CreateStrategyGroup(ctx context.Context, req *apiv1.CreateStrategyGroupRequest) (*apiv1.CreateStrategyGroupReply, error) {
-	if err := s.strategyBiz.CreateStrategyGroup(ctx, bo.NewCreateStrategyGroupBo(req)); err != nil {
+	uid, err := s.strategyBiz.CreateStrategyGroup(ctx, bo.NewCreateStrategyGroupBo(req))
+	if err != nil {
 		return nil, err
 	}
-	return &apiv1.CreateStrategyGroupReply{}, nil
+	return &apiv1.CreateStrategyGroupReply{Uid: uid.Int64()}, nil
 }
 
 func (s *StrategyService) UpdateStrategyGroup(ctx context.Context, req *apiv1.UpdateStrategyGroupRequest) (*apiv1.UpdateStrategyGroupReply, error) {
@@ -55,7 +56,7 @@ func (s *StrategyService) GetStrategyGroup(ctx context.Context, req *apiv1.GetSt
 	if err != nil {
 		return nil, err
 	}
-	return item.ToAPIV1StrategyGroupItem(), nil
+	return bo.ToAPIV1StrategyGroupItem(item), nil
 }
 
 func (s *StrategyService) ListStrategyGroup(ctx context.Context, req *apiv1.ListStrategyGroupRequest) (*apiv1.ListStrategyGroupReply, error) {
@@ -82,10 +83,11 @@ func (s *StrategyService) StrategyGroupBindReceivers(ctx context.Context, req *a
 }
 
 func (s *StrategyService) CreateStrategy(ctx context.Context, req *apiv1.CreateStrategyRequest) (*apiv1.CreateStrategyReply, error) {
-	if err := s.strategyBiz.CreateStrategy(ctx, bo.NewCreateStrategyBo(req)); err != nil {
+	uid, err := s.strategyBiz.CreateStrategy(ctx, bo.NewCreateStrategyBo(req))
+	if err != nil {
 		return nil, err
 	}
-	return &apiv1.CreateStrategyReply{}, nil
+	return &apiv1.CreateStrategyReply{Uid: uid.Int64()}, nil
 }
 
 func (s *StrategyService) UpdateStrategy(ctx context.Context, req *apiv1.UpdateStrategyRequest) (*apiv1.UpdateStrategyReply, error) {
@@ -114,7 +116,7 @@ func (s *StrategyService) GetStrategy(ctx context.Context, req *apiv1.GetStrateg
 	if err != nil {
 		return nil, err
 	}
-	return item.ToAPIV1StrategyItem(), nil
+	return bo.ToAPIV1StrategyItem(item), nil
 }
 
 func (s *StrategyService) ListStrategy(ctx context.Context, req *apiv1.ListStrategyRequest) (*apiv1.ListStrategyReply, error) {

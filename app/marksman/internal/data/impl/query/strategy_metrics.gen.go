@@ -38,8 +38,28 @@ func newStrategyMetric(db *gorm.DB, opts ...gen.DOOption) strategyMetric {
 	_strategyMetric.Labels = field.NewField(tableName, "labels")
 	_strategyMetric.Summary = field.NewString(tableName, "summary")
 	_strategyMetric.Description = field.NewString(tableName, "description")
-	_strategyMetric.Status = field.NewInt32(tableName, "status")
 	_strategyMetric.DatasourceUIDs = field.NewField(tableName, "datasource_uids")
+	_strategyMetric.StrategyLevels = strategyMetricHasManyStrategyLevels{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("StrategyLevels", "do.StrategyMetricLevel"),
+		Level: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("StrategyLevels.Level", "do.Level"),
+		},
+	}
+
+	_strategyMetric.Strategy = strategyMetricBelongsToStrategy{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Strategy", "do.Strategy"),
+		StrategyGroup: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("Strategy.StrategyGroup", "do.StrategyGroup"),
+		},
+	}
 
 	_strategyMetric.fillFieldMap()
 
@@ -61,8 +81,10 @@ type strategyMetric struct {
 	Labels         field.Field
 	Summary        field.String
 	Description    field.String
-	Status         field.Int32
 	DatasourceUIDs field.Field
+	StrategyLevels strategyMetricHasManyStrategyLevels
+
+	Strategy strategyMetricBelongsToStrategy
 
 	fieldMap map[string]field.Expr
 }
@@ -90,7 +112,6 @@ func (s *strategyMetric) updateTableName(table string) *strategyMetric {
 	s.Labels = field.NewField(table, "labels")
 	s.Summary = field.NewString(table, "summary")
 	s.Description = field.NewString(table, "description")
-	s.Status = field.NewInt32(table, "status")
 	s.DatasourceUIDs = field.NewField(table, "datasource_uids")
 
 	s.fillFieldMap()
@@ -108,7 +129,7 @@ func (s *strategyMetric) GetFieldByName(fieldName string) (field.OrderExpr, bool
 }
 
 func (s *strategyMetric) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 13)
+	s.fieldMap = make(map[string]field.Expr, 14)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
@@ -120,18 +141,194 @@ func (s *strategyMetric) fillFieldMap() {
 	s.fieldMap["labels"] = s.Labels
 	s.fieldMap["summary"] = s.Summary
 	s.fieldMap["description"] = s.Description
-	s.fieldMap["status"] = s.Status
 	s.fieldMap["datasource_uids"] = s.DatasourceUIDs
+
 }
 
 func (s strategyMetric) clone(db *gorm.DB) strategyMetric {
 	s.strategyMetricDo.ReplaceConnPool(db.Statement.ConnPool)
+	s.StrategyLevels.db = db.Session(&gorm.Session{Initialized: true})
+	s.StrategyLevels.db.Statement.ConnPool = db.Statement.ConnPool
+	s.Strategy.db = db.Session(&gorm.Session{Initialized: true})
+	s.Strategy.db.Statement.ConnPool = db.Statement.ConnPool
 	return s
 }
 
 func (s strategyMetric) replaceDB(db *gorm.DB) strategyMetric {
 	s.strategyMetricDo.ReplaceDB(db)
+	s.StrategyLevels.db = db.Session(&gorm.Session{})
+	s.Strategy.db = db.Session(&gorm.Session{})
 	return s
+}
+
+type strategyMetricHasManyStrategyLevels struct {
+	db *gorm.DB
+
+	field.RelationField
+
+	Level struct {
+		field.RelationField
+	}
+}
+
+func (a strategyMetricHasManyStrategyLevels) Where(conds ...field.Expr) *strategyMetricHasManyStrategyLevels {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a strategyMetricHasManyStrategyLevels) WithContext(ctx context.Context) *strategyMetricHasManyStrategyLevels {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a strategyMetricHasManyStrategyLevels) Session(session *gorm.Session) *strategyMetricHasManyStrategyLevels {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a strategyMetricHasManyStrategyLevels) Model(m *do.StrategyMetric) *strategyMetricHasManyStrategyLevelsTx {
+	return &strategyMetricHasManyStrategyLevelsTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a strategyMetricHasManyStrategyLevels) Unscoped() *strategyMetricHasManyStrategyLevels {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
+type strategyMetricHasManyStrategyLevelsTx struct{ tx *gorm.Association }
+
+func (a strategyMetricHasManyStrategyLevelsTx) Find() (result []*do.StrategyMetricLevel, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a strategyMetricHasManyStrategyLevelsTx) Append(values ...*do.StrategyMetricLevel) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a strategyMetricHasManyStrategyLevelsTx) Replace(values ...*do.StrategyMetricLevel) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a strategyMetricHasManyStrategyLevelsTx) Delete(values ...*do.StrategyMetricLevel) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a strategyMetricHasManyStrategyLevelsTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a strategyMetricHasManyStrategyLevelsTx) Count() int64 {
+	return a.tx.Count()
+}
+
+func (a strategyMetricHasManyStrategyLevelsTx) Unscoped() *strategyMetricHasManyStrategyLevelsTx {
+	a.tx = a.tx.Unscoped()
+	return &a
+}
+
+type strategyMetricBelongsToStrategy struct {
+	db *gorm.DB
+
+	field.RelationField
+
+	StrategyGroup struct {
+		field.RelationField
+	}
+}
+
+func (a strategyMetricBelongsToStrategy) Where(conds ...field.Expr) *strategyMetricBelongsToStrategy {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a strategyMetricBelongsToStrategy) WithContext(ctx context.Context) *strategyMetricBelongsToStrategy {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a strategyMetricBelongsToStrategy) Session(session *gorm.Session) *strategyMetricBelongsToStrategy {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a strategyMetricBelongsToStrategy) Model(m *do.StrategyMetric) *strategyMetricBelongsToStrategyTx {
+	return &strategyMetricBelongsToStrategyTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a strategyMetricBelongsToStrategy) Unscoped() *strategyMetricBelongsToStrategy {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
+type strategyMetricBelongsToStrategyTx struct{ tx *gorm.Association }
+
+func (a strategyMetricBelongsToStrategyTx) Find() (result *do.Strategy, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a strategyMetricBelongsToStrategyTx) Append(values ...*do.Strategy) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a strategyMetricBelongsToStrategyTx) Replace(values ...*do.Strategy) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a strategyMetricBelongsToStrategyTx) Delete(values ...*do.Strategy) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a strategyMetricBelongsToStrategyTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a strategyMetricBelongsToStrategyTx) Count() int64 {
+	return a.tx.Count()
+}
+
+func (a strategyMetricBelongsToStrategyTx) Unscoped() *strategyMetricBelongsToStrategyTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type strategyMetricDo struct{ gen.DO }

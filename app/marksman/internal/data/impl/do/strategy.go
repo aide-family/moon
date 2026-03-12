@@ -18,6 +18,7 @@ type Strategy struct {
 	Driver           enum.DatasourceDriver       `gorm:"column:driver;type:tinyint;default:0"`
 	Metadata         *safety.Map[string, string] `gorm:"column:metadata;type:json;"`
 	Status           enum.GlobalStatus           `gorm:"column:status;type:tinyint;default:0"`
+	StrategyGroup    *StrategyGroup              `gorm:"foreignKey:StrategyGroupUID;references:ID"`
 }
 
 func (Strategy) TableName() string {

@@ -17,7 +17,6 @@ type SaveStrategyMetricBo struct {
 	Labels         map[string]string
 	Summary        string
 	Description    string
-	Status         enum.GlobalStatus
 	DatasourceUIDs []int64
 }
 
@@ -28,28 +27,31 @@ func NewSaveStrategyMetricBo(req *apiv1.SaveStrategyMetricRequest) *SaveStrategy
 		Labels:         req.GetLabels(),
 		Summary:        req.GetSummary(),
 		Description:    req.GetDescription(),
-		Status:         req.GetStatus(),
 		DatasourceUIDs: req.GetDatasourceUIDs(),
 	}
 }
 
 type StrategyMetricItemBo struct {
+	UID            snowflake.ID // strategy_metrics.id
 	StrategyUID    snowflake.ID
+	Strategy       *StrategyItemBo
 	Expr           string
 	Labels         map[string]string
 	Summary        string
 	Description    string
-	Status         enum.GlobalStatus
 	DatasourceUIDs []int64
 	Levels         []*StrategyMetricLevelItemBo
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
 
-func (b *StrategyMetricItemBo) ToAPIV1StrategyMetricItem() *apiv1.StrategyMetricItem {
+func ToAPIV1StrategyMetricItem(b *StrategyMetricItemBo) *apiv1.StrategyMetricItem {
+	if b == nil {
+		return nil
+	}
 	levels := make([]*apiv1.StrategyMetricLevelItem, 0, len(b.Levels))
 	for _, l := range b.Levels {
-		levels = append(levels, l.ToAPIV1StrategyMetricLevelItem())
+		levels = append(levels, ToAPIV1StrategyMetricLevelItem(l))
 	}
 	return &apiv1.StrategyMetricItem{
 		StrategyUID:    b.StrategyUID.Int64(),
@@ -57,17 +59,17 @@ func (b *StrategyMetricItemBo) ToAPIV1StrategyMetricItem() *apiv1.StrategyMetric
 		Labels:         b.Labels,
 		Summary:        b.Summary,
 		Description:    b.Description,
-		Status:         b.Status,
 		DatasourceUIDs: b.DatasourceUIDs,
 		Levels:         levels,
 		CreatedAt:      b.CreatedAt.Format(time.DateTime),
 		UpdatedAt:      b.UpdatedAt.Format(time.DateTime),
+		Strategy:       ToAPIV1StrategyItem(b.Strategy),
 	}
 }
 
 // StrategyMetricLevelItemBo for one strategy_metric_level row; Level is loaded from level table.
 type StrategyMetricLevelItemBo struct {
-	UID         snowflake.ID
+	LevelUID    snowflake.ID
 	StrategyUID snowflake.ID
 	Level       *LevelItemBo // loaded from levels table
 	Mode        enum.SampleMode
@@ -77,22 +79,20 @@ type StrategyMetricLevelItemBo struct {
 	Status      enum.GlobalStatus
 }
 
-func (b *StrategyMetricLevelItemBo) ToAPIV1StrategyMetricLevelItem() *apiv1.StrategyMetricLevelItem {
-	out := &apiv1.StrategyMetricLevelItem{
-		Uid:         b.UID.Int64(),
+func ToAPIV1StrategyMetricLevelItem(b *StrategyMetricLevelItemBo) *apiv1.StrategyMetricLevelItem {
+	if b == nil {
+		return nil
+	}
+	return &apiv1.StrategyMetricLevelItem{
+		LevelUID:    b.LevelUID.Int64(),
 		StrategyUID: b.StrategyUID.Int64(),
+		Level:       ToAPIV1LevelItem(b.Level),
 		Mode:        b.Mode,
 		Condition:   b.Condition,
 		Values:      b.Values,
+		Duration:    durationpb.New(time.Duration(b.DurationSec) * time.Second),
 		Status:      b.Status,
 	}
-	if b.Level != nil {
-		out.Level = b.Level.ToAPIV1LevelItem()
-	}
-	if b.DurationSec > 0 {
-		out.Duration = durationpb.New(time.Duration(b.DurationSec) * time.Second)
-	}
-	return out
 }
 
 // SaveStrategyMetricLevelBo for SaveStrategyMetricLevel (upsert by strategy_uid + level_uid)
@@ -123,14 +123,14 @@ func NewSaveStrategyMetricLevelBo(req *apiv1.SaveStrategyMetricLevelRequest) *Sa
 }
 
 type UpdateStrategyMetricLevelStatusBo struct {
-	UID         snowflake.ID
+	LevelUID    snowflake.ID
 	StrategyUID snowflake.ID
 	Status      enum.GlobalStatus
 }
 
 func NewUpdateStrategyMetricLevelStatusBo(req *apiv1.UpdateStrategyMetricLevelStatusRequest) *UpdateStrategyMetricLevelStatusBo {
 	return &UpdateStrategyMetricLevelStatusBo{
-		UID:         snowflake.ParseInt64(req.GetUid()),
+		LevelUID:    snowflake.ParseInt64(req.GetLevelUID()),
 		StrategyUID: snowflake.ParseInt64(req.GetStrategyUID()),
 		Status:      req.GetStatus(),
 	}

@@ -110,6 +110,7 @@ message StrategyItem {
 	map<string, string> metadata = 7;
 	string createdAt = 8;
 	string updatedAt = 9;
+	StrategyGroupItem strategyGroup = 10;
 }
 
 message StrategyItemSelect {
@@ -134,7 +135,9 @@ message CreateStrategyGroupRequest {
 	string remark = 2;
 	map<string, string> metadata = 3;
 }
-message CreateStrategyGroupReply {}
+message CreateStrategyGroupReply {
+	int64 uid = 1;
+}
 
 message UpdateStrategyGroupRequest {
 	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
@@ -247,7 +250,9 @@ message CreateStrategyRequest {
 		message: "status must be in ['ENABLED', 'DISABLED']",
 	}];
 }
-message CreateStrategyReply {}
+message CreateStrategyReply {
+	int64 uid = 1;
+}
 
 message UpdateStrategyRequest {
 	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {

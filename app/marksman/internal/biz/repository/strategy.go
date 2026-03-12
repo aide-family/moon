@@ -9,7 +9,7 @@ import (
 )
 
 type StrategyGroup interface {
-	CreateStrategyGroup(ctx context.Context, req *bo.CreateStrategyGroupBo) error
+	CreateStrategyGroup(ctx context.Context, req *bo.CreateStrategyGroupBo) (snowflake.ID, error)
 	UpdateStrategyGroup(ctx context.Context, req *bo.UpdateStrategyGroupBo) error
 	UpdateStrategyGroupStatus(ctx context.Context, req *bo.UpdateStrategyGroupStatusBo) error
 	DeleteStrategyGroup(ctx context.Context, uid snowflake.ID) error
@@ -20,7 +20,7 @@ type StrategyGroup interface {
 }
 
 type Strategy interface {
-	CreateStrategy(ctx context.Context, req *bo.CreateStrategyBo) error
+	CreateStrategy(ctx context.Context, req *bo.CreateStrategyBo) (snowflake.ID, error)
 	UpdateStrategy(ctx context.Context, req *bo.UpdateStrategyBo) error
 	UpdateStrategyStatus(ctx context.Context, req *bo.UpdateStrategyStatusBo) error
 	DeleteStrategy(ctx context.Context, uid snowflake.ID) error

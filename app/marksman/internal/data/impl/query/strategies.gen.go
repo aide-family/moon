@@ -40,6 +40,11 @@ func newStrategy(db *gorm.DB, opts ...gen.DOOption) strategy {
 	_strategy.Driver = field.NewInt32(tableName, "driver")
 	_strategy.Metadata = field.NewField(tableName, "metadata")
 	_strategy.Status = field.NewInt32(tableName, "status")
+	_strategy.StrategyGroup = strategyBelongsToStrategyGroup{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("StrategyGroup", "do.StrategyGroup"),
+	}
 
 	_strategy.fillFieldMap()
 
@@ -63,6 +68,7 @@ type strategy struct {
 	Driver           field.Int32
 	Metadata         field.Field
 	Status           field.Int32
+	StrategyGroup    strategyBelongsToStrategyGroup
 
 	fieldMap map[string]field.Expr
 }
@@ -108,7 +114,7 @@ func (s *strategy) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (s *strategy) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 13)
+	s.fieldMap = make(map[string]field.Expr, 14)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
@@ -122,16 +128,101 @@ func (s *strategy) fillFieldMap() {
 	s.fieldMap["driver"] = s.Driver
 	s.fieldMap["metadata"] = s.Metadata
 	s.fieldMap["status"] = s.Status
+
 }
 
 func (s strategy) clone(db *gorm.DB) strategy {
 	s.strategyDo.ReplaceConnPool(db.Statement.ConnPool)
+	s.StrategyGroup.db = db.Session(&gorm.Session{Initialized: true})
+	s.StrategyGroup.db.Statement.ConnPool = db.Statement.ConnPool
 	return s
 }
 
 func (s strategy) replaceDB(db *gorm.DB) strategy {
 	s.strategyDo.ReplaceDB(db)
+	s.StrategyGroup.db = db.Session(&gorm.Session{})
 	return s
+}
+
+type strategyBelongsToStrategyGroup struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a strategyBelongsToStrategyGroup) Where(conds ...field.Expr) *strategyBelongsToStrategyGroup {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a strategyBelongsToStrategyGroup) WithContext(ctx context.Context) *strategyBelongsToStrategyGroup {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a strategyBelongsToStrategyGroup) Session(session *gorm.Session) *strategyBelongsToStrategyGroup {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a strategyBelongsToStrategyGroup) Model(m *do.Strategy) *strategyBelongsToStrategyGroupTx {
+	return &strategyBelongsToStrategyGroupTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a strategyBelongsToStrategyGroup) Unscoped() *strategyBelongsToStrategyGroup {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
+type strategyBelongsToStrategyGroupTx struct{ tx *gorm.Association }
+
+func (a strategyBelongsToStrategyGroupTx) Find() (result *do.StrategyGroup, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a strategyBelongsToStrategyGroupTx) Append(values ...*do.StrategyGroup) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a strategyBelongsToStrategyGroupTx) Replace(values ...*do.StrategyGroup) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a strategyBelongsToStrategyGroupTx) Delete(values ...*do.StrategyGroup) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a strategyBelongsToStrategyGroupTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a strategyBelongsToStrategyGroupTx) Count() int64 {
+	return a.tx.Count()
+}
+
+func (a strategyBelongsToStrategyGroupTx) Unscoped() *strategyBelongsToStrategyGroupTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type strategyDo struct{ gen.DO }

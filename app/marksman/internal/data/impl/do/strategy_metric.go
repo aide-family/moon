@@ -1,7 +1,6 @@
 package do
 
 import (
-	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/safety"
 	"github.com/bwmarrin/snowflake"
 	"gorm.io/gorm"
@@ -17,8 +16,9 @@ type StrategyMetric struct {
 	Labels         *safety.Map[string, string] `gorm:"column:labels;type:json;"`
 	Summary        string                      `gorm:"column:summary;type:varchar(500);default:''"`
 	Description    string                      `gorm:"column:description;type:text;default:''"`
-	Status         enum.GlobalStatus           `gorm:"column:status;type:tinyint;default:0"`
 	DatasourceUIDs *safety.Slice[int64]        `gorm:"column:datasource_uids;type:json;serializer:json"`
+	Strategy       *Strategy                   `gorm:"foreignKey:StrategyUID;references:ID"`
+	StrategyLevels []*StrategyMetricLevel      `gorm:"foreignKey:StrategyUID;references:StrategyUID"`
 }
 
 func (StrategyMetric) TableName() string {

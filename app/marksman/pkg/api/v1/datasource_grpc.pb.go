@@ -42,7 +42,7 @@ type DatasourceClient interface {
 	SelectDatasource(ctx context.Context, in *SelectDatasourceRequest, opts ...grpc.CallOption) (*SelectDatasourceReply, error)
 	// GetDatasourceStatus returns recent status series (last 1h by default) from main time-series DB (Prometheus/VM).
 	GetDatasourceStatus(ctx context.Context, in *GetDatasourceStatusRequest, opts ...grpc.CallOption) (*GetDatasourceStatusReply, error)
-	// ListMetrics returns the list of metric names with basic metadata (name, description, unit, type) for a metrics datasource.
+	// ListMetrics returns the list of metric names with basic metadata (name, help, unit, type) for a metrics datasource.
 	ListMetrics(ctx context.Context, in *ListMetricsRequest, opts ...grpc.CallOption) (*ListMetricsReply, error)
 	// GetMetricLabelDetail returns one metric's labels and each label's values (detail view for a single metric).
 	GetMetricDetail(ctx context.Context, in *GetMetricDetailRequest, opts ...grpc.CallOption) (*MetricDetailItem, error)
@@ -158,7 +158,7 @@ type DatasourceServer interface {
 	SelectDatasource(context.Context, *SelectDatasourceRequest) (*SelectDatasourceReply, error)
 	// GetDatasourceStatus returns recent status series (last 1h by default) from main time-series DB (Prometheus/VM).
 	GetDatasourceStatus(context.Context, *GetDatasourceStatusRequest) (*GetDatasourceStatusReply, error)
-	// ListMetrics returns the list of metric names with basic metadata (name, description, unit, type) for a metrics datasource.
+	// ListMetrics returns the list of metric names with basic metadata (name, help, unit, type) for a metrics datasource.
 	ListMetrics(context.Context, *ListMetricsRequest) (*ListMetricsReply, error)
 	// GetMetricLabelDetail returns one metric's labels and each label's values (detail view for a single metric).
 	GetMetricDetail(context.Context, *GetMetricDetailRequest) (*MetricDetailItem, error)
