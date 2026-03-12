@@ -243,6 +243,36 @@ func (r *strategyMetricRepository) DeleteStrategyMetricByStrategyUID(ctx context
 	return err
 }
 
+// HasStrategyMetricData returns true if strategy_metrics has a row for the strategy (single table).
+func (r *strategyMetricRepository) HasStrategyMetricData(ctx context.Context, strategyUID snowflake.ID) (bool, error) {
+	ns := contextx.GetNamespace(ctx)
+	q := query.Use(getDBWithTransaction(ctx, r.db))
+	sm := q.StrategyMetric
+	c, err := sm.WithContext(ctx).Where(
+		sm.NamespaceUID.Eq(ns.Int64()),
+		sm.StrategyUID.Eq(strategyUID.Int64()),
+	).Count()
+	if err != nil {
+		return false, err
+	}
+	return c > 0, nil
+}
+
+// HasStrategyMetricLevelData returns true if strategy_metric_levels has any row for the strategy (single table).
+func (r *strategyMetricRepository) HasStrategyMetricLevelData(ctx context.Context, strategyUID snowflake.ID) (bool, error) {
+	ns := contextx.GetNamespace(ctx)
+	q := query.Use(getDBWithTransaction(ctx, r.db))
+	sml := q.StrategyMetricLevel
+	c, err := sml.WithContext(ctx).Where(
+		sml.NamespaceUID.Eq(ns.Int64()),
+		sml.StrategyUID.Eq(strategyUID.Int64()),
+	).Count()
+	if err != nil {
+		return false, err
+	}
+	return c > 0, nil
+}
+
 func (r *strategyMetricRepository) GetStrategyMetricLevelByStrategyAndLevel(ctx context.Context, strategyUID snowflake.ID, levelUID snowflake.ID) (*bo.StrategyMetricLevelItemBo, error) {
 	sml := query.StrategyMetricLevel
 	row, err := sml.WithContext(ctx).Where(

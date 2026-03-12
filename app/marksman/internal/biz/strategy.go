@@ -27,12 +27,16 @@ func NewStrategy(
 		strategyMetricRepo: strategyMetricRepo,
 		helper:             klog.NewHelper(klog.With(helper.Logger(), "biz", "strategy")),
 	}
-	deleteStrategyFunc := safety.NewMap(map[enum.DatasourceType]func(ctx context.Context, strategyUID snowflake.ID) error{
+	b.deleteStrategyFunc = safety.NewMap(map[enum.DatasourceType]func(ctx context.Context, strategyUID snowflake.ID) error{
 		enum.DatasourceType_METRICS: b.deleteStrategyMetric,
 		enum.DatasourceType_LOGS:    b.deleteStrategyLogs,
 		enum.DatasourceType_TRACE:   b.deleteStrategyTrace,
 	})
-	b.deleteStrategyFunc = deleteStrategyFunc
+	b.typeDetailCheckers = safety.NewMap(map[enum.DatasourceType]func(ctx context.Context, strategyUID snowflake.ID) (bool, error){
+		enum.DatasourceType_METRICS: b.hasMetricDetail,
+		// enum.DatasourceType_LOGS:  b.hasLogsDetail,   // add when logs detail exists
+		// enum.DatasourceType_TRACE: b.hasTraceDetail, // add when trace detail exists
+	})
 	return b
 }
 
@@ -43,6 +47,7 @@ type StrategyBiz struct {
 	strategyRepo       repository.Strategy
 	strategyMetricRepo repository.StrategyMetric
 	deleteStrategyFunc *safety.Map[enum.DatasourceType, func(ctx context.Context, strategyUID snowflake.ID) error]
+	typeDetailCheckers *safety.Map[enum.DatasourceType, func(ctx context.Context, strategyUID snowflake.ID) (bool, error)]
 }
 
 func (b *StrategyBiz) CreateStrategyGroup(ctx context.Context, req *bo.CreateStrategyGroupBo) (snowflake.ID, error) {
@@ -152,6 +157,26 @@ func (b *StrategyBiz) UpdateStrategy(ctx context.Context, req *bo.UpdateStrategy
 		b.helper.Errorw("msg", "get strategy group failed", "error", err, "strategyGroupUID", req.StrategyGroupUID)
 		return merr.ErrorInternalServer("update strategy failed").WithCause(err)
 	}
+	current, err := b.strategyRepo.GetStrategy(ctx, req.UID)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return merr.ErrorNotFound("strategy %d not found", req.UID.Int64())
+		}
+		b.helper.Errorw("msg", "get strategy failed", "error", err, "uid", req.UID)
+		return merr.ErrorInternalServer("update strategy failed").WithCause(err)
+	}
+	if req.Type != current.Type || req.Driver != current.Driver {
+		if checker, ok := b.typeDetailCheckers.Get(current.Type); ok && checker != nil {
+			hasDetail, err := checker(ctx, req.UID)
+			if err != nil {
+				b.helper.Errorw("msg", "check strategy type detail failed", "error", err, "uid", req.UID, "type", current.Type)
+				return merr.ErrorInternalServer("update strategy failed").WithCause(err)
+			}
+			if hasDetail {
+				return merr.ErrorParams("cannot change type or driver when strategy metric or level data already exists, please delete them first")
+			}
+		}
+	}
 	if err := b.strategyRepo.UpdateStrategy(ctx, req); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("strategy %d not found", req.UID.Int64())
@@ -214,6 +239,17 @@ func (b *StrategyBiz) DeleteStrategy(ctx context.Context, uid snowflake.ID) erro
 		}
 		return nil
 	})
+}
+
+func (b *StrategyBiz) hasMetricDetail(ctx context.Context, strategyUID snowflake.ID) (bool, error) {
+	hasMetric, err := b.strategyMetricRepo.HasStrategyMetricData(ctx, strategyUID)
+	if err != nil {
+		return false, err
+	}
+	if hasMetric {
+		return true, nil
+	}
+	return b.strategyMetricRepo.HasStrategyMetricLevelData(ctx, strategyUID)
 }
 
 func (b *StrategyBiz) deleteStrategyMetric(ctx context.Context, strategyUID snowflake.ID) error {

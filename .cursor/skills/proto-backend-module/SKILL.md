@@ -49,7 +49,8 @@ description: Implements backend modules from proto definitions for goddess, mark
 
 3. **biz/repository**  
    - 在 `internal/biz/repository/` 下新增接口（如 `XxxConfig`），方法签名使用 `context.Context`、`*bo.*Bo`、`snowflake.ID` 等，返回业务所需类型（含 `*bo.PageResponseBo[*bo.XxxItemBo]` 等）。  
-   - 与 proto 的 RPC 一一对应，但接口命名保持「领域+动作」（如 `CreateXxxConfig`、`ListXxxConfig`）。
+   - 与 proto 的 RPC 一一对应，但接口命名保持「领域+动作」（如 `CreateXxxConfig`、`ListXxxConfig`）。  
+   - **单一职责**：每个 repository 方法只做「单表 / 单次查询 / 单一语义」的一件事；不在一个方法内同时查多张表或组合多种判断。若业务需要「A 表或 B 表存在则如何」，应在 biz 层多次调用 repo（如 `HasXxxData`、`HasYyyData`），由 biz 组合逻辑，repo 只提供原子能力。
 
 4. **data/impl/do**  
    - 在 `internal/data/impl/do/` 下新增 GORM 模型（嵌入 `BaseModel`，使用 `snowflake.ID`、`gorm` 标签、`TableName()`）。  
@@ -66,6 +67,7 @@ description: Implements backend modules from proto definitions for goddess, mark
    - 在 `internal/data/impl/` 下新增 `xxx.go`，实现 `repository.XxxConfig`：  
      - 构造函数 `NewXxxConfigRepository(d *data.Data) repository.XxxConfig`，内部调用 `query.SetDefault(d.DB())`（若该 app 使用 SetDefault）。  
      - 各方法用 `query.Xxx`、`convert.*`、`contextx.GetNamespace(ctx)` 等实现，错误用 `merr.ErrorNotFound` / `merr.ErrorInvalidArgument` 等（与现有 impl 一致）。  
+     - **单一职责**：每个 impl 方法只操作一张表或只做一次查询/写入；不在同一方法内混用多张表或多种语义。多表组合逻辑放在 biz 层通过多次调用 repo 完成。
    - 在 `impl/provider_set.go` 的 `ProviderSetImpl` 中注册 `NewXxxConfigRepository`。
 
 8. **internal/biz**  
@@ -173,6 +175,7 @@ description: Implements backend modules from proto definitions for goddess, mark
 - [ ] 未新建与现有 app 结构不符的目录或包
 - [ ] bo/repository/do/convert/impl/biz/service 分层与现有模块一致
 - [ ] 分页、错误、上下文、枚举、ID 均使用项目与 magicbox 既有类型
+- [ ] **Repository/impl 单一职责**：每个 repo 方法只做单表/单次查询；多表或组合判断在 biz 层通过多次调用 repo 完成，不在一个 repo 方法内混多表
 - [ ] Import 顺序：标准库 → 空白 → 第三方 → 当前项目
 - [ ] 新增的 repository、biz、service、impl 已在对应 ProviderSet 与 Register* 中注册
 - [ ] 公共可复用函数或方法已添加测试
