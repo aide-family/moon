@@ -129,6 +129,13 @@ func (b *StrategyBiz) StrategyGroupBindReceivers(ctx context.Context, req *bo.St
 }
 
 func (b *StrategyBiz) CreateStrategy(ctx context.Context, req *bo.CreateStrategyBo) (snowflake.ID, error) {
+	if _, err := b.strategyGroupRepo.GetStrategyGroup(ctx, req.StrategyGroupUID); err != nil {
+		if merr.IsNotFound(err) {
+			return 0, merr.ErrorNotFound("strategy group not found or invalid, please select a valid strategy group from the list")
+		}
+		b.helper.Errorw("msg", "get strategy group failed", "error", err, "strategyGroupUID", req.StrategyGroupUID)
+		return 0, merr.ErrorInternalServer("create strategy failed").WithCause(err)
+	}
 	uid, err := b.strategyRepo.CreateStrategy(ctx, req)
 	if err != nil {
 		b.helper.Errorw("msg", "create strategy failed", "error", err, "req", req)
@@ -138,6 +145,13 @@ func (b *StrategyBiz) CreateStrategy(ctx context.Context, req *bo.CreateStrategy
 }
 
 func (b *StrategyBiz) UpdateStrategy(ctx context.Context, req *bo.UpdateStrategyBo) error {
+	if _, err := b.strategyGroupRepo.GetStrategyGroup(ctx, req.StrategyGroupUID); err != nil {
+		if merr.IsNotFound(err) {
+			return merr.ErrorNotFound("strategy group not found or invalid, please select a valid strategy group from the list")
+		}
+		b.helper.Errorw("msg", "get strategy group failed", "error", err, "strategyGroupUID", req.StrategyGroupUID)
+		return merr.ErrorInternalServer("update strategy failed").WithCause(err)
+	}
 	if err := b.strategyRepo.UpdateStrategy(ctx, req); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("strategy %d not found", req.UID.Int64())
