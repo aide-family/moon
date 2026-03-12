@@ -16,8 +16,9 @@ description: Implements backend modules from proto definitions for goddess, mark
 
 1. **风格与项目一致**：目录、包名、接口命名、错误处理、日志风格必须与现有模块一致。
 2. **能复用则复用**：优先使用 magicbox 公共包和当前 app 内已有类型（bo、enum、merr、contextx、safety 等），不重复造轮子。
-3. **不创造突兀结构**：除非用户明确要求，不得新建与现有 app 结构不符的目录或包；新代码必须落在已有分层内。
-4. **命名与导入**：遵循 Go 官方规范；import 顺序见下文。
+3. **避免重复逻辑、提高复用率**：同一模块或同一 biz 内若出现两段及以上相同或高度相似的校验/逻辑（如「先查 A 再判类型再往下」），应抽取为私有方法或共享函数（如 `validateXxx`、`ensureYyy`），由多处调用该函数，避免复制粘贴。这样后续修改校验或文案时只需改一处。
+4. **不创造突兀结构**：除非用户明确要求，不得新建与现有 app 结构不符的目录或包；新代码必须落在已有分层内。
+5. **命名与导入**：遵循 Go 官方规范；import 顺序见下文。
 
 ## 项目结构速查
 
@@ -143,6 +144,7 @@ description: Implements backend modules from proto definitions for goddess, mark
 
 ## Go 规范
 
+- **代码与用户可见文案仅用英文**：源码中的用户可见文案（如 `merr.ErrorNotFound`、`merr.ErrorParams` 等返回给前端的错误信息）、日志文案、注释、变量/函数命名等**一律使用英文**，不得在代码中出现中英文混用（如错误信息用中文而其它用英文）。若产品需要多语言提示，由前端或 i18n 根据错误码/键做文案展示，后端只提供稳定的英文文案或错误码。
 - **Import 顺序**（严格）：  
   1）标准库  
   2）空白导入（`_ "..."`）  
@@ -180,5 +182,7 @@ description: Implements backend modules from proto definitions for goddess, mark
 - [ ] 新增的 repository、biz、service、impl 已在对应 ProviderSet 与 Register* 中注册
 - [ ] 公共可复用函数或方法已添加测试
 - [ ] **README 已同步**：若有模块/API 新增、修改或删除，已同时更新对应应用的 `README.md` 与 `README-zh_CN.md`；且 **功能特性（Features）** 与 **接口概览（API Overview）表** 均已补充/修改/删除对应内容，中英文一一对应，与当前 proto 一致
+- [ ] **代码与错误文案仅用英文**：merr 错误信息、日志文案、注释等均使用英文，无中英文混用
+- [ ] **无重复逻辑**：相同或高度相似的校验/逻辑已抽取为私有方法或共享函数，由多处调用，未复制粘贴
 
 更多分层与文件命名细节见 [reference.md](reference.md)。

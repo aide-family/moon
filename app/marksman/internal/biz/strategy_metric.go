@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 
+	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/bwmarrin/snowflake"
 	klog "github.com/go-kratos/kratos/v2/log"
@@ -29,7 +30,26 @@ type StrategyMetricBiz struct {
 	strategyMetricRepo repository.StrategyMetric
 }
 
+// validateStrategyExistsAndIsMetrics returns the strategy if it exists and is METRICS type; otherwise returns a user-friendly error.
+func (b *StrategyMetricBiz) validateStrategyExistsAndIsMetrics(ctx context.Context, strategyUID snowflake.ID) (*bo.StrategyItemBo, error) {
+	strategy, err := b.strategyRepo.GetStrategy(ctx, strategyUID)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return nil, merr.ErrorNotFound("strategy not found or deleted, please check and try again")
+		}
+		b.helper.Errorw("msg", "get strategy failed", "error", err, "strategyUID", strategyUID)
+		return nil, merr.ErrorInternalServer("get strategy failed").WithCause(err)
+	}
+	if strategy.Type != enum.DatasourceType_METRICS {
+		return nil, merr.ErrorParams("only supports configuring metrics for METRICS type strategies, current strategy type does not match, please select a METRICS type strategy")
+	}
+	return strategy, nil
+}
+
 func (b *StrategyMetricBiz) SaveStrategyMetric(ctx context.Context, req *bo.SaveStrategyMetricBo) error {
+	if _, err := b.validateStrategyExistsAndIsMetrics(ctx, req.StrategyUID); err != nil {
+		return err
+	}
 	_, err := b.strategyMetricRepo.GetStrategyMetric(ctx, req.StrategyUID)
 	if err != nil {
 		if !merr.IsNotFound(err) {
@@ -73,6 +93,9 @@ func (b *StrategyMetricBiz) GetStrategyMetric(ctx context.Context, strategyUID s
 }
 
 func (b *StrategyMetricBiz) SaveStrategyMetricLevel(ctx context.Context, req *bo.SaveStrategyMetricLevelBo) error {
+	if _, err := b.validateStrategyExistsAndIsMetrics(ctx, req.StrategyUID); err != nil {
+		return err
+	}
 	_, err := b.strategyMetricRepo.GetStrategyMetricLevelByStrategyAndLevel(ctx, req.StrategyUID, req.LevelUID)
 	if err != nil {
 		if !merr.IsNotFound(err) {
