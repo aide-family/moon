@@ -76,7 +76,12 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	levelBiz := biz.NewLevel(level, helper)
+	strategyMetric, err := impl.NewStrategyMetricRepository(dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	levelBiz := biz.NewLevel(level, strategyMetric, helper)
 	levelService := service.NewLevelService(levelBiz)
 	datasource, err := impl.NewDatasourceRepository(dataData)
 	if err != nil {
@@ -93,11 +98,6 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		return nil, nil, err
 	}
 	strategy, err := impl.NewStrategyRepository(dataData)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	strategyMetric, err := impl.NewStrategyMetricRepository(dataData)
 	if err != nil {
 		cleanup()
 		return nil, nil, err

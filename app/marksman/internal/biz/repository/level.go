@@ -10,6 +10,7 @@ import (
 
 type Level interface {
 	CreateLevel(ctx context.Context, req *bo.CreateLevelBo) (snowflake.ID, error)
+	LevelNameTaken(ctx context.Context, name string, excludeUID snowflake.ID) (bool, error)
 	UpdateLevel(ctx context.Context, req *bo.UpdateLevelBo) error
 	UpdateLevelStatus(ctx context.Context, req *bo.UpdateLevelStatusBo) error
 	DeleteLevel(ctx context.Context, uid snowflake.ID) error

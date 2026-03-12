@@ -36,6 +36,19 @@ func (r *levelRepository) CreateLevel(ctx context.Context, req *bo.CreateLevelBo
 	return m.ID, nil
 }
 
+func (r *levelRepository) LevelNameTaken(ctx context.Context, name string, excludeUID snowflake.ID) (bool, error) {
+	l := query.Level
+	total, err := query.Level.WithContext(ctx).Where(
+		l.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
+		l.Name.Eq(name),
+		l.ID.Neq(excludeUID.Int64()),
+	).Count()
+	if err != nil {
+		return false, err
+	}
+	return total > 0, nil
+}
+
 func (r *levelRepository) UpdateLevel(ctx context.Context, req *bo.UpdateLevelBo) error {
 	l := query.Level
 	columns := []field.AssignExpr{

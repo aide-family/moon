@@ -273,6 +273,24 @@ func (r *strategyMetricRepository) HasStrategyMetricLevelData(ctx context.Contex
 	return c > 0, nil
 }
 
+func (r *strategyMetricRepository) LevelReferencedByStrategyMetricLevel(ctx context.Context, levelUID snowflake.ID) (bool, error) {
+	sml := query.StrategyMetricLevel
+	c, err := sml.WithContext(ctx).Where(sml.LevelUID.Eq(levelUID.Int64())).Count()
+	if err != nil {
+		return false, err
+	}
+	return c > 0, nil
+}
+
+func (r *strategyMetricRepository) LevelReferencedByStrategyMetricReceiver(ctx context.Context, levelUID snowflake.ID) (bool, error) {
+	smr := query.StrategyMetricReceiver
+	c, err := smr.WithContext(ctx).Where(smr.LevelUID.Eq(levelUID.Int64())).Count()
+	if err != nil {
+		return false, err
+	}
+	return c > 0, nil
+}
+
 func (r *strategyMetricRepository) GetStrategyMetricLevelByStrategyAndLevel(ctx context.Context, strategyUID snowflake.ID, levelUID snowflake.ID) (*bo.StrategyMetricLevelItemBo, error) {
 	sml := query.StrategyMetricLevel
 	row, err := sml.WithContext(ctx).Where(

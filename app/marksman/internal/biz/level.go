@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/magicbox/merr"
+	"github.com/aide-family/magicbox/safety"
 	"github.com/bwmarrin/snowflake"
 	klog "github.com/go-kratos/kratos/v2/log"
 
@@ -13,20 +14,37 @@ import (
 
 func NewLevel(
 	levelRepo repository.Level,
+	strategyMetricRepo repository.StrategyMetric,
 	helper *klog.Helper,
 ) *LevelBiz {
-	return &LevelBiz{
-		levelRepo: levelRepo,
-		helper:    klog.NewHelper(klog.With(helper.Logger(), "biz", "level")),
+	b := &LevelBiz{
+		levelRepo:          levelRepo,
+		strategyMetricRepo: strategyMetricRepo,
+		helper:             klog.NewHelper(klog.With(helper.Logger(), "biz", "level")),
 	}
+	b.LevelReferencedFuncs = safety.NewSlice([]func(ctx context.Context, levelUID snowflake.ID) (bool, error){
+		b.strategyMetricRepo.LevelReferencedByStrategyMetricLevel,
+		b.strategyMetricRepo.LevelReferencedByStrategyMetricReceiver,
+	})
+	return b
 }
 
 type LevelBiz struct {
-	helper    *klog.Helper
-	levelRepo repository.Level
+	helper               *klog.Helper
+	levelRepo            repository.Level
+	strategyMetricRepo   repository.StrategyMetric
+	LevelReferencedFuncs *safety.Slice[func(ctx context.Context, levelUID snowflake.ID) (bool, error)]
 }
 
 func (l *LevelBiz) CreateLevel(ctx context.Context, req *bo.CreateLevelBo) (snowflake.ID, error) {
+	taken, err := l.levelRepo.LevelNameTaken(ctx, req.Name, 0)
+	if err != nil {
+		l.helper.Errorw("msg", "check level name taken failed", "error", err, "name", req.Name)
+		return 0, merr.ErrorInternalServer("check level name failed").WithCause(err)
+	}
+	if taken {
+		return 0, merr.ErrorParams("level name already exists, please use another name")
+	}
 	uid, err := l.levelRepo.CreateLevel(ctx, req)
 	if err != nil {
 		l.helper.Errorw("msg", "create level failed", "error", err, "req", req)
@@ -36,6 +54,14 @@ func (l *LevelBiz) CreateLevel(ctx context.Context, req *bo.CreateLevelBo) (snow
 }
 
 func (l *LevelBiz) UpdateLevel(ctx context.Context, req *bo.UpdateLevelBo) error {
+	taken, err := l.levelRepo.LevelNameTaken(ctx, req.Name, req.UID)
+	if err != nil {
+		l.helper.Errorw("msg", "check level name taken failed", "error", err, "name", req.Name)
+		return merr.ErrorInternalServer("check level name failed").WithCause(err)
+	}
+	if taken {
+		return merr.ErrorParams("level name already exists, please use another name")
+	}
 	if err := l.levelRepo.UpdateLevel(ctx, req); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("level %d not found", req.UID.Int64())
@@ -58,6 +84,16 @@ func (l *LevelBiz) UpdateLevelStatus(ctx context.Context, req *bo.UpdateLevelSta
 }
 
 func (l *LevelBiz) DeleteLevel(ctx context.Context, uid snowflake.ID) error {
+	for _, f := range l.LevelReferencedFuncs.List() {
+		referenced, err := f(ctx, uid)
+		if err != nil {
+			l.helper.Errorw("msg", "check level referenced failed", "error", err, "uid", uid)
+			return merr.ErrorInternalServer("check level referenced failed").WithCause(err)
+		}
+		if referenced {
+			return merr.ErrorParams("level is referenced and cannot be deleted, please remove the reference first")
+		}
+	}
 	if err := l.levelRepo.DeleteLevel(ctx, uid); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("level %d not found", uid.Int64())

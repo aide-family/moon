@@ -97,7 +97,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	levelBiz := biz.NewLevel(level, helper)
+	levelBiz := biz.NewLevel(level, strategyMetric, helper)
 	levelService := service.NewLevelService(levelBiz)
 	metricDatasourceQuerier := impl.NewMetricDatasourceQuerier()
 	datasourceBiz := biz.NewDatasource(datasource, metricDatasourceQuerier, helper)
