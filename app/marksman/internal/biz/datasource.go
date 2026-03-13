@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/bwmarrin/snowflake"
 	klog "github.com/go-kratos/kratos/v2/log"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/aide-family/marksman/internal/biz/bo"
 	"github.com/aide-family/marksman/internal/biz/repository"
+	"github.com/aide-family/marksman/internal/conf"
 )
 
 const (
@@ -20,11 +22,19 @@ const (
 )
 
 func NewDatasource(
+	bc *conf.Bootstrap,
 	datasourceRepo repository.Datasource,
 	metricDatasourceQuerier repository.MetricDatasourceQuerier,
 	helper *klog.Helper,
 ) *DatasourceBiz {
+	mainTsdbConf := bc.GetMainTsdb()
+	mainTsdb := &bo.DatasourceItemBo{
+		URL:    mainTsdbConf.Url,
+		Driver: mainTsdbConf.Driver,
+		Type:   enum.DatasourceType_METRICS,
+	}
 	return &DatasourceBiz{
+		mainTsdb:                mainTsdb,
 		datasourceRepo:          datasourceRepo,
 		metricDatasourceQuerier: metricDatasourceQuerier,
 		helper:                  klog.NewHelper(klog.With(helper.Logger(), "biz", "datasource")),
@@ -33,6 +43,7 @@ func NewDatasource(
 
 type DatasourceBiz struct {
 	helper                  *klog.Helper
+	mainTsdb                *bo.DatasourceItemBo
 	datasourceRepo          repository.Datasource
 	metricDatasourceQuerier repository.MetricDatasourceQuerier
 }
@@ -107,21 +118,13 @@ func (d *DatasourceBiz) SelectDatasource(ctx context.Context, req *bo.SelectData
 }
 
 func (d *DatasourceBiz) GetDatasourceStatus(ctx context.Context, req *bo.GetDatasourceStatusRequest) ([]*bo.DatasourceStatusSeriesBo, error) {
-	ds, err := d.datasourceRepo.GetDatasource(ctx, req.UID)
-	if err != nil {
-		if merr.IsNotFound(err) {
-			return nil, merr.ErrorNotFound("datasource %d not found", req.UID.Int64())
-		}
-		d.helper.Errorw("msg", "get datasource failed", "error", err, "uid", req.UID)
-		return nil, merr.ErrorInternalServer("get datasource failed").WithCause(err)
-	}
 	query := fmt.Sprintf(`%s{uid="%s",name="%s"}`, metricName, strconv.FormatInt(req.GetUID(), 10), req.GetName())
 	rangeParams := prometheusv1.Range{
 		Start: time.Unix(req.GetStartTime(), 0),
 		End:   time.Unix(req.GetEndTime(), 0),
 		Step:  req.GetStep(),
 	}
-	matrix, err := d.metricDatasourceQuerier.QueryRange(ctx, ds, query, rangeParams)
+	matrix, err := d.metricDatasourceQuerier.QueryRange(ctx, d.mainTsdb, query, rangeParams)
 	if err != nil {
 		d.helper.Errorw("msg", "query datasource status failed", "error", err, "uid", req.UID)
 		return nil, merr.ErrorInternalServer("query datasource status failed").WithCause(err)

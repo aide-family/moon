@@ -100,7 +100,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	levelBiz := biz.NewLevel(level, strategyMetric, helper)
 	levelService := service.NewLevelService(levelBiz)
 	metricDatasourceQuerier := impl.NewMetricDatasourceQuerier()
-	datasourceBiz := biz.NewDatasource(datasource, metricDatasourceQuerier, helper)
+	datasourceBiz := biz.NewDatasource(bc, datasource, metricDatasourceQuerier, helper)
 	datasourceService := service.NewDatasourceService(datasourceBiz)
 	transaction := impl.NewTransaction(dataData)
 	strategyGroup, err := impl.NewStrategyGroupRepository(dataData)
