@@ -15,7 +15,7 @@ func ToStrategyMetricItemBo(m *do.StrategyMetric) *bo.StrategyMetricItemBo {
 	}
 	levels := make([]*bo.StrategyMetricLevelItemBo, 0, len(m.StrategyLevels))
 	for _, level := range m.StrategyLevels {
-		levels = append(levels, ToStrategyMetricLevelItemBo(level, level.Level))
+		levels = append(levels, ToStrategyMetricLevelItemBo(level))
 	}
 	return &bo.StrategyMetricItemBo{
 		UID:            m.ID,
@@ -32,14 +32,14 @@ func ToStrategyMetricItemBo(m *do.StrategyMetric) *bo.StrategyMetricItemBo {
 	}
 }
 
-func ToStrategyMetricLevelItemBo(m *do.StrategyMetricLevel, levelDo *do.Level) *bo.StrategyMetricLevelItemBo {
+func ToStrategyMetricLevelItemBo(m *do.StrategyMetricLevel) *bo.StrategyMetricLevelItemBo {
 	if m == nil {
 		return nil
 	}
 	return &bo.StrategyMetricLevelItemBo{
 		LevelUID:    m.LevelUID,
 		StrategyUID: m.StrategyUID,
-		Level:       ToLevelItemBo(levelDo),
+		Level:       ToLevelItemBo(m.Level),
 		Mode:        m.Mode,
 		Condition:   m.Condition,
 		Values:      m.Values.List(),

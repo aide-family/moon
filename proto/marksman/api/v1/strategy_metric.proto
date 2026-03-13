@@ -112,15 +112,17 @@ message SaveStrategyMetricLevelRequest {
 		expression: "this in [magicbox.enum.ConditionMetric.CONDITION_METRIC_EQ, magicbox.enum.ConditionMetric.CONDITION_METRIC_NE, magicbox.enum.ConditionMetric.CONDITION_METRIC_GT, magicbox.enum.ConditionMetric.CONDITION_METRIC_GTE, magicbox.enum.ConditionMetric.CONDITION_METRIC_LT, magicbox.enum.ConditionMetric.CONDITION_METRIC_LTE, magicbox.enum.ConditionMetric.CONDITION_METRIC_IN, magicbox.enum.ConditionMetric.CONDITION_METRIC_NOT_IN]",
 		message: "condition must be in ['CONDITION_METRIC_EQ', 'CONDITION_METRIC_NE', 'CONDITION_METRIC_GT', 'CONDITION_METRIC_GTE', 'CONDITION_METRIC_LT', 'CONDITION_METRIC_LTE', 'CONDITION_METRIC_IN', 'CONDITION_METRIC_NOT_IN']",
 	}];
-	repeated double values = 5 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		expression: "this.size() == 1 || this.size() == 2",
-		message: "values must be 1 or 2",
-	}];
+	repeated double values = 5 [(buf.validate.field).required = true];
 	google.protobuf.Duration duration = 6 [(buf.validate.field).required = true];
 	magicbox.enum.GlobalStatus status = 7 [(buf.validate.field).required = true, (buf.validate.field).cel = {
 		expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
 		message: "status must be in ['ENABLED', 'DISABLED']",
 	}];
+	// When condition is IN or NOT_IN, values must have exactly 2 elements; otherwise exactly 1.
+	option (buf.validate.message).cel = {
+		expression: "(this.condition == magicbox.enum.ConditionMetric.CONDITION_METRIC_IN || this.condition == magicbox.enum.ConditionMetric.CONDITION_METRIC_NOT_IN) ? size(this.values) == 2 : size(this.values) == 1",
+		message: "when condition is IN or NOT_IN, values must have exactly 2 elements; otherwise values must have exactly 1 element",
+	};
 }
 message SaveStrategyMetricLevelReply {}
 

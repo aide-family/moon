@@ -164,10 +164,14 @@ func (s *Slice[T]) UnmarshalBinary(data []byte) error {
 }
 
 func (s *Slice[T]) Value() (driver.Value, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return json.Marshal(s.s)
 }
 
 func (s *Slice[T]) Scan(src any) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	switch src := src.(type) {
 	case []byte:
 		return json.Unmarshal(src, &s.s)

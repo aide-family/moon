@@ -139,7 +139,8 @@ func (r *strategyMetricRepository) UpdateStrategyMetric(ctx context.Context, req
 
 func (r *strategyMetricRepository) GetStrategyMetric(ctx context.Context, strategyUID snowflake.ID) (*bo.StrategyMetricItemBo, error) {
 	strategyMetricQuery := query.StrategyMetric
-	wrapper := strategyMetricQuery.WithContext(ctx).Where(strategyMetricQuery.StrategyUID.Eq(strategyUID.Int64()))
+	ns := contextx.GetNamespace(ctx)
+	wrapper := strategyMetricQuery.WithContext(ctx).Where(strategyMetricQuery.NamespaceUID.Eq(ns.Int64()), strategyMetricQuery.StrategyUID.Eq(strategyUID.Int64()))
 	wrapper = wrapper.Preload(
 		field.Associations,
 		strategyMetricQuery.StrategyLevels.Level,
@@ -162,6 +163,7 @@ func (r *strategyMetricRepository) CreateStrategyMetricLevel(ctx context.Context
 }
 
 func (r *strategyMetricRepository) UpdateStrategyMetricLevel(ctx context.Context, req *bo.SaveStrategyMetricLevelBo) error {
+	ns := contextx.GetNamespace(ctx)
 	columns := []field.AssignExpr{
 		query.StrategyMetricLevel.Mode.Value(int32(req.Mode)),
 		query.StrategyMetricLevel.Condition.Value(int32(req.Condition)),
@@ -170,6 +172,7 @@ func (r *strategyMetricRepository) UpdateStrategyMetricLevel(ctx context.Context
 		query.StrategyMetricLevel.Status.Value(int32(req.Status)),
 	}
 	conditions := []gen.Condition{
+		query.StrategyMetricLevel.NamespaceUID.Eq(ns.Int64()),
 		query.StrategyMetricLevel.StrategyUID.Eq(req.StrategyUID.Int64()),
 		query.StrategyMetricLevel.LevelUID.Eq(req.LevelUID.Int64()),
 	}
@@ -179,7 +182,9 @@ func (r *strategyMetricRepository) UpdateStrategyMetricLevel(ctx context.Context
 
 func (r *strategyMetricRepository) UpdateStrategyMetricLevelStatus(ctx context.Context, req *bo.UpdateStrategyMetricLevelStatusBo) error {
 	sml := query.StrategyMetricLevel
+	ns := contextx.GetNamespace(ctx)
 	info, err := sml.WithContext(ctx).Where(
+		sml.NamespaceUID.Eq(ns.Int64()),
 		sml.StrategyUID.Eq(req.StrategyUID.Int64()),
 		sml.LevelUID.Eq(req.LevelUID.Int64()),
 	).Update(sml.Status, req.Status)
@@ -194,7 +199,9 @@ func (r *strategyMetricRepository) UpdateStrategyMetricLevelStatus(ctx context.C
 
 func (r *strategyMetricRepository) DeleteStrategyMetricLevel(ctx context.Context, levelUID snowflake.ID, strategyUID snowflake.ID) error {
 	sml := query.StrategyMetricLevel
+	ns := contextx.GetNamespace(ctx)
 	info, err := sml.WithContext(ctx).Where(
+		sml.NamespaceUID.Eq(ns.Int64()),
 		sml.StrategyUID.Eq(strategyUID.Int64()),
 		sml.LevelUID.Eq(levelUID.Int64()),
 	).Delete()
@@ -275,7 +282,8 @@ func (r *strategyMetricRepository) HasStrategyMetricLevelData(ctx context.Contex
 
 func (r *strategyMetricRepository) LevelReferencedByStrategyMetricLevel(ctx context.Context, levelUID snowflake.ID) (bool, error) {
 	sml := query.StrategyMetricLevel
-	c, err := sml.WithContext(ctx).Where(sml.LevelUID.Eq(levelUID.Int64())).Count()
+	ns := contextx.GetNamespace(ctx)
+	c, err := sml.WithContext(ctx).Where(sml.NamespaceUID.Eq(ns.Int64()), sml.LevelUID.Eq(levelUID.Int64())).Count()
 	if err != nil {
 		return false, err
 	}
@@ -284,7 +292,8 @@ func (r *strategyMetricRepository) LevelReferencedByStrategyMetricLevel(ctx cont
 
 func (r *strategyMetricRepository) LevelReferencedByStrategyMetricReceiver(ctx context.Context, levelUID snowflake.ID) (bool, error) {
 	smr := query.StrategyMetricReceiver
-	c, err := smr.WithContext(ctx).Where(smr.LevelUID.Eq(levelUID.Int64())).Count()
+	ns := contextx.GetNamespace(ctx)
+	c, err := smr.WithContext(ctx).Where(smr.NamespaceUID.Eq(ns.Int64()), smr.LevelUID.Eq(levelUID.Int64())).Count()
 	if err != nil {
 		return false, err
 	}
@@ -293,34 +302,27 @@ func (r *strategyMetricRepository) LevelReferencedByStrategyMetricReceiver(ctx c
 
 func (r *strategyMetricRepository) GetStrategyMetricLevelByStrategyAndLevel(ctx context.Context, strategyUID snowflake.ID, levelUID snowflake.ID) (*bo.StrategyMetricLevelItemBo, error) {
 	sml := query.StrategyMetricLevel
+	ns := contextx.GetNamespace(ctx)
 	row, err := sml.WithContext(ctx).Where(
+		sml.NamespaceUID.Eq(ns.Int64()),
 		sml.StrategyUID.Eq(strategyUID.Int64()),
 		sml.LevelUID.Eq(levelUID.Int64()),
-	).First()
+	).Preload(field.Associations).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotFound("strategy metric level not found")
 		}
 		return nil, err
 	}
-	var levelDo *do.Level
-	if row.LevelUID != 0 {
-		levelDo, err = query.Level.WithContext(ctx).Where(query.Level.ID.Eq(row.LevelUID.Int64())).First()
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return nil, merr.ErrorNotFound("strategy metric level level not found")
-			}
-			return nil, err
-		}
-	}
-	return convert.ToStrategyMetricLevelItemBo(row, levelDo), nil
+	return convert.ToStrategyMetricLevelItemBo(row), nil
 }
 
 func (r *strategyMetricRepository) StrategyMetricBindReceivers(ctx context.Context, req *bo.StrategyMetricBindReceiversBo) error {
+	ns := contextx.GetNamespace(ctx)
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		q := query.Use(tx)
 		smr := q.StrategyMetricReceiver
-		w := smr.WithContext(ctx).Where(smr.StrategyUID.Eq(req.StrategyUID.Int64()))
+		w := smr.WithContext(ctx).Where(smr.NamespaceUID.Eq(ns.Int64()), smr.StrategyUID.Eq(req.StrategyUID.Int64()))
 		w = w.Where(smr.LevelUID.Eq(req.LevelUID.Int64()))
 		_, err := w.Delete()
 		if err != nil {
