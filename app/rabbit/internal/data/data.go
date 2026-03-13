@@ -82,7 +82,7 @@ type Data struct {
 	cache    cache.Interface
 	db       *gorm.DB
 	node     *snowflake.Node
-	closes   *safety.SyncMap[string, func() error] // 使用SyncMap保证并发安全
+	closes   *safety.SyncMap[string, func() error] // SyncMap for concurrent-safe close registration
 }
 
 func (d *Data) AppendClose(name string, close func() error) {
@@ -93,10 +93,10 @@ func (d *Data) close() {
 	d.closes.Range(func(name string, close func() error) bool {
 		if err := close(); err != nil {
 			d.helper.Errorw("msg", "close db failed", "name", name, "error", err)
-			return true // 继续遍历
+			return true // continue range
 		}
 		d.helper.Debugw("msg", "close success", "name", name)
-		return true // 继续遍历
+		return true // continue range
 	})
 }
 

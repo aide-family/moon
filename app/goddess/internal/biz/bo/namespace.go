@@ -124,7 +124,7 @@ func ToAPIV1ListNamespaceReply(pageResponseBo *PageResponseBo[*NamespaceItemBo])
 	}
 }
 
-// SelectNamespaceBo 选择Namespace的 BO
+// SelectNamespaceBo is the BO for select-namespace request.
 type SelectNamespaceBo struct {
 	Keyword string
 	Limit   int32
@@ -132,7 +132,7 @@ type SelectNamespaceBo struct {
 	Status  enum.GlobalStatus
 }
 
-// NewSelectNamespaceBo 从 API 请求创建 BO
+// NewSelectNamespaceBo builds SelectNamespaceBo from API request.
 func NewSelectNamespaceBo(req *goddessv1.SelectNamespaceRequest) *SelectNamespaceBo {
 	var lastUID snowflake.ID
 	if req.LastUID > 0 {
@@ -146,7 +146,7 @@ func NewSelectNamespaceBo(req *goddessv1.SelectNamespaceRequest) *SelectNamespac
 	}
 }
 
-// NamespaceItemSelectBo Namespace选择项的 BO
+// NamespaceItemSelectBo is one namespace item in select result.
 type NamespaceItemSelectBo struct {
 	UID      snowflake.ID
 	Name     string
@@ -155,7 +155,7 @@ type NamespaceItemSelectBo struct {
 	Tooltip  string
 }
 
-// ToAPIV1NamespaceItemSelect 转换为 API 响应
+// ToAPIV1NamespaceItemSelect converts BO to API response.
 func (b *NamespaceItemSelectBo) ToAPIV1NamespaceItemSelect() *goddessv1.NamespaceItemSelect {
 	return &goddessv1.NamespaceItemSelect{
 		Value:    b.UID.Int64(),
@@ -165,7 +165,7 @@ func (b *NamespaceItemSelectBo) ToAPIV1NamespaceItemSelect() *goddessv1.Namespac
 	}
 }
 
-// SelectNamespaceBoResult Biz层返回结果
+// SelectNamespaceBoResult is the biz result for select namespace.
 type SelectNamespaceBoResult struct {
 	Items   []*NamespaceItemSelectBo
 	Total   int64
@@ -173,7 +173,7 @@ type SelectNamespaceBoResult struct {
 	HasMore bool
 }
 
-// ToAPIV1SelectNamespaceReply 转换为 API 响应
+// ToAPIV1SelectNamespaceReply converts BO result to API response.
 func ToAPIV1SelectNamespaceReply(result *SelectNamespaceBoResult) *goddessv1.SelectNamespaceReply {
 	selectItems := make([]*goddessv1.NamespaceItemSelect, 0, len(result.Items))
 	for _, item := range result.Items {

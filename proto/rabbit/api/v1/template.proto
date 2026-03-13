@@ -74,25 +74,9 @@ message CreateTemplateRequest {
 		expression: "this in [magicbox.enum.MessageType.EMAIL, magicbox.enum.MessageType.SMS_ALICLOUD, magicbox.enum.MessageType.WEBHOOK_OTHER, magicbox.enum.MessageType.WEBHOOK_DINGTALK, magicbox.enum.MessageType.WEBHOOK_WECHAT, magicbox.enum.MessageType.WEBHOOK_FEISHU]",
 		message: "messageType must be in ['EMAIL', 'SMS_ALICLOUD', 'WEBHOOK_OTHER', 'WEBHOOK_DINGTALK', 'WEBHOOK_WECHAT', 'WEBHOOK_FEISHU']",
 	}];
-	// 邮件模板数据结构:
-	// {
-	// 	"subject": "string",
-	// 	"body": "string",
-	// 	"content_type": "string",
-	// 	"headers": {
-	// 		"key": ["value1", "value2"]
-	// 	}
-	// }
-	// SMS模板数据结构:
-	// {
-	// 	"content": "string",
-	// 	"params": {
-	// 		"key": "value"
-	// 	}
-	// }
-	// Webhook模板数据结构:
-	// {
-	// }
+	// Email template JSON: {"subject":"string","body":"string","content_type":"string","headers":{"key":["value1","value2"]}}
+	// SMS template JSON: {"content":"string","params":{"key":"value"}}
+	// Webhook template JSON: {}
 	string jsonData = 3 [(buf.validate.field).required = true];
 }
 message CreateTemplateReply {
@@ -106,25 +90,9 @@ message UpdateTemplateRequest {
 		expression: "this in [magicbox.enum.MessageType.EMAIL, magicbox.enum.MessageType.SMS_ALICLOUD, magicbox.enum.MessageType.WEBHOOK_OTHER, magicbox.enum.MessageType.WEBHOOK_DINGTALK, magicbox.enum.MessageType.WEBHOOK_WECHAT, magicbox.enum.MessageType.WEBHOOK_FEISHU]",
 		message: "messageType must be in ['EMAIL', 'SMS_ALICLOUD', 'WEBHOOK_OTHER', 'WEBHOOK_DINGTALK', 'WEBHOOK_WECHAT', 'WEBHOOK_FEISHU']",
 	}];
-	// 邮件模板数据结构:
-	// {
-	// 	"subject": "string",
-	// 	"body": "string",
-	// 	"content_type": "string",
-	// 	"headers": {
-	// 		"key": ["value1", "value2"]
-	// 	}
-	// }
-	// SMS模板数据结构:
-	// {
-	// 	"content": "string",
-	// 	"params": {
-	// 		"key": "value"
-	// 	}
-	// }
-	// Webhook模板数据结构:
-	// {
-	// }
+	// Email template JSON: {"subject":"string","body":"string","content_type":"string","headers":{"key":["value1","value2"]}}
+	// SMS template JSON: {"content":"string","params":{"key":"value"}}
+	// Webhook template JSON: {}
 	string jsonData = 4 [(buf.validate.field).required = true];
 }
 message UpdateTemplateReply {}

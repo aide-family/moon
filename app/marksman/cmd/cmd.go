@@ -28,9 +28,9 @@ const (
 	ConfigCommands   = "Config Commands"
 )
 
-const cmdLong = `marksman (后羿) is the marksman service for the Moon platform, providing marksman capabilities.
+const cmdLong = `Marksman is the alerting and event service for the Moon platform.
 
-Use "marksman [command] --help" to view detailed information about a specific command.`
+Use "marksman [command] --help" for details of a specific command.`
 
 func NewCmd() *cobra.Command {
 	rootCmd := &cobra.Command{

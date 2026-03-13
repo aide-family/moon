@@ -9,7 +9,7 @@ import (
 	apiv1 "github.com/aide-family/rabbit/pkg/api/v1"
 )
 
-// RecipientGroupItemBo 收件组 BO
+// RecipientGroupItemBo is the BO for one recipient group item.
 type RecipientGroupItemBo struct {
 	UID            snowflake.ID             `json:"uid"`
 	Name           string                   `json:"name"`
@@ -21,7 +21,7 @@ type RecipientGroupItemBo struct {
 	WebhookConfigs []*WebhookItemBo         `json:"webhookConfigs"`
 }
 
-// ToAPIV1RecipientGroupItem 转为 API
+// ToAPIV1RecipientGroupItem converts BO to API item.
 func (b *RecipientGroupItemBo) ToAPIV1RecipientGroupItem() *apiv1.RecipientGroupItem {
 	members := make([]*goddessv1.MemberItem, 0, len(b.Members))
 	for _, m := range b.Members {
@@ -51,7 +51,7 @@ func (b *RecipientGroupItemBo) ToAPIV1RecipientGroupItem() *apiv1.RecipientGroup
 	}
 }
 
-// CreateRecipientGroupBo 创建收件组 BO
+// CreateRecipientGroupBo is the BO for creating a recipient group.
 type CreateRecipientGroupBo struct {
 	Name           string
 	Metadata       map[string]string
@@ -61,7 +61,7 @@ type CreateRecipientGroupBo struct {
 	Members        []int64
 }
 
-// NewCreateRecipientGroupBo 从 API 请求创建
+// NewCreateRecipientGroupBo builds BO from API request.
 func NewCreateRecipientGroupBo(req *apiv1.CreateRecipientGroupRequest) *CreateRecipientGroupBo {
 	return &CreateRecipientGroupBo{
 		Name:           req.Name,
@@ -73,7 +73,7 @@ func NewCreateRecipientGroupBo(req *apiv1.CreateRecipientGroupRequest) *CreateRe
 	}
 }
 
-// UpdateRecipientGroupBo 更新收件组 BO
+// UpdateRecipientGroupBo is the BO for updating a recipient group.
 type UpdateRecipientGroupBo struct {
 	UID            snowflake.ID
 	Name           string
@@ -84,7 +84,7 @@ type UpdateRecipientGroupBo struct {
 	Members        []int64
 }
 
-// NewUpdateRecipientGroupBo 从 API 请求创建
+// NewUpdateRecipientGroupBo builds BO from API request.
 func NewUpdateRecipientGroupBo(req *apiv1.UpdateRecipientGroupRequest) *UpdateRecipientGroupBo {
 	bo := &UpdateRecipientGroupBo{
 		UID:            snowflake.ParseInt64(req.Uid),
@@ -98,14 +98,14 @@ func NewUpdateRecipientGroupBo(req *apiv1.UpdateRecipientGroupRequest) *UpdateRe
 	return bo
 }
 
-// ListRecipientGroupBo 列表请求 BO
+// ListRecipientGroupBo is the BO for list recipient group request.
 type ListRecipientGroupBo struct {
 	*PageRequestBo
 	Keyword string
 	Status  enum.GlobalStatus
 }
 
-// NewListRecipientGroupBo 从 API 请求创建
+// NewListRecipientGroupBo builds BO from API request.
 func NewListRecipientGroupBo(req *apiv1.ListRecipientGroupRequest) *ListRecipientGroupBo {
 	return &ListRecipientGroupBo{
 		PageRequestBo: NewPageRequestBo(req.Page, req.PageSize),
@@ -114,7 +114,7 @@ func NewListRecipientGroupBo(req *apiv1.ListRecipientGroupRequest) *ListRecipien
 	}
 }
 
-// ToAPIV1ListRecipientGroupReply 转为 API 列表响应
+// ToAPIV1ListRecipientGroupReply converts BO to API list reply.
 func ToAPIV1ListRecipientGroupReply(page *PageResponseBo[*RecipientGroupItemBo]) *apiv1.ListRecipientGroupReply {
 	items := make([]*apiv1.RecipientGroupItem, 0, len(page.GetItems()))
 	for _, it := range page.GetItems() {
@@ -128,7 +128,7 @@ func ToAPIV1ListRecipientGroupReply(page *PageResponseBo[*RecipientGroupItemBo])
 	}
 }
 
-// SelectRecipientGroupBo 选择收件组 BO
+// SelectRecipientGroupBo is the BO for select recipient group request.
 type SelectRecipientGroupBo struct {
 	Keyword string
 	Limit   int32
@@ -136,7 +136,7 @@ type SelectRecipientGroupBo struct {
 	Status  enum.GlobalStatus
 }
 
-// NewSelectRecipientGroupBo 从 API 请求创建
+// NewSelectRecipientGroupBo builds BO from API request.
 func NewSelectRecipientGroupBo(req *apiv1.SelectRecipientGroupRequest) *SelectRecipientGroupBo {
 	var lastUID snowflake.ID
 	if req.LastUID > 0 {
@@ -150,7 +150,7 @@ func NewSelectRecipientGroupBo(req *apiv1.SelectRecipientGroupRequest) *SelectRe
 	}
 }
 
-// SelectRecipientGroupItemBo 选择项 BO
+// SelectRecipientGroupItemBo is one item in select recipient group result.
 type SelectRecipientGroupItemBo struct {
 	UID      snowflake.ID
 	Name     string
@@ -159,7 +159,7 @@ type SelectRecipientGroupItemBo struct {
 	Tooltip  string
 }
 
-// ToAPIV1SelectRecipientGroupItem 转为 API
+// ToAPIV1SelectRecipientGroupItem converts BO to API item.
 func (b *SelectRecipientGroupItemBo) ToAPIV1SelectRecipientGroupItem() *apiv1.SelectRecipientGroupItem {
 	return &apiv1.SelectRecipientGroupItem{
 		Value:    b.UID.Int64(),
@@ -169,14 +169,14 @@ func (b *SelectRecipientGroupItemBo) ToAPIV1SelectRecipientGroupItem() *apiv1.Se
 	}
 }
 
-// SelectRecipientGroupBoResult 选择结果
+// SelectRecipientGroupBoResult is the result of select recipient group.
 type SelectRecipientGroupBoResult struct {
 	Items   []*SelectRecipientGroupItemBo
 	Total   int64
 	LastUID snowflake.ID
 }
 
-// ToAPIV1SelectRecipientGroupReply 转为 API
+// ToAPIV1SelectRecipientGroupReply converts BO result to API reply.
 func ToAPIV1SelectRecipientGroupReply(items []*SelectRecipientGroupItemBo, total int64, lastUID snowflake.ID, limit int32) *apiv1.SelectRecipientGroupReply {
 	out := make([]*apiv1.SelectRecipientGroupItem, 0, len(items))
 	for _, it := range items {
@@ -191,13 +191,13 @@ func ToAPIV1SelectRecipientGroupReply(items []*SelectRecipientGroupItemBo, total
 	}
 }
 
-// UpdateRecipientGroupStatusBo 更新状态 BO
+// UpdateRecipientGroupStatusBo is the BO for updating recipient group status.
 type UpdateRecipientGroupStatusBo struct {
 	UID    snowflake.ID
 	Status enum.GlobalStatus
 }
 
-// NewUpdateRecipientGroupStatusBo 从 API 请求创建
+// NewUpdateRecipientGroupStatusBo builds BO from API request.
 func NewUpdateRecipientGroupStatusBo(req *apiv1.UpdateRecipientGroupStatusRequest) *UpdateRecipientGroupStatusBo {
 	return &UpdateRecipientGroupStatusBo{
 		UID:    snowflake.ParseInt64(req.Uid),
@@ -205,7 +205,7 @@ func NewUpdateRecipientGroupStatusBo(req *apiv1.UpdateRecipientGroupStatusReques
 	}
 }
 
-// RecipientGroupDetailBo 详情 BO（含关联 ID，用于编辑回显）
+// RecipientGroupDetailBo is the detail BO (includes related IDs for edit form).
 type RecipientGroupDetailBo struct {
 	RecipientGroupItemBo
 	Templates      []snowflake.ID
@@ -214,7 +214,7 @@ type RecipientGroupDetailBo struct {
 	Members        []snowflake.ID
 }
 
-// ToAPIV1RecipientGroupItemFromDetail 详情转 API Item（当前 proto 只有 uid/name/metadata，关联在 Update 时传）
+// ToAPIV1RecipientGroupItemFromDetail converts detail BO to API item (proto has uid/name/metadata; relations are sent on Update).
 func (b *RecipientGroupDetailBo) ToAPIV1RecipientGroupItemFromDetail() *apiv1.RecipientGroupItem {
 	return &apiv1.RecipientGroupItem{
 		Uid:      b.UID.Int64(),

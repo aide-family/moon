@@ -28,7 +28,7 @@ const (
 	ConfigCommands   = "Config Commands"
 )
 
-const cmdLong = `Goddess (嫦娥) is the service governance platform for the Moon platform, providing unified service governance capabilities.
+const cmdLong = `Goddess is the service governance platform for the Moon platform.
 
 Use "goddess [command] --help" to view detailed information about a specific command.`
 

@@ -123,27 +123,27 @@ func (e *emailConfigRepository) SelectEmailConfig(ctx context.Context, req *bo.S
 		wrappers = wrappers.Where(emailConfig.Status.Eq(int32(req.Status)))
 	}
 
-	// 获取总数
+	// Total count for response.
 	total, err := wrappers.Count()
 	if err != nil {
 		return nil, err
 	}
 
-	// 游标分页：如果提供了lastUID，则查询UID小于lastUID的记录
+	// Cursor pagination: when lastUID is set, filter by ID < lastUID.
 	if req.LastUID > 0 {
 		wrappers = wrappers.Where(emailConfig.ID.Lt(req.LastUID.Int64()))
 	}
 
-	// 限制返回数量
+	// Limit result size.
 	wrappers = wrappers.Limit(int(req.Limit))
 
-	// 按UID倒序排列（snowflake ID按时间生成，与CreatedAt一致）
+	// Order by UID descending (snowflake ID is time-ordered, consistent with CreatedAt).
 	emailConfigs, err := wrappers.Order(emailConfig.ID.Desc()).Find()
 	if err != nil {
 		return nil, err
 	}
 
-	// 获取最后一个UID，用于下次分页
+	// Last UID for next-page cursor.
 	var lastUID snowflake.ID
 	if len(emailConfigs) > 0 {
 		lastUID = emailConfigs[len(emailConfigs)-1].ID

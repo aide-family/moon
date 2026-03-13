@@ -229,7 +229,7 @@ message ListMetricsReply {
 // MetricSummaryItem: metric list item (no label detail). Uses help to align with Prometheus metadata.
 message MetricSummaryItem {
 	string name = 1;
-	string help = 2;   // Prometheus metadata help (说明信息)
+	string help = 2;   // Prometheus metadata help text
 	string unit = 3;
 	string type = 4;   // e.g. "counter", "gauge"
 }

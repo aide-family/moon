@@ -144,7 +144,7 @@ description: Implements backend modules from proto definitions for goddess, mark
 
 ## Go 规范
 
-- **代码与用户可见文案仅用英文**：源码中的用户可见文案（如 `merr.ErrorNotFound`、`merr.ErrorParams` 等返回给前端的错误信息）、日志文案、注释、变量/函数命名等**一律使用英文**，不得在代码中出现中英文混用（如错误信息用中文而其它用英文）。若产品需要多语言提示，由前端或 i18n 根据错误码/键做文案展示，后端只提供稳定的英文文案或错误码。
+- **Comments, logs, and user-facing text in English only**：All source code must use **professional English** for: comments (line, block, doc), log messages (e.g. `helper.Errorw("msg", "…")`), error strings (e.g. `merr.ErrorNotFound("…")`), and any other user-facing or developer-facing text. No Chinese or mixed language in code. Follow [Effective Go](https://go.dev/doc/effective_go) and standard Go style (concise, clear, consistent). Multi-language UX is handled by frontend/i18n using error codes or keys; the backend exposes stable English messages only.
 - **Import 顺序**（严格）：  
   1）标准库  
   2）空白导入（`_ "..."`）  
@@ -182,7 +182,7 @@ description: Implements backend modules from proto definitions for goddess, mark
 - [ ] 新增的 repository、biz、service、impl 已在对应 ProviderSet 与 Register* 中注册
 - [ ] 公共可复用函数或方法已添加测试
 - [ ] **README 已同步**：若有模块/API 新增、修改或删除，已同时更新对应应用的 `README.md` 与 `README-zh_CN.md`；且 **功能特性（Features）** 与 **接口概览（API Overview）表** 均已补充/修改/删除对应内容，中英文一一对应，与当前 proto 一致
-- [ ] **代码与错误文案仅用英文**：merr 错误信息、日志文案、注释等均使用英文，无中英文混用
+- [ ] **Comments and logs in English**：All comments, log messages, and error strings are in professional English; no Chinese in source
 - [ ] **无重复逻辑**：相同或高度相似的校验/逻辑已抽取为私有方法或共享函数，由多处调用，未复制粘贴
 
 更多分层与文件命名细节见 [reference.md](reference.md)。

@@ -34,7 +34,7 @@ type Webhook struct {
 }
 
 func (w *Webhook) AppendWebhookMessage(ctx context.Context, req *bo.SendWebhookBo) (snowflake.ID, error) {
-	// 获取webhook配置
+	// Load webhook config by UID.
 	webhookConfig, err := w.webhookConfigBiz.GetWebhook(ctx, req.UID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -58,7 +58,7 @@ func (w *Webhook) AppendWebhookMessage(ctx context.Context, req *bo.SendWebhookB
 }
 
 func (w *Webhook) AppendWebhookMessageWithTemplate(ctx context.Context, req *bo.SendWebhookWithTemplateBo) (snowflake.ID, error) {
-	// 获取模板
+	// Load template by UID.
 	templateDo, err := w.templateBiz.GetTemplate(ctx, req.TemplateUID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
