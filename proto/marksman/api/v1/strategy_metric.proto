@@ -123,6 +123,11 @@ message SaveStrategyMetricLevelRequest {
 		expression: "(this.condition == magicbox.enum.ConditionMetric.CONDITION_METRIC_IN || this.condition == magicbox.enum.ConditionMetric.CONDITION_METRIC_NOT_IN) ? size(this.values) == 2 : size(this.values) == 1",
 		message: "when condition is IN or NOT_IN, values must have exactly 2 elements; otherwise values must have exactly 1 element",
 	};
+	// When condition is IN or NOT_IN, the first value must be less than or equal to the second (min <= max).
+	option (buf.validate.message).cel = {
+		expression: "(this.condition == magicbox.enum.ConditionMetric.CONDITION_METRIC_IN || this.condition == magicbox.enum.ConditionMetric.CONDITION_METRIC_NOT_IN) && size(this.values) >= 2 ? this.values[0] <= this.values[1] : true",
+		message: "when condition is IN or NOT_IN, the first value must be less than or equal to the second value",
+	};
 }
 message SaveStrategyMetricLevelReply {}
 
