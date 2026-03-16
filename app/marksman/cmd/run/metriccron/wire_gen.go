@@ -37,10 +37,14 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		return nil, nil, err
 	}
 	jobChannel := impl.NewJobChannel(bc, dataData)
-	evaluate := biz.NewEvaluateBiz(bc, namespace, strategyMetric, jobChannel)
+	metricDatasourceQuerier := impl.NewMetricDatasourceQuerier()
+	alertEventChannel := impl.NewAlertEventChannel(bc, dataData)
+	evaluate := biz.NewEvaluateBiz(bc, namespace, strategyMetric, jobChannel, metricDatasourceQuerier, alertEventChannel)
 	evaluateService := service.NewEvaluateService(evaluate)
 	metricCronServer := cron.NewMetricCronServer(evaluateService, helper)
-	servers := server.RegisterMetricCronService(metricCronServer)
+	alertEventConsumer := biz.NewAlertEventConsumer(helper)
+	alertEventConsumerServer := cron.NewAlertEventConsumerServer(alertEventChannel, alertEventConsumer, helper)
+	servers := server.RegisterMetricCronService(metricCronServer, alertEventConsumerServer)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

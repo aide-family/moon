@@ -51,9 +51,13 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		return nil, nil, err
 	}
 	jobChannel := impl.NewJobChannel(bc, dataData)
-	evaluate := biz.NewEvaluateBiz(bc, namespace, strategyMetric, jobChannel)
+	metricDatasourceQuerier := impl.NewMetricDatasourceQuerier()
+	alertEventChannel := impl.NewAlertEventChannel(bc, dataData)
+	evaluate := biz.NewEvaluateBiz(bc, namespace, strategyMetric, jobChannel, metricDatasourceQuerier, alertEventChannel)
 	evaluateService := service.NewEvaluateService(evaluate)
 	metricCronServer := cron.NewMetricCronServer(evaluateService, helper)
+	alertEventConsumer := biz.NewAlertEventConsumer(helper)
+	alertEventConsumerServer := cron.NewAlertEventConsumerServer(alertEventChannel, alertEventConsumer, helper)
 	loginRepository, err := impl.NewLoginRepository(bc, dataData)
 	if err != nil {
 		cleanup()
@@ -99,7 +103,6 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	}
 	levelBiz := biz.NewLevel(level, strategyMetric, helper)
 	levelService := service.NewLevelService(levelBiz)
-	metricDatasourceQuerier := impl.NewMetricDatasourceQuerier()
 	datasourceBiz := biz.NewDatasource(bc, datasource, metricDatasourceQuerier, helper)
 	datasourceService := service.NewDatasourceService(datasourceBiz)
 	transaction := impl.NewTransaction(dataData)
@@ -117,7 +120,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	strategyService := service.NewStrategyService(strategyBiz)
 	strategyMetricBiz := biz.NewStrategyMetric(strategy, strategyMetric, level, helper)
 	strategyMetricService := service.NewStrategyMetricService(strategyMetricBiz)
-	servers := server.RegisterService(datasourceMetricsReg, bc, httpServer, grpcServer, metricCronServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, strategyService, strategyMetricService)
+	servers := server.RegisterService(datasourceMetricsReg, bc, httpServer, grpcServer, metricCronServer, alertEventConsumerServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, strategyService, strategyMetricService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

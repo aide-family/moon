@@ -34,6 +34,7 @@ var (
 		RegisterDatasourceMetrics,
 		RegisterService,
 		cron.NewMetricCronServer,
+		cron.NewAlertEventConsumerServer,
 	)
 	ProviderSetServerHTTP = wire.NewSet(
 		NewHTTPServer,
@@ -45,6 +46,7 @@ var (
 	)
 	ProviderSetServerMetricCron = wire.NewSet(
 		cron.NewMetricCronServer,
+		cron.NewAlertEventConsumerServer,
 		RegisterMetricCronService,
 	)
 )
@@ -116,6 +118,7 @@ func RegisterService(
 	httpSrv *http.Server,
 	grpcSrv *grpc.Server,
 	metricCronSrv *cron.MetricCronServer,
+	alertConsumerSrv *cron.AlertEventConsumerServer,
 	authService *service.AuthService,
 	healthService *service.HealthService,
 	namespaceService *service.NamespaceService,
@@ -158,7 +161,7 @@ func RegisterService(
 		strategyService,
 		strategyMetricService,
 	)...)
-	srvs = append(srvs, RegisterMetricCronService(metricCronSrv)...)
+	srvs = append(srvs, RegisterMetricCronService(metricCronSrv, alertConsumerSrv)...)
 	return srvs
 }
 
@@ -227,8 +230,11 @@ func RegisterGRPCService(
 	return Servers{newServer("grpc", grpcSrv)}
 }
 
-func RegisterMetricCronService(metricCronSrv *cron.MetricCronServer) Servers {
-	return Servers{newServer("metric-cron", metricCronSrv)}
+func RegisterMetricCronService(metricCronSrv *cron.MetricCronServer, alertConsumerSrv *cron.AlertEventConsumerServer) Servers {
+	return Servers{
+		newServer("metric-cron", metricCronSrv),
+		newServer("alert-event-consumer", alertConsumerSrv),
+	}
 }
 
 var namespaceAllowList = []string{

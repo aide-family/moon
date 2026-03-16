@@ -28,6 +28,8 @@ func NewEvaluateBiz(
 	namespaceRepo repository.Namespace,
 	strategyMetricRepo repository.StrategyMetric,
 	jobChannelRepo repository.JobChannel,
+	metricQuerier repository.MetricDatasourceQuerier,
+	alertEventChannel repository.AlertEventChannel,
 ) *Evaluate {
 	limit := defaultConcurrencyLimit
 	startupDelay := defaultStartupDelay
@@ -49,6 +51,8 @@ func NewEvaluateBiz(
 		namespaceRepo:      namespaceRepo,
 		strategyMetricRepo: strategyMetricRepo,
 		jobChannelRepo:     jobChannelRepo,
+		metricQuerier:      metricQuerier,
+		alertEventChannel:  alertEventChannel,
 		eg:                 eg,
 		startupDelay:       startupDelay,
 		queryTimeout:       queryTimeout,
@@ -62,6 +66,8 @@ type Evaluate struct {
 	namespaceRepo      repository.Namespace
 	strategyMetricRepo repository.StrategyMetric
 	jobChannelRepo     repository.JobChannel
+	metricQuerier      repository.MetricDatasourceQuerier
+	alertEventChannel  repository.AlertEventChannel
 	eg                 *errgroup.Group
 	startupDelay       time.Duration
 	queryTimeout       time.Duration
@@ -132,7 +138,7 @@ func (e *Evaluate) localStrategyMetricsByNamespace(eg *errgroup.Group, namespace
 		}
 
 		for _, strategy := range strategies {
-			e.jobChannelRepo.AppendMetricJob(evaluator.NewMetricEvaluator(strategy))
+			e.jobChannelRepo.AppendMetricJob(evaluator.NewMetricEvaluator(e.metricQuerier, e.alertEventChannel, strategy))
 		}
 		return nil
 	})

@@ -47,6 +47,8 @@ message EvaluateConfig {
 	uint32 appendChannelCapacity = 4;
 	// Capacity of the metric-remove job channel (default 100).
 	uint32 removeChannelCapacity = 5;
+	// Capacity of the alert event channel for metric evaluation (default 1000).
+	uint32 alertEventChannelCapacity = 6;
 }
 
 // MainTsdb config for querying metrics (e.g. marksman_datasource_status).
