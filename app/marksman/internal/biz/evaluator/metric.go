@@ -118,7 +118,7 @@ func (m *metricEvaluator) Run() {
 func (m *metricEvaluator) satisfiesCondition(v float64) bool {
 	vals := m.info.Values
 	cond := m.info.Condition
-	if len(vals) == 0 && cond != enum.ConditionMetric_CONDITION_METRIC_UNKNOWN {
+	if len(vals) == 0 || cond == enum.ConditionMetric_CONDITION_METRIC_UNKNOWN {
 		return false
 	}
 	threshold := vals[0]
