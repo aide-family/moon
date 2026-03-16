@@ -115,7 +115,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	}
 	strategyBiz := biz.NewStrategy(transaction, strategyGroup, strategy, strategyMetric, helper)
 	strategyService := service.NewStrategyService(strategyBiz)
-	strategyMetricBiz := biz.NewStrategyMetric(strategy, strategyMetric, helper)
+	strategyMetricBiz := biz.NewStrategyMetric(strategy, strategyMetric, level, helper)
 	strategyMetricService := service.NewStrategyMetricService(strategyMetricBiz)
 	servers := server.RegisterService(datasourceMetricsReg, bc, httpServer, grpcServer, metricCronServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, strategyService, strategyMetricService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)

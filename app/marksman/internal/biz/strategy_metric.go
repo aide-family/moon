@@ -15,11 +15,13 @@ import (
 func NewStrategyMetric(
 	strategyRepo repository.Strategy,
 	strategyMetricRepo repository.StrategyMetric,
+	levelRepo repository.Level,
 	helper *klog.Helper,
 ) *StrategyMetricBiz {
 	return &StrategyMetricBiz{
 		strategyRepo:       strategyRepo,
 		strategyMetricRepo: strategyMetricRepo,
+		levelRepo:          levelRepo,
 		helper:             klog.NewHelper(klog.With(helper.Logger(), "biz", "strategy_metric")),
 	}
 }
@@ -28,6 +30,7 @@ type StrategyMetricBiz struct {
 	helper             *klog.Helper
 	strategyRepo       repository.Strategy
 	strategyMetricRepo repository.StrategyMetric
+	levelRepo          repository.Level
 }
 
 // validateStrategyExistsAndIsMetrics returns the strategy if it exists and is METRICS type; otherwise returns a user-friendly error.
@@ -92,8 +95,27 @@ func (b *StrategyMetricBiz) GetStrategyMetric(ctx context.Context, strategyUID s
 	return item, nil
 }
 
+// validateLevelExistsAndEnabled returns the level if it exists and is enabled; otherwise returns a user-friendly error.
+func (b *StrategyMetricBiz) validateLevelExistsAndEnabled(ctx context.Context, levelUID snowflake.ID) (*bo.LevelItemBo, error) {
+	level, err := b.levelRepo.GetLevel(ctx, levelUID)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return nil, merr.ErrorNotFound("level not found or deleted, please select a valid level")
+		}
+		b.helper.Errorw("msg", "get level failed", "error", err, "levelUID", levelUID)
+		return nil, merr.ErrorInternalServer("get level failed").WithCause(err)
+	}
+	if level.Status != enum.GlobalStatus_ENABLED {
+		return nil, merr.ErrorParams("the selected level has been disabled, please select a new one")
+	}
+	return level, nil
+}
+
 func (b *StrategyMetricBiz) SaveStrategyMetricLevel(ctx context.Context, req *bo.SaveStrategyMetricLevelBo) error {
 	if _, err := b.validateStrategyExistsAndIsMetrics(ctx, req.StrategyUID); err != nil {
+		return err
+	}
+	if _, err := b.validateLevelExistsAndEnabled(ctx, req.LevelUID); err != nil {
 		return err
 	}
 	_, err := b.strategyMetricRepo.GetStrategyMetricLevelByStrategyAndLevel(ctx, req.StrategyUID, req.LevelUID)

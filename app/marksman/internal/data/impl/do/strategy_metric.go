@@ -16,7 +16,7 @@ type StrategyMetric struct {
 	Labels         *safety.Map[string, string] `gorm:"column:labels;type:json;"`
 	Summary        string                      `gorm:"column:summary;type:varchar(500);default:''"`
 	Description    string                      `gorm:"column:description;type:text;default:''"`
-	DatasourceUIDs *safety.Slice[int64]        `gorm:"column:datasource_uids;type:json;serializer:json"`
+	DatasourceUIDs *safety.Slice[int64]        `gorm:"column:datasource_uids;type:json;"`
 	Strategy       *Strategy                   `gorm:"foreignKey:StrategyUID;references:ID"`
 	StrategyLevels []*StrategyMetricLevel      `gorm:"foreignKey:StrategyUID;references:StrategyUID"`
 }
