@@ -1007,25 +1007,9 @@ components:
                 jsonData:
                     type: string
                     description: |-
-                        邮件模板数据结构:
-                         {
-                         	"subject": "string",
-                         	"body": "string",
-                         	"content_type": "string",
-                         	"headers": {
-                         		"key": ["value1", "value2"]
-                         	}
-                         }
-                         SMS模板数据结构:
-                         {
-                         	"content": "string",
-                         	"params": {
-                         		"key": "value"
-                         	}
-                         }
-                         Webhook模板数据结构:
-                         {
-                         }
+                        Email template JSON: {"subject":"string","body":"string","content_type":"string","headers":{"key":["value1","value2"]}}
+                         SMS template JSON: {"content":"string","params":{"key":"value"}}
+                         Webhook template JSON: {}
         rabbit.api.v1.CreateWebhookReply:
             type: object
             properties:
@@ -1499,25 +1483,9 @@ components:
                 jsonData:
                     type: string
                     description: |-
-                        邮件模板数据结构:
-                         {
-                         	"subject": "string",
-                         	"body": "string",
-                         	"content_type": "string",
-                         	"headers": {
-                         		"key": ["value1", "value2"]
-                         	}
-                         }
-                         SMS模板数据结构:
-                         {
-                         	"content": "string",
-                         	"params": {
-                         		"key": "value"
-                         	}
-                         }
-                         Webhook模板数据结构:
-                         {
-                         }
+                        Email template JSON: {"subject":"string","body":"string","content_type":"string","headers":{"key":["value1","value2"]}}
+                         SMS template JSON: {"content":"string","params":{"key":"value"}}
+                         Webhook template JSON: {}
         rabbit.api.v1.UpdateTemplateStatusReply:
             type: object
             properties: {}
