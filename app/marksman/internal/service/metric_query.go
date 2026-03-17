@@ -89,7 +89,9 @@ func (s *MetricQueryService) ProxyHandler(ctx http.Context) error {
 			params.Add(k, vv)
 		}
 	}
-	in.Path += "?" + params.Encode()
+	if len(params) > 0 {
+		in.Path += "?" + params.Encode()
+	}
 	http.SetOperation(ctx, apiv1.OperationMetricQueryProxy)
 	h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 		return s.Proxy(ctx, req.(*apiv1.MetricQueryProxyRequest))
