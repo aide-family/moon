@@ -17,40 +17,40 @@ type AlertEventBo struct {
 	NamespaceUID          snowflake.ID
 	Level                 *LevelItemBo
 	Summary               string
-	Description            string
+	Description           string
 	Expr                  string
 	FiredAt               time.Time
 	Value                 float64
 	Labels                map[string]string
 	DatasourceUID         snowflake.ID
 	EvaluatorType         string // e.g. "metric", for identifying which evaluator produced the event
-	EvaluatorSnapshotJSON  string // pre-serialized evaluator snapshot JSON (used by repo to find-or-insert snapshot, then store ID on event)
+	EvaluatorSnapshotJSON string // pre-serialized evaluator snapshot JSON (used by repo to find-or-insert snapshot, then store ID on event)
 }
 
 // AlertEventItemBo is the business object for a persisted alert event (real-time alert).
 type AlertEventItemBo struct {
-	UID                snowflake.ID
-	StrategyUID        snowflake.ID
-	NamespaceUID       snowflake.ID
-	LevelUID           snowflake.ID
-	LevelName          string
-	Summary            string
-	Description        string
-	Expr               string
-	FiredAt            time.Time
-	Value              float64
-	Labels             map[string]string
+	UID                 snowflake.ID
+	StrategyUID         snowflake.ID
+	NamespaceUID        snowflake.ID
+	LevelUID            snowflake.ID
+	LevelName           string
+	Summary             string
+	Description         string
+	Expr                string
+	FiredAt             time.Time
+	Value               float64
+	Labels              map[string]string
 	DatasourceUID       snowflake.ID
 	EvaluatorType       string
 	EvaluatorSnapshotID snowflake.ID
 	Status              apiv1.AlertEventStatus
-	IntervenedAt       *time.Time
-	IntervenedBy       snowflake.ID
-	SuppressedUntil    *time.Time
-	RecoveredAt        *time.Time
-	RecoveredBy        snowflake.ID
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
+	IntervenedAt        *time.Time
+	IntervenedBy        snowflake.ID
+	SuppressedUntil     *time.Time
+	RecoveredAt         *time.Time
+	RecoveredBy         snowflake.ID
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
 }
 
 func ToAPIV1AlertEventItem(b *AlertEventItemBo) *apiv1.AlertEventItem {
@@ -59,7 +59,7 @@ func ToAPIV1AlertEventItem(b *AlertEventItemBo) *apiv1.AlertEventItem {
 	}
 	item := &apiv1.AlertEventItem{
 		Uid:           b.UID.Int64(),
-		StrategyUid:    b.StrategyUID.Int64(),
+		StrategyUid:   b.StrategyUID.Int64(),
 		NamespaceUid:  b.NamespaceUID.Int64(),
 		LevelUid:      b.LevelUID.Int64(),
 		LevelName:     b.LevelName,
@@ -106,10 +106,10 @@ func NewListRealtimeAlertBo(req *apiv1.ListRealtimeAlertRequest) *ListRealtimeAl
 	}
 	return &ListRealtimeAlertBo{
 		PageRequestBo: NewPageRequestBo(req.GetPage(), req.GetPageSize()),
-		AlertPageUID: snowflake.ParseInt64(req.GetAlertPageUid()),
-		Status:       req.GetStatus(),
-		StartAt:     startAt,
-		EndAt:       endAt,
+		AlertPageUID:  snowflake.ParseInt64(req.GetAlertPageUid()),
+		Status:        req.GetStatus(),
+		StartAt:       startAt,
+		EndAt:         endAt,
 	}
 }
 

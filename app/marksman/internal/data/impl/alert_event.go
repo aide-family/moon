@@ -15,6 +15,7 @@ import (
 	"github.com/bwmarrin/snowflake"
 	"github.com/go-kratos/kratos/v2/errors"
 	klog "github.com/go-kratos/kratos/v2/log"
+	"gorm.io/gen/field"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -131,7 +132,7 @@ func (r *alertEventRepository) GetAlertEvent(ctx context.Context, uid snowflake.
 	bizQuery := query.Use(r.DB().Table(tableName))
 	e := bizQuery.AlertEvent
 	table := e.As(tableName)
-	m, err := e.WithContext(ctx).Where(table.ID.Eq(uid.Int64())).First()
+	m, err := e.WithContext(ctx).Where(table.ID.Eq(uid.Int64())).Preload(field.Associations).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotFound("alert event not found")

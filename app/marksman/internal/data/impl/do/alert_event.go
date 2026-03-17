@@ -27,25 +27,26 @@ const snowflakeEpochMs int64 = 1288834974657
 
 type AlertEvent struct {
 	EventBaseModel
-	NamespaceUID     snowflake.ID                `gorm:"column:namespace_uid;index"`
-	StrategyUID      snowflake.ID                `gorm:"column:strategy_uid;index"`
-	StrategyGroupUID snowflake.ID                `gorm:"column:strategy_group_uid;index"`
-	LevelUID         snowflake.ID                `gorm:"column:level_uid;index"`
-	Summary          string                      `gorm:"column:summary;type:varchar(500);default:''"`
-	Description      string                      `gorm:"column:description;type:text;default:''"`
-	Expr             string                      `gorm:"column:expr;type:text;default:''"`
-	FiredAt          time.Time                   `gorm:"column:fired_at"`
-	Value            float64                     `gorm:"column:value"`
-	Labels             *safety.Map[string, string] `gorm:"column:labels;type:json;"`
-	DatasourceUID      snowflake.ID                `gorm:"column:datasource_uid"`
-	EvaluatorType      string                      `gorm:"column:evaluator_type;size:32;default:''"`
+	NamespaceUID        snowflake.ID                `gorm:"column:namespace_uid;index"`
+	StrategyUID         snowflake.ID                `gorm:"column:strategy_uid;index"`
+	StrategyGroupUID    snowflake.ID                `gorm:"column:strategy_group_uid;index"`
+	LevelUID            snowflake.ID                `gorm:"column:level_uid;index"`
+	Summary             string                      `gorm:"column:summary;type:varchar(500);default:''"`
+	Description         string                      `gorm:"column:description;type:text;default:''"`
+	Expr                string                      `gorm:"column:expr;type:text;default:''"`
+	FiredAt             time.Time                   `gorm:"column:fired_at"`
+	Value               float64                     `gorm:"column:value"`
+	Labels              *safety.Map[string, string] `gorm:"column:labels;type:json;"`
+	DatasourceUID       snowflake.ID                `gorm:"column:datasource_uid"`
+	EvaluatorType       string                      `gorm:"column:evaluator_type;size:32;default:''"`
 	EvaluatorSnapshotID snowflake.ID                `gorm:"column:evaluator_snapshot_id;index"`
-	Status             int32                       `gorm:"column:status;default:1"`
-	IntervenedAt     *time.Time                  `gorm:"column:intervened_at"`
-	IntervenedBy     snowflake.ID                `gorm:"column:intervened_by"`
-	SuppressedUntil  *time.Time                  `gorm:"column:suppressed_until"`
-	RecoveredAt      *time.Time                  `gorm:"column:recovered_at"`
-	RecoveredBy      snowflake.ID                `gorm:"column:recovered_by"`
+	Status              int32                       `gorm:"column:status;default:1"`
+	IntervenedAt        *time.Time                  `gorm:"column:intervened_at"`
+	IntervenedBy        snowflake.ID                `gorm:"column:intervened_by"`
+	SuppressedUntil     *time.Time                  `gorm:"column:suppressed_until"`
+	RecoveredAt         *time.Time                  `gorm:"column:recovered_at"`
+	RecoveredBy         snowflake.ID                `gorm:"column:recovered_by"`
+	EvaluatorSnapshot   *EvaluatorSnapshot          `gorm:"foreignKey:EvaluatorSnapshotID;references:ID"`
 }
 
 func (AlertEvent) TableName() string {

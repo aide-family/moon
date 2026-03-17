@@ -49,6 +49,11 @@ func newAlertEvent(db *gorm.DB, opts ...gen.DOOption) alertEvent {
 	_alertEvent.SuppressedUntil = field.NewTime(tableName, "suppressed_until")
 	_alertEvent.RecoveredAt = field.NewTime(tableName, "recovered_at")
 	_alertEvent.RecoveredBy = field.NewInt64(tableName, "recovered_by")
+	_alertEvent.EvaluatorSnapshot = alertEventBelongsToEvaluatorSnapshot{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("EvaluatorSnapshot", "do.EvaluatorSnapshot"),
+	}
 
 	_alertEvent.fillFieldMap()
 
@@ -81,6 +86,7 @@ type alertEvent struct {
 	SuppressedUntil     field.Time
 	RecoveredAt         field.Time
 	RecoveredBy         field.Int64
+	EvaluatorSnapshot   alertEventBelongsToEvaluatorSnapshot
 
 	fieldMap map[string]field.Expr
 }
@@ -135,7 +141,7 @@ func (a *alertEvent) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *alertEvent) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 22)
+	a.fieldMap = make(map[string]field.Expr, 23)
 	a.fieldMap["id"] = a.ID
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
@@ -158,16 +164,101 @@ func (a *alertEvent) fillFieldMap() {
 	a.fieldMap["suppressed_until"] = a.SuppressedUntil
 	a.fieldMap["recovered_at"] = a.RecoveredAt
 	a.fieldMap["recovered_by"] = a.RecoveredBy
+
 }
 
 func (a alertEvent) clone(db *gorm.DB) alertEvent {
 	a.alertEventDo.ReplaceConnPool(db.Statement.ConnPool)
+	a.EvaluatorSnapshot.db = db.Session(&gorm.Session{Initialized: true})
+	a.EvaluatorSnapshot.db.Statement.ConnPool = db.Statement.ConnPool
 	return a
 }
 
 func (a alertEvent) replaceDB(db *gorm.DB) alertEvent {
 	a.alertEventDo.ReplaceDB(db)
+	a.EvaluatorSnapshot.db = db.Session(&gorm.Session{})
 	return a
+}
+
+type alertEventBelongsToEvaluatorSnapshot struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a alertEventBelongsToEvaluatorSnapshot) Where(conds ...field.Expr) *alertEventBelongsToEvaluatorSnapshot {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a alertEventBelongsToEvaluatorSnapshot) WithContext(ctx context.Context) *alertEventBelongsToEvaluatorSnapshot {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a alertEventBelongsToEvaluatorSnapshot) Session(session *gorm.Session) *alertEventBelongsToEvaluatorSnapshot {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a alertEventBelongsToEvaluatorSnapshot) Model(m *do.AlertEvent) *alertEventBelongsToEvaluatorSnapshotTx {
+	return &alertEventBelongsToEvaluatorSnapshotTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a alertEventBelongsToEvaluatorSnapshot) Unscoped() *alertEventBelongsToEvaluatorSnapshot {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
+type alertEventBelongsToEvaluatorSnapshotTx struct{ tx *gorm.Association }
+
+func (a alertEventBelongsToEvaluatorSnapshotTx) Find() (result *do.EvaluatorSnapshot, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a alertEventBelongsToEvaluatorSnapshotTx) Append(values ...*do.EvaluatorSnapshot) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a alertEventBelongsToEvaluatorSnapshotTx) Replace(values ...*do.EvaluatorSnapshot) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a alertEventBelongsToEvaluatorSnapshotTx) Delete(values ...*do.EvaluatorSnapshot) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a alertEventBelongsToEvaluatorSnapshotTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a alertEventBelongsToEvaluatorSnapshotTx) Count() int64 {
+	return a.tx.Count()
+}
+
+func (a alertEventBelongsToEvaluatorSnapshotTx) Unscoped() *alertEventBelongsToEvaluatorSnapshotTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type alertEventDo struct{ gen.DO }
