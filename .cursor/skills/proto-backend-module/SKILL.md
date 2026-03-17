@@ -1,6 +1,6 @@
 ---
 name: proto-backend-module
-description: Implements backend modules from proto definitions for goddess, marksman, and rabbit apps. Keeps style consistent with existing project structure, reuses magicbox and in-app code, follows Go and project conventions, and requires syncing README (API overview, features, usage) when adding, modifying, or removing modules or APIs. Use when the user says "帮我完成某某模块" or manually @ this skill to implement a module based on proto.
+description: Implements backend modules from proto definitions for goddess, marksman, and rabbit apps. Keeps style consistent with existing project structure, reuses magicbox and in-app code, follows Go and project conventions, and requires syncing README (API overview, features, usage) when adding, modifying, or removing modules or APIs. Use when the user says "帮我完成某某功能" or manually @ this skill to implement a module based on proto.
 ---
 
 # Proto 后端模块实现

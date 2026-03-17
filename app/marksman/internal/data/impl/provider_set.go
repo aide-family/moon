@@ -21,4 +21,6 @@ var ProviderSetImpl = wire.NewSet(
 	NewStrategyMetricRepository,
 	NewJobChannel,
 	NewAlertEventChannel,
+	NewAlertPageRepository,
+	NewAlertEventRepository,
 )

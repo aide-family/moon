@@ -106,7 +106,20 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	strategyService := service.NewStrategyService(strategyBiz)
 	strategyMetricBiz := biz.NewStrategyMetric(strategy, strategyMetric, level, helper)
 	strategyMetricService := service.NewStrategyMetricService(strategyMetricBiz)
-	servers := server.RegisterGRPCService(bc, grpcServer, healthService, namespaceService, authService, selfService, userService, memberService, captchaService, levelService, datasourceService, strategyService, strategyMetricService)
+	alertPage, err := impl.NewAlertPageRepository(dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	alertPageBiz := biz.NewAlertPage(alertPage, helper)
+	alertEvent, err := impl.NewAlertEventRepository(dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	alertBiz := biz.NewAlert(alertPage, alertEvent, helper)
+	alertService := service.NewAlertService(alertPageBiz, alertBiz)
+	servers := server.RegisterGRPCService(bc, grpcServer, healthService, namespaceService, authService, selfService, userService, memberService, captchaService, levelService, datasourceService, strategyService, strategyMetricService, alertService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

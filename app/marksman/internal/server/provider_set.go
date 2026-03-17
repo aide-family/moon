@@ -130,6 +130,7 @@ func RegisterService(
 	datasourceService *service.DatasourceService,
 	strategyService *service.StrategyService,
 	strategyMetricService *service.StrategyMetricService,
+	alertService *service.AlertService,
 ) Servers {
 	var srvs Servers
 
@@ -146,6 +147,7 @@ func RegisterService(
 		datasourceService,
 		strategyService,
 		strategyMetricService,
+		alertService,
 	)...)
 	srvs = append(srvs, RegisterGRPCService(c,
 		grpcSrv,
@@ -160,6 +162,7 @@ func RegisterService(
 		datasourceService,
 		strategyService,
 		strategyMetricService,
+		alertService,
 	)...)
 	srvs = append(srvs, RegisterMetricCronService(metricCronSrv, alertConsumerSrv)...)
 	return srvs
@@ -180,6 +183,7 @@ func RegisterHTTPService(
 	datasourceService *service.DatasourceService,
 	strategyService *service.StrategyService,
 	strategyMetricService *service.StrategyMetricService,
+	alertService *service.AlertService,
 ) Servers {
 	magicboxapiv1.RegisterHealthHTTPServer(httpSrv, healthService)
 	goddessv1.RegisterAuthServiceHTTPServer(httpSrv, authService)
@@ -192,6 +196,7 @@ func RegisterHTTPService(
 	apiv1.RegisterDatasourceHTTPServer(httpSrv, datasourceService)
 	apiv1.RegisterStrategyHTTPServer(httpSrv, strategyService)
 	apiv1.RegisterStrategyMetricHTTPServer(httpSrv, strategyMetricService)
+	apiv1.RegisterAlertHTTPServer(httpSrv, alertService)
 
 	oauth2Handler := oauth.NewOAuth2Handler(c.GetOauth2(), authService.Login)
 	if err := oauth2Handler.Handler(httpSrv); err != nil {
@@ -215,6 +220,7 @@ func RegisterGRPCService(
 	datasourceService *service.DatasourceService,
 	strategyService *service.StrategyService,
 	strategyMetricService *service.StrategyMetricService,
+	alertService *service.AlertService,
 ) Servers {
 	magicboxapiv1.RegisterHealthServer(grpcSrv, healthService)
 	goddessv1.RegisterAuthServiceServer(grpcSrv, authService)
@@ -227,6 +233,7 @@ func RegisterGRPCService(
 	apiv1.RegisterDatasourceServer(grpcSrv, datasourceService)
 	apiv1.RegisterStrategyServer(grpcSrv, strategyService)
 	apiv1.RegisterStrategyMetricServer(grpcSrv, strategyMetricService)
+	apiv1.RegisterAlertServer(grpcSrv, alertService)
 	return Servers{newServer("grpc", grpcSrv)}
 }
 

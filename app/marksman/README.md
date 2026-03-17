@@ -53,6 +53,7 @@
 - **Strategy**: CRUD, list, status; link to strategy group; type (METRICS/LOGS/TRACE) and driver
 - **Level**: Alert level CRUD, list, select, status (for grouping alert severity)
 - **Strategy metric**: Save/get metric config (expr, labels, datasourceUIDs, levels); save/update/delete/get metric levels (mode, condition, values, duration); bind receivers per strategy (optional levelUID)
+- **Alert (real-time)**: Alert page CRUD (name, color, sort order, filter by strategy group/level/strategy); list real-time alert events by alert page; operate events: intervene (on-call takeover), suppress (until time), recover (manual)
 
 ---
 
@@ -108,10 +109,19 @@
 | | `DELETE /v1/metric/strategy/{strategyUID}/level/{uid}` | Delete metric level |
 | | `GET /v1/metric/strategy/{strategyUID}/level/{uid}` | Get metric level |
 | | `POST /v1/metric/strategy/{strategyUID}/receivers` | Bind receivers (receiverUIDs; optional levelUID) |
+| **Alert** (alert page) | `POST /v1/alert-pages` | Create alert page (name, color, sort_order, filter) |
+| | `PUT /v1/alert-pages/{uid}` | Update alert page |
+| | `DELETE /v1/alert-pages/{uid}` | Delete alert page |
+| | `GET /v1/alert-pages/{uid}` | Get alert page |
+| | `GET /v1/alert-pages` | List alert pages (page, page_size, keyword) |
+| **Alert** (realtime) | `GET /v1/alert-pages/{alert_page_uid}/realtime-alerts` | List real-time alert events for page (page, page_size, status) |
+| | `POST /v1/realtime-alerts/{uid}/intervene` | Mark event as intervened (on-call takeover) |
+| | `POST /v1/realtime-alerts/{uid}/suppress` | Suppress event until time (body: suppress_until RFC3339) |
+| | `POST /v1/realtime-alerts/{uid}/recover` | Mark event as manually recovered |
 
 **Types**: `DatasourceType`: METRICS, LOGS, TRACE. **Drivers**: METRICS_PROMETHEUS, METRICS_VICTORIA_METRICS, LOGS_ELASTICSEARCH, TRACE_JAEGER.
 
-API definitions: Marksman-owned APIs are in `proto/marksman/api/v1/` (e.g. `datasource.proto`, `strategy.proto`, `level.proto`, `strategy_metric.proto`). Self, User, Member, Namespace, Captcha, etc. come from goddess at `proto/goddess/api/v1/`. OpenAPI can be generated via `make api`.
+API definitions: Marksman-owned APIs are in `proto/marksman/api/v1/` (e.g. `datasource.proto`, `strategy.proto`, `level.proto`, `strategy_metric.proto`, `alert.proto`). Self, User, Member, Namespace, Captcha, etc. come from goddess at `proto/goddess/api/v1/`. OpenAPI can be generated via `make api`.
 
 ---
 

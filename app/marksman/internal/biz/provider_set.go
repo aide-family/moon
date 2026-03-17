@@ -17,4 +17,6 @@ var ProviderSetBiz = wire.NewSet(
 	NewStrategyMetric,
 	NewEvaluateBiz,
 	NewAlertEventConsumer,
+	NewAlertPage,
+	NewAlert,
 )

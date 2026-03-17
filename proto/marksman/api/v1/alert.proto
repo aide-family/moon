@@ -1,0 +1,233 @@
+syntax = "proto3";
+
+package marksman.api.v1;
+
+option go_package = "github.com/aide-family/marksman/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "marksman.api.v1";
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+// AlertEventStatus represents the status of a real-time alert event.
+enum AlertEventStatus {
+	ALERT_EVENT_STATUS_UNKNOWN = 0;
+	FIRING = 1;      // Ongoing alert, not yet handled
+	INTERVENED = 2;  // On-call has taken over
+	SUPPRESSED = 3;  // Known issue, alerts suppressed for a period
+	RECOVERED = 4;   // Manually marked recovered
+}
+
+// AlertPageFilter defines which alerts belong to a page (any match).
+message AlertPageFilter {
+	repeated int64 strategy_group_uids = 1;
+	repeated int64 level_uids = 2;
+	repeated int64 strategy_uids = 3;
+}
+
+// AlertPageItem is a single alert page (view/category) for grouping real-time alerts.
+message AlertPageItem {
+	int64 uid = 1;
+	string name = 2;
+	string color = 3;
+	int32 sort_order = 4;
+	AlertPageFilter filter = 5;
+	string created_at = 6;
+	string updated_at = 7;
+}
+
+// CreateAlertPageRequest creates a new alert page.
+message CreateAlertPageRequest {
+	string name = 1 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		max_len: 100,
+	}];
+	string color = 2 [(buf.validate.field).string = {
+		max_len: 32,
+	}];
+	int32 sort_order = 3;
+	AlertPageFilter filter = 4;
+}
+message CreateAlertPageReply {
+	int64 uid = 1;
+}
+
+// UpdateAlertPageRequest updates an alert page.
+message UpdateAlertPageRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+	string name = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		max_len: 100,
+	}];
+	string color = 3 [(buf.validate.field).string = {
+		max_len: 32,
+	}];
+	int32 sort_order = 4;
+	AlertPageFilter filter = 5;
+}
+message UpdateAlertPageReply {}
+
+// DeleteAlertPageRequest deletes an alert page.
+message DeleteAlertPageRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+message DeleteAlertPageReply {}
+
+// GetAlertPageRequest gets a single alert page.
+message GetAlertPageRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+// ListAlertPageRequest lists alert pages.
+message ListAlertPageRequest {
+	int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1",
+		message: "page must be greater than or equal to 1",
+	}];
+	int32 page_size = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 200",
+		message: "pageSize must be between 1 and 200",
+	}];
+	string keyword = 3 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword length must be <= 100",
+	}];
+}
+message ListAlertPageReply {
+	int64 total = 1;
+	int32 page = 2;
+	int32 page_size = 3;
+	repeated AlertPageItem items = 4;
+}
+
+// AlertEventItem is a single real-time alert event.
+message AlertEventItem {
+	int64 uid = 1;
+	int64 strategy_uid = 2;
+	int64 namespace_uid = 3;
+	int64 level_uid = 4;
+	string level_name = 5;
+	string summary = 6;
+	string description = 7;
+	string expr = 8;
+	string fired_at = 9;
+	double value = 10;
+	map<string, string> labels = 11;
+	int64 datasource_uid = 12;
+	AlertEventStatus status = 13;
+	string intervened_at = 14;
+	int64 intervened_by = 15;
+	string suppressed_until = 16;
+	string recovered_at = 17;
+	int64 recovered_by = 18;
+	string created_at = 19;
+	string updated_at = 20;
+}
+
+// ListRealtimeAlertRequest lists real-time alert events for an alert page.
+message ListRealtimeAlertRequest {
+	int64 alert_page_uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "alert_page_uid must be greater than 0",
+	}];
+	int32 page = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1",
+		message: "page must be >= 1",
+	}];
+	int32 page_size = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 200",
+		message: "page_size must be between 1 and 200",
+	}];
+	// Filter by status; empty means all statuses.
+	AlertEventStatus status = 4;
+}
+message ListRealtimeAlertReply {
+	int64 total = 1;
+	int32 page = 2;
+	int32 page_size = 3;
+	repeated AlertEventItem items = 4;
+}
+
+// InterveneAlertRequest marks an event as intervened (on-call has taken over).
+message InterveneAlertRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+}
+message InterveneAlertReply {}
+
+// SuppressAlertRequest suppresses an event until a given time (known issue).
+message SuppressAlertRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+	// Suppress until this time (RFC3339); required.
+	string suppress_until = 2 [(buf.validate.field).required = true];
+}
+message SuppressAlertReply {}
+
+// RecoverAlertRequest marks an event as manually recovered.
+message RecoverAlertRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+}
+message RecoverAlertReply {}
+
+// Alert service: alert page CRUD and real-time alert list/operations.
+service Alert {
+	rpc CreateAlertPage (CreateAlertPageRequest) returns (CreateAlertPageReply) {
+		option (google.api.http) = {
+			post: "/v1/alert-pages"
+			body: "*"
+		};
+	}
+	rpc UpdateAlertPage (UpdateAlertPageRequest) returns (UpdateAlertPageReply) {
+		option (google.api.http) = {
+			put: "/v1/alert-pages/{uid}"
+			body: "*"
+		};
+	}
+	rpc DeleteAlertPage (DeleteAlertPageRequest) returns (DeleteAlertPageReply) {
+		option (google.api.http) = {
+			delete: "/v1/alert-pages/{uid}"
+		};
+	}
+	rpc GetAlertPage (GetAlertPageRequest) returns (AlertPageItem) {
+		option (google.api.http) = {
+			get: "/v1/alert-pages/{uid}"
+		};
+	}
+	rpc ListAlertPage (ListAlertPageRequest) returns (ListAlertPageReply) {
+		option (google.api.http) = {
+			get: "/v1/alert-pages"
+		};
+	}
+	rpc ListRealtimeAlert (ListRealtimeAlertRequest) returns (ListRealtimeAlertReply) {
+		option (google.api.http) = {
+			get: "/v1/alert-pages/{alert_page_uid}/realtime-alerts"
+		};
+	}
+	rpc InterveneAlert (InterveneAlertRequest) returns (InterveneAlertReply) {
+		option (google.api.http) = {
+			post: "/v1/realtime-alerts/{uid}/intervene"
+			body: "*"
+		};
+	}
+	rpc SuppressAlert (SuppressAlertRequest) returns (SuppressAlertReply) {
+		option (google.api.http) = {
+			post: "/v1/realtime-alerts/{uid}/suppress"
+			body: "*"
+		};
+	}
+	rpc RecoverAlert (RecoverAlertRequest) returns (RecoverAlertReply) {
+		option (google.api.http) = {
+			post: "/v1/realtime-alerts/{uid}/recover"
+			body: "*"
+		};
+	}
+}

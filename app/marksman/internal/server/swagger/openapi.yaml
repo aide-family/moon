@@ -6,6 +6,142 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /v1/alert-pages:
+        get:
+            tags:
+                - Alert
+            operationId: Alert_ListAlertPage
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.ListAlertPageReply'
+        post:
+            tags:
+                - Alert
+            operationId: Alert_CreateAlertPage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.CreateAlertPageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.CreateAlertPageReply'
+    /v1/alert-pages/{alertPageUid}/realtime-alerts:
+        get:
+            tags:
+                - Alert
+            operationId: Alert_ListRealtimeAlert
+            parameters:
+                - name: alertPageUid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: status
+                  in: query
+                  description: Filter by status; empty means all statuses.
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.ListRealtimeAlertReply'
+    /v1/alert-pages/{uid}:
+        get:
+            tags:
+                - Alert
+            operationId: Alert_GetAlertPage
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.AlertPageItem'
+        put:
+            tags:
+                - Alert
+            operationId: Alert_UpdateAlertPage
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.UpdateAlertPageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.UpdateAlertPageReply'
+        delete:
+            tags:
+                - Alert
+            operationId: Alert_DeleteAlertPage
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.DeleteAlertPageReply'
     /v1/datasource:
         post:
             tags:
@@ -578,6 +714,78 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.StrategyMetricBindReceiversReply'
+    /v1/realtime-alerts/{uid}/intervene:
+        post:
+            tags:
+                - Alert
+            operationId: Alert_InterveneAlert
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.InterveneAlertRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.InterveneAlertReply'
+    /v1/realtime-alerts/{uid}/recover:
+        post:
+            tags:
+                - Alert
+            operationId: Alert_RecoverAlert
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.RecoverAlertRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.RecoverAlertReply'
+    /v1/realtime-alerts/{uid}/suppress:
+        post:
+            tags:
+                - Alert
+            operationId: Alert_SuppressAlert
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.SuppressAlertRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.SuppressAlertReply'
     /v1/strategies:
         get:
             tags:
@@ -913,6 +1121,107 @@ paths:
                                 $ref: '#/components/schemas/marksman.api.v1.UpdateStrategyStatusReply'
 components:
     schemas:
+        marksman.api.v1.AlertEventItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                strategyUid:
+                    type: string
+                namespaceUid:
+                    type: string
+                levelUid:
+                    type: string
+                levelName:
+                    type: string
+                summary:
+                    type: string
+                description:
+                    type: string
+                expr:
+                    type: string
+                firedAt:
+                    type: string
+                value:
+                    type: number
+                    format: double
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                datasourceUid:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                intervenedAt:
+                    type: string
+                intervenedBy:
+                    type: string
+                suppressedUntil:
+                    type: string
+                recoveredAt:
+                    type: string
+                recoveredBy:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: AlertEventItem is a single real-time alert event.
+        marksman.api.v1.AlertPageFilter:
+            type: object
+            properties:
+                strategyGroupUids:
+                    type: array
+                    items:
+                        type: string
+                levelUids:
+                    type: array
+                    items:
+                        type: string
+                strategyUids:
+                    type: array
+                    items:
+                        type: string
+            description: AlertPageFilter defines which alerts belong to a page (any match).
+        marksman.api.v1.AlertPageItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                color:
+                    type: string
+                sortOrder:
+                    type: integer
+                    format: int32
+                filter:
+                    $ref: '#/components/schemas/marksman.api.v1.AlertPageFilter'
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: AlertPageItem is a single alert page (view/category) for grouping real-time alerts.
+        marksman.api.v1.CreateAlertPageReply:
+            type: object
+            properties:
+                uid:
+                    type: string
+        marksman.api.v1.CreateAlertPageRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                color:
+                    type: string
+                sortOrder:
+                    type: integer
+                    format: int32
+                filter:
+                    $ref: '#/components/schemas/marksman.api.v1.AlertPageFilter'
+            description: CreateAlertPageRequest creates a new alert page.
         marksman.api.v1.CreateDatasourceReply:
             type: object
             properties:
@@ -1043,6 +1352,9 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/marksman.api.v1.DatasourceStatusPoint'
+        marksman.api.v1.DeleteAlertPageReply:
+            type: object
+            properties: {}
         marksman.api.v1.DeleteDatasourceReply:
             type: object
             properties: {}
@@ -1065,6 +1377,15 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/marksman.api.v1.DatasourceStatusSeries'
+        marksman.api.v1.InterveneAlertReply:
+            type: object
+            properties: {}
+        marksman.api.v1.InterveneAlertRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+            description: InterveneAlertRequest marks an event as intervened (on-call has taken over).
         marksman.api.v1.LevelItem:
             type: object
             properties:
@@ -1096,6 +1417,21 @@ components:
                     type: boolean
                 tooltip:
                     type: string
+        marksman.api.v1.ListAlertPageReply:
+            type: object
+            properties:
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.AlertPageItem'
         marksman.api.v1.ListDatasourceReply:
             type: object
             properties:
@@ -1133,6 +1469,21 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/marksman.api.v1.MetricSummaryItem'
+        marksman.api.v1.ListRealtimeAlertReply:
+            type: object
+            properties:
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.AlertEventItem'
         marksman.api.v1.ListStrategyGroupReply:
             type: object
             properties:
@@ -1199,6 +1550,15 @@ components:
                 type:
                     type: string
             description: 'MetricSummaryItem: metric list item (no label detail). Uses help to align with Prometheus metadata.'
+        marksman.api.v1.RecoverAlertReply:
+            type: object
+            properties: {}
+        marksman.api.v1.RecoverAlertRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+            description: RecoverAlertRequest marks an event as manually recovered.
         marksman.api.v1.SaveStrategyMetricLevelReply:
             type: object
             properties: {}
@@ -1448,6 +1808,36 @@ components:
                 status:
                     type: integer
                     format: enum
+        marksman.api.v1.SuppressAlertReply:
+            type: object
+            properties: {}
+        marksman.api.v1.SuppressAlertRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                suppressUntil:
+                    type: string
+                    description: Suppress until this time (RFC3339); required.
+            description: SuppressAlertRequest suppresses an event until a given time (known issue).
+        marksman.api.v1.UpdateAlertPageReply:
+            type: object
+            properties: {}
+        marksman.api.v1.UpdateAlertPageRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                color:
+                    type: string
+                sortOrder:
+                    type: integer
+                    format: int32
+                filter:
+                    $ref: '#/components/schemas/marksman.api.v1.AlertPageFilter'
+            description: UpdateAlertPageRequest updates an alert page.
         marksman.api.v1.UpdateDatasourceReply:
             type: object
             properties: {}
@@ -1575,6 +1965,8 @@ components:
                     type: integer
                     format: enum
 tags:
+    - name: Alert
+      description: 'Alert service: alert page CRUD and real-time alert list/operations.'
     - name: Datasource
     - name: Level
     - name: Strategy

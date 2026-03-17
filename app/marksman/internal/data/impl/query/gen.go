@@ -17,6 +17,8 @@ import (
 
 var (
 	Q                      = new(Query)
+	AlertEvent             *alertEvent
+	AlertPage              *alertPage
 	Datasource             *datasource
 	Level                  *level
 	Strategy               *strategy
@@ -29,6 +31,8 @@ var (
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
+	AlertEvent = &Q.AlertEvent
+	AlertPage = &Q.AlertPage
 	Datasource = &Q.Datasource
 	Level = &Q.Level
 	Strategy = &Q.Strategy
@@ -42,6 +46,8 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:                     db,
+		AlertEvent:             newAlertEvent(db, opts...),
+		AlertPage:              newAlertPage(db, opts...),
 		Datasource:             newDatasource(db, opts...),
 		Level:                  newLevel(db, opts...),
 		Strategy:               newStrategy(db, opts...),
@@ -56,6 +62,8 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 type Query struct {
 	db *gorm.DB
 
+	AlertEvent             alertEvent
+	AlertPage              alertPage
 	Datasource             datasource
 	Level                  level
 	Strategy               strategy
@@ -71,6 +79,8 @@ func (q *Query) Available() bool { return q.db != nil }
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:                     db,
+		AlertEvent:             q.AlertEvent.clone(db),
+		AlertPage:              q.AlertPage.clone(db),
 		Datasource:             q.Datasource.clone(db),
 		Level:                  q.Level.clone(db),
 		Strategy:               q.Strategy.clone(db),
@@ -93,6 +103,8 @@ func (q *Query) WriteDB() *Query {
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:                     db,
+		AlertEvent:             q.AlertEvent.replaceDB(db),
+		AlertPage:              q.AlertPage.replaceDB(db),
 		Datasource:             q.Datasource.replaceDB(db),
 		Level:                  q.Level.replaceDB(db),
 		Strategy:               q.Strategy.replaceDB(db),
@@ -105,6 +117,8 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 }
 
 type queryCtx struct {
+	AlertEvent             IAlertEventDo
+	AlertPage              IAlertPageDo
 	Datasource             IDatasourceDo
 	Level                  ILevelDo
 	Strategy               IStrategyDo
@@ -117,6 +131,8 @@ type queryCtx struct {
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
+		AlertEvent:             q.AlertEvent.WithContext(ctx),
+		AlertPage:              q.AlertPage.WithContext(ctx),
 		Datasource:             q.Datasource.WithContext(ctx),
 		Level:                  q.Level.WithContext(ctx),
 		Strategy:               q.Strategy.WithContext(ctx),

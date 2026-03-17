@@ -56,7 +56,17 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	evaluate := biz.NewEvaluateBiz(bc, namespace, strategyMetric, jobChannel, metricDatasourceQuerier, alertEventChannel)
 	evaluateService := service.NewEvaluateService(evaluate)
 	metricCronServer := cron.NewMetricCronServer(evaluateService, helper)
-	alertEventConsumer := biz.NewAlertEventConsumer(helper)
+	alertEvent, err := impl.NewAlertEventRepository(dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	strategy, err := impl.NewStrategyRepository(dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	alertEventConsumer := biz.NewAlertEventConsumer(helper, alertEvent, strategy)
 	alertEventConsumerServer := cron.NewAlertEventConsumerServer(alertEventChannel, alertEventConsumer, helper)
 	loginRepository, err := impl.NewLoginRepository(bc, dataData)
 	if err != nil {
@@ -111,16 +121,19 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	strategy, err := impl.NewStrategyRepository(dataData)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
 	strategyBiz := biz.NewStrategy(transaction, strategyGroup, strategy, strategyMetric, helper)
 	strategyService := service.NewStrategyService(strategyBiz)
 	strategyMetricBiz := biz.NewStrategyMetric(strategy, strategyMetric, level, helper)
 	strategyMetricService := service.NewStrategyMetricService(strategyMetricBiz)
-	servers := server.RegisterService(datasourceMetricsReg, bc, httpServer, grpcServer, metricCronServer, alertEventConsumerServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, strategyService, strategyMetricService)
+	alertPage, err := impl.NewAlertPageRepository(dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	alertPageBiz := biz.NewAlertPage(alertPage, helper)
+	alertBiz := biz.NewAlert(alertPage, alertEvent, helper)
+	alertService := service.NewAlertService(alertPageBiz, alertBiz)
+	servers := server.RegisterService(datasourceMetricsReg, bc, httpServer, grpcServer, metricCronServer, alertEventConsumerServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, strategyService, strategyMetricService, alertService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()
