@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package marksman.api.v1;
+
+option go_package = "github.com/aide-family/marksman/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "marksman.api.v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";
+import "buf/validate/validate.proto";
+
+// MetricQuery provides query, query_range and proxy for metric-type datasources (Prometheus / VictoriaMetrics).
+service MetricQuery {
+	// Query runs an instant query at a single evaluation time (Prometheus /api/v1/query).
+	rpc Query (MetricQueryRequest) returns (MetricQueryReply) {
+		option (google.api.http) = {
+			post: "/v1/metric-query/query"
+			body: "*"
+		};
+	}
+	// QueryRange runs a range query over a time range (Prometheus /api/v1/query_range).
+	rpc QueryRange (MetricQueryRangeRequest) returns (MetricQueryRangeReply) {
+		option (google.api.http) = {
+			post: "/v1/metric-query/query-range"
+			body: "*"
+		};
+	}
+	// Proxy forwards an HTTP request to the datasource and returns the response (direct proxy).
+	rpc Proxy (MetricQueryProxyRequest) returns (MetricQueryProxyReply) {
+		option (google.api.http) = {
+			post: "/v1/metric-query/proxy"
+			body: "*"
+		};
+	}
+}
+
+// MetricQueryRequest is the request for instant query.
+message MetricQueryRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+	// Prometheus PromQL expression.
+	string query = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 1,
+		max_len: 4096,
+	}];
+	// Evaluation timestamp (Unix seconds). If not set or zero, use current time.
+	int64 time = 3;
+}
+
+// MetricQueryReply returns the response from Prometheus /api/v1/query as a structured any type (status, data.resultType, data.result).
+message MetricQueryReply {
+	google.protobuf.Struct response = 1;
+}
+
+// MetricQueryRangeRequest is the request for range query.
+message MetricQueryRangeRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+	string query = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 1,
+		max_len: 4096,
+	}];
+	// Start time (Unix seconds). If not set or zero, defaults to (end - 1h) or (now - 1h).
+	int64 start = 3;
+	// End time (Unix seconds). If not set or zero, defaults to now.
+	int64 end = 4;
+	// Step in seconds (e.g. 15, 60). If not set or zero, defaults to 60. When set, must be in (0, 86400].
+	int64 step = 5 [(buf.validate.field).cel = {
+		expression: "this == 0 || (this > 0 && this <= 86400)",
+		message: "step must be 0 or in (0, 86400]",
+	}];
+}
+
+// MetricQueryRangeReply returns the response from Prometheus /api/v1/query_range as a structured any type.
+message MetricQueryRangeReply {
+	google.protobuf.Struct response = 1;
+}
+
+// MetricQueryProxyRequest is the request for direct proxy to datasource.
+message MetricQueryProxyRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+	// Path suffix without leading slash (e.g. "api/v1/query", "api/v1/query_range"). Appended to datasource URL.
+	string path = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 1,
+		max_len: 512,
+	}];
+	// HTTP method (GET, POST, etc.).
+	string method = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']",
+		message: "method must be GET, POST, PUT, DELETE or PATCH",
+	}];
+	// Optional body for POST/PUT/PATCH. Ignored for GET/DELETE.
+	bytes body = 4;
+}
+
+// MetricQueryProxyReply is the response from proxy (status code and body).
+message MetricQueryProxyReply {
+	int32 status_code = 1;
+	google.protobuf.Struct response = 2;
+}

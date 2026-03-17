@@ -128,6 +128,7 @@ func RegisterService(
 	captchaService *service.CaptchaService,
 	levelService *service.LevelService,
 	datasourceService *service.DatasourceService,
+	metricQueryService *service.MetricQueryService,
 	strategyService *service.StrategyService,
 	strategyMetricService *service.StrategyMetricService,
 	alertService *service.AlertService,
@@ -145,6 +146,7 @@ func RegisterService(
 		captchaService,
 		levelService,
 		datasourceService,
+		metricQueryService,
 		strategyService,
 		strategyMetricService,
 		alertService,
@@ -160,6 +162,7 @@ func RegisterService(
 		captchaService,
 		levelService,
 		datasourceService,
+		metricQueryService,
 		strategyService,
 		strategyMetricService,
 		alertService,
@@ -181,6 +184,7 @@ func RegisterHTTPService(
 	captchaService *service.CaptchaService,
 	levelService *service.LevelService,
 	datasourceService *service.DatasourceService,
+	metricQueryService *service.MetricQueryService,
 	strategyService *service.StrategyService,
 	strategyMetricService *service.StrategyMetricService,
 	alertService *service.AlertService,
@@ -194,6 +198,7 @@ func RegisterHTTPService(
 	goddessv1.RegisterCaptchaHTTPServer(httpSrv, captchaService)
 	apiv1.RegisterLevelHTTPServer(httpSrv, levelService)
 	apiv1.RegisterDatasourceHTTPServer(httpSrv, datasourceService)
+	apiv1.RegisterMetricQueryHTTPServer(httpSrv, metricQueryService)
 	apiv1.RegisterStrategyHTTPServer(httpSrv, strategyService)
 	apiv1.RegisterStrategyMetricHTTPServer(httpSrv, strategyMetricService)
 	apiv1.RegisterAlertHTTPServer(httpSrv, alertService)
@@ -218,6 +223,7 @@ func RegisterGRPCService(
 	captchaService *service.CaptchaService,
 	levelService *service.LevelService,
 	datasourceService *service.DatasourceService,
+	metricQueryService *service.MetricQueryService,
 	strategyService *service.StrategyService,
 	strategyMetricService *service.StrategyMetricService,
 	alertService *service.AlertService,
@@ -231,6 +237,7 @@ func RegisterGRPCService(
 	goddessv1.RegisterCaptchaServer(grpcSrv, captchaService)
 	apiv1.RegisterLevelServer(grpcSrv, levelService)
 	apiv1.RegisterDatasourceServer(grpcSrv, datasourceService)
+	apiv1.RegisterMetricQueryServer(grpcSrv, metricQueryService)
 	apiv1.RegisterStrategyServer(grpcSrv, strategyService)
 	apiv1.RegisterStrategyMetricServer(grpcSrv, strategyMetricService)
 	apiv1.RegisterAlertServer(grpcSrv, alertService)

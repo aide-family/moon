@@ -551,6 +551,63 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.SelectLevelReply'
+    /v1/metric-query/proxy:
+        post:
+            tags:
+                - MetricQuery
+            description: Proxy forwards an HTTP request to the datasource and returns the response (direct proxy).
+            operationId: MetricQuery_Proxy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.MetricQueryProxyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.MetricQueryProxyReply'
+    /v1/metric-query/query:
+        post:
+            tags:
+                - MetricQuery
+            description: Query runs an instant query at a single evaluation time (Prometheus /api/v1/query).
+            operationId: MetricQuery_Query
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.MetricQueryRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.MetricQueryReply'
+    /v1/metric-query/query-range:
+        post:
+            tags:
+                - MetricQuery
+            description: QueryRange runs a range query over a time range (Prometheus /api/v1/query_range).
+            operationId: MetricQuery_QueryRange
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.MetricQueryRangeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.MetricQueryRangeReply'
     /v1/metric/strategy/{strategyUID}:
         get:
             tags:
@@ -1576,6 +1633,72 @@ components:
                     type: array
                     items:
                         type: string
+        marksman.api.v1.MetricQueryProxyReply:
+            type: object
+            properties:
+                statusCode:
+                    type: integer
+                    format: int32
+                response:
+                    type: object
+            description: MetricQueryProxyReply is the response from proxy (status code and body).
+        marksman.api.v1.MetricQueryProxyRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                path:
+                    type: string
+                    description: Path suffix without leading slash (e.g. "api/v1/query", "api/v1/query_range"). Appended to datasource URL.
+                method:
+                    type: string
+                    description: HTTP method (GET, POST, etc.).
+                body:
+                    type: string
+                    description: Optional body for POST/PUT/PATCH. Ignored for GET/DELETE.
+                    format: bytes
+            description: MetricQueryProxyRequest is the request for direct proxy to datasource.
+        marksman.api.v1.MetricQueryRangeReply:
+            type: object
+            properties:
+                response:
+                    type: object
+            description: MetricQueryRangeReply returns the response from Prometheus /api/v1/query_range as a structured any type.
+        marksman.api.v1.MetricQueryRangeRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                query:
+                    type: string
+                start:
+                    type: string
+                    description: Start time (Unix seconds). If not set or zero, defaults to (end - 1h) or (now - 1h).
+                end:
+                    type: string
+                    description: End time (Unix seconds). If not set or zero, defaults to now.
+                step:
+                    type: string
+                    description: Step in seconds (e.g. 15, 60). If not set or zero, defaults to 60. When set, must be in (0, 86400].
+            description: MetricQueryRangeRequest is the request for range query.
+        marksman.api.v1.MetricQueryReply:
+            type: object
+            properties:
+                response:
+                    type: object
+            description: MetricQueryReply returns the response from Prometheus /api/v1/query as a structured any type (status, data.resultType, data.result).
+        marksman.api.v1.MetricQueryRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                query:
+                    type: string
+                    description: Prometheus PromQL expression.
+                time:
+                    type: string
+                    description: Evaluation timestamp (Unix seconds). If not set or zero, use current time.
+            description: MetricQueryRequest is the request for instant query.
         marksman.api.v1.MetricSummaryItem:
             type: object
             properties:
@@ -2031,5 +2154,7 @@ tags:
       description: 'Alert service: alert page CRUD and real-time alert list/operations.'
     - name: Datasource
     - name: Level
+    - name: MetricQuery
+      description: MetricQuery provides query, query_range and proxy for metric-type datasources (Prometheus / VictoriaMetrics).
     - name: Strategy
     - name: StrategyMetric

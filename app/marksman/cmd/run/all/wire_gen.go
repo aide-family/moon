@@ -115,6 +115,9 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	levelService := service.NewLevelService(levelBiz)
 	datasourceBiz := biz.NewDatasource(bc, datasource, metricDatasourceQuerier, helper)
 	datasourceService := service.NewDatasourceService(datasourceBiz)
+	metricDatasourceProxy := impl.NewMetricDatasourceProxy()
+	metricQueryBiz := biz.NewMetricQuery(datasource, metricDatasourceProxy, helper)
+	metricQueryService := service.NewMetricQueryService(metricQueryBiz)
 	transaction := impl.NewTransaction(dataData)
 	strategyGroup, err := impl.NewStrategyGroupRepository(dataData)
 	if err != nil {
@@ -133,7 +136,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	alertPageBiz := biz.NewAlertPage(alertPage, helper)
 	alertBiz := biz.NewAlert(alertPage, alertEvent, helper)
 	alertService := service.NewAlertService(alertPageBiz, alertBiz)
-	servers := server.RegisterService(datasourceMetricsReg, bc, httpServer, grpcServer, metricCronServer, alertEventConsumerServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, strategyService, strategyMetricService, alertService)
+	servers := server.RegisterService(datasourceMetricsReg, bc, httpServer, grpcServer, metricCronServer, alertEventConsumerServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, metricQueryService, strategyService, strategyMetricService, alertService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

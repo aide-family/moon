@@ -49,6 +49,7 @@
 - **Namespace** (goddess): Namespace management (shared with goddess; requires `namespaceConfig`)
 - **Captcha** (goddess): Get graphic captcha (id, base64 image) for login and other unauthenticated flows
 - **Datasource**: CRUD, list, select, status time series (per uid, from main TSDB), metric metadata (label names and label values) for metrics datasources (Prometheus, VictoriaMetrics, Elasticsearch, Jaeger)
+- **MetricQuery**: Instant query (Prometheus /api/v1/query), range query (/api/v1/query_range), and direct HTTP proxy for metric-type datasources
 - **Strategy group**: CRUD, list, select, status; bind receivers (recipient groups)
 - **Strategy**: CRUD, list, status; link to strategy group; type (METRICS/LOGS/TRACE) and driver
 - **Level**: Alert level CRUD, list, select, status (for grouping alert severity)
@@ -81,6 +82,9 @@
 | | `GET /v1/datasource/{uid}/status` | Status time series for one datasource (from main TSDB; query: startTime, endTime, stepSeconds; default last 1h, step 60s) |
 | | `GET /v1/datasource/{uid}/metrics` | List metrics (name, description, unit, type only; optional match[], limit; default limit 100) |
 | | `GET /v1/datasource/{uid}/metric-label-detail` | One metric's label detail: labels + each label's values (query: metric=name) |
+| **MetricQuery** | `POST /v1/metric-query/query` | Instant query (body: uid, query, optional time); returns Prometheus-style JSON |
+| | `POST /v1/metric-query/query-range` | Range query (body: uid, query, start, end, step); returns Prometheus-style JSON |
+| | `POST /v1/metric-query/proxy` | Direct proxy to datasource (body: uid, path, method, optional body); returns status_code and body |
 | **Strategy** (group) | `POST /v1/strategy-group` | Create strategy group |
 | | `PUT /v1/strategy-group/{uid}` | Update strategy group |
 | | `PUT /v1/strategy-group/{uid}/status` | Update status (ENABLED/DISABLED) |

@@ -49,6 +49,7 @@
 - **命名空间（Namespace，goddess）**：命名空间管理（与 goddess 共用能力，需配置 namespaceConfig）
 - **验证码（Captcha，goddess）**：图形验证码获取（id、base64 图片），用于登录等无需鉴权场景
 - **数据源（Datasource）**：指标/日志/链路数据源增删改查、列表、下拉选择、按数据源的状态时序（主时序库）、指标元数据（label 名与各 label 取值）查询（Prometheus、VictoriaMetrics、Elasticsearch、Jaeger）
+- **指标查询（MetricQuery）**：指标类型数据源即时查询（Prometheus /api/v1/query）、区间查询（/api/v1/query_range）、以及直接 HTTP 代理
 - **策略组（Strategy group）**：增删改查、列表、选择、状态；绑定接收人（收件人组）
 - **策略（Strategy）**：增删改查、列表、状态；归属策略组；类型（METRICS/LOGS/TRACE）与驱动
 - **级别（Level）**：告警级别增删改查、列表、选择、状态（用于告警严重程度分组）
@@ -81,6 +82,9 @@
 | | `GET /v1/datasource/{uid}/status` | 单个数据源状态时序（从主时序库查询；参数 startTime、endTime、stepSeconds；默认最近 1 小时，步长 60s） |
 | | `GET /v1/datasource/{uid}/metrics` | 指标列表（仅名称、说明、unit、type；可选 match[]、limit；默认 limit 100） |
 | | `GET /v1/datasource/{uid}/metric-label-detail` | 单个 metric 的 label 明细：labels 及各 label 的取值（查询参数 metric=名称） |
+| **MetricQuery**（指标查询） | `POST /v1/metric-query/query` | 即时查询（body: uid、query、可选 time）；返回 Prometheus 风格 JSON |
+| | `POST /v1/metric-query/query-range` | 区间查询（body: uid、query、start、end、step）；返回 Prometheus 风格 JSON |
+| | `POST /v1/metric-query/proxy` | 直接代理到数据源（body: uid、path、method、可选 body）；返回 status_code 与 body |
 | **Strategy**（策略组） | `POST /v1/strategy-group` | 创建策略组 |
 | | `PUT /v1/strategy-group/{uid}` | 更新策略组 |
 | | `PUT /v1/strategy-group/{uid}/status` | 更新状态（ENABLED/DISABLED） |
