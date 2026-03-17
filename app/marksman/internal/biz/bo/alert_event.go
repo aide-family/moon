@@ -1,6 +1,10 @@
 package bo
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/snowflake"
@@ -25,6 +29,10 @@ type AlertEventBo struct {
 	DatasourceUID         snowflake.ID
 	EvaluatorType         string // e.g. "metric", for identifying which evaluator produced the event
 	EvaluatorSnapshotJSON string // pre-serialized evaluator snapshot JSON (used by repo to find-or-insert snapshot, then store ID on event)
+	// Fingerprint is a stable identifier for this alert event, derived from firedAt and labels.
+	Fingerprint string
+	// EvaluateDuration is the evaluator window; used to schedule auto-recovery at 2x this duration.
+	EvaluateDuration time.Duration
 }
 
 // AlertEventItemBo is the business object for a persisted alert event (real-time alert).
@@ -124,4 +132,24 @@ func ToAPIV1ListRealtimeAlertReply(pageResponseBo *PageResponseBo[*AlertEventIte
 		PageSize: pageResponseBo.GetPageSize(),
 		Items:    items,
 	}
+}
+
+// BuildAlertFingerprint builds a deterministic fingerprint from firedAt and labels.
+// It sorts label keys, joins them as "k=v" pairs, and hashes with SHA-256.
+func BuildAlertFingerprint(labels map[string]string) string {
+	if labels == nil {
+		labels = map[string]string{}
+	}
+	keys := make([]string, 0, len(labels))
+	for k := range labels {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	parts := make([]string, 0, len(keys))
+	for _, k := range keys {
+		parts = append(parts, k+"="+labels[k])
+	}
+	base := strings.Join(parts, ",")
+	sum := sha256.Sum256([]byte(base))
+	return hex.EncodeToString(sum[:])
 }

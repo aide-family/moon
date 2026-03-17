@@ -67,6 +67,7 @@ func ToAlertEventDo(ev *bo.AlertEventBo, strategyGroupUID snowflake.ID, evaluato
 		DatasourceUID:       ev.DatasourceUID,
 		EvaluatorType:       ev.EvaluatorType,
 		EvaluatorSnapshotID: evaluatorSnapshotID,
+		Fingerprint:         ev.Fingerprint,
 		Status:              do.AlertEventStatusFiring,
 	}
 	return m

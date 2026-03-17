@@ -70,10 +70,10 @@ func (r *alertEventRepository) ensureAlertEventTable(ctx context.Context, tableN
 	return nil
 }
 
-func (r *alertEventRepository) CreateAlertEvent(ctx context.Context, ev *bo.AlertEventBo, strategyGroupUID snowflake.ID) error {
+func (r *alertEventRepository) CreateAlertEvent(ctx context.Context, ev *bo.AlertEventBo, strategyGroupUID snowflake.ID) (snowflake.ID, error) {
 	snapshotID, err := r.findOrCreateEvaluatorSnapshot(ctx, ev.EvaluatorType, ev.EvaluatorSnapshotJSON)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	m := convert.ToAlertEventDo(ev, strategyGroupUID, snapshotID)
 	ns := contextx.GetNamespace(ctx)
@@ -82,11 +82,14 @@ func (r *alertEventRepository) CreateAlertEvent(ctx context.Context, ev *bo.Aler
 	}
 	tableName := do.GenAlertEventTableName(ns, ev.FiredAt)
 	if err := r.ensureAlertEventTable(ctx, tableName); err != nil {
-		return err
+		return 0, err
 	}
 	bizQuery := query.Use(r.DB().Table(tableName))
 	alertEvent := bizQuery.AlertEvent
-	return alertEvent.WithContext(ctx).Create(m)
+	if err := alertEvent.WithContext(ctx).Create(m); err != nil {
+		return 0, err
+	}
+	return m.ID, nil
 }
 
 // findOrCreateEvaluatorSnapshot returns evaluator_snapshot ID; dedupes by evaluator_type + content_hash.
@@ -137,6 +140,23 @@ func (r *alertEventRepository) GetAlertEvent(ctx context.Context, uid snowflake.
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotFound("alert event not found")
 		}
+		return nil, err
+	}
+	levelName := r.levelNameByUID(ctx, m.NamespaceUID, m.LevelUID)
+	return convert.ToAlertEventItemBo(m, levelName), nil
+}
+
+func (r *alertEventRepository) GetAlertEventByFingerprint(ctx context.Context, uid snowflake.ID, fingerprint string) (*bo.AlertEventItemBo, error) {
+	ns := contextx.GetNamespace(ctx)
+	tableName := do.GenAlertEventTableName(ns, do.AlertEventTimeFromID(uid))
+	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
+		return nil, merr.ErrorNotFound("alert event not found")
+	}
+	bizQuery := query.Use(r.DB().Table(tableName))
+	e := bizQuery.AlertEvent
+	table := e.As(tableName)
+	m, err := e.WithContext(ctx).Where(table.Fingerprint.Eq(fingerprint)).Preload(field.Associations).First()
+	if err != nil {
 		return nil, err
 	}
 	levelName := r.levelNameByUID(ctx, m.NamespaceUID, m.LevelUID)
@@ -318,5 +338,25 @@ func (r *alertEventRepository) RecoverAlert(ctx context.Context, uid snowflake.I
 	if info.RowsAffected == 0 {
 		return merr.ErrorNotFound("alert event not found")
 	}
+	return nil
+}
+
+func (r *alertEventRepository) AutoRecoverAlert(ctx context.Context, uid snowflake.ID) error {
+	ns := contextx.GetNamespace(ctx)
+	tableName := do.GenAlertEventTableName(ns, do.AlertEventTimeFromID(uid))
+	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
+		return merr.ErrorNotFound("alert event not found")
+	}
+	bizQuery := query.Use(r.DB().Table(tableName))
+	e := bizQuery.AlertEvent
+	table := e.As(tableName)
+	_, err := e.WithContext(ctx).Where(table.ID.Eq(uid.Int64()), table.Status.Eq(do.AlertEventStatusFiring)).UpdateColumnSimple(
+		e.Status.Value(do.AlertEventStatusRecovered),
+		e.RecoveredAt.Value(time.Now()),
+	)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

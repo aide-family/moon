@@ -22,6 +22,10 @@ func WithCronJobs(jobs ...CronJob) Option {
 	return func(c *Server) {
 		for _, job := range jobs {
 			wrappedJob := WrapCronJobWithMetrics(job)
+			id, ok := c.runner.Get(wrappedJob.Index())
+			if ok {
+				c.cron.Remove(id)
+			}
 			id, err := c.cron.AddJob(string(wrappedJob.Spec()), wrappedJob)
 			if err != nil {
 				c.helper.Errorf("[CronJob] %s add job %s error: %v", c.name, wrappedJob.Index(), err)

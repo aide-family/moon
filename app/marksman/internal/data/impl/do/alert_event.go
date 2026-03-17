@@ -27,10 +27,10 @@ const snowflakeEpochMs int64 = 1288834974657
 
 type AlertEvent struct {
 	EventBaseModel
-	NamespaceUID        snowflake.ID                `gorm:"column:namespace_uid;index"`
-	StrategyUID         snowflake.ID                `gorm:"column:strategy_uid;index"`
-	StrategyGroupUID    snowflake.ID                `gorm:"column:strategy_group_uid;index"`
-	LevelUID            snowflake.ID                `gorm:"column:level_uid;index"`
+	NamespaceUID        snowflake.ID                `gorm:"column:namespace_uid;index:idx__alert_event__namespace_uid__strategy_group_uid__strategy_uid__level_uid__fingerprint"`
+	StrategyUID         snowflake.ID                `gorm:"column:strategy_uid;index:idx__alert_event__namespace_uid__strategy_group_uid__strategy_uid__level_uid__fingerprint"`
+	StrategyGroupUID    snowflake.ID                `gorm:"column:strategy_group_uid;index:idx__alert_event__namespace_uid__strategy_group_uid__strategy_uid__level_uid__fingerprint"`
+	LevelUID            snowflake.ID                `gorm:"column:level_uid;index:idx__alert_event__namespace_uid__strategy_group_uid__strategy_uid__level_uid__fingerprint"`
 	Summary             string                      `gorm:"column:summary;type:varchar(500);default:''"`
 	Description         string                      `gorm:"column:description;type:text;default:''"`
 	Expr                string                      `gorm:"column:expr;type:text;default:''"`
@@ -39,7 +39,8 @@ type AlertEvent struct {
 	Labels              *safety.Map[string, string] `gorm:"column:labels;type:json;"`
 	DatasourceUID       snowflake.ID                `gorm:"column:datasource_uid"`
 	EvaluatorType       string                      `gorm:"column:evaluator_type;size:32;default:''"`
-	EvaluatorSnapshotID snowflake.ID                `gorm:"column:evaluator_snapshot_id;index"`
+	EvaluatorSnapshotID snowflake.ID                `gorm:"column:evaluator_snapshot_id;index:idx__alert_event__namespace_uid__evaluator_snapshot_id"`
+	Fingerprint         string                      `gorm:"column:fingerprint;size:64;index:idx__alert_event__namespace_uid__strategy_group_uid__strategy_uid__level_uid__fingerprint"`
 	Status              int32                       `gorm:"column:status;default:1"`
 	IntervenedAt        *time.Time                  `gorm:"column:intervened_at"`
 	IntervenedBy        snowflake.ID                `gorm:"column:intervened_by"`

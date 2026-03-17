@@ -43,6 +43,7 @@ func newAlertEvent(db *gorm.DB, opts ...gen.DOOption) alertEvent {
 	_alertEvent.DatasourceUID = field.NewInt64(tableName, "datasource_uid")
 	_alertEvent.EvaluatorType = field.NewString(tableName, "evaluator_type")
 	_alertEvent.EvaluatorSnapshotID = field.NewInt64(tableName, "evaluator_snapshot_id")
+	_alertEvent.Fingerprint = field.NewString(tableName, "fingerprint")
 	_alertEvent.Status = field.NewInt32(tableName, "status")
 	_alertEvent.IntervenedAt = field.NewTime(tableName, "intervened_at")
 	_alertEvent.IntervenedBy = field.NewInt64(tableName, "intervened_by")
@@ -80,6 +81,7 @@ type alertEvent struct {
 	DatasourceUID       field.Int64
 	EvaluatorType       field.String
 	EvaluatorSnapshotID field.Int64
+	Fingerprint         field.String
 	Status              field.Int32
 	IntervenedAt        field.Time
 	IntervenedBy        field.Int64
@@ -119,6 +121,7 @@ func (a *alertEvent) updateTableName(table string) *alertEvent {
 	a.DatasourceUID = field.NewInt64(table, "datasource_uid")
 	a.EvaluatorType = field.NewString(table, "evaluator_type")
 	a.EvaluatorSnapshotID = field.NewInt64(table, "evaluator_snapshot_id")
+	a.Fingerprint = field.NewString(table, "fingerprint")
 	a.Status = field.NewInt32(table, "status")
 	a.IntervenedAt = field.NewTime(table, "intervened_at")
 	a.IntervenedBy = field.NewInt64(table, "intervened_by")
@@ -141,7 +144,7 @@ func (a *alertEvent) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *alertEvent) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 23)
+	a.fieldMap = make(map[string]field.Expr, 24)
 	a.fieldMap["id"] = a.ID
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
@@ -158,6 +161,7 @@ func (a *alertEvent) fillFieldMap() {
 	a.fieldMap["datasource_uid"] = a.DatasourceUID
 	a.fieldMap["evaluator_type"] = a.EvaluatorType
 	a.fieldMap["evaluator_snapshot_id"] = a.EvaluatorSnapshotID
+	a.fieldMap["fingerprint"] = a.Fingerprint
 	a.fieldMap["status"] = a.Status
 	a.fieldMap["intervened_at"] = a.IntervenedAt
 	a.fieldMap["intervened_by"] = a.IntervenedBy

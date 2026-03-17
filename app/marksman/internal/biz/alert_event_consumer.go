@@ -7,6 +7,7 @@ import (
 	klog "github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/marksman/internal/biz/bo"
+	"github.com/aide-family/marksman/internal/biz/evaluator"
 	"github.com/aide-family/marksman/internal/biz/repository"
 )
 
@@ -15,6 +16,7 @@ type AlertEventConsumer struct {
 	helper         *klog.Helper
 	alertEventRepo repository.AlertEvent
 	strategyRepo   repository.Strategy
+	alertingRepo   repository.Alerting
 }
 
 // NewAlertEventConsumer creates an AlertEventConsumer.
@@ -22,11 +24,13 @@ func NewAlertEventConsumer(
 	helper *klog.Helper,
 	alertEventRepo repository.AlertEvent,
 	strategyRepo repository.Strategy,
+	alertingRepo repository.Alerting,
 ) *AlertEventConsumer {
 	return &AlertEventConsumer{
 		helper:         klog.NewHelper(klog.With(helper.Logger(), "biz", "alert_event_consumer")),
 		alertEventRepo: alertEventRepo,
 		strategyRepo:   strategyRepo,
+		alertingRepo:   alertingRepo,
 	}
 }
 
@@ -41,7 +45,8 @@ func (c *AlertEventConsumer) Handle(ctx context.Context, event *bo.AlertEventBo)
 		c.helper.WithContext(ctx).Errorw("msg", "get strategy for alert event failed", "error", err, "strategyUID", event.StrategyUID.Int64())
 		return
 	}
-	if err := c.alertEventRepo.CreateAlertEvent(ctx, event, strategy.StrategyGroupUID); err != nil {
+	alertEventUID, err := c.alertEventRepo.CreateAlertEvent(ctx, event, strategy.StrategyGroupUID)
+	if err != nil {
 		c.helper.WithContext(ctx).Errorw("msg", "create alert event failed", "error", err, "strategyUID", event.StrategyUID.Int64())
 		return
 	}
@@ -59,4 +64,6 @@ func (c *AlertEventConsumer) Handle(ctx context.Context, event *bo.AlertEventBo)
 		"firedAt", event.FiredAt,
 		"expr", event.Expr,
 	)
+	alerting := evaluator.NewAlerting(alertEventUID, event, c.alertEventRepo, c.alertingRepo)
+	c.alertingRepo.Append(alerting)
 }

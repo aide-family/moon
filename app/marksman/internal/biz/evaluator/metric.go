@@ -51,18 +51,18 @@ func NewMetricEvaluator(
 	info *bo.EvaluateMetricStrategyBo,
 ) cron.CronJob {
 	return &metricEvaluator{
-		querier:             querier,
-		alertCh:             alertCh,
-		info:                info,
-		cachedSnapshotJSON:  info.MarshalEvaluatorSnapshotJSON(),
+		querier:            querier,
+		alertCh:            alertCh,
+		info:               info,
+		cachedSnapshotJSON: info.MarshalEvaluatorSnapshotJSON(),
 	}
 }
 
 type metricEvaluator struct {
-	querier             repository.MetricDatasourceQuerier
-	alertCh             repository.AlertEventChannel
-	info                *bo.EvaluateMetricStrategyBo
-	cachedSnapshotJSON   string // pre-serialized evaluator snapshot, same for all events from this evaluator
+	querier            repository.MetricDatasourceQuerier
+	alertCh            repository.AlertEventChannel
+	info               *bo.EvaluateMetricStrategyBo
+	cachedSnapshotJSON string // pre-serialized evaluator snapshot, same for all events from this evaluator
 }
 
 // Index implements [cron.CronJob].
@@ -86,15 +86,15 @@ func (m *metricEvaluator) Run() {
 	ctx = contextx.WithNamespace(ctx, m.info.NamespaceUID)
 
 	end := time.Now()
-	dur := m.info.DurationSec
+	dur := time.Duration(m.info.DurationSec) * time.Second
 	if dur < 60 {
 		dur = 60
 	}
-	start := end.Add(-time.Duration(dur*2) * time.Second)
+	start := end.Add(-dur * 2)
 	queryRange := prometheusv1.Range{
 		Start: start,
 		End:   end,
-		Step:  time.Duration(defaultStepSeconds) * time.Second,
+		Step:  time.Duration(defaultStepSeconds),
 	}
 
 	matrix, err := m.querier.QueryRange(ctx, m.info.Datasource, m.info.Expr, queryRange)
@@ -123,18 +123,20 @@ func (m *metricEvaluator) Run() {
 		summary := m.fillStringTemplate(m.info.Summary, tmplData)
 		description := m.fillStringTemplate(m.info.Description, tmplData)
 		ev := &bo.AlertEventBo{
-			StrategyUID:          m.info.StrategyUID,
-			NamespaceUID:         m.info.NamespaceUID,
-			Level:                m.info.Level,
-			Summary:              summary,
-			Description:          description,
-			Expr:                 m.info.Expr,
-			FiredAt:              end,
-			Value:                float64(lastVal.Value),
-			Labels:               labels,
-			DatasourceUID:        m.info.Datasource.UID,
-			EvaluatorType:        EvaluatorTypeMetric,
+			StrategyUID:           m.info.StrategyUID,
+			NamespaceUID:          m.info.NamespaceUID,
+			Level:                 m.info.Level,
+			Summary:               summary,
+			Description:           description,
+			Expr:                  m.info.Expr,
+			FiredAt:               end,
+			Value:                 float64(lastVal.Value),
+			Labels:                labels,
+			DatasourceUID:         m.info.Datasource.UID,
+			EvaluatorType:         EvaluatorTypeMetric,
 			EvaluatorSnapshotJSON: m.cachedSnapshotJSON,
+			Fingerprint:           bo.BuildAlertFingerprint(labels),
+			EvaluateDuration:      dur,
 		}
 		m.alertCh.Send(ev)
 	}
@@ -295,7 +297,7 @@ func maxConsecutiveTrue(b []bool) int {
 func (m *metricEvaluator) Spec() cron.CronSpec {
 	interval := defaultEvaluateInterval
 	if m.info.DurationSec > 0 {
-		interval = time.Duration(m.info.DurationSec) * time.Second
+		interval = time.Duration(m.info.DurationSec)
 	}
 	return cron.CronSpecEvery(interval)
 }
