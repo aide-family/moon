@@ -97,8 +97,13 @@ type ListRealtimeAlertBo struct {
 }
 
 func NewListRealtimeAlertBo(req *apiv1.ListRealtimeAlertRequest) *ListRealtimeAlertBo {
-	startAt := time.Unix(req.GetStartAtUnix(), 0)
-	endAt := time.Unix(req.GetEndAtUnix(), 0)
+	var startAt, endAt time.Time
+	if req.GetStartAtUnix() != 0 {
+		startAt = time.Unix(req.GetStartAtUnix(), 0)
+	}
+	if req.GetEndAtUnix() != 0 {
+		endAt = time.Unix(req.GetEndAtUnix(), 0)
+	}
 	return &ListRealtimeAlertBo{
 		PageRequestBo: NewPageRequestBo(req.GetPage(), req.GetPageSize()),
 		AlertPageUID: snowflake.ParseInt64(req.GetAlertPageUid()),
