@@ -88,6 +88,11 @@ service Strategy {
 			get: "/v1/strategies"
 		};
 	}
+	rpc SelectStrategy (SelectStrategyRequest) returns (SelectStrategyReply) {
+		option (google.api.http) = {
+			get: "/v1/strategies/select"
+		};
+	}
 }
 
 message StrategyGroupItem {
@@ -323,4 +328,25 @@ message ListStrategyReply {
 	int64 total = 2;
 	int32 page = 3;
 	int32 pageSize = 4;
+}
+
+message SelectStrategyRequest {
+	string keyword = 1 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword must be less than or equal to 100",
+	}];
+	int32 limit = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 100",
+		message: "limit must be greater than or equal to 1 and less than or equal to 100",
+	}];
+	int64 lastUid = 3;
+	magicbox.enum.GlobalStatus status = 4;
+	// When set, only strategies belonging to these strategy groups are returned (for alert page filter).
+	repeated int64 strategyGroupUids = 5;
+}
+message SelectStrategyReply {
+	repeated StrategyItemSelect items = 1;
+	int64 total = 2;
+	int64 lastUid = 3;
+	bool hasMore = 4;
 }

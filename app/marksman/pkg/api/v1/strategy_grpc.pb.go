@@ -33,6 +33,7 @@ const (
 	Strategy_DeleteStrategy_FullMethodName             = "/marksman.api.v1.Strategy/DeleteStrategy"
 	Strategy_GetStrategy_FullMethodName                = "/marksman.api.v1.Strategy/GetStrategy"
 	Strategy_ListStrategy_FullMethodName               = "/marksman.api.v1.Strategy/ListStrategy"
+	Strategy_SelectStrategy_FullMethodName             = "/marksman.api.v1.Strategy/SelectStrategy"
 )
 
 // StrategyClient is the client API for Strategy service.
@@ -53,6 +54,7 @@ type StrategyClient interface {
 	DeleteStrategy(ctx context.Context, in *DeleteStrategyRequest, opts ...grpc.CallOption) (*DeleteStrategyReply, error)
 	GetStrategy(ctx context.Context, in *GetStrategyRequest, opts ...grpc.CallOption) (*StrategyItem, error)
 	ListStrategy(ctx context.Context, in *ListStrategyRequest, opts ...grpc.CallOption) (*ListStrategyReply, error)
+	SelectStrategy(ctx context.Context, in *SelectStrategyRequest, opts ...grpc.CallOption) (*SelectStrategyReply, error)
 }
 
 type strategyClient struct {
@@ -203,6 +205,16 @@ func (c *strategyClient) ListStrategy(ctx context.Context, in *ListStrategyReque
 	return out, nil
 }
 
+func (c *strategyClient) SelectStrategy(ctx context.Context, in *SelectStrategyRequest, opts ...grpc.CallOption) (*SelectStrategyReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SelectStrategyReply)
+	err := c.cc.Invoke(ctx, Strategy_SelectStrategy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StrategyServer is the server API for Strategy service.
 // All implementations must embed UnimplementedStrategyServer
 // for forward compatibility.
@@ -221,6 +233,7 @@ type StrategyServer interface {
 	DeleteStrategy(context.Context, *DeleteStrategyRequest) (*DeleteStrategyReply, error)
 	GetStrategy(context.Context, *GetStrategyRequest) (*StrategyItem, error)
 	ListStrategy(context.Context, *ListStrategyRequest) (*ListStrategyReply, error)
+	SelectStrategy(context.Context, *SelectStrategyRequest) (*SelectStrategyReply, error)
 	mustEmbedUnimplementedStrategyServer()
 }
 
@@ -272,6 +285,9 @@ func (UnimplementedStrategyServer) GetStrategy(context.Context, *GetStrategyRequ
 }
 func (UnimplementedStrategyServer) ListStrategy(context.Context, *ListStrategyRequest) (*ListStrategyReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListStrategy not implemented")
+}
+func (UnimplementedStrategyServer) SelectStrategy(context.Context, *SelectStrategyRequest) (*SelectStrategyReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SelectStrategy not implemented")
 }
 func (UnimplementedStrategyServer) mustEmbedUnimplementedStrategyServer() {}
 func (UnimplementedStrategyServer) testEmbeddedByValue()                  {}
@@ -546,6 +562,24 @@ func _Strategy_ListStrategy_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Strategy_SelectStrategy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SelectStrategyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StrategyServer).SelectStrategy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Strategy_SelectStrategy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StrategyServer).SelectStrategy(ctx, req.(*SelectStrategyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Strategy_ServiceDesc is the grpc.ServiceDesc for Strategy service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -608,6 +642,10 @@ var Strategy_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListStrategy",
 			Handler:    _Strategy_ListStrategy_Handler,
+		},
+		{
+			MethodName: "SelectStrategy",
+			Handler:    _Strategy_SelectStrategy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

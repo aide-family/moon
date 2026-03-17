@@ -48,7 +48,7 @@ func RegisterAlertHTTPServer(s *http.Server, srv AlertHTTPServer) {
 	r.DELETE("/v1/alert-pages/{uid}", _Alert_DeleteAlertPage0_HTTP_Handler(srv))
 	r.GET("/v1/alert-pages/{uid}", _Alert_GetAlertPage0_HTTP_Handler(srv))
 	r.GET("/v1/alert-pages", _Alert_ListAlertPage0_HTTP_Handler(srv))
-	r.GET("/v1/alert-pages/{alert_page_uid}/realtime-alerts", _Alert_ListRealtimeAlert0_HTTP_Handler(srv))
+	r.GET("/v1/alert-pages/{alertPageUid}/realtime-alerts", _Alert_ListRealtimeAlert0_HTTP_Handler(srv))
 	r.POST("/v1/realtime-alerts/{uid}/intervene", _Alert_InterveneAlert0_HTTP_Handler(srv))
 	r.POST("/v1/realtime-alerts/{uid}/suppress", _Alert_SuppressAlert0_HTTP_Handler(srv))
 	r.POST("/v1/realtime-alerts/{uid}/recover", _Alert_RecoverAlert0_HTTP_Handler(srv))
@@ -348,7 +348,7 @@ func (c *AlertHTTPClientImpl) ListAlertPage(ctx context.Context, in *ListAlertPa
 
 func (c *AlertHTTPClientImpl) ListRealtimeAlert(ctx context.Context, in *ListRealtimeAlertRequest, opts ...http.CallOption) (*ListRealtimeAlertReply, error) {
 	var out ListRealtimeAlertReply
-	pattern := "/v1/alert-pages/{alert_page_uid}/realtime-alerts"
+	pattern := "/v1/alert-pages/{alertPageUid}/realtime-alerts"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAlertListRealtimeAlert))
 	opts = append(opts, http.PathTemplate(pattern))

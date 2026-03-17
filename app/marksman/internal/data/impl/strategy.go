@@ -138,3 +138,44 @@ func (r *strategyRepository) ListStrategy(ctx context.Context, req *bo.ListStrat
 	}
 	return bo.NewPageResponseBo(req.PageRequestBo, items), nil
 }
+
+func (r *strategyRepository) SelectStrategy(ctx context.Context, req *bo.SelectStrategyBo) (*bo.SelectStrategyBoResult, error) {
+	s := query.Strategy
+	wrappers := s.WithContext(ctx)
+	wrappers = wrappers.Where(s.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()))
+	if len(req.StrategyGroupUIDs) > 0 {
+		wrappers = wrappers.Where(s.StrategyGroupUID.In(req.StrategyGroupUIDs...))
+	}
+	if req.Keyword != "" {
+		wrappers = wrappers.Where(s.Name.Like("%" + strings.TrimSpace(req.Keyword) + "%"))
+	}
+	if req.Status != enum.GlobalStatus_GlobalStatus_UNKNOWN {
+		wrappers = wrappers.Where(s.Status.Eq(int32(req.Status)))
+	}
+	total, err := wrappers.Count()
+	if err != nil {
+		return nil, err
+	}
+	if req.LastUID.Int64() > 0 {
+		wrappers = wrappers.Where(s.ID.Gt(req.LastUID.Int64()))
+	}
+	wrappers = wrappers.Order(s.ID).Limit(int(req.Limit))
+	list, err := wrappers.Find()
+	if err != nil {
+		return nil, err
+	}
+	selectItems := make([]*bo.StrategyItemSelectBo, 0, len(list))
+	for _, m := range list {
+		selectItems = append(selectItems, convert.ToStrategyItemSelectBo(m))
+	}
+	var lastUID snowflake.ID
+	if len(list) > 0 {
+		lastUID = list[len(list)-1].ID
+	}
+	return &bo.SelectStrategyBoResult{
+		Items:   selectItems,
+		Total:   total,
+		LastUID: lastUID,
+		HasMore: req.Limit > 0 && len(list) >= int(req.Limit),
+	}, nil
+}

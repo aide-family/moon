@@ -147,6 +147,63 @@ func ToAPIV1ListStrategyReply(pageResponseBo *PageResponseBo[*StrategyItemBo]) *
 	}
 }
 
+type SelectStrategyBo struct {
+	Keyword           string
+	Limit             int32
+	LastUID           snowflake.ID
+	Status            enum.GlobalStatus
+	StrategyGroupUIDs []int64
+}
+
+func NewSelectStrategyBo(req *apiv1.SelectStrategyRequest) *SelectStrategyBo {
+	return &SelectStrategyBo{
+		Keyword:           req.GetKeyword(),
+		Limit:             req.GetLimit(),
+		LastUID:           snowflake.ParseInt64(req.GetLastUid()),
+		Status:            req.GetStatus(),
+		StrategyGroupUIDs: req.GetStrategyGroupUids(),
+	}
+}
+
+type StrategyItemSelectBo struct {
+	Value    int64
+	Label    string
+	Disabled bool
+	Tooltip  string
+}
+
+func ToAPIV1StrategyItemSelect(b *StrategyItemSelectBo) *apiv1.StrategyItemSelect {
+	if b == nil {
+		return nil
+	}
+	return &apiv1.StrategyItemSelect{
+		Value:    b.Value,
+		Label:    b.Label,
+		Disabled: b.Disabled,
+		Tooltip:  b.Tooltip,
+	}
+}
+
+type SelectStrategyBoResult struct {
+	Items   []*StrategyItemSelectBo
+	Total   int64
+	LastUID snowflake.ID
+	HasMore bool
+}
+
+func ToAPIV1SelectStrategyReply(result *SelectStrategyBoResult) *apiv1.SelectStrategyReply {
+	items := make([]*apiv1.StrategyItemSelect, 0, len(result.Items))
+	for _, item := range result.Items {
+		items = append(items, ToAPIV1StrategyItemSelect(item))
+	}
+	return &apiv1.SelectStrategyReply{
+		Items:   items,
+		Total:   result.Total,
+		LastUid: result.LastUID.Int64(),
+		HasMore: result.HasMore,
+	}
+}
+
 // Driver value ranges by datasource type (proto convention): METRICS 1-1000, LOGS 1001-2000, TRACE 2001-3000.
 const (
 	gap                   = 999

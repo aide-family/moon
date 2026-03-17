@@ -219,6 +219,15 @@ func (b *StrategyBiz) ListStrategy(ctx context.Context, req *bo.ListStrategyBo) 
 	return result, nil
 }
 
+func (b *StrategyBiz) SelectStrategy(ctx context.Context, req *bo.SelectStrategyBo) (*bo.SelectStrategyBoResult, error) {
+	result, err := b.strategyRepo.SelectStrategy(ctx, req)
+	if err != nil {
+		b.helper.Errorw("msg", "select strategy failed", "error", err, "req", req)
+		return nil, merr.ErrorInternalServer("select strategy failed").WithCause(err)
+	}
+	return result, nil
+}
+
 func (b *StrategyBiz) DeleteStrategy(ctx context.Context, uid snowflake.ID) error {
 	strategyInfo, err := b.GetStrategy(ctx, uid)
 	if err != nil {

@@ -95,6 +95,7 @@
 | | `DELETE /v1/strategy/{uid}` | 删除策略 |
 | | `GET /v1/strategy/{uid}` | 获取策略 |
 | | `GET /v1/strategies` | 列表（keyword、page、pageSize、status、strategyGroupUID、type、driver） |
+| | `GET /v1/strategies/select` | 策略下拉选择（keyword、limit、lastUid、status、strategyGroupUids 按策略组筛选，策略组 ID 为列表） |
 | **Level** | `POST /v1/level` | 创建级别（name、remark、metadata） |
 | | `PUT /v1/level/{uid}` | 更新级别 |
 | | `PUT /v1/level/{uid}/status` | 更新状态 |
@@ -109,14 +110,14 @@
 | | `DELETE /v1/metric/strategy/{strategyUID}/level/{uid}` | 删除指标级别 |
 | | `GET /v1/metric/strategy/{strategyUID}/level/{uid}` | 获取指标级别 |
 | | `POST /v1/metric/strategy/{strategyUID}/receivers` | 绑定接收人（receiverUIDs；可选 levelUID） |
-| **Alert**（告警页） | `POST /v1/alert-pages` | 创建告警页（name、color、sort_order、filter） |
+| **Alert**（告警页） | `POST /v1/alert-pages` | 创建告警页（name、color、sortOrder、filter） |
 | | `PUT /v1/alert-pages/{uid}` | 更新告警页 |
 | | `DELETE /v1/alert-pages/{uid}` | 删除告警页 |
 | | `GET /v1/alert-pages/{uid}` | 获取告警页 |
-| | `GET /v1/alert-pages` | 告警页列表（page、page_size、keyword） |
-| **Alert**（实时） | `GET /v1/alert-pages/{alert_page_uid}/realtime-alerts` | 按页查询实时告警事件（page、page_size、status） |
+| | `GET /v1/alert-pages` | 告警页列表（page、pageSize、keyword） |
+| **Alert**（实时） | `GET /v1/alert-pages/{alertPageUid}/realtime-alerts` | 按页查询实时告警事件（page、pageSize、status） |
 | | `POST /v1/realtime-alerts/{uid}/intervene` | 介入（值班接管） |
-| | `POST /v1/realtime-alerts/{uid}/suppress` | 抑制至指定时间（body: suppress_until RFC3339） |
+| | `POST /v1/realtime-alerts/{uid}/suppress` | 抑制至指定时间（body: suppressUntil RFC3339） |
 | | `POST /v1/realtime-alerts/{uid}/recover` | 手动恢复 |
 
 **类型**：`DatasourceType`: METRICS, LOGS, TRACE。**驱动**：METRICS_PROMETHEUS, METRICS_VICTORIA_METRICS, LOGS_ELASTICSEARCH, TRACE_JAEGER。

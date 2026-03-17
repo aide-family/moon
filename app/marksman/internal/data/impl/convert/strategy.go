@@ -4,11 +4,24 @@ import (
 	"context"
 
 	"github.com/aide-family/magicbox/contextx"
+	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/safety"
 
 	"github.com/aide-family/marksman/internal/biz/bo"
 	"github.com/aide-family/marksman/internal/data/impl/do"
 )
+
+func ToStrategyItemSelectBo(m *do.Strategy) *bo.StrategyItemSelectBo {
+	if m == nil {
+		return nil
+	}
+	return &bo.StrategyItemSelectBo{
+		Value:    m.ID.Int64(),
+		Label:    m.Name,
+		Disabled: m.Status != enum.GlobalStatus_ENABLED || m.DeletedAt.Valid,
+		Tooltip:  m.Remark,
+	}
+}
 
 func ToStrategyItemBo(m *do.Strategy) *bo.StrategyItemBo {
 	if m == nil {

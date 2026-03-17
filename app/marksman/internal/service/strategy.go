@@ -134,3 +134,11 @@ func (s *StrategyService) ListStrategy(ctx context.Context, req *apiv1.ListStrat
 	}
 	return bo.ToAPIV1ListStrategyReply(result), nil
 }
+
+func (s *StrategyService) SelectStrategy(ctx context.Context, req *apiv1.SelectStrategyRequest) (*apiv1.SelectStrategyReply, error) {
+	result, err := s.strategyBiz.SelectStrategy(ctx, bo.NewSelectStrategyBo(req))
+	if err != nil {
+		return nil, err
+	}
+	return bo.ToAPIV1SelectStrategyReply(result), nil
+}

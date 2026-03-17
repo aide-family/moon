@@ -27,6 +27,7 @@ const OperationStrategyGetStrategy = "/marksman.api.v1.Strategy/GetStrategy"
 const OperationStrategyGetStrategyGroup = "/marksman.api.v1.Strategy/GetStrategyGroup"
 const OperationStrategyListStrategy = "/marksman.api.v1.Strategy/ListStrategy"
 const OperationStrategyListStrategyGroup = "/marksman.api.v1.Strategy/ListStrategyGroup"
+const OperationStrategySelectStrategy = "/marksman.api.v1.Strategy/SelectStrategy"
 const OperationStrategySelectStrategyGroup = "/marksman.api.v1.Strategy/SelectStrategyGroup"
 const OperationStrategyStrategyGroupBindReceivers = "/marksman.api.v1.Strategy/StrategyGroupBindReceivers"
 const OperationStrategyUpdateStrategy = "/marksman.api.v1.Strategy/UpdateStrategy"
@@ -43,6 +44,7 @@ type StrategyHTTPServer interface {
 	GetStrategyGroup(context.Context, *GetStrategyGroupRequest) (*StrategyGroupItem, error)
 	ListStrategy(context.Context, *ListStrategyRequest) (*ListStrategyReply, error)
 	ListStrategyGroup(context.Context, *ListStrategyGroupRequest) (*ListStrategyGroupReply, error)
+	SelectStrategy(context.Context, *SelectStrategyRequest) (*SelectStrategyReply, error)
 	SelectStrategyGroup(context.Context, *SelectStrategyGroupRequest) (*SelectStrategyGroupReply, error)
 	StrategyGroupBindReceivers(context.Context, *StrategyGroupBindReceiversRequest) (*StrategyGroupBindReceiversReply, error)
 	UpdateStrategy(context.Context, *UpdateStrategyRequest) (*UpdateStrategyReply, error)
@@ -67,6 +69,7 @@ func RegisterStrategyHTTPServer(s *http.Server, srv StrategyHTTPServer) {
 	r.DELETE("/v1/strategy/{uid}", _Strategy_DeleteStrategy0_HTTP_Handler(srv))
 	r.GET("/v1/strategy/{uid}", _Strategy_GetStrategy0_HTTP_Handler(srv))
 	r.GET("/v1/strategies", _Strategy_ListStrategy0_HTTP_Handler(srv))
+	r.GET("/v1/strategies/select", _Strategy_SelectStrategy0_HTTP_Handler(srv))
 }
 
 func _Strategy_CreateStrategyGroup0_HTTP_Handler(srv StrategyHTTPServer) func(ctx http.Context) error {
@@ -383,6 +386,25 @@ func _Strategy_ListStrategy0_HTTP_Handler(srv StrategyHTTPServer) func(ctx http.
 	}
 }
 
+func _Strategy_SelectStrategy0_HTTP_Handler(srv StrategyHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SelectStrategyRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationStrategySelectStrategy)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SelectStrategy(ctx, req.(*SelectStrategyRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SelectStrategyReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type StrategyHTTPClient interface {
 	CreateStrategy(ctx context.Context, req *CreateStrategyRequest, opts ...http.CallOption) (rsp *CreateStrategyReply, err error)
 	CreateStrategyGroup(ctx context.Context, req *CreateStrategyGroupRequest, opts ...http.CallOption) (rsp *CreateStrategyGroupReply, err error)
@@ -392,6 +414,7 @@ type StrategyHTTPClient interface {
 	GetStrategyGroup(ctx context.Context, req *GetStrategyGroupRequest, opts ...http.CallOption) (rsp *StrategyGroupItem, err error)
 	ListStrategy(ctx context.Context, req *ListStrategyRequest, opts ...http.CallOption) (rsp *ListStrategyReply, err error)
 	ListStrategyGroup(ctx context.Context, req *ListStrategyGroupRequest, opts ...http.CallOption) (rsp *ListStrategyGroupReply, err error)
+	SelectStrategy(ctx context.Context, req *SelectStrategyRequest, opts ...http.CallOption) (rsp *SelectStrategyReply, err error)
 	SelectStrategyGroup(ctx context.Context, req *SelectStrategyGroupRequest, opts ...http.CallOption) (rsp *SelectStrategyGroupReply, err error)
 	StrategyGroupBindReceivers(ctx context.Context, req *StrategyGroupBindReceiversRequest, opts ...http.CallOption) (rsp *StrategyGroupBindReceiversReply, err error)
 	UpdateStrategy(ctx context.Context, req *UpdateStrategyRequest, opts ...http.CallOption) (rsp *UpdateStrategyReply, err error)
@@ -504,6 +527,19 @@ func (c *StrategyHTTPClientImpl) ListStrategyGroup(ctx context.Context, in *List
 	pattern := "/v1/strategy-groups"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationStrategyListStrategyGroup))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *StrategyHTTPClientImpl) SelectStrategy(ctx context.Context, in *SelectStrategyRequest, opts ...http.CallOption) (*SelectStrategyReply, error) {
+	var out SelectStrategyReply
+	pattern := "/v1/strategies/select"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationStrategySelectStrategy))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

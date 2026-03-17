@@ -27,6 +27,14 @@ type AlertPageBiz struct {
 }
 
 func (b *AlertPageBiz) CreateAlertPage(ctx context.Context, req *bo.CreateAlertPageBo) (snowflake.ID, error) {
+	taken, err := b.alertPageRepo.AlertPageNameTaken(ctx, req.Name, 0)
+	if err != nil {
+		b.helper.Errorw("msg", "check alert page name taken failed", "error", err, "name", req.Name)
+		return 0, merr.ErrorInternalServer("check alert page name failed").WithCause(err)
+	}
+	if taken {
+		return 0, merr.ErrorParams("alert page name already exists, please use another name")
+	}
 	uid, err := b.alertPageRepo.CreateAlertPage(ctx, req)
 	if err != nil {
 		b.helper.Errorw("msg", "create alert page failed", "error", err, "name", req.Name)
@@ -36,6 +44,14 @@ func (b *AlertPageBiz) CreateAlertPage(ctx context.Context, req *bo.CreateAlertP
 }
 
 func (b *AlertPageBiz) UpdateAlertPage(ctx context.Context, req *bo.UpdateAlertPageBo) error {
+	taken, err := b.alertPageRepo.AlertPageNameTaken(ctx, req.Name, req.UID)
+	if err != nil {
+		b.helper.Errorw("msg", "check alert page name taken failed", "error", err, "name", req.Name)
+		return merr.ErrorInternalServer("check alert page name failed").WithCause(err)
+	}
+	if taken {
+		return merr.ErrorParams("alert page name already exists, please use another name")
+	}
 	if err := b.alertPageRepo.UpdateAlertPage(ctx, req); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("alert page not found")

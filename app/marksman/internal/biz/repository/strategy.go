@@ -26,4 +26,5 @@ type Strategy interface {
 	DeleteStrategy(ctx context.Context, uid snowflake.ID) error
 	GetStrategy(ctx context.Context, uid snowflake.ID) (*bo.StrategyItemBo, error)
 	ListStrategy(ctx context.Context, req *bo.ListStrategyBo) (*bo.PageResponseBo[*bo.StrategyItemBo], error)
+	SelectStrategy(ctx context.Context, req *bo.SelectStrategyBo) (*bo.SelectStrategyBoResult, error)
 }

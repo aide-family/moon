@@ -9,6 +9,7 @@ import (
 )
 
 type AlertPage interface {
+	AlertPageNameTaken(ctx context.Context, name string, excludeUID snowflake.ID) (bool, error)
 	CreateAlertPage(ctx context.Context, req *bo.CreateAlertPageBo) (snowflake.ID, error)
 	UpdateAlertPage(ctx context.Context, req *bo.UpdateAlertPageBo) error
 	DeleteAlertPage(ctx context.Context, uid snowflake.ID) error

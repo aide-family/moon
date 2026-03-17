@@ -95,6 +95,7 @@
 | | `DELETE /v1/strategy/{uid}` | Delete strategy |
 | | `GET /v1/strategy/{uid}` | Get strategy |
 | | `GET /v1/strategies` | List strategies (keyword, page, pageSize, status, strategyGroupUID, type, driver) |
+| | `GET /v1/strategies/select` | Select strategies for dropdown (keyword, limit, lastUid, status, strategyGroupUids list to filter by groups) |
 | **Level** | `POST /v1/level` | Create level (name, remark, metadata) |
 | | `PUT /v1/level/{uid}` | Update level |
 | | `PUT /v1/level/{uid}/status` | Update status |
@@ -109,14 +110,14 @@
 | | `DELETE /v1/metric/strategy/{strategyUID}/level/{uid}` | Delete metric level |
 | | `GET /v1/metric/strategy/{strategyUID}/level/{uid}` | Get metric level |
 | | `POST /v1/metric/strategy/{strategyUID}/receivers` | Bind receivers (receiverUIDs; optional levelUID) |
-| **Alert** (alert page) | `POST /v1/alert-pages` | Create alert page (name, color, sort_order, filter) |
+| **Alert** (alert page) | `POST /v1/alert-pages` | Create alert page (name, color, sortOrder, filter) |
 | | `PUT /v1/alert-pages/{uid}` | Update alert page |
 | | `DELETE /v1/alert-pages/{uid}` | Delete alert page |
 | | `GET /v1/alert-pages/{uid}` | Get alert page |
-| | `GET /v1/alert-pages` | List alert pages (page, page_size, keyword) |
-| **Alert** (realtime) | `GET /v1/alert-pages/{alert_page_uid}/realtime-alerts` | List real-time alert events for page (page, page_size, status) |
+| | `GET /v1/alert-pages` | List alert pages (page, pageSize, keyword) |
+| **Alert** (realtime) | `GET /v1/alert-pages/{alertPageUid}/realtime-alerts` | List real-time alert events for page (page, pageSize, status) |
 | | `POST /v1/realtime-alerts/{uid}/intervene` | Mark event as intervened (on-call takeover) |
-| | `POST /v1/realtime-alerts/{uid}/suppress` | Suppress event until time (body: suppress_until RFC3339) |
+| | `POST /v1/realtime-alerts/{uid}/suppress` | Suppress event until time (body: suppressUntil RFC3339) |
 | | `POST /v1/realtime-alerts/{uid}/recover` | Mark event as manually recovered |
 
 **Types**: `DatasourceType`: METRICS, LOGS, TRACE. **Drivers**: METRICS_PROMETHEUS, METRICS_VICTORIA_METRICS, LOGS_ELASTICSEARCH, TRACE_JAEGER.

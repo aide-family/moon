@@ -26,6 +26,20 @@ type alertPageRepository struct {
 	db *gorm.DB
 }
 
+func (r *alertPageRepository) AlertPageNameTaken(ctx context.Context, name string, excludeUID snowflake.ID) (bool, error) {
+	a := query.AlertPage
+	wrappers := a.WithContext(ctx).Where(
+		a.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
+		a.Name.Eq(name),
+		a.ID.Neq(excludeUID.Int64()),
+	)
+	n, err := wrappers.Count()
+	if err != nil {
+		return false, err
+	}
+	return n > 0, nil
+}
+
 func (r *alertPageRepository) CreateAlertPage(ctx context.Context, req *bo.CreateAlertPageBo) (snowflake.ID, error) {
 	m := convert.ToAlertPageDo(ctx, req)
 	if err := query.AlertPage.WithContext(ctx).Create(m); err != nil {

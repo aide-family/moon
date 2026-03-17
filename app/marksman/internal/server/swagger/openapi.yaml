@@ -832,6 +832,44 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.ListStrategyReply'
+    /v1/strategies/select:
+        get:
+            tags:
+                - Strategy
+            operationId: Strategy_SelectStrategy
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: lastUid
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: strategyGroupUids
+                  in: query
+                  description: When set, only strategies belonging to these strategy groups are returned (for alert page filter).
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.SelectStrategyReply'
     /v1/strategy:
         post:
             tags:
@@ -1667,6 +1705,19 @@ components:
                 nextUID:
                     type: integer
                     format: uint32
+        marksman.api.v1.SelectStrategyReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.StrategyItemSelect'
+                total:
+                    type: string
+                lastUid:
+                    type: string
+                hasMore:
+                    type: boolean
         marksman.api.v1.StrategyGroupBindReceiversReply:
             type: object
             properties: {}
@@ -1738,6 +1789,17 @@ components:
                     type: string
                 strategyGroup:
                     $ref: '#/components/schemas/marksman.api.v1.StrategyGroupItem'
+        marksman.api.v1.StrategyItemSelect:
+            type: object
+            properties:
+                value:
+                    type: string
+                label:
+                    type: string
+                disabled:
+                    type: boolean
+                tooltip:
+                    type: string
         marksman.api.v1.StrategyMetricBindReceiversReply:
             type: object
             properties: {}
