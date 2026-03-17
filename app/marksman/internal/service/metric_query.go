@@ -3,8 +3,11 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"io"
+	"net/url"
 
 	"github.com/bwmarrin/snowflake"
+	"github.com/go-kratos/kratos/v2/transport/http"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/aide-family/marksman/internal/biz"
@@ -62,6 +65,41 @@ func (s *MetricQueryService) Proxy(ctx context.Context, req *apiv1.MetricQueryPr
 		return nil, err
 	}
 	return &apiv1.MetricQueryProxyReply{StatusCode: int32(statusCode), Response: result}, nil
+}
+
+func (s *MetricQueryService) ProxyHandler(ctx http.Context) error {
+	var in apiv1.MetricQueryProxyRequest
+	req := ctx.Request()
+	if err := ctx.BindQuery(&in); err != nil {
+		return err
+	}
+	if err := ctx.BindVars(&in); err != nil {
+		return err
+	}
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		return err
+	}
+	in.Body = body
+	in.Method = req.Method
+
+	params := url.Values{}
+	for k, v := range req.URL.Query() {
+		for _, vv := range v {
+			params.Add(k, vv)
+		}
+	}
+	in.Path += "?" + params.Encode()
+	http.SetOperation(ctx, apiv1.OperationMetricQueryProxy)
+	h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+		return s.Proxy(ctx, req.(*apiv1.MetricQueryProxyRequest))
+	})
+	out, err := h(ctx, &in)
+	if err != nil {
+		return err
+	}
+	reply := out.(*apiv1.MetricQueryProxyReply)
+	return ctx.Result(int(reply.StatusCode), reply.Response)
 }
 
 // jsonToStruct parses a JSON string into a google.protobuf.Struct (any type).

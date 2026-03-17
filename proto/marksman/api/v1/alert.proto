@@ -9,6 +9,61 @@ option java_package = "marksman.api.v1";
 import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
 
+
+// Alert service: alert page CRUD and real-time alert list/operations.
+service Alert {
+	rpc CreateAlertPage (CreateAlertPageRequest) returns (CreateAlertPageReply) {
+		option (google.api.http) = {
+			post: "/v1/alert-pages"
+			body: "*"
+		};
+	}
+	rpc UpdateAlertPage (UpdateAlertPageRequest) returns (UpdateAlertPageReply) {
+		option (google.api.http) = {
+			put: "/v1/alert-pages/{uid}"
+			body: "*"
+		};
+	}
+	rpc DeleteAlertPage (DeleteAlertPageRequest) returns (DeleteAlertPageReply) {
+		option (google.api.http) = {
+			delete: "/v1/alert-pages/{uid}"
+		};
+	}
+	rpc GetAlertPage (GetAlertPageRequest) returns (AlertPageItem) {
+		option (google.api.http) = {
+			get: "/v1/alert-pages/{uid}"
+		};
+	}
+	rpc ListAlertPage (ListAlertPageRequest) returns (ListAlertPageReply) {
+		option (google.api.http) = {
+			get: "/v1/alert-pages"
+		};
+	}
+	rpc ListRealtimeAlert (ListRealtimeAlertRequest) returns (ListRealtimeAlertReply) {
+		option (google.api.http) = {
+			get: "/v1/alert-pages/{alertPageUid}/realtime-alerts"
+		};
+	}
+	rpc InterveneAlert (InterveneAlertRequest) returns (InterveneAlertReply) {
+		option (google.api.http) = {
+			post: "/v1/realtime-alerts/{uid}/intervene"
+			body: "*"
+		};
+	}
+	rpc SuppressAlert (SuppressAlertRequest) returns (SuppressAlertReply) {
+		option (google.api.http) = {
+			post: "/v1/realtime-alerts/{uid}/suppress"
+			body: "*"
+		};
+	}
+	rpc RecoverAlert (RecoverAlertRequest) returns (RecoverAlertReply) {
+		option (google.api.http) = {
+			post: "/v1/realtime-alerts/{uid}/recover"
+			body: "*"
+		};
+	}
+}
+
 // AlertEventStatus represents the status of a real-time alert event.
 enum AlertEventStatus {
 	ALERT_EVENT_STATUS_UNKNOWN = 0;
@@ -178,56 +233,3 @@ message RecoverAlertRequest {
 }
 message RecoverAlertReply {}
 
-// Alert service: alert page CRUD and real-time alert list/operations.
-service Alert {
-	rpc CreateAlertPage (CreateAlertPageRequest) returns (CreateAlertPageReply) {
-		option (google.api.http) = {
-			post: "/v1/alert-pages"
-			body: "*"
-		};
-	}
-	rpc UpdateAlertPage (UpdateAlertPageRequest) returns (UpdateAlertPageReply) {
-		option (google.api.http) = {
-			put: "/v1/alert-pages/{uid}"
-			body: "*"
-		};
-	}
-	rpc DeleteAlertPage (DeleteAlertPageRequest) returns (DeleteAlertPageReply) {
-		option (google.api.http) = {
-			delete: "/v1/alert-pages/{uid}"
-		};
-	}
-	rpc GetAlertPage (GetAlertPageRequest) returns (AlertPageItem) {
-		option (google.api.http) = {
-			get: "/v1/alert-pages/{uid}"
-		};
-	}
-	rpc ListAlertPage (ListAlertPageRequest) returns (ListAlertPageReply) {
-		option (google.api.http) = {
-			get: "/v1/alert-pages"
-		};
-	}
-	rpc ListRealtimeAlert (ListRealtimeAlertRequest) returns (ListRealtimeAlertReply) {
-		option (google.api.http) = {
-			get: "/v1/alert-pages/{alertPageUid}/realtime-alerts"
-		};
-	}
-	rpc InterveneAlert (InterveneAlertRequest) returns (InterveneAlertReply) {
-		option (google.api.http) = {
-			post: "/v1/realtime-alerts/{uid}/intervene"
-			body: "*"
-		};
-	}
-	rpc SuppressAlert (SuppressAlertRequest) returns (SuppressAlertReply) {
-		option (google.api.http) = {
-			post: "/v1/realtime-alerts/{uid}/suppress"
-			body: "*"
-		};
-	}
-	rpc RecoverAlert (RecoverAlertRequest) returns (RecoverAlertReply) {
-		option (google.api.http) = {
-			post: "/v1/realtime-alerts/{uid}/recover"
-			body: "*"
-		};
-	}
-}

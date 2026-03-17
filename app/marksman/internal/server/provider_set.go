@@ -203,6 +203,15 @@ func RegisterHTTPService(
 	apiv1.RegisterStrategyMetricHTTPServer(httpSrv, strategyMetricService)
 	apiv1.RegisterAlertHTTPServer(httpSrv, alertService)
 
+	apiRouter := httpSrv.Route("/v1")
+	// {path:.*} allows path to match multiple segments (e.g. api/v1/query)
+	proxyPath := "/metric/proxy/{uid}/{path:[^/]+(?:/[^?]*)}"
+	apiRouter.POST(proxyPath, metricQueryService.ProxyHandler)
+	apiRouter.GET(proxyPath, metricQueryService.ProxyHandler)
+	apiRouter.PUT(proxyPath, metricQueryService.ProxyHandler)
+	apiRouter.DELETE(proxyPath, metricQueryService.ProxyHandler)
+	apiRouter.PATCH(proxyPath, metricQueryService.ProxyHandler)
+
 	oauth2Handler := oauth.NewOAuth2Handler(c.GetOauth2(), authService.Login)
 	if err := oauth2Handler.Handler(httpSrv); err != nil {
 		panic(err)
