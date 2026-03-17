@@ -41,6 +41,8 @@ func newAlertEvent(db *gorm.DB, opts ...gen.DOOption) alertEvent {
 	_alertEvent.Value = field.NewFloat64(tableName, "value")
 	_alertEvent.Labels = field.NewField(tableName, "labels")
 	_alertEvent.DatasourceUID = field.NewInt64(tableName, "datasource_uid")
+	_alertEvent.EvaluatorType = field.NewString(tableName, "evaluator_type")
+	_alertEvent.EvaluatorSnapshotID = field.NewInt64(tableName, "evaluator_snapshot_id")
 	_alertEvent.Status = field.NewInt32(tableName, "status")
 	_alertEvent.IntervenedAt = field.NewTime(tableName, "intervened_at")
 	_alertEvent.IntervenedBy = field.NewInt64(tableName, "intervened_by")
@@ -56,27 +58,29 @@ func newAlertEvent(db *gorm.DB, opts ...gen.DOOption) alertEvent {
 type alertEvent struct {
 	alertEventDo
 
-	ALL              field.Asterisk
-	ID               field.Int64
-	CreatedAt        field.Time
-	UpdatedAt        field.Time
-	NamespaceUID     field.Int64
-	StrategyUID      field.Int64
-	StrategyGroupUID field.Int64
-	LevelUID         field.Int64
-	Summary          field.String
-	Description      field.String
-	Expr             field.String
-	FiredAt          field.Time
-	Value            field.Float64
-	Labels           field.Field
-	DatasourceUID    field.Int64
-	Status           field.Int32
-	IntervenedAt     field.Time
-	IntervenedBy     field.Int64
-	SuppressedUntil  field.Time
-	RecoveredAt      field.Time
-	RecoveredBy      field.Int64
+	ALL                 field.Asterisk
+	ID                  field.Int64
+	CreatedAt           field.Time
+	UpdatedAt           field.Time
+	NamespaceUID        field.Int64
+	StrategyUID         field.Int64
+	StrategyGroupUID    field.Int64
+	LevelUID            field.Int64
+	Summary             field.String
+	Description         field.String
+	Expr                field.String
+	FiredAt             field.Time
+	Value               field.Float64
+	Labels              field.Field
+	DatasourceUID       field.Int64
+	EvaluatorType       field.String
+	EvaluatorSnapshotID field.Int64
+	Status              field.Int32
+	IntervenedAt        field.Time
+	IntervenedBy        field.Int64
+	SuppressedUntil     field.Time
+	RecoveredAt         field.Time
+	RecoveredBy         field.Int64
 
 	fieldMap map[string]field.Expr
 }
@@ -107,6 +111,8 @@ func (a *alertEvent) updateTableName(table string) *alertEvent {
 	a.Value = field.NewFloat64(table, "value")
 	a.Labels = field.NewField(table, "labels")
 	a.DatasourceUID = field.NewInt64(table, "datasource_uid")
+	a.EvaluatorType = field.NewString(table, "evaluator_type")
+	a.EvaluatorSnapshotID = field.NewInt64(table, "evaluator_snapshot_id")
 	a.Status = field.NewInt32(table, "status")
 	a.IntervenedAt = field.NewTime(table, "intervened_at")
 	a.IntervenedBy = field.NewInt64(table, "intervened_by")
@@ -129,7 +135,7 @@ func (a *alertEvent) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *alertEvent) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 20)
+	a.fieldMap = make(map[string]field.Expr, 22)
 	a.fieldMap["id"] = a.ID
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
@@ -144,6 +150,8 @@ func (a *alertEvent) fillFieldMap() {
 	a.fieldMap["value"] = a.Value
 	a.fieldMap["labels"] = a.Labels
 	a.fieldMap["datasource_uid"] = a.DatasourceUID
+	a.fieldMap["evaluator_type"] = a.EvaluatorType
+	a.fieldMap["evaluator_snapshot_id"] = a.EvaluatorSnapshotID
 	a.fieldMap["status"] = a.Status
 	a.fieldMap["intervened_at"] = a.IntervenedAt
 	a.fieldMap["intervened_by"] = a.IntervenedBy

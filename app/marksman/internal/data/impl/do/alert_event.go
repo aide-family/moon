@@ -36,9 +36,11 @@ type AlertEvent struct {
 	Expr             string                      `gorm:"column:expr;type:text;default:''"`
 	FiredAt          time.Time                   `gorm:"column:fired_at"`
 	Value            float64                     `gorm:"column:value"`
-	Labels           *safety.Map[string, string] `gorm:"column:labels;type:json;"`
-	DatasourceUID    snowflake.ID                `gorm:"column:datasource_uid"`
-	Status           int32                       `gorm:"column:status;default:1"`
+	Labels             *safety.Map[string, string] `gorm:"column:labels;type:json;"`
+	DatasourceUID      snowflake.ID                `gorm:"column:datasource_uid"`
+	EvaluatorType      string                      `gorm:"column:evaluator_type;size:32;default:''"`
+	EvaluatorSnapshotID snowflake.ID                `gorm:"column:evaluator_snapshot_id;index"`
+	Status             int32                       `gorm:"column:status;default:1"`
 	IntervenedAt     *time.Time                  `gorm:"column:intervened_at"`
 	IntervenedBy     snowflake.ID                `gorm:"column:intervened_by"`
 	SuppressedUntil  *time.Time                  `gorm:"column:suppressed_until"`

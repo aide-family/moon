@@ -20,6 +20,7 @@ var (
 	AlertEvent             *alertEvent
 	AlertPage              *alertPage
 	Datasource             *datasource
+	EvaluatorSnapshot      *evaluatorSnapshot
 	Level                  *level
 	Strategy               *strategy
 	StrategyGroup          *strategyGroup
@@ -34,6 +35,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	AlertEvent = &Q.AlertEvent
 	AlertPage = &Q.AlertPage
 	Datasource = &Q.Datasource
+	EvaluatorSnapshot = &Q.EvaluatorSnapshot
 	Level = &Q.Level
 	Strategy = &Q.Strategy
 	StrategyGroup = &Q.StrategyGroup
@@ -49,6 +51,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		AlertEvent:             newAlertEvent(db, opts...),
 		AlertPage:              newAlertPage(db, opts...),
 		Datasource:             newDatasource(db, opts...),
+		EvaluatorSnapshot:      newEvaluatorSnapshot(db, opts...),
 		Level:                  newLevel(db, opts...),
 		Strategy:               newStrategy(db, opts...),
 		StrategyGroup:          newStrategyGroup(db, opts...),
@@ -65,6 +68,7 @@ type Query struct {
 	AlertEvent             alertEvent
 	AlertPage              alertPage
 	Datasource             datasource
+	EvaluatorSnapshot      evaluatorSnapshot
 	Level                  level
 	Strategy               strategy
 	StrategyGroup          strategyGroup
@@ -82,6 +86,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		AlertEvent:             q.AlertEvent.clone(db),
 		AlertPage:              q.AlertPage.clone(db),
 		Datasource:             q.Datasource.clone(db),
+		EvaluatorSnapshot:      q.EvaluatorSnapshot.clone(db),
 		Level:                  q.Level.clone(db),
 		Strategy:               q.Strategy.clone(db),
 		StrategyGroup:          q.StrategyGroup.clone(db),
@@ -106,6 +111,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		AlertEvent:             q.AlertEvent.replaceDB(db),
 		AlertPage:              q.AlertPage.replaceDB(db),
 		Datasource:             q.Datasource.replaceDB(db),
+		EvaluatorSnapshot:      q.EvaluatorSnapshot.replaceDB(db),
 		Level:                  q.Level.replaceDB(db),
 		Strategy:               q.Strategy.replaceDB(db),
 		StrategyGroup:          q.StrategyGroup.replaceDB(db),
@@ -120,6 +126,7 @@ type queryCtx struct {
 	AlertEvent             IAlertEventDo
 	AlertPage              IAlertPageDo
 	Datasource             IDatasourceDo
+	EvaluatorSnapshot      IEvaluatorSnapshotDo
 	Level                  ILevelDo
 	Strategy               IStrategyDo
 	StrategyGroup          IStrategyGroupDo
@@ -134,6 +141,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		AlertEvent:             q.AlertEvent.WithContext(ctx),
 		AlertPage:              q.AlertPage.WithContext(ctx),
 		Datasource:             q.Datasource.WithContext(ctx),
+		EvaluatorSnapshot:      q.EvaluatorSnapshot.WithContext(ctx),
 		Level:                  q.Level.WithContext(ctx),
 		Strategy:               q.Strategy.WithContext(ctx),
 		StrategyGroup:          q.StrategyGroup.WithContext(ctx),

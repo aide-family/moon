@@ -1,6 +1,7 @@
 package bo
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
@@ -167,4 +168,103 @@ type EvaluateMetricStrategyBo struct {
 	Condition    enum.ConditionMetric
 	Values       []float64
 	DurationSec  int64
+}
+
+// MetricEvaluatorSnapshot is the JSON-serializable snapshot payload for metric evaluator (stored in evaluator_snapshots.snapshot_json).
+type MetricEvaluatorSnapshot struct {
+	StrategyUID  int64               `json:"strategy_uid"`
+	NamespaceUID int64               `json:"namespace_uid"`
+	Datasource   *DatasourceSnapshot `json:"datasource,omitempty"`
+	Expr         string              `json:"expr"`
+	Labels       map[string]string   `json:"labels,omitempty"`
+	Summary      string              `json:"summary"`
+	Description  string              `json:"description"`
+	Level        *LevelSnapshot      `json:"level,omitempty"`
+	Mode         int32               `json:"mode"`
+	Condition    int32               `json:"condition"`
+	Values       []float64           `json:"values,omitempty"`
+	DurationSec  int64               `json:"duration_sec"`
+}
+
+// LevelSnapshot is JSON-serializable level info.
+type LevelSnapshot struct {
+	UID       int64             `json:"uid"`
+	Name      string            `json:"name"`
+	Remark    string            `json:"remark"`
+	Status    int32             `json:"status"`
+	Metadata  map[string]string `json:"metadata,omitempty"`
+	CreatedAt string            `json:"created_at,omitempty"`
+	UpdatedAt string            `json:"updated_at,omitempty"`
+}
+
+// DatasourceSnapshot is JSON-serializable datasource info.
+type DatasourceSnapshot struct {
+	UID       int64             `json:"uid"`
+	Name      string            `json:"name"`
+	Type      int32             `json:"type"`
+	Driver    int32             `json:"driver"`
+	Metadata  map[string]string `json:"metadata,omitempty"`
+	Status    int32             `json:"status"`
+	URL       string            `json:"url,omitempty"`
+	Remark    string            `json:"remark,omitempty"`
+	CreatedAt string            `json:"created_at,omitempty"`
+	UpdatedAt string            `json:"updated_at,omitempty"`
+}
+
+// ToSnapshot builds a JSON-serializable snapshot from EvaluateMetricStrategyBo (metric evaluator payload).
+func (e *EvaluateMetricStrategyBo) ToSnapshot() *MetricEvaluatorSnapshot {
+	if e == nil {
+		return nil
+	}
+	s := &MetricEvaluatorSnapshot{
+		StrategyUID:  e.StrategyUID.Int64(),
+		NamespaceUID: e.NamespaceUID.Int64(),
+		Expr:         e.Expr,
+		Labels:       e.Labels,
+		Summary:      e.Summary,
+		Description:  e.Description,
+		Mode:         int32(e.Mode),
+		Condition:    int32(e.Condition),
+		Values:       e.Values,
+		DurationSec:  e.DurationSec,
+	}
+	if e.Datasource != nil {
+		s.Datasource = &DatasourceSnapshot{
+			UID:       e.Datasource.UID.Int64(),
+			Name:      e.Datasource.Name,
+			Type:      int32(e.Datasource.Type),
+			Driver:    int32(e.Datasource.Driver),
+			Metadata:  e.Datasource.Metadata,
+			Status:    int32(e.Datasource.Status),
+			URL:       e.Datasource.URL,
+			Remark:    e.Datasource.Remark,
+			CreatedAt: e.Datasource.CreatedAt.Format(time.RFC3339),
+			UpdatedAt: e.Datasource.UpdatedAt.Format(time.RFC3339),
+		}
+	}
+	if e.Level != nil {
+		s.Level = &LevelSnapshot{
+			UID:       e.Level.UID.Int64(),
+			Name:      e.Level.Name,
+			Remark:    e.Level.Remark,
+			Status:    int32(e.Level.Status),
+			Metadata:  e.Level.Metadata,
+			CreatedAt: e.Level.CreatedAt.Format(time.RFC3339),
+			UpdatedAt: e.Level.UpdatedAt.Format(time.RFC3339),
+		}
+	}
+	return s
+}
+
+// MarshalEvaluatorSnapshotJSON returns the JSON string of the evaluator snapshot (for storage); returns empty string on error.
+func (e *EvaluateMetricStrategyBo) MarshalEvaluatorSnapshotJSON() string {
+	snap := e.ToSnapshot()
+	if snap == nil {
+		return ""
+	}
+	b, err := json.Marshal(snap)
+	if err != nil {
+		return ""
+	}
+	return string(b)
 }

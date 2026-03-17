@@ -19,30 +19,33 @@ func ToAlertEventItemBo(m *do.AlertEvent, levelName string) *bo.AlertEventItemBo
 		labels = m.Labels.Map()
 	}
 	return &bo.AlertEventItemBo{
-		UID:             m.ID,
-		StrategyUID:     m.StrategyUID,
-		NamespaceUID:    m.NamespaceUID,
-		LevelUID:        m.LevelUID,
-		LevelName:       levelName,
-		Summary:         m.Summary,
-		Description:     m.Description,
-		Expr:            m.Expr,
-		FiredAt:         m.FiredAt,
-		Value:           m.Value,
-		Labels:          labels,
-		DatasourceUID:   m.DatasourceUID,
-		Status:          apiv1.AlertEventStatus(m.Status),
-		IntervenedAt:    m.IntervenedAt,
-		IntervenedBy:    m.IntervenedBy,
-		SuppressedUntil: m.SuppressedUntil,
-		RecoveredAt:     m.RecoveredAt,
-		RecoveredBy:     m.RecoveredBy,
-		CreatedAt:       m.CreatedAt,
-		UpdatedAt:       m.UpdatedAt,
+		UID:                 m.ID,
+		StrategyUID:         m.StrategyUID,
+		NamespaceUID:        m.NamespaceUID,
+		LevelUID:            m.LevelUID,
+		LevelName:           levelName,
+		Summary:             m.Summary,
+		Description:         m.Description,
+		Expr:                m.Expr,
+		FiredAt:             m.FiredAt,
+		Value:               m.Value,
+		Labels:              labels,
+		DatasourceUID:       m.DatasourceUID,
+		EvaluatorType:       m.EvaluatorType,
+		EvaluatorSnapshotID: m.EvaluatorSnapshotID,
+		Status:              apiv1.AlertEventStatus(m.Status),
+		IntervenedAt:        m.IntervenedAt,
+		IntervenedBy:        m.IntervenedBy,
+		SuppressedUntil:     m.SuppressedUntil,
+		RecoveredAt:         m.RecoveredAt,
+		RecoveredBy:         m.RecoveredBy,
+		CreatedAt:           m.CreatedAt,
+		UpdatedAt:           m.UpdatedAt,
 	}
 }
 
-func ToAlertEventDo(ev *bo.AlertEventBo, strategyGroupUID snowflake.ID) *do.AlertEvent {
+// ToAlertEventDo builds do.AlertEvent from bo; snapshotID is from find-or-insert of evaluator_snapshots.
+func ToAlertEventDo(ev *bo.AlertEventBo, strategyGroupUID snowflake.ID, evaluatorSnapshotID snowflake.ID) *do.AlertEvent {
 	if ev == nil {
 		return nil
 	}
@@ -51,18 +54,20 @@ func ToAlertEventDo(ev *bo.AlertEventBo, strategyGroupUID snowflake.ID) *do.Aler
 		levelUID = ev.Level.UID
 	}
 	m := &do.AlertEvent{
-		NamespaceUID:     ev.NamespaceUID,
-		StrategyUID:      ev.StrategyUID,
-		StrategyGroupUID: strategyGroupUID,
-		LevelUID:         levelUID,
-		Summary:          ev.Summary,
-		Description:      ev.Description,
-		Expr:             ev.Expr,
-		FiredAt:          ev.FiredAt,
-		Value:            ev.Value,
-		Labels:           safety.NewMap(ev.Labels),
-		DatasourceUID:    ev.DatasourceUID,
-		Status:           do.AlertEventStatusFiring,
+		NamespaceUID:        ev.NamespaceUID,
+		StrategyUID:         ev.StrategyUID,
+		StrategyGroupUID:    strategyGroupUID,
+		LevelUID:            levelUID,
+		Summary:             ev.Summary,
+		Description:         ev.Description,
+		Expr:                ev.Expr,
+		FiredAt:             ev.FiredAt,
+		Value:               ev.Value,
+		Labels:              safety.NewMap(ev.Labels),
+		DatasourceUID:       ev.DatasourceUID,
+		EvaluatorType:       ev.EvaluatorType,
+		EvaluatorSnapshotID: evaluatorSnapshotID,
+		Status:              do.AlertEventStatusFiring,
 	}
 	return m
 }

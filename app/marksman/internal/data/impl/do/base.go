@@ -22,6 +22,7 @@ func Models() []any {
 		&StrategyMetricLevel{},
 		&StrategyMetricReceiver{},
 		&AlertPage{},
+		&EvaluatorSnapshot{},
 		&AlertEvent{},
 	}
 }

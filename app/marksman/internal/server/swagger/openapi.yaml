@@ -77,6 +77,15 @@ paths:
                   schema:
                     type: integer
                     format: enum
+                - name: startAtUnix
+                  in: query
+                  description: Time range for fired_at (Unix seconds). If both 0, backend defaults to last 14 days.
+                  schema:
+                    type: string
+                - name: endAtUnix
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK

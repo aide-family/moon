@@ -9,8 +9,10 @@ import (
 	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/server/cron"
+	"github.com/aide-family/magicbox/strutil"
 	klog "github.com/go-kratos/kratos/v2/log"
 	prometheusv1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/common/model"
 
 	"github.com/aide-family/marksman/internal/biz/bo"
 	"github.com/aide-family/marksman/internal/biz/repository"
@@ -20,7 +22,27 @@ const (
 	defaultEvaluateInterval = time.Minute
 	defaultQueryTimeout     = 15 * time.Second
 	defaultStepSeconds      = 15
+	// EvaluatorTypeMetric is the evaluator type for metric strategy; used on alert events and evaluator_snapshots.
+	EvaluatorTypeMetric = "metric"
 )
+
+// alertTemplateData is the data passed to Go templates for Summary, Description and Labels.
+type alertTemplateData struct {
+	Strategy *alertTemplateInfo
+	Labels   map[string]string
+	Value    float64
+	FiredAt  time.Time
+}
+
+type alertTemplateInfo struct {
+	Expr           string
+	Summary        string
+	Description    string
+	LevelName      string
+	DatasourceName string
+	StrategyUID    int64
+	NamespaceUID   int64
+}
 
 // NewMetricEvaluator creates a cron job that evaluates the given metric strategy and sends alert events when conditions are met.
 func NewMetricEvaluator(
@@ -29,16 +51,18 @@ func NewMetricEvaluator(
 	info *bo.EvaluateMetricStrategyBo,
 ) cron.CronJob {
 	return &metricEvaluator{
-		querier: querier,
-		alertCh: alertCh,
-		info:    info,
+		querier:             querier,
+		alertCh:             alertCh,
+		info:                info,
+		cachedSnapshotJSON:  info.MarshalEvaluatorSnapshotJSON(),
 	}
 }
 
 type metricEvaluator struct {
-	querier repository.MetricDatasourceQuerier
-	alertCh repository.AlertEventChannel
-	info    *bo.EvaluateMetricStrategyBo
+	querier             repository.MetricDatasourceQuerier
+	alertCh             repository.AlertEventChannel
+	info                *bo.EvaluateMetricStrategyBo
+	cachedSnapshotJSON   string // pre-serialized evaluator snapshot, same for all events from this evaluator
 }
 
 // Index implements [cron.CronJob].
@@ -94,21 +118,23 @@ func (m *metricEvaluator) Run() {
 		}
 		// Emit one alert event per series (carry labels); use last sample value for event.
 		lastVal := series.Values[len(series.Values)-1]
-		labels := make(map[string]string)
-		for k, v := range series.Metric {
-			labels[string(k)] = string(v)
-		}
+		tmplData := m.buildAlertTemplateData(series, float64(lastVal.Value), end)
+		labels := m.fillLabels(tmplData, series)
+		summary := m.fillStringTemplate(m.info.Summary, tmplData)
+		description := m.fillStringTemplate(m.info.Description, tmplData)
 		ev := &bo.AlertEventBo{
-			StrategyUID:   m.info.StrategyUID,
-			NamespaceUID:  m.info.NamespaceUID,
-			Level:         m.info.Level,
-			Summary:       m.info.Summary,
-			Description:   m.info.Description,
-			Expr:          m.info.Expr,
-			FiredAt:       end,
-			Value:         float64(lastVal.Value),
-			Labels:        labels,
-			DatasourceUID: m.info.Datasource.UID,
+			StrategyUID:          m.info.StrategyUID,
+			NamespaceUID:         m.info.NamespaceUID,
+			Level:                m.info.Level,
+			Summary:              summary,
+			Description:          description,
+			Expr:                 m.info.Expr,
+			FiredAt:              end,
+			Value:                float64(lastVal.Value),
+			Labels:               labels,
+			DatasourceUID:        m.info.Datasource.UID,
+			EvaluatorType:        EvaluatorTypeMetric,
+			EvaluatorSnapshotJSON: m.cachedSnapshotJSON,
 		}
 		m.alertCh.Send(ev)
 	}
@@ -185,6 +211,59 @@ func (m *metricEvaluator) shouldFireBySampleMode(satisfied []bool) bool {
 		// unknown: treat as at least 1 time (same as FOR with n=1)
 		return countTrue(satisfied) >= 1
 	}
+}
+
+// buildAlertTemplateData builds template data from strategy info and the current series for alert templating.
+func (m *metricEvaluator) buildAlertTemplateData(series *model.SampleStream, value float64, firedAt time.Time) *alertTemplateData {
+	seriesLabels := make(map[string]string, len(series.Metric))
+	for k, v := range series.Metric {
+		seriesLabels[string(k)] = string(v)
+	}
+	info := &alertTemplateInfo{
+		Expr:         m.info.Expr,
+		Summary:      m.info.Summary,
+		Description:  m.info.Description,
+		StrategyUID:  m.info.StrategyUID.Int64(),
+		NamespaceUID: m.info.NamespaceUID.Int64(),
+	}
+	if m.info.Level != nil {
+		info.LevelName = m.info.Level.Name
+	}
+	if m.info.Datasource != nil {
+		info.DatasourceName = m.info.Datasource.Name
+	}
+	return &alertTemplateData{
+		Strategy: info,
+		Labels:   seriesLabels,
+		Value:    value,
+		FiredAt:  firedAt,
+	}
+}
+
+// fillStringTemplate executes the template with data; on parse/execute error returns the original string.
+func (m *metricEvaluator) fillStringTemplate(tmpl string, data *alertTemplateData) string {
+	if tmpl == "" {
+		return ""
+	}
+	out, err := strutil.ExecuteTextTemplate(tmpl, data)
+	if err != nil {
+		klog.Debugw("msg", "alert template execute failed, use raw", "template", tmpl, "error", err)
+		return tmpl
+	}
+	return out
+}
+
+// fillLabels merges series labels with strategy labels; each strategy label value is template-filled.
+func (m *metricEvaluator) fillLabels(data *alertTemplateData, series *model.SampleStream) map[string]string {
+	labels := make(map[string]string, len(series.Metric)+len(m.info.Labels))
+	for k, v := range series.Metric {
+		labels[string(k)] = string(v)
+	}
+	for k, v := range m.info.Labels {
+		filled := m.fillStringTemplate(v, data)
+		labels[k] = filled
+	}
+	return labels
 }
 
 func countTrue(b []bool) int {

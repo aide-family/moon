@@ -196,6 +196,9 @@ message ListRealtimeAlertRequest {
 	}];
 	// Filter by status; empty means all statuses.
 	AlertEventStatus status = 4;
+	// Time range for fired_at (Unix seconds). If both 0, backend defaults to last 14 days.
+	int64 startAtUnix = 5;
+	int64 endAtUnix = 6;
 }
 message ListRealtimeAlertReply {
 	int64 total = 1;

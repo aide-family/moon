@@ -2,6 +2,8 @@ package impl
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"sync"
@@ -14,6 +16,7 @@ import (
 	"github.com/go-kratos/kratos/v2/errors"
 	klog "github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
 
@@ -67,7 +70,11 @@ func (r *alertEventRepository) ensureAlertEventTable(ctx context.Context, tableN
 }
 
 func (r *alertEventRepository) CreateAlertEvent(ctx context.Context, ev *bo.AlertEventBo, strategyGroupUID snowflake.ID) error {
-	m := convert.ToAlertEventDo(ev, strategyGroupUID)
+	snapshotID, err := r.findOrCreateEvaluatorSnapshot(ctx, ev.EvaluatorType, ev.EvaluatorSnapshotJSON)
+	if err != nil {
+		return err
+	}
+	m := convert.ToAlertEventDo(ev, strategyGroupUID, snapshotID)
 	ns := contextx.GetNamespace(ctx)
 	if ns.Int64() == 0 {
 		ns = ev.NamespaceUID
@@ -79,6 +86,40 @@ func (r *alertEventRepository) CreateAlertEvent(ctx context.Context, ev *bo.Aler
 	bizQuery := query.Use(r.DB().Table(tableName))
 	alertEvent := bizQuery.AlertEvent
 	return alertEvent.WithContext(ctx).Create(m)
+}
+
+// findOrCreateEvaluatorSnapshot returns evaluator_snapshot ID; dedupes by evaluator_type + content_hash.
+func (r *alertEventRepository) findOrCreateEvaluatorSnapshot(ctx context.Context, evaluatorType, snapshotJSON string) (snowflake.ID, error) {
+	hash := sha256.Sum256([]byte(snapshotJSON))
+	contentHash := hex.EncodeToString(hash[:])
+	e := query.Use(r.DB()).EvaluatorSnapshot
+	snap, err := e.WithContext(ctx).Where(e.EvaluatorType.Eq(evaluatorType), e.ContentHash.Eq(contentHash)).First()
+	if err == nil {
+		return snap.ID, nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return 0, err
+	}
+	newSnap := &do.EvaluatorSnapshot{
+		EvaluatorType: evaluatorType,
+		ContentHash:   contentHash,
+		SnapshotJSON:  snapshotJSON,
+	}
+	if err = e.WithContext(ctx).Create(newSnap); err != nil {
+		if isDuplicateKeyError(err) {
+			snap, getErr := e.WithContext(ctx).Where(e.EvaluatorType.Eq(evaluatorType), e.ContentHash.Eq(contentHash)).First()
+			if getErr != nil {
+				return 0, getErr
+			}
+			return snap.ID, nil
+		}
+		return 0, err
+	}
+	return newSnap.ID, nil
+}
+
+func isDuplicateKeyError(err error) bool {
+	return strings.Contains(err.Error(), "Duplicate") || strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "UNIQUE")
 }
 
 func (r *alertEventRepository) GetAlertEvent(ctx context.Context, uid snowflake.ID) (*bo.AlertEventItemBo, error) {
@@ -115,65 +156,69 @@ func (r *alertEventRepository) levelNameByUID(ctx context.Context, namespaceUID,
 
 func (r *alertEventRepository) ListRealtimeAlert(ctx context.Context, req *bo.ListRealtimeAlertBo, pageFilter *bo.AlertPageFilterBo) (*bo.PageResponseBo[*bo.AlertEventItemBo], error) {
 	ns := contextx.GetNamespace(ctx)
-	endAt := time.Now()
-	startAt := endAt.AddDate(0, 0, -14)
+	startAt := req.StartAt
+	endAt := req.EndAt
+	if startAt.IsZero() {
+		startAt = time.Now().Add(-bo.ListRealtimeAlertTimeRangeDefault)
+	}
+	if endAt.IsZero() {
+		endAt = time.Now()
+	}
 
 	tableNames := do.GenAlertEventTableNames(r.DB(), ns, startAt, endAt)
 	if len(tableNames) == 0 {
 		return bo.NewPageResponseBo[*bo.AlertEventItemBo](req.PageRequestBo, nil), nil
 	}
 
-	var tx *gorm.DB
-	if len(tableNames) == 1 {
-		tx = r.DB().WithContext(ctx).Table(tableNames[0]).Model(&do.AlertEvent{}).Where("namespace_uid = ?", ns.Int64())
+	tables := make([]any, 0, len(tableNames))
+	unionAllSQL := make([]string, 0, len(tableNames))
+	for _, tableName := range tableNames {
+		tables = append(tables, r.DB().Table(tableName))
+		unionAllSQL = append(unionAllSQL, "?")
+	}
+	wrappers := r.DB().WithContext(ctx)
+	if len(tableNames) > 1 {
+		wrappers = wrappers.Table(fmt.Sprintf("(%s) as %s", strings.Join(unionAllSQL, " UNION ALL "), do.TableNameAlertEvent), tables...)
 	} else {
-		tables := make([]any, 0, len(tableNames))
-		unionParts := make([]string, 0, len(tableNames))
-		for _, tableName := range tableNames {
-			tables = append(tables, r.DB().Table(tableName))
-			unionParts = append(unionParts, "?")
-		}
-		unionSQL := fmt.Sprintf("(%s) as %s", strings.Join(unionParts, " UNION ALL "), do.TableNameAlertEvent)
-		tx = r.DB().WithContext(ctx).Table(unionSQL, tables...).Model(&do.AlertEvent{}).
-			Where("namespace_uid = ?", ns.Int64()).
-			Where("fired_at >= ?", startAt).
-			Where("fired_at <= ?", endAt)
+		wrappers = wrappers.Table(fmt.Sprintf("%s as %s", tableNames[0], do.TableNameAlertEvent))
 	}
 
+	e := query.AlertEvent
+	table := e.As(do.TableNameAlertEvent)
+	wrappers = wrappers.Where(table.NamespaceUID.Eq(ns.Int64())).
+		Where(table.FiredAt.Gte(startAt)).
+		Where(table.FiredAt.Lte(endAt))
 	if req.Status != apiv1.AlertEventStatus_ALERT_EVENT_STATUS_UNKNOWN {
-		tx = tx.Where("status = ?", int32(req.Status))
+		wrappers = wrappers.Where(table.Status.Eq(int32(req.Status)))
 	}
 	if pageFilter != nil {
 		if len(pageFilter.StrategyUIDs) > 0 {
-			tx = tx.Where("strategy_uid IN ?", pageFilter.StrategyUIDs)
+			wrappers = wrappers.Where(table.StrategyUID.In(pageFilter.StrategyUIDs...))
 		}
 		if len(pageFilter.LevelUIDs) > 0 {
-			tx = tx.Where("level_uid IN ?", pageFilter.LevelUIDs)
+			wrappers = wrappers.Where(table.LevelUID.In(pageFilter.LevelUIDs...))
 		}
 		if len(pageFilter.StrategyGroupUIDs) > 0 {
-			tx = tx.Where("strategy_group_uid IN ?", pageFilter.StrategyGroupUIDs)
+			wrappers = wrappers.Where(table.StrategyGroupUID.In(pageFilter.StrategyGroupUIDs...))
 		}
 	}
-
 	var total int64
-	if err := tx.Count(&total).Error; err != nil {
+	if err := wrappers.Count(&total).Error; err != nil {
 		return nil, err
 	}
 	req.WithTotal(total)
-	tx = tx.Order("fired_at DESC")
 	if req.Page > 0 && req.PageSize > 0 {
-		tx = tx.Offset(req.Offset()).Limit(req.Limit())
+		wrappers = wrappers.Offset(req.Offset()).Limit(req.Limit())
 	}
+	wrappers = wrappers.Order(clause.OrderByColumn{Column: clause.Column{Name: table.FiredAt.ColumnName().String()}, Desc: true})
 	var list []*do.AlertEvent
-	if err := tx.Find(&list).Error; err != nil {
+	if err := wrappers.Find(&list).Error; err != nil {
 		return nil, err
 	}
-
 	levelNames := r.levelNamesForEvents(ctx, ns, list)
 	items := make([]*bo.AlertEventItemBo, 0, len(list))
 	for _, m := range list {
-		name := levelNames[m.LevelUID.Int64()]
-		items = append(items, convert.ToAlertEventItemBo(m, name))
+		items = append(items, convert.ToAlertEventItemBo(m, levelNames[m.LevelUID.Int64()]))
 	}
 	return bo.NewPageResponseBo(req.PageRequestBo, items), nil
 }

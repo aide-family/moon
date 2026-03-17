@@ -8,42 +8,49 @@ import (
 	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
 )
 
-// AlertEventBo is the business object for an alert event produced by metric strategy evaluation (in-memory).
+// ListRealtimeAlertTimeRangeDefault is the default lookback when StartAt/EndAt are zero.
+const ListRealtimeAlertTimeRangeDefault = 14 * 24 * time.Hour
+
+// AlertEventBo is the business object for an alert event produced by evaluator (in-memory).
 type AlertEventBo struct {
-	StrategyUID   snowflake.ID
-	NamespaceUID  snowflake.ID
-	Level         *LevelItemBo
-	Summary       string
-	Description   string
-	Expr          string
-	FiredAt       time.Time
-	Value         float64
-	Labels        map[string]string
-	DatasourceUID snowflake.ID
+	StrategyUID           snowflake.ID
+	NamespaceUID          snowflake.ID
+	Level                 *LevelItemBo
+	Summary               string
+	Description            string
+	Expr                  string
+	FiredAt               time.Time
+	Value                 float64
+	Labels                map[string]string
+	DatasourceUID         snowflake.ID
+	EvaluatorType         string // e.g. "metric", for identifying which evaluator produced the event
+	EvaluatorSnapshotJSON  string // pre-serialized evaluator snapshot JSON (used by repo to find-or-insert snapshot, then store ID on event)
 }
 
 // AlertEventItemBo is the business object for a persisted alert event (real-time alert).
 type AlertEventItemBo struct {
-	UID             snowflake.ID
-	StrategyUID     snowflake.ID
-	NamespaceUID    snowflake.ID
-	LevelUID        snowflake.ID
-	LevelName       string
-	Summary         string
-	Description     string
-	Expr            string
-	FiredAt         time.Time
-	Value           float64
-	Labels          map[string]string
-	DatasourceUID   snowflake.ID
-	Status          apiv1.AlertEventStatus
-	IntervenedAt    *time.Time
-	IntervenedBy    snowflake.ID
-	SuppressedUntil *time.Time
-	RecoveredAt     *time.Time
-	RecoveredBy     snowflake.ID
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	UID                snowflake.ID
+	StrategyUID        snowflake.ID
+	NamespaceUID       snowflake.ID
+	LevelUID           snowflake.ID
+	LevelName          string
+	Summary            string
+	Description        string
+	Expr               string
+	FiredAt            time.Time
+	Value              float64
+	Labels             map[string]string
+	DatasourceUID       snowflake.ID
+	EvaluatorType       string
+	EvaluatorSnapshotID snowflake.ID
+	Status              apiv1.AlertEventStatus
+	IntervenedAt       *time.Time
+	IntervenedBy       snowflake.ID
+	SuppressedUntil    *time.Time
+	RecoveredAt        *time.Time
+	RecoveredBy        snowflake.ID
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
 }
 
 func ToAPIV1AlertEventItem(b *AlertEventItemBo) *apiv1.AlertEventItem {
@@ -85,13 +92,19 @@ type ListRealtimeAlertBo struct {
 	*PageRequestBo
 	AlertPageUID snowflake.ID
 	Status       apiv1.AlertEventStatus
+	StartAt      time.Time
+	EndAt        time.Time
 }
 
 func NewListRealtimeAlertBo(req *apiv1.ListRealtimeAlertRequest) *ListRealtimeAlertBo {
+	startAt := time.Unix(req.GetStartAtUnix(), 0)
+	endAt := time.Unix(req.GetEndAtUnix(), 0)
 	return &ListRealtimeAlertBo{
 		PageRequestBo: NewPageRequestBo(req.GetPage(), req.GetPageSize()),
 		AlertPageUID: snowflake.ParseInt64(req.GetAlertPageUid()),
 		Status:       req.GetStatus(),
+		StartAt:     startAt,
+		EndAt:       endAt,
 	}
 }
 

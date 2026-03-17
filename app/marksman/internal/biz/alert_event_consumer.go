@@ -49,7 +49,7 @@ func (c *AlertEventConsumer) Handle(ctx context.Context, event *bo.AlertEventBo)
 	if event.Level != nil {
 		levelName = event.Level.Name
 	}
-	c.helper.WithContext(ctx).Infow(
+	c.helper.WithContext(ctx).Debugw(
 		"msg", "alert event persisted",
 		"strategyUID", event.StrategyUID.Int64(),
 		"namespaceUID", event.NamespaceUID.Int64(),
