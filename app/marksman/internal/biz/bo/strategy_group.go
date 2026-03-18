@@ -167,19 +167,3 @@ func ToAPIV1SelectStrategyGroupReply(result *SelectStrategyGroupBoResult) *apiv1
 		NextUID: nextUID,
 	}
 }
-
-type StrategyGroupBindReceiversBo struct {
-	StrategyGroupUID snowflake.ID
-	ReceiverUIDs     []snowflake.ID
-}
-
-func NewStrategyGroupBindReceiversBo(req *apiv1.StrategyGroupBindReceiversRequest) *StrategyGroupBindReceiversBo {
-	uids := make([]snowflake.ID, 0, len(req.GetReceiverUIDs()))
-	for _, u := range req.GetReceiverUIDs() {
-		uids = append(uids, snowflake.ParseInt64(u))
-	}
-	return &StrategyGroupBindReceiversBo{
-		StrategyGroupUID: snowflake.ParseInt64(req.GetUid()),
-		ReceiverUIDs:     uids,
-	}
-}

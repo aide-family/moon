@@ -138,24 +138,6 @@ func NewUpdateStrategyMetricLevelStatusBo(req *apiv1.UpdateStrategyMetricLevelSt
 	}
 }
 
-type StrategyMetricBindReceiversBo struct {
-	StrategyUID  snowflake.ID
-	ReceiverUIDs []snowflake.ID
-	LevelUID     snowflake.ID // optional
-}
-
-func NewStrategyMetricBindReceiversBo(req *apiv1.StrategyMetricBindReceiversRequest) *StrategyMetricBindReceiversBo {
-	uids := make([]snowflake.ID, 0, len(req.GetReceiverUIDs()))
-	for _, u := range req.GetReceiverUIDs() {
-		uids = append(uids, snowflake.ParseInt64(u))
-	}
-	return &StrategyMetricBindReceiversBo{
-		StrategyUID:  snowflake.ParseInt64(req.GetStrategyUID()),
-		ReceiverUIDs: uids,
-		LevelUID:     snowflake.ParseInt64(req.GetLevelUID()),
-	}
-}
-
 type EvaluateMetricStrategyBo struct {
 	StrategyUID  snowflake.ID
 	NamespaceUID snowflake.ID

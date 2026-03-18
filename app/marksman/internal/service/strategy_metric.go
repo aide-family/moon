@@ -65,10 +65,3 @@ func (s *StrategyMetricService) GetStrategyMetricLevel(ctx context.Context, req 
 	}
 	return bo.ToAPIV1StrategyMetricLevelItem(item), nil
 }
-
-func (s *StrategyMetricService) StrategyMetricBindReceivers(ctx context.Context, req *apiv1.StrategyMetricBindReceiversRequest) (*apiv1.StrategyMetricBindReceiversReply, error) {
-	if err := s.strategyMetricBiz.StrategyMetricBindReceivers(ctx, bo.NewStrategyMetricBindReceiversBo(req)); err != nil {
-		return nil, err
-	}
-	return &apiv1.StrategyMetricBindReceiversReply{}, nil
-}

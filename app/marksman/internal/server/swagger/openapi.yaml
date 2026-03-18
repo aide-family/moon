@@ -872,30 +872,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.UpdateStrategyMetricLevelStatusReply'
-    /v1/metric/strategy/{strategyUID}/receivers:
-        post:
-            tags:
-                - StrategyMetric
-            operationId: StrategyMetric_StrategyMetricBindReceivers
-            parameters:
-                - name: strategyUID
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/marksman.api.v1.StrategyMetricBindReceiversRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/marksman.api.v1.StrategyMetricBindReceiversReply'
     /v1/strategies:
         get:
             tags:
@@ -1074,30 +1050,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.DeleteStrategyGroupReply'
-    /v1/strategy-group/{uid}/receivers:
-        post:
-            tags:
-                - Strategy
-            operationId: Strategy_StrategyGroupBindReceivers
-            parameters:
-                - name: uid
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/marksman.api.v1.StrategyGroupBindReceiversRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/marksman.api.v1.StrategyGroupBindReceiversReply'
     /v1/strategy-group/{uid}/status:
         put:
             tags:
@@ -1954,18 +1906,6 @@ components:
                     type: string
                 hasMore:
                     type: boolean
-        marksman.api.v1.StrategyGroupBindReceiversReply:
-            type: object
-            properties: {}
-        marksman.api.v1.StrategyGroupBindReceiversRequest:
-            type: object
-            properties:
-                uid:
-                    type: string
-                receiverUIDs:
-                    type: array
-                    items:
-                        type: string
         marksman.api.v1.StrategyGroupItem:
             type: object
             properties:
@@ -2036,21 +1976,6 @@ components:
                     type: boolean
                 tooltip:
                     type: string
-        marksman.api.v1.StrategyMetricBindReceiversReply:
-            type: object
-            properties: {}
-        marksman.api.v1.StrategyMetricBindReceiversRequest:
-            type: object
-            properties:
-                strategyUID:
-                    type: string
-                receiverUIDs:
-                    type: array
-                    items:
-                        type: string
-                levelUID:
-                    type: string
-                    description: optional levelUID
         marksman.api.v1.StrategyMetricItem:
             type: object
             properties:

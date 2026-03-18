@@ -75,13 +75,6 @@ func (s *StrategyService) SelectStrategyGroup(ctx context.Context, req *apiv1.Se
 	return bo.ToAPIV1SelectStrategyGroupReply(result), nil
 }
 
-func (s *StrategyService) StrategyGroupBindReceivers(ctx context.Context, req *apiv1.StrategyGroupBindReceiversRequest) (*apiv1.StrategyGroupBindReceiversReply, error) {
-	if err := s.strategyBiz.StrategyGroupBindReceivers(ctx, bo.NewStrategyGroupBindReceiversBo(req)); err != nil {
-		return nil, err
-	}
-	return &apiv1.StrategyGroupBindReceiversReply{}, nil
-}
-
 func (s *StrategyService) CreateStrategy(ctx context.Context, req *apiv1.CreateStrategyRequest) (*apiv1.CreateStrategyReply, error) {
 	createStrategyBo, err := bo.NewCreateStrategyBo(req)
 	if err != nil {

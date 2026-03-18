@@ -24,7 +24,6 @@ const OperationStrategyMetricGetStrategyMetric = "/marksman.api.v1.StrategyMetri
 const OperationStrategyMetricGetStrategyMetricLevel = "/marksman.api.v1.StrategyMetric/GetStrategyMetricLevel"
 const OperationStrategyMetricSaveStrategyMetric = "/marksman.api.v1.StrategyMetric/SaveStrategyMetric"
 const OperationStrategyMetricSaveStrategyMetricLevel = "/marksman.api.v1.StrategyMetric/SaveStrategyMetricLevel"
-const OperationStrategyMetricStrategyMetricBindReceivers = "/marksman.api.v1.StrategyMetric/StrategyMetricBindReceivers"
 const OperationStrategyMetricUpdateStrategyMetricLevelStatus = "/marksman.api.v1.StrategyMetric/UpdateStrategyMetricLevelStatus"
 
 type StrategyMetricHTTPServer interface {
@@ -33,7 +32,6 @@ type StrategyMetricHTTPServer interface {
 	GetStrategyMetricLevel(context.Context, *GetStrategyMetricLevelRequest) (*StrategyMetricLevelItem, error)
 	SaveStrategyMetric(context.Context, *SaveStrategyMetricRequest) (*SaveStrategyMetricReply, error)
 	SaveStrategyMetricLevel(context.Context, *SaveStrategyMetricLevelRequest) (*SaveStrategyMetricLevelReply, error)
-	StrategyMetricBindReceivers(context.Context, *StrategyMetricBindReceiversRequest) (*StrategyMetricBindReceiversReply, error)
 	UpdateStrategyMetricLevelStatus(context.Context, *UpdateStrategyMetricLevelStatusRequest) (*UpdateStrategyMetricLevelStatusReply, error)
 }
 
@@ -45,7 +43,6 @@ func RegisterStrategyMetricHTTPServer(s *http.Server, srv StrategyMetricHTTPServ
 	r.PUT("/v1/metric/strategy/{strategyUID}/level/{levelUID}/status", _StrategyMetric_UpdateStrategyMetricLevelStatus0_HTTP_Handler(srv))
 	r.DELETE("/v1/metric/strategy/{strategyUID}/level/{levelUID}", _StrategyMetric_DeleteStrategyMetricLevel0_HTTP_Handler(srv))
 	r.GET("/v1/metric/strategy/{strategyUID}/level/{levelUID}", _StrategyMetric_GetStrategyMetricLevel0_HTTP_Handler(srv))
-	r.POST("/v1/metric/strategy/{strategyUID}/receivers", _StrategyMetric_StrategyMetricBindReceivers0_HTTP_Handler(srv))
 }
 
 func _StrategyMetric_SaveStrategyMetric0_HTTP_Handler(srv StrategyMetricHTTPServer) func(ctx http.Context) error {
@@ -189,38 +186,12 @@ func _StrategyMetric_GetStrategyMetricLevel0_HTTP_Handler(srv StrategyMetricHTTP
 	}
 }
 
-func _StrategyMetric_StrategyMetricBindReceivers0_HTTP_Handler(srv StrategyMetricHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in StrategyMetricBindReceiversRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationStrategyMetricStrategyMetricBindReceivers)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.StrategyMetricBindReceivers(ctx, req.(*StrategyMetricBindReceiversRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*StrategyMetricBindReceiversReply)
-		return ctx.Result(200, reply)
-	}
-}
-
 type StrategyMetricHTTPClient interface {
 	DeleteStrategyMetricLevel(ctx context.Context, req *DeleteStrategyMetricLevelRequest, opts ...http.CallOption) (rsp *DeleteStrategyMetricLevelReply, err error)
 	GetStrategyMetric(ctx context.Context, req *GetStrategyMetricRequest, opts ...http.CallOption) (rsp *StrategyMetricItem, err error)
 	GetStrategyMetricLevel(ctx context.Context, req *GetStrategyMetricLevelRequest, opts ...http.CallOption) (rsp *StrategyMetricLevelItem, err error)
 	SaveStrategyMetric(ctx context.Context, req *SaveStrategyMetricRequest, opts ...http.CallOption) (rsp *SaveStrategyMetricReply, err error)
 	SaveStrategyMetricLevel(ctx context.Context, req *SaveStrategyMetricLevelRequest, opts ...http.CallOption) (rsp *SaveStrategyMetricLevelReply, err error)
-	StrategyMetricBindReceivers(ctx context.Context, req *StrategyMetricBindReceiversRequest, opts ...http.CallOption) (rsp *StrategyMetricBindReceiversReply, err error)
 	UpdateStrategyMetricLevelStatus(ctx context.Context, req *UpdateStrategyMetricLevelStatusRequest, opts ...http.CallOption) (rsp *UpdateStrategyMetricLevelStatusReply, err error)
 }
 
@@ -289,19 +260,6 @@ func (c *StrategyMetricHTTPClientImpl) SaveStrategyMetricLevel(ctx context.Conte
 	pattern := "/v1/metric/strategy/{strategyUID}/level"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationStrategyMetricSaveStrategyMetricLevel))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *StrategyMetricHTTPClientImpl) StrategyMetricBindReceivers(ctx context.Context, in *StrategyMetricBindReceiversRequest, opts ...http.CallOption) (*StrategyMetricBindReceiversReply, error) {
-	var out StrategyMetricBindReceiversReply
-	pattern := "/v1/metric/strategy/{strategyUID}/receivers"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationStrategyMetricStrategyMetricBindReceivers))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

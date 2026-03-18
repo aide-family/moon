@@ -25,7 +25,6 @@ const (
 	StrategyMetric_UpdateStrategyMetricLevelStatus_FullMethodName = "/marksman.api.v1.StrategyMetric/UpdateStrategyMetricLevelStatus"
 	StrategyMetric_DeleteStrategyMetricLevel_FullMethodName       = "/marksman.api.v1.StrategyMetric/DeleteStrategyMetricLevel"
 	StrategyMetric_GetStrategyMetricLevel_FullMethodName          = "/marksman.api.v1.StrategyMetric/GetStrategyMetricLevel"
-	StrategyMetric_StrategyMetricBindReceivers_FullMethodName     = "/marksman.api.v1.StrategyMetric/StrategyMetricBindReceivers"
 )
 
 // StrategyMetricClient is the client API for StrategyMetric service.
@@ -38,7 +37,6 @@ type StrategyMetricClient interface {
 	UpdateStrategyMetricLevelStatus(ctx context.Context, in *UpdateStrategyMetricLevelStatusRequest, opts ...grpc.CallOption) (*UpdateStrategyMetricLevelStatusReply, error)
 	DeleteStrategyMetricLevel(ctx context.Context, in *DeleteStrategyMetricLevelRequest, opts ...grpc.CallOption) (*DeleteStrategyMetricLevelReply, error)
 	GetStrategyMetricLevel(ctx context.Context, in *GetStrategyMetricLevelRequest, opts ...grpc.CallOption) (*StrategyMetricLevelItem, error)
-	StrategyMetricBindReceivers(ctx context.Context, in *StrategyMetricBindReceiversRequest, opts ...grpc.CallOption) (*StrategyMetricBindReceiversReply, error)
 }
 
 type strategyMetricClient struct {
@@ -109,16 +107,6 @@ func (c *strategyMetricClient) GetStrategyMetricLevel(ctx context.Context, in *G
 	return out, nil
 }
 
-func (c *strategyMetricClient) StrategyMetricBindReceivers(ctx context.Context, in *StrategyMetricBindReceiversRequest, opts ...grpc.CallOption) (*StrategyMetricBindReceiversReply, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StrategyMetricBindReceiversReply)
-	err := c.cc.Invoke(ctx, StrategyMetric_StrategyMetricBindReceivers_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // StrategyMetricServer is the server API for StrategyMetric service.
 // All implementations must embed UnimplementedStrategyMetricServer
 // for forward compatibility.
@@ -129,7 +117,6 @@ type StrategyMetricServer interface {
 	UpdateStrategyMetricLevelStatus(context.Context, *UpdateStrategyMetricLevelStatusRequest) (*UpdateStrategyMetricLevelStatusReply, error)
 	DeleteStrategyMetricLevel(context.Context, *DeleteStrategyMetricLevelRequest) (*DeleteStrategyMetricLevelReply, error)
 	GetStrategyMetricLevel(context.Context, *GetStrategyMetricLevelRequest) (*StrategyMetricLevelItem, error)
-	StrategyMetricBindReceivers(context.Context, *StrategyMetricBindReceiversRequest) (*StrategyMetricBindReceiversReply, error)
 	mustEmbedUnimplementedStrategyMetricServer()
 }
 
@@ -157,9 +144,6 @@ func (UnimplementedStrategyMetricServer) DeleteStrategyMetricLevel(context.Conte
 }
 func (UnimplementedStrategyMetricServer) GetStrategyMetricLevel(context.Context, *GetStrategyMetricLevelRequest) (*StrategyMetricLevelItem, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStrategyMetricLevel not implemented")
-}
-func (UnimplementedStrategyMetricServer) StrategyMetricBindReceivers(context.Context, *StrategyMetricBindReceiversRequest) (*StrategyMetricBindReceiversReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StrategyMetricBindReceivers not implemented")
 }
 func (UnimplementedStrategyMetricServer) mustEmbedUnimplementedStrategyMetricServer() {}
 func (UnimplementedStrategyMetricServer) testEmbeddedByValue()                        {}
@@ -290,24 +274,6 @@ func _StrategyMetric_GetStrategyMetricLevel_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _StrategyMetric_StrategyMetricBindReceivers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StrategyMetricBindReceiversRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(StrategyMetricServer).StrategyMetricBindReceivers(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: StrategyMetric_StrategyMetricBindReceivers_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StrategyMetricServer).StrategyMetricBindReceivers(ctx, req.(*StrategyMetricBindReceiversRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // StrategyMetric_ServiceDesc is the grpc.ServiceDesc for StrategyMetric service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -338,10 +304,6 @@ var StrategyMetric_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetStrategyMetricLevel",
 			Handler:    _StrategyMetric_GetStrategyMetricLevel_Handler,
-		},
-		{
-			MethodName: "StrategyMetricBindReceivers",
-			Handler:    _StrategyMetric_StrategyMetricBindReceivers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

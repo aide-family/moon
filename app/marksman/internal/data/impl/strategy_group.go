@@ -16,7 +16,6 @@ import (
 	"github.com/aide-family/marksman/internal/biz/repository"
 	"github.com/aide-family/marksman/internal/data"
 	"github.com/aide-family/marksman/internal/data/impl/convert"
-	"github.com/aide-family/marksman/internal/data/impl/do"
 	"github.com/aide-family/marksman/internal/data/impl/query"
 )
 
@@ -163,27 +162,4 @@ func (r *strategyGroupRepository) SelectStrategyGroup(ctx context.Context, req *
 		LastUID: lastUID,
 		HasMore: req.Limit > 0 && len(list) >= int(req.Limit),
 	}, nil
-}
-
-func (r *strategyGroupRepository) StrategyGroupBindReceivers(ctx context.Context, req *bo.StrategyGroupBindReceiversBo) error {
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		q := query.Use(tx)
-		_, err := q.StrategyGroupReceiver.WithContext(ctx).Where(
-			q.StrategyGroupReceiver.StrategyGroupUID.Eq(req.StrategyGroupUID.Int64()),
-		).Delete()
-		if err != nil {
-			return err
-		}
-		if len(req.ReceiverUIDs) == 0 {
-			return nil
-		}
-		rows := make([]*do.StrategyGroupReceiver, 0, len(req.ReceiverUIDs))
-		for _, recUID := range req.ReceiverUIDs {
-			rows = append(rows, &do.StrategyGroupReceiver{
-				StrategyGroupUID: req.StrategyGroupUID,
-				ReceiverUID:      recUID,
-			})
-		}
-		return tx.CreateInBatches(rows, 100).Error
-	})
 }

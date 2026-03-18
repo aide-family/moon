@@ -16,7 +16,6 @@ type StrategyGroup interface {
 	GetStrategyGroup(ctx context.Context, uid snowflake.ID) (*bo.StrategyGroupItemBo, error)
 	ListStrategyGroup(ctx context.Context, req *bo.ListStrategyGroupBo) (*bo.PageResponseBo[*bo.StrategyGroupItemBo], error)
 	SelectStrategyGroup(ctx context.Context, req *bo.SelectStrategyGroupBo) (*bo.SelectStrategyGroupBoResult, error)
-	StrategyGroupBindReceivers(ctx context.Context, req *bo.StrategyGroupBindReceiversBo) error
 }
 
 type Strategy interface {

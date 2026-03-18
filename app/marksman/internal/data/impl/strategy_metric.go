@@ -214,18 +214,6 @@ func (r *strategyMetricRepository) DeleteStrategyMetricLevel(ctx context.Context
 	return nil
 }
 
-// DeleteStrategyMetricReceiversByStrategyUID deletes strategy_metric_receivers by strategy_uid (single table). Uses tx from ctx when inside Transaction().
-func (r *strategyMetricRepository) DeleteStrategyMetricReceiversByStrategyUID(ctx context.Context, strategyUID snowflake.ID) error {
-	ns := contextx.GetNamespace(ctx)
-	q := query.Use(getDBWithTransaction(ctx, r.db))
-	smr := q.StrategyMetricReceiver
-	_, err := smr.WithContext(ctx).Where(
-		smr.NamespaceUID.Eq(ns.Int64()),
-		smr.StrategyUID.Eq(strategyUID.Int64()),
-	).Delete()
-	return err
-}
-
 // DeleteStrategyMetricLevelsByStrategyUID deletes strategy_metric_levels by strategy_uid (single table). Uses tx from ctx when inside Transaction().
 func (r *strategyMetricRepository) DeleteStrategyMetricLevelsByStrategyUID(ctx context.Context, strategyUID snowflake.ID) error {
 	ns := contextx.GetNamespace(ctx)
@@ -290,16 +278,6 @@ func (r *strategyMetricRepository) LevelReferencedByStrategyMetricLevel(ctx cont
 	return c > 0, nil
 }
 
-func (r *strategyMetricRepository) LevelReferencedByStrategyMetricReceiver(ctx context.Context, levelUID snowflake.ID) (bool, error) {
-	smr := query.StrategyMetricReceiver
-	ns := contextx.GetNamespace(ctx)
-	c, err := smr.WithContext(ctx).Where(smr.NamespaceUID.Eq(ns.Int64()), smr.LevelUID.Eq(levelUID.Int64())).Count()
-	if err != nil {
-		return false, err
-	}
-	return c > 0, nil
-}
-
 func (r *strategyMetricRepository) GetStrategyMetricLevelByStrategyAndLevel(ctx context.Context, strategyUID snowflake.ID, levelUID snowflake.ID) (*bo.StrategyMetricLevelItemBo, error) {
 	sml := query.StrategyMetricLevel
 	ns := contextx.GetNamespace(ctx)
@@ -315,30 +293,4 @@ func (r *strategyMetricRepository) GetStrategyMetricLevelByStrategyAndLevel(ctx 
 		return nil, err
 	}
 	return convert.ToStrategyMetricLevelItemBo(row), nil
-}
-
-func (r *strategyMetricRepository) StrategyMetricBindReceivers(ctx context.Context, req *bo.StrategyMetricBindReceiversBo) error {
-	ns := contextx.GetNamespace(ctx)
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		q := query.Use(tx)
-		smr := q.StrategyMetricReceiver
-		w := smr.WithContext(ctx).Where(smr.NamespaceUID.Eq(ns.Int64()), smr.StrategyUID.Eq(req.StrategyUID.Int64()))
-		w = w.Where(smr.LevelUID.Eq(req.LevelUID.Int64()))
-		_, err := w.Delete()
-		if err != nil {
-			return err
-		}
-		if len(req.ReceiverUIDs) == 0 {
-			return nil
-		}
-		rows := make([]*do.StrategyMetricReceiver, 0, len(req.ReceiverUIDs))
-		for _, recUID := range req.ReceiverUIDs {
-			rows = append(rows, &do.StrategyMetricReceiver{
-				StrategyUID: req.StrategyUID,
-				ReceiverUID: recUID,
-				LevelUID:    req.LevelUID,
-			})
-		}
-		return tx.CreateInBatches(rows, 100).Error
-	})
 }

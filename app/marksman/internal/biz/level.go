@@ -24,7 +24,6 @@ func NewLevel(
 	}
 	b.LevelReferencedFuncs = safety.NewSlice([]func(ctx context.Context, levelUID snowflake.ID) (bool, error){
 		b.strategyMetricRepo.LevelReferencedByStrategyMetricLevel,
-		b.strategyMetricRepo.LevelReferencedByStrategyMetricReceiver,
 	})
 	return b
 }

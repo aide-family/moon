@@ -170,11 +170,3 @@ func (b *StrategyMetricBiz) GetStrategyMetricLevel(ctx context.Context, levelUID
 	}
 	return item, nil
 }
-
-func (b *StrategyMetricBiz) StrategyMetricBindReceivers(ctx context.Context, req *bo.StrategyMetricBindReceiversBo) error {
-	if err := b.strategyMetricRepo.StrategyMetricBindReceivers(ctx, req); err != nil {
-		b.helper.Errorw("msg", "strategy metric bind receivers failed", "error", err, "req", req)
-		return merr.ErrorInternalServer("strategy metric bind receivers failed").WithCause(err)
-	}
-	return nil
-}

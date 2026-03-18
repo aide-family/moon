@@ -49,12 +49,6 @@ service Strategy {
 			get: "/v1/strategy-groups/select"
 		};
 	}
-	rpc StrategyGroupBindReceivers (StrategyGroupBindReceiversRequest) returns (StrategyGroupBindReceiversReply) {
-		option (google.api.http) = {
-			post: "/v1/strategy-group/{uid}/receivers"
-			body: "*"
-		};
-	}
 	rpc CreateStrategy (CreateStrategyRequest) returns (CreateStrategyReply) {
 		option (google.api.http) = {
 			post: "/v1/strategy"
@@ -216,18 +210,6 @@ message SelectStrategyGroupReply {
 	bool hasMore = 3;
 	uint32 nextUID = 4;
 }
-
-message StrategyGroupBindReceiversRequest {
-	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		expression: "this > 0",
-		message: "uid must be greater than 0",
-	}];
-	repeated int64 receiverUIDs = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		expression: "this.size() > 0",
-		message: "receiverUIDs must be greater than 0",
-	}];
-}
-message StrategyGroupBindReceiversReply {}
 
 message CreateStrategyRequest {
 	string name = 1 [(buf.validate.field).required = true, (buf.validate.field).string = {

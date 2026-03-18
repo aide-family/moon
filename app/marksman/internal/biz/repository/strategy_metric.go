@@ -17,13 +17,10 @@ type StrategyMetric interface {
 	GetStrategyMetricLevelByStrategyAndLevel(ctx context.Context, strategyUID snowflake.ID, levelUID snowflake.ID) (*bo.StrategyMetricLevelItemBo, error)
 	UpdateStrategyMetricLevelStatus(ctx context.Context, req *bo.UpdateStrategyMetricLevelStatusBo) error
 	DeleteStrategyMetricLevel(ctx context.Context, uid snowflake.ID, strategyUID snowflake.ID) error
-	DeleteStrategyMetricReceiversByStrategyUID(ctx context.Context, strategyUID snowflake.ID) error
 	DeleteStrategyMetricLevelsByStrategyUID(ctx context.Context, strategyUID snowflake.ID) error
 	DeleteStrategyMetricByStrategyUID(ctx context.Context, strategyUID snowflake.ID) error
 	HasStrategyMetricData(ctx context.Context, strategyUID snowflake.ID) (bool, error)
 	HasStrategyMetricLevelData(ctx context.Context, strategyUID snowflake.ID) (bool, error)
 	LevelReferencedByStrategyMetricLevel(ctx context.Context, levelUID snowflake.ID) (bool, error)
-	LevelReferencedByStrategyMetricReceiver(ctx context.Context, levelUID snowflake.ID) (bool, error)
-	StrategyMetricBindReceivers(ctx context.Context, req *bo.StrategyMetricBindReceiversBo) error
 	GetEvaluateMetricStrategies(ctx context.Context) ([]*bo.EvaluateMetricStrategyBo, error)
 }

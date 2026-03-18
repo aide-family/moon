@@ -49,12 +49,6 @@ service StrategyMetric {
 			get: "/v1/metric/strategy/{strategyUID}/level/{levelUID}"
 		};
 	}
-	rpc StrategyMetricBindReceivers (StrategyMetricBindReceiversRequest) returns (StrategyMetricBindReceiversReply) {
-		option (google.api.http) = {
-			post: "/v1/metric/strategy/{strategyUID}/receivers"
-			body: "*"
-		};
-	}
 }
 
 message StrategyMetricItem {
@@ -169,17 +163,3 @@ message GetStrategyMetricLevelRequest {
 		message: "levelUID must be greater than 0",
 	}];
 }
-
-message StrategyMetricBindReceiversRequest {
-	int64 strategyUID = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		expression: "this > 0",
-		message: "strategyUID must be greater than 0",
-	}];
-	repeated int64 receiverUIDs = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		expression: "this.size() > 0",
-		message: "receiverUIDs must be greater than 0",
-	}];
-	// optional levelUID
-	int64 levelUID = 3;
-}
-message StrategyMetricBindReceiversReply {}

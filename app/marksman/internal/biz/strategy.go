@@ -122,17 +122,6 @@ func (b *StrategyBiz) SelectStrategyGroup(ctx context.Context, req *bo.SelectStr
 	return result, nil
 }
 
-func (b *StrategyBiz) StrategyGroupBindReceivers(ctx context.Context, req *bo.StrategyGroupBindReceiversBo) error {
-	if err := b.strategyGroupRepo.StrategyGroupBindReceivers(ctx, req); err != nil {
-		if merr.IsNotFound(err) {
-			return merr.ErrorNotFound("strategy group %d not found", req.StrategyGroupUID.Int64())
-		}
-		b.helper.Errorw("msg", "strategy group bind receivers failed", "error", err, "req", req)
-		return merr.ErrorInternalServer("strategy group bind receivers failed").WithCause(err)
-	}
-	return nil
-}
-
 func (b *StrategyBiz) CreateStrategy(ctx context.Context, req *bo.CreateStrategyBo) (snowflake.ID, error) {
 	if _, err := b.strategyGroupRepo.GetStrategyGroup(ctx, req.StrategyGroupUID); err != nil {
 		if merr.IsNotFound(err) {
@@ -262,10 +251,6 @@ func (b *StrategyBiz) hasMetricDetail(ctx context.Context, strategyUID snowflake
 }
 
 func (b *StrategyBiz) deleteStrategyMetric(ctx context.Context, strategyUID snowflake.ID) error {
-	if err := b.strategyMetricRepo.DeleteStrategyMetricReceiversByStrategyUID(ctx, strategyUID); err != nil {
-		b.helper.Errorw("msg", "delete strategy metric receivers failed", "error", err, "strategyUID", strategyUID)
-		return merr.ErrorInternalServer("delete strategy related data failed").WithCause(err)
-	}
 	if err := b.strategyMetricRepo.DeleteStrategyMetricLevelsByStrategyUID(ctx, strategyUID); err != nil {
 		b.helper.Errorw("msg", "delete strategy metric levels failed", "error", err, "strategyUID", strategyUID)
 		return merr.ErrorInternalServer("delete strategy related data failed").WithCause(err)

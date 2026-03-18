@@ -19,21 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Strategy_CreateStrategyGroup_FullMethodName        = "/marksman.api.v1.Strategy/CreateStrategyGroup"
-	Strategy_UpdateStrategyGroup_FullMethodName        = "/marksman.api.v1.Strategy/UpdateStrategyGroup"
-	Strategy_UpdateStrategyGroupStatus_FullMethodName  = "/marksman.api.v1.Strategy/UpdateStrategyGroupStatus"
-	Strategy_DeleteStrategyGroup_FullMethodName        = "/marksman.api.v1.Strategy/DeleteStrategyGroup"
-	Strategy_GetStrategyGroup_FullMethodName           = "/marksman.api.v1.Strategy/GetStrategyGroup"
-	Strategy_ListStrategyGroup_FullMethodName          = "/marksman.api.v1.Strategy/ListStrategyGroup"
-	Strategy_SelectStrategyGroup_FullMethodName        = "/marksman.api.v1.Strategy/SelectStrategyGroup"
-	Strategy_StrategyGroupBindReceivers_FullMethodName = "/marksman.api.v1.Strategy/StrategyGroupBindReceivers"
-	Strategy_CreateStrategy_FullMethodName             = "/marksman.api.v1.Strategy/CreateStrategy"
-	Strategy_UpdateStrategy_FullMethodName             = "/marksman.api.v1.Strategy/UpdateStrategy"
-	Strategy_UpdateStrategyStatus_FullMethodName       = "/marksman.api.v1.Strategy/UpdateStrategyStatus"
-	Strategy_DeleteStrategy_FullMethodName             = "/marksman.api.v1.Strategy/DeleteStrategy"
-	Strategy_GetStrategy_FullMethodName                = "/marksman.api.v1.Strategy/GetStrategy"
-	Strategy_ListStrategy_FullMethodName               = "/marksman.api.v1.Strategy/ListStrategy"
-	Strategy_SelectStrategy_FullMethodName             = "/marksman.api.v1.Strategy/SelectStrategy"
+	Strategy_CreateStrategyGroup_FullMethodName       = "/marksman.api.v1.Strategy/CreateStrategyGroup"
+	Strategy_UpdateStrategyGroup_FullMethodName       = "/marksman.api.v1.Strategy/UpdateStrategyGroup"
+	Strategy_UpdateStrategyGroupStatus_FullMethodName = "/marksman.api.v1.Strategy/UpdateStrategyGroupStatus"
+	Strategy_DeleteStrategyGroup_FullMethodName       = "/marksman.api.v1.Strategy/DeleteStrategyGroup"
+	Strategy_GetStrategyGroup_FullMethodName          = "/marksman.api.v1.Strategy/GetStrategyGroup"
+	Strategy_ListStrategyGroup_FullMethodName         = "/marksman.api.v1.Strategy/ListStrategyGroup"
+	Strategy_SelectStrategyGroup_FullMethodName       = "/marksman.api.v1.Strategy/SelectStrategyGroup"
+	Strategy_CreateStrategy_FullMethodName            = "/marksman.api.v1.Strategy/CreateStrategy"
+	Strategy_UpdateStrategy_FullMethodName            = "/marksman.api.v1.Strategy/UpdateStrategy"
+	Strategy_UpdateStrategyStatus_FullMethodName      = "/marksman.api.v1.Strategy/UpdateStrategyStatus"
+	Strategy_DeleteStrategy_FullMethodName            = "/marksman.api.v1.Strategy/DeleteStrategy"
+	Strategy_GetStrategy_FullMethodName               = "/marksman.api.v1.Strategy/GetStrategy"
+	Strategy_ListStrategy_FullMethodName              = "/marksman.api.v1.Strategy/ListStrategy"
+	Strategy_SelectStrategy_FullMethodName            = "/marksman.api.v1.Strategy/SelectStrategy"
 )
 
 // StrategyClient is the client API for Strategy service.
@@ -47,7 +46,6 @@ type StrategyClient interface {
 	GetStrategyGroup(ctx context.Context, in *GetStrategyGroupRequest, opts ...grpc.CallOption) (*StrategyGroupItem, error)
 	ListStrategyGroup(ctx context.Context, in *ListStrategyGroupRequest, opts ...grpc.CallOption) (*ListStrategyGroupReply, error)
 	SelectStrategyGroup(ctx context.Context, in *SelectStrategyGroupRequest, opts ...grpc.CallOption) (*SelectStrategyGroupReply, error)
-	StrategyGroupBindReceivers(ctx context.Context, in *StrategyGroupBindReceiversRequest, opts ...grpc.CallOption) (*StrategyGroupBindReceiversReply, error)
 	CreateStrategy(ctx context.Context, in *CreateStrategyRequest, opts ...grpc.CallOption) (*CreateStrategyReply, error)
 	UpdateStrategy(ctx context.Context, in *UpdateStrategyRequest, opts ...grpc.CallOption) (*UpdateStrategyReply, error)
 	UpdateStrategyStatus(ctx context.Context, in *UpdateStrategyStatusRequest, opts ...grpc.CallOption) (*UpdateStrategyStatusReply, error)
@@ -135,16 +133,6 @@ func (c *strategyClient) SelectStrategyGroup(ctx context.Context, in *SelectStra
 	return out, nil
 }
 
-func (c *strategyClient) StrategyGroupBindReceivers(ctx context.Context, in *StrategyGroupBindReceiversRequest, opts ...grpc.CallOption) (*StrategyGroupBindReceiversReply, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StrategyGroupBindReceiversReply)
-	err := c.cc.Invoke(ctx, Strategy_StrategyGroupBindReceivers_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *strategyClient) CreateStrategy(ctx context.Context, in *CreateStrategyRequest, opts ...grpc.CallOption) (*CreateStrategyReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateStrategyReply)
@@ -226,7 +214,6 @@ type StrategyServer interface {
 	GetStrategyGroup(context.Context, *GetStrategyGroupRequest) (*StrategyGroupItem, error)
 	ListStrategyGroup(context.Context, *ListStrategyGroupRequest) (*ListStrategyGroupReply, error)
 	SelectStrategyGroup(context.Context, *SelectStrategyGroupRequest) (*SelectStrategyGroupReply, error)
-	StrategyGroupBindReceivers(context.Context, *StrategyGroupBindReceiversRequest) (*StrategyGroupBindReceiversReply, error)
 	CreateStrategy(context.Context, *CreateStrategyRequest) (*CreateStrategyReply, error)
 	UpdateStrategy(context.Context, *UpdateStrategyRequest) (*UpdateStrategyReply, error)
 	UpdateStrategyStatus(context.Context, *UpdateStrategyStatusRequest) (*UpdateStrategyStatusReply, error)
@@ -264,9 +251,6 @@ func (UnimplementedStrategyServer) ListStrategyGroup(context.Context, *ListStrat
 }
 func (UnimplementedStrategyServer) SelectStrategyGroup(context.Context, *SelectStrategyGroupRequest) (*SelectStrategyGroupReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SelectStrategyGroup not implemented")
-}
-func (UnimplementedStrategyServer) StrategyGroupBindReceivers(context.Context, *StrategyGroupBindReceiversRequest) (*StrategyGroupBindReceiversReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StrategyGroupBindReceivers not implemented")
 }
 func (UnimplementedStrategyServer) CreateStrategy(context.Context, *CreateStrategyRequest) (*CreateStrategyReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateStrategy not implemented")
@@ -436,24 +420,6 @@ func _Strategy_SelectStrategyGroup_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Strategy_StrategyGroupBindReceivers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StrategyGroupBindReceiversRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(StrategyServer).StrategyGroupBindReceivers(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Strategy_StrategyGroupBindReceivers_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StrategyServer).StrategyGroupBindReceivers(ctx, req.(*StrategyGroupBindReceiversRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Strategy_CreateStrategy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateStrategyRequest)
 	if err := dec(in); err != nil {
@@ -614,10 +580,6 @@ var Strategy_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SelectStrategyGroup",
 			Handler:    _Strategy_SelectStrategyGroup_Handler,
-		},
-		{
-			MethodName: "StrategyGroupBindReceivers",
-			Handler:    _Strategy_StrategyGroupBindReceivers_Handler,
 		},
 		{
 			MethodName: "CreateStrategy",
