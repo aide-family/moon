@@ -12,7 +12,7 @@ import (
 )
 
 func NewRabbitWebhookRepository(c *conf.Bootstrap, d *data.Data) (repository.RabbitWebhook, error) {
-	repoConfig := c.GetWebhookConfig()
+	repoConfig := c.GetWebhookDomain()
 	version := repoConfig.GetVersion()
 	driver := repoConfig.GetDriver()
 	switch version {

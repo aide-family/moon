@@ -12,12 +12,12 @@ func init() {
 	RegisterCaptchaFactoryV1(config.DomainConfig_DEFAULT, NewDefaultCaptcha)
 }
 
-// NewDefaultCaptcha creates the default captcha server (no DB required).
+// NewDefaultCaptcha creates the default captcha server (DEFAULT driver, no DB required).
 func NewDefaultCaptcha(_ *config.DomainConfig) (goddessv1.CaptchaServer, func() error, error) {
 	captchaBiz := biz.NewCaptcha()
-	return &captchaRepository{CaptchaServer: service.NewCaptchaService(captchaBiz)}, func() error { return nil }, nil
+	return &defaultCaptcha{CaptchaServer: service.NewCaptchaService(captchaBiz)}, func() error { return nil }, nil
 }
 
-type captchaRepository struct {
+type defaultCaptcha struct {
 	goddessv1.CaptchaServer
 }

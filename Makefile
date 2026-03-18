@@ -9,6 +9,7 @@ $(APPS):
 .PHONY: all
 # run all apps in development mode
 all:
+	@cd magicbox && make proto;
 	@for app in $(APPS); do \
 		echo "=========build $$app =========="; \
 		cd app/$$app && make all; \
@@ -27,6 +28,7 @@ gen:
 .PHONY: build-exe
 # build the exe files
 build-exe:
+	@cd magicbox && make proto;
 	@mkdir -p package
 	@for app in $(APPS); do \
 		echo "=========build-exe $$app =========="; \

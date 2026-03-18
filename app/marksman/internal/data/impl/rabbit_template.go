@@ -12,7 +12,7 @@ import (
 )
 
 func NewRabbitTemplateRepository(c *conf.Bootstrap, d *data.Data) (repository.RabbitTemplate, error) {
-	repoConfig := c.GetMessageTemplateConfig()
+	repoConfig := c.GetMessageTemplateDomain()
 	version := repoConfig.GetVersion()
 	driver := repoConfig.GetDriver()
 	switch version {

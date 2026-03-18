@@ -11,9 +11,9 @@ import (
 )
 
 func NewMemberRepository(c *conf.Bootstrap, d *data.Data) (repository.Member, error) {
-	repoConfig := c.GetMemberConfig()
+	repoConfig := c.GetMemberDomain()
 	if repoConfig == nil {
-		return nil, merr.ErrorInternalServer("memberConfig is required")
+		return nil, merr.ErrorInternalServer("memberDomain is required")
 	}
 	version := repoConfig.GetVersion()
 	driver := repoConfig.GetDriver()

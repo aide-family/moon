@@ -11,9 +11,9 @@ import (
 )
 
 func NewUserRepository(c *conf.Bootstrap, d *data.Data) (repository.User, error) {
-	repoConfig := c.GetUserConfig()
+	repoConfig := c.GetUserDomain()
 	if repoConfig == nil {
-		return nil, merr.ErrorInternalServer("userConfig is required")
+		return nil, merr.ErrorInternalServer("userDomain is required")
 	}
 	version := repoConfig.GetVersion()
 	driver := repoConfig.GetDriver()

@@ -22,16 +22,16 @@ message Bootstrap {
 	EvaluateConfig evaluateConfig = 11;
 	magicbox.config.ReportConfig report = 12;
 	magicbox.config.OAuth2 oauth2 = 13;
-	magicbox.config.DomainConfig namespaceConfig = 14;
-	magicbox.config.DomainConfig loginConfig = 15;
+	magicbox.config.DomainConfig namespaceDomain = 14;
+	magicbox.config.DomainConfig authDomain = 15;
 	magicbox.config.ORMConfig database = 16;
-	magicbox.config.DomainConfig selfConfig = 17;
-	magicbox.config.DomainConfig userConfig = 18;
-	magicbox.config.DomainConfig memberConfig = 19;
-	magicbox.config.DomainConfig captchaConfig = 20;
-	magicbox.config.DomainConfig webhookConfig = 21;
-	magicbox.config.DomainConfig messageTemplateConfig = 22;
-	magicbox.config.DomainConfig senderConfig = 23;
+	magicbox.config.DomainConfig selfDomain = 17;
+	magicbox.config.DomainConfig userDomain = 18;
+	magicbox.config.DomainConfig memberDomain = 19;
+	magicbox.config.DomainConfig captchaDomain = 20;
+	magicbox.config.DomainConfig webhookDomain = 21;
+	magicbox.config.DomainConfig messageTemplateDomain = 22;
+	magicbox.config.DomainConfig senderDomain = 23;
 }
 
 // EvaluateConfig configures the metric evaluate cron: concurrency, timeouts and job channel capacity.

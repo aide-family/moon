@@ -11,9 +11,9 @@ import (
 )
 
 func NewCaptchaRepository(c *conf.Bootstrap, d *data.Data) (repository.Captcha, error) {
-	repoConfig := c.GetCaptchaConfig()
+	repoConfig := c.GetCaptchaDomain()
 	if repoConfig == nil {
-		return nil, merr.ErrorInternalServer("captchaConfig is required")
+		return nil, merr.ErrorInternalServer("captchaDomain is required")
 	}
 	driver := repoConfig.GetDriver()
 	factory, ok := captchav1.GetCaptchaFactoryV1(driver)

@@ -11,7 +11,7 @@ import (
 )
 
 func NewMemberRepository(c *conf.Bootstrap, d *data.Data) (repository.Member, error) {
-	repoConfig := c.GetMemberConfig()
+	repoConfig := c.GetMemberDomain()
 	version := repoConfig.GetVersion()
 	driver := repoConfig.GetDriver()
 	switch version {

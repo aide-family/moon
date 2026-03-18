@@ -46,7 +46,7 @@
 - **Self** (goddess): Current user info, namespaces list, change email/avatar/remark, refresh token
 - **User** (goddess): User CRUD, list, select, ban/permit
 - **Member** (goddess): List/get/select members in namespace, invite, dismiss, update status
-- **Namespace** (goddess): Namespace management (shared with goddess; requires `namespaceConfig`)
+- **Namespace** (goddess): Namespace management (shared with goddess; requires `namespaceDomain`)
 - **Captcha** (goddess): Get graphic captcha (id, base64 image) for login and other unauthenticated flows
 - **Datasource**: CRUD, list, select, status time series (per uid, from main TSDB), metric metadata (label names and label values) for metrics datasources (Prometheus, VictoriaMetrics, Elasticsearch, Jaeger)
 - **MetricQuery**: Instant query (Prometheus /api/v1/query), range query (/api/v1/query_range), and direct HTTP proxy for metric-type datasources

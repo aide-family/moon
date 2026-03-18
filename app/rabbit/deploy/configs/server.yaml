@@ -31,7 +31,7 @@ jwt:
   expire: '${MOON_RABBIT_JWT_EXPIRE:600s}'
   issuer: '${MOON_RABBIT_JWT_ISSUER:rabbit}'
 
-namespaceConfig:
+namespaceDomain:
   driver: ${MOON_RABBIT_NAMESPACE_DRIVER:GORM}
   version: ${MOON_RABBIT_NAMESPACE_VERSION:v1}
   options:
@@ -43,7 +43,7 @@ namespaceConfig:
       '@type': '${MOON_RABBIT_NAMESPACE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
       dsn: '${MOON_RABBIT_NAMESPACE_SQLITE_OPTIONS_DSN:file:./rabbit.db?cache=shared}'
 
-# namespaceConfig:
+# namespaceDomain:
 #   driver: ${MOON_RABBIT_NAMESPACE_DRIVER:GORM}
 #   version: ${MOON_RABBIT_NAMESPACE_VERSION:v1}
 #   options:
@@ -62,7 +62,7 @@ namespaceConfig:
 #         sslmode: disable
 #         TimeZone: Asia/Shanghai
 
-# namespaceConfig:
+# namespaceDomain:
 #   driver: ${MOON_RABBIT_NAMESPACE_DRIVER:GORM}
 #   version: ${MOON_RABBIT_NAMESPACE_VERSION:v1}
 #   options:
@@ -82,7 +82,7 @@ namespaceConfig:
 #         parseTime: 'true'
 #         loc: 'Local'
 
-memberConfig:
+memberDomain:
   driver: ${MOON_RABBIT_MEMBER_DRIVER:GORM}
   version: ${MOON_RABBIT_MEMBER_VERSION:v1}
   options:
@@ -94,7 +94,7 @@ memberConfig:
       '@type': '${MOON_RABBIT_MEMBER_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
       dsn: '${MOON_RABBIT_MEMBER_SQLITE_OPTIONS_DSN:file:./rabbit.db?cache=shared}'
 
-# memberConfig:
+# memberDomain:
 #   driver: ${MOON_RABBIT_MEMBER_DRIVER:GORM}
 #   version: ${MOON_RABBIT_MEMBER_VERSION:v1}
 #   options:
@@ -114,19 +114,19 @@ memberConfig:
 #         parseTime: 'true'
 #         loc: Local
 
-loginConfig:
-  driver: ${MOON_RABBIT_LOGIN_DRIVER:GORM}
-  version: ${MOON_RABBIT_LOGIN_VERSION:v1}
+authDomain:
+  driver: ${MOON_RABBIT_AUTH_DRIVER:GORM}
+  version: ${MOON_RABBIT_AUTH_VERSION:v1}
   options:
-    '@type': '${MOON_RABBIT_LOGIN_OPTIONS_TYPE:type.googleapis.com/magicbox.config.ORMConfig}'
-    dialector: ${MOON_RABBIT_LOGIN_DIALECTOR:SQLITE}
-    debug: ${MOON_RABBIT_LOGIN_DEBUG:true}
-    useSystemLogger: ${MOON_RABBIT_LOGIN_USE_SYSTEM_LOGGER:false}
+    '@type': '${MOON_RABBIT_AUTH_OPTIONS_TYPE:type.googleapis.com/magicbox.config.ORMConfig}'
+    dialector: ${MOON_RABBIT_AUTH_DIALECTOR:SQLITE}
+    debug: ${MOON_RABBIT_AUTH_DEBUG:true}
+    useSystemLogger: ${MOON_RABBIT_AUTH_USE_SYSTEM_LOGGER:false}
     options:
-      '@type': '${MOON_RABBIT_LOGIN_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
-      dsn: '${MOON_RABBIT_LOGIN_SQLITE_OPTIONS_DSN:file:./rabbit.db?cache=shared}'
+      '@type': '${MOON_RABBIT_AUTH_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
+      dsn: '${MOON_RABBIT_AUTH_SQLITE_OPTIONS_DSN:file:./rabbit.db?cache=shared}'
 
-# loginConfig:
+# authDomain:
 #   driver: ${MOON_RABBIT_LOGIN_DRIVER:GORM}
 #   version: ${MOON_RABBIT_LOGIN_VERSION:v1}
 #   options:

@@ -11,9 +11,9 @@ import (
 )
 
 func NewSelfRepository(c *conf.Bootstrap, d *data.Data) (repository.Self, error) {
-	repoConfig := c.GetSelfConfig()
+	repoConfig := c.GetSelfDomain()
 	if repoConfig == nil {
-		return nil, merr.ErrorInternalServer("selfConfig is required")
+		return nil, merr.ErrorInternalServer("selfDomain is required")
 	}
 	version := repoConfig.GetVersion()
 	driver := repoConfig.GetDriver()

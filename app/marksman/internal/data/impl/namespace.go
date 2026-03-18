@@ -11,7 +11,7 @@ import (
 )
 
 func NewNamespaceRepository(c *conf.Bootstrap, d *data.Data) (repository.Namespace, error) {
-	repoConfig := c.GetNamespaceConfig()
+	repoConfig := c.GetNamespaceDomain()
 	version := repoConfig.GetVersion()
 	driver := repoConfig.GetDriver()
 	switch version {

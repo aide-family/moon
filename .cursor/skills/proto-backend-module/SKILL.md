@@ -84,14 +84,15 @@ description: Implements backend modules from proto definitions for goddess, mark
 
 10. **internal/server**  
     - 在 `RegisterHTTPService` / `RegisterGRPCService`（以及如需全量的 `RegisterService`）中增加对新 service 的依赖参数，并调用 `apiv1.RegisterXxxHTTPServer` / `apiv1.RegisterXxxServer`。  
-    - 若该服务有「允许未登录/未命名空间」的接口，在 `namespaceAllowList` 或 `authAllowList` 中加上对应 Operation 常量。
+    - 若该服务有「允许未登录/未命名空间」的接口，在 `namespaceAllowList` 或 `authAllowList` 中加上对应 Operation 常量。  
+    - **跨领域 allowlist**：若本应用**引用并注册了其他领域**（如 marksman 注册 goddess 的 namespace/auth、rabbit 的 webhook/template/sender），必须审查这些被引用领域暴露的 Operation；凡需「免登录」或「免选命名空间」才能访问的接口，须将对应 Operation 常量加入**使用方应用**的 `authAllowList` 或 `namespaceAllowList`，否则中间件会拦截导致接口不可用。
 
 11. **wire**  
     - 若 wire 为自动生成，运行 `wire ./cmd/run/...` 等以更新注入；否则在对应 `wire.go` 中确保 server、service、biz、impl、data 的 ProviderSet 已包含新模块。
 
 12. **配置与 conf.proto 同步**  
     - 若修改了 `internal/conf/conf.proto`（如在 Bootstrap 中新增、删除或重命名字段），必须**同步修改**该应用实际使用的**运行时配置文件**（如 `app/<app>/config/server.yaml` 或 `config/*.yaml`），为新增字段补充对应配置项，否则启动时可能缺省或报错。  
-    - 配置项命名与 conf.proto 中字段的 camelCase 一致（如 `selfConfig`、`userConfig`）；结构需与 magicbox 或现有同类型配置一致（如 DomainConfig 的 driver、version、options）。
+    - 配置项命名与 conf.proto 中字段的 camelCase 一致（如 `selfDomain`、`userDomain`）；领域模块配置统一使用「领域名称+Domain」（如 `namespaceDomain`、`webhookDomain`）；**认证/登录领域**使用 `authDomain`（不用 loginDomain，以保持命名专业性）；结构需与 magicbox 或现有同类型配置一致（如 DomainConfig 的 driver、version、options）。
 
 13. **README 与文档同步**  
     - 对模块或 API 做**新增、修改、删除**时，必须同步更新对应应用的 README，保证「接口说明、功能说明、常用用法」与代码一致。  
@@ -133,10 +134,10 @@ description: Implements backend modules from proto definitions for goddess, mark
 
 | 变更类型 | 需更新的配置 | 更新内容 |
 |----------|--------------|----------|
-| **conf.proto 新增** Bootstrap 字段 | 该应用实际使用的配置文件（如 `app/<app>/config/server.yaml`） | 在 YAML 中新增与字段名一致的配置项（如 `selfConfig`、`userConfig`），结构参考同类型已有配置（如 `namespaceConfig`） |
+| **conf.proto 新增** Bootstrap 字段 | 该应用实际使用的配置文件（如 `app/<app>/config/server.yaml`） | 在 YAML 中新增与字段名一致的配置项（如 `selfDomain`、`userDomain`），结构参考同类型已有配置（如 `namespaceDomain`） |
 | **conf.proto 删除/重命名** 字段 | 同上 | 从配置文件中删除或重命名对应项，避免遗留无效配置 |
 
-**说明**：仅改 conf.proto 并执行 `make conf` 生成 conf.pb.go 不够，运行时加载的是 YAML 等配置文件；若不同步修改配置文件，新字段在运行时为 nil 或零值，依赖该配置的模块可能报错（如 "selfConfig is required"）。
+**说明**：仅改 conf.proto 并执行 `make conf` 生成 conf.pb.go 不够，运行时加载的是 YAML 等配置文件；若不同步修改配置文件，新字段在运行时为 nil 或零值，依赖该配置的模块可能报错（如 "selfDomain is required"）。
 
 ### 何时需要更新 README
 
@@ -203,7 +204,8 @@ description: Implements backend modules from proto definitions for goddess, mark
 ## 检查清单（完成前自检）
 
 - [ ] Proto 已生成到 `pkg/api/v1`，未手改生成代码
-- [ ] **conf 与运行时配置已同步**：若修改了 `internal/conf/conf.proto`，已执行 `make conf`（或项目约定的 conf 生成命令），并已**同步修改**该应用实际使用的配置文件（如 `config/server.yaml`），为新增/变更的 Bootstrap 字段补充对应配置项
+- [ ] **conf 与运行时配置已同步**：若修改了 `internal/conf/conf.proto`，已执行 `make conf`（或项目约定的 conf 生成命令），并已**同步修改**该应用实际使用的配置文件（如 `config/server.yaml`），为新增/变更的 Bootstrap 字段补充对应配置项；认证/登录领域配置使用 `authDomain`（勿用 loginDomain）
+- [ ] **跨领域 allowlist**：若本应用在 server 中注册了其他领域的服务（如 goddess、rabbit），已将被引用领域中需「免登录」或「免选命名空间」的 Operation 加入本应用的 `authAllowList` 或 `namespaceAllowList`
 - [ ] 新增 HTTP 路径与已有路径无冲突（尤其已有 `/resource/{id}` 时，勿用 `/resource/word`，改用 `/resources/word` 等）
 - [ ] 未新建与现有 app 结构不符的目录或包
 - [ ] bo/repository/do/convert/impl/biz/service 分层与现有模块一致

@@ -15,7 +15,7 @@ type loginRepository struct {
 }
 
 func NewLoginRepository(c *conf.Bootstrap, d *data.Data) (repository.LoginRepository, error) {
-	repoConfig := c.GetLoginConfig()
+	repoConfig := c.GetAuthDomain()
 	version := repoConfig.GetVersion()
 	driver := repoConfig.GetDriver()
 	switch version {

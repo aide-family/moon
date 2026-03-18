@@ -20,15 +20,15 @@ message Bootstrap {
 	string enableClientConfig = 9;
 	magicbox.config.ReportConfig report = 10;
 	magicbox.config.OAuth2 oauth2 = 11;
-	magicbox.config.DomainConfig namespaceConfig = 12;
-	magicbox.config.DomainConfig memberConfig = 13;
-	magicbox.config.DomainConfig loginConfig = 14;
+	magicbox.config.DomainConfig namespaceDomain = 12;
+	magicbox.config.DomainConfig memberDomain = 13;
+	magicbox.config.DomainConfig authDomain = 14;
 	magicbox.config.ClusterConfig jobClusters = 15;
 	JobCore jobCore = 16;
 	magicbox.config.ORMConfig database = 17;
-	magicbox.config.DomainConfig selfConfig = 18;
-	magicbox.config.DomainConfig userConfig = 19;
-	magicbox.config.DomainConfig captchaConfig = 20;
+	magicbox.config.DomainConfig selfDomain = 18;
+	magicbox.config.DomainConfig userDomain = 19;
+	magicbox.config.DomainConfig captchaDomain = 20;
 }
 
 message Server {

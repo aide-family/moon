@@ -11,7 +11,7 @@ import (
 )
 
 func NewRabbitSenderRepository(c *conf.Bootstrap, d *data.Data) (repository.RabbitSender, error) {
-	repoConfig := c.GetSenderConfig()
+	repoConfig := c.GetSenderDomain()
 	version := repoConfig.GetVersion()
 	driver := repoConfig.GetDriver()
 	switch version {

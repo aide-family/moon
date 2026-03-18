@@ -19,6 +19,7 @@ func init() {
 	RegisterUserFactoryV1(config.DomainConfig_DEFAULT, NewDefaultUser)
 }
 
+// NewDefaultUser creates an in-process user server (DEFAULT driver).
 func NewDefaultUser(c *config.DomainConfig) (goddessv1.UserServer, func() error, error) {
 	defaultConfig := &config.DefaultConfig{}
 	if pointer.IsNotNil(c.GetOptions()) {
@@ -33,9 +34,9 @@ func NewDefaultUser(c *config.DomainConfig) (goddessv1.UserServer, func() error,
 	helper := klog.NewHelper(klog.With(klog.GetLogger(), "module", "user"))
 	userRepo := impl.NewUserRepositoryWithDB(db)
 	userBiz := biz.NewUser(userRepo, helper)
-	return &userRepository{UserServer: service.NewUserService(userBiz)}, close, nil
+	return &defaultUser{UserServer: service.NewUserService(userBiz)}, close, nil
 }
 
-type userRepository struct {
+type defaultUser struct {
 	goddessv1.UserServer
 }

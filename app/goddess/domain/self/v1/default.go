@@ -1,4 +1,4 @@
-package namespacev1
+package selfv1
 
 import (
 	"github.com/aide-family/magicbox/config"
@@ -17,10 +17,11 @@ import (
 )
 
 func init() {
-	RegisterNamespaceV1Factory(config.DomainConfig_DEFAULT, NewDefaultNamespace)
+	RegisterSelfFactoryV1(config.DomainConfig_DEFAULT, NewDefaultSelf)
 }
 
-func NewDefaultNamespace(c *config.DomainConfig) (goddessv1.NamespaceServer, func() error, error) {
+// NewDefaultSelf creates an in-process self server (DEFAULT driver).
+func NewDefaultSelf(c *config.DomainConfig) (goddessv1.SelfServer, func() error, error) {
 	defaultConfig := &config.DefaultConfig{}
 	if pointer.IsNotNil(c.GetOptions()) {
 		if err := anypb.UnmarshalTo(c.GetOptions(), defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
@@ -37,19 +38,19 @@ func NewDefaultNamespace(c *config.DomainConfig) (goddessv1.NamespaceServer, fun
 		Jwt:         defaultConfig.GetJwt(),
 	}
 	transaction := impl.NewTransactionWithDB(db)
-	namespaceRepo := impl.NewNamespaceRepositoryWithDB(db)
+	helper := klog.NewHelper(klog.With(klog.GetLogger(), "module", "self"))
 	userRepo := impl.NewUserRepositoryWithDB(db)
 	memberRepo := impl.NewMemberRepositoryWithDB(db)
+	namespaceRepo := impl.NewNamespaceRepositoryWithDB(db)
+	loginRepo := impl.NewLoginRepositoryWithDB(db, bootstrap.GetJwt())
 	emailRepo := impl.NewEmailRepository(bootstrap)
-	helper := klog.NewHelper(klog.With(klog.GetLogger(), "module", "namespace"))
 	userBiz := biz.NewUser(userRepo, helper)
 	memberBiz := biz.NewMember(bootstrap, transaction, memberRepo, userRepo, namespaceRepo, emailRepo, helper)
 	namespaceBiz := biz.NewNamespace(transaction, namespaceRepo, userBiz, memberBiz, helper)
-	return &defaultNamespace{
-		NamespaceServer: service.NewNamespaceService(namespaceBiz),
-	}, close, nil
+	loginBiz := biz.NewLoginBiz(transaction, loginRepo)
+	return &defaultSelf{SelfServer: service.NewSelfService(userBiz, memberBiz, namespaceBiz, loginBiz)}, close, nil
 }
 
-type defaultNamespace struct {
-	goddessv1.NamespaceServer
+type defaultSelf struct {
+	goddessv1.SelfServer
 }

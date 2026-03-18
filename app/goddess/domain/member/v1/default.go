@@ -1,11 +1,11 @@
-// Package authv1 is the repository for the auth service.
-package authv1
+package memberv1
 
 import (
 	"github.com/aide-family/magicbox/config"
 	"github.com/aide-family/magicbox/connect"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/pointer"
+	klog "github.com/go-kratos/kratos/v2/log"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
@@ -17,10 +17,11 @@ import (
 )
 
 func init() {
-	RegisterAuthV1Factory(config.DomainConfig_DEFAULT, NewDefaultAuth)
+	RegisterMemberV1Factory(config.DomainConfig_DEFAULT, NewDefaultMember)
 }
 
-func NewDefaultAuth(c *config.DomainConfig) (goddessv1.AuthServiceServer, func() error, error) {
+// NewDefaultMember creates an in-process member server (DEFAULT driver).
+func NewDefaultMember(c *config.DomainConfig) (goddessv1.MemberServer, func() error, error) {
 	defaultConfig := &config.DefaultConfig{}
 	if pointer.IsNotNil(c.GetOptions()) {
 		if err := anypb.UnmarshalTo(c.GetOptions(), defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
@@ -37,14 +38,17 @@ func NewDefaultAuth(c *config.DomainConfig) (goddessv1.AuthServiceServer, func()
 		Jwt:         defaultConfig.GetJwt(),
 	}
 	transaction := impl.NewTransactionWithDB(db)
-	loginRepo := impl.NewLoginRepositoryWithDB(db, bootstrap.GetJwt())
 	emailRepo := impl.NewEmailRepository(bootstrap)
-	emailBiz := biz.NewEmail(emailRepo)
-	captchaBiz := biz.NewCaptcha()
-	loginBiz := biz.NewLoginBiz(transaction, loginRepo)
-	return &authRepository{AuthService: service.NewAuthService(loginBiz, emailBiz, captchaBiz)}, close, nil
+	memberRepo := impl.NewMemberRepositoryWithDB(db)
+	userRepo := impl.NewUserRepositoryWithDB(db)
+	namespaceRepo := impl.NewNamespaceRepositoryWithDB(db)
+	helper := klog.NewHelper(klog.With(klog.GetLogger(), "module", "member"))
+	memberBiz := biz.NewMember(bootstrap, transaction, memberRepo, userRepo, namespaceRepo, emailRepo, helper)
+	return &defaultMember{
+		MemberServer: service.NewMemberService(memberBiz),
+	}, close, nil
 }
 
-type authRepository struct {
-	*service.AuthService
+type defaultMember struct {
+	goddessv1.MemberServer
 }

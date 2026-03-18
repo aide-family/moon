@@ -46,7 +46,7 @@
 - **当前用户（Self，goddess）**：当前用户信息、命名空间列表、修改邮箱/头像/备注、刷新 Token
 - **用户（User，goddess）**：用户增删改查、列表、下拉选择、封禁/解封
 - **成员（Member，goddess）**：命名空间内成员列表/获取/选择、邀请成员、移除成员、更新状态
-- **命名空间（Namespace，goddess）**：命名空间管理（与 goddess 共用能力，需配置 namespaceConfig）
+- **命名空间（Namespace，goddess）**：命名空间管理（与 goddess 共用能力，需配置 namespaceDomain）
 - **验证码（Captcha，goddess）**：图形验证码获取（id、base64 图片），用于登录等无需鉴权场景
 - **数据源（Datasource）**：指标/日志/链路数据源增删改查、列表、下拉选择、按数据源的状态时序（主时序库）、指标元数据（label 名与各 label 取值）查询（Prometheus、VictoriaMetrics、Elasticsearch、Jaeger）
 - **指标查询（MetricQuery）**：指标类型数据源即时查询（Prometheus /api/v1/query）、区间查询（/api/v1/query_range）、以及直接 HTTP 代理

@@ -1,4 +1,4 @@
-package selfv1
+package namespacev1
 
 import (
 	"github.com/aide-family/magicbox/config"
@@ -17,10 +17,11 @@ import (
 )
 
 func init() {
-	RegisterSelfFactoryV1(config.DomainConfig_DEFAULT, NewDefaultSelf)
+	RegisterNamespaceV1Factory(config.DomainConfig_DEFAULT, NewDefaultNamespace)
 }
 
-func NewDefaultSelf(c *config.DomainConfig) (goddessv1.SelfServer, func() error, error) {
+// NewDefaultNamespace creates an in-process namespace server (DEFAULT driver).
+func NewDefaultNamespace(c *config.DomainConfig) (goddessv1.NamespaceServer, func() error, error) {
 	defaultConfig := &config.DefaultConfig{}
 	if pointer.IsNotNil(c.GetOptions()) {
 		if err := anypb.UnmarshalTo(c.GetOptions(), defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
@@ -37,19 +38,19 @@ func NewDefaultSelf(c *config.DomainConfig) (goddessv1.SelfServer, func() error,
 		Jwt:         defaultConfig.GetJwt(),
 	}
 	transaction := impl.NewTransactionWithDB(db)
-	helper := klog.NewHelper(klog.With(klog.GetLogger(), "module", "self"))
+	namespaceRepo := impl.NewNamespaceRepositoryWithDB(db)
 	userRepo := impl.NewUserRepositoryWithDB(db)
 	memberRepo := impl.NewMemberRepositoryWithDB(db)
-	namespaceRepo := impl.NewNamespaceRepositoryWithDB(db)
-	loginRepo := impl.NewLoginRepositoryWithDB(db, bootstrap.GetJwt())
 	emailRepo := impl.NewEmailRepository(bootstrap)
+	helper := klog.NewHelper(klog.With(klog.GetLogger(), "module", "namespace"))
 	userBiz := biz.NewUser(userRepo, helper)
 	memberBiz := biz.NewMember(bootstrap, transaction, memberRepo, userRepo, namespaceRepo, emailRepo, helper)
 	namespaceBiz := biz.NewNamespace(transaction, namespaceRepo, userBiz, memberBiz, helper)
-	loginBiz := biz.NewLoginBiz(transaction, loginRepo)
-	return &selfRepository{SelfServer: service.NewSelfService(userBiz, memberBiz, namespaceBiz, loginBiz)}, close, nil
+	return &defaultNamespace{
+		NamespaceServer: service.NewNamespaceService(namespaceBiz),
+	}, close, nil
 }
 
-type selfRepository struct {
-	goddessv1.SelfServer
+type defaultNamespace struct {
+	goddessv1.NamespaceServer
 }
