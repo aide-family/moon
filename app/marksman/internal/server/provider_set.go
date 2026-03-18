@@ -8,6 +8,7 @@ import (
 
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	magicboxapiv1 "github.com/aide-family/magicbox/api/v1"
+	rabbitv1 "github.com/aide-family/rabbit/pkg/api/v1"
 	"github.com/aide-family/magicbox/auth/basic"
 	"github.com/aide-family/magicbox/oauth"
 	"github.com/go-kratos/kratos/v2/transport"
@@ -132,6 +133,10 @@ func RegisterService(
 	strategyService *service.StrategyService,
 	strategyMetricService *service.StrategyMetricService,
 	alertService *service.AlertService,
+	notificationGroupService *service.NotificationGroupService,
+	rabbitWebhook repository.RabbitWebhook,
+	rabbitTemplate repository.RabbitTemplate,
+	rabbitSender repository.RabbitSender,
 ) Servers {
 	var srvs Servers
 
@@ -150,6 +155,10 @@ func RegisterService(
 		strategyService,
 		strategyMetricService,
 		alertService,
+		notificationGroupService,
+		rabbitWebhook,
+		rabbitTemplate,
+		rabbitSender,
 	)...)
 	srvs = append(srvs, RegisterGRPCService(c,
 		grpcSrv,
@@ -166,6 +175,10 @@ func RegisterService(
 		strategyService,
 		strategyMetricService,
 		alertService,
+		notificationGroupService,
+		rabbitWebhook,
+		rabbitTemplate,
+		rabbitSender,
 	)...)
 	srvs = append(srvs, RegisterMetricCronService(metricCronSrv, alertConsumerSrv)...)
 	return srvs
@@ -188,6 +201,10 @@ func RegisterHTTPService(
 	strategyService *service.StrategyService,
 	strategyMetricService *service.StrategyMetricService,
 	alertService *service.AlertService,
+	notificationGroupService *service.NotificationGroupService,
+	rabbitWebhook repository.RabbitWebhook,
+	rabbitTemplate repository.RabbitTemplate,
+	rabbitSender repository.RabbitSender,
 ) Servers {
 	magicboxapiv1.RegisterHealthHTTPServer(httpSrv, healthService)
 	goddessv1.RegisterAuthServiceHTTPServer(httpSrv, authService)
@@ -202,6 +219,10 @@ func RegisterHTTPService(
 	apiv1.RegisterStrategyHTTPServer(httpSrv, strategyService)
 	apiv1.RegisterStrategyMetricHTTPServer(httpSrv, strategyMetricService)
 	apiv1.RegisterAlertHTTPServer(httpSrv, alertService)
+	apiv1.RegisterNotificationGroupHTTPServer(httpSrv, notificationGroupService)
+	rabbitv1.RegisterWebhookHTTPServer(httpSrv, rabbitWebhook)
+	rabbitv1.RegisterTemplateHTTPServer(httpSrv, rabbitTemplate)
+	rabbitv1.RegisterSenderHTTPServer(httpSrv, rabbitSender)
 
 	apiRouter := httpSrv.Route("/v1")
 	// {path:.*} allows path to match multiple segments (e.g. api/v1/query)
@@ -236,6 +257,10 @@ func RegisterGRPCService(
 	strategyService *service.StrategyService,
 	strategyMetricService *service.StrategyMetricService,
 	alertService *service.AlertService,
+	notificationGroupService *service.NotificationGroupService,
+	rabbitWebhook repository.RabbitWebhook,
+	rabbitTemplate repository.RabbitTemplate,
+	rabbitSender repository.RabbitSender,
 ) Servers {
 	magicboxapiv1.RegisterHealthServer(grpcSrv, healthService)
 	goddessv1.RegisterAuthServiceServer(grpcSrv, authService)
@@ -250,6 +275,10 @@ func RegisterGRPCService(
 	apiv1.RegisterStrategyServer(grpcSrv, strategyService)
 	apiv1.RegisterStrategyMetricServer(grpcSrv, strategyMetricService)
 	apiv1.RegisterAlertServer(grpcSrv, alertService)
+	apiv1.RegisterNotificationGroupServer(grpcSrv, notificationGroupService)
+	rabbitv1.RegisterWebhookServer(grpcSrv, rabbitWebhook)
+	rabbitv1.RegisterTemplateServer(grpcSrv, rabbitTemplate)
+	rabbitv1.RegisterSenderServer(grpcSrv, rabbitSender)
 	return Servers{newServer("grpc", grpcSrv)}
 }
 

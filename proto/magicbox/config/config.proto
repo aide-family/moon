@@ -100,9 +100,7 @@ message BasicAuthConfig {
 message DomainConfig {
 	enum Driver {
 		DEFAULT = 0;
-		GORM = 1;
-		ETCD = 2;
-		OUTER = 3;
+		OUTER = 1;
 	}
 	Driver driver = 1;
     string version = 2;

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package internal.conf;
+package marksman.internal.conf;
 
 import "google/protobuf/duration.proto";
 import "magicbox/config/config.proto";
@@ -18,21 +18,20 @@ message Bootstrap {
 	string enableSwagger = 7;
 	string enableMetrics = 8;
 	string enableClientConfig = 9;
-	magicbox.config.ReportConfig report = 10;
-	magicbox.config.OAuth2 oauth2 = 11;
-	magicbox.config.DomainConfig namespaceConfig = 12;
-	magicbox.config.DomainConfig loginConfig = 13;
-	magicbox.config.ClusterConfig jobClusters = 14;
-	JobCore jobCore = 15;
+	MainTsdb mainTsdb = 10;
+	EvaluateConfig evaluateConfig = 11;
+	magicbox.config.ReportConfig report = 12;
+	magicbox.config.OAuth2 oauth2 = 13;
+	magicbox.config.DomainConfig namespaceConfig = 14;
+	magicbox.config.DomainConfig loginConfig = 15;
 	magicbox.config.ORMConfig database = 16;
 	magicbox.config.DomainConfig selfConfig = 17;
 	magicbox.config.DomainConfig userConfig = 18;
 	magicbox.config.DomainConfig memberConfig = 19;
 	magicbox.config.DomainConfig captchaConfig = 20;
-	// Main time-series DB for querying datasource status history (Prometheus / VictoriaMetrics).
-	MainTsdb mainTsdb = 21;
-	// Evaluate (metric cron) concurrency, timeouts and channel capacity.
-	EvaluateConfig evaluateConfig = 22;
+	magicbox.config.DomainConfig webhookConfig = 21;
+	magicbox.config.DomainConfig messageTemplateConfig = 22;
+	magicbox.config.DomainConfig senderConfig = 23;
 }
 
 // EvaluateConfig configures the metric evaluate cron: concurrency, timeouts and job channel capacity.

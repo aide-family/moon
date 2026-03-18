@@ -127,7 +127,29 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	}
 	alertBiz := biz.NewAlert(alertPage, alertEvent, userAlertPage, level, helper)
 	alertService := service.NewAlertService(alertPageBiz, alertBiz)
-	servers := server.RegisterGRPCService(bc, grpcServer, healthService, namespaceService, authService, selfService, userService, memberService, captchaService, levelService, datasourceService, metricQueryService, strategyService, strategyMetricService, alertService)
+	notificationGroup, err := impl.NewNotificationGroupRepository(dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	notificationGroupBiz := biz.NewNotificationGroup(notificationGroup, helper)
+	notificationGroupService := service.NewNotificationGroupService(notificationGroupBiz)
+	rabbitWebhook, err := impl.NewRabbitWebhookRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	rabbitTemplate, err := impl.NewRabbitTemplateRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	rabbitSender, err := impl.NewRabbitSenderRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	servers := server.RegisterGRPCService(bc, grpcServer, healthService, namespaceService, authService, selfService, userService, memberService, captchaService, levelService, datasourceService, metricQueryService, strategyService, strategyMetricService, alertService, notificationGroupService, rabbitWebhook, rabbitTemplate, rabbitSender)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

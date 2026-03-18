@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-package internal.config;
+package rabbit.internal.conf;
 
 import "google/protobuf/duration.proto";
 import "magicbox/config/config.proto";
 import "magicbox/enum/enum.proto";
 
-option go_package = "github.com/aide-family/goddess/internal/conf;conf";
+option go_package = "github.com/aide-family/rabbit/internal/conf;conf";
 
 message Bootstrap {
 	magicbox.enum.Environment environment = 1;
@@ -20,9 +20,15 @@ message Bootstrap {
 	string enableClientConfig = 9;
 	magicbox.config.ReportConfig report = 10;
 	magicbox.config.OAuth2 oauth2 = 11;
-	magicbox.config.ORMConfig database = 12;
-	magicbox.config.MessageEmailConfig globalEmail = 13;
-	string siteDomain = 14;
+	magicbox.config.DomainConfig namespaceConfig = 12;
+	magicbox.config.DomainConfig memberConfig = 13;
+	magicbox.config.DomainConfig loginConfig = 14;
+	magicbox.config.ClusterConfig jobClusters = 15;
+	JobCore jobCore = 16;
+	magicbox.config.ORMConfig database = 17;
+	magicbox.config.DomainConfig selfConfig = 18;
+	magicbox.config.DomainConfig userConfig = 19;
+	magicbox.config.DomainConfig captchaConfig = 20;
 }
 
 message Server {
@@ -37,4 +43,12 @@ message Server {
 	map<string, string> metadata = 2;
 	ServerConfig http = 3;
 	ServerConfig grpc = 4;
+	ServerConfig job = 5;
+}
+
+message JobCore {
+	int32 workerTotal = 1;
+	google.protobuf.Duration timeout = 2;
+	uint32 bufferSize = 3;
+	uint32 maxRetry = 4;
 }

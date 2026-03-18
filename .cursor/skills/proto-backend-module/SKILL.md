@@ -41,6 +41,7 @@ description: Implements backend modules from proto definitions for goddess, mark
    - Proto 在 `proto/<app>/api/v1/`，`go_package` 指向 `github.com/aide-family/<app>/pkg/api/v1`。  
    - 确保已生成 `pkg/api/v1/*.pb.go`（如未生成，提醒用户执行项目既定 make/buf 命令）。  
    - **HTTP 路由勿与已有路径冲突**：若已有 `GET /v1/resource/{uid}` 这类带路径参数的 route，不要新增 `GET /v1/resource/xxx`（会被匹配成 `uid=xxx`，导致解析错误）。应使用不同前缀或层级，例如 `GET /v1/resources/xxx`（复数前缀）、`GET /v1/resource/action/xxx`（多段），或单独资源名如 `GET /v1/namespaces/simple`。新增/修改 proto 的 `google.api.http` 后需执行 `make api` 并确认生成的路由表无冲突。
+   - **DELETE 不得声明 body**：HTTP DELETE 方法不应携带 request body（符合 RFC 与 OpenAPI 惯例，否则 `make api`/OpenAPI 生成会告警）。若需传递「要解除绑定的 ID 列表」等参数，**不要**使用 `body: "*"`，应去掉 body，让 Request 中除路径变量外的字段通过 **query 重复参数** 传递（例如 `DELETE /v1/notification-groups/{uid}/webhooks?webhook_uids=1&webhook_uids=2`）。路径变量（如 `{uid}`）照常写在 path 中。
 
 2. **biz/bo**  
    - 在 `internal/biz/bo/` 下为当前模块增加类型（如 `CreateXxxBo`、`UpdateXxxBo`、`XxxItemBo`、`ListXxxBo` 等），与 proto 的 Request/Reply/Item 对应。  

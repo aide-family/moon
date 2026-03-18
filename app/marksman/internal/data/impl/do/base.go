@@ -23,6 +23,7 @@ func Models() []any {
 		&EvaluatorSnapshot{},
 		&AlertEvent{},
 		&UserAlertPage{},
+		&NotificationGroup{},
 	}
 }
 

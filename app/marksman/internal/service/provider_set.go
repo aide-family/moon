@@ -19,4 +19,5 @@ var ProviderSetService = wire.NewSet(
 	NewEvaluateService,
 	NewAlertService,
 	NewMetricQueryService,
+	NewNotificationGroupService,
 )

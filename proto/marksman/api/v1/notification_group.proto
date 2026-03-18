@@ -1,0 +1,139 @@
+syntax = "proto3";
+
+package marksman.api.v1;
+
+option go_package = "github.com/aide-family/marksman/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "marksman.api.v1";
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "magicbox/enum/enum.proto";
+
+// NotificationGroup service: CRUD for notification groups (members, webhooks, templates updated via Update).
+service NotificationGroup {
+	rpc CreateNotificationGroup (CreateNotificationGroupRequest) returns (CreateNotificationGroupReply) {
+		option (google.api.http) = {
+			post: "/v1/notification-groups"
+			body: "*"
+		};
+	}
+	rpc UpdateNotificationGroup (UpdateNotificationGroupRequest) returns (UpdateNotificationGroupReply) {
+		option (google.api.http) = {
+			put: "/v1/notification-groups/{uid}"
+			body: "*"
+		};
+	}
+	rpc UpdateNotificationGroupStatus (UpdateNotificationGroupStatusRequest) returns (UpdateNotificationGroupStatusReply) {
+		option (google.api.http) = {
+			put: "/v1/notification-groups/{uid}/status"
+			body: "*"
+		};
+	}
+	rpc DeleteNotificationGroup (DeleteNotificationGroupRequest) returns (DeleteNotificationGroupReply) {
+		option (google.api.http) = {
+			delete: "/v1/notification-groups/{uid}"
+		};
+	}
+	rpc GetNotificationGroup (GetNotificationGroupRequest) returns (NotificationGroupItem) {
+		option (google.api.http) = {
+			get: "/v1/notification-groups/{uid}"
+		};
+	}
+	rpc ListNotificationGroup (ListNotificationGroupRequest) returns (ListNotificationGroupReply) {
+		option (google.api.http) = {
+			get: "/v1/notification-groups"
+		};
+	}
+}
+
+message NotificationMemberItem {
+	int64 member_uid = 1;
+	bool is_email = 2;
+	bool is_phone = 3;
+}
+
+message NotificationGroupItem {
+	int64 uid = 1;
+	string name = 2;
+	string remark = 3;
+	map<string, string> metadata = 4;
+	magicbox.enum.GlobalStatus status = 5;
+	repeated NotificationMemberItem members = 6;
+	repeated int64 webhooks = 7;
+	repeated int64 templates = 8;
+	string createdAt = 9;
+	string updatedAt = 10;
+}
+
+message CreateNotificationGroupRequest {
+	string name = 1 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 1,
+		max_len: 100,
+	}];
+	string remark = 2 [(buf.validate.field).string = { max_len: 500 }];
+	map<string, string> metadata = 3;
+	repeated NotificationMemberItem members = 4;
+	repeated int64 webhooks = 5;
+	repeated int64 templates = 6;
+}
+message CreateNotificationGroupReply {
+	int64 uid = 1;
+}
+
+message UpdateNotificationGroupRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+	string name = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 1,
+		max_len: 100,
+	}];
+	string remark = 3 [(buf.validate.field).string = { max_len: 500 }];
+	map<string, string> metadata = 4;
+	repeated NotificationMemberItem members = 5;
+	repeated int64 webhooks = 6;
+	repeated int64 templates = 7;
+}
+message UpdateNotificationGroupReply {}
+
+message UpdateNotificationGroupStatusRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	magicbox.enum.GlobalStatus status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
+		message: "status must be in ['ENABLED', 'DISABLED']",
+	}];
+}
+message UpdateNotificationGroupStatusReply {}
+
+message DeleteNotificationGroupRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+message DeleteNotificationGroupReply {}
+
+message GetNotificationGroupRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message ListNotificationGroupRequest {
+	int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1",
+		message: "page must be greater than or equal to 1",
+	}];
+	int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 200",
+		message: "pageSize must be between 1 and 200",
+	}];
+	string keyword = 3 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword length must be <= 100",
+	}];
+	magicbox.enum.GlobalStatus status = 4;
+}
+message ListNotificationGroupReply {
+	repeated NotificationGroupItem items = 1;
+	int64 total = 2;
+	int32 page = 3;
+	int32 pageSize = 4;
+}

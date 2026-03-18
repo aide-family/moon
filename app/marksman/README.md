@@ -55,6 +55,7 @@
 - **Level**: Alert level CRUD, list, select, status (for grouping alert severity)
 - **Strategy metric**: Save/get metric config (expr, labels, datasourceUIDs, levels); save/update/delete/get metric levels (mode, condition, values, duration); bind receivers per strategy (optional levelUID)
 - **Alert (real-time)**: Alert page CRUD (name, color, sort order, filter by strategy group/level/strategy); list real-time alert events by alert page; operate events: intervene (on-call takeover), suppress (until time), recover (manual); alert statistics for dashboard (total active, by level, today recovered, by alert page); user followed alert pages (list/save per user)
+- **Notification group**: CRUD for notification groups (name, remark, metadata, members, webhooks, templates updated via Create/Update)
 
 ---
 
@@ -114,6 +115,12 @@
 | | `DELETE /v1/metric/strategy/{strategyUID}/level/{uid}` | Delete metric level |
 | | `GET /v1/metric/strategy/{strategyUID}/level/{uid}` | Get metric level |
 | | `POST /v1/metric/strategy/{strategyUID}/receivers` | Bind receivers (receiverUIDs; optional levelUID) |
+| **NotificationGroup** | `POST /v1/notification-groups` | Create notification group (name, remark, metadata, members, webhooks, templates) |
+| | `PUT /v1/notification-groups/{uid}` | Update notification group (including members, webhooks, templates) |
+| | `PUT /v1/notification-groups/{uid}/status` | Update status (ENABLED/DISABLED) |
+| | `DELETE /v1/notification-groups/{uid}` | Delete notification group |
+| | `GET /v1/notification-groups/{uid}` | Get notification group |
+| | `GET /v1/notification-groups` | List notification groups (page, pageSize, keyword, status) |
 | **Alert** (alert page) | `POST /v1/alert-pages` | Create alert page (name, color, sortOrder, filter) |
 | | `PUT /v1/alert-pages/{uid}` | Update alert page |
 | | `DELETE /v1/alert-pages/{uid}` | Delete alert page |

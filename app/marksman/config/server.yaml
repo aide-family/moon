@@ -140,6 +140,37 @@ captchaConfig:
   driver: ${MOON_MARKSMAN_CAPTCHA_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_CAPTCHA_VERSION:v1}
 
+# Rabbit domain configs for webhook, message template and sender (call rabbit HTTP API).
+webhookConfig:
+  driver: ${MOON_MARKSMAN_WEBHOOK_DRIVER:OUTER}
+  version: ${MOON_MARKSMAN_WEBHOOK_VERSION:v1}
+  options:
+    '@type': '${MOON_MARKSMAN_WEBHOOK_OPTIONS_TYPE:type.googleapis.com/magicbox.config.OuterServerConfig}'
+    address: ${MOON_MARKSMAN_WEBHOOK_OPTIONS_ADDRESS:http://localhost:8001}
+    network: ${MOON_MARKSMAN_WEBHOOK_OPTIONS_NETWORK:tcp}
+    timeout: '${MOON_MARKSMAN_WEBHOOK_OPTIONS_TIMEOUT:10s}'
+    protocol: ${MOON_MARKSMAN_WEBHOOK_OPTIONS_PROTOCOL:HTTP}
+
+messageTemplateConfig:
+  driver: ${MOON_MARKSMAN_MESSAGE_TEMPLATE_DRIVER:OUTER}
+  version: ${MOON_MARKSMAN_MESSAGE_TEMPLATE_VERSION:v1}
+  options:
+    '@type': '${MOON_MARKSMAN_MESSAGE_TEMPLATE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.OuterServerConfig}'
+    address: ${MOON_MARKSMAN_MESSAGE_TEMPLATE_OPTIONS_ADDRESS:http://localhost:8001}
+    network: ${MOON_MARKSMAN_MESSAGE_TEMPLATE_OPTIONS_NETWORK:tcp}
+    timeout: '${MOON_MARKSMAN_MESSAGE_TEMPLATE_OPTIONS_TIMEOUT:10s}'
+    protocol: ${MOON_MARKSMAN_MESSAGE_TEMPLATE_OPTIONS_PROTOCOL:HTTP}
+
+senderConfig:
+  driver: ${MOON_MARKSMAN_SENDER_DRIVER:OUTER}
+  version: ${MOON_MARKSMAN_SENDER_VERSION:v1}
+  options:
+    '@type': '${MOON_MARKSMAN_SENDER_OPTIONS_TYPE:type.googleapis.com/magicbox.config.OuterServerConfig}'
+    address: ${MOON_MARKSMAN_SENDER_OPTIONS_ADDRESS:http://localhost:8001}
+    network: ${MOON_MARKSMAN_SENDER_OPTIONS_NETWORK:tcp}
+    timeout: '${MOON_MARKSMAN_SENDER_OPTIONS_TIMEOUT:10s}'
+    protocol: ${MOON_MARKSMAN_SENDER_OPTIONS_PROTOCOL:HTTP}
+
 # Metric evaluate cron: concurrency, timeouts and job channel capacity.
 evaluateConfig:
   concurrencyLimit: ${MOON_MARKSMAN_EVALUATE_CONCURRENCY_LIMIT:10}
@@ -166,11 +197,6 @@ metricsBasicAuth:
   enabled: ${MOON_MARKSMAN_METRICS_BASIC_AUTH_ENABLED:false}
   username: ${MOON_MARKSMAN_METRICS_BASIC_AUTH_USERNAME:moon.marksman}
   password: ${MOON_MARKSMAN_METRICS_BASIC_AUTH_PASSWORD:marksman.metrics}
-
-jobCore:
-  workerTotal: ${MOON_MARKSMAN_JOB_CORE_WORKER_TOTAL:10}
-  timeout: '${MOON_MARKSMAN_JOB_CORE_TIMEOUT:10s}'
-  bufferSize: ${MOON_MARKSMAN_JOB_CORE_BUFFER_SIZE:1000}
 
 oauth2:
   enable: ${MOON_MARKSMAN_OAUTH2_ENABLE:true}
@@ -212,9 +238,3 @@ database:
   options:
     '@type': '${MOON_MARKSMAN_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
     dsn: '${MOON_MARKSMAN_DATABASE_SQLITE_OPTIONS_DSN:file:./marksman.db?cache=shared}'
-
-jobCluster:
-  name: ${MOON_MARKSMAN_JOB_CLUSTER_NAME:marksman}
-  endpoints: ${MOON_MARKSMAN_JOB_CLUSTER_ENDPOINTS:http://localhost:18081}
-  timeout: '${MOON_MARKSMAN_JOB_CLUSTER_TIMEOUT:10s}'
-  protocol: ${MOON_MARKSMAN_JOB_CLUSTER_PROTOCOL:HTTP}

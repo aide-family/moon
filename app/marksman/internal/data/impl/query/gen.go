@@ -22,6 +22,7 @@ var (
 	Datasource          *datasource
 	EvaluatorSnapshot   *evaluatorSnapshot
 	Level               *level
+	NotificationGroup   *notificationGroup
 	Strategy            *strategy
 	StrategyGroup       *strategyGroup
 	StrategyMetric      *strategyMetric
@@ -36,6 +37,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Datasource = &Q.Datasource
 	EvaluatorSnapshot = &Q.EvaluatorSnapshot
 	Level = &Q.Level
+	NotificationGroup = &Q.NotificationGroup
 	Strategy = &Q.Strategy
 	StrategyGroup = &Q.StrategyGroup
 	StrategyMetric = &Q.StrategyMetric
@@ -51,6 +53,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Datasource:          newDatasource(db, opts...),
 		EvaluatorSnapshot:   newEvaluatorSnapshot(db, opts...),
 		Level:               newLevel(db, opts...),
+		NotificationGroup:   newNotificationGroup(db, opts...),
 		Strategy:            newStrategy(db, opts...),
 		StrategyGroup:       newStrategyGroup(db, opts...),
 		StrategyMetric:      newStrategyMetric(db, opts...),
@@ -67,6 +70,7 @@ type Query struct {
 	Datasource          datasource
 	EvaluatorSnapshot   evaluatorSnapshot
 	Level               level
+	NotificationGroup   notificationGroup
 	Strategy            strategy
 	StrategyGroup       strategyGroup
 	StrategyMetric      strategyMetric
@@ -84,6 +88,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Datasource:          q.Datasource.clone(db),
 		EvaluatorSnapshot:   q.EvaluatorSnapshot.clone(db),
 		Level:               q.Level.clone(db),
+		NotificationGroup:   q.NotificationGroup.clone(db),
 		Strategy:            q.Strategy.clone(db),
 		StrategyGroup:       q.StrategyGroup.clone(db),
 		StrategyMetric:      q.StrategyMetric.clone(db),
@@ -108,6 +113,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Datasource:          q.Datasource.replaceDB(db),
 		EvaluatorSnapshot:   q.EvaluatorSnapshot.replaceDB(db),
 		Level:               q.Level.replaceDB(db),
+		NotificationGroup:   q.NotificationGroup.replaceDB(db),
 		Strategy:            q.Strategy.replaceDB(db),
 		StrategyGroup:       q.StrategyGroup.replaceDB(db),
 		StrategyMetric:      q.StrategyMetric.replaceDB(db),
@@ -122,6 +128,7 @@ type queryCtx struct {
 	Datasource          IDatasourceDo
 	EvaluatorSnapshot   IEvaluatorSnapshotDo
 	Level               ILevelDo
+	NotificationGroup   INotificationGroupDo
 	Strategy            IStrategyDo
 	StrategyGroup       IStrategyGroupDo
 	StrategyMetric      IStrategyMetricDo
@@ -136,6 +143,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Datasource:          q.Datasource.WithContext(ctx),
 		EvaluatorSnapshot:   q.EvaluatorSnapshot.WithContext(ctx),
 		Level:               q.Level.WithContext(ctx),
+		NotificationGroup:   q.NotificationGroup.WithContext(ctx),
 		Strategy:            q.Strategy.WithContext(ctx),
 		StrategyGroup:       q.StrategyGroup.WithContext(ctx),
 		StrategyMetric:      q.StrategyMetric.WithContext(ctx),

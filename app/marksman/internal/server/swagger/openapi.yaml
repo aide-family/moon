@@ -872,6 +872,137 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.UpdateStrategyMetricLevelStatusReply'
+    /v1/notification-groups:
+        get:
+            tags:
+                - NotificationGroup
+            operationId: NotificationGroup_ListNotificationGroup
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.ListNotificationGroupReply'
+        post:
+            tags:
+                - NotificationGroup
+            operationId: NotificationGroup_CreateNotificationGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.CreateNotificationGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.CreateNotificationGroupReply'
+    /v1/notification-groups/{uid}:
+        get:
+            tags:
+                - NotificationGroup
+            operationId: NotificationGroup_GetNotificationGroup
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.NotificationGroupItem'
+        put:
+            tags:
+                - NotificationGroup
+            operationId: NotificationGroup_UpdateNotificationGroup
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.UpdateNotificationGroupRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.UpdateNotificationGroupReply'
+        delete:
+            tags:
+                - NotificationGroup
+            operationId: NotificationGroup_DeleteNotificationGroup
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.DeleteNotificationGroupReply'
+    /v1/notification-groups/{uid}/status:
+        put:
+            tags:
+                - NotificationGroup
+            operationId: NotificationGroup_UpdateNotificationGroupStatus
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.UpdateNotificationGroupStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.UpdateNotificationGroupStatusReply'
     /v1/strategies:
         get:
             tags:
@@ -1374,6 +1505,34 @@ components:
                     type: object
                     additionalProperties:
                         type: string
+        marksman.api.v1.CreateNotificationGroupReply:
+            type: object
+            properties:
+                uid:
+                    type: string
+        marksman.api.v1.CreateNotificationGroupRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                remark:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                members:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.NotificationMemberItem'
+                webhooks:
+                    type: array
+                    items:
+                        type: string
+                templates:
+                    type: array
+                    items:
+                        type: string
         marksman.api.v1.CreateStrategyGroupReply:
             type: object
             properties:
@@ -1471,6 +1630,9 @@ components:
             type: object
             properties: {}
         marksman.api.v1.DeleteLevelReply:
+            type: object
+            properties: {}
+        marksman.api.v1.DeleteNotificationGroupReply:
             type: object
             properties: {}
         marksman.api.v1.DeleteStrategyGroupReply:
@@ -1607,6 +1769,21 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/marksman.api.v1.MetricSummaryItem'
+        marksman.api.v1.ListNotificationGroupReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.NotificationGroupItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         marksman.api.v1.ListRealtimeAlertReply:
             type: object
             properties:
@@ -1762,6 +1939,47 @@ components:
                 type:
                     type: string
             description: 'MetricSummaryItem: metric list item (no label detail). Uses help to align with Prometheus metadata.'
+        marksman.api.v1.NotificationGroupItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                remark:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                status:
+                    type: integer
+                    format: enum
+                members:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.NotificationMemberItem'
+                webhooks:
+                    type: array
+                    items:
+                        type: string
+                templates:
+                    type: array
+                    items:
+                        type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        marksman.api.v1.NotificationMemberItem:
+            type: object
+            properties:
+                memberUid:
+                    type: string
+                isEmail:
+                    type: boolean
+                isPhone:
+                    type: boolean
         marksman.api.v1.RecoverAlertReply:
             type: object
             properties: {}
@@ -2114,6 +2332,45 @@ components:
                 status:
                     type: integer
                     format: enum
+        marksman.api.v1.UpdateNotificationGroupReply:
+            type: object
+            properties: {}
+        marksman.api.v1.UpdateNotificationGroupRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                remark:
+                    type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                members:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.NotificationMemberItem'
+                webhooks:
+                    type: array
+                    items:
+                        type: string
+                templates:
+                    type: array
+                    items:
+                        type: string
+        marksman.api.v1.UpdateNotificationGroupStatusReply:
+            type: object
+            properties: {}
+        marksman.api.v1.UpdateNotificationGroupStatusRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
         marksman.api.v1.UpdateStrategyGroupReply:
             type: object
             properties: {}
@@ -2196,5 +2453,7 @@ tags:
     - name: Level
     - name: MetricQuery
       description: MetricQuery provides query, query_range and proxy for metric-type datasources (Prometheus / VictoriaMetrics).
+    - name: NotificationGroup
+      description: 'NotificationGroup service: CRUD for notification groups (members, webhooks, templates updated via Update).'
     - name: Strategy
     - name: StrategyMetric
