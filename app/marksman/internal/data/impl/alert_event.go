@@ -15,6 +15,7 @@ import (
 	"github.com/bwmarrin/snowflake"
 	"github.com/go-kratos/kratos/v2/errors"
 	klog "github.com/go-kratos/kratos/v2/log"
+	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -155,7 +156,12 @@ func (r *alertEventRepository) GetAlertEventByFingerprint(ctx context.Context, u
 	bizQuery := query.Use(r.DB().Table(tableName))
 	e := bizQuery.AlertEvent
 	table := e.As(tableName)
-	m, err := e.WithContext(ctx).Where(table.Fingerprint.Eq(fingerprint)).Preload(field.Associations).First()
+	wrappers := []gen.Condition{
+		table.NamespaceUID.Eq(ns.Int64()),
+		table.ID.Eq(uid.Int64()),
+		table.Fingerprint.Eq(fingerprint),
+	}
+	m, err := e.WithContext(ctx).Where(wrappers...).Preload(field.Associations).First()
 	if err != nil {
 		return nil, err
 	}
