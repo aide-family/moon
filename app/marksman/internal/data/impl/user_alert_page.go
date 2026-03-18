@@ -16,10 +16,12 @@ import (
 
 func NewUserAlertPageRepository(d *data.Data) (repository.UserAlertPage, error) {
 	query.SetDefault(d.DB())
-	return &userAlertPageRepository{}, nil
+	return &userAlertPageRepository{node: d.Node()}, nil
 }
 
-type userAlertPageRepository struct{}
+type userAlertPageRepository struct {
+	node *snowflake.Node
+}
 
 func (r *userAlertPageRepository) GetUserAlertPageUIDs(ctx context.Context, userUID snowflake.ID) ([]snowflake.ID, error) {
 	namespaceUID := contextx.GetNamespace(ctx)
@@ -45,6 +47,9 @@ func (r *userAlertPageRepository) SaveUserAlertPages(ctx context.Context, userUI
 	rows := make([]*do.UserAlertPage, 0, len(uidsReversed))
 	for i, uid := range uidsReversed {
 		rows = append(rows, &do.UserAlertPage{
+			EventBaseModel: do.EventBaseModel{
+				ID: r.node.Generate(),
+			},
 			NamespaceUID: namespaceUID,
 			UserUID:      userUID,
 			AlertPageUID: uid,

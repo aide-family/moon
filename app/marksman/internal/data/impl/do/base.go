@@ -43,11 +43,13 @@ func (b *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
 	if b.Creator == 0 {
 		return merr.ErrorInvalidArgument("creator is required")
 	}
-	node, err := snowflake.NewNode(hello.NodeID())
-	if err != nil {
-		return merr.ErrorInternalServer("create snowflake node failed").WithCause(err)
+	if b.ID == 0 {
+		node, err := snowflake.NewNode(hello.NodeID())
+		if err != nil {
+			return merr.ErrorInternalServer("create snowflake node failed").WithCause(err)
+		}
+		b.ID = node.Generate()
 	}
-	b.ID = node.Generate()
 	return nil
 }
 
@@ -59,10 +61,12 @@ type EventBaseModel struct {
 }
 
 func (e *EventBaseModel) BeforeCreate(tx *gorm.DB) (err error) {
-	node, err := snowflake.NewNode(hello.NodeID())
-	if err != nil {
-		return merr.ErrorInternalServer("create snowflake node failed").WithCause(err)
+	if e.ID == 0 {
+		node, err := snowflake.NewNode(hello.NodeID())
+		if err != nil {
+			return merr.ErrorInternalServer("create snowflake node failed").WithCause(err)
+		}
+		e.ID = node.Generate()
 	}
-	e.ID = node.Generate()
 	return nil
 }

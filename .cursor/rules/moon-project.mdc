@@ -1,0 +1,39 @@
+---
+description: Moon 项目专属上下文与约定，在此仓库内开发时始终遵循
+alwaysApply: true
+---
+
+# Moon 项目专属规则
+
+## 项目是什么
+
+- **Moon**：aide-family 的 Go 后端单仓库（monorepo），包含共享库与多个微服务。
+- **技术栈**：Go 1.25+、Kratos、Cobra；各应用独立 `go.mod`，根目录 `make all` / `make <app>` / `make gen`。
+
+## 目录与职责
+
+| 路径 | 说明 |
+|------|------|
+| `magicbox/` | 共享工具（safety、OAuth、merr、contextx、strutil 等），优先复用，不重复造轮子 |
+| `app/goddess/` | 认证授权服务（嫦娥） |
+| `app/rabbit/` | 业务服务（玉兔） |
+| `app/marksman/` | 事件服务（后羿） |
+| `proto/` | API 定义，按 app 分目录；生成代码在 `app/<app>/pkg/api/v1/` |
+
+## 开发约定
+
+- **接口与 API**：以 proto 与项目文档为准，不猜测字段或路径；新增/修改 API 后需同步 README（API 概览、用法）。
+- **复用优先**：能用 magicbox 和当前 app 内已有类型（bo、merr、contextx、safety 等）则用，不新建重复能力。
+- **分层一致**：新代码落在既有分层内（cmd → server → service → biz → data/impl），不创造与现有 app 结构不符的包或目录。
+- **业务逻辑**：不确定的需求由人类确认，不臆断业务含义。
+
+## 与 Skill 的配合
+
+- **基于 proto 做后端功能**（如「帮我完成某某模块」）：使用或参考 `.cursor/skills/proto-backend-module/SKILL.md`，按其中分层、repository 单一职责、gen 生成 query、README 同步等步骤实现。
+- **代码审查、找 bug**：使用或参考 `.cursor/skills/code-review/SKILL.md`。
+
+## 简要示例
+
+- ✅ 在 `internal/biz/bo/` 增加 BO，在 `internal/data/impl/do/` 增加 GORM 模型并加入 `do.Models()`，用 gen 生成 query 后写 impl。
+- ❌ 手写 `Where("user_uid = ?", ...)`，应使用 gen 的 field 表达式（如 `u.UserUID.Eq(x)`）。
+- ❌ 在循环内逐条 `Create`，应使用 `CreateInBatches(rows, len(rows))` 或一次 `Create(rows...)`。
