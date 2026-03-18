@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package magicbox.enum;
+
+option go_package = "github.com/aide-family/magicbox/enum";
+
+enum AlertEventStatus {
+    ALERT_EVENT_STATUS_UNKNOWN = 0;
+    ALERT_EVENT_STATUS_FIRING = 1;
+    ALERT_EVENT_STATUS_RECOVERED = 2;
+    ALERT_EVENT_STATUS_RECOVERED_BY_MANUAL = 3;
+}

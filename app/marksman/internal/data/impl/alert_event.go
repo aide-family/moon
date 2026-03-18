@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/aide-family/magicbox/contextx"
+	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/plugin/cache"
 	"github.com/bwmarrin/snowflake"
@@ -19,8 +20,6 @@ import (
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-
-	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
 
 	"github.com/aide-family/marksman/internal/biz/bo"
 	"github.com/aide-family/marksman/internal/biz/repository"
@@ -215,7 +214,7 @@ func (r *alertEventRepository) ListRealtimeAlert(ctx context.Context, req *bo.Li
 	wrappers = wrappers.Where(table.NamespaceUID.Eq(ns.Int64())).
 		Where(table.FiredAt.Gte(startAt)).
 		Where(table.FiredAt.Lte(endAt))
-	if req.Status != apiv1.AlertEventStatus_ALERT_EVENT_STATUS_UNKNOWN {
+	if req.Status != enum.AlertEventStatus_ALERT_EVENT_STATUS_UNKNOWN {
 		wrappers = wrappers.Where(table.Status.Eq(int32(req.Status)))
 	}
 	if pageFilter != nil {
@@ -277,8 +276,9 @@ func (r *alertEventRepository) levelNamesForEvents(ctx context.Context, namespac
 	return out
 }
 
-func (r *alertEventRepository) InterveneAlert(ctx context.Context, uid snowflake.ID, by snowflake.ID) error {
+func (r *alertEventRepository) InterveneAlert(ctx context.Context, req *bo.InterveneAlertBo) error {
 	ns := contextx.GetNamespace(ctx)
+	uid, by := req.UID, req.IntervenedBy
 	tableName := do.GenAlertEventTableName(ns, do.AlertEventTimeFromID(uid))
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
 		return merr.ErrorNotFound("alert event not found")
@@ -301,7 +301,8 @@ func (r *alertEventRepository) InterveneAlert(ctx context.Context, uid snowflake
 	return nil
 }
 
-func (r *alertEventRepository) SuppressAlert(ctx context.Context, uid snowflake.ID, until time.Time) error {
+func (r *alertEventRepository) SuppressAlert(ctx context.Context, req *bo.SuppressAlertBo) error {
+	uid, until, by, reason := req.UID, req.SuppressUntilAt, req.SuppressedBy, req.SuppressedReason
 	ns := contextx.GetNamespace(ctx)
 	tableName := do.GenAlertEventTableName(ns, do.AlertEventTimeFromID(uid))
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
@@ -312,7 +313,9 @@ func (r *alertEventRepository) SuppressAlert(ctx context.Context, uid snowflake.
 	table := e.As(tableName)
 	info, err := e.WithContext(ctx).Where(table.ID.Eq(uid.Int64())).UpdateColumnSimple(
 		e.Status.Value(do.AlertEventStatusSuppressed),
-		e.SuppressedUntil.Value(until),
+		e.SuppressedUntilAt.Value(until),
+		e.SuppressedBy.Value(by.Int64()),
+		e.SuppressedReason.Value(reason),
 	)
 	if err != nil {
 		return err
@@ -323,7 +326,8 @@ func (r *alertEventRepository) SuppressAlert(ctx context.Context, uid snowflake.
 	return nil
 }
 
-func (r *alertEventRepository) RecoverAlert(ctx context.Context, uid snowflake.ID, by snowflake.ID) error {
+func (r *alertEventRepository) RecoverAlert(ctx context.Context, req *bo.RecoverAlertBo) error {
+	uid, by, reason := req.UID, req.RecoveredBy, req.RecoveredReason
 	ns := contextx.GetNamespace(ctx)
 	tableName := do.GenAlertEventTableName(ns, do.AlertEventTimeFromID(uid))
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
@@ -337,6 +341,7 @@ func (r *alertEventRepository) RecoverAlert(ctx context.Context, uid snowflake.I
 		e.Status.Value(do.AlertEventStatusRecovered),
 		e.RecoveredAt.Value(now),
 		e.RecoveredBy.Value(by.Int64()),
+		e.RecoveredReason.Value(reason),
 	)
 	if err != nil {
 		return err

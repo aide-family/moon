@@ -20,8 +20,8 @@ type AlertEvent interface {
 	CountActiveAlertsByLevel(ctx context.Context, startAt, endAt time.Time, pageFilter *bo.AlertPageFilterBo) ([]bo.LevelCountBo, error)
 	// CountRecoveredAlertsSince returns count of alerts with status Recovered and recovered_at >= since.
 	CountRecoveredAlertsSince(ctx context.Context, since time.Time) (int64, error)
-	InterveneAlert(ctx context.Context, uid snowflake.ID, by snowflake.ID) error
-	SuppressAlert(ctx context.Context, uid snowflake.ID, until time.Time) error
-	RecoverAlert(ctx context.Context, uid snowflake.ID, by snowflake.ID) error
+	InterveneAlert(ctx context.Context, req *bo.InterveneAlertBo) error
+	SuppressAlert(ctx context.Context, req *bo.SuppressAlertBo) error
+	RecoverAlert(ctx context.Context, req *bo.RecoverAlertBo) error
 	AutoRecoverAlert(ctx context.Context, uid snowflake.ID) error
 }

@@ -8,6 +8,7 @@ option java_package = "marksman.api.v1";
 
 import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
+import "magicbox/enum/alert.proto";
 
 
 // Alert service: alert page CRUD and real-time alert list/operations.
@@ -68,15 +69,6 @@ service Alert {
 			get: "/v1/alert-statistics"
 		};
 	}
-}
-
-// AlertEventStatus represents the status of a real-time alert event.
-enum AlertEventStatus {
-	ALERT_EVENT_STATUS_UNKNOWN = 0;
-	FIRING = 1;      // Ongoing alert, not yet handled
-	INTERVENED = 2;  // On-call has taken over
-	SUPPRESSED = 3;  // Known issue, alerts suppressed for a period
-	RECOVERED = 4;   // Manually marked recovered
 }
 
 // AlertPageFilter defines which alerts belong to a page (any match).
@@ -176,14 +168,15 @@ message AlertEventItem {
 	double value = 10;
 	map<string, string> labels = 11;
 	int64 datasourceUid = 12;
-	AlertEventStatus status = 13;
+	magicbox.enum.AlertEventStatus status = 13;
 	string intervenedAt = 14;
 	int64 intervenedBy = 15;
-	string suppressedUntil = 16;
-	string recoveredAt = 17;
-	int64 recoveredBy = 18;
-	string createdAt = 19;
-	string updatedAt = 20;
+	string suppressUntilAt = 16;
+	int64 suppressedBy = 17;
+	string suppressedReason = 18;
+	string recoveredAt = 19;
+	int64 recoveredBy = 20;
+	string recoveredReason = 21;
 }
 
 // ListRealtimeAlertRequest lists real-time alert events for an alert page.
@@ -201,7 +194,7 @@ message ListRealtimeAlertRequest {
 		message: "pageSize must be between 1 and 200",
 	}];
 	// Filter by status; empty means all statuses.
-	AlertEventStatus status = 4;
+	magicbox.enum.AlertEventStatus status = 4;
 	// Time range for fired_at (Unix seconds). If both 0, backend defaults to last 14 days.
 	int64 startAtUnix = 5;
 	int64 endAtUnix = 6;
@@ -228,8 +221,14 @@ message SuppressAlertRequest {
 		expression: "this > 0",
 		message: "uid must be greater than 0",
 	}];
-	// Suppress until this time (RFC3339); required.
-	string suppressUntil = 2 [(buf.validate.field).required = true];
+	// Suppress until this time (Unix seconds); required.
+	int64 suppressUntilUnix = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 0",
+		message: "suppressUntilUnix must be greater than or equal to 0",
+	}];
+	string suppressedReason = 3 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		max_len: 1000,
+	}];
 }
 message SuppressAlertReply {}
 
@@ -238,6 +237,9 @@ message RecoverAlertRequest {
 	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
 		expression: "this > 0",
 		message: "uid must be greater than 0",
+	}];
+	string recoveredReason = 3 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		max_len: 1000,
 	}];
 }
 message RecoverAlertReply {}

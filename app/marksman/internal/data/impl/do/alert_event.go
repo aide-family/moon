@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/safety"
 	"github.com/bwmarrin/snowflake"
 	"gorm.io/gorm"
@@ -41,12 +42,15 @@ type AlertEvent struct {
 	EvaluatorType       string                      `gorm:"column:evaluator_type;size:32;default:''"`
 	EvaluatorSnapshotID snowflake.ID                `gorm:"column:evaluator_snapshot_id;index:idx__alert_event__namespace_uid__evaluator_snapshot_id"`
 	Fingerprint         string                      `gorm:"column:fingerprint;size:64;index:idx__alert_event__namespace_uid__strategy_group_uid__strategy_uid__level_uid__fingerprint"`
-	Status              int32                       `gorm:"column:status;default:1"`
+	Status              enum.AlertEventStatus       `gorm:"column:status;default:1"`
 	IntervenedAt        *time.Time                  `gorm:"column:intervened_at"`
 	IntervenedBy        snowflake.ID                `gorm:"column:intervened_by"`
-	SuppressedUntil     *time.Time                  `gorm:"column:suppressed_until"`
+	SuppressedUntilAt   *time.Time                  `gorm:"column:suppressed_until"`
+	SuppressedBy        snowflake.ID                `gorm:"column:suppressed_by"`
+	SuppressedReason    string                      `gorm:"column:suppressed_reason;type:text;default:''"`
 	RecoveredAt         *time.Time                  `gorm:"column:recovered_at"`
 	RecoveredBy         snowflake.ID                `gorm:"column:recovered_by"`
+	RecoveredReason     string                      `gorm:"column:recovered_reason;type:text;default:''"`
 	EvaluatorSnapshot   *EvaluatorSnapshot          `gorm:"foreignKey:EvaluatorSnapshotID;references:ID"`
 }
 

@@ -48,11 +48,11 @@ func (c *AlertPageFilterConfig) Scan(value any) error {
 
 type AlertPage struct {
 	BaseModel
-	DeletedAt   gorm.DeletedAt `gorm:"column:deleted_at;index"`
-	NamespaceUID snowflake.ID  `gorm:"column:namespace_uid;index"`
-	Name        string        `gorm:"column:name;type:varchar(100)"`
-	Color       string        `gorm:"column:color;type:varchar(32);default:''"`
-	SortOrder   int32         `gorm:"column:sort_order;default:0"`
+	DeletedAt    gorm.DeletedAt         `gorm:"column:deleted_at;index"`
+	NamespaceUID snowflake.ID           `gorm:"column:namespace_uid;index"`
+	Name         string                 `gorm:"column:name;type:varchar(100)"`
+	Color        string                 `gorm:"column:color;type:varchar(32);default:''"`
+	SortOrder    int32                  `gorm:"column:sort_order;default:0"`
 	FilterConfig *AlertPageFilterConfig `gorm:"column:filter_config;type:json"`
 }
 

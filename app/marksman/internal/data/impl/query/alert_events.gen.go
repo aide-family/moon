@@ -47,9 +47,12 @@ func newAlertEvent(db *gorm.DB, opts ...gen.DOOption) alertEvent {
 	_alertEvent.Status = field.NewInt32(tableName, "status")
 	_alertEvent.IntervenedAt = field.NewTime(tableName, "intervened_at")
 	_alertEvent.IntervenedBy = field.NewInt64(tableName, "intervened_by")
-	_alertEvent.SuppressedUntil = field.NewTime(tableName, "suppressed_until")
+	_alertEvent.SuppressedUntilAt = field.NewTime(tableName, "suppressed_until")
+	_alertEvent.SuppressedBy = field.NewInt64(tableName, "suppressed_by")
+	_alertEvent.SuppressedReason = field.NewString(tableName, "suppressed_reason")
 	_alertEvent.RecoveredAt = field.NewTime(tableName, "recovered_at")
 	_alertEvent.RecoveredBy = field.NewInt64(tableName, "recovered_by")
+	_alertEvent.RecoveredReason = field.NewString(tableName, "recovered_reason")
 	_alertEvent.EvaluatorSnapshot = alertEventBelongsToEvaluatorSnapshot{
 		db: db.Session(&gorm.Session{}),
 
@@ -85,9 +88,12 @@ type alertEvent struct {
 	Status              field.Int32
 	IntervenedAt        field.Time
 	IntervenedBy        field.Int64
-	SuppressedUntil     field.Time
+	SuppressedUntilAt   field.Time
+	SuppressedBy        field.Int64
+	SuppressedReason    field.String
 	RecoveredAt         field.Time
 	RecoveredBy         field.Int64
+	RecoveredReason     field.String
 	EvaluatorSnapshot   alertEventBelongsToEvaluatorSnapshot
 
 	fieldMap map[string]field.Expr
@@ -125,9 +131,12 @@ func (a *alertEvent) updateTableName(table string) *alertEvent {
 	a.Status = field.NewInt32(table, "status")
 	a.IntervenedAt = field.NewTime(table, "intervened_at")
 	a.IntervenedBy = field.NewInt64(table, "intervened_by")
-	a.SuppressedUntil = field.NewTime(table, "suppressed_until")
+	a.SuppressedUntilAt = field.NewTime(table, "suppressed_until")
+	a.SuppressedBy = field.NewInt64(table, "suppressed_by")
+	a.SuppressedReason = field.NewString(table, "suppressed_reason")
 	a.RecoveredAt = field.NewTime(table, "recovered_at")
 	a.RecoveredBy = field.NewInt64(table, "recovered_by")
+	a.RecoveredReason = field.NewString(table, "recovered_reason")
 
 	a.fillFieldMap()
 
@@ -144,7 +153,7 @@ func (a *alertEvent) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *alertEvent) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 24)
+	a.fieldMap = make(map[string]field.Expr, 27)
 	a.fieldMap["id"] = a.ID
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
@@ -165,9 +174,12 @@ func (a *alertEvent) fillFieldMap() {
 	a.fieldMap["status"] = a.Status
 	a.fieldMap["intervened_at"] = a.IntervenedAt
 	a.fieldMap["intervened_by"] = a.IntervenedBy
-	a.fieldMap["suppressed_until"] = a.SuppressedUntil
+	a.fieldMap["suppressed_until"] = a.SuppressedUntilAt
+	a.fieldMap["suppressed_by"] = a.SuppressedBy
+	a.fieldMap["suppressed_reason"] = a.SuppressedReason
 	a.fieldMap["recovered_at"] = a.RecoveredAt
 	a.fieldMap["recovered_by"] = a.RecoveredBy
+	a.fieldMap["recovered_reason"] = a.RecoveredReason
 
 }
 

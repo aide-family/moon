@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"time"
 
 	"github.com/bwmarrin/snowflake"
 
@@ -75,25 +74,24 @@ func (s *AlertService) ListRealtimeAlert(ctx context.Context, req *apiv1.ListRea
 }
 
 func (s *AlertService) InterveneAlert(ctx context.Context, req *apiv1.InterveneAlertRequest) (*apiv1.InterveneAlertReply, error) {
-	if err := s.alertBiz.InterveneAlert(ctx, snowflake.ParseInt64(req.GetUid())); err != nil {
+	reqBo := bo.NewInterveneAlertBo(ctx, req)
+	if err := s.alertBiz.InterveneAlert(ctx, reqBo); err != nil {
 		return nil, err
 	}
 	return &apiv1.InterveneAlertReply{}, nil
 }
 
 func (s *AlertService) SuppressAlert(ctx context.Context, req *apiv1.SuppressAlertRequest) (*apiv1.SuppressAlertReply, error) {
-	suppressUntil, err := time.Parse(time.RFC3339, req.GetSuppressUntil())
-	if err != nil {
-		return nil, err
-	}
-	if err := s.alertBiz.SuppressAlert(ctx, snowflake.ParseInt64(req.GetUid()), suppressUntil); err != nil {
+	reqBo := bo.NewSuppressAlertBo(ctx, req)
+	if err := s.alertBiz.SuppressAlert(ctx, reqBo); err != nil {
 		return nil, err
 	}
 	return &apiv1.SuppressAlertReply{}, nil
 }
 
 func (s *AlertService) RecoverAlert(ctx context.Context, req *apiv1.RecoverAlertRequest) (*apiv1.RecoverAlertReply, error) {
-	if err := s.alertBiz.RecoverAlert(ctx, snowflake.ParseInt64(req.GetUid())); err != nil {
+	reqBo := bo.NewRecoverAlertBo(ctx, req)
+	if err := s.alertBiz.RecoverAlert(ctx, reqBo); err != nil {
 		return nil, err
 	}
 	return &apiv1.RecoverAlertReply{}, nil

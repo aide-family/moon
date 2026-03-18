@@ -4,8 +4,6 @@ import (
 	"github.com/aide-family/magicbox/safety"
 	"github.com/bwmarrin/snowflake"
 
-	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
-
 	"github.com/aide-family/marksman/internal/biz/bo"
 	"github.com/aide-family/marksman/internal/data/impl/do"
 )
@@ -33,14 +31,15 @@ func ToAlertEventItemBo(m *do.AlertEvent, levelName string) *bo.AlertEventItemBo
 		DatasourceUID:       m.DatasourceUID,
 		EvaluatorType:       m.EvaluatorType,
 		EvaluatorSnapshotID: m.EvaluatorSnapshotID,
-		Status:              apiv1.AlertEventStatus(m.Status),
+		Status:              m.Status,
 		IntervenedAt:        m.IntervenedAt,
 		IntervenedBy:        m.IntervenedBy,
-		SuppressedUntil:     m.SuppressedUntil,
+		SuppressedUntilAt:   m.SuppressedUntilAt,
+		SuppressedBy:        m.SuppressedBy,
+		SuppressedReason:    m.SuppressedReason,
 		RecoveredAt:         m.RecoveredAt,
 		RecoveredBy:         m.RecoveredBy,
-		CreatedAt:           m.CreatedAt,
-		UpdatedAt:           m.UpdatedAt,
+		RecoveredReason:     m.RecoveredReason,
 	}
 }
 

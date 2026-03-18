@@ -9,10 +9,10 @@ import (
 )
 
 type CreateAlertPageBo struct {
-	Name        string
-	Color       string
-	SortOrder   int32
-	Filter      *AlertPageFilterBo
+	Name      string
+	Color     string
+	SortOrder int32
+	Filter    *AlertPageFilterBo
 }
 
 func NewCreateAlertPageBo(req *apiv1.CreateAlertPageRequest) *CreateAlertPageBo {
@@ -26,8 +26,8 @@ func NewCreateAlertPageBo(req *apiv1.CreateAlertPageRequest) *CreateAlertPageBo 
 
 type AlertPageFilterBo struct {
 	StrategyGroupUIDs []int64
-	LevelUIDs        []int64
-	StrategyUIDs     []int64
+	LevelUIDs         []int64
+	StrategyUIDs      []int64
 }
 
 func ToAlertPageFilterBo(p *apiv1.AlertPageFilter) *AlertPageFilterBo {
@@ -60,13 +60,13 @@ func NewUpdateAlertPageBo(req *apiv1.UpdateAlertPageRequest) *UpdateAlertPageBo 
 }
 
 type AlertPageItemBo struct {
-	UID        snowflake.ID
-	Name       string
-	Color      string
-	SortOrder  int32
-	Filter     *AlertPageFilterBo
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	UID       snowflake.ID
+	Name      string
+	Color     string
+	SortOrder int32
+	Filter    *AlertPageFilterBo
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func ToAPIV1AlertPageItem(b *AlertPageItemBo) *apiv1.AlertPageItem {
@@ -82,13 +82,13 @@ func ToAPIV1AlertPageItem(b *AlertPageItemBo) *apiv1.AlertPageItem {
 		}
 	}
 	return &apiv1.AlertPageItem{
-		Uid:        b.UID.Int64(),
-		Name:       b.Name,
-		Color:      b.Color,
-		SortOrder:  b.SortOrder,
-		Filter:     filter,
-		CreatedAt:  b.CreatedAt.Format(time.DateTime),
-		UpdatedAt:  b.UpdatedAt.Format(time.DateTime),
+		Uid:       b.UID.Int64(),
+		Name:      b.Name,
+		Color:     b.Color,
+		SortOrder: b.SortOrder,
+		Filter:    filter,
+		CreatedAt: b.CreatedAt.Format(time.DateTime),
+		UpdatedAt: b.UpdatedAt.Format(time.DateTime),
 	}
 }
 

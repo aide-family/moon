@@ -1275,15 +1275,17 @@ components:
                     type: string
                 intervenedBy:
                     type: string
-                suppressedUntil:
+                suppressUntilAt:
+                    type: string
+                suppressedBy:
+                    type: string
+                suppressedReason:
                     type: string
                 recoveredAt:
                     type: string
                 recoveredBy:
                     type: string
-                createdAt:
-                    type: string
-                updatedAt:
+                recoveredReason:
                     type: string
             description: AlertEventItem is a single real-time alert event.
         marksman.api.v1.AlertPageCount:
@@ -1777,6 +1779,8 @@ components:
             properties:
                 uid:
                     type: string
+                recoveredReason:
+                    type: string
             description: RecoverAlertRequest marks an event as manually recovered.
         marksman.api.v1.SaveStrategyMetricLevelReply:
             type: object
@@ -2059,9 +2063,11 @@ components:
             properties:
                 uid:
                     type: string
-                suppressUntil:
+                suppressUntilUnix:
                     type: string
-                    description: Suppress until this time (RFC3339); required.
+                    description: Suppress until this time (Unix seconds); required.
+                suppressedReason:
+                    type: string
             description: SuppressAlertRequest suppresses an event until a given time (known issue).
         marksman.api.v1.UpdateAlertPageReply:
             type: object

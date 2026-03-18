@@ -1,6 +1,7 @@
 package bo
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"sort"
@@ -9,6 +10,8 @@ import (
 
 	"github.com/bwmarrin/snowflake"
 
+	"github.com/aide-family/magicbox/contextx"
+	"github.com/aide-family/magicbox/enum"
 	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
 )
 
@@ -51,14 +54,15 @@ type AlertEventItemBo struct {
 	DatasourceUID       snowflake.ID
 	EvaluatorType       string
 	EvaluatorSnapshotID snowflake.ID
-	Status              apiv1.AlertEventStatus
+	Status              enum.AlertEventStatus
 	IntervenedAt        *time.Time
 	IntervenedBy        snowflake.ID
-	SuppressedUntil     *time.Time
+	SuppressedUntilAt   *time.Time
+	SuppressedBy        snowflake.ID
+	SuppressedReason    string
 	RecoveredAt         *time.Time
 	RecoveredBy         snowflake.ID
-	CreatedAt           time.Time
-	UpdatedAt           time.Time
+	RecoveredReason     string
 }
 
 func ToAPIV1AlertEventItem(b *AlertEventItemBo) *apiv1.AlertEventItem {
@@ -66,32 +70,40 @@ func ToAPIV1AlertEventItem(b *AlertEventItemBo) *apiv1.AlertEventItem {
 		return nil
 	}
 	item := &apiv1.AlertEventItem{
-		Uid:           b.UID.Int64(),
-		StrategyUid:   b.StrategyUID.Int64(),
-		NamespaceUid:  b.NamespaceUID.Int64(),
-		LevelUid:      b.LevelUID.Int64(),
-		LevelName:     b.LevelName,
-		Summary:       b.Summary,
-		Description:   b.Description,
-		Expr:          b.Expr,
-		FiredAt:       b.FiredAt.Format(time.RFC3339),
-		Value:         b.Value,
-		Labels:        b.Labels,
-		DatasourceUid: b.DatasourceUID.Int64(),
-		Status:        b.Status,
-		CreatedAt:     b.CreatedAt.Format(time.DateTime),
-		UpdatedAt:     b.UpdatedAt.Format(time.DateTime),
+		Uid:              b.UID.Int64(),
+		StrategyUid:      b.StrategyUID.Int64(),
+		NamespaceUid:     b.NamespaceUID.Int64(),
+		LevelUid:         b.LevelUID.Int64(),
+		LevelName:        b.LevelName,
+		Summary:          b.Summary,
+		Description:      b.Description,
+		Expr:             b.Expr,
+		FiredAt:          b.FiredAt.Format(time.RFC3339),
+		Value:            b.Value,
+		Labels:           b.Labels,
+		DatasourceUid:    b.DatasourceUID.Int64(),
+		Status:           b.Status,
+		IntervenedAt:     b.IntervenedAt.Format(time.RFC3339),
+		IntervenedBy:     b.IntervenedBy.Int64(),
+		SuppressedBy:     b.SuppressedBy.Int64(),
+		SuppressedReason: b.SuppressedReason,
+		RecoveredAt:      b.RecoveredAt.Format(time.RFC3339),
+		RecoveredBy:      b.RecoveredBy.Int64(),
+		RecoveredReason:  b.RecoveredReason,
 	}
 	if b.IntervenedAt != nil {
 		item.IntervenedAt = b.IntervenedAt.Format(time.RFC3339)
 		item.IntervenedBy = b.IntervenedBy.Int64()
 	}
-	if b.SuppressedUntil != nil {
-		item.SuppressedUntil = b.SuppressedUntil.Format(time.RFC3339)
+	if b.SuppressedUntilAt != nil {
+		item.SuppressUntilAt = b.SuppressedUntilAt.Format(time.RFC3339)
+		item.SuppressedBy = b.SuppressedBy.Int64()
+		item.SuppressedReason = b.SuppressedReason
 	}
 	if b.RecoveredAt != nil {
 		item.RecoveredAt = b.RecoveredAt.Format(time.RFC3339)
 		item.RecoveredBy = b.RecoveredBy.Int64()
+		item.RecoveredReason = b.RecoveredReason
 	}
 	return item
 }
@@ -99,7 +111,7 @@ func ToAPIV1AlertEventItem(b *AlertEventItemBo) *apiv1.AlertEventItem {
 type ListRealtimeAlertBo struct {
 	*PageRequestBo
 	AlertPageUID snowflake.ID
-	Status       apiv1.AlertEventStatus
+	Status       enum.AlertEventStatus
 	StartAt      time.Time
 	EndAt        time.Time
 }
@@ -152,4 +164,50 @@ func BuildAlertFingerprint(labels map[string]string) string {
 	base := strings.Join(parts, ",")
 	sum := sha256.Sum256([]byte(base))
 	return hex.EncodeToString(sum[:])
+}
+
+type InterveneAlertBo struct {
+	UID          snowflake.ID
+	IntervenedBy snowflake.ID
+}
+
+func NewInterveneAlertBo(ctx context.Context, req *apiv1.InterveneAlertRequest) *InterveneAlertBo {
+	return &InterveneAlertBo{
+		UID:          snowflake.ParseInt64(req.GetUid()),
+		IntervenedBy: contextx.GetUserUID(ctx),
+	}
+}
+
+type SuppressAlertBo struct {
+	UID              snowflake.ID
+	SuppressUntilAt  time.Time
+	SuppressedBy     snowflake.ID
+	SuppressedReason string
+}
+
+func NewSuppressAlertBo(ctx context.Context, req *apiv1.SuppressAlertRequest) *SuppressAlertBo {
+	suppressUntilAt := time.Now()
+	if suppressUntilUnix := req.GetSuppressUntilUnix(); suppressUntilUnix > 0 {
+		suppressUntilAt = time.Unix(suppressUntilUnix, 0)
+	}
+	return &SuppressAlertBo{
+		UID:              snowflake.ParseInt64(req.GetUid()),
+		SuppressUntilAt:  suppressUntilAt,
+		SuppressedBy:     contextx.GetUserUID(ctx),
+		SuppressedReason: req.GetSuppressedReason(),
+	}
+}
+
+type RecoverAlertBo struct {
+	UID             snowflake.ID
+	RecoveredBy     snowflake.ID
+	RecoveredReason string
+}
+
+func NewRecoverAlertBo(ctx context.Context, req *apiv1.RecoverAlertRequest) *RecoverAlertBo {
+	return &RecoverAlertBo{
+		UID:             snowflake.ParseInt64(req.GetUid()),
+		RecoveredBy:     contextx.GetUserUID(ctx),
+		RecoveredReason: req.GetRecoveredReason(),
+	}
 }

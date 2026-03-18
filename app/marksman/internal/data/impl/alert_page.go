@@ -57,7 +57,7 @@ func (r *alertPageRepository) UpdateAlertPage(ctx context.Context, req *bo.Updat
 	columns := []field.AssignExpr{
 		a.Name.Value(model.Name),
 		a.Color.Value(model.Color),
-		a.SortOrder.Value(model.SortOrder),
+		a.SortOrder.Value(int32(model.SortOrder)),
 	}
 	if filterConfig != nil {
 		columns = append(columns, a.FilterConfig.Value(filterConfig))
@@ -114,9 +114,9 @@ func (r *alertPageRepository) ListAlertPage(ctx context.Context, req *bo.ListAle
 	}
 	req.WithTotal(total)
 	if req.Page > 0 && req.PageSize > 0 {
-		wrappers = wrappers.Order(a.SortOrder).Offset(req.Offset()).Limit(req.Limit())
+		wrappers = wrappers.Offset(req.Offset()).Limit(req.Limit())
 	}
-	list, err := wrappers.Find()
+	list, err := wrappers.Order(a.SortOrder.Desc()).Find()
 	if err != nil {
 		return nil, err
 	}

@@ -4,9 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/merr"
-	"github.com/bwmarrin/snowflake"
 	klog "github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/marksman/internal/biz/bo"
@@ -55,36 +53,34 @@ func (b *AlertBiz) ListRealtimeAlert(ctx context.Context, req *bo.ListRealtimeAl
 	return result, nil
 }
 
-func (b *AlertBiz) InterveneAlert(ctx context.Context, uid snowflake.ID) error {
-	userUID := contextx.GetUserUID(ctx)
-	if err := b.alertEventRepo.InterveneAlert(ctx, uid, userUID); err != nil {
+func (b *AlertBiz) InterveneAlert(ctx context.Context, req *bo.InterveneAlertBo) error {
+	if err := b.alertEventRepo.InterveneAlert(ctx, req); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("alert event not found")
 		}
-		b.helper.Errorw("msg", "intervene alert failed", "error", err, "uid", uid.Int64())
+		b.helper.Errorw("msg", "intervene alert failed", "error", err, "uid", req.UID.Int64())
 		return merr.ErrorInternalServer("intervene alert failed").WithCause(err)
 	}
 	return nil
 }
 
-func (b *AlertBiz) SuppressAlert(ctx context.Context, uid snowflake.ID, suppressUntil time.Time) error {
-	if err := b.alertEventRepo.SuppressAlert(ctx, uid, suppressUntil); err != nil {
+func (b *AlertBiz) SuppressAlert(ctx context.Context, req *bo.SuppressAlertBo) error {
+	if err := b.alertEventRepo.SuppressAlert(ctx, req); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("alert event not found")
 		}
-		b.helper.Errorw("msg", "suppress alert failed", "error", err, "uid", uid.Int64())
+		b.helper.Errorw("msg", "suppress alert failed", "error", err, "uid", req.UID.Int64())
 		return merr.ErrorInternalServer("suppress alert failed").WithCause(err)
 	}
 	return nil
 }
 
-func (b *AlertBiz) RecoverAlert(ctx context.Context, uid snowflake.ID) error {
-	userUID := contextx.GetUserUID(ctx)
-	if err := b.alertEventRepo.RecoverAlert(ctx, uid, userUID); err != nil {
+func (b *AlertBiz) RecoverAlert(ctx context.Context, req *bo.RecoverAlertBo) error {
+	if err := b.alertEventRepo.RecoverAlert(ctx, req); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("alert event not found")
 		}
-		b.helper.Errorw("msg", "recover alert failed", "error", err, "uid", uid.Int64())
+		b.helper.Errorw("msg", "recover alert failed", "error", err, "uid", req.UID.Int64())
 		return merr.ErrorInternalServer("recover alert failed").WithCause(err)
 	}
 	return nil
