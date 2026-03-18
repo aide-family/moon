@@ -7,6 +7,7 @@ import (
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
+	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 
 	apiv1 "github.com/aide-family/rabbit/pkg/api/v1"
@@ -127,9 +128,9 @@ func (t *TemplateItemBo) ToAPIV1TemplateItem() *apiv1.TemplateItem {
 		Name:        t.Name,
 		MessageType: t.MessageType,
 		JsonData:    t.JSONData,
-		Status:      enum.GlobalStatus(t.Status),
-		CreatedAt:   t.CreatedAt.Format(time.DateTime),
-		UpdatedAt:   t.UpdatedAt.Format(time.DateTime),
+		Status:      t.Status,
+		CreatedAt:   timex.FormatTime(&t.CreatedAt),
+		UpdatedAt:   timex.FormatTime(&t.UpdatedAt),
 	}
 }
 

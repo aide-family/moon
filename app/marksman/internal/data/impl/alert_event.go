@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/plugin/cache"
+	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 	"github.com/go-kratos/kratos/v2/errors"
 	klog "github.com/go-kratos/kratos/v2/log"
@@ -128,7 +129,7 @@ func isDuplicateKeyError(err error) bool {
 
 func (r *alertEventRepository) GetAlertEvent(ctx context.Context, uid snowflake.ID) (*bo.AlertEventItemBo, error) {
 	ns := contextx.GetNamespace(ctx)
-	tableName := do.GenAlertEventTableName(ns, do.AlertEventTimeFromID(uid))
+	tableName := do.GenAlertEventTableName(ns, timex.TimeFromID(uid))
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
 		return nil, merr.ErrorNotFound("alert event not found")
 	}
@@ -148,7 +149,7 @@ func (r *alertEventRepository) GetAlertEvent(ctx context.Context, uid snowflake.
 
 func (r *alertEventRepository) GetAlertEventByFingerprint(ctx context.Context, uid snowflake.ID, fingerprint string) (*bo.AlertEventItemBo, error) {
 	ns := contextx.GetNamespace(ctx)
-	tableName := do.GenAlertEventTableName(ns, do.AlertEventTimeFromID(uid))
+	tableName := do.GenAlertEventTableName(ns, timex.TimeFromID(uid))
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
 		return nil, merr.ErrorNotFound("alert event not found")
 	}
@@ -279,18 +280,17 @@ func (r *alertEventRepository) levelNamesForEvents(ctx context.Context, namespac
 func (r *alertEventRepository) InterveneAlert(ctx context.Context, req *bo.InterveneAlertBo) error {
 	ns := contextx.GetNamespace(ctx)
 	uid, by := req.UID, req.IntervenedBy
-	tableName := do.GenAlertEventTableName(ns, do.AlertEventTimeFromID(uid))
+	tableName := do.GenAlertEventTableName(ns, timex.TimeFromID(uid))
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
 		return merr.ErrorNotFound("alert event not found")
 	}
 	bizQuery := query.Use(r.DB().Table(tableName))
-	e := bizQuery.AlertEvent
-	table := e.As(tableName)
+
+	table := bizQuery.AlertEvent.As(tableName)
 	now := time.Now()
-	info, err := e.WithContext(ctx).Where(table.ID.Eq(uid.Int64())).UpdateColumnSimple(
-		e.Status.Value(do.AlertEventStatusIntervened),
-		e.IntervenedAt.Value(now),
-		e.IntervenedBy.Value(by.Int64()),
+	info, err := table.WithContext(ctx).Where(table.ID.Eq(uid.Int64())).UpdateColumnSimple(
+		table.IntervenedAt.Value(now),
+		table.IntervenedBy.Value(by.Int64()),
 	)
 	if err != nil {
 		return err
@@ -304,18 +304,16 @@ func (r *alertEventRepository) InterveneAlert(ctx context.Context, req *bo.Inter
 func (r *alertEventRepository) SuppressAlert(ctx context.Context, req *bo.SuppressAlertBo) error {
 	uid, until, by, reason := req.UID, req.SuppressUntilAt, req.SuppressedBy, req.SuppressedReason
 	ns := contextx.GetNamespace(ctx)
-	tableName := do.GenAlertEventTableName(ns, do.AlertEventTimeFromID(uid))
+	tableName := do.GenAlertEventTableName(ns, timex.TimeFromID(uid))
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
 		return merr.ErrorNotFound("alert event not found")
 	}
 	bizQuery := query.Use(r.DB().Table(tableName))
-	e := bizQuery.AlertEvent
-	table := e.As(tableName)
-	info, err := e.WithContext(ctx).Where(table.ID.Eq(uid.Int64())).UpdateColumnSimple(
-		e.Status.Value(do.AlertEventStatusSuppressed),
-		e.SuppressedUntilAt.Value(until),
-		e.SuppressedBy.Value(by.Int64()),
-		e.SuppressedReason.Value(reason),
+	table := bizQuery.AlertEvent.As(tableName)
+	info, err := table.WithContext(ctx).Where(table.ID.Eq(uid.Int64())).UpdateColumnSimple(
+		table.SuppressedUntilAt.Value(until),
+		table.SuppressedBy.Value(by.Int64()),
+		table.SuppressedReason.Value(reason),
 	)
 	if err != nil {
 		return err
@@ -329,19 +327,18 @@ func (r *alertEventRepository) SuppressAlert(ctx context.Context, req *bo.Suppre
 func (r *alertEventRepository) RecoverAlert(ctx context.Context, req *bo.RecoverAlertBo) error {
 	uid, by, reason := req.UID, req.RecoveredBy, req.RecoveredReason
 	ns := contextx.GetNamespace(ctx)
-	tableName := do.GenAlertEventTableName(ns, do.AlertEventTimeFromID(uid))
+	tableName := do.GenAlertEventTableName(ns, timex.TimeFromID(uid))
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
 		return merr.ErrorNotFound("alert event not found")
 	}
 	bizQuery := query.Use(r.DB().Table(tableName))
-	e := bizQuery.AlertEvent
-	table := e.As(tableName)
+	table := bizQuery.AlertEvent.As(tableName)
 	now := time.Now()
-	info, err := e.WithContext(ctx).Where(table.ID.Eq(uid.Int64())).UpdateColumnSimple(
-		e.Status.Value(do.AlertEventStatusRecovered),
-		e.RecoveredAt.Value(now),
-		e.RecoveredBy.Value(by.Int64()),
-		e.RecoveredReason.Value(reason),
+	info, err := table.WithContext(ctx).Where(table.ID.Eq(uid.Int64())).UpdateColumnSimple(
+		table.Status.Value(int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_RECOVERED_BY_MANUAL)),
+		table.RecoveredAt.Value(now),
+		table.RecoveredBy.Value(by.Int64()),
+		table.RecoveredReason.Value(reason),
 	)
 	if err != nil {
 		return err
@@ -354,16 +351,15 @@ func (r *alertEventRepository) RecoverAlert(ctx context.Context, req *bo.Recover
 
 func (r *alertEventRepository) AutoRecoverAlert(ctx context.Context, uid snowflake.ID) error {
 	ns := contextx.GetNamespace(ctx)
-	tableName := do.GenAlertEventTableName(ns, do.AlertEventTimeFromID(uid))
+	tableName := do.GenAlertEventTableName(ns, timex.TimeFromID(uid))
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
 		return merr.ErrorNotFound("alert event not found")
 	}
 	bizQuery := query.Use(r.DB().Table(tableName))
-	e := bizQuery.AlertEvent
-	table := e.As(tableName)
-	_, err := e.WithContext(ctx).Where(table.ID.Eq(uid.Int64()), table.Status.Eq(do.AlertEventStatusFiring)).UpdateColumnSimple(
-		e.Status.Value(do.AlertEventStatusRecovered),
-		e.RecoveredAt.Value(time.Now()),
+	table := bizQuery.AlertEvent.As(tableName)
+	_, err := table.WithContext(ctx).Where(table.ID.Eq(uid.Int64()), table.Status.Eq(int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_FIRING))).UpdateColumnSimple(
+		table.Status.Value(int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_RECOVERED)),
+		table.RecoveredAt.Value(time.Now()),
 	)
 	if err != nil {
 		return err
@@ -405,9 +401,7 @@ func (r *alertEventRepository) tablesFromNames(names []string) []any {
 }
 
 func (r *alertEventRepository) applyActiveFilter(db *gorm.DB, pageFilter *bo.AlertPageFilterBo) *gorm.DB {
-	e := query.AlertEvent
-	table := e.As(do.TableNameAlertEvent)
-	db = db.Where(table.Status.In(do.AlertEventStatusFiring, do.AlertEventStatusIntervened, do.AlertEventStatusSuppressed))
+	table := query.AlertEvent.As(do.TableNameAlertEvent)
 	if pageFilter != nil {
 		if len(pageFilter.StrategyUIDs) > 0 {
 			db = db.Where(table.StrategyUID.In(pageFilter.StrategyUIDs...))
@@ -467,9 +461,11 @@ func (r *alertEventRepository) CountRecoveredAlertsSince(ctx context.Context, si
 	startAt := since.Add(-bo.ListRealtimeAlertTimeRangeDefault)
 	endAt := time.Now()
 	db := r.buildAlertEventUnion(ctx, ns, startAt, endAt)
-	e := query.AlertEvent
-	table := e.As(do.TableNameAlertEvent)
-	db = db.Where(table.Status.Eq(do.AlertEventStatusRecovered)).Where(table.RecoveredAt.Gte(since))
+	table := query.AlertEvent.As(do.TableNameAlertEvent)
+	db = db.Where(table.Status.In(
+		int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_RECOVERED),
+		int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_RECOVERED_BY_MANUAL),
+	)).Where(table.RecoveredAt.Gte(since))
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
 		return 0, err

@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/strutil"
+	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 	"google.golang.org/protobuf/types/known/anypb"
 
@@ -48,13 +49,13 @@ func (b *MessageLogItemBo) ToAPIV1MessageLogItem() *apiv1.MessageLogItem {
 		Uid:         b.UID.Int64(),
 		MessageType: b.MessageType,
 		Status:      enum.MessageStatus(b.Status),
-		SendAt:      b.SendAt.Format(time.DateTime),
+		SendAt:      timex.FormatTime(&b.SendAt),
 		Message:     string(b.Message),
 		Config:      string(b.Config),
 		RetryTotal:  b.RetryTotal,
 		LastError:   b.LastError,
-		CreatedAt:   b.CreatedAt.Format(time.DateTime),
-		UpdatedAt:   b.UpdatedAt.Format(time.DateTime),
+		CreatedAt:   timex.FormatTime(&b.CreatedAt),
+		UpdatedAt:   timex.FormatTime(&b.UpdatedAt),
 	}
 }
 

@@ -134,8 +134,13 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	alertPageBiz := biz.NewAlertPage(alertPage, helper)
-	alertBiz := biz.NewAlert(alertPage, alertEvent, level, helper)
+	userAlertPage, err := impl.NewUserAlertPageRepository(dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	alertPageBiz := biz.NewAlertPage(alertPage, userAlertPage, helper)
+	alertBiz := biz.NewAlert(alertPage, alertEvent, userAlertPage, level, helper)
 	alertService := service.NewAlertService(alertPageBiz, alertBiz)
 	servers := server.RegisterService(datasourceMetricsReg, bc, httpServer, grpcServer, metricCronServer, alertEventConsumerServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, metricQueryService, strategyService, strategyMetricService, alertService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)

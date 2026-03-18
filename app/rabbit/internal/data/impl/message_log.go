@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/plugin/cache"
 	"github.com/aide-family/magicbox/pointer"
+	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 	"github.com/go-kratos/kratos/v2/errors"
 	klog "github.com/go-kratos/kratos/v2/log"
@@ -80,7 +81,7 @@ func (m *messageLogRepository) GetMessageLogWithLock(ctx context.Context, uid sn
 
 func (m *messageLogRepository) getMessageLog(ctx context.Context, uid snowflake.ID, clauses ...clause.Expression) (*bo.MessageLogItemBo, error) {
 	namespace := contextx.GetNamespace(ctx)
-	tableName := do.GenMessageLogTableName(namespace, time.UnixMilli(uid.Time()))
+	tableName := do.GenMessageLogTableName(namespace, timex.TimeFromID(uid))
 	if _, err := m.Cache().Get(ctx, cache.K(tableName)); err != nil && !do.HasTable(m.DB(), tableName) {
 		return nil, gorm.ErrRecordNotFound
 	}
@@ -170,7 +171,7 @@ func (m *messageLogRepository) ListMessageLog(ctx context.Context, req *bo.ListM
 // UpdateMessageLogStatusIf implements [repository.MessageLog].
 func (m *messageLogRepository) UpdateMessageLogStatusIf(ctx context.Context, uid snowflake.ID, oldStatus enum.MessageStatus, newStatus enum.MessageStatus) (bool, error) {
 	namespace := contextx.GetNamespace(ctx)
-	tableName := do.GenMessageLogTableName(namespace, time.UnixMilli(uid.Time()))
+	tableName := do.GenMessageLogTableName(namespace, timex.TimeFromID(uid))
 	if _, err := m.Cache().Get(ctx, cache.K(tableName)); err != nil && !do.HasTable(m.DB(), tableName) {
 		return false, merr.ErrorNotFound("message log %d not found", uid.Int64())
 	}
@@ -195,7 +196,7 @@ func (m *messageLogRepository) UpdateMessageLogStatusIf(ctx context.Context, uid
 // UpdateMessageLogLastErrorIf implements [repository.MessageLog].
 func (m *messageLogRepository) UpdateMessageLogLastErrorIf(ctx context.Context, uid snowflake.ID, oldStatus enum.MessageStatus, lastError string) (bool, error) {
 	namespace := contextx.GetNamespace(ctx)
-	tableName := do.GenMessageLogTableName(namespace, time.UnixMilli(uid.Time()))
+	tableName := do.GenMessageLogTableName(namespace, timex.TimeFromID(uid))
 	if _, err := m.Cache().Get(ctx, cache.K(tableName)); err != nil && !do.HasTable(m.DB(), tableName) {
 		return false, merr.ErrorNotFound("message log %d not found", uid.Int64())
 	}
@@ -223,7 +224,7 @@ func (m *messageLogRepository) UpdateMessageLogLastErrorIf(ctx context.Context, 
 
 func (m *messageLogRepository) UpdateMessageLogStatusSuccessIf(ctx context.Context, uid snowflake.ID) (bool, error) {
 	namespace := contextx.GetNamespace(ctx)
-	tableName := do.GenMessageLogTableName(namespace, time.UnixMilli(uid.Time()))
+	tableName := do.GenMessageLogTableName(namespace, timex.TimeFromID(uid))
 	if _, err := m.Cache().Get(ctx, cache.K(tableName)); err != nil && !do.HasTable(m.DB(), tableName) {
 		return false, merr.ErrorNotFound("message log %d not found", uid.Int64())
 	}
@@ -245,7 +246,7 @@ func (m *messageLogRepository) UpdateMessageLogStatusSuccessIf(ctx context.Conte
 
 func (m *messageLogRepository) UpdateMessageLogStatusSendingIf(ctx context.Context, uid snowflake.ID, oldStatus enum.MessageStatus) (bool, error) {
 	namespace := contextx.GetNamespace(ctx)
-	tableName := do.GenMessageLogTableName(namespace, time.UnixMilli(uid.Time()))
+	tableName := do.GenMessageLogTableName(namespace, timex.TimeFromID(uid))
 	if _, err := m.Cache().Get(ctx, cache.K(tableName)); err != nil && !do.HasTable(m.DB(), tableName) {
 		return false, merr.ErrorNotFound("message log %d not found", uid.Int64())
 	}
@@ -316,7 +317,7 @@ func (m *messageLogRepository) getTableName(ctx context.Context, timeAt time.Tim
 
 func (m *messageLogRepository) MessageLogRetryIncrement(ctx context.Context, uid snowflake.ID) error {
 	namespace := contextx.GetNamespace(ctx)
-	tableName := do.GenMessageLogTableName(namespace, time.UnixMilli(uid.Time()))
+	tableName := do.GenMessageLogTableName(namespace, timex.TimeFromID(uid))
 	if _, err := m.Cache().Get(ctx, cache.K(tableName)); err != nil && !do.HasTable(m.DB(), tableName) {
 		return merr.ErrorNotFound("message log %d not found", uid.Int64())
 	}

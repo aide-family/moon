@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 
+	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/bwmarrin/snowflake"
 	klog "github.com/go-kratos/kratos/v2/log"
@@ -13,17 +14,20 @@ import (
 
 func NewAlertPage(
 	alertPageRepo repository.AlertPage,
+	userAlertPageRepo repository.UserAlertPage,
 	helper *klog.Helper,
 ) *AlertPageBiz {
 	return &AlertPageBiz{
-		alertPageRepo: alertPageRepo,
-		helper:        klog.NewHelper(klog.With(helper.Logger(), "biz", "alert_page")),
+		alertPageRepo:     alertPageRepo,
+		userAlertPageRepo: userAlertPageRepo,
+		helper:            klog.NewHelper(klog.With(helper.Logger(), "biz", "alert_page")),
 	}
 }
 
 type AlertPageBiz struct {
-	alertPageRepo repository.AlertPage
-	helper        *klog.Helper
+	alertPageRepo     repository.AlertPage
+	userAlertPageRepo repository.UserAlertPage
+	helper            *klog.Helper
 }
 
 func (b *AlertPageBiz) CreateAlertPage(ctx context.Context, req *bo.CreateAlertPageBo) (snowflake.ID, error) {
@@ -92,4 +96,45 @@ func (b *AlertPageBiz) ListAlertPage(ctx context.Context, req *bo.ListAlertPageB
 		return nil, merr.ErrorInternalServer("list alert page failed").WithCause(err)
 	}
 	return result, nil
+}
+
+func (b *AlertPageBiz) ListUserAlertPages(ctx context.Context) ([]*bo.AlertPageItemBo, error) {
+	userUID := contextx.GetUserUID(ctx)
+	uids, err := b.userAlertPageRepo.GetUserAlertPageUIDs(ctx, userUID)
+	if err != nil {
+		b.helper.Errorw("msg", "get user alert page uids failed", "error", err)
+		return nil, merr.ErrorInternalServer("get user alert pages failed").WithCause(err)
+	}
+	if len(uids) == 0 {
+		return nil, nil
+	}
+	pages, err := b.alertPageRepo.GetAlertPagesByUIDs(ctx, uids)
+	if err != nil {
+		b.helper.Errorw("msg", "get alert pages by uids failed", "error", err)
+		return nil, merr.ErrorInternalServer("get user alert pages failed").WithCause(err)
+	}
+
+	return pages, nil
+}
+
+func (b *AlertPageBiz) SaveUserAlertPages(ctx context.Context, alertPageUIDs []snowflake.ID) error {
+	userUID := contextx.GetUserUID(ctx)
+	if userUID.Int64() == 0 {
+		return merr.ErrorUnauthorized("user required")
+	}
+	if alertPagesTotal := len(alertPageUIDs); alertPagesTotal > 0 {
+		alertPagesFound, err := b.alertPageRepo.CountAlertPagesByUIDs(ctx, alertPageUIDs)
+		if err != nil {
+			b.helper.Errorw("msg", "count alert pages by uids failed", "error", err)
+			return merr.ErrorInternalServer("validate alert pages failed").WithCause(err)
+		}
+		if alertPagesFound != int64(alertPagesTotal) {
+			return merr.ErrorParams("some alert pages not found or not in current, please check if the alert pages are in the current namespace")
+		}
+	}
+	if err := b.userAlertPageRepo.SaveUserAlertPages(ctx, userUID, alertPageUIDs); err != nil {
+		b.helper.Errorw("msg", "save user alert pages failed", "error", err)
+		return merr.ErrorInternalServer("save user alert pages failed").WithCause(err)
+	}
+	return nil
 }

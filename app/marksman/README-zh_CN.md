@@ -54,7 +54,7 @@
 - **策略（Strategy）**：增删改查、列表、状态；归属策略组；类型（METRICS/LOGS/TRACE）与驱动
 - **级别（Level）**：告警级别增删改查、列表、选择、状态（用于告警严重程度分组）
 - **策略指标（Strategy metric）**：保存/查询指标配置（expr、labels、datasourceUIDs、levels）；指标级别的增删改查（mode、condition、values、duration）；按策略绑定接收人（可选 levelUID）
-- **告警（实时）**：告警页面增删改查（名称、颜色、排序、按策略组/级别/策略筛选）；按告警页列表展示实时告警事件；事件操作：介入、抑制（至指定时间）、恢复（手动）；告警统计（当前总告警、按等级、今日已恢复、按告警页）
+- **告警（实时）**：告警页面增删改查（名称、颜色、排序、按策略组/级别/策略筛选）；按告警页列表展示实时告警事件；事件操作：介入、抑制（至指定时间）、恢复（手动）；告警统计（当前总告警、按等级、今日已恢复、按告警页）；用户关注的告警页（按用户列出/保存）
 
 ---
 
@@ -124,6 +124,8 @@
 | | `POST /v1/realtime-alerts/{uid}/intervene` | 介入（值班接管） |
 | | `POST /v1/realtime-alerts/{uid}/suppress` | 抑制至指定时间（body: suppressUntil RFC3339） |
 | | `POST /v1/realtime-alerts/{uid}/recover` | 手动恢复 |
+| **Alert**（用户） | `GET /v1/user/alert-pages` | 当前用户关注的告警页列表（个人配置） |
+| | `PUT /v1/user/alert-pages` | 保存当前用户关注的告警页（body: alertPageUids，最多 10 个；覆盖原列表） |
 
 **类型**：`DatasourceType`: METRICS, LOGS, TRACE。**驱动**：METRICS_PROMETHEUS, METRICS_VICTORIA_METRICS, LOGS_ELASTICSEARCH, TRACE_JAEGER。
 

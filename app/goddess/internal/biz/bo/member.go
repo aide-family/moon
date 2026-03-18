@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
+	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
@@ -28,8 +29,8 @@ func (b *MemberItemBo) ToAPIV1MemberItem() *goddessv1.MemberItem {
 		Uid:       b.UID.Int64(),
 		Email:     b.Email,
 		Status:    b.Status,
-		CreatedAt: b.CreatedAt.Format(time.DateTime),
-		UpdatedAt: b.UpdatedAt.Format(time.DateTime),
+		CreatedAt: timex.FormatTime(&b.CreatedAt),
+		UpdatedAt: timex.FormatTime(&b.UpdatedAt),
 		UserUID:   b.UserUID.Int64(),
 		Name:      b.Name,
 		Nickname:  b.Nickname,

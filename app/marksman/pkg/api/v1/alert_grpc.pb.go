@@ -29,6 +29,8 @@ const (
 	Alert_SuppressAlert_FullMethodName      = "/marksman.api.v1.Alert/SuppressAlert"
 	Alert_RecoverAlert_FullMethodName       = "/marksman.api.v1.Alert/RecoverAlert"
 	Alert_GetAlertStatistics_FullMethodName = "/marksman.api.v1.Alert/GetAlertStatistics"
+	Alert_ListUserAlertPages_FullMethodName = "/marksman.api.v1.Alert/ListUserAlertPages"
+	Alert_SaveUserAlertPages_FullMethodName = "/marksman.api.v1.Alert/SaveUserAlertPages"
 )
 
 // AlertClient is the client API for Alert service.
@@ -48,6 +50,10 @@ type AlertClient interface {
 	RecoverAlert(ctx context.Context, in *RecoverAlertRequest, opts ...grpc.CallOption) (*RecoverAlertReply, error)
 	// GetAlertStatistics returns alert counts for the dashboard: total active, by level, today recovered, by alert page.
 	GetAlertStatistics(ctx context.Context, in *GetAlertStatisticsRequest, opts ...grpc.CallOption) (*GetAlertStatisticsReply, error)
+	// ListUserAlertPages returns the current user's followed alert pages (personal config).
+	ListUserAlertPages(ctx context.Context, in *ListUserAlertPagesRequest, opts ...grpc.CallOption) (*ListUserAlertPagesReply, error)
+	// SaveUserAlertPages saves the current user's followed alert pages (replaces existing list).
+	SaveUserAlertPages(ctx context.Context, in *SaveUserAlertPagesRequest, opts ...grpc.CallOption) (*SaveUserAlertPagesReply, error)
 }
 
 type alertClient struct {
@@ -158,6 +164,26 @@ func (c *alertClient) GetAlertStatistics(ctx context.Context, in *GetAlertStatis
 	return out, nil
 }
 
+func (c *alertClient) ListUserAlertPages(ctx context.Context, in *ListUserAlertPagesRequest, opts ...grpc.CallOption) (*ListUserAlertPagesReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListUserAlertPagesReply)
+	err := c.cc.Invoke(ctx, Alert_ListUserAlertPages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *alertClient) SaveUserAlertPages(ctx context.Context, in *SaveUserAlertPagesRequest, opts ...grpc.CallOption) (*SaveUserAlertPagesReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveUserAlertPagesReply)
+	err := c.cc.Invoke(ctx, Alert_SaveUserAlertPages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AlertServer is the server API for Alert service.
 // All implementations must embed UnimplementedAlertServer
 // for forward compatibility.
@@ -175,6 +201,10 @@ type AlertServer interface {
 	RecoverAlert(context.Context, *RecoverAlertRequest) (*RecoverAlertReply, error)
 	// GetAlertStatistics returns alert counts for the dashboard: total active, by level, today recovered, by alert page.
 	GetAlertStatistics(context.Context, *GetAlertStatisticsRequest) (*GetAlertStatisticsReply, error)
+	// ListUserAlertPages returns the current user's followed alert pages (personal config).
+	ListUserAlertPages(context.Context, *ListUserAlertPagesRequest) (*ListUserAlertPagesReply, error)
+	// SaveUserAlertPages saves the current user's followed alert pages (replaces existing list).
+	SaveUserAlertPages(context.Context, *SaveUserAlertPagesRequest) (*SaveUserAlertPagesReply, error)
 	mustEmbedUnimplementedAlertServer()
 }
 
@@ -214,6 +244,12 @@ func (UnimplementedAlertServer) RecoverAlert(context.Context, *RecoverAlertReque
 }
 func (UnimplementedAlertServer) GetAlertStatistics(context.Context, *GetAlertStatisticsRequest) (*GetAlertStatisticsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAlertStatistics not implemented")
+}
+func (UnimplementedAlertServer) ListUserAlertPages(context.Context, *ListUserAlertPagesRequest) (*ListUserAlertPagesReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListUserAlertPages not implemented")
+}
+func (UnimplementedAlertServer) SaveUserAlertPages(context.Context, *SaveUserAlertPagesRequest) (*SaveUserAlertPagesReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SaveUserAlertPages not implemented")
 }
 func (UnimplementedAlertServer) mustEmbedUnimplementedAlertServer() {}
 func (UnimplementedAlertServer) testEmbeddedByValue()               {}
@@ -416,6 +452,42 @@ func _Alert_GetAlertStatistics_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Alert_ListUserAlertPages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUserAlertPagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertServer).ListUserAlertPages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Alert_ListUserAlertPages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertServer).ListUserAlertPages(ctx, req.(*ListUserAlertPagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Alert_SaveUserAlertPages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveUserAlertPagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertServer).SaveUserAlertPages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Alert_SaveUserAlertPages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertServer).SaveUserAlertPages(ctx, req.(*SaveUserAlertPagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Alert_ServiceDesc is the grpc.ServiceDesc for Alert service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -462,6 +534,14 @@ var Alert_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAlertStatistics",
 			Handler:    _Alert_GetAlertStatistics_Handler,
+		},
+		{
+			MethodName: "ListUserAlertPages",
+			Handler:    _Alert_ListUserAlertPages_Handler,
+		},
+		{
+			MethodName: "SaveUserAlertPages",
+			Handler:    _Alert_SaveUserAlertPages_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -3,6 +3,7 @@ package bo
 import (
 	"time"
 
+	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 
 	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
@@ -87,8 +88,8 @@ func ToAPIV1AlertPageItem(b *AlertPageItemBo) *apiv1.AlertPageItem {
 		Color:     b.Color,
 		SortOrder: b.SortOrder,
 		Filter:    filter,
-		CreatedAt: b.CreatedAt.Format(time.DateTime),
-		UpdatedAt: b.UpdatedAt.Format(time.DateTime),
+		CreatedAt: timex.FormatTime(&b.CreatedAt),
+		UpdatedAt: timex.FormatTime(&b.UpdatedAt),
 	}
 }
 
@@ -115,4 +116,13 @@ func ToAPIV1ListAlertPageReply(pageResponseBo *PageResponseBo[*AlertPageItemBo])
 		PageSize: pageResponseBo.GetPageSize(),
 		Items:    items,
 	}
+}
+
+// ToAPIV1ListUserAlertPagesReply converts biz items to ListUserAlertPagesReply.
+func ToAPIV1ListUserAlertPagesReply(items []*AlertPageItemBo) *apiv1.ListUserAlertPagesReply {
+	out := make([]*apiv1.AlertPageItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, ToAPIV1AlertPageItem(item))
+	}
+	return &apiv1.ListUserAlertPagesReply{Items: out}
 }

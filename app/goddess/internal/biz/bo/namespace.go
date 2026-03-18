@@ -6,6 +6,7 @@ import (
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/strutil"
+	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
@@ -86,8 +87,8 @@ func (b *NamespaceItemBo) ToAPIV1NamespaceItem() *goddessv1.NamespaceItem {
 		Name:      b.Name,
 		Metadata:  b.Metadata,
 		Status:    b.Status,
-		CreatedAt: b.CreatedAt.Format(time.DateTime),
-		UpdatedAt: b.UpdatedAt.Format(time.DateTime),
+		CreatedAt: timex.FormatTime(&b.CreatedAt),
+		UpdatedAt: timex.FormatTime(&b.UpdatedAt),
 		Logo:      b.Logo,
 		Secret:    b.Secret,
 		Banners:   b.Banners,

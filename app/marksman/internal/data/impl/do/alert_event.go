@@ -6,6 +6,7 @@ import (
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/safety"
+	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 	"gorm.io/gorm"
 )
@@ -13,18 +14,6 @@ import (
 const (
 	TableNameAlertEvent = "alert_events"
 )
-
-// AlertEventStatus matches proto AlertEventStatus (1=firing, 2=intervened, 3=suppressed, 4=recovered).
-const (
-	AlertEventStatusUnknown    = 0
-	AlertEventStatusFiring     = 1
-	AlertEventStatusIntervened = 2
-	AlertEventStatusSuppressed = 3
-	AlertEventStatusRecovered  = 4
-)
-
-// Twitter/snowflake epoch (Nov 04 2010) in ms; used to derive time from ID.
-const snowflakeEpochMs int64 = 1288834974657
 
 type AlertEvent struct {
 	EventBaseModel
@@ -60,7 +49,7 @@ func (AlertEvent) TableName() string {
 
 // GenAlertEventTableName returns the shard table name: alert_events__{namespace}__{YYYYMMDD of Monday}.
 func GenAlertEventTableName(namespace snowflake.ID, t time.Time) string {
-	weekStart := getFirstMonday(t)
+	weekStart := timex.StartOfWeek(t)
 	return strings.Join([]string{TableNameAlertEvent, namespace.String(), weekStart.Format("20060102")}, "__")
 }
 
@@ -70,7 +59,7 @@ func GenAlertEventTableNames(tx *gorm.DB, namespace snowflake.ID, startAt, endAt
 		return nil
 	}
 	names := make([]string, 0)
-	firstMonday := getFirstMonday(startAt)
+	firstMonday := timex.StartOfWeek(startAt)
 	for current := firstMonday; !current.After(endAt); current = current.AddDate(0, 0, 7) {
 		tableName := GenAlertEventTableName(namespace, current)
 		if tx.Migrator().HasTable(tableName) {
@@ -78,18 +67,4 @@ func GenAlertEventTableNames(tx *gorm.DB, namespace snowflake.ID, startAt, endAt
 		}
 	}
 	return names
-}
-
-func getFirstMonday(date time.Time) time.Time {
-	offset := int(time.Monday - date.Weekday())
-	if offset > 0 {
-		offset -= 7
-	}
-	return date.AddDate(0, 0, offset)
-}
-
-// AlertEventTimeFromID returns the time embedded in a snowflake ID (for shard lookup).
-func AlertEventTimeFromID(id snowflake.ID) time.Time {
-	ms := (id.Int64() >> 22) + snowflakeEpochMs
-	return time.UnixMilli(ms)
 }

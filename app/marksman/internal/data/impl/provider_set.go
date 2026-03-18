@@ -25,4 +25,5 @@ var ProviderSetImpl = wire.NewSet(
 	NewAlertingRepository,
 	NewAlertPageRepository,
 	NewAlertEventRepository,
+	NewUserAlertPageRepository,
 )

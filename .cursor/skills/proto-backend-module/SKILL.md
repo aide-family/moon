@@ -70,6 +70,8 @@ description: Implements backend modules from proto definitions for goddess, mark
      - 各方法用 `query.Xxx`、`convert.*`、`contextx.GetNamespace(ctx)` 等实现，错误用 `merr.ErrorNotFound` / `merr.ErrorInvalidArgument` 等（与现有 impl 一致）。  
      - **单一职责**：每个 impl 方法只操作一张表或只做一次查询/写入；不在同一方法内混用多张表或多种语义。多表组合逻辑放在 biz 层通过多次调用 repo 完成。
    - 在 `impl/provider_set.go` 的 `ProviderSetImpl` 中注册 `NewXxxConfigRepository`。
+   - **必须使用 gen 模式**：所有 DB 条件与排序必须通过 gen 生成的 field 表达式（如 `u.UserUID.Eq(x)`、`u.SortOrder.Desc()`），**禁止**手写字符串条件（如 `Where("user_uid = ?", ...)`、`Order("sort_order ASC")`）。
+   - **批量写入禁止循环写库**：需要插入多条时使用 `query.Xxx.WithContext(ctx).CreateInBatches(rows, len(rows))` 或一次 `Create(rows...)`，**禁止**在 for 循环内逐条 `Create`。
 
 8. **internal/biz**  
    - 新增 `xxx_config.go`（或与模块同名的 biz 文件），实现 `NewXxxConfig(repo repository.XxxConfig, helper *klog.Helper) *XxxConfig`，方法内调 repo、用 `merr` 和 `helper.Errorw` 处理错误与日志。  
@@ -94,6 +96,33 @@ description: Implements backend modules from proto definitions for goddess, mark
     - 对模块或 API 做**新增、修改、删除**时，必须同步更新对应应用的 README，保证「接口说明、功能说明、常用用法」与代码一致。  
     - **必须同时更新**：① **功能特性（Features）**：在功能列表中补充/修改/删除该模块或能力的一句话描述；② **接口概览（API Overview）表**：在表格中补充/修改/删除对应服务与 HTTP 路径、说明；③ **中英文双版本**：同一变更需同时改 `README.md` 与 `README-zh_CN.md`，结构和表格一一对应。  
     - 详见下方 [README 与文档同步](#readme-与文档同步) 小节。
+
+## 数据层与业务层约定（避免常见纰漏）
+
+以下约定来自实践中的中途修正，实现时请直接遵守，避免返工。
+
+### 1. 排序字段语义（越大越靠前）
+
+若业务约定「SortOrder 数值越大越靠前」（列表第一项展示时排最前）：
+
+- **存库**：列表第一项应赋予**最大** SortOrder。推荐用标准库 `slices.Clone` + `slices.Reverse` 反转后再按索引赋 SortOrder（反转后遍历，索引 0 对应原列表最后一项、会得到最小 SortOrder，原列表第一项会得到最大 SortOrder）；或显式 `SortOrder: int32(n-1-i)`。
+- **查询**：使用 `Order(field.SortOrder.Desc())`，保证大的先返回。
+
+避免手写「n-1-i」时搞反顺序；用 `slices.Reverse` 时语义更直观。
+
+### 2. 校验：禁止循环单条查询
+
+当需要校验「一批 ID 是否都存在 / 是否都在当前命名空间」时：
+
+- 在 **repository** 增加**批量**方法（如 `CountXxxByUIDs(ctx, uids []snowflake.ID) (int64, error)`），在 impl 内用 `Where(..., ID.In(uidInt64s...)).Count()` **一次**查询。
+- 在 **biz** 内比较 `count == len(uids)` 即可，**禁止**在 for 循环内逐条调用 `GetXxx(ctx, id)` 做校验。
+
+### 3. 列表按 ID 批量拉取：禁止循环单条查询
+
+当需要根据一批 UID 拉取详情列表并**保持与输入一致的顺序**时：
+
+- 在 **repository** 增加**批量**方法（如 `GetXxxByUIDs(ctx, uids []snowflake.ID) ([]*bo.XxxItemBo, error)`），在 impl 内用 `Where(..., ID.In(...)).Find()` **一次**查询。
+- 在 **biz** 内将返回列表转为 `map[uid]*bo`，再按原始 `uids` 顺序遍历，从 map 中取并 append，得到有序结果；**禁止**在 for 循环内逐条 `GetXxx(ctx, uid)`。
 
 ## README 与文档同步
 
@@ -157,6 +186,7 @@ description: Implements backend modules from proto definitions for goddess, mark
 ## 复用清单（优先使用，勿重复实现）
 
 - 分页：`biz/bo/page.go` 的 `PageRequestBo`、`PageResponseBo[T]`
+- 切片反转/克隆：标准库 `slices.Clone`、`slices.Reverse`（用于按「越大越靠前」赋 SortOrder 等）
 - 错误：`magicbox/merr`（如 `ErrorNotFound`、`ErrorInvalidArgument`、`ErrorParams`、`IsNotFound`）
 - 上下文：`magicbox/contextx`（如 `GetNamespace`、`GetUserUID`）
 - 枚举：`magicbox/enum`（与 proto 一致）
@@ -178,6 +208,9 @@ description: Implements backend modules from proto definitions for goddess, mark
 - [ ] bo/repository/do/convert/impl/biz/service 分层与现有模块一致
 - [ ] 分页、错误、上下文、枚举、ID 均使用项目与 magicbox 既有类型
 - [ ] **Repository/impl 单一职责**：每个 repo 方法只做单表/单次查询；多表或组合判断在 biz 层通过多次调用 repo 完成，不在一个 repo 方法内混多表
+- [ ] **data/impl 使用 gen 模式**：条件与排序使用 query 的 field 表达式（如 `u.UserUID.Eq(...)`、`u.SortOrder.Desc()`），未使用手写字符串；批量插入使用 `CreateInBatches` 或一次 `Create(slice)`，未在循环内逐条 Create
+- [ ] **无循环校验/循环查详情**：批量校验用 CountXxxByUIDs 等一次查询后比较数量；按 UID 列表拉详情用 GetXxxByUIDs 等一次查询后在 biz 用 map 按顺序组装，未在 for 内逐条 Get
+- [ ] **排序语义正确**：若「越大越靠前」，存库时第一项赋最大 SortOrder（可用 slices.Reverse），查询用 Order Desc
 - [ ] Import 顺序：标准库 → 空白 → 第三方 → 当前项目
 - [ ] 新增的 repository、biz、service、impl 已在对应 ProviderSet 与 Register* 中注册
 - [ ] 公共可复用函数或方法已添加测试

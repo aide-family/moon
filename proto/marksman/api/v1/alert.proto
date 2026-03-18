@@ -15,58 +15,71 @@ import "magicbox/enum/alert.proto";
 service Alert {
 	rpc CreateAlertPage (CreateAlertPageRequest) returns (CreateAlertPageReply) {
 		option (google.api.http) = {
-			post: "/v1/alert-pages"
+			post: "/v1/alert/alert-pages"
 			body: "*"
 		};
 	}
 	rpc UpdateAlertPage (UpdateAlertPageRequest) returns (UpdateAlertPageReply) {
 		option (google.api.http) = {
-			put: "/v1/alert-pages/{uid}"
+			put: "/v1/alert/alert-pages/{uid}"
 			body: "*"
 		};
 	}
 	rpc DeleteAlertPage (DeleteAlertPageRequest) returns (DeleteAlertPageReply) {
 		option (google.api.http) = {
-			delete: "/v1/alert-pages/{uid}"
+			delete: "/v1/alert/alert-pages/{uid}"
 		};
 	}
 	rpc GetAlertPage (GetAlertPageRequest) returns (AlertPageItem) {
 		option (google.api.http) = {
-			get: "/v1/alert-pages/{uid}"
+			get: "/v1/alert/alert-pages/{uid}"
 		};
 	}
 	rpc ListAlertPage (ListAlertPageRequest) returns (ListAlertPageReply) {
 		option (google.api.http) = {
-			get: "/v1/alert-pages"
+			get: "/v1/alert/alert-pages"
 		};
 	}
 	rpc ListRealtimeAlert (ListRealtimeAlertRequest) returns (ListRealtimeAlertReply) {
 		option (google.api.http) = {
-			get: "/v1/alert-pages/{alertPageUid}/realtime-alerts"
+			get: "/v1/alert/alert-pages/{alertPageUid}/realtime-alerts"
 		};
 	}
 	rpc InterveneAlert (InterveneAlertRequest) returns (InterveneAlertReply) {
 		option (google.api.http) = {
-			post: "/v1/realtime-alerts/{uid}/intervene"
+			post: "/v1/alert/realtime-alerts/{uid}/intervene"
 			body: "*"
 		};
 	}
 	rpc SuppressAlert (SuppressAlertRequest) returns (SuppressAlertReply) {
 		option (google.api.http) = {
-			post: "/v1/realtime-alerts/{uid}/suppress"
+			post: "/v1/alert/realtime-alerts/{uid}/suppress"
 			body: "*"
 		};
 	}
 	rpc RecoverAlert (RecoverAlertRequest) returns (RecoverAlertReply) {
 		option (google.api.http) = {
-			post: "/v1/realtime-alerts/{uid}/recover"
+			post: "/v1/alert/realtime-alerts/{uid}/recover"
 			body: "*"
 		};
 	}
 	// GetAlertStatistics returns alert counts for the dashboard: total active, by level, today recovered, by alert page.
 	rpc GetAlertStatistics (GetAlertStatisticsRequest) returns (GetAlertStatisticsReply) {
 		option (google.api.http) = {
-			get: "/v1/alert-statistics"
+			get: "/v1/alert/statistics"
+		};
+	}
+	// ListUserAlertPages returns the current user's followed alert pages (personal config).
+	rpc ListUserAlertPages (ListUserAlertPagesRequest) returns (ListUserAlertPagesReply) {
+		option (google.api.http) = {
+			get: "/v1/alert/user/alert-pages"
+		};
+	}
+	// SaveUserAlertPages saves the current user's followed alert pages (replaces existing list).
+	rpc SaveUserAlertPages (SaveUserAlertPagesRequest) returns (SaveUserAlertPagesReply) {
+		option (google.api.http) = {
+			put: "/v1/alert/user/alert-pages"
+			body: "*"
 		};
 	}
 }
@@ -269,3 +282,20 @@ message GetAlertStatisticsReply {
 	repeated AlertPageCount countByAlertPage = 4;
 }
 
+// ListUserAlertPagesRequest requests the current user's followed alert pages (no body).
+message ListUserAlertPagesRequest {}
+
+// ListUserAlertPagesReply returns the user's followed alert pages in order.
+message ListUserAlertPagesReply {
+	repeated AlertPageItem items = 1;
+}
+
+// SaveUserAlertPagesRequest saves the user's followed alert pages (order by array index).
+message SaveUserAlertPagesRequest {
+	repeated int64 alertPageUids = 1 [(buf.validate.field).repeated = {
+		max_items: 10,
+	}];
+}
+
+// SaveUserAlertPagesReply is empty on success.
+message SaveUserAlertPagesReply {}

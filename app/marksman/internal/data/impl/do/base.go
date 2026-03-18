@@ -24,6 +24,7 @@ func Models() []any {
 		&AlertPage{},
 		&EvaluatorSnapshot{},
 		&AlertEvent{},
+		&UserAlertPage{},
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
+	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 
 	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
@@ -76,8 +77,8 @@ func ToAPIV1StrategyGroupItem(b *StrategyGroupItemBo) *apiv1.StrategyGroupItem {
 		Remark:    b.Remark,
 		Status:    b.Status,
 		Metadata:  b.Metadata,
-		CreatedAt: b.CreatedAt.Format(time.DateTime),
-		UpdatedAt: b.UpdatedAt.Format(time.DateTime),
+		CreatedAt: timex.FormatTime(&b.CreatedAt),
+		UpdatedAt: timex.FormatTime(&b.UpdatedAt),
 	}
 }
 

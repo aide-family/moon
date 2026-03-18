@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/safety"
 	"github.com/bwmarrin/snowflake"
 
@@ -67,7 +68,7 @@ func ToAlertEventDo(ev *bo.AlertEventBo, strategyGroupUID snowflake.ID, evaluato
 		EvaluatorType:       ev.EvaluatorType,
 		EvaluatorSnapshotID: evaluatorSnapshotID,
 		Fingerprint:         ev.Fingerprint,
-		Status:              do.AlertEventStatusFiring,
+		Status:              enum.AlertEventStatus_ALERT_EVENT_STATUS_FIRING,
 	}
 	return m
 }

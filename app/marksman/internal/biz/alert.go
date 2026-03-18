@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/merr"
 	klog "github.com/go-kratos/kratos/v2/log"
 
@@ -14,22 +15,25 @@ import (
 func NewAlert(
 	alertPageRepo repository.AlertPage,
 	alertEventRepo repository.AlertEvent,
+	userAlertPageRepo repository.UserAlertPage,
 	levelRepo repository.Level,
 	helper *klog.Helper,
 ) *AlertBiz {
 	return &AlertBiz{
-		alertPageRepo:  alertPageRepo,
-		alertEventRepo: alertEventRepo,
-		levelRepo:      levelRepo,
-		helper:         klog.NewHelper(klog.With(helper.Logger(), "biz", "alert")),
+		alertPageRepo:     alertPageRepo,
+		alertEventRepo:    alertEventRepo,
+		userAlertPageRepo: userAlertPageRepo,
+		levelRepo:         levelRepo,
+		helper:            klog.NewHelper(klog.With(helper.Logger(), "biz", "alert")),
 	}
 }
 
 type AlertBiz struct {
-	alertPageRepo  repository.AlertPage
-	alertEventRepo repository.AlertEvent
-	levelRepo      repository.Level
-	helper         *klog.Helper
+	alertPageRepo     repository.AlertPage
+	alertEventRepo    repository.AlertEvent
+	userAlertPageRepo repository.UserAlertPage
+	levelRepo         repository.Level
+	helper            *klog.Helper
 }
 
 func (b *AlertBiz) ListRealtimeAlert(ctx context.Context, req *bo.ListRealtimeAlertBo) (*bo.PageResponseBo[*bo.AlertEventItemBo], error) {
@@ -41,11 +45,8 @@ func (b *AlertBiz) ListRealtimeAlert(ctx context.Context, req *bo.ListRealtimeAl
 		b.helper.Errorw("msg", "get alert page failed", "error", err, "alertPageUID", req.AlertPageUID.Int64())
 		return nil, merr.ErrorInternalServer("get alert page failed").WithCause(err)
 	}
-	var filter *bo.AlertPageFilterBo
-	if page.Filter != nil {
-		filter = page.Filter
-	}
-	result, err := b.alertEventRepo.ListRealtimeAlert(ctx, req, filter)
+
+	result, err := b.alertEventRepo.ListRealtimeAlert(ctx, req, page.Filter)
 	if err != nil {
 		b.helper.Errorw("msg", "list realtime alert failed", "error", err)
 		return nil, merr.ErrorInternalServer("list realtime alert failed").WithCause(err)
@@ -122,15 +123,29 @@ func (b *AlertBiz) GetAlertStatistics(ctx context.Context) (*bo.AlertStatisticsB
 		return nil, merr.ErrorInternalServer("count recovered alerts since failed").WithCause(err)
 	}
 
-	pageList, err := b.alertPageRepo.ListAlertPage(ctx, &bo.ListAlertPageBo{
-		PageRequestBo: bo.NewPageRequestBo(1, 200),
-	})
-	if err != nil {
-		b.helper.Errorw("msg", "list alert pages failed", "error", err)
-		return nil, merr.ErrorInternalServer("list alert pages failed").WithCause(err)
+	stats := &bo.AlertStatisticsBo{
+		TotalActiveCount:    totalActive,
+		CountByLevel:        byLevel,
+		TodayRecoveredCount: todayRecovered,
+		CountByAlertPage:    nil,
 	}
-	byPage := make([]bo.AlertPageCountBo, 0, len(pageList.GetItems()))
-	for _, page := range pageList.GetItems() {
+
+	userUID := contextx.GetUserUID(ctx)
+	userPageUIDs, err := b.userAlertPageRepo.GetUserAlertPageUIDs(ctx, userUID)
+	if err != nil {
+		b.helper.Errorw("msg", "get user alert page uids failed", "error", err)
+		return nil, merr.ErrorInternalServer("get user alert page uids failed").WithCause(err)
+	}
+	if len(userPageUIDs) == 0 {
+		return stats, nil
+	}
+	userPageList, err := b.alertPageRepo.GetAlertPagesByUIDs(ctx, userPageUIDs)
+	if err != nil {
+		b.helper.Errorw("msg", "get alert pages by uids failed", "error", err)
+		return nil, merr.ErrorInternalServer("get alert pages by uids failed").WithCause(err)
+	}
+	stats.CountByAlertPage = make([]bo.AlertPageCountBo, 0, len(userPageList))
+	for _, page := range userPageList {
 		var filter *bo.AlertPageFilterBo
 		if page.Filter != nil {
 			filter = page.Filter
@@ -140,17 +155,12 @@ func (b *AlertBiz) GetAlertStatistics(ctx context.Context) (*bo.AlertStatisticsB
 			b.helper.Errorw("msg", "count active alerts for page failed", "error", err, "alertPageUID", page.UID.Int64())
 			continue
 		}
-		byPage = append(byPage, bo.AlertPageCountBo{
+		stats.CountByAlertPage = append(stats.CountByAlertPage, bo.AlertPageCountBo{
 			AlertPageUID:  page.UID,
 			AlertPageName: page.Name,
 			Count:         cnt,
 		})
 	}
 
-	return &bo.AlertStatisticsBo{
-		TotalActiveCount:    totalActive,
-		CountByLevel:        byLevel,
-		TodayRecoveredCount: todayRecovered,
-		CountByAlertPage:    byPage,
-	}, nil
+	return stats, nil
 }

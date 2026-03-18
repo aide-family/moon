@@ -126,3 +126,41 @@ func (r *alertPageRepository) ListAlertPage(ctx context.Context, req *bo.ListAle
 	}
 	return bo.NewPageResponseBo(req.PageRequestBo, items), nil
 }
+
+func (r *alertPageRepository) CountAlertPagesByUIDs(ctx context.Context, uids []snowflake.ID) (int64, error) {
+	if len(uids) == 0 {
+		return 0, nil
+	}
+	uidInt64s := make([]int64, 0, len(uids))
+	for _, id := range uids {
+		uidInt64s = append(uidInt64s, id.Int64())
+	}
+	a := query.AlertPage
+	return a.WithContext(ctx).Where(
+		a.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
+		a.ID.In(uidInt64s...),
+	).Count()
+}
+
+func (r *alertPageRepository) GetAlertPagesByUIDs(ctx context.Context, uids []snowflake.ID) ([]*bo.AlertPageItemBo, error) {
+	if len(uids) == 0 {
+		return nil, nil
+	}
+	uidInt64s := make([]int64, 0, len(uids))
+	for _, id := range uids {
+		uidInt64s = append(uidInt64s, id.Int64())
+	}
+	a := query.AlertPage
+	list, err := a.WithContext(ctx).Where(
+		a.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
+		a.ID.In(uidInt64s...),
+	).Find()
+	if err != nil {
+		return nil, err
+	}
+	items := make([]*bo.AlertPageItemBo, 0, len(list))
+	for _, m := range list {
+		items = append(items, convert.ToAlertPageItemBo(m))
+	}
+	return items, nil
+}

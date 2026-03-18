@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
+	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 
 	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
@@ -75,8 +76,8 @@ func ToAPIV1DatasourceItem(b *DatasourceItemBo) *apiv1.DatasourceItem {
 		Driver:    b.Driver,
 		Metadata:  b.Metadata,
 		Status:    b.Status,
-		CreatedAt: b.CreatedAt.Format(time.DateTime),
-		UpdatedAt: b.UpdatedAt.Format(time.DateTime),
+		CreatedAt: timex.FormatTime(&b.CreatedAt),
+		UpdatedAt: timex.FormatTime(&b.UpdatedAt),
 		Url:       b.URL,
 		Remark:    b.Remark,
 	}

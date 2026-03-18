@@ -8,10 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bwmarrin/snowflake"
-
 	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/enum"
+	"github.com/aide-family/magicbox/timex"
+	"github.com/bwmarrin/snowflake"
+
 	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
 )
 
@@ -78,30 +79,30 @@ func ToAPIV1AlertEventItem(b *AlertEventItemBo) *apiv1.AlertEventItem {
 		Summary:          b.Summary,
 		Description:      b.Description,
 		Expr:             b.Expr,
-		FiredAt:          b.FiredAt.Format(time.RFC3339),
+		FiredAt:          timex.FormatTime(&b.FiredAt),
 		Value:            b.Value,
 		Labels:           b.Labels,
 		DatasourceUid:    b.DatasourceUID.Int64(),
 		Status:           b.Status,
-		IntervenedAt:     b.IntervenedAt.Format(time.RFC3339),
+		IntervenedAt:     timex.FormatTime(b.IntervenedAt),
 		IntervenedBy:     b.IntervenedBy.Int64(),
 		SuppressedBy:     b.SuppressedBy.Int64(),
 		SuppressedReason: b.SuppressedReason,
-		RecoveredAt:      b.RecoveredAt.Format(time.RFC3339),
+		RecoveredAt:      timex.FormatTime(b.RecoveredAt),
 		RecoveredBy:      b.RecoveredBy.Int64(),
 		RecoveredReason:  b.RecoveredReason,
 	}
 	if b.IntervenedAt != nil {
-		item.IntervenedAt = b.IntervenedAt.Format(time.RFC3339)
+		item.IntervenedAt = timex.FormatTime(b.IntervenedAt)
 		item.IntervenedBy = b.IntervenedBy.Int64()
 	}
 	if b.SuppressedUntilAt != nil {
-		item.SuppressUntilAt = b.SuppressedUntilAt.Format(time.RFC3339)
+		item.SuppressUntilAt = timex.FormatTime(b.SuppressedUntilAt)
 		item.SuppressedBy = b.SuppressedBy.Int64()
 		item.SuppressedReason = b.SuppressedReason
 	}
 	if b.RecoveredAt != nil {
-		item.RecoveredAt = b.RecoveredAt.Format(time.RFC3339)
+		item.RecoveredAt = timex.FormatTime(b.RecoveredAt)
 		item.RecoveredBy = b.RecoveredBy.Int64()
 		item.RecoveredReason = b.RecoveredReason
 	}

@@ -6,7 +6,7 @@ info:
     title: ""
     version: 0.0.1
 paths:
-    /v1/alert-pages:
+    /v1/alert/alert-pages:
         get:
             tags:
                 - Alert
@@ -50,7 +50,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.CreateAlertPageReply'
-    /v1/alert-pages/{alertPageUid}/realtime-alerts:
+    /v1/alert/alert-pages/{alertPageUid}/realtime-alerts:
         get:
             tags:
                 - Alert
@@ -93,7 +93,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.ListRealtimeAlertReply'
-    /v1/alert-pages/{uid}:
+    /v1/alert/alert-pages/{uid}:
         get:
             tags:
                 - Alert
@@ -151,7 +151,79 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.DeleteAlertPageReply'
-    /v1/alert-statistics:
+    /v1/alert/realtime-alerts/{uid}/intervene:
+        post:
+            tags:
+                - Alert
+            operationId: Alert_InterveneAlert
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.InterveneAlertRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.InterveneAlertReply'
+    /v1/alert/realtime-alerts/{uid}/recover:
+        post:
+            tags:
+                - Alert
+            operationId: Alert_RecoverAlert
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.RecoverAlertRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.RecoverAlertReply'
+    /v1/alert/realtime-alerts/{uid}/suppress:
+        post:
+            tags:
+                - Alert
+            operationId: Alert_SuppressAlert
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.SuppressAlertRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.SuppressAlertReply'
+    /v1/alert/statistics:
         get:
             tags:
                 - Alert
@@ -164,6 +236,37 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.GetAlertStatisticsReply'
+    /v1/alert/user/alert-pages:
+        get:
+            tags:
+                - Alert
+            description: ListUserAlertPages returns the current user's followed alert pages (personal config).
+            operationId: Alert_ListUserAlertPages
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.ListUserAlertPagesReply'
+        put:
+            tags:
+                - Alert
+            description: SaveUserAlertPages saves the current user's followed alert pages (replaces existing list).
+            operationId: Alert_SaveUserAlertPages
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.SaveUserAlertPagesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.SaveUserAlertPagesReply'
     /v1/datasource:
         post:
             tags:
@@ -793,78 +896,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.StrategyMetricBindReceiversReply'
-    /v1/realtime-alerts/{uid}/intervene:
-        post:
-            tags:
-                - Alert
-            operationId: Alert_InterveneAlert
-            parameters:
-                - name: uid
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/marksman.api.v1.InterveneAlertRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/marksman.api.v1.InterveneAlertReply'
-    /v1/realtime-alerts/{uid}/recover:
-        post:
-            tags:
-                - Alert
-            operationId: Alert_RecoverAlert
-            parameters:
-                - name: uid
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/marksman.api.v1.RecoverAlertRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/marksman.api.v1.RecoverAlertReply'
-    /v1/realtime-alerts/{uid}/suppress:
-        post:
-            tags:
-                - Alert
-            operationId: Alert_SuppressAlert
-            parameters:
-                - name: uid
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/marksman.api.v1.SuppressAlertRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/marksman.api.v1.SuppressAlertReply'
     /v1/strategies:
         get:
             tags:
@@ -1669,6 +1700,14 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        marksman.api.v1.ListUserAlertPagesReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.AlertPageItem'
+            description: ListUserAlertPagesReply returns the user's followed alert pages in order.
         marksman.api.v1.MetricDetailItem:
             type: object
             properties:
@@ -1831,6 +1870,18 @@ components:
                     type: string
                 description:
                     type: string
+        marksman.api.v1.SaveUserAlertPagesReply:
+            type: object
+            properties: {}
+            description: SaveUserAlertPagesReply is empty on success.
+        marksman.api.v1.SaveUserAlertPagesRequest:
+            type: object
+            properties:
+                alertPageUids:
+                    type: array
+                    items:
+                        type: string
+            description: SaveUserAlertPagesRequest saves the user's followed alert pages (order by array index).
         marksman.api.v1.SelectDatasourceItem:
             type: object
             properties:

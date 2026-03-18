@@ -28,6 +28,7 @@ var (
 	StrategyMetric         *strategyMetric
 	StrategyMetricLevel    *strategyMetricLevel
 	StrategyMetricReceiver *strategyMetricReceiver
+	UserAlertPage          *userAlertPage
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
@@ -43,6 +44,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	StrategyMetric = &Q.StrategyMetric
 	StrategyMetricLevel = &Q.StrategyMetricLevel
 	StrategyMetricReceiver = &Q.StrategyMetricReceiver
+	UserAlertPage = &Q.UserAlertPage
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
@@ -59,6 +61,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		StrategyMetric:         newStrategyMetric(db, opts...),
 		StrategyMetricLevel:    newStrategyMetricLevel(db, opts...),
 		StrategyMetricReceiver: newStrategyMetricReceiver(db, opts...),
+		UserAlertPage:          newUserAlertPage(db, opts...),
 	}
 }
 
@@ -76,6 +79,7 @@ type Query struct {
 	StrategyMetric         strategyMetric
 	StrategyMetricLevel    strategyMetricLevel
 	StrategyMetricReceiver strategyMetricReceiver
+	UserAlertPage          userAlertPage
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -94,6 +98,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		StrategyMetric:         q.StrategyMetric.clone(db),
 		StrategyMetricLevel:    q.StrategyMetricLevel.clone(db),
 		StrategyMetricReceiver: q.StrategyMetricReceiver.clone(db),
+		UserAlertPage:          q.UserAlertPage.clone(db),
 	}
 }
 
@@ -119,6 +124,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		StrategyMetric:         q.StrategyMetric.replaceDB(db),
 		StrategyMetricLevel:    q.StrategyMetricLevel.replaceDB(db),
 		StrategyMetricReceiver: q.StrategyMetricReceiver.replaceDB(db),
+		UserAlertPage:          q.UserAlertPage.replaceDB(db),
 	}
 }
 
@@ -134,6 +140,7 @@ type queryCtx struct {
 	StrategyMetric         IStrategyMetricDo
 	StrategyMetricLevel    IStrategyMetricLevelDo
 	StrategyMetricReceiver IStrategyMetricReceiverDo
+	UserAlertPage          IUserAlertPageDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
@@ -149,6 +156,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		StrategyMetric:         q.StrategyMetric.WithContext(ctx),
 		StrategyMetricLevel:    q.StrategyMetricLevel.WithContext(ctx),
 		StrategyMetricReceiver: q.StrategyMetricReceiver.WithContext(ctx),
+		UserAlertPage:          q.UserAlertPage.WithContext(ctx),
 	}
 }
 

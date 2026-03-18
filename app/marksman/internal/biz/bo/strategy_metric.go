@@ -5,10 +5,11 @@ import (
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
+	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
-	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 // SaveStrategyMetricBo for SaveStrategyMetric (upsert by strategy_uid)
@@ -62,8 +63,8 @@ func ToAPIV1StrategyMetricItem(b *StrategyMetricItemBo) *apiv1.StrategyMetricIte
 		Description:    b.Description,
 		DatasourceUIDs: b.DatasourceUIDs,
 		Levels:         levels,
-		CreatedAt:      b.CreatedAt.Format(time.DateTime),
-		UpdatedAt:      b.UpdatedAt.Format(time.DateTime),
+		CreatedAt:      timex.FormatTime(&b.CreatedAt),
+		UpdatedAt:      timex.FormatTime(&b.UpdatedAt),
 		Strategy:       ToAPIV1StrategyItem(b.Strategy),
 	}
 }
@@ -238,8 +239,8 @@ func (e *EvaluateMetricStrategyBo) ToSnapshot() *MetricEvaluatorSnapshot {
 			Status:    int32(e.Datasource.Status),
 			URL:       e.Datasource.URL,
 			Remark:    e.Datasource.Remark,
-			CreatedAt: e.Datasource.CreatedAt.Format(time.RFC3339),
-			UpdatedAt: e.Datasource.UpdatedAt.Format(time.RFC3339),
+			CreatedAt: timex.FormatTime(&e.Datasource.CreatedAt),
+			UpdatedAt: timex.FormatTime(&e.Datasource.UpdatedAt),
 		}
 	}
 	if e.Level != nil {
@@ -249,8 +250,8 @@ func (e *EvaluateMetricStrategyBo) ToSnapshot() *MetricEvaluatorSnapshot {
 			Remark:    e.Level.Remark,
 			Status:    int32(e.Level.Status),
 			Metadata:  e.Level.Metadata,
-			CreatedAt: e.Level.CreatedAt.Format(time.RFC3339),
-			UpdatedAt: e.Level.UpdatedAt.Format(time.RFC3339),
+			CreatedAt: timex.FormatTime(&e.Level.CreatedAt),
+			UpdatedAt: timex.FormatTime(&e.Level.UpdatedAt),
 		}
 	}
 	return s

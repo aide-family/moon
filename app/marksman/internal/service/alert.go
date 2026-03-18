@@ -104,3 +104,22 @@ func (s *AlertService) GetAlertStatistics(ctx context.Context, req *apiv1.GetAle
 	}
 	return bo.ToAPIV1GetAlertStatisticsReply(stats), nil
 }
+
+func (s *AlertService) ListUserAlertPages(ctx context.Context, req *apiv1.ListUserAlertPagesRequest) (*apiv1.ListUserAlertPagesReply, error) {
+	items, err := s.alertPageBiz.ListUserAlertPages(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return bo.ToAPIV1ListUserAlertPagesReply(items), nil
+}
+
+func (s *AlertService) SaveUserAlertPages(ctx context.Context, req *apiv1.SaveUserAlertPagesRequest) (*apiv1.SaveUserAlertPagesReply, error) {
+	uids := make([]snowflake.ID, 0, len(req.GetAlertPageUids()))
+	for _, id := range req.GetAlertPageUids() {
+		uids = append(uids, snowflake.ParseInt64(id))
+	}
+	if err := s.alertPageBiz.SaveUserAlertPages(ctx, uids); err != nil {
+		return nil, err
+	}
+	return &apiv1.SaveUserAlertPagesReply{}, nil
+}

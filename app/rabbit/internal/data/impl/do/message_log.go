@@ -6,6 +6,7 @@ import (
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/strutil"
+	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 	"gorm.io/gorm"
 )
@@ -42,7 +43,7 @@ func (m *MessageLog) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func GenMessageLogTableName(namespace snowflake.ID, sendAt time.Time) string {
-	weekStart := getFirstMonday(sendAt)
+	weekStart := timex.StartOfWeek(sendAt)
 	return strings.Join([]string{TableNameMessageLog, namespace.String(), weekStart.Format("20060102")}, "__")
 }
 
@@ -51,7 +52,7 @@ func GenMessageLogTableNames(tx *gorm.DB, namespace snowflake.ID, startAt time.T
 		return nil
 	}
 	tableNames := make([]string, 0)
-	firstMonday := getFirstMonday(startAt)
+	firstMonday := timex.StartOfWeek(startAt)
 	for current := firstMonday; current.Before(endAt); current = current.AddDate(0, 0, 7) {
 		if tableName := GenMessageLogTableName(namespace, current); HasTable(tx, tableName) {
 			tableNames = append(tableNames, tableName)
@@ -62,12 +63,4 @@ func GenMessageLogTableNames(tx *gorm.DB, namespace snowflake.ID, startAt time.T
 
 func HasTable(tx *gorm.DB, tableName string) bool {
 	return tx.Migrator().HasTable(tableName)
-}
-
-func getFirstMonday(date time.Time) time.Time {
-	offset := int(time.Monday - date.Weekday())
-	if offset > 0 {
-		offset -= 7
-	}
-	return date.AddDate(0, 0, offset)
 }

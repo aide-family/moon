@@ -5,12 +5,13 @@ import (
 	"fmt"
 
 	"github.com/aide-family/magicbox/contextx"
+	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/server/cron"
-	"github.com/aide-family/marksman/internal/biz/bo"
-	"github.com/aide-family/marksman/internal/biz/repository"
-	"github.com/aide-family/marksman/internal/data/impl/do"
 	"github.com/bwmarrin/snowflake"
 	klog "github.com/go-kratos/kratos/v2/log"
+
+	"github.com/aide-family/marksman/internal/biz/bo"
+	"github.com/aide-family/marksman/internal/biz/repository"
 )
 
 func NewAlerting(
@@ -55,7 +56,7 @@ func (a *alerting) Run() {
 		klog.Errorw("msg", "get alert event failed", "error", err, "alertEventUID", a.alertEventUID.Int64(), "fingerprint", a.info.Fingerprint)
 		return
 	}
-	if alertEvent.Status != do.AlertEventStatusFiring {
+	if alertEvent.Status != enum.AlertEventStatus_ALERT_EVENT_STATUS_FIRING {
 		return
 	}
 	if err := a.alertEventRepo.AutoRecoverAlert(ctx, a.alertEventUID); err != nil {

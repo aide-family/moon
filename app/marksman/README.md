@@ -54,7 +54,7 @@
 - **Strategy**: CRUD, list, status; link to strategy group; type (METRICS/LOGS/TRACE) and driver
 - **Level**: Alert level CRUD, list, select, status (for grouping alert severity)
 - **Strategy metric**: Save/get metric config (expr, labels, datasourceUIDs, levels); save/update/delete/get metric levels (mode, condition, values, duration); bind receivers per strategy (optional levelUID)
-- **Alert (real-time)**: Alert page CRUD (name, color, sort order, filter by strategy group/level/strategy); list real-time alert events by alert page; operate events: intervene (on-call takeover), suppress (until time), recover (manual); alert statistics for dashboard (total active, by level, today recovered, by alert page)
+- **Alert (real-time)**: Alert page CRUD (name, color, sort order, filter by strategy group/level/strategy); list real-time alert events by alert page; operate events: intervene (on-call takeover), suppress (until time), recover (manual); alert statistics for dashboard (total active, by level, today recovered, by alert page); user followed alert pages (list/save per user)
 
 ---
 
@@ -124,6 +124,8 @@
 | | `POST /v1/realtime-alerts/{uid}/intervene` | Mark event as intervened (on-call takeover) |
 | | `POST /v1/realtime-alerts/{uid}/suppress` | Suppress event until time (body: suppressUntil RFC3339) |
 | | `POST /v1/realtime-alerts/{uid}/recover` | Mark event as manually recovered |
+| **Alert** (user) | `GET /v1/user/alert-pages` | List current user's followed alert pages (personal config) |
+| | `PUT /v1/user/alert-pages` | Save current user's followed alert pages (body: alertPageUids, max 10; replaces list) |
 
 **Types**: `DatasourceType`: METRICS, LOGS, TRACE. **Drivers**: METRICS_PROMETHEUS, METRICS_VICTORIA_METRICS, LOGS_ELASTICSEARCH, TRACE_JAEGER.
 
