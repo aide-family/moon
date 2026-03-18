@@ -17,4 +17,6 @@ type Level interface {
 	GetLevel(ctx context.Context, uid snowflake.ID) (*bo.LevelItemBo, error)
 	ListLevel(ctx context.Context, req *bo.ListLevelBo) (*bo.PageResponseBo[*bo.LevelItemBo], error)
 	SelectLevel(ctx context.Context, req *bo.SelectLevelBo) (*bo.SelectLevelBoResult, error)
+	// GetLevelNamesByUIDs returns map[levelUID]name for the given UIDs in the current namespace.
+	GetLevelNamesByUIDs(ctx context.Context, levelUIDs []int64) (map[int64]string, error)
 }

@@ -171,3 +171,22 @@ func (r *levelRepository) SelectLevel(ctx context.Context, req *bo.SelectLevelBo
 		HasMore: len(list) >= int(req.Limit),
 	}, nil
 }
+
+func (r *levelRepository) GetLevelNamesByUIDs(ctx context.Context, levelUIDs []int64) (map[int64]string, error) {
+	if len(levelUIDs) == 0 {
+		return nil, nil
+	}
+	l := query.Level
+	list, err := l.WithContext(ctx).Where(
+		l.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
+		l.ID.In(levelUIDs...),
+	).Select(l.ID, l.Name).Find()
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[int64]string, len(list))
+	for _, m := range list {
+		out[m.ID.Int64()] = m.Name
+	}
+	return out, nil
+}

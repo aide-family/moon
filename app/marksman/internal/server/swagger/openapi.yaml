@@ -151,6 +151,19 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.DeleteAlertPageReply'
+    /v1/alert-statistics:
+        get:
+            tags:
+                - Alert
+            description: 'GetAlertStatistics returns alert counts for the dashboard: total active, by level, today recovered, by alert page.'
+            operationId: Alert_GetAlertStatistics
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.GetAlertStatisticsReply'
     /v1/datasource:
         post:
             tags:
@@ -1273,6 +1286,16 @@ components:
                 updatedAt:
                     type: string
             description: AlertEventItem is a single real-time alert event.
+        marksman.api.v1.AlertPageCount:
+            type: object
+            properties:
+                alertPageUid:
+                    type: string
+                alertPageName:
+                    type: string
+                count:
+                    type: string
+            description: AlertPageCount is count of active alerts for one alert page.
         marksman.api.v1.AlertPageFilter:
             type: object
             properties:
@@ -1474,6 +1497,22 @@ components:
         marksman.api.v1.DeleteStrategyReply:
             type: object
             properties: {}
+        marksman.api.v1.GetAlertStatisticsReply:
+            type: object
+            properties:
+                totalActiveCount:
+                    type: string
+                countByLevel:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.LevelCount'
+                todayRecoveredCount:
+                    type: string
+                countByAlertPage:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.AlertPageCount'
+            description: 'GetAlertStatisticsReply returns dashboard counts: total active, by level, today recovered, by alert page.'
         marksman.api.v1.GetDatasourceStatusReply:
             type: object
             properties:
@@ -1490,6 +1529,16 @@ components:
                 uid:
                     type: string
             description: InterveneAlertRequest marks an event as intervened (on-call has taken over).
+        marksman.api.v1.LevelCount:
+            type: object
+            properties:
+                levelUid:
+                    type: string
+                levelName:
+                    type: string
+                count:
+                    type: string
+            description: LevelCount is count of active alerts for one level.
         marksman.api.v1.LevelItem:
             type: object
             properties:

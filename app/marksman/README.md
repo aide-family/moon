@@ -54,7 +54,7 @@
 - **Strategy**: CRUD, list, status; link to strategy group; type (METRICS/LOGS/TRACE) and driver
 - **Level**: Alert level CRUD, list, select, status (for grouping alert severity)
 - **Strategy metric**: Save/get metric config (expr, labels, datasourceUIDs, levels); save/update/delete/get metric levels (mode, condition, values, duration); bind receivers per strategy (optional levelUID)
-- **Alert (real-time)**: Alert page CRUD (name, color, sort order, filter by strategy group/level/strategy); list real-time alert events by alert page; operate events: intervene (on-call takeover), suppress (until time), recover (manual)
+- **Alert (real-time)**: Alert page CRUD (name, color, sort order, filter by strategy group/level/strategy); list real-time alert events by alert page; operate events: intervene (on-call takeover), suppress (until time), recover (manual); alert statistics for dashboard (total active, by level, today recovered, by alert page)
 
 ---
 
@@ -120,6 +120,7 @@
 | | `GET /v1/alert-pages/{uid}` | Get alert page |
 | | `GET /v1/alert-pages` | List alert pages (page, pageSize, keyword) |
 | **Alert** (realtime) | `GET /v1/alert-pages/{alertPageUid}/realtime-alerts` | List real-time alert events for page (page, pageSize, status) |
+| | `GET /v1/alert-statistics` | Alert dashboard statistics (total active, by level, today recovered, by alert page) |
 | | `POST /v1/realtime-alerts/{uid}/intervene` | Mark event as intervened (on-call takeover) |
 | | `POST /v1/realtime-alerts/{uid}/suppress` | Suppress event until time (body: suppressUntil RFC3339) |
 | | `POST /v1/realtime-alerts/{uid}/recover` | Mark event as manually recovered |

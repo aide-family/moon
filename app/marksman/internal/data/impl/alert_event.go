@@ -366,3 +366,108 @@ func (r *alertEventRepository) AutoRecoverAlert(ctx context.Context, uid snowfla
 
 	return nil
 }
+
+// buildAlertEventUnion builds a GORM DB scope over UNION of alert_events shard tables for ns and [startAt,endAt].
+// Caller must add Where conditions and run Count/Find/Scan. Table alias is do.TableNameAlertEvent.
+func (r *alertEventRepository) buildAlertEventUnion(ctx context.Context, ns snowflake.ID, startAt, endAt time.Time) *gorm.DB {
+	tableNames := do.GenAlertEventTableNames(r.DB(), ns, startAt, endAt)
+	if len(tableNames) == 0 {
+		return r.DB().WithContext(ctx).Table(do.TableNameAlertEvent).Where("1 = 0")
+	}
+	unionAllSQL := make([]string, 0, len(tableNames))
+	for range tableNames {
+		unionAllSQL = append(unionAllSQL, "?")
+	}
+	wrappers := r.DB().WithContext(ctx)
+	if len(tableNames) > 1 {
+		wrappers = wrappers.Table(fmt.Sprintf("(%s) as %s", strings.Join(unionAllSQL, " UNION ALL "), do.TableNameAlertEvent), r.tablesFromNames(tableNames)...)
+	} else {
+		wrappers = wrappers.Table(fmt.Sprintf("%s as %s", tableNames[0], do.TableNameAlertEvent))
+	}
+	e := query.AlertEvent
+	table := e.As(do.TableNameAlertEvent)
+	return wrappers.Where(table.NamespaceUID.Eq(ns.Int64())).
+		Where(table.FiredAt.Gte(startAt)).
+		Where(table.FiredAt.Lte(endAt))
+}
+
+func (r *alertEventRepository) tablesFromNames(names []string) []any {
+	out := make([]any, 0, len(names))
+	for _, n := range names {
+		out = append(out, r.DB().Table(n))
+	}
+	return out
+}
+
+func (r *alertEventRepository) applyActiveFilter(db *gorm.DB, pageFilter *bo.AlertPageFilterBo) *gorm.DB {
+	e := query.AlertEvent
+	table := e.As(do.TableNameAlertEvent)
+	db = db.Where(table.Status.In(do.AlertEventStatusFiring, do.AlertEventStatusIntervened, do.AlertEventStatusSuppressed))
+	if pageFilter != nil {
+		if len(pageFilter.StrategyUIDs) > 0 {
+			db = db.Where(table.StrategyUID.In(pageFilter.StrategyUIDs...))
+		}
+		if len(pageFilter.LevelUIDs) > 0 {
+			db = db.Where(table.LevelUID.In(pageFilter.LevelUIDs...))
+		}
+		if len(pageFilter.StrategyGroupUIDs) > 0 {
+			db = db.Where(table.StrategyGroupUID.In(pageFilter.StrategyGroupUIDs...))
+		}
+	}
+	return db
+}
+
+func (r *alertEventRepository) CountActiveAlerts(ctx context.Context, startAt, endAt time.Time, pageFilter *bo.AlertPageFilterBo) (int64, error) {
+	ns := contextx.GetNamespace(ctx)
+	if ns.Int64() == 0 {
+		return 0, nil
+	}
+	db := r.buildAlertEventUnion(ctx, ns, startAt, endAt)
+	db = r.applyActiveFilter(db, pageFilter)
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
+		return 0, err
+	}
+	return total, nil
+}
+
+type levelCountRow struct {
+	LevelUID int64 `gorm:"column:level_uid"`
+	Count    int64 `gorm:"column:count"`
+}
+
+func (r *alertEventRepository) CountActiveAlertsByLevel(ctx context.Context, startAt, endAt time.Time, pageFilter *bo.AlertPageFilterBo) ([]bo.LevelCountBo, error) {
+	ns := contextx.GetNamespace(ctx)
+	if ns.Int64() == 0 {
+		return nil, nil
+	}
+	db := r.buildAlertEventUnion(ctx, ns, startAt, endAt)
+	db = r.applyActiveFilter(db, pageFilter)
+	var rows []levelCountRow
+	if err := db.Select("level_uid, count(*) as count").Group("level_uid").Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	out := make([]bo.LevelCountBo, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, bo.LevelCountBo{LevelUID: snowflake.ParseInt64(row.LevelUID), Count: row.Count})
+	}
+	return out, nil
+}
+
+func (r *alertEventRepository) CountRecoveredAlertsSince(ctx context.Context, since time.Time) (int64, error) {
+	ns := contextx.GetNamespace(ctx)
+	if ns.Int64() == 0 {
+		return 0, nil
+	}
+	startAt := since.Add(-bo.ListRealtimeAlertTimeRangeDefault)
+	endAt := time.Now()
+	db := r.buildAlertEventUnion(ctx, ns, startAt, endAt)
+	e := query.AlertEvent
+	table := e.As(do.TableNameAlertEvent)
+	db = db.Where(table.Status.Eq(do.AlertEventStatusRecovered)).Where(table.RecoveredAt.Gte(since))
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
+		return 0, err
+	}
+	return total, nil
+}

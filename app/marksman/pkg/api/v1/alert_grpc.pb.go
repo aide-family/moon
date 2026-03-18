@@ -19,15 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Alert_CreateAlertPage_FullMethodName   = "/marksman.api.v1.Alert/CreateAlertPage"
-	Alert_UpdateAlertPage_FullMethodName   = "/marksman.api.v1.Alert/UpdateAlertPage"
-	Alert_DeleteAlertPage_FullMethodName   = "/marksman.api.v1.Alert/DeleteAlertPage"
-	Alert_GetAlertPage_FullMethodName      = "/marksman.api.v1.Alert/GetAlertPage"
-	Alert_ListAlertPage_FullMethodName     = "/marksman.api.v1.Alert/ListAlertPage"
-	Alert_ListRealtimeAlert_FullMethodName = "/marksman.api.v1.Alert/ListRealtimeAlert"
-	Alert_InterveneAlert_FullMethodName    = "/marksman.api.v1.Alert/InterveneAlert"
-	Alert_SuppressAlert_FullMethodName     = "/marksman.api.v1.Alert/SuppressAlert"
-	Alert_RecoverAlert_FullMethodName      = "/marksman.api.v1.Alert/RecoverAlert"
+	Alert_CreateAlertPage_FullMethodName    = "/marksman.api.v1.Alert/CreateAlertPage"
+	Alert_UpdateAlertPage_FullMethodName    = "/marksman.api.v1.Alert/UpdateAlertPage"
+	Alert_DeleteAlertPage_FullMethodName    = "/marksman.api.v1.Alert/DeleteAlertPage"
+	Alert_GetAlertPage_FullMethodName       = "/marksman.api.v1.Alert/GetAlertPage"
+	Alert_ListAlertPage_FullMethodName      = "/marksman.api.v1.Alert/ListAlertPage"
+	Alert_ListRealtimeAlert_FullMethodName  = "/marksman.api.v1.Alert/ListRealtimeAlert"
+	Alert_InterveneAlert_FullMethodName     = "/marksman.api.v1.Alert/InterveneAlert"
+	Alert_SuppressAlert_FullMethodName      = "/marksman.api.v1.Alert/SuppressAlert"
+	Alert_RecoverAlert_FullMethodName       = "/marksman.api.v1.Alert/RecoverAlert"
+	Alert_GetAlertStatistics_FullMethodName = "/marksman.api.v1.Alert/GetAlertStatistics"
 )
 
 // AlertClient is the client API for Alert service.
@@ -45,6 +46,8 @@ type AlertClient interface {
 	InterveneAlert(ctx context.Context, in *InterveneAlertRequest, opts ...grpc.CallOption) (*InterveneAlertReply, error)
 	SuppressAlert(ctx context.Context, in *SuppressAlertRequest, opts ...grpc.CallOption) (*SuppressAlertReply, error)
 	RecoverAlert(ctx context.Context, in *RecoverAlertRequest, opts ...grpc.CallOption) (*RecoverAlertReply, error)
+	// GetAlertStatistics returns alert counts for the dashboard: total active, by level, today recovered, by alert page.
+	GetAlertStatistics(ctx context.Context, in *GetAlertStatisticsRequest, opts ...grpc.CallOption) (*GetAlertStatisticsReply, error)
 }
 
 type alertClient struct {
@@ -145,6 +148,16 @@ func (c *alertClient) RecoverAlert(ctx context.Context, in *RecoverAlertRequest,
 	return out, nil
 }
 
+func (c *alertClient) GetAlertStatistics(ctx context.Context, in *GetAlertStatisticsRequest, opts ...grpc.CallOption) (*GetAlertStatisticsReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAlertStatisticsReply)
+	err := c.cc.Invoke(ctx, Alert_GetAlertStatistics_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AlertServer is the server API for Alert service.
 // All implementations must embed UnimplementedAlertServer
 // for forward compatibility.
@@ -160,6 +173,8 @@ type AlertServer interface {
 	InterveneAlert(context.Context, *InterveneAlertRequest) (*InterveneAlertReply, error)
 	SuppressAlert(context.Context, *SuppressAlertRequest) (*SuppressAlertReply, error)
 	RecoverAlert(context.Context, *RecoverAlertRequest) (*RecoverAlertReply, error)
+	// GetAlertStatistics returns alert counts for the dashboard: total active, by level, today recovered, by alert page.
+	GetAlertStatistics(context.Context, *GetAlertStatisticsRequest) (*GetAlertStatisticsReply, error)
 	mustEmbedUnimplementedAlertServer()
 }
 
@@ -196,6 +211,9 @@ func (UnimplementedAlertServer) SuppressAlert(context.Context, *SuppressAlertReq
 }
 func (UnimplementedAlertServer) RecoverAlert(context.Context, *RecoverAlertRequest) (*RecoverAlertReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RecoverAlert not implemented")
+}
+func (UnimplementedAlertServer) GetAlertStatistics(context.Context, *GetAlertStatisticsRequest) (*GetAlertStatisticsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAlertStatistics not implemented")
 }
 func (UnimplementedAlertServer) mustEmbedUnimplementedAlertServer() {}
 func (UnimplementedAlertServer) testEmbeddedByValue()               {}
@@ -380,6 +398,24 @@ func _Alert_RecoverAlert_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Alert_GetAlertStatistics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAlertStatisticsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertServer).GetAlertStatistics(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Alert_GetAlertStatistics_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertServer).GetAlertStatistics(ctx, req.(*GetAlertStatisticsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Alert_ServiceDesc is the grpc.ServiceDesc for Alert service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -422,6 +458,10 @@ var Alert_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RecoverAlert",
 			Handler:    _Alert_RecoverAlert_Handler,
+		},
+		{
+			MethodName: "GetAlertStatistics",
+			Handler:    _Alert_GetAlertStatistics_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

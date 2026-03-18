@@ -54,7 +54,7 @@
 - **策略（Strategy）**：增删改查、列表、状态；归属策略组；类型（METRICS/LOGS/TRACE）与驱动
 - **级别（Level）**：告警级别增删改查、列表、选择、状态（用于告警严重程度分组）
 - **策略指标（Strategy metric）**：保存/查询指标配置（expr、labels、datasourceUIDs、levels）；指标级别的增删改查（mode、condition、values、duration）；按策略绑定接收人（可选 levelUID）
-- **告警（实时）**：告警页面增删改查（名称、颜色、排序、按策略组/级别/策略筛选）；按告警页列表展示实时告警事件；事件操作：介入、抑制（至指定时间）、恢复（手动）
+- **告警（实时）**：告警页面增删改查（名称、颜色、排序、按策略组/级别/策略筛选）；按告警页列表展示实时告警事件；事件操作：介入、抑制（至指定时间）、恢复（手动）；告警统计（当前总告警、按等级、今日已恢复、按告警页）
 
 ---
 
@@ -120,6 +120,7 @@
 | | `GET /v1/alert-pages/{uid}` | 获取告警页 |
 | | `GET /v1/alert-pages` | 告警页列表（page、pageSize、keyword） |
 | **Alert**（实时） | `GET /v1/alert-pages/{alertPageUid}/realtime-alerts` | 按页查询实时告警事件（page、pageSize、status） |
+| | `GET /v1/alert-statistics` | 告警统计（当前总告警、按等级、今日已恢复、按告警页） |
 | | `POST /v1/realtime-alerts/{uid}/intervene` | 介入（值班接管） |
 | | `POST /v1/realtime-alerts/{uid}/suppress` | 抑制至指定时间（body: suppressUntil RFC3339） |
 | | `POST /v1/realtime-alerts/{uid}/recover` | 手动恢复 |

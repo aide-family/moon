@@ -98,3 +98,11 @@ func (s *AlertService) RecoverAlert(ctx context.Context, req *apiv1.RecoverAlert
 	}
 	return &apiv1.RecoverAlertReply{}, nil
 }
+
+func (s *AlertService) GetAlertStatistics(ctx context.Context, req *apiv1.GetAlertStatisticsRequest) (*apiv1.GetAlertStatisticsReply, error) {
+	stats, err := s.alertBiz.GetAlertStatistics(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return bo.ToAPIV1GetAlertStatisticsReply(stats), nil
+}

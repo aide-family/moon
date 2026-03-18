@@ -135,7 +135,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		return nil, nil, err
 	}
 	alertPageBiz := biz.NewAlertPage(alertPage, helper)
-	alertBiz := biz.NewAlert(alertPage, alertEvent, helper)
+	alertBiz := biz.NewAlert(alertPage, alertEvent, level, helper)
 	alertService := service.NewAlertService(alertPageBiz, alertBiz)
 	servers := server.RegisterService(datasourceMetricsReg, bc, httpServer, grpcServer, metricCronServer, alertEventConsumerServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, metricQueryService, strategyService, strategyMetricService, alertService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)

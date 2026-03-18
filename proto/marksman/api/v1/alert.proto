@@ -62,6 +62,12 @@ service Alert {
 			body: "*"
 		};
 	}
+	// GetAlertStatistics returns alert counts for the dashboard: total active, by level, today recovered, by alert page.
+	rpc GetAlertStatistics (GetAlertStatisticsRequest) returns (GetAlertStatisticsReply) {
+		option (google.api.http) = {
+			get: "/v1/alert-statistics"
+		};
+	}
 }
 
 // AlertEventStatus represents the status of a real-time alert event.
@@ -235,4 +241,29 @@ message RecoverAlertRequest {
 	}];
 }
 message RecoverAlertReply {}
+
+// GetAlertStatisticsRequest requests alert statistics for the current namespace (no body).
+message GetAlertStatisticsRequest {}
+
+// LevelCount is count of active alerts for one level.
+message LevelCount {
+	int64 levelUid = 1;
+	string levelName = 2;
+	int64 count = 3;
+}
+
+// AlertPageCount is count of active alerts for one alert page.
+message AlertPageCount {
+	int64 alertPageUid = 1;
+	string alertPageName = 2;
+	int64 count = 3;
+}
+
+// GetAlertStatisticsReply returns dashboard counts: total active, by level, today recovered, by alert page.
+message GetAlertStatisticsReply {
+	int64 totalActiveCount = 1;
+	repeated LevelCount countByLevel = 2;
+	int64 todayRecoveredCount = 3;
+	repeated AlertPageCount countByAlertPage = 4;
+}
 

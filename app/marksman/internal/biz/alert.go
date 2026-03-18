@@ -16,11 +16,13 @@ import (
 func NewAlert(
 	alertPageRepo repository.AlertPage,
 	alertEventRepo repository.AlertEvent,
+	levelRepo repository.Level,
 	helper *klog.Helper,
 ) *AlertBiz {
 	return &AlertBiz{
 		alertPageRepo:  alertPageRepo,
 		alertEventRepo: alertEventRepo,
+		levelRepo:      levelRepo,
 		helper:         klog.NewHelper(klog.With(helper.Logger(), "biz", "alert")),
 	}
 }
@@ -28,6 +30,7 @@ func NewAlert(
 type AlertBiz struct {
 	alertPageRepo  repository.AlertPage
 	alertEventRepo repository.AlertEvent
+	levelRepo      repository.Level
 	helper         *klog.Helper
 }
 
@@ -85,4 +88,73 @@ func (b *AlertBiz) RecoverAlert(ctx context.Context, uid snowflake.ID) error {
 		return merr.ErrorInternalServer("recover alert failed").WithCause(err)
 	}
 	return nil
+}
+
+func (b *AlertBiz) GetAlertStatistics(ctx context.Context) (*bo.AlertStatisticsBo, error) {
+	now := time.Now()
+	startAt := now.Add(-bo.ListRealtimeAlertTimeRangeDefault)
+	endAt := now
+
+	totalActive, err := b.alertEventRepo.CountActiveAlerts(ctx, startAt, endAt, nil)
+	if err != nil {
+		b.helper.Errorw("msg", "count active alerts failed", "error", err)
+		return nil, merr.ErrorInternalServer("count active alerts failed").WithCause(err)
+	}
+
+	byLevel, err := b.alertEventRepo.CountActiveAlertsByLevel(ctx, startAt, endAt, nil)
+	if err != nil {
+		b.helper.Errorw("msg", "count active alerts by level failed", "error", err)
+		return nil, merr.ErrorInternalServer("count active alerts by level failed").WithCause(err)
+	}
+	levelUIDs := make([]int64, 0, len(byLevel))
+	for _, c := range byLevel {
+		levelUIDs = append(levelUIDs, c.LevelUID.Int64())
+	}
+	levelNames, err := b.levelRepo.GetLevelNamesByUIDs(ctx, levelUIDs)
+	if err != nil {
+		b.helper.Errorw("msg", "get level names failed", "error", err)
+		return nil, merr.ErrorInternalServer("get level names failed").WithCause(err)
+	}
+	for i := range byLevel {
+		byLevel[i].LevelName = levelNames[byLevel[i].LevelUID.Int64()]
+	}
+
+	startOfToday := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	todayRecovered, err := b.alertEventRepo.CountRecoveredAlertsSince(ctx, startOfToday)
+	if err != nil {
+		b.helper.Errorw("msg", "count recovered alerts since failed", "error", err)
+		return nil, merr.ErrorInternalServer("count recovered alerts since failed").WithCause(err)
+	}
+
+	pageList, err := b.alertPageRepo.ListAlertPage(ctx, &bo.ListAlertPageBo{
+		PageRequestBo: bo.NewPageRequestBo(1, 200),
+	})
+	if err != nil {
+		b.helper.Errorw("msg", "list alert pages failed", "error", err)
+		return nil, merr.ErrorInternalServer("list alert pages failed").WithCause(err)
+	}
+	byPage := make([]bo.AlertPageCountBo, 0, len(pageList.GetItems()))
+	for _, page := range pageList.GetItems() {
+		var filter *bo.AlertPageFilterBo
+		if page.Filter != nil {
+			filter = page.Filter
+		}
+		cnt, err := b.alertEventRepo.CountActiveAlerts(ctx, startAt, endAt, filter)
+		if err != nil {
+			b.helper.Errorw("msg", "count active alerts for page failed", "error", err, "alertPageUID", page.UID.Int64())
+			continue
+		}
+		byPage = append(byPage, bo.AlertPageCountBo{
+			AlertPageUID:  page.UID,
+			AlertPageName: page.Name,
+			Count:         cnt,
+		})
+	}
+
+	return &bo.AlertStatisticsBo{
+		TotalActiveCount:    totalActive,
+		CountByLevel:        byLevel,
+		TodayRecoveredCount: todayRecovered,
+		CountByAlertPage:    byPage,
+	}, nil
 }
