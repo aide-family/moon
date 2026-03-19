@@ -2,65 +2,36 @@
 package auth
 
 import (
-	v1 "github.com/aide-family/goddess/pkg/api/v1"
 	"github.com/aide-family/magicbox/config"
 	domainregister "github.com/aide-family/magicbox/domain"
+
+	v1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
-var globalRegistry = NewRegistry()
+var globalRegistry = newRegistry()
 
-// NewRegistry creates a new auth registry.
-func NewRegistry() Registry {
+// newRegistry creates a new auth registry.
+func newRegistry() *registry {
 	return &registry{
 		authV1: domainregister.NewRegistry[AuthFactoryV1](),
 	}
 }
 
-type (
-	Registry interface {
-		RegisterAuthV1Factory(name config.DomainConfig_Driver, factory AuthFactoryV1)
-		GetAuthV1Factory(name config.DomainConfig_Driver) (AuthFactoryV1, bool)
-	}
-
-	// AuthFactoryV1 is the factory function for the auth service.
-	AuthFactoryV1 func(c *config.DomainConfig) (v1.AuthServiceServer, func() error, error)
-)
+// AuthFactoryV1 is the factory function for the auth service.
+type AuthFactoryV1 func(c *config.DomainConfig) (v1.AuthServiceServer, func() error, error)
 
 type registry struct {
 	authV1 *domainregister.Registry[AuthFactoryV1]
 }
 
-func normalizeVersion(version string) string {
-	if version == "" {
-		return "v1"
-	}
-	return version
-}
-
-func (r *registry) RegisterAuthFactory(name config.DomainConfig_Driver, factory AuthFactoryV1) {
-	r.authV1.Register(name, factory)
-}
-
-func (r *registry) GetAuthFactory(name config.DomainConfig_Driver) (AuthFactoryV1, bool) {
-	return r.authV1.Get(name)
-}
-
-func (r *registry) RegisterAuthV1Factory(name config.DomainConfig_Driver, factory AuthFactoryV1) {
-	r.authV1.Register(name, factory)
-}
-
-func (r *registry) GetAuthV1Factory(name config.DomainConfig_Driver) (AuthFactoryV1, bool) {
-	return r.authV1.Get(name)
-}
-
 // RegisterAuthV1Factory registers a new auth factory.
 func RegisterAuthV1Factory(name config.DomainConfig_Driver, factory AuthFactoryV1) {
-	globalRegistry.RegisterAuthV1Factory(name, factory)
+	globalRegistry.authV1.Register(name, factory)
 }
 
 // GetAuthV1Factory gets an auth factory.
 // If the auth factory is not found, it will return false.
 // If the auth factory is found, it will return true and the auth factory.
 func GetAuthV1Factory(name config.DomainConfig_Driver) (AuthFactoryV1, bool) {
-	return globalRegistry.GetAuthV1Factory(name)
+	return globalRegistry.authV1.Get(name)
 }
