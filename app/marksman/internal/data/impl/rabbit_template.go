@@ -1,7 +1,7 @@
 package impl
 
 import (
-	rabbittemplatev1 "github.com/aide-family/rabbit/domain/template/v1"
+	templateDomain "github.com/aide-family/rabbit/domain/template"
 	rabbitv1 "github.com/aide-family/rabbit/pkg/api/v1"
 
 	"github.com/aide-family/magicbox/merr"
@@ -17,7 +17,7 @@ func NewRabbitTemplateRepository(c *conf.Bootstrap, d *data.Data) (repository.Ra
 	driver := repoConfig.GetDriver()
 	switch version {
 	default:
-		factory, ok := rabbittemplatev1.GetTemplateV1Factory(driver)
+		factory, ok := templateDomain.GetTemplateV1Factory(driver)
 		if !ok {
 			return nil, merr.ErrorInternalServer("rabbit template repository factory not found")
 		}

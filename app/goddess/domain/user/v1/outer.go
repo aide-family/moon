@@ -11,11 +11,12 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	userdomain "github.com/aide-family/goddess/domain/user"
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 func init() {
-	RegisterUserFactoryV1(config.DomainConfig_OUTER, NewOuterUser)
+	userdomain.RegisterUserFactoryV1(config.DomainConfig_OUTER, NewOuterUser)
 }
 
 // NewOuterUser creates a user client that calls a remote goddess (OUTER driver).

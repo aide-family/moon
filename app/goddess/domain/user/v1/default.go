@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	userdomain "github.com/aide-family/goddess/domain/user"
 	"github.com/aide-family/goddess/internal/biz"
 	"github.com/aide-family/goddess/internal/data/impl"
 	"github.com/aide-family/goddess/internal/service"
@@ -16,7 +17,7 @@ import (
 )
 
 func init() {
-	RegisterUserFactoryV1(config.DomainConfig_DEFAULT, NewDefaultUser)
+	userdomain.RegisterUserFactoryV1(config.DomainConfig_DEFAULT, NewDefaultUser)
 }
 
 // NewDefaultUser creates an in-process user server (DEFAULT driver).

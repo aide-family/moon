@@ -1,11 +1,10 @@
-// Package authv1 is the auth service implementation.
-package authv1
+// Package auth provides domain factory registration for the auth service.
+package auth
 
 import (
+	v1 "github.com/aide-family/goddess/pkg/api/v1"
 	"github.com/aide-family/magicbox/config"
-	"github.com/aide-family/magicbox/safety"
-
-	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
+	domainregister "github.com/aide-family/magicbox/domain"
 )
 
 var globalRegistry = NewRegistry()
@@ -13,7 +12,7 @@ var globalRegistry = NewRegistry()
 // NewRegistry creates a new auth registry.
 func NewRegistry() Registry {
 	return &registry{
-		authV1: safety.NewSyncMap(make(map[config.DomainConfig_Driver]AuthFactoryV1)),
+		authV1: domainregister.NewRegistry[AuthFactoryV1](),
 	}
 }
 
@@ -24,15 +23,30 @@ type (
 	}
 
 	// AuthFactoryV1 is the factory function for the auth service.
-	AuthFactoryV1 func(c *config.DomainConfig) (goddessv1.AuthServiceServer, func() error, error)
+	AuthFactoryV1 func(c *config.DomainConfig) (v1.AuthServiceServer, func() error, error)
 )
 
 type registry struct {
-	authV1 *safety.SyncMap[config.DomainConfig_Driver, AuthFactoryV1]
+	authV1 *domainregister.Registry[AuthFactoryV1]
+}
+
+func normalizeVersion(version string) string {
+	if version == "" {
+		return "v1"
+	}
+	return version
+}
+
+func (r *registry) RegisterAuthFactory(name config.DomainConfig_Driver, factory AuthFactoryV1) {
+	r.authV1.Register(name, factory)
+}
+
+func (r *registry) GetAuthFactory(name config.DomainConfig_Driver) (AuthFactoryV1, bool) {
+	return r.authV1.Get(name)
 }
 
 func (r *registry) RegisterAuthV1Factory(name config.DomainConfig_Driver, factory AuthFactoryV1) {
-	r.authV1.Set(name, factory)
+	r.authV1.Register(name, factory)
 }
 
 func (r *registry) GetAuthV1Factory(name config.DomainConfig_Driver) (AuthFactoryV1, bool) {

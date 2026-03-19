@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	memberdomain "github.com/aide-family/goddess/domain/member"
 	"github.com/aide-family/goddess/internal/biz"
 	"github.com/aide-family/goddess/internal/conf"
 	"github.com/aide-family/goddess/internal/data/impl"
@@ -17,7 +18,7 @@ import (
 )
 
 func init() {
-	RegisterMemberV1Factory(config.DomainConfig_DEFAULT, NewDefaultMember)
+	memberdomain.RegisterMemberV1Factory(config.DomainConfig_DEFAULT, NewDefaultMember)
 }
 
 // NewDefaultMember creates an in-process member server (DEFAULT driver).

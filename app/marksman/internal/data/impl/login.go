@@ -1,7 +1,7 @@
 package impl
 
 import (
-	authv1 "github.com/aide-family/goddess/domain/auth/v1"
+	authDomain "github.com/aide-family/goddess/domain/auth"
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	"github.com/aide-family/magicbox/merr"
 
@@ -20,7 +20,7 @@ func NewLoginRepository(c *conf.Bootstrap, d *data.Data) (repository.LoginReposi
 	driver := repoConfig.GetDriver()
 	switch version {
 	default:
-		factory, ok := authv1.GetAuthV1Factory(driver)
+		factory, ok := authDomain.GetAuthV1Factory(driver)
 		if !ok {
 			return nil, merr.ErrorInternalServer("auth repository factory not found")
 		}

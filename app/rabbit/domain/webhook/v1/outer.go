@@ -11,11 +11,12 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	webhookdomain "github.com/aide-family/rabbit/domain/webhook"
 	apiv1 "github.com/aide-family/rabbit/pkg/api/v1"
 )
 
 func init() {
-	RegisterWebhookV1Factory(config.DomainConfig_OUTER, NewOuterWebhook)
+	webhookdomain.RegisterWebhookV1Factory(config.DomainConfig_OUTER, NewOuterWebhook)
 }
 
 // NewOuterWebhook creates a webhook client that calls a remote rabbit (OUTER driver).

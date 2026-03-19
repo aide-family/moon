@@ -1,7 +1,7 @@
 package impl
 
 import (
-	memberv1 "github.com/aide-family/goddess/domain/member/v1"
+	memberDomain "github.com/aide-family/goddess/domain/member"
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	"github.com/aide-family/magicbox/merr"
 
@@ -16,7 +16,7 @@ func NewMemberRepository(c *conf.Bootstrap, d *data.Data) (repository.Member, er
 	driver := repoConfig.GetDriver()
 	switch version {
 	default:
-		factory, ok := memberv1.GetMemberV1Factory(driver)
+		factory, ok := memberDomain.GetMemberV1Factory(driver)
 		if !ok {
 			return nil, merr.ErrorInternalServer("member repository factory not found")
 		}

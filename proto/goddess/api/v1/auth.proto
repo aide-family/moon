@@ -9,7 +9,12 @@ import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
 
 service AuthService {
-    rpc OAuth2Login(magicbox.oauth.OAuth2LoginRequest) returns (LoginReply);
+    rpc OAuth2Login(magicbox.oauth.OAuth2LoginRequest) returns (LoginReply) {
+        option (google.api.http) = {
+            post: "/v1/auth/oauth2/login"
+            body: "*"
+        };
+    }
     rpc SendEmailLoginCode(SendEmailLoginCodeRequest) returns (SendEmailLoginCodeReply) {
         option (google.api.http) = {
             post: "/v1/auth/email/login/code"

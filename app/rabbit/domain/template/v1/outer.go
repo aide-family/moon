@@ -11,11 +11,12 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	templatedomain "github.com/aide-family/rabbit/domain/template"
 	apiv1 "github.com/aide-family/rabbit/pkg/api/v1"
 )
 
 func init() {
-	RegisterTemplateV1Factory(config.DomainConfig_OUTER, NewOuterTemplate)
+	templatedomain.RegisterTemplateV1Factory(config.DomainConfig_OUTER, NewOuterTemplate)
 }
 
 // NewOuterTemplate creates a template client that calls a remote rabbit (OUTER driver).

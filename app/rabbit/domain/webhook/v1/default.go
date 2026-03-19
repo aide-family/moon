@@ -16,11 +16,12 @@ import (
 	"github.com/aide-family/rabbit/internal/data"
 	"github.com/aide-family/rabbit/internal/data/impl"
 	"github.com/aide-family/rabbit/internal/service"
+	webhookdomain "github.com/aide-family/rabbit/domain/webhook"
 	apiv1 "github.com/aide-family/rabbit/pkg/api/v1"
 )
 
 func init() {
-	RegisterWebhookV1Factory(config.DomainConfig_DEFAULT, NewDefaultWebhook)
+	webhookdomain.RegisterWebhookV1Factory(config.DomainConfig_DEFAULT, NewDefaultWebhook)
 }
 
 // NewDefaultWebhook creates an in-process webhook server (DEFAULT driver).

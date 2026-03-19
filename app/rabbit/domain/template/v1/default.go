@@ -16,11 +16,12 @@ import (
 	"github.com/aide-family/rabbit/internal/data"
 	"github.com/aide-family/rabbit/internal/data/impl"
 	"github.com/aide-family/rabbit/internal/service"
+	templatedomain "github.com/aide-family/rabbit/domain/template"
 	apiv1 "github.com/aide-family/rabbit/pkg/api/v1"
 )
 
 func init() {
-	RegisterTemplateV1Factory(config.DomainConfig_DEFAULT, NewDefaultTemplate)
+	templatedomain.RegisterTemplateV1Factory(config.DomainConfig_DEFAULT, NewDefaultTemplate)
 }
 
 // NewDefaultTemplate creates an in-process template server (DEFAULT driver).

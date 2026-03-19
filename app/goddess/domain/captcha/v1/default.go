@@ -5,11 +5,12 @@ import (
 
 	"github.com/aide-family/goddess/internal/biz"
 	"github.com/aide-family/goddess/internal/service"
+	captchadomain "github.com/aide-family/goddess/domain/captcha"
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 func init() {
-	RegisterCaptchaFactoryV1(config.DomainConfig_DEFAULT, NewDefaultCaptcha)
+	captchadomain.RegisterCaptchaFactoryV1(config.DomainConfig_DEFAULT, NewDefaultCaptcha)
 }
 
 // NewDefaultCaptcha creates the default captcha server (DEFAULT driver, no DB required).

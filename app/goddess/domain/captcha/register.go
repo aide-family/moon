@@ -1,10 +1,10 @@
-// Package captchav1 is the captcha service implementation.
-package captchav1
+// Package captcha provides domain factory registration for the captcha service.
+package captcha
 
 import (
-	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
+	"github.com/aide-family/goddess/pkg/api/v1"
 	"github.com/aide-family/magicbox/config"
-	"github.com/aide-family/magicbox/safety"
+	domainregister "github.com/aide-family/magicbox/domain"
 )
 
 var globalRegistry = NewRegistry()
@@ -12,25 +12,24 @@ var globalRegistry = NewRegistry()
 // NewRegistry creates a new captcha registry.
 func NewRegistry() Registry {
 	return &registry{
-		captchaV1: safety.NewSyncMap(make(map[config.DomainConfig_Driver]CaptchaFactoryV1)),
+		captchaV1: domainregister.NewRegistry[CaptchaFactoryV1](),
 	}
 }
 
 // CaptchaFactoryV1 is the factory function for the captcha service.
-type (
-	CaptchaFactoryV1 func(c *config.DomainConfig) (goddessv1.CaptchaServer, func() error, error)
-	Registry         interface {
-		RegisterCaptchaFactoryV1(name config.DomainConfig_Driver, factory CaptchaFactoryV1)
-		GetCaptchaFactoryV1(name config.DomainConfig_Driver) (CaptchaFactoryV1, bool)
-	}
-)
+type CaptchaFactoryV1 func(c *config.DomainConfig) (v1.CaptchaServer, func() error, error)
+
+type Registry interface {
+	RegisterCaptchaFactoryV1(name config.DomainConfig_Driver, factory CaptchaFactoryV1)
+	GetCaptchaFactoryV1(name config.DomainConfig_Driver) (CaptchaFactoryV1, bool)
+}
 
 type registry struct {
-	captchaV1 *safety.SyncMap[config.DomainConfig_Driver, CaptchaFactoryV1]
+	captchaV1 *domainregister.Registry[CaptchaFactoryV1]
 }
 
 func (r *registry) RegisterCaptchaFactoryV1(name config.DomainConfig_Driver, factory CaptchaFactoryV1) {
-	r.captchaV1.Set(name, factory)
+	r.captchaV1.Register(name, factory)
 }
 
 func (r *registry) GetCaptchaFactoryV1(name config.DomainConfig_Driver) (CaptchaFactoryV1, bool) {
@@ -46,3 +45,4 @@ func RegisterCaptchaFactoryV1(name config.DomainConfig_Driver, factory CaptchaFa
 func GetCaptchaFactoryV1(name config.DomainConfig_Driver) (CaptchaFactoryV1, bool) {
 	return globalRegistry.GetCaptchaFactoryV1(name)
 }
+

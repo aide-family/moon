@@ -11,11 +11,12 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	selfdomain "github.com/aide-family/goddess/domain/self"
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 func init() {
-	RegisterSelfFactoryV1(config.DomainConfig_OUTER, NewOuterSelf)
+	selfdomain.RegisterSelfFactoryV1(config.DomainConfig_OUTER, NewOuterSelf)
 }
 
 // NewOuterSelf creates a self client that calls a remote goddess (OUTER driver).

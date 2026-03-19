@@ -11,11 +11,12 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	namespacedomain "github.com/aide-family/goddess/domain/namespace"
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 func init() {
-	RegisterNamespaceV1Factory(config.DomainConfig_OUTER, NewOuterNamespace)
+	namespacedomain.RegisterNamespaceV1Factory(config.DomainConfig_OUTER, NewOuterNamespace)
 }
 
 // NewOuterNamespace creates a namespace client that calls a remote goddess (OUTER driver).

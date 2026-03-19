@@ -11,11 +11,12 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	captchadomain "github.com/aide-family/goddess/domain/captcha"
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 func init() {
-	RegisterCaptchaFactoryV1(config.DomainConfig_OUTER, NewOuterCaptcha)
+	captchadomain.RegisterCaptchaFactoryV1(config.DomainConfig_OUTER, NewOuterCaptcha)
 }
 
 // NewOuterCaptcha creates a captcha client that calls a remote goddess (OUTER driver).

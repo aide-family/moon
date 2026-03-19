@@ -42,6 +42,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/goddess.api.v1.SendEmailLoginCodeReply'
+    /v1/auth/oauth2/login:
+        post:
+            tags:
+                - AuthService
+            operationId: AuthService_OAuth2Login
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/magicbox.oauth.OAuth2LoginRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.LoginReply'
     /v1/captcha:
         get:
             tags:
@@ -1006,6 +1024,61 @@ components:
                     type: string
                 remark:
                     type: string
+        magicbox.config.OAuth2_Config:
+            type: object
+            properties:
+                app:
+                    type: integer
+                    format: enum
+                clientId:
+                    type: string
+                clientSecret:
+                    type: string
+                callbackUri:
+                    type: string
+                authUrl:
+                    type: string
+                tokenUrl:
+                    type: string
+                scopes:
+                    type: array
+                    items:
+                        type: string
+                loginUrl:
+                    type: string
+        magicbox.oauth.OAuth2LoginRequest:
+            type: object
+            properties:
+                app:
+                    type: integer
+                    format: enum
+                config:
+                    $ref: '#/components/schemas/magicbox.config.OAuth2_Config'
+                user:
+                    $ref: '#/components/schemas/magicbox.oauth.OAuth2User'
+                portal:
+                    type: string
+        magicbox.oauth.OAuth2User:
+            type: object
+            properties:
+                openID:
+                    type: string
+                name:
+                    type: string
+                nickname:
+                    type: string
+                email:
+                    type: string
+                avatar:
+                    type: string
+                app:
+                    type: integer
+                    format: enum
+                remark:
+                    type: string
+                raw:
+                    type: string
+                    format: bytes
 tags:
     - name: AuthService
     - name: Captcha

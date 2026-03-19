@@ -1,7 +1,7 @@
 package impl
 
 import (
-	selfv1 "github.com/aide-family/goddess/domain/self/v1"
+	selfDomain "github.com/aide-family/goddess/domain/self"
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	"github.com/aide-family/magicbox/merr"
 
@@ -19,7 +19,7 @@ func NewSelfRepository(c *conf.Bootstrap, d *data.Data) (repository.Self, error)
 	driver := repoConfig.GetDriver()
 	switch version {
 	default:
-		factory, ok := selfv1.GetSelfFactoryV1(driver)
+		factory, ok := selfDomain.GetSelfFactoryV1(driver)
 		if !ok {
 			return nil, merr.ErrorInternalServer("self repository factory not found")
 		}

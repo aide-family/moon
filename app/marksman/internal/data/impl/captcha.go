@@ -1,7 +1,7 @@
 package impl
 
 import (
-	captchav1 "github.com/aide-family/goddess/domain/captcha/v1"
+	captchaDomain "github.com/aide-family/goddess/domain/captcha"
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	"github.com/aide-family/magicbox/merr"
 
@@ -16,7 +16,7 @@ func NewCaptchaRepository(c *conf.Bootstrap, d *data.Data) (repository.Captcha, 
 		return nil, merr.ErrorInternalServer("captchaDomain is required")
 	}
 	driver := repoConfig.GetDriver()
-	factory, ok := captchav1.GetCaptchaFactoryV1(driver)
+	factory, ok := captchaDomain.GetCaptchaFactoryV1(driver)
 	if !ok {
 		return nil, merr.ErrorInternalServer("captcha repository factory not found")
 	}

@@ -8,17 +8,16 @@ import (
 	"github.com/aide-family/magicbox/connect"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/pointer"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
-	"github.com/aide-family/magicbox/oauth"
+	authdomain "github.com/aide-family/goddess/domain/auth"
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
+	"github.com/aide-family/magicbox/oauth"
 )
 
 func init() {
-	RegisterAuthV1Factory(config.DomainConfig_OUTER, NewOuterAuth)
+	authdomain.RegisterAuthV1Factory(config.DomainConfig_OUTER, NewOuterAuth)
 }
 
 // NewOuterAuth creates an auth client that calls a remote goddess (OUTER driver).
@@ -64,10 +63,10 @@ type outerAuthServer struct {
 }
 
 func (o *outerAuthServer) OAuth2Login(ctx context.Context, req *oauth.OAuth2LoginRequest) (*goddessv1.LoginReply, error) {
-	if o.grpcClient != nil {
-		return o.grpcClient.OAuth2Login(ctx, req)
+	if o.httpClient != nil {
+		return o.httpClient.OAuth2Login(ctx, req)
 	}
-	return nil, status.Errorf(codes.Unimplemented, "OAuth2Login not available via HTTP client")
+	return o.grpcClient.OAuth2Login(ctx, req)
 }
 
 func (o *outerAuthServer) SendEmailLoginCode(ctx context.Context, req *goddessv1.SendEmailLoginCodeRequest) (*goddessv1.SendEmailLoginCodeReply, error) {

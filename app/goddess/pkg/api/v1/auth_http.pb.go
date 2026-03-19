@@ -8,6 +8,7 @@ package v1
 
 import (
 	context "context"
+	oauth "github.com/aide-family/magicbox/oauth"
 	http "github.com/go-kratos/kratos/v2/transport/http"
 	binding "github.com/go-kratos/kratos/v2/transport/http/binding"
 )
@@ -20,17 +21,42 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 const OperationAuthServiceEmailLogin = "/goddess.api.v1.AuthService/EmailLogin"
+const OperationAuthServiceOAuth2Login = "/goddess.api.v1.AuthService/OAuth2Login"
 const OperationAuthServiceSendEmailLoginCode = "/goddess.api.v1.AuthService/SendEmailLoginCode"
 
 type AuthServiceHTTPServer interface {
 	EmailLogin(context.Context, *EmailLoginRequest) (*LoginReply, error)
+	OAuth2Login(context.Context, *oauth.OAuth2LoginRequest) (*LoginReply, error)
 	SendEmailLoginCode(context.Context, *SendEmailLoginCodeRequest) (*SendEmailLoginCodeReply, error)
 }
 
 func RegisterAuthServiceHTTPServer(s *http.Server, srv AuthServiceHTTPServer) {
 	r := s.Route("/")
+	r.POST("/v1/auth/oauth2/login", _AuthService_OAuth2Login0_HTTP_Handler(srv))
 	r.POST("/v1/auth/email/login/code", _AuthService_SendEmailLoginCode0_HTTP_Handler(srv))
 	r.POST("/v1/auth/email/login", _AuthService_EmailLogin0_HTTP_Handler(srv))
+}
+
+func _AuthService_OAuth2Login0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in oauth.OAuth2LoginRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceOAuth2Login)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.OAuth2Login(ctx, req.(*oauth.OAuth2LoginRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*LoginReply)
+		return ctx.Result(200, reply)
+	}
 }
 
 func _AuthService_SendEmailLoginCode0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
@@ -79,6 +105,7 @@ func _AuthService_EmailLogin0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx h
 
 type AuthServiceHTTPClient interface {
 	EmailLogin(ctx context.Context, req *EmailLoginRequest, opts ...http.CallOption) (rsp *LoginReply, err error)
+	OAuth2Login(ctx context.Context, req *oauth.OAuth2LoginRequest, opts ...http.CallOption) (rsp *LoginReply, err error)
 	SendEmailLoginCode(ctx context.Context, req *SendEmailLoginCodeRequest, opts ...http.CallOption) (rsp *SendEmailLoginCodeReply, err error)
 }
 
@@ -95,6 +122,19 @@ func (c *AuthServiceHTTPClientImpl) EmailLogin(ctx context.Context, in *EmailLog
 	pattern := "/v1/auth/email/login"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAuthServiceEmailLogin))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *AuthServiceHTTPClientImpl) OAuth2Login(ctx context.Context, in *oauth.OAuth2LoginRequest, opts ...http.CallOption) (*LoginReply, error) {
+	var out LoginReply
+	pattern := "/v1/auth/oauth2/login"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAuthServiceOAuth2Login))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

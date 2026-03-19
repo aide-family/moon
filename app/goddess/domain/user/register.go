@@ -1,10 +1,11 @@
-// Package userv1 is the user service implementation.
-package userv1
+// Package user provides domain factory registration for the user service.
+package user
 
 import (
-	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	"github.com/aide-family/magicbox/config"
-	"github.com/aide-family/magicbox/safety"
+	domainregister "github.com/aide-family/magicbox/domain"
+
+	v1 "github.com/aide-family/goddess/pkg/api/v1"
 )
 
 var globalRegistry = NewRegistry()
@@ -12,25 +13,33 @@ var globalRegistry = NewRegistry()
 // NewRegistry creates a new user registry.
 func NewRegistry() Registry {
 	return &registry{
-		userV1: safety.NewSyncMap(make(map[config.DomainConfig_Driver]UserFactoryV1)),
+		userV1: domainregister.NewRegistry[UserFactoryV1](),
 	}
 }
 
 // UserFactoryV1 is the factory function for the user service.
 type (
-	UserFactoryV1 func(c *config.DomainConfig) (goddessv1.UserServer, func() error, error)
-	Registry      interface {
+	UserFactoryV1 func(c *config.DomainConfig) (v1.UserServer, func() error, error)
+
+	Registry interface {
 		RegisterUserFactoryV1(name config.DomainConfig_Driver, factory UserFactoryV1)
 		GetUserFactoryV1(name config.DomainConfig_Driver) (UserFactoryV1, bool)
 	}
 )
 
 type registry struct {
-	userV1 *safety.SyncMap[config.DomainConfig_Driver, UserFactoryV1]
+	userV1 *domainregister.Registry[UserFactoryV1]
+}
+
+func normalizeVersion(version string) string {
+	if version == "" {
+		return "v1"
+	}
+	return version
 }
 
 func (r *registry) RegisterUserFactoryV1(name config.DomainConfig_Driver, factory UserFactoryV1) {
-	r.userV1.Set(name, factory)
+	r.userV1.Register(name, factory)
 }
 
 func (r *registry) GetUserFactoryV1(name config.DomainConfig_Driver) (UserFactoryV1, bool) {

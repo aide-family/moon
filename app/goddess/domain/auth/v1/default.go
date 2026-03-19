@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	authdomain "github.com/aide-family/goddess/domain/auth"
 	"github.com/aide-family/goddess/internal/biz"
 	"github.com/aide-family/goddess/internal/conf"
 	"github.com/aide-family/goddess/internal/data/impl"
@@ -16,7 +17,7 @@ import (
 )
 
 func init() {
-	RegisterAuthV1Factory(config.DomainConfig_DEFAULT, NewDefaultAuth)
+	authdomain.RegisterAuthV1Factory(config.DomainConfig_DEFAULT, NewDefaultAuth)
 }
 
 // NewDefaultAuth creates an in-process auth server (DEFAULT driver).

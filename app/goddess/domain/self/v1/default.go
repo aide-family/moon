@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	selfdomain "github.com/aide-family/goddess/domain/self"
 	"github.com/aide-family/goddess/internal/biz"
 	"github.com/aide-family/goddess/internal/conf"
 	"github.com/aide-family/goddess/internal/data/impl"
@@ -17,7 +18,7 @@ import (
 )
 
 func init() {
-	RegisterSelfFactoryV1(config.DomainConfig_DEFAULT, NewDefaultSelf)
+	selfdomain.RegisterSelfFactoryV1(config.DomainConfig_DEFAULT, NewDefaultSelf)
 }
 
 // NewDefaultSelf creates an in-process self server (DEFAULT driver).

@@ -1,7 +1,7 @@
 package impl
 
 import (
-	rabbitwebhookv1 "github.com/aide-family/rabbit/domain/webhook/v1"
+	webhookDomain "github.com/aide-family/rabbit/domain/webhook"
 	rabbitv1 "github.com/aide-family/rabbit/pkg/api/v1"
 
 	"github.com/aide-family/magicbox/merr"
@@ -17,7 +17,7 @@ func NewRabbitWebhookRepository(c *conf.Bootstrap, d *data.Data) (repository.Rab
 	driver := repoConfig.GetDriver()
 	switch version {
 	default:
-		factory, ok := rabbitwebhookv1.GetWebhookV1Factory(driver)
+		factory, ok := webhookDomain.GetWebhookV1Factory(driver)
 		if !ok {
 			return nil, merr.ErrorInternalServer("rabbit webhook repository factory not found")
 		}

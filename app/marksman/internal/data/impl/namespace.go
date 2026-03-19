@@ -1,7 +1,7 @@
 package impl
 
 import (
-	namespacev1 "github.com/aide-family/goddess/domain/namespace/v1"
+	namespaceDomain "github.com/aide-family/goddess/domain/namespace"
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	"github.com/aide-family/magicbox/merr"
 
@@ -16,7 +16,7 @@ func NewNamespaceRepository(c *conf.Bootstrap, d *data.Data) (repository.Namespa
 	driver := repoConfig.GetDriver()
 	switch version {
 	default:
-		factory, ok := namespacev1.GetNamespaceV1Factory(driver)
+		factory, ok := namespaceDomain.GetNamespaceV1Factory(driver)
 		if !ok {
 			return nil, merr.ErrorInternalServer("namespace repository factory not found")
 		}

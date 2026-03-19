@@ -11,11 +11,12 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
+	senderdomain "github.com/aide-family/rabbit/domain/sender"
 	apiv1 "github.com/aide-family/rabbit/pkg/api/v1"
 )
 
 func init() {
-	RegisterSenderV1Factory(config.DomainConfig_OUTER, NewOuterSender)
+	senderdomain.RegisterSenderV1Factory(config.DomainConfig_OUTER, NewOuterSender)
 }
 
 // NewOuterSender creates a sender client that calls a remote rabbit (OUTER driver).

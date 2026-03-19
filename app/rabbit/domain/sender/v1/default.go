@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 
+	senderdomain "github.com/aide-family/rabbit/domain/sender"
 	"github.com/aide-family/rabbit/internal/biz"
 	"github.com/aide-family/rabbit/internal/conf"
 	"github.com/aide-family/rabbit/internal/data"
@@ -20,7 +21,7 @@ import (
 )
 
 func init() {
-	RegisterSenderV1Factory(config.DomainConfig_DEFAULT, NewDefaultSender)
+	senderdomain.RegisterSenderV1Factory(config.DomainConfig_DEFAULT, NewDefaultSender)
 }
 
 // NewDefaultSender creates an in-process sender server (DEFAULT driver).
