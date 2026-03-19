@@ -134,6 +134,13 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	}
 	notificationGroupBiz := biz.NewNotificationGroup(notificationGroup, helper)
 	notificationGroupService := service.NewNotificationGroupService(notificationGroupBiz)
+	notificationGroupSubscription, err := impl.NewNotificationGroupSubscriptionRepository(dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	notificationGroupSubscriptionBiz := biz.NewNotificationGroupSubscriptionBiz(notificationGroup, notificationGroupSubscription, helper)
+	notificationGroupSubscriptionService := service.NewNotificationGroupSubscriptionService(notificationGroupSubscriptionBiz)
 	rabbitWebhook, err := impl.NewRabbitWebhookRepository(bc, dataData)
 	if err != nil {
 		cleanup()
@@ -149,7 +156,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	servers := server.RegisterHTTPService(bc, httpServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, metricQueryService, strategyService, strategyMetricService, alertService, notificationGroupService, rabbitWebhook, rabbitTemplate, rabbitSender)
+	servers := server.RegisterHTTPService(bc, httpServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, metricQueryService, strategyService, strategyMetricService, alertService, notificationGroupService, notificationGroupSubscriptionService, rabbitWebhook, rabbitTemplate, rabbitSender)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

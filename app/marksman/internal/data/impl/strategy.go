@@ -90,7 +90,7 @@ func (r *strategyRepository) GetStrategy(ctx context.Context, uid snowflake.ID) 
 	m, err := query.Strategy.WithContext(ctx).Where(
 		s.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
 		s.ID.Eq(uid.Int64()),
-	).First()
+	).Preload(field.Associations).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotFound("strategy not found")

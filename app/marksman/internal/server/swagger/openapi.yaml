@@ -921,6 +921,47 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.CreateNotificationGroupReply'
+    /v1/notification-groups/{notificationGroupUid}/subscription:
+        get:
+            tags:
+                - NotificationGroupSubscription
+            operationId: NotificationGroupSubscription_GetNotificationGroupSubscription
+            parameters:
+                - name: notificationGroupUid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.GetNotificationGroupSubscriptionReply'
+        put:
+            tags:
+                - NotificationGroupSubscription
+            operationId: NotificationGroupSubscription_SaveNotificationGroupSubscription
+            parameters:
+                - name: notificationGroupUid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.SaveNotificationGroupSubscriptionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.SaveNotificationGroupSubscriptionReply'
     /v1/notification-groups/{uid}:
         get:
             tags:
@@ -1667,6 +1708,11 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/marksman.api.v1.DatasourceStatusSeries'
+        marksman.api.v1.GetNotificationGroupSubscriptionReply:
+            type: object
+            properties:
+                filter:
+                    $ref: '#/components/schemas/marksman.api.v1.SubscriptionFilter'
         marksman.api.v1.InterveneAlertReply:
             type: object
             properties: {}
@@ -1991,6 +2037,16 @@ components:
                 recoveredReason:
                     type: string
             description: RecoverAlertRequest marks an event as manually recovered.
+        marksman.api.v1.SaveNotificationGroupSubscriptionReply:
+            type: object
+            properties: {}
+        marksman.api.v1.SaveNotificationGroupSubscriptionRequest:
+            type: object
+            properties:
+                notificationGroupUid:
+                    type: string
+                filter:
+                    $ref: '#/components/schemas/marksman.api.v1.SubscriptionFilter'
         marksman.api.v1.SaveStrategyMetricLevelReply:
             type: object
             properties: {}
@@ -2194,6 +2250,13 @@ components:
                     type: boolean
                 tooltip:
                     type: string
+        marksman.api.v1.StrategyLevelPair:
+            type: object
+            properties:
+                strategyUid:
+                    type: string
+                levelUid:
+                    type: string
         marksman.api.v1.StrategyMetricItem:
             type: object
             properties:
@@ -2249,6 +2312,31 @@ components:
                 status:
                     type: integer
                     format: enum
+        marksman.api.v1.SubscriptionFilter:
+            type: object
+            properties:
+                strategyGroupUids:
+                    type: array
+                    items:
+                        type: string
+                strategyUids:
+                    type: array
+                    items:
+                        type: string
+                strategyLevels:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.StrategyLevelPair'
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+            description: |-
+                Subscription filter: when multiple dimensions are set, an alert must satisfy ALL (AND).
+                 - strategy_group_uids: alert's strategy must belong to one of these groups.
+                 - strategy_uids: alert's strategy_uid must be in this list.
+                 - strategy_levels: alert's (strategy_uid, level_uid) must be in this list.
+                 - labels: alert must contain all these key-value pairs (subset match).
         marksman.api.v1.SuppressAlertReply:
             type: object
             properties: {}
@@ -2455,5 +2543,7 @@ tags:
       description: MetricQuery provides query, query_range and proxy for metric-type datasources (Prometheus / VictoriaMetrics).
     - name: NotificationGroup
       description: 'NotificationGroup service: CRUD for notification groups (members, webhooks, templates updated via Update).'
+    - name: NotificationGroupSubscription
+      description: 'NotificationGroupSubscription: get/save subscription filter for a notification group (save creates or overwrites).'
     - name: Strategy
     - name: StrategyMetric

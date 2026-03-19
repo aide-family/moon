@@ -24,6 +24,7 @@ func Models() []any {
 		&AlertEvent{},
 		&UserAlertPage{},
 		&NotificationGroup{},
+		&NotificationGroupSubscription{},
 	}
 }
 

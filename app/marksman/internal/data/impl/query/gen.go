@@ -16,18 +16,19 @@ import (
 )
 
 var (
-	Q                   = new(Query)
-	AlertEvent          *alertEvent
-	AlertPage           *alertPage
-	Datasource          *datasource
-	EvaluatorSnapshot   *evaluatorSnapshot
-	Level               *level
-	NotificationGroup   *notificationGroup
-	Strategy            *strategy
-	StrategyGroup       *strategyGroup
-	StrategyMetric      *strategyMetric
-	StrategyMetricLevel *strategyMetricLevel
-	UserAlertPage       *userAlertPage
+	Q                             = new(Query)
+	AlertEvent                    *alertEvent
+	AlertPage                     *alertPage
+	Datasource                    *datasource
+	EvaluatorSnapshot             *evaluatorSnapshot
+	Level                         *level
+	NotificationGroup             *notificationGroup
+	NotificationGroupSubscription *notificationGroupSubscription
+	Strategy                      *strategy
+	StrategyGroup                 *strategyGroup
+	StrategyMetric                *strategyMetric
+	StrategyMetricLevel           *strategyMetricLevel
+	UserAlertPage                 *userAlertPage
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
@@ -38,6 +39,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	EvaluatorSnapshot = &Q.EvaluatorSnapshot
 	Level = &Q.Level
 	NotificationGroup = &Q.NotificationGroup
+	NotificationGroupSubscription = &Q.NotificationGroupSubscription
 	Strategy = &Q.Strategy
 	StrategyGroup = &Q.StrategyGroup
 	StrategyMetric = &Q.StrategyMetric
@@ -47,53 +49,56 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:                  db,
-		AlertEvent:          newAlertEvent(db, opts...),
-		AlertPage:           newAlertPage(db, opts...),
-		Datasource:          newDatasource(db, opts...),
-		EvaluatorSnapshot:   newEvaluatorSnapshot(db, opts...),
-		Level:               newLevel(db, opts...),
-		NotificationGroup:   newNotificationGroup(db, opts...),
-		Strategy:            newStrategy(db, opts...),
-		StrategyGroup:       newStrategyGroup(db, opts...),
-		StrategyMetric:      newStrategyMetric(db, opts...),
-		StrategyMetricLevel: newStrategyMetricLevel(db, opts...),
-		UserAlertPage:       newUserAlertPage(db, opts...),
+		db:                            db,
+		AlertEvent:                    newAlertEvent(db, opts...),
+		AlertPage:                     newAlertPage(db, opts...),
+		Datasource:                    newDatasource(db, opts...),
+		EvaluatorSnapshot:             newEvaluatorSnapshot(db, opts...),
+		Level:                         newLevel(db, opts...),
+		NotificationGroup:             newNotificationGroup(db, opts...),
+		NotificationGroupSubscription: newNotificationGroupSubscription(db, opts...),
+		Strategy:                      newStrategy(db, opts...),
+		StrategyGroup:                 newStrategyGroup(db, opts...),
+		StrategyMetric:                newStrategyMetric(db, opts...),
+		StrategyMetricLevel:           newStrategyMetricLevel(db, opts...),
+		UserAlertPage:                 newUserAlertPage(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	AlertEvent          alertEvent
-	AlertPage           alertPage
-	Datasource          datasource
-	EvaluatorSnapshot   evaluatorSnapshot
-	Level               level
-	NotificationGroup   notificationGroup
-	Strategy            strategy
-	StrategyGroup       strategyGroup
-	StrategyMetric      strategyMetric
-	StrategyMetricLevel strategyMetricLevel
-	UserAlertPage       userAlertPage
+	AlertEvent                    alertEvent
+	AlertPage                     alertPage
+	Datasource                    datasource
+	EvaluatorSnapshot             evaluatorSnapshot
+	Level                         level
+	NotificationGroup             notificationGroup
+	NotificationGroupSubscription notificationGroupSubscription
+	Strategy                      strategy
+	StrategyGroup                 strategyGroup
+	StrategyMetric                strategyMetric
+	StrategyMetricLevel           strategyMetricLevel
+	UserAlertPage                 userAlertPage
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:                  db,
-		AlertEvent:          q.AlertEvent.clone(db),
-		AlertPage:           q.AlertPage.clone(db),
-		Datasource:          q.Datasource.clone(db),
-		EvaluatorSnapshot:   q.EvaluatorSnapshot.clone(db),
-		Level:               q.Level.clone(db),
-		NotificationGroup:   q.NotificationGroup.clone(db),
-		Strategy:            q.Strategy.clone(db),
-		StrategyGroup:       q.StrategyGroup.clone(db),
-		StrategyMetric:      q.StrategyMetric.clone(db),
-		StrategyMetricLevel: q.StrategyMetricLevel.clone(db),
-		UserAlertPage:       q.UserAlertPage.clone(db),
+		db:                            db,
+		AlertEvent:                    q.AlertEvent.clone(db),
+		AlertPage:                     q.AlertPage.clone(db),
+		Datasource:                    q.Datasource.clone(db),
+		EvaluatorSnapshot:             q.EvaluatorSnapshot.clone(db),
+		Level:                         q.Level.clone(db),
+		NotificationGroup:             q.NotificationGroup.clone(db),
+		NotificationGroupSubscription: q.NotificationGroupSubscription.clone(db),
+		Strategy:                      q.Strategy.clone(db),
+		StrategyGroup:                 q.StrategyGroup.clone(db),
+		StrategyMetric:                q.StrategyMetric.clone(db),
+		StrategyMetricLevel:           q.StrategyMetricLevel.clone(db),
+		UserAlertPage:                 q.UserAlertPage.clone(db),
 	}
 }
 
@@ -107,48 +112,51 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:                  db,
-		AlertEvent:          q.AlertEvent.replaceDB(db),
-		AlertPage:           q.AlertPage.replaceDB(db),
-		Datasource:          q.Datasource.replaceDB(db),
-		EvaluatorSnapshot:   q.EvaluatorSnapshot.replaceDB(db),
-		Level:               q.Level.replaceDB(db),
-		NotificationGroup:   q.NotificationGroup.replaceDB(db),
-		Strategy:            q.Strategy.replaceDB(db),
-		StrategyGroup:       q.StrategyGroup.replaceDB(db),
-		StrategyMetric:      q.StrategyMetric.replaceDB(db),
-		StrategyMetricLevel: q.StrategyMetricLevel.replaceDB(db),
-		UserAlertPage:       q.UserAlertPage.replaceDB(db),
+		db:                            db,
+		AlertEvent:                    q.AlertEvent.replaceDB(db),
+		AlertPage:                     q.AlertPage.replaceDB(db),
+		Datasource:                    q.Datasource.replaceDB(db),
+		EvaluatorSnapshot:             q.EvaluatorSnapshot.replaceDB(db),
+		Level:                         q.Level.replaceDB(db),
+		NotificationGroup:             q.NotificationGroup.replaceDB(db),
+		NotificationGroupSubscription: q.NotificationGroupSubscription.replaceDB(db),
+		Strategy:                      q.Strategy.replaceDB(db),
+		StrategyGroup:                 q.StrategyGroup.replaceDB(db),
+		StrategyMetric:                q.StrategyMetric.replaceDB(db),
+		StrategyMetricLevel:           q.StrategyMetricLevel.replaceDB(db),
+		UserAlertPage:                 q.UserAlertPage.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	AlertEvent          IAlertEventDo
-	AlertPage           IAlertPageDo
-	Datasource          IDatasourceDo
-	EvaluatorSnapshot   IEvaluatorSnapshotDo
-	Level               ILevelDo
-	NotificationGroup   INotificationGroupDo
-	Strategy            IStrategyDo
-	StrategyGroup       IStrategyGroupDo
-	StrategyMetric      IStrategyMetricDo
-	StrategyMetricLevel IStrategyMetricLevelDo
-	UserAlertPage       IUserAlertPageDo
+	AlertEvent                    IAlertEventDo
+	AlertPage                     IAlertPageDo
+	Datasource                    IDatasourceDo
+	EvaluatorSnapshot             IEvaluatorSnapshotDo
+	Level                         ILevelDo
+	NotificationGroup             INotificationGroupDo
+	NotificationGroupSubscription INotificationGroupSubscriptionDo
+	Strategy                      IStrategyDo
+	StrategyGroup                 IStrategyGroupDo
+	StrategyMetric                IStrategyMetricDo
+	StrategyMetricLevel           IStrategyMetricLevelDo
+	UserAlertPage                 IUserAlertPageDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		AlertEvent:          q.AlertEvent.WithContext(ctx),
-		AlertPage:           q.AlertPage.WithContext(ctx),
-		Datasource:          q.Datasource.WithContext(ctx),
-		EvaluatorSnapshot:   q.EvaluatorSnapshot.WithContext(ctx),
-		Level:               q.Level.WithContext(ctx),
-		NotificationGroup:   q.NotificationGroup.WithContext(ctx),
-		Strategy:            q.Strategy.WithContext(ctx),
-		StrategyGroup:       q.StrategyGroup.WithContext(ctx),
-		StrategyMetric:      q.StrategyMetric.WithContext(ctx),
-		StrategyMetricLevel: q.StrategyMetricLevel.WithContext(ctx),
-		UserAlertPage:       q.UserAlertPage.WithContext(ctx),
+		AlertEvent:                    q.AlertEvent.WithContext(ctx),
+		AlertPage:                     q.AlertPage.WithContext(ctx),
+		Datasource:                    q.Datasource.WithContext(ctx),
+		EvaluatorSnapshot:             q.EvaluatorSnapshot.WithContext(ctx),
+		Level:                         q.Level.WithContext(ctx),
+		NotificationGroup:             q.NotificationGroup.WithContext(ctx),
+		NotificationGroupSubscription: q.NotificationGroupSubscription.WithContext(ctx),
+		Strategy:                      q.Strategy.WithContext(ctx),
+		StrategyGroup:                 q.StrategyGroup.WithContext(ctx),
+		StrategyMetric:                q.StrategyMetric.WithContext(ctx),
+		StrategyMetricLevel:           q.StrategyMetricLevel.WithContext(ctx),
+		UserAlertPage:                 q.UserAlertPage.WithContext(ctx),
 	}
 }
 

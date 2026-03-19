@@ -36,6 +36,7 @@ func ToStrategyItemBo(m *do.Strategy) *bo.StrategyItemBo {
 		Status:           m.Status,
 		Metadata:         m.Metadata.Map(),
 		StrategyGroupUID: m.StrategyGroupUID,
+		StrategyGroup:    ToStrategyGroupItemBo(m.StrategyGroup),
 		CreatedAt:        m.CreatedAt,
 		UpdatedAt:        m.UpdatedAt,
 	}
