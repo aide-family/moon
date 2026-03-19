@@ -23,7 +23,7 @@ message Bootstrap {
 	magicbox.config.OAuth2 oauth2 = 11;
 	JobCore jobCore = 12;
 	magicbox.config.ORMConfig database = 13;
-	google.protobuf.Any domainDriver = 14;
+	google.protobuf.Any goddessDomainDriver = 14;
 	magicbox.config.DomainConfig namespaceDomain = 15;
 	magicbox.config.DomainConfig memberDomain = 16;
 	magicbox.config.DomainConfig authDomain = 17;

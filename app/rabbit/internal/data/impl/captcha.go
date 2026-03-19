@@ -23,7 +23,7 @@ func NewCaptchaRepository(c *conf.Bootstrap, d *data.Data) (repository.Captcha, 
 		if !ok {
 			return nil, merr.ErrorInternalServer("captcha repository factory not found")
 		}
-		repoImpl, close, err := factory(repoConfig, c.GetDomainDriver())
+		repoImpl, close, err := factory(repoConfig, c.GetGoddessDomainDriver())
 		if err != nil {
 			return nil, err
 		}

@@ -23,7 +23,7 @@ func NewSelfRepository(c *conf.Bootstrap, d *data.Data) (repository.Self, error)
 		if !ok {
 			return nil, merr.ErrorInternalServer("self repository factory not found")
 		}
-		repoImpl, close, err := factory(repoConfig, c.GetDomainDriver())
+		repoImpl, close, err := factory(repoConfig, c.GetGoddessDomainDriver())
 		if err != nil {
 			return nil, err
 		}

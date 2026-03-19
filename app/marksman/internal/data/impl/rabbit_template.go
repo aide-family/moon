@@ -21,7 +21,7 @@ func NewRabbitTemplateRepository(c *conf.Bootstrap, d *data.Data) (repository.Ra
 		if !ok {
 			return nil, merr.ErrorInternalServer("rabbit template repository factory not found")
 		}
-		repoImpl, close, err := factory(repoConfig, c.GetDomainDriver())
+		repoImpl, close, err := factory(repoConfig, c.GetRabbitDomainDriver())
 		if err != nil {
 			return nil, err
 		}

@@ -23,7 +23,7 @@ func NewUserRepository(c *conf.Bootstrap, d *data.Data) (repository.User, error)
 		if !ok {
 			return nil, merr.ErrorInternalServer("user repository factory not found")
 		}
-		repoImpl, close, err := factory(repoConfig, c.GetDomainDriver())
+		repoImpl, close, err := factory(repoConfig, c.GetGoddessDomainDriver())
 		if err != nil {
 			return nil, err
 		}
