@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package rabbit.internal.conf;
 
+import "google/protobuf/any.proto";
 import "google/protobuf/duration.proto";
 import "magicbox/config/config.proto";
 import "magicbox/enum/enum.proto";
@@ -20,15 +21,17 @@ message Bootstrap {
 	string enableClientConfig = 9;
 	magicbox.config.ReportConfig report = 10;
 	magicbox.config.OAuth2 oauth2 = 11;
-	magicbox.config.DomainConfig namespaceDomain = 12;
-	magicbox.config.DomainConfig memberDomain = 13;
-	magicbox.config.DomainConfig authDomain = 14;
-	magicbox.config.ClusterConfig jobClusters = 15;
-	JobCore jobCore = 16;
-	magicbox.config.ORMConfig database = 17;
-	magicbox.config.DomainConfig selfDomain = 18;
-	magicbox.config.DomainConfig userDomain = 19;
-	magicbox.config.DomainConfig captchaDomain = 20;
+	JobCore jobCore = 12;
+	magicbox.config.ORMConfig database = 13;
+	google.protobuf.Any domainDriver = 14;
+	magicbox.config.DomainConfig namespaceDomain = 15;
+	magicbox.config.DomainConfig memberDomain = 16;
+	magicbox.config.DomainConfig authDomain = 17;
+	magicbox.config.ClusterConfig jobClusters = 18;
+	magicbox.config.DomainConfig selfDomain = 19;
+	magicbox.config.DomainConfig userDomain = 20;
+	magicbox.config.DomainConfig captchaDomain = 21;
+	magicbox.config.DomainConfig templateDomain = 22;
 }
 
 message Server {

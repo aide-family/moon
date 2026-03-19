@@ -25,10 +25,10 @@ func init() {
 }
 
 // NewDefaultSender creates an in-process sender server (DEFAULT driver).
-func NewDefaultSender(c *config.DomainConfig) (apiv1.SenderServer, func() error, error) {
+func NewDefaultSender(c *config.DomainConfig, driver *anypb.Any) (apiv1.SenderServer, func() error, error) {
 	defaultConfig := &config.DefaultConfig{}
-	if pointer.IsNotNil(c.GetOptions()) {
-		if err := anypb.UnmarshalTo(c.GetOptions(), defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
+	if pointer.IsNotNil(driver) {
+		if err := anypb.UnmarshalTo(driver, defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
 			return nil, nil, merr.ErrorInternalServer("unmarshal default config failed: %v", err)
 		}
 	}

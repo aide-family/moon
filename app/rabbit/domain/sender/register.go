@@ -4,6 +4,7 @@ package sender
 import (
 	"github.com/aide-family/magicbox/config"
 	domainregister "github.com/aide-family/magicbox/domain"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	apiv1 "github.com/aide-family/rabbit/pkg/api/v1"
 )
@@ -18,7 +19,7 @@ func newRegistry() *registry {
 }
 
 // SenderFactoryV1 is the factory function for the sender service.
-type SenderFactoryV1 func(c *config.DomainConfig) (apiv1.SenderServer, func() error, error)
+type SenderFactoryV1 func(c *config.DomainConfig, driver *anypb.Any) (apiv1.SenderServer, func() error, error)
 
 type registry struct {
 	senderV1 *domainregister.Registry[SenderFactoryV1]

@@ -20,10 +20,10 @@ func init() {
 }
 
 // NewOuterSender creates a sender client that calls a remote rabbit (OUTER driver).
-func NewOuterSender(c *config.DomainConfig) (apiv1.SenderServer, func() error, error) {
+func NewOuterSender(c *config.DomainConfig, driver *anypb.Any) (apiv1.SenderServer, func() error, error) {
 	outer := &config.OuterServerConfig{}
-	if pointer.IsNotNil(c.GetOptions()) {
-		if err := anypb.UnmarshalTo(c.GetOptions(), outer, proto.UnmarshalOptions{Merge: true}); err != nil {
+	if pointer.IsNotNil(driver) {
+		if err := anypb.UnmarshalTo(driver, outer, proto.UnmarshalOptions{Merge: true}); err != nil {
 			return nil, nil, merr.ErrorInternalServer("unmarshal outer server config failed: %v", err)
 		}
 	}

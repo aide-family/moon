@@ -21,7 +21,7 @@ func NewRabbitWebhookRepository(c *conf.Bootstrap, d *data.Data) (repository.Rab
 		if !ok {
 			return nil, merr.ErrorInternalServer("rabbit webhook repository factory not found")
 		}
-		repoImpl, close, err := factory(repoConfig)
+		repoImpl, close, err := factory(repoConfig, c.GetDomainDriver())
 		if err != nil {
 			return nil, err
 		}
@@ -33,4 +33,3 @@ func NewRabbitWebhookRepository(c *conf.Bootstrap, d *data.Data) (repository.Rab
 type rabbitWebhookRepository struct {
 	rabbitv1.WebhookServer
 }
-

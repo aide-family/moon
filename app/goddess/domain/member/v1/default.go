@@ -22,10 +22,10 @@ func init() {
 }
 
 // NewDefaultMember creates an in-process member server (DEFAULT driver).
-func NewDefaultMember(c *config.DomainConfig) (goddessv1.MemberServer, func() error, error) {
+func NewDefaultMember(c *config.DomainConfig, driver *anypb.Any) (goddessv1.MemberServer, func() error, error) {
 	defaultConfig := &config.DefaultConfig{}
-	if pointer.IsNotNil(c.GetOptions()) {
-		if err := anypb.UnmarshalTo(c.GetOptions(), defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
+	if pointer.IsNotNil(driver) {
+		if err := anypb.UnmarshalTo(driver, defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
 			return nil, nil, merr.ErrorInternalServer("unmarshal default config failed: %v", err)
 		}
 	}

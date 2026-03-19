@@ -4,6 +4,7 @@ package webhook
 import (
 	"github.com/aide-family/magicbox/config"
 	domainregister "github.com/aide-family/magicbox/domain"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	apiv1 "github.com/aide-family/rabbit/pkg/api/v1"
 )
@@ -18,7 +19,7 @@ func newRegistry() *registry {
 }
 
 // WebhookFactoryV1 is the factory function for the webhook service.
-type WebhookFactoryV1 func(c *config.DomainConfig) (apiv1.WebhookServer, func() error, error)
+type WebhookFactoryV1 func(c *config.DomainConfig, driver *anypb.Any) (apiv1.WebhookServer, func() error, error)
 
 type registry struct {
 	webhookV1 *domainregister.Registry[WebhookFactoryV1]

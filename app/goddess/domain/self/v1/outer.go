@@ -16,14 +16,14 @@ import (
 )
 
 func init() {
-	selfdomain.RegisterSelfFactoryV1(config.DomainConfig_OUTER, NewOuterSelf)
+	selfdomain.RegisterSelfV1Factory(config.DomainConfig_OUTER, NewOuterSelf)
 }
 
 // NewOuterSelf creates a self client that calls a remote goddess (OUTER driver).
-func NewOuterSelf(c *config.DomainConfig) (goddessv1.SelfServer, func() error, error) {
+func NewOuterSelf(c *config.DomainConfig, driver *anypb.Any) (goddessv1.SelfServer, func() error, error) {
 	outer := &config.OuterServerConfig{}
-	if pointer.IsNotNil(c.GetOptions()) {
-		if err := anypb.UnmarshalTo(c.GetOptions(), outer, proto.UnmarshalOptions{Merge: true}); err != nil {
+	if pointer.IsNotNil(driver) {
+		if err := anypb.UnmarshalTo(driver, outer, proto.UnmarshalOptions{Merge: true}); err != nil {
 			return nil, nil, merr.ErrorInternalServer("unmarshal outer server config failed: %v", err)
 		}
 	}

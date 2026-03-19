@@ -22,10 +22,10 @@ func init() {
 }
 
 // NewDefaultNamespace creates an in-process namespace server (DEFAULT driver).
-func NewDefaultNamespace(c *config.DomainConfig) (goddessv1.NamespaceServer, func() error, error) {
+func NewDefaultNamespace(c *config.DomainConfig, driver *anypb.Any) (goddessv1.NamespaceServer, func() error, error) {
 	defaultConfig := &config.DefaultConfig{}
-	if pointer.IsNotNil(c.GetOptions()) {
-		if err := anypb.UnmarshalTo(c.GetOptions(), defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
+	if pointer.IsNotNil(driver) {
+		if err := anypb.UnmarshalTo(driver, defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
 			return nil, nil, merr.ErrorInternalServer("unmarshal default config failed: %v", err)
 		}
 	}

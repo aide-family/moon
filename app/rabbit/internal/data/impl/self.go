@@ -19,11 +19,11 @@ func NewSelfRepository(c *conf.Bootstrap, d *data.Data) (repository.Self, error)
 	driver := repoConfig.GetDriver()
 	switch version {
 	default:
-		factory, ok := selfDomain.GetSelfFactoryV1(driver)
+		factory, ok := selfDomain.GetSelfV1Factory(driver)
 		if !ok {
 			return nil, merr.ErrorInternalServer("self repository factory not found")
 		}
-		repoImpl, close, err := factory(repoConfig)
+		repoImpl, close, err := factory(repoConfig, c.GetDomainDriver())
 		if err != nil {
 			return nil, err
 		}

@@ -16,14 +16,14 @@ import (
 )
 
 func init() {
-	userdomain.RegisterUserFactoryV1(config.DomainConfig_OUTER, NewOuterUser)
+	userdomain.RegisterUserV1Factory(config.DomainConfig_OUTER, NewOuterUser)
 }
 
 // NewOuterUser creates a user client that calls a remote goddess (OUTER driver).
-func NewOuterUser(c *config.DomainConfig) (goddessv1.UserServer, func() error, error) {
+func NewOuterUser(c *config.DomainConfig, driver *anypb.Any) (goddessv1.UserServer, func() error, error) {
 	outer := &config.OuterServerConfig{}
-	if pointer.IsNotNil(c.GetOptions()) {
-		if err := anypb.UnmarshalTo(c.GetOptions(), outer, proto.UnmarshalOptions{Merge: true}); err != nil {
+	if pointer.IsNotNil(driver) {
+		if err := anypb.UnmarshalTo(driver, outer, proto.UnmarshalOptions{Merge: true}); err != nil {
 			return nil, nil, merr.ErrorInternalServer("unmarshal outer server config failed: %v", err)
 		}
 	}

@@ -20,7 +20,7 @@ func NewMemberRepository(c *conf.Bootstrap, d *data.Data) (repository.Member, er
 		if !ok {
 			return nil, merr.ErrorInternalServer("member repository factory not found")
 		}
-		repoImpl, close, err := factory(repoConfig)
+		repoImpl, close, err := factory(repoConfig, c.GetDomainDriver())
 		if err != nil {
 			return nil, err
 		}

@@ -103,8 +103,7 @@ message DomainConfig {
 		OUTER = 1;
 	}
 	Driver driver = 1;
-    string version = 2;
-    google.protobuf.Any options = 3;
+	string version = 2;
 }
 
 message DefaultConfig {

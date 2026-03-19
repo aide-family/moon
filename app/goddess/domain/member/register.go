@@ -4,6 +4,7 @@ package member
 import (
 	"github.com/aide-family/magicbox/config"
 	domainregister "github.com/aide-family/magicbox/domain"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	v1 "github.com/aide-family/goddess/pkg/api/v1"
 )
@@ -18,7 +19,7 @@ func newRegistry() *registry {
 }
 
 // MemberFactoryV1 is the factory function for the member service.
-type MemberFactoryV1 func(c *config.DomainConfig) (v1.MemberServer, func() error, error)
+type MemberFactoryV1 func(c *config.DomainConfig, driver *anypb.Any) (v1.MemberServer, func() error, error)
 
 type registry struct {
 	memberV1 *domainregister.Registry[MemberFactoryV1]

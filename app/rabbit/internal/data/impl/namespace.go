@@ -20,7 +20,7 @@ func NewNamespaceRepository(c *conf.Bootstrap, d *data.Data) (repository.Namespa
 		if !ok {
 			return nil, merr.ErrorInternalServer("namespace repository factory not found")
 		}
-		repoImpl, close, err := factory(repoConfig)
+		repoImpl, close, err := factory(repoConfig, c.GetDomainDriver())
 		if err != nil {
 			return nil, err
 		}

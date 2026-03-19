@@ -18,14 +18,14 @@ import (
 )
 
 func init() {
-	selfdomain.RegisterSelfFactoryV1(config.DomainConfig_DEFAULT, NewDefaultSelf)
+	selfdomain.RegisterSelfV1Factory(config.DomainConfig_DEFAULT, NewDefaultSelf)
 }
 
 // NewDefaultSelf creates an in-process self server (DEFAULT driver).
-func NewDefaultSelf(c *config.DomainConfig) (goddessv1.SelfServer, func() error, error) {
+func NewDefaultSelf(c *config.DomainConfig, driver *anypb.Any) (goddessv1.SelfServer, func() error, error) {
 	defaultConfig := &config.DefaultConfig{}
-	if pointer.IsNotNil(c.GetOptions()) {
-		if err := anypb.UnmarshalTo(c.GetOptions(), defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
+	if pointer.IsNotNil(driver) {
+		if err := anypb.UnmarshalTo(driver, defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
 			return nil, nil, merr.ErrorInternalServer("unmarshal default config failed: %v", err)
 		}
 	}

@@ -17,7 +17,7 @@ func Go(ctx context.Context, name string, f func(context.Context) error) {
 			if r := recover(); r != nil {
 				helper.Errorf("panic: %v", r)
 			}
-			helper.Debugw("completed, cost: %v", time.Since(start))
+			helper.Debugf("completed, cost: %v", time.Since(start))
 		}()
 
 		if err := f(ctx); err != nil {

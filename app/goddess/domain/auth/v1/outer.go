@@ -21,10 +21,10 @@ func init() {
 }
 
 // NewOuterAuth creates an auth client that calls a remote goddess (OUTER driver).
-func NewOuterAuth(c *config.DomainConfig) (goddessv1.AuthServiceServer, func() error, error) {
+func NewOuterAuth(c *config.DomainConfig, driver *anypb.Any) (goddessv1.AuthServiceServer, func() error, error) {
 	outer := &config.OuterServerConfig{}
-	if pointer.IsNotNil(c.GetOptions()) {
-		if err := anypb.UnmarshalTo(c.GetOptions(), outer, proto.UnmarshalOptions{Merge: true}); err != nil {
+	if pointer.IsNotNil(driver) {
+		if err := anypb.UnmarshalTo(driver, outer, proto.UnmarshalOptions{Merge: true}); err != nil {
 			return nil, nil, merr.ErrorInternalServer("unmarshal outer server config failed: %v", err)
 		}
 	}

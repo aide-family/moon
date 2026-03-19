@@ -4,6 +4,7 @@ package template
 import (
 	"github.com/aide-family/magicbox/config"
 	domainregister "github.com/aide-family/magicbox/domain"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	apiv1 "github.com/aide-family/rabbit/pkg/api/v1"
 )
@@ -18,7 +19,7 @@ func newRegistry() *registry {
 }
 
 // TemplateFactoryV1 is the factory function for the template service.
-type TemplateFactoryV1 func(c *config.DomainConfig) (apiv1.TemplateServer, func() error, error)
+type TemplateFactoryV1 func(c *config.DomainConfig, driver *anypb.Any) (apiv1.TemplateServer, func() error, error)
 
 type registry struct {
 	templateV1 *domainregister.Registry[TemplateFactoryV1]

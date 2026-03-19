@@ -20,10 +20,10 @@ func init() {
 }
 
 // NewOuterWebhook creates a webhook client that calls a remote rabbit (OUTER driver).
-func NewOuterWebhook(c *config.DomainConfig) (apiv1.WebhookServer, func() error, error) {
+func NewOuterWebhook(c *config.DomainConfig, driver *anypb.Any) (apiv1.WebhookServer, func() error, error) {
 	outer := &config.OuterServerConfig{}
-	if pointer.IsNotNil(c.GetOptions()) {
-		if err := anypb.UnmarshalTo(c.GetOptions(), outer, proto.UnmarshalOptions{Merge: true}); err != nil {
+	if pointer.IsNotNil(driver) {
+		if err := anypb.UnmarshalTo(driver, outer, proto.UnmarshalOptions{Merge: true}); err != nil {
 			return nil, nil, merr.ErrorInternalServer("unmarshal outer server config failed: %v", err)
 		}
 	}

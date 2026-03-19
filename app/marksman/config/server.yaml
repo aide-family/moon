@@ -31,145 +31,68 @@ jwt:
   expire: '${MOON_MARKSMAN_JWT_EXPIRE:600s}'
   issuer: '${MOON_MARKSMAN_JWT_ISSUER:marksman}'
 
+# Shared driver config for all domain clients (DEFAULT: DefaultConfig; OUTER: OuterServerConfig).
+# When all goddess domains use DEFAULT, set domainDriver to DefaultConfig below.
+# When webhook/template/sender use OUTER, set domainDriver to OuterServerConfig (address, timeout, protocol).
+domainDriver:
+  '@type': '${MOON_MARKSMAN_DOMAIN_DRIVER_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}'
+  siteDomain: ${MOON_MARKSMAN_DOMAIN_DRIVER_SITE_DOMAIN:localhost:5175}
+  globalEmail:
+    host: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_HOST:localhost}
+    port: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_PORT:587}
+    username: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_USERNAME:root}
+    password: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_PASSWORD:123456}
+  database:
+    dialector: ${MOON_MARKSMAN_DOMAIN_DRIVER_DATABASE_DIALECTOR:SQLITE}
+    debug: ${MOON_MARKSMAN_DOMAIN_DRIVER_DATABASE_DEBUG:true}
+    useSystemLogger: ${MOON_MARKSMAN_DOMAIN_DRIVER_DATABASE_USE_SYSTEM_LOGGER:false}
+    options:
+      '@type': '${MOON_MARKSMAN_DOMAIN_DRIVER_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
+      dsn: '${MOON_MARKSMAN_DOMAIN_DRIVER_DATABASE_DSN:file:../goddess/goddess.db?cache=shared}'
+  jwt:
+    secret: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_SECRET:xxx}
+    expire: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_EXPIRE:600s}
+    issuer: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_ISSUER:marksman}
+
+# Goddess domain configs for namespace, auth, self, user, member and captcha.
+# These use DEFAULT driver; set domainDriver to DefaultConfig when using DEFAULT (e.g. MOON_MARKSMAN_DOMAIN_DRIVER_TYPE=type.googleapis.com/magicbox.config.DefaultConfig, plus siteDomain/globalEmail/database/jwt).
 namespaceDomain:
   driver: ${MOON_MARKSMAN_NAMESPACE_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_NAMESPACE_VERSION:v1}
-  options:
-    '@type': '${MOON_MARKSMAN_NAMESPACE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}'
-    siteDomain: ${MOON_MARKSMAN_NAMESPACE_SITE_DOMAIN:localhost:5175}
-    globalEmail:
-      host: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_HOST:localhost}
-      port: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_PORT:587}
-      username: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_USERNAME:root}
-      password: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_PASSWORD:123456}
-    database:
-      dialector: ${MOON_MARKSMAN_NAMESPACE_DATABASE_DIALECTOR:SQLITE}
-      debug: ${MOON_MARKSMAN_NAMESPACE_DATABASE_DEBUG:true}
-      useSystemLogger: ${MOON_MARKSMAN_NAMESPACE_DATABASE_USE_SYSTEM_LOGGER:false}
-      options:
-        '@type': '${MOON_MARKSMAN_NAMESPACE_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
-        dsn: '${MOON_MARKSMAN_NAMESPACE_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
-    jwt:
-      secret: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_SECRET:xxx}
-      expire: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_EXPIRE:600s}
-      issuer: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_ISSUER:marksman}
 
 authDomain:
   driver: ${MOON_MARKSMAN_AUTH_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_AUTH_VERSION:v1}
-  options:
-    '@type': '${MOON_MARKSMAN_AUTH_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}'
-    siteDomain: ${MOON_MARKSMAN_AUTH_SITE_DOMAIN:localhost:5175}
-    globalEmail:
-      host: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_HOST:localhost}
-      port: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_PORT:587}
-      username: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_USERNAME:root}
-      password: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_PASSWORD:123456}
-    database:
-      dialector: ${MOON_MARKSMAN_AUTH_DATABASE_DIALECTOR:SQLITE}
-      debug: ${MOON_MARKSMAN_AUTH_DATABASE_DEBUG:true}
-      useSystemLogger: ${MOON_MARKSMAN_AUTH_DATABASE_USE_SYSTEM_LOGGER:false}
-      options:
-        '@type': '${MOON_MARKSMAN_AUTH_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
-        dsn: '${MOON_MARKSMAN_AUTH_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
-    jwt:
-      secret: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_SECRET:xxx}
-      expire: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_EXPIRE:600s}
-      issuer: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_ISSUER:marksman}
 
 selfDomain:
   driver: ${MOON_MARKSMAN_SELF_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_SELF_VERSION:v1}
-  options:
-    '@type': '${MOON_MARKSMAN_SELF_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}'
-    siteDomain: ${MOON_MARKSMAN_SELF_SITE_DOMAIN:localhost:5175}
-    globalEmail:
-      host: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_HOST:localhost}
-      port: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_PORT:587}
-      username: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_USERNAME:root}
-      password: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_PASSWORD:123456}
-    database:
-      dialector: ${MOON_MARKSMAN_SELF_DATABASE_DIALECTOR:SQLITE}
-      debug: ${MOON_MARKSMAN_SELF_DATABASE_DEBUG:true}
-      useSystemLogger: ${MOON_MARKSMAN_SELF_DATABASE_USE_SYSTEM_LOGGER:false}
-      options:
-        '@type': '${MOON_MARKSMAN_SELF_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
-        dsn: '${MOON_MARKSMAN_SELF_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
-    jwt:
-      secret: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_SECRET:xxx}
-      expire: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_EXPIRE:600s}
-      issuer: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_ISSUER:marksman}
 
 userDomain:
   driver: ${MOON_MARKSMAN_USER_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_USER_VERSION:v1}
-  options:
-    '@type': '${MOON_MARKSMAN_USER_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}'
-    database:
-      dialector: ${MOON_MARKSMAN_USER_DATABASE_DIALECTOR:SQLITE}
-      debug: ${MOON_MARKSMAN_USER_DATABASE_DEBUG:true}
-      useSystemLogger: ${MOON_MARKSMAN_USER_DATABASE_USE_SYSTEM_LOGGER:false}
-      options:
-        '@type': '${MOON_MARKSMAN_USER_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
-        dsn: '${MOON_MARKSMAN_USER_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
 
 memberDomain:
   driver: ${MOON_MARKSMAN_MEMBER_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_MEMBER_VERSION:v1}
-  options:
-    '@type': '${MOON_MARKSMAN_MEMBER_OPTIONS_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}'
-    siteDomain: ${MOON_MARKSMAN_MEMBER_SITE_DOMAIN:localhost:5175}
-    globalEmail:
-      host: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_HOST:localhost}
-      port: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_PORT:587}
-      username: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_USERNAME:root}
-      password: ${MOON_MARKSMAN_DEFAULT_CONFIG_GLOBAL_EMAIL_PASSWORD:123456}
-    database:
-      dialector: ${MOON_MARKSMAN_MEMBER_DATABASE_DIALECTOR:SQLITE}
-      debug: ${MOON_MARKSMAN_MEMBER_DATABASE_DEBUG:true}
-      useSystemLogger: ${MOON_MARKSMAN_MEMBER_DATABASE_USE_SYSTEM_LOGGER:false}
-      options:
-        '@type': '${MOON_MARKSMAN_MEMBER_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
-        dsn: '${MOON_MARKSMAN_MEMBER_DATABASE_SQLITE_OPTIONS_DSN:file:../goddess/goddess.db?cache=shared}'
-    jwt:
-      secret: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_SECRET:xxx}
-      expire: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_EXPIRE:600s}
-      issuer: ${MOON_MARKSMAN_DEFAULT_CONFIG_JWT_ISSUER:marksman}
 
 captchaDomain:
   driver: ${MOON_MARKSMAN_CAPTCHA_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_CAPTCHA_VERSION:v1}
 
 # Rabbit domain configs for webhook, message template and sender (call rabbit HTTP API).
+# These use OUTER driver; set domainDriver to OuterServerConfig when using OUTER (e.g. MOON_MARKSMAN_DOMAIN_DRIVER_TYPE=type.googleapis.com/magicbox.config.OuterServerConfig, plus address/timeout/protocol).
 webhookDomain:
-  driver: ${MOON_MARKSMAN_WEBHOOK_DRIVER:OUTER}
+  driver: ${MOON_MARKSMAN_WEBHOOK_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_WEBHOOK_VERSION:v1}
-  options:
-    '@type': '${MOON_MARKSMAN_WEBHOOK_OPTIONS_TYPE:type.googleapis.com/magicbox.config.OuterServerConfig}'
-    address: ${MOON_MARKSMAN_WEBHOOK_OPTIONS_ADDRESS:http://localhost:8001}
-    network: ${MOON_MARKSMAN_WEBHOOK_OPTIONS_NETWORK:tcp}
-    timeout: '${MOON_MARKSMAN_WEBHOOK_OPTIONS_TIMEOUT:10s}'
-    protocol: ${MOON_MARKSMAN_WEBHOOK_OPTIONS_PROTOCOL:HTTP}
 
 messageTemplateDomain:
-  driver: ${MOON_MARKSMAN_MESSAGE_TEMPLATE_DRIVER:OUTER}
+  driver: ${MOON_MARKSMAN_MESSAGE_TEMPLATE_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_MESSAGE_TEMPLATE_VERSION:v1}
-  options:
-    '@type': '${MOON_MARKSMAN_MESSAGE_TEMPLATE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.OuterServerConfig}'
-    address: ${MOON_MARKSMAN_MESSAGE_TEMPLATE_OPTIONS_ADDRESS:http://localhost:8001}
-    network: ${MOON_MARKSMAN_MESSAGE_TEMPLATE_OPTIONS_NETWORK:tcp}
-    timeout: '${MOON_MARKSMAN_MESSAGE_TEMPLATE_OPTIONS_TIMEOUT:10s}'
-    protocol: ${MOON_MARKSMAN_MESSAGE_TEMPLATE_OPTIONS_PROTOCOL:HTTP}
 
 senderDomain:
-  driver: ${MOON_MARKSMAN_SENDER_DRIVER:OUTER}
+  driver: ${MOON_MARKSMAN_SENDER_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_SENDER_VERSION:v1}
-  options:
-    '@type': '${MOON_MARKSMAN_SENDER_OPTIONS_TYPE:type.googleapis.com/magicbox.config.OuterServerConfig}'
-    address: ${MOON_MARKSMAN_SENDER_OPTIONS_ADDRESS:http://localhost:8001}
-    network: ${MOON_MARKSMAN_SENDER_OPTIONS_NETWORK:tcp}
-    timeout: '${MOON_MARKSMAN_SENDER_OPTIONS_TIMEOUT:10s}'
-    protocol: ${MOON_MARKSMAN_SENDER_OPTIONS_PROTOCOL:HTTP}
 
 # Metric evaluate cron: concurrency, timeouts and job channel capacity.
 evaluateConfig:

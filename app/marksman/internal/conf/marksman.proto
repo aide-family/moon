@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package marksman.internal.conf;
 
+import "google/protobuf/any.proto";
 import "google/protobuf/duration.proto";
 import "magicbox/config/config.proto";
 import "magicbox/enum/enum.proto";
@@ -22,16 +23,17 @@ message Bootstrap {
 	EvaluateConfig evaluateConfig = 11;
 	magicbox.config.ReportConfig report = 12;
 	magicbox.config.OAuth2 oauth2 = 13;
-	magicbox.config.DomainConfig namespaceDomain = 14;
-	magicbox.config.DomainConfig authDomain = 15;
-	magicbox.config.ORMConfig database = 16;
-	magicbox.config.DomainConfig selfDomain = 17;
-	magicbox.config.DomainConfig userDomain = 18;
-	magicbox.config.DomainConfig memberDomain = 19;
-	magicbox.config.DomainConfig captchaDomain = 20;
-	magicbox.config.DomainConfig webhookDomain = 21;
-	magicbox.config.DomainConfig messageTemplateDomain = 22;
-	magicbox.config.DomainConfig senderDomain = 23;
+	google.protobuf.Any domainDriver = 14;
+	magicbox.config.DomainConfig namespaceDomain = 15;
+	magicbox.config.DomainConfig authDomain = 16;
+	magicbox.config.ORMConfig database = 17;
+	magicbox.config.DomainConfig selfDomain = 18;
+	magicbox.config.DomainConfig userDomain = 19;
+	magicbox.config.DomainConfig memberDomain = 20;
+	magicbox.config.DomainConfig captchaDomain = 21;
+	magicbox.config.DomainConfig webhookDomain = 22;
+	magicbox.config.DomainConfig messageTemplateDomain = 23;
+	magicbox.config.DomainConfig senderDomain = 24;
 }
 
 // EvaluateConfig configures the metric evaluate cron: concurrency, timeouts and job channel capacity.

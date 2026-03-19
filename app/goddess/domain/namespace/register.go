@@ -4,6 +4,7 @@ package namespace
 import (
 	"github.com/aide-family/magicbox/config"
 	domainregister "github.com/aide-family/magicbox/domain"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	v1 "github.com/aide-family/goddess/pkg/api/v1"
 )
@@ -18,7 +19,7 @@ func newRegistry() *registry {
 }
 
 // NamespaceFactoryV1 is the factory function for the namespace service.
-type NamespaceFactoryV1 func(c *config.DomainConfig) (v1.NamespaceServer, func() error, error)
+type NamespaceFactoryV1 func(c *config.DomainConfig, driver *anypb.Any) (v1.NamespaceServer, func() error, error)
 
 type registry struct {
 	namespaceV1 *domainregister.Registry[NamespaceFactoryV1]

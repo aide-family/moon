@@ -11,12 +11,12 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 
+	webhookdomain "github.com/aide-family/rabbit/domain/webhook"
 	"github.com/aide-family/rabbit/internal/biz"
 	"github.com/aide-family/rabbit/internal/conf"
 	"github.com/aide-family/rabbit/internal/data"
 	"github.com/aide-family/rabbit/internal/data/impl"
 	"github.com/aide-family/rabbit/internal/service"
-	webhookdomain "github.com/aide-family/rabbit/domain/webhook"
 	apiv1 "github.com/aide-family/rabbit/pkg/api/v1"
 )
 
@@ -25,10 +25,10 @@ func init() {
 }
 
 // NewDefaultWebhook creates an in-process webhook server (DEFAULT driver).
-func NewDefaultWebhook(c *config.DomainConfig) (apiv1.WebhookServer, func() error, error) {
+func NewDefaultWebhook(c *config.DomainConfig, driver *anypb.Any) (apiv1.WebhookServer, func() error, error) {
 	defaultConfig := &config.DefaultConfig{}
-	if pointer.IsNotNil(c.GetOptions()) {
-		if err := anypb.UnmarshalTo(c.GetOptions(), defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
+	if pointer.IsNotNil(driver) {
+		if err := anypb.UnmarshalTo(driver, defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
 			return nil, nil, merr.ErrorInternalServer("unmarshal default config failed: %v", err)
 		}
 	}

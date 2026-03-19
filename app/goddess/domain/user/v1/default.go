@@ -17,14 +17,14 @@ import (
 )
 
 func init() {
-	userdomain.RegisterUserFactoryV1(config.DomainConfig_DEFAULT, NewDefaultUser)
+	userdomain.RegisterUserV1Factory(config.DomainConfig_DEFAULT, NewDefaultUser)
 }
 
 // NewDefaultUser creates an in-process user server (DEFAULT driver).
-func NewDefaultUser(c *config.DomainConfig) (goddessv1.UserServer, func() error, error) {
+func NewDefaultUser(c *config.DomainConfig, driver *anypb.Any) (goddessv1.UserServer, func() error, error) {
 	defaultConfig := &config.DefaultConfig{}
-	if pointer.IsNotNil(c.GetOptions()) {
-		if err := anypb.UnmarshalTo(c.GetOptions(), defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
+	if pointer.IsNotNil(driver) {
+		if err := anypb.UnmarshalTo(driver, defaultConfig, proto.UnmarshalOptions{Merge: true}); err != nil {
 			return nil, nil, merr.ErrorInternalServer("unmarshal default config failed: %v", err)
 		}
 	}

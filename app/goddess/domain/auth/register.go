@@ -4,6 +4,7 @@ package auth
 import (
 	"github.com/aide-family/magicbox/config"
 	domainregister "github.com/aide-family/magicbox/domain"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	v1 "github.com/aide-family/goddess/pkg/api/v1"
 )
@@ -18,7 +19,7 @@ func newRegistry() *registry {
 }
 
 // AuthFactoryV1 is the factory function for the auth service.
-type AuthFactoryV1 func(c *config.DomainConfig) (v1.AuthServiceServer, func() error, error)
+type AuthFactoryV1 func(c *config.DomainConfig, driver *anypb.Any) (v1.AuthServiceServer, func() error, error)
 
 type registry struct {
 	authV1 *domainregister.Registry[AuthFactoryV1]

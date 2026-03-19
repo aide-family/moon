@@ -24,7 +24,7 @@ func NewLoginRepository(c *conf.Bootstrap, d *data.Data) (repository.LoginReposi
 		if !ok {
 			return nil, merr.ErrorInternalServer("auth repository factory not found")
 		}
-		repoImpl, close, err := factory(repoConfig)
+		repoImpl, close, err := factory(repoConfig, c.GetDomainDriver())
 		if err != nil {
 			return nil, err
 		}

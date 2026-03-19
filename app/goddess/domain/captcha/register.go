@@ -4,6 +4,7 @@ package captcha
 import (
 	"github.com/aide-family/magicbox/config"
 	domainregister "github.com/aide-family/magicbox/domain"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	v1 "github.com/aide-family/goddess/pkg/api/v1"
 )
@@ -18,7 +19,7 @@ func newRegistry() *registry {
 }
 
 // CaptchaFactoryV1 is the factory function for the captcha service.
-type CaptchaFactoryV1 func(c *config.DomainConfig) (v1.CaptchaServer, func() error, error)
+type CaptchaFactoryV1 func(c *config.DomainConfig, driver *anypb.Any) (v1.CaptchaServer, func() error, error)
 
 type registry struct {
 	captchaV1 *domainregister.Registry[CaptchaFactoryV1]

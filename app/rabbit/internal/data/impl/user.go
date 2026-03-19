@@ -19,11 +19,11 @@ func NewUserRepository(c *conf.Bootstrap, d *data.Data) (repository.User, error)
 	driver := repoConfig.GetDriver()
 	switch version {
 	default:
-		factory, ok := userDomain.GetUserFactoryV1(driver)
+		factory, ok := userDomain.GetUserV1Factory(driver)
 		if !ok {
 			return nil, merr.ErrorInternalServer("user repository factory not found")
 		}
-		repoImpl, close, err := factory(repoConfig)
+		repoImpl, close, err := factory(repoConfig, c.GetDomainDriver())
 		if err != nil {
 			return nil, err
 		}
