@@ -10,7 +10,7 @@ import (
 )
 
 type AlertEvent interface {
-	CreateAlertEvent(ctx context.Context, req *bo.AlertEventBo, strategyGroupUID snowflake.ID) (snowflake.ID, error)
+	CreateAlertEvent(ctx context.Context, req *bo.AlertEventBo) (snowflake.ID, error)
 	GetAlertEvent(ctx context.Context, uid snowflake.ID) (*bo.AlertEventItemBo, error)
 	GetAlertEventByFingerprint(ctx context.Context, uid snowflake.ID, fingerprint string) (*bo.AlertEventItemBo, error)
 	ListRealtimeAlert(ctx context.Context, req *bo.ListRealtimeAlertBo, pageFilter *bo.AlertPageFilterBo) (*bo.PageResponseBo[*bo.AlertEventItemBo], error)

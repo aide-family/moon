@@ -49,6 +49,8 @@ func (r *notificationGroupSubscriptionRepository) UpdateSubscription(ctx context
 		n.StrategyUIDs.Value(do.StrategyUIDs),
 		n.StrategyLevels.Value(do.StrategyLevels),
 		n.Labels.Value(do.Labels),
+		n.ExcludeLabels.Value(do.ExcludeLabels),
+		n.DatasourceUIDs.Value(do.DatasourceUIDs),
 	)
 	if err != nil {
 		return err

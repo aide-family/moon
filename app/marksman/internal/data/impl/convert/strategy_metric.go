@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/magicbox/contextx"
+	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/safety"
 	"github.com/aide-family/marksman/internal/biz/bo"
 	"github.com/aide-family/marksman/internal/data/impl/do"
@@ -81,22 +82,39 @@ func ToStrategyMetricLevelDo(ctx context.Context, req *bo.SaveStrategyMetricLeve
 	return model
 }
 
-func ToEvaluateMetricStrategyBo(strategy *do.StrategyMetric, strategyLevel *do.StrategyMetricLevel, datasource *do.Datasource) *bo.EvaluateMetricStrategyBo {
+func ToEvaluateMetricStrategyBo(
+	strategyMetric *do.StrategyMetric,
+	strategyLevel *do.StrategyMetricLevel,
+	datasource *do.Datasource,
+) (*bo.EvaluateMetricStrategyBo, error) {
+	if strategyMetric == nil {
+		return nil, merr.ErrorParams("strategy metric is required")
+	}
+	namespaceUID := strategyMetric.NamespaceUID
+	if namespaceUID == 0 {
+		return nil, merr.ErrorParams("namespace UID is required")
+	}
+	strategy := strategyMetric.Strategy
 	if strategy == nil {
-		return nil
+		return nil, merr.ErrorParams("strategy is required")
 	}
-	return &bo.EvaluateMetricStrategyBo{
-		StrategyUID:  strategy.StrategyUID,
-		NamespaceUID: strategy.NamespaceUID,
-		Datasource:   ToDatasourceItemBo(datasource),
-		Expr:         strategy.Expr,
-		Labels:       strategy.Labels.Map(),
-		Summary:      strategy.Summary,
-		Description:  strategy.Description,
-		Level:        ToLevelItemBo(strategyLevel.Level),
-		Mode:         strategyLevel.Mode,
-		Condition:    strategyLevel.Condition,
-		Values:       strategyLevel.Values.List(),
-		DurationSec:  strategyLevel.DurationSec,
+	strategyGroup := strategy.StrategyGroup
+	if strategyGroup == nil {
+		return nil, merr.ErrorParams("strategy group is required")
 	}
+	if strategyLevel == nil {
+		return nil, merr.ErrorParams("strategy level is required")
+	}
+	if datasource == nil {
+		return nil, merr.ErrorParams("datasource is required")
+	}
+
+	return bo.NewEvaluateMetricStrategyBo(
+		namespaceUID,
+		ToStrategyGroupItemBo(strategyGroup),
+		ToStrategyItemBo(strategy),
+		ToStrategyMetricItemBo(strategyMetric),
+		ToStrategyMetricLevelItemBo(strategyLevel),
+		ToDatasourceItemBo(datasource),
+	)
 }

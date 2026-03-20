@@ -21,16 +21,21 @@ const ListRealtimeAlertTimeRangeDefault = 14 * 24 * time.Hour
 
 // AlertEventBo is the business object for an alert event produced by evaluator (in-memory).
 type AlertEventBo struct {
-	StrategyUID           snowflake.ID
 	NamespaceUID          snowflake.ID
-	Level                 *LevelItemBo
+	StrategyGroupUID      snowflake.ID
+	StrategyGroupName     string
+	StrategyUID           snowflake.ID
+	StrategyName          string
+	LevelUID              snowflake.ID
+	LevelName             string
+	DatasourceUID         snowflake.ID
+	DatasourceName        string
 	Summary               string
 	Description           string
 	Expr                  string
 	FiredAt               time.Time
 	Value                 float64
 	Labels                map[string]string
-	DatasourceUID         snowflake.ID
 	EvaluatorType         string // e.g. "metric", for identifying which evaluator produced the event
 	EvaluatorSnapshotJSON string // pre-serialized evaluator snapshot JSON (used by repo to find-or-insert snapshot, then store ID on event)
 	// Fingerprint is a stable identifier for this alert event, derived from firedAt and labels.
@@ -42,27 +47,34 @@ type AlertEventBo struct {
 // AlertEventItemBo is the business object for a persisted alert event (real-time alert).
 type AlertEventItemBo struct {
 	UID                 snowflake.ID
-	StrategyUID         snowflake.ID
 	NamespaceUID        snowflake.ID
+	StrategyGroupUID    snowflake.ID
+	StrategyGroupName   string
+	StrategyUID         snowflake.ID
+	StrategyName        string
 	LevelUID            snowflake.ID
 	LevelName           string
+	DatasourceUID       snowflake.ID
+	DatasourceName      string
 	Summary             string
 	Description         string
 	Expr                string
 	FiredAt             time.Time
 	Value               float64
 	Labels              map[string]string
-	DatasourceUID       snowflake.ID
 	EvaluatorType       string
 	EvaluatorSnapshotID snowflake.ID
 	Status              enum.AlertEventStatus
 	IntervenedAt        *time.Time
 	IntervenedBy        snowflake.ID
+	IntervenedByName    string
 	SuppressedUntilAt   *time.Time
 	SuppressedBy        snowflake.ID
+	SuppressedByName    string
 	SuppressedReason    string
 	RecoveredAt         *time.Time
 	RecoveredBy         snowflake.ID
+	RecoveredByName     string
 	RecoveredReason     string
 }
 
@@ -71,40 +83,33 @@ func ToAPIV1AlertEventItem(b *AlertEventItemBo) *apiv1.AlertEventItem {
 		return nil
 	}
 	item := &apiv1.AlertEventItem{
-		Uid:              b.UID.Int64(),
-		StrategyUid:      b.StrategyUID.Int64(),
-		NamespaceUid:     b.NamespaceUID.Int64(),
-		LevelUid:         b.LevelUID.Int64(),
-		LevelName:        b.LevelName,
-		Summary:          b.Summary,
-		Description:      b.Description,
-		Expr:             b.Expr,
-		FiredAt:          timex.FormatTime(&b.FiredAt),
-		Value:            b.Value,
-		Labels:           b.Labels,
-		DatasourceUid:    b.DatasourceUID.Int64(),
-		Status:           b.Status,
-		IntervenedAt:     timex.FormatTime(b.IntervenedAt),
-		IntervenedBy:     b.IntervenedBy.Int64(),
-		SuppressedBy:     b.SuppressedBy.Int64(),
-		SuppressedReason: b.SuppressedReason,
-		RecoveredAt:      timex.FormatTime(b.RecoveredAt),
-		RecoveredBy:      b.RecoveredBy.Int64(),
-		RecoveredReason:  b.RecoveredReason,
-	}
-	if b.IntervenedAt != nil {
-		item.IntervenedAt = timex.FormatTime(b.IntervenedAt)
-		item.IntervenedBy = b.IntervenedBy.Int64()
-	}
-	if b.SuppressedUntilAt != nil {
-		item.SuppressUntilAt = timex.FormatTime(b.SuppressedUntilAt)
-		item.SuppressedBy = b.SuppressedBy.Int64()
-		item.SuppressedReason = b.SuppressedReason
-	}
-	if b.RecoveredAt != nil {
-		item.RecoveredAt = timex.FormatTime(b.RecoveredAt)
-		item.RecoveredBy = b.RecoveredBy.Int64()
-		item.RecoveredReason = b.RecoveredReason
+		Uid:               b.UID.Int64(),
+		StrategyGroupUid:  b.StrategyGroupUID.Int64(),
+		StrategyGroupName: b.StrategyGroupName,
+		StrategyUid:       b.StrategyUID.Int64(),
+		StrategyName:      b.StrategyName,
+		LevelUid:          b.LevelUID.Int64(),
+		LevelName:         b.LevelName,
+		DatasourceUid:     b.DatasourceUID.Int64(),
+		DatasourceName:    b.DatasourceName,
+		Summary:           b.Summary,
+		Description:       b.Description,
+		Expr:              b.Expr,
+		FiredAt:           timex.FormatTime(&b.FiredAt),
+		Value:             b.Value,
+		Labels:            b.Labels,
+		Status:            b.Status,
+		IntervenedAt:      timex.FormatTime(b.IntervenedAt),
+		IntervenedBy:      b.IntervenedBy.Int64(),
+		IntervenedByName:  b.IntervenedByName,
+		SuppressUntilAt:   timex.FormatTime(b.SuppressedUntilAt),
+		SuppressedBy:      b.SuppressedBy.Int64(),
+		SuppressedByName:  b.SuppressedByName,
+		SuppressedReason:  b.SuppressedReason,
+		RecoveredAt:       timex.FormatTime(b.RecoveredAt),
+		RecoveredBy:       b.RecoveredBy.Int64(),
+		RecoveredByName:   b.RecoveredByName,
+		RecoveredReason:   b.RecoveredReason,
 	}
 	return item
 }
@@ -168,14 +173,16 @@ func BuildAlertFingerprint(labels map[string]string) string {
 }
 
 type InterveneAlertBo struct {
-	UID          snowflake.ID
-	IntervenedBy snowflake.ID
+	UID              snowflake.ID
+	IntervenedBy     snowflake.ID
+	IntervenedByName string
 }
 
 func NewInterveneAlertBo(ctx context.Context, req *apiv1.InterveneAlertRequest) *InterveneAlertBo {
 	return &InterveneAlertBo{
-		UID:          snowflake.ParseInt64(req.GetUid()),
-		IntervenedBy: contextx.GetUserUID(ctx),
+		UID:              snowflake.ParseInt64(req.GetUid()),
+		IntervenedBy:     contextx.GetUserUID(ctx),
+		IntervenedByName: contextx.GetUsername(ctx),
 	}
 }
 
@@ -183,6 +190,7 @@ type SuppressAlertBo struct {
 	UID              snowflake.ID
 	SuppressUntilAt  time.Time
 	SuppressedBy     snowflake.ID
+	SuppressedByName string
 	SuppressedReason string
 }
 
@@ -195,6 +203,7 @@ func NewSuppressAlertBo(ctx context.Context, req *apiv1.SuppressAlertRequest) *S
 		UID:              snowflake.ParseInt64(req.GetUid()),
 		SuppressUntilAt:  suppressUntilAt,
 		SuppressedBy:     contextx.GetUserUID(ctx),
+		SuppressedByName: contextx.GetUsername(ctx),
 		SuppressedReason: req.GetSuppressedReason(),
 	}
 }
@@ -202,6 +211,7 @@ func NewSuppressAlertBo(ctx context.Context, req *apiv1.SuppressAlertRequest) *S
 type RecoverAlertBo struct {
 	UID             snowflake.ID
 	RecoveredBy     snowflake.ID
+	RecoveredByName string
 	RecoveredReason string
 }
 
@@ -209,6 +219,7 @@ func NewRecoverAlertBo(ctx context.Context, req *apiv1.RecoverAlertRequest) *Rec
 	return &RecoverAlertBo{
 		UID:             snowflake.ParseInt64(req.GetUid()),
 		RecoveredBy:     contextx.GetUserUID(ctx),
+		RecoveredByName: contextx.GetUsername(ctx),
 		RecoveredReason: req.GetRecoveredReason(),
 	}
 }

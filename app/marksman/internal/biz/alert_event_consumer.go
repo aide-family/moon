@@ -40,30 +40,13 @@ func (c *AlertEventConsumer) Handle(ctx context.Context, event *bo.AlertEventBo)
 		return
 	}
 	ctx = contextx.WithNamespace(ctx, event.NamespaceUID)
-	strategy, err := c.strategyRepo.GetStrategy(ctx, event.StrategyUID)
-	if err != nil {
-		c.helper.WithContext(ctx).Errorw("msg", "get strategy for alert event failed", "error", err, "strategyUID", event.StrategyUID.Int64())
-		return
-	}
-	alertEventUID, err := c.alertEventRepo.CreateAlertEvent(ctx, event, strategy.StrategyGroupUID)
+	alertEventUID, err := c.alertEventRepo.CreateAlertEvent(ctx, event)
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("msg", "create alert event failed", "error", err, "strategyUID", event.StrategyUID.Int64())
 		return
 	}
-	levelName := ""
-	if event.Level != nil {
-		levelName = event.Level.Name
-	}
-	c.helper.WithContext(ctx).Debugw(
-		"msg", "alert event persisted",
-		"strategyUID", event.StrategyUID.Int64(),
-		"namespaceUID", event.NamespaceUID.Int64(),
-		"level", levelName,
-		"summary", event.Summary,
-		"value", event.Value,
-		"firedAt", event.FiredAt,
-		"expr", event.Expr,
-	)
+
+	c.helper.WithContext(ctx).Debugw("msg", "alert event persisted", "event", event)
 	alerting := evaluator.NewAlerting(alertEventUID, event, c.alertEventRepo, c.alertingRepo)
 	c.alertingRepo.Append(alerting)
 }

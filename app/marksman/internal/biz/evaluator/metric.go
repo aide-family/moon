@@ -4,6 +4,7 @@ package evaluator
 import (
 	"context"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/aide-family/magicbox/contextx"
@@ -28,20 +29,28 @@ const (
 
 // alertTemplateData is the data passed to Go templates for Summary, Description and Labels.
 type alertTemplateData struct {
-	Strategy *alertTemplateInfo
-	Labels   map[string]string
-	Value    float64
-	FiredAt  time.Time
+	Strategy     *alertTemplateInfo
+	OriginLabels map[string]string
+	Labels       map[string]string
+	Value        float64
+	FiredAt      time.Time
 }
 
 type alertTemplateInfo struct {
-	Expr           string
-	Summary        string
-	Description    string
-	LevelName      string
-	DatasourceName string
-	StrategyUID    int64
-	NamespaceUID   int64
+	NamespaceUID      int64
+	StrategyGroupUID  int64
+	StrategyGroupName string
+	StrategyUID       int64
+	StrategyName      string
+	LevelUID          int64
+	LevelName         string
+	DatasourceUID     int64
+	DatasourceName    string
+	Labels            map[string]string
+	Threshold         []float64
+	SampleMode        enum.SampleMode
+	Condition         enum.ConditionMetric
+	DurationSec       int64
 }
 
 // NewMetricEvaluator creates a cron job that evaluates the given metric strategy and sends alert events when conditions are met.
@@ -67,11 +76,7 @@ type metricEvaluator struct {
 
 // Index implements [cron.CronJob].
 func (m *metricEvaluator) Index() string {
-	levelUID := int64(0)
-	if m.info.Level != nil {
-		levelUID = m.info.Level.UID.Int64()
-	}
-	return fmt.Sprintf("metric-%d-%d-%d-%d", m.info.NamespaceUID.Int64(), m.info.StrategyUID.Int64(), levelUID, m.info.Datasource.UID.Int64())
+	return fmt.Sprintf("metric-%d-%d-%d-%d", m.info.GetNamespaceUID().Int64(), m.info.GetStrategyUID().Int64(), m.info.GetLevelUID().Int64(), m.info.GetDatasource().UID.Int64())
 }
 
 // IsImmediate implements [cron.CronJob].
@@ -83,12 +88,12 @@ func (m *metricEvaluator) IsImmediate() bool {
 func (m *metricEvaluator) Run() {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultQueryTimeout)
 	defer cancel()
-	ctx = contextx.WithNamespace(ctx, m.info.NamespaceUID)
+	ctx = contextx.WithNamespace(ctx, m.info.GetNamespaceUID())
 
 	end := time.Now()
-	dur := time.Duration(m.info.DurationSec) * time.Second
-	if dur < 60 {
-		dur = 60
+	dur := time.Duration(m.info.GetDurationSec()) * time.Second
+	if dur < 10*time.Second {
+		dur = 10 * time.Second
 	}
 	start := end.Add(-dur * 2)
 	queryRange := prometheusv1.Range{
@@ -97,9 +102,9 @@ func (m *metricEvaluator) Run() {
 		Step:  time.Duration(defaultStepSeconds),
 	}
 
-	matrix, err := m.querier.QueryRange(ctx, m.info.Datasource, m.info.Expr, queryRange)
+	matrix, err := m.querier.QueryRange(ctx, m.info.GetDatasource(), m.info.GetExpr(), queryRange)
 	if err != nil {
-		klog.Errorw("msg", "metric evaluate query failed", "error", err, "strategyUID", m.info.StrategyUID.Int64(), "expr", m.info.Expr)
+		klog.Errorw("msg", "metric evaluate query failed", "error", err, "strategyUID", m.info.GetStrategyUID())
 		return
 	}
 
@@ -118,25 +123,29 @@ func (m *metricEvaluator) Run() {
 		}
 		// Emit one alert event per series (carry labels); use last sample value for event.
 		lastVal := series.Values[len(series.Values)-1]
-		tmplData := m.buildAlertTemplateData(series, float64(lastVal.Value), end)
-		labels := m.fillLabels(tmplData, series)
-		summary := m.fillStringTemplate(m.info.Summary, tmplData)
-		description := m.fillStringTemplate(m.info.Description, tmplData)
+		tmlData := m.buildAlertTemplateData(series, float64(lastVal.Value), end)
+		summary := m.fillStringTemplate(m.info.GetSummary(), tmlData)
+		description := m.fillStringTemplate(m.info.GetDescription(), tmlData)
 		ev := &bo.AlertEventBo{
-			StrategyUID:           m.info.StrategyUID,
-			NamespaceUID:          m.info.NamespaceUID,
-			Level:                 m.info.Level,
+			StrategyUID:           m.info.GetStrategyUID(),
+			NamespaceUID:          m.info.GetNamespaceUID(),
+			LevelUID:              m.info.GetLevelUID(),
 			Summary:               summary,
 			Description:           description,
-			Expr:                  m.info.Expr,
+			Expr:                  m.info.GetExpr(),
 			FiredAt:               end,
 			Value:                 float64(lastVal.Value),
-			Labels:                labels,
-			DatasourceUID:         m.info.Datasource.UID,
+			Labels:                tmlData.Labels,
+			DatasourceUID:         m.info.GetDatasourceUID(),
 			EvaluatorType:         EvaluatorTypeMetric,
 			EvaluatorSnapshotJSON: m.cachedSnapshotJSON,
-			Fingerprint:           bo.BuildAlertFingerprint(labels),
+			Fingerprint:           bo.BuildAlertFingerprint(tmlData.OriginLabels),
 			EvaluateDuration:      dur,
+			StrategyGroupUID:      m.info.GetStrategyGroupUID(),
+			StrategyGroupName:     m.info.GetStrategyGroupName(),
+			StrategyName:          m.info.GetStrategyName(),
+			LevelName:             m.info.GetLevelName(),
+			DatasourceName:        m.info.GetDatasourceName(),
 		}
 		m.alertCh.Send(ev)
 	}
@@ -144,8 +153,8 @@ func (m *metricEvaluator) Run() {
 
 // satisfiesCondition returns whether the metric value v satisfies ConditionMetric with strategy Values (thresholds).
 func (m *metricEvaluator) satisfiesCondition(v float64) bool {
-	vals := m.info.Values
-	cond := m.info.Condition
+	vals := m.info.GetValues()
+	cond := m.info.GetCondition()
 	if len(vals) == 0 || cond == enum.ConditionMetric_CONDITION_METRIC_UNKNOWN {
 		return false
 	}
@@ -174,8 +183,8 @@ func (m *metricEvaluator) satisfiesCondition(v float64) bool {
 
 // sampleModeN returns the "n" for SampleMode (FOR: consecutive count, MAX/MIN: count threshold). Values[0] is condition threshold; n is Values[1] when present.
 func (m *metricEvaluator) sampleModeN() int {
-	if len(m.info.Values) > 1 {
-		n := int(m.info.Values[1])
+	if values := m.info.GetValues(); len(values) > 1 {
+		n := int(values[1])
 		if n < 0 {
 			n = 0
 		}
@@ -190,7 +199,7 @@ func (m *metricEvaluator) sampleModeN() int {
 // - MIN: "Occurs at least n times within m time" → fire if condition holds in at least n samples.
 func (m *metricEvaluator) shouldFireBySampleMode(satisfied []bool) bool {
 	n := m.sampleModeN()
-	switch m.info.Mode {
+	switch m.info.GetMode() {
 	case enum.SampleMode_SAMPLE_MODE_FOR:
 		// n consecutive times; if n not set, require at least 1
 		required := n
@@ -222,28 +231,32 @@ func (m *metricEvaluator) buildAlertTemplateData(series *model.SampleStream, val
 		seriesLabels[string(k)] = string(v)
 	}
 	info := &alertTemplateInfo{
-		Expr:         m.info.Expr,
-		Summary:      m.info.Summary,
-		Description:  m.info.Description,
-		StrategyUID:  m.info.StrategyUID.Int64(),
-		NamespaceUID: m.info.NamespaceUID.Int64(),
-	}
-	if m.info.Level != nil {
-		info.LevelName = m.info.Level.Name
-	}
-	if m.info.Datasource != nil {
-		info.DatasourceName = m.info.Datasource.Name
+		StrategyGroupUID:  m.info.GetStrategyGroupUID().Int64(),
+		StrategyGroupName: m.info.GetStrategyGroupName(),
+		StrategyUID:       m.info.GetStrategyUID().Int64(),
+		StrategyName:      m.info.GetStrategyName(),
+		LevelUID:          m.info.GetLevelUID().Int64(),
+		LevelName:         m.info.GetLevelName(),
+		DatasourceUID:     m.info.GetDatasourceUID().Int64(),
+		DatasourceName:    m.info.GetDatasourceName(),
+		NamespaceUID:      m.info.GetNamespaceUID().Int64(),
+		Labels:            m.info.GetLabels(),
+		Threshold:         m.info.GetValues(),
+		SampleMode:        m.info.GetMode(),
+		Condition:         m.info.GetCondition(),
+		DurationSec:       m.info.GetDurationSec(),
 	}
 	return &alertTemplateData{
-		Strategy: info,
-		Labels:   seriesLabels,
-		Value:    value,
-		FiredAt:  firedAt,
+		Strategy:     info,
+		OriginLabels: seriesLabels,
+		Labels:       m.fillLabels(seriesLabels, info.Labels),
+		Value:        value,
+		FiredAt:      firedAt,
 	}
 }
 
 // fillStringTemplate executes the template with data; on parse/execute error returns the original string.
-func (m *metricEvaluator) fillStringTemplate(tmpl string, data *alertTemplateData) string {
+func (m *metricEvaluator) fillStringTemplate(tmpl string, data any) string {
 	if tmpl == "" {
 		return ""
 	}
@@ -256,14 +269,10 @@ func (m *metricEvaluator) fillStringTemplate(tmpl string, data *alertTemplateDat
 }
 
 // fillLabels merges series labels with strategy labels; each strategy label value is template-filled.
-func (m *metricEvaluator) fillLabels(data *alertTemplateData, series *model.SampleStream) map[string]string {
-	labels := make(map[string]string, len(series.Metric)+len(m.info.Labels))
-	for k, v := range series.Metric {
-		labels[string(k)] = string(v)
-	}
-	for k, v := range m.info.Labels {
-		filled := m.fillStringTemplate(v, data)
-		labels[k] = filled
+func (m *metricEvaluator) fillLabels(originLabels map[string]string, strategyLabels map[string]string) map[string]string {
+	labels := maps.Clone(originLabels)
+	for k, v := range strategyLabels {
+		labels[k] = m.fillStringTemplate(v, originLabels)
 	}
 	return labels
 }
@@ -296,8 +305,8 @@ func maxConsecutiveTrue(b []bool) int {
 // Spec implements [cron.CronJob].
 func (m *metricEvaluator) Spec() cron.CronSpec {
 	interval := defaultEvaluateInterval
-	if m.info.DurationSec > 0 {
-		interval = time.Duration(m.info.DurationSec)
+	if durationSec := m.info.GetDurationSec(); durationSec > 0 {
+		interval = time.Duration(durationSec) * time.Second
 	}
 	return cron.CronSpecEvery(interval)
 }

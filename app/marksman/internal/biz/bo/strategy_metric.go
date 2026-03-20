@@ -1,7 +1,6 @@
 package bo
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
@@ -138,35 +137,31 @@ func NewUpdateStrategyMetricLevelStatusBo(req *apiv1.UpdateStrategyMetricLevelSt
 	}
 }
 
-type EvaluateMetricStrategyBo struct {
-	StrategyUID  snowflake.ID
-	NamespaceUID snowflake.ID
-	Datasource   *DatasourceItemBo
-	Expr         string
-	Labels       map[string]string
-	Summary      string
-	Description  string
-	Level        *LevelItemBo
-	Mode         enum.SampleMode
-	Condition    enum.ConditionMetric
-	Values       []float64
-	DurationSec  int64
-}
-
 // MetricEvaluatorSnapshot is the JSON-serializable snapshot payload for metric evaluator (stored in evaluator_snapshots.snapshot_json).
 type MetricEvaluatorSnapshot struct {
-	StrategyUID  int64               `json:"strategy_uid"`
-	NamespaceUID int64               `json:"namespace_uid"`
-	Datasource   *DatasourceSnapshot `json:"datasource,omitempty"`
-	Expr         string              `json:"expr"`
-	Labels       map[string]string   `json:"labels,omitempty"`
-	Summary      string              `json:"summary"`
-	Description  string              `json:"description"`
-	Level        *LevelSnapshot      `json:"level,omitempty"`
-	Mode         int32               `json:"mode"`
-	Condition    int32               `json:"condition"`
-	Values       []float64           `json:"values,omitempty"`
-	DurationSec  int64               `json:"duration_sec"`
+	StrategyGroup *StrategyGroupSnapshot `json:"strategy_group"`
+	StrategyUID   int64                  `json:"strategy_uid"`
+	NamespaceUID  int64                  `json:"namespace_uid"`
+	Datasource    *DatasourceSnapshot    `json:"datasource,omitempty"`
+	Expr          string                 `json:"expr"`
+	Labels        map[string]string      `json:"labels,omitempty"`
+	Summary       string                 `json:"summary"`
+	Description   string                 `json:"description"`
+	Level         *LevelSnapshot         `json:"level,omitempty"`
+	Mode          int32                  `json:"mode"`
+	Condition     int32                  `json:"condition"`
+	Values        []float64              `json:"values,omitempty"`
+	DurationSec   int64                  `json:"duration_sec"`
+}
+
+type StrategyGroupSnapshot struct {
+	UID       int64             `json:"uid"`
+	Name      string            `json:"name"`
+	Remark    string            `json:"remark"`
+	Status    int32             `json:"status"`
+	Metadata  map[string]string `json:"metadata,omitempty"`
+	CreatedAt string            `json:"created_at,omitempty"`
+	UpdatedAt string            `json:"updated_at,omitempty"`
 }
 
 // LevelSnapshot is JSON-serializable level info.
@@ -194,60 +189,50 @@ type DatasourceSnapshot struct {
 	UpdatedAt string            `json:"updated_at,omitempty"`
 }
 
-// ToSnapshot builds a JSON-serializable snapshot from EvaluateMetricStrategyBo (metric evaluator payload).
-func (e *EvaluateMetricStrategyBo) ToSnapshot() *MetricEvaluatorSnapshot {
-	if e == nil {
+func NewStrategyGroupSnapshot(strategyGroup *StrategyGroupItemBo) *StrategyGroupSnapshot {
+	if strategyGroup == nil {
 		return nil
 	}
-	s := &MetricEvaluatorSnapshot{
-		StrategyUID:  e.StrategyUID.Int64(),
-		NamespaceUID: e.NamespaceUID.Int64(),
-		Expr:         e.Expr,
-		Labels:       e.Labels,
-		Summary:      e.Summary,
-		Description:  e.Description,
-		Mode:         int32(e.Mode),
-		Condition:    int32(e.Condition),
-		Values:       e.Values,
-		DurationSec:  e.DurationSec,
+	return &StrategyGroupSnapshot{
+		UID:       strategyGroup.UID.Int64(),
+		Name:      strategyGroup.Name,
+		Remark:    strategyGroup.Remark,
+		Status:    int32(strategyGroup.Status),
+		Metadata:  strategyGroup.Metadata,
+		CreatedAt: timex.FormatTime(&strategyGroup.CreatedAt),
+		UpdatedAt: timex.FormatTime(&strategyGroup.UpdatedAt),
 	}
-	if e.Datasource != nil {
-		s.Datasource = &DatasourceSnapshot{
-			UID:       e.Datasource.UID.Int64(),
-			Name:      e.Datasource.Name,
-			Type:      int32(e.Datasource.Type),
-			Driver:    int32(e.Datasource.Driver),
-			Metadata:  e.Datasource.Metadata,
-			Status:    int32(e.Datasource.Status),
-			URL:       e.Datasource.URL,
-			Remark:    e.Datasource.Remark,
-			CreatedAt: timex.FormatTime(&e.Datasource.CreatedAt),
-			UpdatedAt: timex.FormatTime(&e.Datasource.UpdatedAt),
-		}
-	}
-	if e.Level != nil {
-		s.Level = &LevelSnapshot{
-			UID:       e.Level.UID.Int64(),
-			Name:      e.Level.Name,
-			Remark:    e.Level.Remark,
-			Status:    int32(e.Level.Status),
-			Metadata:  e.Level.Metadata,
-			CreatedAt: timex.FormatTime(&e.Level.CreatedAt),
-			UpdatedAt: timex.FormatTime(&e.Level.UpdatedAt),
-		}
-	}
-	return s
 }
 
-// MarshalEvaluatorSnapshotJSON returns the JSON string of the evaluator snapshot (for storage); returns empty string on error.
-func (e *EvaluateMetricStrategyBo) MarshalEvaluatorSnapshotJSON() string {
-	snap := e.ToSnapshot()
-	if snap == nil {
-		return ""
+func NewDatasourceSnapshot(datasource *DatasourceItemBo) *DatasourceSnapshot {
+	if datasource == nil {
+		return nil
 	}
-	b, err := json.Marshal(snap)
-	if err != nil {
-		return ""
+	return &DatasourceSnapshot{
+		UID:       datasource.UID.Int64(),
+		Name:      datasource.Name,
+		Type:      int32(datasource.Type),
+		Driver:    int32(datasource.Driver),
+		Metadata:  datasource.Metadata,
+		Status:    int32(datasource.Status),
+		URL:       datasource.URL,
+		Remark:    datasource.Remark,
+		CreatedAt: timex.FormatTime(&datasource.CreatedAt),
+		UpdatedAt: timex.FormatTime(&datasource.UpdatedAt),
 	}
-	return string(b)
+}
+
+func NewLevelSnapshot(level *LevelItemBo) *LevelSnapshot {
+	if level == nil {
+		return nil
+	}
+	return &LevelSnapshot{
+		UID:       level.UID.Int64(),
+		Name:      level.Name,
+		Remark:    level.Remark,
+		Status:    int32(level.Status),
+		Metadata:  level.Metadata,
+		CreatedAt: timex.FormatTime(&level.CreatedAt),
+		UpdatedAt: timex.FormatTime(&level.UpdatedAt),
+	}
 }

@@ -15,12 +15,15 @@ func ToSubscriptionFilterBo(m *do.NotificationGroupSubscription) *bo.Subscriptio
 	if m == nil {
 		return nil
 	}
-	var strategyGroupUIDs, strategyUIDs []int64
+	var strategyGroupUIDs, strategyUIDs, datasourceUIDs []int64
 	if m.StrategyGroupUIDs != nil {
 		strategyGroupUIDs = m.StrategyGroupUIDs.List()
 	}
 	if m.StrategyUIDs != nil {
 		strategyUIDs = m.StrategyUIDs.List()
+	}
+	if m.DatasourceUIDs != nil {
+		datasourceUIDs = m.DatasourceUIDs.List()
 	}
 	levels := make([]bo.StrategyLevelPairBo, 0, len(m.StrategyLevels))
 	for _, p := range m.StrategyLevels {
@@ -30,11 +33,17 @@ func ToSubscriptionFilterBo(m *do.NotificationGroupSubscription) *bo.Subscriptio
 	if m.Labels != nil {
 		labels = m.Labels.Map()
 	}
+	var excludeLabels map[string]string
+	if m.ExcludeLabels != nil {
+		excludeLabels = m.ExcludeLabels.Map()
+	}
 	return &bo.SubscriptionFilterBo{
 		StrategyGroupUIDs: strategyGroupUIDs,
 		StrategyUIDs:      strategyUIDs,
 		StrategyLevels:    levels,
 		Labels:            labels,
+		ExcludeLabels:     excludeLabels,
+		DatasourceUIDs:    datasourceUIDs,
 	}
 }
 
@@ -52,6 +61,8 @@ func ToNotificationGroupSubscriptionDO(ctx context.Context, notificationGroupUID
 		StrategyUIDs:         safety.NewSlice(req.StrategyUIDs),
 		StrategyLevels:       levels,
 		Labels:               safety.NewMap(req.Labels),
+		ExcludeLabels:        safety.NewMap(req.ExcludeLabels),
+		DatasourceUIDs:       safety.NewSlice(req.DatasourceUIDs),
 	}
 	m.Creator = contextx.GetUserUID(ctx)
 	return m

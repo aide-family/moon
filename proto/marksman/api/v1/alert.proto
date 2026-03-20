@@ -170,26 +170,32 @@ message ListAlertPageReply {
 // AlertEventItem is a single real-time alert event.
 message AlertEventItem {
 	int64 uid = 1;
-	int64 strategyUid = 2;
-	int64 namespaceUid = 3;
-	int64 levelUid = 4;
-	string levelName = 5;
-	string summary = 6;
-	string description = 7;
-	string expr = 8;
-	string firedAt = 9;
-	double value = 10;
-	map<string, string> labels = 11;
-	int64 datasourceUid = 12;
-	magicbox.enum.AlertEventStatus status = 13;
-	string intervenedAt = 14;
-	int64 intervenedBy = 15;
-	string suppressUntilAt = 16;
-	int64 suppressedBy = 17;
-	string suppressedReason = 18;
-	string recoveredAt = 19;
-	int64 recoveredBy = 20;
-	string recoveredReason = 21;
+	int64 strategyGroupUid = 2;
+	string strategyGroupName = 3;
+	int64 strategyUid = 4;
+	string strategyName = 5;
+	int64 levelUid = 6;
+	string levelName = 7;
+	int64 datasourceUid = 8;
+	string datasourceName = 9;
+	string summary = 10;
+	string description = 11;
+	string expr = 12;
+	string firedAt = 13;
+	double value = 14;
+	map<string, string> labels = 15;
+	magicbox.enum.AlertEventStatus status = 16;
+	string intervenedAt = 17;
+	int64 intervenedBy = 18;
+	string intervenedByName = 19;
+	string suppressUntilAt = 20;
+	int64 suppressedBy = 21;
+	string suppressedByName = 22;
+	string suppressedReason = 23;
+	string recoveredAt = 24;
+	int64 recoveredBy = 25;
+	string recoveredByName = 26;
+	string recoveredReason = 27;
 }
 
 // ListRealtimeAlertRequest lists real-time alert events for an alert page.

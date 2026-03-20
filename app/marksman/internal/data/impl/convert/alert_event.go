@@ -19,52 +19,61 @@ func ToAlertEventItemBo(m *do.AlertEvent, levelName string) *bo.AlertEventItemBo
 	}
 	return &bo.AlertEventItemBo{
 		UID:                 m.ID,
-		StrategyUID:         m.StrategyUID,
 		NamespaceUID:        m.NamespaceUID,
+		StrategyGroupUID:    m.StrategyGroupUID,
+		StrategyGroupName:   m.StrategyGroupName,
+		StrategyUID:         m.StrategyUID,
+		StrategyName:        m.StrategyName,
 		LevelUID:            m.LevelUID,
 		LevelName:           levelName,
+		DatasourceUID:       m.DatasourceUID,
+		DatasourceName:      m.DatasourceName,
 		Summary:             m.Summary,
 		Description:         m.Description,
 		Expr:                m.Expr,
 		FiredAt:             m.FiredAt,
 		Value:               m.Value,
 		Labels:              labels,
-		DatasourceUID:       m.DatasourceUID,
 		EvaluatorType:       m.EvaluatorType,
 		EvaluatorSnapshotID: m.EvaluatorSnapshotID,
 		Status:              m.Status,
 		IntervenedAt:        m.IntervenedAt,
 		IntervenedBy:        m.IntervenedBy,
+		IntervenedByName:    m.IntervenedByName,
 		SuppressedUntilAt:   m.SuppressedUntilAt,
 		SuppressedBy:        m.SuppressedBy,
+		SuppressedByName:    m.SuppressedByName,
 		SuppressedReason:    m.SuppressedReason,
 		RecoveredAt:         m.RecoveredAt,
 		RecoveredBy:         m.RecoveredBy,
+		RecoveredByName:     m.RecoveredByName,
 		RecoveredReason:     m.RecoveredReason,
 	}
 }
 
 // ToAlertEventDo builds do.AlertEvent from bo; snapshotID is from find-or-insert of evaluator_snapshots.
-func ToAlertEventDo(ev *bo.AlertEventBo, strategyGroupUID snowflake.ID, evaluatorSnapshotID snowflake.ID) *do.AlertEvent {
+func ToAlertEventDo(ev *bo.AlertEventBo, evaluatorSnapshotID snowflake.ID) *do.AlertEvent {
 	if ev == nil {
 		return nil
 	}
 	levelUID := snowflake.ID(0)
-	if ev.Level != nil {
-		levelUID = ev.Level.UID
-	}
+	levelUID = ev.LevelUID
 	m := &do.AlertEvent{
 		NamespaceUID:        ev.NamespaceUID,
+		StrategyGroupUID:    ev.StrategyGroupUID,
+		StrategyGroupName:   ev.StrategyGroupName,
 		StrategyUID:         ev.StrategyUID,
-		StrategyGroupUID:    strategyGroupUID,
+		StrategyName:        ev.StrategyName,
 		LevelUID:            levelUID,
+		LevelName:           ev.LevelName,
+		DatasourceUID:       ev.DatasourceUID,
+		DatasourceName:      ev.DatasourceName,
 		Summary:             ev.Summary,
 		Description:         ev.Description,
 		Expr:                ev.Expr,
 		FiredAt:             ev.FiredAt,
 		Value:               ev.Value,
 		Labels:              safety.NewMap(ev.Labels),
-		DatasourceUID:       ev.DatasourceUID,
 		EvaluatorType:       ev.EvaluatorType,
 		EvaluatorSnapshotID: evaluatorSnapshotID,
 		Fingerprint:         ev.Fingerprint,

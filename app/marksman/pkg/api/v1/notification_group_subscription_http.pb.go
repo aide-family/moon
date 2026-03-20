@@ -29,8 +29,8 @@ type NotificationGroupSubscriptionHTTPServer interface {
 
 func RegisterNotificationGroupSubscriptionHTTPServer(s *http.Server, srv NotificationGroupSubscriptionHTTPServer) {
 	r := s.Route("/")
-	r.GET("/v1/notification-groups/{notification_group_uid}/subscription", _NotificationGroupSubscription_GetNotificationGroupSubscription0_HTTP_Handler(srv))
-	r.PUT("/v1/notification-groups/{notification_group_uid}/subscription", _NotificationGroupSubscription_SaveNotificationGroupSubscription0_HTTP_Handler(srv))
+	r.GET("/v1/notification-groups/{notificationGroupUid}/subscription", _NotificationGroupSubscription_GetNotificationGroupSubscription0_HTTP_Handler(srv))
+	r.PUT("/v1/notification-groups/{notificationGroupUid}/subscription", _NotificationGroupSubscription_SaveNotificationGroupSubscription0_HTTP_Handler(srv))
 }
 
 func _NotificationGroupSubscription_GetNotificationGroupSubscription0_HTTP_Handler(srv NotificationGroupSubscriptionHTTPServer) func(ctx http.Context) error {
@@ -95,7 +95,7 @@ func NewNotificationGroupSubscriptionHTTPClient(client *http.Client) Notificatio
 
 func (c *NotificationGroupSubscriptionHTTPClientImpl) GetNotificationGroupSubscription(ctx context.Context, in *GetNotificationGroupSubscriptionRequest, opts ...http.CallOption) (*GetNotificationGroupSubscriptionReply, error) {
 	var out GetNotificationGroupSubscriptionReply
-	pattern := "/v1/notification-groups/{notification_group_uid}/subscription"
+	pattern := "/v1/notification-groups/{notificationGroupUid}/subscription"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationNotificationGroupSubscriptionGetNotificationGroupSubscription))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -108,7 +108,7 @@ func (c *NotificationGroupSubscriptionHTTPClientImpl) GetNotificationGroupSubscr
 
 func (c *NotificationGroupSubscriptionHTTPClientImpl) SaveNotificationGroupSubscription(ctx context.Context, in *SaveNotificationGroupSubscriptionRequest, opts ...http.CallOption) (*SaveNotificationGroupSubscriptionReply, error) {
 	var out SaveNotificationGroupSubscriptionReply
-	pattern := "/v1/notification-groups/{notification_group_uid}/subscription"
+	pattern := "/v1/notification-groups/{notificationGroupUid}/subscription"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationNotificationGroupSubscriptionSaveNotificationGroupSubscription))
 	opts = append(opts, http.PathTemplate(pattern))

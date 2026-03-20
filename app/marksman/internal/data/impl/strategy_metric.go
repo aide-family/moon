@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/magicbox/safety"
 	"github.com/bwmarrin/snowflake"
 	"github.com/go-kratos/kratos/v2/errors"
+	klog "github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
@@ -75,6 +76,8 @@ func (r *strategyMetricRepository) GetEvaluateMetricStrategies(ctx context.Conte
 		strategyMetricQuery.NamespaceUID.Eq(ns.Int64()),
 		strategyMetricQuery.StrategyUID.In(strategyIds...),
 	).Preload(
+		strategyMetricQuery.Strategy.StrategyGroup.On(strategyGroupQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED))),
+		strategyMetricQuery.Strategy.On(strategyQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED))),
 		strategyMetricQuery.StrategyLevels.On(strategyMetricLevelQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED))),
 		strategyMetricQuery.StrategyLevels.Level.On(levelQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED))),
 	).Find()
@@ -112,7 +115,12 @@ func (r *strategyMetricRepository) GetEvaluateMetricStrategies(ctx context.Conte
 				if !ok {
 					continue
 				}
-				evaluateStrategies = append(evaluateStrategies, convert.ToEvaluateMetricStrategyBo(strategyDetail, strategyLevel, datasourceDetail))
+				item, err := convert.ToEvaluateMetricStrategyBo(strategyDetail, strategyLevel, datasourceDetail)
+				if err != nil {
+					klog.Warnw("msg", "convert to evaluate metric strategy bo failed", "error", err, "strategy group", strategyDetail.Strategy.StrategyGroup, "strategy", strategyDetail, "strategy level", strategyLevel, "datasource", datasourceDetail)
+					continue
+				}
+				evaluateStrategies = append(evaluateStrategies, item)
 			}
 		}
 	}

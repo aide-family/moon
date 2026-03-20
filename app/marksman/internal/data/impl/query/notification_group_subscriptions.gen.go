@@ -36,6 +36,8 @@ func newNotificationGroupSubscription(db *gorm.DB, opts ...gen.DOOption) notific
 	_notificationGroupSubscription.StrategyUIDs = field.NewField(tableName, "strategy_uids")
 	_notificationGroupSubscription.StrategyLevels = field.NewField(tableName, "strategy_levels")
 	_notificationGroupSubscription.Labels = field.NewField(tableName, "labels")
+	_notificationGroupSubscription.ExcludeLabels = field.NewField(tableName, "exclude_labels")
+	_notificationGroupSubscription.DatasourceUIDs = field.NewField(tableName, "datasource_uids")
 
 	_notificationGroupSubscription.fillFieldMap()
 
@@ -55,6 +57,8 @@ type notificationGroupSubscription struct {
 	StrategyUIDs         field.Field
 	StrategyLevels       field.Field
 	Labels               field.Field
+	ExcludeLabels        field.Field
+	DatasourceUIDs       field.Field
 
 	fieldMap map[string]field.Expr
 }
@@ -80,6 +84,8 @@ func (n *notificationGroupSubscription) updateTableName(table string) *notificat
 	n.StrategyUIDs = field.NewField(table, "strategy_uids")
 	n.StrategyLevels = field.NewField(table, "strategy_levels")
 	n.Labels = field.NewField(table, "labels")
+	n.ExcludeLabels = field.NewField(table, "exclude_labels")
+	n.DatasourceUIDs = field.NewField(table, "datasource_uids")
 
 	n.fillFieldMap()
 
@@ -96,7 +102,7 @@ func (n *notificationGroupSubscription) GetFieldByName(fieldName string) (field.
 }
 
 func (n *notificationGroupSubscription) fillFieldMap() {
-	n.fieldMap = make(map[string]field.Expr, 9)
+	n.fieldMap = make(map[string]field.Expr, 11)
 	n.fieldMap["id"] = n.ID
 	n.fieldMap["created_at"] = n.CreatedAt
 	n.fieldMap["updated_at"] = n.UpdatedAt
@@ -106,6 +112,8 @@ func (n *notificationGroupSubscription) fillFieldMap() {
 	n.fieldMap["strategy_uids"] = n.StrategyUIDs
 	n.fieldMap["strategy_levels"] = n.StrategyLevels
 	n.fieldMap["labels"] = n.Labels
+	n.fieldMap["exclude_labels"] = n.ExcludeLabels
+	n.fieldMap["datasource_uids"] = n.DatasourceUIDs
 }
 
 func (n notificationGroupSubscription) clone(db *gorm.DB) notificationGroupSubscription {

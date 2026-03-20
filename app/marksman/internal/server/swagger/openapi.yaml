@@ -1398,13 +1398,21 @@ components:
             properties:
                 uid:
                     type: string
+                strategyGroupUid:
+                    type: string
+                strategyGroupName:
+                    type: string
                 strategyUid:
                     type: string
-                namespaceUid:
+                strategyName:
                     type: string
                 levelUid:
                     type: string
                 levelName:
+                    type: string
+                datasourceUid:
+                    type: string
+                datasourceName:
                     type: string
                 summary:
                     type: string
@@ -1421,8 +1429,6 @@ components:
                     type: object
                     additionalProperties:
                         type: string
-                datasourceUid:
-                    type: string
                 status:
                     type: integer
                     format: enum
@@ -1430,15 +1436,21 @@ components:
                     type: string
                 intervenedBy:
                     type: string
+                intervenedByName:
+                    type: string
                 suppressUntilAt:
                     type: string
                 suppressedBy:
+                    type: string
+                suppressedByName:
                     type: string
                 suppressedReason:
                     type: string
                 recoveredAt:
                     type: string
                 recoveredBy:
+                    type: string
+                recoveredByName:
                     type: string
                 recoveredReason:
                     type: string
@@ -2327,16 +2339,26 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/marksman.api.v1.StrategyLevelPair'
+                datasourceUids:
+                    type: array
+                    items:
+                        type: string
                 labels:
                     type: object
                     additionalProperties:
                         type: string
+                excludeLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
             description: |-
-                Subscription filter: when multiple dimensions are set, an alert must satisfy ALL (AND).
-                 - strategy_group_uids: alert's strategy must belong to one of these groups.
-                 - strategy_uids: alert's strategy_uid must be in this list.
-                 - strategy_levels: alert's (strategy_uid, level_uid) must be in this list.
-                 - labels: alert must contain all these key-value pairs (subset match).
+                Subscription filter: when multiple dimensions are set, an alert matches if it satisfies at least one (OR).
+                 - strategyGroupUids: alert's strategy must belong to one of these groups.
+                 - strategyUids: alert's strategy_uid must be in this list.
+                 - strategyLevels: alert's (strategy_uid, level_uid) must be in this list.
+                 - labels: alert must contain all these key-value pairs with the same values.
+                 - excludeLabels: alert must not contain any of these key-value pairs (subset match).
+                 - datasourceUids: alert's datasource must be in this list.
         marksman.api.v1.SuppressAlertReply:
             type: object
             properties: {}

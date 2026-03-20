@@ -54,11 +54,13 @@ func (c *StrategyLevelPairsDO) Scan(value any) error {
 
 type NotificationGroupSubscription struct {
 	BaseModel
-	NotificationGroupUID snowflake.ID           `gorm:"column:notification_group_uid;uniqueIndex:idx__notification_group_subscriptions__notification_group_uid"`
-	StrategyGroupUIDs    *safety.Slice[int64]   `gorm:"column:strategy_group_uids;type:json;"`
-	StrategyUIDs         *safety.Slice[int64]   `gorm:"column:strategy_uids;type:json;"`
-	StrategyLevels       StrategyLevelPairsDO   `gorm:"column:strategy_levels;type:json;"`
+	NotificationGroupUID snowflake.ID                `gorm:"column:notification_group_uid;uniqueIndex:idx__notification_group_subscriptions__notification_group_uid"`
+	StrategyGroupUIDs    *safety.Slice[int64]        `gorm:"column:strategy_group_uids;type:json;"`
+	StrategyUIDs         *safety.Slice[int64]        `gorm:"column:strategy_uids;type:json;"`
+	StrategyLevels       StrategyLevelPairsDO        `gorm:"column:strategy_levels;type:json;"`
 	Labels               *safety.Map[string, string] `gorm:"column:labels;type:json;"`
+	ExcludeLabels        *safety.Map[string, string] `gorm:"column:exclude_labels;type:json;"`
+	DatasourceUIDs       *safety.Slice[int64]        `gorm:"column:datasource_uids;type:json;"`
 }
 
 func (NotificationGroupSubscription) TableName() string {

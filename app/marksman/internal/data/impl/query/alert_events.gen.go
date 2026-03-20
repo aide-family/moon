@@ -31,27 +31,34 @@ func newAlertEvent(db *gorm.DB, opts ...gen.DOOption) alertEvent {
 	_alertEvent.CreatedAt = field.NewTime(tableName, "created_at")
 	_alertEvent.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_alertEvent.NamespaceUID = field.NewInt64(tableName, "namespace_uid")
-	_alertEvent.StrategyUID = field.NewInt64(tableName, "strategy_uid")
 	_alertEvent.StrategyGroupUID = field.NewInt64(tableName, "strategy_group_uid")
+	_alertEvent.StrategyGroupName = field.NewString(tableName, "strategy_group_name")
+	_alertEvent.StrategyUID = field.NewInt64(tableName, "strategy_uid")
+	_alertEvent.StrategyName = field.NewString(tableName, "strategy_name")
 	_alertEvent.LevelUID = field.NewInt64(tableName, "level_uid")
+	_alertEvent.LevelName = field.NewString(tableName, "level_name")
+	_alertEvent.DatasourceUID = field.NewInt64(tableName, "datasource_uid")
+	_alertEvent.DatasourceName = field.NewString(tableName, "datasource_name")
 	_alertEvent.Summary = field.NewString(tableName, "summary")
 	_alertEvent.Description = field.NewString(tableName, "description")
 	_alertEvent.Expr = field.NewString(tableName, "expr")
 	_alertEvent.FiredAt = field.NewTime(tableName, "fired_at")
 	_alertEvent.Value = field.NewFloat64(tableName, "value")
 	_alertEvent.Labels = field.NewField(tableName, "labels")
-	_alertEvent.DatasourceUID = field.NewInt64(tableName, "datasource_uid")
 	_alertEvent.EvaluatorType = field.NewString(tableName, "evaluator_type")
 	_alertEvent.EvaluatorSnapshotID = field.NewInt64(tableName, "evaluator_snapshot_id")
 	_alertEvent.Fingerprint = field.NewString(tableName, "fingerprint")
 	_alertEvent.Status = field.NewInt32(tableName, "status")
 	_alertEvent.IntervenedAt = field.NewTime(tableName, "intervened_at")
 	_alertEvent.IntervenedBy = field.NewInt64(tableName, "intervened_by")
+	_alertEvent.IntervenedByName = field.NewString(tableName, "intervened_by_name")
 	_alertEvent.SuppressedUntilAt = field.NewTime(tableName, "suppressed_until")
 	_alertEvent.SuppressedBy = field.NewInt64(tableName, "suppressed_by")
+	_alertEvent.SuppressedByName = field.NewString(tableName, "suppressed_by_name")
 	_alertEvent.SuppressedReason = field.NewString(tableName, "suppressed_reason")
 	_alertEvent.RecoveredAt = field.NewTime(tableName, "recovered_at")
 	_alertEvent.RecoveredBy = field.NewInt64(tableName, "recovered_by")
+	_alertEvent.RecoveredByName = field.NewString(tableName, "recovered_by_name")
 	_alertEvent.RecoveredReason = field.NewString(tableName, "recovered_reason")
 	_alertEvent.EvaluatorSnapshot = alertEventBelongsToEvaluatorSnapshot{
 		db: db.Session(&gorm.Session{}),
@@ -72,27 +79,34 @@ type alertEvent struct {
 	CreatedAt           field.Time
 	UpdatedAt           field.Time
 	NamespaceUID        field.Int64
-	StrategyUID         field.Int64
 	StrategyGroupUID    field.Int64
+	StrategyGroupName   field.String
+	StrategyUID         field.Int64
+	StrategyName        field.String
 	LevelUID            field.Int64
+	LevelName           field.String
+	DatasourceUID       field.Int64
+	DatasourceName      field.String
 	Summary             field.String
 	Description         field.String
 	Expr                field.String
 	FiredAt             field.Time
 	Value               field.Float64
 	Labels              field.Field
-	DatasourceUID       field.Int64
 	EvaluatorType       field.String
 	EvaluatorSnapshotID field.Int64
 	Fingerprint         field.String
 	Status              field.Int32
 	IntervenedAt        field.Time
 	IntervenedBy        field.Int64
+	IntervenedByName    field.String
 	SuppressedUntilAt   field.Time
 	SuppressedBy        field.Int64
+	SuppressedByName    field.String
 	SuppressedReason    field.String
 	RecoveredAt         field.Time
 	RecoveredBy         field.Int64
+	RecoveredByName     field.String
 	RecoveredReason     field.String
 	EvaluatorSnapshot   alertEventBelongsToEvaluatorSnapshot
 
@@ -115,27 +129,34 @@ func (a *alertEvent) updateTableName(table string) *alertEvent {
 	a.CreatedAt = field.NewTime(table, "created_at")
 	a.UpdatedAt = field.NewTime(table, "updated_at")
 	a.NamespaceUID = field.NewInt64(table, "namespace_uid")
-	a.StrategyUID = field.NewInt64(table, "strategy_uid")
 	a.StrategyGroupUID = field.NewInt64(table, "strategy_group_uid")
+	a.StrategyGroupName = field.NewString(table, "strategy_group_name")
+	a.StrategyUID = field.NewInt64(table, "strategy_uid")
+	a.StrategyName = field.NewString(table, "strategy_name")
 	a.LevelUID = field.NewInt64(table, "level_uid")
+	a.LevelName = field.NewString(table, "level_name")
+	a.DatasourceUID = field.NewInt64(table, "datasource_uid")
+	a.DatasourceName = field.NewString(table, "datasource_name")
 	a.Summary = field.NewString(table, "summary")
 	a.Description = field.NewString(table, "description")
 	a.Expr = field.NewString(table, "expr")
 	a.FiredAt = field.NewTime(table, "fired_at")
 	a.Value = field.NewFloat64(table, "value")
 	a.Labels = field.NewField(table, "labels")
-	a.DatasourceUID = field.NewInt64(table, "datasource_uid")
 	a.EvaluatorType = field.NewString(table, "evaluator_type")
 	a.EvaluatorSnapshotID = field.NewInt64(table, "evaluator_snapshot_id")
 	a.Fingerprint = field.NewString(table, "fingerprint")
 	a.Status = field.NewInt32(table, "status")
 	a.IntervenedAt = field.NewTime(table, "intervened_at")
 	a.IntervenedBy = field.NewInt64(table, "intervened_by")
+	a.IntervenedByName = field.NewString(table, "intervened_by_name")
 	a.SuppressedUntilAt = field.NewTime(table, "suppressed_until")
 	a.SuppressedBy = field.NewInt64(table, "suppressed_by")
+	a.SuppressedByName = field.NewString(table, "suppressed_by_name")
 	a.SuppressedReason = field.NewString(table, "suppressed_reason")
 	a.RecoveredAt = field.NewTime(table, "recovered_at")
 	a.RecoveredBy = field.NewInt64(table, "recovered_by")
+	a.RecoveredByName = field.NewString(table, "recovered_by_name")
 	a.RecoveredReason = field.NewString(table, "recovered_reason")
 
 	a.fillFieldMap()
@@ -153,32 +174,39 @@ func (a *alertEvent) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *alertEvent) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 27)
+	a.fieldMap = make(map[string]field.Expr, 34)
 	a.fieldMap["id"] = a.ID
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["namespace_uid"] = a.NamespaceUID
-	a.fieldMap["strategy_uid"] = a.StrategyUID
 	a.fieldMap["strategy_group_uid"] = a.StrategyGroupUID
+	a.fieldMap["strategy_group_name"] = a.StrategyGroupName
+	a.fieldMap["strategy_uid"] = a.StrategyUID
+	a.fieldMap["strategy_name"] = a.StrategyName
 	a.fieldMap["level_uid"] = a.LevelUID
+	a.fieldMap["level_name"] = a.LevelName
+	a.fieldMap["datasource_uid"] = a.DatasourceUID
+	a.fieldMap["datasource_name"] = a.DatasourceName
 	a.fieldMap["summary"] = a.Summary
 	a.fieldMap["description"] = a.Description
 	a.fieldMap["expr"] = a.Expr
 	a.fieldMap["fired_at"] = a.FiredAt
 	a.fieldMap["value"] = a.Value
 	a.fieldMap["labels"] = a.Labels
-	a.fieldMap["datasource_uid"] = a.DatasourceUID
 	a.fieldMap["evaluator_type"] = a.EvaluatorType
 	a.fieldMap["evaluator_snapshot_id"] = a.EvaluatorSnapshotID
 	a.fieldMap["fingerprint"] = a.Fingerprint
 	a.fieldMap["status"] = a.Status
 	a.fieldMap["intervened_at"] = a.IntervenedAt
 	a.fieldMap["intervened_by"] = a.IntervenedBy
+	a.fieldMap["intervened_by_name"] = a.IntervenedByName
 	a.fieldMap["suppressed_until"] = a.SuppressedUntilAt
 	a.fieldMap["suppressed_by"] = a.SuppressedBy
+	a.fieldMap["suppressed_by_name"] = a.SuppressedByName
 	a.fieldMap["suppressed_reason"] = a.SuppressedReason
 	a.fieldMap["recovered_at"] = a.RecoveredAt
 	a.fieldMap["recovered_by"] = a.RecoveredBy
+	a.fieldMap["recovered_by_name"] = a.RecoveredByName
 	a.fieldMap["recovered_reason"] = a.RecoveredReason
 
 }

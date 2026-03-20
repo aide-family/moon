@@ -9,42 +9,46 @@ option java_package = "marksman.api.v1";
 import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
 
-// Subscription filter: when multiple dimensions are set, an alert must satisfy ALL (AND).
-// - strategy_group_uids: alert's strategy must belong to one of these groups.
-// - strategy_uids: alert's strategy_uid must be in this list.
-// - strategy_levels: alert's (strategy_uid, level_uid) must be in this list.
-// - labels: alert must contain all these key-value pairs (subset match).
+// Subscription filter: when multiple dimensions are set, an alert matches if it satisfies at least one (OR).
+// - strategyGroupUids: alert's strategy must belong to one of these groups.
+// - strategyUids: alert's strategy_uid must be in this list.
+// - strategyLevels: alert's (strategy_uid, level_uid) must be in this list.
+// - labels: alert must contain all these key-value pairs with the same values.
+// - excludeLabels: alert must not contain any of these key-value pairs (subset match).
+// - datasourceUids: alert's datasource must be in this list.
 message SubscriptionFilter {
-	repeated int64 strategy_group_uids = 1;
-	repeated int64 strategy_uids = 2;
-	repeated StrategyLevelPair strategy_levels = 3;
-	map<string, string> labels = 4;
+	repeated int64 strategyGroupUids = 1;
+	repeated int64 strategyUids = 2;
+	repeated StrategyLevelPair strategyLevels = 3;
+	repeated int64 datasourceUids = 4;
+	map<string, string> labels = 5;
+	map<string, string> excludeLabels = 6;
 }
 
 message StrategyLevelPair {
-	int64 strategy_uid = 1;
-	int64 level_uid = 2;
+	int64 strategyUid = 1;
+	int64 levelUid = 2;
 }
 
 // NotificationGroupSubscription: get/save subscription filter for a notification group (save creates or overwrites).
 service NotificationGroupSubscription {
 	rpc GetNotificationGroupSubscription (GetNotificationGroupSubscriptionRequest) returns (GetNotificationGroupSubscriptionReply) {
 		option (google.api.http) = {
-			get: "/v1/notification-groups/{notification_group_uid}/subscription"
+			get: "/v1/notification-groups/{notificationGroupUid}/subscription"
 		};
 	}
 	rpc SaveNotificationGroupSubscription (SaveNotificationGroupSubscriptionRequest) returns (SaveNotificationGroupSubscriptionReply) {
 		option (google.api.http) = {
-			put: "/v1/notification-groups/{notification_group_uid}/subscription"
+			put: "/v1/notification-groups/{notificationGroupUid}/subscription"
 			body: "*"
 		};
 	}
 }
 
 message GetNotificationGroupSubscriptionRequest {
-	int64 notification_group_uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+	int64 notificationGroupUid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
 		expression: "this > 0",
-		message: "notification_group_uid must be greater than 0",
+		message: "notificationGroupUid must be greater than 0",
 	}];
 }
 
@@ -53,9 +57,9 @@ message GetNotificationGroupSubscriptionReply {
 }
 
 message SaveNotificationGroupSubscriptionRequest {
-	int64 notification_group_uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+	int64 notificationGroupUid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
 		expression: "this > 0",
-		message: "notification_group_uid must be greater than 0",
+		message: "notificationGroupUid must be greater than 0",
 	}];
 	SubscriptionFilter filter = 2;
 }
