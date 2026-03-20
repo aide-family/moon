@@ -17,15 +17,15 @@ import (
 
 const proxyTimeout = 30 * time.Second
 
-// NewMetricDatasourceProxy returns a MetricDatasourceProxy that forwards HTTP to the datasource.
-func NewMetricDatasourceProxy() repository.MetricDatasourceProxy {
-	return &metricDatasourceProxy{}
+// NewMetricDatasourceProxyRepository returns a MetricDatasourceProxy that forwards HTTP to the datasource.
+func NewMetricDatasourceProxyRepository() repository.MetricDatasourceProxy {
+	return &metricDatasourceProxyRepository{}
 }
 
-type metricDatasourceProxy struct{}
+type metricDatasourceProxyRepository struct{}
 
 // Proxy implements repository.MetricDatasourceProxy.
-func (p *metricDatasourceProxy) Proxy(ctx context.Context, ds *bo.DatasourceItemBo, path, method string, body []byte) (int, []byte, error) {
+func (p *metricDatasourceProxyRepository) Proxy(ctx context.Context, ds *bo.DatasourceItemBo, path, method string, body []byte) (int, []byte, error) {
 	if ds == nil || ds.Type != enum.DatasourceType_METRICS {
 		return 0, nil, merr.ErrorInvalidArgument("datasource is not a metrics type")
 	}

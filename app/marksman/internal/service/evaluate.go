@@ -13,10 +13,10 @@ type EvaluateService struct {
 	evaluateBiz *biz.Evaluate
 }
 
-func (s *EvaluateService) GetMetricAppendJobChannel() <-chan cron.CronJob {
-	return s.evaluateBiz.GetMetricAppendJobChannel()
+func (s *EvaluateService) GetEvaluateJobAppendChannel() <-chan cron.CronJob {
+	return s.evaluateBiz.GetEvaluateJobAppendChannel()
 }
 
-func (s *EvaluateService) GetMetricRemoveJobChannel() <-chan string {
-	return s.evaluateBiz.GetMetricRemoveJobChannel()
+func (s *EvaluateService) GetEvaluateJobRemoveChannel() <-chan string {
+	return s.evaluateBiz.GetEvaluateJobRemoveChannel()
 }

@@ -36,13 +36,13 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	jobChannel := impl.NewJobChannel(bc, dataData)
-	metricDatasourceQuerier := impl.NewMetricDatasourceQuerier()
-	alertEventChannel := impl.NewAlertEventChannel(bc, dataData)
-	evaluate := biz.NewEvaluateBiz(bc, namespace, strategyMetric, jobChannel, metricDatasourceQuerier, alertEventChannel)
+	evaluateJobChannel := impl.NewEvaluateJobChannelRepository(bc, dataData)
+	metricDatasourceQuerier := impl.NewMetricDatasourceQuerierRepository()
+	alertEventChannel := impl.NewAlertEventChannelRepository(bc, dataData)
+	evaluate := biz.NewEvaluateBiz(bc, namespace, strategyMetric, evaluateJobChannel, metricDatasourceQuerier, alertEventChannel)
 	evaluateService := service.NewEvaluateService(evaluate)
-	metricCronServer := cron.NewMetricCronServer(evaluateService, helper)
-	alerting := impl.NewAlertingRepository(dataData)
+	producerServer := cron.NewProducerServer(evaluateService, helper)
+	alertingEventChannel := impl.NewAlertingEventChannelRepository(dataData)
 	alertEvent, err := impl.NewAlertEventRepository(dataData)
 	if err != nil {
 		cleanup()
@@ -53,9 +53,9 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	alertEventConsumer := biz.NewAlertEventConsumer(helper, alertEvent, strategy, alerting)
-	alertEventConsumerServer := cron.NewAlertEventConsumerServer(alertEventChannel, alerting, alertEventConsumer, helper)
-	servers := server.RegisterMetricCronService(metricCronServer, alertEventConsumerServer)
+	alertEventConsumer := biz.NewAlertEventConsumer(helper, alertEvent, strategy, alertingEventChannel)
+	consumerServer := cron.NewConsumerServer(alertEventChannel, alertingEventChannel, alertEventConsumer, helper)
+	servers := server.RegisterAlertCronService(producerServer, consumerServer)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

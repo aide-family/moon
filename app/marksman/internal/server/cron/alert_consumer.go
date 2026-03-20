@@ -13,47 +13,46 @@ import (
 	"github.com/aide-family/marksman/internal/biz/repository"
 )
 
-var _ transport.Server = (*AlertEventConsumerServer)(nil)
+var _ transport.Server = (*ConsumerServer)(nil)
 
-// NewAlertEventConsumerServer creates a server that consumes alert events from the channel.
-func NewAlertEventConsumerServer(
-	alertEventChannel repository.AlertEventChannel,
-	alertingRepo repository.Alerting,
+// NewConsumerServer creates a server that consumes alerting jobs from the channel.
+func NewConsumerServer(
+	alertEventChannelRepo repository.AlertEventChannel,
+	alertingEventChannelRepo repository.AlertingEventChannel,
 	consumer *biz.AlertEventConsumer,
 	helper *klog.Helper,
-) *AlertEventConsumerServer {
-	name := "marksman-cron-alerting-consumer"
+) *ConsumerServer {
+	name := "marksman-cron-alert-consumer"
 	opts := []cron.Option{
-		cron.WithCronJobChannel(alertingRepo.GetJobChannel()),
-		cron.WithRemoveJobChannel(alertingRepo.GetRemoveJobChannel()),
+		cron.WithCronJobChannel(alertingEventChannelRepo.GetJobChannel()),
+		cron.WithRemoveJobChannel(alertingEventChannelRepo.GetRemoveJobChannel()),
 	}
-	return &AlertEventConsumerServer{
-		alertCh:      alertEventChannel,
-		alertingRepo: alertingRepo,
-		consumer:     consumer,
-		helper:       helper,
-		cronServer:   cron.New(name, helper.Logger(), opts...),
+	return &ConsumerServer{
+		alertEventChannelRepo:    alertEventChannelRepo,
+		alertingEventChannelRepo: alertingEventChannelRepo,
+		consumer:                 consumer,
+		helper:                   helper,
+		cronServer:               cron.New(name, helper.Logger(), opts...),
 	}
 }
 
-type AlertEventConsumerServer struct {
-	alertCh      repository.AlertEventChannel
-	alertingRepo repository.Alerting
-	consumer     *biz.AlertEventConsumer
-	helper       *klog.Helper
+type ConsumerServer struct {
+	alertEventChannelRepo    repository.AlertEventChannel
+	alertingEventChannelRepo repository.AlertingEventChannel
+	consumer                 *biz.AlertEventConsumer
+	helper                   *klog.Helper
 
 	cronServer *cron.Server
 }
 
 // Start implements transport.Server.
-func (s *AlertEventConsumerServer) Start(ctx context.Context) error {
-	ch := s.alertCh.GetChannel()
+func (s *ConsumerServer) Start(ctx context.Context) error {
 	safety.Go(ctx, "alert-event-consumer", func(ctx context.Context) error {
 		for {
 			select {
 			case <-ctx.Done():
 				return nil
-			case event, ok := <-ch:
+			case event, ok := <-s.alertEventChannelRepo.GetChannel():
 				if !ok {
 					return nil
 				}
@@ -69,7 +68,7 @@ func (s *AlertEventConsumerServer) Start(ctx context.Context) error {
 }
 
 // Stop implements transport.Server.
-func (s *AlertEventConsumerServer) Stop(ctx context.Context) error {
+func (s *ConsumerServer) Stop(ctx context.Context) error {
 	s.helper.WithContext(ctx).Infow("msg", "alert event consumer stopped")
 	return s.cronServer.Stop(ctx)
 }

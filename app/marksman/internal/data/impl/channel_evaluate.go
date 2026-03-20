@@ -1,20 +1,20 @@
 package impl
 
 import (
+	"github.com/aide-family/magicbox/server/cron"
 	klog "github.com/go-kratos/kratos/v2/log"
 
-	"github.com/aide-family/magicbox/server/cron"
 	"github.com/aide-family/marksman/internal/biz/repository"
 	"github.com/aide-family/marksman/internal/conf"
 	"github.com/aide-family/marksman/internal/data"
 )
 
 const (
-	defaultAppendChannelCapacity  = 100
-	defaultRemoveChannelCapacity  = 100
+	defaultAppendChannelCapacity = 100
+	defaultRemoveChannelCapacity = 100
 )
 
-func NewJobChannel(bc *conf.Bootstrap, d *data.Data) repository.JobChannel {
+func NewEvaluateJobChannelRepository(bc *conf.Bootstrap, d *data.Data) repository.EvaluateJobChannel {
 	appendCap := defaultAppendChannelCapacity
 	removeCap := defaultRemoveChannelCapacity
 	if cfg := bc.GetEvaluateConfig(); cfg != nil {
@@ -27,26 +27,30 @@ func NewJobChannel(bc *conf.Bootstrap, d *data.Data) repository.JobChannel {
 	}
 	metricAppendJobChannel := make(chan cron.CronJob, appendCap)
 	metricRemoveJobChannel := make(chan string, removeCap)
-	jobImpl := &jobChannelRepositoryImpl{
+	evaluateJobChannelRepo := &evaluateJobChannelRepository{
 		metricAppendJobChannel: metricAppendJobChannel,
 		metricRemoveJobChannel: metricRemoveJobChannel,
 	}
-	d.AppendClose("jobChannelRepo", jobImpl.close)
-	return jobImpl
+	d.AppendClose("evaluateJobChannelRepo", evaluateJobChannelRepo.close)
+	return evaluateJobChannelRepo
 }
 
-type jobChannelRepositoryImpl struct {
+type evaluateJobChannelRepository struct {
 	metricAppendJobChannel chan cron.CronJob
 	metricRemoveJobChannel chan string
 	closeFuncs             []func() error
 }
 
-// AppendMetricJob implements [repository.JobChannel].
-func (j *jobChannelRepositoryImpl) AppendMetricJob(job cron.CronJob) {
-	j.metricAppendJobChannel <- job
+// AppendEvaluateJob implements [repository.EvaluateJobChannel].
+func (j *evaluateJobChannelRepository) AppendEvaluateJob(job cron.CronJob) {
+	select {
+	case j.metricAppendJobChannel <- job:
+	default:
+		klog.Warnw("msg", "evaluate job channel full, dropping job", "job", job.Index())
+	}
 }
 
-func (j *jobChannelRepositoryImpl) close() error {
+func (j *evaluateJobChannelRepository) close() error {
 	close(j.metricAppendJobChannel)
 	close(j.metricRemoveJobChannel)
 	for _, c := range j.closeFuncs {
@@ -57,17 +61,17 @@ func (j *jobChannelRepositoryImpl) close() error {
 	return nil
 }
 
-// GetMetricAppendJobChannel implements [repository.JobChannel].
-func (j *jobChannelRepositoryImpl) GetMetricAppendJobChannel() <-chan cron.CronJob {
+// GetEvaluateJobAppendChannel implements [repository.EvaluateJobChannel].
+func (j *evaluateJobChannelRepository) GetEvaluateJobAppendChannel() <-chan cron.CronJob {
 	return j.metricAppendJobChannel
 }
 
-// GetMetricRemoveJobChannel implements [repository.JobChannel].
-func (j *jobChannelRepositoryImpl) GetMetricRemoveJobChannel() <-chan string {
+// GetEvaluateJobRemoveChannel implements [repository.EvaluateJobChannel].
+func (j *evaluateJobChannelRepository) GetEvaluateJobRemoveChannel() <-chan string {
 	return j.metricRemoveJobChannel
 }
 
-func (j *jobChannelRepositoryImpl) AppendClose(cs ...func() error) error {
+func (j *evaluateJobChannelRepository) AppendClose(cs ...func() error) error {
 	j.closeFuncs = append(j.closeFuncs, cs...)
 	return nil
 }

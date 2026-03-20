@@ -9,19 +9,19 @@ import (
 	"github.com/aide-family/marksman/internal/data"
 )
 
-func NewTransaction(d *data.Data) repository.Transaction {
-	return NewTransactionWithDB(d.DB())
+func NewTransactionRepository(d *data.Data) repository.Transaction {
+	return NewTransactionRepositoryWithDB(d.DB())
 }
 
-func NewTransactionWithDB(db *gorm.DB) repository.Transaction {
-	return &transaction{db: db}
+func NewTransactionRepositoryWithDB(db *gorm.DB) repository.Transaction {
+	return &transactionRepository{db: db}
 }
 
-type transaction struct {
+type transactionRepository struct {
 	db *gorm.DB
 }
 
-func (t *transaction) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
+func (t *transactionRepository) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
 	tx, ok := GetTransaction(ctx, t.db)
 	if ok {
 		return fn(WithTransaction(ctx, tx))

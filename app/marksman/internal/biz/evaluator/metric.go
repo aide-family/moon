@@ -55,23 +55,23 @@ type alertTemplateInfo struct {
 
 // NewMetricEvaluator creates a cron job that evaluates the given metric strategy and sends alert events when conditions are met.
 func NewMetricEvaluator(
-	querier repository.MetricDatasourceQuerier,
-	alertCh repository.AlertEventChannel,
+	metricDatasourceQuerierRepo repository.MetricDatasourceQuerier,
+	alertEventChannelRepo repository.AlertEventChannel,
 	info *bo.EvaluateMetricStrategyBo,
 ) cron.CronJob {
 	return &metricEvaluator{
-		querier:            querier,
-		alertCh:            alertCh,
-		info:               info,
-		cachedSnapshotJSON: info.MarshalEvaluatorSnapshotJSON(),
+		metricDatasourceQuerierRepo: metricDatasourceQuerierRepo,
+		alertEventChannelRepo:       alertEventChannelRepo,
+		info:                        info,
+		cachedSnapshotJSON:          info.MarshalEvaluatorSnapshotJSON(),
 	}
 }
 
 type metricEvaluator struct {
-	querier            repository.MetricDatasourceQuerier
-	alertCh            repository.AlertEventChannel
-	info               *bo.EvaluateMetricStrategyBo
-	cachedSnapshotJSON string // pre-serialized evaluator snapshot, same for all events from this evaluator
+	metricDatasourceQuerierRepo repository.MetricDatasourceQuerier
+	alertEventChannelRepo       repository.AlertEventChannel
+	info                        *bo.EvaluateMetricStrategyBo
+	cachedSnapshotJSON          string // pre-serialized evaluator snapshot, same for all events from this evaluator
 }
 
 // Index implements [cron.CronJob].
@@ -102,7 +102,7 @@ func (m *metricEvaluator) Run() {
 		Step:  time.Duration(defaultStepSeconds),
 	}
 
-	matrix, err := m.querier.QueryRange(ctx, m.info.GetDatasource(), m.info.GetExpr(), queryRange)
+	matrix, err := m.metricDatasourceQuerierRepo.QueryRange(ctx, m.info.GetDatasource(), m.info.GetExpr(), queryRange)
 	if err != nil {
 		klog.Errorw("msg", "metric evaluate query failed", "error", err, "strategyUID", m.info.GetStrategyUID())
 		return
@@ -147,7 +147,7 @@ func (m *metricEvaluator) Run() {
 			LevelName:             m.info.GetLevelName(),
 			DatasourceName:        m.info.GetDatasourceName(),
 		}
-		m.alertCh.Send(ev)
+		m.alertEventChannelRepo.Send(ev)
 	}
 }
 

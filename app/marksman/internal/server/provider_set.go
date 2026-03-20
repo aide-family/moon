@@ -8,9 +8,9 @@ import (
 
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	magicboxapiv1 "github.com/aide-family/magicbox/api/v1"
-	rabbitv1 "github.com/aide-family/rabbit/pkg/api/v1"
 	"github.com/aide-family/magicbox/auth/basic"
 	"github.com/aide-family/magicbox/oauth"
+	rabbitv1 "github.com/aide-family/rabbit/pkg/api/v1"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -34,8 +34,8 @@ var (
 		NewGRPCServer,
 		RegisterDatasourceMetrics,
 		RegisterService,
-		cron.NewMetricCronServer,
-		cron.NewAlertEventConsumerServer,
+		cron.NewProducerServer,
+		cron.NewConsumerServer,
 	)
 	ProviderSetServerHTTP = wire.NewSet(
 		NewHTTPServer,
@@ -46,9 +46,9 @@ var (
 		RegisterGRPCService,
 	)
 	ProviderSetServerMetricCron = wire.NewSet(
-		cron.NewMetricCronServer,
-		cron.NewAlertEventConsumerServer,
-		RegisterMetricCronService,
+		cron.NewProducerServer,
+		cron.NewConsumerServer,
+		RegisterAlertCronService,
 	)
 )
 
@@ -118,8 +118,8 @@ func RegisterService(
 	c *conf.Bootstrap,
 	httpSrv *http.Server,
 	grpcSrv *grpc.Server,
-	metricCronSrv *cron.MetricCronServer,
-	alertConsumerSrv *cron.AlertEventConsumerServer,
+	producerSrv *cron.ProducerServer,
+	consumerSrv *cron.ConsumerServer,
 	authService *service.AuthService,
 	healthService *service.HealthService,
 	namespaceService *service.NamespaceService,
@@ -183,7 +183,7 @@ func RegisterService(
 		rabbitTemplate,
 		rabbitSender,
 	)...)
-	srvs = append(srvs, RegisterMetricCronService(metricCronSrv, alertConsumerSrv)...)
+	srvs = append(srvs, RegisterAlertCronService(producerSrv, consumerSrv)...)
 	return srvs
 }
 
@@ -289,10 +289,10 @@ func RegisterGRPCService(
 	return Servers{newServer("grpc", grpcSrv)}
 }
 
-func RegisterMetricCronService(metricCronSrv *cron.MetricCronServer, alertConsumerSrv *cron.AlertEventConsumerServer) Servers {
+func RegisterAlertCronService(producerSrv *cron.ProducerServer, consumerSrv *cron.ConsumerServer) Servers {
 	return Servers{
-		newServer("metric-cron", metricCronSrv),
-		newServer("alert-event-consumer", alertConsumerSrv),
+		newServer("alert-cron-producer", producerSrv),
+		newServer("alert-cron-consumer", consumerSrv),
 	}
 }
 

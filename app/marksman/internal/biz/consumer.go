@@ -13,10 +13,10 @@ import (
 
 // AlertEventConsumer consumes alert events from the channel (e.g. log, persist, or send to rabbit).
 type AlertEventConsumer struct {
-	helper         *klog.Helper
-	alertEventRepo repository.AlertEvent
-	strategyRepo   repository.Strategy
-	alertingRepo   repository.Alerting
+	helper                   *klog.Helper
+	alertEventRepo           repository.AlertEvent
+	strategyRepo             repository.Strategy
+	alertingEventChannelRepo repository.AlertingEventChannel
 }
 
 // NewAlertEventConsumer creates an AlertEventConsumer.
@@ -24,13 +24,13 @@ func NewAlertEventConsumer(
 	helper *klog.Helper,
 	alertEventRepo repository.AlertEvent,
 	strategyRepo repository.Strategy,
-	alertingRepo repository.Alerting,
+	alertingEventChannelRepo repository.AlertingEventChannel,
 ) *AlertEventConsumer {
 	return &AlertEventConsumer{
-		helper:         klog.NewHelper(klog.With(helper.Logger(), "biz", "alert_event_consumer")),
-		alertEventRepo: alertEventRepo,
-		strategyRepo:   strategyRepo,
-		alertingRepo:   alertingRepo,
+		helper:                   klog.NewHelper(klog.With(helper.Logger(), "biz", "alert_event_consumer")),
+		alertEventRepo:           alertEventRepo,
+		strategyRepo:             strategyRepo,
+		alertingEventChannelRepo: alertingEventChannelRepo,
 	}
 }
 
@@ -47,6 +47,6 @@ func (c *AlertEventConsumer) Handle(ctx context.Context, event *bo.AlertEventBo)
 	}
 
 	c.helper.WithContext(ctx).Debugw("msg", "alert event persisted", "event", event)
-	alerting := evaluator.NewAlerting(alertEventUID, event, c.alertEventRepo, c.alertingRepo)
-	c.alertingRepo.Append(alerting)
+	alerting := evaluator.NewAlerting(alertEventUID, event, c.alertEventRepo, c.alertingEventChannelRepo)
+	c.alertingEventChannelRepo.Append(alerting)
 }

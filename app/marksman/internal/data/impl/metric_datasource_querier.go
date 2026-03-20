@@ -13,15 +13,15 @@ import (
 	"github.com/aide-family/marksman/internal/biz/repository"
 )
 
-// NewMetricDatasourceQuerier returns a MetricDatasourceQuerier that uses the metric client built from the datasource.
-func NewMetricDatasourceQuerier() repository.MetricDatasourceQuerier {
-	return &metricDatasourceQuerier{}
+// NewMetricDatasourceQuerierRepository returns a MetricDatasourceQuerier that uses the metric client built from the datasource.
+func NewMetricDatasourceQuerierRepository() repository.MetricDatasourceQuerier {
+	return &metricDatasourceQuerierRepository{}
 }
 
-type metricDatasourceQuerier struct{}
+type metricDatasourceQuerierRepository struct{}
 
 // ListMetrics returns metric list with name, help, unit, type only (no label queries).
-func (q *metricDatasourceQuerier) ListMetrics(ctx context.Context, ds *bo.DatasourceItemBo) ([]*bo.MetricSummaryItemBo, error) {
+func (q *metricDatasourceQuerierRepository) ListMetrics(ctx context.Context, ds *bo.DatasourceItemBo) ([]*bo.MetricSummaryItemBo, error) {
 	client, err := NewMetricClientFromDatasource(ds)
 	if err != nil {
 		return nil, merr.ErrorInternalServer("create metric client failed").WithCause(err)
@@ -63,7 +63,7 @@ func (q *metricDatasourceQuerier) ListMetrics(ctx context.Context, ds *bo.Dataso
 	return metrics, nil
 }
 
-func (q *metricDatasourceQuerier) GetMetricDetail(ctx context.Context, ds *bo.DatasourceItemBo, metric string) (*bo.MetricDetailItemBo, error) {
+func (q *metricDatasourceQuerierRepository) GetMetricDetail(ctx context.Context, ds *bo.DatasourceItemBo, metric string) (*bo.MetricDetailItemBo, error) {
 	client, err := NewMetricClientFromDatasource(ds)
 	if err != nil {
 		return nil, merr.ErrorInternalServer("create metric client failed").WithCause(err)
@@ -117,7 +117,7 @@ func (q *metricDatasourceQuerier) GetMetricDetail(ctx context.Context, ds *bo.Da
 }
 
 // QueryRange implements [repository.MetricDatasourceQuerier].
-func (q *metricDatasourceQuerier) QueryRange(ctx context.Context, ds *bo.DatasourceItemBo, query string, queryRange v1.Range) (model.Matrix, error) {
+func (q *metricDatasourceQuerierRepository) QueryRange(ctx context.Context, ds *bo.DatasourceItemBo, query string, queryRange v1.Range) (model.Matrix, error) {
 	client, err := NewMetricClientFromDatasource(ds)
 	if err != nil {
 		return nil, err

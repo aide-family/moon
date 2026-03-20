@@ -18,21 +18,21 @@ func NewAlerting(
 	alertEventUID snowflake.ID,
 	info *bo.AlertEventBo,
 	alertEventRepo repository.AlertEvent,
-	alertingRepo repository.Alerting,
+	alertingEventChannelRepo repository.AlertingEventChannel,
 ) cron.CronJob {
 	return &alerting{
-		alertEventUID:  alertEventUID,
-		info:           info,
-		alertEventRepo: alertEventRepo,
-		alertingRepo:   alertingRepo,
+		alertEventUID:            alertEventUID,
+		info:                     info,
+		alertEventRepo:           alertEventRepo,
+		alertingEventChannelRepo: alertingEventChannelRepo,
 	}
 }
 
 type alerting struct {
-	alertEventUID  snowflake.ID
-	info           *bo.AlertEventBo
-	alertEventRepo repository.AlertEvent
-	alertingRepo   repository.Alerting
+	alertEventUID            snowflake.ID
+	info                     *bo.AlertEventBo
+	alertEventRepo           repository.AlertEvent
+	alertingEventChannelRepo repository.AlertingEventChannel
 }
 
 // Index implements [cron.CronJob].
@@ -63,7 +63,7 @@ func (a *alerting) Run() {
 		klog.Errorw("msg", "auto recover alert failed", "error", err, "alertEventUID", a.alertEventUID.Int64())
 		return
 	}
-	a.alertingRepo.Remove(a.Index())
+	a.alertingEventChannelRepo.Remove(a.Index())
 }
 
 // Spec implements [cron.CronJob].

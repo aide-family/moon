@@ -27,7 +27,7 @@ func NewEvaluateBiz(
 	bc *conf.Bootstrap,
 	namespaceRepo repository.Namespace,
 	strategyMetricRepo repository.StrategyMetric,
-	jobChannelRepo repository.JobChannel,
+	evaluateJobChannelRepo repository.EvaluateJobChannel,
 	metricQuerier repository.MetricDatasourceQuerier,
 	alertEventChannel repository.AlertEventChannel,
 ) *Evaluate {
@@ -48,29 +48,29 @@ func NewEvaluateBiz(
 	eg := new(errgroup.Group)
 	eg.SetLimit(limit)
 	eva := &Evaluate{
-		namespaceRepo:      namespaceRepo,
-		strategyMetricRepo: strategyMetricRepo,
-		jobChannelRepo:     jobChannelRepo,
-		metricQuerier:      metricQuerier,
-		alertEventChannel:  alertEventChannel,
-		eg:                 eg,
-		startupDelay:       startupDelay,
-		queryTimeout:       queryTimeout,
+		namespaceRepo:          namespaceRepo,
+		strategyMetricRepo:     strategyMetricRepo,
+		evaluateJobChannelRepo: evaluateJobChannelRepo,
+		metricQuerier:          metricQuerier,
+		alertEventChannel:      alertEventChannel,
+		eg:                     eg,
+		startupDelay:           startupDelay,
+		queryTimeout:           queryTimeout,
 	}
-	jobChannelRepo.AppendClose(eva.Stop)
+	evaluateJobChannelRepo.AppendClose(eva.Stop)
 	eva.Start()
 	return eva
 }
 
 type Evaluate struct {
-	namespaceRepo      repository.Namespace
-	strategyMetricRepo repository.StrategyMetric
-	jobChannelRepo     repository.JobChannel
-	metricQuerier      repository.MetricDatasourceQuerier
-	alertEventChannel  repository.AlertEventChannel
-	eg                 *errgroup.Group
-	startupDelay       time.Duration
-	queryTimeout       time.Duration
+	namespaceRepo          repository.Namespace
+	strategyMetricRepo     repository.StrategyMetric
+	evaluateJobChannelRepo repository.EvaluateJobChannel
+	metricQuerier          repository.MetricDatasourceQuerier
+	alertEventChannel      repository.AlertEventChannel
+	eg                     *errgroup.Group
+	startupDelay           time.Duration
+	queryTimeout           time.Duration
 }
 
 func (e *Evaluate) Start() {
@@ -85,12 +85,12 @@ func (e *Evaluate) Stop() error {
 	return e.eg.Wait()
 }
 
-func (e *Evaluate) GetMetricAppendJobChannel() <-chan cron.CronJob {
-	return e.jobChannelRepo.GetMetricAppendJobChannel()
+func (e *Evaluate) GetEvaluateJobAppendChannel() <-chan cron.CronJob {
+	return e.evaluateJobChannelRepo.GetEvaluateJobAppendChannel()
 }
 
-func (e *Evaluate) GetMetricRemoveJobChannel() <-chan string {
-	return e.jobChannelRepo.GetMetricRemoveJobChannel()
+func (e *Evaluate) GetEvaluateJobRemoveChannel() <-chan string {
+	return e.evaluateJobChannelRepo.GetEvaluateJobRemoveChannel()
 }
 
 func (e *Evaluate) loadAllStrategyMetrics(eg *errgroup.Group) {
@@ -138,7 +138,7 @@ func (e *Evaluate) localStrategyMetricsByNamespace(eg *errgroup.Group, namespace
 		}
 
 		for _, strategy := range strategies {
-			e.jobChannelRepo.AppendMetricJob(evaluator.NewMetricEvaluator(e.metricQuerier, e.alertEventChannel, strategy))
+			e.evaluateJobChannelRepo.AppendEvaluateJob(evaluator.NewMetricEvaluator(e.metricQuerier, e.alertEventChannel, strategy))
 		}
 		return nil
 	})
