@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/plugin/cache"
+	"github.com/aide-family/magicbox/safety"
 	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 	"github.com/go-kratos/kratos/v2/errors"
@@ -87,12 +88,13 @@ func (r *alertEventRepository) SaveAlertEvent(ctx context.Context, ev *bo.AlertE
 	}
 	bizQuery := query.Use(r.DB().Table(tableName))
 	alertEvent := bizQuery.AlertEvent
+	table := alertEvent.As(tableName)
 	wrappers := []gen.Condition{
-		alertEvent.Fingerprint.Eq(ev.Fingerprint),
-		alertEvent.NamespaceUID.Eq(ns.Int64()),
-		alertEvent.StrategyUID.Eq(ev.StrategyUID.Int64()),
-		alertEvent.LevelUID.Eq(ev.LevelUID.Int64()),
-		alertEvent.Status.Eq(int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_FIRING)),
+		table.Fingerprint.Eq(ev.Fingerprint),
+		table.NamespaceUID.Eq(ns.Int64()),
+		table.StrategyUID.Eq(ev.StrategyUID.Int64()),
+		table.LevelUID.Eq(ev.LevelUID.Int64()),
+		table.Status.Eq(int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_FIRING)),
 	}
 	info, err := alertEvent.WithContext(ctx).Where(wrappers...).First()
 	if err != nil {
@@ -104,8 +106,21 @@ func (r *alertEventRepository) SaveAlertEvent(ctx context.Context, ev *bo.AlertE
 		}
 		return m.ID, nil
 	}
-	m.ID = info.ID
-	if err := alertEvent.WithContext(ctx).Where(alertEvent.ID.Eq(info.ID.Int64())).Save(m); err != nil {
+	updates := []field.AssignExpr{
+		table.EvaluatorSnapshotID.Value(snapshotID.Int64()),
+		table.UpdatedAt.Value(time.Now()),
+		table.Value.Value(ev.Value),
+		table.Labels.Value(safety.NewMap(ev.Labels)),
+		table.Summary.Value(ev.Summary),
+		table.Description.Value(ev.Description),
+		table.Expr.Value(ev.Expr),
+		table.StrategyName.Value(ev.StrategyName),
+		table.StrategyGroupName.Value(ev.StrategyGroupName),
+		table.LevelName.Value(ev.LevelName),
+		table.DatasourceName.Value(ev.DatasourceName),
+		table.FiredAt.Value(info.FiredAt),
+	}
+	if _, err := alertEvent.WithContext(ctx).Where(table.ID.Eq(info.ID.Int64())).UpdateColumnSimple(updates...); err != nil {
 		return 0, err
 	}
 	return m.ID, nil

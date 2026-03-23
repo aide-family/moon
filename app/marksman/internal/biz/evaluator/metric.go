@@ -23,6 +23,8 @@ const (
 	defaultEvaluateInterval = time.Minute
 	defaultQueryTimeout     = 15 * time.Second
 	defaultStepSeconds      = 15
+	// Keep a safe margin under Prometheus hard limit (11,000 points).
+	maxQueryRangePoints = 10000
 	// EvaluatorTypeMetric is the evaluator type for metric strategy; used on alert events and evaluator_snapshots.
 	EvaluatorTypeMetric = "metric"
 )
@@ -99,7 +101,7 @@ func (m *metricEvaluator) Run() {
 	queryRange := prometheusv1.Range{
 		Start: start,
 		End:   end,
-		Step:  time.Duration(defaultStepSeconds),
+		Step:  calculateMetricQueryStep(end.Sub(start)),
 	}
 
 	matrix, err := m.metricDatasourceQuerierRepo.QueryRange(ctx, m.info.GetDatasource(), m.info.GetExpr(), queryRange)
@@ -300,6 +302,28 @@ func maxConsecutiveTrue(b []bool) int {
 		}
 	}
 	return maxRun
+}
+
+func calculateMetricQueryStep(window time.Duration) time.Duration {
+	step := time.Duration(defaultStepSeconds) * time.Second
+	if window <= 0 {
+		return step
+	}
+
+	// Prometheus enforces a per-series point limit. Compute the minimum step that
+	// keeps points in range and then keep our default when it is already large enough.
+	maxIntervals := time.Duration(maxQueryRangePoints - 1)
+	minStepByWindow := window / maxIntervals
+	if window%maxIntervals != 0 {
+		minStepByWindow++
+	}
+	if minStepByWindow > step {
+		step = minStepByWindow
+	}
+	if step < time.Second {
+		step = time.Second
+	}
+	return step
 }
 
 // Spec implements [cron.CronJob].
