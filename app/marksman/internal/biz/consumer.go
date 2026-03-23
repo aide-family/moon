@@ -40,7 +40,7 @@ func (c *AlertEventConsumer) Handle(ctx context.Context, event *bo.AlertEventBo)
 		return
 	}
 	ctx = contextx.WithNamespace(ctx, event.NamespaceUID)
-	alertEventUID, err := c.alertEventRepo.CreateAlertEvent(ctx, event)
+	alertEventUID, err := c.alertEventRepo.SaveAlertEvent(ctx, event)
 	if err != nil {
 		c.helper.WithContext(ctx).Errorw("msg", "create alert event failed", "error", err, "strategyUID", event.StrategyUID.Int64())
 		return

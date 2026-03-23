@@ -42,6 +42,8 @@ type alertEventRepository struct {
 }
 
 func (r *alertEventRepository) ensureAlertEventTable(ctx context.Context, tableName string) error {
+	alertEventTableCreateMu.Lock()
+	defer alertEventTableCreateMu.Unlock()
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err == nil && r.DB().Migrator().HasTable(tableName) {
 		return nil
 	}
@@ -49,8 +51,6 @@ func (r *alertEventRepository) ensureAlertEventTable(ctx context.Context, tableN
 		_ = r.Cache().Set(ctx, cache.K(tableName), "", 0)
 		return nil
 	}
-	alertEventTableCreateMu.Lock()
-	defer alertEventTableCreateMu.Unlock()
 	if r.DB().Migrator().HasTable(tableName) {
 		_ = r.Cache().Set(ctx, cache.K(tableName), "", 0)
 		return nil
@@ -71,7 +71,7 @@ func (r *alertEventRepository) ensureAlertEventTable(ctx context.Context, tableN
 	return nil
 }
 
-func (r *alertEventRepository) CreateAlertEvent(ctx context.Context, ev *bo.AlertEventBo) (snowflake.ID, error) {
+func (r *alertEventRepository) SaveAlertEvent(ctx context.Context, ev *bo.AlertEventBo) (snowflake.ID, error) {
 	snapshotID, err := r.findOrCreateEvaluatorSnapshot(ctx, ev.EvaluatorType, ev.EvaluatorSnapshotJSON)
 	if err != nil {
 		return 0, err
@@ -87,7 +87,25 @@ func (r *alertEventRepository) CreateAlertEvent(ctx context.Context, ev *bo.Aler
 	}
 	bizQuery := query.Use(r.DB().Table(tableName))
 	alertEvent := bizQuery.AlertEvent
-	if err := alertEvent.WithContext(ctx).Create(m); err != nil {
+	wrappers := []gen.Condition{
+		alertEvent.Fingerprint.Eq(ev.Fingerprint),
+		alertEvent.NamespaceUID.Eq(ns.Int64()),
+		alertEvent.StrategyUID.Eq(ev.StrategyUID.Int64()),
+		alertEvent.LevelUID.Eq(ev.LevelUID.Int64()),
+		alertEvent.Status.Eq(int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_FIRING)),
+	}
+	info, err := alertEvent.WithContext(ctx).Where(wrappers...).First()
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return 0, err
+		}
+		if err := alertEvent.WithContext(ctx).Create(m); err != nil {
+			return 0, err
+		}
+		return m.ID, nil
+	}
+	m.ID = info.ID
+	if err := alertEvent.WithContext(ctx).Where(alertEvent.ID.Eq(info.ID.Int64())).Save(m); err != nil {
 		return 0, err
 	}
 	return m.ID, nil

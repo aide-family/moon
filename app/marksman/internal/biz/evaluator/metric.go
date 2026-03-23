@@ -139,7 +139,7 @@ func (m *metricEvaluator) Run() {
 			DatasourceUID:         m.info.GetDatasourceUID(),
 			EvaluatorType:         EvaluatorTypeMetric,
 			EvaluatorSnapshotJSON: m.cachedSnapshotJSON,
-			Fingerprint:           bo.BuildAlertFingerprint(tmlData.OriginLabels),
+			Fingerprint:           bo.BuildAlertFingerprint(m.info.GetNamespaceUID(), m.info.GetStrategyUID(), m.info.GetLevelUID(), tmlData.OriginLabels),
 			EvaluateDuration:      dur,
 			StrategyGroupUID:      m.info.GetStrategyGroupUID(),
 			StrategyGroupName:     m.info.GetStrategyGroupName(),
