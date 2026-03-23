@@ -30,7 +30,7 @@ func NewOAuth2Handler(conf *config.OAuth2, redirectURLFunc RedirectURLFunc) *OAu
 	return &OAuth2Handler{
 		conf:            conf,
 		redirectURLFunc: redirectURLFunc,
-		oauth2RoutePath: "/oauth2",
+		oauth2RoutePath: "/v1/oauth2",
 		loginPath:       "/",
 		callbackPath:    "/callback",
 		loginHandler:    DefaultLoginHandler,
