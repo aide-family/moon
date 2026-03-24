@@ -196,6 +196,7 @@ message AlertEventItem {
 	int64 recoveredBy = 25;
 	string recoveredByName = 26;
 	string recoveredReason = 27;
+	string bgColor = 28;
 }
 
 // ListRealtimeAlertRequest lists real-time alert events for an alert page.

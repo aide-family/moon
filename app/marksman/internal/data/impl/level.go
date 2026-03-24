@@ -54,6 +54,7 @@ func (r *levelRepository) UpdateLevel(ctx context.Context, req *bo.UpdateLevelBo
 	columns := []field.AssignExpr{
 		l.Name.Value(req.Name),
 		l.Remark.Value(req.Remark),
+		l.BgColor.Value(req.BgColor),
 		l.Metadata.Value(safety.NewMap(req.Metadata)),
 	}
 	_, err := l.WithContext(ctx).Where(l.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()), l.ID.Eq(req.UID.Int64())).UpdateColumnSimple(columns...)

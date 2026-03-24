@@ -59,6 +59,7 @@ message LevelItem {
 	map<string, string> metadata = 5;
 	string createdAt = 6;
 	string updatedAt = 7;
+	string bgColor = 8;
 }
 
 message LevelItemSelect {
@@ -74,6 +75,9 @@ message CreateLevelRequest {
 	}];
 	string remark = 2;
 	map<string, string> metadata = 3;
+	string bgColor = 4 [(buf.validate.field).string = {
+		max_len: 32,
+	}];
 }
 message CreateLevelReply {
 	int64 uid = 1;
@@ -89,6 +93,9 @@ message UpdateLevelRequest {
 	}];
 	string remark = 3;
 	map<string, string> metadata = 4;
+	string bgColor = 5 [(buf.validate.field).string = {
+		max_len: 32,
+	}];
 }
 message UpdateLevelReply {}
 

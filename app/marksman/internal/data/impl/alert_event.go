@@ -176,8 +176,8 @@ func (r *alertEventRepository) GetAlertEvent(ctx context.Context, uid snowflake.
 		}
 		return nil, err
 	}
-	levelName := r.levelNameByUID(ctx, m.NamespaceUID, m.LevelUID)
-	return convert.ToAlertEventItemBo(m, levelName), nil
+	levelInfo := r.levelInfoByUID(ctx, m.NamespaceUID, m.LevelUID)
+	return convert.ToAlertEventItemBo(m, levelInfo.Name, levelInfo.BgColor), nil
 }
 
 func (r *alertEventRepository) GetAlertEventByFingerprint(ctx context.Context, uid snowflake.ID, fingerprint string) (*bo.AlertEventItemBo, error) {
@@ -198,20 +198,28 @@ func (r *alertEventRepository) GetAlertEventByFingerprint(ctx context.Context, u
 	if err != nil {
 		return nil, err
 	}
-	levelName := r.levelNameByUID(ctx, m.NamespaceUID, m.LevelUID)
-	return convert.ToAlertEventItemBo(m, levelName), nil
+	levelInfo := r.levelInfoByUID(ctx, m.NamespaceUID, m.LevelUID)
+	return convert.ToAlertEventItemBo(m, levelInfo.Name, levelInfo.BgColor), nil
 }
 
-func (r *alertEventRepository) levelNameByUID(ctx context.Context, namespaceUID, levelUID snowflake.ID) string {
+type levelInfo struct {
+	Name     string
+	BgColor  string
+}
+
+func (r *alertEventRepository) levelInfoByUID(ctx context.Context, namespaceUID, levelUID snowflake.ID) levelInfo {
 	l := query.Level
 	lev, err := l.WithContext(ctx).Where(
 		l.NamespaceUID.Eq(namespaceUID.Int64()),
 		l.ID.Eq(levelUID.Int64()),
 	).First()
 	if err != nil {
-		return ""
+		return levelInfo{}
 	}
-	return lev.Name
+	return levelInfo{
+		Name:    lev.Name,
+		BgColor: lev.BgColor,
+	}
 }
 
 func (r *alertEventRepository) ListRealtimeAlert(ctx context.Context, req *bo.ListRealtimeAlertBo, pageFilter *bo.AlertPageFilterBo) (*bo.PageResponseBo[*bo.AlertEventItemBo], error) {
@@ -275,15 +283,16 @@ func (r *alertEventRepository) ListRealtimeAlert(ctx context.Context, req *bo.Li
 	if err := wrappers.Find(&list).Error; err != nil {
 		return nil, err
 	}
-	levelNames := r.levelNamesForEvents(ctx, ns, list)
+	levelInfos := r.levelInfosForEvents(ctx, ns, list)
 	items := make([]*bo.AlertEventItemBo, 0, len(list))
 	for _, m := range list {
-		items = append(items, convert.ToAlertEventItemBo(m, levelNames[m.LevelUID.Int64()]))
+		info := levelInfos[m.LevelUID.Int64()]
+		items = append(items, convert.ToAlertEventItemBo(m, info.Name, info.BgColor))
 	}
 	return bo.NewPageResponseBo(req.PageRequestBo, items), nil
 }
 
-func (r *alertEventRepository) levelNamesForEvents(ctx context.Context, namespaceUID snowflake.ID, events []*do.AlertEvent) map[int64]string {
+func (r *alertEventRepository) levelInfosForEvents(ctx context.Context, namespaceUID snowflake.ID, events []*do.AlertEvent) map[int64]levelInfo {
 	uidSet := make(map[int64]struct{})
 	for _, ev := range events {
 		uidSet[ev.LevelUID.Int64()] = struct{}{}
@@ -299,13 +308,16 @@ func (r *alertEventRepository) levelNamesForEvents(ctx context.Context, namespac
 	levels, err := l.WithContext(ctx).Where(
 		l.NamespaceUID.Eq(namespaceUID.Int64()),
 		l.ID.In(uids...),
-	).Find()
+	).Select(l.ID, l.Name, l.BgColor).Find()
 	if err != nil {
 		return nil
 	}
-	out := make(map[int64]string, len(levels))
+	out := make(map[int64]levelInfo, len(levels))
 	for _, lev := range levels {
-		out[lev.ID.Int64()] = lev.Name
+		out[lev.ID.Int64()] = levelInfo{
+			Name:    lev.Name,
+			BgColor: lev.BgColor,
+		}
 	}
 	return out
 }

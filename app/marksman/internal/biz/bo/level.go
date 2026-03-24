@@ -14,6 +14,7 @@ type CreateLevelBo struct {
 	Name     string
 	Remark   string
 	Metadata map[string]string
+	BgColor  string
 }
 
 func NewCreateLevelBo(req *apiv1.CreateLevelRequest) *CreateLevelBo {
@@ -21,6 +22,7 @@ func NewCreateLevelBo(req *apiv1.CreateLevelRequest) *CreateLevelBo {
 		Name:     req.Name,
 		Remark:   req.Remark,
 		Metadata: req.Metadata,
+		BgColor:  req.BgColor,
 	}
 }
 
@@ -29,6 +31,7 @@ type UpdateLevelBo struct {
 	Name     string
 	Remark   string
 	Metadata map[string]string
+	BgColor  string
 }
 
 func NewUpdateLevelBo(req *apiv1.UpdateLevelRequest) *UpdateLevelBo {
@@ -37,6 +40,7 @@ func NewUpdateLevelBo(req *apiv1.UpdateLevelRequest) *UpdateLevelBo {
 		Name:     req.Name,
 		Remark:   req.Remark,
 		Metadata: req.Metadata,
+		BgColor:  req.BgColor,
 	}
 }
 
@@ -56,6 +60,7 @@ type LevelItemBo struct {
 	UID       snowflake.ID
 	Name      string
 	Remark    string
+	BgColor   string
 	Status    enum.GlobalStatus
 	Metadata  map[string]string
 	CreatedAt time.Time
@@ -70,6 +75,7 @@ func ToAPIV1LevelItem(b *LevelItemBo) *apiv1.LevelItem {
 		Uid:       b.UID.Int64(),
 		Name:      b.Name,
 		Remark:    b.Remark,
+		BgColor:   b.BgColor,
 		Status:    b.Status,
 		Metadata:  b.Metadata,
 		CreatedAt: timex.FormatTime(&b.CreatedAt),

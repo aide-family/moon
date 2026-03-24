@@ -13,6 +13,7 @@ type Level struct {
 	NamespaceUID snowflake.ID                `gorm:"column:namespace_uid;uniqueIndex:idx__levels__namespace_uid__deleted_at__name"`
 	Name         string                      `gorm:"column:name;type:varchar(100);uniqueIndex:idx__levels__namespace_uid__deleted_at__name"`
 	Remark       string                      `gorm:"column:remark;type:varchar(100);default:''"`
+	BgColor      string                      `gorm:"column:bg_color;type:varchar(32);default:''"`
 	Metadata     *safety.Map[string, string] `gorm:"column:metadata;type:json;"`
 	Status       enum.GlobalStatus           `gorm:"column:status;type:tinyint;default:0"`
 }

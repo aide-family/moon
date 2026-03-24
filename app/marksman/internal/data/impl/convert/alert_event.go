@@ -9,7 +9,7 @@ import (
 	"github.com/aide-family/marksman/internal/data/impl/do"
 )
 
-func ToAlertEventItemBo(m *do.AlertEvent, levelName string) *bo.AlertEventItemBo {
+func ToAlertEventItemBo(m *do.AlertEvent, levelName string, levelBgColor string) *bo.AlertEventItemBo {
 	if m == nil {
 		return nil
 	}
@@ -26,6 +26,7 @@ func ToAlertEventItemBo(m *do.AlertEvent, levelName string) *bo.AlertEventItemBo
 		StrategyName:        m.StrategyName,
 		LevelUID:            m.LevelUID,
 		LevelName:           levelName,
+		BgColor:             levelBgColor,
 		DatasourceUID:       m.DatasourceUID,
 		DatasourceName:      m.DatasourceName,
 		Summary:             m.Summary,

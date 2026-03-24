@@ -35,6 +35,7 @@ func newLevel(db *gorm.DB, opts ...gen.DOOption) level {
 	_level.NamespaceUID = field.NewInt64(tableName, "namespace_uid")
 	_level.Name = field.NewString(tableName, "name")
 	_level.Remark = field.NewString(tableName, "remark")
+	_level.BgColor = field.NewString(tableName, "bg_color")
 	_level.Metadata = field.NewField(tableName, "metadata")
 	_level.Status = field.NewInt32(tableName, "status")
 
@@ -55,6 +56,7 @@ type level struct {
 	NamespaceUID field.Int64
 	Name         field.String
 	Remark       field.String
+	BgColor      field.String
 	Metadata     field.Field
 	Status       field.Int32
 
@@ -81,6 +83,7 @@ func (l *level) updateTableName(table string) *level {
 	l.NamespaceUID = field.NewInt64(table, "namespace_uid")
 	l.Name = field.NewString(table, "name")
 	l.Remark = field.NewString(table, "remark")
+	l.BgColor = field.NewString(table, "bg_color")
 	l.Metadata = field.NewField(table, "metadata")
 	l.Status = field.NewInt32(table, "status")
 
@@ -99,7 +102,7 @@ func (l *level) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (l *level) fillFieldMap() {
-	l.fieldMap = make(map[string]field.Expr, 10)
+	l.fieldMap = make(map[string]field.Expr, 11)
 	l.fieldMap["id"] = l.ID
 	l.fieldMap["created_at"] = l.CreatedAt
 	l.fieldMap["updated_at"] = l.UpdatedAt
@@ -108,6 +111,7 @@ func (l *level) fillFieldMap() {
 	l.fieldMap["namespace_uid"] = l.NamespaceUID
 	l.fieldMap["name"] = l.Name
 	l.fieldMap["remark"] = l.Remark
+	l.fieldMap["bg_color"] = l.BgColor
 	l.fieldMap["metadata"] = l.Metadata
 	l.fieldMap["status"] = l.Status
 }

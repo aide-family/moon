@@ -52,7 +52,7 @@
 - **指标查询（MetricQuery）**：指标类型数据源即时查询（Prometheus /api/v1/query）、区间查询（/api/v1/query_range）、以及直接 HTTP 代理
 - **策略组（Strategy group）**：增删改查、列表、选择、状态；绑定接收人（收件人组）
 - **策略（Strategy）**：增删改查、列表、状态；归属策略组；类型（METRICS/LOGS/TRACE）与驱动
-- **级别（Level）**：告警级别增删改查、列表、选择、状态（用于告警严重程度分组）
+- **级别（Level）**：告警级别增删改查、列表、选择、状态（用于告警严重程度分组，包含用于展示的 `bgColor`）
 - **策略指标（Strategy metric）**：保存/查询指标配置（expr、labels、datasourceUIDs、levels）；指标级别的增删改查（mode、condition、values、duration）；按策略绑定接收人（可选 levelUID）
 - **告警（实时）**：告警页面增删改查（名称、颜色、排序、按策略组/级别/策略筛选）；按告警页列表展示实时告警事件；事件操作：介入、抑制（至指定时间）、恢复（手动）；告警统计（当前总告警、按等级、今日已恢复、按告警页）；用户关注的告警页（按用户列出/保存）
 - **通知组（Notification group）**：通知组增删改查（名称、备注、元数据、成员、webhook、模板通过创建/更新维护）
@@ -102,8 +102,8 @@
 | | `GET /v1/strategy/{uid}` | 获取策略 |
 | | `GET /v1/strategies` | 列表（keyword、page、pageSize、status、strategyGroupUID、type、driver） |
 | | `GET /v1/strategies/select` | 策略下拉选择（keyword、limit、lastUid、status、strategyGroupUids 按策略组筛选，策略组 ID 为列表） |
-| **Level** | `POST /v1/level` | 创建级别（name、remark、metadata） |
-| | `PUT /v1/level/{uid}` | 更新级别 |
+| **Level** | `POST /v1/level` | 创建级别（name、remark、metadata、bgColor） |
+| | `PUT /v1/level/{uid}` | 更新级别（bgColor） |
 | | `PUT /v1/level/{uid}/status` | 更新状态 |
 | | `DELETE /v1/level/{uid}` | 删除级别 |
 | | `GET /v1/level/{uid}` | 获取级别 |
@@ -129,7 +129,7 @@
 | | `DELETE /v1/alert-pages/{uid}` | 删除告警页 |
 | | `GET /v1/alert-pages/{uid}` | 获取告警页 |
 | | `GET /v1/alert-pages` | 告警页列表（page、pageSize、keyword） |
-| **Alert**（实时） | `GET /v1/alert-pages/{alertPageUid}/realtime-alerts` | 按页查询实时告警事件（page、pageSize、status） |
+| **Alert**（实时） | `GET /v1/alert-pages/{alertPageUid}/realtime-alerts` | 按页查询实时告警事件（page、pageSize、status；包含 level 的 `bgColor`） |
 | | `GET /v1/alert-statistics` | 告警统计（当前总告警、按等级、今日已恢复、按告警页） |
 | | `POST /v1/realtime-alerts/{uid}/intervene` | 介入（值班接管） |
 | | `POST /v1/realtime-alerts/{uid}/suppress` | 抑制至指定时间（body: suppressUntil RFC3339） |

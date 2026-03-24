@@ -2,6 +2,7 @@ package schema
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/glebarez/sqlite"
 	"github.com/spf13/cobra"
@@ -14,6 +15,34 @@ import (
 )
 
 var dsn string
+
+var sqliteIndexAlreadyExistsRe = regexp.MustCompile(`(?i)index\s+([a-zA-Z0-9_]+)\s+already exists`)
+
+func autoMigrateSQLiteWithIndexRetry(db *gorm.DB) error {
+	// SQLite's AutoMigrate may attempt to create indexes without IF NOT EXISTS,
+	// making the command non-idempotent for existing databases.
+	var lastErr error
+	// If multiple indexes already exist, we need multiple retries.
+	for attempt := 0; attempt < 5; attempt++ {
+		if err := db.AutoMigrate(do.Models()...); err == nil {
+			return nil
+		} else {
+			lastErr = err
+		}
+
+		matches := sqliteIndexAlreadyExistsRe.FindStringSubmatch(lastErr.Error())
+		if len(matches) != 2 {
+			return lastErr
+		}
+		indexName := matches[1]
+
+		// SQLite allows DROP INDEX IF EXISTS without affecting table data.
+		if execErr := db.Exec("DROP INDEX IF EXISTS `" + indexName + "`").Error; execErr != nil {
+			return fmt.Errorf("drop existing sqlite index %s: %w", indexName, execErr)
+		}
+	}
+	return lastErr
+}
 
 func newMigrateCmd() *cobra.Command {
 	migrateCmd := &cobra.Command{
@@ -54,7 +83,7 @@ func newSQLiteMigrateCmd() *cobra.Command {
 			if debug {
 				db = db.Debug()
 			}
-			if err := db.AutoMigrate(do.Models()...); err != nil {
+			if err := autoMigrateSQLiteWithIndexRetry(db); err != nil {
 				return fmt.Errorf("migrate models: %w", err)
 			}
 			return nil

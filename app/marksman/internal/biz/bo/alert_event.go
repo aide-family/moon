@@ -55,6 +55,7 @@ type AlertEventItemBo struct {
 	StrategyName        string
 	LevelUID            snowflake.ID
 	LevelName           string
+	BgColor             string
 	DatasourceUID       snowflake.ID
 	DatasourceName      string
 	Summary             string
@@ -91,6 +92,7 @@ func ToAPIV1AlertEventItem(b *AlertEventItemBo) *apiv1.AlertEventItem {
 		StrategyName:      b.StrategyName,
 		LevelUid:          b.LevelUID.Int64(),
 		LevelName:         b.LevelName,
+		BgColor:           b.BgColor,
 		DatasourceUid:     b.DatasourceUID.Int64(),
 		DatasourceName:    b.DatasourceName,
 		Summary:           b.Summary,

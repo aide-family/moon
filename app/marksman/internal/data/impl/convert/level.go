@@ -20,6 +20,7 @@ func ToLevelItemBo(m *do.Level) *bo.LevelItemBo {
 		UID:       m.ID,
 		Name:      m.Name,
 		Remark:    m.Remark,
+		BgColor:   m.BgColor,
 		Status:    m.Status,
 		Metadata:  m.Metadata.Map(),
 		CreatedAt: m.CreatedAt,
@@ -46,6 +47,7 @@ func ToLevelDo(ctx context.Context, req *bo.CreateLevelBo) *do.Level {
 	model := &do.Level{
 		Name:     req.Name,
 		Remark:   req.Remark,
+		BgColor:  req.BgColor,
 		Metadata: safety.NewMap(req.Metadata),
 		Status:   enum.GlobalStatus_ENABLED,
 	}
