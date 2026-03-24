@@ -18,6 +18,7 @@ func NewStrategy(
 	strategyGroupRepo repository.StrategyGroup,
 	strategyRepo repository.Strategy,
 	strategyMetricRepo repository.StrategyMetric,
+	evaluateBiz *Evaluate,
 	helper *klog.Helper,
 ) *StrategyBiz {
 	b := &StrategyBiz{
@@ -25,6 +26,7 @@ func NewStrategy(
 		strategyGroupRepo:  strategyGroupRepo,
 		strategyRepo:       strategyRepo,
 		strategyMetricRepo: strategyMetricRepo,
+		evaluateBiz:        evaluateBiz,
 		helper:             klog.NewHelper(klog.With(helper.Logger(), "biz", "strategy")),
 	}
 	b.deleteStrategyFunc = safety.NewMap(map[enum.DatasourceType]func(ctx context.Context, strategyUID snowflake.ID) error{
@@ -46,6 +48,7 @@ type StrategyBiz struct {
 	strategyGroupRepo  repository.StrategyGroup
 	strategyRepo       repository.Strategy
 	strategyMetricRepo repository.StrategyMetric
+	evaluateBiz        *Evaluate
 	deleteStrategyFunc *safety.Map[enum.DatasourceType, func(ctx context.Context, strategyUID snowflake.ID) error]
 	typeDetailCheckers *safety.Map[enum.DatasourceType, func(ctx context.Context, strategyUID snowflake.ID) (bool, error)]
 }
@@ -67,6 +70,7 @@ func (b *StrategyBiz) UpdateStrategyGroup(ctx context.Context, req *bo.UpdateStr
 		b.helper.Errorw("msg", "update strategy group failed", "error", err, "req", req)
 		return merr.ErrorInternalServer("update strategy group failed").WithCause(err)
 	}
+	b.evaluateBiz.SyncByStrategyGroupUID(ctx, req.UID)
 	return nil
 }
 
@@ -77,6 +81,11 @@ func (b *StrategyBiz) UpdateStrategyGroupStatus(ctx context.Context, req *bo.Upd
 		}
 		b.helper.Errorw("msg", "update strategy group status failed", "error", err, "req", req)
 		return merr.ErrorInternalServer("update strategy group status failed").WithCause(err)
+	}
+	if req.Status == enum.GlobalStatus_ENABLED {
+		b.evaluateBiz.SyncByStrategyGroupUID(ctx, req.UID)
+	} else {
+		b.evaluateBiz.RemoveByStrategyGroupUID(ctx, req.UID)
 	}
 	return nil
 }
@@ -89,6 +98,7 @@ func (b *StrategyBiz) DeleteStrategyGroup(ctx context.Context, uid snowflake.ID)
 		b.helper.Errorw("msg", "delete strategy group failed", "error", err, "uid", uid)
 		return merr.ErrorInternalServer("delete strategy group failed").WithCause(err)
 	}
+	b.evaluateBiz.RemoveByStrategyGroupUID(ctx, uid)
 	return nil
 }
 
@@ -173,6 +183,7 @@ func (b *StrategyBiz) UpdateStrategy(ctx context.Context, req *bo.UpdateStrategy
 		b.helper.Errorw("msg", "update strategy failed", "error", err, "req", req)
 		return merr.ErrorInternalServer("update strategy failed").WithCause(err)
 	}
+	b.evaluateBiz.SyncByStrategyUID(ctx, req.UID)
 	return nil
 }
 
@@ -183,6 +194,11 @@ func (b *StrategyBiz) UpdateStrategyStatus(ctx context.Context, req *bo.UpdateSt
 		}
 		b.helper.Errorw("msg", "update strategy status failed", "error", err, "req", req)
 		return merr.ErrorInternalServer("update strategy status failed").WithCause(err)
+	}
+	if req.Status == enum.GlobalStatus_ENABLED {
+		b.evaluateBiz.SyncByStrategyUID(ctx, req.UID)
+	} else {
+		b.evaluateBiz.RemoveByStrategyUID(ctx, req.UID)
 	}
 	return nil
 }
@@ -235,6 +251,7 @@ func (b *StrategyBiz) DeleteStrategy(ctx context.Context, uid snowflake.ID) erro
 			b.helper.Errorw("msg", "delete strategy failed", "error", err, "uid", uid)
 			return merr.ErrorInternalServer("delete strategy failed").WithCause(err)
 		}
+		b.evaluateBiz.RemoveByStrategyUID(ctx, uid)
 		return nil
 	})
 }

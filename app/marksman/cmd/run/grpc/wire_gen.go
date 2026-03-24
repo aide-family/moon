@@ -81,15 +81,18 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	levelBiz := biz.NewLevel(level, strategyMetric, helper)
+	evaluateJobChannel := impl.NewEvaluateJobChannelRepository(bc, dataData)
+	metricDatasourceQuerier := impl.NewMetricDatasourceQuerierRepository()
+	alertEventChannel := impl.NewAlertEventChannelRepository(bc, dataData)
+	evaluate := biz.NewEvaluateBiz(bc, namespace, strategyMetric, evaluateJobChannel, metricDatasourceQuerier, alertEventChannel)
+	levelBiz := biz.NewLevel(level, strategyMetric, evaluate, helper)
 	levelService := service.NewLevelService(levelBiz)
 	datasource, err := impl.NewDatasourceRepository(dataData)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	metricDatasourceQuerier := impl.NewMetricDatasourceQuerierRepository()
-	datasourceBiz := biz.NewDatasource(bc, datasource, metricDatasourceQuerier, helper)
+	datasourceBiz := biz.NewDatasource(bc, datasource, metricDatasourceQuerier, evaluate, helper)
 	datasourceService := service.NewDatasourceService(datasourceBiz)
 	metricDatasourceProxy := impl.NewMetricDatasourceProxyRepository()
 	metricQueryBiz := biz.NewMetricQuery(datasource, metricDatasourceProxy, helper)
@@ -105,9 +108,9 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	strategyBiz := biz.NewStrategy(transaction, strategyGroup, strategy, strategyMetric, helper)
+	strategyBiz := biz.NewStrategy(transaction, strategyGroup, strategy, strategyMetric, evaluate, helper)
 	strategyService := service.NewStrategyService(strategyBiz)
-	strategyMetricBiz := biz.NewStrategyMetric(strategy, strategyMetric, level, helper)
+	strategyMetricBiz := biz.NewStrategyMetric(strategy, strategyMetric, level, evaluate, helper)
 	strategyMetricService := service.NewStrategyMetricService(strategyMetricBiz)
 	alertPage, err := impl.NewAlertPageRepository(dataData)
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 type EvaluateJobChannel interface {
 	AppendClose(cs ...func() error) error
 	AppendEvaluateJob(cron.CronJob)
+	RemoveEvaluateJob(index string)
 	GetEvaluateJobAppendChannel() <-chan cron.CronJob
 	GetEvaluateJobRemoveChannel() <-chan string
 }

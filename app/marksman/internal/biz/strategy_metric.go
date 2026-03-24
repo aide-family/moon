@@ -16,12 +16,14 @@ func NewStrategyMetric(
 	strategyRepo repository.Strategy,
 	strategyMetricRepo repository.StrategyMetric,
 	levelRepo repository.Level,
+	evaluateBiz *Evaluate,
 	helper *klog.Helper,
 ) *StrategyMetricBiz {
 	return &StrategyMetricBiz{
 		strategyRepo:       strategyRepo,
 		strategyMetricRepo: strategyMetricRepo,
 		levelRepo:          levelRepo,
+		evaluateBiz:        evaluateBiz,
 		helper:             klog.NewHelper(klog.With(helper.Logger(), "biz", "strategy_metric")),
 	}
 }
@@ -31,6 +33,7 @@ type StrategyMetricBiz struct {
 	strategyRepo       repository.Strategy
 	strategyMetricRepo repository.StrategyMetric
 	levelRepo          repository.Level
+	evaluateBiz        *Evaluate
 }
 
 // validateStrategyExistsAndIsMetrics returns the strategy if it exists and is METRICS type; otherwise returns a user-friendly error.
@@ -63,12 +66,14 @@ func (b *StrategyMetricBiz) SaveStrategyMetric(ctx context.Context, req *bo.Save
 			b.helper.Errorw("msg", "create strategy metric failed", "error", err, "req", req)
 			return merr.ErrorInternalServer("create strategy metric failed").WithCause(err)
 		}
+		b.evaluateBiz.SyncByStrategyUID(ctx, req.StrategyUID)
 		return nil
 	}
 	if err := b.strategyMetricRepo.UpdateStrategyMetric(ctx, req); err != nil {
 		b.helper.Errorw("msg", "update strategy metric failed", "error", err, "req", req)
 		return merr.ErrorInternalServer("update strategy metric failed").WithCause(err)
 	}
+	b.evaluateBiz.SyncByStrategyUID(ctx, req.StrategyUID)
 	return nil
 }
 
@@ -128,12 +133,14 @@ func (b *StrategyMetricBiz) SaveStrategyMetricLevel(ctx context.Context, req *bo
 			b.helper.Errorw("msg", "create strategy metric level failed", "error", err, "req", req)
 			return merr.ErrorInternalServer("create strategy metric level failed").WithCause(err)
 		}
+		b.evaluateBiz.SyncByStrategyLevelUID(ctx, req.StrategyUID, req.LevelUID)
 		return nil
 	}
 	if err := b.strategyMetricRepo.UpdateStrategyMetricLevel(ctx, req); err != nil {
 		b.helper.Errorw("msg", "update strategy metric level failed", "error", err, "req", req)
 		return merr.ErrorInternalServer("update strategy metric level failed").WithCause(err)
 	}
+	b.evaluateBiz.SyncByStrategyLevelUID(ctx, req.StrategyUID, req.LevelUID)
 	return nil
 }
 
@@ -144,6 +151,11 @@ func (b *StrategyMetricBiz) UpdateStrategyMetricLevelStatus(ctx context.Context,
 		}
 		b.helper.Errorw("msg", "update strategy metric level status failed", "error", err, "req", req)
 		return merr.ErrorInternalServer("update strategy metric level status failed").WithCause(err)
+	}
+	if req.Status == enum.GlobalStatus_ENABLED {
+		b.evaluateBiz.SyncByStrategyLevelUID(ctx, req.StrategyUID, req.LevelUID)
+	} else {
+		b.evaluateBiz.RemoveByStrategyLevelUID(ctx, req.StrategyUID, req.LevelUID)
 	}
 	return nil
 }
@@ -156,6 +168,7 @@ func (b *StrategyMetricBiz) DeleteStrategyMetricLevel(ctx context.Context, level
 		b.helper.Errorw("msg", "delete strategy metric level failed", "error", err, "levelUID", levelUID)
 		return merr.ErrorInternalServer("delete strategy metric level failed").WithCause(err)
 	}
+	b.evaluateBiz.RemoveByStrategyLevelUID(ctx, strategyUID, levelUID)
 	return nil
 }
 

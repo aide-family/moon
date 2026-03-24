@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
@@ -12,6 +13,7 @@ import (
 	klog "github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/aide-family/marksman/internal/biz/bo"
 	"github.com/aide-family/marksman/internal/biz/evaluator"
 	"github.com/aide-family/marksman/internal/biz/repository"
 	"github.com/aide-family/marksman/internal/conf"
@@ -56,6 +58,7 @@ func NewEvaluateBiz(
 		eg:                     eg,
 		startupDelay:           startupDelay,
 		queryTimeout:           queryTimeout,
+		jobState:               make(map[string]evaluateJobMeta),
 	}
 	evaluateJobChannelRepo.AppendClose(eva.Stop)
 	eva.Start()
@@ -71,6 +74,16 @@ type Evaluate struct {
 	eg                     *errgroup.Group
 	startupDelay           time.Duration
 	queryTimeout           time.Duration
+	jobStateMu             sync.RWMutex
+	jobState               map[string]evaluateJobMeta
+}
+
+type evaluateJobMeta struct {
+	namespaceUID     snowflake.ID
+	datasourceUID    snowflake.ID
+	strategyGroupUID snowflake.ID
+	strategyUID      snowflake.ID
+	levelUID         snowflake.ID
 }
 
 func (e *Evaluate) Start() {
@@ -138,8 +151,146 @@ func (e *Evaluate) localStrategyMetricsByNamespace(eg *errgroup.Group, namespace
 		}
 
 		for _, strategy := range strategies {
-			e.evaluateJobChannelRepo.AppendEvaluateJob(evaluator.NewMetricEvaluator(e.metricQuerier, e.alertEventChannel, strategy))
+			e.appendEvaluateStrategyJob(strategy)
 		}
 		return nil
 	})
+}
+
+func (e *Evaluate) SyncByDatasourceUID(ctx context.Context, datasourceUID snowflake.ID) {
+	e.syncByFilter(ctx, func(meta evaluateJobMeta) bool {
+		return meta.datasourceUID == datasourceUID
+	}, func(strategy *bo.EvaluateMetricStrategyBo) bool {
+		return strategy.GetDatasourceUID() == datasourceUID
+	})
+}
+
+func (e *Evaluate) RemoveByDatasourceUID(ctx context.Context, datasourceUID snowflake.ID) {
+	e.removeByFilter(ctx, func(meta evaluateJobMeta) bool {
+		return meta.datasourceUID == datasourceUID
+	})
+}
+
+func (e *Evaluate) SyncByStrategyGroupUID(ctx context.Context, strategyGroupUID snowflake.ID) {
+	e.syncByFilter(ctx, func(meta evaluateJobMeta) bool {
+		return meta.strategyGroupUID == strategyGroupUID
+	}, func(strategy *bo.EvaluateMetricStrategyBo) bool {
+		return strategy.GetStrategyGroupUID() == strategyGroupUID
+	})
+}
+
+func (e *Evaluate) RemoveByStrategyGroupUID(ctx context.Context, strategyGroupUID snowflake.ID) {
+	e.removeByFilter(ctx, func(meta evaluateJobMeta) bool {
+		return meta.strategyGroupUID == strategyGroupUID
+	})
+}
+
+func (e *Evaluate) SyncByStrategyUID(ctx context.Context, strategyUID snowflake.ID) {
+	e.syncByFilter(ctx, func(meta evaluateJobMeta) bool {
+		return meta.strategyUID == strategyUID
+	}, func(strategy *bo.EvaluateMetricStrategyBo) bool {
+		return strategy.GetStrategyUID() == strategyUID
+	})
+}
+
+func (e *Evaluate) RemoveByStrategyUID(ctx context.Context, strategyUID snowflake.ID) {
+	e.removeByFilter(ctx, func(meta evaluateJobMeta) bool {
+		return meta.strategyUID == strategyUID
+	})
+}
+
+func (e *Evaluate) SyncByStrategyLevelUID(ctx context.Context, strategyUID snowflake.ID, levelUID snowflake.ID) {
+	e.syncByFilter(ctx, func(meta evaluateJobMeta) bool {
+		return meta.strategyUID == strategyUID && meta.levelUID == levelUID
+	}, func(strategy *bo.EvaluateMetricStrategyBo) bool {
+		return strategy.GetStrategyUID() == strategyUID && strategy.GetLevelUID() == levelUID
+	})
+}
+
+func (e *Evaluate) RemoveByStrategyLevelUID(ctx context.Context, strategyUID snowflake.ID, levelUID snowflake.ID) {
+	e.removeByFilter(ctx, func(meta evaluateJobMeta) bool {
+		return meta.strategyUID == strategyUID && meta.levelUID == levelUID
+	})
+}
+
+func (e *Evaluate) SyncByLevelUID(ctx context.Context, levelUID snowflake.ID) {
+	e.syncByFilter(ctx, func(meta evaluateJobMeta) bool {
+		return meta.levelUID == levelUID
+	}, func(strategy *bo.EvaluateMetricStrategyBo) bool {
+		return strategy.GetLevelUID() == levelUID
+	})
+}
+
+func (e *Evaluate) RemoveByLevelUID(ctx context.Context, levelUID snowflake.ID) {
+	e.removeByFilter(ctx, func(meta evaluateJobMeta) bool {
+		return meta.levelUID == levelUID
+	})
+}
+
+func (e *Evaluate) syncByFilter(
+	ctx context.Context,
+	removeFilter func(meta evaluateJobMeta) bool,
+	appendFilter func(strategy *bo.EvaluateMetricStrategyBo) bool,
+) {
+	e.removeByFilter(ctx, removeFilter)
+	strategies, err := e.strategyMetricRepo.GetEvaluateMetricStrategies(ctx)
+	if err != nil {
+		klog.Errorw("msg", "get evaluate metric strategies failed", "error", err)
+		return
+	}
+	for _, strategy := range strategies {
+		if !appendFilter(strategy) {
+			continue
+		}
+		e.appendEvaluateStrategyJob(strategy)
+	}
+}
+
+func (e *Evaluate) removeByFilter(ctx context.Context, filter func(meta evaluateJobMeta) bool) {
+	namespaceUID := contextx.GetNamespace(ctx)
+	removeIndexes := e.collectJobIndexes(namespaceUID, filter)
+	for _, index := range removeIndexes {
+		e.removeEvaluateJob(index)
+	}
+}
+
+func (e *Evaluate) collectJobIndexes(namespaceUID snowflake.ID, filter func(meta evaluateJobMeta) bool) []string {
+	e.jobStateMu.RLock()
+	defer e.jobStateMu.RUnlock()
+
+	removeIndexes := make([]string, 0)
+	for index, meta := range e.jobState {
+		if meta.namespaceUID != namespaceUID {
+			continue
+		}
+		if filter(meta) {
+			removeIndexes = append(removeIndexes, index)
+		}
+	}
+	return removeIndexes
+}
+
+func (e *Evaluate) appendEvaluateStrategyJob(strategy *bo.EvaluateMetricStrategyBo) {
+	if strategy == nil {
+		klog.Debugw("msg", "strategy is nil")
+		return
+	}
+	index := strategy.BuildMetricEvaluatorIndex()
+	e.jobStateMu.Lock()
+	e.jobState[index] = evaluateJobMeta{
+		namespaceUID:     strategy.GetNamespaceUID(),
+		datasourceUID:    strategy.GetDatasourceUID(),
+		strategyGroupUID: strategy.GetStrategyGroupUID(),
+		strategyUID:      strategy.GetStrategyUID(),
+		levelUID:         strategy.GetLevelUID(),
+	}
+	e.jobStateMu.Unlock()
+	e.evaluateJobChannelRepo.AppendEvaluateJob(evaluator.NewMetricEvaluator(e.metricQuerier, e.alertEventChannel, strategy))
+}
+
+func (e *Evaluate) removeEvaluateJob(index string) {
+	e.jobStateMu.Lock()
+	delete(e.jobState, index)
+	e.jobStateMu.Unlock()
+	e.evaluateJobChannelRepo.RemoveEvaluateJob(index)
 }

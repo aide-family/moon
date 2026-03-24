@@ -86,9 +86,8 @@ func (r *alertEventRepository) SaveAlertEvent(ctx context.Context, ev *bo.AlertE
 	if err := r.ensureAlertEventTable(ctx, tableName); err != nil {
 		return 0, err
 	}
-	bizQuery := query.Use(r.DB().Table(tableName))
-	alertEvent := bizQuery.AlertEvent
-	table := alertEvent.As(tableName)
+
+	table := query.AlertEvent.Table(tableName)
 	wrappers := []gen.Condition{
 		table.Fingerprint.Eq(ev.Fingerprint),
 		table.NamespaceUID.Eq(ns.Int64()),
@@ -96,12 +95,12 @@ func (r *alertEventRepository) SaveAlertEvent(ctx context.Context, ev *bo.AlertE
 		table.LevelUID.Eq(ev.LevelUID.Int64()),
 		table.Status.Eq(int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_FIRING)),
 	}
-	info, err := alertEvent.WithContext(ctx).Where(wrappers...).First()
+	info, err := table.WithContext(ctx).Where(wrappers...).First()
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return 0, err
 		}
-		if err := alertEvent.WithContext(ctx).Create(m); err != nil {
+		if err := table.WithContext(ctx).Create(m); err != nil {
 			return 0, err
 		}
 		return m.ID, nil
@@ -120,10 +119,10 @@ func (r *alertEventRepository) SaveAlertEvent(ctx context.Context, ev *bo.AlertE
 		table.DatasourceName.Value(ev.DatasourceName),
 		table.FiredAt.Value(info.FiredAt),
 	}
-	if _, err := alertEvent.WithContext(ctx).Where(table.ID.Eq(info.ID.Int64())).UpdateColumnSimple(updates...); err != nil {
+	if _, err := table.WithContext(ctx).Where(table.ID.Eq(info.ID.Int64())).UpdateColumnSimple(updates...); err != nil {
 		return 0, err
 	}
-	return m.ID, nil
+	return info.ID, nil
 }
 
 // findOrCreateEvaluatorSnapshot returns evaluator_snapshot ID; dedupes by evaluator_type + content_hash.
@@ -166,10 +165,9 @@ func (r *alertEventRepository) GetAlertEvent(ctx context.Context, uid snowflake.
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
 		return nil, merr.ErrorNotFound("alert event not found")
 	}
-	bizQuery := query.Use(r.DB().Table(tableName))
-	e := bizQuery.AlertEvent
-	table := e.As(tableName)
-	m, err := e.WithContext(ctx).Where(table.ID.Eq(uid.Int64())).Preload(field.Associations).First()
+
+	table := query.AlertEvent.Table(tableName)
+	m, err := table.WithContext(ctx).Where(table.ID.Eq(uid.Int64())).Preload(field.Associations).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotFound("alert event not found")
@@ -186,15 +184,13 @@ func (r *alertEventRepository) GetAlertEventByFingerprint(ctx context.Context, u
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
 		return nil, merr.ErrorNotFound("alert event not found")
 	}
-	bizQuery := query.Use(r.DB().Table(tableName))
-	e := bizQuery.AlertEvent
-	table := e.As(tableName)
+	table := query.AlertEvent.Table(tableName)
 	wrappers := []gen.Condition{
 		table.NamespaceUID.Eq(ns.Int64()),
 		table.ID.Eq(uid.Int64()),
 		table.Fingerprint.Eq(fingerprint),
 	}
-	m, err := e.WithContext(ctx).Where(wrappers...).Preload(field.Associations).First()
+	m, err := table.WithContext(ctx).Where(wrappers...).Preload(field.Associations).First()
 	if err != nil {
 		return nil, err
 	}
@@ -203,8 +199,8 @@ func (r *alertEventRepository) GetAlertEventByFingerprint(ctx context.Context, u
 }
 
 type levelInfo struct {
-	Name     string
-	BgColor  string
+	Name    string
+	BgColor string
 }
 
 func (r *alertEventRepository) levelInfoByUID(ctx context.Context, namespaceUID, levelUID snowflake.ID) levelInfo {
@@ -251,8 +247,7 @@ func (r *alertEventRepository) ListRealtimeAlert(ctx context.Context, req *bo.Li
 		wrappers = wrappers.Table(fmt.Sprintf("%s as %s", tableNames[0], do.TableNameAlertEvent))
 	}
 
-	e := query.AlertEvent
-	table := e.As(do.TableNameAlertEvent)
+	table := query.AlertEvent.As(do.TableNameAlertEvent)
 	wrappers = wrappers.Where(table.NamespaceUID.Eq(ns.Int64())).
 		Where(table.FiredAt.Gte(startAt)).
 		Where(table.FiredAt.Lte(endAt))
@@ -329,9 +324,7 @@ func (r *alertEventRepository) InterveneAlert(ctx context.Context, req *bo.Inter
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
 		return merr.ErrorNotFound("alert event not found")
 	}
-	bizQuery := query.Use(r.DB().Table(tableName))
-
-	table := bizQuery.AlertEvent.As(tableName)
+	table := query.AlertEvent.Table(tableName)
 	now := time.Now()
 	info, err := table.WithContext(ctx).Where(table.ID.Eq(uid.Int64())).UpdateColumnSimple(
 		table.IntervenedAt.Value(now),
@@ -354,8 +347,7 @@ func (r *alertEventRepository) SuppressAlert(ctx context.Context, req *bo.Suppre
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
 		return merr.ErrorNotFound("alert event not found")
 	}
-	bizQuery := query.Use(r.DB().Table(tableName))
-	table := bizQuery.AlertEvent.As(tableName)
+	table := query.AlertEvent.Table(tableName)
 	info, err := table.WithContext(ctx).Where(table.ID.Eq(uid.Int64())).UpdateColumnSimple(
 		table.SuppressedUntilAt.Value(until),
 		table.SuppressedBy.Value(by.Int64()),
@@ -378,8 +370,7 @@ func (r *alertEventRepository) RecoverAlert(ctx context.Context, req *bo.Recover
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
 		return merr.ErrorNotFound("alert event not found")
 	}
-	bizQuery := query.Use(r.DB().Table(tableName))
-	table := bizQuery.AlertEvent.As(tableName)
+	table := query.AlertEvent.Table(tableName)
 	now := time.Now()
 	info, err := table.WithContext(ctx).Where(table.ID.Eq(uid.Int64())).UpdateColumnSimple(
 		table.Status.Value(int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_RECOVERED_BY_MANUAL)),
@@ -403,8 +394,7 @@ func (r *alertEventRepository) AutoRecoverAlert(ctx context.Context, uid snowfla
 	if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
 		return merr.ErrorNotFound("alert event not found")
 	}
-	bizQuery := query.Use(r.DB().Table(tableName))
-	table := bizQuery.AlertEvent.As(tableName)
+	table := query.AlertEvent.Table(tableName)
 	_, err := table.WithContext(ctx).Where(table.ID.Eq(uid.Int64()), table.Status.Eq(int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_FIRING))).UpdateColumnSimple(
 		table.Status.Value(int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_RECOVERED)),
 		table.RecoveredAt.Value(time.Now()),
@@ -433,8 +423,7 @@ func (r *alertEventRepository) buildAlertEventUnion(ctx context.Context, ns snow
 	} else {
 		wrappers = wrappers.Table(fmt.Sprintf("%s as %s", tableNames[0], do.TableNameAlertEvent))
 	}
-	e := query.AlertEvent
-	table := e.As(do.TableNameAlertEvent)
+	table := query.AlertEvent.As(do.TableNameAlertEvent)
 	return wrappers.Where(table.NamespaceUID.Eq(ns.Int64())).
 		Where(table.FiredAt.Gte(startAt)).
 		Where(table.FiredAt.Lte(endAt))

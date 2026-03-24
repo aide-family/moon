@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 
+	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/safety"
 	"github.com/bwmarrin/snowflake"
@@ -15,11 +16,13 @@ import (
 func NewLevel(
 	levelRepo repository.Level,
 	strategyMetricRepo repository.StrategyMetric,
+	evaluateBiz *Evaluate,
 	helper *klog.Helper,
 ) *LevelBiz {
 	b := &LevelBiz{
 		levelRepo:          levelRepo,
 		strategyMetricRepo: strategyMetricRepo,
+		evaluateBiz:        evaluateBiz,
 		helper:             klog.NewHelper(klog.With(helper.Logger(), "biz", "level")),
 	}
 	b.LevelReferencedFuncs = safety.NewSlice([]func(ctx context.Context, levelUID snowflake.ID) (bool, error){
@@ -32,6 +35,7 @@ type LevelBiz struct {
 	helper               *klog.Helper
 	levelRepo            repository.Level
 	strategyMetricRepo   repository.StrategyMetric
+	evaluateBiz          *Evaluate
 	LevelReferencedFuncs *safety.Slice[func(ctx context.Context, levelUID snowflake.ID) (bool, error)]
 }
 
@@ -68,6 +72,7 @@ func (l *LevelBiz) UpdateLevel(ctx context.Context, req *bo.UpdateLevelBo) error
 		l.helper.Errorw("msg", "update level failed", "error", err, "req", req)
 		return merr.ErrorInternalServer("update level failed").WithCause(err)
 	}
+	l.evaluateBiz.SyncByLevelUID(ctx, req.UID)
 	return nil
 }
 
@@ -78,6 +83,11 @@ func (l *LevelBiz) UpdateLevelStatus(ctx context.Context, req *bo.UpdateLevelSta
 		}
 		l.helper.Errorw("msg", "update level status failed", "error", err, "req", req)
 		return merr.ErrorInternalServer("update level status failed").WithCause(err)
+	}
+	if req.Status == enum.GlobalStatus_ENABLED {
+		l.evaluateBiz.SyncByLevelUID(ctx, req.UID)
+	} else {
+		l.evaluateBiz.RemoveByLevelUID(ctx, req.UID)
 	}
 	return nil
 }
@@ -100,6 +110,7 @@ func (l *LevelBiz) DeleteLevel(ctx context.Context, uid snowflake.ID) error {
 		l.helper.Errorw("msg", "delete level failed", "error", err, "uid", uid)
 		return merr.ErrorInternalServer("delete level failed").WithCause(err)
 	}
+	l.evaluateBiz.RemoveByLevelUID(ctx, uid)
 	return nil
 }
 

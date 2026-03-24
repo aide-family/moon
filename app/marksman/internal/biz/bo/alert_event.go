@@ -157,7 +157,7 @@ func ToAPIV1ListRealtimeAlertReply(pageResponseBo *PageResponseBo[*AlertEventIte
 
 // BuildAlertFingerprint builds a deterministic fingerprint from firedAt and labels.
 // It sorts label keys, joins them as "k=v" pairs, and hashes with SHA-256.
-func BuildAlertFingerprint(namespaceUID, strategyUID, levelUID snowflake.ID, labels map[string]string) string {
+func BuildAlertFingerprint(index string, labels map[string]string) string {
 	if labels == nil {
 		labels = map[string]string{}
 	}
@@ -170,7 +170,7 @@ func BuildAlertFingerprint(namespaceUID, strategyUID, levelUID snowflake.ID, lab
 	for _, k := range keys {
 		parts = append(parts, k+"="+labels[k])
 	}
-	base := fmt.Sprintf("%d,%d,%d,%s", namespaceUID.Int64(), strategyUID.Int64(), levelUID.Int64(), strings.Join(parts, ","))
+	base := fmt.Sprintf("%s|%s", index, strings.Join(parts, ","))
 	sum := sha256.Sum256([]byte(base))
 	return hex.EncodeToString(sum[:])
 }

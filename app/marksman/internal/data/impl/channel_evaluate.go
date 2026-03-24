@@ -50,6 +50,14 @@ func (j *evaluateJobChannelRepository) AppendEvaluateJob(job cron.CronJob) {
 	}
 }
 
+func (j *evaluateJobChannelRepository) RemoveEvaluateJob(index string) {
+	select {
+	case j.metricRemoveJobChannel <- index:
+	default:
+		klog.Warnw("msg", "evaluate remove job channel full, dropping job", "index", index)
+	}
+}
+
 func (j *evaluateJobChannelRepository) close() error {
 	close(j.metricAppendJobChannel)
 	close(j.metricRemoveJobChannel)

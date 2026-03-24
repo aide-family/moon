@@ -25,6 +25,7 @@ func NewDatasource(
 	bc *conf.Bootstrap,
 	datasourceRepo repository.Datasource,
 	metricDatasourceQuerier repository.MetricDatasourceQuerier,
+	evaluateBiz *Evaluate,
 	helper *klog.Helper,
 ) *DatasourceBiz {
 	mainTsdbConf := bc.GetMainTsdb()
@@ -37,6 +38,7 @@ func NewDatasource(
 		mainTsdb:                mainTsdb,
 		datasourceRepo:          datasourceRepo,
 		metricDatasourceQuerier: metricDatasourceQuerier,
+		evaluateBiz:             evaluateBiz,
 		helper:                  klog.NewHelper(klog.With(helper.Logger(), "biz", "datasource")),
 	}
 }
@@ -46,6 +48,7 @@ type DatasourceBiz struct {
 	mainTsdb                *bo.DatasourceItemBo
 	datasourceRepo          repository.Datasource
 	metricDatasourceQuerier repository.MetricDatasourceQuerier
+	evaluateBiz             *Evaluate
 }
 
 func (d *DatasourceBiz) CreateDatasource(ctx context.Context, req *bo.CreateDatasourceBo) (snowflake.ID, error) {
@@ -73,6 +76,7 @@ func (d *DatasourceBiz) UpdateDatasource(ctx context.Context, req *bo.UpdateData
 		d.helper.Errorw("msg", "update datasource failed", "error", err, "req", req)
 		return merr.ErrorInternalServer("update datasource failed").WithCause(err)
 	}
+	d.evaluateBiz.SyncByDatasourceUID(ctx, req.UID)
 	return nil
 }
 
@@ -84,6 +88,7 @@ func (d *DatasourceBiz) DeleteDatasource(ctx context.Context, uid snowflake.ID) 
 		d.helper.Errorw("msg", "delete datasource failed", "error", err, "uid", uid)
 		return merr.ErrorInternalServer("delete datasource failed").WithCause(err)
 	}
+	d.evaluateBiz.RemoveByDatasourceUID(ctx, uid)
 	return nil
 }
 

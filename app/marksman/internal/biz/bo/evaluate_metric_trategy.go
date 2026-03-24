@@ -2,6 +2,7 @@ package bo
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
@@ -65,6 +66,20 @@ type EvaluateMetricStrategyBo struct {
 	condition     enum.ConditionMetric
 	values        []float64
 	durationSec   int64
+}
+
+func (e *EvaluateMetricStrategyBo) BuildMetricEvaluatorIndex() string {
+	if e == nil {
+		return ""
+	}
+	return fmt.Sprintf(
+		"metric-%d-%d-%d-%d-%d",
+		e.GetNamespaceUID().Int64(),
+		e.GetDatasourceUID().Int64(),
+		e.GetStrategyGroupUID().Int64(),
+		e.GetStrategyUID().Int64(),
+		e.GetLevelUID().Int64(),
+	)
 }
 
 func (e *EvaluateMetricStrategyBo) GetStrategyGroupUID() snowflake.ID {

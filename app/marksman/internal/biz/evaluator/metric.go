@@ -3,7 +3,6 @@ package evaluator
 
 import (
 	"context"
-	"fmt"
 	"maps"
 	"time"
 
@@ -78,7 +77,10 @@ type metricEvaluator struct {
 
 // Index implements [cron.CronJob].
 func (m *metricEvaluator) Index() string {
-	return fmt.Sprintf("metric-%d-%d-%d-%d", m.info.GetNamespaceUID().Int64(), m.info.GetStrategyUID().Int64(), m.info.GetLevelUID().Int64(), m.info.GetDatasource().UID.Int64())
+	if m.info == nil {
+		return ""
+	}
+	return m.info.BuildMetricEvaluatorIndex()
 }
 
 // IsImmediate implements [cron.CronJob].
@@ -128,6 +130,7 @@ func (m *metricEvaluator) Run() {
 		tmlData := m.buildAlertTemplateData(series, float64(lastVal.Value), end)
 		summary := m.fillStringTemplate(m.info.GetSummary(), tmlData)
 		description := m.fillStringTemplate(m.info.GetDescription(), tmlData)
+
 		ev := &bo.AlertEventBo{
 			StrategyUID:           m.info.GetStrategyUID(),
 			NamespaceUID:          m.info.GetNamespaceUID(),
@@ -138,10 +141,10 @@ func (m *metricEvaluator) Run() {
 			FiredAt:               end,
 			Value:                 float64(lastVal.Value),
 			Labels:                tmlData.Labels,
-			DatasourceUID:         m.info.GetDatasourceUID(),
+			DatasourceUID:         m.info.GetDatasource().UID,
 			EvaluatorType:         EvaluatorTypeMetric,
 			EvaluatorSnapshotJSON: m.cachedSnapshotJSON,
-			Fingerprint:           bo.BuildAlertFingerprint(m.info.GetNamespaceUID(), m.info.GetStrategyUID(), m.info.GetLevelUID(), tmlData.OriginLabels),
+			Fingerprint:           bo.BuildAlertFingerprint(m.Index(), tmlData.OriginLabels),
 			EvaluateDuration:      dur,
 			StrategyGroupUID:      m.info.GetStrategyGroupUID(),
 			StrategyGroupName:     m.info.GetStrategyGroupName(),
