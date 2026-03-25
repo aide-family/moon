@@ -2,6 +2,7 @@ package collector
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -123,6 +124,7 @@ func probeURL(client *http.Client, url string) bool {
 	if err != nil {
 		return false
 	}
-	_ = resp.Body.Close()
+	defer resp.Body.Close()
+	_, _ = io.Copy(io.Discard, resp.Body)
 	return resp.StatusCode >= 200 && resp.StatusCode < 300
 }

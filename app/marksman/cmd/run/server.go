@@ -2,6 +2,7 @@
 package run
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 
@@ -137,8 +138,7 @@ func (e *endpoint) start(wg *sync.WaitGroup) {
 		_app := app
 		wg.Go(func() {
 			if err := _app.Run(); err != nil {
-				e.helper.Errorf("app [%s] run failed, error: %v", appName, err)
-				return
+				panic(fmt.Sprintf("app [%s] run failed, error: %v", appName, err))
 			}
 		})
 	}

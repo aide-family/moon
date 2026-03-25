@@ -49,12 +49,7 @@ func (r *alertEventRepository) ensureAlertEventTable(ctx context.Context, tableN
 		return nil
 	}
 	if r.DB().Migrator().HasTable(tableName) {
-		_ = r.Cache().Set(ctx, cache.K(tableName), "", 0)
-		return nil
-	}
-	if r.DB().Migrator().HasTable(tableName) {
-		_ = r.Cache().Set(ctx, cache.K(tableName), "", 0)
-		return nil
+		return r.Cache().Set(ctx, cache.K(tableName), "", 0)
 	}
 	initModel := &do.AlertEvent{}
 	baseName := initModel.TableName()

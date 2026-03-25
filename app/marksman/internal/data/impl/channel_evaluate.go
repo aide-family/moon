@@ -42,6 +42,12 @@ type evaluateJobChannelRepository struct {
 }
 
 // AppendEvaluateJob implements [repository.EvaluateJobChannel].
+//
+// TODO:
+//
+//   - Issue: AppendEvaluateJob 在 select 的 default 分支仅打日志，不向调用方返回错误，也不阻塞重试。高负载或启动瞬间大量 localStrategyMetricsByNamespace 投递时，定时评估任务会被静默丢弃，存在漏告警风险。
+//
+//   - Recommendation: 至少任选其一并贯彻：增大 appendChannelCapacity 默认值并监控 channel 深度；default 改为带退避的重试或阻塞发送（需配合 shutdown 避免死锁）；或将 AppendEvaluateJob 改为 error 返回，由上游记录/指标告警。避免仅 Warn 且无补偿。
 func (j *evaluateJobChannelRepository) AppendEvaluateJob(job cron.CronJob) {
 	select {
 	case j.metricAppendJobChannel <- job:
