@@ -73,6 +73,15 @@ func (s *AlertService) ListRealtimeAlert(ctx context.Context, req *apiv1.ListRea
 	return bo.ToAPIV1ListRealtimeAlertReply(result), nil
 }
 
+func (s *AlertService) ListHistoryAlert(ctx context.Context, req *apiv1.ListHistoryAlertRequest) (*apiv1.ListHistoryAlertReply, error) {
+	reqBo := bo.NewListHistoryAlertBo(req)
+	result, err := s.alertBiz.ListRealtimeAlert(ctx, reqBo)
+	if err != nil {
+		return nil, err
+	}
+	return bo.ToAPIV1ListHistoryAlertReply(result), nil
+}
+
 func (s *AlertService) InterveneAlert(ctx context.Context, req *apiv1.InterveneAlertRequest) (*apiv1.InterveneAlertReply, error) {
 	reqBo := bo.NewInterveneAlertBo(ctx, req)
 	if err := s.alertBiz.InterveneAlert(ctx, reqBo); err != nil {

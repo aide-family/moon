@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	apiv1 "github.com/aide-family/marksman/pkg/api/v1"
 )
@@ -84,6 +85,10 @@ func ToAPIV1AlertEventItem(b *AlertEventItemBo) *apiv1.AlertEventItem {
 	if b == nil {
 		return nil
 	}
+	duration := durationpb.New(time.Since(b.FiredAt))
+	if b.RecoveredAt != nil {
+		duration = durationpb.New(b.RecoveredAt.Sub(b.FiredAt))
+	}
 	item := &apiv1.AlertEventItem{
 		Uid:               b.UID.Int64(),
 		StrategyGroupUid:  b.StrategyGroupUID.Int64(),
@@ -113,16 +118,22 @@ func ToAPIV1AlertEventItem(b *AlertEventItemBo) *apiv1.AlertEventItem {
 		RecoveredBy:       b.RecoveredBy.Int64(),
 		RecoveredByName:   b.RecoveredByName,
 		RecoveredReason:   b.RecoveredReason,
+		Duration:          duration,
 	}
 	return item
 }
 
 type ListRealtimeAlertBo struct {
 	*PageRequestBo
-	AlertPageUID snowflake.ID
-	Status       enum.AlertEventStatus
-	StartAt      time.Time
-	EndAt        time.Time
+	AlertPageUID      snowflake.ID
+	Status            enum.AlertEventStatus
+	StartAt           time.Time
+	EndAt             time.Time
+	Keyword           string
+	StrategyGroupUids []int64
+	LevelUids         []int64
+	StrategyUids      []int64
+	DatasourceUids    []int64
 }
 
 func NewListRealtimeAlertBo(req *apiv1.ListRealtimeAlertRequest) *ListRealtimeAlertBo {
@@ -136,9 +147,31 @@ func NewListRealtimeAlertBo(req *apiv1.ListRealtimeAlertRequest) *ListRealtimeAl
 	return &ListRealtimeAlertBo{
 		PageRequestBo: NewPageRequestBo(req.GetPage(), req.GetPageSize()),
 		AlertPageUID:  snowflake.ParseInt64(req.GetAlertPageUid()),
-		Status:        req.GetStatus(),
+		Status:        enum.AlertEventStatus_ALERT_EVENT_STATUS_FIRING,
 		StartAt:       startAt,
 		EndAt:         endAt,
+	}
+}
+
+func NewListHistoryAlertBo(req *apiv1.ListHistoryAlertRequest) *ListRealtimeAlertBo {
+	var startAt, endAt time.Time
+	if req.GetStartAtUnix() != 0 {
+		startAt = time.Unix(req.GetStartAtUnix(), 0)
+	}
+	if req.GetEndAtUnix() != 0 {
+		endAt = time.Unix(req.GetEndAtUnix(), 0)
+	}
+
+	return &ListRealtimeAlertBo{
+		PageRequestBo:     NewPageRequestBo(req.GetPage(), req.GetPageSize()),
+		StartAt:           startAt,
+		EndAt:             endAt,
+		Status:            req.GetStatus(),
+		StrategyGroupUids: req.GetStrategyGroupUids(),
+		LevelUids:         req.GetLevelUids(),
+		StrategyUids:      req.GetStrategyUids(),
+		DatasourceUids:    req.GetDatasourceUids(),
+		Keyword:           req.GetKeyword(),
 	}
 }
 
@@ -148,6 +181,19 @@ func ToAPIV1ListRealtimeAlertReply(pageResponseBo *PageResponseBo[*AlertEventIte
 		items = append(items, ToAPIV1AlertEventItem(item))
 	}
 	return &apiv1.ListRealtimeAlertReply{
+		Total:    pageResponseBo.GetTotal(),
+		Page:     pageResponseBo.GetPage(),
+		PageSize: pageResponseBo.GetPageSize(),
+		Items:    items,
+	}
+}
+
+func ToAPIV1ListHistoryAlertReply(pageResponseBo *PageResponseBo[*AlertEventItemBo]) *apiv1.ListHistoryAlertReply {
+	items := make([]*apiv1.AlertEventItem, 0, len(pageResponseBo.GetItems()))
+	for _, item := range pageResponseBo.GetItems() {
+		items = append(items, ToAPIV1AlertEventItem(item))
+	}
+	return &apiv1.ListHistoryAlertReply{
 		Total:    pageResponseBo.GetTotal(),
 		Page:     pageResponseBo.GetPage(),
 		PageSize: pageResponseBo.GetPageSize(),

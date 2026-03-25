@@ -7,6 +7,7 @@ option java_multiple_files = true;
 option java_package = "marksman.api.v1";
 
 import "google/api/annotations.proto";
+import "google/protobuf/duration.proto";
 import "buf/validate/validate.proto";
 import "magicbox/enum/alert.proto";
 
@@ -43,6 +44,11 @@ service Alert {
 	rpc ListRealtimeAlert (ListRealtimeAlertRequest) returns (ListRealtimeAlertReply) {
 		option (google.api.http) = {
 			get: "/v1/alert/alert-pages/{alertPageUid}/realtime-alerts"
+		};
+	}
+	rpc ListHistoryAlert (ListHistoryAlertRequest) returns (ListHistoryAlertReply) {
+		option (google.api.http) = {
+			get: "/v1/alert/history-alerts"
 		};
 	}
 	rpc InterveneAlert (InterveneAlertRequest) returns (InterveneAlertReply) {
@@ -197,6 +203,7 @@ message AlertEventItem {
 	string recoveredByName = 26;
 	string recoveredReason = 27;
 	string bgColor = 28;
+	google.protobuf.Duration duration = 29;
 }
 
 // ListRealtimeAlertRequest lists real-time alert events for an alert page.
@@ -213,13 +220,65 @@ message ListRealtimeAlertRequest {
 		expression: "this >= 1 && this <= 200",
 		message: "pageSize must be between 1 and 200",
 	}];
-	// Filter by status; empty means all statuses.
-	magicbox.enum.AlertEventStatus status = 4;
 	// Time range for fired_at (Unix seconds). If both 0, backend defaults to last 14 days.
-	int64 startAtUnix = 5;
-	int64 endAtUnix = 6;
+	int64 startAtUnix = 4;
+	int64 endAtUnix = 5;
+	string keyword = 6 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword length must be <= 100",
+	}];
+
+	option (buf.validate.message).cel = {
+		expression: "this.startAtUnix < this.endAtUnix",
+		message: "startAtUnix must be less than endAtUnix",
+	};
+
+	option (buf.validate.message).cel = {
+		expression: "this.endAtUnix - this.startAtUnix <= 31 * 24 * 60 * 60",
+		message: "endAtUnix - startAtUnix must be less than or equal to 31 days",
+	};
 }
 message ListRealtimeAlertReply {
+	int64 total = 1;
+	int32 page = 2;
+	int32 pageSize = 3;
+	repeated AlertEventItem items = 4;
+}
+
+// ListHistoryAlertRequest lists history alert events for an alert page.
+message ListHistoryAlertRequest {
+	int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1",
+		message: "page must be >= 1",
+	}];
+	int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 200",
+		message: "pageSize must be between 1 and 200",
+	}];
+	// Time range for fired_at (Unix seconds). If both 0, backend defaults to last 14 days.
+	int64 startAtUnix = 3;
+	int64 endAtUnix = 4;
+	magicbox.enum.AlertEventStatus status = 5;
+	repeated int64 strategyGroupUids = 6;
+	repeated int64 levelUids = 7;
+	repeated int64 strategyUids = 8;
+	repeated int64 datasourceUids = 9;
+	string keyword = 10 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword length must be <= 100",
+	}];
+
+	option (buf.validate.message).cel = {
+		expression: "this.startAtUnix < this.endAtUnix",
+		message: "startAtUnix must be less than endAtUnix",
+	};
+
+	option (buf.validate.message).cel = {
+		expression: "this.endAtUnix - this.startAtUnix <= 31 * 24 * 60 * 60",
+		message: "endAtUnix - startAtUnix must be less than or equal to 31 days",
+	};
+}
+message ListHistoryAlertReply {
 	int64 total = 1;
 	int32 page = 2;
 	int32 pageSize = 3;

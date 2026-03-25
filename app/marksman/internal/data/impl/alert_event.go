@@ -260,11 +260,30 @@ func (r *alertEventRepository) ListRealtimeAlert(ctx context.Context, req *bo.Li
 			wrappers = wrappers.Where(table.StrategyGroupUID.In(pageFilter.StrategyGroupUIDs...))
 		}
 	}
+	if req.Keyword != "" {
+		keyword := "%" + req.Keyword + "%"
+		wrappers = wrappers.Or(table.Summary.Like(keyword), table.Description.Like(keyword))
+	}
+	if len(req.StrategyGroupUids) > 0 {
+		wrappers = wrappers.Where(table.StrategyGroupUID.In(req.StrategyGroupUids...))
+	}
+	if len(req.LevelUids) > 0 {
+		wrappers = wrappers.Where(table.LevelUID.In(req.LevelUids...))
+	}
+	if len(req.StrategyUids) > 0 {
+		wrappers = wrappers.Where(table.StrategyUID.In(req.StrategyUids...))
+	}
+	if len(req.DatasourceUids) > 0 {
+		wrappers = wrappers.Where(table.DatasourceUID.In(req.DatasourceUids...))
+	}
 	var total int64
 	if err := wrappers.Count(&total).Error; err != nil {
 		return nil, err
 	}
 	req.WithTotal(total)
+	if total == 0 {
+		return bo.NewPageResponseBo[*bo.AlertEventItemBo](req.PageRequestBo, nil), nil
+	}
 	if req.Page > 0 && req.PageSize > 0 {
 		wrappers = wrappers.Offset(req.Offset()).Limit(req.Limit())
 	}

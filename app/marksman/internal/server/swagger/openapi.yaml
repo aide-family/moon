@@ -71,18 +71,16 @@ paths:
                   schema:
                     type: integer
                     format: int32
-                - name: status
-                  in: query
-                  description: Filter by status; empty means all statuses.
-                  schema:
-                    type: integer
-                    format: enum
                 - name: startAtUnix
                   in: query
                   description: Time range for fired_at (Unix seconds). If both 0, backend defaults to last 14 days.
                   schema:
                     type: string
                 - name: endAtUnix
+                  in: query
+                  schema:
+                    type: string
+                - name: keyword
                   in: query
                   schema:
                     type: string
@@ -151,6 +149,71 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.DeleteAlertPageReply'
+    /v1/alert/history-alerts:
+        get:
+            tags:
+                - Alert
+            operationId: Alert_ListHistoryAlert
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: startAtUnix
+                  in: query
+                  description: Time range for fired_at (Unix seconds). If both 0, backend defaults to last 14 days.
+                  schema:
+                    type: string
+                - name: endAtUnix
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: strategyGroupUids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: levelUids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: strategyUids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: datasourceUids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.ListHistoryAlertReply'
     /v1/alert/realtime-alerts/{uid}/intervene:
         post:
             tags:
@@ -1456,6 +1519,9 @@ components:
                     type: string
                 bgColor:
                     type: string
+                duration:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
             description: AlertEventItem is a single real-time alert event.
         marksman.api.v1.AlertPageCount:
             type: object
@@ -1811,6 +1877,21 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        marksman.api.v1.ListHistoryAlertReply:
+            type: object
+            properties:
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.AlertEventItem'
         marksman.api.v1.ListLevelReply:
             type: object
             properties:

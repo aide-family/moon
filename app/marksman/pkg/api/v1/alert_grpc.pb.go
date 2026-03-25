@@ -25,6 +25,7 @@ const (
 	Alert_GetAlertPage_FullMethodName       = "/marksman.api.v1.Alert/GetAlertPage"
 	Alert_ListAlertPage_FullMethodName      = "/marksman.api.v1.Alert/ListAlertPage"
 	Alert_ListRealtimeAlert_FullMethodName  = "/marksman.api.v1.Alert/ListRealtimeAlert"
+	Alert_ListHistoryAlert_FullMethodName   = "/marksman.api.v1.Alert/ListHistoryAlert"
 	Alert_InterveneAlert_FullMethodName     = "/marksman.api.v1.Alert/InterveneAlert"
 	Alert_SuppressAlert_FullMethodName      = "/marksman.api.v1.Alert/SuppressAlert"
 	Alert_RecoverAlert_FullMethodName       = "/marksman.api.v1.Alert/RecoverAlert"
@@ -45,6 +46,7 @@ type AlertClient interface {
 	GetAlertPage(ctx context.Context, in *GetAlertPageRequest, opts ...grpc.CallOption) (*AlertPageItem, error)
 	ListAlertPage(ctx context.Context, in *ListAlertPageRequest, opts ...grpc.CallOption) (*ListAlertPageReply, error)
 	ListRealtimeAlert(ctx context.Context, in *ListRealtimeAlertRequest, opts ...grpc.CallOption) (*ListRealtimeAlertReply, error)
+	ListHistoryAlert(ctx context.Context, in *ListHistoryAlertRequest, opts ...grpc.CallOption) (*ListHistoryAlertReply, error)
 	InterveneAlert(ctx context.Context, in *InterveneAlertRequest, opts ...grpc.CallOption) (*InterveneAlertReply, error)
 	SuppressAlert(ctx context.Context, in *SuppressAlertRequest, opts ...grpc.CallOption) (*SuppressAlertReply, error)
 	RecoverAlert(ctx context.Context, in *RecoverAlertRequest, opts ...grpc.CallOption) (*RecoverAlertReply, error)
@@ -124,6 +126,16 @@ func (c *alertClient) ListRealtimeAlert(ctx context.Context, in *ListRealtimeAle
 	return out, nil
 }
 
+func (c *alertClient) ListHistoryAlert(ctx context.Context, in *ListHistoryAlertRequest, opts ...grpc.CallOption) (*ListHistoryAlertReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListHistoryAlertReply)
+	err := c.cc.Invoke(ctx, Alert_ListHistoryAlert_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *alertClient) InterveneAlert(ctx context.Context, in *InterveneAlertRequest, opts ...grpc.CallOption) (*InterveneAlertReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(InterveneAlertReply)
@@ -196,6 +208,7 @@ type AlertServer interface {
 	GetAlertPage(context.Context, *GetAlertPageRequest) (*AlertPageItem, error)
 	ListAlertPage(context.Context, *ListAlertPageRequest) (*ListAlertPageReply, error)
 	ListRealtimeAlert(context.Context, *ListRealtimeAlertRequest) (*ListRealtimeAlertReply, error)
+	ListHistoryAlert(context.Context, *ListHistoryAlertRequest) (*ListHistoryAlertReply, error)
 	InterveneAlert(context.Context, *InterveneAlertRequest) (*InterveneAlertReply, error)
 	SuppressAlert(context.Context, *SuppressAlertRequest) (*SuppressAlertReply, error)
 	RecoverAlert(context.Context, *RecoverAlertRequest) (*RecoverAlertReply, error)
@@ -232,6 +245,9 @@ func (UnimplementedAlertServer) ListAlertPage(context.Context, *ListAlertPageReq
 }
 func (UnimplementedAlertServer) ListRealtimeAlert(context.Context, *ListRealtimeAlertRequest) (*ListRealtimeAlertReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRealtimeAlert not implemented")
+}
+func (UnimplementedAlertServer) ListHistoryAlert(context.Context, *ListHistoryAlertRequest) (*ListHistoryAlertReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListHistoryAlert not implemented")
 }
 func (UnimplementedAlertServer) InterveneAlert(context.Context, *InterveneAlertRequest) (*InterveneAlertReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InterveneAlert not implemented")
@@ -380,6 +396,24 @@ func _Alert_ListRealtimeAlert_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Alert_ListHistoryAlert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListHistoryAlertRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertServer).ListHistoryAlert(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Alert_ListHistoryAlert_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertServer).ListHistoryAlert(ctx, req.(*ListHistoryAlertRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Alert_InterveneAlert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(InterveneAlertRequest)
 	if err := dec(in); err != nil {
@@ -518,6 +552,10 @@ var Alert_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListRealtimeAlert",
 			Handler:    _Alert_ListRealtimeAlert_Handler,
+		},
+		{
+			MethodName: "ListHistoryAlert",
+			Handler:    _Alert_ListHistoryAlert_Handler,
 		},
 		{
 			MethodName: "InterveneAlert",

@@ -25,6 +25,7 @@ const OperationAlertGetAlertPage = "/marksman.api.v1.Alert/GetAlertPage"
 const OperationAlertGetAlertStatistics = "/marksman.api.v1.Alert/GetAlertStatistics"
 const OperationAlertInterveneAlert = "/marksman.api.v1.Alert/InterveneAlert"
 const OperationAlertListAlertPage = "/marksman.api.v1.Alert/ListAlertPage"
+const OperationAlertListHistoryAlert = "/marksman.api.v1.Alert/ListHistoryAlert"
 const OperationAlertListRealtimeAlert = "/marksman.api.v1.Alert/ListRealtimeAlert"
 const OperationAlertListUserAlertPages = "/marksman.api.v1.Alert/ListUserAlertPages"
 const OperationAlertRecoverAlert = "/marksman.api.v1.Alert/RecoverAlert"
@@ -40,6 +41,7 @@ type AlertHTTPServer interface {
 	GetAlertStatistics(context.Context, *GetAlertStatisticsRequest) (*GetAlertStatisticsReply, error)
 	InterveneAlert(context.Context, *InterveneAlertRequest) (*InterveneAlertReply, error)
 	ListAlertPage(context.Context, *ListAlertPageRequest) (*ListAlertPageReply, error)
+	ListHistoryAlert(context.Context, *ListHistoryAlertRequest) (*ListHistoryAlertReply, error)
 	ListRealtimeAlert(context.Context, *ListRealtimeAlertRequest) (*ListRealtimeAlertReply, error)
 	// ListUserAlertPages ListUserAlertPages returns the current user's followed alert pages (personal config).
 	ListUserAlertPages(context.Context, *ListUserAlertPagesRequest) (*ListUserAlertPagesReply, error)
@@ -58,6 +60,7 @@ func RegisterAlertHTTPServer(s *http.Server, srv AlertHTTPServer) {
 	r.GET("/v1/alert/alert-pages/{uid}", _Alert_GetAlertPage0_HTTP_Handler(srv))
 	r.GET("/v1/alert/alert-pages", _Alert_ListAlertPage0_HTTP_Handler(srv))
 	r.GET("/v1/alert/alert-pages/{alertPageUid}/realtime-alerts", _Alert_ListRealtimeAlert0_HTTP_Handler(srv))
+	r.GET("/v1/alert/history-alerts", _Alert_ListHistoryAlert0_HTTP_Handler(srv))
 	r.POST("/v1/alert/realtime-alerts/{uid}/intervene", _Alert_InterveneAlert0_HTTP_Handler(srv))
 	r.POST("/v1/alert/realtime-alerts/{uid}/suppress", _Alert_SuppressAlert0_HTTP_Handler(srv))
 	r.POST("/v1/alert/realtime-alerts/{uid}/recover", _Alert_RecoverAlert0_HTTP_Handler(srv))
@@ -194,6 +197,25 @@ func _Alert_ListRealtimeAlert0_HTTP_Handler(srv AlertHTTPServer) func(ctx http.C
 			return err
 		}
 		reply := out.(*ListRealtimeAlertReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Alert_ListHistoryAlert0_HTTP_Handler(srv AlertHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListHistoryAlertRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertListHistoryAlert)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListHistoryAlert(ctx, req.(*ListHistoryAlertRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListHistoryAlertReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -341,6 +363,7 @@ type AlertHTTPClient interface {
 	GetAlertStatistics(ctx context.Context, req *GetAlertStatisticsRequest, opts ...http.CallOption) (rsp *GetAlertStatisticsReply, err error)
 	InterveneAlert(ctx context.Context, req *InterveneAlertRequest, opts ...http.CallOption) (rsp *InterveneAlertReply, err error)
 	ListAlertPage(ctx context.Context, req *ListAlertPageRequest, opts ...http.CallOption) (rsp *ListAlertPageReply, err error)
+	ListHistoryAlert(ctx context.Context, req *ListHistoryAlertRequest, opts ...http.CallOption) (rsp *ListHistoryAlertReply, err error)
 	ListRealtimeAlert(ctx context.Context, req *ListRealtimeAlertRequest, opts ...http.CallOption) (rsp *ListRealtimeAlertReply, err error)
 	// ListUserAlertPages ListUserAlertPages returns the current user's followed alert pages (personal config).
 	ListUserAlertPages(ctx context.Context, req *ListUserAlertPagesRequest, opts ...http.CallOption) (rsp *ListUserAlertPagesReply, err error)
@@ -430,6 +453,19 @@ func (c *AlertHTTPClientImpl) ListAlertPage(ctx context.Context, in *ListAlertPa
 	pattern := "/v1/alert/alert-pages"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAlertListAlertPage))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *AlertHTTPClientImpl) ListHistoryAlert(ctx context.Context, in *ListHistoryAlertRequest, opts ...http.CallOption) (*ListHistoryAlertReply, error) {
+	var out ListHistoryAlertReply
+	pattern := "/v1/alert/history-alerts"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAlertListHistoryAlert))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
