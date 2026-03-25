@@ -6,6 +6,7 @@ import (
 
 	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/merr"
+	"github.com/bwmarrin/snowflake"
 	klog "github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/marksman/internal/biz/bo"
@@ -85,6 +86,18 @@ func (b *AlertBiz) RecoverAlert(ctx context.Context, req *bo.RecoverAlertBo) err
 		return merr.ErrorInternalServer("recover alert failed").WithCause(err)
 	}
 	return nil
+}
+
+func (b *AlertBiz) GetAlertEvent(ctx context.Context, uid snowflake.ID) (*bo.AlertEventItemBo, error) {
+	item, err := b.alertEventRepo.GetAlertEvent(ctx, uid)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return nil, merr.ErrorNotFound("alert event not found")
+		}
+		b.helper.Errorw("msg", "get alert event failed", "error", err, "uid", uid.Int64())
+		return nil, merr.ErrorInternalServer("get alert event failed").WithCause(err)
+	}
+	return item, nil
 }
 
 func (b *AlertBiz) GetAlertStatistics(ctx context.Context) (*bo.AlertStatisticsBo, error) {

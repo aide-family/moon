@@ -82,6 +82,14 @@ func (s *AlertService) ListHistoryAlert(ctx context.Context, req *apiv1.ListHist
 	return bo.ToAPIV1ListHistoryAlertReply(result), nil
 }
 
+func (s *AlertService) GetAlertEvent(ctx context.Context, req *apiv1.GetAlertEventRequest) (*apiv1.AlertEventItem, error) {
+	item, err := s.alertBiz.GetAlertEvent(ctx, snowflake.ParseInt64(req.GetUid()))
+	if err != nil {
+		return nil, err
+	}
+	return bo.ToAPIV1AlertEventItem(item), nil
+}
+
 func (s *AlertService) InterveneAlert(ctx context.Context, req *apiv1.InterveneAlertRequest) (*apiv1.InterveneAlertReply, error) {
 	reqBo := bo.NewInterveneAlertBo(ctx, req)
 	if err := s.alertBiz.InterveneAlert(ctx, reqBo); err != nil {

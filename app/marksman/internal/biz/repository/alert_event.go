@@ -14,7 +14,7 @@ type AlertEvent interface {
 	GetAlertEvent(ctx context.Context, uid snowflake.ID) (*bo.AlertEventItemBo, error)
 	GetAlertEventByFingerprint(ctx context.Context, uid snowflake.ID, fingerprint string) (*bo.AlertEventItemBo, error)
 	ListRealtimeAlert(ctx context.Context, req *bo.ListRealtimeAlertBo, pageFilter *bo.AlertPageFilterBo) (*bo.PageResponseBo[*bo.AlertEventItemBo], error)
-	// CountActiveAlerts returns count of alerts with status in (Firing, Intervened, Suppressed) in the time range; pageFilter optional.
+	// CountActiveAlerts returns count of alerts with status FIRING in the time range; pageFilter optional.
 	CountActiveAlerts(ctx context.Context, startAt, endAt time.Time, pageFilter *bo.AlertPageFilterBo) (int64, error)
 	// CountActiveAlertsByLevel returns per-level counts for active alerts; LevelName is not set.
 	CountActiveAlertsByLevel(ctx context.Context, startAt, endAt time.Time, pageFilter *bo.AlertPageFilterBo) ([]bo.LevelCountBo, error)

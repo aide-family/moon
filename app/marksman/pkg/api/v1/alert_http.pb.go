@@ -21,6 +21,7 @@ const _ = http.SupportPackageIsVersion1
 
 const OperationAlertCreateAlertPage = "/marksman.api.v1.Alert/CreateAlertPage"
 const OperationAlertDeleteAlertPage = "/marksman.api.v1.Alert/DeleteAlertPage"
+const OperationAlertGetAlertEvent = "/marksman.api.v1.Alert/GetAlertEvent"
 const OperationAlertGetAlertPage = "/marksman.api.v1.Alert/GetAlertPage"
 const OperationAlertGetAlertStatistics = "/marksman.api.v1.Alert/GetAlertStatistics"
 const OperationAlertInterveneAlert = "/marksman.api.v1.Alert/InterveneAlert"
@@ -36,6 +37,7 @@ const OperationAlertUpdateAlertPage = "/marksman.api.v1.Alert/UpdateAlertPage"
 type AlertHTTPServer interface {
 	CreateAlertPage(context.Context, *CreateAlertPageRequest) (*CreateAlertPageReply, error)
 	DeleteAlertPage(context.Context, *DeleteAlertPageRequest) (*DeleteAlertPageReply, error)
+	GetAlertEvent(context.Context, *GetAlertEventRequest) (*AlertEventItem, error)
 	GetAlertPage(context.Context, *GetAlertPageRequest) (*AlertPageItem, error)
 	// GetAlertStatistics GetAlertStatistics returns alert counts for the dashboard: total active, by level, today recovered, by alert page.
 	GetAlertStatistics(context.Context, *GetAlertStatisticsRequest) (*GetAlertStatisticsReply, error)
@@ -61,6 +63,7 @@ func RegisterAlertHTTPServer(s *http.Server, srv AlertHTTPServer) {
 	r.GET("/v1/alert/alert-pages", _Alert_ListAlertPage0_HTTP_Handler(srv))
 	r.GET("/v1/alert/alert-pages/{alertPageUid}/realtime-alerts", _Alert_ListRealtimeAlert0_HTTP_Handler(srv))
 	r.GET("/v1/alert/history-alerts", _Alert_ListHistoryAlert0_HTTP_Handler(srv))
+	r.GET("/v1/alert/realtime-alerts/{uid}", _Alert_GetAlertEvent0_HTTP_Handler(srv))
 	r.POST("/v1/alert/realtime-alerts/{uid}/intervene", _Alert_InterveneAlert0_HTTP_Handler(srv))
 	r.POST("/v1/alert/realtime-alerts/{uid}/suppress", _Alert_SuppressAlert0_HTTP_Handler(srv))
 	r.POST("/v1/alert/realtime-alerts/{uid}/recover", _Alert_RecoverAlert0_HTTP_Handler(srv))
@@ -220,6 +223,28 @@ func _Alert_ListHistoryAlert0_HTTP_Handler(srv AlertHTTPServer) func(ctx http.Co
 	}
 }
 
+func _Alert_GetAlertEvent0_HTTP_Handler(srv AlertHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAlertEventRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertGetAlertEvent)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAlertEvent(ctx, req.(*GetAlertEventRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AlertEventItem)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _Alert_InterveneAlert0_HTTP_Handler(srv AlertHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in InterveneAlertRequest
@@ -358,6 +383,7 @@ func _Alert_SaveUserAlertPages0_HTTP_Handler(srv AlertHTTPServer) func(ctx http.
 type AlertHTTPClient interface {
 	CreateAlertPage(ctx context.Context, req *CreateAlertPageRequest, opts ...http.CallOption) (rsp *CreateAlertPageReply, err error)
 	DeleteAlertPage(ctx context.Context, req *DeleteAlertPageRequest, opts ...http.CallOption) (rsp *DeleteAlertPageReply, err error)
+	GetAlertEvent(ctx context.Context, req *GetAlertEventRequest, opts ...http.CallOption) (rsp *AlertEventItem, err error)
 	GetAlertPage(ctx context.Context, req *GetAlertPageRequest, opts ...http.CallOption) (rsp *AlertPageItem, err error)
 	// GetAlertStatistics GetAlertStatistics returns alert counts for the dashboard: total active, by level, today recovered, by alert page.
 	GetAlertStatistics(ctx context.Context, req *GetAlertStatisticsRequest, opts ...http.CallOption) (rsp *GetAlertStatisticsReply, err error)
@@ -402,6 +428,19 @@ func (c *AlertHTTPClientImpl) DeleteAlertPage(ctx context.Context, in *DeleteAle
 	opts = append(opts, http.Operation(OperationAlertDeleteAlertPage))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *AlertHTTPClientImpl) GetAlertEvent(ctx context.Context, in *GetAlertEventRequest, opts ...http.CallOption) (*AlertEventItem, error) {
+	var out AlertEventItem
+	pattern := "/v1/alert/realtime-alerts/{uid}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAlertGetAlertEvent))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

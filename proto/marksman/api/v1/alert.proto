@@ -7,7 +7,6 @@ option java_multiple_files = true;
 option java_package = "marksman.api.v1";
 
 import "google/api/annotations.proto";
-import "google/protobuf/duration.proto";
 import "buf/validate/validate.proto";
 import "magicbox/enum/alert.proto";
 
@@ -49,6 +48,11 @@ service Alert {
 	rpc ListHistoryAlert (ListHistoryAlertRequest) returns (ListHistoryAlertReply) {
 		option (google.api.http) = {
 			get: "/v1/alert/history-alerts"
+		};
+	}
+	rpc GetAlertEvent (GetAlertEventRequest) returns (AlertEventItem) {
+		option (google.api.http) = {
+			get: "/v1/alert/realtime-alerts/{uid}"
 		};
 	}
 	rpc InterveneAlert (InterveneAlertRequest) returns (InterveneAlertReply) {
@@ -203,7 +207,7 @@ message AlertEventItem {
 	string recoveredByName = 26;
 	string recoveredReason = 27;
 	string bgColor = 28;
-	google.protobuf.Duration duration = 29;
+	string duration = 29;
 }
 
 // ListRealtimeAlertRequest lists real-time alert events for an alert page.
@@ -229,7 +233,7 @@ message ListRealtimeAlertRequest {
 	}];
 
 	option (buf.validate.message).cel = {
-		expression: "this.startAtUnix < this.endAtUnix",
+		expression: "this.startAtUnix <= this.endAtUnix",
 		message: "startAtUnix must be less than endAtUnix",
 	};
 
@@ -269,7 +273,7 @@ message ListHistoryAlertRequest {
 	}];
 
 	option (buf.validate.message).cel = {
-		expression: "this.startAtUnix < this.endAtUnix",
+		expression: "this.startAtUnix <= this.endAtUnix",
 		message: "startAtUnix must be less than endAtUnix",
 	};
 
@@ -283,6 +287,14 @@ message ListHistoryAlertReply {
 	int32 page = 2;
 	int32 pageSize = 3;
 	repeated AlertEventItem items = 4;
+}
+
+// GetAlertEventRequest gets a single alert event.
+message GetAlertEventRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
 }
 
 // InterveneAlertRequest marks an event as intervened (on-call has taken over).

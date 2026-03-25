@@ -118,7 +118,7 @@ func ToAPIV1AlertEventItem(b *AlertEventItemBo) *apiv1.AlertEventItem {
 		RecoveredBy:       b.RecoveredBy.Int64(),
 		RecoveredByName:   b.RecoveredByName,
 		RecoveredReason:   b.RecoveredReason,
-		Duration:          duration,
+		Duration:          duration.AsDuration().Round(time.Second).String(),
 	}
 	return item
 }

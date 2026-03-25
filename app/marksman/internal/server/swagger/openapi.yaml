@@ -214,6 +214,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.ListHistoryAlertReply'
+    /v1/alert/realtime-alerts/{uid}:
+        get:
+            tags:
+                - Alert
+            operationId: Alert_GetAlertEvent
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.AlertEventItem'
     /v1/alert/realtime-alerts/{uid}/intervene:
         post:
             tags:
@@ -1520,7 +1538,6 @@ components:
                 bgColor:
                     type: string
                 duration:
-                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
                     type: string
             description: AlertEventItem is a single real-time alert event.
         marksman.api.v1.AlertPageCount:

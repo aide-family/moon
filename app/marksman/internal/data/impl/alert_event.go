@@ -453,6 +453,8 @@ func (r *alertEventRepository) tablesFromNames(names []string) []any {
 
 func (r *alertEventRepository) applyActiveFilter(db *gorm.DB, pageFilter *bo.AlertPageFilterBo) *gorm.DB {
 	table := query.AlertEvent.As(do.TableNameAlertEvent)
+	// Active alerts are persisted with FIRING status.
+	db = db.Where(table.Status.Eq(int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_FIRING)))
 	if pageFilter != nil {
 		if len(pageFilter.StrategyUIDs) > 0 {
 			db = db.Where(table.StrategyUID.In(pageFilter.StrategyUIDs...))
