@@ -40,6 +40,12 @@ func newDatasource(db *gorm.DB, opts ...gen.DOOption) datasource {
 	_datasource.Status = field.NewInt32(tableName, "status")
 	_datasource.URL = field.NewString(tableName, "url")
 	_datasource.Remark = field.NewString(tableName, "remark")
+	_datasource.LevelUID = field.NewInt64(tableName, "level_uid")
+	_datasource.Level = datasourceBelongsToLevel{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Level", "do.Level"),
+	}
 
 	_datasource.fillFieldMap()
 
@@ -63,6 +69,8 @@ type datasource struct {
 	Status       field.Int32
 	URL          field.String
 	Remark       field.String
+	LevelUID     field.Int64
+	Level        datasourceBelongsToLevel
 
 	fieldMap map[string]field.Expr
 }
@@ -92,6 +100,7 @@ func (d *datasource) updateTableName(table string) *datasource {
 	d.Status = field.NewInt32(table, "status")
 	d.URL = field.NewString(table, "url")
 	d.Remark = field.NewString(table, "remark")
+	d.LevelUID = field.NewInt64(table, "level_uid")
 
 	d.fillFieldMap()
 
@@ -108,7 +117,7 @@ func (d *datasource) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (d *datasource) fillFieldMap() {
-	d.fieldMap = make(map[string]field.Expr, 13)
+	d.fieldMap = make(map[string]field.Expr, 15)
 	d.fieldMap["id"] = d.ID
 	d.fieldMap["created_at"] = d.CreatedAt
 	d.fieldMap["updated_at"] = d.UpdatedAt
@@ -122,16 +131,102 @@ func (d *datasource) fillFieldMap() {
 	d.fieldMap["status"] = d.Status
 	d.fieldMap["url"] = d.URL
 	d.fieldMap["remark"] = d.Remark
+	d.fieldMap["level_uid"] = d.LevelUID
+
 }
 
 func (d datasource) clone(db *gorm.DB) datasource {
 	d.datasourceDo.ReplaceConnPool(db.Statement.ConnPool)
+	d.Level.db = db.Session(&gorm.Session{Initialized: true})
+	d.Level.db.Statement.ConnPool = db.Statement.ConnPool
 	return d
 }
 
 func (d datasource) replaceDB(db *gorm.DB) datasource {
 	d.datasourceDo.ReplaceDB(db)
+	d.Level.db = db.Session(&gorm.Session{})
 	return d
+}
+
+type datasourceBelongsToLevel struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a datasourceBelongsToLevel) Where(conds ...field.Expr) *datasourceBelongsToLevel {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a datasourceBelongsToLevel) WithContext(ctx context.Context) *datasourceBelongsToLevel {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a datasourceBelongsToLevel) Session(session *gorm.Session) *datasourceBelongsToLevel {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a datasourceBelongsToLevel) Model(m *do.Datasource) *datasourceBelongsToLevelTx {
+	return &datasourceBelongsToLevelTx{a.db.Model(m).Association(a.Name())}
+}
+
+func (a datasourceBelongsToLevel) Unscoped() *datasourceBelongsToLevel {
+	a.db = a.db.Unscoped()
+	return &a
+}
+
+type datasourceBelongsToLevelTx struct{ tx *gorm.Association }
+
+func (a datasourceBelongsToLevelTx) Find() (result *do.Level, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a datasourceBelongsToLevelTx) Append(values ...*do.Level) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a datasourceBelongsToLevelTx) Replace(values ...*do.Level) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a datasourceBelongsToLevelTx) Delete(values ...*do.Level) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a datasourceBelongsToLevelTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a datasourceBelongsToLevelTx) Count() int64 {
+	return a.tx.Count()
+}
+
+func (a datasourceBelongsToLevelTx) Unscoped() *datasourceBelongsToLevelTx {
+	a.tx = a.tx.Unscoped()
+	return &a
 }
 
 type datasourceDo struct{ gen.DO }

@@ -18,6 +18,8 @@ type Datasource struct {
 	Status       enum.GlobalStatus           `gorm:"column:status;type:tinyint;default:0"`
 	URL          string                      `gorm:"column:url;type:varchar(255)"`
 	Remark       string                      `gorm:"column:remark;type:varchar(100);default:''"`
+	LevelUID     snowflake.ID                `gorm:"column:level_uid;type:bigint;default:0"`
+	Level        *Level                      `gorm:"foreignKey:LevelUID;references:ID"`
 }
 
 func (Datasource) TableName() string {

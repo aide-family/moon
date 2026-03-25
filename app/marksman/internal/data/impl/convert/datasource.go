@@ -15,6 +15,10 @@ func ToDatasourceItemBo(m *do.Datasource) *bo.DatasourceItemBo {
 	if m == nil {
 		return nil
 	}
+	levelName := ""
+	if m.Level != nil {
+		levelName = m.Level.Name
+	}
 	return &bo.DatasourceItemBo{
 		UID:       m.ID,
 		Name:      m.Name,
@@ -26,6 +30,8 @@ func ToDatasourceItemBo(m *do.Datasource) *bo.DatasourceItemBo {
 		UpdatedAt: m.UpdatedAt,
 		URL:       m.URL,
 		Remark:    m.Remark,
+		LevelUID:  m.LevelUID,
+		LevelName: levelName,
 	}
 }
 
@@ -41,6 +47,7 @@ func ToDatasourceDo(ctx context.Context, req *bo.CreateDatasourceBo) *do.Datasou
 		Status:   enum.GlobalStatus_ENABLED,
 		URL:      req.URL,
 		Remark:   req.Remark,
+		LevelUID: req.LevelUID,
 	}
 	model.WithNamespace(contextx.GetNamespace(ctx)).WithCreator(contextx.GetUserUID(ctx))
 	return model

@@ -24,6 +24,7 @@ const (
 func NewDatasource(
 	bc *conf.Bootstrap,
 	datasourceRepo repository.Datasource,
+	levelRepo repository.Level,
 	metricDatasourceQuerier repository.MetricDatasourceQuerier,
 	evaluateBiz *Evaluate,
 	helper *klog.Helper,
@@ -37,6 +38,7 @@ func NewDatasource(
 	return &DatasourceBiz{
 		mainTsdb:                mainTsdb,
 		datasourceRepo:          datasourceRepo,
+		levelRepo:               levelRepo,
 		metricDatasourceQuerier: metricDatasourceQuerier,
 		evaluateBiz:             evaluateBiz,
 		helper:                  klog.NewHelper(klog.With(helper.Logger(), "biz", "datasource")),
@@ -47,6 +49,7 @@ type DatasourceBiz struct {
 	helper                  *klog.Helper
 	mainTsdb                *bo.DatasourceItemBo
 	datasourceRepo          repository.Datasource
+	levelRepo               repository.Level
 	metricDatasourceQuerier repository.MetricDatasourceQuerier
 	evaluateBiz             *Evaluate
 }
@@ -55,6 +58,9 @@ func (d *DatasourceBiz) CreateDatasource(ctx context.Context, req *bo.CreateData
 	if err := d.datasourceRepo.CheckDatasourceNameExist(ctx, req.Name); err != nil {
 		d.helper.Errorw("msg", "check datasource name exist failed", "error", err, "req", req)
 		return 0, merr.ErrorInternalServer("check datasource name exist failed").WithCause(err)
+	}
+	if err := d.validateDatasourceLevel(ctx, req.LevelUID); err != nil {
+		return 0, err
 	}
 	uid, err := d.datasourceRepo.CreateDatasource(ctx, req)
 	if err != nil {
@@ -69,6 +75,9 @@ func (d *DatasourceBiz) UpdateDatasource(ctx context.Context, req *bo.UpdateData
 		d.helper.Errorw("msg", "check datasource name exist failed", "error", err, "req", req)
 		return merr.ErrorInternalServer("check datasource name exist failed").WithCause(err)
 	}
+	if err := d.validateDatasourceLevel(ctx, req.LevelUID); err != nil {
+		return err
+	}
 	if err := d.datasourceRepo.UpdateDatasource(ctx, req); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("datasource %d not found", req.UID.Int64())
@@ -77,6 +86,27 @@ func (d *DatasourceBiz) UpdateDatasource(ctx context.Context, req *bo.UpdateData
 		return merr.ErrorInternalServer("update datasource failed").WithCause(err)
 	}
 	d.evaluateBiz.SyncByDatasourceUID(ctx, req.UID)
+	return nil
+}
+
+func (d *DatasourceBiz) validateDatasourceLevel(ctx context.Context, levelUID snowflake.ID) error {
+	if levelUID == 0 {
+		return merr.ErrorParams("datasource levelUid is required")
+	}
+	level, err := d.levelRepo.GetLevel(ctx, levelUID)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return merr.ErrorNotFound("level %d not found", levelUID.Int64())
+		}
+		d.helper.Errorw("msg", "get level failed", "error", err, "levelUID", levelUID)
+		return merr.ErrorInternalServer("get level failed").WithCause(err)
+	}
+	if level.Type != enum.LevelType_DATASOURCE {
+		return merr.ErrorParams("selected level is not a DATASOURCE level")
+	}
+	if level.Status != enum.GlobalStatus_ENABLED {
+		return merr.ErrorParams("the selected level has been disabled, please select a new one")
+	}
 	return nil
 }
 

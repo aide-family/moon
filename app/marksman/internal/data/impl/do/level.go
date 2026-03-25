@@ -15,6 +15,7 @@ type Level struct {
 	Remark       string                      `gorm:"column:remark;type:varchar(100);default:''"`
 	BgColor      string                      `gorm:"column:bg_color;type:varchar(32);default:''"`
 	Metadata     *safety.Map[string, string] `gorm:"column:metadata;type:json;"`
+	Type         enum.LevelType              `gorm:"column:type;type:tinyint;default:0"`
 	Status       enum.GlobalStatus           `gorm:"column:status;type:tinyint;default:0"`
 }
 

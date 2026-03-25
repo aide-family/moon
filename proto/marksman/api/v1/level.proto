@@ -60,6 +60,7 @@ message LevelItem {
 	string createdAt = 6;
 	string updatedAt = 7;
 	string bgColor = 8;
+	magicbox.enum.LevelType type = 9;
 }
 
 message LevelItemSelect {
@@ -78,6 +79,10 @@ message CreateLevelRequest {
 	string bgColor = 4 [(buf.validate.field).string = {
 		max_len: 32,
 	}];
+	magicbox.enum.LevelType type = 5 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.LevelType.ALERT, magicbox.enum.LevelType.DATASOURCE]",
+		message: "type must be in ['LevelType_ALERT', 'LevelType_DATASOURCE']",
+	}];
 }
 message CreateLevelReply {
 	int64 uid = 1;
@@ -95,6 +100,10 @@ message UpdateLevelRequest {
 	map<string, string> metadata = 4;
 	string bgColor = 5 [(buf.validate.field).string = {
 		max_len: 32,
+	}];
+	magicbox.enum.LevelType type = 6 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.LevelType.ALERT, magicbox.enum.LevelType.DATASOURCE]",
+		message: "type must be in ['LevelType_ALERT', 'LevelType_DATASOURCE']",
 	}];
 }
 message UpdateLevelReply {}
@@ -131,6 +140,7 @@ message ListLevelRequest {
 		message: "keyword must be less than or equal to 100",
 	}];
 	magicbox.enum.GlobalStatus status = 4;
+	magicbox.enum.LevelType type = 5;
 }
 message ListLevelReply {
 	int64 total = 1;
@@ -150,6 +160,7 @@ message SelectLevelRequest {
 	}];
 	int64 lastUID = 3;
 	magicbox.enum.GlobalStatus status = 4;
+	magicbox.enum.LevelType type = 5;
 }
 message SelectLevelReply {
 	repeated LevelItemSelect items = 1;

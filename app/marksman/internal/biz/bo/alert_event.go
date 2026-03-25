@@ -30,8 +30,10 @@ type AlertEventBo struct {
 	StrategyName          string
 	LevelUID              snowflake.ID
 	LevelName             string
+	BgColor               string
 	DatasourceUID         snowflake.ID
 	DatasourceName        string
+	DatasourceLevelName   string
 	Summary               string
 	Description           string
 	Expr                  string
@@ -59,6 +61,7 @@ type AlertEventItemBo struct {
 	BgColor             string
 	DatasourceUID       snowflake.ID
 	DatasourceName      string
+	DatasourceLevelName string
 	Summary             string
 	Description         string
 	Expr                string
@@ -90,35 +93,36 @@ func ToAPIV1AlertEventItem(b *AlertEventItemBo) *apiv1.AlertEventItem {
 		duration = durationpb.New(b.RecoveredAt.Sub(b.FiredAt))
 	}
 	item := &apiv1.AlertEventItem{
-		Uid:               b.UID.Int64(),
-		StrategyGroupUid:  b.StrategyGroupUID.Int64(),
-		StrategyGroupName: b.StrategyGroupName,
-		StrategyUid:       b.StrategyUID.Int64(),
-		StrategyName:      b.StrategyName,
-		LevelUid:          b.LevelUID.Int64(),
-		LevelName:         b.LevelName,
-		BgColor:           b.BgColor,
-		DatasourceUid:     b.DatasourceUID.Int64(),
-		DatasourceName:    b.DatasourceName,
-		Summary:           b.Summary,
-		Description:       b.Description,
-		Expr:              b.Expr,
-		FiredAt:           timex.FormatTime(&b.FiredAt),
-		Value:             b.Value,
-		Labels:            b.Labels,
-		Status:            b.Status,
-		IntervenedAt:      timex.FormatTime(b.IntervenedAt),
-		IntervenedBy:      b.IntervenedBy.Int64(),
-		IntervenedByName:  b.IntervenedByName,
-		SuppressUntilAt:   timex.FormatTime(b.SuppressedUntilAt),
-		SuppressedBy:      b.SuppressedBy.Int64(),
-		SuppressedByName:  b.SuppressedByName,
-		SuppressedReason:  b.SuppressedReason,
-		RecoveredAt:       timex.FormatTime(b.RecoveredAt),
-		RecoveredBy:       b.RecoveredBy.Int64(),
-		RecoveredByName:   b.RecoveredByName,
-		RecoveredReason:   b.RecoveredReason,
-		Duration:          duration.AsDuration().Round(time.Second).String(),
+		Uid:                 b.UID.Int64(),
+		StrategyGroupUid:    b.StrategyGroupUID.Int64(),
+		StrategyGroupName:   b.StrategyGroupName,
+		StrategyUid:         b.StrategyUID.Int64(),
+		StrategyName:        b.StrategyName,
+		LevelUid:            b.LevelUID.Int64(),
+		LevelName:           b.LevelName,
+		BgColor:             b.BgColor,
+		DatasourceUid:       b.DatasourceUID.Int64(),
+		DatasourceName:      b.DatasourceName,
+		DatasourceLevelName: b.DatasourceLevelName,
+		Summary:             b.Summary,
+		Description:         b.Description,
+		Expr:                b.Expr,
+		FiredAt:             timex.FormatTime(&b.FiredAt),
+		Value:               b.Value,
+		Labels:              b.Labels,
+		Status:              b.Status,
+		IntervenedAt:        timex.FormatTime(b.IntervenedAt),
+		IntervenedBy:        b.IntervenedBy.Int64(),
+		IntervenedByName:    b.IntervenedByName,
+		SuppressUntilAt:     timex.FormatTime(b.SuppressedUntilAt),
+		SuppressedBy:        b.SuppressedBy.Int64(),
+		SuppressedByName:    b.SuppressedByName,
+		SuppressedReason:    b.SuppressedReason,
+		RecoveredAt:         timex.FormatTime(b.RecoveredAt),
+		RecoveredBy:         b.RecoveredBy.Int64(),
+		RecoveredByName:     b.RecoveredByName,
+		RecoveredReason:     b.RecoveredReason,
+		Duration:            duration.AsDuration().Round(time.Second).String(),
 	}
 	return item
 }

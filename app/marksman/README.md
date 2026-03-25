@@ -48,11 +48,11 @@
 - **Member** (goddess): List/get/select members in namespace, invite, dismiss, update status
 - **Namespace** (goddess): Namespace management (shared with goddess; requires `namespaceDomain`)
 - **Captcha** (goddess): Get graphic captcha (id, base64 image) for login and other unauthenticated flows
-- **Datasource**: CRUD, list, select, status time series (per uid, from main TSDB), metric metadata (label names and label values) for metrics datasources (Prometheus, VictoriaMetrics, Elasticsearch, Jaeger)
+- **Datasource**: CRUD (including `levelUid` binding), list, select, status time series (per uid, from main TSDB), metric metadata (label names and label values) for metrics datasources (Prometheus, VictoriaMetrics, Elasticsearch, Jaeger)
 - **MetricQuery**: Instant query (Prometheus /api/v1/query), range query (/api/v1/query_range), and direct HTTP proxy for metric-type datasources
 - **Strategy group**: CRUD, list, select, status; bind receivers (recipient groups)
 - **Strategy**: CRUD, list, status; link to strategy group; type (METRICS/LOGS/TRACE) and driver
-- **Level**: Alert level CRUD, list, select, status (including `bgColor` for display)
+- **Level**: Level CRUD, list, select, status (including `type` = ALERT/DATASOURCE and `bgColor` for display)
 - **Strategy metric**: Save/get metric config (expr, labels, datasourceUIDs, levels); save/update/delete/get metric levels (mode, condition, values, duration); bind receivers per strategy (optional levelUID)
 - **Alert (real-time)**: Alert page CRUD (name, color, sort order, filter by strategy group/level/strategy); list real-time alert events by alert page; operate events: intervene (on-call takeover), suppress (until time), recover (manual); alert statistics for dashboard (total active, by level, today recovered, by alert page); user followed alert pages (list/save per user)
 - **Notification group**: CRUD for notification groups (name, remark, metadata, members, webhooks, templates updated via Create/Update)
@@ -75,8 +75,8 @@
 | | `POST /v1/member/invite` | Invite member (email, role) |
 | | `DELETE /v1/member/{uid}`, `PUT /v1/member/{uid}/status` | Dismiss member, update status |
 | **Captcha** (goddess) | `GET /v1/captcha` | Get graphic captcha (returns captchaId, captchaB64s) |
-| **Datasource** | `POST /v1/datasource` | Create datasource (name, type, driver, url, metadata, remark) |
-| | `PUT /v1/datasource/{uid}` | Update datasource |
+| **Datasource** | `POST /v1/datasource` | Create datasource (name, type, driver, url, metadata, remark, `levelUid` bound to a DATASOURCE level) |
+| | `PUT /v1/datasource/{uid}` | Update datasource (including `levelUid`) |
 | | `DELETE /v1/datasource/{uid}` | Delete datasource |
 | | `GET /v1/datasource/{uid}` | Get datasource |
 | | `GET /v1/datasources` | List (keyword, page, pageSize, type, driver, status) |
@@ -102,8 +102,8 @@
 | | `GET /v1/strategy/{uid}` | Get strategy |
 | | `GET /v1/strategies` | List strategies (keyword, page, pageSize, status, strategyGroupUID, type, driver) |
 | | `GET /v1/strategies/select` | Select strategies for dropdown (keyword, limit, lastUid, status, strategyGroupUids list to filter by groups) |
-| **Level** | `POST /v1/level` | Create level (name, remark, metadata, bgColor) |
-| | `PUT /v1/level/{uid}` | Update level (bgColor) |
+| **Level** | `POST /v1/level` | Create level (name, remark, metadata, bgColor, `type` = ALERT/DATASOURCE) |
+| | `PUT /v1/level/{uid}` | Update level (bgColor, `type`) |
 | | `PUT /v1/level/{uid}/status` | Update status |
 | | `DELETE /v1/level/{uid}` | Delete level |
 | | `GET /v1/level/{uid}` | Get level |
@@ -129,7 +129,7 @@
 | | `DELETE /v1/alert-pages/{uid}` | Delete alert page |
 | | `GET /v1/alert-pages/{uid}` | Get alert page |
 | | `GET /v1/alert-pages` | List alert pages (page, pageSize, keyword) |
-| **Alert** (realtime) | `GET /v1/alert-pages/{alertPageUid}/realtime-alerts` | List real-time alert events for page (page, pageSize, status; includes level bgColor) |
+| **Alert** (realtime) | `GET /v1/alert-pages/{alertPageUid}/realtime-alerts` | List real-time alert events for page (page, pageSize, status; includes level bgColor and datasource levelName) |
 | | `GET /v1/alert-statistics` | Alert dashboard statistics (total active, by level, today recovered, by alert page) |
 | | `POST /v1/realtime-alerts/{uid}/intervene` | Mark event as intervened (on-call takeover) |
 | | `POST /v1/realtime-alerts/{uid}/suppress` | Suppress event until time (body: suppressUntil RFC3339) |
@@ -137,7 +137,7 @@
 | **Alert** (user) | `GET /v1/user/alert-pages` | List current user's followed alert pages (personal config) |
 | | `PUT /v1/user/alert-pages` | Save current user's followed alert pages (body: alertPageUids, max 10; replaces list) |
 
-**Types**: `DatasourceType`: METRICS, LOGS, TRACE. **Drivers**: METRICS_PROMETHEUS, METRICS_VICTORIA_METRICS, LOGS_ELASTICSEARCH, TRACE_JAEGER.
+**Types**: `DatasourceType`: METRICS, LOGS, TRACE. `LevelType`: ALERT, DATASOURCE. **Drivers**: METRICS_PROMETHEUS, METRICS_VICTORIA_METRICS, LOGS_ELASTICSEARCH, TRACE_JAEGER.
 
 API definitions: Marksman-owned APIs are in `proto/marksman/api/v1/` (e.g. `datasource.proto`, `strategy.proto`, `level.proto`, `strategy_metric.proto`, `alert.proto`). Self, User, Member, Namespace, Captcha, etc. come from goddess at `proto/goddess/api/v1/`. OpenAPI can be generated via `make api`.
 

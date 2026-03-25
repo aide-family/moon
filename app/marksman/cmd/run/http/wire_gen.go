@@ -92,7 +92,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	datasourceBiz := biz.NewDatasource(bc, datasource, metricDatasourceQuerier, evaluate, helper)
+	datasourceBiz := biz.NewDatasource(bc, datasource, level, metricDatasourceQuerier, evaluate, helper)
 	datasourceService := service.NewDatasourceService(datasourceBiz)
 	metricDatasourceProxy := impl.NewMetricDatasourceProxyRepository()
 	metricQueryBiz := biz.NewMetricQuery(datasource, metricDatasourceProxy, helper)

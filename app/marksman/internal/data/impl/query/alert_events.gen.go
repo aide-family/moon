@@ -37,8 +37,10 @@ func newAlertEvent(db *gorm.DB, opts ...gen.DOOption) alertEvent {
 	_alertEvent.StrategyName = field.NewString(tableName, "strategy_name")
 	_alertEvent.LevelUID = field.NewInt64(tableName, "level_uid")
 	_alertEvent.LevelName = field.NewString(tableName, "level_name")
+	_alertEvent.BgColor = field.NewString(tableName, "bg_color")
 	_alertEvent.DatasourceUID = field.NewInt64(tableName, "datasource_uid")
 	_alertEvent.DatasourceName = field.NewString(tableName, "datasource_name")
+	_alertEvent.DatasourceLevelName = field.NewString(tableName, "datasource_level_name")
 	_alertEvent.Summary = field.NewString(tableName, "summary")
 	_alertEvent.Description = field.NewString(tableName, "description")
 	_alertEvent.Expr = field.NewString(tableName, "expr")
@@ -85,8 +87,10 @@ type alertEvent struct {
 	StrategyName        field.String
 	LevelUID            field.Int64
 	LevelName           field.String
+	BgColor             field.String
 	DatasourceUID       field.Int64
 	DatasourceName      field.String
+	DatasourceLevelName field.String
 	Summary             field.String
 	Description         field.String
 	Expr                field.String
@@ -135,8 +139,10 @@ func (a *alertEvent) updateTableName(table string) *alertEvent {
 	a.StrategyName = field.NewString(table, "strategy_name")
 	a.LevelUID = field.NewInt64(table, "level_uid")
 	a.LevelName = field.NewString(table, "level_name")
+	a.BgColor = field.NewString(table, "bg_color")
 	a.DatasourceUID = field.NewInt64(table, "datasource_uid")
 	a.DatasourceName = field.NewString(table, "datasource_name")
+	a.DatasourceLevelName = field.NewString(table, "datasource_level_name")
 	a.Summary = field.NewString(table, "summary")
 	a.Description = field.NewString(table, "description")
 	a.Expr = field.NewString(table, "expr")
@@ -174,7 +180,7 @@ func (a *alertEvent) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *alertEvent) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 34)
+	a.fieldMap = make(map[string]field.Expr, 36)
 	a.fieldMap["id"] = a.ID
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
@@ -185,8 +191,10 @@ func (a *alertEvent) fillFieldMap() {
 	a.fieldMap["strategy_name"] = a.StrategyName
 	a.fieldMap["level_uid"] = a.LevelUID
 	a.fieldMap["level_name"] = a.LevelName
+	a.fieldMap["bg_color"] = a.BgColor
 	a.fieldMap["datasource_uid"] = a.DatasourceUID
 	a.fieldMap["datasource_name"] = a.DatasourceName
+	a.fieldMap["datasource_level_name"] = a.DatasourceLevelName
 	a.fieldMap["summary"] = a.Summary
 	a.fieldMap["description"] = a.Description
 	a.fieldMap["expr"] = a.Expr

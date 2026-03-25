@@ -112,7 +112,8 @@ func (r *alertEventRepository) SaveAlertEvent(ctx context.Context, ev *bo.AlertE
 		table.StrategyGroupName.Value(ev.StrategyGroupName),
 		table.LevelName.Value(ev.LevelName),
 		table.DatasourceName.Value(ev.DatasourceName),
-		table.FiredAt.Value(info.FiredAt),
+		table.BgColor.Value(ev.BgColor),
+		table.DatasourceLevelName.Value(ev.DatasourceLevelName),
 	}
 	if _, err := table.WithContext(ctx).Where(table.ID.Eq(info.ID.Int64())).UpdateColumnSimple(updates...); err != nil {
 		return 0, err
@@ -169,8 +170,7 @@ func (r *alertEventRepository) GetAlertEvent(ctx context.Context, uid snowflake.
 		}
 		return nil, err
 	}
-	levelInfo := r.levelInfoByUID(ctx, m.NamespaceUID, m.LevelUID)
-	return convert.ToAlertEventItemBo(m, levelInfo.Name, levelInfo.BgColor), nil
+	return convert.ToAlertEventItemBo(m), nil
 }
 
 func (r *alertEventRepository) GetAlertEventByFingerprint(ctx context.Context, uid snowflake.ID, fingerprint string) (*bo.AlertEventItemBo, error) {
@@ -189,8 +189,7 @@ func (r *alertEventRepository) GetAlertEventByFingerprint(ctx context.Context, u
 	if err != nil {
 		return nil, err
 	}
-	levelInfo := r.levelInfoByUID(ctx, m.NamespaceUID, m.LevelUID)
-	return convert.ToAlertEventItemBo(m, levelInfo.Name, levelInfo.BgColor), nil
+	return convert.ToAlertEventItemBo(m), nil
 }
 
 type levelInfo struct {
@@ -292,11 +291,9 @@ func (r *alertEventRepository) ListRealtimeAlert(ctx context.Context, req *bo.Li
 	if err := wrappers.Find(&list).Error; err != nil {
 		return nil, err
 	}
-	levelInfos := r.levelInfosForEvents(ctx, ns, list)
 	items := make([]*bo.AlertEventItemBo, 0, len(list))
 	for _, m := range list {
-		info := levelInfos[m.LevelUID.Int64()]
-		items = append(items, convert.ToAlertEventItemBo(m, info.Name, info.BgColor))
+		items = append(items, convert.ToAlertEventItemBo(m))
 	}
 	return bo.NewPageResponseBo(req.PageRequestBo, items), nil
 }

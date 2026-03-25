@@ -20,6 +20,11 @@ enum GlobalStatus {
 	DISABLED = 2;
 }
 
+enum LevelType {
+	LevelType_UNKNOWN = 0;
+	LevelType_ALERT = 1;
+	LevelType_DATASOURCE = 2;
+}
 
 enum WebhookAPP {
 	WebhookAPP_UNKNOWN = 0;

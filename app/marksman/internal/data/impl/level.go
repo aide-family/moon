@@ -55,6 +55,7 @@ func (r *levelRepository) UpdateLevel(ctx context.Context, req *bo.UpdateLevelBo
 		l.Name.Value(req.Name),
 		l.Remark.Value(req.Remark),
 		l.BgColor.Value(req.BgColor),
+		l.Type.Value(int32(req.Type)),
 		l.Metadata.Value(safety.NewMap(req.Metadata)),
 	}
 	_, err := l.WithContext(ctx).Where(l.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()), l.ID.Eq(req.UID.Int64())).UpdateColumnSimple(columns...)
@@ -116,6 +117,9 @@ func (r *levelRepository) ListLevel(ctx context.Context, req *bo.ListLevelBo) (*
 	if req.Status != enum.GlobalStatus_GlobalStatus_UNKNOWN {
 		wrappers = wrappers.Where(l.Status.Eq(int32(req.Status)))
 	}
+	if req.Type != enum.LevelType_LevelType_UNKNOWN {
+		wrappers = wrappers.Where(l.Type.Eq(int32(req.Type)))
+	}
 	total, err := wrappers.Count()
 	if err != nil {
 		return nil, err
@@ -144,6 +148,9 @@ func (r *levelRepository) SelectLevel(ctx context.Context, req *bo.SelectLevelBo
 	}
 	if req.Status != enum.GlobalStatus_GlobalStatus_UNKNOWN {
 		wrappers = wrappers.Where(l.Status.Eq(int32(req.Status)))
+	}
+	if req.Type != enum.LevelType_LevelType_UNKNOWN {
+		wrappers = wrappers.Where(l.Type.Eq(int32(req.Type)))
 	}
 	total, err := wrappers.Count()
 	if err != nil {

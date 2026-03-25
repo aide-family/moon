@@ -48,11 +48,11 @@
 - **成员（Member，goddess）**：命名空间内成员列表/获取/选择、邀请成员、移除成员、更新状态
 - **命名空间（Namespace，goddess）**：命名空间管理（与 goddess 共用能力，需配置 namespaceDomain）
 - **验证码（Captcha，goddess）**：图形验证码获取（id、base64 图片），用于登录等无需鉴权场景
-- **数据源（Datasource）**：指标/日志/链路数据源增删改查、列表、下拉选择、按数据源的状态时序（主时序库）、指标元数据（label 名与各 label 取值）查询（Prometheus、VictoriaMetrics、Elasticsearch、Jaeger）
+- **数据源（Datasource）**：指标/日志/链路数据源增删改查、列表、下拉选择、按数据源的状态时序（主时序库）、指标元数据（label 名与各 label 取值）查询（Prometheus、VictoriaMetrics、Elasticsearch、Jaeger；包含 `levelUid` 绑定到 DATASOURCE 级别）
 - **指标查询（MetricQuery）**：指标类型数据源即时查询（Prometheus /api/v1/query）、区间查询（/api/v1/query_range）、以及直接 HTTP 代理
 - **策略组（Strategy group）**：增删改查、列表、选择、状态；绑定接收人（收件人组）
 - **策略（Strategy）**：增删改查、列表、状态；归属策略组；类型（METRICS/LOGS/TRACE）与驱动
-- **级别（Level）**：告警级别增删改查、列表、选择、状态（用于告警严重程度分组，包含用于展示的 `bgColor`）
+- **级别（Level）**：级别增删改查、列表、选择、状态（区分 `type`：ALERT/DATASOURCE；用于告警严重程度分组，包含用于展示的 `bgColor`）
 - **策略指标（Strategy metric）**：保存/查询指标配置（expr、labels、datasourceUIDs、levels）；指标级别的增删改查（mode、condition、values、duration）；按策略绑定接收人（可选 levelUID）
 - **告警（实时）**：告警页面增删改查（名称、颜色、排序、按策略组/级别/策略筛选）；按告警页列表展示实时告警事件；事件操作：介入、抑制（至指定时间）、恢复（手动）；告警统计（当前总告警、按等级、今日已恢复、按告警页）；用户关注的告警页（按用户列出/保存）
 - **通知组（Notification group）**：通知组增删改查（名称、备注、元数据、成员、webhook、模板通过创建/更新维护）
@@ -75,8 +75,8 @@
 | | `POST /v1/member/invite` | 邀请成员（email、role） |
 | | `DELETE /v1/member/{uid}`、`PUT /v1/member/{uid}/status` | 移除成员、更新状态 |
 | **Captcha**（goddess） | `GET /v1/captcha` | 获取图形验证码（返回 captchaId、captchaB64s） |
-| **Datasource** | `POST /v1/datasource` | 创建数据源（name、type、driver、url、metadata、remark） |
-| | `PUT /v1/datasource/{uid}` | 更新数据源 |
+| **Datasource** | `POST /v1/datasource` | 创建数据源（name、type、driver、url、metadata、remark、`levelUid` 绑定到 DATASOURCE 级别） |
+| | `PUT /v1/datasource/{uid}` | 更新数据源（包含 `levelUid`） |
 | | `DELETE /v1/datasource/{uid}` | 删除数据源 |
 | | `GET /v1/datasource/{uid}` | 获取数据源 |
 | | `GET /v1/datasources` | 列表（keyword、page、pageSize、type、driver、status） |
@@ -102,8 +102,8 @@
 | | `GET /v1/strategy/{uid}` | 获取策略 |
 | | `GET /v1/strategies` | 列表（keyword、page、pageSize、status、strategyGroupUID、type、driver） |
 | | `GET /v1/strategies/select` | 策略下拉选择（keyword、limit、lastUid、status、strategyGroupUids 按策略组筛选，策略组 ID 为列表） |
-| **Level** | `POST /v1/level` | 创建级别（name、remark、metadata、bgColor） |
-| | `PUT /v1/level/{uid}` | 更新级别（bgColor） |
+| **Level** | `POST /v1/level` | 创建级别（name、remark、metadata、bgColor、`type` = ALERT/DATASOURCE） |
+| | `PUT /v1/level/{uid}` | 更新级别（bgColor、`type`） |
 | | `PUT /v1/level/{uid}/status` | 更新状态 |
 | | `DELETE /v1/level/{uid}` | 删除级别 |
 | | `GET /v1/level/{uid}` | 获取级别 |
@@ -129,7 +129,7 @@
 | | `DELETE /v1/alert-pages/{uid}` | 删除告警页 |
 | | `GET /v1/alert-pages/{uid}` | 获取告警页 |
 | | `GET /v1/alert-pages` | 告警页列表（page、pageSize、keyword） |
-| **Alert**（实时） | `GET /v1/alert-pages/{alertPageUid}/realtime-alerts` | 按页查询实时告警事件（page、pageSize、status；包含 level 的 `bgColor`） |
+| **Alert**（实时） | `GET /v1/alert-pages/{alertPageUid}/realtime-alerts` | 按页查询实时告警事件（page、pageSize、status；包含 level 的 `bgColor` 和 datasource levelName） |
 | | `GET /v1/alert-statistics` | 告警统计（当前总告警、按等级、今日已恢复、按告警页） |
 | | `POST /v1/realtime-alerts/{uid}/intervene` | 介入（值班接管） |
 | | `POST /v1/realtime-alerts/{uid}/suppress` | 抑制至指定时间（body: suppressUntil RFC3339） |
@@ -137,7 +137,7 @@
 | **Alert**（用户） | `GET /v1/user/alert-pages` | 当前用户关注的告警页列表（个人配置） |
 | | `PUT /v1/user/alert-pages` | 保存当前用户关注的告警页（body: alertPageUids，最多 10 个；覆盖原列表） |
 
-**类型**：`DatasourceType`: METRICS, LOGS, TRACE。**驱动**：METRICS_PROMETHEUS, METRICS_VICTORIA_METRICS, LOGS_ELASTICSEARCH, TRACE_JAEGER。
+**类型**：`DatasourceType`: METRICS, LOGS, TRACE。`LevelType`: ALERT, DATASOURCE。**驱动**：METRICS_PROMETHEUS, METRICS_VICTORIA_METRICS, LOGS_ELASTICSEARCH, TRACE_JAEGER。
 
 接口定义：Marksman 自有 API 位于 `proto/marksman/api/v1/`（如 `datasource.proto`、`strategy.proto`、`level.proto`、`strategy_metric.proto`、`alert.proto`）；Self、User、Member、Namespace、Captcha 等来自 `goddess` 的 `proto/goddess/api/v1/`。可通过 `make api` 生成 OpenAPI。
 

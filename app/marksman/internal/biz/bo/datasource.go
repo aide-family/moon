@@ -17,6 +17,7 @@ type CreateDatasourceBo struct {
 	Metadata map[string]string
 	URL      string
 	Remark   string
+	LevelUID snowflake.ID
 }
 
 func NewCreateDatasourceBo(req *apiv1.CreateDatasourceRequest) *CreateDatasourceBo {
@@ -27,6 +28,7 @@ func NewCreateDatasourceBo(req *apiv1.CreateDatasourceRequest) *CreateDatasource
 		Metadata: req.GetMetadata(),
 		URL:      req.GetUrl(),
 		Remark:   req.GetRemark(),
+		LevelUID: snowflake.ParseInt64(req.GetLevelUid()),
 	}
 }
 
@@ -38,6 +40,7 @@ type UpdateDatasourceBo struct {
 	Metadata map[string]string
 	URL      string
 	Remark   string
+	LevelUID snowflake.ID
 }
 
 func NewUpdateDatasourceBo(req *apiv1.UpdateDatasourceRequest) *UpdateDatasourceBo {
@@ -49,6 +52,7 @@ func NewUpdateDatasourceBo(req *apiv1.UpdateDatasourceRequest) *UpdateDatasource
 		Metadata: req.GetMetadata(),
 		URL:      req.GetUrl(),
 		Remark:   req.GetRemark(),
+		LevelUID: snowflake.ParseInt64(req.GetLevelUid()),
 	}
 }
 
@@ -63,6 +67,8 @@ type DatasourceItemBo struct {
 	UpdatedAt time.Time
 	URL       string
 	Remark    string
+	LevelUID  snowflake.ID
+	LevelName string
 }
 
 func ToAPIV1DatasourceItem(b *DatasourceItemBo) *apiv1.DatasourceItem {
@@ -80,6 +86,8 @@ func ToAPIV1DatasourceItem(b *DatasourceItemBo) *apiv1.DatasourceItem {
 		UpdatedAt: timex.FormatTime(&b.UpdatedAt),
 		Url:       b.URL,
 		Remark:    b.Remark,
+		LevelUid:  b.LevelUID.Int64(),
+		LevelName: b.LevelName,
 	}
 }
 

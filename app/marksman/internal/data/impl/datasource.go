@@ -66,6 +66,7 @@ func (r *datasourceRepository) UpdateDatasource(ctx context.Context, req *bo.Upd
 		d.Metadata.Value(safety.NewMap(req.Metadata)),
 		d.URL.Value(req.URL),
 		d.Remark.Value(req.Remark),
+		d.LevelUID.Value(req.LevelUID.Int64()),
 	}
 	_, err := d.WithContext(ctx).Where(
 		d.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
@@ -91,10 +92,10 @@ func (r *datasourceRepository) DeleteDatasource(ctx context.Context, uid snowfla
 
 func (r *datasourceRepository) GetDatasource(ctx context.Context, uid snowflake.ID) (*bo.DatasourceItemBo, error) {
 	d := query.Datasource
-	m, err := query.Datasource.WithContext(ctx).Where(
+	m, err := d.WithContext(ctx).Where(
 		d.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
 		d.ID.Eq(uid.Int64()),
-	).First()
+	).Preload(d.Level).First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotFound("datasource not found")
@@ -107,6 +108,7 @@ func (r *datasourceRepository) GetDatasource(ctx context.Context, uid snowflake.
 func (r *datasourceRepository) ListDatasource(ctx context.Context, req *bo.ListDatasourceBo) (*bo.PageResponseBo[*bo.DatasourceItemBo], error) {
 	d := query.Datasource
 	wrappers := d.WithContext(ctx)
+	wrappers = wrappers.Preload(d.Level)
 	wrappers = wrappers.Where(d.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()))
 	if req.Keyword != "" {
 		k := "%" + strings.TrimSpace(req.Keyword) + "%"

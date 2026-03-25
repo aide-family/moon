@@ -15,6 +15,7 @@ type CreateLevelBo struct {
 	Remark   string
 	Metadata map[string]string
 	BgColor  string
+	Type     enum.LevelType
 }
 
 func NewCreateLevelBo(req *apiv1.CreateLevelRequest) *CreateLevelBo {
@@ -23,6 +24,7 @@ func NewCreateLevelBo(req *apiv1.CreateLevelRequest) *CreateLevelBo {
 		Remark:   req.Remark,
 		Metadata: req.Metadata,
 		BgColor:  req.BgColor,
+		Type:     req.Type,
 	}
 }
 
@@ -32,6 +34,7 @@ type UpdateLevelBo struct {
 	Remark   string
 	Metadata map[string]string
 	BgColor  string
+	Type     enum.LevelType
 }
 
 func NewUpdateLevelBo(req *apiv1.UpdateLevelRequest) *UpdateLevelBo {
@@ -41,6 +44,7 @@ func NewUpdateLevelBo(req *apiv1.UpdateLevelRequest) *UpdateLevelBo {
 		Remark:   req.Remark,
 		Metadata: req.Metadata,
 		BgColor:  req.BgColor,
+		Type:     req.Type,
 	}
 }
 
@@ -63,6 +67,7 @@ type LevelItemBo struct {
 	BgColor   string
 	Status    enum.GlobalStatus
 	Metadata  map[string]string
+	Type      enum.LevelType
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -78,6 +83,7 @@ func ToAPIV1LevelItem(b *LevelItemBo) *apiv1.LevelItem {
 		BgColor:   b.BgColor,
 		Status:    b.Status,
 		Metadata:  b.Metadata,
+		Type:      b.Type,
 		CreatedAt: timex.FormatTime(&b.CreatedAt),
 		UpdatedAt: timex.FormatTime(&b.UpdatedAt),
 	}
@@ -87,6 +93,7 @@ type ListLevelBo struct {
 	*PageRequestBo
 	Keyword string
 	Status  enum.GlobalStatus
+	Type    enum.LevelType
 }
 
 func NewListLevelBo(req *apiv1.ListLevelRequest) *ListLevelBo {
@@ -94,6 +101,7 @@ func NewListLevelBo(req *apiv1.ListLevelRequest) *ListLevelBo {
 		PageRequestBo: NewPageRequestBo(req.Page, req.PageSize),
 		Keyword:       req.Keyword,
 		Status:        req.Status,
+		Type:          req.Type,
 	}
 }
 
@@ -115,6 +123,7 @@ type SelectLevelBo struct {
 	Limit   int32
 	LastUID snowflake.ID
 	Status  enum.GlobalStatus
+	Type    enum.LevelType
 }
 
 func NewSelectLevelBo(req *apiv1.SelectLevelRequest) *SelectLevelBo {
@@ -123,6 +132,7 @@ func NewSelectLevelBo(req *apiv1.SelectLevelRequest) *SelectLevelBo {
 		Limit:   req.Limit,
 		LastUID: snowflake.ParseInt64(req.LastUID),
 		Status:  req.Status,
+		Type:    req.Type,
 	}
 }
 

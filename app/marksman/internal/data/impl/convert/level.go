@@ -23,6 +23,7 @@ func ToLevelItemBo(m *do.Level) *bo.LevelItemBo {
 		BgColor:   m.BgColor,
 		Status:    m.Status,
 		Metadata:  m.Metadata.Map(),
+		Type:      m.Type,
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
 	}
@@ -50,6 +51,7 @@ func ToLevelDo(ctx context.Context, req *bo.CreateLevelBo) *do.Level {
 		BgColor:  req.BgColor,
 		Metadata: safety.NewMap(req.Metadata),
 		Status:   enum.GlobalStatus_ENABLED,
+		Type:     req.Type,
 	}
 	model.WithNamespace(contextx.GetNamespace(ctx)).WithCreator(contextx.GetUserUID(ctx))
 	return model

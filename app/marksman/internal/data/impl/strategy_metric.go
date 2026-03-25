@@ -79,7 +79,10 @@ func (r *strategyMetricRepository) GetEvaluateMetricStrategies(ctx context.Conte
 		strategyMetricQuery.Strategy.StrategyGroup.On(strategyGroupQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED))),
 		strategyMetricQuery.Strategy.On(strategyQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED))),
 		strategyMetricQuery.StrategyLevels.On(strategyMetricLevelQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED))),
-		strategyMetricQuery.StrategyLevels.Level.On(levelQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED))),
+		strategyMetricQuery.StrategyLevels.Level.On(
+			levelQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED)),
+			levelQuery.Type.Eq(int32(enum.LevelType_ALERT)),
+		),
 	).Find()
 	if err != nil {
 		return nil, err

@@ -719,6 +719,11 @@ paths:
                   schema:
                     type: integer
                     format: enum
+                - name: type
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
             responses:
                 "200":
                     description: OK
@@ -746,6 +751,11 @@ paths:
                   schema:
                     type: string
                 - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: type
                   in: query
                   schema:
                     type: integer
@@ -1539,6 +1549,8 @@ components:
                     type: string
                 duration:
                     type: string
+                datasourceLevelName:
+                    type: string
             description: AlertEventItem is a single real-time alert event.
         marksman.api.v1.AlertPageCount:
             type: object
@@ -1627,6 +1639,8 @@ components:
                     type: string
                 remark:
                     type: string
+                levelUid:
+                    type: string
         marksman.api.v1.CreateLevelReply:
             type: object
             properties:
@@ -1645,6 +1659,9 @@ components:
                         type: string
                 bgColor:
                     type: string
+                type:
+                    type: integer
+                    format: enum
         marksman.api.v1.CreateNotificationGroupReply:
             type: object
             properties:
@@ -1743,6 +1760,10 @@ components:
                 url:
                     type: string
                 remark:
+                    type: string
+                levelUid:
+                    type: string
+                levelName:
                     type: string
         marksman.api.v1.DatasourceStatusPoint:
             type: object
@@ -1853,6 +1874,9 @@ components:
                     type: string
                 bgColor:
                     type: string
+                type:
+                    type: integer
+                    format: enum
         marksman.api.v1.LevelItemSelect:
             type: object
             properties:
@@ -2519,6 +2543,8 @@ components:
                     type: string
                 remark:
                     type: string
+                levelUid:
+                    type: string
         marksman.api.v1.UpdateLevelReply:
             type: object
             properties: {}
@@ -2537,6 +2563,9 @@ components:
                         type: string
                 bgColor:
                     type: string
+                type:
+                    type: integer
+                    format: enum
         marksman.api.v1.UpdateLevelStatusReply:
             type: object
             properties: {}

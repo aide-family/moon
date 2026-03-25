@@ -135,6 +135,13 @@ func (e *EvaluateMetricStrategyBo) GetDatasourceName() string {
 	return e.datasource.Name
 }
 
+func (e *EvaluateMetricStrategyBo) GetDatasourceLevelName() string {
+	if e.datasource == nil {
+		return ""
+	}
+	return e.datasource.LevelName
+}
+
 func (e *EvaluateMetricStrategyBo) GetExpr() string {
 	return e.expr
 }
@@ -163,6 +170,13 @@ func (e *EvaluateMetricStrategyBo) GetLevelName() string {
 		return ""
 	}
 	return e.level.Name
+}
+
+func (e *EvaluateMetricStrategyBo) GetLevelBgColor() string {
+	if e.level == nil {
+		return ""
+	}
+	return e.level.BgColor
 }
 
 func (e *EvaluateMetricStrategyBo) GetMode() enum.SampleMode {

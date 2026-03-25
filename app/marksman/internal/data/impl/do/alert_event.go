@@ -24,8 +24,10 @@ type AlertEvent struct {
 	StrategyName        string                      `gorm:"column:strategy_name;type:varchar(100);default:''"`
 	LevelUID            snowflake.ID                `gorm:"column:level_uid;index:idx__alert_event__namespace_uid__strategy_group_uid__strategy_uid__level_uid__fingerprint"`
 	LevelName           string                      `gorm:"column:level_name;type:varchar(100);default:''"`
+	BgColor             string                      `gorm:"column:bg_color;type:varchar(100);default:''"`
 	DatasourceUID       snowflake.ID                `gorm:"column:datasource_uid"`
 	DatasourceName      string                      `gorm:"column:datasource_name;type:varchar(100);default:''"`
+	DatasourceLevelName string                      `gorm:"column:datasource_level_name;type:varchar(100);default:''"`
 	Summary             string                      `gorm:"column:summary;type:varchar(500);default:''"`
 	Description         string                      `gorm:"column:description;type:text;default:''"`
 	Expr                string                      `gorm:"column:expr;type:text;default:''"`

@@ -150,7 +150,9 @@ func (m *metricEvaluator) Run() {
 			StrategyGroupName:     m.info.GetStrategyGroupName(),
 			StrategyName:          m.info.GetStrategyName(),
 			LevelName:             m.info.GetLevelName(),
+			BgColor:               m.info.GetLevelBgColor(),
 			DatasourceName:        m.info.GetDatasourceName(),
+			DatasourceLevelName:   m.info.GetDatasourceLevelName(),
 		}
 		m.alertEventChannelRepo.Send(ev)
 	}

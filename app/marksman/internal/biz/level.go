@@ -57,6 +57,10 @@ func (l *LevelBiz) CreateLevel(ctx context.Context, req *bo.CreateLevelBo) (snow
 }
 
 func (l *LevelBiz) UpdateLevel(ctx context.Context, req *bo.UpdateLevelBo) error {
+	current, err := l.levelRepo.GetLevel(ctx, req.UID)
+	if err != nil {
+		return err
+	}
 	taken, err := l.levelRepo.LevelNameTaken(ctx, req.Name, req.UID)
 	if err != nil {
 		l.helper.Errorw("msg", "check level name taken failed", "error", err, "name", req.Name)
@@ -72,11 +76,27 @@ func (l *LevelBiz) UpdateLevel(ctx context.Context, req *bo.UpdateLevelBo) error
 		l.helper.Errorw("msg", "update level failed", "error", err, "req", req)
 		return merr.ErrorInternalServer("update level failed").WithCause(err)
 	}
-	l.evaluateBiz.SyncByLevelUID(ctx, req.UID)
+
+	switch {
+	case current.Type == enum.LevelType_ALERT && req.Type == enum.LevelType_ALERT:
+		l.evaluateBiz.SyncByLevelUID(ctx, req.UID)
+	case current.Type == enum.LevelType_ALERT && req.Type != enum.LevelType_ALERT:
+		// Switch from ALERT to DATASOURCE should remove evaluation jobs for this level.
+		l.evaluateBiz.RemoveByLevelUID(ctx, req.UID)
+	case current.Type != enum.LevelType_ALERT && req.Type == enum.LevelType_ALERT:
+		// Switch from DATASOURCE to ALERT should load evaluation jobs for this level.
+		l.evaluateBiz.SyncByLevelUID(ctx, req.UID)
+	default:
+		// Both before/after are DATASOURCE: evaluation jobs should not be affected.
+	}
 	return nil
 }
 
 func (l *LevelBiz) UpdateLevelStatus(ctx context.Context, req *bo.UpdateLevelStatusBo) error {
+	current, err := l.levelRepo.GetLevel(ctx, req.UID)
+	if err != nil {
+		return err
+	}
 	if err := l.levelRepo.UpdateLevelStatus(ctx, req); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("level %d not found", req.UID.Int64())
@@ -84,15 +104,21 @@ func (l *LevelBiz) UpdateLevelStatus(ctx context.Context, req *bo.UpdateLevelSta
 		l.helper.Errorw("msg", "update level status failed", "error", err, "req", req)
 		return merr.ErrorInternalServer("update level status failed").WithCause(err)
 	}
-	if req.Status == enum.GlobalStatus_ENABLED {
-		l.evaluateBiz.SyncByLevelUID(ctx, req.UID)
-	} else {
-		l.evaluateBiz.RemoveByLevelUID(ctx, req.UID)
+	if current.Type == enum.LevelType_ALERT {
+		if req.Status == enum.GlobalStatus_ENABLED {
+			l.evaluateBiz.SyncByLevelUID(ctx, req.UID)
+		} else {
+			l.evaluateBiz.RemoveByLevelUID(ctx, req.UID)
+		}
 	}
 	return nil
 }
 
 func (l *LevelBiz) DeleteLevel(ctx context.Context, uid snowflake.ID) error {
+	current, err := l.levelRepo.GetLevel(ctx, uid)
+	if err != nil {
+		return err
+	}
 	for _, f := range l.LevelReferencedFuncs.List() {
 		referenced, err := f(ctx, uid)
 		if err != nil {
@@ -110,7 +136,9 @@ func (l *LevelBiz) DeleteLevel(ctx context.Context, uid snowflake.ID) error {
 		l.helper.Errorw("msg", "delete level failed", "error", err, "uid", uid)
 		return merr.ErrorInternalServer("delete level failed").WithCause(err)
 	}
-	l.evaluateBiz.RemoveByLevelUID(ctx, uid)
+	if current.Type == enum.LevelType_ALERT {
+		l.evaluateBiz.RemoveByLevelUID(ctx, uid)
+	}
 	return nil
 }
 

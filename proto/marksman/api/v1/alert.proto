@@ -208,6 +208,7 @@ message AlertEventItem {
 	string recoveredReason = 27;
 	string bgColor = 28;
 	string duration = 29;
+	string datasourceLevelName = 30;
 }
 
 // ListRealtimeAlertRequest lists real-time alert events for an alert page.

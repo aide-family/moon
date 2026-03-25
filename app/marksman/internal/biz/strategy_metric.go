@@ -110,6 +110,9 @@ func (b *StrategyMetricBiz) validateLevelExistsAndEnabled(ctx context.Context, l
 		b.helper.Errorw("msg", "get level failed", "error", err, "levelUID", levelUID)
 		return nil, merr.ErrorInternalServer("get level failed").WithCause(err)
 	}
+	if level.Type != enum.LevelType_ALERT {
+		return nil, merr.ErrorParams("the selected level is not an ALERT level, please select a valid level")
+	}
 	if level.Status != enum.GlobalStatus_ENABLED {
 		return nil, merr.ErrorParams("the selected level has been disabled, please select a new one")
 	}

@@ -37,6 +37,7 @@ func newLevel(db *gorm.DB, opts ...gen.DOOption) level {
 	_level.Remark = field.NewString(tableName, "remark")
 	_level.BgColor = field.NewString(tableName, "bg_color")
 	_level.Metadata = field.NewField(tableName, "metadata")
+	_level.Type = field.NewInt32(tableName, "type")
 	_level.Status = field.NewInt32(tableName, "status")
 
 	_level.fillFieldMap()
@@ -58,6 +59,7 @@ type level struct {
 	Remark       field.String
 	BgColor      field.String
 	Metadata     field.Field
+	Type         field.Int32
 	Status       field.Int32
 
 	fieldMap map[string]field.Expr
@@ -85,6 +87,7 @@ func (l *level) updateTableName(table string) *level {
 	l.Remark = field.NewString(table, "remark")
 	l.BgColor = field.NewString(table, "bg_color")
 	l.Metadata = field.NewField(table, "metadata")
+	l.Type = field.NewInt32(table, "type")
 	l.Status = field.NewInt32(table, "status")
 
 	l.fillFieldMap()
@@ -102,7 +105,7 @@ func (l *level) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (l *level) fillFieldMap() {
-	l.fieldMap = make(map[string]field.Expr, 11)
+	l.fieldMap = make(map[string]field.Expr, 12)
 	l.fieldMap["id"] = l.ID
 	l.fieldMap["created_at"] = l.CreatedAt
 	l.fieldMap["updated_at"] = l.UpdatedAt
@@ -113,6 +116,7 @@ func (l *level) fillFieldMap() {
 	l.fieldMap["remark"] = l.Remark
 	l.fieldMap["bg_color"] = l.BgColor
 	l.fieldMap["metadata"] = l.Metadata
+	l.fieldMap["type"] = l.Type
 	l.fieldMap["status"] = l.Status
 }
 
