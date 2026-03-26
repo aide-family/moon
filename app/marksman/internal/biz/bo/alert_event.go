@@ -227,6 +227,7 @@ func BuildAlertFingerprint(index string, labels map[string]string) string {
 
 type InterveneAlertBo struct {
 	UID              snowflake.ID
+	IntervenedByUser snowflake.ID // user id from contextx; will be resolved to member id in biz layer
 	IntervenedBy     snowflake.ID
 	IntervenedByName string
 }
@@ -234,8 +235,24 @@ type InterveneAlertBo struct {
 func NewInterveneAlertBo(ctx context.Context, req *apiv1.InterveneAlertRequest) *InterveneAlertBo {
 	return &InterveneAlertBo{
 		UID:              snowflake.ParseInt64(req.GetUid()),
-		IntervenedBy:     contextx.GetUserUID(ctx),
-		IntervenedByName: contextx.GetUsername(ctx),
+		IntervenedByUser: contextx.GetUserUID(ctx),
+	}
+}
+
+type BatchInterveneAlertBo struct {
+	UIDs             []snowflake.ID
+	IntervenedBy     snowflake.ID
+	IntervenedByName string
+}
+
+func NewBatchInterveneAlertBo(_ context.Context, req *apiv1.BatchInterveneAlertRequest) *BatchInterveneAlertBo {
+	uids := make([]snowflake.ID, 0, len(req.GetUids()))
+	for _, id := range req.GetUids() {
+		uids = append(uids, snowflake.ParseInt64(id))
+	}
+	return &BatchInterveneAlertBo{
+		UIDs:             uids,
+		IntervenedBy:     snowflake.ParseInt64(req.GetIntervenedMemberUid()),
 	}
 }
 

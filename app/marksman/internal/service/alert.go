@@ -98,6 +98,14 @@ func (s *AlertService) InterveneAlert(ctx context.Context, req *apiv1.InterveneA
 	return &apiv1.InterveneAlertReply{}, nil
 }
 
+func (s *AlertService) BatchInterveneAlert(ctx context.Context, req *apiv1.BatchInterveneAlertRequest) (*apiv1.BatchInterveneAlertReply, error) {
+	reqBo := bo.NewBatchInterveneAlertBo(ctx, req)
+	if err := s.alertBiz.BatchInterveneAlert(ctx, reqBo); err != nil {
+		return nil, err
+	}
+	return &apiv1.BatchInterveneAlertReply{}, nil
+}
+
 func (s *AlertService) SuppressAlert(ctx context.Context, req *apiv1.SuppressAlertRequest) (*apiv1.SuppressAlertReply, error) {
 	reqBo := bo.NewSuppressAlertBo(ctx, req)
 	if err := s.alertBiz.SuppressAlert(ctx, reqBo); err != nil {

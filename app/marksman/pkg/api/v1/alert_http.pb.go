@@ -19,6 +19,7 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationAlertBatchInterveneAlert = "/marksman.api.v1.Alert/BatchInterveneAlert"
 const OperationAlertCreateAlertPage = "/marksman.api.v1.Alert/CreateAlertPage"
 const OperationAlertDeleteAlertPage = "/marksman.api.v1.Alert/DeleteAlertPage"
 const OperationAlertGetAlertEvent = "/marksman.api.v1.Alert/GetAlertEvent"
@@ -35,6 +36,7 @@ const OperationAlertSuppressAlert = "/marksman.api.v1.Alert/SuppressAlert"
 const OperationAlertUpdateAlertPage = "/marksman.api.v1.Alert/UpdateAlertPage"
 
 type AlertHTTPServer interface {
+	BatchInterveneAlert(context.Context, *BatchInterveneAlertRequest) (*BatchInterveneAlertReply, error)
 	CreateAlertPage(context.Context, *CreateAlertPageRequest) (*CreateAlertPageReply, error)
 	DeleteAlertPage(context.Context, *DeleteAlertPageRequest) (*DeleteAlertPageReply, error)
 	GetAlertEvent(context.Context, *GetAlertEventRequest) (*AlertEventItem, error)
@@ -65,6 +67,7 @@ func RegisterAlertHTTPServer(s *http.Server, srv AlertHTTPServer) {
 	r.GET("/v1/alert/history-alerts", _Alert_ListHistoryAlert0_HTTP_Handler(srv))
 	r.GET("/v1/alert/realtime-alerts/{uid}", _Alert_GetAlertEvent0_HTTP_Handler(srv))
 	r.POST("/v1/alert/realtime-alerts/{uid}/intervene", _Alert_InterveneAlert0_HTTP_Handler(srv))
+	r.POST("/v1/alert/realtime-alerts/batch-intervene", _Alert_BatchInterveneAlert0_HTTP_Handler(srv))
 	r.POST("/v1/alert/realtime-alerts/{uid}/suppress", _Alert_SuppressAlert0_HTTP_Handler(srv))
 	r.POST("/v1/alert/realtime-alerts/{uid}/recover", _Alert_RecoverAlert0_HTTP_Handler(srv))
 	r.GET("/v1/alert/statistics", _Alert_GetAlertStatistics0_HTTP_Handler(srv))
@@ -270,6 +273,28 @@ func _Alert_InterveneAlert0_HTTP_Handler(srv AlertHTTPServer) func(ctx http.Cont
 	}
 }
 
+func _Alert_BatchInterveneAlert0_HTTP_Handler(srv AlertHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in BatchInterveneAlertRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertBatchInterveneAlert)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.BatchInterveneAlert(ctx, req.(*BatchInterveneAlertRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*BatchInterveneAlertReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _Alert_SuppressAlert0_HTTP_Handler(srv AlertHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in SuppressAlertRequest
@@ -381,6 +406,7 @@ func _Alert_SaveUserAlertPages0_HTTP_Handler(srv AlertHTTPServer) func(ctx http.
 }
 
 type AlertHTTPClient interface {
+	BatchInterveneAlert(ctx context.Context, req *BatchInterveneAlertRequest, opts ...http.CallOption) (rsp *BatchInterveneAlertReply, err error)
 	CreateAlertPage(ctx context.Context, req *CreateAlertPageRequest, opts ...http.CallOption) (rsp *CreateAlertPageReply, err error)
 	DeleteAlertPage(ctx context.Context, req *DeleteAlertPageRequest, opts ...http.CallOption) (rsp *DeleteAlertPageReply, err error)
 	GetAlertEvent(ctx context.Context, req *GetAlertEventRequest, opts ...http.CallOption) (rsp *AlertEventItem, err error)
@@ -406,6 +432,19 @@ type AlertHTTPClientImpl struct {
 
 func NewAlertHTTPClient(client *http.Client) AlertHTTPClient {
 	return &AlertHTTPClientImpl{client}
+}
+
+func (c *AlertHTTPClientImpl) BatchInterveneAlert(ctx context.Context, in *BatchInterveneAlertRequest, opts ...http.CallOption) (*BatchInterveneAlertReply, error) {
+	var out BatchInterveneAlertReply
+	pattern := "/v1/alert/realtime-alerts/batch-intervene"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAlertBatchInterveneAlert))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 func (c *AlertHTTPClientImpl) CreateAlertPage(ctx context.Context, in *CreateAlertPageRequest, opts ...http.CallOption) (*CreateAlertPageReply, error) {

@@ -214,6 +214,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.ListHistoryAlertReply'
+    /v1/alert/realtime-alerts/batch-intervene:
+        post:
+            tags:
+                - Alert
+            operationId: Alert_BatchInterveneAlert
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.BatchInterveneAlertRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.BatchInterveneAlertReply'
     /v1/alert/realtime-alerts/{uid}:
         get:
             tags:
@@ -1640,6 +1658,19 @@ components:
                 updatedAt:
                     type: string
             description: AlertPageItem is a single alert page (view/category) for grouping real-time alerts.
+        marksman.api.v1.BatchInterveneAlertReply:
+            type: object
+            properties: {}
+        marksman.api.v1.BatchInterveneAlertRequest:
+            type: object
+            properties:
+                uids:
+                    type: array
+                    items:
+                        type: string
+                intervenedMemberUid:
+                    type: string
+            description: BatchInterveneAlertRequest marks events as intervened (on-call has taken over).
         marksman.api.v1.CreateAlertPageReply:
             type: object
             properties:

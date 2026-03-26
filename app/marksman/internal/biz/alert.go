@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/bwmarrin/snowflake"
@@ -18,6 +19,7 @@ func NewAlert(
 	alertEventRepo repository.AlertEvent,
 	userAlertPageRepo repository.UserAlertPage,
 	levelRepo repository.Level,
+	memberRepo repository.Member,
 	helper *klog.Helper,
 ) *AlertBiz {
 	return &AlertBiz{
@@ -25,6 +27,7 @@ func NewAlert(
 		alertEventRepo:    alertEventRepo,
 		userAlertPageRepo: userAlertPageRepo,
 		levelRepo:         levelRepo,
+		memberRepo:        memberRepo,
 		helper:            klog.NewHelper(klog.With(helper.Logger(), "biz", "alert")),
 	}
 }
@@ -34,6 +37,7 @@ type AlertBiz struct {
 	alertEventRepo    repository.AlertEvent
 	userAlertPageRepo repository.UserAlertPage
 	levelRepo         repository.Level
+	memberRepo        repository.Member
 	helper            *klog.Helper
 }
 
@@ -56,12 +60,65 @@ func (b *AlertBiz) ListRealtimeAlert(ctx context.Context, req *bo.ListRealtimeAl
 }
 
 func (b *AlertBiz) InterveneAlert(ctx context.Context, req *bo.InterveneAlertBo) error {
+	if req == nil || req.UID.Int64() <= 0 {
+		return merr.ErrorParams("uid must be greater than 0")
+	}
+	if req.IntervenedByUser.Int64() <= 0 {
+		return merr.ErrorParams("intervenedByUser must be greater than 0")
+	}
+
+	// Single intervene: do not choose member on the client; resolve memberId by current userId.
+	mlist, err := b.memberRepo.ListMember(ctx, &goddessv1.ListMemberRequest{
+		Page:     1,
+		PageSize: 1,
+		UserUID:  req.IntervenedByUser.Int64(),
+	})
+	if err != nil {
+		b.helper.Errorw("msg", "list member failed", "error", err, "userUID", req.IntervenedByUser.Int64())
+		return merr.ErrorInternalServer("list member failed").WithCause(err)
+	}
+	items := mlist.GetItems()
+	if len(items) == 0 {
+		return merr.ErrorNotFound("member not found")
+	}
+	req.IntervenedBy = snowflake.ParseInt64(items[0].GetUid())
+	req.IntervenedByName = items[0].GetName()
+
 	if err := b.alertEventRepo.InterveneAlert(ctx, req); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("alert event not found")
 		}
 		b.helper.Errorw("msg", "intervene alert failed", "error", err, "uid", req.UID.Int64())
 		return merr.ErrorInternalServer("intervene alert failed").WithCause(err)
+	}
+	return nil
+}
+
+func (b *AlertBiz) BatchInterveneAlert(ctx context.Context, req *bo.BatchInterveneAlertBo) error {
+	if req == nil || len(req.UIDs) == 0 {
+		return merr.ErrorParams("uids are required")
+	}
+	if req.IntervenedBy.Int64() <= 0 {
+		return merr.ErrorParams("intervenedMemberUid must be greater than 0")
+	}
+	member, err := b.memberRepo.GetMember(ctx, &goddessv1.GetMemberRequest{Uid: req.IntervenedBy.Int64()})
+	if err != nil {
+		b.helper.Errorw("msg", "get member failed", "error", err, "memberUID", req.IntervenedBy.Int64())
+		return merr.ErrorInternalServer("get member failed").WithCause(err)
+	}
+	req.IntervenedByName = member.GetName()
+
+	for _, uid := range req.UIDs {
+		if uid.Int64() <= 0 {
+			return merr.ErrorParams("uid must be greater than 0")
+		}
+	}
+	if err := b.alertEventRepo.BatchInterveneAlert(ctx, req); err != nil {
+		if merr.IsNotFound(err) {
+			return merr.ErrorNotFound("alert event not found")
+		}
+		b.helper.Errorw("msg", "batch intervene alert failed", "error", err)
+		return merr.ErrorInternalServer("batch intervene alert failed").WithCause(err)
 	}
 	return nil
 }

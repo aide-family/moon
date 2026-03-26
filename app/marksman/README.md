@@ -54,7 +54,7 @@
 - **Strategy**: CRUD, list, status; link to strategy group; type (METRICS/LOGS/TRACE) and driver
 - **Level**: Level CRUD, list, select, status (including `type` = ALERT/DATASOURCE and `bgColor` for display)
 - **Strategy metric**: Save/get metric config (expr, labels, datasourceUIDs, levels); save/update/delete/get metric levels (mode, condition, values, duration); bind receivers per strategy (optional levelUID)
-- **Alert (real-time)**: Alert page CRUD (name, color, sort order, filter by strategy group/level/strategy/datasource/datasource level); list real-time alert events by alert page; operate events: intervene (on-call takeover), suppress (until time), recover (manual); alert statistics for dashboard (total active, by level, today recovered, by alert page); user followed alert pages (list/save per user)
+- **Alert (real-time)**: Alert page CRUD (name, color, sort order, filter by strategy group/level/strategy/datasource/datasource level); list real-time alert events by alert page; operate events: batch intervene + intervene (on-call takeover), suppress (until time), recover (manual); alert statistics for dashboard (total active, by level, today recovered, by alert page); user followed alert pages (list/save per user)
 - **Notification group**: CRUD for notification groups (name, remark, metadata, members, webhooks, templates updated via Create/Update)
 - **Notification group subscription**: Get/update subscription filter per notification group (strategy groups, strategies, strategy-level pairs, labels, excludeLabels, datasourceUids); when multiple dimensions are set, alerts match if at least one dimension matches (OR)
 
@@ -125,18 +125,19 @@
 | | `GET /v1/notification-groups` | List notification groups (page, pageSize, keyword, status) |
 | **NotificationGroupSubscription** | `GET /v1/notification-groups/{notification_group_uid}/subscription` | Get subscription filter for a notification group |
 | | `PUT /v1/notification-groups/{notification_group_uid}/subscription` | Save subscription filter (create or overwrite; strategy_group_uids, strategy_uids, strategy_levels, labels, exclude_labels, datasource_uids; OR when multiple set) |
-| **Alert** (alert page) | `POST /v1/alert-pages` | Create alert page (name, color, sortOrder, filter by strategy group/level/strategy/datasource/datasource level) |
-| | `PUT /v1/alert-pages/{uid}` | Update alert page (filter supports strategy group/level/strategy/datasource/datasource level) |
-| | `DELETE /v1/alert-pages/{uid}` | Delete alert page |
-| | `GET /v1/alert-pages/{uid}` | Get alert page |
-| | `GET /v1/alert-pages` | List alert pages (page, pageSize, keyword) |
-| **Alert** (realtime) | `GET /v1/alert-pages/{alertPageUid}/realtime-alerts` | List real-time alert events for page (page, pageSize, status; includes level bgColor and datasource levelName) |
-| | `GET /v1/alert-statistics` | Alert dashboard statistics (total active, by level, today recovered, by alert page) |
-| | `POST /v1/realtime-alerts/{uid}/intervene` | Mark event as intervened (on-call takeover) |
-| | `POST /v1/realtime-alerts/{uid}/suppress` | Suppress event until time (body: suppressUntil RFC3339) |
-| | `POST /v1/realtime-alerts/{uid}/recover` | Mark event as manually recovered |
-| **Alert** (user) | `GET /v1/user/alert-pages` | List current user's followed alert pages (personal config) |
-| | `PUT /v1/user/alert-pages` | Save current user's followed alert pages (body: alertPageUids, max 10; replaces list) |
+| **Alert** (alert page) | `POST /v1/alert/alert-pages` | Create alert page (name, color, sortOrder, filter by strategy group/level/strategy/datasource/datasource level) |
+| | `PUT /v1/alert/alert-pages/{uid}` | Update alert page (filter supports strategy group/level/strategy/datasource/datasource level) |
+| | `DELETE /v1/alert/alert-pages/{uid}` | Delete alert page |
+| | `GET /v1/alert/alert-pages/{uid}` | Get alert page |
+| | `GET /v1/alert/alert-pages` | List alert pages (page, pageSize, keyword) |
+| **Alert** (realtime) | `GET /v1/alert/alert-pages/{alertPageUid}/realtime-alerts` | List real-time alert events for page (page, pageSize, status; includes level bgColor and datasource levelName) |
+| | `GET /v1/alert/statistics` | Alert dashboard statistics (total active, by level, today recovered, by alert page) |
+| | `POST /v1/alert/realtime-alerts/batch-intervene` | Batch assign intervened handler(s) (on-call takeover) |
+| | `POST /v1/alert/realtime-alerts/{uid}/intervene` | Mark event as intervened (on-call takeover) |
+| | `POST /v1/alert/realtime-alerts/{uid}/suppress` | Suppress event until time (body: suppressUntil RFC3339) |
+| | `POST /v1/alert/realtime-alerts/{uid}/recover` | Mark event as manually recovered |
+| **Alert** (user) | `GET /v1/alert/user/alert-pages` | List current user's followed alert pages (personal config) |
+| | `PUT /v1/alert/user/alert-pages` | Save current user's followed alert pages (body: alertPageUids, max 10; replaces list) |
 
 **Types**: `DatasourceType`: METRICS, LOGS, TRACE. `LevelType`: ALERT, DATASOURCE. **Drivers**: METRICS_PROMETHEUS, METRICS_VICTORIA_METRICS, LOGS_ELASTICSEARCH, TRACE_JAEGER.
 

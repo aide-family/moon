@@ -294,6 +294,49 @@ func (r *alertEventRepository) InterveneAlert(ctx context.Context, req *bo.Inter
 	return nil
 }
 
+func (r *alertEventRepository) BatchInterveneAlert(ctx context.Context, req *bo.BatchInterveneAlertBo) error {
+	ns := contextx.GetNamespace(ctx)
+	now := time.Now()
+
+	// Dedupe uids and group by shard table to avoid per-uid write statements.
+	distinctUIDs := make(map[int64]struct{}, len(req.UIDs))
+	tableUIDs := make(map[string][]int64)
+	for _, uid := range req.UIDs {
+		uidInt := uid.Int64()
+		if uidInt <= 0 {
+			continue
+		}
+		if _, ok := distinctUIDs[uidInt]; ok {
+			continue
+		}
+		distinctUIDs[uidInt] = struct{}{}
+		tableName := do.GenAlertEventTableName(ns, timex.TimeFromID(uid))
+		tableUIDs[tableName] = append(tableUIDs[tableName], uidInt)
+	}
+
+	intervenedBy := req.IntervenedBy.Int64()
+	intervenedByName := req.IntervenedByName
+
+	for tableName, uids := range tableUIDs {
+		if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
+			klog.Context(ctx).Errorw("msg", "batch intervene alert failed", "error", err, "tableName", tableName, "uids", uids)
+			continue
+		}
+
+		table := query.AlertEvent.Table(tableName)
+		_, err := table.WithContext(ctx).Where(table.ID.In(uids...)).UpdateColumnSimple(
+			table.IntervenedAt.Value(now),
+			table.IntervenedBy.Value(intervenedBy),
+			table.IntervenedByName.Value(intervenedByName),
+		)
+		if err != nil {
+			klog.Context(ctx).Errorw("msg", "batch intervene alert failed", "error", err, "tableName", tableName, "uids", uids)
+			continue
+		}
+	}
+	return nil
+}
+
 func (r *alertEventRepository) SuppressAlert(ctx context.Context, req *bo.SuppressAlertBo) error {
 	uid, until, by, byName, reason := req.UID, req.SuppressUntilAt, req.SuppressedBy, req.SuppressedByName, req.SuppressedReason
 	ns := contextx.GetNamespace(ctx)

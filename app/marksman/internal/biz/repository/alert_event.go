@@ -21,6 +21,7 @@ type AlertEvent interface {
 	// CountRecoveredAlertsSince returns count of alerts with status Recovered and recovered_at >= since.
 	CountRecoveredAlertsSince(ctx context.Context, since time.Time) (int64, error)
 	InterveneAlert(ctx context.Context, req *bo.InterveneAlertBo) error
+	BatchInterveneAlert(ctx context.Context, req *bo.BatchInterveneAlertBo) error
 	SuppressAlert(ctx context.Context, req *bo.SuppressAlertBo) error
 	RecoverAlert(ctx context.Context, req *bo.RecoverAlertBo) error
 	AutoRecoverAlert(ctx context.Context, uid snowflake.ID) error

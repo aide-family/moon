@@ -128,7 +128,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	alertBiz := biz.NewAlert(alertPage, alertEvent, userAlertPage, level, helper)
+	alertBiz := biz.NewAlert(alertPage, alertEvent, userAlertPage, level, member, helper)
 	alertService := service.NewAlertService(alertPageBiz, alertBiz)
 	notificationGroup, err := impl.NewNotificationGroupRepository(dataData)
 	if err != nil {

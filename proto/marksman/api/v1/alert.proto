@@ -61,6 +61,12 @@ service Alert {
 			body: "*"
 		};
 	}
+	rpc BatchInterveneAlert (BatchInterveneAlertRequest) returns (BatchInterveneAlertReply) {
+		option (google.api.http) = {
+			post: "/v1/alert/realtime-alerts/batch-intervene"
+			body: "*"
+		};
+	}
 	rpc SuppressAlert (SuppressAlertRequest) returns (SuppressAlertReply) {
 		option (google.api.http) = {
 			post: "/v1/alert/realtime-alerts/{uid}/suppress"
@@ -308,6 +314,18 @@ message InterveneAlertRequest {
 	}];
 }
 message InterveneAlertReply {}
+
+// BatchInterveneAlertRequest marks events as intervened (on-call has taken over).
+message BatchInterveneAlertRequest {
+	repeated int64 uids = 1 [(buf.validate.field).repeated = {
+		max_items: 100
+	}];
+	int64 intervenedMemberUid = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "intervenedMemberUid must be greater than 0",
+	}];
+}
+message BatchInterveneAlertReply {}
 
 // SuppressAlertRequest suppresses an event until a given time (known issue).
 message SuppressAlertRequest {

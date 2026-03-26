@@ -19,20 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Alert_CreateAlertPage_FullMethodName    = "/marksman.api.v1.Alert/CreateAlertPage"
-	Alert_UpdateAlertPage_FullMethodName    = "/marksman.api.v1.Alert/UpdateAlertPage"
-	Alert_DeleteAlertPage_FullMethodName    = "/marksman.api.v1.Alert/DeleteAlertPage"
-	Alert_GetAlertPage_FullMethodName       = "/marksman.api.v1.Alert/GetAlertPage"
-	Alert_ListAlertPage_FullMethodName      = "/marksman.api.v1.Alert/ListAlertPage"
-	Alert_ListRealtimeAlert_FullMethodName  = "/marksman.api.v1.Alert/ListRealtimeAlert"
-	Alert_ListHistoryAlert_FullMethodName   = "/marksman.api.v1.Alert/ListHistoryAlert"
-	Alert_GetAlertEvent_FullMethodName      = "/marksman.api.v1.Alert/GetAlertEvent"
-	Alert_InterveneAlert_FullMethodName     = "/marksman.api.v1.Alert/InterveneAlert"
-	Alert_SuppressAlert_FullMethodName      = "/marksman.api.v1.Alert/SuppressAlert"
-	Alert_RecoverAlert_FullMethodName       = "/marksman.api.v1.Alert/RecoverAlert"
-	Alert_GetAlertStatistics_FullMethodName = "/marksman.api.v1.Alert/GetAlertStatistics"
-	Alert_ListUserAlertPages_FullMethodName = "/marksman.api.v1.Alert/ListUserAlertPages"
-	Alert_SaveUserAlertPages_FullMethodName = "/marksman.api.v1.Alert/SaveUserAlertPages"
+	Alert_CreateAlertPage_FullMethodName     = "/marksman.api.v1.Alert/CreateAlertPage"
+	Alert_UpdateAlertPage_FullMethodName     = "/marksman.api.v1.Alert/UpdateAlertPage"
+	Alert_DeleteAlertPage_FullMethodName     = "/marksman.api.v1.Alert/DeleteAlertPage"
+	Alert_GetAlertPage_FullMethodName        = "/marksman.api.v1.Alert/GetAlertPage"
+	Alert_ListAlertPage_FullMethodName       = "/marksman.api.v1.Alert/ListAlertPage"
+	Alert_ListRealtimeAlert_FullMethodName   = "/marksman.api.v1.Alert/ListRealtimeAlert"
+	Alert_ListHistoryAlert_FullMethodName    = "/marksman.api.v1.Alert/ListHistoryAlert"
+	Alert_GetAlertEvent_FullMethodName       = "/marksman.api.v1.Alert/GetAlertEvent"
+	Alert_InterveneAlert_FullMethodName      = "/marksman.api.v1.Alert/InterveneAlert"
+	Alert_BatchInterveneAlert_FullMethodName = "/marksman.api.v1.Alert/BatchInterveneAlert"
+	Alert_SuppressAlert_FullMethodName       = "/marksman.api.v1.Alert/SuppressAlert"
+	Alert_RecoverAlert_FullMethodName        = "/marksman.api.v1.Alert/RecoverAlert"
+	Alert_GetAlertStatistics_FullMethodName  = "/marksman.api.v1.Alert/GetAlertStatistics"
+	Alert_ListUserAlertPages_FullMethodName  = "/marksman.api.v1.Alert/ListUserAlertPages"
+	Alert_SaveUserAlertPages_FullMethodName  = "/marksman.api.v1.Alert/SaveUserAlertPages"
 )
 
 // AlertClient is the client API for Alert service.
@@ -50,6 +51,7 @@ type AlertClient interface {
 	ListHistoryAlert(ctx context.Context, in *ListHistoryAlertRequest, opts ...grpc.CallOption) (*ListHistoryAlertReply, error)
 	GetAlertEvent(ctx context.Context, in *GetAlertEventRequest, opts ...grpc.CallOption) (*AlertEventItem, error)
 	InterveneAlert(ctx context.Context, in *InterveneAlertRequest, opts ...grpc.CallOption) (*InterveneAlertReply, error)
+	BatchInterveneAlert(ctx context.Context, in *BatchInterveneAlertRequest, opts ...grpc.CallOption) (*BatchInterveneAlertReply, error)
 	SuppressAlert(ctx context.Context, in *SuppressAlertRequest, opts ...grpc.CallOption) (*SuppressAlertReply, error)
 	RecoverAlert(ctx context.Context, in *RecoverAlertRequest, opts ...grpc.CallOption) (*RecoverAlertReply, error)
 	// GetAlertStatistics returns alert counts for the dashboard: total active, by level, today recovered, by alert page.
@@ -158,6 +160,16 @@ func (c *alertClient) InterveneAlert(ctx context.Context, in *InterveneAlertRequ
 	return out, nil
 }
 
+func (c *alertClient) BatchInterveneAlert(ctx context.Context, in *BatchInterveneAlertRequest, opts ...grpc.CallOption) (*BatchInterveneAlertReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchInterveneAlertReply)
+	err := c.cc.Invoke(ctx, Alert_BatchInterveneAlert_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *alertClient) SuppressAlert(ctx context.Context, in *SuppressAlertRequest, opts ...grpc.CallOption) (*SuppressAlertReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SuppressAlertReply)
@@ -223,6 +235,7 @@ type AlertServer interface {
 	ListHistoryAlert(context.Context, *ListHistoryAlertRequest) (*ListHistoryAlertReply, error)
 	GetAlertEvent(context.Context, *GetAlertEventRequest) (*AlertEventItem, error)
 	InterveneAlert(context.Context, *InterveneAlertRequest) (*InterveneAlertReply, error)
+	BatchInterveneAlert(context.Context, *BatchInterveneAlertRequest) (*BatchInterveneAlertReply, error)
 	SuppressAlert(context.Context, *SuppressAlertRequest) (*SuppressAlertReply, error)
 	RecoverAlert(context.Context, *RecoverAlertRequest) (*RecoverAlertReply, error)
 	// GetAlertStatistics returns alert counts for the dashboard: total active, by level, today recovered, by alert page.
@@ -267,6 +280,9 @@ func (UnimplementedAlertServer) GetAlertEvent(context.Context, *GetAlertEventReq
 }
 func (UnimplementedAlertServer) InterveneAlert(context.Context, *InterveneAlertRequest) (*InterveneAlertReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InterveneAlert not implemented")
+}
+func (UnimplementedAlertServer) BatchInterveneAlert(context.Context, *BatchInterveneAlertRequest) (*BatchInterveneAlertReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchInterveneAlert not implemented")
 }
 func (UnimplementedAlertServer) SuppressAlert(context.Context, *SuppressAlertRequest) (*SuppressAlertReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SuppressAlert not implemented")
@@ -466,6 +482,24 @@ func _Alert_InterveneAlert_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Alert_BatchInterveneAlert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchInterveneAlertRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertServer).BatchInterveneAlert(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Alert_BatchInterveneAlert_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertServer).BatchInterveneAlert(ctx, req.(*BatchInterveneAlertRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Alert_SuppressAlert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SuppressAlertRequest)
 	if err := dec(in); err != nil {
@@ -598,6 +632,10 @@ var Alert_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "InterveneAlert",
 			Handler:    _Alert_InterveneAlert_Handler,
+		},
+		{
+			MethodName: "BatchInterveneAlert",
+			Handler:    _Alert_BatchInterveneAlert_Handler,
 		},
 		{
 			MethodName: "SuppressAlert",
