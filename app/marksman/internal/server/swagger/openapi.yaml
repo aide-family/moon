@@ -2557,6 +2557,10 @@ components:
                     type: object
                     additionalProperties:
                         type: string
+                datasourceLevelUids:
+                    type: array
+                    items:
+                        type: string
             description: |-
                 Subscription filter: when multiple dimensions are set, an alert matches if it satisfies at least one (OR).
                  - strategyGroupUids: alert's strategy must belong to one of these groups.
@@ -2565,6 +2569,7 @@ components:
                  - labels: alert must contain all these key-value pairs with the same values.
                  - excludeLabels: alert must not contain any of these key-value pairs (subset match).
                  - datasourceUids: alert's datasource must be in this list.
+                 - datasourceLevelUids: alert datasource's level_uid must be in this list.
         marksman.api.v1.SuppressAlertReply:
             type: object
             properties: {}

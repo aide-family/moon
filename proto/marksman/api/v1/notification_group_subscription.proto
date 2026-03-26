@@ -16,6 +16,7 @@ import "buf/validate/validate.proto";
 // - labels: alert must contain all these key-value pairs with the same values.
 // - excludeLabels: alert must not contain any of these key-value pairs (subset match).
 // - datasourceUids: alert's datasource must be in this list.
+// - datasourceLevelUids: alert datasource's level_uid must be in this list.
 message SubscriptionFilter {
 	repeated int64 strategyGroupUids = 1;
 	repeated int64 strategyUids = 2;
@@ -23,6 +24,7 @@ message SubscriptionFilter {
 	repeated int64 datasourceUids = 4;
 	map<string, string> labels = 5;
 	map<string, string> excludeLabels = 6;
+	repeated int64 datasourceLevelUids = 7;
 }
 
 message StrategyLevelPair {

@@ -38,6 +38,7 @@ func newNotificationGroupSubscription(db *gorm.DB, opts ...gen.DOOption) notific
 	_notificationGroupSubscription.Labels = field.NewField(tableName, "labels")
 	_notificationGroupSubscription.ExcludeLabels = field.NewField(tableName, "exclude_labels")
 	_notificationGroupSubscription.DatasourceUIDs = field.NewField(tableName, "datasource_uids")
+	_notificationGroupSubscription.DatasourceLevelUIDs = field.NewField(tableName, "datasource_level_uids")
 
 	_notificationGroupSubscription.fillFieldMap()
 
@@ -59,6 +60,7 @@ type notificationGroupSubscription struct {
 	Labels               field.Field
 	ExcludeLabels        field.Field
 	DatasourceUIDs       field.Field
+	DatasourceLevelUIDs  field.Field
 
 	fieldMap map[string]field.Expr
 }
@@ -86,6 +88,7 @@ func (n *notificationGroupSubscription) updateTableName(table string) *notificat
 	n.Labels = field.NewField(table, "labels")
 	n.ExcludeLabels = field.NewField(table, "exclude_labels")
 	n.DatasourceUIDs = field.NewField(table, "datasource_uids")
+	n.DatasourceLevelUIDs = field.NewField(table, "datasource_level_uids")
 
 	n.fillFieldMap()
 
@@ -102,7 +105,7 @@ func (n *notificationGroupSubscription) GetFieldByName(fieldName string) (field.
 }
 
 func (n *notificationGroupSubscription) fillFieldMap() {
-	n.fieldMap = make(map[string]field.Expr, 11)
+	n.fieldMap = make(map[string]field.Expr, 12)
 	n.fieldMap["id"] = n.ID
 	n.fieldMap["created_at"] = n.CreatedAt
 	n.fieldMap["updated_at"] = n.UpdatedAt
@@ -114,6 +117,7 @@ func (n *notificationGroupSubscription) fillFieldMap() {
 	n.fieldMap["labels"] = n.Labels
 	n.fieldMap["exclude_labels"] = n.ExcludeLabels
 	n.fieldMap["datasource_uids"] = n.DatasourceUIDs
+	n.fieldMap["datasource_level_uids"] = n.DatasourceLevelUIDs
 }
 
 func (n notificationGroupSubscription) clone(db *gorm.DB) notificationGroupSubscription {

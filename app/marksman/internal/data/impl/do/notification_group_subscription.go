@@ -61,6 +61,7 @@ type NotificationGroupSubscription struct {
 	Labels               *safety.Map[string, string] `gorm:"column:labels;type:json;"`
 	ExcludeLabels        *safety.Map[string, string] `gorm:"column:exclude_labels;type:json;"`
 	DatasourceUIDs       *safety.Slice[int64]        `gorm:"column:datasource_uids;type:json;"`
+	DatasourceLevelUIDs  *safety.Slice[int64]        `gorm:"column:datasource_level_uids;type:json;"`
 }
 
 func (NotificationGroupSubscription) TableName() string {

@@ -14,12 +14,13 @@ type StrategyLevelPairBo struct {
 }
 
 type SubscriptionFilterBo struct {
-	StrategyGroupUIDs []int64
-	StrategyUIDs      []int64
-	StrategyLevels    []StrategyLevelPairBo
-	Labels            map[string]string
-	ExcludeLabels     map[string]string
-	DatasourceUIDs    []int64
+	StrategyGroupUIDs   []int64
+	StrategyUIDs        []int64
+	StrategyLevels      []StrategyLevelPairBo
+	Labels              map[string]string
+	ExcludeLabels       map[string]string
+	DatasourceUIDs      []int64
+	DatasourceLevelUIDs []int64
 }
 
 // NewSubscriptionFilterBo builds SubscriptionFilterBo from proto SubscriptionFilter.
@@ -34,12 +35,13 @@ func NewSubscriptionFilterBo(req *apiv1.SubscriptionFilter) *SubscriptionFilterB
 		}
 	}
 	return &SubscriptionFilterBo{
-		StrategyGroupUIDs: req.GetStrategyGroupUids(),
-		StrategyUIDs:      req.GetStrategyUids(),
-		StrategyLevels:    levels,
-		Labels:            req.GetLabels(),
-		ExcludeLabels:     req.GetExcludeLabels(),
-		DatasourceUIDs:    req.GetDatasourceUids(),
+		StrategyGroupUIDs:   req.GetStrategyGroupUids(),
+		StrategyUIDs:        req.GetStrategyUids(),
+		StrategyLevels:      levels,
+		Labels:              req.GetLabels(),
+		ExcludeLabels:       req.GetExcludeLabels(),
+		DatasourceUIDs:      req.GetDatasourceUids(),
+		DatasourceLevelUIDs: req.GetDatasourceLevelUids(),
 	}
 }
 
@@ -56,21 +58,23 @@ func ToAPIV1SubscriptionFilter(b *SubscriptionFilterBo) *apiv1.SubscriptionFilte
 		})
 	}
 	return &apiv1.SubscriptionFilter{
-		StrategyGroupUids: b.StrategyGroupUIDs,
-		StrategyUids:      b.StrategyUIDs,
-		StrategyLevels:    levels,
-		Labels:            b.Labels,
-		ExcludeLabels:     b.ExcludeLabels,
-		DatasourceUids:    b.DatasourceUIDs,
+		StrategyGroupUids:   b.StrategyGroupUIDs,
+		StrategyUids:        b.StrategyUIDs,
+		StrategyLevels:      levels,
+		Labels:              b.Labels,
+		ExcludeLabels:       b.ExcludeLabels,
+		DatasourceUids:      b.DatasourceUIDs,
+		DatasourceLevelUids: b.DatasourceLevelUIDs,
 	}
 }
 
 type MatchesAlertParams struct {
-	StrategyGroupUID snowflake.ID
-	StrategyUID      snowflake.ID
-	LevelUID         snowflake.ID
-	DatasourceUID    snowflake.ID
-	Labels           map[string]string
+	StrategyGroupUID   snowflake.ID
+	StrategyUID        snowflake.ID
+	LevelUID           snowflake.ID
+	DatasourceUID      snowflake.ID
+	DatasourceLevelUID snowflake.ID
+	Labels             map[string]string
 }
 
 // MatchesAlert returns true if the alert matches at least one non-empty dimension of the filter (OR semantics).
@@ -103,13 +107,14 @@ func (f *SubscriptionFilterBo) MatchesAlert(params *MatchesAlertParams) bool {
 		}
 	}
 
-	strategyGroupUID, strategyUID, levelUID, datasourceUID := params.StrategyGroupUID, params.StrategyUID, params.LevelUID, params.DatasourceUID
+	strategyGroupUID, strategyUID, levelUID, datasourceUID, datasourceLevelUID := params.StrategyGroupUID, params.StrategyUID, params.LevelUID, params.DatasourceUID, params.DatasourceLevelUID
 	// If all dimensions are empty, treat as no subscription (do not match).
 	hasGroup := len(f.StrategyGroupUIDs) > 0
 	hasStrategy := len(f.StrategyUIDs) > 0
 	hasLevel := len(f.StrategyLevels) > 0
 	hasLabels := len(f.Labels) > 0
 	hasDatasource := len(f.DatasourceUIDs) > 0
+	hasDatasourceLevel := len(f.DatasourceLevelUIDs) > 0
 
 	groupMatched := hasGroup && slices.Contains(f.StrategyGroupUIDs, strategyGroupUID.Int64())
 	strategyMatched := hasStrategy && slices.Contains(f.StrategyUIDs, strategyUID.Int64())
@@ -134,6 +139,7 @@ func (f *SubscriptionFilterBo) MatchesAlert(params *MatchesAlertParams) bool {
 	}
 
 	datasourceMatched := hasDatasource && slices.Contains(f.DatasourceUIDs, datasourceUID.Int64())
+	datasourceLevelMatched := hasDatasourceLevel && slices.Contains(f.DatasourceLevelUIDs, datasourceLevelUID.Int64())
 
-	return groupMatched || strategyMatched || levelMatched || datasourceMatched || labelsMatched
+	return groupMatched || strategyMatched || levelMatched || datasourceMatched || datasourceLevelMatched || labelsMatched
 }
