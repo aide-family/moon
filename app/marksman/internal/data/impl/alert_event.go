@@ -279,17 +279,26 @@ func (r *alertEventRepository) InterveneAlert(ctx context.Context, req *bo.Inter
 		return merr.ErrorNotFound("alert event not found")
 	}
 	table := query.AlertEvent.Table(tableName)
+	info, err := r.GetAlertEvent(ctx, uid)
+	if err != nil {
+		return err
+	}
+	if info.IntervenedBy.Int64() > 0 && info.IntervenedByName != "" {
+		return merr.ErrorConflict("alert event already intervened")
+	}
 	now := time.Now()
-	info, err := table.WithContext(ctx).Where(table.ID.Eq(uid.Int64())).UpdateColumnSimple(
+	wrappers := []gen.Condition{
+		table.ID.Eq(uid.Int64()),
+		table.Or(table.IntervenedBy.Eq(0), table.IntervenedByName.Eq("")),
+		table.IntervenedAt.IsNull(),
+	}
+	_, err = table.WithContext(ctx).Where(wrappers...).UpdateColumnSimple(
 		table.IntervenedAt.Value(now),
 		table.IntervenedBy.Value(by.Int64()),
 		table.IntervenedByName.Value(byName),
 	)
 	if err != nil {
 		return err
-	}
-	if info.RowsAffected == 0 {
-		return merr.ErrorNotFound("alert event not found")
 	}
 	return nil
 }
@@ -309,8 +318,13 @@ func (r *alertEventRepository) BatchInterveneAlert(ctx context.Context, req *bo.
 		if _, ok := distinctUIDs[uidInt]; ok {
 			continue
 		}
+
 		distinctUIDs[uidInt] = struct{}{}
 		tableName := do.GenAlertEventTableName(ns, timex.TimeFromID(uid))
+		if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
+			klog.Context(ctx).Errorw("msg", "batch intervene alert failed", "error", err, "tableName", tableName)
+			continue
+		}
 		tableUIDs[tableName] = append(tableUIDs[tableName], uidInt)
 	}
 
@@ -318,13 +332,12 @@ func (r *alertEventRepository) BatchInterveneAlert(ctx context.Context, req *bo.
 	intervenedByName := req.IntervenedByName
 
 	for tableName, uids := range tableUIDs {
-		if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
-			klog.Context(ctx).Errorw("msg", "batch intervene alert failed", "error", err, "tableName", tableName, "uids", uids)
+		if len(uids) == 0 {
 			continue
 		}
 
 		table := query.AlertEvent.Table(tableName)
-		_, err := table.WithContext(ctx).Where(table.ID.In(uids...)).UpdateColumnSimple(
+		_, err := table.WithContext(ctx).Where(table.ID.In(uids...), table.Or(table.IntervenedBy.Eq(0), table.IntervenedByName.Eq(""))).UpdateColumnSimple(
 			table.IntervenedAt.Value(now),
 			table.IntervenedBy.Value(intervenedBy),
 			table.IntervenedByName.Value(intervenedByName),

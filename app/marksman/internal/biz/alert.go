@@ -88,6 +88,9 @@ func (b *AlertBiz) InterveneAlert(ctx context.Context, req *bo.InterveneAlertBo)
 		if merr.IsNotFound(err) {
 			return merr.ErrorNotFound("alert event not found")
 		}
+		if merr.IsConflict(err) {
+			return merr.ErrorConflict("alert event already intervened")
+		}
 		b.helper.Errorw("msg", "intervene alert failed", "error", err, "uid", req.UID.Int64())
 		return merr.ErrorInternalServer("intervene alert failed").WithCause(err)
 	}
