@@ -1612,6 +1612,14 @@ components:
                     type: array
                     items:
                         type: string
+                datasourceUids:
+                    type: array
+                    items:
+                        type: string
+                datasourceLevelUids:
+                    type: array
+                    items:
+                        type: string
             description: AlertPageFilter defines which alerts belong to a page (any match).
         marksman.api.v1.AlertPageItem:
             type: object

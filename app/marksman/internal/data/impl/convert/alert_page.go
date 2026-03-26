@@ -16,9 +16,11 @@ func ToAlertPageItemBo(m *do.AlertPage) *bo.AlertPageItemBo {
 	var filter *bo.AlertPageFilterBo
 	if m.FilterConfig != nil {
 		filter = &bo.AlertPageFilterBo{
-			StrategyGroupUIDs: m.FilterConfig.StrategyGroupUIDs,
-			LevelUIDs:         m.FilterConfig.LevelUIDs,
-			StrategyUIDs:      m.FilterConfig.StrategyUIDs,
+			StrategyGroupUIDs:   m.FilterConfig.StrategyGroupUIDs,
+			LevelUIDs:           m.FilterConfig.LevelUIDs,
+			StrategyUIDs:        m.FilterConfig.StrategyUIDs,
+			DatasourceUIDs:      m.FilterConfig.DatasourceUIDs,
+			DatasourceLevelUIDs: m.FilterConfig.DatasourceLevelUIDs,
 		}
 	}
 	return &bo.AlertPageItemBo{
@@ -43,9 +45,11 @@ func ToAlertPageDo(ctx context.Context, req *bo.CreateAlertPageBo) *do.AlertPage
 	}
 	if filter := req.Filter; filter != nil {
 		m.FilterConfig = &do.AlertPageFilterConfig{
-			StrategyGroupUIDs: filter.StrategyGroupUIDs,
-			LevelUIDs:         filter.LevelUIDs,
-			StrategyUIDs:      filter.StrategyUIDs,
+			StrategyGroupUIDs:   filter.StrategyGroupUIDs,
+			LevelUIDs:           filter.LevelUIDs,
+			StrategyUIDs:        filter.StrategyUIDs,
+			DatasourceUIDs:      filter.DatasourceUIDs,
+			DatasourceLevelUIDs: filter.DatasourceLevelUIDs,
 		}
 	}
 	m.WithNamespace(contextx.GetNamespace(ctx)).WithCreator(contextx.GetUserUID(ctx))
@@ -64,9 +68,11 @@ func ToAlertPageDoUpdate(req *bo.UpdateAlertPageBo) (*do.AlertPage, *do.AlertPag
 	var filter *do.AlertPageFilterConfig
 	if filterBo := req.Filter; filterBo != nil {
 		filter = &do.AlertPageFilterConfig{
-			StrategyGroupUIDs: filterBo.StrategyGroupUIDs,
-			LevelUIDs:         filterBo.LevelUIDs,
-			StrategyUIDs:      filterBo.StrategyUIDs,
+			StrategyGroupUIDs:   filterBo.StrategyGroupUIDs,
+			LevelUIDs:           filterBo.LevelUIDs,
+			StrategyUIDs:        filterBo.StrategyUIDs,
+			DatasourceUIDs:      filterBo.DatasourceUIDs,
+			DatasourceLevelUIDs: filterBo.DatasourceLevelUIDs,
 		}
 	}
 	return m, filter

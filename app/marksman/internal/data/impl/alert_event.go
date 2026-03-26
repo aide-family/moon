@@ -228,16 +228,9 @@ func (r *alertEventRepository) ListRealtimeAlert(ctx context.Context, req *bo.Li
 	if req.Status != enum.AlertEventStatus_ALERT_EVENT_STATUS_UNKNOWN {
 		wrappers = wrappers.Where(table.Status.Eq(int32(req.Status)))
 	}
-	if pageFilter != nil {
-		if len(pageFilter.StrategyUIDs) > 0 {
-			wrappers = wrappers.Where(table.StrategyUID.In(pageFilter.StrategyUIDs...))
-		}
-		if len(pageFilter.LevelUIDs) > 0 {
-			wrappers = wrappers.Where(table.LevelUID.In(pageFilter.LevelUIDs...))
-		}
-		if len(pageFilter.StrategyGroupUIDs) > 0 {
-			wrappers = wrappers.Where(table.StrategyGroupUID.In(pageFilter.StrategyGroupUIDs...))
-		}
+	wrappers, err := r.applyAlertPageFilter(ctx, wrappers, pageFilter)
+	if err != nil {
+		return nil, err
 	}
 	if req.Keyword != "" {
 		keyword := "%" + req.Keyword + "%"
@@ -398,22 +391,68 @@ func (r *alertEventRepository) tablesFromNames(names []string) []any {
 	return out
 }
 
-func (r *alertEventRepository) applyActiveFilter(db *gorm.DB, pageFilter *bo.AlertPageFilterBo) *gorm.DB {
+func (r *alertEventRepository) datasourceUIDsByLevelUIDs(ctx context.Context, levelUIDs []int64) ([]int64, error) {
+	if len(levelUIDs) == 0 {
+		return nil, nil
+	}
+	d := query.Datasource
+	list, err := d.WithContext(ctx).Where(
+		d.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
+		d.LevelUID.In(levelUIDs...),
+	).Select(d.ID).Find()
+	if err != nil {
+		return nil, err
+	}
+	uidSet := make(map[int64]struct{}, len(list))
+	for _, item := range list {
+		uidSet[item.ID.Int64()] = struct{}{}
+	}
+	out := make([]int64, 0, len(uidSet))
+	for id := range uidSet {
+		out = append(out, id)
+	}
+	return out, nil
+}
+
+func (r *alertEventRepository) applyAlertPageFilter(
+	ctx context.Context,
+	db *gorm.DB,
+	pageFilter *bo.AlertPageFilterBo,
+) (*gorm.DB, error) {
+	table := query.AlertEvent.As(do.TableNameAlertEvent)
+	if pageFilter == nil {
+		return db, nil
+	}
+	if len(pageFilter.StrategyUIDs) > 0 {
+		db = db.Where(table.StrategyUID.In(pageFilter.StrategyUIDs...))
+	}
+	if len(pageFilter.LevelUIDs) > 0 {
+		db = db.Where(table.LevelUID.In(pageFilter.LevelUIDs...))
+	}
+	if len(pageFilter.StrategyGroupUIDs) > 0 {
+		db = db.Where(table.StrategyGroupUID.In(pageFilter.StrategyGroupUIDs...))
+	}
+	if len(pageFilter.DatasourceUIDs) > 0 {
+		db = db.Where(table.DatasourceUID.In(pageFilter.DatasourceUIDs...))
+	}
+	if len(pageFilter.DatasourceLevelUIDs) > 0 {
+		datasourceUIDs, err := r.datasourceUIDsByLevelUIDs(ctx, pageFilter.DatasourceLevelUIDs)
+		if err != nil {
+			return nil, err
+		}
+		if len(datasourceUIDs) == 0 {
+			return db.Where("1 = 0"), nil
+		}
+		db = db.Where(table.DatasourceUID.In(datasourceUIDs...))
+	}
+	return db, nil
+}
+
+func (r *alertEventRepository) applyActiveFilter(ctx context.Context, db *gorm.DB, pageFilter *bo.AlertPageFilterBo) (*gorm.DB, error) {
 	table := query.AlertEvent.As(do.TableNameAlertEvent)
 	// Active alerts are persisted with FIRING status.
 	db = db.Where(table.Status.Eq(int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_FIRING)))
-	if pageFilter != nil {
-		if len(pageFilter.StrategyUIDs) > 0 {
-			db = db.Where(table.StrategyUID.In(pageFilter.StrategyUIDs...))
-		}
-		if len(pageFilter.LevelUIDs) > 0 {
-			db = db.Where(table.LevelUID.In(pageFilter.LevelUIDs...))
-		}
-		if len(pageFilter.StrategyGroupUIDs) > 0 {
-			db = db.Where(table.StrategyGroupUID.In(pageFilter.StrategyGroupUIDs...))
-		}
-	}
-	return db
+	return r.applyAlertPageFilter(ctx, db, pageFilter)
 }
 
 func (r *alertEventRepository) CountActiveAlerts(ctx context.Context, startAt, endAt time.Time, pageFilter *bo.AlertPageFilterBo) (int64, error) {
@@ -422,7 +461,10 @@ func (r *alertEventRepository) CountActiveAlerts(ctx context.Context, startAt, e
 		return 0, nil
 	}
 	db := r.buildAlertEventUnion(ctx, ns, startAt, endAt)
-	db = r.applyActiveFilter(db, pageFilter)
+	db, err := r.applyActiveFilter(ctx, db, pageFilter)
+	if err != nil {
+		return 0, err
+	}
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
 		return 0, err
@@ -441,7 +483,10 @@ func (r *alertEventRepository) CountActiveAlertsByLevel(ctx context.Context, sta
 		return nil, nil
 	}
 	db := r.buildAlertEventUnion(ctx, ns, startAt, endAt)
-	db = r.applyActiveFilter(db, pageFilter)
+	db, err := r.applyActiveFilter(ctx, db, pageFilter)
+	if err != nil {
+		return nil, err
+	}
 	var rows []levelCountRow
 	if err := db.Select("level_uid, count(*) as count").Group("level_uid").Find(&rows).Error; err != nil {
 		return nil, err

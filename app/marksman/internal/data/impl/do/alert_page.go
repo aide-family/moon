@@ -11,9 +11,11 @@ import (
 
 // AlertPageFilterConfig is the JSON shape stored in alert_pages.filter_config.
 type AlertPageFilterConfig struct {
-	StrategyGroupUIDs []int64 `json:"strategy_group_uids"`
-	LevelUIDs         []int64 `json:"level_uids"`
-	StrategyUIDs      []int64 `json:"strategy_uids"`
+	StrategyGroupUIDs   []int64 `json:"strategy_group_uids"`
+	LevelUIDs           []int64 `json:"level_uids"`
+	StrategyUIDs        []int64 `json:"strategy_uids"`
+	DatasourceUIDs      []int64 `json:"datasource_uids"`
+	DatasourceLevelUIDs []int64 `json:"datasource_level_uids"`
 }
 
 // Value implements driver.Valuer for JSON storage.

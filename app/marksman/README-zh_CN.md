@@ -54,7 +54,7 @@
 - **策略（Strategy）**：增删改查、列表、状态；归属策略组；类型（METRICS/LOGS/TRACE）与驱动
 - **级别（Level）**：级别增删改查、列表、选择、状态（区分 `type`：ALERT/DATASOURCE；用于告警严重程度分组，包含用于展示的 `bgColor`）
 - **策略指标（Strategy metric）**：保存/查询指标配置（expr、labels、datasourceUIDs、levels）；指标级别的增删改查（mode、condition、values、duration）；按策略绑定接收人（可选 levelUID）
-- **告警（实时）**：告警页面增删改查（名称、颜色、排序、按策略组/级别/策略筛选）；按告警页列表展示实时告警事件；事件操作：介入、抑制（至指定时间）、恢复（手动）；告警统计（当前总告警、按等级、今日已恢复、按告警页）；用户关注的告警页（按用户列出/保存）
+- **告警（实时）**：告警页面增删改查（名称、颜色、排序、按策略组/级别/策略/数据源/数据源级别筛选）；按告警页列表展示实时告警事件；事件操作：介入、抑制（至指定时间）、恢复（手动）；告警统计（当前总告警、按等级、今日已恢复、按告警页）；用户关注的告警页（按用户列出/保存）
 - **通知组（Notification group）**：通知组增删改查（名称、备注、元数据、成员、webhook、模板通过创建/更新维护）
 - **通知组订阅（Notification group subscription）**：按通知组获取/更新订阅筛选（策略组、策略、策略-级别对、labels、excludeLabels、datasourceUids）；多维度同时设置时告警匹配任意一项即可（OR）
 
@@ -125,8 +125,8 @@
 | | `GET /v1/notification-groups` | 通知组列表（page、pageSize、keyword、status） |
 | **NotificationGroupSubscription**（通知组订阅） | `GET /v1/notification-groups/{notification_group_uid}/subscription` | 获取某通知组的订阅筛选 |
 | | `PUT /v1/notification-groups/{notification_group_uid}/subscription` | 保存订阅筛选（无则创建、有则覆盖；strategy_group_uids、strategy_uids、strategy_levels、labels、exclude_labels、datasource_uids；多维度同时设置时匹配任意一项即可（OR） |
-| **Alert**（告警页） | `POST /v1/alert-pages` | 创建告警页（name、color、sortOrder、filter） |
-| | `PUT /v1/alert-pages/{uid}` | 更新告警页 |
+| **Alert**（告警页） | `POST /v1/alert-pages` | 创建告警页（name、color、sortOrder、filter 支持按策略组/级别/策略/数据源/数据源级别筛选） |
+| | `PUT /v1/alert-pages/{uid}` | 更新告警页（filter 支持按策略组/级别/策略/数据源/数据源级别筛选） |
 | | `DELETE /v1/alert-pages/{uid}` | 删除告警页 |
 | | `GET /v1/alert-pages/{uid}` | 获取告警页 |
 | | `GET /v1/alert-pages` | 告警页列表（page、pageSize、keyword） |

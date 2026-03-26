@@ -26,9 +26,11 @@ func NewCreateAlertPageBo(req *apiv1.CreateAlertPageRequest) *CreateAlertPageBo 
 }
 
 type AlertPageFilterBo struct {
-	StrategyGroupUIDs []int64
-	LevelUIDs         []int64
-	StrategyUIDs      []int64
+	StrategyGroupUIDs   []int64
+	LevelUIDs           []int64
+	StrategyUIDs        []int64
+	DatasourceUIDs      []int64
+	DatasourceLevelUIDs []int64
 }
 
 func ToAlertPageFilterBo(p *apiv1.AlertPageFilter) *AlertPageFilterBo {
@@ -36,9 +38,11 @@ func ToAlertPageFilterBo(p *apiv1.AlertPageFilter) *AlertPageFilterBo {
 		return nil
 	}
 	return &AlertPageFilterBo{
-		StrategyGroupUIDs: p.GetStrategyGroupUids(),
-		LevelUIDs:         p.GetLevelUids(),
-		StrategyUIDs:      p.GetStrategyUids(),
+		StrategyGroupUIDs:   p.GetStrategyGroupUids(),
+		LevelUIDs:           p.GetLevelUids(),
+		StrategyUIDs:        p.GetStrategyUids(),
+		DatasourceUIDs:      p.GetDatasourceUids(),
+		DatasourceLevelUIDs: p.GetDatasourceLevelUids(),
 	}
 }
 
@@ -77,9 +81,11 @@ func ToAPIV1AlertPageItem(b *AlertPageItemBo) *apiv1.AlertPageItem {
 	var filter *apiv1.AlertPageFilter
 	if b.Filter != nil {
 		filter = &apiv1.AlertPageFilter{
-			StrategyGroupUids: b.Filter.StrategyGroupUIDs,
-			LevelUids:         b.Filter.LevelUIDs,
-			StrategyUids:      b.Filter.StrategyUIDs,
+			StrategyGroupUids:   b.Filter.StrategyGroupUIDs,
+			LevelUids:           b.Filter.LevelUIDs,
+			StrategyUids:        b.Filter.StrategyUIDs,
+			DatasourceUids:      b.Filter.DatasourceUIDs,
+			DatasourceLevelUids: b.Filter.DatasourceLevelUIDs,
 		}
 	}
 	return &apiv1.AlertPageItem{

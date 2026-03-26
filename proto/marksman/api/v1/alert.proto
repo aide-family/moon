@@ -99,6 +99,8 @@ message AlertPageFilter {
 	repeated int64 strategyGroupUids = 1;
 	repeated int64 levelUids = 2;
 	repeated int64 strategyUids = 3;
+	repeated int64 datasourceUids = 4;
+	repeated int64 datasourceLevelUids = 5;
 }
 
 // AlertPageItem is a single alert page (view/category) for grouping real-time alerts.
