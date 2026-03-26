@@ -75,6 +75,18 @@ func (r *datasourceRepository) UpdateDatasource(ctx context.Context, req *bo.Upd
 	return err
 }
 
+func (r *datasourceRepository) UpdateDatasourceStatus(ctx context.Context, req *bo.UpdateDatasourceStatusBo) error {
+	d := query.Datasource
+	_, err := d.WithContext(ctx).Where(
+		d.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
+		d.ID.Eq(req.UID.Int64()),
+	).Update(d.Status, int32(req.Status))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *datasourceRepository) DeleteDatasource(ctx context.Context, uid snowflake.ID) error {
 	d := query.Datasource
 	info, err := query.Datasource.WithContext(ctx).Where(
@@ -199,6 +211,7 @@ func (r *datasourceRepository) ListAllForProbe(ctx context.Context, batchSize in
 			Order(d.ID.Desc()).
 			Offset(offset).
 			Limit(batchSize).
+			Preload(d.Level).
 			Find()
 		if err != nil {
 			return nil, err

@@ -505,6 +505,29 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.GetDatasourceStatusReply'
+        put:
+            tags:
+                - Datasource
+            operationId: Datasource_UpdateDatasourceStatus
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.UpdateDatasourceStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.UpdateDatasourceStatusReply'
     /v1/datasources:
         get:
             tags:
@@ -540,6 +563,12 @@ paths:
                   schema:
                     type: integer
                     format: enum
+                - name: levelUids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
             responses:
                 "200":
                     description: OK
@@ -582,6 +611,12 @@ paths:
                     type: integer
                     format: enum
                 - name: uids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: levelUids
                   in: query
                   schema:
                     type: array
@@ -1763,8 +1798,8 @@ components:
                     type: string
                 levelUid:
                     type: string
-                levelName:
-                    type: string
+                level:
+                    $ref: '#/components/schemas/marksman.api.v1.LevelItem'
         marksman.api.v1.DatasourceStatusPoint:
             type: object
             properties:
@@ -2267,6 +2302,10 @@ components:
                     format: enum
                 url:
                     type: string
+                levelUid:
+                    type: string
+                levelName:
+                    type: string
         marksman.api.v1.SelectDatasourceReply:
             type: object
             properties:
@@ -2545,6 +2584,17 @@ components:
                     type: string
                 levelUid:
                     type: string
+        marksman.api.v1.UpdateDatasourceStatusReply:
+            type: object
+            properties: {}
+        marksman.api.v1.UpdateDatasourceStatusRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
         marksman.api.v1.UpdateLevelReply:
             type: object
             properties: {}

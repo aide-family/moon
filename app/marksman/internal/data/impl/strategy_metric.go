@@ -81,7 +81,7 @@ func (r *strategyMetricRepository) GetEvaluateMetricStrategies(ctx context.Conte
 		strategyMetricQuery.StrategyLevels.On(strategyMetricLevelQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED))),
 		strategyMetricQuery.StrategyLevels.Level.On(
 			levelQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED)),
-			levelQuery.Type.Eq(int32(enum.LevelType_ALERT)),
+			levelQuery.Type.Eq(int32(enum.LevelType_LEVEL_TYPE_ALERT)),
 		),
 	).Find()
 	if err != nil {
@@ -94,7 +94,7 @@ func (r *strategyMetricRepository) GetEvaluateMetricStrategies(ctx context.Conte
 		datasourceQuery.NamespaceUID.Eq(ns.Int64()),
 		datasourceQuery.Status.Eq(int32(enum.GlobalStatus_ENABLED)),
 	)
-	datasourceList, err := datasourceQueryWrapper.Find()
+	datasourceList, err := datasourceQueryWrapper.Preload(datasourceQuery.Level).Find()
 	if err != nil {
 		return nil, err
 	}

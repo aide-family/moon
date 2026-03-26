@@ -9,6 +9,7 @@ option java_package = "marksman.api.v1";
 import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
 import "magicbox/enum/enum.proto";
+import "marksman/api/v1/level.proto";
 
 service Datasource {
 	rpc CreateDatasource (CreateDatasourceRequest) returns (CreateDatasourceReply) {
@@ -20,6 +21,12 @@ service Datasource {
 	rpc UpdateDatasource (UpdateDatasourceRequest) returns (UpdateDatasourceReply) {
 		option (google.api.http) = {
 			put: "/v1/datasource/{uid}"
+			body: "*"
+		};
+	}
+	rpc UpdateDatasourceStatus (UpdateDatasourceStatusRequest) returns (UpdateDatasourceStatusReply) {
+		option (google.api.http) = {
+			put: "/v1/datasource/{uid}/status"
 			body: "*"
 		};
 	}
@@ -75,7 +82,7 @@ message DatasourceItem {
 	string url = 9;
 	string remark = 10;
 	int64 levelUid = 11;
-	string levelName = 12;
+	LevelItem level = 12;
 }
 
 message CreateDatasourceRequest {
@@ -140,6 +147,15 @@ message UpdateDatasourceRequest {
 }
 message UpdateDatasourceReply {}
 
+message UpdateDatasourceStatusRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	magicbox.enum.GlobalStatus status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
+		message: "status must be in ['ENABLED', 'DISABLED']",
+	}];
+}
+message UpdateDatasourceStatusReply {}
+
 message DeleteDatasourceRequest {
 	int64 uid = 1 [(buf.validate.field).required = true];
 }
@@ -165,6 +181,7 @@ message ListDatasourceRequest {
 	magicbox.enum.DatasourceType type = 4;
 	magicbox.enum.DatasourceDriver driver = 5;
 	magicbox.enum.GlobalStatus status = 6;
+	repeated int64 levelUids = 7;
 }
 message ListDatasourceReply {
 	repeated DatasourceItem items = 1;
@@ -187,6 +204,7 @@ message SelectDatasourceRequest {
 	magicbox.enum.DatasourceDriver driver = 5;
 	magicbox.enum.GlobalStatus status = 6;
 	repeated int64 uids = 7;
+	repeated int64 levelUids = 8;
 }
 message SelectDatasourceItem {
 	int64 value = 1;
@@ -196,6 +214,8 @@ message SelectDatasourceItem {
 	magicbox.enum.DatasourceType type = 5;
 	magicbox.enum.DatasourceDriver driver = 6;
 	string url = 7;
+	int64 levelUid = 8;
+	string levelName = 9;
 }
 message SelectDatasourceReply {
 	repeated SelectDatasourceItem items = 1;

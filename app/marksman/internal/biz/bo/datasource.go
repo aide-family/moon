@@ -56,6 +56,18 @@ func NewUpdateDatasourceBo(req *apiv1.UpdateDatasourceRequest) *UpdateDatasource
 	}
 }
 
+type UpdateDatasourceStatusBo struct {
+	UID    snowflake.ID
+	Status enum.GlobalStatus
+}
+
+func NewUpdateDatasourceStatusBo(req *apiv1.UpdateDatasourceStatusRequest) *UpdateDatasourceStatusBo {
+	return &UpdateDatasourceStatusBo{
+		UID:    snowflake.ParseInt64(req.GetUid()),
+		Status: req.GetStatus(),
+	}
+}
+
 type DatasourceItemBo struct {
 	UID       snowflake.ID
 	Name      string
@@ -68,7 +80,7 @@ type DatasourceItemBo struct {
 	URL       string
 	Remark    string
 	LevelUID  snowflake.ID
-	LevelName string
+	Level     *LevelItemBo
 }
 
 func ToAPIV1DatasourceItem(b *DatasourceItemBo) *apiv1.DatasourceItem {
@@ -87,7 +99,7 @@ func ToAPIV1DatasourceItem(b *DatasourceItemBo) *apiv1.DatasourceItem {
 		Url:       b.URL,
 		Remark:    b.Remark,
 		LevelUid:  b.LevelUID.Int64(),
-		LevelName: b.LevelName,
+		Level:     ToAPIV1LevelItem(b.Level),
 	}
 }
 

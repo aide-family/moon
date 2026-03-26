@@ -78,12 +78,12 @@ func (l *LevelBiz) UpdateLevel(ctx context.Context, req *bo.UpdateLevelBo) error
 	}
 
 	switch {
-	case current.Type == enum.LevelType_ALERT && req.Type == enum.LevelType_ALERT:
+	case current.Type == enum.LevelType_LEVEL_TYPE_ALERT && req.Type == enum.LevelType_LEVEL_TYPE_ALERT:
 		l.evaluateBiz.SyncByLevelUID(ctx, req.UID)
-	case current.Type == enum.LevelType_ALERT && req.Type != enum.LevelType_ALERT:
+	case current.Type == enum.LevelType_LEVEL_TYPE_ALERT && req.Type != enum.LevelType_LEVEL_TYPE_ALERT:
 		// Switch from ALERT to DATASOURCE should remove evaluation jobs for this level.
 		l.evaluateBiz.RemoveByLevelUID(ctx, req.UID)
-	case current.Type != enum.LevelType_ALERT && req.Type == enum.LevelType_ALERT:
+	case current.Type != enum.LevelType_LEVEL_TYPE_ALERT && req.Type == enum.LevelType_LEVEL_TYPE_ALERT:
 		// Switch from DATASOURCE to ALERT should load evaluation jobs for this level.
 		l.evaluateBiz.SyncByLevelUID(ctx, req.UID)
 	default:
@@ -104,7 +104,7 @@ func (l *LevelBiz) UpdateLevelStatus(ctx context.Context, req *bo.UpdateLevelSta
 		l.helper.Errorw("msg", "update level status failed", "error", err, "req", req)
 		return merr.ErrorInternalServer("update level status failed").WithCause(err)
 	}
-	if current.Type == enum.LevelType_ALERT {
+	if current.Type == enum.LevelType_LEVEL_TYPE_ALERT {
 		if req.Status == enum.GlobalStatus_ENABLED {
 			l.evaluateBiz.SyncByLevelUID(ctx, req.UID)
 		} else {
@@ -136,7 +136,7 @@ func (l *LevelBiz) DeleteLevel(ctx context.Context, uid snowflake.ID) error {
 		l.helper.Errorw("msg", "delete level failed", "error", err, "uid", uid)
 		return merr.ErrorInternalServer("delete level failed").WithCause(err)
 	}
-	if current.Type == enum.LevelType_ALERT {
+	if current.Type == enum.LevelType_LEVEL_TYPE_ALERT {
 		l.evaluateBiz.RemoveByLevelUID(ctx, uid)
 	}
 	return nil

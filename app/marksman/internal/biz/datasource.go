@@ -89,6 +89,35 @@ func (d *DatasourceBiz) UpdateDatasource(ctx context.Context, req *bo.UpdateData
 	return nil
 }
 
+func (d *DatasourceBiz) UpdateDatasourceStatus(ctx context.Context, req *bo.UpdateDatasourceStatusBo) error {
+	current, err := d.datasourceRepo.GetDatasource(ctx, req.UID)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return merr.ErrorNotFound("datasource %d not found", req.UID.Int64())
+		}
+		d.helper.Errorw("msg", "get datasource failed", "error", err, "uid", req.UID.Int64())
+		return merr.ErrorInternalServer("get datasource failed").WithCause(err)
+	}
+	if current.Status == req.Status {
+		return nil
+	}
+
+	if err := d.datasourceRepo.UpdateDatasourceStatus(ctx, req); err != nil {
+		if merr.IsNotFound(err) {
+			return merr.ErrorNotFound("datasource %d not found", req.UID.Int64())
+		}
+		d.helper.Errorw("msg", "update datasource status failed", "error", err, "req", req)
+		return merr.ErrorInternalServer("update datasource status failed").WithCause(err)
+	}
+
+	if req.Status == enum.GlobalStatus_ENABLED {
+		d.evaluateBiz.SyncByDatasourceUID(ctx, req.UID)
+	} else {
+		d.evaluateBiz.RemoveByDatasourceUID(ctx, req.UID)
+	}
+	return nil
+}
+
 func (d *DatasourceBiz) validateDatasourceLevel(ctx context.Context, levelUID snowflake.ID) error {
 	if levelUID == 0 {
 		return merr.ErrorParams("datasource levelUid is required")
@@ -101,7 +130,7 @@ func (d *DatasourceBiz) validateDatasourceLevel(ctx context.Context, levelUID sn
 		d.helper.Errorw("msg", "get level failed", "error", err, "levelUID", levelUID)
 		return merr.ErrorInternalServer("get level failed").WithCause(err)
 	}
-	if level.Type != enum.LevelType_DATASOURCE {
+	if level.Type != enum.LevelType_LEVEL_TYPE_DATASOURCE {
 		return merr.ErrorParams("selected level is not a DATASOURCE level")
 	}
 	if level.Status != enum.GlobalStatus_ENABLED {

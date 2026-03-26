@@ -117,7 +117,7 @@ func (r *levelRepository) ListLevel(ctx context.Context, req *bo.ListLevelBo) (*
 	if req.Status != enum.GlobalStatus_GlobalStatus_UNKNOWN {
 		wrappers = wrappers.Where(l.Status.Eq(int32(req.Status)))
 	}
-	if req.Type != enum.LevelType_LevelType_UNKNOWN {
+	if req.Type != enum.LevelType_LEVEL_TYPE_UNKNOWN {
 		wrappers = wrappers.Where(l.Type.Eq(int32(req.Type)))
 	}
 	total, err := wrappers.Count()
@@ -149,7 +149,7 @@ func (r *levelRepository) SelectLevel(ctx context.Context, req *bo.SelectLevelBo
 	if req.Status != enum.GlobalStatus_GlobalStatus_UNKNOWN {
 		wrappers = wrappers.Where(l.Status.Eq(int32(req.Status)))
 	}
-	if req.Type != enum.LevelType_LevelType_UNKNOWN {
+	if req.Type != enum.LevelType_LEVEL_TYPE_UNKNOWN {
 		wrappers = wrappers.Where(l.Type.Eq(int32(req.Type)))
 	}
 	total, err := wrappers.Count()

@@ -15,10 +15,6 @@ func ToDatasourceItemBo(m *do.Datasource) *bo.DatasourceItemBo {
 	if m == nil {
 		return nil
 	}
-	levelName := ""
-	if m.Level != nil {
-		levelName = m.Level.Name
-	}
 	return &bo.DatasourceItemBo{
 		UID:       m.ID,
 		Name:      m.Name,
@@ -31,7 +27,7 @@ func ToDatasourceItemBo(m *do.Datasource) *bo.DatasourceItemBo {
 		URL:       m.URL,
 		Remark:    m.Remark,
 		LevelUID:  m.LevelUID,
-		LevelName: levelName,
+		Level:     ToLevelItemBo(m.Level),
 	}
 }
 

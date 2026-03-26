@@ -192,26 +192,6 @@ func (r *alertEventRepository) GetAlertEventByFingerprint(ctx context.Context, u
 	return convert.ToAlertEventItemBo(m), nil
 }
 
-type levelInfo struct {
-	Name    string
-	BgColor string
-}
-
-func (r *alertEventRepository) levelInfoByUID(ctx context.Context, namespaceUID, levelUID snowflake.ID) levelInfo {
-	l := query.Level
-	lev, err := l.WithContext(ctx).Where(
-		l.NamespaceUID.Eq(namespaceUID.Int64()),
-		l.ID.Eq(levelUID.Int64()),
-	).First()
-	if err != nil {
-		return levelInfo{}
-	}
-	return levelInfo{
-		Name:    lev.Name,
-		BgColor: lev.BgColor,
-	}
-}
-
 func (r *alertEventRepository) ListRealtimeAlert(ctx context.Context, req *bo.ListRealtimeAlertBo, pageFilter *bo.AlertPageFilterBo) (*bo.PageResponseBo[*bo.AlertEventItemBo], error) {
 	ns := contextx.GetNamespace(ctx)
 	startAt := req.StartAt
@@ -296,36 +276,6 @@ func (r *alertEventRepository) ListRealtimeAlert(ctx context.Context, req *bo.Li
 		items = append(items, convert.ToAlertEventItemBo(m))
 	}
 	return bo.NewPageResponseBo(req.PageRequestBo, items), nil
-}
-
-func (r *alertEventRepository) levelInfosForEvents(ctx context.Context, namespaceUID snowflake.ID, events []*do.AlertEvent) map[int64]levelInfo {
-	uidSet := make(map[int64]struct{})
-	for _, ev := range events {
-		uidSet[ev.LevelUID.Int64()] = struct{}{}
-	}
-	if len(uidSet) == 0 {
-		return nil
-	}
-	uids := make([]int64, 0, len(uidSet))
-	for id := range uidSet {
-		uids = append(uids, id)
-	}
-	l := query.Level
-	levels, err := l.WithContext(ctx).Where(
-		l.NamespaceUID.Eq(namespaceUID.Int64()),
-		l.ID.In(uids...),
-	).Select(l.ID, l.Name, l.BgColor).Find()
-	if err != nil {
-		return nil
-	}
-	out := make(map[int64]levelInfo, len(levels))
-	for _, lev := range levels {
-		out[lev.ID.Int64()] = levelInfo{
-			Name:    lev.Name,
-			BgColor: lev.BgColor,
-		}
-	}
-	return out
 }
 
 func (r *alertEventRepository) InterveneAlert(ctx context.Context, req *bo.InterveneAlertBo) error {

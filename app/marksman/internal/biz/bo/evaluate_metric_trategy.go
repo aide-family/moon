@@ -136,10 +136,10 @@ func (e *EvaluateMetricStrategyBo) GetDatasourceName() string {
 }
 
 func (e *EvaluateMetricStrategyBo) GetDatasourceLevelName() string {
-	if e.datasource == nil {
+	if e.datasource == nil || e.datasource.Level == nil {
 		return ""
 	}
-	return e.datasource.LevelName
+	return e.datasource.Level.Name
 }
 
 func (e *EvaluateMetricStrategyBo) GetExpr() string {

@@ -39,6 +39,14 @@ func (s *DatasourceService) UpdateDatasource(ctx context.Context, req *apiv1.Upd
 	return &apiv1.UpdateDatasourceReply{}, nil
 }
 
+func (s *DatasourceService) UpdateDatasourceStatus(ctx context.Context, req *apiv1.UpdateDatasourceStatusRequest) (*apiv1.UpdateDatasourceStatusReply, error) {
+	statusBo := bo.NewUpdateDatasourceStatusBo(req)
+	if err := s.datasourceBiz.UpdateDatasourceStatus(ctx, statusBo); err != nil {
+		return nil, err
+	}
+	return &apiv1.UpdateDatasourceStatusReply{}, nil
+}
+
 func (s *DatasourceService) DeleteDatasource(ctx context.Context, req *apiv1.DeleteDatasourceRequest) (*apiv1.DeleteDatasourceReply, error) {
 	if err := s.datasourceBiz.DeleteDatasource(ctx, snowflake.ParseInt64(req.GetUid())); err != nil {
 		return nil, err

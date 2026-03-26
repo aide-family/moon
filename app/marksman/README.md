@@ -48,7 +48,7 @@
 - **Member** (goddess): List/get/select members in namespace, invite, dismiss, update status
 - **Namespace** (goddess): Namespace management (shared with goddess; requires `namespaceDomain`)
 - **Captcha** (goddess): Get graphic captcha (id, base64 image) for login and other unauthenticated flows
-- **Datasource**: CRUD (including `levelUid` binding), list, select, status time series (per uid, from main TSDB), metric metadata (label names and label values) for metrics datasources (Prometheus, VictoriaMetrics, Elasticsearch, Jaeger)
+- **Datasource**: CRUD (including `levelUid` binding), list, select, update status (ENABLED/DISABLED), status time series (per uid, from main TSDB), metric metadata (label names and label values) for metrics datasources (Prometheus, VictoriaMetrics, Elasticsearch, Jaeger)
 - **MetricQuery**: Instant query (Prometheus /api/v1/query), range query (/api/v1/query_range), and direct HTTP proxy for metric-type datasources
 - **Strategy group**: CRUD, list, select, status; bind receivers (recipient groups)
 - **Strategy**: CRUD, list, status; link to strategy group; type (METRICS/LOGS/TRACE) and driver
@@ -77,6 +77,7 @@
 | **Captcha** (goddess) | `GET /v1/captcha` | Get graphic captcha (returns captchaId, captchaB64s) |
 | **Datasource** | `POST /v1/datasource` | Create datasource (name, type, driver, url, metadata, remark, `levelUid` bound to a DATASOURCE level) |
 | | `PUT /v1/datasource/{uid}` | Update datasource (including `levelUid`) |
+| | `PUT /v1/datasource/{uid}/status` | Update status (ENABLED/DISABLED) |
 | | `DELETE /v1/datasource/{uid}` | Delete datasource |
 | | `GET /v1/datasource/{uid}` | Get datasource |
 | | `GET /v1/datasources` | List (keyword, page, pageSize, type, driver, status) |

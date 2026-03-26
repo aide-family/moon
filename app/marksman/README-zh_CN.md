@@ -48,7 +48,7 @@
 - **成员（Member，goddess）**：命名空间内成员列表/获取/选择、邀请成员、移除成员、更新状态
 - **命名空间（Namespace，goddess）**：命名空间管理（与 goddess 共用能力，需配置 namespaceDomain）
 - **验证码（Captcha，goddess）**：图形验证码获取（id、base64 图片），用于登录等无需鉴权场景
-- **数据源（Datasource）**：指标/日志/链路数据源增删改查、列表、下拉选择、按数据源的状态时序（主时序库）、指标元数据（label 名与各 label 取值）查询（Prometheus、VictoriaMetrics、Elasticsearch、Jaeger；包含 `levelUid` 绑定到 DATASOURCE 级别）
+- **数据源（Datasource）**：指标/日志/链路数据源增删改查、列表、下拉选择、更新状态（ENABLED/DISABLED）、按数据源的状态时序（主时序库）、指标元数据（label 名与各 label 取值）查询（Prometheus、VictoriaMetrics、Elasticsearch、Jaeger；包含 `levelUid` 绑定到 DATASOURCE 级别）
 - **指标查询（MetricQuery）**：指标类型数据源即时查询（Prometheus /api/v1/query）、区间查询（/api/v1/query_range）、以及直接 HTTP 代理
 - **策略组（Strategy group）**：增删改查、列表、选择、状态；绑定接收人（收件人组）
 - **策略（Strategy）**：增删改查、列表、状态；归属策略组；类型（METRICS/LOGS/TRACE）与驱动
@@ -77,6 +77,7 @@
 | **Captcha**（goddess） | `GET /v1/captcha` | 获取图形验证码（返回 captchaId、captchaB64s） |
 | **Datasource** | `POST /v1/datasource` | 创建数据源（name、type、driver、url、metadata、remark、`levelUid` 绑定到 DATASOURCE 级别） |
 | | `PUT /v1/datasource/{uid}` | 更新数据源（包含 `levelUid`） |
+| | `PUT /v1/datasource/{uid}/status` | 更新状态（ENABLED/DISABLED） |
 | | `DELETE /v1/datasource/{uid}` | 删除数据源 |
 | | `GET /v1/datasource/{uid}` | 获取数据源 |
 | | `GET /v1/datasources` | 列表（keyword、page、pageSize、type、driver、status） |

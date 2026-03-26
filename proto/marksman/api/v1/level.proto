@@ -80,8 +80,8 @@ message CreateLevelRequest {
 		max_len: 32,
 	}];
 	magicbox.enum.LevelType type = 5 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		expression: "this in [magicbox.enum.LevelType.ALERT, magicbox.enum.LevelType.DATASOURCE]",
-		message: "type must be in ['LevelType_ALERT', 'LevelType_DATASOURCE']",
+		expression: "this in [magicbox.enum.LevelType.LEVEL_TYPE_ALERT, magicbox.enum.LevelType.LEVEL_TYPE_DATASOURCE]",
+		message: "type must be in ['LevelType_LEVEL_TYPE_ALERT', 'LevelType_LEVEL_TYPE_DATASOURCE']",
 	}];
 }
 message CreateLevelReply {
@@ -102,8 +102,8 @@ message UpdateLevelRequest {
 		max_len: 32,
 	}];
 	magicbox.enum.LevelType type = 6 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		expression: "this in [magicbox.enum.LevelType.ALERT, magicbox.enum.LevelType.DATASOURCE]",
-		message: "type must be in ['LevelType_ALERT', 'LevelType_DATASOURCE']",
+		expression: "this in [magicbox.enum.LevelType.LEVEL_TYPE_ALERT, magicbox.enum.LevelType.LEVEL_TYPE_DATASOURCE]",
+		message: "type must be in ['LevelType_LEVEL_TYPE_ALERT', 'LevelType_LEVEL_TYPE_DATASOURCE']",
 	}];
 }
 message UpdateLevelReply {}

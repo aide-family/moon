@@ -21,9 +21,9 @@ enum GlobalStatus {
 }
 
 enum LevelType {
-	LevelType_UNKNOWN = 0;
-	LevelType_ALERT = 1;
-	LevelType_DATASOURCE = 2;
+	LEVEL_TYPE_UNKNOWN = 0;
+	LEVEL_TYPE_ALERT = 1;
+	LEVEL_TYPE_DATASOURCE = 2;
 }
 
 enum WebhookAPP {

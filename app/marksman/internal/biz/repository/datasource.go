@@ -12,6 +12,7 @@ type Datasource interface {
 	CheckDatasourceNameExist(ctx context.Context, name string, uid ...snowflake.ID) error
 	CreateDatasource(ctx context.Context, req *bo.CreateDatasourceBo) (snowflake.ID, error)
 	UpdateDatasource(ctx context.Context, req *bo.UpdateDatasourceBo) error
+	UpdateDatasourceStatus(ctx context.Context, req *bo.UpdateDatasourceStatusBo) error
 	DeleteDatasource(ctx context.Context, uid snowflake.ID) error
 	GetDatasource(ctx context.Context, uid snowflake.ID) (*bo.DatasourceItemBo, error)
 	ListDatasource(ctx context.Context, req *bo.ListDatasourceBo) (*bo.PageResponseBo[*bo.DatasourceItemBo], error)
