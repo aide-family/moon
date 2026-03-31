@@ -66,6 +66,18 @@ func (m *memberRepository) GetMember(ctx context.Context, uid snowflake.ID) (*bo
 	return convert.MemberToBo(member, email), nil
 }
 
+func (m *memberRepository) GetMemberByUserUID(ctx context.Context, userUID snowflake.ID) (*bo.MemberItemBo, error) {
+	mutation := query.Use(getDBWithTransaction(ctx, m.db)).Member
+	member, err := mutation.WithContext(ctx).Where(mutation.UserUID.Eq(userUID.Int64())).First()
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, merr.ErrorNotFound("member %s not found", userUID)
+		}
+	}
+	email := m.getUserEmail(ctx, member.UserUID)
+	return convert.MemberToBo(member, email), nil
+}
+
 func (m *memberRepository) GetMemberByNamespaceAndUser(ctx context.Context, namespaceUID, userUID snowflake.ID) (*bo.MemberItemBo, error) {
 	mutation := query.Use(getDBWithTransaction(ctx, m.db)).Member
 	member, err := mutation.WithContext(ctx).

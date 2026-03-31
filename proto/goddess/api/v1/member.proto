@@ -21,6 +21,11 @@ service Member {
             get: "/v1/member/{uid}"
         };
     }
+    rpc GetMemberByUserUID(GetMemberByUserUIDRequest) returns (MemberItem) {
+        option (google.api.http) = {
+            get: "/v1/members/user/{userUID}"
+        };
+    }
     rpc SelectMember(SelectMemberRequest) returns (SelectMemberReply) {
         option (google.api.http) = {
             get: "/v1/members/select"
@@ -101,6 +106,10 @@ message ListMemberReply {
 
 message GetMemberRequest {
     int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message GetMemberByUserUIDRequest {
+    int64 userUID = 1 [(buf.validate.field).required = true];
 }
 
 message SelectMemberRequest {

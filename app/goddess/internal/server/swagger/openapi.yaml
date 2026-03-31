@@ -236,6 +236,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/goddess.api.v1.SelectMemberReply'
+    /v1/members/user/{userUID}:
+        get:
+            tags:
+                - Member
+            operationId: Member_GetMemberByUserUID
+            parameters:
+                - name: userUID
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/goddess.api.v1.MemberItem'
     /v1/namespace:
         post:
             tags:

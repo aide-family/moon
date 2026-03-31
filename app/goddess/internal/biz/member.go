@@ -139,6 +139,18 @@ func (m *Member) GetMember(ctx context.Context, memberUID snowflake.ID) (*bo.Mem
 	return member, nil
 }
 
+func (m *Member) GetMemberByUserUID(ctx context.Context, userUID snowflake.ID) (*bo.MemberItemBo, error) {
+	member, err := m.memberRepo.GetMemberByUserUID(ctx, userUID)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return nil, merr.ErrorNotFound("member %s not found", userUID)
+		}
+		m.helper.Errorw("msg", "get member by user uid failed", "error", err, "userUID", userUID)
+		return nil, merr.ErrorInternalServer("get member by user uid failed").WithCause(err)
+	}
+	return member, nil
+}
+
 func (m *Member) ListMember(ctx context.Context, req *bo.ListMemberBo) (*bo.PageResponseBo[*bo.MemberItemBo], error) {
 	page, err := m.memberRepo.ListMember(ctx, req)
 	if err != nil {

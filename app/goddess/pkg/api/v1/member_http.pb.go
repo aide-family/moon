@@ -21,6 +21,7 @@ const _ = http.SupportPackageIsVersion1
 
 const OperationMemberDismissMember = "/goddess.api.v1.Member/DismissMember"
 const OperationMemberGetMember = "/goddess.api.v1.Member/GetMember"
+const OperationMemberGetMemberByUserUID = "/goddess.api.v1.Member/GetMemberByUserUID"
 const OperationMemberInviteMember = "/goddess.api.v1.Member/InviteMember"
 const OperationMemberListMember = "/goddess.api.v1.Member/ListMember"
 const OperationMemberSelectMember = "/goddess.api.v1.Member/SelectMember"
@@ -29,6 +30,7 @@ const OperationMemberUpdateMemberStatus = "/goddess.api.v1.Member/UpdateMemberSt
 type MemberHTTPServer interface {
 	DismissMember(context.Context, *DismissMemberRequest) (*DismissMemberReply, error)
 	GetMember(context.Context, *GetMemberRequest) (*MemberItem, error)
+	GetMemberByUserUID(context.Context, *GetMemberByUserUIDRequest) (*MemberItem, error)
 	InviteMember(context.Context, *InviteMemberRequest) (*InviteMemberReply, error)
 	ListMember(context.Context, *ListMemberRequest) (*ListMemberReply, error)
 	SelectMember(context.Context, *SelectMemberRequest) (*SelectMemberReply, error)
@@ -39,6 +41,7 @@ func RegisterMemberHTTPServer(s *http.Server, srv MemberHTTPServer) {
 	r := s.Route("/")
 	r.GET("/v1/members", _Member_ListMember0_HTTP_Handler(srv))
 	r.GET("/v1/member/{uid}", _Member_GetMember0_HTTP_Handler(srv))
+	r.GET("/v1/members/user/{userUID}", _Member_GetMemberByUserUID0_HTTP_Handler(srv))
 	r.GET("/v1/members/select", _Member_SelectMember0_HTTP_Handler(srv))
 	r.POST("/v1/member/invite", _Member_InviteMember0_HTTP_Handler(srv))
 	r.DELETE("/v1/member/{uid}", _Member_DismissMember0_HTTP_Handler(srv))
@@ -76,6 +79,28 @@ func _Member_GetMember0_HTTP_Handler(srv MemberHTTPServer) func(ctx http.Context
 		http.SetOperation(ctx, OperationMemberGetMember)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.GetMember(ctx, req.(*GetMemberRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*MemberItem)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Member_GetMemberByUserUID0_HTTP_Handler(srv MemberHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetMemberByUserUIDRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMemberGetMemberByUserUID)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetMemberByUserUID(ctx, req.(*GetMemberByUserUIDRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -177,6 +202,7 @@ func _Member_UpdateMemberStatus0_HTTP_Handler(srv MemberHTTPServer) func(ctx htt
 type MemberHTTPClient interface {
 	DismissMember(ctx context.Context, req *DismissMemberRequest, opts ...http.CallOption) (rsp *DismissMemberReply, err error)
 	GetMember(ctx context.Context, req *GetMemberRequest, opts ...http.CallOption) (rsp *MemberItem, err error)
+	GetMemberByUserUID(ctx context.Context, req *GetMemberByUserUIDRequest, opts ...http.CallOption) (rsp *MemberItem, err error)
 	InviteMember(ctx context.Context, req *InviteMemberRequest, opts ...http.CallOption) (rsp *InviteMemberReply, err error)
 	ListMember(ctx context.Context, req *ListMemberRequest, opts ...http.CallOption) (rsp *ListMemberReply, err error)
 	SelectMember(ctx context.Context, req *SelectMemberRequest, opts ...http.CallOption) (rsp *SelectMemberReply, err error)
@@ -209,6 +235,19 @@ func (c *MemberHTTPClientImpl) GetMember(ctx context.Context, in *GetMemberReque
 	pattern := "/v1/member/{uid}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationMemberGetMember))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *MemberHTTPClientImpl) GetMemberByUserUID(ctx context.Context, in *GetMemberByUserUIDRequest, opts ...http.CallOption) (*MemberItem, error) {
+	var out MemberItem
+	pattern := "/v1/members/user/{userUID}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationMemberGetMemberByUserUID))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

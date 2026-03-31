@@ -12,6 +12,7 @@ type Member interface {
 	CreateMember(ctx context.Context, req *bo.CreateMemberBo) error
 	DeleteMember(ctx context.Context, uid snowflake.ID) error
 	GetMember(ctx context.Context, uid snowflake.ID) (*bo.MemberItemBo, error)
+	GetMemberByUserUID(ctx context.Context, userUID snowflake.ID) (*bo.MemberItemBo, error)
 	GetMemberByNamespaceAndUser(ctx context.Context, namespaceUID, userUID snowflake.ID) (*bo.MemberItemBo, error)
 	ListMember(ctx context.Context, req *bo.ListMemberBo) (*bo.PageResponseBo[*bo.MemberItemBo], error)
 	SelectMember(ctx context.Context, req *bo.SelectMemberBo) (*bo.SelectMemberBoResult, error)

@@ -369,10 +369,6 @@ message BatchRecoverAlertRequest {
 	string recoveredReason = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
 		max_len: 1000,
 	}];
-	int64 recoveredBy = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		expression: "this > 0",
-		message: "recoveredBy must be greater than 0",
-	}];
 }
 message BatchRecoverAlertReply {}
 

@@ -301,14 +301,15 @@ type BatchRecoverAlertBo struct {
 	RecoveredByName string
 }
 
-func NewBatchRecoverAlertBo(_ context.Context, req *apiv1.BatchRecoverAlertRequest) *BatchRecoverAlertBo {
+func NewBatchRecoverAlertBo(ctx context.Context, req *apiv1.BatchRecoverAlertRequest) *BatchRecoverAlertBo {
 	uids := make([]snowflake.ID, 0, len(req.GetUids()))
 	for _, id := range req.GetUids() {
 		uids = append(uids, snowflake.ParseInt64(id))
 	}
 	return &BatchRecoverAlertBo{
 		UIDs:            uids,
-		RecoveredBy:     snowflake.ParseInt64(req.GetRecoveredBy()),
+		RecoveredBy:     contextx.GetUserUID(ctx),
+		RecoveredByName: contextx.GetUsername(ctx),
 		RecoveredReason: req.GetRecoveredReason(),
 	}
 }

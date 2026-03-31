@@ -68,21 +68,13 @@ func (b *AlertBiz) InterveneAlert(ctx context.Context, req *bo.InterveneAlertBo)
 	}
 
 	// Single intervene: do not choose member on the client; resolve memberId by current userId.
-	mlist, err := b.memberRepo.ListMember(ctx, &goddessv1.ListMemberRequest{
-		Page:     1,
-		PageSize: 1,
-		UserUID:  req.IntervenedByUser.Int64(),
-	})
+	member, err := b.memberRepo.GetMemberByUserUID(ctx, &goddessv1.GetMemberByUserUIDRequest{UserUID: req.IntervenedByUser.Int64()})
 	if err != nil {
-		b.helper.Errorw("msg", "list member failed", "error", err, "userUID", req.IntervenedByUser.Int64())
-		return merr.ErrorInternalServer("list member failed").WithCause(err)
+		b.helper.Errorw("msg", "get member failed", "error", err, "userUID", req.IntervenedByUser.Int64())
+		return merr.ErrorInternalServer("get member failed").WithCause(err)
 	}
-	items := mlist.GetItems()
-	if len(items) == 0 {
-		return merr.ErrorNotFound("member not found")
-	}
-	req.IntervenedBy = snowflake.ParseInt64(items[0].GetUid())
-	req.IntervenedByName = items[0].GetName()
+	req.IntervenedBy = snowflake.ParseInt64(member.GetUid())
+	req.IntervenedByName = member.GetName()
 
 	if err := b.alertEventRepo.InterveneAlert(ctx, req); err != nil {
 		if merr.IsNotFound(err) {
@@ -155,11 +147,13 @@ func (b *AlertBiz) BatchRecoverAlert(ctx context.Context, req *bo.BatchRecoverAl
 	if req.RecoveredBy.Int64() <= 0 {
 		return merr.ErrorParams("recoveredBy must be greater than 0")
 	}
-	member, err := b.memberRepo.GetMember(ctx, &goddessv1.GetMemberRequest{Uid: req.RecoveredBy.Int64()})
+	// Single intervene: do not choose member on the client; resolve memberId by current userId.
+	member, err := b.memberRepo.GetMemberByUserUID(ctx, &goddessv1.GetMemberByUserUIDRequest{UserUID: req.RecoveredBy.Int64()})
 	if err != nil {
 		b.helper.Errorw("msg", "get member failed", "error", err, "memberUID", req.RecoveredBy.Int64())
 		return merr.ErrorInternalServer("get member failed").WithCause(err)
 	}
+	req.RecoveredBy = snowflake.ParseInt64(member.GetUid())
 	req.RecoveredByName = member.GetName()
 
 	for _, uid := range req.UIDs {

@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Member_ListMember_FullMethodName         = "/goddess.api.v1.Member/ListMember"
 	Member_GetMember_FullMethodName          = "/goddess.api.v1.Member/GetMember"
+	Member_GetMemberByUserUID_FullMethodName = "/goddess.api.v1.Member/GetMemberByUserUID"
 	Member_SelectMember_FullMethodName       = "/goddess.api.v1.Member/SelectMember"
 	Member_InviteMember_FullMethodName       = "/goddess.api.v1.Member/InviteMember"
 	Member_DismissMember_FullMethodName      = "/goddess.api.v1.Member/DismissMember"
@@ -33,6 +34,7 @@ const (
 type MemberClient interface {
 	ListMember(ctx context.Context, in *ListMemberRequest, opts ...grpc.CallOption) (*ListMemberReply, error)
 	GetMember(ctx context.Context, in *GetMemberRequest, opts ...grpc.CallOption) (*MemberItem, error)
+	GetMemberByUserUID(ctx context.Context, in *GetMemberByUserUIDRequest, opts ...grpc.CallOption) (*MemberItem, error)
 	SelectMember(ctx context.Context, in *SelectMemberRequest, opts ...grpc.CallOption) (*SelectMemberReply, error)
 	InviteMember(ctx context.Context, in *InviteMemberRequest, opts ...grpc.CallOption) (*InviteMemberReply, error)
 	DismissMember(ctx context.Context, in *DismissMemberRequest, opts ...grpc.CallOption) (*DismissMemberReply, error)
@@ -61,6 +63,16 @@ func (c *memberClient) GetMember(ctx context.Context, in *GetMemberRequest, opts
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(MemberItem)
 	err := c.cc.Invoke(ctx, Member_GetMember_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *memberClient) GetMemberByUserUID(ctx context.Context, in *GetMemberByUserUIDRequest, opts ...grpc.CallOption) (*MemberItem, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MemberItem)
+	err := c.cc.Invoke(ctx, Member_GetMemberByUserUID_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -113,6 +125,7 @@ func (c *memberClient) UpdateMemberStatus(ctx context.Context, in *UpdateMemberS
 type MemberServer interface {
 	ListMember(context.Context, *ListMemberRequest) (*ListMemberReply, error)
 	GetMember(context.Context, *GetMemberRequest) (*MemberItem, error)
+	GetMemberByUserUID(context.Context, *GetMemberByUserUIDRequest) (*MemberItem, error)
 	SelectMember(context.Context, *SelectMemberRequest) (*SelectMemberReply, error)
 	InviteMember(context.Context, *InviteMemberRequest) (*InviteMemberReply, error)
 	DismissMember(context.Context, *DismissMemberRequest) (*DismissMemberReply, error)
@@ -132,6 +145,9 @@ func (UnimplementedMemberServer) ListMember(context.Context, *ListMemberRequest)
 }
 func (UnimplementedMemberServer) GetMember(context.Context, *GetMemberRequest) (*MemberItem, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMember not implemented")
+}
+func (UnimplementedMemberServer) GetMemberByUserUID(context.Context, *GetMemberByUserUIDRequest) (*MemberItem, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMemberByUserUID not implemented")
 }
 func (UnimplementedMemberServer) SelectMember(context.Context, *SelectMemberRequest) (*SelectMemberReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SelectMember not implemented")
@@ -198,6 +214,24 @@ func _Member_GetMember_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MemberServer).GetMember(ctx, req.(*GetMemberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Member_GetMemberByUserUID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMemberByUserUIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MemberServer).GetMemberByUserUID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Member_GetMemberByUserUID_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MemberServer).GetMemberByUserUID(ctx, req.(*GetMemberByUserUIDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -288,6 +322,10 @@ var Member_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMember",
 			Handler:    _Member_GetMember_Handler,
+		},
+		{
+			MethodName: "GetMemberByUserUID",
+			Handler:    _Member_GetMemberByUserUID_Handler,
 		},
 		{
 			MethodName: "SelectMember",

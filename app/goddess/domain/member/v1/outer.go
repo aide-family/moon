@@ -65,40 +65,68 @@ func (o *outerMemberServer) ListMember(ctx context.Context, req *goddessv1.ListM
 	if o.httpClient != nil {
 		return o.httpClient.ListMember(ctx, req)
 	}
-	return o.grpcClient.ListMember(ctx, req)
+	if o.grpcClient != nil {
+		return o.grpcClient.ListMember(ctx, req)
+	}
+	return nil, merr.ErrorInternalServer("no client available")
 }
 
 func (o *outerMemberServer) GetMember(ctx context.Context, req *goddessv1.GetMemberRequest) (*goddessv1.MemberItem, error) {
 	if o.httpClient != nil {
 		return o.httpClient.GetMember(ctx, req)
 	}
-	return o.grpcClient.GetMember(ctx, req)
+	if o.grpcClient != nil {
+		return o.grpcClient.GetMember(ctx, req)
+	}
+	return nil, merr.ErrorInternalServer("no client available")
+}
+
+func (o *outerMemberServer) GetMemberByUserUID(ctx context.Context, req *goddessv1.GetMemberByUserUIDRequest) (*goddessv1.MemberItem, error) {
+	if o.httpClient != nil {
+		return o.httpClient.GetMemberByUserUID(ctx, req)
+	}
+	if o.grpcClient != nil {
+		return o.grpcClient.GetMemberByUserUID(ctx, req)
+	}
+	return nil, merr.ErrorInternalServer("no client available")
 }
 
 func (o *outerMemberServer) SelectMember(ctx context.Context, req *goddessv1.SelectMemberRequest) (*goddessv1.SelectMemberReply, error) {
 	if o.httpClient != nil {
 		return o.httpClient.SelectMember(ctx, req)
 	}
-	return o.grpcClient.SelectMember(ctx, req)
+	if o.grpcClient != nil {
+		return o.grpcClient.SelectMember(ctx, req)
+	}
+	return nil, merr.ErrorInternalServer("no client available")
 }
 
 func (o *outerMemberServer) InviteMember(ctx context.Context, req *goddessv1.InviteMemberRequest) (*goddessv1.InviteMemberReply, error) {
 	if o.httpClient != nil {
 		return o.httpClient.InviteMember(ctx, req)
 	}
-	return o.grpcClient.InviteMember(ctx, req)
+	if o.grpcClient != nil {
+		return o.grpcClient.InviteMember(ctx, req)
+	}
+	return nil, merr.ErrorInternalServer("no client available")
 }
 
 func (o *outerMemberServer) DismissMember(ctx context.Context, req *goddessv1.DismissMemberRequest) (*goddessv1.DismissMemberReply, error) {
 	if o.httpClient != nil {
 		return o.httpClient.DismissMember(ctx, req)
 	}
-	return o.grpcClient.DismissMember(ctx, req)
+	if o.grpcClient != nil {
+		return o.grpcClient.DismissMember(ctx, req)
+	}
+	return nil, merr.ErrorInternalServer("no client available")
 }
 
 func (o *outerMemberServer) UpdateMemberStatus(ctx context.Context, req *goddessv1.UpdateMemberStatusRequest) (*goddessv1.UpdateMemberStatusReply, error) {
 	if o.httpClient != nil {
 		return o.httpClient.UpdateMemberStatus(ctx, req)
 	}
-	return o.grpcClient.UpdateMemberStatus(ctx, req)
+	if o.grpcClient != nil {
+		return o.grpcClient.UpdateMemberStatus(ctx, req)
+	}
+	return nil, merr.ErrorInternalServer("no client available")
 }

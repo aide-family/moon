@@ -48,6 +48,14 @@ func (s *MemberService) GetMember(ctx context.Context, req *apiv1.GetMemberReque
 	return member.ToAPIV1MemberItem(), nil
 }
 
+func (s *MemberService) GetMemberByUserUID(ctx context.Context, req *apiv1.GetMemberByUserUIDRequest) (*apiv1.MemberItem, error) {
+	member, err := s.memberBiz.GetMemberByUserUID(ctx, snowflake.ParseInt64(req.UserUID))
+	if err != nil {
+		return nil, err
+	}
+	return member.ToAPIV1MemberItem(), nil
+}
+
 func (s *MemberService) ListMember(ctx context.Context, req *apiv1.ListMemberRequest) (*apiv1.ListMemberReply, error) {
 	listBo := bo.NewListMemberBo(req)
 	page, err := s.memberBiz.ListMember(ctx, listBo)

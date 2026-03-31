@@ -1701,8 +1701,6 @@ components:
                         type: string
                 recoveredReason:
                     type: string
-                recoveredBy:
-                    type: string
         marksman.api.v1.CreateAlertPageReply:
             type: object
             properties:
