@@ -22,6 +22,7 @@ type NotificationGroup struct {
 	Members      *safety.Slice[*NotificationMember] `gorm:"column:members;type:json;"`
 	Webhooks     *safety.Slice[int64]               `gorm:"column:webhooks;type:json;"`
 	Templates    *safety.Slice[int64]               `gorm:"column:templates;type:json;"`
+	EmailConfigs *safety.Slice[int64]               `gorm:"column:email_configs;type:json;"`
 }
 
 func (NotificationGroup) TableName() string {

@@ -79,6 +79,9 @@ func (t *templateRepository) ListTemplate(ctx context.Context, req *bo.ListTempl
 	if req.MessageType > enum.MessageType_MessageType_UNKNOWN {
 		wrappers = wrappers.Where(template.MessageType.Eq(int32(req.MessageType)))
 	}
+	if len(req.UIDs) > 0 {
+		wrappers = wrappers.Where(template.ID.In(req.UIDs...))
+	}
 	if pointer.IsNotNil(req.PageRequestBo) {
 		total, err := wrappers.Count()
 		if err != nil {

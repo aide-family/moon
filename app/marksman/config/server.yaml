@@ -114,6 +114,10 @@ senderDomain:
   driver: ${MOON_MARKSMAN_SENDER_DRIVER:DEFAULT}
   version: ${MOON_MARKSMAN_SENDER_VERSION:v1}
 
+emailDomain:
+  driver: ${MOON_MARKSMAN_EMAIL_DRIVER:DEFAULT}
+  version: ${MOON_MARKSMAN_EMAIL_VERSION:v1}
+
 # Metric evaluate cron: concurrency, timeouts and job channel capacity.
 evaluateConfig:
   concurrencyLimit: ${MOON_MARKSMAN_EVALUATE_CONCURRENCY_LIMIT:10}

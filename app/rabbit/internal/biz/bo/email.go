@@ -175,6 +175,7 @@ type ListEmailConfigBo struct {
 	*PageRequestBo
 	Keyword string
 	Status  enum.GlobalStatus
+	UIDs    []int64
 }
 
 func NewListEmailConfigBo(req *apiv1.ListEmailConfigRequest) *ListEmailConfigBo {
@@ -182,6 +183,7 @@ func NewListEmailConfigBo(req *apiv1.ListEmailConfigRequest) *ListEmailConfigBo 
 		PageRequestBo: NewPageRequestBo(req.Page, req.PageSize),
 		Keyword:       req.Keyword,
 		Status:        req.Status,
+		UIDs:          req.Uids,
 	}
 }
 

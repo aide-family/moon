@@ -86,6 +86,9 @@ func (e *emailConfigRepository) ListEmailConfig(ctx context.Context, req *bo.Lis
 	if req.Status > enum.GlobalStatus_GlobalStatus_UNKNOWN {
 		wrappers = wrappers.Where(emailConfig.Status.Eq(int32(req.Status)))
 	}
+	if len(req.UIDs) > 0 {
+		wrappers = wrappers.Where(emailConfig.ID.In(req.UIDs...))
+	}
 	if pointer.IsNotNil(req.PageRequestBo) {
 		total, err := wrappers.Count()
 		if err != nil {

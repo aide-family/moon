@@ -58,6 +58,7 @@ func (r *notificationGroupRepository) UpdateNotificationGroup(ctx context.Contex
 		n.Members.Value(doUpdate.Members),
 		n.Webhooks.Value(doUpdate.Webhooks),
 		n.Templates.Value(doUpdate.Templates),
+		n.EmailConfigs.Value(doUpdate.EmailConfigs),
 	}
 	_, err := n.WithContext(ctx).Where(
 		n.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),

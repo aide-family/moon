@@ -80,6 +80,9 @@ func (w *webhookConfigRepository) ListWebhookConfig(ctx context.Context, req *bo
 	if strutil.IsNotEmpty(req.Keyword) {
 		wrappers = wrappers.Where(webhookConfig.Name.Like("%" + req.Keyword + "%"))
 	}
+	if len(req.UIDs) > 0 {
+		wrappers = wrappers.Where(webhookConfig.ID.In(req.UIDs...))
+	}
 	if pointer.IsNotNil(req.PageRequestBo) {
 		total, err := wrappers.Count()
 		if err != nil {

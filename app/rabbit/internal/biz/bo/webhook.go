@@ -101,6 +101,7 @@ type ListWebhookBo struct {
 	App     enum.WebhookAPP
 	Keyword string
 	Status  enum.GlobalStatus
+	UIDs    []int64
 }
 
 func NewListWebhookBo(req *apiv1.ListWebhookRequest) *ListWebhookBo {
@@ -109,6 +110,7 @@ func NewListWebhookBo(req *apiv1.ListWebhookRequest) *ListWebhookBo {
 		App:           req.App,
 		Keyword:       req.Keyword,
 		Status:        req.Status,
+		UIDs:          req.Uids,
 	}
 }
 

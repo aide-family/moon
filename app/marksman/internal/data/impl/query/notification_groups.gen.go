@@ -40,6 +40,7 @@ func newNotificationGroup(db *gorm.DB, opts ...gen.DOOption) notificationGroup {
 	_notificationGroup.Members = field.NewField(tableName, "members")
 	_notificationGroup.Webhooks = field.NewField(tableName, "webhooks")
 	_notificationGroup.Templates = field.NewField(tableName, "templates")
+	_notificationGroup.EmailConfigs = field.NewField(tableName, "email_configs")
 
 	_notificationGroup.fillFieldMap()
 
@@ -63,6 +64,7 @@ type notificationGroup struct {
 	Members      field.Field
 	Webhooks     field.Field
 	Templates    field.Field
+	EmailConfigs field.Field
 
 	fieldMap map[string]field.Expr
 }
@@ -92,6 +94,7 @@ func (n *notificationGroup) updateTableName(table string) *notificationGroup {
 	n.Members = field.NewField(table, "members")
 	n.Webhooks = field.NewField(table, "webhooks")
 	n.Templates = field.NewField(table, "templates")
+	n.EmailConfigs = field.NewField(table, "email_configs")
 
 	n.fillFieldMap()
 
@@ -108,7 +111,7 @@ func (n *notificationGroup) GetFieldByName(fieldName string) (field.OrderExpr, b
 }
 
 func (n *notificationGroup) fillFieldMap() {
-	n.fieldMap = make(map[string]field.Expr, 13)
+	n.fieldMap = make(map[string]field.Expr, 14)
 	n.fieldMap["id"] = n.ID
 	n.fieldMap["created_at"] = n.CreatedAt
 	n.fieldMap["updated_at"] = n.UpdatedAt
@@ -122,6 +125,7 @@ func (n *notificationGroup) fillFieldMap() {
 	n.fieldMap["members"] = n.Members
 	n.fieldMap["webhooks"] = n.Webhooks
 	n.fieldMap["templates"] = n.Templates
+	n.fieldMap["email_configs"] = n.EmailConfigs
 }
 
 func (n notificationGroup) clone(db *gorm.DB) notificationGroup {

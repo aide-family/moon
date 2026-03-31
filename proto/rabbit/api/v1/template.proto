@@ -130,6 +130,7 @@ message ListTemplateRequest {
 	}];
 	magicbox.enum.GlobalStatus status = 4;
 	magicbox.enum.MessageType messageType = 5;
+	repeated int64 uids = 6;
 }
 message ListTemplateReply {
 	repeated TemplateItem items = 1;

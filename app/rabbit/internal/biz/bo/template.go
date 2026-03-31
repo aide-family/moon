@@ -140,6 +140,7 @@ type ListTemplateBo struct {
 	Keyword     string
 	Status      enum.GlobalStatus
 	MessageType enum.MessageType
+	UIDs        []int64
 }
 
 // NewListTemplateBo 从 API 请求创建 BO
@@ -149,6 +150,7 @@ func NewListTemplateBo(req *apiv1.ListTemplateRequest) *ListTemplateBo {
 		Keyword:       req.Keyword,
 		Status:        req.Status,
 		MessageType:   req.MessageType,
+		UIDs:          req.Uids,
 	}
 }
 

@@ -11,12 +11,14 @@ import (
 )
 
 type NotificationMemberBo struct {
-	MemberUID int64
-	IsEmail   bool
-	IsPhone   bool
+	MemberUID    int64
+	IsEmail      bool
+	IsPhone      bool
+	MemberName   string
+	MemberAvatar string
 }
 
-func NewNotificationMemberBo(req *apiv1.NotificationMemberItem) *NotificationMemberBo {
+func NewNotificationMemberBo(req *apiv1.NotificationMemberRequest) *NotificationMemberBo {
 	if req == nil {
 		return nil
 	}
@@ -27,7 +29,7 @@ func NewNotificationMemberBo(req *apiv1.NotificationMemberItem) *NotificationMem
 	}
 }
 
-func NewNotificationMembersBo(req []*apiv1.NotificationMemberItem) []*NotificationMemberBo {
+func NewNotificationMembersBo(req []*apiv1.NotificationMemberRequest) []*NotificationMemberBo {
 	if req == nil {
 		return nil
 	}
@@ -39,16 +41,35 @@ func NewNotificationMembersBo(req []*apiv1.NotificationMemberItem) []*Notificati
 }
 
 type NotificationGroupItemBo struct {
-	UID       snowflake.ID
-	Name      string
-	Remark    string
-	Metadata  map[string]string
-	Status    enum.GlobalStatus
-	Members   []*NotificationMemberBo
-	Webhooks  []int64
-	Templates []int64
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	UID              snowflake.ID
+	Name             string
+	Remark           string
+	Metadata         map[string]string
+	Status           enum.GlobalStatus
+	Members          []*NotificationMemberBo
+	Webhooks         []int64
+	Templates        []int64
+	EmailConfigs     []int64
+	WebhookItems     []*NotificationResourceItemBo
+	TemplateItems    []*NotificationResourceItemBo
+	EmailConfigItems []*NotificationResourceItemBo
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
+type NotificationResourceItemBo struct {
+	UID  int64
+	Name string
+}
+
+func ToAPIV1NotificationResourceItem(b *NotificationResourceItemBo) *apiv1.NotificationResourceItem {
+	if b == nil {
+		return nil
+	}
+	return &apiv1.NotificationResourceItem{
+		Uid:  b.UID,
+		Name: b.Name,
+	}
 }
 
 func ToAPIV1NotificationMemberItem(b *NotificationMemberBo) *apiv1.NotificationMemberItem {
@@ -56,9 +77,11 @@ func ToAPIV1NotificationMemberItem(b *NotificationMemberBo) *apiv1.NotificationM
 		return nil
 	}
 	return &apiv1.NotificationMemberItem{
-		MemberUid: b.MemberUID,
-		IsEmail:   b.IsEmail,
-		IsPhone:   b.IsPhone,
+		MemberUid:    b.MemberUID,
+		IsEmail:      b.IsEmail,
+		IsPhone:      b.IsPhone,
+		MemberName:   b.MemberName,
+		MemberAvatar: b.MemberAvatar,
 	}
 }
 
@@ -70,27 +93,44 @@ func ToAPIV1NotificationGroupItem(b *NotificationGroupItemBo) *apiv1.Notificatio
 	for _, m := range b.Members {
 		members = append(members, ToAPIV1NotificationMemberItem(m))
 	}
+	webhookItems := make([]*apiv1.NotificationResourceItem, 0, len(b.WebhookItems))
+	for _, item := range b.WebhookItems {
+		webhookItems = append(webhookItems, ToAPIV1NotificationResourceItem(item))
+	}
+	templateItems := make([]*apiv1.NotificationResourceItem, 0, len(b.TemplateItems))
+	for _, item := range b.TemplateItems {
+		templateItems = append(templateItems, ToAPIV1NotificationResourceItem(item))
+	}
+	emailConfigItems := make([]*apiv1.NotificationResourceItem, 0, len(b.EmailConfigItems))
+	for _, item := range b.EmailConfigItems {
+		emailConfigItems = append(emailConfigItems, ToAPIV1NotificationResourceItem(item))
+	}
 	return &apiv1.NotificationGroupItem{
-		Uid:       b.UID.Int64(),
-		Name:      b.Name,
-		Remark:    b.Remark,
-		Metadata:  b.Metadata,
-		Status:    b.Status,
-		Members:   members,
-		Webhooks:  b.Webhooks,
-		Templates: b.Templates,
-		CreatedAt: timex.FormatTime(&b.CreatedAt),
-		UpdatedAt: timex.FormatTime(&b.UpdatedAt),
+		Uid:              b.UID.Int64(),
+		Name:             b.Name,
+		Remark:           b.Remark,
+		Metadata:         b.Metadata,
+		Status:           b.Status,
+		Members:          members,
+		Webhooks:         b.Webhooks,
+		Templates:        b.Templates,
+		EmailConfigs:     b.EmailConfigs,
+		WebhookItems:     webhookItems,
+		TemplateItems:    templateItems,
+		EmailConfigItems: emailConfigItems,
+		CreatedAt:        timex.FormatTime(&b.CreatedAt),
+		UpdatedAt:        timex.FormatTime(&b.UpdatedAt),
 	}
 }
 
 type CreateNotificationGroupBo struct {
-	Name      string
-	Remark    string
-	Metadata  map[string]string
-	Members   []*NotificationMemberBo
-	Webhooks  []int64
-	Templates []int64
+	Name         string
+	Remark       string
+	Metadata     map[string]string
+	Members      []*NotificationMemberBo
+	Webhooks     []int64
+	Templates    []int64
+	EmailConfigs []int64
 }
 
 func NewCreateNotificationGroupBo(req *apiv1.CreateNotificationGroupRequest) *CreateNotificationGroupBo {
@@ -99,23 +139,25 @@ func NewCreateNotificationGroupBo(req *apiv1.CreateNotificationGroupRequest) *Cr
 	}
 	members := NewNotificationMembersBo(req.GetMembers())
 	return &CreateNotificationGroupBo{
-		Name:      req.GetName(),
-		Remark:    req.GetRemark(),
-		Metadata:  req.GetMetadata(),
-		Members:   members,
-		Webhooks:  req.GetWebhooks(),
-		Templates: req.GetTemplates(),
+		Name:         req.GetName(),
+		Remark:       req.GetRemark(),
+		Metadata:     req.GetMetadata(),
+		Members:      members,
+		Webhooks:     req.GetWebhooks(),
+		Templates:    req.GetTemplates(),
+		EmailConfigs: req.GetEmailConfigs(),
 	}
 }
 
 type UpdateNotificationGroupBo struct {
-	UID       snowflake.ID
-	Name      string
-	Remark    string
-	Metadata  map[string]string
-	Members   []*NotificationMemberBo
-	Webhooks  []int64
-	Templates []int64
+	UID          snowflake.ID
+	Name         string
+	Remark       string
+	Metadata     map[string]string
+	Members      []*NotificationMemberBo
+	Webhooks     []int64
+	Templates    []int64
+	EmailConfigs []int64
 }
 
 func NewUpdateNotificationGroupBo(req *apiv1.UpdateNotificationGroupRequest) *UpdateNotificationGroupBo {
@@ -124,13 +166,14 @@ func NewUpdateNotificationGroupBo(req *apiv1.UpdateNotificationGroupRequest) *Up
 	}
 	members := NewNotificationMembersBo(req.GetMembers())
 	return &UpdateNotificationGroupBo{
-		UID:       snowflake.ParseInt64(req.GetUid()),
-		Name:      req.GetName(),
-		Remark:    req.GetRemark(),
-		Metadata:  req.GetMetadata(),
-		Members:   members,
-		Webhooks:  req.GetWebhooks(),
-		Templates: req.GetTemplates(),
+		UID:          snowflake.ParseInt64(req.GetUid()),
+		Name:         req.GetName(),
+		Remark:       req.GetRemark(),
+		Metadata:     req.GetMetadata(),
+		Members:      members,
+		Webhooks:     req.GetWebhooks(),
+		Templates:    req.GetTemplates(),
+		EmailConfigs: req.GetEmailConfigs(),
 	}
 }
 

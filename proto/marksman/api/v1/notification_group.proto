@@ -47,10 +47,23 @@ service NotificationGroup {
 	}
 }
 
+message NotificationMemberRequest {
+	int64 memberUid = 1;
+	bool isEmail = 2;
+	bool isPhone = 3;
+}
+
 message NotificationMemberItem {
-	int64 member_uid = 1;
-	bool is_email = 2;
-	bool is_phone = 3;
+	int64 memberUid = 1;
+	bool isEmail = 2;
+	bool isPhone = 3;
+	string memberName = 4;
+	string memberAvatar = 5;
+}
+
+message NotificationResourceItem {
+	int64 uid = 1;
+	string name = 2;
 }
 
 message NotificationGroupItem {
@@ -59,11 +72,15 @@ message NotificationGroupItem {
 	string remark = 3;
 	map<string, string> metadata = 4;
 	magicbox.enum.GlobalStatus status = 5;
-	repeated NotificationMemberItem members = 6;
-	repeated int64 webhooks = 7;
-	repeated int64 templates = 8;
-	string createdAt = 9;
-	string updatedAt = 10;
+	string createdAt = 6;
+	string updatedAt = 7;
+	repeated int64 webhooks = 8;
+	repeated int64 templates = 9;
+	repeated int64 emailConfigs = 10;
+	repeated NotificationMemberItem members = 11;
+	repeated NotificationResourceItem webhookItems = 13;
+	repeated NotificationResourceItem templateItems = 14;
+	repeated NotificationResourceItem emailConfigItems = 15;
 }
 
 message CreateNotificationGroupRequest {
@@ -73,9 +90,10 @@ message CreateNotificationGroupRequest {
 	}];
 	string remark = 2 [(buf.validate.field).string = { max_len: 500 }];
 	map<string, string> metadata = 3;
-	repeated NotificationMemberItem members = 4;
+	repeated NotificationMemberRequest members = 4;
 	repeated int64 webhooks = 5;
 	repeated int64 templates = 6;
+	repeated int64 emailConfigs = 7;
 }
 message CreateNotificationGroupReply {
 	int64 uid = 1;
@@ -92,9 +110,10 @@ message UpdateNotificationGroupRequest {
 	}];
 	string remark = 3 [(buf.validate.field).string = { max_len: 500 }];
 	map<string, string> metadata = 4;
-	repeated NotificationMemberItem members = 5;
+	repeated NotificationMemberRequest members = 5;
 	repeated int64 webhooks = 6;
 	repeated int64 templates = 7;
+	repeated int64 emailConfigs = 8;
 }
 message UpdateNotificationGroupReply {}
 

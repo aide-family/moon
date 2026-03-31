@@ -90,21 +90,21 @@
 | | `PUT /v1/email/config/{uid}/status` | Update status (ENABLED/DISABLED) |
 | | `DELETE /v1/email/config/{uid}` | Delete email config |
 | | `GET /v1/email/config/{uid}` | Get email config |
-| | `GET /v1/email/configs` | List email configs (pagination, keyword, status) |
+| | `GET /v1/email/configs` | List email configs (pagination, keyword, status, optional `uids` batch filter) |
 | | `GET /v1/email/configs/select` | Select for dropdown |
 | **Webhook** | `POST /v1/webhook/config` | Create webhook (app: OTHER/DINGTALK/WECHAT/FEISHU) |
 | | `PUT /v1/webhook/config/{uid}` | Update webhook |
 | | `PUT /v1/webhook/config/{uid}/status` | Update status |
 | | `DELETE /v1/webhook/config/{uid}` | Delete webhook |
 | | `GET /v1/webhook/config/{uid}` | Get webhook |
-| | `GET /v1/webhook/configs` | List webhooks |
+| | `GET /v1/webhook/configs` | List webhooks (supports optional `uids` batch filter) |
 | | `GET /v1/webhook/configs/select` | Select for dropdown |
 | **Template** | `POST /v1/template` | Create template (messageType, jsonData) |
 | | `PUT /v1/template/{uid}` | Update template |
 | | `PUT /v1/template/{uid}/status` | Update status |
 | | `DELETE /v1/template/{uid}` | Delete template |
 | | `GET /v1/template/{uid}` | Get template |
-| | `GET /v1/templates` | List templates (pagination, keyword, status, messageType) |
+| | `GET /v1/templates` | List templates (pagination, keyword, status, messageType, optional `uids` batch filter) |
 | | `GET /v1/templates/select` | Select for dropdown |
 | **RecipientGroupService** | `POST /v1/recipient-group` | Create group (name, templates, emailConfigs, webhookConfigs, members) |
 | | `GET /v1/recipient-group/{uid}` | Get group (with templates, emailConfigs, webhookConfigs, members) |

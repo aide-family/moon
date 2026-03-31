@@ -55,7 +55,7 @@
 - **Level**: Level CRUD, list, select, status (including `type` = ALERT/DATASOURCE and `bgColor` for display)
 - **Strategy metric**: Save/get metric config (expr, labels, datasourceUIDs, levels); save/update/delete/get metric levels (mode, condition, values, duration); bind receivers per strategy (optional levelUID)
 - **Alert (real-time)**: Alert page CRUD (name, color, sort order, filter by strategy group/level/strategy/datasource/datasource level); list real-time alert events by alert page; operate events: batch intervene + intervene (on-call takeover), suppress (until time), recover (manual); alert statistics for dashboard (total active, by level, today recovered, by alert page); user followed alert pages (list/save per user)
-- **Notification group**: CRUD for notification groups (name, remark, metadata, members, webhooks, templates updated via Create/Update)
+- **Notification group**: CRUD for notification groups (name, remark, metadata, members, webhooks, templates, emailConfigs updated via Create/Update); get/list returns member profile (`memberName`, `memberAvatar`) and bound resource items (`webhookItems`, `templateItems`, `emailConfigItems`) with `uid + name`
 - **Notification group subscription**: Get/update subscription filter per notification group (strategy groups, strategies, strategy-level pairs, labels, excludeLabels, datasourceUids, datasourceLevelUids); when multiple dimensions are set, alerts match if at least one dimension matches (OR)
 
 ---
@@ -117,12 +117,12 @@
 | | `DELETE /v1/metric/strategy/{strategyUID}/level/{uid}` | Delete metric level |
 | | `GET /v1/metric/strategy/{strategyUID}/level/{uid}` | Get metric level |
 | | `POST /v1/metric/strategy/{strategyUID}/receivers` | Bind receivers (receiverUIDs; optional levelUID) |
-| **NotificationGroup** | `POST /v1/notification-groups` | Create notification group (name, remark, metadata, members, webhooks, templates) |
-| | `PUT /v1/notification-groups/{uid}` | Update notification group (including members, webhooks, templates) |
+| **NotificationGroup** | `POST /v1/notification-groups` | Create notification group (name, remark, metadata, members, webhooks, templates, emailConfigs) |
+| | `PUT /v1/notification-groups/{uid}` | Update notification group (including members, webhooks, templates, emailConfigs) |
 | | `PUT /v1/notification-groups/{uid}/status` | Update status (ENABLED/DISABLED) |
 | | `DELETE /v1/notification-groups/{uid}` | Delete notification group |
-| | `GET /v1/notification-groups/{uid}` | Get notification group |
-| | `GET /v1/notification-groups` | List notification groups (page, pageSize, keyword, status) |
+| | `GET /v1/notification-groups/{uid}` | Get notification group (members include `memberName`, `memberAvatar`; webhook/template/emailConfig include `uid + name`) |
+| | `GET /v1/notification-groups` | List notification groups (page, pageSize, keyword, status; members include `memberName`, `memberAvatar`; webhook/template/emailConfig include `uid + name`) |
 | **NotificationGroupSubscription** | `GET /v1/notification-groups/{notification_group_uid}/subscription` | Get subscription filter for a notification group |
 | | `PUT /v1/notification-groups/{notification_group_uid}/subscription` | Save subscription filter (create or overwrite; strategy_group_uids, strategy_uids, strategy_levels, labels, exclude_labels, datasource_uids, datasource_level_uids; OR when multiple set) |
 | **Alert** (alert page) | `POST /v1/alert/alert-pages` | Create alert page (name, color, sortOrder, filter by strategy group/level/strategy/datasource/datasource level) |

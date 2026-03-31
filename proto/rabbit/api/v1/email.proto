@@ -116,6 +116,7 @@ message ListEmailConfigRequest {
 		message: "keyword must be less than or equal to 100",
 	}];
 	magicbox.enum.GlobalStatus status = 4;
+	repeated int64 uids = 5;
 }
 message ListEmailConfigReply {
 	repeated EmailConfigItem items = 1;

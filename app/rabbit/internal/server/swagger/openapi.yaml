@@ -131,6 +131,12 @@ paths:
                   schema:
                     type: integer
                     format: enum
+                - name: uids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
             responses:
                 "200":
                     description: OK
@@ -683,6 +689,12 @@ paths:
                   schema:
                     type: integer
                     format: enum
+                - name: uids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
             responses:
                 "200":
                     description: OK
@@ -856,6 +868,12 @@ paths:
                   schema:
                     type: integer
                     format: enum
+                - name: uids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
             responses:
                 "200":
                     description: OK

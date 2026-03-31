@@ -30,5 +30,6 @@ var ProviderSetImpl = wire.NewSet(
 	NewNotificationGroupSubscriptionRepository,
 	NewRabbitWebhookRepository,
 	NewRabbitTemplateRepository,
+	NewRabbitEmailRepository,
 	NewRabbitSenderRepository,
 )

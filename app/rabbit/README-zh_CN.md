@@ -90,21 +90,21 @@
 | | `PUT /v1/email/config/{uid}/status` | 更新状态（ENABLED/DISABLED） |
 | | `DELETE /v1/email/config/{uid}` | 删除邮件配置 |
 | | `GET /v1/email/config/{uid}` | 获取邮件配置 |
-| | `GET /v1/email/configs` | 列表（分页、keyword、status） |
+| | `GET /v1/email/configs` | 列表（分页、keyword、status，支持可选 `uids` 批量过滤） |
 | | `GET /v1/email/configs/select` | 下拉选择 |
 | **Webhook** | `POST /v1/webhook/config` | 创建 Webhook（app: OTHER/DINGTALK/WECHAT/FEISHU） |
 | | `PUT /v1/webhook/config/{uid}` | 更新 Webhook |
 | | `PUT /v1/webhook/config/{uid}/status` | 更新状态 |
 | | `DELETE /v1/webhook/config/{uid}` | 删除 Webhook |
 | | `GET /v1/webhook/config/{uid}` | 获取 Webhook |
-| | `GET /v1/webhook/configs` | 列表 |
+| | `GET /v1/webhook/configs` | 列表（支持可选 `uids` 批量过滤） |
 | | `GET /v1/webhook/configs/select` | 下拉选择 |
 | **Template** | `POST /v1/template` | 创建模板（messageType、jsonData） |
 | | `PUT /v1/template/{uid}` | 更新模板 |
 | | `PUT /v1/template/{uid}/status` | 更新状态 |
 | | `DELETE /v1/template/{uid}` | 删除模板 |
 | | `GET /v1/template/{uid}` | 获取模板 |
-| | `GET /v1/templates` | 列表（分页、keyword、status、messageType） |
+| | `GET /v1/templates` | 列表（分页、keyword、status、messageType，支持可选 `uids` 批量过滤） |
 | | `GET /v1/templates/select` | 下拉选择 |
 | **RecipientGroupService** | `POST /v1/recipient-group` | 创建收件人组（name、templates、emailConfigs、webhookConfigs、members） |
 | | `GET /v1/recipient-group/{uid}` | 获取组（含模板、邮件配置、Webhook、成员） |

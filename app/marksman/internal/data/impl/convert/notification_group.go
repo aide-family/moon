@@ -50,21 +50,26 @@ func ToNotificationGroupItemBo(m *do.NotificationGroup) *bo.NotificationGroupIte
 	if m.Templates != nil {
 		templates = m.Templates.List()
 	}
+	var emailConfigs []int64
+	if m.EmailConfigs != nil {
+		emailConfigs = m.EmailConfigs.List()
+	}
 	var metadata map[string]string
 	if m.Metadata != nil {
 		metadata = m.Metadata.Map()
 	}
 	return &bo.NotificationGroupItemBo{
-		UID:       m.ID,
-		Name:      m.Name,
-		Remark:    m.Remark,
-		Metadata:  metadata,
-		Status:    m.Status,
-		Members:   members,
-		Webhooks:  webhooks,
-		Templates: templates,
-		CreatedAt: m.CreatedAt,
-		UpdatedAt: m.UpdatedAt,
+		UID:          m.ID,
+		Name:         m.Name,
+		Remark:       m.Remark,
+		Metadata:     metadata,
+		Status:       m.Status,
+		Members:      members,
+		Webhooks:     webhooks,
+		Templates:    templates,
+		EmailConfigs: emailConfigs,
+		CreatedAt:    m.CreatedAt,
+		UpdatedAt:    m.UpdatedAt,
 	}
 }
 
@@ -84,6 +89,7 @@ func ToNotificationGroupDo(ctx context.Context, req *bo.CreateNotificationGroupB
 		Members:   safety.NewSlice(members),
 		Webhooks:  safety.NewSlice(req.Webhooks),
 		Templates: safety.NewSlice(req.Templates),
+		EmailConfigs: safety.NewSlice(req.EmailConfigs),
 	}
 	m.WithNamespace(contextx.GetNamespace(ctx)).WithCreator(contextx.GetUserUID(ctx))
 	return m
@@ -104,5 +110,6 @@ func ToNotificationGroupDoUpdate(req *bo.UpdateNotificationGroupBo) *do.Notifica
 		Members:   safety.NewSlice(members),
 		Webhooks:  safety.NewSlice(req.Webhooks),
 		Templates: safety.NewSlice(req.Templates),
+		EmailConfigs: safety.NewSlice(req.EmailConfigs),
 	}
 }

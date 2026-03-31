@@ -17,3 +17,9 @@ type NotificationGroup interface {
 	GetNotificationGroup(ctx context.Context, uid snowflake.ID) (*bo.NotificationGroupItemBo, error)
 	ListNotificationGroup(ctx context.Context, req *bo.ListNotificationGroupBo) (*bo.PageResponseBo[*bo.NotificationGroupItemBo], error)
 }
+
+type NotificationResourceResolver interface {
+	GetWebhookName(ctx context.Context, uid int64) (string, error)
+	GetTemplateName(ctx context.Context, uid int64) (string, error)
+	GetEmailConfigName(ctx context.Context, uid int64) (string, error)
+}
