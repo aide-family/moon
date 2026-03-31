@@ -43,7 +43,7 @@ COPY --from=builder /moon/bin/rabbit /usr/local/bin/rabbit
 RUN chmod +x /usr/local/bin/rabbit
 
 # 暴露端口（与 config/server.yaml 默认一致：job=17070, http=18080, grpc=19090）
-EXPOSE 17070 18080 19090 
+EXPOSE 7001 8001 9001 
 
 # 运行应用
 ENTRYPOINT ["/usr/local/bin/rabbit"]

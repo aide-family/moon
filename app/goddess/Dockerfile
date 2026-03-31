@@ -43,7 +43,7 @@ COPY --from=builder /moon/bin/goddess /usr/local/bin/goddess
 RUN chmod +x /usr/local/bin/goddess
 
 # 暴露端口（根据实际配置调整）
-EXPOSE 10070 18080 19090 
+EXPOSE 7000 8000 9000 
 
 # 运行应用
 ENTRYPOINT ["/usr/local/bin/goddess"]

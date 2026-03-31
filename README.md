@@ -87,7 +87,7 @@ make all
 make <app>
 ```
 
-Where `<app>` is one of: `goddess`, `rabbit`, `marksman`. Example:
+Where `<app>` is one of: `goddess`, `rabbit`, `marksman`, `jade_tree`. Example:
 
 ```bash
 make rabbit
@@ -117,6 +117,7 @@ For app-specific setup (config, database, etc.), see the README of each app unde
 | [`app/goddess/`](app/goddess/) | Goddess (嫦娥) | Authentication and authorization service |
 | [`app/rabbit/`](app/rabbit/) | Rabbit (玉兔) | Business service (e.g. time engine and related features) |
 | [`app/marksman/`](app/marksman/) | Marksman (后羿) | Event service |
+| [`app/jade_tree/`](app/jade_tree/) | Jade Tree (玉树) | Agent runtime service for collection and communication |
 | [`proto/`](proto/) | Protos | API definitions (e.g. goddess, rabbit) |
 
 - **magicbox** is a Go module; **goddess**, **rabbit**, and **marksman** depend on it via `replace` in their `go.mod`.
@@ -131,6 +132,7 @@ For app-specific setup (config, database, etc.), see the README of each app unde
 | Goddess | [README](app/goddess/README.md) | [README](app/goddess/README-zh_CN.md) |
 | Rabbit | [README](app/rabbit/README.md) | [README](app/rabbit/README-zh_CN.md) |
 | Marksman | [README](app/marksman/README.md) | [README](app/marksman/README-zh_CN.md) |
+| Jade Tree | [README](app/jade_tree/README.md) | [README](app/jade_tree/README-zh_CN.md) |
 | Magic Box | [README](magicbox/README.md) | [README](magicbox/README-zh_CN.md) |
 
 ---

@@ -1,0 +1,32 @@
+environment: DEV
+useRandomID: 'true'
+enableSwagger: 'true'
+enableMetrics: 'true'
+enableClientConfig: 'false'
+
+server:
+  name: jade_tree
+  metadata:
+    owner: aide-family
+    role: agent-collector
+  http:
+    network: tcp
+    address: 0.0.0.0:8004
+    timeout: 1s
+    protocol: PROTOCOL_HTTP
+  grpc:
+    network: tcp
+    address: 0.0.0.0:9004
+    timeout: 1s
+    protocol: PROTOCOL_GRPC
+
+swaggerBasicAuth:
+  username: admin
+  password: admin
+
+metricsBasicAuth:
+  username: admin
+  password: admin
+
+jwt:
+  secret: change-me

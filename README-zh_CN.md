@@ -87,7 +87,7 @@ make all
 make <应用名>
 ```
 
-其中 `<应用名>` 可为：`goddess`、`rabbit`、`marksman`。示例：
+其中 `<应用名>` 可为：`goddess`、`rabbit`、`marksman`、`jade_tree`。示例：
 
 ```bash
 make rabbit
@@ -117,6 +117,7 @@ make gen
 | [`app/goddess/`](app/goddess/) | Goddess（嫦娥） | 认证与授权服务 |
 | [`app/rabbit/`](app/rabbit/) | Rabbit（玉兔） | 业务服务（如时间引擎及相关能力） |
 | [`app/marksman/`](app/marksman/) | Marksman（后羿） | 事件服务 |
+| [`app/jade_tree/`](app/jade_tree/) | Jade Tree（玉树） | 采集与通信 Agent 运行时服务 |
 | [`proto/`](proto/) | Protos | API 定义（如 goddess、rabbit） |
 
 - **magicbox** 为独立 Go 模块；**goddess**、**rabbit**、**marksman** 通过各自 `go.mod` 中的 `replace` 引用本地 magicbox。
@@ -131,6 +132,7 @@ make gen
 | Goddess | [README](app/goddess/README.md) | [README](app/goddess/README-zh_CN.md) |
 | Rabbit | [README](app/rabbit/README.md) | [README](app/rabbit/README-zh_CN.md) |
 | Marksman | [README](app/marksman/README.md) | [README](app/marksman/README-zh_CN.md) |
+| Jade Tree | [README](app/jade_tree/README.md) | [README](app/jade_tree/README-zh_CN.md) |
 | Magic Box | [README](magicbox/README.md) | [README](magicbox/README-zh_CN.md) |
 
 ---

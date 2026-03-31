@@ -1,0 +1,17 @@
+[Unit]
+Description=Jade Tree Agent Service
+After=network.target
+
+[Service]
+Type=simple
+User=jade-tree
+Group=jade-tree
+WorkingDirectory=/opt/jade-tree
+ExecStart=/opt/jade-tree/bin/jade_tree run all --log-level=INFO
+Restart=always
+RestartSec=5
+LimitNOFILE=65535
+Environment=LOG_LEVEL=INFO
+
+[Install]
+WantedBy=multi-user.target
