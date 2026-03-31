@@ -148,6 +148,35 @@ func (b *AlertBiz) RecoverAlert(ctx context.Context, req *bo.RecoverAlertBo) err
 	return nil
 }
 
+func (b *AlertBiz) BatchRecoverAlert(ctx context.Context, req *bo.BatchRecoverAlertBo) error {
+	if req == nil || len(req.UIDs) == 0 {
+		return merr.ErrorParams("uids are required")
+	}
+	if req.RecoveredBy.Int64() <= 0 {
+		return merr.ErrorParams("recoveredBy must be greater than 0")
+	}
+	member, err := b.memberRepo.GetMember(ctx, &goddessv1.GetMemberRequest{Uid: req.RecoveredBy.Int64()})
+	if err != nil {
+		b.helper.Errorw("msg", "get member failed", "error", err, "memberUID", req.RecoveredBy.Int64())
+		return merr.ErrorInternalServer("get member failed").WithCause(err)
+	}
+	req.RecoveredByName = member.GetName()
+
+	for _, uid := range req.UIDs {
+		if uid.Int64() <= 0 {
+			return merr.ErrorParams("uid must be greater than 0")
+		}
+	}
+	if err := b.alertEventRepo.BatchRecoverAlert(ctx, req); err != nil {
+		if merr.IsNotFound(err) {
+			return merr.ErrorNotFound("alert event not found")
+		}
+		b.helper.Errorw("msg", "batch recover alert failed", "error", err)
+		return merr.ErrorInternalServer("batch recover alert failed").WithCause(err)
+	}
+	return nil
+}
+
 func (b *AlertBiz) GetAlertEvent(ctx context.Context, uid snowflake.ID) (*bo.AlertEventItemBo, error) {
 	item, err := b.alertEventRepo.GetAlertEvent(ctx, uid)
 	if err != nil {

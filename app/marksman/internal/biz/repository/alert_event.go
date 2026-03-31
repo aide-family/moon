@@ -24,5 +24,6 @@ type AlertEvent interface {
 	BatchInterveneAlert(ctx context.Context, req *bo.BatchInterveneAlertBo) error
 	SuppressAlert(ctx context.Context, req *bo.SuppressAlertBo) error
 	RecoverAlert(ctx context.Context, req *bo.RecoverAlertBo) error
+	BatchRecoverAlert(ctx context.Context, req *bo.BatchRecoverAlertBo) error
 	AutoRecoverAlert(ctx context.Context, uid snowflake.ID) error
 }

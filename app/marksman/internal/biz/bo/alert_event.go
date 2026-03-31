@@ -251,8 +251,8 @@ func NewBatchInterveneAlertBo(_ context.Context, req *apiv1.BatchInterveneAlertR
 		uids = append(uids, snowflake.ParseInt64(id))
 	}
 	return &BatchInterveneAlertBo{
-		UIDs:             uids,
-		IntervenedBy:     snowflake.ParseInt64(req.GetIntervenedMemberUid()),
+		UIDs:         uids,
+		IntervenedBy: snowflake.ParseInt64(req.GetIntervenedMemberUid()),
 	}
 }
 
@@ -290,6 +290,25 @@ func NewRecoverAlertBo(ctx context.Context, req *apiv1.RecoverAlertRequest) *Rec
 		UID:             snowflake.ParseInt64(req.GetUid()),
 		RecoveredBy:     contextx.GetUserUID(ctx),
 		RecoveredByName: contextx.GetUsername(ctx),
+		RecoveredReason: req.GetRecoveredReason(),
+	}
+}
+
+type BatchRecoverAlertBo struct {
+	UIDs            []snowflake.ID
+	RecoveredBy     snowflake.ID
+	RecoveredReason string
+	RecoveredByName string
+}
+
+func NewBatchRecoverAlertBo(_ context.Context, req *apiv1.BatchRecoverAlertRequest) *BatchRecoverAlertBo {
+	uids := make([]snowflake.ID, 0, len(req.GetUids()))
+	for _, id := range req.GetUids() {
+		uids = append(uids, snowflake.ParseInt64(id))
+	}
+	return &BatchRecoverAlertBo{
+		UIDs:            uids,
+		RecoveredBy:     snowflake.ParseInt64(req.GetRecoveredBy()),
 		RecoveredReason: req.GetRecoveredReason(),
 	}
 }

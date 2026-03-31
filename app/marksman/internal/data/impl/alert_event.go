@@ -398,6 +398,54 @@ func (r *alertEventRepository) RecoverAlert(ctx context.Context, req *bo.Recover
 	return nil
 }
 
+func (r *alertEventRepository) BatchRecoverAlert(ctx context.Context, req *bo.BatchRecoverAlertBo) error {
+	ns := contextx.GetNamespace(ctx)
+	now := time.Now()
+
+	// Dedupe uids and group by shard table to avoid per-uid write statements.
+	distinctUIDs := make(map[int64]struct{}, len(req.UIDs))
+	tableUIDs := make(map[string][]int64)
+	for _, uid := range req.UIDs {
+		uidInt := uid.Int64()
+		if uidInt <= 0 {
+			continue
+		}
+		if _, ok := distinctUIDs[uidInt]; ok {
+			continue
+		}
+
+		distinctUIDs[uidInt] = struct{}{}
+		tableName := do.GenAlertEventTableName(ns, timex.TimeFromID(uid))
+		if _, err := r.Cache().Get(ctx, cache.K(tableName)); err != nil && !r.DB().Migrator().HasTable(tableName) {
+			klog.Context(ctx).Errorw("msg", "batch recover alert failed", "error", err, "tableName", tableName)
+			continue
+		}
+		tableUIDs[tableName] = append(tableUIDs[tableName], uidInt)
+	}
+
+	recoveredBy := req.RecoveredBy.Int64()
+	recoveredReason := req.RecoveredReason
+
+	for tableName, uids := range tableUIDs {
+		if len(uids) == 0 {
+			continue
+		}
+
+		table := query.AlertEvent.Table(tableName)
+		_, err := table.WithContext(ctx).Where(table.ID.In(uids...), table.Or(table.RecoveredBy.Eq(0), table.RecoveredByName.Eq(""))).UpdateColumnSimple(
+			table.Status.Value(int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_RECOVERED)),
+			table.RecoveredAt.Value(now),
+			table.RecoveredBy.Value(recoveredBy),
+			table.RecoveredReason.Value(recoveredReason),
+		)
+		if err != nil {
+			klog.Context(ctx).Errorw("msg", "batch recover alert failed", "error", err, "tableName", tableName, "uids", uids)
+			continue
+		}
+	}
+	return nil
+}
+
 func (r *alertEventRepository) AutoRecoverAlert(ctx context.Context, uid snowflake.ID) error {
 	ns := contextx.GetNamespace(ctx)
 	tableName := do.GenAlertEventTableName(ns, timex.TimeFromID(uid))

@@ -122,6 +122,14 @@ func (s *AlertService) RecoverAlert(ctx context.Context, req *apiv1.RecoverAlert
 	return &apiv1.RecoverAlertReply{}, nil
 }
 
+func (s *AlertService) BatchRecoverAlert(ctx context.Context, req *apiv1.BatchRecoverAlertRequest) (*apiv1.BatchRecoverAlertReply, error) {
+	reqBo := bo.NewBatchRecoverAlertBo(ctx, req)
+	if err := s.alertBiz.BatchRecoverAlert(ctx, reqBo); err != nil {
+		return nil, err
+	}
+	return &apiv1.BatchRecoverAlertReply{}, nil
+}
+
 func (s *AlertService) GetAlertStatistics(ctx context.Context, req *apiv1.GetAlertStatisticsRequest) (*apiv1.GetAlertStatisticsReply, error) {
 	stats, err := s.alertBiz.GetAlertStatistics(ctx)
 	if err != nil {

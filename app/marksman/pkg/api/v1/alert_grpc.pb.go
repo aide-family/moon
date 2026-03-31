@@ -31,6 +31,7 @@ const (
 	Alert_BatchInterveneAlert_FullMethodName = "/marksman.api.v1.Alert/BatchInterveneAlert"
 	Alert_SuppressAlert_FullMethodName       = "/marksman.api.v1.Alert/SuppressAlert"
 	Alert_RecoverAlert_FullMethodName        = "/marksman.api.v1.Alert/RecoverAlert"
+	Alert_BatchRecoverAlert_FullMethodName   = "/marksman.api.v1.Alert/BatchRecoverAlert"
 	Alert_GetAlertStatistics_FullMethodName  = "/marksman.api.v1.Alert/GetAlertStatistics"
 	Alert_ListUserAlertPages_FullMethodName  = "/marksman.api.v1.Alert/ListUserAlertPages"
 	Alert_SaveUserAlertPages_FullMethodName  = "/marksman.api.v1.Alert/SaveUserAlertPages"
@@ -54,6 +55,7 @@ type AlertClient interface {
 	BatchInterveneAlert(ctx context.Context, in *BatchInterveneAlertRequest, opts ...grpc.CallOption) (*BatchInterveneAlertReply, error)
 	SuppressAlert(ctx context.Context, in *SuppressAlertRequest, opts ...grpc.CallOption) (*SuppressAlertReply, error)
 	RecoverAlert(ctx context.Context, in *RecoverAlertRequest, opts ...grpc.CallOption) (*RecoverAlertReply, error)
+	BatchRecoverAlert(ctx context.Context, in *BatchRecoverAlertRequest, opts ...grpc.CallOption) (*BatchRecoverAlertReply, error)
 	// GetAlertStatistics returns alert counts for the dashboard: total active, by level, today recovered, by alert page.
 	GetAlertStatistics(ctx context.Context, in *GetAlertStatisticsRequest, opts ...grpc.CallOption) (*GetAlertStatisticsReply, error)
 	// ListUserAlertPages returns the current user's followed alert pages (personal config).
@@ -190,6 +192,16 @@ func (c *alertClient) RecoverAlert(ctx context.Context, in *RecoverAlertRequest,
 	return out, nil
 }
 
+func (c *alertClient) BatchRecoverAlert(ctx context.Context, in *BatchRecoverAlertRequest, opts ...grpc.CallOption) (*BatchRecoverAlertReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchRecoverAlertReply)
+	err := c.cc.Invoke(ctx, Alert_BatchRecoverAlert_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *alertClient) GetAlertStatistics(ctx context.Context, in *GetAlertStatisticsRequest, opts ...grpc.CallOption) (*GetAlertStatisticsReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAlertStatisticsReply)
@@ -238,6 +250,7 @@ type AlertServer interface {
 	BatchInterveneAlert(context.Context, *BatchInterveneAlertRequest) (*BatchInterveneAlertReply, error)
 	SuppressAlert(context.Context, *SuppressAlertRequest) (*SuppressAlertReply, error)
 	RecoverAlert(context.Context, *RecoverAlertRequest) (*RecoverAlertReply, error)
+	BatchRecoverAlert(context.Context, *BatchRecoverAlertRequest) (*BatchRecoverAlertReply, error)
 	// GetAlertStatistics returns alert counts for the dashboard: total active, by level, today recovered, by alert page.
 	GetAlertStatistics(context.Context, *GetAlertStatisticsRequest) (*GetAlertStatisticsReply, error)
 	// ListUserAlertPages returns the current user's followed alert pages (personal config).
@@ -289,6 +302,9 @@ func (UnimplementedAlertServer) SuppressAlert(context.Context, *SuppressAlertReq
 }
 func (UnimplementedAlertServer) RecoverAlert(context.Context, *RecoverAlertRequest) (*RecoverAlertReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RecoverAlert not implemented")
+}
+func (UnimplementedAlertServer) BatchRecoverAlert(context.Context, *BatchRecoverAlertRequest) (*BatchRecoverAlertReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchRecoverAlert not implemented")
 }
 func (UnimplementedAlertServer) GetAlertStatistics(context.Context, *GetAlertStatisticsRequest) (*GetAlertStatisticsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAlertStatistics not implemented")
@@ -536,6 +552,24 @@ func _Alert_RecoverAlert_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Alert_BatchRecoverAlert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchRecoverAlertRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertServer).BatchRecoverAlert(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Alert_BatchRecoverAlert_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertServer).BatchRecoverAlert(ctx, req.(*BatchRecoverAlertRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Alert_GetAlertStatistics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAlertStatisticsRequest)
 	if err := dec(in); err != nil {
@@ -644,6 +678,10 @@ var Alert_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RecoverAlert",
 			Handler:    _Alert_RecoverAlert_Handler,
+		},
+		{
+			MethodName: "BatchRecoverAlert",
+			Handler:    _Alert_BatchRecoverAlert_Handler,
 		},
 		{
 			MethodName: "GetAlertStatistics",

@@ -232,6 +232,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.BatchInterveneAlertReply'
+    /v1/alert/realtime-alerts/batch-recover:
+        post:
+            tags:
+                - Alert
+            operationId: Alert_BatchRecoverAlert
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.BatchRecoverAlertRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.BatchRecoverAlertReply'
     /v1/alert/realtime-alerts/{uid}:
         get:
             tags:
@@ -1671,6 +1689,20 @@ components:
                 intervenedMemberUid:
                     type: string
             description: BatchInterveneAlertRequest marks events as intervened (on-call has taken over).
+        marksman.api.v1.BatchRecoverAlertReply:
+            type: object
+            properties: {}
+        marksman.api.v1.BatchRecoverAlertRequest:
+            type: object
+            properties:
+                uids:
+                    type: array
+                    items:
+                        type: string
+                recoveredReason:
+                    type: string
+                recoveredBy:
+                    type: string
         marksman.api.v1.CreateAlertPageReply:
             type: object
             properties:
