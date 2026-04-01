@@ -9,6 +9,7 @@ Jade Tree 是 Moon 的 Agent 运行时服务。
 - 面向生产采用 RPM + `systemctl` 的运维方式。
 - 管理预置 SSH 命令模板：新增与变更需走审核；审核通过后写入正式命令表；可按模板在远端执行。
 - 提供部署机器基础信息采集能力（CPU、内存、磁盘与挂载点、网络、主机名、系统基础信息）。
+- 支持按配置定时向指定 HTTP 端点主动上报机器基础信息。
 - 以 Prometheus metrics 方式暴露探测能力（`probe_tcp_*`、`probe_http_*`、`probe_port_*`、`probe_tls_cert_*`）。
 
 ## 架构
@@ -27,6 +28,7 @@ API 定义位于 `proto/jade_tree/api/v1/`；生成代码在 `pkg/api/v1/`。修
 
 - **数据库**（`config/server.yaml` 中的 `bootstrap.database`）为**必填**。默认示例为 SQLite，本地开发可直接使用；生产可改为 MySQL / PostgreSQL（`dialector` 与 `options` 结构与其他 Moon 应用一致）。
 - 表 `ssh_commands`（已审核通过的命令）与 `ssh_command_audits`（审核单）在进程启动时通过 GORM `AutoMigrate` 创建/迁移。
+- 机器信息主动上报由 `bootstrap.machineInfoReport` 控制（`enabled`、`interval`、`timeout`、`endpoints` 以及可选 `headers`）。
 
 ## 接口概览
 

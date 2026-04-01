@@ -43,7 +43,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	probeTaskService := service.NewProbeTaskService(bizProbeTask)
 	servers := server.RegisterHTTPService(httpServer, healthService, sshCommandService, machineInfoService, probeTaskService)
 	probeCollector := collector.NewProbeCollector(bc, probeTask)
-	v, err := run.NewApp(serviceName, dataData, servers, bc, helper, probeCollector)
+	v, err := run.NewApp(serviceName, dataData, servers, bc, helper, probeCollector, machineInfo)
 	if err != nil {
 		cleanup()
 		return nil, nil, err

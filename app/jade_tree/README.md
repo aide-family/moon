@@ -9,6 +9,7 @@ Jade Tree is the Moon agent runtime service.
 - Support RPM + `systemctl` based production operations.
 - Manage predefined SSH command templates with an approval workflow, then execute them against remote hosts.
 - Collect deployment machine profile details (CPU, memory, disk/mount usage, network, hostname, and system basics).
+- Actively report machine profile details to configured HTTP endpoints on schedule.
 - Expose probe metrics in Prometheus format (`probe_tcp_*`, `probe_http_*`, `probe_port_*`, `probe_tls_cert_*`) on `/metrics`.
 
 ## Architecture
@@ -27,6 +28,7 @@ API definitions live under `proto/jade_tree/api/v1/`; generated Go code is in `p
 
 - **Database** (`bootstrap.database` in `config/server.yaml`) is **required**. SQLite is the default for local development; use MySQL or PostgreSQL in production by switching `dialector` and `options` (same shape as other Moon apps).
 - Tables `ssh_commands` and `ssh_command_audits` are created via GORM `AutoMigrate` on startup.
+- Active machine info reporting is configured by `bootstrap.machineInfoReport` (`enabled`, `interval`, `timeout`, `endpoints`, and optional request `headers`).
 
 ## API Overview
 

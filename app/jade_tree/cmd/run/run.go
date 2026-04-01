@@ -14,6 +14,7 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/spf13/cobra"
 
+	"github.com/aide-family/jade_tree/internal/biz"
 	bizcollector "github.com/aide-family/jade_tree/internal/biz/collector"
 	"github.com/aide-family/jade_tree/internal/conf"
 	"github.com/aide-family/jade_tree/internal/data"
@@ -151,11 +152,20 @@ func (e *endpoint) Cleanup() {
 	e.cleanup()
 }
 
-func NewApp(serviceName string, d *data.Data, srvs server.Servers, bc *conf.Bootstrap, helper *klog.Helper, probeCollector *bizcollector.ProbeCollector) ([]*kratos.App, error) {
+func NewApp(serviceName string, d *data.Data, srvs server.Servers, bc *conf.Bootstrap, helper *klog.Helper, probeCollector *bizcollector.ProbeCollector, machineInfo *biz.MachineInfo) ([]*kratos.App, error) {
 	apps := make([]*kratos.App, 0, len(srvs))
 	if len(srvs) == 0 {
 		panic("no servers")
 	}
+	reporter := newMachineInfoReporter(bc, machineInfo, helper)
+	apps = append(apps, kratos.New(
+		kratos.Name(strings.Join([]string{serviceName, "machine_info_reporter"}, ".")),
+		kratos.ID(hello.ID()),
+		kratos.Version(hello.Version()),
+		kratos.Metadata(hello.Metadata()),
+		kratos.Logger(helper.Logger()),
+		kratos.Server(reporter),
+	))
 	for _, srv := range srvs {
 		opts := []kratos.Option{
 			kratos.Name(strings.Join([]string{serviceName, srv.Name()}, ".")),
@@ -177,6 +187,7 @@ func NewApp(serviceName string, d *data.Data, srvs server.Servers, bc *conf.Boot
 			server.BindSwagger(httpSrv, bc)
 			server.BindMetrics(httpSrv, bc, probeCollector)
 		}
+
 		apps = append(apps, kratos.New(opts...))
 	}
 	return apps, nil

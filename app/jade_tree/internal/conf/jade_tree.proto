@@ -21,6 +21,7 @@ message Bootstrap {
 	magicbox.config.ReportConfig report = 10;
 	magicbox.config.ORMConfig database = 11;
 	Probe probe = 12;
+	MachineInfoReport machineInfoReport = 13;
 }
 
 message Server {
@@ -57,4 +58,12 @@ message Probe {
 	int32 concurrency = 3;
 	Initiator initiator = 4;
 	repeated Target targets = 5;
+}
+
+message MachineInfoReport {
+	string enabled = 1;
+	google.protobuf.Duration interval = 2;
+	google.protobuf.Duration timeout = 3;
+	repeated string endpoints = 4;
+	map<string, string> headers = 5;
 }
