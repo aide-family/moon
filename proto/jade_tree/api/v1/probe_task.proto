@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package jade_tree.api.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/jade_tree/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "jade_tree.api.v1";
+
+service ProbeTask {
+  rpc CreateProbeTask (CreateProbeTaskRequest) returns (ProbeTaskItem) {
+    option (google.api.http) = {
+      post: "/v1/probe-tasks"
+      body: "*"
+    };
+  }
+  rpc UpdateProbeTask (UpdateProbeTaskRequest) returns (ProbeTaskItem) {
+    option (google.api.http) = {
+      put: "/v1/probe-tasks/{uid}"
+      body: "*"
+    };
+  }
+  rpc DeleteProbeTask (DeleteProbeTaskRequest) returns (DeleteProbeTaskReply) {
+    option (google.api.http) = {
+      delete: "/v1/probe-tasks/{uid}"
+    };
+  }
+  rpc GetProbeTask (GetProbeTaskRequest) returns (ProbeTaskItem) {
+    option (google.api.http) = {
+      get: "/v1/probe-tasks/{uid}"
+    };
+  }
+  rpc ListProbeTasks (ListProbeTasksRequest) returns (ListProbeTasksReply) {
+    option (google.api.http) = {
+      get: "/v1/probe-tasks"
+    };
+  }
+}
+
+message ProbeTaskItem {
+  int64 uid = 1;
+  string type = 2;
+  string host = 3;
+  string port = 4;
+  string url = 5;
+  string name = 6;
+  bool enabled = 7;
+  int32 timeoutSeconds = 8;
+  string createdAt = 9;
+  string updatedAt = 10;
+}
+
+message CreateProbeTaskRequest {
+  string type = 1;
+  string host = 2;
+  string port = 3;
+  string url = 4;
+  string name = 5;
+  bool enabled = 6;
+  int32 timeoutSeconds = 7;
+}
+
+message UpdateProbeTaskRequest {
+  int64 uid = 1;
+  string type = 2;
+  string host = 3;
+  string port = 4;
+  string url = 5;
+  string name = 6;
+  bool enabled = 7;
+  int32 timeoutSeconds = 8;
+}
+
+message DeleteProbeTaskRequest {
+  int64 uid = 1;
+}
+
+message DeleteProbeTaskReply {}
+
+message GetProbeTaskRequest {
+  int64 uid = 1;
+}
+
+message ListProbeTasksRequest {
+  int32 page = 1;
+  int32 pageSize = 2;
+}
+
+message ListProbeTasksReply {
+  repeated ProbeTaskItem items = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 pageSize = 4;
+}

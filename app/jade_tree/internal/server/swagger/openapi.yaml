@@ -18,6 +18,104 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/jade_tree.api.v1.GetMachineInfoReply'
+    /v1/probe-tasks:
+        get:
+            tags:
+                - ProbeTask
+            operationId: ProbeTask_ListProbeTasks
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.ListProbeTasksReply'
+        post:
+            tags:
+                - ProbeTask
+            operationId: ProbeTask_CreateProbeTask
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/jade_tree.api.v1.CreateProbeTaskRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.ProbeTaskItem'
+    /v1/probe-tasks/{uid}:
+        get:
+            tags:
+                - ProbeTask
+            operationId: ProbeTask_GetProbeTask
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.ProbeTaskItem'
+        put:
+            tags:
+                - ProbeTask
+            operationId: ProbeTask_UpdateProbeTask
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/jade_tree.api.v1.UpdateProbeTaskRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.ProbeTaskItem'
+        delete:
+            tags:
+                - ProbeTask
+            operationId: ProbeTask_DeleteProbeTask
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.DeleteProbeTaskReply'
     /v1/ssh-command-audits:
         get:
             tags:
@@ -292,6 +390,27 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/jade_tree.api.v1.CPUCoreItem'
+        jade_tree.api.v1.CreateProbeTaskRequest:
+            type: object
+            properties:
+                type:
+                    type: string
+                host:
+                    type: string
+                port:
+                    type: string
+                url:
+                    type: string
+                name:
+                    type: string
+                enabled:
+                    type: boolean
+                timeoutSeconds:
+                    type: integer
+                    format: int32
+        jade_tree.api.v1.DeleteProbeTaskReply:
+            type: object
+            properties: {}
         jade_tree.api.v1.DiskInfoItem:
             type: object
             properties:
@@ -380,6 +499,21 @@ components:
             properties:
                 hostName:
                     type: string
+        jade_tree.api.v1.ListProbeTasksReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/jade_tree.api.v1.ProbeTaskItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         jade_tree.api.v1.ListSSHCommandAuditsReply:
             type: object
             properties:
@@ -458,6 +592,30 @@ components:
                     type: array
                     items:
                         type: string
+        jade_tree.api.v1.ProbeTaskItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                type:
+                    type: string
+                host:
+                    type: string
+                port:
+                    type: string
+                url:
+                    type: string
+                name:
+                    type: string
+                enabled:
+                    type: boolean
+                timeoutSeconds:
+                    type: integer
+                    format: int32
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
         jade_tree.api.v1.RejectSSHCommandAuditReply:
             type: object
             properties:
@@ -576,8 +734,29 @@ components:
                     type: string
                 kernel:
                     type: string
+        jade_tree.api.v1.UpdateProbeTaskRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                type:
+                    type: string
+                host:
+                    type: string
+                port:
+                    type: string
+                url:
+                    type: string
+                name:
+                    type: string
+                enabled:
+                    type: boolean
+                timeoutSeconds:
+                    type: integer
+                    format: int32
 tags:
     - name: MachineInfo
       description: MachineInfo provides host hardware and system profile details.
+    - name: ProbeTask
     - name: SSHCommand
       description: SSHCommand manages predefined SSH command templates with an approval workflow.

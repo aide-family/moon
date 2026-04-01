@@ -9,6 +9,7 @@ package all
 import (
 	"github.com/aide-family/jade_tree/cmd/run"
 	"github.com/aide-family/jade_tree/internal/biz"
+	"github.com/aide-family/jade_tree/internal/biz/collector"
 	"github.com/aide-family/jade_tree/internal/conf"
 	"github.com/aide-family/jade_tree/internal/data"
 	"github.com/aide-family/jade_tree/internal/data/impl"
@@ -38,8 +39,12 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	machineInfoProvider := impl.NewMachineInfoRepository(dataData)
 	machineInfo := biz.NewMachineInfo(machineInfoProvider, helper)
 	machineInfoService := service.NewMachineInfoService(machineInfo)
-	servers := server.RegisterService(bc, httpServer, grpcServer, healthService, sshCommandService, machineInfoService)
-	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
+	probeTask := impl.NewProbeTaskRepository(dataData)
+	bizProbeTask := biz.NewProbeTask(probeTask, helper)
+	probeTaskService := service.NewProbeTaskService(bizProbeTask)
+	servers := server.RegisterService(bc, httpServer, grpcServer, healthService, sshCommandService, machineInfoService, probeTaskService)
+	probeCollector := collector.NewProbeCollector(bc, probeTask)
+	v, err := run.NewApp(serviceName, dataData, servers, bc, helper, probeCollector)
 	if err != nil {
 		cleanup()
 		return nil, nil, err

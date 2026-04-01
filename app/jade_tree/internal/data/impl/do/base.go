@@ -14,6 +14,7 @@ func Models() []any {
 	return []any{
 		&SSHCommand{},
 		&SSHCommandAudit{},
+		&ProbeTask{},
 	}
 }
 

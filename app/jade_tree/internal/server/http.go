@@ -39,10 +39,11 @@ func newHTTPServer(httpConf conf.ServerConfig, jwtConf conf.JWTConfig, helper *k
 	return http.NewServer(opts...)
 }
 
-func RegisterHTTPService(httpSrv *http.Server, healthService *service.HealthService, sshCommand *service.SSHCommandService, machineInfo *service.MachineInfoService) Servers {
+func RegisterHTTPService(httpSrv *http.Server, healthService *service.HealthService, sshCommand *service.SSHCommandService, machineInfo *service.MachineInfoService, probeTask *service.ProbeTaskService) Servers {
 	healthv1.RegisterHealthHTTPServer(httpSrv, healthService)
 	apiv1.RegisterSSHCommandHTTPServer(httpSrv, sshCommand)
 	apiv1.RegisterMachineInfoHTTPServer(httpSrv, machineInfo)
+	apiv1.RegisterProbeTaskHTTPServer(httpSrv, probeTask)
 	return Servers{newServer("http", httpSrv)}
 }
 

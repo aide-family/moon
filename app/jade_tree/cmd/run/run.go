@@ -1,3 +1,4 @@
+// Package run defines CLI runtime bootstrap.
 package run
 
 import (
@@ -13,6 +14,7 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/spf13/cobra"
 
+	bizcollector "github.com/aide-family/jade_tree/internal/biz/collector"
 	"github.com/aide-family/jade_tree/internal/conf"
 	"github.com/aide-family/jade_tree/internal/data"
 	"github.com/aide-family/jade_tree/internal/server"
@@ -149,7 +151,7 @@ func (e *endpoint) Cleanup() {
 	e.cleanup()
 }
 
-func NewApp(serviceName string, d *data.Data, srvs server.Servers, bc *conf.Bootstrap, helper *klog.Helper) ([]*kratos.App, error) {
+func NewApp(serviceName string, d *data.Data, srvs server.Servers, bc *conf.Bootstrap, helper *klog.Helper, probeCollector *bizcollector.ProbeCollector) ([]*kratos.App, error) {
 	apps := make([]*kratos.App, 0, len(srvs))
 	if len(srvs) == 0 {
 		panic("no servers")
@@ -173,7 +175,7 @@ func NewApp(serviceName string, d *data.Data, srvs server.Servers, bc *conf.Boot
 				panic("server instance is not a *http.Server")
 			}
 			server.BindSwagger(httpSrv, bc)
-			server.BindMetrics(httpSrv, bc)
+			server.BindMetrics(httpSrv, bc, probeCollector)
 		}
 		apps = append(apps, kratos.New(opts...))
 	}

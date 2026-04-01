@@ -8,4 +8,5 @@ var ProviderSetImpl = wire.NewSet(
 	NewSSHCommandRepository,
 	NewCommandAuditRepository,
 	NewMachineInfoRepository,
+	NewProbeTaskRepository,
 )

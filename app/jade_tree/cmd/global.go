@@ -44,7 +44,6 @@ func WithGlobalFlagsREPO(repo string) globalFlagsOption {
 }
 
 func (g *GlobalFlags) addFlags(rootCmd *cobra.Command) {
-	g.LogLevel = "INFO"
 	rootCmd.PersistentFlags().StringVar(&g.LogLevel, "log-level", g.LogLevel, "log level")
 }
 

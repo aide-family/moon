@@ -9,6 +9,7 @@ Jade Tree is the Moon agent runtime service.
 - Support RPM + `systemctl` based production operations.
 - Manage predefined SSH command templates with an approval workflow, then execute them against remote hosts.
 - Collect deployment machine profile details (CPU, memory, disk/mount usage, network, hostname, and system basics).
+- Expose probe metrics in Prometheus format (`probe_tcp_*`, `probe_http_*`, `probe_port_*`, `probe_tls_cert_*`) on `/metrics`.
 
 ## Architecture
 
@@ -42,6 +43,13 @@ API definitions live under `proto/jade_tree/api/v1/`; generated Go code is in `p
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-audits/{uid}/reject` | Reject pending audit with a reason |
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-commands/{command_uid}/execute` | Run stored command on a remote host (host, credentials, optional timeout in body) |
 | `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-info` | Get deployment machine details (CPU, memory, disk+mount usage, network, hostname, arch/os/version/kernel) |
+| `jade_tree.api.v1.ProbeTask` | `POST /v1/probe-tasks` | Create a probe task persisted in database |
+| `jade_tree.api.v1.ProbeTask` | `PUT /v1/probe-tasks/{uid}` | Update a probe task and apply changes dynamically |
+| `jade_tree.api.v1.ProbeTask` | `DELETE /v1/probe-tasks/{uid}` | Delete a probe task and remove it dynamically |
+| `jade_tree.api.v1.ProbeTask` | `GET /v1/probe-tasks/{uid}` | Get one probe task |
+| `jade_tree.api.v1.ProbeTask` | `GET /v1/probe-tasks` | List probe tasks (paginated) |
+
+Probe metrics are configured via `bootstrap.probe` in `config/server.yaml` and exported via the existing `GET /metrics` endpoint.
 
 All SSH command APIs require a logged-in JWT user (`contextx` user UID). OpenAPI for `SSHCommand` is generated to `internal/server/swagger/openapi.yaml`.
 

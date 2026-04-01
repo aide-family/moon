@@ -20,6 +20,7 @@ message Bootstrap {
 	string enableClientConfig = 9;
 	magicbox.config.ReportConfig report = 10;
 	magicbox.config.ORMConfig database = 11;
+	Probe probe = 12;
 }
 
 message Server {
@@ -34,4 +35,26 @@ message Server {
 	map<string, string> metadata = 2;
 	ServerConfig http = 3;
 	ServerConfig grpc = 4;
+}
+
+message Probe {
+	message Target {
+		string type = 1;
+		string host = 2;
+		string port = 3;
+		string url = 4;
+		string name = 5;
+		int32 timeoutSeconds = 6;
+	}
+
+	message Initiator {
+		string hostname = 1;
+		string ip = 2;
+	}
+
+	string enabled = 1;
+	google.protobuf.Duration timeout = 2;
+	int32 concurrency = 3;
+	Initiator initiator = 4;
+	repeated Target targets = 5;
 }

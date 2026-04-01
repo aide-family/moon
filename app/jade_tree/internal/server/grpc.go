@@ -39,9 +39,10 @@ func newGRPCServer(grpcConf conf.ServerConfig, jwtConf conf.JWTConfig, helper *k
 	return grpc.NewServer(opts...)
 }
 
-func RegisterGRPCService(grpcSrv *grpc.Server, healthService *service.HealthService, sshCommand *service.SSHCommandService, machineInfo *service.MachineInfoService) Servers {
+func RegisterGRPCService(grpcSrv *grpc.Server, healthService *service.HealthService, sshCommand *service.SSHCommandService, machineInfo *service.MachineInfoService, probeTask *service.ProbeTaskService) Servers {
 	healthv1.RegisterHealthServer(grpcSrv, healthService)
 	apiv1.RegisterSSHCommandServer(grpcSrv, sshCommand)
 	apiv1.RegisterMachineInfoServer(grpcSrv, machineInfo)
+	apiv1.RegisterProbeTaskServer(grpcSrv, probeTask)
 	return Servers{newServer("grpc", grpcSrv)}
 }

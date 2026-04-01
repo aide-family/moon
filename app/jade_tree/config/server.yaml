@@ -44,3 +44,21 @@ database:
   options:
     '@type': '${MOON_JADE_TREE_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
     dsn: '${MOON_JADE_TREE_DATABASE_SQLITE_OPTIONS_DSN:file:./jade_tree.db?cache=shared}'
+
+probe:
+  enabled: ${MOON_JADE_TREE_PROBE_ENABLED:false}
+  timeout: '${MOON_JADE_TREE_PROBE_TIMEOUT:5s}'
+  concurrency: ${MOON_JADE_TREE_PROBE_CONCURRENCY:32}
+  initiator:
+    hostname: ${MOON_JADE_TREE_PROBE_INITIATOR_HOSTNAME:}
+    ip: ${MOON_JADE_TREE_PROBE_INITIATOR_IP:}
+  targets:
+    - type: tcp
+      host: 127.0.0.1
+      port: '8004'
+      # name: jade_tree_tcp
+      timeoutSeconds: 5
+    - type: http
+      url: http://127.0.0.1:8004/health
+      # name: jade_tree_http
+      timeoutSeconds: 5

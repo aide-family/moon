@@ -9,6 +9,7 @@ Jade Tree 是 Moon 的 Agent 运行时服务。
 - 面向生产采用 RPM + `systemctl` 的运维方式。
 - 管理预置 SSH 命令模板：新增与变更需走审核；审核通过后写入正式命令表；可按模板在远端执行。
 - 提供部署机器基础信息采集能力（CPU、内存、磁盘与挂载点、网络、主机名、系统基础信息）。
+- 以 Prometheus metrics 方式暴露探测能力（`probe_tcp_*`、`probe_http_*`、`probe_port_*`、`probe_tls_cert_*`）。
 
 ## 架构
 
@@ -42,6 +43,13 @@ API 定义位于 `proto/jade_tree/api/v1/`；生成代码在 `pkg/api/v1/`。修
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-audits/{uid}/reject` | 驳回审核并填写原因 |
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-commands/{command_uid}/execute` | 选择已生效命令，携带主机与凭证在远端执行 |
 | `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-info` | 获取部署机器详情（CPU、内存、磁盘+挂载点容量、网络、主机名、架构/系统/版本/内核） |
+| `jade_tree.api.v1.ProbeTask` | `POST /v1/probe-tasks` | 新增数据库探测任务 |
+| `jade_tree.api.v1.ProbeTask` | `PUT /v1/probe-tasks/{uid}` | 更新探测任务并动态生效 |
+| `jade_tree.api.v1.ProbeTask` | `DELETE /v1/probe-tasks/{uid}` | 删除探测任务并动态移除 |
+| `jade_tree.api.v1.ProbeTask` | `GET /v1/probe-tasks/{uid}` | 获取单个探测任务 |
+| `jade_tree.api.v1.ProbeTask` | `GET /v1/probe-tasks` | 分页查询探测任务 |
+
+探测指标通过 `config/server.yaml` 中 `bootstrap.probe` 配置，复用现有 `GET /metrics` 暴露。
 
 上述 SSH 命令相关接口均需要已登录 JWT 用户（中间件写入的 user UID）。`SSHCommand` 的 OpenAPI 输出在 `internal/server/swagger/openapi.yaml`。
 

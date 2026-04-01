@@ -1,3 +1,4 @@
+// Package server configures HTTP and gRPC servers.
 package server
 
 import (
@@ -10,8 +11,10 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/google/wire"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
+	bizcollector "github.com/aide-family/jade_tree/internal/biz/collector"
 	"github.com/aide-family/jade_tree/internal/conf"
 	"github.com/aide-family/jade_tree/internal/service"
 )
@@ -48,15 +51,19 @@ func BindSwagger(httpSrv *http.Server, bc *conf.Bootstrap) {
 	basic.BindHandlerWithAuth(httpSrv, binding)
 }
 
-func BindMetrics(httpSrv *http.Server, bc *conf.Bootstrap) {
-	binding := basic.HandlerBinding{Name: "Metrics", Enabled: strings.EqualFold(bc.GetEnableMetrics(), "true"), BasicAuth: bc.GetMetricsBasicAuth(), Handler: promhttp.Handler(), Path: "/metrics"}
+func BindMetrics(httpSrv *http.Server, bc *conf.Bootstrap, probeCollector *bizcollector.ProbeCollector) {
+	reg := prometheus.NewRegistry()
+	if probeCollector != nil && probeCollector.Enabled(bc) {
+		reg.MustRegister(probeCollector)
+	}
+	binding := basic.HandlerBinding{Name: "Metrics", Enabled: strings.EqualFold(bc.GetEnableMetrics(), "true"), BasicAuth: bc.GetMetricsBasicAuth(), Handler: promhttp.HandlerFor(reg, promhttp.HandlerOpts{ErrorHandling: promhttp.ContinueOnError}), Path: "/metrics"}
 	basic.BindHandlerWithAuth(httpSrv, binding)
 }
 
-func RegisterService(c *conf.Bootstrap, httpSrv *http.Server, grpcSrv *grpc.Server, healthService *service.HealthService, sshCommand *service.SSHCommandService, machineInfo *service.MachineInfoService) Servers {
+func RegisterService(c *conf.Bootstrap, httpSrv *http.Server, grpcSrv *grpc.Server, healthService *service.HealthService, sshCommand *service.SSHCommandService, machineInfo *service.MachineInfoService, probeTask *service.ProbeTaskService) Servers {
 	var srvs Servers
-	srvs = append(srvs, RegisterHTTPService(httpSrv, healthService, sshCommand, machineInfo)...)
-	srvs = append(srvs, RegisterGRPCService(grpcSrv, healthService, sshCommand, machineInfo)...)
+	srvs = append(srvs, RegisterHTTPService(httpSrv, healthService, sshCommand, machineInfo, probeTask)...)
+	srvs = append(srvs, RegisterGRPCService(grpcSrv, healthService, sshCommand, machineInfo, probeTask)...)
 	_ = c
 	return srvs
 }
