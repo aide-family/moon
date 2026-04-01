@@ -21,7 +21,7 @@ import (
 // Injectors from wire.go:
 
 func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kratos.App, func(), error) {
-	dataData, cleanup, err := data.New(bc)
+	dataData, cleanup, err := data.New(bc, helper)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -29,7 +29,12 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	health := impl.NewHealthRepository(dataData)
 	bizHealth := biz.NewHealth(health)
 	healthService := service.NewHealthService(bizHealth)
-	servers := server.RegisterGRPCService(grpcServer, healthService)
+	sshCommand := impl.NewSSHCommandRepository(dataData)
+	commandAudit := impl.NewCommandAuditRepository(dataData)
+	sshOperator := impl.NewSSHRepository(dataData)
+	bizSSHCommand := biz.NewSSHCommand(sshCommand, commandAudit, sshOperator, helper)
+	sshCommandService := service.NewSSHCommandService(bizSSHCommand)
+	servers := server.RegisterGRPCService(grpcServer, healthService, sshCommandService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

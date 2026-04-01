@@ -30,3 +30,11 @@ metricsBasicAuth:
 
 jwt:
   secret: change-me
+
+database:
+  dialector: SQLITE
+  debug: 'true'
+  useSystemLogger: 'false'
+  options:
+    '@type': type.googleapis.com/magicbox.config.SQLiteOptions
+    dsn: 'file:./jade_tree.db?cache=shared'

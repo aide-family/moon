@@ -16,6 +16,7 @@ import (
 	"github.com/aide-family/jade_tree/cmd/run/all"
 	"github.com/aide-family/jade_tree/cmd/run/grpc"
 	"github.com/aide-family/jade_tree/cmd/run/http"
+	"github.com/aide-family/jade_tree/cmd/schema"
 )
 
 var (
@@ -58,6 +59,6 @@ func init() {
 func main() {
 	runCmd := run.NewCmd(defaultServerConfig)
 	runCmd.AddCommand(grpc.NewCmd(), http.NewCmd(), all.NewCmd())
-	children := []*cobra.Command{runCmd}
+	children := []*cobra.Command{runCmd, schema.NewCmd()}
 	cmd.Execute(cmd.NewCmd(), children...)
 }

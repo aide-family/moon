@@ -1,0 +1,208 @@
+syntax = "proto3";
+
+package jade_tree.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "magicbox/enum/enum.proto";
+
+option go_package = "github.com/aide-family/jade_tree/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "jade_tree.api.v1";
+
+// SSHCommand manages predefined SSH command templates with an approval workflow.
+service SSHCommand {
+  // SubmitCreateSSHCommand creates a pending audit record for a new command (not applied until approved).
+  rpc SubmitCreateSSHCommand (SubmitCreateSSHCommandRequest) returns (SubmitSSHCommandAuditReply) {
+    option (google.api.http) = {
+      post: "/v1/ssh-commands/submissions"
+      body: "*"
+    };
+  }
+  // SubmitUpdateSSHCommand creates a pending audit record to change an existing command.
+  rpc SubmitUpdateSSHCommand (SubmitUpdateSSHCommandRequest) returns (SubmitSSHCommandAuditReply) {
+    option (google.api.http) = {
+      post: "/v1/ssh-commands/{commandUid}/submissions"
+      body: "*"
+    };
+  }
+  rpc ListSSHCommands (ListSSHCommandsRequest) returns (ListSSHCommandsReply) {
+    option (google.api.http) = {
+      get: "/v1/ssh-commands"
+    };
+  }
+  rpc GetSSHCommand (GetSSHCommandRequest) returns (SSHCommandItem) {
+    option (google.api.http) = {
+      get: "/v1/ssh-commands/{uid}"
+    };
+  }
+  rpc ListSSHCommandAudits (ListSSHCommandAuditsRequest) returns (ListSSHCommandAuditsReply) {
+    option (google.api.http) = {
+      get: "/v1/ssh-command-audits"
+    };
+  }
+  rpc GetSSHCommandAudit (GetSSHCommandAuditRequest) returns (SSHCommandAuditItem) {
+    option (google.api.http) = {
+      get: "/v1/ssh-command-audits/{uid}"
+    };
+  }
+  // ApproveSSHCommandAudit applies the audited payload to the command table and marks the audit approved.
+  rpc ApproveSSHCommandAudit (ApproveSSHCommandAuditRequest) returns (ApproveSSHCommandAuditReply) {
+    option (google.api.http) = {
+      post: "/v1/ssh-command-audits/{uid}/approve"
+      body: "*"
+    };
+  }
+  rpc RejectSSHCommandAudit (RejectSSHCommandAuditRequest) returns (RejectSSHCommandAuditReply) {
+    option (google.api.http) = {
+      post: "/v1/ssh-command-audits/{uid}/reject"
+      body: "*"
+    };
+  }
+  // ExecuteSSHCommand runs a stored command template on a remote host over SSH.
+  rpc ExecuteSSHCommand (ExecuteSSHCommandRequest) returns (ExecuteSSHCommandReply) {
+    option (google.api.http) = {
+      post: "/v1/ssh-commands/{commandUid}/execute"
+      body: "*"
+    };
+  }
+}
+
+message SSHCommandItem {
+  int64 uid = 1;
+  string name = 2;
+  string description = 3;
+  string content = 4;
+  string workDir = 5;
+  map<string, string> env = 6;
+  bool disabled = 7;
+  string createdAt = 8;
+  string updatedAt = 9;
+}
+
+message SSHCommandAuditItem {
+  int64 uid = 1;
+  int64 targetCommandUid = 2;
+  magicbox.enum.SSHCommandAuditKind kind = 3;
+  magicbox.enum.SSHCommandAuditStatus status = 4;
+  string name = 5;
+  string description = 6;
+  string content = 7;
+  string workDir = 8;
+  map<string, string> env = 9;
+  string rejectReason = 10;
+  string createdAt = 11;
+  string updatedAt = 12;
+  string reviewedAt = 13;
+  int64 reviewerUid = 14;
+}
+
+message SubmitCreateSSHCommandRequest {
+  string name = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    expression: "this.size() > 0",
+    message: "name is required",
+  }];
+  string description = 2;
+  string content = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    expression: "this.size() > 0",
+    message: "content is required",
+  }];
+  string workDir = 4;
+  map<string, string> env = 5;
+}
+
+message SubmitUpdateSSHCommandRequest {
+  int64 commandUid = 1 [(buf.validate.field).required = true];
+  string name = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    expression: "this.size() > 0",
+    message: "name is required",
+  }];
+  string description = 3;
+  string content = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    expression: "this.size() > 0",
+    message: "content is required",
+  }];
+  string workDir = 5;
+  map<string, string> env = 6;
+}
+
+message SubmitSSHCommandAuditReply {
+  SSHCommandAuditItem audit = 1;
+}
+
+message ListSSHCommandsRequest {
+  int32 page = 1;
+  int32 pageSize = 2;
+  string keyword = 3;
+}
+
+message ListSSHCommandsReply {
+  repeated SSHCommandItem items = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 pageSize = 4;
+}
+
+message GetSSHCommandRequest {
+  int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message ListSSHCommandAuditsRequest {
+  int32 page = 1;
+  int32 pageSize = 2;
+  magicbox.enum.SSHCommandAuditStatus statusFilter = 3;
+}
+
+message ListSSHCommandAuditsReply {
+  repeated SSHCommandAuditItem items = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 pageSize = 4;
+}
+
+message GetSSHCommandAuditRequest {
+  int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message ApproveSSHCommandAuditRequest {
+  int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message ApproveSSHCommandAuditReply {
+  SSHCommandAuditItem audit = 1;
+  SSHCommandItem command = 2;
+}
+
+message RejectSSHCommandAuditRequest {
+  int64 uid = 1 [(buf.validate.field).required = true];
+  string reason = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    expression: "this.size() > 0",
+    message: "reason is required",
+  }];
+}
+
+message RejectSSHCommandAuditReply {
+  SSHCommandAuditItem audit = 1;
+}
+
+message ExecuteSSHCommandRequest {
+  int64 commandUid = 1 [(buf.validate.field).required = true];
+  string host = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    expression: "this.size() > 0",
+    message: "host is required",
+  }];
+  int32 port = 3;
+  string username = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    expression: "this.size() > 0",
+    message: "username is required",
+  }];
+  string password = 5;
+  string privateKey = 6;
+  int32 timeoutSeconds = 7;
+}
+
+message ExecuteSSHCommandReply {
+  string stdout = 1;
+  string stderr = 2;
+  int32 exit_code = 3;
+}

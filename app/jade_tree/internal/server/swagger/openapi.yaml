@@ -1,5 +1,400 @@
-openapi: 3.0.0
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
 info:
-  title: Jade Tree API
-  version: 0.1.0
-paths: {}
+    title: SSHCommand API
+    description: SSHCommand manages predefined SSH command templates with an approval workflow.
+    version: 0.0.1
+paths:
+    /v1/ssh-command-audits:
+        get:
+            tags:
+                - SSHCommand
+            operationId: SSHCommand_ListSSHCommandAudits
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: statusFilter
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.ListSSHCommandAuditsReply'
+    /v1/ssh-command-audits/{uid}:
+        get:
+            tags:
+                - SSHCommand
+            operationId: SSHCommand_GetSSHCommandAudit
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.SSHCommandAuditItem'
+    /v1/ssh-command-audits/{uid}/approve:
+        post:
+            tags:
+                - SSHCommand
+            description: ApproveSSHCommandAudit applies the audited payload to the command table and marks the audit approved.
+            operationId: SSHCommand_ApproveSSHCommandAudit
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/jade_tree.api.v1.ApproveSSHCommandAuditRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.ApproveSSHCommandAuditReply'
+    /v1/ssh-command-audits/{uid}/reject:
+        post:
+            tags:
+                - SSHCommand
+            operationId: SSHCommand_RejectSSHCommandAudit
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/jade_tree.api.v1.RejectSSHCommandAuditRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.RejectSSHCommandAuditReply'
+    /v1/ssh-commands:
+        get:
+            tags:
+                - SSHCommand
+            operationId: SSHCommand_ListSSHCommands
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.ListSSHCommandsReply'
+    /v1/ssh-commands/submissions:
+        post:
+            tags:
+                - SSHCommand
+            description: SubmitCreateSSHCommand creates a pending audit record for a new command (not applied until approved).
+            operationId: SSHCommand_SubmitCreateSSHCommand
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/jade_tree.api.v1.SubmitCreateSSHCommandRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.SubmitSSHCommandAuditReply'
+    /v1/ssh-commands/{commandUid}/execute:
+        post:
+            tags:
+                - SSHCommand
+            description: ExecuteSSHCommand runs a stored command template on a remote host over SSH.
+            operationId: SSHCommand_ExecuteSSHCommand
+            parameters:
+                - name: commandUid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/jade_tree.api.v1.ExecuteSSHCommandRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.ExecuteSSHCommandReply'
+    /v1/ssh-commands/{commandUid}/submissions:
+        post:
+            tags:
+                - SSHCommand
+            description: SubmitUpdateSSHCommand creates a pending audit record to change an existing command.
+            operationId: SSHCommand_SubmitUpdateSSHCommand
+            parameters:
+                - name: commandUid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/jade_tree.api.v1.SubmitUpdateSSHCommandRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.SubmitSSHCommandAuditReply'
+    /v1/ssh-commands/{uid}:
+        get:
+            tags:
+                - SSHCommand
+            operationId: SSHCommand_GetSSHCommand
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.SSHCommandItem'
+components:
+    schemas:
+        jade_tree.api.v1.ApproveSSHCommandAuditReply:
+            type: object
+            properties:
+                audit:
+                    $ref: '#/components/schemas/jade_tree.api.v1.SSHCommandAuditItem'
+                command:
+                    $ref: '#/components/schemas/jade_tree.api.v1.SSHCommandItem'
+        jade_tree.api.v1.ApproveSSHCommandAuditRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+        jade_tree.api.v1.ExecuteSSHCommandReply:
+            type: object
+            properties:
+                stdout:
+                    type: string
+                stderr:
+                    type: string
+                exitCode:
+                    type: integer
+                    format: int32
+        jade_tree.api.v1.ExecuteSSHCommandRequest:
+            type: object
+            properties:
+                commandUid:
+                    type: string
+                host:
+                    type: string
+                port:
+                    type: integer
+                    format: int32
+                username:
+                    type: string
+                password:
+                    type: string
+                privateKey:
+                    type: string
+                timeoutSeconds:
+                    type: integer
+                    format: int32
+        jade_tree.api.v1.ListSSHCommandAuditsReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/jade_tree.api.v1.SSHCommandAuditItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        jade_tree.api.v1.ListSSHCommandsReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/jade_tree.api.v1.SSHCommandItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        jade_tree.api.v1.RejectSSHCommandAuditReply:
+            type: object
+            properties:
+                audit:
+                    $ref: '#/components/schemas/jade_tree.api.v1.SSHCommandAuditItem'
+        jade_tree.api.v1.RejectSSHCommandAuditRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                reason:
+                    type: string
+        jade_tree.api.v1.SSHCommandAuditItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                targetCommandUid:
+                    type: string
+                kind:
+                    type: integer
+                    format: enum
+                status:
+                    type: integer
+                    format: enum
+                name:
+                    type: string
+                description:
+                    type: string
+                content:
+                    type: string
+                workDir:
+                    type: string
+                env:
+                    type: object
+                    additionalProperties:
+                        type: string
+                rejectReason:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                reviewedAt:
+                    type: string
+                reviewerUid:
+                    type: string
+        jade_tree.api.v1.SSHCommandItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                content:
+                    type: string
+                workDir:
+                    type: string
+                env:
+                    type: object
+                    additionalProperties:
+                        type: string
+                disabled:
+                    type: boolean
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        jade_tree.api.v1.SubmitCreateSSHCommandRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                description:
+                    type: string
+                content:
+                    type: string
+                workDir:
+                    type: string
+                env:
+                    type: object
+                    additionalProperties:
+                        type: string
+        jade_tree.api.v1.SubmitSSHCommandAuditReply:
+            type: object
+            properties:
+                audit:
+                    $ref: '#/components/schemas/jade_tree.api.v1.SSHCommandAuditItem'
+        jade_tree.api.v1.SubmitUpdateSSHCommandRequest:
+            type: object
+            properties:
+                commandUid:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                content:
+                    type: string
+                workDir:
+                    type: string
+                env:
+                    type: object
+                    additionalProperties:
+                        type: string
+tags:
+    - name: SSHCommand

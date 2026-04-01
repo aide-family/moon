@@ -143,7 +143,7 @@ Apps generate Go code from `proto/magicbox/` (via their own protoc invocations).
 | Path | Description |
 |------|-------------|
 | `proto/magicbox/api/v1/health.proto` | Health check RPC/messages |
-| `proto/magicbox/enum/enum.proto` | GlobalStatus, UserStatus, MemberStatus, MemberRole, HTTPMethod, WebhookAPP, MessageType, MessageStatus, DatasourceType, DatasourceDriver, etc. |
+| `proto/magicbox/enum/enum.proto` | GlobalStatus, UserStatus, MemberStatus, MemberRole, HTTPMethod, WebhookAPP, MessageType, MessageStatus, DatasourceType, DatasourceDriver, SSHCommandAuditKind, SSHCommandAuditStatus, etc. |
 | `proto/magicbox/enum/strategy.proto` | SampleMode, ConditionMetric |
 | `proto/magicbox/oauth/oauth2.proto` | OAuth2 login request/reply |
 | `proto/magicbox/config/config.proto` | Config messages |

@@ -13,6 +13,8 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 
+	apiv1 "github.com/aide-family/jade_tree/pkg/api/v1"
+
 	"github.com/aide-family/jade_tree/internal/conf"
 	"github.com/aide-family/jade_tree/internal/service"
 )
@@ -37,7 +39,8 @@ func newGRPCServer(grpcConf conf.ServerConfig, jwtConf conf.JWTConfig, helper *k
 	return grpc.NewServer(opts...)
 }
 
-func RegisterGRPCService(grpcSrv *grpc.Server, healthService *service.HealthService) Servers {
+func RegisterGRPCService(grpcSrv *grpc.Server, healthService *service.HealthService, sshCommand *service.SSHCommandService) Servers {
 	healthv1.RegisterHealthServer(grpcSrv, healthService)
+	apiv1.RegisterSSHCommandServer(grpcSrv, sshCommand)
 	return Servers{newServer("grpc", grpcSrv)}
 }

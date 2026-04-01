@@ -143,7 +143,7 @@ token, err := jwt.NewToken(claims, secret, duration)
 | 路径 | 说明 |
 |------|------|
 | `proto/magicbox/api/v1/health.proto` | 健康检查 RPC/消息 |
-| `proto/magicbox/enum/enum.proto` | GlobalStatus、UserStatus、MemberStatus、MemberRole、HTTPMethod、WebhookAPP、MessageType、MessageStatus、DatasourceType、DatasourceDriver 等 |
+| `proto/magicbox/enum/enum.proto` | GlobalStatus、UserStatus、MemberStatus、MemberRole、HTTPMethod、WebhookAPP、MessageType、MessageStatus、DatasourceType、DatasourceDriver、SSHCommandAuditKind、SSHCommandAuditStatus 等 |
 | `proto/magicbox/enum/strategy.proto` | SampleMode、ConditionMetric |
 | `proto/magicbox/oauth/oauth2.proto` | OAuth2 登录请求/响应 |
 | `proto/magicbox/config/config.proto` | 配置消息 |

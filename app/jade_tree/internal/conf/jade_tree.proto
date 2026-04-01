@@ -19,6 +19,7 @@ message Bootstrap {
 	string enableMetrics = 8;
 	string enableClientConfig = 9;
 	magicbox.config.ReportConfig report = 10;
+	magicbox.config.ORMConfig database = 11;
 }
 
 message Server {

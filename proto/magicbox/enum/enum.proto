@@ -96,3 +96,18 @@ enum MemberRole {
 	ADMIN = 2;
 	VIEW = 3;
 }
+
+// SSHCommandAuditKind classifies a pending change to an SSH command template (Jade Tree).
+enum SSHCommandAuditKind {
+	SSHCommandAuditKind_UNKNOWN = 0;
+	SSHCommandAuditKind_CREATE = 1;
+	SSHCommandAuditKind_UPDATE = 2;
+}
+
+// SSHCommandAuditStatus is the lifecycle state of an SSH command audit record (Jade Tree).
+enum SSHCommandAuditStatus {
+	SSHCommandAuditStatus_UNKNOWN = 0;
+	SSHCommandAuditStatus_PENDING = 1;
+	SSHCommandAuditStatus_APPROVED = 2;
+	SSHCommandAuditStatus_REJECTED = 3;
+}

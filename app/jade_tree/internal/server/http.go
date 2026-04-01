@@ -13,6 +13,8 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/http"
 
+	apiv1 "github.com/aide-family/jade_tree/pkg/api/v1"
+
 	"github.com/aide-family/jade_tree/internal/conf"
 	"github.com/aide-family/jade_tree/internal/service"
 )
@@ -37,8 +39,9 @@ func newHTTPServer(httpConf conf.ServerConfig, jwtConf conf.JWTConfig, helper *k
 	return http.NewServer(opts...)
 }
 
-func RegisterHTTPService(httpSrv *http.Server, healthService *service.HealthService) Servers {
+func RegisterHTTPService(httpSrv *http.Server, healthService *service.HealthService, sshCommand *service.SSHCommandService) Servers {
 	healthv1.RegisterHealthHTTPServer(httpSrv, healthService)
+	apiv1.RegisterSSHCommandHTTPServer(httpSrv, sshCommand)
 	return Servers{newServer("http", httpSrv)}
 }
 

@@ -7,6 +7,7 @@ Jade Tree is the Moon agent runtime service.
 - Deploy as an agent on target servers.
 - Provide a stable collection and communication endpoint.
 - Support RPM + `systemctl` based production operations.
+- Manage predefined SSH command templates with an approval workflow, then execute them against remote hosts.
 
 ## Architecture
 
@@ -18,11 +19,29 @@ Jade Tree follows the same layered structure used by existing Moon services:
 - `internal/biz` -> business layer
 - `internal/data` -> data/repository layer
 
+API definitions live under `proto/jade_tree/api/v1/`; generated Go code is in `pkg/api/v1/`. Run `make api` (included in `make all`) after changing protos. Audit **kind** and **status** use `magicbox.enum.SSHCommandAuditKind` / `SSHCommandAuditStatus` from `proto/magicbox/enum/enum.proto` (regenerate magicbox with `make proto` in `magicbox/` when those enums change).
+
+## Configuration
+
+- **Database** (`bootstrap.database` in `config/server.yaml`) is **required**. SQLite is the default for local development; use MySQL or PostgreSQL in production by switching `dialector` and `options` (same shape as other Moon apps).
+- Tables `ssh_commands` and `ssh_command_audits` are created via GORM `AutoMigrate` on startup.
+
 ## API Overview
 
 | Service | Method / HTTP | Description |
 |---------|---------------|-------------|
 | `magicbox.api.v1.Health` | `GET /health` | Health check endpoint for liveness/readiness |
+| `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-commands/submissions` | Submit a new command definition for review (creates audit row) |
+| `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-commands/{command_uid}/submissions` | Submit changes to an existing command for review |
+| `jade_tree.api.v1.SSHCommand` | `GET /v1/ssh-commands` | List approved commands (paginated) |
+| `jade_tree.api.v1.SSHCommand` | `GET /v1/ssh-commands/{uid}` | Get one approved command |
+| `jade_tree.api.v1.SSHCommand` | `GET /v1/ssh-command-audits` | List audit records (optional `statusFilter` query) |
+| `jade_tree.api.v1.SSHCommand` | `GET /v1/ssh-command-audits/{uid}` | Get one audit record |
+| `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-audits/{uid}/approve` | Approve audit; applies payload to `ssh_commands` and sets audit status |
+| `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-audits/{uid}/reject` | Reject pending audit with a reason |
+| `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-commands/{command_uid}/execute` | Run stored command on a remote host (host, credentials, optional timeout in body) |
+
+All SSH command APIs require a logged-in JWT user (`contextx` user UID). OpenAPI for `SSHCommand` is generated to `internal/server/swagger/openapi.yaml`.
 
 ## Deployment
 
@@ -36,4 +55,10 @@ Jade Tree is designed for RPM + systemd deployment.
 ```bash
 make all
 make dev
+```
+
+To regenerate GORM query code after changing models in `internal/data/impl/do/`:
+
+```bash
+make gen
 ```

@@ -222,3 +222,68 @@ description: Implements backend modules from proto definitions for goddess, mark
 - [ ] **无重复逻辑**：相同或高度相似的校验/逻辑已抽取为私有方法或共享函数，由多处调用，未复制粘贴
 
 更多分层与文件命名细节见 [reference.md](reference.md)。
+
+## 二次修改高频约束（补充）
+
+以下规则来自实际返工点，默认同样强制执行。
+
+### A. 参数设计：除 `ctx` 外超过 2 个参数必须收敛为结构体
+
+- **适用范围**：biz/repository/impl/convert 的函数与方法。
+- **规则**：函数签名中除 `context.Context` 外，其余参数若超过 2 个，必须封装到一个 `*bo.XxxInput` / `*bo.XxxRepoBo` 结构体中，不允许长参数列表。
+- **建议命名**：
+  - 业务输入：`XxxInput`、`SubmitXxxInput`、`ExecuteXxxBo`
+  - 仓储输入：`XxxRepoBo`、`UpdateXxxRepoBo`、`CountXxxRepoBo`
+- **收益**：避免签名膨胀，便于扩展字段，减少跨层改动成本。
+
+### B. 状态/类型字段必须使用 `magicbox/enum`
+
+- **规则**：凡是状态、类型、动作类别（如审核状态、审核类型）等有限集合值，必须先定义在 `proto/magicbox/enum/enum.proto`，并在业务 proto 中 `import "magicbox/enum/enum.proto"` 后引用。
+- **禁止**：
+  - 在业务 proto 内重复定义同义 enum。
+  - 在 Go 代码中用 `int32` 常量模拟枚举语义。
+- **同步要求**：
+  1. 更新 `proto/magicbox/enum/enum.proto`
+  2. 生成 `magicbox/enum/*.pb.go`（`cd magicbox && make proto`）
+  3. 再生成目标 app 的 API 代码（如 `cd app/<app> && make api`）
+  4. 同步 `magicbox/README.md` 与 `magicbox/README-zh_CN.md` 的 enum 说明。
+
+### C. data/impl 更新写法：优先 `UpdateColumnSimple`
+
+- **规则**：涉及多列更新时，优先使用 gorm gen 的 `UpdateColumnSimple(columns...)` + `[]field.AssignExpr`。
+- **禁止**：
+  - `Updates(map[string]interface{}{...})`（字符串列名）
+  - 任何手写列名字符串更新方式。
+- **推荐写法**：
+  - `columns := []field.AssignExpr{ q.FieldA.Value(v), q.FieldB.Value(v2) }`
+  - `..., err := q.WithContext(ctx).Where(...).UpdateColumnSimple(columns...)`
+
+### D. 转换职责归位
+
+- **service 层**：不承载 BO↔API 的细节转换实现。
+- **规则**：
+  - `BO -> APIV1` 转换函数放在 `internal/biz/bo/`（如 `ToAPIV1XxxItem`）。
+  - `DO <-> BO` 转换函数放在 `internal/data/impl/convert/`。
+  - impl 内临时出现的字段映射函数（如从审核 DO 提取业务字段）应下沉到 `convert`，避免散落在 impl。
+
+### E. proto 字段命名：message 字段统一小驼峰
+
+- **规则**：`message` 字段名必须是 `camelCase`。
+- **禁止**：`snake_case` 字段名（如 `work_dir`, `page_size`, `status_filter`）。
+- **注意**：
+  - 若 HTTP path 变量引用 request 字段，路径变量名需与字段一致（如 `{commandUid}` 对应 `commandUid`）。
+  - 修改字段命名后必须重新生成代码并编译验证。
+
+### F. 时间字符串格式化统一使用 `timex`
+
+- **规则**：BO 转 API 的时间字符串输出，优先使用 `magicbox/timex`（如 `timex.FormatTime`），不要在业务代码里散落 `time.RFC3339` 手动格式化。
+- **示例**：
+  - `CreatedAt: timex.FormatTime(&x.CreatedAt)`
+  - `ReviewedAt: timex.FormatTime(x.ReviewedAt)`
+
+### G. 减少 convert 冗余包装函数
+
+- **规则**：相同语义的 map/safety-map 转换只保留单一入口，避免 `A -> B -> C` 的无意义包裹。
+- **建议**：
+  - 明确命名一对函数（如 `ToPlainEnv` / `ToSafetyEnv`）
+  - 全局替换调用点，删除重复别名函数，保持 API 面最小化。
