@@ -53,10 +53,10 @@ func BindMetrics(httpSrv *http.Server, bc *conf.Bootstrap) {
 	basic.BindHandlerWithAuth(httpSrv, binding)
 }
 
-func RegisterService(c *conf.Bootstrap, httpSrv *http.Server, grpcSrv *grpc.Server, healthService *service.HealthService, sshCommand *service.SSHCommandService) Servers {
+func RegisterService(c *conf.Bootstrap, httpSrv *http.Server, grpcSrv *grpc.Server, healthService *service.HealthService, sshCommand *service.SSHCommandService, machineInfo *service.MachineInfoService) Servers {
 	var srvs Servers
-	srvs = append(srvs, RegisterHTTPService(httpSrv, healthService, sshCommand)...)
-	srvs = append(srvs, RegisterGRPCService(grpcSrv, healthService, sshCommand)...)
+	srvs = append(srvs, RegisterHTTPService(httpSrv, healthService, sshCommand, machineInfo)...)
+	srvs = append(srvs, RegisterGRPCService(grpcSrv, healthService, sshCommand, machineInfo)...)
 	_ = c
 	return srvs
 }

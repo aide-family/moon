@@ -3,10 +3,21 @@
 
 openapi: 3.0.3
 info:
-    title: SSHCommand API
-    description: SSHCommand manages predefined SSH command templates with an approval workflow.
+    title: ""
     version: 0.0.1
 paths:
+    /v1/machine-info:
+        get:
+            tags:
+                - MachineInfo
+            operationId: MachineInfo_GetMachineInfo
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.GetMachineInfoReply'
     /v1/ssh-command-audits:
         get:
             tags:
@@ -230,6 +241,94 @@ components:
             properties:
                 uid:
                     type: string
+        jade_tree.api.v1.CPUCoreItem:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                hardwareThreads:
+                    type: integer
+                    format: int32
+                logicalProcessors:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+        jade_tree.api.v1.CPUInfo:
+            type: object
+            properties:
+                totalCores:
+                    type: integer
+                    format: int32
+                totalHardwareThreads:
+                    type: integer
+                    format: int32
+                processors:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/jade_tree.api.v1.CPUProcessorItem'
+        jade_tree.api.v1.CPUProcessorItem:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                vendor:
+                    type: string
+                model:
+                    type: string
+                totalCores:
+                    type: integer
+                    format: int32
+                totalHardwareThreads:
+                    type: integer
+                    format: int32
+                capabilities:
+                    type: array
+                    items:
+                        type: string
+                cores:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/jade_tree.api.v1.CPUCoreItem'
+        jade_tree.api.v1.DiskInfoItem:
+            type: object
+            properties:
+                name:
+                    type: string
+                type:
+                    type: string
+                sizeBytes:
+                    type: string
+                vendor:
+                    type: string
+                model:
+                    type: string
+                serialNumber:
+                    type: string
+                wwn:
+                    type: string
+                mounts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/jade_tree.api.v1.DiskMountItem'
+        jade_tree.api.v1.DiskMountItem:
+            type: object
+            properties:
+                mountPoint:
+                    type: string
+                fsType:
+                    type: string
+                totalBytes:
+                    type: string
+                usedBytes:
+                    type: string
+                freeBytes:
+                    type: string
+                freeRate:
+                    type: number
+                    format: double
         jade_tree.api.v1.ExecuteSSHCommandReply:
             type: object
             properties:
@@ -259,6 +358,28 @@ components:
                 timeoutSeconds:
                     type: integer
                     format: int32
+        jade_tree.api.v1.GetMachineInfoReply:
+            type: object
+            properties:
+                cpu:
+                    $ref: '#/components/schemas/jade_tree.api.v1.CPUInfo'
+                memory:
+                    $ref: '#/components/schemas/jade_tree.api.v1.MemoryInfo'
+                disks:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/jade_tree.api.v1.DiskInfoItem'
+                network:
+                    $ref: '#/components/schemas/jade_tree.api.v1.NetworkInfo'
+                host:
+                    $ref: '#/components/schemas/jade_tree.api.v1.HostInfo'
+                system:
+                    $ref: '#/components/schemas/jade_tree.api.v1.SystemInfo'
+        jade_tree.api.v1.HostInfo:
+            type: object
+            properties:
+                hostName:
+                    type: string
         jade_tree.api.v1.ListSSHCommandAuditsReply:
             type: object
             properties:
@@ -289,6 +410,54 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        jade_tree.api.v1.MemoryInfo:
+            type: object
+            properties:
+                totalPhysicalBytes:
+                    type: string
+                totalUsableBytes:
+                    type: string
+                supportedPageSizes:
+                    type: array
+                    items:
+                        type: string
+                usedBytes:
+                    type: string
+                freeBytes:
+                    type: string
+                sharedBytes:
+                    type: string
+                buffCacheBytes:
+                    type: string
+                availableBytes:
+                    type: string
+                swapTotalBytes:
+                    type: string
+                swapUsedBytes:
+                    type: string
+                swapFreeBytes:
+                    type: string
+        jade_tree.api.v1.NetworkInfo:
+            type: object
+            properties:
+                localIp:
+                    type: string
+                outboundIp:
+                    type: string
+                cidr:
+                    type: string
+                dnsServers:
+                    type: array
+                    items:
+                        type: string
+                totalRxBytes:
+                    type: string
+                totalTxBytes:
+                    type: string
+                nics:
+                    type: array
+                    items:
+                        type: string
         jade_tree.api.v1.RejectSSHCommandAuditReply:
             type: object
             properties:
@@ -396,5 +565,19 @@ components:
                     type: object
                     additionalProperties:
                         type: string
+        jade_tree.api.v1.SystemInfo:
+            type: object
+            properties:
+                arch:
+                    type: string
+                os:
+                    type: string
+                version:
+                    type: string
+                kernel:
+                    type: string
 tags:
+    - name: MachineInfo
+      description: MachineInfo provides host hardware and system profile details.
     - name: SSHCommand
+      description: SSHCommand manages predefined SSH command templates with an approval workflow.

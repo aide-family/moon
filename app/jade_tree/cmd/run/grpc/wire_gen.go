@@ -34,7 +34,10 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	sshOperator := impl.NewSSHRepository(dataData)
 	bizSSHCommand := biz.NewSSHCommand(sshCommand, commandAudit, sshOperator, helper)
 	sshCommandService := service.NewSSHCommandService(bizSSHCommand)
-	servers := server.RegisterGRPCService(grpcServer, healthService, sshCommandService)
+	machineInfoProvider := impl.NewMachineInfoRepository(dataData)
+	machineInfo := biz.NewMachineInfo(machineInfoProvider, helper)
+	machineInfoService := service.NewMachineInfoService(machineInfo)
+	servers := server.RegisterGRPCService(grpcServer, healthService, sshCommandService, machineInfoService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

@@ -1,40 +1,46 @@
-environment: DEV
-useRandomID: 'true'
-enableSwagger: 'true'
-enableMetrics: 'true'
-enableClientConfig: 'false'
+environment: ${MOON_JADE_TREE_ENVIRONMENT:PROD}
+enableSwagger: ${MOON_JADE_TREE_ENABLE_SWAGGER:true}
+enableMetrics: ${MOON_JADE_TREE_ENABLE_METRICS:true}
+useRandomID: ${MOON_JADE_TREE_USE_RANDOM_NODE_ID:false}
+enableClientConfig: ${MOON_JADE_TREE_ENABLE_CLIENT_CONFIG:false}
 
 server:
-  name: jade_tree
+  name: ${MOON_JADE_TREE_SERVER_NAME:jade_tree}
   metadata:
-    owner: aide-family
-    role: agent-collector
+    tag: ${MOON_JADE_TREE_METADATA_TAG:jade_tree}
+    repository: ${MOON_JADE_TREE_METADATA_REPOSITORY:https://github.com/aide-family/jade_tree}
+    author: ${MOON_JADE_TREE_METADATA_AUTHOR:Aide Family}
+    email: ${MOON_JADE_TREE_METADATA_EMAIL:aidecloud@163.com}
   http:
-    network: tcp
-    address: 0.0.0.0:8004
-    timeout: 1s
-    protocol: PROTOCOL_HTTP
+    address: '${MOON_JADE_TREE_HTTP_ADDRESS:0.0.0.0:8004}'
+    network: '${MOON_JADE_TREE_HTTP_NETWORK:tcp}'
+    timeout: '${MOON_JADE_TREE_HTTP_TIMEOUT:10s}'
+    protocol: HTTP
   grpc:
-    network: tcp
-    address: 0.0.0.0:9004
-    timeout: 1s
-    protocol: PROTOCOL_GRPC
+    address: '${MOON_JADE_TREE_GRPC_ADDRESS:0.0.0.0:9004}'
+    network: '${MOON_JADE_TREE_GRPC_NETWORK:tcp}'
+    timeout: '${MOON_JADE_TREE_GRPC_TIMEOUT:10s}'
+    protocol: GRPC
 
 swaggerBasicAuth:
-  username: admin
-  password: admin
+  enabled: ${MOON_JADE_TREE_SWAGGER_BASIC_AUTH_ENABLED:false}
+  username: ${MOON_JADE_TREE_SWAGGER_BASIC_AUTH_USERNAME:moon.jade_tree}
+  password: ${MOON_JADE_TREE_SWAGGER_BASIC_AUTH_PASSWORD:jade_tree.swagger}
 
 metricsBasicAuth:
-  username: admin
-  password: admin
+  enabled: ${MOON_JADE_TREE_METRICS_BASIC_AUTH_ENABLED:false}
+  username: ${MOON_JADE_TREE_METRICS_BASIC_AUTH_USERNAME:moon.jade_tree}
+  password: ${MOON_JADE_TREE_METRICS_BASIC_AUTH_PASSWORD:jade_tree.metrics}
 
 jwt:
-  secret: change-me
+  secret: '${MOON_JADE_TREE_JWT_SECRET:xxx}'
+  expire: '${MOON_JADE_TREE_JWT_EXPIRE:60000s}'
+  issuer: '${MOON_JADE_TREE_JWT_ISSUER:jade_tree}'
 
 database:
-  dialector: SQLITE
-  debug: 'true'
-  useSystemLogger: 'false'
+  dialector: ${MOON_JADE_TREE_DATABASE_DIALECTOR:SQLITE}
+  debug: ${MOON_JADE_TREE_DATABASE_DEBUG:true}
+  useSystemLogger: ${MOON_JADE_TREE_DATABASE_USE_SYSTEM_LOGGER:false}
   options:
-    '@type': type.googleapis.com/magicbox.config.SQLiteOptions
-    dsn: 'file:./jade_tree.db?cache=shared'
+    '@type': '${MOON_JADE_TREE_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
+    dsn: '${MOON_JADE_TREE_DATABASE_SQLITE_OPTIONS_DSN:file:./jade_tree.db?cache=shared}'

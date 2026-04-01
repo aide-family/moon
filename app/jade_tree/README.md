@@ -8,6 +8,7 @@ Jade Tree is the Moon agent runtime service.
 - Provide a stable collection and communication endpoint.
 - Support RPM + `systemctl` based production operations.
 - Manage predefined SSH command templates with an approval workflow, then execute them against remote hosts.
+- Collect deployment machine profile details (CPU, memory, disk/mount usage, network, hostname, and system basics).
 
 ## Architecture
 
@@ -40,6 +41,7 @@ API definitions live under `proto/jade_tree/api/v1/`; generated Go code is in `p
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-audits/{uid}/approve` | Approve audit; applies payload to `ssh_commands` and sets audit status |
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-audits/{uid}/reject` | Reject pending audit with a reason |
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-commands/{command_uid}/execute` | Run stored command on a remote host (host, credentials, optional timeout in body) |
+| `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-info` | Get deployment machine details (CPU, memory, disk+mount usage, network, hostname, arch/os/version/kernel) |
 
 All SSH command APIs require a logged-in JWT user (`contextx` user UID). OpenAPI for `SSHCommand` is generated to `internal/server/swagger/openapi.yaml`.
 

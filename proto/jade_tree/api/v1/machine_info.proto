@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package jade_tree.api.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/jade_tree/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "jade_tree.api.v1";
+
+// MachineInfo provides host hardware and system profile details.
+service MachineInfo {
+  rpc GetMachineInfo (GetMachineInfoRequest) returns (GetMachineInfoReply) {
+    option (google.api.http) = {
+      get: "/v1/machine-info"
+    };
+  }
+}
+
+message GetMachineInfoRequest {}
+
+message CPUCoreItem {
+  int32 id = 1;
+  int32 hardwareThreads = 2;
+  repeated int32 logicalProcessors = 3;
+}
+
+message CPUProcessorItem {
+  int32 id = 1;
+  string vendor = 2;
+  string model = 3;
+  int32 totalCores = 4;
+  int32 totalHardwareThreads = 5;
+  repeated string capabilities = 6;
+  repeated CPUCoreItem cores = 7;
+}
+
+message CPUInfo {
+  int32 totalCores = 1;
+  int32 totalHardwareThreads = 2;
+  repeated CPUProcessorItem processors = 3;
+}
+
+message MemoryInfo {
+  uint64 totalPhysicalBytes = 1;
+  uint64 totalUsableBytes = 2;
+  repeated uint64 supportedPageSizes = 3;
+  uint64 usedBytes = 4;
+  uint64 freeBytes = 5;
+  uint64 sharedBytes = 6;
+  uint64 buffCacheBytes = 7;
+  uint64 availableBytes = 8;
+  uint64 swapTotalBytes = 9;
+  uint64 swapUsedBytes = 10;
+  uint64 swapFreeBytes = 11;
+}
+
+message DiskMountItem {
+  string mountPoint = 1;
+  string fsType = 2;
+  uint64 totalBytes = 3;
+  uint64 usedBytes = 4;
+  uint64 freeBytes = 5;
+  double freeRate = 6;
+}
+
+message DiskInfoItem {
+  string name = 1;
+  string type = 2;
+  uint64 sizeBytes = 3;
+  string vendor = 4;
+  string model = 5;
+  string serialNumber = 6;
+  string wwn = 7;
+  repeated DiskMountItem mounts = 8;
+}
+
+message NetworkInfo {
+  string localIp = 1;
+  string outboundIp = 2;
+  string cidr = 3;
+  repeated string dnsServers = 4;
+  uint64 totalRxBytes = 5;
+  uint64 totalTxBytes = 6;
+  repeated string nics = 7;
+}
+
+message HostInfo {
+  string hostName = 1;
+}
+
+message SystemInfo {
+  string arch = 1;
+  string os = 2;
+  string version = 3;
+  string kernel = 4;
+}
+
+message GetMachineInfoReply {
+  CPUInfo cpu = 1;
+  MemoryInfo memory = 2;
+  repeated DiskInfoItem disks = 3;
+  NetworkInfo network = 4;
+  HostInfo host = 5;
+  SystemInfo system = 6;
+}
