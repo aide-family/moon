@@ -17,12 +17,14 @@ import (
 
 var (
 	Q               = new(Query)
+	ProbeTask       *probeTask
 	SSHCommand      *sSHCommand
 	SSHCommandAudit *sSHCommandAudit
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
+	ProbeTask = &Q.ProbeTask
 	SSHCommand = &Q.SSHCommand
 	SSHCommandAudit = &Q.SSHCommandAudit
 }
@@ -30,6 +32,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:              db,
+		ProbeTask:       newProbeTask(db, opts...),
 		SSHCommand:      newSSHCommand(db, opts...),
 		SSHCommandAudit: newSSHCommandAudit(db, opts...),
 	}
@@ -38,6 +41,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 type Query struct {
 	db *gorm.DB
 
+	ProbeTask       probeTask
 	SSHCommand      sSHCommand
 	SSHCommandAudit sSHCommandAudit
 }
@@ -47,6 +51,7 @@ func (q *Query) Available() bool { return q.db != nil }
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:              db,
+		ProbeTask:       q.ProbeTask.clone(db),
 		SSHCommand:      q.SSHCommand.clone(db),
 		SSHCommandAudit: q.SSHCommandAudit.clone(db),
 	}
@@ -63,18 +68,21 @@ func (q *Query) WriteDB() *Query {
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:              db,
+		ProbeTask:       q.ProbeTask.replaceDB(db),
 		SSHCommand:      q.SSHCommand.replaceDB(db),
 		SSHCommandAudit: q.SSHCommandAudit.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
+	ProbeTask       IProbeTaskDo
 	SSHCommand      ISSHCommandDo
 	SSHCommandAudit ISSHCommandAuditDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
+		ProbeTask:       q.ProbeTask.WithContext(ctx),
 		SSHCommand:      q.SSHCommand.WithContext(ctx),
 		SSHCommandAudit: q.SSHCommandAudit.WithContext(ctx),
 	}

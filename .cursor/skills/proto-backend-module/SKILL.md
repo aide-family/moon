@@ -212,6 +212,7 @@ description: Implements backend modules from proto definitions for goddess, mark
 - [ ] 分页、错误、上下文、枚举、ID 均使用项目与 magicbox 既有类型
 - [ ] **Repository/impl 单一职责**：每个 repo 方法只做单表/单次查询；多表或组合判断在 biz 层通过多次调用 repo 完成，不在一个 repo 方法内混多表
 - [ ] **data/impl 使用 gen 模式**：条件与排序使用 query 的 field 表达式（如 `u.UserUID.Eq(...)`、`u.SortOrder.Desc()`），未使用手写字符串；批量插入使用 `CreateInBatches` 或一次 `Create(slice)`，未在循环内逐条 Create
+- [ ] **DB 操作严格走 gen**：data/impl 中 Create/Update/Delete/Get/List/Count 必须通过 `query.Xxx.WithContext(ctx)` 完成，未直接使用原生 GORM `Model/Where/First/Find/Create/Save/Delete` 链式调用
 - [ ] **无循环校验/循环查详情**：批量校验用 CountXxxByUIDs 等一次查询后比较数量；按 UID 列表拉详情用 GetXxxByUIDs 等一次查询后在 biz 用 map 按顺序组装，未在 for 内逐条 Get
 - [ ] **排序语义正确**：若「越大越靠前」，存库时第一项赋最大 SortOrder（可用 slices.Reverse），查询用 Order Desc
 - [ ] Import 顺序：标准库 → 空白 → 第三方 → 当前项目
@@ -251,7 +252,9 @@ description: Implements backend modules from proto definitions for goddess, mark
 ### C. data/impl 更新写法：优先 `UpdateColumnSimple`
 
 - **规则**：涉及多列更新时，优先使用 gorm gen 的 `UpdateColumnSimple(columns...)` + `[]field.AssignExpr`。
+- **严格要求（新增）**：data/impl 的所有 DB 读写（Create / Update / Delete / Get / List / Count / Order / Pagination）都必须通过 `internal/data/impl/query` 的 gen 对象完成（如 `query.Xxx.WithContext(ctx)`）。
 - **禁止**：
+  - 直接使用 `r.DB().WithContext(ctx).Model(...).Where(...).First/Find/Create/Save/Delete/Count` 这类原生 GORM 链式调用。
   - `Updates(map[string]interface{}{...})`（字符串列名）
   - 任何手写列名字符串更新方式。
 - **推荐写法**：
@@ -265,6 +268,7 @@ description: Implements backend modules from proto definitions for goddess, mark
   - `BO -> APIV1` 转换函数放在 `internal/biz/bo/`（如 `ToAPIV1XxxItem`）。
   - `DO <-> BO` 转换函数放在 `internal/data/impl/convert/`。
   - impl 内临时出现的字段映射函数（如从审核 DO 提取业务字段）应下沉到 `convert`，避免散落在 impl。
+  - 类似 `toXxxItemBo` 这类 DO->BO 映射辅助函数，不允许留在 `internal/data/impl/*.go`，必须统一放到 `internal/data/impl/convert/*.go`。
 
 ### E. proto 字段命名：message 字段统一小驼峰
 
