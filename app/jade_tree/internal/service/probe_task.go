@@ -76,3 +76,15 @@ func (s *ProbeTaskService) ListProbeTasks(ctx context.Context, req *apiv1.ListPr
 		PageSize: page.GetPageSize(),
 	}, nil
 }
+
+func (s *ProbeTaskService) UpdateProbeTaskStatus(ctx context.Context, req *apiv1.UpdateProbeTaskStatusRequest) (*apiv1.ProbeTaskItem, error) {
+	in, err := bo.NewUpdateProbeTaskStatusBo(req)
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.bizProbeTask.UpdateStatus(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return bo.ToAPIV1ProbeTaskItem(item), nil
+}

@@ -27,6 +27,10 @@ func (p *ProbeTask) Update(ctx context.Context, in *bo.UpdateProbeTaskBo) (*bo.P
 	return p.repo.Update(ctx, in)
 }
 
+func (p *ProbeTask) UpdateStatus(ctx context.Context, in *bo.UpdateProbeTaskStatusBo) (*bo.ProbeTaskItemBo, error) {
+	return p.repo.UpdateStatus(ctx, in)
+}
+
 func (p *ProbeTask) Delete(ctx context.Context, uid snowflake.ID) error {
 	return p.repo.Delete(ctx, uid)
 }

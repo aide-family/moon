@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProbeTask_CreateProbeTask_FullMethodName = "/jade_tree.api.v1.ProbeTask/CreateProbeTask"
-	ProbeTask_UpdateProbeTask_FullMethodName = "/jade_tree.api.v1.ProbeTask/UpdateProbeTask"
-	ProbeTask_DeleteProbeTask_FullMethodName = "/jade_tree.api.v1.ProbeTask/DeleteProbeTask"
-	ProbeTask_GetProbeTask_FullMethodName    = "/jade_tree.api.v1.ProbeTask/GetProbeTask"
-	ProbeTask_ListProbeTasks_FullMethodName  = "/jade_tree.api.v1.ProbeTask/ListProbeTasks"
+	ProbeTask_CreateProbeTask_FullMethodName       = "/jade_tree.api.v1.ProbeTask/CreateProbeTask"
+	ProbeTask_UpdateProbeTask_FullMethodName       = "/jade_tree.api.v1.ProbeTask/UpdateProbeTask"
+	ProbeTask_DeleteProbeTask_FullMethodName       = "/jade_tree.api.v1.ProbeTask/DeleteProbeTask"
+	ProbeTask_GetProbeTask_FullMethodName          = "/jade_tree.api.v1.ProbeTask/GetProbeTask"
+	ProbeTask_ListProbeTasks_FullMethodName        = "/jade_tree.api.v1.ProbeTask/ListProbeTasks"
+	ProbeTask_UpdateProbeTaskStatus_FullMethodName = "/jade_tree.api.v1.ProbeTask/UpdateProbeTaskStatus"
 )
 
 // ProbeTaskClient is the client API for ProbeTask service.
@@ -35,6 +36,7 @@ type ProbeTaskClient interface {
 	DeleteProbeTask(ctx context.Context, in *DeleteProbeTaskRequest, opts ...grpc.CallOption) (*DeleteProbeTaskReply, error)
 	GetProbeTask(ctx context.Context, in *GetProbeTaskRequest, opts ...grpc.CallOption) (*ProbeTaskItem, error)
 	ListProbeTasks(ctx context.Context, in *ListProbeTasksRequest, opts ...grpc.CallOption) (*ListProbeTasksReply, error)
+	UpdateProbeTaskStatus(ctx context.Context, in *UpdateProbeTaskStatusRequest, opts ...grpc.CallOption) (*ProbeTaskItem, error)
 }
 
 type probeTaskClient struct {
@@ -95,6 +97,16 @@ func (c *probeTaskClient) ListProbeTasks(ctx context.Context, in *ListProbeTasks
 	return out, nil
 }
 
+func (c *probeTaskClient) UpdateProbeTaskStatus(ctx context.Context, in *UpdateProbeTaskStatusRequest, opts ...grpc.CallOption) (*ProbeTaskItem, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProbeTaskItem)
+	err := c.cc.Invoke(ctx, ProbeTask_UpdateProbeTaskStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProbeTaskServer is the server API for ProbeTask service.
 // All implementations must embed UnimplementedProbeTaskServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type ProbeTaskServer interface {
 	DeleteProbeTask(context.Context, *DeleteProbeTaskRequest) (*DeleteProbeTaskReply, error)
 	GetProbeTask(context.Context, *GetProbeTaskRequest) (*ProbeTaskItem, error)
 	ListProbeTasks(context.Context, *ListProbeTasksRequest) (*ListProbeTasksReply, error)
+	UpdateProbeTaskStatus(context.Context, *UpdateProbeTaskStatusRequest) (*ProbeTaskItem, error)
 	mustEmbedUnimplementedProbeTaskServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedProbeTaskServer) GetProbeTask(context.Context, *GetProbeTaskR
 }
 func (UnimplementedProbeTaskServer) ListProbeTasks(context.Context, *ListProbeTasksRequest) (*ListProbeTasksReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProbeTasks not implemented")
+}
+func (UnimplementedProbeTaskServer) UpdateProbeTaskStatus(context.Context, *UpdateProbeTaskStatusRequest) (*ProbeTaskItem, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateProbeTaskStatus not implemented")
 }
 func (UnimplementedProbeTaskServer) mustEmbedUnimplementedProbeTaskServer() {}
 func (UnimplementedProbeTaskServer) testEmbeddedByValue()                   {}
@@ -240,6 +256,24 @@ func _ProbeTask_ListProbeTasks_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProbeTask_UpdateProbeTaskStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateProbeTaskStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProbeTaskServer).UpdateProbeTaskStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProbeTask_UpdateProbeTaskStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProbeTaskServer).UpdateProbeTaskStatus(ctx, req.(*UpdateProbeTaskStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProbeTask_ServiceDesc is the grpc.ServiceDesc for ProbeTask service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +300,10 @@ var ProbeTask_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListProbeTasks",
 			Handler:    _ProbeTask_ListProbeTasks_Handler,
+		},
+		{
+			MethodName: "UpdateProbeTaskStatus",
+			Handler:    _ProbeTask_UpdateProbeTaskStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

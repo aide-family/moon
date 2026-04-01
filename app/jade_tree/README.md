@@ -46,7 +46,8 @@ API definitions live under `proto/jade_tree/api/v1/`; generated Go code is in `p
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-commands/{command_uid}/execute` | Run stored command on a remote host (host, credentials, optional timeout in body) |
 | `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-info` | Get deployment machine details (CPU, memory, disk+mount usage, network, hostname, arch/os/version/kernel) |
 | `jade_tree.api.v1.ProbeTask` | `POST /v1/probe-tasks` | Create a probe task persisted in database |
-| `jade_tree.api.v1.ProbeTask` | `PUT /v1/probe-tasks/{uid}` | Update a probe task and apply changes dynamically |
+| `jade_tree.api.v1.ProbeTask` | `PUT /v1/probe-tasks/{uid}` | Update a probe task fields (`type/host/port/url/name/timeoutSeconds`) |
+| `jade_tree.api.v1.ProbeTask` | `PATCH /v1/probe-tasks/{uid}/status` | Manage probe task status (`ENABLED` / `DISABLED`) |
 | `jade_tree.api.v1.ProbeTask` | `DELETE /v1/probe-tasks/{uid}` | Delete a probe task and remove it dynamically |
 | `jade_tree.api.v1.ProbeTask` | `GET /v1/probe-tasks/{uid}` | Get one probe task |
 | `jade_tree.api.v1.ProbeTask` | `GET /v1/probe-tasks` | List probe tasks (paginated) |

@@ -37,7 +37,7 @@ func newProbeTask(db *gorm.DB, opts ...gen.DOOption) probeTask {
 	_probeTask.Port = field.NewString(tableName, "port")
 	_probeTask.URL = field.NewString(tableName, "url")
 	_probeTask.Name = field.NewString(tableName, "name")
-	_probeTask.Enabled = field.NewBool(tableName, "enabled")
+	_probeTask.Status = field.NewInt32(tableName, "status")
 	_probeTask.TimeoutSeconds = field.NewInt32(tableName, "timeout_seconds")
 
 	_probeTask.fillFieldMap()
@@ -59,7 +59,7 @@ type probeTask struct {
 	Port           field.String
 	URL            field.String
 	Name           field.String
-	Enabled        field.Bool
+	Status         field.Int32
 	TimeoutSeconds field.Int32
 
 	fieldMap map[string]field.Expr
@@ -87,7 +87,7 @@ func (p *probeTask) updateTableName(table string) *probeTask {
 	p.Port = field.NewString(table, "port")
 	p.URL = field.NewString(table, "url")
 	p.Name = field.NewString(table, "name")
-	p.Enabled = field.NewBool(table, "enabled")
+	p.Status = field.NewInt32(table, "status")
 	p.TimeoutSeconds = field.NewInt32(table, "timeout_seconds")
 
 	p.fillFieldMap()
@@ -116,7 +116,7 @@ func (p *probeTask) fillFieldMap() {
 	p.fieldMap["port"] = p.Port
 	p.fieldMap["url"] = p.URL
 	p.fieldMap["name"] = p.Name
-	p.fieldMap["enabled"] = p.Enabled
+	p.fieldMap["status"] = p.Status
 	p.fieldMap["timeout_seconds"] = p.TimeoutSeconds
 }
 

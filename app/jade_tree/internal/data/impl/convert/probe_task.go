@@ -18,7 +18,7 @@ func ToProbeTaskItemBo(row *do.ProbeTask) *bo.ProbeTaskItemBo {
 		Port:           row.Port,
 		URL:            row.URL,
 		Name:           row.Name,
-		Enabled:        row.Enabled,
+		Status:         row.Status,
 		TimeoutSeconds: row.TimeoutSeconds,
 		CreatedAt:      row.CreatedAt,
 		UpdatedAt:      row.UpdatedAt,

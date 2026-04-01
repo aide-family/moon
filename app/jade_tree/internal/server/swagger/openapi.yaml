@@ -116,6 +116,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/jade_tree.api.v1.DeleteProbeTaskReply'
+    /v1/probe-tasks/{uid}/status:
+        patch:
+            tags:
+                - ProbeTask
+            operationId: ProbeTask_UpdateProbeTaskStatus
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/jade_tree.api.v1.UpdateProbeTaskStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.ProbeTaskItem'
     /v1/ssh-command-audits:
         get:
             tags:
@@ -403,8 +427,9 @@ components:
                     type: string
                 name:
                     type: string
-                enabled:
-                    type: boolean
+                status:
+                    type: integer
+                    format: enum
                 timeoutSeconds:
                     type: integer
                     format: int32
@@ -607,8 +632,9 @@ components:
                     type: string
                 name:
                     type: string
-                enabled:
-                    type: boolean
+                status:
+                    type: integer
+                    format: enum
                 timeoutSeconds:
                     type: integer
                     format: int32
@@ -749,11 +775,17 @@ components:
                     type: string
                 name:
                     type: string
-                enabled:
-                    type: boolean
                 timeoutSeconds:
                     type: integer
                     format: int32
+        jade_tree.api.v1.UpdateProbeTaskStatusRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
 tags:
     - name: MachineInfo
       description: MachineInfo provides host hardware and system profile details.

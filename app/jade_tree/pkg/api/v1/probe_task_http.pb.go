@@ -24,6 +24,7 @@ const OperationProbeTaskDeleteProbeTask = "/jade_tree.api.v1.ProbeTask/DeletePro
 const OperationProbeTaskGetProbeTask = "/jade_tree.api.v1.ProbeTask/GetProbeTask"
 const OperationProbeTaskListProbeTasks = "/jade_tree.api.v1.ProbeTask/ListProbeTasks"
 const OperationProbeTaskUpdateProbeTask = "/jade_tree.api.v1.ProbeTask/UpdateProbeTask"
+const OperationProbeTaskUpdateProbeTaskStatus = "/jade_tree.api.v1.ProbeTask/UpdateProbeTaskStatus"
 
 type ProbeTaskHTTPServer interface {
 	CreateProbeTask(context.Context, *CreateProbeTaskRequest) (*ProbeTaskItem, error)
@@ -31,6 +32,7 @@ type ProbeTaskHTTPServer interface {
 	GetProbeTask(context.Context, *GetProbeTaskRequest) (*ProbeTaskItem, error)
 	ListProbeTasks(context.Context, *ListProbeTasksRequest) (*ListProbeTasksReply, error)
 	UpdateProbeTask(context.Context, *UpdateProbeTaskRequest) (*ProbeTaskItem, error)
+	UpdateProbeTaskStatus(context.Context, *UpdateProbeTaskStatusRequest) (*ProbeTaskItem, error)
 }
 
 func RegisterProbeTaskHTTPServer(s *http.Server, srv ProbeTaskHTTPServer) {
@@ -40,6 +42,7 @@ func RegisterProbeTaskHTTPServer(s *http.Server, srv ProbeTaskHTTPServer) {
 	r.DELETE("/v1/probe-tasks/{uid}", _ProbeTask_DeleteProbeTask0_HTTP_Handler(srv))
 	r.GET("/v1/probe-tasks/{uid}", _ProbeTask_GetProbeTask0_HTTP_Handler(srv))
 	r.GET("/v1/probe-tasks", _ProbeTask_ListProbeTasks0_HTTP_Handler(srv))
+	r.PATCH("/v1/probe-tasks/{uid}/status", _ProbeTask_UpdateProbeTaskStatus0_HTTP_Handler(srv))
 }
 
 func _ProbeTask_CreateProbeTask0_HTTP_Handler(srv ProbeTaskHTTPServer) func(ctx http.Context) error {
@@ -152,12 +155,38 @@ func _ProbeTask_ListProbeTasks0_HTTP_Handler(srv ProbeTaskHTTPServer) func(ctx h
 	}
 }
 
+func _ProbeTask_UpdateProbeTaskStatus0_HTTP_Handler(srv ProbeTaskHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateProbeTaskStatusRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationProbeTaskUpdateProbeTaskStatus)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateProbeTaskStatus(ctx, req.(*UpdateProbeTaskStatusRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ProbeTaskItem)
+		return ctx.Result(200, reply)
+	}
+}
+
 type ProbeTaskHTTPClient interface {
 	CreateProbeTask(ctx context.Context, req *CreateProbeTaskRequest, opts ...http.CallOption) (rsp *ProbeTaskItem, err error)
 	DeleteProbeTask(ctx context.Context, req *DeleteProbeTaskRequest, opts ...http.CallOption) (rsp *DeleteProbeTaskReply, err error)
 	GetProbeTask(ctx context.Context, req *GetProbeTaskRequest, opts ...http.CallOption) (rsp *ProbeTaskItem, err error)
 	ListProbeTasks(ctx context.Context, req *ListProbeTasksRequest, opts ...http.CallOption) (rsp *ListProbeTasksReply, err error)
 	UpdateProbeTask(ctx context.Context, req *UpdateProbeTaskRequest, opts ...http.CallOption) (rsp *ProbeTaskItem, err error)
+	UpdateProbeTaskStatus(ctx context.Context, req *UpdateProbeTaskStatusRequest, opts ...http.CallOption) (rsp *ProbeTaskItem, err error)
 }
 
 type ProbeTaskHTTPClientImpl struct {
@@ -227,6 +256,19 @@ func (c *ProbeTaskHTTPClientImpl) UpdateProbeTask(ctx context.Context, in *Updat
 	opts = append(opts, http.Operation(OperationProbeTaskUpdateProbeTask))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *ProbeTaskHTTPClientImpl) UpdateProbeTaskStatus(ctx context.Context, in *UpdateProbeTaskStatusRequest, opts ...http.CallOption) (*ProbeTaskItem, error) {
+	var out ProbeTaskItem
+	pattern := "/v1/probe-tasks/{uid}/status"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationProbeTaskUpdateProbeTaskStatus))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PATCH", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

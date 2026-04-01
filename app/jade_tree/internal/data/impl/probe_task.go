@@ -3,6 +3,7 @@ package impl
 import (
 	"context"
 
+	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/bwmarrin/snowflake"
 	"github.com/go-kratos/kratos/v2/errors"
@@ -34,7 +35,7 @@ func (r *probeTaskRepository) Create(ctx context.Context, in *bo.CreateProbeTask
 		Port:           in.Fields.Port,
 		URL:            in.Fields.URL,
 		Name:           in.Fields.Name,
-		Enabled:        in.Fields.Enabled,
+		Status:         in.Fields.Status,
 		TimeoutSeconds: in.Fields.TimeoutSeconds,
 	}
 	p := query.ProbeTask
@@ -52,10 +53,30 @@ func (r *probeTaskRepository) Update(ctx context.Context, in *bo.UpdateProbeTask
 		p.Port.Value(in.Fields.Port),
 		p.URL.Value(in.Fields.URL),
 		p.Name.Value(in.Fields.Name),
-		p.Enabled.Value(in.Fields.Enabled),
 		p.TimeoutSeconds.Value(in.Fields.TimeoutSeconds),
 	}
 	info, err := p.WithContext(ctx).Where(p.ID.Eq(in.UID.Int64())).UpdateColumnSimple(columns...)
+	if err != nil {
+		return nil, err
+	}
+	if info.RowsAffected == 0 {
+		return nil, merr.ErrorNotFound("probe task not found")
+	}
+	row, err := p.WithContext(ctx).Where(p.ID.Eq(in.UID.Int64())).First()
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, merr.ErrorNotFound("probe task not found")
+		}
+		return nil, err
+	}
+	return convert.ToProbeTaskItemBo(row), nil
+}
+
+func (r *probeTaskRepository) UpdateStatus(ctx context.Context, in *bo.UpdateProbeTaskStatusBo) (*bo.ProbeTaskItemBo, error) {
+	p := query.ProbeTask
+	info, err := p.WithContext(ctx).
+		Where(p.ID.Eq(in.UID.Int64())).
+		UpdateColumnSimple(p.Status.Value(int32(in.Status)))
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +138,7 @@ func (r *probeTaskRepository) List(ctx context.Context, req *bo.ListProbeTasksBo
 
 func (r *probeTaskRepository) ListEnabled(ctx context.Context) ([]*bo.ProbeTaskItemBo, error) {
 	p := query.ProbeTask
-	rows, err := p.WithContext(ctx).Where(p.Enabled.Is(true)).Order(p.CreatedAt.Desc()).Find()
+	rows, err := p.WithContext(ctx).Where(p.Status.Eq(int32(enum.GlobalStatus_ENABLED))).Order(p.CreatedAt.Desc()).Find()
 	if err != nil {
 		return nil, err
 	}

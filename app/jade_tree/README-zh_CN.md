@@ -46,7 +46,8 @@ API 定义位于 `proto/jade_tree/api/v1/`；生成代码在 `pkg/api/v1/`。修
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-commands/{command_uid}/execute` | 选择已生效命令，携带主机与凭证在远端执行 |
 | `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-info` | 获取部署机器详情（CPU、内存、磁盘+挂载点容量、网络、主机名、架构/系统/版本/内核） |
 | `jade_tree.api.v1.ProbeTask` | `POST /v1/probe-tasks` | 新增数据库探测任务 |
-| `jade_tree.api.v1.ProbeTask` | `PUT /v1/probe-tasks/{uid}` | 更新探测任务并动态生效 |
+| `jade_tree.api.v1.ProbeTask` | `PUT /v1/probe-tasks/{uid}` | 更新探测任务字段（`type/host/port/url/name/timeoutSeconds`） |
+| `jade_tree.api.v1.ProbeTask` | `PATCH /v1/probe-tasks/{uid}/status` | 状态管理（`ENABLED` / `DISABLED`） |
 | `jade_tree.api.v1.ProbeTask` | `DELETE /v1/probe-tasks/{uid}` | 删除探测任务并动态移除 |
 | `jade_tree.api.v1.ProbeTask` | `GET /v1/probe-tasks/{uid}` | 获取单个探测任务 |
 | `jade_tree.api.v1.ProbeTask` | `GET /v1/probe-tasks` | 分页查询探测任务 |

@@ -3,6 +3,7 @@ syntax = "proto3";
 package jade_tree.api.v1;
 
 import "google/api/annotations.proto";
+import "magicbox/enum/enum.proto";
 
 option go_package = "github.com/aide-family/jade_tree/pkg/api/v1;v1";
 option java_multiple_files = true;
@@ -36,6 +37,12 @@ service ProbeTask {
       get: "/v1/probe-tasks"
     };
   }
+  rpc UpdateProbeTaskStatus (UpdateProbeTaskStatusRequest) returns (ProbeTaskItem) {
+    option (google.api.http) = {
+      patch: "/v1/probe-tasks/{uid}/status"
+      body: "*"
+    };
+  }
 }
 
 message ProbeTaskItem {
@@ -45,7 +52,7 @@ message ProbeTaskItem {
   string port = 4;
   string url = 5;
   string name = 6;
-  bool enabled = 7;
+  magicbox.enum.GlobalStatus status = 7;
   int32 timeoutSeconds = 8;
   string createdAt = 9;
   string updatedAt = 10;
@@ -57,7 +64,7 @@ message CreateProbeTaskRequest {
   string port = 3;
   string url = 4;
   string name = 5;
-  bool enabled = 6;
+  magicbox.enum.GlobalStatus status = 6;
   int32 timeoutSeconds = 7;
 }
 
@@ -68,8 +75,7 @@ message UpdateProbeTaskRequest {
   string port = 4;
   string url = 5;
   string name = 6;
-  bool enabled = 7;
-  int32 timeoutSeconds = 8;
+  int32 timeoutSeconds = 7;
 }
 
 message DeleteProbeTaskRequest {
@@ -92,4 +98,9 @@ message ListProbeTasksReply {
   int64 total = 2;
   int32 page = 3;
   int32 pageSize = 4;
+}
+
+message UpdateProbeTaskStatusRequest {
+  int64 uid = 1;
+  magicbox.enum.GlobalStatus status = 2;
 }

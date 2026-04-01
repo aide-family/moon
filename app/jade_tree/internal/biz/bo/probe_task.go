@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
@@ -18,7 +19,7 @@ type ProbeTaskItemBo struct {
 	Port           string
 	URL            string
 	Name           string
-	Enabled        bool
+	Status         enum.GlobalStatus
 	TimeoutSeconds int32
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
@@ -30,7 +31,7 @@ type ProbeTaskFieldsBo struct {
 	Port           string
 	URL            string
 	Name           string
-	Enabled        bool
+	Status         enum.GlobalStatus
 	TimeoutSeconds int32
 }
 
@@ -41,7 +42,21 @@ type CreateProbeTaskBo struct {
 
 type UpdateProbeTaskBo struct {
 	UID    snowflake.ID
-	Fields ProbeTaskFieldsBo
+	Fields ProbeTaskUpdateFieldsBo
+}
+
+type ProbeTaskUpdateFieldsBo struct {
+	Type           string
+	Host           string
+	Port           string
+	URL            string
+	Name           string
+	TimeoutSeconds int32
+}
+
+type UpdateProbeTaskStatusBo struct {
+	UID    snowflake.ID
+	Status enum.GlobalStatus
 }
 
 type ListProbeTasksBo struct {
@@ -55,7 +70,7 @@ func NewCreateProbeTaskBo(req *apiv1.CreateProbeTaskRequest, creator snowflake.I
 		Port:           req.GetPort(),
 		URL:            req.GetUrl(),
 		Name:           req.GetName(),
-		Enabled:        req.GetEnabled(),
+		Status:         req.GetStatus(),
 		TimeoutSeconds: req.GetTimeoutSeconds(),
 	})
 	if err != nil {
@@ -65,13 +80,12 @@ func NewCreateProbeTaskBo(req *apiv1.CreateProbeTaskRequest, creator snowflake.I
 }
 
 func NewUpdateProbeTaskBo(req *apiv1.UpdateProbeTaskRequest) (*UpdateProbeTaskBo, error) {
-	fields, err := validateProbeTaskFields(&ProbeTaskFieldsBo{
+	fields, err := validateProbeTaskUpdateFields(&ProbeTaskUpdateFieldsBo{
 		Type:           req.GetType(),
 		Host:           req.GetHost(),
 		Port:           req.GetPort(),
 		URL:            req.GetUrl(),
 		Name:           req.GetName(),
-		Enabled:        req.GetEnabled(),
 		TimeoutSeconds: req.GetTimeoutSeconds(),
 	})
 	if err != nil {
@@ -82,6 +96,17 @@ func NewUpdateProbeTaskBo(req *apiv1.UpdateProbeTaskRequest) (*UpdateProbeTaskBo
 
 func NewListProbeTasksBo(page, pageSize int32) *ListProbeTasksBo {
 	return &ListProbeTasksBo{PageRequestBo: NewPageRequestBo(page, pageSize)}
+}
+
+func NewUpdateProbeTaskStatusBo(req *apiv1.UpdateProbeTaskStatusRequest) (*UpdateProbeTaskStatusBo, error) {
+	status := req.GetStatus()
+	if status != enum.GlobalStatus_ENABLED && status != enum.GlobalStatus_DISABLED {
+		return nil, merr.ErrorInvalidArgument("status must be ENABLED or DISABLED")
+	}
+	return &UpdateProbeTaskStatusBo{
+		UID:    snowflake.ID(req.GetUid()),
+		Status: status,
+	}, nil
 }
 
 func ToAPIV1ProbeTaskItem(in *ProbeTaskItemBo) *apiv1.ProbeTaskItem {
@@ -95,7 +120,7 @@ func ToAPIV1ProbeTaskItem(in *ProbeTaskItemBo) *apiv1.ProbeTaskItem {
 		Port:           in.Port,
 		Url:            in.URL,
 		Name:           in.Name,
-		Enabled:        in.Enabled,
+		Status:         in.Status,
 		TimeoutSeconds: in.TimeoutSeconds,
 		CreatedAt:      timex.FormatTime(&in.CreatedAt),
 		UpdatedAt:      timex.FormatTime(&in.UpdatedAt),
@@ -105,6 +130,53 @@ func ToAPIV1ProbeTaskItem(in *ProbeTaskItemBo) *apiv1.ProbeTaskItem {
 func validateProbeTaskFields(in *ProbeTaskFieldsBo) (*ProbeTaskFieldsBo, error) {
 	if in == nil {
 		return nil, merr.ErrorInvalidArgument("probe task fields are required")
+	}
+	in.Type = strings.ToLower(strings.TrimSpace(in.Type))
+	in.Host = strings.TrimSpace(in.Host)
+	in.Port = strings.TrimSpace(in.Port)
+	in.URL = strings.TrimSpace(in.URL)
+	in.Name = strings.TrimSpace(in.Name)
+	if in.Status == enum.GlobalStatus_GlobalStatus_UNKNOWN {
+		in.Status = enum.GlobalStatus_ENABLED
+	}
+	if in.Status != enum.GlobalStatus_ENABLED && in.Status != enum.GlobalStatus_DISABLED {
+		return nil, merr.ErrorInvalidArgument("status must be ENABLED or DISABLED")
+	}
+	if in.TimeoutSeconds <= 0 {
+		in.TimeoutSeconds = 5
+	}
+	switch in.Type {
+	case "tcp", "port":
+		if in.Host == "" || in.Port == "" {
+			return nil, merr.ErrorInvalidArgument("host and port are required")
+		}
+	case "http":
+		if in.URL == "" {
+			return nil, merr.ErrorInvalidArgument("url is required")
+		}
+	case "cert":
+		if in.Host == "" {
+			return nil, merr.ErrorInvalidArgument("host is required")
+		}
+		if in.Port == "" {
+			in.Port = "443"
+		}
+	default:
+		return nil, merr.ErrorInvalidArgument("type must be tcp, port, http or cert")
+	}
+	if in.Name == "" {
+		if in.Type == "http" {
+			in.Name = in.URL
+		} else {
+			in.Name = in.Host + ":" + in.Port
+		}
+	}
+	return in, nil
+}
+
+func validateProbeTaskUpdateFields(in *ProbeTaskUpdateFieldsBo) (*ProbeTaskUpdateFieldsBo, error) {
+	if in == nil {
+		return nil, merr.ErrorInvalidArgument("probe task update fields are required")
 	}
 	in.Type = strings.ToLower(strings.TrimSpace(in.Type))
 	in.Host = strings.TrimSpace(in.Host)
