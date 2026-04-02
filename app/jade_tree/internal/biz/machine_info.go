@@ -3,7 +3,6 @@ package biz
 
 import (
 	"context"
-	"time"
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
@@ -17,18 +16,13 @@ import (
 type MachineInfo struct {
 	machineInfoRepo repository.MachineInfoProvider
 	helper          *klog.Helper
-
-	localUpdateInterval time.Duration
 }
 
 func NewMachineInfo(machineInfoRepo repository.MachineInfoProvider, helper *klog.Helper) *MachineInfo {
-	m := &MachineInfo{
-		machineInfoRepo:     machineInfoRepo,
-		helper:              helper,
-		localUpdateInterval: 10 * time.Minute,
+	return &MachineInfo{
+		machineInfoRepo: machineInfoRepo,
+		helper:          helper,
 	}
-	go m.localRefreshLoop()
-	return m
 }
 
 func (m *MachineInfo) GetMachineInfo(ctx context.Context) (*bo.MachineInfoBo, error) {
@@ -103,25 +97,18 @@ func (m *MachineInfo) ReportMachineInfos(ctx context.Context, incoming []*bo.Mac
 	return m.machineInfoRepo.UpsertMachineInfos(ctx, toUpsert)
 }
 
-func (m *MachineInfo) localRefreshLoop() {
-	ticker := time.NewTicker(m.localUpdateInterval)
-	defer ticker.Stop()
-	for range ticker.C {
-		if err := m.refreshLocalNow(context.Background()); err != nil && m.helper != nil {
-			m.helper.Errorw("msg", "refresh local machine info failed", "error", err)
-		}
-	}
-}
-
-func (m *MachineInfo) refreshLocalNow(ctx context.Context) error {
+func (m *MachineInfo) RefreshLocalMachineInfo(ctx context.Context) (*bo.MachineInfoBo, error) {
 	local, err := m.machineInfoRepo.Collect(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if local == nil || local.MachineUUID == "" {
-		return merr.ErrorInvalidArgument("local machine info is invalid")
+		return nil, merr.ErrorInvalidArgument("local machine info is invalid")
 	}
 
 	local.Source = enum.MachineInfoSource_MachineInfoSource_LOCAL
-	return m.machineInfoRepo.UpdateLocalMachineInfo(ctx, local)
+	if err := m.machineInfoRepo.UpdateLocalMachineInfo(ctx, local); err != nil {
+		return nil, err
+	}
+	return local, nil
 }

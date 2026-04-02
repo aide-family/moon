@@ -14,6 +14,7 @@ import (
 	"github.com/aide-family/jade_tree/internal/data"
 	"github.com/aide-family/jade_tree/internal/data/impl"
 	"github.com/aide-family/jade_tree/internal/server"
+	"github.com/aide-family/jade_tree/internal/server/cron"
 	"github.com/aide-family/jade_tree/internal/service"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
@@ -27,6 +28,9 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		return nil, nil, err
 	}
 	grpcServer := server.NewGRPCServer(bc, helper)
+	machineInfoProvider := impl.NewMachineInfoRepository(dataData)
+	machineInfo := biz.NewMachineInfo(machineInfoProvider, helper)
+	machineInfoReporterServer := cron.NewMachineInfoReporterServer(bc, machineInfo, helper)
 	health := impl.NewHealthRepository(dataData)
 	bizHealth := biz.NewHealth(health)
 	healthService := service.NewHealthService(bizHealth)
@@ -35,15 +39,13 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	sshOperator := impl.NewSSHRepository(dataData)
 	bizSSHCommand := biz.NewSSHCommand(sshCommand, commandAudit, sshOperator, helper)
 	sshCommandService := service.NewSSHCommandService(bizSSHCommand)
-	machineInfoProvider := impl.NewMachineInfoRepository(dataData)
-	machineInfo := biz.NewMachineInfo(machineInfoProvider, helper)
 	machineInfoService := service.NewMachineInfoService(machineInfo)
 	probeTask := impl.NewProbeTaskRepository(dataData)
 	bizProbeTask := biz.NewProbeTask(probeTask, helper)
 	probeTaskService := service.NewProbeTaskService(bizProbeTask)
-	servers := server.RegisterGRPCService(grpcServer, healthService, sshCommandService, machineInfoService, probeTaskService)
+	servers := server.RegisterGRPCServiceWithReporter(grpcServer, machineInfoReporterServer, healthService, sshCommandService, machineInfoService, probeTaskService)
 	probeCollector := collector.NewProbeCollector(bc, probeTask)
-	v, err := run.NewApp(serviceName, dataData, servers, bc, helper, probeCollector, machineInfo)
+	v, err := run.NewApp(serviceName, dataData, servers, bc, helper, probeCollector)
 	if err != nil {
 		cleanup()
 		return nil, nil, err

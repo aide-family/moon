@@ -16,6 +16,7 @@ import (
 
 	bizcollector "github.com/aide-family/jade_tree/internal/biz/collector"
 	"github.com/aide-family/jade_tree/internal/conf"
+	servercron "github.com/aide-family/jade_tree/internal/server/cron"
 	"github.com/aide-family/jade_tree/internal/service"
 )
 
@@ -23,9 +24,9 @@ import (
 var docFS embed.FS
 
 var (
-	ProviderSetServerAll  = wire.NewSet(NewHTTPServer, NewGRPCServer, RegisterService)
-	ProviderSetServerHTTP = wire.NewSet(NewHTTPServer, RegisterHTTPService)
-	ProviderSetServerGRPC = wire.NewSet(NewGRPCServer, RegisterGRPCService)
+	ProviderSetServerAll  = wire.NewSet(NewHTTPServer, NewGRPCServer, servercron.NewMachineInfoReporterServer, RegisterService)
+	ProviderSetServerHTTP = wire.NewSet(NewHTTPServer, servercron.NewMachineInfoReporterServer, RegisterHTTPServiceWithReporter)
+	ProviderSetServerGRPC = wire.NewSet(NewGRPCServer, servercron.NewMachineInfoReporterServer, RegisterGRPCServiceWithReporter)
 )
 
 type Server interface {
@@ -60,10 +61,27 @@ func BindMetrics(httpSrv *http.Server, bc *conf.Bootstrap, probeCollector *bizco
 	basic.BindHandlerWithAuth(httpSrv, binding)
 }
 
-func RegisterService(c *conf.Bootstrap, httpSrv *http.Server, grpcSrv *grpc.Server, healthService *service.HealthService, sshCommand *service.SSHCommandService, machineInfo *service.MachineInfoService, probeTask *service.ProbeTaskService) Servers {
+func RegisterService(c *conf.Bootstrap, httpSrv *http.Server, grpcSrv *grpc.Server, machineInfoReporter *servercron.MachineInfoReporterServer, healthService *service.HealthService, sshCommand *service.SSHCommandService, machineInfo *service.MachineInfoService, probeTask *service.ProbeTaskService) Servers {
 	var srvs Servers
 	srvs = append(srvs, RegisterHTTPService(httpSrv, healthService, sshCommand, machineInfo, probeTask)...)
 	srvs = append(srvs, RegisterGRPCService(grpcSrv, healthService, sshCommand, machineInfo, probeTask)...)
+	srvs = append(srvs, RegisterMachineInfoReporterService(machineInfoReporter)...)
 	_ = c
+	return srvs
+}
+
+func RegisterMachineInfoReporterService(machineInfoReporter *servercron.MachineInfoReporterServer) Servers {
+	return Servers{newServer("machine-info-reporter", machineInfoReporter)}
+}
+
+func RegisterHTTPServiceWithReporter(httpSrv *http.Server, machineInfoReporter *servercron.MachineInfoReporterServer, healthService *service.HealthService, sshCommand *service.SSHCommandService, machineInfo *service.MachineInfoService, probeTask *service.ProbeTaskService) Servers {
+	srvs := RegisterHTTPService(httpSrv, healthService, sshCommand, machineInfo, probeTask)
+	srvs = append(srvs, RegisterMachineInfoReporterService(machineInfoReporter)...)
+	return srvs
+}
+
+func RegisterGRPCServiceWithReporter(grpcSrv *grpc.Server, machineInfoReporter *servercron.MachineInfoReporterServer, healthService *service.HealthService, sshCommand *service.SSHCommandService, machineInfo *service.MachineInfoService, probeTask *service.ProbeTaskService) Servers {
+	srvs := RegisterGRPCService(grpcSrv, healthService, sshCommand, machineInfo, probeTask)
+	srvs = append(srvs, RegisterMachineInfoReporterService(machineInfoReporter)...)
 	return srvs
 }

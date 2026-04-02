@@ -68,6 +68,6 @@ machineInfoReport:
   interval: '${MOON_JADE_TREE_MACHINE_INFO_REPORT_INTERVAL:600s}'
   timeout: '${MOON_JADE_TREE_MACHINE_INFO_REPORT_TIMEOUT:10s}'
   endpoints:
-    - ${MOON_JADE_TREE_MACHINE_INFO_REPORT_ENDPOINT_1:http://127.0.0.1:9000/v1/machine-info/report}
+    - ${MOON_JADE_TREE_MACHINE_INFO_REPORT_ENDPOINT_1:http://127.0.0.1:8004/v1/machine-info/report}
   headers:
     Authorization: ${MOON_JADE_TREE_MACHINE_INFO_REPORT_AUTHORIZATION:}
