@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/denisbrodbeck/machineid"
 	"github.com/jaypipes/ghw"
 	ghost "github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/mem"
@@ -33,7 +34,10 @@ type machineInfoRepository struct {
 
 func (m *machineInfoRepository) Collect(ctx context.Context) (*bo.MachineInfoBo, error) {
 	hostName, _ := os.Hostname()
-	out := &bo.MachineInfoBo{HostName: hostName}
+	out := &bo.MachineInfoBo{
+		HostName:    hostName,
+		MachineUUID: machineUUID(),
+	}
 
 	cpu, _ := ghw.CPU()
 	if cpu != nil {
@@ -99,6 +103,11 @@ func (m *machineInfoRepository) Collect(ctx context.Context) (*bo.MachineInfoBo,
 	out.System = collectSystemInfo()
 	_ = ctx
 	return out, nil
+}
+
+func machineUUID() string {
+	id, _ := machineid.ID()
+	return id
 }
 
 func collectSystemInfo() *bo.MachineSystemBo {

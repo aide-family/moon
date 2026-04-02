@@ -44,7 +44,7 @@ API 定义位于 `proto/jade_tree/api/v1/`；生成代码在 `pkg/api/v1/`。修
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-audits/{uid}/approve` | 审批通过：更新正式命令表并更新审核状态 |
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-audits/{uid}/reject` | 驳回审核并填写原因 |
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-commands/{command_uid}/execute` | 选择已生效命令，携带主机与凭证在远端执行 |
-| `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-info` | 获取部署机器详情（CPU、内存、磁盘+挂载点容量、网络、主机名、架构/系统/版本/内核） |
+| `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-info` | 获取部署机器详情（CPU、内存、磁盘+挂载点容量、网络、主机名、机器唯一标识、架构/系统/版本/内核） |
 | `jade_tree.api.v1.ProbeTask` | `POST /v1/probe-tasks` | 新增数据库探测任务 |
 | `jade_tree.api.v1.ProbeTask` | `PUT /v1/probe-tasks/{uid}` | 更新探测任务字段（`type/host/port/url/name/timeoutSeconds`） |
 | `jade_tree.api.v1.ProbeTask` | `PATCH /v1/probe-tasks/{uid}/status` | 状态管理（`ENABLED` / `DISABLED`） |

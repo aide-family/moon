@@ -6,6 +6,7 @@ require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-20250717165733-d22d418d82d8.1
 	github.com/aide-family/magicbox v0.0.4
 	github.com/bwmarrin/snowflake v0.3.0
+	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/glebarez/sqlite v1.11.0
 	github.com/go-kratos/kratos/v2 v2.9.2
 	github.com/google/wire v0.7.0

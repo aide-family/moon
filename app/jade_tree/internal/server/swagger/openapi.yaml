@@ -524,6 +524,12 @@ components:
             properties:
                 hostName:
                     type: string
+                machineUuid:
+                    type: string
+                    description: |-
+                        machineUuid is a best-effort stable unique identifier for the host.
+                         On macOS it is sourced from `sysctl -n hw.uuid`.
+                         On Linux it is sourced from `/etc/machine-id` or `/var/lib/dbus/machine-id`.
         jade_tree.api.v1.ListProbeTasksReply:
             type: object
             properties:

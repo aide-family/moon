@@ -87,6 +87,10 @@ message NetworkInfo {
 
 message HostInfo {
   string hostName = 1;
+  // machineUuid is a best-effort stable unique identifier for the host.
+  // On macOS it is sourced from `sysctl -n hw.uuid`.
+  // On Linux it is sourced from `/etc/machine-id` or `/var/lib/dbus/machine-id`.
+  string machineUuid = 2;
 }
 
 message SystemInfo {

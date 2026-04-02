@@ -69,12 +69,13 @@ type MachineNetworkBo struct {
 }
 
 type MachineInfoBo struct {
-	HostName string
-	CPU      *MachineCPUBo
-	Memory   *MachineMemoryBo
-	Disks    []*MachineDiskBo
-	Network  *MachineNetworkBo
-	System   *MachineSystemBo
+	HostName    string
+	MachineUUID string
+	CPU         *MachineCPUBo
+	Memory      *MachineMemoryBo
+	Disks       []*MachineDiskBo
+	Network     *MachineNetworkBo
+	System      *MachineSystemBo
 }
 
 type MachineSystemBo struct {
@@ -89,7 +90,10 @@ func ToAPIV1MachineInfoReply(in *MachineInfoBo) *apiv1.GetMachineInfoReply {
 		return &apiv1.GetMachineInfoReply{}
 	}
 	out := &apiv1.GetMachineInfoReply{
-		Host: &apiv1.HostInfo{HostName: in.HostName},
+		Host: &apiv1.HostInfo{
+			HostName:    in.HostName,
+			MachineUuid: in.MachineUUID,
+		},
 	}
 	if in.CPU != nil {
 		cpu := &apiv1.CPUInfo{

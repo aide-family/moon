@@ -62,6 +62,24 @@ build: all
 	@echo "Building jade_tree"
 	go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/jade_tree main.go
 
+.PHONY: build-exe
+# build the jade_tree binary for windows
+build-exe: all
+	@echo "Building jade_tree (Windows)"
+	GOOS=windows GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/jade_tree.exe main.go
+
+.PHONY: build-mac
+# build the jade_tree binary for macOS (darwin)
+build-mac: all
+	@echo "Building jade_tree (macOS)"
+	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/jade_tree main.go
+
+.PHONY: build-linux
+# build the jade_tree binary for linux
+build-linux: all
+	@echo "Building jade_tree (Linux)"
+	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/jade_tree main.go
+
 .PHONY: dev
 dev:
 	@echo "Running jade_tree in development mode"
