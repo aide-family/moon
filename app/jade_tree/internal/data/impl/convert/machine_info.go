@@ -5,11 +5,11 @@ import (
 
 	"github.com/aide-family/magicbox/enum"
 
-	"github.com/aide-family/jade_tree/internal/biz/bo"
 	"github.com/aide-family/jade_tree/internal/data/impl/do"
+	"github.com/aide-family/jade_tree/pkg/machine"
 )
 
-func ToMachineInfoDO(in *bo.MachineInfoBo) (*do.MachineInfo, error) {
+func ToMachineInfoDO(in *machine.MachineInfo) (*do.MachineInfo, error) {
 	if in == nil {
 		return nil, nil
 	}
@@ -33,12 +33,12 @@ func ToMachineInfoDO(in *bo.MachineInfoBo) (*do.MachineInfo, error) {
 	}, nil
 }
 
-func ToMachineInfoItemBo(row *do.MachineInfo) (*bo.MachineInfoBo, error) {
+func ToMachineInfoItemBo(row *do.MachineInfo) (*machine.MachineInfo, error) {
 	if row == nil {
 		return nil, nil
 	}
 
-	out := &bo.MachineInfoBo{}
+	out := &machine.MachineInfo{}
 	if row.Info != "" {
 		if err := json.Unmarshal([]byte(row.Info), out); err != nil {
 			return nil, err

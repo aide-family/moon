@@ -1,96 +1,9 @@
 package bo
 
 import (
-	"github.com/aide-family/magicbox/enum"
-	"github.com/bwmarrin/snowflake"
-
 	apiv1 "github.com/aide-family/jade_tree/pkg/api/v1"
+	"github.com/aide-family/jade_tree/pkg/machine"
 )
-
-type MachineCPUCoreBo struct {
-	ID              int32
-	HardwareThreads int32
-	LogicalCPU      []int32
-}
-
-type MachineCPUProcessorBo struct {
-	ID                  int32
-	Vendor              string
-	Model               string
-	TotalCores          int32
-	TotalHardwareThread int32
-	Capabilities        []string
-	Cores               []*MachineCPUCoreBo
-}
-
-type MachineCPUBo struct {
-	TotalCores          int32
-	TotalHardwareThread int32
-	Processors          []*MachineCPUProcessorBo
-}
-
-type MachineMemoryBo struct {
-	TotalPhysicalBytes uint64
-	TotalUsableBytes   uint64
-	SupportedPageSizes []uint64
-	UsedBytes          uint64
-	FreeBytes          uint64
-	SharedBytes        uint64
-	BuffCacheBytes     uint64
-	AvailableBytes     uint64
-	SwapTotalBytes     uint64
-	SwapUsedBytes      uint64
-	SwapFreeBytes      uint64
-}
-
-type MachineDiskMountBo struct {
-	MountPoint string
-	FSType     string
-	TotalBytes uint64
-	UsedBytes  uint64
-	FreeBytes  uint64
-	FreeRate   float64
-}
-
-type MachineDiskBo struct {
-	Name         string
-	Type         string
-	SizeBytes    uint64
-	Vendor       string
-	Model        string
-	SerialNumber string
-	WWN          string
-	Mounts       []*MachineDiskMountBo
-}
-
-type MachineNetworkBo struct {
-	LocalIP      string
-	OutboundIP   string
-	CIDR         string
-	DNSServers   []string
-	TotalRXBytes uint64
-	TotalTXBytes uint64
-	NICs         []string
-}
-
-type MachineInfoBo struct {
-	ID          snowflake.ID
-	HostName    string
-	MachineUUID string
-	Source      enum.MachineInfoSource
-	CPU         *MachineCPUBo
-	Memory      *MachineMemoryBo
-	Disks       []*MachineDiskBo
-	Network     *MachineNetworkBo
-	System      *MachineSystemBo
-}
-
-type MachineSystemBo struct {
-	Arch    string
-	OS      string
-	Version string
-	Kernel  string
-}
 
 type ListMachineInfosBo struct {
 	*PageRequestBo
@@ -108,7 +21,7 @@ func NewListMachineInfosBo(page, pageSize int32) *ListMachineInfosBo {
 	}
 }
 
-func ToAPIV1MachineInfoReply(in *MachineInfoBo) *apiv1.GetMachineInfoReply {
+func ToAPIV1MachineInfoReply(in *machine.MachineInfo) *apiv1.GetMachineInfoReply {
 	if in == nil {
 		return &apiv1.GetMachineInfoReply{}
 	}
@@ -202,19 +115,19 @@ func ToAPIV1MachineInfoReply(in *MachineInfoBo) *apiv1.GetMachineInfoReply {
 	return out
 }
 
-func FromAPIV1MachineInfoReply(in *apiv1.GetMachineInfoReply) *MachineInfoBo {
+func FromAPIV1MachineInfoReply(in *apiv1.GetMachineInfoReply) *machine.MachineInfo {
 	if in == nil {
 		return nil
 	}
 
-	out := &MachineInfoBo{}
+	out := &machine.MachineInfo{}
 	if hostInfo := in.GetHost(); hostInfo != nil {
 		out.HostName = hostInfo.GetHostName()
 		out.MachineUUID = hostInfo.GetMachineUuid()
 	}
 
 	if cpuInfo := in.GetCpu(); cpuInfo != nil {
-		cpu := &MachineCPUBo{
+		cpu := &machine.MachineCPU{
 			TotalCores:          cpuInfo.GetTotalCores(),
 			TotalHardwareThread: cpuInfo.GetTotalHardwareThreads(),
 		}
@@ -222,7 +135,7 @@ func FromAPIV1MachineInfoReply(in *apiv1.GetMachineInfoReply) *MachineInfoBo {
 			if p == nil {
 				continue
 			}
-			pbo := &MachineCPUProcessorBo{
+			pbo := &machine.MachineCPUProcessor{
 				ID:                  p.GetId(),
 				Vendor:              p.GetVendor(),
 				Model:               p.GetModel(),
@@ -234,7 +147,7 @@ func FromAPIV1MachineInfoReply(in *apiv1.GetMachineInfoReply) *MachineInfoBo {
 				if c == nil {
 					continue
 				}
-				pbo.Cores = append(pbo.Cores, &MachineCPUCoreBo{
+				pbo.Cores = append(pbo.Cores, &machine.MachineCPUCore{
 					ID:              c.GetId(),
 					HardwareThreads: c.GetHardwareThreads(),
 					LogicalCPU:      c.GetLogicalProcessors(),
@@ -246,7 +159,7 @@ func FromAPIV1MachineInfoReply(in *apiv1.GetMachineInfoReply) *MachineInfoBo {
 	}
 
 	if in.GetMemory() != nil {
-		out.Memory = &MachineMemoryBo{
+		out.Memory = &machine.MachineMemory{
 			TotalPhysicalBytes: in.GetMemory().GetTotalPhysicalBytes(),
 			TotalUsableBytes:   in.GetMemory().GetTotalUsableBytes(),
 			SupportedPageSizes: in.GetMemory().GetSupportedPageSizes(),
@@ -265,7 +178,7 @@ func FromAPIV1MachineInfoReply(in *apiv1.GetMachineInfoReply) *MachineInfoBo {
 		if d == nil {
 			continue
 		}
-		item := &MachineDiskBo{
+		item := &machine.MachineDisk{
 			Name:         d.GetName(),
 			Type:         d.GetType(),
 			SizeBytes:    d.GetSizeBytes(),
@@ -278,7 +191,7 @@ func FromAPIV1MachineInfoReply(in *apiv1.GetMachineInfoReply) *MachineInfoBo {
 			if m == nil {
 				continue
 			}
-			item.Mounts = append(item.Mounts, &MachineDiskMountBo{
+			item.Mounts = append(item.Mounts, &machine.MachineDiskMount{
 				MountPoint: m.GetMountPoint(),
 				FSType:     m.GetFsType(),
 				TotalBytes: m.GetTotalBytes(),
@@ -291,7 +204,7 @@ func FromAPIV1MachineInfoReply(in *apiv1.GetMachineInfoReply) *MachineInfoBo {
 	}
 
 	if networkInfo := in.GetNetwork(); networkInfo != nil {
-		out.Network = &MachineNetworkBo{
+		out.Network = &machine.MachineNetwork{
 			LocalIP:      networkInfo.GetLocalIp(),
 			OutboundIP:   networkInfo.GetOutboundIp(),
 			CIDR:         networkInfo.GetCidr(),
@@ -303,7 +216,7 @@ func FromAPIV1MachineInfoReply(in *apiv1.GetMachineInfoReply) *MachineInfoBo {
 	}
 
 	if systemInfo := in.GetSystem(); systemInfo != nil {
-		out.System = &MachineSystemBo{
+		out.System = &machine.MachineSystem{
 			Arch:    systemInfo.GetArch(),
 			OS:      systemInfo.GetOs(),
 			Version: systemInfo.GetVersion(),

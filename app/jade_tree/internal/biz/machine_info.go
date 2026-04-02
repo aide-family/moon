@@ -11,6 +11,7 @@ import (
 
 	"github.com/aide-family/jade_tree/internal/biz/bo"
 	"github.com/aide-family/jade_tree/internal/biz/repository"
+	"github.com/aide-family/jade_tree/pkg/machine"
 )
 
 type MachineInfo struct {
@@ -25,7 +26,7 @@ func NewMachineInfo(machineInfoRepo repository.MachineInfoProvider, helper *klog
 	}
 }
 
-func (m *MachineInfo) GetMachineInfo(ctx context.Context) (*bo.MachineInfoBo, error) {
+func (m *MachineInfo) GetMachineInfo(ctx context.Context) (*machine.MachineInfo, error) {
 	mi, err := m.machineInfoRepo.GetMachineInfoByMachineUUID(ctx, m.machineInfoRepo.GetLocalMachineUUID())
 	if err == nil {
 		return mi, nil
@@ -43,11 +44,11 @@ func (m *MachineInfo) GetMachineInfo(ctx context.Context) (*bo.MachineInfoBo, er
 	return local, nil
 }
 
-func (m *MachineInfo) ListClusterMachineInfos(ctx context.Context, req *bo.ListMachineInfosBo) (*bo.PageResponseBo[*bo.MachineInfoBo], error) {
+func (m *MachineInfo) ListClusterMachineInfos(ctx context.Context, req *bo.ListMachineInfosBo) (*bo.PageResponseBo[*machine.MachineInfo], error) {
 	return m.machineInfoRepo.ListMachineInfos(ctx, req)
 }
 
-func (m *MachineInfo) ReportMachineInfos(ctx context.Context, incoming []*bo.MachineInfoBo) error {
+func (m *MachineInfo) ReportMachineInfos(ctx context.Context, incoming []*machine.MachineInfo) error {
 	if len(incoming) == 0 {
 		return nil
 	}
@@ -63,7 +64,7 @@ func (m *MachineInfo) ReportMachineInfos(ctx context.Context, incoming []*bo.Mac
 	if err != nil {
 		return err
 	}
-	existingMap := make(map[string]*bo.MachineInfoBo, len(existing))
+	existingMap := make(map[string]*machine.MachineInfo, len(existing))
 	for _, mi := range existing {
 		if mi == nil {
 			continue
@@ -73,7 +74,7 @@ func (m *MachineInfo) ReportMachineInfos(ctx context.Context, incoming []*bo.Mac
 
 	// Deduplicate incoming payload by machine UUID and merge duplicates.
 	mergedIncoming := make(map[string]struct{}, len(incoming))
-	toUpsert := make([]*bo.MachineInfoBo, 0, len(incoming))
+	toUpsert := make([]*machine.MachineInfo, 0, len(incoming))
 	for _, mi := range incoming {
 		if mi == nil {
 			continue
@@ -97,7 +98,7 @@ func (m *MachineInfo) ReportMachineInfos(ctx context.Context, incoming []*bo.Mac
 	return m.machineInfoRepo.UpsertMachineInfos(ctx, toUpsert)
 }
 
-func (m *MachineInfo) RefreshLocalMachineInfo(ctx context.Context) (*bo.MachineInfoBo, error) {
+func (m *MachineInfo) RefreshLocalMachineInfo(ctx context.Context) (*machine.MachineInfo, error) {
 	local, err := m.machineInfoRepo.Collect(ctx)
 	if err != nil {
 		return nil, err

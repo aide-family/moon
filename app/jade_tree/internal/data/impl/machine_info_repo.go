@@ -12,13 +12,14 @@ import (
 	"github.com/aide-family/jade_tree/internal/data/impl/convert"
 	"github.com/aide-family/jade_tree/internal/data/impl/do"
 	"github.com/aide-family/jade_tree/internal/data/impl/query"
+	"github.com/aide-family/jade_tree/pkg/machine"
 )
 
 var _ repository.MachineInfoProvider = (*machineInfoRepository)(nil)
 
-func (m *machineInfoRepository) GetMachineInfosByMachineUUIDs(ctx context.Context, machineUUIDs []string) ([]*bo.MachineInfoBo, error) {
+func (m *machineInfoRepository) GetMachineInfosByMachineUUIDs(ctx context.Context, machineUUIDs []string) ([]*machine.MachineInfo, error) {
 	if len(machineUUIDs) == 0 {
-		return []*bo.MachineInfoBo{}, nil
+		return []*machine.MachineInfo{}, nil
 	}
 
 	rows, err := query.MachineInfo.WithContext(ctx).Where(query.MachineInfo.MachineUUID.In(machineUUIDs...)).Find()
@@ -26,7 +27,7 @@ func (m *machineInfoRepository) GetMachineInfosByMachineUUIDs(ctx context.Contex
 		return nil, err
 	}
 
-	items := make([]*bo.MachineInfoBo, 0, len(rows))
+	items := make([]*machine.MachineInfo, 0, len(rows))
 	for _, row := range rows {
 		item, err := convert.ToMachineInfoItemBo(row)
 		if err != nil {
@@ -37,7 +38,7 @@ func (m *machineInfoRepository) GetMachineInfosByMachineUUIDs(ctx context.Contex
 	return items, nil
 }
 
-func (m *machineInfoRepository) GetMachineInfoByMachineUUID(ctx context.Context, machineUUID string) (*bo.MachineInfoBo, error) {
+func (m *machineInfoRepository) GetMachineInfoByMachineUUID(ctx context.Context, machineUUID string) (*machine.MachineInfo, error) {
 	if !m.enabledCollectSelf {
 		return nil, merr.ErrorParams("collect self is not enabled")
 	}
@@ -54,7 +55,7 @@ func (m *machineInfoRepository) GetMachineInfoByMachineUUID(ctx context.Context,
 	return convert.ToMachineInfoItemBo(row)
 }
 
-func (m *machineInfoRepository) UpsertMachineInfos(ctx context.Context, machines []*bo.MachineInfoBo) error {
+func (m *machineInfoRepository) UpsertMachineInfos(ctx context.Context, machines []*machine.MachineInfo) error {
 	if len(machines) == 0 {
 		return nil
 	}
@@ -77,7 +78,7 @@ func (m *machineInfoRepository) UpsertMachineInfos(ctx context.Context, machines
 	return query.MachineInfo.WithContext(ctx).Save(rows...)
 }
 
-func (m *machineInfoRepository) UpdateLocalMachineInfo(ctx context.Context, machine *bo.MachineInfoBo) error {
+func (m *machineInfoRepository) UpdateLocalMachineInfo(ctx context.Context, machine *machine.MachineInfo) error {
 	if !m.enabledCollectSelf {
 		return merr.ErrorParams("collect self is not enabled")
 	}
@@ -100,7 +101,7 @@ func (m *machineInfoRepository) UpdateLocalMachineInfo(ctx context.Context, mach
 	return query.MachineInfo.WithContext(ctx).Where(query.MachineInfo.MachineUUID.Eq(machine.MachineUUID)).Save(row)
 }
 
-func (m *machineInfoRepository) ListMachineInfos(ctx context.Context, req *bo.ListMachineInfosBo) (*bo.PageResponseBo[*bo.MachineInfoBo], error) {
+func (m *machineInfoRepository) ListMachineInfos(ctx context.Context, req *bo.ListMachineInfosBo) (*bo.PageResponseBo[*machine.MachineInfo], error) {
 	if req == nil {
 		return nil, merr.ErrorInvalidArgument("list request is required")
 	}
@@ -124,7 +125,7 @@ func (m *machineInfoRepository) ListMachineInfos(ctx context.Context, req *bo.Li
 		return nil, err
 	}
 
-	items := make([]*bo.MachineInfoBo, 0, len(rows))
+	items := make([]*machine.MachineInfo, 0, len(rows))
 	for _, row := range rows {
 		item, err := convert.ToMachineInfoItemBo(row)
 		if err != nil {

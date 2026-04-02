@@ -5,6 +5,7 @@ import (
 	"context"
 
 	apiv1 "github.com/aide-family/jade_tree/pkg/api/v1"
+	"github.com/aide-family/jade_tree/pkg/machine"
 
 	"github.com/aide-family/jade_tree/internal/biz"
 	"github.com/aide-family/jade_tree/internal/biz/bo"
@@ -33,7 +34,7 @@ func (s *MachineInfoService) ReportMachineInfos(ctx context.Context, req *apiv1.
 		return nil, merr.ErrorInvalidArgument("request is required")
 	}
 
-	incoming := make([]*bo.MachineInfoBo, 0, len(req.GetMachines()))
+	incoming := make([]*machine.MachineInfo, 0, len(req.GetMachines()))
 	for _, mi := range req.GetMachines() {
 		incoming = append(incoming, bo.FromAPIV1MachineInfoReply(mi))
 	}
