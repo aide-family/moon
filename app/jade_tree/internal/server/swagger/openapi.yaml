@@ -18,6 +18,53 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/jade_tree.api.v1.GetMachineInfoReply'
+    /v1/machine-info/report:
+        post:
+            tags:
+                - MachineInfo
+            description: |-
+                ReportMachineInfos persists/merges the reported machines into the receiver's storage.
+                 The receiver should deduplicate by `host.machine_uuid` (machine UUID).
+            operationId: MachineInfo_ReportMachineInfos
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/jade_tree.api.v1.ReportMachineInfosRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.ReportMachineInfosReply'
+    /v1/machine-infos:
+        get:
+            tags:
+                - MachineInfo
+            description: GetClusterMachineInfos returns paginated machines known by the receiver (leader/master node).
+            operationId: MachineInfo_GetClusterMachineInfos
+            parameters:
+                - name: page
+                  in: query
+                  description: page starts from 1.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  description: pageSize is the maximum number of items returned.
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.GetClusterMachineInfosReply'
     /v1/probe-tasks:
         get:
             tags:
@@ -502,6 +549,25 @@ components:
                 timeoutSeconds:
                     type: integer
                     format: int32
+        jade_tree.api.v1.GetClusterMachineInfosReply:
+            type: object
+            properties:
+                machines:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/jade_tree.api.v1.GetMachineInfoReply'
+                    description: machines returns paginated machines known by the receiver.
+                total:
+                    type: string
+                    description: total is the total number of matched machines.
+                page:
+                    type: integer
+                    description: page is the current page (1-based).
+                    format: int32
+                pageSize:
+                    type: integer
+                    description: pageSize is the requested page size.
+                    format: int32
         jade_tree.api.v1.GetMachineInfoReply:
             type: object
             properties:
@@ -660,6 +726,19 @@ components:
                     type: string
                 reason:
                     type: string
+        jade_tree.api.v1.ReportMachineInfosReply:
+            type: object
+            properties: {}
+        jade_tree.api.v1.ReportMachineInfosRequest:
+            type: object
+            properties:
+                machines:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/jade_tree.api.v1.GetMachineInfoReply'
+                    description: |-
+                        machines contains hardware details for each machine.
+                         Receiver deduplicates by `host.machine_uuid`.
         jade_tree.api.v1.SSHCommandAuditItem:
             type: object
             properties:

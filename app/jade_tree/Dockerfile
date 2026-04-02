@@ -1,40 +1,53 @@
-# Multi-stage build - builder stage
-FROM golang:1.25.3-alpine AS builder
+FROM golang:1.25.3 AS builder
 
-# Install required build tools
-RUN apk add --no-cache \
-    protobuf-dev \
-    protoc \
-    git \
-    make
+# Use domestic Go module proxy during image build to avoid timeouts.
+ENV GOPROXY=https://goproxy.cn,direct
+# Disable sumdb lookup to make the build more robust in restricted networks.
+ENV GOSUMDB=off
 
-WORKDIR /moon
+# 安装必要的构建工具
+RUN apt-get update && apt-get install -y \
+    protobuf-compiler
 
-# Copy build files
-COPY Makefile Makefile
+WORKDIR /moon/app/jade_tree
 
-# Initialize environment
+# Copy build files first (to leverage Docker layer cache).
+COPY app/jade_tree/Makefile ./Makefile
+
+# 初始化环境
 RUN make init
 
-# Copy source code
-COPY . .
+# Copy Go module manifest and sources.
+COPY app/jade_tree/go.mod ./go.mod
+COPY app/jade_tree/go.sum ./go.sum
+COPY app/jade_tree/ ./
 
-# Build application
+# Copy shared local modules and proto files required by make api/conf.
+COPY magicbox/ ../../magicbox/
+COPY proto/ ../../proto/
+
+# Build application (go build / proto generation).
 RUN make build
 
-# Runtime stage
-FROM alpine:latest
+# 最终运行阶段 - 使用 Alpine
+FROM debian:stable-slim
 
-# Install runtime dependencies
-RUN apk add --no-cache \
+# 安装运行时依赖
+RUN apt-get update -y && apt-get install -y --no-install-recommends \
+    apt-transport-https \
     ca-certificates \
-    tzdata \
-    && rm -rf /var/cache/apk/*
+    netbase \
+    && apt-get update -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get autoremove -y && apt-get autoclean -y
+
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone
 
 WORKDIR /moon
 
 # Copy binary
-COPY --from=builder /moon/bin/jade_tree /usr/local/bin/jade_tree
+COPY --from=builder /moon/app/jade_tree/bin/jade_tree /usr/local/bin/jade_tree
 
 # Ensure executable permission
 RUN chmod +x /usr/local/bin/jade_tree

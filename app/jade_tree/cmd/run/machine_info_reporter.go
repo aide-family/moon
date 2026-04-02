@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"sync"
@@ -16,6 +17,7 @@ import (
 	"github.com/aide-family/jade_tree/internal/biz"
 	"github.com/aide-family/jade_tree/internal/biz/bo"
 	"github.com/aide-family/jade_tree/internal/conf"
+	apiv1 "github.com/aide-family/jade_tree/pkg/api/v1"
 )
 
 type machineInfoReporter struct {
@@ -103,27 +105,45 @@ func (r *machineInfoReporter) loop() {
 }
 
 func (r *machineInfoReporter) reportOnce(ctx context.Context) {
-	info, err := r.machineInfo.GetMachineInfo(ctx)
+	local, err := r.machineInfo.GetMachineInfo(ctx)
 	if err != nil {
-		r.helper.Errorw("msg", "collect machine info for report failed", "error", err)
+		r.helper.Errorw("msg", "collect local machine info for report failed", "error", err)
 		return
 	}
-	payload, err := protojson.Marshal(bo.ToAPIV1MachineInfoReply(info))
+	if local == nil || local.MachineUUID == "" {
+		r.helper.Warnw("msg", "local machine uuid is empty, skip report")
+		return
+	}
+
+	req := &apiv1.ReportMachineInfosRequest{
+		Machines: make([]*apiv1.GetMachineInfoReply, 0, 1),
+	}
+	req.Machines = append(req.Machines, bo.ToAPIV1MachineInfoReply(local))
+
+	payload, err := protojson.Marshal(req)
 	if err != nil {
 		r.helper.Errorw("msg", "marshal machine info payload failed", "error", err)
 		return
 	}
 	for _, endpoint := range r.endpoints {
-		if err := r.post(ctx, endpoint, payload); err != nil {
+		respPayload, err := r.post(ctx, endpoint, payload)
+		if err != nil {
 			r.helper.Errorw("msg", "report machine info failed", "endpoint", endpoint, "error", err)
+			continue
+		}
+
+		var resp apiv1.ReportMachineInfosReply
+		if err := protojson.Unmarshal(respPayload, &resp); err != nil {
+			r.helper.Errorw("msg", "unmarshal report machine info response failed", "endpoint", endpoint, "error", err)
+			continue
 		}
 	}
 }
 
-func (r *machineInfoReporter) post(ctx context.Context, endpoint string, payload []byte) error {
+func (r *machineInfoReporter) post(ctx context.Context, endpoint string, payload []byte) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(payload))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for key, value := range r.headers {
@@ -134,11 +154,15 @@ func (r *machineInfoReporter) post(ctx context.Context, endpoint string, payload
 	}
 	resp, err := r.client.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer func() { _ = resp.Body.Close() }()
-	if resp.StatusCode >= http.StatusBadRequest {
-		return fmt.Errorf("machine info report endpoint status=%d", resp.StatusCode)
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		return nil, readErr
 	}
-	return nil
+	if resp.StatusCode >= http.StatusBadRequest {
+		return nil, fmt.Errorf("machine info report endpoint status=%d, body=%s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	return body, nil
 }

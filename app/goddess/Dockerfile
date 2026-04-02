@@ -1,12 +1,9 @@
 # 多阶段构建 - 构建阶段
-FROM golang:1.25.3-alpine AS builder
+FROM golang:1.25.3 AS builder
 
 # 安装必要的构建工具
-RUN apk add --no-cache \
-    protobuf-dev \
-    protoc \
-    git \
-    make
+RUN apt-get update && apt-get install -y \
+    protobuf-compiler
 
 WORKDIR /moon
 
@@ -19,20 +16,23 @@ RUN make init
 # 复制源代码
 COPY . .
 
-# RUN git clone https://github.com/aide-family/magicbox.git ../magicbox
-# RUN git clone https://github.com/aide-family/kratos.git ../kratos
-
 # 构建应用
 RUN make build
 
 # 最终运行阶段 - 使用 Alpine
-FROM alpine:latest
+FROM debian:stable-slim
 
 # 安装运行时依赖
-RUN apk add --no-cache \
+RUN apt-get update -y && apt-get install -y --no-install-recommends \
+    apt-transport-https \
     ca-certificates \
-    tzdata \
-    && rm -rf /var/cache/apk/*
+    netbase \
+    && apt-get update -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get autoremove -y && apt-get autoclean -y
+
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone
 
 WORKDIR /moon
 

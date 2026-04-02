@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/aide-family/magicbox/enum"
 	"github.com/denisbrodbeck/machineid"
 	"github.com/jaypipes/ghw"
 	ghost "github.com/shirou/gopsutil/v3/host"
@@ -22,9 +23,11 @@ import (
 	"github.com/aide-family/jade_tree/internal/biz/bo"
 	"github.com/aide-family/jade_tree/internal/biz/repository"
 	"github.com/aide-family/jade_tree/internal/data"
+	"github.com/aide-family/jade_tree/internal/data/impl/query"
 )
 
 func NewMachineInfoRepository(d *data.Data) repository.MachineInfoProvider {
+	query.SetDefault(d.DB())
 	return &machineInfoRepository{Data: d}
 }
 
@@ -35,6 +38,7 @@ type machineInfoRepository struct {
 func (m *machineInfoRepository) Collect(ctx context.Context) (*bo.MachineInfoBo, error) {
 	hostName, _ := os.Hostname()
 	out := &bo.MachineInfoBo{
+		Source:      enum.MachineInfoSource_MachineInfoSource_LOCAL,
 		HostName:    hostName,
 		MachineUUID: machineUUID(),
 	}
@@ -103,6 +107,10 @@ func (m *machineInfoRepository) Collect(ctx context.Context) (*bo.MachineInfoBo,
 	out.System = collectSystemInfo()
 	_ = ctx
 	return out, nil
+}
+
+func (m *machineInfoRepository) GetLocalMachineUUID() string {
+	return machineUUID()
 }
 
 func machineUUID() string {

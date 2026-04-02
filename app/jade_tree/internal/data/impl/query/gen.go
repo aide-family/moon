@@ -17,6 +17,7 @@ import (
 
 var (
 	Q               = new(Query)
+	MachineInfo     *machineInfo
 	ProbeTask       *probeTask
 	SSHCommand      *sSHCommand
 	SSHCommandAudit *sSHCommandAudit
@@ -24,6 +25,7 @@ var (
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
+	MachineInfo = &Q.MachineInfo
 	ProbeTask = &Q.ProbeTask
 	SSHCommand = &Q.SSHCommand
 	SSHCommandAudit = &Q.SSHCommandAudit
@@ -32,6 +34,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:              db,
+		MachineInfo:     newMachineInfo(db, opts...),
 		ProbeTask:       newProbeTask(db, opts...),
 		SSHCommand:      newSSHCommand(db, opts...),
 		SSHCommandAudit: newSSHCommandAudit(db, opts...),
@@ -41,6 +44,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 type Query struct {
 	db *gorm.DB
 
+	MachineInfo     machineInfo
 	ProbeTask       probeTask
 	SSHCommand      sSHCommand
 	SSHCommandAudit sSHCommandAudit
@@ -51,6 +55,7 @@ func (q *Query) Available() bool { return q.db != nil }
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:              db,
+		MachineInfo:     q.MachineInfo.clone(db),
 		ProbeTask:       q.ProbeTask.clone(db),
 		SSHCommand:      q.SSHCommand.clone(db),
 		SSHCommandAudit: q.SSHCommandAudit.clone(db),
@@ -68,6 +73,7 @@ func (q *Query) WriteDB() *Query {
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:              db,
+		MachineInfo:     q.MachineInfo.replaceDB(db),
 		ProbeTask:       q.ProbeTask.replaceDB(db),
 		SSHCommand:      q.SSHCommand.replaceDB(db),
 		SSHCommandAudit: q.SSHCommandAudit.replaceDB(db),
@@ -75,6 +81,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 }
 
 type queryCtx struct {
+	MachineInfo     IMachineInfoDo
 	ProbeTask       IProbeTaskDo
 	SSHCommand      ISSHCommandDo
 	SSHCommandAudit ISSHCommandAuditDo
@@ -82,6 +89,7 @@ type queryCtx struct {
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
+		MachineInfo:     q.MachineInfo.WithContext(ctx),
 		ProbeTask:       q.ProbeTask.WithContext(ctx),
 		SSHCommand:      q.SSHCommand.WithContext(ctx),
 		SSHCommandAudit: q.SSHCommandAudit.WithContext(ctx),

@@ -1,6 +1,11 @@
 package bo
 
-import apiv1 "github.com/aide-family/jade_tree/pkg/api/v1"
+import (
+	"github.com/aide-family/magicbox/enum"
+	"github.com/bwmarrin/snowflake"
+
+	apiv1 "github.com/aide-family/jade_tree/pkg/api/v1"
+)
 
 type MachineCPUCoreBo struct {
 	ID              int32
@@ -69,8 +74,10 @@ type MachineNetworkBo struct {
 }
 
 type MachineInfoBo struct {
+	ID          snowflake.ID
 	HostName    string
 	MachineUUID string
+	Source      enum.MachineInfoSource
 	CPU         *MachineCPUBo
 	Memory      *MachineMemoryBo
 	Disks       []*MachineDiskBo
@@ -83,6 +90,22 @@ type MachineSystemBo struct {
 	OS      string
 	Version string
 	Kernel  string
+}
+
+type ListMachineInfosBo struct {
+	*PageRequestBo
+}
+
+func NewListMachineInfosBo(page, pageSize int32) *ListMachineInfosBo {
+	if page <= 0 {
+		page = 1
+	}
+	if pageSize <= 0 {
+		pageSize = 20
+	}
+	return &ListMachineInfosBo{
+		PageRequestBo: NewPageRequestBo(page, pageSize),
+	}
 }
 
 func ToAPIV1MachineInfoReply(in *MachineInfoBo) *apiv1.GetMachineInfoReply {
@@ -176,5 +199,117 @@ func ToAPIV1MachineInfoReply(in *MachineInfoBo) *apiv1.GetMachineInfoReply {
 			Kernel:  in.System.Kernel,
 		}
 	}
+	return out
+}
+
+func FromAPIV1MachineInfoReply(in *apiv1.GetMachineInfoReply) *MachineInfoBo {
+	if in == nil {
+		return nil
+	}
+
+	out := &MachineInfoBo{}
+	if hostInfo := in.GetHost(); hostInfo != nil {
+		out.HostName = hostInfo.GetHostName()
+		out.MachineUUID = hostInfo.GetMachineUuid()
+	}
+
+	if cpuInfo := in.GetCpu(); cpuInfo != nil {
+		cpu := &MachineCPUBo{
+			TotalCores:          cpuInfo.GetTotalCores(),
+			TotalHardwareThread: cpuInfo.GetTotalHardwareThreads(),
+		}
+		for _, p := range cpuInfo.GetProcessors() {
+			if p == nil {
+				continue
+			}
+			pbo := &MachineCPUProcessorBo{
+				ID:                  p.GetId(),
+				Vendor:              p.GetVendor(),
+				Model:               p.GetModel(),
+				TotalCores:          p.GetTotalCores(),
+				TotalHardwareThread: p.GetTotalHardwareThreads(),
+				Capabilities:        p.GetCapabilities(),
+			}
+			for _, c := range p.GetCores() {
+				if c == nil {
+					continue
+				}
+				pbo.Cores = append(pbo.Cores, &MachineCPUCoreBo{
+					ID:              c.GetId(),
+					HardwareThreads: c.GetHardwareThreads(),
+					LogicalCPU:      c.GetLogicalProcessors(),
+				})
+			}
+			cpu.Processors = append(cpu.Processors, pbo)
+		}
+		out.CPU = cpu
+	}
+
+	if in.GetMemory() != nil {
+		out.Memory = &MachineMemoryBo{
+			TotalPhysicalBytes: in.GetMemory().GetTotalPhysicalBytes(),
+			TotalUsableBytes:   in.GetMemory().GetTotalUsableBytes(),
+			SupportedPageSizes: in.GetMemory().GetSupportedPageSizes(),
+			UsedBytes:          in.GetMemory().GetUsedBytes(),
+			FreeBytes:          in.GetMemory().GetFreeBytes(),
+			SharedBytes:        in.GetMemory().GetSharedBytes(),
+			BuffCacheBytes:     in.GetMemory().GetBuffCacheBytes(),
+			AvailableBytes:     in.GetMemory().GetAvailableBytes(),
+			SwapTotalBytes:     in.GetMemory().GetSwapTotalBytes(),
+			SwapUsedBytes:      in.GetMemory().GetSwapUsedBytes(),
+			SwapFreeBytes:      in.GetMemory().GetSwapFreeBytes(),
+		}
+	}
+
+	for _, d := range in.GetDisks() {
+		if d == nil {
+			continue
+		}
+		item := &MachineDiskBo{
+			Name:         d.GetName(),
+			Type:         d.GetType(),
+			SizeBytes:    d.GetSizeBytes(),
+			Vendor:       d.GetVendor(),
+			Model:        d.GetModel(),
+			SerialNumber: d.GetSerialNumber(),
+			WWN:          d.GetWwn(),
+		}
+		for _, m := range d.GetMounts() {
+			if m == nil {
+				continue
+			}
+			item.Mounts = append(item.Mounts, &MachineDiskMountBo{
+				MountPoint: m.GetMountPoint(),
+				FSType:     m.GetFsType(),
+				TotalBytes: m.GetTotalBytes(),
+				UsedBytes:  m.GetUsedBytes(),
+				FreeBytes:  m.GetFreeBytes(),
+				FreeRate:   m.GetFreeRate(),
+			})
+		}
+		out.Disks = append(out.Disks, item)
+	}
+
+	if networkInfo := in.GetNetwork(); networkInfo != nil {
+		out.Network = &MachineNetworkBo{
+			LocalIP:      networkInfo.GetLocalIp(),
+			OutboundIP:   networkInfo.GetOutboundIp(),
+			CIDR:         networkInfo.GetCidr(),
+			DNSServers:   networkInfo.GetDnsServers(),
+			TotalRXBytes: networkInfo.GetTotalRxBytes(),
+			TotalTXBytes: networkInfo.GetTotalTxBytes(),
+			NICs:         networkInfo.GetNics(),
+		}
+	}
+
+	if systemInfo := in.GetSystem(); systemInfo != nil {
+		out.System = &MachineSystemBo{
+			Arch:    systemInfo.GetArch(),
+			OS:      systemInfo.GetOs(),
+			Version: systemInfo.GetVersion(),
+			Kernel:  systemInfo.GetKernel(),
+		}
+	}
+
 	return out
 }

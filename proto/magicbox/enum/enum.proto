@@ -20,6 +20,15 @@ enum GlobalStatus {
 	DISABLED = 2;
 }
 
+// MachineInfoSource marks the origin of a stored machine profile.
+// ORIGIN: reported by other machines.
+// LOCAL: collected from the receiver/leader itself.
+enum MachineInfoSource {
+	MachineInfoSource_UNKNOWN = 0;
+	MachineInfoSource_ORIGIN = 1;
+	MachineInfoSource_LOCAL = 2;
+}
+
 enum LevelType {
 	LEVEL_TYPE_UNKNOWN = 0;
 	LEVEL_TYPE_ALERT = 1;

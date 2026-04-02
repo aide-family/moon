@@ -12,6 +12,7 @@ import (
 
 func Models() []any {
 	return []any{
+		&MachineInfo{},
 		&SSHCommand{},
 		&SSHCommandAudit{},
 		&ProbeTask{},

@@ -9,7 +9,7 @@ Jade Tree 是 Moon 的 Agent 运行时服务。
 - 面向生产采用 RPM + `systemctl` 的运维方式。
 - 管理预置 SSH 命令模板：新增与变更需走审核；审核通过后写入正式命令表；可按模板在远端执行。
 - 提供部署机器基础信息采集能力（CPU、内存、磁盘与挂载点、网络、主机名、系统基础信息）。
-- 支持按配置定时向指定 HTTP 端点主动上报机器基础信息。
+- 支持按配置定时向指定 HTTP 端点主动上报本机机器基础信息。
 - 以 Prometheus metrics 方式暴露探测能力（`probe_tcp_*`、`probe_http_*`、`probe_port_*`、`probe_tls_cert_*`）。
 
 ## 架构
@@ -45,6 +45,8 @@ API 定义位于 `proto/jade_tree/api/v1/`；生成代码在 `pkg/api/v1/`。修
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-audits/{uid}/reject` | 驳回审核并填写原因 |
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-commands/{command_uid}/execute` | 选择已生效命令，携带主机与凭证在远端执行 |
 | `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-info` | 获取部署机器详情（CPU、内存、磁盘+挂载点容量、网络、主机名、机器唯一标识、架构/系统/版本/内核） |
+| `jade_tree.api.v1.MachineInfo` | `POST /v1/machine-info/report` | 上报机器信息（按机器唯一标识去重合并并落库）；返回空响应 |
+| `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-infos` | 获取接收方/主节点已知的机器信息（去重合并，按 `page`/`pageSize` 分页） |
 | `jade_tree.api.v1.ProbeTask` | `POST /v1/probe-tasks` | 新增数据库探测任务 |
 | `jade_tree.api.v1.ProbeTask` | `PUT /v1/probe-tasks/{uid}` | 更新探测任务字段（`type/host/port/url/name/timeoutSeconds`） |
 | `jade_tree.api.v1.ProbeTask` | `PATCH /v1/probe-tasks/{uid}/status` | 状态管理（`ENABLED` / `DISABLED`） |

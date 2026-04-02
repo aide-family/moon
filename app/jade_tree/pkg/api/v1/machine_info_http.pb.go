@@ -19,15 +19,24 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationMachineInfoGetClusterMachineInfos = "/jade_tree.api.v1.MachineInfo/GetClusterMachineInfos"
 const OperationMachineInfoGetMachineInfo = "/jade_tree.api.v1.MachineInfo/GetMachineInfo"
+const OperationMachineInfoReportMachineInfos = "/jade_tree.api.v1.MachineInfo/ReportMachineInfos"
 
 type MachineInfoHTTPServer interface {
+	// GetClusterMachineInfos GetClusterMachineInfos returns paginated machines known by the receiver (leader/master node).
+	GetClusterMachineInfos(context.Context, *GetClusterMachineInfosRequest) (*GetClusterMachineInfosReply, error)
 	GetMachineInfo(context.Context, *GetMachineInfoRequest) (*GetMachineInfoReply, error)
+	// ReportMachineInfos ReportMachineInfos persists/merges the reported machines into the receiver's storage.
+	// The receiver should deduplicate by `host.machine_uuid` (machine UUID).
+	ReportMachineInfos(context.Context, *ReportMachineInfosRequest) (*ReportMachineInfosReply, error)
 }
 
 func RegisterMachineInfoHTTPServer(s *http.Server, srv MachineInfoHTTPServer) {
 	r := s.Route("/")
 	r.GET("/v1/machine-info", _MachineInfo_GetMachineInfo0_HTTP_Handler(srv))
+	r.POST("/v1/machine-info/report", _MachineInfo_ReportMachineInfos0_HTTP_Handler(srv))
+	r.GET("/v1/machine-infos", _MachineInfo_GetClusterMachineInfos0_HTTP_Handler(srv))
 }
 
 func _MachineInfo_GetMachineInfo0_HTTP_Handler(srv MachineInfoHTTPServer) func(ctx http.Context) error {
@@ -49,8 +58,54 @@ func _MachineInfo_GetMachineInfo0_HTTP_Handler(srv MachineInfoHTTPServer) func(c
 	}
 }
 
+func _MachineInfo_ReportMachineInfos0_HTTP_Handler(srv MachineInfoHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ReportMachineInfosRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMachineInfoReportMachineInfos)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ReportMachineInfos(ctx, req.(*ReportMachineInfosRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ReportMachineInfosReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MachineInfo_GetClusterMachineInfos0_HTTP_Handler(srv MachineInfoHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetClusterMachineInfosRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMachineInfoGetClusterMachineInfos)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetClusterMachineInfos(ctx, req.(*GetClusterMachineInfosRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetClusterMachineInfosReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type MachineInfoHTTPClient interface {
+	// GetClusterMachineInfos GetClusterMachineInfos returns paginated machines known by the receiver (leader/master node).
+	GetClusterMachineInfos(ctx context.Context, req *GetClusterMachineInfosRequest, opts ...http.CallOption) (rsp *GetClusterMachineInfosReply, err error)
 	GetMachineInfo(ctx context.Context, req *GetMachineInfoRequest, opts ...http.CallOption) (rsp *GetMachineInfoReply, err error)
+	// ReportMachineInfos ReportMachineInfos persists/merges the reported machines into the receiver's storage.
+	// The receiver should deduplicate by `host.machine_uuid` (machine UUID).
+	ReportMachineInfos(ctx context.Context, req *ReportMachineInfosRequest, opts ...http.CallOption) (rsp *ReportMachineInfosReply, err error)
 }
 
 type MachineInfoHTTPClientImpl struct {
@@ -61,6 +116,20 @@ func NewMachineInfoHTTPClient(client *http.Client) MachineInfoHTTPClient {
 	return &MachineInfoHTTPClientImpl{client}
 }
 
+// GetClusterMachineInfos GetClusterMachineInfos returns paginated machines known by the receiver (leader/master node).
+func (c *MachineInfoHTTPClientImpl) GetClusterMachineInfos(ctx context.Context, in *GetClusterMachineInfosRequest, opts ...http.CallOption) (*GetClusterMachineInfosReply, error) {
+	var out GetClusterMachineInfosReply
+	pattern := "/v1/machine-infos"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationMachineInfoGetClusterMachineInfos))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *MachineInfoHTTPClientImpl) GetMachineInfo(ctx context.Context, in *GetMachineInfoRequest, opts ...http.CallOption) (*GetMachineInfoReply, error) {
 	var out GetMachineInfoReply
 	pattern := "/v1/machine-info"
@@ -68,6 +137,21 @@ func (c *MachineInfoHTTPClientImpl) GetMachineInfo(ctx context.Context, in *GetM
 	opts = append(opts, http.Operation(OperationMachineInfoGetMachineInfo))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ReportMachineInfos ReportMachineInfos persists/merges the reported machines into the receiver's storage.
+// The receiver should deduplicate by `host.machine_uuid` (machine UUID).
+func (c *MachineInfoHTTPClientImpl) ReportMachineInfos(ctx context.Context, in *ReportMachineInfosRequest, opts ...http.CallOption) (*ReportMachineInfosReply, error) {
+	var out ReportMachineInfosReply
+	pattern := "/v1/machine-info/report"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationMachineInfoReportMachineInfos))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

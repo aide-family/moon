@@ -80,6 +80,13 @@ build-linux: all
 	@echo "Building jade_tree (Linux)"
 	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/jade_tree main.go
 
+.PHONY: build-docker
+build-docker:
+	@echo "Building jade_tree docker image"
+	# Build with repo root as context so Docker can access `proto/` and `magicbox/`
+	# referenced by this app's Makefile (e.g. `../../proto`).
+	docker build -f Dockerfile -t jade_tree:$(VERSION) ../..
+
 .PHONY: dev
 dev:
 	@echo "Running jade_tree in development mode"

@@ -9,7 +9,7 @@ Jade Tree is the Moon agent runtime service.
 - Support RPM + `systemctl` based production operations.
 - Manage predefined SSH command templates with an approval workflow, then execute them against remote hosts.
 - Collect deployment machine profile details (CPU, memory, disk/mount usage, network, hostname, and system basics).
-- Actively report machine profile details to configured HTTP endpoints on schedule.
+- Actively report local machine profile to configured HTTP endpoints on schedule.
 - Expose probe metrics in Prometheus format (`probe_tcp_*`, `probe_http_*`, `probe_port_*`, `probe_tls_cert_*`) on `/metrics`.
 
 ## Architecture
@@ -45,6 +45,8 @@ API definitions live under `proto/jade_tree/api/v1/`; generated Go code is in `p
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-audits/{uid}/reject` | Reject pending audit with a reason |
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-commands/{command_uid}/execute` | Run stored command on a remote host (host, credentials, optional timeout in body) |
 | `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-info` | Get deployment machine details (CPU, memory, disk+mount usage, network, hostname, machine UUID, arch/os/version/kernel) |
+| `jade_tree.api.v1.MachineInfo` | `POST /v1/machine-info/report` | Report machines (deduped by machine UUID) and persist; empty response |
+| `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-infos` | List machines known by the receiver/leader (deduped by machine UUID, paginated by `page`/`pageSize`) |
 | `jade_tree.api.v1.ProbeTask` | `POST /v1/probe-tasks` | Create a probe task persisted in database |
 | `jade_tree.api.v1.ProbeTask` | `PUT /v1/probe-tasks/{uid}` | Update a probe task fields (`type/host/port/url/name/timeoutSeconds`) |
 | `jade_tree.api.v1.ProbeTask` | `PATCH /v1/probe-tasks/{uid}/status` | Manage probe task status (`ENABLED` / `DISABLED`) |

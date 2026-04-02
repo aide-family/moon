@@ -15,9 +15,56 @@ service MachineInfo {
       get: "/v1/machine-info"
     };
   }
+
+  // ReportMachineInfos persists/merges the reported machines into the receiver's storage.
+  // The receiver should deduplicate by `host.machine_uuid` (machine UUID).
+  rpc ReportMachineInfos (ReportMachineInfosRequest) returns (ReportMachineInfosReply) {
+    option (google.api.http) = {
+      post: "/v1/machine-info/report"
+      body: "*"
+    };
+  }
+
+  // GetClusterMachineInfos returns paginated machines known by the receiver (leader/master node).
+  rpc GetClusterMachineInfos (GetClusterMachineInfosRequest) returns (GetClusterMachineInfosReply) {
+    option (google.api.http) = {
+      get: "/v1/machine-infos"
+    };
+  }
 }
 
 message GetMachineInfoRequest {}
+
+message ReportMachineInfosRequest {
+  // machines contains hardware details for each machine.
+  // Receiver deduplicates by `host.machine_uuid`.
+  repeated GetMachineInfoReply machines = 1;
+}
+
+message ReportMachineInfosReply {
+  // Empty reply. Receiver persists/merges machines into its storage.
+}
+
+message GetClusterMachineInfosRequest {
+  // page starts from 1.
+  int32 page = 1;
+  // pageSize is the maximum number of items returned.
+  int32 pageSize = 2;
+}
+
+message GetClusterMachineInfosReply {
+  // machines returns paginated machines known by the receiver.
+  repeated GetMachineInfoReply machines = 1;
+
+  // total is the total number of matched machines.
+  int64 total = 2;
+
+  // page is the current page (1-based).
+  int32 page = 3;
+
+  // pageSize is the requested page size.
+  int32 pageSize = 4;
+}
 
 message CPUCoreItem {
   int32 id = 1;

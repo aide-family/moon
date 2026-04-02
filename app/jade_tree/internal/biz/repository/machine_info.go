@@ -6,7 +6,27 @@ import (
 	"github.com/aide-family/jade_tree/internal/biz/bo"
 )
 
-// MachineInfoProvider collects host runtime machine information.
+// MachineInfoProvider collects local machine info and persists/queries cluster machine info.
 type MachineInfoProvider interface {
+	// GetLocalMachineUUID returns the stable local machine UUID without collecting full machine info.
+	GetLocalMachineUUID() string
+
+	// Collect collects the local machine info.
 	Collect(ctx context.Context) (*bo.MachineInfoBo, error)
+
+	// GetMachineInfosByMachineUUIDs fetches existing machines by machine UUID.
+	// It is used to implement merge semantics on reported payloads.
+	GetMachineInfosByMachineUUIDs(ctx context.Context, machineUUIDs []string) ([]*bo.MachineInfoBo, error)
+
+	// GetMachineInfoByMachineUUID fetches a machine by machine UUID.
+	GetMachineInfoByMachineUUID(ctx context.Context, machineUUID string) (*bo.MachineInfoBo, error)
+
+	// UpsertMachineInfos persists (insert or update) machines into storage.
+	UpsertMachineInfos(ctx context.Context, machines []*bo.MachineInfoBo) error
+
+	// UpdateLocalMachineInfo persists the local machine info.
+	UpdateLocalMachineInfo(ctx context.Context, machine *bo.MachineInfoBo) error
+
+	// ListMachineInfos returns a paginated view of machines in storage.
+	ListMachineInfos(ctx context.Context, req *bo.ListMachineInfosBo) (*bo.PageResponseBo[*bo.MachineInfoBo], error)
 }

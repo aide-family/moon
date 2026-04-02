@@ -19,7 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MachineInfo_GetMachineInfo_FullMethodName = "/jade_tree.api.v1.MachineInfo/GetMachineInfo"
+	MachineInfo_GetMachineInfo_FullMethodName         = "/jade_tree.api.v1.MachineInfo/GetMachineInfo"
+	MachineInfo_ReportMachineInfos_FullMethodName     = "/jade_tree.api.v1.MachineInfo/ReportMachineInfos"
+	MachineInfo_GetClusterMachineInfos_FullMethodName = "/jade_tree.api.v1.MachineInfo/GetClusterMachineInfos"
 )
 
 // MachineInfoClient is the client API for MachineInfo service.
@@ -29,6 +31,11 @@ const (
 // MachineInfo provides host hardware and system profile details.
 type MachineInfoClient interface {
 	GetMachineInfo(ctx context.Context, in *GetMachineInfoRequest, opts ...grpc.CallOption) (*GetMachineInfoReply, error)
+	// ReportMachineInfos persists/merges the reported machines into the receiver's storage.
+	// The receiver should deduplicate by `host.machine_uuid` (machine UUID).
+	ReportMachineInfos(ctx context.Context, in *ReportMachineInfosRequest, opts ...grpc.CallOption) (*ReportMachineInfosReply, error)
+	// GetClusterMachineInfos returns paginated machines known by the receiver (leader/master node).
+	GetClusterMachineInfos(ctx context.Context, in *GetClusterMachineInfosRequest, opts ...grpc.CallOption) (*GetClusterMachineInfosReply, error)
 }
 
 type machineInfoClient struct {
@@ -49,6 +56,26 @@ func (c *machineInfoClient) GetMachineInfo(ctx context.Context, in *GetMachineIn
 	return out, nil
 }
 
+func (c *machineInfoClient) ReportMachineInfos(ctx context.Context, in *ReportMachineInfosRequest, opts ...grpc.CallOption) (*ReportMachineInfosReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReportMachineInfosReply)
+	err := c.cc.Invoke(ctx, MachineInfo_ReportMachineInfos_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *machineInfoClient) GetClusterMachineInfos(ctx context.Context, in *GetClusterMachineInfosRequest, opts ...grpc.CallOption) (*GetClusterMachineInfosReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetClusterMachineInfosReply)
+	err := c.cc.Invoke(ctx, MachineInfo_GetClusterMachineInfos_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MachineInfoServer is the server API for MachineInfo service.
 // All implementations must embed UnimplementedMachineInfoServer
 // for forward compatibility.
@@ -56,6 +83,11 @@ func (c *machineInfoClient) GetMachineInfo(ctx context.Context, in *GetMachineIn
 // MachineInfo provides host hardware and system profile details.
 type MachineInfoServer interface {
 	GetMachineInfo(context.Context, *GetMachineInfoRequest) (*GetMachineInfoReply, error)
+	// ReportMachineInfos persists/merges the reported machines into the receiver's storage.
+	// The receiver should deduplicate by `host.machine_uuid` (machine UUID).
+	ReportMachineInfos(context.Context, *ReportMachineInfosRequest) (*ReportMachineInfosReply, error)
+	// GetClusterMachineInfos returns paginated machines known by the receiver (leader/master node).
+	GetClusterMachineInfos(context.Context, *GetClusterMachineInfosRequest) (*GetClusterMachineInfosReply, error)
 	mustEmbedUnimplementedMachineInfoServer()
 }
 
@@ -68,6 +100,12 @@ type UnimplementedMachineInfoServer struct{}
 
 func (UnimplementedMachineInfoServer) GetMachineInfo(context.Context, *GetMachineInfoRequest) (*GetMachineInfoReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMachineInfo not implemented")
+}
+func (UnimplementedMachineInfoServer) ReportMachineInfos(context.Context, *ReportMachineInfosRequest) (*ReportMachineInfosReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReportMachineInfos not implemented")
+}
+func (UnimplementedMachineInfoServer) GetClusterMachineInfos(context.Context, *GetClusterMachineInfosRequest) (*GetClusterMachineInfosReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetClusterMachineInfos not implemented")
 }
 func (UnimplementedMachineInfoServer) mustEmbedUnimplementedMachineInfoServer() {}
 func (UnimplementedMachineInfoServer) testEmbeddedByValue()                     {}
@@ -108,6 +146,42 @@ func _MachineInfo_GetMachineInfo_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MachineInfo_ReportMachineInfos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReportMachineInfosRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MachineInfoServer).ReportMachineInfos(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MachineInfo_ReportMachineInfos_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MachineInfoServer).ReportMachineInfos(ctx, req.(*ReportMachineInfosRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MachineInfo_GetClusterMachineInfos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetClusterMachineInfosRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MachineInfoServer).GetClusterMachineInfos(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MachineInfo_GetClusterMachineInfos_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MachineInfoServer).GetClusterMachineInfos(ctx, req.(*GetClusterMachineInfosRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MachineInfo_ServiceDesc is the grpc.ServiceDesc for MachineInfo service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -118,6 +192,14 @@ var MachineInfo_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMachineInfo",
 			Handler:    _MachineInfo_GetMachineInfo_Handler,
+		},
+		{
+			MethodName: "ReportMachineInfos",
+			Handler:    _MachineInfo_ReportMachineInfos_Handler,
+		},
+		{
+			MethodName: "GetClusterMachineInfos",
+			Handler:    _MachineInfo_GetClusterMachineInfos_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
