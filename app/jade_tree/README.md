@@ -28,7 +28,7 @@ API definitions live under `proto/jade_tree/api/v1/`; generated Go code is in `p
 
 - **Database** (`bootstrap.database` in `config/server.yaml`) is **required**. SQLite is the default for local development; use MySQL or PostgreSQL in production by switching `dialector` and `options` (same shape as other Moon apps).
 - Tables `ssh_commands` and `ssh_command_audits` are created via GORM `AutoMigrate` on startup.
-- Active machine info reporting is configured by `bootstrap.machineInfoReport` (`enabled`, `interval`, `timeout`, `endpoints`, and optional request `headers`).
+- Active machine info reporting is configured by `bootstrap.machineInfoReport` (`enabled`, `collectSelfData`, `interval`, `timeout`, `endpoints`, and optional request `headers`).
 
 ## API Overview
 

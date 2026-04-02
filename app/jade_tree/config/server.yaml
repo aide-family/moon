@@ -63,6 +63,9 @@ probe:
       # name: jade_tree_http
       timeoutSeconds: 5
 
+collectSelf:
+  enabled: ${MOON_JADE_TREE_COLLECT_SELF_ENABLED:true}
+  timeout: '${MOON_JADE_TREE_COLLECT_SELF_TIMEOUT:60s}'
 machineInfoReport:
   enabled: ${MOON_JADE_TREE_MACHINE_INFO_REPORT_ENABLED:false}
   interval: '${MOON_JADE_TREE_MACHINE_INFO_REPORT_INTERVAL:600s}'

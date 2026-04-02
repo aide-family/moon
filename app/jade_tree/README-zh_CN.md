@@ -28,7 +28,7 @@ API 定义位于 `proto/jade_tree/api/v1/`；生成代码在 `pkg/api/v1/`。修
 
 - **数据库**（`config/server.yaml` 中的 `bootstrap.database`）为**必填**。默认示例为 SQLite，本地开发可直接使用；生产可改为 MySQL / PostgreSQL（`dialector` 与 `options` 结构与其他 Moon 应用一致）。
 - 表 `ssh_commands`（已审核通过的命令）与 `ssh_command_audits`（审核单）在进程启动时通过 GORM `AutoMigrate` 创建/迁移。
-- 机器信息主动上报由 `bootstrap.machineInfoReport` 控制（`enabled`、`interval`、`timeout`、`endpoints` 以及可选 `headers`）。
+- 机器信息主动上报由 `bootstrap.machineInfoReport` 控制（`enabled`、`collectSelfData`、`interval`、`timeout`、`endpoints` 以及可选 `headers`）。
 
 ## 接口概览
 

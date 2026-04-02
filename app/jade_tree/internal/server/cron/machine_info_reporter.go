@@ -11,9 +11,7 @@ import (
 	"time"
 
 	mcron "github.com/aide-family/magicbox/server/cron"
-	"github.com/aide-family/magicbox/strutil"
 	klog "github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/transport"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/aide-family/jade_tree/internal/biz"
@@ -22,74 +20,37 @@ import (
 	apiv1 "github.com/aide-family/jade_tree/pkg/api/v1"
 )
 
-var _ transport.Server = (*MachineInfoReporterServer)(nil)
-
-func NewMachineInfoReporterServer(bc *conf.Bootstrap, machineInfoBiz *biz.MachineInfo, helper *klog.Helper) *MachineInfoReporterServer {
+func NewMachineInfoReporterJob(bc *conf.Bootstrap, machineInfoBiz *biz.MachineInfo, helper *klog.Helper) *machineInfoReportJob {
 	reportCfg := bc.GetMachineInfoReport()
-	endpoints := make([]string, 0, len(reportCfg.GetEndpoints()))
-	for _, endpoint := range reportCfg.GetEndpoints() {
-		if s := strings.TrimSpace(endpoint); s != "" {
-			endpoints = append(endpoints, s)
-		}
-	}
-	enabled := strings.EqualFold(reportCfg.GetEnabled(), "true") && len(endpoints) > 0
-	timeout := reportCfg.GetTimeout().AsDuration()
-	if timeout <= 0 {
-		timeout = 5 * time.Second
-	}
-	interval := reportCfg.GetInterval().AsDuration()
-	if interval <= 0 {
-		interval = 10 * time.Minute
-	}
-
-	if !enabled {
-		return &MachineInfoReporterServer{
-			disabled: true,
-			helper:   helper,
+	enabledReport, reportInterval, reportTimeout := false, 60*time.Second, 60*time.Second
+	var endpoints []string
+	if reportCfg := bc.GetMachineInfoReport(); reportCfg != nil {
+		enabledReport = strings.EqualFold(reportCfg.GetEnabled(), "true")
+		reportInterval = reportCfg.GetInterval().AsDuration()
+		reportTimeout = reportCfg.GetTimeout().AsDuration()
+		endpoints = make([]string, 0, len(reportCfg.GetEndpoints()))
+		for _, endpoint := range reportCfg.GetEndpoints() {
+			if s := strings.TrimSpace(endpoint); s != "" {
+				endpoints = append(endpoints, s)
+			}
 		}
 	}
 
-	reportJob := &machineInfoReportJob{
+	return &machineInfoReportJob{
+		enabled:     enabledReport && len(endpoints) > 0,
 		index:       "jade-tree-machine-info-reporter",
-		spec:        mcron.CronSpecEvery(interval),
+		spec:        mcron.CronSpecEvery(reportInterval),
 		isImmediate: true,
 		endpoints:   endpoints,
 		headers:     reportCfg.GetHeaders(),
-		client:      &http.Client{Timeout: timeout},
+		client:      &http.Client{Timeout: reportTimeout},
 		machineInfo: machineInfoBiz,
 		helper:      helper,
 	}
-
-	return &MachineInfoReporterServer{
-		Server: mcron.New("jade-tree-machine-info-reporter", helper.Logger(), mcron.WithCronJobs(reportJob)),
-		helper: helper,
-	}
-}
-
-type MachineInfoReporterServer struct {
-	*mcron.Server
-	disabled bool
-	helper   *klog.Helper
-}
-
-func (s *MachineInfoReporterServer) Start(ctx context.Context) error {
-	if s.disabled {
-		s.helper.WithContext(ctx).Warnf("[MachineInfoReporter] is not enabled")
-		return nil
-	}
-	s.helper.WithContext(ctx).Infow("msg", "[MachineInfoReporter] started")
-	return s.Server.Start(ctx)
-}
-
-func (s *MachineInfoReporterServer) Stop(ctx context.Context) error {
-	if s.disabled {
-		return nil
-	}
-	defer s.helper.WithContext(ctx).Infow("msg", "[MachineInfoReporter] stopped")
-	return s.Server.Stop(ctx)
 }
 
 type machineInfoReportJob struct {
+	enabled     bool
 	index       string
 	spec        mcron.CronSpec
 	isImmediate bool
@@ -104,38 +65,50 @@ type machineInfoReportJob struct {
 func (j *machineInfoReportJob) Index() string        { return j.index }
 func (j *machineInfoReportJob) Spec() mcron.CronSpec { return j.spec }
 func (j *machineInfoReportJob) IsImmediate() bool    { return j.isImmediate }
-func (j *machineInfoReportJob) Run()                 { j.reportOnce(context.Background()) }
+func (j *machineInfoReportJob) Run() {
+	if !j.enabled {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), j.client.Timeout)
+	defer cancel()
+	j.reportOnce(ctx)
+}
 
 func (j *machineInfoReportJob) reportOnce(ctx context.Context) {
-	local, err := j.machineInfo.RefreshLocalMachineInfo(ctx)
-	if err != nil {
-		j.helper.Errorw("msg", "refresh local machine info failed", "error", err)
-		return
+	req := &bo.ListMachineInfosBo{
+		PageRequestBo: bo.NewPageRequestBo(1, 100),
 	}
-	if local == nil || strutil.IsEmpty(local.MachineUUID) {
-		j.helper.Warnw("msg", "local machine uuid is empty, skip report")
-		return
-	}
-
-	req := &apiv1.ReportMachineInfosRequest{
-		Machines: []*apiv1.GetMachineInfoReply{bo.ToAPIV1MachineInfoReply(local)},
-	}
-	payload, err := protojson.Marshal(req)
-	if err != nil {
-		j.helper.Errorw("msg", "marshal machine info payload failed", "error", err)
-		return
-	}
-
-	for _, endpoint := range j.endpoints {
-		respPayload, postErr := j.post(ctx, endpoint, payload)
-		if postErr != nil {
-			j.helper.Errorw("msg", "report machine info failed", "endpoint", endpoint, "error", postErr)
+	for {
+		pages, err := j.machineInfo.ListClusterMachineInfos(ctx, req)
+		if err != nil {
+			j.helper.Errorw("msg", "list cluster machine infos failed", "error", err)
+			time.Sleep(10 * time.Second)
 			continue
 		}
-		var resp apiv1.ReportMachineInfosReply
-		if err := protojson.Unmarshal(respPayload, &resp); err != nil {
-			j.helper.Errorw("msg", "unmarshal report machine info response failed", "endpoint", endpoint, "error", err)
+		machines := make([]*apiv1.GetMachineInfoReply, 0, len(pages.GetItems()))
+		for _, machine := range pages.GetItems() {
+			machines = append(machines, bo.ToAPIV1MachineInfoReply(machine))
 		}
+
+		payload, err := protojson.Marshal(&apiv1.ReportMachineInfosRequest{
+			Machines: machines,
+		})
+		if err != nil {
+			j.helper.Errorw("msg", "marshal report machine info payload failed", "error", err)
+			continue
+		}
+		for _, endpoint := range j.endpoints {
+			respPayload, postErr := j.post(ctx, endpoint, payload)
+			if postErr != nil {
+				j.helper.Errorw("msg", "report machine info failed", "endpoint", endpoint, "error", postErr)
+				continue
+			}
+			j.helper.Debugw("msg", "report machine info success", "endpoint", endpoint, "response", string(respPayload))
+		}
+		if len(machines) == 0 || len(machines) < int(pages.GetPageSize()) {
+			break
+		}
+		req.Page++
 	}
 }
 

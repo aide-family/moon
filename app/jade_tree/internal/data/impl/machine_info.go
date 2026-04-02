@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/aide-family/magicbox/enum"
+	"github.com/aide-family/magicbox/merr"
 	"github.com/denisbrodbeck/machineid"
 	"github.com/jaypipes/ghw"
 	ghost "github.com/shirou/gopsutil/v3/host"
@@ -22,20 +23,29 @@ import (
 
 	"github.com/aide-family/jade_tree/internal/biz/bo"
 	"github.com/aide-family/jade_tree/internal/biz/repository"
+	"github.com/aide-family/jade_tree/internal/conf"
 	"github.com/aide-family/jade_tree/internal/data"
 	"github.com/aide-family/jade_tree/internal/data/impl/query"
 )
 
-func NewMachineInfoRepository(d *data.Data) repository.MachineInfoProvider {
+func NewMachineInfoRepository(bc *conf.Bootstrap, d *data.Data) repository.MachineInfoProvider {
 	query.SetDefault(d.DB())
-	return &machineInfoRepository{Data: d}
+	var enabledCollectSelf bool
+	if bc != nil && bc.GetCollectSelf() != nil {
+		enabledCollectSelf = strings.EqualFold(bc.GetCollectSelf().GetEnabled(), "true")
+	}
+	return &machineInfoRepository{Data: d, enabledCollectSelf: enabledCollectSelf}
 }
 
 type machineInfoRepository struct {
 	*data.Data
+	enabledCollectSelf bool
 }
 
 func (m *machineInfoRepository) Collect(ctx context.Context) (*bo.MachineInfoBo, error) {
+	if !m.enabledCollectSelf {
+		return nil, merr.ErrorParams("collect self is not enabled")
+	}
 	hostName, _ := os.Hostname()
 	out := &bo.MachineInfoBo{
 		Source:      enum.MachineInfoSource_MachineInfoSource_LOCAL,

@@ -29,7 +29,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	}
 	httpServer := server.NewHTTPServer(bc, helper)
 	grpcServer := server.NewGRPCServer(bc, helper)
-	machineInfoProvider := impl.NewMachineInfoRepository(dataData)
+	machineInfoProvider := impl.NewMachineInfoRepository(bc, dataData)
 	machineInfo := biz.NewMachineInfo(machineInfoProvider, helper)
 	machineInfoReporterServer := cron.NewMachineInfoReporterServer(bc, machineInfo, helper)
 	health := impl.NewHealthRepository(dataData)

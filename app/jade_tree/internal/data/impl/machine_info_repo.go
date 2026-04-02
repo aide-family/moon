@@ -38,6 +38,9 @@ func (m *machineInfoRepository) GetMachineInfosByMachineUUIDs(ctx context.Contex
 }
 
 func (m *machineInfoRepository) GetMachineInfoByMachineUUID(ctx context.Context, machineUUID string) (*bo.MachineInfoBo, error) {
+	if !m.enabledCollectSelf {
+		return nil, merr.ErrorParams("collect self is not enabled")
+	}
 	if machineUUID == "" {
 		return nil, merr.ErrorInvalidArgument("machine uuid is required")
 	}
@@ -75,6 +78,9 @@ func (m *machineInfoRepository) UpsertMachineInfos(ctx context.Context, machines
 }
 
 func (m *machineInfoRepository) UpdateLocalMachineInfo(ctx context.Context, machine *bo.MachineInfoBo) error {
+	if !m.enabledCollectSelf {
+		return merr.ErrorParams("collect self is not enabled")
+	}
 	if machine == nil || machine.MachineUUID == "" {
 		return merr.ErrorInvalidArgument("machine is required")
 	}
