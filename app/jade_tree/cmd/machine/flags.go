@@ -22,6 +22,14 @@ func (f *machineCommonFlags) addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&f.ConfigPath, "config", defaultClientConfigPath, "client config path")
 }
 
+// addPersistentFlags registers common flags on cmd so child subcommands inherit them.
+func (f *machineCommonFlags) addPersistentFlags(cmd *cobra.Command) {
+	cmd.PersistentFlags().StringVarP(&f.Output, "output", "o", "table", "output format: table|json|yaml")
+	cmd.PersistentFlags().DurationVar(&f.Timeout, "timeout", 15*time.Second, "HTTP request timeout")
+	cmd.PersistentFlags().StringVar(&f.JWT, "jwt", "", "JWT token for API authentication")
+	cmd.PersistentFlags().StringVar(&f.ConfigPath, "config", defaultClientConfigPath, "client config path")
+}
+
 func (f *machineCommonFlags) validate() error {
 	switch strings.ToLower(strings.TrimSpace(f.Output)) {
 	case "table", "json", "yaml":

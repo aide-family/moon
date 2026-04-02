@@ -75,9 +75,9 @@ make dev
 
 ## 机器信息命令行
 
-- `jade_tree machine info`：通过 Jade Tree 端点获取本机信息（默认 `http://127.0.0.1:8000`）。
-- `jade_tree machine pull --endpoints <ep1,ep2>`：从一个或多个端点拉取机器信息。
-- `jade_tree machine push --from <source> --endpoints <ep1,ep2>`：将源端点中的本机及已存储机器信息推送到目标端点。
+- `jade_tree machine info`：按端点打印一行摘要。子命令 `cpu`、`memory`、`network`、`disk` 打印对应维度的详细信息（与父命令共用 `--endpoint` 或配置文件中的 `endpoint`）。
+- `jade_tree machine pull [endpoint...]`：按端点拉取摘要（位置参数或配置文件中的 `endpoints` / `endpoint`）。子命令 `pull cpu|memory|network|disk [endpoint...]` 对每个端点输出同类详情。
+- `jade_tree machine push [endpoint...]`：从 `--from`（或配置 `endpoint`）将本机及已存储机器信息推送到目标端点。
 - 所有命令都支持 `--output table|json|yaml`（默认 `table`）。
 - 所有机器命令都支持通过 `--jwt` 或配置文件进行 JWT 鉴权。
 

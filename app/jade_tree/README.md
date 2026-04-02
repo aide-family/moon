@@ -75,9 +75,9 @@ make dev
 
 ## CLI Machine Commands
 
-- `jade_tree machine info` gets local machine information through a Jade Tree endpoint (default `http://127.0.0.1:8000`).
-- `jade_tree machine pull --endpoints <ep1,ep2>` pulls machine info from one or multiple endpoints.
-- `jade_tree machine push --from <source> --endpoints <ep1,ep2>` pushes local and stored machine data from source endpoint to target endpoints.
+- `jade_tree machine info` prints a summary row (endpoint, host, CPU, memory, disk, network). Subcommands `cpu`, `memory`, `network`, and `disk` print detailed sections for that machine (same `--endpoint` / config as the parent).
+- `jade_tree machine pull [endpoint...]` pulls a summary per endpoint (positional args or `endpoints` / `endpoint` in config). Subcommands `pull cpu|memory|network|disk [endpoint...]` print the same detail view for each endpoint.
+- `jade_tree machine push [endpoint...]` pushes local and stored machine data from `--from` (or config `endpoint`) to the given target endpoints.
 - All commands support `--output table|json|yaml` (default `table`).
 - All machine commands support JWT auth via `--jwt` or config file.
 
