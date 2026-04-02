@@ -106,9 +106,10 @@ func (m *MachineInfo) RefreshLocalMachineInfo(ctx context.Context) (*bo.MachineI
 		return nil, merr.ErrorInvalidArgument("local machine info is invalid")
 	}
 
+	copyCtx := safety.CopyValueCtx(ctx)
 	go func() {
 		local.Source = enum.MachineInfoSource_MachineInfoSource_LOCAL
-		if err := m.machineInfoRepo.UpdateLocalMachineInfo(ctx, local); err != nil {
+		if err := m.machineInfoRepo.UpdateLocalMachineInfo(copyCtx, local); err != nil {
 			m.helper.Errorw("msg", "update local machine info failed", "error", err)
 		}
 	}()

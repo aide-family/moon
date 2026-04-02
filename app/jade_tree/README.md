@@ -10,6 +10,7 @@ Jade Tree is the Moon agent runtime service.
 - Manage predefined SSH command templates with an approval workflow, then execute them against remote hosts.
 - Collect deployment machine profile details (CPU, memory, disk/mount usage, network, hostname, and system basics).
 - Actively report local machine profile to configured HTTP endpoints on schedule.
+- Provide CLI machine operations: `machine info`, `machine pull`, and `machine push` with `table/json/yaml` output.
 - Expose probe metrics in Prometheus format (`probe_tcp_*`, `probe_http_*`, `probe_port_*`, `probe_tls_cert_*`) on `/metrics`.
 
 ## Architecture
@@ -71,6 +72,26 @@ Jade Tree is designed for RPM + systemd deployment.
 make all
 make dev
 ```
+
+## CLI Machine Commands
+
+- `jade_tree machine info` gets local machine information through a Jade Tree endpoint (default `http://127.0.0.1:8000`).
+- `jade_tree machine pull --endpoints <ep1,ep2>` pulls machine info from one or multiple endpoints.
+- `jade_tree machine push --from <source> --endpoints <ep1,ep2>` pushes local and stored machine data from source endpoint to target endpoints.
+- All commands support `--output table|json|yaml` (default `table`).
+- All machine commands support JWT auth via `--jwt` or config file.
+
+Default client config file: `~/.jade_tree/client.yaml`
+
+```yaml
+endpoint: http://127.0.0.1:8000
+endpoints:
+  - http://10.0.0.11:8000
+  - http://10.0.0.12:8000
+jwt: eyJhbGciOi...
+```
+
+Flag values override config file values.
 
 To regenerate GORM query code after changing models in `internal/data/impl/do/`:
 

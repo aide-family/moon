@@ -88,6 +88,15 @@ func (m *machineInfoRepository) UpdateLocalMachineInfo(ctx context.Context, mach
 	if err != nil {
 		return err
 	}
+	if row.ID == 0 {
+		existing, err := m.GetMachineInfoByMachineUUID(ctx, machine.MachineUUID)
+		if err != nil && !merr.IsNotFound(err) {
+			return err
+		}
+		if existing != nil {
+			row.ID = existing.ID
+		}
+	}
 	return query.MachineInfo.WithContext(ctx).Where(query.MachineInfo.MachineUUID.Eq(machine.MachineUUID)).Save(row)
 }
 

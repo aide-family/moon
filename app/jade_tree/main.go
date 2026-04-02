@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/aide-family/jade_tree/cmd"
+	"github.com/aide-family/jade_tree/cmd/machine"
 	"github.com/aide-family/jade_tree/cmd/run"
 	"github.com/aide-family/jade_tree/cmd/run/all"
 	"github.com/aide-family/jade_tree/cmd/run/grpc"
@@ -33,9 +34,7 @@ var (
 var defaultServerConfig []byte
 
 func init() {
-	if err := godotenv.Load(); err != nil {
-		klog.Warnf("load env failed with error: %v", err)
-	}
+	_ = godotenv.Load()
 	cmd.SetGlobalFlags(
 		cmd.WithGlobalFlagsName(Name),
 		cmd.WithGlobalFlagsHostname(hostname),
@@ -59,6 +58,6 @@ func init() {
 func main() {
 	runCmd := run.NewCmd(defaultServerConfig)
 	runCmd.AddCommand(grpc.NewCmd(), http.NewCmd(), all.NewCmd())
-	children := []*cobra.Command{runCmd, schema.NewCmd()}
+	children := []*cobra.Command{runCmd, schema.NewCmd(), machine.NewCmd()}
 	cmd.Execute(cmd.NewCmd(), children...)
 }

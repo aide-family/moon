@@ -90,12 +90,16 @@ func (j *machineInfoReportJob) reportOnce(ctx context.Context) {
 			machines = append(machines, bo.ToAPIV1MachineInfoReply(machine))
 		}
 
+		if len(machines) == 0 {
+			break
+		}
+
 		payload, err := protojson.Marshal(&apiv1.ReportMachineInfosRequest{
 			Machines: machines,
 		})
 		if err != nil {
 			j.helper.Errorw("msg", "marshal report machine info payload failed", "error", err)
-			continue
+			break
 		}
 		for _, endpoint := range j.endpoints {
 			respPayload, postErr := j.post(ctx, endpoint, payload)
@@ -105,7 +109,7 @@ func (j *machineInfoReportJob) reportOnce(ctx context.Context) {
 			}
 			j.helper.Debugw("msg", "report machine info success", "endpoint", endpoint, "response", string(respPayload))
 		}
-		if len(machines) == 0 || len(machines) < int(pages.GetPageSize()) {
+		if len(machines) < int(pages.GetPageSize()) {
 			break
 		}
 		req.Page++

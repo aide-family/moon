@@ -10,6 +10,7 @@ Jade Tree 是 Moon 的 Agent 运行时服务。
 - 管理预置 SSH 命令模板：新增与变更需走审核；审核通过后写入正式命令表；可按模板在远端执行。
 - 提供部署机器基础信息采集能力（CPU、内存、磁盘与挂载点、网络、主机名、系统基础信息）。
 - 支持按配置定时向指定 HTTP 端点主动上报本机机器基础信息。
+- 提供机器信息 CLI 命令：`machine info`、`machine pull`、`machine push`，支持 `table/json/yaml` 输出。
 - 以 Prometheus metrics 方式暴露探测能力（`probe_tcp_*`、`probe_http_*`、`probe_port_*`、`probe_tls_cert_*`）。
 
 ## 架构
@@ -71,6 +72,26 @@ Jade Tree 以 RPM + systemd 为推荐部署方式。
 make all
 make dev
 ```
+
+## 机器信息命令行
+
+- `jade_tree machine info`：通过 Jade Tree 端点获取本机信息（默认 `http://127.0.0.1:8000`）。
+- `jade_tree machine pull --endpoints <ep1,ep2>`：从一个或多个端点拉取机器信息。
+- `jade_tree machine push --from <source> --endpoints <ep1,ep2>`：将源端点中的本机及已存储机器信息推送到目标端点。
+- 所有命令都支持 `--output table|json|yaml`（默认 `table`）。
+- 所有机器命令都支持通过 `--jwt` 或配置文件进行 JWT 鉴权。
+
+默认客户端配置文件：`~/.jade_tree/client.yaml`
+
+```yaml
+endpoint: http://127.0.0.1:8000
+endpoints:
+  - http://10.0.0.11:8000
+  - http://10.0.0.12:8000
+jwt: eyJhbGciOi...
+```
+
+命令行参数优先级高于配置文件。
 
 修改 `internal/data/impl/do/` 下模型后，重新生成 gorm gen 查询代码：
 
