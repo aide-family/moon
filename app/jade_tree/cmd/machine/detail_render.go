@@ -6,31 +6,13 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/olekukonko/tablewriter"
 	"gopkg.in/yaml.v3"
 
 	apiv1 "github.com/aide-family/jade_tree/pkg/api/v1"
 )
-
-// renderMachineDetail renders one section (cpu|memory|network|disk) for a single endpoint response.
-func renderMachineDetail(kind, format, endpoint string, reply *apiv1.GetMachineInfoReply) error {
-	if reply == nil {
-		reply = &apiv1.GetMachineInfoReply{}
-	}
-	switch strings.ToLower(strings.TrimSpace(kind)) {
-	case "cpu":
-		return renderCPUDetail(format, endpoint, reply)
-	case "memory":
-		return renderMemoryDetail(format, endpoint, reply)
-	case "network":
-		return renderNetworkDetail(format, endpoint, reply)
-	case "disk":
-		return renderDiskDetail(format, endpoint, reply)
-	default:
-		return fmt.Errorf("unknown detail kind: %s", kind)
-	}
-}
 
 func renderMachineDetailsMulti(kind, format string, items []machineDetailItem) error {
 	if len(items) == 0 {
@@ -60,16 +42,18 @@ func renderMachineDetailsMulti(kind, format string, items []machineDetailItem) e
 		_, _ = os.Stdout.Write(b)
 		return nil
 	default:
-		for i, it := range items {
-			if i > 0 {
-				_, _ = fmt.Fprintln(os.Stdout)
-			}
-			_, _ = fmt.Fprintf(os.Stdout, "--- endpoint: %s ---\n", it.Endpoint)
-			if err := renderMachineDetail(kind, "table", it.Endpoint, it.Reply); err != nil {
-				return err
-			}
+		switch strings.ToLower(strings.TrimSpace(kind)) {
+		case "cpu":
+			return renderCPUDetailsComparisonTable(items)
+		case "memory":
+			return renderMemoryDetailsComparisonTable(items)
+		case "network":
+			return renderNetworkDetailsComparisonTable(items)
+		case "disk":
+			return renderDiskDetailsComparisonTable(items)
+		default:
+			return fmt.Errorf("unknown detail kind: %s", kind)
 		}
-		return nil
 	}
 }
 
@@ -201,229 +185,323 @@ func disksToSlice(disks []*apiv1.DiskInfoItem) []map[string]any {
 	return out
 }
 
-func renderCPUDetail(format, endpoint string, reply *apiv1.GetMachineInfoReply) error {
-	payload := detailPayloadAsMap("cpu", endpoint, reply)
-	switch strings.ToLower(strings.TrimSpace(format)) {
-	case "json":
-		return writeJSON(payload)
-	case "yaml":
-		return writeYAML(payload)
-	default:
-		tw := tablewriter.NewWriter(os.Stdout)
-		tw.SetHeader([]string{"FIELD", "VALUE"})
-		host := reply.GetHost().GetHostName()
-		if host != "" {
-			tw.Append([]string{"HOST", host})
-		}
-		if ep := strings.TrimSpace(endpoint); ep != "" {
-			tw.Append([]string{"ENDPOINT", ep})
-		}
-		cpu := reply.GetCpu()
-		if cpu == nil {
-			tw.Append([]string{"CPU", "(none)"})
-			tw.Render()
-			return nil
-		}
-		tw.Append([]string{"TOTAL_CORES", strconv.FormatInt(int64(cpu.GetTotalCores()), 10)})
-		tw.Append([]string{"TOTAL_HW_THREADS", strconv.FormatInt(int64(cpu.GetTotalHardwareThreads()), 10)})
-		tw.Render()
-		for _, p := range cpu.GetProcessors() {
-			if p == nil {
-				continue
-			}
-			_, _ = fmt.Fprintln(os.Stdout)
-			_, _ = fmt.Fprintf(os.Stdout, "Processor %d: %s %s\n", p.GetId(), p.GetVendor(), p.GetModel())
-			pt := tablewriter.NewWriter(os.Stdout)
-			pt.SetHeader([]string{"FIELD", "VALUE"})
-			pt.Append([]string{"TOTAL_CORES", strconv.FormatInt(int64(p.GetTotalCores()), 10)})
-			pt.Append([]string{"TOTAL_HW_THREADS", strconv.FormatInt(int64(p.GetTotalHardwareThreads()), 10)})
-			if len(p.GetCapabilities()) > 0 {
-				pt.Append([]string{"CAPABILITIES", strings.Join(p.GetCapabilities(), ", ")})
-			}
-			pt.Render()
-			if len(p.GetCores()) == 0 {
-				continue
-			}
-			ct := tablewriter.NewWriter(os.Stdout)
-			ct.SetHeader([]string{"CORE_ID", "HW_THREADS", "LOGICAL_CPUS"})
-			for _, c := range p.GetCores() {
-				if c == nil {
-					continue
-				}
-				logical := intsToString(c.GetLogicalProcessors())
-				ct.Append([]string{
-					strconv.FormatInt(int64(c.GetId()), 10),
-					strconv.FormatInt(int64(c.GetHardwareThreads()), 10),
-					logical,
-				})
-			}
-			ct.Render()
-		}
-		return nil
+func replyOrEmpty(reply *apiv1.GetMachineInfoReply) *apiv1.GetMachineInfoReply {
+	if reply == nil {
+		return &apiv1.GetMachineInfoReply{}
 	}
+	return reply
 }
 
-func renderMemoryDetail(format, endpoint string, reply *apiv1.GetMachineInfoReply) error {
-	payload := detailPayloadAsMap("memory", endpoint, reply)
-	switch strings.ToLower(strings.TrimSpace(format)) {
-	case "json":
-		return writeJSON(payload)
-	case "yaml":
-		return writeYAML(payload)
-	default:
-		tw := tablewriter.NewWriter(os.Stdout)
-		tw.SetHeader([]string{"FIELD", "VALUE"})
-		if host := reply.GetHost().GetHostName(); host != "" {
-			tw.Append([]string{"HOST", host})
+func formatCPUCoresSummary(cores []*apiv1.CPUCoreItem) string {
+	if len(cores) == 0 {
+		return "-"
+	}
+	parts := make([]string, 0, len(cores))
+	for _, c := range cores {
+		if c == nil {
+			continue
 		}
-		if ep := strings.TrimSpace(endpoint); ep != "" {
-			tw.Append([]string{"ENDPOINT", ep})
-		}
-		m := reply.GetMemory()
+		parts = append(parts, fmt.Sprintf("%d:%dt:%s",
+			c.GetId(), c.GetHardwareThreads(), intsToString(c.GetLogicalProcessors())))
+	}
+	if len(parts) == 0 {
+		return "-"
+	}
+	return strings.Join(parts, "; ")
+}
+
+func formatDiskMountsSummary(mounts []*apiv1.DiskMountItem) string {
+	if len(mounts) == 0 {
+		return "-"
+	}
+	parts := make([]string, 0, len(mounts))
+	for _, m := range mounts {
 		if m == nil {
-			tw.Append([]string{"MEMORY", "(none)"})
-			tw.Render()
-			return nil
+			continue
 		}
-		rows := []struct{ k, v string }{
-			{"TOTAL_PHYSICAL", formatBytes(m.GetTotalPhysicalBytes())},
-			{"TOTAL_USABLE", formatBytes(m.GetTotalUsableBytes())},
-			{"USED", formatBytes(m.GetUsedBytes())},
-			{"FREE", formatBytes(m.GetFreeBytes())},
-			{"AVAILABLE", formatBytes(m.GetAvailableBytes())},
-			{"SHARED", formatBytes(m.GetSharedBytes())},
-			{"BUFF_CACHE", formatBytes(m.GetBuffCacheBytes())},
-			{"SWAP_TOTAL", formatBytes(m.GetSwapTotalBytes())},
-			{"SWAP_USED", formatBytes(m.GetSwapUsedBytes())},
-			{"SWAP_FREE", formatBytes(m.GetSwapFreeBytes())},
+		frag := fmt.Sprintf("%s [%s] %s/%s/%s",
+			m.GetMountPoint(),
+			m.GetFsType(),
+			formatBytes(m.GetTotalBytes()),
+			formatBytes(m.GetUsedBytes()),
+			formatBytes(m.GetFreeBytes()),
+		)
+		if m.GetFreeRate() > 0 {
+			frag += fmt.Sprintf(" %.1f%% free", m.GetFreeRate()*100)
 		}
-		for _, row := range rows {
-			tw.Append([]string{row.k, row.v})
-		}
-		if len(m.GetSupportedPageSizes()) > 0 {
-			sizes := make([]string, 0, len(m.GetSupportedPageSizes()))
-			for _, sz := range m.GetSupportedPageSizes() {
-				sizes = append(sizes, formatBytes(sz))
-			}
-			tw.Append([]string{"PAGE_SIZES", strings.Join(sizes, ", ")})
-		}
-		tw.Render()
-		return nil
+		parts = append(parts, frag)
 	}
+	if len(parts) == 0 {
+		return "-"
+	}
+	return strings.Join(parts, "\n")
 }
 
-func renderNetworkDetail(format, endpoint string, reply *apiv1.GetMachineInfoReply) error {
-	payload := detailPayloadAsMap("network", endpoint, reply)
-	switch strings.ToLower(strings.TrimSpace(format)) {
-	case "json":
-		return writeJSON(payload)
-	case "yaml":
-		return writeYAML(payload)
-	default:
-		tw := tablewriter.NewWriter(os.Stdout)
-		tw.SetHeader([]string{"FIELD", "VALUE"})
-		if host := reply.GetHost().GetHostName(); host != "" {
-			tw.Append([]string{"HOST", host})
+func maxLineRuneWidth(s string) int {
+	m := 0
+	for _, line := range strings.Split(s, "\n") {
+		if n := utf8.RuneCountInString(line); n > m {
+			m = n
 		}
-		if ep := strings.TrimSpace(endpoint); ep != "" {
-			tw.Append([]string{"ENDPOINT", ep})
-		}
-		n := reply.GetNetwork()
-		if n == nil {
-			tw.Append([]string{"NETWORK", "(none)"})
-			tw.Render()
-			return nil
-		}
-		tw.Append([]string{"LOCAL_IP", n.GetLocalIp()})
-		tw.Append([]string{"OUTBOUND_IP", n.GetOutboundIp()})
-		tw.Append([]string{"CIDR", n.GetCidr()})
-		tw.Append([]string{"DNS_SERVERS", strings.Join(n.GetDnsServers(), ", ")})
-		tw.Append([]string{"NICS", strings.Join(n.GetNics(), ", ")})
-		tw.Append([]string{"TOTAL_RX", formatBytes(n.GetTotalRxBytes())})
-		tw.Append([]string{"TOTAL_TX", formatBytes(n.GetTotalTxBytes())})
-		tw.Render()
-		return nil
 	}
+	return m
 }
 
-func renderDiskDetail(format, endpoint string, reply *apiv1.GetMachineInfoReply) error {
-	payload := detailPayloadAsMap("disk", endpoint, reply)
-	switch strings.ToLower(strings.TrimSpace(format)) {
-	case "json":
-		return writeJSON(payload)
-	case "yaml":
-		return writeYAML(payload)
-	default:
-		if host := reply.GetHost().GetHostName(); host != "" {
-			_, _ = fmt.Fprintf(os.Stdout, "HOST: %s\n", host)
-		}
-		if ep := strings.TrimSpace(endpoint); ep != "" {
-			_, _ = fmt.Fprintf(os.Stdout, "ENDPOINT: %s\n", ep)
-		}
-		disks := reply.GetDisks()
-		if len(disks) == 0 {
-			_, _ = fmt.Fprintln(os.Stdout, "(no disks)")
-			return nil
-		}
-		for i, d := range disks {
+// scanDiskMetaMountsLineWidths returns the widest single line (in runes) seen in META and MOUNTS cells across all disks.
+func scanDiskMetaMountsLineWidths(items []machineDetailItem) (metaMax, mountMax int) {
+	for _, it := range items {
+		reply := replyOrEmpty(it.Reply)
+		for _, d := range reply.GetDisks() {
 			if d == nil {
 				continue
 			}
-			if i > 0 {
-				_, _ = fmt.Fprintln(os.Stdout)
+			if w := maxLineRuneWidth(formatDiskMetaMultiline(d)); w > metaMax {
+				metaMax = w
 			}
-			_, _ = fmt.Fprintf(os.Stdout, "Disk: %s (%s)\n", d.GetName(), d.GetType())
-			dt := tablewriter.NewWriter(os.Stdout)
-			dt.SetHeader([]string{"FIELD", "VALUE"})
-			dt.Append([]string{"SIZE", formatBytes(d.GetSizeBytes())})
-			dt.Append([]string{"VENDOR", d.GetVendor()})
-			dt.Append([]string{"MODEL", d.GetModel()})
-			dt.Append([]string{"SERIAL", d.GetSerialNumber()})
-			dt.Append([]string{"WWN", d.GetWwn()})
-			dt.Render()
-			if len(d.GetMounts()) == 0 {
-				continue
+			if w := maxLineRuneWidth(formatDiskMountsSummary(d.GetMounts())); w > mountMax {
+				mountMax = w
 			}
-			mt := tablewriter.NewWriter(os.Stdout)
-			mt.SetHeader([]string{"MOUNT", "FS", "TOTAL", "USED", "FREE", "FREE%"})
-			for _, m := range d.GetMounts() {
-				if m == nil {
-					continue
-				}
-				pct := ""
-				if m.GetFreeRate() > 0 {
-					pct = fmt.Sprintf("%.1f%%", m.GetFreeRate()*100)
-				}
-				mt.Append([]string{
-					m.GetMountPoint(),
-					m.GetFsType(),
-					formatBytes(m.GetTotalBytes()),
-					formatBytes(m.GetUsedBytes()),
-					formatBytes(m.GetFreeBytes()),
-					pct,
-				})
-			}
-			mt.Render()
 		}
-		return nil
 	}
+	return metaMax, mountMax
 }
 
-func writeJSON(v any) error {
-	b, err := json.MarshalIndent(v, "", "  ")
-	if err != nil {
-		return err
+// formatDiskMetaMultiline stacks vendor, model, serial, and WWN on separate lines to keep table width reasonable.
+func formatDiskMetaMultiline(d *apiv1.DiskInfoItem) string {
+	if d == nil {
+		return "-"
 	}
-	_, _ = os.Stdout.Write(append(b, '\n'))
+	var b strings.Builder
+	appendLine := func(s string) {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			return
+		}
+		if b.Len() > 0 {
+			b.WriteByte('\n')
+		}
+		b.WriteString(s)
+	}
+	appendLine(d.GetVendor())
+	appendLine(d.GetModel())
+	appendLine(d.GetSerialNumber())
+	appendLine(d.GetWwn())
+	if b.Len() == 0 {
+		return "-"
+	}
+	return b.String()
+}
+
+func formatPageSizesSummary(sizes []uint64) string {
+	if len(sizes) == 0 {
+		return "-"
+	}
+	parts := make([]string, 0, len(sizes))
+	for _, sz := range sizes {
+		parts = append(parts, formatBytes(sz))
+	}
+	return strings.Join(parts, ", ")
+}
+
+func renderCPUDetailsComparisonTable(items []machineDetailItem) error {
+	tw := tablewriter.NewWriter(os.Stdout)
+	tw.SetAutoWrapText(false)
+	tw.SetHeader([]string{
+		"ENDPOINT", "HOSTNAME", "TOTAL_CORES", "TOTAL_HW_THREADS",
+		"PROC_ID", "VENDOR", "MODEL", "PROC_CORES", "PROC_HW_THREADS", "CAPABILITIES", "CORES",
+	})
+	for _, it := range items {
+		reply := replyOrEmpty(it.Reply)
+		ep := strings.TrimSpace(it.Endpoint)
+		host := reply.GetHost().GetHostName()
+		cpu := reply.GetCpu()
+		if cpu == nil {
+			tw.Append([]string{ep, host, "-", "-", "-", "-", "-", "-", "-", "-", "-"})
+			continue
+		}
+		tc := strconv.FormatInt(int64(cpu.GetTotalCores()), 10)
+		tt := strconv.FormatInt(int64(cpu.GetTotalHardwareThreads()), 10)
+		procs := cpu.GetProcessors()
+		if len(procs) == 0 {
+			tw.Append([]string{ep, host, tc, tt, "-", "-", "-", "-", "-", "-", "-"})
+			continue
+		}
+		procRows := 0
+		for _, p := range procs {
+			if p == nil {
+				continue
+			}
+			procRows++
+			caps := strings.Join(p.GetCapabilities(), ",")
+			if caps == "" {
+				caps = "-"
+			}
+			tw.Append([]string{
+				ep, host, tc, tt,
+				strconv.FormatInt(int64(p.GetId()), 10),
+				p.GetVendor(),
+				p.GetModel(),
+				strconv.FormatInt(int64(p.GetTotalCores()), 10),
+				strconv.FormatInt(int64(p.GetTotalHardwareThreads()), 10),
+				caps,
+				formatCPUCoresSummary(p.GetCores()),
+			})
+		}
+		if procRows == 0 {
+			tw.Append([]string{ep, host, tc, tt, "-", "-", "-", "-", "-", "-", "-"})
+		}
+	}
+	tw.Render()
 	return nil
 }
 
-func writeYAML(v any) error {
-	b, err := yaml.Marshal(v)
-	if err != nil {
-		return err
+func renderMemoryDetailsComparisonTable(items []machineDetailItem) error {
+	tw := tablewriter.NewWriter(os.Stdout)
+	tw.SetAutoWrapText(false)
+	tw.SetHeader([]string{
+		"ENDPOINT", "HOSTNAME", "TOTAL_PHYSICAL", "TOTAL_USABLE", "USED", "FREE", "AVAILABLE",
+		"SHARED", "BUFF_CACHE", "SWAP_TOTAL", "SWAP_USED", "SWAP_FREE", "PAGE_SIZES",
+	})
+	for _, it := range items {
+		reply := replyOrEmpty(it.Reply)
+		ep := strings.TrimSpace(it.Endpoint)
+		host := reply.GetHost().GetHostName()
+		m := reply.GetMemory()
+		if m == nil {
+			tw.Append([]string{ep, host, "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"})
+			continue
+		}
+		tw.Append([]string{
+			ep, host,
+			formatBytes(m.GetTotalPhysicalBytes()),
+			formatBytes(m.GetTotalUsableBytes()),
+			formatBytes(m.GetUsedBytes()),
+			formatBytes(m.GetFreeBytes()),
+			formatBytes(m.GetAvailableBytes()),
+			formatBytes(m.GetSharedBytes()),
+			formatBytes(m.GetBuffCacheBytes()),
+			formatBytes(m.GetSwapTotalBytes()),
+			formatBytes(m.GetSwapUsedBytes()),
+			formatBytes(m.GetSwapFreeBytes()),
+			formatPageSizesSummary(m.GetSupportedPageSizes()),
+		})
 	}
-	_, _ = os.Stdout.Write(b)
+	tw.Render()
+	return nil
+}
+
+// formatNetworkMetaMultiline stacks DNS servers and NIC names on separate lines (with short section labels)
+// so the comparison table stays readable in narrow terminals.
+func formatNetworkMetaMultiline(n *apiv1.NetworkInfo) string {
+	if n == nil {
+		return "-"
+	}
+	var parts []string
+	var dnsLines []string
+	for _, s := range n.GetDnsServers() {
+		s = strings.TrimSpace(s)
+		if s != "" {
+			dnsLines = append(dnsLines, s)
+		}
+	}
+	var nicLines []string
+	for _, s := range n.GetNics() {
+		s = strings.TrimSpace(s)
+		if s != "" {
+			nicLines = append(nicLines, s)
+		}
+	}
+	if len(dnsLines) > 0 {
+		parts = append(parts, "DNS:\n")
+		parts = append(parts, dnsLines...)
+	}
+	if len(nicLines) > 0 {
+		if len(parts) > 0 {
+			parts = append(parts, "")
+		}
+		parts = append(parts, "NICs:\n")
+		parts = append(parts, nicLines...)
+	}
+	if len(parts) == 0 {
+		return "-"
+	}
+	return strings.Join(parts, "\n")
+}
+
+func renderNetworkDetailsComparisonTable(items []machineDetailItem) error {
+	tw := tablewriter.NewWriter(os.Stdout)
+	tw.SetAutoWrapText(true)
+	tw.SetHeader([]string{
+		"ENDPOINT", "HOSTNAME", "LOCAL_IP", "OUTBOUND_IP", "CIDR", "TOTAL_RX", "TOTAL_TX", "META",
+	})
+	for _, it := range items {
+		reply := replyOrEmpty(it.Reply)
+		ep := strings.TrimSpace(it.Endpoint)
+		host := reply.GetHost().GetHostName()
+		n := reply.GetNetwork()
+		if n == nil {
+			tw.Append([]string{ep, host, "-", "-", "-", "-", "-", "-"})
+			continue
+		}
+		tw.Append([]string{
+			ep, host,
+			n.GetLocalIp(),
+			n.GetOutboundIp(),
+			n.GetCidr(),
+			formatBytes(n.GetTotalRxBytes()),
+			formatBytes(n.GetTotalTxBytes()),
+			formatNetworkMetaMultiline(n),
+		})
+	}
+	tw.Render()
+	return nil
+}
+
+func renderDiskDetailsComparisonTable(items []machineDetailItem) error {
+	metaMax, mountMax := scanDiskMetaMountsLineWidths(items)
+	const wrapFloor = 72
+	wrapW := max(metaMax, mountMax, wrapFloor)
+	metaColW := max(metaMax, utf8.RuneCountInString("META"))
+	mountColW := max(mountMax, utf8.RuneCountInString("MOUNTS"))
+
+	tw := tablewriter.NewWriter(os.Stdout)
+	tw.SetAutoWrapText(true)
+	tw.SetReflowDuringAutoWrap(false)
+	tw.SetColWidth(wrapW)
+	tw.SetHeader([]string{
+		"ENDPOINT", "HOSTNAME", "DISK", "TYPE", "SIZE", "META", "MOUNTS",
+	})
+	tw.SetColMinWidth(5, metaColW)
+	tw.SetColMinWidth(6, mountColW)
+	for _, it := range items {
+		reply := replyOrEmpty(it.Reply)
+		ep := strings.TrimSpace(it.Endpoint)
+		host := reply.GetHost().GetHostName()
+		disks := reply.GetDisks()
+		if len(disks) == 0 {
+			tw.Append([]string{ep, host, "-", "-", "-", "-", "-"})
+			continue
+		}
+		diskRows := 0
+		for _, d := range disks {
+			if d == nil {
+				continue
+			}
+			diskRows++
+			tw.Append([]string{
+				ep, host,
+				d.GetName(),
+				d.GetType(),
+				formatBytes(d.GetSizeBytes()),
+				formatDiskMetaMultiline(d),
+				formatDiskMountsSummary(d.GetMounts()),
+			})
+		}
+		if diskRows == 0 {
+			tw.Append([]string{ep, host, "-", "-", "-", "-", "-"})
+		}
+	}
+	tw.Render()
 	return nil
 }
 
