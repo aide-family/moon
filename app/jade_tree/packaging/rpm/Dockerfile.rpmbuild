@@ -1,0 +1,6 @@
+FROM rockylinux/rockylinux:9
+
+RUN dnf install -y rpm-build rsync git make systemd-rpm-macros ca-certificates tar gzip golang curl-minimal \
+	&& dnf clean all
+
+WORKDIR /src

@@ -92,8 +92,82 @@ dev:
 	@echo "Running jade_tree in development mode"
 	go run -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" . run all --log-level=DEBUG
 
-.PHONY: clean
+.PHONY: clean rpm srpm rpm-clean rpm-docker rpm-docker-build srpm-docker
 clean:
 	rm -rf ./bin
+
+# --- RPM packaging (artifacts under ./rpmbuild/) ---
+RPM_TOPDIR := $(abspath rpmbuild)
+RPM_VERSION ?= $(shell v=$$(git describe --tags --match 'v*' --abbrev=0 2>/dev/null | sed 's/^v//'); echo $${v:-0.0.1})
+RPM_RELEASE ?= 1
+MK_TARBALL := packaging/rpm/mk-source-tarball.sh
+RPM_SPEC := packaging/rpm/jade-tree.spec
+RPM_DOCKERFILE := packaging/rpm/Dockerfile.rpmbuild
+RPM_BUILD_IMAGE ?= jade-tree-rpmbuild:local
+
+rpm-clean:
+	rm -rf $(RPM_TOPDIR)
+
+rpm:
+	@command -v rpmbuild >/dev/null || { \
+		echo "rpmbuild not found. Use make rpm-docker on macOS."; \
+		exit 1; \
+	}
+	@command -v rsync >/dev/null || { echo "rsync not found. Please install rsync first."; exit 1; }
+	@$(MAKE) rpm-clean
+	mkdir -p $(RPM_TOPDIR)/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+	bash $(MK_TARBALL) "$(RPM_VERSION)" "$(CURDIR)" "$(RPM_TOPDIR)/SOURCES"
+	cp $(RPM_SPEC) $(RPM_TOPDIR)/SPECS/jade-tree.spec
+	rpmbuild --define "_topdir $(RPM_TOPDIR)" \
+		--define "jade_tree_version $(RPM_VERSION)" \
+		--define "jade_tree_release $(RPM_RELEASE)" \
+		-ba $(RPM_TOPDIR)/SPECS/jade-tree.spec
+	@echo "RPM artifacts:"
+	@ls -1 $(RPM_TOPDIR)/RPMS/*/*.rpm 2>/dev/null || true
+
+srpm:
+	@command -v rpmbuild >/dev/null || { \
+		echo "rpmbuild not found. Use make srpm-docker on macOS."; \
+		exit 1; \
+	}
+	@command -v rsync >/dev/null || { echo "rsync not found. Please install rsync first."; exit 1; }
+	@$(MAKE) rpm-clean
+	mkdir -p $(RPM_TOPDIR)/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+	bash $(MK_TARBALL) "$(RPM_VERSION)" "$(CURDIR)" "$(RPM_TOPDIR)/SOURCES"
+	cp $(RPM_SPEC) $(RPM_TOPDIR)/SPECS/jade-tree.spec
+	rpmbuild --define "_topdir $(RPM_TOPDIR)" \
+		--define "jade_tree_version $(RPM_VERSION)" \
+		--define "jade_tree_release $(RPM_RELEASE)" \
+		-bs $(RPM_TOPDIR)/SPECS/jade-tree.spec
+	@echo "SRPM artifact:"
+	@ls -1 $(RPM_TOPDIR)/SRPMS/*.src.rpm 2>/dev/null || true
+
+rpm-docker-build:
+	@command -v docker >/dev/null || { echo "docker not found. Please install Docker first."; exit 1; }
+	docker build -t $(RPM_BUILD_IMAGE) -f $(RPM_DOCKERFILE) $(dir $(RPM_DOCKERFILE))
+
+rpm-docker: rpm-docker-build
+	docker run --rm \
+		-v "$(CURDIR):/src:rw" \
+		-w /src \
+		-e RPM_VERSION="$(RPM_VERSION)" \
+		-e RPM_RELEASE="$(RPM_RELEASE)" \
+		-e GOPROXY="$(GOPROXY)" \
+		-e GOSUMDB="$(GOSUMDB)" \
+		-e GOPRIVATE="$(GOPRIVATE)" \
+		$(RPM_BUILD_IMAGE) \
+		make rpm
+
+srpm-docker: rpm-docker-build
+	docker run --rm \
+		-v "$(CURDIR):/src:rw" \
+		-w /src \
+		-e RPM_VERSION="$(RPM_VERSION)" \
+		-e RPM_RELEASE="$(RPM_RELEASE)" \
+		-e GOPROXY="$(GOPROXY)" \
+		-e GOSUMDB="$(GOSUMDB)" \
+		-e GOPRIVATE="$(GOPRIVATE)" \
+		$(RPM_BUILD_IMAGE) \
+		make srpm
 
 .DEFAULT_GOAL := build

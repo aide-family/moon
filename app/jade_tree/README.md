@@ -65,6 +65,32 @@ Jade Tree is designed for RPM + systemd deployment.
 
 - systemd unit template: `deploy/systemd/jade-tree.service`
 - RPM notes: `deploy/rpm/README.md`
+- RPM packaging files: `packaging/rpm/`
+
+## RPM Packaging
+
+Local Linux build (requires `rpmbuild` and `rsync`):
+
+```bash
+make rpm
+```
+
+Local source RPM build:
+
+```bash
+make srpm
+```
+
+macOS / no local rpmbuild (recommended):
+
+```bash
+make rpm-docker
+```
+
+Artifacts:
+
+- binary RPM: `rpmbuild/RPMS/<arch>/jade-tree-<version>-<release>.<arch>.rpm`
+- source RPM: `rpmbuild/SRPMS/jade-tree-<version>-<release>.src.rpm`
 
 ## Run
 

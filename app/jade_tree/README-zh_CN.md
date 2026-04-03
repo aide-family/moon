@@ -65,6 +65,32 @@ Jade Tree 以 RPM + systemd 为推荐部署方式。
 
 - systemd 单元模板：`deploy/systemd/jade-tree.service`
 - RPM 说明：`deploy/rpm/README.md`
+- RPM 打包文件：`packaging/rpm/`
+
+## RPM 打包
+
+Linux 本机构建（需要 `rpmbuild` 与 `rsync`）：
+
+```bash
+make rpm
+```
+
+本机构建源码 RPM：
+
+```bash
+make srpm
+```
+
+macOS / 无本地 rpmbuild（推荐）：
+
+```bash
+make rpm-docker
+```
+
+产物位置：
+
+- 二进制 RPM：`rpmbuild/RPMS/<arch>/jade-tree-<version>-<release>.<arch>.rpm`
+- 源码 RPM：`rpmbuild/SRPMS/jade-tree-<version>-<release>.src.rpm`
 
 ## 启动
 
