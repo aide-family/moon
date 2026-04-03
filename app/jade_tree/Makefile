@@ -98,6 +98,8 @@ clean:
 
 # --- RPM packaging (artifacts under ./rpmbuild/) ---
 RPM_TOPDIR := $(abspath rpmbuild)
+# Monorepo root (moon/): tarball bundles ../../magicbox; Docker must mount this tree so that path exists.
+MOON_ROOT := $(abspath $(CURDIR)/../..)
 RPM_VERSION ?= $(shell v=$$(git describe --tags --match 'v*' --abbrev=0 2>/dev/null | sed 's/^v//'); echo $${v:-0.0.1})
 RPM_RELEASE ?= 1
 MK_TARBALL := packaging/rpm/mk-source-tarball.sh
@@ -148,8 +150,8 @@ rpm-docker-build:
 
 rpm-docker: rpm-docker-build
 	docker run --rm \
-		-v "$(CURDIR):/src:rw" \
-		-w /src \
+		-v "$(MOON_ROOT):/moon:rw" \
+		-w /moon/app/jade_tree \
 		-e RPM_VERSION="$(RPM_VERSION)" \
 		-e RPM_RELEASE="$(RPM_RELEASE)" \
 		-e GOPROXY="$(GOPROXY)" \
@@ -160,8 +162,8 @@ rpm-docker: rpm-docker-build
 
 srpm-docker: rpm-docker-build
 	docker run --rm \
-		-v "$(CURDIR):/src:rw" \
-		-w /src \
+		-v "$(MOON_ROOT):/moon:rw" \
+		-w /moon/app/jade_tree \
 		-e RPM_VERSION="$(RPM_VERSION)" \
 		-e RPM_RELEASE="$(RPM_RELEASE)" \
 		-e GOPROXY="$(GOPROXY)" \
