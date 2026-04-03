@@ -405,8 +405,21 @@ func wrapCommaSeparatedToRunes(s string, maxRunes int) string {
 	return strings.Join(lines, "\n")
 }
 
+// configureDetailTableAutoMerge matches machine summary table styling: vertical merge of
+// repeated cells plus row separators (tablewriter auto-merge). mergeCols selects column
+// indices; nil defaults to ENDPOINT and HOSTNAME (0, 1).
+func configureDetailTableAutoMerge(tw *tablewriter.Table, mergeCols []int) {
+	if len(mergeCols) == 0 {
+		mergeCols = []int{0, 1}
+	}
+	tw.SetAutoMergeCellsByColumnIndex(mergeCols)
+	tw.SetRowLine(true)
+}
+
 func renderCPUDetailsComparisonTable(items []machineDetailItem) error {
 	tw := tablewriter.NewWriter(os.Stdout)
+	// Merge endpoint, hostname, and machine-level totals across processor rows.
+	configureDetailTableAutoMerge(tw, []int{0, 1, 2, 3})
 	tw.SetAutoWrapText(true)
 	tw.SetReflowDuringAutoWrap(false)
 	tw.SetHeader([]string{
@@ -464,6 +477,7 @@ func renderCPUDetailsComparisonTable(items []machineDetailItem) error {
 
 func renderMemoryDetailsComparisonTable(items []machineDetailItem) error {
 	tw := tablewriter.NewWriter(os.Stdout)
+	configureDetailTableAutoMerge(tw, nil)
 	tw.SetAutoWrapText(false)
 	tw.SetHeader([]string{
 		"ENDPOINT", "HOSTNAME", "TOTAL_PHYSICAL", "TOTAL_USABLE", "USED", "FREE", "AVAILABLE",
@@ -537,6 +551,7 @@ func formatNetworkMetaMultiline(n *apiv1.NetworkInfo) string {
 
 func renderNetworkDetailsComparisonTable(items []machineDetailItem) error {
 	tw := tablewriter.NewWriter(os.Stdout)
+	configureDetailTableAutoMerge(tw, nil)
 	tw.SetAutoWrapText(true)
 	tw.SetHeader([]string{
 		"ENDPOINT", "HOSTNAME", "LOCAL_IP", "OUTBOUND_IP", "CIDR", "TOTAL_RX", "TOTAL_TX", "META",
@@ -572,6 +587,7 @@ func renderDiskDetailsComparisonTable(items []machineDetailItem) error {
 	mountColW := max(mountMax, utf8.RuneCountInString("MOUNTS"))
 
 	tw := tablewriter.NewWriter(os.Stdout)
+	configureDetailTableAutoMerge(tw, nil)
 	tw.SetAutoWrapText(true)
 	tw.SetReflowDuringAutoWrap(false)
 	tw.SetColWidth(wrapW)
@@ -614,6 +630,7 @@ func renderDiskDetailsComparisonTable(items []machineDetailItem) error {
 
 func renderSystemDetailsComparisonTable(items []machineDetailItem) error {
 	tw := tablewriter.NewWriter(os.Stdout)
+	configureDetailTableAutoMerge(tw, nil)
 	tw.SetAutoWrapText(true)
 	tw.SetHeader([]string{
 		"ENDPOINT", "HOSTNAME", "ARCH", "OS", "VERSION", "KERNEL",

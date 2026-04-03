@@ -24,14 +24,49 @@ type machineRow struct {
 	DiskAvailable string `json:"diskAvailable" yaml:"diskAvailable"`
 	NetworkRx     string `json:"networkRx" yaml:"networkRx"`
 	NetworkTx     string `json:"networkTx" yaml:"networkTx"`
+
+	// Display-only fields used by table output.
+	// These are unexported to keep JSON/YAML shape stable.
+	endpointCell string
+	hostNameCell string
 }
 
 func toMachineRows(endpoint string, machines []*apiv1.GetMachineInfoReply) []machineRow {
 	rows := make([]machineRow, 0, len(machines))
+	endpoint = strings.TrimSpace(endpoint)
 	for _, item := range machines {
 		if item == nil {
 			continue
 		}
+
+		hostName := strings.TrimSpace(item.GetHost().GetHostName())
+		machineUUID := strings.TrimSpace(item.GetHost().GetMachineUuid())
+
+		// Table display values (used for auto-merge).
+		endpointCell := endpoint
+		hostNameCell := hostName
+		if machineUUID != "" {
+			switch {
+			case hostNameCell == "":
+				hostNameCell = machineUUID
+			default:
+				hostNameCell = hostNameCell + "\n" + machineUUID
+			}
+		}
+		if hostNameCell == "" {
+			hostNameCell = "-"
+		}
+
+		// Backward compatibility: keep original json/yaml semantics.
+		endpointValue := endpoint
+		if machineUUID != "" {
+			endpointValue = endpoint + "\n" + machineUUID
+		}
+		hostNameValue := hostName
+		if hostNameValue == "" {
+			hostNameValue = "-"
+		}
+
 		cpuName := ""
 		if len(item.GetCpu().GetProcessors()) > 0 {
 			cpuName = item.GetCpu().GetProcessors()[0].GetModel()
@@ -52,8 +87,10 @@ func toMachineRows(endpoint string, machines []*apiv1.GetMachineInfoReply) []mac
 		}
 
 		rows = append(rows, machineRow{
-			Endpoint:      endpoint + "\n" + item.GetHost().GetMachineUuid(),
-			HostName:      item.GetHost().GetHostName(),
+			Endpoint:      endpointValue,
+			HostName:      hostNameValue,
+			endpointCell:  endpointCell,
+			hostNameCell:  hostNameCell,
 			LocalIP:       item.GetNetwork().GetLocalIp(),
 			CPUName:       cpuName,
 			CPUCores:      item.GetCpu().GetTotalCores(),
@@ -86,6 +123,10 @@ func renderRows(format string, rows []machineRow) error {
 		return nil
 	default:
 		table := tablewriter.NewWriter(os.Stdout)
+		// Merge identical values in ENDPOINT column to get a "rowspan" look.
+		table.SetAutoMergeCellsByColumnIndex([]int{0})
+		// Draw row separator lines so merged cells look visually merged.
+		table.SetRowLine(true)
 		table.SetHeader([]string{
 			"ENDPOINT",
 			"HOSTNAME",
@@ -98,8 +139,8 @@ func renderRows(format string, rows []machineRow) error {
 		})
 		for _, row := range rows {
 			table.Append([]string{
-				row.Endpoint,
-				row.HostName,
+				row.endpointCell,
+				row.hostNameCell,
 				row.LocalIP,
 				row.CPUName,
 				fmt.Sprintf("%d", row.CPUCores),
