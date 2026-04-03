@@ -52,7 +52,7 @@ func toMachineRows(endpoint string, machines []*apiv1.GetMachineInfoReply) []mac
 		}
 
 		rows = append(rows, machineRow{
-			Endpoint:      endpoint,
+			Endpoint:      endpoint + "\n" + item.GetHost().GetMachineUuid(),
 			HostName:      item.GetHost().GetHostName(),
 			LocalIP:       item.GetNetwork().GetLocalIp(),
 			CPUName:       cpuName,

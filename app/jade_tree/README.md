@@ -10,7 +10,7 @@ Jade Tree is the Moon agent runtime service.
 - Manage predefined SSH command templates with an approval workflow, then execute them against remote hosts.
 - Collect deployment machine profile details (CPU, memory, disk/mount usage, network, hostname, and system basics).
 - Actively report local machine profile to configured HTTP endpoints on schedule.
-- Provide CLI machine operations: `machine get`, `machine list`, and `machine push` with `table/json/yaml` output.
+- Provide CLI machine operations: `machine get`, `machine list`, `machine push`, and `machine pull` with `table/json/yaml` output.
 - Expose probe metrics in Prometheus format (`probe_tcp_*`, `probe_http_*`, `probe_port_*`, `probe_tls_cert_*`) on `/metrics`.
 
 ## Architecture
@@ -78,6 +78,7 @@ make dev
 - `jade_tree machine get [endpoint...]` calls `GET /v1/machine-info` on each target: one summary row per endpoint’s local machine (positional args, config `endpoints`, else `--endpoint` or config `endpoint`). Subcommands `get cpu|memory|network|disk|sys [endpoint...]` print the same detail sections for each endpoint (`sys`: architecture, OS, version, kernel).
 - `jade_tree machine list [endpoint...]` calls `GET /v1/machine-infos` (paginated with `--page-size`) on each target and prints every machine that endpoint knows in storage. Subcommands `list cpu|memory|network|disk|sys [endpoint...]` print details for all those machines.
 - `jade_tree machine push [endpoint...]` pushes local and stored machine data from `--from` (or config `endpoint`) to the given target endpoints.
+- `jade_tree machine pull [endpoint...]` pulls machine data from `--from` (source endpoint) and stores it into the given target endpoints.
 - All commands support `--output table|json|yaml` (default `table`).
 - All machine commands support JWT auth via `--jwt` or config file.
 

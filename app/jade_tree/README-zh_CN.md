@@ -10,7 +10,7 @@ Jade Tree 是 Moon 的 Agent 运行时服务。
 - 管理预置 SSH 命令模板：新增与变更需走审核；审核通过后写入正式命令表；可按模板在远端执行。
 - 提供部署机器基础信息采集能力（CPU、内存、磁盘与挂载点、网络、主机名、系统基础信息）。
 - 支持按配置定时向指定 HTTP 端点主动上报本机机器基础信息。
-- 提供机器信息 CLI 命令：`machine get`、`machine list`、`machine push`，支持 `table/json/yaml` 输出。
+- 提供机器信息 CLI 命令：`machine get`、`machine list`、`machine push`、`machine pull`，支持 `table/json/yaml` 输出。
 - 以 Prometheus metrics 方式暴露探测能力（`probe_tcp_*`、`probe_http_*`、`probe_port_*`、`probe_tls_cert_*`）。
 
 ## 架构
@@ -78,6 +78,7 @@ make dev
 - `jade_tree machine get [endpoint...]`：对每个目标调用 `GET /v1/machine-info`，每个端点本机一行摘要（位置参数、配置 `endpoints`，否则 `--endpoint` 或配置 `endpoint`）。子命令 `get cpu|memory|network|disk|sys [endpoint...]` 对每个端点输出同类详情（`sys`：架构、操作系统、版本、内核）。
 - `jade_tree machine list [endpoint...]`：对每个目标分页调用 `GET /v1/machine-infos`（`--page-size`），列出该节点存储中已知的全部机器。子命令 `list cpu|memory|network|disk|sys [endpoint...]` 对上述每台机器输出同类详情。
 - `jade_tree machine push [endpoint...]`：从 `--from`（或配置 `endpoint`）将本机及已存储机器信息推送到目标端点。
+- `jade_tree machine pull [endpoint...]`：从 `--from`（源端点）拉取机器信息并存储到给定目标端点。
 - 所有命令都支持 `--output table|json|yaml`（默认 `table`）。
 - 所有机器命令都支持通过 `--jwt` 或配置文件进行 JWT 鉴权。
 
