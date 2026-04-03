@@ -32,7 +32,7 @@ const (
 type MachineInfoClient interface {
 	GetMachineInfo(ctx context.Context, in *GetMachineInfoRequest, opts ...grpc.CallOption) (*GetMachineInfoReply, error)
 	// ReportMachineInfos persists/merges the reported machines into the receiver's storage.
-	// The receiver should deduplicate by `host.machine_uuid` (machine UUID).
+	// The receiver deduplicates by `host.machine_uuid`, `host.host_name`, and `network.local_ip` (composite natural key).
 	ReportMachineInfos(ctx context.Context, in *ReportMachineInfosRequest, opts ...grpc.CallOption) (*ReportMachineInfosReply, error)
 	// GetClusterMachineInfos returns paginated machines known by the receiver (leader/master node).
 	GetClusterMachineInfos(ctx context.Context, in *GetClusterMachineInfosRequest, opts ...grpc.CallOption) (*GetClusterMachineInfosReply, error)
@@ -84,7 +84,7 @@ func (c *machineInfoClient) GetClusterMachineInfos(ctx context.Context, in *GetC
 type MachineInfoServer interface {
 	GetMachineInfo(context.Context, *GetMachineInfoRequest) (*GetMachineInfoReply, error)
 	// ReportMachineInfos persists/merges the reported machines into the receiver's storage.
-	// The receiver should deduplicate by `host.machine_uuid` (machine UUID).
+	// The receiver deduplicates by `host.machine_uuid`, `host.host_name`, and `network.local_ip` (composite natural key).
 	ReportMachineInfos(context.Context, *ReportMachineInfosRequest) (*ReportMachineInfosReply, error)
 	// GetClusterMachineInfos returns paginated machines known by the receiver (leader/master node).
 	GetClusterMachineInfos(context.Context, *GetClusterMachineInfosRequest) (*GetClusterMachineInfosReply, error)

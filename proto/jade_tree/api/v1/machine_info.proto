@@ -17,7 +17,7 @@ service MachineInfo {
   }
 
   // ReportMachineInfos persists/merges the reported machines into the receiver's storage.
-  // The receiver should deduplicate by `host.machine_uuid` (machine UUID).
+  // The receiver deduplicates by `host.machine_uuid`, `host.host_name`, and `network.local_ip` (composite natural key).
   rpc ReportMachineInfos (ReportMachineInfosRequest) returns (ReportMachineInfosReply) {
     option (google.api.http) = {
       post: "/v1/machine-info/report"
@@ -37,7 +37,7 @@ message GetMachineInfoRequest {}
 
 message ReportMachineInfosRequest {
   // machines contains hardware details for each machine.
-  // Receiver deduplicates by `host.machine_uuid`.
+  // Receiver deduplicates by machine UUID, hostname, and primary local IP together.
   repeated GetMachineInfoReply machines = 1;
 }
 
@@ -134,7 +134,8 @@ message NetworkInfo {
 
 message HostInfo {
   string hostName = 1;
-  // machineUuid is a best-effort stable unique identifier for the host.
+  // machineUuid is a best-effort host identifier (may collide across machines when cloned images share machine-id).
+  // Persisted rows use machineUuid + hostName + network.localIp as the composite unique key.
   // On macOS it is sourced from `sysctl -n hw.uuid`.
   // On Linux it is sourced from `/etc/machine-id` or `/var/lib/dbus/machine-id`.
   string machineUuid = 2;

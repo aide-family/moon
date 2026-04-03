@@ -100,6 +100,15 @@ func MachineUUID() string {
 	return id
 }
 
+// LocalMachineIdentity returns machine UUID, hostname, and primary local IPv4 used for storage identity
+// without running a full hardware collection.
+func LocalMachineIdentity() (machineUUID, hostName, localIP string) {
+	hostName, _ = os.Hostname()
+	machineUUID = MachineUUID()
+	localIP, _ = localIPAndCIDR()
+	return
+}
+
 func collectSystemInfo() *MachineSystem {
 	info, err := ghost.Info()
 	if err == nil && info != nil {

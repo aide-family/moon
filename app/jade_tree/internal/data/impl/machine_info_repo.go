@@ -6,6 +6,7 @@ import (
 	"github.com/aide-family/magicbox/merr"
 	"github.com/go-kratos/kratos/v2/errors"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/aide-family/jade_tree/internal/biz/bo"
 	"github.com/aide-family/jade_tree/internal/biz/repository"
@@ -17,35 +18,18 @@ import (
 
 var _ repository.MachineInfoProvider = (*machineInfoRepository)(nil)
 
-func (m *machineInfoRepository) GetMachineInfosByMachineUUIDs(ctx context.Context, machineUUIDs []string) ([]*machine.MachineInfo, error) {
-	if len(machineUUIDs) == 0 {
-		return []*machine.MachineInfo{}, nil
-	}
-
-	rows, err := query.MachineInfo.WithContext(ctx).Where(query.MachineInfo.MachineUUID.In(machineUUIDs...)).Find()
-	if err != nil {
-		return nil, err
-	}
-
-	items := make([]*machine.MachineInfo, 0, len(rows))
-	for _, row := range rows {
-		item, err := convert.ToMachineInfoItemBo(row)
-		if err != nil {
-			return nil, err
-		}
-		items = append(items, item)
-	}
-	return items, nil
-}
-
-func (m *machineInfoRepository) GetMachineInfoByMachineUUID(ctx context.Context, machineUUID string) (*machine.MachineInfo, error) {
+func (m *machineInfoRepository) GetMachineInfoByIdentity(ctx context.Context, id *bo.MachineInfoIdentityBo) (*machine.MachineInfo, error) {
 	if !m.enabledCollectSelf {
 		return nil, merr.ErrorParams("collect self is not enabled")
 	}
-	if machineUUID == "" {
-		return nil, merr.ErrorInvalidArgument("machine uuid is required")
+	if id == nil || id.MachineUUID == "" {
+		return nil, merr.ErrorInvalidArgument("machine identity is required")
 	}
-	row, err := query.MachineInfo.WithContext(ctx).Where(query.MachineInfo.MachineUUID.Eq(machineUUID)).First()
+	row, err := query.MachineInfo.WithContext(ctx).
+		Where(query.MachineInfo.MachineUUID.Eq(id.MachineUUID)).
+		Where(query.MachineInfo.HostName.Eq(id.HostName)).
+		Where(query.MachineInfo.LocalIP.Eq(id.LocalIP)).
+		First()
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotFound("machine info not found")
@@ -75,7 +59,28 @@ func (m *machineInfoRepository) UpsertMachineInfos(ctx context.Context, machines
 		return nil
 	}
 
-	return query.MachineInfo.WithContext(ctx).Save(rows...)
+	return m.upsertMachineInfosByIdentity(ctx, rows)
+}
+
+// upsertMachineInfosByIdentity upserts rows by composite natural key (machine_uuid, host_name, local_ip).
+func (m *machineInfoRepository) upsertMachineInfosByIdentity(ctx context.Context, rows []*do.MachineInfo) error {
+	if len(rows) == 0 {
+		return nil
+	}
+	table := query.MachineInfo
+	return m.DB().WithContext(ctx).Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: table.MachineUUID.ColumnName().String()},
+			{Name: table.HostName.ColumnName().String()},
+			{Name: table.LocalIP.ColumnName().String()},
+		},
+		DoUpdates: clause.AssignmentColumns([]string{
+			table.Source.ColumnName().String(),
+			table.Info.ColumnName().String(),
+			table.UpdatedAt.ColumnName().String(),
+			table.DeletedAt.ColumnName().String(),
+		}),
+	}).Create(&rows).Error
 }
 
 func (m *machineInfoRepository) UpdateLocalMachineInfo(ctx context.Context, machine *machine.MachineInfo) error {
@@ -89,16 +94,7 @@ func (m *machineInfoRepository) UpdateLocalMachineInfo(ctx context.Context, mach
 	if err != nil {
 		return err
 	}
-	if row.ID == 0 {
-		existing, err := m.GetMachineInfoByMachineUUID(ctx, machine.MachineUUID)
-		if err != nil && !merr.IsNotFound(err) {
-			return err
-		}
-		if existing != nil {
-			row.ID = existing.ID
-		}
-	}
-	return query.MachineInfo.WithContext(ctx).Where(query.MachineInfo.MachineUUID.Eq(machine.MachineUUID)).Save(row)
+	return m.upsertMachineInfosByIdentity(ctx, []*do.MachineInfo{row})
 }
 
 func (m *machineInfoRepository) ListMachineInfos(ctx context.Context, req *bo.ListMachineInfosBo) (*bo.PageResponseBo[*machine.MachineInfo], error) {

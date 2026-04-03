@@ -26,7 +26,7 @@ func newListCmd() *cobra.Command {
 	root := &cobra.Command{
 		Use:   "list [endpoint...]",
 		Short: "List machines known by each endpoint (GET /v1/machine-infos)",
-		Long:  "For each jade_tree API endpoint, fetch all pages of cluster-stored machines. Subcommands cpu|memory|network|disk print the same detail sections for every machine from every endpoint.",
+		Long:  "For each jade_tree API endpoint, fetch all pages of cluster-stored machines. Subcommands cpu|memory|network|disk|sys print the same detail sections for every machine from every endpoint.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := flags.validate(); err != nil {
 				return err
@@ -76,6 +76,7 @@ func newListCmd() *cobra.Command {
 		{"memory", "Show memory and swap details for each known machine"},
 		{"network", "Show network details for each known machine"},
 		{"disk", "Show disk and mount details for each known machine"},
+		{"system", "Show OS, architecture, version, and kernel for each known machine"},
 	}
 	for _, dk := range detailKinds {
 		kind := dk.name

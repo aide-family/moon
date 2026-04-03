@@ -26,7 +26,7 @@ func newGetCmd() *cobra.Command {
 	root := &cobra.Command{
 		Use:   "get [endpoint...]",
 		Short: "Get machine information from endpoints (GET /v1/machine-info)",
-		Long:  "Print one summary row per machine returned from each endpoint's local probe. Positional args or config endpoints override --endpoint. Subcommands cpu|memory|network|disk print details per endpoint.",
+		Long:  "Print one summary row per machine returned from each endpoint's local probe. Positional args or config endpoints override --endpoint. Subcommands cpu|memory|network|disk|sys print details per endpoint.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := flags.validate(); err != nil {
 				return err
@@ -74,6 +74,7 @@ func newGetCmd() *cobra.Command {
 		{"memory", "Show memory and swap details"},
 		{"network", "Show network interfaces, IPs, and traffic counters"},
 		{"disk", "Show disks and mount points"},
+		{"system", "Show OS, architecture, version, and kernel"},
 	}
 	for _, dk := range detailKinds {
 		kind := dk.name

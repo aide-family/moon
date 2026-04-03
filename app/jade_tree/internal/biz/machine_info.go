@@ -27,7 +27,7 @@ func NewMachineInfo(machineInfoRepo repository.MachineInfoProvider, helper *klog
 }
 
 func (m *MachineInfo) GetMachineInfo(ctx context.Context) (*machine.MachineInfo, error) {
-	mi, err := m.machineInfoRepo.GetMachineInfoByMachineUUID(ctx, m.machineInfoRepo.GetLocalMachineUUID())
+	mi, err := m.machineInfoRepo.GetMachineInfoByIdentity(ctx, m.machineInfoRepo.GetLocalMachineIdentity())
 	if err == nil {
 		return mi, nil
 	}
@@ -53,26 +53,7 @@ func (m *MachineInfo) ReportMachineInfos(ctx context.Context, incoming []*machin
 		return nil
 	}
 
-	uuids := make([]string, 0, len(incoming))
-	for _, mi := range incoming {
-		if mi == nil {
-			continue
-		}
-		uuids = append(uuids, mi.MachineUUID)
-	}
-	existing, err := m.machineInfoRepo.GetMachineInfosByMachineUUIDs(ctx, uuids)
-	if err != nil {
-		return err
-	}
-	existingMap := make(map[string]*machine.MachineInfo, len(existing))
-	for _, mi := range existing {
-		if mi == nil {
-			continue
-		}
-		existingMap[mi.MachineUUID] = mi
-	}
-
-	// Deduplicate incoming payload by machine UUID and merge duplicates.
+	// Deduplicate incoming payload by machine UUID + hostname + local IP; persistence upserts by the same composite key.
 	mergedIncoming := make(map[string]struct{}, len(incoming))
 	toUpsert := make([]*machine.MachineInfo, 0, len(incoming))
 	for _, mi := range incoming {
@@ -83,15 +64,12 @@ func (m *MachineInfo) ReportMachineInfos(ctx context.Context, incoming []*machin
 			continue
 		}
 
-		if _, ok := mergedIncoming[mi.MachineUUID]; ok {
+		key := bo.NewMachineInfoIdentityBo(mi).DedupKey()
+		if _, ok := mergedIncoming[key]; ok {
 			continue
 		}
 		mi.Source = enum.MachineInfoSource_MachineInfoSource_ORIGIN
-		if existing, ok := existingMap[mi.MachineUUID]; ok {
-			mi.ID = existing.ID
-			mi.Source = existing.Source
-		}
-		mergedIncoming[mi.MachineUUID] = struct{}{}
+		mergedIncoming[key] = struct{}{}
 		toUpsert = append(toUpsert, mi)
 	}
 

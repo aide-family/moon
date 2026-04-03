@@ -5,6 +5,37 @@ import (
 	"github.com/aide-family/jade_tree/pkg/machine"
 )
 
+// MachineInfoIdentityBo is the natural key for a stored machine_infos row (machine UUID + hostname + local IP).
+type MachineInfoIdentityBo struct {
+	MachineUUID string
+	HostName    string
+	LocalIP     string
+}
+
+// DedupKey returns a stable string suitable for deduplicating payloads in memory.
+func (b *MachineInfoIdentityBo) DedupKey() string {
+	if b == nil {
+		return ""
+	}
+	return b.MachineUUID + "\x1e" + b.HostName + "\x1e" + b.LocalIP
+}
+
+// NewMachineInfoIdentityBo builds a storage identity from collected or reported machine info.
+func NewMachineInfoIdentityBo(in *machine.MachineInfo) *MachineInfoIdentityBo {
+	if in == nil {
+		return nil
+	}
+	lip := ""
+	if in.Network != nil {
+		lip = in.Network.LocalIP
+	}
+	return &MachineInfoIdentityBo{
+		MachineUUID: in.MachineUUID,
+		HostName:    in.HostName,
+		LocalIP:     lip,
+	}
+}
+
 type ListMachineInfosBo struct {
 	*PageRequestBo
 }

@@ -28,7 +28,7 @@ type MachineInfoHTTPServer interface {
 	GetClusterMachineInfos(context.Context, *GetClusterMachineInfosRequest) (*GetClusterMachineInfosReply, error)
 	GetMachineInfo(context.Context, *GetMachineInfoRequest) (*GetMachineInfoReply, error)
 	// ReportMachineInfos ReportMachineInfos persists/merges the reported machines into the receiver's storage.
-	// The receiver should deduplicate by `host.machine_uuid` (machine UUID).
+	// The receiver deduplicates by `host.machine_uuid`, `host.host_name`, and `network.local_ip` (composite natural key).
 	ReportMachineInfos(context.Context, *ReportMachineInfosRequest) (*ReportMachineInfosReply, error)
 }
 
@@ -104,7 +104,7 @@ type MachineInfoHTTPClient interface {
 	GetClusterMachineInfos(ctx context.Context, req *GetClusterMachineInfosRequest, opts ...http.CallOption) (rsp *GetClusterMachineInfosReply, err error)
 	GetMachineInfo(ctx context.Context, req *GetMachineInfoRequest, opts ...http.CallOption) (rsp *GetMachineInfoReply, err error)
 	// ReportMachineInfos ReportMachineInfos persists/merges the reported machines into the receiver's storage.
-	// The receiver should deduplicate by `host.machine_uuid` (machine UUID).
+	// The receiver deduplicates by `host.machine_uuid`, `host.host_name`, and `network.local_ip` (composite natural key).
 	ReportMachineInfos(ctx context.Context, req *ReportMachineInfosRequest, opts ...http.CallOption) (rsp *ReportMachineInfosReply, err error)
 }
 
@@ -144,7 +144,7 @@ func (c *MachineInfoHTTPClientImpl) GetMachineInfo(ctx context.Context, in *GetM
 }
 
 // ReportMachineInfos ReportMachineInfos persists/merges the reported machines into the receiver's storage.
-// The receiver should deduplicate by `host.machine_uuid` (machine UUID).
+// The receiver deduplicates by `host.machine_uuid`, `host.host_name`, and `network.local_ip` (composite natural key).
 func (c *MachineInfoHTTPClientImpl) ReportMachineInfos(ctx context.Context, in *ReportMachineInfosRequest, opts ...http.CallOption) (*ReportMachineInfosReply, error) {
 	var out ReportMachineInfosReply
 	pattern := "/v1/machine-info/report"

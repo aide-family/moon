@@ -46,8 +46,8 @@ API definitions live under `proto/jade_tree/api/v1/`; generated Go code is in `p
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-audits/{uid}/reject` | Reject pending audit with a reason |
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-commands/{command_uid}/execute` | Run stored command on a remote host (host, credentials, optional timeout in body) |
 | `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-info` | Get deployment machine details (CPU, memory, disk+mount usage, network, hostname, machine UUID, arch/os/version/kernel) |
-| `jade_tree.api.v1.MachineInfo` | `POST /v1/machine-info/report` | Report machines (deduped by machine UUID) and persist; empty response |
-| `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-infos` | List machines known by the receiver/leader (deduped by machine UUID, paginated by `page`/`pageSize`) |
+| `jade_tree.api.v1.MachineInfo` | `POST /v1/machine-info/report` | Report machines (deduped by machine UUID + hostname + local IP) and persist; empty response |
+| `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-infos` | List machines known by the receiver/leader (same composite identity, paginated by `page`/`pageSize`) |
 | `jade_tree.api.v1.ProbeTask` | `POST /v1/probe-tasks` | Create a probe task persisted in database |
 | `jade_tree.api.v1.ProbeTask` | `PUT /v1/probe-tasks/{uid}` | Update a probe task fields (`type/host/port/url/name/timeoutSeconds`) |
 | `jade_tree.api.v1.ProbeTask` | `PATCH /v1/probe-tasks/{uid}/status` | Manage probe task status (`ENABLED` / `DISABLED`) |
@@ -75,8 +75,8 @@ make dev
 
 ## CLI Machine Commands
 
-- `jade_tree machine get [endpoint...]` calls `GET /v1/machine-info` on each target: one summary row per endpoint’s local machine (positional args, config `endpoints`, else `--endpoint` or config `endpoint`). Subcommands `get cpu|memory|network|disk [endpoint...]` print the same detail sections for each endpoint.
-- `jade_tree machine list [endpoint...]` calls `GET /v1/machine-infos` (paginated with `--page-size`) on each target and prints every machine that endpoint knows in storage. Subcommands `list cpu|memory|network|disk [endpoint...]` print details for all those machines.
+- `jade_tree machine get [endpoint...]` calls `GET /v1/machine-info` on each target: one summary row per endpoint’s local machine (positional args, config `endpoints`, else `--endpoint` or config `endpoint`). Subcommands `get cpu|memory|network|disk|sys [endpoint...]` print the same detail sections for each endpoint (`sys`: architecture, OS, version, kernel).
+- `jade_tree machine list [endpoint...]` calls `GET /v1/machine-infos` (paginated with `--page-size`) on each target and prints every machine that endpoint knows in storage. Subcommands `list cpu|memory|network|disk|sys [endpoint...]` print details for all those machines.
 - `jade_tree machine push [endpoint...]` pushes local and stored machine data from `--from` (or config `endpoint`) to the given target endpoints.
 - All commands support `--output table|json|yaml` (default `table`).
 - All machine commands support JWT auth via `--jwt` or config file.

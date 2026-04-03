@@ -51,6 +51,8 @@ func renderMachineDetailsMulti(kind, format string, items []machineDetailItem) e
 			return renderNetworkDetailsComparisonTable(items)
 		case "disk":
 			return renderDiskDetailsComparisonTable(items)
+		case "sys":
+			return renderSystemDetailsComparisonTable(items)
 		default:
 			return fmt.Errorf("unknown detail kind: %s", kind)
 		}
@@ -76,8 +78,22 @@ func detailPayloadAsMap(kind, endpoint string, reply *apiv1.GetMachineInfoReply)
 		out["network"] = networkToMap(reply.GetNetwork())
 	case "disk":
 		out["disks"] = disksToSlice(reply.GetDisks())
+	case "sys":
+		out["system"] = systemToMap(reply.GetSystem())
 	}
 	return out
+}
+
+func systemToMap(s *apiv1.SystemInfo) map[string]any {
+	if s == nil {
+		return map[string]any{}
+	}
+	return map[string]any{
+		"arch":    s.GetArch(),
+		"os":      s.GetOs(),
+		"version": s.GetVersion(),
+		"kernel":  s.GetKernel(),
+	}
 }
 
 func cpuToMap(c *apiv1.CPUInfo) map[string]any {
@@ -303,13 +319,94 @@ func formatPageSizesSummary(sizes []uint64) string {
 	return strings.Join(parts, ", ")
 }
 
+// cpuCapabilitiesMaxLineRunes limits CAPABILITIES column width in the CPU detail table (table output only).
+const cpuCapabilitiesMaxLineRunes = 56
+
+// wrapCommaSeparatedToRunes breaks a comma-separated list into multiple lines so each line is at most maxRunes runes wide (breaks at commas; overlong tokens are hard-split).
+func wrapCommaSeparatedToRunes(s string, maxRunes int) string {
+	s = strings.TrimSpace(s)
+	if s == "" || maxRunes <= 0 {
+		return s
+	}
+	parts := strings.Split(s, ",")
+	tokens := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			tokens = append(tokens, p)
+		}
+	}
+	if len(tokens) == 0 {
+		return s
+	}
+
+	hardSplit := func(tok string) []string {
+		if utf8.RuneCountInString(tok) <= maxRunes {
+			return []string{tok}
+		}
+		var out []string
+		for len(tok) > 0 {
+			var chunk strings.Builder
+			n := 0
+			for _, r := range tok {
+				if n >= maxRunes {
+					break
+				}
+				chunk.WriteRune(r)
+				n++
+			}
+			out = append(out, chunk.String())
+			tok = tok[len(chunk.String()):]
+		}
+		return out
+	}
+
+	var lines []string
+	var b strings.Builder
+	lineRunes := 0
+	flushLine := func() {
+		if b.Len() > 0 {
+			lines = append(lines, b.String())
+			b.Reset()
+			lineRunes = 0
+		}
+	}
+	for _, tok := range tokens {
+		pieces := hardSplit(tok)
+		for pi, piece := range pieces {
+			pw := utf8.RuneCountInString(piece)
+			if pi == 0 {
+				if b.Len() > 0 {
+					if lineRunes+1+pw > maxRunes {
+						flushLine()
+					} else {
+						b.WriteByte(',')
+						lineRunes++
+					}
+				}
+			} else {
+				if lineRunes+pw > maxRunes {
+					flushLine()
+				}
+			}
+			b.WriteString(piece)
+			lineRunes += pw
+		}
+	}
+	flushLine()
+	return strings.Join(lines, "\n")
+}
+
 func renderCPUDetailsComparisonTable(items []machineDetailItem) error {
 	tw := tablewriter.NewWriter(os.Stdout)
-	tw.SetAutoWrapText(false)
+	tw.SetAutoWrapText(true)
+	tw.SetReflowDuringAutoWrap(false)
 	tw.SetHeader([]string{
 		"ENDPOINT", "HOSTNAME", "TOTAL_CORES", "TOTAL_HW_THREADS",
 		"PROC_ID", "VENDOR", "MODEL", "PROC_CORES", "PROC_HW_THREADS", "CAPABILITIES", "CORES",
 	})
+	const colCapabilities = 9
+	tw.SetColMinWidth(colCapabilities, cpuCapabilitiesMaxLineRunes)
 	for _, it := range items {
 		reply := replyOrEmpty(it.Reply)
 		ep := strings.TrimSpace(it.Endpoint)
@@ -335,6 +432,8 @@ func renderCPUDetailsComparisonTable(items []machineDetailItem) error {
 			caps := strings.Join(p.GetCapabilities(), ",")
 			if caps == "" {
 				caps = "-"
+			} else {
+				caps = wrapCommaSeparatedToRunes(caps, cpuCapabilitiesMaxLineRunes)
 			}
 			tw.Append([]string{
 				ep, host, tc, tt,
@@ -500,6 +599,40 @@ func renderDiskDetailsComparisonTable(items []machineDetailItem) error {
 		if diskRows == 0 {
 			tw.Append([]string{ep, host, "-", "-", "-", "-", "-"})
 		}
+	}
+	tw.Render()
+	return nil
+}
+
+func renderSystemDetailsComparisonTable(items []machineDetailItem) error {
+	tw := tablewriter.NewWriter(os.Stdout)
+	tw.SetAutoWrapText(true)
+	tw.SetHeader([]string{
+		"ENDPOINT", "HOSTNAME", "ARCH", "OS", "VERSION", "KERNEL",
+	})
+	for _, it := range items {
+		reply := replyOrEmpty(it.Reply)
+		ep := strings.TrimSpace(it.Endpoint)
+		host := reply.GetHost().GetHostName()
+		s := reply.GetSystem()
+		if s == nil {
+			tw.Append([]string{ep, host, "-", "-", "-", "-"})
+			continue
+		}
+		dashIfEmpty := func(v string) string {
+			v = strings.TrimSpace(v)
+			if v == "" {
+				return "-"
+			}
+			return v
+		}
+		tw.Append([]string{
+			ep, host,
+			dashIfEmpty(s.GetArch()),
+			dashIfEmpty(s.GetOs()),
+			dashIfEmpty(s.GetVersion()),
+			dashIfEmpty(s.GetKernel()),
+		})
 	}
 	tw.Render()
 	return nil

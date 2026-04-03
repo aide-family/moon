@@ -147,8 +147,24 @@ func (c *apiClient) addAuthHeader(req *http.Request) {
 	req.Header.Set("Authorization", strings.Join([]string{cnst.HTTPHeaderBearerPrefix, token}, " "))
 }
 
-// fetchAllMachines pages GetClusterMachineInfos until exhausted, merges by machine UUID (or hostname),
-// and overlays the local GetMachineInfo for the same endpoint when available.
+// machineDedupKey matches server-side storage identity: machine UUID + hostname + local IP.
+func machineDedupKey(item *apiv1.GetMachineInfoReply) string {
+	if item == nil || item.GetHost() == nil {
+		return ""
+	}
+	h := item.GetHost()
+	lip := ""
+	if item.GetNetwork() != nil {
+		lip = item.GetNetwork().GetLocalIp()
+	}
+	if h.GetMachineUuid() == "" {
+		return ""
+	}
+	return h.GetMachineUuid() + "\x1e" + h.GetHostName() + "\x1e" + lip
+}
+
+// fetchAllMachines pages GetClusterMachineInfos until exhausted, merges by composite identity
+// (machine UUID + hostname + local IP), and overlays the local GetMachineInfo for the same endpoint when available.
 func fetchAllMachines(ctx context.Context, client *apiClient, from string, pageSize int32) ([]*apiv1.GetMachineInfoReply, error) {
 	var page int32 = 1
 	merged := make(map[string]*apiv1.GetMachineInfoReply)
@@ -161,10 +177,7 @@ func fetchAllMachines(ctx context.Context, client *apiClient, from string, pageS
 			if item == nil {
 				continue
 			}
-			key := item.GetHost().GetMachineUuid()
-			if key == "" {
-				key = item.GetHost().GetHostName()
-			}
+			key := machineDedupKey(item)
 			if key == "" {
 				continue
 			}
@@ -174,16 +187,6 @@ func fetchAllMachines(ctx context.Context, client *apiClient, from string, pageS
 			break
 		}
 		page++
-	}
-	localInfo, err := client.getMachineInfo(ctx, from)
-	if err == nil && localInfo != nil {
-		key := localInfo.GetHost().GetMachineUuid()
-		if key == "" {
-			key = localInfo.GetHost().GetHostName()
-		}
-		if key != "" {
-			merged[key] = localInfo
-		}
 	}
 
 	out := make([]*apiv1.GetMachineInfoReply, 0, len(merged))

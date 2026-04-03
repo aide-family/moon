@@ -9,18 +9,14 @@ import (
 
 // MachineInfoProvider collects local machine info and persists/queries cluster machine info.
 type MachineInfoProvider interface {
-	// GetLocalMachineUUID returns the stable local machine UUID without collecting full machine info.
-	GetLocalMachineUUID() string
+	// GetLocalMachineIdentity returns machine UUID, hostname, and local IPv4 without a full hardware scan.
+	GetLocalMachineIdentity() *bo.MachineInfoIdentityBo
 
 	// Collect collects the local machine info.
 	Collect(ctx context.Context) (*machine.MachineInfo, error)
 
-	// GetMachineInfosByMachineUUIDs fetches existing machines by machine UUID.
-	// It is used to implement merge semantics on reported payloads.
-	GetMachineInfosByMachineUUIDs(ctx context.Context, machineUUIDs []string) ([]*machine.MachineInfo, error)
-
-	// GetMachineInfoByMachineUUID fetches a machine by machine UUID.
-	GetMachineInfoByMachineUUID(ctx context.Context, machineUUID string) (*machine.MachineInfo, error)
+	// GetMachineInfoByIdentity fetches a machine by natural key (machine UUID + hostname + local IP).
+	GetMachineInfoByIdentity(ctx context.Context, id *bo.MachineInfoIdentityBo) (*machine.MachineInfo, error)
 
 	// UpsertMachineInfos persists (insert or update) machines into storage.
 	UpsertMachineInfos(ctx context.Context, machines []*machine.MachineInfo) error

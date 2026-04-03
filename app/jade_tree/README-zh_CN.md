@@ -46,8 +46,8 @@ API 定义位于 `proto/jade_tree/api/v1/`；生成代码在 `pkg/api/v1/`。修
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-audits/{uid}/reject` | 驳回审核并填写原因 |
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-commands/{command_uid}/execute` | 选择已生效命令，携带主机与凭证在远端执行 |
 | `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-info` | 获取部署机器详情（CPU、内存、磁盘+挂载点容量、网络、主机名、机器唯一标识、架构/系统/版本/内核） |
-| `jade_tree.api.v1.MachineInfo` | `POST /v1/machine-info/report` | 上报机器信息（按机器唯一标识去重合并并落库）；返回空响应 |
-| `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-infos` | 获取接收方/主节点已知的机器信息（去重合并，按 `page`/`pageSize` 分页） |
+| `jade_tree.api.v1.MachineInfo` | `POST /v1/machine-info/report` | 上报机器信息（按机器 UUID + 主机名 + 本机 IP 组合去重合并并落库）；返回空响应 |
+| `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-infos` | 获取接收方/主节点已知的机器信息（同一组合自然键，按 `page`/`pageSize` 分页） |
 | `jade_tree.api.v1.ProbeTask` | `POST /v1/probe-tasks` | 新增数据库探测任务 |
 | `jade_tree.api.v1.ProbeTask` | `PUT /v1/probe-tasks/{uid}` | 更新探测任务字段（`type/host/port/url/name/timeoutSeconds`） |
 | `jade_tree.api.v1.ProbeTask` | `PATCH /v1/probe-tasks/{uid}/status` | 状态管理（`ENABLED` / `DISABLED`） |
@@ -75,8 +75,8 @@ make dev
 
 ## 机器信息命令行
 
-- `jade_tree machine get [endpoint...]`：对每个目标调用 `GET /v1/machine-info`，每个端点本机一行摘要（位置参数、配置 `endpoints`，否则 `--endpoint` 或配置 `endpoint`）。子命令 `get cpu|memory|network|disk [endpoint...]` 对每个端点输出同类详情。
-- `jade_tree machine list [endpoint...]`：对每个目标分页调用 `GET /v1/machine-infos`（`--page-size`），列出该节点存储中已知的全部机器。子命令 `list cpu|memory|network|disk [endpoint...]` 对上述每台机器输出同类详情。
+- `jade_tree machine get [endpoint...]`：对每个目标调用 `GET /v1/machine-info`，每个端点本机一行摘要（位置参数、配置 `endpoints`，否则 `--endpoint` 或配置 `endpoint`）。子命令 `get cpu|memory|network|disk|sys [endpoint...]` 对每个端点输出同类详情（`sys`：架构、操作系统、版本、内核）。
+- `jade_tree machine list [endpoint...]`：对每个目标分页调用 `GET /v1/machine-infos`（`--page-size`），列出该节点存储中已知的全部机器。子命令 `list cpu|memory|network|disk|sys [endpoint...]` 对上述每台机器输出同类详情。
 - `jade_tree machine push [endpoint...]`：从 `--from`（或配置 `endpoint`）将本机及已存储机器信息推送到目标端点。
 - 所有命令都支持 `--output table|json|yaml`（默认 `table`）。
 - 所有机器命令都支持通过 `--jwt` 或配置文件进行 JWT 鉴权。

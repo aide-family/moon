@@ -60,7 +60,7 @@ func (*GetMachineInfoRequest) Descriptor() ([]byte, []int) {
 type ReportMachineInfosRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// machines contains hardware details for each machine.
-	// Receiver deduplicates by `host.machine_uuid`.
+	// Receiver deduplicates by machine UUID, hostname, and primary local IP together.
 	Machines      []*GetMachineInfoReply `protobuf:"bytes,1,rep,name=machines,proto3" json:"machines,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -880,7 +880,8 @@ func (x *NetworkInfo) GetNics() []string {
 type HostInfo struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	HostName string                 `protobuf:"bytes,1,opt,name=hostName,proto3" json:"hostName,omitempty"`
-	// machineUuid is a best-effort stable unique identifier for the host.
+	// machineUuid is a best-effort host identifier (may collide across machines when cloned images share machine-id).
+	// Persisted rows use machineUuid + hostName + network.localIp as the composite unique key.
 	// On macOS it is sourced from `sysctl -n hw.uuid`.
 	// On Linux it is sourced from `/etc/machine-id` or `/var/lib/dbus/machine-id`.
 	MachineUuid   string `protobuf:"bytes,2,opt,name=machineUuid,proto3" json:"machineUuid,omitempty"`

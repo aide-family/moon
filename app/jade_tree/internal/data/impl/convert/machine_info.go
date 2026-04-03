@@ -1,8 +1,6 @@
 package convert
 
 import (
-	"encoding/json"
-
 	"github.com/aide-family/magicbox/enum"
 
 	"github.com/aide-family/jade_tree/internal/data/impl/do"
@@ -19,17 +17,18 @@ func ToMachineInfoDO(in *machine.MachineInfo) (*do.MachineInfo, error) {
 		src = enum.MachineInfoSource_MachineInfoSource_ORIGIN
 	}
 
-	infoBytes, err := json.Marshal(in)
-	if err != nil {
-		return nil, err
+	localIP := ""
+	if in.Network != nil {
+		localIP = in.Network.LocalIP
 	}
 
 	return &do.MachineInfo{
 		ID:          in.ID,
 		MachineUUID: in.MachineUUID,
 		HostName:    in.HostName,
+		LocalIP:     localIP,
 		Source:      src,
-		Info:        string(infoBytes),
+		Info:        in,
 	}, nil
 }
 
@@ -38,20 +37,5 @@ func ToMachineInfoItemBo(row *do.MachineInfo) (*machine.MachineInfo, error) {
 		return nil, nil
 	}
 
-	out := &machine.MachineInfo{}
-	if row.Info != "" {
-		if err := json.Unmarshal([]byte(row.Info), out); err != nil {
-			return nil, err
-		}
-	}
-
-	// Ensure dedup/filter keys are always populated from columns.
-	if out.MachineUUID == "" {
-		out.MachineUUID = row.MachineUUID
-	}
-	if out.HostName == "" {
-		out.HostName = row.HostName
-	}
-	out.Source = row.Source
-	return out, nil
+	return row.Info, nil
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/aide-family/magicbox/merr"
 
+	"github.com/aide-family/jade_tree/internal/biz/bo"
 	"github.com/aide-family/jade_tree/internal/biz/repository"
 	"github.com/aide-family/jade_tree/internal/conf"
 	"github.com/aide-family/jade_tree/internal/data"
@@ -35,6 +36,7 @@ func (m *machineInfoRepository) Collect(ctx context.Context) (*machine.MachineIn
 	return machine.Collect(ctx)
 }
 
-func (m *machineInfoRepository) GetLocalMachineUUID() string {
-	return machine.MachineUUID()
+func (m *machineInfoRepository) GetLocalMachineIdentity() *bo.MachineInfoIdentityBo {
+	u, h, lip := machine.LocalMachineIdentity()
+	return &bo.MachineInfoIdentityBo{MachineUUID: u, HostName: h, LocalIP: lip}
 }

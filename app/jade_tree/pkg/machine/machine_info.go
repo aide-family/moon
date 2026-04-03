@@ -1,9 +1,51 @@
 package machine
 
 import (
+	"database/sql"
+	"database/sql/driver"
+	"encoding/json"
+	"fmt"
+
 	"github.com/aide-family/magicbox/enum"
 	"github.com/bwmarrin/snowflake"
 )
+
+var (
+	_ sql.Scanner   = (*MachineInfo)(nil)
+	_ driver.Valuer = (*MachineInfo)(nil)
+)
+
+type MachineInfo struct {
+	ID          snowflake.ID
+	HostName    string
+	MachineUUID string
+	Source      enum.MachineInfoSource
+	CPU         *MachineCPU
+	Memory      *MachineMemory
+	Disks       []*MachineDisk
+	Network     *MachineNetwork
+	System      *MachineSystem
+}
+
+// Value implements [driver.Valuer].
+func (m *MachineInfo) Value() (driver.Value, error) {
+	return json.Marshal(m)
+}
+
+// Scan implements [sql.Scanner].
+func (m *MachineInfo) Scan(src any) error {
+	if src == nil {
+		return nil
+	}
+	switch v := src.(type) {
+	case []byte:
+		return json.Unmarshal(v, m)
+	case string:
+		return json.Unmarshal([]byte(v), m)
+	default:
+		return fmt.Errorf("unsupported type: %T", src)
+	}
+}
 
 type MachineCPUCore struct {
 	ID              int32
@@ -69,18 +111,6 @@ type MachineNetwork struct {
 	TotalRXBytes uint64
 	TotalTXBytes uint64
 	NICs         []string
-}
-
-type MachineInfo struct {
-	ID          snowflake.ID
-	HostName    string
-	MachineUUID string
-	Source      enum.MachineInfoSource
-	CPU         *MachineCPU
-	Memory      *MachineMemory
-	Disks       []*MachineDisk
-	Network     *MachineNetwork
-	System      *MachineSystem
 }
 
 type MachineSystem struct {

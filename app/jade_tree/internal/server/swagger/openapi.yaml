@@ -24,7 +24,7 @@ paths:
                 - MachineInfo
             description: |-
                 ReportMachineInfos persists/merges the reported machines into the receiver's storage.
-                 The receiver should deduplicate by `host.machine_uuid` (machine UUID).
+                 The receiver deduplicates by `host.machine_uuid`, `host.host_name`, and `network.local_ip` (composite natural key).
             operationId: MachineInfo_ReportMachineInfos
             requestBody:
                 content:
@@ -593,7 +593,8 @@ components:
                 machineUuid:
                     type: string
                     description: |-
-                        machineUuid is a best-effort stable unique identifier for the host.
+                        machineUuid is a best-effort host identifier (may collide across machines when cloned images share machine-id).
+                         Persisted rows use machineUuid + hostName + network.localIp as the composite unique key.
                          On macOS it is sourced from `sysctl -n hw.uuid`.
                          On Linux it is sourced from `/etc/machine-id` or `/var/lib/dbus/machine-id`.
         jade_tree.api.v1.ListProbeTasksReply:
@@ -738,7 +739,7 @@ components:
                         $ref: '#/components/schemas/jade_tree.api.v1.GetMachineInfoReply'
                     description: |-
                         machines contains hardware details for each machine.
-                         Receiver deduplicates by `host.machine_uuid`.
+                         Receiver deduplicates by machine UUID, hostname, and primary local IP together.
         jade_tree.api.v1.SSHCommandAuditItem:
             type: object
             properties:

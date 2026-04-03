@@ -31,6 +31,7 @@ func newMachineInfo(db *gorm.DB, opts ...gen.DOOption) machineInfo {
 	_machineInfo.DeletedAt = field.NewField(tableName, "deleted_at")
 	_machineInfo.MachineUUID = field.NewString(tableName, "machine_uuid")
 	_machineInfo.HostName = field.NewString(tableName, "host_name")
+	_machineInfo.LocalIP = field.NewString(tableName, "local_ip")
 	_machineInfo.Source = field.NewInt32(tableName, "source")
 	_machineInfo.Info = field.NewString(tableName, "info")
 	_machineInfo.CreatedAt = field.NewTime(tableName, "created_at")
@@ -49,6 +50,7 @@ type machineInfo struct {
 	DeletedAt   field.Field
 	MachineUUID field.String
 	HostName    field.String
+	LocalIP     field.String
 	Source      field.Int32
 	Info        field.String
 	CreatedAt   field.Time
@@ -73,6 +75,7 @@ func (m *machineInfo) updateTableName(table string) *machineInfo {
 	m.DeletedAt = field.NewField(table, "deleted_at")
 	m.MachineUUID = field.NewString(table, "machine_uuid")
 	m.HostName = field.NewString(table, "host_name")
+	m.LocalIP = field.NewString(table, "local_ip")
 	m.Source = field.NewInt32(table, "source")
 	m.Info = field.NewString(table, "info")
 	m.CreatedAt = field.NewTime(table, "created_at")
@@ -93,11 +96,12 @@ func (m *machineInfo) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (m *machineInfo) fillFieldMap() {
-	m.fieldMap = make(map[string]field.Expr, 8)
+	m.fieldMap = make(map[string]field.Expr, 9)
 	m.fieldMap["id"] = m.ID
 	m.fieldMap["deleted_at"] = m.DeletedAt
 	m.fieldMap["machine_uuid"] = m.MachineUUID
 	m.fieldMap["host_name"] = m.HostName
+	m.fieldMap["local_ip"] = m.LocalIP
 	m.fieldMap["source"] = m.Source
 	m.fieldMap["info"] = m.Info
 	m.fieldMap["created_at"] = m.CreatedAt
