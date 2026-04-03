@@ -67,20 +67,22 @@ func newGetCmd() *cobra.Command {
 	flags.addPersistentFlags(root)
 
 	detailKinds := []struct {
-		name  string
-		short string
+		name    string
+		aliases []string
+		short   string
 	}{
-		{"cpu", "Show CPU details (processors, cores, threads)"},
-		{"memory", "Show memory and swap details"},
-		{"network", "Show network interfaces, IPs, and traffic counters"},
-		{"disk", "Show disks and mount points"},
-		{"system", "Show OS, architecture, version, and kernel"},
+		{DetailKindCPU, []string{"c"}, "Show CPU details (processors, cores, threads)"},
+		{DetailKindMemory, []string{"m", "mem"}, "Show memory and swap details"},
+		{DetailKindNetwork, []string{"n", "net"}, "Show network interfaces, IPs, and traffic counters"},
+		{DetailKindDisk, []string{"d"}, "Show disks and mount points"},
+		{DetailKindSystem, []string{"s", "sys"}, "Show OS, architecture, version, and kernel"},
 	}
 	for _, dk := range detailKinds {
 		kind := dk.name
 		sub := &cobra.Command{
-			Use:   kind + " [endpoint...]",
-			Short: dk.short,
+			Use:     kind + " [endpoint...]",
+			Aliases: dk.aliases,
+			Short:   dk.short,
 			RunE: func(cmd *cobra.Command, args []string) error {
 				if err := flags.validate(); err != nil {
 					return err

@@ -14,6 +14,14 @@ import (
 	apiv1 "github.com/aide-family/jade_tree/pkg/api/v1"
 )
 
+const (
+	DetailKindCPU     = "cpu"
+	DetailKindMemory  = "memory"
+	DetailKindNetwork = "network"
+	DetailKindDisk    = "disk"
+	DetailKindSystem  = "system"
+)
+
 func renderMachineDetailsMulti(kind, format string, items []machineDetailItem) error {
 	if len(items) == 0 {
 		return nil
@@ -43,15 +51,15 @@ func renderMachineDetailsMulti(kind, format string, items []machineDetailItem) e
 		return nil
 	default:
 		switch strings.ToLower(strings.TrimSpace(kind)) {
-		case "cpu":
+		case DetailKindCPU:
 			return renderCPUDetailsComparisonTable(items)
-		case "memory":
+		case DetailKindMemory:
 			return renderMemoryDetailsComparisonTable(items)
-		case "network":
+		case DetailKindNetwork:
 			return renderNetworkDetailsComparisonTable(items)
-		case "disk":
+		case DetailKindDisk:
 			return renderDiskDetailsComparisonTable(items)
-		case "sys":
+		case DetailKindSystem:
 			return renderSystemDetailsComparisonTable(items)
 		default:
 			return fmt.Errorf("unknown detail kind: %s", kind)
@@ -70,16 +78,16 @@ func detailPayloadAsMap(kind, endpoint string, reply *apiv1.GetMachineInfoReply)
 	}
 	out := map[string]any{"endpoint": endpoint, "hostName": reply.GetHost().GetHostName()}
 	switch strings.ToLower(strings.TrimSpace(kind)) {
-	case "cpu":
-		out["cpu"] = cpuToMap(reply.GetCpu())
-	case "memory":
-		out["memory"] = memoryToMap(reply.GetMemory())
-	case "network":
-		out["network"] = networkToMap(reply.GetNetwork())
-	case "disk":
-		out["disks"] = disksToSlice(reply.GetDisks())
-	case "sys":
-		out["system"] = systemToMap(reply.GetSystem())
+	case DetailKindCPU:
+		out[DetailKindCPU] = cpuToMap(reply.GetCpu())
+	case DetailKindMemory:
+		out[DetailKindMemory] = memoryToMap(reply.GetMemory())
+	case DetailKindNetwork:
+		out[DetailKindNetwork] = networkToMap(reply.GetNetwork())
+	case DetailKindDisk:
+		out[DetailKindDisk] = disksToSlice(reply.GetDisks())
+	case DetailKindSystem:
+		out[DetailKindSystem] = systemToMap(reply.GetSystem())
 	}
 	return out
 }
