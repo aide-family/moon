@@ -11,31 +11,22 @@ import (
 	apiv1 "github.com/aide-family/jade_tree/pkg/api/v1"
 )
 
-type pullFlags struct {
+type getFlags struct {
 	machineCommonFlags
+	Endpoint string
 }
 
-func (f *pullFlags) addPersistentFlags(cmd *cobra.Command) {
+func (f *getFlags) addPersistentFlags(cmd *cobra.Command) {
 	f.machineCommonFlags.addPersistentFlags(cmd)
+	cmd.PersistentFlags().StringVar(&f.Endpoint, "endpoint", defaultEndpoint, "default jade_tree HTTP endpoint when no args and no endpoints in config")
 }
 
-func resolvePullEndpoints(args []string, cfg *clientConfig) []string {
-	endpoints := append([]string(nil), args...)
-	if len(endpoints) == 0 {
-		endpoints = append(endpoints, cfg.Endpoints...)
-	}
-	if len(endpoints) == 0 && strings.TrimSpace(cfg.Endpoint) != "" {
-		endpoints = []string{cfg.Endpoint}
-	}
-	return endpoints
-}
-
-func newPullCmd() *cobra.Command {
-	flags := &pullFlags{}
+func newGetCmd() *cobra.Command {
+	flags := &getFlags{}
 	root := &cobra.Command{
-		Use:   "pull [endpoint...]",
-		Short: "Pull machine information from endpoints",
-		Long:  "Print summary per endpoint, or use subcommands cpu|memory|network|disk for details.",
+		Use:   "get [endpoint...]",
+		Short: "Get machine information from endpoints (GET /v1/machine-info)",
+		Long:  "Print one summary row per machine returned from each endpoint's local probe. Positional args or config endpoints override --endpoint. Subcommands cpu|memory|network|disk print details per endpoint.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := flags.validate(); err != nil {
 				return err
@@ -44,20 +35,21 @@ func newPullCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			endpoints := resolvePullEndpoints(args, cfg)
+			endpoints := resolveMachineEndpoints(args, cfg, flags.Endpoint)
 			if len(endpoints) == 0 {
-				return merr.ErrorInvalidArgument("endpoints are required (positional args or configure endpoints/endpoint in ~/.jade_tree/client.yaml)")
+				return merr.ErrorInvalidArgument("endpoints are required (positional args, configure endpoints/endpoint in ~/.jade_tree/client.yaml, or use --endpoint)")
 			}
 			token := strings.TrimSpace(flags.JWT)
 			if token == "" {
 				token = strings.TrimSpace(cfg.JWT)
 			}
+
 			ctx := cmd.Context()
 			if ctx == nil {
 				ctx = context.Background()
 			}
 			client := newAPIClient(&http.Client{Timeout: flags.Timeout}, token)
-			out := make([]machineRow, 0)
+			out := make([]machineRow, 0, len(endpoints))
 			for _, endpoint := range endpoints {
 				ep := strings.TrimSpace(endpoint)
 				if ep == "" {
@@ -78,10 +70,10 @@ func newPullCmd() *cobra.Command {
 		name  string
 		short string
 	}{
-		{"cpu", "Show CPU details for each endpoint"},
-		{"memory", "Show memory and swap details for each endpoint"},
-		{"network", "Show network details for each endpoint"},
-		{"disk", "Show disk and mount details for each endpoint"},
+		{"cpu", "Show CPU details (processors, cores, threads)"},
+		{"memory", "Show memory and swap details"},
+		{"network", "Show network interfaces, IPs, and traffic counters"},
+		{"disk", "Show disks and mount points"},
 	}
 	for _, dk := range detailKinds {
 		kind := dk.name
@@ -96,9 +88,9 @@ func newPullCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				endpoints := resolvePullEndpoints(args, cfg)
+				endpoints := resolveMachineEndpoints(args, cfg, flags.Endpoint)
 				if len(endpoints) == 0 {
-					return merr.ErrorInvalidArgument("endpoints are required (positional args or configure endpoints/endpoint in ~/.jade_tree/client.yaml)")
+					return merr.ErrorInvalidArgument("endpoints are required (positional args, configure endpoints/endpoint in ~/.jade_tree/client.yaml, or use --endpoint)")
 				}
 				token := strings.TrimSpace(flags.JWT)
 				if token == "" {

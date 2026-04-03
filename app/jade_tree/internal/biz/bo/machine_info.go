@@ -31,12 +31,12 @@ func ToAPIV1MachineInfoReply(in *machine.MachineInfo) *apiv1.GetMachineInfoReply
 			MachineUuid: in.MachineUUID,
 		},
 	}
-	if in.CPU != nil {
+	if cpuInfo := in.CPU; cpuInfo != nil {
 		cpu := &apiv1.CPUInfo{
-			TotalCores:           in.CPU.TotalCores,
-			TotalHardwareThreads: in.CPU.TotalHardwareThread,
+			TotalCores:           cpuInfo.TotalCores,
+			TotalHardwareThreads: cpuInfo.TotalHardwareThread,
 		}
-		for _, p := range in.CPU.Processors {
+		for _, p := range cpuInfo.Processors {
 			item := &apiv1.CPUProcessorItem{
 				Id:                   p.ID,
 				Vendor:               p.Vendor,
@@ -56,19 +56,19 @@ func ToAPIV1MachineInfoReply(in *machine.MachineInfo) *apiv1.GetMachineInfoReply
 		}
 		out.Cpu = cpu
 	}
-	if in.Memory != nil {
+	if memoryInfo := in.Memory; memoryInfo != nil {
 		out.Memory = &apiv1.MemoryInfo{
-			TotalPhysicalBytes: in.Memory.TotalPhysicalBytes,
-			TotalUsableBytes:   in.Memory.TotalUsableBytes,
-			SupportedPageSizes: in.Memory.SupportedPageSizes,
-			UsedBytes:          in.Memory.UsedBytes,
-			FreeBytes:          in.Memory.FreeBytes,
-			SharedBytes:        in.Memory.SharedBytes,
-			BuffCacheBytes:     in.Memory.BuffCacheBytes,
-			AvailableBytes:     in.Memory.AvailableBytes,
-			SwapTotalBytes:     in.Memory.SwapTotalBytes,
-			SwapUsedBytes:      in.Memory.SwapUsedBytes,
-			SwapFreeBytes:      in.Memory.SwapFreeBytes,
+			TotalPhysicalBytes: memoryInfo.TotalPhysicalBytes,
+			TotalUsableBytes:   memoryInfo.TotalUsableBytes,
+			SupportedPageSizes: memoryInfo.SupportedPageSizes,
+			UsedBytes:          memoryInfo.UsedBytes,
+			FreeBytes:          memoryInfo.FreeBytes,
+			SharedBytes:        memoryInfo.SharedBytes,
+			BuffCacheBytes:     memoryInfo.BuffCacheBytes,
+			AvailableBytes:     memoryInfo.AvailableBytes,
+			SwapTotalBytes:     memoryInfo.SwapTotalBytes,
+			SwapUsedBytes:      memoryInfo.SwapUsedBytes,
+			SwapFreeBytes:      memoryInfo.SwapFreeBytes,
 		}
 	}
 	for _, d := range in.Disks {
@@ -93,23 +93,23 @@ func ToAPIV1MachineInfoReply(in *machine.MachineInfo) *apiv1.GetMachineInfoReply
 		}
 		out.Disks = append(out.Disks, item)
 	}
-	if in.Network != nil {
+	if networkInfo := in.Network; networkInfo != nil {
 		out.Network = &apiv1.NetworkInfo{
-			LocalIp:      in.Network.LocalIP,
-			OutboundIp:   in.Network.OutboundIP,
-			Cidr:         in.Network.CIDR,
-			DnsServers:   in.Network.DNSServers,
-			TotalRxBytes: in.Network.TotalRXBytes,
-			TotalTxBytes: in.Network.TotalTXBytes,
-			Nics:         in.Network.NICs,
+			LocalIp:      networkInfo.LocalIP,
+			OutboundIp:   networkInfo.OutboundIP,
+			Cidr:         networkInfo.CIDR,
+			DnsServers:   networkInfo.DNSServers,
+			TotalRxBytes: networkInfo.TotalRXBytes,
+			TotalTxBytes: networkInfo.TotalTXBytes,
+			Nics:         networkInfo.NICs,
 		}
 	}
-	if in.System != nil {
+	if systemInfo := in.System; systemInfo != nil {
 		out.System = &apiv1.SystemInfo{
-			Arch:    in.System.Arch,
-			Os:      in.System.OS,
-			Version: in.System.Version,
-			Kernel:  in.System.Kernel,
+			Arch:    systemInfo.Arch,
+			Os:      systemInfo.OS,
+			Version: systemInfo.Version,
+			Kernel:  systemInfo.Kernel,
 		}
 	}
 	return out
@@ -158,19 +158,19 @@ func FromAPIV1MachineInfoReply(in *apiv1.GetMachineInfoReply) *machine.MachineIn
 		out.CPU = cpu
 	}
 
-	if in.GetMemory() != nil {
+	if memoryInfo := in.GetMemory(); memoryInfo != nil {
 		out.Memory = &machine.MachineMemory{
-			TotalPhysicalBytes: in.GetMemory().GetTotalPhysicalBytes(),
-			TotalUsableBytes:   in.GetMemory().GetTotalUsableBytes(),
-			SupportedPageSizes: in.GetMemory().GetSupportedPageSizes(),
-			UsedBytes:          in.GetMemory().GetUsedBytes(),
-			FreeBytes:          in.GetMemory().GetFreeBytes(),
-			SharedBytes:        in.GetMemory().GetSharedBytes(),
-			BuffCacheBytes:     in.GetMemory().GetBuffCacheBytes(),
-			AvailableBytes:     in.GetMemory().GetAvailableBytes(),
-			SwapTotalBytes:     in.GetMemory().GetSwapTotalBytes(),
-			SwapUsedBytes:      in.GetMemory().GetSwapUsedBytes(),
-			SwapFreeBytes:      in.GetMemory().GetSwapFreeBytes(),
+			TotalPhysicalBytes: memoryInfo.GetTotalPhysicalBytes(),
+			TotalUsableBytes:   memoryInfo.GetTotalUsableBytes(),
+			SupportedPageSizes: memoryInfo.GetSupportedPageSizes(),
+			UsedBytes:          memoryInfo.GetUsedBytes(),
+			FreeBytes:          memoryInfo.GetFreeBytes(),
+			SharedBytes:        memoryInfo.GetSharedBytes(),
+			BuffCacheBytes:     memoryInfo.GetBuffCacheBytes(),
+			AvailableBytes:     memoryInfo.GetAvailableBytes(),
+			SwapTotalBytes:     memoryInfo.GetSwapTotalBytes(),
+			SwapUsedBytes:      memoryInfo.GetSwapUsedBytes(),
+			SwapFreeBytes:      memoryInfo.GetSwapFreeBytes(),
 		}
 	}
 

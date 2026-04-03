@@ -14,7 +14,12 @@ type flagRoot interface {
 }
 
 func NewCmd() *cobra.Command {
-	rootCmd := &cobra.Command{Use: "jade_tree", Short: "Moon platform - jade_tree service", Run: func(cmd *cobra.Command, args []string) { cmd.Help() }}
+	rootCmd := &cobra.Command{
+		Use:          "jade_tree",
+		Short:        "Moon platform - jade_tree service",
+		SilenceUsage: true,
+		Run:          func(cmd *cobra.Command, args []string) { cmd.Help() },
+	}
 	globalFlags.addFlags(rootCmd)
 	return rootCmd
 }

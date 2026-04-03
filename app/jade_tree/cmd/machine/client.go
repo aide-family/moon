@@ -146,3 +146,49 @@ func (c *apiClient) addAuthHeader(req *http.Request) {
 	}
 	req.Header.Set("Authorization", strings.Join([]string{cnst.HTTPHeaderBearerPrefix, token}, " "))
 }
+
+// fetchAllMachines pages GetClusterMachineInfos until exhausted, merges by machine UUID (or hostname),
+// and overlays the local GetMachineInfo for the same endpoint when available.
+func fetchAllMachines(ctx context.Context, client *apiClient, from string, pageSize int32) ([]*apiv1.GetMachineInfoReply, error) {
+	var page int32 = 1
+	merged := make(map[string]*apiv1.GetMachineInfoReply)
+	for {
+		reply, err := client.listMachineInfos(ctx, from, page, pageSize)
+		if err != nil {
+			return nil, err
+		}
+		for _, item := range reply.GetMachines() {
+			if item == nil {
+				continue
+			}
+			key := item.GetHost().GetMachineUuid()
+			if key == "" {
+				key = item.GetHost().GetHostName()
+			}
+			if key == "" {
+				continue
+			}
+			merged[key] = item
+		}
+		if len(reply.GetMachines()) == 0 || int32(len(reply.GetMachines())) < pageSize {
+			break
+		}
+		page++
+	}
+	localInfo, err := client.getMachineInfo(ctx, from)
+	if err == nil && localInfo != nil {
+		key := localInfo.GetHost().GetMachineUuid()
+		if key == "" {
+			key = localInfo.GetHost().GetHostName()
+		}
+		if key != "" {
+			merged[key] = localInfo
+		}
+	}
+
+	out := make([]*apiv1.GetMachineInfoReply, 0, len(merged))
+	for _, item := range merged {
+		out = append(out, item)
+	}
+	return out, nil
+}

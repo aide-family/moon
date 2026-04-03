@@ -20,7 +20,7 @@ type pushFlags struct {
 func (f *pushFlags) addFlags(cmd *cobra.Command) {
 	f.machineCommonFlags.addFlags(cmd)
 	cmd.Flags().StringVar(&f.From, "from", defaultEndpoint, "source jade_tree endpoint")
-	cmd.Flags().Int32Var(&f.PageSize, "page-size", 100, "page size for source machine info pull")
+	cmd.Flags().Int32Var(&f.PageSize, "page-size", 100, "page size when listing source machine info from endpoints")
 }
 
 func newPushCmd() *cobra.Command {
@@ -42,7 +42,7 @@ func newPushCmd() *cobra.Command {
 			}
 			endpoints := args
 			if len(endpoints) == 0 {
-				endpoints = cfg.Endpoints
+				endpoints = []string{cfg.Endpoint}
 			}
 			if len(endpoints) == 0 {
 				return merr.ErrorInvalidArgument("endpoints are required (use --endpoints or configure endpoints in ~/.jade_tree/client.yaml)")
@@ -80,48 +80,4 @@ func newPushCmd() *cobra.Command {
 	}
 	flags.addFlags(cmd)
 	return cmd
-}
-
-func fetchAllMachines(ctx context.Context, client *apiClient, from string, pageSize int32) ([]*apiv1.GetMachineInfoReply, error) {
-	var page int32 = 1
-	merged := make(map[string]*apiv1.GetMachineInfoReply)
-	for {
-		reply, err := client.listMachineInfos(ctx, from, page, pageSize)
-		if err != nil {
-			return nil, err
-		}
-		for _, item := range reply.GetMachines() {
-			if item == nil {
-				continue
-			}
-			key := item.GetHost().GetMachineUuid()
-			if key == "" {
-				key = item.GetHost().GetHostName()
-			}
-			if key == "" {
-				continue
-			}
-			merged[key] = item
-		}
-		if len(reply.GetMachines()) == 0 || int32(len(reply.GetMachines())) < pageSize {
-			break
-		}
-		page++
-	}
-	localInfo, err := client.getMachineInfo(ctx, from)
-	if err == nil && localInfo != nil {
-		key := localInfo.GetHost().GetMachineUuid()
-		if key == "" {
-			key = localInfo.GetHost().GetHostName()
-		}
-		if key != "" {
-			merged[key] = localInfo
-		}
-	}
-
-	out := make([]*apiv1.GetMachineInfoReply, 0, len(merged))
-	for _, item := range merged {
-		out = append(out, item)
-	}
-	return out, nil
 }

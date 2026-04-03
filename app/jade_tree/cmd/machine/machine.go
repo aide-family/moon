@@ -7,6 +7,6 @@ func NewCmd() *cobra.Command {
 		Use:   "machine",
 		Short: "Machine information operations",
 	}
-	machineCmd.AddCommand(newInfoCmd(), newPullCmd(), newPushCmd())
+	machineCmd.AddCommand(newGetCmd(), newListCmd(), newPushCmd())
 	return machineCmd
 }
