@@ -91,6 +91,9 @@ message GetProbeTaskRequest {
 message ListProbeTasksRequest {
   int32 page = 1;
   int32 pageSize = 2;
+  string type = 3;
+  string keyword = 4;
+  magicbox.enum.GlobalStatus status = 5;
 }
 
 message ListProbeTasksReply {

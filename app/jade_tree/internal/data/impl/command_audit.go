@@ -2,6 +2,7 @@ package impl
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
@@ -56,6 +57,13 @@ func (r *commandAuditRepository) List(ctx context.Context, req *bo.ListSSHComman
 	w := a.WithContext(ctx)
 	if req.StatusFilter != enum.SSHCommandAuditStatus_SSHCommandAuditStatus_UNKNOWN {
 		w = w.Where(a.Status.Eq(int32(req.StatusFilter)))
+	}
+	if req.Kind != enum.SSHCommandAuditKind_SSHCommandAuditKind_UNKNOWN {
+		w = w.Where(a.Kind.Eq(int32(req.Kind)))
+	}
+	if req.Keyword != "" {
+		keyword := "%" + strings.TrimSpace(req.Keyword) + "%"
+		w = w.Or(a.Name.Like(keyword), a.Description.Like(keyword), a.Content.Like(keyword), a.WorkDir.Like(keyword))
 	}
 	if req.PageRequestBo != nil {
 		total, err := w.Count()

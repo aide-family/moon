@@ -80,7 +80,7 @@ func (s *SSHCommandService) GetSSHCommand(ctx context.Context, req *apiv1.GetSSH
 }
 
 func (s *SSHCommandService) ListSSHCommandAudits(ctx context.Context, req *apiv1.ListSSHCommandAuditsRequest) (*apiv1.ListSSHCommandAuditsReply, error) {
-	listBo := bo.NewListSSHCommandAuditsBo(req.GetPage(), req.GetPageSize(), req.GetStatusFilter())
+	listBo := bo.NewListSSHCommandAuditsBo(req.GetPage(), req.GetPageSize(), req.GetStatusFilter(), req.GetKeyword(), req.GetKind())
 	page, err := s.bizSSH.ListAudits(ctx, listBo)
 	if err != nil {
 		return nil, err

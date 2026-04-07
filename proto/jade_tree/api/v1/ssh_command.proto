@@ -151,6 +151,8 @@ message ListSSHCommandAuditsRequest {
   int32 page = 1;
   int32 pageSize = 2;
   magicbox.enum.SSHCommandAuditStatus statusFilter = 3;
+  string keyword = 4;
+  magicbox.enum.SSHCommandAuditKind kind = 5;
 }
 
 message ListSSHCommandAuditsReply {

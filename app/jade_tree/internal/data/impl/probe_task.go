@@ -2,6 +2,7 @@ package impl
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
@@ -120,6 +121,16 @@ func (r *probeTaskRepository) Get(ctx context.Context, uid snowflake.ID) (*bo.Pr
 func (r *probeTaskRepository) List(ctx context.Context, req *bo.ListProbeTasksBo) (*bo.PageResponseBo[*bo.ProbeTaskItemBo], error) {
 	p := query.ProbeTask
 	w := p.WithContext(ctx)
+	if req.Type != "" {
+		w = w.Where(p.Type.Eq(req.Type))
+	}
+	if req.Keyword != "" {
+		keyword := "%" + strings.TrimSpace(req.Keyword) + "%"
+		w = w.Or(p.Name.Like(keyword), p.Host.Like(keyword), p.Port.Like(keyword), p.URL.Like(keyword))
+	}
+	if req.Status != enum.GlobalStatus_GlobalStatus_UNKNOWN {
+		w = w.Where(p.Status.Eq(int32(req.Status)))
+	}
 	total, err := w.Count()
 	if err != nil {
 		return nil, err

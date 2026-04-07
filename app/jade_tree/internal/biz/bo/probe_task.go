@@ -61,6 +61,9 @@ type UpdateProbeTaskStatusBo struct {
 
 type ListProbeTasksBo struct {
 	*PageRequestBo
+	Type    string
+	Keyword string
+	Status  enum.GlobalStatus
 }
 
 func NewCreateProbeTaskBo(req *apiv1.CreateProbeTaskRequest, creator snowflake.ID) (*CreateProbeTaskBo, error) {
@@ -94,8 +97,13 @@ func NewUpdateProbeTaskBo(req *apiv1.UpdateProbeTaskRequest) (*UpdateProbeTaskBo
 	return &UpdateProbeTaskBo{UID: snowflake.ID(req.GetUid()), Fields: *fields}, nil
 }
 
-func NewListProbeTasksBo(page, pageSize int32) *ListProbeTasksBo {
-	return &ListProbeTasksBo{PageRequestBo: NewPageRequestBo(page, pageSize)}
+func NewListProbeTasksBo(req *apiv1.ListProbeTasksRequest) *ListProbeTasksBo {
+	return &ListProbeTasksBo{
+		PageRequestBo: NewPageRequestBo(req.GetPage(), req.GetPageSize()),
+		Type:          strings.ToLower(strings.TrimSpace(req.GetType())),
+		Keyword:       strings.TrimSpace(req.GetKeyword()),
+		Status:        req.GetStatus(),
+	}
 }
 
 func NewUpdateProbeTaskStatusBo(req *apiv1.UpdateProbeTaskStatusRequest) (*UpdateProbeTaskStatusBo, error) {

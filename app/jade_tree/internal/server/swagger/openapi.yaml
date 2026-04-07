@@ -81,6 +81,19 @@ paths:
                   schema:
                     type: integer
                     format: int32
+                - name: type
+                  in: query
+                  schema:
+                    type: string
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
             responses:
                 "200":
                     description: OK
@@ -204,6 +217,15 @@ paths:
                     type: integer
                     format: int32
                 - name: statusFilter
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: kind
                   in: query
                   schema:
                     type: integer

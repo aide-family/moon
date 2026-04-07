@@ -1,6 +1,7 @@
 package bo
 
 import (
+	"strings"
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
@@ -116,6 +117,8 @@ type ListSSHCommandsBo struct {
 type ListSSHCommandAuditsBo struct {
 	*PageRequestBo
 	StatusFilter enum.SSHCommandAuditStatus
+	Keyword      string
+	Kind         enum.SSHCommandAuditKind
 }
 
 // NewListSSHCommandsBo normalizes pagination defaults.
@@ -133,7 +136,7 @@ func NewListSSHCommandsBo(page, pageSize int32, keyword string) *ListSSHCommands
 }
 
 // NewListSSHCommandAuditsBo normalizes pagination defaults.
-func NewListSSHCommandAuditsBo(page, pageSize int32, statusFilter enum.SSHCommandAuditStatus) *ListSSHCommandAuditsBo {
+func NewListSSHCommandAuditsBo(page, pageSize int32, statusFilter enum.SSHCommandAuditStatus, keyword string, kind enum.SSHCommandAuditKind) *ListSSHCommandAuditsBo {
 	if page <= 0 {
 		page = 1
 	}
@@ -143,6 +146,8 @@ func NewListSSHCommandAuditsBo(page, pageSize int32, statusFilter enum.SSHComman
 	return &ListSSHCommandAuditsBo{
 		PageRequestBo: NewPageRequestBo(page, pageSize),
 		StatusFilter:  statusFilter,
+		Keyword:       strings.TrimSpace(keyword),
+		Kind:          kind,
 	}
 }
 

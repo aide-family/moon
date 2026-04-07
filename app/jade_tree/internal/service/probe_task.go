@@ -60,7 +60,7 @@ func (s *ProbeTaskService) GetProbeTask(ctx context.Context, req *apiv1.GetProbe
 }
 
 func (s *ProbeTaskService) ListProbeTasks(ctx context.Context, req *apiv1.ListProbeTasksRequest) (*apiv1.ListProbeTasksReply, error) {
-	listBo := bo.NewListProbeTasksBo(req.GetPage(), req.GetPageSize())
+	listBo := bo.NewListProbeTasksBo(req)
 	page, err := s.bizProbeTask.List(ctx, listBo)
 	if err != nil {
 		return nil, err
