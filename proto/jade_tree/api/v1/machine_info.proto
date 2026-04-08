@@ -50,6 +50,12 @@ message GetClusterMachineInfosRequest {
   int32 page = 1;
   // pageSize is the maximum number of items returned.
   int32 pageSize = 2;
+  // keywords is the search keywords.
+  string keywords = 3;
+  // ip is the IP address to search.
+  string ip = 4;
+  // hostname is the hostname to search.
+  string hostname = 5;
 }
 
 message GetClusterMachineInfosReply {

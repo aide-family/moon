@@ -58,6 +58,21 @@ paths:
                   schema:
                     type: integer
                     format: int32
+                - name: keywords
+                  in: query
+                  description: keywords is the search keywords.
+                  schema:
+                    type: string
+                - name: ip
+                  in: query
+                  description: ip is the IP address to search.
+                  schema:
+                    type: string
+                - name: hostname
+                  in: query
+                  description: hostname is the hostname to search.
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK

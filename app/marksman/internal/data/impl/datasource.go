@@ -124,7 +124,11 @@ func (r *datasourceRepository) ListDatasource(ctx context.Context, req *bo.ListD
 	wrappers = wrappers.Where(d.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()))
 	if req.Keyword != "" {
 		k := "%" + strings.TrimSpace(req.Keyword) + "%"
-		wrappers = wrappers.Or(d.Name.Like(k), d.URL.Like(k), d.Remark.Like(k))
+		wrappers = wrappers.Where(
+			wrappers.Where(d.Name.Like(k)).
+				Or(d.URL.Like(k)).
+				Or(d.Remark.Like(k)),
+		)
 	}
 	if req.Type != enum.DatasourceType_DatasourceType_UNKNOWN {
 		wrappers = wrappers.Where(d.Type.Eq(int32(req.Type)))
@@ -160,7 +164,11 @@ func (r *datasourceRepository) SelectDatasource(ctx context.Context, req *bo.Sel
 	wrappers = wrappers.Where(d.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()))
 	if req.Keyword != "" {
 		k := "%" + strings.TrimSpace(req.Keyword) + "%"
-		wrappers = wrappers.Or(d.Name.Like(k), d.URL.Like(k), d.Remark.Like(k))
+		wrappers = wrappers.Where(
+			wrappers.Where(d.Name.Like(k)).
+				Or(d.URL.Like(k)).
+				Or(d.Remark.Like(k)),
+		)
 	}
 	if req.Type != enum.DatasourceType_DatasourceType_UNKNOWN {
 		wrappers = wrappers.Where(d.Type.Eq(int32(req.Type)))

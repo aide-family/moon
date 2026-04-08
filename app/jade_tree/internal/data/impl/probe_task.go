@@ -126,7 +126,12 @@ func (r *probeTaskRepository) List(ctx context.Context, req *bo.ListProbeTasksBo
 	}
 	if req.Keyword != "" {
 		keyword := "%" + strings.TrimSpace(req.Keyword) + "%"
-		w = w.Or(p.Name.Like(keyword), p.Host.Like(keyword), p.Port.Like(keyword), p.URL.Like(keyword))
+		w = w.Where(
+			w.Where(p.Name.Like(keyword)).
+				Or(p.Host.Like(keyword)).
+				Or(p.Port.Like(keyword)).
+				Or(p.URL.Like(keyword)),
+		)
 	}
 	if req.Status != enum.GlobalStatus_GlobalStatus_UNKNOWN {
 		w = w.Where(p.Status.Eq(int32(req.Status)))

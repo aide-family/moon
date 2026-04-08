@@ -234,7 +234,10 @@ func (r *alertEventRepository) ListRealtimeAlert(ctx context.Context, req *bo.Li
 	}
 	if req.Keyword != "" {
 		keyword := "%" + req.Keyword + "%"
-		wrappers = wrappers.Or(table.Summary.Like(keyword), table.Description.Like(keyword))
+		wrappers = wrappers.Where(
+			wrappers.Where(table.Summary.Like(keyword)).
+				Or(table.Description.Like(keyword)),
+		)
 	}
 	if len(req.StrategyGroupUids) > 0 {
 		wrappers = wrappers.Where(table.StrategyGroupUID.In(req.StrategyGroupUids...))
@@ -289,7 +292,7 @@ func (r *alertEventRepository) InterveneAlert(ctx context.Context, req *bo.Inter
 	now := time.Now()
 	wrappers := []gen.Condition{
 		table.ID.Eq(uid.Int64()),
-		table.Or(table.IntervenedBy.Eq(0), table.IntervenedByName.Eq("")),
+		table.Where(table.IntervenedBy.Eq(0)).Or(table.IntervenedByName.Eq("")),
 		table.IntervenedAt.IsNull(),
 	}
 	_, err = table.WithContext(ctx).Where(wrappers...).UpdateColumnSimple(
@@ -337,7 +340,10 @@ func (r *alertEventRepository) BatchInterveneAlert(ctx context.Context, req *bo.
 		}
 
 		table := query.AlertEvent.Table(tableName)
-		_, err := table.WithContext(ctx).Where(table.ID.In(uids...), table.Or(table.IntervenedBy.Eq(0), table.IntervenedByName.Eq(""))).UpdateColumnSimple(
+		_, err := table.WithContext(ctx).Where(
+			table.ID.In(uids...),
+			table.Where(table.IntervenedBy.Eq(0)).Or(table.IntervenedByName.Eq("")),
+		).UpdateColumnSimple(
 			table.IntervenedAt.Value(now),
 			table.IntervenedBy.Value(intervenedBy),
 			table.IntervenedByName.Value(intervenedByName),
@@ -432,7 +438,10 @@ func (r *alertEventRepository) BatchRecoverAlert(ctx context.Context, req *bo.Ba
 		}
 
 		table := query.AlertEvent.Table(tableName)
-		_, err := table.WithContext(ctx).Where(table.ID.In(uids...), table.Or(table.RecoveredBy.Eq(0), table.RecoveredByName.Eq(""))).UpdateColumnSimple(
+		_, err := table.WithContext(ctx).Where(
+			table.ID.In(uids...),
+			table.Where(table.RecoveredBy.Eq(0)).Or(table.RecoveredByName.Eq("")),
+		).UpdateColumnSimple(
 			table.Status.Value(int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_RECOVERED)),
 			table.RecoveredAt.Value(now),
 			table.RecoveredBy.Value(recoveredBy),

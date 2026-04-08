@@ -51,7 +51,7 @@ func (s *MachineInfoService) GetClusterMachineInfos(ctx context.Context, req *ap
 		return nil, merr.ErrorInvalidArgument("request is required")
 	}
 
-	listBo := bo.NewListMachineInfosBo(req.GetPage(), req.GetPageSize())
+	listBo := bo.NewListMachineInfosBo(req)
 	page, err := s.machineInfo.ListClusterMachineInfos(ctx, listBo)
 	if err != nil {
 		return nil, err

@@ -2,6 +2,7 @@ package impl
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aide-family/magicbox/merr"
 	"github.com/go-kratos/kratos/v2/errors"
@@ -106,13 +107,16 @@ func (m *machineInfoRepository) ListMachineInfos(ctx context.Context, req *bo.Li
 		return nil, merr.ErrorInvalidArgument("page and pageSize are required")
 	}
 
-	total, err := query.MachineInfo.WithContext(ctx).Count()
+	listQuery := query.MachineInfo.WithContext(ctx)
+	listQuery = applyMachineInfoSearchFilters(listQuery, req)
+
+	total, err := listQuery.Count()
 	if err != nil {
 		return nil, err
 	}
 	req.WithTotal(total)
 
-	rows, err := query.MachineInfo.WithContext(ctx).
+	rows, err := listQuery.
 		Order(query.MachineInfo.UpdatedAt.Desc()).
 		Limit(req.Limit()).
 		Offset(req.Offset()).
@@ -131,4 +135,32 @@ func (m *machineInfoRepository) ListMachineInfos(ctx context.Context, req *bo.Li
 	}
 
 	return bo.NewPageResponseBo(req.PageRequestBo, items), nil
+}
+
+func applyMachineInfoSearchFilters(q query.IMachineInfoDo, req *bo.ListMachineInfosBo) query.IMachineInfoDo {
+	if req == nil {
+		return q
+	}
+	if req.Keywords != "" {
+		kw := "%" + escapeSQLLike(req.Keywords) + "%"
+		q = q.Where(
+			q.Where(query.MachineInfo.MachineUUID.Like(kw)).
+				Or(query.MachineInfo.HostName.Like(kw)).
+				Or(query.MachineInfo.LocalIP.Like(kw)),
+		)
+	}
+	if req.IP != "" {
+		ip := "%" + escapeSQLLike(req.IP) + "%"
+		q = q.Where(query.MachineInfo.LocalIP.Like(ip))
+	}
+	if req.Hostname != "" {
+		hostname := "%" + escapeSQLLike(req.Hostname) + "%"
+		q = q.Where(query.MachineInfo.HostName.Like(hostname))
+	}
+	return q
+}
+
+func escapeSQLLike(value string) string {
+	replacer := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
+	return replacer.Replace(value)
 }

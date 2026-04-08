@@ -1,6 +1,8 @@
 package bo
 
 import (
+	"strings"
+
 	apiv1 "github.com/aide-family/jade_tree/pkg/api/v1"
 	"github.com/aide-family/jade_tree/pkg/machine"
 )
@@ -38,9 +40,24 @@ func NewMachineInfoIdentityBo(in *machine.MachineInfo) *MachineInfoIdentityBo {
 
 type ListMachineInfosBo struct {
 	*PageRequestBo
+	Keywords string
+	IP       string
+	Hostname string
 }
 
-func NewListMachineInfosBo(page, pageSize int32) *ListMachineInfosBo {
+func NewListMachineInfosBo(req *apiv1.GetClusterMachineInfosRequest) *ListMachineInfosBo {
+	page := int32(0)
+	pageSize := int32(0)
+	keywords := ""
+	ip := ""
+	hostname := ""
+	if req != nil {
+		page = req.GetPage()
+		pageSize = req.GetPageSize()
+		keywords = req.GetKeywords()
+		ip = req.GetIp()
+		hostname = req.GetHostname()
+	}
 	if page <= 0 {
 		page = 1
 	}
@@ -49,6 +66,9 @@ func NewListMachineInfosBo(page, pageSize int32) *ListMachineInfosBo {
 	}
 	return &ListMachineInfosBo{
 		PageRequestBo: NewPageRequestBo(page, pageSize),
+		Keywords:      strings.TrimSpace(keywords),
+		IP:            strings.TrimSpace(ip),
+		Hostname:      strings.TrimSpace(hostname),
 	}
 }
 

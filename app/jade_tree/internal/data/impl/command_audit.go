@@ -63,7 +63,12 @@ func (r *commandAuditRepository) List(ctx context.Context, req *bo.ListSSHComman
 	}
 	if req.Keyword != "" {
 		keyword := "%" + strings.TrimSpace(req.Keyword) + "%"
-		w = w.Or(a.Name.Like(keyword), a.Description.Like(keyword), a.Content.Like(keyword), a.WorkDir.Like(keyword))
+		w = w.Where(
+			w.Where(a.Name.Like(keyword)).
+				Or(a.Description.Like(keyword)).
+				Or(a.Content.Like(keyword)).
+				Or(a.WorkDir.Like(keyword)),
+		)
 	}
 	if req.PageRequestBo != nil {
 		total, err := w.Count()
