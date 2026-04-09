@@ -16,11 +16,14 @@ type MachineInfo struct {
 	ID        snowflake.ID   `gorm:"column:id;primaryKey"`
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;index"`
 
-	MachineUUID string                 `gorm:"column:machine_uuid;size:191;uniqueIndex:idx_machine_identity"`
-	HostName    string                 `gorm:"column:host_name;size:191;uniqueIndex:idx_machine_identity"`
-	LocalIP     string                 `gorm:"column:local_ip;size:64;uniqueIndex:idx_machine_identity"`
-	Source      enum.MachineInfoSource `gorm:"column:source;index;default:1"`
-	Info        *machine.MachineInfo   `gorm:"column:info;type:text"`
+	MachineUUID   string                 `gorm:"column:machine_uuid;size:191;uniqueIndex:idx_machine_identity"`
+	HostName      string                 `gorm:"column:host_name;size:191;uniqueIndex:idx_machine_identity"`
+	LocalIP       string                 `gorm:"column:local_ip;size:64;uniqueIndex:idx_machine_identity"`
+	Source        enum.MachineInfoSource `gorm:"column:source;index;default:1"`
+	OSType        string                 `gorm:"column:os_type;size:64;index"`
+	AgentEndpoint string                 `gorm:"column:agent_endpoint;size:255"`
+	AgentVersion  string                 `gorm:"column:agent_version;size:64;index"`
+	Info          *machine.MachineInfo   `gorm:"column:info;type:text"`
 
 	CreatedAt time.Time `gorm:"column:created_at"`
 	UpdatedAt time.Time `gorm:"column:updated_at"`

@@ -147,4 +147,105 @@ func (s *SSHCommandService) ExecuteSSHCommand(ctx context.Context, req *apiv1.Ex
 	}, nil
 }
 
+func (s *SSHCommandService) BatchExecuteSSHCommands(ctx context.Context, req *apiv1.BatchExecuteSSHCommandsRequest) (*apiv1.BatchExecuteSSHCommandsReply, error) {
+	in := &bo.BatchExecuteSSHCommandsBo{
+		Requests: make([]*bo.ExecuteStoredSSHCommandBo, 0, len(req.GetRequests())),
+	}
+	for _, item := range req.GetRequests() {
+		if item == nil {
+			continue
+		}
+		in.Requests = append(in.Requests, &bo.ExecuteStoredSSHCommandBo{
+			CommandUID:     snowflake.ID(item.GetCommandUid()),
+			Host:           item.GetHost(),
+			Port:           int(item.GetPort()),
+			Username:       item.GetUsername(),
+			Password:       item.GetPassword(),
+			PrivateKey:     item.GetPrivateKey(),
+			TimeoutSeconds: item.GetTimeoutSeconds(),
+		})
+	}
+	replyItems, err := s.bizSSH.BatchExecute(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	out := &apiv1.BatchExecuteSSHCommandsReply{
+		Items: make([]*apiv1.BatchExecuteSSHCommandsItem, 0, len(replyItems)),
+	}
+	for _, item := range replyItems {
+		if item == nil {
+			continue
+		}
+		row := &apiv1.BatchExecuteSSHCommandsItem{
+			Index: item.Index,
+			Error: item.Error,
+		}
+		if item.Reply != nil {
+			row.Reply = &apiv1.ExecuteSSHCommandReply{
+				Stdout:   item.Reply.Stdout,
+				Stderr:   item.Reply.Stderr,
+				ExitCode: int32(item.Reply.ExitCode),
+			}
+		}
+		out.Items = append(out.Items, row)
+	}
+	return out, nil
+}
+
+func (s *SSHCommandService) CountDispatchSSHCommandTargets(ctx context.Context, req *apiv1.CountDispatchSSHCommandTargetsRequest) (*apiv1.CountDispatchSSHCommandTargetsReply, error) {
+	count, err := s.bizSSH.CountDispatchTargets(ctx, bo.NewDispatchSSHCommandFilterBo(req.GetFilter()))
+	if err != nil {
+		return nil, err
+	}
+	return &apiv1.CountDispatchSSHCommandTargetsReply{Count: count}, nil
+}
+
+func (s *SSHCommandService) DispatchSSHCommandToAgents(ctx context.Context, req *apiv1.DispatchSSHCommandToAgentsRequest) (*apiv1.DispatchSSHCommandToAgentsReply, error) {
+	in := &bo.DispatchSSHCommandToAgentsInput{
+		CommandUID:     snowflake.ID(req.GetCommandUid()),
+		Username:       req.GetUsername(),
+		Password:       req.GetPassword(),
+		PrivateKey:     req.GetPrivateKey(),
+		Port:           int(req.GetPort()),
+		TimeoutSeconds: req.GetTimeoutSeconds(),
+		Filter:         bo.NewDispatchSSHCommandFilterBo(req.GetFilter()),
+	}
+	reply, err := s.bizSSH.DispatchToAgents(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	out := &apiv1.DispatchSSHCommandToAgentsReply{
+		Total:   reply.Total,
+		Success: reply.Success,
+		Failed:  reply.Failed,
+		Items:   make([]*apiv1.DispatchSSHCommandTargetResult, 0, len(reply.Items)),
+	}
+	for _, item := range reply.Items {
+		if item == nil {
+			continue
+		}
+		row := &apiv1.DispatchSSHCommandTargetResult{
+			Endpoint: item.Endpoint,
+			Error:    item.Error,
+		}
+		if item.Machine != nil {
+			row.MachineUid = item.Machine.ID.Int64()
+			row.MachineUuid = item.Machine.MachineUUID
+			row.HostName = item.Machine.HostName
+			if item.Machine.Network != nil {
+				row.LocalIp = item.Machine.Network.LocalIP
+			}
+		}
+		if item.Reply != nil {
+			row.Reply = &apiv1.ExecuteSSHCommandReply{
+				Stdout:   item.Reply.Stdout,
+				Stderr:   item.Reply.Stderr,
+				ExitCode: int32(item.Reply.ExitCode),
+			}
+		}
+		out.Items = append(out.Items, row)
+	}
+	return out, nil
+}
+
 var _ apiv1.SSHCommandServer = (*SSHCommandService)(nil)

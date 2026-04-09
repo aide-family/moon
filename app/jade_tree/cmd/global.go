@@ -1,6 +1,11 @@
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"strings"
+	"sync"
+
+	"github.com/spf13/cobra"
+)
 
 type globalFlagsOption func(*GlobalFlags)
 
@@ -13,6 +18,10 @@ type GlobalFlags struct {
 	Email     string
 	REPO      string
 	LogLevel  string
+
+	mu           sync.RWMutex
+	httpEndpoint string
+	grpcEndpoint string
 }
 
 func WithGlobalFlagsName(name string) globalFlagsOption {
@@ -57,4 +66,17 @@ func SetGlobalFlags(opts ...globalFlagsOption) {
 	for _, opt := range opts {
 		opt(globalFlags)
 	}
+}
+
+func SetServerEndpoints(httpEndpoint, grpcEndpoint string) {
+	globalFlags.mu.Lock()
+	defer globalFlags.mu.Unlock()
+	globalFlags.httpEndpoint = strings.TrimSpace(httpEndpoint)
+	globalFlags.grpcEndpoint = strings.TrimSpace(grpcEndpoint)
+}
+
+func GetServerEndpoints() (string, string) {
+	globalFlags.mu.RLock()
+	defer globalFlags.mu.RUnlock()
+	return globalFlags.httpEndpoint, globalFlags.grpcEndpoint
 }

@@ -2,6 +2,7 @@
 package run
 
 import (
+	"net/url"
 	"strings"
 	"sync"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/spf13/cobra"
 
+	"github.com/aide-family/jade_tree/cmd"
 	bizcollector "github.com/aide-family/jade_tree/internal/biz/collector"
 	"github.com/aide-family/jade_tree/internal/conf"
 	"github.com/aide-family/jade_tree/internal/data"
@@ -153,10 +155,20 @@ func (e *endpoint) Cleanup() {
 
 func NewApp(serviceName string, d *data.Data, srvs server.Servers, bc *conf.Bootstrap, helper *klog.Helper, probeCollector *bizcollector.ProbeCollector) ([]*kratos.App, error) {
 	apps := make([]*kratos.App, 0, len(srvs))
+	httpEndpoint := ""
+	grpcEndpoint := ""
 	if len(srvs) == 0 {
 		panic("no servers")
 	}
 	for _, srv := range srvs {
+		if endpoint := endpointString(srv.Instance()); endpoint != "" {
+			switch srv.Name() {
+			case "http":
+				httpEndpoint = endpoint
+			case "grpc":
+				grpcEndpoint = endpoint
+			}
+		}
 		opts := []kratos.Option{
 			kratos.Name(strings.Join([]string{serviceName, srv.Name()}, ".")),
 			kratos.ID(hello.ID()),
@@ -180,5 +192,24 @@ func NewApp(serviceName string, d *data.Data, srvs server.Servers, bc *conf.Boot
 
 		apps = append(apps, kratos.New(opts...))
 	}
+	cmd.SetServerEndpoints(httpEndpoint, grpcEndpoint)
 	return apps, nil
+}
+
+func endpointString(srv any) string {
+	type endpointProvider interface {
+		Endpoint() (*url.URL, error)
+	}
+	provider, ok := srv.(endpointProvider)
+	if !ok {
+		return ""
+	}
+	u, err := provider.Endpoint()
+	if err != nil {
+		return ""
+	}
+	if u == nil {
+		return ""
+	}
+	return strings.TrimSpace(u.String())
 }

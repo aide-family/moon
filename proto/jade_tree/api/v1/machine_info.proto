@@ -154,6 +154,17 @@ message SystemInfo {
   string kernel = 4;
 }
 
+message AgentInfo {
+  // endpoint is the backward-compatible merged endpoint string.
+  string endpoint = 1;
+  // version is the collector self-reported version.
+  string version = 2;
+  // httpEndpoint is the collector self-reported HTTP endpoint.
+  string httpEndpoint = 3;
+  // grpcEndpoint is the collector self-reported gRPC endpoint.
+  string grpcEndpoint = 4;
+}
+
 message GetMachineInfoReply {
   CPUInfo cpu = 1;
   MemoryInfo memory = 2;
@@ -161,4 +172,8 @@ message GetMachineInfoReply {
   NetworkInfo network = 4;
   HostInfo host = 5;
   SystemInfo system = 6;
+  // uid is the persisted machine row ID.
+  int64 uid = 7;
+  // agent is the collector self-reported connection and version info.
+  AgentInfo agent = 8;
 }

@@ -215,6 +215,63 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/jade_tree.api.v1.ProbeTaskItem'
+    /v1/ssh-command-actions/batch-execute:
+        post:
+            tags:
+                - SSHCommand
+            description: BatchExecuteSSHCommands executes multiple command requests in one call.
+            operationId: SSHCommand_BatchExecuteSSHCommands
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/jade_tree.api.v1.BatchExecuteSSHCommandsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.BatchExecuteSSHCommandsReply'
+    /v1/ssh-command-actions/dispatch:
+        post:
+            tags:
+                - SSHCommand
+            description: DispatchSSHCommandToAgents pushes one command to target jade_tree agents.
+            operationId: SSHCommand_DispatchSSHCommandToAgents
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/jade_tree.api.v1.DispatchSSHCommandToAgentsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.DispatchSSHCommandToAgentsReply'
+    /v1/ssh-command-actions/dispatch/count:
+        post:
+            tags:
+                - SSHCommand
+            description: CountDispatchSSHCommandTargets counts affected machines before dispatch.
+            operationId: SSHCommand_CountDispatchSSHCommandTargets
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/jade_tree.api.v1.CountDispatchSSHCommandTargetsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.CountDispatchSSHCommandTargetsReply'
     /v1/ssh-command-audits:
         get:
             tags:
@@ -435,6 +492,21 @@ paths:
                                 $ref: '#/components/schemas/jade_tree.api.v1.SSHCommandItem'
 components:
     schemas:
+        jade_tree.api.v1.AgentInfo:
+            type: object
+            properties:
+                endpoint:
+                    type: string
+                    description: endpoint is the backward-compatible merged endpoint string.
+                version:
+                    type: string
+                    description: version is the collector self-reported version.
+                httpEndpoint:
+                    type: string
+                    description: httpEndpoint is the collector self-reported HTTP endpoint.
+                grpcEndpoint:
+                    type: string
+                    description: grpcEndpoint is the collector self-reported gRPC endpoint.
         jade_tree.api.v1.ApproveSSHCommandAuditReply:
             type: object
             properties:
@@ -447,6 +519,30 @@ components:
             properties:
                 uid:
                     type: string
+        jade_tree.api.v1.BatchExecuteSSHCommandsItem:
+            type: object
+            properties:
+                index:
+                    type: integer
+                    format: int32
+                reply:
+                    $ref: '#/components/schemas/jade_tree.api.v1.ExecuteSSHCommandReply'
+                error:
+                    type: string
+        jade_tree.api.v1.BatchExecuteSSHCommandsReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/jade_tree.api.v1.BatchExecuteSSHCommandsItem'
+        jade_tree.api.v1.BatchExecuteSSHCommandsRequest:
+            type: object
+            properties:
+                requests:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/jade_tree.api.v1.ExecuteSSHCommandRequest'
         jade_tree.api.v1.CPUCoreItem:
             type: object
             properties:
@@ -498,6 +594,16 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/jade_tree.api.v1.CPUCoreItem'
+        jade_tree.api.v1.CountDispatchSSHCommandTargetsReply:
+            type: object
+            properties:
+                count:
+                    type: string
+        jade_tree.api.v1.CountDispatchSSHCommandTargetsRequest:
+            type: object
+            properties:
+                filter:
+                    $ref: '#/components/schemas/jade_tree.api.v1.DispatchSSHCommandFilter'
         jade_tree.api.v1.CreateProbeTaskRequest:
             type: object
             properties:
@@ -557,6 +663,82 @@ components:
                 freeRate:
                     type: number
                     format: double
+        jade_tree.api.v1.DispatchSSHCommandFilter:
+            type: object
+            properties:
+                includeMachineUids:
+                    type: array
+                    items:
+                        type: string
+                includeSystemTypes:
+                    type: array
+                    items:
+                        type: string
+                includeAgentVersions:
+                    type: array
+                    items:
+                        type: string
+                excludeMachineUids:
+                    type: array
+                    items:
+                        type: string
+                excludeSystemTypes:
+                    type: array
+                    items:
+                        type: string
+                excludeAgentVersions:
+                    type: array
+                    items:
+                        type: string
+        jade_tree.api.v1.DispatchSSHCommandTargetResult:
+            type: object
+            properties:
+                machineUid:
+                    type: string
+                machineUuid:
+                    type: string
+                hostName:
+                    type: string
+                localIp:
+                    type: string
+                endpoint:
+                    type: string
+                reply:
+                    $ref: '#/components/schemas/jade_tree.api.v1.ExecuteSSHCommandReply'
+                error:
+                    type: string
+        jade_tree.api.v1.DispatchSSHCommandToAgentsReply:
+            type: object
+            properties:
+                total:
+                    type: string
+                success:
+                    type: string
+                failed:
+                    type: string
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/jade_tree.api.v1.DispatchSSHCommandTargetResult'
+        jade_tree.api.v1.DispatchSSHCommandToAgentsRequest:
+            type: object
+            properties:
+                commandUid:
+                    type: string
+                username:
+                    type: string
+                password:
+                    type: string
+                privateKey:
+                    type: string
+                port:
+                    type: integer
+                    format: int32
+                timeoutSeconds:
+                    type: integer
+                    format: int32
+                filter:
+                    $ref: '#/components/schemas/jade_tree.api.v1.DispatchSSHCommandFilter'
         jade_tree.api.v1.ExecuteSSHCommandReply:
             type: object
             properties:
@@ -622,6 +804,13 @@ components:
                     $ref: '#/components/schemas/jade_tree.api.v1.HostInfo'
                 system:
                     $ref: '#/components/schemas/jade_tree.api.v1.SystemInfo'
+                uid:
+                    type: string
+                    description: uid is the persisted machine row ID.
+                agent:
+                    allOf:
+                        - $ref: '#/components/schemas/jade_tree.api.v1.AgentInfo'
+                    description: agent is the collector self-reported connection and version info.
         jade_tree.api.v1.HostInfo:
             type: object
             properties:

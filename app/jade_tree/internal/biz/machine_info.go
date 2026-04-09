@@ -29,6 +29,7 @@ func NewMachineInfo(machineInfoRepo repository.MachineInfoProvider, helper *klog
 func (m *MachineInfo) GetMachineInfo(ctx context.Context) (*machine.MachineInfo, error) {
 	mi, err := m.machineInfoRepo.GetMachineInfoByIdentity(ctx, m.machineInfoRepo.GetLocalMachineIdentity())
 	if err == nil {
+		m.fillLocalAgentInfo(ctx, mi)
 		return mi, nil
 	}
 	if !merr.IsNotFound(err) {
@@ -38,10 +39,33 @@ func (m *MachineInfo) GetMachineInfo(ctx context.Context) (*machine.MachineInfo,
 	if err != nil {
 		return nil, err
 	}
+	if local != nil && local.Network != nil {
+		local.Agent = m.machineInfoRepo.GetLocalAgentInfo(local.Network.LocalIP)
+	}
 
 	go m.machineInfoRepo.UpdateLocalMachineInfo(safety.CopyValueCtx(ctx), local)
 
 	return local, nil
+}
+
+func (m *MachineInfo) fillLocalAgentInfo(ctx context.Context, mi *machine.MachineInfo) {
+	if mi == nil || mi.Network == nil {
+		return
+	}
+	localAgent := m.machineInfoRepo.GetLocalAgentInfo(mi.Network.LocalIP)
+	if localAgent == nil {
+		return
+	}
+	needUpdate := mi.Agent == nil || mi.Agent.Version == "" || mi.Agent.HTTPEndpoint == "" || mi.Agent.GRPCEndpoint == "" || mi.Agent.Endpoint == ""
+	if !needUpdate {
+		return
+	}
+	mi.Agent = localAgent
+	go func() {
+		if err := m.machineInfoRepo.UpdateLocalMachineInfo(safety.CopyValueCtx(ctx), mi); err != nil {
+			m.helper.Errorw("msg", "backfill local agent info failed", "error", err)
+		}
+	}()
 }
 
 func (m *MachineInfo) ListClusterMachineInfos(ctx context.Context, req *bo.ListMachineInfosBo) (*bo.PageResponseBo[*machine.MachineInfo], error) {
@@ -83,6 +107,9 @@ func (m *MachineInfo) RefreshLocalMachineInfo(ctx context.Context) (*machine.Mac
 	}
 	if local == nil || local.MachineUUID == "" {
 		return nil, merr.ErrorInvalidArgument("local machine info is invalid")
+	}
+	if local.Network != nil {
+		local.Agent = m.machineInfoRepo.GetLocalAgentInfo(local.Network.LocalIP)
 	}
 
 	copyCtx := safety.CopyValueCtx(ctx)

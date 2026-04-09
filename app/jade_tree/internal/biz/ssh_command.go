@@ -16,14 +16,23 @@ import (
 
 // SSHCommand handles SSH command templates, audits, and remote execution.
 type SSHCommand struct {
-	commands repository.SSHCommand
-	audits   repository.CommandAudit
-	ssh      repository.SSHOperator
-	helper   *klog.Helper
+	commands     repository.SSHCommand
+	audits       repository.CommandAudit
+	ssh          repository.SSHOperator
+	machineInfos repository.MachineInfoProvider
+	dispatcher   repository.AgentCommandDispatcher
+	helper       *klog.Helper
 }
 
-func NewSSHCommand(commands repository.SSHCommand, audits repository.CommandAudit, ssh repository.SSHOperator, helper *klog.Helper) *SSHCommand {
-	return &SSHCommand{commands: commands, audits: audits, ssh: ssh, helper: helper}
+func NewSSHCommand(commands repository.SSHCommand, audits repository.CommandAudit, ssh repository.SSHOperator, machineInfos repository.MachineInfoProvider, dispatcher repository.AgentCommandDispatcher, helper *klog.Helper) *SSHCommand {
+	return &SSHCommand{
+		commands:     commands,
+		audits:       audits,
+		ssh:          ssh,
+		machineInfos: machineInfos,
+		dispatcher:   dispatcher,
+		helper:       helper,
+	}
 }
 
 func (u *SSHCommand) requireUser(ctx context.Context) (snowflake.ID, error) {
@@ -139,4 +148,113 @@ func (u *SSHCommand) Execute(ctx context.Context, in *bo.ExecuteStoredSSHCommand
 		Env:        env,
 	}
 	return u.ssh.Exec(ctx, req)
+}
+
+func (u *SSHCommand) BatchExecute(ctx context.Context, in *bo.BatchExecuteSSHCommandsBo) ([]*bo.BatchExecuteSSHCommandItemBo, error) {
+	if in == nil {
+		return nil, merr.ErrorInvalidArgument("batch execute input is required")
+	}
+	items := make([]*bo.BatchExecuteSSHCommandItemBo, 0, len(in.Requests))
+	for idx, req := range in.Requests {
+		item := &bo.BatchExecuteSSHCommandItemBo{Index: int32(idx)}
+		reply, err := u.Execute(ctx, req)
+		if err != nil {
+			item.Error = err.Error()
+		} else {
+			item.Reply = reply
+		}
+		items = append(items, item)
+	}
+	return items, nil
+}
+
+func (u *SSHCommand) CountDispatchTargets(ctx context.Context, filter *bo.DispatchSSHCommandFilterBo) (int64, error) {
+	filterWithSelfExcluded, err := u.withSelfExcluded(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+	return u.machineInfos.CountDispatchTargets(ctx, filterWithSelfExcluded)
+}
+
+func (u *SSHCommand) DispatchToAgents(ctx context.Context, in *bo.DispatchSSHCommandToAgentsInput) (*bo.DispatchSSHCommandReplyBo, error) {
+	if in == nil {
+		return nil, merr.ErrorInvalidArgument("dispatch input is required")
+	}
+	filterWithSelfExcluded, err := u.withSelfExcluded(ctx, in.Filter)
+	if err != nil {
+		return nil, err
+	}
+	targets, err := u.machineInfos.ListDispatchTargets(ctx, filterWithSelfExcluded)
+	if err != nil {
+		return nil, err
+	}
+	out := &bo.DispatchSSHCommandReplyBo{
+		Total: int64(len(targets)),
+		Items: make([]*bo.DispatchSSHCommandResultItemBo, 0, len(targets)),
+	}
+	for _, target := range targets {
+		item := &bo.DispatchSSHCommandResultItemBo{Machine: target}
+		if target == nil || target.Agent == nil || target.Agent.HTTPEndpoint == "" {
+			item.Error = "agent endpoint is required"
+			out.Failed++
+			out.Items = append(out.Items, item)
+			continue
+		}
+		item.Endpoint = target.Agent.HTTPEndpoint
+		host := ""
+		if target.Network != nil {
+			host = target.Network.LocalIP
+		}
+		replyItems, dispatchErr := u.dispatcher.BatchExecute(ctx, target.Agent.HTTPEndpoint, &bo.BatchExecuteSSHCommandsBo{
+			Requests: []*bo.ExecuteStoredSSHCommandBo{{
+				CommandUID:     in.CommandUID,
+				Host:           host,
+				Port:           in.Port,
+				Username:       in.Username,
+				Password:       in.Password,
+				PrivateKey:     in.PrivateKey,
+				TimeoutSeconds: in.TimeoutSeconds,
+			}},
+		})
+		if dispatchErr != nil {
+			item.Error = dispatchErr.Error()
+			out.Failed++
+			out.Items = append(out.Items, item)
+			continue
+		}
+		if len(replyItems) == 0 {
+			item.Error = "empty dispatch response"
+			out.Failed++
+			out.Items = append(out.Items, item)
+			continue
+		}
+		first := replyItems[0]
+		item.Reply = first.Reply
+		item.Error = first.Error
+		if item.Error != "" {
+			out.Failed++
+		} else {
+			out.Success++
+		}
+		out.Items = append(out.Items, item)
+	}
+	return out, nil
+}
+
+func (u *SSHCommand) withSelfExcluded(ctx context.Context, filter *bo.DispatchSSHCommandFilterBo) (*bo.DispatchSSHCommandFilterBo, error) {
+	local, err := u.machineInfos.GetMachineInfoByIdentity(ctx, u.machineInfos.GetLocalMachineIdentity())
+	if err != nil && !merr.IsNotFound(err) {
+		return nil, err
+	}
+	out := &bo.DispatchSSHCommandFilterBo{}
+	if filter != nil {
+		*out = *filter
+	}
+	excludeIDs := make([]snowflake.ID, 0, len(out.ExcludeMachineUIDs)+1)
+	excludeIDs = append(excludeIDs, out.ExcludeMachineUIDs...)
+	if local != nil && local.ID > 0 {
+		excludeIDs = append(excludeIDs, local.ID)
+	}
+	out.ExcludeMachineUIDs = excludeIDs
+	return out, nil
 }

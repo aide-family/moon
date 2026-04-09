@@ -66,6 +66,27 @@ service SSHCommand {
       body: "*"
     };
   }
+  // BatchExecuteSSHCommands executes multiple command requests in one call.
+  rpc BatchExecuteSSHCommands (BatchExecuteSSHCommandsRequest) returns (BatchExecuteSSHCommandsReply) {
+    option (google.api.http) = {
+      post: "/v1/ssh-command-actions/batch-execute"
+      body: "*"
+    };
+  }
+  // CountDispatchSSHCommandTargets counts affected machines before dispatch.
+  rpc CountDispatchSSHCommandTargets (CountDispatchSSHCommandTargetsRequest) returns (CountDispatchSSHCommandTargetsReply) {
+    option (google.api.http) = {
+      post: "/v1/ssh-command-actions/dispatch/count"
+      body: "*"
+    };
+  }
+  // DispatchSSHCommandToAgents pushes one command to target jade_tree agents.
+  rpc DispatchSSHCommandToAgents (DispatchSSHCommandToAgentsRequest) returns (DispatchSSHCommandToAgentsReply) {
+    option (google.api.http) = {
+      post: "/v1/ssh-command-actions/dispatch"
+      body: "*"
+    };
+  }
 }
 
 message SSHCommandItem {
@@ -207,4 +228,65 @@ message ExecuteSSHCommandReply {
   string stdout = 1;
   string stderr = 2;
   int32 exit_code = 3;
+}
+
+message BatchExecuteSSHCommandsRequest {
+  repeated ExecuteSSHCommandRequest requests = 1;
+}
+
+message BatchExecuteSSHCommandsItem {
+  int32 index = 1;
+  ExecuteSSHCommandReply reply = 2;
+  string error = 3;
+}
+
+message BatchExecuteSSHCommandsReply {
+  repeated BatchExecuteSSHCommandsItem items = 1;
+}
+
+message DispatchSSHCommandFilter {
+  repeated int64 includeMachineUids = 1;
+  repeated string includeSystemTypes = 2;
+  repeated string includeAgentVersions = 3;
+  repeated int64 excludeMachineUids = 4;
+  repeated string excludeSystemTypes = 5;
+  repeated string excludeAgentVersions = 6;
+}
+
+message CountDispatchSSHCommandTargetsRequest {
+  DispatchSSHCommandFilter filter = 1;
+}
+
+message CountDispatchSSHCommandTargetsReply {
+  int64 count = 1;
+}
+
+message DispatchSSHCommandToAgentsRequest {
+  int64 commandUid = 1 [(buf.validate.field).required = true];
+  string username = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+    expression: "this.size() > 0",
+    message: "username is required",
+  }];
+  string password = 3;
+  string privateKey = 4;
+  int32 port = 5;
+  int32 timeoutSeconds = 6;
+  DispatchSSHCommandFilter filter = 7;
+}
+
+message DispatchSSHCommandTargetResult {
+  int64 machineUid = 1;
+  string machineUuid = 2;
+  string hostName = 3;
+  string localIp = 4;
+  string endpoint = 5;
+  ExecuteSSHCommandReply reply = 6;
+  string error = 7;
+}
+
+message DispatchSSHCommandToAgentsReply {
+  int64 total = 1;
+  int64 success = 2;
+  int64 failed = 3;
+  repeated DispatchSSHCommandTargetResult items = 4;
 }

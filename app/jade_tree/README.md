@@ -8,8 +8,9 @@ Jade Tree is the Moon agent runtime service.
 - Provide a stable collection and communication endpoint.
 - Support RPM + `systemctl` based production operations.
 - Manage predefined SSH command templates with an approval workflow, then execute them against remote hosts.
+- Support one-click command dispatch with target preview/count and include/exclude filters (machine, system type, and agent version).
 - Collect deployment machine profile details (CPU, memory, disk/mount usage, network, hostname, and system basics).
-- Actively report local machine profile to configured HTTP endpoints on schedule.
+- Actively report local machine profile (including self-reported `agent` endpoint/version) to configured HTTP endpoints on schedule.
 - Provide CLI machine operations: `machine get`, `machine list`, `machine push`, and `machine pull` with `table/json/yaml` output.
 - Expose probe metrics in Prometheus format (`probe_tcp_*`, `probe_http_*`, `probe_port_*`, `probe_tls_cert_*`) on `/metrics`.
 
@@ -45,7 +46,10 @@ API definitions live under `proto/jade_tree/api/v1/`; generated Go code is in `p
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-audits/{uid}/approve` | Approve audit; applies payload to `ssh_commands` and sets audit status |
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-audits/{uid}/reject` | Reject pending audit with a reason |
 | `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-commands/{command_uid}/execute` | Run stored command on a remote host (host, credentials, optional timeout in body) |
-| `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-info` | Get deployment machine details (CPU, memory, disk+mount usage, network, hostname, machine UUID, arch/os/version/kernel) |
+| `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-actions/batch-execute` | Batch receive and execute multiple command requests in one call |
+| `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-actions/dispatch/count` | Count dispatch target machines before one-click dispatch (default excludes self) |
+| `jade_tree.api.v1.SSHCommand` | `POST /v1/ssh-command-actions/dispatch` | One-click dispatch command to all matched reported agents with include/exclude filters |
+| `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-info` | Get deployment machine details (CPU, memory, disk+mount usage, network, hostname, machine UUID, arch/os/version/kernel, and `agent` endpoint/version) |
 | `jade_tree.api.v1.MachineInfo` | `POST /v1/machine-info/report` | Report machines (deduped by machine UUID + hostname + local IP) and persist; empty response |
 | `jade_tree.api.v1.MachineInfo` | `GET /v1/machine-infos` | List machines known by the receiver/leader (same composite identity, paginated by `page`/`pageSize`) |
 | `jade_tree.api.v1.ProbeTask` | `POST /v1/probe-tasks` | Create a probe task persisted in database |

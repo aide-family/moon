@@ -137,6 +137,30 @@ func (m *machineInfoRepository) ListMachineInfos(ctx context.Context, req *bo.Li
 	return bo.NewPageResponseBo(req.PageRequestBo, items), nil
 }
 
+func (m *machineInfoRepository) CountDispatchTargets(ctx context.Context, filter *bo.DispatchSSHCommandFilterBo) (int64, error) {
+	q := query.MachineInfo.WithContext(ctx)
+	q = applyDispatchFilters(q, filter)
+	return q.Count()
+}
+
+func (m *machineInfoRepository) ListDispatchTargets(ctx context.Context, filter *bo.DispatchSSHCommandFilterBo) ([]*machine.MachineInfo, error) {
+	q := query.MachineInfo.WithContext(ctx)
+	q = applyDispatchFilters(q, filter)
+	rows, err := q.Order(query.MachineInfo.UpdatedAt.Desc()).Find()
+	if err != nil {
+		return nil, err
+	}
+	items := make([]*machine.MachineInfo, 0, len(rows))
+	for _, row := range rows {
+		item, convErr := convert.ToMachineInfoItemBo(row)
+		if convErr != nil {
+			return nil, convErr
+		}
+		items = append(items, item)
+	}
+	return items, nil
+}
+
 func applyMachineInfoSearchFilters(q query.IMachineInfoDo, req *bo.ListMachineInfosBo) query.IMachineInfoDo {
 	if req == nil {
 		return q
@@ -163,4 +187,49 @@ func applyMachineInfoSearchFilters(q query.IMachineInfoDo, req *bo.ListMachineIn
 func escapeSQLLike(value string) string {
 	replacer := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
 	return replacer.Replace(value)
+}
+
+func applyDispatchFilters(q query.IMachineInfoDo, filter *bo.DispatchSSHCommandFilterBo) query.IMachineInfoDo {
+	if filter == nil {
+		return q
+	}
+
+	if len(filter.IncludeMachineUIDs) > 0 {
+		includeIDs := make([]int64, 0, len(filter.IncludeMachineUIDs))
+		for _, id := range filter.IncludeMachineUIDs {
+			if id <= 0 {
+				continue
+			}
+			includeIDs = append(includeIDs, id.Int64())
+		}
+		if len(includeIDs) > 0 {
+			q = q.Where(query.MachineInfo.ID.In(includeIDs...))
+		}
+	}
+	if len(filter.IncludeSystemTypes) > 0 {
+		q = q.Where(query.MachineInfo.OSType.In(filter.IncludeSystemTypes...))
+	}
+	if len(filter.IncludeAgentVersions) > 0 {
+		q = q.Where(query.MachineInfo.AgentVersion.In(filter.IncludeAgentVersions...))
+	}
+
+	if len(filter.ExcludeMachineUIDs) > 0 {
+		excludeIDs := make([]int64, 0, len(filter.ExcludeMachineUIDs))
+		for _, id := range filter.ExcludeMachineUIDs {
+			if id <= 0 {
+				continue
+			}
+			excludeIDs = append(excludeIDs, id.Int64())
+		}
+		if len(excludeIDs) > 0 {
+			q = q.Where(query.MachineInfo.ID.NotIn(excludeIDs...))
+		}
+	}
+	if len(filter.ExcludeSystemTypes) > 0 {
+		q = q.Where(query.MachineInfo.OSType.NotIn(filter.ExcludeSystemTypes...))
+	}
+	if len(filter.ExcludeAgentVersions) > 0 {
+		q = q.Where(query.MachineInfo.AgentVersion.NotIn(filter.ExcludeAgentVersions...))
+	}
+	return q
 }

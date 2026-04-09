@@ -11,6 +11,8 @@ import (
 type MachineInfoProvider interface {
 	// GetLocalMachineIdentity returns machine UUID, hostname, and local IPv4 without a full hardware scan.
 	GetLocalMachineIdentity() *bo.MachineInfoIdentityBo
+	// GetLocalAgentInfo returns collector endpoint and version for the local machine.
+	GetLocalAgentInfo(localIP string) *machine.MachineAgent
 
 	// Collect collects the local machine info.
 	Collect(ctx context.Context) (*machine.MachineInfo, error)
@@ -26,4 +28,8 @@ type MachineInfoProvider interface {
 
 	// ListMachineInfos returns a paginated view of machines in storage.
 	ListMachineInfos(ctx context.Context, req *bo.ListMachineInfosBo) (*bo.PageResponseBo[*machine.MachineInfo], error)
+	// CountDispatchTargets returns the machine count matched by dispatch filter.
+	CountDispatchTargets(ctx context.Context, filter *bo.DispatchSSHCommandFilterBo) (int64, error)
+	// ListDispatchTargets returns matched machine rows for dispatch execution.
+	ListDispatchTargets(ctx context.Context, filter *bo.DispatchSSHCommandFilterBo) ([]*machine.MachineInfo, error)
 }

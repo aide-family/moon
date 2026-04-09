@@ -3,6 +3,8 @@ package bo
 import (
 	"strings"
 
+	"github.com/bwmarrin/snowflake"
+
 	apiv1 "github.com/aide-family/jade_tree/pkg/api/v1"
 	"github.com/aide-family/jade_tree/pkg/machine"
 )
@@ -77,10 +79,19 @@ func ToAPIV1MachineInfoReply(in *machine.MachineInfo) *apiv1.GetMachineInfoReply
 		return &apiv1.GetMachineInfoReply{}
 	}
 	out := &apiv1.GetMachineInfoReply{
+		Uid: in.ID.Int64(),
 		Host: &apiv1.HostInfo{
 			HostName:    in.HostName,
 			MachineUuid: in.MachineUUID,
 		},
+	}
+	if in.Agent != nil {
+		out.Agent = &apiv1.AgentInfo{
+			Endpoint:     in.Agent.Endpoint,
+			HttpEndpoint: in.Agent.HTTPEndpoint,
+			GrpcEndpoint: in.Agent.GRPCEndpoint,
+			Version:      in.Agent.Version,
+		}
 	}
 	if cpuInfo := in.CPU; cpuInfo != nil {
 		cpu := &apiv1.CPUInfo{
@@ -172,9 +183,20 @@ func FromAPIV1MachineInfoReply(in *apiv1.GetMachineInfoReply) *machine.MachineIn
 	}
 
 	out := &machine.MachineInfo{}
+	if uid := in.GetUid(); uid > 0 {
+		out.ID = snowflake.ID(uid)
+	}
 	if hostInfo := in.GetHost(); hostInfo != nil {
 		out.HostName = hostInfo.GetHostName()
 		out.MachineUUID = hostInfo.GetMachineUuid()
+	}
+	if agentInfo := in.GetAgent(); agentInfo != nil {
+		out.Agent = &machine.MachineAgent{
+			Endpoint:     agentInfo.GetEndpoint(),
+			HTTPEndpoint: agentInfo.GetHttpEndpoint(),
+			GRPCEndpoint: agentInfo.GetGrpcEndpoint(),
+			Version:      agentInfo.GetVersion(),
+		}
 	}
 
 	if cpuInfo := in.GetCpu(); cpuInfo != nil {

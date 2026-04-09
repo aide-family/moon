@@ -33,7 +33,10 @@ func newMachineInfo(db *gorm.DB, opts ...gen.DOOption) machineInfo {
 	_machineInfo.HostName = field.NewString(tableName, "host_name")
 	_machineInfo.LocalIP = field.NewString(tableName, "local_ip")
 	_machineInfo.Source = field.NewInt32(tableName, "source")
-	_machineInfo.Info = field.NewString(tableName, "info")
+	_machineInfo.OSType = field.NewString(tableName, "os_type")
+	_machineInfo.AgentEndpoint = field.NewString(tableName, "agent_endpoint")
+	_machineInfo.AgentVersion = field.NewString(tableName, "agent_version")
+	_machineInfo.Info = field.NewField(tableName, "info")
 	_machineInfo.CreatedAt = field.NewTime(tableName, "created_at")
 	_machineInfo.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -45,16 +48,19 @@ func newMachineInfo(db *gorm.DB, opts ...gen.DOOption) machineInfo {
 type machineInfo struct {
 	machineInfoDo
 
-	ALL         field.Asterisk
-	ID          field.Int64
-	DeletedAt   field.Field
-	MachineUUID field.String
-	HostName    field.String
-	LocalIP     field.String
-	Source      field.Int32
-	Info        field.String
-	CreatedAt   field.Time
-	UpdatedAt   field.Time
+	ALL           field.Asterisk
+	ID            field.Int64
+	DeletedAt     field.Field
+	MachineUUID   field.String
+	HostName      field.String
+	LocalIP       field.String
+	Source        field.Int32
+	OSType        field.String
+	AgentEndpoint field.String
+	AgentVersion  field.String
+	Info          field.Field
+	CreatedAt     field.Time
+	UpdatedAt     field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -77,7 +83,10 @@ func (m *machineInfo) updateTableName(table string) *machineInfo {
 	m.HostName = field.NewString(table, "host_name")
 	m.LocalIP = field.NewString(table, "local_ip")
 	m.Source = field.NewInt32(table, "source")
-	m.Info = field.NewString(table, "info")
+	m.OSType = field.NewString(table, "os_type")
+	m.AgentEndpoint = field.NewString(table, "agent_endpoint")
+	m.AgentVersion = field.NewString(table, "agent_version")
+	m.Info = field.NewField(table, "info")
 	m.CreatedAt = field.NewTime(table, "created_at")
 	m.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -96,13 +105,16 @@ func (m *machineInfo) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (m *machineInfo) fillFieldMap() {
-	m.fieldMap = make(map[string]field.Expr, 9)
+	m.fieldMap = make(map[string]field.Expr, 12)
 	m.fieldMap["id"] = m.ID
 	m.fieldMap["deleted_at"] = m.DeletedAt
 	m.fieldMap["machine_uuid"] = m.MachineUUID
 	m.fieldMap["host_name"] = m.HostName
 	m.fieldMap["local_ip"] = m.LocalIP
 	m.fieldMap["source"] = m.Source
+	m.fieldMap["os_type"] = m.OSType
+	m.fieldMap["agent_endpoint"] = m.AgentEndpoint
+	m.fieldMap["agent_version"] = m.AgentVersion
 	m.fieldMap["info"] = m.Info
 	m.fieldMap["created_at"] = m.CreatedAt
 	m.fieldMap["updated_at"] = m.UpdatedAt

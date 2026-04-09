@@ -20,11 +20,19 @@ type MachineInfo struct {
 	HostName    string
 	MachineUUID string
 	Source      enum.MachineInfoSource
+	Agent       *MachineAgent
 	CPU         *MachineCPU
 	Memory      *MachineMemory
 	Disks       []*MachineDisk
 	Network     *MachineNetwork
 	System      *MachineSystem
+}
+
+type MachineAgent struct {
+	Endpoint     string
+	HTTPEndpoint string
+	GRPCEndpoint string
+	Version      string
 }
 
 // Value implements [driver.Valuer].
