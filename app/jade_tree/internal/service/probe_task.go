@@ -88,3 +88,11 @@ func (s *ProbeTaskService) UpdateProbeTaskStatus(ctx context.Context, req *apiv1
 	}
 	return bo.ToAPIV1ProbeTaskItem(item), nil
 }
+
+func (s *ProbeTaskService) CreatePingProbeTasks(ctx context.Context, req *apiv1.CreatePingProbeTasksRequest) (*apiv1.DispatchCreateProbeTasksReply, error) {
+	reply, err := s.bizProbeTask.CreatePingProbeTasks(ctx, bo.NewCreatePingProbeTasksInput(req))
+	if err != nil {
+		return nil, err
+	}
+	return bo.ToAPIV1DispatchCreateProbeTasksReply(reply), nil
+}

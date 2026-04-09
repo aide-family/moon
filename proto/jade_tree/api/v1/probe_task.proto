@@ -43,6 +43,12 @@ service ProbeTask {
       body: "*"
     };
   }
+  rpc CreatePingProbeTasks (CreatePingProbeTasksRequest) returns (DispatchCreateProbeTasksReply) {
+    option (google.api.http) = {
+      post: "/v1/probe-task-actions/ping"
+      body: "*"
+    };
+  }
 }
 
 message ProbeTaskItem {
@@ -106,4 +112,28 @@ message ListProbeTasksReply {
 message UpdateProbeTaskStatusRequest {
   int64 uid = 1;
   magicbox.enum.GlobalStatus status = 2;
+}
+
+message CreatePingProbeTasksRequest {
+  repeated int64 sourceMachineUids = 1;
+  repeated int64 targetMachineUids = 2;
+  int32 timeoutSeconds = 3;
+}
+
+message DispatchCreateProbeTaskResultItem {
+  int64 machineUid = 1;
+  string machineUuid = 2;
+  string hostName = 3;
+  string localIp = 4;
+  string endpoint = 5;
+  int64 createdCount = 6;
+  string error = 7;
+}
+
+message DispatchCreateProbeTasksReply {
+  int64 total = 1;
+  int64 success = 2;
+  int64 failed = 3;
+  int64 createdCount = 4;
+  repeated DispatchCreateProbeTaskResultItem items = 5;
 }

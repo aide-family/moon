@@ -42,7 +42,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	sshCommandService := service.NewSSHCommandService(bizSSHCommand)
 	machineInfoService := service.NewMachineInfoService(machineInfo)
 	probeTask := impl.NewProbeTaskRepository(dataData)
-	bizProbeTask := biz.NewProbeTask(probeTask, helper)
+	bizProbeTask := biz.NewProbeTask(probeTask, machineInfoProvider, agentCommandDispatcher, helper)
 	probeTaskService := service.NewProbeTaskService(bizProbeTask)
 	servers := server.RegisterHTTPServiceWithReporter(httpServer, machineInfoReporterServer, healthService, sshCommandService, machineInfoService, probeTaskService)
 	probeCollector := collector.NewProbeCollector(bc, probeTask)

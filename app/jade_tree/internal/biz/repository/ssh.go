@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/aide-family/jade_tree/internal/biz/bo"
+	"github.com/aide-family/jade_tree/pkg/machine"
 )
 
 // SSHOperator executes commands on remote hosts over SSH.
@@ -14,5 +15,6 @@ type SSHOperator interface {
 
 // AgentCommandDispatcher sends batch execute requests to remote jade_tree agents.
 type AgentCommandDispatcher interface {
-	BatchExecute(ctx context.Context, endpoint string, req *bo.BatchExecuteSSHCommandsBo) ([]*bo.BatchExecuteSSHCommandItemBo, error)
+	BatchExecute(ctx context.Context, agent *machine.MachineAgent, req *bo.BatchExecuteSSHCommandsBo) ([]*bo.BatchExecuteSSHCommandItemBo, error)
+	BatchCreateProbeTasks(ctx context.Context, agent *machine.MachineAgent, req *bo.BatchCreateProbeTasksBo) (*bo.BatchCreateProbeTasksReplyBo, error)
 }

@@ -3,6 +3,7 @@ package bo
 import (
 	"strings"
 
+	"github.com/aide-family/magicbox/enum"
 	"github.com/bwmarrin/snowflake"
 
 	apiv1 "github.com/aide-family/jade_tree/pkg/api/v1"
@@ -50,6 +51,30 @@ type DispatchSSHCommandReplyBo struct {
 	Success int64
 	Failed  int64
 	Items   []*DispatchSSHCommandResultItemBo
+}
+
+type CreateProbeTaskDispatchItemBo struct {
+	Type           string
+	Host           string
+	Port           string
+	URL            string
+	Name           string
+	Status         enum.GlobalStatus
+	TimeoutSeconds int32
+}
+
+type BatchCreateProbeTasksBo struct {
+	Requests []*CreateProbeTaskDispatchItemBo
+}
+
+type BatchCreateProbeTaskItemResultBo struct {
+	Index int32
+	UID   snowflake.ID
+	Error string
+}
+
+type BatchCreateProbeTasksReplyBo struct {
+	Items []*BatchCreateProbeTaskItemResultBo
 }
 
 func NewDispatchSSHCommandFilterBo(in *apiv1.DispatchSSHCommandFilter) *DispatchSSHCommandFilterBo {

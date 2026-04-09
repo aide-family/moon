@@ -12,6 +12,7 @@ import (
 
 	"github.com/aide-family/jade_tree/internal/biz/bo"
 	"github.com/aide-family/jade_tree/internal/biz/repository"
+	"github.com/aide-family/jade_tree/pkg/machine"
 )
 
 // SSHCommand handles SSH command templates, audits, and remote execution.
@@ -194,18 +195,18 @@ func (u *SSHCommand) DispatchToAgents(ctx context.Context, in *bo.DispatchSSHCom
 	}
 	for _, target := range targets {
 		item := &bo.DispatchSSHCommandResultItemBo{Machine: target}
-		if target == nil || target.Agent == nil || target.Agent.HTTPEndpoint == "" {
+		if target == nil || target.Agent == nil || selectAgentEndpoint(target.Agent) == "" {
 			item.Error = "agent endpoint is required"
 			out.Failed++
 			out.Items = append(out.Items, item)
 			continue
 		}
-		item.Endpoint = target.Agent.HTTPEndpoint
+		item.Endpoint = selectAgentEndpoint(target.Agent)
 		host := ""
 		if target.Network != nil {
 			host = target.Network.LocalIP
 		}
-		replyItems, dispatchErr := u.dispatcher.BatchExecute(ctx, target.Agent.HTTPEndpoint, &bo.BatchExecuteSSHCommandsBo{
+		replyItems, dispatchErr := u.dispatcher.BatchExecute(ctx, target.Agent, &bo.BatchExecuteSSHCommandsBo{
 			Requests: []*bo.ExecuteStoredSSHCommandBo{{
 				CommandUID:     in.CommandUID,
 				Host:           host,
@@ -239,6 +240,19 @@ func (u *SSHCommand) DispatchToAgents(ctx context.Context, in *bo.DispatchSSHCom
 		out.Items = append(out.Items, item)
 	}
 	return out, nil
+}
+
+func selectAgentEndpoint(agent *machine.MachineAgent) string {
+	if agent == nil {
+		return ""
+	}
+	if agent.GRPCEndpoint != "" {
+		return agent.GRPCEndpoint
+	}
+	if agent.HTTPEndpoint != "" {
+		return agent.HTTPEndpoint
+	}
+	return ""
 }
 
 func (u *SSHCommand) withSelfExcluded(ctx context.Context, filter *bo.DispatchSSHCommandFilterBo) (*bo.DispatchSSHCommandFilterBo, error) {

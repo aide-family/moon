@@ -12,7 +12,8 @@ Jade Tree 是 Moon 的 Agent 运行时服务。
 - 提供部署机器基础信息采集能力（CPU、内存、磁盘与挂载点、网络、主机名、系统基础信息）。
 - 支持按配置定时向指定 HTTP 端点主动上报本机机器基础信息（包含采集器 `agent` 连接与版本信息）。
 - 提供机器信息 CLI 命令：`machine get`、`machine list`、`machine push`、`machine pull`，支持 `table/json/yaml` 输出。
-- 以 Prometheus metrics 方式暴露探测能力（`probe_tcp_*`、`probe_http_*`、`probe_port_*`、`probe_tls_cert_*`）。
+- 以 Prometheus metrics 方式暴露探测能力（`probe_tcp_*`、`probe_ping_*`、`probe_http_*`、`probe_port_*`、`probe_cert_*`）。
+- 支持基于机器列表的一键 ping 任务下发（支持发起端与被探测端列表多对多组合，并内置源/目标默认回退规则）。
 
 ## 架构
 
@@ -58,6 +59,7 @@ API 定义位于 `proto/jade_tree/api/v1/`；生成代码在 `pkg/api/v1/`。修
 | `jade_tree.api.v1.ProbeTask` | `DELETE /v1/probe-tasks/{uid}` | 删除探测任务并动态移除 |
 | `jade_tree.api.v1.ProbeTask` | `GET /v1/probe-tasks/{uid}` | 获取单个探测任务 |
 | `jade_tree.api.v1.ProbeTask` | `GET /v1/probe-tasks` | 分页查询探测任务 |
+| `jade_tree.api.v1.ProbeTask` | `POST /v1/probe-task-actions/ping` | 按发起/被探测机器列表创建 ping 任务并按规则自动回退；始终排除自己探测自己 |
 
 探测指标通过 `config/server.yaml` 中 `bootstrap.probe` 配置，复用现有 `GET /metrics` 暴露。
 

@@ -66,6 +66,38 @@ type ListProbeTasksBo struct {
 	Status  enum.GlobalStatus
 }
 
+type ProbeTaskUniqueCheckBo struct {
+	Type       string
+	Host       string
+	Port       string
+	URL        string
+	ExcludeUID snowflake.ID
+}
+
+type CreatePingProbeTasksInput struct {
+	SourceMachineUIDs []snowflake.ID
+	TargetMachineUIDs []snowflake.ID
+	TimeoutSeconds    int32
+}
+
+type DispatchCreateProbeTaskResultItemBo struct {
+	MachineUID   snowflake.ID
+	MachineUUID  string
+	HostName     string
+	LocalIP      string
+	Endpoint     string
+	CreatedCount int64
+	Error        string
+}
+
+type DispatchCreateProbeTasksReplyBo struct {
+	Total        int64
+	Success      int64
+	Failed       int64
+	CreatedCount int64
+	Items        []*DispatchCreateProbeTaskResultItemBo
+}
+
 func NewCreateProbeTaskBo(req *apiv1.CreateProbeTaskRequest, creator snowflake.ID) (*CreateProbeTaskBo, error) {
 	fields, err := validateProbeTaskFields(&ProbeTaskFieldsBo{
 		Type:           req.GetType(),
@@ -117,6 +149,18 @@ func NewUpdateProbeTaskStatusBo(req *apiv1.UpdateProbeTaskStatusRequest) (*Updat
 	}, nil
 }
 
+func NewCreatePingProbeTasksInput(req *apiv1.CreatePingProbeTasksRequest) *CreatePingProbeTasksInput {
+	timeoutSeconds := req.GetTimeoutSeconds()
+	if timeoutSeconds <= 0 {
+		timeoutSeconds = 5
+	}
+	return &CreatePingProbeTasksInput{
+		SourceMachineUIDs: toSnowflakeIDs(req.GetSourceMachineUids()),
+		TargetMachineUIDs: toSnowflakeIDs(req.GetTargetMachineUids()),
+		TimeoutSeconds:    timeoutSeconds,
+	}
+}
+
 func ToAPIV1ProbeTaskItem(in *ProbeTaskItemBo) *apiv1.ProbeTaskItem {
 	if in == nil {
 		return nil
@@ -133,6 +177,34 @@ func ToAPIV1ProbeTaskItem(in *ProbeTaskItemBo) *apiv1.ProbeTaskItem {
 		CreatedAt:      timex.FormatTime(&in.CreatedAt),
 		UpdatedAt:      timex.FormatTime(&in.UpdatedAt),
 	}
+}
+
+func ToAPIV1DispatchCreateProbeTasksReply(in *DispatchCreateProbeTasksReplyBo) *apiv1.DispatchCreateProbeTasksReply {
+	if in == nil {
+		return &apiv1.DispatchCreateProbeTasksReply{}
+	}
+	out := &apiv1.DispatchCreateProbeTasksReply{
+		Total:        in.Total,
+		Success:      in.Success,
+		Failed:       in.Failed,
+		CreatedCount: in.CreatedCount,
+		Items:        make([]*apiv1.DispatchCreateProbeTaskResultItem, 0, len(in.Items)),
+	}
+	for _, item := range in.Items {
+		if item == nil {
+			continue
+		}
+		out.Items = append(out.Items, &apiv1.DispatchCreateProbeTaskResultItem{
+			MachineUid:   item.MachineUID.Int64(),
+			MachineUuid:  item.MachineUUID,
+			HostName:     item.HostName,
+			LocalIp:      item.LocalIP,
+			Endpoint:     item.Endpoint,
+			CreatedCount: item.CreatedCount,
+			Error:        item.Error,
+		})
+	}
+	return out
 }
 
 func validateProbeTaskFields(in *ProbeTaskFieldsBo) (*ProbeTaskFieldsBo, error) {
@@ -158,6 +230,10 @@ func validateProbeTaskFields(in *ProbeTaskFieldsBo) (*ProbeTaskFieldsBo, error) 
 		if in.Host == "" || in.Port == "" {
 			return nil, merr.ErrorInvalidArgument("host and port are required")
 		}
+	case "ping":
+		if in.Host == "" {
+			return nil, merr.ErrorInvalidArgument("host is required")
+		}
 	case "http":
 		if in.URL == "" {
 			return nil, merr.ErrorInvalidArgument("url is required")
@@ -170,11 +246,13 @@ func validateProbeTaskFields(in *ProbeTaskFieldsBo) (*ProbeTaskFieldsBo, error) 
 			in.Port = "443"
 		}
 	default:
-		return nil, merr.ErrorInvalidArgument("type must be tcp, port, http or cert")
+		return nil, merr.ErrorInvalidArgument("type must be tcp, port, ping, http or cert")
 	}
 	if in.Name == "" {
 		if in.Type == "http" {
 			in.Name = in.URL
+		} else if in.Type == "ping" {
+			in.Name = in.Host
 		} else {
 			in.Name = in.Host + ":" + in.Port
 		}
@@ -199,6 +277,10 @@ func validateProbeTaskUpdateFields(in *ProbeTaskUpdateFieldsBo) (*ProbeTaskUpdat
 		if in.Host == "" || in.Port == "" {
 			return nil, merr.ErrorInvalidArgument("host and port are required")
 		}
+	case "ping":
+		if in.Host == "" {
+			return nil, merr.ErrorInvalidArgument("host is required")
+		}
 	case "http":
 		if in.URL == "" {
 			return nil, merr.ErrorInvalidArgument("url is required")
@@ -211,11 +293,13 @@ func validateProbeTaskUpdateFields(in *ProbeTaskUpdateFieldsBo) (*ProbeTaskUpdat
 			in.Port = "443"
 		}
 	default:
-		return nil, merr.ErrorInvalidArgument("type must be tcp, port, http or cert")
+		return nil, merr.ErrorInvalidArgument("type must be tcp, port, ping, http or cert")
 	}
 	if in.Name == "" {
 		if in.Type == "http" {
 			in.Name = in.URL
+		} else if in.Type == "ping" {
+			in.Name = in.Host
 		} else {
 			in.Name = in.Host + ":" + in.Port
 		}

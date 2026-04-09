@@ -12,7 +12,8 @@ Jade Tree is the Moon agent runtime service.
 - Collect deployment machine profile details (CPU, memory, disk/mount usage, network, hostname, and system basics).
 - Actively report local machine profile (including self-reported `agent` endpoint/version) to configured HTTP endpoints on schedule.
 - Provide CLI machine operations: `machine get`, `machine list`, `machine push`, and `machine pull` with `table/json/yaml` output.
-- Expose probe metrics in Prometheus format (`probe_tcp_*`, `probe_http_*`, `probe_port_*`, `probe_tls_cert_*`) on `/metrics`.
+- Expose probe metrics in Prometheus format (`probe_tcp_*`, `probe_ping_*`, `probe_http_*`, `probe_port_*`, `probe_cert_*`) on `/metrics`.
+- Support one-click ping task dispatch based on machine lists (supports source-target many-to-many combinations and default source/target fallback behavior).
 
 ## Architecture
 
@@ -58,6 +59,7 @@ API definitions live under `proto/jade_tree/api/v1/`; generated Go code is in `p
 | `jade_tree.api.v1.ProbeTask` | `DELETE /v1/probe-tasks/{uid}` | Delete a probe task and remove it dynamically |
 | `jade_tree.api.v1.ProbeTask` | `GET /v1/probe-tasks/{uid}` | Get one probe task |
 | `jade_tree.api.v1.ProbeTask` | `GET /v1/probe-tasks` | List probe tasks (paginated) |
+| `jade_tree.api.v1.ProbeTask` | `POST /v1/probe-task-actions/ping` | Create ping probe tasks by source/target machine lists with fallback defaults; always excludes self-to-self probing |
 
 Probe metrics are configured via `bootstrap.probe` in `config/server.yaml` and exported via the existing `GET /metrics` endpoint.
 

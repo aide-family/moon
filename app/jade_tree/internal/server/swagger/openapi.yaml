@@ -80,6 +80,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/jade_tree.api.v1.GetClusterMachineInfosReply'
+    /v1/probe-task-actions/ping:
+        post:
+            tags:
+                - ProbeTask
+            operationId: ProbeTask_CreatePingProbeTasks
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/jade_tree.api.v1.CreatePingProbeTasksRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/jade_tree.api.v1.DispatchCreateProbeTasksReply'
     /v1/probe-tasks:
         get:
             tags:
@@ -604,6 +622,20 @@ components:
             properties:
                 filter:
                     $ref: '#/components/schemas/jade_tree.api.v1.DispatchSSHCommandFilter'
+        jade_tree.api.v1.CreatePingProbeTasksRequest:
+            type: object
+            properties:
+                sourceMachineUids:
+                    type: array
+                    items:
+                        type: string
+                targetMachineUids:
+                    type: array
+                    items:
+                        type: string
+                timeoutSeconds:
+                    type: integer
+                    format: int32
         jade_tree.api.v1.CreateProbeTaskRequest:
             type: object
             properties:
@@ -663,6 +695,38 @@ components:
                 freeRate:
                     type: number
                     format: double
+        jade_tree.api.v1.DispatchCreateProbeTaskResultItem:
+            type: object
+            properties:
+                machineUid:
+                    type: string
+                machineUuid:
+                    type: string
+                hostName:
+                    type: string
+                localIp:
+                    type: string
+                endpoint:
+                    type: string
+                createdCount:
+                    type: string
+                error:
+                    type: string
+        jade_tree.api.v1.DispatchCreateProbeTasksReply:
+            type: object
+            properties:
+                total:
+                    type: string
+                success:
+                    type: string
+                failed:
+                    type: string
+                createdCount:
+                    type: string
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/jade_tree.api.v1.DispatchCreateProbeTaskResultItem'
         jade_tree.api.v1.DispatchSSHCommandFilter:
             type: object
             properties:

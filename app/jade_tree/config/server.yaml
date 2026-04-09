@@ -58,6 +58,10 @@ probe:
       port: '8004'
       # name: jade_tree_tcp
       timeoutSeconds: 5
+    - type: ping
+      host: 127.0.0.1
+      # name: jade_tree_ping
+      timeoutSeconds: 5
     - type: http
       url: http://127.0.0.1:8004/health
       # name: jade_tree_http

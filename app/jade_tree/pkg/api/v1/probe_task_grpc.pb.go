@@ -25,6 +25,7 @@ const (
 	ProbeTask_GetProbeTask_FullMethodName          = "/jade_tree.api.v1.ProbeTask/GetProbeTask"
 	ProbeTask_ListProbeTasks_FullMethodName        = "/jade_tree.api.v1.ProbeTask/ListProbeTasks"
 	ProbeTask_UpdateProbeTaskStatus_FullMethodName = "/jade_tree.api.v1.ProbeTask/UpdateProbeTaskStatus"
+	ProbeTask_CreatePingProbeTasks_FullMethodName  = "/jade_tree.api.v1.ProbeTask/CreatePingProbeTasks"
 )
 
 // ProbeTaskClient is the client API for ProbeTask service.
@@ -37,6 +38,7 @@ type ProbeTaskClient interface {
 	GetProbeTask(ctx context.Context, in *GetProbeTaskRequest, opts ...grpc.CallOption) (*ProbeTaskItem, error)
 	ListProbeTasks(ctx context.Context, in *ListProbeTasksRequest, opts ...grpc.CallOption) (*ListProbeTasksReply, error)
 	UpdateProbeTaskStatus(ctx context.Context, in *UpdateProbeTaskStatusRequest, opts ...grpc.CallOption) (*ProbeTaskItem, error)
+	CreatePingProbeTasks(ctx context.Context, in *CreatePingProbeTasksRequest, opts ...grpc.CallOption) (*DispatchCreateProbeTasksReply, error)
 }
 
 type probeTaskClient struct {
@@ -107,6 +109,16 @@ func (c *probeTaskClient) UpdateProbeTaskStatus(ctx context.Context, in *UpdateP
 	return out, nil
 }
 
+func (c *probeTaskClient) CreatePingProbeTasks(ctx context.Context, in *CreatePingProbeTasksRequest, opts ...grpc.CallOption) (*DispatchCreateProbeTasksReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DispatchCreateProbeTasksReply)
+	err := c.cc.Invoke(ctx, ProbeTask_CreatePingProbeTasks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProbeTaskServer is the server API for ProbeTask service.
 // All implementations must embed UnimplementedProbeTaskServer
 // for forward compatibility.
@@ -117,6 +129,7 @@ type ProbeTaskServer interface {
 	GetProbeTask(context.Context, *GetProbeTaskRequest) (*ProbeTaskItem, error)
 	ListProbeTasks(context.Context, *ListProbeTasksRequest) (*ListProbeTasksReply, error)
 	UpdateProbeTaskStatus(context.Context, *UpdateProbeTaskStatusRequest) (*ProbeTaskItem, error)
+	CreatePingProbeTasks(context.Context, *CreatePingProbeTasksRequest) (*DispatchCreateProbeTasksReply, error)
 	mustEmbedUnimplementedProbeTaskServer()
 }
 
@@ -144,6 +157,9 @@ func (UnimplementedProbeTaskServer) ListProbeTasks(context.Context, *ListProbeTa
 }
 func (UnimplementedProbeTaskServer) UpdateProbeTaskStatus(context.Context, *UpdateProbeTaskStatusRequest) (*ProbeTaskItem, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateProbeTaskStatus not implemented")
+}
+func (UnimplementedProbeTaskServer) CreatePingProbeTasks(context.Context, *CreatePingProbeTasksRequest) (*DispatchCreateProbeTasksReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePingProbeTasks not implemented")
 }
 func (UnimplementedProbeTaskServer) mustEmbedUnimplementedProbeTaskServer() {}
 func (UnimplementedProbeTaskServer) testEmbeddedByValue()                   {}
@@ -274,6 +290,24 @@ func _ProbeTask_UpdateProbeTaskStatus_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProbeTask_CreatePingProbeTasks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePingProbeTasksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProbeTaskServer).CreatePingProbeTasks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProbeTask_CreatePingProbeTasks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProbeTaskServer).CreatePingProbeTasks(ctx, req.(*CreatePingProbeTasksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProbeTask_ServiceDesc is the grpc.ServiceDesc for ProbeTask service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +338,10 @@ var ProbeTask_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateProbeTaskStatus",
 			Handler:    _ProbeTask_UpdateProbeTaskStatus_Handler,
+		},
+		{
+			MethodName: "CreatePingProbeTasks",
+			Handler:    _ProbeTask_CreatePingProbeTasks_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

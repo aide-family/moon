@@ -7,6 +7,9 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -24,6 +27,7 @@ const (
 	probeTypePort = "port"
 	probeTypeHTTP = "http"
 	probeTypeCert = "cert"
+	probeTypePing = "ping"
 )
 
 var (
@@ -75,6 +79,16 @@ var (
 	certRemainingDaysDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(metricNamespace, probeTypeCert, "remaining_days"),
 		"Remaining days until TLS certificate expiration.",
+		[]string{"target", "initiator"}, nil,
+	)
+	pingSuccessDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(metricNamespace, probeTypePing, "success"),
+		"Whether the last ping probe to the target succeeded (1) or not (0).",
+		[]string{"target", "initiator"}, nil,
+	)
+	pingDurationDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(metricNamespace, probeTypePing, "duration_seconds"),
+		"Duration of the last ping probe in seconds.",
 		[]string{"target", "initiator"}, nil,
 	)
 )
@@ -144,6 +158,8 @@ func (c *ProbeCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- certSuccessDesc
 	ch <- certNotAfterDesc
 	ch <- certRemainingDaysDesc
+	ch <- pingSuccessDesc
+	ch <- pingDurationDesc
 }
 
 func (c *ProbeCollector) Collect(ch chan<- prometheus.Metric) {
@@ -174,6 +190,8 @@ func (c *ProbeCollector) collectTarget(ch chan<- prometheus.Metric, target targe
 		c.collectHTTP(ch, target)
 	case probeTypeCert:
 		c.collectCert(ch, target)
+	case probeTypePing:
+		c.collectPing(ch, target)
 	}
 }
 
@@ -224,6 +242,17 @@ func (c *ProbeCollector) collectCert(ch chan<- prometheus.Metric, target target)
 	ch <- prometheus.MustNewConstMetric(certSuccessDesc, prometheus.GaugeValue, success, target.Name, c.initiator)
 	ch <- prometheus.MustNewConstMetric(certNotAfterDesc, prometheus.GaugeValue, notAfterTS, target.Name, c.initiator)
 	ch <- prometheus.MustNewConstMetric(certRemainingDaysDesc, prometheus.GaugeValue, remainingDays, target.Name, c.initiator)
+}
+
+func (c *ProbeCollector) collectPing(ch chan<- prometheus.Metric, target target) {
+	start := time.Now()
+	ok := pingProbe(target.Host, target.Timeout)
+	success := 0.0
+	if ok {
+		success = 1
+	}
+	ch <- prometheus.MustNewConstMetric(pingSuccessDesc, prometheus.GaugeValue, success, target.Name, c.initiator)
+	ch <- prometheus.MustNewConstMetric(pingDurationDesc, prometheus.GaugeValue, time.Since(start).Seconds(), target.Name, c.initiator)
 }
 
 func (c *ProbeCollector) loadTargets(ctx context.Context) []target {
@@ -313,6 +342,13 @@ func normalizeConfigTargets(probe *conf.Probe, defaultTimeout time.Duration) []t
 			if name == "" {
 				name = net.JoinHostPort(host, port)
 			}
+		case probeTypePing:
+			if host == "" {
+				continue
+			}
+			if name == "" {
+				name = host
+			}
 		default:
 			continue
 		}
@@ -375,4 +411,22 @@ func certProbe(host, port string, timeout time.Duration) (time.Time, bool) {
 		return time.Time{}, false
 	}
 	return state.PeerCertificates[0].NotAfter, true
+}
+
+func pingProbe(host string, timeout time.Duration) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	args := []string{"-c", "1", host}
+	if runtime.GOOS == "linux" {
+		seconds := int(timeout / time.Second)
+		if seconds <= 0 {
+			seconds = 1
+		}
+		args = []string{"-c", "1", "-W", strconv.Itoa(seconds), host}
+	}
+	cmd := exec.CommandContext(ctx, "ping", args...)
+	if err := cmd.Run(); err != nil {
+		return false
+	}
+	return true
 }

@@ -19,6 +19,7 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationProbeTaskCreatePingProbeTasks = "/jade_tree.api.v1.ProbeTask/CreatePingProbeTasks"
 const OperationProbeTaskCreateProbeTask = "/jade_tree.api.v1.ProbeTask/CreateProbeTask"
 const OperationProbeTaskDeleteProbeTask = "/jade_tree.api.v1.ProbeTask/DeleteProbeTask"
 const OperationProbeTaskGetProbeTask = "/jade_tree.api.v1.ProbeTask/GetProbeTask"
@@ -27,6 +28,7 @@ const OperationProbeTaskUpdateProbeTask = "/jade_tree.api.v1.ProbeTask/UpdatePro
 const OperationProbeTaskUpdateProbeTaskStatus = "/jade_tree.api.v1.ProbeTask/UpdateProbeTaskStatus"
 
 type ProbeTaskHTTPServer interface {
+	CreatePingProbeTasks(context.Context, *CreatePingProbeTasksRequest) (*DispatchCreateProbeTasksReply, error)
 	CreateProbeTask(context.Context, *CreateProbeTaskRequest) (*ProbeTaskItem, error)
 	DeleteProbeTask(context.Context, *DeleteProbeTaskRequest) (*DeleteProbeTaskReply, error)
 	GetProbeTask(context.Context, *GetProbeTaskRequest) (*ProbeTaskItem, error)
@@ -43,6 +45,7 @@ func RegisterProbeTaskHTTPServer(s *http.Server, srv ProbeTaskHTTPServer) {
 	r.GET("/v1/probe-tasks/{uid}", _ProbeTask_GetProbeTask0_HTTP_Handler(srv))
 	r.GET("/v1/probe-tasks", _ProbeTask_ListProbeTasks0_HTTP_Handler(srv))
 	r.PATCH("/v1/probe-tasks/{uid}/status", _ProbeTask_UpdateProbeTaskStatus0_HTTP_Handler(srv))
+	r.POST("/v1/probe-task-actions/ping", _ProbeTask_CreatePingProbeTasks0_HTTP_Handler(srv))
 }
 
 func _ProbeTask_CreateProbeTask0_HTTP_Handler(srv ProbeTaskHTTPServer) func(ctx http.Context) error {
@@ -180,7 +183,30 @@ func _ProbeTask_UpdateProbeTaskStatus0_HTTP_Handler(srv ProbeTaskHTTPServer) fun
 	}
 }
 
+func _ProbeTask_CreatePingProbeTasks0_HTTP_Handler(srv ProbeTaskHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreatePingProbeTasksRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationProbeTaskCreatePingProbeTasks)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreatePingProbeTasks(ctx, req.(*CreatePingProbeTasksRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DispatchCreateProbeTasksReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type ProbeTaskHTTPClient interface {
+	CreatePingProbeTasks(ctx context.Context, req *CreatePingProbeTasksRequest, opts ...http.CallOption) (rsp *DispatchCreateProbeTasksReply, err error)
 	CreateProbeTask(ctx context.Context, req *CreateProbeTaskRequest, opts ...http.CallOption) (rsp *ProbeTaskItem, err error)
 	DeleteProbeTask(ctx context.Context, req *DeleteProbeTaskRequest, opts ...http.CallOption) (rsp *DeleteProbeTaskReply, err error)
 	GetProbeTask(ctx context.Context, req *GetProbeTaskRequest, opts ...http.CallOption) (rsp *ProbeTaskItem, err error)
@@ -195,6 +221,19 @@ type ProbeTaskHTTPClientImpl struct {
 
 func NewProbeTaskHTTPClient(client *http.Client) ProbeTaskHTTPClient {
 	return &ProbeTaskHTTPClientImpl{client}
+}
+
+func (c *ProbeTaskHTTPClientImpl) CreatePingProbeTasks(ctx context.Context, in *CreatePingProbeTasksRequest, opts ...http.CallOption) (*DispatchCreateProbeTasksReply, error) {
+	var out DispatchCreateProbeTasksReply
+	pattern := "/v1/probe-task-actions/ping"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationProbeTaskCreatePingProbeTasks))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 func (c *ProbeTaskHTTPClientImpl) CreateProbeTask(ctx context.Context, in *CreateProbeTaskRequest, opts ...http.CallOption) (*ProbeTaskItem, error) {

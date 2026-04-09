@@ -16,4 +16,5 @@ type ProbeTask interface {
 	Get(ctx context.Context, uid snowflake.ID) (*bo.ProbeTaskItemBo, error)
 	List(ctx context.Context, req *bo.ListProbeTasksBo) (*bo.PageResponseBo[*bo.ProbeTaskItemBo], error)
 	ListEnabled(ctx context.Context) ([]*bo.ProbeTaskItemBo, error)
+	CountByTypeTarget(ctx context.Context, in *bo.ProbeTaskUniqueCheckBo) (int64, error)
 }

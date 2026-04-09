@@ -164,3 +164,29 @@ func (r *probeTaskRepository) ListEnabled(ctx context.Context) ([]*bo.ProbeTaskI
 	}
 	return items, nil
 }
+
+func (r *probeTaskRepository) CountByTypeTarget(ctx context.Context, in *bo.ProbeTaskUniqueCheckBo) (int64, error) {
+	if in == nil {
+		return 0, merr.ErrorInvalidArgument("unique check input is required")
+	}
+	p := query.ProbeTask
+	w := p.WithContext(ctx).Where(p.Type.Eq(strings.TrimSpace(strings.ToLower(in.Type))))
+	if in.ExcludeUID > 0 {
+		w = w.Where(p.ID.Neq(in.ExcludeUID.Int64()))
+	}
+	switch strings.TrimSpace(strings.ToLower(in.Type)) {
+	case "http":
+		w = w.Where(p.URL.Eq(strings.TrimSpace(in.URL)))
+	case "cert":
+		port := strings.TrimSpace(in.Port)
+		if port == "" {
+			port = "443"
+		}
+		w = w.Where(p.Host.Eq(strings.TrimSpace(in.Host))).Where(p.Port.Eq(port))
+	case "ping":
+		w = w.Where(p.Host.Eq(strings.TrimSpace(in.Host)))
+	default:
+		w = w.Where(p.Host.Eq(strings.TrimSpace(in.Host))).Where(p.Port.Eq(strings.TrimSpace(in.Port)))
+	}
+	return w.Count()
+}
