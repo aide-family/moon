@@ -3,6 +3,7 @@ package impl
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -237,8 +238,8 @@ func selectAgentProtocolEndpoint(agent *machine.MachineAgent) (string, string) {
 	if agent == nil {
 		return "", ""
 	}
-	grpcEndpoint := strings.TrimSpace(agent.GRPCEndpoint)
-	httpEndpoint := strings.TrimSpace(agent.HTTPEndpoint)
+	grpcEndpoint := normalizeEndpoint(strings.TrimSpace(agent.GRPCEndpoint))
+	httpEndpoint := normalizeEndpoint(strings.TrimSpace(agent.HTTPEndpoint))
 	if grpcEndpoint != "" {
 		return connect.ProtocolGRPC, grpcEndpoint
 	}
@@ -246,4 +247,15 @@ func selectAgentProtocolEndpoint(agent *machine.MachineAgent) (string, string) {
 		return connect.ProtocolHTTP, httpEndpoint
 	}
 	return "", ""
+}
+
+func normalizeEndpoint(endpoint string) string {
+	if endpoint == "" {
+		return ""
+	}
+	parsed, err := url.Parse(endpoint)
+	if err != nil {
+		return endpoint
+	}
+	return parsed.Host
 }

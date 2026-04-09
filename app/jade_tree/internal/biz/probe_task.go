@@ -191,18 +191,25 @@ func (p *ProbeTask) CreatePingProbeTasks(ctx context.Context, in *bo.CreatePingP
 	}
 	for sourceID := range sourceMap {
 		item := &bo.DispatchCreateProbeTaskResultItemBo{MachineUID: sourceID}
+		batchReq := p.buildPingTaskBatch(&pingBatchBuildInput{
+			SourceID:       sourceID,
+			TimeoutSeconds: timeoutSeconds,
+			TargetIDs:      localTargets,
+			Targets:        targetMachine,
+		})
+		if len(batchReq.Requests) == 0 {
+			item.Error = "no target machines available for ping task creation"
+			out.Failed++
+			out.Items = append(out.Items, item)
+			continue
+		}
 		if sourceID == localID && sourceID > 0 {
 			item.HostName = local.HostName
 			if local.Network != nil {
 				item.LocalIP = local.Network.LocalIP
 			}
 			item.MachineUUID = local.MachineUUID
-			count, createErr := p.createPingTasksForLocalSource(ctx, &pingBatchBuildInput{
-				SourceID:       sourceID,
-				TimeoutSeconds: timeoutSeconds,
-				TargetIDs:      localTargets,
-				Targets:        targetMachine,
-			})
+			count, createErr := p.createPingTasksForLocalSource(ctx, batchReq)
 			item.CreatedCount = count
 			if createErr != nil {
 				item.Error = createErr.Error()
@@ -233,12 +240,6 @@ func (p *ProbeTask) CreatePingProbeTasks(ctx context.Context, in *bo.CreatePingP
 			continue
 		}
 		item.Endpoint = selectAgentEndpoint(sourceMachine.Agent)
-		batchReq := p.buildPingTaskBatch(&pingBatchBuildInput{
-			SourceID:       sourceID,
-			TimeoutSeconds: timeoutSeconds,
-			TargetIDs:      localTargets,
-			Targets:        targetMachine,
-		})
 		reply, dispatchErr := p.dispatcher.BatchCreateProbeTasks(ctx, sourceMachine.Agent, batchReq)
 		if dispatchErr != nil {
 			item.Error = dispatchErr.Error()
@@ -328,9 +329,12 @@ func summarizeBatchCreateProbeTasks(in *bo.BatchCreateProbeTasksReplyBo) (int64,
 	return created, firstErr
 }
 
-func (p *ProbeTask) createPingTasksForLocalSource(ctx context.Context, in *pingBatchBuildInput) (int64, error) {
-	batch := p.buildPingTaskBatch(in)
+func (p *ProbeTask) createPingTasksForLocalSource(ctx context.Context, batch *bo.BatchCreateProbeTasksBo) (int64, error) {
+	if batch == nil {
+		return 0, merr.ErrorInvalidArgument("ping batch is required")
+	}
 	var created int64
+	var firstErr error
 	for _, item := range batch.Requests {
 		createIn := &bo.CreateProbeTaskBo{
 			Fields: bo.ProbeTaskFieldsBo{
@@ -345,12 +349,21 @@ func (p *ProbeTask) createPingTasksForLocalSource(ctx context.Context, in *pingB
 			Type: createIn.Fields.Type,
 			Host: createIn.Fields.Host,
 		}); err != nil {
+			if firstErr == nil && !merr.IsInvalidArgument(err) {
+				firstErr = err
+			}
 			continue
 		}
 		if _, err := p.repo.Create(ctx, createIn); err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
 			continue
 		}
 		created++
+	}
+	if created == 0 && firstErr != nil {
+		return 0, firstErr
 	}
 	return created, nil
 }

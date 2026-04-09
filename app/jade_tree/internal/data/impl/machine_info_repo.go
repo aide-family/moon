@@ -194,16 +194,49 @@ func applyDispatchFilters(q query.IMachineInfoDo, filter *bo.DispatchSSHCommandF
 		return q
 	}
 
+	excludeIDSet := make(map[int64]struct{}, len(filter.ExcludeMachineUIDs))
+	excludeIDs := make([]int64, 0, len(filter.ExcludeMachineUIDs))
+	for _, id := range filter.ExcludeMachineUIDs {
+		if id <= 0 {
+			continue
+		}
+		idInt64 := id.Int64()
+		if _, ok := excludeIDSet[idInt64]; ok {
+			continue
+		}
+		excludeIDSet[idInt64] = struct{}{}
+		excludeIDs = append(excludeIDs, idInt64)
+	}
+
 	if len(filter.IncludeMachineUIDs) > 0 {
+		includeIDSet := make(map[int64]struct{}, len(filter.IncludeMachineUIDs))
 		includeIDs := make([]int64, 0, len(filter.IncludeMachineUIDs))
 		for _, id := range filter.IncludeMachineUIDs {
 			if id <= 0 {
 				continue
 			}
-			includeIDs = append(includeIDs, id.Int64())
+			idInt64 := id.Int64()
+			if _, ok := includeIDSet[idInt64]; ok {
+				continue
+			}
+			includeIDSet[idInt64] = struct{}{}
+			includeIDs = append(includeIDs, idInt64)
 		}
-		if len(includeIDs) > 0 {
-			q = q.Where(query.MachineInfo.ID.In(includeIDs...))
+		if len(includeIDs) == 0 {
+			return q.Where(query.MachineInfo.ID.Eq(0))
+		}
+		q = q.Where(query.MachineInfo.ID.In(includeIDs...))
+
+		// Explicit include has higher priority than exclude to preserve caller intent.
+		if len(excludeIDs) > 0 {
+			filteredExclude := make([]int64, 0, len(excludeIDs))
+			for _, id := range excludeIDs {
+				if _, included := includeIDSet[id]; included {
+					continue
+				}
+				filteredExclude = append(filteredExclude, id)
+			}
+			excludeIDs = filteredExclude
 		}
 	}
 	if len(filter.IncludeSystemTypes) > 0 {
@@ -213,17 +246,8 @@ func applyDispatchFilters(q query.IMachineInfoDo, filter *bo.DispatchSSHCommandF
 		q = q.Where(query.MachineInfo.AgentVersion.In(filter.IncludeAgentVersions...))
 	}
 
-	if len(filter.ExcludeMachineUIDs) > 0 {
-		excludeIDs := make([]int64, 0, len(filter.ExcludeMachineUIDs))
-		for _, id := range filter.ExcludeMachineUIDs {
-			if id <= 0 {
-				continue
-			}
-			excludeIDs = append(excludeIDs, id.Int64())
-		}
-		if len(excludeIDs) > 0 {
-			q = q.Where(query.MachineInfo.ID.NotIn(excludeIDs...))
-		}
+	if len(excludeIDs) > 0 {
+		q = q.Where(query.MachineInfo.ID.NotIn(excludeIDs...))
 	}
 	if len(filter.ExcludeSystemTypes) > 0 {
 		q = q.Where(query.MachineInfo.OSType.NotIn(filter.ExcludeSystemTypes...))

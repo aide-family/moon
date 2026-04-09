@@ -99,7 +99,7 @@ type DispatchCreateProbeTasksReplyBo struct {
 }
 
 func NewCreateProbeTaskBo(req *apiv1.CreateProbeTaskRequest, creator snowflake.ID) (*CreateProbeTaskBo, error) {
-	fields, err := validateProbeTaskFields(&ProbeTaskFieldsBo{
+	fields := &ProbeTaskFieldsBo{
 		Type:           req.GetType(),
 		Host:           req.GetHost(),
 		Port:           req.GetPort(),
@@ -107,24 +107,18 @@ func NewCreateProbeTaskBo(req *apiv1.CreateProbeTaskRequest, creator snowflake.I
 		Name:           req.GetName(),
 		Status:         req.GetStatus(),
 		TimeoutSeconds: req.GetTimeoutSeconds(),
-	})
-	if err != nil {
-		return nil, err
 	}
 	return &CreateProbeTaskBo{Creator: creator, Fields: *fields}, nil
 }
 
 func NewUpdateProbeTaskBo(req *apiv1.UpdateProbeTaskRequest) (*UpdateProbeTaskBo, error) {
-	fields, err := validateProbeTaskUpdateFields(&ProbeTaskUpdateFieldsBo{
+	fields := &ProbeTaskUpdateFieldsBo{
 		Type:           req.GetType(),
 		Host:           req.GetHost(),
 		Port:           req.GetPort(),
 		URL:            req.GetUrl(),
 		Name:           req.GetName(),
 		TimeoutSeconds: req.GetTimeoutSeconds(),
-	})
-	if err != nil {
-		return nil, err
 	}
 	return &UpdateProbeTaskBo{UID: snowflake.ID(req.GetUid()), Fields: *fields}, nil
 }
@@ -205,104 +199,4 @@ func ToAPIV1DispatchCreateProbeTasksReply(in *DispatchCreateProbeTasksReplyBo) *
 		})
 	}
 	return out
-}
-
-func validateProbeTaskFields(in *ProbeTaskFieldsBo) (*ProbeTaskFieldsBo, error) {
-	if in == nil {
-		return nil, merr.ErrorInvalidArgument("probe task fields are required")
-	}
-	in.Type = strings.ToLower(strings.TrimSpace(in.Type))
-	in.Host = strings.TrimSpace(in.Host)
-	in.Port = strings.TrimSpace(in.Port)
-	in.URL = strings.TrimSpace(in.URL)
-	in.Name = strings.TrimSpace(in.Name)
-	if in.Status == enum.GlobalStatus_GlobalStatus_UNKNOWN {
-		in.Status = enum.GlobalStatus_ENABLED
-	}
-	if in.Status != enum.GlobalStatus_ENABLED && in.Status != enum.GlobalStatus_DISABLED {
-		return nil, merr.ErrorInvalidArgument("status must be ENABLED or DISABLED")
-	}
-	if in.TimeoutSeconds <= 0 {
-		in.TimeoutSeconds = 5
-	}
-	switch in.Type {
-	case "tcp", "port":
-		if in.Host == "" || in.Port == "" {
-			return nil, merr.ErrorInvalidArgument("host and port are required")
-		}
-	case "ping":
-		if in.Host == "" {
-			return nil, merr.ErrorInvalidArgument("host is required")
-		}
-	case "http":
-		if in.URL == "" {
-			return nil, merr.ErrorInvalidArgument("url is required")
-		}
-	case "cert":
-		if in.Host == "" {
-			return nil, merr.ErrorInvalidArgument("host is required")
-		}
-		if in.Port == "" {
-			in.Port = "443"
-		}
-	default:
-		return nil, merr.ErrorInvalidArgument("type must be tcp, port, ping, http or cert")
-	}
-	if in.Name == "" {
-		if in.Type == "http" {
-			in.Name = in.URL
-		} else if in.Type == "ping" {
-			in.Name = in.Host
-		} else {
-			in.Name = in.Host + ":" + in.Port
-		}
-	}
-	return in, nil
-}
-
-func validateProbeTaskUpdateFields(in *ProbeTaskUpdateFieldsBo) (*ProbeTaskUpdateFieldsBo, error) {
-	if in == nil {
-		return nil, merr.ErrorInvalidArgument("probe task update fields are required")
-	}
-	in.Type = strings.ToLower(strings.TrimSpace(in.Type))
-	in.Host = strings.TrimSpace(in.Host)
-	in.Port = strings.TrimSpace(in.Port)
-	in.URL = strings.TrimSpace(in.URL)
-	in.Name = strings.TrimSpace(in.Name)
-	if in.TimeoutSeconds <= 0 {
-		in.TimeoutSeconds = 5
-	}
-	switch in.Type {
-	case "tcp", "port":
-		if in.Host == "" || in.Port == "" {
-			return nil, merr.ErrorInvalidArgument("host and port are required")
-		}
-	case "ping":
-		if in.Host == "" {
-			return nil, merr.ErrorInvalidArgument("host is required")
-		}
-	case "http":
-		if in.URL == "" {
-			return nil, merr.ErrorInvalidArgument("url is required")
-		}
-	case "cert":
-		if in.Host == "" {
-			return nil, merr.ErrorInvalidArgument("host is required")
-		}
-		if in.Port == "" {
-			in.Port = "443"
-		}
-	default:
-		return nil, merr.ErrorInvalidArgument("type must be tcp, port, ping, http or cert")
-	}
-	if in.Name == "" {
-		if in.Type == "http" {
-			in.Name = in.URL
-		} else if in.Type == "ping" {
-			in.Name = in.Host
-		} else {
-			in.Name = in.Host + ":" + in.Port
-		}
-	}
-	return in, nil
 }
