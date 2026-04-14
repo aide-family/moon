@@ -30,12 +30,10 @@ func (q *metricDatasourceQuerierRepository) ListMetrics(ctx context.Context, ds 
 		return nil, merr.ErrorInvalidArgument("datasource is not a supported metrics type or driver")
 	}
 
-	endTime := time.Now()
-	startTime := endTime.Add(-time.Hour * 24 * 30)
 	// Use LabelValues as source of truth (same as Prometheus UI /api/v1/label/__name__/values).
 	// Pass zero start/end so the client does not add start/end params; then Prometheus returns
 	// all label values (like the UI) instead of filtering by time range.
-	allMetricNames, _, err := client.LabelValues(ctx, "__name__", []string{}, startTime, endTime)
+	allMetricNames, _, err := client.LabelValues(ctx, "__name__", []string{}, time.Time{}, time.Time{})
 	if err != nil {
 		return nil, merr.ErrorInternalServer("query metric label names failed").WithCause(err)
 	}

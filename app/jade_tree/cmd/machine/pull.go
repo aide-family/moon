@@ -42,7 +42,7 @@ func newPullCmd() *cobra.Command {
 				return merr.ErrorInvalidArgument("to endpoint is required (use --to or configure endpoint in ~/.jade_tree/client.yaml)")
 			}
 
-			targets := args
+			targets := resolveMachineEndpoints(args, cfg, "")
 			if len(targets) == 0 {
 				return merr.ErrorInvalidArgument("target endpoint is required (positional args or configure endpoint in ~/.jade_tree/client.yaml)")
 			}
@@ -61,7 +61,7 @@ func newPullCmd() *cobra.Command {
 				ctx = context.Background()
 			}
 			client := newAPIClient(&http.Client{Timeout: flags.Timeout}, token)
-			machines := make([]*apiv1.GetMachineInfoReply, 0)
+			rows := make([]machineRow, 0)
 			for _, endpoint := range targets {
 				ep := strings.TrimSpace(endpoint)
 				if ep == "" {
@@ -76,11 +76,11 @@ func newPullCmd() *cobra.Command {
 				if err := client.reportMachineInfos(ctx, to, payload); err != nil {
 					return err
 				}
-				machines = append(machines, ms...)
+				rows = append(rows, toMachineRows(ep, ms)...)
 			}
 
 			// Show what we pulled from the source endpoint.
-			return renderRows(flags.Output, toMachineRows(to, machines))
+			return renderRows(flags.Output, rows)
 		},
 	}
 	flags.addFlags(cmd)

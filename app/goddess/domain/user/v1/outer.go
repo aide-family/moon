@@ -62,35 +62,35 @@ type outerUserServer struct {
 }
 
 func (o *outerUserServer) GetUser(ctx context.Context, req *goddessv1.GetUserRequest) (*goddessv1.UserItem, error) {
-	if o.httpClient != nil {
+	if pointer.IsNotNil(o.httpClient) {
 		return o.httpClient.GetUser(ctx, req)
 	}
 	return o.grpcClient.GetUser(ctx, req)
 }
 
 func (o *outerUserServer) ListUser(ctx context.Context, req *goddessv1.ListUserRequest) (*goddessv1.ListUserReply, error) {
-	if o.httpClient != nil {
+	if pointer.IsNotNil(o.httpClient) {
 		return o.httpClient.ListUser(ctx, req)
 	}
 	return o.grpcClient.ListUser(ctx, req)
 }
 
 func (o *outerUserServer) SelectUser(ctx context.Context, req *goddessv1.SelectUserRequest) (*goddessv1.SelectUserReply, error) {
-	if o.httpClient != nil {
+	if pointer.IsNotNil(o.httpClient) {
 		return o.httpClient.SelectUser(ctx, req)
 	}
 	return o.grpcClient.SelectUser(ctx, req)
 }
 
 func (o *outerUserServer) BanUser(ctx context.Context, req *goddessv1.BanUserRequest) (*goddessv1.BanUserReply, error) {
-	if o.httpClient != nil {
+	if pointer.IsNotNil(o.httpClient) {
 		return o.httpClient.BanUser(ctx, req)
 	}
 	return o.grpcClient.BanUser(ctx, req)
 }
 
 func (o *outerUserServer) PermitUser(ctx context.Context, req *goddessv1.PermitUserRequest) (*goddessv1.PermitUserReply, error) {
-	if o.httpClient != nil {
+	if pointer.IsNotNil(o.httpClient) {
 		return o.httpClient.PermitUser(ctx, req)
 	}
 	return o.grpcClient.PermitUser(ctx, req)
