@@ -257,5 +257,9 @@ func normalizeEndpoint(endpoint string) string {
 	if err != nil {
 		return endpoint
 	}
+	if parsed.Host == "" {
+		// keep raw host:port endpoints without scheme (e.g. 127.0.0.1:9000)
+		return endpoint
+	}
 	return parsed.Host
 }

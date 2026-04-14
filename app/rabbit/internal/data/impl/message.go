@@ -50,6 +50,10 @@ func NewMessageRepository(
 	state.RegisterMessageTaskProcess(enum.MessageStatus_CANCELLED, repo.cancelledMessageTaskProcess)
 	for _, value := range enum.MessageStatus_value {
 		status := enum.MessageStatus(value)
+		if _, ok := state.GetMessageTaskProcess(status); !ok {
+			klog.Warnw("msg", "message status process not registered, skip state init", "status", status)
+			continue
+		}
 		state.RegisterMessageTaskState(status, state.NewMessageTaskState(status, repo.timeout))
 	}
 
@@ -173,11 +177,11 @@ func (m *messageRepository) AppendMessage(ctx context.Context, messageUID snowfl
 		NamespaceUID: contextx.GetNamespace(ctx),
 		MessageUID:   messageUID,
 	}
+	task.AvailableRetryCount(m.maxRetryCount)
 	return m.appendMessageToChannel(ctx, task)
 }
 
 func (m *messageRepository) appendMessageToChannel(ctx context.Context, task *state.MessageTask) error {
-	task.AvailableRetryCount(m.maxRetryCount)
 	select {
 	case m.messageChan <- task:
 		klog.Context(ctx).Debugw("msg", "append message success", "task", task)
@@ -206,7 +210,15 @@ func (m *messageRepository) worker(number int) {
 		case <-m.stopChan:
 			klog.Debugw("msg", "message worker stopped", "workerIndex", number)
 			return
-		case task := <-m.messageChan:
+		case task, ok := <-m.messageChan:
+			if !ok {
+				klog.Debugw("msg", "message worker channel closed", "workerIndex", number)
+				return
+			}
+			if task == nil {
+				klog.Warnw("msg", "message worker received nil task", "workerIndex", number)
+				continue
+			}
 			m.processMessageTask(task)
 		}
 	}

@@ -79,10 +79,19 @@ func (j *machineInfoReportJob) reportOnce(ctx context.Context) {
 		PageRequestBo: bo.NewPageRequestBo(1, 100),
 	}
 	for {
+		if err := ctx.Err(); err != nil {
+			j.helper.Warnw("msg", "stop machine info report due to context cancellation", "error", err)
+			return
+		}
 		pages, err := j.machineInfo.ListClusterMachineInfos(ctx, req)
 		if err != nil {
 			j.helper.Errorw("msg", "list cluster machine infos failed", "error", err)
-			time.Sleep(10 * time.Second)
+			select {
+			case <-ctx.Done():
+				j.helper.Warnw("msg", "stop machine info report while waiting for retry", "error", ctx.Err())
+				return
+			case <-time.After(10 * time.Second):
+			}
 			continue
 		}
 		machines := make([]*apiv1.GetMachineInfoReply, 0, len(pages.GetItems()))

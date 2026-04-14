@@ -87,7 +87,7 @@
 | | `GET /v1/datasource/{uid}/metric-label-detail` | One metric's label detail: labels + each label's values (query: metric=name) |
 | **MetricQuery** | `POST /v1/metric-query/query` | Instant query (body: uid, query, optional time); returns Prometheus-style JSON |
 | | `POST /v1/metric-query/query-range` | Range query (body: uid, query, start, end, step); returns Prometheus-style JSON |
-| | `POST /v1/metric-query/proxy` | Direct proxy to datasource (body: uid, path, method, optional body); returns status_code and body |
+| | `POST /v1/metric-query/proxy` | Direct proxy to datasource (body: uid, path, method, optional body); returns statusCode and body |
 | **Strategy** (group) | `POST /v1/strategy-group` | Create strategy group |
 | | `PUT /v1/strategy-group/{uid}` | Update strategy group |
 | | `PUT /v1/strategy-group/{uid}/status` | Update status (ENABLED/DISABLED) |

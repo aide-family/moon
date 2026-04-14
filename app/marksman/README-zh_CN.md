@@ -87,7 +87,7 @@
 | | `GET /v1/datasource/{uid}/metric-label-detail` | 单个 metric 的 label 明细：labels 及各 label 的取值（查询参数 metric=名称） |
 | **MetricQuery**（指标查询） | `POST /v1/metric-query/query` | 即时查询（body: uid、query、可选 time）；返回 Prometheus 风格 JSON |
 | | `POST /v1/metric-query/query-range` | 区间查询（body: uid、query、start、end、step）；返回 Prometheus 风格 JSON |
-| | `POST /v1/metric-query/proxy` | 直接代理到数据源（body: uid、path、method、可选 body）；返回 status_code 与 body |
+| | `POST /v1/metric-query/proxy` | 直接代理到数据源（body: uid、path、method、可选 body）；返回 statusCode 与 body |
 | **Strategy**（策略组） | `POST /v1/strategy-group` | 创建策略组 |
 | | `PUT /v1/strategy-group/{uid}` | 更新策略组 |
 | | `PUT /v1/strategy-group/{uid}/status` | 更新状态（ENABLED/DISABLED） |

@@ -103,6 +103,6 @@ message MetricQueryProxyRequest {
 
 // MetricQueryProxyReply is the response from proxy (status code and body).
 message MetricQueryProxyReply {
-	int32 status_code = 1;
+	int32 statusCode = 1;
 	google.protobuf.Struct response = 2;
 }

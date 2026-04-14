@@ -227,7 +227,7 @@ message ExecuteSSHCommandRequest {
 message ExecuteSSHCommandReply {
   string stdout = 1;
   string stderr = 2;
-  int32 exit_code = 3;
+  int32 exitCode = 3;
 }
 
 message BatchExecuteSSHCommandsRequest {
