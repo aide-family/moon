@@ -155,29 +155,33 @@ func (m *SyncMap[K, V]) Value() (driver.Value, error) {
 }
 
 func (m *SyncMap[K, V]) Scan(src any) error {
+	replaceMap := func(newMap map[K]V) {
+		newSyncMap := &sync.Map{}
+		for k, v := range newMap {
+			newSyncMap.Store(k, v)
+		}
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		m.m = newSyncMap
+	}
+
 	switch src := src.(type) {
 	case []byte:
 		newMap := m.Map()
 		if err := json.Unmarshal(src, &newMap); err != nil {
 			return err
 		}
-		m.m = &sync.Map{}
-		for k, v := range newMap {
-			m.m.Store(k, v)
-		}
+		replaceMap(newMap)
 		return nil
 	case string:
 		newMap := m.Map()
 		if err := json.Unmarshal([]byte(src), &newMap); err != nil {
 			return err
 		}
-		m.m = &sync.Map{}
-		for k, v := range newMap {
-			m.m.Store(k, v)
-		}
+		replaceMap(newMap)
 		return nil
 	case nil:
-		m.m = &sync.Map{}
+		replaceMap(map[K]V{})
 		return nil
 	default:
 		return fmt.Errorf("unsupported type: %T, expected []byte or string", src)

@@ -1,7 +1,6 @@
 package connect
 
 import (
-	"context"
 	"strings"
 
 	"github.com/go-kratos/kratos/v2/middleware"
@@ -51,5 +50,5 @@ func InitGRPCClient(c InitConfig, opts ...InitOption) (*grpc.ClientConn, error) 
 		clientOpts = append(clientOpts, kGrpc.WithTimeout(cfg.timeout))
 	}
 
-	return kGrpc.DialInsecure(context.Background(), clientOpts...)
+	return kGrpc.DialInsecure(cfg.initCtx, clientOpts...)
 }

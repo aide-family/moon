@@ -2,7 +2,6 @@
 package connect
 
 import (
-	"context"
 	"strings"
 
 	"github.com/go-kratos/kratos/v2/middleware"
@@ -51,5 +50,5 @@ func InitHTTPClient(c InitConfig, opts ...InitOption) (*http.Client, error) {
 		clientOpts = append(clientOpts, http.WithTimeout(cfg.timeout))
 	}
 
-	return http.NewClient(context.Background(), clientOpts...)
+	return http.NewClient(cfg.initCtx, clientOpts...)
 }

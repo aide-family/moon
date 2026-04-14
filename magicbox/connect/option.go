@@ -66,6 +66,7 @@ type initConfig struct {
 	endpoint    string
 	protocol    string
 	timeout     time.Duration
+	initCtx     context.Context
 	nodeVersion string
 	discovery   registry.Discovery
 	nodeFilters []NodeFilter
@@ -77,6 +78,7 @@ func NewInitConfig(config InitConfig, opts ...InitOption) (*initConfig, error) {
 		endpoint:    config.GetEndpoint(),
 		protocol:    config.GetProtocol(),
 		timeout:     config.GetTimeout().AsDuration(),
+		initCtx:     context.Background(),
 		nodeFilters: []NodeFilter{},
 	}
 	for _, opt := range opts {
@@ -92,6 +94,16 @@ type InitOption func(*initConfig) error
 func WithNodeVersion(version string) InitOption {
 	return func(cfg *initConfig) error {
 		cfg.nodeVersion = version
+		return nil
+	}
+}
+
+func WithInitContext(ctx context.Context) InitOption {
+	return func(cfg *initConfig) error {
+		if pointer.IsNil(ctx) {
+			return merr.ErrorInternalServer("init context is nil")
+		}
+		cfg.initCtx = ctx
 		return nil
 	}
 }

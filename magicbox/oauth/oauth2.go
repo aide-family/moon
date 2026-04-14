@@ -169,7 +169,9 @@ func DefaultLoginHandler(app config.OAuth2_APP, oauthConfig *oauth2.Config) (htt
 		h := ctx.Middleware(func(ctx context.Context, _ interface{}) (interface{}, error) {
 			return nil, nil
 		})
-		_, _ = h(ctx, nil)
+		if _, err := h(ctx, nil); err != nil {
+			return err
+		}
 
 		// Redirect to the specified URL
 		url := oauthConfig.AuthCodeURL("state", oauth2.AccessTypeOnline)

@@ -1,75 +1,146 @@
 ---
 name: code-review
-description: Reviews code for correctness and potential bugs, pinpoints bug locations by file and line, and suggests concrete fixes. Use when the user asks for a code review, wants to find bugs, or mentions reviewing code or changes.
+description: 审查代码正确性与潜在缺陷，定位具体文件与行号，并给出可执行修复建议。适用于用户要求代码审查、排查 bug，或提到 review 代码/变更时。
 ---
 
-# Code Review
+# 代码审查
 
-## Objective
+## 目标
 
-Review the given code for **correctness and potential bugs**. For each issue found, report the **exact location (file and line)** and provide a **recommended fix**.
+审查给定代码的**正确性与潜在缺陷**。对每个发现的问题，都要给出**精确位置（文件与行号）**以及**建议修复方案**。
 
-## Review Process
+面向 Go 项目时，优先发现会导致线上故障、数据错误、并发问题、接口不兼容和可维护性下降的缺陷。
 
-1. **Read the code** in scope (file(s) or diff the user provided).
-2. **Identify potential bugs**, including:
-   - Logic errors, off-by-one, wrong conditions
-   - Nil/zero dereference, out-of-bounds access
-   - Race conditions, concurrency misuse
-   - Error handling gaps (ignored errors, wrong propagation)
-   - Resource leaks (unclosed handles, connections)
-   - Incorrect assumptions about types, APIs, or data
-   - **HTTP route conflicts**: e.g. a new route `GET /v1/resource/simple` while `GET /v1/resource/{id}` exists causes the former URL to be matched as `id=simple` and can lead to parse errors (e.g. strconv.ParseInt "parsing \"simple\": invalid syntax"). Check that no new path is a prefix or literal segment that would be captured by an existing path parameter.
-3. **For each finding**: state file path, line number(s), and a short recommended solution.
+## 审查流程
 
-## Output Format
+1. **阅读审查范围内代码**（用户提供的文件或 diff）。
+2. **识别潜在 bug**，包括：
+   - 逻辑错误、边界错误（off-by-one）、条件判断错误
+   - nil/零值解引用、数组或切片越界
+   - 竞态条件、并发使用不当
+   - 错误处理缺失（忽略错误、错误传播不正确）
+   - 资源泄漏（句柄、连接未关闭）
+   - 对类型、API 或数据的错误假设
+   - **HTTP 路由冲突**：例如已存在 `GET /v1/resource/{id}` 时新增 `GET /v1/resource/simple`，后者可能被前者匹配成 `id=simple`，导致解析错误（如 `strconv.ParseInt: parsing "simple": invalid syntax`）。需检查新路径不会被已有参数化路由吞掉（包括前缀或固定段被参数段匹配）。
+3. **对每个发现**：写明文件路径、行号（或范围），并给出简短可执行修复建议。
 
-Use this structure for the review:
+## Go 项目专项检查（必查）
+
+- [ ] **错误处理与包装**
+  - 返回的 `error` 未检查或被吞掉（如 `_ = fn()`）。
+  - 业务错误未使用项目 `merr` 包下定义的 `err`（如直接 `errors.New` 或散落的 `fmt.Errorf`）。
+  - 错误信息丢失上下文，未使用项目既有错误模式（`merr`）统一表达。
+  - 使用 `fmt.Errorf` 时缺少 `%w`，导致 `errors.Is/As` 无法工作。
+- [ ] **context 传递与超时**
+  - 跨层调用未传递 `context.Context`，或错误使用 `context.Background()` 覆盖上游 ctx。
+  - IO/外部调用无超时控制，可能导致请求悬挂。
+  - goroutine 未感知 `ctx.Done()`，存在泄漏风险。
+- [ ] **并发安全**
+  - map/slice 在并发场景下读写无保护。
+  - 闭包捕获循环变量导致逻辑错误。
+  - 锁粒度或加解锁不对称，可能死锁或数据竞争。
+- [ ] **资源生命周期**
+  - `rows.Body/file` 等未关闭，或 `defer` 放在循环内导致资源积压。
+  - 数据库事务未完整处理提交/回滚路径。
+- [ ] **nil 与边界**
+  - 结构体指针、接口动态值、返回对象、依赖注入对象在使用前未判空，导致 nil 指针解引用。
+  - map/slice/channel/function 在零值场景下的读写与调用未做保护（如向 nil map 赋值、调用 nil func）。
+  - err 判空后仍使用可能为空的对象（如 `if err != nil { ... }` 后继续解引用失败分支对象）。
+  - 空切片/空 map 处理不当、下标越界。
+  - 类型断言未判定 `ok`，导致 panic。
+- [ ] **时间与金额精度**
+  - 业务关键值使用 `float` 进行金额计算。
+  - 时间解析/时区处理不一致，导致跨时区错误。
+- [ ] **SQL/ORM 与性能**
+  - N+1 查询、循环内逐条写入。
+  - where 条件缺失导致全表扫描或误更新。
+  - Moon 项目中可由 `gen` 字段表达式完成的查询却手写字符串 SQL。
+- [ ] **接口与分层一致性（Moon 约束）**
+  - API 变更未与 proto 对齐，或修改 API 后未同步 README（API 概览/用法）。
+  - 违反既有分层（`cmd -> server -> service -> biz -> data/impl`）引入跨层耦合。
+  - 未优先复用 `magicbox` 或应用内现有能力而重复造轮子。
+- [ ] **命名规范（Go）**
+  - 标识符命名需符合 Go 社区规范与项目既有风格（包名简短小写、导出符号大驼峰、非导出小驼峰、缩写命名一致）。
+  - 避免含糊或误导性命名（如 `tmp`, `data2`, `ret` 在业务语义明确场景滥用）。
+- [ ] **命名规范（proto）**
+  - `message`、`enum` 名称使用大驼峰（PascalCase）。
+  - `message` 字段使用小驼峰（lowerCamelCase）。
+  - `enum` 枚举值使用全大写蛇形（UPPER_SNAKE_CASE），且必须带该 `enum` 名称对应的统一前缀（全大写蛇形）。
+- [ ] **禁止魔术变量**
+  - 不允许出现难以理解来源和含义的硬编码常量（magic number/string/bool）。
+  - 应提取为有语义的常量、枚举或配置项，并集中定义与复用。
+- [ ] **复用与去重（禁止重复功能）**
+  - 不允许新增与现有函数/方法语义重复的实现（同类参数、同类逻辑、同类输出仅名称不同）。
+  - 若已有可复用能力（标准库、`magicbox`、当前 app 公共模块），应优先复用而非复制粘贴改名。
+  - 发现重复逻辑应建议抽取公共函数/方法，保证单一职责与单元化。
+- [ ] **单元化与可测试性**
+  - 复杂逻辑应拆分为小函数（单一职责、输入输出清晰），避免超长函数与多层嵌套。
+  - 业务核心分支应可独立单测，避免将关键逻辑耦合在 handler/流程胶水代码中。
+- [ ] **简洁与可读性**
+  - 控制函数长度与圈复杂度，减少不必要的 else、重复判断和过深缩进。
+  - 变量名、函数名、注释应表达业务语义，避免“看得懂语法看不懂意图”。
+  - 优先直接、清晰、可维护的写法，避免炫技式抽象。
+
+## 输出格式
+
+请按以下结构输出审查结果：
 
 ```markdown
-# Code Review
+# 代码审查
 
-## Summary
-[1–2 sentence overview: scope and overall risk level]
+## 总结
+[1-2 句话概述：审查范围与整体风险级别]
 
-## Findings
+## 问题发现
 
-### [Severity] Brief title
-- **Location**: `path/to/file.ext:LINE` (and optional `:END_LINE` if spanning multiple lines)
-- **Issue**: What is wrong and why it can cause a bug.
-- **Recommendation**: Concrete fix (code snippet or step-by-step change).
+### [严重级别] 简短标题
+- **位置**: `path/to/file.ext:LINE`（跨多行可写 `:END_LINE`）
+- **类别**: `错误处理` | `并发` | `context` | `资源泄漏` | `路由` | `数据一致性` | `分层/规范` | `性能` | `复用/去重` | `可读性`（按最贴近的问题填写）
+- **问题**: 说明哪里有问题，以及为什么会导致 bug。
+- **影响**: 触发条件与可能后果（崩溃/错误返回/脏数据/性能下降等）。
+- **建议**: 给出具体修复方式（代码片段或明确步骤）。
 
 ---
-[Repeat for each finding]
+[每个问题按此格式重复]
 ```
 
-**Severity**:
-- **Critical**: Likely crash, data corruption, or security impact.
-- **High**: Clear bug under common usage.
-- **Medium**: Edge-case bug or maintainability/robustness concern.
-- **Low**: Minor or speculative; worth fixing when touching the area.
+**严重级别定义**：
+- **Critical**：可能导致崩溃、数据损坏或安全风险。
+- **High**：在常见使用场景下可稳定触发的明确 bug。
+- **Medium**：边界场景 bug，或明显影响健壮性/可维护性的问题。
+- **Low**：较轻微或偏推测性问题，建议在触达该区域时修复。
 
-## Checklist (when reviewing API / proto changes)
+## 检查清单（审查 API/proto 变更时）
 
-- [ ] **Route conflict**: If the change adds or modifies HTTP routes (e.g. in proto `google.api.http` or generated `*_http.pb.go`), verify that no new path is matched by an existing parameterized route (e.g. `/v1/foo/{id}` matching `/v1/foo/simple`). Resolve by using a distinct path prefix (e.g. `/v1/foos/simple`) or extra segment.
+- [ ] **路由冲突**：若变更新增或修改 HTTP 路由（如 proto `google.api.http` 或生成的 `*_http.pb.go`），需确认新路径不会被既有参数化路由匹配（如 `/v1/foo/{id}` 匹配到 `/v1/foo/simple`）。可通过增加独立前缀（如 `/v1/foos/simple`）或额外路径段规避。
+- [ ] **向后兼容**：确认字段、枚举、错误码和语义未破坏旧客户端。
+- [ ] **文档同步**：新增/修改 API 时，确认 README 的 API 概览、特性与使用方式已更新。
 
-## Rules
+## 规则
 
-- **Always cite location**: Use `path:line` (and line range if needed). Do not say "somewhere in this function" without the line.
-- **One finding per item**: One bug/issue per subsection; do not merge unrelated issues.
-- **Recommendation must be actionable**: Prefer a small code change or clear steps, not vague advice.
-- **Assume context**: If the project has patterns (e.g. error handling, logging), align recommendations with them; do not invent new patterns without need.
+- **必须标注位置**：使用 `path:line`（必要时加行号范围）。不要只说“在这个函数某处”。
+- **一个问题一条**：每个小节只描述一个独立问题，不合并无关问题。
+- **建议必须可执行**：优先给出小范围代码改动或清晰步骤，避免泛泛而谈。
+- **遵循项目上下文**：若项目已有固定模式（如错误处理、日志风格），建议应与之保持一致，不要无故引入新模式。
+- **错误定义强约束**：审查中若发现业务错误未使用 `merr` 包下定义的 `err`，必须作为问题指出并要求整改。
+- **命名严格遵循规范**：Go 代码命名必须符合 Go 规范；proto 命名必须满足 message/enum/字段/枚举值前缀规则。
+- **禁止魔术变量**：发现魔术变量必须指出并建议抽取为具名常量、枚举或配置项。
+- **禁止重复功能实现**：若存在重复语义函数/方法，必须指出并给出“复用或抽取公共能力”的整改建议。
+- **坚持单元化与复用**：评审需关注是否符合单一职责、是否便于单测、是否复用既有模块。
+- **代码简洁易读**：对过度复杂、难读难维护实现应给出明确重构建议（拆分、命名优化、去嵌套）。
+- **优先高风险问题**：先报 `Critical/High`（崩溃、数据错、并发/事务问题），再报中低风险。
+- **不臆断业务**：若需求语义不明确，明确标注假设与待确认点，不编造业务规则。
 
-## Example
+## 示例
 
 ```markdown
-### [High] Possible nil pointer dereference
-- **Location**: `app/service/user.go:42`
-- **Issue**: `u` may be nil when `FindByID` returns no user; calling `u.Name` can panic.
-- **Recommendation**: Check and handle nil before use:
+### [High] 可能发生 nil 指针解引用
+- **位置**: `app/service/user.go:42`
+- **问题**: 当 `FindByID` 未查到用户时，`u` 可能为 nil；直接访问 `u.Name` 会触发 panic。
+- **建议**: 使用前先做 nil 判断，并返回 `merr` 中定义的业务错误：
 
   if u == nil {
-      return nil, ErrUserNotFound
+      return nil, merr.ErrUserNotFound
   }
   return u.Name, nil
 ```

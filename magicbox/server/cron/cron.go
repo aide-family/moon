@@ -4,6 +4,7 @@ package cron
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	klog "github.com/go-kratos/kratos/v2/log"
@@ -34,7 +35,10 @@ func WithCronJobs(jobs ...CronJob) Option {
 			c.jobs.Set(wrappedJob.Index(), wrappedJob)
 			c.runner.Set(wrappedJob.Index(), id)
 			if wrappedJob.IsImmediate() {
-				safety.Go(context.Background(), fmt.Sprintf("cron-job-immediate-%s", wrappedJob.Index()), func(ctx context.Context) error {
+				safety.Go(c.ctx, fmt.Sprintf("cron-job-immediate-%s", wrappedJob.Index()), func(ctx context.Context) error {
+					if err := ctx.Err(); err != nil {
+						return err
+					}
 					wrappedJob.Run()
 					return nil
 				})
@@ -45,41 +49,60 @@ func WithCronJobs(jobs ...CronJob) Option {
 
 func WithCronJobChannel(ch <-chan CronJob) Option {
 	return func(c *Server) {
-		ctx := context.Background()
-		safety.Go(ctx, "cron-job-channel", func(ctx context.Context) error {
-			for job := range ch {
-				WithCronJobs(job)(c)
+		c.wg.Add(1)
+		safety.Go(c.ctx, "cron-job-channel", func(ctx context.Context) error {
+			defer c.wg.Done()
+			for {
+				select {
+				case <-ctx.Done():
+					return nil
+				case job, ok := <-ch:
+					if !ok {
+						return nil
+					}
+					WithCronJobs(job)(c)
+				}
 			}
-			return nil
 		})
 	}
 }
 
 func WithRemoveJobChannel(ch <-chan string) Option {
 	return func(c *Server) {
-		ctx := context.Background()
-		safety.Go(ctx, "cron-job-remove-channel", func(ctx context.Context) error {
-			for jobKey := range ch {
-				if id, ok := c.runner.Get(jobKey); ok {
-					c.cron.Remove(id)
-					c.runner.Delete(jobKey)
-				}
-				if _, ok := c.jobs.Get(jobKey); ok {
-					c.jobs.Delete(jobKey)
+		c.wg.Add(1)
+		safety.Go(c.ctx, "cron-job-remove-channel", func(ctx context.Context) error {
+			defer c.wg.Done()
+			for {
+				select {
+				case <-ctx.Done():
+					return nil
+				case jobKey, ok := <-ch:
+					if !ok {
+						return nil
+					}
+					if id, ok := c.runner.Get(jobKey); ok {
+						c.cron.Remove(id)
+						c.runner.Delete(jobKey)
+					}
+					if _, ok := c.jobs.Get(jobKey); ok {
+						c.jobs.Delete(jobKey)
+					}
 				}
 			}
-			return nil
 		})
 	}
 }
 
 func New(name string, logger log.Interface, opts ...Option) *Server {
+	ctx, cancel := context.WithCancel(context.Background())
 	c := &Server{
 		name:   name,
 		helper: klog.NewHelper(logger),
 		jobs:   safety.NewMap(map[string]CronJob{}),
 		runner: safety.NewMap(map[string]cron.EntryID{}),
 		cron:   cron.New(cron.WithSeconds()),
+		ctx:    ctx,
+		cancel: cancel,
 	}
 	for _, opt := range opts {
 		opt(c)
@@ -93,6 +116,9 @@ type Server struct {
 	jobs   *safety.Map[string, CronJob]
 	runner *safety.Map[string, cron.EntryID]
 	cron   *cron.Cron
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
 }
 
 // Start implements transport.Server.
@@ -105,6 +131,17 @@ func (c *Server) Start(ctx context.Context) error {
 // Stop implements transport.Server.
 func (c *Server) Stop(ctx context.Context) error {
 	defer c.helper.WithContext(ctx).Infof("[CronJob] %s server stopped", c.name)
+	c.cancel()
+	waitDone := make(chan struct{})
+	go func() {
+		c.wg.Wait()
+		close(waitDone)
+	}()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-waitDone:
+	}
 	c.cron.Stop()
 	c.jobs.Clear()
 	c.runner.Clear()
