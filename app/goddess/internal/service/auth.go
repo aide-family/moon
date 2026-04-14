@@ -54,16 +54,18 @@ func (s *AuthService) SendEmailLoginCode(ctx context.Context, req *apiv1.SendEma
 }
 
 func (s *AuthService) EmailLogin(ctx context.Context, req *apiv1.EmailLoginRequest) (*apiv1.LoginReply, error) {
-	codeID, ok := s.sendedEmail.Get(req.GetEmail())
+	email := req.GetEmail()
+	codeID, ok := s.sendedEmail.Get(email)
 	if !ok {
 		return nil, merr.ErrorNotFound("Please send email login code first")
 	}
 	if err := s.captchaBiz.Verify(ctx, codeID, req.GetCode()); err != nil {
 		return nil, err
 	}
-	token, err := s.loginBiz.EmailLogin(ctx, req.GetEmail())
+	token, err := s.loginBiz.EmailLogin(ctx, email)
 	if err != nil {
 		return nil, err
 	}
+	s.sendedEmail.Delete(email)
 	return &apiv1.LoginReply{Token: token}, nil
 }

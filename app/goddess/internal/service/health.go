@@ -22,6 +22,9 @@ type HealthService struct {
 }
 
 func (s *HealthService) HealthCheck(ctx context.Context, req *magicboxv1.HealthCheckRequest) (*magicboxv1.HealthCheckReply, error) {
+	if err := s.healthBiz.Readiness(); err != nil {
+		return nil, err
+	}
 	return &magicboxv1.HealthCheckReply{
 		Status:  "OK",
 		Message: "Goddess is running",

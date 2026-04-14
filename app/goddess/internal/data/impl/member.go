@@ -73,6 +73,7 @@ func (m *memberRepository) GetMemberByUserUID(ctx context.Context, userUID snowf
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, merr.ErrorNotFound("member %s not found", userUID)
 		}
+		return nil, merr.ErrorInternalServer("get member by user uid failed").WithCause(err)
 	}
 	email := m.getUserEmail(ctx, member.UserUID)
 	return convert.MemberToBo(member, email), nil
