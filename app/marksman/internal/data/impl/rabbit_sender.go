@@ -12,6 +12,9 @@ import (
 
 func NewRabbitSenderRepository(c *conf.Bootstrap, d *data.Data) (repository.RabbitSender, error) {
 	repoConfig := c.GetSenderDomain()
+	if repoConfig == nil {
+		return nil, merr.ErrorInternalServer("senderDomain is required")
+	}
 	version := repoConfig.GetVersion()
 	driver := repoConfig.GetDriver()
 	switch version {

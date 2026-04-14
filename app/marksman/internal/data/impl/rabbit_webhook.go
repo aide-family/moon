@@ -13,6 +13,9 @@ import (
 
 func NewRabbitWebhookRepository(c *conf.Bootstrap, d *data.Data) (repository.RabbitWebhook, error) {
 	repoConfig := c.GetWebhookDomain()
+	if repoConfig == nil {
+		return nil, merr.ErrorInternalServer("webhookDomain is required")
+	}
 	version := repoConfig.GetVersion()
 	driver := repoConfig.GetDriver()
 	switch version {

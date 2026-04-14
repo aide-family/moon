@@ -24,6 +24,9 @@ type HealthService struct {
 }
 
 func (s *HealthService) HealthCheck(ctx context.Context, req *healthv1.HealthCheckRequest) (*healthv1.HealthCheckReply, error) {
+	if err := s.healthBiz.Readiness(); err != nil {
+		return nil, err
+	}
 	return &healthv1.HealthCheckReply{
 		Status:   "OK",
 		Message:  "marksman is running",

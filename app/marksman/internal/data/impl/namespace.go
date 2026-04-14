@@ -12,6 +12,9 @@ import (
 
 func NewNamespaceRepository(c *conf.Bootstrap, d *data.Data) (repository.Namespace, error) {
 	repoConfig := c.GetNamespaceDomain()
+	if repoConfig == nil {
+		return nil, merr.ErrorInternalServer("namespaceDomain is required")
+	}
 	version := repoConfig.GetVersion()
 	driver := repoConfig.GetDriver()
 	switch version {

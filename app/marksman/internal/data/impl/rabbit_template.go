@@ -13,6 +13,9 @@ import (
 
 func NewRabbitTemplateRepository(c *conf.Bootstrap, d *data.Data) (repository.RabbitTemplate, error) {
 	repoConfig := c.GetMessageTemplateDomain()
+	if repoConfig == nil {
+		return nil, merr.ErrorInternalServer("messageTemplateDomain is required")
+	}
 	version := repoConfig.GetVersion()
 	driver := repoConfig.GetDriver()
 	switch version {

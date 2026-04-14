@@ -16,6 +16,9 @@ type loginRepository struct {
 
 func NewLoginRepository(c *conf.Bootstrap, d *data.Data) (repository.LoginRepository, error) {
 	repoConfig := c.GetAuthDomain()
+	if repoConfig == nil {
+		return nil, merr.ErrorInternalServer("authDomain is required")
+	}
 	version := repoConfig.GetVersion()
 	driver := repoConfig.GetDriver()
 	switch version {
