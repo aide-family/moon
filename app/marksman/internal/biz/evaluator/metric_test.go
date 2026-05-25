@@ -6,7 +6,7 @@ import (
 )
 
 func TestCalculateMetricQueryStep_UsesDefaultForSmallWindow(t *testing.T) {
-	step := calculateMetricQueryStep(2 * time.Minute)
+	step := calculateMetricQueryStep(2*time.Minute, 15*time.Second)
 	if step != 15*time.Second {
 		t.Fatalf("unexpected step for small window: got %s, want %s", step, 15*time.Second)
 	}
@@ -14,7 +14,7 @@ func TestCalculateMetricQueryStep_UsesDefaultForSmallWindow(t *testing.T) {
 
 func TestCalculateMetricQueryStep_IncreasesForLargeWindow(t *testing.T) {
 	window := 7 * 24 * time.Hour
-	step := calculateMetricQueryStep(window)
+	step := calculateMetricQueryStep(window, 15*time.Second)
 	if step <= 15*time.Second {
 		t.Fatalf("step should be increased for large window, got %s", step)
 	}

@@ -3,16 +3,12 @@ package evaluator
 
 import (
 	"context"
-	"maps"
 	"time"
 
 	"github.com/aide-family/magicbox/contextx"
-	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/server/cron"
-	"github.com/aide-family/magicbox/strutil"
 	klog "github.com/go-kratos/kratos/v2/log"
 	prometheusv1 "github.com/prometheus/client_golang/api/prometheus/v1"
-	"github.com/prometheus/common/model"
 
 	"github.com/aide-family/marksman/internal/biz/bo"
 	"github.com/aide-family/marksman/internal/biz/repository"
@@ -27,32 +23,6 @@ const (
 	// EvaluatorTypeMetric is the evaluator type for metric strategy; used on alert events and evaluator_snapshots.
 	EvaluatorTypeMetric = "metric"
 )
-
-// alertTemplateData is the data passed to Go templates for Summary, Description and Labels.
-type alertTemplateData struct {
-	Strategy     *alertTemplateInfo
-	OriginLabels map[string]string
-	Labels       map[string]string
-	Value        float64
-	FiredAt      time.Time
-}
-
-type alertTemplateInfo struct {
-	NamespaceUID      int64
-	StrategyGroupUID  int64
-	StrategyGroupName string
-	StrategyUID       int64
-	StrategyName      string
-	LevelUID          int64
-	LevelName         string
-	DatasourceUID     int64
-	DatasourceName    string
-	Labels            map[string]string
-	Threshold         []float64
-	SampleMode        enum.SampleMode
-	Condition         enum.ConditionMetric
-	DurationSec       int64
-}
 
 // NewMetricEvaluator creates a cron job that evaluates the given metric strategy and sends alert events when conditions are met.
 func NewMetricEvaluator(
@@ -94,42 +64,25 @@ func (m *metricEvaluator) Run() {
 	defer cancel()
 	ctx = contextx.WithNamespace(ctx, m.info.GetNamespaceUID())
 
-	end := time.Now()
-	dur := time.Duration(m.info.GetDurationSec()) * time.Second
-	if dur < 10*time.Second {
-		dur = 10 * time.Second
-	}
-	start := end.Add(-dur * 2)
-	queryRange := prometheusv1.Range{
-		Start: start,
-		End:   end,
-		Step:  calculateMetricQueryStep(end.Sub(start)),
-	}
-
-	matrix, err := m.metricDatasourceQuerierRepo.QueryRange(ctx, m.info.GetDatasource(), m.info.GetExpr(), queryRange)
-	if err != nil {
-		klog.Errorw("msg", "metric evaluate query failed", "error", err, "strategyUID", m.info.GetStrategyUID())
+	rule := buildPrometheusAlertRule(m.info)
+	if rule == nil || rule.Expr == "" {
+		klog.Errorw("msg", "metric evaluate rule is invalid", "strategyUID", m.info.GetStrategyUID())
 		return
 	}
 
-	for _, series := range matrix {
-		if len(series.Values) == 0 {
-			continue
-		}
-		// 1) For each sample in the time window, decide if it satisfies ConditionMetric (value vs Values).
-		satisfied := make([]bool, len(series.Values))
-		for i, p := range series.Values {
-			satisfied[i] = m.satisfiesCondition(float64(p.Value))
-		}
-		// 2) Apply SampleMode: FOR = n consecutive true, MAX = at most n times true, MIN = at least n times true.
-		if !m.shouldFireBySampleMode(satisfied) {
-			continue
-		}
-		// Emit one alert event per series (carry labels); use last sample value for event.
-		lastVal := series.Values[len(series.Values)-1]
-		tmlData := m.buildAlertTemplateData(series, float64(lastVal.Value), end)
-		summary := m.fillStringTemplate(m.info.GetSummary(), tmlData)
-		description := m.fillStringTemplate(m.info.GetDescription(), tmlData)
+	end := time.Now()
+	evalInterval := m.evaluateInterval()
+	firingSeries, err := m.evaluatePrometheusRule(ctx, rule, evalInterval, end)
+	if err != nil {
+		klog.Errorw("msg", "metric evaluate query failed", "error", err, "strategyUID", m.info.GetStrategyUID(), "expr", rule.Expr)
+		return
+	}
+
+	for _, series := range firingSeries {
+		ruleLabels := expandRuleLabels(rule.Labels, series.labels)
+		alertLabels := mergePrometheusAlertLabels(series.labels, ruleLabels)
+		summary := executePrometheusTemplate(rule.Annotations[annotationSummary], alertLabels, series.value)
+		description := executePrometheusTemplate(rule.Annotations[annotationDescription], alertLabels, series.value)
 
 		ev := &bo.AlertEventBo{
 			StrategyUID:           m.info.GetStrategyUID(),
@@ -137,15 +90,15 @@ func (m *metricEvaluator) Run() {
 			LevelUID:              m.info.GetLevelUID(),
 			Summary:               summary,
 			Description:           description,
-			Expr:                  m.info.GetExpr(),
+			Expr:                  rule.Expr,
 			FiredAt:               end,
-			Value:                 float64(lastVal.Value),
-			Labels:                tmlData.Labels,
+			Value:                 series.value,
+			Labels:                alertLabels,
 			DatasourceUID:         m.info.GetDatasource().UID,
 			EvaluatorType:         EvaluatorTypeMetric,
 			EvaluatorSnapshotJSON: m.cachedSnapshotJSON,
-			Fingerprint:           bo.BuildAlertFingerprint(m.Index(), tmlData.OriginLabels),
-			EvaluateDuration:      dur,
+			Fingerprint:           prometheusAlertFingerprint(alertLabels),
+			EvaluateDuration:      m.evaluateDurationForEvent(rule),
 			StrategyGroupUID:      m.info.GetStrategyGroupUID(),
 			StrategyGroupName:     m.info.GetStrategyGroupName(),
 			StrategyName:          m.info.GetStrategyName(),
@@ -158,165 +111,49 @@ func (m *metricEvaluator) Run() {
 	}
 }
 
-// satisfiesCondition returns whether the metric value v satisfies ConditionMetric with strategy Values (thresholds).
-func (m *metricEvaluator) satisfiesCondition(v float64) bool {
-	vals := m.info.GetValues()
-	cond := m.info.GetCondition()
-	if len(vals) == 0 || cond == enum.ConditionMetric_CONDITION_METRIC_UNKNOWN {
-		return false
+func (m *metricEvaluator) evaluatePrometheusRule(
+	ctx context.Context,
+	rule *prometheusAlertRule,
+	evalInterval time.Duration,
+	end time.Time,
+) ([]firingSeries, error) {
+	step := evalInterval
+	if step <= 0 {
+		step = defaultEvaluateInterval
 	}
-	threshold := vals[0]
-	switch cond {
-	case enum.ConditionMetric_CONDITION_METRIC_EQ:
-		return v == threshold
-	case enum.ConditionMetric_CONDITION_METRIC_NE:
-		return v != threshold
-	case enum.ConditionMetric_CONDITION_METRIC_GT:
-		return v > threshold
-	case enum.ConditionMetric_CONDITION_METRIC_GTE:
-		return v >= threshold
-	case enum.ConditionMetric_CONDITION_METRIC_LT:
-		return v < threshold
-	case enum.ConditionMetric_CONDITION_METRIC_LTE:
-		return v <= threshold
-	case enum.ConditionMetric_CONDITION_METRIC_IN:
-		return len(vals) >= 2 && v >= vals[0] && v <= vals[1]
-	case enum.ConditionMetric_CONDITION_METRIC_NOT_IN:
-		return len(vals) < 2 || v < vals[0] || v > vals[1]
-	default:
-		return false
+	if step < time.Second {
+		step = time.Second
 	}
-}
 
-// sampleModeN returns the "n" for SampleMode (FOR: consecutive count, MAX/MIN: count threshold). Values[0] is condition threshold; n is Values[1] when present.
-func (m *metricEvaluator) sampleModeN() int {
-	if values := m.info.GetValues(); len(values) > 1 {
-		n := int(values[1])
-		if n < 0 {
-			n = 0
-		}
-		return n
+	window := rule.For
+	if window <= 0 {
+		window = step
 	}
-	return 0
-}
+	start := end.Add(-window - step)
+	queryRange := prometheusv1.Range{
+		Start: start,
+		End:   end,
+		Step:  calculateMetricQueryStep(end.Sub(start), step),
+	}
 
-// shouldFireBySampleMode decides whether to fire based on SampleMode within the time window:
-// - FOR: "Occurs n times consecutively within m time" → fire if there are n consecutive samples satisfying the condition.
-// - MAX: "Occurs at most n times within m time" → fire if condition holds in more than n samples.
-// - MIN: "Occurs at least n times within m time" → fire if condition holds in at least n samples.
-func (m *metricEvaluator) shouldFireBySampleMode(satisfied []bool) bool {
-	n := m.sampleModeN()
-	switch m.info.GetMode() {
-	case enum.SampleMode_SAMPLE_MODE_FOR:
-		// n consecutive times; if n not set, require at least 1
-		required := n
-		if required <= 0 {
-			required = 1
-		}
-		return maxConsecutiveTrue(satisfied) >= required
-	case enum.SampleMode_SAMPLE_MODE_MAX:
-		// at most n times → fire when count > n
-		count := countTrue(satisfied)
-		return count > n
-	case enum.SampleMode_SAMPLE_MODE_MIN:
-		// at least n times → fire when count >= n; if n not set, require at least 1
-		count := countTrue(satisfied)
-		if n <= 0 {
-			n = 1
-		}
-		return count >= n
-	default:
-		// unknown: treat as at least 1 time (same as FOR with n=1)
-		return countTrue(satisfied) >= 1
-	}
-}
-
-// buildAlertTemplateData builds template data from strategy info and the current series for alert templating.
-func (m *metricEvaluator) buildAlertTemplateData(series *model.SampleStream, value float64, firedAt time.Time) *alertTemplateData {
-	seriesLabels := make(map[string]string, len(series.Metric))
-	for k, v := range series.Metric {
-		seriesLabels[string(k)] = string(v)
-	}
-	info := &alertTemplateInfo{
-		StrategyGroupUID:  m.info.GetStrategyGroupUID().Int64(),
-		StrategyGroupName: m.info.GetStrategyGroupName(),
-		StrategyUID:       m.info.GetStrategyUID().Int64(),
-		StrategyName:      m.info.GetStrategyName(),
-		LevelUID:          m.info.GetLevelUID().Int64(),
-		LevelName:         m.info.GetLevelName(),
-		DatasourceUID:     m.info.GetDatasourceUID().Int64(),
-		DatasourceName:    m.info.GetDatasourceName(),
-		NamespaceUID:      m.info.GetNamespaceUID().Int64(),
-		Labels:            m.info.GetLabels(),
-		Threshold:         m.info.GetValues(),
-		SampleMode:        m.info.GetMode(),
-		Condition:         m.info.GetCondition(),
-		DurationSec:       m.info.GetDurationSec(),
-	}
-	return &alertTemplateData{
-		Strategy:     info,
-		OriginLabels: seriesLabels,
-		Labels:       m.fillLabels(seriesLabels, info.Labels),
-		Value:        value,
-		FiredAt:      firedAt,
-	}
-}
-
-// fillStringTemplate executes the template with data; on parse/execute error returns the original string.
-func (m *metricEvaluator) fillStringTemplate(tmpl string, data any) string {
-	if tmpl == "" {
-		return ""
-	}
-	out, err := strutil.ExecuteTextTemplate(tmpl, data)
+	matrix, err := m.metricDatasourceQuerierRepo.QueryRange(ctx, m.info.GetDatasource(), rule.Expr, queryRange)
 	if err != nil {
-		klog.Debugw("msg", "alert template execute failed, use raw", "template", tmpl, "error", err)
-		return tmpl
+		return nil, err
 	}
-	return out
+	return collectFiringSeries(matrix, rule.For, step, end), nil
 }
 
-// fillLabels merges series labels with strategy labels; each strategy label value is template-filled.
-func (m *metricEvaluator) fillLabels(originLabels map[string]string, strategyLabels map[string]string) map[string]string {
-	labels := maps.Clone(originLabels)
-	for k, v := range strategyLabels {
-		labels[k] = m.fillStringTemplate(v, originLabels)
+func calculateMetricQueryStep(window, preferredStep time.Duration) time.Duration {
+	step := preferredStep
+	if step <= 0 {
+		step = time.Duration(defaultStepSeconds) * time.Second
 	}
-	return labels
-}
-
-func countTrue(b []bool) int {
-	c := 0
-	for _, v := range b {
-		if v {
-			c++
-		}
-	}
-	return c
-}
-
-func maxConsecutiveTrue(b []bool) int {
-	maxRun, cur := 0, 0
-	for _, v := range b {
-		if v {
-			cur++
-			if cur > maxRun {
-				maxRun = cur
-			}
-		} else {
-			cur = 0
-		}
-	}
-	return maxRun
-}
-
-func calculateMetricQueryStep(window time.Duration) time.Duration {
-	step := time.Duration(defaultStepSeconds) * time.Second
 	if window <= 0 {
 		return step
 	}
 
 	// Prometheus enforces a per-series point limit. Compute the minimum step that
-	// keeps points in range and then keep our default when it is already large enough.
+	// keeps points in range and then keep our preferred step when it is already large enough.
 	maxIntervals := time.Duration(maxQueryRangePoints - 1)
 	minStepByWindow := window / maxIntervals
 	if window%maxIntervals != 0 {
@@ -333,9 +170,20 @@ func calculateMetricQueryStep(window time.Duration) time.Duration {
 
 // Spec implements [cron.CronJob].
 func (m *metricEvaluator) Spec() cron.CronSpec {
+	return cron.CronSpecEvery(m.evaluateInterval())
+}
+
+func (m *metricEvaluator) evaluateInterval() time.Duration {
 	interval := defaultEvaluateInterval
 	if durationSec := m.info.GetDurationSec(); durationSec > 0 {
 		interval = time.Duration(durationSec) * time.Second
 	}
-	return cron.CronSpecEvery(interval)
+	return interval
+}
+
+func (m *metricEvaluator) evaluateDurationForEvent(rule *prometheusAlertRule) time.Duration {
+	if rule.For > 0 {
+		return rule.For
+	}
+	return time.Duration(m.info.GetDurationSec()) * time.Second
 }
