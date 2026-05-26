@@ -3,7 +3,6 @@ package impl
 import (
 	"crypto/tls"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
@@ -53,7 +52,7 @@ func NewMetricClientFromDatasource(ds *bo.DatasourceItemBo) (datasource.MetricCl
 	if ds == nil || ds.Type != enum.DatasourceType_METRICS {
 		return nil, merr.ErrorInvalidArgument("datasource is not a metrics type")
 	}
-	url := strings.TrimRight(ds.URL, "/")
+	url := datasource.NormalizeMetricEndpoint(ds.URL)
 	if url == "" {
 		return nil, merr.ErrorInvalidArgument("datasource url is empty")
 	}

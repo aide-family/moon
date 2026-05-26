@@ -214,11 +214,7 @@ type RecipientGroupDetailBo struct {
 	Members        []snowflake.ID
 }
 
-// ToAPIV1RecipientGroupItemFromDetail converts detail BO to API item (proto has uid/name/metadata; relations are sent on Update).
-func (b *RecipientGroupDetailBo) ToAPIV1RecipientGroupItemFromDetail() *apiv1.RecipientGroupItem {
-	return &apiv1.RecipientGroupItem{
-		Uid:      b.UID.Int64(),
-		Name:     b.Name,
-		Metadata: b.Metadata,
-	}
+// ToAPIV1RecipientGroupItem converts detail BO (with preloaded relations) to API item.
+func (b *RecipientGroupDetailBo) ToAPIV1RecipientGroupItem() *apiv1.RecipientGroupItem {
+	return b.RecipientGroupItemBo.ToAPIV1RecipientGroupItem()
 }

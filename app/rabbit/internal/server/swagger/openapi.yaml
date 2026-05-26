@@ -137,41 +137,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/rabbit.api.v1.UpdateAlertSubscriptionStatusReply'
-    /v1/alerts:
-        get:
-            tags:
-                - Alert
-            operationId: Alert_ListAlertRecords
-            parameters:
-                - name: page
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: pageSize
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: keyword
-                  in: query
-                  schema:
-                    type: string
-                - name: status
-                  in: query
-                  schema:
-                    type: string
-                - name: fingerprint
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/rabbit.api.v1.ListAlertRecordsReply'
     /v1/alerts/prometheus/webhook:
         post:
             tags:
@@ -190,24 +155,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/rabbit.api.v1.ReceivePrometheusWebhookReply'
-    /v1/alerts/{uid}:
-        get:
-            tags:
-                - Alert
-            operationId: Alert_GetAlertRecord
-            parameters:
-                - name: uid
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/rabbit.api.v1.AlertRecordItem'
     /v1/email/config:
         post:
             tags:
@@ -1150,41 +1097,6 @@ components:
                 role:
                     type: integer
                     format: enum
-        rabbit.api.v1.AlertRecordItem:
-            type: object
-            properties:
-                uid:
-                    type: string
-                source:
-                    type: string
-                receiver:
-                    type: string
-                status:
-                    type: string
-                fingerprint:
-                    type: string
-                groupKey:
-                    type: string
-                startsAt:
-                    type: string
-                endsAt:
-                    type: string
-                generatorURL:
-                    type: string
-                labels:
-                    type: object
-                    additionalProperties:
-                        type: string
-                annotations:
-                    type: object
-                    additionalProperties:
-                        type: string
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
-                raw:
-                    type: string
         rabbit.api.v1.AlertSubscriptionItem:
             type: object
             properties:
@@ -1446,21 +1358,6 @@ components:
             properties:
                 uid:
                     type: string
-        rabbit.api.v1.ListAlertRecordsReply:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/rabbit.api.v1.AlertRecordItem'
-                total:
-                    type: string
-                page:
-                    type: integer
-                    format: int32
-                pageSize:
-                    type: integer
-                    format: int32
         rabbit.api.v1.ListAlertSubscriptionsReply:
             type: object
             properties:
@@ -1603,10 +1500,6 @@ components:
             properties:
                 total:
                     type: string
-                uids:
-                    type: array
-                    items:
-                        type: string
         rabbit.api.v1.ReceivePrometheusWebhookRequest:
             type: object
             properties:

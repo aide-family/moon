@@ -67,20 +67,6 @@ func (o *outerAlertServer) ReceivePrometheusWebhook(ctx context.Context, req *ap
 	return o.grpcClient.ReceivePrometheusWebhook(ctx, req)
 }
 
-func (o *outerAlertServer) GetAlertRecord(ctx context.Context, req *apiv1.GetAlertRecordRequest) (*apiv1.AlertRecordItem, error) {
-	if o.httpClient != nil {
-		return o.httpClient.GetAlertRecord(ctx, req)
-	}
-	return o.grpcClient.GetAlertRecord(ctx, req)
-}
-
-func (o *outerAlertServer) ListAlertRecords(ctx context.Context, req *apiv1.ListAlertRecordsRequest) (*apiv1.ListAlertRecordsReply, error) {
-	if o.httpClient != nil {
-		return o.httpClient.ListAlertRecords(ctx, req)
-	}
-	return o.grpcClient.ListAlertRecords(ctx, req)
-}
-
 func (o *outerAlertServer) CreateAlertSubscription(ctx context.Context, req *apiv1.CreateAlertSubscriptionRequest) (*apiv1.CreateAlertSubscriptionReply, error) {
 	if o.httpClient != nil {
 		return o.httpClient.CreateAlertSubscription(ctx, req)

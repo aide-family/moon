@@ -22,4 +22,6 @@ type RecipientGroup interface {
 
 type RecipientMember interface {
 	CreateRecipientMember(ctx context.Context, members []*bo.RecipientMemberItemBo) error
+	// ResolveRecipientMemberIDs returns recipient_members.id rows for association (by id or user_uid).
+	ResolveRecipientMemberIDs(ctx context.Context, members []*bo.RecipientMemberItemBo) ([]int64, error)
 }

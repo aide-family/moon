@@ -10,6 +10,7 @@ import (
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
+	"github.com/aide-family/magicbox/plugin/datasource"
 
 	"github.com/aide-family/marksman/internal/biz/bo"
 	"github.com/aide-family/marksman/internal/biz/repository"
@@ -29,7 +30,7 @@ func (p *metricDatasourceProxyRepository) Proxy(ctx context.Context, ds *bo.Data
 	if ds == nil || ds.Type != enum.DatasourceType_METRICS {
 		return 0, nil, merr.ErrorInvalidArgument("datasource is not a metrics type")
 	}
-	baseURL := strings.TrimRight(ds.URL, "/")
+	baseURL := datasource.NormalizeMetricEndpoint(ds.URL)
 	if baseURL == "" {
 		return 0, nil, merr.ErrorInvalidArgument("datasource url is empty")
 	}

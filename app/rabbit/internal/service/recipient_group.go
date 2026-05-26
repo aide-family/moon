@@ -35,7 +35,7 @@ func (s *RecipientGroupService) GetRecipientGroup(ctx context.Context, req *apiv
 	if err != nil {
 		return nil, err
 	}
-	return detail.ToAPIV1RecipientGroupItemFromDetail(), nil
+	return detail.ToAPIV1RecipientGroupItem(), nil
 }
 
 func (s *RecipientGroupService) UpdateRecipientGroup(ctx context.Context, req *apiv1.UpdateRecipientGroupRequest) (*apiv1.UpdateRecipientGroupReply, error) {

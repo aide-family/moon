@@ -125,7 +125,10 @@ func (q *metricDatasourceQuerierRepository) QueryRange(ctx context.Context, ds *
 
 	value, _, err := client.QueryRange(ctx, query, queryRange)
 	if err != nil {
-		return nil, err
+		return nil, merr.ErrorInternalServer(
+			"metric query_range failed for datasource %q (driver=%s, url=%s): %v",
+			ds.Name, ds.Driver, ds.URL, err,
+		).WithCause(err)
 	}
 	matrix, ok := value.(model.Matrix)
 	if !ok || len(matrix) == 0 {

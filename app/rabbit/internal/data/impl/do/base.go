@@ -12,7 +12,6 @@ import (
 
 func Models() []any {
 	return []any{
-		&AlertRecord{},
 		&AlertSubscription{},
 		&EmailConfig{},
 		&MessageLog{},
@@ -35,11 +34,13 @@ func (b *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
 	if b.Creator == 0 {
 		return merr.ErrorInvalidArgument("creator is required")
 	}
-	node, err := snowflake.NewNode(hello.NodeID())
-	if err != nil {
-		return merr.ErrorInternalServer("create snowflake node failed").WithCause(err)
+	if b.ID == 0 {
+		node, err := snowflake.NewNode(hello.NodeID())
+		if err != nil {
+			return merr.ErrorInternalServer("create snowflake node failed").WithCause(err)
+		}
+		b.ID = node.Generate()
 	}
-	b.ID = node.Generate()
 	return nil
 }
 

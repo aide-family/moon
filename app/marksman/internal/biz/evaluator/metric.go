@@ -74,7 +74,16 @@ func (m *metricEvaluator) Run() {
 	evalInterval := m.evaluateInterval()
 	firingSeries, err := m.evaluatePrometheusRule(ctx, rule, evalInterval, end)
 	if err != nil {
-		klog.Errorw("msg", "metric evaluate query failed", "error", err, "strategyUID", m.info.GetStrategyUID(), "expr", rule.Expr)
+		ds := m.info.GetDatasource()
+		klog.Errorw("msg", "metric evaluate query failed",
+			"error", err,
+			"strategyUID", m.info.GetStrategyUID(),
+			"expr", rule.Expr,
+			"datasourceUID", ds.UID,
+			"datasourceName", ds.Name,
+			"datasourceURL", ds.URL,
+			"datasourceDriver", ds.Driver,
+		)
 		return
 	}
 

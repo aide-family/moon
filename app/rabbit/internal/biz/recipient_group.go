@@ -42,10 +42,11 @@ func (b *RecipientGroup) CreateRecipientGroup(ctx context.Context, req *bo.Creat
 		return 0, merr.ErrorInternalServer("create recipient group failed").WithCause(err)
 	}
 	if len(req.Members) > 0 {
-		if err := b.createRecipientMember(ctx, req.Members); err != nil {
-			b.helper.Errorw("msg", "create recipient member failed", "error", err)
-			return 0, merr.ErrorInternalServer("create recipient member failed").WithCause(err)
+		resolved, err := b.syncRecipientMembers(ctx, req.Members)
+		if err != nil {
+			return 0, err
 		}
+		req.Members = resolved
 	}
 	uid, err := b.recipientGroupRepo.CreateRecipientGroup(ctx, req)
 	if err != nil {
@@ -55,7 +56,7 @@ func (b *RecipientGroup) CreateRecipientGroup(ctx context.Context, req *bo.Creat
 	return uid, nil
 }
 
-func (b *RecipientGroup) createRecipientMember(ctx context.Context, memberUIDs []int64) error {
+func (b *RecipientGroup) syncRecipientMembers(ctx context.Context, memberUIDs []int64) ([]int64, error) {
 	membersReq := &goddessv1.ListMemberRequest{
 		Page:     1,
 		PageSize: 200,
@@ -65,14 +66,23 @@ func (b *RecipientGroup) createRecipientMember(ctx context.Context, memberUIDs [
 	members, err := b.memberRepo.ListMember(ctx, membersReq)
 	if err != nil {
 		b.helper.Errorw("msg", "list member failed", "error", err)
-		return merr.ErrorInternalServer("list member failed").WithCause(err)
+		return nil, merr.ErrorInternalServer("list member failed").WithCause(err)
+	}
+	if len(members.Items) == 0 {
+		return nil, merr.ErrorInvalidArgument("member not found")
 	}
 
-	if err := b.recipientMemberRepo.CreateRecipientMember(ctx, bo.NewRecipientMemberItemBo(members.Items)); err != nil {
+	memberBos := bo.NewRecipientMemberItemBo(members.Items)
+	if err := b.recipientMemberRepo.CreateRecipientMember(ctx, memberBos); err != nil {
 		b.helper.Errorw("msg", "create recipient member failed", "error", err)
-		return merr.ErrorInternalServer("create recipient member failed").WithCause(err)
+		return nil, merr.ErrorInternalServer("create recipient member failed").WithCause(err)
 	}
-	return nil
+	resolved, err := b.recipientMemberRepo.ResolveRecipientMemberIDs(ctx, memberBos)
+	if err != nil {
+		b.helper.Errorw("msg", "resolve recipient member failed", "error", err)
+		return nil, merr.ErrorInternalServer("resolve recipient member failed").WithCause(err)
+	}
+	return resolved, nil
 }
 
 func (b *RecipientGroup) GetRecipientGroup(ctx context.Context, uid snowflake.ID) (*bo.RecipientGroupDetailBo, error) {
@@ -94,6 +104,13 @@ func (b *RecipientGroup) UpdateRecipientGroup(ctx context.Context, req *bo.Updat
 		return merr.ErrorInternalServer("get recipient group failed").WithCause(err)
 	} else if recipientGroup != nil && recipientGroup.Name != req.Name {
 		return merr.ErrorParams("recipient group %s already exists", req.Name)
+	}
+	if len(req.Members) > 0 {
+		resolved, err := b.syncRecipientMembers(ctx, req.Members)
+		if err != nil {
+			return err
+		}
+		req.Members = resolved
 	}
 	if err := b.recipientGroupRepo.UpdateRecipientGroup(ctx, req); err != nil {
 		b.helper.Errorw("msg", "update recipient group failed", "error", err, "uid", req.UID)

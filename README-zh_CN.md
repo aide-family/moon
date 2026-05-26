@@ -1,19 +1,10 @@
 # Moon
 
-<p align="center">
-  <strong>aide-family 的 Go 后端平台 — 共享工具与微服务单仓库</strong>
-</p>
+**aide-family 的 Go 后端平台 — 共享工具与微服务单仓库**
 
-<p align="center">
-  <a href="README-zh_CN.md">中文</a> · <a href="README.md">English</a>
-</p>
+[中文](README-zh_CN.md) · [English](README.md)
 
-<p align="center">
-  <a href="app/goddess/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
-  <a href="https://go.dev/"><img src="https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go" alt="Go 版本"></a>
-  <a href="https://github.com/go-kratos/kratos"><img src="https://img.shields.io/badge/Kratos-v2.9.2-00ADD8?style=flat&logo=go" alt="Kratos"></a>
-  <a href="https://github.com/spf13/cobra"><img src="https://img.shields.io/badge/Cobra-v1.10-00ADD8?style=flat&logo=go" alt="Cobra"></a>
-</p>
+
 
 ---
 
@@ -111,14 +102,16 @@ make gen
 
 ## 项目结构
 
-| 路径 | 名称 | 说明 |
-|------|------|------|
-| [`magicbox/`](magicbox/) | Magic Box（月光宝盒） | 共享工具库（安全、OAuth、校验等） |
-| [`app/goddess/`](app/goddess/) | Goddess（嫦娥） | 认证与授权服务 |
-| [`app/rabbit/`](app/rabbit/) | Rabbit（玉兔） | 业务服务（如时间引擎及相关能力） |
-| [`app/marksman/`](app/marksman/) | Marksman（后羿） | 事件服务 |
-| [`app/jade_tree/`](app/jade_tree/) | Jade Tree（玉树） | 采集与通信 Agent 运行时服务 |
-| [`proto/`](proto/) | Protos | API 定义（如 goddess、rabbit） |
+
+| 路径                                 | 名称              | 说明                       |
+| ---------------------------------- | --------------- | ------------------------ |
+| `[magicbox/](magicbox/)`           | Magic Box（月光宝盒） | 共享工具库（安全、OAuth、校验等）      |
+| `[app/goddess/](app/goddess/)`     | Goddess（嫦娥）     | 认证与授权服务                  |
+| `[app/rabbit/](app/rabbit/)`       | Rabbit（玉兔）      | 业务服务（如时间引擎及相关能力）         |
+| `[app/marksman/](app/marksman/)`   | Marksman（后羿）    | 事件服务                     |
+| `[app/jade_tree/](app/jade_tree/)` | Jade Tree（玉树）   | 采集与通信 Agent 运行时服务        |
+| `[proto/](proto/)`                 | Protos          | API 定义（如 goddess、rabbit） |
+
 
 - **magicbox** 为独立 Go 模块；**goddess**、**rabbit**、**marksman** 通过各自 `go.mod` 中的 `replace` 引用本地 magicbox。
 - 各应用拥有独立的 `go.mod`、Makefile 及 README（中/英）。
@@ -127,13 +120,15 @@ make gen
 
 ## 文档
 
-| 项目 | 英文 | 中文 |
-|------|------|------|
-| Goddess | [README](app/goddess/README.md) | [README](app/goddess/README-zh_CN.md) |
-| Rabbit | [README](app/rabbit/README.md) | [README](app/rabbit/README-zh_CN.md) |
-| Marksman | [README](app/marksman/README.md) | [README](app/marksman/README-zh_CN.md) |
+
+| 项目        | 英文                                | 中文                                      |
+| --------- | --------------------------------- | --------------------------------------- |
+| Goddess   | [README](app/goddess/README.md)   | [README](app/goddess/README-zh_CN.md)   |
+| Rabbit    | [README](app/rabbit/README.md)    | [README](app/rabbit/README-zh_CN.md)    |
+| Marksman  | [README](app/marksman/README.md)  | [README](app/marksman/README-zh_CN.md)  |
 | Jade Tree | [README](app/jade_tree/README.md) | [README](app/jade_tree/README-zh_CN.md) |
-| Magic Box | [README](magicbox/README.md) | [README](magicbox/README-zh_CN.md) |
+| Magic Box | [README](magicbox/README.md)      | [README](magicbox/README-zh_CN.md)      |
+
 
 ---
 
@@ -163,3 +158,4 @@ make gen
 
 - [Kratos](https://github.com/go-kratos/kratos) — Go 微服务框架
 - [Cobra](https://github.com/spf13/cobra) — Go CLI 库
+

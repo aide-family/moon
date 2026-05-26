@@ -18,18 +18,6 @@ service Alert {
 		};
 	}
 
-	rpc GetAlertRecord (GetAlertRecordRequest) returns (AlertRecordItem) {
-		option (google.api.http) = {
-			get: "/v1/alerts/{uid}"
-		};
-	}
-
-	rpc ListAlertRecords (ListAlertRecordsRequest) returns (ListAlertRecordsReply) {
-		option (google.api.http) = {
-			get: "/v1/alerts"
-		};
-	}
-
 	rpc CreateAlertSubscription (CreateAlertSubscriptionRequest) returns (CreateAlertSubscriptionReply) {
 		option (google.api.http) = {
 			post: "/v1/alert-subscriptions"
@@ -96,52 +84,6 @@ message ReceivePrometheusWebhookRequest {
 
 message ReceivePrometheusWebhookReply {
 	int64 total = 1;
-	repeated int64 uids = 2;
-}
-
-message AlertRecordItem {
-	int64 uid = 1;
-	string source = 2;
-	string receiver = 3;
-	string status = 4;
-	string fingerprint = 5;
-	string groupKey = 6;
-	string startsAt = 7;
-	string endsAt = 8;
-	string generatorURL = 9;
-	map<string, string> labels = 10;
-	map<string, string> annotations = 11;
-	string createdAt = 12;
-	string updatedAt = 13;
-	string raw = 14;
-}
-
-message GetAlertRecordRequest {
-	int64 uid = 1 [(buf.validate.field).required = true];
-}
-
-message ListAlertRecordsRequest {
-	int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		expression: "this >= 1",
-		message: "page must be greater than or equal to 1",
-	}];
-	int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
-		expression: "this >= 1 && this <= 200",
-		message: "pageSize must be greater than or equal to 1 and less than or equal to 200",
-	}];
-	string keyword = 3 [(buf.validate.field).cel = {
-		expression: "this.size() <= 200",
-		message: "keyword must be less than or equal to 200",
-	}];
-	string status = 4;
-	string fingerprint = 5;
-}
-
-message ListAlertRecordsReply {
-	repeated AlertRecordItem items = 1;
-	int64 total = 2;
-	int32 page = 3;
-	int32 pageSize = 4;
 }
 
 message AlertSubscriptionMemberRequest {

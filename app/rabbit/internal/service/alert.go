@@ -28,34 +28,13 @@ func (s *AlertService) ReceivePrometheusWebhook(ctx context.Context, req *apiv1.
 	}
 	ctx = contextx.WithNamespace(ctx, namespaceUID)
 	ctx = contextx.WithUserUID(ctx, namespaceUID)
-	uids, err := s.alertBiz.ReceivePrometheusWebhook(ctx, reqBo)
+	total, err := s.alertBiz.ReceivePrometheusWebhook(ctx, reqBo)
 	if err != nil {
 		return nil, err
-	}
-	out := make([]int64, 0, len(uids))
-	for _, uid := range uids {
-		out = append(out, uid.Int64())
 	}
 	return &apiv1.ReceivePrometheusWebhookReply{
-		Total: int64(len(out)),
-		Uids:  out,
+		Total: total,
 	}, nil
-}
-
-func (s *AlertService) GetAlertRecord(ctx context.Context, req *apiv1.GetAlertRecordRequest) (*apiv1.AlertRecordItem, error) {
-	item, err := s.alertBiz.GetAlertRecord(ctx, snowflake.ParseInt64(req.GetUid()))
-	if err != nil {
-		return nil, err
-	}
-	return item.ToAPIV1AlertRecordItem(), nil
-}
-
-func (s *AlertService) ListAlertRecords(ctx context.Context, req *apiv1.ListAlertRecordsRequest) (*apiv1.ListAlertRecordsReply, error) {
-	page, err := s.alertBiz.ListAlertRecord(ctx, bo.NewListAlertRecordBo(req))
-	if err != nil {
-		return nil, err
-	}
-	return bo.ToAPIV1ListAlertRecordsReply(page), nil
 }
 
 func (s *AlertService) CreateAlertSubscription(ctx context.Context, req *apiv1.CreateAlertSubscriptionRequest) (*apiv1.CreateAlertSubscriptionReply, error) {

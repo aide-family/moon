@@ -64,9 +64,9 @@ func (r *recipientGroupRepository) CreateRecipientGroup(ctx context.Context, req
 	for _, id := range req.WebhookConfigs {
 		webhooks = append(webhooks, &do.WebhookConfig{BaseModel: do.BaseModel{ID: snowflake.ParseInt64(id)}})
 	}
-	members := make([]*do.RecipientMember, 0, len(req.Members))
-	for _, id := range req.Members {
-		members = append(members, &do.RecipientMember{BaseModel: do.BaseModel{ID: snowflake.ParseInt64(id)}})
+	members, err := r.loadRecipientMembersForReplace(ctx, req.Members)
+	if err != nil {
+		return 0, err
 	}
 	err = r.DB().Transaction(func(tx *gorm.DB) error {
 		mutation := query.Use(tx).RecipientGroup
@@ -154,9 +154,9 @@ func (r *recipientGroupRepository) UpdateRecipientGroup(ctx context.Context, req
 		if err := mutation.Webhooks.WithContext(ctx).Model(group).Replace(webhooks...); err != nil {
 			return err
 		}
-		members := make([]*do.RecipientMember, 0, len(req.Members))
-		for _, id := range req.Members {
-			members = append(members, &do.RecipientMember{BaseModel: do.BaseModel{ID: snowflake.ParseInt64(id)}})
+		members, err := r.loadRecipientMembersForReplace(ctx, req.Members)
+		if err != nil {
+			return err
 		}
 		if err := mutation.Members.WithContext(ctx).Model(group).Replace(members...); err != nil {
 			return err
@@ -213,6 +213,28 @@ func (r *recipientGroupRepository) ListRecipientGroup(ctx context.Context, req *
 		items = append(items, convert.ToRecipientGroupItemBo(g))
 	}
 	return bo.NewPageResponseBo(req.PageRequestBo, items), nil
+}
+
+func (r *recipientGroupRepository) loadRecipientMembersForReplace(ctx context.Context, memberIDs []int64) ([]*do.RecipientMember, error) {
+	if len(memberIDs) == 0 {
+		return nil, nil
+	}
+	ns := contextx.GetNamespace(ctx)
+	ids := make([]int64, len(memberIDs))
+	for i, id := range memberIDs {
+		ids[i] = snowflake.ParseInt64(id).Int64()
+	}
+	list, err := query.RecipientMember.WithContext(ctx).Where(
+		query.RecipientMember.NamespaceUID.Eq(ns.Int64()),
+		query.RecipientMember.ID.In(ids...),
+	).Find()
+	if err != nil {
+		return nil, err
+	}
+	if len(list) != len(memberIDs) {
+		return nil, merr.ErrorInvalidArgument("recipient member not found")
+	}
+	return list, nil
 }
 
 func (r *recipientGroupRepository) SelectRecipientGroup(ctx context.Context, req *bo.SelectRecipientGroupBo) (*bo.SelectRecipientGroupBoResult, error) {

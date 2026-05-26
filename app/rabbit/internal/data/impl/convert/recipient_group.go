@@ -138,8 +138,5 @@ func ToRecipientGroupSelectItemBo(g *do.RecipientGroup) *bo.SelectRecipientGroup
 
 // ToRecipientGroupMetadata 用于 Update 的 metadata 字段
 func ToRecipientGroupMetadata(m map[string]string) *safety.Map[string, string] {
-	if m == nil {
-		return nil
-	}
 	return safety.NewMap(m)
 }

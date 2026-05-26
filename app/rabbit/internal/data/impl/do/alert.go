@@ -4,18 +4,15 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"time"
 
 	"github.com/bwmarrin/snowflake"
 	"gorm.io/gorm"
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/safety"
-	"github.com/aide-family/magicbox/strutil"
 )
 
 const (
-	TableNameAlertRecord       = "alert_records"
 	TableNameAlertSubscription = "alert_subscriptions"
 )
 
@@ -54,26 +51,6 @@ func (c *AlertSubscriptionMembers) Scan(value any) error {
 		return nil
 	}
 	return json.Unmarshal(b, c)
-}
-
-type AlertRecord struct {
-	BaseModel
-	NamespaceUID snowflake.ID                `gorm:"column:namespace_uid;index:idx_alert_records_namespace_uid_created_at"`
-	Source       string                      `gorm:"column:source;size:100"`
-	Receiver     string                      `gorm:"column:receiver;size:200"`
-	Status       string                      `gorm:"column:status;size:32;index:idx_alert_records_status"`
-	Fingerprint  string                      `gorm:"column:fingerprint;size:191;index:idx_alert_records_fingerprint"`
-	GroupKey     string                      `gorm:"column:group_key;size:500"`
-	StartsAt     time.Time                   `gorm:"column:starts_at;index:idx_alert_records_starts_at"`
-	EndsAt       *time.Time                  `gorm:"column:ends_at"`
-	GeneratorURL string                      `gorm:"column:generator_url;size:1000"`
-	Labels       *safety.Map[string, string] `gorm:"column:labels;type:json;"`
-	Annotations  *safety.Map[string, string] `gorm:"column:annotations;type:json;"`
-	Raw          strutil.EncryptString       `gorm:"column:raw"`
-}
-
-func (AlertRecord) TableName() string {
-	return TableNameAlertRecord
 }
 
 type AlertSubscription struct {

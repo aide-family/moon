@@ -9,7 +9,6 @@ import (
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
-	"github.com/aide-family/magicbox/strutil"
 	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 
@@ -93,7 +92,7 @@ func (b *ReceivePrometheusWebhookBo) NamespaceUID() (snowflake.ID, error) {
 	return 0, merr.ErrorParams("namespace_uid label is required")
 }
 
-type CreateAlertRecordBo struct {
+type AlertPayloadBo struct {
 	Source       string
 	Receiver     string
 	Status       string
@@ -104,72 +103,35 @@ type CreateAlertRecordBo struct {
 	GeneratorURL string
 	Labels       map[string]string
 	Annotations  map[string]string
-	Raw          strutil.EncryptString
 }
 
-type AlertRecordItemBo struct {
-	UID          snowflake.ID
-	Source       string
-	Receiver     string
-	Status       string
-	Fingerprint  string
-	GroupKey     string
-	StartsAt     time.Time
-	EndsAt       *time.Time
-	GeneratorURL string
-	Labels       map[string]string
-	Annotations  map[string]string
-	Raw          string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-}
-
-func (b *AlertRecordItemBo) ToAPIV1AlertRecordItem() *apiv1.AlertRecordItem {
-	return &apiv1.AlertRecordItem{
-		Uid:          b.UID.Int64(),
-		Source:       b.Source,
-		Receiver:     b.Receiver,
-		Status:       b.Status,
-		Fingerprint:  b.Fingerprint,
-		GroupKey:     b.GroupKey,
-		StartsAt:     timex.FormatTime(&b.StartsAt),
-		EndsAt:       timex.FormatTime(b.EndsAt),
-		GeneratorURL: b.GeneratorURL,
-		Labels:       b.Labels,
-		Annotations:  b.Annotations,
-		CreatedAt:    timex.FormatTime(&b.CreatedAt),
-		UpdatedAt:    timex.FormatTime(&b.UpdatedAt),
-		Raw:          b.Raw,
+func NewAlertPayloadBo(req *ReceivePrometheusWebhookBo, alert *PrometheusAlertItemBo) *AlertPayloadBo {
+	if req == nil || alert == nil {
+		return nil
+	}
+	return &AlertPayloadBo{
+		Source:       req.Source,
+		Receiver:     req.Receiver,
+		Status:       alert.Status,
+		Fingerprint:  alert.Fingerprint,
+		GroupKey:     req.GroupKey,
+		StartsAt:     alert.StartsAt,
+		EndsAt:       alert.EndsAt,
+		GeneratorURL: alert.GeneratorURL,
+		Labels:       mergeStringMap(req.CommonLabels, alert.Labels),
+		Annotations:  mergeStringMap(req.CommonAnnotations, alert.Annotations),
 	}
 }
 
-type ListAlertRecordBo struct {
-	*PageRequestBo
-	Keyword     string
-	Status      string
-	Fingerprint string
-}
-
-func NewListAlertRecordBo(req *apiv1.ListAlertRecordsRequest) *ListAlertRecordBo {
-	return &ListAlertRecordBo{
-		PageRequestBo: NewPageRequestBo(req.GetPage(), req.GetPageSize()),
-		Keyword:       req.GetKeyword(),
-		Status:        req.GetStatus(),
-		Fingerprint:   req.GetFingerprint(),
+func mergeStringMap(base map[string]string, extra map[string]string) map[string]string {
+	result := make(map[string]string, len(base)+len(extra))
+	for key, value := range base {
+		result[key] = value
 	}
-}
-
-func ToAPIV1ListAlertRecordsReply(page *PageResponseBo[*AlertRecordItemBo]) *apiv1.ListAlertRecordsReply {
-	items := make([]*apiv1.AlertRecordItem, 0, len(page.GetItems()))
-	for _, item := range page.GetItems() {
-		items = append(items, item.ToAPIV1AlertRecordItem())
+	for key, value := range extra {
+		result[key] = value
 	}
-	return &apiv1.ListAlertRecordsReply{
-		Items:    items,
-		Total:    page.GetTotal(),
-		Page:     page.GetPage(),
-		PageSize: page.GetPageSize(),
-	}
+	return result
 }
 
 type AlertSubscriptionMemberBo struct {
@@ -373,49 +335,48 @@ func (b *AlertSubscriptionItemBo) DirectEmailEnabled() bool {
 	})
 }
 
-func BuildAlertTemplateData(record *AlertRecordItemBo) string {
-	payload, _ := stdjson.Marshal(map[string]any{
-		"uid":         record.UID.Int64(),
-		"source":      record.Source,
-		"receiver":    record.Receiver,
-		"status":      record.Status,
-		"fingerprint": record.Fingerprint,
-		"groupKey":    record.GroupKey,
-		"startsAt":    timex.FormatTime(&record.StartsAt),
-		"endsAt":      timex.FormatTime(record.EndsAt),
-		"generatorURL": record.GeneratorURL,
-		"labels":      record.Labels,
-		"annotations": record.Annotations,
+func BuildAlertTemplateData(payload *AlertPayloadBo) string {
+	payloadJSON, _ := stdjson.Marshal(map[string]any{
+		"source":       payload.Source,
+		"receiver":     payload.Receiver,
+		"status":       payload.Status,
+		"fingerprint":  payload.Fingerprint,
+		"groupKey":     payload.GroupKey,
+		"startsAt":     timex.FormatTime(&payload.StartsAt),
+		"endsAt":       timex.FormatTime(payload.EndsAt),
+		"generatorURL": payload.GeneratorURL,
+		"labels":       payload.Labels,
+		"annotations":  payload.Annotations,
 	})
-	return string(payload)
+	return string(payloadJSON)
 }
 
-func BuildDefaultAlertSubject(record *AlertRecordItemBo) string {
-	alertName := record.Labels["alertname"]
+func BuildDefaultAlertSubject(payload *AlertPayloadBo) string {
+	alertName := payload.Labels["alertname"]
 	if alertName == "" {
-		alertName = record.Fingerprint
+		alertName = payload.Fingerprint
 	}
-	return strings.ToUpper(record.Status) + " " + alertName
+	return strings.ToUpper(payload.Status) + " " + alertName
 }
 
-func BuildDefaultAlertBody(record *AlertRecordItemBo) string {
+func BuildDefaultAlertBody(payload *AlertPayloadBo) string {
 	builder := strings.Builder{}
-	builder.WriteString("Status: " + record.Status + "\n")
-	builder.WriteString("Fingerprint: " + record.Fingerprint + "\n")
-	if summary := record.Annotations["summary"]; summary != "" {
+	builder.WriteString("Status: " + payload.Status + "\n")
+	builder.WriteString("Fingerprint: " + payload.Fingerprint + "\n")
+	if summary := payload.Annotations["summary"]; summary != "" {
 		builder.WriteString("Summary: " + summary + "\n")
 	}
-	if description := record.Annotations["description"]; description != "" {
+	if description := payload.Annotations["description"]; description != "" {
 		builder.WriteString("Description: " + description + "\n")
 	}
 	builder.WriteString("Labels:\n")
-	keys := make([]string, 0, len(record.Labels))
-	for key := range record.Labels {
+	keys := make([]string, 0, len(payload.Labels))
+	for key := range payload.Labels {
 		keys = append(keys, key)
 	}
 	slices.Sort(keys)
 	for _, key := range keys {
-		builder.WriteString("- " + key + "=" + record.Labels[key] + "\n")
+		builder.WriteString("- " + key + "=" + payload.Labels[key] + "\n")
 	}
 	return builder.String()
 }
