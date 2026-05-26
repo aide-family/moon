@@ -48,12 +48,17 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
+	rabbitAlert, err := impl.NewRabbitAlertRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	strategy, err := impl.NewStrategyRepository(dataData)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	alertEventConsumer := biz.NewAlertEventConsumer(helper, alertEvent, strategy, alertingEventChannel)
+	alertEventConsumer := biz.NewAlertEventConsumer(helper, alertEvent, rabbitAlert, strategy, alertingEventChannel)
 	consumerServer := cron.NewConsumerServer(alertEventChannel, alertingEventChannel, alertEventConsumer, helper)
 	servers := server.RegisterAlertCronService(producerServer, consumerServer)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)

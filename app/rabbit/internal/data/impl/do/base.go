@@ -12,6 +12,8 @@ import (
 
 func Models() []any {
 	return []any{
+		&AlertRecord{},
+		&AlertSubscription{},
 		&EmailConfig{},
 		&MessageLog{},
 		&MessageRetryLog{},

@@ -19,12 +19,14 @@ func NewAlerting(
 	info *bo.AlertEventBo,
 	alertEventRepo repository.AlertEvent,
 	alertingEventChannelRepo repository.AlertingEventChannel,
+	onRecovered func(ctx context.Context, uid snowflake.ID) error,
 ) cron.CronJob {
 	return &alerting{
 		alertEventUID:            alertEventUID,
 		info:                     info,
 		alertEventRepo:           alertEventRepo,
 		alertingEventChannelRepo: alertingEventChannelRepo,
+		onRecovered:              onRecovered,
 	}
 }
 
@@ -33,6 +35,7 @@ type alerting struct {
 	info                     *bo.AlertEventBo
 	alertEventRepo           repository.AlertEvent
 	alertingEventChannelRepo repository.AlertingEventChannel
+	onRecovered              func(ctx context.Context, uid snowflake.ID) error
 }
 
 // Index implements [cron.CronJob].
@@ -62,6 +65,11 @@ func (a *alerting) Run() {
 	if err := a.alertEventRepo.AutoRecoverAlert(ctx, a.alertEventUID); err != nil {
 		klog.Errorw("msg", "auto recover alert failed", "error", err, "alertEventUID", a.alertEventUID.Int64())
 		return
+	}
+	if a.onRecovered != nil {
+		if err := a.onRecovered(ctx, a.alertEventUID); err != nil {
+			klog.Errorw("msg", "push recovered alert to rabbit failed", "error", err, "alertEventUID", a.alertEventUID.Int64())
+		}
 	}
 	a.alertingEventChannelRepo.Remove(a.Index())
 }

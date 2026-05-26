@@ -67,6 +67,7 @@ type AlertEventItemBo struct {
 	Expr                string
 	FiredAt             time.Time
 	Value               float64
+	Fingerprint         string
 	Labels              map[string]string
 	EvaluatorType       string
 	EvaluatorSnapshotID snowflake.ID

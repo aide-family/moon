@@ -62,12 +62,17 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
+	rabbitAlert, err := impl.NewRabbitAlertRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	strategy, err := impl.NewStrategyRepository(dataData)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	alertEventConsumer := biz.NewAlertEventConsumer(helper, alertEvent, strategy, alertingEventChannel)
+	alertEventConsumer := biz.NewAlertEventConsumer(helper, alertEvent, rabbitAlert, strategy, alertingEventChannel)
 	consumerServer := cron.NewConsumerServer(alertEventChannel, alertingEventChannel, alertEventConsumer, helper)
 	loginRepository, err := impl.NewLoginRepository(bc, dataData)
 	if err != nil {
@@ -140,7 +145,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		return nil, nil, err
 	}
 	alertPageBiz := biz.NewAlertPage(alertPage, userAlertPage, helper)
-	alertBiz := biz.NewAlert(alertPage, alertEvent, userAlertPage, level, member, helper)
+	alertBiz := biz.NewAlert(alertPage, alertEvent, userAlertPage, level, member, rabbitAlert, helper)
 	alertService := service.NewAlertService(alertPageBiz, alertBiz)
 	notificationGroup, err := impl.NewNotificationGroupRepository(dataData)
 	if err != nil {
@@ -164,19 +169,12 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	}
 	notificationGroupBiz := biz.NewNotificationGroup(notificationGroup, member, rabbitWebhook, rabbitTemplate, rabbitEmail, helper)
 	notificationGroupService := service.NewNotificationGroupService(notificationGroupBiz)
-	notificationGroupSubscription, err := impl.NewNotificationGroupSubscriptionRepository(dataData)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	notificationGroupSubscriptionBiz := biz.NewNotificationGroupSubscriptionBiz(notificationGroup, notificationGroupSubscription, helper)
-	notificationGroupSubscriptionService := service.NewNotificationGroupSubscriptionService(notificationGroupSubscriptionBiz)
 	rabbitSender, err := impl.NewRabbitSenderRepository(bc, dataData)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	servers := server.RegisterService(datasourceMetricsReg, bc, httpServer, grpcServer, producerServer, consumerServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, metricQueryService, strategyService, strategyMetricService, alertService, notificationGroupService, notificationGroupSubscriptionService, rabbitWebhook, rabbitTemplate, rabbitSender)
+	servers := server.RegisterService(datasourceMetricsReg, bc, httpServer, grpcServer, producerServer, consumerServer, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, levelService, datasourceService, metricQueryService, strategyService, strategyMetricService, alertService, notificationGroupService, rabbitWebhook, rabbitTemplate, rabbitSender)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

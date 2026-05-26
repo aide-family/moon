@@ -35,6 +35,7 @@ func ToAlertEventItemBo(m *do.AlertEvent) *bo.AlertEventItemBo {
 		Expr:                m.Expr,
 		FiredAt:             m.FiredAt,
 		Value:               m.Value,
+		Fingerprint:         m.Fingerprint,
 		Labels:              labels,
 		EvaluatorType:       m.EvaluatorType,
 		EvaluatorSnapshotID: m.EvaluatorSnapshotID,

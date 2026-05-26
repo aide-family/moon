@@ -105,6 +105,7 @@ func RegisterService(
 	templateService *service.TemplateService,
 	messageLogService *service.MessageLogService,
 	recipientGroupService *service.RecipientGroupService,
+	alertService *service.AlertService,
 ) Servers {
 	var srvs Servers
 
@@ -122,6 +123,7 @@ func RegisterService(
 		templateService,
 		messageLogService,
 		recipientGroupService,
+		alertService,
 	)...)
 	srvs = append(srvs, RegisterGRPCService(c, grpcSrv,
 		healthService,
@@ -137,6 +139,7 @@ func RegisterService(
 		templateService,
 		messageLogService,
 		recipientGroupService,
+		alertService,
 	)...)
 	srvs = append(srvs, RegisterJobService(jobSrv)...)
 	return srvs
@@ -159,6 +162,7 @@ func RegisterHTTPService(
 	templateService *service.TemplateService,
 	messageLogService *service.MessageLogService,
 	recipientGroupService *service.RecipientGroupService,
+	alertService *service.AlertService,
 ) Servers {
 	magicboxapiv1.RegisterHealthHTTPServer(httpSrv, healthService)
 	goddessv1.RegisterNamespaceHTTPServer(httpSrv, namespaceService)
@@ -173,6 +177,7 @@ func RegisterHTTPService(
 	apiv1.RegisterTemplateHTTPServer(httpSrv, templateService)
 	apiv1.RegisterMessageLogHTTPServer(httpSrv, messageLogService)
 	apiv1.RegisterRecipientGroupServiceHTTPServer(httpSrv, recipientGroupService)
+	apiv1.RegisterAlertHTTPServer(httpSrv, alertService)
 
 	oauth2Handler := oauth.NewOAuth2Handler(c.GetOauth2(), authService.Login)
 	if err := oauth2Handler.Handler(httpSrv); err != nil {
@@ -198,6 +203,7 @@ func RegisterGRPCService(
 	templateService *service.TemplateService,
 	messageLogService *service.MessageLogService,
 	recipientGroupService *service.RecipientGroupService,
+	alertService *service.AlertService,
 ) Servers {
 	magicboxapiv1.RegisterHealthServer(grpcSrv, healthService)
 	goddessv1.RegisterNamespaceServer(grpcSrv, namespaceService)
@@ -212,6 +218,7 @@ func RegisterGRPCService(
 	apiv1.RegisterTemplateServer(grpcSrv, templateService)
 	apiv1.RegisterMessageLogServer(grpcSrv, messageLogService)
 	apiv1.RegisterRecipientGroupServiceServer(grpcSrv, recipientGroupService)
+	apiv1.RegisterAlertServer(grpcSrv, alertService)
 	return Servers{newServer("grpc", grpcSrv)}
 }
 
@@ -244,4 +251,5 @@ var authAllowList = []string{
 	goddessv1.OperationAuthServiceSendEmailLoginCode,
 	goddessv1.OperationCaptchaGetCaptcha,
 	goddessv1.OperationNamespaceGetNamespaceSimple,
+	apiv1.OperationAlertReceivePrometheusWebhook,
 }

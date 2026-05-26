@@ -128,7 +128,12 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	alertBiz := biz.NewAlert(alertPage, alertEvent, userAlertPage, level, member, helper)
+	rabbitAlert, err := impl.NewRabbitAlertRepository(bc, dataData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	alertBiz := biz.NewAlert(alertPage, alertEvent, userAlertPage, level, member, rabbitAlert, helper)
 	alertService := service.NewAlertService(alertPageBiz, alertBiz)
 	notificationGroup, err := impl.NewNotificationGroupRepository(dataData)
 	if err != nil {
@@ -152,19 +157,12 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	}
 	notificationGroupBiz := biz.NewNotificationGroup(notificationGroup, member, rabbitWebhook, rabbitTemplate, rabbitEmail, helper)
 	notificationGroupService := service.NewNotificationGroupService(notificationGroupBiz)
-	notificationGroupSubscription, err := impl.NewNotificationGroupSubscriptionRepository(dataData)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	notificationGroupSubscriptionBiz := biz.NewNotificationGroupSubscriptionBiz(notificationGroup, notificationGroupSubscription, helper)
-	notificationGroupSubscriptionService := service.NewNotificationGroupSubscriptionService(notificationGroupSubscriptionBiz)
 	rabbitSender, err := impl.NewRabbitSenderRepository(bc, dataData)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	servers := server.RegisterGRPCService(bc, grpcServer, healthService, namespaceService, authService, selfService, userService, memberService, captchaService, levelService, datasourceService, metricQueryService, strategyService, strategyMetricService, alertService, notificationGroupService, notificationGroupSubscriptionService, rabbitWebhook, rabbitTemplate, rabbitSender)
+	servers := server.RegisterGRPCService(bc, grpcServer, healthService, namespaceService, authService, selfService, userService, memberService, captchaService, levelService, datasourceService, metricQueryService, strategyService, strategyMetricService, alertService, notificationGroupService, rabbitWebhook, rabbitTemplate, rabbitSender)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

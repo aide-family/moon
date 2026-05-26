@@ -6,6 +6,208 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /v1/alert-subscriptions:
+        get:
+            tags:
+                - Alert
+            operationId: Alert_ListAlertSubscriptions
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.ListAlertSubscriptionsReply'
+        post:
+            tags:
+                - Alert
+            operationId: Alert_CreateAlertSubscription
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.CreateAlertSubscriptionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.CreateAlertSubscriptionReply'
+    /v1/alert-subscriptions/{uid}:
+        get:
+            tags:
+                - Alert
+            operationId: Alert_GetAlertSubscription
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.AlertSubscriptionItem'
+        put:
+            tags:
+                - Alert
+            operationId: Alert_UpdateAlertSubscription
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.UpdateAlertSubscriptionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.UpdateAlertSubscriptionReply'
+        delete:
+            tags:
+                - Alert
+            operationId: Alert_DeleteAlertSubscription
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.DeleteAlertSubscriptionReply'
+    /v1/alert-subscriptions/{uid}/status:
+        put:
+            tags:
+                - Alert
+            operationId: Alert_UpdateAlertSubscriptionStatus
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.UpdateAlertSubscriptionStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.UpdateAlertSubscriptionStatusReply'
+    /v1/alerts:
+        get:
+            tags:
+                - Alert
+            operationId: Alert_ListAlertRecords
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: string
+                - name: fingerprint
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.ListAlertRecordsReply'
+    /v1/alerts/prometheus/webhook:
+        post:
+            tags:
+                - Alert
+            operationId: Alert_ReceivePrometheusWebhook
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/rabbit.api.v1.ReceivePrometheusWebhookRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.ReceivePrometheusWebhookReply'
+    /v1/alerts/{uid}:
+        get:
+            tags:
+                - Alert
+            operationId: Alert_GetAlertRecord
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rabbit.api.v1.AlertRecordItem'
     /v1/email/config:
         post:
             tags:
@@ -948,6 +1150,107 @@ components:
                 role:
                     type: integer
                     format: enum
+        rabbit.api.v1.AlertRecordItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                source:
+                    type: string
+                receiver:
+                    type: string
+                status:
+                    type: string
+                fingerprint:
+                    type: string
+                groupKey:
+                    type: string
+                startsAt:
+                    type: string
+                endsAt:
+                    type: string
+                generatorURL:
+                    type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                raw:
+                    type: string
+        rabbit.api.v1.AlertSubscriptionItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                remark:
+                    type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                excludeLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                recipientGroupUids:
+                    type: array
+                    items:
+                        type: string
+                members:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.AlertSubscriptionMemberItem'
+                directMemberEmailConfigUid:
+                    type: string
+                directMemberTemplateUid:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+        rabbit.api.v1.AlertSubscriptionMemberItem:
+            type: object
+            properties:
+                memberUid:
+                    type: string
+                isEmail:
+                    type: boolean
+                isSms:
+                    type: boolean
+                isPhone:
+                    type: boolean
+                memberName:
+                    type: string
+                memberAvatar:
+                    type: string
+                memberEmail:
+                    type: string
+                memberPhone:
+                    type: string
+        rabbit.api.v1.AlertSubscriptionMemberRequest:
+            type: object
+            properties:
+                memberUid:
+                    type: string
+                isEmail:
+                    type: boolean
+                isSms:
+                    type: boolean
+                isPhone:
+                    type: boolean
         rabbit.api.v1.CancelMessageLogReply:
             type: object
             properties: {}
@@ -955,6 +1258,38 @@ components:
             type: object
             properties:
                 uid:
+                    type: string
+        rabbit.api.v1.CreateAlertSubscriptionReply:
+            type: object
+            properties:
+                uid:
+                    type: string
+        rabbit.api.v1.CreateAlertSubscriptionRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                remark:
+                    type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                excludeLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                recipientGroupUids:
+                    type: array
+                    items:
+                        type: string
+                members:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.AlertSubscriptionMemberRequest'
+                directMemberEmailConfigUid:
+                    type: string
+                directMemberTemplateUid:
                     type: string
         rabbit.api.v1.CreateEmailConfigReply:
             type: object
@@ -1052,6 +1387,9 @@ components:
                         type: string
                 secret:
                     type: string
+        rabbit.api.v1.DeleteAlertSubscriptionReply:
+            type: object
+            properties: {}
         rabbit.api.v1.DeleteEmailConfigReply:
             type: object
             properties: {}
@@ -1108,6 +1446,36 @@ components:
             properties:
                 uid:
                     type: string
+        rabbit.api.v1.ListAlertRecordsReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.AlertRecordItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        rabbit.api.v1.ListAlertSubscriptionsReply:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.AlertSubscriptionItem'
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
         rabbit.api.v1.ListEmailConfigReply:
             type: object
             properties:
@@ -1208,6 +1576,70 @@ components:
                 createdAt:
                     type: string
                 updatedAt:
+                    type: string
+        rabbit.api.v1.PrometheusAlertItem:
+            type: object
+            properties:
+                status:
+                    type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                startsAt:
+                    type: string
+                endsAt:
+                    type: string
+                generatorURL:
+                    type: string
+                fingerprint:
+                    type: string
+        rabbit.api.v1.ReceivePrometheusWebhookReply:
+            type: object
+            properties:
+                total:
+                    type: string
+                uids:
+                    type: array
+                    items:
+                        type: string
+        rabbit.api.v1.ReceivePrometheusWebhookRequest:
+            type: object
+            properties:
+                version:
+                    type: string
+                groupKey:
+                    type: string
+                status:
+                    type: string
+                receiver:
+                    type: string
+                externalURL:
+                    type: string
+                groupLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                commonLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                commonAnnotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                alerts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.PrometheusAlertItem'
+                truncatedAlerts:
+                    type: integer
+                    format: int32
+                source:
                     type: string
         rabbit.api.v1.RecipientGroupItem:
             type: object
@@ -1410,6 +1842,49 @@ components:
                     type: boolean
                 tooltip:
                     type: string
+        rabbit.api.v1.UpdateAlertSubscriptionReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.UpdateAlertSubscriptionRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                remark:
+                    type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                excludeLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                recipientGroupUids:
+                    type: array
+                    items:
+                        type: string
+                members:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.AlertSubscriptionMemberRequest'
+                directMemberEmailConfigUid:
+                    type: string
+                directMemberTemplateUid:
+                    type: string
+        rabbit.api.v1.UpdateAlertSubscriptionStatusReply:
+            type: object
+            properties: {}
+        rabbit.api.v1.UpdateAlertSubscriptionStatusRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
         rabbit.api.v1.UpdateEmailConfigReply:
             type: object
             properties: {}
@@ -1593,6 +2068,7 @@ components:
                     type: integer
                     format: enum
 tags:
+    - name: Alert
     - name: Email
     - name: Job
     - name: MessageLog

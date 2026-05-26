@@ -20,6 +20,7 @@ func NewAlert(
 	userAlertPageRepo repository.UserAlertPage,
 	levelRepo repository.Level,
 	memberRepo repository.Member,
+	rabbitAlertRepo repository.RabbitAlert,
 	helper *klog.Helper,
 ) *AlertBiz {
 	return &AlertBiz{
@@ -28,6 +29,7 @@ func NewAlert(
 		userAlertPageRepo: userAlertPageRepo,
 		levelRepo:         levelRepo,
 		memberRepo:        memberRepo,
+		rabbitAlertRepo:   rabbitAlertRepo,
 		helper:            klog.NewHelper(klog.With(helper.Logger(), "biz", "alert")),
 	}
 }
@@ -38,6 +40,7 @@ type AlertBiz struct {
 	userAlertPageRepo repository.UserAlertPage
 	levelRepo         repository.Level
 	memberRepo        repository.Member
+	rabbitAlertRepo   repository.RabbitAlert
 	helper            *klog.Helper
 }
 
@@ -137,6 +140,7 @@ func (b *AlertBiz) RecoverAlert(ctx context.Context, req *bo.RecoverAlertBo) err
 		b.helper.Errorw("msg", "recover alert failed", "error", err, "uid", req.UID.Int64())
 		return merr.ErrorInternalServer("recover alert failed").WithCause(err)
 	}
+	b.pushRecoveredAlertByUID(ctx, req.UID)
 	return nil
 }
 
@@ -167,6 +171,9 @@ func (b *AlertBiz) BatchRecoverAlert(ctx context.Context, req *bo.BatchRecoverAl
 		}
 		b.helper.Errorw("msg", "batch recover alert failed", "error", err)
 		return merr.ErrorInternalServer("batch recover alert failed").WithCause(err)
+	}
+	for _, uid := range req.UIDs {
+		b.pushRecoveredAlertByUID(ctx, uid)
 	}
 	return nil
 }
@@ -259,4 +266,19 @@ func (b *AlertBiz) GetAlertStatistics(ctx context.Context) (*bo.AlertStatisticsB
 	}
 
 	return stats, nil
+}
+
+func (b *AlertBiz) pushRecoveredAlertByUID(ctx context.Context, uid snowflake.ID) {
+	item, err := b.alertEventRepo.GetAlertEvent(ctx, uid)
+	if err != nil {
+		b.helper.WithContext(ctx).Warnw("msg", "get recovered alert event failed", "error", err, "uid", uid.Int64())
+		return
+	}
+	req := bo.NewRabbitReceivePrometheusWebhookRequestFromAlertEventItem(item)
+	if req == nil {
+		return
+	}
+	if _, err := b.rabbitAlertRepo.ReceivePrometheusWebhook(ctx, req); err != nil {
+		b.helper.WithContext(ctx).Warnw("msg", "push recovered alert to rabbit failed", "error", err, "uid", uid.Int64())
+	}
 }

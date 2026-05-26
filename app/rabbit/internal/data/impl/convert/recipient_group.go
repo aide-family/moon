@@ -28,11 +28,39 @@ func ToRecipientGroupItemBo(g *do.RecipientGroup) *bo.RecipientGroupItemBo {
 	if g.Metadata != nil {
 		metadata = g.Metadata.Map()
 	}
+	templates := make([]*bo.TemplateItemBo, 0, len(g.Templates))
+	for _, item := range g.Templates {
+		if item != nil {
+			templates = append(templates, ToTemplateItemBo(item))
+		}
+	}
+	emailConfigs := make([]*bo.EmailConfigItemBo, 0, len(g.EmailConfigs))
+	for _, item := range g.EmailConfigs {
+		if item != nil {
+			emailConfigs = append(emailConfigs, ToEmailConfigBO(item))
+		}
+	}
+	webhookConfigs := make([]*bo.WebhookItemBo, 0, len(g.Webhooks))
+	for _, item := range g.Webhooks {
+		if item != nil {
+			webhookConfigs = append(webhookConfigs, ToWebhookConfigItemBo(item))
+		}
+	}
+	members := make([]*bo.RecipientMemberItemBo, 0, len(g.Members))
+	for _, item := range g.Members {
+		if item != nil {
+			members = append(members, ToRecipientMemberBO(item))
+		}
+	}
 	return &bo.RecipientGroupItemBo{
-		UID:      g.ID,
-		Name:     g.Name,
-		Metadata: metadata,
-		Status:   g.Status,
+		UID:            g.ID,
+		Name:           g.Name,
+		Metadata:       metadata,
+		Status:         g.Status,
+		Templates:      templates,
+		EmailConfigs:   emailConfigs,
+		WebhookConfigs: webhookConfigs,
+		Members:        members,
 	}
 }
 

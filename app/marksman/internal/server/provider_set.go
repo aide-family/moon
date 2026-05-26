@@ -134,7 +134,6 @@ func RegisterService(
 	strategyMetricService *service.StrategyMetricService,
 	alertService *service.AlertService,
 	notificationGroupService *service.NotificationGroupService,
-	notificationGroupSubscriptionService *service.NotificationGroupSubscriptionService,
 	rabbitWebhook repository.RabbitWebhook,
 	rabbitTemplate repository.RabbitTemplate,
 	rabbitSender repository.RabbitSender,
@@ -157,7 +156,6 @@ func RegisterService(
 		strategyMetricService,
 		alertService,
 		notificationGroupService,
-		notificationGroupSubscriptionService,
 		rabbitWebhook,
 		rabbitTemplate,
 		rabbitSender,
@@ -178,7 +176,6 @@ func RegisterService(
 		strategyMetricService,
 		alertService,
 		notificationGroupService,
-		notificationGroupSubscriptionService,
 		rabbitWebhook,
 		rabbitTemplate,
 		rabbitSender,
@@ -205,7 +202,6 @@ func RegisterHTTPService(
 	strategyMetricService *service.StrategyMetricService,
 	alertService *service.AlertService,
 	notificationGroupService *service.NotificationGroupService,
-	notificationGroupSubscriptionService *service.NotificationGroupSubscriptionService,
 	rabbitWebhook repository.RabbitWebhook,
 	rabbitTemplate repository.RabbitTemplate,
 	rabbitSender repository.RabbitSender,
@@ -224,7 +220,6 @@ func RegisterHTTPService(
 	apiv1.RegisterStrategyMetricHTTPServer(httpSrv, strategyMetricService)
 	apiv1.RegisterAlertHTTPServer(httpSrv, alertService)
 	apiv1.RegisterNotificationGroupHTTPServer(httpSrv, notificationGroupService)
-	apiv1.RegisterNotificationGroupSubscriptionHTTPServer(httpSrv, notificationGroupSubscriptionService)
 	rabbitv1.RegisterWebhookHTTPServer(httpSrv, rabbitWebhook)
 	rabbitv1.RegisterTemplateHTTPServer(httpSrv, rabbitTemplate)
 	rabbitv1.RegisterSenderHTTPServer(httpSrv, rabbitSender)
@@ -263,7 +258,6 @@ func RegisterGRPCService(
 	strategyMetricService *service.StrategyMetricService,
 	alertService *service.AlertService,
 	notificationGroupService *service.NotificationGroupService,
-	notificationGroupSubscriptionService *service.NotificationGroupSubscriptionService,
 	rabbitWebhook repository.RabbitWebhook,
 	rabbitTemplate repository.RabbitTemplate,
 	rabbitSender repository.RabbitSender,
@@ -282,7 +276,6 @@ func RegisterGRPCService(
 	apiv1.RegisterStrategyMetricServer(grpcSrv, strategyMetricService)
 	apiv1.RegisterAlertServer(grpcSrv, alertService)
 	apiv1.RegisterNotificationGroupServer(grpcSrv, notificationGroupService)
-	apiv1.RegisterNotificationGroupSubscriptionServer(grpcSrv, notificationGroupSubscriptionService)
 	rabbitv1.RegisterWebhookServer(grpcSrv, rabbitWebhook)
 	rabbitv1.RegisterTemplateServer(grpcSrv, rabbitTemplate)
 	rabbitv1.RegisterSenderServer(grpcSrv, rabbitSender)

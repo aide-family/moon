@@ -18,6 +18,8 @@ var ProviderSetImpl = wire.NewSet(
 	NewMessageRepository,
 	NewTemplateRepository,
 	NewMessageRetryLogRepository,
+	NewAlertRecordRepository,
+	NewAlertSubscriptionRepository,
 	NewRecipientGroupRepository,
 	NewRecipientMemberRepository,
 )

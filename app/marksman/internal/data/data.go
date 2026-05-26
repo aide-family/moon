@@ -10,6 +10,7 @@ import (
 	_ "github.com/aide-family/goddess/domain/namespace/v1"
 	_ "github.com/aide-family/goddess/domain/self/v1"
 	_ "github.com/aide-family/goddess/domain/user/v1"
+	_ "github.com/aide-family/rabbit/domain/alert/v1"
 	_ "github.com/aide-family/rabbit/domain/sender/v1"
 	_ "github.com/aide-family/rabbit/domain/email/v1"
 	_ "github.com/aide-family/rabbit/domain/template/v1"

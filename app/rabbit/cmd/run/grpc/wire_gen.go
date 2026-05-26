@@ -118,7 +118,11 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	recipientMember := impl.NewRecipientMemberRepository(dataData)
 	bizRecipientGroup := biz.NewRecipientGroup(member, recipientGroup, recipientMember, helper)
 	recipientGroupService := service.NewRecipientGroupService(bizRecipientGroup)
-	servers := server.RegisterGRPCService(bc, grpcServer, healthService, namespaceService, authService, selfService, userService, memberService, captchaService, emailService, webhookService, senderService, templateService, messageLogService, recipientGroupService)
+	alertRecord := impl.NewAlertRecordRepository(dataData)
+	alertSubscription := impl.NewAlertSubscriptionRepository(dataData)
+	alert := biz.NewAlert(alertRecord, alertSubscription, member, bizRecipientGroup, email, webhook, helper)
+	alertService := service.NewAlertService(alert)
+	servers := server.RegisterGRPCService(bc, grpcServer, healthService, namespaceService, authService, selfService, userService, memberService, captchaService, emailService, webhookService, senderService, templateService, messageLogService, recipientGroupService, alertService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)
 	if err != nil {
 		cleanup()

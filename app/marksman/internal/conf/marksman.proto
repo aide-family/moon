@@ -36,6 +36,7 @@ message Bootstrap {
 	magicbox.config.DomainConfig messageTemplateDomain = 24;
 	magicbox.config.DomainConfig senderDomain = 25;
 	magicbox.config.DomainConfig emailDomain = 26;
+	magicbox.config.DomainConfig alertDomain = 27;
 }
 
 // EvaluateConfig configures the metric evaluate cron: concurrency, timeouts and job channel capacity.

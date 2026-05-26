@@ -1,0 +1,256 @@
+syntax = "proto3";
+
+package rabbit.api.v1;
+
+option go_package = "github.com/aide-family/rabbit/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "rabbit.api.v1";
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "magicbox/enum/enum.proto";
+
+service Alert {
+	rpc ReceivePrometheusWebhook (ReceivePrometheusWebhookRequest) returns (ReceivePrometheusWebhookReply) {
+		option (google.api.http) = {
+			post: "/v1/alerts/prometheus/webhook"
+			body: "*"
+		};
+	}
+
+	rpc GetAlertRecord (GetAlertRecordRequest) returns (AlertRecordItem) {
+		option (google.api.http) = {
+			get: "/v1/alerts/{uid}"
+		};
+	}
+
+	rpc ListAlertRecords (ListAlertRecordsRequest) returns (ListAlertRecordsReply) {
+		option (google.api.http) = {
+			get: "/v1/alerts"
+		};
+	}
+
+	rpc CreateAlertSubscription (CreateAlertSubscriptionRequest) returns (CreateAlertSubscriptionReply) {
+		option (google.api.http) = {
+			post: "/v1/alert-subscriptions"
+			body: "*"
+		};
+	}
+
+	rpc UpdateAlertSubscription (UpdateAlertSubscriptionRequest) returns (UpdateAlertSubscriptionReply) {
+		option (google.api.http) = {
+			put: "/v1/alert-subscriptions/{uid}"
+			body: "*"
+		};
+	}
+
+	rpc DeleteAlertSubscription (DeleteAlertSubscriptionRequest) returns (DeleteAlertSubscriptionReply) {
+		option (google.api.http) = {
+			delete: "/v1/alert-subscriptions/{uid}"
+		};
+	}
+
+	rpc GetAlertSubscription (GetAlertSubscriptionRequest) returns (AlertSubscriptionItem) {
+		option (google.api.http) = {
+			get: "/v1/alert-subscriptions/{uid}"
+		};
+	}
+
+	rpc ListAlertSubscriptions (ListAlertSubscriptionsRequest) returns (ListAlertSubscriptionsReply) {
+		option (google.api.http) = {
+			get: "/v1/alert-subscriptions"
+		};
+	}
+
+	rpc UpdateAlertSubscriptionStatus (UpdateAlertSubscriptionStatusRequest) returns (UpdateAlertSubscriptionStatusReply) {
+		option (google.api.http) = {
+			put: "/v1/alert-subscriptions/{uid}/status"
+			body: "*"
+		};
+	}
+}
+
+message PrometheusAlertItem {
+	string status = 1;
+	map<string, string> labels = 2;
+	map<string, string> annotations = 3;
+	string startsAt = 4;
+	string endsAt = 5;
+	string generatorURL = 6;
+	string fingerprint = 7;
+}
+
+message ReceivePrometheusWebhookRequest {
+	string version = 1;
+	string groupKey = 2;
+	string status = 3;
+	string receiver = 4;
+	string externalURL = 5;
+	map<string, string> groupLabels = 6;
+	map<string, string> commonLabels = 7;
+	map<string, string> commonAnnotations = 8;
+	repeated PrometheusAlertItem alerts = 9;
+	int32 truncatedAlerts = 10;
+	string source = 11;
+}
+
+message ReceivePrometheusWebhookReply {
+	int64 total = 1;
+	repeated int64 uids = 2;
+}
+
+message AlertRecordItem {
+	int64 uid = 1;
+	string source = 2;
+	string receiver = 3;
+	string status = 4;
+	string fingerprint = 5;
+	string groupKey = 6;
+	string startsAt = 7;
+	string endsAt = 8;
+	string generatorURL = 9;
+	map<string, string> labels = 10;
+	map<string, string> annotations = 11;
+	string createdAt = 12;
+	string updatedAt = 13;
+	string raw = 14;
+}
+
+message GetAlertRecordRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message ListAlertRecordsRequest {
+	int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1",
+		message: "page must be greater than or equal to 1",
+	}];
+	int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 200",
+		message: "pageSize must be greater than or equal to 1 and less than or equal to 200",
+	}];
+	string keyword = 3 [(buf.validate.field).cel = {
+		expression: "this.size() <= 200",
+		message: "keyword must be less than or equal to 200",
+	}];
+	string status = 4;
+	string fingerprint = 5;
+}
+
+message ListAlertRecordsReply {
+	repeated AlertRecordItem items = 1;
+	int64 total = 2;
+	int32 page = 3;
+	int32 pageSize = 4;
+}
+
+message AlertSubscriptionMemberRequest {
+	int64 memberUid = 1 [(buf.validate.field).required = true];
+	bool isEmail = 2;
+	bool isSms = 3;
+	bool isPhone = 4;
+}
+
+message AlertSubscriptionMemberItem {
+	int64 memberUid = 1;
+	bool isEmail = 2;
+	bool isSms = 3;
+	bool isPhone = 4;
+	string memberName = 5;
+	string memberAvatar = 6;
+	string memberEmail = 7;
+	string memberPhone = 8;
+}
+
+message AlertSubscriptionItem {
+	int64 uid = 1;
+	string name = 2;
+	string remark = 3;
+	map<string, string> labels = 4;
+	map<string, string> excludeLabels = 5;
+	repeated int64 recipientGroupUids = 6;
+	repeated AlertSubscriptionMemberItem members = 7;
+	int64 directMemberEmailConfigUid = 8;
+	int64 directMemberTemplateUid = 9;
+	magicbox.enum.GlobalStatus status = 10;
+	string createdAt = 11;
+	string updatedAt = 12;
+}
+
+message CreateAlertSubscriptionRequest {
+	string name = 1 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 1,
+		max_len: 100,
+	}];
+	string remark = 2 [(buf.validate.field).string = { max_len: 500 }];
+	map<string, string> labels = 3;
+	map<string, string> excludeLabels = 4;
+	repeated int64 recipientGroupUids = 5;
+	repeated AlertSubscriptionMemberRequest members = 6;
+	int64 directMemberEmailConfigUid = 7;
+	int64 directMemberTemplateUid = 8;
+}
+
+message CreateAlertSubscriptionReply {
+	int64 uid = 1;
+}
+
+message UpdateAlertSubscriptionRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	string name = 2 [(buf.validate.field).required = true, (buf.validate.field).string = {
+		min_len: 1,
+		max_len: 100,
+	}];
+	string remark = 3 [(buf.validate.field).string = { max_len: 500 }];
+	map<string, string> labels = 4;
+	map<string, string> excludeLabels = 5;
+	repeated int64 recipientGroupUids = 6;
+	repeated AlertSubscriptionMemberRequest members = 7;
+	int64 directMemberEmailConfigUid = 8;
+	int64 directMemberTemplateUid = 9;
+}
+
+message UpdateAlertSubscriptionReply {}
+
+message DeleteAlertSubscriptionRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message DeleteAlertSubscriptionReply {}
+
+message GetAlertSubscriptionRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+}
+
+message ListAlertSubscriptionsRequest {
+	int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1",
+		message: "page must be greater than or equal to 1",
+	}];
+	int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 200",
+		message: "pageSize must be greater than or equal to 1 and less than or equal to 200",
+	}];
+	string keyword = 3 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword must be less than or equal to 100",
+	}];
+	magicbox.enum.GlobalStatus status = 4;
+}
+
+message ListAlertSubscriptionsReply {
+	repeated AlertSubscriptionItem items = 1;
+	int64 total = 2;
+	int32 page = 3;
+	int32 pageSize = 4;
+}
+
+message UpdateAlertSubscriptionStatusRequest {
+	int64 uid = 1 [(buf.validate.field).required = true];
+	magicbox.enum.GlobalStatus status = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this in [magicbox.enum.GlobalStatus.ENABLED, magicbox.enum.GlobalStatus.DISABLED]",
+		message: "status must be in ['ENABLED', 'DISABLED']",
+	}];
+}
+
+message UpdateAlertSubscriptionStatusReply {}
