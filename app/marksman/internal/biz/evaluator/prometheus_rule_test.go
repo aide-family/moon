@@ -130,4 +130,30 @@ func TestBuildRuleLabelsContainsSystemFields(t *testing.T) {
 	if labels[labelMarksmanStrategyUID] != "3" {
 		t.Fatalf("marksman_strategy_uid = %q, want 3", labels[labelMarksmanStrategyUID])
 	}
+	if labels[labelDatasourceUID] != "5" {
+		t.Fatalf("datasource_uid = %q, want 5", labels[labelDatasourceUID])
+	}
+}
+
+func TestPrometheusAlertFingerprintDiffersByDatasourceUID(t *testing.T) {
+	base := map[string]string{
+		labelAlertName:              "HighCPU",
+		labelMarksmanStrategyUID:    "3",
+		"instance":                  "host-a",
+	}
+	labelsA := mapsCloneString(base)
+	labelsA[labelDatasourceUID] = "10"
+	labelsB := mapsCloneString(base)
+	labelsB[labelDatasourceUID] = "20"
+	if prometheusAlertFingerprint(labelsA) == prometheusAlertFingerprint(labelsB) {
+		t.Fatal("expected different fingerprints for different datasource_uid")
+	}
+}
+
+func mapsCloneString(m map[string]string) map[string]string {
+	out := make(map[string]string, len(m))
+	for k, v := range m {
+		out[k] = v
+	}
+	return out
 }

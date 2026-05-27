@@ -29,6 +29,8 @@ const (
 	labelMarksmanLevelName      = "marksman_level_name"
 	labelMarksmanDatasourceUID  = "marksman_datasource_uid"
 	labelMarksmanDatasourceName = "marksman_datasource_name"
+	// labelDatasourceUID is the canonical datasource identifier on alert labels (fingerprint / routing).
+	labelDatasourceUID = "datasource_uid"
 
 	annotationSummary     = "summary"
 	annotationDescription = "description"
@@ -161,12 +163,16 @@ func buildRuleLabels(info *bo.EvaluateMetricStrategyBo) map[string]string {
 		labelMarksmanLevelName:      info.GetLevelName(),
 		labelMarksmanDatasourceUID:  strconv.FormatInt(info.GetDatasourceUID().Int64(), 10),
 		labelMarksmanDatasourceName: info.GetDatasourceName(),
+		labelDatasourceUID:          strconv.FormatInt(info.GetDatasourceUID().Int64(), 10),
 	}
 	for k, v := range info.GetLabels() {
 		if k == labelAlertName {
 			continue
 		}
 		if k == labelSeverity && labels[labelSeverity] != "" {
+			continue
+		}
+		if k == labelDatasourceUID || k == labelMarksmanDatasourceUID {
 			continue
 		}
 		labels[k] = v

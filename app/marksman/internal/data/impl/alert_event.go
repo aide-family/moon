@@ -86,6 +86,7 @@ func (r *alertEventRepository) SaveAlertEvent(ctx context.Context, ev *bo.AlertE
 	wrappers := []gen.Condition{
 		table.Fingerprint.Eq(ev.Fingerprint),
 		table.NamespaceUID.Eq(ns.Int64()),
+		table.DatasourceUID.Eq(ev.DatasourceUID.Int64()),
 		table.StrategyUID.Eq(ev.StrategyUID.Int64()),
 		table.LevelUID.Eq(ev.LevelUID.Int64()),
 		table.Status.Eq(int32(enum.AlertEventStatus_ALERT_EVENT_STATUS_FIRING)),

@@ -31,50 +31,13 @@ jwt:
   expire: '${MOON_RABBIT_JWT_EXPIRE:60000s}'
   issuer: '${MOON_RABBIT_JWT_ISSUER:rabbit}'
 
-# Shared driver config for all domain clients (DEFAULT: DefaultConfig; OUTER: OuterServerConfig).
-goddessDomainDriver:
-  '@type': '${MOON_RABBIT_DOMAIN_DRIVER_TYPE:type.googleapis.com/magicbox.config.DefaultConfig}'
-  siteDomain: ${MOON_RABBIT_DOMAIN_DRIVER_SITE_DOMAIN:localhost:5175}
-  globalEmail:
-    host: ${MOON_RABBIT_DEFAULT_CONFIG_GLOBAL_EMAIL_HOST:localhost}
-    port: ${MOON_RABBIT_DEFAULT_CONFIG_GLOBAL_EMAIL_PORT:587}
-    username: ${MOON_RABBIT_DEFAULT_CONFIG_GLOBAL_EMAIL_USERNAME:root}
-    password: ${MOON_RABBIT_DEFAULT_CONFIG_GLOBAL_EMAIL_PASSWORD:123456}
-  database:
-    dialector: ${MOON_RABBIT_DOMAIN_DRIVER_DATABASE_DIALECTOR:SQLITE}
-    debug: ${MOON_RABBIT_DOMAIN_DRIVER_DATABASE_DEBUG:true}
-    useSystemLogger: ${MOON_RABBIT_DOMAIN_DRIVER_DATABASE_USE_SYSTEM_LOGGER:false}
-    options:
-      '@type': '${MOON_RABBIT_DOMAIN_DRIVER_DATABASE_OPTIONS_TYPE:type.googleapis.com/magicbox.config.SQLiteOptions}'
-      dsn: '${MOON_RABBIT_DOMAIN_DRIVER_DATABASE_DSN:file:../goddess/goddess.db?cache=shared}'
-  jwt:
-    secret: '${MOON_RABBIT_JWT_SECRET:xxx}'
-    expire: '${MOON_RABBIT_JWT_EXPIRE:60000s}'
-    issuer: '${MOON_RABBIT_JWT_ISSUER:rabbit}'
-
-namespaceDomain:
-  driver: ${MOON_RABBIT_NAMESPACE_DRIVER:DEFAULT}
-  version: ${MOON_RABBIT_NAMESPACE_VERSION:v1}
-
-memberDomain:
-  driver: ${MOON_RABBIT_MEMBER_DRIVER:DEFAULT}
-  version: ${MOON_RABBIT_MEMBER_VERSION:v1}
-
-authDomain:
-  driver: ${MOON_RABBIT_AUTH_DRIVER:DEFAULT}
-  version: ${MOON_RABBIT_AUTH_VERSION:v1}
-
-selfDomain:
-  driver: ${MOON_RABBIT_SELF_DRIVER:DEFAULT}
-  version: ${MOON_RABBIT_SELF_VERSION:v1}
-
-userDomain:
-  driver: ${MOON_RABBIT_USER_DRIVER:DEFAULT}
-  version: ${MOON_RABBIT_USER_VERSION:v1}
-
-captchaDomain:
-  driver: ${MOON_RABBIT_CAPTCHA_DRIVER:DEFAULT}
-  version: ${MOON_RABBIT_CAPTCHA_VERSION:v1}
+# External goddess service used by auth, captcha, namespace, member, self and user features.
+goddessDomain:
+  endpoints: ${MOON_RABBIT_GODDESS_DOMAIN_ENDPOINTS:http://localhost:8000}
+  network: ${MOON_RABBIT_GODDESS_DOMAIN_NETWORK:HTTP}
+  timeout: '${MOON_RABBIT_GODDESS_DOMAIN_TIMEOUT:10s}'
+  jwtToken: ${MOON_RABBIT_GODDESS_DOMAIN_JWT_TOKEN:}
+  namespace: ${MOON_RABBIT_GODDESS_DOMAIN_NAMESPACE:}
 
 swaggerBasicAuth:
   enabled: ${MOON_RABBIT_SWAGGER_BASIC_AUTH_ENABLED:false}

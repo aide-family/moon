@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package rabbit.internal.conf;
 
-import "google/protobuf/any.proto";
 import "google/protobuf/duration.proto";
 import "magicbox/config/config.proto";
 import "magicbox/enum/enum.proto";
@@ -23,15 +22,8 @@ message Bootstrap {
 	magicbox.config.OAuth2 oauth2 = 11;
 	JobCore jobCore = 12;
 	magicbox.config.ORMConfig database = 13;
-	google.protobuf.Any goddessDomainDriver = 14;
-	magicbox.config.DomainConfig namespaceDomain = 15;
-	magicbox.config.DomainConfig memberDomain = 16;
-	magicbox.config.DomainConfig authDomain = 17;
+	magicbox.config.ExternalDomainConfig goddessDomain = 14;
 	magicbox.config.ClusterConfig jobClusters = 18;
-	magicbox.config.DomainConfig selfDomain = 19;
-	magicbox.config.DomainConfig userDomain = 20;
-	magicbox.config.DomainConfig captchaDomain = 21;
-	magicbox.config.DomainConfig templateDomain = 22;
 }
 
 message Server {

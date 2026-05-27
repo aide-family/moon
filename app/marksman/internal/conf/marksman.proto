@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package marksman.internal.conf;
 
-import "google/protobuf/any.proto";
 import "google/protobuf/duration.proto";
 import "magicbox/config/config.proto";
 import "magicbox/enum/enum.proto";
@@ -23,20 +22,9 @@ message Bootstrap {
 	EvaluateConfig evaluateConfig = 11;
 	magicbox.config.ReportConfig report = 12;
 	magicbox.config.OAuth2 oauth2 = 13;
-	google.protobuf.Any goddessDomainDriver = 14;
-	google.protobuf.Any rabbitDomainDriver = 15;
-	magicbox.config.DomainConfig namespaceDomain = 16;
-	magicbox.config.DomainConfig authDomain = 17;
+	magicbox.config.ExternalDomainConfig goddessDomain = 14;
+	magicbox.config.ExternalDomainConfig rabbitDomain = 15;
 	magicbox.config.ORMConfig database = 18;
-	magicbox.config.DomainConfig selfDomain = 19;
-	magicbox.config.DomainConfig userDomain = 20;
-	magicbox.config.DomainConfig memberDomain = 21;
-	magicbox.config.DomainConfig captchaDomain = 22;
-	magicbox.config.DomainConfig webhookDomain = 23;
-	magicbox.config.DomainConfig messageTemplateDomain = 24;
-	magicbox.config.DomainConfig senderDomain = 25;
-	magicbox.config.DomainConfig emailDomain = 26;
-	magicbox.config.DomainConfig alertDomain = 27;
 }
 
 // EvaluateConfig configures the metric evaluate cron: concurrency, timeouts and job channel capacity.

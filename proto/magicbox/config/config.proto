@@ -97,27 +97,12 @@ message BasicAuthConfig {
 	string enabled = 3;
 }
 
-message DomainConfig {
-	enum Driver {
-		DEFAULT = 0;
-		OUTER = 1;
-	}
-	Driver driver = 1;
-	string version = 2;
-}
-
-message DefaultConfig {
-	string siteDomain = 1;
-	MessageEmailConfig globalEmail = 2;
-	ORMConfig database = 3;
-	JWT jwt = 4;
-}
-
-message OuterServerConfig {
-	string address = 1;
+message ExternalDomainConfig {
+	string endpoints = 1;
 	string network = 2;
 	google.protobuf.Duration timeout = 3;
-	Protocol protocol = 4;
+	string jwtToken = 4;
+	string namespace = 5;
 }
 
 message OAuth2 {

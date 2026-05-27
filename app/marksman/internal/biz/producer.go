@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"time"
 
@@ -61,7 +62,11 @@ func NewEvaluateBiz(
 		jobState:               make(map[string]evaluateJobMeta),
 	}
 	evaluateJobChannelRepo.AppendClose(eva.Stop)
-	eva.Start()
+	if hasExternalAuthToken(bc.GetGoddessDomain()) {
+		eva.Start()
+	} else {
+		klog.Warnw("msg", "skip initial evaluate job sync because goddessDomain.jwtToken is empty")
+	}
 	return eva
 }
 
@@ -92,6 +97,10 @@ func (e *Evaluate) Start() {
 		e.loadAllStrategyMetrics(e.eg)
 		return nil
 	})
+}
+
+func hasExternalAuthToken(c interface{ GetJwtToken() string }) bool {
+	return c != nil && strings.TrimSpace(c.GetJwtToken()) != ""
 }
 
 func (e *Evaluate) Stop() error {
