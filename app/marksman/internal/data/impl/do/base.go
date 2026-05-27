@@ -25,6 +25,7 @@ func Models() []any {
 		&UserAlertPage{},
 		&NotificationGroup{},
 		&NotificationGroupSubscription{},
+		&HistoryAlertExportTask{},
 	}
 }
 

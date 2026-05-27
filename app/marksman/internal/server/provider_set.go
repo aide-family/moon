@@ -233,6 +233,9 @@ func RegisterHTTPService(
 	apiRouter.DELETE(proxyPath, metricQueryService.ProxyHandler)
 	apiRouter.PATCH(proxyPath, metricQueryService.ProxyHandler)
 
+	apiRouter.GET("/alert/history-alerts/export-tasks/events", alertService.HistoryAlertExportTaskEventsHandler)
+	apiRouter.GET("/alert/history-alerts/export-tasks/{uid}/download", alertService.HistoryAlertExportTaskDownloadHandler)
+
 	oauth2Handler := oauth.NewOAuth2Handler(c.GetOauth2(), authService.Login)
 	if err := oauth2Handler.Handler(httpSrv); err != nil {
 		panic(err)

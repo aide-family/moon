@@ -13,18 +13,21 @@ import (
 func NewAlertService(
 	alertPageBiz *biz.AlertPageBiz,
 	alertBiz *biz.AlertBiz,
+	historyAlertExportBiz *biz.HistoryAlertExportBiz,
 ) *AlertService {
 	return &AlertService{
-		alertPageBiz: alertPageBiz,
-		alertBiz:     alertBiz,
+		alertPageBiz:          alertPageBiz,
+		alertBiz:              alertBiz,
+		historyAlertExportBiz: historyAlertExportBiz,
 	}
 }
 
 type AlertService struct {
 	apiv1.UnimplementedAlertServer
 
-	alertPageBiz *biz.AlertPageBiz
-	alertBiz     *biz.AlertBiz
+	alertPageBiz          *biz.AlertPageBiz
+	alertBiz              *biz.AlertBiz
+	historyAlertExportBiz *biz.HistoryAlertExportBiz
 }
 
 func (s *AlertService) CreateAlertPage(ctx context.Context, req *apiv1.CreateAlertPageRequest) (*apiv1.CreateAlertPageReply, error) {
@@ -75,7 +78,7 @@ func (s *AlertService) ListRealtimeAlert(ctx context.Context, req *apiv1.ListRea
 
 func (s *AlertService) ListHistoryAlert(ctx context.Context, req *apiv1.ListHistoryAlertRequest) (*apiv1.ListHistoryAlertReply, error) {
 	reqBo := bo.NewListHistoryAlertBo(req)
-	result, err := s.alertBiz.ListRealtimeAlert(ctx, reqBo)
+	result, err := s.alertBiz.ListHistoryAlert(ctx, reqBo)
 	if err != nil {
 		return nil, err
 	}

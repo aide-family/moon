@@ -50,6 +50,23 @@ service Alert {
 			get: "/v1/alert/history-alerts"
 		};
 	}
+	rpc CreateHistoryAlertExportTask (CreateHistoryAlertExportTaskRequest) returns (CreateHistoryAlertExportTaskReply) {
+		option (google.api.http) = {
+			post: "/v1/alert/history-alerts/export-tasks"
+			body: "*"
+		};
+	}
+	rpc ListHistoryAlertExportTask (ListHistoryAlertExportTaskRequest) returns (ListHistoryAlertExportTaskReply) {
+		option (google.api.http) = {
+			get: "/v1/alert/history-alerts/export-tasks"
+		};
+	}
+	rpc CancelHistoryAlertExportTask (CancelHistoryAlertExportTaskRequest) returns (CancelHistoryAlertExportTaskReply) {
+		option (google.api.http) = {
+			post: "/v1/alert/history-alerts/export-tasks/{uid}/cancel"
+			body: "*"
+		};
+	}
 	rpc GetAlertEvent (GetAlertEventRequest) returns (AlertEventItem) {
 		option (google.api.http) = {
 			get: "/v1/alert/realtime-alerts/{uid}"
@@ -414,3 +431,86 @@ message SaveUserAlertPagesRequest {
 
 // SaveUserAlertPagesReply is empty on success.
 message SaveUserAlertPagesReply {}
+
+// HistoryAlertExportTaskStatus is the lifecycle status of an async export task.
+enum HistoryAlertExportTaskStatus {
+	HISTORY_ALERT_EXPORT_TASK_STATUS_UNKNOWN = 0;
+	HISTORY_ALERT_EXPORT_TASK_STATUS_PENDING = 1;
+	HISTORY_ALERT_EXPORT_TASK_STATUS_RUNNING = 2;
+	HISTORY_ALERT_EXPORT_TASK_STATUS_COMPLETED = 3;
+	HISTORY_ALERT_EXPORT_TASK_STATUS_FAILED = 4;
+	HISTORY_ALERT_EXPORT_TASK_STATUS_CANCELLED = 5;
+}
+
+// HistoryAlertExportFilter mirrors ListHistoryAlertRequest filters without pagination.
+message HistoryAlertExportFilter {
+	int64 startAtUnix = 1;
+	int64 endAtUnix = 2;
+	magicbox.enum.AlertEventStatus status = 3;
+	repeated int64 strategyGroupUids = 4;
+	repeated int64 levelUids = 5;
+	repeated int64 strategyUids = 6;
+	repeated int64 datasourceUids = 7;
+	string keyword = 8 [(buf.validate.field).cel = {
+		expression: "this.size() <= 100",
+		message: "keyword length must be <= 100",
+	}];
+
+	option (buf.validate.message).cel = {
+		expression: "this.startAtUnix <= this.endAtUnix",
+		message: "startAtUnix must be less than endAtUnix",
+	};
+
+	option (buf.validate.message).cel = {
+		expression: "this.endAtUnix - this.startAtUnix <= 31 * 24 * 60 * 60",
+		message: "endAtUnix - startAtUnix must be less than or equal to 31 days",
+	};
+}
+
+message CreateHistoryAlertExportTaskRequest {
+	HistoryAlertExportFilter filter = 1 [(buf.validate.field).required = true];
+}
+
+message CreateHistoryAlertExportTaskReply {
+	int64 uid = 1;
+}
+
+message ListHistoryAlertExportTaskRequest {
+	int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1",
+		message: "page must be >= 1",
+	}];
+	int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this >= 1 && this <= 100",
+		message: "pageSize must be between 1 and 100",
+	}];
+	HistoryAlertExportTaskStatus status = 3;
+}
+
+message HistoryAlertExportTaskItem {
+	int64 uid = 1;
+	HistoryAlertExportTaskStatus status = 2;
+	int64 totalRows = 3;
+	int64 processedRows = 4;
+	string fileName = 5;
+	string errorMessage = 6;
+	string createdAt = 7;
+	string updatedAt = 8;
+	string completedAt = 9;
+}
+
+message ListHistoryAlertExportTaskReply {
+	int64 total = 1;
+	int32 page = 2;
+	int32 pageSize = 3;
+	repeated HistoryAlertExportTaskItem items = 4;
+}
+
+message CancelHistoryAlertExportTaskRequest {
+	int64 uid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+		expression: "this > 0",
+		message: "uid must be greater than 0",
+	}];
+}
+
+message CancelHistoryAlertExportTaskReply {}

@@ -62,6 +62,15 @@ func (b *AlertBiz) ListRealtimeAlert(ctx context.Context, req *bo.ListRealtimeAl
 	return result, nil
 }
 
+func (b *AlertBiz) ListHistoryAlert(ctx context.Context, req *bo.ListRealtimeAlertBo) (*bo.PageResponseBo[*bo.AlertEventItemBo], error) {
+	result, err := b.alertEventRepo.ListRealtimeAlert(ctx, req, nil)
+	if err != nil {
+		b.helper.Errorw("msg", "list history alert failed", "error", err)
+		return nil, merr.ErrorInternalServer("list history alert failed").WithCause(err)
+	}
+	return result, nil
+}
+
 func (b *AlertBiz) InterveneAlert(ctx context.Context, req *bo.InterveneAlertBo) error {
 	if req == nil || req.UID.Int64() <= 0 {
 		return merr.ErrorParams("uid must be greater than 0")

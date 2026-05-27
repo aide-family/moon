@@ -21,6 +21,7 @@ var (
 	AlertPage                     *alertPage
 	Datasource                    *datasource
 	EvaluatorSnapshot             *evaluatorSnapshot
+	HistoryAlertExportTask        *historyAlertExportTask
 	Level                         *level
 	NotificationGroup             *notificationGroup
 	NotificationGroupSubscription *notificationGroupSubscription
@@ -37,6 +38,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	AlertPage = &Q.AlertPage
 	Datasource = &Q.Datasource
 	EvaluatorSnapshot = &Q.EvaluatorSnapshot
+	HistoryAlertExportTask = &Q.HistoryAlertExportTask
 	Level = &Q.Level
 	NotificationGroup = &Q.NotificationGroup
 	NotificationGroupSubscription = &Q.NotificationGroupSubscription
@@ -54,6 +56,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		AlertPage:                     newAlertPage(db, opts...),
 		Datasource:                    newDatasource(db, opts...),
 		EvaluatorSnapshot:             newEvaluatorSnapshot(db, opts...),
+		HistoryAlertExportTask:        newHistoryAlertExportTask(db, opts...),
 		Level:                         newLevel(db, opts...),
 		NotificationGroup:             newNotificationGroup(db, opts...),
 		NotificationGroupSubscription: newNotificationGroupSubscription(db, opts...),
@@ -72,6 +75,7 @@ type Query struct {
 	AlertPage                     alertPage
 	Datasource                    datasource
 	EvaluatorSnapshot             evaluatorSnapshot
+	HistoryAlertExportTask        historyAlertExportTask
 	Level                         level
 	NotificationGroup             notificationGroup
 	NotificationGroupSubscription notificationGroupSubscription
@@ -91,6 +95,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		AlertPage:                     q.AlertPage.clone(db),
 		Datasource:                    q.Datasource.clone(db),
 		EvaluatorSnapshot:             q.EvaluatorSnapshot.clone(db),
+		HistoryAlertExportTask:        q.HistoryAlertExportTask.clone(db),
 		Level:                         q.Level.clone(db),
 		NotificationGroup:             q.NotificationGroup.clone(db),
 		NotificationGroupSubscription: q.NotificationGroupSubscription.clone(db),
@@ -117,6 +122,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		AlertPage:                     q.AlertPage.replaceDB(db),
 		Datasource:                    q.Datasource.replaceDB(db),
 		EvaluatorSnapshot:             q.EvaluatorSnapshot.replaceDB(db),
+		HistoryAlertExportTask:        q.HistoryAlertExportTask.replaceDB(db),
 		Level:                         q.Level.replaceDB(db),
 		NotificationGroup:             q.NotificationGroup.replaceDB(db),
 		NotificationGroupSubscription: q.NotificationGroupSubscription.replaceDB(db),
@@ -133,6 +139,7 @@ type queryCtx struct {
 	AlertPage                     IAlertPageDo
 	Datasource                    IDatasourceDo
 	EvaluatorSnapshot             IEvaluatorSnapshotDo
+	HistoryAlertExportTask        IHistoryAlertExportTaskDo
 	Level                         ILevelDo
 	NotificationGroup             INotificationGroupDo
 	NotificationGroupSubscription INotificationGroupSubscriptionDo
@@ -149,6 +156,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		AlertPage:                     q.AlertPage.WithContext(ctx),
 		Datasource:                    q.Datasource.WithContext(ctx),
 		EvaluatorSnapshot:             q.EvaluatorSnapshot.WithContext(ctx),
+		HistoryAlertExportTask:        q.HistoryAlertExportTask.WithContext(ctx),
 		Level:                         q.Level.WithContext(ctx),
 		NotificationGroup:             q.NotificationGroup.WithContext(ctx),
 		NotificationGroupSubscription: q.NotificationGroupSubscription.WithContext(ctx),

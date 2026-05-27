@@ -214,6 +214,75 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/marksman.api.v1.ListHistoryAlertReply'
+    /v1/alert/history-alerts/export-tasks:
+        get:
+            tags:
+                - Alert
+            operationId: Alert_ListHistoryAlertExportTask
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.ListHistoryAlertExportTaskReply'
+        post:
+            tags:
+                - Alert
+            operationId: Alert_CreateHistoryAlertExportTask
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.CreateHistoryAlertExportTaskRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.CreateHistoryAlertExportTaskReply'
+    /v1/alert/history-alerts/export-tasks/{uid}/cancel:
+        post:
+            tags:
+                - Alert
+            operationId: Alert_CancelHistoryAlertExportTask
+            parameters:
+                - name: uid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/marksman.api.v1.CancelHistoryAlertExportTaskRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/marksman.api.v1.CancelHistoryAlertExportTaskReply'
     /v1/alert/realtime-alerts/batch-intervene:
         post:
             tags:
@@ -1701,6 +1770,14 @@ components:
                         type: string
                 recoveredReason:
                     type: string
+        marksman.api.v1.CancelHistoryAlertExportTaskReply:
+            type: object
+            properties: {}
+        marksman.api.v1.CancelHistoryAlertExportTaskRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
         marksman.api.v1.CreateAlertPageReply:
             type: object
             properties:
@@ -1745,6 +1822,16 @@ components:
                     type: string
                 levelUid:
                     type: string
+        marksman.api.v1.CreateHistoryAlertExportTaskReply:
+            type: object
+            properties:
+                uid:
+                    type: string
+        marksman.api.v1.CreateHistoryAlertExportTaskRequest:
+            type: object
+            properties:
+                filter:
+                    $ref: '#/components/schemas/marksman.api.v1.HistoryAlertExportFilter'
         marksman.api.v1.CreateLevelReply:
             type: object
             properties:
@@ -1941,6 +2028,57 @@ components:
             properties:
                 filter:
                     $ref: '#/components/schemas/marksman.api.v1.SubscriptionFilter'
+        marksman.api.v1.HistoryAlertExportFilter:
+            type: object
+            properties:
+                startAtUnix:
+                    type: string
+                endAtUnix:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                strategyGroupUids:
+                    type: array
+                    items:
+                        type: string
+                levelUids:
+                    type: array
+                    items:
+                        type: string
+                strategyUids:
+                    type: array
+                    items:
+                        type: string
+                datasourceUids:
+                    type: array
+                    items:
+                        type: string
+                keyword:
+                    type: string
+            description: HistoryAlertExportFilter mirrors ListHistoryAlertRequest filters without pagination.
+        marksman.api.v1.HistoryAlertExportTaskItem:
+            type: object
+            properties:
+                uid:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                totalRows:
+                    type: string
+                processedRows:
+                    type: string
+                fileName:
+                    type: string
+                errorMessage:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                completedAt:
+                    type: string
         marksman.api.v1.InterveneAlertReply:
             type: object
             properties: {}
@@ -2026,6 +2164,21 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        marksman.api.v1.ListHistoryAlertExportTaskReply:
+            type: object
+            properties:
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.HistoryAlertExportTaskItem'
         marksman.api.v1.ListHistoryAlertReply:
             type: object
             properties:
