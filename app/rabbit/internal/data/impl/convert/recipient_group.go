@@ -17,6 +17,7 @@ func ToRecipientGroupDo(ctx context.Context, req *bo.CreateRecipientGroupBo) *do
 		NamespaceUID: contextx.GetNamespace(ctx),
 		Name:         req.Name,
 		Metadata:     safety.NewMap(req.Metadata),
+		Members:      ToNotificationMembersDO(req.Members),
 		Status:       enum.GlobalStatus_ENABLED,
 	}
 	m.WithCreator(contextx.GetUserUID(ctx))
@@ -46,12 +47,6 @@ func ToRecipientGroupItemBo(g *do.RecipientGroup) *bo.RecipientGroupItemBo {
 			webhookConfigs = append(webhookConfigs, ToWebhookConfigItemBo(item))
 		}
 	}
-	members := make([]*bo.RecipientMemberItemBo, 0, len(g.Members))
-	for _, item := range g.Members {
-		if item != nil {
-			members = append(members, ToRecipientMemberBO(item))
-		}
-	}
 	return &bo.RecipientGroupItemBo{
 		UID:            g.ID,
 		Name:           g.Name,
@@ -60,7 +55,7 @@ func ToRecipientGroupItemBo(g *do.RecipientGroup) *bo.RecipientGroupItemBo {
 		Templates:      templates,
 		EmailConfigs:   emailConfigs,
 		WebhookConfigs: webhookConfigs,
-		Members:        members,
+		Members:        ToNotificationMembersBo(g.Members),
 	}
 }
 
@@ -94,35 +89,13 @@ func toSnowflakeIDsFromWebhookConfigs(list []*do.WebhookConfig) []snowflake.ID {
 	return out
 }
 
-func toSnowflakeIDsFromRecipientMembers(list []*do.RecipientMember) []snowflake.ID {
-	var out []snowflake.ID
-	for _, m := range list {
-		if m != nil {
-			out = append(out, m.ID)
-		}
-	}
-	return out
-}
-
-// ToRecipientGroupDetailBo 从 do（含关联）转为详情 BO
+// ToRecipientGroupDetailBo converts DO with associations to detail BO.
 func ToRecipientGroupDetailBo(g *do.RecipientGroup) *bo.RecipientGroupDetailBo {
 	return &bo.RecipientGroupDetailBo{
 		RecipientGroupItemBo: *ToRecipientGroupItemBo(g),
 		Templates:            toSnowflakeIDsFromTemplates(g.Templates),
 		EmailConfigs:         toSnowflakeIDsFromEmailConfigs(g.EmailConfigs),
 		WebhookConfigs:       toSnowflakeIDsFromWebhookConfigs(g.Webhooks),
-		Members:              toSnowflakeIDsFromRecipientMembers(g.Members),
-	}
-}
-
-// ToRecipientGroupDetailBoFromDo 从 do + 已加载关联转为详情 BO
-func ToRecipientGroupDetailBoFromDo(g *do.RecipientGroup, templates []*do.Template, emailConfigs []*do.EmailConfig, webhooks []*do.WebhookConfig, members []*do.RecipientMember) *bo.RecipientGroupDetailBo {
-	return &bo.RecipientGroupDetailBo{
-		RecipientGroupItemBo: *ToRecipientGroupItemBo(g),
-		Templates:            toSnowflakeIDsFromTemplates(templates),
-		EmailConfigs:         toSnowflakeIDsFromEmailConfigs(emailConfigs),
-		WebhookConfigs:       toSnowflakeIDsFromWebhookConfigs(webhooks),
-		Members:              toSnowflakeIDsFromRecipientMembers(members),
 	}
 }
 
@@ -136,7 +109,7 @@ func ToRecipientGroupSelectItemBo(g *do.RecipientGroup) *bo.SelectRecipientGroup
 	}
 }
 
-// ToRecipientGroupMetadata 用于 Update 的 metadata 字段
+// ToRecipientGroupMetadata converts metadata for update.
 func ToRecipientGroupMetadata(m map[string]string) *safety.Map[string, string] {
 	return safety.NewMap(m)
 }

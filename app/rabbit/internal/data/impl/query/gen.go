@@ -16,18 +16,20 @@ import (
 )
 
 var (
-	Q               = new(Query)
-	EmailConfig     *emailConfig
-	MessageLog      *messageLog
-	MessageRetryLog *messageRetryLog
-	RecipientGroup  *recipientGroup
-	RecipientMember *recipientMember
-	Template        *template
-	WebhookConfig   *webhookConfig
+	Q                 = new(Query)
+	AlertSubscription *alertSubscription
+	EmailConfig       *emailConfig
+	MessageLog        *messageLog
+	MessageRetryLog   *messageRetryLog
+	RecipientGroup    *recipientGroup
+	RecipientMember   *recipientMember
+	Template          *template
+	WebhookConfig     *webhookConfig
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
+	AlertSubscription = &Q.AlertSubscription
 	EmailConfig = &Q.EmailConfig
 	MessageLog = &Q.MessageLog
 	MessageRetryLog = &Q.MessageRetryLog
@@ -39,41 +41,44 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:              db,
-		EmailConfig:     newEmailConfig(db, opts...),
-		MessageLog:      newMessageLog(db, opts...),
-		MessageRetryLog: newMessageRetryLog(db, opts...),
-		RecipientGroup:  newRecipientGroup(db, opts...),
-		RecipientMember: newRecipientMember(db, opts...),
-		Template:        newTemplate(db, opts...),
-		WebhookConfig:   newWebhookConfig(db, opts...),
+		db:                db,
+		AlertSubscription: newAlertSubscription(db, opts...),
+		EmailConfig:       newEmailConfig(db, opts...),
+		MessageLog:        newMessageLog(db, opts...),
+		MessageRetryLog:   newMessageRetryLog(db, opts...),
+		RecipientGroup:    newRecipientGroup(db, opts...),
+		RecipientMember:   newRecipientMember(db, opts...),
+		Template:          newTemplate(db, opts...),
+		WebhookConfig:     newWebhookConfig(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	EmailConfig     emailConfig
-	MessageLog      messageLog
-	MessageRetryLog messageRetryLog
-	RecipientGroup  recipientGroup
-	RecipientMember recipientMember
-	Template        template
-	WebhookConfig   webhookConfig
+	AlertSubscription alertSubscription
+	EmailConfig       emailConfig
+	MessageLog        messageLog
+	MessageRetryLog   messageRetryLog
+	RecipientGroup    recipientGroup
+	RecipientMember   recipientMember
+	Template          template
+	WebhookConfig     webhookConfig
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:              db,
-		EmailConfig:     q.EmailConfig.clone(db),
-		MessageLog:      q.MessageLog.clone(db),
-		MessageRetryLog: q.MessageRetryLog.clone(db),
-		RecipientGroup:  q.RecipientGroup.clone(db),
-		RecipientMember: q.RecipientMember.clone(db),
-		Template:        q.Template.clone(db),
-		WebhookConfig:   q.WebhookConfig.clone(db),
+		db:                db,
+		AlertSubscription: q.AlertSubscription.clone(db),
+		EmailConfig:       q.EmailConfig.clone(db),
+		MessageLog:        q.MessageLog.clone(db),
+		MessageRetryLog:   q.MessageRetryLog.clone(db),
+		RecipientGroup:    q.RecipientGroup.clone(db),
+		RecipientMember:   q.RecipientMember.clone(db),
+		Template:          q.Template.clone(db),
+		WebhookConfig:     q.WebhookConfig.clone(db),
 	}
 }
 
@@ -87,36 +92,39 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:              db,
-		EmailConfig:     q.EmailConfig.replaceDB(db),
-		MessageLog:      q.MessageLog.replaceDB(db),
-		MessageRetryLog: q.MessageRetryLog.replaceDB(db),
-		RecipientGroup:  q.RecipientGroup.replaceDB(db),
-		RecipientMember: q.RecipientMember.replaceDB(db),
-		Template:        q.Template.replaceDB(db),
-		WebhookConfig:   q.WebhookConfig.replaceDB(db),
+		db:                db,
+		AlertSubscription: q.AlertSubscription.replaceDB(db),
+		EmailConfig:       q.EmailConfig.replaceDB(db),
+		MessageLog:        q.MessageLog.replaceDB(db),
+		MessageRetryLog:   q.MessageRetryLog.replaceDB(db),
+		RecipientGroup:    q.RecipientGroup.replaceDB(db),
+		RecipientMember:   q.RecipientMember.replaceDB(db),
+		Template:          q.Template.replaceDB(db),
+		WebhookConfig:     q.WebhookConfig.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	EmailConfig     IEmailConfigDo
-	MessageLog      IMessageLogDo
-	MessageRetryLog IMessageRetryLogDo
-	RecipientGroup  IRecipientGroupDo
-	RecipientMember IRecipientMemberDo
-	Template        ITemplateDo
-	WebhookConfig   IWebhookConfigDo
+	AlertSubscription IAlertSubscriptionDo
+	EmailConfig       IEmailConfigDo
+	MessageLog        IMessageLogDo
+	MessageRetryLog   IMessageRetryLogDo
+	RecipientGroup    IRecipientGroupDo
+	RecipientMember   IRecipientMemberDo
+	Template          ITemplateDo
+	WebhookConfig     IWebhookConfigDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		EmailConfig:     q.EmailConfig.WithContext(ctx),
-		MessageLog:      q.MessageLog.WithContext(ctx),
-		MessageRetryLog: q.MessageRetryLog.WithContext(ctx),
-		RecipientGroup:  q.RecipientGroup.WithContext(ctx),
-		RecipientMember: q.RecipientMember.WithContext(ctx),
-		Template:        q.Template.WithContext(ctx),
-		WebhookConfig:   q.WebhookConfig.WithContext(ctx),
+		AlertSubscription: q.AlertSubscription.WithContext(ctx),
+		EmailConfig:       q.EmailConfig.WithContext(ctx),
+		MessageLog:        q.MessageLog.WithContext(ctx),
+		MessageRetryLog:   q.MessageRetryLog.WithContext(ctx),
+		RecipientGroup:    q.RecipientGroup.WithContext(ctx),
+		RecipientMember:   q.RecipientMember.WithContext(ctx),
+		Template:          q.Template.WithContext(ctx),
+		WebhookConfig:     q.WebhookConfig.WithContext(ctx),
 	}
 }
 

@@ -19,9 +19,3 @@ type RecipientGroup interface {
 	ListRecipientGroup(ctx context.Context, req *bo.ListRecipientGroupBo) (*bo.PageResponseBo[*bo.RecipientGroupItemBo], error)
 	SelectRecipientGroup(ctx context.Context, req *bo.SelectRecipientGroupBo) (*bo.SelectRecipientGroupBoResult, error)
 }
-
-type RecipientMember interface {
-	CreateRecipientMember(ctx context.Context, members []*bo.RecipientMemberItemBo) error
-	// ResolveRecipientMemberIDs returns recipient_members.id rows for association (by id or user_uid).
-	ResolveRecipientMemberIDs(ctx context.Context, members []*bo.RecipientMemberItemBo) ([]int64, error)
-}

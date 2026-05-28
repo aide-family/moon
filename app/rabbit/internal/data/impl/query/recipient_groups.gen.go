@@ -36,6 +36,7 @@ func newRecipientGroup(db *gorm.DB, opts ...gen.DOOption) recipientGroup {
 	_recipientGroup.Name = field.NewString(tableName, "name")
 	_recipientGroup.Metadata = field.NewField(tableName, "metadata")
 	_recipientGroup.Status = field.NewInt32(tableName, "status")
+	_recipientGroup.Members = field.NewField(tableName, "members")
 	_recipientGroup.Templates = recipientGroupManyToManyTemplates{
 		db: db.Session(&gorm.Session{}),
 
@@ -52,12 +53,6 @@ func newRecipientGroup(db *gorm.DB, opts ...gen.DOOption) recipientGroup {
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("Webhooks", "do.WebhookConfig"),
-	}
-
-	_recipientGroup.Members = recipientGroupManyToManyMembers{
-		db: db.Session(&gorm.Session{}),
-
-		RelationField: field.NewRelation("Members", "do.RecipientMember"),
 	}
 
 	_recipientGroup.fillFieldMap()
@@ -78,13 +73,12 @@ type recipientGroup struct {
 	Name         field.String
 	Metadata     field.Field
 	Status       field.Int32
+	Members      field.Field
 	Templates    recipientGroupManyToManyTemplates
 
 	EmailConfigs recipientGroupManyToManyEmailConfigs
 
 	Webhooks recipientGroupManyToManyWebhooks
-
-	Members recipientGroupManyToManyMembers
 
 	fieldMap map[string]field.Expr
 }
@@ -110,6 +104,7 @@ func (r *recipientGroup) updateTableName(table string) *recipientGroup {
 	r.Name = field.NewString(table, "name")
 	r.Metadata = field.NewField(table, "metadata")
 	r.Status = field.NewInt32(table, "status")
+	r.Members = field.NewField(table, "members")
 
 	r.fillFieldMap()
 
@@ -136,6 +131,7 @@ func (r *recipientGroup) fillFieldMap() {
 	r.fieldMap["name"] = r.Name
 	r.fieldMap["metadata"] = r.Metadata
 	r.fieldMap["status"] = r.Status
+	r.fieldMap["members"] = r.Members
 
 }
 
@@ -147,8 +143,6 @@ func (r recipientGroup) clone(db *gorm.DB) recipientGroup {
 	r.EmailConfigs.db.Statement.ConnPool = db.Statement.ConnPool
 	r.Webhooks.db = db.Session(&gorm.Session{Initialized: true})
 	r.Webhooks.db.Statement.ConnPool = db.Statement.ConnPool
-	r.Members.db = db.Session(&gorm.Session{Initialized: true})
-	r.Members.db.Statement.ConnPool = db.Statement.ConnPool
 	return r
 }
 
@@ -157,7 +151,6 @@ func (r recipientGroup) replaceDB(db *gorm.DB) recipientGroup {
 	r.Templates.db = db.Session(&gorm.Session{})
 	r.EmailConfigs.db = db.Session(&gorm.Session{})
 	r.Webhooks.db = db.Session(&gorm.Session{})
-	r.Members.db = db.Session(&gorm.Session{})
 	return r
 }
 
@@ -400,87 +393,6 @@ func (a recipientGroupManyToManyWebhooksTx) Count() int64 {
 }
 
 func (a recipientGroupManyToManyWebhooksTx) Unscoped() *recipientGroupManyToManyWebhooksTx {
-	a.tx = a.tx.Unscoped()
-	return &a
-}
-
-type recipientGroupManyToManyMembers struct {
-	db *gorm.DB
-
-	field.RelationField
-}
-
-func (a recipientGroupManyToManyMembers) Where(conds ...field.Expr) *recipientGroupManyToManyMembers {
-	if len(conds) == 0 {
-		return &a
-	}
-
-	exprs := make([]clause.Expression, 0, len(conds))
-	for _, cond := range conds {
-		exprs = append(exprs, cond.BeCond().(clause.Expression))
-	}
-	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
-	return &a
-}
-
-func (a recipientGroupManyToManyMembers) WithContext(ctx context.Context) *recipientGroupManyToManyMembers {
-	a.db = a.db.WithContext(ctx)
-	return &a
-}
-
-func (a recipientGroupManyToManyMembers) Session(session *gorm.Session) *recipientGroupManyToManyMembers {
-	a.db = a.db.Session(session)
-	return &a
-}
-
-func (a recipientGroupManyToManyMembers) Model(m *do.RecipientGroup) *recipientGroupManyToManyMembersTx {
-	return &recipientGroupManyToManyMembersTx{a.db.Model(m).Association(a.Name())}
-}
-
-func (a recipientGroupManyToManyMembers) Unscoped() *recipientGroupManyToManyMembers {
-	a.db = a.db.Unscoped()
-	return &a
-}
-
-type recipientGroupManyToManyMembersTx struct{ tx *gorm.Association }
-
-func (a recipientGroupManyToManyMembersTx) Find() (result []*do.RecipientMember, err error) {
-	return result, a.tx.Find(&result)
-}
-
-func (a recipientGroupManyToManyMembersTx) Append(values ...*do.RecipientMember) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Append(targetValues...)
-}
-
-func (a recipientGroupManyToManyMembersTx) Replace(values ...*do.RecipientMember) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Replace(targetValues...)
-}
-
-func (a recipientGroupManyToManyMembersTx) Delete(values ...*do.RecipientMember) (err error) {
-	targetValues := make([]interface{}, len(values))
-	for i, v := range values {
-		targetValues[i] = v
-	}
-	return a.tx.Delete(targetValues...)
-}
-
-func (a recipientGroupManyToManyMembersTx) Clear() error {
-	return a.tx.Clear()
-}
-
-func (a recipientGroupManyToManyMembersTx) Count() int64 {
-	return a.tx.Count()
-}
-
-func (a recipientGroupManyToManyMembersTx) Unscoped() *recipientGroupManyToManyMembersTx {
 	a.tx = a.tx.Unscoped()
 	return &a
 }

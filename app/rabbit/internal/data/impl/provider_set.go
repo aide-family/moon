@@ -20,5 +20,4 @@ var ProviderSetImpl = wire.NewSet(
 	NewMessageRetryLogRepository,
 	NewAlertSubscriptionRepository,
 	NewRecipientGroupRepository,
-	NewRecipientMemberRepository,
 )

@@ -9,6 +9,9 @@ import (
 	"github.com/aide-family/magicbox/strutil"
 )
 
+type RecipientGroupMember = NotificationMember
+type RecipientGroupMembers = NotificationMembers
+
 type RecipientGroup struct {
 	BaseModel
 	DeletedAt    gorm.DeletedAt              `gorm:"column:deleted_at;uniqueIndex:recipient_group__namespace_uid__name"`
@@ -16,10 +19,10 @@ type RecipientGroup struct {
 	Name         string                      `gorm:"column:name;size:191;uniqueIndex:recipient_group__namespace_uid__name"`
 	Metadata     *safety.Map[string, string] `gorm:"column:metadata;type:json;"`
 	Status       enum.GlobalStatus           `gorm:"column:status;default:0"`
+	Members      RecipientGroupMembers       `gorm:"column:members;type:json;"`
 	Templates    []*Template                 `gorm:"many2many:recipient_group__templates;"`
 	EmailConfigs []*EmailConfig              `gorm:"many2many:recipient_group__email_configs;"`
 	Webhooks     []*WebhookConfig            `gorm:"many2many:recipient_group__webhooks;"`
-	Members      []*RecipientMember          `gorm:"many2many:recipient_group__members;"`
 }
 
 func (RecipientGroup) TableName() string {

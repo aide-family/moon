@@ -5,27 +5,26 @@ import (
 	"github.com/aide-family/magicbox/enum"
 	"github.com/bwmarrin/snowflake"
 
-	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	apiv1 "github.com/aide-family/rabbit/pkg/api/v1"
 )
 
 // RecipientGroupItemBo is the BO for one recipient group item.
 type RecipientGroupItemBo struct {
-	UID            snowflake.ID             `json:"uid"`
-	Name           string                   `json:"name"`
-	Metadata       map[string]string        `json:"metadata"`
-	Status         enum.GlobalStatus        `json:"status"`
-	Members        []*RecipientMemberItemBo `json:"members"`
-	Templates      []*TemplateItemBo        `json:"templates"`
-	EmailConfigs   []*EmailConfigItemBo     `json:"emailConfigs"`
-	WebhookConfigs []*WebhookItemBo         `json:"webhookConfigs"`
+	UID            snowflake.ID              `json:"uid"`
+	Name           string                    `json:"name"`
+	Metadata       map[string]string         `json:"metadata"`
+	Status         enum.GlobalStatus         `json:"status"`
+	Members        []*NotificationMemberBo   `json:"members"`
+	Templates      []*TemplateItemBo         `json:"templates"`
+	EmailConfigs   []*EmailConfigItemBo      `json:"emailConfigs"`
+	WebhookConfigs []*WebhookItemBo          `json:"webhookConfigs"`
 }
 
 // ToAPIV1RecipientGroupItem converts BO to API item.
 func (b *RecipientGroupItemBo) ToAPIV1RecipientGroupItem() *apiv1.RecipientGroupItem {
-	members := make([]*goddessv1.MemberItem, 0, len(b.Members))
+	members := make([]*apiv1.RecipientGroupMemberItem, 0, len(b.Members))
 	for _, m := range b.Members {
-		members = append(members, m.ToAPIV1MemberItem())
+		members = append(members, m.ToAPIV1RecipientGroupMember())
 	}
 	templates := make([]*apiv1.TemplateItem, 0, len(b.Templates))
 	for _, t := range b.Templates {
@@ -58,7 +57,7 @@ type CreateRecipientGroupBo struct {
 	Templates      []int64
 	EmailConfigs   []int64
 	WebhookConfigs []int64
-	Members        []int64
+	Members        []*NotificationMemberBo
 }
 
 // NewCreateRecipientGroupBo builds BO from API request.
@@ -69,7 +68,7 @@ func NewCreateRecipientGroupBo(req *apiv1.CreateRecipientGroupRequest) *CreateRe
 		Templates:      req.Templates,
 		EmailConfigs:   req.EmailConfigs,
 		WebhookConfigs: req.WebhookConfigs,
-		Members:        req.Members,
+		Members:        NewRecipientGroupMembersBo(req.Members),
 	}
 }
 
@@ -81,21 +80,20 @@ type UpdateRecipientGroupBo struct {
 	Templates      []int64
 	EmailConfigs   []int64
 	WebhookConfigs []int64
-	Members        []int64
+	Members        []*NotificationMemberBo
 }
 
 // NewUpdateRecipientGroupBo builds BO from API request.
 func NewUpdateRecipientGroupBo(req *apiv1.UpdateRecipientGroupRequest) *UpdateRecipientGroupBo {
-	bo := &UpdateRecipientGroupBo{
+	return &UpdateRecipientGroupBo{
 		UID:            snowflake.ParseInt64(req.Uid),
 		Name:           req.Name,
 		Metadata:       req.Metadata,
 		Templates:      req.Templates,
 		EmailConfigs:   req.EmailConfigs,
 		WebhookConfigs: req.WebhookConfigs,
-		Members:        req.Members,
+		Members:        NewRecipientGroupMembersBo(req.Members),
 	}
-	return bo
 }
 
 // ListRecipientGroupBo is the BO for list recipient group request.
@@ -211,7 +209,6 @@ type RecipientGroupDetailBo struct {
 	Templates      []snowflake.ID
 	EmailConfigs   []snowflake.ID
 	WebhookConfigs []snowflake.ID
-	Members        []snowflake.ID
 }
 
 // ToAPIV1RecipientGroupItem converts detail BO (with preloaded relations) to API item.

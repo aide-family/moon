@@ -47,7 +47,7 @@
 - **Email**: SMTP config CRUD, list, select; send raw email or send with template
 - **Webhook**: Webhook config CRUD, list, select (e.g. DingTalk, WeChat, Feishu, custom); send raw or template
 - **Template**: Message template CRUD, list, select (EMAIL, SMS_ALICLOUD, WEBHOOK_*)
-- **Recipient group**: Create/update/delete/list/select recipient groups; bind templates, email configs, webhooks, members; status control
+- **Recipient group**: Create/update/delete/list/select recipient groups; bind templates, email configs, webhooks; assign members with per-channel preferences (email/SMS/phone); status control
 - **Sender**: Send message by recipient group; send email by config; send webhook by config (with optional template)
 - **Message log**: List logs (by time range, type, status); get single log; retry; cancel
 
@@ -106,8 +106,8 @@
 | | `GET /v1/template/{uid}` | Get template |
 | | `GET /v1/templates` | List templates (pagination, keyword, status, messageType, optional `uids` batch filter) |
 | | `GET /v1/templates/select` | Select for dropdown |
-| **RecipientGroupService** | `POST /v1/recipient-group` | Create group (name, templates, emailConfigs, webhookConfigs, members) |
-| | `GET /v1/recipient-group/{uid}` | Get group (with templates, emailConfigs, webhookConfigs, members) |
+| **RecipientGroupService** | `POST /v1/recipient-group` | Create group (name, templates, emailConfigs, webhookConfigs, members with isEmail/isSms/isPhone) |
+| | `GET /v1/recipient-group/{uid}` | Get group (with templates, emailConfigs, webhookConfigs, members and channel preferences) |
 | | `PUT /v1/recipient-group/{uid}` | Update group |
 | | `PUT /v1/recipient-group/{uid}/status` | Update status |
 | | `DELETE /v1/recipient-group/{uid}` | Delete group |

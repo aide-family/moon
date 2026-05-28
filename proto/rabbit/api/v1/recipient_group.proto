@@ -12,7 +12,24 @@ import "magicbox/enum/enum.proto";
 import "rabbit/api/v1/template.proto";
 import "rabbit/api/v1/email.proto";
 import "rabbit/api/v1/webhook.proto";
-import "goddess/api/v1/member.proto";
+
+message RecipientGroupMemberRequest {
+    int64 memberUid = 1 [(buf.validate.field).required = true];
+    bool isEmail = 2;
+    bool isSms = 3;
+    bool isPhone = 4;
+}
+
+message RecipientGroupMemberItem {
+    int64 memberUid = 1;
+    bool isEmail = 2;
+    bool isSms = 3;
+    bool isPhone = 4;
+    string memberName = 5;
+    string memberAvatar = 6;
+    string memberEmail = 7;
+    string memberPhone = 8;
+}
 
 service RecipientGroupService {
     rpc CreateRecipientGroup(CreateRecipientGroupRequest) returns (CreateRecipientGroupReply) {
@@ -62,7 +79,7 @@ message RecipientGroupItem {
     repeated rabbit.api.v1.TemplateItem templates = 4;
     repeated rabbit.api.v1.EmailConfigItem emailConfigs = 5;
     repeated rabbit.api.v1.WebhookItem webhookConfigs = 6;
-    repeated goddess.api.v1.MemberItem members = 8;
+    repeated RecipientGroupMemberItem members = 8;
     magicbox.enum.GlobalStatus status = 9;
     string createdAt = 10;
     string updatedAt = 11;
@@ -85,7 +102,7 @@ message CreateRecipientGroupRequest {
     repeated int64 emailConfigs = 4;
     repeated int64 smsConfigs = 5;
     repeated int64 webhookConfigs = 6;
-    repeated int64 members = 7;
+    repeated RecipientGroupMemberRequest members = 7;
 }
 
 message CreateRecipientGroupReply{
@@ -113,7 +130,7 @@ message UpdateRecipientGroupRequest {
     repeated int64 emailConfigs = 5;
     repeated int64 smsConfigs = 6;
     repeated int64 webhookConfigs = 7;
-    repeated int64 members = 8;
+    repeated RecipientGroupMemberRequest members = 8;
 }
 
 message UpdateRecipientGroupReply {}

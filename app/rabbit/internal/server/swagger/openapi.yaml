@@ -1068,35 +1068,6 @@ paths:
                                 $ref: '#/components/schemas/rabbit.api.v1.SelectWebhookReply'
 components:
     schemas:
-        goddess.api.v1.MemberItem:
-            type: object
-            properties:
-                uid:
-                    type: string
-                email:
-                    type: string
-                phone:
-                    type: string
-                status:
-                    type: integer
-                    format: enum
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
-                userUID:
-                    type: string
-                name:
-                    type: string
-                nickname:
-                    type: string
-                avatar:
-                    type: string
-                remark:
-                    type: string
-                role:
-                    type: integer
-                    format: enum
         rabbit.api.v1.AlertSubscriptionItem:
             type: object
             properties:
@@ -1255,7 +1226,7 @@ components:
                 members:
                     type: array
                     items:
-                        type: string
+                        $ref: '#/components/schemas/rabbit.api.v1.RecipientGroupMemberRequest'
         rabbit.api.v1.CreateTemplateReply:
             type: object
             properties:
@@ -1560,7 +1531,7 @@ components:
                 members:
                     type: array
                     items:
-                        $ref: '#/components/schemas/goddess.api.v1.MemberItem'
+                        $ref: '#/components/schemas/rabbit.api.v1.RecipientGroupMemberItem'
                 status:
                     type: integer
                     format: enum
@@ -1568,6 +1539,36 @@ components:
                     type: string
                 updatedAt:
                     type: string
+        rabbit.api.v1.RecipientGroupMemberItem:
+            type: object
+            properties:
+                memberUid:
+                    type: string
+                isEmail:
+                    type: boolean
+                isSms:
+                    type: boolean
+                isPhone:
+                    type: boolean
+                memberName:
+                    type: string
+                memberAvatar:
+                    type: string
+                memberEmail:
+                    type: string
+                memberPhone:
+                    type: string
+        rabbit.api.v1.RecipientGroupMemberRequest:
+            type: object
+            properties:
+                memberUid:
+                    type: string
+                isEmail:
+                    type: boolean
+                isSms:
+                    type: boolean
+                isPhone:
+                    type: boolean
         rabbit.api.v1.RetryMessageLogReply:
             type: object
             properties: {}
@@ -1841,7 +1842,7 @@ components:
                 members:
                     type: array
                     items:
-                        type: string
+                        $ref: '#/components/schemas/rabbit.api.v1.RecipientGroupMemberRequest'
         rabbit.api.v1.UpdateRecipientGroupStatusReply:
             type: object
             properties: {}

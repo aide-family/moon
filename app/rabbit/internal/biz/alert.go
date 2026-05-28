@@ -4,7 +4,6 @@ import (
 	"context"
 	"slices"
 
-	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/plugin/cache"
@@ -151,8 +150,8 @@ func (b *Alert) dispatchRecipientGroup(ctx context.Context, uid snowflake.ID, pa
 	groupItem := &group.RecipientGroupItemBo
 	to := make([]string, 0, len(groupItem.Members))
 	for _, member := range groupItem.Members {
-		if member != nil && member.Email != "" {
-			to = appendUnique(to, member.Email)
+		if member != nil && member.IsEmail && member.MemberEmail != "" {
+			to = appendUnique(to, member.MemberEmail)
 		}
 	}
 	for _, emailConfig := range groupItem.EmailConfigs {
@@ -245,52 +244,12 @@ func (b *Alert) dispatchSubscriptionMembers(ctx context.Context, subscription *b
 }
 
 func (b *Alert) fillSubscriptionMembers(ctx context.Context, subscriptions []*bo.AlertSubscriptionItemBo) error {
-	memberUIDSet := make(map[int64]struct{})
 	for _, subscription := range subscriptions {
 		if subscription == nil {
 			continue
 		}
-		for _, member := range subscription.Members {
-			if member != nil && member.MemberUID > 0 {
-				memberUIDSet[member.MemberUID] = struct{}{}
-			}
-		}
-	}
-	if len(memberUIDSet) == 0 {
-		return nil
-	}
-	memberUIDs := make([]int64, 0, len(memberUIDSet))
-	for uid := range memberUIDSet {
-		memberUIDs = append(memberUIDs, uid)
-	}
-	slices.Sort(memberUIDs)
-	memberMap := make(map[int64]*goddessv1.MemberItem, len(memberUIDs))
-	for _, uid := range memberUIDs {
-		item, err := b.memberRepo.GetMember(ctx, &goddessv1.GetMemberRequest{Uid: uid})
-		if err != nil {
-			b.helper.WithContext(ctx).Warnw("msg", "subscription member lookup failed", "memberUID", uid, "error", err)
-			continue
-		}
-		if item != nil {
-			memberMap[item.GetUid()] = item
-		}
-	}
-	for _, subscription := range subscriptions {
-		if subscription == nil {
-			continue
-		}
-		for _, member := range subscription.Members {
-			if member == nil {
-				continue
-			}
-			item := memberMap[member.MemberUID]
-			if item == nil {
-				continue
-			}
-			member.MemberName = item.GetName()
-			member.MemberAvatar = item.GetAvatar()
-			member.MemberEmail = item.GetEmail()
-			member.MemberPhone = item.GetPhone()
+		if err := fillNotificationMemberDetails(ctx, b.memberRepo, b.helper, subscription.Members); err != nil {
+			return err
 		}
 	}
 	return nil

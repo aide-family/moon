@@ -14,6 +14,7 @@ import (
 	"github.com/aide-family/rabbit/internal/biz/bo"
 	"github.com/aide-family/rabbit/internal/biz/repository"
 	"github.com/aide-family/rabbit/internal/data"
+	"github.com/aide-family/rabbit/internal/data/impl/convert"
 	"github.com/aide-family/rabbit/internal/data/impl/do"
 )
 
@@ -45,7 +46,7 @@ func (r *alertSubscriptionRepository) CreateAlertSubscription(ctx context.Contex
 		Labels:                  safety.NewMap(req.Labels),
 		ExcludeLabels:           safety.NewMap(req.ExcludeLabels),
 		RecipientGroupUIDs:      safety.NewSlice(req.RecipientGroupUIDs),
-		Members:                 toAlertSubscriptionMembersDO(req.Members),
+		Members:                 convert.ToNotificationMembersDO(req.Members),
 		DirectMemberEmailConfig: req.DirectMemberEmailConfigUID,
 		DirectMemberTemplateUID: req.DirectMemberTemplateUID,
 		Status:                  enum.GlobalStatus_ENABLED,
@@ -67,7 +68,7 @@ func (r *alertSubscriptionRepository) UpdateAlertSubscription(ctx context.Contex
 		"labels":                         safety.NewMap(req.Labels),
 		"exclude_labels":                 safety.NewMap(req.ExcludeLabels),
 		"recipient_group_uids":           safety.NewSlice(req.RecipientGroupUIDs),
-		"members":                        toAlertSubscriptionMembersDO(req.Members),
+		"members":                        convert.ToNotificationMembersDO(req.Members),
 		"direct_member_email_config_uid": req.DirectMemberEmailConfigUID,
 		"direct_member_template_uid":     req.DirectMemberTemplateUID,
 	}
@@ -164,15 +165,7 @@ func toAlertSubscriptionItemBo(model *do.AlertSubscription) *bo.AlertSubscriptio
 	if model.RecipientGroupUIDs != nil {
 		recipientGroupUIDs = model.RecipientGroupUIDs.List()
 	}
-	members := make([]*bo.AlertSubscriptionMemberBo, 0, len(model.Members))
-	for _, item := range model.Members {
-		members = append(members, &bo.AlertSubscriptionMemberBo{
-			MemberUID: item.MemberUID,
-			IsEmail:   item.IsEmail,
-			IsSMS:     item.IsSMS,
-			IsPhone:   item.IsPhone,
-		})
-	}
+	members := convert.ToNotificationMembersBo(model.Members)
 	return &bo.AlertSubscriptionItemBo{
 		UID:                        model.ID,
 		Name:                       model.Name,
@@ -187,20 +180,4 @@ func toAlertSubscriptionItemBo(model *do.AlertSubscription) *bo.AlertSubscriptio
 		CreatedAt:                  model.CreatedAt,
 		UpdatedAt:                  model.UpdatedAt,
 	}
-}
-
-func toAlertSubscriptionMembersDO(items []*bo.AlertSubscriptionMemberBo) do.AlertSubscriptionMembers {
-	out := make(do.AlertSubscriptionMembers, 0, len(items))
-	for _, item := range items {
-		if item == nil {
-			continue
-		}
-		out = append(out, do.AlertSubscriptionMember{
-			MemberUID: item.MemberUID,
-			IsEmail:   item.IsEmail,
-			IsSMS:     item.IsSMS,
-			IsPhone:   item.IsPhone,
-		})
-	}
-	return out
 }

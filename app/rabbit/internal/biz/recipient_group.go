@@ -16,22 +16,19 @@ import (
 func NewRecipientGroup(
 	memberRepo repository.Member,
 	recipientGroupRepo repository.RecipientGroup,
-	recipientMemberRepo repository.RecipientMember,
 	helper *klog.Helper,
 ) *RecipientGroup {
 	return &RecipientGroup{
-		memberRepo:          memberRepo,
-		recipientGroupRepo:  recipientGroupRepo,
-		recipientMemberRepo: recipientMemberRepo,
-		helper:              klog.NewHelper(klog.With(helper.Logger(), "biz", "recipient_group")),
+		memberRepo:         memberRepo,
+		recipientGroupRepo: recipientGroupRepo,
+		helper:             klog.NewHelper(klog.With(helper.Logger(), "biz", "recipient_group")),
 	}
 }
 
 type RecipientGroup struct {
-	helper              *klog.Helper
-	memberRepo          repository.Member
-	recipientGroupRepo  repository.RecipientGroup
-	recipientMemberRepo repository.RecipientMember
+	helper             *klog.Helper
+	memberRepo         repository.Member
+	recipientGroupRepo repository.RecipientGroup
 }
 
 func (b *RecipientGroup) CreateRecipientGroup(ctx context.Context, req *bo.CreateRecipientGroupBo) (snowflake.ID, error) {
@@ -41,12 +38,8 @@ func (b *RecipientGroup) CreateRecipientGroup(ctx context.Context, req *bo.Creat
 		b.helper.Errorw("msg", "check recipient group exists failed", "error", err, "name", req.Name)
 		return 0, merr.ErrorInternalServer("create recipient group failed").WithCause(err)
 	}
-	if len(req.Members) > 0 {
-		resolved, err := b.syncRecipientMembers(ctx, req.Members)
-		if err != nil {
-			return 0, err
-		}
-		req.Members = resolved
+	if err := b.validateRecipientGroupMembers(ctx, req.Members); err != nil {
+		return 0, err
 	}
 	uid, err := b.recipientGroupRepo.CreateRecipientGroup(ctx, req)
 	if err != nil {
@@ -56,33 +49,25 @@ func (b *RecipientGroup) CreateRecipientGroup(ctx context.Context, req *bo.Creat
 	return uid, nil
 }
 
-func (b *RecipientGroup) syncRecipientMembers(ctx context.Context, memberUIDs []int64) ([]int64, error) {
-	membersReq := &goddessv1.ListMemberRequest{
+func (b *RecipientGroup) validateRecipientGroupMembers(ctx context.Context, members []*bo.NotificationMemberBo) error {
+	memberUIDs := collectNotificationMemberUIDs(members)
+	if len(memberUIDs) == 0 {
+		return nil
+	}
+	membersResp, err := b.memberRepo.ListMember(ctx, &goddessv1.ListMemberRequest{
 		Page:     1,
-		PageSize: 200,
+		PageSize: int32(len(memberUIDs)),
 		Status:   enum.MemberStatus_JOINED,
 		Uids:     memberUIDs,
-	}
-	members, err := b.memberRepo.ListMember(ctx, membersReq)
+	})
 	if err != nil {
 		b.helper.Errorw("msg", "list member failed", "error", err)
-		return nil, merr.ErrorInternalServer("list member failed").WithCause(err)
+		return merr.ErrorInternalServer("list member failed").WithCause(err)
 	}
-	if len(members.Items) == 0 {
-		return nil, merr.ErrorInvalidArgument("member not found")
+	if int64(len(membersResp.GetItems())) != int64(len(memberUIDs)) {
+		return merr.ErrorInvalidArgument("member not found")
 	}
-
-	memberBos := bo.NewRecipientMemberItemBo(members.Items)
-	if err := b.recipientMemberRepo.CreateRecipientMember(ctx, memberBos); err != nil {
-		b.helper.Errorw("msg", "create recipient member failed", "error", err)
-		return nil, merr.ErrorInternalServer("create recipient member failed").WithCause(err)
-	}
-	resolved, err := b.recipientMemberRepo.ResolveRecipientMemberIDs(ctx, memberBos)
-	if err != nil {
-		b.helper.Errorw("msg", "resolve recipient member failed", "error", err)
-		return nil, merr.ErrorInternalServer("resolve recipient member failed").WithCause(err)
-	}
-	return resolved, nil
+	return nil
 }
 
 func (b *RecipientGroup) GetRecipientGroup(ctx context.Context, uid snowflake.ID) (*bo.RecipientGroupDetailBo, error) {
@@ -93,6 +78,9 @@ func (b *RecipientGroup) GetRecipientGroup(ctx context.Context, uid snowflake.ID
 		}
 		b.helper.Errorw("msg", "get recipient group failed", "error", err, "uid", uid)
 		return nil, merr.ErrorInternalServer("get recipient group failed").WithCause(err)
+	}
+	if err := fillNotificationMemberDetails(ctx, b.memberRepo, b.helper, detail.Members); err != nil {
+		return nil, err
 	}
 	return detail, nil
 }
@@ -105,12 +93,8 @@ func (b *RecipientGroup) UpdateRecipientGroup(ctx context.Context, req *bo.Updat
 	} else if existGroup != nil && existGroup.UID != req.UID {
 		return merr.ErrorParams("recipient group %s already exists", req.Name)
 	}
-	if len(req.Members) > 0 {
-		resolved, err := b.syncRecipientMembers(ctx, req.Members)
-		if err != nil {
-			return err
-		}
-		req.Members = resolved
+	if err := b.validateRecipientGroupMembers(ctx, req.Members); err != nil {
+		return err
 	}
 	if err := b.recipientGroupRepo.UpdateRecipientGroup(ctx, req); err != nil {
 		b.helper.Errorw("msg", "update recipient group failed", "error", err, "uid", req.UID)
@@ -140,6 +124,14 @@ func (b *RecipientGroup) ListRecipientGroup(ctx context.Context, req *bo.ListRec
 	if err != nil {
 		b.helper.Errorw("msg", "list recipient group failed", "error", err)
 		return nil, merr.ErrorInternalServer("list recipient group failed").WithCause(err)
+	}
+	for _, item := range page.GetItems() {
+		if item == nil {
+			continue
+		}
+		if err := fillNotificationMemberDetails(ctx, b.memberRepo, b.helper, item.Members); err != nil {
+			return nil, err
+		}
 	}
 	return page, nil
 }

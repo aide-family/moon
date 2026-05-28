@@ -140,46 +140,6 @@ func mergeStringMap(base map[string]string, extra map[string]string) map[string]
 	return result
 }
 
-type AlertSubscriptionMemberBo struct {
-	MemberUID    int64
-	IsEmail      bool
-	IsSMS        bool
-	IsPhone      bool
-	MemberName   string
-	MemberAvatar string
-	MemberEmail  string
-	MemberPhone  string
-}
-
-func NewAlertSubscriptionMembersBo(reqs []*apiv1.AlertSubscriptionMemberRequest) []*AlertSubscriptionMemberBo {
-	items := make([]*AlertSubscriptionMemberBo, 0, len(reqs))
-	for _, item := range reqs {
-		if item == nil {
-			continue
-		}
-		items = append(items, &AlertSubscriptionMemberBo{
-			MemberUID: item.GetMemberUid(),
-			IsEmail:   item.GetIsEmail(),
-			IsSMS:     item.GetIsSms(),
-			IsPhone:   item.GetIsPhone(),
-		})
-	}
-	return items
-}
-
-func (b *AlertSubscriptionMemberBo) ToAPIV1() *apiv1.AlertSubscriptionMemberItem {
-	return &apiv1.AlertSubscriptionMemberItem{
-		MemberUid:    b.MemberUID,
-		IsEmail:      b.IsEmail,
-		IsSms:        b.IsSMS,
-		IsPhone:      b.IsPhone,
-		MemberName:   b.MemberName,
-		MemberAvatar: b.MemberAvatar,
-		MemberEmail:  b.MemberEmail,
-		MemberPhone:  b.MemberPhone,
-	}
-}
-
 type AlertSubscriptionItemBo struct {
 	UID                    snowflake.ID
 	Name                   string
@@ -198,7 +158,7 @@ type AlertSubscriptionItemBo struct {
 func (b *AlertSubscriptionItemBo) ToAPIV1() *apiv1.AlertSubscriptionItem {
 	members := make([]*apiv1.AlertSubscriptionMemberItem, 0, len(b.Members))
 	for _, item := range b.Members {
-		members = append(members, item.ToAPIV1())
+		members = append(members, item.ToAPIV1AlertSubscriptionMember())
 	}
 	return &apiv1.AlertSubscriptionItem{
 		Uid:                      b.UID.Int64(),

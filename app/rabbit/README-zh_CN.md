@@ -47,7 +47,7 @@
 - **邮件**：SMTP 配置增删改查、列表、下拉选择；发送原始邮件或按模板发送
 - **Webhook**：Webhook 配置增删改查、列表、下拉选择（钉钉、企微、飞书、自定义等）；原始或模板发送
 - **模板**：消息模板增删改查、列表、下拉选择（EMAIL、SMS_ALICLOUD、WEBHOOK_*）
-- **收件人组**：创建/更新/删除/列表/选择；绑定模板、邮件配置、Webhook、成员；状态启用/禁用
+- **收件人组**：创建/更新/删除/列表/选择；绑定模板、邮件配置、Webhook；为成员配置通信方式（邮件/短信/电话）；状态启用/禁用
 - **发送**：按收件人组发送消息；按邮件配置发送；按 Webhook 配置发送（支持模板）
 - **消息日志**：按时间范围、类型、状态列表；单条查询；重试、取消
 
@@ -106,8 +106,8 @@
 | | `GET /v1/template/{uid}` | 获取模板 |
 | | `GET /v1/templates` | 列表（分页、keyword、status、messageType，支持可选 `uids` 批量过滤） |
 | | `GET /v1/templates/select` | 下拉选择 |
-| **RecipientGroupService** | `POST /v1/recipient-group` | 创建收件人组（name、templates、emailConfigs、webhookConfigs、members） |
-| | `GET /v1/recipient-group/{uid}` | 获取组（含模板、邮件配置、Webhook、成员） |
+| **RecipientGroupService** | `POST /v1/recipient-group` | 创建收件人组（name、templates、emailConfigs、webhookConfigs、members 含 isEmail/isSms/isPhone） |
+| | `GET /v1/recipient-group/{uid}` | 获取组（含模板、邮件配置、Webhook、成员及通信方式偏好） |
 | | `PUT /v1/recipient-group/{uid}` | 更新组 |
 | | `PUT /v1/recipient-group/{uid}/status` | 更新状态 |
 | | `DELETE /v1/recipient-group/{uid}` | 删除组 |
