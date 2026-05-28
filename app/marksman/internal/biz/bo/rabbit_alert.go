@@ -18,18 +18,18 @@ func NewRabbitReceivePrometheusWebhookRequestFromAlertEvent(uid snowflake.ID, ev
 		return nil
 	}
 	return &rabbitv1.ReceivePrometheusWebhookRequest{
-		Version: "marksman/v1",
+		Version:  "marksman/v1",
 		GroupKey: event.Fingerprint,
-		Status:  "firing",
+		Status:   "firing",
 		Receiver: marksmanAlertSource,
 		Alerts: []*rabbitv1.PrometheusAlertItem{
 			{
-				Status:      "firing",
-				Labels:      buildRabbitAlertLabels(uid, event.NamespaceUID, event.Fingerprint, event.StrategyGroupUID, event.StrategyGroupName, event.StrategyUID, event.StrategyName, event.LevelUID, event.LevelName, event.DatasourceUID, event.DatasourceName, event.DatasourceLevelName, event.Labels),
-				Annotations: buildRabbitAlertAnnotations(event.Summary, event.Description, event.Expr, event.Value),
-				StartsAt:    event.FiredAt.Format(time.RFC3339),
+				Status:       "firing",
+				Labels:       buildRabbitAlertLabels(uid, event.NamespaceUID, event.Fingerprint, event.StrategyGroupUID, event.StrategyGroupName, event.StrategyUID, event.StrategyName, event.LevelUID, event.LevelName, event.DatasourceUID, event.DatasourceName, event.DatasourceLevelName, event.Labels),
+				Annotations:  buildRabbitAlertAnnotations(event.Summary, event.Description, event.Expr, event.Value),
+				StartsAt:     event.FiredAt.Format(time.RFC3339),
 				GeneratorURL: "",
-				Fingerprint: event.Fingerprint,
+				Fingerprint:  event.Fingerprint,
 			},
 		},
 		Source: marksmanAlertSource,
@@ -55,12 +55,12 @@ func NewRabbitReceivePrometheusWebhookRequestFromAlertEventItem(item *AlertEvent
 		alert.EndsAt = item.RecoveredAt.Format(time.RFC3339)
 	}
 	return &rabbitv1.ReceivePrometheusWebhookRequest{
-		Version: "marksman/v1",
+		Version:  "marksman/v1",
 		GroupKey: alert.GetFingerprint(),
-		Status:  status,
+		Status:   status,
 		Receiver: marksmanAlertSource,
-		Alerts:  []*rabbitv1.PrometheusAlertItem{alert},
-		Source:  marksmanAlertSource,
+		Alerts:   []*rabbitv1.PrometheusAlertItem{alert},
+		Source:   marksmanAlertSource,
 	}
 }
 

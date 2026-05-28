@@ -39,7 +39,7 @@
 
 ## 功能特性
 
-- **认证与 OAuth**：JWT、Basic Auth、OAuth2（飞书、GitHub、Gitee 等）
+- **认证与 OAuth**：JWT、服务间 service-key（`Authorization: Bearer sk-xxx`，OpenAI 风格）、Basic Auth、OAuth2（飞书、GitHub、Gitee 等）
 - **安全容器**：Safe map/slice，并发安全访问
 - **服务端**：HTTP 中间件（如校验）、Cron
 - **校验**：请求/字段校验，供 Kratos 服务使用

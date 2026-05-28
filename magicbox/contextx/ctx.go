@@ -20,7 +20,14 @@ func WithNamespace(ctx context.Context, namespace snowflake.ID) context.Context 
 }
 
 func GetNamespace(ctx context.Context) snowflake.ID {
-	return ctx.Value(namespaceKey{}).(snowflake.ID)
+	namespace, _ := TryGetNamespace(ctx)
+	return namespace
+}
+
+// TryGetNamespace returns the namespace UID from context when present and positive.
+func TryGetNamespace(ctx context.Context) (snowflake.ID, bool) {
+	namespace, ok := ctx.Value(namespaceKey{}).(snowflake.ID)
+	return namespace, ok && namespace > 0
 }
 
 func WithUserUID(ctx context.Context, userUID snowflake.ID) context.Context {

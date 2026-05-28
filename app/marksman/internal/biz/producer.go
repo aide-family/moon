@@ -24,6 +24,8 @@ const (
 	defaultConcurrencyLimit = 10
 	defaultStartupDelay     = 10 * time.Second
 	defaultQueryTimeout     = 10 * time.Second
+	// goddessSelectPageLimit matches goddess.api.v1 Select* limit validation (1..100).
+	goddessSelectPageLimit = 100
 )
 
 func NewEvaluateBiz(
@@ -62,10 +64,10 @@ func NewEvaluateBiz(
 		jobState:               make(map[string]evaluateJobMeta),
 	}
 	evaluateJobChannelRepo.AppendClose(eva.Stop)
-	if hasExternalAuthToken(bc.GetGoddessDomain()) {
+	if hasExternalServiceKey(bc.GetGoddessDomain()) {
 		eva.Start()
 	} else {
-		klog.Warnw("msg", "skip initial evaluate job sync because goddessDomain.jwtToken is empty")
+		klog.Warnw("msg", "skip initial evaluate job sync because goddessDomain.serviceKey is empty")
 	}
 	return eva
 }
@@ -99,8 +101,8 @@ func (e *Evaluate) Start() {
 	})
 }
 
-func hasExternalAuthToken(c interface{ GetJwtToken() string }) bool {
-	return c != nil && strings.TrimSpace(c.GetJwtToken()) != ""
+func hasExternalServiceKey(c interface{ GetServiceKey() string }) bool {
+	return c != nil && strings.TrimSpace(c.GetServiceKey()) != ""
 }
 
 func (e *Evaluate) Stop() error {
@@ -117,7 +119,7 @@ func (e *Evaluate) GetEvaluateJobRemoveChannel() <-chan string {
 
 func (e *Evaluate) loadAllStrategyMetrics(eg *errgroup.Group) {
 	req := &goddessv1.SelectNamespaceRequest{
-		Limit:   500,
+		Limit:   goddessSelectPageLimit,
 		Status:  enum.GlobalStatus_ENABLED,
 		LastUID: 0,
 	}

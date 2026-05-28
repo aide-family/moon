@@ -25,6 +25,7 @@ message Bootstrap {
 	magicbox.config.ExternalDomainConfig goddessDomain = 14;
 	magicbox.config.ExternalDomainConfig rabbitDomain = 15;
 	magicbox.config.ORMConfig database = 18;
+	magicbox.config.ServiceKeyConfig serviceKey = 19;
 }
 
 // EvaluateConfig configures the metric evaluate cron: concurrency, timeouts and job channel capacity.

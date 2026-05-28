@@ -126,7 +126,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	bizRecipientGroup := biz.NewRecipientGroup(member, recipientGroup, recipientMember, helper)
 	recipientGroupService := service.NewRecipientGroupService(bizRecipientGroup)
 	alertSubscription := impl.NewAlertSubscriptionRepository(dataData)
-	alert := biz.NewAlert(alertSubscription, member, bizRecipientGroup, email, webhook, helper)
+	alert := biz.NewAlert(alertSubscription, member, bizRecipientGroup, email, webhook, dataData.Cache(), helper)
 	alertService := service.NewAlertService(alert)
 	servers := server.RegisterService(bc, httpServer, grpcServer, jobServer, jobService, authService, healthService, namespaceService, selfService, userService, memberService, captchaService, emailService, webhookService, senderService, templateService, messageLogService, recipientGroupService, alertService)
 	v, err := run.NewApp(serviceName, dataData, servers, bc, helper)

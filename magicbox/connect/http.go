@@ -28,8 +28,8 @@ func InitHTTPClient(c InitConfig, opts ...InitOption) (*http.Client, error) {
 	middlewares := []middleware.Middleware{
 		recovery.Recovery(),
 		middler.Validate(),
+		middler.AuthClient(),
 		metadata.Client(),
-		middler.JwtClient(),
 	}
 
 	clientOpts := []http.ClientOption{

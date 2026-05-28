@@ -18,10 +18,10 @@ import (
 
 // NewGRPCServer new a gRPC server.
 func NewGRPCServer(bc *conf.Bootstrap, namespaceService *service.NamespaceService, userService *service.UserService, helper *klog.Helper) *grpc.Server {
-	return newGRPCServer(bc.GetServer().GetGrpc(), bc.GetJwt(), namespaceService, userService, helper)
+	return newGRPCServer(bc.GetServer().GetGrpc(), bc.GetJwt(), bc.GetServiceKey(), namespaceService, userService, helper)
 }
 
-func newGRPCServer(grpcConf conf.ServerConfig, jwtConf conf.JWTConfig, namespaceService *service.NamespaceService, userService *service.UserService, helper *klog.Helper) *grpc.Server {
+func newGRPCServer(grpcConf conf.ServerConfig, jwtConf conf.JWTConfig, serviceKeyConf conf.ServiceKeyConfig, namespaceService *service.NamespaceService, userService *service.UserService, helper *klog.Helper) *grpc.Server {
 	selectorNamespaceMiddlewares := []middleware.Middleware{
 		middler.MustNamespace(),
 		middler.MustNamespaceExist(namespaceService.HasNamespace),
@@ -29,10 +29,12 @@ func newGRPCServer(grpcConf conf.ServerConfig, jwtConf conf.JWTConfig, namespace
 	namespaceMiddleware := selector.Server(selectorNamespaceMiddlewares...).Match(middler.AllowListMatcher(namespaceAllowList...)).Build()
 
 	selectorMustAuthMiddlewares := []middleware.Middleware{
-		middler.JwtServe(jwtConf.GetSecret(), &jwt.JwtClaims{}),
-		middler.MustLogin(),
-		middler.BindJwtToken(),
-		middler.ValidateUser(userService.ValidateUser),
+		middler.MustAuth(middler.AuthConfig{
+			AllowedServiceKeys: serviceKeyConf.GetAllowedKeys(),
+			JWTSecret:          jwtConf.GetSecret(),
+			JWTClaims:          &jwt.JwtClaims{},
+			ValidateUser:       userService.ValidateUser,
+		}),
 		namespaceMiddleware,
 	}
 	authMiddleware := selector.Server(selectorMustAuthMiddlewares...).Match(middler.AllowListMatcher(authAllowList...)).Build()

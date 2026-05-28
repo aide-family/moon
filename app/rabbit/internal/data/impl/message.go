@@ -206,13 +206,20 @@ func (m *messageRepository) worker(number int) {
 		case <-m.stopChan:
 			klog.Debugw("msg", "message worker stopped", "workerIndex", number)
 			return
-		case task := <-m.messageChan:
+		case task, ok := <-m.messageChan:
+			if !ok {
+				klog.Debugw("msg", "message worker stopped", "workerIndex", number)
+				return
+			}
 			m.processMessageTask(task)
 		}
 	}
 }
 
 func (m *messageRepository) processMessageTask(task *state.MessageTask) {
+	if task == nil {
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), m.timeout)
 	defer cancel()
 	ctx = contextx.WithNamespace(ctx, task.NamespaceUID)
@@ -244,8 +251,8 @@ func (m *messageRepository) Start(ctx context.Context) error {
 // Stop implements [repository.Message].
 func (m *messageRepository) Stop(_ context.Context) error {
 	close(m.stopChan)
-	close(m.messageChan)
 	m.wg.Wait()
+	close(m.messageChan)
 	klog.Infow("msg", "message worker stopped")
 	for _, cluster := range m.clusters.Values() {
 		if err := cluster.Close(); err != nil {

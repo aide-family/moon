@@ -52,17 +52,17 @@ func (r *recipientGroupRepository) GetRecipientGroupByName(ctx context.Context, 
 
 func (r *recipientGroupRepository) CreateRecipientGroup(ctx context.Context, req *bo.CreateRecipientGroupBo) (uid snowflake.ID, err error) {
 	m := convert.ToRecipientGroupDo(ctx, req)
-	templates := make([]*do.Template, 0, len(req.Templates))
-	for _, id := range req.Templates {
-		templates = append(templates, &do.Template{BaseModel: do.BaseModel{ID: snowflake.ParseInt64(id)}})
+	templates, err := r.loadTemplatesForReplace(ctx, req.Templates)
+	if err != nil {
+		return 0, err
 	}
-	emailConfigs := make([]*do.EmailConfig, 0, len(req.EmailConfigs))
-	for _, id := range req.EmailConfigs {
-		emailConfigs = append(emailConfigs, &do.EmailConfig{BaseModel: do.BaseModel{ID: snowflake.ParseInt64(id)}})
+	emailConfigs, err := r.loadEmailConfigsForReplace(ctx, req.EmailConfigs)
+	if err != nil {
+		return 0, err
 	}
-	webhooks := make([]*do.WebhookConfig, 0, len(req.WebhookConfigs))
-	for _, id := range req.WebhookConfigs {
-		webhooks = append(webhooks, &do.WebhookConfig{BaseModel: do.BaseModel{ID: snowflake.ParseInt64(id)}})
+	webhooks, err := r.loadWebhooksForReplace(ctx, req.WebhookConfigs)
+	if err != nil {
+		return 0, err
 	}
 	members, err := r.loadRecipientMembersForReplace(ctx, req.Members)
 	if err != nil {
@@ -133,23 +133,23 @@ func (r *recipientGroupRepository) UpdateRecipientGroup(ctx context.Context, req
 			return err
 		}
 
-		templates := make([]*do.Template, 0, len(req.Templates))
-		for _, id := range req.Templates {
-			templates = append(templates, &do.Template{BaseModel: do.BaseModel{ID: snowflake.ParseInt64(id)}})
+		templates, err := r.loadTemplatesForReplace(ctx, req.Templates)
+		if err != nil {
+			return err
 		}
 		if err := mutation.Templates.WithContext(ctx).Model(group).Replace(templates...); err != nil {
 			return err
 		}
-		configs := make([]*do.EmailConfig, 0, len(req.EmailConfigs))
-		for _, id := range req.EmailConfigs {
-			configs = append(configs, &do.EmailConfig{BaseModel: do.BaseModel{ID: snowflake.ParseInt64(id)}})
+		configs, err := r.loadEmailConfigsForReplace(ctx, req.EmailConfigs)
+		if err != nil {
+			return err
 		}
 		if err := mutation.EmailConfigs.WithContext(ctx).Model(group).Replace(configs...); err != nil {
 			return err
 		}
-		webhooks := make([]*do.WebhookConfig, 0, len(req.WebhookConfigs))
-		for _, id := range req.WebhookConfigs {
-			webhooks = append(webhooks, &do.WebhookConfig{BaseModel: do.BaseModel{ID: snowflake.ParseInt64(id)}})
+		webhooks, err := r.loadWebhooksForReplace(ctx, req.WebhookConfigs)
+		if err != nil {
+			return err
 		}
 		if err := mutation.Webhooks.WithContext(ctx).Model(group).Replace(webhooks...); err != nil {
 			return err
@@ -220,10 +220,7 @@ func (r *recipientGroupRepository) loadRecipientMembersForReplace(ctx context.Co
 		return nil, nil
 	}
 	ns := contextx.GetNamespace(ctx)
-	ids := make([]int64, len(memberIDs))
-	for i, id := range memberIDs {
-		ids[i] = snowflake.ParseInt64(id).Int64()
-	}
+	ids := parseSnowflakeIDs(memberIDs)
 	list, err := query.RecipientMember.WithContext(ctx).Where(
 		query.RecipientMember.NamespaceUID.Eq(ns.Int64()),
 		query.RecipientMember.ID.In(ids...),
@@ -235,6 +232,71 @@ func (r *recipientGroupRepository) loadRecipientMembersForReplace(ctx context.Co
 		return nil, merr.ErrorInvalidArgument("recipient member not found")
 	}
 	return list, nil
+}
+
+func (r *recipientGroupRepository) loadEmailConfigsForReplace(ctx context.Context, configIDs []int64) ([]*do.EmailConfig, error) {
+	if len(configIDs) == 0 {
+		return nil, nil
+	}
+	ns := contextx.GetNamespace(ctx)
+	ids := parseSnowflakeIDs(configIDs)
+	list, err := query.EmailConfig.WithContext(ctx).Where(
+		query.EmailConfig.NamespaceUID.Eq(ns.Int64()),
+		query.EmailConfig.ID.In(ids...),
+	).Find()
+	if err != nil {
+		return nil, err
+	}
+	if len(list) != len(configIDs) {
+		return nil, merr.ErrorInvalidArgument("email config not found")
+	}
+	return list, nil
+}
+
+func (r *recipientGroupRepository) loadTemplatesForReplace(ctx context.Context, templateIDs []int64) ([]*do.Template, error) {
+	if len(templateIDs) == 0 {
+		return nil, nil
+	}
+	ns := contextx.GetNamespace(ctx)
+	ids := parseSnowflakeIDs(templateIDs)
+	list, err := query.Template.WithContext(ctx).Where(
+		query.Template.NamespaceUID.Eq(ns.Int64()),
+		query.Template.ID.In(ids...),
+	).Find()
+	if err != nil {
+		return nil, err
+	}
+	if len(list) != len(templateIDs) {
+		return nil, merr.ErrorInvalidArgument("template not found")
+	}
+	return list, nil
+}
+
+func (r *recipientGroupRepository) loadWebhooksForReplace(ctx context.Context, webhookIDs []int64) ([]*do.WebhookConfig, error) {
+	if len(webhookIDs) == 0 {
+		return nil, nil
+	}
+	ns := contextx.GetNamespace(ctx)
+	ids := parseSnowflakeIDs(webhookIDs)
+	list, err := query.WebhookConfig.WithContext(ctx).Where(
+		query.WebhookConfig.NamespaceUID.Eq(ns.Int64()),
+		query.WebhookConfig.ID.In(ids...),
+	).Find()
+	if err != nil {
+		return nil, err
+	}
+	if len(list) != len(webhookIDs) {
+		return nil, merr.ErrorInvalidArgument("webhook config not found")
+	}
+	return list, nil
+}
+
+func parseSnowflakeIDs(raw []int64) []int64 {
+	ids := make([]int64, len(raw))
+	for i, id := range raw {
+		ids[i] = snowflake.ParseInt64(id).Int64()
+	}
+	return ids
 }
 
 func (r *recipientGroupRepository) SelectRecipientGroup(ctx context.Context, req *bo.SelectRecipientGroupBo) (*bo.SelectRecipientGroupBoResult, error) {

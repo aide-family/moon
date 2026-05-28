@@ -31,12 +31,16 @@ jwt:
   expire: '${MOON_MARKSMAN_JWT_EXPIRE:60000s}'
   issuer: '${MOON_MARKSMAN_JWT_ISSUER:marksman}'
 
+serviceKey:
+  allowedKeys:
+    - ${MOON_MARKSMAN_SERVICE_KEY_RABBIT:sk-rabbit-dev}
+
 # External goddess service used by auth, captcha, namespace, member, self and user features.
 goddessDomain:
   endpoints: ${MOON_MARKSMAN_GODDESS_DOMAIN_ENDPOINTS:http://localhost:8000}
   network: ${MOON_MARKSMAN_GODDESS_DOMAIN_NETWORK:HTTP}
   timeout: '${MOON_MARKSMAN_GODDESS_DOMAIN_TIMEOUT:10s}'
-  jwtToken: ${MOON_MARKSMAN_GODDESS_DOMAIN_JWT_TOKEN:}
+  serviceKey: ${MOON_MARKSMAN_GODDESS_DOMAIN_SERVICE_KEY:sk-marksman-dev}
   namespace: ${MOON_MARKSMAN_GODDESS_DOMAIN_NAMESPACE:}
 
 # External rabbit service used by webhook, template, sender, email and alert features.
@@ -44,7 +48,7 @@ rabbitDomain:
   endpoints: ${MOON_MARKSMAN_RABBIT_DOMAIN_ENDPOINTS:http://localhost:8001}
   network: ${MOON_MARKSMAN_RABBIT_DOMAIN_NETWORK:HTTP}
   timeout: '${MOON_MARKSMAN_RABBIT_DOMAIN_TIMEOUT:10s}'
-  jwtToken: ${MOON_MARKSMAN_RABBIT_DOMAIN_JWT_TOKEN:}
+  serviceKey: ${MOON_MARKSMAN_RABBIT_DOMAIN_SERVICE_KEY:sk-marksman-dev}
   namespace: ${MOON_MARKSMAN_RABBIT_DOMAIN_NAMESPACE:}
 
 # Metric evaluate cron: concurrency, timeouts and job channel capacity.

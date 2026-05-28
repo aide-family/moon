@@ -39,7 +39,7 @@
 
 ## Features
 
-- **Auth & OAuth**: JWT, basic auth, OAuth2 (e.g. Feishu, GitHub, Gitee)
+- **Auth & OAuth**: JWT, service-key (`Authorization: Bearer sk-xxx`, OpenAI-style) for service-to-service calls, basic auth, OAuth2 (e.g. Feishu, GitHub, Gitee)
 - **Safety**: Safe map/slice helpers, concurrent-safe access patterns
 - **Server**: HTTP middleware (e.g. validate), cron
 - **Validation**: Request/field validation used by Kratos services

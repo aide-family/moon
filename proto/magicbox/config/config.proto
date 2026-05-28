@@ -13,6 +13,14 @@ message ClientConfig {
 	string jwtToken = 2;
 	ReportConfig report = 3;
 	string namespace = 4;
+	// Service-to-service key (sk-xxx), sent as Authorization: Bearer sk-xxx.
+	string serviceKey = 5;
+}
+
+// ServiceKeyConfig configures inbound service-key authentication.
+message ServiceKeyConfig {
+	// Allowed caller keys (sk-xxx). Empty disables service-key auth.
+	repeated string allowedKeys = 1;
 }
 
 message JWT {
@@ -101,8 +109,11 @@ message ExternalDomainConfig {
 	string endpoints = 1;
 	string network = 2;
 	google.protobuf.Duration timeout = 3;
+	// Deprecated for service-to-service calls; use serviceKey instead.
 	string jwtToken = 4;
 	string namespace = 5;
+	// Outbound service key (sk-xxx) for automated service-to-service calls.
+	string serviceKey = 6;
 }
 
 message OAuth2 {

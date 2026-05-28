@@ -13,7 +13,8 @@ const (
 )
 
 const (
-	HTTPHeaderBearerPrefix    = "Bearer"
+	HTTPHeaderBearerPrefix      = "Bearer"
+	HTTPHeaderServiceKeyPrefix  = "sk-"
 	HTTPHeaderContextTypeJSON = "application/json; charset=utf-8"
 	HTTPHeaderContextTypeForm = "application/x-www-form-urlencoded"
 	HTTPHeaderContextTypeText = "text/plain; charset=utf-8"

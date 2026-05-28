@@ -151,6 +151,25 @@ func (m *memberRepository) ListMember(ctx context.Context, req *bo.ListMemberBo)
 			wrappers = wrappers.Where(mutation.UserUID.In(ids...))
 		}
 	}
+	// When filtering by explicit member UIDs, return every match without pagination so
+	// callers (e.g. rabbit alert dispatch) are not limited to the first page.
+	if len(req.UIDs) > 0 {
+		members, err := wrappers.Find()
+		if err != nil {
+			return nil, merr.ErrorInternalServer("list member failed: %v", err)
+		}
+		req.WithTotal(int64(len(members)))
+		userUIDs := make([]int64, 0, len(members))
+		for _, mb := range members {
+			userUIDs = append(userUIDs, mb.UserUID.Int64())
+		}
+		emails := m.getEmailsByUserUIDs(ctx, userUIDs)
+		items := make([]*bo.MemberItemBo, 0, len(members))
+		for _, member := range members {
+			items = append(items, convert.MemberToBo(member, emails[member.UserUID.Int64()]))
+		}
+		return bo.NewPageResponseBo(req.PageRequestBo, items), nil
+	}
 	if req.Page > 0 && req.PageSize > 0 {
 		total, err := wrappers.Count()
 		if err != nil {

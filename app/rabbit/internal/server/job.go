@@ -22,10 +22,10 @@ var (
 )
 
 func NewJobServer(bc *conf.Bootstrap, namespaceService *service.NamespaceService, jobService *service.JobService, helper *klog.Helper) (*JobServer, error) {
-	return newJobServer(bc.GetServer().GetJob(), bc.GetJwt(), namespaceService, jobService, helper)
+	return newJobServer(bc.GetServer().GetJob(), bc.GetJwt(), bc.GetServiceKey(), namespaceService, jobService, helper)
 }
 
-func newJobServer(jobConf conf.ServerConfig, jwtConf conf.JWTConfig, namespaceService *service.NamespaceService, jobService *service.JobService, helper *klog.Helper) (*JobServer, error) {
+func newJobServer(jobConf conf.ServerConfig, jwtConf conf.JWTConfig, serviceKeyConf conf.ServiceKeyConfig, namespaceService *service.NamespaceService, jobService *service.JobService, helper *klog.Helper) (*JobServer, error) {
 	protocol := jobConf.GetProtocol()
 	job := &JobServer{
 		helper:   klog.NewHelper(helper.Logger()),
@@ -34,7 +34,7 @@ func newJobServer(jobConf conf.ServerConfig, jwtConf conf.JWTConfig, namespaceSe
 
 	switch protocol {
 	case config.Protocol_HTTP:
-		job.httpSrv = newHTTPServer(jobConf, jwtConf, namespaceService, helper)
+		job.httpSrv = newHTTPServer(jobConf, jwtConf, serviceKeyConf, namespaceService, helper)
 		endpoint, err := job.httpSrv.Endpoint()
 		if err != nil {
 			helper.Errorw("msg", "get job endpoint failed", "error", err)
@@ -45,7 +45,7 @@ func newJobServer(jobConf conf.ServerConfig, jwtConf conf.JWTConfig, namespaceSe
 		job.stopFunc = job.httpSrv.Stop
 		apiv1.RegisterJobHTTPServer(job.httpSrv, jobService)
 	case config.Protocol_GRPC:
-		job.grpcSrv = newGRPCServer(jobConf, jwtConf, namespaceService, helper)
+		job.grpcSrv = newGRPCServer(jobConf, jwtConf, serviceKeyConf, namespaceService, helper)
 		endpoint, err := job.grpcSrv.Endpoint()
 		if err != nil {
 			helper.Errorw("msg", "get job endpoint failed", "error", err)

@@ -3,14 +3,12 @@ package middler
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/pointer"
 	"github.com/aide-family/magicbox/strutil"
 	"github.com/aide-family/magicbox/strutil/cnst"
 	"github.com/bwmarrin/snowflake"
-	"github.com/go-kratos/kratos/v2/metadata"
 	"github.com/go-kratos/kratos/v2/middleware"
 	kjwt "github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/transport"
@@ -20,43 +18,9 @@ import (
 	"github.com/aide-family/magicbox/jwt"
 )
 
+// JwtClient propagates JWT auth for downstream calls. Prefer AuthClient for exclusive JWT/service-key routing.
 func JwtClient(headers ...string) middleware.Middleware {
-	return func(handler middleware.Handler) middleware.Handler {
-		return func(ctx context.Context, req any) (any, error) {
-			clientContext, ok := transport.FromClientContext(ctx)
-			if !ok {
-				return handler(ctx, req)
-			}
-			if tr, ok := transport.FromServerContext(ctx); ok {
-				if auth := tr.RequestHeader().Get(cnst.HTTPHeaderAuthorization); strutil.IsNotEmpty(auth) {
-					clientContext.RequestHeader().Set(cnst.HTTPHeaderAuthorization, auth)
-				}
-				if namespace := tr.RequestHeader().Get(cnst.HTTPHeaderXNamespace); strutil.IsNotEmpty(namespace) {
-					clientContext.RequestHeader().Set(cnst.HTTPHeaderXNamespace, namespace)
-				}
-				for _, header := range headers {
-					if value := tr.RequestHeader().Get(header); strutil.IsNotEmpty(value) {
-						clientContext.RequestHeader().Set(header, value)
-					}
-				}
-			}
-			if md, ok := metadata.FromClientContext(ctx); ok {
-				if auth := md.Get(cnst.MetadataGlobalKeyAuthorization); strutil.IsNotEmpty(auth) {
-					clientContext.RequestHeader().Set(cnst.HTTPHeaderAuthorization, auth)
-				}
-				if namespace := md.Get(cnst.MetadataGlobalKeyNamespace); strutil.IsNotEmpty(namespace) {
-					clientContext.RequestHeader().Set(cnst.HTTPHeaderXNamespace, namespace)
-				}
-				for _, header := range headers {
-					if value := md.Get(header); strutil.IsNotEmpty(value) {
-						clientContext.RequestHeader().Set(header, value)
-					}
-				}
-			}
-
-			return handler(ctx, req)
-		}
-	}
+	return AuthClient(headers...)
 }
 
 func JwtServe(signKey string, claims jwtv5.Claims) middleware.Middleware {
@@ -95,13 +59,12 @@ func BindJwtToken() middleware.Middleware {
 			if !ok {
 				return nil, merr.ErrorUnauthorized("wrong context for middleware")
 			}
-			authToken := tr.RequestHeader().Get(cnst.HTTPHeaderAuthorization)
-			auths := strings.SplitN(tr.RequestHeader().Get(cnst.HTTPHeaderAuthorization), " ", 2)
-			if len(auths) != 2 || !strings.EqualFold(auths[0], cnst.HTTPHeaderBearerPrefix) {
+			fullAuth, _, ok := authorizationFromContext(ctx)
+			if !ok {
 				return nil, merr.ErrorUnauthorized("token is invalid")
 			}
-
-			tr.RequestHeader().Set(cnst.MetadataGlobalKeyAuthorization, authToken)
+			tr.RequestHeader().Set(cnst.HTTPHeaderAuthorization, fullAuth)
+			tr.RequestHeader().Set(cnst.MetadataGlobalKeyAuthorization, fullAuth)
 			return handler(ctx, req)
 		}
 	}

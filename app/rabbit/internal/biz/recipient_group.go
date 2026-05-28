@@ -98,11 +98,11 @@ func (b *RecipientGroup) GetRecipientGroup(ctx context.Context, uid snowflake.ID
 }
 
 func (b *RecipientGroup) UpdateRecipientGroup(ctx context.Context, req *bo.UpdateRecipientGroupBo) error {
-	recipientGroup, err := b.recipientGroupRepo.GetRecipientGroup(ctx, req.UID)
+	existGroup, err := b.recipientGroupRepo.GetRecipientGroupByName(ctx, req.Name)
 	if err != nil && !merr.IsNotFound(err) {
-		b.helper.Errorw("msg", "get recipient group failed", "error", err, "uid", req.UID)
-		return merr.ErrorInternalServer("get recipient group failed").WithCause(err)
-	} else if recipientGroup != nil && recipientGroup.Name != req.Name {
+		b.helper.Errorw("msg", "check recipient group exists failed", "error", err, "name", req.Name)
+		return merr.ErrorInternalServer("update recipient group failed").WithCause(err)
+	} else if existGroup != nil && existGroup.UID != req.UID {
 		return merr.ErrorParams("recipient group %s already exists", req.Name)
 	}
 	if len(req.Members) > 0 {

@@ -100,3 +100,7 @@ type JWTConfig interface {
 	GetExpire() *durationpb.Duration
 	GetIssuer() string
 }
+
+type ServiceKeyConfig interface {
+	GetAllowedKeys() []string
+}

@@ -27,6 +27,12 @@ jwt:
   expire: '${MOON_GODDESS_JWT_EXPIRE:600s}'
   issuer: '${MOON_GODDESS_JWT_ISSUER:goddess}'
 
+# Inbound service keys (sk-xxx) accepted from peer services.
+serviceKey:
+  allowedKeys:
+    - ${MOON_GODDESS_SERVICE_KEY_MARKSMAN:sk-marksman-dev}
+    - ${MOON_GODDESS_SERVICE_KEY_RABBIT:sk-rabbit-dev}
+
 swaggerBasicAuth:
   enabled: ${MOON_GODDESS_SWAGGER_BASIC_AUTH_ENABLED:false}
   username: ${MOON_GODDESS_SWAGGER_BASIC_AUTH_USERNAME:moon.goddess}

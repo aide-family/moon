@@ -23,6 +23,50 @@ type AlertSubscriptionMember struct {
 	IsPhone   bool  `json:"is_phone"`
 }
 
+func (m *AlertSubscriptionMember) UnmarshalJSON(data []byte) error {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	if v, ok := raw["member_uid"]; ok {
+		if err := json.Unmarshal(v, &m.MemberUID); err != nil {
+			return err
+		}
+	} else if v, ok := raw["memberUid"]; ok {
+		if err := json.Unmarshal(v, &m.MemberUID); err != nil {
+			return err
+		}
+	}
+	if v, ok := raw["is_email"]; ok {
+		if err := json.Unmarshal(v, &m.IsEmail); err != nil {
+			return err
+		}
+	} else if v, ok := raw["isEmail"]; ok {
+		if err := json.Unmarshal(v, &m.IsEmail); err != nil {
+			return err
+		}
+	}
+	if v, ok := raw["is_sms"]; ok {
+		if err := json.Unmarshal(v, &m.IsSMS); err != nil {
+			return err
+		}
+	} else if v, ok := raw["isSms"]; ok {
+		if err := json.Unmarshal(v, &m.IsSMS); err != nil {
+			return err
+		}
+	}
+	if v, ok := raw["is_phone"]; ok {
+		if err := json.Unmarshal(v, &m.IsPhone); err != nil {
+			return err
+		}
+	} else if v, ok := raw["isPhone"]; ok {
+		if err := json.Unmarshal(v, &m.IsPhone); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type AlertSubscriptionMembers []AlertSubscriptionMember
 
 func (c AlertSubscriptionMembers) Value() (driver.Value, error) {

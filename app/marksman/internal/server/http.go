@@ -18,19 +18,21 @@ import (
 
 // NewHTTPServer new an HTTP server.
 func NewHTTPServer(bc *conf.Bootstrap, namespaceService *service.NamespaceService, helper *klog.Helper) *http.Server {
-	return newHTTPServer(bc.GetServer().GetHttp(), bc.GetJwt(), namespaceService, helper)
+	return newHTTPServer(bc.GetServer().GetHttp(), bc.GetJwt(), bc.GetServiceKey(), namespaceService, helper)
 }
 
-func newHTTPServer(httpConf conf.ServerConfig, jwtConf conf.JWTConfig, namespaceService *service.NamespaceService, helper *klog.Helper) *http.Server {
+func newHTTPServer(httpConf conf.ServerConfig, jwtConf conf.JWTConfig, serviceKeyConf conf.ServiceKeyConfig, namespaceService *service.NamespaceService, helper *klog.Helper) *http.Server {
 	selectorNamespaceMiddlewares := []middleware.Middleware{
 		middler.MustNamespace(),
 		middler.MustNamespaceExist(namespaceService.HasNamespace),
 	}
 	namespaceMiddleware := selector.Server(selectorNamespaceMiddlewares...).Match(middler.AllowListMatcher(namespaceAllowList...)).Build()
 	selectorMustAuthMiddlewares := []middleware.Middleware{
-		middler.JwtServe(jwtConf.GetSecret(), &jwt.JwtClaims{}),
-		middler.MustLogin(),
-		middler.BindJwtToken(),
+		middler.MustAuth(middler.AuthConfig{
+			AllowedServiceKeys: serviceKeyConf.GetAllowedKeys(),
+			JWTSecret:          jwtConf.GetSecret(),
+			JWTClaims:          &jwt.JwtClaims{},
+		}),
 		namespaceMiddleware,
 	}
 	authMiddleware := selector.Server(selectorMustAuthMiddlewares...).Match(middler.AllowListMatcher(authAllowList...)).Build()

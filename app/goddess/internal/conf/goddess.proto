@@ -23,6 +23,7 @@ message Bootstrap {
 	magicbox.config.ORMConfig database = 12;
 	magicbox.config.MessageEmailConfig globalEmail = 13;
 	string siteDomain = 14;
+	magicbox.config.ServiceKeyConfig serviceKey = 15;
 }
 
 message Server {

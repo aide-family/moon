@@ -28,8 +28,8 @@ func InitGRPCClient(c InitConfig, opts ...InitOption) (*grpc.ClientConn, error) 
 	middlewares := []middleware.Middleware{
 		recovery.Recovery(),
 		middler.Validate(),
+		middler.AuthClient(),
 		metadata.Client(),
-		middler.JwtClient(),
 	}
 
 	clientOpts := []kGrpc.ClientOption{

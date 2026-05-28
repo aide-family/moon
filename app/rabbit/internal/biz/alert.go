@@ -7,6 +7,7 @@ import (
 	goddessv1 "github.com/aide-family/goddess/pkg/api/v1"
 	"github.com/aide-family/magicbox/contextx"
 	"github.com/aide-family/magicbox/merr"
+	"github.com/aide-family/magicbox/plugin/cache"
 	"github.com/bwmarrin/snowflake"
 	klog "github.com/go-kratos/kratos/v2/log"
 
@@ -20,6 +21,7 @@ func NewAlert(
 	recipientGroupBiz *RecipientGroup,
 	emailBiz *Email,
 	webhookBiz *Webhook,
+	cache cache.Interface,
 	helper *klog.Helper,
 ) *Alert {
 	return &Alert{
@@ -28,6 +30,7 @@ func NewAlert(
 		recipientGroupBiz:     recipientGroupBiz,
 		emailBiz:              emailBiz,
 		webhookBiz:            webhookBiz,
+		cache:                 cache,
 		helper:                klog.NewHelper(klog.With(helper.Logger(), "biz", "alert")),
 	}
 }
@@ -38,6 +41,7 @@ type Alert struct {
 	recipientGroupBiz     *RecipientGroup
 	emailBiz              *Email
 	webhookBiz            *Webhook
+	cache                 cache.Interface
 	helper                *klog.Helper
 }
 
@@ -155,6 +159,10 @@ func (b *Alert) dispatchRecipientGroup(ctx context.Context, uid snowflake.ID, pa
 		if emailConfig == nil || len(to) == 0 {
 			continue
 		}
+		routeKey := "rg:" + uid.String() + ":email:" + emailConfig.UID.String()
+		if !b.shouldDispatchAlertNotification(ctx, payload, routeKey) {
+			continue
+		}
 		_, err := b.emailBiz.AppendEmailMessage(ctx, &bo.SendEmailBo{
 			UID:         emailConfig.UID,
 			Subject:     bo.BuildDefaultAlertSubject(payload),
@@ -165,9 +173,14 @@ func (b *Alert) dispatchRecipientGroup(ctx context.Context, uid snowflake.ID, pa
 		if err != nil {
 			return err
 		}
+		b.markAlertNotificationDispatched(ctx, payload, routeKey)
 	}
 	for _, webhookConfig := range groupItem.WebhookConfigs {
 		if webhookConfig == nil {
+			continue
+		}
+		routeKey := "rg:" + uid.String() + ":webhook:" + webhookConfig.UID.String()
+		if !b.shouldDispatchAlertNotification(ctx, payload, routeKey) {
 			continue
 		}
 		_, err := b.webhookBiz.AppendWebhookMessage(ctx, &bo.SendWebhookBo{
@@ -177,6 +190,7 @@ func (b *Alert) dispatchRecipientGroup(ctx context.Context, uid snowflake.ID, pa
 		if err != nil {
 			return err
 		}
+		b.markAlertNotificationDispatched(ctx, payload, routeKey)
 	}
 	return nil
 }
@@ -192,6 +206,15 @@ func (b *Alert) dispatchSubscriptionMembers(ctx context.Context, subscription *b
 		}
 	}
 	if len(to) == 0 {
+		b.helper.WithContext(ctx).Warnw(
+			"msg", "skip direct member email: no recipient addresses",
+			"subscriptionUID", subscription.UID.Int64(),
+			"subscriptionName", subscription.Name,
+		)
+		return nil
+	}
+	routeKey := "sub:" + subscription.UID.String() + ":email:" + subscription.DirectMemberEmailConfigUID.String()
+	if !b.shouldDispatchAlertNotification(ctx, payload, routeKey) {
 		return nil
 	}
 	if subscription.DirectMemberTemplateUID > 0 {
@@ -201,7 +224,11 @@ func (b *Alert) dispatchSubscriptionMembers(ctx context.Context, subscription *b
 			JSONData:    []byte(bo.BuildAlertTemplateData(payload)),
 			To:          to,
 		})
-		return err
+		if err != nil {
+			return err
+		}
+		b.markAlertNotificationDispatched(ctx, payload, routeKey)
+		return nil
 	}
 	_, err := b.emailBiz.AppendEmailMessage(ctx, &bo.SendEmailBo{
 		UID:         subscription.DirectMemberEmailConfigUID,
@@ -210,7 +237,11 @@ func (b *Alert) dispatchSubscriptionMembers(ctx context.Context, subscription *b
 		To:          to,
 		ContentType: "text/plain",
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	b.markAlertNotificationDispatched(ctx, payload, routeKey)
+	return nil
 }
 
 func (b *Alert) fillSubscriptionMembers(ctx context.Context, subscriptions []*bo.AlertSubscriptionItemBo) error {
@@ -234,24 +265,14 @@ func (b *Alert) fillSubscriptionMembers(ctx context.Context, subscriptions []*bo
 	}
 	slices.Sort(memberUIDs)
 	memberMap := make(map[int64]*goddessv1.MemberItem, len(memberUIDs))
-	const chunkSize = 200
-	for i := 0; i < len(memberUIDs); i += chunkSize {
-		end := i + chunkSize
-		if end > len(memberUIDs) {
-			end = len(memberUIDs)
-		}
-		reply, err := b.memberRepo.ListMember(ctx, &goddessv1.ListMemberRequest{
-			Page:     1,
-			PageSize: chunkSize,
-			Uids:     memberUIDs[i:end],
-		})
+	for _, uid := range memberUIDs {
+		item, err := b.memberRepo.GetMember(ctx, &goddessv1.GetMemberRequest{Uid: uid})
 		if err != nil {
-			return err
+			b.helper.WithContext(ctx).Warnw("msg", "subscription member lookup failed", "memberUID", uid, "error", err)
+			continue
 		}
-		for _, item := range reply.GetItems() {
-			if item != nil {
-				memberMap[item.GetUid()] = item
-			}
+		if item != nil {
+			memberMap[item.GetUid()] = item
 		}
 	}
 	for _, subscription := range subscriptions {
