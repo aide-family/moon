@@ -67,12 +67,14 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
+	alertPushDedup := impl.NewAlertPushDedupRepository(dataData)
+	rabbitAlertPusher := biz.NewRabbitAlertPusher(rabbitAlert, alertPushDedup, helper)
 	strategy, err := impl.NewStrategyRepository(dataData)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	alertEventConsumer := biz.NewAlertEventConsumer(helper, alertEvent, rabbitAlert, strategy, alertingEventChannel)
+	alertEventConsumer := biz.NewAlertEventConsumer(helper, alertEvent, rabbitAlertPusher, strategy, alertingEventChannel)
 	consumerServer := cron.NewConsumerServer(alertEventChannel, alertingEventChannel, alertEventConsumer, helper)
 	loginRepository, err := impl.NewLoginRepository(bc, dataData)
 	if err != nil {
@@ -145,7 +147,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		return nil, nil, err
 	}
 	alertPageBiz := biz.NewAlertPage(alertPage, userAlertPage, helper)
-	alertBiz := biz.NewAlert(alertPage, alertEvent, userAlertPage, level, member, rabbitAlert, helper)
+	alertBiz := biz.NewAlert(alertPage, alertEvent, userAlertPage, level, member, rabbitAlertPusher, helper)
 	historyAlertExportTask := impl.NewHistoryAlertExportTaskRepository(dataData)
 	historyAlertExportNotifier := biz.NewHistoryAlertExportNotifier()
 	historyAlertExportBiz := biz.NewHistoryAlertExportBiz(historyAlertExportTask, alertEvent, historyAlertExportNotifier, helper)

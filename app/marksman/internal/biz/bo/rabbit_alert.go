@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
+	"github.com/aide-family/magicbox/strutil/cnst"
 	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 
@@ -49,7 +50,7 @@ func NewRabbitReceivePrometheusWebhookRequestFromAlertEventItem(item *AlertEvent
 		Labels:      buildRabbitAlertLabels(item.UID, item.NamespaceUID, item.Fingerprint, item.StrategyGroupUID, item.StrategyGroupName, item.StrategyUID, item.StrategyName, item.LevelUID, item.LevelName, item.DatasourceUID, item.DatasourceName, item.DatasourceLevelName, item.Labels),
 		Annotations: buildRabbitAlertAnnotations(item.Summary, item.Description, item.Expr, item.Value),
 		StartsAt:    item.FiredAt.Format(time.RFC3339),
-		Fingerprint: buildRecoveredFingerprint(item),
+		Fingerprint: BuildRecoveredFingerprint(item),
 	}
 	if item.RecoveredAt != nil {
 		alert.EndsAt = item.RecoveredAt.Format(time.RFC3339)
@@ -79,28 +80,38 @@ func buildRabbitAlertLabels(
 	datasourceLevelName string,
 	extra map[string]string,
 ) map[string]string {
-	labels := make(map[string]string, len(extra)+11)
+	labels := make(map[string]string, len(extra)+12)
 	for key, value := range extra {
 		labels[key] = value
 	}
-	labels["namespace_uid"] = strconv.FormatInt(namespaceUID.Int64(), 10)
-	labels["alert_event_uid"] = strconv.FormatInt(alertEventUID.Int64(), 10)
-	labels["strategy_group_uid"] = strconv.FormatInt(strategyGroupUID.Int64(), 10)
-	labels["strategy_group_name"] = strategyGroupName
-	labels["strategy_uid"] = strconv.FormatInt(strategyUID.Int64(), 10)
-	labels["strategy_name"] = strategyName
-	labels["level_uid"] = strconv.FormatInt(levelUID.Int64(), 10)
-	labels["level_name"] = levelName
-	labels["datasource_uid"] = strconv.FormatInt(datasourceUID.Int64(), 10)
-	labels["datasource_name"] = datasourceName
-	labels["datasource_level_name"] = datasourceLevelName
-	if labels["alertname"] == "" {
-		labels["alertname"] = strategyName
+	setLabelIfEmpty(labels, cnst.LabelNamespaceUID, strconv.FormatInt(namespaceUID.Int64(), 10))
+	setLabelIfEmpty(labels, cnst.LabelStrategyGroupUID, strconv.FormatInt(strategyGroupUID.Int64(), 10))
+	setLabelIfEmpty(labels, cnst.LabelStrategyGroupName, strategyGroupName)
+	setLabelIfEmpty(labels, cnst.LabelStrategyUID, strconv.FormatInt(strategyUID.Int64(), 10))
+	setLabelIfEmpty(labels, cnst.LabelStrategyName, strategyName)
+	setLabelIfEmpty(labels, cnst.LabelLevelUID, strconv.FormatInt(levelUID.Int64(), 10))
+	setLabelIfEmpty(labels, cnst.LabelLevelName, levelName)
+	setLabelIfEmpty(labels, cnst.LabelDatasourceUID, strconv.FormatInt(datasourceUID.Int64(), 10))
+	setLabelIfEmpty(labels, cnst.LabelDatasourceName, datasourceName)
+	setLabelIfEmpty(labels, cnst.LabelDatasourceLevelName, datasourceLevelName)
+	setLabelIfEmpty(labels, cnst.LabelAlertName, strategyName)
+	setLabelIfEmpty(labels, cnst.LabelSeverity, levelName)
+	if alertEventUID.Int64() > 0 {
+		labels[cnst.LabelAlertEventUID] = strconv.FormatInt(alertEventUID.Int64(), 10)
 	}
 	if fingerprint != "" {
-		labels["fingerprint"] = fingerprint
+		labels[cnst.LabelFingerprint] = fingerprint
 	}
 	return labels
+}
+
+func setLabelIfEmpty(labels map[string]string, key, value string) {
+	if labels == nil || key == "" || value == "" {
+		return
+	}
+	if labels[key] == "" {
+		labels[key] = value
+	}
 }
 
 func buildRabbitAlertAnnotations(summary, description, expr string, value float64) map[string]string {
@@ -118,7 +129,7 @@ func buildRabbitAlertAnnotations(summary, description, expr string, value float6
 	return annotations
 }
 
-func buildRecoveredFingerprint(item *AlertEventItemBo) string {
+func BuildRecoveredFingerprint(item *AlertEventItemBo) string {
 	if item == nil {
 		return ""
 	}

@@ -133,7 +133,9 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 		cleanup()
 		return nil, nil, err
 	}
-	alertBiz := biz.NewAlert(alertPage, alertEvent, userAlertPage, level, member, rabbitAlert, helper)
+	alertPushDedup := impl.NewAlertPushDedupRepository(dataData)
+	rabbitAlertPusher := biz.NewRabbitAlertPusher(rabbitAlert, alertPushDedup, helper)
+	alertBiz := biz.NewAlert(alertPage, alertEvent, userAlertPage, level, member, rabbitAlertPusher, helper)
 	historyAlertExportTask := impl.NewHistoryAlertExportTaskRepository(dataData)
 	historyAlertExportNotifier := biz.NewHistoryAlertExportNotifier()
 	historyAlertExportBiz := biz.NewHistoryAlertExportBiz(historyAlertExportTask, alertEvent, historyAlertExportNotifier, helper)

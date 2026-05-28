@@ -16,7 +16,7 @@ import (
 type AlertEventConsumer struct {
 	helper                   *klog.Helper
 	alertEventRepo           repository.AlertEvent
-	rabbitAlertRepo          repository.RabbitAlert
+	rabbitAlertPusher        *RabbitAlertPusher
 	strategyRepo             repository.Strategy
 	alertingEventChannelRepo repository.AlertingEventChannel
 }
@@ -25,14 +25,14 @@ type AlertEventConsumer struct {
 func NewAlertEventConsumer(
 	helper *klog.Helper,
 	alertEventRepo repository.AlertEvent,
-	rabbitAlertRepo repository.RabbitAlert,
+	rabbitAlertPusher *RabbitAlertPusher,
 	strategyRepo repository.Strategy,
 	alertingEventChannelRepo repository.AlertingEventChannel,
 ) *AlertEventConsumer {
 	return &AlertEventConsumer{
 		helper:                   klog.NewHelper(klog.With(helper.Logger(), "biz", "alert_event_consumer")),
 		alertEventRepo:           alertEventRepo,
-		rabbitAlertRepo:          rabbitAlertRepo,
+		rabbitAlertPusher:        rabbitAlertPusher,
 		strategyRepo:             strategyRepo,
 		alertingEventChannelRepo: alertingEventChannelRepo,
 	}
@@ -49,11 +49,7 @@ func (c *AlertEventConsumer) Handle(ctx context.Context, event *bo.AlertEventBo)
 		c.helper.WithContext(ctx).Errorw("msg", "create alert event failed", "error", err, "strategyUID", event.StrategyUID.Int64())
 		return
 	}
-	if req := bo.NewRabbitReceivePrometheusWebhookRequestFromAlertEvent(alertEventUID, event); req != nil {
-		if _, err := c.rabbitAlertRepo.ReceivePrometheusWebhook(ctx, req); err != nil {
-			c.helper.WithContext(ctx).Warnw("msg", "push firing alert to rabbit failed", "error", err, "alertEventUID", alertEventUID.Int64())
-		}
-	}
+	c.rabbitAlertPusher.PushFiringAlert(ctx, alertEventUID, event)
 
 	c.helper.WithContext(ctx).Debugw("msg", "alert event persisted", "event", event)
 	alerting := evaluator.NewAlerting(alertEventUID, event, c.alertEventRepo, c.alertingEventChannelRepo, func(cbCtx context.Context, uid snowflake.ID) error {
@@ -61,12 +57,7 @@ func (c *AlertEventConsumer) Handle(ctx context.Context, event *bo.AlertEventBo)
 		if err != nil {
 			return err
 		}
-		req := bo.NewRabbitReceivePrometheusWebhookRequestFromAlertEventItem(alertEvent)
-		if req == nil {
-			return nil
-		}
-		_, err = c.rabbitAlertRepo.ReceivePrometheusWebhook(cbCtx, req)
-		return err
+		return c.rabbitAlertPusher.PushRecoveredAlert(cbCtx, alertEvent)
 	})
 	c.alertingEventChannelRepo.Append(alerting)
 }

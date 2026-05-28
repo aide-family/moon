@@ -11,29 +11,15 @@ import (
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/strutil"
+	"github.com/aide-family/magicbox/strutil/cnst"
 	"github.com/prometheus/common/model"
 
 	"github.com/aide-family/marksman/internal/biz/bo"
 )
 
 const (
-	labelAlertName              = "alertname"
-	labelSeverity               = "severity"
-	labelAlertState             = "alertstate"
-	labelMarksmanNamespaceUID   = "marksman_namespace_uid"
-	labelMarksmanStrategyGroup  = "marksman_strategy_group_uid"
-	labelMarksmanStrategyGroupN = "marksman_strategy_group_name"
-	labelMarksmanStrategyUID    = "marksman_strategy_uid"
-	labelMarksmanStrategyName   = "marksman_strategy_name"
-	labelMarksmanLevelUID       = "marksman_level_uid"
-	labelMarksmanLevelName      = "marksman_level_name"
-	labelMarksmanDatasourceUID  = "marksman_datasource_uid"
-	labelMarksmanDatasourceName = "marksman_datasource_name"
-	// labelDatasourceUID is the canonical datasource identifier on alert labels (fingerprint / routing).
-	labelDatasourceUID = "datasource_uid"
-
-	annotationSummary     = "summary"
-	annotationDescription = "description"
+	annotationSummary     = cnst.AnnotationKeySummary
+	annotationDescription = cnst.AnnotationKeyDescription
 
 	alertStateFiring = "firing"
 )
@@ -152,27 +138,19 @@ func legacySampleCount(values []float64) int {
 
 func buildRuleLabels(info *bo.EvaluateMetricStrategyBo) map[string]string {
 	labels := map[string]string{
-		labelAlertName:              info.GetStrategyName(),
-		labelSeverity:               info.GetLevelName(),
-		labelMarksmanNamespaceUID:   strconv.FormatInt(info.GetNamespaceUID().Int64(), 10),
-		labelMarksmanStrategyGroup:  strconv.FormatInt(info.GetStrategyGroupUID().Int64(), 10),
-		labelMarksmanStrategyGroupN: info.GetStrategyGroupName(),
-		labelMarksmanStrategyUID:    strconv.FormatInt(info.GetStrategyUID().Int64(), 10),
-		labelMarksmanStrategyName:   info.GetStrategyName(),
-		labelMarksmanLevelUID:       strconv.FormatInt(info.GetLevelUID().Int64(), 10),
-		labelMarksmanLevelName:      info.GetLevelName(),
-		labelMarksmanDatasourceUID:  strconv.FormatInt(info.GetDatasourceUID().Int64(), 10),
-		labelMarksmanDatasourceName: info.GetDatasourceName(),
-		labelDatasourceUID:          strconv.FormatInt(info.GetDatasourceUID().Int64(), 10),
+		cnst.LabelAlertName:           info.GetStrategyName(),
+		cnst.LabelSeverity:            info.GetLevelName(),
+		cnst.LabelNamespaceUID:        strconv.FormatInt(info.GetNamespaceUID().Int64(), 10),
+		cnst.LabelStrategyGroupUID:    strconv.FormatInt(info.GetStrategyGroupUID().Int64(), 10),
+		cnst.LabelStrategyGroupName:   info.GetStrategyGroupName(),
+		cnst.LabelStrategyUID:         strconv.FormatInt(info.GetStrategyUID().Int64(), 10),
+		cnst.LabelLevelUID:            strconv.FormatInt(info.GetLevelUID().Int64(), 10),
+		cnst.LabelDatasourceUID:       strconv.FormatInt(info.GetDatasourceUID().Int64(), 10),
+		cnst.LabelDatasourceName:      info.GetDatasourceName(),
+		cnst.LabelDatasourceLevelName: info.GetDatasourceLevelName(),
 	}
 	for k, v := range info.GetLabels() {
-		if k == labelAlertName {
-			continue
-		}
-		if k == labelSeverity && labels[labelSeverity] != "" {
-			continue
-		}
-		if k == labelDatasourceUID || k == labelMarksmanDatasourceUID {
+		if bo.IsReservedAlertSystemLabelKey(k) {
 			continue
 		}
 		labels[k] = v
@@ -207,7 +185,7 @@ func mergePrometheusAlertLabels(seriesLabels, ruleLabels map[string]string) map[
 	for k, v := range ruleLabels {
 		merged[k] = v
 	}
-	merged[labelAlertState] = alertStateFiring
+	merged[cnst.LabelAlertState] = alertStateFiring
 	return merged
 }
 
@@ -247,8 +225,9 @@ func normalizePrometheusTemplate(tmpl string) string {
 }
 
 func prometheusAlertFingerprint(labels map[string]string) string {
-	ls := make(model.LabelSet, len(labels))
-	for k, v := range labels {
+	filtered := bo.FilterLabelsForAlertFingerprint(labels)
+	ls := make(model.LabelSet, len(filtered))
+	for k, v := range filtered {
 		ls[model.LabelName(k)] = model.LabelValue(v)
 	}
 	return ls.Fingerprint().String()

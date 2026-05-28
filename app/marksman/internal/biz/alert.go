@@ -20,7 +20,7 @@ func NewAlert(
 	userAlertPageRepo repository.UserAlertPage,
 	levelRepo repository.Level,
 	memberRepo repository.Member,
-	rabbitAlertRepo repository.RabbitAlert,
+	rabbitAlertPusher *RabbitAlertPusher,
 	helper *klog.Helper,
 ) *AlertBiz {
 	return &AlertBiz{
@@ -29,7 +29,7 @@ func NewAlert(
 		userAlertPageRepo: userAlertPageRepo,
 		levelRepo:         levelRepo,
 		memberRepo:        memberRepo,
-		rabbitAlertRepo:   rabbitAlertRepo,
+		rabbitAlertPusher: rabbitAlertPusher,
 		helper:            klog.NewHelper(klog.With(helper.Logger(), "biz", "alert")),
 	}
 }
@@ -40,7 +40,7 @@ type AlertBiz struct {
 	userAlertPageRepo repository.UserAlertPage
 	levelRepo         repository.Level
 	memberRepo        repository.Member
-	rabbitAlertRepo   repository.RabbitAlert
+	rabbitAlertPusher *RabbitAlertPusher
 	helper            *klog.Helper
 }
 
@@ -283,11 +283,7 @@ func (b *AlertBiz) pushRecoveredAlertByUID(ctx context.Context, uid snowflake.ID
 		b.helper.WithContext(ctx).Warnw("msg", "get recovered alert event failed", "error", err, "uid", uid.Int64())
 		return
 	}
-	req := bo.NewRabbitReceivePrometheusWebhookRequestFromAlertEventItem(item)
-	if req == nil {
-		return
-	}
-	if _, err := b.rabbitAlertRepo.ReceivePrometheusWebhook(ctx, req); err != nil {
+	if err := b.rabbitAlertPusher.PushRecoveredAlert(ctx, item); err != nil {
 		b.helper.WithContext(ctx).Warnw("msg", "push recovered alert to rabbit failed", "error", err, "uid", uid.Int64())
 	}
 }

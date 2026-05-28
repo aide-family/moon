@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
+	"github.com/aide-family/magicbox/strutil/cnst"
 	"github.com/prometheus/common/model"
 
 	"github.com/aide-family/marksman/internal/biz/bo"
@@ -118,33 +119,53 @@ func TestBuildRuleLabelsContainsSystemFields(t *testing.T) {
 	}
 
 	labels := buildRuleLabels(info)
-	if labels[labelAlertName] != "HighCPU" {
-		t.Fatalf("alertname = %q, want HighCPU", labels[labelAlertName])
+	if labels[cnst.LabelAlertName] != "HighCPU" {
+		t.Fatalf("alertname = %q, want HighCPU", labels[cnst.LabelAlertName])
 	}
-	if labels[labelSeverity] != "critical" {
-		t.Fatalf("severity = %q, want critical", labels[labelSeverity])
+	if labels[cnst.LabelSeverity] != "critical" {
+		t.Fatalf("severity = %q, want critical", labels[cnst.LabelSeverity])
 	}
 	if labels["team"] != "ops" {
 		t.Fatalf("team label missing")
 	}
-	if labels[labelMarksmanStrategyUID] != "3" {
-		t.Fatalf("marksman_strategy_uid = %q, want 3", labels[labelMarksmanStrategyUID])
+	if labels[cnst.LabelStrategyUID] != "3" {
+		t.Fatalf("strategy_uid = %q, want 3", labels[cnst.LabelStrategyUID])
 	}
-	if labels[labelDatasourceUID] != "5" {
-		t.Fatalf("datasource_uid = %q, want 5", labels[labelDatasourceUID])
+	if labels[cnst.LabelDatasourceUID] != "5" {
+		t.Fatalf("datasource_uid = %q, want 5", labels[cnst.LabelDatasourceUID])
+	}
+}
+
+func TestPrometheusAlertFingerprintIgnoresVolatileNameLabels(t *testing.T) {
+	base := map[string]string{
+		cnst.LabelNamespaceUID:  "1",
+		cnst.LabelStrategyUID:   "3",
+		cnst.LabelDatasourceUID: "10",
+		"instance":              "host-a",
+	}
+	labelsA := mapsCloneString(base)
+	labelsA[cnst.LabelAlertName] = "OldName"
+	labelsA[cnst.LabelStrategyGroupName] = "group-a"
+	labelsA[cnst.LabelSeverity] = "warning"
+	labelsB := mapsCloneString(base)
+	labelsB[cnst.LabelAlertName] = "NewName"
+	labelsB[cnst.LabelStrategyGroupName] = "group-b"
+	labelsB[cnst.LabelSeverity] = "critical"
+	if prometheusAlertFingerprint(labelsA) != prometheusAlertFingerprint(labelsB) {
+		t.Fatal("expected identical fingerprints when only volatile name labels differ")
 	}
 }
 
 func TestPrometheusAlertFingerprintDiffersByDatasourceUID(t *testing.T) {
 	base := map[string]string{
-		labelAlertName:              "HighCPU",
-		labelMarksmanStrategyUID:    "3",
-		"instance":                  "host-a",
+		cnst.LabelAlertName:   "HighCPU",
+		cnst.LabelStrategyUID: "3",
+		"instance":            "host-a",
 	}
 	labelsA := mapsCloneString(base)
-	labelsA[labelDatasourceUID] = "10"
+	labelsA[cnst.LabelDatasourceUID] = "10"
 	labelsB := mapsCloneString(base)
-	labelsB[labelDatasourceUID] = "20"
+	labelsB[cnst.LabelDatasourceUID] = "20"
 	if prometheusAlertFingerprint(labelsA) == prometheusAlertFingerprint(labelsB) {
 		t.Fatal("expected different fingerprints for different datasource_uid")
 	}

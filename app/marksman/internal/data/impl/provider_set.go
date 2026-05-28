@@ -29,6 +29,7 @@ var ProviderSetImpl = wire.NewSet(
 	NewUserAlertPageRepository,
 	NewNotificationGroupRepository,
 	NewRabbitAlertRepository,
+	NewAlertPushDedupRepository,
 	NewRabbitWebhookRepository,
 	NewRabbitTemplateRepository,
 	NewRabbitEmailRepository,

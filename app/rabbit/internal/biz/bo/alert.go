@@ -9,6 +9,7 @@ import (
 
 	"github.com/aide-family/magicbox/enum"
 	"github.com/aide-family/magicbox/merr"
+	"github.com/aide-family/magicbox/strutil/cnst"
 	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 
@@ -77,7 +78,7 @@ func (b *ReceivePrometheusWebhookBo) NamespaceUID() (snowflake.ID, error) {
 			candidates = append(candidates, alert.Labels)
 		}
 	}
-	namespaceLabelKeys := []string{"namespace_uid", "marksman_namespace_uid"}
+	namespaceLabelKeys := []string{cnst.LabelNamespaceUID}
 	for _, labels := range candidates {
 		if labels == nil {
 			continue

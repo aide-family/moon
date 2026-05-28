@@ -209,17 +209,18 @@ func ToAPIV1ListHistoryAlertReply(pageResponseBo *PageResponseBo[*AlertEventItem
 // BuildAlertFingerprint builds a deterministic fingerprint from firedAt and labels.
 // It sorts label keys, joins them as "k=v" pairs, and hashes with SHA-256.
 func BuildAlertFingerprint(index string, labels map[string]string) string {
-	if labels == nil {
-		labels = map[string]string{}
+	filtered := FilterLabelsForAlertFingerprint(labels)
+	if filtered == nil {
+		filtered = map[string]string{}
 	}
-	keys := make([]string, 0, len(labels))
-	for k := range labels {
+	keys := make([]string, 0, len(filtered))
+	for k := range filtered {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 	parts := make([]string, 0, len(keys))
 	for _, k := range keys {
-		parts = append(parts, k+"="+labels[k])
+		parts = append(parts, k+"="+filtered[k])
 	}
 	base := fmt.Sprintf("%s|%s", index, strings.Join(parts, ","))
 	sum := sha256.Sum256([]byte(base))
