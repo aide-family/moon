@@ -2,7 +2,10 @@
 package bo
 
 import (
+	"time"
+
 	"github.com/aide-family/magicbox/enum"
+	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 
 	apiv1 "github.com/aide-family/rabbit/pkg/api/v1"
@@ -18,6 +21,8 @@ type RecipientGroupItemBo struct {
 	Templates      []*TemplateItemBo         `json:"templates"`
 	EmailConfigs   []*EmailConfigItemBo      `json:"emailConfigs"`
 	WebhookConfigs []*WebhookItemBo          `json:"webhookConfigs"`
+	CreatedAt      time.Time                 `json:"-"`
+	UpdatedAt      time.Time                 `json:"-"`
 }
 
 // ToAPIV1RecipientGroupItem converts BO to API item.
@@ -47,6 +52,8 @@ func (b *RecipientGroupItemBo) ToAPIV1RecipientGroupItem() *apiv1.RecipientGroup
 		EmailConfigs:   emailConfigs,
 		WebhookConfigs: webhookConfigs,
 		Status:         b.Status,
+		CreatedAt:      timex.FormatTime(&b.CreatedAt),
+		UpdatedAt:      timex.FormatTime(&b.UpdatedAt),
 	}
 }
 

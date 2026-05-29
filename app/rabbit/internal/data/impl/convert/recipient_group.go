@@ -56,6 +56,8 @@ func ToRecipientGroupItemBo(g *do.RecipientGroup) *bo.RecipientGroupItemBo {
 		EmailConfigs:   emailConfigs,
 		WebhookConfigs: webhookConfigs,
 		Members:        ToNotificationMembersBo(g.Members),
+		CreatedAt:      g.CreatedAt,
+		UpdatedAt:      g.UpdatedAt,
 	}
 }
 
