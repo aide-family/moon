@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"slices"
 
 	klog "github.com/go-kratos/kratos/v2/log"
 
@@ -17,29 +16,23 @@ func fillNotificationMemberDetails(
 	helper *klog.Helper,
 	members []*bo.NotificationMemberBo,
 ) error {
-	memberUIDSet := make(map[int64]struct{})
-	for _, member := range members {
-		if member != nil && member.MemberUID > 0 {
-			memberUIDSet[member.MemberUID] = struct{}{}
-		}
-	}
-	if len(memberUIDSet) == 0 {
+	memberUIDs := collectNotificationMemberUIDs(members)
+	if len(memberUIDs) == 0 {
 		return nil
 	}
-	memberUIDs := make([]int64, 0, len(memberUIDSet))
-	for uid := range memberUIDSet {
-		memberUIDs = append(memberUIDs, uid)
-	}
-	slices.Sort(memberUIDs)
-	memberMap := make(map[int64]*goddessv1.MemberItem, len(memberUIDs))
-	for _, uid := range memberUIDs {
-		item, err := memberRepo.GetMember(ctx, &goddessv1.GetMemberRequest{Uid: uid})
-		if err != nil {
-			if helper != nil {
-				helper.WithContext(ctx).Warnw("msg", "notification member lookup failed", "memberUID", uid, "error", err)
-			}
-			continue
+	membersResp, err := memberRepo.ListMember(ctx, &goddessv1.ListMemberRequest{
+		Page:     1,
+		PageSize: int32(len(memberUIDs)),
+		Uids:     memberUIDs,
+	})
+	if err != nil {
+		if helper != nil {
+			helper.WithContext(ctx).Warnw("msg", "notification member list failed", "error", err)
 		}
+		return nil
+	}
+	memberMap := make(map[int64]*goddessv1.MemberItem, len(membersResp.GetItems()))
+	for _, item := range membersResp.GetItems() {
 		if item != nil {
 			memberMap[item.GetUid()] = item
 		}
@@ -74,6 +67,5 @@ func collectNotificationMemberUIDs(members []*bo.NotificationMemberBo) []int64 {
 	for uid := range memberUIDSet {
 		memberUIDs = append(memberUIDs, uid)
 	}
-	slices.Sort(memberUIDs)
 	return memberUIDs
 }

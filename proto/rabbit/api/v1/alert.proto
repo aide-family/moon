@@ -9,6 +9,9 @@ option java_package = "rabbit.api.v1";
 import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
 import "magicbox/enum/enum.proto";
+import "rabbit/api/v1/recipient_group.proto";
+import "rabbit/api/v1/email.proto";
+import "rabbit/api/v1/template.proto";
 
 service Alert {
 	rpc ReceivePrometheusWebhook (ReceivePrometheusWebhookRequest) returns (ReceivePrometheusWebhookReply) {
@@ -117,6 +120,9 @@ message AlertSubscriptionItem {
 	magicbox.enum.GlobalStatus status = 10;
 	string createdAt = 11;
 	string updatedAt = 12;
+	repeated RecipientGroupItem recipientGroups = 13;
+	EmailConfigItem directMemberEmailConfig = 14;
+	TemplateItem directMemberTemplate = 15;
 }
 
 message CreateAlertSubscriptionRequest {

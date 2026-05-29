@@ -50,6 +50,7 @@
 - **收件人组**：创建/更新/删除/列表/选择；绑定模板、邮件配置、Webhook；为成员配置通信方式（邮件/短信/电话）；状态启用/禁用
 - **发送**：按收件人组发送消息；按邮件配置发送；按 Webhook 配置发送（支持模板）
 - **消息日志**：按时间范围、类型、状态列表；单条查询；重试、取消
+- **告警**：接收 Prometheus Webhook；告警订阅增删改查（标签匹配、收件人组、成员直发邮件）；状态启用/禁用
 
 ---
 
@@ -122,8 +123,15 @@
 | | `GET /v1/message-logs` | 列表（page、pageSize、status、messageType、startAtUnix、endAtUnix；时间范围最多 31 天） |
 | | `PUT /v1/message-log/{uid}/retry` | 重试发送 |
 | | `PUT /v1/message-log/{uid}/cancel` | 取消发送 |
+| **Alert** | `POST /v1/alerts/prometheus/webhook` | 接收 Prometheus Alertmanager Webhook（从 `namespace_uid` 标签解析命名空间） |
+| | `POST /v1/alert-subscriptions` | 创建告警订阅 |
+| | `GET /v1/alert-subscriptions/{uid}` | 获取告警订阅详情（含收件人组、成员、直发邮件配置/模板） |
+| | `PUT /v1/alert-subscriptions/{uid}` | 更新告警订阅 |
+| | `PUT /v1/alert-subscriptions/{uid}/status` | 更新状态（ENABLED/DISABLED） |
+| | `DELETE /v1/alert-subscriptions/{uid}` | 删除告警订阅 |
+| | `GET /v1/alert-subscriptions` | 列表（分页、关键词、状态） |
 
-接口定义位于 `proto/rabbit/api/v1/`（如 `email.proto`、`webhook.proto`、`template.proto`、`recipient_group.proto`、`sender.proto`、`message_log.proto`、`job.proto`）。可通过 `make api` 生成 OpenAPI。
+接口定义位于 `proto/rabbit/api/v1/`（如 `email.proto`、`webhook.proto`、`template.proto`、`recipient_group.proto`、`alert.proto`、`sender.proto`、`message_log.proto`、`job.proto`）。可通过 `make api` 生成 OpenAPI。
 
 ---
 

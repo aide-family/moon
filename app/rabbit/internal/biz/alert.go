@@ -92,12 +92,12 @@ func (b *Alert) DeleteAlertSubscription(ctx context.Context, uid snowflake.ID) e
 	return b.alertSubscriptionRepo.DeleteAlertSubscription(ctx, uid)
 }
 
-func (b *Alert) GetAlertSubscription(ctx context.Context, uid snowflake.ID) (*bo.AlertSubscriptionItemBo, error) {
+func (b *Alert) GetAlertSubscription(ctx context.Context, uid snowflake.ID) (*bo.AlertSubscriptionDetailBo, error) {
 	subscription, err := b.alertSubscriptionRepo.GetAlertSubscription(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	if err := b.fillSubscriptionMembers(ctx, []*bo.AlertSubscriptionItemBo{subscription}); err != nil {
+	if err := b.fillSubscriptionDetailMembers(ctx, subscription); err != nil {
 		return nil, err
 	}
 	return subscription, nil
@@ -249,6 +249,24 @@ func (b *Alert) fillSubscriptionMembers(ctx context.Context, subscriptions []*bo
 			continue
 		}
 		if err := fillNotificationMemberDetails(ctx, b.memberRepo, b.helper, subscription.Members); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (b *Alert) fillSubscriptionDetailMembers(ctx context.Context, detail *bo.AlertSubscriptionDetailBo) error {
+	if detail == nil {
+		return nil
+	}
+	if err := fillNotificationMemberDetails(ctx, b.memberRepo, b.helper, detail.Members); err != nil {
+		return err
+	}
+	for _, group := range detail.RecipientGroups {
+		if group == nil {
+			continue
+		}
+		if err := fillNotificationMemberDetails(ctx, b.memberRepo, b.helper, group.Members); err != nil {
 			return err
 		}
 	}

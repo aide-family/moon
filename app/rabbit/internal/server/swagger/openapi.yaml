@@ -1104,6 +1104,14 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                recipientGroups:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/rabbit.api.v1.RecipientGroupItem'
+                directMemberEmailConfig:
+                    $ref: '#/components/schemas/rabbit.api.v1.EmailConfigItem'
+                directMemberTemplate:
+                    $ref: '#/components/schemas/rabbit.api.v1.TemplateItem'
         rabbit.api.v1.AlertSubscriptionMemberItem:
             type: object
             properties:

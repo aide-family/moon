@@ -50,6 +50,7 @@
 - **Recipient group**: Create/update/delete/list/select recipient groups; bind templates, email configs, webhooks; assign members with per-channel preferences (email/SMS/phone); status control
 - **Sender**: Send message by recipient group; send email by config; send webhook by config (with optional template)
 - **Message log**: List logs (by time range, type, status); get single log; retry; cancel
+- **Alert**: Receive Prometheus webhook; alert subscription CRUD (label matching, recipient groups, direct member email); status control
 
 ---
 
@@ -122,8 +123,15 @@
 | | `GET /v1/message-logs` | List logs (page, pageSize, status, messageType, startAtUnix, endAtUnix; max 31 days range) |
 | | `PUT /v1/message-log/{uid}/retry` | Retry message |
 | | `PUT /v1/message-log/{uid}/cancel` | Cancel message |
+| **Alert** | `POST /v1/alerts/prometheus/webhook` | Receive Prometheus Alertmanager webhook (namespace from `namespace_uid` label) |
+| | `POST /v1/alert-subscriptions` | Create alert subscription |
+| | `GET /v1/alert-subscriptions/{uid}` | Get alert subscription (with recipient groups, members, direct email config/template) |
+| | `PUT /v1/alert-subscriptions/{uid}` | Update alert subscription |
+| | `PUT /v1/alert-subscriptions/{uid}/status` | Update status (ENABLED/DISABLED) |
+| | `DELETE /v1/alert-subscriptions/{uid}` | Delete alert subscription |
+| | `GET /v1/alert-subscriptions` | List alert subscriptions (pagination, keyword, status) |
 
-API is defined in `proto/rabbit/api/v1/` (e.g. `email.proto`, `webhook.proto`, `template.proto`, `recipient_group.proto`, `sender.proto`, `message_log.proto`, `job.proto`). OpenAPI can be generated via `make api`.
+API is defined in `proto/rabbit/api/v1/` (e.g. `email.proto`, `webhook.proto`, `template.proto`, `recipient_group.proto`, `alert.proto`, `sender.proto`, `message_log.proto`, `job.proto`). OpenAPI can be generated via `make api`.
 
 ---
 

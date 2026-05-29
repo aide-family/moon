@@ -141,18 +141,26 @@ func mergeStringMap(base map[string]string, extra map[string]string) map[string]
 }
 
 type AlertSubscriptionItemBo struct {
-	UID                    snowflake.ID
-	Name                   string
-	Remark                 string
-	Labels                 map[string]string
-	ExcludeLabels          map[string]string
-	RecipientGroupUIDs     []int64
-	Members                []*AlertSubscriptionMemberBo
+	UID                        snowflake.ID
+	Name                       string
+	Remark                     string
+	Labels                     map[string]string
+	ExcludeLabels              map[string]string
+	RecipientGroupUIDs         []int64
+	Members                    []*AlertSubscriptionMemberBo
 	DirectMemberEmailConfigUID snowflake.ID
 	DirectMemberTemplateUID    snowflake.ID
-	Status                 enum.GlobalStatus
-	CreatedAt              time.Time
-	UpdatedAt              time.Time
+	Status                     enum.GlobalStatus
+	CreatedAt                  time.Time
+	UpdatedAt                  time.Time
+}
+
+// AlertSubscriptionDetailBo is the detail BO with preloaded related entities.
+type AlertSubscriptionDetailBo struct {
+	AlertSubscriptionItemBo
+	RecipientGroups         []*RecipientGroupItemBo
+	DirectMemberEmailConfig *EmailConfigItemBo
+	DirectMemberTemplate    *TemplateItemBo
 }
 
 func (b *AlertSubscriptionItemBo) ToAPIV1() *apiv1.AlertSubscriptionItem {
@@ -174,6 +182,28 @@ func (b *AlertSubscriptionItemBo) ToAPIV1() *apiv1.AlertSubscriptionItem {
 		CreatedAt:                timex.FormatTime(&b.CreatedAt),
 		UpdatedAt:                timex.FormatTime(&b.UpdatedAt),
 	}
+}
+
+func (b *AlertSubscriptionDetailBo) ToAPIV1() *apiv1.AlertSubscriptionItem {
+	if b == nil {
+		return nil
+	}
+	item := b.AlertSubscriptionItemBo.ToAPIV1()
+	recipientGroups := make([]*apiv1.RecipientGroupItem, 0, len(b.RecipientGroups))
+	for _, group := range b.RecipientGroups {
+		if group == nil {
+			continue
+		}
+		recipientGroups = append(recipientGroups, group.ToAPIV1RecipientGroupItem())
+	}
+	item.RecipientGroups = recipientGroups
+	if b.DirectMemberEmailConfig != nil {
+		item.DirectMemberEmailConfig = b.DirectMemberEmailConfig.ToAPIV1EmailConfigItem()
+	}
+	if b.DirectMemberTemplate != nil {
+		item.DirectMemberTemplate = b.DirectMemberTemplate.ToAPIV1TemplateItem()
+	}
+	return item
 }
 
 type CreateAlertSubscriptionBo struct {

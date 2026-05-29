@@ -13,7 +13,7 @@ type AlertSubscription interface {
 	CreateAlertSubscription(ctx context.Context, req *bo.CreateAlertSubscriptionBo) (snowflake.ID, error)
 	UpdateAlertSubscription(ctx context.Context, req *bo.UpdateAlertSubscriptionBo) error
 	DeleteAlertSubscription(ctx context.Context, uid snowflake.ID) error
-	GetAlertSubscription(ctx context.Context, uid snowflake.ID) (*bo.AlertSubscriptionItemBo, error)
+	GetAlertSubscription(ctx context.Context, uid snowflake.ID) (*bo.AlertSubscriptionDetailBo, error)
 	ListAlertSubscription(ctx context.Context, req *bo.ListAlertSubscriptionBo) (*bo.PageResponseBo[*bo.AlertSubscriptionItemBo], error)
 	ListEnabledAlertSubscriptions(ctx context.Context) ([]*bo.AlertSubscriptionItemBo, error)
 	UpdateAlertSubscriptionStatus(ctx context.Context, req *bo.UpdateAlertSubscriptionStatusBo) error

@@ -32,7 +32,12 @@ import (
 )
 
 // ProviderSetData is a set of data providers.
-var ProviderSetData = wire.NewSet(New)
+var ProviderSetData = wire.NewSet(New, ProvideCache)
+
+// ProvideCache exposes cache from Data for wire injection.
+func ProvideCache(d *Data) cache.Interface {
+	return d.Cache()
+}
 
 // New a data and returns.
 func New(c *conf.Bootstrap, helper *klog.Helper) (*Data, func(), error) {
