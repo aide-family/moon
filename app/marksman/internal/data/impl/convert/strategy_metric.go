@@ -26,7 +26,7 @@ func ToStrategyMetricItemBo(m *do.StrategyMetric) *bo.StrategyMetricItemBo {
 		Labels:         m.Labels.Map(),
 		Summary:        m.Summary,
 		Description:    m.Description,
-		DatasourceUIDs: m.DatasourceUIDs.List(),
+		DatasourceFilter: ToDatasourceFilterBo(m.DatasourceFilter),
 		Levels:         levels,
 		CreatedAt:      m.CreatedAt,
 		UpdatedAt:      m.UpdatedAt,
@@ -59,7 +59,7 @@ func ToStrategyMetricDo(ctx context.Context, req *bo.SaveStrategyMetricBo) *do.S
 		Labels:         safety.NewMap(req.Labels),
 		Summary:        req.Summary,
 		Description:    req.Description,
-		DatasourceUIDs: safety.NewSlice(req.DatasourceUIDs),
+		DatasourceFilter: ToDatasourceFilterDo(req.DatasourceFilter),
 	}
 	model.WithNamespace(contextx.GetNamespace(ctx)).WithCreator(contextx.GetUserUID(ctx))
 	return model

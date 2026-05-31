@@ -16,6 +16,7 @@ func NewStrategyMetric(
 	strategyRepo repository.Strategy,
 	strategyMetricRepo repository.StrategyMetric,
 	levelRepo repository.Level,
+	datasourceRepo repository.Datasource,
 	evaluateBiz *Evaluate,
 	helper *klog.Helper,
 ) *StrategyMetricBiz {
@@ -23,6 +24,7 @@ func NewStrategyMetric(
 		strategyRepo:       strategyRepo,
 		strategyMetricRepo: strategyMetricRepo,
 		levelRepo:          levelRepo,
+		datasourceRepo:     datasourceRepo,
 		evaluateBiz:        evaluateBiz,
 		helper:             klog.NewHelper(klog.With(helper.Logger(), "biz", "strategy_metric")),
 	}
@@ -33,6 +35,7 @@ type StrategyMetricBiz struct {
 	strategyRepo       repository.Strategy
 	strategyMetricRepo repository.StrategyMetric
 	levelRepo          repository.Level
+	datasourceRepo     repository.Datasource
 	evaluateBiz        *Evaluate
 }
 
@@ -97,7 +100,34 @@ func (b *StrategyMetricBiz) GetStrategyMetric(ctx context.Context, strategyUID s
 		b.helper.Errorw("msg", "get strategy metric failed", "error", err, "strategyUID", strategyUID)
 		return nil, merr.ErrorInternalServer("get strategy metric failed").WithCause(err)
 	}
+	if err := b.fillFilterDatasources(ctx, item); err != nil {
+		return nil, err
+	}
 	return item, nil
+}
+
+func (b *StrategyMetricBiz) fillFilterDatasources(ctx context.Context, item *bo.StrategyMetricItemBo) error {
+	if item == nil || item.DatasourceFilter == nil {
+		return nil
+	}
+	includeUIDs := item.DatasourceFilter.IncludeFilterDatasourceUIDs()
+	excludeUIDs := item.DatasourceFilter.ExcludeFilterDatasourceUIDs()
+	referencedUIDs := item.DatasourceFilter.FilterReferencedDatasourceUIDs()
+	if len(referencedUIDs) == 0 {
+		return nil
+	}
+	uids := make([]snowflake.ID, 0, len(referencedUIDs))
+	for _, uid := range referencedUIDs {
+		uids = append(uids, snowflake.ParseInt64(uid))
+	}
+	list, err := b.datasourceRepo.GetDatasourcesByUIDs(ctx, uids)
+	if err != nil {
+		b.helper.Errorw("msg", "get datasources by uids failed", "error", err, "strategyUID", item.StrategyUID)
+		return merr.ErrorInternalServer("get strategy metric failed").WithCause(err)
+	}
+	item.IncludeDatasources = bo.OrderDatasourceItemsByUIDs(includeUIDs, list)
+	item.ExcludeDatasources = bo.OrderDatasourceItemsByUIDs(excludeUIDs, list)
+	return nil
 }
 
 // validateLevelExistsAndEnabled returns the level if it exists and is enabled; otherwise returns a user-friendly error.

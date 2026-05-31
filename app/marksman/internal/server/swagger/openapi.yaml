@@ -1928,6 +1928,28 @@ components:
                 status:
                     type: integer
                     format: enum
+        marksman.api.v1.DatasourceFilter:
+            type: object
+            properties:
+                datasourceUids:
+                    type: array
+                    items:
+                        type: string
+                excludeDatasourceUids:
+                    type: array
+                    items:
+                        type: string
+                datasourceLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                excludeDatasourceLabels:
+                    type: object
+                    additionalProperties:
+                        type: string
+            description: |-
+                DatasourceFilter scopes which datasources a strategy metric evaluates.
+                 Exclude rules apply first; include rules restrict the remaining set (OR between include dimensions).
         marksman.api.v1.DatasourceItem:
             type: object
             properties:
@@ -2525,10 +2547,8 @@ components:
                     type: object
                     additionalProperties:
                         type: string
-                datasourceUIDs:
-                    type: array
-                    items:
-                        type: string
+                datasourceFilter:
+                    $ref: '#/components/schemas/marksman.api.v1.DatasourceFilter'
                 summary:
                     type: string
                 description:
@@ -2713,10 +2733,8 @@ components:
                     type: string
                 description:
                     type: string
-                datasourceUIDs:
-                    type: array
-                    items:
-                        type: string
+                datasourceFilter:
+                    $ref: '#/components/schemas/marksman.api.v1.DatasourceFilter'
                 levels:
                     type: array
                     items:
@@ -2727,6 +2745,14 @@ components:
                     type: string
                 strategy:
                     $ref: '#/components/schemas/marksman.api.v1.StrategyItem'
+                includeDatasources:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.DatasourceItem'
+                excludeDatasources:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/marksman.api.v1.DatasourceItem'
         marksman.api.v1.StrategyMetricLevelItem:
             type: object
             properties:

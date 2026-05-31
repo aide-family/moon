@@ -99,21 +99,20 @@ func (r *strategyMetricRepository) GetEvaluateMetricStrategies(ctx context.Conte
 		return nil, err
 	}
 	datasourceMap := make(map[int64]*do.Datasource)
-	datasourceIds := make([]int64, 0, len(datasourceList))
+	datasourceItems := make([]*bo.DatasourceItemBo, 0, len(datasourceList))
+	allEnabledUIDs := make([]int64, 0, len(datasourceList))
 	for _, datasource := range datasourceList {
 		datasourceMap[datasource.ID.Int64()] = datasource
-		datasourceIds = append(datasourceIds, datasource.ID.Int64())
+		allEnabledUIDs = append(allEnabledUIDs, datasource.ID.Int64())
+		datasourceItems = append(datasourceItems, convert.ToDatasourceItemBo(datasource))
 	}
 
 	evaluateStrategies := make([]*bo.EvaluateMetricStrategyBo, 0, len(strategies))
 	for _, strategyDetail := range strategyMetrics {
+		filterBo := convert.ToDatasourceFilterBo(strategyDetail.DatasourceFilter)
+		selectedUIDs := filterBo.SelectDatasourceUIDs(datasourceItems, allEnabledUIDs)
 		for _, strategyLevel := range strategyDetail.StrategyLevels {
-			datasources := strategyDetail.DatasourceUIDs.List()
-			if len(datasources) == 0 {
-				datasources = datasourceIds
-			}
-
-			for _, datasourceUID := range datasources {
+			for _, datasourceUID := range selectedUIDs {
 				datasourceDetail, ok := datasourceMap[datasourceUID]
 				if !ok {
 					continue
@@ -142,7 +141,7 @@ func (r *strategyMetricRepository) UpdateStrategyMetric(ctx context.Context, req
 		strategyMetricMutation.Labels.Value(safety.NewMap(req.Labels)),
 		strategyMetricMutation.Summary.Value(req.Summary),
 		strategyMetricMutation.Description.Value(req.Description),
-		strategyMetricMutation.DatasourceUIDs.Value(safety.NewSlice(req.DatasourceUIDs)),
+		strategyMetricMutation.DatasourceFilter.Value(convert.ToDatasourceFilterDo(req.DatasourceFilter)),
 	}
 	_, err := strategyMetricMutation.WithContext(ctx).Where(strategyMetricMutation.StrategyUID.Eq(req.StrategyUID.Int64())).UpdateColumnSimple(columns...)
 	return err

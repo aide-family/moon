@@ -11,8 +11,18 @@ import "google/protobuf/duration.proto";
 import "buf/validate/validate.proto";
 import "magicbox/enum/enum.proto";
 import "magicbox/enum/strategy.proto";
+import "marksman/api/v1/datasource.proto";
 import "marksman/api/v1/level.proto";
 import "marksman/api/v1/strategy.proto";
+
+// DatasourceFilter scopes which datasources a strategy metric evaluates.
+// Exclude rules apply first; include rules restrict the remaining set (OR between include dimensions).
+message DatasourceFilter {
+	repeated int64 datasourceUids = 1;
+	repeated int64 excludeDatasourceUids = 2;
+	map<string, string> datasourceLabels = 3;
+	map<string, string> excludeDatasourceLabels = 4;
+}
 
 service StrategyMetric {
 	rpc SaveStrategyMetric (SaveStrategyMetricRequest) returns (SaveStrategyMetricReply) {
@@ -57,11 +67,13 @@ message StrategyMetricItem {
 	map<string, string> labels = 3;
 	string summary = 4;
 	string description = 5;
-	repeated int64 datasourceUIDs = 6;
+	DatasourceFilter datasourceFilter = 6;
 	repeated StrategyMetricLevelItem levels = 7;
 	string createdAt = 8;	
 	string updatedAt = 9;
 	StrategyItem strategy = 10;
+	repeated DatasourceItem includeDatasources = 11;
+	repeated DatasourceItem excludeDatasources = 12;
 }
 
 message StrategyMetricLevelItem {
@@ -79,7 +91,7 @@ message SaveStrategyMetricRequest {
 	int64 strategyUID = 1 [(buf.validate.field).required = true];
 	string expr = 2 [(buf.validate.field).required = true];
 	map<string, string> labels = 3;
-	repeated int64 datasourceUIDs = 4;
+	DatasourceFilter datasourceFilter = 4;
 	string summary = 5;
 	string description = 6;
 }

@@ -53,7 +53,7 @@
 - **Strategy group**: CRUD, list, select, status; bind receivers (recipient groups)
 - **Strategy**: CRUD, list, status; link to strategy group; type (METRICS/LOGS/TRACE) and driver
 - **Level**: Level CRUD, list, select, status (including `type` = ALERT/DATASOURCE and `bgColor` for display)
-- **Strategy metric**: Save/get metric config (expr, labels, datasourceUIDs, levels); save/update/delete/get metric levels (mode, condition, values, duration); bind receivers per strategy (optional levelUID)
+- **Strategy metric**: Save/get metric config (expr, labels, datasourceFilter with include/exclude UIDs and datasource metadata labels, levels); get detail returns `includeDatasources` / `excludeDatasources` for bound include/exclude UIDs; save/update/delete/get metric levels (mode, condition, values, duration); bind receivers per strategy (optional levelUID)
 - **Alert (real-time)**: Alert page CRUD (name, color, sort order, filter by strategy group/level/strategy/datasource/datasource level); list real-time alert events by alert page; operate events: batch intervene + intervene (on-call takeover), suppress (until time), recover (manual); alert statistics for dashboard (total active, by level, today recovered, by alert page); user followed alert pages (list/save per user)
 - **Notification group**: CRUD for notification groups (name, remark, metadata, members, webhooks, templates, emailConfigs updated via Create/Update); get/list returns member profile (`memberName`, `memberAvatar`) and bound resource items (`webhookItems`, `templateItems`, `emailConfigItems`) with `uid + name`
 - **Notification group subscription**: Get/update subscription filter per notification group (strategy groups, strategies, strategy-level pairs, labels, excludeLabels, datasourceUids, datasourceLevelUids); when multiple dimensions are set, alerts match if at least one dimension matches (OR)
@@ -110,8 +110,8 @@
 | | `GET /v1/level/{uid}` | Get level |
 | | `GET /v1/levels` | List levels (page, pageSize, keyword, status) |
 | | `GET /v1/levels/select` | Select for dropdown |
-| **StrategyMetric** | `POST /v1/metric/strategy/{strategyUID}` | Save strategy metric (expr, labels, datasourceUIDs, summary, description, status) |
-| | `GET /v1/metric/strategy/{strategyUID}` | Get strategy metric (with levels) |
+| **StrategyMetric** | `POST /v1/metric/strategy/{strategyUID}` | Save strategy metric (expr, labels, datasourceFilter, summary, description) |
+| | `GET /v1/metric/strategy/{strategyUID}` | Get strategy metric (with levels; `includeDatasources` / `excludeDatasources` for filter include/exclude UIDs) |
 | | `POST /v1/metric/strategy/{strategyUID}/level` | Save metric level (levelUID, mode, condition, values, duration, status) |
 | | `PUT /v1/metric/strategy/{strategyUID}/level/{uid}/status` | Update metric level status |
 | | `DELETE /v1/metric/strategy/{strategyUID}/level/{uid}` | Delete metric level |

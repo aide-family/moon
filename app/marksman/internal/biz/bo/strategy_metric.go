@@ -18,17 +18,17 @@ type SaveStrategyMetricBo struct {
 	Labels         map[string]string
 	Summary        string
 	Description    string
-	DatasourceUIDs []int64
+	DatasourceFilter *DatasourceFilterBo
 }
 
 func NewSaveStrategyMetricBo(req *apiv1.SaveStrategyMetricRequest) *SaveStrategyMetricBo {
 	return &SaveStrategyMetricBo{
-		StrategyUID:    snowflake.ParseInt64(req.GetStrategyUID()),
-		Expr:           req.GetExpr(),
-		Labels:         req.GetLabels(),
-		Summary:        req.GetSummary(),
-		Description:    req.GetDescription(),
-		DatasourceUIDs: req.GetDatasourceUIDs(),
+		StrategyUID:      snowflake.ParseInt64(req.GetStrategyUID()),
+		Expr:             req.GetExpr(),
+		Labels:           req.GetLabels(),
+		Summary:          req.GetSummary(),
+		Description:      req.GetDescription(),
+		DatasourceFilter: NewDatasourceFilterBo(req.GetDatasourceFilter()),
 	}
 }
 
@@ -40,8 +40,10 @@ type StrategyMetricItemBo struct {
 	Labels         map[string]string
 	Summary        string
 	Description    string
-	DatasourceUIDs []int64
-	Levels         []*StrategyMetricLevelItemBo
+	DatasourceFilter *DatasourceFilterBo
+	IncludeDatasources []*DatasourceItemBo
+	ExcludeDatasources []*DatasourceItemBo
+	Levels           []*StrategyMetricLevelItemBo
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
@@ -54,17 +56,27 @@ func ToAPIV1StrategyMetricItem(b *StrategyMetricItemBo) *apiv1.StrategyMetricIte
 	for _, l := range b.Levels {
 		levels = append(levels, ToAPIV1StrategyMetricLevelItem(l))
 	}
+	includeDatasources := make([]*apiv1.DatasourceItem, 0, len(b.IncludeDatasources))
+	for _, ds := range b.IncludeDatasources {
+		includeDatasources = append(includeDatasources, ToAPIV1DatasourceItem(ds))
+	}
+	excludeDatasources := make([]*apiv1.DatasourceItem, 0, len(b.ExcludeDatasources))
+	for _, ds := range b.ExcludeDatasources {
+		excludeDatasources = append(excludeDatasources, ToAPIV1DatasourceItem(ds))
+	}
 	return &apiv1.StrategyMetricItem{
 		StrategyUID:    b.StrategyUID.Int64(),
 		Expr:           b.Expr,
 		Labels:         b.Labels,
 		Summary:        b.Summary,
 		Description:    b.Description,
-		DatasourceUIDs: b.DatasourceUIDs,
+		DatasourceFilter: ToAPIV1DatasourceFilter(b.DatasourceFilter),
 		Levels:         levels,
 		CreatedAt:      timex.FormatTime(&b.CreatedAt),
 		UpdatedAt:      timex.FormatTime(&b.UpdatedAt),
 		Strategy:       ToAPIV1StrategyItem(b.Strategy),
+		IncludeDatasources: includeDatasources,
+		ExcludeDatasources: excludeDatasources,
 	}
 }
 

@@ -38,7 +38,7 @@ func newStrategyMetric(db *gorm.DB, opts ...gen.DOOption) strategyMetric {
 	_strategyMetric.Labels = field.NewField(tableName, "labels")
 	_strategyMetric.Summary = field.NewString(tableName, "summary")
 	_strategyMetric.Description = field.NewString(tableName, "description")
-	_strategyMetric.DatasourceUIDs = field.NewField(tableName, "datasource_uids")
+	_strategyMetric.DatasourceFilter = field.NewField(tableName, "datasource_filter")
 	_strategyMetric.StrategyLevels = strategyMetricHasManyStrategyLevels{
 		db: db.Session(&gorm.Session{}),
 
@@ -81,7 +81,7 @@ type strategyMetric struct {
 	Labels         field.Field
 	Summary        field.String
 	Description    field.String
-	DatasourceUIDs field.Field
+	DatasourceFilter field.Field
 	StrategyLevels strategyMetricHasManyStrategyLevels
 
 	Strategy strategyMetricBelongsToStrategy
@@ -112,7 +112,7 @@ func (s *strategyMetric) updateTableName(table string) *strategyMetric {
 	s.Labels = field.NewField(table, "labels")
 	s.Summary = field.NewString(table, "summary")
 	s.Description = field.NewString(table, "description")
-	s.DatasourceUIDs = field.NewField(table, "datasource_uids")
+	s.DatasourceFilter = field.NewField(table, "datasource_filter")
 
 	s.fillFieldMap()
 
@@ -141,7 +141,7 @@ func (s *strategyMetric) fillFieldMap() {
 	s.fieldMap["labels"] = s.Labels
 	s.fieldMap["summary"] = s.Summary
 	s.fieldMap["description"] = s.Description
-	s.fieldMap["datasource_uids"] = s.DatasourceUIDs
+	s.fieldMap["datasource_filter"] = s.DatasourceFilter
 
 }
 

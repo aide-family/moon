@@ -117,6 +117,29 @@ func (r *datasourceRepository) GetDatasource(ctx context.Context, uid snowflake.
 	return convert.ToDatasourceItemBo(m), nil
 }
 
+func (r *datasourceRepository) GetDatasourcesByUIDs(ctx context.Context, uids []snowflake.ID) ([]*bo.DatasourceItemBo, error) {
+	if len(uids) == 0 {
+		return nil, nil
+	}
+	uidInt64s := make([]int64, 0, len(uids))
+	for _, id := range uids {
+		uidInt64s = append(uidInt64s, id.Int64())
+	}
+	d := query.Datasource
+	list, err := d.WithContext(ctx).Where(
+		d.NamespaceUID.Eq(contextx.GetNamespace(ctx).Int64()),
+		d.ID.In(uidInt64s...),
+	).Preload(d.Level).Find()
+	if err != nil {
+		return nil, err
+	}
+	items := make([]*bo.DatasourceItemBo, 0, len(list))
+	for _, m := range list {
+		items = append(items, convert.ToDatasourceItemBo(m))
+	}
+	return items, nil
+}
+
 func (r *datasourceRepository) ListDatasource(ctx context.Context, req *bo.ListDatasourceBo) (*bo.PageResponseBo[*bo.DatasourceItemBo], error) {
 	d := query.Datasource
 	wrappers := d.WithContext(ctx)

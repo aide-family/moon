@@ -15,6 +15,7 @@ type Datasource interface {
 	UpdateDatasourceStatus(ctx context.Context, req *bo.UpdateDatasourceStatusBo) error
 	DeleteDatasource(ctx context.Context, uid snowflake.ID) error
 	GetDatasource(ctx context.Context, uid snowflake.ID) (*bo.DatasourceItemBo, error)
+	GetDatasourcesByUIDs(ctx context.Context, uids []snowflake.ID) ([]*bo.DatasourceItemBo, error)
 	ListDatasource(ctx context.Context, req *bo.ListDatasourceBo) (*bo.PageResponseBo[*bo.DatasourceItemBo], error)
 	SelectDatasource(ctx context.Context, req *bo.SelectDatasourceBo) (*bo.SelectDatasourceReplyBo, error)
 	// ListAllForProbe returns all enabled-status datasources for health probing (e.g. metrics).

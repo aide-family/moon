@@ -134,7 +134,7 @@ func WireApp(serviceName string, bc *conf.Bootstrap, helper *log.Helper) ([]*kra
 	}
 	strategyBiz := biz.NewStrategy(transaction, strategyGroup, strategy, strategyMetric, evaluate, helper)
 	strategyService := service.NewStrategyService(strategyBiz)
-	strategyMetricBiz := biz.NewStrategyMetric(strategy, strategyMetric, level, evaluate, helper)
+	strategyMetricBiz := biz.NewStrategyMetric(strategy, strategyMetric, level, datasource, evaluate, helper)
 	strategyMetricService := service.NewStrategyMetricService(strategyMetricBiz)
 	alertPage, err := impl.NewAlertPageRepository(dataData)
 	if err != nil {

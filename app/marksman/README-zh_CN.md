@@ -53,7 +53,7 @@
 - **策略组（Strategy group）**：增删改查、列表、选择、状态；绑定接收人（收件人组）
 - **策略（Strategy）**：增删改查、列表、状态；归属策略组；类型（METRICS/LOGS/TRACE）与驱动
 - **级别（Level）**：级别增删改查、列表、选择、状态（区分 `type`：ALERT/DATASOURCE；用于告警严重程度分组，包含用于展示的 `bgColor`）
-- **策略指标（Strategy metric）**：保存/查询指标配置（expr、labels、datasourceUIDs、levels）；指标级别的增删改查（mode、condition、values、duration）；按策略绑定接收人（可选 levelUID）
+- **策略指标（Strategy metric）**：保存/查询指标配置（expr、labels、datasourceFilter 支持数据源 UID/反选与 metadata 标签/反选、levels）；详情返回 `includeDatasources` / `excludeDatasources`（对应 filter 中正选/反选 UID）；指标级别的增删改查（mode、condition、values、duration）；按策略绑定接收人（可选 levelUID）
 - **告警（实时）**：告警页面增删改查（名称、颜色、排序、按策略组/级别/策略/数据源/数据源级别筛选）；按告警页列表展示实时告警事件；事件操作：批量介入、介入、抑制（至指定时间）、恢复（手动）；告警统计（当前总告警、按等级、今日已恢复、按告警页）；用户关注的告警页（按用户列出/保存）
 - **通知组（Notification group）**：通知组增删改查（名称、备注、元数据、成员、webhook、模板、emailConfig 通过创建/更新维护）；查询返回成员资料字段（`memberName`、`memberAvatar`）以及 webhook/template/emailConfig 绑定项（`uid + name`）
 - **通知组订阅（Notification group subscription）**：按通知组获取/更新订阅筛选（策略组、策略、策略-级别对、labels、excludeLabels、datasourceUids、datasourceLevelUids）；多维度同时设置时告警匹配任意一项即可（OR）
@@ -110,8 +110,8 @@
 | | `GET /v1/level/{uid}` | 获取级别 |
 | | `GET /v1/levels` | 列表（page、pageSize、keyword、status） |
 | | `GET /v1/levels/select` | 下拉选择 |
-| **StrategyMetric** | `POST /v1/metric/strategy/{strategyUID}` | 保存策略指标（expr、labels、datasourceUIDs、summary、description、status） |
-| | `GET /v1/metric/strategy/{strategyUID}` | 获取策略指标（含 levels） |
+| **StrategyMetric** | `POST /v1/metric/strategy/{strategyUID}` | 保存策略指标（expr、labels、datasourceFilter、summary、description） |
+| | `GET /v1/metric/strategy/{strategyUID}` | 获取策略指标（含 levels；`includeDatasources` / `excludeDatasources` 对应 filter 正选/反选 UID） |
 | | `POST /v1/metric/strategy/{strategyUID}/level` | 保存指标级别（levelUID、mode、condition、values、duration、status） |
 | | `PUT /v1/metric/strategy/{strategyUID}/level/{uid}/status` | 更新指标级别状态 |
 | | `DELETE /v1/metric/strategy/{strategyUID}/level/{uid}` | 删除指标级别 |
