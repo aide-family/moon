@@ -50,7 +50,7 @@
 - **Recipient group**: Create/update/delete/list/select recipient groups; bind templates, email configs, webhooks; assign members with per-channel preferences (email/SMS/phone); status control
 - **Sender**: Send message by recipient group; send email by config; send webhook by config (with optional template)
 - **Message log**: List logs (by time range, type, status); get single log; retry; cancel
-- **Alert**: Receive Prometheus webhook; alert subscription CRUD (label matching, recipient groups, direct member email); status control
+- **Alert**: Receive Prometheus webhook; alert subscription CRUD (label matching, recipient groups, direct member email); deduplicate email/webhook channels per subscription when dispatching; status control
 
 ---
 

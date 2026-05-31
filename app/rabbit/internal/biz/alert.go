@@ -130,66 +130,9 @@ func (b *Alert) dispatchAlert(ctx context.Context, payload *bo.AlertPayloadBo) e
 		if subscription == nil || !subscription.MatchesLabels(payload.Labels) {
 			continue
 		}
-		for _, recipientGroupUID := range subscription.RecipientGroupUIDs {
-			if err := b.dispatchRecipientGroup(ctx, snowflake.ID(recipientGroupUID), payload); err != nil {
-				b.helper.WithContext(ctx).Warnw("msg", "dispatch recipient group failed", "error", err, "recipientGroupUID", recipientGroupUID)
-			}
+		if err := b.dispatchSubscription(ctx, subscription, payload); err != nil {
+			b.helper.WithContext(ctx).Warnw("msg", "dispatch alert subscription failed", "error", err, "subscriptionUID", subscription.UID.Int64())
 		}
-		if err := b.dispatchSubscriptionMembers(ctx, subscription, payload); err != nil {
-			b.helper.WithContext(ctx).Warnw("msg", "dispatch subscription members failed", "error", err, "subscriptionUID", subscription.UID.Int64())
-		}
-	}
-	return nil
-}
-
-func (b *Alert) dispatchRecipientGroup(ctx context.Context, uid snowflake.ID, payload *bo.AlertPayloadBo) error {
-	group, err := b.recipientGroupBiz.GetRecipientGroup(ctx, uid)
-	if err != nil {
-		return err
-	}
-	groupItem := &group.RecipientGroupItemBo
-	to := make([]string, 0, len(groupItem.Members))
-	for _, member := range groupItem.Members {
-		if member != nil && member.IsEmail && member.MemberEmail != "" {
-			to = appendUnique(to, member.MemberEmail)
-		}
-	}
-	for _, emailConfig := range groupItem.EmailConfigs {
-		if emailConfig == nil || len(to) == 0 {
-			continue
-		}
-		routeKey := "rg:" + uid.String() + ":email:" + emailConfig.UID.String()
-		if !b.shouldDispatchAlertNotification(ctx, payload, routeKey) {
-			continue
-		}
-		_, err := b.emailBiz.AppendEmailMessage(ctx, &bo.SendEmailBo{
-			UID:         emailConfig.UID,
-			Subject:     bo.BuildDefaultAlertSubject(payload),
-			Body:        bo.BuildDefaultAlertBody(payload),
-			To:          to,
-			ContentType: "text/plain",
-		})
-		if err != nil {
-			return err
-		}
-		b.markAlertNotificationDispatched(ctx, payload, routeKey)
-	}
-	for _, webhookConfig := range groupItem.WebhookConfigs {
-		if webhookConfig == nil {
-			continue
-		}
-		routeKey := "rg:" + uid.String() + ":webhook:" + webhookConfig.UID.String()
-		if !b.shouldDispatchAlertNotification(ctx, payload, routeKey) {
-			continue
-		}
-		_, err := b.webhookBiz.AppendWebhookMessage(ctx, &bo.SendWebhookBo{
-			UID:  webhookConfig.UID,
-			Data: bo.BuildAlertTemplateData(payload),
-		})
-		if err != nil {
-			return err
-		}
-		b.markAlertNotificationDispatched(ctx, payload, routeKey)
 	}
 	return nil
 }
@@ -212,7 +155,7 @@ func (b *Alert) dispatchSubscriptionMembers(ctx context.Context, subscription *b
 		)
 		return nil
 	}
-	routeKey := "sub:" + subscription.UID.String() + ":email:" + subscription.DirectMemberEmailConfigUID.String()
+	routeKey := subscriptionEmailRouteKey(subscription.UID, subscription.DirectMemberEmailConfigUID)
 	if !b.shouldDispatchAlertNotification(ctx, payload, routeKey) {
 		return nil
 	}
