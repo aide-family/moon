@@ -254,7 +254,7 @@ func NewSendWebhookWithTemplateBo(req *apiv1.SendWebhookWithTemplateRequest) (*S
 }
 
 func (b *SendWebhookWithTemplateBo) ToSendWebhookBo(templateDo *TemplateItemBo) (*SendWebhookBo, error) {
-	if !(templateDo.MessageType < 2000 || templateDo.MessageType >= 3000) {
+	if !IsWebhookMessageType(templateDo.MessageType) {
 		return nil, merr.ErrorParams("invalid template message type, expected webhook type, got %s", templateDo.MessageType)
 	}
 	if templateDo.Status != enum.GlobalStatus_ENABLED {

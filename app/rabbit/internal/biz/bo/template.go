@@ -78,6 +78,11 @@ type EmailTemplateData struct {
 // WebhookTemplateData Webhook 模板的数据结构
 type WebhookTemplateData string
 
+// IsWebhookMessageType reports whether the message type is a webhook template channel (2000–2999).
+func IsWebhookMessageType(messageType enum.MessageType) bool {
+	return messageType >= enum.MessageType_WEBHOOK_OTHER && messageType < 3000
+}
+
 // SMSTemplateData SMS 模板的数据结构
 type SMSTemplateData struct {
 	Content string            `json:"content"`
