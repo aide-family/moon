@@ -1,9 +1,6 @@
 package feishu
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
 
 	"github.com/aide-family/magicbox/enum"
@@ -32,8 +29,8 @@ type Content struct {
 type Message struct {
 	MsgType   MessageType `json:"msg_type"`
 	Content   *Content    `json:"content"`
-	Timestamp string      `json:"timestamp"`
-	Sign      string      `json:"sign"`
+	Timestamp string      `json:"timestamp,omitempty"`
+	Sign      string      `json:"sign,omitempty"`
 }
 
 func (m *Message) Marshal() ([]byte, error) {
@@ -45,16 +42,10 @@ func (m *Message) Type() enum.MessageType {
 }
 
 func (m *Message) Signature(secret string) error {
-	// 正确拼接 timestamp 和 secret，使用换行符分隔
-	signString := m.Timestamp + "\n" + secret
-
-	h := hmac.New(sha256.New, []byte(signString))
-	var data []byte
-	_, err := h.Write(data)
+	sign, err := feishuWebhookSign(m.Timestamp, secret)
 	if err != nil {
 		return err
 	}
-
-	m.Sign = base64.StdEncoding.EncodeToString(h.Sum(nil))
+	m.Sign = sign
 	return nil
 }

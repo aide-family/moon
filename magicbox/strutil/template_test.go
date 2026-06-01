@@ -148,6 +148,40 @@ func TestExecuteTextTemplate(t *testing.T) {
 			t.Errorf("Expected %s, got %s", expected, result)
 		}
 	})
+
+	t.Run("WithDefaultFunction", func(t *testing.T) {
+		tmpl := `{{ default "N/A" .Labels.alertname }}`
+		data := map[string]any{
+			"Labels": map[string]any{
+				"alertname": "",
+			},
+		}
+
+		result, err := ExecuteTextTemplate(tmpl, data)
+		if err != nil {
+			t.Fatalf("ExecuteTextTemplate failed: %v", err)
+		}
+		if result != "N/A" {
+			t.Errorf("Expected N/A, got %s", result)
+		}
+	})
+
+	t.Run("WithDefaultFunctionOverride", func(t *testing.T) {
+		tmpl := `{{ default "N/A" .Labels.alertname }}`
+		data := map[string]any{
+			"Labels": map[string]any{
+				"alertname": "HighCPU",
+			},
+		}
+
+		result, err := ExecuteTextTemplate(tmpl, data)
+		if err != nil {
+			t.Fatalf("ExecuteTextTemplate failed: %v", err)
+		}
+		if result != "HighCPU" {
+			t.Errorf("Expected HighCPU, got %s", result)
+		}
+	})
 }
 
 // TestExecuteHTMLTemplateFile 测试HTML模板执行函数

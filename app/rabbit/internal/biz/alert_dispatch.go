@@ -13,6 +13,11 @@ type alertEmailDispatchPlan struct {
 	to        []string
 }
 
+type alertWebhookDispatchPlan struct {
+	configUID   snowflake.ID
+	templateUID snowflake.ID
+}
+
 func uniqueInt64IDs(ids []int64) []int64 {
 	if len(ids) == 0 {
 		return nil
@@ -63,6 +68,24 @@ func mergeAlertEmailDispatchPlans(plans map[int64]*alertEmailDispatchPlan, confi
 	}
 }
 
+func mergeAlertWebhookDispatchPlans(plans map[int64]*alertWebhookDispatchPlan, configUID, templateUID snowflake.ID) {
+	if configUID.Int64() == 0 {
+		return
+	}
+	key := configUID.Int64()
+	existing, ok := plans[key]
+	if !ok {
+		plans[key] = &alertWebhookDispatchPlan{
+			configUID:   configUID,
+			templateUID: templateUID,
+		}
+		return
+	}
+	if existing.templateUID.Int64() == 0 && templateUID.Int64() > 0 {
+		existing.templateUID = templateUID
+	}
+}
+
 func subscriptionEmailRouteKey(subscriptionUID, emailConfigUID snowflake.ID) string {
 	return "sub:" + subscriptionUID.String() + ":email:" + emailConfigUID.String()
 }
@@ -76,7 +99,7 @@ func (b *Alert) dispatchSubscription(ctx context.Context, subscription *bo.Alert
 		return nil
 	}
 	emailPlans := make(map[int64]*alertEmailDispatchPlan)
-	webhookConfigUIDs := make(map[int64]struct{})
+	webhookPlans := make(map[int64]*alertWebhookDispatchPlan)
 
 	for _, recipientGroupUID := range uniqueInt64IDs(subscription.RecipientGroupUIDs) {
 		group, err := b.recipientGroupBiz.GetRecipientGroup(ctx, snowflake.ID(recipientGroupUID))
@@ -101,7 +124,8 @@ func (b *Alert) dispatchSubscription(ctx context.Context, subscription *bo.Alert
 			if webhookConfig == nil || webhookConfig.UID.Int64() == 0 {
 				continue
 			}
-			webhookConfigUIDs[webhookConfig.UID.Int64()] = struct{}{}
+			templateUID := bo.MatchWebhookTemplate(groupItem.Templates, webhookConfig.App)
+			mergeAlertWebhookDispatchPlans(webhookPlans, webhookConfig.UID, templateUID)
 		}
 	}
 
@@ -125,15 +149,29 @@ func (b *Alert) dispatchSubscription(ctx context.Context, subscription *bo.Alert
 		b.markAlertNotificationDispatched(ctx, payload, routeKey)
 	}
 
-	for webhookConfigUID := range webhookConfigUIDs {
-		routeKey := subscriptionWebhookRouteKey(subscription.UID, snowflake.ID(webhookConfigUID))
+	templateJSONData := []byte(bo.BuildAlertTemplateData(payload))
+	for _, plan := range webhookPlans {
+		if plan == nil || plan.configUID.Int64() == 0 {
+			continue
+		}
+		routeKey := subscriptionWebhookRouteKey(subscription.UID, plan.configUID)
 		if !b.shouldDispatchAlertNotification(ctx, payload, routeKey) {
 			continue
 		}
-		if _, err := b.webhookBiz.AppendWebhookMessage(ctx, &bo.SendWebhookBo{
-			UID:  snowflake.ID(webhookConfigUID),
-			Data: bo.BuildAlertTemplateData(payload),
-		}); err != nil {
+		var err error
+		if plan.templateUID.Int64() > 0 {
+			_, err = b.webhookBiz.AppendWebhookMessageWithTemplate(ctx, &bo.SendWebhookWithTemplateBo{
+				UID:         plan.configUID,
+				TemplateUID: plan.templateUID,
+				JSONData:    templateJSONData,
+			})
+		} else {
+			_, err = b.webhookBiz.AppendWebhookMessage(ctx, &bo.SendWebhookBo{
+				UID:  plan.configUID,
+				Data: string(templateJSONData),
+			})
+		}
+		if err != nil {
 			return err
 		}
 		b.markAlertNotificationDispatched(ctx, payload, routeKey)

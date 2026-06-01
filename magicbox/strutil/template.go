@@ -12,12 +12,8 @@ func newTemplateName() string {
 }
 
 func ExecuteTextTemplate(tmpl string, data any, funcs ...txtpl.FuncMap) (string, error) {
-	funcMap := make(txtpl.FuncMap)
-	for _, f := range funcs {
-		for k, v := range f {
-			funcMap[k] = v
-		}
-	}
+	tmpl = NormalizeTextTemplate(tmpl)
+	funcMap := cloneTextTemplateFuncMap(funcs...)
 	t, err := txtpl.New(newTemplateName()).Funcs(funcMap).Parse(tmpl)
 	if err != nil {
 		return "", err
@@ -30,12 +26,8 @@ func ExecuteTextTemplate(tmpl string, data any, funcs ...txtpl.FuncMap) (string,
 }
 
 func ExecuteHTMLTemplateFile(tmpl string, data any, funcs ...htmlpl.FuncMap) (string, error) {
-	funcMap := make(htmlpl.FuncMap)
-	for _, f := range funcs {
-		for k, v := range f {
-			funcMap[k] = v
-		}
-	}
+	tmpl = NormalizeTextTemplate(tmpl)
+	funcMap := cloneHTMLTemplateFuncMap(funcs...)
 	t, err := htmlpl.New(newTemplateName()).Funcs(funcMap).Parse(tmpl)
 	if err != nil {
 		return "", err

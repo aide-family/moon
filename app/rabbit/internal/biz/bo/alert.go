@@ -342,6 +342,7 @@ func BuildAlertTemplateData(payload *AlertPayloadBo) string {
 		"endsAt":       timex.FormatTime(payload.EndsAt),
 		"generatorURL": payload.GeneratorURL,
 		"labels":       payload.Labels,
+		"Labels":       payload.Labels,
 		"annotations":  payload.Annotations,
 	})
 	return string(payloadJSON)

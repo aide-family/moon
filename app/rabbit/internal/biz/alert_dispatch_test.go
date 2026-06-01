@@ -43,6 +43,27 @@ func TestRecipientGroupEmailRecipients(t *testing.T) {
 	}
 }
 
+func TestMergeAlertWebhookDispatchPlans(t *testing.T) {
+	plans := make(map[int64]*alertWebhookDispatchPlan)
+	webhookUID := snowflake.ParseInt64(10)
+	templateUID := snowflake.ParseInt64(20)
+	mergeAlertWebhookDispatchPlans(plans, webhookUID, templateUID)
+	mergeAlertWebhookDispatchPlans(plans, webhookUID, 0)
+
+	plan := plans[webhookUID.Int64()]
+	if plan == nil || plan.configUID != webhookUID || plan.templateUID != templateUID {
+		t.Fatalf("unexpected plan: %+v", plan)
+	}
+
+	plans = make(map[int64]*alertWebhookDispatchPlan)
+	mergeAlertWebhookDispatchPlans(plans, webhookUID, 0)
+	mergeAlertWebhookDispatchPlans(plans, webhookUID, templateUID)
+	plan = plans[webhookUID.Int64()]
+	if plan == nil || plan.templateUID != templateUID {
+		t.Fatalf("expected template upgrade, got: %+v", plan)
+	}
+}
+
 func TestSubscriptionNotificationRouteKeys(t *testing.T) {
 	subUID := snowflake.ParseInt64(1)
 	cfgUID := snowflake.ParseInt64(2)

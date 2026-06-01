@@ -22,10 +22,7 @@ type TemplateService struct {
 }
 
 func (s *TemplateService) CreateTemplate(ctx context.Context, req *apiv1.CreateTemplateRequest) (*apiv1.CreateTemplateReply, error) {
-	createBo, err := bo.NewCreateTemplateBo(req)
-	if err != nil {
-		return nil, err
-	}
+	createBo := bo.NewCreateTemplateBo(req)
 	uid, err := s.templateBiz.CreateTemplate(ctx, createBo)
 	if err != nil {
 		return nil, err
@@ -34,10 +31,7 @@ func (s *TemplateService) CreateTemplate(ctx context.Context, req *apiv1.CreateT
 }
 
 func (s *TemplateService) UpdateTemplate(ctx context.Context, req *apiv1.UpdateTemplateRequest) (*apiv1.UpdateTemplateReply, error) {
-	updateBo, err := bo.NewUpdateTemplateBo(req)
-	if err != nil {
-		return nil, err
-	}
+	updateBo := bo.NewUpdateTemplateBo(req)
 	if err := s.templateBiz.UpdateTemplate(ctx, updateBo); err != nil {
 		return nil, err
 	}

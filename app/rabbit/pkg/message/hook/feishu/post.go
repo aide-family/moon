@@ -14,12 +14,12 @@ type Markdown struct {
 
 type Paragraph struct {
 	Tag      string `json:"tag"`
-	Text     string `json:"text"`
-	UnEscape string `json:"un_escape"`
-	Href     string `json:"href"`
-	UserID   string `json:"user_id"`
-	UserName string `json:"user_name"`
-	ImageKey string `json:"image_key"`
+	Text     string `json:"text,omitempty"`
+	UnEscape string `json:"un_escape,omitempty"`
+	Href     string `json:"href,omitempty"`
+	UserID   string `json:"user_id,omitempty"`
+	UserName string `json:"user_name,omitempty"`
+	ImageKey string `json:"image_key,omitempty"`
 }
 
 func NewPostMessage() *Post {

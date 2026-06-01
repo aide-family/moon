@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/aide-family/magicbox/enum"
-	"github.com/aide-family/magicbox/merr"
 	"github.com/aide-family/magicbox/timex"
 	"github.com/bwmarrin/snowflake"
 
@@ -20,16 +19,13 @@ type CreateTemplateBo struct {
 	JSONData    string
 }
 
-// NewCreateTemplateBo 从 API 请求创建 BO
-func NewCreateTemplateBo(req *apiv1.CreateTemplateRequest) (*CreateTemplateBo, error) {
-	if !json.Valid([]byte(req.JsonData)) {
-		return nil, merr.ErrorParams("invalid json data")
-	}
+// NewCreateTemplateBo builds BO from API request.
+func NewCreateTemplateBo(req *apiv1.CreateTemplateRequest) *CreateTemplateBo {
 	return &CreateTemplateBo{
 		Name:        req.Name,
 		MessageType: req.MessageType,
 		JSONData:    req.JsonData,
-	}, nil
+	}
 }
 
 // UpdateTemplateBo 更新模板的 BO
@@ -40,17 +36,14 @@ type UpdateTemplateBo struct {
 	JSONData    string
 }
 
-// NewUpdateTemplateBo 从 API 请求创建 BO
-func NewUpdateTemplateBo(req *apiv1.UpdateTemplateRequest) (*UpdateTemplateBo, error) {
-	if !json.Valid([]byte(req.JsonData)) {
-		return nil, merr.ErrorParams("invalid json data")
-	}
+// NewUpdateTemplateBo builds BO from API request.
+func NewUpdateTemplateBo(req *apiv1.UpdateTemplateRequest) *UpdateTemplateBo {
 	return &UpdateTemplateBo{
 		UID:         snowflake.ParseInt64(req.Uid),
 		Name:        req.Name,
 		MessageType: req.MessageType,
 		JSONData:    req.JsonData,
-	}, nil
+	}
 }
 
 // UpdateTemplateStatusBo 更新模板状态的 BO
@@ -77,6 +70,20 @@ type EmailTemplateData struct {
 
 // WebhookTemplateData Webhook 模板的数据结构
 type WebhookTemplateData string
+
+// MatchWebhookTemplate returns the first enabled template matching the webhook app type.
+func MatchWebhookTemplate(templates []*TemplateItemBo, app enum.WebhookAPP) snowflake.ID {
+	messageType := enum.MessageType(app)
+	for _, template := range templates {
+		if template == nil || template.Status != enum.GlobalStatus_ENABLED {
+			continue
+		}
+		if template.MessageType == messageType {
+			return template.UID
+		}
+	}
+	return 0
+}
 
 // IsWebhookMessageType reports whether the message type is a webhook template channel (2000–2999).
 func IsWebhookMessageType(messageType enum.MessageType) bool {

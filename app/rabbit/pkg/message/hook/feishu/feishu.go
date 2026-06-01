@@ -3,6 +3,9 @@ package feishu
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -51,21 +54,24 @@ func (f *feishuHookSender) Send(ctx context.Context, message message.Message) er
 		}),
 	}
 
-	feishuMessage := &Message{}
-	var ok bool
-	if feishuMessage, ok = message.(*Message); !ok {
-		jsonBytes, err := message.Marshal()
+	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+	var jsonBytes []byte
+	var err error
+
+	if feishuMessage, ok := message.(*Message); ok {
+		feishuMessage.Timestamp = timestamp
+		if err := feishuMessage.Signature(f.config.GetSecret()); err != nil {
+			return err
+		}
+		jsonBytes, err = feishuMessage.Marshal()
+	} else {
+		rawBody, err := message.Marshal()
 		if err != nil {
 			return err
 		}
-		feishuMessage = &Message{}
-		if err := json.Unmarshal(jsonBytes, feishuMessage); err != nil {
-			return err
-		}
+		jsonBytes, err = signFeishuWebhookPayload(rawBody, timestamp, f.config.GetSecret())
 	}
-	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
-	feishuMessage.Timestamp = timestamp
-	if err := feishuMessage.Signature(f.config.GetSecret()); err != nil {
+	if err != nil {
 		return err
 	}
 
@@ -74,10 +80,6 @@ func (f *feishuHookSender) Send(ctx context.Context, message message.Message) er
 		return err
 	}
 
-	jsonBytes, err := feishuMessage.Marshal()
-	if err != nil {
-		return err
-	}
 	klog.Debugf("feishu message: %s", string(jsonBytes))
 	resp, err := f.cli.Post(ctx, u.String(), jsonBytes, opts...)
 	if err != nil {
@@ -85,4 +87,31 @@ func (f *feishuHookSender) Send(ctx context.Context, message message.Message) er
 	}
 	defer resp.Body.Close()
 	return hook.RequestAssert(resp, unmarshalResponse)
+}
+
+func signFeishuWebhookPayload(rawBody []byte, timestamp, secret string) ([]byte, error) {
+	sign, err := feishuWebhookSign(timestamp, secret)
+	if err != nil {
+		return nil, err
+	}
+	if len(rawBody) == 0 {
+		return nil, fmt.Errorf("feishu message body is empty")
+	}
+
+	var payload map[string]json.RawMessage
+	if err := json.Unmarshal(rawBody, &payload); err != nil {
+		return nil, err
+	}
+	payload["timestamp"] = json.RawMessage(strconv.Quote(timestamp))
+	payload["sign"] = json.RawMessage(strconv.Quote(sign))
+	return json.Marshal(payload)
+}
+
+func feishuWebhookSign(timestamp, secret string) (string, error) {
+	signString := timestamp + "\n" + secret
+	h := hmac.New(sha256.New, []byte(signString))
+	if _, err := h.Write(nil); err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(h.Sum(nil)), nil
 }
