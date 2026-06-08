@@ -1,28 +1,28 @@
-# 多阶段构建 - 构建阶段
 FROM golang:1.25.3 AS builder
 
-# 安装必要的构建工具
+ENV GOPROXY=https://goproxy.cn,direct
+ENV GOSUMDB=off
+
 RUN apt-get update && apt-get install -y \
     protobuf-compiler
 
-WORKDIR /moon
+WORKDIR /moon/app/goddess
 
-# 复制构建文件
-COPY Makefile Makefile
+COPY app/goddess/Makefile ./Makefile
 
-# 初始化环境
 RUN make init
 
-# 复制源代码
-COPY . .
+COPY app/goddess/go.mod ./go.mod
+COPY app/goddess/go.sum ./go.sum
+COPY app/goddess/ ./
 
-# 构建应用
+COPY magicbox/ ../../magicbox/
+COPY proto/ ../../proto/
+
 RUN make build
 
-# 最终运行阶段 - 使用 Alpine
 FROM debian:stable-slim
 
-# 安装运行时依赖
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
     apt-transport-https \
     ca-certificates \
@@ -36,15 +36,11 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
 
 WORKDIR /moon
 
-# 复制二进制文件
-COPY --from=builder /moon/bin/goddess /usr/local/bin/goddess
+COPY --from=builder /moon/app/goddess/bin/goddess /usr/local/bin/goddess
 
-# 设置可执行权限
 RUN chmod +x /usr/local/bin/goddess
 
-# 暴露端口（根据实际配置调整）
-EXPOSE 7000 8000 9000 
+EXPOSE 7000 8000 9000
 
-# 运行应用
 ENTRYPOINT ["/usr/local/bin/goddess"]
 CMD ["run", "all"]
