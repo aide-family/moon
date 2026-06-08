@@ -2,6 +2,7 @@ FROM golang:1.25.3 AS builder
 
 ENV GOPROXY=https://goproxy.cn,direct
 ENV GOSUMDB=off
+ENV CGO_ENABLED=0
 
 WORKDIR /moon
 
