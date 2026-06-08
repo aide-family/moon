@@ -99,6 +99,13 @@ build: all
 	@echo "AUTHOR_EMAIL: $(AUTHOR_EMAIL)"
 	go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/marksman main.go
 
+.PHONY: build-image
+# build binary for Docker image (skip code generation)
+build-image:
+	@echo "Building marksman for image"
+	@echo "VERSION: $(VERSION)"
+	go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/marksman main.go
+
 .PHONY: build-exe
 # build the marksman binary for windows
 build-exe: all

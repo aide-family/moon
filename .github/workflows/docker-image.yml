@@ -50,5 +50,9 @@ jobs:
           file: app/${{ matrix.app }}/Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.app }}:${{ github.ref_name }}
+          build-args: |
+            VERSION=${{ github.ref_name }}
+            BUILD_TIME=${{ github.event.head_commit.timestamp }}
+            REPO=https://github.com/${{ github.repository }}
           cache-from: type=gha,scope=${{ matrix.app }}
           cache-to: type=gha,mode=max,scope=${{ matrix.app }}

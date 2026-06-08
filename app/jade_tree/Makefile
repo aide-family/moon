@@ -73,6 +73,13 @@ build: all
 	@echo "Building jade_tree"
 	go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/jade_tree main.go
 
+.PHONY: build-image
+# build binary for Docker image (skip code generation)
+build-image:
+	@echo "Building jade_tree for image"
+	@echo "VERSION: $(VERSION)"
+	go build -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Author=$(AUTHOR) -X main.Email=$(AUTHOR_EMAIL) -X main.Repo=$(REPO)" -o bin/jade_tree main.go
+
 .PHONY: build-exe
 # build the jade_tree binary for windows
 build-exe: all

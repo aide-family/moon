@@ -3,23 +3,18 @@ FROM golang:1.25.3 AS builder
 ENV GOPROXY=https://goproxy.cn,direct
 ENV GOSUMDB=off
 
-RUN apt-get update && apt-get install -y \
-    protobuf-compiler
+WORKDIR /moon
+
+COPY magicbox/ magicbox/
+COPY proto/ proto/
+COPY app/goddess/ app/goddess/
 
 WORKDIR /moon/app/goddess
 
-COPY app/goddess/Makefile ./Makefile
-
-RUN make init-build
-
-COPY app/goddess/go.mod ./go.mod
-COPY app/goddess/go.sum ./go.sum
-COPY app/goddess/ ./
-
-COPY magicbox/ ../../magicbox/
-COPY proto/ ../../proto/
-
-RUN make build
+ARG VERSION=dev
+ARG BUILD_TIME=unknown
+ARG REPO=https://github.com/aide-family/moon
+RUN make build-image VERSION="$VERSION" BUILD_TIME="$BUILD_TIME" REPO="$REPO"
 
 FROM debian:stable-slim
 
