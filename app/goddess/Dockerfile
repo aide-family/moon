@@ -10,7 +10,7 @@ WORKDIR /moon/app/goddess
 
 COPY app/goddess/Makefile ./Makefile
 
-RUN make init
+RUN make init-build
 
 COPY app/goddess/go.mod ./go.mod
 COPY app/goddess/go.sum ./go.sum

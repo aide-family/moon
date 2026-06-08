@@ -10,7 +10,7 @@ WORKDIR /moon/app/marksman
 
 COPY app/marksman/Makefile ./Makefile
 
-RUN make init
+RUN make init-build
 
 COPY app/marksman/go.mod ./go.mod
 COPY app/marksman/go.sum ./go.sum

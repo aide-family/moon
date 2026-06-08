@@ -10,7 +10,7 @@ WORKDIR /moon/app/rabbit
 
 COPY app/rabbit/Makefile ./Makefile
 
-RUN make init
+RUN make init-build
 
 COPY app/rabbit/go.mod ./go.mod
 COPY app/rabbit/go.sum ./go.sum

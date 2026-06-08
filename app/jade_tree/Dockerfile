@@ -15,7 +15,7 @@ WORKDIR /moon/app/jade_tree
 COPY app/jade_tree/Makefile ./Makefile
 
 # 初始化环境
-RUN make init
+RUN make init-build
 
 # Copy Go module manifest and sources.
 COPY app/jade_tree/go.mod ./go.mod
