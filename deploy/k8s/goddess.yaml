@@ -1,0 +1,188 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: goddess-config
+  namespace: moon
+  labels:
+    app.kubernetes.io/name: goddess
+    app.kubernetes.io/part-of: moon
+data:
+  server.yaml: |
+    environment: PROD
+    enableSwagger: false
+    enableMetrics: true
+    useRandomID: false
+    siteDomain: goddess.moon.example.com
+
+    server:
+      name: goddess
+      metadata:
+        tag: goddess
+        repository: https://github.com/aide-family/moon
+        author: Aide Family
+        email: aidecloud@163.com
+      http:
+        address: "0.0.0.0:8000"
+        network: tcp
+        timeout: 10s
+        protocol: HTTP
+      grpc:
+        address: "0.0.0.0:9000"
+        network: tcp
+        timeout: 10s
+        protocol: GRPC
+
+    jwt:
+      secret: placeholder
+      expire: 600s
+      issuer: goddess
+
+    serviceKey:
+      allowedKeys:
+        - sk-marksman-dev
+        - sk-rabbit-dev
+
+    swaggerBasicAuth:
+      enabled: false
+
+    metricsBasicAuth:
+      enabled: false
+
+    database:
+      dialector: SQLITE
+      debug: false
+      useSystemLogger: false
+      options:
+        "@type": type.googleapis.com/magicbox.config.SQLiteOptions
+        dsn: file:/data/goddess.db?cache=shared
+
+    oauth2:
+      enable: false
+
+    globalEmail:
+      host: smtp.example.com
+      port: 587
+      username: change-me
+      password: change-me
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: goddess-data
+  namespace: moon
+  labels:
+    app.kubernetes.io/name: goddess
+    app.kubernetes.io/part-of: moon
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goddess
+  namespace: moon
+  labels:
+    app.kubernetes.io/name: goddess
+    app.kubernetes.io/part-of: moon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: goddess
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: goddess
+        app.kubernetes.io/part-of: moon
+    spec:
+      containers:
+        - name: goddess
+          image: ghcr.io/aide-family/moon/goddess:v0.0.2
+          imagePullPolicy: IfNotPresent
+          args:
+            - run
+            - all
+            - -c
+            - /etc/moon/config
+            - --log-level=INFO
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+            - name: grpc
+              containerPort: 9000
+              protocol: TCP
+          env:
+            - name: MOON_GODDESS_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: moon-secrets
+                  key: goddess-jwt-secret
+            - name: MOON_GODDESS_SERVICE_KEY_MARKSMAN
+              valueFrom:
+                secretKeyRef:
+                  name: moon-secrets
+                  key: service-key-marksman
+            - name: MOON_GODDESS_SERVICE_KEY_RABBIT
+              valueFrom:
+                secretKeyRef:
+                  name: moon-secrets
+                  key: service-key-rabbit
+          volumeMounts:
+            - name: config
+              mountPath: /etc/moon/config
+              readOnly: true
+            - name: data
+              mountPath: /data
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+      volumes:
+        - name: config
+          configMap:
+            name: goddess-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: goddess-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: goddess
+  namespace: moon
+  labels:
+    app.kubernetes.io/name: goddess
+    app.kubernetes.io/part-of: moon
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: goddess
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+      protocol: TCP
+    - name: grpc
+      port: 9000
+      targetPort: grpc
+      protocol: TCP

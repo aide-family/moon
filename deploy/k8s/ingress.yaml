@@ -1,0 +1,61 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: moon
+  namespace: moon
+  labels:
+    app.kubernetes.io/part-of: moon
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "32m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: goddess.moon.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: goddess
+                port:
+                  name: http
+    - host: rabbit.moon.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rabbit
+                port:
+                  name: http
+    - host: marksman.moon.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: marksman
+                port:
+                  name: http
+    - host: jade-tree.moon.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jade-tree
+                port:
+                  name: http
+  # tls:
+  #   - hosts:
+  #       - goddess.moon.example.com
+  #       - rabbit.moon.example.com
+  #       - marksman.moon.example.com
+  #       - jade-tree.moon.example.com
+  #     secretName: moon-tls
