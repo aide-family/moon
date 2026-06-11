@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rabbit-data
+  namespace: moon
+  labels:
+    app.kubernetes.io/name: rabbit
+    app.kubernetes.io/part-of: moon
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

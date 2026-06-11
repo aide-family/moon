@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jade-tree-config
+  namespace: moon
+  labels:
+    app.kubernetes.io/name: jade-tree
+    app.kubernetes.io/part-of: moon
+data:
+  server.yaml: |
+    environment: PROD
+    enableSwagger: false
+    enableMetrics: true
+    useRandomID: false
+    enableClientConfig: false
+
+    server:
+      name: jade_tree
+      metadata:
+        tag: jade_tree
+        repository: https://github.com/aide-family/moon
+        author: Aide Family
+        email: aidecloud@163.com
+      http:
+        address: "0.0.0.0:8004"
+        network: tcp
+        timeout: 10s
+        protocol: HTTP
+      grpc:
+        address: "0.0.0.0:9004"
+        network: tcp
+        timeout: 10s
+        protocol: GRPC
+
+    swaggerBasicAuth:
+      enabled: false
+
+    metricsBasicAuth:
+      enabled: false
+
+    jwt:
+      secret: placeholder
+      expire: 60000s
+      issuer: jade_tree
+
+    database:
+      dialector: SQLITE
+      debug: false
+      useSystemLogger: false
+      options:
+        "@type": type.googleapis.com/magicbox.config.SQLiteOptions
+        dsn: file:/data/jade_tree.db?cache=shared
+
+    probe:
+      enabled: false
+
+    collectSelf:
+      enabled: true
+      timeout: 60s
+      interval: 60s
+
+    machineInfoReport:
+      enabled: false
+      interval: 600s
+      timeout: 10s
+      endpoints:
+        - http://jade-tree.moon.svc.cluster.local:8004/v1/machine-info/report

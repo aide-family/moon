@@ -15,17 +15,34 @@
 
 ## 目录结构
 
+按服务分目录，每种资源类型独立 YAML：
+
 ```
 deploy/k8s/
-├── README.md           # 本文档
-├── namespace.yaml      # moon 命名空间
-├── secrets.yaml        # JWT、service key 等敏感配置
-├── goddess.yaml        # ConfigMap + PVC + Deployment + Service
-├── rabbit.yaml
-├── marksman.yaml
-├── jade-tree.yaml
-├── ingress.yaml        # HTTP 入口（nginx ingress）
-└── kustomization.yaml  # Kustomize 入口，统一改镜像 tag
+├── README.md
+├── kustomization.yaml      # 根 Kustomize 入口
+├── namespace.yaml          # moon 命名空间
+├── secrets.yaml            # 共享 Secret（JWT、service key）
+├── goddess/
+│   ├── kustomization.yaml
+│   ├── configmap.yaml
+│   ├── pvc.yaml
+│   ├── deployment.yaml
+│   └── service.yaml
+├── rabbit/
+│   ├── kustomization.yaml
+│   ├── configmap.yaml
+│   ├── pvc.yaml
+│   ├── deployment.yaml
+│   └── service.yaml
+├── marksman/
+│   └── ...（同上）
+├── jade-tree/
+│   └── ...（同上）
+└── ingress/
+    ├── kustomization.yaml
+    ├── kong-plugin.yaml   # Kong 请求体大小限制插件
+    └── ingress.yaml       # Kong Ingress（ingressClassName: kong）
 ```
 
 ## 架构关系
@@ -66,12 +83,20 @@ flowchart LR
 
 ## 前置条件
 
-- Kubernetes 1.24+
+- Kubernetes **v1.35.5**（清单使用 `networking.k8s.io/v1`、`apps/v1` 等稳定 API）
 - `kubectl` 已配置并可访问目标集群
-- 已安装 **Ingress Controller**（清单默认 `ingressClassName: nginx`，即 [ingress-nginx](https://kubernetes.github.io/ingress-nginx/)）
+- 已安装 **[Kong Ingress Controller](https://docs.konghq.com/kubernetes-ingress-controller/)**，且存在 `IngressClass` 名称为 **`kong`**（清单默认 `ingressClassName: kong`）
+- 集群已安装 Kong CRD（`KongPlugin` 等，KIC 安装包通常自带）
 - 集群支持 **PersistentVolume**（默认 SQLite 使用 PVC 持久化）
 - （可选）已部署 Prometheus，供 marksman 的 `mainTsdb` 使用
 - （可选）GHCR 镜像为私有时，需配置 `imagePullSecrets`
+
+确认 Kong IngressClass：
+
+```bash
+kubectl get ingressclass
+# 期望看到 NAME=kong；若名称不同，请修改 ingress/ingress.yaml 中的 ingressClassName
+```
 
 ## 快速部署
 
@@ -99,9 +124,11 @@ images:
     newTag: v0.0.3   # 与 GitHub tag 一致
 ```
 
-**`ingress.yaml`** — 将 `*.moon.example.com` 改为你的域名，并按需启用 `tls` 段。
+**`ingress/ingress.yaml`** — 将 `*.moon.example.com` 改为你的域名，并按需启用 `tls` 段。确认 `ingressClassName: kong` 与集群一致。
 
-各服务 ConfigMap 中的 `server.yaml` 可按需调整（OAuth2、邮件、Prometheus 地址等），完整字段参考各 app 下的 `config/server.yaml`。
+**`ingress/kong-plugin.yaml`** — 默认限制请求体 32MB；可按需调整 `allowed_payload_size`。
+
+各服务 **`configmap.yaml`** 中的 `server.yaml` 可按需调整（OAuth2、邮件、Prometheus 地址等），完整字段参考各 app 下的 `config/server.yaml`。
 
 ### 2. 预览并部署
 
@@ -115,16 +142,25 @@ kubectl kustomize deploy/k8s
 kubectl apply -k deploy/k8s
 ```
 
-也可按文件逐个应用：
+也可按服务或资源类型单独部署：
 
 ```bash
+# 基础资源
 kubectl apply -f deploy/k8s/namespace.yaml
 kubectl apply -f deploy/k8s/secrets.yaml
-kubectl apply -f deploy/k8s/goddess.yaml
-kubectl apply -f deploy/k8s/rabbit.yaml
-kubectl apply -f deploy/k8s/marksman.yaml
-kubectl apply -f deploy/k8s/jade-tree.yaml
-kubectl apply -f deploy/k8s/ingress.yaml
+
+# 按服务部署（推荐用各目录下的 kustomization）
+kubectl apply -k deploy/k8s/goddess
+kubectl apply -k deploy/k8s/rabbit
+kubectl apply -k deploy/k8s/marksman
+kubectl apply -k deploy/k8s/jade-tree
+kubectl apply -k deploy/k8s/ingress
+
+# 或按资源类型逐个应用（以 goddess 为例）
+kubectl apply -f deploy/k8s/goddess/configmap.yaml
+kubectl apply -f deploy/k8s/goddess/pvc.yaml
+kubectl apply -f deploy/k8s/goddess/deployment.yaml
+kubectl apply -f deploy/k8s/goddess/service.yaml
 ```
 
 ### 3. 验证
@@ -182,8 +218,8 @@ kubectl run curl --rm -it --image=curlimages/curl -- \
 
 ### Ingress 与 gRPC
 
-- **Ingress** 仅暴露 HTTP API（8000/8001/8003/8004）
-- **gRPC**（9000/9001/9003/9004）通过 ClusterIP 在集群内访问；若需集群外 gRPC，需额外配置 gRPC Ingress 或 Gateway API
+- **Kong Ingress** 仅暴露 HTTP API（8000/8001/8003/8004），超时与请求体限制见 `ingress/ingress.yaml` 注解及 `kong-plugin.yaml`
+- **gRPC**（9000/9001/9003/9004）通过 ClusterIP 在集群内访问；若需经 Kong 暴露 gRPC，需配置 Kong 的 gRPC 路由或改用 Gateway API
 
 ### 健康检查
 
@@ -252,11 +288,17 @@ kubectl describe pod -n moon -l app.kubernetes.io/name=goddess
 
 **marksman 无法查询指标**
 
-确认 `marksman-config` 中 `mainTsdb.url` 指向可访问的 Prometheus，默认 `http://prometheus.monitoring.svc.cluster.local:9090`，需自行部署或修改地址。
+确认 `deploy/k8s/marksman/configmap.yaml` 中 `mainTsdb.url` 指向可访问的 Prometheus，默认 `http://prometheus.monitoring.svc.cluster.local:9090`，需自行部署或修改地址。
 
 **Ingress 返回 404**
 
-确认 DNS 已解析、Ingress Controller 正常运行、`ingressClassName: nginx` 与集群中 IngressClass 名称一致。
+确认 DNS 已解析、Kong Ingress Controller 正常运行、`ingressClassName: kong` 与集群 IngressClass 一致：
+
+```bash
+kubectl get ingressclass
+kubectl get kongplugin -n moon
+kubectl describe ingress moon -n moon
+```
 
 ## 相关文档
 

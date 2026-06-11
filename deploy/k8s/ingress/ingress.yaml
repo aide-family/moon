@@ -6,11 +6,13 @@ metadata:
   labels:
     app.kubernetes.io/part-of: moon
   annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: "32m"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+    # Kong Ingress Controller: https://docs.konghq.com/kubernetes-ingress-controller/
+    konghq.com/connect-timeout: "120000"
+    konghq.com/read-timeout: "120000"
+    konghq.com/write-timeout: "120000"
+    konghq.com/plugins: moon-request-size-limiting
 spec:
-  ingressClassName: nginx
+  ingressClassName: kong
   rules:
     - host: goddess.moon.example.com
       http:

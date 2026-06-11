@@ -1,0 +1,11 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: moon-request-size-limiting
+  namespace: moon
+  labels:
+    app.kubernetes.io/part-of: moon
+plugin: request-size-limiting
+config:
+  allowed_payload_size: 32
+  size_unit: megabytes

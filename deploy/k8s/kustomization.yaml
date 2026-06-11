@@ -6,11 +6,11 @@ namespace: moon
 resources:
   - namespace.yaml
   - secrets.yaml
-  - goddess.yaml
-  - rabbit.yaml
-  - marksman.yaml
-  - jade-tree.yaml
-  - ingress.yaml
+  - goddess
+  - rabbit
+  - marksman
+  - jade-tree
+  - ingress
 
 # Update image tags for all services at once.
 images:

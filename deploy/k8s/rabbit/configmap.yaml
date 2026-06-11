@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbit-config
+  namespace: moon
+  labels:
+    app.kubernetes.io/name: rabbit
+    app.kubernetes.io/part-of: moon
+data:
+  server.yaml: |
+    environment: PROD
+    enableSwagger: false
+    enableMetrics: true
+    useRandomID: false
+
+    server:
+      name: rabbit
+      metadata:
+        tag: rabbit
+        repository: https://github.com/aide-family/moon
+        author: Aide Family
+        email: aidecloud@163.com
+      http:
+        address: "0.0.0.0:8001"
+        network: tcp
+        timeout: 10s
+        protocol: HTTP
+      grpc:
+        address: "0.0.0.0:9001"
+        network: tcp
+        timeout: 10s
+        protocol: GRPC
+      job:
+        address: "0.0.0.0:7001"
+        network: tcp
+        timeout: 10s
+        protocol: GRPC
+
+    jwt:
+      secret: placeholder
+      expire: 60000s
+      issuer: rabbit
+
+    serviceKey:
+      allowedKeys:
+        - sk-marksman-dev
+
+    goddessDomain:
+      endpoints: http://goddess.moon.svc.cluster.local:8000
+      network: HTTP
+      timeout: 10s
+      serviceKey: sk-rabbit-dev
+
+    swaggerBasicAuth:
+      enabled: false
+
+    metricsBasicAuth:
+      enabled: false
+
+    jobCore:
+      workerTotal: 10
+      timeout: 60s
+      bufferSize: 1000
+      maxRetry: 2
+
+    oauth2:
+      enable: false
+
+    database:
+      dialector: SQLITE
+      debug: false
+      useSystemLogger: false
+      options:
+        "@type": type.googleapis.com/magicbox.config.SQLiteOptions
+        dsn: file:/data/rabbit.db?cache=shared
+
+    jobCluster:
+      name: rabbit
+      endpoints: http://rabbit.moon.svc.cluster.local:8001
+      timeout: 10s
+      protocol: HTTP

@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: goddess-config
+  namespace: moon
+  labels:
+    app.kubernetes.io/name: goddess
+    app.kubernetes.io/part-of: moon
+data:
+  server.yaml: |
+    environment: PROD
+    enableSwagger: false
+    enableMetrics: true
+    useRandomID: false
+    siteDomain: goddess.moon.example.com
+
+    server:
+      name: goddess
+      metadata:
+        tag: goddess
+        repository: https://github.com/aide-family/moon
+        author: Aide Family
+        email: aidecloud@163.com
+      http:
+        address: "0.0.0.0:8000"
+        network: tcp
+        timeout: 10s
+        protocol: HTTP
+      grpc:
+        address: "0.0.0.0:9000"
+        network: tcp
+        timeout: 10s
+        protocol: GRPC
+
+    jwt:
+      secret: placeholder
+      expire: 600s
+      issuer: goddess
+
+    serviceKey:
+      allowedKeys:
+        - sk-marksman-dev
+        - sk-rabbit-dev
+
+    swaggerBasicAuth:
+      enabled: false
+
+    metricsBasicAuth:
+      enabled: false
+
+    database:
+      dialector: SQLITE
+      debug: false
+      useSystemLogger: false
+      options:
+        "@type": type.googleapis.com/magicbox.config.SQLiteOptions
+        dsn: file:/data/goddess.db?cache=shared
+
+    oauth2:
+      enable: false
+
+    globalEmail:
+      host: smtp.example.com
+      port: 587
+      username: change-me
+      password: change-me

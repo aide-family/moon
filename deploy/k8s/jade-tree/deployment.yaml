@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jade-tree
+  namespace: moon
+  labels:
+    app.kubernetes.io/name: jade-tree
+    app.kubernetes.io/part-of: moon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jade-tree
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jade-tree
+        app.kubernetes.io/part-of: moon
+    spec:
+      containers:
+        - name: jade-tree
+          image: ghcr.io/aide-family/moon/jade_tree:v0.0.2
+          imagePullPolicy: IfNotPresent
+          args:
+            - run
+            - all
+            - -c
+            - /etc/moon/config
+            - --log-level=INFO
+          ports:
+            - name: http
+              containerPort: 8004
+              protocol: TCP
+            - name: grpc
+              containerPort: 9004
+              protocol: TCP
+          env:
+            - name: MOON_JADE_TREE_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: moon-secrets
+                  key: jade-tree-jwt-secret
+          volumeMounts:
+            - name: config
+              mountPath: /etc/moon/config
+              readOnly: true
+            - name: data
+              mountPath: /data
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+      volumes:
+        - name: config
+          configMap:
+            name: jade-tree-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: jade-tree-data
