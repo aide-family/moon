@@ -15,10 +15,10 @@ resources:
 # Update image tags for all services at once.
 images:
   - name: ghcr.io/aide-family/moon/goddess
-    newTag: v0.0.2
+    newTag: v0.0.4
   - name: ghcr.io/aide-family/moon/rabbit
-    newTag: v0.0.2
+    newTag: v0.0.4
   - name: ghcr.io/aide-family/moon/marksman
-    newTag: v0.0.2
+    newTag: v0.0.4
   - name: ghcr.io/aide-family/moon/jade_tree
-    newTag: v0.0.2
+    newTag: v0.0.4

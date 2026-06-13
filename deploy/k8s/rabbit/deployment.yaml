@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: rabbit
-          image: ghcr.io/aide-family/moon/rabbit:v0.0.2
+          image: ghcr.io/aide-family/moon/rabbit:v0.0.4
           imagePullPolicy: IfNotPresent
           args:
             - run

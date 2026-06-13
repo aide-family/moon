@@ -121,7 +121,7 @@ stringData:
 ```yaml
 images:
   - name: ghcr.io/aide-family/moon/goddess
-    newTag: v0.0.3   # 与 GitHub tag 一致
+    newTag: v0.0.4   # 与 GitHub tag 一致
 ```
 
 **`ingress/ingress.yaml`** — 将 `*.moon.example.com` 改为你的域名，并按需启用 `tls` 段。确认 `ingressClassName: kong` 与集群一致。
@@ -253,7 +253,7 @@ imagePullSecrets:
 修改 `kustomization.yaml` 中的 `newTag` 后重新应用：
 
 ```bash
-# 例如升级到 v0.0.3
+# 例如升级到 v0.0.4
 kubectl apply -k deploy/k8s
 
 # 观察滚动更新

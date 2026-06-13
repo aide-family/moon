@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: jade-tree
-          image: ghcr.io/aide-family/moon/jade_tree:v0.0.2
+          image: ghcr.io/aide-family/moon/jade_tree:v0.0.4
           imagePullPolicy: IfNotPresent
           args:
             - run
