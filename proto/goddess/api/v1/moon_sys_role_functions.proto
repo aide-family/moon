@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package goddess.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aide-family/goddess/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "goddess.api.v1";
+
+// SysRoleFunction 系统角色功能权限服务
+service SysRoleFunction {
+    // ListRoleFunction 分页查询系统角色拥有的功能列表
+    rpc ListRoleFunction(ListRoleFunctionRequest) returns (ListRoleFunctionReply) {
+        option (google.api.http) = {
+            get: "/v1/sys/roles/{roleCode}/functions"
+        };
+    }
+    // GrantRoleFunctions 授予系统角色功能
+    rpc GrantRoleFunctions(GrantRoleFunctionsRequest) returns (GrantRoleFunctionsReply) {
+        option (google.api.http) = {
+            post: "/v1/sys/roles/{roleCode}/functions"
+            body: "*"
+        };
+    }
+    // RevokeRoleFunctions 撤销系统角色功能
+    rpc RevokeRoleFunctions(RevokeRoleFunctionsRequest) returns (RevokeRoleFunctionsReply) {
+        option (google.api.http) = {
+            delete: "/v1/sys/roles/{roleCode}/functions"
+            body: "*"
+        };
+    }
+}
+
+// FunctionKey 功能键（menuCode + functionCode）
+message FunctionKey {
+    // menuCode 菜单编码
+    string menuCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "menuCode is required",
+    }];
+    // functionCode 功能编码
+    string functionCode = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "functionCode is required",
+    }];
+}
+
+// RoleFunctionItem 角色功能项
+message RoleFunctionItem {
+    string menuCode          = 1;
+    string functionCode      = 2;
+    string functionName      = 3;
+    int32 functionSortOrder  = 4;
+    int32 functionStatus     = 5;
+    int64 creator            = 6;
+    string createdAt         = 7;
+}
+
+// ListRoleFunctionRequest 查询系统角色功能列表请求
+message ListRoleFunctionRequest {
+    // roleCode 角色编码
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "roleCode is required",
+    }];
+    // menuCode 按菜单编码过滤（可选）
+    string menuCode = 2;
+    // page 页码
+    int32 page = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1",
+        message: "page must be greater than or equal to 1",
+    }];
+    // pageSize 每页数量
+    int32 pageSize = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 200",
+        message: "pageSize must be between 1 and 200",
+    }];
+}
+
+// ListRoleFunctionReply 查询系统角色功能列表响应
+message ListRoleFunctionReply {
+    repeated RoleFunctionItem items = 1;
+    int64 total    = 2;
+    int32 page     = 3;
+    int32 pageSize = 4;
+}
+
+// GrantRoleFunctionsRequest 授予系统角色功能请求
+message GrantRoleFunctionsRequest {
+    // roleCode 角色编码
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "roleCode is required",
+    }];
+    // functionKeys 功能键列表
+    repeated FunctionKey functionKeys = 2 [(buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "functionKeys must not be empty",
+    }];
+    // autoGrantMenu 是否自动追加对应菜单授权
+    bool autoGrantMenu = 3;
+}
+
+// GrantRoleFunctionsReply 授予系统角色功能响应
+message GrantRoleFunctionsReply {
+    int32 grantedCount = 1;
+    repeated string autoGrantedMenuCodes = 2;
+}
+
+// RevokeRoleFunctionsRequest 撤销系统角色功能请求
+message RevokeRoleFunctionsRequest {
+    // roleCode 角色编码
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "roleCode is required",
+    }];
+    // functionKeys 功能键列表
+    repeated FunctionKey functionKeys = 2 [(buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "functionKeys must not be empty",
+    }];
+    // autoRevokeMenu 是否自动撤销无功能的菜单授权
+    bool autoRevokeMenu = 3;
+}
+
+// RevokeRoleFunctionsReply 撤销系统角色功能响应
+message RevokeRoleFunctionsReply {
+    int32 revokedCount = 1;
+    repeated string autoRevokedMenuCodes = 2;
+}

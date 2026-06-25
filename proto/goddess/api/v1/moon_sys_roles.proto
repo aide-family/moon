@@ -1,0 +1,210 @@
+syntax = "proto3";
+
+package goddess.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aide-family/goddess/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "goddess.api.v1";
+
+// SysRole 系统角色管理服务
+service SysRole {
+    // ListSysRole 分页查询系统角色列表
+    rpc ListSysRole(ListSysRoleRequest) returns (ListSysRoleReply) {
+        option (google.api.http) = {
+            get: "/v1/sys/roles"
+        };
+    }
+    // GetSysRole 查询系统角色详情（含菜单和功能权限）
+    rpc GetSysRole(GetSysRoleRequest) returns (GetSysRoleReply) {
+        option (google.api.http) = {
+            get: "/v1/sys/roles/{roleCode}"
+        };
+    }
+    // CreateSysRole 新增系统角色
+    rpc CreateSysRole(CreateSysRoleRequest) returns (CreateSysRoleReply) {
+        option (google.api.http) = {
+            post: "/v1/sys/roles"
+            body: "*"
+        };
+    }
+    // UpdateSysRole 编辑系统角色
+    rpc UpdateSysRole(UpdateSysRoleRequest) returns (UpdateSysRoleReply) {
+        option (google.api.http) = {
+            put: "/v1/sys/roles/{roleCode}"
+            body: "*"
+        };
+    }
+    // DeleteSysRole 删除系统角色
+    rpc DeleteSysRole(DeleteSysRoleRequest) returns (DeleteSysRoleReply) {
+        option (google.api.http) = {
+            delete: "/v1/sys/roles/{roleCode}"
+        };
+    }
+}
+
+// SysRoleItem 系统角色详情
+message SysRoleItem {
+    string roleCode = 1;
+    string roleName = 2;
+    int32 roleDataScope = 3;
+    int32 roleStatus = 4;
+    int32 roleSortOrder = 5;
+    string roleRemark = 6;
+    int64 creator = 7;
+    string createdAt = 8;
+    string updatedAt = 9;
+}
+
+// ListSysRoleRequest 分页查询系统角色列表请求
+message ListSysRoleRequest {
+    
+    int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1",
+        message: "page must be greater than or equal to 1",
+    }];
+    int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 200",
+        message: "pageSize must be greater than or equal to 1 and less than or equal to 200",
+    }];
+    // keyword 关键字，用于角色名称模糊查询
+    string keyword = 3 [(buf.validate.field).cel = {
+        expression: "this.size() <= 200",
+        message: "keyword must be less than or equal to 200",
+    }];
+    // roleCode 角色编码，精确查询
+    string roleCode = 4;
+    // roleStatus 角色状态筛选（optional，区分未传和传 0）
+    optional int32 roleStatus = 5;
+    // sortBy 排序字段
+    string sortBy = 6;
+    // sortOrder 排序方向 asc/desc
+    string sortOrder = 7;
+}
+
+// ListSysRoleReply 分页查询系统角色列表响应
+message ListSysRoleReply {
+    repeated SysRoleItem items = 1;
+    int64 total = 2;
+    int32 page = 3;
+    int32 pageSize = 4;
+}
+
+// SysRoleMenuItem 角色关联的菜单信息
+message SysRoleMenuItem {
+    string menuCode = 1;
+    string menuName = 2;
+}
+
+// SysRoleFunctionItem 角色关联的功能信息
+message SysRoleFunctionItem {
+    string menuCode       = 1;
+    string menuName       = 2;
+    string functionCode   = 3;
+    string functionName   = 4;
+}
+
+// GetSysRoleRequest 查询系统角色详情请求
+message GetSysRoleRequest {
+    // roleCode 角色编码
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "roleCode must be between 1 and 100 characters",
+    }];
+}
+
+// GetSysRoleReply 查询系统角色详情响应
+message GetSysRoleReply {
+    SysRoleItem role                          = 1;
+    repeated SysRoleMenuItem menuCodes        = 2;
+    repeated SysRoleFunctionItem functionKeys = 3;
+}
+
+// CreateSysRoleRequest 新增系统角色请求
+message CreateSysRoleRequest {
+    // roleCode 角色编码（正则 ^[a-zA-Z0-9:_]+$）
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.matches('^[a-zA-Z0-9:_]+$')",
+        message: "roleCode must match ^[a-zA-Z0-9:_]+$",
+    }];
+    // roleName 角色名称
+    string roleName = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() >= 1 && this.size() <= 100",
+        message: "roleName must be between 1 and 100 characters",
+    }];
+    // roleDataScope 数据权限范围：1-公司级 2-部门级 3-个人级
+    int32 roleDataScope = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 3",
+        message: "roleDataScope must be 1, 2, or 3",
+    }];
+    // roleStatus 角色状态：1-启用 2-禁用
+    int32 roleStatus = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this == 1 || this == 2",
+        message: "roleStatus must be 1 (enabled) or 2 (disabled)",
+    }];
+    // roleSortOrder 排序序号
+    int32 roleSortOrder = 5;
+    // roleRemark 角色备注
+    string roleRemark = 6 [(buf.validate.field).cel = {
+        expression: "this.size() <= 255",
+        message: "roleRemark must be less than or equal to 255 characters",
+    }];
+}
+
+// CreateSysRoleReply 新增系统角色响应
+message CreateSysRoleReply {
+    // roleCode 新创建的角色编码
+    string roleCode = 1;
+}
+
+// UpdateSysRoleRequest 编辑系统角色请求
+message UpdateSysRoleRequest {
+    // roleCode 角色编码（主键，禁止修改）
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "roleCode must be between 1 and 100 characters",
+    }];
+    // roleName 角色名称
+    optional string roleName = 2 [(buf.validate.field).cel = {
+        expression: "this.size() >= 1 && this.size() <= 100",
+        message: "roleName must be between 1 and 100 characters",
+    }];
+    // roleDataScope 数据权限范围：1-公司级 2-部门级 3-个人级
+    optional int32 roleDataScope = 3 [(buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 3",
+        message: "roleDataScope must be 1, 2, or 3",
+    }];
+    // roleStatus 角色状态：1-启用 2-禁用
+    optional int32 roleStatus = 4 [(buf.validate.field).cel = {
+        expression: "this == 1 || this == 2",
+        message: "roleStatus must be 1 (enabled) or 2 (disabled)",
+    }];
+    // roleSortOrder 排序序号
+    optional int32 roleSortOrder = 5;
+    // roleRemark 角色备注
+    optional string roleRemark = 6 [(buf.validate.field).cel = {
+        expression: "this.size() <= 255",
+        message: "roleRemark must be less than or equal to 255 characters",
+    }];
+}
+
+// UpdateSysRoleReply 编辑系统角色响应
+message UpdateSysRoleReply {
+    string roleCode = 1;
+}
+
+// DeleteSysRoleRequest 删除系统角色请求
+message DeleteSysRoleRequest {
+    // roleCode 角色编码
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "roleCode must be between 1 and 100 characters",
+    }];
+}
+
+// DeleteSysRoleReply 删除系统角色响应
+message DeleteSysRoleReply {
+    bool success = 1;
+}

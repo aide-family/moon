@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package goddess.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "goddess/api/v1/moon_sys_menus.proto";
+
+option go_package = "github.com/aide-family/goddess/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "goddess.api.v1";
+
+// SysRoleMenu 系统角色菜单权限服务
+service SysRoleMenu {
+    // ListRoleMenu 查询系统角色拥有的菜单列表
+    rpc ListRoleMenu(ListRoleMenuRequest) returns (ListRoleMenuReply) {
+        option (google.api.http) = {
+            get: "/v1/sys/roles/{roleCode}/menus"
+        };
+    }
+    // GrantRoleMenus 授予系统角色菜单
+    rpc GrantRoleMenus(GrantRoleMenusRequest) returns (GrantRoleMenusReply) {
+        option (google.api.http) = {
+            post: "/v1/sys/roles/{roleCode}/menus"
+            body: "*"
+        };
+    }
+    // RevokeRoleMenus 撤销系统角色菜单
+    rpc RevokeRoleMenus(RevokeRoleMenusRequest) returns (RevokeRoleMenusReply) {
+        option (google.api.http) = {
+            delete: "/v1/sys/roles/{roleCode}/menus"
+        };
+    }
+}
+
+// RoleMenuItem 角色菜单项
+message RoleMenuItem {
+    string menuCode       = 1;
+    string parentMenuCode = 2;
+    string menuName       = 3;
+    int32 menuStatus      = 4;
+}
+
+// ListRoleMenuRequest 查询系统角色菜单列表请求
+message ListRoleMenuRequest {
+    // roleCode 角色编码
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "roleCode is required",
+    }];
+    // asTree 是否返回树形结构
+    bool asTree = 2;
+    // menuStatus 菜单状态筛选（可选）
+    optional int32 menuStatus = 3;
+}
+
+// ListRoleMenuReply 查询系统角色菜单列表响应
+message ListRoleMenuReply {
+    // items 扁平列表（asTree=false 时返回）
+    repeated RoleMenuItem items = 1;
+    // tree 树形结构（asTree=true 时返回）
+    repeated SysMenuTreeItem tree = 2;
+}
+
+// GrantRoleMenusRequest 授予系统角色菜单请求
+message GrantRoleMenusRequest {
+    // roleCode 角色编码
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "roleCode is required",
+    }];
+    // menuCodes 菜单编码列表
+    repeated string menuCodes = 2 [(buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "menuCodes must not be empty",
+    }];
+    // autoAddAncestors 是否自动补全祖先菜单
+    bool autoAddAncestors = 3;
+}
+
+// GrantRoleMenusReply 授予系统角色菜单响应
+message GrantRoleMenusReply {
+    int32 grantedCount = 1;
+    repeated string autoAddedMenuCodes = 2;
+}
+
+// RevokeRoleMenusRequest 撤销系统角色菜单请求
+message RevokeRoleMenusRequest {
+    // roleCode 角色编码
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "roleCode is required",
+    }];
+    // menuCodes 菜单编码列表
+    repeated string menuCodes = 2 [(buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "menuCodes must not be empty",
+    }];
+    // cascadeDescendants 是否级联撤销子孙菜单
+    bool cascadeDescendants = 3;
+}
+
+// RevokeRoleMenusReply 撤销系统角色菜单响应
+message RevokeRoleMenusReply {
+    int32 revokedCount = 1;
+    repeated string cascadeRevokedMenuCodes = 2;
+}

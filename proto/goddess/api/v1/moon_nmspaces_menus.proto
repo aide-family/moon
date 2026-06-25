@@ -1,0 +1,187 @@
+syntax = "proto3";
+
+package goddess.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aide-family/goddess/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "goddess.api.v1";
+
+// NmspacesMenu 租户菜单管理服务
+service NmspacesMenu {
+    // ListNmspacesMenu 分页查询租户菜单列表
+    rpc ListNmspacesMenu(ListNmspacesMenuRequest) returns (ListNmspacesMenuReply) {
+        option (google.api.http) = {
+            get: "/v1/nmspaces/menus"
+        };
+    }
+    // GetNmspacesMenu 查询租户菜单详情
+    rpc GetNmspacesMenu(GetNmspacesMenuRequest) returns (GetNmspacesMenuReply) {
+        option (google.api.http) = {
+            get: "/v1/nmspaces/menus/{menuCode}"
+        };
+    }
+    // CreateNmspacesMenu 新增租户菜单
+    rpc CreateNmspacesMenu(CreateNmspacesMenuRequest) returns (CreateNmspacesMenuReply) {
+        option (google.api.http) = {
+            post: "/v1/nmspaces/menus"
+            body: "*"
+        };
+    }
+    // UpdateNmspacesMenu 编辑租户菜单
+    rpc UpdateNmspacesMenu(UpdateNmspacesMenuRequest) returns (UpdateNmspacesMenuReply) {
+        option (google.api.http) = {
+            put: "/v1/nmspaces/menus/{menuCode}"
+            body: "*"
+        };
+    }
+    // DeleteNmspacesMenu 删除租户菜单
+    rpc DeleteNmspacesMenu(DeleteNmspacesMenuRequest) returns (DeleteNmspacesMenuReply) {
+        option (google.api.http) = {
+            delete: "/v1/nmspaces/menus/{menuCode}"
+        };
+    }
+}
+
+// NmspacesMenuItem 租户菜单详情
+message NmspacesMenuItem {
+    string menuCode        = 1;
+    string parentMenuCode  = 2;
+    string menuName        = 3;
+    string menuPath        = 4;
+    string menuIcon        = 5;
+    string menuComponent   = 6;
+    string menuRedirect    = 7;
+    int32 menuIsHidden     = 8;
+    int32 menuIsKeepAlive  = 9;
+    int32 menuSortOrder    = 10;
+    int32 menuStatus       = 11;
+    string menuRemark      = 12;
+    int64 creator          = 13;
+    string createdAt       = 14;
+    string updatedAt       = 15;
+}
+
+// ListNmspacesMenuRequest 分页查询租户菜单列表请求
+message ListNmspacesMenuRequest {
+    int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1",
+        message: "page must be greater than or equal to 1",
+    }];
+    int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 200",
+        message: "pageSize must be between 1 and 200",
+    }];
+    // keyword 关键字，按菜单编码或菜单名称模糊查询
+    string keyword = 3 [(buf.validate.field).cel = {
+        expression: "this.size() <= 200",
+        message: "keyword must be less than or equal to 200",
+    }];
+    // menuStatus 菜单状态筛选（optional）
+    optional int32 menuStatus = 4;
+    // sortBy 排序字段
+    string sortBy = 5;
+    // sortOrder 排序方向 asc/desc
+    string sortOrder = 6;
+}
+
+// ListNmspacesMenuReply 分页查询租户菜单列表响应
+message ListNmspacesMenuReply {
+    repeated NmspacesMenuItem items = 1;
+    int64 total    = 2;
+    int32 page     = 3;
+    int32 pageSize = 4;
+}
+
+// GetNmspacesMenuRequest 查询租户菜单详情请求
+message GetNmspacesMenuRequest {
+    string menuCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "menuCode must be between 1 and 100 characters",
+    }];
+}
+
+// GetNmspacesMenuReply 查询租户菜单详情响应
+message GetNmspacesMenuReply {
+    NmspacesMenuItem menu = 1;
+}
+
+// CreateNmspacesMenuRequest 新增租户菜单请求
+message CreateNmspacesMenuRequest {
+    // menuCodes 系统菜单编码列表
+    repeated string menuCodes = 1 [(buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "menuCodes must not be empty",
+    }];
+}
+
+// CreateNmspacesMenuReply 新增租户菜单响应
+message CreateNmspacesMenuReply {
+    repeated string menuCodes = 1;
+}
+
+// UpdateNmspacesMenuRequest 编辑租户菜单请求
+message UpdateNmspacesMenuRequest {
+    // menuCode 菜单编码（主键，禁止修改）
+    string menuCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "menuCode must be between 1 and 100 characters",
+    }];
+    // parentMenuCode 父菜单编码
+    optional string parentMenuCode = 2;
+    // menuName 菜单名称
+    optional string menuName = 3 [(buf.validate.field).cel = {
+        expression: "this.size() >= 1 && this.size() <= 100",
+        message: "menuName must be between 1 and 100 characters",
+    }];
+    // menuPath 路由路径
+    optional string menuPath = 4;
+    // menuIcon 菜单图标
+    optional string menuIcon = 5;
+    // menuComponent 前端组件路径
+    optional string menuComponent = 6;
+    // menuRedirect 重定向路径
+    optional string menuRedirect = 7;
+    // menuIsHidden 是否隐藏
+    optional int32 menuIsHidden = 8 [(buf.validate.field).cel = {
+        expression: "this == 0 || this == 1",
+        message: "menuIsHidden must be 0 or 1",
+    }];
+    // menuIsKeepAlive 是否缓存
+    optional int32 menuIsKeepAlive = 9 [(buf.validate.field).cel = {
+        expression: "this == 0 || this == 1",
+        message: "menuIsKeepAlive must be 0 or 1",
+    }];
+    // menuSortOrder 排序序号
+    optional int32 menuSortOrder = 10;
+    // menuStatus 菜单状态
+    optional int32 menuStatus = 11 [(buf.validate.field).cel = {
+        expression: "this == 1 || this == 2",
+        message: "menuStatus must be 1 (enabled) or 2 (disabled)",
+    }];
+    // menuRemark 菜单备注
+    optional string menuRemark = 12 [(buf.validate.field).cel = {
+        expression: "this.size() <= 255",
+        message: "menuRemark must be less than or equal to 255",
+    }];
+}
+
+// UpdateNmspacesMenuReply 编辑租户菜单响应
+message UpdateNmspacesMenuReply {
+    string menuCode = 1;
+}
+
+// DeleteNmspacesMenuRequest 删除租户菜单请求
+message DeleteNmspacesMenuRequest {
+    string menuCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "menuCode must be between 1 and 100 characters",
+    }];
+}
+
+// DeleteNmspacesMenuReply 删除租户菜单响应
+message DeleteNmspacesMenuReply {
+    bool success = 1;
+}

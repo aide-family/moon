@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+package goddess.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aide-family/goddess/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "goddess.api.v1";
+
+// NmspacesMemberMenu 租户成员菜单直授服务
+service NmspacesMemberMenu {
+    // ListNmspacesMemberMenu 查询租户成员的直授菜单列表
+    rpc ListNmspacesMemberMenu(ListNmspacesMemberMenuRequest) returns (ListNmspacesMemberMenuReply) {
+        option (google.api.http) = {
+            get: "/v1/nmspaces/members/{memberUID}/menus"
+        };
+    }
+    // GrantNmspacesMemberMenus 直授租户菜单给成员
+    rpc GrantNmspacesMemberMenus(GrantNmspacesMemberMenusRequest) returns (GrantNmspacesMemberMenusReply) {
+        option (google.api.http) = {
+            post: "/v1/nmspaces/members/{memberUID}/menus"
+            body: "*"
+        };
+    }
+    // RevokeNmspacesMemberMenus 撤销直授租户菜单
+    rpc RevokeNmspacesMemberMenus(RevokeNmspacesMemberMenusRequest) returns (RevokeNmspacesMemberMenusReply) {
+        option (google.api.http) = {
+            delete: "/v1/nmspaces/members/{memberUID}/menus"
+        };
+    }
+}
+
+// NmspacesMemberMenuItem 租户成员直授菜单项
+message NmspacesMemberMenuItem {
+    string menuCode        = 1;
+    string parentMenuCode  = 2;
+    string menuName        = 3;
+    int32 menuStatus       = 4;
+}
+
+// ListNmspacesMemberMenuRequest 查询租户成员直授菜单请求
+message ListNmspacesMemberMenuRequest {
+    // memberUID 成员 UID
+    string memberUID = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "memberUID is required",
+    }];
+    // asTree 是否返回树形结构
+    bool asTree = 2;
+    // menuStatus 菜单状态筛选（可选）
+    optional int32 menuStatus = 3;
+}
+
+// ListNmspacesMemberMenuReply 查询租户成员直授菜单响应
+message ListNmspacesMemberMenuReply {
+    // items 扁平列表
+    repeated NmspacesMemberMenuItem items = 1;
+}
+
+// GrantNmspacesMemberMenusRequest 直授租户菜单请求
+message GrantNmspacesMemberMenusRequest {
+    // memberUID 成员 UID
+    string memberUID = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "memberUID is required",
+    }];
+    // menuCodes 菜单编码列表
+    repeated string menuCodes = 2 [(buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "menuCodes must not be empty",
+    }];
+    // autoAddAncestors 是否自动补全祖先菜单
+    bool autoAddAncestors = 3;
+}
+
+// GrantNmspacesMemberMenusReply 直授租户菜单响应
+message GrantNmspacesMemberMenusReply {
+    int32 grantedCount = 1;
+    repeated string autoAddedMenuCodes = 2;
+}
+
+// RevokeNmspacesMemberMenusRequest 撤销直授租户菜单请求
+message RevokeNmspacesMemberMenusRequest {
+    // memberUID 成员 UID
+    string memberUID = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "memberUID is required",
+    }];
+    // menuCodes 菜单编码列表
+    repeated string menuCodes = 2 [(buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "menuCodes must not be empty",
+    }];
+    // cascadeDescendants 是否级联撤销子孙菜单
+    bool cascadeDescendants = 3;
+}
+
+// RevokeNmspacesMemberMenusReply 撤销直授租户菜单响应
+message RevokeNmspacesMemberMenusReply {
+    int32 revokedCount = 1;
+    repeated string cascadeRevokedMenuCodes = 2;
+}

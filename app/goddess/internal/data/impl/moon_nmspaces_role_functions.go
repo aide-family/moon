@@ -1,0 +1,152 @@
+package impl
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/bwmarrin/snowflake"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+
+	"github.com/aide-family/magicbox/merr"
+
+	"github.com/aide-family/goddess/internal/biz/bo"
+	"github.com/aide-family/goddess/internal/biz/repository"
+	"github.com/aide-family/goddess/internal/data"
+	"github.com/aide-family/goddess/internal/data/impl/convert"
+	"github.com/aide-family/goddess/internal/data/impl/do"
+)
+
+// NewNmspacesRoleFunctionRepository 创建租户角色功能仓储实例
+func NewNmspacesRoleFunctionRepository(d *data.Data) repository.NmspacesRoleFunction {
+	return &nmspacesRoleFunctionRepository{db: d.DB()}
+}
+
+type nmspacesRoleFunctionRepository struct {
+	db *gorm.DB
+}
+
+// ListNmspacesRoleFunction 分页查询角色的功能列表（JOIN moon_nmspaces_functions，按 functionSortOrder 升序）
+func (r *nmspacesRoleFunctionRepository) ListNmspacesRoleFunction(ctx context.Context, req *bo.ListNmspacesRoleFunctionBo) ([]*bo.NmspacesRoleFunctionItemBo, int64, error) {
+	db := getDBWithTransaction(ctx, r.db)
+
+	joinSQL := `INNER JOIN moon_nmspaces_functions f ON moon_nmspaces_role_functions.menu_code = f.menu_code AND moon_nmspaces_role_functions.function_code = f.function_code AND moon_nmspaces_role_functions.namespace_uid = f.namespace_uid`
+	whereSQL := `moon_nmspaces_role_functions.namespace_uid = ? AND moon_nmspaces_role_functions.role_code = ? AND f.deleted_at IS NULL`
+
+	args := []interface{}{req.NamespaceUID, req.RoleCode}
+
+	// 按菜单编码过滤
+	if req.MenuCode != "" {
+		whereSQL = fmt.Sprintf("%s AND moon_nmspaces_role_functions.menu_code = ?", whereSQL)
+		args = append(args, req.MenuCode)
+	}
+
+	// 统计总数
+	var total int64
+	countSQL := fmt.Sprintf(`SELECT COUNT(*) FROM moon_nmspaces_role_functions %s WHERE %s`, joinSQL, whereSQL)
+	if err := db.WithContext(ctx).Raw(countSQL, args...).Scan(&total).Error; err != nil {
+		return nil, 0, merr.ErrorInternalServer("count nmspaces role functions failed: %v", err)
+	}
+
+	// 查询数据
+	querySQL := fmt.Sprintf(`SELECT f.menu_code, f.function_code, f.function_name, f.function_sort_order, f.function_status, moon_nmspaces_role_functions.creator, moon_nmspaces_role_functions.created_at FROM moon_nmspaces_role_functions %s WHERE %s ORDER BY f.function_sort_order ASC, f.created_at DESC`, joinSQL, whereSQL)
+
+	if req.PageRequestBo.Page > 0 && req.PageRequestBo.PageSize > 0 {
+		querySQL = fmt.Sprintf("%s LIMIT ? OFFSET ?", querySQL)
+		args = append(args, req.PageRequestBo.Limit(), req.PageRequestBo.Offset())
+	}
+
+	var rows []convert.NmspacesRoleFunctionJoinRow
+	if err := db.WithContext(ctx).Raw(querySQL, args...).Scan(&rows).Error; err != nil {
+		return nil, 0, merr.ErrorInternalServer("list nmspaces role functions failed: %v", err)
+	}
+
+	items := make([]*bo.NmspacesRoleFunctionItemBo, 0, len(rows))
+	for i := range rows {
+		items = append(items, convert.NmspacesRoleFunctionJoinToBo(&rows[i]))
+	}
+	return items, total, nil
+}
+
+// GrantNmspacesRoleFunctions 批量授予功能（冲突时忽略，幂等）
+func (r *nmspacesRoleFunctionRepository) GrantNmspacesRoleFunctions(ctx context.Context, req *bo.GrantNmspacesRoleFunctionsBo) (int32, error) {
+	db := getDBWithTransaction(ctx, r.db)
+
+	records := make([]*do.NmspacesRoleFunction, 0, len(req.FunctionKeys))
+	for _, fk := range req.FunctionKeys {
+		records = append(records, &do.NmspacesRoleFunction{
+			NamespaceUID: req.NamespaceUID,
+			RoleCode:     req.RoleCode,
+			MenuCode:     fk.MenuCode,
+			FunctionCode: fk.FunctionCode,
+			Creator:      req.Creator,
+		})
+	}
+
+	result := db.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(&records)
+	if result.Error != nil {
+		return 0, merr.ErrorInternalServer("grant nmspaces role functions failed: %v", result.Error)
+	}
+	return int32(result.RowsAffected), nil
+}
+
+// RevokeNmspacesRoleFunctions 批量撤销功能（硬删除）
+func (r *nmspacesRoleFunctionRepository) RevokeNmspacesRoleFunctions(ctx context.Context, req *bo.RevokeNmspacesRoleFunctionsBo) (int32, error) {
+	db := getDBWithTransaction(ctx, r.db)
+
+	// 构建 OR 条件列表
+	conditions := make([]string, 0, len(req.FunctionKeys))
+	args := make([]interface{}, 0, len(req.FunctionKeys)*2+2)
+	args = append(args, req.NamespaceUID, req.RoleCode)
+	for _, fk := range req.FunctionKeys {
+		conditions = append(conditions, "(menu_code = ? AND function_code = ?)")
+		args = append(args, fk.MenuCode, fk.FunctionCode)
+	}
+
+	whereSQL := fmt.Sprintf("namespace_uid = ? AND role_code = ? AND (%s)", joinOr(conditions))
+	result := db.WithContext(ctx).
+		Where(whereSQL, args...).
+		Delete(&do.NmspacesRoleFunction{})
+	if result.Error != nil {
+		return 0, merr.ErrorInternalServer("revoke nmspaces role functions failed: %v", result.Error)
+	}
+	return int32(result.RowsAffected), nil
+}
+
+// CountByNamespaceAndRoleCodeAndMenuCode 统计某角色在某菜单下拥有的功能数量
+func (r *nmspacesRoleFunctionRepository) CountByNamespaceAndRoleCodeAndMenuCode(ctx context.Context, namespaceUID snowflake.ID, roleCode, menuCode string) (int64, error) {
+	db := getDBWithTransaction(ctx, r.db)
+
+	var count int64
+	if err := db.WithContext(ctx).Model(&do.NmspacesRoleFunction{}).
+		Where("namespace_uid = ? AND role_code = ? AND menu_code = ?", namespaceUID, roleCode, menuCode).
+		Count(&count).Error; err != nil {
+		return 0, merr.ErrorInternalServer("count nmspaces role functions failed: %v", err)
+	}
+	return count, nil
+}
+
+// ListFunctionsByNamespaceAndRoleCodes 查询多个角色拥有的所有功能（JOIN moon_nmspaces_functions，去重）
+func (r *nmspacesRoleFunctionRepository) ListFunctionsByNamespaceAndRoleCodes(ctx context.Context, namespaceUID snowflake.ID, roleCodes []string) ([]*bo.NmspacesRoleFunctionItemBo, error) {
+	db := getDBWithTransaction(ctx, r.db)
+
+	if len(roleCodes) == 0 {
+		return nil, nil
+	}
+
+	joinSQL := `INNER JOIN moon_nmspaces_functions f ON moon_nmspaces_role_functions.menu_code = f.menu_code AND moon_nmspaces_role_functions.function_code = f.function_code AND moon_nmspaces_role_functions.namespace_uid = f.namespace_uid`
+	whereSQL := `moon_nmspaces_role_functions.namespace_uid = ? AND moon_nmspaces_role_functions.role_code IN ? AND f.deleted_at IS NULL`
+
+	querySQL := fmt.Sprintf(`SELECT DISTINCT f.menu_code, f.function_code, f.function_name, f.function_sort_order, f.function_status FROM moon_nmspaces_role_functions %s WHERE %s ORDER BY f.function_sort_order ASC`, joinSQL, whereSQL)
+
+	var rows []convert.NmspacesRoleFunctionJoinRow
+	if err := db.WithContext(ctx).Raw(querySQL, namespaceUID, roleCodes).Scan(&rows).Error; err != nil {
+		return nil, merr.ErrorInternalServer("list functions by role codes failed: %v", err)
+	}
+
+	items := make([]*bo.NmspacesRoleFunctionItemBo, 0, len(rows))
+	for i := range rows {
+		items = append(items, convert.NmspacesRoleFunctionJoinToBo(&rows[i]))
+	}
+	return items, nil
+}

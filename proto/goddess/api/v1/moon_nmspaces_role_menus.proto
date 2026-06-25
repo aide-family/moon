@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+package goddess.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aide-family/goddess/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "goddess.api.v1";
+
+// NmspacesRoleMenu 租户角色菜单权限服务
+service NmspacesRoleMenu {
+    // ListNmspacesRoleMenu 查询租户角色拥有的菜单列表
+    rpc ListNmspacesRoleMenu(ListNmspacesRoleMenuRequest) returns (ListNmspacesRoleMenuReply) {
+        option (google.api.http) = {
+            get: "/v1/nmspaces/roles/{roleCode}/menus"
+        };
+    }
+    // GrantNmspacesRoleMenus 授予租户角色菜单
+    rpc GrantNmspacesRoleMenus(GrantNmspacesRoleMenusRequest) returns (GrantNmspacesRoleMenusReply) {
+        option (google.api.http) = {
+            post: "/v1/nmspaces/roles/{roleCode}/menus"
+            body: "*"
+        };
+    }
+    // RevokeNmspacesRoleMenus 撤销租户角色菜单
+    rpc RevokeNmspacesRoleMenus(RevokeNmspacesRoleMenusRequest) returns (RevokeNmspacesRoleMenusReply) {
+        option (google.api.http) = {
+            delete: "/v1/nmspaces/roles/{roleCode}/menus"
+        };
+    }
+}
+
+// NmspacesRoleMenuItem 租户角色菜单项
+message NmspacesRoleMenuItem {
+    string menuCode        = 1;
+    string parentMenuCode  = 2;
+    string menuName        = 3;
+    int32 menuStatus       = 4;
+}
+
+// ListNmspacesRoleMenuRequest 查询租户角色菜单列表请求
+message ListNmspacesRoleMenuRequest {
+    // roleCode 角色编码
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "roleCode is required",
+    }];
+    // asTree 是否返回树形结构
+    bool asTree = 2;
+    // menuStatus 菜单状态筛选（可选）
+    optional int32 menuStatus = 3;
+}
+
+// ListNmspacesRoleMenuReply 查询租户角色菜单列表响应
+message ListNmspacesRoleMenuReply {
+    // items 扁平列表
+    repeated NmspacesRoleMenuItem items = 1;
+}
+
+// GrantNmspacesRoleMenusRequest 授予租户角色菜单请求
+message GrantNmspacesRoleMenusRequest {
+    // roleCode 角色编码
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "roleCode is required",
+    }];
+    // menuCodes 菜单编码列表
+    repeated string menuCodes = 2 [(buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "menuCodes must not be empty",
+    }];
+    // autoAddAncestors 是否自动补全祖先菜单
+    bool autoAddAncestors = 3;
+}
+
+// GrantNmspacesRoleMenusReply 授予租户角色菜单响应
+message GrantNmspacesRoleMenusReply {
+    int32 grantedCount = 1;
+    repeated string autoAddedMenuCodes = 2;
+}
+
+// RevokeNmspacesRoleMenusRequest 撤销租户角色菜单请求
+message RevokeNmspacesRoleMenusRequest {
+    // roleCode 角色编码
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "roleCode is required",
+    }];
+    // menuCodes 菜单编码列表
+    repeated string menuCodes = 2 [(buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "menuCodes must not be empty",
+    }];
+    // cascadeDescendants 是否级联撤销子孙菜单
+    bool cascadeDescendants = 3;
+}
+
+// RevokeNmspacesRoleMenusReply 撤销租户角色菜单响应
+message RevokeNmspacesRoleMenusReply {
+    int32 revokedCount = 1;
+    repeated string cascadeRevokedMenuCodes = 2;
+}

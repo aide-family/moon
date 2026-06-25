@@ -1,0 +1,193 @@
+syntax = "proto3";
+
+package goddess.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aide-family/goddess/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "goddess.api.v1";
+
+// NmspacesRole 租户角色管理服务
+service NmspacesRole {
+    // ListNmspacesRole 分页查询租户角色列表
+    rpc ListNmspacesRole(ListNmspacesRoleRequest) returns (ListNmspacesRoleReply) {
+        option (google.api.http) = {
+            get: "/v1/nmspaces/roles"
+        };
+    }
+    // GetNmspacesRole 查询租户角色详情
+    rpc GetNmspacesRole(GetNmspacesRoleRequest) returns (GetNmspacesRoleReply) {
+        option (google.api.http) = {
+            get: "/v1/nmspaces/roles/{roleCode}"
+        };
+    }
+    // CreateNmspacesRole 新增租户角色
+    rpc CreateNmspacesRole(CreateNmspacesRoleRequest) returns (CreateNmspacesRoleReply) {
+        option (google.api.http) = {
+            post: "/v1/nmspaces/roles"
+            body: "*"
+        };
+    }
+    // UpdateNmspacesRole 编辑租户角色
+    rpc UpdateNmspacesRole(UpdateNmspacesRoleRequest) returns (UpdateNmspacesRoleReply) {
+        option (google.api.http) = {
+            put: "/v1/nmspaces/roles/{roleCode}"
+            body: "*"
+        };
+    }
+    // DeleteNmspacesRole 删除租户角色
+    rpc DeleteNmspacesRole(DeleteNmspacesRoleRequest) returns (DeleteNmspacesRoleReply) {
+        option (google.api.http) = {
+            delete: "/v1/nmspaces/roles/{roleCode}"
+        };
+    }
+}
+
+// NmspacesRoleItem 租户角色详情
+message NmspacesRoleItem {
+    string roleCode      = 1;
+    string roleName      = 2;
+    int32 roleDataScope  = 3;
+    int32 roleStatus     = 4;
+    int32 roleSortOrder  = 5;
+    string roleRemark    = 6;
+    int64 creator        = 7;
+    string createdAt     = 8;
+    string updatedAt     = 9;
+}
+
+// ListNmspacesRoleRequest 分页查询租户角色列表请求
+message ListNmspacesRoleRequest {
+    int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1",
+        message: "page must be greater than or equal to 1",
+    }];
+    int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 200",
+        message: "pageSize must be greater than or equal to 1 and less than or equal to 200",
+    }];
+    // keyword 关键字，用于角色名称模糊查询
+    string keyword = 3 [(buf.validate.field).cel = {
+        expression: "this.size() <= 200",
+        message: "keyword must be less than or equal to 200",
+    }];
+    // roleCode 角色编码，精确查询
+    string roleCode = 4;
+    // roleStatus 角色状态筛选（optional，区分未传和传 0）
+    optional int32 roleStatus = 5;
+    // sortBy 排序字段
+    string sortBy = 6;
+    // sortOrder 排序方向 asc/desc
+    string sortOrder = 7;
+}
+
+// ListNmspacesRoleReply 分页查询租户角色列表响应
+message ListNmspacesRoleReply {
+    repeated NmspacesRoleItem items = 1;
+    int64 total    = 2;
+    int32 page     = 3;
+    int32 pageSize = 4;
+}
+
+// GetNmspacesRoleRequest 查询租户角色详情请求
+message GetNmspacesRoleRequest {
+    // roleCode 角色编码
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "roleCode must be between 1 and 100 characters",
+    }];
+}
+
+// GetNmspacesRoleReply 查询租户角色详情响应
+message GetNmspacesRoleReply {
+    NmspacesRoleItem role = 1;
+}
+
+// CreateNmspacesRoleRequest 新增租户角色请求
+message CreateNmspacesRoleRequest {
+    // roleCode 角色编码
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.matches('^[a-zA-Z0-9:_]+$')",
+        message: "roleCode must match ^[a-zA-Z0-9:_]+$",
+    }];
+    // roleName 角色名称
+    string roleName = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() >= 1 && this.size() <= 100",
+        message: "roleName must be between 1 and 100 characters",
+    }];
+    // roleDataScope 数据权限范围：1-公司级 2-部门级 3-个人级
+    int32 roleDataScope = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 3",
+        message: "roleDataScope must be 1, 2, or 3",
+    }];
+    // roleStatus 角色状态：1-启用 2-禁用
+    int32 roleStatus = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this == 1 || this == 2",
+        message: "roleStatus must be 1 (enabled) or 2 (disabled)",
+    }];
+    // roleSortOrder 排序序号
+    int32 roleSortOrder = 5;
+    // roleRemark 角色备注
+    string roleRemark = 6 [(buf.validate.field).cel = {
+        expression: "this.size() <= 255",
+        message: "roleRemark must be less than or equal to 255 characters",
+    }];
+}
+
+// CreateNmspacesRoleReply 新增租户角色响应
+message CreateNmspacesRoleReply {
+    // roleCode 新创建的角色编码
+    string roleCode = 1;
+}
+
+// UpdateNmspacesRoleRequest 编辑租户角色请求
+message UpdateNmspacesRoleRequest {
+    // roleCode 角色编码（主键，禁止修改）
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "roleCode must be between 1 and 100 characters",
+    }];
+    // roleName 角色名称
+    optional string roleName = 2 [(buf.validate.field).cel = {
+        expression: "this.size() >= 1 && this.size() <= 100",
+        message: "roleName must be between 1 and 100 characters",
+    }];
+    // roleDataScope 数据权限范围
+    optional int32 roleDataScope = 3 [(buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 3",
+        message: "roleDataScope must be 1, 2, or 3",
+    }];
+    // roleStatus 角色状态
+    optional int32 roleStatus = 4 [(buf.validate.field).cel = {
+        expression: "this == 1 || this == 2",
+        message: "roleStatus must be 1 (enabled) or 2 (disabled)",
+    }];
+    // roleSortOrder 排序序号
+    optional int32 roleSortOrder = 5;
+    // roleRemark 角色备注
+    optional string roleRemark = 6 [(buf.validate.field).cel = {
+        expression: "this.size() <= 255",
+        message: "roleRemark must be less than or equal to 255 characters",
+    }];
+}
+
+// UpdateNmspacesRoleReply 编辑租户角色响应
+message UpdateNmspacesRoleReply {
+    string roleCode = 1;
+}
+
+// DeleteNmspacesRoleRequest 删除租户角色请求
+message DeleteNmspacesRoleRequest {
+    // roleCode 角色编码
+    string roleCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "roleCode must be between 1 and 100 characters",
+    }];
+}
+
+// DeleteNmspacesRoleReply 删除租户角色响应
+message DeleteNmspacesRoleReply {
+    bool success = 1;
+}

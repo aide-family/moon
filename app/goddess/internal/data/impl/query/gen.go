@@ -16,11 +16,14 @@ import (
 )
 
 var (
-	Q          = new(Query)
-	Member     *member
-	Namespace  *namespace
-	OAuth2User *oAuth2User
-	User       *user
+	Q           = new(Query)
+	Member      *member
+	Namespace   *namespace
+	OAuth2User  *oAuth2User
+	SysFunction *sysFunction
+	SysMenu     *sysMenu
+	SysRole     *sysRole
+	User        *user
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
@@ -28,37 +31,49 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Member = &Q.Member
 	Namespace = &Q.Namespace
 	OAuth2User = &Q.OAuth2User
+	SysFunction = &Q.SysFunction
+	SysMenu = &Q.SysMenu
+	SysRole = &Q.SysRole
 	User = &Q.User
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:         db,
-		Member:     newMember(db, opts...),
-		Namespace:  newNamespace(db, opts...),
-		OAuth2User: newOAuth2User(db, opts...),
-		User:       newUser(db, opts...),
+		db:          db,
+		Member:      newMember(db, opts...),
+		Namespace:   newNamespace(db, opts...),
+		OAuth2User:  newOAuth2User(db, opts...),
+		SysFunction: newSysFunction(db, opts...),
+		SysMenu:     newSysMenu(db, opts...),
+		SysRole:     newSysRole(db, opts...),
+		User:        newUser(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	Member     member
-	Namespace  namespace
-	OAuth2User oAuth2User
-	User       user
+	Member      member
+	Namespace   namespace
+	OAuth2User  oAuth2User
+	SysFunction sysFunction
+	SysMenu     sysMenu
+	SysRole     sysRole
+	User        user
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:         db,
-		Member:     q.Member.clone(db),
-		Namespace:  q.Namespace.clone(db),
-		OAuth2User: q.OAuth2User.clone(db),
-		User:       q.User.clone(db),
+		db:          db,
+		Member:      q.Member.clone(db),
+		Namespace:   q.Namespace.clone(db),
+		OAuth2User:  q.OAuth2User.clone(db),
+		SysFunction: q.SysFunction.clone(db),
+		SysMenu:     q.SysMenu.clone(db),
+		SysRole:     q.SysRole.clone(db),
+		User:        q.User.clone(db),
 	}
 }
 
@@ -72,27 +87,36 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:         db,
-		Member:     q.Member.replaceDB(db),
-		Namespace:  q.Namespace.replaceDB(db),
-		OAuth2User: q.OAuth2User.replaceDB(db),
-		User:       q.User.replaceDB(db),
+		db:          db,
+		Member:      q.Member.replaceDB(db),
+		Namespace:   q.Namespace.replaceDB(db),
+		OAuth2User:  q.OAuth2User.replaceDB(db),
+		SysFunction: q.SysFunction.replaceDB(db),
+		SysMenu:     q.SysMenu.replaceDB(db),
+		SysRole:     q.SysRole.replaceDB(db),
+		User:        q.User.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	Member     IMemberDo
-	Namespace  INamespaceDo
-	OAuth2User IOAuth2UserDo
-	User       IUserDo
+	Member      IMemberDo
+	Namespace   INamespaceDo
+	OAuth2User  IOAuth2UserDo
+	SysFunction ISysFunctionDo
+	SysMenu     ISysMenuDo
+	SysRole     ISysRoleDo
+	User        IUserDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		Member:     q.Member.WithContext(ctx),
-		Namespace:  q.Namespace.WithContext(ctx),
-		OAuth2User: q.OAuth2User.WithContext(ctx),
-		User:       q.User.WithContext(ctx),
+		Member:      q.Member.WithContext(ctx),
+		Namespace:   q.Namespace.WithContext(ctx),
+		OAuth2User:  q.OAuth2User.WithContext(ctx),
+		SysFunction: q.SysFunction.WithContext(ctx),
+		SysMenu:     q.SysMenu.WithContext(ctx),
+		SysRole:     q.SysRole.WithContext(ctx),
+		User:        q.User.WithContext(ctx),
 	}
 }
 

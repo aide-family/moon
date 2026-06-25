@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package goddess.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "goddess/api/v1/moon_sys_role_functions.proto";
+
+option go_package = "github.com/aide-family/goddess/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "goddess.api.v1";
+
+// SysUserFunction 系统用户功能直授服务
+service SysUserFunction {
+    // ListUserFunction 分页查询用户直授的系统功能列表
+    rpc ListUserFunction(ListUserFunctionRequest) returns (ListUserFunctionReply) {
+        option (google.api.http) = {
+            get: "/v1/sys/users/{userUID}/functions"
+        };
+    }
+    // GrantUserFunctions 直授系统功能给用户
+    rpc GrantUserFunctions(GrantUserFunctionsRequest) returns (GrantUserFunctionsReply) {
+        option (google.api.http) = {
+            post: "/v1/sys/users/{userUID}/functions"
+            body: "*"
+        };
+    }
+    // RevokeUserFunctions 撤销直授系统功能
+    rpc RevokeUserFunctions(RevokeUserFunctionsRequest) returns (RevokeUserFunctionsReply) {
+        option (google.api.http) = {
+            delete: "/v1/sys/users/{userUID}/functions"
+            body: "*"
+        };
+    }
+}
+
+// UserFunctionItem 用户直授功能项
+message UserFunctionItem {
+    string menuCode          = 1;
+    string functionCode      = 2;
+    string functionName      = 3;
+    int32 functionSortOrder  = 4;
+    int32 functionStatus     = 5;
+    int64 creator            = 6;
+    string createdAt         = 7;
+}
+
+// ListUserFunctionRequest 查询用户直授功能列表请求
+message ListUserFunctionRequest {
+    // userUID 用户 UID
+    int64 userUID = 1 [(buf.validate.field).required = true];
+    // menuCode 按菜单编码过滤（可选）
+    string menuCode = 2;
+    // page 页码
+    int32 page = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1",
+        message: "page must be greater than or equal to 1",
+    }];
+    // pageSize 每页数量
+    int32 pageSize = 4 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 200",
+        message: "pageSize must be between 1 and 200",
+    }];
+}
+
+// ListUserFunctionReply 查询用户直授功能列表响应
+message ListUserFunctionReply {
+    repeated UserFunctionItem items = 1;
+    int64 total    = 2;
+    int32 page     = 3;
+    int32 pageSize = 4;
+}
+
+// GrantUserFunctionsRequest 直授系统功能请求
+message GrantUserFunctionsRequest {
+    // userUID 用户 UID
+    int64 userUID = 1 [(buf.validate.field).required = true];
+    // functionKeys 功能键列表
+    repeated FunctionKey functionKeys = 2 [(buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "functionKeys must not be empty",
+    }];
+    // autoGrantMenu 是否自动追加对应菜单授权
+    bool autoGrantMenu = 3;
+}
+
+// GrantUserFunctionsReply 直授系统功能响应
+message GrantUserFunctionsReply {
+    int32 grantedCount = 1;
+    repeated string autoGrantedMenuCodes = 2;
+}
+
+// RevokeUserFunctionsRequest 撤销直授功能请求
+message RevokeUserFunctionsRequest {
+    // userUID 用户 UID
+    int64 userUID = 1 [(buf.validate.field).required = true];
+    // functionKeys 功能键列表
+    repeated FunctionKey functionKeys = 2 [(buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "functionKeys must not be empty",
+    }];
+    // autoRevokeMenu 是否自动撤销无功能的菜单授权
+    bool autoRevokeMenu = 3;
+}
+
+// RevokeUserFunctionsReply 撤销直授功能响应
+message RevokeUserFunctionsReply {
+    int32 revokedCount = 1;
+    repeated string autoRevokedMenuCodes = 2;
+}

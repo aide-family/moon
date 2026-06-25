@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package goddess.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aide-family/goddess/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "goddess.api.v1";
+
+// SysUserRole 系统用户角色权限服务
+service SysUserRole {
+    // ListSysUserRole 分页查询用户的系统角色列表
+    rpc ListSysUserRole(ListSysUserRoleRequest) returns (ListSysUserRoleReply) {
+        option (google.api.http) = {
+            get: "/v1/sys/users/{userUid}/roles"
+        };
+    }
+    // BindSysUserRoles 绑定系统用户角色
+    rpc BindSysUserRoles(BindSysUserRolesRequest) returns (BindSysUserRolesReply) {
+        option (google.api.http) = {
+            post: "/v1/sys/users/{userUid}/roles"
+            body: "*"
+        };
+    }
+    // UnbindSysUserRoles 解绑系统用户角色
+    rpc UnbindSysUserRoles(UnbindSysUserRolesRequest) returns (UnbindSysUserRolesReply) {
+        option (google.api.http) = {
+            delete: "/v1/sys/users/{userUid}/roles"
+        };
+    }
+}
+
+// SysUserRoleItem 用户角色详情
+message SysUserRoleItem {
+    string roleCode      = 1;
+    string roleName      = 2;
+    int32 roleDataScope  = 3;
+    int32 roleStatus     = 4;
+    string grantedAt     = 5;
+    string grantor       = 6;
+}
+
+// ListSysUserRoleRequest 分页查询用户系统角色列表请求
+message ListSysUserRoleRequest {
+    // userUid 用户 UID
+    string userUid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "userUid is required",
+    }];
+    int32 page = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1",
+        message: "page must be greater than or equal to 1",
+    }];
+    int32 pageSize = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 200",
+        message: "pageSize must be between 1 and 200",
+    }];
+}
+
+// ListSysUserRoleReply 分页查询用户系统角色列表响应
+message ListSysUserRoleReply {
+    repeated SysUserRoleItem items = 1;
+    int64 total    = 2;
+    int32 page     = 3;
+    int32 pageSize = 4;
+}
+
+// BindSysUserRolesRequest 绑定系统用户角色请求
+message BindSysUserRolesRequest {
+    // userUid 用户 UID
+    string userUid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "userUid is required",
+    }];
+    // roleCodes 角色编码列表
+    repeated string roleCodes = 2 [(buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "roleCodes must not be empty",
+    }];
+}
+
+// BindSysUserRolesReply 绑定系统用户角色响应
+message BindSysUserRolesReply {
+    int32 boundCount = 1;
+}
+
+// UnbindSysUserRolesRequest 解绑系统用户角色请求
+message UnbindSysUserRolesRequest {
+    // userUid 用户 UID
+    string userUid = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "userUid is required",
+    }];
+    // roleCodes 角色编码列表
+    repeated string roleCodes = 2 [(buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "roleCodes must not be empty",
+    }];
+}
+
+// UnbindSysUserRolesReply 解绑系统用户角色响应
+message UnbindSysUserRolesReply {
+    int32 unboundCount = 1;
+}

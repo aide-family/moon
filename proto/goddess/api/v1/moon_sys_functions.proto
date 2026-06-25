@@ -1,0 +1,194 @@
+syntax = "proto3";
+
+package goddess.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aide-family/goddess/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "goddess.api.v1";
+
+// SysFunction 系统功能管理服务
+service SysFunction {
+    // ListSysFunction 分页查询系统功能列表
+    rpc ListSysFunction(ListSysFunctionRequest) returns (ListSysFunctionReply) {
+        option (google.api.http) = {
+            get: "/v1/sys/functions"
+        };
+    }
+    // GetSysFunction 查询系统功能详情
+    rpc GetSysFunction(GetSysFunctionRequest) returns (GetSysFunctionReply) {
+        option (google.api.http) = {
+            get: "/v1/sys/menus/{menuCode}/functions/{functionCode}"
+        };
+    }
+    // CreateSysFunction 新增系统功能
+    rpc CreateSysFunction(CreateSysFunctionRequest) returns (CreateSysFunctionReply) {
+        option (google.api.http) = {
+            post: "/v1/sys/functions"
+            body: "*"
+        };
+    }
+    // UpdateSysFunction 编辑系统功能
+    rpc UpdateSysFunction(UpdateSysFunctionRequest) returns (UpdateSysFunctionReply) {
+        option (google.api.http) = {
+            put: "/v1/sys/menus/{menuCode}/functions/{functionCode}"
+            body: "*"
+        };
+    }
+    // DeleteSysFunction 删除系统功能（软删除）
+    rpc DeleteSysFunction(DeleteSysFunctionRequest) returns (DeleteSysFunctionReply) {
+        option (google.api.http) = {
+            delete: "/v1/sys/menus/{menuCode}/functions/{functionCode}"
+        };
+    }
+}
+
+// SysFunctionItem 系统功能详情
+message SysFunctionItem {
+    string menuCode          = 1;
+    string functionCode      = 2;
+    string functionName      = 3;
+    int32 functionSortOrder  = 4;
+    int32 functionStatus     = 5;
+    string functionRemark    = 6;
+    int64 creator            = 7;
+    string createdAt         = 8;
+    string updatedAt         = 9;
+}
+
+// CreateSysFunctionRequest 新增系统功能请求
+message CreateSysFunctionRequest {
+    // menuCode 菜单编码
+    string menuCode = 1 [(buf.validate.field).cel = {
+        expression: "this.size() == 0 || this.matches('^[a-zA-Z0-9:_]+$')",
+        message: "menuCode must match ^[a-zA-Z0-9:_]+$ when provided",
+    }];
+    // functionCode 功能编码
+    string functionCode = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.matches('^[a-zA-Z0-9:_]+$')",
+        message: "functionCode must match ^[a-zA-Z0-9:_]+$",
+    }];
+    // functionName 功能名称
+    string functionName = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() >= 1 && this.size() <= 100",
+        message: "functionName must be between 1 and 100 characters",
+    }];
+    // functionSortOrder 排序值
+    int32 functionSortOrder = 4;
+    // functionStatus 状态：0-启用 1-禁用
+    int32 functionStatus = 5 [(buf.validate.field).cel = {
+        expression: "this == 0 || this == 1",
+        message: "functionStatus must be 0 (enabled) or 1 (disabled)",
+    }];
+    // functionRemark 备注
+    string functionRemark = 6 [(buf.validate.field).cel = {
+        expression: "this.size() <= 200",
+        message: "functionRemark must be less than or equal to 200 characters",
+    }];
+}
+
+// CreateSysFunctionReply 新增系统功能响应
+message CreateSysFunctionReply {
+    SysFunctionItem function = 1;
+}
+
+// ListSysFunctionRequest 分页查询系统功能列表请求
+message ListSysFunctionRequest {
+    // menuCode 菜单编码（选传）
+    string menuCode = 1;
+    int32 page = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1",
+        message: "page must be greater than or equal to 1",
+    }];
+    int32 pageSize = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 200",
+        message: "pageSize must be between 1 and 200",
+    }];
+    // keyword 关键字，按功能编码或功能名称模糊匹配
+    string keyword = 4 [(buf.validate.field).cel = {
+        expression: "this.size() <= 200",
+        message: "keyword must be less than or equal to 200",
+    }];
+    // functionStatus 功能状态筛选（optional）
+    optional int32 functionStatus = 5;
+}
+
+// ListSysFunctionReply 分页查询系统功能列表响应
+message ListSysFunctionReply {
+    repeated SysFunctionItem items = 1;
+    int64 total    = 2;
+    int32 page     = 3;
+    int32 pageSize = 4;
+}
+
+// GetSysFunctionRequest 查询系统功能详情请求
+message GetSysFunctionRequest {
+    string menuCode = 1 [(buf.validate.field).cel = {
+        expression: "this.size() <= 100",
+        message: "menuCode must be less than or equal to 100 characters",
+    }];
+    string functionCode = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "functionCode must be between 1 and 100 characters",
+    }];
+}
+
+// GetSysFunctionReply 查询系统功能详情响应
+message GetSysFunctionReply {
+    SysFunctionItem function = 1;
+}
+
+// UpdateSysFunctionRequest 编辑系统功能请求
+message UpdateSysFunctionRequest {
+    // menuCode 菜单编码（主键，选传）
+    string menuCode = 1 [(buf.validate.field).cel = {
+        expression: "this.size() <= 100",
+        message: "menuCode must be less than or equal to 100 characters",
+    }];
+    // functionCode 功能编码（主键，禁止修改）
+    string functionCode = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "functionCode must be between 1 and 100 characters",
+    }];
+    // functionName 功能名称
+    optional string functionName = 3 [(buf.validate.field).cel = {
+        expression: "this.size() >= 1 && this.size() <= 100",
+        message: "functionName must be between 1 and 100 characters",
+    }];
+    // functionSortOrder 排序值
+    optional int32 functionSortOrder = 4;
+    // functionStatus 状态
+    optional int32 functionStatus = 5 [(buf.validate.field).cel = {
+        expression: "this == 0 || this == 1",
+        message: "functionStatus must be 0 (enabled) or 1 (disabled)",
+    }];
+    // functionRemark 备注
+    optional string functionRemark = 6 [(buf.validate.field).cel = {
+        expression: "this.size() <= 200",
+        message: "functionRemark must be less than or equal to 200 characters",
+    }];
+}
+
+// UpdateSysFunctionReply 编辑系统功能响应
+message UpdateSysFunctionReply {
+    SysFunctionItem function = 1;
+}
+
+// DeleteSysFunctionRequest 删除系统功能请求
+message DeleteSysFunctionRequest {
+    string menuCode = 1 [(buf.validate.field).cel = {
+        expression: "this.size() <= 100",
+        message: "menuCode must be less than or equal to 100 characters",
+    }];
+    string functionCode = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "functionCode must be between 1 and 100 characters",
+    }];
+}
+
+// DeleteSysFunctionReply 删除系统功能响应
+message DeleteSysFunctionReply {
+    bool success = 1;
+}

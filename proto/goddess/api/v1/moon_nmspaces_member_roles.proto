@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package goddess.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aide-family/goddess/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "goddess.api.v1";
+
+// NmspacesMemberRole 租户成员角色权限服务
+service NmspacesMemberRole {
+    // ListNmspacesMemberRole 分页查询租户成员的角色列表
+    rpc ListNmspacesMemberRole(ListNmspacesMemberRoleRequest) returns (ListNmspacesMemberRoleReply) {
+        option (google.api.http) = {
+            get: "/v1/nmspaces/members/{memberUID}/roles"
+        };
+    }
+    // BindNmspacesMemberRoles 绑定租户成员角色
+    rpc BindNmspacesMemberRoles(BindNmspacesMemberRolesRequest) returns (BindNmspacesMemberRolesReply) {
+        option (google.api.http) = {
+            post: "/v1/nmspaces/members/{memberUID}/roles"
+            body: "*"
+        };
+    }
+    // UnbindNmspacesMemberRoles 解绑租户成员角色
+    rpc UnbindNmspacesMemberRoles(UnbindNmspacesMemberRolesRequest) returns (UnbindNmspacesMemberRolesReply) {
+        option (google.api.http) = {
+            delete: "/v1/nmspaces/members/{memberUID}/roles"
+        };
+    }
+}
+
+// NmspacesMemberRoleItem 租户成员角色详情
+message NmspacesMemberRoleItem {
+    string roleCode      = 1;
+    string roleName      = 2;
+    int32 roleDataScope  = 3;
+    int32 roleStatus     = 4;
+    string grantedAt     = 5;
+    int64 grantor        = 6;
+}
+
+// ListNmspacesMemberRoleRequest 分页查询租户成员角色列表请求
+message ListNmspacesMemberRoleRequest {
+    // memberUID 成员 UID
+    string memberUID = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "memberUID is required",
+    }];
+    int32 page = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1",
+        message: "page must be greater than or equal to 1",
+    }];
+    int32 pageSize = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 200",
+        message: "pageSize must be between 1 and 200",
+    }];
+}
+
+// ListNmspacesMemberRoleReply 分页查询租户成员角色列表响应
+message ListNmspacesMemberRoleReply {
+    repeated NmspacesMemberRoleItem items = 1;
+    int64 total    = 2;
+    int32 page     = 3;
+    int32 pageSize = 4;
+}
+
+// BindNmspacesMemberRolesRequest 绑定租户成员角色请求
+message BindNmspacesMemberRolesRequest {
+    // memberUID 成员 UID
+    string memberUID = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "memberUID is required",
+    }];
+    // roleCodes 角色编码列表
+    repeated string roleCodes = 2 [(buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "roleCodes must not be empty",
+    }];
+}
+
+// BindNmspacesMemberRolesReply 绑定租户成员角色响应
+message BindNmspacesMemberRolesReply {
+    int32 boundCount = 1;
+}
+
+// UnbindNmspacesMemberRolesRequest 解绑租户成员角色请求
+message UnbindNmspacesMemberRolesRequest {
+    // memberUID 成员 UID
+    string memberUID = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "memberUID is required",
+    }];
+    // roleCodes 角色编码列表
+    repeated string roleCodes = 2 [(buf.validate.field).cel = {
+        expression: "this.size() > 0",
+        message: "roleCodes must not be empty",
+    }];
+}
+
+// UnbindNmspacesMemberRolesReply 解绑租户成员角色响应
+message UnbindNmspacesMemberRolesReply {
+    int32 unboundCount = 1;
+}

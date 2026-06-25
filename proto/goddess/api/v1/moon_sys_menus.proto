@@ -1,0 +1,280 @@
+syntax = "proto3";
+
+package goddess.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aide-family/goddess/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "goddess.api.v1";
+
+// SysMenu 系统菜单管理服务
+service SysMenu {
+    // ListSysMenu 分页查询系统菜单列表
+    rpc ListSysMenu(ListSysMenuRequest) returns (ListSysMenuReply) {
+        option (google.api.http) = {
+            get: "/v1/sys/menus"
+        };
+    }
+    // TreeSysMenu 查询系统菜单树
+    rpc TreeSysMenu(TreeSysMenuRequest) returns (TreeSysMenuReply) {
+        option (google.api.http) = {
+            get: "/v1/sys/menus/tree"
+        };
+    }
+    // GetSysMenu 查询系统菜单详情
+    rpc GetSysMenu(GetSysMenuRequest) returns (GetSysMenuReply) {
+        option (google.api.http) = {
+            get: "/v1/sys/menus/{menuCode}"
+        };
+    }
+    // CreateSysMenu 新增系统菜单
+    rpc CreateSysMenu(CreateSysMenuRequest) returns (CreateSysMenuReply) {
+        option (google.api.http) = {
+            post: "/v1/sys/menus"
+            body: "*"
+        };
+    }
+    // UpdateSysMenu 编辑系统菜单
+    rpc UpdateSysMenu(UpdateSysMenuRequest) returns (UpdateSysMenuReply) {
+        option (google.api.http) = {
+            put: "/v1/sys/menus/{menuCode}"
+            body: "*"
+        };
+    }
+    // DeleteSysMenu 删除系统菜单
+    rpc DeleteSysMenu(DeleteSysMenuRequest) returns (DeleteSysMenuReply) {
+        option (google.api.http) = {
+            delete: "/v1/sys/menus/{menuCode}"
+        };
+    }
+}
+
+// SysMenuItem 系统菜单详情
+message SysMenuItem {
+    string menuCode       = 1;
+    string parentMenuCode = 2;
+    string menuName       = 3;
+    string menuPath       = 4;
+    string menuIcon       = 5;
+    string menuComponent  = 6;
+    string menuRedirect   = 7;
+    int32 menuIsHidden    = 8;
+    int32 menuIsKeepAlive = 9;
+    int32 menuSortOrder   = 10;
+    int32 menuStatus      = 11;
+    string menuRemark     = 12;
+    int64 creator         = 13;
+    string createdAt      = 14;
+    string updatedAt      = 15;
+}
+
+// SysMenuTreeItem 系统菜单树节点（含子节点）
+message SysMenuTreeItem {
+    string menuCode       = 1;
+    string parentMenuCode = 2;
+    string menuName       = 3;
+    string menuPath       = 4;
+    string menuIcon       = 5;
+    string menuComponent  = 6;
+    string menuRedirect   = 7;
+    int32 menuIsHidden    = 8;
+    int32 menuIsKeepAlive = 9;
+    int32 menuSortOrder   = 10;
+    int32 menuStatus      = 11;
+    string menuRemark     = 12;
+    repeated SysMenuTreeItem children = 13;
+}
+
+// SysMenuListItem 系统菜单列表项（含父菜单名称）
+message SysMenuListItem {
+    string menuCode        = 1;
+    string parentMenuCode  = 2;
+    string parentMenuName  = 3;
+    string menuName        = 4;
+    string menuPath        = 5;
+    string menuIcon        = 6;
+    string menuComponent   = 7;
+    int32 menuIsHidden     = 8;
+    int32 menuIsKeepAlive  = 9;
+    int32 menuSortOrder    = 10;
+    int32 menuStatus       = 11;
+    string menuRemark      = 12;
+    int64 creator          = 13;
+    string createdAt       = 14;
+    string updatedAt       = 15;
+}
+
+// ListSysMenuRequest 分页查询系统菜单列表请求
+message ListSysMenuRequest {
+    int32 page = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1",
+        message: "page must be greater than or equal to 1",
+    }];
+    int32 pageSize = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 200",
+        message: "pageSize must be between 1 and 200",
+    }];
+    // keyword 关键字，按菜单编码或菜单名称模糊查询
+    string keyword = 3 [(buf.validate.field).cel = {
+        expression: "this.size() <= 200",
+        message: "keyword must be less than or equal to 200",
+    }];
+    // menuStatus 菜单状态筛选（optional，区分未传和传 0）
+    optional int32 menuStatus = 4;
+    // sortBy 排序字段
+    string sortBy = 5;
+    // sortOrder 排序方向 asc/desc
+    string sortOrder = 6;
+}
+
+// ListSysMenuReply 分页查询系统菜单列表响应
+message ListSysMenuReply {
+    repeated SysMenuListItem items = 1;
+    int64 total    = 2;
+    int32 page     = 3;
+    int32 pageSize = 4;
+}
+
+// TreeSysMenuRequest 查询系统菜单树请求
+message TreeSysMenuRequest {
+    // menuStatus 菜单状态筛选（optional）
+    optional int32 menuStatus = 1;
+    // keyword 关键字，按菜单编码或菜单名称模糊匹配
+    string keyword = 2;
+}
+
+// TreeSysMenuReply 查询系统菜单树响应
+message TreeSysMenuReply {
+    repeated SysMenuTreeItem items = 1;
+}
+
+// GetSysMenuRequest 查询系统菜单详情请求
+message GetSysMenuRequest {
+    string menuCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "menuCode must be between 1 and 100 characters",
+    }];
+}
+
+// GetSysMenuReply 查询系统菜单详情响应
+message GetSysMenuReply {
+    SysMenuItem menu = 1;
+    int32 childrenCount = 2;
+}
+
+// CreateSysMenuRequest 新增系统菜单请求
+message CreateSysMenuRequest {
+    // menuCode 菜单编码
+    string menuCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.matches('^[a-zA-Z0-9:_]+$')",
+        message: "menuCode must match ^[a-zA-Z0-9:_]+$",
+    }];
+    // parentMenuCode 父菜单编码，为空表示顶级菜单
+    string parentMenuCode = 2;
+    // menuName 菜单名称
+    string menuName = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() >= 1 && this.size() <= 100",
+        message: "menuName must be between 1 and 100 characters",
+    }];
+    // menuPath 路由路径
+    string menuPath = 4;
+    // menuIcon 菜单图标
+    string menuIcon = 5;
+    // menuComponent 前端组件路径
+    string menuComponent = 6;
+    // menuRedirect 重定向路径
+    string menuRedirect = 7;
+    // menuIsHidden 是否隐藏：0-显示 1-隐藏
+    int32 menuIsHidden = 8 [(buf.validate.field).cel = {
+        expression: "this == 0 || this == 1",
+        message: "menuIsHidden must be 0 or 1",
+    }];
+    // menuIsKeepAlive 是否缓存：0-不缓存 1-缓存
+    int32 menuIsKeepAlive = 9 [(buf.validate.field).cel = {
+        expression: "this == 0 || this == 1",
+        message: "menuIsKeepAlive must be 0 or 1",
+    }];
+    // menuSortOrder 排序序号
+    int32 menuSortOrder = 10;
+    // menuStatus 菜单状态：1-启用 2-禁用
+    int32 menuStatus = 11 [(buf.validate.field).cel = {
+        expression: "this == 1 || this == 2",
+        message: "menuStatus must be 1 (enabled) or 2 (disabled)",
+    }];
+    // menuRemark 菜单备注
+    string menuRemark = 12 [(buf.validate.field).cel = {
+        expression: "this.size() <= 255",
+        message: "menuRemark must be less than or equal to 255",
+    }];
+}
+
+// CreateSysMenuReply 新增系统菜单响应
+message CreateSysMenuReply {
+    string menuCode = 1;
+}
+
+// UpdateSysMenuRequest 编辑系统菜单请求
+message UpdateSysMenuRequest {
+    // menuCode 菜单编码（主键，禁止修改）
+    string menuCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "menuCode must be between 1 and 100 characters",
+    }];
+    // parentMenuCode 父菜单编码
+    optional string parentMenuCode = 2;
+    // menuName 菜单名称
+    optional string menuName = 3 [(buf.validate.field).cel = {
+        expression: "this.size() >= 1 && this.size() <= 100",
+        message: "menuName must be between 1 and 100 characters",
+    }];
+    // menuPath 路由路径
+    optional string menuPath = 4;
+    // menuIcon 菜单图标
+    optional string menuIcon = 5;
+    // menuComponent 前端组件路径
+    optional string menuComponent = 6;
+    // menuRedirect 重定向路径
+    optional string menuRedirect = 7;
+    // menuIsHidden 是否隐藏
+    optional int32 menuIsHidden = 8 [(buf.validate.field).cel = {
+        expression: "this == 0 || this == 1",
+        message: "menuIsHidden must be 0 or 1",
+    }];
+    // menuIsKeepAlive 是否缓存
+    optional int32 menuIsKeepAlive = 9 [(buf.validate.field).cel = {
+        expression: "this == 0 || this == 1",
+        message: "menuIsKeepAlive must be 0 or 1",
+    }];
+    // menuSortOrder 排序序号
+    optional int32 menuSortOrder = 10;
+    // menuStatus 菜单状态
+    optional int32 menuStatus = 11 [(buf.validate.field).cel = {
+        expression: "this == 1 || this == 2",
+        message: "menuStatus must be 1 (enabled) or 2 (disabled)",
+    }];
+    // menuRemark 菜单备注
+    optional string menuRemark = 12 [(buf.validate.field).cel = {
+        expression: "this.size() <= 255",
+        message: "menuRemark must be less than or equal to 255",
+    }];
+}
+
+// UpdateSysMenuReply 编辑系统菜单响应
+message UpdateSysMenuReply {
+    string menuCode = 1;
+}
+
+// DeleteSysMenuRequest 删除系统菜单请求
+message DeleteSysMenuRequest {
+    string menuCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "menuCode must be between 1 and 100 characters",
+    }];
+}
+
+// DeleteSysMenuReply 删除系统菜单响应
+message DeleteSysMenuReply {
+    bool success = 1;
+}

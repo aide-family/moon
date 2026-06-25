@@ -92,6 +92,22 @@ func RegisterService(
 	memberService *service.MemberService,
 	selfService *service.SelfService,
 	captchaService *service.CaptchaService,
+	sysRoleService *service.SysRoleService,
+	sysMenuService *service.SysMenuService,
+	sysFunctionService *service.SysFunctionService,
+	sysUserRoleService *service.SysUserRoleService,
+	sysRoleMenuService *service.SysRoleMenuService,
+	sysRoleFunctionService *service.SysRoleFunctionService,
+	sysUserMenuService *service.SysUserMenuService,
+	sysUserFunctionService *service.SysUserFunctionService,
+	nmspacesRoleService *service.NmspacesRoleService,
+	nmspacesMenuService *service.NmspacesMenuService,
+	nmspacesFunctionService *service.NmspacesFunctionService,
+	nmspacesMemberRoleService *service.NmspacesMemberRoleService,
+	nmspacesRoleMenuService *service.NmspacesRoleMenuService,
+	nmspacesRoleFunctionService *service.NmspacesRoleFunctionService,
+	nmspacesMemberMenuService *service.NmspacesMemberMenuService,
+	nmspacesMemberFunctionService *service.NmspacesMemberFunctionService,
 ) Servers {
 	var srvs Servers
 
@@ -103,6 +119,22 @@ func RegisterService(
 		memberService,
 		selfService,
 		captchaService,
+		sysRoleService,
+		sysMenuService,
+		sysFunctionService,
+		sysUserRoleService,
+		sysRoleMenuService,
+		sysRoleFunctionService,
+		sysUserMenuService,
+		sysUserFunctionService,
+		nmspacesRoleService,
+		nmspacesMenuService,
+		nmspacesFunctionService,
+		nmspacesMemberRoleService,
+		nmspacesRoleMenuService,
+		nmspacesRoleFunctionService,
+		nmspacesMemberMenuService,
+		nmspacesMemberFunctionService,
 	)...)
 	srvs = append(srvs, RegisterGRPCService(c, grpcSrv,
 		authService,
@@ -112,6 +144,22 @@ func RegisterService(
 		memberService,
 		selfService,
 		captchaService,
+		sysRoleService,
+		sysMenuService,
+		sysFunctionService,
+		sysUserRoleService,
+		sysRoleMenuService,
+		sysRoleFunctionService,
+		sysUserMenuService,
+		sysUserFunctionService,
+		nmspacesRoleService,
+		nmspacesMenuService,
+		nmspacesFunctionService,
+		nmspacesMemberRoleService,
+		nmspacesRoleMenuService,
+		nmspacesRoleFunctionService,
+		nmspacesMemberMenuService,
+		nmspacesMemberFunctionService,
 	)...)
 	return srvs
 }
@@ -127,6 +175,22 @@ func RegisterHTTPService(
 	memberService *service.MemberService,
 	selfService *service.SelfService,
 	captchaService *service.CaptchaService,
+	sysRoleService *service.SysRoleService,
+	sysMenuService *service.SysMenuService,
+	sysFunctionService *service.SysFunctionService,
+	sysUserRoleService *service.SysUserRoleService,
+	sysRoleMenuService *service.SysRoleMenuService,
+	sysRoleFunctionService *service.SysRoleFunctionService,
+	sysUserMenuService *service.SysUserMenuService,
+	sysUserFunctionService *service.SysUserFunctionService,
+	nmspacesRoleService *service.NmspacesRoleService,
+	nmspacesMenuService *service.NmspacesMenuService,
+	nmspacesFunctionService *service.NmspacesFunctionService,
+	nmspacesMemberRoleService *service.NmspacesMemberRoleService,
+	nmspacesRoleMenuService *service.NmspacesRoleMenuService,
+	nmspacesRoleFunctionService *service.NmspacesRoleFunctionService,
+	nmspacesMemberMenuService *service.NmspacesMemberMenuService,
+	nmspacesMemberFunctionService *service.NmspacesMemberFunctionService,
 ) Servers {
 	magicboxv1.RegisterHealthHTTPServer(httpSrv, healthService)
 	goddessv1.RegisterAuthServiceHTTPServer(httpSrv, authService)
@@ -135,6 +199,22 @@ func RegisterHTTPService(
 	goddessv1.RegisterMemberHTTPServer(httpSrv, memberService)
 	goddessv1.RegisterSelfHTTPServer(httpSrv, selfService)
 	goddessv1.RegisterCaptchaHTTPServer(httpSrv, captchaService)
+	goddessv1.RegisterSysRoleHTTPServer(httpSrv, sysRoleService)
+	goddessv1.RegisterSysMenuHTTPServer(httpSrv, sysMenuService)
+	goddessv1.RegisterSysFunctionHTTPServer(httpSrv, sysFunctionService)
+	goddessv1.RegisterSysUserRoleHTTPServer(httpSrv, sysUserRoleService)
+	goddessv1.RegisterSysRoleMenuHTTPServer(httpSrv, sysRoleMenuService)
+	goddessv1.RegisterSysRoleFunctionHTTPServer(httpSrv, sysRoleFunctionService)
+	goddessv1.RegisterSysUserMenuHTTPServer(httpSrv, sysUserMenuService)
+	goddessv1.RegisterSysUserFunctionHTTPServer(httpSrv, sysUserFunctionService)
+	goddessv1.RegisterNmspacesRoleHTTPServer(httpSrv, nmspacesRoleService)
+	goddessv1.RegisterNmspacesMenuHTTPServer(httpSrv, nmspacesMenuService)
+	goddessv1.RegisterNmspacesFunctionHTTPServer(httpSrv, nmspacesFunctionService)
+	goddessv1.RegisterNmspacesMemberRoleHTTPServer(httpSrv, nmspacesMemberRoleService)
+	goddessv1.RegisterNmspacesRoleMenuHTTPServer(httpSrv, nmspacesRoleMenuService)
+	goddessv1.RegisterNmspacesRoleFunctionHTTPServer(httpSrv, nmspacesRoleFunctionService)
+	goddessv1.RegisterNmspacesMemberMenuHTTPServer(httpSrv, nmspacesMemberMenuService)
+	goddessv1.RegisterNmspacesMemberFunctionHTTPServer(httpSrv, nmspacesMemberFunctionService)
 
 	oauth2Handler := oauth.NewOAuth2Handler(c.GetOauth2(), func(ctx context.Context, req *oauth.OAuth2LoginRequest) (string, error) {
 		reply, err := authService.OAuth2Login(ctx, req)
@@ -160,6 +240,22 @@ func RegisterGRPCService(
 	memberService *service.MemberService,
 	selfService *service.SelfService,
 	captchaService *service.CaptchaService,
+	sysRoleService *service.SysRoleService,
+	sysMenuService *service.SysMenuService,
+	sysFunctionService *service.SysFunctionService,
+	sysUserRoleService *service.SysUserRoleService,
+	sysRoleMenuService *service.SysRoleMenuService,
+	sysRoleFunctionService *service.SysRoleFunctionService,
+	sysUserMenuService *service.SysUserMenuService,
+	sysUserFunctionService *service.SysUserFunctionService,
+	nmspacesRoleService *service.NmspacesRoleService,
+	nmspacesMenuService *service.NmspacesMenuService,
+	nmspacesFunctionService *service.NmspacesFunctionService,
+	nmspacesMemberRoleService *service.NmspacesMemberRoleService,
+	nmspacesRoleMenuService *service.NmspacesRoleMenuService,
+	nmspacesRoleFunctionService *service.NmspacesRoleFunctionService,
+	nmspacesMemberMenuService *service.NmspacesMemberMenuService,
+	nmspacesMemberFunctionService *service.NmspacesMemberFunctionService,
 ) Servers {
 	magicboxv1.RegisterHealthServer(grpcSrv, healthService)
 	goddessv1.RegisterAuthServiceServer(grpcSrv, authService)
@@ -168,6 +264,22 @@ func RegisterGRPCService(
 	goddessv1.RegisterMemberServer(grpcSrv, memberService)
 	goddessv1.RegisterSelfServer(grpcSrv, selfService)
 	goddessv1.RegisterCaptchaServer(grpcSrv, captchaService)
+	goddessv1.RegisterSysRoleServer(grpcSrv, sysRoleService)
+	goddessv1.RegisterSysMenuServer(grpcSrv, sysMenuService)
+	goddessv1.RegisterSysFunctionServer(grpcSrv, sysFunctionService)
+	goddessv1.RegisterSysUserRoleServer(grpcSrv, sysUserRoleService)
+	goddessv1.RegisterSysRoleMenuServer(grpcSrv, sysRoleMenuService)
+	goddessv1.RegisterSysRoleFunctionServer(grpcSrv, sysRoleFunctionService)
+	goddessv1.RegisterSysUserMenuServer(grpcSrv, sysUserMenuService)
+	goddessv1.RegisterSysUserFunctionServer(grpcSrv, sysUserFunctionService)
+	goddessv1.RegisterNmspacesRoleServer(grpcSrv, nmspacesRoleService)
+	goddessv1.RegisterNmspacesMenuServer(grpcSrv, nmspacesMenuService)
+	goddessv1.RegisterNmspacesFunctionServer(grpcSrv, nmspacesFunctionService)
+	goddessv1.RegisterNmspacesMemberRoleServer(grpcSrv, nmspacesMemberRoleService)
+	goddessv1.RegisterNmspacesRoleMenuServer(grpcSrv, nmspacesRoleMenuService)
+	goddessv1.RegisterNmspacesRoleFunctionServer(grpcSrv, nmspacesRoleFunctionService)
+	goddessv1.RegisterNmspacesMemberMenuServer(grpcSrv, nmspacesMemberMenuService)
+	goddessv1.RegisterNmspacesMemberFunctionServer(grpcSrv, nmspacesMemberFunctionService)
 	return Servers{newServer("grpc", grpcSrv)}
 }
 
@@ -189,6 +301,67 @@ var namespaceAllowList = []string{
 	goddessv1.OperationUserSelectUser,
 	goddessv1.OperationUserBanUser,
 	goddessv1.OperationUserPermitUser,
+	goddessv1.OperationSysRoleListSysRole,
+	goddessv1.OperationSysMenuListSysMenu,
+	goddessv1.OperationSysMenuTreeSysMenu,
+	goddessv1.OperationSysMenuGetSysMenu,
+	goddessv1.OperationSysMenuCreateSysMenu,
+	goddessv1.OperationSysMenuUpdateSysMenu,
+	goddessv1.OperationSysMenuDeleteSysMenu,
+	goddessv1.OperationSysFunctionCreateSysFunction,
+	goddessv1.OperationSysFunctionListSysFunction,
+	goddessv1.OperationSysFunctionGetSysFunction,
+	goddessv1.OperationSysFunctionUpdateSysFunction,
+	goddessv1.OperationSysFunctionDeleteSysFunction,
+	goddessv1.OperationSysUserRoleListSysUserRole,
+	goddessv1.OperationSysUserRoleBindSysUserRoles,
+	goddessv1.OperationSysUserRoleUnbindSysUserRoles,
+	goddessv1.OperationSysRoleMenuListRoleMenu,
+	goddessv1.OperationSysRoleMenuGrantRoleMenus,
+	goddessv1.OperationSysRoleMenuRevokeRoleMenus,
+	goddessv1.OperationSysRoleFunctionListRoleFunction,
+	goddessv1.OperationSysRoleFunctionGrantRoleFunctions,
+	goddessv1.OperationSysRoleFunctionRevokeRoleFunctions,
+	goddessv1.OperationSysUserMenuListUserMenu,
+	goddessv1.OperationSysUserMenuGrantUserMenus,
+	goddessv1.OperationSysUserMenuRevokeUserMenus,
+	goddessv1.OperationSysUserFunctionListUserFunction,
+	goddessv1.OperationSysUserFunctionGrantUserFunctions,
+	goddessv1.OperationSysUserFunctionRevokeUserFunctions,
+	goddessv1.OperationUserListUserFinalMenus,
+	goddessv1.OperationUserListUserFinalFunctions,
+	goddessv1.OperationNmspacesRoleListNmspacesRole,
+	goddessv1.OperationNmspacesRoleGetNmspacesRole,
+	goddessv1.OperationNmspacesRoleCreateNmspacesRole,
+	goddessv1.OperationNmspacesRoleUpdateNmspacesRole,
+	goddessv1.OperationNmspacesRoleDeleteNmspacesRole,
+	goddessv1.OperationNmspacesMenuListNmspacesMenu,
+	goddessv1.OperationNmspacesMenuGetNmspacesMenu,
+	goddessv1.OperationNmspacesMenuCreateNmspacesMenu,
+	goddessv1.OperationNmspacesMenuUpdateNmspacesMenu,
+	goddessv1.OperationNmspacesMenuDeleteNmspacesMenu,
+	goddessv1.OperationNmspacesFunctionCreateNmspacesFunction,
+	goddessv1.OperationNmspacesFunctionListNmspacesFunction,
+	goddessv1.OperationNmspacesFunctionGetNmspacesFunction,
+	goddessv1.OperationNmspacesFunctionUpdateNmspacesFunction,
+	goddessv1.OperationNmspacesFunctionDeleteNmspacesFunction,
+	goddessv1.OperationNmspacesMemberRoleListNmspacesMemberRole,
+	goddessv1.OperationNmspacesMemberRoleBindNmspacesMemberRoles,
+	goddessv1.OperationNmspacesMemberRoleUnbindNmspacesMemberRoles,
+	goddessv1.OperationNmspacesRoleMenuListNmspacesRoleMenu,
+	goddessv1.OperationNmspacesRoleMenuGrantNmspacesRoleMenus,
+	goddessv1.OperationNmspacesRoleMenuRevokeNmspacesRoleMenus,
+	goddessv1.OperationNmspacesRoleFunctionListNmspacesRoleFunction,
+	goddessv1.OperationNmspacesRoleFunctionGrantNmspacesRoleFunctions,
+	goddessv1.OperationNmspacesRoleFunctionRevokeNmspacesRoleFunctions,
+	goddessv1.OperationNmspacesMemberMenuListNmspacesMemberMenu,
+	goddessv1.OperationNmspacesMemberMenuGrantNmspacesMemberMenus,
+	goddessv1.OperationNmspacesMemberMenuRevokeNmspacesMemberMenus,
+	goddessv1.OperationNmspacesMemberFunctionListNmspacesMemberFunction,
+	goddessv1.OperationNmspacesMemberFunctionGrantNmspacesMemberFunctions,
+	goddessv1.OperationNmspacesMemberFunctionRevokeNmspacesMemberFunctions,
+	goddessv1.OperationUserListNmspaceFinalMenus,
+	goddessv1.OperationUserListNmspaceFinalFunctions,
 }
 
 var authAllowList = []string{

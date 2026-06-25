@@ -9,6 +9,7 @@ option java_package = "goddess.api.v1";
 import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
 import "magicbox/enum/enum.proto";
+import "goddess/api/v1/moon_sys_menus.proto";
 
 service User {
     rpc GetUser(GetUserRequest) returns (UserItem) {
@@ -36,6 +37,30 @@ service User {
         option (google.api.http) = {
             put: "/v1/user/permit/{uid}",
             body: "*"
+        };
+    }
+    // ListUserFinalMenus 查询系统用户最终菜单集合（9.1）
+    rpc ListUserFinalMenus(ListUserFinalMenusRequest) returns (ListUserFinalMenusReply) {
+        option (google.api.http) = {
+            get: "/v1/sys/users/{userUID}/final-menus"
+        };
+    }
+    // ListUserFinalFunctions 查询系统用户最终功能集合（9.2）
+    rpc ListUserFinalFunctions(ListUserFinalFunctionsRequest) returns (ListUserFinalFunctionsReply) {
+        option (google.api.http) = {
+            get: "/v1/sys/users/{userUID}/final-functions"
+        };
+    }
+    // ListNmspaceFinalMenus 查询租户成员最终菜单集合（系统+租户合并）
+    rpc ListNmspaceFinalMenus(ListNmspaceFinalMenusRequest) returns (ListNmspaceFinalMenusReply) {
+        option (google.api.http) = {
+            get: "/v1/nmspaces/members/{memberUID}/final-menus"
+        };
+    }
+    // ListNmspaceFinalFunctions 查询租户成员最终功能集合（系统+租户合并）
+    rpc ListNmspaceFinalFunctions(ListNmspaceFinalFunctionsRequest) returns (ListNmspaceFinalFunctionsReply) {
+        option (google.api.http) = {
+            get: "/v1/nmspaces/members/{memberUID}/final-functions"
         };
     }
 }
@@ -129,4 +154,96 @@ message PermitUserRequest {
 }
 message PermitUserReply {
     string message = 1;
+}
+
+// === 聚合查询（9.1 / 9.2） ===
+
+// FinalMenuItem 最终菜单项
+message FinalMenuItem {
+    string menuCode       = 1;
+    string parentMenuCode = 2;
+    string menuName       = 3;
+    int32 menuStatus      = 4;
+}
+
+// ListUserFinalMenusRequest 查询用户最终菜单集合请求
+message ListUserFinalMenusRequest {
+    // userUID 用户 UID
+    int64 userUID = 1 [(buf.validate.field).required = true];
+    // asTree 是否返回树形结构
+    bool asTree = 2;
+}
+
+// ListUserFinalMenusReply 查询用户最终菜单集合响应
+message ListUserFinalMenusReply {
+    // items 扁平列表
+    repeated FinalMenuItem items = 1;
+    // tree 树形结构（asTree=true 时返回）
+    repeated SysMenuTreeItem tree = 2;
+    // menuCodes 所有菜单编码
+    repeated string menuCodes = 3;
+}
+
+// FinalFunctionItem 最终功能项
+message FinalFunctionItem {
+    string menuCode     = 1;
+    string functionCode = 2;
+    string functionName = 3;
+}
+
+// ListUserFinalFunctionsRequest 查询用户最终功能集合请求
+message ListUserFinalFunctionsRequest {
+    // userUID 用户 UID
+    int64 userUID = 1 [(buf.validate.field).required = true];
+    // menuCode 按菜单编码过滤（可选）
+    string menuCode = 2;
+}
+
+// ListUserFinalFunctionsReply 查询用户最终功能集合响应
+message ListUserFinalFunctionsReply {
+    // functionKeys 功能键列表
+    repeated FinalFunctionItem functionKeys = 1;
+    // functionMap 按 menuCode 分组的功能编码映射
+    map<string, FinalFunctionList> functionMap = 2;
+}
+
+// FinalFunctionList 功能编码列表
+message FinalFunctionList {
+    repeated string functionCodes = 1;
+}
+
+// === 租户级聚合查询 ===
+
+// ListNmspaceFinalMenusRequest 查询租户成员最终菜单集合请求
+message ListNmspaceFinalMenusRequest {
+    // memberUID 成员 UID
+    string memberUID = 1 [(buf.validate.field).required = true];
+    // asTree 是否返回树形结构
+    bool asTree = 2;
+}
+
+// ListNmspaceFinalMenusReply 查询租户成员最终菜单集合响应
+message ListNmspaceFinalMenusReply {
+    // items 扁平列表
+    repeated FinalMenuItem items = 1;
+    // tree 树形结构（asTree=true 时返回）
+    repeated SysMenuTreeItem tree = 2;
+    // menuCodes 所有菜单编码
+    repeated string menuCodes = 3;
+}
+
+// ListNmspaceFinalFunctionsRequest 查询租户成员最终功能集合请求
+message ListNmspaceFinalFunctionsRequest {
+    // memberUID 成员 UID
+    string memberUID = 1 [(buf.validate.field).required = true];
+    // menuCode 按菜单编码过滤（可选）
+    string menuCode = 2;
+}
+
+// ListNmspaceFinalFunctionsReply 查询租户成员最终功能集合响应
+message ListNmspaceFinalFunctionsReply {
+    // functionKeys 功能键列表
+    repeated FinalFunctionItem functionKeys = 1;
+    // functionMap 按 menuCode 分组的功能编码映射
+    map<string, FinalFunctionList> functionMap = 2;
 }

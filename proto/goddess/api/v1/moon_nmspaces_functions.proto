@@ -1,0 +1,187 @@
+syntax = "proto3";
+
+package goddess.api.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aide-family/goddess/pkg/api/v1;v1";
+option java_multiple_files = true;
+option java_package = "goddess.api.v1";
+
+// NmspacesFunction 租户功能管理服务
+service NmspacesFunction {
+    // ListNmspacesFunction 分页查询租户功能列表
+    rpc ListNmspacesFunction(ListNmspacesFunctionRequest) returns (ListNmspacesFunctionReply) {
+        option (google.api.http) = {
+            get: "/v1/nmspaces/functions"
+        };
+    }
+    // GetNmspacesFunction 查询租户功能详情
+    rpc GetNmspacesFunction(GetNmspacesFunctionRequest) returns (GetNmspacesFunctionReply) {
+        option (google.api.http) = {
+            get: "/v1/nmspaces/menus/{menuCode}/functions/{functionCode}"
+        };
+    }
+    // CreateNmspacesFunction 新增租户功能
+    rpc CreateNmspacesFunction(CreateNmspacesFunctionRequest) returns (CreateNmspacesFunctionReply) {
+        option (google.api.http) = {
+            post: "/v1/nmspaces/functions"
+            body: "*"
+        };
+    }
+    // UpdateNmspacesFunction 编辑租户功能
+    rpc UpdateNmspacesFunction(UpdateNmspacesFunctionRequest) returns (UpdateNmspacesFunctionReply) {
+        option (google.api.http) = {
+            put: "/v1/nmspaces/menus/{menuCode}/functions/{functionCode}"
+            body: "*"
+        };
+    }
+    // DeleteNmspacesFunction 删除租户功能
+    rpc DeleteNmspacesFunction(DeleteNmspacesFunctionRequest) returns (DeleteNmspacesFunctionReply) {
+        option (google.api.http) = {
+            delete: "/v1/nmspaces/menus/{menuCode}/functions/{functionCode}"
+        };
+    }
+}
+
+// NmspacesFunctionItem 租户功能详情
+message NmspacesFunctionItem {
+    string menuCode          = 1;
+    string functionCode      = 2;
+    string functionName      = 3;
+    int32 functionSortOrder  = 4;
+    int32 functionStatus     = 5;
+    string functionRemark    = 6;
+    int64 creator            = 7;
+    string createdAt         = 8;
+    string updatedAt         = 9;
+}
+
+// ListNmspacesFunctionRequest 分页查询租户功能列表请求
+message ListNmspacesFunctionRequest {
+    // menuCode 菜单编码（可选，用于按菜单过滤）
+    string menuCode = 1;
+    int32 page = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1",
+        message: "page must be greater than or equal to 1",
+    }];
+    int32 pageSize = 3 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this >= 1 && this <= 200",
+        message: "pageSize must be between 1 and 200",
+    }];
+    // keyword 关键字，按功能编码或功能名称模糊匹配
+    string keyword = 4 [(buf.validate.field).cel = {
+        expression: "this.size() <= 200",
+        message: "keyword must be less than or equal to 200",
+    }];
+    // functionStatus 功能状态筛选（optional）
+    optional int32 functionStatus = 5;
+}
+
+// ListNmspacesFunctionReply 分页查询租户功能列表响应
+message ListNmspacesFunctionReply {
+    repeated NmspacesFunctionItem items = 1;
+    int64 total    = 2;
+    int32 page     = 3;
+    int32 pageSize = 4;
+}
+
+// GetNmspacesFunctionRequest 查询租户功能详情请求
+message GetNmspacesFunctionRequest {
+    string menuCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "menuCode must be between 1 and 100 characters",
+    }];
+    string functionCode = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "functionCode must be between 1 and 100 characters",
+    }];
+}
+
+// GetNmspacesFunctionReply 查询租户功能详情响应
+message GetNmspacesFunctionReply {
+    NmspacesFunctionItem function = 1;
+}
+
+// NmspacesFunctionKey 功能键（菜单编码 + 功能编码）
+message NmspacesFunctionKey {
+    // menuCode 菜单编码
+    string menuCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.matches('^[a-zA-Z0-9:_]+$')",
+        message: "menuCode must match ^[a-zA-Z0-9:_]+$",
+    }];
+    // functionCode 功能编码
+    string functionCode = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.matches('^[a-zA-Z0-9:_]+$')",
+        message: "functionCode must match ^[a-zA-Z0-9:_]+$",
+    }];
+}
+
+// CreateNmspacesFunctionRequest 新增租户功能请求
+message CreateNmspacesFunctionRequest {
+    // functionKeys 功能键列表
+    repeated NmspacesFunctionKey functionKeys = 1 [(buf.validate.field).cel = {
+        expression: "this.size() >= 1",
+        message: "functionKeys must not be empty",
+    }];
+}
+
+// CreateNmspacesFunctionReply 新增租户功能响应
+message CreateNmspacesFunctionReply {
+    // functions 新增的租户功能列表
+    repeated NmspacesFunctionItem functions = 1;
+}
+
+// UpdateNmspacesFunctionRequest 编辑租户功能请求
+message UpdateNmspacesFunctionRequest {
+    // menuCode 菜单编码（主键，禁止修改）
+    string menuCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "menuCode must be between 1 and 100 characters",
+    }];
+    // functionCode 功能编码（主键，禁止修改）
+    string functionCode = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "functionCode must be between 1 and 100 characters",
+    }];
+    // functionName 功能名称
+    optional string functionName = 3 [(buf.validate.field).cel = {
+        expression: "this.size() >= 1 && this.size() <= 100",
+        message: "functionName must be between 1 and 100 characters",
+    }];
+    // functionSortOrder 排序值
+    optional int32 functionSortOrder = 4;
+    // functionStatus 状态
+    optional int32 functionStatus = 5 [(buf.validate.field).cel = {
+        expression: "this == 0 || this == 1",
+        message: "functionStatus must be 0 (enabled) or 1 (disabled)",
+    }];
+    // functionRemark 备注
+    optional string functionRemark = 6 [(buf.validate.field).cel = {
+        expression: "this.size() <= 200",
+        message: "functionRemark must be less than or equal to 200 characters",
+    }];
+}
+
+// UpdateNmspacesFunctionReply 编辑租户功能响应
+message UpdateNmspacesFunctionReply {
+    NmspacesFunctionItem function = 1;
+}
+
+// DeleteNmspacesFunctionRequest 删除租户功能请求
+message DeleteNmspacesFunctionRequest {
+    string menuCode = 1 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "menuCode must be between 1 and 100 characters",
+    }];
+    string functionCode = 2 [(buf.validate.field).required = true, (buf.validate.field).cel = {
+        expression: "this.size() > 0 && this.size() <= 100",
+        message: "functionCode must be between 1 and 100 characters",
+    }];
+}
+
+// DeleteNmspacesFunctionReply 删除租户功能响应
+message DeleteNmspacesFunctionReply {
+    bool success = 1;
+}
