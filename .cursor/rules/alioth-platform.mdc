@@ -1,0 +1,13 @@
+---
+description: Alioth 服务边界、端口和数据归属
+alwaysApply: true
+---
+
+# Alioth 平台
+
+改代码前先看 [docs/roadmap.md](../../docs/roadmap.md) 的当前里程碑，并阅读 [docs/iterations/conventions.md](../../docs/iterations/conventions.md)。
+
+- `alioth` 是唯一写入 PostgreSQL 的服务。`megrez` 只评测，`merak` 只投递，`alkaid` 出站连接 `alioth:9000`。
+- 端口：`web` 8080，`alioth` 8000/9000，`megrez` 8001，`merak` 8002，`alkaid` 8022/9022。浏览器只访问 8080。
+- Redis 只做分布式锁，不当缓存或队列。
+- 本期不做探测任务、微前端、分库、短信发送、日志与链路评测。
