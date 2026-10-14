@@ -1,0 +1,22 @@
+package service
+
+import (
+	"context"
+
+	"github.com/aide-family/Alioth/app/merak/internal/biz"
+	"github.com/google/wire"
+)
+
+var ProviderSet = wire.NewSet(NewHealthService)
+
+type HealthService struct {
+	uc *biz.HealthUsecase
+}
+
+func NewHealthService(uc *biz.HealthUsecase) *HealthService {
+	return &HealthService{uc: uc}
+}
+
+func (s *HealthService) Status(context.Context) string {
+	return s.uc.Status()
+}

@@ -1,0 +1,5 @@
+server:
+  http:
+    network: tcp
+    addr: ${MEGREZ_HTTP_ADDR:0.0.0.0:8001}
+    timeout: 1s

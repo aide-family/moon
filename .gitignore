@@ -1,0 +1,8 @@
+bin/
+dist/
+tmp/
+web/node_modules/
+web/dist/
+.DS_Store
+*.log
+coverage.out

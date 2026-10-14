@@ -1,0 +1,16 @@
+server:
+  http:
+    network: tcp
+    addr: ${ALIOTH_HTTP_ADDR:0.0.0.0:8000}
+    timeout: 1s
+  grpc:
+    network: tcp
+    addr: ${ALIOTH_GRPC_ADDR:0.0.0.0:9000}
+    timeout: 1s
+data:
+  database:
+    driver: postgres
+    source: ${ALIOTH_DATABASE_URL:postgres://alioth:alioth@127.0.0.1:5432/alioth?sslmode=disable}
+  redis:
+    addr: ${ALIOTH_REDIS_ADDR:127.0.0.1:6379}
+    password: ${ALIOTH_REDIS_PASSWORD:}

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package merak.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/Alioth/api/merak/v1;v1";
+
+// HealthService is a compile-time placeholder. merak does not mount this HTTP service.
+service HealthService {
+  rpc Check(CheckRequest) returns (CheckResponse) {
+    option (google.api.http) = {get: "/health"};
+  }
+}
+
+message CheckRequest {}
+
+message CheckResponse {
+  string status = 1;
+}
