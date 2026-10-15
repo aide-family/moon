@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 
-	"github.com/aide-family/Alioth/app/megrez/internal/biz"
 	"github.com/google/wire"
+
+	"github.com/aide-family/Alioth/app/megrez/internal/biz"
 )
 
 var ProviderSet = wire.NewSet(NewHealthService)

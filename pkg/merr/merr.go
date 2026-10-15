@@ -6,6 +6,9 @@ const (
 	ReasonClient          = "CLIENT"
 	ReasonUnauthenticated = "UNAUTHENTICATED"
 	ReasonForbidden       = "FORBIDDEN"
+	ReasonNotFound        = "NOT_FOUND"
+	ReasonConflict        = "CONFLICT"
+	ReasonInvalid         = "INVALID"
 	ReasonServer          = "SERVER"
 )
 
@@ -24,7 +27,37 @@ func Forbidden(message string) error {
 	return kerrors.Forbidden(ReasonForbidden, message)
 }
 
+// NotFound means the record does not exist or is already deleted.
+func NotFound(message string) error {
+	return kerrors.NotFound(ReasonNotFound, message)
+}
+
+// Conflict means the write collides with an existing record.
+func Conflict(message string) error {
+	return kerrors.Conflict(ReasonConflict, message)
+}
+
+// Invalid means the request breaks a domain rule.
+func Invalid(message string) error {
+	return kerrors.BadRequest(ReasonInvalid, message)
+}
+
 // Server is an unexpected failure.
 func Server(message string) error {
 	return kerrors.InternalServer(ReasonServer, message)
+}
+
+// IsNotFound reports whether err was built by NotFound.
+func IsNotFound(err error) bool {
+	return kerrors.Reason(err) == ReasonNotFound
+}
+
+// IsConflict reports whether err was built by Conflict.
+func IsConflict(err error) bool {
+	return kerrors.Reason(err) == ReasonConflict
+}
+
+// IsInvalid reports whether err was built by Invalid.
+func IsInvalid(err error) bool {
+	return kerrors.Reason(err) == ReasonInvalid
 }

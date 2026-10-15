@@ -6,15 +6,19 @@ import "google/api/annotations.proto";
 
 option go_package = "github.com/aide-family/Alioth/api/merak/v1;v1";
 
-// HealthService is a compile-time placeholder. merak does not mount this HTTP service.
+// 健康检查。天璇不挂载这个 HTTP 服务，定义只用于编译期占位。
 service HealthService {
+  // 返回进程是否可用。
   rpc Check(CheckRequest) returns (CheckResponse) {
     option (google.api.http) = {get: "/health"};
   }
 }
 
+// 健康检查不需要参数。
 message CheckRequest {}
 
+// 健康检查结果。
 message CheckResponse {
+  // 状态。
   string status = 1;
 }

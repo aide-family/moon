@@ -6,15 +6,17 @@ import (
 	"os"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/data"
-	"github.com/aide-family/Alioth/pkg/bootstrap"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/spf13/cobra"
+
+	"github.com/aide-family/Alioth/app/alioth/internal/conf"
+	"github.com/aide-family/Alioth/app/alioth/internal/data"
+	"github.com/aide-family/Alioth/pkg/bootstrap"
+	"github.com/aide-family/Alioth/pkg/merr"
 )
 
 func main() {
@@ -60,7 +62,7 @@ func newMigrateCmd() *cobra.Command {
 				return err
 			}
 			if bc.Data == nil || bc.Data.Database == nil || bc.Data.Database.Source == "" {
-				return fmt.Errorf("database source is empty")
+				return merr.Server("database source is empty")
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
@@ -75,11 +77,13 @@ func loadConfig(path string) (*conf.Bootstrap, error) {
 	c := config.New(config.WithSource(bootstrap.NewSource(path)))
 	defer c.Close()
 	if err := c.Load(); err != nil {
-		return nil, err
+		log.NewHelper(log.DefaultLogger).Errorf("config: %v", err)
+		return nil, merr.Server("config load failed")
 	}
 	var bc conf.Bootstrap
 	if err := c.Scan(&bc); err != nil {
-		return nil, err
+		log.NewHelper(log.DefaultLogger).Errorf("config: %v", err)
+		return nil, merr.Server("config load failed")
 	}
 	return &bc, nil
 }

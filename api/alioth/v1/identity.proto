@@ -7,37 +7,45 @@ import "google/api/annotations.proto";
 
 option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
 
+// 图形验证码。
 service CaptchaService {
+  // 获取图形验证码。答案不回传明文。
   rpc GetCaptcha(GetCaptchaRequest) returns (GetCaptchaResponse) {
     option (google.api.http) = {get: "/v1/captcha"};
   }
 }
 
+// 注册和登录。
 service AuthService {
+  // 用邮箱、密码和验证码注册，成功后返回会话。
   rpc Register(RegisterRequest) returns (RegisterResponse) {
     option (google.api.http) = {
       post: "/v1/auth/register"
       body: "*"
     };
   }
+  // 用邮箱和密码登录。
   rpc PasswordLogin(PasswordLoginRequest) returns (PasswordLoginResponse) {
     option (google.api.http) = {
       post: "/v1/auth/password/login"
       body: "*"
     };
   }
+  // 向已注册邮箱发送登录验证码。
   rpc SendEmailLoginCode(SendEmailLoginCodeRequest) returns (SendEmailLoginCodeResponse) {
     option (google.api.http) = {
       post: "/v1/auth/email/login/code"
       body: "*"
     };
   }
+  // 用邮箱验证码登录。验证码只能使用一次。
   rpc EmailLogin(EmailLoginRequest) returns (EmailLoginResponse) {
     option (google.api.http) = {
       post: "/v1/auth/email/login"
       body: "*"
     };
   }
+  // 用 GitHub、Gitee 或飞书授权码登录。
   rpc OAuth2Login(OAuth2LoginRequest) returns (OAuth2LoginResponse) {
     option (google.api.http) = {
       post: "/v1/auth/oauth2/login"
@@ -46,73 +54,91 @@ service AuthService {
   }
 }
 
+// 当前登录用户的资料、租户和令牌。
 service SelfService {
+  // 获取当前登录用户的资料。
   rpc GetSelfInfo(GetSelfInfoRequest) returns (GetSelfInfoResponse) {
     option (google.api.http) = {get: "/v1/self/info"};
   }
+  // 列出当前用户加入的租户。
   rpc ListSelfNamespaces(ListSelfNamespacesRequest) returns (ListSelfNamespacesResponse) {
     option (google.api.http) = {get: "/v1/self/namespaces"};
   }
+  // 用刷新令牌换取新的访问令牌。
   rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
     option (google.api.http) = {get: "/v1/self/refresh-token"};
   }
+  // 修改当前用户的邮箱。
   rpc ChangeEmail(ChangeEmailRequest) returns (ChangeEmailResponse) {
     option (google.api.http) = {
       put: "/v1/self/change-email"
       body: "*"
     };
   }
+  // 修改当前用户的头像。
   rpc ChangeAvatar(ChangeAvatarRequest) returns (ChangeAvatarResponse) {
     option (google.api.http) = {
       put: "/v1/self/change-avatar"
       body: "*"
     };
   }
+  // 修改当前用户的备注。
   rpc ChangeRemark(ChangeRemarkRequest) returns (ChangeRemarkResponse) {
     option (google.api.http) = {
       put: "/v1/self/change-remark"
       body: "*"
     };
   }
+  // 获取当前用户在当前租户的权限名。未选租户时为空。
   rpc GetSelfPermissions(GetSelfPermissionsRequest) returns (GetSelfPermissionsResponse) {
     option (google.api.http) = {get: "/v1/self/permissions"};
   }
 }
 
+// 租户管理。
 service NamespaceService {
+  // 创建租户，当前用户成为负责人。
   rpc CreateNamespace(CreateNamespaceRequest) returns (CreateNamespaceResponse) {
     option (google.api.http) = {
       post: "/v1/namespace"
       body: "*"
     };
   }
+  // 修改当前租户的名称、备注和标志。
   rpc UpdateNamespace(UpdateNamespaceRequest) returns (UpdateNamespaceResponse) {
     option (google.api.http) = {
       put: "/v1/namespace/{uid}"
       body: "*"
     };
   }
+  // 启用或停用当前租户。
   rpc UpdateNamespaceStatus(UpdateNamespaceStatusRequest) returns (UpdateNamespaceStatusResponse) {
     option (google.api.http) = {
       put: "/v1/namespace/{uid}/status"
       body: "*"
     };
   }
+  // 删除当前租户。需要 namespace:delete。
   rpc DeleteNamespace(DeleteNamespaceRequest) returns (DeleteNamespaceResponse) {
     option (google.api.http) = {delete: "/v1/namespace/{uid}"};
   }
+  // 获取当前租户。
   rpc GetNamespace(GetNamespaceRequest) returns (GetNamespaceResponse) {
     option (google.api.http) = {get: "/v1/namespace/{uid}"};
   }
+  // 分页列出当前用户加入的租户。
   rpc ListNamespaces(ListNamespacesRequest) returns (ListNamespacesResponse) {
     option (google.api.http) = {get: "/v1/namespaces"};
   }
+  // 按游标列出当前用户可切换的租户。
   rpc SelectNamespaces(SelectNamespacesRequest) returns (SelectNamespacesResponse) {
     option (google.api.http) = {get: "/v1/namespaces/select"};
   }
+  // 按页返回租户简表。
   rpc ListSimpleNamespaces(ListSimpleNamespacesRequest) returns (ListSimpleNamespacesResponse) {
     option (google.api.http) = {get: "/v1/namespaces/simple"};
   }
+  // 把当前租户的负责人移交给另一名成员。
   rpc TransferNamespaceOwner(TransferNamespaceOwnerRequest) returns (TransferNamespaceOwnerResponse) {
     option (google.api.http) = {
       put: "/v1/namespace/{uid}/owner"
@@ -121,34 +147,43 @@ service NamespaceService {
   }
 }
 
+// 租户成员管理。
 service MemberService {
+  // 分页列出当前租户的成员。
   rpc ListMembers(ListMembersRequest) returns (ListMembersResponse) {
     option (google.api.http) = {get: "/v1/members"};
   }
+  // 获取当前租户的一名成员。
   rpc GetMember(GetMemberRequest) returns (GetMemberResponse) {
     option (google.api.http) = {get: "/v1/member/{uid}"};
   }
+  // 按用户标识查找其在当前租户的成员身份。
   rpc ListUserMembers(ListUserMembersRequest) returns (ListUserMembersResponse) {
     option (google.api.http) = {get: "/v1/members/user/{user_uid}"};
   }
+  // 按游标列出当前租户的成员，供选择。
   rpc SelectMembers(SelectMembersRequest) returns (SelectMembersResponse) {
     option (google.api.http) = {get: "/v1/members/select"};
   }
+  // 邀请已注册用户加入当前租户。不能指定 owner。
   rpc InviteMember(InviteMemberRequest) returns (InviteMemberResponse) {
     option (google.api.http) = {
       post: "/v1/member/invite"
       body: "*"
     };
   }
+  // 把成员移出当前租户。
   rpc DeleteMember(DeleteMemberRequest) returns (DeleteMemberResponse) {
     option (google.api.http) = {delete: "/v1/member/{uid}"};
   }
+  // 修改成员状态。
   rpc UpdateMemberStatus(UpdateMemberStatusRequest) returns (UpdateMemberStatusResponse) {
     option (google.api.http) = {
       put: "/v1/member/{uid}/status"
       body: "*"
     };
   }
+  // 替换成员的角色。包含 owner 时需要移交权限。
   rpc UpdateMemberRoles(UpdateMemberRolesRequest) returns (UpdateMemberRolesResponse) {
     option (google.api.http) = {
       put: "/v1/member/{uid}/roles"
@@ -157,502 +192,778 @@ service MemberService {
   }
 }
 
+// 全局用户管理。
 service UserService {
+  // 获取一名全局用户。
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {
     option (google.api.http) = {get: "/v1/user/{uid}"};
   }
+  // 分页列出全局用户。
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
     option (google.api.http) = {get: "/v1/users"};
   }
+  // 按游标列出全局用户，供选择。
   rpc SelectUsers(SelectUsersRequest) returns (SelectUsersResponse) {
     option (google.api.http) = {get: "/v1/users/select"};
   }
+  // 封禁用户。封禁后不能登录。
   rpc BanUser(BanUserRequest) returns (BanUserResponse) {
     option (google.api.http) = {put: "/v1/user/ban/{uid}"};
   }
+  // 解除封禁，用户可以再次登录。
   rpc PermitUser(PermitUserRequest) returns (PermitUserResponse) {
     option (google.api.http) = {put: "/v1/user/permit/{uid}"};
   }
 }
 
+// 租户角色和权限。
 service RoleService {
+  // 在当前租户创建自定义角色。
   rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse) {
     option (google.api.http) = {
       post: "/v1/roles"
       body: "*"
     };
   }
+  // 修改自定义角色的名称。系统角色不能改名。
   rpc UpdateRole(UpdateRoleRequest) returns (UpdateRoleResponse) {
     option (google.api.http) = {
       put: "/v1/role/{uid}"
       body: "*"
     };
   }
+  // 启用或停用角色。
   rpc UpdateRoleStatus(UpdateRoleStatusRequest) returns (UpdateRoleStatusResponse) {
     option (google.api.http) = {
       put: "/v1/role/{uid}/status"
       body: "*"
     };
   }
+  // 删除自定义角色。系统角色不能删除。
   rpc DeleteRole(DeleteRoleRequest) returns (DeleteRoleResponse) {
     option (google.api.http) = {delete: "/v1/role/{uid}"};
   }
+  // 获取当前租户的一个角色。
   rpc GetRole(GetRoleRequest) returns (GetRoleResponse) {
     option (google.api.http) = {get: "/v1/role/{uid}"};
   }
+  // 分页列出当前租户的角色。
   rpc ListRoles(ListRolesRequest) returns (ListRolesResponse) {
     option (google.api.http) = {get: "/v1/roles"};
   }
+  // 按游标列出当前租户的角色，供选择。
   rpc SelectRoles(SelectRolesRequest) returns (SelectRolesResponse) {
     option (google.api.http) = {get: "/v1/roles/select"};
   }
+  // 替换自定义角色的权限。不能授予删除租户和移交负责人。
   rpc UpdateRolePermissions(UpdateRolePermissionsRequest) returns (UpdateRolePermissionsResponse) {
     option (google.api.http) = {
       put: "/v1/role/{uid}/permissions"
       body: "*"
     };
   }
+  // 列出全部权限定义。
   rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse) {
     option (google.api.http) = {get: "/v1/permissions"};
   }
 }
 
+// 用户资料。响应中不含密码。
 message UserItem {
+  // 标识。
   string uid = 1;
+  // 名称。
   string name = 2;
+  // 昵称。
   string nickname = 3;
+  // 邮箱。
   string email = 4;
+  // 头像地址。
   string avatar = 5;
+  // 备注。
   string remark = 6;
+  // 状态。
   string status = 7;
 }
 
+// 租户。
 message NamespaceItem {
+  // 标识。
   string uid = 1;
+  // 名称。
   string name = 2;
+  // 负责人的用户标识。
   string owner_uid = 3 [json_name = "ownerUid"];
+  // 标志地址。
   string logo = 4;
+  // 备注。
   string remark = 5;
+  // 状态。
   string status = 6;
 }
 
+// 租户成员。
 message MemberItem {
+  // 标识。
   string uid = 1;
+  // 租户标识。
   string namespace_uid = 2 [json_name = "namespaceUid"];
+  // 用户标识。
   string user_uid = 3 [json_name = "userUid"];
+  // 邮箱。
   string email = 4;
+  // 名称。
   string name = 5;
+  // 状态。
   string status = 6;
+  // 角色标识列表。
   repeated string role_uids = 7 [json_name = "roleUids"];
+  // 角色名称列表。
   repeated string role_names = 8 [json_name = "roleNames"];
 }
 
+// 租户角色。
 message RoleItem {
+  // 标识。
   string uid = 1;
+  // 租户标识。
   string namespace_uid = 2 [json_name = "namespaceUid"];
+  // 名称。
   string name = 3;
+  // 状态。
   string status = 4;
+  // 是否为系统预置角色。
   bool is_system = 5 [json_name = "isSystem"];
+  // 权限名列表。
   repeated string permissions = 6;
 }
 
+// 权限定义。
 message PermissionItem {
+  // 标识。
   string uid = 1;
+  // 名称。
   string name = 2;
+  // 资源名。
   string resource = 3;
+  // 动作名。
   string action = 4;
 }
 
+// 下拉选项。
 message SelectItem {
+  // 标识。
   string uid = 1;
+  // 名称。
   string name = 2;
 }
 
+// 登录成功后的访问令牌和刷新令牌。
 message TokenPair {
+  // 访问令牌。
   string access_token = 1 [json_name = "accessToken"];
+  // 刷新令牌。
   string refresh_token = 2 [json_name = "refreshToken"];
+  // 用户资料。
   UserItem user = 3;
 }
 
+// 获取验证码不需要参数。
 message GetCaptchaRequest {}
 
+// 验证码标识和图片。
 message GetCaptchaResponse {
+  // 验证码标识。
   string id = 1;
+  // 验证码图片，data URL。
   string image = 2;
 }
 
+// 注册参数。
 message RegisterRequest {
+  // 邮箱。
   string email = 1 [(buf.validate.field).string.email = true];
+  // 密码。注册时至少 8 位。
   string password = 2 [(buf.validate.field).string.min_len = 8];
+  // 图形验证码标识。
   string captcha_id = 3 [(buf.validate.field).string.min_len = 1, json_name = "captchaId"];
+  // 图形验证码答案。
   string captcha_code = 4 [(buf.validate.field).string.min_len = 1, json_name = "captchaCode"];
+  // 名称。
   string name = 5;
 }
 
+// 注册结果。
 message RegisterResponse {
+  // 登录会话。
   TokenPair session = 1;
 }
 
+// 密码登录参数。
 message PasswordLoginRequest {
+  // 邮箱。
   string email = 1 [(buf.validate.field).string.email = true];
+  // 密码。注册时至少 8 位。
   string password = 2 [(buf.validate.field).string.min_len = 1];
 }
 
+// 密码登录结果。
 message PasswordLoginResponse {
+  // 登录会话。
   TokenPair session = 1;
 }
 
+// 发送邮箱登录码的参数。
 message SendEmailLoginCodeRequest {
+  // 邮箱。
   string email = 1 [(buf.validate.field).string.email = true];
 }
 
+// 验证码已受理。
 message SendEmailLoginCodeResponse {}
 
+// 邮箱验证码登录参数。
 message EmailLoginRequest {
+  // 邮箱。
   string email = 1 [(buf.validate.field).string.email = true];
+  // 邮箱验证码或第三方授权码。
   string code = 2 [(buf.validate.field).string.min_len = 4];
 }
 
+// 邮箱登录结果。
 message EmailLoginResponse {
+  // 登录会话。
   TokenPair session = 1;
 }
 
+// 第三方登录参数。
 message OAuth2LoginRequest {
+  // 第三方，取值为 GITHUB、GITEE 或 FEISHU。
   string provider = 1 [(buf.validate.field).string = {in: ["GITHUB", "GITEE", "FEISHU"]}];
+  // 邮箱验证码或第三方授权码。
   string code = 2 [(buf.validate.field).string.min_len = 1];
+  // 授权回调地址。
   string redirect_uri = 3 [json_name = "redirectUri"];
 }
 
+// 第三方登录结果。
 message OAuth2LoginResponse {
+  // 登录会话。
   TokenPair session = 1;
 }
 
+// 获取个人资料不需要参数。
 message GetSelfInfoRequest {}
 
+// 当前用户资料。
 message GetSelfInfoResponse {
+  // 用户资料。
   UserItem user = 1;
 }
 
+// 列出租户不需要参数。
 message ListSelfNamespacesRequest {}
 
+// 当前用户加入的租户。
 message ListSelfNamespacesResponse {
+  // 当前页数据。
   repeated NamespaceItem items = 1;
 }
 
+// 刷新令牌不需要参数，凭证在请求头。
 message RefreshTokenRequest {}
 
+// 新的访问令牌。
 message RefreshTokenResponse {
+  // 访问令牌。
   string access_token = 1 [json_name = "accessToken"];
 }
 
+// 新邮箱。
 message ChangeEmailRequest {
+  // 邮箱。
   string email = 1 [(buf.validate.field).string.email = true];
 }
 
+// 修改后的用户资料。
 message ChangeEmailResponse {
+  // 用户资料。
   UserItem user = 1;
 }
 
+// 新头像地址。
 message ChangeAvatarRequest {
+  // 头像地址。
   string avatar = 1 [(buf.validate.field).string.min_len = 1];
 }
 
+// 修改后的用户资料。
 message ChangeAvatarResponse {
+  // 用户资料。
   UserItem user = 1;
 }
 
+// 新备注。
 message ChangeRemarkRequest {
+  // 备注。
   string remark = 1 [(buf.validate.field).string.max_len = 200];
 }
 
+// 修改后的用户资料。
 message ChangeRemarkResponse {
+  // 用户资料。
   UserItem user = 1;
 }
 
+// 获取个人权限不需要参数。
 message GetSelfPermissionsRequest {}
 
+// 当前用户在当前租户的权限名。
 message GetSelfPermissionsResponse {
+  // 权限名列表。
   repeated string permissions = 1;
 }
 
+// 创建租户的参数。
 message CreateNamespaceRequest {
+  // 名称。
   string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 备注。
   string remark = 2 [(buf.validate.field).string.max_len = 200];
 }
 
+// 新建的租户。
 message CreateNamespaceResponse {
+  // 租户。
   NamespaceItem namespace = 1;
 }
 
+// 修改租户的参数。
 message UpdateNamespaceRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称。
   string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 备注。
   string remark = 3 [(buf.validate.field).string.max_len = 200];
+  // 标志地址。
   string logo = 4;
 }
 
+// 修改后的租户。
 message UpdateNamespaceResponse {
+  // 租户。
   NamespaceItem namespace = 1;
 }
 
+// 修改租户状态的参数。
 message UpdateNamespaceStatusRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态。
   string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
 }
 
+// 修改后的租户。
 message UpdateNamespaceStatusResponse {
+  // 租户。
   NamespaceItem namespace = 1;
 }
 
+// 要删除的租户。
 message DeleteNamespaceRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
 }
 
+// 租户已删除。
 message DeleteNamespaceResponse {}
 
+// 要查询的租户。
 message GetNamespaceRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
 }
 
+// 租户详情。
 message GetNamespaceResponse {
+  // 租户。
   NamespaceItem namespace = 1;
 }
 
+// 租户分页查询。
 message ListNamespacesRequest {
+  // 页码。0 表示使用默认页。
   int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
   int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
   string name = 3;
 }
 
+// 租户分页结果。
 message ListNamespacesResponse {
+  // 当前页数据。
   repeated NamespaceItem items = 1;
+  // 符合条件的总数。
   int32 total = 2;
+  // 页码。0 表示使用默认页。
   int32 page = 3;
+  // 每页条数，最大 100。
   int32 page_size = 4 [json_name = "pageSize"];
 }
 
+// 租户下拉查询。
 message SelectNamespacesRequest {
+  // 返回条数，最大 100。0 表示使用默认条数。
   int32 limit = 1 [(buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 上一页最后一条的标识，首页留空。
   string last_uid = 2 [json_name = "lastUid"];
 }
 
+// 租户下拉结果。
 message SelectNamespacesResponse {
+  // 当前页数据。
   repeated SelectItem items = 1;
+  // 上一页最后一条的标识，首页留空。
   string last_uid = 2 [json_name = "lastUid"];
 }
 
+// 租户简表分页查询。
 message ListSimpleNamespacesRequest {
+  // 页码。0 表示使用默认页。
   int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
   int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
 }
 
+// 租户简表。
 message ListSimpleNamespacesResponse {
+  // 当前页数据。
   repeated NamespaceItem items = 1;
+  // 符合条件的总数。
   int32 total = 2;
 }
 
+// 移交负责人的参数。
 message TransferNamespaceOwnerRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 用户标识。
   string user_uid = 2 [json_name = "userUid", (buf.validate.field).string.min_len = 1];
 }
 
+// 移交后的租户。
 message TransferNamespaceOwnerResponse {
+  // 租户。
   NamespaceItem namespace = 1;
 }
 
+// 成员分页查询。
 message ListMembersRequest {
+  // 页码。0 表示使用默认页。
   int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
   int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
   string name = 3;
 }
 
+// 成员分页结果。
 message ListMembersResponse {
+  // 当前页数据。
   repeated MemberItem items = 1;
+  // 符合条件的总数。
   int32 total = 2;
+  // 页码。0 表示使用默认页。
   int32 page = 3;
+  // 每页条数，最大 100。
   int32 page_size = 4 [json_name = "pageSize"];
 }
 
+// 要查询的成员。
 message GetMemberRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
 }
 
+// 成员详情。
 message GetMemberResponse {
+  // 成员。
   MemberItem member = 1;
 }
 
+// 按用户查找成员。
 message ListUserMembersRequest {
+  // 用户标识。
   string user_uid = 1 [json_name = "userUid", (buf.validate.field).string.min_len = 1];
 }
 
+// 该用户在当前租户的成员身份。
 message ListUserMembersResponse {
+  // 当前页数据。
   repeated MemberItem items = 1;
 }
 
+// 成员下拉查询。
 message SelectMembersRequest {
+  // 返回条数，最大 100。0 表示使用默认条数。
   int32 limit = 1 [(buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 上一页最后一条的标识，首页留空。
   string last_uid = 2 [json_name = "lastUid"];
 }
 
+// 成员下拉结果。
 message SelectMembersResponse {
+  // 当前页数据。
   repeated SelectItem items = 1;
+  // 上一页最后一条的标识，首页留空。
   string last_uid = 2 [json_name = "lastUid"];
 }
 
+// 邀请成员的参数。
 message InviteMemberRequest {
+  // 邮箱。
   string email = 1 [(buf.validate.field).string.email = true];
+  // 要授予的角色标识。不能是 owner。
   string role_uid = 2 [json_name = "roleUid", (buf.validate.field).string.min_len = 1];
 }
 
+// 新成员。
 message InviteMemberResponse {
+  // 成员。
   MemberItem member = 1;
 }
 
+// 要移出的成员。
 message DeleteMemberRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
 }
 
+// 成员已移出。
 message DeleteMemberResponse {}
 
+// 修改成员状态的参数。
 message UpdateMemberStatusRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态。
   string status = 2 [(buf.validate.field).string = {in: ["JOINED", "INVITED", "EXPIRED"]}];
 }
 
+// 修改后的成员。
 message UpdateMemberStatusResponse {
+  // 成员。
   MemberItem member = 1;
 }
 
+// 替换成员角色的参数。
 message UpdateMemberRolesRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 角色标识列表。
   repeated string role_uids = 2 [json_name = "roleUids", (buf.validate.field).repeated.min_items = 1];
 }
 
+// 修改后的成员。
 message UpdateMemberRolesResponse {
+  // 成员。
   MemberItem member = 1;
 }
 
+// 要查询的用户。
 message GetUserRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
 }
 
+// 用户详情。
 message GetUserResponse {
+  // 用户资料。
   UserItem user = 1;
 }
 
+// 用户分页查询。
 message ListUsersRequest {
+  // 页码。0 表示使用默认页。
   int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
   int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
   string name = 3;
 }
 
+// 用户分页结果。
 message ListUsersResponse {
+  // 当前页数据。
   repeated UserItem items = 1;
+  // 符合条件的总数。
   int32 total = 2;
+  // 页码。0 表示使用默认页。
   int32 page = 3;
+  // 每页条数，最大 100。
   int32 page_size = 4 [json_name = "pageSize"];
 }
 
+// 用户下拉查询。
 message SelectUsersRequest {
+  // 返回条数，最大 100。0 表示使用默认条数。
   int32 limit = 1 [(buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 上一页最后一条的标识，首页留空。
   string last_uid = 2 [json_name = "lastUid"];
 }
 
+// 用户下拉结果。
 message SelectUsersResponse {
+  // 当前页数据。
   repeated SelectItem items = 1;
+  // 上一页最后一条的标识，首页留空。
   string last_uid = 2 [json_name = "lastUid"];
 }
 
+// 要封禁的用户。
 message BanUserRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
 }
 
+// 封禁后的用户。
 message BanUserResponse {
+  // 用户资料。
   UserItem user = 1;
 }
 
+// 要解封的用户。
 message PermitUserRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
 }
 
+// 解封后的用户。
 message PermitUserResponse {
+  // 用户资料。
   UserItem user = 1;
 }
 
+// 创建角色的参数。
 message CreateRoleRequest {
+  // 名称。
   string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
 }
 
+// 新建的角色。
 message CreateRoleResponse {
+  // 角色。
   RoleItem role = 1;
 }
 
+// 修改角色名称的参数。
 message UpdateRoleRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称。
   string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
 }
 
+// 修改后的角色。
 message UpdateRoleResponse {
+  // 角色。
   RoleItem role = 1;
 }
 
+// 修改角色状态的参数。
 message UpdateRoleStatusRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态。
   string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
 }
 
+// 修改后的角色。
 message UpdateRoleStatusResponse {
+  // 角色。
   RoleItem role = 1;
 }
 
+// 要删除的角色。
 message DeleteRoleRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
 }
 
+// 角色已删除。
 message DeleteRoleResponse {}
 
+// 要查询的角色。
 message GetRoleRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
 }
 
+// 角色详情。
 message GetRoleResponse {
+  // 角色。
   RoleItem role = 1;
 }
 
+// 角色分页查询。
 message ListRolesRequest {
+  // 页码。0 表示使用默认页。
   int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
   int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
   string name = 3;
 }
 
+// 角色分页结果。
 message ListRolesResponse {
+  // 当前页数据。
   repeated RoleItem items = 1;
+  // 符合条件的总数。
   int32 total = 2;
+  // 页码。0 表示使用默认页。
   int32 page = 3;
+  // 每页条数，最大 100。
   int32 page_size = 4 [json_name = "pageSize"];
 }
 
+// 角色下拉查询。
 message SelectRolesRequest {
+  // 返回条数，最大 100。0 表示使用默认条数。
   int32 limit = 1 [(buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 上一页最后一条的标识，首页留空。
   string last_uid = 2 [json_name = "lastUid"];
 }
 
+// 角色下拉结果。
 message SelectRolesResponse {
+  // 当前页数据。
   repeated SelectItem items = 1;
+  // 上一页最后一条的标识，首页留空。
   string last_uid = 2 [json_name = "lastUid"];
 }
 
+// 替换角色权限的参数。
 message UpdateRolePermissionsRequest {
+  // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 权限名列表。
   repeated string permissions = 2 [(buf.validate.field).repeated.min_items = 1];
 }
 
+// 修改后的角色。
 message UpdateRolePermissionsResponse {
+  // 角色。
   RoleItem role = 1;
 }
 
+// 列出权限不需要参数。
 message ListPermissionsRequest {}
 
+// 全部权限。
 message ListPermissionsResponse {
+  // 当前页数据。
   repeated PermissionItem items = 1;
 }

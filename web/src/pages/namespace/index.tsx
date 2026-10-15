@@ -1,16 +1,48 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { listMembers } from "@/api/member"
 import type { MemberItem } from "@/api/member/types"
-import { createNamespace, deleteNamespace, transferNamespaceOwner, updateNamespace, updateNamespaceStatus } from "@/api/namespace"
+import {
+  createNamespace,
+  deleteNamespace,
+  transferNamespaceOwner,
+  updateNamespace,
+  updateNamespaceStatus,
+} from "@/api/namespace"
+import type { NamespaceItem } from "@/api/namespace/types"
 import { useSession } from "@/auth/session"
+import { ConfirmAction } from "@/components/confirm-action"
+import { DetailSheet } from "@/components/detail-sheet"
+import { FormField } from "@/components/form-field"
+import { PageHeader } from "@/components/page-header"
+import { RowActions, type RowAction } from "@/components/row-actions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 export function NamespacePage() {
   const { t } = useTranslation()
@@ -24,6 +56,16 @@ export function NamespacePage() {
   const [target, setTarget] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
+  const [detail, setDetail] = useState<NamespaceItem | null>(null)
+  const [confirm, setConfirm] = useState<
+    { type: "delete" | "disable"; uid: string } | { type: "transfer" } | null
+  >(null)
+  const [confirmError, setConfirmError] = useState("")
+  const shownConfirm = useRef(confirm)
+  if (confirm) {
+    shownConfirm.current = confirm
+  }
+  const confirmCopy = shownConfirm.current
 
   async function onCreate(event: React.FormEvent) {
     event.preventDefault()
@@ -62,17 +104,39 @@ export function NamespacePage() {
     }
   }
 
-  async function onStatus(uid: string, status: string) {
+  async function onStatus(uid: string) {
     localStorage.setItem("namespace", uid)
-    await updateNamespaceStatus(uid, status === "ACTIVE" ? "DISABLED" : "ACTIVE")
+    await updateNamespaceStatus(uid, "ACTIVE")
     session.reload()
   }
 
-  async function onDelete(uid: string) {
-    localStorage.setItem("namespace", uid)
-    await deleteNamespace(uid)
-    localStorage.removeItem("namespace")
-    session.reload()
+  async function runConfirm() {
+    if (!confirm) {
+      return
+    }
+    setPending(true)
+    setConfirmError("")
+    try {
+      if (confirm.type === "delete") {
+        localStorage.setItem("namespace", confirm.uid)
+        await deleteNamespace(confirm.uid)
+        localStorage.removeItem("namespace")
+      } else if (confirm.type === "disable") {
+        localStorage.setItem("namespace", confirm.uid)
+        await updateNamespaceStatus(confirm.uid, "DISABLED")
+      } else if (transferUid && target) {
+        localStorage.setItem("namespace", transferUid)
+        await transferNamespaceOwner(transferUid, target)
+        setTransferUid(null)
+        setTarget("")
+      }
+      setConfirm(null)
+      session.reload()
+    } catch (err) {
+      setConfirmError(err instanceof Error ? err.message : t("state.failed"))
+    } finally {
+      setPending(false)
+    }
   }
 
   async function openTransfer(uid: string) {
@@ -80,140 +144,322 @@ export function NamespacePage() {
     setTransferUid(uid)
     setError("")
     const result = await listMembers({ page: 1, pageSize: 100 })
-    const items = (result.items ?? []).filter((item) => item.userUid !== session.user?.uid && item.status === "JOINED")
+    const items = (result.items ?? []).filter(
+      (item) => item.userUid !== session.user?.uid && item.status === "JOINED"
+    )
     setMembers(items)
     setTarget(items[0]?.userUid ?? "")
   }
 
-  async function onTransfer(event: React.FormEvent) {
+  function requestTransfer(event: React.FormEvent) {
     event.preventDefault()
     if (!transferUid || !target) {
       return
     }
-    setPending(true)
-    setError("")
-    try {
-      localStorage.setItem("namespace", transferUid)
-      await transferNamespaceOwner(transferUid, target)
-      setTransferUid(null)
-      session.reload()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
-    } finally {
-      setPending(false)
+    setConfirmError("")
+    setConfirm({ type: "transfer" })
+  }
+
+  function closeCreate(value: boolean) {
+    setOpen(value)
+    if (!value) {
+      setName("")
+      setRemark("")
+      setError("")
     }
   }
 
+  function closeEdit(value: boolean) {
+    if (!value) {
+      setEditing(null)
+      setName("")
+      setRemark("")
+      setError("")
+    }
+  }
+
+  function closeTransfer(value: boolean) {
+    if (!value) {
+      setTransferUid(null)
+      setTarget("")
+      setError("")
+    }
+  }
+
+  function namespaceActions(item: NamespaceItem): RowAction[] {
+    if (item.uid !== session.namespaceUid) {
+      return []
+    }
+    const actions: RowAction[] = []
+    if (session.can("namespace:write")) {
+      actions.push({
+        key: "edit",
+        label: t("action.edit"),
+        onSelect: () => {
+          setEditing(item.uid)
+          setName(item.name)
+          setRemark(item.remark)
+          setError("")
+        },
+      })
+      if (item.status === "ACTIVE") {
+        actions.push({
+          key: "disable",
+          label: t("action.disable"),
+          destructive: true,
+          onSelect: () => {
+            setConfirmError("")
+            setConfirm({ type: "disable", uid: item.uid })
+          },
+        })
+      } else {
+        actions.push({
+          key: "enable",
+          label: t("action.enable"),
+          onSelect: () => void onStatus(item.uid),
+        })
+      }
+    }
+    if (session.can("namespace:transfer")) {
+      actions.push({
+        key: "transfer",
+        label: t("action.transfer"),
+        onSelect: () => void openTransfer(item.uid),
+      })
+    }
+    if (session.can("namespace:delete")) {
+      actions.push({
+        key: "delete",
+        label: t("action.delete"),
+        destructive: true,
+        onSelect: () => {
+          setConfirmError("")
+          setConfirm({ type: "delete", uid: item.uid })
+        },
+      })
+    }
+    return actions
+  }
+
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{t("namespace.title")}</h1>
-        <Button onClick={() => { setOpen(true); setError("") }}>{t("namespace.create")}</Button>
-      </div>
-      {session.namespaces.length === 0 ? <p className="text-sm text-muted-foreground">{t("namespace.guide")}</p> : null}
-      {session.loading ? <p>{t("state.loading")}</p> : null}
-      {session.failed ? <p>{t("state.failed")}</p> : null}
-      {!session.loading && session.namespaces.length > 0 ? (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("namespace.name")}</TableHead>
-              <TableHead>{t("namespace.status")}</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {session.namespaces.map((item) => (
-              <TableRow key={item.uid}>
-                <TableCell>
-                  {item.name} {item.uid === session.namespaceUid ? <Badge>{t("namespace.current")}</Badge> : null}
-                </TableCell>
-                <TableCell>{item.status}</TableCell>
-                <TableCell className="space-x-2 text-right">
-                  {session.can("namespace:write") && item.uid === session.namespaceUid ? (
-                    <>
-                      <Button variant="outline" size="sm" onClick={() => { setEditing(item.uid); setName(item.name); setRemark(item.remark); setError("") }}>
-                        {t("action.edit")}
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => void onStatus(item.uid, item.status)}>
-                        {item.status === "ACTIVE" ? t("action.disable") : t("action.enable")}
-                      </Button>
-                    </>
-                  ) : null}
-                  {session.can("namespace:transfer") && item.uid === session.namespaceUid ? (
-                    <Button variant="outline" size="sm" onClick={() => void openTransfer(item.uid)}>
-                      {t("action.transfer")}
-                    </Button>
-                  ) : null}
-                  {session.can("namespace:delete") && item.uid === session.namespaceUid ? (
-                    <Button variant="destructive" size="sm" onClick={() => void onDelete(item.uid)}>
-                      {t("action.delete")}
-                    </Button>
-                  ) : null}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+    <section className="flex flex-col gap-6">
+      <PageHeader
+        title={t("namespace.title")}
+        description={t("namespace.description")}
+      >
+        <Button
+          onClick={() => {
+            setName("")
+            setRemark("")
+            setError("")
+            setOpen(true)
+          }}
+        >
+          {t("namespace.create")}
+        </Button>
+      </PageHeader>
+      {session.loading ? (
+        <p className="text-sm text-muted-foreground">{t("state.loading")}</p>
       ) : null}
-      <Dialog open={open} onOpenChange={setOpen}>
+      {!session.loading && session.failed ? (
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-destructive">{t("state.failed")}</p>
+          <Button variant="outline" onClick={session.reload}>
+            {t("action.retry")}
+          </Button>
+        </div>
+      ) : null}
+      {!session.loading &&
+      !session.failed &&
+      session.namespaces.length === 0 ? (
+        <Card>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              {t("namespace.guide")}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+      {!session.loading && !session.failed && session.namespaces.length > 0 ? (
+        <Card>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("namespace.name")}</TableHead>
+                  <TableHead>{t("namespace.status")}</TableHead>
+                  <TableHead />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {session.namespaces.map((item) => (
+                  <TableRow key={item.uid}>
+                    <TableCell>
+                      <span className="flex items-center gap-2">
+                        {item.name}
+                        {item.uid === session.namespaceUid ? (
+                          <Badge>{t("namespace.current")}</Badge>
+                        ) : null}
+                      </span>
+                    </TableCell>
+                    <TableCell>{item.status}</TableCell>
+                    <TableCell>
+                      <RowActions
+                        detailLabel={t("action.detail")}
+                        moreLabel={t("action.more")}
+                        onDetail={() => setDetail(item)}
+                        actions={namespaceActions(item)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      ) : null}
+      <Dialog open={open} onOpenChange={closeCreate}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("namespace.create")}</DialogTitle>
           </DialogHeader>
-          <form className="space-y-4" onSubmit={onCreate}>
-            <div className="space-y-2">
-              <Label htmlFor="ns-name">{t("namespace.name")}</Label>
-              <Input id="ns-name" value={name} onChange={(event) => setName(event.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="ns-remark">{t("namespace.remark")}</Label>
-              <Input id="ns-remark" value={remark} onChange={(event) => setRemark(event.target.value)} />
-            </div>
+          <form className="grid gap-4" onSubmit={onCreate}>
+            <FormField label={t("namespace.name")} htmlFor="ns-name">
+              <Input
+                id="ns-name"
+                value={name}
+                placeholder={t("namespace.namePlaceholder")}
+                onChange={(event) => setName(event.target.value)}
+                required
+              />
+            </FormField>
+            <FormField label={t("namespace.remark")} htmlFor="ns-remark">
+              <Input
+                id="ns-remark"
+                value={remark}
+                placeholder={t("namespace.remarkPlaceholder")}
+                onChange={(event) => setRemark(event.target.value)}
+              />
+            </FormField>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
-              <Button type="submit" disabled={pending}>{t("action.create")}</Button>
+              <Button type="submit" disabled={pending}>
+                {t("action.create")}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-      <Dialog open={editing !== null} onOpenChange={(value) => { if (!value) setEditing(null) }}>
+      <Dialog open={editing !== null} onOpenChange={closeEdit}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("action.edit")}</DialogTitle>
           </DialogHeader>
-          <form className="space-y-4" onSubmit={onRename}>
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">{t("namespace.name")}</Label>
-              <Input id="edit-name" value={name} onChange={(event) => setName(event.target.value)} required />
-            </div>
+          <form className="grid gap-4" onSubmit={onRename}>
+            <FormField label={t("namespace.name")} htmlFor="edit-name">
+              <Input
+                id="edit-name"
+                value={name}
+                placeholder={t("namespace.namePlaceholder")}
+                onChange={(event) => setName(event.target.value)}
+                required
+              />
+            </FormField>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
-              <Button type="submit" disabled={pending}>{t("action.save")}</Button>
+              <Button type="submit" disabled={pending}>
+                {t("action.save")}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-      <Dialog open={transferUid !== null} onOpenChange={(value) => { if (!value) setTransferUid(null) }}>
+      <Dialog open={transferUid !== null} onOpenChange={closeTransfer}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("action.transfer")}</DialogTitle>
           </DialogHeader>
-          <form className="space-y-4" onSubmit={onTransfer}>
-            {members.length === 0 ? <p>{t("state.empty")}</p> : (
-              <select className="w-full rounded-md border bg-background px-3 py-2" value={target} onChange={(event) => setTarget(event.target.value)}>
-                {members.map((item) => (
-                  <option key={item.uid} value={item.userUid}>{item.email}</option>
-                ))}
-              </select>
+          <form className="grid gap-4" onSubmit={requestTransfer}>
+            {members.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {t("state.empty")}
+              </p>
+            ) : (
+              <FormField
+                label={t("member.email")}
+                hint={t("namespace.transferHint")}
+              >
+                <Select value={target || undefined} onValueChange={setTarget}>
+                  <SelectTrigger
+                    className="w-full"
+                    aria-label={t("member.email")}
+                  >
+                    <SelectValue
+                      placeholder={t("namespace.memberPlaceholder")}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {members.map((item) => (
+                      <SelectItem key={item.uid} value={item.userUid}>
+                        {item.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
             )}
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
-              <Button type="submit" disabled={pending || !target}>{t("action.save")}</Button>
+              <Button type="submit" disabled={pending || !target}>
+                {t("action.save")}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+      <DetailSheet
+        open={detail !== null}
+        title={detail?.name ?? t("action.detail")}
+        onOpenChange={(value) => {
+          if (!value) {
+            setDetail(null)
+          }
+        }}
+        fields={[
+          { label: t("namespace.name"), value: detail?.name ?? "" },
+          { label: t("namespace.status"), value: detail?.status ?? "" },
+          { label: t("namespace.remark"), value: detail?.remark ?? "" },
+          { label: t("detail.uid"), value: detail?.uid ?? "" },
+        ]}
+      />
+      <ConfirmAction
+        open={confirm !== null}
+        title={
+          confirmCopy?.type === "delete"
+            ? t("confirm.deleteTitle")
+            : confirmCopy?.type === "disable"
+              ? t("confirm.disableTitle")
+              : t("confirm.transferTitle")
+        }
+        description={
+          confirmCopy?.type === "delete"
+            ? t("confirm.deleteDescription")
+            : confirmCopy?.type === "disable"
+              ? t("confirm.disableDescription")
+              : t("confirm.transferDescription")
+        }
+        confirmLabel={t("action.confirm")}
+        cancelLabel={t("action.cancel")}
+        pending={pending}
+        error={confirmError}
+        onConfirm={() => void runConfirm()}
+        onOpenChange={(value) => {
+          if (!value) {
+            setConfirm(null)
+            setConfirmError("")
+          }
+        }}
+      />
     </section>
   )
 }

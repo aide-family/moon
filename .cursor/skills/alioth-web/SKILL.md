@@ -8,7 +8,7 @@ description: >-
 
 # Alioth Web
 
-先读本技能，再读本机的 shadcn/ui 技能：[shadcn-ui/SKILL.md](file:///Users/hubiao/.agents/skills/shadcn-ui/SKILL.md)。组件安装和用法以那份技能为准。不要引入 `antd` 或 ahooks。
+先读本技能，再读 [alioth-web-design](../alioth-web-design/SKILL.md) 和本机的 shadcn/ui 技能：[shadcn-ui/SKILL.md](file:///Users/hubiao/.agents/skills/shadcn-ui/SKILL.md)。布局和间距以设计技能为准，组件安装以 shadcn/ui 技能为准。不要引入 `antd` 或 ahooks。
 
 验收页面时再读：
 

@@ -25,7 +25,10 @@ const (
 // CaptchaServiceClient is the client API for CaptchaService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// 图形验证码。
 type CaptchaServiceClient interface {
+	// 获取图形验证码。答案不回传明文。
 	GetCaptcha(ctx context.Context, in *GetCaptchaRequest, opts ...grpc.CallOption) (*GetCaptchaResponse, error)
 }
 
@@ -50,7 +53,10 @@ func (c *captchaServiceClient) GetCaptcha(ctx context.Context, in *GetCaptchaReq
 // CaptchaServiceServer is the server API for CaptchaService service.
 // All implementations must embed UnimplementedCaptchaServiceServer
 // for forward compatibility.
+//
+// 图形验证码。
 type CaptchaServiceServer interface {
+	// 获取图形验证码。答案不回传明文。
 	GetCaptcha(context.Context, *GetCaptchaRequest) (*GetCaptchaResponse, error)
 	mustEmbedUnimplementedCaptchaServiceServer()
 }
@@ -131,11 +137,18 @@ const (
 // AuthServiceClient is the client API for AuthService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// 注册和登录。
 type AuthServiceClient interface {
+	// 用邮箱、密码和验证码注册，成功后返回会话。
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	// 用邮箱和密码登录。
 	PasswordLogin(ctx context.Context, in *PasswordLoginRequest, opts ...grpc.CallOption) (*PasswordLoginResponse, error)
+	// 向已注册邮箱发送登录验证码。
 	SendEmailLoginCode(ctx context.Context, in *SendEmailLoginCodeRequest, opts ...grpc.CallOption) (*SendEmailLoginCodeResponse, error)
+	// 用邮箱验证码登录。验证码只能使用一次。
 	EmailLogin(ctx context.Context, in *EmailLoginRequest, opts ...grpc.CallOption) (*EmailLoginResponse, error)
+	// 用 GitHub、Gitee 或飞书授权码登录。
 	OAuth2Login(ctx context.Context, in *OAuth2LoginRequest, opts ...grpc.CallOption) (*OAuth2LoginResponse, error)
 }
 
@@ -200,11 +213,18 @@ func (c *authServiceClient) OAuth2Login(ctx context.Context, in *OAuth2LoginRequ
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
+//
+// 注册和登录。
 type AuthServiceServer interface {
+	// 用邮箱、密码和验证码注册，成功后返回会话。
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
+	// 用邮箱和密码登录。
 	PasswordLogin(context.Context, *PasswordLoginRequest) (*PasswordLoginResponse, error)
+	// 向已注册邮箱发送登录验证码。
 	SendEmailLoginCode(context.Context, *SendEmailLoginCodeRequest) (*SendEmailLoginCodeResponse, error)
+	// 用邮箱验证码登录。验证码只能使用一次。
 	EmailLogin(context.Context, *EmailLoginRequest) (*EmailLoginResponse, error)
+	// 用 GitHub、Gitee 或飞书授权码登录。
 	OAuth2Login(context.Context, *OAuth2LoginRequest) (*OAuth2LoginResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
@@ -387,13 +407,22 @@ const (
 // SelfServiceClient is the client API for SelfService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// 当前登录用户的资料、租户和令牌。
 type SelfServiceClient interface {
+	// 获取当前登录用户的资料。
 	GetSelfInfo(ctx context.Context, in *GetSelfInfoRequest, opts ...grpc.CallOption) (*GetSelfInfoResponse, error)
+	// 列出当前用户加入的租户。
 	ListSelfNamespaces(ctx context.Context, in *ListSelfNamespacesRequest, opts ...grpc.CallOption) (*ListSelfNamespacesResponse, error)
+	// 用刷新令牌换取新的访问令牌。
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
+	// 修改当前用户的邮箱。
 	ChangeEmail(ctx context.Context, in *ChangeEmailRequest, opts ...grpc.CallOption) (*ChangeEmailResponse, error)
+	// 修改当前用户的头像。
 	ChangeAvatar(ctx context.Context, in *ChangeAvatarRequest, opts ...grpc.CallOption) (*ChangeAvatarResponse, error)
+	// 修改当前用户的备注。
 	ChangeRemark(ctx context.Context, in *ChangeRemarkRequest, opts ...grpc.CallOption) (*ChangeRemarkResponse, error)
+	// 获取当前用户在当前租户的权限名。未选租户时为空。
 	GetSelfPermissions(ctx context.Context, in *GetSelfPermissionsRequest, opts ...grpc.CallOption) (*GetSelfPermissionsResponse, error)
 }
 
@@ -478,13 +507,22 @@ func (c *selfServiceClient) GetSelfPermissions(ctx context.Context, in *GetSelfP
 // SelfServiceServer is the server API for SelfService service.
 // All implementations must embed UnimplementedSelfServiceServer
 // for forward compatibility.
+//
+// 当前登录用户的资料、租户和令牌。
 type SelfServiceServer interface {
+	// 获取当前登录用户的资料。
 	GetSelfInfo(context.Context, *GetSelfInfoRequest) (*GetSelfInfoResponse, error)
+	// 列出当前用户加入的租户。
 	ListSelfNamespaces(context.Context, *ListSelfNamespacesRequest) (*ListSelfNamespacesResponse, error)
+	// 用刷新令牌换取新的访问令牌。
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
+	// 修改当前用户的邮箱。
 	ChangeEmail(context.Context, *ChangeEmailRequest) (*ChangeEmailResponse, error)
+	// 修改当前用户的头像。
 	ChangeAvatar(context.Context, *ChangeAvatarRequest) (*ChangeAvatarResponse, error)
+	// 修改当前用户的备注。
 	ChangeRemark(context.Context, *ChangeRemarkRequest) (*ChangeRemarkResponse, error)
+	// 获取当前用户在当前租户的权限名。未选租户时为空。
 	GetSelfPermissions(context.Context, *GetSelfPermissionsRequest) (*GetSelfPermissionsResponse, error)
 	mustEmbedUnimplementedSelfServiceServer()
 }
@@ -719,15 +757,26 @@ const (
 // NamespaceServiceClient is the client API for NamespaceService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// 租户管理。
 type NamespaceServiceClient interface {
+	// 创建租户，当前用户成为负责人。
 	CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...grpc.CallOption) (*CreateNamespaceResponse, error)
+	// 修改当前租户的名称、备注和标志。
 	UpdateNamespace(ctx context.Context, in *UpdateNamespaceRequest, opts ...grpc.CallOption) (*UpdateNamespaceResponse, error)
+	// 启用或停用当前租户。
 	UpdateNamespaceStatus(ctx context.Context, in *UpdateNamespaceStatusRequest, opts ...grpc.CallOption) (*UpdateNamespaceStatusResponse, error)
+	// 删除当前租户。需要 namespace:delete。
 	DeleteNamespace(ctx context.Context, in *DeleteNamespaceRequest, opts ...grpc.CallOption) (*DeleteNamespaceResponse, error)
+	// 获取当前租户。
 	GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*GetNamespaceResponse, error)
+	// 分页列出当前用户加入的租户。
 	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
+	// 按游标列出当前用户可切换的租户。
 	SelectNamespaces(ctx context.Context, in *SelectNamespacesRequest, opts ...grpc.CallOption) (*SelectNamespacesResponse, error)
+	// 按页返回租户简表。
 	ListSimpleNamespaces(ctx context.Context, in *ListSimpleNamespacesRequest, opts ...grpc.CallOption) (*ListSimpleNamespacesResponse, error)
+	// 把当前租户的负责人移交给另一名成员。
 	TransferNamespaceOwner(ctx context.Context, in *TransferNamespaceOwnerRequest, opts ...grpc.CallOption) (*TransferNamespaceOwnerResponse, error)
 }
 
@@ -832,15 +881,26 @@ func (c *namespaceServiceClient) TransferNamespaceOwner(ctx context.Context, in 
 // NamespaceServiceServer is the server API for NamespaceService service.
 // All implementations must embed UnimplementedNamespaceServiceServer
 // for forward compatibility.
+//
+// 租户管理。
 type NamespaceServiceServer interface {
+	// 创建租户，当前用户成为负责人。
 	CreateNamespace(context.Context, *CreateNamespaceRequest) (*CreateNamespaceResponse, error)
+	// 修改当前租户的名称、备注和标志。
 	UpdateNamespace(context.Context, *UpdateNamespaceRequest) (*UpdateNamespaceResponse, error)
+	// 启用或停用当前租户。
 	UpdateNamespaceStatus(context.Context, *UpdateNamespaceStatusRequest) (*UpdateNamespaceStatusResponse, error)
+	// 删除当前租户。需要 namespace:delete。
 	DeleteNamespace(context.Context, *DeleteNamespaceRequest) (*DeleteNamespaceResponse, error)
+	// 获取当前租户。
 	GetNamespace(context.Context, *GetNamespaceRequest) (*GetNamespaceResponse, error)
+	// 分页列出当前用户加入的租户。
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
+	// 按游标列出当前用户可切换的租户。
 	SelectNamespaces(context.Context, *SelectNamespacesRequest) (*SelectNamespacesResponse, error)
+	// 按页返回租户简表。
 	ListSimpleNamespaces(context.Context, *ListSimpleNamespacesRequest) (*ListSimpleNamespacesResponse, error)
+	// 把当前租户的负责人移交给另一名成员。
 	TransferNamespaceOwner(context.Context, *TransferNamespaceOwnerRequest) (*TransferNamespaceOwnerResponse, error)
 	mustEmbedUnimplementedNamespaceServiceServer()
 }
@@ -1124,14 +1184,24 @@ const (
 // MemberServiceClient is the client API for MemberService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// 租户成员管理。
 type MemberServiceClient interface {
+	// 分页列出当前租户的成员。
 	ListMembers(ctx context.Context, in *ListMembersRequest, opts ...grpc.CallOption) (*ListMembersResponse, error)
+	// 获取当前租户的一名成员。
 	GetMember(ctx context.Context, in *GetMemberRequest, opts ...grpc.CallOption) (*GetMemberResponse, error)
+	// 按用户标识查找其在当前租户的成员身份。
 	ListUserMembers(ctx context.Context, in *ListUserMembersRequest, opts ...grpc.CallOption) (*ListUserMembersResponse, error)
+	// 按游标列出当前租户的成员，供选择。
 	SelectMembers(ctx context.Context, in *SelectMembersRequest, opts ...grpc.CallOption) (*SelectMembersResponse, error)
+	// 邀请已注册用户加入当前租户。不能指定 owner。
 	InviteMember(ctx context.Context, in *InviteMemberRequest, opts ...grpc.CallOption) (*InviteMemberResponse, error)
+	// 把成员移出当前租户。
 	DeleteMember(ctx context.Context, in *DeleteMemberRequest, opts ...grpc.CallOption) (*DeleteMemberResponse, error)
+	// 修改成员状态。
 	UpdateMemberStatus(ctx context.Context, in *UpdateMemberStatusRequest, opts ...grpc.CallOption) (*UpdateMemberStatusResponse, error)
+	// 替换成员的角色。包含 owner 时需要移交权限。
 	UpdateMemberRoles(ctx context.Context, in *UpdateMemberRolesRequest, opts ...grpc.CallOption) (*UpdateMemberRolesResponse, error)
 }
 
@@ -1226,14 +1296,24 @@ func (c *memberServiceClient) UpdateMemberRoles(ctx context.Context, in *UpdateM
 // MemberServiceServer is the server API for MemberService service.
 // All implementations must embed UnimplementedMemberServiceServer
 // for forward compatibility.
+//
+// 租户成员管理。
 type MemberServiceServer interface {
+	// 分页列出当前租户的成员。
 	ListMembers(context.Context, *ListMembersRequest) (*ListMembersResponse, error)
+	// 获取当前租户的一名成员。
 	GetMember(context.Context, *GetMemberRequest) (*GetMemberResponse, error)
+	// 按用户标识查找其在当前租户的成员身份。
 	ListUserMembers(context.Context, *ListUserMembersRequest) (*ListUserMembersResponse, error)
+	// 按游标列出当前租户的成员，供选择。
 	SelectMembers(context.Context, *SelectMembersRequest) (*SelectMembersResponse, error)
+	// 邀请已注册用户加入当前租户。不能指定 owner。
 	InviteMember(context.Context, *InviteMemberRequest) (*InviteMemberResponse, error)
+	// 把成员移出当前租户。
 	DeleteMember(context.Context, *DeleteMemberRequest) (*DeleteMemberResponse, error)
+	// 修改成员状态。
 	UpdateMemberStatus(context.Context, *UpdateMemberStatusRequest) (*UpdateMemberStatusResponse, error)
+	// 替换成员的角色。包含 owner 时需要移交权限。
 	UpdateMemberRoles(context.Context, *UpdateMemberRolesRequest) (*UpdateMemberRolesResponse, error)
 	mustEmbedUnimplementedMemberServiceServer()
 }
@@ -1489,11 +1569,18 @@ const (
 // UserServiceClient is the client API for UserService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// 全局用户管理。
 type UserServiceClient interface {
+	// 获取一名全局用户。
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error)
+	// 分页列出全局用户。
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
+	// 按游标列出全局用户，供选择。
 	SelectUsers(ctx context.Context, in *SelectUsersRequest, opts ...grpc.CallOption) (*SelectUsersResponse, error)
+	// 封禁用户。封禁后不能登录。
 	BanUser(ctx context.Context, in *BanUserRequest, opts ...grpc.CallOption) (*BanUserResponse, error)
+	// 解除封禁，用户可以再次登录。
 	PermitUser(ctx context.Context, in *PermitUserRequest, opts ...grpc.CallOption) (*PermitUserResponse, error)
 }
 
@@ -1558,11 +1645,18 @@ func (c *userServiceClient) PermitUser(ctx context.Context, in *PermitUserReques
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
+//
+// 全局用户管理。
 type UserServiceServer interface {
+	// 获取一名全局用户。
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
+	// 分页列出全局用户。
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
+	// 按游标列出全局用户，供选择。
 	SelectUsers(context.Context, *SelectUsersRequest) (*SelectUsersResponse, error)
+	// 封禁用户。封禁后不能登录。
 	BanUser(context.Context, *BanUserRequest) (*BanUserResponse, error)
+	// 解除封禁，用户可以再次登录。
 	PermitUser(context.Context, *PermitUserRequest) (*PermitUserResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
@@ -1747,15 +1841,26 @@ const (
 // RoleServiceClient is the client API for RoleService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// 租户角色和权限。
 type RoleServiceClient interface {
+	// 在当前租户创建自定义角色。
 	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error)
+	// 修改自定义角色的名称。系统角色不能改名。
 	UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...grpc.CallOption) (*UpdateRoleResponse, error)
+	// 启用或停用角色。
 	UpdateRoleStatus(ctx context.Context, in *UpdateRoleStatusRequest, opts ...grpc.CallOption) (*UpdateRoleStatusResponse, error)
+	// 删除自定义角色。系统角色不能删除。
 	DeleteRole(ctx context.Context, in *DeleteRoleRequest, opts ...grpc.CallOption) (*DeleteRoleResponse, error)
+	// 获取当前租户的一个角色。
 	GetRole(ctx context.Context, in *GetRoleRequest, opts ...grpc.CallOption) (*GetRoleResponse, error)
+	// 分页列出当前租户的角色。
 	ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error)
+	// 按游标列出当前租户的角色，供选择。
 	SelectRoles(ctx context.Context, in *SelectRolesRequest, opts ...grpc.CallOption) (*SelectRolesResponse, error)
+	// 替换自定义角色的权限。不能授予删除租户和移交负责人。
 	UpdateRolePermissions(ctx context.Context, in *UpdateRolePermissionsRequest, opts ...grpc.CallOption) (*UpdateRolePermissionsResponse, error)
+	// 列出全部权限定义。
 	ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error)
 }
 
@@ -1860,15 +1965,26 @@ func (c *roleServiceClient) ListPermissions(ctx context.Context, in *ListPermiss
 // RoleServiceServer is the server API for RoleService service.
 // All implementations must embed UnimplementedRoleServiceServer
 // for forward compatibility.
+//
+// 租户角色和权限。
 type RoleServiceServer interface {
+	// 在当前租户创建自定义角色。
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
+	// 修改自定义角色的名称。系统角色不能改名。
 	UpdateRole(context.Context, *UpdateRoleRequest) (*UpdateRoleResponse, error)
+	// 启用或停用角色。
 	UpdateRoleStatus(context.Context, *UpdateRoleStatusRequest) (*UpdateRoleStatusResponse, error)
+	// 删除自定义角色。系统角色不能删除。
 	DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleResponse, error)
+	// 获取当前租户的一个角色。
 	GetRole(context.Context, *GetRoleRequest) (*GetRoleResponse, error)
+	// 分页列出当前租户的角色。
 	ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error)
+	// 按游标列出当前租户的角色，供选择。
 	SelectRoles(context.Context, *SelectRolesRequest) (*SelectRolesResponse, error)
+	// 替换自定义角色的权限。不能授予删除租户和移交负责人。
 	UpdateRolePermissions(context.Context, *UpdateRolePermissionsRequest) (*UpdateRolePermissionsResponse, error)
+	// 列出全部权限定义。
 	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
 	mustEmbedUnimplementedRoleServiceServer()
 }

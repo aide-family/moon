@@ -12,7 +12,7 @@ Alioth/
 │   ├── alioth/v1/     # 控制面对外 HTTP/gRPC，以及 Agent 流
 │   ├── megrez/v1/     # 评测领取与回写，alioth 实现，megrez 调用
 │   └── merak/v1/      # 通知领取与回写，alioth 实现，merak 调用
-├── pkg/               # 鉴权、错误码、Redis 锁、加密字段
+├── pkg/               # 全仓库共用的错误码、Redis 锁、配置装载
 ├── app/
 │   ├── alioth/
 │   ├── megrez/
@@ -26,12 +26,27 @@ Alioth/
 | 层 | 目录 | 职责 |
 | --- | --- | --- |
 | 入口 | `cmd` | Cobra 子命令。`alioth` 提供 HTTP 与 gRPC。`megrez`、`merak` 提供运行循环和 `/health` |
-| 传输 | `internal/server` | HTTP、gRPC、中间件、健康检查 |
-| 接口 | `internal/service` | 把请求转成 biz 入参，不写业务判断 |
-| 用例 | `internal/biz` | 权限、状态机、锁的持有时机 |
-| 存储 | `internal/data` | ent、外部数据源客户端、SMTP、Webhook、SSH |
+| 传输 | `internal/server` | 注入多个 service。HTTP、gRPC、中间件、健康检查 |
+| 接口 | `internal/service` | 把请求转成 biz 入参，不写业务判断。一个 service 可以调用多个 biz |
+| 用例 | `internal/biz/<领域>` | 权限、状态机、锁的持有时机。一个 biz 可以调用多个 repository。关键判断写明为什么拒绝、状态怎么变、和别的领域怎么配合 |
+| 业务对象 | `pkg/bo` | 本应用 biz 使用的结构体 |
+| 权限检查 | `internal/access` | 当前用户在当前租户是否持有权限。不和领域包放在同一目录 |
+| 仓储接口 | `internal/data/repository` | 只放接口，按聚合拆文件。不引用 ent，不写查询 |
+| 存储 | `internal/data` | 实现 `repository`。ent、迁移、种子、外部数据源客户端、SMTP、Webhook、SSH |
 
-依赖方向是 `server` → `service` → `biz` → `data`。`biz` 定义仓储接口，`data` 实现。用 Wire 组装。
+同一父目录下的包不能互相 import。父包可以汇总子包的 Wire `ProviderSet`。领域包需要的结构体和接口放到父目录之外。
+
+调用方向是 `server` → `service` → `biz` → `data/repository`。`data` 实现仓储接口，依赖 `repository` 和本应用的 `pkg/bo`，不依赖具体用例包。用 Wire 组装。应用之间不 import 对方的 `internal`。
+
+每个手写包提供 `doc.go`，用包注释说明这个包做什么。`ent` 生成的子包不加。
+
+手写 Go 文件的 import 分成四组，组之间空一行：空白导入、标准库、第三方、本仓库（`github.com/aide-family/Alioth`）。`ent`、`*.pb.go`、`wire_gen.go` 由生成器维护，不手改。
+
+proto 的 service、rpc、message 和字段都写中文注释。
+
+跨应用共用的函数、方法和常量放仓库根 `pkg`。只在一个应用里多处使用的，放 `app/<应用>/pkg`。
+
+项目自定义错误放在仓库根 `pkg/merr`。只属于一个应用的错误放在该应用的 `pkg`。手写代码返回的错误必须是 Kratos error，不用 `errors.New` 或 `fmt.Errorf`。`ent` 生成代码除外。
 
 业务表只出现在 `app/alioth` 的 ent schema。迁移只由 `alioth` 执行。`megrez`、`merak`、`alkaid` 不连接业务库，也不执行迁移。
 

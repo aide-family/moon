@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
-	"github.com/aide-family/Alioth/app/alkaid/internal/data"
-	"github.com/aide-family/Alioth/pkg/bootstrap"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/spf13/cobra"
+
+	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
+	"github.com/aide-family/Alioth/app/alkaid/internal/data"
+	"github.com/aide-family/Alioth/pkg/bootstrap"
+	"github.com/aide-family/Alioth/pkg/merr"
 )
 
 func main() {
@@ -56,11 +58,13 @@ func loadConfig(path string) (*conf.Bootstrap, error) {
 	c := config.New(config.WithSource(bootstrap.NewSource(path)))
 	defer c.Close()
 	if err := c.Load(); err != nil {
-		return nil, err
+		log.NewHelper(log.DefaultLogger).Errorf("config: %v", err)
+		return nil, merr.Server("config load failed")
 	}
 	var bc conf.Bootstrap
 	if err := c.Scan(&bc); err != nil {
-		return nil, err
+		log.NewHelper(log.DefaultLogger).Errorf("config: %v", err)
+		return nil, merr.Server("config load failed")
 	}
 	return &bc, nil
 }

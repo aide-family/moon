@@ -2,21 +2,34 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
-	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz"
-	"github.com/aide-family/Alioth/app/alioth/internal/conf"
-	"github.com/aide-family/Alioth/app/alioth/internal/service"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	khttp "github.com/go-kratos/kratos/v2/transport/http"
+
+	v1 "github.com/aide-family/Alioth/api/alioth/v1"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
+	"github.com/aide-family/Alioth/app/alioth/internal/conf"
+	"github.com/aide-family/Alioth/app/alioth/internal/service"
+	"github.com/aide-family/Alioth/pkg/merr"
 )
 
-func NewHTTPServer(c *conf.Server, health *service.HealthService, identity *service.IdentityService, uc *biz.IdentityUsecase, logger log.Logger) (*khttp.Server, error) {
+func NewHTTPServer(
+	c *conf.Server,
+	health *service.HealthService,
+	captcha *service.CaptchaService,
+	authn *service.AuthService,
+	self *service.SelfService,
+	namespaces *service.NamespaceService,
+	members *service.MemberService,
+	users *service.UserService,
+	roles *service.RoleService,
+	uc *auth.Usecase,
+	logger log.Logger,
+) (*khttp.Server, error) {
 	if c == nil || c.Http == nil || c.Http.Addr == "" {
-		return nil, fmt.Errorf("http addr is empty")
+		return nil, merr.Server("http addr is empty")
 	}
 	opts := []khttp.ServerOption{
 		khttp.Address(c.Http.Addr),
@@ -40,12 +53,12 @@ func NewHTTPServer(c *conf.Server, health *service.HealthService, identity *serv
 		_ = json.NewEncoder(w).Encode(reply)
 	})
 	v1.RegisterHealthServiceHTTPServer(srv, health)
-	v1.RegisterCaptchaServiceHTTPServer(srv, identity)
-	v1.RegisterAuthServiceHTTPServer(srv, identity)
-	v1.RegisterSelfServiceHTTPServer(srv, identity)
-	v1.RegisterNamespaceServiceHTTPServer(srv, identity)
-	v1.RegisterMemberServiceHTTPServer(srv, identity)
-	v1.RegisterUserServiceHTTPServer(srv, identity)
-	v1.RegisterRoleServiceHTTPServer(srv, identity)
+	v1.RegisterCaptchaServiceHTTPServer(srv, captcha)
+	v1.RegisterAuthServiceHTTPServer(srv, authn)
+	v1.RegisterSelfServiceHTTPServer(srv, self)
+	v1.RegisterNamespaceServiceHTTPServer(srv, namespaces)
+	v1.RegisterMemberServiceHTTPServer(srv, members)
+	v1.RegisterUserServiceHTTPServer(srv, users)
+	v1.RegisterRoleServiceHTTPServer(srv, roles)
 	return srv, nil
 }

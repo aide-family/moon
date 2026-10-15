@@ -22,6 +22,7 @@ const _ = http.SupportPackageIsVersion1
 const OperationCaptchaServiceGetCaptcha = "/alioth.v1.CaptchaService/GetCaptcha"
 
 type CaptchaServiceHTTPServer interface {
+	// GetCaptcha 获取图形验证码。答案不回传明文。
 	GetCaptcha(context.Context, *GetCaptchaRequest) (*GetCaptchaResponse, error)
 }
 
@@ -50,6 +51,7 @@ func _CaptchaService_GetCaptcha0_HTTP_Handler(srv CaptchaServiceHTTPServer) func
 }
 
 type CaptchaServiceHTTPClient interface {
+	// GetCaptcha 获取图形验证码。答案不回传明文。
 	GetCaptcha(ctx context.Context, req *GetCaptchaRequest, opts ...http.CallOption) (rsp *GetCaptchaResponse, err error)
 }
 
@@ -61,6 +63,7 @@ func NewCaptchaServiceHTTPClient(client *http.Client) CaptchaServiceHTTPClient {
 	return &CaptchaServiceHTTPClientImpl{client}
 }
 
+// GetCaptcha 获取图形验证码。答案不回传明文。
 func (c *CaptchaServiceHTTPClientImpl) GetCaptcha(ctx context.Context, in *GetCaptchaRequest, opts ...http.CallOption) (*GetCaptchaResponse, error) {
 	var out GetCaptchaResponse
 	pattern := "/v1/captcha"
@@ -81,10 +84,15 @@ const OperationAuthServiceRegister = "/alioth.v1.AuthService/Register"
 const OperationAuthServiceSendEmailLoginCode = "/alioth.v1.AuthService/SendEmailLoginCode"
 
 type AuthServiceHTTPServer interface {
+	// EmailLogin 用邮箱验证码登录。验证码只能使用一次。
 	EmailLogin(context.Context, *EmailLoginRequest) (*EmailLoginResponse, error)
+	// OAuth2Login 用 GitHub、Gitee 或飞书授权码登录。
 	OAuth2Login(context.Context, *OAuth2LoginRequest) (*OAuth2LoginResponse, error)
+	// PasswordLogin 用邮箱和密码登录。
 	PasswordLogin(context.Context, *PasswordLoginRequest) (*PasswordLoginResponse, error)
+	// Register 用邮箱、密码和验证码注册，成功后返回会话。
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
+	// SendEmailLoginCode 向已注册邮箱发送登录验证码。
 	SendEmailLoginCode(context.Context, *SendEmailLoginCodeRequest) (*SendEmailLoginCodeResponse, error)
 }
 
@@ -208,10 +216,15 @@ func _AuthService_OAuth2Login0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx 
 }
 
 type AuthServiceHTTPClient interface {
+	// EmailLogin 用邮箱验证码登录。验证码只能使用一次。
 	EmailLogin(ctx context.Context, req *EmailLoginRequest, opts ...http.CallOption) (rsp *EmailLoginResponse, err error)
+	// OAuth2Login 用 GitHub、Gitee 或飞书授权码登录。
 	OAuth2Login(ctx context.Context, req *OAuth2LoginRequest, opts ...http.CallOption) (rsp *OAuth2LoginResponse, err error)
+	// PasswordLogin 用邮箱和密码登录。
 	PasswordLogin(ctx context.Context, req *PasswordLoginRequest, opts ...http.CallOption) (rsp *PasswordLoginResponse, err error)
+	// Register 用邮箱、密码和验证码注册，成功后返回会话。
 	Register(ctx context.Context, req *RegisterRequest, opts ...http.CallOption) (rsp *RegisterResponse, err error)
+	// SendEmailLoginCode 向已注册邮箱发送登录验证码。
 	SendEmailLoginCode(ctx context.Context, req *SendEmailLoginCodeRequest, opts ...http.CallOption) (rsp *SendEmailLoginCodeResponse, err error)
 }
 
@@ -223,6 +236,7 @@ func NewAuthServiceHTTPClient(client *http.Client) AuthServiceHTTPClient {
 	return &AuthServiceHTTPClientImpl{client}
 }
 
+// EmailLogin 用邮箱验证码登录。验证码只能使用一次。
 func (c *AuthServiceHTTPClientImpl) EmailLogin(ctx context.Context, in *EmailLoginRequest, opts ...http.CallOption) (*EmailLoginResponse, error) {
 	var out EmailLoginResponse
 	pattern := "/v1/auth/email/login"
@@ -236,6 +250,7 @@ func (c *AuthServiceHTTPClientImpl) EmailLogin(ctx context.Context, in *EmailLog
 	return &out, nil
 }
 
+// OAuth2Login 用 GitHub、Gitee 或飞书授权码登录。
 func (c *AuthServiceHTTPClientImpl) OAuth2Login(ctx context.Context, in *OAuth2LoginRequest, opts ...http.CallOption) (*OAuth2LoginResponse, error) {
 	var out OAuth2LoginResponse
 	pattern := "/v1/auth/oauth2/login"
@@ -249,6 +264,7 @@ func (c *AuthServiceHTTPClientImpl) OAuth2Login(ctx context.Context, in *OAuth2L
 	return &out, nil
 }
 
+// PasswordLogin 用邮箱和密码登录。
 func (c *AuthServiceHTTPClientImpl) PasswordLogin(ctx context.Context, in *PasswordLoginRequest, opts ...http.CallOption) (*PasswordLoginResponse, error) {
 	var out PasswordLoginResponse
 	pattern := "/v1/auth/password/login"
@@ -262,6 +278,7 @@ func (c *AuthServiceHTTPClientImpl) PasswordLogin(ctx context.Context, in *Passw
 	return &out, nil
 }
 
+// Register 用邮箱、密码和验证码注册，成功后返回会话。
 func (c *AuthServiceHTTPClientImpl) Register(ctx context.Context, in *RegisterRequest, opts ...http.CallOption) (*RegisterResponse, error) {
 	var out RegisterResponse
 	pattern := "/v1/auth/register"
@@ -275,6 +292,7 @@ func (c *AuthServiceHTTPClientImpl) Register(ctx context.Context, in *RegisterRe
 	return &out, nil
 }
 
+// SendEmailLoginCode 向已注册邮箱发送登录验证码。
 func (c *AuthServiceHTTPClientImpl) SendEmailLoginCode(ctx context.Context, in *SendEmailLoginCodeRequest, opts ...http.CallOption) (*SendEmailLoginCodeResponse, error) {
 	var out SendEmailLoginCodeResponse
 	pattern := "/v1/auth/email/login/code"
@@ -297,12 +315,19 @@ const OperationSelfServiceListSelfNamespaces = "/alioth.v1.SelfService/ListSelfN
 const OperationSelfServiceRefreshToken = "/alioth.v1.SelfService/RefreshToken"
 
 type SelfServiceHTTPServer interface {
+	// ChangeAvatar 修改当前用户的头像。
 	ChangeAvatar(context.Context, *ChangeAvatarRequest) (*ChangeAvatarResponse, error)
+	// ChangeEmail 修改当前用户的邮箱。
 	ChangeEmail(context.Context, *ChangeEmailRequest) (*ChangeEmailResponse, error)
+	// ChangeRemark 修改当前用户的备注。
 	ChangeRemark(context.Context, *ChangeRemarkRequest) (*ChangeRemarkResponse, error)
+	// GetSelfInfo 获取当前登录用户的资料。
 	GetSelfInfo(context.Context, *GetSelfInfoRequest) (*GetSelfInfoResponse, error)
+	// GetSelfPermissions 获取当前用户在当前租户的权限名。未选租户时为空。
 	GetSelfPermissions(context.Context, *GetSelfPermissionsRequest) (*GetSelfPermissionsResponse, error)
+	// ListSelfNamespaces 列出当前用户加入的租户。
 	ListSelfNamespaces(context.Context, *ListSelfNamespacesRequest) (*ListSelfNamespacesResponse, error)
+	// RefreshToken 用刷新令牌换取新的访问令牌。
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 }
 
@@ -460,12 +485,19 @@ func _SelfService_GetSelfPermissions0_HTTP_Handler(srv SelfServiceHTTPServer) fu
 }
 
 type SelfServiceHTTPClient interface {
+	// ChangeAvatar 修改当前用户的头像。
 	ChangeAvatar(ctx context.Context, req *ChangeAvatarRequest, opts ...http.CallOption) (rsp *ChangeAvatarResponse, err error)
+	// ChangeEmail 修改当前用户的邮箱。
 	ChangeEmail(ctx context.Context, req *ChangeEmailRequest, opts ...http.CallOption) (rsp *ChangeEmailResponse, err error)
+	// ChangeRemark 修改当前用户的备注。
 	ChangeRemark(ctx context.Context, req *ChangeRemarkRequest, opts ...http.CallOption) (rsp *ChangeRemarkResponse, err error)
+	// GetSelfInfo 获取当前登录用户的资料。
 	GetSelfInfo(ctx context.Context, req *GetSelfInfoRequest, opts ...http.CallOption) (rsp *GetSelfInfoResponse, err error)
+	// GetSelfPermissions 获取当前用户在当前租户的权限名。未选租户时为空。
 	GetSelfPermissions(ctx context.Context, req *GetSelfPermissionsRequest, opts ...http.CallOption) (rsp *GetSelfPermissionsResponse, err error)
+	// ListSelfNamespaces 列出当前用户加入的租户。
 	ListSelfNamespaces(ctx context.Context, req *ListSelfNamespacesRequest, opts ...http.CallOption) (rsp *ListSelfNamespacesResponse, err error)
+	// RefreshToken 用刷新令牌换取新的访问令牌。
 	RefreshToken(ctx context.Context, req *RefreshTokenRequest, opts ...http.CallOption) (rsp *RefreshTokenResponse, err error)
 }
 
@@ -477,6 +509,7 @@ func NewSelfServiceHTTPClient(client *http.Client) SelfServiceHTTPClient {
 	return &SelfServiceHTTPClientImpl{client}
 }
 
+// ChangeAvatar 修改当前用户的头像。
 func (c *SelfServiceHTTPClientImpl) ChangeAvatar(ctx context.Context, in *ChangeAvatarRequest, opts ...http.CallOption) (*ChangeAvatarResponse, error) {
 	var out ChangeAvatarResponse
 	pattern := "/v1/self/change-avatar"
@@ -490,6 +523,7 @@ func (c *SelfServiceHTTPClientImpl) ChangeAvatar(ctx context.Context, in *Change
 	return &out, nil
 }
 
+// ChangeEmail 修改当前用户的邮箱。
 func (c *SelfServiceHTTPClientImpl) ChangeEmail(ctx context.Context, in *ChangeEmailRequest, opts ...http.CallOption) (*ChangeEmailResponse, error) {
 	var out ChangeEmailResponse
 	pattern := "/v1/self/change-email"
@@ -503,6 +537,7 @@ func (c *SelfServiceHTTPClientImpl) ChangeEmail(ctx context.Context, in *ChangeE
 	return &out, nil
 }
 
+// ChangeRemark 修改当前用户的备注。
 func (c *SelfServiceHTTPClientImpl) ChangeRemark(ctx context.Context, in *ChangeRemarkRequest, opts ...http.CallOption) (*ChangeRemarkResponse, error) {
 	var out ChangeRemarkResponse
 	pattern := "/v1/self/change-remark"
@@ -516,6 +551,7 @@ func (c *SelfServiceHTTPClientImpl) ChangeRemark(ctx context.Context, in *Change
 	return &out, nil
 }
 
+// GetSelfInfo 获取当前登录用户的资料。
 func (c *SelfServiceHTTPClientImpl) GetSelfInfo(ctx context.Context, in *GetSelfInfoRequest, opts ...http.CallOption) (*GetSelfInfoResponse, error) {
 	var out GetSelfInfoResponse
 	pattern := "/v1/self/info"
@@ -529,6 +565,7 @@ func (c *SelfServiceHTTPClientImpl) GetSelfInfo(ctx context.Context, in *GetSelf
 	return &out, nil
 }
 
+// GetSelfPermissions 获取当前用户在当前租户的权限名。未选租户时为空。
 func (c *SelfServiceHTTPClientImpl) GetSelfPermissions(ctx context.Context, in *GetSelfPermissionsRequest, opts ...http.CallOption) (*GetSelfPermissionsResponse, error) {
 	var out GetSelfPermissionsResponse
 	pattern := "/v1/self/permissions"
@@ -542,6 +579,7 @@ func (c *SelfServiceHTTPClientImpl) GetSelfPermissions(ctx context.Context, in *
 	return &out, nil
 }
 
+// ListSelfNamespaces 列出当前用户加入的租户。
 func (c *SelfServiceHTTPClientImpl) ListSelfNamespaces(ctx context.Context, in *ListSelfNamespacesRequest, opts ...http.CallOption) (*ListSelfNamespacesResponse, error) {
 	var out ListSelfNamespacesResponse
 	pattern := "/v1/self/namespaces"
@@ -555,6 +593,7 @@ func (c *SelfServiceHTTPClientImpl) ListSelfNamespaces(ctx context.Context, in *
 	return &out, nil
 }
 
+// RefreshToken 用刷新令牌换取新的访问令牌。
 func (c *SelfServiceHTTPClientImpl) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...http.CallOption) (*RefreshTokenResponse, error) {
 	var out RefreshTokenResponse
 	pattern := "/v1/self/refresh-token"
@@ -579,14 +618,23 @@ const OperationNamespaceServiceUpdateNamespace = "/alioth.v1.NamespaceService/Up
 const OperationNamespaceServiceUpdateNamespaceStatus = "/alioth.v1.NamespaceService/UpdateNamespaceStatus"
 
 type NamespaceServiceHTTPServer interface {
+	// CreateNamespace 创建租户，当前用户成为负责人。
 	CreateNamespace(context.Context, *CreateNamespaceRequest) (*CreateNamespaceResponse, error)
+	// DeleteNamespace 删除当前租户。需要 namespace:delete。
 	DeleteNamespace(context.Context, *DeleteNamespaceRequest) (*DeleteNamespaceResponse, error)
+	// GetNamespace 获取当前租户。
 	GetNamespace(context.Context, *GetNamespaceRequest) (*GetNamespaceResponse, error)
+	// ListNamespaces 分页列出当前用户加入的租户。
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
+	// ListSimpleNamespaces 按页返回租户简表。
 	ListSimpleNamespaces(context.Context, *ListSimpleNamespacesRequest) (*ListSimpleNamespacesResponse, error)
+	// SelectNamespaces 按游标列出当前用户可切换的租户。
 	SelectNamespaces(context.Context, *SelectNamespacesRequest) (*SelectNamespacesResponse, error)
+	// TransferNamespaceOwner 把当前租户的负责人移交给另一名成员。
 	TransferNamespaceOwner(context.Context, *TransferNamespaceOwnerRequest) (*TransferNamespaceOwnerResponse, error)
+	// UpdateNamespace 修改当前租户的名称、备注和标志。
 	UpdateNamespace(context.Context, *UpdateNamespaceRequest) (*UpdateNamespaceResponse, error)
+	// UpdateNamespaceStatus 启用或停用当前租户。
 	UpdateNamespaceStatus(context.Context, *UpdateNamespaceStatusRequest) (*UpdateNamespaceStatusResponse, error)
 }
 
@@ -802,14 +850,23 @@ func _NamespaceService_TransferNamespaceOwner0_HTTP_Handler(srv NamespaceService
 }
 
 type NamespaceServiceHTTPClient interface {
+	// CreateNamespace 创建租户，当前用户成为负责人。
 	CreateNamespace(ctx context.Context, req *CreateNamespaceRequest, opts ...http.CallOption) (rsp *CreateNamespaceResponse, err error)
+	// DeleteNamespace 删除当前租户。需要 namespace:delete。
 	DeleteNamespace(ctx context.Context, req *DeleteNamespaceRequest, opts ...http.CallOption) (rsp *DeleteNamespaceResponse, err error)
+	// GetNamespace 获取当前租户。
 	GetNamespace(ctx context.Context, req *GetNamespaceRequest, opts ...http.CallOption) (rsp *GetNamespaceResponse, err error)
+	// ListNamespaces 分页列出当前用户加入的租户。
 	ListNamespaces(ctx context.Context, req *ListNamespacesRequest, opts ...http.CallOption) (rsp *ListNamespacesResponse, err error)
+	// ListSimpleNamespaces 按页返回租户简表。
 	ListSimpleNamespaces(ctx context.Context, req *ListSimpleNamespacesRequest, opts ...http.CallOption) (rsp *ListSimpleNamespacesResponse, err error)
+	// SelectNamespaces 按游标列出当前用户可切换的租户。
 	SelectNamespaces(ctx context.Context, req *SelectNamespacesRequest, opts ...http.CallOption) (rsp *SelectNamespacesResponse, err error)
+	// TransferNamespaceOwner 把当前租户的负责人移交给另一名成员。
 	TransferNamespaceOwner(ctx context.Context, req *TransferNamespaceOwnerRequest, opts ...http.CallOption) (rsp *TransferNamespaceOwnerResponse, err error)
+	// UpdateNamespace 修改当前租户的名称、备注和标志。
 	UpdateNamespace(ctx context.Context, req *UpdateNamespaceRequest, opts ...http.CallOption) (rsp *UpdateNamespaceResponse, err error)
+	// UpdateNamespaceStatus 启用或停用当前租户。
 	UpdateNamespaceStatus(ctx context.Context, req *UpdateNamespaceStatusRequest, opts ...http.CallOption) (rsp *UpdateNamespaceStatusResponse, err error)
 }
 
@@ -821,6 +878,7 @@ func NewNamespaceServiceHTTPClient(client *http.Client) NamespaceServiceHTTPClie
 	return &NamespaceServiceHTTPClientImpl{client}
 }
 
+// CreateNamespace 创建租户，当前用户成为负责人。
 func (c *NamespaceServiceHTTPClientImpl) CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...http.CallOption) (*CreateNamespaceResponse, error) {
 	var out CreateNamespaceResponse
 	pattern := "/v1/namespace"
@@ -834,6 +892,7 @@ func (c *NamespaceServiceHTTPClientImpl) CreateNamespace(ctx context.Context, in
 	return &out, nil
 }
 
+// DeleteNamespace 删除当前租户。需要 namespace:delete。
 func (c *NamespaceServiceHTTPClientImpl) DeleteNamespace(ctx context.Context, in *DeleteNamespaceRequest, opts ...http.CallOption) (*DeleteNamespaceResponse, error) {
 	var out DeleteNamespaceResponse
 	pattern := "/v1/namespace/{uid}"
@@ -847,6 +906,7 @@ func (c *NamespaceServiceHTTPClientImpl) DeleteNamespace(ctx context.Context, in
 	return &out, nil
 }
 
+// GetNamespace 获取当前租户。
 func (c *NamespaceServiceHTTPClientImpl) GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...http.CallOption) (*GetNamespaceResponse, error) {
 	var out GetNamespaceResponse
 	pattern := "/v1/namespace/{uid}"
@@ -860,6 +920,7 @@ func (c *NamespaceServiceHTTPClientImpl) GetNamespace(ctx context.Context, in *G
 	return &out, nil
 }
 
+// ListNamespaces 分页列出当前用户加入的租户。
 func (c *NamespaceServiceHTTPClientImpl) ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...http.CallOption) (*ListNamespacesResponse, error) {
 	var out ListNamespacesResponse
 	pattern := "/v1/namespaces"
@@ -873,6 +934,7 @@ func (c *NamespaceServiceHTTPClientImpl) ListNamespaces(ctx context.Context, in 
 	return &out, nil
 }
 
+// ListSimpleNamespaces 按页返回租户简表。
 func (c *NamespaceServiceHTTPClientImpl) ListSimpleNamespaces(ctx context.Context, in *ListSimpleNamespacesRequest, opts ...http.CallOption) (*ListSimpleNamespacesResponse, error) {
 	var out ListSimpleNamespacesResponse
 	pattern := "/v1/namespaces/simple"
@@ -886,6 +948,7 @@ func (c *NamespaceServiceHTTPClientImpl) ListSimpleNamespaces(ctx context.Contex
 	return &out, nil
 }
 
+// SelectNamespaces 按游标列出当前用户可切换的租户。
 func (c *NamespaceServiceHTTPClientImpl) SelectNamespaces(ctx context.Context, in *SelectNamespacesRequest, opts ...http.CallOption) (*SelectNamespacesResponse, error) {
 	var out SelectNamespacesResponse
 	pattern := "/v1/namespaces/select"
@@ -899,6 +962,7 @@ func (c *NamespaceServiceHTTPClientImpl) SelectNamespaces(ctx context.Context, i
 	return &out, nil
 }
 
+// TransferNamespaceOwner 把当前租户的负责人移交给另一名成员。
 func (c *NamespaceServiceHTTPClientImpl) TransferNamespaceOwner(ctx context.Context, in *TransferNamespaceOwnerRequest, opts ...http.CallOption) (*TransferNamespaceOwnerResponse, error) {
 	var out TransferNamespaceOwnerResponse
 	pattern := "/v1/namespace/{uid}/owner"
@@ -912,6 +976,7 @@ func (c *NamespaceServiceHTTPClientImpl) TransferNamespaceOwner(ctx context.Cont
 	return &out, nil
 }
 
+// UpdateNamespace 修改当前租户的名称、备注和标志。
 func (c *NamespaceServiceHTTPClientImpl) UpdateNamespace(ctx context.Context, in *UpdateNamespaceRequest, opts ...http.CallOption) (*UpdateNamespaceResponse, error) {
 	var out UpdateNamespaceResponse
 	pattern := "/v1/namespace/{uid}"
@@ -925,6 +990,7 @@ func (c *NamespaceServiceHTTPClientImpl) UpdateNamespace(ctx context.Context, in
 	return &out, nil
 }
 
+// UpdateNamespaceStatus 启用或停用当前租户。
 func (c *NamespaceServiceHTTPClientImpl) UpdateNamespaceStatus(ctx context.Context, in *UpdateNamespaceStatusRequest, opts ...http.CallOption) (*UpdateNamespaceStatusResponse, error) {
 	var out UpdateNamespaceStatusResponse
 	pattern := "/v1/namespace/{uid}/status"
@@ -948,13 +1014,21 @@ const OperationMemberServiceUpdateMemberRoles = "/alioth.v1.MemberService/Update
 const OperationMemberServiceUpdateMemberStatus = "/alioth.v1.MemberService/UpdateMemberStatus"
 
 type MemberServiceHTTPServer interface {
+	// DeleteMember 把成员移出当前租户。
 	DeleteMember(context.Context, *DeleteMemberRequest) (*DeleteMemberResponse, error)
+	// GetMember 获取当前租户的一名成员。
 	GetMember(context.Context, *GetMemberRequest) (*GetMemberResponse, error)
+	// InviteMember 邀请已注册用户加入当前租户。不能指定 owner。
 	InviteMember(context.Context, *InviteMemberRequest) (*InviteMemberResponse, error)
+	// ListMembers 分页列出当前租户的成员。
 	ListMembers(context.Context, *ListMembersRequest) (*ListMembersResponse, error)
+	// ListUserMembers 按用户标识查找其在当前租户的成员身份。
 	ListUserMembers(context.Context, *ListUserMembersRequest) (*ListUserMembersResponse, error)
+	// SelectMembers 按游标列出当前租户的成员，供选择。
 	SelectMembers(context.Context, *SelectMembersRequest) (*SelectMembersResponse, error)
+	// UpdateMemberRoles 替换成员的角色。包含 owner 时需要移交权限。
 	UpdateMemberRoles(context.Context, *UpdateMemberRolesRequest) (*UpdateMemberRolesResponse, error)
+	// UpdateMemberStatus 修改成员状态。
 	UpdateMemberStatus(context.Context, *UpdateMemberStatusRequest) (*UpdateMemberStatusResponse, error)
 }
 
@@ -1147,13 +1221,21 @@ func _MemberService_UpdateMemberRoles0_HTTP_Handler(srv MemberServiceHTTPServer)
 }
 
 type MemberServiceHTTPClient interface {
+	// DeleteMember 把成员移出当前租户。
 	DeleteMember(ctx context.Context, req *DeleteMemberRequest, opts ...http.CallOption) (rsp *DeleteMemberResponse, err error)
+	// GetMember 获取当前租户的一名成员。
 	GetMember(ctx context.Context, req *GetMemberRequest, opts ...http.CallOption) (rsp *GetMemberResponse, err error)
+	// InviteMember 邀请已注册用户加入当前租户。不能指定 owner。
 	InviteMember(ctx context.Context, req *InviteMemberRequest, opts ...http.CallOption) (rsp *InviteMemberResponse, err error)
+	// ListMembers 分页列出当前租户的成员。
 	ListMembers(ctx context.Context, req *ListMembersRequest, opts ...http.CallOption) (rsp *ListMembersResponse, err error)
+	// ListUserMembers 按用户标识查找其在当前租户的成员身份。
 	ListUserMembers(ctx context.Context, req *ListUserMembersRequest, opts ...http.CallOption) (rsp *ListUserMembersResponse, err error)
+	// SelectMembers 按游标列出当前租户的成员，供选择。
 	SelectMembers(ctx context.Context, req *SelectMembersRequest, opts ...http.CallOption) (rsp *SelectMembersResponse, err error)
+	// UpdateMemberRoles 替换成员的角色。包含 owner 时需要移交权限。
 	UpdateMemberRoles(ctx context.Context, req *UpdateMemberRolesRequest, opts ...http.CallOption) (rsp *UpdateMemberRolesResponse, err error)
+	// UpdateMemberStatus 修改成员状态。
 	UpdateMemberStatus(ctx context.Context, req *UpdateMemberStatusRequest, opts ...http.CallOption) (rsp *UpdateMemberStatusResponse, err error)
 }
 
@@ -1165,6 +1247,7 @@ func NewMemberServiceHTTPClient(client *http.Client) MemberServiceHTTPClient {
 	return &MemberServiceHTTPClientImpl{client}
 }
 
+// DeleteMember 把成员移出当前租户。
 func (c *MemberServiceHTTPClientImpl) DeleteMember(ctx context.Context, in *DeleteMemberRequest, opts ...http.CallOption) (*DeleteMemberResponse, error) {
 	var out DeleteMemberResponse
 	pattern := "/v1/member/{uid}"
@@ -1178,6 +1261,7 @@ func (c *MemberServiceHTTPClientImpl) DeleteMember(ctx context.Context, in *Dele
 	return &out, nil
 }
 
+// GetMember 获取当前租户的一名成员。
 func (c *MemberServiceHTTPClientImpl) GetMember(ctx context.Context, in *GetMemberRequest, opts ...http.CallOption) (*GetMemberResponse, error) {
 	var out GetMemberResponse
 	pattern := "/v1/member/{uid}"
@@ -1191,6 +1275,7 @@ func (c *MemberServiceHTTPClientImpl) GetMember(ctx context.Context, in *GetMemb
 	return &out, nil
 }
 
+// InviteMember 邀请已注册用户加入当前租户。不能指定 owner。
 func (c *MemberServiceHTTPClientImpl) InviteMember(ctx context.Context, in *InviteMemberRequest, opts ...http.CallOption) (*InviteMemberResponse, error) {
 	var out InviteMemberResponse
 	pattern := "/v1/member/invite"
@@ -1204,6 +1289,7 @@ func (c *MemberServiceHTTPClientImpl) InviteMember(ctx context.Context, in *Invi
 	return &out, nil
 }
 
+// ListMembers 分页列出当前租户的成员。
 func (c *MemberServiceHTTPClientImpl) ListMembers(ctx context.Context, in *ListMembersRequest, opts ...http.CallOption) (*ListMembersResponse, error) {
 	var out ListMembersResponse
 	pattern := "/v1/members"
@@ -1217,6 +1303,7 @@ func (c *MemberServiceHTTPClientImpl) ListMembers(ctx context.Context, in *ListM
 	return &out, nil
 }
 
+// ListUserMembers 按用户标识查找其在当前租户的成员身份。
 func (c *MemberServiceHTTPClientImpl) ListUserMembers(ctx context.Context, in *ListUserMembersRequest, opts ...http.CallOption) (*ListUserMembersResponse, error) {
 	var out ListUserMembersResponse
 	pattern := "/v1/members/user/{user_uid}"
@@ -1230,6 +1317,7 @@ func (c *MemberServiceHTTPClientImpl) ListUserMembers(ctx context.Context, in *L
 	return &out, nil
 }
 
+// SelectMembers 按游标列出当前租户的成员，供选择。
 func (c *MemberServiceHTTPClientImpl) SelectMembers(ctx context.Context, in *SelectMembersRequest, opts ...http.CallOption) (*SelectMembersResponse, error) {
 	var out SelectMembersResponse
 	pattern := "/v1/members/select"
@@ -1243,6 +1331,7 @@ func (c *MemberServiceHTTPClientImpl) SelectMembers(ctx context.Context, in *Sel
 	return &out, nil
 }
 
+// UpdateMemberRoles 替换成员的角色。包含 owner 时需要移交权限。
 func (c *MemberServiceHTTPClientImpl) UpdateMemberRoles(ctx context.Context, in *UpdateMemberRolesRequest, opts ...http.CallOption) (*UpdateMemberRolesResponse, error) {
 	var out UpdateMemberRolesResponse
 	pattern := "/v1/member/{uid}/roles"
@@ -1256,6 +1345,7 @@ func (c *MemberServiceHTTPClientImpl) UpdateMemberRoles(ctx context.Context, in 
 	return &out, nil
 }
 
+// UpdateMemberStatus 修改成员状态。
 func (c *MemberServiceHTTPClientImpl) UpdateMemberStatus(ctx context.Context, in *UpdateMemberStatusRequest, opts ...http.CallOption) (*UpdateMemberStatusResponse, error) {
 	var out UpdateMemberStatusResponse
 	pattern := "/v1/member/{uid}/status"
@@ -1276,10 +1366,15 @@ const OperationUserServicePermitUser = "/alioth.v1.UserService/PermitUser"
 const OperationUserServiceSelectUsers = "/alioth.v1.UserService/SelectUsers"
 
 type UserServiceHTTPServer interface {
+	// BanUser 封禁用户。封禁后不能登录。
 	BanUser(context.Context, *BanUserRequest) (*BanUserResponse, error)
+	// GetUser 获取一名全局用户。
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
+	// ListUsers 分页列出全局用户。
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
+	// PermitUser 解除封禁，用户可以再次登录。
 	PermitUser(context.Context, *PermitUserRequest) (*PermitUserResponse, error)
+	// SelectUsers 按游标列出全局用户，供选择。
 	SelectUsers(context.Context, *SelectUsersRequest) (*SelectUsersResponse, error)
 }
 
@@ -1397,10 +1492,15 @@ func _UserService_PermitUser0_HTTP_Handler(srv UserServiceHTTPServer) func(ctx h
 }
 
 type UserServiceHTTPClient interface {
+	// BanUser 封禁用户。封禁后不能登录。
 	BanUser(ctx context.Context, req *BanUserRequest, opts ...http.CallOption) (rsp *BanUserResponse, err error)
+	// GetUser 获取一名全局用户。
 	GetUser(ctx context.Context, req *GetUserRequest, opts ...http.CallOption) (rsp *GetUserResponse, err error)
+	// ListUsers 分页列出全局用户。
 	ListUsers(ctx context.Context, req *ListUsersRequest, opts ...http.CallOption) (rsp *ListUsersResponse, err error)
+	// PermitUser 解除封禁，用户可以再次登录。
 	PermitUser(ctx context.Context, req *PermitUserRequest, opts ...http.CallOption) (rsp *PermitUserResponse, err error)
+	// SelectUsers 按游标列出全局用户，供选择。
 	SelectUsers(ctx context.Context, req *SelectUsersRequest, opts ...http.CallOption) (rsp *SelectUsersResponse, err error)
 }
 
@@ -1412,6 +1512,7 @@ func NewUserServiceHTTPClient(client *http.Client) UserServiceHTTPClient {
 	return &UserServiceHTTPClientImpl{client}
 }
 
+// BanUser 封禁用户。封禁后不能登录。
 func (c *UserServiceHTTPClientImpl) BanUser(ctx context.Context, in *BanUserRequest, opts ...http.CallOption) (*BanUserResponse, error) {
 	var out BanUserResponse
 	pattern := "/v1/user/ban/{uid}"
@@ -1425,6 +1526,7 @@ func (c *UserServiceHTTPClientImpl) BanUser(ctx context.Context, in *BanUserRequ
 	return &out, nil
 }
 
+// GetUser 获取一名全局用户。
 func (c *UserServiceHTTPClientImpl) GetUser(ctx context.Context, in *GetUserRequest, opts ...http.CallOption) (*GetUserResponse, error) {
 	var out GetUserResponse
 	pattern := "/v1/user/{uid}"
@@ -1438,6 +1540,7 @@ func (c *UserServiceHTTPClientImpl) GetUser(ctx context.Context, in *GetUserRequ
 	return &out, nil
 }
 
+// ListUsers 分页列出全局用户。
 func (c *UserServiceHTTPClientImpl) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...http.CallOption) (*ListUsersResponse, error) {
 	var out ListUsersResponse
 	pattern := "/v1/users"
@@ -1451,6 +1554,7 @@ func (c *UserServiceHTTPClientImpl) ListUsers(ctx context.Context, in *ListUsers
 	return &out, nil
 }
 
+// PermitUser 解除封禁，用户可以再次登录。
 func (c *UserServiceHTTPClientImpl) PermitUser(ctx context.Context, in *PermitUserRequest, opts ...http.CallOption) (*PermitUserResponse, error) {
 	var out PermitUserResponse
 	pattern := "/v1/user/permit/{uid}"
@@ -1464,6 +1568,7 @@ func (c *UserServiceHTTPClientImpl) PermitUser(ctx context.Context, in *PermitUs
 	return &out, nil
 }
 
+// SelectUsers 按游标列出全局用户，供选择。
 func (c *UserServiceHTTPClientImpl) SelectUsers(ctx context.Context, in *SelectUsersRequest, opts ...http.CallOption) (*SelectUsersResponse, error) {
 	var out SelectUsersResponse
 	pattern := "/v1/users/select"
@@ -1488,14 +1593,23 @@ const OperationRoleServiceUpdateRolePermissions = "/alioth.v1.RoleService/Update
 const OperationRoleServiceUpdateRoleStatus = "/alioth.v1.RoleService/UpdateRoleStatus"
 
 type RoleServiceHTTPServer interface {
+	// CreateRole 在当前租户创建自定义角色。
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
+	// DeleteRole 删除自定义角色。系统角色不能删除。
 	DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleResponse, error)
+	// GetRole 获取当前租户的一个角色。
 	GetRole(context.Context, *GetRoleRequest) (*GetRoleResponse, error)
+	// ListPermissions 列出全部权限定义。
 	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
+	// ListRoles 分页列出当前租户的角色。
 	ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error)
+	// SelectRoles 按游标列出当前租户的角色，供选择。
 	SelectRoles(context.Context, *SelectRolesRequest) (*SelectRolesResponse, error)
+	// UpdateRole 修改自定义角色的名称。系统角色不能改名。
 	UpdateRole(context.Context, *UpdateRoleRequest) (*UpdateRoleResponse, error)
+	// UpdateRolePermissions 替换自定义角色的权限。不能授予删除租户和移交负责人。
 	UpdateRolePermissions(context.Context, *UpdateRolePermissionsRequest) (*UpdateRolePermissionsResponse, error)
+	// UpdateRoleStatus 启用或停用角色。
 	UpdateRoleStatus(context.Context, *UpdateRoleStatusRequest) (*UpdateRoleStatusResponse, error)
 }
 
@@ -1711,14 +1825,23 @@ func _RoleService_ListPermissions0_HTTP_Handler(srv RoleServiceHTTPServer) func(
 }
 
 type RoleServiceHTTPClient interface {
+	// CreateRole 在当前租户创建自定义角色。
 	CreateRole(ctx context.Context, req *CreateRoleRequest, opts ...http.CallOption) (rsp *CreateRoleResponse, err error)
+	// DeleteRole 删除自定义角色。系统角色不能删除。
 	DeleteRole(ctx context.Context, req *DeleteRoleRequest, opts ...http.CallOption) (rsp *DeleteRoleResponse, err error)
+	// GetRole 获取当前租户的一个角色。
 	GetRole(ctx context.Context, req *GetRoleRequest, opts ...http.CallOption) (rsp *GetRoleResponse, err error)
+	// ListPermissions 列出全部权限定义。
 	ListPermissions(ctx context.Context, req *ListPermissionsRequest, opts ...http.CallOption) (rsp *ListPermissionsResponse, err error)
+	// ListRoles 分页列出当前租户的角色。
 	ListRoles(ctx context.Context, req *ListRolesRequest, opts ...http.CallOption) (rsp *ListRolesResponse, err error)
+	// SelectRoles 按游标列出当前租户的角色，供选择。
 	SelectRoles(ctx context.Context, req *SelectRolesRequest, opts ...http.CallOption) (rsp *SelectRolesResponse, err error)
+	// UpdateRole 修改自定义角色的名称。系统角色不能改名。
 	UpdateRole(ctx context.Context, req *UpdateRoleRequest, opts ...http.CallOption) (rsp *UpdateRoleResponse, err error)
+	// UpdateRolePermissions 替换自定义角色的权限。不能授予删除租户和移交负责人。
 	UpdateRolePermissions(ctx context.Context, req *UpdateRolePermissionsRequest, opts ...http.CallOption) (rsp *UpdateRolePermissionsResponse, err error)
+	// UpdateRoleStatus 启用或停用角色。
 	UpdateRoleStatus(ctx context.Context, req *UpdateRoleStatusRequest, opts ...http.CallOption) (rsp *UpdateRoleStatusResponse, err error)
 }
 
@@ -1730,6 +1853,7 @@ func NewRoleServiceHTTPClient(client *http.Client) RoleServiceHTTPClient {
 	return &RoleServiceHTTPClientImpl{client}
 }
 
+// CreateRole 在当前租户创建自定义角色。
 func (c *RoleServiceHTTPClientImpl) CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...http.CallOption) (*CreateRoleResponse, error) {
 	var out CreateRoleResponse
 	pattern := "/v1/roles"
@@ -1743,6 +1867,7 @@ func (c *RoleServiceHTTPClientImpl) CreateRole(ctx context.Context, in *CreateRo
 	return &out, nil
 }
 
+// DeleteRole 删除自定义角色。系统角色不能删除。
 func (c *RoleServiceHTTPClientImpl) DeleteRole(ctx context.Context, in *DeleteRoleRequest, opts ...http.CallOption) (*DeleteRoleResponse, error) {
 	var out DeleteRoleResponse
 	pattern := "/v1/role/{uid}"
@@ -1756,6 +1881,7 @@ func (c *RoleServiceHTTPClientImpl) DeleteRole(ctx context.Context, in *DeleteRo
 	return &out, nil
 }
 
+// GetRole 获取当前租户的一个角色。
 func (c *RoleServiceHTTPClientImpl) GetRole(ctx context.Context, in *GetRoleRequest, opts ...http.CallOption) (*GetRoleResponse, error) {
 	var out GetRoleResponse
 	pattern := "/v1/role/{uid}"
@@ -1769,6 +1895,7 @@ func (c *RoleServiceHTTPClientImpl) GetRole(ctx context.Context, in *GetRoleRequ
 	return &out, nil
 }
 
+// ListPermissions 列出全部权限定义。
 func (c *RoleServiceHTTPClientImpl) ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...http.CallOption) (*ListPermissionsResponse, error) {
 	var out ListPermissionsResponse
 	pattern := "/v1/permissions"
@@ -1782,6 +1909,7 @@ func (c *RoleServiceHTTPClientImpl) ListPermissions(ctx context.Context, in *Lis
 	return &out, nil
 }
 
+// ListRoles 分页列出当前租户的角色。
 func (c *RoleServiceHTTPClientImpl) ListRoles(ctx context.Context, in *ListRolesRequest, opts ...http.CallOption) (*ListRolesResponse, error) {
 	var out ListRolesResponse
 	pattern := "/v1/roles"
@@ -1795,6 +1923,7 @@ func (c *RoleServiceHTTPClientImpl) ListRoles(ctx context.Context, in *ListRoles
 	return &out, nil
 }
 
+// SelectRoles 按游标列出当前租户的角色，供选择。
 func (c *RoleServiceHTTPClientImpl) SelectRoles(ctx context.Context, in *SelectRolesRequest, opts ...http.CallOption) (*SelectRolesResponse, error) {
 	var out SelectRolesResponse
 	pattern := "/v1/roles/select"
@@ -1808,6 +1937,7 @@ func (c *RoleServiceHTTPClientImpl) SelectRoles(ctx context.Context, in *SelectR
 	return &out, nil
 }
 
+// UpdateRole 修改自定义角色的名称。系统角色不能改名。
 func (c *RoleServiceHTTPClientImpl) UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...http.CallOption) (*UpdateRoleResponse, error) {
 	var out UpdateRoleResponse
 	pattern := "/v1/role/{uid}"
@@ -1821,6 +1951,7 @@ func (c *RoleServiceHTTPClientImpl) UpdateRole(ctx context.Context, in *UpdateRo
 	return &out, nil
 }
 
+// UpdateRolePermissions 替换自定义角色的权限。不能授予删除租户和移交负责人。
 func (c *RoleServiceHTTPClientImpl) UpdateRolePermissions(ctx context.Context, in *UpdateRolePermissionsRequest, opts ...http.CallOption) (*UpdateRolePermissionsResponse, error) {
 	var out UpdateRolePermissionsResponse
 	pattern := "/v1/role/{uid}/permissions"
@@ -1834,6 +1965,7 @@ func (c *RoleServiceHTTPClientImpl) UpdateRolePermissions(ctx context.Context, i
 	return &out, nil
 }
 
+// UpdateRoleStatus 启用或停用角色。
 func (c *RoleServiceHTTPClientImpl) UpdateRoleStatus(ctx context.Context, in *UpdateRoleStatusRequest, opts ...http.CallOption) (*UpdateRoleStatusResponse, error) {
 	var out UpdateRoleStatusResponse
 	pattern := "/v1/role/{uid}/status"

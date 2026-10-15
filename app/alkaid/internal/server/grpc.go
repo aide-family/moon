@@ -1,17 +1,17 @@
 package server
 
 import (
-	"fmt"
-
-	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	kgrpc "github.com/go-kratos/kratos/v2/transport/grpc"
+
+	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
+	"github.com/aide-family/Alioth/pkg/merr"
 )
 
 func NewGRPCServer(c *conf.Server, logger log.Logger) (*kgrpc.Server, error) {
 	if c == nil || c.Grpc == nil || c.Grpc.Addr == "" {
-		return nil, fmt.Errorf("grpc addr is empty")
+		return nil, merr.Server("grpc addr is empty")
 	}
 	opts := []kgrpc.ServerOption{
 		kgrpc.Address(c.Grpc.Addr),

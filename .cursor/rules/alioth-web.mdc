@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Alioth Web
 
-- 保持一个 Vite 应用。组件使用 shadcn/ui，不引入 `antd`。
+- 保持一个 Vite 应用。组件使用 shadcn/ui，不引入 `antd`。布局和间距先读 [alioth-web-design](../skills/alioth-web-design/SKILL.md)。
 - 页面只调用 `web/src/api` 导出的函数，不直接使用 axios。
 - 请求带 `Authorization: Bearer <token>` 和 `X-Namespace`。不请求 8001、8002、8022、9022。
 - 菜单来自当前用户权限。业务文案走 i18n，不在 JSX 里写死。

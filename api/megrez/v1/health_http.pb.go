@@ -22,6 +22,7 @@ const _ = http.SupportPackageIsVersion1
 const OperationHealthServiceCheck = "/megrez.v1.HealthService/Check"
 
 type HealthServiceHTTPServer interface {
+	// Check 返回进程是否可用。
 	Check(context.Context, *CheckRequest) (*CheckResponse, error)
 }
 
@@ -50,6 +51,7 @@ func _HealthService_Check0_HTTP_Handler(srv HealthServiceHTTPServer) func(ctx ht
 }
 
 type HealthServiceHTTPClient interface {
+	// Check 返回进程是否可用。
 	Check(ctx context.Context, req *CheckRequest, opts ...http.CallOption) (rsp *CheckResponse, err error)
 }
 
@@ -61,6 +63,7 @@ func NewHealthServiceHTTPClient(client *http.Client) HealthServiceHTTPClient {
 	return &HealthServiceHTTPClientImpl{client}
 }
 
+// Check 返回进程是否可用。
 func (c *HealthServiceHTTPClientImpl) Check(ctx context.Context, in *CheckRequest, opts ...http.CallOption) (*CheckResponse, error) {
 	var out CheckResponse
 	pattern := "/health"

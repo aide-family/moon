@@ -1,0 +1,21 @@
+package repository
+
+import (
+	"context"
+
+	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+)
+
+// RoleRepo 读写租户角色，并计算某个用户在租户内的有效权限。
+type RoleRepo interface {
+	ListRoles(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.Role, int, error)
+	GetRole(ctx context.Context, namespaceUID, uid string) (*bo.Role, error)
+	SelectRoles(ctx context.Context, namespaceUID string, limit int, lastUID string) ([]bo.SelectItem, error)
+	CreateRole(ctx context.Context, namespaceUID, name string) (*bo.Role, error)
+	UpdateRole(ctx context.Context, namespaceUID, uid, name string) (*bo.Role, error)
+	UpdateRoleStatus(ctx context.Context, namespaceUID, uid, status string) (*bo.Role, error)
+	DeleteRole(ctx context.Context, namespaceUID, uid string) error
+	UpdateRolePermissions(ctx context.Context, namespaceUID, uid string, names []string) (*bo.Role, error)
+	ListPermissions(ctx context.Context) ([]bo.Permission, error)
+	Permissions(ctx context.Context, namespaceUID, userUID string) (map[string]struct{}, error)
+}

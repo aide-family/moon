@@ -23,15 +23,23 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// 用户资料。响应中不含密码。
 type UserItem struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Nickname      string                 `protobuf:"bytes,3,opt,name=nickname,proto3" json:"nickname,omitempty"`
-	Email         string                 `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
-	Avatar        string                 `protobuf:"bytes,5,opt,name=avatar,proto3" json:"avatar,omitempty"`
-	Remark        string                 `protobuf:"bytes,6,opt,name=remark,proto3" json:"remark,omitempty"`
-	Status        string                 `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 名称。
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// 昵称。
+	Nickname string `protobuf:"bytes,3,opt,name=nickname,proto3" json:"nickname,omitempty"`
+	// 邮箱。
+	Email string `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
+	// 头像地址。
+	Avatar string `protobuf:"bytes,5,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	// 备注。
+	Remark string `protobuf:"bytes,6,opt,name=remark,proto3" json:"remark,omitempty"`
+	// 状态。
+	Status        string `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -115,14 +123,21 @@ func (x *UserItem) GetStatus() string {
 	return ""
 }
 
+// 租户。
 type NamespaceItem struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	OwnerUid      string                 `protobuf:"bytes,3,opt,name=owner_uid,json=ownerUid,proto3" json:"owner_uid,omitempty"`
-	Logo          string                 `protobuf:"bytes,4,opt,name=logo,proto3" json:"logo,omitempty"`
-	Remark        string                 `protobuf:"bytes,5,opt,name=remark,proto3" json:"remark,omitempty"`
-	Status        string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 名称。
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// 负责人的用户标识。
+	OwnerUid string `protobuf:"bytes,3,opt,name=owner_uid,json=ownerUid,proto3" json:"owner_uid,omitempty"`
+	// 标志地址。
+	Logo string `protobuf:"bytes,4,opt,name=logo,proto3" json:"logo,omitempty"`
+	// 备注。
+	Remark string `protobuf:"bytes,5,opt,name=remark,proto3" json:"remark,omitempty"`
+	// 状态。
+	Status        string `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -199,16 +214,25 @@ func (x *NamespaceItem) GetStatus() string {
 	return ""
 }
 
+// 租户成员。
 type MemberItem struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	NamespaceUid  string                 `protobuf:"bytes,2,opt,name=namespace_uid,json=namespaceUid,proto3" json:"namespace_uid,omitempty"`
-	UserUid       string                 `protobuf:"bytes,3,opt,name=user_uid,json=userUid,proto3" json:"user_uid,omitempty"`
-	Email         string                 `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
-	Name          string                 `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
-	Status        string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
-	RoleUids      []string               `protobuf:"bytes,7,rep,name=role_uids,json=roleUids,proto3" json:"role_uids,omitempty"`
-	RoleNames     []string               `protobuf:"bytes,8,rep,name=role_names,json=roleNames,proto3" json:"role_names,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 租户标识。
+	NamespaceUid string `protobuf:"bytes,2,opt,name=namespace_uid,json=namespaceUid,proto3" json:"namespace_uid,omitempty"`
+	// 用户标识。
+	UserUid string `protobuf:"bytes,3,opt,name=user_uid,json=userUid,proto3" json:"user_uid,omitempty"`
+	// 邮箱。
+	Email string `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
+	// 名称。
+	Name string `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
+	// 状态。
+	Status string `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
+	// 角色标识列表。
+	RoleUids []string `protobuf:"bytes,7,rep,name=role_uids,json=roleUids,proto3" json:"role_uids,omitempty"`
+	// 角色名称列表。
+	RoleNames     []string `protobuf:"bytes,8,rep,name=role_names,json=roleNames,proto3" json:"role_names,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -299,14 +323,21 @@ func (x *MemberItem) GetRoleNames() []string {
 	return nil
 }
 
+// 租户角色。
 type RoleItem struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	NamespaceUid  string                 `protobuf:"bytes,2,opt,name=namespace_uid,json=namespaceUid,proto3" json:"namespace_uid,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
-	IsSystem      bool                   `protobuf:"varint,5,opt,name=is_system,json=isSystem,proto3" json:"is_system,omitempty"`
-	Permissions   []string               `protobuf:"bytes,6,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 租户标识。
+	NamespaceUid string `protobuf:"bytes,2,opt,name=namespace_uid,json=namespaceUid,proto3" json:"namespace_uid,omitempty"`
+	// 名称。
+	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	// 状态。
+	Status string `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	// 是否为系统预置角色。
+	IsSystem bool `protobuf:"varint,5,opt,name=is_system,json=isSystem,proto3" json:"is_system,omitempty"`
+	// 权限名列表。
+	Permissions   []string `protobuf:"bytes,6,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -383,12 +414,17 @@ func (x *RoleItem) GetPermissions() []string {
 	return nil
 }
 
+// 权限定义。
 type PermissionItem struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Resource      string                 `protobuf:"bytes,3,opt,name=resource,proto3" json:"resource,omitempty"`
-	Action        string                 `protobuf:"bytes,4,opt,name=action,proto3" json:"action,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 名称。
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// 资源名。
+	Resource string `protobuf:"bytes,3,opt,name=resource,proto3" json:"resource,omitempty"`
+	// 动作名。
+	Action        string `protobuf:"bytes,4,opt,name=action,proto3" json:"action,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -451,10 +487,13 @@ func (x *PermissionItem) GetAction() string {
 	return ""
 }
 
+// 下拉选项。
 type SelectItem struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 名称。
+	Name          string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -503,11 +542,15 @@ func (x *SelectItem) GetName() string {
 	return ""
 }
 
+// 登录成功后的访问令牌和刷新令牌。
 type TokenPair struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
-	RefreshToken  string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
-	User          *UserItem              `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 访问令牌。
+	AccessToken string `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	// 刷新令牌。
+	RefreshToken string `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	// 用户资料。
+	User          *UserItem `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -563,6 +606,7 @@ func (x *TokenPair) GetUser() *UserItem {
 	return nil
 }
 
+// 获取验证码不需要参数。
 type GetCaptchaRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -599,10 +643,13 @@ func (*GetCaptchaRequest) Descriptor() ([]byte, []int) {
 	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{7}
 }
 
+// 验证码标识和图片。
 type GetCaptchaResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Image         string                 `protobuf:"bytes,2,opt,name=image,proto3" json:"image,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 验证码标识。
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 验证码图片，data URL。
+	Image         string `protobuf:"bytes,2,opt,name=image,proto3" json:"image,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -651,13 +698,19 @@ func (x *GetCaptchaResponse) GetImage() string {
 	return ""
 }
 
+// 注册参数。
 type RegisterRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
-	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
-	CaptchaId     string                 `protobuf:"bytes,3,opt,name=captcha_id,json=captchaId,proto3" json:"captcha_id,omitempty"`
-	CaptchaCode   string                 `protobuf:"bytes,4,opt,name=captcha_code,json=captchaCode,proto3" json:"captcha_code,omitempty"`
-	Name          string                 `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 邮箱。
+	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	// 密码。注册时至少 8 位。
+	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	// 图形验证码标识。
+	CaptchaId string `protobuf:"bytes,3,opt,name=captcha_id,json=captchaId,proto3" json:"captcha_id,omitempty"`
+	// 图形验证码答案。
+	CaptchaCode string `protobuf:"bytes,4,opt,name=captcha_code,json=captchaCode,proto3" json:"captcha_code,omitempty"`
+	// 名称。
+	Name          string `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -727,9 +780,11 @@ func (x *RegisterRequest) GetName() string {
 	return ""
 }
 
+// 注册结果。
 type RegisterResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Session       *TokenPair             `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 登录会话。
+	Session       *TokenPair `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -771,10 +826,13 @@ func (x *RegisterResponse) GetSession() *TokenPair {
 	return nil
 }
 
+// 密码登录参数。
 type PasswordLoginRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
-	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 邮箱。
+	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	// 密码。注册时至少 8 位。
+	Password      string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -823,9 +881,11 @@ func (x *PasswordLoginRequest) GetPassword() string {
 	return ""
 }
 
+// 密码登录结果。
 type PasswordLoginResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Session       *TokenPair             `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 登录会话。
+	Session       *TokenPair `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -867,9 +927,11 @@ func (x *PasswordLoginResponse) GetSession() *TokenPair {
 	return nil
 }
 
+// 发送邮箱登录码的参数。
 type SendEmailLoginCodeRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 邮箱。
+	Email         string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -911,6 +973,7 @@ func (x *SendEmailLoginCodeRequest) GetEmail() string {
 	return ""
 }
 
+// 验证码已受理。
 type SendEmailLoginCodeResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -947,10 +1010,13 @@ func (*SendEmailLoginCodeResponse) Descriptor() ([]byte, []int) {
 	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{14}
 }
 
+// 邮箱验证码登录参数。
 type EmailLoginRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
-	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 邮箱。
+	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	// 邮箱验证码或第三方授权码。
+	Code          string `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -999,9 +1065,11 @@ func (x *EmailLoginRequest) GetCode() string {
 	return ""
 }
 
+// 邮箱登录结果。
 type EmailLoginResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Session       *TokenPair             `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 登录会话。
+	Session       *TokenPair `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1043,11 +1111,15 @@ func (x *EmailLoginResponse) GetSession() *TokenPair {
 	return nil
 }
 
+// 第三方登录参数。
 type OAuth2LoginRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Provider      string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
-	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
-	RedirectUri   string                 `protobuf:"bytes,3,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 第三方，取值为 GITHUB、GITEE 或 FEISHU。
+	Provider string `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
+	// 邮箱验证码或第三方授权码。
+	Code string `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	// 授权回调地址。
+	RedirectUri   string `protobuf:"bytes,3,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1103,9 +1175,11 @@ func (x *OAuth2LoginRequest) GetRedirectUri() string {
 	return ""
 }
 
+// 第三方登录结果。
 type OAuth2LoginResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Session       *TokenPair             `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 登录会话。
+	Session       *TokenPair `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1147,6 +1221,7 @@ func (x *OAuth2LoginResponse) GetSession() *TokenPair {
 	return nil
 }
 
+// 获取个人资料不需要参数。
 type GetSelfInfoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1183,9 +1258,11 @@ func (*GetSelfInfoRequest) Descriptor() ([]byte, []int) {
 	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{19}
 }
 
+// 当前用户资料。
 type GetSelfInfoResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	User          *UserItem              `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 用户资料。
+	User          *UserItem `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1227,6 +1304,7 @@ func (x *GetSelfInfoResponse) GetUser() *UserItem {
 	return nil
 }
 
+// 列出租户不需要参数。
 type ListSelfNamespacesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1263,9 +1341,11 @@ func (*ListSelfNamespacesRequest) Descriptor() ([]byte, []int) {
 	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{21}
 }
 
+// 当前用户加入的租户。
 type ListSelfNamespacesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*NamespaceItem       `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前页数据。
+	Items         []*NamespaceItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1307,6 +1387,7 @@ func (x *ListSelfNamespacesResponse) GetItems() []*NamespaceItem {
 	return nil
 }
 
+// 刷新令牌不需要参数，凭证在请求头。
 type RefreshTokenRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1343,9 +1424,11 @@ func (*RefreshTokenRequest) Descriptor() ([]byte, []int) {
 	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{23}
 }
 
+// 新的访问令牌。
 type RefreshTokenResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 访问令牌。
+	AccessToken   string `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1387,9 +1470,11 @@ func (x *RefreshTokenResponse) GetAccessToken() string {
 	return ""
 }
 
+// 新邮箱。
 type ChangeEmailRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 邮箱。
+	Email         string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1431,9 +1516,11 @@ func (x *ChangeEmailRequest) GetEmail() string {
 	return ""
 }
 
+// 修改后的用户资料。
 type ChangeEmailResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	User          *UserItem              `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 用户资料。
+	User          *UserItem `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1475,9 +1562,11 @@ func (x *ChangeEmailResponse) GetUser() *UserItem {
 	return nil
 }
 
+// 新头像地址。
 type ChangeAvatarRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Avatar        string                 `protobuf:"bytes,1,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 头像地址。
+	Avatar        string `protobuf:"bytes,1,opt,name=avatar,proto3" json:"avatar,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1519,9 +1608,11 @@ func (x *ChangeAvatarRequest) GetAvatar() string {
 	return ""
 }
 
+// 修改后的用户资料。
 type ChangeAvatarResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	User          *UserItem              `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 用户资料。
+	User          *UserItem `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1563,9 +1654,11 @@ func (x *ChangeAvatarResponse) GetUser() *UserItem {
 	return nil
 }
 
+// 新备注。
 type ChangeRemarkRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Remark        string                 `protobuf:"bytes,1,opt,name=remark,proto3" json:"remark,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 备注。
+	Remark        string `protobuf:"bytes,1,opt,name=remark,proto3" json:"remark,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1607,9 +1700,11 @@ func (x *ChangeRemarkRequest) GetRemark() string {
 	return ""
 }
 
+// 修改后的用户资料。
 type ChangeRemarkResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	User          *UserItem              `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 用户资料。
+	User          *UserItem `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1651,6 +1746,7 @@ func (x *ChangeRemarkResponse) GetUser() *UserItem {
 	return nil
 }
 
+// 获取个人权限不需要参数。
 type GetSelfPermissionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1687,9 +1783,11 @@ func (*GetSelfPermissionsRequest) Descriptor() ([]byte, []int) {
 	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{31}
 }
 
+// 当前用户在当前租户的权限名。
 type GetSelfPermissionsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Permissions   []string               `protobuf:"bytes,1,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 权限名列表。
+	Permissions   []string `protobuf:"bytes,1,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1731,10 +1829,13 @@ func (x *GetSelfPermissionsResponse) GetPermissions() []string {
 	return nil
 }
 
+// 创建租户的参数。
 type CreateNamespaceRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Remark        string                 `protobuf:"bytes,2,opt,name=remark,proto3" json:"remark,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 名称。
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// 备注。
+	Remark        string `protobuf:"bytes,2,opt,name=remark,proto3" json:"remark,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1783,9 +1884,11 @@ func (x *CreateNamespaceRequest) GetRemark() string {
 	return ""
 }
 
+// 新建的租户。
 type CreateNamespaceResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Namespace     *NamespaceItem         `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 租户。
+	Namespace     *NamespaceItem `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1827,12 +1930,17 @@ func (x *CreateNamespaceResponse) GetNamespace() *NamespaceItem {
 	return nil
 }
 
+// 修改租户的参数。
 type UpdateNamespaceRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Remark        string                 `protobuf:"bytes,3,opt,name=remark,proto3" json:"remark,omitempty"`
-	Logo          string                 `protobuf:"bytes,4,opt,name=logo,proto3" json:"logo,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 名称。
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// 备注。
+	Remark string `protobuf:"bytes,3,opt,name=remark,proto3" json:"remark,omitempty"`
+	// 标志地址。
+	Logo          string `protobuf:"bytes,4,opt,name=logo,proto3" json:"logo,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1895,9 +2003,11 @@ func (x *UpdateNamespaceRequest) GetLogo() string {
 	return ""
 }
 
+// 修改后的租户。
 type UpdateNamespaceResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Namespace     *NamespaceItem         `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 租户。
+	Namespace     *NamespaceItem `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1939,10 +2049,13 @@ func (x *UpdateNamespaceResponse) GetNamespace() *NamespaceItem {
 	return nil
 }
 
+// 修改租户状态的参数。
 type UpdateNamespaceStatusRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 状态。
+	Status        string `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1991,9 +2104,11 @@ func (x *UpdateNamespaceStatusRequest) GetStatus() string {
 	return ""
 }
 
+// 修改后的租户。
 type UpdateNamespaceStatusResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Namespace     *NamespaceItem         `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 租户。
+	Namespace     *NamespaceItem `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2035,9 +2150,11 @@ func (x *UpdateNamespaceStatusResponse) GetNamespace() *NamespaceItem {
 	return nil
 }
 
+// 要删除的租户。
 type DeleteNamespaceRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2079,6 +2196,7 @@ func (x *DeleteNamespaceRequest) GetUid() string {
 	return ""
 }
 
+// 租户已删除。
 type DeleteNamespaceResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -2115,9 +2233,11 @@ func (*DeleteNamespaceResponse) Descriptor() ([]byte, []int) {
 	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{40}
 }
 
+// 要查询的租户。
 type GetNamespaceRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2159,9 +2279,11 @@ func (x *GetNamespaceRequest) GetUid() string {
 	return ""
 }
 
+// 租户详情。
 type GetNamespaceResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Namespace     *NamespaceItem         `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 租户。
+	Namespace     *NamespaceItem `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2203,11 +2325,15 @@ func (x *GetNamespaceResponse) GetNamespace() *NamespaceItem {
 	return nil
 }
 
+// 租户分页查询。
 type ListNamespacesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页码。0 表示使用默认页。
+	Page int32 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页条数，最大 100。
+	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// 名称。
+	Name          string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2263,12 +2389,17 @@ func (x *ListNamespacesRequest) GetName() string {
 	return ""
 }
 
+// 租户分页结果。
 type ListNamespacesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*NamespaceItem       `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
-	Page          int32                  `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前页数据。
+	Items []*NamespaceItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	// 符合条件的总数。
+	Total int32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	// 页码。0 表示使用默认页。
+	Page int32 `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页条数，最大 100。
+	PageSize      int32 `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2331,10 +2462,13 @@ func (x *ListNamespacesResponse) GetPageSize() int32 {
 	return 0
 }
 
+// 租户下拉查询。
 type SelectNamespacesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Limit         int32                  `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
-	LastUid       string                 `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 返回条数，最大 100。0 表示使用默认条数。
+	Limit int32 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	// 上一页最后一条的标识，首页留空。
+	LastUid       string `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2383,10 +2517,13 @@ func (x *SelectNamespacesRequest) GetLastUid() string {
 	return ""
 }
 
+// 租户下拉结果。
 type SelectNamespacesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*SelectItem          `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	LastUid       string                 `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前页数据。
+	Items []*SelectItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	// 上一页最后一条的标识，首页留空。
+	LastUid       string `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2435,10 +2572,13 @@ func (x *SelectNamespacesResponse) GetLastUid() string {
 	return ""
 }
 
+// 租户简表分页查询。
 type ListSimpleNamespacesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页码。0 表示使用默认页。
+	Page int32 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页条数，最大 100。
+	PageSize      int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2487,10 +2627,13 @@ func (x *ListSimpleNamespacesRequest) GetPageSize() int32 {
 	return 0
 }
 
+// 租户简表。
 type ListSimpleNamespacesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*NamespaceItem       `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前页数据。
+	Items []*NamespaceItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	// 符合条件的总数。
+	Total         int32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2539,10 +2682,13 @@ func (x *ListSimpleNamespacesResponse) GetTotal() int32 {
 	return 0
 }
 
+// 移交负责人的参数。
 type TransferNamespaceOwnerRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	UserUid       string                 `protobuf:"bytes,2,opt,name=user_uid,json=userUid,proto3" json:"user_uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 用户标识。
+	UserUid       string `protobuf:"bytes,2,opt,name=user_uid,json=userUid,proto3" json:"user_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2591,9 +2737,11 @@ func (x *TransferNamespaceOwnerRequest) GetUserUid() string {
 	return ""
 }
 
+// 移交后的租户。
 type TransferNamespaceOwnerResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Namespace     *NamespaceItem         `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 租户。
+	Namespace     *NamespaceItem `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2635,11 +2783,15 @@ func (x *TransferNamespaceOwnerResponse) GetNamespace() *NamespaceItem {
 	return nil
 }
 
+// 成员分页查询。
 type ListMembersRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页码。0 表示使用默认页。
+	Page int32 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页条数，最大 100。
+	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// 名称。
+	Name          string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2695,12 +2847,17 @@ func (x *ListMembersRequest) GetName() string {
 	return ""
 }
 
+// 成员分页结果。
 type ListMembersResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*MemberItem          `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
-	Page          int32                  `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前页数据。
+	Items []*MemberItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	// 符合条件的总数。
+	Total int32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	// 页码。0 表示使用默认页。
+	Page int32 `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页条数，最大 100。
+	PageSize      int32 `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2763,9 +2920,11 @@ func (x *ListMembersResponse) GetPageSize() int32 {
 	return 0
 }
 
+// 要查询的成员。
 type GetMemberRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2807,9 +2966,11 @@ func (x *GetMemberRequest) GetUid() string {
 	return ""
 }
 
+// 成员详情。
 type GetMemberResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Member        *MemberItem            `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 成员。
+	Member        *MemberItem `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2851,9 +3012,11 @@ func (x *GetMemberResponse) GetMember() *MemberItem {
 	return nil
 }
 
+// 按用户查找成员。
 type ListUserMembersRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserUid       string                 `protobuf:"bytes,1,opt,name=user_uid,json=userUid,proto3" json:"user_uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 用户标识。
+	UserUid       string `protobuf:"bytes,1,opt,name=user_uid,json=userUid,proto3" json:"user_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2895,9 +3058,11 @@ func (x *ListUserMembersRequest) GetUserUid() string {
 	return ""
 }
 
+// 该用户在当前租户的成员身份。
 type ListUserMembersResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*MemberItem          `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前页数据。
+	Items         []*MemberItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2939,10 +3104,13 @@ func (x *ListUserMembersResponse) GetItems() []*MemberItem {
 	return nil
 }
 
+// 成员下拉查询。
 type SelectMembersRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Limit         int32                  `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
-	LastUid       string                 `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 返回条数，最大 100。0 表示使用默认条数。
+	Limit int32 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	// 上一页最后一条的标识，首页留空。
+	LastUid       string `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2991,10 +3159,13 @@ func (x *SelectMembersRequest) GetLastUid() string {
 	return ""
 }
 
+// 成员下拉结果。
 type SelectMembersResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*SelectItem          `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	LastUid       string                 `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前页数据。
+	Items []*SelectItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	// 上一页最后一条的标识，首页留空。
+	LastUid       string `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3043,10 +3214,13 @@ func (x *SelectMembersResponse) GetLastUid() string {
 	return ""
 }
 
+// 邀请成员的参数。
 type InviteMemberRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
-	RoleUid       string                 `protobuf:"bytes,2,opt,name=role_uid,json=roleUid,proto3" json:"role_uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 邮箱。
+	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	// 要授予的角色标识。不能是 owner。
+	RoleUid       string `protobuf:"bytes,2,opt,name=role_uid,json=roleUid,proto3" json:"role_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3095,9 +3269,11 @@ func (x *InviteMemberRequest) GetRoleUid() string {
 	return ""
 }
 
+// 新成员。
 type InviteMemberResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Member        *MemberItem            `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 成员。
+	Member        *MemberItem `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3139,9 +3315,11 @@ func (x *InviteMemberResponse) GetMember() *MemberItem {
 	return nil
 }
 
+// 要移出的成员。
 type DeleteMemberRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3183,6 +3361,7 @@ func (x *DeleteMemberRequest) GetUid() string {
 	return ""
 }
 
+// 成员已移出。
 type DeleteMemberResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -3219,10 +3398,13 @@ func (*DeleteMemberResponse) Descriptor() ([]byte, []int) {
 	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{62}
 }
 
+// 修改成员状态的参数。
 type UpdateMemberStatusRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 状态。
+	Status        string `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3271,9 +3453,11 @@ func (x *UpdateMemberStatusRequest) GetStatus() string {
 	return ""
 }
 
+// 修改后的成员。
 type UpdateMemberStatusResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Member        *MemberItem            `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 成员。
+	Member        *MemberItem `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3315,10 +3499,13 @@ func (x *UpdateMemberStatusResponse) GetMember() *MemberItem {
 	return nil
 }
 
+// 替换成员角色的参数。
 type UpdateMemberRolesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	RoleUids      []string               `protobuf:"bytes,2,rep,name=role_uids,json=roleUids,proto3" json:"role_uids,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 角色标识列表。
+	RoleUids      []string `protobuf:"bytes,2,rep,name=role_uids,json=roleUids,proto3" json:"role_uids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3367,9 +3554,11 @@ func (x *UpdateMemberRolesRequest) GetRoleUids() []string {
 	return nil
 }
 
+// 修改后的成员。
 type UpdateMemberRolesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Member        *MemberItem            `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 成员。
+	Member        *MemberItem `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3411,9 +3600,11 @@ func (x *UpdateMemberRolesResponse) GetMember() *MemberItem {
 	return nil
 }
 
+// 要查询的用户。
 type GetUserRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3455,9 +3646,11 @@ func (x *GetUserRequest) GetUid() string {
 	return ""
 }
 
+// 用户详情。
 type GetUserResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	User          *UserItem              `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 用户资料。
+	User          *UserItem `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3499,11 +3692,15 @@ func (x *GetUserResponse) GetUser() *UserItem {
 	return nil
 }
 
+// 用户分页查询。
 type ListUsersRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页码。0 表示使用默认页。
+	Page int32 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页条数，最大 100。
+	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// 名称。
+	Name          string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3559,12 +3756,17 @@ func (x *ListUsersRequest) GetName() string {
 	return ""
 }
 
+// 用户分页结果。
 type ListUsersResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*UserItem            `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
-	Page          int32                  `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前页数据。
+	Items []*UserItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	// 符合条件的总数。
+	Total int32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	// 页码。0 表示使用默认页。
+	Page int32 `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页条数，最大 100。
+	PageSize      int32 `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3627,10 +3829,13 @@ func (x *ListUsersResponse) GetPageSize() int32 {
 	return 0
 }
 
+// 用户下拉查询。
 type SelectUsersRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Limit         int32                  `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
-	LastUid       string                 `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 返回条数，最大 100。0 表示使用默认条数。
+	Limit int32 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	// 上一页最后一条的标识，首页留空。
+	LastUid       string `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3679,10 +3884,13 @@ func (x *SelectUsersRequest) GetLastUid() string {
 	return ""
 }
 
+// 用户下拉结果。
 type SelectUsersResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*SelectItem          `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	LastUid       string                 `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前页数据。
+	Items []*SelectItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	// 上一页最后一条的标识，首页留空。
+	LastUid       string `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3731,9 +3939,11 @@ func (x *SelectUsersResponse) GetLastUid() string {
 	return ""
 }
 
+// 要封禁的用户。
 type BanUserRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3775,9 +3985,11 @@ func (x *BanUserRequest) GetUid() string {
 	return ""
 }
 
+// 封禁后的用户。
 type BanUserResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	User          *UserItem              `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 用户资料。
+	User          *UserItem `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3819,9 +4031,11 @@ func (x *BanUserResponse) GetUser() *UserItem {
 	return nil
 }
 
+// 要解封的用户。
 type PermitUserRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3863,9 +4077,11 @@ func (x *PermitUserRequest) GetUid() string {
 	return ""
 }
 
+// 解封后的用户。
 type PermitUserResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	User          *UserItem              `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 用户资料。
+	User          *UserItem `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3907,9 +4123,11 @@ func (x *PermitUserResponse) GetUser() *UserItem {
 	return nil
 }
 
+// 创建角色的参数。
 type CreateRoleRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 名称。
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3951,9 +4169,11 @@ func (x *CreateRoleRequest) GetName() string {
 	return ""
 }
 
+// 新建的角色。
 type CreateRoleResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Role          *RoleItem              `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 角色。
+	Role          *RoleItem `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3995,10 +4215,13 @@ func (x *CreateRoleResponse) GetRole() *RoleItem {
 	return nil
 }
 
+// 修改角色名称的参数。
 type UpdateRoleRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 名称。
+	Name          string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4047,9 +4270,11 @@ func (x *UpdateRoleRequest) GetName() string {
 	return ""
 }
 
+// 修改后的角色。
 type UpdateRoleResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Role          *RoleItem              `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 角色。
+	Role          *RoleItem `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4091,10 +4316,13 @@ func (x *UpdateRoleResponse) GetRole() *RoleItem {
 	return nil
 }
 
+// 修改角色状态的参数。
 type UpdateRoleStatusRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 状态。
+	Status        string `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4143,9 +4371,11 @@ func (x *UpdateRoleStatusRequest) GetStatus() string {
 	return ""
 }
 
+// 修改后的角色。
 type UpdateRoleStatusResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Role          *RoleItem              `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 角色。
+	Role          *RoleItem `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4187,9 +4417,11 @@ func (x *UpdateRoleStatusResponse) GetRole() *RoleItem {
 	return nil
 }
 
+// 要删除的角色。
 type DeleteRoleRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4231,6 +4463,7 @@ func (x *DeleteRoleRequest) GetUid() string {
 	return ""
 }
 
+// 角色已删除。
 type DeleteRoleResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -4267,9 +4500,11 @@ func (*DeleteRoleResponse) Descriptor() ([]byte, []int) {
 	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{84}
 }
 
+// 要查询的角色。
 type GetRoleRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4311,9 +4546,11 @@ func (x *GetRoleRequest) GetUid() string {
 	return ""
 }
 
+// 角色详情。
 type GetRoleResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Role          *RoleItem              `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 角色。
+	Role          *RoleItem `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4355,11 +4592,15 @@ func (x *GetRoleResponse) GetRole() *RoleItem {
 	return nil
 }
 
+// 角色分页查询。
 type ListRolesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 页码。0 表示使用默认页。
+	Page int32 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页条数，最大 100。
+	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// 名称。
+	Name          string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4415,12 +4656,17 @@ func (x *ListRolesRequest) GetName() string {
 	return ""
 }
 
+// 角色分页结果。
 type ListRolesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*RoleItem            `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
-	Page          int32                  `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前页数据。
+	Items []*RoleItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	// 符合条件的总数。
+	Total int32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	// 页码。0 表示使用默认页。
+	Page int32 `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页条数，最大 100。
+	PageSize      int32 `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4483,10 +4729,13 @@ func (x *ListRolesResponse) GetPageSize() int32 {
 	return 0
 }
 
+// 角色下拉查询。
 type SelectRolesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Limit         int32                  `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
-	LastUid       string                 `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 返回条数，最大 100。0 表示使用默认条数。
+	Limit int32 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	// 上一页最后一条的标识，首页留空。
+	LastUid       string `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4535,10 +4784,13 @@ func (x *SelectRolesRequest) GetLastUid() string {
 	return ""
 }
 
+// 角色下拉结果。
 type SelectRolesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*SelectItem          `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	LastUid       string                 `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前页数据。
+	Items []*SelectItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	// 上一页最后一条的标识，首页留空。
+	LastUid       string `protobuf:"bytes,2,opt,name=last_uid,json=lastUid,proto3" json:"last_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4587,10 +4839,13 @@ func (x *SelectRolesResponse) GetLastUid() string {
 	return ""
 }
 
+// 替换角色权限的参数。
 type UpdateRolePermissionsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	Permissions   []string               `protobuf:"bytes,2,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 权限名列表。
+	Permissions   []string `protobuf:"bytes,2,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4639,9 +4894,11 @@ func (x *UpdateRolePermissionsRequest) GetPermissions() []string {
 	return nil
 }
 
+// 修改后的角色。
 type UpdateRolePermissionsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Role          *RoleItem              `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 角色。
+	Role          *RoleItem `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4683,6 +4940,7 @@ func (x *UpdateRolePermissionsResponse) GetRole() *RoleItem {
 	return nil
 }
 
+// 列出权限不需要参数。
 type ListPermissionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -4719,9 +4977,11 @@ func (*ListPermissionsRequest) Descriptor() ([]byte, []int) {
 	return file_alioth_v1_identity_proto_rawDescGZIP(), []int{93}
 }
 
+// 全部权限。
 type ListPermissionsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*PermissionItem      `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 当前页数据。
+	Items         []*PermissionItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

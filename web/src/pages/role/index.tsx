@@ -1,15 +1,43 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import { createRole, deleteRole, listPermissions, listRoles, updateRole, updateRolePermissions, updateRoleStatus } from "@/api/role"
+import {
+  createRole,
+  deleteRole,
+  listPermissions,
+  listRoles,
+  updateRole,
+  updateRolePermissions,
+  updateRoleStatus,
+} from "@/api/role"
 import type { PermissionItem, RoleItem } from "@/api/role/types"
 import { useSession } from "@/auth/session"
+import { ConfirmAction } from "@/components/confirm-action"
+import { DetailSheet } from "@/components/detail-sheet"
+import { FormField } from "@/components/form-field"
+import { PageHeader } from "@/components/page-header"
+import { RowActions, type RowAction } from "@/components/row-actions"
 import { useListQuery } from "@/lib/list-query"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Card, CardContent } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 export function RolePage() {
   const { t } = useTranslation()
@@ -29,6 +57,17 @@ export function RolePage() {
   const [selected, setSelected] = useState<string[]>([])
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
+  const [detail, setDetail] = useState<RoleItem | null>(null)
+  const [confirm, setConfirm] = useState<{
+    type: "delete" | "disable"
+    item: RoleItem
+  } | null>(null)
+  const [confirmError, setConfirmError] = useState("")
+  const shownConfirm = useRef(confirm)
+  if (confirm) {
+    shownConfirm.current = confirm
+  }
+  const confirmCopy = shownConfirm.current
 
   useEffect(() => {
     let active = true
@@ -37,7 +76,11 @@ export function RolePage() {
       setFailed(false)
       try {
         const [result, permissions] = await Promise.all([
-          listRoles({ page: query.page, pageSize: query.pageSize, name: query.name }),
+          listRoles({
+            page: query.page,
+            pageSize: query.pageSize,
+            name: query.name,
+          }),
           listPermissions(),
         ])
         if (!active) {
@@ -45,7 +88,13 @@ export function RolePage() {
         }
         setItems(result.items ?? [])
         setTotal(result.total ?? 0)
-        setCatalog((permissions.items ?? []).filter((item) => item.name !== "namespace:delete" && item.name !== "namespace:transfer"))
+        setCatalog(
+          (permissions.items ?? []).filter(
+            (item) =>
+              item.name !== "namespace:delete" &&
+              item.name !== "namespace:transfer"
+          )
+        )
       } catch {
         if (active) {
           setFailed(true)
@@ -115,99 +164,345 @@ export function RolePage() {
     }
   }
 
+  function closeCreate(value: boolean) {
+    setOpen(value)
+    if (!value) {
+      setName("")
+      setError("")
+    }
+  }
+
+  function closeEdit(value: boolean) {
+    if (!value) {
+      setEditing(null)
+      setName("")
+      setError("")
+    }
+  }
+
+  function closeGrant(value: boolean) {
+    if (!value) {
+      setGranting(null)
+      setSelected([])
+      setError("")
+    }
+  }
+
+  function roleActions(item: RoleItem): RowAction[] {
+    if (!session.can("role:write") || item.isSystem) {
+      return []
+    }
+    return [
+      {
+        key: "edit",
+        label: t("action.edit"),
+        onSelect: () => {
+          setEditing(item)
+          setName(item.name)
+          setError("")
+        },
+      },
+      {
+        key: "permissions",
+        label: t("action.permissions"),
+        onSelect: () => {
+          setGranting(item)
+          setSelected(item.permissions ?? [])
+          setError("")
+        },
+      },
+      item.status === "ACTIVE"
+        ? {
+            key: "disable",
+            label: t("action.disable"),
+            destructive: true,
+            onSelect: () => {
+              setConfirmError("")
+              setConfirm({ type: "disable", item })
+            },
+          }
+        : {
+            key: "enable",
+            label: t("action.enable"),
+            onSelect: () =>
+              void updateRoleStatus(item.uid, "ACTIVE").then(() =>
+                setAttempt((value) => value + 1)
+              ),
+          },
+      {
+        key: "delete",
+        label: t("action.delete"),
+        destructive: true,
+        onSelect: () => {
+          setConfirmError("")
+          setConfirm({ type: "delete", item })
+        },
+      },
+    ]
+  }
+
+  async function runConfirm() {
+    if (!confirm) {
+      return
+    }
+    setPending(true)
+    setConfirmError("")
+    try {
+      if (confirm.type === "delete") {
+        await deleteRole(confirm.item.uid)
+      } else {
+        await updateRoleStatus(confirm.item.uid, "DISABLED")
+      }
+      setConfirm(null)
+      setAttempt((value) => value + 1)
+    } catch (err) {
+      setConfirmError(err instanceof Error ? err.message : t("state.failed"))
+    } finally {
+      setPending(false)
+    }
+  }
+
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{t("role.title")}</h1>
-        {session.can("role:write") ? <Button onClick={() => { setOpen(true); setError("") }}>{t("action.create")}</Button> : null}
-      </div>
-      <form className="flex gap-2" onSubmit={(event) => { event.preventDefault(); query.update({ name: draft }) }}>
-        <Input value={draft} placeholder={t("role.name")} onChange={(event) => setDraft(event.target.value)} />
-        <Button type="submit" variant="outline">{t("action.search")}</Button>
+    <section className="flex flex-col gap-6">
+      <PageHeader title={t("role.title")} description={t("role.description")}>
+        {session.can("role:write") ? (
+          <Button
+            onClick={() => {
+              setName("")
+              setError("")
+              setOpen(true)
+            }}
+          >
+            {t("action.create")}
+          </Button>
+        ) : null}
+      </PageHeader>
+      <form
+        className="flex gap-2"
+        onSubmit={(event) => {
+          event.preventDefault()
+          query.update({ name: draft })
+        }}
+      >
+        <Input
+          className="max-w-sm"
+          value={draft}
+          placeholder={t("role.name")}
+          onChange={(event) => setDraft(event.target.value)}
+        />
+        <Button type="submit" variant="outline">
+          {t("action.search")}
+        </Button>
       </form>
-      {loading ? <p>{t("state.loading")}</p> : null}
-      {failed ? <p>{t("state.failed")}</p> : null}
-      {!loading && !failed && items.length === 0 ? <p>{t("state.empty")}</p> : null}
-      {items.length > 0 ? (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("role.name")}</TableHead>
-              <TableHead>{t("namespace.status")}</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.uid}>
-                <TableCell>{item.name}{item.isSystem ? ` (${t("role.system")})` : ""}</TableCell>
-                <TableCell>{item.status}</TableCell>
-                <TableCell className="space-x-2 text-right">
-                  {session.can("role:write") && !item.isSystem ? (
-                    <>
-                      <Button variant="outline" size="sm" onClick={() => { setEditing(item); setName(item.name); setError("") }}>{t("action.edit")}</Button>
-                      <Button variant="outline" size="sm" onClick={() => { setGranting(item); setSelected(item.permissions ?? []); setError("") }}>{t("action.permissions")}</Button>
-                      <Button variant="outline" size="sm" onClick={() => void updateRoleStatus(item.uid, item.status === "ACTIVE" ? "DISABLED" : "ACTIVE").then(() => setAttempt((value) => value + 1))}>
-                        {item.status === "ACTIVE" ? t("action.disable") : t("action.enable")}
-                      </Button>
-                      <Button variant="destructive" size="sm" onClick={() => void deleteRole(item.uid).then(() => setAttempt((value) => value + 1))}>{t("action.delete")}</Button>
-                    </>
-                  ) : null}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      ) : null}
-      <div className="flex items-center gap-2">
-        <Button variant="outline" disabled={query.page <= 1} onClick={() => query.update({ page: query.page - 1 })}>{t("action.prev")}</Button>
-        <span className="text-sm">{query.page} / {Math.max(1, Math.ceil(total / query.pageSize))}</span>
-        <Button variant="outline" disabled={query.page * query.pageSize >= total} onClick={() => query.update({ page: query.page + 1 })}>{t("action.next")}</Button>
-      </div>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>{t("action.create")}</DialogTitle></DialogHeader>
-          <form className="space-y-4" onSubmit={onCreate}>
-            <div className="space-y-2">
-              <Label htmlFor="role-name">{t("role.name")}</Label>
-              <Input id="role-name" value={name} onChange={(event) => setName(event.target.value)} required />
+      <Card>
+        <CardContent>
+          {loading ? (
+            <p className="text-sm text-muted-foreground">
+              {t("state.loading")}
+            </p>
+          ) : null}
+          {!loading && failed ? (
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-destructive">{t("state.failed")}</p>
+              <Button
+                variant="outline"
+                onClick={() => setAttempt((value) => value + 1)}
+              >
+                {t("action.retry")}
+              </Button>
             </div>
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <DialogFooter><Button type="submit" disabled={pending}>{t("action.create")}</Button></DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={editing !== null} onOpenChange={(value) => { if (!value) setEditing(null) }}>
+          ) : null}
+          {!loading && !failed && items.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("role.empty")}</p>
+          ) : null}
+          {!loading && !failed && items.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("role.name")}</TableHead>
+                  <TableHead>{t("namespace.status")}</TableHead>
+                  <TableHead />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {items.map((item) => (
+                  <TableRow key={item.uid}>
+                    <TableCell>
+                      {item.name}
+                      {item.isSystem ? ` (${t("role.system")})` : ""}
+                    </TableCell>
+                    <TableCell>{item.status}</TableCell>
+                    <TableCell>
+                      <RowActions
+                        detailLabel={t("action.detail")}
+                        moreLabel={t("action.more")}
+                        onDetail={() => setDetail(item)}
+                        actions={roleActions(item)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : null}
+        </CardContent>
+      </Card>
+      {!loading && !failed ? (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            disabled={query.page <= 1}
+            onClick={() => query.update({ page: query.page - 1 })}
+          >
+            {t("action.prev")}
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            {query.page} / {Math.max(1, Math.ceil(total / query.pageSize))}
+          </span>
+          <Button
+            variant="outline"
+            disabled={query.page * query.pageSize >= total}
+            onClick={() => query.update({ page: query.page + 1 })}
+          >
+            {t("action.next")}
+          </Button>
+        </div>
+      ) : null}
+      <Dialog open={open} onOpenChange={closeCreate}>
         <DialogContent>
-          <DialogHeader><DialogTitle>{t("action.edit")}</DialogTitle></DialogHeader>
-          <form className="space-y-4" onSubmit={onRename}>
-            <Input value={name} onChange={(event) => setName(event.target.value)} required />
+          <DialogHeader>
+            <DialogTitle>{t("action.create")}</DialogTitle>
+          </DialogHeader>
+          <form className="grid gap-4" onSubmit={onCreate}>
+            <FormField label={t("role.name")} htmlFor="role-name">
+              <Input
+                id="role-name"
+                value={name}
+                placeholder={t("role.namePlaceholder")}
+                onChange={(event) => setName(event.target.value)}
+                required
+              />
+            </FormField>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <DialogFooter><Button type="submit" disabled={pending}>{t("action.save")}</Button></DialogFooter>
+            <DialogFooter>
+              <Button type="submit" disabled={pending}>
+                {t("action.create")}
+              </Button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-      <Dialog open={granting !== null} onOpenChange={(value) => { if (!value) setGranting(null) }}>
+      <Dialog open={editing !== null} onOpenChange={closeEdit}>
         <DialogContent>
-          <DialogHeader><DialogTitle>{t("action.permissions")}</DialogTitle></DialogHeader>
-          <form className="max-h-80 space-y-2 overflow-auto" onSubmit={onGrant}>
-            {catalog.map((item) => (
-              <label key={item.uid} className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={selected.includes(item.name)}
-                  onChange={(event) => {
-                    setSelected((current) => event.target.checked ? [...current, item.name] : current.filter((name) => name !== item.name))
-                  }}
-                />
-                {item.name}
-              </label>
-            ))}
+          <DialogHeader>
+            <DialogTitle>{t("action.edit")}</DialogTitle>
+          </DialogHeader>
+          <form className="grid gap-4" onSubmit={onRename}>
+            <FormField label={t("role.name")} htmlFor="role-edit-name">
+              <Input
+                id="role-edit-name"
+                value={name}
+                placeholder={t("role.namePlaceholder")}
+                onChange={(event) => setName(event.target.value)}
+                required
+              />
+            </FormField>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <DialogFooter><Button type="submit" disabled={pending || selected.length === 0}>{t("action.save")}</Button></DialogFooter>
+            <DialogFooter>
+              <Button type="submit" disabled={pending}>
+                {t("action.save")}
+              </Button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+      <Dialog open={granting !== null} onOpenChange={closeGrant}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("action.permissions")}</DialogTitle>
+          </DialogHeader>
+          <form
+            className="grid max-h-80 gap-4 overflow-auto"
+            onSubmit={onGrant}
+          >
+            <FormField
+              label={t("action.permissions")}
+              hint={t("role.permissionHint")}
+            >
+              <div className="grid gap-2">
+                {catalog.map((item) => (
+                  <div key={item.uid} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`perm-${item.uid}`}
+                      checked={selected.includes(item.name)}
+                      onCheckedChange={(checked) => {
+                        setSelected((current) =>
+                          checked === true
+                            ? [...current, item.name]
+                            : current.filter((name) => name !== item.name)
+                        )
+                      }}
+                    />
+                    <Label htmlFor={`perm-${item.uid}`}>{item.name}</Label>
+                  </div>
+                ))}
+              </div>
+            </FormField>
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            <DialogFooter>
+              <Button type="submit" disabled={pending || selected.length === 0}>
+                {t("action.save")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <DetailSheet
+        open={detail !== null}
+        title={detail?.name ?? t("action.detail")}
+        onOpenChange={(value) => {
+          if (!value) {
+            setDetail(null)
+          }
+        }}
+        fields={[
+          { label: t("role.name"), value: detail?.name ?? "" },
+          { label: t("namespace.status"), value: detail?.status ?? "" },
+          {
+            label: t("role.system"),
+            value: detail?.isSystem ? t("role.system") : "",
+          },
+          {
+            label: t("action.permissions"),
+            value: (detail?.permissions ?? []).join(", "),
+          },
+          { label: t("detail.uid"), value: detail?.uid ?? "" },
+        ]}
+      />
+      <ConfirmAction
+        open={confirm !== null}
+        title={
+          confirmCopy?.type === "delete"
+            ? t("confirm.deleteTitle")
+            : t("confirm.disableTitle")
+        }
+        description={
+          confirmCopy?.type === "delete"
+            ? t("confirm.deleteDescription")
+            : t("confirm.disableDescription")
+        }
+        confirmLabel={t("action.confirm")}
+        cancelLabel={t("action.cancel")}
+        pending={pending}
+        error={confirmError}
+        onConfirm={() => void runConfirm()}
+        onOpenChange={(value) => {
+          if (!value) {
+            setConfirm(null)
+            setConfirmError("")
+          }
+        }}
+      />
     </section>
   )
 }

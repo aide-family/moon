@@ -1,0 +1,11 @@
+---
+description: 做 Alioth 界面时先读设计标准，并把确认过的样式修订写回技能
+alwaysApply: true
+---
+
+# 前端设计标准
+
+改 `web/` 的布局、间距、壳、页面或组件外观时，先读 [.cursor/skills/alioth-web-design/SKILL.md](../skills/alioth-web-design/SKILL.md)，再读 [revisions.md](../skills/alioth-web-design/revisions.md)。修订记录优先。
+
+- 沿用 `radix-nova`、`neutral`、Geist、lucide。不引入 `antd`，不另写配色或字号。
+- 用户指出样式问题并确认改法后，当次任务结束前把可复用的结论写入 `revisions.md`（日期、适用范围、必须遵守的布局或类）。只属于当次页面、不能推广的改动不写入。

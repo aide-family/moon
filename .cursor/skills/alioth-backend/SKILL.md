@@ -13,7 +13,15 @@ description: >-
 
 ## 分层
 
-每个应用使用 `cmd`、`internal/server`、`internal/service`、`internal/biz`、`internal/data`、`internal/conf`。依赖方向是 server → service → biz → data。`biz` 定义仓储接口。用 Wire 组装。应用之间不 import 对方的 `internal`。
+每个应用使用 `cmd`、`internal/server`、`internal/service`、`internal/biz/<领域>`、`internal/access`、`internal/data/repository`、`internal/data`、`internal/conf`、`pkg/bo`。`server` 注入多个 service，service 调用多个 biz，biz 调用多个 repository。`data/repository` 只放仓储接口，`data` 按同一聚合实现，并只依赖 `repository` 和本应用的 `pkg/bo`。biz 用到的结构体放在 `app/<应用>/pkg/bo`。用 Wire 组装。应用之间不 import 对方的 `internal`。
+
+同一父目录下的包不能互相 import。父包可以汇总子包的 ProviderSet。
+
+biz 的关键判断要写清为什么拒绝、状态怎么变、以及和别的领域怎么配合。
+
+每个手写包有 `doc.go`。手写 Go 的 import 按空白导入、标准库、第三方、本仓库四组排列，组间空一行。生成的 `ent`、`*.pb.go`、`wire_gen.go` 不手改。proto 的 service、rpc、message 和字段都写中文注释。
+
+跨应用的函数、方法和常量放仓库根 `pkg`。只在一个应用内复用的放 `app/<应用>/pkg`。自定义错误放在 `pkg/merr`，只属于一个应用的放在该应用的 `pkg`。手写代码返回 Kratos error，不用 `errors.New` 或 `fmt.Errorf`。
 
 业务表和迁移只放在 `app/alioth` 的 ent schema。`megrez`、`merak`、`alkaid` 不连接业务库。
 

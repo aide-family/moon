@@ -7,7 +7,13 @@
 package main
 
 import (
-	"github.com/aide-family/Alioth/app/alioth/internal/biz"
+	"github.com/aide-family/Alioth/app/alioth/internal/access"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/health"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/member"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/namespace"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/role"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/user"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/data"
 	"github.com/aide-family/Alioth/app/alioth/internal/server"
@@ -18,26 +24,43 @@ import (
 
 // Injectors from wire.go:
 
-func wireApp(confServer *conf.Server, confData *conf.Data, auth *conf.Auth, logger log.Logger) (*kratos.App, func(), error) {
-	healthUsecase := biz.NewHealthUsecase()
-	healthService := service.NewHealthService(healthUsecase)
+func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, logger log.Logger) (*kratos.App, func(), error) {
+	usecase := health.NewUsecase()
+	healthService := service.NewHealthService(usecase)
 	dataData, cleanup, err := data.NewData(confData, logger)
 	if err != nil {
 		return nil, nil, err
 	}
-	identityRepo := data.NewIdentityRepo(dataData, logger)
-	identityUsecase, err := biz.NewIdentityUsecase(identityRepo, auth, logger)
+	userRepo := data.NewUserRepo(dataData, logger)
+	captchaRepo := data.NewCaptchaRepo(dataData, logger)
+	emailCodeRepo := data.NewEmailCodeRepo(dataData, logger)
+	oAuthRepo := data.NewOAuthRepo(dataData, logger)
+	authUsecase, err := auth.NewUsecase(userRepo, captchaRepo, emailCodeRepo, oAuthRepo, confAuth, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	identityService := service.NewIdentityService(identityUsecase)
-	httpServer, err := server.NewHTTPServer(confServer, healthService, identityService, identityUsecase, logger)
+	captchaService := service.NewCaptchaService(authUsecase)
+	authService := service.NewAuthService(authUsecase)
+	namespaceRepo := data.NewNamespaceRepo(dataData, logger)
+	roleRepo := data.NewRoleRepo(dataData, logger)
+	checker := access.NewChecker(namespaceRepo, roleRepo, logger)
+	namespaceUsecase := namespace.NewUsecase(namespaceRepo, checker)
+	roleUsecase := role.NewUsecase(roleRepo, checker)
+	selfService := service.NewSelfService(authUsecase, namespaceUsecase, roleUsecase)
+	namespaceService := service.NewNamespaceService(namespaceUsecase)
+	memberRepo := data.NewMemberRepo(dataData, logger)
+	memberUsecase := member.NewUsecase(memberRepo, roleRepo, checker)
+	memberService := service.NewMemberService(memberUsecase)
+	userUsecase := user.NewUsecase(userRepo, checker)
+	userService := service.NewUserService(userUsecase)
+	roleService := service.NewRoleService(roleUsecase)
+	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, authUsecase, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	grpcServer, err := server.NewGRPCServer(confServer, healthService, identityService, identityUsecase, logger)
+	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, authUsecase, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err

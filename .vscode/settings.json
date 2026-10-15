@@ -1,0 +1,42 @@
+{
+  "go.goroot": "/usr/local/go",
+  "go.alternateTools": {
+    "go": "/usr/local/go/bin/go"
+  },
+  "go.useLanguageServer": true,
+  "go.toolsEnvVars": {
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "https://goproxy.cn,direct"
+  },
+  "go.formatTool": "default",
+  "gopls": {
+    "formatting.local": "github.com/aide-family/Alioth",
+    "ui.diagnostic.staticcheck": true,
+    "build.directoryFilters": ["-web", "-bin", "-dist", "-tmp"]
+  },
+  "[go]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.formatOnSave": true,
+    "editor.insertSpaces": false,
+    "editor.tabSize": 4,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  "[go.mod]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.formatOnSave": true
+  },
+  "terminal.integrated.env.osx": {
+    "GOROOT": null,
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "https://goproxy.cn,direct",
+    "PATH": "/usr/local/go/bin:${env:PATH}"
+  },
+  "terminal.integrated.env.linux": {
+    "GOROOT": null,
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "https://goproxy.cn,direct",
+    "PATH": "/usr/local/go/bin:${env:PATH}"
+  }
+}

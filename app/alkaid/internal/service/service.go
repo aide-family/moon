@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 
-	"github.com/aide-family/Alioth/app/alkaid/internal/biz"
 	"github.com/google/wire"
+
+	"github.com/aide-family/Alioth/app/alkaid/internal/biz"
 )
 
 var ProviderSet = wire.NewSet(NewHealthService)

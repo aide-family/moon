@@ -4,10 +4,10 @@ import { Link, useNavigate } from "react-router-dom"
 
 import { register } from "@/api/auth"
 import { getCaptcha } from "@/api/captcha"
+import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 
 export function RegisterPage() {
   const { t } = useTranslation()
@@ -56,7 +56,13 @@ export function RegisterPage() {
     setPending(true)
     setError("")
     try {
-      const result = await register({ email, password, name, captchaId, captchaCode })
+      const result = await register({
+        email,
+        password,
+        name,
+        captchaId,
+        captchaCode,
+      })
       localStorage.setItem("token", result.session.accessToken)
       localStorage.setItem("refreshToken", result.session.refreshToken)
       navigate("/namespaces")
@@ -73,39 +79,86 @@ export function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md items-center p-6">
-      <Card className="w-full">
+    <main className="flex min-h-svh items-center justify-center bg-muted/40 p-4">
+      <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>{t("register.title")}</CardTitle>
         </CardHeader>
-        <CardContent>
-          <form className="space-y-4" onSubmit={onSubmit}>
-            <div className="space-y-2">
-              <Label htmlFor="name">{t("register.name")}</Label>
-              <Input id="name" value={name} onChange={(event) => setName(event.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">{t("login.emailLabel")}</Label>
-              <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">{t("login.passwordLabel")}</Label>
-              <Input id="password" type="password" minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="captcha">{t("register.captcha")}</Label>
-              <button type="button" onClick={() => void refreshCaptcha()} className="block">
-                {captchaImage ? <img src={captchaImage} alt={t("register.captcha")} className="h-12 rounded border" /> : t("state.loading")}
+        <CardContent className="grid gap-4">
+          <form className="grid gap-4" onSubmit={onSubmit}>
+            <FormField label={t("register.name")} htmlFor="name">
+              <Input
+                id="name"
+                value={name}
+                placeholder={t("register.namePlaceholder")}
+                onChange={(event) => setName(event.target.value)}
+              />
+            </FormField>
+            <FormField label={t("login.emailLabel")} htmlFor="email">
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                placeholder={t("login.emailPlaceholder")}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </FormField>
+            <FormField
+              label={t("login.passwordLabel")}
+              htmlFor="password"
+              hint={t("login.passwordHint")}
+            >
+              <Input
+                id="password"
+                type="password"
+                minLength={8}
+                value={password}
+                placeholder={t("login.passwordPlaceholder")}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+            </FormField>
+            <FormField
+              label={t("register.captcha")}
+              htmlFor="captcha"
+              hint={t("register.captchaHint")}
+            >
+              <button
+                type="button"
+                onClick={() => void refreshCaptcha()}
+                className="block"
+              >
+                {captchaImage ? (
+                  <img
+                    src={captchaImage}
+                    alt={t("register.captcha")}
+                    className="h-12 rounded border"
+                  />
+                ) : (
+                  t("state.loading")
+                )}
               </button>
-              <Input id="captcha" value={captchaCode} onChange={(event) => setCaptchaCode(event.target.value)} required />
-            </div>
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <Button type="submit" disabled={pending}>
+              <Input
+                id="captcha"
+                value={captchaCode}
+                placeholder={t("register.captchaPlaceholder")}
+                onChange={(event) => setCaptchaCode(event.target.value)}
+                required
+              />
+            </FormField>
+            <Button className="w-full" type="submit" disabled={pending}>
               {t("action.register")}
             </Button>
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
           </form>
-          <p className="mt-4 text-sm">
-            <Link to="/login">{t("register.hasAccount")}</Link>
+          <p className="text-sm">
+            <Link
+              className="text-primary underline-offset-4 hover:underline"
+              to="/login"
+            >
+              {t("register.hasAccount")}
+            </Link>
           </p>
         </CardContent>
       </Card>

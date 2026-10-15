@@ -4,10 +4,10 @@ import { Link, useNavigate } from "react-router-dom"
 
 import { emailLogin, passwordLogin, sendEmailLoginCode } from "@/api/auth"
 import type { LoginResult } from "@/api/auth/types"
+import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 
 function storeSession(result: LoginResult) {
   localStorage.setItem("token", result.session.accessToken)
@@ -29,7 +29,10 @@ export function LoginPage() {
     setPending(true)
     setError("")
     try {
-      const result = mode === "password" ? await passwordLogin({ email, password }) : await emailLogin({ email, code })
+      const result =
+        mode === "password"
+          ? await passwordLogin({ email, password })
+          : await emailLogin({ email, code })
       storeSession(result)
       navigate("/namespaces")
     } catch (err) {
@@ -52,49 +55,96 @@ export function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md items-center p-6">
-      <Card className="w-full">
+    <main className="flex min-h-svh items-center justify-center bg-muted/40 p-4">
+      <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>{t("login.title")}</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="mb-4 flex gap-2">
-            <Button type="button" variant={mode === "password" ? "default" : "outline"} onClick={() => setMode("password")}>
+        <CardContent className="grid gap-4">
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              className="flex-1"
+              variant={mode === "password" ? "default" : "outline"}
+              onClick={() => setMode("password")}
+            >
               {t("login.password")}
             </Button>
-            <Button type="button" variant={mode === "email" ? "default" : "outline"} onClick={() => setMode("email")}>
+            <Button
+              type="button"
+              className="flex-1"
+              variant={mode === "email" ? "default" : "outline"}
+              onClick={() => setMode("email")}
+            >
               {t("login.email")}
             </Button>
           </div>
-          <form className="space-y-4" onSubmit={onSubmit}>
-            <div className="space-y-2">
-              <Label htmlFor="email">{t("login.emailLabel")}</Label>
-              <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-            </div>
+          <form className="grid gap-4" onSubmit={onSubmit}>
+            <FormField label={t("login.emailLabel")} htmlFor="email">
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                placeholder={t("login.emailPlaceholder")}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </FormField>
             {mode === "password" ? (
-              <div className="space-y-2">
-                <Label htmlFor="password">{t("login.passwordLabel")}</Label>
-                <Input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required />
-              </div>
+              <FormField
+                label={t("login.passwordLabel")}
+                htmlFor="password"
+                hint={t("login.passwordHint")}
+              >
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  placeholder={t("login.passwordPlaceholder")}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                />
+              </FormField>
             ) : (
-              <div className="space-y-2">
-                <Label htmlFor="code">{t("login.codeLabel")}</Label>
+              <FormField
+                label={t("login.codeLabel")}
+                htmlFor="code"
+                hint={t("login.codeHint")}
+              >
                 <div className="flex gap-2">
-                  <Input id="code" value={code} onChange={(event) => setCode(event.target.value)} required />
-                  <Button type="button" variant="outline" disabled={pending || !email} onClick={() => void onSendCode()}>
+                  <Input
+                    id="code"
+                    value={code}
+                    placeholder={t("login.codePlaceholder")}
+                    onChange={(event) => setCode(event.target.value)}
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={pending || !email}
+                    onClick={() => void onSendCode()}
+                  >
                     {t("action.sendCode")}
                   </Button>
                 </div>
-              </div>
+              </FormField>
             )}
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <Button type="submit" disabled={pending}>
+            <Button className="w-full" type="submit" disabled={pending}>
               {t("action.login")}
             </Button>
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
           </form>
-          <p className="mt-4 text-sm text-muted-foreground">{t("login.oauthSkipped")}</p>
-          <p className="mt-2 text-sm">
-            <Link to="/register">{t("login.noAccount")}</Link>
+          <p className="text-sm text-muted-foreground">
+            {t("login.oauthSkipped")}
+          </p>
+          <p className="text-sm">
+            <Link
+              className="text-primary underline-offset-4 hover:underline"
+              to="/register"
+            >
+              {t("login.noAccount")}
+            </Link>
           </p>
         </CardContent>
       </Card>

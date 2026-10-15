@@ -5,17 +5,20 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"time"
 
+	kerrors "github.com/go-kratos/kratos/v2/errors"
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/redis/go-redis/v9"
+
+	"github.com/aide-family/Alioth/pkg/merr"
 )
 
 var (
 	// ErrNotAcquired means another holder already owns the key.
-	ErrNotAcquired = errors.New("lock not acquired")
+	ErrNotAcquired = kerrors.New(409, "LOCK_NOT_ACQUIRED", "lock not acquired")
 	// ErrTokenMismatch means the key value is not this holder's token.
-	ErrTokenMismatch = errors.New("lock token mismatch")
+	ErrTokenMismatch = kerrors.New(409, "LOCK_TOKEN_MISMATCH", "lock token mismatch")
 )
 
 const renewScript = `
@@ -56,7 +59,7 @@ func New(rdb *redis.Client, instanceID string) *Client {
 // Acquire runs SET key token NX PX ttl. A failed Redis call is returned as an error.
 func (c *Client) Acquire(ctx context.Context, key string, ttl time.Duration) (*Hold, error) {
 	if ttl <= 0 {
-		return nil, fmt.Errorf("lock ttl must be positive")
+		return nil, merr.Invalid("lock ttl must be positive")
 	}
 	token := c.instanceID + ":" + randomToken()
 	res, err := c.rdb.Do(ctx, "SET", key, token, "NX", "PX", ttl.Milliseconds()).Result()
@@ -64,7 +67,8 @@ func (c *Client) Acquire(ctx context.Context, key string, ttl time.Duration) (*H
 		return nil, ErrNotAcquired
 	}
 	if err != nil {
-		return nil, err
+		log.NewHelper(log.DefaultLogger).Errorf("lock: %v", err)
+		return nil, merr.Server("lock failed")
 	}
 	if res != "OK" {
 		return nil, ErrNotAcquired
@@ -81,7 +85,7 @@ func (h *Hold) Token() string { return h.token }
 // Renew extends the TTL when the stored value still matches this token.
 func (h *Hold) Renew(ctx context.Context, ttl time.Duration) error {
 	if ttl <= 0 {
-		return fmt.Errorf("lock ttl must be positive")
+		return merr.Invalid("lock ttl must be positive")
 	}
 	return h.eval(ctx, renewScript, ttl)
 }
@@ -98,7 +102,8 @@ func (h *Hold) eval(ctx context.Context, script string, ttl time.Duration) error
 	}
 	n, err := h.client.rdb.Eval(ctx, script, []string{h.key}, args...).Int64()
 	if err != nil {
-		return err
+		log.NewHelper(log.DefaultLogger).Errorf("lock: %v", err)
+		return merr.Server("lock failed")
 	}
 	if n == 0 {
 		return ErrTokenMismatch

@@ -6,14 +6,19 @@ import "google/api/annotations.proto";
 
 option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
 
+// 健康检查。
 service HealthService {
+  // 返回进程是否可用。
   rpc Check(CheckRequest) returns (CheckResponse) {
     option (google.api.http) = {get: "/v1/health"};
   }
 }
 
+// 健康检查不需要参数。
 message CheckRequest {}
 
+// 健康检查结果。
 message CheckResponse {
+  // 状态。
   string status = 1;
 }

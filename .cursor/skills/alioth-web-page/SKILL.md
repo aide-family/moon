@@ -8,7 +8,7 @@ description: >-
 
 # 功能页
 
-先读 [alioth-web](../alioth-web/SKILL.md)，再读 [shadcn-ui/SKILL.md](file:///Users/hubiao/.agents/skills/shadcn-ui/SKILL.md)。UI 只用 shadcn/ui 和 Tailwind。禁止从 `antd` 或 `@ant-design/icons` 引入组件。
+先读 [alioth-web](../alioth-web/SKILL.md)、[alioth-web-design](../alioth-web-design/SKILL.md)，再读 [shadcn-ui/SKILL.md](file:///Users/hubiao/.agents/skills/shadcn-ui/SKILL.md)。布局和间距以设计技能为准。UI 只用 shadcn/ui 和 Tailwind。禁止从 `antd` 或 `@ant-design/icons` 引入组件。
 
 ## 请求
 
@@ -22,7 +22,8 @@ description: >-
 - 单页过长时，把只供本页使用的子组件放到该页目录下的 `components/`。
 - Props 用 `interface`。类型用 `import type`。
 - 列表、筛选和分页的字段与 API 类型一致，并把查询条件放进 URL。
-- 新建和编辑用对话框。主从页面用左侧列表加右侧明细。
+- 新建和编辑用对话框。字段少的详情用右侧抽屉。需要独立地址或分成多块的详情用当前页的子路由。主从页面用左侧列表加右侧明细。
+- 一行操作超过两项时只留「详情」和「更多」。删除、封禁、停用、移交负责人先确认。
 - 文案使用 `t()`。按钮、表头、空状态和提示都不写死中文或英文。
 - 请求处理 loading。卸载后不再 setState。失败时保留可用的空状态。
 

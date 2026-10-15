@@ -2,19 +2,20 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
-	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
-	"github.com/aide-family/Alioth/app/alkaid/internal/service"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	khttp "github.com/go-kratos/kratos/v2/transport/http"
+
+	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
+	"github.com/aide-family/Alioth/app/alkaid/internal/service"
+	"github.com/aide-family/Alioth/pkg/merr"
 )
 
 func NewHTTPServer(c *conf.Server, health *service.HealthService, logger log.Logger) (*khttp.Server, error) {
 	if c == nil || c.Http == nil || c.Http.Addr == "" {
-		return nil, fmt.Errorf("http addr is empty")
+		return nil, merr.Server("http addr is empty")
 	}
 	opts := []khttp.ServerOption{
 		khttp.Address(c.Http.Addr),

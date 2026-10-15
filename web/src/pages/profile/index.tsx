@@ -3,10 +3,16 @@ import { useTranslation } from "react-i18next"
 
 import { changeRemark, getSelfInfo } from "@/api/self"
 import type { UserItem } from "@/api/user/types"
+import { FormField } from "@/components/form-field"
+import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 
 export function ProfilePage() {
   const { t } = useTranslation()
@@ -17,6 +23,7 @@ export function ProfilePage() {
   const [error, setError] = useState("")
   const [saved, setSaved] = useState(false)
   const [pending, setPending] = useState(false)
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
     let active = true
@@ -44,7 +51,7 @@ export function ProfilePage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [attempt])
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -62,32 +69,56 @@ export function ProfilePage() {
     }
   }
 
-  if (loading) {
-    return <p>{t("state.loading")}</p>
-  }
-  if (failed || !user) {
-    return <p>{t("state.failed")}</p>
-  }
-
   return (
-    <Card className="max-w-xl">
-      <CardHeader>
-        <CardTitle>{t("profile.title")}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="mb-4 text-sm text-muted-foreground">{user.email}</p>
-        <form className="space-y-4" onSubmit={onSubmit}>
-          <div className="space-y-2">
-            <Label htmlFor="remark">{t("profile.remark")}</Label>
-            <Input id="remark" value={remark} onChange={(event) => setRemark(event.target.value)} />
-          </div>
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
-          {saved ? <p className="text-sm">{t("profile.saved")}</p> : null}
-          <Button type="submit" disabled={pending}>
-            {t("action.save")}
+    <section className="flex flex-col gap-6">
+      <PageHeader
+        title={t("profile.title")}
+        description={t("profile.description")}
+      />
+      {loading ? (
+        <p className="text-sm text-muted-foreground">{t("state.loading")}</p>
+      ) : null}
+      {!loading && (failed || !user) ? (
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-destructive">{t("state.failed")}</p>
+          <Button
+            variant="outline"
+            onClick={() => setAttempt((value) => value + 1)}
+          >
+            {t("action.retry")}
           </Button>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+      ) : null}
+      {!loading && user ? (
+        <Card className="max-w-xl">
+          <CardHeader>
+            <CardDescription>{user.email}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form className="grid gap-4" onSubmit={onSubmit}>
+              <FormField label={t("profile.remark")} htmlFor="remark">
+                <Input
+                  id="remark"
+                  value={remark}
+                  placeholder={t("profile.remarkPlaceholder")}
+                  onChange={(event) => setRemark(event.target.value)}
+                />
+              </FormField>
+              {error ? (
+                <p className="text-sm text-destructive">{error}</p>
+              ) : null}
+              {saved ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("profile.saved")}
+                </p>
+              ) : null}
+              <Button type="submit" disabled={pending}>
+                {t("action.save")}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      ) : null}
+    </section>
   )
 }

@@ -26,8 +26,9 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// HealthService is a compile-time placeholder. merak does not mount this HTTP service.
+// 健康检查。天璇不挂载这个 HTTP 服务，定义只用于编译期占位。
 type HealthServiceClient interface {
+	// 返回进程是否可用。
 	Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*CheckResponse, error)
 }
 
@@ -53,8 +54,9 @@ func (c *healthServiceClient) Check(ctx context.Context, in *CheckRequest, opts 
 // All implementations must embed UnimplementedHealthServiceServer
 // for forward compatibility.
 //
-// HealthService is a compile-time placeholder. merak does not mount this HTTP service.
+// 健康检查。天璇不挂载这个 HTTP 服务，定义只用于编译期占位。
 type HealthServiceServer interface {
+	// 返回进程是否可用。
 	Check(context.Context, *CheckRequest) (*CheckResponse, error)
 	mustEmbedUnimplementedHealthServiceServer()
 }
