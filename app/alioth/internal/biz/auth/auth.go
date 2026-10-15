@@ -18,6 +18,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
+	megrezv1 "github.com/aide-family/Alioth/api/megrez/v1"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
 	"github.com/aide-family/Alioth/app/alioth/pkg/actor"
@@ -50,7 +51,7 @@ type Usecase struct {
 	secret       string
 	accessTTL    time.Duration
 	refreshTTL   time.Duration
-	serviceKeys  map[string]struct{}
+	serviceKeys  map[string]string
 	smtp         smtpConfig
 	oauthClients map[string]oauthClient
 	log          *log.Helper
@@ -68,10 +69,10 @@ func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emai
 	if refresh <= 0 {
 		refresh = 7 * 24 * time.Hour
 	}
-	keys := map[string]struct{}{}
+	keys := map[string]string{}
 	for _, item := range auth.GetServiceKeys() {
 		if item.GetKey() != "" {
-			keys[item.GetKey()] = struct{}{}
+			keys[item.GetKey()] = item.GetName()
 		}
 	}
 	clients := map[string]oauthClient{}
@@ -104,20 +105,31 @@ func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emai
 }
 
 // Authenticate 决定这次请求以哪种凭证进入后续用例。
-// service key 只能调用健康检查、验证码和登录注册，不能访问管理接口。
+// 评测领取和回写只接受名为 megrez 的 service key，用户 JWT 在这里拒绝。
+// 其他 service key 只能调用健康检查、验证码和登录注册，不能访问管理接口。
 // 公开接口不要求令牌。刷新接口只接受 refresh token，其余接口只接受 access token。
 // 被封禁的用户在这里拒绝，后面的用例不再重复判断账号是否可登录。
 // 个人资料、刷新令牌和创建租户可以不带 X-Namespace；带了则记入上下文。其他接口必须带租户。
 func (uc *Usecase) Authenticate(ctx context.Context, operation, authorization, namespace string) (context.Context, error) {
 	token := bearerToken(authorization)
 	if isServiceKey(token) {
-		if _, ok := uc.serviceKeys[token]; !ok {
+		name, ok := uc.serviceKeys[token]
+		if !ok {
 			return nil, merr.Forbidden("service key is not accepted")
+		}
+		if serviceOperation(operation) {
+			if name != "megrez" {
+				return nil, merr.Forbidden("service key cannot call this api")
+			}
+			return actor.WithService(ctx, name), nil
 		}
 		if !publicOperation(operation) {
 			return nil, merr.Forbidden("service key cannot call this api")
 		}
 		return ctx, nil
+	}
+	if serviceOperation(operation) {
+		return nil, merr.Forbidden("service key is required")
 	}
 	if publicOperation(operation) {
 		return ctx, nil
@@ -446,6 +458,15 @@ func bearerToken(header string) string {
 
 func isServiceKey(token string) bool {
 	return strings.HasPrefix(token, "sk-")
+}
+
+func serviceOperation(operation string) bool {
+	switch operation {
+	case megrezv1.EvalService_ClaimRules_FullMethodName, megrezv1.EvalService_ReportEval_FullMethodName:
+		return true
+	default:
+		return false
+	}
 }
 
 func publicOperation(operation string) bool {

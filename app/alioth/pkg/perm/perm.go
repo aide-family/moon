@@ -17,6 +17,7 @@ const (
 	AlertRuleRead   = "alert_rule:read"
 	AlertRuleWrite  = "alert_rule:write"
 
+	AlertRead      = "alert:read"
 	AlertIntervene = "alert:intervene"
 	SSHExec        = "ssh:exec"
 	K8sProxy       = "k8s:proxy"

@@ -48,8 +48,10 @@ type AlertRule struct {
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// NextEvalAt holds the value of the "next_eval_at" field.
-	NextEvalAt   *time.Time `json:"next_eval_at,omitempty"`
-	selectValues sql.SelectValues
+	NextEvalAt *time.Time `json:"next_eval_at,omitempty"`
+	// ScheduledSlot holds the value of the "scheduled_slot" field.
+	ScheduledSlot *time.Time `json:"scheduled_slot,omitempty"`
+	selectValues  sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -61,7 +63,7 @@ func (*AlertRule) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case alertrule.FieldUID, alertrule.FieldNamespaceUID, alertrule.FieldGroupUID, alertrule.FieldName, alertrule.FieldType, alertrule.FieldDriver, alertrule.FieldStatus, alertrule.FieldExpr, alertrule.FieldLabels, alertrule.FieldDatasourceUID, alertrule.FieldSummary, alertrule.FieldDescription:
 			values[i] = new(sql.NullString)
-		case alertrule.FieldCreatedAt, alertrule.FieldUpdatedAt, alertrule.FieldDeletedAt, alertrule.FieldNextEvalAt:
+		case alertrule.FieldCreatedAt, alertrule.FieldUpdatedAt, alertrule.FieldDeletedAt, alertrule.FieldNextEvalAt, alertrule.FieldScheduledSlot:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -182,6 +184,13 @@ func (_m *AlertRule) assignValues(columns []string, values []any) error {
 				_m.NextEvalAt = new(time.Time)
 				*_m.NextEvalAt = value.Time
 			}
+		case alertrule.FieldScheduledSlot:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field scheduled_slot", values[i])
+			} else if value.Valid {
+				_m.ScheduledSlot = new(time.Time)
+				*_m.ScheduledSlot = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -267,6 +276,11 @@ func (_m *AlertRule) String() string {
 	builder.WriteString(", ")
 	if v := _m.NextEvalAt; v != nil {
 		builder.WriteString("next_eval_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.ScheduledSlot; v != nil {
+		builder.WriteString("scheduled_slot=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteByte(')')

@@ -15,6 +15,7 @@ import (
 
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/data"
+	"github.com/aide-family/Alioth/app/alioth/internal/server"
 	"github.com/aide-family/Alioth/pkg/bootstrap"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
@@ -88,13 +89,13 @@ func loadConfig(path string) (*conf.Bootstrap, error) {
 	return &bc, nil
 }
 
-func newApp(logger log.Logger, hs *http.Server, gs *grpc.Server, d *data.Data) *kratos.App {
+func newApp(logger log.Logger, hs *http.Server, gs *grpc.Server, sched *server.Scheduler, d *data.Data) *kratos.App {
 	if d == nil {
 		panic("database is not connected")
 	}
 	return kratos.New(
 		kratos.Name("alioth"),
 		kratos.Logger(logger),
-		kratos.Server(hs, gs),
+		kratos.Server(hs, gs, sched),
 	)
 }

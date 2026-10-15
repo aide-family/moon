@@ -9,6 +9,42 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
 )
 
+// The AlertEvalBatchFunc type is an adapter to allow the use of ordinary
+// function as AlertEvalBatch mutator.
+type AlertEvalBatchFunc func(context.Context, *ent.AlertEvalBatchMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertEvalBatchFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertEvalBatchMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertEvalBatchMutation", m)
+}
+
+// The AlertEventFunc type is an adapter to allow the use of ordinary
+// function as AlertEvent mutator.
+type AlertEventFunc func(context.Context, *ent.AlertEventMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertEventMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertEventMutation", m)
+}
+
+// The AlertEventFiringFunc type is an adapter to allow the use of ordinary
+// function as AlertEventFiring mutator.
+type AlertEventFiringFunc func(context.Context, *ent.AlertEventFiringMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertEventFiringFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertEventFiringMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertEventFiringMutation", m)
+}
+
 // The AlertLevelFunc type is an adapter to allow the use of ordinary
 // function as AlertLevel mutator.
 type AlertLevelFunc func(context.Context, *ent.AlertLevelMutation) (ent.Value, error)

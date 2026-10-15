@@ -12,6 +12,12 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// AlertEvalBatch is the client for interacting with the AlertEvalBatch builders.
+	AlertEvalBatch *AlertEvalBatchClient
+	// AlertEvent is the client for interacting with the AlertEvent builders.
+	AlertEvent *AlertEventClient
+	// AlertEventFiring is the client for interacting with the AlertEventFiring builders.
+	AlertEventFiring *AlertEventFiringClient
 	// AlertLevel is the client for interacting with the AlertLevel builders.
 	AlertLevel *AlertLevelClient
 	// AlertRule is the client for interacting with the AlertRule builders.
@@ -173,6 +179,9 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.AlertEvalBatch = NewAlertEvalBatchClient(tx.config)
+	tx.AlertEvent = NewAlertEventClient(tx.config)
+	tx.AlertEventFiring = NewAlertEventFiringClient(tx.config)
 	tx.AlertLevel = NewAlertLevelClient(tx.config)
 	tx.AlertRule = NewAlertRuleClient(tx.config)
 	tx.AlertRuleGroup = NewAlertRuleGroupClient(tx.config)
@@ -197,7 +206,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: AlertLevel.QueryXXX(), the query will be executed
+// applies a query, for example: AlertEvalBatch.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

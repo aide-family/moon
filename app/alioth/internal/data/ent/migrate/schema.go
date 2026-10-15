@@ -9,6 +9,107 @@ import (
 )
 
 var (
+	// AlertEvalBatchesColumns holds the columns for the "alert_eval_batches" table.
+	AlertEvalBatchesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "rule_uid", Type: field.TypeString},
+		{Name: "eval_slot", Type: field.TypeTime},
+	}
+	// AlertEvalBatchesTable holds the schema information for the "alert_eval_batches" table.
+	AlertEvalBatchesTable = &schema.Table{
+		Name:       "alert_eval_batches",
+		Columns:    AlertEvalBatchesColumns,
+		PrimaryKey: []*schema.Column{AlertEvalBatchesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alertevalbatch_rule_uid_eval_slot",
+				Unique:  true,
+				Columns: []*schema.Column{AlertEvalBatchesColumns[1], AlertEvalBatchesColumns[2]},
+			},
+		},
+	}
+	// AlertEventsColumns holds the columns for the "alert_events" table.
+	AlertEventsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "rule_uid", Type: field.TypeString},
+		{Name: "datasource_uid", Type: field.TypeString, Default: ""},
+		{Name: "fingerprint", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"FIRING", "RECOVERED", "RECOVERED_BY_MANUAL"}},
+		{Name: "expr", Type: field.TypeString, Default: ""},
+		{Name: "labels", Type: field.TypeString, Default: ""},
+		{Name: "summary", Type: field.TypeString, Default: ""},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "sample_value", Type: field.TypeString, Default: ""},
+		{Name: "level_uid", Type: field.TypeString, Default: ""},
+		{Name: "starts_at", Type: field.TypeTime},
+		{Name: "ends_at", Type: field.TypeTime, Nullable: true},
+		{Name: "eval_slot", Type: field.TypeTime},
+		{Name: "suppressed", Type: field.TypeBool, Default: false},
+		{Name: "intervened_by", Type: field.TypeString, Default: ""},
+	}
+	// AlertEventsTable holds the schema information for the "alert_events" table.
+	AlertEventsTable = &schema.Table{
+		Name:       "alert_events",
+		Columns:    AlertEventsColumns,
+		PrimaryKey: []*schema.Column{AlertEventsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alertevent_uid_created_at",
+				Unique:  true,
+				Columns: []*schema.Column{AlertEventsColumns[3], AlertEventsColumns[1]},
+			},
+			{
+				Name:    "alertevent_namespace_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{AlertEventsColumns[4], AlertEventsColumns[8]},
+			},
+			{
+				Name:    "alertevent_rule_uid",
+				Unique:  false,
+				Columns: []*schema.Column{AlertEventsColumns[5]},
+			},
+			{
+				Name:    "alertevent_fingerprint",
+				Unique:  false,
+				Columns: []*schema.Column{AlertEventsColumns[7]},
+			},
+		},
+	}
+	// AlertEventFiringsColumns holds the columns for the "alert_event_firings" table.
+	AlertEventFiringsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "fingerprint", Type: field.TypeString},
+		{Name: "event_uid", Type: field.TypeString},
+		{Name: "rule_uid", Type: field.TypeString},
+	}
+	// AlertEventFiringsTable holds the schema information for the "alert_event_firings" table.
+	AlertEventFiringsTable = &schema.Table{
+		Name:       "alert_event_firings",
+		Columns:    AlertEventFiringsColumns,
+		PrimaryKey: []*schema.Column{AlertEventFiringsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alerteventfiring_namespace_uid_fingerprint",
+				Unique:  true,
+				Columns: []*schema.Column{AlertEventFiringsColumns[1], AlertEventFiringsColumns[2]},
+			},
+			{
+				Name:    "alerteventfiring_event_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertEventFiringsColumns[3]},
+			},
+			{
+				Name:    "alerteventfiring_rule_uid",
+				Unique:  false,
+				Columns: []*schema.Column{AlertEventFiringsColumns[4]},
+			},
+		},
+	}
 	// AlertLevelsColumns holds the columns for the "alert_levels" table.
 	AlertLevelsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -67,6 +168,7 @@ var (
 		{Name: "summary", Type: field.TypeString, Default: ""},
 		{Name: "description", Type: field.TypeString, Default: ""},
 		{Name: "next_eval_at", Type: field.TypeTime, Nullable: true},
+		{Name: "scheduled_slot", Type: field.TypeTime, Nullable: true},
 	}
 	// AlertRulesTable holds the schema information for the "alert_rules" table.
 	AlertRulesTable = &schema.Table{
@@ -528,6 +630,9 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AlertEvalBatchesTable,
+		AlertEventsTable,
+		AlertEventFiringsTable,
 		AlertLevelsTable,
 		AlertRulesTable,
 		AlertRuleGroupsTable,

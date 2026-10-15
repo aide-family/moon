@@ -1,0 +1,191 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
+
+// 实时告警和历史告警的查询与人工处理。
+service AlertEventService {
+  // 按视图分页查询告警事件。
+  rpc ListAlertEvents(ListAlertEventsRequest) returns (ListAlertEventsResponse) {
+    option (google.api.http) = {get: "/v1/alert-events"};
+  }
+  // 获取一条告警事件。
+  rpc GetAlertEvent(GetAlertEventRequest) returns (GetAlertEventResponse) {
+    option (google.api.http) = {get: "/v1/alert-events/{uid}"};
+  }
+  // 统计当前租户的实时、抑制和已恢复数量。
+  rpc AlertEventStats(AlertEventStatsRequest) returns (AlertEventStatsResponse) {
+    option (google.api.http) = {get: "/v1/alert-event-stats"};
+  }
+  // 介入一条实时告警。
+  rpc InterveneAlertEvent(InterveneAlertEventRequest) returns (InterveneAlertEventResponse) {
+    option (google.api.http) = {
+      post: "/v1/alert-events/{uid}/intervene"
+      body: "*"
+    };
+  }
+  // 批量介入实时告警。
+  rpc InterveneAlertEvents(InterveneAlertEventsRequest) returns (InterveneAlertEventsResponse) {
+    option (google.api.http) = {
+      post: "/v1/alert-events/intervene"
+      body: "*"
+    };
+  }
+  // 抑制一条实时告警。
+  rpc SuppressAlertEvent(SuppressAlertEventRequest) returns (SuppressAlertEventResponse) {
+    option (google.api.http) = {
+      post: "/v1/alert-events/{uid}/suppress"
+      body: "*"
+    };
+  }
+  // 手工恢复一条实时告警。
+  rpc RecoverAlertEvent(RecoverAlertEventRequest) returns (RecoverAlertEventResponse) {
+    option (google.api.http) = {
+      post: "/v1/alert-events/{uid}/recover"
+      body: "*"
+    };
+  }
+  // 批量手工恢复实时告警。
+  rpc RecoverAlertEvents(RecoverAlertEventsRequest) returns (RecoverAlertEventsResponse) {
+    option (google.api.http) = {
+      post: "/v1/alert-events/recover"
+      body: "*"
+    };
+  }
+}
+
+// 告警事件。
+message AlertEventItem {
+  // 标识。
+  string uid = 1;
+  // 规则标识。
+  string rule_uid = 2;
+  // 数据源标识。
+  string datasource_uid = 3;
+  // fingerprint。
+  string fingerprint = 4;
+  // 状态，取值为 FIRING、RECOVERED 或 RECOVERED_BY_MANUAL。
+  string status = 5;
+  // 表达式。
+  string expr = 6;
+  // 标签 JSON。
+  string labels = 7;
+  // 摘要。
+  string summary = 8;
+  // 描述。
+  string description = 9;
+  // 采样值。
+  string sample_value = 10;
+  // 告警级别标识。
+  string level_uid = 11;
+  // 开始时间，RFC3339。
+  string starts_at = 12;
+  // 结束时间，RFC3339。未结束时为空。
+  string ends_at = 13;
+  // 评测批次，RFC3339。
+  string eval_slot = 14;
+  // 是否抑制。
+  bool suppressed = 15;
+  // 介入人。
+  string intervened_by = 16;
+  // 创建时间，RFC3339。
+  string created_at = 17;
+}
+
+// 告警分页查询。
+message ListAlertEventsRequest {
+  // 页码，从 1 开始。
+  int32 page = 1 [(buf.validate.field).int32 = {gte: 0}];
+  // 每页条数，最大 100。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 视图，取值为 REALTIME 或 HISTORY。空值表示实时。
+  string view = 3;
+  // 按摘要或 fingerprint 过滤。
+  string name = 4;
+}
+
+// 告警分页结果。
+message ListAlertEventsResponse {
+  // 事件。
+  repeated AlertEventItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 要查询的告警。
+message GetAlertEventRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 告警详情。
+message GetAlertEventResponse {
+  // 事件。
+  AlertEventItem event = 1;
+}
+
+// 统计不需要参数。
+message AlertEventStatsRequest {}
+
+// 当前租户的告警数量。
+message AlertEventStatsResponse {
+  // 未抑制的 FIRING 数量。
+  int32 firing = 1;
+  // 已抑制且仍为 FIRING 的数量。
+  int32 suppressed = 2;
+  // 已恢复数量。
+  int32 recovered = 3;
+}
+
+// 要介入的告警。
+message InterveneAlertEventRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 介入已记录。
+message InterveneAlertEventResponse {}
+
+// 要批量介入的告警。
+message InterveneAlertEventsRequest {
+  // 标识列表。
+  repeated string uids = 1 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// 批量介入已记录。
+message InterveneAlertEventsResponse {}
+
+// 要抑制的告警。
+message SuppressAlertEventRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 抑制已记录。
+message SuppressAlertEventResponse {}
+
+// 要手工恢复的告警。
+message RecoverAlertEventRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 手工恢复已记录。
+message RecoverAlertEventResponse {}
+
+// 要批量手工恢复的告警。
+message RecoverAlertEventsRequest {
+  // 标识列表。
+  repeated string uids = 1 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// 批量手工恢复已记录。
+message RecoverAlertEventsResponse {}

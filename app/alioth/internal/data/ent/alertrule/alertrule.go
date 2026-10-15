@@ -46,6 +46,8 @@ const (
 	FieldDescription = "description"
 	// FieldNextEvalAt holds the string denoting the next_eval_at field in the database.
 	FieldNextEvalAt = "next_eval_at"
+	// FieldScheduledSlot holds the string denoting the scheduled_slot field in the database.
+	FieldScheduledSlot = "scheduled_slot"
 	// Table holds the table name of the alertrule in the database.
 	Table = "alert_rules"
 )
@@ -69,6 +71,7 @@ var Columns = []string{
 	FieldSummary,
 	FieldDescription,
 	FieldNextEvalAt,
+	FieldScheduledSlot,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -269,4 +272,9 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 // ByNextEvalAt orders the results by the next_eval_at field.
 func ByNextEvalAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNextEvalAt, opts...).ToFunc()
+}
+
+// ByScheduledSlot orders the results by the scheduled_slot field.
+func ByScheduledSlot(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldScheduledSlot, opts...).ToFunc()
 }

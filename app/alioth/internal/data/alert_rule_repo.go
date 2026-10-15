@@ -301,20 +301,59 @@ func (r *alertRuleRepo) ListAlertRules(ctx context.Context, namespaceUID string,
 }
 
 func (r *alertRuleRepo) ListEvalCandidates(ctx context.Context, now time.Time) ([]bo.AlertRule, error) {
+	rows, err := r.dueRules(ctx, now)
+	if err != nil {
+		return nil, err
+	}
+	return r.withLevels(ctx, "", rows)
+}
+
+func (r *alertRuleRepo) ScheduleDue(ctx context.Context, now, next time.Time) error {
+	_, err := r.client.AlertRule.Update().Where(
+		alertrule.DeletedAtIsNil(),
+		alertrule.StatusEQ(alertrule.StatusACTIVE),
+		alertrule.Or(alertrule.NextEvalAtIsNil(), alertrule.NextEvalAtLTE(now)),
+	).SetNextEvalAt(next).SetScheduledSlot(now).Save(ctx)
+	return r.fail(err)
+}
+
+func (r *alertRuleRepo) ListScheduled(ctx context.Context) ([]bo.AlertRule, error) {
 	rows, err := r.client.AlertRule.Query().Where(
 		alertrule.DeletedAtIsNil(),
 		alertrule.StatusEQ(alertrule.StatusACTIVE),
-		alertrule.TypeEQ(alertrule.TypeMETRICS),
+		alertrule.ScheduledSlotNotNil(),
+	).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	return r.withLevels(ctx, "", rows)
+}
+
+func (r *alertRuleRepo) GetAlertRuleByUID(ctx context.Context, uid string) (*bo.AlertRule, error) {
+	row, err := r.client.AlertRule.Query().Where(alertrule.UIDEQ(uid), alertrule.DeletedAtIsNil()).Only(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	items, err := r.withLevels(ctx, row.NamespaceUID, []*ent.AlertRule{row})
+	if err != nil {
+		return nil, err
+	}
+	if len(items) == 0 {
+		return nil, merr.NotFound("not found")
+	}
+	return &items[0], nil
+}
+
+func (r *alertRuleRepo) dueRules(ctx context.Context, now time.Time) ([]*ent.AlertRule, error) {
+	rows, err := r.client.AlertRule.Query().Where(
+		alertrule.DeletedAtIsNil(),
+		alertrule.StatusEQ(alertrule.StatusACTIVE),
 		alertrule.Or(alertrule.NextEvalAtIsNil(), alertrule.NextEvalAtLTE(now)),
 	).All(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
-	items := make([]bo.AlertRule, 0, len(rows))
-	for _, row := range rows {
-		items = append(items, toRule(row, nil))
-	}
-	return items, nil
+	return rows, nil
 }
 
 func insertLevels(ctx context.Context, tx *ent.Tx, namespaceUID, ruleUID string, levels []bo.AlertRuleLevel) error {
@@ -347,11 +386,14 @@ func (r *alertRuleRepo) withLevels(ctx context.Context, namespaceUID string, row
 	for i, row := range rows {
 		uids[i] = row.UID
 	}
-	links, err := r.client.AlertRuleLevel.Query().Where(
-		alertrulelevel.NamespaceUIDEQ(namespaceUID),
+	query := r.client.AlertRuleLevel.Query().Where(
 		alertrulelevel.RuleUIDIn(uids...),
 		alertrulelevel.DeletedAtIsNil(),
-	).All(ctx)
+	)
+	if namespaceUID != "" {
+		query = query.Where(alertrulelevel.NamespaceUIDEQ(namespaceUID))
+	}
+	links, err := query.All(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
@@ -392,7 +434,8 @@ func toRule(row *ent.AlertRule, levels []bo.AlertRuleLevel) bo.AlertRule {
 		UID: row.UID, NamespaceUID: row.NamespaceUID, GroupUID: row.GroupUID, Name: row.Name,
 		Type: string(row.Type), Driver: string(row.Driver), Status: string(row.Status),
 		Expr: row.Expr, Labels: row.Labels, DatasourceUID: row.DatasourceUID,
-		Summary: row.Summary, Description: row.Description, NextEvalAt: row.NextEvalAt, Levels: levels,
+		Summary: row.Summary, Description: row.Description, NextEvalAt: row.NextEvalAt,
+		ScheduledSlot: row.ScheduledSlot, Levels: levels,
 	}
 }
 

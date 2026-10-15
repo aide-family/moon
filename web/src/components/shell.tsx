@@ -1,9 +1,11 @@
 import {
+  Activity,
   Bell,
   Building2,
   ChevronRight,
   Database,
   Gauge,
+  History,
   Languages,
   Moon,
   Settings,
@@ -97,6 +99,18 @@ const alertLinks: {
   permission: string
   icon: LucideIcon
 }[] = [
+  {
+    to: "/alerts",
+    label: "nav.realtime",
+    permission: "alert:read",
+    icon: Activity,
+  },
+  {
+    to: "/alert-history",
+    label: "nav.history",
+    permission: "alert:read",
+    icon: History,
+  },
   {
     to: "/datasources",
     label: "nav.datasources",

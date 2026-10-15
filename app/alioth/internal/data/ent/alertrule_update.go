@@ -228,6 +228,26 @@ func (_u *AlertRuleUpdate) ClearNextEvalAt() *AlertRuleUpdate {
 	return _u
 }
 
+// SetScheduledSlot sets the "scheduled_slot" field.
+func (_u *AlertRuleUpdate) SetScheduledSlot(v time.Time) *AlertRuleUpdate {
+	_u.mutation.SetScheduledSlot(v)
+	return _u
+}
+
+// SetNillableScheduledSlot sets the "scheduled_slot" field if the given value is not nil.
+func (_u *AlertRuleUpdate) SetNillableScheduledSlot(v *time.Time) *AlertRuleUpdate {
+	if v != nil {
+		_u.SetScheduledSlot(*v)
+	}
+	return _u
+}
+
+// ClearScheduledSlot clears the value of the "scheduled_slot" field.
+func (_u *AlertRuleUpdate) ClearScheduledSlot() *AlertRuleUpdate {
+	_u.mutation.ClearScheduledSlot()
+	return _u
+}
+
 // Mutation returns the AlertRuleMutation object of the builder.
 func (_u *AlertRuleUpdate) Mutation() *AlertRuleMutation {
 	return _u.mutation
@@ -363,6 +383,12 @@ func (_u *AlertRuleUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.NextEvalAtCleared() {
 		_spec.ClearField(alertrule.FieldNextEvalAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.ScheduledSlot(); ok {
+		_spec.SetField(alertrule.FieldScheduledSlot, field.TypeTime, value)
+	}
+	if _u.mutation.ScheduledSlotCleared() {
+		_spec.ClearField(alertrule.FieldScheduledSlot, field.TypeTime)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -584,6 +610,26 @@ func (_u *AlertRuleUpdateOne) ClearNextEvalAt() *AlertRuleUpdateOne {
 	return _u
 }
 
+// SetScheduledSlot sets the "scheduled_slot" field.
+func (_u *AlertRuleUpdateOne) SetScheduledSlot(v time.Time) *AlertRuleUpdateOne {
+	_u.mutation.SetScheduledSlot(v)
+	return _u
+}
+
+// SetNillableScheduledSlot sets the "scheduled_slot" field if the given value is not nil.
+func (_u *AlertRuleUpdateOne) SetNillableScheduledSlot(v *time.Time) *AlertRuleUpdateOne {
+	if v != nil {
+		_u.SetScheduledSlot(*v)
+	}
+	return _u
+}
+
+// ClearScheduledSlot clears the value of the "scheduled_slot" field.
+func (_u *AlertRuleUpdateOne) ClearScheduledSlot() *AlertRuleUpdateOne {
+	_u.mutation.ClearScheduledSlot()
+	return _u
+}
+
 // Mutation returns the AlertRuleMutation object of the builder.
 func (_u *AlertRuleUpdateOne) Mutation() *AlertRuleMutation {
 	return _u.mutation
@@ -749,6 +795,12 @@ func (_u *AlertRuleUpdateOne) sqlSave(ctx context.Context) (_node *AlertRule, er
 	}
 	if _u.mutation.NextEvalAtCleared() {
 		_spec.ClearField(alertrule.FieldNextEvalAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.ScheduledSlot(); ok {
+		_spec.SetField(alertrule.FieldScheduledSlot, field.TypeTime, value)
+	}
+	if _u.mutation.ScheduledSlotCleared() {
+		_spec.ClearField(alertrule.FieldScheduledSlot, field.TypeTime)
 	}
 	_node = &AlertRule{config: _u.config}
 	_spec.Assign = _node.assignValues

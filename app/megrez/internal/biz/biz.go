@@ -1,8 +1,12 @@
 package biz
 
-import "github.com/google/wire"
+import (
+	"github.com/google/wire"
 
-var ProviderSet = wire.NewSet(NewHealthUsecase)
+	"github.com/aide-family/Alioth/app/megrez/internal/biz/eval"
+)
+
+var ProviderSet = wire.NewSet(NewHealthUsecase, eval.ProviderSet)
 
 type HealthUsecase struct{}
 

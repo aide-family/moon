@@ -12,6 +12,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertlevel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
@@ -87,21 +90,24 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			alertlevel.Table:     alertlevel.ValidColumn,
-			alertrule.Table:      alertrule.ValidColumn,
-			alertrulegroup.Table: alertrulegroup.ValidColumn,
-			alertrulelevel.Table: alertrulelevel.ValidColumn,
-			captcha.Table:        captcha.ValidColumn,
-			datasource.Table:     datasource.ValidColumn,
-			emaillogincode.Table: emaillogincode.ValidColumn,
-			member.Table:         member.ValidColumn,
-			memberrole.Table:     memberrole.ValidColumn,
-			namespace.Table:      namespace.ValidColumn,
-			permission.Table:     permission.ValidColumn,
-			role.Table:           role.ValidColumn,
-			rolepermission.Table: rolepermission.ValidColumn,
-			user.Table:           user.ValidColumn,
-			useroauth.Table:      useroauth.ValidColumn,
+			alertevalbatch.Table:   alertevalbatch.ValidColumn,
+			alertevent.Table:       alertevent.ValidColumn,
+			alerteventfiring.Table: alerteventfiring.ValidColumn,
+			alertlevel.Table:       alertlevel.ValidColumn,
+			alertrule.Table:        alertrule.ValidColumn,
+			alertrulegroup.Table:   alertrulegroup.ValidColumn,
+			alertrulelevel.Table:   alertrulelevel.ValidColumn,
+			captcha.Table:          captcha.ValidColumn,
+			datasource.Table:       datasource.ValidColumn,
+			emaillogincode.Table:   emaillogincode.ValidColumn,
+			member.Table:           member.ValidColumn,
+			memberrole.Table:       memberrole.ValidColumn,
+			namespace.Table:        namespace.ValidColumn,
+			permission.Table:       permission.ValidColumn,
+			role.Table:             role.ValidColumn,
+			rolepermission.Table:   rolepermission.ValidColumn,
+			user.Table:             user.ValidColumn,
+			useroauth.Table:        useroauth.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

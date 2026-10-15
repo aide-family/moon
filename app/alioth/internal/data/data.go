@@ -29,6 +29,8 @@ var ProviderSet = wire.NewSet(
 	NewDatasourceRepo,
 	NewAlertLevelRepo,
 	NewAlertRuleRepo,
+	NewAlertEventRepo,
+	NewLock,
 )
 
 type Data struct {
@@ -71,7 +73,7 @@ func Migrate(ctx context.Context, source string) error {
 	defer db.Close()
 	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, db)))
 	defer client.Close()
-	if err := client.Schema.Create(ctx); err != nil {
+	if err := ApplySchema(ctx, client, db); err != nil {
 		return databaseErr(helper, err)
 	}
 	if err := seed(ctx, client, helper); err != nil {

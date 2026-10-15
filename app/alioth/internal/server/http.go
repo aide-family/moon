@@ -29,6 +29,7 @@ func NewHTTPServer(
 	queries *service.MetricQueryService,
 	rules *service.AlertRuleService,
 	levels *service.AlertLevelService,
+	events *service.AlertEventService,
 	uc *auth.Usecase,
 	logger log.Logger,
 ) (*khttp.Server, error) {
@@ -68,5 +69,6 @@ func NewHTTPServer(
 	v1.RegisterMetricQueryServiceHTTPServer(srv, queries)
 	v1.RegisterAlertRuleServiceHTTPServer(srv, rules)
 	v1.RegisterAlertLevelServiceHTTPServer(srv, levels)
+	v1.RegisterAlertEventServiceHTTPServer(srv, events)
 	return srv, nil
 }

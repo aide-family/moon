@@ -119,6 +119,11 @@ func NextEvalAt(v time.Time) predicate.AlertRule {
 	return predicate.AlertRule(sql.FieldEQ(FieldNextEvalAt, v))
 }
 
+// ScheduledSlot applies equality check predicate on the "scheduled_slot" field. It's identical to ScheduledSlotEQ.
+func ScheduledSlot(v time.Time) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldEQ(FieldScheduledSlot, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.AlertRule {
 	return predicate.AlertRule(sql.FieldEQ(FieldCreatedAt, v))
@@ -942,6 +947,56 @@ func NextEvalAtIsNil() predicate.AlertRule {
 // NextEvalAtNotNil applies the NotNil predicate on the "next_eval_at" field.
 func NextEvalAtNotNil() predicate.AlertRule {
 	return predicate.AlertRule(sql.FieldNotNull(FieldNextEvalAt))
+}
+
+// ScheduledSlotEQ applies the EQ predicate on the "scheduled_slot" field.
+func ScheduledSlotEQ(v time.Time) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldEQ(FieldScheduledSlot, v))
+}
+
+// ScheduledSlotNEQ applies the NEQ predicate on the "scheduled_slot" field.
+func ScheduledSlotNEQ(v time.Time) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldNEQ(FieldScheduledSlot, v))
+}
+
+// ScheduledSlotIn applies the In predicate on the "scheduled_slot" field.
+func ScheduledSlotIn(vs ...time.Time) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldIn(FieldScheduledSlot, vs...))
+}
+
+// ScheduledSlotNotIn applies the NotIn predicate on the "scheduled_slot" field.
+func ScheduledSlotNotIn(vs ...time.Time) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldNotIn(FieldScheduledSlot, vs...))
+}
+
+// ScheduledSlotGT applies the GT predicate on the "scheduled_slot" field.
+func ScheduledSlotGT(v time.Time) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldGT(FieldScheduledSlot, v))
+}
+
+// ScheduledSlotGTE applies the GTE predicate on the "scheduled_slot" field.
+func ScheduledSlotGTE(v time.Time) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldGTE(FieldScheduledSlot, v))
+}
+
+// ScheduledSlotLT applies the LT predicate on the "scheduled_slot" field.
+func ScheduledSlotLT(v time.Time) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldLT(FieldScheduledSlot, v))
+}
+
+// ScheduledSlotLTE applies the LTE predicate on the "scheduled_slot" field.
+func ScheduledSlotLTE(v time.Time) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldLTE(FieldScheduledSlot, v))
+}
+
+// ScheduledSlotIsNil applies the IsNil predicate on the "scheduled_slot" field.
+func ScheduledSlotIsNil() predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldIsNull(FieldScheduledSlot))
+}
+
+// ScheduledSlotNotNil applies the NotNil predicate on the "scheduled_slot" field.
+func ScheduledSlotNotNil() predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldNotNull(FieldScheduledSlot))
 }
 
 // And groups predicates with the AND operator between them.

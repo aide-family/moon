@@ -3,6 +3,7 @@ package biz
 import (
 	"github.com/google/wire"
 
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertlevel"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
@@ -23,5 +24,6 @@ var ProviderSet = wire.NewSet(
 	role.ProviderSet,
 	datasource.ProviderSet,
 	alertlevel.ProviderSet,
+	alertevent.ProviderSet,
 	alertrule.ProviderSet,
 )

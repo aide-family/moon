@@ -7,6 +7,7 @@ type ctxKey int
 const (
 	userKey ctxKey = iota
 	namespaceKey
+	serviceKey
 )
 
 // WithUser 把已认证用户写入上下文。后续用例只从这里读取操作者。
@@ -29,4 +30,15 @@ func WithNamespace(ctx context.Context, uid string) context.Context {
 func NamespaceID(ctx context.Context) (string, bool) {
 	uid, ok := ctx.Value(namespaceKey).(string)
 	return uid, ok && uid != ""
+}
+
+// WithService 把已接受的 service key 名称写入上下文。
+func WithService(ctx context.Context, name string) context.Context {
+	return context.WithValue(ctx, serviceKey, name)
+}
+
+// ServiceName 返回当前服务调用方。用户 JWT 不会写入这个值。
+func ServiceName(ctx context.Context) (string, bool) {
+	name, ok := ctx.Value(serviceKey).(string)
+	return name, ok && name != ""
 }

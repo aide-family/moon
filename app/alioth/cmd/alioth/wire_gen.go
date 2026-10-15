@@ -8,6 +8,7 @@ package main
 
 import (
 	"github.com/aide-family/Alioth/app/alioth/internal/access"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertlevel"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
@@ -68,18 +69,31 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	alertRuleService := service.NewAlertRuleService(alertruleUsecase)
 	alertlevelUsecase := alertlevel.NewUsecase(alertLevelRepo, checker)
 	alertLevelService := service.NewAlertLevelService(alertlevelUsecase)
-	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertLevelService, authUsecase, logger)
+	alertEventRepo := data.NewAlertEventRepo(dataData, logger)
+	client, cleanup2, err := data.NewLock(confData, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertLevelService, authUsecase, logger)
+	alerteventUsecase := alertevent.NewUsecase(alertRuleRepo, alertEventRepo, datasourceRepo, client, checker, logger)
+	alertEventService := service.NewAlertEventService(alerteventUsecase)
+	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertLevelService, alertEventService, authUsecase, logger)
 	if err != nil {
+		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
-	app := newApp(logger, httpServer, grpcServer, dataData)
+	evalService := service.NewEvalService(alerteventUsecase)
+	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertLevelService, alertEventService, evalService, authUsecase, logger)
+	if err != nil {
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	scheduler := server.NewScheduler(alerteventUsecase, logger)
+	app := newApp(logger, httpServer, grpcServer, scheduler, dataData)
 	return app, func() {
+		cleanup2()
 		cleanup()
 	}, nil
 }

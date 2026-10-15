@@ -30,6 +30,7 @@ func (AlertRule) Fields() []ent.Field {
 		field.String("summary").Default(""),
 		field.String("description").Default(""),
 		field.Time("next_eval_at").Optional().Nillable(),
+		field.Time("scheduled_slot").Optional().Nillable(),
 	}
 }
 

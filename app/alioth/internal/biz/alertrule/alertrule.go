@@ -73,7 +73,7 @@ func (uc *Usecase) ListGroups(ctx context.Context, pageNo, pageSize int32, name 
 	return items, total, p, s, uc.access.Wrap(err)
 }
 
-// SaveRule 只写规则和级别条件。日志、链路规则不会产生评测批次或告警事件。
+// SaveRule 只写规则和级别条件，不写评测批次或告警事件。
 // 停用后的规则仍留在库里，但到期候选查询要求状态为启用且类型为指标。
 func (uc *Usecase) CreateRule(ctx context.Context, in bo.AlertRule) (*bo.AlertRule, error) {
 	ns, err := uc.access.Allow(ctx, perm.AlertRuleWrite)

@@ -18,8 +18,8 @@ func TestDue(t *testing.T) {
 		{name: "enabled metrics already due", rule: AlertRule{Status: "ACTIVE", Type: "METRICS", NextEvalAt: &past}, want: true},
 		{name: "enabled metrics not yet due", rule: AlertRule{Status: "ACTIVE", Type: "METRICS", NextEvalAt: &future}, want: false},
 		{name: "disabled metrics", rule: AlertRule{Status: "DISABLED", Type: "METRICS"}, want: false},
-		{name: "enabled logs", rule: AlertRule{Status: "ACTIVE", Type: "LOGS"}, want: false},
-		{name: "enabled trace", rule: AlertRule{Status: "ACTIVE", Type: "TRACE"}, want: false},
+		{name: "enabled logs", rule: AlertRule{Status: "ACTIVE", Type: "LOGS"}, want: true},
+		{name: "enabled trace", rule: AlertRule{Status: "ACTIVE", Type: "TRACE"}, want: true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

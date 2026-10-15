@@ -114,7 +114,7 @@ type AlertRuleLevel struct {
 	LevelName  string
 }
 
-// AlertRule 是规则组里的一条规则。停用或非指标规则不会进入到期候选。
+// AlertRule 是规则组里的一条规则。停用规则不会进入到期候选。
 type AlertRule struct {
 	UID           string
 	NamespaceUID  string
@@ -129,13 +129,68 @@ type AlertRule struct {
 	Summary       string
 	Description   string
 	NextEvalAt    *time.Time
+	ScheduledSlot *time.Time
 	Levels        []AlertRuleLevel
 }
 
-// Due 判断规则此刻是否该被评测扫描看到。停用、日志和链路规则都不在候选里。
+// Due 判断规则此刻是否该被调度。停用规则不进入候选。日志和链路规则可以进入候选，由评测方标明未评测。
 func (r AlertRule) Due(now time.Time) bool {
-	if r.Status != "ACTIVE" || r.Type != "METRICS" {
+	if r.Status != "ACTIVE" {
 		return false
 	}
 	return r.NextEvalAt == nil || !r.NextEvalAt.After(now)
+}
+
+// AlertEvent 是一条实时或历史告警。
+type AlertEvent struct {
+	UID           string
+	NamespaceUID  string
+	RuleUID       string
+	DatasourceUID string
+	Fingerprint   string
+	Status        string
+	Expr          string
+	Labels        string
+	Summary       string
+	Description   string
+	SampleValue   string
+	LevelUID      string
+	StartsAt      time.Time
+	EndsAt        *time.Time
+	EvalSlot      time.Time
+	Suppressed    bool
+	IntervenedBy  string
+	CreatedAt     time.Time
+}
+
+// AlertStats 是当前租户的告警数量。
+type AlertStats struct {
+	Firing     int
+	Suppressed int
+	Recovered  int
+}
+
+// EvalHit 是一次评测命中的序列。
+type EvalHit struct {
+	Fingerprint string
+	Labels      string
+	Value       string
+	LevelUID    string
+	Summary     string
+	Description string
+}
+
+// EvalReport 是 megrez 回写的一次评测结果。Skipped 表示驱动尚未实现。
+type EvalReport struct {
+	RuleUID  string
+	EvalSlot time.Time
+	Skipped  bool
+	Hits     []EvalHit
+}
+
+// RuleSnapshot 是领取到的规则，含解密后的数据源连接信息。
+type RuleSnapshot struct {
+	Rule               AlertRule
+	Datasource         Datasource
+	FiringFingerprints []string
 }

@@ -6,6 +6,15 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AlertEvalBatch is the predicate function for alertevalbatch builders.
+type AlertEvalBatch func(*sql.Selector)
+
+// AlertEvent is the predicate function for alertevent builders.
+type AlertEvent func(*sql.Selector)
+
+// AlertEventFiring is the predicate function for alerteventfiring builders.
+type AlertEventFiring func(*sql.Selector)
+
 // AlertLevel is the predicate function for alertlevel builders.
 type AlertLevel func(*sql.Selector)
 

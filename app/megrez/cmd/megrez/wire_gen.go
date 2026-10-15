@@ -8,6 +8,7 @@ package main
 
 import (
 	"github.com/aide-family/Alioth/app/megrez/internal/biz"
+	"github.com/aide-family/Alioth/app/megrez/internal/biz/eval"
 	"github.com/aide-family/Alioth/app/megrez/internal/conf"
 	"github.com/aide-family/Alioth/app/megrez/internal/data"
 	"github.com/aide-family/Alioth/app/megrez/internal/server"
@@ -18,19 +19,34 @@ import (
 
 // Injectors from wire.go:
 
-func wireApp(confServer *conf.Server, logger log.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, alioth *conf.Alioth, redis *conf.Redis, logger log.Logger) (*kratos.App, func(), error) {
 	healthUsecase := biz.NewHealthUsecase()
 	healthService := service.NewHealthService(healthUsecase)
 	httpServer, err := server.NewHTTPServer(confServer, healthService, logger)
 	if err != nil {
 		return nil, nil, err
 	}
-	dataData, cleanup, err := data.NewData()
+	evalGateway, cleanup, err := data.NewGateway(alioth)
 	if err != nil {
 		return nil, nil, err
 	}
-	app := newApp(logger, httpServer, dataData)
+	locker, cleanup2, err := data.NewLocker(redis, logger)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	rangeQuery := data.NewRangeQuery()
+	worker := eval.NewWorker(evalGateway, locker, rangeQuery, logger)
+	dataData, cleanup3, err := data.NewData()
+	if err != nil {
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	app := newApp(logger, httpServer, worker, dataData)
 	return app, func() {
+		cleanup3()
+		cleanup2()
 		cleanup()
 	}, nil
 }

@@ -35,15 +35,15 @@ func TestAlertStore(t *testing.T) {
 	if err := store.db.PingContext(ctx); err != nil {
 		t.Skip(err)
 	}
-	if err := store.client.Schema.Create(ctx); err != nil {
+	if err := ApplySchema(ctx, store.client, store.db); err != nil {
 		t.Fatal(err)
 	}
-	var table *string
-	if err := store.db.QueryRowContext(ctx, `SELECT to_regclass('public.alert_events')`).Scan(&table); err != nil {
+	var kind string
+	if err := store.db.QueryRowContext(ctx, `SELECT c.relkind FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relname = 'alert_events'`).Scan(&kind); err != nil {
 		t.Fatal(err)
 	}
-	if table != nil {
-		t.Fatal("alert_events exists")
+	if kind != "p" {
+		t.Fatalf("alert_events relkind = %s", kind)
 	}
 
 	ns := "ns-alert-" + time.Now().Format("150405.000")
@@ -126,7 +126,7 @@ func TestAlertStore(t *testing.T) {
 			seen[item.UID] = true
 		}
 	}
-	if !seen[enabled.UID] || seen[disabled.UID] || seen[logs.UID] {
+	if !seen[enabled.UID] || seen[disabled.UID] || !seen[logs.UID] {
 		t.Fatalf("candidates = %v", seen)
 	}
 }

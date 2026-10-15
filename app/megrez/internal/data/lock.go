@@ -1,0 +1,48 @@
+package data
+
+import (
+	"context"
+	"time"
+
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/redis/go-redis/v9"
+
+	"github.com/aide-family/Alioth/app/megrez/internal/conf"
+	"github.com/aide-family/Alioth/app/megrez/internal/data/repository"
+	"github.com/aide-family/Alioth/pkg/lock"
+	"github.com/aide-family/Alioth/pkg/merr"
+)
+
+type lockClient struct {
+	rdb   *redis.Client
+	locks *lock.Client
+}
+
+func NewLocker(c *conf.Redis, logger log.Logger) (repository.Locker, func(), error) {
+	if c == nil || c.GetAddr() == "" {
+		return nil, nil, merr.Server("redis addr is empty")
+	}
+	rdb := redis.NewClient(&redis.Options{Addr: c.GetAddr(), Password: c.GetPassword()})
+	cleanup := func() {
+		if err := rdb.Close(); err != nil {
+			log.NewHelper(logger).Errorf("close redis: %v", err)
+		}
+	}
+	return &lockClient{rdb: rdb, locks: lock.New(rdb, "megrez")}, cleanup, nil
+}
+
+func (c *lockClient) Available(ctx context.Context) error {
+	if err := c.rdb.Ping(ctx).Err(); err != nil {
+		log.NewHelper(log.DefaultLogger).Errorf("redis: %v", err)
+		return merr.Server("lock failed")
+	}
+	return nil
+}
+
+func (c *lockClient) Acquire(ctx context.Context, key string, ttl time.Duration) (repository.Hold, error) {
+	hold, err := c.locks.Acquire(ctx, key, ttl)
+	if err != nil {
+		return nil, err
+	}
+	return hold, nil
+}

@@ -3,3 +3,9 @@ server:
     network: tcp
     addr: ${MEGREZ_HTTP_ADDR:0.0.0.0:8001}
     timeout: 1s
+alioth:
+  grpc_addr: ${ALIOTH_GRPC_ADDR:127.0.0.1:9000}
+  service_key: ${MEGREZ_SERVICE_KEY:sk-megrez-dev}
+redis:
+  addr: ${REDIS_ADDR:127.0.0.1:6379}
+  password: ${REDIS_PASSWORD:}

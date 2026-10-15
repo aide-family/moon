@@ -6,6 +6,7 @@ import (
 	kgrpc "github.com/go-kratos/kratos/v2/transport/grpc"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
+	megrezv1 "github.com/aide-family/Alioth/api/megrez/v1"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/service"
@@ -26,6 +27,8 @@ func NewGRPCServer(
 	queries *service.MetricQueryService,
 	rules *service.AlertRuleService,
 	levels *service.AlertLevelService,
+	events *service.AlertEventService,
+	eval *service.EvalService,
 	uc *auth.Usecase,
 	logger log.Logger,
 ) (*kgrpc.Server, error) {
@@ -56,5 +59,7 @@ func NewGRPCServer(
 	v1.RegisterMetricQueryServiceServer(srv, queries)
 	v1.RegisterAlertRuleServiceServer(srv, rules)
 	v1.RegisterAlertLevelServiceServer(srv, levels)
+	v1.RegisterAlertEventServiceServer(srv, events)
+	megrezv1.RegisterEvalServiceServer(srv, eval)
 	return srv, nil
 }

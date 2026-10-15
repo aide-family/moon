@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+package megrez.v1;
+
+option go_package = "github.com/aide-family/Alioth/api/megrez/v1;v1";
+
+// 评测领取和回写。只提供 gRPC，由玉衡实现，天权持 service key 调用。
+service EvalService {
+  // 领取已调度且尚未回写的规则快照。
+  rpc ClaimRules(ClaimRulesRequest) returns (ClaimRulesResponse);
+  // 回写命中、恢复，或标明驱动尚未实现。
+  rpc ReportEval(ReportEvalRequest) returns (ReportEvalResponse);
+}
+
+// 领取不需要参数，也不要求租户头。
+message ClaimRulesRequest {}
+
+// 本轮可评测的规则。
+message ClaimRulesResponse {
+  // 规则快照。
+  repeated RuleSnapshot rules = 1;
+}
+
+// 一条待评测规则，含数据源连接信息和当前 FIRING fingerprint。
+message RuleSnapshot {
+  // 规则标识。
+  string uid = 1;
+  // 租户标识。
+  string namespace_uid = 2;
+  // 规则类型，取值为 METRICS、LOGS 或 TRACE。
+  string type = 3;
+  // 驱动。
+  string driver = 4;
+  // 表达式。
+  string expr = 5;
+  // 标签 JSON。
+  string labels = 6;
+  // 摘要。
+  string summary = 7;
+  // 描述。
+  string description = 8;
+  // 本轮评测批次，RFC3339 时间。
+  string eval_slot = 9;
+  // 数据源地址。
+  string datasource_endpoint = 10;
+  // 数据源用户名。
+  string datasource_username = 11;
+  // 数据源密码。只出现在这条内部响应里。
+  string datasource_password = 12;
+  // 数据源密钥。只出现在这条内部响应里。
+  string datasource_secret = 13;
+  // 级别条件，按保存顺序。
+  repeated LevelCondition levels = 14;
+  // 当前仍在触发的 fingerprint。
+  repeated string firing_fingerprints = 15;
+  // 数据源标识。
+  string datasource_uid = 16;
+  // 规则名称。
+  string name = 17;
+}
+
+// 一条级别条件。
+message LevelCondition {
+  // 比较方式，取值为 EQ、NE、GT、GTE、LT、LTE、IN、NOT_IN。
+  string condition = 1;
+  // 采样方式，取值为 FOR、MAX、MIN。
+  string sample = 2;
+  // 阈值。IN 和 NOT_IN 用逗号分隔多个值。
+  string threshold = 3;
+  // FOR 持续秒数。
+  int32 for_seconds = 4;
+  // 告警级别标识。
+  string level_uid = 5;
+}
+
+// 一次评测回写。
+message ReportEvalRequest {
+  // 规则标识。
+  string rule_uid = 1;
+  // 领取时的评测批次，RFC3339 时间。
+  string eval_slot = 2;
+  // 为真表示驱动尚未实现，不产生 FIRING。
+  bool skipped = 3;
+  // 本次命中的序列。skipped 为真时留空。
+  repeated EvalHit hits = 4;
+}
+
+// 一条命中序列。
+message EvalHit {
+  // 规则和标签算出的 fingerprint。
+  string fingerprint = 1;
+  // 标签 JSON。
+  string labels = 2;
+  // 采样值。
+  string value = 3;
+  // 命中的告警级别。
+  string level_uid = 4;
+  // 摘要。
+  string summary = 5;
+  // 描述。
+  string description = 6;
+}
+
+// 回写已接受。
+message ReportEvalResponse {}

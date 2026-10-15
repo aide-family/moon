@@ -196,6 +196,20 @@ func (_c *AlertRuleCreate) SetNillableNextEvalAt(v *time.Time) *AlertRuleCreate 
 	return _c
 }
 
+// SetScheduledSlot sets the "scheduled_slot" field.
+func (_c *AlertRuleCreate) SetScheduledSlot(v time.Time) *AlertRuleCreate {
+	_c.mutation.SetScheduledSlot(v)
+	return _c
+}
+
+// SetNillableScheduledSlot sets the "scheduled_slot" field if the given value is not nil.
+func (_c *AlertRuleCreate) SetNillableScheduledSlot(v *time.Time) *AlertRuleCreate {
+	if v != nil {
+		_c.SetScheduledSlot(*v)
+	}
+	return _c
+}
+
 // Mutation returns the AlertRuleMutation object of the builder.
 func (_c *AlertRuleCreate) Mutation() *AlertRuleMutation {
 	return _c.mutation
@@ -433,6 +447,10 @@ func (_c *AlertRuleCreate) createSpec() (*AlertRule, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.NextEvalAt(); ok {
 		_spec.SetField(alertrule.FieldNextEvalAt, field.TypeTime, value)
 		_node.NextEvalAt = &value
+	}
+	if value, ok := _c.mutation.ScheduledSlot(); ok {
+		_spec.SetField(alertrule.FieldScheduledSlot, field.TypeTime, value)
+		_node.ScheduledSlot = &value
 	}
 	return _node, _spec
 }

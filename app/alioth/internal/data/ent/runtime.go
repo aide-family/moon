@@ -5,6 +5,9 @@ package ent
 import (
 	"time"
 
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertlevel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
@@ -27,6 +30,101 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	alertevalbatchFields := schema.AlertEvalBatch{}.Fields()
+	_ = alertevalbatchFields
+	// alertevalbatchDescRuleUID is the schema descriptor for rule_uid field.
+	alertevalbatchDescRuleUID := alertevalbatchFields[0].Descriptor()
+	// alertevalbatch.RuleUIDValidator is a validator for the "rule_uid" field. It is called by the builders before save.
+	alertevalbatch.RuleUIDValidator = alertevalbatchDescRuleUID.Validators[0].(func(string) error)
+	// alertevalbatchDescEvalSlot is the schema descriptor for eval_slot field.
+	alertevalbatchDescEvalSlot := alertevalbatchFields[1].Descriptor()
+	// alertevalbatch.DefaultEvalSlot holds the default value on creation for the eval_slot field.
+	alertevalbatch.DefaultEvalSlot = alertevalbatchDescEvalSlot.Default.(func() time.Time)
+	alerteventMixin := schema.AlertEvent{}.Mixin()
+	alerteventMixinFields0 := alerteventMixin[0].Fields()
+	_ = alerteventMixinFields0
+	alerteventFields := schema.AlertEvent{}.Fields()
+	_ = alerteventFields
+	// alerteventDescCreatedAt is the schema descriptor for created_at field.
+	alerteventDescCreatedAt := alerteventMixinFields0[0].Descriptor()
+	// alertevent.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alertevent.DefaultCreatedAt = alerteventDescCreatedAt.Default.(func() time.Time)
+	// alerteventDescUpdatedAt is the schema descriptor for updated_at field.
+	alerteventDescUpdatedAt := alerteventMixinFields0[1].Descriptor()
+	// alertevent.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	alertevent.DefaultUpdatedAt = alerteventDescUpdatedAt.Default.(func() time.Time)
+	// alertevent.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	alertevent.UpdateDefaultUpdatedAt = alerteventDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// alerteventDescUID is the schema descriptor for uid field.
+	alerteventDescUID := alerteventFields[0].Descriptor()
+	// alertevent.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	alertevent.UIDValidator = alerteventDescUID.Validators[0].(func(string) error)
+	// alerteventDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alerteventDescNamespaceUID := alerteventFields[1].Descriptor()
+	// alertevent.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alertevent.NamespaceUIDValidator = alerteventDescNamespaceUID.Validators[0].(func(string) error)
+	// alerteventDescRuleUID is the schema descriptor for rule_uid field.
+	alerteventDescRuleUID := alerteventFields[2].Descriptor()
+	// alertevent.RuleUIDValidator is a validator for the "rule_uid" field. It is called by the builders before save.
+	alertevent.RuleUIDValidator = alerteventDescRuleUID.Validators[0].(func(string) error)
+	// alerteventDescDatasourceUID is the schema descriptor for datasource_uid field.
+	alerteventDescDatasourceUID := alerteventFields[3].Descriptor()
+	// alertevent.DefaultDatasourceUID holds the default value on creation for the datasource_uid field.
+	alertevent.DefaultDatasourceUID = alerteventDescDatasourceUID.Default.(string)
+	// alerteventDescFingerprint is the schema descriptor for fingerprint field.
+	alerteventDescFingerprint := alerteventFields[4].Descriptor()
+	// alertevent.FingerprintValidator is a validator for the "fingerprint" field. It is called by the builders before save.
+	alertevent.FingerprintValidator = alerteventDescFingerprint.Validators[0].(func(string) error)
+	// alerteventDescExpr is the schema descriptor for expr field.
+	alerteventDescExpr := alerteventFields[6].Descriptor()
+	// alertevent.DefaultExpr holds the default value on creation for the expr field.
+	alertevent.DefaultExpr = alerteventDescExpr.Default.(string)
+	// alerteventDescLabels is the schema descriptor for labels field.
+	alerteventDescLabels := alerteventFields[7].Descriptor()
+	// alertevent.DefaultLabels holds the default value on creation for the labels field.
+	alertevent.DefaultLabels = alerteventDescLabels.Default.(string)
+	// alerteventDescSummary is the schema descriptor for summary field.
+	alerteventDescSummary := alerteventFields[8].Descriptor()
+	// alertevent.DefaultSummary holds the default value on creation for the summary field.
+	alertevent.DefaultSummary = alerteventDescSummary.Default.(string)
+	// alerteventDescDescription is the schema descriptor for description field.
+	alerteventDescDescription := alerteventFields[9].Descriptor()
+	// alertevent.DefaultDescription holds the default value on creation for the description field.
+	alertevent.DefaultDescription = alerteventDescDescription.Default.(string)
+	// alerteventDescSampleValue is the schema descriptor for sample_value field.
+	alerteventDescSampleValue := alerteventFields[10].Descriptor()
+	// alertevent.DefaultSampleValue holds the default value on creation for the sample_value field.
+	alertevent.DefaultSampleValue = alerteventDescSampleValue.Default.(string)
+	// alerteventDescLevelUID is the schema descriptor for level_uid field.
+	alerteventDescLevelUID := alerteventFields[11].Descriptor()
+	// alertevent.DefaultLevelUID holds the default value on creation for the level_uid field.
+	alertevent.DefaultLevelUID = alerteventDescLevelUID.Default.(string)
+	// alerteventDescSuppressed is the schema descriptor for suppressed field.
+	alerteventDescSuppressed := alerteventFields[15].Descriptor()
+	// alertevent.DefaultSuppressed holds the default value on creation for the suppressed field.
+	alertevent.DefaultSuppressed = alerteventDescSuppressed.Default.(bool)
+	// alerteventDescIntervenedBy is the schema descriptor for intervened_by field.
+	alerteventDescIntervenedBy := alerteventFields[16].Descriptor()
+	// alertevent.DefaultIntervenedBy holds the default value on creation for the intervened_by field.
+	alertevent.DefaultIntervenedBy = alerteventDescIntervenedBy.Default.(string)
+	alerteventfiringFields := schema.AlertEventFiring{}.Fields()
+	_ = alerteventfiringFields
+	// alerteventfiringDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alerteventfiringDescNamespaceUID := alerteventfiringFields[0].Descriptor()
+	// alerteventfiring.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alerteventfiring.NamespaceUIDValidator = alerteventfiringDescNamespaceUID.Validators[0].(func(string) error)
+	// alerteventfiringDescFingerprint is the schema descriptor for fingerprint field.
+	alerteventfiringDescFingerprint := alerteventfiringFields[1].Descriptor()
+	// alerteventfiring.FingerprintValidator is a validator for the "fingerprint" field. It is called by the builders before save.
+	alerteventfiring.FingerprintValidator = alerteventfiringDescFingerprint.Validators[0].(func(string) error)
+	// alerteventfiringDescEventUID is the schema descriptor for event_uid field.
+	alerteventfiringDescEventUID := alerteventfiringFields[2].Descriptor()
+	// alerteventfiring.EventUIDValidator is a validator for the "event_uid" field. It is called by the builders before save.
+	alerteventfiring.EventUIDValidator = alerteventfiringDescEventUID.Validators[0].(func(string) error)
+	// alerteventfiringDescRuleUID is the schema descriptor for rule_uid field.
+	alerteventfiringDescRuleUID := alerteventfiringFields[3].Descriptor()
+	// alerteventfiring.RuleUIDValidator is a validator for the "rule_uid" field. It is called by the builders before save.
+	alerteventfiring.RuleUIDValidator = alerteventfiringDescRuleUID.Validators[0].(func(string) error)
 	alertlevelMixin := schema.AlertLevel{}.Mixin()
 	alertlevelMixinFields0 := alertlevelMixin[0].Fields()
 	_ = alertlevelMixinFields0

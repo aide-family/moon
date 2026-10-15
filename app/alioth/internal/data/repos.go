@@ -1,6 +1,8 @@
 package data
 
 import (
+	"database/sql"
+
 	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
@@ -9,12 +11,13 @@ import (
 
 type repoBase struct {
 	client *ent.Client
+	db     *sql.DB
 	box    *secretBox
 	log    *log.Helper
 }
 
 func newBase(d *Data, logger log.Logger) *repoBase {
-	return &repoBase{client: d.client, box: d.box, log: log.NewHelper(logger)}
+	return &repoBase{client: d.client, db: d.db, box: d.box, log: log.NewHelper(logger)}
 }
 
 type userRepo struct{ *repoBase }
@@ -27,6 +30,7 @@ type roleRepo struct{ *repoBase }
 type datasourceRepo struct{ *repoBase }
 type alertLevelRepo struct{ *repoBase }
 type alertRuleRepo struct{ *repoBase }
+type alertEventRepo struct{ *repoBase }
 
 func NewUserRepo(d *Data, logger log.Logger) repository.UserRepo {
 	return &userRepo{newBase(d, logger)}
@@ -66,4 +70,8 @@ func NewAlertLevelRepo(d *Data, logger log.Logger) repository.AlertLevelRepo {
 
 func NewAlertRuleRepo(d *Data, logger log.Logger) repository.AlertRuleRepo {
 	return &alertRuleRepo{newBase(d, logger)}
+}
+
+func NewAlertEventRepo(d *Data, logger log.Logger) repository.AlertEventRepo {
+	return &alertEventRepo{newBase(d, logger)}
 }
