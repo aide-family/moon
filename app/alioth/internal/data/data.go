@@ -8,17 +8,18 @@ import (
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/schema"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-var ProviderSet = wire.NewSet(NewData)
+var ProviderSet = wire.NewSet(NewData, NewIdentityRepo)
 
 type Data struct {
-	db *sql.DB
+	db     *sql.DB
+	client *ent.Client
 }
 
 func NewData(c *conf.Data, logger log.Logger) (*Data, func(), error) {
@@ -29,12 +30,13 @@ func NewData(c *conf.Data, logger log.Logger) (*Data, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
+	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, db)))
 	cleanup := func() {
-		if err := db.Close(); err != nil {
+		if err := client.Close(); err != nil {
 			log.NewHelper(logger).Errorf("close database: %v", err)
 		}
 	}
-	return &Data{db: db}, cleanup, nil
+	return &Data{db: db, client: client}, cleanup, nil
 }
 
 func Migrate(ctx context.Context, source string) error {
@@ -43,12 +45,12 @@ func Migrate(ctx context.Context, source string) error {
 		return err
 	}
 	defer db.Close()
-	drv := entsql.OpenDB(dialect.Postgres, db)
-	migrator, err := schema.NewMigrate(drv)
-	if err != nil {
+	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, db)))
+	defer client.Close()
+	if err := client.Schema.Create(ctx); err != nil {
 		return err
 	}
-	return migrator.Create(ctx)
+	return seed(ctx, client)
 }
 
 func openDB(source string) (*sql.DB, error) {

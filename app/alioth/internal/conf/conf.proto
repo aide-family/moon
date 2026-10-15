@@ -9,6 +9,7 @@ import "google/protobuf/duration.proto";
 message Bootstrap {
   Server server = 1;
   Data data = 2;
+  Auth auth = 3;
 }
 
 message Server {
@@ -37,4 +38,29 @@ message Data {
   }
   Database database = 1;
   Redis redis = 2;
+}
+
+message Auth {
+  string jwt_secret = 1;
+  int64 access_ttl_seconds = 2;
+  int64 refresh_ttl_seconds = 3;
+  message ServiceKey {
+    string name = 1;
+    string key = 2;
+  }
+  message OAuthClient {
+    string provider = 1;
+    string client_id = 2;
+    string client_secret = 3;
+  }
+  message SMTP {
+    string host = 1;
+    int32 port = 2;
+    string username = 3;
+    string password = 4;
+    string from = 5;
+  }
+  repeated ServiceKey service_keys = 4;
+  repeated OAuthClient oauth = 5;
+  SMTP smtp = 6;
 }

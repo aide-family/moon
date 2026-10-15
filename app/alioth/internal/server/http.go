@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/service"
 	"github.com/go-kratos/kratos/v2/log"
@@ -13,13 +14,13 @@ import (
 	khttp "github.com/go-kratos/kratos/v2/transport/http"
 )
 
-func NewHTTPServer(c *conf.Server, health *service.HealthService, logger log.Logger) (*khttp.Server, error) {
+func NewHTTPServer(c *conf.Server, health *service.HealthService, identity *service.IdentityService, uc *biz.IdentityUsecase, logger log.Logger) (*khttp.Server, error) {
 	if c == nil || c.Http == nil || c.Http.Addr == "" {
 		return nil, fmt.Errorf("http addr is empty")
 	}
 	opts := []khttp.ServerOption{
 		khttp.Address(c.Http.Addr),
-		khttp.Middleware(recovery.Recovery()),
+		khttp.Middleware(recovery.Recovery(), authenticate(uc)),
 		khttp.Logger(logger),
 	}
 	if c.Http.Network != "" {
@@ -39,5 +40,12 @@ func NewHTTPServer(c *conf.Server, health *service.HealthService, logger log.Log
 		_ = json.NewEncoder(w).Encode(reply)
 	})
 	v1.RegisterHealthServiceHTTPServer(srv, health)
+	v1.RegisterCaptchaServiceHTTPServer(srv, identity)
+	v1.RegisterAuthServiceHTTPServer(srv, identity)
+	v1.RegisterSelfServiceHTTPServer(srv, identity)
+	v1.RegisterNamespaceServiceHTTPServer(srv, identity)
+	v1.RegisterMemberServiceHTTPServer(srv, identity)
+	v1.RegisterUserServiceHTTPServer(srv, identity)
+	v1.RegisterRoleServiceHTTPServer(srv, identity)
 	return srv, nil
 }

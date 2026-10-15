@@ -37,7 +37,7 @@ func newServeCmd() *cobra.Command {
 				return err
 			}
 			logger := log.With(log.NewStdLogger(os.Stdout), "ts", log.DefaultTimestamp, "caller", log.DefaultCaller, "service", "alioth")
-			app, cleanup, err := wireApp(bc.Server, bc.Data, logger)
+			app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Auth, logger)
 			if err != nil {
 				return err
 			}

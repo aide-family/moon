@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/service"
 	"github.com/go-kratos/kratos/v2/log"
@@ -11,13 +12,13 @@ import (
 	kgrpc "github.com/go-kratos/kratos/v2/transport/grpc"
 )
 
-func NewGRPCServer(c *conf.Server, health *service.HealthService, logger log.Logger) (*kgrpc.Server, error) {
+func NewGRPCServer(c *conf.Server, health *service.HealthService, identity *service.IdentityService, uc *biz.IdentityUsecase, logger log.Logger) (*kgrpc.Server, error) {
 	if c == nil || c.Grpc == nil || c.Grpc.Addr == "" {
 		return nil, fmt.Errorf("grpc addr is empty")
 	}
 	opts := []kgrpc.ServerOption{
 		kgrpc.Address(c.Grpc.Addr),
-		kgrpc.Middleware(recovery.Recovery()),
+		kgrpc.Middleware(recovery.Recovery(), authenticate(uc)),
 		kgrpc.Logger(logger),
 	}
 	if c.Grpc.Network != "" {
@@ -28,5 +29,12 @@ func NewGRPCServer(c *conf.Server, health *service.HealthService, logger log.Log
 	}
 	srv := kgrpc.NewServer(opts...)
 	v1.RegisterHealthServiceServer(srv, health)
+	v1.RegisterCaptchaServiceServer(srv, identity)
+	v1.RegisterAuthServiceServer(srv, identity)
+	v1.RegisterSelfServiceServer(srv, identity)
+	v1.RegisterNamespaceServiceServer(srv, identity)
+	v1.RegisterMemberServiceServer(srv, identity)
+	v1.RegisterUserServiceServer(srv, identity)
+	v1.RegisterRoleServiceServer(srv, identity)
 	return srv, nil
 }

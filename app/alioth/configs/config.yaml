@@ -2,11 +2,11 @@ server:
   http:
     network: tcp
     addr: ${ALIOTH_HTTP_ADDR:0.0.0.0:8000}
-    timeout: 1s
+    timeout: 15s
   grpc:
     network: tcp
     addr: ${ALIOTH_GRPC_ADDR:0.0.0.0:9000}
-    timeout: 1s
+    timeout: 15s
 data:
   database:
     driver: postgres
@@ -14,3 +14,28 @@ data:
   redis:
     addr: ${ALIOTH_REDIS_ADDR:127.0.0.1:6379}
     password: ${ALIOTH_REDIS_PASSWORD:}
+auth:
+  jwt_secret: ${ALIOTH_JWT_SECRET:dev-only-change-me}
+  access_ttl_seconds: 7200
+  refresh_ttl_seconds: 604800
+  service_keys:
+    - name: megrez
+      key: ${MEGREZ_SERVICE_KEY:sk-megrez-dev}
+    - name: merak
+      key: ${MERAK_SERVICE_KEY:sk-merak-dev}
+  smtp:
+    host: ${ALIOTH_SMTP_HOST:127.0.0.1}
+    port: 1025
+    username: ${ALIOTH_SMTP_USERNAME:}
+    password: ${ALIOTH_SMTP_PASSWORD:}
+    from: ${ALIOTH_SMTP_FROM:alioth@localhost}
+  oauth:
+    - provider: GITHUB
+      client_id: ${GITHUB_CLIENT_ID:}
+      client_secret: ${GITHUB_CLIENT_SECRET:}
+    - provider: GITEE
+      client_id: ${GITEE_CLIENT_ID:}
+      client_secret: ${GITEE_CLIENT_SECRET:}
+    - provider: FEISHU
+      client_id: ${FEISHU_CLIENT_ID:}
+      client_secret: ${FEISHU_CLIENT_SECRET:}

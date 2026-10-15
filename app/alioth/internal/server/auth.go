@@ -1,0 +1,26 @@
+package server
+
+import (
+	"context"
+
+	"github.com/aide-family/Alioth/app/alioth/internal/biz"
+	"github.com/go-kratos/kratos/v2/middleware"
+	"github.com/go-kratos/kratos/v2/transport"
+)
+
+func authenticate(uc *biz.IdentityUsecase) middleware.Middleware {
+	return func(handler middleware.Handler) middleware.Handler {
+		return func(ctx context.Context, req interface{}) (interface{}, error) {
+			tr, ok := transport.FromServerContext(ctx)
+			if !ok {
+				return handler(ctx, req)
+			}
+			header := tr.RequestHeader()
+			next, err := uc.Authenticate(ctx, tr.Operation(), header.Get("Authorization"), header.Get("X-Namespace"))
+			if err != nil {
+				return nil, err
+			}
+			return handler(next, req)
+		}
+	}
+}

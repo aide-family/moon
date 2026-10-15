@@ -8,7 +8,7 @@ import (
 	"github.com/google/wire"
 )
 
-var ProviderSet = wire.NewSet(NewHealthService)
+var ProviderSet = wire.NewSet(NewHealthService, NewIdentityService)
 
 type HealthService struct {
 	v1.UnimplementedHealthServiceServer

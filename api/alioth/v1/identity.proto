@@ -1,0 +1,658 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
+
+service CaptchaService {
+  rpc GetCaptcha(GetCaptchaRequest) returns (GetCaptchaResponse) {
+    option (google.api.http) = {get: "/v1/captcha"};
+  }
+}
+
+service AuthService {
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/register"
+      body: "*"
+    };
+  }
+  rpc PasswordLogin(PasswordLoginRequest) returns (PasswordLoginResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/password/login"
+      body: "*"
+    };
+  }
+  rpc SendEmailLoginCode(SendEmailLoginCodeRequest) returns (SendEmailLoginCodeResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/email/login/code"
+      body: "*"
+    };
+  }
+  rpc EmailLogin(EmailLoginRequest) returns (EmailLoginResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/email/login"
+      body: "*"
+    };
+  }
+  rpc OAuth2Login(OAuth2LoginRequest) returns (OAuth2LoginResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/oauth2/login"
+      body: "*"
+    };
+  }
+}
+
+service SelfService {
+  rpc GetSelfInfo(GetSelfInfoRequest) returns (GetSelfInfoResponse) {
+    option (google.api.http) = {get: "/v1/self/info"};
+  }
+  rpc ListSelfNamespaces(ListSelfNamespacesRequest) returns (ListSelfNamespacesResponse) {
+    option (google.api.http) = {get: "/v1/self/namespaces"};
+  }
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
+    option (google.api.http) = {get: "/v1/self/refresh-token"};
+  }
+  rpc ChangeEmail(ChangeEmailRequest) returns (ChangeEmailResponse) {
+    option (google.api.http) = {
+      put: "/v1/self/change-email"
+      body: "*"
+    };
+  }
+  rpc ChangeAvatar(ChangeAvatarRequest) returns (ChangeAvatarResponse) {
+    option (google.api.http) = {
+      put: "/v1/self/change-avatar"
+      body: "*"
+    };
+  }
+  rpc ChangeRemark(ChangeRemarkRequest) returns (ChangeRemarkResponse) {
+    option (google.api.http) = {
+      put: "/v1/self/change-remark"
+      body: "*"
+    };
+  }
+  rpc GetSelfPermissions(GetSelfPermissionsRequest) returns (GetSelfPermissionsResponse) {
+    option (google.api.http) = {get: "/v1/self/permissions"};
+  }
+}
+
+service NamespaceService {
+  rpc CreateNamespace(CreateNamespaceRequest) returns (CreateNamespaceResponse) {
+    option (google.api.http) = {
+      post: "/v1/namespace"
+      body: "*"
+    };
+  }
+  rpc UpdateNamespace(UpdateNamespaceRequest) returns (UpdateNamespaceResponse) {
+    option (google.api.http) = {
+      put: "/v1/namespace/{uid}"
+      body: "*"
+    };
+  }
+  rpc UpdateNamespaceStatus(UpdateNamespaceStatusRequest) returns (UpdateNamespaceStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/namespace/{uid}/status"
+      body: "*"
+    };
+  }
+  rpc DeleteNamespace(DeleteNamespaceRequest) returns (DeleteNamespaceResponse) {
+    option (google.api.http) = {delete: "/v1/namespace/{uid}"};
+  }
+  rpc GetNamespace(GetNamespaceRequest) returns (GetNamespaceResponse) {
+    option (google.api.http) = {get: "/v1/namespace/{uid}"};
+  }
+  rpc ListNamespaces(ListNamespacesRequest) returns (ListNamespacesResponse) {
+    option (google.api.http) = {get: "/v1/namespaces"};
+  }
+  rpc SelectNamespaces(SelectNamespacesRequest) returns (SelectNamespacesResponse) {
+    option (google.api.http) = {get: "/v1/namespaces/select"};
+  }
+  rpc ListSimpleNamespaces(ListSimpleNamespacesRequest) returns (ListSimpleNamespacesResponse) {
+    option (google.api.http) = {get: "/v1/namespaces/simple"};
+  }
+  rpc TransferNamespaceOwner(TransferNamespaceOwnerRequest) returns (TransferNamespaceOwnerResponse) {
+    option (google.api.http) = {
+      put: "/v1/namespace/{uid}/owner"
+      body: "*"
+    };
+  }
+}
+
+service MemberService {
+  rpc ListMembers(ListMembersRequest) returns (ListMembersResponse) {
+    option (google.api.http) = {get: "/v1/members"};
+  }
+  rpc GetMember(GetMemberRequest) returns (GetMemberResponse) {
+    option (google.api.http) = {get: "/v1/member/{uid}"};
+  }
+  rpc ListUserMembers(ListUserMembersRequest) returns (ListUserMembersResponse) {
+    option (google.api.http) = {get: "/v1/members/user/{user_uid}"};
+  }
+  rpc SelectMembers(SelectMembersRequest) returns (SelectMembersResponse) {
+    option (google.api.http) = {get: "/v1/members/select"};
+  }
+  rpc InviteMember(InviteMemberRequest) returns (InviteMemberResponse) {
+    option (google.api.http) = {
+      post: "/v1/member/invite"
+      body: "*"
+    };
+  }
+  rpc DeleteMember(DeleteMemberRequest) returns (DeleteMemberResponse) {
+    option (google.api.http) = {delete: "/v1/member/{uid}"};
+  }
+  rpc UpdateMemberStatus(UpdateMemberStatusRequest) returns (UpdateMemberStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/member/{uid}/status"
+      body: "*"
+    };
+  }
+  rpc UpdateMemberRoles(UpdateMemberRolesRequest) returns (UpdateMemberRolesResponse) {
+    option (google.api.http) = {
+      put: "/v1/member/{uid}/roles"
+      body: "*"
+    };
+  }
+}
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {
+    option (google.api.http) = {get: "/v1/user/{uid}"};
+  }
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+    option (google.api.http) = {get: "/v1/users"};
+  }
+  rpc SelectUsers(SelectUsersRequest) returns (SelectUsersResponse) {
+    option (google.api.http) = {get: "/v1/users/select"};
+  }
+  rpc BanUser(BanUserRequest) returns (BanUserResponse) {
+    option (google.api.http) = {put: "/v1/user/ban/{uid}"};
+  }
+  rpc PermitUser(PermitUserRequest) returns (PermitUserResponse) {
+    option (google.api.http) = {put: "/v1/user/permit/{uid}"};
+  }
+}
+
+service RoleService {
+  rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse) {
+    option (google.api.http) = {
+      post: "/v1/roles"
+      body: "*"
+    };
+  }
+  rpc UpdateRole(UpdateRoleRequest) returns (UpdateRoleResponse) {
+    option (google.api.http) = {
+      put: "/v1/role/{uid}"
+      body: "*"
+    };
+  }
+  rpc UpdateRoleStatus(UpdateRoleStatusRequest) returns (UpdateRoleStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/role/{uid}/status"
+      body: "*"
+    };
+  }
+  rpc DeleteRole(DeleteRoleRequest) returns (DeleteRoleResponse) {
+    option (google.api.http) = {delete: "/v1/role/{uid}"};
+  }
+  rpc GetRole(GetRoleRequest) returns (GetRoleResponse) {
+    option (google.api.http) = {get: "/v1/role/{uid}"};
+  }
+  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse) {
+    option (google.api.http) = {get: "/v1/roles"};
+  }
+  rpc SelectRoles(SelectRolesRequest) returns (SelectRolesResponse) {
+    option (google.api.http) = {get: "/v1/roles/select"};
+  }
+  rpc UpdateRolePermissions(UpdateRolePermissionsRequest) returns (UpdateRolePermissionsResponse) {
+    option (google.api.http) = {
+      put: "/v1/role/{uid}/permissions"
+      body: "*"
+    };
+  }
+  rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse) {
+    option (google.api.http) = {get: "/v1/permissions"};
+  }
+}
+
+message UserItem {
+  string uid = 1;
+  string name = 2;
+  string nickname = 3;
+  string email = 4;
+  string avatar = 5;
+  string remark = 6;
+  string status = 7;
+}
+
+message NamespaceItem {
+  string uid = 1;
+  string name = 2;
+  string owner_uid = 3 [json_name = "ownerUid"];
+  string logo = 4;
+  string remark = 5;
+  string status = 6;
+}
+
+message MemberItem {
+  string uid = 1;
+  string namespace_uid = 2 [json_name = "namespaceUid"];
+  string user_uid = 3 [json_name = "userUid"];
+  string email = 4;
+  string name = 5;
+  string status = 6;
+  repeated string role_uids = 7 [json_name = "roleUids"];
+  repeated string role_names = 8 [json_name = "roleNames"];
+}
+
+message RoleItem {
+  string uid = 1;
+  string namespace_uid = 2 [json_name = "namespaceUid"];
+  string name = 3;
+  string status = 4;
+  bool is_system = 5 [json_name = "isSystem"];
+  repeated string permissions = 6;
+}
+
+message PermissionItem {
+  string uid = 1;
+  string name = 2;
+  string resource = 3;
+  string action = 4;
+}
+
+message SelectItem {
+  string uid = 1;
+  string name = 2;
+}
+
+message TokenPair {
+  string access_token = 1 [json_name = "accessToken"];
+  string refresh_token = 2 [json_name = "refreshToken"];
+  UserItem user = 3;
+}
+
+message GetCaptchaRequest {}
+
+message GetCaptchaResponse {
+  string id = 1;
+  string image = 2;
+}
+
+message RegisterRequest {
+  string email = 1 [(buf.validate.field).string.email = true];
+  string password = 2 [(buf.validate.field).string.min_len = 8];
+  string captcha_id = 3 [(buf.validate.field).string.min_len = 1, json_name = "captchaId"];
+  string captcha_code = 4 [(buf.validate.field).string.min_len = 1, json_name = "captchaCode"];
+  string name = 5;
+}
+
+message RegisterResponse {
+  TokenPair session = 1;
+}
+
+message PasswordLoginRequest {
+  string email = 1 [(buf.validate.field).string.email = true];
+  string password = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+message PasswordLoginResponse {
+  TokenPair session = 1;
+}
+
+message SendEmailLoginCodeRequest {
+  string email = 1 [(buf.validate.field).string.email = true];
+}
+
+message SendEmailLoginCodeResponse {}
+
+message EmailLoginRequest {
+  string email = 1 [(buf.validate.field).string.email = true];
+  string code = 2 [(buf.validate.field).string.min_len = 4];
+}
+
+message EmailLoginResponse {
+  TokenPair session = 1;
+}
+
+message OAuth2LoginRequest {
+  string provider = 1 [(buf.validate.field).string = {in: ["GITHUB", "GITEE", "FEISHU"]}];
+  string code = 2 [(buf.validate.field).string.min_len = 1];
+  string redirect_uri = 3 [json_name = "redirectUri"];
+}
+
+message OAuth2LoginResponse {
+  TokenPair session = 1;
+}
+
+message GetSelfInfoRequest {}
+
+message GetSelfInfoResponse {
+  UserItem user = 1;
+}
+
+message ListSelfNamespacesRequest {}
+
+message ListSelfNamespacesResponse {
+  repeated NamespaceItem items = 1;
+}
+
+message RefreshTokenRequest {}
+
+message RefreshTokenResponse {
+  string access_token = 1 [json_name = "accessToken"];
+}
+
+message ChangeEmailRequest {
+  string email = 1 [(buf.validate.field).string.email = true];
+}
+
+message ChangeEmailResponse {
+  UserItem user = 1;
+}
+
+message ChangeAvatarRequest {
+  string avatar = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message ChangeAvatarResponse {
+  UserItem user = 1;
+}
+
+message ChangeRemarkRequest {
+  string remark = 1 [(buf.validate.field).string.max_len = 200];
+}
+
+message ChangeRemarkResponse {
+  UserItem user = 1;
+}
+
+message GetSelfPermissionsRequest {}
+
+message GetSelfPermissionsResponse {
+  repeated string permissions = 1;
+}
+
+message CreateNamespaceRequest {
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string remark = 2 [(buf.validate.field).string.max_len = 200];
+}
+
+message CreateNamespaceResponse {
+  NamespaceItem namespace = 1;
+}
+
+message UpdateNamespaceRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string remark = 3 [(buf.validate.field).string.max_len = 200];
+  string logo = 4;
+}
+
+message UpdateNamespaceResponse {
+  NamespaceItem namespace = 1;
+}
+
+message UpdateNamespaceStatusRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+message UpdateNamespaceStatusResponse {
+  NamespaceItem namespace = 1;
+}
+
+message DeleteNamespaceRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message DeleteNamespaceResponse {}
+
+message GetNamespaceRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message GetNamespaceResponse {
+  NamespaceItem namespace = 1;
+}
+
+message ListNamespacesRequest {
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  string name = 3;
+}
+
+message ListNamespacesResponse {
+  repeated NamespaceItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+message SelectNamespacesRequest {
+  int32 limit = 1 [(buf.validate.field).int32 = {gte: 0, lte: 100}];
+  string last_uid = 2 [json_name = "lastUid"];
+}
+
+message SelectNamespacesResponse {
+  repeated SelectItem items = 1;
+  string last_uid = 2 [json_name = "lastUid"];
+}
+
+message ListSimpleNamespacesRequest {
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+}
+
+message ListSimpleNamespacesResponse {
+  repeated NamespaceItem items = 1;
+  int32 total = 2;
+}
+
+message TransferNamespaceOwnerRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  string user_uid = 2 [json_name = "userUid", (buf.validate.field).string.min_len = 1];
+}
+
+message TransferNamespaceOwnerResponse {
+  NamespaceItem namespace = 1;
+}
+
+message ListMembersRequest {
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  string name = 3;
+}
+
+message ListMembersResponse {
+  repeated MemberItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+message GetMemberRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message GetMemberResponse {
+  MemberItem member = 1;
+}
+
+message ListUserMembersRequest {
+  string user_uid = 1 [json_name = "userUid", (buf.validate.field).string.min_len = 1];
+}
+
+message ListUserMembersResponse {
+  repeated MemberItem items = 1;
+}
+
+message SelectMembersRequest {
+  int32 limit = 1 [(buf.validate.field).int32 = {gte: 0, lte: 100}];
+  string last_uid = 2 [json_name = "lastUid"];
+}
+
+message SelectMembersResponse {
+  repeated SelectItem items = 1;
+  string last_uid = 2 [json_name = "lastUid"];
+}
+
+message InviteMemberRequest {
+  string email = 1 [(buf.validate.field).string.email = true];
+  string role_uid = 2 [json_name = "roleUid", (buf.validate.field).string.min_len = 1];
+}
+
+message InviteMemberResponse {
+  MemberItem member = 1;
+}
+
+message DeleteMemberRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message DeleteMemberResponse {}
+
+message UpdateMemberStatusRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  string status = 2 [(buf.validate.field).string = {in: ["JOINED", "INVITED", "EXPIRED"]}];
+}
+
+message UpdateMemberStatusResponse {
+  MemberItem member = 1;
+}
+
+message UpdateMemberRolesRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  repeated string role_uids = 2 [json_name = "roleUids", (buf.validate.field).repeated.min_items = 1];
+}
+
+message UpdateMemberRolesResponse {
+  MemberItem member = 1;
+}
+
+message GetUserRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message GetUserResponse {
+  UserItem user = 1;
+}
+
+message ListUsersRequest {
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  string name = 3;
+}
+
+message ListUsersResponse {
+  repeated UserItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+message SelectUsersRequest {
+  int32 limit = 1 [(buf.validate.field).int32 = {gte: 0, lte: 100}];
+  string last_uid = 2 [json_name = "lastUid"];
+}
+
+message SelectUsersResponse {
+  repeated SelectItem items = 1;
+  string last_uid = 2 [json_name = "lastUid"];
+}
+
+message BanUserRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message BanUserResponse {
+  UserItem user = 1;
+}
+
+message PermitUserRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message PermitUserResponse {
+  UserItem user = 1;
+}
+
+message CreateRoleRequest {
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+
+message CreateRoleResponse {
+  RoleItem role = 1;
+}
+
+message UpdateRoleRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+
+message UpdateRoleResponse {
+  RoleItem role = 1;
+}
+
+message UpdateRoleStatusRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+message UpdateRoleStatusResponse {
+  RoleItem role = 1;
+}
+
+message DeleteRoleRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message DeleteRoleResponse {}
+
+message GetRoleRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message GetRoleResponse {
+  RoleItem role = 1;
+}
+
+message ListRolesRequest {
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  string name = 3;
+}
+
+message ListRolesResponse {
+  repeated RoleItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+message SelectRolesRequest {
+  int32 limit = 1 [(buf.validate.field).int32 = {gte: 0, lte: 100}];
+  string last_uid = 2 [json_name = "lastUid"];
+}
+
+message SelectRolesResponse {
+  repeated SelectItem items = 1;
+  string last_uid = 2 [json_name = "lastUid"];
+}
+
+message UpdateRolePermissionsRequest {
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  repeated string permissions = 2 [(buf.validate.field).repeated.min_items = 1];
+}
+
+message UpdateRolePermissionsResponse {
+  RoleItem role = 1;
+}
+
+message ListPermissionsRequest {}
+
+message ListPermissionsResponse {
+  repeated PermissionItem items = 1;
+}
