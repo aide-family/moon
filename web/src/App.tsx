@@ -1,6 +1,9 @@
 import { Navigate, Route, Routes } from "react-router-dom"
 
 import { Shell } from "@/components/shell"
+import { AlertLevelPage } from "@/pages/alert-level"
+import { AlertRulePage } from "@/pages/alert-rule"
+import { DatasourcePage } from "@/pages/datasource"
 import { LoginPage } from "@/pages/login"
 import { MemberPage } from "@/pages/member"
 import { NamespacePage } from "@/pages/namespace"
@@ -21,6 +24,9 @@ export function App() {
         <Route path="/users" element={<UserPage />} />
         <Route path="/members" element={<MemberPage />} />
         <Route path="/roles" element={<RolePage />} />
+        <Route path="/datasources" element={<DatasourcePage />} />
+        <Route path="/alert-rules" element={<AlertRulePage />} />
+        <Route path="/alert-levels" element={<AlertLevelPage />} />
       </Route>
     </Routes>
   )

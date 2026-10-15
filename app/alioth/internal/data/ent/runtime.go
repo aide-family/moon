@@ -5,7 +5,12 @@ package ent
 import (
 	"time"
 
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertlevel"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/captcha"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
@@ -22,6 +27,158 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	alertlevelMixin := schema.AlertLevel{}.Mixin()
+	alertlevelMixinFields0 := alertlevelMixin[0].Fields()
+	_ = alertlevelMixinFields0
+	alertlevelFields := schema.AlertLevel{}.Fields()
+	_ = alertlevelFields
+	// alertlevelDescCreatedAt is the schema descriptor for created_at field.
+	alertlevelDescCreatedAt := alertlevelMixinFields0[0].Descriptor()
+	// alertlevel.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alertlevel.DefaultCreatedAt = alertlevelDescCreatedAt.Default.(func() time.Time)
+	// alertlevelDescUpdatedAt is the schema descriptor for updated_at field.
+	alertlevelDescUpdatedAt := alertlevelMixinFields0[1].Descriptor()
+	// alertlevel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	alertlevel.DefaultUpdatedAt = alertlevelDescUpdatedAt.Default.(func() time.Time)
+	// alertlevel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	alertlevel.UpdateDefaultUpdatedAt = alertlevelDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// alertlevelDescUID is the schema descriptor for uid field.
+	alertlevelDescUID := alertlevelFields[0].Descriptor()
+	// alertlevel.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	alertlevel.UIDValidator = alertlevelDescUID.Validators[0].(func(string) error)
+	// alertlevelDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alertlevelDescNamespaceUID := alertlevelFields[1].Descriptor()
+	// alertlevel.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alertlevel.NamespaceUIDValidator = alertlevelDescNamespaceUID.Validators[0].(func(string) error)
+	// alertlevelDescName is the schema descriptor for name field.
+	alertlevelDescName := alertlevelFields[2].Descriptor()
+	// alertlevel.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	alertlevel.NameValidator = alertlevelDescName.Validators[0].(func(string) error)
+	// alertlevelDescColor is the schema descriptor for color field.
+	alertlevelDescColor := alertlevelFields[3].Descriptor()
+	// alertlevel.DefaultColor holds the default value on creation for the color field.
+	alertlevel.DefaultColor = alertlevelDescColor.Default.(string)
+	alertruleMixin := schema.AlertRule{}.Mixin()
+	alertruleMixinFields0 := alertruleMixin[0].Fields()
+	_ = alertruleMixinFields0
+	alertruleFields := schema.AlertRule{}.Fields()
+	_ = alertruleFields
+	// alertruleDescCreatedAt is the schema descriptor for created_at field.
+	alertruleDescCreatedAt := alertruleMixinFields0[0].Descriptor()
+	// alertrule.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alertrule.DefaultCreatedAt = alertruleDescCreatedAt.Default.(func() time.Time)
+	// alertruleDescUpdatedAt is the schema descriptor for updated_at field.
+	alertruleDescUpdatedAt := alertruleMixinFields0[1].Descriptor()
+	// alertrule.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	alertrule.DefaultUpdatedAt = alertruleDescUpdatedAt.Default.(func() time.Time)
+	// alertrule.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	alertrule.UpdateDefaultUpdatedAt = alertruleDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// alertruleDescUID is the schema descriptor for uid field.
+	alertruleDescUID := alertruleFields[0].Descriptor()
+	// alertrule.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	alertrule.UIDValidator = alertruleDescUID.Validators[0].(func(string) error)
+	// alertruleDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alertruleDescNamespaceUID := alertruleFields[1].Descriptor()
+	// alertrule.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alertrule.NamespaceUIDValidator = alertruleDescNamespaceUID.Validators[0].(func(string) error)
+	// alertruleDescGroupUID is the schema descriptor for group_uid field.
+	alertruleDescGroupUID := alertruleFields[2].Descriptor()
+	// alertrule.GroupUIDValidator is a validator for the "group_uid" field. It is called by the builders before save.
+	alertrule.GroupUIDValidator = alertruleDescGroupUID.Validators[0].(func(string) error)
+	// alertruleDescName is the schema descriptor for name field.
+	alertruleDescName := alertruleFields[3].Descriptor()
+	// alertrule.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	alertrule.NameValidator = alertruleDescName.Validators[0].(func(string) error)
+	// alertruleDescExpr is the schema descriptor for expr field.
+	alertruleDescExpr := alertruleFields[7].Descriptor()
+	// alertrule.DefaultExpr holds the default value on creation for the expr field.
+	alertrule.DefaultExpr = alertruleDescExpr.Default.(string)
+	// alertruleDescLabels is the schema descriptor for labels field.
+	alertruleDescLabels := alertruleFields[8].Descriptor()
+	// alertrule.DefaultLabels holds the default value on creation for the labels field.
+	alertrule.DefaultLabels = alertruleDescLabels.Default.(string)
+	// alertruleDescDatasourceUID is the schema descriptor for datasource_uid field.
+	alertruleDescDatasourceUID := alertruleFields[9].Descriptor()
+	// alertrule.DefaultDatasourceUID holds the default value on creation for the datasource_uid field.
+	alertrule.DefaultDatasourceUID = alertruleDescDatasourceUID.Default.(string)
+	// alertruleDescSummary is the schema descriptor for summary field.
+	alertruleDescSummary := alertruleFields[10].Descriptor()
+	// alertrule.DefaultSummary holds the default value on creation for the summary field.
+	alertrule.DefaultSummary = alertruleDescSummary.Default.(string)
+	// alertruleDescDescription is the schema descriptor for description field.
+	alertruleDescDescription := alertruleFields[11].Descriptor()
+	// alertrule.DefaultDescription holds the default value on creation for the description field.
+	alertrule.DefaultDescription = alertruleDescDescription.Default.(string)
+	alertrulegroupMixin := schema.AlertRuleGroup{}.Mixin()
+	alertrulegroupMixinFields0 := alertrulegroupMixin[0].Fields()
+	_ = alertrulegroupMixinFields0
+	alertrulegroupFields := schema.AlertRuleGroup{}.Fields()
+	_ = alertrulegroupFields
+	// alertrulegroupDescCreatedAt is the schema descriptor for created_at field.
+	alertrulegroupDescCreatedAt := alertrulegroupMixinFields0[0].Descriptor()
+	// alertrulegroup.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alertrulegroup.DefaultCreatedAt = alertrulegroupDescCreatedAt.Default.(func() time.Time)
+	// alertrulegroupDescUpdatedAt is the schema descriptor for updated_at field.
+	alertrulegroupDescUpdatedAt := alertrulegroupMixinFields0[1].Descriptor()
+	// alertrulegroup.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	alertrulegroup.DefaultUpdatedAt = alertrulegroupDescUpdatedAt.Default.(func() time.Time)
+	// alertrulegroup.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	alertrulegroup.UpdateDefaultUpdatedAt = alertrulegroupDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// alertrulegroupDescUID is the schema descriptor for uid field.
+	alertrulegroupDescUID := alertrulegroupFields[0].Descriptor()
+	// alertrulegroup.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	alertrulegroup.UIDValidator = alertrulegroupDescUID.Validators[0].(func(string) error)
+	// alertrulegroupDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alertrulegroupDescNamespaceUID := alertrulegroupFields[1].Descriptor()
+	// alertrulegroup.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alertrulegroup.NamespaceUIDValidator = alertrulegroupDescNamespaceUID.Validators[0].(func(string) error)
+	// alertrulegroupDescName is the schema descriptor for name field.
+	alertrulegroupDescName := alertrulegroupFields[2].Descriptor()
+	// alertrulegroup.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	alertrulegroup.NameValidator = alertrulegroupDescName.Validators[0].(func(string) error)
+	alertrulelevelMixin := schema.AlertRuleLevel{}.Mixin()
+	alertrulelevelMixinFields0 := alertrulelevelMixin[0].Fields()
+	_ = alertrulelevelMixinFields0
+	alertrulelevelFields := schema.AlertRuleLevel{}.Fields()
+	_ = alertrulelevelFields
+	// alertrulelevelDescCreatedAt is the schema descriptor for created_at field.
+	alertrulelevelDescCreatedAt := alertrulelevelMixinFields0[0].Descriptor()
+	// alertrulelevel.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alertrulelevel.DefaultCreatedAt = alertrulelevelDescCreatedAt.Default.(func() time.Time)
+	// alertrulelevelDescUpdatedAt is the schema descriptor for updated_at field.
+	alertrulelevelDescUpdatedAt := alertrulelevelMixinFields0[1].Descriptor()
+	// alertrulelevel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	alertrulelevel.DefaultUpdatedAt = alertrulelevelDescUpdatedAt.Default.(func() time.Time)
+	// alertrulelevel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	alertrulelevel.UpdateDefaultUpdatedAt = alertrulelevelDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// alertrulelevelDescUID is the schema descriptor for uid field.
+	alertrulelevelDescUID := alertrulelevelFields[0].Descriptor()
+	// alertrulelevel.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	alertrulelevel.UIDValidator = alertrulelevelDescUID.Validators[0].(func(string) error)
+	// alertrulelevelDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alertrulelevelDescNamespaceUID := alertrulelevelFields[1].Descriptor()
+	// alertrulelevel.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alertrulelevel.NamespaceUIDValidator = alertrulelevelDescNamespaceUID.Validators[0].(func(string) error)
+	// alertrulelevelDescRuleUID is the schema descriptor for rule_uid field.
+	alertrulelevelDescRuleUID := alertrulelevelFields[2].Descriptor()
+	// alertrulelevel.RuleUIDValidator is a validator for the "rule_uid" field. It is called by the builders before save.
+	alertrulelevel.RuleUIDValidator = alertrulelevelDescRuleUID.Validators[0].(func(string) error)
+	// alertrulelevelDescCondition is the schema descriptor for condition field.
+	alertrulelevelDescCondition := alertrulelevelFields[3].Descriptor()
+	// alertrulelevel.ConditionValidator is a validator for the "condition" field. It is called by the builders before save.
+	alertrulelevel.ConditionValidator = alertrulelevelDescCondition.Validators[0].(func(string) error)
+	// alertrulelevelDescThreshold is the schema descriptor for threshold field.
+	alertrulelevelDescThreshold := alertrulelevelFields[5].Descriptor()
+	// alertrulelevel.DefaultThreshold holds the default value on creation for the threshold field.
+	alertrulelevel.DefaultThreshold = alertrulelevelDescThreshold.Default.(string)
+	// alertrulelevelDescForSeconds is the schema descriptor for for_seconds field.
+	alertrulelevelDescForSeconds := alertrulelevelFields[6].Descriptor()
+	// alertrulelevel.DefaultForSeconds holds the default value on creation for the for_seconds field.
+	alertrulelevel.DefaultForSeconds = alertrulelevelDescForSeconds.Default.(int)
+	// alertrulelevelDescLevelUID is the schema descriptor for level_uid field.
+	alertrulelevelDescLevelUID := alertrulelevelFields[7].Descriptor()
+	// alertrulelevel.LevelUIDValidator is a validator for the "level_uid" field. It is called by the builders before save.
+	alertrulelevel.LevelUIDValidator = alertrulelevelDescLevelUID.Validators[0].(func(string) error)
 	captchaMixin := schema.Captcha{}.Mixin()
 	captchaMixinFields0 := captchaMixin[0].Fields()
 	_ = captchaMixinFields0
@@ -45,6 +202,57 @@ func init() {
 	captchaDescAnswerHash := captchaFields[1].Descriptor()
 	// captcha.AnswerHashValidator is a validator for the "answer_hash" field. It is called by the builders before save.
 	captcha.AnswerHashValidator = captchaDescAnswerHash.Validators[0].(func(string) error)
+	datasourceMixin := schema.Datasource{}.Mixin()
+	datasourceMixinFields0 := datasourceMixin[0].Fields()
+	_ = datasourceMixinFields0
+	datasourceFields := schema.Datasource{}.Fields()
+	_ = datasourceFields
+	// datasourceDescCreatedAt is the schema descriptor for created_at field.
+	datasourceDescCreatedAt := datasourceMixinFields0[0].Descriptor()
+	// datasource.DefaultCreatedAt holds the default value on creation for the created_at field.
+	datasource.DefaultCreatedAt = datasourceDescCreatedAt.Default.(func() time.Time)
+	// datasourceDescUpdatedAt is the schema descriptor for updated_at field.
+	datasourceDescUpdatedAt := datasourceMixinFields0[1].Descriptor()
+	// datasource.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	datasource.DefaultUpdatedAt = datasourceDescUpdatedAt.Default.(func() time.Time)
+	// datasource.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	datasource.UpdateDefaultUpdatedAt = datasourceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// datasourceDescUID is the schema descriptor for uid field.
+	datasourceDescUID := datasourceFields[0].Descriptor()
+	// datasource.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	datasource.UIDValidator = datasourceDescUID.Validators[0].(func(string) error)
+	// datasourceDescNamespaceUID is the schema descriptor for namespace_uid field.
+	datasourceDescNamespaceUID := datasourceFields[1].Descriptor()
+	// datasource.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	datasource.NamespaceUIDValidator = datasourceDescNamespaceUID.Validators[0].(func(string) error)
+	// datasourceDescName is the schema descriptor for name field.
+	datasourceDescName := datasourceFields[2].Descriptor()
+	// datasource.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	datasource.NameValidator = datasourceDescName.Validators[0].(func(string) error)
+	// datasourceDescEndpoint is the schema descriptor for endpoint field.
+	datasourceDescEndpoint := datasourceFields[5].Descriptor()
+	// datasource.EndpointValidator is a validator for the "endpoint" field. It is called by the builders before save.
+	datasource.EndpointValidator = datasourceDescEndpoint.Validators[0].(func(string) error)
+	// datasourceDescUsername is the schema descriptor for username field.
+	datasourceDescUsername := datasourceFields[6].Descriptor()
+	// datasource.DefaultUsername holds the default value on creation for the username field.
+	datasource.DefaultUsername = datasourceDescUsername.Default.(string)
+	// datasourceDescPasswordCipher is the schema descriptor for password_cipher field.
+	datasourceDescPasswordCipher := datasourceFields[7].Descriptor()
+	// datasource.DefaultPasswordCipher holds the default value on creation for the password_cipher field.
+	datasource.DefaultPasswordCipher = datasourceDescPasswordCipher.Default.(string)
+	// datasourceDescSecretCipher is the schema descriptor for secret_cipher field.
+	datasourceDescSecretCipher := datasourceFields[8].Descriptor()
+	// datasource.DefaultSecretCipher holds the default value on creation for the secret_cipher field.
+	datasource.DefaultSecretCipher = datasourceDescSecretCipher.Default.(string)
+	// datasourceDescLevelUID is the schema descriptor for level_uid field.
+	datasourceDescLevelUID := datasourceFields[10].Descriptor()
+	// datasource.DefaultLevelUID holds the default value on creation for the level_uid field.
+	datasource.DefaultLevelUID = datasourceDescLevelUID.Default.(string)
+	// datasourceDescRemark is the schema descriptor for remark field.
+	datasourceDescRemark := datasourceFields[11].Descriptor()
+	// datasource.DefaultRemark holds the default value on creation for the remark field.
+	datasource.DefaultRemark = datasourceDescRemark.Default.(string)
 	emaillogincodeMixin := schema.EmailLoginCode{}.Mixin()
 	emaillogincodeMixinFields0 := emaillogincodeMixin[0].Fields()
 	_ = emaillogincodeMixinFields0

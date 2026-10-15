@@ -23,6 +23,7 @@ auth:
       key: ${MEGREZ_SERVICE_KEY:sk-megrez-dev}
     - name: merak
       key: ${MERAK_SERVICE_KEY:sk-merak-dev}
+  encrypt_key: ${ALIOTH_ENCRYPT_KEY:dev-only-encrypt-key}
   smtp:
     host: ${ALIOTH_SMTP_HOST:127.0.0.1}
     port: 1025

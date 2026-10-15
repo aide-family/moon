@@ -8,7 +8,10 @@ package main
 
 import (
 	"github.com/aide-family/Alioth/app/alioth/internal/access"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertlevel"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/health"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/member"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/namespace"
@@ -27,7 +30,7 @@ import (
 func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, logger log.Logger) (*kratos.App, func(), error) {
 	usecase := health.NewUsecase()
 	healthService := service.NewHealthService(usecase)
-	dataData, cleanup, err := data.NewData(confData, logger)
+	dataData, cleanup, err := data.NewData(confData, confAuth, logger)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -55,12 +58,22 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	userUsecase := user.NewUsecase(userRepo, checker)
 	userService := service.NewUserService(userUsecase)
 	roleService := service.NewRoleService(roleUsecase)
-	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, authUsecase, logger)
+	datasourceRepo := data.NewDatasourceRepo(dataData, logger)
+	alertLevelRepo := data.NewAlertLevelRepo(dataData, logger)
+	datasourceUsecase := datasource.NewUsecase(datasourceRepo, alertLevelRepo, checker)
+	datasourceService := service.NewDatasourceService(datasourceUsecase)
+	metricQueryService := service.NewMetricQueryService(datasourceUsecase)
+	alertRuleRepo := data.NewAlertRuleRepo(dataData, logger)
+	alertruleUsecase := alertrule.NewUsecase(alertRuleRepo, alertLevelRepo, datasourceRepo, checker)
+	alertRuleService := service.NewAlertRuleService(alertruleUsecase)
+	alertlevelUsecase := alertlevel.NewUsecase(alertLevelRepo, checker)
+	alertLevelService := service.NewAlertLevelService(alertlevelUsecase)
+	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertLevelService, authUsecase, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, authUsecase, logger)
+	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertLevelService, authUsecase, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err

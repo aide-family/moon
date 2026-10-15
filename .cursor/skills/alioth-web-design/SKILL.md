@@ -17,19 +17,19 @@ description: >-
 管理页用 shadcn `Sidebar` + `SidebarInset`，不要再用裸 `aside` 加顶栏。尚未安装时用 shadcn 技能安装 `sidebar`，不要手写一套侧栏。
 
 - 侧栏可折叠。品牌在顶，导航在中。当前项用 sidebar accent，不用自行拼 `bg-muted`。
-- 菜单仍按当前用户权限生成，文案走 `t()`。系统管理放在可折叠子菜单里。个人资料只从顶栏进入。
+- 菜单仍按当前用户权限生成，文案走 `t()`。第一级只放功能领域的可折叠子菜单，不放直接进入页面的链接。个人资料只从顶栏进入。
 - 顶栏放 Namespace 切换，以及语言、主题、个人的图标按钮。多项用下拉菜单。主按钮留在页头，不塞进顶栏。
 - 顶栏：`flex h-14 items-center gap-2 border-b px-4`。
-- 主内容：`flex flex-1 flex-col gap-6 p-4 md:p-6`。内容不贴边。
+- 主内容：`flex min-h-0 flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6`。内容不贴边。页头和筛选不滚动。
 
 ## 页
 
 每一页先是页头，再是内容。
 
 - 页头：`flex items-start justify-between gap-4`。左侧标题 `text-2xl font-semibold tracking-tight`，说明 `text-sm text-muted-foreground`。右侧是该页主操作。
-- 列表页顺序：页头、筛选条、表格卡片、分页。筛选条件放进 URL。
-- 表格放在 `Card` 里，表头与行用 shadcn `Table`。行 key 用 `uid`。
-- 新建和编辑用 `Dialog`。字段少的详情用右侧 `Sheet`。需要独立地址或分成多块的详情用当前页的子路由。主从页用左侧列表加右侧明细，间距 `gap-6`。
+- 列表页顺序：页头、筛选条、表格卡片。总数在表格左上，翻页在右上。没有数据时不显示翻页。筛选条件放进 URL。页面用 `flex min-h-0 flex-1 flex-col`，表格卡片吃掉剩余高度。
+- 表格放在 `Card` 里，表头与行用 shadcn `Table`。表头 `sticky top-0`，表体在剩余高度里滚动。行 key 用 `uid`。
+- 新建和编辑用 `Dialog`，高度不超过 `80vh`。大约 6 个字段以内一步完成，字段更多就分步。字段少的详情用右侧 `Sheet`。需要独立地址或分成多块的详情用当前页的子路由。主从页用左侧列表加右侧明细，间距 `gap-6`。
 - 每个输入框和选择框都有 placeholder。标签说不清约束或后果时，在 label 旁放 `CircleHelp` tooltip。
 - 一行操作超过两项时只留「详情」和「更多」。更多是下拉菜单。删除、封禁、停用、移交负责人先确认，确认按钮用 destructive。
 - 区块之间 `gap-6`。同一行按钮 `gap-2`。
@@ -44,7 +44,7 @@ description: >-
 | 区块 | `gap-6` |
 | 卡片内边距 | 使用 `Card` 默认内边距 |
 | 表单项 | `grid gap-2` |
-| 对话框内容 | `grid gap-4` |
+| 对话框内容 | `grid gap-4`，外框 `max-h-[80vh]` |
 | 按钮组 | `flex gap-2` |
 
 控件高度、圆角、边框用组件默认值。

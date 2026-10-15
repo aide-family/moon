@@ -7,12 +7,13 @@
 package conf
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 )
 
 const (
@@ -194,8 +195,10 @@ type Auth struct {
 	ServiceKeys       []*Auth_ServiceKey     `protobuf:"bytes,4,rep,name=service_keys,json=serviceKeys,proto3" json:"service_keys,omitempty"`
 	Oauth             []*Auth_OAuthClient    `protobuf:"bytes,5,rep,name=oauth,proto3" json:"oauth,omitempty"`
 	Smtp              *Auth_SMTP             `protobuf:"bytes,6,opt,name=smtp,proto3" json:"smtp,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// 数据源密码和密钥的 AES-GCM 主密钥。
+	EncryptKey    string `protobuf:"bytes,7,opt,name=encrypt_key,json=encryptKey,proto3" json:"encrypt_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Auth) Reset() {
@@ -268,6 +271,13 @@ func (x *Auth) GetSmtp() *Auth_SMTP {
 		return x.Smtp
 	}
 	return nil
+}
+
+func (x *Auth) GetEncryptKey() string {
+	if x != nil {
+		return x.EncryptKey
+	}
+	return ""
 }
 
 type Server_HTTP struct {
@@ -710,7 +720,7 @@ const file_internal_conf_conf_proto_rawDesc = "" +
 	"\x06source\x18\x02 \x01(\tR\x06source\x1a7\n" +
 	"\x05Redis\x12\x12\n" +
 	"\x04addr\x18\x01 \x01(\tR\x04addr\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"\xc2\x04\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"\xe3\x04\n" +
 	"\x04Auth\x12\x1d\n" +
 	"\n" +
 	"jwt_secret\x18\x01 \x01(\tR\tjwtSecret\x12,\n" +
@@ -718,7 +728,9 @@ const file_internal_conf_conf_proto_rawDesc = "" +
 	"\x13refresh_ttl_seconds\x18\x03 \x01(\x03R\x11refreshTtlSeconds\x12?\n" +
 	"\fservice_keys\x18\x04 \x03(\v2\x1c.alioth.conf.Auth.ServiceKeyR\vserviceKeys\x123\n" +
 	"\x05oauth\x18\x05 \x03(\v2\x1d.alioth.conf.Auth.OAuthClientR\x05oauth\x12*\n" +
-	"\x04smtp\x18\x06 \x01(\v2\x16.alioth.conf.Auth.SMTPR\x04smtp\x1a2\n" +
+	"\x04smtp\x18\x06 \x01(\v2\x16.alioth.conf.Auth.SMTPR\x04smtp\x12\x1f\n" +
+	"\vencrypt_key\x18\a \x01(\tR\n" +
+	"encryptKey\x1a2\n" +
 	"\n" +
 	"ServiceKey\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x10\n" +

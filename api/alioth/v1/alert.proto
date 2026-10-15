@@ -1,0 +1,794 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "alioth/v1/identity.proto";
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
+
+// 数据源的创建、查询和启停。
+service DatasourceService {
+  // 创建数据源。密钥只在这次请求里出现，响应不回明文。
+  rpc CreateDatasource(CreateDatasourceRequest) returns (CreateDatasourceResponse) {
+    option (google.api.http) = {
+      post: "/v1/datasource"
+      body: "*"
+    };
+  }
+  // 更新数据源。密码和密钥留空表示保持原值。
+  rpc UpdateDatasource(UpdateDatasourceRequest) returns (UpdateDatasourceResponse) {
+    option (google.api.http) = {
+      put: "/v1/datasource/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或停用数据源。
+  rpc UpdateDatasourceStatus(UpdateDatasourceStatusRequest) returns (UpdateDatasourceStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/datasource/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除数据源。
+  rpc DeleteDatasource(DeleteDatasourceRequest) returns (DeleteDatasourceResponse) {
+    option (google.api.http) = {delete: "/v1/datasource/{uid}"};
+  }
+  // 获取数据源详情。
+  rpc GetDatasource(GetDatasourceRequest) returns (GetDatasourceResponse) {
+    option (google.api.http) = {get: "/v1/datasource/{uid}"};
+  }
+  // 分页列出数据源。
+  rpc ListDatasources(ListDatasourcesRequest) returns (ListDatasourcesResponse) {
+    option (google.api.http) = {get: "/v1/datasources"};
+  }
+  // 下拉选择数据源。
+  rpc SelectDatasources(SelectDatasourcesRequest) returns (SelectDatasourcesResponse) {
+    option (google.api.http) = {get: "/v1/datasources/select"};
+  }
+  // 查看指标数据源是否可连通。
+  rpc GetDatasourceStatus(GetDatasourceStatusRequest) returns (GetDatasourceStatusResponse) {
+    option (google.api.http) = {get: "/v1/datasource/{uid}/status"};
+  }
+  // 列出指标数据源中的指标名。
+  rpc ListDatasourceMetrics(ListDatasourceMetricsRequest) returns (ListDatasourceMetricsResponse) {
+    option (google.api.http) = {get: "/v1/datasource/{uid}/metrics"};
+  }
+  // 查看一个指标的元数据。
+  rpc GetDatasourceMetric(GetDatasourceMetricRequest) returns (GetDatasourceMetricResponse) {
+    option (google.api.http) = {get: "/v1/datasource/{uid}/metrics/{name}"};
+  }
+}
+
+// 指标即时查询、区间查询，以及 Logs、Trace 的查询代理。
+service MetricQueryService {
+  // 对指标数据源做即时查询。
+  rpc QueryMetric(QueryMetricRequest) returns (QueryMetricResponse) {
+    option (google.api.http) = {
+      post: "/v1/metric-query/query"
+      body: "*"
+    };
+  }
+  // 对指标数据源做区间查询。
+  rpc QueryMetricRange(QueryMetricRangeRequest) returns (QueryMetricRangeResponse) {
+    option (google.api.http) = {
+      post: "/v1/metric-query/query-range"
+      body: "*"
+    };
+  }
+  // 把查询转发到数据源。Logs 和 Trace 只走这条，不产生评测记录。
+  rpc ProxyQuery(ProxyQueryRequest) returns (ProxyQueryResponse) {
+    option (google.api.http) = {
+      post: "/v1/metric-query/proxy"
+      body: "*"
+    };
+  }
+}
+
+// 规则组和规则。保存规则时一起写入表达式和级别条件。
+service AlertRuleService {
+  // 创建规则组。同一租户内名称不能重复。
+  rpc CreateAlertRuleGroup(CreateAlertRuleGroupRequest) returns (CreateAlertRuleGroupResponse) {
+    option (google.api.http) = {
+      post: "/v1/alert-rule-group"
+      body: "*"
+    };
+  }
+  // 更新规则组名称。
+  rpc UpdateAlertRuleGroup(UpdateAlertRuleGroupRequest) returns (UpdateAlertRuleGroupResponse) {
+    option (google.api.http) = {
+      put: "/v1/alert-rule-group/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或停用规则组。
+  rpc UpdateAlertRuleGroupStatus(UpdateAlertRuleGroupStatusRequest) returns (UpdateAlertRuleGroupStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/alert-rule-group/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除规则组。组内仍有规则时拒绝。
+  rpc DeleteAlertRuleGroup(DeleteAlertRuleGroupRequest) returns (DeleteAlertRuleGroupResponse) {
+    option (google.api.http) = {delete: "/v1/alert-rule-group/{uid}"};
+  }
+  // 分页列出规则组。
+  rpc ListAlertRuleGroups(ListAlertRuleGroupsRequest) returns (ListAlertRuleGroupsResponse) {
+    option (google.api.http) = {get: "/v1/alert-rule-groups"};
+  }
+  // 创建规则，并保存表达式和级别条件。
+  rpc CreateAlertRule(CreateAlertRuleRequest) returns (CreateAlertRuleResponse) {
+    option (google.api.http) = {
+      post: "/v1/alert-rule"
+      body: "*"
+    };
+  }
+  // 更新规则、表达式和级别条件。
+  rpc UpdateAlertRule(UpdateAlertRuleRequest) returns (UpdateAlertRuleResponse) {
+    option (google.api.http) = {
+      put: "/v1/alert-rule/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或停用规则。停用后不再进入到期候选。
+  rpc UpdateAlertRuleStatus(UpdateAlertRuleStatusRequest) returns (UpdateAlertRuleStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/alert-rule/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除规则及其级别条件。
+  rpc DeleteAlertRule(DeleteAlertRuleRequest) returns (DeleteAlertRuleResponse) {
+    option (google.api.http) = {delete: "/v1/alert-rule/{uid}"};
+  }
+  // 获取规则详情。
+  rpc GetAlertRule(GetAlertRuleRequest) returns (GetAlertRuleResponse) {
+    option (google.api.http) = {get: "/v1/alert-rule/{uid}"};
+  }
+  // 分页列出规则。
+  rpc ListAlertRules(ListAlertRulesRequest) returns (ListAlertRulesResponse) {
+    option (google.api.http) = {get: "/v1/alert-rules"};
+  }
+}
+
+// 告警级别和数据源级别。
+service AlertLevelService {
+  // 创建级别。
+  rpc CreateAlertLevel(CreateAlertLevelRequest) returns (CreateAlertLevelResponse) {
+    option (google.api.http) = {
+      post: "/v1/alert-level"
+      body: "*"
+    };
+  }
+  // 更新级别的名称和颜色。
+  rpc UpdateAlertLevel(UpdateAlertLevelRequest) returns (UpdateAlertLevelResponse) {
+    option (google.api.http) = {
+      put: "/v1/alert-level/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或停用级别。
+  rpc UpdateAlertLevelStatus(UpdateAlertLevelStatusRequest) returns (UpdateAlertLevelStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/alert-level/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除级别。仍被规则引用时拒绝。
+  rpc DeleteAlertLevel(DeleteAlertLevelRequest) returns (DeleteAlertLevelResponse) {
+    option (google.api.http) = {delete: "/v1/alert-level/{uid}"};
+  }
+  // 分页列出级别。
+  rpc ListAlertLevels(ListAlertLevelsRequest) returns (ListAlertLevelsResponse) {
+    option (google.api.http) = {get: "/v1/alert-levels"};
+  }
+}
+
+// 数据源。
+message DatasourceItem {
+  // 标识。
+  string uid = 1;
+  // 名称。
+  string name = 2;
+  // 类型，取值为 METRICS、LOGS 或 TRACE。
+  string type = 3;
+  // 驱动。
+  string driver = 4;
+  // 连接地址。
+  string endpoint = 5;
+  // 用户名。
+  string username = 6;
+  // 是否已经保存密码或密钥。响应不包含明文。
+  bool secret_set = 7 [json_name = "secretSet"];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 8;
+  // 数据源级别标识。
+  string level_uid = 9 [json_name = "levelUid"];
+  // 数据源级别名称。
+  string level_name = 10 [json_name = "levelName"];
+  // 备注。
+  string remark = 11;
+}
+
+// 创建数据源。
+message CreateDatasourceRequest {
+  // 名称。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 类型，取值为 METRICS、LOGS 或 TRACE。
+  string type = 2 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
+  // 驱动。
+  string driver = 3 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "TRACE_JAEGER"]}];
+  // 连接地址。
+  string endpoint = 4 [(buf.validate.field).string.min_len = 1];
+  // 用户名。
+  string username = 5;
+  // 密码。入库前加密。
+  string password = 6;
+  // 密钥或令牌。入库前加密。
+  string secret = 7;
+  // 数据源级别标识。
+  string level_uid = 8 [json_name = "levelUid"];
+  // 备注。
+  string remark = 9 [(buf.validate.field).string.max_len = 200];
+}
+
+// 创建数据源的结果。
+message CreateDatasourceResponse {
+  // 数据源。
+  DatasourceItem datasource = 1;
+}
+
+// 更新数据源。
+message UpdateDatasourceRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 类型，取值为 METRICS、LOGS 或 TRACE。
+  string type = 3 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
+  // 驱动。
+  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "TRACE_JAEGER"]}];
+  // 连接地址。
+  string endpoint = 5 [(buf.validate.field).string.min_len = 1];
+  // 用户名。
+  string username = 6;
+  // 密码。留空表示保持原值。
+  string password = 7;
+  // 密钥或令牌。留空表示保持原值。
+  string secret = 8;
+  // 数据源级别标识。
+  string level_uid = 9 [json_name = "levelUid"];
+  // 备注。
+  string remark = 10 [(buf.validate.field).string.max_len = 200];
+}
+
+// 更新数据源的结果。
+message UpdateDatasourceResponse {
+  // 数据源。
+  DatasourceItem datasource = 1;
+}
+
+// 更新数据源状态。
+message UpdateDatasourceStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+// 更新数据源状态的结果。
+message UpdateDatasourceStatusResponse {
+  // 数据源。
+  DatasourceItem datasource = 1;
+}
+
+// 要删除的数据源。
+message DeleteDatasourceRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 数据源已删除。
+message DeleteDatasourceResponse {}
+
+// 要查询的数据源。
+message GetDatasourceRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 数据源详情。
+message GetDatasourceResponse {
+  // 数据源。
+  DatasourceItem datasource = 1;
+}
+
+// 数据源分页查询。
+message ListDatasourcesRequest {
+  // 页码。0 表示使用默认页。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
+  string name = 3;
+  // 类型。留空表示全部。
+  string type = 4;
+}
+
+// 数据源分页结果。
+message ListDatasourcesResponse {
+  // 当前页数据。
+  repeated DatasourceItem items = 1;
+  // 符合条件的总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 数据源下拉查询。
+message SelectDatasourcesRequest {
+  // 返回条数，最大 100。0 表示使用默认条数。
+  int32 limit = 1 [(buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 上一页最后一条的标识，首页留空。
+  string last_uid = 2 [json_name = "lastUid"];
+  // 类型。留空表示全部。
+  string type = 3;
+}
+
+// 数据源下拉结果。
+message SelectDatasourcesResponse {
+  // 当前页数据。
+  repeated SelectItem items = 1;
+  // 上一页最后一条的标识，首页留空。
+  string last_uid = 2 [json_name = "lastUid"];
+}
+
+// 要检查的指标数据源。
+message GetDatasourceStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 指标数据源连通结果。
+message GetDatasourceStatusResponse {
+  // 上游状态摘要。
+  string status = 1;
+}
+
+// 要列出指标的数据源。
+message ListDatasourceMetricsRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 指标名列表。
+message ListDatasourceMetricsResponse {
+  // 指标名。
+  repeated string names = 1;
+}
+
+// 要查看的指标。
+message GetDatasourceMetricRequest {
+  // 数据源标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 指标名。
+  string name = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+// 指标元数据。
+message GetDatasourceMetricResponse {
+  // 上游返回的元数据正文。
+  string body = 1;
+}
+
+// 即时查询参数。
+message QueryMetricRequest {
+  // 数据源标识。
+  string datasource_uid = 1 [json_name = "datasourceUid", (buf.validate.field).string.min_len = 1];
+  // 查询表达式。
+  string expr = 2 [(buf.validate.field).string.min_len = 1];
+  // 查询时间，Unix 秒。0 表示上游使用当前时间。
+  int64 time = 3;
+}
+
+// 即时查询结果。
+message QueryMetricResponse {
+  // 上游返回的查询正文。
+  string body = 1;
+}
+
+// 区间查询参数。
+message QueryMetricRangeRequest {
+  // 数据源标识。
+  string datasource_uid = 1 [json_name = "datasourceUid", (buf.validate.field).string.min_len = 1];
+  // 查询表达式。
+  string expr = 2 [(buf.validate.field).string.min_len = 1];
+  // 开始时间，Unix 秒。
+  int64 start = 3 [(buf.validate.field).int64.gt = 0];
+  // 结束时间，Unix 秒。
+  int64 end = 4 [(buf.validate.field).int64.gt = 0];
+  // 步长秒数。
+  int64 step = 5 [(buf.validate.field).int64.gt = 0];
+}
+
+// 区间查询结果。
+message QueryMetricRangeResponse {
+  // 上游返回的查询正文。
+  string body = 1;
+}
+
+// 查询代理参数。
+message ProxyQueryRequest {
+  // 数据源标识。
+  string datasource_uid = 1 [json_name = "datasourceUid", (buf.validate.field).string.min_len = 1];
+  // HTTP 方法，取值为 GET、POST 或 PUT。
+  string method = 2 [(buf.validate.field).string = {in: ["GET", "POST", "PUT"]}];
+  // 相对数据源地址的路径，必须以 / 开头。
+  string path = 3 [(buf.validate.field).string.min_len = 1];
+  // 请求正文。
+  string body = 4;
+}
+
+// 查询代理结果。
+message ProxyQueryResponse {
+  // 上游返回的正文。
+  string body = 1;
+}
+
+// 规则组。
+message AlertRuleGroupItem {
+  // 标识。
+  string uid = 1;
+  // 名称。
+  string name = 2;
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 3;
+}
+
+// 创建规则组。
+message CreateAlertRuleGroupRequest {
+  // 名称。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+
+// 创建规则组的结果。
+message CreateAlertRuleGroupResponse {
+  // 规则组。
+  AlertRuleGroupItem group = 1;
+}
+
+// 更新规则组。
+message UpdateAlertRuleGroupRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+
+// 更新规则组的结果。
+message UpdateAlertRuleGroupResponse {
+  // 规则组。
+  AlertRuleGroupItem group = 1;
+}
+
+// 更新规则组状态。
+message UpdateAlertRuleGroupStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+// 更新规则组状态的结果。
+message UpdateAlertRuleGroupStatusResponse {
+  // 规则组。
+  AlertRuleGroupItem group = 1;
+}
+
+// 要删除的规则组。
+message DeleteAlertRuleGroupRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 规则组已删除。
+message DeleteAlertRuleGroupResponse {}
+
+// 规则组分页查询。
+message ListAlertRuleGroupsRequest {
+  // 页码。0 表示使用默认页。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
+  string name = 3;
+}
+
+// 规则组分页结果。
+message ListAlertRuleGroupsResponse {
+  // 当前页数据。
+  repeated AlertRuleGroupItem items = 1;
+  // 符合条件的总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 规则上的一条级别条件。
+message AlertRuleLevelItem {
+  // 标识。
+  string uid = 1;
+  // 比较条件。
+  string condition = 2;
+  // 采样方式。
+  string sample = 3;
+  // 阈值。
+  string threshold = 4;
+  // 持续秒数。
+  int32 for_seconds = 5 [json_name = "forSeconds"];
+  // 告警级别标识。
+  string level_uid = 6 [json_name = "levelUid"];
+  // 告警级别名称。
+  string level_name = 7 [json_name = "levelName"];
+}
+
+// 保存规则时提交的级别条件。
+message AlertRuleLevelInput {
+  // 比较条件。
+  string condition = 1 [(buf.validate.field).string = {in: ["EQ", "NE", "GT", "GTE", "LT", "LTE", "IN", "NOT_IN"]}];
+  // 采样方式。
+  string sample = 2 [(buf.validate.field).string = {in: ["FOR", "MAX", "MIN"]}];
+  // 阈值。
+  string threshold = 3 [(buf.validate.field).string.min_len = 1];
+  // 持续秒数。
+  int32 for_seconds = 4 [json_name = "forSeconds", (buf.validate.field).int32.gte = 0];
+  // 告警级别标识。
+  string level_uid = 5 [json_name = "levelUid", (buf.validate.field).string.min_len = 1];
+}
+
+// 规则。
+message AlertRuleItem {
+  // 标识。
+  string uid = 1;
+  // 规则组标识。
+  string group_uid = 2 [json_name = "groupUid"];
+  // 名称。
+  string name = 3;
+  // 类型。
+  string type = 4;
+  // 驱动。
+  string driver = 5;
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 6;
+  // 表达式。
+  string expr = 7;
+  // 标签，JSON 文本。
+  string labels = 8;
+  // 数据源标识。
+  string datasource_uid = 9 [json_name = "datasourceUid"];
+  // 摘要。
+  string summary = 10;
+  // 描述。
+  string description = 11;
+  // 级别条件。
+  repeated AlertRuleLevelItem levels = 12;
+}
+
+// 创建规则。
+message CreateAlertRuleRequest {
+  // 规则组标识。
+  string group_uid = 1 [json_name = "groupUid", (buf.validate.field).string.min_len = 1];
+  // 名称。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 类型，取值为 METRICS、LOGS 或 TRACE。
+  string type = 3 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
+  // 驱动。
+  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "TRACE_JAEGER"]}];
+  // 表达式。
+  string expr = 5;
+  // 标签，JSON 文本。
+  string labels = 6;
+  // 数据源标识。
+  string datasource_uid = 7 [json_name = "datasourceUid"];
+  // 摘要。
+  string summary = 8 [(buf.validate.field).string.max_len = 200];
+  // 描述。
+  string description = 9 [(buf.validate.field).string.max_len = 500];
+  // 级别条件。
+  repeated AlertRuleLevelInput levels = 10;
+}
+
+// 创建规则的结果。
+message CreateAlertRuleResponse {
+  // 规则。
+  AlertRuleItem rule = 1;
+}
+
+// 更新规则。
+message UpdateAlertRuleRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 规则组标识。
+  string group_uid = 2 [json_name = "groupUid", (buf.validate.field).string.min_len = 1];
+  // 名称。
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 类型，取值为 METRICS、LOGS 或 TRACE。
+  string type = 4 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
+  // 驱动。
+  string driver = 5 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "TRACE_JAEGER"]}];
+  // 表达式。
+  string expr = 6;
+  // 标签，JSON 文本。
+  string labels = 7;
+  // 数据源标识。
+  string datasource_uid = 8 [json_name = "datasourceUid"];
+  // 摘要。
+  string summary = 9 [(buf.validate.field).string.max_len = 200];
+  // 描述。
+  string description = 10 [(buf.validate.field).string.max_len = 500];
+  // 级别条件。保存时替换原有条件。
+  repeated AlertRuleLevelInput levels = 11;
+}
+
+// 更新规则的结果。
+message UpdateAlertRuleResponse {
+  // 规则。
+  AlertRuleItem rule = 1;
+}
+
+// 更新规则状态。
+message UpdateAlertRuleStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+// 更新规则状态的结果。
+message UpdateAlertRuleStatusResponse {
+  // 规则。
+  AlertRuleItem rule = 1;
+}
+
+// 要删除的规则。
+message DeleteAlertRuleRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 规则已删除。
+message DeleteAlertRuleResponse {}
+
+// 要查询的规则。
+message GetAlertRuleRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 规则详情。
+message GetAlertRuleResponse {
+  // 规则。
+  AlertRuleItem rule = 1;
+}
+
+// 规则分页查询。
+message ListAlertRulesRequest {
+  // 页码。0 表示使用默认页。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 规则组标识。留空表示全部。
+  string group_uid = 3 [json_name = "groupUid"];
+  // 名称。
+  string name = 4;
+}
+
+// 规则分页结果。
+message ListAlertRulesResponse {
+  // 当前页数据。
+  repeated AlertRuleItem items = 1;
+  // 符合条件的总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 级别。
+message AlertLevelItem {
+  // 标识。
+  string uid = 1;
+  // 名称。
+  string name = 2;
+  // 展示色。
+  string color = 3;
+  // 类型，取值为 ALERT 或 DATASOURCE。
+  string type = 4;
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 5;
+}
+
+// 创建级别。
+message CreateAlertLevelRequest {
+  // 名称。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 展示色。
+  string color = 2 [(buf.validate.field).string.max_len = 32];
+  // 类型，取值为 ALERT 或 DATASOURCE。
+  string type = 3 [(buf.validate.field).string = {in: ["ALERT", "DATASOURCE"]}];
+}
+
+// 创建级别的结果。
+message CreateAlertLevelResponse {
+  // 级别。
+  AlertLevelItem level = 1;
+}
+
+// 更新级别。
+message UpdateAlertLevelRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 展示色。
+  string color = 3 [(buf.validate.field).string.max_len = 32];
+}
+
+// 更新级别的结果。
+message UpdateAlertLevelResponse {
+  // 级别。
+  AlertLevelItem level = 1;
+}
+
+// 更新级别状态。
+message UpdateAlertLevelStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+// 更新级别状态的结果。
+message UpdateAlertLevelStatusResponse {
+  // 级别。
+  AlertLevelItem level = 1;
+}
+
+// 要删除的级别。
+message DeleteAlertLevelRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 级别已删除。
+message DeleteAlertLevelResponse {}
+
+// 级别分页查询。
+message ListAlertLevelsRequest {
+  // 页码。0 表示使用默认页。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 类型。留空表示全部。
+  string type = 3;
+  // 名称。
+  string name = 4;
+}
+
+// 级别分页结果。
+message ListAlertLevelsResponse {
+  // 当前页数据。
+  repeated AlertLevelItem items = 1;
+  // 符合条件的总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}

@@ -1,5 +1,7 @@
 package bo
 
+import "time"
+
 // Account 是全局用户。PasswordHash 只在登录校验时使用，离开用例前要清空。
 type Account struct {
 	UID          string
@@ -63,4 +65,77 @@ type Session struct {
 	AccessToken  string
 	RefreshToken string
 	User         Account
+}
+
+// Datasource 是租户里的一条数据源。Password 和 Secret 只在用例内部是明文，离开接口前要清空。
+type Datasource struct {
+	UID          string
+	NamespaceUID string
+	Name         string
+	Type         string
+	Driver       string
+	Endpoint     string
+	Username     string
+	Password     string
+	Secret       string
+	SecretSet    bool
+	Status       string
+	LevelUID     string
+	LevelName    string
+	Remark       string
+}
+
+// AlertLevel 是告警级别或数据源级别。
+type AlertLevel struct {
+	UID          string
+	NamespaceUID string
+	Name         string
+	Color        string
+	Type         string
+	Status       string
+}
+
+// AlertRuleGroup 是租户内的规则组。名称在未删除记录上唯一。
+type AlertRuleGroup struct {
+	UID          string
+	NamespaceUID string
+	Name         string
+	Status       string
+}
+
+// AlertRuleLevel 是规则上的一条比较条件。
+type AlertRuleLevel struct {
+	UID        string
+	Condition  string
+	Sample     string
+	Threshold  string
+	ForSeconds int
+	LevelUID   string
+	LevelName  string
+}
+
+// AlertRule 是规则组里的一条规则。停用或非指标规则不会进入到期候选。
+type AlertRule struct {
+	UID           string
+	NamespaceUID  string
+	GroupUID      string
+	Name          string
+	Type          string
+	Driver        string
+	Status        string
+	Expr          string
+	Labels        string
+	DatasourceUID string
+	Summary       string
+	Description   string
+	NextEvalAt    *time.Time
+	Levels        []AlertRuleLevel
+}
+
+// Due 判断规则此刻是否该被评测扫描看到。停用、日志和链路规则都不在候选里。
+func (r AlertRule) Due(now time.Time) bool {
+	if r.Status != "ACTIVE" || r.Type != "METRICS" {
+		return false
+	}
+	return r.NextEvalAt == nil || !r.NextEvalAt.After(now)
 }

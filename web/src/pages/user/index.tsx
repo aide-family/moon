@@ -9,8 +9,8 @@ import { DetailSheet } from "@/components/detail-sheet"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { useListQuery } from "@/lib/list-query"
+import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -118,7 +118,7 @@ export function UserPage() {
   }
 
   return (
-    <section className="flex flex-col gap-6">
+    <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("user.title")} description={t("user.description")} />
       <form
         className="flex gap-2"
@@ -137,8 +137,14 @@ export function UserPage() {
           {t("action.search")}
         </Button>
       </form>
-      <Card>
-        <CardContent>
+      <ListFrame
+        total={total}
+        page={query.page}
+        pageSize={query.pageSize}
+        showPager={!loading && !failed && items.length > 0}
+        onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
+        onNext={() => query.update({ page: query.page + 1 })}
+      >
           {loading ? (
             <p className="text-sm text-muted-foreground">
               {t("state.loading")}
@@ -187,29 +193,7 @@ export function UserPage() {
               </TableBody>
             </Table>
           ) : null}
-        </CardContent>
-      </Card>
-      {!loading && !failed ? (
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            disabled={query.page <= 1}
-            onClick={() => query.update({ page: query.page - 1 })}
-          >
-            {t("action.prev")}
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            {query.page} / {Math.max(1, Math.ceil(total / query.pageSize))}
-          </span>
-          <Button
-            variant="outline"
-            disabled={query.page * query.pageSize >= total}
-            onClick={() => query.update({ page: query.page + 1 })}
-          >
-            {t("action.next")}
-          </Button>
-        </div>
-      ) : null}
+      </ListFrame>
       <DetailSheet
         open={detail !== null}
         title={detail?.name || detail?.email || t("action.detail")}

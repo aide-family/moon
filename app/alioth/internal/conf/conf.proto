@@ -63,4 +63,6 @@ message Auth {
   repeated ServiceKey service_keys = 4;
   repeated OAuthClient oauth = 5;
   SMTP smtp = 6;
+  // 数据源密码和密钥的 AES-GCM 主密钥。
+  string encrypt_key = 7;
 }

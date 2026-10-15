@@ -9,6 +9,171 @@ import (
 )
 
 var (
+	// AlertLevelsColumns holds the columns for the "alert_levels" table.
+	AlertLevelsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "color", Type: field.TypeString, Default: ""},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"ALERT", "DATASOURCE"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+	}
+	// AlertLevelsTable holds the schema information for the "alert_levels" table.
+	AlertLevelsTable = &schema.Table{
+		Name:       "alert_levels",
+		Columns:    AlertLevelsColumns,
+		PrimaryKey: []*schema.Column{AlertLevelsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alertlevel_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertLevelsColumns[4]},
+			},
+			{
+				Name:    "alertlevel_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{AlertLevelsColumns[5], AlertLevelsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "alertlevel_namespace_uid",
+				Unique:  false,
+				Columns: []*schema.Column{AlertLevelsColumns[5]},
+			},
+		},
+	}
+	// AlertRulesColumns holds the columns for the "alert_rules" table.
+	AlertRulesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "group_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"METRICS", "LOGS", "TRACE"}},
+		{Name: "driver", Type: field.TypeEnum, Enums: []string{"METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "TRACE_JAEGER"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "expr", Type: field.TypeString, Default: ""},
+		{Name: "labels", Type: field.TypeString, Default: ""},
+		{Name: "datasource_uid", Type: field.TypeString, Default: ""},
+		{Name: "summary", Type: field.TypeString, Default: ""},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "next_eval_at", Type: field.TypeTime, Nullable: true},
+	}
+	// AlertRulesTable holds the schema information for the "alert_rules" table.
+	AlertRulesTable = &schema.Table{
+		Name:       "alert_rules",
+		Columns:    AlertRulesColumns,
+		PrimaryKey: []*schema.Column{AlertRulesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alertrule_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertRulesColumns[4]},
+			},
+			{
+				Name:    "alertrule_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{AlertRulesColumns[5], AlertRulesColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "alertrule_namespace_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{AlertRulesColumns[5], AlertRulesColumns[10]},
+			},
+			{
+				Name:    "alertrule_group_uid",
+				Unique:  false,
+				Columns: []*schema.Column{AlertRulesColumns[6]},
+			},
+		},
+	}
+	// AlertRuleGroupsColumns holds the columns for the "alert_rule_groups" table.
+	AlertRuleGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+	}
+	// AlertRuleGroupsTable holds the schema information for the "alert_rule_groups" table.
+	AlertRuleGroupsTable = &schema.Table{
+		Name:       "alert_rule_groups",
+		Columns:    AlertRuleGroupsColumns,
+		PrimaryKey: []*schema.Column{AlertRuleGroupsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alertrulegroup_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertRuleGroupsColumns[4]},
+			},
+			{
+				Name:    "alertrulegroup_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{AlertRuleGroupsColumns[5], AlertRuleGroupsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "alertrulegroup_namespace_uid",
+				Unique:  false,
+				Columns: []*schema.Column{AlertRuleGroupsColumns[5]},
+			},
+		},
+	}
+	// AlertRuleLevelsColumns holds the columns for the "alert_rule_levels" table.
+	AlertRuleLevelsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "rule_uid", Type: field.TypeString},
+		{Name: "condition", Type: field.TypeString},
+		{Name: "sample", Type: field.TypeEnum, Enums: []string{"FOR", "MAX", "MIN"}},
+		{Name: "threshold", Type: field.TypeString, Default: ""},
+		{Name: "for_seconds", Type: field.TypeInt, Default: 0},
+		{Name: "level_uid", Type: field.TypeString},
+	}
+	// AlertRuleLevelsTable holds the schema information for the "alert_rule_levels" table.
+	AlertRuleLevelsTable = &schema.Table{
+		Name:       "alert_rule_levels",
+		Columns:    AlertRuleLevelsColumns,
+		PrimaryKey: []*schema.Column{AlertRuleLevelsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alertrulelevel_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertRuleLevelsColumns[4]},
+			},
+			{
+				Name:    "alertrulelevel_rule_uid",
+				Unique:  false,
+				Columns: []*schema.Column{AlertRuleLevelsColumns[6]},
+			},
+			{
+				Name:    "alertrulelevel_namespace_uid",
+				Unique:  false,
+				Columns: []*schema.Column{AlertRuleLevelsColumns[5]},
+			},
+		},
+	}
 	// CaptchasColumns holds the columns for the "captchas" table.
 	CaptchasColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -29,6 +194,51 @@ var (
 				Name:    "captcha_uid",
 				Unique:  true,
 				Columns: []*schema.Column{CaptchasColumns[3]},
+			},
+		},
+	}
+	// DatasourcesColumns holds the columns for the "datasources" table.
+	DatasourcesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"METRICS", "LOGS", "TRACE"}},
+		{Name: "driver", Type: field.TypeEnum, Enums: []string{"METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "TRACE_JAEGER"}},
+		{Name: "endpoint", Type: field.TypeString},
+		{Name: "username", Type: field.TypeString, Default: ""},
+		{Name: "password_cipher", Type: field.TypeString, Default: ""},
+		{Name: "secret_cipher", Type: field.TypeString, Default: ""},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "level_uid", Type: field.TypeString, Default: ""},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+	}
+	// DatasourcesTable holds the schema information for the "datasources" table.
+	DatasourcesTable = &schema.Table{
+		Name:       "datasources",
+		Columns:    DatasourcesColumns,
+		PrimaryKey: []*schema.Column{DatasourcesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "datasource_uid",
+				Unique:  true,
+				Columns: []*schema.Column{DatasourcesColumns[4]},
+			},
+			{
+				Name:    "datasource_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{DatasourcesColumns[5], DatasourcesColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "datasource_namespace_uid",
+				Unique:  false,
+				Columns: []*schema.Column{DatasourcesColumns[5]},
 			},
 		},
 	}
@@ -318,7 +528,12 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AlertLevelsTable,
+		AlertRulesTable,
+		AlertRuleGroupsTable,
+		AlertRuleLevelsTable,
 		CaptchasTable,
+		DatasourcesTable,
 		EmailLoginCodesTable,
 		MembersTable,
 		MemberRolesTable,

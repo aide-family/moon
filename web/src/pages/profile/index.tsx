@@ -70,7 +70,7 @@ export function ProfilePage() {
   }
 
   return (
-    <section className="flex flex-col gap-6">
+    <section className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
       <PageHeader
         title={t("profile.title")}
         description={t("profile.description")}

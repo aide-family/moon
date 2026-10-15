@@ -25,6 +25,10 @@ func NewHTTPServer(
 	members *service.MemberService,
 	users *service.UserService,
 	roles *service.RoleService,
+	datasources *service.DatasourceService,
+	queries *service.MetricQueryService,
+	rules *service.AlertRuleService,
+	levels *service.AlertLevelService,
 	uc *auth.Usecase,
 	logger log.Logger,
 ) (*khttp.Server, error) {
@@ -60,5 +64,9 @@ func NewHTTPServer(
 	v1.RegisterMemberServiceHTTPServer(srv, members)
 	v1.RegisterUserServiceHTTPServer(srv, users)
 	v1.RegisterRoleServiceHTTPServer(srv, roles)
+	v1.RegisterDatasourceServiceHTTPServer(srv, datasources)
+	v1.RegisterMetricQueryServiceHTTPServer(srv, queries)
+	v1.RegisterAlertRuleServiceHTTPServer(srv, rules)
+	v1.RegisterAlertLevelServiceHTTPServer(srv, levels)
 	return srv, nil
 }

@@ -17,9 +17,9 @@ import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { ListFrame } from "@/components/list-frame"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -242,7 +242,7 @@ export function NamespacePage() {
   }
 
   return (
-    <section className="flex flex-col gap-6">
+    <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader
         title={t("namespace.title")}
         description={t("namespace.description")}
@@ -258,6 +258,14 @@ export function NamespacePage() {
           {t("namespace.create")}
         </Button>
       </PageHeader>
+      <ListFrame
+        total={session.namespaces.length}
+        page={1}
+        pageSize={Math.max(session.namespaces.length, 1)}
+        showPager={!session.loading && !session.failed && session.namespaces.length > 0}
+        onPrev={() => undefined}
+        onNext={() => undefined}
+      >
       {session.loading ? (
         <p className="text-sm text-muted-foreground">{t("state.loading")}</p>
       ) : null}
@@ -272,17 +280,9 @@ export function NamespacePage() {
       {!session.loading &&
       !session.failed &&
       session.namespaces.length === 0 ? (
-        <Card>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              {t("namespace.guide")}
-            </p>
-          </CardContent>
-        </Card>
+        <p className="text-sm text-muted-foreground">{t("namespace.guide")}</p>
       ) : null}
       {!session.loading && !session.failed && session.namespaces.length > 0 ? (
-        <Card>
-          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -315,9 +315,8 @@ export function NamespacePage() {
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
       ) : null}
+      </ListFrame>
       <Dialog open={open} onOpenChange={closeCreate}>
         <DialogContent>
           <DialogHeader>

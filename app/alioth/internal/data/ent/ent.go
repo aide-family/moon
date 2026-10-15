@@ -12,7 +12,12 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertlevel"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/captcha"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
@@ -82,7 +87,12 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			alertlevel.Table:     alertlevel.ValidColumn,
+			alertrule.Table:      alertrule.ValidColumn,
+			alertrulegroup.Table: alertrulegroup.ValidColumn,
+			alertrulelevel.Table: alertrulelevel.ValidColumn,
 			captcha.Table:        captcha.ValidColumn,
+			datasource.Table:     datasource.ValidColumn,
 			emaillogincode.Table: emaillogincode.ValidColumn,
 			member.Table:         member.ValidColumn,
 			memberrole.Table:     memberrole.ValidColumn,

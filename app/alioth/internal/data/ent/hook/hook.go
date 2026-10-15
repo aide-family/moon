@@ -9,6 +9,54 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
 )
 
+// The AlertLevelFunc type is an adapter to allow the use of ordinary
+// function as AlertLevel mutator.
+type AlertLevelFunc func(context.Context, *ent.AlertLevelMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertLevelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertLevelMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertLevelMutation", m)
+}
+
+// The AlertRuleFunc type is an adapter to allow the use of ordinary
+// function as AlertRule mutator.
+type AlertRuleFunc func(context.Context, *ent.AlertRuleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertRuleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertRuleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertRuleMutation", m)
+}
+
+// The AlertRuleGroupFunc type is an adapter to allow the use of ordinary
+// function as AlertRuleGroup mutator.
+type AlertRuleGroupFunc func(context.Context, *ent.AlertRuleGroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertRuleGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertRuleGroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertRuleGroupMutation", m)
+}
+
+// The AlertRuleLevelFunc type is an adapter to allow the use of ordinary
+// function as AlertRuleLevel mutator.
+type AlertRuleLevelFunc func(context.Context, *ent.AlertRuleLevelMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertRuleLevelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertRuleLevelMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertRuleLevelMutation", m)
+}
+
 // The CaptchaFunc type is an adapter to allow the use of ordinary
 // function as Captcha mutator.
 type CaptchaFunc func(context.Context, *ent.CaptchaMutation) (ent.Value, error)
@@ -19,6 +67,18 @@ func (f CaptchaFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CaptchaMutation", m)
+}
+
+// The DatasourceFunc type is an adapter to allow the use of ordinary
+// function as Datasource mutator.
+type DatasourceFunc func(context.Context, *ent.DatasourceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DatasourceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DatasourceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DatasourceMutation", m)
 }
 
 // The EmailLoginCodeFunc type is an adapter to allow the use of ordinary

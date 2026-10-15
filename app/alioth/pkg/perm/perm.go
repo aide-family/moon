@@ -12,6 +12,11 @@ const (
 	NamespaceDelete   = "namespace:delete"
 	NamespaceTransfer = "namespace:transfer"
 
+	DatasourceRead  = "datasource:read"
+	DatasourceWrite = "datasource:write"
+	AlertRuleRead   = "alert_rule:read"
+	AlertRuleWrite  = "alert_rule:write"
+
 	AlertIntervene = "alert:intervene"
 	SSHExec        = "ssh:exec"
 	K8sProxy       = "k8s:proxy"

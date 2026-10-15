@@ -22,6 +22,10 @@ func NewGRPCServer(
 	members *service.MemberService,
 	users *service.UserService,
 	roles *service.RoleService,
+	datasources *service.DatasourceService,
+	queries *service.MetricQueryService,
+	rules *service.AlertRuleService,
+	levels *service.AlertLevelService,
 	uc *auth.Usecase,
 	logger log.Logger,
 ) (*kgrpc.Server, error) {
@@ -48,5 +52,9 @@ func NewGRPCServer(
 	v1.RegisterMemberServiceServer(srv, members)
 	v1.RegisterUserServiceServer(srv, users)
 	v1.RegisterRoleServiceServer(srv, roles)
+	v1.RegisterDatasourceServiceServer(srv, datasources)
+	v1.RegisterMetricQueryServiceServer(srv, queries)
+	v1.RegisterAlertRuleServiceServer(srv, rules)
+	v1.RegisterAlertLevelServiceServer(srv, levels)
 	return srv, nil
 }

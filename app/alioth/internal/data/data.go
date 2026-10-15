@@ -26,16 +26,27 @@ var ProviderSet = wire.NewSet(
 	NewNamespaceRepo,
 	NewMemberRepo,
 	NewRoleRepo,
+	NewDatasourceRepo,
+	NewAlertLevelRepo,
+	NewAlertRuleRepo,
 )
 
 type Data struct {
 	db     *sql.DB
 	client *ent.Client
+	box    *secretBox
 }
 
-func NewData(c *conf.Data, logger log.Logger) (*Data, func(), error) {
+func NewData(c *conf.Data, auth *conf.Auth, logger log.Logger) (*Data, func(), error) {
 	if c == nil || c.Database == nil || c.Database.Source == "" {
 		return nil, nil, merr.Server("database source is empty")
+	}
+	if auth == nil || auth.GetEncryptKey() == "" {
+		return nil, nil, merr.Server("encrypt key is empty")
+	}
+	box, err := newSecretBox(auth.GetEncryptKey())
+	if err != nil {
+		return nil, nil, err
 	}
 	helper := log.NewHelper(logger)
 	db, err := openDB(c.Database.Source, helper)
@@ -48,7 +59,7 @@ func NewData(c *conf.Data, logger log.Logger) (*Data, func(), error) {
 			log.NewHelper(logger).Errorf("close database: %v", err)
 		}
 	}
-	return &Data{db: db, client: client}, cleanup, nil
+	return &Data{db: db, client: client, box: box}, cleanup, nil
 }
 
 func Migrate(ctx context.Context, source string) error {

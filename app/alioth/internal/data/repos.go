@@ -9,11 +9,12 @@ import (
 
 type repoBase struct {
 	client *ent.Client
+	box    *secretBox
 	log    *log.Helper
 }
 
 func newBase(d *Data, logger log.Logger) *repoBase {
-	return &repoBase{client: d.client, log: log.NewHelper(logger)}
+	return &repoBase{client: d.client, box: d.box, log: log.NewHelper(logger)}
 }
 
 type userRepo struct{ *repoBase }
@@ -23,6 +24,9 @@ type oauthRepo struct{ *repoBase }
 type namespaceRepo struct{ *repoBase }
 type memberRepo struct{ *repoBase }
 type roleRepo struct{ *repoBase }
+type datasourceRepo struct{ *repoBase }
+type alertLevelRepo struct{ *repoBase }
+type alertRuleRepo struct{ *repoBase }
 
 func NewUserRepo(d *Data, logger log.Logger) repository.UserRepo {
 	return &userRepo{newBase(d, logger)}
@@ -50,4 +54,16 @@ func NewMemberRepo(d *Data, logger log.Logger) repository.MemberRepo {
 
 func NewRoleRepo(d *Data, logger log.Logger) repository.RoleRepo {
 	return &roleRepo{newBase(d, logger)}
+}
+
+func NewDatasourceRepo(d *Data, logger log.Logger) repository.DatasourceRepo {
+	return &datasourceRepo{newBase(d, logger)}
+}
+
+func NewAlertLevelRepo(d *Data, logger log.Logger) repository.AlertLevelRepo {
+	return &alertLevelRepo{newBase(d, logger)}
+}
+
+func NewAlertRuleRepo(d *Data, logger log.Logger) repository.AlertRuleRepo {
+	return &alertRuleRepo{newBase(d, logger)}
 }

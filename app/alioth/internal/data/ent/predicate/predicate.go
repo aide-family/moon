@@ -6,8 +6,23 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AlertLevel is the predicate function for alertlevel builders.
+type AlertLevel func(*sql.Selector)
+
+// AlertRule is the predicate function for alertrule builders.
+type AlertRule func(*sql.Selector)
+
+// AlertRuleGroup is the predicate function for alertrulegroup builders.
+type AlertRuleGroup func(*sql.Selector)
+
+// AlertRuleLevel is the predicate function for alertrulelevel builders.
+type AlertRuleLevel func(*sql.Selector)
+
 // Captcha is the predicate function for captcha builders.
 type Captcha func(*sql.Selector)
+
+// Datasource is the predicate function for datasource builders.
+type Datasource func(*sql.Selector)
 
 // EmailLoginCode is the predicate function for emaillogincode builders.
 type EmailLoginCode func(*sql.Selector)

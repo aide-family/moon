@@ -1,6 +1,9 @@
 import {
+  Bell,
   Building2,
   ChevronRight,
+  Database,
+  Gauge,
   Languages,
   Moon,
   Settings,
@@ -88,6 +91,92 @@ const links: {
   { to: "/roles", label: "nav.roles", permission: "role:read", icon: Shield },
 ]
 
+const alertLinks: {
+  to: string
+  label: string
+  permission: string
+  icon: LucideIcon
+}[] = [
+  {
+    to: "/datasources",
+    label: "nav.datasources",
+    permission: "datasource:read",
+    icon: Database,
+  },
+  {
+    to: "/alert-rules",
+    label: "nav.alertRules",
+    permission: "alert_rule:read",
+    icon: Bell,
+  },
+  {
+    to: "/alert-levels",
+    label: "nav.alertLevels",
+    permission: "alert_rule:read",
+    icon: Gauge,
+  },
+]
+
+function NavGroup({
+  label,
+  icon: Icon,
+  open,
+  active,
+  links,
+  onOpenChange,
+}: {
+  label: string
+  icon: LucideIcon
+  open: boolean
+  active: boolean
+  links: { to: string; label: string; icon: LucideIcon }[]
+  onOpenChange: (open: boolean) => void
+}) {
+  const { t } = useTranslation()
+  const location = useLocation()
+  if (links.length === 0) {
+    return null
+  }
+  return (
+    <Collapsible
+      asChild
+      open={open}
+      onOpenChange={onOpenChange}
+      className="group/collapsible"
+    >
+      <SidebarMenuItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton tooltip={t(label)} isActive={active}>
+            <Icon />
+            <span>{t(label)}</span>
+            <ChevronRight className="ml-auto transition-transform group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-90" />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarMenuSub>
+            {links.map((link) => {
+              const LinkIcon = link.icon
+              return (
+                <SidebarMenuSubItem key={link.to}>
+                  <SidebarMenuSubButton
+                    asChild
+                    isActive={location.pathname === link.to}
+                  >
+                    <NavLink to={link.to}>
+                      <LinkIcon />
+                      <span>{t(link.label)}</span>
+                    </NavLink>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+              )
+            })}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
+  )
+}
+
 function ShellFrame() {
   const { t, i18n } = useTranslation()
   const { theme, setTheme } = useTheme()
@@ -100,13 +189,23 @@ function ShellFrame() {
     }
     return session.namespaceUid !== "" && session.can(link.permission)
   })
+  const alerts = alertLinks.filter(
+    (link) => session.namespaceUid !== "" && session.can(link.permission),
+  )
   const systemActive = visible.some((link) => location.pathname === link.to)
+  const alertActive = alerts.some((link) => location.pathname === link.to)
   const [systemOpen, setSystemOpen] = useState(systemActive)
+  const [alertOpen, setAlertOpen] = useState(alertActive)
   useEffect(() => {
     if (systemActive) {
       setSystemOpen(true)
     }
   }, [systemActive])
+  useEffect(() => {
+    if (alertActive) {
+      setAlertOpen(true)
+    }
+  }, [alertActive])
   const token = localStorage.getItem("token")
   if (!token) {
     return <Navigate to="/login" replace />
@@ -135,7 +234,7 @@ function ShellFrame() {
 
   return (
     <TooltipProvider>
-      <SidebarProvider>
+      <SidebarProvider className="h-svh">
         <Sidebar collapsible="icon">
           <SidebarHeader>
             <SidebarMenu>
@@ -155,52 +254,29 @@ function ShellFrame() {
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  <Collapsible
-                    asChild
+                  <NavGroup
+                    label="nav.alert"
+                    icon={Bell}
+                    open={alertOpen}
+                    active={alertActive}
+                    links={alerts}
+                    onOpenChange={setAlertOpen}
+                  />
+                  <NavGroup
+                    label="nav.system"
+                    icon={Settings}
                     open={systemOpen}
+                    active={systemActive}
+                    links={visible}
                     onOpenChange={setSystemOpen}
-                    className="group/collapsible"
-                  >
-                    <SidebarMenuItem>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton
-                          tooltip={t("nav.system")}
-                          isActive={systemActive}
-                        >
-                          <Settings />
-                          <span>{t("nav.system")}</span>
-                          <ChevronRight className="ml-auto transition-transform group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-90" />
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {visible.map((link) => {
-                            const Icon = link.icon
-                            return (
-                              <SidebarMenuSubItem key={link.to}>
-                                <SidebarMenuSubButton
-                                  asChild
-                                  isActive={location.pathname === link.to}
-                                >
-                                  <NavLink to={link.to}>
-                                    <Icon />
-                                    <span>{t(link.label)}</span>
-                                  </NavLink>
-                                </SidebarMenuSubButton>
-                              </SidebarMenuSubItem>
-                            )
-                          })}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </SidebarMenuItem>
-                  </Collapsible>
+                  />
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
           <SidebarRail />
         </Sidebar>
-        <SidebarInset>
+        <SidebarInset className="min-h-0">
           <header className="flex h-14 items-center gap-2 border-b px-4">
             <SidebarTrigger />
             <div className="ml-auto flex min-w-0 items-center gap-2 overflow-x-auto">
@@ -297,7 +373,7 @@ function ShellFrame() {
               </DropdownMenu>
             </div>
           </header>
-          <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
+          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6">
             {session.loading ? (
               <p className="text-sm text-muted-foreground">
                 {t("state.loading")}

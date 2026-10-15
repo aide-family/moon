@@ -12,8 +12,18 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// AlertLevel is the client for interacting with the AlertLevel builders.
+	AlertLevel *AlertLevelClient
+	// AlertRule is the client for interacting with the AlertRule builders.
+	AlertRule *AlertRuleClient
+	// AlertRuleGroup is the client for interacting with the AlertRuleGroup builders.
+	AlertRuleGroup *AlertRuleGroupClient
+	// AlertRuleLevel is the client for interacting with the AlertRuleLevel builders.
+	AlertRuleLevel *AlertRuleLevelClient
 	// Captcha is the client for interacting with the Captcha builders.
 	Captcha *CaptchaClient
+	// Datasource is the client for interacting with the Datasource builders.
+	Datasource *DatasourceClient
 	// EmailLoginCode is the client for interacting with the EmailLoginCode builders.
 	EmailLoginCode *EmailLoginCodeClient
 	// Member is the client for interacting with the Member builders.
@@ -163,7 +173,12 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.AlertLevel = NewAlertLevelClient(tx.config)
+	tx.AlertRule = NewAlertRuleClient(tx.config)
+	tx.AlertRuleGroup = NewAlertRuleGroupClient(tx.config)
+	tx.AlertRuleLevel = NewAlertRuleLevelClient(tx.config)
 	tx.Captcha = NewCaptchaClient(tx.config)
+	tx.Datasource = NewDatasourceClient(tx.config)
 	tx.EmailLoginCode = NewEmailLoginCodeClient(tx.config)
 	tx.Member = NewMemberClient(tx.config)
 	tx.MemberRole = NewMemberRoleClient(tx.config)
@@ -182,7 +197,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Captcha.QueryXXX(), the query will be executed
+// applies a query, for example: AlertLevel.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.
