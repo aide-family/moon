@@ -44,10 +44,11 @@ type EvalHit struct {
 
 // EvalReport 是回写内容。Skipped 表示驱动尚未实现。
 type EvalReport struct {
-	RuleUID  string
-	EvalSlot time.Time
-	Skipped  bool
-	Hits     []EvalHit
+	RuleUID       string
+	DatasourceUID string
+	EvalSlot      time.Time
+	Skipped       bool
+	Hits          []EvalHit
 }
 
 // Sample 是一个时间序列。

@@ -2,11 +2,13 @@ package server
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/middleware/recovery"
-	khttp "github.com/go-kratos/kratos/v2/transport/http"
+	_ "github.com/go-kratos/kratos/contrib/encoding/json/v3"
+
+	"github.com/go-kratos/kratos/v3/middleware/recovery"
+	khttp "github.com/go-kratos/kratos/v3/transport/http"
 	"github.com/google/wire"
 
 	"github.com/aide-family/Alioth/app/megrez/internal/conf"
@@ -16,14 +18,13 @@ import (
 
 var ProviderSet = wire.NewSet(NewHTTPServer)
 
-func NewHTTPServer(c *conf.Server, health *service.HealthService, logger log.Logger) (*khttp.Server, error) {
+func NewHTTPServer(c *conf.Server, health *service.HealthService, logger *slog.Logger) (*khttp.Server, error) {
 	if c == nil || c.Http == nil || c.Http.Addr == "" {
 		return nil, merr.Server("http addr is empty")
 	}
 	opts := []khttp.ServerOption{
 		khttp.Address(c.Http.Addr),
-		khttp.Middleware(recovery.Recovery()),
-		khttp.Logger(logger),
+		khttp.Middleware(recovery.Recovery(recovery.WithLogger(logger))),
 	}
 	if c.Http.Network != "" {
 		opts = append(opts, khttp.Network(c.Http.Network))

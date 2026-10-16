@@ -83,6 +83,8 @@ message ReportEvalRequest {
   bool skipped = 3;
   // 本次命中的序列。skipped 为真时留空。
   repeated EvalHit hits = 4;
+  // 本次评测的数据源标识。
+  string datasource_uid = 5;
 }
 
 // 一条命中序列。

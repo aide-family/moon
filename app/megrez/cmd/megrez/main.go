@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 
-	"github.com/go-kratos/kratos/v2"
-	"github.com/go-kratos/kratos/v2/config"
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/go-kratos/kratos/v3"
+	"github.com/go-kratos/kratos/v3/config"
+	"github.com/go-kratos/kratos/v3/log"
+	"github.com/go-kratos/kratos/v3/transport/http"
 	"github.com/spf13/cobra"
 
 	"github.com/aide-family/Alioth/app/megrez/internal/biz/eval"
@@ -45,7 +46,11 @@ func serve(confPath string) error {
 	if err != nil {
 		return err
 	}
-	logger := log.With(log.NewStdLogger(os.Stdout), "ts", log.DefaultTimestamp, "caller", log.DefaultCaller, "service", "megrez")
+	logger := log.NewLogger(log.NewHandler(
+		log.WithWriter(os.Stdout),
+		log.WithFormat(log.FormatJSON),
+		log.WithAddSource(true),
+	)).With(slog.String("service", "megrez"))
 	app, cleanup, err := wireApp(bc.Server, bc.Alioth, bc.Redis, logger)
 	if err != nil {
 		return err
@@ -58,18 +63,18 @@ func loadConfig(path string) (*conf.Bootstrap, error) {
 	c := config.New(config.WithSource(bootstrap.NewSource(path)))
 	defer c.Close()
 	if err := c.Load(); err != nil {
-		log.NewHelper(log.DefaultLogger).Errorf("config: %v", err)
+		slog.Default().Error(fmt.Sprintf("config: %v", err))
 		return nil, merr.Server("config load failed")
 	}
 	var bc conf.Bootstrap
 	if err := c.Scan(&bc); err != nil {
-		log.NewHelper(log.DefaultLogger).Errorf("config: %v", err)
+		slog.Default().Error(fmt.Sprintf("config: %v", err))
 		return nil, merr.Server("config load failed")
 	}
 	return &bc, nil
 }
 
-func newApp(logger log.Logger, hs *http.Server, worker *eval.Worker, d *data.Data) *kratos.App {
+func newApp(logger *slog.Logger, hs *http.Server, worker *eval.Worker, d *data.Data) *kratos.App {
 	if d == nil {
 		panic("data layer is missing")
 	}

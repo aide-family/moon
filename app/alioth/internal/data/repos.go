@@ -2,8 +2,7 @@ package data
 
 import (
 	"database/sql"
-
-	"github.com/go-kratos/kratos/v2/log"
+	"log/slog"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
@@ -13,11 +12,11 @@ type repoBase struct {
 	client *ent.Client
 	db     *sql.DB
 	box    *secretBox
-	log    *log.Helper
+	log    *slog.Logger
 }
 
-func newBase(d *Data, logger log.Logger) *repoBase {
-	return &repoBase{client: d.client, db: d.db, box: d.box, log: log.NewHelper(logger)}
+func newBase(d *Data, logger *slog.Logger) *repoBase {
+	return &repoBase{client: d.client, db: d.db, box: d.box, log: logger}
 }
 
 type userRepo struct{ *repoBase }
@@ -31,62 +30,67 @@ type datasourceRepo struct{ *repoBase }
 type alertLevelRepo struct{ *repoBase }
 type alertRuleRepo struct{ *repoBase }
 type alertEventRepo struct{ *repoBase }
+type alertPageRepo struct{ *repoBase }
 type notificationRepo struct{ *repoBase }
 type agentRepo struct{ *repoBase }
 type sshCommandRepo struct{ *repoBase }
 
-func NewUserRepo(d *Data, logger log.Logger) repository.UserRepo {
+func NewUserRepo(d *Data, logger *slog.Logger) repository.UserRepo {
 	return &userRepo{newBase(d, logger)}
 }
 
-func NewCaptchaRepo(d *Data, logger log.Logger) repository.CaptchaRepo {
+func NewCaptchaRepo(d *Data, logger *slog.Logger) repository.CaptchaRepo {
 	return &captchaRepo{newBase(d, logger)}
 }
 
-func NewEmailCodeRepo(d *Data, logger log.Logger) repository.EmailCodeRepo {
+func NewEmailCodeRepo(d *Data, logger *slog.Logger) repository.EmailCodeRepo {
 	return &emailCodeRepo{newBase(d, logger)}
 }
 
-func NewOAuthRepo(d *Data, logger log.Logger) repository.OAuthRepo {
+func NewOAuthRepo(d *Data, logger *slog.Logger) repository.OAuthRepo {
 	return &oauthRepo{newBase(d, logger)}
 }
 
-func NewNamespaceRepo(d *Data, logger log.Logger) repository.NamespaceRepo {
+func NewNamespaceRepo(d *Data, logger *slog.Logger) repository.NamespaceRepo {
 	return &namespaceRepo{newBase(d, logger)}
 }
 
-func NewMemberRepo(d *Data, logger log.Logger) repository.MemberRepo {
+func NewMemberRepo(d *Data, logger *slog.Logger) repository.MemberRepo {
 	return &memberRepo{newBase(d, logger)}
 }
 
-func NewRoleRepo(d *Data, logger log.Logger) repository.RoleRepo {
+func NewRoleRepo(d *Data, logger *slog.Logger) repository.RoleRepo {
 	return &roleRepo{newBase(d, logger)}
 }
 
-func NewDatasourceRepo(d *Data, logger log.Logger) repository.DatasourceRepo {
+func NewDatasourceRepo(d *Data, logger *slog.Logger) repository.DatasourceRepo {
 	return &datasourceRepo{newBase(d, logger)}
 }
 
-func NewAlertLevelRepo(d *Data, logger log.Logger) repository.AlertLevelRepo {
+func NewAlertLevelRepo(d *Data, logger *slog.Logger) repository.AlertLevelRepo {
 	return &alertLevelRepo{newBase(d, logger)}
 }
 
-func NewAlertRuleRepo(d *Data, logger log.Logger) repository.AlertRuleRepo {
+func NewAlertRuleRepo(d *Data, logger *slog.Logger) repository.AlertRuleRepo {
 	return &alertRuleRepo{newBase(d, logger)}
 }
 
-func NewAlertEventRepo(d *Data, logger log.Logger) repository.AlertEventRepo {
+func NewAlertEventRepo(d *Data, logger *slog.Logger) repository.AlertEventRepo {
 	return &alertEventRepo{newBase(d, logger)}
 }
 
-func NewNotificationRepo(d *Data, logger log.Logger) repository.NotificationRepo {
+func NewAlertPageRepo(d *Data, logger *slog.Logger) repository.AlertPageRepo {
+	return &alertPageRepo{newBase(d, logger)}
+}
+
+func NewNotificationRepo(d *Data, logger *slog.Logger) repository.NotificationRepo {
 	return &notificationRepo{newBase(d, logger)}
 }
 
-func NewAgentRepo(d *Data, logger log.Logger) repository.AgentRepo {
+func NewAgentRepo(d *Data, logger *slog.Logger) repository.AgentRepo {
 	return &agentRepo{newBase(d, logger)}
 }
 
-func NewSSHCommandRepo(d *Data, logger log.Logger) repository.SSHCommandRepo {
+func NewSSHCommandRepo(d *Data, logger *slog.Logger) repository.SSHCommandRepo {
 	return &sshCommandRepo{newBase(d, logger)}
 }

@@ -50,7 +50,9 @@ proto 的 service、rpc、message 和字段都写中文注释。
 
 业务表只出现在 `app/alioth` 的 ent schema。迁移只由 `alioth` 执行。`megrez`、`merak`、`alkaid` 不连接业务库，也不执行迁移。
 
-Go 1.25+，Kratos v2，Cobra，Wire，protobuf，`buf.validate`，`google.api.http`。ORM 使用 ent，数据库使用 PostgreSQL。
+Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.http`。ORM 使用 ent，数据库使用 PostgreSQL。
+
+日志使用标准库 `log/slog`（经 Kratos v3 `log.NewLogger` / `log.NewHandler` 构造），禁止再使用 Kratos v2 的 `log.Logger` / `log.Helper`。手写代码与生成代码的 import 与生成器均使用 `github.com/go-kratos/kratos/v3`（含 `protoc-gen-go-http/v3`）。HTTP JSON 在迁移期 blank-import `github.com/go-kratos/kratos/contrib/encoding/json/v3`，以保持与 Web 现有契约；不要同时注册 core `json` 与该兼容 codec。SSE、`config.Get[T]`、自定义 ValidatorFunc 等 v3 可选能力按需采用，不是默认交付。
 
 ## 端口与入口
 
@@ -114,7 +116,7 @@ Redis 只保存锁。业务状态、告警去重、发送任务都在 PostgreSQL
 | 键 | 持有者 | TTL | 续期 |
 | --- | --- | --- | --- |
 | `alioth:lock:schedule:{name}` | `alioth` | 15 秒 | 不续期 |
-| `alioth:lock:eval:{rule_uid}` | `megrez` | 30 秒 | 每 10 秒 |
+| `alioth:lock:eval:{rule_uid}:{datasource_uid}` | `megrez` | 30 秒 | 每 10 秒 |
 | `alioth:lock:notify:{task_uid}` | `merak` | 60 秒 | 每 20 秒 |
 
 协议：
@@ -125,7 +127,7 @@ Redis 只保存锁。业务状态、告警去重、发送任务都在 PostgreSQL
 4. Redis 不可用时拒绝评测和投递。
 5. 锁客户端只编译进 `alioth`、`megrez`、`merak`。
 
-PostgreSQL 用唯一约束挡住锁失效窗口内的重复写入，例如评测批次 `(rule_uid, eval_slot)`、当前 FIRING 的 `(namespace_uid, fingerprint)`、同一事件的一次投递。这是数据约束，不是互斥手段。
+PostgreSQL 用唯一约束挡住锁失效窗口内的重复写入，例如评测批次 `(rule_uid, datasource_uid, eval_slot)`、当前 FIRING 的 `(namespace_uid, fingerprint)`、同一事件的一次投递。这是数据约束，不是互斥手段。
 
 ## 敏感数据
 

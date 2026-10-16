@@ -59,6 +59,11 @@ func RuleUID(v string) predicate.AlertEvalBatch {
 	return predicate.AlertEvalBatch(sql.FieldEQ(FieldRuleUID, v))
 }
 
+// DatasourceUID applies equality check predicate on the "datasource_uid" field. It's identical to DatasourceUIDEQ.
+func DatasourceUID(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldEQ(FieldDatasourceUID, v))
+}
+
 // EvalSlot applies equality check predicate on the "eval_slot" field. It's identical to EvalSlotEQ.
 func EvalSlot(v time.Time) predicate.AlertEvalBatch {
 	return predicate.AlertEvalBatch(sql.FieldEQ(FieldEvalSlot, v))
@@ -127,6 +132,71 @@ func RuleUIDEqualFold(v string) predicate.AlertEvalBatch {
 // RuleUIDContainsFold applies the ContainsFold predicate on the "rule_uid" field.
 func RuleUIDContainsFold(v string) predicate.AlertEvalBatch {
 	return predicate.AlertEvalBatch(sql.FieldContainsFold(FieldRuleUID, v))
+}
+
+// DatasourceUIDEQ applies the EQ predicate on the "datasource_uid" field.
+func DatasourceUIDEQ(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldEQ(FieldDatasourceUID, v))
+}
+
+// DatasourceUIDNEQ applies the NEQ predicate on the "datasource_uid" field.
+func DatasourceUIDNEQ(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldNEQ(FieldDatasourceUID, v))
+}
+
+// DatasourceUIDIn applies the In predicate on the "datasource_uid" field.
+func DatasourceUIDIn(vs ...string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldIn(FieldDatasourceUID, vs...))
+}
+
+// DatasourceUIDNotIn applies the NotIn predicate on the "datasource_uid" field.
+func DatasourceUIDNotIn(vs ...string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldNotIn(FieldDatasourceUID, vs...))
+}
+
+// DatasourceUIDGT applies the GT predicate on the "datasource_uid" field.
+func DatasourceUIDGT(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldGT(FieldDatasourceUID, v))
+}
+
+// DatasourceUIDGTE applies the GTE predicate on the "datasource_uid" field.
+func DatasourceUIDGTE(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldGTE(FieldDatasourceUID, v))
+}
+
+// DatasourceUIDLT applies the LT predicate on the "datasource_uid" field.
+func DatasourceUIDLT(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldLT(FieldDatasourceUID, v))
+}
+
+// DatasourceUIDLTE applies the LTE predicate on the "datasource_uid" field.
+func DatasourceUIDLTE(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldLTE(FieldDatasourceUID, v))
+}
+
+// DatasourceUIDContains applies the Contains predicate on the "datasource_uid" field.
+func DatasourceUIDContains(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldContains(FieldDatasourceUID, v))
+}
+
+// DatasourceUIDHasPrefix applies the HasPrefix predicate on the "datasource_uid" field.
+func DatasourceUIDHasPrefix(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldHasPrefix(FieldDatasourceUID, v))
+}
+
+// DatasourceUIDHasSuffix applies the HasSuffix predicate on the "datasource_uid" field.
+func DatasourceUIDHasSuffix(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldHasSuffix(FieldDatasourceUID, v))
+}
+
+// DatasourceUIDEqualFold applies the EqualFold predicate on the "datasource_uid" field.
+func DatasourceUIDEqualFold(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldEqualFold(FieldDatasourceUID, v))
+}
+
+// DatasourceUIDContainsFold applies the ContainsFold predicate on the "datasource_uid" field.
+func DatasourceUIDContainsFold(v string) predicate.AlertEvalBatch {
+	return predicate.AlertEvalBatch(sql.FieldContainsFold(FieldDatasourceUID, v))
 }
 
 // EvalSlotEQ applies the EQ predicate on the "eval_slot" field.

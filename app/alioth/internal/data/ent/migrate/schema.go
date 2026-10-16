@@ -68,6 +68,7 @@ var (
 	AlertEvalBatchesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "rule_uid", Type: field.TypeString},
+		{Name: "datasource_uid", Type: field.TypeString},
 		{Name: "eval_slot", Type: field.TypeTime},
 	}
 	// AlertEvalBatchesTable holds the schema information for the "alert_eval_batches" table.
@@ -77,9 +78,9 @@ var (
 		PrimaryKey: []*schema.Column{AlertEvalBatchesColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "alertevalbatch_rule_uid_eval_slot",
+				Name:    "alertevalbatch_rule_uid_datasource_uid_eval_slot",
 				Unique:  true,
-				Columns: []*schema.Column{AlertEvalBatchesColumns[1], AlertEvalBatchesColumns[2]},
+				Columns: []*schema.Column{AlertEvalBatchesColumns[1], AlertEvalBatchesColumns[2], AlertEvalBatchesColumns[3]},
 			},
 		},
 	}
@@ -204,6 +205,51 @@ var (
 			},
 		},
 	}
+	// AlertPagesColumns holds the columns for the "alert_pages" table.
+	AlertPagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "owner_uid", Type: field.TypeString},
+		{Name: "labels", Type: field.TypeString, Default: "{}"},
+		{Name: "public", Type: field.TypeBool, Default: false},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+	}
+	// AlertPagesTable holds the schema information for the "alert_pages" table.
+	AlertPagesTable = &schema.Table{
+		Name:       "alert_pages",
+		Columns:    AlertPagesColumns,
+		PrimaryKey: []*schema.Column{AlertPagesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alertpage_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertPagesColumns[4]},
+			},
+			{
+				Name:    "alertpage_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{AlertPagesColumns[5], AlertPagesColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "alertpage_namespace_uid_owner_uid",
+				Unique:  false,
+				Columns: []*schema.Column{AlertPagesColumns[5], AlertPagesColumns[7]},
+			},
+			{
+				Name:    "alertpage_namespace_uid_public",
+				Unique:  false,
+				Columns: []*schema.Column{AlertPagesColumns[5], AlertPagesColumns[9]},
+			},
+		},
+	}
 	// AlertRulesColumns holds the columns for the "alert_rules" table.
 	AlertRulesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -220,6 +266,7 @@ var (
 		{Name: "expr", Type: field.TypeString, Default: ""},
 		{Name: "labels", Type: field.TypeString, Default: ""},
 		{Name: "datasource_uid", Type: field.TypeString, Default: ""},
+		{Name: "datasource_labels", Type: field.TypeString, Default: "{}"},
 		{Name: "summary", Type: field.TypeString, Default: ""},
 		{Name: "description", Type: field.TypeString, Default: ""},
 		{Name: "next_eval_at", Type: field.TypeTime, Nullable: true},
@@ -408,6 +455,7 @@ var (
 		{Name: "secret_cipher", Type: field.TypeString, Default: ""},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
 		{Name: "level_uid", Type: field.TypeString, Default: ""},
+		{Name: "labels", Type: field.TypeString, Default: "{}"},
 		{Name: "remark", Type: field.TypeString, Default: ""},
 	}
 	// DatasourcesTable holds the schema information for the "datasources" table.
@@ -1069,6 +1117,39 @@ var (
 			},
 		},
 	}
+	// UserAlertPagesColumns holds the columns for the "user_alert_pages" table.
+	UserAlertPagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "user_uid", Type: field.TypeString},
+		{Name: "alert_page_uid", Type: field.TypeString},
+	}
+	// UserAlertPagesTable holds the schema information for the "user_alert_pages" table.
+	UserAlertPagesTable = &schema.Table{
+		Name:       "user_alert_pages",
+		Columns:    UserAlertPagesColumns,
+		PrimaryKey: []*schema.Column{UserAlertPagesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "useralertpage_uid",
+				Unique:  true,
+				Columns: []*schema.Column{UserAlertPagesColumns[3]},
+			},
+			{
+				Name:    "useralertpage_namespace_uid_user_uid_alert_page_uid",
+				Unique:  true,
+				Columns: []*schema.Column{UserAlertPagesColumns[4], UserAlertPagesColumns[5], UserAlertPagesColumns[6]},
+			},
+			{
+				Name:    "useralertpage_namespace_uid_user_uid",
+				Unique:  false,
+				Columns: []*schema.Column{UserAlertPagesColumns[4], UserAlertPagesColumns[5]},
+			},
+		},
+	}
 	// UserOauthsColumns holds the columns for the "user_oauths" table.
 	UserOauthsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1105,6 +1186,7 @@ var (
 		AlertEventsTable,
 		AlertEventFiringsTable,
 		AlertLevelsTable,
+		AlertPagesTable,
 		AlertRulesTable,
 		AlertRuleGroupsTable,
 		AlertRuleLevelsTable,
@@ -1128,6 +1210,7 @@ var (
 		SSHCommandsTable,
 		SSHCommandAuditsTable,
 		UsersTable,
+		UserAlertPagesTable,
 		UserOauthsTable,
 	}
 )

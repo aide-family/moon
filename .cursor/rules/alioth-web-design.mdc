@@ -7,6 +7,6 @@ alwaysApply: true
 
 改 `web/` 的布局、间距、壳、页面或组件外观时，先读 [.cursor/skills/alioth-web-design/SKILL.md](../skills/alioth-web-design/SKILL.md)，再读 [revisions.md](../skills/alioth-web-design/revisions.md)。修订记录优先。
 
-- 沿用 `radix-nova`、`neutral`、Geist、lucide。不引入 `antd`，不另写配色或字号。
+- 视觉体系：主色 `#1677ff`、Inter / IBM Plex / JetBrains、渐变与 `.glass-card`；组件栈为 radix-nova + shadcn + lucide。不引入 `antd`。
 - 用户指出样式问题并确认改法后，当次任务结束前把可复用的结论写入 `revisions.md`（日期、适用范围、必须遵守的布局或类）。只属于当次页面、不能推广的改动不写入。
-- 每次做界面都遵守修订记录：第一级只放功能领域子菜单；对话框高度不超过 `80vh`，字段多就分步；列表总数在左上、翻页在右上，表头固定，表体占剩余高度滚动，没有数据不显示翻页。
+- 每次做界面都遵守修订记录：第一级只放功能领域子菜单；对话框高度不超过 `80vh`，多字段用 `sm:max-w-2xl` 与最多 4 列栅格，字段很多就分步；每个输入/选择都有 placeholder，提交前按后端必填做前端校验；登录/注册底部互跳；列表总数在左上、翻页在右上，表头固定，表体占剩余高度滚动，没有数据不显示翻页。

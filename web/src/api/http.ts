@@ -44,15 +44,23 @@ export async function send<T>(path: string, init: RequestInit = {}): Promise<T> 
   return data as T
 }
 
-export function get<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
+export function get<T>(
+  path: string,
+  params?: Record<string, string | number | boolean | undefined>,
+  init?: RequestInit,
+): Promise<T> {
   const query = new URLSearchParams()
   for (const [key, value] of Object.entries(params ?? {})) {
-    if (value !== undefined && value !== "") {
-      query.set(key, String(value))
+    if (value === undefined || value === "") {
+      continue
     }
+    if (value === false) {
+      continue
+    }
+    query.set(key, String(value))
   }
   const suffix = query.size > 0 ? `?${query.toString()}` : ""
-  return send<T>(`${path}${suffix}`)
+  return send<T>(`${path}${suffix}`, init)
 }
 
 export function post<T>(path: string, body?: unknown): Promise<T> {

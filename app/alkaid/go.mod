@@ -5,8 +5,10 @@ go 1.26.0
 require (
 	github.com/aide-family/Alioth/api v0.0.0-00010101000000-000000000000
 	github.com/aide-family/Alioth/pkg v0.0.0
-	github.com/go-kratos/kratos/v2 v2.9.2
+	github.com/go-kratos/kratos/contrib/encoding/json/v3 v3.0.0-20260626125723-668db92c2c00
+	github.com/go-kratos/kratos/v3 v3.0.0
 	github.com/google/wire v0.7.0
+	github.com/pkg/sftp v1.13.11
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/crypto v0.54.0
 	google.golang.org/grpc v1.84.0
@@ -15,14 +17,12 @@ require (
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-20260825204119-511051f7f437.2 // indirect
-	dario.cat/mergo v1.0.0 // indirect
-	github.com/go-kratos/aegis v0.2.0 // indirect
-	github.com/go-playground/form/v4 v4.2.0 // indirect
+	github.com/go-playground/form/v4 v4.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kr/fs v0.1.0 // indirect
-	github.com/pkg/sftp v1.13.11 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
 	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect

@@ -3,9 +3,10 @@ package notify
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log/slog"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 
 	"github.com/aide-family/Alioth/app/merak/internal/conf"
@@ -27,17 +28,17 @@ type Worker struct {
 	gateway repository.NotifyGateway
 	locks   repository.Locker
 	timeout time.Duration
-	log     *log.Helper
+	log     *slog.Logger
 	cancel  context.CancelFunc
 	done    chan struct{}
 }
 
-func NewWorker(gateway repository.NotifyGateway, locks repository.Locker, notify *conf.Notify, logger log.Logger) *Worker {
+func NewWorker(gateway repository.NotifyGateway, locks repository.Locker, notify *conf.Notify, logger *slog.Logger) *Worker {
 	timeout := 30 * time.Second
 	if notify != nil && notify.GetTimeout() != nil {
 		timeout = notify.GetTimeout().AsDuration()
 	}
-	return &Worker{gateway: gateway, locks: locks, timeout: timeout, log: log.NewHelper(logger)}
+	return &Worker{gateway: gateway, locks: locks, timeout: timeout, log: logger}
 }
 
 func (w *Worker) Start(context.Context) error {
@@ -73,17 +74,17 @@ func (w *Worker) Stop(context.Context) error {
 
 func (w *Worker) once(ctx context.Context) {
 	if err := w.locks.Available(ctx); err != nil {
-		w.log.Errorf("notify redis: %v", err)
+		w.log.Error(fmt.Sprintf("notify redis: %v", err))
 		return
 	}
 	tasks, err := w.gateway.Claim(ctx)
 	if err != nil {
-		w.log.Errorf("claim: %v", err)
+		w.log.Error(fmt.Sprintf("claim: %v", err))
 		return
 	}
 	for _, task := range tasks {
 		if err := w.deliverOne(ctx, task); err != nil {
-			w.log.Errorf("deliver %s: %v", task.UID, err)
+			w.log.Error(fmt.Sprintf("deliver %s: %v", task.UID, err))
 		}
 	}
 }
@@ -128,7 +129,7 @@ func (w *Worker) finish(ctx context.Context, hold repository.Hold, task bo.TaskS
 	ok, detail := Deliver(deliverCtx, task)
 	select {
 	case err := <-renewFailed:
-		w.log.Errorf("renew %s: %v", task.UID, err)
+		w.log.Error(fmt.Sprintf("renew %s: %v", task.UID, err))
 		if ok {
 			return w.gateway.Report(context.Background(), bo.NotifyReport{TaskUID: task.UID, OK: false, Detail: "lock renew failed"})
 		}

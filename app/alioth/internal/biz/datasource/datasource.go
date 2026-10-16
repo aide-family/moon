@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/page"
 	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
+	labelsutil "github.com/aide-family/Alioth/pkg/labels"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -39,6 +40,11 @@ func (uc *Usecase) CreateDatasource(ctx context.Context, in bo.Datasource) (*bo.
 	if err := uc.requireDatasourceLevel(ctx, ns, in.LevelUID); err != nil {
 		return nil, err
 	}
+	labels, err := labelsutil.NormalizeObject(in.Labels)
+	if err != nil {
+		return nil, err
+	}
+	in.Labels = labels
 	in.NamespaceUID = ns
 	in.Name = strings.TrimSpace(in.Name)
 	item, err := uc.datasources.CreateDatasource(ctx, in)
@@ -56,6 +62,11 @@ func (uc *Usecase) UpdateDatasource(ctx context.Context, in bo.Datasource) (*bo.
 	if err := uc.requireDatasourceLevel(ctx, ns, in.LevelUID); err != nil {
 		return nil, err
 	}
+	labels, err := labelsutil.NormalizeObject(in.Labels)
+	if err != nil {
+		return nil, err
+	}
+	in.Labels = labels
 	in.NamespaceUID = ns
 	in.Name = strings.TrimSpace(in.Name)
 	item, err := uc.datasources.UpdateDatasource(ctx, in)

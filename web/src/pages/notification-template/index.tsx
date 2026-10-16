@@ -44,6 +44,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
+import { firstError, requireSelected, requireTrimmed } from "@/lib/form"
 import { useListQuery } from "@/lib/list-query"
 
 const types = ["EMAIL", "WEBHOOK", "SMS_ALICLOUD"]
@@ -138,10 +139,15 @@ export function NotificationTemplatePage() {
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
+    const invalid = firstError(requireTrimmed(name, t("form.required")), requireTrimmed(type, t("form.required")))
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
-      const payload = { name, type, subject, body, remark }
+      const payload = { name: name.trim(), type, subject, body, remark }
       if (editing) {
         await updateNotificationTemplate({ ...payload, uid: editing.uid })
       } else {
@@ -161,10 +167,15 @@ export function NotificationTemplatePage() {
     if (!testing) {
       return
     }
+    const invalid = firstError(requireSelected(channelUid, t("form.required")), requireTrimmed(receivers, t("form.required")))
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
-      await testNotificationTemplate(testing.uid, { channelUid, receivers })
+      await testNotificationTemplate(testing.uid, { channelUid, receivers: receivers.trim() })
       setTestOpen(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : t("state.failed"))
@@ -281,18 +292,18 @@ export function NotificationTemplatePage() {
         ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={onSave}>
+          <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
             <FormField label={t("template.name")} htmlFor="tpl-name">
-              <Input id="tpl-name" value={name} onChange={(event) => setName(event.target.value)} />
+              <Input id="tpl-name" value={name} placeholder={t("template.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
             <FormField label={t("template.type")}>
               <Select value={type} onValueChange={setType}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={t("template.typePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {types.map((item) => (
@@ -303,17 +314,17 @@ export function NotificationTemplatePage() {
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label={t("template.subject")} htmlFor="tpl-subject">
-              <Input id="tpl-subject" value={subject} onChange={(event) => setSubject(event.target.value)} />
+            <FormField label={t("template.subject")} htmlFor="tpl-subject" className="sm:col-span-full">
+              <Input id="tpl-subject" value={subject} placeholder={t("template.subjectPlaceholder")} onChange={(event) => setSubject(event.target.value)} />
             </FormField>
-            <FormField label={t("template.body")} htmlFor="tpl-body">
-              <Textarea id="tpl-body" value={body} onChange={(event) => setBody(event.target.value)} />
+            <FormField label={t("template.body")} htmlFor="tpl-body" className="sm:col-span-full">
+              <Textarea id="tpl-body" value={body} placeholder={t("template.bodyPlaceholder")} onChange={(event) => setBody(event.target.value)} />
             </FormField>
-            <FormField label={t("template.remark")} htmlFor="tpl-remark">
-              <Input id="tpl-remark" value={remark} onChange={(event) => setRemark(event.target.value)} />
+            <FormField label={t("template.remark")} htmlFor="tpl-remark" className="sm:col-span-full">
+              <Input id="tpl-remark" value={remark} placeholder={t("template.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
             </FormField>
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <DialogFooter>
+            {error ? <p className="sm:col-span-full text-sm text-destructive">{error}</p> : null}
+            <DialogFooter className="sm:col-span-full">
               <Button type="submit" disabled={pending}>
                 {t("action.save")}
               </Button>
@@ -330,10 +341,10 @@ export function NotificationTemplatePage() {
             <FormField label={t("template.channel")}>
               <Select value={channelUid || "NONE"} onValueChange={(value) => setChannelUid(value === "NONE" ? "" : value)}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={t("template.channelPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectOption value="NONE">{t("template.channel")}</SelectOption>
+                  <SelectOption value="NONE">{t("template.channelPlaceholder")}</SelectOption>
                   {channels.map((item) => (
                     <SelectOption key={item.uid} value={item.uid}>
                       {item.name}
@@ -343,7 +354,7 @@ export function NotificationTemplatePage() {
               </Select>
             </FormField>
             <FormField label={t("channel.testReceivers")} htmlFor="tpl-receivers">
-              <Input id="tpl-receivers" value={receivers} onChange={(event) => setReceivers(event.target.value)} />
+              <Input id="tpl-receivers" value={receivers} placeholder={t("template.receiversPlaceholder")} onChange={(event) => setReceivers(event.target.value)} required />
             </FormField>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>

@@ -46,6 +46,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
+import { firstError, requireSelected, requireTrimmed } from "@/lib/form"
 import { useListQuery } from "@/lib/list-query"
 
 export function SSHCommandPage() {
@@ -161,10 +162,15 @@ export function SSHCommandPage() {
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
+    const invalid = firstError(requireTrimmed(name, t("form.required")), requireTrimmed(command, t("form.required")))
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
-      const body = { name, command, workdir, env, remark }
+      const body = { name: name.trim(), command: command.trim(), workdir, env, remark }
       if (editing) {
         await updateSSHCommand({ ...body, uid: editing.uid })
       } else {
@@ -181,7 +187,12 @@ export function SSHCommandPage() {
 
   async function onExecute(event: React.FormEvent) {
     event.preventDefault()
-    if (!executing || !agentUid) {
+    if (!executing) {
+      return
+    }
+    const invalid = requireSelected(agentUid, t("form.required"))
+    if (invalid) {
+      setError(invalid)
       return
     }
     setPending(true)
@@ -292,28 +303,28 @@ export function SSHCommandPage() {
         ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={onSave}>
+          <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
             <FormField label={t("ssh.name")} htmlFor="ssh-name">
-              <Input id="ssh-name" value={name} onChange={(event) => setName(event.target.value)} required />
-            </FormField>
-            <FormField label={t("ssh.command")} htmlFor="ssh-command">
-              <Textarea id="ssh-command" value={command} onChange={(event) => setCommand(event.target.value)} required />
+              <Input id="ssh-name" value={name} placeholder={t("ssh.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
             <FormField label={t("ssh.workdir")} htmlFor="ssh-workdir">
-              <Input id="ssh-workdir" value={workdir} onChange={(event) => setWorkdir(event.target.value)} />
+              <Input id="ssh-workdir" value={workdir} placeholder={t("ssh.workdirPlaceholder")} onChange={(event) => setWorkdir(event.target.value)} />
             </FormField>
-            <FormField label={t("ssh.env")} htmlFor="ssh-env">
-              <Textarea id="ssh-env" value={env} onChange={(event) => setEnv(event.target.value)} placeholder='{"FOO":"bar"}' />
+            <FormField label={t("ssh.command")} htmlFor="ssh-command" className="sm:col-span-full">
+              <Textarea id="ssh-command" value={command} placeholder={t("ssh.commandPlaceholder")} onChange={(event) => setCommand(event.target.value)} required />
             </FormField>
-            <FormField label={t("ssh.remark")} htmlFor="ssh-remark">
-              <Textarea id="ssh-remark" value={remark} onChange={(event) => setRemark(event.target.value)} />
+            <FormField label={t("ssh.env")} htmlFor="ssh-env" className="sm:col-span-full">
+              <Textarea id="ssh-env" value={env} onChange={(event) => setEnv(event.target.value)} placeholder={t("ssh.envPlaceholder")} />
             </FormField>
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <DialogFooter>
+            <FormField label={t("ssh.remark")} htmlFor="ssh-remark" className="sm:col-span-full">
+              <Textarea id="ssh-remark" value={remark} placeholder={t("ssh.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
+            </FormField>
+            {error ? <p className="sm:col-span-full text-sm text-destructive">{error}</p> : null}
+            <DialogFooter className="sm:col-span-full">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 {t("action.cancel")}
               </Button>

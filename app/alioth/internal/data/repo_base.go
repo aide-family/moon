@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
@@ -19,7 +20,7 @@ func (r *repoBase) fail(err error) error {
 	if ent.IsConstraintError(err) {
 		return merr.Conflict("name already exists")
 	}
-	r.log.Errorf("database: %v", err)
+	r.log.Error(fmt.Sprintf("database: %v", err))
 	return merr.Server("request failed")
 }
 

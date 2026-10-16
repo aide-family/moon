@@ -42,6 +42,8 @@ const (
 	FieldStatus = "status"
 	// FieldLevelUID holds the string denoting the level_uid field in the database.
 	FieldLevelUID = "level_uid"
+	// FieldLabels holds the string denoting the labels field in the database.
+	FieldLabels = "labels"
 	// FieldRemark holds the string denoting the remark field in the database.
 	FieldRemark = "remark"
 	// Table holds the table name of the datasource in the database.
@@ -65,6 +67,7 @@ var Columns = []string{
 	FieldSecretCipher,
 	FieldStatus,
 	FieldLevelUID,
+	FieldLabels,
 	FieldRemark,
 }
 
@@ -101,6 +104,8 @@ var (
 	DefaultSecretCipher string
 	// DefaultLevelUID holds the default value on creation for the "level_uid" field.
 	DefaultLevelUID string
+	// DefaultLabels holds the default value on creation for the "labels" field.
+	DefaultLabels string
 	// DefaultRemark holds the default value on creation for the "remark" field.
 	DefaultRemark string
 )
@@ -256,6 +261,11 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByLevelUID orders the results by the level_uid field.
 func ByLevelUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLevelUID, opts...).ToFunc()
+}
+
+// ByLabels orders the results by the labels field.
+func ByLabels(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLabels, opts...).ToFunc()
 }
 
 // ByRemark orders the results by the remark field.

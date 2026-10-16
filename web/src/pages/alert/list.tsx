@@ -31,11 +31,14 @@ import { useListQuery } from "@/lib/list-query"
 
 interface AlertEventListProps {
   view: AlertEventView
+  mine?: boolean
+  pageUid?: string
+  hideHeader?: boolean
 }
 
 type ConfirmKind = "suppress" | "recover" | "batch-recover"
 
-export function AlertEventList({ view }: AlertEventListProps) {
+export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = false }: AlertEventListProps) {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
@@ -70,6 +73,8 @@ export function AlertEventList({ view }: AlertEventListProps) {
           pageSize: query.pageSize,
           name: query.name,
           view,
+          mine: mine || undefined,
+          pageUid: pageUid || undefined,
         })
         const counts = await alertEventStats()
         if (!active) {
@@ -94,7 +99,7 @@ export function AlertEventList({ view }: AlertEventListProps) {
     return () => {
       active = false
     }
-  }, [query.page, query.pageSize, query.name, view, attempt, session.namespaceUid])
+  }, [query.page, query.pageSize, query.name, view, mine, pageUid, attempt, session.namespaceUid])
 
   async function intervene(uids: string[]) {
     setPending(true)
@@ -155,6 +160,7 @@ export function AlertEventList({ view }: AlertEventListProps) {
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
+      {hideHeader ? null : (
       <PageHeader title={title} description={view === "HISTORY" ? t("alertEvent.historyDescription") : t("alertEvent.description")}>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <span className="text-sm text-muted-foreground">
@@ -172,6 +178,18 @@ export function AlertEventList({ view }: AlertEventListProps) {
           ) : null}
         </div>
       </PageHeader>
+      )}
+      {hideHeader && canIntervene ? (
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <span className="text-sm text-muted-foreground">{t("alertEvent.stats", stats)}</span>
+          <Button variant="outline" disabled={pending || selected.length === 0} onClick={() => void intervene(selected)}>
+            {t("alertEvent.batchIntervene")}
+          </Button>
+          <Button variant="outline" disabled={pending || selected.length === 0} onClick={() => setConfirm({ kind: "batch-recover", uids: selected })}>
+            {t("alertEvent.batchRecover")}
+          </Button>
+        </div>
+      ) : null}
       <form
         className="flex flex-wrap gap-2"
         onSubmit={(event) => {

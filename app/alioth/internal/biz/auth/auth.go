@@ -5,21 +5,22 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
+	"log/slog"
 	"net"
 	"net/smtp"
 	"strconv"
 	"strings"
 	"time"
 
-	kerrors "github.com/go-kratos/kratos/v2/errors"
-	"github.com/go-kratos/kratos/v2/log"
+	kerrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/wire"
 	"golang.org/x/crypto/bcrypt"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	merakv1 "github.com/aide-family/Alioth/api/merak/v1"
 	megrezv1 "github.com/aide-family/Alioth/api/megrez/v1"
+	merakv1 "github.com/aide-family/Alioth/api/merak/v1"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
 	"github.com/aide-family/Alioth/app/alioth/pkg/actor"
@@ -61,10 +62,10 @@ type Usecase struct {
 	serviceKeys  map[string]string
 	smtp         smtpConfig
 	oauthClients map[string]oauthClient
-	log          *log.Helper
+	log          *slog.Logger
 }
 
-func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emailCodes repository.EmailCodeRepo, oauth repository.OAuthRepo, agents AgentTokenLookup, auth *conf.Auth, logger log.Logger) (*Usecase, error) {
+func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emailCodes repository.EmailCodeRepo, oauth repository.OAuthRepo, agents AgentTokenLookup, auth *conf.Auth, logger *slog.Logger) (*Usecase, error) {
 	if auth == nil || auth.GetJwtSecret() == "" {
 		return nil, merr.Server("jwt secret is empty")
 	}
@@ -108,7 +109,7 @@ func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emai
 		serviceKeys:  keys,
 		smtp:         mail,
 		oauthClients: clients,
-		log:          log.NewHelper(logger),
+		log:          logger,
 	}, nil
 }
 
@@ -198,7 +199,7 @@ func (uc *Usecase) GetCaptcha(ctx context.Context) (string, string, error) {
 	}
 	image, err := drawCaptcha(code)
 	if err != nil {
-		uc.log.Errorf("draw captcha: %v", err)
+		uc.log.Error(fmt.Sprintf("draw captcha: %v", err))
 		return "", "", merr.Server("request failed")
 	}
 	captchaID := id.New()
@@ -403,7 +404,7 @@ func (uc *Usecase) sign(uid, kind string, ttl time.Duration) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signed, err := token.SignedString([]byte(uc.secret))
 	if err != nil {
-		uc.log.Errorf("jwt: %v", err)
+		uc.log.Error(fmt.Sprintf("jwt: %v", err))
 		return "", merr.Server("request failed")
 	}
 	return signed, nil
@@ -447,7 +448,7 @@ func (uc *Usecase) sendMail(to, code string) error {
 		auth = smtp.PlainAuth("", uc.smtp.username, uc.smtp.password, uc.smtp.host)
 	}
 	if err := smtp.SendMail(addr, auth, uc.smtp.from, []string{to}, []byte(message)); err != nil {
-		uc.log.Errorf("smtp: %v", err)
+		uc.log.Error(fmt.Sprintf("smtp: %v", err))
 		return merr.Server("failed to send email")
 	}
 	return nil
@@ -460,7 +461,7 @@ func (uc *Usecase) wrap(err error) error {
 	if kerrors.Reason(err) != "" {
 		return err
 	}
-	uc.log.Errorf("identity: %v", err)
+	uc.log.Error(fmt.Sprintf("identity: %v", err))
 	return merr.Server("request failed")
 }
 

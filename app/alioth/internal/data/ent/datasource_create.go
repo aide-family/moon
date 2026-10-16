@@ -168,6 +168,20 @@ func (_c *DatasourceCreate) SetNillableLevelUID(v *string) *DatasourceCreate {
 	return _c
 }
 
+// SetLabels sets the "labels" field.
+func (_c *DatasourceCreate) SetLabels(v string) *DatasourceCreate {
+	_c.mutation.SetLabels(v)
+	return _c
+}
+
+// SetNillableLabels sets the "labels" field if the given value is not nil.
+func (_c *DatasourceCreate) SetNillableLabels(v *string) *DatasourceCreate {
+	if v != nil {
+		_c.SetLabels(*v)
+	}
+	return _c
+}
+
 // SetRemark sets the "remark" field.
 func (_c *DatasourceCreate) SetRemark(v string) *DatasourceCreate {
 	_c.mutation.SetRemark(v)
@@ -244,6 +258,10 @@ func (_c *DatasourceCreate) defaults() {
 	if _, ok := _c.mutation.LevelUID(); !ok {
 		v := datasource.DefaultLevelUID
 		_c.mutation.SetLevelUID(v)
+	}
+	if _, ok := _c.mutation.Labels(); !ok {
+		v := datasource.DefaultLabels
+		_c.mutation.SetLabels(v)
 	}
 	if _, ok := _c.mutation.Remark(); !ok {
 		v := datasource.DefaultRemark
@@ -326,6 +344,9 @@ func (_c *DatasourceCreate) check() error {
 	}
 	if _, ok := _c.mutation.LevelUID(); !ok {
 		return &ValidationError{Name: "level_uid", err: errors.New(`ent: missing required field "Datasource.level_uid"`)}
+	}
+	if _, ok := _c.mutation.Labels(); !ok {
+		return &ValidationError{Name: "labels", err: errors.New(`ent: missing required field "Datasource.labels"`)}
 	}
 	if _, ok := _c.mutation.Remark(); !ok {
 		return &ValidationError{Name: "remark", err: errors.New(`ent: missing required field "Datasource.remark"`)}
@@ -411,6 +432,10 @@ func (_c *DatasourceCreate) createSpec() (*Datasource, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.LevelUID(); ok {
 		_spec.SetField(datasource.FieldLevelUID, field.TypeString, value)
 		_node.LevelUID = value
+	}
+	if value, ok := _c.mutation.Labels(); ok {
+		_spec.SetField(datasource.FieldLabels, field.TypeString, value)
+		_node.Labels = value
 	}
 	if value, ok := _c.mutation.Remark(); ok {
 		_spec.SetField(datasource.FieldRemark, field.TypeString, value)

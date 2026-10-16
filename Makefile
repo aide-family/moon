@@ -5,11 +5,27 @@ GOBIN := $(shell $(GO) env GOPATH)/bin
 export PATH := $(GOBIN):$(PATH)
 PROTO_INC ?= /opt/homebrew/include
 
-.PHONY: api conf build build-alioth build-megrez build-merak build-alkaid build-web \
+.PHONY: tools api conf build build-alioth build-megrez build-merak build-alkaid build-web \
 	run-alioth run-megrez run-merak run-alkaid run-web \
 	test test-pkg migrate compose-up compose-down tidy wire
 
-api:
+# Kratos v3 CLI and HTTP/error generators. Pin a known-good pseudo-version so PATH
+# does not keep a v2 protoc-gen-go-http. CLI install uses module cache + go build
+# because go install @latest fails when the module has no tagged release yet.
+KRATOS_CMD_VER ?= v3.0.0-20260626125723-668db92c2c00
+
+tools:
+	$(GO) install github.com/go-kratos/kratos/cmd/protoc-gen-go-http/v3@$(KRATOS_CMD_VER)
+	$(GO) install github.com/go-kratos/kratos/cmd/protoc-gen-go-errors/v3@$(KRATOS_CMD_VER)
+	$(GO) mod download github.com/go-kratos/kratos/cmd/kratos/v3@$(KRATOS_CMD_VER)
+	@mod="$$($(GO) env GOMODCACHE)/github.com/go-kratos/kratos/cmd/kratos/v3@$(KRATOS_CMD_VER)"; \
+	tmpdir=$$(mktemp -d); \
+	cp -R "$$mod" "$$tmpdir/kratos"; \
+	chmod -R u+w "$$tmpdir/kratos"; \
+	$(GO) build -C "$$tmpdir/kratos" -o $(GOBIN)/kratos .; \
+	rm -rf "$$tmpdir"
+
+api: tools
 	cd $(ROOT) && buf dep update && buf generate
 
 conf:

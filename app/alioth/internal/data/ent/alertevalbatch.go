@@ -19,6 +19,8 @@ type AlertEvalBatch struct {
 	ID int `json:"id,omitempty"`
 	// RuleUID holds the value of the "rule_uid" field.
 	RuleUID string `json:"rule_uid,omitempty"`
+	// DatasourceUID holds the value of the "datasource_uid" field.
+	DatasourceUID string `json:"datasource_uid,omitempty"`
 	// EvalSlot holds the value of the "eval_slot" field.
 	EvalSlot     time.Time `json:"eval_slot,omitempty"`
 	selectValues sql.SelectValues
@@ -31,7 +33,7 @@ func (*AlertEvalBatch) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case alertevalbatch.FieldID:
 			values[i] = new(sql.NullInt64)
-		case alertevalbatch.FieldRuleUID:
+		case alertevalbatch.FieldRuleUID, alertevalbatch.FieldDatasourceUID:
 			values[i] = new(sql.NullString)
 		case alertevalbatch.FieldEvalSlot:
 			values[i] = new(sql.NullTime)
@@ -61,6 +63,12 @@ func (_m *AlertEvalBatch) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field rule_uid", values[i])
 			} else if value.Valid {
 				_m.RuleUID = value.String
+			}
+		case alertevalbatch.FieldDatasourceUID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field datasource_uid", values[i])
+			} else if value.Valid {
+				_m.DatasourceUID = value.String
 			}
 		case alertevalbatch.FieldEvalSlot:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -106,6 +114,9 @@ func (_m *AlertEvalBatch) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("rule_uid=")
 	builder.WriteString(_m.RuleUID)
+	builder.WriteString(", ")
+	builder.WriteString("datasource_uid=")
+	builder.WriteString(_m.DatasourceUID)
 	builder.WriteString(", ")
 	builder.WriteString("eval_slot=")
 	builder.WriteString(_m.EvalSlot.Format(time.ANSIC))

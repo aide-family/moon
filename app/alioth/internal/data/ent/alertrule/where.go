@@ -104,6 +104,11 @@ func DatasourceUID(v string) predicate.AlertRule {
 	return predicate.AlertRule(sql.FieldEQ(FieldDatasourceUID, v))
 }
 
+// DatasourceLabels applies equality check predicate on the "datasource_labels" field. It's identical to DatasourceLabelsEQ.
+func DatasourceLabels(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldEQ(FieldDatasourceLabels, v))
+}
+
 // Summary applies equality check predicate on the "summary" field. It's identical to SummaryEQ.
 func Summary(v string) predicate.AlertRule {
 	return predicate.AlertRule(sql.FieldEQ(FieldSummary, v))
@@ -767,6 +772,71 @@ func DatasourceUIDEqualFold(v string) predicate.AlertRule {
 // DatasourceUIDContainsFold applies the ContainsFold predicate on the "datasource_uid" field.
 func DatasourceUIDContainsFold(v string) predicate.AlertRule {
 	return predicate.AlertRule(sql.FieldContainsFold(FieldDatasourceUID, v))
+}
+
+// DatasourceLabelsEQ applies the EQ predicate on the "datasource_labels" field.
+func DatasourceLabelsEQ(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldEQ(FieldDatasourceLabels, v))
+}
+
+// DatasourceLabelsNEQ applies the NEQ predicate on the "datasource_labels" field.
+func DatasourceLabelsNEQ(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldNEQ(FieldDatasourceLabels, v))
+}
+
+// DatasourceLabelsIn applies the In predicate on the "datasource_labels" field.
+func DatasourceLabelsIn(vs ...string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldIn(FieldDatasourceLabels, vs...))
+}
+
+// DatasourceLabelsNotIn applies the NotIn predicate on the "datasource_labels" field.
+func DatasourceLabelsNotIn(vs ...string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldNotIn(FieldDatasourceLabels, vs...))
+}
+
+// DatasourceLabelsGT applies the GT predicate on the "datasource_labels" field.
+func DatasourceLabelsGT(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldGT(FieldDatasourceLabels, v))
+}
+
+// DatasourceLabelsGTE applies the GTE predicate on the "datasource_labels" field.
+func DatasourceLabelsGTE(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldGTE(FieldDatasourceLabels, v))
+}
+
+// DatasourceLabelsLT applies the LT predicate on the "datasource_labels" field.
+func DatasourceLabelsLT(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldLT(FieldDatasourceLabels, v))
+}
+
+// DatasourceLabelsLTE applies the LTE predicate on the "datasource_labels" field.
+func DatasourceLabelsLTE(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldLTE(FieldDatasourceLabels, v))
+}
+
+// DatasourceLabelsContains applies the Contains predicate on the "datasource_labels" field.
+func DatasourceLabelsContains(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldContains(FieldDatasourceLabels, v))
+}
+
+// DatasourceLabelsHasPrefix applies the HasPrefix predicate on the "datasource_labels" field.
+func DatasourceLabelsHasPrefix(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldHasPrefix(FieldDatasourceLabels, v))
+}
+
+// DatasourceLabelsHasSuffix applies the HasSuffix predicate on the "datasource_labels" field.
+func DatasourceLabelsHasSuffix(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldHasSuffix(FieldDatasourceLabels, v))
+}
+
+// DatasourceLabelsEqualFold applies the EqualFold predicate on the "datasource_labels" field.
+func DatasourceLabelsEqualFold(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldEqualFold(FieldDatasourceLabels, v))
+}
+
+// DatasourceLabelsContainsFold applies the ContainsFold predicate on the "datasource_labels" field.
+func DatasourceLabelsContainsFold(v string) predicate.AlertRule {
+	return predicate.AlertRule(sql.FieldContainsFold(FieldDatasourceLabels, v))
 }
 
 // SummaryEQ applies the EQ predicate on the "summary" field.

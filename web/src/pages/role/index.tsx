@@ -17,6 +17,7 @@ import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { requireTrimmed } from "@/lib/form"
 import { useListQuery } from "@/lib/list-query"
 import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
@@ -114,10 +115,15 @@ export function RolePage() {
 
   async function onCreate(event: React.FormEvent) {
     event.preventDefault()
+    const invalid = requireTrimmed(name, t("form.required"))
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
-      await createRole({ name })
+      await createRole({ name: name.trim() })
       setOpen(false)
       setName("")
       setAttempt((value) => value + 1)
@@ -133,10 +139,15 @@ export function RolePage() {
     if (!editing) {
       return
     }
+    const invalid = requireTrimmed(name, t("form.required"))
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
-      await updateRole({ uid: editing.uid, name })
+      await updateRole({ uid: editing.uid, name: name.trim() })
       setEditing(null)
       setAttempt((value) => value + 1)
     } catch (err) {

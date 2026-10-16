@@ -32,6 +32,7 @@ export interface AlertRuleItem {
   expr: string
   labels: string
   datasourceUid: string
+  datasourceLabels: string
   summary: string
   description: string
   levels: AlertRuleLevelItem[]
@@ -74,6 +75,7 @@ export interface SaveAlertRuleParams {
   expr?: string
   labels?: string
   datasourceUid?: string
+  datasourceLabels?: string
   summary?: string
   description?: string
   levels: AlertRuleLevelInput[]

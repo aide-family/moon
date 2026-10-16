@@ -22,26 +22,31 @@ export function RegisterPage() {
   const [pending, setPending] = useState(false)
 
   useEffect(() => {
+    const controller = new AbortController()
     let active = true
     async function load() {
       try {
-        const captcha = await getCaptcha()
+        const captcha = await getCaptcha(controller.signal)
         if (!active) {
           return
         }
         setCaptchaId(captcha.id)
         setCaptchaImage(captcha.image)
       } catch (err) {
-        if (active) {
-          setError(err instanceof Error ? err.message : t("state.failed"))
+        if (!active || controller.signal.aborted) {
+          return
         }
+        setError(err instanceof Error ? err.message : t("state.failed"))
       }
     }
     void load()
     return () => {
       active = false
+      controller.abort()
     }
-  }, [t])
+    // Initial load only; refreshCaptcha handles user-triggered reloads.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- avoid refetch when i18n `t` identity changes
+  }, [])
 
   async function refreshCaptcha() {
     setError("")
@@ -79,8 +84,8 @@ export function RegisterPage() {
   }
 
   return (
-    <main className="flex min-h-svh items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-sm">
+    <main className="flex min-h-svh items-center justify-center p-4">
+      <Card className="glass-card w-full max-w-sm border-0 shadow-none">
         <CardHeader>
           <CardTitle>{t("register.title")}</CardTitle>
         </CardHeader>

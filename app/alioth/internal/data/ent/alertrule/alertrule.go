@@ -40,6 +40,8 @@ const (
 	FieldLabels = "labels"
 	// FieldDatasourceUID holds the string denoting the datasource_uid field in the database.
 	FieldDatasourceUID = "datasource_uid"
+	// FieldDatasourceLabels holds the string denoting the datasource_labels field in the database.
+	FieldDatasourceLabels = "datasource_labels"
 	// FieldSummary holds the string denoting the summary field in the database.
 	FieldSummary = "summary"
 	// FieldDescription holds the string denoting the description field in the database.
@@ -68,6 +70,7 @@ var Columns = []string{
 	FieldExpr,
 	FieldLabels,
 	FieldDatasourceUID,
+	FieldDatasourceLabels,
 	FieldSummary,
 	FieldDescription,
 	FieldNextEvalAt,
@@ -105,6 +108,8 @@ var (
 	DefaultLabels string
 	// DefaultDatasourceUID holds the default value on creation for the "datasource_uid" field.
 	DefaultDatasourceUID string
+	// DefaultDatasourceLabels holds the default value on creation for the "datasource_labels" field.
+	DefaultDatasourceLabels string
 	// DefaultSummary holds the default value on creation for the "summary" field.
 	DefaultSummary string
 	// DefaultDescription holds the default value on creation for the "description" field.
@@ -257,6 +262,11 @@ func ByLabels(opts ...sql.OrderTermOption) OrderOption {
 // ByDatasourceUID orders the results by the datasource_uid field.
 func ByDatasourceUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDatasourceUID, opts...).ToFunc()
+}
+
+// ByDatasourceLabels orders the results by the datasource_labels field.
+func ByDatasourceLabels(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDatasourceLabels, opts...).ToFunc()
 }
 
 // BySummary orders the results by the summary field.

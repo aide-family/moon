@@ -3,11 +3,11 @@ package data
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/redis/go-redis/v9"
 
 	"github.com/aide-family/Alioth/app/megrez/internal/conf"
@@ -26,11 +26,11 @@ func TestTwoClaimantsOneEvalLock(t *testing.T) {
 	if err := rdb.Ping(ctx).Err(); err != nil {
 		t.Skip(err)
 	}
-	first, _, err := NewLocker(&conf.Redis{Addr: addr}, log.DefaultLogger)
+	first, _, err := NewLocker(&conf.Redis{Addr: addr}, slog.Default())
 	if err != nil {
 		t.Fatal(err)
 	}
-	second, _, err := NewLocker(&conf.Redis{Addr: addr}, log.DefaultLogger)
+	second, _, err := NewLocker(&conf.Redis{Addr: addr}, slog.Default())
 	if err != nil {
 		t.Fatal(err)
 	}

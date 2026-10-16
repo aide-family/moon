@@ -2,8 +2,7 @@ package data
 
 import (
 	"context"
-
-	"github.com/go-kratos/kratos/v2/log"
+	"log/slog"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/permission"
@@ -13,7 +12,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
 )
 
-func seed(ctx context.Context, client *ent.Client, helper *log.Helper) error {
+func seed(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 	for _, item := range perm.Catalog() {
 		exists, err := client.Permission.Query().Where(permission.NameEQ(item.Name)).Exist(ctx)
 		if err != nil {
@@ -34,7 +33,7 @@ func seed(ctx context.Context, client *ent.Client, helper *log.Helper) error {
 	return syncSystemRoles(ctx, client, helper)
 }
 
-func syncSystemRoles(ctx context.Context, client *ent.Client, helper *log.Helper) error {
+func syncSystemRoles(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 	rows, err := client.Permission.Query().All(ctx)
 	if err != nil {
 		return databaseErr(helper, err)

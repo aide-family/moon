@@ -26,6 +26,12 @@ func (_c *AlertEvalBatchCreate) SetRuleUID(v string) *AlertEvalBatchCreate {
 	return _c
 }
 
+// SetDatasourceUID sets the "datasource_uid" field.
+func (_c *AlertEvalBatchCreate) SetDatasourceUID(v string) *AlertEvalBatchCreate {
+	_c.mutation.SetDatasourceUID(v)
+	return _c
+}
+
 // SetEvalSlot sets the "eval_slot" field.
 func (_c *AlertEvalBatchCreate) SetEvalSlot(v time.Time) *AlertEvalBatchCreate {
 	_c.mutation.SetEvalSlot(v)
@@ -91,6 +97,14 @@ func (_c *AlertEvalBatchCreate) check() error {
 			return &ValidationError{Name: "rule_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEvalBatch.rule_uid": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.DatasourceUID(); !ok {
+		return &ValidationError{Name: "datasource_uid", err: errors.New(`ent: missing required field "AlertEvalBatch.datasource_uid"`)}
+	}
+	if v, ok := _c.mutation.DatasourceUID(); ok {
+		if err := alertevalbatch.DatasourceUIDValidator(v); err != nil {
+			return &ValidationError{Name: "datasource_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEvalBatch.datasource_uid": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.EvalSlot(); !ok {
 		return &ValidationError{Name: "eval_slot", err: errors.New(`ent: missing required field "AlertEvalBatch.eval_slot"`)}
 	}
@@ -123,6 +137,10 @@ func (_c *AlertEvalBatchCreate) createSpec() (*AlertEvalBatch, *sqlgraph.CreateS
 	if value, ok := _c.mutation.RuleUID(); ok {
 		_spec.SetField(alertevalbatch.FieldRuleUID, field.TypeString, value)
 		_node.RuleUID = value
+	}
+	if value, ok := _c.mutation.DatasourceUID(); ok {
+		_spec.SetField(alertevalbatch.FieldDatasourceUID, field.TypeString, value)
+		_node.DatasourceUID = value
 	}
 	if value, ok := _c.mutation.EvalSlot(); ok {
 		_spec.SetField(alertevalbatch.FieldEvalSlot, field.TypeTime, value)

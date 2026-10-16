@@ -28,6 +28,7 @@ func (Datasource) Fields() []ent.Field {
 		field.String("secret_cipher").Sensitive().Default(""),
 		field.Enum("status").Values("ACTIVE", "DISABLED").Default("ACTIVE"),
 		field.String("level_uid").Default(""),
+		field.String("labels").Default("{}"),
 		field.String("remark").Default(""),
 	}
 }

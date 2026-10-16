@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertlevel"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
@@ -34,6 +35,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommandaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useralertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useroauth"
 )
 
@@ -126,8 +128,12 @@ func init() {
 	alertevalbatchDescRuleUID := alertevalbatchFields[0].Descriptor()
 	// alertevalbatch.RuleUIDValidator is a validator for the "rule_uid" field. It is called by the builders before save.
 	alertevalbatch.RuleUIDValidator = alertevalbatchDescRuleUID.Validators[0].(func(string) error)
+	// alertevalbatchDescDatasourceUID is the schema descriptor for datasource_uid field.
+	alertevalbatchDescDatasourceUID := alertevalbatchFields[1].Descriptor()
+	// alertevalbatch.DatasourceUIDValidator is a validator for the "datasource_uid" field. It is called by the builders before save.
+	alertevalbatch.DatasourceUIDValidator = alertevalbatchDescDatasourceUID.Validators[0].(func(string) error)
 	// alertevalbatchDescEvalSlot is the schema descriptor for eval_slot field.
-	alertevalbatchDescEvalSlot := alertevalbatchFields[1].Descriptor()
+	alertevalbatchDescEvalSlot := alertevalbatchFields[2].Descriptor()
 	// alertevalbatch.DefaultEvalSlot holds the default value on creation for the eval_slot field.
 	alertevalbatch.DefaultEvalSlot = alertevalbatchDescEvalSlot.Default.(func() time.Time)
 	alerteventMixin := schema.AlertEvent{}.Mixin()
@@ -246,6 +252,49 @@ func init() {
 	alertlevelDescColor := alertlevelFields[3].Descriptor()
 	// alertlevel.DefaultColor holds the default value on creation for the color field.
 	alertlevel.DefaultColor = alertlevelDescColor.Default.(string)
+	alertpageMixin := schema.AlertPage{}.Mixin()
+	alertpageMixinFields0 := alertpageMixin[0].Fields()
+	_ = alertpageMixinFields0
+	alertpageFields := schema.AlertPage{}.Fields()
+	_ = alertpageFields
+	// alertpageDescCreatedAt is the schema descriptor for created_at field.
+	alertpageDescCreatedAt := alertpageMixinFields0[0].Descriptor()
+	// alertpage.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alertpage.DefaultCreatedAt = alertpageDescCreatedAt.Default.(func() time.Time)
+	// alertpageDescUpdatedAt is the schema descriptor for updated_at field.
+	alertpageDescUpdatedAt := alertpageMixinFields0[1].Descriptor()
+	// alertpage.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	alertpage.DefaultUpdatedAt = alertpageDescUpdatedAt.Default.(func() time.Time)
+	// alertpage.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	alertpage.UpdateDefaultUpdatedAt = alertpageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// alertpageDescUID is the schema descriptor for uid field.
+	alertpageDescUID := alertpageFields[0].Descriptor()
+	// alertpage.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	alertpage.UIDValidator = alertpageDescUID.Validators[0].(func(string) error)
+	// alertpageDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alertpageDescNamespaceUID := alertpageFields[1].Descriptor()
+	// alertpage.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alertpage.NamespaceUIDValidator = alertpageDescNamespaceUID.Validators[0].(func(string) error)
+	// alertpageDescName is the schema descriptor for name field.
+	alertpageDescName := alertpageFields[2].Descriptor()
+	// alertpage.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	alertpage.NameValidator = alertpageDescName.Validators[0].(func(string) error)
+	// alertpageDescOwnerUID is the schema descriptor for owner_uid field.
+	alertpageDescOwnerUID := alertpageFields[3].Descriptor()
+	// alertpage.OwnerUIDValidator is a validator for the "owner_uid" field. It is called by the builders before save.
+	alertpage.OwnerUIDValidator = alertpageDescOwnerUID.Validators[0].(func(string) error)
+	// alertpageDescLabels is the schema descriptor for labels field.
+	alertpageDescLabels := alertpageFields[4].Descriptor()
+	// alertpage.DefaultLabels holds the default value on creation for the labels field.
+	alertpage.DefaultLabels = alertpageDescLabels.Default.(string)
+	// alertpageDescPublic is the schema descriptor for public field.
+	alertpageDescPublic := alertpageFields[5].Descriptor()
+	// alertpage.DefaultPublic holds the default value on creation for the public field.
+	alertpage.DefaultPublic = alertpageDescPublic.Default.(bool)
+	// alertpageDescRemark is the schema descriptor for remark field.
+	alertpageDescRemark := alertpageFields[6].Descriptor()
+	// alertpage.DefaultRemark holds the default value on creation for the remark field.
+	alertpage.DefaultRemark = alertpageDescRemark.Default.(string)
 	alertruleMixin := schema.AlertRule{}.Mixin()
 	alertruleMixinFields0 := alertruleMixin[0].Fields()
 	_ = alertruleMixinFields0
@@ -289,12 +338,16 @@ func init() {
 	alertruleDescDatasourceUID := alertruleFields[9].Descriptor()
 	// alertrule.DefaultDatasourceUID holds the default value on creation for the datasource_uid field.
 	alertrule.DefaultDatasourceUID = alertruleDescDatasourceUID.Default.(string)
+	// alertruleDescDatasourceLabels is the schema descriptor for datasource_labels field.
+	alertruleDescDatasourceLabels := alertruleFields[10].Descriptor()
+	// alertrule.DefaultDatasourceLabels holds the default value on creation for the datasource_labels field.
+	alertrule.DefaultDatasourceLabels = alertruleDescDatasourceLabels.Default.(string)
 	// alertruleDescSummary is the schema descriptor for summary field.
-	alertruleDescSummary := alertruleFields[10].Descriptor()
+	alertruleDescSummary := alertruleFields[11].Descriptor()
 	// alertrule.DefaultSummary holds the default value on creation for the summary field.
 	alertrule.DefaultSummary = alertruleDescSummary.Default.(string)
 	// alertruleDescDescription is the schema descriptor for description field.
-	alertruleDescDescription := alertruleFields[11].Descriptor()
+	alertruleDescDescription := alertruleFields[12].Descriptor()
 	// alertrule.DefaultDescription holds the default value on creation for the description field.
 	alertrule.DefaultDescription = alertruleDescDescription.Default.(string)
 	alertrulegroupMixin := schema.AlertRuleGroup{}.Mixin()
@@ -468,8 +521,12 @@ func init() {
 	datasourceDescLevelUID := datasourceFields[10].Descriptor()
 	// datasource.DefaultLevelUID holds the default value on creation for the level_uid field.
 	datasource.DefaultLevelUID = datasourceDescLevelUID.Default.(string)
+	// datasourceDescLabels is the schema descriptor for labels field.
+	datasourceDescLabels := datasourceFields[11].Descriptor()
+	// datasource.DefaultLabels holds the default value on creation for the labels field.
+	datasource.DefaultLabels = datasourceDescLabels.Default.(string)
 	// datasourceDescRemark is the schema descriptor for remark field.
-	datasourceDescRemark := datasourceFields[11].Descriptor()
+	datasourceDescRemark := datasourceFields[12].Descriptor()
 	// datasource.DefaultRemark holds the default value on creation for the remark field.
 	datasource.DefaultRemark = datasourceDescRemark.Default.(string)
 	emaillogincodeMixin := schema.EmailLoginCode{}.Mixin()
@@ -1171,6 +1228,37 @@ func init() {
 	userDescPasswordHash := userFields[7].Descriptor()
 	// user.DefaultPasswordHash holds the default value on creation for the password_hash field.
 	user.DefaultPasswordHash = userDescPasswordHash.Default.(string)
+	useralertpageMixin := schema.UserAlertPage{}.Mixin()
+	useralertpageMixinFields0 := useralertpageMixin[0].Fields()
+	_ = useralertpageMixinFields0
+	useralertpageFields := schema.UserAlertPage{}.Fields()
+	_ = useralertpageFields
+	// useralertpageDescCreatedAt is the schema descriptor for created_at field.
+	useralertpageDescCreatedAt := useralertpageMixinFields0[0].Descriptor()
+	// useralertpage.DefaultCreatedAt holds the default value on creation for the created_at field.
+	useralertpage.DefaultCreatedAt = useralertpageDescCreatedAt.Default.(func() time.Time)
+	// useralertpageDescUpdatedAt is the schema descriptor for updated_at field.
+	useralertpageDescUpdatedAt := useralertpageMixinFields0[1].Descriptor()
+	// useralertpage.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	useralertpage.DefaultUpdatedAt = useralertpageDescUpdatedAt.Default.(func() time.Time)
+	// useralertpage.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	useralertpage.UpdateDefaultUpdatedAt = useralertpageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// useralertpageDescUID is the schema descriptor for uid field.
+	useralertpageDescUID := useralertpageFields[0].Descriptor()
+	// useralertpage.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	useralertpage.UIDValidator = useralertpageDescUID.Validators[0].(func(string) error)
+	// useralertpageDescNamespaceUID is the schema descriptor for namespace_uid field.
+	useralertpageDescNamespaceUID := useralertpageFields[1].Descriptor()
+	// useralertpage.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	useralertpage.NamespaceUIDValidator = useralertpageDescNamespaceUID.Validators[0].(func(string) error)
+	// useralertpageDescUserUID is the schema descriptor for user_uid field.
+	useralertpageDescUserUID := useralertpageFields[2].Descriptor()
+	// useralertpage.UserUIDValidator is a validator for the "user_uid" field. It is called by the builders before save.
+	useralertpage.UserUIDValidator = useralertpageDescUserUID.Validators[0].(func(string) error)
+	// useralertpageDescAlertPageUID is the schema descriptor for alert_page_uid field.
+	useralertpageDescAlertPageUID := useralertpageFields[3].Descriptor()
+	// useralertpage.AlertPageUIDValidator is a validator for the "alert_page_uid" field. It is called by the builders before save.
+	useralertpage.AlertPageUIDValidator = useralertpageDescAlertPageUID.Validators[0].(func(string) error)
 	useroauthMixin := schema.UserOAuth{}.Mixin()
 	useroauthMixinFields0 := useroauthMixin[0].Fields()
 	_ = useroauthMixinFields0

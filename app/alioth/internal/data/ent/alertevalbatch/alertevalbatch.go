@@ -15,6 +15,8 @@ const (
 	FieldID = "id"
 	// FieldRuleUID holds the string denoting the rule_uid field in the database.
 	FieldRuleUID = "rule_uid"
+	// FieldDatasourceUID holds the string denoting the datasource_uid field in the database.
+	FieldDatasourceUID = "datasource_uid"
 	// FieldEvalSlot holds the string denoting the eval_slot field in the database.
 	FieldEvalSlot = "eval_slot"
 	// Table holds the table name of the alertevalbatch in the database.
@@ -25,6 +27,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldRuleUID,
+	FieldDatasourceUID,
 	FieldEvalSlot,
 }
 
@@ -41,6 +44,8 @@ func ValidColumn(column string) bool {
 var (
 	// RuleUIDValidator is a validator for the "rule_uid" field. It is called by the builders before save.
 	RuleUIDValidator func(string) error
+	// DatasourceUIDValidator is a validator for the "datasource_uid" field. It is called by the builders before save.
+	DatasourceUIDValidator func(string) error
 	// DefaultEvalSlot holds the default value on creation for the "eval_slot" field.
 	DefaultEvalSlot func() time.Time
 )
@@ -56,6 +61,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByRuleUID orders the results by the rule_uid field.
 func ByRuleUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRuleUID, opts...).ToFunc()
+}
+
+// ByDatasourceUID orders the results by the datasource_uid field.
+func ByDatasourceUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDatasourceUID, opts...).ToFunc()
 }
 
 // ByEvalSlot orders the results by the eval_slot field.

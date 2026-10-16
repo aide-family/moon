@@ -38,6 +38,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { firstError, requireTrimmed } from "@/lib/form"
+import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { useListQuery } from "@/lib/list-query"
 
 const types = ["METRICS", "LOGS", "TRACE"]
@@ -59,6 +61,7 @@ interface Draft {
   password: string
   secret: string
   levelUid: string
+  labels: LabelPair[]
   remark: string
 }
 
@@ -71,6 +74,7 @@ const emptyDraft: Draft = {
   password: "",
   secret: "",
   levelUid: "",
+  labels: [{ key: "", value: "" }],
   remark: "",
 }
 
@@ -228,6 +232,7 @@ export function DatasourcePage() {
       password: "",
       secret: "",
       levelUid: current.levelUid,
+      labels: parseLabelPairs(current.labels),
       remark: current.remark,
     })
     setError("")
@@ -235,15 +240,38 @@ export function DatasourcePage() {
     setOpen(true)
   }
 
+  function validateDatasourceStep(step: number): string | null {
+    if (step === 0) {
+      return firstError(
+        requireTrimmed(form.name, t("form.required")),
+        requireTrimmed(form.type, t("form.required")),
+        requireTrimmed(form.driver, t("form.required")),
+        requireTrimmed(form.endpoint, t("form.required")),
+      )
+    }
+    return null
+  }
+
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
+    const invalid = firstError(validateDatasourceStep(0), validateDatasourceStep(1), validateDatasourceStep(2))
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
+      const payload = {
+        ...form,
+        name: form.name.trim(),
+        endpoint: form.endpoint.trim(),
+        labels: serializeLabelPairs(form.labels),
+      }
       if (editing && current) {
-        await updateDatasource({ uid: current.uid, ...form })
+        await updateDatasource({ uid: current.uid, ...payload })
       } else {
-        const created = await createDatasource(form)
+        const created = await createDatasource(payload)
         setParam("uid", created.datasource.uid)
       }
       setOpen(false)
@@ -501,7 +529,7 @@ export function DatasourcePage() {
           }
         }}
       >
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
@@ -510,14 +538,23 @@ export function DatasourcePage() {
             stepCount={3}
             pending={pending}
             error={error}
+            fieldsClassName="sm:grid-cols-2"
             onBack={() => setFormStep((value) => Math.max(0, value - 1))}
-            onNext={() => setFormStep((value) => Math.min(2, value + 1))}
+            onNext={() => {
+              const invalid = validateDatasourceStep(formStep)
+              if (invalid) {
+                setError(invalid)
+                return
+              }
+              setError("")
+              setFormStep((value) => Math.min(2, value + 1))
+            }}
             onSubmit={onSave}
           >
             {formStep === 0 ? (
               <>
-            <FormField label={t("datasource.name")} htmlFor="ds-name">
-              <Input id="ds-name" value={form.name} placeholder={t("datasource.namePlaceholder")} onChange={(event) => setForm({ ...form, name: event.target.value })} />
+            <FormField label={t("datasource.name")} htmlFor="ds-name" className="sm:col-span-full">
+              <Input id="ds-name" value={form.name} placeholder={t("datasource.namePlaceholder")} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
             </FormField>
             <FormField label={t("datasource.type")} hint={t("datasource.typeHint")}>
               <Select
@@ -550,8 +587,8 @@ export function DatasourcePage() {
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label={t("datasource.endpoint")} htmlFor="ds-endpoint" hint={t("datasource.endpointHint")}>
-              <Input id="ds-endpoint" value={form.endpoint} placeholder="http://127.0.0.1:9090" onChange={(event) => setForm({ ...form, endpoint: event.target.value })} />
+            <FormField label={t("datasource.endpoint")} htmlFor="ds-endpoint" hint={t("datasource.endpointHint")} className="sm:col-span-full">
+              <Input id="ds-endpoint" value={form.endpoint} placeholder="http://127.0.0.1:9090" onChange={(event) => setForm({ ...form, endpoint: event.target.value })} required />
             </FormField>
               </>
             ) : null}
@@ -563,7 +600,7 @@ export function DatasourcePage() {
             <FormField label={t("datasource.password")} htmlFor="ds-password" hint={t("datasource.secretHint")}>
               <Input id="ds-password" type="password" value={form.password} placeholder={t("datasource.passwordPlaceholder")} onChange={(event) => setForm({ ...form, password: event.target.value })} />
             </FormField>
-            <FormField label={t("datasource.secret")} htmlFor="ds-secret" hint={t("datasource.secretHint")}>
+            <FormField label={t("datasource.secret")} htmlFor="ds-secret" hint={t("datasource.secretHint")} className="sm:col-span-full">
               <Input id="ds-secret" type="password" value={form.secret} placeholder={t("datasource.secretPlaceholder")} onChange={(event) => setForm({ ...form, secret: event.target.value })} />
             </FormField>
               </>
@@ -585,7 +622,42 @@ export function DatasourcePage() {
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label={t("datasource.remark")} htmlFor="ds-remark">
+            <div className="grid gap-2 sm:col-span-full">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium">{t("datasource.labels")}</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setForm({ ...form, labels: [...form.labels, { key: "", value: "" }] })}
+                >
+                  {t("datasource.addLabel")}
+                </Button>
+              </div>
+              {form.labels.map((pair, index) => (
+                <div key={index} className="grid gap-2 sm:grid-cols-2">
+                  <Input
+                    value={pair.key}
+                    placeholder={t("datasource.labelKeyPlaceholder")}
+                    onChange={(event) => {
+                      const labels = [...form.labels]
+                      labels[index] = { ...pair, key: event.target.value }
+                      setForm({ ...form, labels })
+                    }}
+                  />
+                  <Input
+                    value={pair.value}
+                    placeholder={t("datasource.labelValuePlaceholder")}
+                    onChange={(event) => {
+                      const labels = [...form.labels]
+                      labels[index] = { ...pair, value: event.target.value }
+                      setForm({ ...form, labels })
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+            <FormField label={t("datasource.remark")} htmlFor="ds-remark" className="sm:col-span-full">
               <Input id="ds-remark" value={form.remark} placeholder={t("datasource.remarkPlaceholder")} onChange={(event) => setForm({ ...form, remark: event.target.value })} />
             </FormField>
               </>

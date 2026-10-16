@@ -2,11 +2,13 @@ package server
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/middleware/recovery"
-	khttp "github.com/go-kratos/kratos/v2/transport/http"
+	_ "github.com/go-kratos/kratos/contrib/encoding/json/v3"
+
+	"github.com/go-kratos/kratos/v3/middleware/recovery"
+	khttp "github.com/go-kratos/kratos/v3/transport/http"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
@@ -29,6 +31,7 @@ func NewHTTPServer(
 	queries *service.MetricQueryService,
 	rules *service.AlertRuleService,
 	levels *service.AlertLevelService,
+	alertPages *service.AlertPageService,
 	events *service.AlertEventService,
 	channels *service.NotificationChannelService,
 	templates *service.NotificationTemplateService,
@@ -39,15 +42,14 @@ func NewHTTPServer(
 	sftpSvc *service.SFTPService,
 	k8sSvc *service.K8sProxyService,
 	uc *auth.Usecase,
-	logger log.Logger,
+	logger *slog.Logger,
 ) (*khttp.Server, error) {
 	if c == nil || c.Http == nil || c.Http.Addr == "" {
 		return nil, merr.Server("http addr is empty")
 	}
 	opts := []khttp.ServerOption{
 		khttp.Address(c.Http.Addr),
-		khttp.Middleware(recovery.Recovery(), authenticate(uc)),
-		khttp.Logger(logger),
+		khttp.Middleware(recovery.Recovery(recovery.WithLogger(logger)), authenticate(uc)),
 	}
 	if c.Http.Network != "" {
 		opts = append(opts, khttp.Network(c.Http.Network))
@@ -77,6 +79,7 @@ func NewHTTPServer(
 	v1.RegisterMetricQueryServiceHTTPServer(srv, queries)
 	v1.RegisterAlertRuleServiceHTTPServer(srv, rules)
 	v1.RegisterAlertLevelServiceHTTPServer(srv, levels)
+	v1.RegisterAlertPageServiceHTTPServer(srv, alertPages)
 	v1.RegisterAlertEventServiceHTTPServer(srv, events)
 	v1.RegisterNotificationChannelServiceHTTPServer(srv, channels)
 	v1.RegisterNotificationTemplateServiceHTTPServer(srv, templates)

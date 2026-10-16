@@ -1,6 +1,6 @@
 package merr
 
-import kerrors "github.com/go-kratos/kratos/v2/errors"
+import kerrors "github.com/go-kratos/kratos/v3/errors"
 
 const (
 	ReasonClient          = "CLIENT"

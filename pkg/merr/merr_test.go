@@ -3,7 +3,7 @@ package merr
 import (
 	"testing"
 
-	kerrors "github.com/go-kratos/kratos/v2/errors"
+	kerrors "github.com/go-kratos/kratos/v3/errors"
 )
 
 func TestCategories(t *testing.T) {

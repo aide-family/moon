@@ -1,7 +1,7 @@
 ---
 name: alioth-backend
 description: >-
-  Implements Alioth Go services with Kratos, ent, and Redis locks. Use when
+  Implements Alioth Go services with Kratos v3, ent, and Redis locks. Use when
   editing app/alioth, app/megrez, app/merak, app/alkaid, api protobuf, pkg, or
   when the user mentions ent, PostgreSQL schema, service key, JWT, or
   distributed locks.
@@ -10,6 +10,14 @@ description: >-
 # Alioth 后端
 
 先读 [alioth-platform](../alioth-platform/SKILL.md) 和 [docs/iterations/conventions.md](../../../docs/iterations/conventions.md)。
+
+## 框架
+
+- 使用 **Kratos v3**（`github.com/go-kratos/kratos/v3`）。禁止引入 `/v2`。
+- 日志为标准库 `*slog.Logger`，用 v3 `log.NewLogger` / `log.NewHandler` 构造；不要用 v2 的 `log.Logger` / `log.Helper`。
+- HTTP 生成器用 `protoc-gen-go-http/v3`（`make tools` / `make api`）。不要手改 `*_http.pb.go`。
+- HTTP JSON 迁移期 blank-import `github.com/go-kratos/kratos/contrib/encoding/json/v3`，保持与 Web 契约；不要同时注册 core `json` 与该兼容 codec。
+- 鉴权继续用自研中间件 + `golang-jwt`，不要默认引入 contrib JWT。OTel、熔断、SSE、`config.Get[T]`、自定义 ValidatorFunc 等按需采用，不是默认交付。
 
 ## 分层
 
@@ -46,7 +54,7 @@ biz 的关键判断要写清为什么拒绝、状态怎么变、以及和别的�
 | 键 | 持有者 | TTL |
 | --- | --- | --- |
 | `alioth:lock:schedule:{name}` | `alioth` | 15 秒，不续期 |
-| `alioth:lock:eval:{rule_uid}` | `megrez` | 30 秒，每 10 秒续期 |
+| `alioth:lock:eval:{rule_uid}:{datasource_uid}` | `megrez` | 30 秒，每 10 秒续期 |
 | `alioth:lock:notify:{task_uid}` | `merak` | 60 秒，每 20 秒续期 |
 
 加锁用 `SET key token NX PX`。续期和释放用 Lua，value 必须等于 token。续期失败或 Redis 不可用时，不把本次执行报成成功。任务状态留在 PostgreSQL。

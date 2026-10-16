@@ -5,6 +5,7 @@ import { AgentPage } from "@/pages/agent"
 import { AlertHistoryPage } from "@/pages/alert/history"
 import { AlertRealtimePage } from "@/pages/alert"
 import { AlertLevelPage } from "@/pages/alert-level"
+import { AlertPageManagePage } from "@/pages/alert-page"
 import { AlertRulePage } from "@/pages/alert-rule"
 import { DatasourcePage } from "@/pages/datasource"
 import { LoginPage } from "@/pages/login"
@@ -37,6 +38,7 @@ export function App() {
         <Route path="/datasources" element={<DatasourcePage />} />
         <Route path="/alert-rules" element={<AlertRulePage />} />
         <Route path="/alert-levels" element={<AlertLevelPage />} />
+        <Route path="/alert-pages" element={<AlertPageManagePage />} />
         <Route path="/alerts" element={<AlertRealtimePage />} />
         <Route path="/alert-history" element={<AlertHistoryPage />} />
         <Route path="/notification-channels" element={<NotificationChannelPage />} />

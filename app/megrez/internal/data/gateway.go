@@ -71,7 +71,8 @@ func (g *gateway) Report(ctx context.Context, report bo.EvalReport) error {
 		})
 	}
 	_, err := g.client.ReportEval(g.auth(ctx), &megrezv1.ReportEvalRequest{
-		RuleUid: report.RuleUID, EvalSlot: report.EvalSlot.UTC().Format(time.RFC3339Nano),
+		RuleUid: report.RuleUID, DatasourceUid: report.DatasourceUID,
+		EvalSlot: report.EvalSlot.UTC().Format(time.RFC3339Nano),
 		Skipped: report.Skipped, Hits: hits,
 	})
 	if err != nil {

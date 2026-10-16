@@ -18,6 +18,7 @@ const (
 	AlertRuleWrite  = "alert_rule:write"
 
 	AlertRead      = "alert:read"
+	AlertWrite     = "alert:write"
 	AlertIntervene = "alert:intervene"
 
 	NotificationRead  = "notification:read"

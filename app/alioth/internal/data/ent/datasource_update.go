@@ -194,6 +194,20 @@ func (_u *DatasourceUpdate) SetNillableLevelUID(v *string) *DatasourceUpdate {
 	return _u
 }
 
+// SetLabels sets the "labels" field.
+func (_u *DatasourceUpdate) SetLabels(v string) *DatasourceUpdate {
+	_u.mutation.SetLabels(v)
+	return _u
+}
+
+// SetNillableLabels sets the "labels" field if the given value is not nil.
+func (_u *DatasourceUpdate) SetNillableLabels(v *string) *DatasourceUpdate {
+	if v != nil {
+		_u.SetLabels(*v)
+	}
+	return _u
+}
+
 // SetRemark sets the "remark" field.
 func (_u *DatasourceUpdate) SetRemark(v string) *DatasourceUpdate {
 	_u.mutation.SetRemark(v)
@@ -334,6 +348,9 @@ func (_u *DatasourceUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if value, ok := _u.mutation.LevelUID(); ok {
 		_spec.SetField(datasource.FieldLevelUID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Labels(); ok {
+		_spec.SetField(datasource.FieldLabels, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(datasource.FieldRemark, field.TypeString, value)
@@ -524,6 +541,20 @@ func (_u *DatasourceUpdateOne) SetNillableLevelUID(v *string) *DatasourceUpdateO
 	return _u
 }
 
+// SetLabels sets the "labels" field.
+func (_u *DatasourceUpdateOne) SetLabels(v string) *DatasourceUpdateOne {
+	_u.mutation.SetLabels(v)
+	return _u
+}
+
+// SetNillableLabels sets the "labels" field if the given value is not nil.
+func (_u *DatasourceUpdateOne) SetNillableLabels(v *string) *DatasourceUpdateOne {
+	if v != nil {
+		_u.SetLabels(*v)
+	}
+	return _u
+}
+
 // SetRemark sets the "remark" field.
 func (_u *DatasourceUpdateOne) SetRemark(v string) *DatasourceUpdateOne {
 	_u.mutation.SetRemark(v)
@@ -694,6 +725,9 @@ func (_u *DatasourceUpdateOne) sqlSave(ctx context.Context) (_node *Datasource, 
 	}
 	if value, ok := _u.mutation.LevelUID(); ok {
 		_spec.SetField(datasource.FieldLevelUID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Labels(); ok {
+		_spec.SetField(datasource.FieldLabels, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(datasource.FieldRemark, field.TypeString, value)

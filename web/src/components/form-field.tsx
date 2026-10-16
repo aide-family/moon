@@ -7,17 +7,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
 
 interface FormFieldProps {
   label: string
   htmlFor?: string
   hint?: string
+  className?: string
   children: ReactNode
 }
 
-export function FormField({ label, htmlFor, hint, children }: FormFieldProps) {
+export function FormField({ label, htmlFor, hint, className, children }: FormFieldProps) {
   return (
-    <div className="grid gap-2">
+    <div className={cn("grid min-w-0 gap-2 [&_[data-slot=select-trigger]]:w-full", className)}>
       <div className="flex items-center gap-2">
         <Label htmlFor={htmlFor}>{label}</Label>
         {hint ? (

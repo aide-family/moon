@@ -9,7 +9,7 @@ description: >-
 
 # Alioth 平台边界
 
-改任何服务前先读 [docs/design.md](../../../docs/design.md) 和 [docs/roadmap.md](../../../docs/roadmap.md)。实现细节以当前里程碑的 [docs/iterations/](../../../docs/iterations/) 为准，不要把后续里程碑提前做进来。
+改任何服务前先读 [docs/design.md](../../../docs/design.md) 和 [docs/roadmap.md](../../../docs/roadmap.md)。实现细节以当前里程碑的 [docs/iterations/](../../../docs/iterations/) 为准，不要把后续里程碑提前做进来。后端框架为 Kratos v3（详见 [alioth-backend](../alioth-backend/SKILL.md)）。
 
 ## 进程
 

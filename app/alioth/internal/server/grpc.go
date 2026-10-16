@@ -1,13 +1,14 @@
 package server
 
 import (
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/middleware/recovery"
-	kgrpc "github.com/go-kratos/kratos/v2/transport/grpc"
+	"log/slog"
+
+	"github.com/go-kratos/kratos/v3/middleware/recovery"
+	kgrpc "github.com/go-kratos/kratos/v3/transport/grpc"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
-	merakv1 "github.com/aide-family/Alioth/api/merak/v1"
 	megrezv1 "github.com/aide-family/Alioth/api/megrez/v1"
+	merakv1 "github.com/aide-family/Alioth/api/merak/v1"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/service"
@@ -28,6 +29,7 @@ func NewGRPCServer(
 	queries *service.MetricQueryService,
 	rules *service.AlertRuleService,
 	levels *service.AlertLevelService,
+	alertPages *service.AlertPageService,
 	events *service.AlertEventService,
 	eval *service.EvalService,
 	channels *service.NotificationChannelService,
@@ -40,16 +42,15 @@ func NewGRPCServer(
 	sftpSvc *service.SFTPService,
 	k8sSvc *service.K8sProxyService,
 	uc *auth.Usecase,
-	logger log.Logger,
+	logger *slog.Logger,
 ) (*kgrpc.Server, error) {
 	if c == nil || c.Grpc == nil || c.Grpc.Addr == "" {
 		return nil, merr.Server("grpc addr is empty")
 	}
 	opts := []kgrpc.ServerOption{
 		kgrpc.Address(c.Grpc.Addr),
-		kgrpc.Middleware(recovery.Recovery(), authenticate(uc)),
-		kgrpc.StreamMiddleware(recovery.Recovery(), authenticate(uc)),
-		kgrpc.Logger(logger),
+		kgrpc.Middleware(recovery.Recovery(recovery.WithLogger(logger)), authenticate(uc)),
+		kgrpc.StreamMiddleware(recovery.Recovery(recovery.WithLogger(logger)), authenticate(uc)),
 	}
 	if c.Grpc.Network != "" {
 		opts = append(opts, kgrpc.Network(c.Grpc.Network))
@@ -70,6 +71,7 @@ func NewGRPCServer(
 	v1.RegisterMetricQueryServiceServer(srv, queries)
 	v1.RegisterAlertRuleServiceServer(srv, rules)
 	v1.RegisterAlertLevelServiceServer(srv, levels)
+	v1.RegisterAlertPageServiceServer(srv, alertPages)
 	v1.RegisterAlertEventServiceServer(srv, events)
 	v1.RegisterNotificationChannelServiceServer(srv, channels)
 	v1.RegisterNotificationTemplateServiceServer(srv, templates)

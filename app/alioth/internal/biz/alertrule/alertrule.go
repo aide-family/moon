@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/page"
 	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
+	labelsutil "github.com/aide-family/Alioth/pkg/labels"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -143,17 +144,14 @@ func (uc *Usecase) prepare(ctx context.Context, namespaceUID string, in *bo.Aler
 	if strings.TrimSpace(in.Labels) != "" && !json.Valid([]byte(in.Labels)) {
 		return merr.Invalid("invalid request")
 	}
+	dsLabels, err := labelsutil.NormalizeObject(in.DatasourceLabels)
+	if err != nil {
+		return err
+	}
+	in.DatasourceLabels = dsLabels
+	in.DatasourceUID = ""
 	if _, err := uc.rules.GetAlertRuleGroup(ctx, namespaceUID, in.GroupUID); err != nil {
 		return uc.access.Wrap(err)
-	}
-	if in.DatasourceUID != "" {
-		item, err := uc.datasources.GetDatasource(ctx, namespaceUID, in.DatasourceUID)
-		if err != nil {
-			return uc.access.Wrap(err)
-		}
-		if item.Type != in.Type {
-			return merr.Invalid("invalid request")
-		}
 	}
 	for _, level := range in.Levels {
 		item, err := uc.levels.GetAlertLevel(ctx, namespaceUID, level.LevelUID)

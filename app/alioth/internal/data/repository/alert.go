@@ -15,6 +15,7 @@ type DatasourceRepo interface {
 	DeleteDatasource(ctx context.Context, namespaceUID, uid string) error
 	GetDatasource(ctx context.Context, namespaceUID, uid string) (*bo.Datasource, error)
 	ListDatasources(ctx context.Context, namespaceUID string, page, pageSize int, name, kind string) ([]bo.Datasource, int, error)
+	ListDatasourcesByMatchers(ctx context.Context, namespaceUID, kind, matchersJSON string) ([]bo.Datasource, error)
 	SelectDatasources(ctx context.Context, namespaceUID string, limit int, lastUID, kind string) ([]bo.SelectItem, error)
 	DatasourceStatus(ctx context.Context, item bo.Datasource) (string, error)
 	ListMetrics(ctx context.Context, item bo.Datasource) ([]string, error)
@@ -52,14 +53,17 @@ type AlertRuleRepo interface {
 	ScheduleDue(ctx context.Context, now, next time.Time) error
 	ListScheduled(ctx context.Context) ([]bo.AlertRule, error)
 	GetAlertRuleByUID(ctx context.Context, uid string) (*bo.AlertRule, error)
+	ClearScheduledSlot(ctx context.Context, ruleUID string, slot time.Time) error
 }
 
 // AlertEventRepo 读写告警事件、当前 FIRING 占位和评测批次。
 type AlertEventRepo interface {
 	ApplyReport(ctx context.Context, rule bo.AlertRule, report bo.EvalReport) error
-	HasBatch(ctx context.Context, ruleUID string, slot time.Time) (bool, error)
-	ListFiringFingerprints(ctx context.Context, namespaceUID, ruleUID string) ([]string, error)
-	ListEvents(ctx context.Context, namespaceUID, view, name string, page, pageSize int) ([]bo.AlertEvent, int, error)
+	HasBatch(ctx context.Context, ruleUID, datasourceUID string, slot time.Time) (bool, error)
+	ListFiringFingerprints(ctx context.Context, namespaceUID, ruleUID, datasourceUID string) ([]string, error)
+	AllBatchesRecorded(ctx context.Context, ruleUID string, datasourceUIDs []string, slot time.Time) (bool, error)
+	ListEvents(ctx context.Context, namespaceUID string, filter bo.AlertEventListFilter, page, pageSize int) ([]bo.AlertEvent, int, error)
+	ListRuleUIDsForReceivers(ctx context.Context, namespaceUID string, tokens []string) ([]string, error)
 	GetEvent(ctx context.Context, namespaceUID, uid string) (*bo.AlertEvent, error)
 	Intervene(ctx context.Context, namespaceUID string, uids []string, userUID string) error
 	Suppress(ctx context.Context, namespaceUID, uid string) error

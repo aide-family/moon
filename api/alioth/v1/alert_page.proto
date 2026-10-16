@@ -1,0 +1,179 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
+
+// 实时告警页面的定义与个人 Tab 订阅。
+service AlertPageService {
+  // 创建告警页面。
+  rpc CreateAlertPage(CreateAlertPageRequest) returns (CreateAlertPageResponse) {
+    option (google.api.http) = {
+      post: "/v1/alert-page"
+      body: "*"
+    };
+  }
+  // 更新告警页面。
+  rpc UpdateAlertPage(UpdateAlertPageRequest) returns (UpdateAlertPageResponse) {
+    option (google.api.http) = {
+      put: "/v1/alert-page/{uid}"
+      body: "*"
+    };
+  }
+  // 删除告警页面。
+  rpc DeleteAlertPage(DeleteAlertPageRequest) returns (DeleteAlertPageResponse) {
+    option (google.api.http) = {delete: "/v1/alert-page/{uid}"};
+  }
+  // 获取告警页面。
+  rpc GetAlertPage(GetAlertPageRequest) returns (GetAlertPageResponse) {
+    option (google.api.http) = {get: "/v1/alert-page/{uid}"};
+  }
+  // 分页列出告警页面。scope 为 manage 或 selectable。
+  rpc ListAlertPages(ListAlertPagesRequest) returns (ListAlertPagesResponse) {
+    option (google.api.http) = {get: "/v1/alert-pages"};
+  }
+  // 列出当前用户实时告警 Tab（含固定的我的告警）。
+  rpc ListMyRealtimeTabs(ListMyRealtimeTabsRequest) returns (ListMyRealtimeTabsResponse) {
+    option (google.api.http) = {get: "/v1/alert-pages/my-tabs"};
+  }
+  // 设置当前用户要显示的告警页面 Tab。
+  rpc SetMyRealtimeTabs(SetMyRealtimeTabsRequest) returns (SetMyRealtimeTabsResponse) {
+    option (google.api.http) = {
+      put: "/v1/alert-pages/my-tabs"
+      body: "*"
+    };
+  }
+}
+
+// 告警页面。
+message AlertPageItem {
+  // 标识。
+  string uid = 1;
+  // 名称。
+  string name = 2;
+  // 创建者用户标识。
+  string owner_uid = 3 [json_name = "ownerUid"];
+  // 标签匹配 JSON 对象，例如 {"env":"prod"}。
+  string labels = 4;
+  // 是否公开。公开后同租户其他人可选用。
+  bool public = 5;
+  // 备注。
+  string remark = 6;
+}
+
+// 实时告警 Tab。
+message RealtimeAlertTab {
+  // Tab 标识。我的告警固定为 mine，其余为告警页面 uid。
+  string id = 1;
+  // 展示名称。
+  string name = 2;
+  // 类型，取值为 mine 或 page。
+  string kind = 3;
+}
+
+// 创建告警页面。
+message CreateAlertPageRequest {
+  // 名称。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 标签匹配 JSON 对象。
+  string labels = 2 [(buf.validate.field).string.max_len = 4096];
+  // 是否公开。
+  bool public = 3;
+  // 备注。
+  string remark = 4 [(buf.validate.field).string.max_len = 256];
+}
+
+// 创建结果。
+message CreateAlertPageResponse {
+  // 页面。
+  AlertPageItem page = 1;
+}
+
+// 更新告警页面。
+message UpdateAlertPageRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 标签匹配 JSON 对象。
+  string labels = 3 [(buf.validate.field).string.max_len = 4096];
+  // 是否公开。
+  bool public = 4;
+  // 备注。
+  string remark = 5 [(buf.validate.field).string.max_len = 256];
+}
+
+// 更新结果。
+message UpdateAlertPageResponse {
+  // 页面。
+  AlertPageItem page = 1;
+}
+
+// 删除告警页面。
+message DeleteAlertPageRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 删除结果。
+message DeleteAlertPageResponse {}
+
+// 获取告警页面。
+message GetAlertPageRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 详情。
+message GetAlertPageResponse {
+  // 页面。
+  AlertPageItem page = 1;
+}
+
+// 分页列出告警页面。
+message ListAlertPagesRequest {
+  // 页码，从 1 开始。
+  int32 page = 1 [(buf.validate.field).int32 = {gte: 0}];
+  // 每页条数，最大 100。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 按名称过滤。
+  string name = 3;
+  // 范围：manage 为自己创建的；selectable 为自己的加公开的。空值视为 manage。
+  string scope = 4;
+}
+
+// 列表结果。
+message ListAlertPagesResponse {
+  // 页面。
+  repeated AlertPageItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 列出实时 Tab 不需要参数。
+message ListMyRealtimeTabsRequest {}
+
+// 当前用户的实时 Tab。
+message ListMyRealtimeTabsResponse {
+  // Tab 列表，首项固定为我的告警。
+  repeated RealtimeAlertTab tabs = 1;
+}
+
+// 设置要显示的告警页面。
+message SetMyRealtimeTabsRequest {
+  // 要显示的告警页面标识列表。不含 mine。
+  repeated string alert_page_uids = 1 [json_name = "alertPageUids"];
+}
+
+// 设置结果。
+message SetMyRealtimeTabsResponse {
+  // 更新后的 Tab 列表。
+  repeated RealtimeAlertTab tabs = 1;
+}

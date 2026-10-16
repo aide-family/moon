@@ -8,6 +8,7 @@ import {
   Gauge,
   History,
   Languages,
+  LayoutList,
   Mail,
   MessageSquare,
   Moon,
@@ -135,6 +136,12 @@ const alertLinks: {
     permission: "alert_rule:read",
     icon: Gauge,
   },
+  {
+    to: "/alert-pages",
+    label: "nav.alertPages",
+    permission: "alert:read",
+    icon: LayoutList,
+  },
 ]
 
 const notifyLinks: {
@@ -230,7 +237,11 @@ function NavGroup({
     >
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
-          <SidebarMenuButton tooltip={t(label)} isActive={active}>
+          <SidebarMenuButton
+            tooltip={t(label)}
+            isActive={active}
+            className="border-l-2 border-transparent data-active:border-primary"
+          >
             <Icon />
             <span>{t(label)}</span>
             <ChevronRight className="ml-auto transition-transform group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-90" />
@@ -245,6 +256,7 @@ function NavGroup({
                   <SidebarMenuSubButton
                     asChild
                     isActive={location.pathname === link.to}
+                    className="border-l-2 border-transparent data-active:border-primary"
                   >
                     <NavLink to={link.to}>
                       <LinkIcon />
@@ -339,7 +351,7 @@ function ShellFrame() {
   return (
     <TooltipProvider>
       <SidebarProvider className="h-svh">
-        <Sidebar collapsible="icon">
+        <Sidebar collapsible="icon" variant="inset">
           <SidebarHeader>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -348,7 +360,7 @@ function ShellFrame() {
                     <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
                       A
                     </span>
-                    <span className="font-semibold">Alioth</span>
+                    <span className="font-heading font-semibold">Alioth</span>
                   </div>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -396,8 +408,8 @@ function ShellFrame() {
           </SidebarContent>
           <SidebarRail />
         </Sidebar>
-        <SidebarInset className="min-h-0">
-          <header className="flex h-14 items-center gap-2 border-b px-4">
+        <SidebarInset className="min-h-0 bg-transparent">
+          <header className="flex h-12 items-center gap-2 border-b border-border/60 bg-background/80 px-4 backdrop-blur-sm">
             <SidebarTrigger />
             <div className="ml-auto flex min-w-0 items-center gap-2 overflow-x-auto">
               {session.namespaces.length > 0 ? (
@@ -493,7 +505,7 @@ function ShellFrame() {
               </DropdownMenu>
             </div>
           </header>
-          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-hidden p-4 md:p-6">
+          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-hidden bg-transparent p-4 md:p-6">
             {session.loading ? (
               <p className="text-sm text-muted-foreground">
                 {t("state.loading")}

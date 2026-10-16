@@ -45,6 +45,8 @@ type Datasource struct {
 	Status datasource.Status `json:"status,omitempty"`
 	// LevelUID holds the value of the "level_uid" field.
 	LevelUID string `json:"level_uid,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels string `json:"labels,omitempty"`
 	// Remark holds the value of the "remark" field.
 	Remark       string `json:"remark,omitempty"`
 	selectValues sql.SelectValues
@@ -57,7 +59,7 @@ func (*Datasource) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case datasource.FieldID:
 			values[i] = new(sql.NullInt64)
-		case datasource.FieldUID, datasource.FieldNamespaceUID, datasource.FieldName, datasource.FieldType, datasource.FieldDriver, datasource.FieldEndpoint, datasource.FieldUsername, datasource.FieldPasswordCipher, datasource.FieldSecretCipher, datasource.FieldStatus, datasource.FieldLevelUID, datasource.FieldRemark:
+		case datasource.FieldUID, datasource.FieldNamespaceUID, datasource.FieldName, datasource.FieldType, datasource.FieldDriver, datasource.FieldEndpoint, datasource.FieldUsername, datasource.FieldPasswordCipher, datasource.FieldSecretCipher, datasource.FieldStatus, datasource.FieldLevelUID, datasource.FieldLabels, datasource.FieldRemark:
 			values[i] = new(sql.NullString)
 		case datasource.FieldCreatedAt, datasource.FieldUpdatedAt, datasource.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -167,6 +169,12 @@ func (_m *Datasource) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.LevelUID = value.String
 			}
+		case datasource.FieldLabels:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field labels", values[i])
+			} else if value.Valid {
+				_m.Labels = value.String
+			}
 		case datasource.FieldRemark:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field remark", values[i])
@@ -250,6 +258,9 @@ func (_m *Datasource) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("level_uid=")
 	builder.WriteString(_m.LevelUID)
+	builder.WriteString(", ")
+	builder.WriteString("labels=")
+	builder.WriteString(_m.Labels)
 	builder.WriteString(", ")
 	builder.WriteString("remark=")
 	builder.WriteString(_m.Remark)

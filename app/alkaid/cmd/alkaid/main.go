@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 
-	"github.com/go-kratos/kratos/v2"
-	"github.com/go-kratos/kratos/v2/config"
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/transport"
-	"github.com/go-kratos/kratos/v2/transport/grpc"
-	"github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/go-kratos/kratos/v3"
+	"github.com/go-kratos/kratos/v3/config"
+	"github.com/go-kratos/kratos/v3/log"
+	"github.com/go-kratos/kratos/v3/transport"
+	"github.com/go-kratos/kratos/v3/transport/grpc"
+	"github.com/go-kratos/kratos/v3/transport/http"
 	"github.com/spf13/cobra"
 
 	agentbiz "github.com/aide-family/Alioth/app/alkaid/internal/biz/agent"
@@ -47,7 +48,11 @@ func serve(confPath string) error {
 	if err != nil {
 		return err
 	}
-	logger := log.With(log.NewStdLogger(os.Stdout), "ts", log.DefaultTimestamp, "caller", log.DefaultCaller, "service", "alkaid")
+	logger := log.NewLogger(log.NewHandler(
+		log.WithWriter(os.Stdout),
+		log.WithFormat(log.FormatJSON),
+		log.WithAddSource(true),
+	)).With(slog.String("service", "alkaid"))
 	app, cleanup, err := wireApp(bc.Server, bc.Alioth, logger)
 	if err != nil {
 		return err
@@ -60,19 +65,19 @@ func loadConfig(path string) (*conf.Bootstrap, error) {
 	c := config.New(config.WithSource(bootstrap.NewSource(path)))
 	defer c.Close()
 	if err := c.Load(); err != nil {
-		log.NewHelper(log.DefaultLogger).Errorf("config: %v", err)
+		slog.Default().Error(fmt.Sprintf("config: %v", err))
 		return nil, merr.Server("config load failed")
 	}
 	var bc conf.Bootstrap
 	if err := c.Scan(&bc); err != nil {
-		log.NewHelper(log.DefaultLogger).Errorf("config: %v", err)
+		slog.Default().Error(fmt.Sprintf("config: %v", err))
 		return nil, merr.Server("config load failed")
 	}
 	return &bc, nil
 }
 
-func newApp(logger log.Logger, hs *http.Server, gs *grpc.Server, connector *agentbiz.Connector, d *data.Data) *kratos.App {
-	log.NewHelper(logger).Infof("alioth grpc endpoint configured: %s", d.AliothGRPC)
+func newApp(logger *slog.Logger, hs *http.Server, gs *grpc.Server, connector *agentbiz.Connector, d *data.Data) *kratos.App {
+	logger.Info(fmt.Sprintf("alioth grpc endpoint configured: %s", d.AliothGRPC))
 	servers := []transport.Server{hs, gs}
 	if connector != nil {
 		servers = append(servers, connector)

@@ -5,14 +5,15 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
@@ -34,14 +35,14 @@ type Connector struct {
 	addr      string
 	token     string
 	heartbeat time.Duration
-	log       *log.Helper
+	log       *slog.Logger
 	cancel    context.CancelFunc
 	done      chan struct{}
 }
 
-func NewConnector(d *data.Data, logger log.Logger) (*Connector, error) {
+func NewConnector(d *data.Data, logger *slog.Logger) (*Connector, error) {
 	if d.AgentToken == "" {
-		log.NewHelper(logger).Warn("agent token is empty; outbound stream disabled")
+		logger.Warn("agent token is empty; outbound stream disabled")
 	}
 	interval := d.Heartbeat
 	if interval <= 0 {
@@ -49,7 +50,7 @@ func NewConnector(d *data.Data, logger log.Logger) (*Connector, error) {
 	}
 	return &Connector{
 		addr: d.AliothGRPC, token: d.AgentToken, heartbeat: interval,
-		log: log.NewHelper(logger), done: make(chan struct{}),
+		log: logger, done: make(chan struct{}),
 	}, nil
 }
 
@@ -85,7 +86,7 @@ func (c *Connector) loop(ctx context.Context) {
 		if ctx.Err() != nil {
 			return
 		}
-		c.log.Warnf("agent stream closed: %v; retry in %s", err, backoff)
+		c.log.Warn(fmt.Sprintf("agent stream closed: %v; retry in %s", err, backoff))
 		timer := time.NewTimer(backoff)
 		select {
 		case <-ctx.Done():

@@ -55,8 +55,8 @@ export function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-svh items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-sm">
+    <main className="flex min-h-svh items-center justify-center p-4">
+      <Card className="glass-card w-full max-w-sm border-0 shadow-none">
         <CardHeader>
           <CardTitle>{t("login.title")}</CardTitle>
         </CardHeader>

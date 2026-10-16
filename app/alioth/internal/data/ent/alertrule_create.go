@@ -154,6 +154,20 @@ func (_c *AlertRuleCreate) SetNillableDatasourceUID(v *string) *AlertRuleCreate 
 	return _c
 }
 
+// SetDatasourceLabels sets the "datasource_labels" field.
+func (_c *AlertRuleCreate) SetDatasourceLabels(v string) *AlertRuleCreate {
+	_c.mutation.SetDatasourceLabels(v)
+	return _c
+}
+
+// SetNillableDatasourceLabels sets the "datasource_labels" field if the given value is not nil.
+func (_c *AlertRuleCreate) SetNillableDatasourceLabels(v *string) *AlertRuleCreate {
+	if v != nil {
+		_c.SetDatasourceLabels(*v)
+	}
+	return _c
+}
+
 // SetSummary sets the "summary" field.
 func (_c *AlertRuleCreate) SetSummary(v string) *AlertRuleCreate {
 	_c.mutation.SetSummary(v)
@@ -269,6 +283,10 @@ func (_c *AlertRuleCreate) defaults() {
 		v := alertrule.DefaultDatasourceUID
 		_c.mutation.SetDatasourceUID(v)
 	}
+	if _, ok := _c.mutation.DatasourceLabels(); !ok {
+		v := alertrule.DefaultDatasourceLabels
+		_c.mutation.SetDatasourceLabels(v)
+	}
 	if _, ok := _c.mutation.Summary(); !ok {
 		v := alertrule.DefaultSummary
 		_c.mutation.SetSummary(v)
@@ -351,6 +369,9 @@ func (_c *AlertRuleCreate) check() error {
 	}
 	if _, ok := _c.mutation.DatasourceUID(); !ok {
 		return &ValidationError{Name: "datasource_uid", err: errors.New(`ent: missing required field "AlertRule.datasource_uid"`)}
+	}
+	if _, ok := _c.mutation.DatasourceLabels(); !ok {
+		return &ValidationError{Name: "datasource_labels", err: errors.New(`ent: missing required field "AlertRule.datasource_labels"`)}
 	}
 	if _, ok := _c.mutation.Summary(); !ok {
 		return &ValidationError{Name: "summary", err: errors.New(`ent: missing required field "AlertRule.summary"`)}
@@ -435,6 +456,10 @@ func (_c *AlertRuleCreate) createSpec() (*AlertRule, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.DatasourceUID(); ok {
 		_spec.SetField(alertrule.FieldDatasourceUID, field.TypeString, value)
 		_node.DatasourceUID = value
+	}
+	if value, ok := _c.mutation.DatasourceLabels(); ok {
+		_spec.SetField(alertrule.FieldDatasourceLabels, field.TypeString, value)
+		_node.DatasourceLabels = value
 	}
 	if value, ok := _c.mutation.Summary(); ok {
 		_spec.SetField(alertrule.FieldSummary, field.TypeString, value)

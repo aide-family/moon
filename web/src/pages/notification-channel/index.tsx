@@ -42,6 +42,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
+import { firstError, requireTrimmed } from "@/lib/form"
 import { useListQuery } from "@/lib/list-query"
 
 const types = ["SMTP", "WEBHOOK"]
@@ -154,10 +155,30 @@ export function NotificationChannelPage() {
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
+    const invalid = firstError(
+      requireTrimmed(name, t("form.required")),
+      requireTrimmed(type, t("form.required")),
+      requireTrimmed(app, t("form.required")),
+      requireTrimmed(endpoint, t("form.required")),
+    )
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
-      const body = { name, type, app, endpoint, username, password, secret, fromAddress, remark }
+      const body = {
+        name: name.trim(),
+        type,
+        app,
+        endpoint: endpoint.trim(),
+        username,
+        password,
+        secret,
+        fromAddress,
+        remark,
+      }
       if (editing) {
         await updateNotificationChannel({ ...body, uid: editing.uid })
       } else {
@@ -177,10 +198,15 @@ export function NotificationChannelPage() {
     if (!testing) {
       return
     }
+    const invalid = requireTrimmed(receivers, t("form.required"))
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
-      await testNotificationChannel(testing.uid, { receivers, subject, body })
+      await testNotificationChannel(testing.uid, { receivers: receivers.trim(), subject, body })
       setTestOpen(false)
       setAttempt((value) => value + 1)
     } catch (err) {
@@ -290,18 +316,18 @@ export function NotificationChannelPage() {
         ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={onSave}>
+          <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
             <FormField label={t("channel.name")} htmlFor="channel-name">
-              <Input id="channel-name" value={name} onChange={(event) => setName(event.target.value)} />
+              <Input id="channel-name" value={name} placeholder={t("channel.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
             <FormField label={t("channel.type")}>
               <Select value={type} onValueChange={setType}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={t("channel.typePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {types.map((item) => (
@@ -315,7 +341,7 @@ export function NotificationChannelPage() {
             <FormField label={t("channel.app")}>
               <Select value={app} onValueChange={setApp}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={t("channel.appPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {apps.map((item) => (
@@ -326,26 +352,26 @@ export function NotificationChannelPage() {
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label={t("channel.endpoint")} htmlFor="channel-endpoint">
-              <Input id="channel-endpoint" value={endpoint} placeholder={t("channel.endpointPlaceholder")} onChange={(event) => setEndpoint(event.target.value)} />
+            <FormField label={t("channel.endpoint")} htmlFor="channel-endpoint" className="sm:col-span-full">
+              <Input id="channel-endpoint" value={endpoint} placeholder={t("channel.endpointPlaceholder")} onChange={(event) => setEndpoint(event.target.value)} required />
             </FormField>
             <FormField label={t("channel.username")} htmlFor="channel-username">
-              <Input id="channel-username" value={username} onChange={(event) => setUsername(event.target.value)} />
+              <Input id="channel-username" value={username} placeholder={t("channel.usernamePlaceholder")} onChange={(event) => setUsername(event.target.value)} />
             </FormField>
             <FormField label={t("channel.password")} htmlFor="channel-password">
-              <Input id="channel-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
+              <Input id="channel-password" type="password" value={password} placeholder={t("channel.passwordPlaceholder")} onChange={(event) => setPassword(event.target.value)} />
             </FormField>
             <FormField label={t("channel.secret")} htmlFor="channel-secret">
-              <Input id="channel-secret" type="password" value={secret} onChange={(event) => setSecret(event.target.value)} />
+              <Input id="channel-secret" type="password" value={secret} placeholder={t("channel.secretPlaceholder")} onChange={(event) => setSecret(event.target.value)} />
             </FormField>
             <FormField label={t("channel.fromAddress")} htmlFor="channel-from">
-              <Input id="channel-from" value={fromAddress} onChange={(event) => setFromAddress(event.target.value)} />
+              <Input id="channel-from" value={fromAddress} placeholder={t("channel.fromAddressPlaceholder")} onChange={(event) => setFromAddress(event.target.value)} />
             </FormField>
-            <FormField label={t("channel.remark")} htmlFor="channel-remark">
-              <Input id="channel-remark" value={remark} onChange={(event) => setRemark(event.target.value)} />
+            <FormField label={t("channel.remark")} htmlFor="channel-remark" className="sm:col-span-full">
+              <Input id="channel-remark" value={remark} placeholder={t("channel.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
             </FormField>
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <DialogFooter>
+            {error ? <p className="sm:col-span-full text-sm text-destructive">{error}</p> : null}
+            <DialogFooter className="sm:col-span-full">
               <Button type="submit" disabled={pending}>
                 {t("action.save")}
               </Button>
@@ -360,13 +386,13 @@ export function NotificationChannelPage() {
           </DialogHeader>
           <form className="grid gap-4" onSubmit={onTest}>
             <FormField label={t("channel.testReceivers")} htmlFor="test-receivers">
-              <Input id="test-receivers" value={receivers} onChange={(event) => setReceivers(event.target.value)} />
+              <Input id="test-receivers" value={receivers} placeholder={t("channel.testReceiversPlaceholder")} onChange={(event) => setReceivers(event.target.value)} required />
             </FormField>
             <FormField label={t("channel.testSubject")} htmlFor="test-subject">
-              <Input id="test-subject" value={subject} onChange={(event) => setSubject(event.target.value)} />
+              <Input id="test-subject" value={subject} placeholder={t("channel.testSubjectPlaceholder")} onChange={(event) => setSubject(event.target.value)} />
             </FormField>
             <FormField label={t("channel.testBody")} htmlFor="test-body">
-              <Textarea id="test-body" value={body} onChange={(event) => setBody(event.target.value)} />
+              <Textarea id="test-body" value={body} placeholder={t("channel.testBodyPlaceholder")} onChange={(event) => setBody(event.target.value)} />
             </FormField>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>

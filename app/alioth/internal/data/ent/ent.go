@@ -17,6 +17,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertlevel"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
@@ -40,6 +41,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommandaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useralertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useroauth"
 )
 
@@ -106,6 +108,7 @@ func checkColumn(t, c string) error {
 			alertevent.Table:                 alertevent.ValidColumn,
 			alerteventfiring.Table:           alerteventfiring.ValidColumn,
 			alertlevel.Table:                 alertlevel.ValidColumn,
+			alertpage.Table:                  alertpage.ValidColumn,
 			alertrule.Table:                  alertrule.ValidColumn,
 			alertrulegroup.Table:             alertrulegroup.ValidColumn,
 			alertrulelevel.Table:             alertrulelevel.ValidColumn,
@@ -129,6 +132,7 @@ func checkColumn(t, c string) error {
 			sshcommand.Table:                 sshcommand.ValidColumn,
 			sshcommandaudit.Table:            sshcommandaudit.ValidColumn,
 			user.Table:                       user.ValidColumn,
+			useralertpage.Table:              useralertpage.ValidColumn,
 			useroauth.Table:                  useroauth.ValidColumn,
 		})
 	})

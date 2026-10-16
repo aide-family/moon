@@ -109,6 +109,11 @@ func LevelUID(v string) predicate.Datasource {
 	return predicate.Datasource(sql.FieldEQ(FieldLevelUID, v))
 }
 
+// Labels applies equality check predicate on the "labels" field. It's identical to LabelsEQ.
+func Labels(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldEQ(FieldLabels, v))
+}
+
 // Remark applies equality check predicate on the "remark" field. It's identical to RemarkEQ.
 func Remark(v string) predicate.Datasource {
 	return predicate.Datasource(sql.FieldEQ(FieldRemark, v))
@@ -822,6 +827,71 @@ func LevelUIDEqualFold(v string) predicate.Datasource {
 // LevelUIDContainsFold applies the ContainsFold predicate on the "level_uid" field.
 func LevelUIDContainsFold(v string) predicate.Datasource {
 	return predicate.Datasource(sql.FieldContainsFold(FieldLevelUID, v))
+}
+
+// LabelsEQ applies the EQ predicate on the "labels" field.
+func LabelsEQ(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldEQ(FieldLabels, v))
+}
+
+// LabelsNEQ applies the NEQ predicate on the "labels" field.
+func LabelsNEQ(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldNEQ(FieldLabels, v))
+}
+
+// LabelsIn applies the In predicate on the "labels" field.
+func LabelsIn(vs ...string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldIn(FieldLabels, vs...))
+}
+
+// LabelsNotIn applies the NotIn predicate on the "labels" field.
+func LabelsNotIn(vs ...string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldNotIn(FieldLabels, vs...))
+}
+
+// LabelsGT applies the GT predicate on the "labels" field.
+func LabelsGT(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldGT(FieldLabels, v))
+}
+
+// LabelsGTE applies the GTE predicate on the "labels" field.
+func LabelsGTE(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldGTE(FieldLabels, v))
+}
+
+// LabelsLT applies the LT predicate on the "labels" field.
+func LabelsLT(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldLT(FieldLabels, v))
+}
+
+// LabelsLTE applies the LTE predicate on the "labels" field.
+func LabelsLTE(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldLTE(FieldLabels, v))
+}
+
+// LabelsContains applies the Contains predicate on the "labels" field.
+func LabelsContains(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldContains(FieldLabels, v))
+}
+
+// LabelsHasPrefix applies the HasPrefix predicate on the "labels" field.
+func LabelsHasPrefix(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldHasPrefix(FieldLabels, v))
+}
+
+// LabelsHasSuffix applies the HasSuffix predicate on the "labels" field.
+func LabelsHasSuffix(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldHasSuffix(FieldLabels, v))
+}
+
+// LabelsEqualFold applies the EqualFold predicate on the "labels" field.
+func LabelsEqualFold(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldEqualFold(FieldLabels, v))
+}
+
+// LabelsContainsFold applies the ContainsFold predicate on the "labels" field.
+func LabelsContainsFold(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldContainsFold(FieldLabels, v))
 }
 
 // RemarkEQ applies the EQ predicate on the "remark" field.

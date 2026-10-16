@@ -142,7 +142,8 @@ func (r *alertRuleRepo) CreateAlertRule(ctx context.Context, in bo.AlertRule) (*
 		SetStatus(alertrule.StatusACTIVE).
 		SetExpr(in.Expr).
 		SetLabels(in.Labels).
-		SetDatasourceUID(in.DatasourceUID).
+		SetDatasourceUID("").
+		SetDatasourceLabels(in.DatasourceLabels).
 		SetSummary(in.Summary).
 		SetDescription(in.Description).
 		Save(ctx)
@@ -185,7 +186,8 @@ func (r *alertRuleRepo) UpdateAlertRule(ctx context.Context, in bo.AlertRule) (*
 		SetDriver(driver).
 		SetExpr(in.Expr).
 		SetLabels(in.Labels).
-		SetDatasourceUID(in.DatasourceUID).
+		SetDatasourceUID("").
+		SetDatasourceLabels(in.DatasourceLabels).
 		SetSummary(in.Summary).
 		SetDescription(in.Description).
 		Save(ctx)
@@ -351,6 +353,17 @@ func (r *alertRuleRepo) GetAlertRuleByUID(ctx context.Context, uid string) (*bo.
 	return &items[0], nil
 }
 
+func (r *alertRuleRepo) ClearScheduledSlot(ctx context.Context, ruleUID string, slot time.Time) error {
+	_, err := r.client.AlertRule.Update().Where(
+		alertrule.UIDEQ(ruleUID),
+		alertrule.ScheduledSlotEQ(slot),
+	).ClearScheduledSlot().Save(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	return nil
+}
+
 func (r *alertRuleRepo) dueRules(ctx context.Context, now time.Time) ([]*ent.AlertRule, error) {
 	rows, err := r.client.AlertRule.Query().Where(
 		alertrule.DeletedAtIsNil(),
@@ -487,7 +500,7 @@ func toRule(row *ent.AlertRule, levels []bo.AlertRuleLevel, groupUIDs []string) 
 	return bo.AlertRule{
 		UID: row.UID, NamespaceUID: row.NamespaceUID, GroupUID: row.GroupUID, Name: row.Name,
 		Type: string(row.Type), Driver: string(row.Driver), Status: string(row.Status),
-		Expr: row.Expr, Labels: row.Labels, DatasourceUID: row.DatasourceUID,
+		Expr: row.Expr, Labels: row.Labels, DatasourceUID: row.DatasourceUID, DatasourceLabels: row.DatasourceLabels,
 		Summary: row.Summary, Description: row.Description, NextEvalAt: row.NextEvalAt,
 		ScheduledSlot: row.ScheduledSlot, Levels: levels, NotificationGroupUIDs: groupUIDs,
 	}

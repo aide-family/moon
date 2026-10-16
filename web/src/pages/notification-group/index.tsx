@@ -43,6 +43,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { firstError, requireSelected, requireTrimmed } from "@/lib/form"
 import { useListQuery } from "@/lib/list-query"
 
 export function NotificationGroupPage() {
@@ -134,10 +135,19 @@ export function NotificationGroupPage() {
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
+    const invalid = firstError(
+      requireTrimmed(name, t("form.required")),
+      requireSelected(channelUid, t("form.required")),
+      requireSelected(templateUid, t("form.required")),
+    )
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
-      const payload = { name, channelUid, templateUid, receivers, remark }
+      const payload = { name: name.trim(), channelUid, templateUid, receivers, remark }
       if (editing) {
         await updateNotificationGroup({ ...payload, uid: editing.uid })
       } else {
@@ -247,21 +257,21 @@ export function NotificationGroupPage() {
         ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={onSave}>
+          <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
             <FormField label={t("group.name")} htmlFor="group-name">
-              <Input id="group-name" value={name} onChange={(event) => setName(event.target.value)} />
+              <Input id="group-name" value={name} placeholder={t("group.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
             <FormField label={t("group.channel")}>
               <Select value={channelUid || "NONE"} onValueChange={(value) => setChannelUid(value === "NONE" ? "" : value)}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={t("group.channelPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectOption value="NONE">{t("group.channel")}</SelectOption>
+                  <SelectOption value="NONE">{t("group.channelPlaceholder")}</SelectOption>
                   {channels.map((item) => (
                     <SelectOption key={item.uid} value={item.uid}>
                       {item.name}
@@ -273,10 +283,10 @@ export function NotificationGroupPage() {
             <FormField label={t("group.template")}>
               <Select value={templateUid || "NONE"} onValueChange={(value) => setTemplateUid(value === "NONE" ? "" : value)}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={t("group.templatePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectOption value="NONE">{t("group.template")}</SelectOption>
+                  <SelectOption value="NONE">{t("group.templatePlaceholder")}</SelectOption>
                   {templates.map((item) => (
                     <SelectOption key={item.uid} value={item.uid}>
                       {item.name}
@@ -286,13 +296,13 @@ export function NotificationGroupPage() {
               </Select>
             </FormField>
             <FormField label={t("group.receivers")} htmlFor="group-receivers">
-              <Input id="group-receivers" value={receivers} onChange={(event) => setReceivers(event.target.value)} />
+              <Input id="group-receivers" value={receivers} placeholder={t("group.receiversPlaceholder")} onChange={(event) => setReceivers(event.target.value)} />
             </FormField>
-            <FormField label={t("group.remark")} htmlFor="group-remark">
-              <Input id="group-remark" value={remark} onChange={(event) => setRemark(event.target.value)} />
+            <FormField label={t("group.remark")} htmlFor="group-remark" className="sm:col-span-full">
+              <Input id="group-remark" value={remark} placeholder={t("group.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
             </FormField>
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <DialogFooter>
+            {error ? <p className="sm:col-span-full text-sm text-destructive">{error}</p> : null}
+            <DialogFooter className="sm:col-span-full">
               <Button type="submit" disabled={pending}>
                 {t("action.save")}
               </Button>

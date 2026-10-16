@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/agenthub"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertlevel"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/datasource"
@@ -28,13 +29,13 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data"
 	"github.com/aide-family/Alioth/app/alioth/internal/server"
 	"github.com/aide-family/Alioth/app/alioth/internal/service"
-	"github.com/go-kratos/kratos/v2"
-	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v3"
+	"log/slog"
 )
 
 // Injectors from wire.go:
 
-func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, logger log.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, logger *slog.Logger) (*kratos.App, func(), error) {
 	usecase := health.NewUsecase()
 	healthService := service.NewHealthService(usecase)
 	dataData, cleanup, err := data.NewData(confData, confAuth, logger)
@@ -78,13 +79,16 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	alertRuleService := service.NewAlertRuleService(alertruleUsecase)
 	alertlevelUsecase := alertlevel.NewUsecase(alertLevelRepo, checker)
 	alertLevelService := service.NewAlertLevelService(alertlevelUsecase)
+	alertPageRepo := data.NewAlertPageRepo(dataData, logger)
+	alertpageUsecase := alertpage.NewUsecase(alertPageRepo, checker)
+	alertPageService := service.NewAlertPageService(alertpageUsecase)
 	alertEventRepo := data.NewAlertEventRepo(dataData, logger)
 	client, cleanup2, err := data.NewLock(confData, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	alerteventUsecase := alertevent.NewUsecase(alertRuleRepo, alertEventRepo, datasourceRepo, client, checker, logger)
+	alerteventUsecase := alertevent.NewUsecase(alertRuleRepo, alertEventRepo, alertPageRepo, userRepo, datasourceRepo, client, checker, logger)
 	alertEventService := service.NewAlertEventService(alerteventUsecase)
 	notificationRepo := data.NewNotificationRepo(dataData, logger)
 	notificationUsecase := notification.NewUsecase(notificationRepo, checker)
@@ -101,7 +105,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	sftpService := service.NewSFTPService(sftpUsecase)
 	k8sproxyUsecase := k8sproxy.NewUsecase(edgeAuditRepo, agentRepo, hub, checker)
 	k8sProxyService := service.NewK8sProxyService(k8sproxyUsecase)
-	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertLevelService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, messageLogService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
+	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertLevelService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, messageLogService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()
@@ -109,7 +113,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	}
 	evalService := service.NewEvalService(alerteventUsecase)
 	notifyService := service.NewNotifyService(notificationUsecase)
-	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertLevelService, alertEventService, evalService, notificationChannelService, notificationTemplateService, notificationGroupService, messageLogService, notifyService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
+	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertLevelService, alertPageService, alertEventService, evalService, notificationChannelService, notificationTemplateService, notificationGroupService, messageLogService, notifyService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()

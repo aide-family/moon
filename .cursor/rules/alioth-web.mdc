@@ -10,4 +10,5 @@ alwaysApply: false
 - 页面只调用 `web/src/api` 导出的函数，不直接使用 axios。
 - 请求带 `Authorization: Bearer <token>` 和 `X-Namespace`。不请求 8001、8002、8022、9022。
 - 菜单来自当前用户权限。业务文案走 i18n，不在 JSX 里写死。
+- 表单：每个输入/选择都有 i18n placeholder；提交前按后端必填做前端校验，空值不发请求。
 - 异步请求要有 loading。`try/catch/finally` 收口，失败时给出空状态，卸载后不再 setState。

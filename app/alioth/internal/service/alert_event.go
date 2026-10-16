@@ -20,7 +20,7 @@ func NewAlertEventService(uc *alertevent.Usecase) *AlertEventService {
 }
 
 func (s *AlertEventService) ListAlertEvents(ctx context.Context, req *v1.ListAlertEventsRequest) (*v1.ListAlertEventsResponse, error) {
-	items, total, page, pageSize, err := s.events.List(ctx, req.GetView(), req.GetName(), req.GetPage(), req.GetPageSize())
+	items, total, page, pageSize, err := s.events.List(ctx, req.GetView(), req.GetName(), req.GetMine(), req.GetPageUid(), req.GetPage(), req.GetPageSize())
 	if err != nil {
 		return nil, err
 	}

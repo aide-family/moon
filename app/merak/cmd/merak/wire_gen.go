@@ -13,13 +13,13 @@ import (
 	"github.com/aide-family/Alioth/app/merak/internal/data"
 	"github.com/aide-family/Alioth/app/merak/internal/server"
 	"github.com/aide-family/Alioth/app/merak/internal/service"
-	"github.com/go-kratos/kratos/v2"
-	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v3"
+	"log/slog"
 )
 
 // Injectors from wire.go:
 
-func wireApp(confServer *conf.Server, alioth *conf.Alioth, redis *conf.Redis, confNotify *conf.Notify, logger log.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, alioth *conf.Alioth, redis *conf.Redis, confNotify *conf.Notify, logger *slog.Logger) (*kratos.App, func(), error) {
 	healthUsecase := biz.NewHealthUsecase()
 	healthService := service.NewHealthService(healthUsecase)
 	httpServer, err := server.NewHTTPServer(confServer, healthService, logger)

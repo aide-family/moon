@@ -1,5 +1,6 @@
 export * from "./agent"
 export * from "./alert-event"
+export * from "./alert-page"
 export * from "./k8s"
 export * from "./alert-level"
 export * from "./alert-rule"

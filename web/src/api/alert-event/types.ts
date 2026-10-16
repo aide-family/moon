@@ -26,6 +26,8 @@ export interface ListAlertEventsParams {
   pageSize?: number
   view?: AlertEventView
   name?: string
+  mine?: boolean
+  pageUid?: string
 }
 
 export interface ListAlertEventsResult {

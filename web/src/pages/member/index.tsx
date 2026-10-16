@@ -15,6 +15,7 @@ import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { firstError, requireSelected, requireTrimmed } from "@/lib/form"
 import { useListQuery } from "@/lib/list-query"
 import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
@@ -111,10 +112,15 @@ export function MemberPage() {
 
   async function onInvite(event: React.FormEvent) {
     event.preventDefault()
+    const invalid = firstError(requireTrimmed(email, t("form.required")), requireSelected(roleUid, t("form.required")))
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
-      await inviteMember({ email, roleUid })
+      await inviteMember({ email: email.trim(), roleUid })
       setOpen(false)
       setEmail("")
       setAttempt((value) => value + 1)

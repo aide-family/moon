@@ -106,6 +106,10 @@ message ListAlertEventsRequest {
   string view = 3;
   // 按摘要或 fingerprint 过滤。
   string name = 4;
+  // 为真时只返回当前用户作为通知接收方的实时告警。与 page_uid 互斥。
+  bool mine = 5;
+  // 按告警页面的标签匹配过滤。与 mine 互斥。
+  string page_uid = 6 [json_name = "pageUid"];
 }
 
 // 告警分页结果。

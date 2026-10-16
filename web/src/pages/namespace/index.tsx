@@ -43,6 +43,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { requireSelected, requireTrimmed } from "@/lib/form"
 
 export function NamespacePage() {
   const { t } = useTranslation()
@@ -69,10 +70,15 @@ export function NamespacePage() {
 
   async function onCreate(event: React.FormEvent) {
     event.preventDefault()
+    const invalid = requireTrimmed(name, t("form.required"))
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
-      const result = await createNamespace({ name, remark })
+      const result = await createNamespace({ name: name.trim(), remark })
       localStorage.setItem("namespace", result.namespace.uid)
       setOpen(false)
       setName("")
@@ -90,11 +96,16 @@ export function NamespacePage() {
     if (!editing) {
       return
     }
+    const invalid = requireTrimmed(name, t("form.required"))
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
       localStorage.setItem("namespace", editing)
-      await updateNamespace({ uid: editing, name, remark })
+      await updateNamespace({ uid: editing, name: name.trim(), remark })
       setEditing(null)
       session.reload()
     } catch (err) {
@@ -153,7 +164,12 @@ export function NamespacePage() {
 
   function requestTransfer(event: React.FormEvent) {
     event.preventDefault()
-    if (!transferUid || !target) {
+    if (!transferUid) {
+      return
+    }
+    const invalid = requireSelected(target, t("form.required"))
+    if (invalid) {
+      setError(invalid)
       return
     }
     setConfirmError("")

@@ -2,11 +2,10 @@ package data
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"testing"
 	"time"
-
-	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
@@ -29,7 +28,7 @@ func TestNotificationTaskDedup(t *testing.T) {
 	store, cleanup, err := NewData(
 		&conf.Data{Database: &conf.Data_Database{Source: source}},
 		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
-		log.DefaultLogger,
+		slog.Default(),
 	)
 	if err != nil {
 		t.Skip(err)
@@ -43,9 +42,9 @@ func TestNotificationTaskDedup(t *testing.T) {
 	}
 
 	ns := "ns-notify-" + time.Now().Format("150405.000")
-	notify := NewNotificationRepo(store, log.DefaultLogger)
-	events := NewAlertEventRepo(store, log.DefaultLogger)
-	rules := NewAlertRuleRepo(store, log.DefaultLogger)
+	notify := NewNotificationRepo(store, slog.Default())
+	events := NewAlertEventRepo(store, slog.Default())
+	rules := NewAlertRuleRepo(store, slog.Default())
 	t.Cleanup(func() {
 		_, _ = store.client.NotificationTask.Delete().Where(notificationtask.NamespaceUIDEQ(ns)).Exec(ctx)
 		_, _ = store.client.AlertRuleNotificationGroup.Delete().Where(alertrulenotificationgroup.NamespaceUIDEQ(ns)).Exec(ctx)

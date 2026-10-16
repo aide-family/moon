@@ -82,6 +82,7 @@ type Datasource struct {
 	Status       string
 	LevelUID     string
 	LevelName    string
+	Labels       string
 	Remark       string
 }
 
@@ -116,22 +117,23 @@ type AlertRuleLevel struct {
 
 // AlertRule 是规则组里的一条规则。停用规则不会进入到期候选。
 type AlertRule struct {
-	UID           string
-	NamespaceUID  string
-	GroupUID      string
-	Name          string
-	Type          string
-	Driver        string
-	Status        string
-	Expr          string
-	Labels        string
-	DatasourceUID string
-	Summary       string
-	Description   string
-	NextEvalAt             *time.Time
-	ScheduledSlot          *time.Time
-	Levels                 []AlertRuleLevel
-	NotificationGroupUIDs  []string
+	UID                   string
+	NamespaceUID          string
+	GroupUID              string
+	Name                  string
+	Type                  string
+	Driver                string
+	Status                string
+	Expr                  string
+	Labels                string
+	DatasourceUID         string
+	DatasourceLabels      string
+	Summary               string
+	Description           string
+	NextEvalAt            *time.Time
+	ScheduledSlot         *time.Time
+	Levels                []AlertRuleLevel
+	NotificationGroupUIDs []string
 }
 
 // Due 判断规则此刻是否该被调度。停用规则不进入候选。日志和链路规则可以进入候选，由评测方标明未评测。
@@ -171,6 +173,33 @@ type AlertStats struct {
 	Recovered  int
 }
 
+// AlertPage 是实时告警的标签过滤视图。
+type AlertPage struct {
+	UID          string
+	NamespaceUID string
+	Name         string
+	OwnerUID     string
+	Labels       string
+	Public       bool
+	Remark       string
+}
+
+// RealtimeAlertTab 是实时告警页上的一个 Tab。
+type RealtimeAlertTab struct {
+	ID   string
+	Name string
+	Kind string
+}
+
+// AlertEventListFilter 是告警事件列表的过滤条件。
+type AlertEventListFilter struct {
+	View          string
+	Name          string
+	RuleUIDs      []string
+	FilterByRules bool
+	LabelsJSON    string
+}
+
 // EvalHit 是一次评测命中的序列。
 type EvalHit struct {
 	Fingerprint string
@@ -183,10 +212,11 @@ type EvalHit struct {
 
 // EvalReport 是 megrez 回写的一次评测结果。Skipped 表示驱动尚未实现。
 type EvalReport struct {
-	RuleUID  string
-	EvalSlot time.Time
-	Skipped  bool
-	Hits     []EvalHit
+	RuleUID       string
+	DatasourceUID string
+	EvalSlot      time.Time
+	Skipped       bool
+	Hits          []EvalHit
 }
 
 // RuleSnapshot 是领取到的规则，含解密后的数据源连接信息。
@@ -279,25 +309,25 @@ type NotifyReport struct {
 
 // Agent 是一条边缘机器。Token 只在签发时返回明文。
 type Agent struct {
-	UID            string
-	NamespaceUID   string
-	Name           string
-	Hostname       string
-	MachineID      string
-	LocalIP        string
-	Version        string
-	CollectJSON    string
-	Online         bool
-	Status         string
-	SSHHost        string
-	SSHPort        int
-	SSHUser        string
-	SSHPassword    string
-	SSHPrivateKey  string
-	HasPassword    bool
-	HasPrivateKey  bool
-	Remark         string
-	Token          string
+	UID           string
+	NamespaceUID  string
+	Name          string
+	Hostname      string
+	MachineID     string
+	LocalIP       string
+	Version       string
+	CollectJSON   string
+	Online        bool
+	Status        string
+	SSHHost       string
+	SSHPort       int
+	SSHUser       string
+	SSHPassword   string
+	SSHPrivateKey string
+	HasPassword   bool
+	HasPrivateKey bool
+	Remark        string
+	Token         string
 }
 
 // SSHCommand 是一条 SSH 命令。
@@ -377,23 +407,23 @@ type K8sProxyAudit struct {
 
 // NotifySnapshot 是 merak 领取到的任务，含解密后的渠道密钥。
 type NotifySnapshot struct {
-	UID              string
-	NamespaceUID     string
-	Phase            string
-	ChannelUID       string
-	ChannelType      string
-	ChannelApp       string
-	ChannelEndpoint  string
-	ChannelUsername  string
-	ChannelPassword  string
-	ChannelSecret    string
-	ChannelFrom      string
-	TemplateUID      string
-	TemplateType     string
-	TemplateSubject  string
-	TemplateBody     string
-	Receivers        string
-	Params           string
-	Subject          string
-	Body             string
+	UID             string
+	NamespaceUID    string
+	Phase           string
+	ChannelUID      string
+	ChannelType     string
+	ChannelApp      string
+	ChannelEndpoint string
+	ChannelUsername string
+	ChannelPassword string
+	ChannelSecret   string
+	ChannelFrom     string
+	TemplateUID     string
+	TemplateType    string
+	TemplateSubject string
+	TemplateBody    string
+	Receivers       string
+	Params          string
+	Subject         string
+	Body            string
 }

@@ -2,13 +2,15 @@ package data
 
 import (
 	"context"
+	"strings"
 	"time"
+
+	entsql "entgo.io/ent/dialect/sql"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulenotificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
@@ -28,8 +30,13 @@ func (r *alertEventRepo) ApplyReport(ctx context.Context, rule bo.AlertRule, rep
 	}
 	defer func() { _ = tx.Rollback() }()
 
+	dsUID := report.DatasourceUID
+	if dsUID == "" {
+		dsUID = rule.DatasourceUID
+	}
 	recorded, err := tx.AlertEvalBatch.Query().Where(
 		alertevalbatch.RuleUIDEQ(report.RuleUID),
+		alertevalbatch.DatasourceUIDEQ(dsUID),
 		alertevalbatch.EvalSlotEQ(report.EvalSlot),
 	).Exist(ctx)
 	if err != nil {
@@ -38,21 +45,20 @@ func (r *alertEventRepo) ApplyReport(ctx context.Context, rule bo.AlertRule, rep
 	if recorded {
 		return nil
 	}
+	report.DatasourceUID = dsUID
 	if !report.Skipped {
 		if err := r.applyHits(ctx, tx, rule, report); err != nil {
 			return err
 		}
 	}
-	if err := tx.AlertEvalBatch.Create().SetRuleUID(report.RuleUID).SetEvalSlot(report.EvalSlot).Exec(ctx); err != nil {
+	if err := tx.AlertEvalBatch.Create().
+		SetRuleUID(report.RuleUID).
+		SetDatasourceUID(dsUID).
+		SetEvalSlot(report.EvalSlot).
+		Exec(ctx); err != nil {
 		if ent.IsConstraintError(err) {
 			return nil
 		}
-		return r.fail(err)
-	}
-	if _, err := tx.AlertRule.Update().Where(
-		alertrule.UIDEQ(rule.UID),
-		alertrule.ScheduledSlotEQ(report.EvalSlot),
-	).ClearScheduledSlot().Save(ctx); err != nil {
 		return r.fail(err)
 	}
 	if err := tx.Commit(); err != nil {
@@ -71,6 +77,16 @@ func (r *alertEventRepo) applyHits(ctx context.Context, tx *ent.Tx, rule bo.Aler
 	}
 	current := make(map[string]*ent.AlertEventFiring, len(rows))
 	for _, row := range rows {
+		event, err := tx.AlertEvent.Query().Where(
+			alertevent.UIDEQ(row.EventUID),
+			alertevent.NamespaceUIDEQ(rule.NamespaceUID),
+		).Only(ctx)
+		if err != nil {
+			return r.fail(err)
+		}
+		if event.DatasourceUID != report.DatasourceUID {
+			continue
+		}
 		current[row.Fingerprint] = row
 	}
 	hits := make(map[string]bo.EvalHit, len(report.Hits))
@@ -104,7 +120,7 @@ func (r *alertEventRepo) applyHits(ctx context.Context, tx *ent.Tx, rule bo.Aler
 			SetUID(eventUID).
 			SetNamespaceUID(rule.NamespaceUID).
 			SetRuleUID(rule.UID).
-			SetDatasourceUID(rule.DatasourceUID).
+			SetDatasourceUID(report.DatasourceUID).
 			SetFingerprint(fingerprint).
 			SetStatus(alertevent.StatusFIRING).
 			SetExpr(rule.Expr).
@@ -207,9 +223,10 @@ func createNotifyTasks(ctx context.Context, tx *ent.Tx, rule bo.AlertRule, event
 	return nil
 }
 
-func (r *alertEventRepo) HasBatch(ctx context.Context, ruleUID string, slot time.Time) (bool, error) {
+func (r *alertEventRepo) HasBatch(ctx context.Context, ruleUID, datasourceUID string, slot time.Time) (bool, error) {
 	ok, err := r.client.AlertEvalBatch.Query().Where(
 		alertevalbatch.RuleUIDEQ(ruleUID),
+		alertevalbatch.DatasourceUIDEQ(datasourceUID),
 		alertevalbatch.EvalSlotEQ(slot),
 	).Exist(ctx)
 	if err != nil {
@@ -218,7 +235,7 @@ func (r *alertEventRepo) HasBatch(ctx context.Context, ruleUID string, slot time
 	return ok, nil
 }
 
-func (r *alertEventRepo) ListFiringFingerprints(ctx context.Context, namespaceUID, ruleUID string) ([]string, error) {
+func (r *alertEventRepo) ListFiringFingerprints(ctx context.Context, namespaceUID, ruleUID, datasourceUID string) ([]string, error) {
 	rows, err := r.client.AlertEventFiring.Query().Where(
 		alerteventfiring.NamespaceUIDEQ(namespaceUID),
 		alerteventfiring.RuleUIDEQ(ruleUID),
@@ -228,13 +245,42 @@ func (r *alertEventRepo) ListFiringFingerprints(ctx context.Context, namespaceUI
 	}
 	items := make([]string, 0, len(rows))
 	for _, row := range rows {
+		event, err := r.client.AlertEvent.Query().Where(
+			alertevent.UIDEQ(row.EventUID),
+			alertevent.NamespaceUIDEQ(namespaceUID),
+		).Only(ctx)
+		if err != nil {
+			return nil, r.fail(err)
+		}
+		if event.DatasourceUID != datasourceUID {
+			continue
+		}
 		items = append(items, row.Fingerprint)
 	}
 	return items, nil
 }
 
-func (r *alertEventRepo) ListEvents(ctx context.Context, namespaceUID, view, name string, page, pageSize int) ([]bo.AlertEvent, int, error) {
-	where := eventWhere(namespaceUID, view, name)
+func (r *alertEventRepo) AllBatchesRecorded(ctx context.Context, ruleUID string, datasourceUIDs []string, slot time.Time) (bool, error) {
+	if len(datasourceUIDs) == 0 {
+		return true, nil
+	}
+	for _, dsUID := range datasourceUIDs {
+		ok, err := r.HasBatch(ctx, ruleUID, dsUID, slot)
+		if err != nil {
+			return false, err
+		}
+		if !ok {
+			return false, nil
+		}
+	}
+	return true, nil
+}
+
+func (r *alertEventRepo) ListEvents(ctx context.Context, namespaceUID string, filter bo.AlertEventListFilter, page, pageSize int) ([]bo.AlertEvent, int, error) {
+	if filter.FilterByRules && len(filter.RuleUIDs) == 0 {
+		return nil, 0, nil
+	}
+	where := eventWhere(namespaceUID, filter)
 	total, err := r.client.AlertEvent.Query().Where(where...).Count(ctx)
 	if err != nil {
 		return nil, 0, r.fail(err)
@@ -254,9 +300,66 @@ func (r *alertEventRepo) ListEvents(ctx context.Context, namespaceUID, view, nam
 	return items, total, nil
 }
 
-func eventWhere(namespaceUID, view, name string) []predicate.AlertEvent {
+func (r *alertEventRepo) ListRuleUIDsForReceivers(ctx context.Context, namespaceUID string, tokens []string) ([]string, error) {
+	if len(tokens) == 0 {
+		return nil, nil
+	}
+	groups, err := r.client.NotificationGroup.Query().Where(
+		notificationgroup.NamespaceUIDEQ(namespaceUID),
+		notificationgroup.DeletedAtIsNil(),
+		notificationgroup.StatusEQ(notificationgroup.StatusACTIVE),
+	).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	matched := make([]string, 0)
+	for _, group := range groups {
+		if receiversContain(group.Receivers, tokens) {
+			matched = append(matched, group.UID)
+		}
+	}
+	if len(matched) == 0 {
+		return nil, nil
+	}
+	links, err := r.client.AlertRuleNotificationGroup.Query().Where(
+		alertrulenotificationgroup.NamespaceUIDEQ(namespaceUID),
+		alertrulenotificationgroup.DeletedAtIsNil(),
+		alertrulenotificationgroup.GroupUIDIn(matched...),
+	).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	seen := make(map[string]struct{}, len(links))
+	uids := make([]string, 0, len(links))
+	for _, link := range links {
+		if _, ok := seen[link.RuleUID]; ok {
+			continue
+		}
+		seen[link.RuleUID] = struct{}{}
+		uids = append(uids, link.RuleUID)
+	}
+	return uids, nil
+}
+
+func receiversContain(receivers string, tokens []string) bool {
+	parts := strings.Split(receivers, ",")
+	for _, part := range parts {
+		value := strings.ToLower(strings.TrimSpace(part))
+		if value == "" {
+			continue
+		}
+		for _, token := range tokens {
+			if value == strings.ToLower(strings.TrimSpace(token)) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func eventWhere(namespaceUID string, filter bo.AlertEventListFilter) []predicate.AlertEvent {
 	where := []predicate.AlertEvent{alertevent.NamespaceUIDEQ(namespaceUID)}
-	if view == "HISTORY" {
+	if filter.View == "HISTORY" {
 		where = append(where, alertevent.Or(
 			alertevent.StatusNEQ(alertevent.StatusFIRING),
 			alertevent.SuppressedEQ(true),
@@ -264,11 +367,24 @@ func eventWhere(namespaceUID, view, name string) []predicate.AlertEvent {
 	} else {
 		where = append(where, alertevent.StatusEQ(alertevent.StatusFIRING), alertevent.SuppressedEQ(false))
 	}
-	if name != "" {
+	if filter.Name != "" {
 		where = append(where, alertevent.Or(
-			alertevent.SummaryContainsFold(name),
-			alertevent.FingerprintContainsFold(name),
+			alertevent.SummaryContainsFold(filter.Name),
+			alertevent.FingerprintContainsFold(filter.Name),
 		))
+	}
+	if filter.FilterByRules {
+		where = append(where, alertevent.RuleUIDIn(filter.RuleUIDs...))
+	}
+	if filter.LabelsJSON != "" && filter.LabelsJSON != "{}" {
+		matchers := filter.LabelsJSON
+		where = append(where, predicate.AlertEvent(func(s *entsql.Selector) {
+			s.Where(entsql.P(func(b *entsql.Builder) {
+				b.WriteString("labels::jsonb @> ")
+				b.Arg(matchers)
+				b.WriteString("::jsonb")
+			}))
+		}))
 	}
 	return where
 }

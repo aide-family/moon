@@ -17,6 +17,7 @@ export interface DatasourceItem {
   status: string
   levelUid: string
   levelName: string
+  labels: string
   remark: string
 }
 
@@ -44,6 +45,7 @@ export interface CreateDatasourceParams {
   secret?: string
   levelUid?: string
   remark?: string
+  labels?: string
 }
 
 export interface UpdateDatasourceParams extends CreateDatasourceParams {

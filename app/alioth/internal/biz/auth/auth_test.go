@@ -2,11 +2,11 @@ package auth
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 	"time"
 
-	kerrors "github.com/go-kratos/kratos/v2/errors"
-	"github.com/go-kratos/kratos/v2/log"
+	kerrors "github.com/go-kratos/kratos/v3/errors"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
 	megrezv1 "github.com/aide-family/Alioth/api/megrez/v1"
@@ -27,7 +27,7 @@ func TestClaimRejectsUserJWT(t *testing.T) {
 	uc, err := NewUsecase(userStub{}, nil, nil, nil, nil, &conf.Auth{
 		JwtSecret:   "test-secret",
 		ServiceKeys: []*conf.Auth_ServiceKey{{Name: "megrez", Key: "sk-megrez-dev"}},
-	}, log.DefaultLogger)
+	}, slog.Default())
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -2,10 +2,9 @@ package eval
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 	"time"
-
-	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
 	"github.com/aide-family/Alioth/pkg/merr"
@@ -17,7 +16,7 @@ func TestHitsConditions(t *testing.T) {
 		{At: now, Value: 2, Raw: "2"},
 		{At: now.Add(15 * time.Second), Value: 3, Raw: "3"},
 	}
-	rule := bo.RuleSnapshot{UID: "rule-1", Summary: "cpu", Levels: []bo.Level{{
+	rule := bo.RuleSnapshot{UID: "rule-1", DatasourceUID: "ds-1", Summary: "cpu", Levels: []bo.Level{{
 		Condition: "GT", Sample: "MAX", Threshold: "1", LevelUID: "high",
 	}}}
 	hits := Hits(rule, []bo.Sample{{Labels: map[string]string{"job": "api"}, Points: points}})
@@ -64,7 +63,7 @@ func (fakeQuery) QueryRange(context.Context, bo.RuleSnapshot, int64, int64, int6
 
 func TestRenewFailureDoesNotReport(t *testing.T) {
 	gateway := &fakeGateway{}
-	worker := &Worker{gateway: gateway, query: fakeQuery{}, log: log.NewHelper(log.DefaultLogger), now: time.Now}
+	worker := &Worker{gateway: gateway, query: fakeQuery{}, log: slog.Default(), now: time.Now}
 	err := worker.finish(context.Background(), fakeHold{renew: merr.Server("lock failed")}, bo.RuleSnapshot{
 		UID: "rule-1", Driver: "METRICS_PROMETHEUS", EvalSlot: time.Now().UTC(),
 	})
@@ -78,7 +77,7 @@ func TestRenewFailureDoesNotReport(t *testing.T) {
 
 func TestUnimplementedDriverReportsSkipped(t *testing.T) {
 	gateway := &fakeGateway{}
-	worker := &Worker{gateway: gateway, query: fakeQuery{}, log: log.NewHelper(log.DefaultLogger), now: time.Now}
+	worker := &Worker{gateway: gateway, query: fakeQuery{}, log: slog.Default(), now: time.Now}
 	slot := time.Now().UTC().Truncate(time.Second)
 	for _, driver := range []string{"LOGS_ELASTICSEARCH", "TRACE_JAEGER"} {
 		gateway.reports = nil

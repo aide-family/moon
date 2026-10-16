@@ -42,6 +42,20 @@ func (_u *AlertEvalBatchUpdate) SetNillableRuleUID(v *string) *AlertEvalBatchUpd
 	return _u
 }
 
+// SetDatasourceUID sets the "datasource_uid" field.
+func (_u *AlertEvalBatchUpdate) SetDatasourceUID(v string) *AlertEvalBatchUpdate {
+	_u.mutation.SetDatasourceUID(v)
+	return _u
+}
+
+// SetNillableDatasourceUID sets the "datasource_uid" field if the given value is not nil.
+func (_u *AlertEvalBatchUpdate) SetNillableDatasourceUID(v *string) *AlertEvalBatchUpdate {
+	if v != nil {
+		_u.SetDatasourceUID(*v)
+	}
+	return _u
+}
+
 // SetEvalSlot sets the "eval_slot" field.
 func (_u *AlertEvalBatchUpdate) SetEvalSlot(v time.Time) *AlertEvalBatchUpdate {
 	_u.mutation.SetEvalSlot(v)
@@ -95,6 +109,11 @@ func (_u *AlertEvalBatchUpdate) check() error {
 			return &ValidationError{Name: "rule_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEvalBatch.rule_uid": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DatasourceUID(); ok {
+		if err := alertevalbatch.DatasourceUIDValidator(v); err != nil {
+			return &ValidationError{Name: "datasource_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEvalBatch.datasource_uid": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -112,6 +131,9 @@ func (_u *AlertEvalBatchUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.RuleUID(); ok {
 		_spec.SetField(alertevalbatch.FieldRuleUID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.DatasourceUID(); ok {
+		_spec.SetField(alertevalbatch.FieldDatasourceUID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.EvalSlot(); ok {
 		_spec.SetField(alertevalbatch.FieldEvalSlot, field.TypeTime, value)
@@ -146,6 +168,20 @@ func (_u *AlertEvalBatchUpdateOne) SetRuleUID(v string) *AlertEvalBatchUpdateOne
 func (_u *AlertEvalBatchUpdateOne) SetNillableRuleUID(v *string) *AlertEvalBatchUpdateOne {
 	if v != nil {
 		_u.SetRuleUID(*v)
+	}
+	return _u
+}
+
+// SetDatasourceUID sets the "datasource_uid" field.
+func (_u *AlertEvalBatchUpdateOne) SetDatasourceUID(v string) *AlertEvalBatchUpdateOne {
+	_u.mutation.SetDatasourceUID(v)
+	return _u
+}
+
+// SetNillableDatasourceUID sets the "datasource_uid" field if the given value is not nil.
+func (_u *AlertEvalBatchUpdateOne) SetNillableDatasourceUID(v *string) *AlertEvalBatchUpdateOne {
+	if v != nil {
+		_u.SetDatasourceUID(*v)
 	}
 	return _u
 }
@@ -216,6 +252,11 @@ func (_u *AlertEvalBatchUpdateOne) check() error {
 			return &ValidationError{Name: "rule_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEvalBatch.rule_uid": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DatasourceUID(); ok {
+		if err := alertevalbatch.DatasourceUIDValidator(v); err != nil {
+			return &ValidationError{Name: "datasource_uid", err: fmt.Errorf(`ent: validator failed for field "AlertEvalBatch.datasource_uid": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -250,6 +291,9 @@ func (_u *AlertEvalBatchUpdateOne) sqlSave(ctx context.Context) (_node *AlertEva
 	}
 	if value, ok := _u.mutation.RuleUID(); ok {
 		_spec.SetField(alertevalbatch.FieldRuleUID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.DatasourceUID(); ok {
+		_spec.SetField(alertevalbatch.FieldDatasourceUID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.EvalSlot(); ok {
 		_spec.SetField(alertevalbatch.FieldEvalSlot, field.TypeTime, value)

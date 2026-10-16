@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"time"
 
 	entschema "entgo.io/ent/dialect/sql/schema"
-	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
 	"github.com/aide-family/Alioth/pkg/merr"
@@ -70,7 +70,7 @@ func partitionByCreatedAt(ctx context.Context, db *sql.DB, name string) error {
 	}
 	var count int
 	if err := db.QueryRowContext(ctx, `SELECT count(*) FROM `+name).Scan(&count); err != nil {
-		log.NewHelper(log.DefaultLogger).Errorf("count %s: %v", name, err)
+		slog.Default().Error(fmt.Sprintf("count %s: %v", name, err))
 		return merr.Server("request failed")
 	}
 	if count > 0 {
@@ -90,12 +90,12 @@ func partitionByCreatedAt(ctx context.Context, db *sql.DB, name string) error {
 	}
 	for _, statement := range statements {
 		if _, err := tx.ExecContext(ctx, statement); err != nil {
-			log.NewHelper(log.DefaultLogger).Errorf("partition %s: %v", name, err)
+			slog.Default().Error(fmt.Sprintf("partition %s: %v", name, err))
 			return merr.Server("request failed")
 		}
 	}
 	if _, err := tx.ExecContext(ctx, fmt.Sprintf(`DROP TABLE %s`, heap)); err != nil {
-		log.NewHelper(log.DefaultLogger).Errorf("drop %s heap: %v", name, err)
+		slog.Default().Error(fmt.Sprintf("drop %s heap: %v", name, err))
 		return merr.Server("request failed")
 	}
 	return tx.Commit()
@@ -118,7 +118,7 @@ func ensureWeekPartitions(ctx context.Context, db *sql.DB, name string, now time
 			part, name, from.Format("2006-01-02"), until.Format("2006-01-02"),
 		)
 		if _, err := db.ExecContext(ctx, statement); err != nil {
-			log.NewHelper(log.DefaultLogger).Errorf("ensure %s week: %v", name, err)
+			slog.Default().Error(fmt.Sprintf("ensure %s week: %v", name, err))
 			return merr.Server("request failed")
 		}
 	}
@@ -140,7 +140,7 @@ func relationKind(ctx context.Context, db *sql.DB, name string) (string, error) 
 		return "", nil
 	}
 	if err != nil {
-		log.NewHelper(log.DefaultLogger).Errorf("schema: %v", err)
+		slog.Default().Error(fmt.Sprintf("schema: %v", err))
 		return "", merr.Server("request failed")
 	}
 	return kind.String, nil

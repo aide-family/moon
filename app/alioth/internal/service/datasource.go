@@ -18,7 +18,7 @@ func NewDatasourceService(uc *datasource.Usecase) *DatasourceService {
 }
 
 func (s *DatasourceService) CreateDatasource(ctx context.Context, req *v1.CreateDatasourceRequest) (*v1.CreateDatasourceResponse, error) {
-	item, err := s.datasources.CreateDatasource(ctx, datasourceInput(req.GetName(), req.GetType(), req.GetDriver(), req.GetEndpoint(), req.GetUsername(), req.GetPassword(), req.GetSecret(), req.GetLevelUid(), req.GetRemark()))
+	item, err := s.datasources.CreateDatasource(ctx, datasourceInput(req.GetName(), req.GetType(), req.GetDriver(), req.GetEndpoint(), req.GetUsername(), req.GetPassword(), req.GetSecret(), req.GetLevelUid(), req.GetRemark(), req.GetLabels()))
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func (s *DatasourceService) CreateDatasource(ctx context.Context, req *v1.Create
 }
 
 func (s *DatasourceService) UpdateDatasource(ctx context.Context, req *v1.UpdateDatasourceRequest) (*v1.UpdateDatasourceResponse, error) {
-	in := datasourceInput(req.GetName(), req.GetType(), req.GetDriver(), req.GetEndpoint(), req.GetUsername(), req.GetPassword(), req.GetSecret(), req.GetLevelUid(), req.GetRemark())
+	in := datasourceInput(req.GetName(), req.GetType(), req.GetDriver(), req.GetEndpoint(), req.GetUsername(), req.GetPassword(), req.GetSecret(), req.GetLevelUid(), req.GetRemark(), req.GetLabels())
 	in.UID = req.GetUid()
 	item, err := s.datasources.UpdateDatasource(ctx, in)
 	if err != nil {
@@ -98,9 +98,9 @@ func (s *DatasourceService) GetDatasourceMetric(ctx context.Context, req *v1.Get
 	return &v1.GetDatasourceMetricResponse{Body: body}, nil
 }
 
-func datasourceInput(name, kind, driver, endpoint, username, password, secret, levelUID, remark string) bo.Datasource {
+func datasourceInput(name, kind, driver, endpoint, username, password, secret, levelUID, remark, labels string) bo.Datasource {
 	return bo.Datasource{
 		Name: name, Type: kind, Driver: driver, Endpoint: endpoint, Username: username,
-		Password: password, Secret: secret, LevelUID: levelUID, Remark: remark,
+		Password: password, Secret: secret, LevelUID: levelUID, Remark: remark, Labels: labels,
 	}
 }

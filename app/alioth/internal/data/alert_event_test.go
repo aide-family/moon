@@ -2,11 +2,10 @@ package data
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"testing"
 	"time"
-
-	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
@@ -24,7 +23,7 @@ func TestAlertEventReport(t *testing.T) {
 	store, cleanup, err := NewData(
 		&conf.Data{Database: &conf.Data_Database{Source: source}},
 		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
-		log.DefaultLogger,
+		slog.Default(),
 	)
 	if err != nil {
 		t.Skip(err)
@@ -36,7 +35,7 @@ func TestAlertEventReport(t *testing.T) {
 	if err := ApplySchema(ctx, store.client, store.db); err != nil {
 		t.Fatal(err)
 	}
-	events := NewAlertEventRepo(store, log.DefaultLogger)
+	events := NewAlertEventRepo(store, slog.Default())
 	ns := "ns-event-" + time.Now().Format("150405.000")
 	rule := bo.AlertRule{UID: "rule-" + ns, NamespaceUID: ns, DatasourceUID: "ds", Expr: "up", Summary: "cpu"}
 	slot := time.Now().UTC().Truncate(time.Second)
@@ -56,7 +55,7 @@ func TestAlertEventReport(t *testing.T) {
 	if err := events.ApplyReport(ctx, rule, report); err != nil {
 		t.Fatal(err)
 	}
-	firing, _, err := events.ListEvents(ctx, ns, "REALTIME", "", 1, 20)
+	firing, _, err := events.ListEvents(ctx, ns, bo.AlertEventListFilter{View: "REALTIME"}, 1, 20)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,14 +70,14 @@ func TestAlertEventReport(t *testing.T) {
 	if err := events.ApplyReport(ctx, rule, recovered); err != nil {
 		t.Fatal(err)
 	}
-	history, _, err := events.ListEvents(ctx, ns, "HISTORY", "", 1, 20)
+	history, _, err := events.ListEvents(ctx, ns, bo.AlertEventListFilter{View: "HISTORY"}, 1, 20)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(history) != 1 || history[0].Status != "RECOVERED" {
 		t.Fatalf("history = %+v", history)
 	}
-	again, _, err := events.ListEvents(ctx, ns, "REALTIME", "", 1, 20)
+	again, _, err := events.ListEvents(ctx, ns, bo.AlertEventListFilter{View: "REALTIME"}, 1, 20)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -13,7 +13,7 @@ func TestLoadConfig(t *testing.T) {
 	if bc.GetServer().GetGrpc().GetAddr() != "0.0.0.0:9022" {
 		t.Fatalf("grpc addr = %q", bc.GetServer().GetGrpc().GetAddr())
 	}
-	if bc.GetAlioth().GetGrpc().GetAddr() != "alioth:9000" {
+	if bc.GetAlioth().GetGrpc().GetAddr() != "127.0.0.1:9000" {
 		t.Fatalf("upstream = %q", bc.GetAlioth().GetGrpc().GetAddr())
 	}
 }

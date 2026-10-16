@@ -22,6 +22,8 @@ type Tx struct {
 	AlertEventFiring *AlertEventFiringClient
 	// AlertLevel is the client for interacting with the AlertLevel builders.
 	AlertLevel *AlertLevelClient
+	// AlertPage is the client for interacting with the AlertPage builders.
+	AlertPage *AlertPageClient
 	// AlertRule is the client for interacting with the AlertRule builders.
 	AlertRule *AlertRuleClient
 	// AlertRuleGroup is the client for interacting with the AlertRuleGroup builders.
@@ -68,6 +70,8 @@ type Tx struct {
 	SSHCommandAudit *SSHCommandAuditClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserAlertPage is the client for interacting with the UserAlertPage builders.
+	UserAlertPage *UserAlertPageClient
 	// UserOAuth is the client for interacting with the UserOAuth builders.
 	UserOAuth *UserOAuthClient
 
@@ -206,6 +210,7 @@ func (tx *Tx) init() {
 	tx.AlertEvent = NewAlertEventClient(tx.config)
 	tx.AlertEventFiring = NewAlertEventFiringClient(tx.config)
 	tx.AlertLevel = NewAlertLevelClient(tx.config)
+	tx.AlertPage = NewAlertPageClient(tx.config)
 	tx.AlertRule = NewAlertRuleClient(tx.config)
 	tx.AlertRuleGroup = NewAlertRuleGroupClient(tx.config)
 	tx.AlertRuleLevel = NewAlertRuleLevelClient(tx.config)
@@ -229,6 +234,7 @@ func (tx *Tx) init() {
 	tx.SSHCommand = NewSSHCommandClient(tx.config)
 	tx.SSHCommandAudit = NewSSHCommandAuditClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserAlertPage = NewUserAlertPageClient(tx.config)
 	tx.UserOAuth = NewUserOAuthClient(tx.config)
 }
 

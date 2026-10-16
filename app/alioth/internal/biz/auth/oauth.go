@@ -32,7 +32,7 @@ func (uc *Usecase) OAuthLogin(ctx context.Context, provider, code, redirectURI s
 	}
 	profile, err := exchangeOAuth(ctx, provider, client, code, redirectURI)
 	if err != nil {
-		uc.log.Errorf("oauth exchange failed for %s", provider)
+		uc.log.Error(fmt.Sprintf("oauth exchange failed for %s", provider))
 		return nil, merr.Client("oauth login failed")
 	}
 	if profile.openID == "" {

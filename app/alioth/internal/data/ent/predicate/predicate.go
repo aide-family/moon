@@ -21,6 +21,9 @@ type AlertEventFiring func(*sql.Selector)
 // AlertLevel is the predicate function for alertlevel builders.
 type AlertLevel func(*sql.Selector)
 
+// AlertPage is the predicate function for alertpage builders.
+type AlertPage func(*sql.Selector)
+
 // AlertRule is the predicate function for alertrule builders.
 type AlertRule func(*sql.Selector)
 
@@ -89,6 +92,9 @@ type SSHCommandAudit func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
+
+// UserAlertPage is the predicate function for useralertpage builders.
+type UserAlertPage func(*sql.Selector)
 
 // UserOAuth is the predicate function for useroauth builders.
 type UserOAuth func(*sql.Selector)

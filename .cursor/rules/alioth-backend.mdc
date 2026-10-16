@@ -6,8 +6,9 @@ alwaysApply: false
 
 # Alioth 后端
 
+- 框架为 **Kratos v3** + `log/slog`；禁止 `kratos/v2` 与 v2 `log.Helper`。
 - 分层保持 `server` → `service` → `biz` → `data`。业务判断放在 `biz`。
 - ent schema 和迁移只放在 `app/alioth`。`megrez`、`merak`、`alkaid` 不建业务表。
 - 用户 JWT、service key、Agent 令牌不能混用。业务查询带 `namespace_uid`。
-- 锁只用 `pkg` 的客户端：`alioth:lock:schedule:{name}`、`alioth:lock:eval:{rule_uid}`、`alioth:lock:notify:{task_uid}`。不要改成缓存或队列。
+- 锁只用 `pkg` 的客户端：`alioth:lock:schedule:{name}`、`alioth:lock:eval:{rule_uid}:{datasource_uid}`、`alioth:lock:notify:{task_uid}`。不要改成缓存或队列。
 - `megrez`、`merak` 的业务 gRPC 不注册到 Web nginx。对外 HTTP 只留 `/health`。

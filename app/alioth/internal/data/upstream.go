@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -52,17 +53,17 @@ func (r *repoBase) callUpstream(ctx context.Context, item bo.Datasource, method,
 	}
 	resp, err := upstreamClient.Do(req)
 	if err != nil {
-		r.log.Errorf("datasource %s upstream: %v", item.UID, err)
+		r.log.Error(fmt.Sprintf("datasource %s upstream: %v", item.UID, err))
 		return "", merr.Server("upstream query failed")
 	}
 	defer resp.Body.Close()
 	payload, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil {
-		r.log.Errorf("datasource %s read: %v", item.UID, err)
+		r.log.Error(fmt.Sprintf("datasource %s read: %v", item.UID, err))
 		return "", merr.Server("upstream query failed")
 	}
 	if resp.StatusCode >= 300 {
-		r.log.Errorf("datasource %s status %d", item.UID, resp.StatusCode)
+		r.log.Error(fmt.Sprintf("datasource %s status %d", item.UID, resp.StatusCode))
 		return "", merr.Client("upstream query failed")
 	}
 	return string(payload), nil
@@ -85,7 +86,7 @@ func (r *datasourceRepo) ListMetrics(ctx context.Context, item bo.Datasource) ([
 		Data   []string `json:"data"`
 	}
 	if err := json.Unmarshal([]byte(body), &payload); err != nil || payload.Status != "success" {
-		r.log.Errorf("datasource %s metric list", item.UID)
+		r.log.Error(fmt.Sprintf("datasource %s metric list", item.UID))
 		return nil, merr.Client("upstream query failed")
 	}
 	return payload.Data, nil

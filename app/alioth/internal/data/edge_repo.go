@@ -2,8 +2,7 @@ package data
 
 import (
 	"context"
-
-	"github.com/go-kratos/kratos/v2/log"
+	"log/slog"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/k8sproxyaudit"
@@ -16,7 +15,7 @@ import (
 
 type edgeAuditRepo struct{ *repoBase }
 
-func NewEdgeAuditRepo(d *Data, logger log.Logger) repository.EdgeAuditRepo {
+func NewEdgeAuditRepo(d *Data, logger *slog.Logger) repository.EdgeAuditRepo {
 	return &edgeAuditRepo{newBase(d, logger)}
 }
 

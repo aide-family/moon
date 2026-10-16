@@ -3,9 +3,10 @@ package alertevent
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log/slog"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/access"
@@ -31,14 +32,28 @@ var ProviderSet = wire.NewSet(NewUsecase)
 type Usecase struct {
 	rules       repository.AlertRuleRepo
 	events      repository.AlertEventRepo
+	pages       repository.AlertPageRepo
+	users       repository.UserRepo
 	datasources repository.DatasourceRepo
 	locks       *lock.Client
 	access      access.Checker
-	log         *log.Helper
+	log         *slog.Logger
 }
 
-func NewUsecase(rules repository.AlertRuleRepo, events repository.AlertEventRepo, datasources repository.DatasourceRepo, locks *lock.Client, checker access.Checker, logger log.Logger) *Usecase {
-	return &Usecase{rules: rules, events: events, datasources: datasources, locks: locks, access: checker, log: log.NewHelper(logger)}
+func NewUsecase(
+	rules repository.AlertRuleRepo,
+	events repository.AlertEventRepo,
+	pages repository.AlertPageRepo,
+	users repository.UserRepo,
+	datasources repository.DatasourceRepo,
+	locks *lock.Client,
+	checker access.Checker,
+	logger *slog.Logger,
+) *Usecase {
+	return &Usecase{
+		rules: rules, events: events, pages: pages, users: users,
+		datasources: datasources, locks: locks, access: checker, log: logger,
+	}
 }
 
 // Schedule 在锁内把到期规则的下一次评测时间推迟一个周期，并记下本轮批次。拿到锁后不续期。
@@ -56,13 +71,13 @@ func (uc *Usecase) Schedule(ctx context.Context) error {
 	defer func() { _ = hold.Release(context.Background()) }()
 	now := time.Now().UTC().Truncate(time.Second)
 	if err := uc.rules.ScheduleDue(ctx, now, now.Add(EvalInterval)); err != nil {
-		uc.log.Errorf("schedule eval: %v", err)
+		uc.log.Error(fmt.Sprintf("schedule eval: %v", err))
 		return err
 	}
 	return nil
 }
 
-// Claim 返回已调度且尚未回写的规则。只接受名为 megrez 的 service key。
+// Claim 返回已调度且尚未回写的规则快照。按匹配数据源展开，只接受名为 megrez 的 service key。
 func (uc *Usecase) Claim(ctx context.Context) ([]bo.RuleSnapshot, error) {
 	if err := uc.requireMegrez(ctx); err != nil {
 		return nil, err
@@ -76,36 +91,40 @@ func (uc *Usecase) Claim(ctx context.Context) ([]bo.RuleSnapshot, error) {
 		if rule.ScheduledSlot == nil {
 			continue
 		}
-		recorded, err := uc.events.HasBatch(ctx, rule.UID, *rule.ScheduledSlot)
+		sources, err := uc.datasources.ListDatasourcesByMatchers(ctx, rule.NamespaceUID, rule.Type, rule.DatasourceLabels)
 		if err != nil {
-			return nil, err
+			return nil, uc.access.Wrap(err)
 		}
-		if recorded {
+		if len(sources) == 0 {
 			continue
 		}
-		source, err := uc.datasources.GetDatasource(ctx, rule.NamespaceUID, rule.DatasourceUID)
-		if err != nil {
-			if merr.IsNotFound(err) {
-				source = &bo.Datasource{}
-			} else {
-				return nil, uc.access.Wrap(err)
+		for _, source := range sources {
+			recorded, err := uc.events.HasBatch(ctx, rule.UID, source.UID, *rule.ScheduledSlot)
+			if err != nil {
+				return nil, err
 			}
+			if recorded {
+				continue
+			}
+			copyRule := rule
+			copyRule.DatasourceUID = source.UID
+			copyRule.Driver = source.Driver
+			fingerprints, err := uc.events.ListFiringFingerprints(ctx, rule.NamespaceUID, rule.UID, source.UID)
+			if err != nil {
+				return nil, err
+			}
+			snapshots = append(snapshots, bo.RuleSnapshot{Rule: copyRule, Datasource: source, FiringFingerprints: fingerprints})
 		}
-		fingerprints, err := uc.events.ListFiringFingerprints(ctx, rule.NamespaceUID, rule.UID)
-		if err != nil {
-			return nil, err
-		}
-		snapshots = append(snapshots, bo.RuleSnapshot{Rule: rule, Datasource: *source, FiringFingerprints: fingerprints})
 	}
 	return snapshots, nil
 }
 
-// Report 按 fingerprint 幂等回写。重复批次直接返回。
+// Report 按 fingerprint 幂等回写。重复批次直接返回。全部匹配数据源回写后清除 scheduled_slot。
 func (uc *Usecase) Report(ctx context.Context, report bo.EvalReport) error {
 	if err := uc.requireMegrez(ctx); err != nil {
 		return err
 	}
-	if report.RuleUID == "" || report.EvalSlot.IsZero() {
+	if report.RuleUID == "" || report.EvalSlot.IsZero() || report.DatasourceUID == "" {
 		return merr.Invalid("invalid request")
 	}
 	rule, err := uc.rules.GetAlertRuleByUID(ctx, report.RuleUID)
@@ -113,16 +132,37 @@ func (uc *Usecase) Report(ctx context.Context, report bo.EvalReport) error {
 		return uc.access.Wrap(err)
 	}
 	report.RuleUID = rule.UID
+	rule.DatasourceUID = report.DatasourceUID
 	if err := uc.events.ApplyReport(ctx, *rule, report); err != nil {
 		return uc.access.Wrap(err)
+	}
+	sources, err := uc.datasources.ListDatasourcesByMatchers(ctx, rule.NamespaceUID, rule.Type, rule.DatasourceLabels)
+	if err != nil {
+		return uc.access.Wrap(err)
+	}
+	uids := make([]string, 0, len(sources))
+	for _, source := range sources {
+		uids = append(uids, source.UID)
+	}
+	done, err := uc.events.AllBatchesRecorded(ctx, rule.UID, uids, report.EvalSlot)
+	if err != nil {
+		return uc.access.Wrap(err)
+	}
+	if done {
+		if err := uc.rules.ClearScheduledSlot(ctx, rule.UID, report.EvalSlot); err != nil {
+			return uc.access.Wrap(err)
+		}
 	}
 	return nil
 }
 
-func (uc *Usecase) List(ctx context.Context, view, name string, pageNo, pageSize int32) ([]bo.AlertEvent, int, int, int, error) {
+func (uc *Usecase) List(ctx context.Context, view, name string, mine bool, pageUID string, pageNo, pageSize int32) ([]bo.AlertEvent, int, int, int, error) {
 	ns, err := uc.access.Allow(ctx, perm.AlertRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
+	}
+	if mine && pageUID != "" {
+		return nil, 0, 0, 0, merr.Invalid("invalid request")
 	}
 	if view == "" {
 		view = "REALTIME"
@@ -130,12 +170,58 @@ func (uc *Usecase) List(ctx context.Context, view, name string, pageNo, pageSize
 	if view != "REALTIME" && view != "HISTORY" {
 		return nil, 0, 0, 0, merr.Invalid("invalid request")
 	}
+	if (mine || pageUID != "") && view != "REALTIME" {
+		return nil, 0, 0, 0, merr.Invalid("invalid request")
+	}
+	filter := bo.AlertEventListFilter{View: view, Name: name}
+	if mine {
+		ruleUIDs, err := uc.ruleUIDsForCurrentUser(ctx, ns)
+		if err != nil {
+			return nil, 0, 0, 0, err
+		}
+		filter.FilterByRules = true
+		filter.RuleUIDs = ruleUIDs
+	}
+	if pageUID != "" {
+		userUID, ok := actor.UserID(ctx)
+		if !ok {
+			return nil, 0, 0, 0, merr.Unauthenticated("unauthorized")
+		}
+		pageItem, err := uc.pages.GetAlertPage(ctx, ns, pageUID)
+		if err != nil {
+			return nil, 0, 0, 0, uc.access.Wrap(err)
+		}
+		if pageItem.OwnerUID != userUID && !pageItem.Public {
+			return nil, 0, 0, 0, merr.Forbidden("forbidden")
+		}
+		filter.LabelsJSON = pageItem.Labels
+	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.events.ListEvents(ctx, ns, view, name, p, s)
+	items, total, err := uc.events.ListEvents(ctx, ns, filter, p, s)
 	if err != nil {
 		return nil, 0, 0, 0, uc.access.Wrap(err)
 	}
 	return items, total, p, s, nil
+}
+
+func (uc *Usecase) ruleUIDsForCurrentUser(ctx context.Context, namespaceUID string) ([]string, error) {
+	userUID, ok := actor.UserID(ctx)
+	if !ok {
+		return nil, merr.Unauthenticated("unauthorized")
+	}
+	tokens := []string{userUID}
+	account, err := uc.users.UserByUID(ctx, userUID)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	if account.Email != "" {
+		tokens = append(tokens, account.Email)
+	}
+	uids, err := uc.events.ListRuleUIDsForReceivers(ctx, namespaceUID, tokens)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	return uids, nil
 }
 
 func (uc *Usecase) Get(ctx context.Context, uid string) (*bo.AlertEvent, error) {

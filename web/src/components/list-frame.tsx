@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 
 interface ListFrameProps {
   total: number
@@ -27,40 +27,38 @@ export function ListFrame({
   const pages = Math.max(1, Math.ceil(total / Math.max(pageSize, 1)))
 
   return (
-    <Card className="min-h-0 flex-1">
-      <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-sm text-muted-foreground">
-            {t("list.total", { count: total })}
-          </span>
-          {showPager ? (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page <= 1}
-                onClick={onPrev}
-              >
-                {t("action.prev")}
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                {page} / {pages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page * pageSize >= total}
-                onClick={onNext}
-              >
-                {t("action.next")}
-              </Button>
-            </div>
-          ) : null}
-        </div>
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          {children}
-        </div>
-      </CardContent>
-    </Card>
+    <div className={cn("glass-card flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl")}>
+      <div className="data-table-control-bar justify-between gap-2">
+        <span className="font-mono text-sm text-muted-foreground">
+          {t("list.total", { count: total })}
+        </span>
+        {showPager ? (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={onPrev}
+            >
+              {t("action.prev")}
+            </Button>
+            <span className="font-mono text-sm text-muted-foreground">
+              {page} / {pages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page * pageSize >= total}
+              onClick={onNext}
+            >
+              {t("action.next")}
+            </Button>
+          </div>
+        ) : null}
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
+        {children}
+      </div>
+    </div>
   )
 }

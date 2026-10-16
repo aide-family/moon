@@ -135,7 +135,8 @@ M5 依赖 M1 的身份与权限，不依赖告警评测。M7 在 M3、M4、M6 �
 - 实体：`AlertEvent`。PostgreSQL 按时间做声明式分区
 - `alioth` 在 `alioth:lock:schedule:eval` 下扫描到期的已启用指标规则，并写下一次评测时间
 - `api/megrez/v1`：领取规则快照、回写 FIRING、恢复，以及未实现驱动的跳过结果。实现者是 `alioth`，调用者是 `megrez`，凭证是 service key
-- `megrez` 对 `alioth:lock:eval:{rule_uid}` 加锁后评测，结束释放。续期失败则不回写成功
+- `megrez` 对 `alioth:lock:eval:{rule_uid}:{datasource_uid}` 加锁后评测，结束释放。续期失败则不回写成功
+- 规则按类型 + 数据源标签匹配多数据源并逐源评测；fingerprint 含 datasource_uid
 - 事件状态：`FIRING`、`RECOVERED`、`RECOVERED_BY_MANUAL`
 - 实时列表、历史列表、介入、批量介入、抑制、恢复、批量恢复、统计
 - Web 页面：实时告警、历史告警

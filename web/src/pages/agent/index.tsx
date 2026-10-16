@@ -35,6 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
+import { requireTrimmed } from "@/lib/form"
 import { useListQuery } from "@/lib/list-query"
 
 export function AgentPage() {
@@ -126,11 +127,16 @@ export function AgentPage() {
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
+    const invalid = requireTrimmed(name, t("form.required"))
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
       const body = {
-        name,
+        name: name.trim(),
         sshHost,
         sshPort: Number(sshPort) || 22,
         sshUser,
@@ -267,34 +273,34 @@ export function AgentPage() {
         ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={onSave}>
-            <FormField label={t("agent.name")} htmlFor="agent-name">
-              <Input id="agent-name" value={name} onChange={(event) => setName(event.target.value)} required />
+          <form className="grid gap-4 sm:grid-cols-3" onSubmit={onSave}>
+            <FormField label={t("agent.name")} htmlFor="agent-name" className="sm:col-span-full">
+              <Input id="agent-name" value={name} placeholder={t("agent.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
             <FormField label={t("agent.sshHost")} htmlFor="agent-host">
-              <Input id="agent-host" value={sshHost} onChange={(event) => setSshHost(event.target.value)} />
+              <Input id="agent-host" value={sshHost} placeholder={t("agent.sshHostPlaceholder")} onChange={(event) => setSshHost(event.target.value)} />
             </FormField>
             <FormField label={t("agent.sshPort")} htmlFor="agent-port">
-              <Input id="agent-port" value={sshPort} onChange={(event) => setSshPort(event.target.value)} />
+              <Input id="agent-port" value={sshPort} placeholder={t("agent.sshPortPlaceholder")} onChange={(event) => setSshPort(event.target.value)} />
             </FormField>
             <FormField label={t("agent.sshUser")} htmlFor="agent-user">
-              <Input id="agent-user" value={sshUser} onChange={(event) => setSshUser(event.target.value)} />
+              <Input id="agent-user" value={sshUser} placeholder={t("agent.sshUserPlaceholder")} onChange={(event) => setSshUser(event.target.value)} />
             </FormField>
-            <FormField label={t("agent.sshPassword")} htmlFor="agent-password">
-              <Input id="agent-password" type="password" value={sshPassword} onChange={(event) => setSshPassword(event.target.value)} placeholder={editing ? t("agent.keepSecret") : ""} />
+            <FormField label={t("agent.sshPassword")} htmlFor="agent-password" className="sm:col-span-full">
+              <Input id="agent-password" type="password" value={sshPassword} onChange={(event) => setSshPassword(event.target.value)} placeholder={t("agent.keepSecret")} />
             </FormField>
-            <FormField label={t("agent.sshPrivateKey")} htmlFor="agent-key">
-              <Textarea id="agent-key" value={sshPrivateKey} onChange={(event) => setSshPrivateKey(event.target.value)} placeholder={editing ? t("agent.keepSecret") : ""} />
+            <FormField label={t("agent.sshPrivateKey")} htmlFor="agent-key" className="sm:col-span-full">
+              <Textarea id="agent-key" value={sshPrivateKey} onChange={(event) => setSshPrivateKey(event.target.value)} placeholder={editing ? t("agent.keepSecret") : t("agent.sshPrivateKeyPlaceholder")} />
             </FormField>
-            <FormField label={t("agent.remark")} htmlFor="agent-remark">
-              <Textarea id="agent-remark" value={remark} onChange={(event) => setRemark(event.target.value)} />
+            <FormField label={t("agent.remark")} htmlFor="agent-remark" className="sm:col-span-full">
+              <Textarea id="agent-remark" value={remark} placeholder={t("agent.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
             </FormField>
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <DialogFooter>
+            {error ? <p className="sm:col-span-full text-sm text-destructive">{error}</p> : null}
+            <DialogFooter className="sm:col-span-full">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 {t("action.cancel")}
               </Button>

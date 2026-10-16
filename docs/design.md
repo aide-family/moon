@@ -124,7 +124,7 @@ Alioth/
 
 开发时 Web 的 Vite 把 `/v1` 代理到 `alioth` 的 8000，对应 Moon Web 把 `/v1` 分发到多个后端的方式。Alioth 只有一个上游。
 
-技术基线与 Moon 对齐的部分：Go 1.25+、Kratos v2、Cobra、Wire、protobuf、`buf.validate`、`google.api.http`。存储改为 ent + PostgreSQL。前端为 React、TypeScript、Vite、Tailwind CSS、[shadcn/ui](https://ui.shadcn.com/)。
+技术基线与 Moon 对齐的部分：Go 1.25+、Kratos v3、Cobra、Wire、protobuf、`buf.validate`、`google.api.http`。存储改为 ent + PostgreSQL。前端为 React、TypeScript、Vite、Tailwind CSS、[shadcn/ui](https://ui.shadcn.com/)。日志为标准库 `log/slog`；HTTP JSON 迁移期使用 contrib `encoding/json/v3` 保持契约。
 
 ### 2.2 Redis 分布式锁
 
@@ -136,7 +136,7 @@ Redis 只保存锁。业务数据、任务状态、告警去重都在 PostgreSQL
 | 键                               | 持有者      | 用途                     |
 | ------------------------------- | -------- | ---------------------- |
 | `alioth:lock:schedule:{name}`   | `alioth` | 短临界区。例如扫描到期规则并写下一次评测时间 |
-| `alioth:lock:eval:{rule_uid}`   | `megrez` | 持有到该规则本次评测和回写结束        |
+| `alioth:lock:eval:{rule_uid}:{datasource_uid}`   | `megrez` | 持有到该（规则, 数据源）本次评测和回写结束        |
 | `alioth:lock:notify:{task_uid}` | `merak`  | 持有到该通知投递和回写结束          |
 
 
@@ -148,7 +148,7 @@ Redis 只保存锁。业务数据、任务状态、告警去重都在 PostgreSQL
 4. 续期失败时，持锁进程放弃本次执行，不把任务报成成功。
 5. Redis 不可用时拒绝评测和投递，避免两副本同时做同一条规则或同一条通知。
 
-PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测批次 `(rule_uid, eval_slot)`、告警 `(namespace_uid, fingerprint)` 的当前 FIRING 记录、通知任务在同一事件上的一次投递。这是数据约束。互斥本身在 Redis。
+PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测批次 `(rule_uid, datasource_uid, eval_slot)`、告警 `(namespace_uid, fingerprint)` 的当前 FIRING 记录、通知任务在同一事件上的一次投递。这是数据约束。互斥本身在 Redis。
 
 `alkaid` 和浏览器不连接 Redis。
 
@@ -212,7 +212,7 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 | TRACE          | TRACE_JAEGER                                | 管理与查询代理。评测器留接口      |
 
 
-数据源归属 Namespace，可启停，可绑定数据源级别（Moon 的 `LevelType_DATASOURCE`）。密钥字段加密后入库，沿用 Moon `EncryptString` 的做法。指标数据源保留 Moon 已有的能力：状态、指标列表、指标详情、`query`、`query_range`、代理查询。
+数据源归属 Namespace，可启停，可绑定数据源级别（Moon 的 `LevelType_DATASOURCE`），并带 `labels` JSON 供规则按标签匹配。密钥字段加密后入库，沿用 Moon `EncryptString` 的做法。指标数据源保留 Moon 已有的能力：状态、指标列表、指标详情、`query`、`query_range`、代理查询。
 
 ### 4.2 规则
 
@@ -223,7 +223,7 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 | ------------------------ | ---------------- | ------------------------- |
 | `strategy_groups`        | `AlertRuleGroup` | Namespace 内唯一名称，可启停       |
 | `strategies`             | `AlertRule`      | 属于一个组，带类型与驱动，可启停          |
-| `strategy_metrics`       | 规则上的指标定义         | 表达式、标签、数据源过滤、摘要、描述        |
+| `strategy_metrics`       | 规则上的指标定义         | 表达式、标签、`datasource_labels` 匹配范围、摘要、描述 |
 | `strategy_metric_levels` | `AlertRuleLevel` | 比较条件、采样方式、阈值、持续秒数，并指向告警级别 |
 | `levels`（ALERT）          | `AlertLevel`     | 名称与展示色                    |
 
@@ -238,11 +238,13 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 `alioth` 在 `alioth:lock:schedule:eval` 下扫描 `next_eval_at <= now` 的已启用指标规则，写下一次评测时间，然后释放调度锁。`megrez` 向 `alioth` 领取这批规则的快照。
 
-单条规则的步骤：
+规则用类型 + `datasource_labels` 匹配 ACTIVE 数据源（匹配器 ⊆ 数据源 labels；空匹配器 = 该类型全部 ACTIVE）。Claim 对每个匹配数据源各发一条快照；无匹配则不发。fingerprint 为 `Of(rule_uid, datasource_uid, labels)`。
 
-1. `megrez` 对 `alioth:lock:eval:{rule_uid}` 加锁。没拿到锁就跳过。
-2. 按驱动查询数据源。指标规则使用 Moon 已实现的路径：PromQL、`query_range`、条件与采样、fingerprint。
-3. 把 FIRING 或恢复结果回写 `alioth`。回写按 fingerprint 幂等。
+单条（规则, 数据源）的步骤：
+
+1. `megrez` 对 `alioth:lock:eval:{rule_uid}:{datasource_uid}` 加锁。没拿到锁就跳过。
+2. 按该数据源驱动查询。指标规则使用 Moon 已实现的路径：PromQL、`query_range`、条件与采样、fingerprint。
+3. 把 FIRING 或恢复结果回写 `alioth`（带 `datasource_uid`）。回写按 fingerprint 幂等。
 4. 释放锁。续期失败则不回写成功。
 
 `alioth` 把 FIRING、恢复写入 `AlertEvent`，并按规则上的通知组生成 `NotificationTask`。恢复检测是评测的一部分：原先 FIRING、本次未命中，则记为恢复并生成恢复通知。
@@ -331,12 +333,12 @@ Kubernetes API 代理是新增能力。Agent 使用挂载的 kubeconfig，或在
 | ----- | ------------------------------- |
 | 账号    | 登录、注册、个人资料                      |
 | 租户与权限 | Namespace、用户、成员、角色与权限           |
-| 告警    | 数据源、规则组与规则、告警级别、实时告警、历史告警       |
+| 告警    | 数据源、规则组与规则、告警级别、告警页面、实时告警、历史告警 |
 | 通知    | 通知渠道、模板、通知组、消息日志                |
 | 边缘    | 机器、SSH 命令与审计、SFTP、Kubernetes 代理 |
 
 
-数据源的指标查询区需要表达式编辑器，交互对应 Moon Web 数据源页上的 PromQL 快查。规则编辑保存指标表达式、级别条件和通知组。实时告警支持筛选、详情、介入、抑制和恢复。
+数据源的指标查询区需要表达式编辑器，交互对应 Moon Web 数据源页上的 PromQL 快查。规则编辑保存指标表达式、级别条件和通知组。实时告警支持筛选、详情、介入、抑制和恢复；页内用 Tab 切换「我的告警」与用户选定的告警页面。告警页面按标签匹配过滤实时事件，可设公开供同租户他人选用。
 
 壳上保留 Moon Web 已有的 Namespace 切换、主题（light / dark / system）和中英文。切换 Namespace 后后续请求使用新的 `X-Namespace`。没有 Namespace 时引导创建。
 
@@ -389,9 +391,11 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 | SFTP          | 列目录、上传、下载、建目录、删除；查询 `SFTPAudit`          |
 | Kubernetes 代理 | 经指定 Agent 转发 API 请求；查询 `K8sProxyAudit`   |
 | Agent         | 签发与吊销令牌；列表与详情（含在线状态）。注册和心跳不走浏览器 HTTP     |
+| 告警页面          | CRUD；公开/私有；个人实时 Tab 订阅。按标签匹配过滤实时告警。与 Moon 通知订阅无关 |
+| 我的告警          | 实时列表筛选：规则绑定通知组且 `receivers` 含当前用户邮箱或 UID           |
 
 
-明确不迁入的 Moon HTTP：`/v1/probe-tasks`、`/v1/alert-subscriptions`（由规则绑定通知组替代）、`/v1/ssh-command-actions/dispatch`（由在线 Agent 替代）、rabbit 的 `POST /v1/alerts/prometheus/webhook`（评测结果改走内部回写）。
+明确不迁入的 Moon HTTP：`/v1/probe-tasks`、`/v1/alert-subscriptions`（通知路由由规则绑定通知组替代；Alioth 的告警页面只做实时列表视图，不是 Moon 订阅）、`/v1/ssh-command-actions/dispatch`（由在线 Agent 替代）、rabbit 的 `POST /v1/alerts/prometheus/webhook`（评测结果改走内部回写）。
 
 ### 8.3 内部接口
 

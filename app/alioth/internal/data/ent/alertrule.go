@@ -43,6 +43,8 @@ type AlertRule struct {
 	Labels string `json:"labels,omitempty"`
 	// DatasourceUID holds the value of the "datasource_uid" field.
 	DatasourceUID string `json:"datasource_uid,omitempty"`
+	// DatasourceLabels holds the value of the "datasource_labels" field.
+	DatasourceLabels string `json:"datasource_labels,omitempty"`
 	// Summary holds the value of the "summary" field.
 	Summary string `json:"summary,omitempty"`
 	// Description holds the value of the "description" field.
@@ -61,7 +63,7 @@ func (*AlertRule) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case alertrule.FieldID:
 			values[i] = new(sql.NullInt64)
-		case alertrule.FieldUID, alertrule.FieldNamespaceUID, alertrule.FieldGroupUID, alertrule.FieldName, alertrule.FieldType, alertrule.FieldDriver, alertrule.FieldStatus, alertrule.FieldExpr, alertrule.FieldLabels, alertrule.FieldDatasourceUID, alertrule.FieldSummary, alertrule.FieldDescription:
+		case alertrule.FieldUID, alertrule.FieldNamespaceUID, alertrule.FieldGroupUID, alertrule.FieldName, alertrule.FieldType, alertrule.FieldDriver, alertrule.FieldStatus, alertrule.FieldExpr, alertrule.FieldLabels, alertrule.FieldDatasourceUID, alertrule.FieldDatasourceLabels, alertrule.FieldSummary, alertrule.FieldDescription:
 			values[i] = new(sql.NullString)
 		case alertrule.FieldCreatedAt, alertrule.FieldUpdatedAt, alertrule.FieldDeletedAt, alertrule.FieldNextEvalAt, alertrule.FieldScheduledSlot:
 			values[i] = new(sql.NullTime)
@@ -165,6 +167,12 @@ func (_m *AlertRule) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.DatasourceUID = value.String
 			}
+		case alertrule.FieldDatasourceLabels:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field datasource_labels", values[i])
+			} else if value.Valid {
+				_m.DatasourceLabels = value.String
+			}
 		case alertrule.FieldSummary:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field summary", values[i])
@@ -267,6 +275,9 @@ func (_m *AlertRule) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("datasource_uid=")
 	builder.WriteString(_m.DatasourceUID)
+	builder.WriteString(", ")
+	builder.WriteString("datasource_labels=")
+	builder.WriteString(_m.DatasourceLabels)
 	builder.WriteString(", ")
 	builder.WriteString("summary=")
 	builder.WriteString(_m.Summary)

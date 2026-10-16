@@ -5,10 +5,11 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	"log/slog"
 	"time"
 
-	kerrors "github.com/go-kratos/kratos/v2/errors"
-	"github.com/go-kratos/kratos/v2/log"
+	kerrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/redis/go-redis/v9"
 
 	"github.com/aide-family/Alioth/pkg/merr"
@@ -67,7 +68,7 @@ func (c *Client) Acquire(ctx context.Context, key string, ttl time.Duration) (*H
 		return nil, ErrNotAcquired
 	}
 	if err != nil {
-		log.NewHelper(log.DefaultLogger).Errorf("lock: %v", err)
+		slog.Default().Error(fmt.Sprintf("lock: %v", err))
 		return nil, merr.Server("lock failed")
 	}
 	if res != "OK" {
@@ -102,7 +103,7 @@ func (h *Hold) eval(ctx context.Context, script string, ttl time.Duration) error
 	}
 	n, err := h.client.rdb.Eval(ctx, script, []string{h.key}, args...).Int64()
 	if err != nil {
-		log.NewHelper(log.DefaultLogger).Errorf("lock: %v", err)
+		slog.Default().Error(fmt.Sprintf("lock: %v", err))
 		return merr.Server("lock failed")
 	}
 	if n == 0 {

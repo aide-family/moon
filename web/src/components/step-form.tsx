@@ -3,12 +3,14 @@ import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 import { DialogFooter } from "@/components/ui/dialog"
+import { cn } from "@/lib/utils"
 
 interface StepFormProps {
   step: number
   stepCount: number
   pending?: boolean
   error?: string
+  fieldsClassName?: string
   onBack: () => void
   onNext: () => void
   onSubmit: (event: FormEvent) => void
@@ -20,6 +22,7 @@ export function StepForm({
   stepCount,
   pending = false,
   error,
+  fieldsClassName,
   onBack,
   onNext,
   onSubmit,
@@ -33,7 +36,7 @@ export function StepForm({
       <p className="text-sm text-muted-foreground">
         {t("form.step", { current: step + 1, total: stepCount })}
       </p>
-      <div className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto">
+      <div className={cn("grid min-h-0 flex-1 content-start gap-4 overflow-y-auto", fieldsClassName)}>
         {children}
       </div>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}

@@ -3,13 +3,13 @@ package data
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
-
-	"github.com/go-kratos/kratos/v2/log"
 
 	"github.com/aide-family/Alioth/app/megrez/internal/data/repository"
 	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
@@ -52,17 +52,17 @@ func (promQuery) QueryRange(ctx context.Context, item bo.RuleSnapshot, start, en
 	}
 	resp, err := promClient.Do(req)
 	if err != nil {
-		log.NewHelper(log.DefaultLogger).Errorf("rule %s query: %v", item.UID, err)
+		slog.Default().Error(fmt.Sprintf("rule %s query: %v", item.UID, err))
 		return nil, merr.Server("upstream query failed")
 	}
 	defer resp.Body.Close()
 	payload, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil {
-		log.NewHelper(log.DefaultLogger).Errorf("rule %s read: %v", item.UID, err)
+		slog.Default().Error(fmt.Sprintf("rule %s read: %v", item.UID, err))
 		return nil, merr.Server("upstream query failed")
 	}
 	if resp.StatusCode >= 300 {
-		log.NewHelper(log.DefaultLogger).Errorf("rule %s status %d", item.UID, resp.StatusCode)
+		slog.Default().Error(fmt.Sprintf("rule %s status %d", item.UID, resp.StatusCode))
 		return nil, merr.Server("upstream query failed")
 	}
 	return decodeMatrix(payload)

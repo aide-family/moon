@@ -3,9 +3,10 @@ package eval
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log/slog"
 	"time"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 
 	"github.com/aide-family/Alioth/app/megrez/internal/data/repository"
@@ -27,14 +28,14 @@ type Worker struct {
 	gateway repository.EvalGateway
 	locks   repository.Locker
 	query   repository.RangeQuery
-	log     *log.Helper
+	log     *slog.Logger
 	cancel  context.CancelFunc
 	done    chan struct{}
 	now     func() time.Time
 }
 
-func NewWorker(gateway repository.EvalGateway, locks repository.Locker, query repository.RangeQuery, logger log.Logger) *Worker {
-	return &Worker{gateway: gateway, locks: locks, query: query, log: log.NewHelper(logger), now: time.Now}
+func NewWorker(gateway repository.EvalGateway, locks repository.Locker, query repository.RangeQuery, logger *slog.Logger) *Worker {
+	return &Worker{gateway: gateway, locks: locks, query: query, log: logger, now: time.Now}
 }
 
 func (w *Worker) Start(context.Context) error {
@@ -70,23 +71,23 @@ func (w *Worker) Stop(context.Context) error {
 
 func (w *Worker) once(ctx context.Context) {
 	if err := w.locks.Available(ctx); err != nil {
-		w.log.Errorf("eval redis: %v", err)
+		w.log.Error(fmt.Sprintf("eval redis: %v", err))
 		return
 	}
 	rules, err := w.gateway.Claim(ctx)
 	if err != nil {
-		w.log.Errorf("claim: %v", err)
+		w.log.Error(fmt.Sprintf("claim: %v", err))
 		return
 	}
 	for _, rule := range rules {
 		if err := w.evalOne(ctx, rule); err != nil {
-			w.log.Errorf("eval %s: %v", rule.UID, err)
+			w.log.Error(fmt.Sprintf("eval %s: %v", rule.UID, err))
 		}
 	}
 }
 
 func (w *Worker) evalOne(ctx context.Context, rule bo.RuleSnapshot) error {
-	hold, err := w.locks.Acquire(ctx, "alioth:lock:eval:"+rule.UID, evalLockTTL)
+	hold, err := w.locks.Acquire(ctx, "alioth:lock:eval:"+rule.UID+":"+rule.DatasourceUID, evalLockTTL)
 	if err != nil {
 		if errors.Is(err, lock.ErrNotAcquired) {
 			return nil
@@ -117,7 +118,10 @@ func (w *Worker) finish(ctx context.Context, hold repository.Hold, rule bo.RuleS
 			}
 		}
 	}()
-	report := bo.EvalReport{RuleUID: rule.UID, EvalSlot: rule.EvalSlot, Skipped: !metricsDriver(rule.Driver)}
+	report := bo.EvalReport{
+		RuleUID: rule.UID, DatasourceUID: rule.DatasourceUID,
+		EvalSlot: rule.EvalSlot, Skipped: !metricsDriver(rule.Driver),
+	}
 	var samples []bo.Sample
 	var err error
 	if !report.Skipped {
@@ -130,7 +134,7 @@ func (w *Worker) finish(ctx context.Context, hold repository.Hold, rule bo.RuleS
 	default:
 	}
 	if renewErr := hold.Renew(ctx, evalLockTTL); renewErr != nil {
-		w.log.Errorf("renew %s: %v", rule.UID, renewErr)
+		w.log.Error(fmt.Sprintf("renew %s: %v", rule.UID, renewErr))
 		return merr.Server("lock failed")
 	}
 	if err != nil {

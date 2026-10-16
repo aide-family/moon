@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
@@ -9,6 +10,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
+	labelsutil "github.com/aide-family/Alioth/pkg/labels"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -37,6 +39,7 @@ func (r *datasourceRepo) CreateDatasource(ctx context.Context, in bo.Datasource)
 		SetSecretCipher(secret).
 		SetStatus(status).
 		SetLevelUID(in.LevelUID).
+		SetLabels(in.Labels).
 		SetRemark(in.Remark).
 		Save(ctx)
 	if err != nil {
@@ -81,6 +84,7 @@ func (r *datasourceRepo) UpdateDatasource(ctx context.Context, in bo.Datasource)
 		SetPasswordCipher(password).
 		SetSecretCipher(secret).
 		SetLevelUID(in.LevelUID).
+		SetLabels(in.Labels).
 		SetRemark(in.Remark).
 		Save(ctx)
 	if err != nil {
@@ -159,6 +163,37 @@ func (r *datasourceRepo) ListDatasources(ctx context.Context, namespaceUID strin
 	return r.presentMany(ctx, rows, false), total, nil
 }
 
+func (r *datasourceRepo) ListDatasourcesByMatchers(ctx context.Context, namespaceUID, kind, matchersJSON string) ([]bo.Datasource, error) {
+	if kind != "METRICS" && kind != "LOGS" && kind != "TRACE" {
+		return nil, merr.Invalid("invalid request")
+	}
+	rows, err := r.client.Datasource.Query().Where(
+		datasource.NamespaceUIDEQ(namespaceUID),
+		datasource.DeletedAtIsNil(),
+		datasource.StatusEQ(datasource.StatusACTIVE),
+		datasource.TypeEQ(datasource.Type(kind)),
+	).Order(ent.Asc(datasource.FieldUID)).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	items := make([]bo.Datasource, 0, len(rows))
+	for _, row := range rows {
+		ok, err := labelsutil.MatchersJSONContained(matchersJSON, row.Labels)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			continue
+		}
+		item, err := r.present(ctx, row, true)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, *item)
+	}
+	return items, nil
+}
+
 func (r *datasourceRepo) SelectDatasources(ctx context.Context, namespaceUID string, limit int, lastUID, kind string) ([]bo.SelectItem, error) {
 	query := r.client.Datasource.Query().Where(datasource.NamespaceUIDEQ(namespaceUID), datasource.DeletedAtIsNil())
 	if lastUID != "" {
@@ -202,19 +237,20 @@ func toDatasource(row *ent.Datasource, levelName string, withSecret bool, r *dat
 		UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name,
 		Type: string(row.Type), Driver: string(row.Driver), Endpoint: row.Endpoint,
 		Username: row.Username, SecretSet: row.PasswordCipher != "" || row.SecretCipher != "",
-		Status: string(row.Status), LevelUID: row.LevelUID, LevelName: levelName, Remark: row.Remark,
+		Status: string(row.Status), LevelUID: row.LevelUID, LevelName: levelName,
+		Labels: row.Labels, Remark: row.Remark,
 	}
 	if !withSecret {
 		return item
 	}
 	password, err := r.box.decrypt(row.PasswordCipher)
 	if err != nil {
-		r.log.Errorf("datasource %s decrypt", row.UID)
+		r.log.Error(fmt.Sprintf("datasource %s decrypt", row.UID))
 		password = ""
 	}
 	secret, err := r.box.decrypt(row.SecretCipher)
 	if err != nil {
-		r.log.Errorf("datasource %s decrypt", row.UID)
+		r.log.Error(fmt.Sprintf("datasource %s decrypt", row.UID))
 		secret = ""
 	}
 	item.Password = password
@@ -235,7 +271,7 @@ func (r *datasourceRepo) levelNames(ctx context.Context, uids []string) map[stri
 	}
 	rows, err := r.client.AlertLevel.Query().Where(alertlevel.UIDIn(clean...), alertlevel.DeletedAtIsNil()).All(ctx)
 	if err != nil {
-		r.log.Errorf("level names: %v", err)
+		r.log.Error(fmt.Sprintf("level names: %v", err))
 		return names
 	}
 	for _, row := range rows {

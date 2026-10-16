@@ -30,7 +30,7 @@ func Hits(rule bo.RuleSnapshot, samples []bo.Sample) []bo.EvalHit {
 				encoded = []byte("{}")
 			}
 			hits = append(hits, bo.EvalHit{
-				Fingerprint: fingerprint.Of(rule.UID, labels),
+				Fingerprint: fingerprint.Of(rule.UID, rule.DatasourceUID, labels),
 				Labels:      string(encoded),
 				Value:       raw,
 				LevelUID:    level.LevelUID,

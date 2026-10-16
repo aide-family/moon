@@ -41,6 +41,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { firstError, requireTrimmed } from "@/lib/form"
 import { useListQuery } from "@/lib/list-query"
 
 const types = ["ALERT", "DATASOURCE"]
@@ -110,11 +111,24 @@ export function AlertLevelPage() {
   function openCreate() {
     setEditing(null)
     setName("")
-    setColor("")
+    setColor("#d92d20")
     setLevelType("ALERT")
     setError("")
     setOpen(true)
   }
+
+  function normalizeColor(value: string): string {
+    const trimmed = value.trim()
+    if (/^#[0-9a-fA-F]{6}$/.test(trimmed)) {
+      return trimmed.toLowerCase()
+    }
+    if (/^[0-9a-fA-F]{6}$/.test(trimmed)) {
+      return `#${trimmed.toLowerCase()}`
+    }
+    return trimmed
+  }
+
+  const colorSwatch = /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#1677ff"
 
   function openEdit(item: AlertLevelItem) {
     setEditing(item)
@@ -127,13 +141,22 @@ export function AlertLevelPage() {
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
+    const invalid = firstError(
+      requireTrimmed(name, t("form.required")),
+      editing ? null : requireTrimmed(levelType, t("form.required")),
+    )
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
+      const nextColor = normalizeColor(color)
       if (editing) {
-        await updateAlertLevel({ uid: editing.uid, name, color })
+        await updateAlertLevel({ uid: editing.uid, name: name.trim(), color: nextColor })
       } else {
-        await createAlertLevel({ name, color, type: levelType })
+        await createAlertLevel({ name: name.trim(), color: nextColor, type: levelType })
       }
       setOpen(false)
       setAttempt((value) => value + 1)
@@ -271,35 +294,59 @@ export function AlertLevelPage() {
           ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={onSave}>
+          <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
             <FormField label={t("alertLevel.name")} htmlFor="level-name">
-              <Input id="level-name" value={name} placeholder={t("alertLevel.namePlaceholder")} onChange={(event) => setName(event.target.value)} />
+              <Input id="level-name" value={name} placeholder={t("alertLevel.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
             <FormField label={t("alertLevel.color")} htmlFor="level-color" hint={t("alertLevel.colorHint")}>
-              <Input id="level-color" value={color} placeholder="#d92d20" onChange={(event) => setColor(event.target.value)} />
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  aria-label={t("alertLevel.colorPicker")}
+                  className="size-9 cursor-pointer rounded-md border border-input bg-transparent p-1"
+                  value={colorSwatch}
+                  onChange={(event) => setColor(event.target.value)}
+                />
+                <Input
+                  id="level-color"
+                  value={color}
+                  placeholder={t("alertLevel.colorPlaceholder")}
+                  onChange={(event) => setColor(event.target.value)}
+                />
+              </div>
             </FormField>
             {!editing ? (
-              <FormField label={t("datasource.type")}>
-                <Select value={levelType} onValueChange={setLevelType}>
-                  <SelectTrigger aria-label={t("datasource.type")}>
-                    <SelectValue placeholder={t("datasource.typePlaceholder")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {types.map((item) => (
-                      <SelectItem key={item} value={item}>
-                        {item}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <FormField label={t("datasource.type")} className="sm:col-span-full">
+                <div className="flex flex-wrap gap-4" role="radiogroup" aria-label={t("datasource.type")}>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="radio"
+                      name="alert-level-type"
+                      value="ALERT"
+                      checked={levelType === "ALERT"}
+                      onChange={() => setLevelType("ALERT")}
+                    />
+                    {t("alertLevel.typeAlert")}
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="radio"
+                      name="alert-level-type"
+                      value="DATASOURCE"
+                      checked={levelType === "DATASOURCE"}
+                      onChange={() => setLevelType("DATASOURCE")}
+                    />
+                    {t("alertLevel.typeDatasource")}
+                  </label>
+                </div>
               </FormField>
             ) : null}
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <DialogFooter>
+            {error ? <p className="sm:col-span-full text-sm text-destructive">{error}</p> : null}
+            <DialogFooter className="sm:col-span-full">
               <Button type="submit" disabled={pending}>
                 {t("action.save")}
               </Button>

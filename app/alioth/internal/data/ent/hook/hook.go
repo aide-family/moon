@@ -69,6 +69,18 @@ func (f AlertLevelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertLevelMutation", m)
 }
 
+// The AlertPageFunc type is an adapter to allow the use of ordinary
+// function as AlertPage mutator.
+type AlertPageFunc func(context.Context, *ent.AlertPageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertPageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertPageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertPageMutation", m)
+}
+
 // The AlertRuleFunc type is an adapter to allow the use of ordinary
 // function as AlertRule mutator.
 type AlertRuleFunc func(context.Context, *ent.AlertRuleMutation) (ent.Value, error)
@@ -343,6 +355,18 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+}
+
+// The UserAlertPageFunc type is an adapter to allow the use of ordinary
+// function as UserAlertPage mutator.
+type UserAlertPageFunc func(context.Context, *ent.UserAlertPageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserAlertPageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserAlertPageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserAlertPageMutation", m)
 }
 
 // The UserOAuthFunc type is an adapter to allow the use of ordinary

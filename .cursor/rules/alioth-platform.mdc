@@ -7,6 +7,7 @@ alwaysApply: true
 
 改代码前先看 [docs/roadmap.md](../../docs/roadmap.md) 的当前里程碑，并阅读 [docs/iterations/conventions.md](../../docs/iterations/conventions.md)。
 
+- 后端框架为 **Kratos v3**（Go 1.25+，`log/slog`）。
 - `alioth` 是唯一写入 PostgreSQL 的服务。`megrez` 只评测，`merak` 只投递，`alkaid` 出站连接 `alioth:9000`。
 - 端口：`web` 8080，`alioth` 8000/9000，`megrez` 8001，`merak` 8002，`alkaid` 8022/9022。浏览器只访问 8080。
 - Redis 只做分布式锁，不当缓存或队列。

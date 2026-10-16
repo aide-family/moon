@@ -2,9 +2,10 @@ package access
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 
-	kerrors "github.com/go-kratos/kratos/v2/errors"
-	"github.com/go-kratos/kratos/v2/log"
+	kerrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/wire"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
@@ -18,11 +19,11 @@ var ProviderSet = wire.NewSet(NewChecker)
 type Checker struct {
 	Namespaces repository.NamespaceRepo
 	Roles      repository.RoleRepo
-	Log        *log.Helper
+	Log        *slog.Logger
 }
 
-func NewChecker(namespaces repository.NamespaceRepo, roles repository.RoleRepo, logger log.Logger) Checker {
-	return Checker{Namespaces: namespaces, Roles: roles, Log: log.NewHelper(logger)}
+func NewChecker(namespaces repository.NamespaceRepo, roles repository.RoleRepo, logger *slog.Logger) Checker {
+	return Checker{Namespaces: namespaces, Roles: roles, Log: logger}
 }
 
 // Allow 确认当前用户持有 code，并返回当前租户。
@@ -86,6 +87,6 @@ func (c Checker) Wrap(err error) error {
 	if kerrors.Reason(err) != "" {
 		return err
 	}
-	c.Log.Errorf("usecase: %v", err)
+	c.Log.Error(fmt.Sprintf("usecase: %v", err))
 	return merr.Server("request failed")
 }

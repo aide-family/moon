@@ -27,6 +27,8 @@ description: >-
 - 一行操作超过两项时只留「详情」和「更多」。删除、封禁、停用、移交负责人先确认。
 - 文案使用 `t()`。按钮、表头、空状态和提示都不写死中文或英文。
 - 请求处理 loading。卸载后不再 setState。失败时保留可用的空状态。
+- **表单（必须）**：每个 `Input` / `Textarea` / `Select` 都有 i18n placeholder。提交前按后端 proto/biz 必填做前端校验（`required` + trim；必填 Select 禁止空/`NONE`；`StepForm` 下一步先校验当前步），空值不发无效请求。可用 `web/src/lib/form.ts` 的 `requireTrimmed` / `requireSelected`。不引入 zod/RHF。
+- 登录与注册保持分路由，底部保留互跳链接。
 
 ## 组件
 

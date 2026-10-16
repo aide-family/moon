@@ -19,6 +19,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertlevel"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
@@ -42,6 +43,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommandaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useralertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useroauth"
 )
 
@@ -60,6 +62,8 @@ type Client struct {
 	AlertEventFiring *AlertEventFiringClient
 	// AlertLevel is the client for interacting with the AlertLevel builders.
 	AlertLevel *AlertLevelClient
+	// AlertPage is the client for interacting with the AlertPage builders.
+	AlertPage *AlertPageClient
 	// AlertRule is the client for interacting with the AlertRule builders.
 	AlertRule *AlertRuleClient
 	// AlertRuleGroup is the client for interacting with the AlertRuleGroup builders.
@@ -106,6 +110,8 @@ type Client struct {
 	SSHCommandAudit *SSHCommandAuditClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserAlertPage is the client for interacting with the UserAlertPage builders.
+	UserAlertPage *UserAlertPageClient
 	// UserOAuth is the client for interacting with the UserOAuth builders.
 	UserOAuth *UserOAuthClient
 }
@@ -124,6 +130,7 @@ func (c *Client) init() {
 	c.AlertEvent = NewAlertEventClient(c.config)
 	c.AlertEventFiring = NewAlertEventFiringClient(c.config)
 	c.AlertLevel = NewAlertLevelClient(c.config)
+	c.AlertPage = NewAlertPageClient(c.config)
 	c.AlertRule = NewAlertRuleClient(c.config)
 	c.AlertRuleGroup = NewAlertRuleGroupClient(c.config)
 	c.AlertRuleLevel = NewAlertRuleLevelClient(c.config)
@@ -147,6 +154,7 @@ func (c *Client) init() {
 	c.SSHCommand = NewSSHCommandClient(c.config)
 	c.SSHCommandAudit = NewSSHCommandAuditClient(c.config)
 	c.User = NewUserClient(c.config)
+	c.UserAlertPage = NewUserAlertPageClient(c.config)
 	c.UserOAuth = NewUserOAuthClient(c.config)
 }
 
@@ -245,6 +253,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		AlertEvent:                 NewAlertEventClient(cfg),
 		AlertEventFiring:           NewAlertEventFiringClient(cfg),
 		AlertLevel:                 NewAlertLevelClient(cfg),
+		AlertPage:                  NewAlertPageClient(cfg),
 		AlertRule:                  NewAlertRuleClient(cfg),
 		AlertRuleGroup:             NewAlertRuleGroupClient(cfg),
 		AlertRuleLevel:             NewAlertRuleLevelClient(cfg),
@@ -268,6 +277,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		SSHCommand:                 NewSSHCommandClient(cfg),
 		SSHCommandAudit:            NewSSHCommandAuditClient(cfg),
 		User:                       NewUserClient(cfg),
+		UserAlertPage:              NewUserAlertPageClient(cfg),
 		UserOAuth:                  NewUserOAuthClient(cfg),
 	}, nil
 }
@@ -293,6 +303,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		AlertEvent:                 NewAlertEventClient(cfg),
 		AlertEventFiring:           NewAlertEventFiringClient(cfg),
 		AlertLevel:                 NewAlertLevelClient(cfg),
+		AlertPage:                  NewAlertPageClient(cfg),
 		AlertRule:                  NewAlertRuleClient(cfg),
 		AlertRuleGroup:             NewAlertRuleGroupClient(cfg),
 		AlertRuleLevel:             NewAlertRuleLevelClient(cfg),
@@ -316,6 +327,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		SSHCommand:                 NewSSHCommandClient(cfg),
 		SSHCommandAudit:            NewSSHCommandAuditClient(cfg),
 		User:                       NewUserClient(cfg),
+		UserAlertPage:              NewUserAlertPageClient(cfg),
 		UserOAuth:                  NewUserOAuthClient(cfg),
 	}, nil
 }
@@ -347,12 +359,12 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Agent, c.AlertEvalBatch, c.AlertEvent, c.AlertEventFiring, c.AlertLevel,
-		c.AlertRule, c.AlertRuleGroup, c.AlertRuleLevel, c.AlertRuleNotificationGroup,
-		c.Captcha, c.Datasource, c.EmailLoginCode, c.K8sProxyAudit, c.Member,
-		c.MemberRole, c.MessageLog, c.Namespace, c.NotificationChannel,
-		c.NotificationGroup, c.NotificationTask, c.NotificationTemplate, c.Permission,
-		c.Role, c.RolePermission, c.SFTPAudit, c.SSHCommand, c.SSHCommandAudit, c.User,
-		c.UserOAuth,
+		c.AlertPage, c.AlertRule, c.AlertRuleGroup, c.AlertRuleLevel,
+		c.AlertRuleNotificationGroup, c.Captcha, c.Datasource, c.EmailLoginCode,
+		c.K8sProxyAudit, c.Member, c.MemberRole, c.MessageLog, c.Namespace,
+		c.NotificationChannel, c.NotificationGroup, c.NotificationTask,
+		c.NotificationTemplate, c.Permission, c.Role, c.RolePermission, c.SFTPAudit,
+		c.SSHCommand, c.SSHCommandAudit, c.User, c.UserAlertPage, c.UserOAuth,
 	} {
 		n.Use(hooks...)
 	}
@@ -363,12 +375,12 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Agent, c.AlertEvalBatch, c.AlertEvent, c.AlertEventFiring, c.AlertLevel,
-		c.AlertRule, c.AlertRuleGroup, c.AlertRuleLevel, c.AlertRuleNotificationGroup,
-		c.Captcha, c.Datasource, c.EmailLoginCode, c.K8sProxyAudit, c.Member,
-		c.MemberRole, c.MessageLog, c.Namespace, c.NotificationChannel,
-		c.NotificationGroup, c.NotificationTask, c.NotificationTemplate, c.Permission,
-		c.Role, c.RolePermission, c.SFTPAudit, c.SSHCommand, c.SSHCommandAudit, c.User,
-		c.UserOAuth,
+		c.AlertPage, c.AlertRule, c.AlertRuleGroup, c.AlertRuleLevel,
+		c.AlertRuleNotificationGroup, c.Captcha, c.Datasource, c.EmailLoginCode,
+		c.K8sProxyAudit, c.Member, c.MemberRole, c.MessageLog, c.Namespace,
+		c.NotificationChannel, c.NotificationGroup, c.NotificationTask,
+		c.NotificationTemplate, c.Permission, c.Role, c.RolePermission, c.SFTPAudit,
+		c.SSHCommand, c.SSHCommandAudit, c.User, c.UserAlertPage, c.UserOAuth,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -387,6 +399,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AlertEventFiring.mutate(ctx, m)
 	case *AlertLevelMutation:
 		return c.AlertLevel.mutate(ctx, m)
+	case *AlertPageMutation:
+		return c.AlertPage.mutate(ctx, m)
 	case *AlertRuleMutation:
 		return c.AlertRule.mutate(ctx, m)
 	case *AlertRuleGroupMutation:
@@ -433,6 +447,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.SSHCommandAudit.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
+	case *UserAlertPageMutation:
+		return c.UserAlertPage.mutate(ctx, m)
 	case *UserOAuthMutation:
 		return c.UserOAuth.mutate(ctx, m)
 	default:
@@ -1102,6 +1118,139 @@ func (c *AlertLevelClient) mutate(ctx context.Context, m *AlertLevelMutation) (V
 		return (&AlertLevelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AlertLevel mutation op: %q", m.Op())
+	}
+}
+
+// AlertPageClient is a client for the AlertPage schema.
+type AlertPageClient struct {
+	config
+}
+
+// NewAlertPageClient returns a client for the AlertPage from the given config.
+func NewAlertPageClient(c config) *AlertPageClient {
+	return &AlertPageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `alertpage.Hooks(f(g(h())))`.
+func (c *AlertPageClient) Use(hooks ...Hook) {
+	c.hooks.AlertPage = append(c.hooks.AlertPage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `alertpage.Intercept(f(g(h())))`.
+func (c *AlertPageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AlertPage = append(c.inters.AlertPage, interceptors...)
+}
+
+// Create returns a builder for creating a AlertPage entity.
+func (c *AlertPageClient) Create() *AlertPageCreate {
+	mutation := newAlertPageMutation(c.config, OpCreate)
+	return &AlertPageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AlertPage entities.
+func (c *AlertPageClient) CreateBulk(builders ...*AlertPageCreate) *AlertPageCreateBulk {
+	return &AlertPageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AlertPageClient) MapCreateBulk(slice any, setFunc func(*AlertPageCreate, int)) *AlertPageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AlertPageCreateBulk{err: fmt.Errorf("calling to AlertPageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AlertPageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AlertPageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AlertPage.
+func (c *AlertPageClient) Update() *AlertPageUpdate {
+	mutation := newAlertPageMutation(c.config, OpUpdate)
+	return &AlertPageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AlertPageClient) UpdateOne(_m *AlertPage) *AlertPageUpdateOne {
+	mutation := newAlertPageMutation(c.config, OpUpdateOne, withAlertPage(_m))
+	return &AlertPageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AlertPageClient) UpdateOneID(id int) *AlertPageUpdateOne {
+	mutation := newAlertPageMutation(c.config, OpUpdateOne, withAlertPageID(id))
+	return &AlertPageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AlertPage.
+func (c *AlertPageClient) Delete() *AlertPageDelete {
+	mutation := newAlertPageMutation(c.config, OpDelete)
+	return &AlertPageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AlertPageClient) DeleteOne(_m *AlertPage) *AlertPageDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AlertPageClient) DeleteOneID(id int) *AlertPageDeleteOne {
+	builder := c.Delete().Where(alertpage.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AlertPageDeleteOne{builder}
+}
+
+// Query returns a query builder for AlertPage.
+func (c *AlertPageClient) Query() *AlertPageQuery {
+	return &AlertPageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAlertPage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AlertPage entity by its id.
+func (c *AlertPageClient) Get(ctx context.Context, id int) (*AlertPage, error) {
+	return c.Query().Where(alertpage.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AlertPageClient) GetX(ctx context.Context, id int) *AlertPage {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AlertPageClient) Hooks() []Hook {
+	return c.hooks.AlertPage
+}
+
+// Interceptors returns the client interceptors.
+func (c *AlertPageClient) Interceptors() []Interceptor {
+	return c.inters.AlertPage
+}
+
+func (c *AlertPageClient) mutate(ctx context.Context, m *AlertPageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AlertPageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AlertPageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AlertPageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AlertPageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AlertPage mutation op: %q", m.Op())
 	}
 }
 
@@ -4164,6 +4313,139 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 	}
 }
 
+// UserAlertPageClient is a client for the UserAlertPage schema.
+type UserAlertPageClient struct {
+	config
+}
+
+// NewUserAlertPageClient returns a client for the UserAlertPage from the given config.
+func NewUserAlertPageClient(c config) *UserAlertPageClient {
+	return &UserAlertPageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `useralertpage.Hooks(f(g(h())))`.
+func (c *UserAlertPageClient) Use(hooks ...Hook) {
+	c.hooks.UserAlertPage = append(c.hooks.UserAlertPage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `useralertpage.Intercept(f(g(h())))`.
+func (c *UserAlertPageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserAlertPage = append(c.inters.UserAlertPage, interceptors...)
+}
+
+// Create returns a builder for creating a UserAlertPage entity.
+func (c *UserAlertPageClient) Create() *UserAlertPageCreate {
+	mutation := newUserAlertPageMutation(c.config, OpCreate)
+	return &UserAlertPageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserAlertPage entities.
+func (c *UserAlertPageClient) CreateBulk(builders ...*UserAlertPageCreate) *UserAlertPageCreateBulk {
+	return &UserAlertPageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserAlertPageClient) MapCreateBulk(slice any, setFunc func(*UserAlertPageCreate, int)) *UserAlertPageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserAlertPageCreateBulk{err: fmt.Errorf("calling to UserAlertPageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserAlertPageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserAlertPageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserAlertPage.
+func (c *UserAlertPageClient) Update() *UserAlertPageUpdate {
+	mutation := newUserAlertPageMutation(c.config, OpUpdate)
+	return &UserAlertPageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserAlertPageClient) UpdateOne(_m *UserAlertPage) *UserAlertPageUpdateOne {
+	mutation := newUserAlertPageMutation(c.config, OpUpdateOne, withUserAlertPage(_m))
+	return &UserAlertPageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserAlertPageClient) UpdateOneID(id int) *UserAlertPageUpdateOne {
+	mutation := newUserAlertPageMutation(c.config, OpUpdateOne, withUserAlertPageID(id))
+	return &UserAlertPageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserAlertPage.
+func (c *UserAlertPageClient) Delete() *UserAlertPageDelete {
+	mutation := newUserAlertPageMutation(c.config, OpDelete)
+	return &UserAlertPageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserAlertPageClient) DeleteOne(_m *UserAlertPage) *UserAlertPageDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserAlertPageClient) DeleteOneID(id int) *UserAlertPageDeleteOne {
+	builder := c.Delete().Where(useralertpage.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserAlertPageDeleteOne{builder}
+}
+
+// Query returns a query builder for UserAlertPage.
+func (c *UserAlertPageClient) Query() *UserAlertPageQuery {
+	return &UserAlertPageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserAlertPage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserAlertPage entity by its id.
+func (c *UserAlertPageClient) Get(ctx context.Context, id int) (*UserAlertPage, error) {
+	return c.Query().Where(useralertpage.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserAlertPageClient) GetX(ctx context.Context, id int) *UserAlertPage {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *UserAlertPageClient) Hooks() []Hook {
+	return c.hooks.UserAlertPage
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserAlertPageClient) Interceptors() []Interceptor {
+	return c.inters.UserAlertPage
+}
+
+func (c *UserAlertPageClient) mutate(ctx context.Context, m *UserAlertPageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserAlertPageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserAlertPageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserAlertPageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserAlertPageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserAlertPage mutation op: %q", m.Op())
+	}
+}
+
 // UserOAuthClient is a client for the UserOAuth schema.
 type UserOAuthClient struct {
 	config
@@ -4300,19 +4582,19 @@ func (c *UserOAuthClient) mutate(ctx context.Context, m *UserOAuthMutation) (Val
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Agent, AlertEvalBatch, AlertEvent, AlertEventFiring, AlertLevel, AlertRule,
-		AlertRuleGroup, AlertRuleLevel, AlertRuleNotificationGroup, Captcha,
+		Agent, AlertEvalBatch, AlertEvent, AlertEventFiring, AlertLevel, AlertPage,
+		AlertRule, AlertRuleGroup, AlertRuleLevel, AlertRuleNotificationGroup, Captcha,
 		Datasource, EmailLoginCode, K8sProxyAudit, Member, MemberRole, MessageLog,
 		Namespace, NotificationChannel, NotificationGroup, NotificationTask,
 		NotificationTemplate, Permission, Role, RolePermission, SFTPAudit, SSHCommand,
-		SSHCommandAudit, User, UserOAuth []ent.Hook
+		SSHCommandAudit, User, UserAlertPage, UserOAuth []ent.Hook
 	}
 	inters struct {
-		Agent, AlertEvalBatch, AlertEvent, AlertEventFiring, AlertLevel, AlertRule,
-		AlertRuleGroup, AlertRuleLevel, AlertRuleNotificationGroup, Captcha,
+		Agent, AlertEvalBatch, AlertEvent, AlertEventFiring, AlertLevel, AlertPage,
+		AlertRule, AlertRuleGroup, AlertRuleLevel, AlertRuleNotificationGroup, Captcha,
 		Datasource, EmailLoginCode, K8sProxyAudit, Member, MemberRole, MessageLog,
 		Namespace, NotificationChannel, NotificationGroup, NotificationTask,
 		NotificationTemplate, Permission, Role, RolePermission, SFTPAudit, SSHCommand,
-		SSHCommandAudit, User, UserOAuth []ent.Interceptor
+		SSHCommandAudit, User, UserAlertPage, UserOAuth []ent.Interceptor
 	}
 )

@@ -17,8 +17,8 @@ import {
   updateAlertRuleStatus,
 } from "@/api/alert-rule"
 import type { AlertRuleGroupItem, AlertRuleItem, AlertRuleLevelInput } from "@/api/alert-rule/types"
-import { selectDatasources } from "@/api/datasource"
-import type { SelectItem as DatasourceOption } from "@/api/datasource/types"
+import { listDatasources } from "@/api/datasource"
+import type { DatasourceItem } from "@/api/datasource/types"
 import { selectNotificationGroups } from "@/api/notification-group"
 import type { SelectItem as NotifyGroupOption } from "@/api/notification-group/types"
 import { useSession } from "@/auth/session"
@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -54,6 +55,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { firstError, requireTrimmed } from "@/lib/form"
+import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { useListQuery } from "@/lib/list-query"
 
 const types = ["METRICS", "LOGS", "TRACE"]
@@ -74,7 +77,7 @@ interface RuleDraft {
   driver: string
   expr: string
   labels: string
-  datasourceUid: string
+  datasourceLabels: LabelPair[]
   summary: string
   description: string
   levels: AlertRuleLevelInput[]
@@ -95,11 +98,29 @@ const emptyRule: RuleDraft = {
   driver: "METRICS_PROMETHEUS",
   expr: "",
   labels: "",
-  datasourceUid: "",
+  datasourceLabels: [{ key: "", value: "" }],
   summary: "",
   description: "",
   levels: [{ ...emptyLevel }],
   notificationGroupUids: [],
+}
+
+function matchDatasourceCount(sources: DatasourceItem[], type: string, matchers: LabelPair[]): number {
+  const matcherEntries = matchers
+    .map((pair) => [pair.key.trim(), pair.value.trim()] as const)
+    .filter(([key]) => key.length > 0)
+  return sources.filter((item) => {
+    if (item.type !== type || item.status !== "ACTIVE") {
+      return false
+    }
+    let labels: Record<string, string> = {}
+    try {
+      labels = JSON.parse(item.labels || "{}") as Record<string, string>
+    } catch {
+      return false
+    }
+    return matcherEntries.every(([key, value]) => labels[key] === value)
+  }).length
 }
 
 export function AlertRulePage() {
@@ -117,7 +138,7 @@ export function AlertRulePage() {
   const [rules, setRules] = useState<AlertRuleItem[]>([])
   const [ruleTotal, setRuleTotal] = useState(0)
   const [levels, setLevels] = useState<AlertLevelItem[]>([])
-  const [sources, setSources] = useState<DatasourceOption[]>([])
+  const [sources, setSources] = useState<DatasourceItem[]>([])
   const [notifyGroups, setNotifyGroups] = useState<NotifyGroupOption[]>([])
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
@@ -210,7 +231,7 @@ export function AlertRulePage() {
       try {
         const [levelResult, sourceResult, notifyResult] = await Promise.all([
           listAlertLevels({ page: 1, pageSize: 100, type: "ALERT" }),
-          selectDatasources({ limit: 100 }),
+          listDatasources({ page: 1, pageSize: 100 }),
           selectNotificationGroups({ limit: 100, activeOnly: true }),
         ])
         if (!active) {
@@ -253,7 +274,7 @@ export function AlertRulePage() {
             driver: item.driver,
             expr: item.expr,
             labels: item.labels,
-            datasourceUid: item.datasourceUid,
+            datasourceLabels: parseLabelPairs(item.datasourceLabels),
             summary: item.summary,
             description: item.description,
             levels: item.levels.length
@@ -276,13 +297,19 @@ export function AlertRulePage() {
 
   async function onSaveGroup(event: React.FormEvent) {
     event.preventDefault()
+    const invalid = requireTrimmed(groupName, t("form.required"))
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
+      const trimmed = groupName.trim()
       if (editingGroup) {
-        await updateAlertRuleGroup(editingGroup.uid, groupName)
+        await updateAlertRuleGroup(editingGroup.uid, trimmed)
       } else {
-        const created = await createAlertRuleGroup(groupName)
+        const created = await createAlertRuleGroup(trimmed)
         setParam("groupUid", created.group.uid)
       }
       setGroupOpen(false)
@@ -295,15 +322,36 @@ export function AlertRulePage() {
     }
   }
 
+  function validateRuleStep(step: number): string | null {
+    if (step === 0) {
+      return firstError(
+        requireTrimmed(form.name, t("form.required")),
+        requireTrimmed(form.type, t("form.required")),
+        requireTrimmed(form.driver, t("form.required")),
+      )
+    }
+    return null
+  }
+
   async function onSaveRule(event: React.FormEvent) {
     event.preventDefault()
     if (!groupUid) {
       return
     }
+    const invalid = firstError(validateRuleStep(0), validateRuleStep(1), validateRuleStep(2))
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setPending(true)
     setError("")
     try {
-      const body = { ...form, groupUid }
+      const body = {
+        ...form,
+        name: form.name.trim(),
+        groupUid,
+        datasourceLabels: serializeLabelPairs(form.datasourceLabels),
+      }
       if (editingRule) {
         await updateAlertRule({ ...body, uid: editingRule.uid })
       } else {
@@ -511,7 +559,7 @@ export function AlertRulePage() {
           </DialogHeader>
           <form className="grid gap-4" onSubmit={onSaveGroup}>
             <FormField label={t("alertRule.group")} htmlFor="group-name">
-              <Input id="group-name" value={groupName} placeholder={t("alertRule.groupPlaceholder")} onChange={(event) => setGroupName(event.target.value)} />
+              <Input id="group-name" value={groupName} placeholder={t("alertRule.groupPlaceholder")} onChange={(event) => setGroupName(event.target.value)} required />
             </FormField>
             {editingGroup && canWrite ? (
               <div className="flex gap-2">
@@ -543,7 +591,7 @@ export function AlertRulePage() {
         </DialogContent>
       </Dialog>
       <Dialog open={ruleOpen} onOpenChange={setRuleOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editingRule ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
@@ -552,14 +600,23 @@ export function AlertRulePage() {
             stepCount={3}
             pending={pending}
             error={error}
+            fieldsClassName="sm:grid-cols-2"
             onBack={() => setFormStep((value) => Math.max(0, value - 1))}
-            onNext={() => setFormStep((value) => Math.min(2, value + 1))}
+            onNext={() => {
+              const invalid = validateRuleStep(formStep)
+              if (invalid) {
+                setError(invalid)
+                return
+              }
+              setError("")
+              setFormStep((value) => Math.min(2, value + 1))
+            }}
             onSubmit={onSaveRule}
           >
             {formStep === 0 ? (
               <>
-            <FormField label={t("alertRule.name")} htmlFor="rule-name">
-              <Input id="rule-name" value={form.name} placeholder={t("alertRule.namePlaceholder")} onChange={(event) => setForm({ ...form, name: event.target.value })} />
+            <FormField label={t("alertRule.name")} htmlFor="rule-name" className="sm:col-span-full">
+              <Input id="rule-name" value={form.name} placeholder={t("alertRule.namePlaceholder")} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
             </FormField>
             <FormField label={t("datasource.type")}>
               <Select value={form.type} onValueChange={(value) => setForm({ ...form, type: value, driver: drivers[value][0] })}>
@@ -589,45 +646,81 @@ export function AlertRulePage() {
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label={t("datasource.title")}>
-              <Select value={form.datasourceUid || "NONE"} onValueChange={(value) => setForm({ ...form, datasourceUid: value === "NONE" ? "" : value })}>
-                <SelectTrigger aria-label={t("datasource.title")}>
-                  <SelectValue placeholder={t("alertRule.datasourcePlaceholder")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="NONE">{t("datasource.levelNone")}</SelectItem>
-                  {sources.map((item) => (
-                    <SelectItem key={item.uid} value={item.uid}>
-                      {item.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid gap-2 sm:col-span-full">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium">{t("alertRule.datasourceLabels")}</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setForm({ ...form, datasourceLabels: [...form.datasourceLabels, { key: "", value: "" }] })}
+                >
+                  {t("alertRule.addDatasourceLabel")}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">{t("alertRule.datasourceLabelsHint")}</p>
+              {form.datasourceLabels.map((pair, index) => (
+                <div key={index} className="grid gap-2 sm:grid-cols-2">
+                  <Input
+                    value={pair.key}
+                    placeholder={t("alertRule.datasourceLabelKeyPlaceholder")}
+                    onChange={(event) => {
+                      const datasourceLabels = [...form.datasourceLabels]
+                      datasourceLabels[index] = { ...pair, key: event.target.value }
+                      setForm({ ...form, datasourceLabels })
+                    }}
+                  />
+                  <Input
+                    value={pair.value}
+                    placeholder={t("alertRule.datasourceLabelValuePlaceholder")}
+                    onChange={(event) => {
+                      const datasourceLabels = [...form.datasourceLabels]
+                      datasourceLabels[index] = { ...pair, value: event.target.value }
+                      setForm({ ...form, datasourceLabels })
+                    }}
+                  />
+                </div>
+              ))}
+              <p className="text-xs text-muted-foreground">
+                {t("alertRule.datasourceMatchPreview", {
+                  count: matchDatasourceCount(sources, form.type, form.datasourceLabels),
+                })}
+              </p>
+            </div>
+            <FormField label={t("alertRule.summary")} htmlFor="rule-summary" className="sm:col-span-full">
+              <Textarea
+                id="rule-summary"
+                value={form.summary}
+                placeholder={t("alertRule.summaryPlaceholder")}
+                onChange={(event) => setForm({ ...form, summary: event.target.value })}
+              />
             </FormField>
-            <FormField label={t("alertRule.summary")} htmlFor="rule-summary">
-              <Input id="rule-summary" value={form.summary} placeholder={t("alertRule.summaryPlaceholder")} onChange={(event) => setForm({ ...form, summary: event.target.value })} />
-            </FormField>
-            <FormField label={t("alertRule.descriptionField")} htmlFor="rule-description">
-              <Input id="rule-description" value={form.description} placeholder={t("alertRule.descriptionPlaceholder")} onChange={(event) => setForm({ ...form, description: event.target.value })} />
+            <FormField label={t("alertRule.descriptionField")} htmlFor="rule-description" className="sm:col-span-full">
+              <Textarea
+                id="rule-description"
+                value={form.description}
+                placeholder={t("alertRule.descriptionPlaceholder")}
+                onChange={(event) => setForm({ ...form, description: event.target.value })}
+              />
             </FormField>
               </>
             ) : null}
             {formStep === 1 ? (
               <>
-            <FormField label={t("datasource.expr")} htmlFor="rule-expr" hint={t("datasource.exprHint")}>
+            <FormField label={t("datasource.expr")} htmlFor="rule-expr" hint={t("datasource.exprHint")} className="sm:col-span-full">
               <textarea id="rule-expr" className={areaClass} value={form.expr} placeholder={t("datasource.exprPlaceholder")} onChange={(event) => setForm({ ...form, expr: event.target.value })} />
             </FormField>
-            <FormField label={t("alertRule.labels")} htmlFor="rule-labels" hint={t("alertRule.labelsHint")}>
+            <FormField label={t("alertRule.labels")} htmlFor="rule-labels" hint={t("alertRule.labelsHint")} className="sm:col-span-full">
               <Input id="rule-labels" value={form.labels} placeholder='{"job":"api"}' onChange={(event) => setForm({ ...form, labels: event.target.value })} />
             </FormField>
               </>
             ) : null}
             {formStep === 2 ? (
               <>
-            <div className="grid gap-2">
+            <div className="grid gap-2 sm:col-span-full">
               <Label>{t("alertRule.levels")}</Label>
               {form.levels.map((level, index) => (
-                <div key={index} className="grid gap-2 rounded-lg border p-3">
+                <div key={index} className="grid gap-2 rounded-lg border p-3 sm:grid-cols-4">
                   <Select
                     value={level.condition}
                     onValueChange={(value) => {
@@ -636,7 +729,7 @@ export function AlertRulePage() {
                       setForm({ ...form, levels })
                     }}
                   >
-                    <SelectTrigger aria-label={t("alertRule.condition")}>
+                    <SelectTrigger className="w-full" aria-label={t("alertRule.condition")}>
                       <SelectValue placeholder={t("alertRule.condition")} />
                     </SelectTrigger>
                     <SelectContent>
@@ -655,7 +748,7 @@ export function AlertRulePage() {
                       setForm({ ...form, levels })
                     }}
                   >
-                    <SelectTrigger aria-label={t("alertRule.sample")}>
+                    <SelectTrigger className="w-full" aria-label={t("alertRule.sample")}>
                       <SelectValue placeholder={t("alertRule.sample")} />
                     </SelectTrigger>
                     <SelectContent>
@@ -684,33 +777,35 @@ export function AlertRulePage() {
                       setForm({ ...form, levels })
                     }}
                   />
-                  <Select
-                    value={level.levelUid || "NONE"}
-                    onValueChange={(value) => {
-                      const levels = [...form.levels]
-                      levels[index] = { ...level, levelUid: value === "NONE" ? "" : value }
-                      setForm({ ...form, levels })
-                    }}
-                  >
-                    <SelectTrigger aria-label={t("alertLevel.title")}>
-                      <SelectValue placeholder={t("alertRule.levelPlaceholder")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="NONE">{t("alertRule.levelPlaceholder")}</SelectItem>
-                      {levels.map((item) => (
-                        <SelectItem key={item.uid} value={item.uid}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="sm:col-span-full">
+                    <Select
+                      value={level.levelUid || "NONE"}
+                      onValueChange={(value) => {
+                        const levels = [...form.levels]
+                        levels[index] = { ...level, levelUid: value === "NONE" ? "" : value }
+                        setForm({ ...form, levels })
+                      }}
+                    >
+                      <SelectTrigger className="w-full" aria-label={t("alertLevel.title")}>
+                        <SelectValue placeholder={t("alertRule.levelPlaceholder")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NONE">{t("alertRule.levelPlaceholder")}</SelectItem>
+                        {levels.map((item) => (
+                          <SelectItem key={item.uid} value={item.uid}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               ))}
               <Button type="button" variant="outline" onClick={() => setForm({ ...form, levels: [...form.levels, { ...emptyLevel }] })}>
                 {t("alertRule.addLevel")}
               </Button>
             </div>
-            <div className="grid gap-2">
+            <div className="grid gap-2 sm:col-span-full">
               <Label>{t("alertRule.notify")}</Label>
               {notifyGroups.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t("alertRule.notifyEmpty")}</p>
@@ -755,6 +850,8 @@ export function AlertRulePage() {
             ? [
                 { label: t("detail.uid"), value: detail.uid },
                 { label: t("datasource.expr"), value: detail.expr },
+                { label: t("alertRule.datasourceLabels"), value: detail.datasourceLabels || "{}" },
+                { label: t("alertRule.summary"), value: detail.summary },
                 { label: t("alertRule.forSeconds"), value: String(detail.levels[0]?.forSeconds ?? 0) },
               ]
             : []
