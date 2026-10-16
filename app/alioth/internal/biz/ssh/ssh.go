@@ -1,0 +1,219 @@
+package ssh
+
+import (
+	"context"
+	"strings"
+	"time"
+
+	"github.com/google/wire"
+
+	v1 "github.com/aide-family/Alioth/api/alioth/v1"
+	"github.com/aide-family/Alioth/app/alioth/internal/access"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/agenthub"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
+	"github.com/aide-family/Alioth/app/alioth/pkg/actor"
+	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/Alioth/app/alioth/pkg/id"
+	"github.com/aide-family/Alioth/app/alioth/pkg/page"
+	"github.com/aide-family/Alioth/pkg/merr"
+)
+
+const maxOutputBytes = 64 * 1024
+
+var ProviderSet = wire.NewSet(NewUsecase)
+
+// Usecase 负责 SSH 命令审核与执行。
+type Usecase struct {
+	commands repository.SSHCommandRepo
+	agents   repository.AgentRepo
+	hub      *agenthub.Hub
+	access   access.Checker
+}
+
+func NewUsecase(commands repository.SSHCommandRepo, agents repository.AgentRepo, hub *agenthub.Hub, checker access.Checker) *Usecase {
+	return &Usecase{commands: commands, agents: agents, hub: hub, access: checker}
+}
+
+func (uc *Usecase) Create(ctx context.Context, in bo.SSHCommand) (*bo.SSHCommand, error) {
+	ns, err := uc.access.Allow(ctx, "ssh:write")
+	if err != nil {
+		return nil, err
+	}
+	in.NamespaceUID = ns
+	in.Name = strings.TrimSpace(in.Name)
+	in.Command = strings.TrimSpace(in.Command)
+	if in.Name == "" || in.Command == "" {
+		return nil, merr.Client("name and command are required")
+	}
+	item, err := uc.commands.CreateCommand(ctx, in, operatorUID(ctx))
+	return item, uc.access.Wrap(err)
+}
+
+func (uc *Usecase) Update(ctx context.Context, in bo.SSHCommand) (*bo.SSHCommand, error) {
+	ns, err := uc.access.Allow(ctx, "ssh:write")
+	if err != nil {
+		return nil, err
+	}
+	in.NamespaceUID = ns
+	in.Name = strings.TrimSpace(in.Name)
+	in.Command = strings.TrimSpace(in.Command)
+	if in.Name == "" || in.Command == "" {
+		return nil, merr.Client("name and command are required")
+	}
+	item, err := uc.commands.UpdateCommandPending(ctx, in, operatorUID(ctx))
+	return item, uc.access.Wrap(err)
+}
+
+func (uc *Usecase) Approve(ctx context.Context, uid string) (*bo.SSHCommand, error) {
+	ns, err := uc.access.Allow(ctx, "ssh:write")
+	if err != nil {
+		return nil, err
+	}
+	item, err := uc.commands.ApproveCommand(ctx, ns, uid, operatorUID(ctx))
+	return item, uc.access.Wrap(err)
+}
+
+func (uc *Usecase) Reject(ctx context.Context, uid string) (*bo.SSHCommand, error) {
+	ns, err := uc.access.Allow(ctx, "ssh:write")
+	if err != nil {
+		return nil, err
+	}
+	item, err := uc.commands.RejectCommand(ctx, ns, uid, operatorUID(ctx))
+	return item, uc.access.Wrap(err)
+}
+
+func (uc *Usecase) Delete(ctx context.Context, uid string) error {
+	ns, err := uc.access.Allow(ctx, "ssh:write")
+	if err != nil {
+		return err
+	}
+	return uc.access.Wrap(uc.commands.DeleteCommand(ctx, ns, uid))
+}
+
+func (uc *Usecase) Get(ctx context.Context, uid string) (*bo.SSHCommand, error) {
+	ns, err := uc.access.Allow(ctx, "ssh:read")
+	if err != nil {
+		return nil, err
+	}
+	item, err := uc.commands.GetCommand(ctx, ns, uid)
+	return item, uc.access.Wrap(err)
+}
+
+func (uc *Usecase) List(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.SSHCommand, int, int, int, error) {
+	ns, err := uc.access.Allow(ctx, "ssh:read")
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+	p, s := page.Normalize(pageNo, pageSize)
+	items, total, err := uc.commands.ListCommands(ctx, ns, p, s, strings.TrimSpace(name))
+	return items, total, p, s, uc.access.Wrap(err)
+}
+
+func (uc *Usecase) ListAudits(ctx context.Context, commandUID, agentUID string, pageNo, pageSize int32) ([]bo.SSHCommandAudit, int, int, int, error) {
+	ns, err := uc.access.Allow(ctx, "ssh:read")
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+	p, s := page.Normalize(pageNo, pageSize)
+	items, total, err := uc.commands.ListAudits(ctx, ns, commandUID, agentUID, p, s)
+	return items, total, p, s, uc.access.Wrap(err)
+}
+
+func (uc *Usecase) Execute(ctx context.Context, commandUID, agentUID string) (*bo.SSHCommandAudit, error) {
+	ns, err := uc.access.Allow(ctx, "ssh:exec")
+	if err != nil {
+		return nil, err
+	}
+	cmd, err := uc.commands.GetCommand(ctx, ns, commandUID)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	if cmd.ReviewStatus != "APPROVED" {
+		return nil, merr.Forbidden("command is not approved")
+	}
+	machine, err := uc.agents.GetAgent(ctx, ns, agentUID)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	if machine.Status != "ACTIVE" {
+		return nil, merr.Forbidden("agent is revoked")
+	}
+	if !uc.hub.Online(agentUID) {
+		return nil, merr.Invalid("agent is offline")
+	}
+	password, privateKey, err := uc.agents.GetSSHSecrets(ctx, agentUID)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	requestUID := id.New()
+	resultCh, err := uc.hub.SendExec(agentUID, &v1.AgentFrame{
+		ExecRequest: &v1.AgentExecRequest{
+			RequestUid:    requestUID,
+			Command:       cmd.Command,
+			Workdir:       cmd.Workdir,
+			Env:           cmd.Env,
+			SshHost:       machine.SSHHost,
+			SshPort:       int32(machine.SSHPort),
+			SshUser:       machine.SSHUser,
+			SshPassword:   password,
+			SshPrivateKey: privateKey,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	timer := time.NewTimer(60 * time.Second)
+	defer timer.Stop()
+	var result *v1.AgentExecResult
+	select {
+	case <-ctx.Done():
+		return nil, merr.Invalid("execute cancelled")
+	case <-timer.C:
+		return nil, merr.Invalid("execute timed out")
+	case result = <-resultCh:
+	}
+	if result == nil {
+		return nil, merr.Invalid("agent is offline")
+	}
+	output := result.GetOutput()
+	truncated := result.GetTruncated()
+	if len(output) > maxOutputBytes {
+		output = output[:maxOutputBytes]
+		truncated = true
+	}
+	status := "DONE"
+	detail := result.GetError()
+	if detail != "" || result.GetExitCode() != 0 {
+		status = "FAILED"
+	}
+	audit, err := uc.commands.AddExecAudit(ctx, bo.SSHCommandAudit{
+		NamespaceUID: ns,
+		CommandUID:   commandUID,
+		AgentUID:     agentUID,
+		OperatorUID:  operatorUID(ctx),
+		Status:       status,
+		Command:      cmd.Command,
+		ExitCode:     int(result.GetExitCode()),
+		Output:       output,
+		Truncated:    truncated,
+		Detail:       detail,
+	})
+	return audit, uc.access.Wrap(err)
+}
+
+func (uc *Usecase) ExecuteMany(ctx context.Context, commandUIDs []string, agentUID string) ([]bo.SSHCommandAudit, error) {
+	audits := make([]bo.SSHCommandAudit, 0, len(commandUIDs))
+	for _, uid := range commandUIDs {
+		audit, err := uc.Execute(ctx, uid, agentUID)
+		if err != nil {
+			return audits, err
+		}
+		audits = append(audits, *audit)
+	}
+	return audits, nil
+}
+
+func operatorUID(ctx context.Context) string {
+	uid, _ := actor.UserID(ctx)
+	return uid
+}

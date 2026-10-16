@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulenotificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
 	"github.com/aide-family/Alioth/pkg/merr"
@@ -154,6 +155,9 @@ func (r *alertRuleRepo) CreateAlertRule(ctx context.Context, in bo.AlertRule) (*
 		}
 		return nil, r.fail(err)
 	}
+	if err := replaceRuleGroups(ctx, tx, in.NamespaceUID, row.UID, in.NotificationGroupUIDs); err != nil {
+		return nil, r.fail(err)
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, r.fail(err)
 	}
@@ -202,6 +206,9 @@ func (r *alertRuleRepo) UpdateAlertRule(ctx context.Context, in bo.AlertRule) (*
 		if merr.IsInvalid(err) {
 			return nil, err
 		}
+		return nil, r.fail(err)
+	}
+	if err := replaceRuleGroups(ctx, tx, in.NamespaceUID, in.UID, in.NotificationGroupUIDs); err != nil {
 		return nil, r.fail(err)
 	}
 	if err := tx.Commit(); err != nil {
@@ -378,6 +385,35 @@ func insertLevels(ctx context.Context, tx *ent.Tx, namespaceUID, ruleUID string,
 	return nil
 }
 
+func replaceRuleGroups(ctx context.Context, tx *ent.Tx, namespaceUID, ruleUID string, groupUIDs []string) error {
+	if _, err := tx.AlertRuleNotificationGroup.Update().Where(
+		alertrulenotificationgroup.NamespaceUIDEQ(namespaceUID),
+		alertrulenotificationgroup.RuleUIDEQ(ruleUID),
+		alertrulenotificationgroup.DeletedAtIsNil(),
+	).SetDeletedAt(time.Now()).Save(ctx); err != nil {
+		return err
+	}
+	seen := map[string]struct{}{}
+	for _, groupUID := range groupUIDs {
+		if groupUID == "" {
+			continue
+		}
+		if _, ok := seen[groupUID]; ok {
+			continue
+		}
+		seen[groupUID] = struct{}{}
+		if err := tx.AlertRuleNotificationGroup.Create().
+			SetUID(id.New()).
+			SetNamespaceUID(namespaceUID).
+			SetRuleUID(ruleUID).
+			SetGroupUID(groupUID).
+			Exec(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (r *alertRuleRepo) withLevels(ctx context.Context, namespaceUID string, rows []*ent.AlertRule) ([]bo.AlertRule, error) {
 	if len(rows) == 0 {
 		return []bo.AlertRule{}, nil
@@ -418,9 +454,24 @@ func (r *alertRuleRepo) withLevels(ctx context.Context, namespaceUID string, row
 			Threshold: link.Threshold, ForSeconds: link.ForSeconds, LevelUID: link.LevelUID, LevelName: names[link.LevelUID],
 		})
 	}
+	groupQuery := r.client.AlertRuleNotificationGroup.Query().Where(
+		alertrulenotificationgroup.RuleUIDIn(uids...),
+		alertrulenotificationgroup.DeletedAtIsNil(),
+	)
+	if namespaceUID != "" {
+		groupQuery = groupQuery.Where(alertrulenotificationgroup.NamespaceUIDEQ(namespaceUID))
+	}
+	groupLinks, err := groupQuery.All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	groupsByRule := map[string][]string{}
+	for _, link := range groupLinks {
+		groupsByRule[link.RuleUID] = append(groupsByRule[link.RuleUID], link.GroupUID)
+	}
 	items := make([]bo.AlertRule, 0, len(rows))
 	for _, row := range rows {
-		items = append(items, toRule(row, byRule[row.UID]))
+		items = append(items, toRule(row, byRule[row.UID], groupsByRule[row.UID]))
 	}
 	return items, nil
 }
@@ -429,13 +480,16 @@ func toGroup(row *ent.AlertRuleGroup) bo.AlertRuleGroup {
 	return bo.AlertRuleGroup{UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name, Status: string(row.Status)}
 }
 
-func toRule(row *ent.AlertRule, levels []bo.AlertRuleLevel) bo.AlertRule {
+func toRule(row *ent.AlertRule, levels []bo.AlertRuleLevel, groupUIDs []string) bo.AlertRule {
+	if groupUIDs == nil {
+		groupUIDs = []string{}
+	}
 	return bo.AlertRule{
 		UID: row.UID, NamespaceUID: row.NamespaceUID, GroupUID: row.GroupUID, Name: row.Name,
 		Type: string(row.Type), Driver: string(row.Driver), Status: string(row.Status),
 		Expr: row.Expr, Labels: row.Labels, DatasourceUID: row.DatasourceUID,
 		Summary: row.Summary, Description: row.Description, NextEvalAt: row.NextEvalAt,
-		ScheduledSlot: row.ScheduledSlot, Levels: levels,
+		ScheduledSlot: row.ScheduledSlot, Levels: levels, NotificationGroupUIDs: groupUIDs,
 	}
 }
 

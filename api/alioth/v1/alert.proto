@@ -577,6 +577,8 @@ message AlertRuleItem {
   string description = 11;
   // 级别条件。
   repeated AlertRuleLevelItem levels = 12;
+  // 绑定的通知组标识。
+  repeated string notification_group_uids = 13 [json_name = "notificationGroupUids"];
 }
 
 // 创建规则。
@@ -601,6 +603,8 @@ message CreateAlertRuleRequest {
   string description = 9 [(buf.validate.field).string.max_len = 500];
   // 级别条件。
   repeated AlertRuleLevelInput levels = 10;
+  // 绑定的通知组标识。
+  repeated string notification_group_uids = 11 [json_name = "notificationGroupUids"];
 }
 
 // 创建规则的结果。
@@ -633,6 +637,8 @@ message UpdateAlertRuleRequest {
   string description = 10 [(buf.validate.field).string.max_len = 500];
   // 级别条件。保存时替换原有条件。
   repeated AlertRuleLevelInput levels = 11;
+  // 绑定的通知组标识。保存时替换原有绑定。
+  repeated string notification_group_uids = 12 [json_name = "notificationGroupUids"];
 }
 
 // 更新规则的结果。

@@ -30,6 +30,14 @@ func NewHTTPServer(
 	rules *service.AlertRuleService,
 	levels *service.AlertLevelService,
 	events *service.AlertEventService,
+	channels *service.NotificationChannelService,
+	templates *service.NotificationTemplateService,
+	groups *service.NotificationGroupService,
+	logs *service.MessageLogService,
+	agents *service.AgentService,
+	sshCommands *service.SSHCommandService,
+	sftpSvc *service.SFTPService,
+	k8sSvc *service.K8sProxyService,
 	uc *auth.Usecase,
 	logger log.Logger,
 ) (*khttp.Server, error) {
@@ -70,5 +78,13 @@ func NewHTTPServer(
 	v1.RegisterAlertRuleServiceHTTPServer(srv, rules)
 	v1.RegisterAlertLevelServiceHTTPServer(srv, levels)
 	v1.RegisterAlertEventServiceHTTPServer(srv, events)
+	v1.RegisterNotificationChannelServiceHTTPServer(srv, channels)
+	v1.RegisterNotificationTemplateServiceHTTPServer(srv, templates)
+	v1.RegisterNotificationGroupServiceHTTPServer(srv, groups)
+	v1.RegisterMessageLogServiceHTTPServer(srv, logs)
+	v1.RegisterAgentServiceHTTPServer(srv, agents)
+	v1.RegisterSSHCommandServiceHTTPServer(srv, sshCommands)
+	v1.RegisterSFTPServiceHTTPServer(srv, sftpSvc)
+	v1.RegisterK8SProxyServiceHTTPServer(srv, k8sSvc)
 	return srv, nil
 }

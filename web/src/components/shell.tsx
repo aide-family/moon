@@ -4,17 +4,23 @@ import {
   Building2,
   ChevronRight,
   Database,
+  FileText,
   Gauge,
   History,
   Languages,
+  Mail,
+  MessageSquare,
   Moon,
+  Server,
   Settings,
   Shield,
   Sun,
   SunMoon,
+  Terminal,
   User,
   UserRound,
   Users,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -131,6 +137,70 @@ const alertLinks: {
   },
 ]
 
+const notifyLinks: {
+  to: string
+  label: string
+  permission: string
+  icon: LucideIcon
+}[] = [
+  {
+    to: "/notification-channels",
+    label: "nav.channels",
+    permission: "notification:read",
+    icon: Mail,
+  },
+  {
+    to: "/notification-templates",
+    label: "nav.templates",
+    permission: "notification:read",
+    icon: FileText,
+  },
+  {
+    to: "/notification-groups",
+    label: "nav.groups",
+    permission: "notification:read",
+    icon: UsersRound,
+  },
+  {
+    to: "/message-logs",
+    label: "nav.messageLogs",
+    permission: "notification:read",
+    icon: MessageSquare,
+  },
+]
+
+const edgeLinks: {
+  to: string
+  label: string
+  permission: string
+  icon: LucideIcon
+}[] = [
+  {
+    to: "/agents",
+    label: "nav.agents",
+    permission: "agent:read",
+    icon: Server,
+  },
+  {
+    to: "/ssh-commands",
+    label: "nav.sshCommands",
+    permission: "ssh:read",
+    icon: Terminal,
+  },
+  {
+    to: "/sftp",
+    label: "nav.sftp",
+    permission: "sftp:read",
+    icon: FileText,
+  },
+  {
+    to: "/k8s",
+    label: "nav.k8s",
+    permission: "k8s:read",
+    icon: Gauge,
+  },
+]
+
 function NavGroup({
   label,
   icon: Icon,
@@ -206,10 +276,20 @@ function ShellFrame() {
   const alerts = alertLinks.filter(
     (link) => session.namespaceUid !== "" && session.can(link.permission),
   )
+  const notifies = notifyLinks.filter(
+    (link) => session.namespaceUid !== "" && session.can(link.permission),
+  )
+  const edges = edgeLinks.filter(
+    (link) => session.namespaceUid !== "" && session.can(link.permission),
+  )
   const systemActive = visible.some((link) => location.pathname === link.to)
   const alertActive = alerts.some((link) => location.pathname === link.to)
+  const notifyActive = notifies.some((link) => location.pathname === link.to)
+  const edgeActive = edges.some((link) => location.pathname === link.to)
   const [systemOpen, setSystemOpen] = useState(systemActive)
   const [alertOpen, setAlertOpen] = useState(alertActive)
+  const [notifyOpen, setNotifyOpen] = useState(notifyActive)
+  const [edgeOpen, setEdgeOpen] = useState(edgeActive)
   useEffect(() => {
     if (systemActive) {
       setSystemOpen(true)
@@ -220,6 +300,16 @@ function ShellFrame() {
       setAlertOpen(true)
     }
   }, [alertActive])
+  useEffect(() => {
+    if (notifyActive) {
+      setNotifyOpen(true)
+    }
+  }, [notifyActive])
+  useEffect(() => {
+    if (edgeActive) {
+      setEdgeOpen(true)
+    }
+  }, [edgeActive])
   const token = localStorage.getItem("token")
   if (!token) {
     return <Navigate to="/login" replace />
@@ -275,6 +365,22 @@ function ShellFrame() {
                     active={alertActive}
                     links={alerts}
                     onOpenChange={setAlertOpen}
+                  />
+                  <NavGroup
+                    label="nav.notify"
+                    icon={Mail}
+                    open={notifyOpen}
+                    active={notifyActive}
+                    links={notifies}
+                    onOpenChange={setNotifyOpen}
+                  />
+                  <NavGroup
+                    label="nav.edge"
+                    icon={Server}
+                    open={edgeOpen}
+                    active={edgeActive}
+                    links={edges}
+                    onOpenChange={setEdgeOpen}
                   />
                   <NavGroup
                     label="nav.system"

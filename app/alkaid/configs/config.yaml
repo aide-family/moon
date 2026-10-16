@@ -9,4 +9,6 @@ server:
     timeout: 1s
 alioth:
   grpc:
-    addr: ${ALKAID_ALIOTH_GRPC_ADDR:alioth:9000}
+    addr: ${ALKAID_ALIOTH_GRPC_ADDR:127.0.0.1:9000}
+  agent_token: ${ALKAID_AGENT_TOKEN:}
+  heartbeat_interval: 15s

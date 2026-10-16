@@ -1,0 +1,277 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
+
+// SSH 命令的提交、审核与执行。
+service SSHCommandService {
+  // 提交新建命令，生成 PENDING 审计。
+  rpc CreateSSHCommand(CreateSSHCommandRequest) returns (CreateSSHCommandResponse) {
+    option (google.api.http) = {
+      post: "/v1/ssh-command"
+      body: "*"
+    };
+  }
+  // 提交更新命令，生成 PENDING 审计。未通过前不改可执行内容。
+  rpc UpdateSSHCommand(UpdateSSHCommandRequest) returns (UpdateSSHCommandResponse) {
+    option (google.api.http) = {
+      put: "/v1/ssh-command/{uid}"
+      body: "*"
+    };
+  }
+  // 通过审核。
+  rpc ApproveSSHCommand(ApproveSSHCommandRequest) returns (ApproveSSHCommandResponse) {
+    option (google.api.http) = {
+      post: "/v1/ssh-command/{uid}/approve"
+      body: "*"
+    };
+  }
+  // 拒绝审核。
+  rpc RejectSSHCommand(RejectSSHCommandRequest) returns (RejectSSHCommandResponse) {
+    option (google.api.http) = {
+      post: "/v1/ssh-command/{uid}/reject"
+      body: "*"
+    };
+  }
+  // 删除命令。
+  rpc DeleteSSHCommand(DeleteSSHCommandRequest) returns (DeleteSSHCommandResponse) {
+    option (google.api.http) = {delete: "/v1/ssh-command/{uid}"};
+  }
+  // 获取命令详情。
+  rpc GetSSHCommand(GetSSHCommandRequest) returns (GetSSHCommandResponse) {
+    option (google.api.http) = {get: "/v1/ssh-command/{uid}"};
+  }
+  // 分页列出命令。
+  rpc ListSSHCommands(ListSSHCommandsRequest) returns (ListSSHCommandsResponse) {
+    option (google.api.http) = {get: "/v1/ssh-commands"};
+  }
+  // 在指定在线 Agent 上执行已通过的命令。
+  rpc ExecuteSSHCommand(ExecuteSSHCommandRequest) returns (ExecuteSSHCommandResponse) {
+    option (google.api.http) = {
+      post: "/v1/ssh-command/{uid}/execute"
+      body: "*"
+    };
+  }
+  // 批量执行。
+  rpc ExecuteSSHCommands(ExecuteSSHCommandsRequest) returns (ExecuteSSHCommandsResponse) {
+    option (google.api.http) = {
+      post: "/v1/ssh-commands/execute"
+      body: "*"
+    };
+  }
+  // 分页列出审计。
+  rpc ListSSHCommandAudits(ListSSHCommandAuditsRequest) returns (ListSSHCommandAuditsResponse) {
+    option (google.api.http) = {get: "/v1/ssh-command-audits"};
+  }
+}
+
+// 一条 SSH 命令。
+message SSHCommandItem {
+  // 标识。
+  string uid = 1;
+  // 名称。
+  string name = 2;
+  // 命令正文。
+  string command = 3;
+  // 工作目录。
+  string workdir = 4;
+  // 环境变量 JSON。
+  string env = 5;
+  // 审核状态，取值为 PENDING、APPROVED 或 REJECTED。
+  string review_status = 6 [json_name = "reviewStatus"];
+  // 备注。
+  string remark = 7;
+}
+
+// 一条审计。
+message SSHCommandAuditItem {
+  // 标识。
+  string uid = 1;
+  // 命令标识。
+  string command_uid = 2 [json_name = "commandUid"];
+  // 机器标识。
+  string agent_uid = 3 [json_name = "agentUid"];
+  // 操作者标识。
+  string operator_uid = 4 [json_name = "operatorUid"];
+  // 种类。
+  string kind = 5;
+  // 状态。
+  string status = 6;
+  // 命令正文。
+  string command = 7;
+  // 退出码。
+  int32 exit_code = 8 [json_name = "exitCode"];
+  // 输出。
+  string output = 9;
+  // 是否已截断。
+  bool truncated = 10;
+  // 详情。
+  string detail = 11;
+  // 创建时间，RFC3339。
+  string created_at = 12 [json_name = "createdAt"];
+}
+
+// 创建命令。
+message CreateSSHCommandRequest {
+  // 名称。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 命令正文。
+  string command = 2 [(buf.validate.field).string.min_len = 1];
+  // 工作目录。
+  string workdir = 3;
+  // 环境变量 JSON。
+  string env = 4;
+  // 备注。
+  string remark = 5 [(buf.validate.field).string.max_len = 200];
+}
+
+// 创建命令的结果。
+message CreateSSHCommandResponse {
+  // 命令。
+  SSHCommandItem command = 1;
+}
+
+// 更新命令。
+message UpdateSSHCommandRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 命令正文。
+  string command = 3 [(buf.validate.field).string.min_len = 1];
+  // 工作目录。
+  string workdir = 4;
+  // 环境变量 JSON。
+  string env = 5;
+  // 备注。
+  string remark = 6 [(buf.validate.field).string.max_len = 200];
+}
+
+// 更新命令的结果。
+message UpdateSSHCommandResponse {
+  // 命令。
+  SSHCommandItem command = 1;
+}
+
+// 通过审核。
+message ApproveSSHCommandRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 通过审核的结果。
+message ApproveSSHCommandResponse {
+  // 命令。
+  SSHCommandItem command = 1;
+}
+
+// 拒绝审核。
+message RejectSSHCommandRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 拒绝审核的结果。
+message RejectSSHCommandResponse {
+  // 命令。
+  SSHCommandItem command = 1;
+}
+
+// 要删除的命令。
+message DeleteSSHCommandRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 命令已删除。
+message DeleteSSHCommandResponse {}
+
+// 要查询的命令。
+message GetSSHCommandRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 命令详情。
+message GetSSHCommandResponse {
+  // 命令。
+  SSHCommandItem command = 1;
+}
+
+// 命令分页查询。
+message ListSSHCommandsRequest {
+  // 页码。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
+  string name = 3;
+}
+
+// 命令分页结果。
+message ListSSHCommandsResponse {
+  // 当前页数据。
+  repeated SSHCommandItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 执行命令。
+message ExecuteSSHCommandRequest {
+  // 命令标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 在线机器标识。
+  string agent_uid = 2 [json_name = "agentUid", (buf.validate.field).string.min_len = 1];
+}
+
+// 执行结果。
+message ExecuteSSHCommandResponse {
+  // 审计。
+  SSHCommandAuditItem audit = 1;
+}
+
+// 批量执行。
+message ExecuteSSHCommandsRequest {
+  // 命令标识列表。
+  repeated string uids = 1;
+  // 在线机器标识。
+  string agent_uid = 2 [json_name = "agentUid", (buf.validate.field).string.min_len = 1];
+}
+
+// 批量执行结果。
+message ExecuteSSHCommandsResponse {
+  // 审计列表。
+  repeated SSHCommandAuditItem items = 1;
+}
+
+// 审计分页查询。
+message ListSSHCommandAuditsRequest {
+  // 页码。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 命令标识。
+  string command_uid = 3 [json_name = "commandUid"];
+  // 机器标识。
+  string agent_uid = 4 [json_name = "agentUid"];
+}
+
+// 审计分页结果。
+message ListSSHCommandAuditsResponse {
+  // 当前页数据。
+  repeated SSHCommandAuditItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}

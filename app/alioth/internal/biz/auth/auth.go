@@ -18,6 +18,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
+	merakv1 "github.com/aide-family/Alioth/api/merak/v1"
 	megrezv1 "github.com/aide-family/Alioth/api/megrez/v1"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
@@ -28,6 +29,11 @@ import (
 )
 
 var ProviderSet = wire.NewSet(NewUsecase)
+
+// AgentTokenLookup 用明文 Agent 令牌解析机器。只给 Connect 用。
+type AgentTokenLookup interface {
+	AuthenticateToken(ctx context.Context, token string) (*bo.Agent, error)
+}
 
 type smtpConfig struct {
 	host     string
@@ -48,6 +54,7 @@ type Usecase struct {
 	captchas     repository.CaptchaRepo
 	emailCodes   repository.EmailCodeRepo
 	oauth        repository.OAuthRepo
+	agents       AgentTokenLookup
 	secret       string
 	accessTTL    time.Duration
 	refreshTTL   time.Duration
@@ -57,7 +64,7 @@ type Usecase struct {
 	log          *log.Helper
 }
 
-func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emailCodes repository.EmailCodeRepo, oauth repository.OAuthRepo, auth *conf.Auth, logger log.Logger) (*Usecase, error) {
+func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emailCodes repository.EmailCodeRepo, oauth repository.OAuthRepo, agents AgentTokenLookup, auth *conf.Auth, logger log.Logger) (*Usecase, error) {
 	if auth == nil || auth.GetJwtSecret() == "" {
 		return nil, merr.Server("jwt secret is empty")
 	}
@@ -94,6 +101,7 @@ func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emai
 		captchas:     captchas,
 		emailCodes:   emailCodes,
 		oauth:        oauth,
+		agents:       agents,
 		secret:       auth.GetJwtSecret(),
 		accessTTL:    access,
 		refreshTTL:   refresh,
@@ -105,8 +113,8 @@ func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emai
 }
 
 // Authenticate 决定这次请求以哪种凭证进入后续用例。
-// 评测领取和回写只接受名为 megrez 的 service key，用户 JWT 在这里拒绝。
-// 其他 service key 只能调用健康检查、验证码和登录注册，不能访问管理接口。
+// 评测领取和回写只接受名为 megrez 的 service key；投递领取和回写只接受 merak。
+// 用户 JWT 在这些接口上拒绝。其他 service key 只能调用健康检查、验证码和登录注册。
 // 公开接口不要求令牌。刷新接口只接受 refresh token，其余接口只接受 access token。
 // 被封禁的用户在这里拒绝，后面的用例不再重复判断账号是否可登录。
 // 个人资料、刷新令牌和创建租户可以不带 X-Namespace；带了则记入上下文。其他接口必须带租户。
@@ -117,8 +125,8 @@ func (uc *Usecase) Authenticate(ctx context.Context, operation, authorization, n
 		if !ok {
 			return nil, merr.Forbidden("service key is not accepted")
 		}
-		if serviceOperation(operation) {
-			if name != "megrez" {
+		if required, ok := serviceOperation(operation); ok {
+			if name != required {
 				return nil, merr.Forbidden("service key cannot call this api")
 			}
 			return actor.WithService(ctx, name), nil
@@ -128,7 +136,24 @@ func (uc *Usecase) Authenticate(ctx context.Context, operation, authorization, n
 		}
 		return ctx, nil
 	}
-	if serviceOperation(operation) {
+	if isAgentToken(token) {
+		if operation != v1.AgentService_Connect_FullMethodName {
+			return nil, merr.Forbidden("agent token cannot call this api")
+		}
+		if uc.agents == nil {
+			return nil, merr.Unauthenticated("invalid token")
+		}
+		item, err := uc.agents.AuthenticateToken(ctx, token)
+		if err != nil {
+			return nil, err
+		}
+		ctx = actor.WithAgentToken(ctx, token)
+		return actor.WithNamespace(ctx, item.NamespaceUID), nil
+	}
+	if operation == v1.AgentService_Connect_FullMethodName {
+		return nil, merr.Forbidden("agent token required")
+	}
+	if _, ok := serviceOperation(operation); ok {
 		return nil, merr.Forbidden("service key is required")
 	}
 	if publicOperation(operation) {
@@ -460,12 +485,18 @@ func isServiceKey(token string) bool {
 	return strings.HasPrefix(token, "sk-")
 }
 
-func serviceOperation(operation string) bool {
+func isAgentToken(token string) bool {
+	return strings.HasPrefix(token, "ag-")
+}
+
+func serviceOperation(operation string) (string, bool) {
 	switch operation {
 	case megrezv1.EvalService_ClaimRules_FullMethodName, megrezv1.EvalService_ReportEval_FullMethodName:
-		return true
+		return "megrez", true
+	case merakv1.NotifyService_ClaimTasks_FullMethodName, merakv1.NotifyService_MarkSending_FullMethodName, merakv1.NotifyService_ReportNotify_FullMethodName:
+		return "merak", true
 	default:
-		return false
+		return "", false
 	}
 }
 

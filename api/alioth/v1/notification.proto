@@ -1,0 +1,769 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "alioth/v1/identity.proto";
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
+
+// 通知渠道的创建、查询和启停。
+service NotificationChannelService {
+  // 创建渠道。密码和签名只在这次请求里出现，响应不回明文。
+  rpc CreateNotificationChannel(CreateNotificationChannelRequest) returns (CreateNotificationChannelResponse) {
+    option (google.api.http) = {
+      post: "/v1/notification-channel"
+      body: "*"
+    };
+  }
+  // 更新渠道。密码和签名留空表示保持原值。
+  rpc UpdateNotificationChannel(UpdateNotificationChannelRequest) returns (UpdateNotificationChannelResponse) {
+    option (google.api.http) = {
+      put: "/v1/notification-channel/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或停用渠道。
+  rpc UpdateNotificationChannelStatus(UpdateNotificationChannelStatusRequest) returns (UpdateNotificationChannelStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/notification-channel/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除渠道。
+  rpc DeleteNotificationChannel(DeleteNotificationChannelRequest) returns (DeleteNotificationChannelResponse) {
+    option (google.api.http) = {delete: "/v1/notification-channel/{uid}"};
+  }
+  // 获取渠道详情。
+  rpc GetNotificationChannel(GetNotificationChannelRequest) returns (GetNotificationChannelResponse) {
+    option (google.api.http) = {get: "/v1/notification-channel/{uid}"};
+  }
+  // 分页列出渠道。
+  rpc ListNotificationChannels(ListNotificationChannelsRequest) returns (ListNotificationChannelsResponse) {
+    option (google.api.http) = {get: "/v1/notification-channels"};
+  }
+  // 下拉选择渠道。
+  rpc SelectNotificationChannels(SelectNotificationChannelsRequest) returns (SelectNotificationChannelsResponse) {
+    option (google.api.http) = {get: "/v1/notification-channels/select"};
+  }
+  // 试发。只写入 PENDING 任务，不等待投递。
+  rpc TestNotificationChannel(TestNotificationChannelRequest) returns (TestNotificationChannelResponse) {
+    option (google.api.http) = {
+      post: "/v1/notification-channel/{uid}/test"
+      body: "*"
+    };
+  }
+}
+
+// 通知模板的创建、查询和启停。
+service NotificationTemplateService {
+  // 创建模板。
+  rpc CreateNotificationTemplate(CreateNotificationTemplateRequest) returns (CreateNotificationTemplateResponse) {
+    option (google.api.http) = {
+      post: "/v1/notification-template"
+      body: "*"
+    };
+  }
+  // 更新模板。
+  rpc UpdateNotificationTemplate(UpdateNotificationTemplateRequest) returns (UpdateNotificationTemplateResponse) {
+    option (google.api.http) = {
+      put: "/v1/notification-template/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或停用模板。
+  rpc UpdateNotificationTemplateStatus(UpdateNotificationTemplateStatusRequest) returns (UpdateNotificationTemplateStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/notification-template/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除模板。
+  rpc DeleteNotificationTemplate(DeleteNotificationTemplateRequest) returns (DeleteNotificationTemplateResponse) {
+    option (google.api.http) = {delete: "/v1/notification-template/{uid}"};
+  }
+  // 获取模板详情。
+  rpc GetNotificationTemplate(GetNotificationTemplateRequest) returns (GetNotificationTemplateResponse) {
+    option (google.api.http) = {get: "/v1/notification-template/{uid}"};
+  }
+  // 分页列出模板。
+  rpc ListNotificationTemplates(ListNotificationTemplatesRequest) returns (ListNotificationTemplatesResponse) {
+    option (google.api.http) = {get: "/v1/notification-templates"};
+  }
+  // 下拉选择模板。
+  rpc SelectNotificationTemplates(SelectNotificationTemplatesRequest) returns (SelectNotificationTemplatesResponse) {
+    option (google.api.http) = {get: "/v1/notification-templates/select"};
+  }
+  // 按模板试发。
+  rpc TestNotificationTemplate(TestNotificationTemplateRequest) returns (TestNotificationTemplateResponse) {
+    option (google.api.http) = {
+      post: "/v1/notification-template/{uid}/test"
+      body: "*"
+    };
+  }
+}
+
+// 通知组的创建、查询和启停。
+service NotificationGroupService {
+  // 创建通知组。
+  rpc CreateNotificationGroup(CreateNotificationGroupRequest) returns (CreateNotificationGroupResponse) {
+    option (google.api.http) = {
+      post: "/v1/notification-group"
+      body: "*"
+    };
+  }
+  // 更新通知组。
+  rpc UpdateNotificationGroup(UpdateNotificationGroupRequest) returns (UpdateNotificationGroupResponse) {
+    option (google.api.http) = {
+      put: "/v1/notification-group/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或停用通知组。
+  rpc UpdateNotificationGroupStatus(UpdateNotificationGroupStatusRequest) returns (UpdateNotificationGroupStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/notification-group/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除通知组。
+  rpc DeleteNotificationGroup(DeleteNotificationGroupRequest) returns (DeleteNotificationGroupResponse) {
+    option (google.api.http) = {delete: "/v1/notification-group/{uid}"};
+  }
+  // 获取通知组详情。
+  rpc GetNotificationGroup(GetNotificationGroupRequest) returns (GetNotificationGroupResponse) {
+    option (google.api.http) = {get: "/v1/notification-group/{uid}"};
+  }
+  // 分页列出通知组。
+  rpc ListNotificationGroups(ListNotificationGroupsRequest) returns (ListNotificationGroupsResponse) {
+    option (google.api.http) = {get: "/v1/notification-groups"};
+  }
+  // 下拉选择通知组。
+  rpc SelectNotificationGroups(SelectNotificationGroupsRequest) returns (SelectNotificationGroupsResponse) {
+    option (google.api.http) = {get: "/v1/notification-groups/select"};
+  }
+}
+
+// 消息日志与任务的查看、重试和取消。
+service MessageLogService {
+  // 分页列出消息日志。
+  rpc ListMessageLogs(ListMessageLogsRequest) returns (ListMessageLogsResponse) {
+    option (google.api.http) = {get: "/v1/message-logs"};
+  }
+  // 获取消息日志详情。
+  rpc GetMessageLog(GetMessageLogRequest) returns (GetMessageLogResponse) {
+    option (google.api.http) = {get: "/v1/message-log/{uid}"};
+  }
+  // 分页列出通知任务。
+  rpc ListNotificationTasks(ListNotificationTasksRequest) returns (ListNotificationTasksResponse) {
+    option (google.api.http) = {get: "/v1/notification-tasks"};
+  }
+  // 重试 FAILED 任务。
+  rpc RetryNotificationTask(RetryNotificationTaskRequest) returns (RetryNotificationTaskResponse) {
+    option (google.api.http) = {
+      post: "/v1/notification-task/{uid}/retry"
+      body: "*"
+    };
+  }
+  // 取消尚未成功的任务。
+  rpc CancelNotificationTask(CancelNotificationTaskRequest) returns (CancelNotificationTaskResponse) {
+    option (google.api.http) = {
+      post: "/v1/notification-task/{uid}/cancel"
+      body: "*"
+    };
+  }
+}
+
+// 一条通知渠道。
+message NotificationChannelItem {
+  // 标识。
+  string uid = 1;
+  // 名称。
+  string name = 2;
+  // 类型，取值为 SMTP 或 WEBHOOK。
+  string type = 3;
+  // 应用，取值为 OTHER、DINGTALK、WECHAT、FEISHU 或 SMS_ALICLOUD。
+  string app = 4;
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 5;
+  // 地址。
+  string endpoint = 6;
+  // 用户名。
+  string username = 7;
+  // 发件地址。
+  string from_address = 8 [json_name = "fromAddress"];
+  // 备注。
+  string remark = 9;
+  // 是否已配置密码。
+  bool has_password = 10 [json_name = "hasPassword"];
+  // 是否已配置签名。
+  bool has_secret = 11 [json_name = "hasSecret"];
+}
+
+// 创建渠道。
+message CreateNotificationChannelRequest {
+  // 名称。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 类型，取值为 SMTP 或 WEBHOOK。
+  string type = 2 [(buf.validate.field).string = {in: ["SMTP", "WEBHOOK"]}];
+  // 应用，取值为 OTHER、DINGTALK、WECHAT、FEISHU 或 SMS_ALICLOUD。
+  string app = 3 [(buf.validate.field).string = {in: ["OTHER", "DINGTALK", "WECHAT", "FEISHU", "SMS_ALICLOUD"]}];
+  // 地址。
+  string endpoint = 4 [(buf.validate.field).string.min_len = 1];
+  // 用户名。
+  string username = 5;
+  // 密码。
+  string password = 6;
+  // 签名。
+  string secret = 7;
+  // 发件地址。
+  string from_address = 8 [json_name = "fromAddress"];
+  // 备注。
+  string remark = 9 [(buf.validate.field).string.max_len = 200];
+}
+
+// 创建渠道的结果。
+message CreateNotificationChannelResponse {
+  // 渠道。
+  NotificationChannelItem channel = 1;
+}
+
+// 更新渠道。
+message UpdateNotificationChannelRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 类型，取值为 SMTP 或 WEBHOOK。
+  string type = 3 [(buf.validate.field).string = {in: ["SMTP", "WEBHOOK"]}];
+  // 应用，取值为 OTHER、DINGTALK、WECHAT、FEISHU 或 SMS_ALICLOUD。
+  string app = 4 [(buf.validate.field).string = {in: ["OTHER", "DINGTALK", "WECHAT", "FEISHU", "SMS_ALICLOUD"]}];
+  // 地址。
+  string endpoint = 5 [(buf.validate.field).string.min_len = 1];
+  // 用户名。
+  string username = 6;
+  // 密码。留空表示保持原值。
+  string password = 7;
+  // 签名。留空表示保持原值。
+  string secret = 8;
+  // 发件地址。
+  string from_address = 9 [json_name = "fromAddress"];
+  // 备注。
+  string remark = 10 [(buf.validate.field).string.max_len = 200];
+}
+
+// 更新渠道的结果。
+message UpdateNotificationChannelResponse {
+  // 渠道。
+  NotificationChannelItem channel = 1;
+}
+
+// 更新渠道状态。
+message UpdateNotificationChannelStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+// 更新渠道状态的结果。
+message UpdateNotificationChannelStatusResponse {
+  // 渠道。
+  NotificationChannelItem channel = 1;
+}
+
+// 要删除的渠道。
+message DeleteNotificationChannelRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 渠道已删除。
+message DeleteNotificationChannelResponse {}
+
+// 要查询的渠道。
+message GetNotificationChannelRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 渠道详情。
+message GetNotificationChannelResponse {
+  // 渠道。
+  NotificationChannelItem channel = 1;
+}
+
+// 渠道分页查询。
+message ListNotificationChannelsRequest {
+  // 页码。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
+  string name = 3;
+}
+
+// 渠道分页结果。
+message ListNotificationChannelsResponse {
+  // 当前页数据。
+  repeated NotificationChannelItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 渠道下拉。
+message SelectNotificationChannelsRequest {
+  // 条数上限。
+  int32 limit = 1;
+  // 上一页最后一条标识。
+  string last_uid = 2 [json_name = "lastUid"];
+}
+
+// 渠道下拉结果。
+message SelectNotificationChannelsResponse {
+  // 选项。
+  repeated SelectItem items = 1;
+  // 本页最后一条标识。
+  string last_uid = 2 [json_name = "lastUid"];
+}
+
+// 试发渠道。
+message TestNotificationChannelRequest {
+  // 渠道标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 模板标识。可留空，此时使用 subject 和 body。
+  string template_uid = 2 [json_name = "templateUid"];
+  // 接收方。
+  string receivers = 3 [(buf.validate.field).string.min_len = 1];
+  // 主题。
+  string subject = 4;
+  // 正文。
+  string body = 5;
+  // 参数 JSON。
+  string params = 6;
+}
+
+// 试发已入库。
+message TestNotificationChannelResponse {
+  // 任务标识。
+  string task_uid = 1 [json_name = "taskUid"];
+}
+
+// 一条通知模板。
+message NotificationTemplateItem {
+  // 标识。
+  string uid = 1;
+  // 名称。
+  string name = 2;
+  // 类型，取值为 EMAIL、WEBHOOK 或 SMS_ALICLOUD。
+  string type = 3;
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 4;
+  // 主题。
+  string subject = 5;
+  // 正文。
+  string body = 6;
+  // 备注。
+  string remark = 7;
+}
+
+// 创建模板。
+message CreateNotificationTemplateRequest {
+  // 名称。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 类型，取值为 EMAIL、WEBHOOK 或 SMS_ALICLOUD。
+  string type = 2 [(buf.validate.field).string = {in: ["EMAIL", "WEBHOOK", "SMS_ALICLOUD"]}];
+  // 主题。
+  string subject = 3;
+  // 正文。
+  string body = 4;
+  // 备注。
+  string remark = 5 [(buf.validate.field).string.max_len = 200];
+}
+
+// 创建模板的结果。
+message CreateNotificationTemplateResponse {
+  // 模板。
+  NotificationTemplateItem template = 1;
+}
+
+// 更新模板。
+message UpdateNotificationTemplateRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 类型，取值为 EMAIL、WEBHOOK 或 SMS_ALICLOUD。
+  string type = 3 [(buf.validate.field).string = {in: ["EMAIL", "WEBHOOK", "SMS_ALICLOUD"]}];
+  // 主题。
+  string subject = 4;
+  // 正文。
+  string body = 5;
+  // 备注。
+  string remark = 6 [(buf.validate.field).string.max_len = 200];
+}
+
+// 更新模板的结果。
+message UpdateNotificationTemplateResponse {
+  // 模板。
+  NotificationTemplateItem template = 1;
+}
+
+// 更新模板状态。
+message UpdateNotificationTemplateStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+// 更新模板状态的结果。
+message UpdateNotificationTemplateStatusResponse {
+  // 模板。
+  NotificationTemplateItem template = 1;
+}
+
+// 要删除的模板。
+message DeleteNotificationTemplateRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 模板已删除。
+message DeleteNotificationTemplateResponse {}
+
+// 要查询的模板。
+message GetNotificationTemplateRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 模板详情。
+message GetNotificationTemplateResponse {
+  // 模板。
+  NotificationTemplateItem template = 1;
+}
+
+// 模板分页查询。
+message ListNotificationTemplatesRequest {
+  // 页码。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
+  string name = 3;
+}
+
+// 模板分页结果。
+message ListNotificationTemplatesResponse {
+  // 当前页数据。
+  repeated NotificationTemplateItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 模板下拉。
+message SelectNotificationTemplatesRequest {
+  // 条数上限。
+  int32 limit = 1;
+  // 上一页最后一条标识。
+  string last_uid = 2 [json_name = "lastUid"];
+}
+
+// 模板下拉结果。
+message SelectNotificationTemplatesResponse {
+  // 选项。
+  repeated SelectItem items = 1;
+  // 本页最后一条标识。
+  string last_uid = 2 [json_name = "lastUid"];
+}
+
+// 按模板试发。
+message TestNotificationTemplateRequest {
+  // 模板标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 渠道标识。
+  string channel_uid = 2 [json_name = "channelUid", (buf.validate.field).string.min_len = 1];
+  // 接收方。
+  string receivers = 3 [(buf.validate.field).string.min_len = 1];
+  // 参数 JSON。
+  string params = 4;
+}
+
+// 试发已入库。
+message TestNotificationTemplateResponse {
+  // 任务标识。
+  string task_uid = 1 [json_name = "taskUid"];
+}
+
+// 一条通知组。
+message NotificationGroupItem {
+  // 标识。
+  string uid = 1;
+  // 名称。
+  string name = 2;
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 3;
+  // 渠道标识。
+  string channel_uid = 4 [json_name = "channelUid"];
+  // 模板标识。
+  string template_uid = 5 [json_name = "templateUid"];
+  // 接收方。
+  string receivers = 6;
+  // 备注。
+  string remark = 7;
+}
+
+// 创建通知组。
+message CreateNotificationGroupRequest {
+  // 名称。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 渠道标识。
+  string channel_uid = 2 [json_name = "channelUid", (buf.validate.field).string.min_len = 1];
+  // 模板标识。
+  string template_uid = 3 [json_name = "templateUid", (buf.validate.field).string.min_len = 1];
+  // 接收方。
+  string receivers = 4;
+  // 备注。
+  string remark = 5 [(buf.validate.field).string.max_len = 200];
+}
+
+// 创建通知组的结果。
+message CreateNotificationGroupResponse {
+  // 通知组。
+  NotificationGroupItem group = 1;
+}
+
+// 更新通知组。
+message UpdateNotificationGroupRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 渠道标识。
+  string channel_uid = 3 [json_name = "channelUid", (buf.validate.field).string.min_len = 1];
+  // 模板标识。
+  string template_uid = 4 [json_name = "templateUid", (buf.validate.field).string.min_len = 1];
+  // 接收方。
+  string receivers = 5;
+  // 备注。
+  string remark = 6 [(buf.validate.field).string.max_len = 200];
+}
+
+// 更新通知组的结果。
+message UpdateNotificationGroupResponse {
+  // 通知组。
+  NotificationGroupItem group = 1;
+}
+
+// 更新通知组状态。
+message UpdateNotificationGroupStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+// 更新通知组状态的结果。
+message UpdateNotificationGroupStatusResponse {
+  // 通知组。
+  NotificationGroupItem group = 1;
+}
+
+// 要删除的通知组。
+message DeleteNotificationGroupRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 通知组已删除。
+message DeleteNotificationGroupResponse {}
+
+// 要查询的通知组。
+message GetNotificationGroupRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 通知组详情。
+message GetNotificationGroupResponse {
+  // 通知组。
+  NotificationGroupItem group = 1;
+}
+
+// 通知组分页查询。
+message ListNotificationGroupsRequest {
+  // 页码。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
+  string name = 3;
+}
+
+// 通知组分页结果。
+message ListNotificationGroupsResponse {
+  // 当前页数据。
+  repeated NotificationGroupItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 通知组下拉。
+message SelectNotificationGroupsRequest {
+  // 条数上限。
+  int32 limit = 1;
+  // 上一页最后一条标识。
+  string last_uid = 2 [json_name = "lastUid"];
+  // 只返回已启用。
+  bool active_only = 3 [json_name = "activeOnly"];
+}
+
+// 通知组下拉结果。
+message SelectNotificationGroupsResponse {
+  // 选项。
+  repeated SelectItem items = 1;
+  // 本页最后一条标识。
+  string last_uid = 2 [json_name = "lastUid"];
+}
+
+// 一条消息日志。
+message MessageLogItem {
+  // 标识。
+  string uid = 1;
+  // 任务标识。
+  string task_uid = 2 [json_name = "taskUid"];
+  // 状态，取值为 SENT 或 FAILED。
+  string status = 3;
+  // 渠道标识。
+  string channel_uid = 4 [json_name = "channelUid"];
+  // 模板标识。
+  string template_uid = 5 [json_name = "templateUid"];
+  // 接收方。
+  string receivers = 6;
+  // 详情。
+  string detail = 7;
+  // 创建时间，RFC3339。
+  string created_at = 8 [json_name = "createdAt"];
+}
+
+// 消息日志分页查询。
+message ListMessageLogsRequest {
+  // 页码。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 任务标识。
+  string task_uid = 3 [json_name = "taskUid"];
+}
+
+// 消息日志分页结果。
+message ListMessageLogsResponse {
+  // 当前页数据。
+  repeated MessageLogItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 要查询的消息日志。
+message GetMessageLogRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 消息日志详情。
+message GetMessageLogResponse {
+  // 消息日志。
+  MessageLogItem log = 1;
+}
+
+// 一条通知任务。
+message NotificationTaskItem {
+  // 标识。
+  string uid = 1;
+  // 事件标识。
+  string event_uid = 2 [json_name = "eventUid"];
+  // 阶段，取值为 FIRING、RECOVERED 或 TEST。
+  string phase = 3;
+  // 状态，取值为 PENDING、SENDING、SENT、FAILED 或 CANCELLED。
+  string status = 4;
+  // 规则标识。
+  string rule_uid = 5 [json_name = "ruleUid"];
+  // 通知组标识。
+  string group_uid = 6 [json_name = "groupUid"];
+  // 渠道标识。
+  string channel_uid = 7 [json_name = "channelUid"];
+  // 模板标识。
+  string template_uid = 8 [json_name = "templateUid"];
+  // 接收方。
+  string receivers = 9;
+  // 主题。
+  string subject = 10;
+  // 剩余重试次数。
+  int32 retries_left = 11 [json_name = "retriesLeft"];
+  // 最近错误。
+  string last_error = 12 [json_name = "lastError"];
+}
+
+// 通知任务分页查询。
+message ListNotificationTasksRequest {
+  // 页码。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 状态。
+  string status = 3;
+}
+
+// 通知任务分页结果。
+message ListNotificationTasksResponse {
+  // 当前页数据。
+  repeated NotificationTaskItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// 重试任务。
+message RetryNotificationTaskRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 重试已接受。
+message RetryNotificationTaskResponse {
+  // 任务。
+  NotificationTaskItem task = 1;
+}
+
+// 取消任务。
+message CancelNotificationTaskRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 取消已接受。
+message CancelNotificationTaskResponse {
+  // 任务。
+  NotificationTaskItem task = 1;
+}

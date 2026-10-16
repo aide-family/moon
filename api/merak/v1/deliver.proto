@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package merak.v1;
+
+option go_package = "github.com/aide-family/Alioth/api/merak/v1;v1";
+
+// 通知任务领取和回写。只提供 gRPC，由玉衡实现，天璇持 service key 调用。
+service NotifyService {
+  // 领取 PENDING 任务快照，含渠道密钥和模板原文。
+  rpc ClaimTasks(ClaimTasksRequest) returns (ClaimTasksResponse);
+  // 把任务改为 SENDING。只有持锁方可以调用。
+  rpc MarkSending(MarkSendingRequest) returns (MarkSendingResponse);
+  // 回写 SENT 或 FAILED，并写入消息日志。
+  rpc ReportNotify(ReportNotifyRequest) returns (ReportNotifyResponse);
+}
+
+// 领取不需要参数，也不要求租户头。
+message ClaimTasksRequest {}
+
+// 本轮可投递的任务。
+message ClaimTasksResponse {
+  // 任务快照。
+  repeated TaskSnapshot tasks = 1;
+}
+
+// 一条待投递任务，含渠道连接信息和模板原文。
+message TaskSnapshot {
+  // 任务标识。
+  string uid = 1;
+  // 租户标识。
+  string namespace_uid = 2;
+  // 阶段，取值为 FIRING、RECOVERED 或 TEST。
+  string phase = 3;
+  // 渠道类型，取值为 SMTP 或 WEBHOOK。
+  string channel_type = 4;
+  // Webhook 应用，取值为 OTHER、DINGTALK、WECHAT、FEISHU 或 SMS_ALICLOUD。
+  string channel_app = 5;
+  // 渠道地址。
+  string channel_endpoint = 6;
+  // 渠道用户名。
+  string channel_username = 7;
+  // 渠道密码。只出现在这条内部响应里。
+  string channel_password = 8;
+  // 渠道签名。只出现在这条内部响应里。
+  string channel_secret = 9;
+  // 发件地址。
+  string channel_from = 10;
+  // 模板类型，取值为 EMAIL、WEBHOOK 或 SMS_ALICLOUD。
+  string template_type = 11;
+  // 模板主题。
+  string template_subject = 12;
+  // 模板正文。
+  string template_body = 13;
+  // 接收方。
+  string receivers = 14;
+  // 任务参数 JSON。
+  string params = 15;
+  // 任务自带的主题，试发时可能直接给出。
+  string subject = 16;
+  // 任务自带的正文，试发时可能直接给出。
+  string body = 17;
+  // 渠道标识。
+  string channel_uid = 18;
+  // 模板标识。
+  string template_uid = 19;
+}
+
+// 把任务改为发送中。
+message MarkSendingRequest {
+  // 任务标识。
+  string task_uid = 1;
+}
+
+// 已改为发送中。
+message MarkSendingResponse {}
+
+// 一次投递回写。
+message ReportNotifyRequest {
+  // 任务标识。
+  string task_uid = 1;
+  // 为真表示投递成功。
+  bool ok = 2;
+  // 结果说明或错误信息。
+  string detail = 3;
+}
+
+// 回写已接受。
+message ReportNotifyResponse {}

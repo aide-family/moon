@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Agent is the predicate function for agent builders.
+type Agent func(*sql.Selector)
+
 // AlertEvalBatch is the predicate function for alertevalbatch builders.
 type AlertEvalBatch func(*sql.Selector)
 
@@ -27,6 +30,9 @@ type AlertRuleGroup func(*sql.Selector)
 // AlertRuleLevel is the predicate function for alertrulelevel builders.
 type AlertRuleLevel func(*sql.Selector)
 
+// AlertRuleNotificationGroup is the predicate function for alertrulenotificationgroup builders.
+type AlertRuleNotificationGroup func(*sql.Selector)
+
 // Captcha is the predicate function for captcha builders.
 type Captcha func(*sql.Selector)
 
@@ -36,14 +42,32 @@ type Datasource func(*sql.Selector)
 // EmailLoginCode is the predicate function for emaillogincode builders.
 type EmailLoginCode func(*sql.Selector)
 
+// K8sProxyAudit is the predicate function for k8sproxyaudit builders.
+type K8sProxyAudit func(*sql.Selector)
+
 // Member is the predicate function for member builders.
 type Member func(*sql.Selector)
 
 // MemberRole is the predicate function for memberrole builders.
 type MemberRole func(*sql.Selector)
 
+// MessageLog is the predicate function for messagelog builders.
+type MessageLog func(*sql.Selector)
+
 // Namespace is the predicate function for namespace builders.
 type Namespace func(*sql.Selector)
+
+// NotificationChannel is the predicate function for notificationchannel builders.
+type NotificationChannel func(*sql.Selector)
+
+// NotificationGroup is the predicate function for notificationgroup builders.
+type NotificationGroup func(*sql.Selector)
+
+// NotificationTask is the predicate function for notificationtask builders.
+type NotificationTask func(*sql.Selector)
+
+// NotificationTemplate is the predicate function for notificationtemplate builders.
+type NotificationTemplate func(*sql.Selector)
 
 // Permission is the predicate function for permission builders.
 type Permission func(*sql.Selector)
@@ -53,6 +77,15 @@ type Role func(*sql.Selector)
 
 // RolePermission is the predicate function for rolepermission builders.
 type RolePermission func(*sql.Selector)
+
+// SFTPAudit is the predicate function for sftpaudit builders.
+type SFTPAudit func(*sql.Selector)
+
+// SSHCommand is the predicate function for sshcommand builders.
+type SSHCommand func(*sql.Selector)
+
+// SSHCommandAudit is the predicate function for sshcommandaudit builders.
+type SSHCommandAudit func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

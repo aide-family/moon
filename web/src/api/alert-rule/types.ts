@@ -35,6 +35,7 @@ export interface AlertRuleItem {
   summary: string
   description: string
   levels: AlertRuleLevelItem[]
+  notificationGroupUids: string[]
 }
 
 export interface ListAlertRuleGroupsParams {
@@ -76,4 +77,5 @@ export interface SaveAlertRuleParams {
   summary?: string
   description?: string
   levels: AlertRuleLevelInput[]
+  notificationGroupUids?: string[]
 }

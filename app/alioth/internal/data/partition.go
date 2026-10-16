@@ -13,24 +13,33 @@ import (
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
-// ApplySchema 创建表，并把空的 alert_events 转成按 created_at 的周分区表。
-// 已经分区时跳过这张表，避免生成器把主键改回单列 id。
+var partitionedTables = []string{"alert_events", "message_logs"}
+
+// ApplySchema 创建表，并把空的告警事件和消息日志转成按 created_at 的周分区表。
+// 已经分区时跳过这些表，避免生成器把主键改回单列 id。
 func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
-	kind, err := relationKind(ctx, db, "alert_events")
-	if err != nil {
-		return err
-	}
 	opts := []entschema.MigrateOption{}
-	if kind == "p" {
-		opts = append(opts, entschema.WithHooks(skipTable("alert_events")))
+	for _, name := range partitionedTables {
+		kind, err := relationKind(ctx, db, name)
+		if err != nil {
+			return err
+		}
+		if kind == "p" {
+			opts = append(opts, entschema.WithHooks(skipTable(name)))
+		}
 	}
 	if err := client.Schema.Create(ctx, opts...); err != nil {
 		return err
 	}
-	if err := partitionAlertEvents(ctx, db); err != nil {
-		return err
+	for _, name := range partitionedTables {
+		if err := partitionByCreatedAt(ctx, db, name); err != nil {
+			return err
+		}
+		if err := ensureWeekPartitions(ctx, db, name, time.Now().UTC()); err != nil {
+			return err
+		}
 	}
-	return ensureAlertEventWeeks(ctx, db, time.Now().UTC())
+	return nil
 }
 
 func skipTable(name string) entschema.Hook {
@@ -48,8 +57,8 @@ func skipTable(name string) entschema.Hook {
 	}
 }
 
-func partitionAlertEvents(ctx context.Context, db *sql.DB) error {
-	kind, err := relationKind(ctx, db, "alert_events")
+func partitionByCreatedAt(ctx context.Context, db *sql.DB, name string) error {
+	kind, err := relationKind(ctx, db, name)
 	if err != nil {
 		return err
 	}
@@ -57,42 +66,43 @@ func partitionAlertEvents(ctx context.Context, db *sql.DB) error {
 		return nil
 	}
 	if kind != "r" {
-		return merr.Server("alert_events cannot be partitioned")
+		return merr.Server(name + " cannot be partitioned")
 	}
 	var count int
-	if err := db.QueryRowContext(ctx, `SELECT count(*) FROM alert_events`).Scan(&count); err != nil {
-		log.NewHelper(log.DefaultLogger).Errorf("count alert_events: %v", err)
+	if err := db.QueryRowContext(ctx, `SELECT count(*) FROM `+name).Scan(&count); err != nil {
+		log.NewHelper(log.DefaultLogger).Errorf("count %s: %v", name, err)
 		return merr.Server("request failed")
 	}
 	if count > 0 {
-		return merr.Server("alert_events is not empty")
+		return merr.Server(name + " is not empty")
 	}
+	heap := name + "_heap"
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return merr.Server("request failed")
 	}
 	defer func() { _ = tx.Rollback() }()
 	statements := []string{
-		`ALTER TABLE alert_events RENAME TO alert_events_heap`,
-		`CREATE TABLE alert_events (LIKE alert_events_heap INCLUDING DEFAULTS INCLUDING IDENTITY) PARTITION BY RANGE (created_at)`,
-		`ALTER TABLE alert_events ADD PRIMARY KEY (created_at, id)`,
-		`CREATE UNIQUE INDEX alert_events_uid_created_at ON alert_events (uid, created_at)`,
+		fmt.Sprintf(`ALTER TABLE %s RENAME TO %s`, name, heap),
+		fmt.Sprintf(`CREATE TABLE %s (LIKE %s INCLUDING DEFAULTS INCLUDING IDENTITY) PARTITION BY RANGE (created_at)`, name, heap),
+		fmt.Sprintf(`ALTER TABLE %s ADD PRIMARY KEY (created_at, id)`, name),
+		fmt.Sprintf(`CREATE UNIQUE INDEX %s_uid_created_at ON %s (uid, created_at)`, name, name),
 	}
 	for _, statement := range statements {
 		if _, err := tx.ExecContext(ctx, statement); err != nil {
-			log.NewHelper(log.DefaultLogger).Errorf("partition alert_events: %v", err)
+			log.NewHelper(log.DefaultLogger).Errorf("partition %s: %v", name, err)
 			return merr.Server("request failed")
 		}
 	}
-	if _, err := tx.ExecContext(ctx, `DROP TABLE alert_events_heap`); err != nil {
-		log.NewHelper(log.DefaultLogger).Errorf("drop alert_events heap: %v", err)
+	if _, err := tx.ExecContext(ctx, fmt.Sprintf(`DROP TABLE %s`, heap)); err != nil {
+		log.NewHelper(log.DefaultLogger).Errorf("drop %s heap: %v", name, err)
 		return merr.Server("request failed")
 	}
 	return tx.Commit()
 }
 
-func ensureAlertEventWeeks(ctx context.Context, db *sql.DB, now time.Time) error {
-	kind, err := relationKind(ctx, db, "alert_events")
+func ensureWeekPartitions(ctx context.Context, db *sql.DB, name string, now time.Time) error {
+	kind, err := relationKind(ctx, db, name)
 	if err != nil {
 		return err
 	}
@@ -102,17 +112,25 @@ func ensureAlertEventWeeks(ctx context.Context, db *sql.DB, now time.Time) error
 	start, _ := weekStart(now)
 	for _, at := range []time.Time{start, start.AddDate(0, 0, 7)} {
 		from, until := weekStart(at)
-		name := fmt.Sprintf("alert_events_y%04dw%02d", from.Year(), isoWeek(from))
+		part := fmt.Sprintf("%s_y%04dw%02d", name, from.Year(), isoWeek(from))
 		statement := fmt.Sprintf(
-			`CREATE TABLE IF NOT EXISTS %s PARTITION OF alert_events FOR VALUES FROM ('%s') TO ('%s')`,
-			name, from.Format("2006-01-02"), until.Format("2006-01-02"),
+			`CREATE TABLE IF NOT EXISTS %s PARTITION OF %s FOR VALUES FROM ('%s') TO ('%s')`,
+			part, name, from.Format("2006-01-02"), until.Format("2006-01-02"),
 		)
 		if _, err := db.ExecContext(ctx, statement); err != nil {
-			log.NewHelper(log.DefaultLogger).Errorf("ensure alert_events week: %v", err)
+			log.NewHelper(log.DefaultLogger).Errorf("ensure %s week: %v", name, err)
 			return merr.Server("request failed")
 		}
 	}
 	return nil
+}
+
+func ensureAlertEventWeeks(ctx context.Context, db *sql.DB, now time.Time) error {
+	return ensureWeekPartitions(ctx, db, "alert_events", now)
+}
+
+func ensureMessageLogWeeks(ctx context.Context, db *sql.DB, now time.Time) error {
+	return ensureWeekPartitions(ctx, db, "message_logs", now)
 }
 
 func relationKind(ctx context.Context, db *sql.DB, name string) (string, error) {

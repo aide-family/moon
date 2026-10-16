@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alioth-auth
+  namespace: alioth
+type: Opaque
+stringData:
+  JWT_SECRET: change-me-jwt
+  ENCRYPT_KEY: "0123456789abcdef0123456789abcdef"
+  MEGREZ_SERVICE_KEY: sk-megrez-prod
+  MERAK_SERVICE_KEY: sk-merak-prod
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alioth
+  namespace: alioth
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: alioth
+  template:
+    metadata:
+      labels:
+        app: alioth
+    spec:
+      containers:
+        - name: alioth
+          image: alioth/alioth:latest
+          ports:
+            - name: http
+              containerPort: 8000
+            - name: grpc
+              containerPort: 9000
+          env:
+            - name: ALIOTH_HTTP_ADDR
+              value: 0.0.0.0:8000
+            - name: ALIOTH_GRPC_ADDR
+              value: 0.0.0.0:9000
+            - name: ALIOTH_DATABASE_SOURCE
+              valueFrom:
+                secretKeyRef:
+                  name: alioth-postgres
+                  key: DATABASE_SOURCE
+            - name: ALIOTH_REDIS_ADDR
+              value: redis:6379
+            - name: ALIOTH_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: alioth-auth
+                  key: JWT_SECRET
+            - name: ALIOTH_ENCRYPT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: alioth-auth
+                  key: ENCRYPT_KEY
+            - name: MEGREZ_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: alioth-auth
+                  key: MEGREZ_SERVICE_KEY
+            - name: MERAK_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: alioth-auth
+                  key: MERAK_SERVICE_KEY
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alioth
+  namespace: alioth
+spec:
+  selector:
+    app: alioth
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+    - name: grpc
+      port: 9000
+      targetPort: grpc

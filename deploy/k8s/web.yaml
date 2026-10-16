@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-nginx
+  namespace: alioth
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      root /usr/share/nginx/html;
+      location / {
+        try_files $uri /index.html;
+      }
+      location /v1/ {
+        proxy_pass http://alioth:8000/v1/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header Authorization $http_authorization;
+        proxy_set_header X-Namespace $http_x_namespace;
+      }
+      location /health {
+        return 200 'ok';
+        add_header Content-Type text/plain;
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: alioth
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: alioth/web:latest
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: nginx
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+      volumes:
+        - name: nginx
+          configMap:
+            name: web-nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: alioth
+spec:
+  type: LoadBalancer
+  selector:
+    app: web
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

@@ -8,6 +8,9 @@ import "google/protobuf/duration.proto";
 
 message Bootstrap {
   Server server = 1;
+  Alioth alioth = 2;
+  Redis redis = 3;
+  Notify notify = 4;
 }
 
 message Server {
@@ -17,4 +20,26 @@ message Server {
     google.protobuf.Duration timeout = 3;
   }
   HTTP http = 1;
+}
+
+// 玉衡 gRPC 地址和天璇自己的 service key。
+message Alioth {
+  // 玉衡 gRPC 地址。
+  string grpc_addr = 1;
+  // 调用领取和回写使用的 service key。
+  string service_key = 2;
+}
+
+// Redis 只用于投递锁。
+message Redis {
+  // 地址。
+  string addr = 1;
+  // 密码。
+  string password = 2;
+}
+
+// 投递超时。
+message Notify {
+  // 单次投递超时。
+  google.protobuf.Duration timeout = 1;
 }

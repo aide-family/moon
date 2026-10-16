@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
+
+// Kubernetes API 代理与审计。
+service K8sProxyService {
+  // 经在线 Agent 转发到 API Server。需要 k8s:proxy。
+  rpc ProxyK8s(ProxyK8sRequest) returns (ProxyK8sResponse) {
+    option (google.api.http) = {
+      post: "/v1/k8s/proxy"
+      body: "*"
+    };
+  }
+  // 分页列出代理审计。
+  rpc ListK8sProxyAudits(ListK8sProxyAuditsRequest) returns (ListK8sProxyAuditsResponse) {
+    option (google.api.http) = {get: "/v1/k8s-proxy-audits"};
+  }
+}
+
+// 一条 Kubernetes 代理审计。
+message K8sProxyAuditItem {
+  // 标识。
+  string uid = 1;
+  // 机器标识。
+  string agent_uid = 2 [json_name = "agentUid"];
+  // 操作者。
+  string operator_uid = 3 [json_name = "operatorUid"];
+  // HTTP 方法。
+  string method = 4;
+  // 资源路径。
+  string resource = 5;
+  // Kubernetes 命名空间。
+  string kube_namespace = 6 [json_name = "kubeNamespace"];
+  // 结果，取值为 PENDING、OK 或 FAILED。
+  string result = 7;
+  // 详情。
+  string detail = 8;
+  // 创建时间。
+  string created_at = 9 [json_name = "createdAt"];
+}
+
+message ProxyK8sRequest {
+  string agent_uid = 1 [json_name = "agentUid", (buf.validate.field).string.min_len = 1];
+  string method = 2 [(buf.validate.field).string.min_len = 1];
+  string path = 3 [(buf.validate.field).string.min_len = 1];
+  string query = 4;
+  string headers_json = 5 [json_name = "headersJson"];
+  bytes body = 6;
+}
+
+message ProxyK8sResponse {
+  int32 status_code = 1 [json_name = "statusCode"];
+  string headers_json = 2 [json_name = "headersJson"];
+  bytes body = 3;
+  K8sProxyAuditItem audit = 4;
+}
+
+message ListK8sProxyAuditsRequest {
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  string agent_uid = 3 [json_name = "agentUid"];
+}
+
+message ListK8sProxyAuditsResponse {
+  repeated K8sProxyAuditItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4 [json_name = "pageSize"];
+}

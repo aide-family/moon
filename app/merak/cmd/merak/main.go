@@ -10,6 +10,7 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/spf13/cobra"
 
+	"github.com/aide-family/Alioth/app/merak/internal/biz/notify"
 	"github.com/aide-family/Alioth/app/merak/internal/conf"
 	"github.com/aide-family/Alioth/app/merak/internal/data"
 	"github.com/aide-family/Alioth/pkg/bootstrap"
@@ -27,7 +28,7 @@ func main() {
 	}
 	cmd.AddCommand(&cobra.Command{
 		Use:   "serve",
-		Short: "Run the health server",
+		Short: "Run the health server and notification worker",
 		RunE: func(*cobra.Command, []string) error {
 			return serve(confPath)
 		},
@@ -45,7 +46,7 @@ func serve(confPath string) error {
 		return err
 	}
 	logger := log.With(log.NewStdLogger(os.Stdout), "ts", log.DefaultTimestamp, "caller", log.DefaultCaller, "service", "merak")
-	app, cleanup, err := wireApp(bc.Server, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Alioth, bc.Redis, bc.Notify, logger)
 	if err != nil {
 		return err
 	}
@@ -68,13 +69,13 @@ func loadConfig(path string) (*conf.Bootstrap, error) {
 	return &bc, nil
 }
 
-func newApp(logger log.Logger, hs *http.Server, d *data.Data) *kratos.App {
+func newApp(logger log.Logger, hs *http.Server, worker *notify.Worker, d *data.Data) *kratos.App {
 	if d == nil {
 		panic("data layer is missing")
 	}
 	return kratos.New(
 		kratos.Name("merak"),
 		kratos.Logger(logger),
-		kratos.Server(hs),
+		kratos.Server(hs, worker),
 	)
 }

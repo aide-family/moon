@@ -6,6 +6,7 @@ import (
 	kgrpc "github.com/go-kratos/kratos/v2/transport/grpc"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
+	merakv1 "github.com/aide-family/Alioth/api/merak/v1"
 	megrezv1 "github.com/aide-family/Alioth/api/megrez/v1"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
@@ -29,6 +30,15 @@ func NewGRPCServer(
 	levels *service.AlertLevelService,
 	events *service.AlertEventService,
 	eval *service.EvalService,
+	channels *service.NotificationChannelService,
+	templates *service.NotificationTemplateService,
+	groups *service.NotificationGroupService,
+	logs *service.MessageLogService,
+	notify *service.NotifyService,
+	agents *service.AgentService,
+	sshCommands *service.SSHCommandService,
+	sftpSvc *service.SFTPService,
+	k8sSvc *service.K8sProxyService,
 	uc *auth.Usecase,
 	logger log.Logger,
 ) (*kgrpc.Server, error) {
@@ -38,6 +48,7 @@ func NewGRPCServer(
 	opts := []kgrpc.ServerOption{
 		kgrpc.Address(c.Grpc.Addr),
 		kgrpc.Middleware(recovery.Recovery(), authenticate(uc)),
+		kgrpc.StreamMiddleware(recovery.Recovery(), authenticate(uc)),
 		kgrpc.Logger(logger),
 	}
 	if c.Grpc.Network != "" {
@@ -60,6 +71,15 @@ func NewGRPCServer(
 	v1.RegisterAlertRuleServiceServer(srv, rules)
 	v1.RegisterAlertLevelServiceServer(srv, levels)
 	v1.RegisterAlertEventServiceServer(srv, events)
+	v1.RegisterNotificationChannelServiceServer(srv, channels)
+	v1.RegisterNotificationTemplateServiceServer(srv, templates)
+	v1.RegisterNotificationGroupServiceServer(srv, groups)
+	v1.RegisterMessageLogServiceServer(srv, logs)
 	megrezv1.RegisterEvalServiceServer(srv, eval)
+	merakv1.RegisterNotifyServiceServer(srv, notify)
+	v1.RegisterAgentServiceServer(srv, agents)
+	v1.RegisterSSHCommandServiceServer(srv, sshCommands)
+	v1.RegisterSFTPServiceServer(srv, sftpSvc)
+	v1.RegisterK8SProxyServiceServer(srv, k8sSvc)
 	return srv, nil
 }

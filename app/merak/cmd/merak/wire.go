@@ -14,6 +14,6 @@ import (
 	"github.com/aide-family/Alioth/app/merak/internal/service"
 )
 
-func wireApp(*conf.Server, log.Logger) (*kratos.App, func(), error) {
+func wireApp(*conf.Server, *conf.Alioth, *conf.Redis, *conf.Notify, log.Logger) (*kratos.App, func(), error) {
 	panic(wire.Build(server.ProviderSet, data.ProviderSet, biz.ProviderSet, service.ProviderSet, newApp))
 }

@@ -8,6 +8,7 @@ package main
 
 import (
 	"github.com/aide-family/Alioth/app/alkaid/internal/biz"
+	"github.com/aide-family/Alioth/app/alkaid/internal/biz/agent"
 	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
 	"github.com/aide-family/Alioth/app/alkaid/internal/data"
 	"github.com/aide-family/Alioth/app/alkaid/internal/server"
@@ -33,7 +34,12 @@ func wireApp(confServer *conf.Server, alioth *conf.Alioth, logger log.Logger) (*
 	if err != nil {
 		return nil, nil, err
 	}
-	app := newApp(logger, httpServer, grpcServer, dataData)
+	connector, err := agent.NewConnector(dataData, logger)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	app := newApp(logger, httpServer, grpcServer, connector, dataData)
 	return app, func() {
 		cleanup()
 	}, nil

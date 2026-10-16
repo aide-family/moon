@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: alkaid
+  namespace: alioth
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alkaid-token
+  namespace: alioth
+type: Opaque
+stringData:
+  ALKAID_AGENT_TOKEN: ag-replace-me
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alkaid
+  namespace: alioth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alkaid
+  template:
+    metadata:
+      labels:
+        app: alkaid
+    spec:
+      serviceAccountName: alkaid
+      containers:
+        - name: alkaid
+          image: alioth/alkaid:latest
+          ports:
+            - name: http
+              containerPort: 8022
+            - name: grpc
+              containerPort: 9022
+          env:
+            - name: ALKAID_HTTP_ADDR
+              value: 0.0.0.0:8022
+            - name: ALKAID_GRPC_ADDR
+              value: 0.0.0.0:9022
+            - name: ALKAID_ALIOTH_GRPC_ADDR
+              value: alioth:9000
+            - name: ALKAID_AGENT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: alkaid-token
+                  key: ALKAID_AGENT_TOKEN
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+# Use a DaemonSet instead when the agent must see node-local files:
+# kind: DaemonSet, and keep the same container env / ServiceAccount.

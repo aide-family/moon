@@ -8,6 +8,7 @@ const (
 	userKey ctxKey = iota
 	namespaceKey
 	serviceKey
+	agentTokenKey
 )
 
 // WithUser 把已认证用户写入上下文。后续用例只从这里读取操作者。
@@ -41,4 +42,15 @@ func WithService(ctx context.Context, name string) context.Context {
 func ServiceName(ctx context.Context) (string, bool) {
 	name, ok := ctx.Value(serviceKey).(string)
 	return name, ok && name != ""
+}
+
+// WithAgentToken 把 Agent 明文令牌写入上下文，供 Connect 使用。
+func WithAgentToken(ctx context.Context, token string) context.Context {
+	return context.WithValue(ctx, agentTokenKey, token)
+}
+
+// AgentToken 返回当前 Agent 令牌。
+func AgentToken(ctx context.Context) (string, bool) {
+	token, ok := ctx.Value(agentTokenKey).(string)
+	return token, ok && token != ""
 }

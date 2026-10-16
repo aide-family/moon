@@ -128,9 +128,10 @@ type AlertRule struct {
 	DatasourceUID string
 	Summary       string
 	Description   string
-	NextEvalAt    *time.Time
-	ScheduledSlot *time.Time
-	Levels        []AlertRuleLevel
+	NextEvalAt             *time.Time
+	ScheduledSlot          *time.Time
+	Levels                 []AlertRuleLevel
+	NotificationGroupUIDs  []string
 }
 
 // Due 判断规则此刻是否该被调度。停用规则不进入候选。日志和链路规则可以进入候选，由评测方标明未评测。
@@ -193,4 +194,206 @@ type RuleSnapshot struct {
 	Rule               AlertRule
 	Datasource         Datasource
 	FiringFingerprints []string
+}
+
+// NotificationChannel 是一条通知渠道。Password 和 Secret 只在写入时携带明文。
+type NotificationChannel struct {
+	UID          string
+	NamespaceUID string
+	Name         string
+	Type         string
+	App          string
+	Status       string
+	Endpoint     string
+	Username     string
+	Password     string
+	Secret       string
+	FromAddress  string
+	Remark       string
+	HasPassword  bool
+	HasSecret    bool
+}
+
+// NotificationTemplate 是一条通知模板。
+type NotificationTemplate struct {
+	UID          string
+	NamespaceUID string
+	Name         string
+	Type         string
+	Status       string
+	Subject      string
+	Body         string
+	Remark       string
+}
+
+// NotificationGroup 是一条通知组。
+type NotificationGroup struct {
+	UID          string
+	NamespaceUID string
+	Name         string
+	Status       string
+	ChannelUID   string
+	TemplateUID  string
+	Receivers    string
+	Remark       string
+}
+
+// NotificationTask 是一条投递任务。
+type NotificationTask struct {
+	UID          string
+	NamespaceUID string
+	EventUID     string
+	Phase        string
+	Status       string
+	RuleUID      string
+	GroupUID     string
+	ChannelUID   string
+	TemplateUID  string
+	Receivers    string
+	Subject      string
+	Body         string
+	Params       string
+	RetriesLeft  int
+	LastError    string
+}
+
+// MessageLog 是一次投递结果。
+type MessageLog struct {
+	UID          string
+	NamespaceUID string
+	TaskUID      string
+	Status       string
+	ChannelUID   string
+	TemplateUID  string
+	Receivers    string
+	Detail       string
+	CreatedAt    time.Time
+}
+
+// NotifyReport 是 merak 回写的投递结果。
+type NotifyReport struct {
+	TaskUID string
+	OK      bool
+	Detail  string
+}
+
+// Agent 是一条边缘机器。Token 只在签发时返回明文。
+type Agent struct {
+	UID            string
+	NamespaceUID   string
+	Name           string
+	Hostname       string
+	MachineID      string
+	LocalIP        string
+	Version        string
+	CollectJSON    string
+	Online         bool
+	Status         string
+	SSHHost        string
+	SSHPort        int
+	SSHUser        string
+	SSHPassword    string
+	SSHPrivateKey  string
+	HasPassword    bool
+	HasPrivateKey  bool
+	Remark         string
+	Token          string
+}
+
+// SSHCommand 是一条 SSH 命令。
+type SSHCommand struct {
+	UID          string
+	NamespaceUID string
+	Name         string
+	Command      string
+	Workdir      string
+	Env          string
+	ReviewStatus string
+	Remark       string
+}
+
+// SSHCommandAudit 是一条 SSH 审计。
+type SSHCommandAudit struct {
+	UID          string
+	NamespaceUID string
+	CommandUID   string
+	AgentUID     string
+	OperatorUID  string
+	Kind         string
+	Status       string
+	Command      string
+	ExitCode     int
+	Output       string
+	Truncated    bool
+	Detail       string
+	CreatedAt    time.Time
+}
+
+// AgentExecResult 是 Agent 回传的执行结果。
+type AgentExecResult struct {
+	RequestUID string
+	ExitCode   int
+	Output     string
+	Truncated  bool
+	Error      string
+}
+
+// SFTPAudit 是一条 SFTP 审计。
+type SFTPAudit struct {
+	UID          string
+	NamespaceUID string
+	AgentUID     string
+	OperatorUID  string
+	Path         string
+	Action       string
+	Result       string
+	Detail       string
+	CreatedAt    time.Time
+}
+
+// SFTPEntry 是一条目录项。
+type SFTPEntry struct {
+	Name    string
+	Path    string
+	IsDir   bool
+	Size    int64
+	Mode    string
+	ModTime string
+}
+
+// K8sProxyAudit 是一条 Kubernetes 代理审计。
+type K8sProxyAudit struct {
+	UID           string
+	NamespaceUID  string
+	AgentUID      string
+	OperatorUID   string
+	Method        string
+	Resource      string
+	KubeNamespace string
+	Result        string
+	Detail        string
+	CreatedAt     time.Time
+}
+
+// NotifySnapshot 是 merak 领取到的任务，含解密后的渠道密钥。
+type NotifySnapshot struct {
+	UID              string
+	NamespaceUID     string
+	Phase            string
+	ChannelUID       string
+	ChannelType      string
+	ChannelApp       string
+	ChannelEndpoint  string
+	ChannelUsername  string
+	ChannelPassword  string
+	ChannelSecret    string
+	ChannelFrom      string
+	TemplateUID      string
+	TemplateType     string
+	TemplateSubject  string
+	TemplateBody     string
+	Receivers        string
+	Params           string
+	Subject          string
+	Body             string
 }

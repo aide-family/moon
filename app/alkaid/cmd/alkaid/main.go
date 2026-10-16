@@ -7,10 +7,12 @@ import (
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/spf13/cobra"
 
+	agentbiz "github.com/aide-family/Alioth/app/alkaid/internal/biz/agent"
 	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
 	"github.com/aide-family/Alioth/app/alkaid/internal/data"
 	"github.com/aide-family/Alioth/pkg/bootstrap"
@@ -69,11 +71,15 @@ func loadConfig(path string) (*conf.Bootstrap, error) {
 	return &bc, nil
 }
 
-func newApp(logger log.Logger, hs *http.Server, gs *grpc.Server, d *data.Data) *kratos.App {
+func newApp(logger log.Logger, hs *http.Server, gs *grpc.Server, connector *agentbiz.Connector, d *data.Data) *kratos.App {
 	log.NewHelper(logger).Infof("alioth grpc endpoint configured: %s", d.AliothGRPC)
+	servers := []transport.Server{hs, gs}
+	if connector != nil {
+		servers = append(servers, connector)
+	}
 	return kratos.New(
 		kratos.Name("alkaid"),
 		kratos.Logger(logger),
-		kratos.Server(hs, gs),
+		kratos.Server(servers...),
 	)
 }

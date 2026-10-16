@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/agent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
@@ -12,16 +13,26 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulenotificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/captcha"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/k8sproxyaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelog"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/permission"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/schema"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sftpaudit"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommand"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommandaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useroauth"
 )
@@ -30,6 +41,85 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	agentMixin := schema.Agent{}.Mixin()
+	agentMixinFields0 := agentMixin[0].Fields()
+	_ = agentMixinFields0
+	agentFields := schema.Agent{}.Fields()
+	_ = agentFields
+	// agentDescCreatedAt is the schema descriptor for created_at field.
+	agentDescCreatedAt := agentMixinFields0[0].Descriptor()
+	// agent.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agent.DefaultCreatedAt = agentDescCreatedAt.Default.(func() time.Time)
+	// agentDescUpdatedAt is the schema descriptor for updated_at field.
+	agentDescUpdatedAt := agentMixinFields0[1].Descriptor()
+	// agent.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agent.DefaultUpdatedAt = agentDescUpdatedAt.Default.(func() time.Time)
+	// agent.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agent.UpdateDefaultUpdatedAt = agentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// agentDescUID is the schema descriptor for uid field.
+	agentDescUID := agentFields[0].Descriptor()
+	// agent.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	agent.UIDValidator = agentDescUID.Validators[0].(func(string) error)
+	// agentDescNamespaceUID is the schema descriptor for namespace_uid field.
+	agentDescNamespaceUID := agentFields[1].Descriptor()
+	// agent.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	agent.NamespaceUIDValidator = agentDescNamespaceUID.Validators[0].(func(string) error)
+	// agentDescName is the schema descriptor for name field.
+	agentDescName := agentFields[2].Descriptor()
+	// agent.DefaultName holds the default value on creation for the name field.
+	agent.DefaultName = agentDescName.Default.(string)
+	// agentDescHostname is the schema descriptor for hostname field.
+	agentDescHostname := agentFields[3].Descriptor()
+	// agent.DefaultHostname holds the default value on creation for the hostname field.
+	agent.DefaultHostname = agentDescHostname.Default.(string)
+	// agentDescMachineID is the schema descriptor for machine_id field.
+	agentDescMachineID := agentFields[4].Descriptor()
+	// agent.DefaultMachineID holds the default value on creation for the machine_id field.
+	agent.DefaultMachineID = agentDescMachineID.Default.(string)
+	// agentDescLocalIP is the schema descriptor for local_ip field.
+	agentDescLocalIP := agentFields[5].Descriptor()
+	// agent.DefaultLocalIP holds the default value on creation for the local_ip field.
+	agent.DefaultLocalIP = agentDescLocalIP.Default.(string)
+	// agentDescVersion is the schema descriptor for version field.
+	agentDescVersion := agentFields[6].Descriptor()
+	// agent.DefaultVersion holds the default value on creation for the version field.
+	agent.DefaultVersion = agentDescVersion.Default.(string)
+	// agentDescCollectJSON is the schema descriptor for collect_json field.
+	agentDescCollectJSON := agentFields[7].Descriptor()
+	// agent.DefaultCollectJSON holds the default value on creation for the collect_json field.
+	agent.DefaultCollectJSON = agentDescCollectJSON.Default.(string)
+	// agentDescOnline is the schema descriptor for online field.
+	agentDescOnline := agentFields[8].Descriptor()
+	// agent.DefaultOnline holds the default value on creation for the online field.
+	agent.DefaultOnline = agentDescOnline.Default.(bool)
+	// agentDescTokenHash is the schema descriptor for token_hash field.
+	agentDescTokenHash := agentFields[9].Descriptor()
+	// agent.DefaultTokenHash holds the default value on creation for the token_hash field.
+	agent.DefaultTokenHash = agentDescTokenHash.Default.(string)
+	// agentDescSSHHost is the schema descriptor for ssh_host field.
+	agentDescSSHHost := agentFields[11].Descriptor()
+	// agent.DefaultSSHHost holds the default value on creation for the ssh_host field.
+	agent.DefaultSSHHost = agentDescSSHHost.Default.(string)
+	// agentDescSSHPort is the schema descriptor for ssh_port field.
+	agentDescSSHPort := agentFields[12].Descriptor()
+	// agent.DefaultSSHPort holds the default value on creation for the ssh_port field.
+	agent.DefaultSSHPort = agentDescSSHPort.Default.(int)
+	// agentDescSSHUser is the schema descriptor for ssh_user field.
+	agentDescSSHUser := agentFields[13].Descriptor()
+	// agent.DefaultSSHUser holds the default value on creation for the ssh_user field.
+	agent.DefaultSSHUser = agentDescSSHUser.Default.(string)
+	// agentDescSSHPasswordCipher is the schema descriptor for ssh_password_cipher field.
+	agentDescSSHPasswordCipher := agentFields[14].Descriptor()
+	// agent.DefaultSSHPasswordCipher holds the default value on creation for the ssh_password_cipher field.
+	agent.DefaultSSHPasswordCipher = agentDescSSHPasswordCipher.Default.(string)
+	// agentDescSSHPrivateKeyCipher is the schema descriptor for ssh_private_key_cipher field.
+	agentDescSSHPrivateKeyCipher := agentFields[15].Descriptor()
+	// agent.DefaultSSHPrivateKeyCipher holds the default value on creation for the ssh_private_key_cipher field.
+	agent.DefaultSSHPrivateKeyCipher = agentDescSSHPrivateKeyCipher.Default.(string)
+	// agentDescRemark is the schema descriptor for remark field.
+	agentDescRemark := agentFields[16].Descriptor()
+	// agent.DefaultRemark holds the default value on creation for the remark field.
+	agent.DefaultRemark = agentDescRemark.Default.(string)
 	alertevalbatchFields := schema.AlertEvalBatch{}.Fields()
 	_ = alertevalbatchFields
 	// alertevalbatchDescRuleUID is the schema descriptor for rule_uid field.
@@ -277,6 +367,37 @@ func init() {
 	alertrulelevelDescLevelUID := alertrulelevelFields[7].Descriptor()
 	// alertrulelevel.LevelUIDValidator is a validator for the "level_uid" field. It is called by the builders before save.
 	alertrulelevel.LevelUIDValidator = alertrulelevelDescLevelUID.Validators[0].(func(string) error)
+	alertrulenotificationgroupMixin := schema.AlertRuleNotificationGroup{}.Mixin()
+	alertrulenotificationgroupMixinFields0 := alertrulenotificationgroupMixin[0].Fields()
+	_ = alertrulenotificationgroupMixinFields0
+	alertrulenotificationgroupFields := schema.AlertRuleNotificationGroup{}.Fields()
+	_ = alertrulenotificationgroupFields
+	// alertrulenotificationgroupDescCreatedAt is the schema descriptor for created_at field.
+	alertrulenotificationgroupDescCreatedAt := alertrulenotificationgroupMixinFields0[0].Descriptor()
+	// alertrulenotificationgroup.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alertrulenotificationgroup.DefaultCreatedAt = alertrulenotificationgroupDescCreatedAt.Default.(func() time.Time)
+	// alertrulenotificationgroupDescUpdatedAt is the schema descriptor for updated_at field.
+	alertrulenotificationgroupDescUpdatedAt := alertrulenotificationgroupMixinFields0[1].Descriptor()
+	// alertrulenotificationgroup.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	alertrulenotificationgroup.DefaultUpdatedAt = alertrulenotificationgroupDescUpdatedAt.Default.(func() time.Time)
+	// alertrulenotificationgroup.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	alertrulenotificationgroup.UpdateDefaultUpdatedAt = alertrulenotificationgroupDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// alertrulenotificationgroupDescUID is the schema descriptor for uid field.
+	alertrulenotificationgroupDescUID := alertrulenotificationgroupFields[0].Descriptor()
+	// alertrulenotificationgroup.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	alertrulenotificationgroup.UIDValidator = alertrulenotificationgroupDescUID.Validators[0].(func(string) error)
+	// alertrulenotificationgroupDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alertrulenotificationgroupDescNamespaceUID := alertrulenotificationgroupFields[1].Descriptor()
+	// alertrulenotificationgroup.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alertrulenotificationgroup.NamespaceUIDValidator = alertrulenotificationgroupDescNamespaceUID.Validators[0].(func(string) error)
+	// alertrulenotificationgroupDescRuleUID is the schema descriptor for rule_uid field.
+	alertrulenotificationgroupDescRuleUID := alertrulenotificationgroupFields[2].Descriptor()
+	// alertrulenotificationgroup.RuleUIDValidator is a validator for the "rule_uid" field. It is called by the builders before save.
+	alertrulenotificationgroup.RuleUIDValidator = alertrulenotificationgroupDescRuleUID.Validators[0].(func(string) error)
+	// alertrulenotificationgroupDescGroupUID is the schema descriptor for group_uid field.
+	alertrulenotificationgroupDescGroupUID := alertrulenotificationgroupFields[3].Descriptor()
+	// alertrulenotificationgroup.GroupUIDValidator is a validator for the "group_uid" field. It is called by the builders before save.
+	alertrulenotificationgroup.GroupUIDValidator = alertrulenotificationgroupDescGroupUID.Validators[0].(func(string) error)
 	captchaMixin := schema.Captcha{}.Mixin()
 	captchaMixinFields0 := captchaMixin[0].Fields()
 	_ = captchaMixinFields0
@@ -378,6 +499,57 @@ func init() {
 	emaillogincodeDescCodeHash := emaillogincodeFields[2].Descriptor()
 	// emaillogincode.CodeHashValidator is a validator for the "code_hash" field. It is called by the builders before save.
 	emaillogincode.CodeHashValidator = emaillogincodeDescCodeHash.Validators[0].(func(string) error)
+	k8sproxyauditMixin := schema.K8sProxyAudit{}.Mixin()
+	k8sproxyauditMixinFields0 := k8sproxyauditMixin[0].Fields()
+	_ = k8sproxyauditMixinFields0
+	k8sproxyauditFields := schema.K8sProxyAudit{}.Fields()
+	_ = k8sproxyauditFields
+	// k8sproxyauditDescCreatedAt is the schema descriptor for created_at field.
+	k8sproxyauditDescCreatedAt := k8sproxyauditMixinFields0[0].Descriptor()
+	// k8sproxyaudit.DefaultCreatedAt holds the default value on creation for the created_at field.
+	k8sproxyaudit.DefaultCreatedAt = k8sproxyauditDescCreatedAt.Default.(func() time.Time)
+	// k8sproxyauditDescUpdatedAt is the schema descriptor for updated_at field.
+	k8sproxyauditDescUpdatedAt := k8sproxyauditMixinFields0[1].Descriptor()
+	// k8sproxyaudit.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	k8sproxyaudit.DefaultUpdatedAt = k8sproxyauditDescUpdatedAt.Default.(func() time.Time)
+	// k8sproxyaudit.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	k8sproxyaudit.UpdateDefaultUpdatedAt = k8sproxyauditDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// k8sproxyauditDescUID is the schema descriptor for uid field.
+	k8sproxyauditDescUID := k8sproxyauditFields[0].Descriptor()
+	// k8sproxyaudit.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	k8sproxyaudit.UIDValidator = k8sproxyauditDescUID.Validators[0].(func(string) error)
+	// k8sproxyauditDescNamespaceUID is the schema descriptor for namespace_uid field.
+	k8sproxyauditDescNamespaceUID := k8sproxyauditFields[1].Descriptor()
+	// k8sproxyaudit.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	k8sproxyaudit.NamespaceUIDValidator = k8sproxyauditDescNamespaceUID.Validators[0].(func(string) error)
+	// k8sproxyauditDescAgentUID is the schema descriptor for agent_uid field.
+	k8sproxyauditDescAgentUID := k8sproxyauditFields[2].Descriptor()
+	// k8sproxyaudit.DefaultAgentUID holds the default value on creation for the agent_uid field.
+	k8sproxyaudit.DefaultAgentUID = k8sproxyauditDescAgentUID.Default.(string)
+	// k8sproxyauditDescOperatorUID is the schema descriptor for operator_uid field.
+	k8sproxyauditDescOperatorUID := k8sproxyauditFields[3].Descriptor()
+	// k8sproxyaudit.DefaultOperatorUID holds the default value on creation for the operator_uid field.
+	k8sproxyaudit.DefaultOperatorUID = k8sproxyauditDescOperatorUID.Default.(string)
+	// k8sproxyauditDescMethod is the schema descriptor for method field.
+	k8sproxyauditDescMethod := k8sproxyauditFields[4].Descriptor()
+	// k8sproxyaudit.DefaultMethod holds the default value on creation for the method field.
+	k8sproxyaudit.DefaultMethod = k8sproxyauditDescMethod.Default.(string)
+	// k8sproxyauditDescResource is the schema descriptor for resource field.
+	k8sproxyauditDescResource := k8sproxyauditFields[5].Descriptor()
+	// k8sproxyaudit.DefaultResource holds the default value on creation for the resource field.
+	k8sproxyaudit.DefaultResource = k8sproxyauditDescResource.Default.(string)
+	// k8sproxyauditDescKubeNamespace is the schema descriptor for kube_namespace field.
+	k8sproxyauditDescKubeNamespace := k8sproxyauditFields[6].Descriptor()
+	// k8sproxyaudit.DefaultKubeNamespace holds the default value on creation for the kube_namespace field.
+	k8sproxyaudit.DefaultKubeNamespace = k8sproxyauditDescKubeNamespace.Default.(string)
+	// k8sproxyauditDescResult is the schema descriptor for result field.
+	k8sproxyauditDescResult := k8sproxyauditFields[7].Descriptor()
+	// k8sproxyaudit.DefaultResult holds the default value on creation for the result field.
+	k8sproxyaudit.DefaultResult = k8sproxyauditDescResult.Default.(string)
+	// k8sproxyauditDescDetail is the schema descriptor for detail field.
+	k8sproxyauditDescDetail := k8sproxyauditFields[8].Descriptor()
+	// k8sproxyaudit.DefaultDetail holds the default value on creation for the detail field.
+	k8sproxyaudit.DefaultDetail = k8sproxyauditDescDetail.Default.(string)
 	memberMixin := schema.Member{}.Mixin()
 	memberMixinFields0 := memberMixin[0].Fields()
 	_ = memberMixinFields0
@@ -436,6 +608,49 @@ func init() {
 	memberroleDescRoleUID := memberroleFields[3].Descriptor()
 	// memberrole.RoleUIDValidator is a validator for the "role_uid" field. It is called by the builders before save.
 	memberrole.RoleUIDValidator = memberroleDescRoleUID.Validators[0].(func(string) error)
+	messagelogMixin := schema.MessageLog{}.Mixin()
+	messagelogMixinFields0 := messagelogMixin[0].Fields()
+	_ = messagelogMixinFields0
+	messagelogFields := schema.MessageLog{}.Fields()
+	_ = messagelogFields
+	// messagelogDescCreatedAt is the schema descriptor for created_at field.
+	messagelogDescCreatedAt := messagelogMixinFields0[0].Descriptor()
+	// messagelog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	messagelog.DefaultCreatedAt = messagelogDescCreatedAt.Default.(func() time.Time)
+	// messagelogDescUpdatedAt is the schema descriptor for updated_at field.
+	messagelogDescUpdatedAt := messagelogMixinFields0[1].Descriptor()
+	// messagelog.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	messagelog.DefaultUpdatedAt = messagelogDescUpdatedAt.Default.(func() time.Time)
+	// messagelog.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	messagelog.UpdateDefaultUpdatedAt = messagelogDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// messagelogDescUID is the schema descriptor for uid field.
+	messagelogDescUID := messagelogFields[0].Descriptor()
+	// messagelog.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	messagelog.UIDValidator = messagelogDescUID.Validators[0].(func(string) error)
+	// messagelogDescNamespaceUID is the schema descriptor for namespace_uid field.
+	messagelogDescNamespaceUID := messagelogFields[1].Descriptor()
+	// messagelog.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	messagelog.NamespaceUIDValidator = messagelogDescNamespaceUID.Validators[0].(func(string) error)
+	// messagelogDescTaskUID is the schema descriptor for task_uid field.
+	messagelogDescTaskUID := messagelogFields[2].Descriptor()
+	// messagelog.TaskUIDValidator is a validator for the "task_uid" field. It is called by the builders before save.
+	messagelog.TaskUIDValidator = messagelogDescTaskUID.Validators[0].(func(string) error)
+	// messagelogDescChannelUID is the schema descriptor for channel_uid field.
+	messagelogDescChannelUID := messagelogFields[4].Descriptor()
+	// messagelog.DefaultChannelUID holds the default value on creation for the channel_uid field.
+	messagelog.DefaultChannelUID = messagelogDescChannelUID.Default.(string)
+	// messagelogDescTemplateUID is the schema descriptor for template_uid field.
+	messagelogDescTemplateUID := messagelogFields[5].Descriptor()
+	// messagelog.DefaultTemplateUID holds the default value on creation for the template_uid field.
+	messagelog.DefaultTemplateUID = messagelogDescTemplateUID.Default.(string)
+	// messagelogDescReceivers is the schema descriptor for receivers field.
+	messagelogDescReceivers := messagelogFields[6].Descriptor()
+	// messagelog.DefaultReceivers holds the default value on creation for the receivers field.
+	messagelog.DefaultReceivers = messagelogDescReceivers.Default.(string)
+	// messagelogDescDetail is the schema descriptor for detail field.
+	messagelogDescDetail := messagelogFields[7].Descriptor()
+	// messagelog.DefaultDetail holds the default value on creation for the detail field.
+	messagelog.DefaultDetail = messagelogDescDetail.Default.(string)
 	namespaceMixin := schema.Namespace{}.Mixin()
 	namespaceMixinFields0 := namespaceMixin[0].Fields()
 	_ = namespaceMixinFields0
@@ -475,6 +690,206 @@ func init() {
 	namespaceDescRemark := namespaceFields[5].Descriptor()
 	// namespace.DefaultRemark holds the default value on creation for the remark field.
 	namespace.DefaultRemark = namespaceDescRemark.Default.(string)
+	notificationchannelMixin := schema.NotificationChannel{}.Mixin()
+	notificationchannelMixinFields0 := notificationchannelMixin[0].Fields()
+	_ = notificationchannelMixinFields0
+	notificationchannelFields := schema.NotificationChannel{}.Fields()
+	_ = notificationchannelFields
+	// notificationchannelDescCreatedAt is the schema descriptor for created_at field.
+	notificationchannelDescCreatedAt := notificationchannelMixinFields0[0].Descriptor()
+	// notificationchannel.DefaultCreatedAt holds the default value on creation for the created_at field.
+	notificationchannel.DefaultCreatedAt = notificationchannelDescCreatedAt.Default.(func() time.Time)
+	// notificationchannelDescUpdatedAt is the schema descriptor for updated_at field.
+	notificationchannelDescUpdatedAt := notificationchannelMixinFields0[1].Descriptor()
+	// notificationchannel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	notificationchannel.DefaultUpdatedAt = notificationchannelDescUpdatedAt.Default.(func() time.Time)
+	// notificationchannel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	notificationchannel.UpdateDefaultUpdatedAt = notificationchannelDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// notificationchannelDescUID is the schema descriptor for uid field.
+	notificationchannelDescUID := notificationchannelFields[0].Descriptor()
+	// notificationchannel.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	notificationchannel.UIDValidator = notificationchannelDescUID.Validators[0].(func(string) error)
+	// notificationchannelDescNamespaceUID is the schema descriptor for namespace_uid field.
+	notificationchannelDescNamespaceUID := notificationchannelFields[1].Descriptor()
+	// notificationchannel.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	notificationchannel.NamespaceUIDValidator = notificationchannelDescNamespaceUID.Validators[0].(func(string) error)
+	// notificationchannelDescName is the schema descriptor for name field.
+	notificationchannelDescName := notificationchannelFields[2].Descriptor()
+	// notificationchannel.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	notificationchannel.NameValidator = notificationchannelDescName.Validators[0].(func(string) error)
+	// notificationchannelDescEndpoint is the schema descriptor for endpoint field.
+	notificationchannelDescEndpoint := notificationchannelFields[6].Descriptor()
+	// notificationchannel.DefaultEndpoint holds the default value on creation for the endpoint field.
+	notificationchannel.DefaultEndpoint = notificationchannelDescEndpoint.Default.(string)
+	// notificationchannelDescUsername is the schema descriptor for username field.
+	notificationchannelDescUsername := notificationchannelFields[7].Descriptor()
+	// notificationchannel.DefaultUsername holds the default value on creation for the username field.
+	notificationchannel.DefaultUsername = notificationchannelDescUsername.Default.(string)
+	// notificationchannelDescPasswordCipher is the schema descriptor for password_cipher field.
+	notificationchannelDescPasswordCipher := notificationchannelFields[8].Descriptor()
+	// notificationchannel.DefaultPasswordCipher holds the default value on creation for the password_cipher field.
+	notificationchannel.DefaultPasswordCipher = notificationchannelDescPasswordCipher.Default.(string)
+	// notificationchannelDescSecretCipher is the schema descriptor for secret_cipher field.
+	notificationchannelDescSecretCipher := notificationchannelFields[9].Descriptor()
+	// notificationchannel.DefaultSecretCipher holds the default value on creation for the secret_cipher field.
+	notificationchannel.DefaultSecretCipher = notificationchannelDescSecretCipher.Default.(string)
+	// notificationchannelDescFromAddress is the schema descriptor for from_address field.
+	notificationchannelDescFromAddress := notificationchannelFields[10].Descriptor()
+	// notificationchannel.DefaultFromAddress holds the default value on creation for the from_address field.
+	notificationchannel.DefaultFromAddress = notificationchannelDescFromAddress.Default.(string)
+	// notificationchannelDescRemark is the schema descriptor for remark field.
+	notificationchannelDescRemark := notificationchannelFields[11].Descriptor()
+	// notificationchannel.DefaultRemark holds the default value on creation for the remark field.
+	notificationchannel.DefaultRemark = notificationchannelDescRemark.Default.(string)
+	notificationgroupMixin := schema.NotificationGroup{}.Mixin()
+	notificationgroupMixinFields0 := notificationgroupMixin[0].Fields()
+	_ = notificationgroupMixinFields0
+	notificationgroupFields := schema.NotificationGroup{}.Fields()
+	_ = notificationgroupFields
+	// notificationgroupDescCreatedAt is the schema descriptor for created_at field.
+	notificationgroupDescCreatedAt := notificationgroupMixinFields0[0].Descriptor()
+	// notificationgroup.DefaultCreatedAt holds the default value on creation for the created_at field.
+	notificationgroup.DefaultCreatedAt = notificationgroupDescCreatedAt.Default.(func() time.Time)
+	// notificationgroupDescUpdatedAt is the schema descriptor for updated_at field.
+	notificationgroupDescUpdatedAt := notificationgroupMixinFields0[1].Descriptor()
+	// notificationgroup.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	notificationgroup.DefaultUpdatedAt = notificationgroupDescUpdatedAt.Default.(func() time.Time)
+	// notificationgroup.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	notificationgroup.UpdateDefaultUpdatedAt = notificationgroupDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// notificationgroupDescUID is the schema descriptor for uid field.
+	notificationgroupDescUID := notificationgroupFields[0].Descriptor()
+	// notificationgroup.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	notificationgroup.UIDValidator = notificationgroupDescUID.Validators[0].(func(string) error)
+	// notificationgroupDescNamespaceUID is the schema descriptor for namespace_uid field.
+	notificationgroupDescNamespaceUID := notificationgroupFields[1].Descriptor()
+	// notificationgroup.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	notificationgroup.NamespaceUIDValidator = notificationgroupDescNamespaceUID.Validators[0].(func(string) error)
+	// notificationgroupDescName is the schema descriptor for name field.
+	notificationgroupDescName := notificationgroupFields[2].Descriptor()
+	// notificationgroup.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	notificationgroup.NameValidator = notificationgroupDescName.Validators[0].(func(string) error)
+	// notificationgroupDescChannelUID is the schema descriptor for channel_uid field.
+	notificationgroupDescChannelUID := notificationgroupFields[4].Descriptor()
+	// notificationgroup.ChannelUIDValidator is a validator for the "channel_uid" field. It is called by the builders before save.
+	notificationgroup.ChannelUIDValidator = notificationgroupDescChannelUID.Validators[0].(func(string) error)
+	// notificationgroupDescTemplateUID is the schema descriptor for template_uid field.
+	notificationgroupDescTemplateUID := notificationgroupFields[5].Descriptor()
+	// notificationgroup.TemplateUIDValidator is a validator for the "template_uid" field. It is called by the builders before save.
+	notificationgroup.TemplateUIDValidator = notificationgroupDescTemplateUID.Validators[0].(func(string) error)
+	// notificationgroupDescReceivers is the schema descriptor for receivers field.
+	notificationgroupDescReceivers := notificationgroupFields[6].Descriptor()
+	// notificationgroup.DefaultReceivers holds the default value on creation for the receivers field.
+	notificationgroup.DefaultReceivers = notificationgroupDescReceivers.Default.(string)
+	// notificationgroupDescRemark is the schema descriptor for remark field.
+	notificationgroupDescRemark := notificationgroupFields[7].Descriptor()
+	// notificationgroup.DefaultRemark holds the default value on creation for the remark field.
+	notificationgroup.DefaultRemark = notificationgroupDescRemark.Default.(string)
+	notificationtaskMixin := schema.NotificationTask{}.Mixin()
+	notificationtaskMixinFields0 := notificationtaskMixin[0].Fields()
+	_ = notificationtaskMixinFields0
+	notificationtaskFields := schema.NotificationTask{}.Fields()
+	_ = notificationtaskFields
+	// notificationtaskDescCreatedAt is the schema descriptor for created_at field.
+	notificationtaskDescCreatedAt := notificationtaskMixinFields0[0].Descriptor()
+	// notificationtask.DefaultCreatedAt holds the default value on creation for the created_at field.
+	notificationtask.DefaultCreatedAt = notificationtaskDescCreatedAt.Default.(func() time.Time)
+	// notificationtaskDescUpdatedAt is the schema descriptor for updated_at field.
+	notificationtaskDescUpdatedAt := notificationtaskMixinFields0[1].Descriptor()
+	// notificationtask.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	notificationtask.DefaultUpdatedAt = notificationtaskDescUpdatedAt.Default.(func() time.Time)
+	// notificationtask.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	notificationtask.UpdateDefaultUpdatedAt = notificationtaskDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// notificationtaskDescUID is the schema descriptor for uid field.
+	notificationtaskDescUID := notificationtaskFields[0].Descriptor()
+	// notificationtask.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	notificationtask.UIDValidator = notificationtaskDescUID.Validators[0].(func(string) error)
+	// notificationtaskDescNamespaceUID is the schema descriptor for namespace_uid field.
+	notificationtaskDescNamespaceUID := notificationtaskFields[1].Descriptor()
+	// notificationtask.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	notificationtask.NamespaceUIDValidator = notificationtaskDescNamespaceUID.Validators[0].(func(string) error)
+	// notificationtaskDescEventUID is the schema descriptor for event_uid field.
+	notificationtaskDescEventUID := notificationtaskFields[2].Descriptor()
+	// notificationtask.DefaultEventUID holds the default value on creation for the event_uid field.
+	notificationtask.DefaultEventUID = notificationtaskDescEventUID.Default.(string)
+	// notificationtaskDescRuleUID is the schema descriptor for rule_uid field.
+	notificationtaskDescRuleUID := notificationtaskFields[5].Descriptor()
+	// notificationtask.DefaultRuleUID holds the default value on creation for the rule_uid field.
+	notificationtask.DefaultRuleUID = notificationtaskDescRuleUID.Default.(string)
+	// notificationtaskDescGroupUID is the schema descriptor for group_uid field.
+	notificationtaskDescGroupUID := notificationtaskFields[6].Descriptor()
+	// notificationtask.DefaultGroupUID holds the default value on creation for the group_uid field.
+	notificationtask.DefaultGroupUID = notificationtaskDescGroupUID.Default.(string)
+	// notificationtaskDescChannelUID is the schema descriptor for channel_uid field.
+	notificationtaskDescChannelUID := notificationtaskFields[7].Descriptor()
+	// notificationtask.ChannelUIDValidator is a validator for the "channel_uid" field. It is called by the builders before save.
+	notificationtask.ChannelUIDValidator = notificationtaskDescChannelUID.Validators[0].(func(string) error)
+	// notificationtaskDescTemplateUID is the schema descriptor for template_uid field.
+	notificationtaskDescTemplateUID := notificationtaskFields[8].Descriptor()
+	// notificationtask.DefaultTemplateUID holds the default value on creation for the template_uid field.
+	notificationtask.DefaultTemplateUID = notificationtaskDescTemplateUID.Default.(string)
+	// notificationtaskDescReceivers is the schema descriptor for receivers field.
+	notificationtaskDescReceivers := notificationtaskFields[9].Descriptor()
+	// notificationtask.DefaultReceivers holds the default value on creation for the receivers field.
+	notificationtask.DefaultReceivers = notificationtaskDescReceivers.Default.(string)
+	// notificationtaskDescSubject is the schema descriptor for subject field.
+	notificationtaskDescSubject := notificationtaskFields[10].Descriptor()
+	// notificationtask.DefaultSubject holds the default value on creation for the subject field.
+	notificationtask.DefaultSubject = notificationtaskDescSubject.Default.(string)
+	// notificationtaskDescBody is the schema descriptor for body field.
+	notificationtaskDescBody := notificationtaskFields[11].Descriptor()
+	// notificationtask.DefaultBody holds the default value on creation for the body field.
+	notificationtask.DefaultBody = notificationtaskDescBody.Default.(string)
+	// notificationtaskDescParams is the schema descriptor for params field.
+	notificationtaskDescParams := notificationtaskFields[12].Descriptor()
+	// notificationtask.DefaultParams holds the default value on creation for the params field.
+	notificationtask.DefaultParams = notificationtaskDescParams.Default.(string)
+	// notificationtaskDescRetriesLeft is the schema descriptor for retries_left field.
+	notificationtaskDescRetriesLeft := notificationtaskFields[13].Descriptor()
+	// notificationtask.DefaultRetriesLeft holds the default value on creation for the retries_left field.
+	notificationtask.DefaultRetriesLeft = notificationtaskDescRetriesLeft.Default.(int)
+	// notificationtaskDescLastError is the schema descriptor for last_error field.
+	notificationtaskDescLastError := notificationtaskFields[14].Descriptor()
+	// notificationtask.DefaultLastError holds the default value on creation for the last_error field.
+	notificationtask.DefaultLastError = notificationtaskDescLastError.Default.(string)
+	notificationtemplateMixin := schema.NotificationTemplate{}.Mixin()
+	notificationtemplateMixinFields0 := notificationtemplateMixin[0].Fields()
+	_ = notificationtemplateMixinFields0
+	notificationtemplateFields := schema.NotificationTemplate{}.Fields()
+	_ = notificationtemplateFields
+	// notificationtemplateDescCreatedAt is the schema descriptor for created_at field.
+	notificationtemplateDescCreatedAt := notificationtemplateMixinFields0[0].Descriptor()
+	// notificationtemplate.DefaultCreatedAt holds the default value on creation for the created_at field.
+	notificationtemplate.DefaultCreatedAt = notificationtemplateDescCreatedAt.Default.(func() time.Time)
+	// notificationtemplateDescUpdatedAt is the schema descriptor for updated_at field.
+	notificationtemplateDescUpdatedAt := notificationtemplateMixinFields0[1].Descriptor()
+	// notificationtemplate.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	notificationtemplate.DefaultUpdatedAt = notificationtemplateDescUpdatedAt.Default.(func() time.Time)
+	// notificationtemplate.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	notificationtemplate.UpdateDefaultUpdatedAt = notificationtemplateDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// notificationtemplateDescUID is the schema descriptor for uid field.
+	notificationtemplateDescUID := notificationtemplateFields[0].Descriptor()
+	// notificationtemplate.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	notificationtemplate.UIDValidator = notificationtemplateDescUID.Validators[0].(func(string) error)
+	// notificationtemplateDescNamespaceUID is the schema descriptor for namespace_uid field.
+	notificationtemplateDescNamespaceUID := notificationtemplateFields[1].Descriptor()
+	// notificationtemplate.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	notificationtemplate.NamespaceUIDValidator = notificationtemplateDescNamespaceUID.Validators[0].(func(string) error)
+	// notificationtemplateDescName is the schema descriptor for name field.
+	notificationtemplateDescName := notificationtemplateFields[2].Descriptor()
+	// notificationtemplate.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	notificationtemplate.NameValidator = notificationtemplateDescName.Validators[0].(func(string) error)
+	// notificationtemplateDescSubject is the schema descriptor for subject field.
+	notificationtemplateDescSubject := notificationtemplateFields[5].Descriptor()
+	// notificationtemplate.DefaultSubject holds the default value on creation for the subject field.
+	notificationtemplate.DefaultSubject = notificationtemplateDescSubject.Default.(string)
+	// notificationtemplateDescBody is the schema descriptor for body field.
+	notificationtemplateDescBody := notificationtemplateFields[6].Descriptor()
+	// notificationtemplate.DefaultBody holds the default value on creation for the body field.
+	notificationtemplate.DefaultBody = notificationtemplateDescBody.Default.(string)
+	// notificationtemplateDescRemark is the schema descriptor for remark field.
+	notificationtemplateDescRemark := notificationtemplateFields[7].Descriptor()
+	// notificationtemplate.DefaultRemark holds the default value on creation for the remark field.
+	notificationtemplate.DefaultRemark = notificationtemplateDescRemark.Default.(string)
 	permissionMixin := schema.Permission{}.Mixin()
 	permissionMixinFields0 := permissionMixin[0].Fields()
 	_ = permissionMixinFields0
@@ -568,6 +983,151 @@ func init() {
 	rolepermissionDescPermissionUID := rolepermissionFields[3].Descriptor()
 	// rolepermission.PermissionUIDValidator is a validator for the "permission_uid" field. It is called by the builders before save.
 	rolepermission.PermissionUIDValidator = rolepermissionDescPermissionUID.Validators[0].(func(string) error)
+	sftpauditMixin := schema.SFTPAudit{}.Mixin()
+	sftpauditMixinFields0 := sftpauditMixin[0].Fields()
+	_ = sftpauditMixinFields0
+	sftpauditFields := schema.SFTPAudit{}.Fields()
+	_ = sftpauditFields
+	// sftpauditDescCreatedAt is the schema descriptor for created_at field.
+	sftpauditDescCreatedAt := sftpauditMixinFields0[0].Descriptor()
+	// sftpaudit.DefaultCreatedAt holds the default value on creation for the created_at field.
+	sftpaudit.DefaultCreatedAt = sftpauditDescCreatedAt.Default.(func() time.Time)
+	// sftpauditDescUpdatedAt is the schema descriptor for updated_at field.
+	sftpauditDescUpdatedAt := sftpauditMixinFields0[1].Descriptor()
+	// sftpaudit.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	sftpaudit.DefaultUpdatedAt = sftpauditDescUpdatedAt.Default.(func() time.Time)
+	// sftpaudit.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	sftpaudit.UpdateDefaultUpdatedAt = sftpauditDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// sftpauditDescUID is the schema descriptor for uid field.
+	sftpauditDescUID := sftpauditFields[0].Descriptor()
+	// sftpaudit.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	sftpaudit.UIDValidator = sftpauditDescUID.Validators[0].(func(string) error)
+	// sftpauditDescNamespaceUID is the schema descriptor for namespace_uid field.
+	sftpauditDescNamespaceUID := sftpauditFields[1].Descriptor()
+	// sftpaudit.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	sftpaudit.NamespaceUIDValidator = sftpauditDescNamespaceUID.Validators[0].(func(string) error)
+	// sftpauditDescAgentUID is the schema descriptor for agent_uid field.
+	sftpauditDescAgentUID := sftpauditFields[2].Descriptor()
+	// sftpaudit.DefaultAgentUID holds the default value on creation for the agent_uid field.
+	sftpaudit.DefaultAgentUID = sftpauditDescAgentUID.Default.(string)
+	// sftpauditDescOperatorUID is the schema descriptor for operator_uid field.
+	sftpauditDescOperatorUID := sftpauditFields[3].Descriptor()
+	// sftpaudit.DefaultOperatorUID holds the default value on creation for the operator_uid field.
+	sftpaudit.DefaultOperatorUID = sftpauditDescOperatorUID.Default.(string)
+	// sftpauditDescPath is the schema descriptor for path field.
+	sftpauditDescPath := sftpauditFields[4].Descriptor()
+	// sftpaudit.DefaultPath holds the default value on creation for the path field.
+	sftpaudit.DefaultPath = sftpauditDescPath.Default.(string)
+	// sftpauditDescAction is the schema descriptor for action field.
+	sftpauditDescAction := sftpauditFields[5].Descriptor()
+	// sftpaudit.DefaultAction holds the default value on creation for the action field.
+	sftpaudit.DefaultAction = sftpauditDescAction.Default.(string)
+	// sftpauditDescResult is the schema descriptor for result field.
+	sftpauditDescResult := sftpauditFields[6].Descriptor()
+	// sftpaudit.DefaultResult holds the default value on creation for the result field.
+	sftpaudit.DefaultResult = sftpauditDescResult.Default.(string)
+	// sftpauditDescDetail is the schema descriptor for detail field.
+	sftpauditDescDetail := sftpauditFields[7].Descriptor()
+	// sftpaudit.DefaultDetail holds the default value on creation for the detail field.
+	sftpaudit.DefaultDetail = sftpauditDescDetail.Default.(string)
+	sshcommandMixin := schema.SSHCommand{}.Mixin()
+	sshcommandMixinFields0 := sshcommandMixin[0].Fields()
+	_ = sshcommandMixinFields0
+	sshcommandFields := schema.SSHCommand{}.Fields()
+	_ = sshcommandFields
+	// sshcommandDescCreatedAt is the schema descriptor for created_at field.
+	sshcommandDescCreatedAt := sshcommandMixinFields0[0].Descriptor()
+	// sshcommand.DefaultCreatedAt holds the default value on creation for the created_at field.
+	sshcommand.DefaultCreatedAt = sshcommandDescCreatedAt.Default.(func() time.Time)
+	// sshcommandDescUpdatedAt is the schema descriptor for updated_at field.
+	sshcommandDescUpdatedAt := sshcommandMixinFields0[1].Descriptor()
+	// sshcommand.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	sshcommand.DefaultUpdatedAt = sshcommandDescUpdatedAt.Default.(func() time.Time)
+	// sshcommand.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	sshcommand.UpdateDefaultUpdatedAt = sshcommandDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// sshcommandDescUID is the schema descriptor for uid field.
+	sshcommandDescUID := sshcommandFields[0].Descriptor()
+	// sshcommand.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	sshcommand.UIDValidator = sshcommandDescUID.Validators[0].(func(string) error)
+	// sshcommandDescNamespaceUID is the schema descriptor for namespace_uid field.
+	sshcommandDescNamespaceUID := sshcommandFields[1].Descriptor()
+	// sshcommand.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	sshcommand.NamespaceUIDValidator = sshcommandDescNamespaceUID.Validators[0].(func(string) error)
+	// sshcommandDescName is the schema descriptor for name field.
+	sshcommandDescName := sshcommandFields[2].Descriptor()
+	// sshcommand.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	sshcommand.NameValidator = sshcommandDescName.Validators[0].(func(string) error)
+	// sshcommandDescCommand is the schema descriptor for command field.
+	sshcommandDescCommand := sshcommandFields[3].Descriptor()
+	// sshcommand.CommandValidator is a validator for the "command" field. It is called by the builders before save.
+	sshcommand.CommandValidator = sshcommandDescCommand.Validators[0].(func(string) error)
+	// sshcommandDescWorkdir is the schema descriptor for workdir field.
+	sshcommandDescWorkdir := sshcommandFields[4].Descriptor()
+	// sshcommand.DefaultWorkdir holds the default value on creation for the workdir field.
+	sshcommand.DefaultWorkdir = sshcommandDescWorkdir.Default.(string)
+	// sshcommandDescEnv is the schema descriptor for env field.
+	sshcommandDescEnv := sshcommandFields[5].Descriptor()
+	// sshcommand.DefaultEnv holds the default value on creation for the env field.
+	sshcommand.DefaultEnv = sshcommandDescEnv.Default.(string)
+	// sshcommandDescRemark is the schema descriptor for remark field.
+	sshcommandDescRemark := sshcommandFields[7].Descriptor()
+	// sshcommand.DefaultRemark holds the default value on creation for the remark field.
+	sshcommand.DefaultRemark = sshcommandDescRemark.Default.(string)
+	sshcommandauditMixin := schema.SSHCommandAudit{}.Mixin()
+	sshcommandauditMixinFields0 := sshcommandauditMixin[0].Fields()
+	_ = sshcommandauditMixinFields0
+	sshcommandauditFields := schema.SSHCommandAudit{}.Fields()
+	_ = sshcommandauditFields
+	// sshcommandauditDescCreatedAt is the schema descriptor for created_at field.
+	sshcommandauditDescCreatedAt := sshcommandauditMixinFields0[0].Descriptor()
+	// sshcommandaudit.DefaultCreatedAt holds the default value on creation for the created_at field.
+	sshcommandaudit.DefaultCreatedAt = sshcommandauditDescCreatedAt.Default.(func() time.Time)
+	// sshcommandauditDescUpdatedAt is the schema descriptor for updated_at field.
+	sshcommandauditDescUpdatedAt := sshcommandauditMixinFields0[1].Descriptor()
+	// sshcommandaudit.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	sshcommandaudit.DefaultUpdatedAt = sshcommandauditDescUpdatedAt.Default.(func() time.Time)
+	// sshcommandaudit.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	sshcommandaudit.UpdateDefaultUpdatedAt = sshcommandauditDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// sshcommandauditDescUID is the schema descriptor for uid field.
+	sshcommandauditDescUID := sshcommandauditFields[0].Descriptor()
+	// sshcommandaudit.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	sshcommandaudit.UIDValidator = sshcommandauditDescUID.Validators[0].(func(string) error)
+	// sshcommandauditDescNamespaceUID is the schema descriptor for namespace_uid field.
+	sshcommandauditDescNamespaceUID := sshcommandauditFields[1].Descriptor()
+	// sshcommandaudit.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	sshcommandaudit.NamespaceUIDValidator = sshcommandauditDescNamespaceUID.Validators[0].(func(string) error)
+	// sshcommandauditDescCommandUID is the schema descriptor for command_uid field.
+	sshcommandauditDescCommandUID := sshcommandauditFields[2].Descriptor()
+	// sshcommandaudit.DefaultCommandUID holds the default value on creation for the command_uid field.
+	sshcommandaudit.DefaultCommandUID = sshcommandauditDescCommandUID.Default.(string)
+	// sshcommandauditDescAgentUID is the schema descriptor for agent_uid field.
+	sshcommandauditDescAgentUID := sshcommandauditFields[3].Descriptor()
+	// sshcommandaudit.DefaultAgentUID holds the default value on creation for the agent_uid field.
+	sshcommandaudit.DefaultAgentUID = sshcommandauditDescAgentUID.Default.(string)
+	// sshcommandauditDescOperatorUID is the schema descriptor for operator_uid field.
+	sshcommandauditDescOperatorUID := sshcommandauditFields[4].Descriptor()
+	// sshcommandaudit.DefaultOperatorUID holds the default value on creation for the operator_uid field.
+	sshcommandaudit.DefaultOperatorUID = sshcommandauditDescOperatorUID.Default.(string)
+	// sshcommandauditDescCommand is the schema descriptor for command field.
+	sshcommandauditDescCommand := sshcommandauditFields[7].Descriptor()
+	// sshcommandaudit.DefaultCommand holds the default value on creation for the command field.
+	sshcommandaudit.DefaultCommand = sshcommandauditDescCommand.Default.(string)
+	// sshcommandauditDescExitCode is the schema descriptor for exit_code field.
+	sshcommandauditDescExitCode := sshcommandauditFields[8].Descriptor()
+	// sshcommandaudit.DefaultExitCode holds the default value on creation for the exit_code field.
+	sshcommandaudit.DefaultExitCode = sshcommandauditDescExitCode.Default.(int)
+	// sshcommandauditDescOutput is the schema descriptor for output field.
+	sshcommandauditDescOutput := sshcommandauditFields[9].Descriptor()
+	// sshcommandaudit.DefaultOutput holds the default value on creation for the output field.
+	sshcommandaudit.DefaultOutput = sshcommandauditDescOutput.Default.(string)
+	// sshcommandauditDescTruncated is the schema descriptor for truncated field.
+	sshcommandauditDescTruncated := sshcommandauditFields[10].Descriptor()
+	// sshcommandaudit.DefaultTruncated holds the default value on creation for the truncated field.
+	sshcommandaudit.DefaultTruncated = sshcommandauditDescTruncated.Default.(bool)
+	// sshcommandauditDescDetail is the schema descriptor for detail field.
+	sshcommandauditDescDetail := sshcommandauditFields[11].Descriptor()
+	// sshcommandaudit.DefaultDetail holds the default value on creation for the detail field.
+	sshcommandaudit.DefaultDetail = sshcommandauditDescDetail.Default.(string)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

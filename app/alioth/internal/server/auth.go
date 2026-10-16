@@ -17,7 +17,15 @@ func authenticate(uc *auth.Usecase) middleware.Middleware {
 				return handler(ctx, req)
 			}
 			header := tr.RequestHeader()
-			next, err := uc.Authenticate(ctx, tr.Operation(), header.Get("Authorization"), header.Get("X-Namespace"))
+			authorization := header.Get("Authorization")
+			if authorization == "" {
+				authorization = header.Get("authorization")
+			}
+			namespace := header.Get("X-Namespace")
+			if namespace == "" {
+				namespace = header.Get("x-namespace")
+			}
+			next, err := uc.Authenticate(ctx, tr.Operation(), authorization, namespace)
 			if err != nil {
 				return nil, err
 			}

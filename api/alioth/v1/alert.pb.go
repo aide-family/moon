@@ -2465,9 +2465,11 @@ type AlertRuleItem struct {
 	// 描述。
 	Description string `protobuf:"bytes,11,opt,name=description,proto3" json:"description,omitempty"`
 	// 级别条件。
-	Levels        []*AlertRuleLevelItem `protobuf:"bytes,12,rep,name=levels,proto3" json:"levels,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Levels []*AlertRuleLevelItem `protobuf:"bytes,12,rep,name=levels,proto3" json:"levels,omitempty"`
+	// 绑定的通知组标识。
+	NotificationGroupUids []string `protobuf:"bytes,13,rep,name=notification_group_uids,json=notificationGroupUids,proto3" json:"notification_group_uids,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *AlertRuleItem) Reset() {
@@ -2584,6 +2586,13 @@ func (x *AlertRuleItem) GetLevels() []*AlertRuleLevelItem {
 	return nil
 }
 
+func (x *AlertRuleItem) GetNotificationGroupUids() []string {
+	if x != nil {
+		return x.NotificationGroupUids
+	}
+	return nil
+}
+
 // 创建规则。
 type CreateAlertRuleRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -2606,9 +2615,11 @@ type CreateAlertRuleRequest struct {
 	// 描述。
 	Description string `protobuf:"bytes,9,opt,name=description,proto3" json:"description,omitempty"`
 	// 级别条件。
-	Levels        []*AlertRuleLevelInput `protobuf:"bytes,10,rep,name=levels,proto3" json:"levels,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Levels []*AlertRuleLevelInput `protobuf:"bytes,10,rep,name=levels,proto3" json:"levels,omitempty"`
+	// 绑定的通知组标识。
+	NotificationGroupUids []string `protobuf:"bytes,11,rep,name=notification_group_uids,json=notificationGroupUids,proto3" json:"notification_group_uids,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *CreateAlertRuleRequest) Reset() {
@@ -2711,6 +2722,13 @@ func (x *CreateAlertRuleRequest) GetLevels() []*AlertRuleLevelInput {
 	return nil
 }
 
+func (x *CreateAlertRuleRequest) GetNotificationGroupUids() []string {
+	if x != nil {
+		return x.NotificationGroupUids
+	}
+	return nil
+}
+
 // 创建规则的结果。
 type CreateAlertRuleResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -2781,9 +2799,11 @@ type UpdateAlertRuleRequest struct {
 	// 描述。
 	Description string `protobuf:"bytes,10,opt,name=description,proto3" json:"description,omitempty"`
 	// 级别条件。保存时替换原有条件。
-	Levels        []*AlertRuleLevelInput `protobuf:"bytes,11,rep,name=levels,proto3" json:"levels,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Levels []*AlertRuleLevelInput `protobuf:"bytes,11,rep,name=levels,proto3" json:"levels,omitempty"`
+	// 绑定的通知组标识。保存时替换原有绑定。
+	NotificationGroupUids []string `protobuf:"bytes,12,rep,name=notification_group_uids,json=notificationGroupUids,proto3" json:"notification_group_uids,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *UpdateAlertRuleRequest) Reset() {
@@ -2889,6 +2909,13 @@ func (x *UpdateAlertRuleRequest) GetDescription() string {
 func (x *UpdateAlertRuleRequest) GetLevels() []*AlertRuleLevelInput {
 	if x != nil {
 		return x.Levels
+	}
+	return nil
+}
+
+func (x *UpdateAlertRuleRequest) GetNotificationGroupUids() []string {
+	if x != nil {
+		return x.NotificationGroupUids
 	}
 	return nil
 }
@@ -4156,7 +4183,7 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\tthreshold\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\tthreshold\x12(\n" +
 	"\vfor_seconds\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\n" +
 	"forSeconds\x12$\n" +
-	"\tlevel_uid\x18\x05 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\blevelUid\"\xdc\x02\n" +
+	"\tlevel_uid\x18\x05 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\blevelUid\"\x94\x03\n" +
 	"\rAlertRuleItem\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x1b\n" +
 	"\tgroup_uid\x18\x02 \x01(\tR\bgroupUid\x12\x12\n" +
@@ -4170,7 +4197,8 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\asummary\x18\n" +
 	" \x01(\tR\asummary\x12 \n" +
 	"\vdescription\x18\v \x01(\tR\vdescription\x125\n" +
-	"\x06levels\x18\f \x03(\v2\x1d.alioth.v1.AlertRuleLevelItemR\x06levels\"\xd8\x03\n" +
+	"\x06levels\x18\f \x03(\v2\x1d.alioth.v1.AlertRuleLevelItemR\x06levels\x126\n" +
+	"\x17notification_group_uids\x18\r \x03(\tR\x15notificationGroupUids\"\x90\x04\n" +
 	"\x16CreateAlertRuleRequest\x12$\n" +
 	"\tgroup_uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bgroupUid\x12\x1d\n" +
 	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12/\n" +
@@ -4182,9 +4210,10 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\asummary\x18\b \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\asummary\x12*\n" +
 	"\vdescription\x18\t \x01(\tB\b\xbaH\x05r\x03\x18\xf4\x03R\vdescription\x126\n" +
 	"\x06levels\x18\n" +
-	" \x03(\v2\x1e.alioth.v1.AlertRuleLevelInputR\x06levels\"G\n" +
+	" \x03(\v2\x1e.alioth.v1.AlertRuleLevelInputR\x06levels\x126\n" +
+	"\x17notification_group_uids\x18\v \x03(\tR\x15notificationGroupUids\"G\n" +
 	"\x17CreateAlertRuleResponse\x12,\n" +
-	"\x04rule\x18\x01 \x01(\v2\x18.alioth.v1.AlertRuleItemR\x04rule\"\xf3\x03\n" +
+	"\x04rule\x18\x01 \x01(\v2\x18.alioth.v1.AlertRuleItemR\x04rule\"\xab\x04\n" +
 	"\x16UpdateAlertRuleRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12$\n" +
 	"\tgroup_uid\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bgroupUid\x12\x1d\n" +
@@ -4197,7 +4226,8 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\asummary\x18\t \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\asummary\x12*\n" +
 	"\vdescription\x18\n" +
 	" \x01(\tB\b\xbaH\x05r\x03\x18\xf4\x03R\vdescription\x126\n" +
-	"\x06levels\x18\v \x03(\v2\x1e.alioth.v1.AlertRuleLevelInputR\x06levels\"G\n" +
+	"\x06levels\x18\v \x03(\v2\x1e.alioth.v1.AlertRuleLevelInputR\x06levels\x126\n" +
+	"\x17notification_group_uids\x18\f \x03(\tR\x15notificationGroupUids\"G\n" +
 	"\x17UpdateAlertRuleResponse\x12,\n" +
 	"\x04rule\x18\x01 \x01(\v2\x18.alioth.v1.AlertRuleItemR\x04rule\"j\n" +
 	"\x1cUpdateAlertRuleStatusRequest\x12\x19\n" +

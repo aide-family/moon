@@ -127,10 +127,14 @@ func (x *Server) GetGrpc() *Server_GRPC {
 }
 
 type Alioth struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Grpc          *Alioth_GRPC           `protobuf:"bytes,1,opt,name=grpc,proto3" json:"grpc,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Grpc  *Alioth_GRPC           `protobuf:"bytes,1,opt,name=grpc,proto3" json:"grpc,omitempty"`
+	// Agent 令牌，明文只放在配置里。
+	AgentToken string `protobuf:"bytes,2,opt,name=agent_token,json=agentToken,proto3" json:"agent_token,omitempty"`
+	// 心跳间隔。
+	HeartbeatInterval *durationpb.Duration `protobuf:"bytes,3,opt,name=heartbeat_interval,json=heartbeatInterval,proto3" json:"heartbeat_interval,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *Alioth) Reset() {
@@ -166,6 +170,20 @@ func (*Alioth) Descriptor() ([]byte, []int) {
 func (x *Alioth) GetGrpc() *Alioth_GRPC {
 	if x != nil {
 		return x.Grpc
+	}
+	return nil
+}
+
+func (x *Alioth) GetAgentToken() string {
+	if x != nil {
+		return x.AgentToken
+	}
+	return ""
+}
+
+func (x *Alioth) GetHeartbeatInterval() *durationpb.Duration {
+	if x != nil {
+		return x.HeartbeatInterval
 	}
 	return nil
 }
@@ -352,9 +370,12 @@ const file_internal_conf_conf_proto_rawDesc = "" +
 	"\x04GRPC\x12\x18\n" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x12\n" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x123\n" +
-	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"R\n" +
+	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\xbd\x01\n" +
 	"\x06Alioth\x12,\n" +
-	"\x04grpc\x18\x01 \x01(\v2\x18.alkaid.conf.Alioth.GRPCR\x04grpc\x1a\x1a\n" +
+	"\x04grpc\x18\x01 \x01(\v2\x18.alkaid.conf.Alioth.GRPCR\x04grpc\x12\x1f\n" +
+	"\vagent_token\x18\x02 \x01(\tR\n" +
+	"agentToken\x12H\n" +
+	"\x12heartbeat_interval\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\x11heartbeatInterval\x1a\x1a\n" +
 	"\x04GRPC\x12\x12\n" +
 	"\x04addr\x18\x01 \x01(\tR\x04addrB=Z;github.com/aide-family/Alioth/app/alkaid/internal/conf;confb\x06proto3"
 
@@ -386,13 +407,14 @@ var file_internal_conf_conf_proto_depIdxs = []int32{
 	3, // 2: alkaid.conf.Server.http:type_name -> alkaid.conf.Server.HTTP
 	4, // 3: alkaid.conf.Server.grpc:type_name -> alkaid.conf.Server.GRPC
 	5, // 4: alkaid.conf.Alioth.grpc:type_name -> alkaid.conf.Alioth.GRPC
-	6, // 5: alkaid.conf.Server.HTTP.timeout:type_name -> google.protobuf.Duration
-	6, // 6: alkaid.conf.Server.GRPC.timeout:type_name -> google.protobuf.Duration
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	6, // 5: alkaid.conf.Alioth.heartbeat_interval:type_name -> google.protobuf.Duration
+	6, // 6: alkaid.conf.Server.HTTP.timeout:type_name -> google.protobuf.Duration
+	6, // 7: alkaid.conf.Server.GRPC.timeout:type_name -> google.protobuf.Duration
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_internal_conf_conf_proto_init() }

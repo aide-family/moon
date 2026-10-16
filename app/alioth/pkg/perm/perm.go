@@ -19,8 +19,12 @@ const (
 
 	AlertRead      = "alert:read"
 	AlertIntervene = "alert:intervene"
-	SSHExec        = "ssh:exec"
-	K8sProxy       = "k8s:proxy"
+
+	NotificationRead  = "notification:read"
+	NotificationWrite = "notification:write"
+
+	SSHExec  = "ssh:exec"
+	K8sProxy = "k8s:proxy"
 )
 
 const (

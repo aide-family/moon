@@ -17,4 +17,13 @@ var ProviderSet = wire.NewSet(
 	NewAlertLevelService,
 	NewAlertEventService,
 	NewEvalService,
+	NewNotificationChannelService,
+	NewNotificationTemplateService,
+	NewNotificationGroupService,
+	NewMessageLogService,
+	NewNotifyService,
+	NewAgentService,
+	NewSSHCommandService,
+	NewSFTPService,
+	NewK8sProxyService,
 )

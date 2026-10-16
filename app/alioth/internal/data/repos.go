@@ -31,6 +31,9 @@ type datasourceRepo struct{ *repoBase }
 type alertLevelRepo struct{ *repoBase }
 type alertRuleRepo struct{ *repoBase }
 type alertEventRepo struct{ *repoBase }
+type notificationRepo struct{ *repoBase }
+type agentRepo struct{ *repoBase }
+type sshCommandRepo struct{ *repoBase }
 
 func NewUserRepo(d *Data, logger log.Logger) repository.UserRepo {
 	return &userRepo{newBase(d, logger)}
@@ -74,4 +77,16 @@ func NewAlertRuleRepo(d *Data, logger log.Logger) repository.AlertRuleRepo {
 
 func NewAlertEventRepo(d *Data, logger log.Logger) repository.AlertEventRepo {
 	return &alertEventRepo{newBase(d, logger)}
+}
+
+func NewNotificationRepo(d *Data, logger log.Logger) repository.NotificationRepo {
+	return &notificationRepo{newBase(d, logger)}
+}
+
+func NewAgentRepo(d *Data, logger log.Logger) repository.AgentRepo {
+	return &agentRepo{newBase(d, logger)}
+}
+
+func NewSSHCommandRepo(d *Data, logger log.Logger) repository.SSHCommandRepo {
+	return &sshCommandRepo{newBase(d, logger)}
 }

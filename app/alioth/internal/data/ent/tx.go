@@ -12,6 +12,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Agent is the client for interacting with the Agent builders.
+	Agent *AgentClient
 	// AlertEvalBatch is the client for interacting with the AlertEvalBatch builders.
 	AlertEvalBatch *AlertEvalBatchClient
 	// AlertEvent is the client for interacting with the AlertEvent builders.
@@ -26,24 +28,44 @@ type Tx struct {
 	AlertRuleGroup *AlertRuleGroupClient
 	// AlertRuleLevel is the client for interacting with the AlertRuleLevel builders.
 	AlertRuleLevel *AlertRuleLevelClient
+	// AlertRuleNotificationGroup is the client for interacting with the AlertRuleNotificationGroup builders.
+	AlertRuleNotificationGroup *AlertRuleNotificationGroupClient
 	// Captcha is the client for interacting with the Captcha builders.
 	Captcha *CaptchaClient
 	// Datasource is the client for interacting with the Datasource builders.
 	Datasource *DatasourceClient
 	// EmailLoginCode is the client for interacting with the EmailLoginCode builders.
 	EmailLoginCode *EmailLoginCodeClient
+	// K8sProxyAudit is the client for interacting with the K8sProxyAudit builders.
+	K8sProxyAudit *K8sProxyAuditClient
 	// Member is the client for interacting with the Member builders.
 	Member *MemberClient
 	// MemberRole is the client for interacting with the MemberRole builders.
 	MemberRole *MemberRoleClient
+	// MessageLog is the client for interacting with the MessageLog builders.
+	MessageLog *MessageLogClient
 	// Namespace is the client for interacting with the Namespace builders.
 	Namespace *NamespaceClient
+	// NotificationChannel is the client for interacting with the NotificationChannel builders.
+	NotificationChannel *NotificationChannelClient
+	// NotificationGroup is the client for interacting with the NotificationGroup builders.
+	NotificationGroup *NotificationGroupClient
+	// NotificationTask is the client for interacting with the NotificationTask builders.
+	NotificationTask *NotificationTaskClient
+	// NotificationTemplate is the client for interacting with the NotificationTemplate builders.
+	NotificationTemplate *NotificationTemplateClient
 	// Permission is the client for interacting with the Permission builders.
 	Permission *PermissionClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// RolePermission is the client for interacting with the RolePermission builders.
 	RolePermission *RolePermissionClient
+	// SFTPAudit is the client for interacting with the SFTPAudit builders.
+	SFTPAudit *SFTPAuditClient
+	// SSHCommand is the client for interacting with the SSHCommand builders.
+	SSHCommand *SSHCommandClient
+	// SSHCommandAudit is the client for interacting with the SSHCommandAudit builders.
+	SSHCommandAudit *SSHCommandAuditClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserOAuth is the client for interacting with the UserOAuth builders.
@@ -179,6 +201,7 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Agent = NewAgentClient(tx.config)
 	tx.AlertEvalBatch = NewAlertEvalBatchClient(tx.config)
 	tx.AlertEvent = NewAlertEventClient(tx.config)
 	tx.AlertEventFiring = NewAlertEventFiringClient(tx.config)
@@ -186,15 +209,25 @@ func (tx *Tx) init() {
 	tx.AlertRule = NewAlertRuleClient(tx.config)
 	tx.AlertRuleGroup = NewAlertRuleGroupClient(tx.config)
 	tx.AlertRuleLevel = NewAlertRuleLevelClient(tx.config)
+	tx.AlertRuleNotificationGroup = NewAlertRuleNotificationGroupClient(tx.config)
 	tx.Captcha = NewCaptchaClient(tx.config)
 	tx.Datasource = NewDatasourceClient(tx.config)
 	tx.EmailLoginCode = NewEmailLoginCodeClient(tx.config)
+	tx.K8sProxyAudit = NewK8sProxyAuditClient(tx.config)
 	tx.Member = NewMemberClient(tx.config)
 	tx.MemberRole = NewMemberRoleClient(tx.config)
+	tx.MessageLog = NewMessageLogClient(tx.config)
 	tx.Namespace = NewNamespaceClient(tx.config)
+	tx.NotificationChannel = NewNotificationChannelClient(tx.config)
+	tx.NotificationGroup = NewNotificationGroupClient(tx.config)
+	tx.NotificationTask = NewNotificationTaskClient(tx.config)
+	tx.NotificationTemplate = NewNotificationTemplateClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.RolePermission = NewRolePermissionClient(tx.config)
+	tx.SFTPAudit = NewSFTPAuditClient(tx.config)
+	tx.SSHCommand = NewSSHCommandClient(tx.config)
+	tx.SSHCommandAudit = NewSSHCommandAuditClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserOAuth = NewUserOAuthClient(tx.config)
 }
@@ -206,7 +239,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: AlertEvalBatch.QueryXXX(), the query will be executed
+// applies a query, for example: Agent.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

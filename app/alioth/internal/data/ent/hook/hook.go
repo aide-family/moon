@@ -9,6 +9,18 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
 )
 
+// The AgentFunc type is an adapter to allow the use of ordinary
+// function as Agent mutator.
+type AgentFunc func(context.Context, *ent.AgentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AgentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AgentMutation", m)
+}
+
 // The AlertEvalBatchFunc type is an adapter to allow the use of ordinary
 // function as AlertEvalBatch mutator.
 type AlertEvalBatchFunc func(context.Context, *ent.AlertEvalBatchMutation) (ent.Value, error)
@@ -93,6 +105,18 @@ func (f AlertRuleLevelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertRuleLevelMutation", m)
 }
 
+// The AlertRuleNotificationGroupFunc type is an adapter to allow the use of ordinary
+// function as AlertRuleNotificationGroup mutator.
+type AlertRuleNotificationGroupFunc func(context.Context, *ent.AlertRuleNotificationGroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertRuleNotificationGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertRuleNotificationGroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertRuleNotificationGroupMutation", m)
+}
+
 // The CaptchaFunc type is an adapter to allow the use of ordinary
 // function as Captcha mutator.
 type CaptchaFunc func(context.Context, *ent.CaptchaMutation) (ent.Value, error)
@@ -129,6 +153,18 @@ func (f EmailLoginCodeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EmailLoginCodeMutation", m)
 }
 
+// The K8sProxyAuditFunc type is an adapter to allow the use of ordinary
+// function as K8sProxyAudit mutator.
+type K8sProxyAuditFunc func(context.Context, *ent.K8sProxyAuditMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f K8sProxyAuditFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.K8sProxyAuditMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.K8sProxyAuditMutation", m)
+}
+
 // The MemberFunc type is an adapter to allow the use of ordinary
 // function as Member mutator.
 type MemberFunc func(context.Context, *ent.MemberMutation) (ent.Value, error)
@@ -153,6 +189,18 @@ func (f MemberRoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MemberRoleMutation", m)
 }
 
+// The MessageLogFunc type is an adapter to allow the use of ordinary
+// function as MessageLog mutator.
+type MessageLogFunc func(context.Context, *ent.MessageLogMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MessageLogFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MessageLogMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageLogMutation", m)
+}
+
 // The NamespaceFunc type is an adapter to allow the use of ordinary
 // function as Namespace mutator.
 type NamespaceFunc func(context.Context, *ent.NamespaceMutation) (ent.Value, error)
@@ -163,6 +211,54 @@ func (f NamespaceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NamespaceMutation", m)
+}
+
+// The NotificationChannelFunc type is an adapter to allow the use of ordinary
+// function as NotificationChannel mutator.
+type NotificationChannelFunc func(context.Context, *ent.NotificationChannelMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NotificationChannelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NotificationChannelMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NotificationChannelMutation", m)
+}
+
+// The NotificationGroupFunc type is an adapter to allow the use of ordinary
+// function as NotificationGroup mutator.
+type NotificationGroupFunc func(context.Context, *ent.NotificationGroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NotificationGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NotificationGroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NotificationGroupMutation", m)
+}
+
+// The NotificationTaskFunc type is an adapter to allow the use of ordinary
+// function as NotificationTask mutator.
+type NotificationTaskFunc func(context.Context, *ent.NotificationTaskMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NotificationTaskFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NotificationTaskMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NotificationTaskMutation", m)
+}
+
+// The NotificationTemplateFunc type is an adapter to allow the use of ordinary
+// function as NotificationTemplate mutator.
+type NotificationTemplateFunc func(context.Context, *ent.NotificationTemplateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NotificationTemplateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NotificationTemplateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NotificationTemplateMutation", m)
 }
 
 // The PermissionFunc type is an adapter to allow the use of ordinary
@@ -199,6 +295,42 @@ func (f RolePermissionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RolePermissionMutation", m)
+}
+
+// The SFTPAuditFunc type is an adapter to allow the use of ordinary
+// function as SFTPAudit mutator.
+type SFTPAuditFunc func(context.Context, *ent.SFTPAuditMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SFTPAuditFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SFTPAuditMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SFTPAuditMutation", m)
+}
+
+// The SSHCommandFunc type is an adapter to allow the use of ordinary
+// function as SSHCommand mutator.
+type SSHCommandFunc func(context.Context, *ent.SSHCommandMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SSHCommandFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SSHCommandMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SSHCommandMutation", m)
+}
+
+// The SSHCommandAuditFunc type is an adapter to allow the use of ordinary
+// function as SSHCommandAudit mutator.
+type SSHCommandAuditFunc func(context.Context, *ent.SSHCommandAuditMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SSHCommandAuditFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SSHCommandAuditMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SSHCommandAuditMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

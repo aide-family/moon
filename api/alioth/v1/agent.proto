@@ -1,0 +1,389 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
+
+// 边缘机器的签发、吊销与查询。
+service AgentService {
+  // 创建机器并签发令牌。明文令牌只在这次响应里出现。
+  rpc CreateAgent(CreateAgentRequest) returns (CreateAgentResponse) {
+    option (google.api.http) = {
+      post: "/v1/agent"
+      body: "*"
+    };
+  }
+  // 更新机器展示名和 SSH 凭据。密码和私钥留空表示保持原值。
+  rpc UpdateAgent(UpdateAgentRequest) returns (UpdateAgentResponse) {
+    option (google.api.http) = {
+      put: "/v1/agent/{uid}"
+      body: "*"
+    };
+  }
+  // 重新签发令牌。旧令牌立即失效。
+  rpc RotateAgentToken(RotateAgentTokenRequest) returns (RotateAgentTokenResponse) {
+    option (google.api.http) = {
+      post: "/v1/agent/{uid}/token"
+      body: "*"
+    };
+  }
+  // 吊销令牌。下一次心跳关闭流。
+  rpc RevokeAgent(RevokeAgentRequest) returns (RevokeAgentResponse) {
+    option (google.api.http) = {
+      post: "/v1/agent/{uid}/revoke"
+      body: "*"
+    };
+  }
+  // 删除机器。
+  rpc DeleteAgent(DeleteAgentRequest) returns (DeleteAgentResponse) {
+    option (google.api.http) = {delete: "/v1/agent/{uid}"};
+  }
+  // 获取机器详情。
+  rpc GetAgent(GetAgentRequest) returns (GetAgentResponse) {
+    option (google.api.http) = {get: "/v1/agent/{uid}"};
+  }
+  // 分页列出机器。
+  rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse) {
+    option (google.api.http) = {get: "/v1/agents"};
+  }
+  // Agent 出站双向流。只接受 Agent 令牌。
+  rpc Connect(stream AgentFrame) returns (stream AgentFrame);
+}
+
+// 一条机器。
+message AgentItem {
+  // 标识。
+  string uid = 1;
+  // 展示名。
+  string name = 2;
+  // 主机名。
+  string hostname = 3;
+  // 机器标识。
+  string machine_id = 4 [json_name = "machineId"];
+  // 本机 IP。
+  string local_ip = 5 [json_name = "localIp"];
+  // Agent 版本。
+  string version = 6;
+  // 是否在线。
+  bool online = 7;
+  // 状态，取值为 ACTIVE 或 REVOKED。
+  string status = 8;
+  // SSH 主机。
+  string ssh_host = 9 [json_name = "sshHost"];
+  // SSH 端口。
+  int32 ssh_port = 10 [json_name = "sshPort"];
+  // SSH 用户。
+  string ssh_user = 11 [json_name = "sshUser"];
+  // 是否已配置密码。
+  bool has_password = 12 [json_name = "hasPassword"];
+  // 是否已配置私钥。
+  bool has_private_key = 13 [json_name = "hasPrivateKey"];
+  // 备注。
+  string remark = 14;
+}
+
+// 创建机器。
+message CreateAgentRequest {
+  // 展示名。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // SSH 主机。
+  string ssh_host = 2 [json_name = "sshHost"];
+  // SSH 端口。
+  int32 ssh_port = 3 [json_name = "sshPort"];
+  // SSH 用户。
+  string ssh_user = 4 [json_name = "sshUser"];
+  // SSH 密码。
+  string ssh_password = 5 [json_name = "sshPassword"];
+  // SSH 私钥。
+  string ssh_private_key = 6 [json_name = "sshPrivateKey"];
+  // 备注。
+  string remark = 7 [(buf.validate.field).string.max_len = 200];
+}
+
+// 创建机器的结果。
+message CreateAgentResponse {
+  // 机器。
+  AgentItem agent = 1;
+  // 明文令牌，只出现一次。
+  string token = 2;
+}
+
+// 更新机器。
+message UpdateAgentRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 展示名。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // SSH 主机。
+  string ssh_host = 3 [json_name = "sshHost"];
+  // SSH 端口。
+  int32 ssh_port = 4 [json_name = "sshPort"];
+  // SSH 用户。
+  string ssh_user = 5 [json_name = "sshUser"];
+  // SSH 密码。留空表示保持原值。
+  string ssh_password = 6 [json_name = "sshPassword"];
+  // SSH 私钥。留空表示保持原值。
+  string ssh_private_key = 7 [json_name = "sshPrivateKey"];
+  // 备注。
+  string remark = 8 [(buf.validate.field).string.max_len = 200];
+}
+
+// 更新机器的结果。
+message UpdateAgentResponse {
+  // 机器。
+  AgentItem agent = 1;
+}
+
+// 重新签发令牌。
+message RotateAgentTokenRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 重新签发的结果。
+message RotateAgentTokenResponse {
+  // 机器。
+  AgentItem agent = 1;
+  // 明文令牌，只出现一次。
+  string token = 2;
+}
+
+// 吊销机器。
+message RevokeAgentRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 已吊销。
+message RevokeAgentResponse {
+  // 机器。
+  AgentItem agent = 1;
+}
+
+// 要删除的机器。
+message DeleteAgentRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 机器已删除。
+message DeleteAgentResponse {}
+
+// 要查询的机器。
+message GetAgentRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 机器详情。
+message GetAgentResponse {
+  // 机器。
+  AgentItem agent = 1;
+}
+
+// 机器分页查询。
+message ListAgentsRequest {
+  // 页码。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
+  string name = 3;
+}
+
+// 机器分页结果。
+message ListAgentsResponse {
+  // 当前页数据。
+  repeated AgentItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
+// Agent 与玉衡之间的一帧。
+message AgentFrame {
+  // 注册。
+  AgentRegister register = 1;
+  // 心跳。
+  AgentHeartbeat heartbeat = 2;
+  // 机器信息。
+  AgentMachineInfo machine_info = 3;
+  // 执行请求，由玉衡下发。
+  AgentExecRequest exec_request = 4;
+  // 执行结果，由 Agent 回传。
+  AgentExecResult exec_result = 5;
+  // 关闭说明。
+  AgentClose close = 6;
+  // SFTP 请求，由玉衡下发。
+  AgentSFTPRequest sftp_request = 7;
+  // SFTP 结果，由 Agent 回传。
+  AgentSFTPResult sftp_result = 8;
+  // Kubernetes 代理请求，由玉衡下发。
+  AgentK8sRequest k8s_request = 9;
+  // Kubernetes 代理结果，由 Agent 回传。
+  AgentK8sResult k8s_result = 10;
+}
+
+// 注册帧。
+message AgentRegister {
+  // 租户标识。
+  string namespace_uid = 1;
+  // 主机名。
+  string hostname = 2;
+  // 机器标识。
+  string machine_id = 3;
+  // 本机 IP。
+  string local_ip = 4;
+  // Agent 版本。
+  string version = 5;
+}
+
+// 心跳帧。
+message AgentHeartbeat {
+  // 单调序号。
+  int64 seq = 1;
+}
+
+// 机器信息帧。
+message AgentMachineInfo {
+  // 主机名。
+  string hostname = 1;
+  // 机器标识。
+  string machine_id = 2;
+  // 本机 IP。
+  string local_ip = 3;
+  // Agent 版本。
+  string version = 4;
+  // 采集 JSON。
+  string collect_json = 5;
+}
+
+// 执行请求。
+message AgentExecRequest {
+  // 请求标识。
+  string request_uid = 1;
+  // 要执行的命令。
+  string command = 2;
+  // 工作目录。
+  string workdir = 3;
+  // 环境变量 JSON。
+  string env = 4;
+  // SSH 主机。
+  string ssh_host = 5;
+  // SSH 端口。
+  int32 ssh_port = 6;
+  // SSH 用户。
+  string ssh_user = 7;
+  // SSH 密码。只出现在这条内部帧里。
+  string ssh_password = 8;
+  // SSH 私钥。只出现在这条内部帧里。
+  string ssh_private_key = 9;
+}
+
+// 执行结果。
+message AgentExecResult {
+  // 请求标识。
+  string request_uid = 1;
+  // 退出码。
+  int32 exit_code = 2;
+  // 输出。
+  string output = 3;
+  // 是否已截断。
+  bool truncated = 4;
+  // 错误说明。
+  string error = 5;
+}
+
+// 关闭帧。
+message AgentClose {
+  // 原因。
+  string reason = 1;
+}
+
+// SFTP 请求。
+message AgentSFTPRequest {
+  // 请求标识。
+  string request_uid = 1;
+  // 动作，取值为 LIST、DOWNLOAD、UPLOAD、MKDIR 或 DELETE。
+  string action = 2;
+  // 路径。
+  string path = 3;
+  // 文件内容，仅上传使用。
+  bytes content = 4;
+  // SSH 主机。
+  string ssh_host = 5;
+  // SSH 端口。
+  int32 ssh_port = 6;
+  // SSH 用户。
+  string ssh_user = 7;
+  // SSH 密码。
+  string ssh_password = 8;
+  // SSH 私钥。
+  string ssh_private_key = 9;
+}
+
+// 一条目录项。
+message AgentSFTPEntry {
+  // 名称。
+  string name = 1;
+  // 完整路径。
+  string path = 2;
+  // 是否目录。
+  bool is_dir = 3;
+  // 大小。
+  int64 size = 4;
+  // 权限字符串。
+  string mode = 5;
+  // 修改时间，RFC3339。
+  string mod_time = 6;
+}
+
+// SFTP 结果。
+message AgentSFTPResult {
+  // 请求标识。
+  string request_uid = 1;
+  // 是否成功。
+  bool ok = 2;
+  // 错误说明。
+  string error = 3;
+  // 目录项，仅 LIST 使用。
+  repeated AgentSFTPEntry entries = 4;
+  // 文件内容，仅 DOWNLOAD 使用。
+  bytes content = 5;
+}
+
+// Kubernetes 代理请求。
+message AgentK8sRequest {
+  // 请求标识。
+  string request_uid = 1;
+  // HTTP 方法。
+  string method = 2;
+  // API 路径。
+  string path = 3;
+  // 查询串。
+  string query = 4;
+  // 请求头 JSON。
+  string headers_json = 5;
+  // 请求体。
+  bytes body = 6;
+}
+
+// Kubernetes 代理结果。
+message AgentK8sResult {
+  // 请求标识。
+  string request_uid = 1;
+  // HTTP 状态码。
+  int32 status_code = 2;
+  // 响应头 JSON。
+  string headers_json = 3;
+  // 响应体。
+  bytes body = 4;
+  // 错误说明。
+  string error = 5;
+}

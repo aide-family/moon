@@ -1,0 +1,16 @@
+[Unit]
+Description=Alioth edge agent (alkaid)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+EnvironmentFile=-/etc/alioth/alkaid.env
+ExecStart=/usr/local/bin/alkaid serve --conf /etc/alioth/alkaid.yaml
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

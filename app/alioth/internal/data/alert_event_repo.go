@@ -9,6 +9,9 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulenotificationgroup"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/predicate"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
@@ -124,10 +127,17 @@ func (r *alertEventRepo) applyHits(ctx context.Context, tx *ent.Tx, rule bo.Aler
 			Exec(ctx); err != nil {
 			return r.fail(err)
 		}
+		if err := createNotifyTasks(ctx, tx, rule, eventUID, notificationtask.PhaseFIRING, textOr(hit.Summary, rule.Summary), textOr(hit.Description, rule.Description), hit.Labels, fingerprint); err != nil {
+			return err
+		}
 	}
 	for fingerprint, row := range current {
 		if _, ok := hits[fingerprint]; ok {
 			continue
+		}
+		event, err := tx.AlertEvent.Query().Where(alertevent.UIDEQ(row.EventUID)).Only(ctx)
+		if err != nil {
+			return r.fail(err)
 		}
 		if _, err := tx.AlertEvent.Update().Where(
 			alertevent.UIDEQ(row.EventUID),
@@ -138,6 +148,60 @@ func (r *alertEventRepo) applyHits(ctx context.Context, tx *ent.Tx, rule bo.Aler
 		}
 		if _, err := tx.AlertEventFiring.Delete().Where(alerteventfiring.IDEQ(row.ID)).Exec(ctx); err != nil {
 			return r.fail(err)
+		}
+		if err := createNotifyTasks(ctx, tx, rule, row.EventUID, notificationtask.PhaseRECOVERED, event.Summary, event.Description, event.Labels, fingerprint); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func createNotifyTasks(ctx context.Context, tx *ent.Tx, rule bo.AlertRule, eventUID string, phase notificationtask.Phase, summary, description, labels, fingerprint string) error {
+	links, err := tx.AlertRuleNotificationGroup.Query().Where(
+		alertrulenotificationgroup.RuleUIDEQ(rule.UID),
+		alertrulenotificationgroup.NamespaceUIDEQ(rule.NamespaceUID),
+		alertrulenotificationgroup.DeletedAtIsNil(),
+	).All(ctx)
+	if err != nil {
+		return err
+	}
+	if len(links) == 0 {
+		return nil
+	}
+	groupUIDs := make([]string, 0, len(links))
+	for _, link := range links {
+		groupUIDs = append(groupUIDs, link.GroupUID)
+	}
+	groups, err := tx.NotificationGroup.Query().Where(
+		notificationgroup.UIDIn(groupUIDs...),
+		notificationgroup.NamespaceUIDEQ(rule.NamespaceUID),
+		notificationgroup.StatusEQ(notificationgroup.StatusACTIVE),
+		notificationgroup.DeletedAtIsNil(),
+	).All(ctx)
+	if err != nil {
+		return err
+	}
+	params := paramsJSON(eventUID, string(phase), summary, description, labels, fingerprint)
+	for _, group := range groups {
+		err := tx.NotificationTask.Create().
+			SetUID(id.New()).
+			SetNamespaceUID(rule.NamespaceUID).
+			SetEventUID(eventUID).
+			SetPhase(phase).
+			SetStatus(notificationtask.StatusPENDING).
+			SetRuleUID(rule.UID).
+			SetGroupUID(group.UID).
+			SetChannelUID(group.ChannelUID).
+			SetTemplateUID(group.TemplateUID).
+			SetReceivers(group.Receivers).
+			SetParams(params).
+			SetRetriesLeft(3).
+			Exec(ctx)
+		if err != nil {
+			if ent.IsConstraintError(err) {
+				continue
+			}
+			return err
 		}
 	}
 	return nil

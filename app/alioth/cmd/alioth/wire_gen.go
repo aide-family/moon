@@ -8,15 +8,21 @@ package main
 
 import (
 	"github.com/aide-family/Alioth/app/alioth/internal/access"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/agent"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/agenthub"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertlevel"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/health"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/k8sproxy"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/member"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/namespace"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/notification"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/role"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/sftp"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/ssh"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/user"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/data"
@@ -39,16 +45,19 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	captchaRepo := data.NewCaptchaRepo(dataData, logger)
 	emailCodeRepo := data.NewEmailCodeRepo(dataData, logger)
 	oAuthRepo := data.NewOAuthRepo(dataData, logger)
-	authUsecase, err := auth.NewUsecase(userRepo, captchaRepo, emailCodeRepo, oAuthRepo, confAuth, logger)
+	agentRepo := data.NewAgentRepo(dataData, logger)
+	hub := agenthub.NewHub()
+	namespaceRepo := data.NewNamespaceRepo(dataData, logger)
+	roleRepo := data.NewRoleRepo(dataData, logger)
+	checker := access.NewChecker(namespaceRepo, roleRepo, logger)
+	agentUsecase := agent.NewUsecase(agentRepo, hub, checker)
+	authUsecase, err := auth.NewUsecase(userRepo, captchaRepo, emailCodeRepo, oAuthRepo, agentUsecase, confAuth, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
 	captchaService := service.NewCaptchaService(authUsecase)
 	authService := service.NewAuthService(authUsecase)
-	namespaceRepo := data.NewNamespaceRepo(dataData, logger)
-	roleRepo := data.NewRoleRepo(dataData, logger)
-	checker := access.NewChecker(namespaceRepo, roleRepo, logger)
 	namespaceUsecase := namespace.NewUsecase(namespaceRepo, checker)
 	roleUsecase := role.NewUsecase(roleRepo, checker)
 	selfService := service.NewSelfService(authUsecase, namespaceUsecase, roleUsecase)
@@ -77,14 +86,30 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	}
 	alerteventUsecase := alertevent.NewUsecase(alertRuleRepo, alertEventRepo, datasourceRepo, client, checker, logger)
 	alertEventService := service.NewAlertEventService(alerteventUsecase)
-	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertLevelService, alertEventService, authUsecase, logger)
+	notificationRepo := data.NewNotificationRepo(dataData, logger)
+	notificationUsecase := notification.NewUsecase(notificationRepo, checker)
+	notificationChannelService := service.NewNotificationChannelService(notificationUsecase)
+	notificationTemplateService := service.NewNotificationTemplateService(notificationUsecase)
+	notificationGroupService := service.NewNotificationGroupService(notificationUsecase)
+	messageLogService := service.NewMessageLogService(notificationUsecase)
+	agentService := service.NewAgentService(agentUsecase)
+	sshCommandRepo := data.NewSSHCommandRepo(dataData, logger)
+	sshUsecase := ssh.NewUsecase(sshCommandRepo, agentRepo, hub, checker)
+	sshCommandService := service.NewSSHCommandService(sshUsecase)
+	edgeAuditRepo := data.NewEdgeAuditRepo(dataData, logger)
+	sftpUsecase := sftp.NewUsecase(edgeAuditRepo, agentRepo, hub, checker)
+	sftpService := service.NewSFTPService(sftpUsecase)
+	k8sproxyUsecase := k8sproxy.NewUsecase(edgeAuditRepo, agentRepo, hub, checker)
+	k8sProxyService := service.NewK8sProxyService(k8sproxyUsecase)
+	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertLevelService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, messageLogService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
 	evalService := service.NewEvalService(alerteventUsecase)
-	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertLevelService, alertEventService, evalService, authUsecase, logger)
+	notifyService := service.NewNotifyService(notificationUsecase)
+	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertLevelService, alertEventService, evalService, notificationChannelService, notificationTemplateService, notificationGroupService, messageLogService, notifyService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()

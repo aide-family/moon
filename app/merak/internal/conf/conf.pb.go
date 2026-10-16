@@ -25,6 +25,9 @@ const (
 type Bootstrap struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Server        *Server                `protobuf:"bytes,1,opt,name=server,proto3" json:"server,omitempty"`
+	Alioth        *Alioth                `protobuf:"bytes,2,opt,name=alioth,proto3" json:"alioth,omitempty"`
+	Redis         *Redis                 `protobuf:"bytes,3,opt,name=redis,proto3" json:"redis,omitempty"`
+	Notify        *Notify                `protobuf:"bytes,4,opt,name=notify,proto3" json:"notify,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -62,6 +65,27 @@ func (*Bootstrap) Descriptor() ([]byte, []int) {
 func (x *Bootstrap) GetServer() *Server {
 	if x != nil {
 		return x.Server
+	}
+	return nil
+}
+
+func (x *Bootstrap) GetAlioth() *Alioth {
+	if x != nil {
+		return x.Alioth
+	}
+	return nil
+}
+
+func (x *Bootstrap) GetRedis() *Redis {
+	if x != nil {
+		return x.Redis
+	}
+	return nil
+}
+
+func (x *Bootstrap) GetNotify() *Notify {
+	if x != nil {
+		return x.Notify
 	}
 	return nil
 }
@@ -110,6 +134,162 @@ func (x *Server) GetHttp() *Server_HTTP {
 	return nil
 }
 
+// 玉衡 gRPC 地址和天璇自己的 service key。
+type Alioth struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 玉衡 gRPC 地址。
+	GrpcAddr string `protobuf:"bytes,1,opt,name=grpc_addr,json=grpcAddr,proto3" json:"grpc_addr,omitempty"`
+	// 调用领取和回写使用的 service key。
+	ServiceKey    string `protobuf:"bytes,2,opt,name=service_key,json=serviceKey,proto3" json:"service_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Alioth) Reset() {
+	*x = Alioth{}
+	mi := &file_internal_conf_conf_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Alioth) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Alioth) ProtoMessage() {}
+
+func (x *Alioth) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_conf_conf_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Alioth.ProtoReflect.Descriptor instead.
+func (*Alioth) Descriptor() ([]byte, []int) {
+	return file_internal_conf_conf_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *Alioth) GetGrpcAddr() string {
+	if x != nil {
+		return x.GrpcAddr
+	}
+	return ""
+}
+
+func (x *Alioth) GetServiceKey() string {
+	if x != nil {
+		return x.ServiceKey
+	}
+	return ""
+}
+
+// Redis 只用于投递锁。
+type Redis struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 地址。
+	Addr string `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
+	// 密码。
+	Password      string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Redis) Reset() {
+	*x = Redis{}
+	mi := &file_internal_conf_conf_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Redis) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Redis) ProtoMessage() {}
+
+func (x *Redis) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_conf_conf_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Redis.ProtoReflect.Descriptor instead.
+func (*Redis) Descriptor() ([]byte, []int) {
+	return file_internal_conf_conf_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Redis) GetAddr() string {
+	if x != nil {
+		return x.Addr
+	}
+	return ""
+}
+
+func (x *Redis) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+// 投递超时。
+type Notify struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 单次投递超时。
+	Timeout       *durationpb.Duration `protobuf:"bytes,1,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Notify) Reset() {
+	*x = Notify{}
+	mi := &file_internal_conf_conf_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Notify) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Notify) ProtoMessage() {}
+
+func (x *Notify) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_conf_conf_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Notify.ProtoReflect.Descriptor instead.
+func (*Notify) Descriptor() ([]byte, []int) {
+	return file_internal_conf_conf_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Notify) GetTimeout() *durationpb.Duration {
+	if x != nil {
+		return x.Timeout
+	}
+	return nil
+}
+
 type Server_HTTP struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Network       string                 `protobuf:"bytes,1,opt,name=network,proto3" json:"network,omitempty"`
@@ -121,7 +301,7 @@ type Server_HTTP struct {
 
 func (x *Server_HTTP) Reset() {
 	*x = Server_HTTP{}
-	mi := &file_internal_conf_conf_proto_msgTypes[2]
+	mi := &file_internal_conf_conf_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -133,7 +313,7 @@ func (x *Server_HTTP) String() string {
 func (*Server_HTTP) ProtoMessage() {}
 
 func (x *Server_HTTP) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_conf_conf_proto_msgTypes[2]
+	mi := &file_internal_conf_conf_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -175,15 +355,27 @@ var File_internal_conf_conf_proto protoreflect.FileDescriptor
 const file_internal_conf_conf_proto_rawDesc = "" +
 	"\n" +
 	"\x18internal/conf/conf.proto\x12\n" +
-	"merak.conf\x1a\x1egoogle/protobuf/duration.proto\"7\n" +
+	"merak.conf\x1a\x1egoogle/protobuf/duration.proto\"\xb8\x01\n" +
 	"\tBootstrap\x12*\n" +
-	"\x06server\x18\x01 \x01(\v2\x12.merak.conf.ServerR\x06server\"\xa0\x01\n" +
+	"\x06server\x18\x01 \x01(\v2\x12.merak.conf.ServerR\x06server\x12*\n" +
+	"\x06alioth\x18\x02 \x01(\v2\x12.merak.conf.AliothR\x06alioth\x12'\n" +
+	"\x05redis\x18\x03 \x01(\v2\x11.merak.conf.RedisR\x05redis\x12*\n" +
+	"\x06notify\x18\x04 \x01(\v2\x12.merak.conf.NotifyR\x06notify\"\xa0\x01\n" +
 	"\x06Server\x12+\n" +
 	"\x04http\x18\x01 \x01(\v2\x17.merak.conf.Server.HTTPR\x04http\x1ai\n" +
 	"\x04HTTP\x12\x18\n" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x12\n" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x123\n" +
-	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeoutB<Z:github.com/aide-family/Alioth/app/merak/internal/conf;confb\x06proto3"
+	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"F\n" +
+	"\x06Alioth\x12\x1b\n" +
+	"\tgrpc_addr\x18\x01 \x01(\tR\bgrpcAddr\x12\x1f\n" +
+	"\vservice_key\x18\x02 \x01(\tR\n" +
+	"serviceKey\"7\n" +
+	"\x05Redis\x12\x12\n" +
+	"\x04addr\x18\x01 \x01(\tR\x04addr\x12\x1a\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"=\n" +
+	"\x06Notify\x123\n" +
+	"\atimeout\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\atimeoutB<Z:github.com/aide-family/Alioth/app/merak/internal/conf;confb\x06proto3"
 
 var (
 	file_internal_conf_conf_proto_rawDescOnce sync.Once
@@ -197,22 +389,29 @@ func file_internal_conf_conf_proto_rawDescGZIP() []byte {
 	return file_internal_conf_conf_proto_rawDescData
 }
 
-var file_internal_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_internal_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_internal_conf_conf_proto_goTypes = []any{
 	(*Bootstrap)(nil),           // 0: merak.conf.Bootstrap
 	(*Server)(nil),              // 1: merak.conf.Server
-	(*Server_HTTP)(nil),         // 2: merak.conf.Server.HTTP
-	(*durationpb.Duration)(nil), // 3: google.protobuf.Duration
+	(*Alioth)(nil),              // 2: merak.conf.Alioth
+	(*Redis)(nil),               // 3: merak.conf.Redis
+	(*Notify)(nil),              // 4: merak.conf.Notify
+	(*Server_HTTP)(nil),         // 5: merak.conf.Server.HTTP
+	(*durationpb.Duration)(nil), // 6: google.protobuf.Duration
 }
 var file_internal_conf_conf_proto_depIdxs = []int32{
 	1, // 0: merak.conf.Bootstrap.server:type_name -> merak.conf.Server
-	2, // 1: merak.conf.Server.http:type_name -> merak.conf.Server.HTTP
-	3, // 2: merak.conf.Server.HTTP.timeout:type_name -> google.protobuf.Duration
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	2, // 1: merak.conf.Bootstrap.alioth:type_name -> merak.conf.Alioth
+	3, // 2: merak.conf.Bootstrap.redis:type_name -> merak.conf.Redis
+	4, // 3: merak.conf.Bootstrap.notify:type_name -> merak.conf.Notify
+	5, // 4: merak.conf.Server.http:type_name -> merak.conf.Server.HTTP
+	6, // 5: merak.conf.Notify.timeout:type_name -> google.protobuf.Duration
+	6, // 6: merak.conf.Server.HTTP.timeout:type_name -> google.protobuf.Duration
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_internal_conf_conf_proto_init() }
@@ -226,7 +425,7 @@ func file_internal_conf_conf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_internal_conf_conf_proto_rawDesc), len(file_internal_conf_conf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

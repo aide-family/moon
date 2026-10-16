@@ -1,0 +1,14 @@
+server:
+  http:
+    network: tcp
+    addr: ${ALKAID_HTTP_ADDR:0.0.0.0:8022}
+    timeout: 1s
+  grpc:
+    network: tcp
+    addr: ${ALKAID_GRPC_ADDR:0.0.0.0:9022}
+    timeout: 1s
+alioth:
+  grpc:
+    addr: ${ALKAID_ALIOTH_GRPC_ADDR:alioth:9000}
+  agent_token: ${ALKAID_AGENT_TOKEN:}
+  heartbeat_interval: 15s

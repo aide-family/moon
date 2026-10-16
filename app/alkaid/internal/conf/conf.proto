@@ -31,4 +31,8 @@ message Alioth {
     string addr = 1;
   }
   GRPC grpc = 1;
+  // Agent 令牌，明文只放在配置里。
+  string agent_token = 2;
+  // 心跳间隔。
+  google.protobuf.Duration heartbeat_interval = 3;
 }

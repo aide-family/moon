@@ -9,6 +9,61 @@ import (
 )
 
 var (
+	// AgentsColumns holds the columns for the "agents" table.
+	AgentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Default: ""},
+		{Name: "hostname", Type: field.TypeString, Default: ""},
+		{Name: "machine_id", Type: field.TypeString, Default: ""},
+		{Name: "local_ip", Type: field.TypeString, Default: ""},
+		{Name: "version", Type: field.TypeString, Default: ""},
+		{Name: "collect_json", Type: field.TypeString, Default: ""},
+		{Name: "online", Type: field.TypeBool, Default: false},
+		{Name: "token_hash", Type: field.TypeString, Default: ""},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "REVOKED"}, Default: "ACTIVE"},
+		{Name: "ssh_host", Type: field.TypeString, Default: ""},
+		{Name: "ssh_port", Type: field.TypeInt, Default: 22},
+		{Name: "ssh_user", Type: field.TypeString, Default: ""},
+		{Name: "ssh_password_cipher", Type: field.TypeString, Default: ""},
+		{Name: "ssh_private_key_cipher", Type: field.TypeString, Default: ""},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+	}
+	// AgentsTable holds the schema information for the "agents" table.
+	AgentsTable = &schema.Table{
+		Name:       "agents",
+		Columns:    AgentsColumns,
+		PrimaryKey: []*schema.Column{AgentsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agent_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AgentsColumns[4]},
+			},
+			{
+				Name:    "agent_namespace_uid_machine_id",
+				Unique:  true,
+				Columns: []*schema.Column{AgentsColumns[5], AgentsColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL AND machine_id <> ''",
+				},
+			},
+			{
+				Name:    "agent_namespace_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{AgentsColumns[5], AgentsColumns[14]},
+			},
+			{
+				Name:    "agent_token_hash",
+				Unique:  false,
+				Columns: []*schema.Column{AgentsColumns[13]},
+			},
+		},
+	}
 	// AlertEvalBatchesColumns holds the columns for the "alert_eval_batches" table.
 	AlertEvalBatchesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -276,6 +331,43 @@ var (
 			},
 		},
 	}
+	// AlertRuleNotificationGroupsColumns holds the columns for the "alert_rule_notification_groups" table.
+	AlertRuleNotificationGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "rule_uid", Type: field.TypeString},
+		{Name: "group_uid", Type: field.TypeString},
+	}
+	// AlertRuleNotificationGroupsTable holds the schema information for the "alert_rule_notification_groups" table.
+	AlertRuleNotificationGroupsTable = &schema.Table{
+		Name:       "alert_rule_notification_groups",
+		Columns:    AlertRuleNotificationGroupsColumns,
+		PrimaryKey: []*schema.Column{AlertRuleNotificationGroupsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alertrulenotificationgroup_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertRuleNotificationGroupsColumns[4]},
+			},
+			{
+				Name:    "alertrulenotificationgroup_rule_uid_group_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertRuleNotificationGroupsColumns[6], AlertRuleNotificationGroupsColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "alertrulenotificationgroup_rule_uid",
+				Unique:  false,
+				Columns: []*schema.Column{AlertRuleNotificationGroupsColumns[6]},
+			},
+		},
+	}
 	// CaptchasColumns holds the columns for the "captchas" table.
 	CaptchasColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -373,6 +465,44 @@ var (
 			},
 		},
 	}
+	// K8sProxyAuditsColumns holds the columns for the "k8s_proxy_audits" table.
+	K8sProxyAuditsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "agent_uid", Type: field.TypeString, Default: ""},
+		{Name: "operator_uid", Type: field.TypeString, Default: ""},
+		{Name: "method", Type: field.TypeString, Default: ""},
+		{Name: "resource", Type: field.TypeString, Default: ""},
+		{Name: "kube_namespace", Type: field.TypeString, Default: ""},
+		{Name: "result", Type: field.TypeString, Default: "PENDING"},
+		{Name: "detail", Type: field.TypeString, Default: ""},
+	}
+	// K8sProxyAuditsTable holds the schema information for the "k8s_proxy_audits" table.
+	K8sProxyAuditsTable = &schema.Table{
+		Name:       "k8s_proxy_audits",
+		Columns:    K8sProxyAuditsColumns,
+		PrimaryKey: []*schema.Column{K8sProxyAuditsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "k8sproxyaudit_uid",
+				Unique:  true,
+				Columns: []*schema.Column{K8sProxyAuditsColumns[3]},
+			},
+			{
+				Name:    "k8sproxyaudit_namespace_uid",
+				Unique:  false,
+				Columns: []*schema.Column{K8sProxyAuditsColumns[4]},
+			},
+			{
+				Name:    "k8sproxyaudit_agent_uid",
+				Unique:  false,
+				Columns: []*schema.Column{K8sProxyAuditsColumns[5]},
+			},
+		},
+	}
 	// MembersColumns holds the columns for the "members" table.
 	MembersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -438,6 +568,43 @@ var (
 			},
 		},
 	}
+	// MessageLogsColumns holds the columns for the "message_logs" table.
+	MessageLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "task_uid", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"SENT", "FAILED"}},
+		{Name: "channel_uid", Type: field.TypeString, Default: ""},
+		{Name: "template_uid", Type: field.TypeString, Default: ""},
+		{Name: "receivers", Type: field.TypeString, Default: ""},
+		{Name: "detail", Type: field.TypeString, Default: ""},
+	}
+	// MessageLogsTable holds the schema information for the "message_logs" table.
+	MessageLogsTable = &schema.Table{
+		Name:       "message_logs",
+		Columns:    MessageLogsColumns,
+		PrimaryKey: []*schema.Column{MessageLogsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "messagelog_uid_created_at",
+				Unique:  true,
+				Columns: []*schema.Column{MessageLogsColumns[3], MessageLogsColumns[1]},
+			},
+			{
+				Name:    "messagelog_namespace_uid",
+				Unique:  false,
+				Columns: []*schema.Column{MessageLogsColumns[4]},
+			},
+			{
+				Name:    "messagelog_task_uid",
+				Unique:  false,
+				Columns: []*schema.Column{MessageLogsColumns[5]},
+			},
+		},
+	}
 	// NamespacesColumns holds the columns for the "namespaces" table.
 	NamespacesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -470,6 +637,185 @@ var (
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
+			},
+		},
+	}
+	// NotificationChannelsColumns holds the columns for the "notification_channels" table.
+	NotificationChannelsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"SMTP", "WEBHOOK"}},
+		{Name: "app", Type: field.TypeEnum, Enums: []string{"OTHER", "DINGTALK", "WECHAT", "FEISHU", "SMS_ALICLOUD"}, Default: "OTHER"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "endpoint", Type: field.TypeString, Default: ""},
+		{Name: "username", Type: field.TypeString, Default: ""},
+		{Name: "password_cipher", Type: field.TypeString, Default: ""},
+		{Name: "secret_cipher", Type: field.TypeString, Default: ""},
+		{Name: "from_address", Type: field.TypeString, Default: ""},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+	}
+	// NotificationChannelsTable holds the schema information for the "notification_channels" table.
+	NotificationChannelsTable = &schema.Table{
+		Name:       "notification_channels",
+		Columns:    NotificationChannelsColumns,
+		PrimaryKey: []*schema.Column{NotificationChannelsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "notificationchannel_uid",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationChannelsColumns[4]},
+			},
+			{
+				Name:    "notificationchannel_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationChannelsColumns[5], NotificationChannelsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "notificationchannel_namespace_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationChannelsColumns[5], NotificationChannelsColumns[9]},
+			},
+		},
+	}
+	// NotificationGroupsColumns holds the columns for the "notification_groups" table.
+	NotificationGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "channel_uid", Type: field.TypeString},
+		{Name: "template_uid", Type: field.TypeString},
+		{Name: "receivers", Type: field.TypeString, Default: ""},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+	}
+	// NotificationGroupsTable holds the schema information for the "notification_groups" table.
+	NotificationGroupsTable = &schema.Table{
+		Name:       "notification_groups",
+		Columns:    NotificationGroupsColumns,
+		PrimaryKey: []*schema.Column{NotificationGroupsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "notificationgroup_uid",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationGroupsColumns[4]},
+			},
+			{
+				Name:    "notificationgroup_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationGroupsColumns[5], NotificationGroupsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "notificationgroup_namespace_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationGroupsColumns[5], NotificationGroupsColumns[7]},
+			},
+		},
+	}
+	// NotificationTasksColumns holds the columns for the "notification_tasks" table.
+	NotificationTasksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "event_uid", Type: field.TypeString, Default: ""},
+		{Name: "phase", Type: field.TypeEnum, Enums: []string{"FIRING", "RECOVERED", "TEST"}, Default: "TEST"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "SENDING", "SENT", "FAILED", "CANCELLED"}, Default: "PENDING"},
+		{Name: "rule_uid", Type: field.TypeString, Default: ""},
+		{Name: "group_uid", Type: field.TypeString, Default: ""},
+		{Name: "channel_uid", Type: field.TypeString},
+		{Name: "template_uid", Type: field.TypeString, Default: ""},
+		{Name: "receivers", Type: field.TypeString, Default: ""},
+		{Name: "subject", Type: field.TypeString, Default: ""},
+		{Name: "body", Type: field.TypeString, Default: ""},
+		{Name: "params", Type: field.TypeString, Default: ""},
+		{Name: "retries_left", Type: field.TypeInt, Default: 3},
+		{Name: "last_error", Type: field.TypeString, Default: ""},
+	}
+	// NotificationTasksTable holds the schema information for the "notification_tasks" table.
+	NotificationTasksTable = &schema.Table{
+		Name:       "notification_tasks",
+		Columns:    NotificationTasksColumns,
+		PrimaryKey: []*schema.Column{NotificationTasksColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "notificationtask_uid",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationTasksColumns[3]},
+			},
+			{
+				Name:    "notificationtask_event_uid_phase_group_uid",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationTasksColumns[5], NotificationTasksColumns[6], NotificationTasksColumns[9]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "event_uid <> ''",
+				},
+			},
+			{
+				Name:    "notificationtask_status",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationTasksColumns[7]},
+			},
+			{
+				Name:    "notificationtask_namespace_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationTasksColumns[4], NotificationTasksColumns[7]},
+			},
+		},
+	}
+	// NotificationTemplatesColumns holds the columns for the "notification_templates" table.
+	NotificationTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"EMAIL", "WEBHOOK", "SMS_ALICLOUD"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "subject", Type: field.TypeString, Default: ""},
+		{Name: "body", Type: field.TypeString, Default: ""},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+	}
+	// NotificationTemplatesTable holds the schema information for the "notification_templates" table.
+	NotificationTemplatesTable = &schema.Table{
+		Name:       "notification_templates",
+		Columns:    NotificationTemplatesColumns,
+		PrimaryKey: []*schema.Column{NotificationTemplatesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "notificationtemplate_uid",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationTemplatesColumns[4]},
+			},
+			{
+				Name:    "notificationtemplate_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationTemplatesColumns[5], NotificationTemplatesColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "notificationtemplate_namespace_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationTemplatesColumns[5], NotificationTemplatesColumns[8]},
 			},
 		},
 	}
@@ -567,6 +913,130 @@ var (
 			},
 		},
 	}
+	// SftpAuditsColumns holds the columns for the "sftp_audits" table.
+	SftpAuditsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "agent_uid", Type: field.TypeString, Default: ""},
+		{Name: "operator_uid", Type: field.TypeString, Default: ""},
+		{Name: "path", Type: field.TypeString, Default: ""},
+		{Name: "action", Type: field.TypeString, Default: ""},
+		{Name: "result", Type: field.TypeString, Default: "PENDING"},
+		{Name: "detail", Type: field.TypeString, Default: ""},
+	}
+	// SftpAuditsTable holds the schema information for the "sftp_audits" table.
+	SftpAuditsTable = &schema.Table{
+		Name:       "sftp_audits",
+		Columns:    SftpAuditsColumns,
+		PrimaryKey: []*schema.Column{SftpAuditsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sftpaudit_uid",
+				Unique:  true,
+				Columns: []*schema.Column{SftpAuditsColumns[3]},
+			},
+			{
+				Name:    "sftpaudit_namespace_uid",
+				Unique:  false,
+				Columns: []*schema.Column{SftpAuditsColumns[4]},
+			},
+			{
+				Name:    "sftpaudit_agent_uid",
+				Unique:  false,
+				Columns: []*schema.Column{SftpAuditsColumns[5]},
+			},
+		},
+	}
+	// SSHCommandsColumns holds the columns for the "ssh_commands" table.
+	SSHCommandsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "command", Type: field.TypeString},
+		{Name: "workdir", Type: field.TypeString, Default: ""},
+		{Name: "env", Type: field.TypeString, Default: ""},
+		{Name: "review_status", Type: field.TypeEnum, Enums: []string{"PENDING", "APPROVED", "REJECTED"}, Default: "PENDING"},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+	}
+	// SSHCommandsTable holds the schema information for the "ssh_commands" table.
+	SSHCommandsTable = &schema.Table{
+		Name:       "ssh_commands",
+		Columns:    SSHCommandsColumns,
+		PrimaryKey: []*schema.Column{SSHCommandsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sshcommand_uid",
+				Unique:  true,
+				Columns: []*schema.Column{SSHCommandsColumns[4]},
+			},
+			{
+				Name:    "sshcommand_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{SSHCommandsColumns[5], SSHCommandsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "sshcommand_namespace_uid_review_status",
+				Unique:  false,
+				Columns: []*schema.Column{SSHCommandsColumns[5], SSHCommandsColumns[10]},
+			},
+		},
+	}
+	// SSHCommandAuditsColumns holds the columns for the "ssh_command_audits" table.
+	SSHCommandAuditsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "command_uid", Type: field.TypeString, Default: ""},
+		{Name: "agent_uid", Type: field.TypeString, Default: ""},
+		{Name: "operator_uid", Type: field.TypeString, Default: ""},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"CREATE", "UPDATE", "APPROVE", "REJECT", "EXECUTE"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "APPROVED", "REJECTED", "DONE", "FAILED"}, Default: "PENDING"},
+		{Name: "command", Type: field.TypeString, Default: ""},
+		{Name: "exit_code", Type: field.TypeInt, Default: 0},
+		{Name: "output", Type: field.TypeString, Default: ""},
+		{Name: "truncated", Type: field.TypeBool, Default: false},
+		{Name: "detail", Type: field.TypeString, Default: ""},
+	}
+	// SSHCommandAuditsTable holds the schema information for the "ssh_command_audits" table.
+	SSHCommandAuditsTable = &schema.Table{
+		Name:       "ssh_command_audits",
+		Columns:    SSHCommandAuditsColumns,
+		PrimaryKey: []*schema.Column{SSHCommandAuditsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sshcommandaudit_uid",
+				Unique:  true,
+				Columns: []*schema.Column{SSHCommandAuditsColumns[3]},
+			},
+			{
+				Name:    "sshcommandaudit_namespace_uid",
+				Unique:  false,
+				Columns: []*schema.Column{SSHCommandAuditsColumns[4]},
+			},
+			{
+				Name:    "sshcommandaudit_command_uid",
+				Unique:  false,
+				Columns: []*schema.Column{SSHCommandAuditsColumns[5]},
+			},
+			{
+				Name:    "sshcommandaudit_agent_uid",
+				Unique:  false,
+				Columns: []*schema.Column{SSHCommandAuditsColumns[6]},
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -630,6 +1100,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AgentsTable,
 		AlertEvalBatchesTable,
 		AlertEventsTable,
 		AlertEventFiringsTable,
@@ -637,15 +1108,25 @@ var (
 		AlertRulesTable,
 		AlertRuleGroupsTable,
 		AlertRuleLevelsTable,
+		AlertRuleNotificationGroupsTable,
 		CaptchasTable,
 		DatasourcesTable,
 		EmailLoginCodesTable,
+		K8sProxyAuditsTable,
 		MembersTable,
 		MemberRolesTable,
+		MessageLogsTable,
 		NamespacesTable,
+		NotificationChannelsTable,
+		NotificationGroupsTable,
+		NotificationTasksTable,
+		NotificationTemplatesTable,
 		PermissionsTable,
 		RolesTable,
 		RolePermissionsTable,
+		SftpAuditsTable,
+		SSHCommandsTable,
+		SSHCommandAuditsTable,
 		UsersTable,
 		UserOauthsTable,
 	}
