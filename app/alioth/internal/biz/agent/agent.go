@@ -7,6 +7,8 @@ import (
 	"encoding/hex"
 	"io"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/google/wire"
 	"google.golang.org/grpc/metadata"
@@ -23,14 +25,21 @@ import (
 
 var ProviderSet = wire.NewSet(NewUsecase)
 
+type shellTicket struct {
+	agentUID string
+	expires  time.Time
+}
+
 type Usecase struct {
-	agents repository.AgentRepo
-	hub    *agenthub.Hub
-	access access.Checker
+	agents   repository.AgentRepo
+	hub      *agenthub.Hub
+	access   access.Checker
+	ticketMu sync.Mutex
+	tickets  map[string]shellTicket
 }
 
 func NewUsecase(agents repository.AgentRepo, hub *agenthub.Hub, checker access.Checker) *Usecase {
-	return &Usecase{agents: agents, hub: hub, access: checker}
+	return &Usecase{agents: agents, hub: hub, access: checker, tickets: map[string]shellTicket{}}
 }
 
 func (uc *Usecase) Create(ctx context.Context, in bo.Agent) (*bo.Agent, error) {
@@ -157,7 +166,7 @@ func (uc *Usecase) Connect(ctx context.Context, stream v1.AgentService_ConnectSe
 	}
 	session := &agenthub.Session{
 		AgentUID: agent.UID, NamespaceUID: agent.NamespaceUID,
-		Send: make(chan *v1.AgentFrame, 16), Results: map[string]chan *v1.AgentExecResult{},
+		Send: make(chan *v1.AgentFrame, 128), Results: map[string]chan *v1.AgentExecResult{},
 	}
 	uc.hub.Put(session)
 	defer func() {
@@ -230,6 +239,12 @@ func (uc *Usecase) handleFrame(ctx context.Context, agent *bo.Agent, session *ag
 		return nil
 	case frame.GetK8SResult() != nil:
 		session.DeliverK8s(frame.GetK8SResult())
+		return nil
+	case frame.GetShellData() != nil:
+		session.DeliverShell(frame.GetShellData().GetSessionUid(), frame.GetShellData().GetData())
+		return nil
+	case frame.GetShellClose() != nil:
+		session.FinishShell(frame.GetShellClose().GetSessionUid(), frame.GetShellClose().GetReason())
 		return nil
 	default:
 		return nil

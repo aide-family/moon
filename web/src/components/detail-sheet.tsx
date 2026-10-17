@@ -18,6 +18,7 @@ interface DetailSheetProps {
   title: string
   description?: string
   fields: DetailField[]
+  wide?: boolean
   onOpenChange: (open: boolean) => void
 }
 
@@ -26,24 +27,25 @@ export function DetailSheet({
   title,
   description,
   fields,
+  wide = false,
   onOpenChange,
 }: DetailSheetProps) {
-  const shown = useRef({ title, description, fields })
+  const shown = useRef({ title, description, fields, wide })
   if (open) {
-    shown.current = { title, description, fields }
+    shown.current = { title, description, fields, wide }
   }
   const current = shown.current
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent>
+      <SheetContent className={current.wide ? "data-[side=right]:sm:!max-w-3xl" : undefined}>
         <SheetHeader>
           <SheetTitle>{current.title}</SheetTitle>
           {current.description ? (
             <SheetDescription>{current.description}</SheetDescription>
           ) : null}
         </SheetHeader>
-        <dl className="grid gap-4 px-4">
+        <dl className={current.wide ? "grid gap-4 overflow-auto px-4 sm:grid-cols-2" : "grid gap-4 px-4"}>
           {current.fields.map((field) => (
             <div key={field.label} className="grid gap-1">
               <dt className="text-sm text-muted-foreground">{field.label}</dt>

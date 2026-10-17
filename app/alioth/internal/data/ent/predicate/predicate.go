@@ -9,6 +9,9 @@ import (
 // Agent is the predicate function for agent builders.
 type Agent func(*sql.Selector)
 
+// AlertDictionary is the predicate function for alertdictionary builders.
+type AlertDictionary func(*sql.Selector)
+
 // AlertEvalBatch is the predicate function for alertevalbatch builders.
 type AlertEvalBatch func(*sql.Selector)
 
@@ -17,9 +20,6 @@ type AlertEvent func(*sql.Selector)
 
 // AlertEventFiring is the predicate function for alerteventfiring builders.
 type AlertEventFiring func(*sql.Selector)
-
-// AlertLevel is the predicate function for alertlevel builders.
-type AlertLevel func(*sql.Selector)
 
 // AlertPage is the predicate function for alertpage builders.
 type AlertPage func(*sql.Selector)

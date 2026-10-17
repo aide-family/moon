@@ -224,8 +224,8 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 | `strategy_groups`        | `AlertRuleGroup` | Namespace 内唯一名称，可启停       |
 | `strategies`             | `AlertRule`      | 属于一个组，带类型与驱动，可启停          |
 | `strategy_metrics`       | 规则上的指标定义         | 表达式、标签、`datasource_labels` 匹配范围、摘要、描述 |
-| `strategy_metric_levels` | `AlertRuleLevel` | 比较条件、采样方式、阈值、持续秒数，并指向告警级别 |
-| `levels`（ALERT）          | `AlertLevel`     | 名称与展示色                    |
+| `strategy_metric_levels` | `AlertRuleLevel` | 比较条件、采样方式、阈值、持续秒数，并指向告警字典 |
+| `levels`（ALERT）          | `AlertDictionary` | 名称与展示色                    |
 
 
 比较条件沿用 Moon：EQ、NE、GT、GTE、LT、LTE、IN、NOT_IN。采样方式沿用 FOR、MAX、MIN。
@@ -333,7 +333,7 @@ Kubernetes API 代理是新增能力。Agent 使用挂载的 kubeconfig，或在
 | ----- | ------------------------------- |
 | 账号    | 登录、注册、个人资料                      |
 | 租户与权限 | Namespace、用户、成员、角色与权限           |
-| 告警    | 数据源、规则组与规则、告警级别、告警页面、实时告警、历史告警 |
+| 告警    | 数据源、规则组与规则、告警字典、告警页面、实时告警、历史告警 |
 | 通知    | 通知渠道、模板、通知组、消息日志                |
 | 边缘    | 机器、SSH 命令与审计、SFTP、Kubernetes 代理 |
 
@@ -366,7 +366,7 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 | 指标查询       | `POST /v1/metric-query/query`、`query-range`、`proxy`                                     |
 | 规则组 / 规则   | Moon 的 `/v1/strategy-group` 与 `/v1/strategy`。Alioth 资源名为 AlertRuleGroup、AlertRule       |
 | 指标条件与级别阈值  | Moon 的 `/v1/metric/strategy/{strategyUID}`                                              |
-| 告警级别       | `/v1/level`、`/v1/levels`                                                                |
+| 告警字典       | `/v1/alert-dictionary`、`/v1/alert-dictionaries`                                         |
 | 实时与历史告警    | `/v1/alert/realtime-alerts`、`/v1/alert/history-alerts`、介入、抑制、恢复、统计                      |
 | 通知组        | `/v1/notification-groups`                                                               |
 | 邮件渠道       | `/v1/email/config`、`/v1/email/configs`                                                  |
@@ -464,7 +464,7 @@ flowchart TB
 
 身份：`User`、`UserOAuth`、`Namespace`、`Member`、`Role`、`Permission`、`RolePermission`、`MemberRole`。
 
-告警：`Datasource`、`AlertRuleGroup`、`AlertRule`、`AlertRuleLevel`、`AlertLevel`、`AlertEvent`。
+告警：`Datasource`、`AlertRuleGroup`、`AlertRule`、`AlertRuleLevel`、`AlertDictionary`、`AlertEvent`。
 
 通知：`NotificationChannel`、`NotificationTemplate`、`NotificationGroup`、`NotificationTask`、`MessageLog`。
 

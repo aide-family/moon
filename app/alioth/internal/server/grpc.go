@@ -28,7 +28,7 @@ func NewGRPCServer(
 	datasources *service.DatasourceService,
 	queries *service.MetricQueryService,
 	rules *service.AlertRuleService,
-	levels *service.AlertLevelService,
+	dictionaries *service.AlertDictionaryService,
 	alertPages *service.AlertPageService,
 	events *service.AlertEventService,
 	eval *service.EvalService,
@@ -70,7 +70,7 @@ func NewGRPCServer(
 	v1.RegisterDatasourceServiceServer(srv, datasources)
 	v1.RegisterMetricQueryServiceServer(srv, queries)
 	v1.RegisterAlertRuleServiceServer(srv, rules)
-	v1.RegisterAlertLevelServiceServer(srv, levels)
+	v1.RegisterAlertDictionaryServiceServer(srv, dictionaries)
 	v1.RegisterAlertPageServiceServer(srv, alertPages)
 	v1.RegisterAlertEventServiceServer(srv, events)
 	v1.RegisterNotificationChannelServiceServer(srv, channels)

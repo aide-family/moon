@@ -69,14 +69,14 @@ func levelInputs(items []*v1.AlertRuleLevelInput) []bo.AlertRuleLevel {
 	return out
 }
 
-func levelItem(item bo.AlertLevel) *v1.AlertLevelItem {
-	return &v1.AlertLevelItem{Uid: item.UID, Name: item.Name, Color: item.Color, Type: item.Type, Status: item.Status}
+func dictionaryItem(item bo.AlertDictionary) *v1.AlertDictionaryItem {
+	return &v1.AlertDictionaryItem{Uid: item.UID, Name: item.Name, Color: item.Color, Type: item.Type, Status: item.Status}
 }
 
-func levelItems(items []bo.AlertLevel) []*v1.AlertLevelItem {
-	out := make([]*v1.AlertLevelItem, 0, len(items))
+func dictionaryItems(items []bo.AlertDictionary) []*v1.AlertDictionaryItem {
+	out := make([]*v1.AlertDictionaryItem, 0, len(items))
 	for _, item := range items {
-		out = append(out, levelItem(item))
+		out = append(out, dictionaryItem(item))
 	}
 	return out
 }

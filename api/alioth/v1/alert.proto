@@ -152,36 +152,36 @@ service AlertRuleService {
   }
 }
 
-// 告警级别和数据源级别。
-service AlertLevelService {
-  // 创建级别。
-  rpc CreateAlertLevel(CreateAlertLevelRequest) returns (CreateAlertLevelResponse) {
+// 告警字典。条目类型仍是告警级别或数据源级别。
+service AlertDictionaryService {
+  // 创建字典项。
+  rpc CreateAlertDictionary(CreateAlertDictionaryRequest) returns (CreateAlertDictionaryResponse) {
     option (google.api.http) = {
-      post: "/v1/alert-level"
+      post: "/v1/alert-dictionary"
       body: "*"
     };
   }
-  // 更新级别的名称和颜色。
-  rpc UpdateAlertLevel(UpdateAlertLevelRequest) returns (UpdateAlertLevelResponse) {
+  // 更新字典项的名称和颜色。
+  rpc UpdateAlertDictionary(UpdateAlertDictionaryRequest) returns (UpdateAlertDictionaryResponse) {
     option (google.api.http) = {
-      put: "/v1/alert-level/{uid}"
+      put: "/v1/alert-dictionary/{uid}"
       body: "*"
     };
   }
-  // 启用或停用级别。
-  rpc UpdateAlertLevelStatus(UpdateAlertLevelStatusRequest) returns (UpdateAlertLevelStatusResponse) {
+  // 启用或停用字典项。
+  rpc UpdateAlertDictionaryStatus(UpdateAlertDictionaryStatusRequest) returns (UpdateAlertDictionaryStatusResponse) {
     option (google.api.http) = {
-      put: "/v1/alert-level/{uid}/status"
+      put: "/v1/alert-dictionary/{uid}/status"
       body: "*"
     };
   }
-  // 删除级别。仍被规则引用时拒绝。
-  rpc DeleteAlertLevel(DeleteAlertLevelRequest) returns (DeleteAlertLevelResponse) {
-    option (google.api.http) = {delete: "/v1/alert-level/{uid}"};
+  // 删除字典项。仍被规则引用时拒绝。
+  rpc DeleteAlertDictionary(DeleteAlertDictionaryRequest) returns (DeleteAlertDictionaryResponse) {
+    option (google.api.http) = {delete: "/v1/alert-dictionary/{uid}"};
   }
-  // 分页列出级别。
-  rpc ListAlertLevels(ListAlertLevelsRequest) returns (ListAlertLevelsResponse) {
-    option (google.api.http) = {get: "/v1/alert-levels"};
+  // 分页列出字典项。
+  rpc ListAlertDictionaries(ListAlertDictionariesRequest) returns (ListAlertDictionariesResponse) {
+    option (google.api.http) = {get: "/v1/alert-dictionaries"};
   }
 }
 
@@ -718,8 +718,8 @@ message ListAlertRulesResponse {
   int32 page_size = 4 [json_name = "pageSize"];
 }
 
-// 级别。
-message AlertLevelItem {
+// 字典项。
+message AlertDictionaryItem {
   // 标识。
   string uid = 1;
   // 名称。
@@ -732,8 +732,8 @@ message AlertLevelItem {
   string status = 5;
 }
 
-// 创建级别。
-message CreateAlertLevelRequest {
+// 创建字典项。
+message CreateAlertDictionaryRequest {
   // 名称。
   string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
   // 展示色。
@@ -742,14 +742,14 @@ message CreateAlertLevelRequest {
   string type = 3 [(buf.validate.field).string = {in: ["ALERT", "DATASOURCE"]}];
 }
 
-// 创建级别的结果。
-message CreateAlertLevelResponse {
-  // 级别。
-  AlertLevelItem level = 1;
+// 创建字典项的结果。
+message CreateAlertDictionaryResponse {
+  // 字典项。
+  AlertDictionaryItem dictionary = 1;
 }
 
-// 更新级别。
-message UpdateAlertLevelRequest {
+// 更新字典项。
+message UpdateAlertDictionaryRequest {
   // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
   // 名称。
@@ -758,37 +758,37 @@ message UpdateAlertLevelRequest {
   string color = 3 [(buf.validate.field).string.max_len = 32];
 }
 
-// 更新级别的结果。
-message UpdateAlertLevelResponse {
-  // 级别。
-  AlertLevelItem level = 1;
+// 更新字典项的结果。
+message UpdateAlertDictionaryResponse {
+  // 字典项。
+  AlertDictionaryItem dictionary = 1;
 }
 
-// 更新级别状态。
-message UpdateAlertLevelStatusRequest {
+// 更新字典项状态。
+message UpdateAlertDictionaryStatusRequest {
   // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
   // 状态，取值为 ACTIVE 或 DISABLED。
   string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
 }
 
-// 更新级别状态的结果。
-message UpdateAlertLevelStatusResponse {
-  // 级别。
-  AlertLevelItem level = 1;
+// 更新字典项状态的结果。
+message UpdateAlertDictionaryStatusResponse {
+  // 字典项。
+  AlertDictionaryItem dictionary = 1;
 }
 
-// 要删除的级别。
-message DeleteAlertLevelRequest {
+// 要删除的字典项。
+message DeleteAlertDictionaryRequest {
   // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
 }
 
-// 级别已删除。
-message DeleteAlertLevelResponse {}
+// 字典项已删除。
+message DeleteAlertDictionaryResponse {}
 
-// 级别分页查询。
-message ListAlertLevelsRequest {
+// 字典项分页查询。
+message ListAlertDictionariesRequest {
   // 页码。0 表示使用默认页。
   int32 page = 1 [(buf.validate.field).int32.gte = 0];
   // 每页条数，最大 100。
@@ -799,10 +799,10 @@ message ListAlertLevelsRequest {
   string name = 4;
 }
 
-// 级别分页结果。
-message ListAlertLevelsResponse {
+// 字典项分页结果。
+message ListAlertDictionariesResponse {
   // 当前页数据。
-  repeated AlertLevelItem items = 1;
+  repeated AlertDictionaryItem items = 1;
   // 符合条件的总数。
   int32 total = 2;
   // 页码。

@@ -6,8 +6,9 @@ import { emailLogin, passwordLogin, sendEmailLoginCode } from "@/api/auth"
 import type { LoginResult } from "@/api/auth/types"
 import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { readFormError } from "@/lib/form-error"
+import { AuthShell } from "@/pages/auth-shell"
 
 function storeSession(result: LoginResult) {
   localStorage.setItem("token", result.session.accessToken)
@@ -22,12 +23,14 @@ export function LoginPage() {
   const [password, setPassword] = useState("")
   const [code, setCode] = useState("")
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault()
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       const result =
         mode === "password"
@@ -36,7 +39,9 @@ export function LoginPage() {
       storeSession(result)
       navigate("/namespaces")
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -45,22 +50,20 @@ export function LoginPage() {
   async function onSendCode() {
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       await sendEmailLoginCode(email)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
   }
 
   return (
-    <main className="flex min-h-svh items-center justify-center p-4">
-      <Card className="glass-card w-full max-w-sm border-0 shadow-none">
-        <CardHeader>
-          <CardTitle>{t("login.title")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4">
+    <AuthShell title={t("login.welcome")} subtitle={t("login.welcomeSub")}>
           <div className="flex gap-2">
             <Button
               type="button"
@@ -80,7 +83,7 @@ export function LoginPage() {
             </Button>
           </div>
           <form className="grid gap-4" onSubmit={onSubmit}>
-            <FormField label={t("login.emailLabel")} htmlFor="email">
+            <FormField label={t("login.emailLabel")} htmlFor="email" error={fieldErrors.email}>
               <Input
                 id="email"
                 type="email"
@@ -146,8 +149,6 @@ export function LoginPage() {
               {t("login.noAccount")}
             </Link>
           </p>
-        </CardContent>
-      </Card>
-    </main>
+    </AuthShell>
   )
 }

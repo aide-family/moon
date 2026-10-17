@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { formMessage } from "@/lib/form-error"
 
 import {
   listAlertPages,
@@ -69,7 +70,7 @@ export function AlertRealtimePage() {
       setSelected((tabResult.tabs ?? []).filter((tab) => tab.kind === "page").map((tab) => tab.id))
       setPickerOpen(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -88,7 +89,7 @@ export function AlertRealtimePage() {
         return next.some((tab) => tab.id === current) ? current : "mine"
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }

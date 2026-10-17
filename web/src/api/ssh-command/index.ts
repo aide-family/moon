@@ -47,8 +47,8 @@ export function getSSHCommand(uid: string): Promise<{ command: SSHCommandItem }>
 }
 
 /** POST /v1/ssh-command/{uid}/execute */
-export function executeSSHCommand(uid: string, agentUid: string): Promise<{ audit: SSHCommandAuditItem }> {
-  return post<{ audit: SSHCommandAuditItem }>(`/ssh-command/${uid}/execute`, { uid, agentUid })
+export function executeSSHCommand(uid: string, agentUids: string[]): Promise<{ audits: SSHCommandAuditItem[] }> {
+  return post<{ audits: SSHCommandAuditItem[] }>(`/ssh-command/${uid}/execute`, { uid, agentUids })
 }
 
 /** GET /v1/ssh-command-audits */

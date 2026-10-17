@@ -8,30 +8,30 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertlevel"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/predicate"
 )
 
-// AlertLevelDelete is the builder for deleting a AlertLevel entity.
-type AlertLevelDelete struct {
+// AlertDictionaryDelete is the builder for deleting a AlertDictionary entity.
+type AlertDictionaryDelete struct {
 	config
 	hooks    []Hook
-	mutation *AlertLevelMutation
+	mutation *AlertDictionaryMutation
 }
 
-// Where appends a list predicates to the AlertLevelDelete builder.
-func (_d *AlertLevelDelete) Where(ps ...predicate.AlertLevel) *AlertLevelDelete {
+// Where appends a list predicates to the AlertDictionaryDelete builder.
+func (_d *AlertDictionaryDelete) Where(ps ...predicate.AlertDictionary) *AlertDictionaryDelete {
 	_d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (_d *AlertLevelDelete) Exec(ctx context.Context) (int, error) {
+func (_d *AlertDictionaryDelete) Exec(ctx context.Context) (int, error) {
 	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *AlertLevelDelete) ExecX(ctx context.Context) int {
+func (_d *AlertDictionaryDelete) ExecX(ctx context.Context) int {
 	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
@@ -39,8 +39,8 @@ func (_d *AlertLevelDelete) ExecX(ctx context.Context) int {
 	return n
 }
 
-func (_d *AlertLevelDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(alertlevel.Table, sqlgraph.NewFieldSpec(alertlevel.FieldID, field.TypeInt))
+func (_d *AlertDictionaryDelete) sqlExec(ctx context.Context) (int, error) {
+	_spec := sqlgraph.NewDeleteSpec(alertdictionary.Table, sqlgraph.NewFieldSpec(alertdictionary.FieldID, field.TypeInt))
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -56,32 +56,32 @@ func (_d *AlertLevelDelete) sqlExec(ctx context.Context) (int, error) {
 	return affected, err
 }
 
-// AlertLevelDeleteOne is the builder for deleting a single AlertLevel entity.
-type AlertLevelDeleteOne struct {
-	_d *AlertLevelDelete
+// AlertDictionaryDeleteOne is the builder for deleting a single AlertDictionary entity.
+type AlertDictionaryDeleteOne struct {
+	_d *AlertDictionaryDelete
 }
 
-// Where appends a list predicates to the AlertLevelDelete builder.
-func (_d *AlertLevelDeleteOne) Where(ps ...predicate.AlertLevel) *AlertLevelDeleteOne {
+// Where appends a list predicates to the AlertDictionaryDelete builder.
+func (_d *AlertDictionaryDeleteOne) Where(ps ...predicate.AlertDictionary) *AlertDictionaryDeleteOne {
 	_d._d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query.
-func (_d *AlertLevelDeleteOne) Exec(ctx context.Context) error {
+func (_d *AlertDictionaryDeleteOne) Exec(ctx context.Context) error {
 	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{alertlevel.Label}
+		return &NotFoundError{alertdictionary.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *AlertLevelDeleteOne) ExecX(ctx context.Context) {
+func (_d *AlertDictionaryDeleteOne) ExecX(ctx context.Context) {
 	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}

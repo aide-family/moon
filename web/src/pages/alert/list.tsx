@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { failureText, formMessage } from "@/lib/form-error"
 
 import {
   alertEventStats,
@@ -27,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { enumLabel } from "@/lib/enum-label"
 import { useListQuery } from "@/lib/list-query"
 
 interface AlertEventListProps {
@@ -48,6 +50,7 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
   const [stats, setStats] = useState<AlertEventStats>({ firing: 0, suppressed: 0, recovered: 0 })
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [loadError, setLoadError] = useState("")
   const [attempt, setAttempt] = useState(0)
   const [detail, setDetail] = useState<AlertEventItem | null>(null)
   const [selected, setSelected] = useState<string[]>([])
@@ -84,9 +87,10 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
         setTotal(result.total ?? 0)
         setStats(counts)
         setSelected([])
-      } catch {
+      } catch (err) {
         if (active) {
           setFailed(true)
+          setLoadError(failureText(err, ""))
           setItems([])
         }
       } finally {
@@ -112,7 +116,7 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
       }
       setAttempt((value) => value + 1)
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : t("state.failed"))
+      setActionError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -135,7 +139,7 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
       setConfirm(null)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setConfirmError(err instanceof Error ? err.message : t("state.failed"))
+      setConfirmError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -212,7 +216,7 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
         {loading ? <p className="text-sm text-muted-foreground">{t("state.loading")}</p> : null}
         {!loading && failed ? (
           <div className="flex items-center gap-2">
-            <p className="text-sm text-destructive">{t("state.failed")}</p>
+            <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
             <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>{t("action.retry")}</Button>
           </div>
         ) : null}
@@ -247,7 +251,7 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
                     </TableCell>
                   ) : null}
                   <TableCell>{item.summary || item.fingerprint}</TableCell>
-                  <TableCell>{item.status}</TableCell>
+                  <TableCell>{enumLabel(t, item.status)}</TableCell>
                   <TableCell>{item.sampleValue}</TableCell>
                   <TableCell>{formatTime(item.startsAt)}</TableCell>
                   <TableCell>
@@ -304,7 +308,7 @@ function detailFields(item: AlertEventItem, t: (key: string) => string) {
   return [
     { label: t("detail.uid"), value: item.uid },
     { label: t("alertEvent.rule"), value: item.ruleUid },
-    { label: t("alertEvent.status"), value: item.status },
+    { label: t("alertEvent.status"), value: enumLabel(t, item.status) },
     { label: t("alertEvent.fingerprint"), value: item.fingerprint },
     { label: t("alertEvent.sample"), value: item.sampleValue },
     { label: t("alertEvent.expr"), value: item.expr },

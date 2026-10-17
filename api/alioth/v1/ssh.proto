@@ -228,14 +228,18 @@ message ListSSHCommandsResponse {
 message ExecuteSSHCommandRequest {
   // 命令标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
-  // 在线机器标识。
-  string agent_uid = 2 [json_name = "agentUid", (buf.validate.field).string.min_len = 1];
+  // 单台在线机器。与 agent_uids 二选一，多台时用 agent_uids。
+  string agent_uid = 2 [json_name = "agentUid"];
+  // 多台在线机器。同一条命令分别下发。
+  repeated string agent_uids = 3 [json_name = "agentUids"];
 }
 
 // 执行结果。
 message ExecuteSSHCommandResponse {
-  // 审计。
+  // 只有一台机器时的审计。
   SSHCommandAuditItem audit = 1;
+  // 每台机器一条审计。
+  repeated SSHCommandAuditItem audits = 2;
 }
 
 // 批量执行。

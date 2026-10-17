@@ -6,8 +6,9 @@ import { register } from "@/api/auth"
 import { getCaptcha } from "@/api/captcha"
 import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { readFormError } from "@/lib/form-error"
+import { AuthShell } from "@/pages/auth-shell"
 
 export function RegisterPage() {
   const { t } = useTranslation()
@@ -19,6 +20,7 @@ export function RegisterPage() {
   const [captchaImage, setCaptchaImage] = useState("")
   const [captchaCode, setCaptchaCode] = useState("")
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
 
   useEffect(() => {
@@ -36,7 +38,9 @@ export function RegisterPage() {
         if (!active || controller.signal.aborted) {
           return
         }
-        setError(err instanceof Error ? err.message : t("state.failed"))
+        const failure = readFormError(err, t("state.failed"))
+        setFieldErrors(failure.fields)
+        setError(failure.form)
       }
     }
     void load()
@@ -49,17 +53,22 @@ export function RegisterPage() {
   }, [])
 
   async function refreshCaptcha() {
-    setError("")
-    const captcha = await getCaptcha()
-    setCaptchaId(captcha.id)
-    setCaptchaImage(captcha.image)
-    setCaptchaCode("")
+    try {
+      const captcha = await getCaptcha()
+      setCaptchaId(captcha.id)
+      setCaptchaImage(captcha.image)
+      setCaptchaCode("")
+    } catch (err) {
+      const failure = readFormError(err, t("state.failed"))
+      setError(failure.form || t("state.failed"))
+    }
   }
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault()
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       const result = await register({
         email,
@@ -72,26 +81,19 @@ export function RegisterPage() {
       localStorage.setItem("refreshToken", result.session.refreshToken)
       navigate("/namespaces")
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
-      try {
-        await refreshCaptcha()
-      } catch {
-        setError(t("state.failed"))
-      }
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
+      await refreshCaptcha()
     } finally {
       setPending(false)
     }
   }
 
   return (
-    <main className="flex min-h-svh items-center justify-center p-4">
-      <Card className="glass-card w-full max-w-sm border-0 shadow-none">
-        <CardHeader>
-          <CardTitle>{t("register.title")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4">
+    <AuthShell title={t("register.welcome")} subtitle={t("register.welcomeSub")}>
           <form className="grid gap-4" onSubmit={onSubmit}>
-            <FormField label={t("register.name")} htmlFor="name">
+            <FormField label={t("register.name")} htmlFor="name" error={fieldErrors.name}>
               <Input
                 id="name"
                 value={name}
@@ -99,7 +101,7 @@ export function RegisterPage() {
                 onChange={(event) => setName(event.target.value)}
               />
             </FormField>
-            <FormField label={t("login.emailLabel")} htmlFor="email">
+            <FormField label={t("login.emailLabel")} htmlFor="email" error={fieldErrors.email}>
               <Input
                 id="email"
                 type="email"
@@ -113,6 +115,7 @@ export function RegisterPage() {
               label={t("login.passwordLabel")}
               htmlFor="password"
               hint={t("login.passwordHint")}
+              error={fieldErrors.password}
             >
               <Input
                 id="password"
@@ -128,6 +131,7 @@ export function RegisterPage() {
               label={t("register.captcha")}
               htmlFor="captcha"
               hint={t("register.captchaHint")}
+              error={fieldErrors.captchaCode}
             >
               <button
                 type="button"
@@ -138,7 +142,7 @@ export function RegisterPage() {
                   <img
                     src={captchaImage}
                     alt={t("register.captcha")}
-                    className="h-12 rounded border"
+                    className="h-24 w-auto rounded border"
                   />
                 ) : (
                   t("state.loading")
@@ -165,8 +169,6 @@ export function RegisterPage() {
               {t("register.hasAccount")}
             </Link>
           </p>
-        </CardContent>
-      </Card>
-    </main>
+    </AuthShell>
   )
 }

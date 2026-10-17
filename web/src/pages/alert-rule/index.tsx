@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react"
+import { EllipsisVertical } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
 
-import { listAlertLevels } from "@/api/alert-level"
-import type { AlertLevelItem } from "@/api/alert-level/types"
+import { listAlertDictionaries } from "@/api/alert-dictionary"
+import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
 import {
   createAlertRule,
   createAlertRuleGroup,
@@ -26,8 +27,10 @@ import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
+import { PromqlEditor } from "@/components/promql-editor"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { ListFrame } from "@/components/list-frame"
+import { StatusDot } from "@/components/status-dot"
 import { StepForm } from "@/components/step-form"
 import { Button } from "@/components/ui/button"
 import {
@@ -37,6 +40,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -55,7 +64,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { enumLabel } from "@/lib/enum-label"
 import { firstError, requireTrimmed } from "@/lib/form"
+import { failureText, readFormError } from "@/lib/form-error"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { useListQuery } from "@/lib/list-query"
 
@@ -67,9 +78,6 @@ const drivers: Record<string, string[]> = {
 }
 const conditions = ["EQ", "NE", "GT", "GTE", "LT", "LTE", "IN", "NOT_IN"]
 const samples = ["FOR", "MAX", "MIN"]
-
-const areaClass =
-  "min-h-24 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
 
 interface RuleDraft {
   name: string
@@ -123,6 +131,29 @@ function matchDatasourceCount(sources: DatasourceItem[], type: string, matchers:
   }).length
 }
 
+function matchedMetricsUid(sources: DatasourceItem[], type: string, matchers: LabelPair[]): string {
+  if (type !== "METRICS") {
+    return ""
+  }
+  const matcherEntries = matchers
+    .map((pair) => [pair.key.trim(), pair.value.trim()] as const)
+    .filter(([key]) => key.length > 0)
+  return (
+    sources.find((item) => {
+      if (item.type !== "METRICS" || item.status !== "ACTIVE") {
+        return false
+      }
+      let labels: Record<string, string> = {}
+      try {
+        labels = JSON.parse(item.labels || "{}") as Record<string, string>
+      } catch {
+        return false
+      }
+      return matcherEntries.every(([key, value]) => labels[key] === value)
+    })?.uid ?? ""
+  )
+}
+
 export function AlertRulePage() {
   const { t } = useTranslation()
   const session = useSession()
@@ -137,11 +168,13 @@ export function AlertRulePage() {
   const [groupTotal, setGroupTotal] = useState(0)
   const [rules, setRules] = useState<AlertRuleItem[]>([])
   const [ruleTotal, setRuleTotal] = useState(0)
-  const [levels, setLevels] = useState<AlertLevelItem[]>([])
+  const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
   const [sources, setSources] = useState<DatasourceItem[]>([])
   const [notifyGroups, setNotifyGroups] = useState<NotifyGroupOption[]>([])
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [loadError, setLoadError] = useState("")
+  const [groupDetail, setGroupDetail] = useState<AlertRuleGroupItem | null>(null)
   const [attempt, setAttempt] = useState(0)
   const [groupOpen, setGroupOpen] = useState(false)
   const [groupName, setGroupName] = useState("")
@@ -155,11 +188,13 @@ export function AlertRulePage() {
   const [detail, setDetail] = useState<AlertRuleItem | null>(null)
   const [confirm, setConfirm] = useState<{ kind: "group" | "rule"; action: "disable" | "delete"; uid: string } | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const shown = useRef(confirm)
-  if (confirm) {
-    shown.current = confirm
-  }
+  const [shownAction, setShownAction] = useState<"disable" | "delete">("disable")
   const canWrite = session.can("alert_rule:write")
+
+  function askConfirm(kind: "group" | "rule", action: "disable" | "delete", uid: string) {
+    setShownAction(action)
+    setConfirm({ kind, action, uid })
+  }
 
   useEffect(() => {
     let active = true
@@ -177,9 +212,10 @@ export function AlertRulePage() {
         }
         setGroups(result.items ?? [])
         setGroupTotal(result.total ?? 0)
-      } catch {
+      } catch (err) {
         if (active) {
           setFailed(true)
+          setLoadError(failureText(err, ""))
           setGroups([])
         }
       } finally {
@@ -230,7 +266,7 @@ export function AlertRulePage() {
     async function load() {
       try {
         const [levelResult, sourceResult, notifyResult] = await Promise.all([
-          listAlertLevels({ page: 1, pageSize: 100, type: "ALERT" }),
+          listAlertDictionaries({ page: 1, pageSize: 100, type: "ALERT" }),
           listDatasources({ page: 1, pageSize: 100 }),
           selectNotificationGroups({ limit: 100, activeOnly: true }),
         ])
@@ -316,7 +352,8 @@ export function AlertRulePage() {
       setEditingGroup(null)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      const failure = readFormError(err, t("state.failed"))
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -360,7 +397,8 @@ export function AlertRulePage() {
       setRuleOpen(false)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      const failure = readFormError(err, t("state.failed"))
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -388,7 +426,8 @@ export function AlertRulePage() {
       setConfirm(null)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setConfirmError(err instanceof Error ? err.message : t("state.failed"))
+      const failure = readFormError(err, t("state.failed"))
+      setConfirmError(failure.form)
     } finally {
       setPending(false)
     }
@@ -401,9 +440,9 @@ export function AlertRulePage() {
     return [
       { key: "edit", label: t("action.edit"), onSelect: () => openRule(item) },
       item.status === "ACTIVE"
-        ? { key: "disable", label: t("action.disable"), destructive: true, onSelect: () => setConfirm({ kind: "rule", action: "disable", uid: item.uid }) }
+        ? { key: "disable", label: t("action.disable"), destructive: true, onSelect: () => askConfirm("rule", "disable", item.uid) }
         : { key: "enable", label: t("action.enable"), onSelect: () => void updateAlertRuleStatus(item.uid, "ACTIVE").then(() => setAttempt((value) => value + 1)) },
-      { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm({ kind: "rule", action: "delete", uid: item.uid }) },
+      { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => askConfirm("rule", "delete", item.uid) },
     ]
   }
 
@@ -446,40 +485,70 @@ export function AlertRulePage() {
             >
             {loading ? <p className="text-sm text-muted-foreground">{t("state.loading")}</p> : null}
             {!loading && failed ? (
-              <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
-                {t("action.retry")}
-              </Button>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
+                <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
+                  {t("action.retry")}
+                </Button>
+              </div>
             ) : null}
             {!loading && !failed && groups.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t("alertRule.groupEmpty")}</p>
             ) : null}
             <div className="grid min-h-0 flex-1 content-start gap-2 overflow-y-auto">
             {groups.map((item) => (
-              <div key={item.uid} className="flex items-center gap-2">
+              <div key={item.uid} className="flex items-center gap-1">
                 <Button
                   variant={item.uid === groupUid ? "secondary" : "ghost"}
-                  className="h-auto flex-1 justify-start px-2 py-2"
+                  className="h-auto min-w-0 flex-1 justify-start px-2 py-2"
                   onClick={() => setParam("groupUid", item.uid)}
                 >
-                  <span className="flex flex-col items-start">
-                    <span>{item.name}</span>
-                    <span className="text-xs text-muted-foreground">{item.status}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <StatusDot active={item.status === "ACTIVE"} />
+                    <span className="truncate">{item.name}</span>
                   </span>
                 </Button>
-                {canWrite ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setEditingGroup(item)
-                      setGroupName(item.name)
-                      setError("")
-                      setGroupOpen(true)
-                    }}
-                  >
-                    {t("action.edit")}
-                  </Button>
-                ) : null}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" aria-label={t("action.more")}>
+                      <EllipsisVertical />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={() => setGroupDetail(item)}>{t("action.detail")}</DropdownMenuItem>
+                    {canWrite ? (
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          setEditingGroup(item)
+                          setGroupName(item.name)
+                          setError("")
+                          setGroupOpen(true)
+                        }}
+                      >
+                        {t("action.edit")}
+                      </DropdownMenuItem>
+                    ) : null}
+                    {canWrite && item.status === "ACTIVE" ? (
+                      <DropdownMenuItem variant="destructive" onSelect={() => askConfirm("group", "disable", item.uid)}>
+                        {t("action.disable")}
+                      </DropdownMenuItem>
+                    ) : null}
+                    {canWrite && item.status !== "ACTIVE" ? (
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          void updateAlertRuleGroupStatus(item.uid, "ACTIVE").then(() => setAttempt((value) => value + 1))
+                        }}
+                      >
+                        {t("action.enable")}
+                      </DropdownMenuItem>
+                    ) : null}
+                    {canWrite ? (
+                      <DropdownMenuItem variant="destructive" onSelect={() => askConfirm("group", "delete", item.uid)}>
+                        {t("action.delete")}
+                      </DropdownMenuItem>
+                    ) : null}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             ))}
             </div>
@@ -534,8 +603,8 @@ export function AlertRulePage() {
                       {rules.map((item) => (
                         <TableRow key={item.uid}>
                           <TableCell>{item.name}</TableCell>
-                          <TableCell>{item.type}</TableCell>
-                          <TableCell>{item.status}</TableCell>
+                          <TableCell>{enumLabel(t, item.type)}</TableCell>
+                          <TableCell>{enumLabel(t, item.status)}</TableCell>
                           <TableCell>
                             <RowActions
                               detailLabel={t("action.detail")}
@@ -558,30 +627,9 @@ export function AlertRulePage() {
             <DialogTitle>{editingGroup ? t("action.edit") : t("alertRule.createGroup")}</DialogTitle>
           </DialogHeader>
           <form className="grid gap-4" onSubmit={onSaveGroup}>
-            <FormField label={t("alertRule.group")} htmlFor="group-name">
+            <FormField label={t("alertRule.group")} htmlFor="group-name" error={error}>
               <Input id="group-name" value={groupName} placeholder={t("alertRule.groupPlaceholder")} onChange={(event) => setGroupName(event.target.value)} required />
             </FormField>
-            {editingGroup && canWrite ? (
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    if (editingGroup.status === "ACTIVE") {
-                      setConfirm({ kind: "group", action: "disable", uid: editingGroup.uid })
-                    } else {
-                      void updateAlertRuleGroupStatus(editingGroup.uid, "ACTIVE").then(() => setAttempt((value) => value + 1))
-                    }
-                  }}
-                >
-                  {editingGroup.status === "ACTIVE" ? t("action.disable") : t("action.enable")}
-                </Button>
-                <Button type="button" variant="destructive" onClick={() => setConfirm({ kind: "group", action: "delete", uid: editingGroup.uid })}>
-                  {t("action.delete")}
-                </Button>
-              </div>
-            ) : null}
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
               <Button type="submit" disabled={pending}>
                 {t("action.save")}
@@ -626,7 +674,7 @@ export function AlertRulePage() {
                 <SelectContent>
                   {types.map((item) => (
                     <SelectItem key={item} value={item}>
-                      {item}
+                      {enumLabel(t, item)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -640,7 +688,7 @@ export function AlertRulePage() {
                 <SelectContent>
                   {(drivers[form.type] ?? []).map((item) => (
                     <SelectItem key={item} value={item}>
-                      {item}
+                      {enumLabel(t, item)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -708,7 +756,11 @@ export function AlertRulePage() {
             {formStep === 1 ? (
               <>
             <FormField label={t("datasource.expr")} htmlFor="rule-expr" hint={t("datasource.exprHint")} className="sm:col-span-full">
-              <textarea id="rule-expr" className={areaClass} value={form.expr} placeholder={t("datasource.exprPlaceholder")} onChange={(event) => setForm({ ...form, expr: event.target.value })} />
+              <PromqlEditor
+                value={form.expr}
+                datasourceUid={matchedMetricsUid(sources, form.type, form.datasourceLabels)}
+                onChange={(value) => setForm({ ...form, expr: value })}
+              />
             </FormField>
             <FormField label={t("alertRule.labels")} htmlFor="rule-labels" hint={t("alertRule.labelsHint")} className="sm:col-span-full">
               <Input id="rule-labels" value={form.labels} placeholder='{"job":"api"}' onChange={(event) => setForm({ ...form, labels: event.target.value })} />
@@ -735,7 +787,7 @@ export function AlertRulePage() {
                     <SelectContent>
                       {conditions.map((item) => (
                         <SelectItem key={item} value={item}>
-                          {item}
+                          {enumLabel(t, item)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -754,7 +806,7 @@ export function AlertRulePage() {
                     <SelectContent>
                       {samples.map((item) => (
                         <SelectItem key={item} value={item}>
-                          {item}
+                          {enumLabel(t, item)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -786,7 +838,7 @@ export function AlertRulePage() {
                         setForm({ ...form, levels })
                       }}
                     >
-                      <SelectTrigger className="w-full" aria-label={t("alertLevel.title")}>
+                      <SelectTrigger className="w-full" aria-label={t("alertRule.levelPlaceholder")}>
                         <SelectValue placeholder={t("alertRule.levelPlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
@@ -849,6 +901,8 @@ export function AlertRulePage() {
           detail
             ? [
                 { label: t("detail.uid"), value: detail.uid },
+                { label: t("datasource.type"), value: enumLabel(t, detail.type) },
+                { label: t("namespace.status"), value: enumLabel(t, detail.status) },
                 { label: t("datasource.expr"), value: detail.expr },
                 { label: t("alertRule.datasourceLabels"), value: detail.datasourceLabels || "{}" },
                 { label: t("alertRule.summary"), value: detail.summary },
@@ -857,10 +911,21 @@ export function AlertRulePage() {
             : []
         }
       />
+      <DetailSheet
+        open={groupDetail !== null}
+        title={groupDetail?.name ?? ""}
+        description={groupDetail ? enumLabel(t, groupDetail.status) : ""}
+        onOpenChange={(value) => {
+          if (!value) {
+            setGroupDetail(null)
+          }
+        }}
+        fields={groupDetail ? [{ label: t("detail.uid"), value: groupDetail.uid }] : []}
+      />
       <ConfirmAction
         open={confirm !== null}
-        title={shown.current?.action === "delete" ? t("confirm.deleteTitle") : t("confirm.disableTitle")}
-        description={shown.current?.action === "delete" ? t("confirm.deleteDescription") : t("confirm.disableDescription")}
+        title={shownAction === "delete" ? t("confirm.deleteTitle") : t("confirm.disableTitle")}
+        description={shownAction === "delete" ? t("confirm.deleteDescription") : t("confirm.disableDescription")}
         confirmLabel={t("action.confirm")}
         cancelLabel={t("action.cancel")}
         pending={pending}

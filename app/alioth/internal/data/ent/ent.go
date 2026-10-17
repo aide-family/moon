@@ -13,10 +13,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/agent"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertlevel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
@@ -104,10 +104,10 @@ func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			agent.Table:                      agent.ValidColumn,
+			alertdictionary.Table:            alertdictionary.ValidColumn,
 			alertevalbatch.Table:             alertevalbatch.ValidColumn,
 			alertevent.Table:                 alertevent.ValidColumn,
 			alerteventfiring.Table:           alerteventfiring.ValidColumn,
-			alertlevel.Table:                 alertlevel.ValidColumn,
 			alertpage.Table:                  alertpage.ValidColumn,
 			alertrule.Table:                  alertrule.ValidColumn,
 			alertrulegroup.Table:             alertrulegroup.ValidColumn,

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 
 import { listSelfNamespaces, getSelfInfo, getSelfPermissions } from "@/api/self"
+import { failureText } from "@/lib/form-error"
 import type { NamespaceItem } from "@/api/namespace/types"
 import type { UserItem } from "@/api/user/types"
 
@@ -11,6 +12,7 @@ type SessionValue = {
   namespaceUid: string
   loading: boolean
   failed: boolean
+  loadError: string
   reload: () => void
   setNamespace: (uid: string) => void
   can: (code: string) => boolean
@@ -26,6 +28,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [namespaceUid, setNamespaceUid] = useState("")
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [loadError, setLoadError] = useState("")
 
   const reload = useCallback(() => setAttempt((value) => value + 1), [])
 
@@ -34,6 +37,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     async function load() {
       setLoading(true)
       setFailed(false)
+      setLoadError("")
       try {
         const [info, spaces] = await Promise.all([getSelfInfo(), listSelfNamespaces()])
         if (!active) {
@@ -59,9 +63,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           return
         }
         setPermissions(granted.permissions ?? [])
-      } catch {
+      } catch (err) {
         if (active) {
           setFailed(true)
+          setLoadError(failureText(err, ""))
         }
       } finally {
         if (active) {
@@ -89,11 +94,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       namespaceUid,
       loading,
       failed,
+      loadError,
       reload,
       setNamespace,
       can: (code: string) => permissions.includes(code),
     }),
-    [user, namespaces, permissions, namespaceUid, loading, failed, reload, setNamespace],
+    [user, namespaces, permissions, namespaceUid, loading, failed, loadError, reload, setNamespace],
   )
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>

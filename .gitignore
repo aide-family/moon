@@ -1,4 +1,5 @@
 bin/
+deploy/alkaid/alkaid.env
 dist/
 tmp/
 web/node_modules/

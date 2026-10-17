@@ -32,7 +32,8 @@ description: >-
 - 新建和编辑用 `Dialog`，高度不超过 `80vh`。1–2 个字段用默认 `sm:max-w-md` 单列；多字段用 `sm:max-w-2xl`，表单 `grid gap-4 sm:grid-cols-2`，短字段最多 4 列，长文本 `sm:col-span-full`。字段很多就分步，步内也可多列。字段少的详情用右侧 `Sheet`。需要独立地址或分成多块的详情用当前页的子路由。主从页用左侧列表加右侧明细，间距 `gap-6`。
 - 每个输入框和选择框都有 i18n placeholder（可选字段也要）。标签说不清约束或后果时，在 label 旁放 `CircleHelp` tooltip。
 - 提交前按后端必填做前端校验（`required` + trim；必填 Select 禁止空/`NONE`；`StepForm` 下一步先校验当前步），空值不发请求。不引入 zod/RHF。
-- 一行操作超过两项时只留「详情」和「更多」。更多是下拉菜单。删除、封禁、停用、移交负责人先确认，确认按钮用 destructive。
+- 一行操作超过两项时只留「详情」和「更多」。更多是下拉菜单。左侧主从列表用名称前的状态点和竖点菜单，见 revisions。删除、封禁、停用、移交负责人先确认，确认按钮用 destructive。
+- 类型和状态用 `enumLabel` 显示，不直接渲染协议常量。接口错误按 [alioth-web](../alioth-web/SKILL.md) 的状态约定展示。
 - 区块之间 `gap-6`。同一行按钮 `gap-2`。
 
 ## 间距
@@ -62,7 +63,7 @@ description: >-
 
 ## 认证页
 
-登录和注册在视口中居中：外层 `flex min-h-svh items-center justify-center p-4`（透出全局渐变，不用厚重 `bg-muted/40`），卡片 `w-full max-w-sm glass-card`。主提交按钮拉满卡片宽度。错误信息放在表单下方，使用 `text-sm text-destructive`。输入框同样要有 placeholder；密码、验证码这类约束用 tooltip 说明。底部必须有互跳链接（登录→注册、注册→登录），文案用 `login.noAccount` / `register.hasAccount`。
+登录和注册共用左右分栏壳：全屏透出 `--app-gradient`。`lg` 及以上左侧约 `55%` 自动轮播，更窄时只留右侧。表单在 `glass-card w-full max-w-md rounded-2xl` 里垂直居中。右上角固定 `LocaleThemeMenu`（主题、语言）。主提交按钮拉满卡片宽度。错误信息放在表单下方，使用 `text-sm text-destructive`。输入框同样要有 placeholder；密码、验证码这类约束用 tooltip 说明。登录保留密码 / 邮箱验证码切换。底部必须有互跳链接（登录→注册、注册→登录），文案用 `login.noAccount` / `register.hasAccount`。
 
 ## 改样式之后
 

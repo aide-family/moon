@@ -1136,168 +1136,168 @@ func (c *AlertRuleServiceHTTPClientImpl) UpdateAlertRuleStatus(ctx context.Conte
 	return &out, nil
 }
 
-const OperationAlertLevelServiceCreateAlertLevel = "/alioth.v1.AlertLevelService/CreateAlertLevel"
-const OperationAlertLevelServiceDeleteAlertLevel = "/alioth.v1.AlertLevelService/DeleteAlertLevel"
-const OperationAlertLevelServiceListAlertLevels = "/alioth.v1.AlertLevelService/ListAlertLevels"
-const OperationAlertLevelServiceUpdateAlertLevel = "/alioth.v1.AlertLevelService/UpdateAlertLevel"
-const OperationAlertLevelServiceUpdateAlertLevelStatus = "/alioth.v1.AlertLevelService/UpdateAlertLevelStatus"
+const OperationAlertDictionaryServiceCreateAlertDictionary = "/alioth.v1.AlertDictionaryService/CreateAlertDictionary"
+const OperationAlertDictionaryServiceDeleteAlertDictionary = "/alioth.v1.AlertDictionaryService/DeleteAlertDictionary"
+const OperationAlertDictionaryServiceListAlertDictionaries = "/alioth.v1.AlertDictionaryService/ListAlertDictionaries"
+const OperationAlertDictionaryServiceUpdateAlertDictionary = "/alioth.v1.AlertDictionaryService/UpdateAlertDictionary"
+const OperationAlertDictionaryServiceUpdateAlertDictionaryStatus = "/alioth.v1.AlertDictionaryService/UpdateAlertDictionaryStatus"
 
-type AlertLevelServiceHTTPServer interface {
-	// CreateAlertLevel 创建级别。
-	CreateAlertLevel(context.Context, *CreateAlertLevelRequest) (*CreateAlertLevelResponse, error)
-	// DeleteAlertLevel 删除级别。仍被规则引用时拒绝。
-	DeleteAlertLevel(context.Context, *DeleteAlertLevelRequest) (*DeleteAlertLevelResponse, error)
-	// ListAlertLevels 分页列出级别。
-	ListAlertLevels(context.Context, *ListAlertLevelsRequest) (*ListAlertLevelsResponse, error)
-	// UpdateAlertLevel 更新级别的名称和颜色。
-	UpdateAlertLevel(context.Context, *UpdateAlertLevelRequest) (*UpdateAlertLevelResponse, error)
-	// UpdateAlertLevelStatus 启用或停用级别。
-	UpdateAlertLevelStatus(context.Context, *UpdateAlertLevelStatusRequest) (*UpdateAlertLevelStatusResponse, error)
+type AlertDictionaryServiceHTTPServer interface {
+	// CreateAlertDictionary 创建字典项。
+	CreateAlertDictionary(context.Context, *CreateAlertDictionaryRequest) (*CreateAlertDictionaryResponse, error)
+	// DeleteAlertDictionary 删除字典项。仍被规则引用时拒绝。
+	DeleteAlertDictionary(context.Context, *DeleteAlertDictionaryRequest) (*DeleteAlertDictionaryResponse, error)
+	// ListAlertDictionaries 分页列出字典项。
+	ListAlertDictionaries(context.Context, *ListAlertDictionariesRequest) (*ListAlertDictionariesResponse, error)
+	// UpdateAlertDictionary 更新字典项的名称和颜色。
+	UpdateAlertDictionary(context.Context, *UpdateAlertDictionaryRequest) (*UpdateAlertDictionaryResponse, error)
+	// UpdateAlertDictionaryStatus 启用或停用字典项。
+	UpdateAlertDictionaryStatus(context.Context, *UpdateAlertDictionaryStatusRequest) (*UpdateAlertDictionaryStatusResponse, error)
 }
 
-func RegisterAlertLevelServiceHTTPServer(s *http.Server, srv AlertLevelServiceHTTPServer) {
+func RegisterAlertDictionaryServiceHTTPServer(s *http.Server, srv AlertDictionaryServiceHTTPServer) {
 	r := s.Route("/")
-	r.Handle("POST", "/v1/alert-level", _AlertLevelService_CreateAlertLevel0_HTTP_Handler(srv))
-	r.Handle("PUT", "/v1/alert-level/{uid}", _AlertLevelService_UpdateAlertLevel0_HTTP_Handler(srv))
-	r.Handle("PUT", "/v1/alert-level/{uid}/status", _AlertLevelService_UpdateAlertLevelStatus0_HTTP_Handler(srv))
-	r.Handle("DELETE", "/v1/alert-level/{uid}", _AlertLevelService_DeleteAlertLevel0_HTTP_Handler(srv))
-	r.Handle("GET", "/v1/alert-levels", _AlertLevelService_ListAlertLevels0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/alert-dictionary", _AlertDictionaryService_CreateAlertDictionary0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/alert-dictionary/{uid}", _AlertDictionaryService_UpdateAlertDictionary0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/alert-dictionary/{uid}/status", _AlertDictionaryService_UpdateAlertDictionaryStatus0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/v1/alert-dictionary/{uid}", _AlertDictionaryService_DeleteAlertDictionary0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/alert-dictionaries", _AlertDictionaryService_ListAlertDictionaries0_HTTP_Handler(srv))
 }
 
-func _AlertLevelService_CreateAlertLevel0_HTTP_Handler(srv AlertLevelServiceHTTPServer) func(ctx http.Context) error {
+func _AlertDictionaryService_CreateAlertDictionary0_HTTP_Handler(srv AlertDictionaryServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in CreateAlertLevelRequest
+		var in CreateAlertDictionaryRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationAlertLevelServiceCreateAlertLevel)
+		http.SetOperation(ctx, OperationAlertDictionaryServiceCreateAlertDictionary)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.CreateAlertLevel(ctx, req.(*CreateAlertLevelRequest))
+			return srv.CreateAlertDictionary(ctx, req.(*CreateAlertDictionaryRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*CreateAlertLevelResponse)
+		reply := out.(*CreateAlertDictionaryResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
-func _AlertLevelService_UpdateAlertLevel0_HTTP_Handler(srv AlertLevelServiceHTTPServer) func(ctx http.Context) error {
+func _AlertDictionaryService_UpdateAlertDictionary0_HTTP_Handler(srv AlertDictionaryServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in UpdateAlertLevelRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationAlertLevelServiceUpdateAlertLevel)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.UpdateAlertLevel(ctx, req.(*UpdateAlertLevelRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*UpdateAlertLevelResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _AlertLevelService_UpdateAlertLevelStatus0_HTTP_Handler(srv AlertLevelServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in UpdateAlertLevelStatusRequest
+		var in UpdateAlertDictionaryRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationAlertLevelServiceUpdateAlertLevelStatus)
+		http.SetOperation(ctx, OperationAlertDictionaryServiceUpdateAlertDictionary)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.UpdateAlertLevelStatus(ctx, req.(*UpdateAlertLevelStatusRequest))
+			return srv.UpdateAlertDictionary(ctx, req.(*UpdateAlertDictionaryRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*UpdateAlertLevelStatusResponse)
+		reply := out.(*UpdateAlertDictionaryResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
-func _AlertLevelService_DeleteAlertLevel0_HTTP_Handler(srv AlertLevelServiceHTTPServer) func(ctx http.Context) error {
+func _AlertDictionaryService_UpdateAlertDictionaryStatus0_HTTP_Handler(srv AlertDictionaryServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in DeleteAlertLevelRequest
+		var in UpdateAlertDictionaryStatusRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertDictionaryServiceUpdateAlertDictionaryStatus)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateAlertDictionaryStatus(ctx, req.(*UpdateAlertDictionaryStatusRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateAlertDictionaryStatusResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AlertDictionaryService_DeleteAlertDictionary0_HTTP_Handler(srv AlertDictionaryServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteAlertDictionaryRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationAlertLevelServiceDeleteAlertLevel)
+		http.SetOperation(ctx, OperationAlertDictionaryServiceDeleteAlertDictionary)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.DeleteAlertLevel(ctx, req.(*DeleteAlertLevelRequest))
+			return srv.DeleteAlertDictionary(ctx, req.(*DeleteAlertDictionaryRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*DeleteAlertLevelResponse)
+		reply := out.(*DeleteAlertDictionaryResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
-func _AlertLevelService_ListAlertLevels0_HTTP_Handler(srv AlertLevelServiceHTTPServer) func(ctx http.Context) error {
+func _AlertDictionaryService_ListAlertDictionaries0_HTTP_Handler(srv AlertDictionaryServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ListAlertLevelsRequest
+		var in ListAlertDictionariesRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationAlertLevelServiceListAlertLevels)
+		http.SetOperation(ctx, OperationAlertDictionaryServiceListAlertDictionaries)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListAlertLevels(ctx, req.(*ListAlertLevelsRequest))
+			return srv.ListAlertDictionaries(ctx, req.(*ListAlertDictionariesRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*ListAlertLevelsResponse)
+		reply := out.(*ListAlertDictionariesResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
-type AlertLevelServiceHTTPClient interface {
-	// CreateAlertLevel 创建级别。
-	CreateAlertLevel(ctx context.Context, req *CreateAlertLevelRequest, opts ...http.CallOption) (rsp *CreateAlertLevelResponse, err error)
-	// DeleteAlertLevel 删除级别。仍被规则引用时拒绝。
-	DeleteAlertLevel(ctx context.Context, req *DeleteAlertLevelRequest, opts ...http.CallOption) (rsp *DeleteAlertLevelResponse, err error)
-	// ListAlertLevels 分页列出级别。
-	ListAlertLevels(ctx context.Context, req *ListAlertLevelsRequest, opts ...http.CallOption) (rsp *ListAlertLevelsResponse, err error)
-	// UpdateAlertLevel 更新级别的名称和颜色。
-	UpdateAlertLevel(ctx context.Context, req *UpdateAlertLevelRequest, opts ...http.CallOption) (rsp *UpdateAlertLevelResponse, err error)
-	// UpdateAlertLevelStatus 启用或停用级别。
-	UpdateAlertLevelStatus(ctx context.Context, req *UpdateAlertLevelStatusRequest, opts ...http.CallOption) (rsp *UpdateAlertLevelStatusResponse, err error)
+type AlertDictionaryServiceHTTPClient interface {
+	// CreateAlertDictionary 创建字典项。
+	CreateAlertDictionary(ctx context.Context, req *CreateAlertDictionaryRequest, opts ...http.CallOption) (rsp *CreateAlertDictionaryResponse, err error)
+	// DeleteAlertDictionary 删除字典项。仍被规则引用时拒绝。
+	DeleteAlertDictionary(ctx context.Context, req *DeleteAlertDictionaryRequest, opts ...http.CallOption) (rsp *DeleteAlertDictionaryResponse, err error)
+	// ListAlertDictionaries 分页列出字典项。
+	ListAlertDictionaries(ctx context.Context, req *ListAlertDictionariesRequest, opts ...http.CallOption) (rsp *ListAlertDictionariesResponse, err error)
+	// UpdateAlertDictionary 更新字典项的名称和颜色。
+	UpdateAlertDictionary(ctx context.Context, req *UpdateAlertDictionaryRequest, opts ...http.CallOption) (rsp *UpdateAlertDictionaryResponse, err error)
+	// UpdateAlertDictionaryStatus 启用或停用字典项。
+	UpdateAlertDictionaryStatus(ctx context.Context, req *UpdateAlertDictionaryStatusRequest, opts ...http.CallOption) (rsp *UpdateAlertDictionaryStatusResponse, err error)
 }
 
-type AlertLevelServiceHTTPClientImpl struct {
+type AlertDictionaryServiceHTTPClientImpl struct {
 	cc *http.Client
 }
 
-func NewAlertLevelServiceHTTPClient(client *http.Client) AlertLevelServiceHTTPClient {
-	return &AlertLevelServiceHTTPClientImpl{client}
+func NewAlertDictionaryServiceHTTPClient(client *http.Client) AlertDictionaryServiceHTTPClient {
+	return &AlertDictionaryServiceHTTPClientImpl{client}
 }
 
-// CreateAlertLevel 创建级别。
-func (c *AlertLevelServiceHTTPClientImpl) CreateAlertLevel(ctx context.Context, in *CreateAlertLevelRequest, opts ...http.CallOption) (*CreateAlertLevelResponse, error) {
-	var out CreateAlertLevelResponse
-	pattern := "/v1/alert-level"
+// CreateAlertDictionary 创建字典项。
+func (c *AlertDictionaryServiceHTTPClientImpl) CreateAlertDictionary(ctx context.Context, in *CreateAlertDictionaryRequest, opts ...http.CallOption) (*CreateAlertDictionaryResponse, error) {
+	var out CreateAlertDictionaryResponse
+	pattern := "/v1/alert-dictionary"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
-		http.Operation(OperationAlertLevelServiceCreateAlertLevel),
+		http.Operation(OperationAlertDictionaryServiceCreateAlertDictionary),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -1307,14 +1307,14 @@ func (c *AlertLevelServiceHTTPClientImpl) CreateAlertLevel(ctx context.Context, 
 	return &out, nil
 }
 
-// DeleteAlertLevel 删除级别。仍被规则引用时拒绝。
-func (c *AlertLevelServiceHTTPClientImpl) DeleteAlertLevel(ctx context.Context, in *DeleteAlertLevelRequest, opts ...http.CallOption) (*DeleteAlertLevelResponse, error) {
-	var out DeleteAlertLevelResponse
-	pattern := "/v1/alert-level/{uid}"
+// DeleteAlertDictionary 删除字典项。仍被规则引用时拒绝。
+func (c *AlertDictionaryServiceHTTPClientImpl) DeleteAlertDictionary(ctx context.Context, in *DeleteAlertDictionaryRequest, opts ...http.CallOption) (*DeleteAlertDictionaryResponse, error) {
+	var out DeleteAlertDictionaryResponse
+	pattern := "/v1/alert-dictionary/{uid}"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
-		http.Operation(OperationAlertLevelServiceDeleteAlertLevel),
+		http.Operation(OperationAlertDictionaryServiceDeleteAlertDictionary),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
@@ -1324,14 +1324,14 @@ func (c *AlertLevelServiceHTTPClientImpl) DeleteAlertLevel(ctx context.Context, 
 	return &out, nil
 }
 
-// ListAlertLevels 分页列出级别。
-func (c *AlertLevelServiceHTTPClientImpl) ListAlertLevels(ctx context.Context, in *ListAlertLevelsRequest, opts ...http.CallOption) (*ListAlertLevelsResponse, error) {
-	var out ListAlertLevelsResponse
-	pattern := "/v1/alert-levels"
+// ListAlertDictionaries 分页列出字典项。
+func (c *AlertDictionaryServiceHTTPClientImpl) ListAlertDictionaries(ctx context.Context, in *ListAlertDictionariesRequest, opts ...http.CallOption) (*ListAlertDictionariesResponse, error) {
+	var out ListAlertDictionariesResponse
+	pattern := "/v1/alert-dictionaries"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
-		http.Operation(OperationAlertLevelServiceListAlertLevels),
+		http.Operation(OperationAlertDictionaryServiceListAlertDictionaries),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -1341,15 +1341,15 @@ func (c *AlertLevelServiceHTTPClientImpl) ListAlertLevels(ctx context.Context, i
 	return &out, nil
 }
 
-// UpdateAlertLevel 更新级别的名称和颜色。
-func (c *AlertLevelServiceHTTPClientImpl) UpdateAlertLevel(ctx context.Context, in *UpdateAlertLevelRequest, opts ...http.CallOption) (*UpdateAlertLevelResponse, error) {
-	var out UpdateAlertLevelResponse
-	pattern := "/v1/alert-level/{uid}"
+// UpdateAlertDictionary 更新字典项的名称和颜色。
+func (c *AlertDictionaryServiceHTTPClientImpl) UpdateAlertDictionary(ctx context.Context, in *UpdateAlertDictionaryRequest, opts ...http.CallOption) (*UpdateAlertDictionaryResponse, error) {
+	var out UpdateAlertDictionaryResponse
+	pattern := "/v1/alert-dictionary/{uid}"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
-		http.Operation(OperationAlertLevelServiceUpdateAlertLevel),
+		http.Operation(OperationAlertDictionaryServiceUpdateAlertDictionary),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
@@ -1359,15 +1359,15 @@ func (c *AlertLevelServiceHTTPClientImpl) UpdateAlertLevel(ctx context.Context, 
 	return &out, nil
 }
 
-// UpdateAlertLevelStatus 启用或停用级别。
-func (c *AlertLevelServiceHTTPClientImpl) UpdateAlertLevelStatus(ctx context.Context, in *UpdateAlertLevelStatusRequest, opts ...http.CallOption) (*UpdateAlertLevelStatusResponse, error) {
-	var out UpdateAlertLevelStatusResponse
-	pattern := "/v1/alert-level/{uid}/status"
+// UpdateAlertDictionaryStatus 启用或停用字典项。
+func (c *AlertDictionaryServiceHTTPClientImpl) UpdateAlertDictionaryStatus(ctx context.Context, in *UpdateAlertDictionaryStatusRequest, opts ...http.CallOption) (*UpdateAlertDictionaryStatusResponse, error) {
+	var out UpdateAlertDictionaryStatusResponse
+	pattern := "/v1/alert-dictionary/{uid}/status"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
-		http.Operation(OperationAlertLevelServiceUpdateAlertLevelStatus),
+		http.Operation(OperationAlertDictionaryServiceUpdateAlertDictionaryStatus),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

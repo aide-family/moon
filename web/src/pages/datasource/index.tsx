@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react"
+import { EllipsisVertical } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
 
-import { listAlertLevels } from "@/api/alert-level"
-import type { AlertLevelItem } from "@/api/alert-level/types"
+import { listAlertDictionaries } from "@/api/alert-dictionary"
+import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
 import {
   createDatasource,
   deleteDatasource,
@@ -19,8 +20,9 @@ import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
-import { RowActions, type RowAction } from "@/components/row-actions"
+import { PromqlEditor } from "@/components/promql-editor"
 import { ListFrame } from "@/components/list-frame"
+import { StatusDot } from "@/components/status-dot"
 import { StepForm } from "@/components/step-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -30,7 +32,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Select,
   SelectContent,
@@ -38,9 +54,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { enumLabel } from "@/lib/enum-label"
 import { firstError, requireTrimmed } from "@/lib/form"
+import { failureText, readFormError } from "@/lib/form-error"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { useListQuery } from "@/lib/list-query"
+import { MetadataPanel } from "@/pages/datasource/metadata-panel"
 
 const types = ["METRICS", "LOGS", "TRACE"]
 const drivers: Record<string, string[]> = {
@@ -89,9 +108,12 @@ export function DatasourcePage() {
   const [items, setItems] = useState<DatasourceItem[]>([])
   const [total, setTotal] = useState(0)
   const [current, setCurrent] = useState<DatasourceItem | null>(null)
-  const [levels, setLevels] = useState<AlertLevelItem[]>([])
+  const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [loadError, setLoadError] = useState("")
+  const [detailItem, setDetailItem] = useState<DatasourceItem | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -108,13 +130,15 @@ export function DatasourcePage() {
   const [proxyMethod, setProxyMethod] = useState("GET")
   const [proxyPath, setProxyPath] = useState("/")
   const [proxyBody, setProxyBody] = useState("")
-  const [confirm, setConfirm] = useState<"disable" | "delete" | null>(null)
+  const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; uid: string } | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const shown = useRef(confirm)
-  if (confirm) {
-    shown.current = confirm
-  }
+  const [shownAction, setShownAction] = useState<"disable" | "delete">("disable")
   const canWrite = session.can("datasource:write")
+
+  function askConfirm(action: "disable" | "delete", uid: string) {
+    setShownAction(action)
+    setConfirm({ action, uid })
+  }
 
   useEffect(() => {
     let active = true
@@ -133,9 +157,10 @@ export function DatasourcePage() {
         }
         setItems(result.items ?? [])
         setTotal(result.total ?? 0)
-      } catch {
+      } catch (err) {
         if (active) {
           setFailed(true)
+          setLoadError(failureText(err, t("state.failed")))
           setItems([])
         }
       } finally {
@@ -148,7 +173,7 @@ export function DatasourcePage() {
     return () => {
       active = false
     }
-  }, [query.page, query.pageSize, query.name, type, attempt, session.namespaceUid])
+  }, [query.page, query.pageSize, query.name, type, attempt, session.namespaceUid, t])
 
   useEffect(() => {
     let active = true
@@ -181,7 +206,7 @@ export function DatasourcePage() {
         return
       }
       try {
-        const result = await listAlertLevels({ page: 1, pageSize: 100, type: "DATASOURCE" })
+        const result = await listAlertDictionaries({ page: 1, pageSize: 100, type: "DATASOURCE" })
         if (active) {
           setLevels(result.items ?? [])
         }
@@ -214,28 +239,28 @@ export function DatasourcePage() {
     setEditing(false)
     setForm(emptyDraft)
     setError("")
+    setFieldErrors({})
     setFormStep(0)
     setOpen(true)
   }
 
-  function openEdit() {
-    if (!current) {
-      return
-    }
+  function openEdit(item: DatasourceItem) {
+    setParam("uid", item.uid)
     setEditing(true)
     setForm({
-      name: current.name,
-      type: current.type,
-      driver: current.driver,
-      endpoint: current.endpoint,
-      username: current.username,
+      name: item.name,
+      type: item.type,
+      driver: item.driver,
+      endpoint: item.endpoint,
+      username: item.username,
       password: "",
       secret: "",
-      levelUid: current.levelUid,
-      labels: parseLabelPairs(current.labels),
-      remark: current.remark,
+      levelUid: item.levelUid,
+      labels: parseLabelPairs(item.labels),
+      remark: item.remark,
     })
     setError("")
+    setFieldErrors({})
     setFormStep(0)
     setOpen(true)
   }
@@ -261,6 +286,7 @@ export function DatasourcePage() {
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       const payload = {
         ...form,
@@ -277,7 +303,9 @@ export function DatasourcePage() {
       setOpen(false)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -315,49 +343,50 @@ export function DatasourcePage() {
         setResult(response.body)
       }
     } catch (err) {
-      setQueryError(err instanceof Error ? err.message : t("state.failed"))
+      const failure = readFormError(err, t("state.failed"))
+      setQueryError(failure.form)
     } finally {
       setPending(false)
     }
   }
 
   async function runConfirm() {
-    if (!current || !confirm) {
+    if (!confirm) {
       return
     }
     setPending(true)
     setConfirmError("")
     try {
-      if (confirm === "delete") {
-        await deleteDatasource(current.uid)
-        setParam("uid", "")
+      if (confirm.action === "delete") {
+        await deleteDatasource(confirm.uid)
+        if (selected === confirm.uid) {
+          setParam("uid", "")
+        }
       } else {
-        await updateDatasourceStatus(current.uid, "DISABLED")
+        await updateDatasourceStatus(confirm.uid, "DISABLED")
       }
       setConfirm(null)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setConfirmError(err instanceof Error ? err.message : t("state.failed"))
+      const failure = readFormError(err, t("state.failed"))
+      setConfirmError(failure.form)
     } finally {
       setPending(false)
     }
   }
 
-  const actions: RowAction[] = current && canWrite
-    ? [
-        { key: "edit", label: t("action.edit"), onSelect: openEdit },
-        current.status === "ACTIVE"
-          ? { key: "disable", label: t("action.disable"), destructive: true, onSelect: () => setConfirm("disable") }
-          : {
-              key: "enable",
-              label: t("action.enable"),
-              onSelect: () => {
-                void updateDatasourceStatus(current.uid, "ACTIVE").then(() => setAttempt((value) => value + 1))
-              },
-            },
-        { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm("delete") },
-      ]
-    : []
+  async function enableItem(item: DatasourceItem) {
+    try {
+      await updateDatasourceStatus(item.uid, "ACTIVE")
+      setAttempt((value) => value + 1)
+    } catch (err) {
+      const failure = readFormError(err, t("state.failed"))
+      if (failure.form) {
+        setLoadError(failure.form)
+        setFailed(true)
+      }
+    }
+  }
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
@@ -385,7 +414,7 @@ export function DatasourcePage() {
             <SelectItem value="ALL">{t("datasource.typeAll")}</SelectItem>
             {types.map((item) => (
               <SelectItem key={item} value={item}>
-                {item}
+                {enumLabel(t, item)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -406,7 +435,7 @@ export function DatasourcePage() {
             {loading ? <p className="text-sm text-muted-foreground">{t("state.loading")}</p> : null}
             {!loading && failed ? (
               <div className="flex items-center gap-2">
-                <p className="text-sm text-destructive">{t("state.failed")}</p>
+                <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
                 <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
                   {t("action.retry")}
                 </Button>
@@ -417,19 +446,47 @@ export function DatasourcePage() {
             ) : null}
             <div className="grid min-h-0 flex-1 content-start gap-2 overflow-y-auto">
             {items.map((item) => (
-              <Button
-                key={item.uid}
-                variant={item.uid === selected ? "secondary" : "ghost"}
-                className="h-auto justify-start px-2 py-2"
-                onClick={() => setParam("uid", item.uid)}
-              >
-                <span className="flex flex-col items-start">
-                  <span>{item.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {item.type} · {item.status}
+              <div key={item.uid} className="flex items-center gap-1">
+                <Button
+                  variant={item.uid === selected ? "secondary" : "ghost"}
+                  className="h-auto min-w-0 flex-1 justify-start px-2 py-2"
+                  onClick={() => setParam("uid", item.uid)}
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <StatusDot active={item.status === "ACTIVE"} />
+                    <span className="flex min-w-0 flex-col items-start">
+                      <span className="truncate">{item.name}</span>
+                      <span className="text-xs text-muted-foreground">{enumLabel(t, item.type)}</span>
+                    </span>
                   </span>
-                </span>
-              </Button>
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" aria-label={t("action.more")}>
+                      <EllipsisVertical />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={() => setDetailItem(item)}>{t("action.detail")}</DropdownMenuItem>
+                    {canWrite ? (
+                      <DropdownMenuItem onSelect={() => openEdit(item)}>{t("action.edit")}</DropdownMenuItem>
+                    ) : null}
+                    {canWrite && item.status === "ACTIVE" ? (
+                      <DropdownMenuItem variant="destructive" onSelect={() => askConfirm("disable", item.uid)}>
+                        {t("action.disable")}
+                      </DropdownMenuItem>
+                    ) : null}
+                    {canWrite && item.status !== "ACTIVE" ? (
+                      <DropdownMenuItem onSelect={() => void enableItem(item)}>{t("action.enable")}</DropdownMenuItem>
+                    ) : null}
+                    {canWrite ? (
+                      <DropdownMenuItem variant="destructive" onSelect={() => askConfirm("delete", item.uid)}>
+                        {t("action.delete")}
+                      </DropdownMenuItem>
+                    ) : null}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ))}
             </div>
         </ListFrame>
@@ -437,85 +494,89 @@ export function DatasourcePage() {
           <CardContent className="grid min-h-0 flex-1 content-start gap-6 overflow-y-auto">
             {!current ? <p className="text-sm text-muted-foreground">{t("datasource.pick")}</p> : null}
             {current ? (
-              <>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-lg font-semibold">{current.name}</h2>
-                    <p className="text-sm text-muted-foreground">
-                      {current.driver} · {current.endpoint}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {t("datasource.secretSet")}: {current.secretSet ? t("datasource.yes") : t("datasource.no")}
-                    </p>
-                  </div>
-                  {actions.length > 0 ? (
-                    <RowActions
-                      detailLabel={t("action.detail")}
-                      moreLabel={t("action.more")}
-                      onDetail={() => setResult(`${current.name}\n${current.endpoint}`)}
-                      actions={actions}
-                    />
-                  ) : null}
-                </div>
-                {current.type === "METRICS" ? (
-                  <div className="grid gap-4">
-                    <FormField label={t("datasource.expr")} htmlFor="metric-expr" hint={t("datasource.exprHint")}>
+              <Tabs defaultValue="detail" className="min-h-0">
+                <TabsList>
+                  <TabsTrigger value="detail">{t("datasource.tabDetail")}</TabsTrigger>
+                  <TabsTrigger value="metadata">{t("datasource.tabMetadata")}</TabsTrigger>
+                  <TabsTrigger value="query">{t("datasource.tabQuery")}</TabsTrigger>
+                </TabsList>
+                <TabsContent value="detail" className="grid gap-2">
+                  <h2 className="flex items-center gap-2 text-lg font-semibold">
+                    <StatusDot active={current.status === "ACTIVE"} />
+                    {current.name}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {enumLabel(t, current.driver)} · {current.endpoint}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {enumLabel(t, current.type)} · {enumLabel(t, current.status)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("datasource.secretSet")}: {current.secretSet ? t("datasource.yes") : t("datasource.no")}
+                  </p>
+                </TabsContent>
+                <TabsContent value="metadata">
+                  {current.type === "METRICS" ? (
+                    <MetadataPanel uid={current.uid} />
+                  ) : (
+                    <p className="text-sm text-muted-foreground">{t("datasource.metadataMetricsOnly")}</p>
+                  )}
+                </TabsContent>
+                <TabsContent value="query" className="grid gap-4">
+                  {current.type === "METRICS" ? (
+                    <div className="grid gap-4">
+                      <FormField label={t("datasource.expr")} htmlFor="metric-expr" hint={t("datasource.exprHint")}>
+                        <PromqlEditor value={expr} datasourceUid={current.uid} onChange={setExpr} />
+                      </FormField>
+                      <div className="flex flex-wrap gap-2">
+                        <Button type="button" disabled={pending || expr === ""} onClick={() => void runQuery("instant")}>
+                          {t("datasource.instant")}
+                        </Button>
+                        <Button type="button" variant="outline" disabled={pending} onClick={() => void runQuery("status")}>
+                          {t("datasource.check")}
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Input className="max-w-40" value={start} placeholder={t("datasource.start")} onChange={(event) => setStart(event.target.value)} />
+                        <Input className="max-w-40" value={end} placeholder={t("datasource.end")} onChange={(event) => setEnd(event.target.value)} />
+                        <Input className="max-w-28" value={step} placeholder={t("datasource.step")} onChange={(event) => setStep(event.target.value)} />
+                        <Button type="button" variant="outline" disabled={pending || expr === ""} onClick={() => void runQuery("range")}>
+                          {t("datasource.range")}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4">
+                      <div className="flex flex-wrap gap-2">
+                        <Select value={proxyMethod} onValueChange={setProxyMethod}>
+                          <SelectTrigger className="w-28" aria-label={t("datasource.method")}>
+                            <SelectValue placeholder={t("datasource.method")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {["GET", "POST", "PUT"].map((item) => (
+                              <SelectItem key={item} value={item}>
+                                {item}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Input className="max-w-sm" value={proxyPath} placeholder={t("datasource.pathPlaceholder")} onChange={(event) => setProxyPath(event.target.value)} />
+                        <Button type="button" disabled={pending} onClick={() => void runQuery("proxy")}>
+                          {t("datasource.proxy")}
+                        </Button>
+                      </div>
                       <textarea
-                        id="metric-expr"
                         className={areaClass}
-                        value={expr}
-                        placeholder={t("datasource.exprPlaceholder")}
-                        onChange={(event) => setExpr(event.target.value)}
+                        value={proxyBody}
+                        placeholder={t("datasource.bodyPlaceholder")}
+                        onChange={(event) => setProxyBody(event.target.value)}
                       />
-                    </FormField>
-                    <div className="flex flex-wrap gap-2">
-                      <Button type="button" disabled={pending || expr === ""} onClick={() => void runQuery("instant")}>
-                        {t("datasource.instant")}
-                      </Button>
-                      <Button type="button" variant="outline" disabled={pending} onClick={() => void runQuery("status")}>
-                        {t("datasource.check")}
-                      </Button>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Input className="max-w-40" value={start} placeholder={t("datasource.start")} onChange={(event) => setStart(event.target.value)} />
-                      <Input className="max-w-40" value={end} placeholder={t("datasource.end")} onChange={(event) => setEnd(event.target.value)} />
-                      <Input className="max-w-28" value={step} placeholder={t("datasource.step")} onChange={(event) => setStep(event.target.value)} />
-                      <Button type="button" variant="outline" disabled={pending || expr === ""} onClick={() => void runQuery("range")}>
-                        {t("datasource.range")}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid gap-4">
-                    <div className="flex flex-wrap gap-2">
-                      <Select value={proxyMethod} onValueChange={setProxyMethod}>
-                        <SelectTrigger className="w-28" aria-label={t("datasource.method")}>
-                          <SelectValue placeholder={t("datasource.method")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {["GET", "POST", "PUT"].map((item) => (
-                            <SelectItem key={item} value={item}>
-                              {item}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Input className="max-w-sm" value={proxyPath} placeholder={t("datasource.pathPlaceholder")} onChange={(event) => setProxyPath(event.target.value)} />
-                      <Button type="button" disabled={pending} onClick={() => void runQuery("proxy")}>
-                        {t("datasource.proxy")}
-                      </Button>
-                    </div>
-                    <textarea
-                      className={areaClass}
-                      value={proxyBody}
-                      placeholder={t("datasource.bodyPlaceholder")}
-                      onChange={(event) => setProxyBody(event.target.value)}
-                    />
-                  </div>
-                )}
-                {queryError ? <p className="text-sm text-destructive">{queryError}</p> : null}
-                {result ? <pre className="overflow-auto rounded-lg border p-3 text-sm">{result}</pre> : null}
-              </>
+                  )}
+                  {queryError ? <p className="text-sm text-destructive">{queryError}</p> : null}
+                  {result ? <pre className="overflow-auto rounded-lg border p-3 text-sm">{result}</pre> : null}
+                </TabsContent>
+              </Tabs>
             ) : null}
           </CardContent>
         </Card>
@@ -553,7 +614,7 @@ export function DatasourcePage() {
           >
             {formStep === 0 ? (
               <>
-            <FormField label={t("datasource.name")} htmlFor="ds-name" className="sm:col-span-full">
+            <FormField label={t("datasource.name")} htmlFor="ds-name" className="sm:col-span-full" error={fieldErrors.name}>
               <Input id="ds-name" value={form.name} placeholder={t("datasource.namePlaceholder")} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
             </FormField>
             <FormField label={t("datasource.type")} hint={t("datasource.typeHint")}>
@@ -567,7 +628,7 @@ export function DatasourcePage() {
                 <SelectContent>
                   {types.map((item) => (
                     <SelectItem key={item} value={item}>
-                      {item}
+                      {enumLabel(t, item)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -581,13 +642,13 @@ export function DatasourcePage() {
                 <SelectContent>
                   {(drivers[form.type] ?? []).map((item) => (
                     <SelectItem key={item} value={item}>
-                      {item}
+                      {enumLabel(t, item)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label={t("datasource.endpoint")} htmlFor="ds-endpoint" hint={t("datasource.endpointHint")} className="sm:col-span-full">
+            <FormField label={t("datasource.endpoint")} htmlFor="ds-endpoint" hint={t("datasource.endpointHint")} className="sm:col-span-full" error={fieldErrors.endpoint}>
               <Input id="ds-endpoint" value={form.endpoint} placeholder="http://127.0.0.1:9090" onChange={(event) => setForm({ ...form, endpoint: event.target.value })} required />
             </FormField>
               </>
@@ -667,8 +728,8 @@ export function DatasourcePage() {
       </Dialog>
       <ConfirmAction
         open={confirm !== null}
-        title={shown.current === "delete" ? t("confirm.deleteTitle") : t("confirm.disableTitle")}
-        description={shown.current === "delete" ? t("confirm.deleteDescription") : t("confirm.disableDescription")}
+        title={shownAction === "delete" ? t("confirm.deleteTitle") : t("confirm.disableTitle")}
+        description={shownAction === "delete" ? t("confirm.deleteDescription") : t("confirm.disableDescription")}
         confirmLabel={t("action.confirm")}
         cancelLabel={t("action.cancel")}
         pending={pending}
@@ -681,6 +742,30 @@ export function DatasourcePage() {
           }
         }}
       />
+      <Sheet open={detailItem !== null} onOpenChange={(value) => { if (!value) setDetailItem(null) }}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>{detailItem?.name}</SheetTitle>
+            <SheetDescription>{detailItem ? enumLabel(t, detailItem.status) : ""}</SheetDescription>
+          </SheetHeader>
+          {detailItem ? (
+            <dl className="grid gap-3 px-4 text-sm">
+              <div>
+                <dt className="text-muted-foreground">{t("datasource.type")}</dt>
+                <dd>{enumLabel(t, detailItem.type)}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">{t("datasource.driver")}</dt>
+                <dd>{enumLabel(t, detailItem.driver)}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">{t("datasource.endpoint")}</dt>
+                <dd className="break-all">{detailItem.endpoint}</dd>
+              </div>
+            </dl>
+          ) : null}
+        </SheetContent>
+      </Sheet>
     </section>
   )
 }

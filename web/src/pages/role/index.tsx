@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { failureText, formMessage } from "@/lib/form-error"
 
 import {
   createRole,
@@ -18,6 +19,7 @@ import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { requireTrimmed } from "@/lib/form"
+import { enumLabel } from "@/lib/enum-label"
 import { useListQuery } from "@/lib/list-query"
 import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
@@ -50,6 +52,7 @@ export function RolePage() {
   const [catalog, setCatalog] = useState<PermissionItem[]>([])
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [loadError, setLoadError] = useState("")
   const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
@@ -96,9 +99,10 @@ export function RolePage() {
               item.name !== "namespace:transfer"
           )
         )
-      } catch {
+      } catch (err) {
         if (active) {
           setFailed(true)
+          setLoadError(failureText(err, ""))
           setItems([])
         }
       } finally {
@@ -128,7 +132,7 @@ export function RolePage() {
       setName("")
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -151,7 +155,7 @@ export function RolePage() {
       setEditing(null)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -169,7 +173,7 @@ export function RolePage() {
       setGranting(null)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -267,7 +271,7 @@ export function RolePage() {
       setConfirm(null)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setConfirmError(err instanceof Error ? err.message : t("state.failed"))
+      setConfirmError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -320,7 +324,7 @@ export function RolePage() {
           ) : null}
           {!loading && failed ? (
             <div className="flex items-center gap-2">
-              <p className="text-sm text-destructive">{t("state.failed")}</p>
+              <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
               <Button
                 variant="outline"
                 onClick={() => setAttempt((value) => value + 1)}
@@ -348,7 +352,7 @@ export function RolePage() {
                       {item.name}
                       {item.isSystem ? ` (${t("role.system")})` : ""}
                     </TableCell>
-                    <TableCell>{item.status}</TableCell>
+                    <TableCell>{enumLabel(t, item.status)}</TableCell>
                     <TableCell>
                       <RowActions
                         detailLabel={t("action.detail")}
@@ -461,7 +465,7 @@ export function RolePage() {
         }}
         fields={[
           { label: t("role.name"), value: detail?.name ?? "" },
-          { label: t("namespace.status"), value: detail?.status ?? "" },
+          { label: t("namespace.status"), value: enumLabel(t, detail?.status ?? "") },
           {
             label: t("role.system"),
             value: detail?.isSystem ? t("role.system") : "",

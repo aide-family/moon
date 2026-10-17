@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertlevel"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
@@ -269,7 +269,7 @@ func (r *datasourceRepo) levelNames(ctx context.Context, uids []string) map[stri
 	if len(clean) == 0 {
 		return names
 	}
-	rows, err := r.client.AlertLevel.Query().Where(alertlevel.UIDIn(clean...), alertlevel.DeletedAtIsNil()).All(ctx)
+	rows, err := r.client.AlertDictionary.Query().Where(alertdictionary.UIDIn(clean...), alertdictionary.DeletedAtIsNil()).All(ctx)
 	if err != nil {
 		r.log.Error(fmt.Sprintf("level names: %v", err))
 		return names

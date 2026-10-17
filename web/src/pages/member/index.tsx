@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { failureText, formMessage } from "@/lib/form-error"
 
 import {
   deleteMember,
@@ -16,6 +17,7 @@ import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { firstError, requireSelected, requireTrimmed } from "@/lib/form"
+import { enumLabel } from "@/lib/enum-label"
 import { useListQuery } from "@/lib/list-query"
 import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
@@ -57,6 +59,7 @@ export function MemberPage() {
   const [roles, setRoles] = useState<RoleOption[]>([])
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [loadError, setLoadError] = useState("")
   const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState("")
@@ -93,9 +96,10 @@ export function MemberPage() {
         )
         setRoles(available)
         setRoleUid(available[0]?.uid ?? "")
-      } catch {
+      } catch (err) {
         if (active) {
           setFailed(true)
+          setLoadError(failureText(err, ""))
           setItems([])
         }
       } finally {
@@ -125,7 +129,7 @@ export function MemberPage() {
       setEmail("")
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -143,7 +147,7 @@ export function MemberPage() {
       setAssigning(null)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -205,7 +209,7 @@ export function MemberPage() {
       setRemoving(null)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setConfirmError(err instanceof Error ? err.message : t("state.failed"))
+      setConfirmError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -261,7 +265,7 @@ export function MemberPage() {
           ) : null}
           {!loading && failed ? (
             <div className="flex items-center gap-2">
-              <p className="text-sm text-destructive">{t("state.failed")}</p>
+              <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
               <Button
                 variant="outline"
                 onClick={() => setAttempt((value) => value + 1)}
@@ -288,7 +292,7 @@ export function MemberPage() {
                   <TableRow key={item.uid}>
                     <TableCell>{item.email}</TableCell>
                     <TableCell>{(item.roleNames ?? []).join(", ")}</TableCell>
-                    <TableCell>{item.status}</TableCell>
+                    <TableCell>{enumLabel(t, item.status)}</TableCell>
                     <TableCell>
                       <RowActions
                         detailLabel={t("action.detail")}
@@ -392,7 +396,7 @@ export function MemberPage() {
             label: t("member.role"),
             value: (detail?.roleNames ?? []).join(", "),
           },
-          { label: t("member.status"), value: detail?.status ?? "" },
+          { label: t("member.status"), value: enumLabel(t, detail?.status ?? "") },
           { label: t("detail.uid"), value: detail?.uid ?? "" },
         ]}
       />

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/agent"
@@ -84,12 +85,14 @@ func agentInput(uid, name, host, user, password, privateKey, remark string, port
 }
 
 func agentItem(item bo.Agent) *v1.AgentItem {
-	return &v1.AgentItem{
+	out := &v1.AgentItem{
 		Uid: item.UID, Name: item.Name, Hostname: item.Hostname, MachineId: item.MachineID,
 		LocalIp: item.LocalIP, Version: item.Version, Online: item.Online, Status: item.Status,
 		SshHost: item.SSHHost, SshPort: int32(item.SSHPort), SshUser: item.SSHUser,
 		HasPassword: item.HasPassword, HasPrivateKey: item.HasPrivateKey, Remark: item.Remark,
 	}
+	applyCollect(out, item.CollectJSON)
+	return out
 }
 
 func agentItems(items []bo.Agent) []*v1.AgentItem {
@@ -98,4 +101,31 @@ func agentItems(items []bo.Agent) []*v1.AgentItem {
 		out = append(out, agentItem(item))
 	}
 	return out
+}
+
+func applyCollect(item *v1.AgentItem, raw string) {
+	if raw == "" {
+		return
+	}
+	var payload struct {
+		OS         string `json:"os"`
+		Arch       string `json:"arch"`
+		OSVersion  string `json:"osVersion"`
+		CPU        string `json:"cpu"`
+		Disk       string `json:"disk"`
+		Memory     string `json:"memory"`
+		BootTime   string `json:"bootTime"`
+		TimeServer string `json:"timeServer"`
+	}
+	if err := json.Unmarshal([]byte(raw), &payload); err != nil {
+		return
+	}
+	item.Os = payload.OS
+	item.Arch = payload.Arch
+	item.OsVersion = payload.OSVersion
+	item.Cpu = payload.CPU
+	item.Disk = payload.Disk
+	item.Memory = payload.Memory
+	item.BootTime = payload.BootTime
+	item.TimeServer = payload.TimeServer
 }

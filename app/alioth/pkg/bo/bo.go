@@ -86,8 +86,8 @@ type Datasource struct {
 	Remark       string
 }
 
-// AlertLevel 是告警级别或数据源级别。
-type AlertLevel struct {
+// AlertDictionary 是告警字典中的一条。类型为告警级别或数据源级别。
+type AlertDictionary struct {
 	UID          string
 	NamespaceUID string
 	Name         string

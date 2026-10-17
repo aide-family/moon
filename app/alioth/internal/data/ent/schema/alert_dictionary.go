@@ -7,15 +7,15 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-type AlertLevel struct {
+type AlertDictionary struct {
 	ent.Schema
 }
 
-func (AlertLevel) Mixin() []ent.Mixin {
+func (AlertDictionary) Mixin() []ent.Mixin {
 	return []ent.Mixin{Audit{}, SoftDelete{}}
 }
 
-func (AlertLevel) Fields() []ent.Field {
+func (AlertDictionary) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("uid").NotEmpty().Immutable(),
 		field.String("namespace_uid").NotEmpty(),
@@ -26,7 +26,7 @@ func (AlertLevel) Fields() []ent.Field {
 	}
 }
 
-func (AlertLevel) Indexes() []ent.Index {
+func (AlertDictionary) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("uid").Unique(),
 		index.Fields("namespace_uid", "name").Unique().Annotations(entsql.IndexWhere("deleted_at IS NULL")),

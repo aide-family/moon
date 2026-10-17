@@ -49,6 +49,13 @@ service AgentService {
   rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse) {
     option (google.api.http) = {get: "/v1/agents"};
   }
+  // 签发一次性 Web Shell 票据。只接受具备 ssh:exec 的用户。
+  rpc IssueShellTicket(IssueShellTicketRequest) returns (IssueShellTicketResponse) {
+    option (google.api.http) = {
+      post: "/v1/agent/{uid}/shell-ticket"
+      body: "*"
+    };
+  }
   // Agent 出站双向流。只接受 Agent 令牌。
   rpc Connect(stream AgentFrame) returns (stream AgentFrame);
 }
@@ -83,6 +90,22 @@ message AgentItem {
   bool has_private_key = 13 [json_name = "hasPrivateKey"];
   // 备注。
   string remark = 14;
+  // 操作系统。
+  string os = 15;
+  // 架构。
+  string arch = 16;
+  // 系统版本。与 Agent 版本分开。
+  string os_version = 17 [json_name = "osVersion"];
+  // CPU。逻辑核数，能读到型号时附上。
+  string cpu = 18;
+  // 根分区已用和总量。
+  string disk = 19;
+  // 物理内存总量。
+  string memory = 20;
+  // 启动时间，RFC3339。
+  string boot_time = 21 [json_name = "bootTime"];
+  // 时间服务器。
+  string time_server = 22 [json_name = "timeServer"];
 }
 
 // 创建机器。
@@ -206,6 +229,18 @@ message ListAgentsResponse {
   int32 page_size = 4 [json_name = "pageSize"];
 }
 
+// 签发 Web Shell 票据。
+message IssueShellTicketRequest {
+  // 机器标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// Web Shell 票据。只使用一次。
+message IssueShellTicketResponse {
+  // 票据。
+  string ticket = 1;
+}
+
 // Agent 与玉衡之间的一帧。
 message AgentFrame {
   // 注册。
@@ -228,6 +263,14 @@ message AgentFrame {
   AgentK8sRequest k8s_request = 9;
   // Kubernetes 代理结果，由 Agent 回传。
   AgentK8sResult k8s_result = 10;
+  // 打开终端，由玉衡下发。
+  AgentShellOpen shell_open = 11;
+  // 终端字节。
+  AgentShellData shell_data = 12;
+  // 终端窗口大小，由玉衡下发。
+  AgentShellResize shell_resize = 13;
+  // 关闭终端。
+  AgentShellClose shell_close = 14;
 }
 
 // 注册帧。
@@ -372,6 +415,52 @@ message AgentK8sRequest {
   string headers_json = 5;
   // 请求体。
   bytes body = 6;
+}
+
+// 打开交互终端。
+message AgentShellOpen {
+  // 会话标识。
+  string session_uid = 1;
+  // SSH 主机。
+  string ssh_host = 2;
+  // SSH 端口。
+  int32 ssh_port = 3;
+  // SSH 用户。
+  string ssh_user = 4;
+  // SSH 密码。只出现在这条内部帧里。
+  string ssh_password = 5;
+  // SSH 私钥。只出现在这条内部帧里。
+  string ssh_private_key = 6;
+  // 列数。
+  int32 cols = 7;
+  // 行数。
+  int32 rows = 8;
+}
+
+// 终端字节。
+message AgentShellData {
+  // 会话标识。
+  string session_uid = 1;
+  // 字节。
+  bytes data = 2;
+}
+
+// 终端窗口大小。
+message AgentShellResize {
+  // 会话标识。
+  string session_uid = 1;
+  // 列数。
+  int32 cols = 2;
+  // 行数。
+  int32 rows = 3;
+}
+
+// 关闭终端。
+message AgentShellClose {
+  // 会话标识。
+  string session_uid = 1;
+  // 原因。
+  string reason = 2;
 }
 
 // Kubernetes 代理结果。

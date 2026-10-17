@@ -19,14 +19,14 @@ import (
 var ProviderSet = wire.NewSet(NewUsecase)
 
 type Usecase struct {
-	rules       repository.AlertRuleRepo
-	levels      repository.AlertLevelRepo
-	datasources repository.DatasourceRepo
-	access      access.Checker
+	rules        repository.AlertRuleRepo
+	dictionaries repository.AlertDictionaryRepo
+	datasources  repository.DatasourceRepo
+	access       access.Checker
 }
 
-func NewUsecase(rules repository.AlertRuleRepo, levels repository.AlertLevelRepo, datasources repository.DatasourceRepo, checker access.Checker) *Usecase {
-	return &Usecase{rules: rules, levels: levels, datasources: datasources, access: checker}
+func NewUsecase(rules repository.AlertRuleRepo, dictionaries repository.AlertDictionaryRepo, datasources repository.DatasourceRepo, checker access.Checker) *Usecase {
+	return &Usecase{rules: rules, dictionaries: dictionaries, datasources: datasources, access: checker}
 }
 
 func (uc *Usecase) CreateGroup(ctx context.Context, name string) (*bo.AlertRuleGroup, error) {
@@ -154,7 +154,7 @@ func (uc *Usecase) prepare(ctx context.Context, namespaceUID string, in *bo.Aler
 		return uc.access.Wrap(err)
 	}
 	for _, level := range in.Levels {
-		item, err := uc.levels.GetAlertLevel(ctx, namespaceUID, level.LevelUID)
+		item, err := uc.dictionaries.GetAlertDictionary(ctx, namespaceUID, level.LevelUID)
 		if err != nil {
 			return uc.access.Wrap(err)
 		}

@@ -13,6 +13,14 @@ export interface AgentItem {
   hasPassword: boolean
   hasPrivateKey: boolean
   remark: string
+  os: string
+  arch: string
+  osVersion: string
+  cpu: string
+  disk: string
+  memory: string
+  bootTime: string
+  timeServer: string
 }
 
 export interface ListAgentsParams {

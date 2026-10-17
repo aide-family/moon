@@ -12,13 +12,15 @@ import (
 	"math/big"
 
 	"golang.org/x/image/font"
-	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/font/gofont/goregular"
+	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
 )
 
 const (
-	captchaWidth  = 200
-	captchaHeight = 64
+	captchaWidth    = 420
+	captchaHeight   = 140
+	captchaFontSize = 42
 )
 
 func drawCaptcha(code string) (string, error) {
@@ -44,7 +46,7 @@ func fillCaptchaBackground(img *image.RGBA) {
 
 func drawCaptchaNoise(img *image.RGBA) {
 	bounds := img.Bounds()
-	for range 180 {
+	for range 420 {
 		x := randInt(bounds.Dx())
 		y := randInt(bounds.Dy())
 		img.Set(x, y, randomGray(80, 200))
@@ -63,23 +65,39 @@ func drawCaptchaLines(img *image.RGBA) {
 	}
 }
 
+func captchaFace() (font.Face, error) {
+	parsed, err := opentype.Parse(goregular.TTF)
+	if err != nil {
+		return nil, err
+	}
+	return opentype.NewFace(parsed, &opentype.FaceOptions{
+		Size:    captchaFontSize,
+		DPI:     72,
+		Hinting: font.HintingFull,
+	})
+}
+
 func drawCaptchaChars(dst *image.RGBA, code string) error {
-	face := basicfont.Face7x13
-	slot := captchaWidth / max(len([]rune(code)), 1)
-	for i, char := range code {
-		glyph := image.NewRGBA(image.Rect(0, 0, 28, 36))
+	face, err := captchaFace()
+	if err != nil {
+		return err
+	}
+	runes := []rune(code)
+	slot := captchaWidth / max(len(runes), 1)
+	for i, char := range runes {
+		glyph := image.NewRGBA(image.Rect(0, 0, 72, 84))
 		drawer := &font.Drawer{
 			Dst:  glyph,
 			Src:  image.NewUniform(randomTextColor()),
 			Face: face,
-			Dot:  fixed.P(6, 22),
+			Dot:  fixed.P(10, 62),
 		}
 		drawer.DrawString(string(char))
 
-		angle := (randFloat() - 0.5) * 0.7 // about ±20 degrees
+		angle := (randFloat() - 0.5) * 0.5 // about ±14 degrees
 		rotated := rotateRGBA(glyph, angle)
-		x := 8 + i*slot + randInt(6)
-		y := 8 + randInt(12)
+		x := 12 + i*slot + randInt(8)
+		y := 16 + randInt(16)
 		draw.Draw(dst, image.Rect(x, y, x+rotated.Bounds().Dx(), y+rotated.Bounds().Dy()), rotated, rotated.Bounds().Min, draw.Over)
 	}
 	return nil

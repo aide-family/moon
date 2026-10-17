@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { failureText, formMessage } from "@/lib/form-error"
 import { useSearchParams } from "react-router-dom"
 
 import {
-  createAlertLevel,
-  deleteAlertLevel,
-  listAlertLevels,
-  updateAlertLevel,
-  updateAlertLevelStatus,
-} from "@/api/alert-level"
-import type { AlertLevelItem } from "@/api/alert-level/types"
+  createAlertDictionary,
+  deleteAlertDictionary,
+  listAlertDictionaries,
+  updateAlertDictionary,
+  updateAlertDictionaryStatus,
+} from "@/api/alert-dictionary"
+import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
@@ -42,31 +43,33 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { firstError, requireTrimmed } from "@/lib/form"
+import { enumLabel } from "@/lib/enum-label"
 import { useListQuery } from "@/lib/list-query"
 
 const types = ["ALERT", "DATASOURCE"]
 
-export function AlertLevelPage() {
+export function AlertDictionaryPage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
   const [params, setParams] = useSearchParams()
   const type = params.get("type") || ""
   const [draft, setDraft] = useState(query.name)
-  const [items, setItems] = useState<AlertLevelItem[]>([])
+  const [items, setItems] = useState<AlertDictionaryItem[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [loadError, setLoadError] = useState("")
   const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
-  const [editing, setEditing] = useState<AlertLevelItem | null>(null)
+  const [editing, setEditing] = useState<AlertDictionaryItem | null>(null)
   const [name, setName] = useState("")
   const [color, setColor] = useState("")
   const [levelType, setLevelType] = useState("ALERT")
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
-  const [detail, setDetail] = useState<AlertLevelItem | null>(null)
-  const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: AlertLevelItem } | null>(null)
+  const [detail, setDetail] = useState<AlertDictionaryItem | null>(null)
+  const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: AlertDictionaryItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
   const shown = useRef(confirm)
   if (confirm) {
@@ -80,7 +83,7 @@ export function AlertLevelPage() {
       setLoading(true)
       setFailed(false)
       try {
-        const result = await listAlertLevels({
+        const result = await listAlertDictionaries({
           page: query.page,
           pageSize: query.pageSize,
           name: query.name,
@@ -91,9 +94,10 @@ export function AlertLevelPage() {
         }
         setItems(result.items ?? [])
         setTotal(result.total ?? 0)
-      } catch {
+      } catch (err) {
         if (active) {
           setFailed(true)
+          setLoadError(failureText(err, ""))
           setItems([])
         }
       } finally {
@@ -130,7 +134,7 @@ export function AlertLevelPage() {
 
   const colorSwatch = /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#1677ff"
 
-  function openEdit(item: AlertLevelItem) {
+  function openEdit(item: AlertDictionaryItem) {
     setEditing(item)
     setName(item.name)
     setColor(item.color)
@@ -154,14 +158,14 @@ export function AlertLevelPage() {
     try {
       const nextColor = normalizeColor(color)
       if (editing) {
-        await updateAlertLevel({ uid: editing.uid, name: name.trim(), color: nextColor })
+        await updateAlertDictionary({ uid: editing.uid, name: name.trim(), color: nextColor })
       } else {
-        await createAlertLevel({ name: name.trim(), color: nextColor, type: levelType })
+        await createAlertDictionary({ name: name.trim(), color: nextColor, type: levelType })
       }
       setOpen(false)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -175,20 +179,20 @@ export function AlertLevelPage() {
     setConfirmError("")
     try {
       if (confirm.action === "delete") {
-        await deleteAlertLevel(confirm.item.uid)
+        await deleteAlertDictionary(confirm.item.uid)
       } else {
-        await updateAlertLevelStatus(confirm.item.uid, "DISABLED")
+        await updateAlertDictionaryStatus(confirm.item.uid, "DISABLED")
       }
       setConfirm(null)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setConfirmError(err instanceof Error ? err.message : t("state.failed"))
+      setConfirmError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
   }
 
-  function actions(item: AlertLevelItem): RowAction[] {
+  function actions(item: AlertDictionaryItem): RowAction[] {
     if (!canWrite) {
       return []
     }
@@ -196,14 +200,14 @@ export function AlertLevelPage() {
       { key: "edit", label: t("action.edit"), onSelect: () => openEdit(item) },
       item.status === "ACTIVE"
         ? { key: "disable", label: t("action.disable"), destructive: true, onSelect: () => setConfirm({ action: "disable", item }) }
-        : { key: "enable", label: t("action.enable"), onSelect: () => void updateAlertLevelStatus(item.uid, "ACTIVE").then(() => setAttempt((value) => value + 1)) },
+        : { key: "enable", label: t("action.enable"), onSelect: () => void updateAlertDictionaryStatus(item.uid, "ACTIVE").then(() => setAttempt((value) => value + 1)) },
       { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm({ action: "delete", item }) },
     ]
   }
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
-      <PageHeader title={t("alertLevel.title")} description={t("alertLevel.description")}>
+      <PageHeader title={t("alertDictionary.title")} description={t("alertDictionary.description")}>
         {canWrite ? <Button onClick={openCreate}>{t("action.create")}</Button> : null}
       </PageHeader>
       <form
@@ -213,7 +217,7 @@ export function AlertLevelPage() {
           query.update({ name: draft })
         }}
       >
-        <Input className="max-w-sm" value={draft} placeholder={t("alertLevel.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
+        <Input className="max-w-sm" value={draft} placeholder={t("alertDictionary.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
         <Select
           value={type || "ALL"}
           onValueChange={(value) => {
@@ -234,7 +238,7 @@ export function AlertLevelPage() {
             <SelectItem value="ALL">{t("datasource.typeAll")}</SelectItem>
             {types.map((item) => (
               <SelectItem key={item} value={item}>
-                {item}
+                {enumLabel(t, item)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -254,19 +258,19 @@ export function AlertLevelPage() {
           {loading ? <p className="text-sm text-muted-foreground">{t("state.loading")}</p> : null}
           {!loading && failed ? (
             <div className="flex items-center gap-2">
-              <p className="text-sm text-destructive">{t("state.failed")}</p>
+              <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
               <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
                 {t("action.retry")}
               </Button>
             </div>
           ) : null}
-          {!loading && !failed && items.length === 0 ? <p className="text-sm text-muted-foreground">{t("alertLevel.empty")}</p> : null}
+          {!loading && !failed && items.length === 0 ? <p className="text-sm text-muted-foreground">{t("alertDictionary.empty")}</p> : null}
           {!loading && !failed && items.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("alertLevel.name")}</TableHead>
-                  <TableHead>{t("alertLevel.color")}</TableHead>
+                  <TableHead>{t("alertDictionary.name")}</TableHead>
+                  <TableHead>{t("alertDictionary.color")}</TableHead>
                   <TableHead>{t("datasource.type")}</TableHead>
                   <TableHead>{t("namespace.status")}</TableHead>
                   <TableHead />
@@ -277,8 +281,8 @@ export function AlertLevelPage() {
                   <TableRow key={item.uid}>
                     <TableCell>{item.name}</TableCell>
                     <TableCell>{item.color}</TableCell>
-                    <TableCell>{item.type}</TableCell>
-                    <TableCell>{item.status}</TableCell>
+                    <TableCell>{enumLabel(t, item.type)}</TableCell>
+                    <TableCell>{enumLabel(t, item.status)}</TableCell>
                     <TableCell>
                       <RowActions
                         detailLabel={t("action.detail")}
@@ -299,14 +303,14 @@ export function AlertLevelPage() {
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
           <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
-            <FormField label={t("alertLevel.name")} htmlFor="level-name">
-              <Input id="level-name" value={name} placeholder={t("alertLevel.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
+            <FormField label={t("alertDictionary.name")} htmlFor="level-name">
+              <Input id="level-name" value={name} placeholder={t("alertDictionary.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
-            <FormField label={t("alertLevel.color")} htmlFor="level-color" hint={t("alertLevel.colorHint")}>
+            <FormField label={t("alertDictionary.color")} htmlFor="level-color" hint={t("alertDictionary.colorHint")}>
               <div className="flex items-center gap-2">
                 <input
                   type="color"
-                  aria-label={t("alertLevel.colorPicker")}
+                  aria-label={t("alertDictionary.colorPicker")}
                   className="size-9 cursor-pointer rounded-md border border-input bg-transparent p-1"
                   value={colorSwatch}
                   onChange={(event) => setColor(event.target.value)}
@@ -314,7 +318,7 @@ export function AlertLevelPage() {
                 <Input
                   id="level-color"
                   value={color}
-                  placeholder={t("alertLevel.colorPlaceholder")}
+                  placeholder={t("alertDictionary.colorPlaceholder")}
                   onChange={(event) => setColor(event.target.value)}
                 />
               </div>
@@ -325,22 +329,22 @@ export function AlertLevelPage() {
                   <label className="flex items-center gap-2 text-sm">
                     <input
                       type="radio"
-                      name="alert-level-type"
+                      name="alert-dictionary-type"
                       value="ALERT"
                       checked={levelType === "ALERT"}
                       onChange={() => setLevelType("ALERT")}
                     />
-                    {t("alertLevel.typeAlert")}
+                    {t("alertDictionary.typeAlert")}
                   </label>
                   <label className="flex items-center gap-2 text-sm">
                     <input
                       type="radio"
-                      name="alert-level-type"
+                      name="alert-dictionary-type"
                       value="DATASOURCE"
                       checked={levelType === "DATASOURCE"}
                       onChange={() => setLevelType("DATASOURCE")}
                     />
-                    {t("alertLevel.typeDatasource")}
+                    {t("alertDictionary.typeDatasource")}
                   </label>
                 </div>
               </FormField>
@@ -366,9 +370,9 @@ export function AlertLevelPage() {
           detail
             ? [
                 { label: t("detail.uid"), value: detail.uid },
-                { label: t("alertLevel.color"), value: detail.color },
-                { label: t("datasource.type"), value: detail.type },
-                { label: t("namespace.status"), value: detail.status },
+                { label: t("alertDictionary.color"), value: detail.color },
+                { label: t("datasource.type"), value: enumLabel(t, detail.type) },
+                { label: t("namespace.status"), value: enumLabel(t, detail.status) },
               ]
             : []
         }

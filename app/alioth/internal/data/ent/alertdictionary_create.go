@@ -10,24 +10,24 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertlevel"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
 )
 
-// AlertLevelCreate is the builder for creating a AlertLevel entity.
-type AlertLevelCreate struct {
+// AlertDictionaryCreate is the builder for creating a AlertDictionary entity.
+type AlertDictionaryCreate struct {
 	config
-	mutation *AlertLevelMutation
+	mutation *AlertDictionaryMutation
 	hooks    []Hook
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (_c *AlertLevelCreate) SetCreatedAt(v time.Time) *AlertLevelCreate {
+func (_c *AlertDictionaryCreate) SetCreatedAt(v time.Time) *AlertDictionaryCreate {
 	_c.mutation.SetCreatedAt(v)
 	return _c
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (_c *AlertLevelCreate) SetNillableCreatedAt(v *time.Time) *AlertLevelCreate {
+func (_c *AlertDictionaryCreate) SetNillableCreatedAt(v *time.Time) *AlertDictionaryCreate {
 	if v != nil {
 		_c.SetCreatedAt(*v)
 	}
@@ -35,13 +35,13 @@ func (_c *AlertLevelCreate) SetNillableCreatedAt(v *time.Time) *AlertLevelCreate
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (_c *AlertLevelCreate) SetUpdatedAt(v time.Time) *AlertLevelCreate {
+func (_c *AlertDictionaryCreate) SetUpdatedAt(v time.Time) *AlertDictionaryCreate {
 	_c.mutation.SetUpdatedAt(v)
 	return _c
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_c *AlertLevelCreate) SetNillableUpdatedAt(v *time.Time) *AlertLevelCreate {
+func (_c *AlertDictionaryCreate) SetNillableUpdatedAt(v *time.Time) *AlertDictionaryCreate {
 	if v != nil {
 		_c.SetUpdatedAt(*v)
 	}
@@ -49,13 +49,13 @@ func (_c *AlertLevelCreate) SetNillableUpdatedAt(v *time.Time) *AlertLevelCreate
 }
 
 // SetDeletedAt sets the "deleted_at" field.
-func (_c *AlertLevelCreate) SetDeletedAt(v time.Time) *AlertLevelCreate {
+func (_c *AlertDictionaryCreate) SetDeletedAt(v time.Time) *AlertDictionaryCreate {
 	_c.mutation.SetDeletedAt(v)
 	return _c
 }
 
 // SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (_c *AlertLevelCreate) SetNillableDeletedAt(v *time.Time) *AlertLevelCreate {
+func (_c *AlertDictionaryCreate) SetNillableDeletedAt(v *time.Time) *AlertDictionaryCreate {
 	if v != nil {
 		_c.SetDeletedAt(*v)
 	}
@@ -63,31 +63,31 @@ func (_c *AlertLevelCreate) SetNillableDeletedAt(v *time.Time) *AlertLevelCreate
 }
 
 // SetUID sets the "uid" field.
-func (_c *AlertLevelCreate) SetUID(v string) *AlertLevelCreate {
+func (_c *AlertDictionaryCreate) SetUID(v string) *AlertDictionaryCreate {
 	_c.mutation.SetUID(v)
 	return _c
 }
 
 // SetNamespaceUID sets the "namespace_uid" field.
-func (_c *AlertLevelCreate) SetNamespaceUID(v string) *AlertLevelCreate {
+func (_c *AlertDictionaryCreate) SetNamespaceUID(v string) *AlertDictionaryCreate {
 	_c.mutation.SetNamespaceUID(v)
 	return _c
 }
 
 // SetName sets the "name" field.
-func (_c *AlertLevelCreate) SetName(v string) *AlertLevelCreate {
+func (_c *AlertDictionaryCreate) SetName(v string) *AlertDictionaryCreate {
 	_c.mutation.SetName(v)
 	return _c
 }
 
 // SetColor sets the "color" field.
-func (_c *AlertLevelCreate) SetColor(v string) *AlertLevelCreate {
+func (_c *AlertDictionaryCreate) SetColor(v string) *AlertDictionaryCreate {
 	_c.mutation.SetColor(v)
 	return _c
 }
 
 // SetNillableColor sets the "color" field if the given value is not nil.
-func (_c *AlertLevelCreate) SetNillableColor(v *string) *AlertLevelCreate {
+func (_c *AlertDictionaryCreate) SetNillableColor(v *string) *AlertDictionaryCreate {
 	if v != nil {
 		_c.SetColor(*v)
 	}
@@ -95,38 +95,38 @@ func (_c *AlertLevelCreate) SetNillableColor(v *string) *AlertLevelCreate {
 }
 
 // SetType sets the "type" field.
-func (_c *AlertLevelCreate) SetType(v alertlevel.Type) *AlertLevelCreate {
+func (_c *AlertDictionaryCreate) SetType(v alertdictionary.Type) *AlertDictionaryCreate {
 	_c.mutation.SetType(v)
 	return _c
 }
 
 // SetStatus sets the "status" field.
-func (_c *AlertLevelCreate) SetStatus(v alertlevel.Status) *AlertLevelCreate {
+func (_c *AlertDictionaryCreate) SetStatus(v alertdictionary.Status) *AlertDictionaryCreate {
 	_c.mutation.SetStatus(v)
 	return _c
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (_c *AlertLevelCreate) SetNillableStatus(v *alertlevel.Status) *AlertLevelCreate {
+func (_c *AlertDictionaryCreate) SetNillableStatus(v *alertdictionary.Status) *AlertDictionaryCreate {
 	if v != nil {
 		_c.SetStatus(*v)
 	}
 	return _c
 }
 
-// Mutation returns the AlertLevelMutation object of the builder.
-func (_c *AlertLevelCreate) Mutation() *AlertLevelMutation {
+// Mutation returns the AlertDictionaryMutation object of the builder.
+func (_c *AlertDictionaryCreate) Mutation() *AlertDictionaryMutation {
 	return _c.mutation
 }
 
-// Save creates the AlertLevel in the database.
-func (_c *AlertLevelCreate) Save(ctx context.Context) (*AlertLevel, error) {
+// Save creates the AlertDictionary in the database.
+func (_c *AlertDictionaryCreate) Save(ctx context.Context) (*AlertDictionary, error) {
 	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (_c *AlertLevelCreate) SaveX(ctx context.Context) *AlertLevel {
+func (_c *AlertDictionaryCreate) SaveX(ctx context.Context) *AlertDictionary {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -135,93 +135,93 @@ func (_c *AlertLevelCreate) SaveX(ctx context.Context) *AlertLevel {
 }
 
 // Exec executes the query.
-func (_c *AlertLevelCreate) Exec(ctx context.Context) error {
+func (_c *AlertDictionaryCreate) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *AlertLevelCreate) ExecX(ctx context.Context) {
+func (_c *AlertDictionaryCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *AlertLevelCreate) defaults() {
+func (_c *AlertDictionaryCreate) defaults() {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
-		v := alertlevel.DefaultCreatedAt()
+		v := alertdictionary.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		v := alertlevel.DefaultUpdatedAt()
+		v := alertdictionary.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
 	if _, ok := _c.mutation.Color(); !ok {
-		v := alertlevel.DefaultColor
+		v := alertdictionary.DefaultColor
 		_c.mutation.SetColor(v)
 	}
 	if _, ok := _c.mutation.Status(); !ok {
-		v := alertlevel.DefaultStatus
+		v := alertdictionary.DefaultStatus
 		_c.mutation.SetStatus(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_c *AlertLevelCreate) check() error {
+func (_c *AlertDictionaryCreate) check() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "AlertLevel.created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "AlertDictionary.created_at"`)}
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "AlertLevel.updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "AlertDictionary.updated_at"`)}
 	}
 	if _, ok := _c.mutation.UID(); !ok {
-		return &ValidationError{Name: "uid", err: errors.New(`ent: missing required field "AlertLevel.uid"`)}
+		return &ValidationError{Name: "uid", err: errors.New(`ent: missing required field "AlertDictionary.uid"`)}
 	}
 	if v, ok := _c.mutation.UID(); ok {
-		if err := alertlevel.UIDValidator(v); err != nil {
-			return &ValidationError{Name: "uid", err: fmt.Errorf(`ent: validator failed for field "AlertLevel.uid": %w`, err)}
+		if err := alertdictionary.UIDValidator(v); err != nil {
+			return &ValidationError{Name: "uid", err: fmt.Errorf(`ent: validator failed for field "AlertDictionary.uid": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.NamespaceUID(); !ok {
-		return &ValidationError{Name: "namespace_uid", err: errors.New(`ent: missing required field "AlertLevel.namespace_uid"`)}
+		return &ValidationError{Name: "namespace_uid", err: errors.New(`ent: missing required field "AlertDictionary.namespace_uid"`)}
 	}
 	if v, ok := _c.mutation.NamespaceUID(); ok {
-		if err := alertlevel.NamespaceUIDValidator(v); err != nil {
-			return &ValidationError{Name: "namespace_uid", err: fmt.Errorf(`ent: validator failed for field "AlertLevel.namespace_uid": %w`, err)}
+		if err := alertdictionary.NamespaceUIDValidator(v); err != nil {
+			return &ValidationError{Name: "namespace_uid", err: fmt.Errorf(`ent: validator failed for field "AlertDictionary.namespace_uid": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "AlertLevel.name"`)}
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "AlertDictionary.name"`)}
 	}
 	if v, ok := _c.mutation.Name(); ok {
-		if err := alertlevel.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "AlertLevel.name": %w`, err)}
+		if err := alertdictionary.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "AlertDictionary.name": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Color(); !ok {
-		return &ValidationError{Name: "color", err: errors.New(`ent: missing required field "AlertLevel.color"`)}
+		return &ValidationError{Name: "color", err: errors.New(`ent: missing required field "AlertDictionary.color"`)}
 	}
 	if _, ok := _c.mutation.GetType(); !ok {
-		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "AlertLevel.type"`)}
+		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "AlertDictionary.type"`)}
 	}
 	if v, ok := _c.mutation.GetType(); ok {
-		if err := alertlevel.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "AlertLevel.type": %w`, err)}
+		if err := alertdictionary.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "AlertDictionary.type": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
-		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "AlertLevel.status"`)}
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "AlertDictionary.status"`)}
 	}
 	if v, ok := _c.mutation.Status(); ok {
-		if err := alertlevel.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "AlertLevel.status": %w`, err)}
+		if err := alertdictionary.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "AlertDictionary.status": %w`, err)}
 		}
 	}
 	return nil
 }
 
-func (_c *AlertLevelCreate) sqlSave(ctx context.Context) (*AlertLevel, error) {
+func (_c *AlertDictionaryCreate) sqlSave(ctx context.Context) (*AlertDictionary, error) {
 	if err := _c.check(); err != nil {
 		return nil, err
 	}
@@ -239,71 +239,71 @@ func (_c *AlertLevelCreate) sqlSave(ctx context.Context) (*AlertLevel, error) {
 	return _node, nil
 }
 
-func (_c *AlertLevelCreate) createSpec() (*AlertLevel, *sqlgraph.CreateSpec) {
+func (_c *AlertDictionaryCreate) createSpec() (*AlertDictionary, *sqlgraph.CreateSpec) {
 	var (
-		_node = &AlertLevel{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(alertlevel.Table, sqlgraph.NewFieldSpec(alertlevel.FieldID, field.TypeInt))
+		_node = &AlertDictionary{config: _c.config}
+		_spec = sqlgraph.NewCreateSpec(alertdictionary.Table, sqlgraph.NewFieldSpec(alertdictionary.FieldID, field.TypeInt))
 	)
 	if value, ok := _c.mutation.CreatedAt(); ok {
-		_spec.SetField(alertlevel.FieldCreatedAt, field.TypeTime, value)
+		_spec.SetField(alertdictionary.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
 	if value, ok := _c.mutation.UpdatedAt(); ok {
-		_spec.SetField(alertlevel.FieldUpdatedAt, field.TypeTime, value)
+		_spec.SetField(alertdictionary.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
 	if value, ok := _c.mutation.DeletedAt(); ok {
-		_spec.SetField(alertlevel.FieldDeletedAt, field.TypeTime, value)
+		_spec.SetField(alertdictionary.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = &value
 	}
 	if value, ok := _c.mutation.UID(); ok {
-		_spec.SetField(alertlevel.FieldUID, field.TypeString, value)
+		_spec.SetField(alertdictionary.FieldUID, field.TypeString, value)
 		_node.UID = value
 	}
 	if value, ok := _c.mutation.NamespaceUID(); ok {
-		_spec.SetField(alertlevel.FieldNamespaceUID, field.TypeString, value)
+		_spec.SetField(alertdictionary.FieldNamespaceUID, field.TypeString, value)
 		_node.NamespaceUID = value
 	}
 	if value, ok := _c.mutation.Name(); ok {
-		_spec.SetField(alertlevel.FieldName, field.TypeString, value)
+		_spec.SetField(alertdictionary.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
 	if value, ok := _c.mutation.Color(); ok {
-		_spec.SetField(alertlevel.FieldColor, field.TypeString, value)
+		_spec.SetField(alertdictionary.FieldColor, field.TypeString, value)
 		_node.Color = value
 	}
 	if value, ok := _c.mutation.GetType(); ok {
-		_spec.SetField(alertlevel.FieldType, field.TypeEnum, value)
+		_spec.SetField(alertdictionary.FieldType, field.TypeEnum, value)
 		_node.Type = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
-		_spec.SetField(alertlevel.FieldStatus, field.TypeEnum, value)
+		_spec.SetField(alertdictionary.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
 	return _node, _spec
 }
 
-// AlertLevelCreateBulk is the builder for creating many AlertLevel entities in bulk.
-type AlertLevelCreateBulk struct {
+// AlertDictionaryCreateBulk is the builder for creating many AlertDictionary entities in bulk.
+type AlertDictionaryCreateBulk struct {
 	config
 	err      error
-	builders []*AlertLevelCreate
+	builders []*AlertDictionaryCreate
 }
 
-// Save creates the AlertLevel entities in the database.
-func (_c *AlertLevelCreateBulk) Save(ctx context.Context) ([]*AlertLevel, error) {
+// Save creates the AlertDictionary entities in the database.
+func (_c *AlertDictionaryCreateBulk) Save(ctx context.Context) ([]*AlertDictionary, error) {
 	if _c.err != nil {
 		return nil, _c.err
 	}
 	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
-	nodes := make([]*AlertLevel, len(_c.builders))
+	nodes := make([]*AlertDictionary, len(_c.builders))
 	mutators := make([]Mutator, len(_c.builders))
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				mutation, ok := m.(*AlertLevelMutation)
+				mutation, ok := m.(*AlertDictionaryMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
 				}
@@ -350,7 +350,7 @@ func (_c *AlertLevelCreateBulk) Save(ctx context.Context) ([]*AlertLevel, error)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_c *AlertLevelCreateBulk) SaveX(ctx context.Context) []*AlertLevel {
+func (_c *AlertDictionaryCreateBulk) SaveX(ctx context.Context) []*AlertDictionary {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -359,13 +359,13 @@ func (_c *AlertLevelCreateBulk) SaveX(ctx context.Context) []*AlertLevel {
 }
 
 // Exec executes the query.
-func (_c *AlertLevelCreateBulk) Exec(ctx context.Context) error {
+func (_c *AlertDictionaryCreateBulk) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *AlertLevelCreateBulk) ExecX(ctx context.Context) {
+func (_c *AlertDictionaryCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}

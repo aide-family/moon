@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { formMessage } from "@/lib/form-error"
 
 import { listAgents } from "@/api/agent"
 import type { AgentItem } from "@/api/agent/types"
@@ -50,7 +51,7 @@ export function K8sPage() {
       const body = reply.body ? atob(reply.body) : ""
       setResult(`${reply.statusCode}\n${body}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
       setResult("")
     } finally {
       setPending(false)

@@ -15,10 +15,10 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/agent"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertlevel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
@@ -54,14 +54,14 @@ type Client struct {
 	Schema *migrate.Schema
 	// Agent is the client for interacting with the Agent builders.
 	Agent *AgentClient
+	// AlertDictionary is the client for interacting with the AlertDictionary builders.
+	AlertDictionary *AlertDictionaryClient
 	// AlertEvalBatch is the client for interacting with the AlertEvalBatch builders.
 	AlertEvalBatch *AlertEvalBatchClient
 	// AlertEvent is the client for interacting with the AlertEvent builders.
 	AlertEvent *AlertEventClient
 	// AlertEventFiring is the client for interacting with the AlertEventFiring builders.
 	AlertEventFiring *AlertEventFiringClient
-	// AlertLevel is the client for interacting with the AlertLevel builders.
-	AlertLevel *AlertLevelClient
 	// AlertPage is the client for interacting with the AlertPage builders.
 	AlertPage *AlertPageClient
 	// AlertRule is the client for interacting with the AlertRule builders.
@@ -126,10 +126,10 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Agent = NewAgentClient(c.config)
+	c.AlertDictionary = NewAlertDictionaryClient(c.config)
 	c.AlertEvalBatch = NewAlertEvalBatchClient(c.config)
 	c.AlertEvent = NewAlertEventClient(c.config)
 	c.AlertEventFiring = NewAlertEventFiringClient(c.config)
-	c.AlertLevel = NewAlertLevelClient(c.config)
 	c.AlertPage = NewAlertPageClient(c.config)
 	c.AlertRule = NewAlertRuleClient(c.config)
 	c.AlertRuleGroup = NewAlertRuleGroupClient(c.config)
@@ -249,10 +249,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:                        ctx,
 		config:                     cfg,
 		Agent:                      NewAgentClient(cfg),
+		AlertDictionary:            NewAlertDictionaryClient(cfg),
 		AlertEvalBatch:             NewAlertEvalBatchClient(cfg),
 		AlertEvent:                 NewAlertEventClient(cfg),
 		AlertEventFiring:           NewAlertEventFiringClient(cfg),
-		AlertLevel:                 NewAlertLevelClient(cfg),
 		AlertPage:                  NewAlertPageClient(cfg),
 		AlertRule:                  NewAlertRuleClient(cfg),
 		AlertRuleGroup:             NewAlertRuleGroupClient(cfg),
@@ -299,10 +299,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:                        ctx,
 		config:                     cfg,
 		Agent:                      NewAgentClient(cfg),
+		AlertDictionary:            NewAlertDictionaryClient(cfg),
 		AlertEvalBatch:             NewAlertEvalBatchClient(cfg),
 		AlertEvent:                 NewAlertEventClient(cfg),
 		AlertEventFiring:           NewAlertEventFiringClient(cfg),
-		AlertLevel:                 NewAlertLevelClient(cfg),
 		AlertPage:                  NewAlertPageClient(cfg),
 		AlertRule:                  NewAlertRuleClient(cfg),
 		AlertRuleGroup:             NewAlertRuleGroupClient(cfg),
@@ -358,7 +358,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Agent, c.AlertEvalBatch, c.AlertEvent, c.AlertEventFiring, c.AlertLevel,
+		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventFiring,
 		c.AlertPage, c.AlertRule, c.AlertRuleGroup, c.AlertRuleLevel,
 		c.AlertRuleNotificationGroup, c.Captcha, c.Datasource, c.EmailLoginCode,
 		c.K8sProxyAudit, c.Member, c.MemberRole, c.MessageLog, c.Namespace,
@@ -374,7 +374,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Agent, c.AlertEvalBatch, c.AlertEvent, c.AlertEventFiring, c.AlertLevel,
+		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventFiring,
 		c.AlertPage, c.AlertRule, c.AlertRuleGroup, c.AlertRuleLevel,
 		c.AlertRuleNotificationGroup, c.Captcha, c.Datasource, c.EmailLoginCode,
 		c.K8sProxyAudit, c.Member, c.MemberRole, c.MessageLog, c.Namespace,
@@ -391,14 +391,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AgentMutation:
 		return c.Agent.mutate(ctx, m)
+	case *AlertDictionaryMutation:
+		return c.AlertDictionary.mutate(ctx, m)
 	case *AlertEvalBatchMutation:
 		return c.AlertEvalBatch.mutate(ctx, m)
 	case *AlertEventMutation:
 		return c.AlertEvent.mutate(ctx, m)
 	case *AlertEventFiringMutation:
 		return c.AlertEventFiring.mutate(ctx, m)
-	case *AlertLevelMutation:
-		return c.AlertLevel.mutate(ctx, m)
 	case *AlertPageMutation:
 		return c.AlertPage.mutate(ctx, m)
 	case *AlertRuleMutation:
@@ -586,6 +586,139 @@ func (c *AgentClient) mutate(ctx context.Context, m *AgentMutation) (Value, erro
 		return (&AgentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Agent mutation op: %q", m.Op())
+	}
+}
+
+// AlertDictionaryClient is a client for the AlertDictionary schema.
+type AlertDictionaryClient struct {
+	config
+}
+
+// NewAlertDictionaryClient returns a client for the AlertDictionary from the given config.
+func NewAlertDictionaryClient(c config) *AlertDictionaryClient {
+	return &AlertDictionaryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `alertdictionary.Hooks(f(g(h())))`.
+func (c *AlertDictionaryClient) Use(hooks ...Hook) {
+	c.hooks.AlertDictionary = append(c.hooks.AlertDictionary, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `alertdictionary.Intercept(f(g(h())))`.
+func (c *AlertDictionaryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AlertDictionary = append(c.inters.AlertDictionary, interceptors...)
+}
+
+// Create returns a builder for creating a AlertDictionary entity.
+func (c *AlertDictionaryClient) Create() *AlertDictionaryCreate {
+	mutation := newAlertDictionaryMutation(c.config, OpCreate)
+	return &AlertDictionaryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AlertDictionary entities.
+func (c *AlertDictionaryClient) CreateBulk(builders ...*AlertDictionaryCreate) *AlertDictionaryCreateBulk {
+	return &AlertDictionaryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AlertDictionaryClient) MapCreateBulk(slice any, setFunc func(*AlertDictionaryCreate, int)) *AlertDictionaryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AlertDictionaryCreateBulk{err: fmt.Errorf("calling to AlertDictionaryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AlertDictionaryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AlertDictionaryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AlertDictionary.
+func (c *AlertDictionaryClient) Update() *AlertDictionaryUpdate {
+	mutation := newAlertDictionaryMutation(c.config, OpUpdate)
+	return &AlertDictionaryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AlertDictionaryClient) UpdateOne(_m *AlertDictionary) *AlertDictionaryUpdateOne {
+	mutation := newAlertDictionaryMutation(c.config, OpUpdateOne, withAlertDictionary(_m))
+	return &AlertDictionaryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AlertDictionaryClient) UpdateOneID(id int) *AlertDictionaryUpdateOne {
+	mutation := newAlertDictionaryMutation(c.config, OpUpdateOne, withAlertDictionaryID(id))
+	return &AlertDictionaryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AlertDictionary.
+func (c *AlertDictionaryClient) Delete() *AlertDictionaryDelete {
+	mutation := newAlertDictionaryMutation(c.config, OpDelete)
+	return &AlertDictionaryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AlertDictionaryClient) DeleteOne(_m *AlertDictionary) *AlertDictionaryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AlertDictionaryClient) DeleteOneID(id int) *AlertDictionaryDeleteOne {
+	builder := c.Delete().Where(alertdictionary.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AlertDictionaryDeleteOne{builder}
+}
+
+// Query returns a query builder for AlertDictionary.
+func (c *AlertDictionaryClient) Query() *AlertDictionaryQuery {
+	return &AlertDictionaryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAlertDictionary},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AlertDictionary entity by its id.
+func (c *AlertDictionaryClient) Get(ctx context.Context, id int) (*AlertDictionary, error) {
+	return c.Query().Where(alertdictionary.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AlertDictionaryClient) GetX(ctx context.Context, id int) *AlertDictionary {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AlertDictionaryClient) Hooks() []Hook {
+	return c.hooks.AlertDictionary
+}
+
+// Interceptors returns the client interceptors.
+func (c *AlertDictionaryClient) Interceptors() []Interceptor {
+	return c.inters.AlertDictionary
+}
+
+func (c *AlertDictionaryClient) mutate(ctx context.Context, m *AlertDictionaryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AlertDictionaryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AlertDictionaryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AlertDictionaryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AlertDictionaryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AlertDictionary mutation op: %q", m.Op())
 	}
 }
 
@@ -985,139 +1118,6 @@ func (c *AlertEventFiringClient) mutate(ctx context.Context, m *AlertEventFiring
 		return (&AlertEventFiringDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AlertEventFiring mutation op: %q", m.Op())
-	}
-}
-
-// AlertLevelClient is a client for the AlertLevel schema.
-type AlertLevelClient struct {
-	config
-}
-
-// NewAlertLevelClient returns a client for the AlertLevel from the given config.
-func NewAlertLevelClient(c config) *AlertLevelClient {
-	return &AlertLevelClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `alertlevel.Hooks(f(g(h())))`.
-func (c *AlertLevelClient) Use(hooks ...Hook) {
-	c.hooks.AlertLevel = append(c.hooks.AlertLevel, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `alertlevel.Intercept(f(g(h())))`.
-func (c *AlertLevelClient) Intercept(interceptors ...Interceptor) {
-	c.inters.AlertLevel = append(c.inters.AlertLevel, interceptors...)
-}
-
-// Create returns a builder for creating a AlertLevel entity.
-func (c *AlertLevelClient) Create() *AlertLevelCreate {
-	mutation := newAlertLevelMutation(c.config, OpCreate)
-	return &AlertLevelCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of AlertLevel entities.
-func (c *AlertLevelClient) CreateBulk(builders ...*AlertLevelCreate) *AlertLevelCreateBulk {
-	return &AlertLevelCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *AlertLevelClient) MapCreateBulk(slice any, setFunc func(*AlertLevelCreate, int)) *AlertLevelCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &AlertLevelCreateBulk{err: fmt.Errorf("calling to AlertLevelClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*AlertLevelCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &AlertLevelCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for AlertLevel.
-func (c *AlertLevelClient) Update() *AlertLevelUpdate {
-	mutation := newAlertLevelMutation(c.config, OpUpdate)
-	return &AlertLevelUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *AlertLevelClient) UpdateOne(_m *AlertLevel) *AlertLevelUpdateOne {
-	mutation := newAlertLevelMutation(c.config, OpUpdateOne, withAlertLevel(_m))
-	return &AlertLevelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *AlertLevelClient) UpdateOneID(id int) *AlertLevelUpdateOne {
-	mutation := newAlertLevelMutation(c.config, OpUpdateOne, withAlertLevelID(id))
-	return &AlertLevelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for AlertLevel.
-func (c *AlertLevelClient) Delete() *AlertLevelDelete {
-	mutation := newAlertLevelMutation(c.config, OpDelete)
-	return &AlertLevelDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *AlertLevelClient) DeleteOne(_m *AlertLevel) *AlertLevelDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *AlertLevelClient) DeleteOneID(id int) *AlertLevelDeleteOne {
-	builder := c.Delete().Where(alertlevel.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &AlertLevelDeleteOne{builder}
-}
-
-// Query returns a query builder for AlertLevel.
-func (c *AlertLevelClient) Query() *AlertLevelQuery {
-	return &AlertLevelQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeAlertLevel},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a AlertLevel entity by its id.
-func (c *AlertLevelClient) Get(ctx context.Context, id int) (*AlertLevel, error) {
-	return c.Query().Where(alertlevel.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *AlertLevelClient) GetX(ctx context.Context, id int) *AlertLevel {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *AlertLevelClient) Hooks() []Hook {
-	return c.hooks.AlertLevel
-}
-
-// Interceptors returns the client interceptors.
-func (c *AlertLevelClient) Interceptors() []Interceptor {
-	return c.inters.AlertLevel
-}
-
-func (c *AlertLevelClient) mutate(ctx context.Context, m *AlertLevelMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&AlertLevelCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&AlertLevelUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&AlertLevelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&AlertLevelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown AlertLevel mutation op: %q", m.Op())
 	}
 }
 
@@ -4582,7 +4582,7 @@ func (c *UserOAuthClient) mutate(ctx context.Context, m *UserOAuthMutation) (Val
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Agent, AlertEvalBatch, AlertEvent, AlertEventFiring, AlertLevel, AlertPage,
+		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventFiring, AlertPage,
 		AlertRule, AlertRuleGroup, AlertRuleLevel, AlertRuleNotificationGroup, Captcha,
 		Datasource, EmailLoginCode, K8sProxyAudit, Member, MemberRole, MessageLog,
 		Namespace, NotificationChannel, NotificationGroup, NotificationTask,
@@ -4590,7 +4590,7 @@ type (
 		SSHCommandAudit, User, UserAlertPage, UserOAuth []ent.Hook
 	}
 	inters struct {
-		Agent, AlertEvalBatch, AlertEvent, AlertEventFiring, AlertLevel, AlertPage,
+		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventFiring, AlertPage,
 		AlertRule, AlertRuleGroup, AlertRuleLevel, AlertRuleNotificationGroup, Captcha,
 		Datasource, EmailLoginCode, K8sProxyAudit, Member, MemberRole, MessageLog,
 		Namespace, NotificationChannel, NotificationGroup, NotificationTask,

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { failureText, formMessage } from "@/lib/form-error"
 
 import { selectNotificationChannels } from "@/api/notification-channel"
 import type { SelectItem } from "@/api/notification-channel/types"
@@ -44,6 +45,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { firstError, requireSelected, requireTrimmed } from "@/lib/form"
+import { enumLabel } from "@/lib/enum-label"
 import { useListQuery } from "@/lib/list-query"
 
 export function NotificationGroupPage() {
@@ -57,6 +59,7 @@ export function NotificationGroupPage() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [loadError, setLoadError] = useState("")
   const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<NotificationGroupItem | null>(null)
@@ -94,9 +97,10 @@ export function NotificationGroupPage() {
         setTotal(result.total ?? 0)
         setChannels(channelResult.items ?? [])
         setTemplates(templateResult.items ?? [])
-      } catch {
+      } catch (err) {
         if (active) {
           setFailed(true)
+          setLoadError(failureText(err, ""))
           setItems([])
         }
       } finally {
@@ -156,7 +160,7 @@ export function NotificationGroupPage() {
       setOpen(false)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -177,7 +181,7 @@ export function NotificationGroupPage() {
       setConfirm(null)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setConfirmError(err instanceof Error ? err.message : t("state.failed"))
+      setConfirmError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -224,7 +228,7 @@ export function NotificationGroupPage() {
         {loading ? <p className="text-sm text-muted-foreground">{t("state.loading")}</p> : null}
         {!loading && failed ? (
           <div className="flex items-center gap-2">
-            <p className="text-sm text-destructive">{t("state.failed")}</p>
+            <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
             <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
               {t("action.retry")}
             </Button>
@@ -246,7 +250,7 @@ export function NotificationGroupPage() {
                 <TableRow key={item.uid}>
                   <TableCell>{item.name}</TableCell>
                   <TableCell>{item.receivers}</TableCell>
-                  <TableCell>{item.status}</TableCell>
+                  <TableCell>{enumLabel(t, item.status)}</TableCell>
                   <TableCell>
                     <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
                   </TableCell>

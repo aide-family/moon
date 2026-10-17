@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { failureText } from "@/lib/form-error"
 import { useSearchParams } from "react-router-dom"
 
 import {
@@ -23,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { enumLabel } from "@/lib/enum-label"
 import { useListQuery } from "@/lib/list-query"
 
 export function MessageLogPage() {
@@ -36,6 +38,7 @@ export function MessageLogPage() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [loadError, setLoadError] = useState("")
   const [attempt, setAttempt] = useState(0)
   const [detailLog, setDetailLog] = useState<MessageLogItem | null>(null)
   const [detailTask, setDetailTask] = useState<NotificationTaskItem | null>(null)
@@ -62,9 +65,10 @@ export function MessageLogPage() {
           setLogs(result.items ?? [])
           setTotal(result.total ?? 0)
         }
-      } catch {
+      } catch (err) {
         if (active) {
           setFailed(true)
+          setLoadError(failureText(err, ""))
           setLogs([])
           setTasks([])
         }
@@ -136,7 +140,7 @@ export function MessageLogPage() {
         {loading ? <p className="text-sm text-muted-foreground">{t("state.loading")}</p> : null}
         {!loading && failed ? (
           <div className="flex items-center gap-2">
-            <p className="text-sm text-destructive">{t("state.failed")}</p>
+            <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
             <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
               {t("action.retry")}
             </Button>
@@ -157,7 +161,7 @@ export function MessageLogPage() {
             <TableBody>
               {logs.map((item) => (
                 <TableRow key={item.uid}>
-                  <TableCell>{item.status}</TableCell>
+                  <TableCell>{enumLabel(t, item.status)}</TableCell>
                   <TableCell>{item.receivers}</TableCell>
                   <TableCell className="max-w-xs truncate">{item.detail}</TableCell>
                   <TableCell>
@@ -182,8 +186,8 @@ export function MessageLogPage() {
             <TableBody>
               {tasks.map((item) => (
                 <TableRow key={item.uid}>
-                  <TableCell>{item.phase}</TableCell>
-                  <TableCell>{item.status}</TableCell>
+                  <TableCell>{enumLabel(t, item.phase)}</TableCell>
+                  <TableCell>{enumLabel(t, item.status)}</TableCell>
                   <TableCell>{item.retriesLeft}</TableCell>
                   <TableCell className="max-w-xs truncate">{item.lastError}</TableCell>
                   <TableCell>
@@ -207,7 +211,7 @@ export function MessageLogPage() {
           detailLog
             ? [
                 { label: t("detail.uid"), value: detailLog.uid },
-                { label: t("messageLog.status"), value: detailLog.status },
+                { label: t("messageLog.status"), value: enumLabel(t, detailLog.status) },
                 { label: t("messageLog.receivers"), value: detailLog.receivers },
                 { label: t("messageLog.detail"), value: detailLog.detail },
               ]
@@ -226,8 +230,8 @@ export function MessageLogPage() {
           detailTask
             ? [
                 { label: t("detail.uid"), value: detailTask.uid },
-                { label: t("messageLog.phase"), value: detailTask.phase },
-                { label: t("messageLog.status"), value: detailTask.status },
+                { label: t("messageLog.phase"), value: enumLabel(t, detailTask.phase) },
+                { label: t("messageLog.status"), value: enumLabel(t, detailTask.status) },
                 { label: t("messageLog.detail"), value: detailTask.lastError },
               ]
             : []

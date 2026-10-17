@@ -108,12 +108,12 @@ M5 依赖 M1 的身份与权限，不依赖告警评测。M7 在 M3、M4、M6 �
 
 交付：
 
-- 实体：`Datasource`、`AlertLevel`、`AlertRuleGroup`、`AlertRule`、`AlertRuleLevel`
+- 实体：`Datasource`、`AlertDictionary`、`AlertRuleGroup`、`AlertRule`、`AlertRuleLevel`
 - 数据源类型与驱动：Metrics（Prometheus、VictoriaMetrics）、Logs（Elasticsearch）、Trace（Jaeger）
 - 指标数据源的状态、指标列表、指标详情、即时查询、区间查询、代理查询
 - 规则组、规则、比较条件（EQ、NE、GT、GTE、LT、LTE、IN、NOT_IN）和采样（FOR、MAX、MIN）
 - 密钥字段加密后入库
-- Web 页面：数据源（左侧列表、右侧查询）、规则组与规则（左侧分组、右侧明细）、告警级别
+- Web 页面：数据源（左侧列表、右侧查询）、规则组与规则（左侧分组、右侧明细）、告警字典
 
 验收：
 

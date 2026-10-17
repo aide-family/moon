@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertlevel"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
@@ -452,7 +452,7 @@ func (r *alertRuleRepo) withLevels(ctx context.Context, namespaceUID string, row
 	}
 	names := map[string]string{}
 	if len(levelUIDs) > 0 {
-		levels, err := r.client.AlertLevel.Query().Where(alertlevel.UIDIn(levelUIDs...), alertlevel.DeletedAtIsNil()).All(ctx)
+		levels, err := r.client.AlertDictionary.Query().Where(alertdictionary.UIDIn(levelUIDs...), alertdictionary.DeletedAtIsNil()).All(ctx)
 		if err != nil {
 			return nil, r.fail(err)
 		}

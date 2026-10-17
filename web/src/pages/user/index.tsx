@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { failureText, formMessage } from "@/lib/form-error"
 
 import { banUser, listUsers, permitUser } from "@/api/user"
 import type { UserItem } from "@/api/user/types"
@@ -8,6 +9,7 @@ import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { enumLabel } from "@/lib/enum-label"
 import { useListQuery } from "@/lib/list-query"
 import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
@@ -30,6 +32,7 @@ export function UserPage() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [loadError, setLoadError] = useState("")
   const [attempt, setAttempt] = useState(0)
   const [detail, setDetail] = useState<UserItem | null>(null)
   const [banning, setBanning] = useState<UserItem | null>(null)
@@ -52,9 +55,10 @@ export function UserPage() {
         }
         setItems(result.items ?? [])
         setTotal(result.total ?? 0)
-      } catch {
+      } catch (err) {
         if (active) {
           setFailed(true)
+          setLoadError(failureText(err, ""))
           setItems([])
         }
       } finally {
@@ -85,7 +89,7 @@ export function UserPage() {
       setBanning(null)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setConfirmError(err instanceof Error ? err.message : t("state.failed"))
+      setConfirmError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -152,7 +156,7 @@ export function UserPage() {
           ) : null}
           {!loading && failed ? (
             <div className="flex items-center gap-2">
-              <p className="text-sm text-destructive">{t("state.failed")}</p>
+              <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
               <Button
                 variant="outline"
                 onClick={() => setAttempt((value) => value + 1)}
@@ -179,7 +183,7 @@ export function UserPage() {
                   <TableRow key={item.uid}>
                     <TableCell>{item.name}</TableCell>
                     <TableCell>{item.email}</TableCell>
-                    <TableCell>{item.status}</TableCell>
+                    <TableCell>{enumLabel(t, item.status)}</TableCell>
                     <TableCell>
                       <RowActions
                         detailLabel={t("action.detail")}
@@ -206,7 +210,7 @@ export function UserPage() {
           { label: t("user.name"), value: detail?.name ?? "" },
           { label: t("user.nickname"), value: detail?.nickname ?? "" },
           { label: t("login.emailLabel"), value: detail?.email ?? "" },
-          { label: t("namespace.status"), value: detail?.status ?? "" },
+          { label: t("namespace.status"), value: enumLabel(t, detail?.status ?? "") },
           { label: t("profile.remark"), value: detail?.remark ?? "" },
           { label: t("detail.uid"), value: detail?.uid ?? "" },
         ]}

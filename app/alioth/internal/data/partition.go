@@ -18,6 +18,12 @@ var partitionedTables = []string{"alert_events", "message_logs"}
 // ApplySchema 创建表，并把空的告警事件和消息日志转成按 created_at 的周分区表。
 // 已经分区时跳过这些表，避免生成器把主键改回单列 id。
 func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
+	if err := renameAlertDictionaries(ctx, db); err != nil {
+		return err
+	}
+	if err := prepareAlertEvalBatches(ctx, db); err != nil {
+		return err
+	}
 	opts := []entschema.MigrateOption{}
 	for _, name := range partitionedTables {
 		kind, err := relationKind(ctx, db, name)
@@ -38,6 +44,61 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 		if err := ensureWeekPartitions(ctx, db, name, time.Now().UTC()); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// renameAlertDictionaries 把旧的 alert_levels 表和索引改成告警字典的名字。
+// ent 的 Schema.Create 不会改已有表名，不改的话会另建一张空表。
+func renameAlertDictionaries(ctx context.Context, db *sql.DB) error {
+	kind, err := relationKind(ctx, db, "alert_levels")
+	if err != nil || kind != "r" {
+		return err
+	}
+	statements := []string{
+		`ALTER TABLE alert_levels RENAME TO alert_dictionaries`,
+		`ALTER INDEX IF EXISTS alertlevel_uid RENAME TO alertdictionary_uid`,
+		`ALTER INDEX IF EXISTS alertlevel_namespace_uid_name RENAME TO alertdictionary_namespace_uid_name`,
+		`ALTER INDEX IF EXISTS alertlevel_namespace_uid RENAME TO alertdictionary_namespace_uid`,
+	}
+	for _, statement := range statements {
+		if _, err := db.ExecContext(ctx, statement); err != nil {
+			slog.Default().Error(fmt.Sprintf("schema: %v", err))
+			return merr.Server("request failed")
+		}
+	}
+	return nil
+}
+
+// prepareAlertEvalBatches 给旧表补上 datasource_uid。
+// 这列是后加的非空字段，表里已有行时直接 ALTER 会因空值失败。
+// 旧的 (rule_uid, eval_slot) 唯一索引也要去掉，改由 (rule_uid, datasource_uid, eval_slot) 约束。
+func prepareAlertEvalBatches(ctx context.Context, db *sql.DB) error {
+	kind, err := relationKind(ctx, db, "alert_eval_batches")
+	if err != nil || kind != "r" {
+		return err
+	}
+	var exists bool
+	if err := db.QueryRowContext(ctx, `SELECT EXISTS (
+		SELECT 1 FROM information_schema.columns
+		WHERE table_schema = 'public' AND table_name = 'alert_eval_batches' AND column_name = 'datasource_uid'
+	)`).Scan(&exists); err != nil {
+		slog.Default().Error(fmt.Sprintf("schema: %v", err))
+		return merr.Server("request failed")
+	}
+	if !exists {
+		if _, err := db.ExecContext(ctx, `ALTER TABLE alert_eval_batches ADD COLUMN datasource_uid character varying NOT NULL DEFAULT ''`); err != nil {
+			slog.Default().Error(fmt.Sprintf("schema: %v", err))
+			return merr.Server("request failed")
+		}
+		if _, err := db.ExecContext(ctx, `ALTER TABLE alert_eval_batches ALTER COLUMN datasource_uid DROP DEFAULT`); err != nil {
+			slog.Default().Error(fmt.Sprintf("schema: %v", err))
+			return merr.Server("request failed")
+		}
+	}
+	if _, err := db.ExecContext(ctx, `DROP INDEX IF EXISTS alertevalbatch_rule_uid_eval_slot`); err != nil {
+		slog.Default().Error(fmt.Sprintf("schema: %v", err))
+		return merr.Server("request failed")
 	}
 	return nil
 }

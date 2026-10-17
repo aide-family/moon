@@ -25,14 +25,14 @@ type DatasourceRepo interface {
 	ProxyQuery(ctx context.Context, item bo.Datasource, method, path, body string) (string, error)
 }
 
-// AlertLevelRepo 读写告警级别和数据源级别。
-type AlertLevelRepo interface {
-	CreateAlertLevel(ctx context.Context, in bo.AlertLevel) (*bo.AlertLevel, error)
-	UpdateAlertLevel(ctx context.Context, in bo.AlertLevel) (*bo.AlertLevel, error)
-	UpdateAlertLevelStatus(ctx context.Context, namespaceUID, uid, status string) (*bo.AlertLevel, error)
-	DeleteAlertLevel(ctx context.Context, namespaceUID, uid string) error
-	GetAlertLevel(ctx context.Context, namespaceUID, uid string) (*bo.AlertLevel, error)
-	ListAlertLevels(ctx context.Context, namespaceUID string, page, pageSize int, kind, name string) ([]bo.AlertLevel, int, error)
+// AlertDictionaryRepo 读写告警字典。条目类型是告警级别或数据源级别。
+type AlertDictionaryRepo interface {
+	CreateAlertDictionary(ctx context.Context, in bo.AlertDictionary) (*bo.AlertDictionary, error)
+	UpdateAlertDictionary(ctx context.Context, in bo.AlertDictionary) (*bo.AlertDictionary, error)
+	UpdateAlertDictionaryStatus(ctx context.Context, namespaceUID, uid, status string) (*bo.AlertDictionary, error)
+	DeleteAlertDictionary(ctx context.Context, namespaceUID, uid string) error
+	GetAlertDictionary(ctx context.Context, namespaceUID, uid string) (*bo.AlertDictionary, error)
+	ListAlertDictionaries(ctx context.Context, namespaceUID string, page, pageSize int, kind, name string) ([]bo.AlertDictionary, int, error)
 }
 
 // AlertRuleRepo 读写规则组、规则和级别条件，并给出到期候选。

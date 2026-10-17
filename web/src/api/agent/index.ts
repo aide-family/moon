@@ -43,6 +43,11 @@ export function getAgent(uid: string): Promise<{ agent: AgentItem }> {
   return get<{ agent: AgentItem }>(`/agent/${uid}`)
 }
 
+/** POST /v1/agent/{uid}/shell-ticket */
+export function issueShellTicket(uid: string): Promise<{ ticket: string }> {
+  return post<{ ticket: string }>(`/agent/${uid}/shell-ticket`, {})
+}
+
 export type {
   AgentItem,
   CreateAgentParams,

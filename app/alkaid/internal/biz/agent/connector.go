@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/wire"
@@ -38,6 +39,9 @@ type Connector struct {
 	log       *slog.Logger
 	cancel    context.CancelFunc
 	done      chan struct{}
+	sendMu    sync.Mutex
+	shellMu   sync.Mutex
+	shell     *liveShell
 }
 
 func NewConnector(d *data.Data, logger *slog.Logger) (*Connector, error) {
@@ -114,9 +118,12 @@ func (c *Connector) session(ctx context.Context) error {
 	}
 	hostname, _ := os.Hostname()
 	machineID := readMachineID()
-	if err := stream.Send(&v1.AgentFrame{Register: &v1.AgentRegister{
+	if err := c.send(stream, &v1.AgentFrame{Register: &v1.AgentRegister{
 		Hostname: hostname, MachineId: machineID, LocalIp: localIP(), Version: "alkaid-dev",
 	}}); err != nil {
+		return err
+	}
+	if err := stream.Send(c.machineFrame()); err != nil {
 		return err
 	}
 	errCh := make(chan error, 2)
@@ -131,7 +138,11 @@ func (c *Connector) session(ctx context.Context) error {
 				return
 			case <-ticker.C:
 				seq++
-				if err := stream.Send(&v1.AgentFrame{Heartbeat: &v1.AgentHeartbeat{Seq: seq}}); err != nil {
+				if err := c.send(stream, &v1.AgentFrame{Heartbeat: &v1.AgentHeartbeat{Seq: seq}}); err != nil {
+					errCh <- err
+					return
+				}
+				if err := stream.Send(c.machineFrame()); err != nil {
 					errCh <- err
 					return
 				}
@@ -155,28 +166,45 @@ func (c *Connector) session(ctx context.Context) error {
 			}
 			if req := frame.GetExecRequest(); req != nil {
 				result := c.exec(req)
-				if err := stream.Send(&v1.AgentFrame{ExecResult: result}); err != nil {
+				if err := c.send(stream, &v1.AgentFrame{ExecResult: result}); err != nil {
 					errCh <- err
 					return
 				}
 			}
 			if req := frame.GetSftpRequest(); req != nil {
 				result := c.sftp(req)
-				if err := stream.Send(&v1.AgentFrame{SftpResult: result}); err != nil {
+				if err := c.send(stream, &v1.AgentFrame{SftpResult: result}); err != nil {
 					errCh <- err
 					return
 				}
 			}
 			if req := frame.GetK8SRequest(); req != nil {
 				result := c.k8s(req)
-				if err := stream.Send(&v1.AgentFrame{K8SResult: result}); err != nil {
+				if err := c.send(stream, &v1.AgentFrame{K8SResult: result}); err != nil {
 					errCh <- err
 					return
 				}
 			}
+			c.handleShell(stream, frame)
 		}
 	}()
-	return <-errCh
+	err = <-errCh
+	c.closeShell()
+	return err
+}
+
+func (c *Connector) send(stream v1.AgentService_ConnectClient, frame *v1.AgentFrame) error {
+	c.sendMu.Lock()
+	defer c.sendMu.Unlock()
+	return stream.Send(frame)
+}
+
+func (c *Connector) machineFrame() *v1.AgentFrame {
+	hostname, _ := os.Hostname()
+	return &v1.AgentFrame{MachineInfo: &v1.AgentMachineInfo{
+		Hostname: hostname, MachineId: readMachineID(), LocalIp: localIP(), Version: "alkaid-dev",
+		CollectJson: collectJSON(),
+	}}
 }
 
 func (c *Connector) exec(req *v1.AgentExecRequest) *v1.AgentExecResult {

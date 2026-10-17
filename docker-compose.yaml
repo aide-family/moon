@@ -26,3 +26,18 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
+  alkaid:
+    profiles: ["alkaid"]
+    build:
+      context: ./deploy/alkaid
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - ./deploy/alkaid/alkaid.env
+    environment:
+      ALKAID_ALIOTH_GRPC_ADDR: host.docker.internal:9000
+    volumes:
+      - ./bin/alkaid-linux:/usr/local/bin/alkaid:ro
+      - ./deploy/alkaid/alkaid.yaml:/etc/alioth/alkaid.yaml:ro
+    ports:
+      - "2222:22"

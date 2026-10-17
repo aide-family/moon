@@ -30,7 +30,7 @@ func NewHTTPServer(
 	datasources *service.DatasourceService,
 	queries *service.MetricQueryService,
 	rules *service.AlertRuleService,
-	levels *service.AlertLevelService,
+	dictionaries *service.AlertDictionaryService,
 	alertPages *service.AlertPageService,
 	events *service.AlertEventService,
 	channels *service.NotificationChannelService,
@@ -78,7 +78,7 @@ func NewHTTPServer(
 	v1.RegisterDatasourceServiceHTTPServer(srv, datasources)
 	v1.RegisterMetricQueryServiceHTTPServer(srv, queries)
 	v1.RegisterAlertRuleServiceHTTPServer(srv, rules)
-	v1.RegisterAlertLevelServiceHTTPServer(srv, levels)
+	v1.RegisterAlertDictionaryServiceHTTPServer(srv, dictionaries)
 	v1.RegisterAlertPageServiceHTTPServer(srv, alertPages)
 	v1.RegisterAlertEventServiceHTTPServer(srv, events)
 	v1.RegisterNotificationChannelServiceHTTPServer(srv, channels)
@@ -89,5 +89,6 @@ func NewHTTPServer(
 	v1.RegisterSSHCommandServiceHTTPServer(srv, sshCommands)
 	v1.RegisterSFTPServiceHTTPServer(srv, sftpSvc)
 	v1.RegisterK8SProxyServiceHTTPServer(srv, k8sSvc)
+	srv.HandleFunc("/v1/agent/{uid}/shell", agents.ServeShell)
 	return srv, nil
 }

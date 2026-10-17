@@ -5,9 +5,9 @@ GOBIN := $(shell $(GO) env GOPATH)/bin
 export PATH := $(GOBIN):$(PATH)
 PROTO_INC ?= /opt/homebrew/include
 
-.PHONY: tools api conf build build-alioth build-megrez build-merak build-alkaid build-web \
+.PHONY: tools api conf build build-alioth build-megrez build-merak build-alkaid build-alkaid-linux build-web \
 	run-alioth run-megrez run-merak run-alkaid run-web \
-	test test-pkg migrate compose-up compose-down tidy wire
+	test test-pkg migrate compose-up compose-down compose-alkaid tidy wire
 
 # Kratos v3 CLI and HTTP/error generators. Pin a known-good pseudo-version so PATH
 # does not keep a v2 protoc-gen-go-http. CLI install uses module cache + go build
@@ -54,6 +54,9 @@ build-merak:
 build-alkaid:
 	$(GO) build -C $(ROOT)app/alkaid -o $(BIN)/alkaid ./cmd/alkaid
 
+build-alkaid-linux:
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GO) build -C $(ROOT)app/alkaid -o $(BIN)/alkaid-linux ./cmd/alkaid
+
 build-web:
 	npm --prefix $(ROOT)web ci
 	npm --prefix $(ROOT)web run build
@@ -91,6 +94,10 @@ compose-up:
 
 compose-down:
 	docker compose -f $(ROOT)docker-compose.yaml down
+
+compose-alkaid: build-alkaid-linux
+	docker compose -f $(ROOT)docker-compose.yaml --profile alkaid down alkaid
+	docker compose -f $(ROOT)docker-compose.yaml --profile alkaid up -d --build alkaid
 
 tidy:
 	$(GO) mod tidy -C $(ROOT)pkg

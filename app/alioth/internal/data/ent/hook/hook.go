@@ -21,6 +21,18 @@ func (f AgentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AgentMutation", m)
 }
 
+// The AlertDictionaryFunc type is an adapter to allow the use of ordinary
+// function as AlertDictionary mutator.
+type AlertDictionaryFunc func(context.Context, *ent.AlertDictionaryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertDictionaryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertDictionaryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertDictionaryMutation", m)
+}
+
 // The AlertEvalBatchFunc type is an adapter to allow the use of ordinary
 // function as AlertEvalBatch mutator.
 type AlertEvalBatchFunc func(context.Context, *ent.AlertEvalBatchMutation) (ent.Value, error)
@@ -55,18 +67,6 @@ func (f AlertEventFiringFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertEventFiringMutation", m)
-}
-
-// The AlertLevelFunc type is an adapter to allow the use of ordinary
-// function as AlertLevel mutator.
-type AlertLevelFunc func(context.Context, *ent.AlertLevelMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f AlertLevelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.AlertLevelMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertLevelMutation", m)
 }
 
 // The AlertPageFunc type is an adapter to allow the use of ordinary

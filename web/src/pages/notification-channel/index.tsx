@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { failureText, formMessage } from "@/lib/form-error"
 
 import {
   createNotificationChannel,
@@ -43,6 +44,7 @@ import {
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { firstError, requireTrimmed } from "@/lib/form"
+import { enumLabel } from "@/lib/enum-label"
 import { useListQuery } from "@/lib/list-query"
 
 const types = ["SMTP", "WEBHOOK"]
@@ -57,6 +59,7 @@ export function NotificationChannelPage() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [loadError, setLoadError] = useState("")
   const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
   const [testOpen, setTestOpen] = useState(false)
@@ -97,9 +100,10 @@ export function NotificationChannelPage() {
         }
         setItems(result.items ?? [])
         setTotal(result.total ?? 0)
-      } catch {
+      } catch (err) {
         if (active) {
           setFailed(true)
+          setLoadError(failureText(err, ""))
           setItems([])
         }
       } finally {
@@ -187,7 +191,7 @@ export function NotificationChannelPage() {
       setOpen(false)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -210,7 +214,7 @@ export function NotificationChannelPage() {
       setTestOpen(false)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -231,7 +235,7 @@ export function NotificationChannelPage() {
       setConfirm(null)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setConfirmError(err instanceof Error ? err.message : t("state.failed"))
+      setConfirmError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -279,7 +283,7 @@ export function NotificationChannelPage() {
         {loading ? <p className="text-sm text-muted-foreground">{t("state.loading")}</p> : null}
         {!loading && failed ? (
           <div className="flex items-center gap-2">
-            <p className="text-sm text-destructive">{t("state.failed")}</p>
+            <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
             <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
               {t("action.retry")}
             </Button>
@@ -302,10 +306,10 @@ export function NotificationChannelPage() {
               {items.map((item) => (
                 <TableRow key={item.uid}>
                   <TableCell>{item.name}</TableCell>
-                  <TableCell>{item.type}</TableCell>
-                  <TableCell>{item.app}</TableCell>
+                  <TableCell>{enumLabel(t, item.type)}</TableCell>
+                  <TableCell>{enumLabel(t, item.app)}</TableCell>
                   <TableCell className="max-w-xs truncate">{item.endpoint}</TableCell>
-                  <TableCell>{item.status}</TableCell>
+                  <TableCell>{enumLabel(t, item.status)}</TableCell>
                   <TableCell>
                     <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
                   </TableCell>
@@ -332,7 +336,7 @@ export function NotificationChannelPage() {
                 <SelectContent>
                   {types.map((item) => (
                     <SelectItem key={item} value={item}>
-                      {item}
+                      {enumLabel(t, item)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -346,7 +350,7 @@ export function NotificationChannelPage() {
                 <SelectContent>
                   {apps.map((item) => (
                     <SelectItem key={item} value={item}>
-                      {item}
+                      {enumLabel(t, item)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -415,10 +419,10 @@ export function NotificationChannelPage() {
           detail
             ? [
                 { label: t("detail.uid"), value: detail.uid },
-                { label: t("channel.type"), value: detail.type },
-                { label: t("channel.app"), value: detail.app },
+                { label: t("channel.type"), value: enumLabel(t, detail.type) },
+                { label: t("channel.app"), value: enumLabel(t, detail.app) },
                 { label: t("channel.endpoint"), value: detail.endpoint },
-                { label: t("namespace.status"), value: detail.status },
+                { label: t("namespace.status"), value: enumLabel(t, detail.status) },
               ]
             : []
         }

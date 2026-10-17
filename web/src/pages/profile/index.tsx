@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { failureText, formMessage } from "@/lib/form-error"
 
 import { changeRemark, getSelfInfo } from "@/api/self"
 import type { UserItem } from "@/api/user/types"
@@ -20,6 +21,7 @@ export function ProfilePage() {
   const [remark, setRemark] = useState("")
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [loadError, setLoadError] = useState("")
   const [error, setError] = useState("")
   const [saved, setSaved] = useState(false)
   const [pending, setPending] = useState(false)
@@ -37,9 +39,10 @@ export function ProfilePage() {
         }
         setUser(info.user)
         setRemark(info.user.remark)
-      } catch {
+      } catch (err) {
         if (active) {
           setFailed(true)
+          setLoadError(failureText(err, ""))
         }
       } finally {
         if (active) {
@@ -63,7 +66,7 @@ export function ProfilePage() {
       setUser(info.user)
       setSaved(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -80,7 +83,7 @@ export function ProfilePage() {
       ) : null}
       {!loading && (failed || !user) ? (
         <div className="flex items-center gap-2">
-          <p className="text-sm text-destructive">{t("state.failed")}</p>
+          <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
           <Button
             variant="outline"
             onClick={() => setAttempt((value) => value + 1)}

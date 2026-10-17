@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
+import { failureText, formMessage } from "@/lib/form-error"
 
 import {
   createAgent,
@@ -36,10 +38,12 @@ import {
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { requireTrimmed } from "@/lib/form"
+import { enumLabel } from "@/lib/enum-label"
 import { useListQuery } from "@/lib/list-query"
 
 export function AgentPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const session = useSession()
   const query = useListQuery()
   const [draft, setDraft] = useState(query.name)
@@ -47,6 +51,7 @@ export function AgentPage() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [loadError, setLoadError] = useState("")
   const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<AgentItem | null>(null)
@@ -69,6 +74,7 @@ export function AgentPage() {
     shown.current = confirm
   }
   const canWrite = session.can("agent:write")
+  const canExec = session.can("ssh:exec")
 
   useEffect(() => {
     let active = true
@@ -82,9 +88,10 @@ export function AgentPage() {
         }
         setItems(result.items ?? [])
         setTotal(result.total ?? 0)
-      } catch {
+      } catch (err) {
         if (active) {
           setFailed(true)
+          setLoadError(failureText(err, ""))
           setItems([])
         }
       } finally {
@@ -155,7 +162,7 @@ export function AgentPage() {
       }
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -169,7 +176,7 @@ export function AgentPage() {
       setTokenOpen(true)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -190,22 +197,27 @@ export function AgentPage() {
       setConfirm(null)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setConfirmError(err instanceof Error ? err.message : t("state.failed"))
+      setConfirmError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
   }
 
   function actions(item: AgentItem): RowAction[] {
-    if (!canWrite) {
-      return []
+    const list: RowAction[] = []
+    if (canExec && item.online) {
+      list.push({ key: "login", label: t("agent.login"), onSelect: () => navigate(`/agents/${item.uid}/shell`) })
     }
-    return [
+    if (!canWrite) {
+      return list
+    }
+    list.push(
       { key: "edit", label: t("action.edit"), onSelect: () => openEdit(item) },
       { key: "rotate", label: t("agent.rotate"), onSelect: () => void onRotate(item) },
       { key: "revoke", label: t("agent.revoke"), destructive: true, onSelect: () => setConfirm({ action: "revoke", item }) },
       { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm({ action: "delete", item }) },
-    ]
+    )
+    return list
   }
 
   return (
@@ -236,7 +248,7 @@ export function AgentPage() {
         {loading ? <p className="text-sm text-muted-foreground">{t("state.loading")}</p> : null}
         {!loading && failed ? (
           <div className="flex items-center gap-2">
-            <p className="text-sm text-destructive">{t("state.failed")}</p>
+            <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
             <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
               {t("action.retry")}
             </Button>
@@ -250,6 +262,10 @@ export function AgentPage() {
                 <TableHead>{t("agent.name")}</TableHead>
                 <TableHead>{t("agent.hostname")}</TableHead>
                 <TableHead>{t("agent.localIp")}</TableHead>
+                <TableHead>{t("agent.os")}</TableHead>
+                <TableHead>{t("agent.cpu")}</TableHead>
+                <TableHead>{t("agent.memory")}</TableHead>
+                <TableHead>{t("agent.disk")}</TableHead>
                 <TableHead>{t("agent.online")}</TableHead>
                 <TableHead>{t("namespace.status")}</TableHead>
                 <TableHead />
@@ -261,8 +277,12 @@ export function AgentPage() {
                   <TableCell>{item.name}</TableCell>
                   <TableCell>{item.hostname || "-"}</TableCell>
                   <TableCell>{item.localIp || "-"}</TableCell>
+                  <TableCell>{item.osVersion || item.os || "-"}</TableCell>
+                  <TableCell className="max-w-48 truncate" title={item.cpu}>{item.cpu || "-"}</TableCell>
+                  <TableCell>{item.memory || "-"}</TableCell>
+                  <TableCell>{item.disk || "-"}</TableCell>
                   <TableCell>{item.online ? t("agent.onlineYes") : t("agent.onlineNo")}</TableCell>
-                  <TableCell>{item.status}</TableCell>
+                  <TableCell>{enumLabel(t, item.status)}</TableCell>
                   <TableCell>
                     <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
                   </TableCell>
@@ -324,6 +344,7 @@ export function AgentPage() {
         </DialogContent>
       </Dialog>
       <DetailSheet
+        wide
         open={detail !== null}
         title={detail?.name ?? ""}
         onOpenChange={(value) => {
@@ -338,6 +359,14 @@ export function AgentPage() {
                 { label: t("agent.hostname"), value: detail.hostname || "-" },
                 { label: t("agent.machineId"), value: detail.machineId || "-" },
                 { label: t("agent.localIp"), value: detail.localIp || "-" },
+                { label: t("agent.os"), value: detail.os || "-" },
+                { label: t("agent.arch"), value: detail.arch || "-" },
+                { label: t("agent.osVersion"), value: detail.osVersion || "-" },
+                { label: t("agent.cpu"), value: detail.cpu || "-" },
+                { label: t("agent.disk"), value: detail.disk || "-" },
+                { label: t("agent.memory"), value: detail.memory || "-" },
+                { label: t("agent.bootTime"), value: detail.bootTime || "-" },
+                { label: t("agent.timeServer"), value: detail.timeServer || "-" },
                 { label: t("agent.version"), value: detail.version || "-" },
                 { label: t("agent.online"), value: detail.online ? t("agent.onlineYes") : t("agent.onlineNo") },
                 { label: t("agent.sshHost"), value: detail.sshHost || "-" },

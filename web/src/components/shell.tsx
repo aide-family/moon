@@ -7,16 +7,12 @@ import {
   FileText,
   Gauge,
   History,
-  Languages,
   LayoutList,
   Mail,
   MessageSquare,
-  Moon,
   Server,
   Settings,
   Shield,
-  Sun,
-  SunMoon,
   Terminal,
   User,
   UserRound,
@@ -35,7 +31,7 @@ import {
 } from "react-router-dom"
 
 import { SessionProvider, useSession } from "@/auth/session"
-import { useTheme } from "@/components/theme-provider"
+import { LocaleThemeMenu } from "@/components/locale-theme-menu"
 import { Button } from "@/components/ui/button"
 import {
   Collapsible,
@@ -47,8 +43,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -131,8 +125,8 @@ const alertLinks: {
     icon: Bell,
   },
   {
-    to: "/alert-levels",
-    label: "nav.alertLevels",
+    to: "/alert-dictionaries",
+    label: "nav.alertDictionaries",
     permission: "alert_rule:read",
     icon: Gauge,
   },
@@ -274,8 +268,7 @@ function NavGroup({
 }
 
 function ShellFrame() {
-  const { t, i18n } = useTranslation()
-  const { theme, setTheme } = useTheme()
+  const { t } = useTranslation()
   const session = useSession()
   const navigate = useNavigate()
   const location = useLocation()
@@ -333,20 +326,6 @@ function ShellFrame() {
     localStorage.removeItem("namespace")
     navigate("/login")
   }
-
-  function setLanguage(language: string) {
-    localStorage.setItem("lang", language)
-    void i18n.changeLanguage(language)
-  }
-
-  function onTheme(value: string) {
-    if (value === "light" || value === "dark" || value === "system") {
-      setTheme(value)
-    }
-  }
-
-  const language = i18n.language.startsWith("zh") ? "zh" : "en"
-  const ThemeIcon = theme === "dark" ? Moon : theme === "system" ? SunMoon : Sun
 
   return (
     <TooltipProvider>
@@ -432,54 +411,7 @@ function ShellFrame() {
                   </SelectContent>
                 </Select>
               ) : null}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={t("lang.label")}
-                  >
-                    <Languages />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuRadioGroup
-                    value={language}
-                    onValueChange={setLanguage}
-                  >
-                    <DropdownMenuRadioItem value="zh">
-                      {t("lang.zh")}
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="en">
-                      {t("lang.en")}
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={t("theme.label")}
-                  >
-                    <ThemeIcon />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuRadioGroup value={theme} onValueChange={onTheme}>
-                    <DropdownMenuRadioItem value="light">
-                      {t("theme.light")}
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="dark">
-                      {t("theme.dark")}
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="system">
-                      {t("theme.system")}
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <LocaleThemeMenu />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button

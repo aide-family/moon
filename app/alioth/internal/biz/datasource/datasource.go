@@ -18,13 +18,13 @@ import (
 var ProviderSet = wire.NewSet(NewUsecase)
 
 type Usecase struct {
-	datasources repository.DatasourceRepo
-	levels      repository.AlertLevelRepo
-	access      access.Checker
+	datasources  repository.DatasourceRepo
+	dictionaries repository.AlertDictionaryRepo
+	access       access.Checker
 }
 
-func NewUsecase(datasources repository.DatasourceRepo, levels repository.AlertLevelRepo, checker access.Checker) *Usecase {
-	return &Usecase{datasources: datasources, levels: levels, access: checker}
+func NewUsecase(datasources repository.DatasourceRepo, dictionaries repository.AlertDictionaryRepo, checker access.Checker) *Usecase {
+	return &Usecase{datasources: datasources, dictionaries: dictionaries, access: checker}
 }
 
 // CreateDatasource 先核对类型和驱动是否成对，再确认数据源级别属于当前租户。
@@ -205,7 +205,7 @@ func (uc *Usecase) requireDatasourceLevel(ctx context.Context, namespaceUID, lev
 	if levelUID == "" {
 		return nil
 	}
-	level, err := uc.levels.GetAlertLevel(ctx, namespaceUID, levelUID)
+	level, err := uc.dictionaries.GetAlertDictionary(ctx, namespaceUID, levelUID)
 	if err != nil {
 		return uc.access.Wrap(err)
 	}

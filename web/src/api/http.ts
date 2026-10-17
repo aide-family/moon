@@ -1,11 +1,71 @@
+import i18n from "@/i18n"
+import { toast } from "sonner"
+
 const baseURL = "/v1"
+
+const messageKeys: Record<string, string> = {
+  "captcha is invalid": "error.captchaInvalid",
+  "email already exists": "error.emailExists",
+  "invalid email or password": "error.invalidLogin",
+  "invalid email or code": "error.invalidCode",
+  "email is not registered": "error.emailNotRegistered",
+}
+
+const fieldByMessage: Record<string, string> = {
+  "captcha is invalid": "captchaCode",
+  "email already exists": "email",
+  "email is not registered": "email",
+}
 
 export class ApiError extends Error {
   status: number
+  fields: Record<string, string>
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, fields: Record<string, string> = {}) {
     super(message)
     this.status = status
+    this.fields = fields
+  }
+}
+
+export function localizeMessage(message: string): string {
+  const key = messageKeys[message]
+  return key ? i18n.t(key) : message
+}
+
+function fieldName(raw: string): string {
+  const snake = raw.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`).replace(/^_/, "")
+  return snake.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase())
+}
+
+export function parseFieldErrors(message: string): Record<string, string> {
+  const known = fieldByMessage[message]
+  if (known) {
+    return { [known]: localizeMessage(message) }
+  }
+  const fields: Record<string, string> = {}
+  const pattern = /invalid\s+[\w.]+\.(\w+)\s*:\s*([^;\n]+)/gi
+  for (const match of message.matchAll(pattern)) {
+    const name = fieldName(match[1])
+    fields[name] = localizeMessage(match[2].trim())
+  }
+  return fields
+}
+
+function staysOnAuthForm(path: string): boolean {
+  return path.startsWith("/auth/") || path === "/captcha"
+}
+
+function notifyStatus(status: number, message: string) {
+  if (status === 404) {
+    toast(message || i18n.t("error.notFound"))
+    return
+  }
+  if (status >= 500) {
+    toast.error(i18n.t("error.server"), {
+      description: message || undefined,
+      duration: 8000,
+    })
   }
 }
 
@@ -24,12 +84,15 @@ export async function request(path: string, init: RequestInit = {}): Promise<Res
   }
 
   const response = await fetch(`${baseURL}${path}`, { ...init, headers })
-  if (response.status === 401 && !path.startsWith("/auth/") && path !== "/captcha") {
+  if (response.status === 401 && !staysOnAuthForm(path)) {
     localStorage.removeItem("token")
     localStorage.removeItem("refreshToken")
     if (window.location.pathname !== "/login") {
       window.location.assign("/login")
     }
+  }
+  if (response.status === 403 && window.location.pathname !== "/forbidden") {
+    window.location.assign("/forbidden")
   }
   return response
 }
@@ -37,9 +100,22 @@ export async function request(path: string, init: RequestInit = {}): Promise<Res
 export async function send<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await request(path, init)
   const text = await response.text()
-  const data = text ? (JSON.parse(text) as { message?: string }) : {}
+  let data: { message?: string } = {}
+  if (text) {
+    try {
+      data = JSON.parse(text) as { message?: string }
+    } catch {
+      data = { message: text }
+    }
+  }
   if (!response.ok) {
-    throw new ApiError(response.status, data.message || `request failed: ${response.status}`)
+    const raw = data.message || `request failed: ${response.status}`
+    const message = localizeMessage(raw)
+    const fields = response.status === 400 ? parseFieldErrors(raw) : {}
+    if (response.status === 404 || response.status >= 500) {
+      notifyStatus(response.status, message)
+    }
+    throw new ApiError(response.status, message, fields)
   }
   return data as T
 }

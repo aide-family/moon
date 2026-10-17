@@ -9,11 +9,11 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertlevel"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
 )
 
-// AlertLevel is the model entity for the AlertLevel schema.
-type AlertLevel struct {
+// AlertDictionary is the model entity for the AlertDictionary schema.
+type AlertDictionary struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
@@ -32,22 +32,22 @@ type AlertLevel struct {
 	// Color holds the value of the "color" field.
 	Color string `json:"color,omitempty"`
 	// Type holds the value of the "type" field.
-	Type alertlevel.Type `json:"type,omitempty"`
+	Type alertdictionary.Type `json:"type,omitempty"`
 	// Status holds the value of the "status" field.
-	Status       alertlevel.Status `json:"status,omitempty"`
+	Status       alertdictionary.Status `json:"status,omitempty"`
 	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*AlertLevel) scanValues(columns []string) ([]any, error) {
+func (*AlertDictionary) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case alertlevel.FieldID:
+		case alertdictionary.FieldID:
 			values[i] = new(sql.NullInt64)
-		case alertlevel.FieldUID, alertlevel.FieldNamespaceUID, alertlevel.FieldName, alertlevel.FieldColor, alertlevel.FieldType, alertlevel.FieldStatus:
+		case alertdictionary.FieldUID, alertdictionary.FieldNamespaceUID, alertdictionary.FieldName, alertdictionary.FieldColor, alertdictionary.FieldType, alertdictionary.FieldStatus:
 			values[i] = new(sql.NullString)
-		case alertlevel.FieldCreatedAt, alertlevel.FieldUpdatedAt, alertlevel.FieldDeletedAt:
+		case alertdictionary.FieldCreatedAt, alertdictionary.FieldUpdatedAt, alertdictionary.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -57,73 +57,73 @@ func (*AlertLevel) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the AlertLevel fields.
-func (_m *AlertLevel) assignValues(columns []string, values []any) error {
+// to the AlertDictionary fields.
+func (_m *AlertDictionary) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case alertlevel.FieldID:
+		case alertdictionary.FieldID:
 			value, ok := values[i].(*sql.NullInt64)
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
-		case alertlevel.FieldCreatedAt:
+		case alertdictionary.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				_m.CreatedAt = value.Time
 			}
-		case alertlevel.FieldUpdatedAt:
+		case alertdictionary.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
 			}
-		case alertlevel.FieldDeletedAt:
+		case alertdictionary.FieldDeletedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
 			} else if value.Valid {
 				_m.DeletedAt = new(time.Time)
 				*_m.DeletedAt = value.Time
 			}
-		case alertlevel.FieldUID:
+		case alertdictionary.FieldUID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field uid", values[i])
 			} else if value.Valid {
 				_m.UID = value.String
 			}
-		case alertlevel.FieldNamespaceUID:
+		case alertdictionary.FieldNamespaceUID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field namespace_uid", values[i])
 			} else if value.Valid {
 				_m.NamespaceUID = value.String
 			}
-		case alertlevel.FieldName:
+		case alertdictionary.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				_m.Name = value.String
 			}
-		case alertlevel.FieldColor:
+		case alertdictionary.FieldColor:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field color", values[i])
 			} else if value.Valid {
 				_m.Color = value.String
 			}
-		case alertlevel.FieldType:
+		case alertdictionary.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field type", values[i])
 			} else if value.Valid {
-				_m.Type = alertlevel.Type(value.String)
+				_m.Type = alertdictionary.Type(value.String)
 			}
-		case alertlevel.FieldStatus:
+		case alertdictionary.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
-				_m.Status = alertlevel.Status(value.String)
+				_m.Status = alertdictionary.Status(value.String)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -132,34 +132,34 @@ func (_m *AlertLevel) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the AlertLevel.
+// Value returns the ent.Value that was dynamically selected and assigned to the AlertDictionary.
 // This includes values selected through modifiers, order, etc.
-func (_m *AlertLevel) Value(name string) (ent.Value, error) {
+func (_m *AlertDictionary) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// Update returns a builder for updating this AlertLevel.
-// Note that you need to call AlertLevel.Unwrap() before calling this method if this AlertLevel
+// Update returns a builder for updating this AlertDictionary.
+// Note that you need to call AlertDictionary.Unwrap() before calling this method if this AlertDictionary
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (_m *AlertLevel) Update() *AlertLevelUpdateOne {
-	return NewAlertLevelClient(_m.config).UpdateOne(_m)
+func (_m *AlertDictionary) Update() *AlertDictionaryUpdateOne {
+	return NewAlertDictionaryClient(_m.config).UpdateOne(_m)
 }
 
-// Unwrap unwraps the AlertLevel entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the AlertDictionary entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (_m *AlertLevel) Unwrap() *AlertLevel {
+func (_m *AlertDictionary) Unwrap() *AlertDictionary {
 	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: AlertLevel is not a transactional entity")
+		panic("ent: AlertDictionary is not a transactional entity")
 	}
 	_m.config.driver = _tx.drv
 	return _m
 }
 
 // String implements the fmt.Stringer.
-func (_m *AlertLevel) String() string {
+func (_m *AlertDictionary) String() string {
 	var builder strings.Builder
-	builder.WriteString("AlertLevel(")
+	builder.WriteString("AlertDictionary(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
@@ -193,5 +193,5 @@ func (_m *AlertLevel) String() string {
 	return builder.String()
 }
 
-// AlertLevels is a parsable slice of AlertLevel.
-type AlertLevels []*AlertLevel
+// AlertDictionaries is a parsable slice of AlertDictionary.
+type AlertDictionaries []*AlertDictionary

@@ -19,6 +19,9 @@ type Session struct {
 	Results      map[string]chan *v1.AgentExecResult
 	SFTPResults  map[string]chan *v1.AgentSFTPResult
 	K8sResults   map[string]chan *v1.AgentK8SResult
+	shellData    chan []byte
+	shellClosed  chan string
+	shellUID     string
 	mu           sync.Mutex
 }
 
@@ -36,6 +39,7 @@ func (h *Hub) Put(session *Session) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if old, ok := h.sessions[session.AgentUID]; ok {
+		old.finishShell("replaced")
 		close(old.Send)
 	}
 	h.sessions[session.AgentUID] = session
@@ -46,6 +50,7 @@ func (h *Hub) Remove(agentUID string, session *Session) {
 	defer h.mu.Unlock()
 	if cur, ok := h.sessions[agentUID]; ok && cur == session {
 		delete(h.sessions, agentUID)
+		session.finishShell("disconnected")
 		close(session.Send)
 	}
 }
@@ -157,6 +162,84 @@ func (h *Hub) SendK8s(agentUID string, frame *v1.AgentFrame) (<-chan *v1.AgentK8
 		session.mu.Unlock()
 		return nil, merr.Invalid("agent is offline")
 	}
+}
+
+// ClaimShell 占用这台机器上唯一的终端。新的登录会结束上一份终端。
+func (h *Hub) ClaimShell(agentUID, sessionUID string) (<-chan []byte, <-chan string, error) {
+	session, ok := h.Get(agentUID)
+	if !ok {
+		return nil, nil, merr.Invalid("agent is offline")
+	}
+	session.mu.Lock()
+	defer session.mu.Unlock()
+	if session.shellClosed != nil {
+		select {
+		case session.shellClosed <- "replaced":
+		default:
+		}
+	}
+	session.shellUID = sessionUID
+	session.shellData = make(chan []byte, 64)
+	session.shellClosed = make(chan string, 1)
+	return session.shellData, session.shellClosed, nil
+}
+
+// PushFrame 把一帧写入存活流。
+func (h *Hub) PushFrame(agentUID string, frame *v1.AgentFrame) error {
+	session, ok := h.Get(agentUID)
+	if !ok {
+		return merr.Invalid("agent is offline")
+	}
+	select {
+	case session.Send <- frame:
+		return nil
+	default:
+		return merr.Invalid("agent is offline")
+	}
+}
+
+func (s *Session) DeliverShell(sessionUID string, data []byte) {
+	s.mu.Lock()
+	ch := s.shellData
+	match := s.shellUID == sessionUID
+	s.mu.Unlock()
+	if !match || ch == nil {
+		return
+	}
+	select {
+	case ch <- append([]byte(nil), data...):
+	default:
+	}
+}
+
+func (s *Session) FinishShell(sessionUID, reason string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.shellUID != sessionUID || s.shellClosed == nil {
+		return
+	}
+	select {
+	case s.shellClosed <- reason:
+	default:
+	}
+	s.shellData = nil
+	s.shellClosed = nil
+	s.shellUID = ""
+}
+
+func (s *Session) finishShell(reason string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.shellClosed == nil {
+		return
+	}
+	select {
+	case s.shellClosed <- reason:
+	default:
+	}
+	s.shellData = nil
+	s.shellClosed = nil
+	s.shellUID = ""
 }
 
 func (s *Session) DeliverK8s(result *v1.AgentK8SResult) {

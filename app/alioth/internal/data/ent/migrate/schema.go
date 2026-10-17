@@ -64,6 +64,45 @@ var (
 			},
 		},
 	}
+	// AlertDictionariesColumns holds the columns for the "alert_dictionaries" table.
+	AlertDictionariesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "color", Type: field.TypeString, Default: ""},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"ALERT", "DATASOURCE"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+	}
+	// AlertDictionariesTable holds the schema information for the "alert_dictionaries" table.
+	AlertDictionariesTable = &schema.Table{
+		Name:       "alert_dictionaries",
+		Columns:    AlertDictionariesColumns,
+		PrimaryKey: []*schema.Column{AlertDictionariesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alertdictionary_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertDictionariesColumns[4]},
+			},
+			{
+				Name:    "alertdictionary_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{AlertDictionariesColumns[5], AlertDictionariesColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "alertdictionary_namespace_uid",
+				Unique:  false,
+				Columns: []*schema.Column{AlertDictionariesColumns[5]},
+			},
+		},
+	}
 	// AlertEvalBatchesColumns holds the columns for the "alert_eval_batches" table.
 	AlertEvalBatchesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -163,45 +202,6 @@ var (
 				Name:    "alerteventfiring_rule_uid",
 				Unique:  false,
 				Columns: []*schema.Column{AlertEventFiringsColumns[4]},
-			},
-		},
-	}
-	// AlertLevelsColumns holds the columns for the "alert_levels" table.
-	AlertLevelsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "namespace_uid", Type: field.TypeString},
-		{Name: "name", Type: field.TypeString},
-		{Name: "color", Type: field.TypeString, Default: ""},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"ALERT", "DATASOURCE"}},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
-	}
-	// AlertLevelsTable holds the schema information for the "alert_levels" table.
-	AlertLevelsTable = &schema.Table{
-		Name:       "alert_levels",
-		Columns:    AlertLevelsColumns,
-		PrimaryKey: []*schema.Column{AlertLevelsColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "alertlevel_uid",
-				Unique:  true,
-				Columns: []*schema.Column{AlertLevelsColumns[4]},
-			},
-			{
-				Name:    "alertlevel_namespace_uid_name",
-				Unique:  true,
-				Columns: []*schema.Column{AlertLevelsColumns[5], AlertLevelsColumns[6]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "deleted_at IS NULL",
-				},
-			},
-			{
-				Name:    "alertlevel_namespace_uid",
-				Unique:  false,
-				Columns: []*schema.Column{AlertLevelsColumns[5]},
 			},
 		},
 	}
@@ -1182,10 +1182,10 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AgentsTable,
+		AlertDictionariesTable,
 		AlertEvalBatchesTable,
 		AlertEventsTable,
 		AlertEventFiringsTable,
-		AlertLevelsTable,
 		AlertPagesTable,
 		AlertRulesTable,
 		AlertRuleGroupsTable,

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { failureText, formMessage } from "@/lib/form-error"
 
 import { listAgents } from "@/api/agent"
 import type { AgentItem } from "@/api/agent/types"
@@ -29,14 +30,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -46,7 +41,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
-import { firstError, requireSelected, requireTrimmed } from "@/lib/form"
+import { firstError, requireTrimmed } from "@/lib/form"
+import { enumLabel } from "@/lib/enum-label"
 import { useListQuery } from "@/lib/list-query"
 
 export function SSHCommandPage() {
@@ -58,6 +54,7 @@ export function SSHCommandPage() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [loadError, setLoadError] = useState("")
   const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<SSHCommandItem | null>(null)
@@ -72,10 +69,10 @@ export function SSHCommandPage() {
   const [execOpen, setExecOpen] = useState(false)
   const [executing, setExecuting] = useState<SSHCommandItem | null>(null)
   const [agents, setAgents] = useState<AgentItem[]>([])
-  const [agentUid, setAgentUid] = useState("")
+  const [agentUids, setAgentUids] = useState<string[]>([])
   const [audits, setAudits] = useState<SSHCommandAuditItem[]>([])
   const [auditOpen, setAuditOpen] = useState(false)
-  const [lastAudit, setLastAudit] = useState<SSHCommandAuditItem | null>(null)
+  const [lastAudits, setLastAudits] = useState<SSHCommandAuditItem[]>([])
   const [confirm, setConfirm] = useState<SSHCommandItem | null>(null)
   const [confirmError, setConfirmError] = useState("")
   const shown = useRef(confirm)
@@ -97,9 +94,10 @@ export function SSHCommandPage() {
         }
         setItems(result.items ?? [])
         setTotal(result.total ?? 0)
-      } catch {
+      } catch (err) {
         if (active) {
           setFailed(true)
+          setLoadError(failureText(err, ""))
           setItems([])
         }
       } finally {
@@ -138,7 +136,7 @@ export function SSHCommandPage() {
 
   async function openExec(item: SSHCommandItem) {
     setExecuting(item)
-    setAgentUid("")
+    setAgentUids([])
     setError("")
     try {
       const result = await listAgents({ page: 1, pageSize: 100 })
@@ -179,7 +177,7 @@ export function SSHCommandPage() {
       setOpen(false)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -190,20 +188,19 @@ export function SSHCommandPage() {
     if (!executing) {
       return
     }
-    const invalid = requireSelected(agentUid, t("form.required"))
-    if (invalid) {
-      setError(invalid)
+    if (agentUids.length === 0) {
+      setError(t("form.required"))
       return
     }
     setPending(true)
     setError("")
     try {
-      const result = await executeSSHCommand(executing.uid, agentUid)
+      const result = await executeSSHCommand(executing.uid, agentUids)
       setExecOpen(false)
-      setLastAudit(result.audit)
+      setLastAudits(result.audits ?? [])
       setAttempt((value) => value + 1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -220,7 +217,7 @@ export function SSHCommandPage() {
       setConfirm(null)
       setAttempt((value) => value + 1)
     } catch (err) {
-      setConfirmError(err instanceof Error ? err.message : t("state.failed"))
+      setConfirmError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -229,12 +226,13 @@ export function SSHCommandPage() {
   function actions(item: SSHCommandItem): RowAction[] {
     const list: RowAction[] = [{ key: "audits", label: t("ssh.audits"), onSelect: () => void openAudits(item) }]
     if (canWrite) {
-      list.push(
-        { key: "edit", label: t("action.edit"), onSelect: () => openEdit(item) },
-        { key: "approve", label: t("ssh.approve"), onSelect: () => void approveSSHCommand(item.uid).then(() => setAttempt((value) => value + 1)) },
-        { key: "reject", label: t("ssh.reject"), destructive: true, onSelect: () => void rejectSSHCommand(item.uid).then(() => setAttempt((value) => value + 1)) },
-        { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm(item) },
-      )
+      list.push({ key: "edit", label: t("action.edit"), onSelect: () => openEdit(item) })
+      if (item.reviewStatus === "APPROVED") {
+        list.push({ key: "reject", label: t("ssh.reject"), destructive: true, onSelect: () => void rejectSSHCommand(item.uid).then(() => setAttempt((value) => value + 1)) })
+      } else {
+        list.push({ key: "approve", label: t("ssh.approve"), onSelect: () => void approveSSHCommand(item.uid).then(() => setAttempt((value) => value + 1)) })
+      }
+      list.push({ key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm(item) })
     }
     if (canExec && item.reviewStatus === "APPROVED") {
       list.push({ key: "exec", label: t("ssh.execute"), onSelect: () => void openExec(item) })
@@ -270,7 +268,7 @@ export function SSHCommandPage() {
         {loading ? <p className="text-sm text-muted-foreground">{t("state.loading")}</p> : null}
         {!loading && failed ? (
           <div className="flex items-center gap-2">
-            <p className="text-sm text-destructive">{t("state.failed")}</p>
+            <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
             <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
               {t("action.retry")}
             </Button>
@@ -292,7 +290,7 @@ export function SSHCommandPage() {
                 <TableRow key={item.uid}>
                   <TableCell>{item.name}</TableCell>
                   <TableCell className="max-w-md truncate font-mono text-xs">{item.command}</TableCell>
-                  <TableCell>{item.reviewStatus}</TableCell>
+                  <TableCell>{enumLabel(t, item.reviewStatus)}</TableCell>
                   <TableCell>
                     <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
                   </TableCell>
@@ -341,45 +339,53 @@ export function SSHCommandPage() {
             <DialogTitle>{t("ssh.execute")}</DialogTitle>
           </DialogHeader>
           <form className="grid gap-4" onSubmit={onExecute}>
-            <FormField label={t("ssh.agent")} htmlFor="ssh-agent">
-              <Select value={agentUid} onValueChange={setAgentUid}>
-                <SelectTrigger id="ssh-agent">
-                  <SelectValue placeholder={t("ssh.pickAgent")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent.uid} value={agent.uid}>
-                      {agent.name} ({agent.hostname || agent.localIp || agent.uid})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
+            <p className="text-sm text-muted-foreground">{t("ssh.pickAgents")}</p>
+            <div className="grid max-h-64 gap-2 overflow-auto">
+              {agents.map((agent) => {
+                const checked = agentUids.includes(agent.uid)
+                return (
+                  <label key={agent.uid} className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={(value) => {
+                        setAgentUids((current) =>
+                          value === true ? [...current, agent.uid] : current.filter((uid) => uid !== agent.uid),
+                        )
+                      }}
+                    />
+                    <span>{agent.name} ({agent.hostname || agent.localIp || agent.uid})</span>
+                  </label>
+                )
+              })}
+            </div>
             {agents.length === 0 ? <p className="text-sm text-muted-foreground">{t("ssh.noOnlineAgent")}</p> : null}
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setExecOpen(false)}>
                 {t("action.cancel")}
               </Button>
-              <Button type="submit" disabled={pending || !agentUid}>
+              <Button type="submit" disabled={pending || agentUids.length === 0}>
                 {t("ssh.execute")}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-      <Dialog open={!!lastAudit} onOpenChange={(value) => !value && setLastAudit(null)}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto">
+      <Dialog open={lastAudits.length > 0} onOpenChange={(value) => !value && setLastAudits([])}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{t("ssh.execResult")}</DialogTitle>
           </DialogHeader>
-          {lastAudit ? (
-            <div className="grid gap-2 text-sm">
-              <p>{t("ssh.exitCode")}: {lastAudit.exitCode}</p>
-              <p>{t("ssh.status")}: {lastAudit.status}</p>
-              <pre className="max-h-64 overflow-auto rounded-md border p-2 text-xs">{lastAudit.output || lastAudit.detail || "-"}</pre>
-            </div>
-          ) : null}
+          <div className="grid gap-3 text-sm">
+            {lastAudits.map((audit) => (
+              <div key={audit.uid || audit.agentUid} className="grid gap-1 rounded-md border p-2">
+                <p>{audit.agentUid}</p>
+                <p>{t("ssh.exitCode")}: {audit.exitCode}</p>
+                <p>{t("ssh.status")}: {enumLabel(t, audit.status)}</p>
+                <pre className="max-h-40 overflow-auto rounded-md border p-2 text-xs">{audit.output || audit.detail || "-"}</pre>
+              </div>
+            ))}
+          </div>
         </DialogContent>
       </Dialog>
       <Dialog open={auditOpen} onOpenChange={setAuditOpen}>
@@ -391,7 +397,7 @@ export function SSHCommandPage() {
             {audits.length === 0 ? <p className="text-muted-foreground">{t("state.empty")}</p> : null}
             {audits.map((audit) => (
               <div key={audit.uid} className="rounded-md border p-2">
-                <p>{audit.kind} / {audit.status}</p>
+                <p>{enumLabel(t, audit.kind)} / {enumLabel(t, audit.status)}</p>
                 <p>{audit.createdAt}</p>
                 {audit.kind === "EXECUTE" ? <p>{t("ssh.exitCode")}: {audit.exitCode}</p> : null}
                 {audit.output ? <pre className="mt-1 max-h-32 overflow-auto text-xs">{audit.output}</pre> : null}
@@ -415,7 +421,7 @@ export function SSHCommandPage() {
                 { label: t("ssh.command"), value: detail.command },
                 { label: t("ssh.workdir"), value: detail.workdir || "-" },
                 { label: t("ssh.env"), value: detail.env || "-" },
-                { label: t("ssh.reviewStatus"), value: detail.reviewStatus },
+                { label: t("ssh.reviewStatus"), value: enumLabel(t, detail.reviewStatus) },
                 { label: t("ssh.remark"), value: detail.remark || "-" },
               ]
             : []

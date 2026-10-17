@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	kerrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/wire"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
@@ -199,6 +200,66 @@ func (uc *Usecase) Execute(ctx context.Context, commandUID, agentUID string) (*b
 		Detail:       detail,
 	})
 	return audit, uc.access.Wrap(err)
+}
+
+// ExecuteOnAgents 把同一条已通过的命令分别送到多台机器。一台失败仍继续其余机器，并为失败的机器留下审计。
+func (uc *Usecase) ExecuteOnAgents(ctx context.Context, commandUID string, agentUIDs []string) ([]bo.SSHCommandAudit, error) {
+	if len(agentUIDs) == 0 {
+		return nil, merr.Invalid("select an online agent")
+	}
+	audits := make([]bo.SSHCommandAudit, 0, len(agentUIDs))
+	for _, agentUID := range agentUIDs {
+		audit, err := uc.Execute(ctx, commandUID, agentUID)
+		if err != nil {
+			if abortAgentBatch(err) {
+				return nil, err
+			}
+			failed, ferr := uc.failExec(ctx, commandUID, agentUID, err)
+			if ferr != nil {
+				return nil, ferr
+			}
+			audits = append(audits, *failed)
+			continue
+		}
+		audits = append(audits, *audit)
+	}
+	return audits, nil
+}
+
+func (uc *Usecase) failExec(ctx context.Context, commandUID, agentUID string, cause error) (*bo.SSHCommandAudit, error) {
+	ns, err := uc.access.Allow(ctx, "ssh:exec")
+	if err != nil {
+		return nil, err
+	}
+	command := commandUID
+	if cmd, err := uc.commands.GetCommand(ctx, ns, commandUID); err == nil {
+		command = cmd.Command
+	}
+	detail := kerrors.FromError(cause).Message
+	if detail == "" {
+		detail = "execute failed"
+	}
+	return uc.commands.AddExecAudit(ctx, bo.SSHCommandAudit{
+		NamespaceUID: ns,
+		CommandUID:   commandUID,
+		AgentUID:     agentUID,
+		OperatorUID:  operatorUID(ctx),
+		Status:       "FAILED",
+		Command:      command,
+		ExitCode:     1,
+		Detail:       detail,
+	})
+}
+
+func abortAgentBatch(err error) bool {
+	e := kerrors.FromError(err)
+	if e.Reason == merr.ReasonUnauthenticated {
+		return true
+	}
+	if e.Reason == merr.ReasonForbidden && e.Message != "agent is revoked" {
+		return true
+	}
+	return false
 }
 
 func (uc *Usecase) ExecuteMany(ctx context.Context, commandUIDs []string, agentUID string) ([]bo.SSHCommandAudit, error) {

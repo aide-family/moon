@@ -74,11 +74,20 @@ func (s *SSHCommandService) ListSSHCommands(ctx context.Context, req *v1.ListSSH
 }
 
 func (s *SSHCommandService) ExecuteSSHCommand(ctx context.Context, req *v1.ExecuteSSHCommandRequest) (*v1.ExecuteSSHCommandResponse, error) {
-	audit, err := s.commands.Execute(ctx, req.GetUid(), req.GetAgentUid())
+	uids := req.GetAgentUids()
+	if len(uids) == 0 && req.GetAgentUid() != "" {
+		uids = []string{req.GetAgentUid()}
+	}
+	audits, err := s.commands.ExecuteOnAgents(ctx, req.GetUid(), uids)
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ExecuteSSHCommandResponse{Audit: sshAuditItem(*audit)}, nil
+	items := sshAuditItems(audits)
+	resp := &v1.ExecuteSSHCommandResponse{Audits: items}
+	if len(items) == 1 {
+		resp.Audit = items[0]
+	}
+	return resp, nil
 }
 
 func (s *SSHCommandService) ExecuteSSHCommands(ctx context.Context, req *v1.ExecuteSSHCommandsRequest) (*v1.ExecuteSSHCommandsResponse, error) {

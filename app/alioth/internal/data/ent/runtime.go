@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/agent"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertlevel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
@@ -122,6 +122,37 @@ func init() {
 	agentDescRemark := agentFields[16].Descriptor()
 	// agent.DefaultRemark holds the default value on creation for the remark field.
 	agent.DefaultRemark = agentDescRemark.Default.(string)
+	alertdictionaryMixin := schema.AlertDictionary{}.Mixin()
+	alertdictionaryMixinFields0 := alertdictionaryMixin[0].Fields()
+	_ = alertdictionaryMixinFields0
+	alertdictionaryFields := schema.AlertDictionary{}.Fields()
+	_ = alertdictionaryFields
+	// alertdictionaryDescCreatedAt is the schema descriptor for created_at field.
+	alertdictionaryDescCreatedAt := alertdictionaryMixinFields0[0].Descriptor()
+	// alertdictionary.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alertdictionary.DefaultCreatedAt = alertdictionaryDescCreatedAt.Default.(func() time.Time)
+	// alertdictionaryDescUpdatedAt is the schema descriptor for updated_at field.
+	alertdictionaryDescUpdatedAt := alertdictionaryMixinFields0[1].Descriptor()
+	// alertdictionary.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	alertdictionary.DefaultUpdatedAt = alertdictionaryDescUpdatedAt.Default.(func() time.Time)
+	// alertdictionary.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	alertdictionary.UpdateDefaultUpdatedAt = alertdictionaryDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// alertdictionaryDescUID is the schema descriptor for uid field.
+	alertdictionaryDescUID := alertdictionaryFields[0].Descriptor()
+	// alertdictionary.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	alertdictionary.UIDValidator = alertdictionaryDescUID.Validators[0].(func(string) error)
+	// alertdictionaryDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alertdictionaryDescNamespaceUID := alertdictionaryFields[1].Descriptor()
+	// alertdictionary.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alertdictionary.NamespaceUIDValidator = alertdictionaryDescNamespaceUID.Validators[0].(func(string) error)
+	// alertdictionaryDescName is the schema descriptor for name field.
+	alertdictionaryDescName := alertdictionaryFields[2].Descriptor()
+	// alertdictionary.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	alertdictionary.NameValidator = alertdictionaryDescName.Validators[0].(func(string) error)
+	// alertdictionaryDescColor is the schema descriptor for color field.
+	alertdictionaryDescColor := alertdictionaryFields[3].Descriptor()
+	// alertdictionary.DefaultColor holds the default value on creation for the color field.
+	alertdictionary.DefaultColor = alertdictionaryDescColor.Default.(string)
 	alertevalbatchFields := schema.AlertEvalBatch{}.Fields()
 	_ = alertevalbatchFields
 	// alertevalbatchDescRuleUID is the schema descriptor for rule_uid field.
@@ -221,37 +252,6 @@ func init() {
 	alerteventfiringDescRuleUID := alerteventfiringFields[3].Descriptor()
 	// alerteventfiring.RuleUIDValidator is a validator for the "rule_uid" field. It is called by the builders before save.
 	alerteventfiring.RuleUIDValidator = alerteventfiringDescRuleUID.Validators[0].(func(string) error)
-	alertlevelMixin := schema.AlertLevel{}.Mixin()
-	alertlevelMixinFields0 := alertlevelMixin[0].Fields()
-	_ = alertlevelMixinFields0
-	alertlevelFields := schema.AlertLevel{}.Fields()
-	_ = alertlevelFields
-	// alertlevelDescCreatedAt is the schema descriptor for created_at field.
-	alertlevelDescCreatedAt := alertlevelMixinFields0[0].Descriptor()
-	// alertlevel.DefaultCreatedAt holds the default value on creation for the created_at field.
-	alertlevel.DefaultCreatedAt = alertlevelDescCreatedAt.Default.(func() time.Time)
-	// alertlevelDescUpdatedAt is the schema descriptor for updated_at field.
-	alertlevelDescUpdatedAt := alertlevelMixinFields0[1].Descriptor()
-	// alertlevel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	alertlevel.DefaultUpdatedAt = alertlevelDescUpdatedAt.Default.(func() time.Time)
-	// alertlevel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	alertlevel.UpdateDefaultUpdatedAt = alertlevelDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// alertlevelDescUID is the schema descriptor for uid field.
-	alertlevelDescUID := alertlevelFields[0].Descriptor()
-	// alertlevel.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
-	alertlevel.UIDValidator = alertlevelDescUID.Validators[0].(func(string) error)
-	// alertlevelDescNamespaceUID is the schema descriptor for namespace_uid field.
-	alertlevelDescNamespaceUID := alertlevelFields[1].Descriptor()
-	// alertlevel.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
-	alertlevel.NamespaceUIDValidator = alertlevelDescNamespaceUID.Validators[0].(func(string) error)
-	// alertlevelDescName is the schema descriptor for name field.
-	alertlevelDescName := alertlevelFields[2].Descriptor()
-	// alertlevel.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	alertlevel.NameValidator = alertlevelDescName.Validators[0].(func(string) error)
-	// alertlevelDescColor is the schema descriptor for color field.
-	alertlevelDescColor := alertlevelFields[3].Descriptor()
-	// alertlevel.DefaultColor holds the default value on creation for the color field.
-	alertlevel.DefaultColor = alertlevelDescColor.Default.(string)
 	alertpageMixin := schema.AlertPage{}.Mixin()
 	alertpageMixinFields0 := alertpageMixin[0].Fields()
 	_ = alertpageMixinFields0

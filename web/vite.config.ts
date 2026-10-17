@@ -19,6 +19,7 @@ export default defineConfig({
       "/v1": {
         target: process.env.ALIOTH_DEV_PROXY ?? "http://127.0.0.1:8000",
         changeOrigin: true,
+        ws: true,
       },
     },
   },

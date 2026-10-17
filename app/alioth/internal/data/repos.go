@@ -27,7 +27,7 @@ type namespaceRepo struct{ *repoBase }
 type memberRepo struct{ *repoBase }
 type roleRepo struct{ *repoBase }
 type datasourceRepo struct{ *repoBase }
-type alertLevelRepo struct{ *repoBase }
+type alertDictionaryRepo struct{ *repoBase }
 type alertRuleRepo struct{ *repoBase }
 type alertEventRepo struct{ *repoBase }
 type alertPageRepo struct{ *repoBase }
@@ -67,8 +67,8 @@ func NewDatasourceRepo(d *Data, logger *slog.Logger) repository.DatasourceRepo {
 	return &datasourceRepo{newBase(d, logger)}
 }
 
-func NewAlertLevelRepo(d *Data, logger *slog.Logger) repository.AlertLevelRepo {
-	return &alertLevelRepo{newBase(d, logger)}
+func NewAlertDictionaryRepo(d *Data, logger *slog.Logger) repository.AlertDictionaryRepo {
+	return &alertDictionaryRepo{newBase(d, logger)}
 }
 
 func NewAlertRuleRepo(d *Data, logger *slog.Logger) repository.AlertRuleRepo {

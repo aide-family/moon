@@ -31,8 +31,17 @@ export function StepForm({
   const { t } = useTranslation()
   const last = step >= stepCount - 1
 
+  function onFormSubmit(event: FormEvent) {
+    event.preventDefault()
+    if (!last) {
+      onNext()
+      return
+    }
+    onSubmit(event)
+  }
+
   return (
-    <form className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onSubmit}>
+    <form className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onFormSubmit}>
       <p className="text-sm text-muted-foreground">
         {t("form.step", { current: step + 1, total: stepCount })}
       </p>
@@ -42,16 +51,16 @@ export function StepForm({
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <DialogFooter>
         {step > 0 ? (
-          <Button type="button" variant="outline" onClick={onBack}>
+          <Button key="back" type="button" variant="outline" onClick={onBack}>
             {t("form.prev")}
           </Button>
         ) : null}
         {last ? (
-          <Button type="submit" disabled={pending}>
+          <Button key="save" type="submit" disabled={pending}>
             {t("action.save")}
           </Button>
         ) : (
-          <Button type="button" onClick={onNext}>
+          <Button key="next" type="button" onClick={onNext}>
             {t("form.next")}
           </Button>
         )}

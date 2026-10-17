@@ -1,5 +1,6 @@
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { formMessage } from "@/lib/form-error"
 
 import { listMembers } from "@/api/member"
 import type { MemberItem } from "@/api/member/types"
@@ -43,6 +44,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { enumLabel } from "@/lib/enum-label"
 import { requireSelected, requireTrimmed } from "@/lib/form"
 
 export function NamespacePage() {
@@ -85,7 +87,7 @@ export function NamespacePage() {
       setRemark("")
       session.reload()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -109,7 +111,7 @@ export function NamespacePage() {
       setEditing(null)
       session.reload()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -144,7 +146,7 @@ export function NamespacePage() {
       setConfirm(null)
       session.reload()
     } catch (err) {
-      setConfirmError(err instanceof Error ? err.message : t("state.failed"))
+      setConfirmError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -287,7 +289,7 @@ export function NamespacePage() {
       ) : null}
       {!session.loading && session.failed ? (
         <div className="flex items-center gap-2">
-          <p className="text-sm text-destructive">{t("state.failed")}</p>
+          <p className="text-sm text-destructive">{session.loadError || t("state.failed")}</p>
           <Button variant="outline" onClick={session.reload}>
             {t("action.retry")}
           </Button>
@@ -318,7 +320,7 @@ export function NamespacePage() {
                         ) : null}
                       </span>
                     </TableCell>
-                    <TableCell>{item.status}</TableCell>
+                    <TableCell>{enumLabel(t, item.status)}</TableCell>
                     <TableCell>
                       <RowActions
                         detailLabel={t("action.detail")}
@@ -442,7 +444,7 @@ export function NamespacePage() {
         }}
         fields={[
           { label: t("namespace.name"), value: detail?.name ?? "" },
-          { label: t("namespace.status"), value: detail?.status ?? "" },
+          { label: t("namespace.status"), value: enumLabel(t, detail?.status ?? "") },
           { label: t("namespace.remark"), value: detail?.remark ?? "" },
           { label: t("detail.uid"), value: detail?.uid ?? "" },
         ]}

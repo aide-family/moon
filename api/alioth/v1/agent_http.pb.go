@@ -20,6 +20,7 @@ const _ = http.SupportPackageIsVersion3
 const OperationAgentServiceCreateAgent = "/alioth.v1.AgentService/CreateAgent"
 const OperationAgentServiceDeleteAgent = "/alioth.v1.AgentService/DeleteAgent"
 const OperationAgentServiceGetAgent = "/alioth.v1.AgentService/GetAgent"
+const OperationAgentServiceIssueShellTicket = "/alioth.v1.AgentService/IssueShellTicket"
 const OperationAgentServiceListAgents = "/alioth.v1.AgentService/ListAgents"
 const OperationAgentServiceRevokeAgent = "/alioth.v1.AgentService/RevokeAgent"
 const OperationAgentServiceRotateAgentToken = "/alioth.v1.AgentService/RotateAgentToken"
@@ -32,6 +33,8 @@ type AgentServiceHTTPServer interface {
 	DeleteAgent(context.Context, *DeleteAgentRequest) (*DeleteAgentResponse, error)
 	// GetAgent 获取机器详情。
 	GetAgent(context.Context, *GetAgentRequest) (*GetAgentResponse, error)
+	// IssueShellTicket 签发一次性 Web Shell 票据。只接受具备 ssh:exec 的用户。
+	IssueShellTicket(context.Context, *IssueShellTicketRequest) (*IssueShellTicketResponse, error)
 	// ListAgents 分页列出机器。
 	ListAgents(context.Context, *ListAgentsRequest) (*ListAgentsResponse, error)
 	// RevokeAgent 吊销令牌。下一次心跳关闭流。
@@ -51,6 +54,7 @@ func RegisterAgentServiceHTTPServer(s *http.Server, srv AgentServiceHTTPServer) 
 	r.Handle("DELETE", "/v1/agent/{uid}", _AgentService_DeleteAgent0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/agent/{uid}", _AgentService_GetAgent0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/agents", _AgentService_ListAgents0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/agent/{uid}/shell-ticket", _AgentService_IssueShellTicket0_HTTP_Handler(srv))
 }
 
 func _AgentService_CreateAgent0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
@@ -201,6 +205,28 @@ func _AgentService_ListAgents0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx
 	}
 }
 
+func _AgentService_IssueShellTicket0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in IssueShellTicketRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceIssueShellTicket)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.IssueShellTicket(ctx, req.(*IssueShellTicketRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*IssueShellTicketResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AgentServiceHTTPClient interface {
 	// CreateAgent 创建机器并签发令牌。明文令牌只在这次响应里出现。
 	CreateAgent(ctx context.Context, req *CreateAgentRequest, opts ...http.CallOption) (rsp *CreateAgentResponse, err error)
@@ -208,6 +234,8 @@ type AgentServiceHTTPClient interface {
 	DeleteAgent(ctx context.Context, req *DeleteAgentRequest, opts ...http.CallOption) (rsp *DeleteAgentResponse, err error)
 	// GetAgent 获取机器详情。
 	GetAgent(ctx context.Context, req *GetAgentRequest, opts ...http.CallOption) (rsp *GetAgentResponse, err error)
+	// IssueShellTicket 签发一次性 Web Shell 票据。只接受具备 ssh:exec 的用户。
+	IssueShellTicket(ctx context.Context, req *IssueShellTicketRequest, opts ...http.CallOption) (rsp *IssueShellTicketResponse, err error)
 	// ListAgents 分页列出机器。
 	ListAgents(ctx context.Context, req *ListAgentsRequest, opts ...http.CallOption) (rsp *ListAgentsResponse, err error)
 	// RevokeAgent 吊销令牌。下一次心跳关闭流。
@@ -272,6 +300,24 @@ func (c *AgentServiceHTTPClientImpl) GetAgent(ctx context.Context, in *GetAgentR
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// IssueShellTicket 签发一次性 Web Shell 票据。只接受具备 ssh:exec 的用户。
+func (c *AgentServiceHTTPClientImpl) IssueShellTicket(ctx context.Context, in *IssueShellTicketRequest, opts ...http.CallOption) (*IssueShellTicketResponse, error) {
+	var out IssueShellTicketResponse
+	pattern := "/v1/agent/{uid}/shell-ticket"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAgentServiceIssueShellTicket),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
