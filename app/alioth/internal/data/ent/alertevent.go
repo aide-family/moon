@@ -55,6 +55,8 @@ type AlertEvent struct {
 	Suppressed bool `json:"suppressed,omitempty"`
 	// IntervenedBy holds the value of the "intervened_by" field.
 	IntervenedBy string `json:"intervened_by,omitempty"`
+	// IntervenedAt holds the value of the "intervened_at" field.
+	IntervenedAt *time.Time `json:"intervened_at,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -69,7 +71,7 @@ func (*AlertEvent) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case alertevent.FieldUID, alertevent.FieldNamespaceUID, alertevent.FieldRuleUID, alertevent.FieldDatasourceUID, alertevent.FieldFingerprint, alertevent.FieldStatus, alertevent.FieldExpr, alertevent.FieldLabels, alertevent.FieldSummary, alertevent.FieldDescription, alertevent.FieldSampleValue, alertevent.FieldLevelUID, alertevent.FieldIntervenedBy:
 			values[i] = new(sql.NullString)
-		case alertevent.FieldCreatedAt, alertevent.FieldUpdatedAt, alertevent.FieldStartsAt, alertevent.FieldEndsAt, alertevent.FieldEvalSlot:
+		case alertevent.FieldCreatedAt, alertevent.FieldUpdatedAt, alertevent.FieldStartsAt, alertevent.FieldEndsAt, alertevent.FieldEvalSlot, alertevent.FieldIntervenedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -207,6 +209,13 @@ func (_m *AlertEvent) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IntervenedBy = value.String
 			}
+		case alertevent.FieldIntervenedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field intervened_at", values[i])
+			} else if value.Valid {
+				_m.IntervenedAt = new(time.Time)
+				*_m.IntervenedAt = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -301,6 +310,11 @@ func (_m *AlertEvent) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("intervened_by=")
 	builder.WriteString(_m.IntervenedBy)
+	builder.WriteString(", ")
+	if v := _m.IntervenedAt; v != nil {
+		builder.WriteString("intervened_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -24,6 +24,9 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	if err := prepareAlertEvalBatches(ctx, db); err != nil {
 		return err
 	}
+	if err := prepareAlertEventIntervene(ctx, db); err != nil {
+		return err
+	}
 	opts := []entschema.MigrateOption{}
 	for _, name := range partitionedTables {
 		kind, err := relationKind(ctx, db, name)
@@ -97,6 +100,20 @@ func prepareAlertEvalBatches(ctx context.Context, db *sql.DB) error {
 		}
 	}
 	if _, err := db.ExecContext(ctx, `DROP INDEX IF EXISTS alertevalbatch_rule_uid_eval_slot`); err != nil {
+		slog.Default().Error(fmt.Sprintf("schema: %v", err))
+		return merr.Server("request failed")
+	}
+	return nil
+}
+
+// prepareAlertEventIntervene 给已分区的告警事件补上介入时间。
+// 分区表会被迁移跳过，父表加列会落到各个分区。
+func prepareAlertEventIntervene(ctx context.Context, db *sql.DB) error {
+	kind, err := relationKind(ctx, db, "alert_events")
+	if err != nil || kind == "" {
+		return err
+	}
+	if _, err := db.ExecContext(ctx, `ALTER TABLE alert_events ADD COLUMN IF NOT EXISTS intervened_at timestamptz NULL`); err != nil {
 		slog.Default().Error(fmt.Sprintf("schema: %v", err))
 		return merr.Server("request failed")
 	}

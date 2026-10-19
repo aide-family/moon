@@ -3,6 +3,7 @@ package alertrule
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 	"strings"
 
 	"github.com/google/wire"
@@ -22,11 +23,12 @@ type Usecase struct {
 	rules        repository.AlertRuleRepo
 	dictionaries repository.AlertDictionaryRepo
 	datasources  repository.DatasourceRepo
+	events       repository.AlertEventRepo
 	access       access.Checker
 }
 
-func NewUsecase(rules repository.AlertRuleRepo, dictionaries repository.AlertDictionaryRepo, datasources repository.DatasourceRepo, checker access.Checker) *Usecase {
-	return &Usecase{rules: rules, dictionaries: dictionaries, datasources: datasources, access: checker}
+func NewUsecase(rules repository.AlertRuleRepo, dictionaries repository.AlertDictionaryRepo, datasources repository.DatasourceRepo, events repository.AlertEventRepo, checker access.Checker) *Usecase {
+	return &Usecase{rules: rules, dictionaries: dictionaries, datasources: datasources, events: events, access: checker}
 }
 
 func (uc *Usecase) CreateGroup(ctx context.Context, name string) (*bo.AlertRuleGroup, error) {
@@ -53,7 +55,19 @@ func (uc *Usecase) UpdateGroupStatus(ctx context.Context, uid, status string) (*
 		return nil, err
 	}
 	item, err := uc.rules.UpdateAlertRuleGroupStatus(ctx, ns, uid, status)
-	return item, uc.access.Wrap(err)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	if status == "DISABLED" {
+		ruleUIDs, listErr := uc.rules.ListRuleUIDs(ctx, ns, uid)
+		if listErr != nil {
+			return nil, uc.access.Wrap(listErr)
+		}
+		if err := uc.events.RecoverSource(ctx, ns, ruleUIDs, nil, nil); err != nil {
+			return nil, uc.access.Wrap(err)
+		}
+	}
+	return item, nil
 }
 
 func (uc *Usecase) DeleteGroup(ctx context.Context, uid string) error {
@@ -96,8 +110,18 @@ func (uc *Usecase) UpdateRule(ctx context.Context, in bo.AlertRule) (*bo.AlertRu
 	if err := uc.prepare(ctx, ns, &in); err != nil {
 		return nil, err
 	}
+	previous, err := uc.rules.GetAlertRule(ctx, ns, in.UID)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
 	item, err := uc.rules.UpdateAlertRule(ctx, in)
-	return item, uc.access.Wrap(err)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	if err := uc.recoverChangedRule(ctx, ns, previous, item); err != nil {
+		return nil, err
+	}
+	return item, nil
 }
 
 // UpdateRuleStatus 只切换启用状态，不改下一次评测时间。停用后候选查询看不到它，重新启用后才会出现。
@@ -107,13 +131,24 @@ func (uc *Usecase) UpdateRuleStatus(ctx context.Context, uid, status string) (*b
 		return nil, err
 	}
 	item, err := uc.rules.UpdateAlertRuleStatus(ctx, ns, uid, status)
-	return item, uc.access.Wrap(err)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	if status == "DISABLED" {
+		if err := uc.events.RecoverSource(ctx, ns, []string{uid}, nil, nil); err != nil {
+			return nil, uc.access.Wrap(err)
+		}
+	}
+	return item, nil
 }
 
 func (uc *Usecase) DeleteRule(ctx context.Context, uid string) error {
 	ns, err := uc.access.Allow(ctx, perm.AlertRuleWrite)
 	if err != nil {
 		return err
+	}
+	if err := uc.events.RecoverSource(ctx, ns, []string{uid}, nil, nil); err != nil {
+		return uc.access.Wrap(err)
 	}
 	return uc.access.Wrap(uc.rules.DeleteAlertRule(ctx, ns, uid))
 }
@@ -165,6 +200,85 @@ func (uc *Usecase) prepare(ctx context.Context, namespaceUID string, in *bo.Aler
 	in.NamespaceUID = namespaceUID
 	in.Name = strings.TrimSpace(in.Name)
 	return nil
+}
+
+func (uc *Usecase) recoverChangedRule(ctx context.Context, namespaceUID string, previous, next *bo.AlertRule) error {
+	if previous == nil || next == nil {
+		return nil
+	}
+	recoverAll, levelUIDs := changedLevelUIDs(previous.Levels, next.Levels)
+	if recoverAll {
+		return uc.access.Wrap(uc.events.RecoverSource(ctx, namespaceUID, []string{next.UID}, nil, nil))
+	}
+	if len(levelUIDs) > 0 {
+		if err := uc.events.RecoverSource(ctx, namespaceUID, []string{next.UID}, nil, levelUIDs); err != nil {
+			return uc.access.Wrap(err)
+		}
+	}
+	dropped, err := uc.droppedDatasources(ctx, namespaceUID, previous, next)
+	if err != nil {
+		return err
+	}
+	if len(dropped) == 0 {
+		return nil
+	}
+	return uc.access.Wrap(uc.events.RecoverSource(ctx, namespaceUID, []string{next.UID}, dropped, nil))
+}
+
+func (uc *Usecase) droppedDatasources(ctx context.Context, namespaceUID string, previous, next *bo.AlertRule) ([]string, error) {
+	before, err := uc.datasources.ListDatasourcesByMatchers(ctx, namespaceUID, previous.Type, previous.DatasourceLabels)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	after, err := uc.datasources.ListDatasourcesByMatchers(ctx, namespaceUID, next.Type, next.DatasourceLabels)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	kept := map[string]struct{}{}
+	for _, item := range after {
+		kept[item.UID] = struct{}{}
+	}
+	dropped := make([]string, 0)
+	for _, item := range before {
+		if _, ok := kept[item.UID]; ok {
+			continue
+		}
+		dropped = append(dropped, item.UID)
+	}
+	return dropped, nil
+}
+
+func changedLevelUIDs(previous, next []bo.AlertRuleLevel) (bool, []string) {
+	if len(next) == 0 && len(previous) > 0 {
+		return true, nil
+	}
+	remaining := map[string]int{}
+	for _, level := range next {
+		remaining[levelSignature(level)]++
+	}
+	kept := map[string]struct{}{}
+	gone := map[string]struct{}{}
+	for _, level := range previous {
+		signature := levelSignature(level)
+		if remaining[signature] > 0 {
+			remaining[signature]--
+			kept[level.LevelUID] = struct{}{}
+			continue
+		}
+		gone[level.LevelUID] = struct{}{}
+	}
+	uids := make([]string, 0)
+	for uid := range gone {
+		if _, ok := kept[uid]; ok {
+			continue
+		}
+		uids = append(uids, uid)
+	}
+	return false, uids
+}
+
+func levelSignature(level bo.AlertRuleLevel) string {
+	return strings.Join([]string{level.Condition, level.Sample, level.Threshold, strconv.Itoa(level.ForSeconds), level.LevelUID}, "\x00")
 }
 
 func driverMatches(kind, driver string) bool {

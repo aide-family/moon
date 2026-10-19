@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/go-kratos/kratos/v3"
 	"github.com/go-kratos/kratos/v3/config"
@@ -86,5 +87,6 @@ func newApp(logger *slog.Logger, hs *http.Server, gs *grpc.Server, connector *ag
 		kratos.Name("alkaid"),
 		kratos.Logger(logger),
 		kratos.Server(servers...),
+		kratos.StopTimeout(10*time.Second),
 	)
 }

@@ -56,12 +56,16 @@ type AlertEventItem struct {
 	EvalSlot string `protobuf:"bytes,14,opt,name=eval_slot,json=evalSlot,proto3" json:"eval_slot,omitempty"`
 	// 是否抑制。
 	Suppressed bool `protobuf:"varint,15,opt,name=suppressed,proto3" json:"suppressed,omitempty"`
-	// 介入人。
+	// 介入人标识。
 	IntervenedBy string `protobuf:"bytes,16,opt,name=intervened_by,json=intervenedBy,proto3" json:"intervened_by,omitempty"`
 	// 创建时间，RFC3339。
-	CreatedAt     string `protobuf:"bytes,17,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	CreatedAt string `protobuf:"bytes,17,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// 介入时间，RFC3339。未介入时为空。
+	IntervenedAt string `protobuf:"bytes,18,opt,name=intervened_at,json=intervenedAt,proto3" json:"intervened_at,omitempty"`
+	// 介入人展示名。优先昵称，其次姓名，再次邮箱。
+	IntervenedName string `protobuf:"bytes,19,opt,name=intervened_name,json=intervenedName,proto3" json:"intervened_name,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *AlertEventItem) Reset() {
@@ -213,6 +217,20 @@ func (x *AlertEventItem) GetCreatedAt() string {
 	return ""
 }
 
+func (x *AlertEventItem) GetIntervenedAt() string {
+	if x != nil {
+		return x.IntervenedAt
+	}
+	return ""
+}
+
+func (x *AlertEventItem) GetIntervenedName() string {
+	if x != nil {
+		return x.IntervenedName
+	}
+	return ""
+}
+
 // 告警分页查询。
 type ListAlertEventsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -227,7 +245,9 @@ type ListAlertEventsRequest struct {
 	// 为真时只返回当前用户作为通知接收方的实时告警。与 page_uid 互斥。
 	Mine bool `protobuf:"varint,5,opt,name=mine,proto3" json:"mine,omitempty"`
 	// 按告警页面的标签匹配过滤。与 mine 互斥。
-	PageUid       string `protobuf:"bytes,6,opt,name=page_uid,json=pageUid,proto3" json:"page_uid,omitempty"`
+	PageUid string `protobuf:"bytes,6,opt,name=page_uid,json=pageUid,proto3" json:"page_uid,omitempty"`
+	// 按告警等级过滤。空值表示全部等级。
+	LevelUid      string `protobuf:"bytes,7,opt,name=level_uid,json=levelUid,proto3" json:"level_uid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -300,6 +320,13 @@ func (x *ListAlertEventsRequest) GetMine() bool {
 func (x *ListAlertEventsRequest) GetPageUid() string {
 	if x != nil {
 		return x.PageUid
+	}
+	return ""
+}
+
+func (x *ListAlertEventsRequest) GetLevelUid() string {
+	if x != nil {
+		return x.LevelUid
 	}
 	return ""
 }
@@ -989,7 +1016,7 @@ var File_alioth_v1_alert_event_proto protoreflect.FileDescriptor
 
 const file_alioth_v1_alert_event_proto_rawDesc = "" +
 	"\n" +
-	"\x1balioth/v1/alert_event.proto\x12\talioth.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\xfd\x03\n" +
+	"\x1balioth/v1/alert_event.proto\x12\talioth.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\xcb\x04\n" +
 	"\x0eAlertEventItem\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x19\n" +
 	"\brule_uid\x18\x02 \x01(\tR\aruleUid\x12%\n" +
@@ -1011,14 +1038,17 @@ const file_alioth_v1_alert_event_proto_rawDesc = "" +
 	"suppressed\x12#\n" +
 	"\rintervened_by\x18\x10 \x01(\tR\fintervenedBy\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x11 \x01(\tR\tcreatedAt\"\xb4\x01\n" +
+	"created_at\x18\x11 \x01(\tR\tcreatedAt\x12#\n" +
+	"\rintervened_at\x18\x12 \x01(\tR\fintervenedAt\x12'\n" +
+	"\x0fintervened_name\x18\x13 \x01(\tR\x0eintervenedName\"\xd1\x01\n" +
 	"\x16ListAlertEventsRequest\x12\x1b\n" +
 	"\x04page\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\x04page\x12&\n" +
 	"\tpage_size\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x00R\bpageSize\x12\x12\n" +
 	"\x04view\x18\x03 \x01(\tR\x04view\x12\x12\n" +
 	"\x04name\x18\x04 \x01(\tR\x04name\x12\x12\n" +
 	"\x04mine\x18\x05 \x01(\bR\x04mine\x12\x19\n" +
-	"\bpage_uid\x18\x06 \x01(\tR\apageUid\"\x91\x01\n" +
+	"\bpage_uid\x18\x06 \x01(\tR\apageUid\x12\x1b\n" +
+	"\tlevel_uid\x18\a \x01(\tR\blevelUid\"\x91\x01\n" +
 	"\x17ListAlertEventsResponse\x12/\n" +
 	"\x05items\x18\x01 \x03(\v2\x19.alioth.v1.AlertEventItemR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +

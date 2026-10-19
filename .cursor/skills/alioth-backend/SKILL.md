@@ -18,6 +18,7 @@ description: >-
 - HTTP 生成器用 `protoc-gen-go-http/v3`（`make tools` / `make api`）。不要手改 `*_http.pb.go`。
 - HTTP JSON 迁移期 blank-import `github.com/go-kratos/kratos/contrib/encoding/json/v3`，保持与 Web 契约；不要同时注册 core `json` 与该兼容 codec。
 - 鉴权继续用自研中间件 + `golang-jwt`，不要默认引入 contrib JWT。OTel、熔断、SSE、`config.Get[T]`、自定义 ValidatorFunc 等按需采用，不是默认交付。
+- **进程退出（硬约束）**：每个应用的 `kratos.New` 必须带 `kratos.StopTimeout`（建议 10s）。有 Agent 流 / WebSocket 等长连接时用 `BeforeStop` 主动关会话。自定义 `Server.Stop` 必须尊重 stop ctx，禁止 `<-done` 无限等待。漏配会导致 Ctrl+C 挂死。
 
 ## 分层
 

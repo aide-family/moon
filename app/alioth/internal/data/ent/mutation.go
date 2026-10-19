@@ -2736,6 +2736,7 @@ type AlertEventMutation struct {
 	eval_slot      *time.Time
 	suppressed     *bool
 	intervened_by  *string
+	intervened_at  *time.Time
 	clearedFields  map[string]struct{}
 	done           bool
 	oldValue       func(context.Context) (*AlertEvent, error)
@@ -3537,6 +3538,55 @@ func (m *AlertEventMutation) ResetIntervenedBy() {
 	m.intervened_by = nil
 }
 
+// SetIntervenedAt sets the "intervened_at" field.
+func (m *AlertEventMutation) SetIntervenedAt(t time.Time) {
+	m.intervened_at = &t
+}
+
+// IntervenedAt returns the value of the "intervened_at" field in the mutation.
+func (m *AlertEventMutation) IntervenedAt() (r time.Time, exists bool) {
+	v := m.intervened_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIntervenedAt returns the old "intervened_at" field's value of the AlertEvent entity.
+// If the AlertEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AlertEventMutation) OldIntervenedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIntervenedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIntervenedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIntervenedAt: %w", err)
+	}
+	return oldValue.IntervenedAt, nil
+}
+
+// ClearIntervenedAt clears the value of the "intervened_at" field.
+func (m *AlertEventMutation) ClearIntervenedAt() {
+	m.intervened_at = nil
+	m.clearedFields[alertevent.FieldIntervenedAt] = struct{}{}
+}
+
+// IntervenedAtCleared returns if the "intervened_at" field was cleared in this mutation.
+func (m *AlertEventMutation) IntervenedAtCleared() bool {
+	_, ok := m.clearedFields[alertevent.FieldIntervenedAt]
+	return ok
+}
+
+// ResetIntervenedAt resets all changes to the "intervened_at" field.
+func (m *AlertEventMutation) ResetIntervenedAt() {
+	m.intervened_at = nil
+	delete(m.clearedFields, alertevent.FieldIntervenedAt)
+}
+
 // Where appends a list predicates to the AlertEventMutation builder.
 func (m *AlertEventMutation) Where(ps ...predicate.AlertEvent) {
 	m.predicates = append(m.predicates, ps...)
@@ -3571,7 +3621,7 @@ func (m *AlertEventMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AlertEventMutation) Fields() []string {
-	fields := make([]string, 0, 19)
+	fields := make([]string, 0, 20)
 	if m.created_at != nil {
 		fields = append(fields, alertevent.FieldCreatedAt)
 	}
@@ -3629,6 +3679,9 @@ func (m *AlertEventMutation) Fields() []string {
 	if m.intervened_by != nil {
 		fields = append(fields, alertevent.FieldIntervenedBy)
 	}
+	if m.intervened_at != nil {
+		fields = append(fields, alertevent.FieldIntervenedAt)
+	}
 	return fields
 }
 
@@ -3675,6 +3728,8 @@ func (m *AlertEventMutation) Field(name string) (ent.Value, bool) {
 		return m.Suppressed()
 	case alertevent.FieldIntervenedBy:
 		return m.IntervenedBy()
+	case alertevent.FieldIntervenedAt:
+		return m.IntervenedAt()
 	}
 	return nil, false
 }
@@ -3722,6 +3777,8 @@ func (m *AlertEventMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldSuppressed(ctx)
 	case alertevent.FieldIntervenedBy:
 		return m.OldIntervenedBy(ctx)
+	case alertevent.FieldIntervenedAt:
+		return m.OldIntervenedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown AlertEvent field %s", name)
 }
@@ -3864,6 +3921,13 @@ func (m *AlertEventMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIntervenedBy(v)
 		return nil
+	case alertevent.FieldIntervenedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIntervenedAt(v)
+		return nil
 	}
 	return fmt.Errorf("unknown AlertEvent field %s", name)
 }
@@ -3897,6 +3961,9 @@ func (m *AlertEventMutation) ClearedFields() []string {
 	if m.FieldCleared(alertevent.FieldEndsAt) {
 		fields = append(fields, alertevent.FieldEndsAt)
 	}
+	if m.FieldCleared(alertevent.FieldIntervenedAt) {
+		fields = append(fields, alertevent.FieldIntervenedAt)
+	}
 	return fields
 }
 
@@ -3913,6 +3980,9 @@ func (m *AlertEventMutation) ClearField(name string) error {
 	switch name {
 	case alertevent.FieldEndsAt:
 		m.ClearEndsAt()
+		return nil
+	case alertevent.FieldIntervenedAt:
+		m.ClearIntervenedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown AlertEvent nullable field %s", name)
@@ -3978,6 +4048,9 @@ func (m *AlertEventMutation) ResetField(name string) error {
 		return nil
 	case alertevent.FieldIntervenedBy:
 		m.ResetIntervenedBy()
+		return nil
+	case alertevent.FieldIntervenedAt:
+		m.ResetIntervenedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown AlertEvent field %s", name)

@@ -230,6 +230,20 @@ func (_c *AlertEventCreate) SetNillableIntervenedBy(v *string) *AlertEventCreate
 	return _c
 }
 
+// SetIntervenedAt sets the "intervened_at" field.
+func (_c *AlertEventCreate) SetIntervenedAt(v time.Time) *AlertEventCreate {
+	_c.mutation.SetIntervenedAt(v)
+	return _c
+}
+
+// SetNillableIntervenedAt sets the "intervened_at" field if the given value is not nil.
+func (_c *AlertEventCreate) SetNillableIntervenedAt(v *time.Time) *AlertEventCreate {
+	if v != nil {
+		_c.SetIntervenedAt(*v)
+	}
+	return _c
+}
+
 // Mutation returns the AlertEventMutation object of the builder.
 func (_c *AlertEventCreate) Mutation() *AlertEventMutation {
 	return _c.mutation
@@ -493,6 +507,10 @@ func (_c *AlertEventCreate) createSpec() (*AlertEvent, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IntervenedBy(); ok {
 		_spec.SetField(alertevent.FieldIntervenedBy, field.TypeString, value)
 		_node.IntervenedBy = value
+	}
+	if value, ok := _c.mutation.IntervenedAt(); ok {
+		_spec.SetField(alertevent.FieldIntervenedAt, field.TypeTime, value)
+		_node.IntervenedAt = &value
 	}
 	return _node, _spec
 }

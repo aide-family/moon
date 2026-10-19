@@ -15,6 +15,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/predicate"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
 	"github.com/aide-family/Alioth/pkg/merr"
@@ -293,9 +294,9 @@ func (r *alertEventRepo) ListEvents(ctx context.Context, namespaceUID string, fi
 	if err != nil {
 		return nil, 0, r.fail(err)
 	}
-	items := make([]bo.AlertEvent, 0, len(rows))
-	for _, row := range rows {
-		items = append(items, toEvent(row))
+	items, err := r.namedEvents(ctx, rows)
+	if err != nil {
+		return nil, 0, err
 	}
 	return items, total, nil
 }
@@ -373,6 +374,9 @@ func eventWhere(namespaceUID string, filter bo.AlertEventListFilter) []predicate
 			alertevent.FingerprintContainsFold(filter.Name),
 		))
 	}
+	if filter.LevelUID != "" {
+		where = append(where, alertevent.LevelUIDEQ(filter.LevelUID))
+	}
 	if filter.FilterByRules {
 		where = append(where, alertevent.RuleUIDIn(filter.RuleUIDs...))
 	}
@@ -397,8 +401,11 @@ func (r *alertEventRepo) GetEvent(ctx context.Context, namespaceUID, uid string)
 	if err != nil {
 		return nil, r.fail(err)
 	}
-	item := toEvent(row)
-	return &item, nil
+	items, err := r.namedEvents(ctx, []*ent.AlertEvent{row})
+	if err != nil {
+		return nil, err
+	}
+	return &items[0], nil
 }
 
 func (r *alertEventRepo) Intervene(ctx context.Context, namespaceUID string, uids []string, userUID string) error {
@@ -409,7 +416,7 @@ func (r *alertEventRepo) Intervene(ctx context.Context, namespaceUID string, uid
 		alertevent.NamespaceUIDEQ(namespaceUID),
 		alertevent.UIDIn(uids...),
 		alertevent.StatusEQ(alertevent.StatusFIRING),
-	).SetIntervenedBy(userUID).Save(ctx)
+	).SetIntervenedBy(userUID).SetIntervenedAt(time.Now().UTC()).Save(ctx)
 	return r.fail(err)
 }
 
@@ -499,8 +506,105 @@ func toEvent(row *ent.AlertEvent) bo.AlertEvent {
 		Fingerprint: row.Fingerprint, Status: string(row.Status), Expr: row.Expr, Labels: row.Labels,
 		Summary: row.Summary, Description: row.Description, SampleValue: row.SampleValue, LevelUID: row.LevelUID,
 		StartsAt: row.StartsAt, EndsAt: row.EndsAt, EvalSlot: row.EvalSlot, Suppressed: row.Suppressed,
-		IntervenedBy: row.IntervenedBy, CreatedAt: row.CreatedAt,
+		IntervenedBy: row.IntervenedBy, IntervenedAt: row.IntervenedAt, CreatedAt: row.CreatedAt,
 	}
+}
+
+func (r *alertEventRepo) namedEvents(ctx context.Context, rows []*ent.AlertEvent) ([]bo.AlertEvent, error) {
+	items := make([]bo.AlertEvent, 0, len(rows))
+	seen := map[string]struct{}{}
+	uids := make([]string, 0)
+	for _, row := range rows {
+		items = append(items, toEvent(row))
+		if row.IntervenedBy == "" {
+			continue
+		}
+		if _, ok := seen[row.IntervenedBy]; ok {
+			continue
+		}
+		seen[row.IntervenedBy] = struct{}{}
+		uids = append(uids, row.IntervenedBy)
+	}
+	if len(uids) == 0 {
+		return items, nil
+	}
+	users, err := r.client.User.Query().Where(user.UIDIn(uids...)).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	names := make(map[string]string, len(users))
+	for _, account := range users {
+		names[account.UID] = accountName(account)
+	}
+	for i := range items {
+		items[i].IntervenedName = names[items[i].IntervenedBy]
+	}
+	return items, nil
+}
+
+func accountName(account *ent.User) string {
+	if account.Nickname != "" {
+		return account.Nickname
+	}
+	if account.Name != "" {
+		return account.Name
+	}
+	return account.Email
+}
+
+func (r *alertEventRepo) RecoverSource(ctx context.Context, namespaceUID string, ruleUIDs, datasourceUIDs, levelUIDs []string) error {
+	if len(ruleUIDs) == 0 && len(datasourceUIDs) == 0 && len(levelUIDs) == 0 {
+		return nil
+	}
+	where := []predicate.AlertEvent{
+		alertevent.NamespaceUIDEQ(namespaceUID),
+		alertevent.StatusEQ(alertevent.StatusFIRING),
+	}
+	if len(ruleUIDs) > 0 {
+		where = append(where, alertevent.RuleUIDIn(ruleUIDs...))
+	}
+	if len(datasourceUIDs) > 0 {
+		where = append(where, alertevent.DatasourceUIDIn(datasourceUIDs...))
+	}
+	if len(levelUIDs) > 0 {
+		where = append(where, alertevent.LevelUIDIn(levelUIDs...))
+	}
+	rows, err := r.client.AlertEvent.Query().Where(where...).All(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	if len(rows) == 0 {
+		return nil
+	}
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	now := time.Now().UTC()
+	for _, row := range rows {
+		if _, err := tx.AlertEvent.Update().Where(
+			alertevent.UIDEQ(row.UID),
+			alertevent.NamespaceUIDEQ(namespaceUID),
+			alertevent.StatusEQ(alertevent.StatusFIRING),
+		).SetStatus(alertevent.StatusRECOVERED).SetEndsAt(now).Save(ctx); err != nil {
+			return r.fail(err)
+		}
+		if _, err := tx.AlertEventFiring.Delete().Where(
+			alerteventfiring.NamespaceUIDEQ(namespaceUID),
+			alerteventfiring.EventUIDEQ(row.UID),
+		).Exec(ctx); err != nil {
+			return r.fail(err)
+		}
+		rule := bo.AlertRule{UID: row.RuleUID, NamespaceUID: namespaceUID, DatasourceUID: row.DatasourceUID}
+		if err := createNotifyTasks(ctx, tx, rule, row.UID, notificationtask.PhaseRECOVERED, row.Summary, row.Description, row.Labels, row.Fingerprint); err != nil {
+			return err
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return r.fail(err)
+	}
+	return nil
 }
 
 func textOr(value, fallback string) string {

@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time"
+
+	"github.com/robfig/cron/v3"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertevent"
+	"github.com/aide-family/Alioth/pkg/merr"
 )
 
 // Scheduler 按固定周期扫描到期规则。锁由用例获取，扫描结束后释放。
@@ -25,29 +27,33 @@ func (s *Scheduler) Start(context.Context) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	s.cancel = cancel
 	s.done = make(chan struct{})
+	spec := fmt.Sprintf("*/%d * * * * *", int(alertevent.EvalInterval.Seconds()))
+	sched := cron.New(cron.WithSeconds(), cron.WithChain(cron.SkipIfStillRunning(cron.DiscardLogger)))
+	if _, err := sched.AddFunc(spec, func() { s.tick(ctx) }); err != nil {
+		cancel()
+		return merr.Server("schedule cron failed")
+	}
 	go func() {
 		defer close(s.done)
 		s.tick(ctx)
-		ticker := time.NewTicker(alertevent.EvalInterval)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-ticker.C:
-				s.tick(ctx)
-			}
-		}
+		sched.Start()
+		<-ctx.Done()
+		<-sched.Stop().Done()
 	}()
 	return nil
 }
 
-func (s *Scheduler) Stop(context.Context) error {
+func (s *Scheduler) Stop(ctx context.Context) error {
 	if s.cancel != nil {
 		s.cancel()
 	}
-	if s.done != nil {
-		<-s.done
+	if s.done == nil {
+		return nil
+	}
+	select {
+	case <-s.done:
+	case <-ctx.Done():
+		s.log.Error("scheduler stop timed out")
 	}
 	return nil
 }

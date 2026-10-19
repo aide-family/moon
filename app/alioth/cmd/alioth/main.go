@@ -14,6 +14,7 @@ import (
 	"github.com/go-kratos/kratos/v3/transport/http"
 	"github.com/spf13/cobra"
 
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/agenthub"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/data"
 	"github.com/aide-family/Alioth/app/alioth/internal/server"
@@ -94,7 +95,7 @@ func loadConfig(path string) (*conf.Bootstrap, error) {
 	return &bc, nil
 }
 
-func newApp(logger *slog.Logger, hs *http.Server, gs *grpc.Server, sched *server.Scheduler, d *data.Data) *kratos.App {
+func newApp(logger *slog.Logger, hs *http.Server, gs *grpc.Server, sched *server.Scheduler, hub *agenthub.Hub, d *data.Data) *kratos.App {
 	if d == nil {
 		panic("database is not connected")
 	}
@@ -102,5 +103,10 @@ func newApp(logger *slog.Logger, hs *http.Server, gs *grpc.Server, sched *server
 		kratos.Name("alioth"),
 		kratos.Logger(logger),
 		kratos.Server(hs, gs, sched),
+		kratos.StopTimeout(10*time.Second),
+		kratos.BeforeStop(func(_ context.Context) error {
+			hub.CloseAll()
+			return nil
+		}),
 	)
 }

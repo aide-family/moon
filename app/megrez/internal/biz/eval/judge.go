@@ -1,10 +1,12 @@
 package eval
 
 import (
+	"bytes"
 	"encoding/json"
 	"math"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
@@ -34,8 +36,8 @@ func Hits(rule bo.RuleSnapshot, samples []bo.Sample) []bo.EvalHit {
 				Labels:      string(encoded),
 				Value:       raw,
 				LevelUID:    level.LevelUID,
-				Summary:     rule.Summary,
-				Description: rule.Description,
+				Summary:     renderAlert(rule.Summary, raw, labels),
+				Description: renderAlert(rule.Description, raw, labels),
 			})
 			break
 		}
@@ -140,6 +142,29 @@ func window(rule bo.RuleSnapshot, now time.Time) (int64, int64, int64) {
 	}
 	end := now.UTC().Unix()
 	return end - int64(seconds), end, 15
+}
+
+// alertText 是摘要和描述模板的数据。String 返回采样值，因此 {{ . }} 与 {{ $value }} 都得到采样值。
+type alertText struct {
+	Value  string
+	Labels map[string]string
+}
+
+func (a alertText) String() string { return a.Value }
+
+func renderAlert(raw, value string, labels map[string]string) string {
+	if raw == "" || !strings.Contains(raw, "{{") {
+		return raw
+	}
+	tpl, err := template.New("alert").Option("missingkey=zero").Parse("{{ $value := .Value }}{{ $labels := .Labels }}" + raw)
+	if err != nil {
+		return raw
+	}
+	var buf bytes.Buffer
+	if err := tpl.Execute(&buf, alertText{Value: value, Labels: labels}); err != nil {
+		return raw
+	}
+	return buf.String()
 }
 
 func metricsDriver(driver string) bool {

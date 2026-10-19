@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { formMessage } from "@/lib/form-error"
 
+import { listAlertEvents } from "@/api/alert-event"
 import {
   listAlertPages,
   listMyRealtimeTabs,
@@ -33,6 +34,7 @@ export function AlertRealtimePage() {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState("")
   const [attempt, setAttempt] = useState(0)
+  const [counts, setCounts] = useState<Record<string, number>>({})
 
   useEffect(() => {
     let alive = true
@@ -57,6 +59,38 @@ export function AlertRealtimePage() {
       alive = false
     }
   }, [attempt, session.namespaceUid])
+
+  useEffect(() => {
+    let alive = true
+    async function loadCounts() {
+      const next: Record<string, number> = {}
+      await Promise.all(
+        tabs.map(async (tab) => {
+          try {
+            const result = await listAlertEvents({
+              view: "REALTIME",
+              page: 1,
+              pageSize: 1,
+              mine: tab.kind === "mine" ? true : undefined,
+              pageUid: tab.kind === "page" ? tab.id : undefined,
+            })
+            next[tab.id] = result.total ?? 0
+          } catch {
+            next[tab.id] = 0
+          }
+        }),
+      )
+      if (alive) {
+        setCounts(next)
+      }
+    }
+    void loadCounts()
+    const timer = window.setInterval(() => void loadCounts(), 60000)
+    return () => {
+      alive = false
+      window.clearInterval(timer)
+    }
+  }, [tabs, session.namespaceUid])
 
   async function openPicker() {
     setError("")
@@ -120,6 +154,7 @@ export function AlertRealtimePage() {
             onClick={() => setActive(tab.id)}
           >
             {tabLabel(tab)}
+            <span className="font-mono">{counts[tab.id] ?? 0}</span>
           </Button>
         ))}
       </div>

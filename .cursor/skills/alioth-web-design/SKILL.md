@@ -28,7 +28,8 @@ description: >-
 
 - 页头：`flex items-start justify-between gap-4`。左侧标题 `font-heading text-2xl font-semibold tracking-tight`，说明 `text-sm text-muted-foreground`。右侧是该页主操作。
 - 列表页顺序：页头、筛选条、表格卡片。总数在表格左上，翻页在右上。没有数据时不显示翻页。筛选条件放进 URL。页面用 `flex min-h-0 flex-1 flex-col`，表格卡片吃掉剩余高度。
-- 表格放在 `.glass-card`（或带该类的 `Card`）里，表头与行用 shadcn `Table`。表头 `sticky top-0`，表体在剩余高度里滚动。行 key 用 `uid`。列表工具条可用 `data-table-control-bar`（`h-12`），总数可用 `font-mono`。
+- 表格放在 `.glass-card`（或带该类的 `Card`）里，表头与行用 shadcn `Table`。滚动只发生在 `Table` 自己的容器里，不要再外套一层 `overflow`。表头相对该容器 `sticky top-0`，背景不透明。表格宽度不超出父级视口，横向滚动也在表内。行 key 用 `uid`。列表工具条可用 `data-table-control-bar`（`h-12`），总数可用 `font-mono`。
+- PromQL：补全打开时 Enter 接受建议，关闭时 Enter 提交，Shift+Enter 换行；左右留白。指标查询同一行左侧是条件、右侧是表/图/JSON 切换。图例 Tooltip 延迟 1.5 秒。JSON 复制成功显示勾，2 秒后恢复。细节见 revisions。
 - 新建和编辑用 `Dialog`，高度不超过 `80vh`。1–2 个字段用默认 `sm:max-w-md` 单列；多字段用 `sm:max-w-2xl`，表单 `grid gap-4 sm:grid-cols-2`，短字段最多 4 列，长文本 `sm:col-span-full`。字段很多就分步，步内也可多列。字段少的详情用右侧 `Sheet`。需要独立地址或分成多块的详情用当前页的子路由。主从页用左侧列表加右侧明细，间距 `gap-6`。
 - 每个输入框和选择框都有 i18n placeholder（可选字段也要）。标签说不清约束或后果时，在 label 旁放 `CircleHelp` tooltip。
 - 提交前按后端必填做前端校验（`required` + trim；必填 Select 禁止空/`NONE`；`StepForm` 下一步先校验当前步），空值不发请求。不引入 zod/RHF。

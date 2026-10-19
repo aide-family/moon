@@ -145,6 +145,7 @@ var (
 		{Name: "eval_slot", Type: field.TypeTime},
 		{Name: "suppressed", Type: field.TypeBool, Default: false},
 		{Name: "intervened_by", Type: field.TypeString, Default: ""},
+		{Name: "intervened_at", Type: field.TypeTime, Nullable: true},
 	}
 	// AlertEventsTable holds the schema information for the "alert_events" table.
 	AlertEventsTable = &schema.Table{

@@ -17,6 +17,7 @@ import (
 
 	"github.com/google/wire"
 	"github.com/pkg/sftp"
+	"github.com/robfig/cron/v3"
 	"golang.org/x/crypto/ssh"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -68,11 +69,17 @@ func (c *Connector) Start(ctx context.Context) error {
 	return nil
 }
 
-func (c *Connector) Stop(context.Context) error {
+func (c *Connector) Stop(ctx context.Context) error {
 	if c.cancel != nil {
 		c.cancel()
 	}
-	<-c.done
+	if c.done == nil {
+		return nil
+	}
+	select {
+	case <-c.done:
+	case <-ctx.Done():
+	}
 	return nil
 }
 
@@ -127,26 +134,33 @@ func (c *Connector) session(ctx context.Context) error {
 		return err
 	}
 	errCh := make(chan error, 2)
-	go func() {
-		ticker := time.NewTicker(c.heartbeat)
-		defer ticker.Stop()
-		var seq int64
-		for {
+	heart := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DiscardLogger)))
+	var seq int64
+	if _, err := heart.AddFunc("@every "+c.heartbeat.String(), func() {
+		seq++
+		if err := c.send(stream, &v1.AgentFrame{Heartbeat: &v1.AgentHeartbeat{Seq: seq}}); err != nil {
 			select {
-			case <-ctx.Done():
-				errCh <- ctx.Err()
-				return
-			case <-ticker.C:
-				seq++
-				if err := c.send(stream, &v1.AgentFrame{Heartbeat: &v1.AgentHeartbeat{Seq: seq}}); err != nil {
-					errCh <- err
-					return
-				}
-				if err := stream.Send(c.machineFrame()); err != nil {
-					errCh <- err
-					return
-				}
+			case errCh <- err:
+			default:
 			}
+			return
+		}
+		if err := stream.Send(c.machineFrame()); err != nil {
+			select {
+			case errCh <- err:
+			default:
+			}
+		}
+	}); err != nil {
+		return merr.Server("heartbeat cron failed")
+	}
+	heart.Start()
+	defer func() { <-heart.Stop().Done() }()
+	go func() {
+		<-ctx.Done()
+		select {
+		case errCh <- ctx.Err():
+		default:
 		}
 	}()
 	go func() {

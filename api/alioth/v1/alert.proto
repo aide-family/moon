@@ -51,7 +51,7 @@ service DatasourceService {
   rpc GetDatasourceStatus(GetDatasourceStatusRequest) returns (GetDatasourceStatusResponse) {
     option (google.api.http) = {get: "/v1/datasource/{uid}/status"};
   }
-  // 列出指标数据源中的指标名。
+  // 列出指标数据源中的指标元数据。
   rpc ListDatasourceMetrics(ListDatasourceMetricsRequest) returns (ListDatasourceMetricsResponse) {
     option (google.api.http) = {get: "/v1/datasource/{uid}/metrics"};
   }
@@ -370,10 +370,24 @@ message ListDatasourceMetricsRequest {
   string uid = 1 [(buf.validate.field).string.min_len = 1];
 }
 
-// 指标名列表。
-message ListDatasourceMetricsResponse {
+// 单条指标元数据。
+message DatasourceMetricItem {
   // 指标名。
+  string name = 1;
+  // 指标说明。
+  string help = 2;
+  // 指标类型，如 counter、gauge。
+  string type = 3;
+  // 指标单位。
+  string unit = 4;
+}
+
+// 指标元数据列表。
+message ListDatasourceMetricsResponse {
+  // 指标名（兼容旧客户端）。
   repeated string names = 1;
+  // 结构化指标元数据。
+  repeated DatasourceMetricItem metrics = 2;
 }
 
 // 要查看的指标。

@@ -71,18 +71,18 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	roleService := service.NewRoleService(roleUsecase)
 	datasourceRepo := data.NewDatasourceRepo(dataData, logger)
 	alertDictionaryRepo := data.NewAlertDictionaryRepo(dataData, logger)
-	datasourceUsecase := datasource.NewUsecase(datasourceRepo, alertDictionaryRepo, checker)
+	alertEventRepo := data.NewAlertEventRepo(dataData, logger)
+	datasourceUsecase := datasource.NewUsecase(datasourceRepo, alertDictionaryRepo, alertEventRepo, checker)
 	datasourceService := service.NewDatasourceService(datasourceUsecase)
 	metricQueryService := service.NewMetricQueryService(datasourceUsecase)
 	alertRuleRepo := data.NewAlertRuleRepo(dataData, logger)
-	alertruleUsecase := alertrule.NewUsecase(alertRuleRepo, alertDictionaryRepo, datasourceRepo, checker)
+	alertruleUsecase := alertrule.NewUsecase(alertRuleRepo, alertDictionaryRepo, datasourceRepo, alertEventRepo, checker)
 	alertRuleService := service.NewAlertRuleService(alertruleUsecase)
 	alertdictionaryUsecase := alertdictionary.NewUsecase(alertDictionaryRepo, checker)
 	alertDictionaryService := service.NewAlertDictionaryService(alertdictionaryUsecase)
 	alertPageRepo := data.NewAlertPageRepo(dataData, logger)
 	alertpageUsecase := alertpage.NewUsecase(alertPageRepo, checker)
 	alertPageService := service.NewAlertPageService(alertpageUsecase)
-	alertEventRepo := data.NewAlertEventRepo(dataData, logger)
 	client, cleanup2, err := data.NewLock(confData, logger)
 	if err != nil {
 		cleanup()
@@ -120,7 +120,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 		return nil, nil, err
 	}
 	scheduler := server.NewScheduler(alerteventUsecase, logger)
-	app := newApp(logger, httpServer, grpcServer, scheduler, dataData)
+	app := newApp(logger, httpServer, grpcServer, scheduler, hub, dataData)
 	return app, func() {
 		cleanup2()
 		cleanup()

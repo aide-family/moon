@@ -70,6 +70,12 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 
 配置使用 Bootstrap YAML。端口、数据库、Redis、密钥用环境变量占位。
 
+## 进程退出
+
+每个 Kratos 应用的 `kratos.New` **必须**配置 `kratos.StopTimeout`（建议 10 秒）。未配置时 stop 上下文永不超时，gRPC `GracefulStop` 与 HTTP `Shutdown` 会一直等待长连接（Agent 流、WebSocket shell 等），开发时 Ctrl+C 无法完整退出。
+
+带长连接的服务须在 `kratos.BeforeStop`（或等价钩子）里主动关闭会话，不要只依赖强制停。实现 `transport.Server` 的 `Stop` 必须尊重传入的 stop `ctx`：等待后台 goroutine 结束时用 `select` 兼顾 `done` 与 `ctx.Done()`，禁止无限阻塞。
+
 ## 接口
 
 对外 HTTP 与对外 gRPC 只由 `alioth` 提供。前缀 `/v1`，健康检查 `/health`。字段与路径在 `api/alioth/v1` 定稿。本文引用的 Moon 路径是能力来源，不是 Alioth 必须逐字复制的 URL。

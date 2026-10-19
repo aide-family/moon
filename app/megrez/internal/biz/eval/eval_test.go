@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aide-family/Alioth/app/megrez/internal/data/repository"
 	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
@@ -35,6 +36,22 @@ func TestHitsConditions(t *testing.T) {
 	if len(got) != 1 || got[0].Value != "3" {
 		t.Fatalf("for hit = %+v", got)
 	}
+	rule.Summary = "测试告警, value: {{ $value }} job {{ $labels.job }}"
+	rule.Description = "测试告警, value: {{ . }}"
+	rule.Levels[0].Condition = "GT"
+	rule.Levels[0].Sample = "MAX"
+	rule.Levels[0].Threshold = "1"
+	filled := Hits(rule, []bo.Sample{{Labels: map[string]string{"job": "api"}, Points: points}})
+	if len(filled) != 1 || filled[0].Summary != "测试告警, value: 3 job api" || filled[0].Description != "测试告警, value: 3" {
+		t.Fatalf("template hit = %+v", filled)
+	}
+	rule.Summary = "{{"
+	if got := Hits(rule, []bo.Sample{{Labels: map[string]string{"job": "api"}, Points: points}}); len(got) != 1 || got[0].Summary != "{{" {
+		t.Fatalf("broken template = %+v", got)
+	}
+	rule.Summary = "cpu"
+	rule.Description = ""
+	rule.Levels[0].Sample = "FOR"
 	rule.Levels[0].Condition = "IN"
 	rule.Levels[0].Threshold = "3,9"
 	if len(Hits(rule, []bo.Sample{{Points: points}})) != 0 {
@@ -72,6 +89,51 @@ func TestRenewFailureDoesNotReport(t *testing.T) {
 	}
 	if len(gateway.reports) != 0 {
 		t.Fatalf("reported after renew failure: %+v", gateway.reports)
+	}
+}
+
+func TestAdvanceBackoff(t *testing.T) {
+	wait, next := advanceBackoff(2*time.Second, false)
+	if wait != 0 || next != pollEvery {
+		t.Fatalf("reset = %s %s", wait, next)
+	}
+	wait, next = advanceBackoff(2*time.Second, true)
+	if wait != 2*time.Second || next != 4*time.Second {
+		t.Fatalf("first stretch = %s %s", wait, next)
+	}
+	wait, next = advanceBackoff(16*time.Second, true)
+	if wait != 16*time.Second || next != backoffMax {
+		t.Fatalf("cap = %s %s", wait, next)
+	}
+	wait, next = advanceBackoff(backoffMax, true)
+	if wait != backoffMax || next != backoffMax {
+		t.Fatalf("stay capped = %s %s", wait, next)
+	}
+}
+
+type failLocker struct{}
+
+func (failLocker) Available(context.Context) error { return merr.Server("redis down") }
+func (failLocker) Acquire(context.Context, string, time.Duration) (repository.Hold, error) {
+	return fakeHold{}, nil
+}
+
+func TestClaimFailureStretches(t *testing.T) {
+	worker := &Worker{locks: failLocker{}, gateway: &fakeGateway{}, log: slog.Default(), now: time.Now}
+	if !worker.once(context.Background()) {
+		t.Fatal("redis failure should stretch")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
+	defer cancel()
+	time.Sleep(time.Millisecond)
+	if !worker.once(ctx) {
+		t.Fatal("deadline should stretch")
+	}
+	cancel()
+	stopped, stop := context.WithCancel(context.Background())
+	stop()
+	if worker.once(stopped) {
+		t.Fatal("shutdown should not stretch")
 	}
 }
 

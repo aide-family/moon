@@ -83,11 +83,22 @@ func (s *DatasourceService) GetDatasourceStatus(ctx context.Context, req *v1.Get
 }
 
 func (s *DatasourceService) ListDatasourceMetrics(ctx context.Context, req *v1.ListDatasourceMetricsRequest) (*v1.ListDatasourceMetricsResponse, error) {
-	names, err := s.datasources.Metrics(ctx, req.GetUid())
+	metrics, err := s.datasources.Metrics(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListDatasourceMetricsResponse{Names: names}, nil
+	names := make([]string, 0, len(metrics))
+	items := make([]*v1.DatasourceMetricItem, 0, len(metrics))
+	for _, metric := range metrics {
+		names = append(names, metric.Name)
+		items = append(items, &v1.DatasourceMetricItem{
+			Name: metric.Name,
+			Help: metric.Help,
+			Type: metric.Type,
+			Unit: metric.Unit,
+		})
+	}
+	return &v1.ListDatasourceMetricsResponse{Names: names, Metrics: items}, nil
 }
 
 func (s *DatasourceService) GetDatasourceMetric(ctx context.Context, req *v1.GetDatasourceMetricRequest) (*v1.GetDatasourceMetricResponse, error) {

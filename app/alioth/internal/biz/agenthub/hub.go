@@ -67,6 +67,21 @@ func (h *Hub) Online(agentUID string) bool {
 	return ok
 }
 
+// CloseAll 在进程退出前关闭全部存活流，避免 gRPC GracefulStop 一直等待。
+func (h *Hub) CloseAll() {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for uid, session := range h.sessions {
+		session.finishShell("shutdown")
+		select {
+		case session.Send <- &v1.AgentFrame{Close: &v1.AgentClose{Reason: "shutdown"}}:
+		default:
+		}
+		close(session.Send)
+		delete(h.sessions, uid)
+	}
+}
+
 // SendExec 向在线 Agent 下发执行帧，并等待结果通道。
 func (h *Hub) SendExec(agentUID string, frame *v1.AgentFrame) (<-chan *v1.AgentExecResult, error) {
 	session, ok := h.Get(agentUID)

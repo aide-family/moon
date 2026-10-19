@@ -3,6 +3,7 @@ import { del, get, post, put } from "@/api/http"
 import type {
   CreateDatasourceParams,
   DatasourceItem,
+  ListDatasourceMetricsResult,
   ListDatasourcesParams,
   ListDatasourcesResult,
   SelectItem,
@@ -50,8 +51,8 @@ export function getDatasourceStatus(uid: string): Promise<{ status: string }> {
 }
 
 /** GET /v1/datasource/{uid}/metrics */
-export function listDatasourceMetrics(uid: string): Promise<{ names: string[] }> {
-  return get<{ names: string[] }>(`/datasource/${uid}/metrics`)
+export function listDatasourceMetrics(uid: string): Promise<ListDatasourceMetricsResult> {
+  return get<ListDatasourceMetricsResult>(`/datasource/${uid}/metrics`)
 }
 
 /** GET /v1/datasource/{uid}/metrics/{name} */
@@ -59,4 +60,12 @@ export function getDatasourceMetric(uid: string, name: string): Promise<{ body: 
   return get<{ body: string }>(`/datasource/${uid}/metrics/${encodeURIComponent(name)}`)
 }
 
-export type { CreateDatasourceParams, DatasourceItem, ListDatasourcesParams, ListDatasourcesResult, UpdateDatasourceParams } from "./types"
+export type {
+  CreateDatasourceParams,
+  DatasourceItem,
+  DatasourceMetricItem,
+  ListDatasourceMetricsResult,
+  ListDatasourcesParams,
+  ListDatasourcesResult,
+  UpdateDatasourceParams,
+} from "./types"

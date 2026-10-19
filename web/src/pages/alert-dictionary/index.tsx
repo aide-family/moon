@@ -132,6 +132,21 @@ export function AlertDictionaryPage() {
     return trimmed
   }
 
+  function ColorChip({ value }: { value: string }) {
+    const hex = normalizeColor(value)
+    const swatch = /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : "#1677ff"
+    return (
+      <span className="inline-flex items-center gap-2">
+        <span
+          aria-hidden
+          className="size-3 shrink-0 rounded-sm border border-border"
+          style={{ backgroundColor: swatch }}
+        />
+        <span>{value || "—"}</span>
+      </span>
+    )
+  }
+
   const colorSwatch = /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#1677ff"
 
   function openEdit(item: AlertDictionaryItem) {
@@ -280,7 +295,9 @@ export function AlertDictionaryPage() {
                 {items.map((item) => (
                   <TableRow key={item.uid}>
                     <TableCell>{item.name}</TableCell>
-                    <TableCell>{item.color}</TableCell>
+                    <TableCell>
+                      <ColorChip value={item.color} />
+                    </TableCell>
                     <TableCell>{enumLabel(t, item.type)}</TableCell>
                     <TableCell>{enumLabel(t, item.status)}</TableCell>
                     <TableCell>
@@ -370,7 +387,7 @@ export function AlertDictionaryPage() {
           detail
             ? [
                 { label: t("detail.uid"), value: detail.uid },
-                { label: t("alertDictionary.color"), value: detail.color },
+                { label: t("alertDictionary.color"), value: <ColorChip value={detail.color} /> },
                 { label: t("datasource.type"), value: enumLabel(t, detail.type) },
                 { label: t("namespace.status"), value: enumLabel(t, detail.status) },
               ]

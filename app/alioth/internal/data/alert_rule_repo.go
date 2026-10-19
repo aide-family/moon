@@ -318,18 +318,44 @@ func (r *alertRuleRepo) ListEvalCandidates(ctx context.Context, now time.Time) (
 }
 
 func (r *alertRuleRepo) ScheduleDue(ctx context.Context, now, next time.Time) error {
-	_, err := r.client.AlertRule.Update().Where(
+	groups, err := r.activeGroupUIDs(ctx)
+	if err != nil || len(groups) == 0 {
+		return err
+	}
+	_, err = r.client.AlertRule.Update().Where(
 		alertrule.DeletedAtIsNil(),
 		alertrule.StatusEQ(alertrule.StatusACTIVE),
+		alertrule.GroupUIDIn(groups...),
 		alertrule.Or(alertrule.NextEvalAtIsNil(), alertrule.NextEvalAtLTE(now)),
 	).SetNextEvalAt(next).SetScheduledSlot(now).Save(ctx)
 	return r.fail(err)
 }
 
+func (r *alertRuleRepo) ListRuleUIDs(ctx context.Context, namespaceUID, groupUID string) ([]string, error) {
+	query := r.client.AlertRule.Query().Where(alertrule.NamespaceUIDEQ(namespaceUID), alertrule.DeletedAtIsNil())
+	if groupUID != "" {
+		query = query.Where(alertrule.GroupUIDEQ(groupUID))
+	}
+	rows, err := query.All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	uids := make([]string, 0, len(rows))
+	for _, row := range rows {
+		uids = append(uids, row.UID)
+	}
+	return uids, nil
+}
+
 func (r *alertRuleRepo) ListScheduled(ctx context.Context) ([]bo.AlertRule, error) {
+	groups, err := r.activeGroupUIDs(ctx)
+	if err != nil || len(groups) == 0 {
+		return nil, err
+	}
 	rows, err := r.client.AlertRule.Query().Where(
 		alertrule.DeletedAtIsNil(),
 		alertrule.StatusEQ(alertrule.StatusACTIVE),
+		alertrule.GroupUIDIn(groups...),
 		alertrule.ScheduledSlotNotNil(),
 	).All(ctx)
 	if err != nil {
@@ -364,10 +390,30 @@ func (r *alertRuleRepo) ClearScheduledSlot(ctx context.Context, ruleUID string, 
 	return nil
 }
 
+func (r *alertRuleRepo) activeGroupUIDs(ctx context.Context) ([]string, error) {
+	rows, err := r.client.AlertRuleGroup.Query().Where(
+		alertrulegroup.DeletedAtIsNil(),
+		alertrulegroup.StatusEQ(alertrulegroup.StatusACTIVE),
+	).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	uids := make([]string, 0, len(rows))
+	for _, row := range rows {
+		uids = append(uids, row.UID)
+	}
+	return uids, nil
+}
+
 func (r *alertRuleRepo) dueRules(ctx context.Context, now time.Time) ([]*ent.AlertRule, error) {
+	groups, err := r.activeGroupUIDs(ctx)
+	if err != nil || len(groups) == 0 {
+		return nil, err
+	}
 	rows, err := r.client.AlertRule.Query().Where(
 		alertrule.DeletedAtIsNil(),
 		alertrule.StatusEQ(alertrule.StatusACTIVE),
+		alertrule.GroupUIDIn(groups...),
 		alertrule.Or(alertrule.NextEvalAtIsNil(), alertrule.NextEvalAtLTE(now)),
 	).All(ctx)
 	if err != nil {

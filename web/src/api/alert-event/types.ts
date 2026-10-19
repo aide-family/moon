@@ -18,6 +18,8 @@ export interface AlertEventItem {
   evalSlot: string
   suppressed: boolean
   intervenedBy: string
+  intervenedName: string
+  intervenedAt: string
   createdAt: string
 }
 
@@ -28,6 +30,7 @@ export interface ListAlertEventsParams {
   name?: string
   mine?: boolean
   pageUid?: string
+  levelUid?: string
 }
 
 export interface ListAlertEventsResult {

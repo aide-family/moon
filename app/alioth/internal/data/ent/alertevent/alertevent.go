@@ -52,6 +52,8 @@ const (
 	FieldSuppressed = "suppressed"
 	// FieldIntervenedBy holds the string denoting the intervened_by field in the database.
 	FieldIntervenedBy = "intervened_by"
+	// FieldIntervenedAt holds the string denoting the intervened_at field in the database.
+	FieldIntervenedAt = "intervened_at"
 	// Table holds the table name of the alertevent in the database.
 	Table = "alert_events"
 )
@@ -78,6 +80,7 @@ var Columns = []string{
 	FieldEvalSlot,
 	FieldSuppressed,
 	FieldIntervenedBy,
+	FieldIntervenedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -250,4 +253,9 @@ func BySuppressed(opts ...sql.OrderTermOption) OrderOption {
 // ByIntervenedBy orders the results by the intervened_by field.
 func ByIntervenedBy(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIntervenedBy, opts...).ToFunc()
+}
+
+// ByIntervenedAt orders the results by the intervened_at field.
+func ByIntervenedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIntervenedAt, opts...).ToFunc()
 }

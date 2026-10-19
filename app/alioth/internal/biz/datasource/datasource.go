@@ -20,11 +20,12 @@ var ProviderSet = wire.NewSet(NewUsecase)
 type Usecase struct {
 	datasources  repository.DatasourceRepo
 	dictionaries repository.AlertDictionaryRepo
+	events       repository.AlertEventRepo
 	access       access.Checker
 }
 
-func NewUsecase(datasources repository.DatasourceRepo, dictionaries repository.AlertDictionaryRepo, checker access.Checker) *Usecase {
-	return &Usecase{datasources: datasources, dictionaries: dictionaries, access: checker}
+func NewUsecase(datasources repository.DatasourceRepo, dictionaries repository.AlertDictionaryRepo, events repository.AlertEventRepo, checker access.Checker) *Usecase {
+	return &Usecase{datasources: datasources, dictionaries: dictionaries, events: events, access: checker}
 }
 
 // CreateDatasource 先核对类型和驱动是否成对，再确认数据源级别属于当前租户。
@@ -79,13 +80,24 @@ func (uc *Usecase) UpdateDatasourceStatus(ctx context.Context, uid, status strin
 		return nil, err
 	}
 	item, err := uc.datasources.UpdateDatasourceStatus(ctx, ns, uid, status)
-	return redact(item), uc.access.Wrap(err)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	if status == "DISABLED" {
+		if err := uc.events.RecoverSource(ctx, ns, nil, []string{uid}, nil); err != nil {
+			return nil, uc.access.Wrap(err)
+		}
+	}
+	return redact(item), nil
 }
 
 func (uc *Usecase) DeleteDatasource(ctx context.Context, uid string) error {
 	ns, err := uc.access.Allow(ctx, perm.DatasourceWrite)
 	if err != nil {
 		return err
+	}
+	if err := uc.events.RecoverSource(ctx, ns, nil, []string{uid}, nil); err != nil {
+		return uc.access.Wrap(err)
 	}
 	return uc.access.Wrap(uc.datasources.DeleteDatasource(ctx, ns, uid))
 }
@@ -127,13 +139,13 @@ func (uc *Usecase) Status(ctx context.Context, uid string) (string, error) {
 	return status, uc.access.Wrap(err)
 }
 
-func (uc *Usecase) Metrics(ctx context.Context, uid string) ([]string, error) {
+func (uc *Usecase) Metrics(ctx context.Context, uid string) ([]bo.DatasourceMetric, error) {
 	item, err := uc.metricSource(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	names, err := uc.datasources.ListMetrics(ctx, *item)
-	return names, uc.access.Wrap(err)
+	metrics, err := uc.datasources.ListMetrics(ctx, *item)
+	return metrics, uc.access.Wrap(err)
 }
 
 func (uc *Usecase) Metric(ctx context.Context, uid, name string) (string, error) {

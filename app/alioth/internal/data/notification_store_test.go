@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"log/slog"
-	"os"
 	"testing"
 	"time"
 
@@ -20,10 +19,7 @@ import (
 )
 
 func TestNotificationTaskDedup(t *testing.T) {
-	source := os.Getenv("ALIOTH_TEST_DSN")
-	if source == "" {
-		source = "postgres://alioth:alioth@127.0.0.1:5432/alioth?sslmode=disable"
-	}
+	source := testDSN(t)
 	ctx := context.Background()
 	store, cleanup, err := NewData(
 		&conf.Data{Database: &conf.Data_Database{Source: source}},

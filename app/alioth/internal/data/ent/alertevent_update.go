@@ -264,6 +264,26 @@ func (_u *AlertEventUpdate) SetNillableIntervenedBy(v *string) *AlertEventUpdate
 	return _u
 }
 
+// SetIntervenedAt sets the "intervened_at" field.
+func (_u *AlertEventUpdate) SetIntervenedAt(v time.Time) *AlertEventUpdate {
+	_u.mutation.SetIntervenedAt(v)
+	return _u
+}
+
+// SetNillableIntervenedAt sets the "intervened_at" field if the given value is not nil.
+func (_u *AlertEventUpdate) SetNillableIntervenedAt(v *time.Time) *AlertEventUpdate {
+	if v != nil {
+		_u.SetIntervenedAt(*v)
+	}
+	return _u
+}
+
+// ClearIntervenedAt clears the value of the "intervened_at" field.
+func (_u *AlertEventUpdate) ClearIntervenedAt() *AlertEventUpdate {
+	_u.mutation.ClearIntervenedAt()
+	return _u
+}
+
 // Mutation returns the AlertEventMutation object of the builder.
 func (_u *AlertEventUpdate) Mutation() *AlertEventMutation {
 	return _u.mutation
@@ -395,6 +415,12 @@ func (_u *AlertEventUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if value, ok := _u.mutation.IntervenedBy(); ok {
 		_spec.SetField(alertevent.FieldIntervenedBy, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IntervenedAt(); ok {
+		_spec.SetField(alertevent.FieldIntervenedAt, field.TypeTime, value)
+	}
+	if _u.mutation.IntervenedAtCleared() {
+		_spec.ClearField(alertevent.FieldIntervenedAt, field.TypeTime)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -652,6 +678,26 @@ func (_u *AlertEventUpdateOne) SetNillableIntervenedBy(v *string) *AlertEventUpd
 	return _u
 }
 
+// SetIntervenedAt sets the "intervened_at" field.
+func (_u *AlertEventUpdateOne) SetIntervenedAt(v time.Time) *AlertEventUpdateOne {
+	_u.mutation.SetIntervenedAt(v)
+	return _u
+}
+
+// SetNillableIntervenedAt sets the "intervened_at" field if the given value is not nil.
+func (_u *AlertEventUpdateOne) SetNillableIntervenedAt(v *time.Time) *AlertEventUpdateOne {
+	if v != nil {
+		_u.SetIntervenedAt(*v)
+	}
+	return _u
+}
+
+// ClearIntervenedAt clears the value of the "intervened_at" field.
+func (_u *AlertEventUpdateOne) ClearIntervenedAt() *AlertEventUpdateOne {
+	_u.mutation.ClearIntervenedAt()
+	return _u
+}
+
 // Mutation returns the AlertEventMutation object of the builder.
 func (_u *AlertEventUpdateOne) Mutation() *AlertEventMutation {
 	return _u.mutation
@@ -813,6 +859,12 @@ func (_u *AlertEventUpdateOne) sqlSave(ctx context.Context) (_node *AlertEvent, 
 	}
 	if value, ok := _u.mutation.IntervenedBy(); ok {
 		_spec.SetField(alertevent.FieldIntervenedBy, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IntervenedAt(); ok {
+		_spec.SetField(alertevent.FieldIntervenedAt, field.TypeTime, value)
+	}
+	if _u.mutation.IntervenedAtCleared() {
+		_spec.ClearField(alertevent.FieldIntervenedAt, field.TypeTime)
 	}
 	_node = &AlertEvent{config: _u.config}
 	_spec.Assign = _node.assignValues

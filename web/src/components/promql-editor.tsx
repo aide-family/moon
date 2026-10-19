@@ -1,6 +1,6 @@
 import Editor, { loader, type Monaco, type OnMount } from "@monaco-editor/react"
 import { promLanguageDefinition } from "monaco-promql"
-import { useEffect, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import * as monacoEditor from "monaco-editor"
 import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
 
@@ -10,6 +10,11 @@ import { useTheme } from "@/components/theme-provider"
 
 let monacoReady = false
 let promqlLanguageReady = false
+
+const LINE_HEIGHT = 20
+const EDITOR_PADDING_Y = 8
+const MIN_HEIGHT = LINE_HEIGHT + EDITOR_PADDING_Y * 2
+const MAX_HEIGHT = 180
 
 function ensureMonaco() {
   if (monacoReady) {
@@ -174,16 +179,24 @@ function registerDataCompletion(monaco: Monaco, uidRef: { current: string }) {
   })
 }
 
+function lineCountOf(value: string): number {
+  if (!value) {
+    return 1
+  }
+  return value.split("\n").length
+}
+
 interface PromqlEditorProps {
   value: string
   onChange: (value: string) => void
   datasourceUid?: string
-  height?: number
+  onSubmit?: () => void
 }
 
-export function PromqlEditor({ value, onChange, datasourceUid = "", height = 160 }: PromqlEditorProps) {
+export function PromqlEditor({ value, onChange, datasourceUid = "", onSubmit }: PromqlEditorProps) {
   const { theme } = useTheme()
   const uidRef = useRef(datasourceUid)
+  const onSubmitRef = useRef(onSubmit)
   const disposeRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
@@ -191,10 +204,19 @@ export function PromqlEditor({ value, onChange, datasourceUid = "", height = 160
   }, [datasourceUid])
 
   useEffect(() => {
+    onSubmitRef.current = onSubmit
+  }, [onSubmit])
+
+  useEffect(() => {
     return () => {
       disposeRef.current?.()
     }
   }, [])
+
+  const height = useMemo(() => {
+    const lines = lineCountOf(value)
+    return Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, lines * LINE_HEIGHT + EDITOR_PADDING_Y * 2))
+  }, [value])
 
   const editorTheme =
     theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
@@ -205,11 +227,29 @@ export function PromqlEditor({ value, onChange, datasourceUid = "", height = 160
     disposeRef.current?.()
     const provider = registerDataCompletion(monaco, uidRef)
     disposeRef.current = () => provider.dispose()
+
+    editor.addCommand(
+      monaco.KeyCode.Enter,
+      () => {
+        if (onSubmitRef.current) {
+          onSubmitRef.current()
+          return
+        }
+        editor.trigger("keyboard", "type", { text: "\n" })
+      },
+      "!suggestWidgetVisible",
+    )
+    editor.addCommand(monaco.KeyMod.Shift | monaco.KeyCode.Enter, () => {
+      editor.trigger("keyboard", "type", { text: "\n" })
+    })
     editor.layout()
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border" style={{ height }}>
+    <div
+      className="overflow-hidden rounded-md border border-input bg-background px-2.5 [&_.monaco-editor]:!bg-background [&_.monaco-editor-background]:!bg-background [&_.margin]:!bg-background"
+      style={{ height }}
+    >
       <Editor
         height={height}
         language="promql"
@@ -219,11 +259,35 @@ export function PromqlEditor({ value, onChange, datasourceUid = "", height = 160
         onMount={onMount}
         onChange={(next) => onChange(next ?? "")}
         options={{
+          fixedOverflowWidgets: true,
           minimap: { enabled: false },
           fontSize: 13,
+          fontFamily: 'JetBrains Mono, Menlo, Monaco, "Courier New", monospace',
+          lineNumbers: "off",
+          glyphMargin: false,
+          folding: false,
+          lineDecorationsWidth: 0,
+          lineNumbersMinChars: 0,
+          renderLineHighlight: "none",
+          overviewRulerLanes: 0,
+          overviewRulerBorder: false,
+          hideCursorInOverviewRuler: true,
           scrollBeyondLastLine: false,
           wordWrap: "on",
           automaticLayout: true,
+          padding: { top: EDITOR_PADDING_Y, bottom: EDITOR_PADDING_Y },
+          scrollbar: {
+            vertical: height >= MAX_HEIGHT ? "auto" : "hidden",
+            horizontal: "hidden",
+            verticalScrollbarSize: 8,
+            handleMouseWheel: height >= MAX_HEIGHT,
+          },
+          guides: { indentation: false },
+          renderWhitespace: "none",
+          contextmenu: false,
+          quickSuggestions: true,
+          suggestOnTriggerCharacters: true,
+          tabCompletion: "on",
         }}
       />
     </div>

@@ -35,6 +35,7 @@ func (AlertEvent) Fields() []ent.Field {
 		field.Time("eval_slot"),
 		field.Bool("suppressed").Default(false),
 		field.String("intervened_by").Default(""),
+		field.Time("intervened_at").Optional().Nillable(),
 	}
 }
 

@@ -20,7 +20,7 @@ func NewAlertEventService(uc *alertevent.Usecase) *AlertEventService {
 }
 
 func (s *AlertEventService) ListAlertEvents(ctx context.Context, req *v1.ListAlertEventsRequest) (*v1.ListAlertEventsResponse, error) {
-	items, total, page, pageSize, err := s.events.List(ctx, req.GetView(), req.GetName(), req.GetMine(), req.GetPageUid(), req.GetPage(), req.GetPageSize())
+	items, total, page, pageSize, err := s.events.List(ctx, req.GetView(), req.GetName(), req.GetMine(), req.GetPageUid(), req.GetLevelUid(), req.GetPage(), req.GetPageSize())
 	if err != nil {
 		return nil, err
 	}
@@ -91,12 +91,17 @@ func eventItem(item bo.AlertEvent) *v1.AlertEventItem {
 	if item.EndsAt != nil {
 		ends = item.EndsAt.UTC().Format(time.RFC3339Nano)
 	}
+	intervenedAt := ""
+	if item.IntervenedAt != nil {
+		intervenedAt = item.IntervenedAt.UTC().Format(time.RFC3339Nano)
+	}
 	return &v1.AlertEventItem{
 		Uid: item.UID, RuleUid: item.RuleUID, DatasourceUid: item.DatasourceUID, Fingerprint: item.Fingerprint,
 		Status: item.Status, Expr: item.Expr, Labels: item.Labels, Summary: item.Summary, Description: item.Description,
 		SampleValue: item.SampleValue, LevelUid: item.LevelUID, StartsAt: item.StartsAt.UTC().Format(time.RFC3339Nano),
 		EndsAt: ends, EvalSlot: item.EvalSlot.UTC().Format(time.RFC3339Nano), Suppressed: item.Suppressed,
-		IntervenedBy: item.IntervenedBy, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano),
+		IntervenedBy: item.IntervenedBy, IntervenedName: item.IntervenedName, IntervenedAt: intervenedAt,
+		CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano),
 	}
 }
 

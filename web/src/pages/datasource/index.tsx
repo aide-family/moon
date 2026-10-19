@@ -9,18 +9,15 @@ import {
   createDatasource,
   deleteDatasource,
   getDatasource,
-  getDatasourceStatus,
   listDatasources,
   updateDatasource,
   updateDatasourceStatus,
 } from "@/api/datasource"
 import type { DatasourceItem } from "@/api/datasource/types"
-import { proxyQuery, queryMetric, queryMetricRange } from "@/api/metric-query"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
-import { PromqlEditor } from "@/components/promql-editor"
 import { ListFrame } from "@/components/list-frame"
 import { StatusDot } from "@/components/status-dot"
 import { StepForm } from "@/components/step-form"
@@ -60,6 +57,7 @@ import { failureText, readFormError } from "@/lib/form-error"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { useListQuery } from "@/lib/list-query"
 import { MetadataPanel } from "@/pages/datasource/metadata-panel"
+import { QueryPanel } from "@/pages/datasource/query-panel"
 
 const types = ["METRICS", "LOGS", "TRACE"]
 const drivers: Record<string, string[]> = {
@@ -67,9 +65,6 @@ const drivers: Record<string, string[]> = {
   LOGS: ["LOGS_ELASTICSEARCH"],
   TRACE: ["TRACE_JAEGER"],
 }
-
-const areaClass =
-  "min-h-24 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
 
 interface Draft {
   name: string
@@ -121,15 +116,6 @@ export function DatasourcePage() {
   const [form, setForm] = useState<Draft>(emptyDraft)
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
-  const [expr, setExpr] = useState("")
-  const [start, setStart] = useState("")
-  const [end, setEnd] = useState("")
-  const [step, setStep] = useState("60")
-  const [result, setResult] = useState("")
-  const [queryError, setQueryError] = useState("")
-  const [proxyMethod, setProxyMethod] = useState("GET")
-  const [proxyPath, setProxyPath] = useState("/")
-  const [proxyBody, setProxyBody] = useState("")
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; uid: string } | null>(null)
   const [confirmError, setConfirmError] = useState("")
   const [shownAction, setShownAction] = useState<"disable" | "delete">("disable")
@@ -311,45 +297,6 @@ export function DatasourcePage() {
     }
   }
 
-  async function runQuery(kind: "instant" | "range" | "status" | "proxy") {
-    if (!current) {
-      return
-    }
-    setPending(true)
-    setQueryError("")
-    try {
-      if (kind === "status") {
-        const response = await getDatasourceStatus(current.uid)
-        setResult(response.status)
-      } else if (kind === "instant") {
-        const response = await queryMetric({ datasourceUid: current.uid, expr, time: 0 })
-        setResult(response.body)
-      } else if (kind === "range") {
-        const response = await queryMetricRange({
-          datasourceUid: current.uid,
-          expr,
-          start: Number(start),
-          end: Number(end),
-          step: Number(step),
-        })
-        setResult(response.body)
-      } else {
-        const response = await proxyQuery({
-          datasourceUid: current.uid,
-          method: proxyMethod,
-          path: proxyPath,
-          body: proxyBody,
-        })
-        setResult(response.body)
-      }
-    } catch (err) {
-      const failure = readFormError(err, t("state.failed"))
-      setQueryError(failure.form)
-    } finally {
-      setPending(false)
-    }
-  }
-
   async function runConfirm() {
     if (!confirm) {
       return
@@ -490,91 +437,42 @@ export function DatasourcePage() {
             ))}
             </div>
         </ListFrame>
-        <Card className="min-h-0 flex-1">
-          <CardContent className="grid min-h-0 flex-1 content-start gap-6 overflow-y-auto">
+        <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <CardContent className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
             {!current ? <p className="text-sm text-muted-foreground">{t("datasource.pick")}</p> : null}
             {current ? (
-              <Tabs defaultValue="detail" className="min-h-0">
-                <TabsList>
+              <Tabs defaultValue="detail" className="flex min-h-0 flex-1 flex-col">
+                <TabsList className="shrink-0">
                   <TabsTrigger value="detail">{t("datasource.tabDetail")}</TabsTrigger>
                   <TabsTrigger value="metadata">{t("datasource.tabMetadata")}</TabsTrigger>
                   <TabsTrigger value="query">{t("datasource.tabQuery")}</TabsTrigger>
                 </TabsList>
-                <TabsContent value="detail" className="grid gap-2">
-                  <h2 className="flex items-center gap-2 text-lg font-semibold">
-                    <StatusDot active={current.status === "ACTIVE"} />
-                    {current.name}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    {enumLabel(t, current.driver)} · {current.endpoint}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {enumLabel(t, current.type)} · {enumLabel(t, current.status)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {t("datasource.secretSet")}: {current.secretSet ? t("datasource.yes") : t("datasource.no")}
-                  </p>
+                <TabsContent value="detail" className="min-h-0 flex-1 overflow-y-auto">
+                  <div className="grid gap-2">
+                    <h2 className="flex items-center gap-2 text-lg font-semibold">
+                      <StatusDot active={current.status === "ACTIVE"} />
+                      {current.name}
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      {enumLabel(t, current.driver)} · {current.endpoint}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {enumLabel(t, current.type)} · {enumLabel(t, current.status)}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("datasource.secretSet")}: {current.secretSet ? t("datasource.yes") : t("datasource.no")}
+                    </p>
+                  </div>
                 </TabsContent>
-                <TabsContent value="metadata">
+                <TabsContent value="metadata" className="flex min-h-0 flex-1 flex-col overflow-hidden">
                   {current.type === "METRICS" ? (
                     <MetadataPanel uid={current.uid} />
                   ) : (
                     <p className="text-sm text-muted-foreground">{t("datasource.metadataMetricsOnly")}</p>
                   )}
                 </TabsContent>
-                <TabsContent value="query" className="grid gap-4">
-                  {current.type === "METRICS" ? (
-                    <div className="grid gap-4">
-                      <FormField label={t("datasource.expr")} htmlFor="metric-expr" hint={t("datasource.exprHint")}>
-                        <PromqlEditor value={expr} datasourceUid={current.uid} onChange={setExpr} />
-                      </FormField>
-                      <div className="flex flex-wrap gap-2">
-                        <Button type="button" disabled={pending || expr === ""} onClick={() => void runQuery("instant")}>
-                          {t("datasource.instant")}
-                        </Button>
-                        <Button type="button" variant="outline" disabled={pending} onClick={() => void runQuery("status")}>
-                          {t("datasource.check")}
-                        </Button>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Input className="max-w-40" value={start} placeholder={t("datasource.start")} onChange={(event) => setStart(event.target.value)} />
-                        <Input className="max-w-40" value={end} placeholder={t("datasource.end")} onChange={(event) => setEnd(event.target.value)} />
-                        <Input className="max-w-28" value={step} placeholder={t("datasource.step")} onChange={(event) => setStep(event.target.value)} />
-                        <Button type="button" variant="outline" disabled={pending || expr === ""} onClick={() => void runQuery("range")}>
-                          {t("datasource.range")}
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid gap-4">
-                      <div className="flex flex-wrap gap-2">
-                        <Select value={proxyMethod} onValueChange={setProxyMethod}>
-                          <SelectTrigger className="w-28" aria-label={t("datasource.method")}>
-                            <SelectValue placeholder={t("datasource.method")} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {["GET", "POST", "PUT"].map((item) => (
-                              <SelectItem key={item} value={item}>
-                                {item}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Input className="max-w-sm" value={proxyPath} placeholder={t("datasource.pathPlaceholder")} onChange={(event) => setProxyPath(event.target.value)} />
-                        <Button type="button" disabled={pending} onClick={() => void runQuery("proxy")}>
-                          {t("datasource.proxy")}
-                        </Button>
-                      </div>
-                      <textarea
-                        className={areaClass}
-                        value={proxyBody}
-                        placeholder={t("datasource.bodyPlaceholder")}
-                        onChange={(event) => setProxyBody(event.target.value)}
-                      />
-                    </div>
-                  )}
-                  {queryError ? <p className="text-sm text-destructive">{queryError}</p> : null}
-                  {result ? <pre className="overflow-auto rounded-lg border p-3 text-sm">{result}</pre> : null}
+                <TabsContent value="query" className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                  <QueryPanel key={current.uid} datasource={current} />
                 </TabsContent>
               </Tabs>
             ) : null}

@@ -56,3 +56,15 @@ export interface SelectItem {
   uid: string
   name: string
 }
+
+export interface DatasourceMetricItem {
+  name: string
+  help: string
+  type: string
+  unit: string
+}
+
+export interface ListDatasourceMetricsResult {
+  names: string[]
+  metrics: DatasourceMetricItem[]
+}

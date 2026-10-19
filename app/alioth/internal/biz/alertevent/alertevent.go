@@ -156,7 +156,7 @@ func (uc *Usecase) Report(ctx context.Context, report bo.EvalReport) error {
 	return nil
 }
 
-func (uc *Usecase) List(ctx context.Context, view, name string, mine bool, pageUID string, pageNo, pageSize int32) ([]bo.AlertEvent, int, int, int, error) {
+func (uc *Usecase) List(ctx context.Context, view, name string, mine bool, pageUID, levelUID string, pageNo, pageSize int32) ([]bo.AlertEvent, int, int, int, error) {
 	ns, err := uc.access.Allow(ctx, perm.AlertRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
@@ -173,7 +173,7 @@ func (uc *Usecase) List(ctx context.Context, view, name string, mine bool, pageU
 	if (mine || pageUID != "") && view != "REALTIME" {
 		return nil, 0, 0, 0, merr.Invalid("invalid request")
 	}
-	filter := bo.AlertEventListFilter{View: view, Name: name}
+	filter := bo.AlertEventListFilter{View: view, Name: name, LevelUID: levelUID}
 	if mine {
 		ruleUIDs, err := uc.ruleUIDsForCurrentUser(ctx, ns)
 		if err != nil {

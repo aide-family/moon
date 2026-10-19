@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react"
+import { useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { failureText, formMessage } from "@/lib/form-error"
 
+import { listAlertDictionaries } from "@/api/alert-dictionary"
+import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
 import {
   alertEventStats,
   interveneAlertEvent,
@@ -20,6 +23,13 @@ import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -44,6 +54,8 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
+  const [params, setParams] = useSearchParams()
+  const level = view === "REALTIME" ? params.get("level") || "" : ""
   const [draft, setDraft] = useState(query.name)
   const [items, setItems] = useState<AlertEventItem[]>([])
   const [total, setTotal] = useState(0)
@@ -58,6 +70,8 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
   const [actionError, setActionError] = useState("")
   const [confirm, setConfirm] = useState<{ kind: ConfirmKind; uids: string[] } | null>(null)
   const [confirmError, setConfirmError] = useState("")
+  const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
+  const [now, setNow] = useState(() => Date.now())
   const shown = useRef(confirm)
   if (confirm) {
     shown.current = confirm
@@ -78,6 +92,7 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
           view,
           mine: mine || undefined,
           pageUid: pageUid || undefined,
+          levelUid: level || undefined,
         })
         const counts = await alertEventStats()
         if (!active) {
@@ -103,7 +118,38 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
     return () => {
       active = false
     }
-  }, [query.page, query.pageSize, query.name, view, mine, pageUid, attempt, session.namespaceUid])
+  }, [query.page, query.pageSize, query.name, level, view, mine, pageUid, attempt, session.namespaceUid])
+
+  useEffect(() => {
+    if (view !== "REALTIME") {
+      return
+    }
+    let active = true
+    async function loadLevels() {
+      try {
+        const result = await listAlertDictionaries({ type: "ALERT", page: 1, pageSize: 100 })
+        if (active) {
+          setLevels(result.items ?? [])
+        }
+      } catch {
+        if (active) {
+          setLevels([])
+        }
+      }
+    }
+    void loadLevels()
+    return () => {
+      active = false
+    }
+  }, [view, session.namespaceUid])
+
+  useEffect(() => {
+    if (view !== "REALTIME") {
+      return
+    }
+    const timer = window.setInterval(() => setNow(Date.now()), 10000)
+    return () => window.clearInterval(timer)
+  }, [view])
 
   async function intervene(uids: string[]) {
     setPending(true)
@@ -165,45 +211,80 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       {hideHeader ? null : (
-      <PageHeader title={title} description={view === "HISTORY" ? t("alertEvent.historyDescription") : t("alertEvent.description")}>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <span className="text-sm text-muted-foreground">
-            {t("alertEvent.stats", stats)}
-          </span>
+        <PageHeader
+          title={title}
+          description={view === "HISTORY" ? t("alertEvent.historyDescription") : t("alertEvent.description")}
+        />
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <form
+          className="flex flex-nowrap items-center gap-2"
+          onSubmit={(event) => {
+            event.preventDefault()
+            query.update({ name: draft })
+          }}
+        >
+          <Input
+            className="min-w-0 max-w-sm"
+            value={draft}
+            placeholder={t("alertEvent.namePlaceholder")}
+            onChange={(event) => setDraft(event.target.value)}
+          />
+          {view === "REALTIME" ? (
+            <Select
+              value={level || "ALL"}
+              onValueChange={(value) => {
+                const next = new URLSearchParams(params)
+                if (value === "ALL") {
+                  next.delete("level")
+                } else {
+                  next.set("level", value)
+                }
+                next.set("page", "1")
+                setParams(next)
+              }}
+            >
+              <SelectTrigger className="w-40 shrink-0" aria-label={t("alertEvent.level")}>
+                <SelectValue placeholder={t("alertEvent.allLevels")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">{t("alertEvent.allLevels")}</SelectItem>
+                {levels.map((item) => (
+                  <SelectItem key={item.uid} value={item.uid}>
+                    {item.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
+          <Button type="submit" variant="outline" className="shrink-0">
+            {t("action.search")}
+          </Button>
+        </form>
+        <div className="flex flex-nowrap items-center justify-end gap-2">
+          <span className="shrink-0 text-sm text-muted-foreground">{t("alertEvent.stats", stats)}</span>
           {canIntervene ? (
             <>
-              <Button variant="outline" disabled={pending || selected.length === 0} onClick={() => void intervene(selected)}>
+              <Button
+                variant="outline"
+                className="shrink-0"
+                disabled={pending || selected.length === 0}
+                onClick={() => void intervene(selected)}
+              >
                 {t("alertEvent.batchIntervene")}
               </Button>
-              <Button variant="outline" disabled={pending || selected.length === 0} onClick={() => setConfirm({ kind: "batch-recover", uids: selected })}>
+              <Button
+                variant="outline"
+                className="shrink-0"
+                disabled={pending || selected.length === 0}
+                onClick={() => setConfirm({ kind: "batch-recover", uids: selected })}
+              >
                 {t("alertEvent.batchRecover")}
               </Button>
             </>
           ) : null}
         </div>
-      </PageHeader>
-      )}
-      {hideHeader && canIntervene ? (
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <span className="text-sm text-muted-foreground">{t("alertEvent.stats", stats)}</span>
-          <Button variant="outline" disabled={pending || selected.length === 0} onClick={() => void intervene(selected)}>
-            {t("alertEvent.batchIntervene")}
-          </Button>
-          <Button variant="outline" disabled={pending || selected.length === 0} onClick={() => setConfirm({ kind: "batch-recover", uids: selected })}>
-            {t("alertEvent.batchRecover")}
-          </Button>
-        </div>
-      ) : null}
-      <form
-        className="flex flex-wrap gap-2"
-        onSubmit={(event) => {
-          event.preventDefault()
-          query.update({ name: draft })
-        }}
-      >
-        <Input className="max-w-sm" value={draft} placeholder={t("alertEvent.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
-        <Button type="submit" variant="outline">{t("action.search")}</Button>
-      </form>
+      </div>
       {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
       <ListFrame
         total={total}
@@ -236,9 +317,12 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
                   </TableHead>
                 ) : null}
                 <TableHead>{t("alertEvent.summary")}</TableHead>
-                <TableHead>{t("alertEvent.status")}</TableHead>
+                {view === "REALTIME" ? <TableHead>{t("alertEvent.level")}</TableHead> : null}
+                {view === "HISTORY" ? <TableHead>{t("alertEvent.status")}</TableHead> : null}
                 <TableHead>{t("alertEvent.sample")}</TableHead>
                 <TableHead>{t("alertEvent.startsAt")}</TableHead>
+                {view === "REALTIME" ? <TableHead>{t("alertEvent.duration")}</TableHead> : null}
+                {view === "REALTIME" ? <TableHead>{t("alertEvent.intervened")}</TableHead> : null}
                 <TableHead />
               </TableRow>
             </TableHeader>
@@ -251,9 +335,21 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
                     </TableCell>
                   ) : null}
                   <TableCell>{item.summary || item.fingerprint}</TableCell>
-                  <TableCell>{enumLabel(t, item.status)}</TableCell>
+                  {view === "REALTIME" ? <TableCell>{levelCell(item.levelUid, levels)}</TableCell> : null}
+                  {view === "HISTORY" ? <TableCell>{enumLabel(t, item.status)}</TableCell> : null}
                   <TableCell>{item.sampleValue}</TableCell>
                   <TableCell>{formatTime(item.startsAt)}</TableCell>
+                  {view === "REALTIME" ? <TableCell className="font-mono">{formatDuration(item.startsAt, now)}</TableCell> : null}
+                  {view === "REALTIME" ? (
+                    <TableCell>
+                      {item.intervenedBy ? (
+                        <div className="grid">
+                          <span>{item.intervenedName || item.intervenedBy}</span>
+                          <span className="text-xs text-muted-foreground">{formatTime(item.intervenedAt)}</span>
+                        </div>
+                      ) : null}
+                    </TableCell>
+                  ) : null}
                   <TableCell>
                     <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
                   </TableCell>
@@ -293,6 +389,41 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
   )
 }
 
+function levelCell(uid: string, levels: AlertDictionaryItem[]) {
+  if (!uid) {
+    return ""
+  }
+  const level = levels.find((item) => item.uid === uid)
+  if (!level) {
+    return uid
+  }
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: level.color || "#1677ff" }} />
+      {level.name}
+    </span>
+  )
+}
+
+function formatDuration(start: string, now: number) {
+  const from = new Date(start).getTime()
+  if (Number.isNaN(from)) {
+    return ""
+  }
+  let seconds = Math.max(0, Math.floor((now - from) / 1000))
+  const hours = Math.floor(seconds / 3600)
+  seconds -= hours * 3600
+  const minutes = Math.floor(seconds / 60)
+  seconds -= minutes * 60
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`
+  }
+  if (minutes > 0) {
+    return `${minutes}m ${seconds}s`
+  }
+  return `${seconds}s`
+}
+
 function formatTime(value: string) {
   if (!value) {
     return ""
@@ -318,6 +449,7 @@ function detailFields(item: AlertEventItem, t: (key: string) => string) {
     { label: t("alertEvent.startsAt"), value: formatTime(item.startsAt) },
     { label: t("alertEvent.endsAt"), value: formatTime(item.endsAt) },
     { label: t("alertEvent.suppressed"), value: item.suppressed ? t("alertEvent.yes") : t("alertEvent.no") },
-    { label: t("alertEvent.intervenedBy"), value: item.intervenedBy },
+    { label: t("alertEvent.intervenedBy"), value: item.intervenedName || item.intervenedBy },
+    { label: t("alertEvent.intervenedAt"), value: formatTime(item.intervenedAt) },
   ]
 }

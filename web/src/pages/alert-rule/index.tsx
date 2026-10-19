@@ -1,4 +1,4 @@
-import { EllipsisVertical } from "lucide-react"
+import { EllipsisVertical, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "react-router-dom"
@@ -772,70 +772,14 @@ export function AlertRulePage() {
             <div className="grid gap-2 sm:col-span-full">
               <Label>{t("alertRule.levels")}</Label>
               {form.levels.map((level, index) => (
-                <div key={index} className="grid gap-2 rounded-lg border p-3 sm:grid-cols-4">
-                  <Select
-                    value={level.condition}
-                    onValueChange={(value) => {
-                      const levels = [...form.levels]
-                      levels[index] = { ...level, condition: value }
-                      setForm({ ...form, levels })
-                    }}
-                  >
-                    <SelectTrigger className="w-full" aria-label={t("alertRule.condition")}>
-                      <SelectValue placeholder={t("alertRule.condition")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {conditions.map((item) => (
-                        <SelectItem key={item} value={item}>
-                          {enumLabel(t, item)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={level.sample}
-                    onValueChange={(value) => {
-                      const levels = [...form.levels]
-                      levels[index] = { ...level, sample: value }
-                      setForm({ ...form, levels })
-                    }}
-                  >
-                    <SelectTrigger className="w-full" aria-label={t("alertRule.sample")}>
-                      <SelectValue placeholder={t("alertRule.sample")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {samples.map((item) => (
-                        <SelectItem key={item} value={item}>
-                          {enumLabel(t, item)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    value={level.threshold}
-                    placeholder={t("alertRule.threshold")}
-                    onChange={(event) => {
-                      const levels = [...form.levels]
-                      levels[index] = { ...level, threshold: event.target.value }
-                      setForm({ ...form, levels })
-                    }}
-                  />
-                  <Input
-                    value={String(level.forSeconds)}
-                    placeholder={t("alertRule.forSeconds")}
-                    onChange={(event) => {
-                      const levels = [...form.levels]
-                      levels[index] = { ...level, forSeconds: Number(event.target.value || "0") }
-                      setForm({ ...form, levels })
-                    }}
-                  />
-                  <div className="sm:col-span-full">
+                <div key={index} className="grid gap-2 rounded-lg border p-3">
+                  <div className="flex items-start gap-2">
                     <Select
                       value={level.levelUid || "NONE"}
                       onValueChange={(value) => {
-                        const levels = [...form.levels]
-                        levels[index] = { ...level, levelUid: value === "NONE" ? "" : value }
-                        setForm({ ...form, levels })
+                        const next = [...form.levels]
+                        next[index] = { ...level, levelUid: value === "NONE" ? "" : value }
+                        setForm({ ...form, levels: next })
                       }}
                     >
                       <SelectTrigger className="w-full" aria-label={t("alertRule.levelPlaceholder")}>
@@ -850,6 +794,77 @@ export function AlertRulePage() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0"
+                      aria-label={t("alertRule.removeLevel")}
+                      onClick={() => setForm({ ...form, levels: form.levels.filter((_, item) => item !== index) })}
+                    >
+                      <Trash2 />
+                    </Button>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-4">
+                    <Select
+                      value={level.condition}
+                      onValueChange={(value) => {
+                        const next = [...form.levels]
+                        next[index] = { ...level, condition: value }
+                        setForm({ ...form, levels: next })
+                      }}
+                    >
+                      <SelectTrigger className="w-full" aria-label={t("alertRule.condition")}>
+                        <SelectValue placeholder={t("alertRule.condition")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {conditions.map((item) => (
+                          <SelectItem key={item} value={item}>
+                            {enumLabel(t, item)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      value={level.threshold}
+                      placeholder={t("alertRule.threshold")}
+                      onChange={(event) => {
+                        const next = [...form.levels]
+                        next[index] = { ...level, threshold: event.target.value }
+                        setForm({ ...form, levels: next })
+                      }}
+                    />
+                    <Select
+                      value={level.sample}
+                      onValueChange={(value) => {
+                        const next = [...form.levels]
+                        next[index] = { ...level, sample: value }
+                        setForm({ ...form, levels: next })
+                      }}
+                    >
+                      <SelectTrigger className="w-full" aria-label={t("alertRule.sample")}>
+                        <SelectValue placeholder={t("alertRule.sample")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {samples.map((item) => (
+                          <SelectItem key={item} value={item}>
+                            {enumLabel(t, item)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={String(level.forSeconds)}
+                        placeholder={t("alertRule.forSeconds")}
+                        onChange={(event) => {
+                          const next = [...form.levels]
+                          next[index] = { ...level, forSeconds: Number(event.target.value || "0") }
+                          setForm({ ...form, levels: next })
+                        }}
+                      />
+                      <span className="shrink-0 text-sm text-muted-foreground">s</span>
+                    </div>
                   </div>
                 </div>
               ))}

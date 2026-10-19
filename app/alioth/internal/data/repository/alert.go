@@ -18,7 +18,7 @@ type DatasourceRepo interface {
 	ListDatasourcesByMatchers(ctx context.Context, namespaceUID, kind, matchersJSON string) ([]bo.Datasource, error)
 	SelectDatasources(ctx context.Context, namespaceUID string, limit int, lastUID, kind string) ([]bo.SelectItem, error)
 	DatasourceStatus(ctx context.Context, item bo.Datasource) (string, error)
-	ListMetrics(ctx context.Context, item bo.Datasource) ([]string, error)
+	ListMetrics(ctx context.Context, item bo.Datasource) ([]bo.DatasourceMetric, error)
 	MetricDetail(ctx context.Context, item bo.Datasource, name string) (string, error)
 	InstantQuery(ctx context.Context, item bo.Datasource, expr string, at int64) (string, error)
 	RangeQuery(ctx context.Context, item bo.Datasource, expr string, start, end, step int64) (string, error)
@@ -49,6 +49,7 @@ type AlertRuleRepo interface {
 	DeleteAlertRule(ctx context.Context, namespaceUID, uid string) error
 	GetAlertRule(ctx context.Context, namespaceUID, uid string) (*bo.AlertRule, error)
 	ListAlertRules(ctx context.Context, namespaceUID string, page, pageSize int, groupUID, name string) ([]bo.AlertRule, int, error)
+	ListRuleUIDs(ctx context.Context, namespaceUID, groupUID string) ([]string, error)
 	ListEvalCandidates(ctx context.Context, now time.Time) ([]bo.AlertRule, error)
 	ScheduleDue(ctx context.Context, now, next time.Time) error
 	ListScheduled(ctx context.Context) ([]bo.AlertRule, error)
@@ -68,5 +69,7 @@ type AlertEventRepo interface {
 	Intervene(ctx context.Context, namespaceUID string, uids []string, userUID string) error
 	Suppress(ctx context.Context, namespaceUID, uid string) error
 	RecoverManual(ctx context.Context, namespaceUID string, uids []string) error
+	// RecoverSource 把仍在触发的事件记为恢复。规则、数据源、级别都为空时不处理。
+	RecoverSource(ctx context.Context, namespaceUID string, ruleUIDs, datasourceUIDs, levelUIDs []string) error
 	Stats(ctx context.Context, namespaceUID string) (bo.AlertStats, error)
 }

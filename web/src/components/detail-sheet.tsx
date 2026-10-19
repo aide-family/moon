@@ -1,4 +1,4 @@
-import { useRef } from "react"
+import { useRef, type ReactNode } from "react"
 
 import {
   Sheet,
@@ -10,7 +10,7 @@ import {
 
 interface DetailField {
   label: string
-  value: string
+  value: ReactNode
 }
 
 interface DetailSheetProps {

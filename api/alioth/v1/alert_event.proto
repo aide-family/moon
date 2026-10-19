@@ -90,10 +90,14 @@ message AlertEventItem {
   string eval_slot = 14;
   // 是否抑制。
   bool suppressed = 15;
-  // 介入人。
+  // 介入人标识。
   string intervened_by = 16;
   // 创建时间，RFC3339。
   string created_at = 17;
+  // 介入时间，RFC3339。未介入时为空。
+  string intervened_at = 18 [json_name = "intervenedAt"];
+  // 介入人展示名。优先昵称，其次姓名，再次邮箱。
+  string intervened_name = 19 [json_name = "intervenedName"];
 }
 
 // 告警分页查询。
@@ -110,6 +114,8 @@ message ListAlertEventsRequest {
   bool mine = 5;
   // 按告警页面的标签匹配过滤。与 mine 互斥。
   string page_uid = 6 [json_name = "pageUid"];
+  // 按告警等级过滤。空值表示全部等级。
+  string level_uid = 7 [json_name = "levelUid"];
 }
 
 // 告警分页结果。

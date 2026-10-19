@@ -53,7 +53,7 @@ type DatasourceServiceClient interface {
 	SelectDatasources(ctx context.Context, in *SelectDatasourcesRequest, opts ...grpc.CallOption) (*SelectDatasourcesResponse, error)
 	// 查看指标数据源是否可连通。
 	GetDatasourceStatus(ctx context.Context, in *GetDatasourceStatusRequest, opts ...grpc.CallOption) (*GetDatasourceStatusResponse, error)
-	// 列出指标数据源中的指标名。
+	// 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(ctx context.Context, in *ListDatasourceMetricsRequest, opts ...grpc.CallOption) (*ListDatasourceMetricsResponse, error)
 	// 查看一个指标的元数据。
 	GetDatasourceMetric(ctx context.Context, in *GetDatasourceMetricRequest, opts ...grpc.CallOption) (*GetDatasourceMetricResponse, error)
@@ -189,7 +189,7 @@ type DatasourceServiceServer interface {
 	SelectDatasources(context.Context, *SelectDatasourcesRequest) (*SelectDatasourcesResponse, error)
 	// 查看指标数据源是否可连通。
 	GetDatasourceStatus(context.Context, *GetDatasourceStatusRequest) (*GetDatasourceStatusResponse, error)
-	// 列出指标数据源中的指标名。
+	// 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(context.Context, *ListDatasourceMetricsRequest) (*ListDatasourceMetricsResponse, error)
 	// 查看一个指标的元数据。
 	GetDatasourceMetric(context.Context, *GetDatasourceMetricRequest) (*GetDatasourceMetricResponse, error)

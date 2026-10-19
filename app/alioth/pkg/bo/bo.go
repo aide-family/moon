@@ -86,6 +86,14 @@ type Datasource struct {
 	Remark       string
 }
 
+// DatasourceMetric 是指标数据源上的一条元数据。
+type DatasourceMetric struct {
+	Name string
+	Help string
+	Type string
+	Unit string
+}
+
 // AlertDictionary 是告警字典中的一条。类型为告警级别或数据源级别。
 type AlertDictionary struct {
 	UID          string
@@ -146,24 +154,26 @@ func (r AlertRule) Due(now time.Time) bool {
 
 // AlertEvent 是一条实时或历史告警。
 type AlertEvent struct {
-	UID           string
-	NamespaceUID  string
-	RuleUID       string
-	DatasourceUID string
-	Fingerprint   string
-	Status        string
-	Expr          string
-	Labels        string
-	Summary       string
-	Description   string
-	SampleValue   string
-	LevelUID      string
-	StartsAt      time.Time
-	EndsAt        *time.Time
-	EvalSlot      time.Time
-	Suppressed    bool
-	IntervenedBy  string
-	CreatedAt     time.Time
+	UID            string
+	NamespaceUID   string
+	RuleUID        string
+	DatasourceUID  string
+	Fingerprint    string
+	Status         string
+	Expr           string
+	Labels         string
+	Summary        string
+	Description    string
+	SampleValue    string
+	LevelUID       string
+	StartsAt       time.Time
+	EndsAt         *time.Time
+	EvalSlot       time.Time
+	Suppressed     bool
+	IntervenedBy   string
+	IntervenedName string
+	IntervenedAt   *time.Time
+	CreatedAt      time.Time
 }
 
 // AlertStats 是当前租户的告警数量。
@@ -195,6 +205,7 @@ type RealtimeAlertTab struct {
 type AlertEventListFilter struct {
 	View          string
 	Name          string
+	LevelUID      string
 	RuleUIDs      []string
 	FilterByRules bool
 	LabelsJSON    string

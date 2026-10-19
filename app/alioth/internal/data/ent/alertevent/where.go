@@ -144,6 +144,11 @@ func IntervenedBy(v string) predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldEQ(FieldIntervenedBy, v))
 }
 
+// IntervenedAt applies equality check predicate on the "intervened_at" field. It's identical to IntervenedAtEQ.
+func IntervenedAt(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldEQ(FieldIntervenedAt, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldEQ(FieldCreatedAt, v))
@@ -1162,6 +1167,56 @@ func IntervenedByEqualFold(v string) predicate.AlertEvent {
 // IntervenedByContainsFold applies the ContainsFold predicate on the "intervened_by" field.
 func IntervenedByContainsFold(v string) predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldContainsFold(FieldIntervenedBy, v))
+}
+
+// IntervenedAtEQ applies the EQ predicate on the "intervened_at" field.
+func IntervenedAtEQ(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldEQ(FieldIntervenedAt, v))
+}
+
+// IntervenedAtNEQ applies the NEQ predicate on the "intervened_at" field.
+func IntervenedAtNEQ(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNEQ(FieldIntervenedAt, v))
+}
+
+// IntervenedAtIn applies the In predicate on the "intervened_at" field.
+func IntervenedAtIn(vs ...time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldIn(FieldIntervenedAt, vs...))
+}
+
+// IntervenedAtNotIn applies the NotIn predicate on the "intervened_at" field.
+func IntervenedAtNotIn(vs ...time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNotIn(FieldIntervenedAt, vs...))
+}
+
+// IntervenedAtGT applies the GT predicate on the "intervened_at" field.
+func IntervenedAtGT(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldGT(FieldIntervenedAt, v))
+}
+
+// IntervenedAtGTE applies the GTE predicate on the "intervened_at" field.
+func IntervenedAtGTE(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldGTE(FieldIntervenedAt, v))
+}
+
+// IntervenedAtLT applies the LT predicate on the "intervened_at" field.
+func IntervenedAtLT(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldLT(FieldIntervenedAt, v))
+}
+
+// IntervenedAtLTE applies the LTE predicate on the "intervened_at" field.
+func IntervenedAtLTE(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldLTE(FieldIntervenedAt, v))
+}
+
+// IntervenedAtIsNil applies the IsNil predicate on the "intervened_at" field.
+func IntervenedAtIsNil() predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldIsNull(FieldIntervenedAt))
+}
+
+// IntervenedAtNotNil applies the NotNil predicate on the "intervened_at" field.
+func IntervenedAtNotNil() predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNotNull(FieldIntervenedAt))
 }
 
 // And groups predicates with the AND operator between them.

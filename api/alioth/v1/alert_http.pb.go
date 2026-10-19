@@ -39,7 +39,7 @@ type DatasourceServiceHTTPServer interface {
 	GetDatasourceMetric(context.Context, *GetDatasourceMetricRequest) (*GetDatasourceMetricResponse, error)
 	// GetDatasourceStatus 查看指标数据源是否可连通。
 	GetDatasourceStatus(context.Context, *GetDatasourceStatusRequest) (*GetDatasourceStatusResponse, error)
-	// ListDatasourceMetrics 列出指标数据源中的指标名。
+	// ListDatasourceMetrics 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(context.Context, *ListDatasourceMetricsRequest) (*ListDatasourceMetricsResponse, error)
 	// ListDatasources 分页列出数据源。
 	ListDatasources(context.Context, *ListDatasourcesRequest) (*ListDatasourcesResponse, error)
@@ -287,7 +287,7 @@ type DatasourceServiceHTTPClient interface {
 	GetDatasourceMetric(ctx context.Context, req *GetDatasourceMetricRequest, opts ...http.CallOption) (rsp *GetDatasourceMetricResponse, err error)
 	// GetDatasourceStatus 查看指标数据源是否可连通。
 	GetDatasourceStatus(ctx context.Context, req *GetDatasourceStatusRequest, opts ...http.CallOption) (rsp *GetDatasourceStatusResponse, err error)
-	// ListDatasourceMetrics 列出指标数据源中的指标名。
+	// ListDatasourceMetrics 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(ctx context.Context, req *ListDatasourceMetricsRequest, opts ...http.CallOption) (rsp *ListDatasourceMetricsResponse, err error)
 	// ListDatasources 分页列出数据源。
 	ListDatasources(ctx context.Context, req *ListDatasourcesRequest, opts ...http.CallOption) (rsp *ListDatasourcesResponse, err error)
@@ -393,7 +393,7 @@ func (c *DatasourceServiceHTTPClientImpl) GetDatasourceStatus(ctx context.Contex
 	return &out, nil
 }
 
-// ListDatasourceMetrics 列出指标数据源中的指标名。
+// ListDatasourceMetrics 列出指标数据源中的指标元数据。
 func (c *DatasourceServiceHTTPClientImpl) ListDatasourceMetrics(ctx context.Context, in *ListDatasourceMetricsRequest, opts ...http.CallOption) (*ListDatasourceMetricsResponse, error) {
 	var out ListDatasourceMetricsResponse
 	pattern := "/v1/datasource/{uid}/metrics"
