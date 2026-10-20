@@ -65,6 +65,7 @@ function registerDataCompletion(
   monaco: Monaco,
   uidRef: { current: string },
   lokiRef: { current: boolean },
+  plainRef: { current: boolean },
 ) {
   const cache = {
     metrics: null as string[] | null,
@@ -76,6 +77,9 @@ function registerDataCompletion(
   return monaco.languages.registerCompletionItemProvider("promql", {
     triggerCharacters: ["{", '"', ",", "="],
     provideCompletionItems: async (model: monacoEditor.editor.ITextModel, position: monacoEditor.Position) => {
+      if (plainRef.current) {
+        return { suggestions: [] }
+      }
       const uid = uidRef.current
       if (!uid) {
         return { suggestions: [] }
@@ -205,8 +209,8 @@ interface PromqlEditorProps {
   onChange: (value: string) => void
   datasourceUid?: string
   onSubmit?: () => void
-  /** logql 时使用 Loki 的标签接口补全；json 用于 Elasticsearch Query DSL。 */
-  variant?: "promql" | "logql" | "json"
+  /** logql 使用 Loki 的标签接口补全，logsql 不接数据源补全，json 用于 Elasticsearch Query DSL。 */
+  variant?: "promql" | "logql" | "logsql" | "json"
 }
 
 export function PromqlEditor({
@@ -219,6 +223,7 @@ export function PromqlEditor({
   const { theme } = useTheme()
   const uidRef = useRef(datasourceUid)
   const lokiRef = useRef(variant === "logql")
+  const plainRef = useRef(variant === "logsql")
   const jsonRef = useRef(variant === "json")
   const onSubmitRef = useRef(onSubmit)
   const disposeRef = useRef<(() => void) | null>(null)
@@ -229,6 +234,10 @@ export function PromqlEditor({
 
   useEffect(() => {
     lokiRef.current = variant === "logql"
+  }, [variant])
+
+  useEffect(() => {
+    plainRef.current = variant === "logsql"
   }, [variant])
 
   useEffect(() => {
@@ -258,7 +267,7 @@ export function PromqlEditor({
   const onMount: OnMount = (editor, monaco) => {
     disposeRef.current?.()
     if (!jsonRef.current) {
-      const provider = registerDataCompletion(monaco, uidRef, lokiRef)
+      const provider = registerDataCompletion(monaco, uidRef, lokiRef, plainRef)
       disposeRef.current = () => provider.dispose()
     }
 

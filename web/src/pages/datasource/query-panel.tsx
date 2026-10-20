@@ -35,6 +35,7 @@ import {
 import { ElasticsearchPanel } from "@/pages/datasource/elasticsearch-panel"
 import { LokiPanel } from "@/pages/datasource/loki-panel"
 import { resolveRange, type RangePreset } from "@/pages/datasource/range"
+import { VlogsPanel } from "@/pages/datasource/vlogs-panel"
 
 const areaClass =
   "min-h-24 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
@@ -639,6 +640,10 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
 
   if (datasource.type === "LOGS" && datasource.driver === "LOGS_LOKI") {
     return <LokiPanel datasource={datasource} />
+  }
+
+  if (datasource.type === "LOGS" && datasource.driver === "LOGS_VLOGS") {
+    return <VlogsPanel datasource={datasource} />
   }
 
   if (datasource.type === "LOGS" && datasource.driver === "LOGS_ELASTICSEARCH") {

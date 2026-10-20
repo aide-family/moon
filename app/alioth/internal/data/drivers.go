@@ -7,6 +7,7 @@ const (
 	driverMetricsVictoriaMetrics = "METRICS_VICTORIA_METRICS"
 	driverLogsLoki               = "LOGS_LOKI"
 	driverLogsElasticsearch      = "LOGS_ELASTICSEARCH"
+	driverLogsVlogs              = "LOGS_VLOGS"
 )
 
 // isMetricsDriver 判断驱动是否走 Prometheus 兼容的指标查询接口。

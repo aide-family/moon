@@ -20,6 +20,7 @@ const _ = http.SupportPackageIsVersion3
 const OperationDatasourceServiceCreateDatasource = "/alioth.v1.DatasourceService/CreateDatasource"
 const OperationDatasourceServiceDeleteDatasource = "/alioth.v1.DatasourceService/DeleteDatasource"
 const OperationDatasourceServiceGetDatasource = "/alioth.v1.DatasourceService/GetDatasource"
+const OperationDatasourceServiceGetDatasourceMetadata = "/alioth.v1.DatasourceService/GetDatasourceMetadata"
 const OperationDatasourceServiceGetDatasourceMetric = "/alioth.v1.DatasourceService/GetDatasourceMetric"
 const OperationDatasourceServiceGetDatasourceStatus = "/alioth.v1.DatasourceService/GetDatasourceStatus"
 const OperationDatasourceServiceListDatasourceMetrics = "/alioth.v1.DatasourceService/ListDatasourceMetrics"
@@ -35,9 +36,12 @@ type DatasourceServiceHTTPServer interface {
 	DeleteDatasource(context.Context, *DeleteDatasourceRequest) (*DeleteDatasourceResponse, error)
 	// GetDatasource 获取数据源详情。
 	GetDatasource(context.Context, *GetDatasourceRequest) (*GetDatasourceResponse, error)
+	// GetDatasourceMetadata 查看日志数据源的关键信息。Loki 返回版本信息，VictoriaLogs 返回健康状态，
+	// Elasticsearch 返回集群状态和节点分配。
+	GetDatasourceMetadata(context.Context, *GetDatasourceMetadataRequest) (*GetDatasourceMetadataResponse, error)
 	// GetDatasourceMetric 查看一个指标的元数据。
 	GetDatasourceMetric(context.Context, *GetDatasourceMetricRequest) (*GetDatasourceMetricResponse, error)
-	// GetDatasourceStatus 查看数据源是否可连通。支持指标数据源、Loki 和 Elasticsearch 日志数据源。
+	// GetDatasourceStatus 查看数据源是否可连通。支持指标数据源、Loki、VictoriaLogs 和 Elasticsearch 日志数据源。
 	GetDatasourceStatus(context.Context, *GetDatasourceStatusRequest) (*GetDatasourceStatusResponse, error)
 	// ListDatasourceMetrics 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(context.Context, *ListDatasourceMetricsRequest) (*ListDatasourceMetricsResponse, error)
@@ -61,6 +65,7 @@ func RegisterDatasourceServiceHTTPServer(s *http.Server, srv DatasourceServiceHT
 	r.Handle("GET", "/v1/datasources", _DatasourceService_ListDatasources0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/datasources/select", _DatasourceService_SelectDatasources0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/datasource/{uid}/status", _DatasourceService_GetDatasourceStatus0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/datasource/{uid}/metadata", _DatasourceService_GetDatasourceMetadata0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/datasource/{uid}/metrics", _DatasourceService_ListDatasourceMetrics0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/datasource/{uid}/metrics/{name}", _DatasourceService_GetDatasourceMetric0_HTTP_Handler(srv))
 }
@@ -232,6 +237,28 @@ func _DatasourceService_GetDatasourceStatus0_HTTP_Handler(srv DatasourceServiceH
 	}
 }
 
+func _DatasourceService_GetDatasourceMetadata0_HTTP_Handler(srv DatasourceServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetDatasourceMetadataRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDatasourceServiceGetDatasourceMetadata)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetDatasourceMetadata(ctx, req.(*GetDatasourceMetadataRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetDatasourceMetadataResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _DatasourceService_ListDatasourceMetrics0_HTTP_Handler(srv DatasourceServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListDatasourceMetricsRequest
@@ -283,9 +310,12 @@ type DatasourceServiceHTTPClient interface {
 	DeleteDatasource(ctx context.Context, req *DeleteDatasourceRequest, opts ...http.CallOption) (rsp *DeleteDatasourceResponse, err error)
 	// GetDatasource 获取数据源详情。
 	GetDatasource(ctx context.Context, req *GetDatasourceRequest, opts ...http.CallOption) (rsp *GetDatasourceResponse, err error)
+	// GetDatasourceMetadata 查看日志数据源的关键信息。Loki 返回版本信息，VictoriaLogs 返回健康状态，
+	// Elasticsearch 返回集群状态和节点分配。
+	GetDatasourceMetadata(ctx context.Context, req *GetDatasourceMetadataRequest, opts ...http.CallOption) (rsp *GetDatasourceMetadataResponse, err error)
 	// GetDatasourceMetric 查看一个指标的元数据。
 	GetDatasourceMetric(ctx context.Context, req *GetDatasourceMetricRequest, opts ...http.CallOption) (rsp *GetDatasourceMetricResponse, err error)
-	// GetDatasourceStatus 查看数据源是否可连通。支持指标数据源、Loki 和 Elasticsearch 日志数据源。
+	// GetDatasourceStatus 查看数据源是否可连通。支持指标数据源、Loki、VictoriaLogs 和 Elasticsearch 日志数据源。
 	GetDatasourceStatus(ctx context.Context, req *GetDatasourceStatusRequest, opts ...http.CallOption) (rsp *GetDatasourceStatusResponse, err error)
 	// ListDatasourceMetrics 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(ctx context.Context, req *ListDatasourceMetricsRequest, opts ...http.CallOption) (rsp *ListDatasourceMetricsResponse, err error)
@@ -359,6 +389,24 @@ func (c *DatasourceServiceHTTPClientImpl) GetDatasource(ctx context.Context, in 
 	return &out, nil
 }
 
+// GetDatasourceMetadata 查看日志数据源的关键信息。Loki 返回版本信息，VictoriaLogs 返回健康状态，
+// Elasticsearch 返回集群状态和节点分配。
+func (c *DatasourceServiceHTTPClientImpl) GetDatasourceMetadata(ctx context.Context, in *GetDatasourceMetadataRequest, opts ...http.CallOption) (*GetDatasourceMetadataResponse, error) {
+	var out GetDatasourceMetadataResponse
+	pattern := "/v1/datasource/{uid}/metadata"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationDatasourceServiceGetDatasourceMetadata),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetDatasourceMetric 查看一个指标的元数据。
 func (c *DatasourceServiceHTTPClientImpl) GetDatasourceMetric(ctx context.Context, in *GetDatasourceMetricRequest, opts ...http.CallOption) (*GetDatasourceMetricResponse, error) {
 	var out GetDatasourceMetricResponse
@@ -376,7 +424,7 @@ func (c *DatasourceServiceHTTPClientImpl) GetDatasourceMetric(ctx context.Contex
 	return &out, nil
 }
 
-// GetDatasourceStatus 查看数据源是否可连通。支持指标数据源、Loki 和 Elasticsearch 日志数据源。
+// GetDatasourceStatus 查看数据源是否可连通。支持指标数据源、Loki、VictoriaLogs 和 Elasticsearch 日志数据源。
 func (c *DatasourceServiceHTTPClientImpl) GetDatasourceStatus(ctx context.Context, in *GetDatasourceStatusRequest, opts ...http.CallOption) (*GetDatasourceStatusResponse, error) {
 	var out GetDatasourceStatusResponse
 	pattern := "/v1/datasource/{uid}/status"

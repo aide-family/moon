@@ -82,6 +82,25 @@ func (s *DatasourceService) GetDatasourceStatus(ctx context.Context, req *v1.Get
 	return &v1.GetDatasourceStatusResponse{Status: status}, nil
 }
 
+func (s *DatasourceService) GetDatasourceMetadata(ctx context.Context, req *v1.GetDatasourceMetadataRequest) (*v1.GetDatasourceMetadataResponse, error) {
+	metadata, err := s.datasources.Metadata(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	items := make([]*v1.DatasourceMetadataItem, 0, len(metadata.Items))
+	for _, item := range metadata.Items {
+		items = append(items, &v1.DatasourceMetadataItem{Key: item.Key, Value: item.Value})
+	}
+	nodes := make([]*v1.DatasourceMetadataNode, 0, len(metadata.Nodes))
+	for _, node := range metadata.Nodes {
+		nodes = append(nodes, &v1.DatasourceMetadataNode{
+			Name: node.Name, Address: node.Address, Role: node.Role, Shards: node.Shards,
+			DiskUsed: node.DiskUsed, DiskAvail: node.DiskAvail, DiskPercent: node.DiskPercent,
+		})
+	}
+	return &v1.GetDatasourceMetadataResponse{Driver: metadata.Driver, Items: items, Nodes: nodes}, nil
+}
+
 func (s *DatasourceService) ListDatasourceMetrics(ctx context.Context, req *v1.ListDatasourceMetricsRequest) (*v1.ListDatasourceMetricsResponse, error) {
 	metrics, err := s.datasources.Metrics(ctx, req.GetUid())
 	if err != nil {

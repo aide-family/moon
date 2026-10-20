@@ -412,7 +412,7 @@ var (
 		{Name: "namespace_uid", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"METRICS", "LOGS", "TRACE"}},
-		{Name: "driver", Type: field.TypeEnum, Enums: []string{"METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"}},
+		{Name: "driver", Type: field.TypeEnum, Enums: []string{"METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER"}},
 		{Name: "endpoint", Type: field.TypeString},
 		{Name: "index_pattern", Type: field.TypeString, Default: ""},
 		{Name: "time_field", Type: field.TypeString, Default: ""},

@@ -18,6 +18,9 @@ func TestDriverMatchesLoki(t *testing.T) {
 	if !DriverMatches("LOGS", "LOGS_LOKI") {
 		t.Fatal("LOGS/LOGS_LOKI should match")
 	}
+	if !DriverMatches("LOGS", "LOGS_VLOGS") {
+		t.Fatal("LOGS/LOGS_VLOGS should match")
+	}
 	if DriverMatches("METRICS", "LOGS_LOKI") {
 		t.Fatal("METRICS/LOGS_LOKI should not match")
 	}

@@ -15,6 +15,7 @@ import {
 } from "@/api/datasource"
 import type { DatasourceItem } from "@/api/datasource/types"
 import { useSession } from "@/auth/session"
+import { BrandIcon } from "@/components/brand-icon"
 import { ConfirmAction } from "@/components/confirm-action"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
@@ -68,7 +69,7 @@ import { QueryPanel } from "@/pages/datasource/query-panel"
 const types = ["METRICS", "LOGS", "TRACE"]
 const drivers: Record<string, string[]> = {
   METRICS: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS"],
-  LOGS: ["LOGS_ELASTICSEARCH", "LOGS_LOKI"],
+  LOGS: ["LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS"],
   TRACE: ["TRACE_JAEGER"],
 }
 
@@ -377,6 +378,10 @@ export function DatasourcePage() {
                   onClick={() => setParam("uid", item.uid)}
                 >
                   <span className="flex min-w-0 items-center gap-2">
+                    <BrandIcon
+                      driver={item.driver}
+                      className="size-5 rounded-md border bg-background p-0.5"
+                    />
                     <StatusDot active={item.status === "ACTIVE"} />
                     <span className="flex min-w-0 flex-col items-start">
                       <span className="truncate">{item.name}</span>
@@ -427,6 +432,10 @@ export function DatasourcePage() {
                 <TabsContent value="detail" className="min-h-0 flex-1 overflow-y-auto">
                   <div className="grid gap-2">
                     <h2 className="flex items-center gap-2 text-lg font-semibold">
+                      <BrandIcon
+                        driver={current.driver}
+                        className="size-7 rounded-md border bg-background p-0.5"
+                      />
                       <StatusDot active={current.status === "ACTIVE"} />
                       {current.name}
                     </h2>
@@ -442,11 +451,7 @@ export function DatasourcePage() {
                   </div>
                 </TabsContent>
                 <TabsContent value="metadata" className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                  {current.type === "METRICS" ? (
-                    <MetadataPanel uid={current.uid} driver={current.driver} />
-                  ) : (
-                    <p className="text-sm text-muted-foreground">{t("datasource.metadataMetricsOnly")}</p>
-                  )}
+                  <MetadataPanel datasource={current} />
                 </TabsContent>
                 <TabsContent value="query" className="flex min-h-0 flex-1 flex-col overflow-hidden">
                   <QueryPanel key={current.uid} datasource={current} />
@@ -534,7 +539,10 @@ export function DatasourcePage() {
                 <SelectContent>
                   {(drivers[form.type] ?? []).map((item) => (
                     <SelectItem key={item} value={item}>
-                      {enumLabel(t, item)}
+                      <span className="flex items-center gap-2">
+                        <BrandIcon driver={item} className="size-4" />
+                        <span>{enumLabel(t, item)}</span>
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -654,7 +662,15 @@ export function DatasourcePage() {
       <Sheet open={detailItem !== null} onOpenChange={(value) => { if (!value) setDetailItem(null) }}>
         <SheetContent>
           <SheetHeader>
-            <SheetTitle>{detailItem?.name}</SheetTitle>
+            <SheetTitle className="flex items-center gap-2">
+              {detailItem ? (
+                <BrandIcon
+                  driver={detailItem.driver}
+                  className="size-6 rounded-md border bg-background p-0.5"
+                />
+              ) : null}
+              {detailItem?.name}
+            </SheetTitle>
             <SheetDescription>{detailItem ? enumLabel(t, detailItem.status) : ""}</SheetDescription>
           </SheetHeader>
           {detailItem ? (

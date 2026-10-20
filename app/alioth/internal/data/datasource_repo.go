@@ -294,7 +294,7 @@ func datasourceEnums(kind, driver, status string) (datasource.Type, datasource.D
 	}
 	parsedDriver := datasource.Driver(driver)
 	switch parsedDriver {
-	case datasource.DriverMETRICS_PROMETHEUS, datasource.DriverMETRICS_VICTORIA_METRICS, datasource.DriverLOGS_ELASTICSEARCH, datasource.DriverLOGS_LOKI, datasource.DriverTRACE_JAEGER:
+	case datasource.DriverMETRICS_PROMETHEUS, datasource.DriverMETRICS_VICTORIA_METRICS, datasource.DriverLOGS_ELASTICSEARCH, datasource.DriverLOGS_LOKI, datasource.DriverLOGS_VLOGS, datasource.DriverTRACE_JAEGER:
 	default:
 		return "", "", "", merr.Invalid("invalid request")
 	}

@@ -70,6 +70,7 @@ func TestDatasourceStatusPathByDriver(t *testing.T) {
 	}{
 		{driver: "LOGS_LOKI", path: "/ready"},
 		{driver: "LOGS_ELASTICSEARCH", path: "/"},
+		{driver: "LOGS_VLOGS", path: "/health"},
 		{driver: "METRICS_PROMETHEUS", path: "/api/v1/status/buildinfo"},
 		{driver: "METRICS_VICTORIA_METRICS", path: "/api/v1/status/buildinfo"},
 	}

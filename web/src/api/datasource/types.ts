@@ -5,6 +5,7 @@ export type DatasourceDriver =
   | "METRICS_VICTORIA_METRICS"
   | "LOGS_ELASTICSEARCH"
   | "LOGS_LOKI"
+  | "LOGS_VLOGS"
   | "TRACE_JAEGER"
 
 export interface DatasourceItem {
@@ -72,4 +73,25 @@ export interface DatasourceMetricItem {
 export interface ListDatasourceMetricsResult {
   names: string[]
   metrics: DatasourceMetricItem[]
+}
+
+export interface DatasourceMetadataItem {
+  key: string
+  value: string
+}
+
+export interface DatasourceMetadataNode {
+  name: string
+  address: string
+  role: string
+  shards: string
+  diskUsed: string
+  diskAvail: string
+  diskPercent: string
+}
+
+export interface DatasourceMetadataResult {
+  driver: DatasourceDriver | string
+  items: DatasourceMetadataItem[]
+  nodes: DatasourceMetadataNode[]
 }

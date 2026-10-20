@@ -3,6 +3,7 @@ import { del, get, post, put } from "@/api/http"
 import type {
   CreateDatasourceParams,
   DatasourceItem,
+  DatasourceMetadataResult,
   ListDatasourceMetricsResult,
   ListDatasourcesParams,
   ListDatasourcesResult,
@@ -50,6 +51,11 @@ export function getDatasourceStatus(uid: string): Promise<{ status: string }> {
   return get<{ status: string }>(`/datasource/${uid}/status`)
 }
 
+/** GET /v1/datasource/{uid}/metadata */
+export function getDatasourceMetadata(uid: string): Promise<DatasourceMetadataResult> {
+  return get<DatasourceMetadataResult>(`/datasource/${uid}/metadata`)
+}
+
 /** GET /v1/datasource/{uid}/metrics */
 export function listDatasourceMetrics(uid: string): Promise<ListDatasourceMetricsResult> {
   return get<ListDatasourceMetricsResult>(`/datasource/${uid}/metrics`)
@@ -63,6 +69,9 @@ export function getDatasourceMetric(uid: string, name: string): Promise<{ body: 
 export type {
   CreateDatasourceParams,
   DatasourceItem,
+  DatasourceMetadataItem,
+  DatasourceMetadataNode,
+  DatasourceMetadataResult,
   DatasourceMetricItem,
   ListDatasourceMetricsResult,
   ListDatasourcesParams,

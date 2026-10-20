@@ -18,6 +18,7 @@ type DatasourceRepo interface {
 	ListDatasourcesByMatchers(ctx context.Context, namespaceUID, kind, matchersJSON string) ([]bo.Datasource, error)
 	SelectDatasources(ctx context.Context, namespaceUID string, limit int, lastUID, kind string) ([]bo.SelectItem, error)
 	DatasourceStatus(ctx context.Context, item bo.Datasource) (string, error)
+	DatasourceMetadata(ctx context.Context, item bo.Datasource) (*bo.DatasourceMetadata, error)
 	ListMetrics(ctx context.Context, item bo.Datasource) ([]bo.DatasourceMetric, error)
 	MetricDetail(ctx context.Context, item bo.Datasource, name string) (string, error)
 	InstantQuery(ctx context.Context, item bo.Datasource, expr string, at int64) (string, error)

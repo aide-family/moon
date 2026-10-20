@@ -27,6 +27,7 @@ const (
 	DatasourceService_ListDatasources_FullMethodName        = "/alioth.v1.DatasourceService/ListDatasources"
 	DatasourceService_SelectDatasources_FullMethodName      = "/alioth.v1.DatasourceService/SelectDatasources"
 	DatasourceService_GetDatasourceStatus_FullMethodName    = "/alioth.v1.DatasourceService/GetDatasourceStatus"
+	DatasourceService_GetDatasourceMetadata_FullMethodName  = "/alioth.v1.DatasourceService/GetDatasourceMetadata"
 	DatasourceService_ListDatasourceMetrics_FullMethodName  = "/alioth.v1.DatasourceService/ListDatasourceMetrics"
 	DatasourceService_GetDatasourceMetric_FullMethodName    = "/alioth.v1.DatasourceService/GetDatasourceMetric"
 )
@@ -51,8 +52,11 @@ type DatasourceServiceClient interface {
 	ListDatasources(ctx context.Context, in *ListDatasourcesRequest, opts ...grpc.CallOption) (*ListDatasourcesResponse, error)
 	// 下拉选择数据源。
 	SelectDatasources(ctx context.Context, in *SelectDatasourcesRequest, opts ...grpc.CallOption) (*SelectDatasourcesResponse, error)
-	// 查看数据源是否可连通。支持指标数据源、Loki 和 Elasticsearch 日志数据源。
+	// 查看数据源是否可连通。支持指标数据源、Loki、VictoriaLogs 和 Elasticsearch 日志数据源。
 	GetDatasourceStatus(ctx context.Context, in *GetDatasourceStatusRequest, opts ...grpc.CallOption) (*GetDatasourceStatusResponse, error)
+	// 查看日志数据源的关键信息。Loki 返回版本信息，VictoriaLogs 返回健康状态，
+	// Elasticsearch 返回集群状态和节点分配。
+	GetDatasourceMetadata(ctx context.Context, in *GetDatasourceMetadataRequest, opts ...grpc.CallOption) (*GetDatasourceMetadataResponse, error)
 	// 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(ctx context.Context, in *ListDatasourceMetricsRequest, opts ...grpc.CallOption) (*ListDatasourceMetricsResponse, error)
 	// 查看一个指标的元数据。
@@ -147,6 +151,16 @@ func (c *datasourceServiceClient) GetDatasourceStatus(ctx context.Context, in *G
 	return out, nil
 }
 
+func (c *datasourceServiceClient) GetDatasourceMetadata(ctx context.Context, in *GetDatasourceMetadataRequest, opts ...grpc.CallOption) (*GetDatasourceMetadataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDatasourceMetadataResponse)
+	err := c.cc.Invoke(ctx, DatasourceService_GetDatasourceMetadata_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *datasourceServiceClient) ListDatasourceMetrics(ctx context.Context, in *ListDatasourceMetricsRequest, opts ...grpc.CallOption) (*ListDatasourceMetricsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListDatasourceMetricsResponse)
@@ -187,8 +201,11 @@ type DatasourceServiceServer interface {
 	ListDatasources(context.Context, *ListDatasourcesRequest) (*ListDatasourcesResponse, error)
 	// 下拉选择数据源。
 	SelectDatasources(context.Context, *SelectDatasourcesRequest) (*SelectDatasourcesResponse, error)
-	// 查看数据源是否可连通。支持指标数据源、Loki 和 Elasticsearch 日志数据源。
+	// 查看数据源是否可连通。支持指标数据源、Loki、VictoriaLogs 和 Elasticsearch 日志数据源。
 	GetDatasourceStatus(context.Context, *GetDatasourceStatusRequest) (*GetDatasourceStatusResponse, error)
+	// 查看日志数据源的关键信息。Loki 返回版本信息，VictoriaLogs 返回健康状态，
+	// Elasticsearch 返回集群状态和节点分配。
+	GetDatasourceMetadata(context.Context, *GetDatasourceMetadataRequest) (*GetDatasourceMetadataResponse, error)
 	// 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(context.Context, *ListDatasourceMetricsRequest) (*ListDatasourceMetricsResponse, error)
 	// 查看一个指标的元数据。
@@ -226,6 +243,9 @@ func (UnimplementedDatasourceServiceServer) SelectDatasources(context.Context, *
 }
 func (UnimplementedDatasourceServiceServer) GetDatasourceStatus(context.Context, *GetDatasourceStatusRequest) (*GetDatasourceStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDatasourceStatus not implemented")
+}
+func (UnimplementedDatasourceServiceServer) GetDatasourceMetadata(context.Context, *GetDatasourceMetadataRequest) (*GetDatasourceMetadataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDatasourceMetadata not implemented")
 }
 func (UnimplementedDatasourceServiceServer) ListDatasourceMetrics(context.Context, *ListDatasourceMetricsRequest) (*ListDatasourceMetricsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDatasourceMetrics not implemented")
@@ -398,6 +418,24 @@ func _DatasourceService_GetDatasourceStatus_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DatasourceService_GetDatasourceMetadata_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDatasourceMetadataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DatasourceServiceServer).GetDatasourceMetadata(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DatasourceService_GetDatasourceMetadata_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DatasourceServiceServer).GetDatasourceMetadata(ctx, req.(*GetDatasourceMetadataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _DatasourceService_ListDatasourceMetrics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListDatasourceMetricsRequest)
 	if err := dec(in); err != nil {
@@ -472,6 +510,10 @@ var DatasourceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetDatasourceStatus",
 			Handler:    _DatasourceService_GetDatasourceStatus_Handler,
+		},
+		{
+			MethodName: "GetDatasourceMetadata",
+			Handler:    _DatasourceService_GetDatasourceMetadata_Handler,
 		},
 		{
 			MethodName: "ListDatasourceMetrics",

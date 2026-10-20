@@ -70,9 +70,10 @@ func (r *datasourceRepo) DatasourceStatus(ctx context.Context, item bo.Datasourc
 	return "up", nil
 }
 
-// statusPath 按驱动选择健康检查路径。Loki 用 /ready，Elasticsearch 用根路径。
-// Prometheus 和 VictoriaMetrics 都用 buildinfo：VictoriaMetrics 实现了这个兼容接口，
-// 且它相对数据源地址的路径前缀解析，集群版 /select/<accountID>/prometheus 也能探测。
+// statusPath 按驱动选择健康检查路径。Loki 用 /ready，VictoriaLogs 用 /health，
+// Elasticsearch 用根路径。Prometheus 和 VictoriaMetrics 都用 buildinfo：
+// VictoriaMetrics 实现了这个兼容接口，且它相对数据源地址的路径前缀解析，
+// 集群版 /select/<accountID>/prometheus 也能探测。
 // 其他驱动没有约定的探测路径，返回明确错误而不是探测一个无关接口。
 func statusPath(driver string) (string, error) {
 	switch driver {
@@ -80,6 +81,8 @@ func statusPath(driver string) (string, error) {
 		return "/api/v1/status/buildinfo", nil
 	case driverLogsLoki:
 		return "/ready", nil
+	case driverLogsVlogs:
+		return vlogsHealthPath, nil
 	case driverLogsElasticsearch:
 		return "/", nil
 	default:

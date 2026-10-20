@@ -1210,6 +1210,271 @@ func (x *GetDatasourceStatusResponse) GetStatus() string {
 	return ""
 }
 
+// 要查看元数据的日志数据源。
+type GetDatasourceMetadataRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 标识。
+	Uid           string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDatasourceMetadataRequest) Reset() {
+	*x = GetDatasourceMetadataRequest{}
+	mi := &file_alioth_v1_alert_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDatasourceMetadataRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDatasourceMetadataRequest) ProtoMessage() {}
+
+func (x *GetDatasourceMetadataRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_alert_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDatasourceMetadataRequest.ProtoReflect.Descriptor instead.
+func (*GetDatasourceMetadataRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GetDatasourceMetadataRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+// 数据源元数据中的键值项。键名稳定，由页面映射成本地文案。
+type DatasourceMetadataItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 键名，例如 status、version、clusterName。
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// 上游返回的值。
+	Value         string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DatasourceMetadataItem) Reset() {
+	*x = DatasourceMetadataItem{}
+	mi := &file_alioth_v1_alert_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DatasourceMetadataItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DatasourceMetadataItem) ProtoMessage() {}
+
+func (x *DatasourceMetadataItem) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_alert_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DatasourceMetadataItem.ProtoReflect.Descriptor instead.
+func (*DatasourceMetadataItem) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *DatasourceMetadataItem) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *DatasourceMetadataItem) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+// 数据源元数据中的节点分配项，仅 Elasticsearch 使用。
+type DatasourceMetadataNode struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 节点名。
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// 节点地址。
+	Address string `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+	// 节点角色。
+	Role string `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
+	// 分片数。
+	Shards string `protobuf:"bytes,4,opt,name=shards,proto3" json:"shards,omitempty"`
+	// 已用磁盘空间。
+	DiskUsed string `protobuf:"bytes,5,opt,name=disk_used,json=diskUsed,proto3" json:"disk_used,omitempty"`
+	// 可用磁盘空间。
+	DiskAvail string `protobuf:"bytes,6,opt,name=disk_avail,json=diskAvail,proto3" json:"disk_avail,omitempty"`
+	// 磁盘使用百分比。
+	DiskPercent   string `protobuf:"bytes,7,opt,name=disk_percent,json=diskPercent,proto3" json:"disk_percent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DatasourceMetadataNode) Reset() {
+	*x = DatasourceMetadataNode{}
+	mi := &file_alioth_v1_alert_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DatasourceMetadataNode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DatasourceMetadataNode) ProtoMessage() {}
+
+func (x *DatasourceMetadataNode) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_alert_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DatasourceMetadataNode.ProtoReflect.Descriptor instead.
+func (*DatasourceMetadataNode) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *DatasourceMetadataNode) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DatasourceMetadataNode) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *DatasourceMetadataNode) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *DatasourceMetadataNode) GetShards() string {
+	if x != nil {
+		return x.Shards
+	}
+	return ""
+}
+
+func (x *DatasourceMetadataNode) GetDiskUsed() string {
+	if x != nil {
+		return x.DiskUsed
+	}
+	return ""
+}
+
+func (x *DatasourceMetadataNode) GetDiskAvail() string {
+	if x != nil {
+		return x.DiskAvail
+	}
+	return ""
+}
+
+func (x *DatasourceMetadataNode) GetDiskPercent() string {
+	if x != nil {
+		return x.DiskPercent
+	}
+	return ""
+}
+
+// 日志数据源的元数据。
+type GetDatasourceMetadataResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 驱动。
+	Driver string `protobuf:"bytes,1,opt,name=driver,proto3" json:"driver,omitempty"`
+	// 键值项。
+	Items []*DatasourceMetadataItem `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty"`
+	// 节点分配，仅 Elasticsearch 使用。
+	Nodes         []*DatasourceMetadataNode `protobuf:"bytes,3,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDatasourceMetadataResponse) Reset() {
+	*x = GetDatasourceMetadataResponse{}
+	mi := &file_alioth_v1_alert_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDatasourceMetadataResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDatasourceMetadataResponse) ProtoMessage() {}
+
+func (x *GetDatasourceMetadataResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_alert_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDatasourceMetadataResponse.ProtoReflect.Descriptor instead.
+func (*GetDatasourceMetadataResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GetDatasourceMetadataResponse) GetDriver() string {
+	if x != nil {
+		return x.Driver
+	}
+	return ""
+}
+
+func (x *GetDatasourceMetadataResponse) GetItems() []*DatasourceMetadataItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *GetDatasourceMetadataResponse) GetNodes() []*DatasourceMetadataNode {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
 // 要列出指标的数据源。
 type ListDatasourceMetricsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1221,7 +1486,7 @@ type ListDatasourceMetricsRequest struct {
 
 func (x *ListDatasourceMetricsRequest) Reset() {
 	*x = ListDatasourceMetricsRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[17]
+	mi := &file_alioth_v1_alert_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1233,7 +1498,7 @@ func (x *ListDatasourceMetricsRequest) String() string {
 func (*ListDatasourceMetricsRequest) ProtoMessage() {}
 
 func (x *ListDatasourceMetricsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[17]
+	mi := &file_alioth_v1_alert_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1246,7 +1511,7 @@ func (x *ListDatasourceMetricsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDatasourceMetricsRequest.ProtoReflect.Descriptor instead.
 func (*ListDatasourceMetricsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{17}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ListDatasourceMetricsRequest) GetUid() string {
@@ -1273,7 +1538,7 @@ type DatasourceMetricItem struct {
 
 func (x *DatasourceMetricItem) Reset() {
 	*x = DatasourceMetricItem{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[18]
+	mi := &file_alioth_v1_alert_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1285,7 +1550,7 @@ func (x *DatasourceMetricItem) String() string {
 func (*DatasourceMetricItem) ProtoMessage() {}
 
 func (x *DatasourceMetricItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[18]
+	mi := &file_alioth_v1_alert_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1298,7 +1563,7 @@ func (x *DatasourceMetricItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DatasourceMetricItem.ProtoReflect.Descriptor instead.
 func (*DatasourceMetricItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{18}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *DatasourceMetricItem) GetName() string {
@@ -1342,7 +1607,7 @@ type ListDatasourceMetricsResponse struct {
 
 func (x *ListDatasourceMetricsResponse) Reset() {
 	*x = ListDatasourceMetricsResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[19]
+	mi := &file_alioth_v1_alert_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1354,7 +1619,7 @@ func (x *ListDatasourceMetricsResponse) String() string {
 func (*ListDatasourceMetricsResponse) ProtoMessage() {}
 
 func (x *ListDatasourceMetricsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[19]
+	mi := &file_alioth_v1_alert_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1367,7 +1632,7 @@ func (x *ListDatasourceMetricsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDatasourceMetricsResponse.ProtoReflect.Descriptor instead.
 func (*ListDatasourceMetricsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{19}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListDatasourceMetricsResponse) GetNames() []string {
@@ -1397,7 +1662,7 @@ type GetDatasourceMetricRequest struct {
 
 func (x *GetDatasourceMetricRequest) Reset() {
 	*x = GetDatasourceMetricRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[20]
+	mi := &file_alioth_v1_alert_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1409,7 +1674,7 @@ func (x *GetDatasourceMetricRequest) String() string {
 func (*GetDatasourceMetricRequest) ProtoMessage() {}
 
 func (x *GetDatasourceMetricRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[20]
+	mi := &file_alioth_v1_alert_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1422,7 +1687,7 @@ func (x *GetDatasourceMetricRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDatasourceMetricRequest.ProtoReflect.Descriptor instead.
 func (*GetDatasourceMetricRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{20}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetDatasourceMetricRequest) GetUid() string {
@@ -1450,7 +1715,7 @@ type GetDatasourceMetricResponse struct {
 
 func (x *GetDatasourceMetricResponse) Reset() {
 	*x = GetDatasourceMetricResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[21]
+	mi := &file_alioth_v1_alert_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1462,7 +1727,7 @@ func (x *GetDatasourceMetricResponse) String() string {
 func (*GetDatasourceMetricResponse) ProtoMessage() {}
 
 func (x *GetDatasourceMetricResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[21]
+	mi := &file_alioth_v1_alert_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1475,7 +1740,7 @@ func (x *GetDatasourceMetricResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDatasourceMetricResponse.ProtoReflect.Descriptor instead.
 func (*GetDatasourceMetricResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{21}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetDatasourceMetricResponse) GetBody() string {
@@ -1500,7 +1765,7 @@ type QueryMetricRequest struct {
 
 func (x *QueryMetricRequest) Reset() {
 	*x = QueryMetricRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[22]
+	mi := &file_alioth_v1_alert_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1512,7 +1777,7 @@ func (x *QueryMetricRequest) String() string {
 func (*QueryMetricRequest) ProtoMessage() {}
 
 func (x *QueryMetricRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[22]
+	mi := &file_alioth_v1_alert_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1525,7 +1790,7 @@ func (x *QueryMetricRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryMetricRequest.ProtoReflect.Descriptor instead.
 func (*QueryMetricRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{22}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *QueryMetricRequest) GetDatasourceUid() string {
@@ -1560,7 +1825,7 @@ type QueryMetricResponse struct {
 
 func (x *QueryMetricResponse) Reset() {
 	*x = QueryMetricResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[23]
+	mi := &file_alioth_v1_alert_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1572,7 +1837,7 @@ func (x *QueryMetricResponse) String() string {
 func (*QueryMetricResponse) ProtoMessage() {}
 
 func (x *QueryMetricResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[23]
+	mi := &file_alioth_v1_alert_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1585,7 +1850,7 @@ func (x *QueryMetricResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryMetricResponse.ProtoReflect.Descriptor instead.
 func (*QueryMetricResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{23}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *QueryMetricResponse) GetBody() string {
@@ -1614,7 +1879,7 @@ type QueryMetricRangeRequest struct {
 
 func (x *QueryMetricRangeRequest) Reset() {
 	*x = QueryMetricRangeRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[24]
+	mi := &file_alioth_v1_alert_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1626,7 +1891,7 @@ func (x *QueryMetricRangeRequest) String() string {
 func (*QueryMetricRangeRequest) ProtoMessage() {}
 
 func (x *QueryMetricRangeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[24]
+	mi := &file_alioth_v1_alert_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1639,7 +1904,7 @@ func (x *QueryMetricRangeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryMetricRangeRequest.ProtoReflect.Descriptor instead.
 func (*QueryMetricRangeRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{24}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *QueryMetricRangeRequest) GetDatasourceUid() string {
@@ -1688,7 +1953,7 @@ type QueryMetricRangeResponse struct {
 
 func (x *QueryMetricRangeResponse) Reset() {
 	*x = QueryMetricRangeResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[25]
+	mi := &file_alioth_v1_alert_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1700,7 +1965,7 @@ func (x *QueryMetricRangeResponse) String() string {
 func (*QueryMetricRangeResponse) ProtoMessage() {}
 
 func (x *QueryMetricRangeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[25]
+	mi := &file_alioth_v1_alert_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1713,7 +1978,7 @@ func (x *QueryMetricRangeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryMetricRangeResponse.ProtoReflect.Descriptor instead.
 func (*QueryMetricRangeResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{25}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *QueryMetricRangeResponse) GetBody() string {
@@ -1740,7 +2005,7 @@ type ProxyQueryRequest struct {
 
 func (x *ProxyQueryRequest) Reset() {
 	*x = ProxyQueryRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[26]
+	mi := &file_alioth_v1_alert_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1752,7 +2017,7 @@ func (x *ProxyQueryRequest) String() string {
 func (*ProxyQueryRequest) ProtoMessage() {}
 
 func (x *ProxyQueryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[26]
+	mi := &file_alioth_v1_alert_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1765,7 +2030,7 @@ func (x *ProxyQueryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProxyQueryRequest.ProtoReflect.Descriptor instead.
 func (*ProxyQueryRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{26}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ProxyQueryRequest) GetDatasourceUid() string {
@@ -1807,7 +2072,7 @@ type ProxyQueryResponse struct {
 
 func (x *ProxyQueryResponse) Reset() {
 	*x = ProxyQueryResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[27]
+	mi := &file_alioth_v1_alert_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1819,7 +2084,7 @@ func (x *ProxyQueryResponse) String() string {
 func (*ProxyQueryResponse) ProtoMessage() {}
 
 func (x *ProxyQueryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[27]
+	mi := &file_alioth_v1_alert_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1832,7 +2097,7 @@ func (x *ProxyQueryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProxyQueryResponse.ProtoReflect.Descriptor instead.
 func (*ProxyQueryResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{27}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ProxyQueryResponse) GetBody() string {
@@ -1857,7 +2122,7 @@ type AlertRuleGroupItem struct {
 
 func (x *AlertRuleGroupItem) Reset() {
 	*x = AlertRuleGroupItem{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[28]
+	mi := &file_alioth_v1_alert_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1869,7 +2134,7 @@ func (x *AlertRuleGroupItem) String() string {
 func (*AlertRuleGroupItem) ProtoMessage() {}
 
 func (x *AlertRuleGroupItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[28]
+	mi := &file_alioth_v1_alert_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1882,7 +2147,7 @@ func (x *AlertRuleGroupItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AlertRuleGroupItem.ProtoReflect.Descriptor instead.
 func (*AlertRuleGroupItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{28}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *AlertRuleGroupItem) GetUid() string {
@@ -1917,7 +2182,7 @@ type CreateAlertRuleGroupRequest struct {
 
 func (x *CreateAlertRuleGroupRequest) Reset() {
 	*x = CreateAlertRuleGroupRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[29]
+	mi := &file_alioth_v1_alert_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1929,7 +2194,7 @@ func (x *CreateAlertRuleGroupRequest) String() string {
 func (*CreateAlertRuleGroupRequest) ProtoMessage() {}
 
 func (x *CreateAlertRuleGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[29]
+	mi := &file_alioth_v1_alert_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1942,7 +2207,7 @@ func (x *CreateAlertRuleGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAlertRuleGroupRequest.ProtoReflect.Descriptor instead.
 func (*CreateAlertRuleGroupRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{29}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *CreateAlertRuleGroupRequest) GetName() string {
@@ -1963,7 +2228,7 @@ type CreateAlertRuleGroupResponse struct {
 
 func (x *CreateAlertRuleGroupResponse) Reset() {
 	*x = CreateAlertRuleGroupResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[30]
+	mi := &file_alioth_v1_alert_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1975,7 +2240,7 @@ func (x *CreateAlertRuleGroupResponse) String() string {
 func (*CreateAlertRuleGroupResponse) ProtoMessage() {}
 
 func (x *CreateAlertRuleGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[30]
+	mi := &file_alioth_v1_alert_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1988,7 +2253,7 @@ func (x *CreateAlertRuleGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAlertRuleGroupResponse.ProtoReflect.Descriptor instead.
 func (*CreateAlertRuleGroupResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{30}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *CreateAlertRuleGroupResponse) GetGroup() *AlertRuleGroupItem {
@@ -2011,7 +2276,7 @@ type UpdateAlertRuleGroupRequest struct {
 
 func (x *UpdateAlertRuleGroupRequest) Reset() {
 	*x = UpdateAlertRuleGroupRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[31]
+	mi := &file_alioth_v1_alert_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2023,7 +2288,7 @@ func (x *UpdateAlertRuleGroupRequest) String() string {
 func (*UpdateAlertRuleGroupRequest) ProtoMessage() {}
 
 func (x *UpdateAlertRuleGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[31]
+	mi := &file_alioth_v1_alert_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2036,7 +2301,7 @@ func (x *UpdateAlertRuleGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAlertRuleGroupRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAlertRuleGroupRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{31}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *UpdateAlertRuleGroupRequest) GetUid() string {
@@ -2064,7 +2329,7 @@ type UpdateAlertRuleGroupResponse struct {
 
 func (x *UpdateAlertRuleGroupResponse) Reset() {
 	*x = UpdateAlertRuleGroupResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[32]
+	mi := &file_alioth_v1_alert_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2076,7 +2341,7 @@ func (x *UpdateAlertRuleGroupResponse) String() string {
 func (*UpdateAlertRuleGroupResponse) ProtoMessage() {}
 
 func (x *UpdateAlertRuleGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[32]
+	mi := &file_alioth_v1_alert_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2089,7 +2354,7 @@ func (x *UpdateAlertRuleGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAlertRuleGroupResponse.ProtoReflect.Descriptor instead.
 func (*UpdateAlertRuleGroupResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{32}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *UpdateAlertRuleGroupResponse) GetGroup() *AlertRuleGroupItem {
@@ -2112,7 +2377,7 @@ type UpdateAlertRuleGroupStatusRequest struct {
 
 func (x *UpdateAlertRuleGroupStatusRequest) Reset() {
 	*x = UpdateAlertRuleGroupStatusRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[33]
+	mi := &file_alioth_v1_alert_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2124,7 +2389,7 @@ func (x *UpdateAlertRuleGroupStatusRequest) String() string {
 func (*UpdateAlertRuleGroupStatusRequest) ProtoMessage() {}
 
 func (x *UpdateAlertRuleGroupStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[33]
+	mi := &file_alioth_v1_alert_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2137,7 +2402,7 @@ func (x *UpdateAlertRuleGroupStatusRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use UpdateAlertRuleGroupStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAlertRuleGroupStatusRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{33}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *UpdateAlertRuleGroupStatusRequest) GetUid() string {
@@ -2165,7 +2430,7 @@ type UpdateAlertRuleGroupStatusResponse struct {
 
 func (x *UpdateAlertRuleGroupStatusResponse) Reset() {
 	*x = UpdateAlertRuleGroupStatusResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[34]
+	mi := &file_alioth_v1_alert_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2177,7 +2442,7 @@ func (x *UpdateAlertRuleGroupStatusResponse) String() string {
 func (*UpdateAlertRuleGroupStatusResponse) ProtoMessage() {}
 
 func (x *UpdateAlertRuleGroupStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[34]
+	mi := &file_alioth_v1_alert_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2190,7 +2455,7 @@ func (x *UpdateAlertRuleGroupStatusResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use UpdateAlertRuleGroupStatusResponse.ProtoReflect.Descriptor instead.
 func (*UpdateAlertRuleGroupStatusResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{34}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *UpdateAlertRuleGroupStatusResponse) GetGroup() *AlertRuleGroupItem {
@@ -2211,7 +2476,7 @@ type DeleteAlertRuleGroupRequest struct {
 
 func (x *DeleteAlertRuleGroupRequest) Reset() {
 	*x = DeleteAlertRuleGroupRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[35]
+	mi := &file_alioth_v1_alert_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2223,7 +2488,7 @@ func (x *DeleteAlertRuleGroupRequest) String() string {
 func (*DeleteAlertRuleGroupRequest) ProtoMessage() {}
 
 func (x *DeleteAlertRuleGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[35]
+	mi := &file_alioth_v1_alert_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2236,7 +2501,7 @@ func (x *DeleteAlertRuleGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAlertRuleGroupRequest.ProtoReflect.Descriptor instead.
 func (*DeleteAlertRuleGroupRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{35}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *DeleteAlertRuleGroupRequest) GetUid() string {
@@ -2255,7 +2520,7 @@ type DeleteAlertRuleGroupResponse struct {
 
 func (x *DeleteAlertRuleGroupResponse) Reset() {
 	*x = DeleteAlertRuleGroupResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[36]
+	mi := &file_alioth_v1_alert_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2267,7 +2532,7 @@ func (x *DeleteAlertRuleGroupResponse) String() string {
 func (*DeleteAlertRuleGroupResponse) ProtoMessage() {}
 
 func (x *DeleteAlertRuleGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[36]
+	mi := &file_alioth_v1_alert_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2280,7 +2545,7 @@ func (x *DeleteAlertRuleGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAlertRuleGroupResponse.ProtoReflect.Descriptor instead.
 func (*DeleteAlertRuleGroupResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{36}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{40}
 }
 
 // 规则组分页查询。
@@ -2298,7 +2563,7 @@ type ListAlertRuleGroupsRequest struct {
 
 func (x *ListAlertRuleGroupsRequest) Reset() {
 	*x = ListAlertRuleGroupsRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[37]
+	mi := &file_alioth_v1_alert_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2310,7 +2575,7 @@ func (x *ListAlertRuleGroupsRequest) String() string {
 func (*ListAlertRuleGroupsRequest) ProtoMessage() {}
 
 func (x *ListAlertRuleGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[37]
+	mi := &file_alioth_v1_alert_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2323,7 +2588,7 @@ func (x *ListAlertRuleGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAlertRuleGroupsRequest.ProtoReflect.Descriptor instead.
 func (*ListAlertRuleGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{37}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *ListAlertRuleGroupsRequest) GetPage() int32 {
@@ -2364,7 +2629,7 @@ type ListAlertRuleGroupsResponse struct {
 
 func (x *ListAlertRuleGroupsResponse) Reset() {
 	*x = ListAlertRuleGroupsResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[38]
+	mi := &file_alioth_v1_alert_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2376,7 +2641,7 @@ func (x *ListAlertRuleGroupsResponse) String() string {
 func (*ListAlertRuleGroupsResponse) ProtoMessage() {}
 
 func (x *ListAlertRuleGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[38]
+	mi := &file_alioth_v1_alert_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2389,7 +2654,7 @@ func (x *ListAlertRuleGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAlertRuleGroupsResponse.ProtoReflect.Descriptor instead.
 func (*ListAlertRuleGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{38}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ListAlertRuleGroupsResponse) GetItems() []*AlertRuleGroupItem {
@@ -2443,7 +2708,7 @@ type AlertRuleLevelItem struct {
 
 func (x *AlertRuleLevelItem) Reset() {
 	*x = AlertRuleLevelItem{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[39]
+	mi := &file_alioth_v1_alert_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2455,7 +2720,7 @@ func (x *AlertRuleLevelItem) String() string {
 func (*AlertRuleLevelItem) ProtoMessage() {}
 
 func (x *AlertRuleLevelItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[39]
+	mi := &file_alioth_v1_alert_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2468,7 +2733,7 @@ func (x *AlertRuleLevelItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AlertRuleLevelItem.ProtoReflect.Descriptor instead.
 func (*AlertRuleLevelItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{39}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *AlertRuleLevelItem) GetUid() string {
@@ -2539,7 +2804,7 @@ type AlertRuleLevelInput struct {
 
 func (x *AlertRuleLevelInput) Reset() {
 	*x = AlertRuleLevelInput{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[40]
+	mi := &file_alioth_v1_alert_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2551,7 +2816,7 @@ func (x *AlertRuleLevelInput) String() string {
 func (*AlertRuleLevelInput) ProtoMessage() {}
 
 func (x *AlertRuleLevelInput) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[40]
+	mi := &file_alioth_v1_alert_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2564,7 +2829,7 @@ func (x *AlertRuleLevelInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AlertRuleLevelInput.ProtoReflect.Descriptor instead.
 func (*AlertRuleLevelInput) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{40}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *AlertRuleLevelInput) GetCondition() string {
@@ -2637,7 +2902,7 @@ type AlertRuleItem struct {
 
 func (x *AlertRuleItem) Reset() {
 	*x = AlertRuleItem{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[41]
+	mi := &file_alioth_v1_alert_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2649,7 +2914,7 @@ func (x *AlertRuleItem) String() string {
 func (*AlertRuleItem) ProtoMessage() {}
 
 func (x *AlertRuleItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[41]
+	mi := &file_alioth_v1_alert_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2662,7 +2927,7 @@ func (x *AlertRuleItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AlertRuleItem.ProtoReflect.Descriptor instead.
 func (*AlertRuleItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{41}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *AlertRuleItem) GetUid() string {
@@ -2787,7 +3052,7 @@ type CreateAlertRuleRequest struct {
 
 func (x *CreateAlertRuleRequest) Reset() {
 	*x = CreateAlertRuleRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[42]
+	mi := &file_alioth_v1_alert_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2799,7 +3064,7 @@ func (x *CreateAlertRuleRequest) String() string {
 func (*CreateAlertRuleRequest) ProtoMessage() {}
 
 func (x *CreateAlertRuleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[42]
+	mi := &file_alioth_v1_alert_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2812,7 +3077,7 @@ func (x *CreateAlertRuleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAlertRuleRequest.ProtoReflect.Descriptor instead.
 func (*CreateAlertRuleRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{42}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *CreateAlertRuleRequest) GetGroupUid() string {
@@ -2903,7 +3168,7 @@ type CreateAlertRuleResponse struct {
 
 func (x *CreateAlertRuleResponse) Reset() {
 	*x = CreateAlertRuleResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[43]
+	mi := &file_alioth_v1_alert_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2915,7 +3180,7 @@ func (x *CreateAlertRuleResponse) String() string {
 func (*CreateAlertRuleResponse) ProtoMessage() {}
 
 func (x *CreateAlertRuleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[43]
+	mi := &file_alioth_v1_alert_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2928,7 +3193,7 @@ func (x *CreateAlertRuleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAlertRuleResponse.ProtoReflect.Descriptor instead.
 func (*CreateAlertRuleResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{43}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *CreateAlertRuleResponse) GetRule() *AlertRuleItem {
@@ -2971,7 +3236,7 @@ type UpdateAlertRuleRequest struct {
 
 func (x *UpdateAlertRuleRequest) Reset() {
 	*x = UpdateAlertRuleRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[44]
+	mi := &file_alioth_v1_alert_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2983,7 +3248,7 @@ func (x *UpdateAlertRuleRequest) String() string {
 func (*UpdateAlertRuleRequest) ProtoMessage() {}
 
 func (x *UpdateAlertRuleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[44]
+	mi := &file_alioth_v1_alert_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2996,7 +3261,7 @@ func (x *UpdateAlertRuleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAlertRuleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAlertRuleRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{44}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *UpdateAlertRuleRequest) GetUid() string {
@@ -3094,7 +3359,7 @@ type UpdateAlertRuleResponse struct {
 
 func (x *UpdateAlertRuleResponse) Reset() {
 	*x = UpdateAlertRuleResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[45]
+	mi := &file_alioth_v1_alert_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3106,7 +3371,7 @@ func (x *UpdateAlertRuleResponse) String() string {
 func (*UpdateAlertRuleResponse) ProtoMessage() {}
 
 func (x *UpdateAlertRuleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[45]
+	mi := &file_alioth_v1_alert_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3119,7 +3384,7 @@ func (x *UpdateAlertRuleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAlertRuleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateAlertRuleResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{45}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *UpdateAlertRuleResponse) GetRule() *AlertRuleItem {
@@ -3142,7 +3407,7 @@ type UpdateAlertRuleStatusRequest struct {
 
 func (x *UpdateAlertRuleStatusRequest) Reset() {
 	*x = UpdateAlertRuleStatusRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[46]
+	mi := &file_alioth_v1_alert_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3154,7 +3419,7 @@ func (x *UpdateAlertRuleStatusRequest) String() string {
 func (*UpdateAlertRuleStatusRequest) ProtoMessage() {}
 
 func (x *UpdateAlertRuleStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[46]
+	mi := &file_alioth_v1_alert_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3167,7 +3432,7 @@ func (x *UpdateAlertRuleStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAlertRuleStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAlertRuleStatusRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{46}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *UpdateAlertRuleStatusRequest) GetUid() string {
@@ -3195,7 +3460,7 @@ type UpdateAlertRuleStatusResponse struct {
 
 func (x *UpdateAlertRuleStatusResponse) Reset() {
 	*x = UpdateAlertRuleStatusResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[47]
+	mi := &file_alioth_v1_alert_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3207,7 +3472,7 @@ func (x *UpdateAlertRuleStatusResponse) String() string {
 func (*UpdateAlertRuleStatusResponse) ProtoMessage() {}
 
 func (x *UpdateAlertRuleStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[47]
+	mi := &file_alioth_v1_alert_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3220,7 +3485,7 @@ func (x *UpdateAlertRuleStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAlertRuleStatusResponse.ProtoReflect.Descriptor instead.
 func (*UpdateAlertRuleStatusResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{47}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *UpdateAlertRuleStatusResponse) GetRule() *AlertRuleItem {
@@ -3241,7 +3506,7 @@ type DeleteAlertRuleRequest struct {
 
 func (x *DeleteAlertRuleRequest) Reset() {
 	*x = DeleteAlertRuleRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[48]
+	mi := &file_alioth_v1_alert_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3253,7 +3518,7 @@ func (x *DeleteAlertRuleRequest) String() string {
 func (*DeleteAlertRuleRequest) ProtoMessage() {}
 
 func (x *DeleteAlertRuleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[48]
+	mi := &file_alioth_v1_alert_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3266,7 +3531,7 @@ func (x *DeleteAlertRuleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAlertRuleRequest.ProtoReflect.Descriptor instead.
 func (*DeleteAlertRuleRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{48}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *DeleteAlertRuleRequest) GetUid() string {
@@ -3285,7 +3550,7 @@ type DeleteAlertRuleResponse struct {
 
 func (x *DeleteAlertRuleResponse) Reset() {
 	*x = DeleteAlertRuleResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[49]
+	mi := &file_alioth_v1_alert_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3297,7 +3562,7 @@ func (x *DeleteAlertRuleResponse) String() string {
 func (*DeleteAlertRuleResponse) ProtoMessage() {}
 
 func (x *DeleteAlertRuleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[49]
+	mi := &file_alioth_v1_alert_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3310,7 +3575,7 @@ func (x *DeleteAlertRuleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAlertRuleResponse.ProtoReflect.Descriptor instead.
 func (*DeleteAlertRuleResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{49}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{53}
 }
 
 // 要查询的规则。
@@ -3324,7 +3589,7 @@ type GetAlertRuleRequest struct {
 
 func (x *GetAlertRuleRequest) Reset() {
 	*x = GetAlertRuleRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[50]
+	mi := &file_alioth_v1_alert_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3336,7 +3601,7 @@ func (x *GetAlertRuleRequest) String() string {
 func (*GetAlertRuleRequest) ProtoMessage() {}
 
 func (x *GetAlertRuleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[50]
+	mi := &file_alioth_v1_alert_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3349,7 +3614,7 @@ func (x *GetAlertRuleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAlertRuleRequest.ProtoReflect.Descriptor instead.
 func (*GetAlertRuleRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{50}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *GetAlertRuleRequest) GetUid() string {
@@ -3370,7 +3635,7 @@ type GetAlertRuleResponse struct {
 
 func (x *GetAlertRuleResponse) Reset() {
 	*x = GetAlertRuleResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[51]
+	mi := &file_alioth_v1_alert_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3382,7 +3647,7 @@ func (x *GetAlertRuleResponse) String() string {
 func (*GetAlertRuleResponse) ProtoMessage() {}
 
 func (x *GetAlertRuleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[51]
+	mi := &file_alioth_v1_alert_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3395,7 +3660,7 @@ func (x *GetAlertRuleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAlertRuleResponse.ProtoReflect.Descriptor instead.
 func (*GetAlertRuleResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{51}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *GetAlertRuleResponse) GetRule() *AlertRuleItem {
@@ -3422,7 +3687,7 @@ type ListAlertRulesRequest struct {
 
 func (x *ListAlertRulesRequest) Reset() {
 	*x = ListAlertRulesRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[52]
+	mi := &file_alioth_v1_alert_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3434,7 +3699,7 @@ func (x *ListAlertRulesRequest) String() string {
 func (*ListAlertRulesRequest) ProtoMessage() {}
 
 func (x *ListAlertRulesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[52]
+	mi := &file_alioth_v1_alert_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3447,7 +3712,7 @@ func (x *ListAlertRulesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAlertRulesRequest.ProtoReflect.Descriptor instead.
 func (*ListAlertRulesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{52}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *ListAlertRulesRequest) GetPage() int32 {
@@ -3495,7 +3760,7 @@ type ListAlertRulesResponse struct {
 
 func (x *ListAlertRulesResponse) Reset() {
 	*x = ListAlertRulesResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[53]
+	mi := &file_alioth_v1_alert_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3507,7 +3772,7 @@ func (x *ListAlertRulesResponse) String() string {
 func (*ListAlertRulesResponse) ProtoMessage() {}
 
 func (x *ListAlertRulesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[53]
+	mi := &file_alioth_v1_alert_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3520,7 +3785,7 @@ func (x *ListAlertRulesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAlertRulesResponse.ProtoReflect.Descriptor instead.
 func (*ListAlertRulesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{53}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *ListAlertRulesResponse) GetItems() []*AlertRuleItem {
@@ -3570,7 +3835,7 @@ type AlertDictionaryItem struct {
 
 func (x *AlertDictionaryItem) Reset() {
 	*x = AlertDictionaryItem{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[54]
+	mi := &file_alioth_v1_alert_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3582,7 +3847,7 @@ func (x *AlertDictionaryItem) String() string {
 func (*AlertDictionaryItem) ProtoMessage() {}
 
 func (x *AlertDictionaryItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[54]
+	mi := &file_alioth_v1_alert_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3595,7 +3860,7 @@ func (x *AlertDictionaryItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AlertDictionaryItem.ProtoReflect.Descriptor instead.
 func (*AlertDictionaryItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{54}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *AlertDictionaryItem) GetUid() string {
@@ -3648,7 +3913,7 @@ type CreateAlertDictionaryRequest struct {
 
 func (x *CreateAlertDictionaryRequest) Reset() {
 	*x = CreateAlertDictionaryRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[55]
+	mi := &file_alioth_v1_alert_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3660,7 +3925,7 @@ func (x *CreateAlertDictionaryRequest) String() string {
 func (*CreateAlertDictionaryRequest) ProtoMessage() {}
 
 func (x *CreateAlertDictionaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[55]
+	mi := &file_alioth_v1_alert_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3673,7 +3938,7 @@ func (x *CreateAlertDictionaryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAlertDictionaryRequest.ProtoReflect.Descriptor instead.
 func (*CreateAlertDictionaryRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{55}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *CreateAlertDictionaryRequest) GetName() string {
@@ -3708,7 +3973,7 @@ type CreateAlertDictionaryResponse struct {
 
 func (x *CreateAlertDictionaryResponse) Reset() {
 	*x = CreateAlertDictionaryResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[56]
+	mi := &file_alioth_v1_alert_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3720,7 +3985,7 @@ func (x *CreateAlertDictionaryResponse) String() string {
 func (*CreateAlertDictionaryResponse) ProtoMessage() {}
 
 func (x *CreateAlertDictionaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[56]
+	mi := &file_alioth_v1_alert_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3733,7 +3998,7 @@ func (x *CreateAlertDictionaryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAlertDictionaryResponse.ProtoReflect.Descriptor instead.
 func (*CreateAlertDictionaryResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{56}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *CreateAlertDictionaryResponse) GetDictionary() *AlertDictionaryItem {
@@ -3758,7 +4023,7 @@ type UpdateAlertDictionaryRequest struct {
 
 func (x *UpdateAlertDictionaryRequest) Reset() {
 	*x = UpdateAlertDictionaryRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[57]
+	mi := &file_alioth_v1_alert_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3770,7 +4035,7 @@ func (x *UpdateAlertDictionaryRequest) String() string {
 func (*UpdateAlertDictionaryRequest) ProtoMessage() {}
 
 func (x *UpdateAlertDictionaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[57]
+	mi := &file_alioth_v1_alert_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3783,7 +4048,7 @@ func (x *UpdateAlertDictionaryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAlertDictionaryRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAlertDictionaryRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{57}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *UpdateAlertDictionaryRequest) GetUid() string {
@@ -3818,7 +4083,7 @@ type UpdateAlertDictionaryResponse struct {
 
 func (x *UpdateAlertDictionaryResponse) Reset() {
 	*x = UpdateAlertDictionaryResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[58]
+	mi := &file_alioth_v1_alert_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3830,7 +4095,7 @@ func (x *UpdateAlertDictionaryResponse) String() string {
 func (*UpdateAlertDictionaryResponse) ProtoMessage() {}
 
 func (x *UpdateAlertDictionaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[58]
+	mi := &file_alioth_v1_alert_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3843,7 +4108,7 @@ func (x *UpdateAlertDictionaryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAlertDictionaryResponse.ProtoReflect.Descriptor instead.
 func (*UpdateAlertDictionaryResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{58}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *UpdateAlertDictionaryResponse) GetDictionary() *AlertDictionaryItem {
@@ -3866,7 +4131,7 @@ type UpdateAlertDictionaryStatusRequest struct {
 
 func (x *UpdateAlertDictionaryStatusRequest) Reset() {
 	*x = UpdateAlertDictionaryStatusRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[59]
+	mi := &file_alioth_v1_alert_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3878,7 +4143,7 @@ func (x *UpdateAlertDictionaryStatusRequest) String() string {
 func (*UpdateAlertDictionaryStatusRequest) ProtoMessage() {}
 
 func (x *UpdateAlertDictionaryStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[59]
+	mi := &file_alioth_v1_alert_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3891,7 +4156,7 @@ func (x *UpdateAlertDictionaryStatusRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use UpdateAlertDictionaryStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAlertDictionaryStatusRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{59}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *UpdateAlertDictionaryStatusRequest) GetUid() string {
@@ -3919,7 +4184,7 @@ type UpdateAlertDictionaryStatusResponse struct {
 
 func (x *UpdateAlertDictionaryStatusResponse) Reset() {
 	*x = UpdateAlertDictionaryStatusResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[60]
+	mi := &file_alioth_v1_alert_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3931,7 +4196,7 @@ func (x *UpdateAlertDictionaryStatusResponse) String() string {
 func (*UpdateAlertDictionaryStatusResponse) ProtoMessage() {}
 
 func (x *UpdateAlertDictionaryStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[60]
+	mi := &file_alioth_v1_alert_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3944,7 +4209,7 @@ func (x *UpdateAlertDictionaryStatusResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use UpdateAlertDictionaryStatusResponse.ProtoReflect.Descriptor instead.
 func (*UpdateAlertDictionaryStatusResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{60}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *UpdateAlertDictionaryStatusResponse) GetDictionary() *AlertDictionaryItem {
@@ -3965,7 +4230,7 @@ type DeleteAlertDictionaryRequest struct {
 
 func (x *DeleteAlertDictionaryRequest) Reset() {
 	*x = DeleteAlertDictionaryRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[61]
+	mi := &file_alioth_v1_alert_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3977,7 +4242,7 @@ func (x *DeleteAlertDictionaryRequest) String() string {
 func (*DeleteAlertDictionaryRequest) ProtoMessage() {}
 
 func (x *DeleteAlertDictionaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[61]
+	mi := &file_alioth_v1_alert_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3990,7 +4255,7 @@ func (x *DeleteAlertDictionaryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAlertDictionaryRequest.ProtoReflect.Descriptor instead.
 func (*DeleteAlertDictionaryRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{61}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *DeleteAlertDictionaryRequest) GetUid() string {
@@ -4009,7 +4274,7 @@ type DeleteAlertDictionaryResponse struct {
 
 func (x *DeleteAlertDictionaryResponse) Reset() {
 	*x = DeleteAlertDictionaryResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[62]
+	mi := &file_alioth_v1_alert_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4021,7 +4286,7 @@ func (x *DeleteAlertDictionaryResponse) String() string {
 func (*DeleteAlertDictionaryResponse) ProtoMessage() {}
 
 func (x *DeleteAlertDictionaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[62]
+	mi := &file_alioth_v1_alert_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4034,7 +4299,7 @@ func (x *DeleteAlertDictionaryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAlertDictionaryResponse.ProtoReflect.Descriptor instead.
 func (*DeleteAlertDictionaryResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{62}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{66}
 }
 
 // 字典项分页查询。
@@ -4054,7 +4319,7 @@ type ListAlertDictionariesRequest struct {
 
 func (x *ListAlertDictionariesRequest) Reset() {
 	*x = ListAlertDictionariesRequest{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[63]
+	mi := &file_alioth_v1_alert_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4066,7 +4331,7 @@ func (x *ListAlertDictionariesRequest) String() string {
 func (*ListAlertDictionariesRequest) ProtoMessage() {}
 
 func (x *ListAlertDictionariesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[63]
+	mi := &file_alioth_v1_alert_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4079,7 +4344,7 @@ func (x *ListAlertDictionariesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAlertDictionariesRequest.ProtoReflect.Descriptor instead.
 func (*ListAlertDictionariesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{63}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *ListAlertDictionariesRequest) GetPage() int32 {
@@ -4127,7 +4392,7 @@ type ListAlertDictionariesResponse struct {
 
 func (x *ListAlertDictionariesResponse) Reset() {
 	*x = ListAlertDictionariesResponse{}
-	mi := &file_alioth_v1_alert_proto_msgTypes[64]
+	mi := &file_alioth_v1_alert_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4139,7 +4404,7 @@ func (x *ListAlertDictionariesResponse) String() string {
 func (*ListAlertDictionariesResponse) ProtoMessage() {}
 
 func (x *ListAlertDictionariesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_alert_proto_msgTypes[64]
+	mi := &file_alioth_v1_alert_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4152,7 +4417,7 @@ func (x *ListAlertDictionariesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAlertDictionariesResponse.ProtoReflect.Descriptor instead.
 func (*ListAlertDictionariesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{64}
+	return file_alioth_v1_alert_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *ListAlertDictionariesResponse) GetItems() []*AlertDictionaryItem {
@@ -4206,11 +4471,12 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\x06labels\x18\f \x01(\tR\x06labels\x12#\n" +
 	"\rindex_pattern\x18\r \x01(\tR\findexPattern\x12\x1d\n" +
 	"\n" +
-	"time_field\x18\x0e \x01(\tR\ttimeField\"\x91\x04\n" +
+	"time_field\x18\x0e \x01(\tR\ttimeField\"\x9e\x04\n" +
 	"\x17CreateDatasourceRequest\x12\x1d\n" +
 	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12/\n" +
-	"\x04type\x18\x02 \x01(\tB\x1b\xbaH\x18r\x16R\aMETRICSR\x04LOGSR\x05TRACER\x04type\x12x\n" +
-	"\x06driver\x18\x03 \x01(\tB`\xbaH]r[R\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\fTRACE_JAEGERR\x06driver\x12#\n" +
+	"\x04type\x18\x02 \x01(\tB\x1b\xbaH\x18r\x16R\aMETRICSR\x04LOGSR\x05TRACER\x04type\x12\x84\x01\n" +
+	"\x06driver\x18\x03 \x01(\tBl\xbaHirgR\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\n" +
+	"LOGS_VLOGSR\fTRACE_JAEGERR\x06driver\x12#\n" +
 	"\bendpoint\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bendpoint\x12\x1a\n" +
 	"\busername\x18\x05 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x06 \x01(\tR\bpassword\x12\x16\n" +
@@ -4225,12 +4491,13 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\x18CreateDatasourceResponse\x129\n" +
 	"\n" +
 	"datasource\x18\x01 \x01(\v2\x19.alioth.v1.DatasourceItemR\n" +
-	"datasource\"\xac\x04\n" +
+	"datasource\"\xb9\x04\n" +
 	"\x17UpdateDatasourceRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12\x1d\n" +
 	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12/\n" +
-	"\x04type\x18\x03 \x01(\tB\x1b\xbaH\x18r\x16R\aMETRICSR\x04LOGSR\x05TRACER\x04type\x12x\n" +
-	"\x06driver\x18\x04 \x01(\tB`\xbaH]r[R\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\fTRACE_JAEGERR\x06driver\x12#\n" +
+	"\x04type\x18\x03 \x01(\tB\x1b\xbaH\x18r\x16R\aMETRICSR\x04LOGSR\x05TRACER\x04type\x12\x84\x01\n" +
+	"\x06driver\x18\x04 \x01(\tBl\xbaHirgR\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\n" +
+	"LOGS_VLOGSR\fTRACE_JAEGERR\x06driver\x12#\n" +
 	"\bendpoint\x18\x05 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bendpoint\x12\x1a\n" +
 	"\busername\x18\x06 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\a \x01(\tR\bpassword\x12\x16\n" +
@@ -4283,6 +4550,24 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"5\n" +
 	"\x1bGetDatasourceStatusResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\"9\n" +
+	"\x1cGetDatasourceMetadataRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"@\n" +
+	"\x16DatasourceMetadataItem\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\"\xd1\x01\n" +
+	"\x16DatasourceMetadataNode\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
+	"\aaddress\x18\x02 \x01(\tR\aaddress\x12\x12\n" +
+	"\x04role\x18\x03 \x01(\tR\x04role\x12\x16\n" +
+	"\x06shards\x18\x04 \x01(\tR\x06shards\x12\x1b\n" +
+	"\tdisk_used\x18\x05 \x01(\tR\bdiskUsed\x12\x1d\n" +
+	"\n" +
+	"disk_avail\x18\x06 \x01(\tR\tdiskAvail\x12!\n" +
+	"\fdisk_percent\x18\a \x01(\tR\vdiskPercent\"\xa9\x01\n" +
+	"\x1dGetDatasourceMetadataResponse\x12\x16\n" +
+	"\x06driver\x18\x01 \x01(\tR\x06driver\x127\n" +
+	"\x05items\x18\x02 \x03(\v2!.alioth.v1.DatasourceMetadataItemR\x05items\x127\n" +
+	"\x05nodes\x18\x03 \x03(\v2!.alioth.v1.DatasourceMetadataNodeR\x05nodes\"9\n" +
 	"\x1cListDatasourceMetricsRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"f\n" +
 	"\x14DatasourceMetricItem\x12\x12\n" +
@@ -4476,8 +4761,7 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2\x1e.alioth.v1.AlertDictionaryItemR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize2\xb4\n" +
-	"\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize2\xc8\v\n" +
 	"\x11DatasourceService\x12v\n" +
 	"\x10CreateDatasource\x12\".alioth.v1.CreateDatasourceRequest\x1a#.alioth.v1.CreateDatasourceResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/datasource\x12|\n" +
 	"\x10UpdateDatasource\x12\".alioth.v1.UpdateDatasourceRequest\x1a#.alioth.v1.UpdateDatasourceResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\x1a\x14/v1/datasource/{uid}\x12\x95\x01\n" +
@@ -4486,7 +4770,8 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\rGetDatasource\x12\x1f.alioth.v1.GetDatasourceRequest\x1a .alioth.v1.GetDatasourceResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/datasource/{uid}\x12q\n" +
 	"\x0fListDatasources\x12!.alioth.v1.ListDatasourcesRequest\x1a\".alioth.v1.ListDatasourcesResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/v1/datasources\x12~\n" +
 	"\x11SelectDatasources\x12#.alioth.v1.SelectDatasourcesRequest\x1a$.alioth.v1.SelectDatasourcesResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/v1/datasources/select\x12\x89\x01\n" +
-	"\x13GetDatasourceStatus\x12%.alioth.v1.GetDatasourceStatusRequest\x1a&.alioth.v1.GetDatasourceStatusResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/v1/datasource/{uid}/status\x12\x90\x01\n" +
+	"\x13GetDatasourceStatus\x12%.alioth.v1.GetDatasourceStatusRequest\x1a&.alioth.v1.GetDatasourceStatusResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/v1/datasource/{uid}/status\x12\x91\x01\n" +
+	"\x15GetDatasourceMetadata\x12'.alioth.v1.GetDatasourceMetadataRequest\x1a(.alioth.v1.GetDatasourceMetadataResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/v1/datasource/{uid}/metadata\x12\x90\x01\n" +
 	"\x15ListDatasourceMetrics\x12'.alioth.v1.ListDatasourceMetricsRequest\x1a(.alioth.v1.ListDatasourceMetricsResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/v1/datasource/{uid}/metrics\x12\x91\x01\n" +
 	"\x13GetDatasourceMetric\x12%.alioth.v1.GetDatasourceMetricRequest\x1a&.alioth.v1.GetDatasourceMetricResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/datasource/{uid}/metrics/{name}2\xfa\x02\n" +
 	"\x12MetricQueryService\x12o\n" +
@@ -4525,7 +4810,7 @@ func file_alioth_v1_alert_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_alert_proto_rawDescData
 }
 
-var file_alioth_v1_alert_proto_msgTypes = make([]protoimpl.MessageInfo, 65)
+var file_alioth_v1_alert_proto_msgTypes = make([]protoimpl.MessageInfo, 69)
 var file_alioth_v1_alert_proto_goTypes = []any{
 	(*DatasourceItem)(nil),                      // 0: alioth.v1.DatasourceItem
 	(*CreateDatasourceRequest)(nil),             // 1: alioth.v1.CreateDatasourceRequest
@@ -4544,55 +4829,59 @@ var file_alioth_v1_alert_proto_goTypes = []any{
 	(*SelectDatasourcesResponse)(nil),           // 14: alioth.v1.SelectDatasourcesResponse
 	(*GetDatasourceStatusRequest)(nil),          // 15: alioth.v1.GetDatasourceStatusRequest
 	(*GetDatasourceStatusResponse)(nil),         // 16: alioth.v1.GetDatasourceStatusResponse
-	(*ListDatasourceMetricsRequest)(nil),        // 17: alioth.v1.ListDatasourceMetricsRequest
-	(*DatasourceMetricItem)(nil),                // 18: alioth.v1.DatasourceMetricItem
-	(*ListDatasourceMetricsResponse)(nil),       // 19: alioth.v1.ListDatasourceMetricsResponse
-	(*GetDatasourceMetricRequest)(nil),          // 20: alioth.v1.GetDatasourceMetricRequest
-	(*GetDatasourceMetricResponse)(nil),         // 21: alioth.v1.GetDatasourceMetricResponse
-	(*QueryMetricRequest)(nil),                  // 22: alioth.v1.QueryMetricRequest
-	(*QueryMetricResponse)(nil),                 // 23: alioth.v1.QueryMetricResponse
-	(*QueryMetricRangeRequest)(nil),             // 24: alioth.v1.QueryMetricRangeRequest
-	(*QueryMetricRangeResponse)(nil),            // 25: alioth.v1.QueryMetricRangeResponse
-	(*ProxyQueryRequest)(nil),                   // 26: alioth.v1.ProxyQueryRequest
-	(*ProxyQueryResponse)(nil),                  // 27: alioth.v1.ProxyQueryResponse
-	(*AlertRuleGroupItem)(nil),                  // 28: alioth.v1.AlertRuleGroupItem
-	(*CreateAlertRuleGroupRequest)(nil),         // 29: alioth.v1.CreateAlertRuleGroupRequest
-	(*CreateAlertRuleGroupResponse)(nil),        // 30: alioth.v1.CreateAlertRuleGroupResponse
-	(*UpdateAlertRuleGroupRequest)(nil),         // 31: alioth.v1.UpdateAlertRuleGroupRequest
-	(*UpdateAlertRuleGroupResponse)(nil),        // 32: alioth.v1.UpdateAlertRuleGroupResponse
-	(*UpdateAlertRuleGroupStatusRequest)(nil),   // 33: alioth.v1.UpdateAlertRuleGroupStatusRequest
-	(*UpdateAlertRuleGroupStatusResponse)(nil),  // 34: alioth.v1.UpdateAlertRuleGroupStatusResponse
-	(*DeleteAlertRuleGroupRequest)(nil),         // 35: alioth.v1.DeleteAlertRuleGroupRequest
-	(*DeleteAlertRuleGroupResponse)(nil),        // 36: alioth.v1.DeleteAlertRuleGroupResponse
-	(*ListAlertRuleGroupsRequest)(nil),          // 37: alioth.v1.ListAlertRuleGroupsRequest
-	(*ListAlertRuleGroupsResponse)(nil),         // 38: alioth.v1.ListAlertRuleGroupsResponse
-	(*AlertRuleLevelItem)(nil),                  // 39: alioth.v1.AlertRuleLevelItem
-	(*AlertRuleLevelInput)(nil),                 // 40: alioth.v1.AlertRuleLevelInput
-	(*AlertRuleItem)(nil),                       // 41: alioth.v1.AlertRuleItem
-	(*CreateAlertRuleRequest)(nil),              // 42: alioth.v1.CreateAlertRuleRequest
-	(*CreateAlertRuleResponse)(nil),             // 43: alioth.v1.CreateAlertRuleResponse
-	(*UpdateAlertRuleRequest)(nil),              // 44: alioth.v1.UpdateAlertRuleRequest
-	(*UpdateAlertRuleResponse)(nil),             // 45: alioth.v1.UpdateAlertRuleResponse
-	(*UpdateAlertRuleStatusRequest)(nil),        // 46: alioth.v1.UpdateAlertRuleStatusRequest
-	(*UpdateAlertRuleStatusResponse)(nil),       // 47: alioth.v1.UpdateAlertRuleStatusResponse
-	(*DeleteAlertRuleRequest)(nil),              // 48: alioth.v1.DeleteAlertRuleRequest
-	(*DeleteAlertRuleResponse)(nil),             // 49: alioth.v1.DeleteAlertRuleResponse
-	(*GetAlertRuleRequest)(nil),                 // 50: alioth.v1.GetAlertRuleRequest
-	(*GetAlertRuleResponse)(nil),                // 51: alioth.v1.GetAlertRuleResponse
-	(*ListAlertRulesRequest)(nil),               // 52: alioth.v1.ListAlertRulesRequest
-	(*ListAlertRulesResponse)(nil),              // 53: alioth.v1.ListAlertRulesResponse
-	(*AlertDictionaryItem)(nil),                 // 54: alioth.v1.AlertDictionaryItem
-	(*CreateAlertDictionaryRequest)(nil),        // 55: alioth.v1.CreateAlertDictionaryRequest
-	(*CreateAlertDictionaryResponse)(nil),       // 56: alioth.v1.CreateAlertDictionaryResponse
-	(*UpdateAlertDictionaryRequest)(nil),        // 57: alioth.v1.UpdateAlertDictionaryRequest
-	(*UpdateAlertDictionaryResponse)(nil),       // 58: alioth.v1.UpdateAlertDictionaryResponse
-	(*UpdateAlertDictionaryStatusRequest)(nil),  // 59: alioth.v1.UpdateAlertDictionaryStatusRequest
-	(*UpdateAlertDictionaryStatusResponse)(nil), // 60: alioth.v1.UpdateAlertDictionaryStatusResponse
-	(*DeleteAlertDictionaryRequest)(nil),        // 61: alioth.v1.DeleteAlertDictionaryRequest
-	(*DeleteAlertDictionaryResponse)(nil),       // 62: alioth.v1.DeleteAlertDictionaryResponse
-	(*ListAlertDictionariesRequest)(nil),        // 63: alioth.v1.ListAlertDictionariesRequest
-	(*ListAlertDictionariesResponse)(nil),       // 64: alioth.v1.ListAlertDictionariesResponse
-	(*SelectItem)(nil),                          // 65: alioth.v1.SelectItem
+	(*GetDatasourceMetadataRequest)(nil),        // 17: alioth.v1.GetDatasourceMetadataRequest
+	(*DatasourceMetadataItem)(nil),              // 18: alioth.v1.DatasourceMetadataItem
+	(*DatasourceMetadataNode)(nil),              // 19: alioth.v1.DatasourceMetadataNode
+	(*GetDatasourceMetadataResponse)(nil),       // 20: alioth.v1.GetDatasourceMetadataResponse
+	(*ListDatasourceMetricsRequest)(nil),        // 21: alioth.v1.ListDatasourceMetricsRequest
+	(*DatasourceMetricItem)(nil),                // 22: alioth.v1.DatasourceMetricItem
+	(*ListDatasourceMetricsResponse)(nil),       // 23: alioth.v1.ListDatasourceMetricsResponse
+	(*GetDatasourceMetricRequest)(nil),          // 24: alioth.v1.GetDatasourceMetricRequest
+	(*GetDatasourceMetricResponse)(nil),         // 25: alioth.v1.GetDatasourceMetricResponse
+	(*QueryMetricRequest)(nil),                  // 26: alioth.v1.QueryMetricRequest
+	(*QueryMetricResponse)(nil),                 // 27: alioth.v1.QueryMetricResponse
+	(*QueryMetricRangeRequest)(nil),             // 28: alioth.v1.QueryMetricRangeRequest
+	(*QueryMetricRangeResponse)(nil),            // 29: alioth.v1.QueryMetricRangeResponse
+	(*ProxyQueryRequest)(nil),                   // 30: alioth.v1.ProxyQueryRequest
+	(*ProxyQueryResponse)(nil),                  // 31: alioth.v1.ProxyQueryResponse
+	(*AlertRuleGroupItem)(nil),                  // 32: alioth.v1.AlertRuleGroupItem
+	(*CreateAlertRuleGroupRequest)(nil),         // 33: alioth.v1.CreateAlertRuleGroupRequest
+	(*CreateAlertRuleGroupResponse)(nil),        // 34: alioth.v1.CreateAlertRuleGroupResponse
+	(*UpdateAlertRuleGroupRequest)(nil),         // 35: alioth.v1.UpdateAlertRuleGroupRequest
+	(*UpdateAlertRuleGroupResponse)(nil),        // 36: alioth.v1.UpdateAlertRuleGroupResponse
+	(*UpdateAlertRuleGroupStatusRequest)(nil),   // 37: alioth.v1.UpdateAlertRuleGroupStatusRequest
+	(*UpdateAlertRuleGroupStatusResponse)(nil),  // 38: alioth.v1.UpdateAlertRuleGroupStatusResponse
+	(*DeleteAlertRuleGroupRequest)(nil),         // 39: alioth.v1.DeleteAlertRuleGroupRequest
+	(*DeleteAlertRuleGroupResponse)(nil),        // 40: alioth.v1.DeleteAlertRuleGroupResponse
+	(*ListAlertRuleGroupsRequest)(nil),          // 41: alioth.v1.ListAlertRuleGroupsRequest
+	(*ListAlertRuleGroupsResponse)(nil),         // 42: alioth.v1.ListAlertRuleGroupsResponse
+	(*AlertRuleLevelItem)(nil),                  // 43: alioth.v1.AlertRuleLevelItem
+	(*AlertRuleLevelInput)(nil),                 // 44: alioth.v1.AlertRuleLevelInput
+	(*AlertRuleItem)(nil),                       // 45: alioth.v1.AlertRuleItem
+	(*CreateAlertRuleRequest)(nil),              // 46: alioth.v1.CreateAlertRuleRequest
+	(*CreateAlertRuleResponse)(nil),             // 47: alioth.v1.CreateAlertRuleResponse
+	(*UpdateAlertRuleRequest)(nil),              // 48: alioth.v1.UpdateAlertRuleRequest
+	(*UpdateAlertRuleResponse)(nil),             // 49: alioth.v1.UpdateAlertRuleResponse
+	(*UpdateAlertRuleStatusRequest)(nil),        // 50: alioth.v1.UpdateAlertRuleStatusRequest
+	(*UpdateAlertRuleStatusResponse)(nil),       // 51: alioth.v1.UpdateAlertRuleStatusResponse
+	(*DeleteAlertRuleRequest)(nil),              // 52: alioth.v1.DeleteAlertRuleRequest
+	(*DeleteAlertRuleResponse)(nil),             // 53: alioth.v1.DeleteAlertRuleResponse
+	(*GetAlertRuleRequest)(nil),                 // 54: alioth.v1.GetAlertRuleRequest
+	(*GetAlertRuleResponse)(nil),                // 55: alioth.v1.GetAlertRuleResponse
+	(*ListAlertRulesRequest)(nil),               // 56: alioth.v1.ListAlertRulesRequest
+	(*ListAlertRulesResponse)(nil),              // 57: alioth.v1.ListAlertRulesResponse
+	(*AlertDictionaryItem)(nil),                 // 58: alioth.v1.AlertDictionaryItem
+	(*CreateAlertDictionaryRequest)(nil),        // 59: alioth.v1.CreateAlertDictionaryRequest
+	(*CreateAlertDictionaryResponse)(nil),       // 60: alioth.v1.CreateAlertDictionaryResponse
+	(*UpdateAlertDictionaryRequest)(nil),        // 61: alioth.v1.UpdateAlertDictionaryRequest
+	(*UpdateAlertDictionaryResponse)(nil),       // 62: alioth.v1.UpdateAlertDictionaryResponse
+	(*UpdateAlertDictionaryStatusRequest)(nil),  // 63: alioth.v1.UpdateAlertDictionaryStatusRequest
+	(*UpdateAlertDictionaryStatusResponse)(nil), // 64: alioth.v1.UpdateAlertDictionaryStatusResponse
+	(*DeleteAlertDictionaryRequest)(nil),        // 65: alioth.v1.DeleteAlertDictionaryRequest
+	(*DeleteAlertDictionaryResponse)(nil),       // 66: alioth.v1.DeleteAlertDictionaryResponse
+	(*ListAlertDictionariesRequest)(nil),        // 67: alioth.v1.ListAlertDictionariesRequest
+	(*ListAlertDictionariesResponse)(nil),       // 68: alioth.v1.ListAlertDictionariesResponse
+	(*SelectItem)(nil),                          // 69: alioth.v1.SelectItem
 }
 var file_alioth_v1_alert_proto_depIdxs = []int32{
 	0,  // 0: alioth.v1.CreateDatasourceResponse.datasource:type_name -> alioth.v1.DatasourceItem
@@ -4600,87 +4889,91 @@ var file_alioth_v1_alert_proto_depIdxs = []int32{
 	0,  // 2: alioth.v1.UpdateDatasourceStatusResponse.datasource:type_name -> alioth.v1.DatasourceItem
 	0,  // 3: alioth.v1.GetDatasourceResponse.datasource:type_name -> alioth.v1.DatasourceItem
 	0,  // 4: alioth.v1.ListDatasourcesResponse.items:type_name -> alioth.v1.DatasourceItem
-	65, // 5: alioth.v1.SelectDatasourcesResponse.items:type_name -> alioth.v1.SelectItem
-	18, // 6: alioth.v1.ListDatasourceMetricsResponse.metrics:type_name -> alioth.v1.DatasourceMetricItem
-	28, // 7: alioth.v1.CreateAlertRuleGroupResponse.group:type_name -> alioth.v1.AlertRuleGroupItem
-	28, // 8: alioth.v1.UpdateAlertRuleGroupResponse.group:type_name -> alioth.v1.AlertRuleGroupItem
-	28, // 9: alioth.v1.UpdateAlertRuleGroupStatusResponse.group:type_name -> alioth.v1.AlertRuleGroupItem
-	28, // 10: alioth.v1.ListAlertRuleGroupsResponse.items:type_name -> alioth.v1.AlertRuleGroupItem
-	39, // 11: alioth.v1.AlertRuleItem.levels:type_name -> alioth.v1.AlertRuleLevelItem
-	40, // 12: alioth.v1.CreateAlertRuleRequest.levels:type_name -> alioth.v1.AlertRuleLevelInput
-	41, // 13: alioth.v1.CreateAlertRuleResponse.rule:type_name -> alioth.v1.AlertRuleItem
-	40, // 14: alioth.v1.UpdateAlertRuleRequest.levels:type_name -> alioth.v1.AlertRuleLevelInput
-	41, // 15: alioth.v1.UpdateAlertRuleResponse.rule:type_name -> alioth.v1.AlertRuleItem
-	41, // 16: alioth.v1.UpdateAlertRuleStatusResponse.rule:type_name -> alioth.v1.AlertRuleItem
-	41, // 17: alioth.v1.GetAlertRuleResponse.rule:type_name -> alioth.v1.AlertRuleItem
-	41, // 18: alioth.v1.ListAlertRulesResponse.items:type_name -> alioth.v1.AlertRuleItem
-	54, // 19: alioth.v1.CreateAlertDictionaryResponse.dictionary:type_name -> alioth.v1.AlertDictionaryItem
-	54, // 20: alioth.v1.UpdateAlertDictionaryResponse.dictionary:type_name -> alioth.v1.AlertDictionaryItem
-	54, // 21: alioth.v1.UpdateAlertDictionaryStatusResponse.dictionary:type_name -> alioth.v1.AlertDictionaryItem
-	54, // 22: alioth.v1.ListAlertDictionariesResponse.items:type_name -> alioth.v1.AlertDictionaryItem
-	1,  // 23: alioth.v1.DatasourceService.CreateDatasource:input_type -> alioth.v1.CreateDatasourceRequest
-	3,  // 24: alioth.v1.DatasourceService.UpdateDatasource:input_type -> alioth.v1.UpdateDatasourceRequest
-	5,  // 25: alioth.v1.DatasourceService.UpdateDatasourceStatus:input_type -> alioth.v1.UpdateDatasourceStatusRequest
-	7,  // 26: alioth.v1.DatasourceService.DeleteDatasource:input_type -> alioth.v1.DeleteDatasourceRequest
-	9,  // 27: alioth.v1.DatasourceService.GetDatasource:input_type -> alioth.v1.GetDatasourceRequest
-	11, // 28: alioth.v1.DatasourceService.ListDatasources:input_type -> alioth.v1.ListDatasourcesRequest
-	13, // 29: alioth.v1.DatasourceService.SelectDatasources:input_type -> alioth.v1.SelectDatasourcesRequest
-	15, // 30: alioth.v1.DatasourceService.GetDatasourceStatus:input_type -> alioth.v1.GetDatasourceStatusRequest
-	17, // 31: alioth.v1.DatasourceService.ListDatasourceMetrics:input_type -> alioth.v1.ListDatasourceMetricsRequest
-	20, // 32: alioth.v1.DatasourceService.GetDatasourceMetric:input_type -> alioth.v1.GetDatasourceMetricRequest
-	22, // 33: alioth.v1.MetricQueryService.QueryMetric:input_type -> alioth.v1.QueryMetricRequest
-	24, // 34: alioth.v1.MetricQueryService.QueryMetricRange:input_type -> alioth.v1.QueryMetricRangeRequest
-	26, // 35: alioth.v1.MetricQueryService.ProxyQuery:input_type -> alioth.v1.ProxyQueryRequest
-	29, // 36: alioth.v1.AlertRuleService.CreateAlertRuleGroup:input_type -> alioth.v1.CreateAlertRuleGroupRequest
-	31, // 37: alioth.v1.AlertRuleService.UpdateAlertRuleGroup:input_type -> alioth.v1.UpdateAlertRuleGroupRequest
-	33, // 38: alioth.v1.AlertRuleService.UpdateAlertRuleGroupStatus:input_type -> alioth.v1.UpdateAlertRuleGroupStatusRequest
-	35, // 39: alioth.v1.AlertRuleService.DeleteAlertRuleGroup:input_type -> alioth.v1.DeleteAlertRuleGroupRequest
-	37, // 40: alioth.v1.AlertRuleService.ListAlertRuleGroups:input_type -> alioth.v1.ListAlertRuleGroupsRequest
-	42, // 41: alioth.v1.AlertRuleService.CreateAlertRule:input_type -> alioth.v1.CreateAlertRuleRequest
-	44, // 42: alioth.v1.AlertRuleService.UpdateAlertRule:input_type -> alioth.v1.UpdateAlertRuleRequest
-	46, // 43: alioth.v1.AlertRuleService.UpdateAlertRuleStatus:input_type -> alioth.v1.UpdateAlertRuleStatusRequest
-	48, // 44: alioth.v1.AlertRuleService.DeleteAlertRule:input_type -> alioth.v1.DeleteAlertRuleRequest
-	50, // 45: alioth.v1.AlertRuleService.GetAlertRule:input_type -> alioth.v1.GetAlertRuleRequest
-	52, // 46: alioth.v1.AlertRuleService.ListAlertRules:input_type -> alioth.v1.ListAlertRulesRequest
-	55, // 47: alioth.v1.AlertDictionaryService.CreateAlertDictionary:input_type -> alioth.v1.CreateAlertDictionaryRequest
-	57, // 48: alioth.v1.AlertDictionaryService.UpdateAlertDictionary:input_type -> alioth.v1.UpdateAlertDictionaryRequest
-	59, // 49: alioth.v1.AlertDictionaryService.UpdateAlertDictionaryStatus:input_type -> alioth.v1.UpdateAlertDictionaryStatusRequest
-	61, // 50: alioth.v1.AlertDictionaryService.DeleteAlertDictionary:input_type -> alioth.v1.DeleteAlertDictionaryRequest
-	63, // 51: alioth.v1.AlertDictionaryService.ListAlertDictionaries:input_type -> alioth.v1.ListAlertDictionariesRequest
-	2,  // 52: alioth.v1.DatasourceService.CreateDatasource:output_type -> alioth.v1.CreateDatasourceResponse
-	4,  // 53: alioth.v1.DatasourceService.UpdateDatasource:output_type -> alioth.v1.UpdateDatasourceResponse
-	6,  // 54: alioth.v1.DatasourceService.UpdateDatasourceStatus:output_type -> alioth.v1.UpdateDatasourceStatusResponse
-	8,  // 55: alioth.v1.DatasourceService.DeleteDatasource:output_type -> alioth.v1.DeleteDatasourceResponse
-	10, // 56: alioth.v1.DatasourceService.GetDatasource:output_type -> alioth.v1.GetDatasourceResponse
-	12, // 57: alioth.v1.DatasourceService.ListDatasources:output_type -> alioth.v1.ListDatasourcesResponse
-	14, // 58: alioth.v1.DatasourceService.SelectDatasources:output_type -> alioth.v1.SelectDatasourcesResponse
-	16, // 59: alioth.v1.DatasourceService.GetDatasourceStatus:output_type -> alioth.v1.GetDatasourceStatusResponse
-	19, // 60: alioth.v1.DatasourceService.ListDatasourceMetrics:output_type -> alioth.v1.ListDatasourceMetricsResponse
-	21, // 61: alioth.v1.DatasourceService.GetDatasourceMetric:output_type -> alioth.v1.GetDatasourceMetricResponse
-	23, // 62: alioth.v1.MetricQueryService.QueryMetric:output_type -> alioth.v1.QueryMetricResponse
-	25, // 63: alioth.v1.MetricQueryService.QueryMetricRange:output_type -> alioth.v1.QueryMetricRangeResponse
-	27, // 64: alioth.v1.MetricQueryService.ProxyQuery:output_type -> alioth.v1.ProxyQueryResponse
-	30, // 65: alioth.v1.AlertRuleService.CreateAlertRuleGroup:output_type -> alioth.v1.CreateAlertRuleGroupResponse
-	32, // 66: alioth.v1.AlertRuleService.UpdateAlertRuleGroup:output_type -> alioth.v1.UpdateAlertRuleGroupResponse
-	34, // 67: alioth.v1.AlertRuleService.UpdateAlertRuleGroupStatus:output_type -> alioth.v1.UpdateAlertRuleGroupStatusResponse
-	36, // 68: alioth.v1.AlertRuleService.DeleteAlertRuleGroup:output_type -> alioth.v1.DeleteAlertRuleGroupResponse
-	38, // 69: alioth.v1.AlertRuleService.ListAlertRuleGroups:output_type -> alioth.v1.ListAlertRuleGroupsResponse
-	43, // 70: alioth.v1.AlertRuleService.CreateAlertRule:output_type -> alioth.v1.CreateAlertRuleResponse
-	45, // 71: alioth.v1.AlertRuleService.UpdateAlertRule:output_type -> alioth.v1.UpdateAlertRuleResponse
-	47, // 72: alioth.v1.AlertRuleService.UpdateAlertRuleStatus:output_type -> alioth.v1.UpdateAlertRuleStatusResponse
-	49, // 73: alioth.v1.AlertRuleService.DeleteAlertRule:output_type -> alioth.v1.DeleteAlertRuleResponse
-	51, // 74: alioth.v1.AlertRuleService.GetAlertRule:output_type -> alioth.v1.GetAlertRuleResponse
-	53, // 75: alioth.v1.AlertRuleService.ListAlertRules:output_type -> alioth.v1.ListAlertRulesResponse
-	56, // 76: alioth.v1.AlertDictionaryService.CreateAlertDictionary:output_type -> alioth.v1.CreateAlertDictionaryResponse
-	58, // 77: alioth.v1.AlertDictionaryService.UpdateAlertDictionary:output_type -> alioth.v1.UpdateAlertDictionaryResponse
-	60, // 78: alioth.v1.AlertDictionaryService.UpdateAlertDictionaryStatus:output_type -> alioth.v1.UpdateAlertDictionaryStatusResponse
-	62, // 79: alioth.v1.AlertDictionaryService.DeleteAlertDictionary:output_type -> alioth.v1.DeleteAlertDictionaryResponse
-	64, // 80: alioth.v1.AlertDictionaryService.ListAlertDictionaries:output_type -> alioth.v1.ListAlertDictionariesResponse
-	52, // [52:81] is the sub-list for method output_type
-	23, // [23:52] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	69, // 5: alioth.v1.SelectDatasourcesResponse.items:type_name -> alioth.v1.SelectItem
+	18, // 6: alioth.v1.GetDatasourceMetadataResponse.items:type_name -> alioth.v1.DatasourceMetadataItem
+	19, // 7: alioth.v1.GetDatasourceMetadataResponse.nodes:type_name -> alioth.v1.DatasourceMetadataNode
+	22, // 8: alioth.v1.ListDatasourceMetricsResponse.metrics:type_name -> alioth.v1.DatasourceMetricItem
+	32, // 9: alioth.v1.CreateAlertRuleGroupResponse.group:type_name -> alioth.v1.AlertRuleGroupItem
+	32, // 10: alioth.v1.UpdateAlertRuleGroupResponse.group:type_name -> alioth.v1.AlertRuleGroupItem
+	32, // 11: alioth.v1.UpdateAlertRuleGroupStatusResponse.group:type_name -> alioth.v1.AlertRuleGroupItem
+	32, // 12: alioth.v1.ListAlertRuleGroupsResponse.items:type_name -> alioth.v1.AlertRuleGroupItem
+	43, // 13: alioth.v1.AlertRuleItem.levels:type_name -> alioth.v1.AlertRuleLevelItem
+	44, // 14: alioth.v1.CreateAlertRuleRequest.levels:type_name -> alioth.v1.AlertRuleLevelInput
+	45, // 15: alioth.v1.CreateAlertRuleResponse.rule:type_name -> alioth.v1.AlertRuleItem
+	44, // 16: alioth.v1.UpdateAlertRuleRequest.levels:type_name -> alioth.v1.AlertRuleLevelInput
+	45, // 17: alioth.v1.UpdateAlertRuleResponse.rule:type_name -> alioth.v1.AlertRuleItem
+	45, // 18: alioth.v1.UpdateAlertRuleStatusResponse.rule:type_name -> alioth.v1.AlertRuleItem
+	45, // 19: alioth.v1.GetAlertRuleResponse.rule:type_name -> alioth.v1.AlertRuleItem
+	45, // 20: alioth.v1.ListAlertRulesResponse.items:type_name -> alioth.v1.AlertRuleItem
+	58, // 21: alioth.v1.CreateAlertDictionaryResponse.dictionary:type_name -> alioth.v1.AlertDictionaryItem
+	58, // 22: alioth.v1.UpdateAlertDictionaryResponse.dictionary:type_name -> alioth.v1.AlertDictionaryItem
+	58, // 23: alioth.v1.UpdateAlertDictionaryStatusResponse.dictionary:type_name -> alioth.v1.AlertDictionaryItem
+	58, // 24: alioth.v1.ListAlertDictionariesResponse.items:type_name -> alioth.v1.AlertDictionaryItem
+	1,  // 25: alioth.v1.DatasourceService.CreateDatasource:input_type -> alioth.v1.CreateDatasourceRequest
+	3,  // 26: alioth.v1.DatasourceService.UpdateDatasource:input_type -> alioth.v1.UpdateDatasourceRequest
+	5,  // 27: alioth.v1.DatasourceService.UpdateDatasourceStatus:input_type -> alioth.v1.UpdateDatasourceStatusRequest
+	7,  // 28: alioth.v1.DatasourceService.DeleteDatasource:input_type -> alioth.v1.DeleteDatasourceRequest
+	9,  // 29: alioth.v1.DatasourceService.GetDatasource:input_type -> alioth.v1.GetDatasourceRequest
+	11, // 30: alioth.v1.DatasourceService.ListDatasources:input_type -> alioth.v1.ListDatasourcesRequest
+	13, // 31: alioth.v1.DatasourceService.SelectDatasources:input_type -> alioth.v1.SelectDatasourcesRequest
+	15, // 32: alioth.v1.DatasourceService.GetDatasourceStatus:input_type -> alioth.v1.GetDatasourceStatusRequest
+	17, // 33: alioth.v1.DatasourceService.GetDatasourceMetadata:input_type -> alioth.v1.GetDatasourceMetadataRequest
+	21, // 34: alioth.v1.DatasourceService.ListDatasourceMetrics:input_type -> alioth.v1.ListDatasourceMetricsRequest
+	24, // 35: alioth.v1.DatasourceService.GetDatasourceMetric:input_type -> alioth.v1.GetDatasourceMetricRequest
+	26, // 36: alioth.v1.MetricQueryService.QueryMetric:input_type -> alioth.v1.QueryMetricRequest
+	28, // 37: alioth.v1.MetricQueryService.QueryMetricRange:input_type -> alioth.v1.QueryMetricRangeRequest
+	30, // 38: alioth.v1.MetricQueryService.ProxyQuery:input_type -> alioth.v1.ProxyQueryRequest
+	33, // 39: alioth.v1.AlertRuleService.CreateAlertRuleGroup:input_type -> alioth.v1.CreateAlertRuleGroupRequest
+	35, // 40: alioth.v1.AlertRuleService.UpdateAlertRuleGroup:input_type -> alioth.v1.UpdateAlertRuleGroupRequest
+	37, // 41: alioth.v1.AlertRuleService.UpdateAlertRuleGroupStatus:input_type -> alioth.v1.UpdateAlertRuleGroupStatusRequest
+	39, // 42: alioth.v1.AlertRuleService.DeleteAlertRuleGroup:input_type -> alioth.v1.DeleteAlertRuleGroupRequest
+	41, // 43: alioth.v1.AlertRuleService.ListAlertRuleGroups:input_type -> alioth.v1.ListAlertRuleGroupsRequest
+	46, // 44: alioth.v1.AlertRuleService.CreateAlertRule:input_type -> alioth.v1.CreateAlertRuleRequest
+	48, // 45: alioth.v1.AlertRuleService.UpdateAlertRule:input_type -> alioth.v1.UpdateAlertRuleRequest
+	50, // 46: alioth.v1.AlertRuleService.UpdateAlertRuleStatus:input_type -> alioth.v1.UpdateAlertRuleStatusRequest
+	52, // 47: alioth.v1.AlertRuleService.DeleteAlertRule:input_type -> alioth.v1.DeleteAlertRuleRequest
+	54, // 48: alioth.v1.AlertRuleService.GetAlertRule:input_type -> alioth.v1.GetAlertRuleRequest
+	56, // 49: alioth.v1.AlertRuleService.ListAlertRules:input_type -> alioth.v1.ListAlertRulesRequest
+	59, // 50: alioth.v1.AlertDictionaryService.CreateAlertDictionary:input_type -> alioth.v1.CreateAlertDictionaryRequest
+	61, // 51: alioth.v1.AlertDictionaryService.UpdateAlertDictionary:input_type -> alioth.v1.UpdateAlertDictionaryRequest
+	63, // 52: alioth.v1.AlertDictionaryService.UpdateAlertDictionaryStatus:input_type -> alioth.v1.UpdateAlertDictionaryStatusRequest
+	65, // 53: alioth.v1.AlertDictionaryService.DeleteAlertDictionary:input_type -> alioth.v1.DeleteAlertDictionaryRequest
+	67, // 54: alioth.v1.AlertDictionaryService.ListAlertDictionaries:input_type -> alioth.v1.ListAlertDictionariesRequest
+	2,  // 55: alioth.v1.DatasourceService.CreateDatasource:output_type -> alioth.v1.CreateDatasourceResponse
+	4,  // 56: alioth.v1.DatasourceService.UpdateDatasource:output_type -> alioth.v1.UpdateDatasourceResponse
+	6,  // 57: alioth.v1.DatasourceService.UpdateDatasourceStatus:output_type -> alioth.v1.UpdateDatasourceStatusResponse
+	8,  // 58: alioth.v1.DatasourceService.DeleteDatasource:output_type -> alioth.v1.DeleteDatasourceResponse
+	10, // 59: alioth.v1.DatasourceService.GetDatasource:output_type -> alioth.v1.GetDatasourceResponse
+	12, // 60: alioth.v1.DatasourceService.ListDatasources:output_type -> alioth.v1.ListDatasourcesResponse
+	14, // 61: alioth.v1.DatasourceService.SelectDatasources:output_type -> alioth.v1.SelectDatasourcesResponse
+	16, // 62: alioth.v1.DatasourceService.GetDatasourceStatus:output_type -> alioth.v1.GetDatasourceStatusResponse
+	20, // 63: alioth.v1.DatasourceService.GetDatasourceMetadata:output_type -> alioth.v1.GetDatasourceMetadataResponse
+	23, // 64: alioth.v1.DatasourceService.ListDatasourceMetrics:output_type -> alioth.v1.ListDatasourceMetricsResponse
+	25, // 65: alioth.v1.DatasourceService.GetDatasourceMetric:output_type -> alioth.v1.GetDatasourceMetricResponse
+	27, // 66: alioth.v1.MetricQueryService.QueryMetric:output_type -> alioth.v1.QueryMetricResponse
+	29, // 67: alioth.v1.MetricQueryService.QueryMetricRange:output_type -> alioth.v1.QueryMetricRangeResponse
+	31, // 68: alioth.v1.MetricQueryService.ProxyQuery:output_type -> alioth.v1.ProxyQueryResponse
+	34, // 69: alioth.v1.AlertRuleService.CreateAlertRuleGroup:output_type -> alioth.v1.CreateAlertRuleGroupResponse
+	36, // 70: alioth.v1.AlertRuleService.UpdateAlertRuleGroup:output_type -> alioth.v1.UpdateAlertRuleGroupResponse
+	38, // 71: alioth.v1.AlertRuleService.UpdateAlertRuleGroupStatus:output_type -> alioth.v1.UpdateAlertRuleGroupStatusResponse
+	40, // 72: alioth.v1.AlertRuleService.DeleteAlertRuleGroup:output_type -> alioth.v1.DeleteAlertRuleGroupResponse
+	42, // 73: alioth.v1.AlertRuleService.ListAlertRuleGroups:output_type -> alioth.v1.ListAlertRuleGroupsResponse
+	47, // 74: alioth.v1.AlertRuleService.CreateAlertRule:output_type -> alioth.v1.CreateAlertRuleResponse
+	49, // 75: alioth.v1.AlertRuleService.UpdateAlertRule:output_type -> alioth.v1.UpdateAlertRuleResponse
+	51, // 76: alioth.v1.AlertRuleService.UpdateAlertRuleStatus:output_type -> alioth.v1.UpdateAlertRuleStatusResponse
+	53, // 77: alioth.v1.AlertRuleService.DeleteAlertRule:output_type -> alioth.v1.DeleteAlertRuleResponse
+	55, // 78: alioth.v1.AlertRuleService.GetAlertRule:output_type -> alioth.v1.GetAlertRuleResponse
+	57, // 79: alioth.v1.AlertRuleService.ListAlertRules:output_type -> alioth.v1.ListAlertRulesResponse
+	60, // 80: alioth.v1.AlertDictionaryService.CreateAlertDictionary:output_type -> alioth.v1.CreateAlertDictionaryResponse
+	62, // 81: alioth.v1.AlertDictionaryService.UpdateAlertDictionary:output_type -> alioth.v1.UpdateAlertDictionaryResponse
+	64, // 82: alioth.v1.AlertDictionaryService.UpdateAlertDictionaryStatus:output_type -> alioth.v1.UpdateAlertDictionaryStatusResponse
+	66, // 83: alioth.v1.AlertDictionaryService.DeleteAlertDictionary:output_type -> alioth.v1.DeleteAlertDictionaryResponse
+	68, // 84: alioth.v1.AlertDictionaryService.ListAlertDictionaries:output_type -> alioth.v1.ListAlertDictionariesResponse
+	55, // [55:85] is the sub-list for method output_type
+	25, // [25:55] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_alioth_v1_alert_proto_init() }
@@ -4695,7 +4988,7 @@ func file_alioth_v1_alert_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_alert_proto_rawDesc), len(file_alioth_v1_alert_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   65,
+			NumMessages:   69,
 			NumExtensions: 0,
 			NumServices:   4,
 		},

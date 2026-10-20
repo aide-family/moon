@@ -157,6 +157,17 @@ func (uc *Usecase) Metrics(ctx context.Context, uid string) ([]bo.DatasourceMetr
 	return metrics, uc.access.Wrap(err)
 }
 
+// Metadata 读取日志数据源的关键信息。指标数据源继续走 Metrics，
+// 这条路径只服务 Loki、VictoriaLogs 和 Elasticsearch。
+func (uc *Usecase) Metadata(ctx context.Context, uid string) (*bo.DatasourceMetadata, error) {
+	item, err := uc.logSource(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	metadata, err := uc.datasources.DatasourceMetadata(ctx, *item)
+	return metadata, uc.access.Wrap(err)
+}
+
 func (uc *Usecase) Metric(ctx context.Context, uid, name string) (string, error) {
 	item, err := uc.metricSource(ctx, uid)
 	if err != nil {
@@ -187,8 +198,9 @@ func (uc *Usecase) QueryRange(ctx context.Context, uid, expr string, start, end,
 	return body, uc.access.Wrap(err)
 }
 
-// QueryLogs 查询日志数据源。Loki 使用 LogQL，Elasticsearch 使用 Query DSL
-// 或普通检索语句。时间窗口、条数和方向在这里收敛，避免把任意参数透传给上游。
+// QueryLogs 查询日志数据源。Loki 使用 LogQL，VictoriaLogs 使用 LogsQL，
+// Elasticsearch 使用 Query DSL 或普通检索语句。时间窗口、条数和方向在这里收敛，
+// 避免把任意参数透传给上游。
 func (uc *Usecase) QueryLogs(ctx context.Context, uid, query string, start, end int64, limit int32, direction string) (string, error) {
 	item, err := uc.logSource(ctx, uid)
 	if err != nil {
@@ -230,7 +242,7 @@ func (uc *Usecase) metricSource(ctx context.Context, uid string) (*bo.Datasource
 	return item, nil
 }
 
-// logSource 取日志数据源。Loki 与 Elasticsearch 都支持日志查询。
+// logSource 取日志数据源。Loki、VictoriaLogs 与 Elasticsearch 都支持日志查询。
 func (uc *Usecase) logSource(ctx context.Context, uid string) (*bo.Datasource, error) {
 	item, err := uc.readSource(ctx, uid)
 	if err != nil {
@@ -240,21 +252,21 @@ func (uc *Usecase) logSource(ctx context.Context, uid string) (*bo.Datasource, e
 		return nil, merr.Invalid("datasource is not logs")
 	}
 	switch item.Driver {
-	case "LOGS_LOKI", "LOGS_ELASTICSEARCH":
+	case "LOGS_LOKI", "LOGS_VLOGS", "LOGS_ELASTICSEARCH":
 		return item, nil
 	default:
 		return nil, merr.Invalid("invalid request")
 	}
 }
 
-// statusSource 允许指标数据源、Loki 和 Elasticsearch 日志数据源做连通检查。
+// statusSource 允许指标数据源、Loki、VictoriaLogs 和 Elasticsearch 日志数据源做连通检查。
 func (uc *Usecase) statusSource(ctx context.Context, uid string) (*bo.Datasource, error) {
 	item, err := uc.readSource(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
 	switch item.Driver {
-	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_LOKI", "LOGS_ELASTICSEARCH":
+	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_LOKI", "LOGS_VLOGS", "LOGS_ELASTICSEARCH":
 		return item, nil
 	default:
 		return nil, merr.Invalid("invalid request")
@@ -314,7 +326,7 @@ func DriverMatches(kind, driver string) bool {
 	case "METRICS":
 		return driver == "METRICS_PROMETHEUS" || driver == "METRICS_VICTORIA_METRICS"
 	case "LOGS":
-		return driver == "LOGS_ELASTICSEARCH" || driver == "LOGS_LOKI"
+		return driver == "LOGS_ELASTICSEARCH" || driver == "LOGS_LOKI" || driver == "LOGS_VLOGS"
 	case "TRACE":
 		return driver == "TRACE_JAEGER"
 	default:

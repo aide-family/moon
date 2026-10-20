@@ -47,9 +47,14 @@ service DatasourceService {
   rpc SelectDatasources(SelectDatasourcesRequest) returns (SelectDatasourcesResponse) {
     option (google.api.http) = {get: "/v1/datasources/select"};
   }
-  // 查看数据源是否可连通。支持指标数据源、Loki 和 Elasticsearch 日志数据源。
+  // 查看数据源是否可连通。支持指标数据源、Loki、VictoriaLogs 和 Elasticsearch 日志数据源。
   rpc GetDatasourceStatus(GetDatasourceStatusRequest) returns (GetDatasourceStatusResponse) {
     option (google.api.http) = {get: "/v1/datasource/{uid}/status"};
+  }
+  // 查看日志数据源的关键信息。Loki 返回版本信息，VictoriaLogs 返回健康状态，
+  // Elasticsearch 返回集群状态和节点分配。
+  rpc GetDatasourceMetadata(GetDatasourceMetadataRequest) returns (GetDatasourceMetadataResponse) {
+    option (google.api.http) = {get: "/v1/datasource/{uid}/metadata"};
   }
   // 列出指标数据源中的指标元数据。
   rpc ListDatasourceMetrics(ListDatasourceMetricsRequest) returns (ListDatasourceMetricsResponse) {
@@ -224,7 +229,7 @@ message CreateDatasourceRequest {
   // 类型，取值为 METRICS、LOGS 或 TRACE。
   string type = 2 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
   // 驱动。
-  string driver = 3 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"]}];
+  string driver = 3 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER"]}];
   // 连接地址。
   string endpoint = 4 [(buf.validate.field).string.min_len = 1];
   // 用户名。
@@ -260,7 +265,7 @@ message UpdateDatasourceRequest {
   // 类型，取值为 METRICS、LOGS 或 TRACE。
   string type = 3 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
   // 驱动。
-  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"]}];
+  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER"]}];
   // 连接地址。
   string endpoint = 5 [(buf.validate.field).string.min_len = 1];
   // 用户名。
@@ -374,6 +379,48 @@ message GetDatasourceStatusRequest {
 message GetDatasourceStatusResponse {
   // 上游状态摘要。
   string status = 1;
+}
+
+// 要查看元数据的日志数据源。
+message GetDatasourceMetadataRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 数据源元数据中的键值项。键名稳定，由页面映射成本地文案。
+message DatasourceMetadataItem {
+  // 键名，例如 status、version、clusterName。
+  string key = 1;
+  // 上游返回的值。
+  string value = 2;
+}
+
+// 数据源元数据中的节点分配项，仅 Elasticsearch 使用。
+message DatasourceMetadataNode {
+  // 节点名。
+  string name = 1;
+  // 节点地址。
+  string address = 2;
+  // 节点角色。
+  string role = 3;
+  // 分片数。
+  string shards = 4;
+  // 已用磁盘空间。
+  string disk_used = 5 [json_name = "diskUsed"];
+  // 可用磁盘空间。
+  string disk_avail = 6 [json_name = "diskAvail"];
+  // 磁盘使用百分比。
+  string disk_percent = 7 [json_name = "diskPercent"];
+}
+
+// 日志数据源的元数据。
+message GetDatasourceMetadataResponse {
+  // 驱动。
+  string driver = 1;
+  // 键值项。
+  repeated DatasourceMetadataItem items = 2;
+  // 节点分配，仅 Elasticsearch 使用。
+  repeated DatasourceMetadataNode nodes = 3;
 }
 
 // 要列出指标的数据源。

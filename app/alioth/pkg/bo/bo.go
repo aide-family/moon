@@ -143,6 +143,31 @@ type DatasourceMetric struct {
 	Unit string
 }
 
+// DatasourceMetadata 是日志数据源的关键信息。不同驱动返回不同的键值项，
+// 键名由服务端固定，页面负责映射成本地文案。
+type DatasourceMetadata struct {
+	Driver string
+	Items  []DatasourceMetadataItem
+	Nodes  []DatasourceMetadataNode
+}
+
+// DatasourceMetadataItem 是元数据中的一个键值项。
+type DatasourceMetadataItem struct {
+	Key   string
+	Value string
+}
+
+// DatasourceMetadataNode 是 Elasticsearch 的一个节点分配项。
+type DatasourceMetadataNode struct {
+	Name        string
+	Address     string
+	Role        string
+	Shards      string
+	DiskUsed    string
+	DiskAvail   string
+	DiskPercent string
+}
+
 // AlertDictionary 是告警字典中的一条。类型为告警级别或数据源级别。
 type AlertDictionary struct {
 	UID          string
