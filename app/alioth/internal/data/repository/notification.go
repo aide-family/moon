@@ -34,6 +34,13 @@ type NotificationRepo interface {
 	ListGroups(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.NotificationGroup, int, error)
 	SelectGroups(ctx context.Context, namespaceUID string, limit int, lastUID string, activeOnly bool) ([]bo.SelectItem, error)
 
+	CreateSubscription(ctx context.Context, in bo.NotificationSubscription) (*bo.NotificationSubscription, error)
+	UpdateSubscription(ctx context.Context, in bo.NotificationSubscription) (*bo.NotificationSubscription, error)
+	UpdateSubscriptionStatus(ctx context.Context, namespaceUID, uid, status string) (*bo.NotificationSubscription, error)
+	DeleteSubscription(ctx context.Context, namespaceUID, uid string) error
+	GetSubscription(ctx context.Context, namespaceUID, uid string) (*bo.NotificationSubscription, error)
+	ListSubscriptions(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.NotificationSubscription, int, error)
+
 	CreateTestTask(ctx context.Context, in bo.NotificationTask) (*bo.NotificationTask, error)
 	ListTasks(ctx context.Context, namespaceUID, status string, page, pageSize int) ([]bo.NotificationTask, int, error)
 	RetryTask(ctx context.Context, namespaceUID, uid string) (*bo.NotificationTask, error)

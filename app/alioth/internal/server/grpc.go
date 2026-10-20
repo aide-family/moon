@@ -36,6 +36,7 @@ func NewGRPCServer(
 	channels *service.NotificationChannelService,
 	templates *service.NotificationTemplateService,
 	groups *service.NotificationGroupService,
+	subscriptions *service.NotificationSubscriptionService,
 	logs *service.MessageLogService,
 	notify *service.NotifyService,
 	agents *service.AgentService,
@@ -85,6 +86,7 @@ func NewGRPCServer(
 	v1.RegisterNotificationChannelServiceServer(srv, channels)
 	v1.RegisterNotificationTemplateServiceServer(srv, templates)
 	v1.RegisterNotificationGroupServiceServer(srv, groups)
+	v1.RegisterNotificationSubscriptionServiceServer(srv, subscriptions)
 	v1.RegisterMessageLogServiceServer(srv, logs)
 	megrezv1.RegisterEvalServiceServer(srv, eval)
 	merakv1.RegisterNotifyServiceServer(srv, notify)

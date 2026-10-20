@@ -104,6 +104,11 @@ func Remark(v string) predicate.NotificationGroup {
 	return predicate.NotificationGroup(sql.FieldEQ(FieldRemark, v))
 }
 
+// WebhookTemplateUID applies equality check predicate on the "webhook_template_uid" field. It's identical to WebhookTemplateUIDEQ.
+func WebhookTemplateUID(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldEQ(FieldWebhookTemplateUID, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.NotificationGroup {
 	return predicate.NotificationGroup(sql.FieldEQ(FieldCreatedAt, v))
@@ -707,6 +712,71 @@ func RemarkEqualFold(v string) predicate.NotificationGroup {
 // RemarkContainsFold applies the ContainsFold predicate on the "remark" field.
 func RemarkContainsFold(v string) predicate.NotificationGroup {
 	return predicate.NotificationGroup(sql.FieldContainsFold(FieldRemark, v))
+}
+
+// WebhookTemplateUIDEQ applies the EQ predicate on the "webhook_template_uid" field.
+func WebhookTemplateUIDEQ(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldEQ(FieldWebhookTemplateUID, v))
+}
+
+// WebhookTemplateUIDNEQ applies the NEQ predicate on the "webhook_template_uid" field.
+func WebhookTemplateUIDNEQ(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldNEQ(FieldWebhookTemplateUID, v))
+}
+
+// WebhookTemplateUIDIn applies the In predicate on the "webhook_template_uid" field.
+func WebhookTemplateUIDIn(vs ...string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldIn(FieldWebhookTemplateUID, vs...))
+}
+
+// WebhookTemplateUIDNotIn applies the NotIn predicate on the "webhook_template_uid" field.
+func WebhookTemplateUIDNotIn(vs ...string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldNotIn(FieldWebhookTemplateUID, vs...))
+}
+
+// WebhookTemplateUIDGT applies the GT predicate on the "webhook_template_uid" field.
+func WebhookTemplateUIDGT(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldGT(FieldWebhookTemplateUID, v))
+}
+
+// WebhookTemplateUIDGTE applies the GTE predicate on the "webhook_template_uid" field.
+func WebhookTemplateUIDGTE(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldGTE(FieldWebhookTemplateUID, v))
+}
+
+// WebhookTemplateUIDLT applies the LT predicate on the "webhook_template_uid" field.
+func WebhookTemplateUIDLT(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldLT(FieldWebhookTemplateUID, v))
+}
+
+// WebhookTemplateUIDLTE applies the LTE predicate on the "webhook_template_uid" field.
+func WebhookTemplateUIDLTE(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldLTE(FieldWebhookTemplateUID, v))
+}
+
+// WebhookTemplateUIDContains applies the Contains predicate on the "webhook_template_uid" field.
+func WebhookTemplateUIDContains(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldContains(FieldWebhookTemplateUID, v))
+}
+
+// WebhookTemplateUIDHasPrefix applies the HasPrefix predicate on the "webhook_template_uid" field.
+func WebhookTemplateUIDHasPrefix(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldHasPrefix(FieldWebhookTemplateUID, v))
+}
+
+// WebhookTemplateUIDHasSuffix applies the HasSuffix predicate on the "webhook_template_uid" field.
+func WebhookTemplateUIDHasSuffix(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldHasSuffix(FieldWebhookTemplateUID, v))
+}
+
+// WebhookTemplateUIDEqualFold applies the EqualFold predicate on the "webhook_template_uid" field.
+func WebhookTemplateUIDEqualFold(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldEqualFold(FieldWebhookTemplateUID, v))
+}
+
+// WebhookTemplateUIDContainsFold applies the ContainsFold predicate on the "webhook_template_uid" field.
+func WebhookTemplateUIDContainsFold(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldContainsFold(FieldWebhookTemplateUID, v))
 }
 
 // And groups predicates with the AND operator between them.

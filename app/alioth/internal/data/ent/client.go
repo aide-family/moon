@@ -23,7 +23,6 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulenotificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/captcha"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
@@ -35,6 +34,8 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationpreset"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscription"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscriptiongroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/permission"
@@ -71,8 +72,6 @@ type Client struct {
 	AlertRuleGroup *AlertRuleGroupClient
 	// AlertRuleLevel is the client for interacting with the AlertRuleLevel builders.
 	AlertRuleLevel *AlertRuleLevelClient
-	// AlertRuleNotificationGroup is the client for interacting with the AlertRuleNotificationGroup builders.
-	AlertRuleNotificationGroup *AlertRuleNotificationGroupClient
 	// Captcha is the client for interacting with the Captcha builders.
 	Captcha *CaptchaClient
 	// Datasource is the client for interacting with the Datasource builders.
@@ -95,6 +94,10 @@ type Client struct {
 	NotificationGroup *NotificationGroupClient
 	// NotificationPreset is the client for interacting with the NotificationPreset builders.
 	NotificationPreset *NotificationPresetClient
+	// NotificationSubscription is the client for interacting with the NotificationSubscription builders.
+	NotificationSubscription *NotificationSubscriptionClient
+	// NotificationSubscriptionGroup is the client for interacting with the NotificationSubscriptionGroup builders.
+	NotificationSubscriptionGroup *NotificationSubscriptionGroupClient
 	// NotificationTask is the client for interacting with the NotificationTask builders.
 	NotificationTask *NotificationTaskClient
 	// NotificationTemplate is the client for interacting with the NotificationTemplate builders.
@@ -137,7 +140,6 @@ func (c *Client) init() {
 	c.AlertRule = NewAlertRuleClient(c.config)
 	c.AlertRuleGroup = NewAlertRuleGroupClient(c.config)
 	c.AlertRuleLevel = NewAlertRuleLevelClient(c.config)
-	c.AlertRuleNotificationGroup = NewAlertRuleNotificationGroupClient(c.config)
 	c.Captcha = NewCaptchaClient(c.config)
 	c.Datasource = NewDatasourceClient(c.config)
 	c.EmailLoginCode = NewEmailLoginCodeClient(c.config)
@@ -149,6 +151,8 @@ func (c *Client) init() {
 	c.NotificationChannel = NewNotificationChannelClient(c.config)
 	c.NotificationGroup = NewNotificationGroupClient(c.config)
 	c.NotificationPreset = NewNotificationPresetClient(c.config)
+	c.NotificationSubscription = NewNotificationSubscriptionClient(c.config)
+	c.NotificationSubscriptionGroup = NewNotificationSubscriptionGroupClient(c.config)
 	c.NotificationTask = NewNotificationTaskClient(c.config)
 	c.NotificationTemplate = NewNotificationTemplateClient(c.config)
 	c.Permission = NewPermissionClient(c.config)
@@ -250,40 +254,41 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                        ctx,
-		config:                     cfg,
-		Agent:                      NewAgentClient(cfg),
-		AlertDictionary:            NewAlertDictionaryClient(cfg),
-		AlertEvalBatch:             NewAlertEvalBatchClient(cfg),
-		AlertEvent:                 NewAlertEventClient(cfg),
-		AlertEventFiring:           NewAlertEventFiringClient(cfg),
-		AlertPage:                  NewAlertPageClient(cfg),
-		AlertRule:                  NewAlertRuleClient(cfg),
-		AlertRuleGroup:             NewAlertRuleGroupClient(cfg),
-		AlertRuleLevel:             NewAlertRuleLevelClient(cfg),
-		AlertRuleNotificationGroup: NewAlertRuleNotificationGroupClient(cfg),
-		Captcha:                    NewCaptchaClient(cfg),
-		Datasource:                 NewDatasourceClient(cfg),
-		EmailLoginCode:             NewEmailLoginCodeClient(cfg),
-		K8sProxyAudit:              NewK8sProxyAuditClient(cfg),
-		Member:                     NewMemberClient(cfg),
-		MemberRole:                 NewMemberRoleClient(cfg),
-		MessageLog:                 NewMessageLogClient(cfg),
-		Namespace:                  NewNamespaceClient(cfg),
-		NotificationChannel:        NewNotificationChannelClient(cfg),
-		NotificationGroup:          NewNotificationGroupClient(cfg),
-		NotificationPreset:         NewNotificationPresetClient(cfg),
-		NotificationTask:           NewNotificationTaskClient(cfg),
-		NotificationTemplate:       NewNotificationTemplateClient(cfg),
-		Permission:                 NewPermissionClient(cfg),
-		Role:                       NewRoleClient(cfg),
-		RolePermission:             NewRolePermissionClient(cfg),
-		SFTPAudit:                  NewSFTPAuditClient(cfg),
-		SSHCommand:                 NewSSHCommandClient(cfg),
-		SSHCommandAudit:            NewSSHCommandAuditClient(cfg),
-		User:                       NewUserClient(cfg),
-		UserAlertPage:              NewUserAlertPageClient(cfg),
-		UserOAuth:                  NewUserOAuthClient(cfg),
+		ctx:                           ctx,
+		config:                        cfg,
+		Agent:                         NewAgentClient(cfg),
+		AlertDictionary:               NewAlertDictionaryClient(cfg),
+		AlertEvalBatch:                NewAlertEvalBatchClient(cfg),
+		AlertEvent:                    NewAlertEventClient(cfg),
+		AlertEventFiring:              NewAlertEventFiringClient(cfg),
+		AlertPage:                     NewAlertPageClient(cfg),
+		AlertRule:                     NewAlertRuleClient(cfg),
+		AlertRuleGroup:                NewAlertRuleGroupClient(cfg),
+		AlertRuleLevel:                NewAlertRuleLevelClient(cfg),
+		Captcha:                       NewCaptchaClient(cfg),
+		Datasource:                    NewDatasourceClient(cfg),
+		EmailLoginCode:                NewEmailLoginCodeClient(cfg),
+		K8sProxyAudit:                 NewK8sProxyAuditClient(cfg),
+		Member:                        NewMemberClient(cfg),
+		MemberRole:                    NewMemberRoleClient(cfg),
+		MessageLog:                    NewMessageLogClient(cfg),
+		Namespace:                     NewNamespaceClient(cfg),
+		NotificationChannel:           NewNotificationChannelClient(cfg),
+		NotificationGroup:             NewNotificationGroupClient(cfg),
+		NotificationPreset:            NewNotificationPresetClient(cfg),
+		NotificationSubscription:      NewNotificationSubscriptionClient(cfg),
+		NotificationSubscriptionGroup: NewNotificationSubscriptionGroupClient(cfg),
+		NotificationTask:              NewNotificationTaskClient(cfg),
+		NotificationTemplate:          NewNotificationTemplateClient(cfg),
+		Permission:                    NewPermissionClient(cfg),
+		Role:                          NewRoleClient(cfg),
+		RolePermission:                NewRolePermissionClient(cfg),
+		SFTPAudit:                     NewSFTPAuditClient(cfg),
+		SSHCommand:                    NewSSHCommandClient(cfg),
+		SSHCommandAudit:               NewSSHCommandAuditClient(cfg),
+		User:                          NewUserClient(cfg),
+		UserAlertPage:                 NewUserAlertPageClient(cfg),
+		UserOAuth:                     NewUserOAuthClient(cfg),
 	}, nil
 }
 
@@ -301,40 +306,41 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                        ctx,
-		config:                     cfg,
-		Agent:                      NewAgentClient(cfg),
-		AlertDictionary:            NewAlertDictionaryClient(cfg),
-		AlertEvalBatch:             NewAlertEvalBatchClient(cfg),
-		AlertEvent:                 NewAlertEventClient(cfg),
-		AlertEventFiring:           NewAlertEventFiringClient(cfg),
-		AlertPage:                  NewAlertPageClient(cfg),
-		AlertRule:                  NewAlertRuleClient(cfg),
-		AlertRuleGroup:             NewAlertRuleGroupClient(cfg),
-		AlertRuleLevel:             NewAlertRuleLevelClient(cfg),
-		AlertRuleNotificationGroup: NewAlertRuleNotificationGroupClient(cfg),
-		Captcha:                    NewCaptchaClient(cfg),
-		Datasource:                 NewDatasourceClient(cfg),
-		EmailLoginCode:             NewEmailLoginCodeClient(cfg),
-		K8sProxyAudit:              NewK8sProxyAuditClient(cfg),
-		Member:                     NewMemberClient(cfg),
-		MemberRole:                 NewMemberRoleClient(cfg),
-		MessageLog:                 NewMessageLogClient(cfg),
-		Namespace:                  NewNamespaceClient(cfg),
-		NotificationChannel:        NewNotificationChannelClient(cfg),
-		NotificationGroup:          NewNotificationGroupClient(cfg),
-		NotificationPreset:         NewNotificationPresetClient(cfg),
-		NotificationTask:           NewNotificationTaskClient(cfg),
-		NotificationTemplate:       NewNotificationTemplateClient(cfg),
-		Permission:                 NewPermissionClient(cfg),
-		Role:                       NewRoleClient(cfg),
-		RolePermission:             NewRolePermissionClient(cfg),
-		SFTPAudit:                  NewSFTPAuditClient(cfg),
-		SSHCommand:                 NewSSHCommandClient(cfg),
-		SSHCommandAudit:            NewSSHCommandAuditClient(cfg),
-		User:                       NewUserClient(cfg),
-		UserAlertPage:              NewUserAlertPageClient(cfg),
-		UserOAuth:                  NewUserOAuthClient(cfg),
+		ctx:                           ctx,
+		config:                        cfg,
+		Agent:                         NewAgentClient(cfg),
+		AlertDictionary:               NewAlertDictionaryClient(cfg),
+		AlertEvalBatch:                NewAlertEvalBatchClient(cfg),
+		AlertEvent:                    NewAlertEventClient(cfg),
+		AlertEventFiring:              NewAlertEventFiringClient(cfg),
+		AlertPage:                     NewAlertPageClient(cfg),
+		AlertRule:                     NewAlertRuleClient(cfg),
+		AlertRuleGroup:                NewAlertRuleGroupClient(cfg),
+		AlertRuleLevel:                NewAlertRuleLevelClient(cfg),
+		Captcha:                       NewCaptchaClient(cfg),
+		Datasource:                    NewDatasourceClient(cfg),
+		EmailLoginCode:                NewEmailLoginCodeClient(cfg),
+		K8sProxyAudit:                 NewK8sProxyAuditClient(cfg),
+		Member:                        NewMemberClient(cfg),
+		MemberRole:                    NewMemberRoleClient(cfg),
+		MessageLog:                    NewMessageLogClient(cfg),
+		Namespace:                     NewNamespaceClient(cfg),
+		NotificationChannel:           NewNotificationChannelClient(cfg),
+		NotificationGroup:             NewNotificationGroupClient(cfg),
+		NotificationPreset:            NewNotificationPresetClient(cfg),
+		NotificationSubscription:      NewNotificationSubscriptionClient(cfg),
+		NotificationSubscriptionGroup: NewNotificationSubscriptionGroupClient(cfg),
+		NotificationTask:              NewNotificationTaskClient(cfg),
+		NotificationTemplate:          NewNotificationTemplateClient(cfg),
+		Permission:                    NewPermissionClient(cfg),
+		Role:                          NewRoleClient(cfg),
+		RolePermission:                NewRolePermissionClient(cfg),
+		SFTPAudit:                     NewSFTPAuditClient(cfg),
+		SSHCommand:                    NewSSHCommandClient(cfg),
+		SSHCommandAudit:               NewSSHCommandAuditClient(cfg),
+		User:                          NewUserClient(cfg),
+		UserAlertPage:                 NewUserAlertPageClient(cfg),
+		UserOAuth:                     NewUserOAuthClient(cfg),
 	}, nil
 }
 
@@ -365,13 +371,13 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventFiring,
-		c.AlertPage, c.AlertRule, c.AlertRuleGroup, c.AlertRuleLevel,
-		c.AlertRuleNotificationGroup, c.Captcha, c.Datasource, c.EmailLoginCode,
-		c.K8sProxyAudit, c.Member, c.MemberRole, c.MessageLog, c.Namespace,
-		c.NotificationChannel, c.NotificationGroup, c.NotificationPreset,
-		c.NotificationTask, c.NotificationTemplate, c.Permission, c.Role,
-		c.RolePermission, c.SFTPAudit, c.SSHCommand, c.SSHCommandAudit, c.User,
-		c.UserAlertPage, c.UserOAuth,
+		c.AlertPage, c.AlertRule, c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha,
+		c.Datasource, c.EmailLoginCode, c.K8sProxyAudit, c.Member, c.MemberRole,
+		c.MessageLog, c.Namespace, c.NotificationChannel, c.NotificationGroup,
+		c.NotificationPreset, c.NotificationSubscription,
+		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
+		c.Permission, c.Role, c.RolePermission, c.SFTPAudit, c.SSHCommand,
+		c.SSHCommandAudit, c.User, c.UserAlertPage, c.UserOAuth,
 	} {
 		n.Use(hooks...)
 	}
@@ -382,13 +388,13 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventFiring,
-		c.AlertPage, c.AlertRule, c.AlertRuleGroup, c.AlertRuleLevel,
-		c.AlertRuleNotificationGroup, c.Captcha, c.Datasource, c.EmailLoginCode,
-		c.K8sProxyAudit, c.Member, c.MemberRole, c.MessageLog, c.Namespace,
-		c.NotificationChannel, c.NotificationGroup, c.NotificationPreset,
-		c.NotificationTask, c.NotificationTemplate, c.Permission, c.Role,
-		c.RolePermission, c.SFTPAudit, c.SSHCommand, c.SSHCommandAudit, c.User,
-		c.UserAlertPage, c.UserOAuth,
+		c.AlertPage, c.AlertRule, c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha,
+		c.Datasource, c.EmailLoginCode, c.K8sProxyAudit, c.Member, c.MemberRole,
+		c.MessageLog, c.Namespace, c.NotificationChannel, c.NotificationGroup,
+		c.NotificationPreset, c.NotificationSubscription,
+		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
+		c.Permission, c.Role, c.RolePermission, c.SFTPAudit, c.SSHCommand,
+		c.SSHCommandAudit, c.User, c.UserAlertPage, c.UserOAuth,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -415,8 +421,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AlertRuleGroup.mutate(ctx, m)
 	case *AlertRuleLevelMutation:
 		return c.AlertRuleLevel.mutate(ctx, m)
-	case *AlertRuleNotificationGroupMutation:
-		return c.AlertRuleNotificationGroup.mutate(ctx, m)
 	case *CaptchaMutation:
 		return c.Captcha.mutate(ctx, m)
 	case *DatasourceMutation:
@@ -439,6 +443,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.NotificationGroup.mutate(ctx, m)
 	case *NotificationPresetMutation:
 		return c.NotificationPreset.mutate(ctx, m)
+	case *NotificationSubscriptionMutation:
+		return c.NotificationSubscription.mutate(ctx, m)
+	case *NotificationSubscriptionGroupMutation:
+		return c.NotificationSubscriptionGroup.mutate(ctx, m)
 	case *NotificationTaskMutation:
 		return c.NotificationTask.mutate(ctx, m)
 	case *NotificationTemplateMutation:
@@ -1660,139 +1668,6 @@ func (c *AlertRuleLevelClient) mutate(ctx context.Context, m *AlertRuleLevelMuta
 		return (&AlertRuleLevelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AlertRuleLevel mutation op: %q", m.Op())
-	}
-}
-
-// AlertRuleNotificationGroupClient is a client for the AlertRuleNotificationGroup schema.
-type AlertRuleNotificationGroupClient struct {
-	config
-}
-
-// NewAlertRuleNotificationGroupClient returns a client for the AlertRuleNotificationGroup from the given config.
-func NewAlertRuleNotificationGroupClient(c config) *AlertRuleNotificationGroupClient {
-	return &AlertRuleNotificationGroupClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `alertrulenotificationgroup.Hooks(f(g(h())))`.
-func (c *AlertRuleNotificationGroupClient) Use(hooks ...Hook) {
-	c.hooks.AlertRuleNotificationGroup = append(c.hooks.AlertRuleNotificationGroup, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `alertrulenotificationgroup.Intercept(f(g(h())))`.
-func (c *AlertRuleNotificationGroupClient) Intercept(interceptors ...Interceptor) {
-	c.inters.AlertRuleNotificationGroup = append(c.inters.AlertRuleNotificationGroup, interceptors...)
-}
-
-// Create returns a builder for creating a AlertRuleNotificationGroup entity.
-func (c *AlertRuleNotificationGroupClient) Create() *AlertRuleNotificationGroupCreate {
-	mutation := newAlertRuleNotificationGroupMutation(c.config, OpCreate)
-	return &AlertRuleNotificationGroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of AlertRuleNotificationGroup entities.
-func (c *AlertRuleNotificationGroupClient) CreateBulk(builders ...*AlertRuleNotificationGroupCreate) *AlertRuleNotificationGroupCreateBulk {
-	return &AlertRuleNotificationGroupCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *AlertRuleNotificationGroupClient) MapCreateBulk(slice any, setFunc func(*AlertRuleNotificationGroupCreate, int)) *AlertRuleNotificationGroupCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &AlertRuleNotificationGroupCreateBulk{err: fmt.Errorf("calling to AlertRuleNotificationGroupClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*AlertRuleNotificationGroupCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &AlertRuleNotificationGroupCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for AlertRuleNotificationGroup.
-func (c *AlertRuleNotificationGroupClient) Update() *AlertRuleNotificationGroupUpdate {
-	mutation := newAlertRuleNotificationGroupMutation(c.config, OpUpdate)
-	return &AlertRuleNotificationGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *AlertRuleNotificationGroupClient) UpdateOne(_m *AlertRuleNotificationGroup) *AlertRuleNotificationGroupUpdateOne {
-	mutation := newAlertRuleNotificationGroupMutation(c.config, OpUpdateOne, withAlertRuleNotificationGroup(_m))
-	return &AlertRuleNotificationGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *AlertRuleNotificationGroupClient) UpdateOneID(id int) *AlertRuleNotificationGroupUpdateOne {
-	mutation := newAlertRuleNotificationGroupMutation(c.config, OpUpdateOne, withAlertRuleNotificationGroupID(id))
-	return &AlertRuleNotificationGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for AlertRuleNotificationGroup.
-func (c *AlertRuleNotificationGroupClient) Delete() *AlertRuleNotificationGroupDelete {
-	mutation := newAlertRuleNotificationGroupMutation(c.config, OpDelete)
-	return &AlertRuleNotificationGroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *AlertRuleNotificationGroupClient) DeleteOne(_m *AlertRuleNotificationGroup) *AlertRuleNotificationGroupDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *AlertRuleNotificationGroupClient) DeleteOneID(id int) *AlertRuleNotificationGroupDeleteOne {
-	builder := c.Delete().Where(alertrulenotificationgroup.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &AlertRuleNotificationGroupDeleteOne{builder}
-}
-
-// Query returns a query builder for AlertRuleNotificationGroup.
-func (c *AlertRuleNotificationGroupClient) Query() *AlertRuleNotificationGroupQuery {
-	return &AlertRuleNotificationGroupQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeAlertRuleNotificationGroup},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a AlertRuleNotificationGroup entity by its id.
-func (c *AlertRuleNotificationGroupClient) Get(ctx context.Context, id int) (*AlertRuleNotificationGroup, error) {
-	return c.Query().Where(alertrulenotificationgroup.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *AlertRuleNotificationGroupClient) GetX(ctx context.Context, id int) *AlertRuleNotificationGroup {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *AlertRuleNotificationGroupClient) Hooks() []Hook {
-	return c.hooks.AlertRuleNotificationGroup
-}
-
-// Interceptors returns the client interceptors.
-func (c *AlertRuleNotificationGroupClient) Interceptors() []Interceptor {
-	return c.inters.AlertRuleNotificationGroup
-}
-
-func (c *AlertRuleNotificationGroupClient) mutate(ctx context.Context, m *AlertRuleNotificationGroupMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&AlertRuleNotificationGroupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&AlertRuleNotificationGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&AlertRuleNotificationGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&AlertRuleNotificationGroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown AlertRuleNotificationGroup mutation op: %q", m.Op())
 	}
 }
 
@@ -3256,6 +3131,272 @@ func (c *NotificationPresetClient) mutate(ctx context.Context, m *NotificationPr
 		return (&NotificationPresetDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown NotificationPreset mutation op: %q", m.Op())
+	}
+}
+
+// NotificationSubscriptionClient is a client for the NotificationSubscription schema.
+type NotificationSubscriptionClient struct {
+	config
+}
+
+// NewNotificationSubscriptionClient returns a client for the NotificationSubscription from the given config.
+func NewNotificationSubscriptionClient(c config) *NotificationSubscriptionClient {
+	return &NotificationSubscriptionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `notificationsubscription.Hooks(f(g(h())))`.
+func (c *NotificationSubscriptionClient) Use(hooks ...Hook) {
+	c.hooks.NotificationSubscription = append(c.hooks.NotificationSubscription, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `notificationsubscription.Intercept(f(g(h())))`.
+func (c *NotificationSubscriptionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NotificationSubscription = append(c.inters.NotificationSubscription, interceptors...)
+}
+
+// Create returns a builder for creating a NotificationSubscription entity.
+func (c *NotificationSubscriptionClient) Create() *NotificationSubscriptionCreate {
+	mutation := newNotificationSubscriptionMutation(c.config, OpCreate)
+	return &NotificationSubscriptionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NotificationSubscription entities.
+func (c *NotificationSubscriptionClient) CreateBulk(builders ...*NotificationSubscriptionCreate) *NotificationSubscriptionCreateBulk {
+	return &NotificationSubscriptionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NotificationSubscriptionClient) MapCreateBulk(slice any, setFunc func(*NotificationSubscriptionCreate, int)) *NotificationSubscriptionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NotificationSubscriptionCreateBulk{err: fmt.Errorf("calling to NotificationSubscriptionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NotificationSubscriptionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NotificationSubscriptionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NotificationSubscription.
+func (c *NotificationSubscriptionClient) Update() *NotificationSubscriptionUpdate {
+	mutation := newNotificationSubscriptionMutation(c.config, OpUpdate)
+	return &NotificationSubscriptionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NotificationSubscriptionClient) UpdateOne(_m *NotificationSubscription) *NotificationSubscriptionUpdateOne {
+	mutation := newNotificationSubscriptionMutation(c.config, OpUpdateOne, withNotificationSubscription(_m))
+	return &NotificationSubscriptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NotificationSubscriptionClient) UpdateOneID(id int) *NotificationSubscriptionUpdateOne {
+	mutation := newNotificationSubscriptionMutation(c.config, OpUpdateOne, withNotificationSubscriptionID(id))
+	return &NotificationSubscriptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NotificationSubscription.
+func (c *NotificationSubscriptionClient) Delete() *NotificationSubscriptionDelete {
+	mutation := newNotificationSubscriptionMutation(c.config, OpDelete)
+	return &NotificationSubscriptionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NotificationSubscriptionClient) DeleteOne(_m *NotificationSubscription) *NotificationSubscriptionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NotificationSubscriptionClient) DeleteOneID(id int) *NotificationSubscriptionDeleteOne {
+	builder := c.Delete().Where(notificationsubscription.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NotificationSubscriptionDeleteOne{builder}
+}
+
+// Query returns a query builder for NotificationSubscription.
+func (c *NotificationSubscriptionClient) Query() *NotificationSubscriptionQuery {
+	return &NotificationSubscriptionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNotificationSubscription},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NotificationSubscription entity by its id.
+func (c *NotificationSubscriptionClient) Get(ctx context.Context, id int) (*NotificationSubscription, error) {
+	return c.Query().Where(notificationsubscription.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NotificationSubscriptionClient) GetX(ctx context.Context, id int) *NotificationSubscription {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *NotificationSubscriptionClient) Hooks() []Hook {
+	return c.hooks.NotificationSubscription
+}
+
+// Interceptors returns the client interceptors.
+func (c *NotificationSubscriptionClient) Interceptors() []Interceptor {
+	return c.inters.NotificationSubscription
+}
+
+func (c *NotificationSubscriptionClient) mutate(ctx context.Context, m *NotificationSubscriptionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NotificationSubscriptionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NotificationSubscriptionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NotificationSubscriptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NotificationSubscriptionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NotificationSubscription mutation op: %q", m.Op())
+	}
+}
+
+// NotificationSubscriptionGroupClient is a client for the NotificationSubscriptionGroup schema.
+type NotificationSubscriptionGroupClient struct {
+	config
+}
+
+// NewNotificationSubscriptionGroupClient returns a client for the NotificationSubscriptionGroup from the given config.
+func NewNotificationSubscriptionGroupClient(c config) *NotificationSubscriptionGroupClient {
+	return &NotificationSubscriptionGroupClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `notificationsubscriptiongroup.Hooks(f(g(h())))`.
+func (c *NotificationSubscriptionGroupClient) Use(hooks ...Hook) {
+	c.hooks.NotificationSubscriptionGroup = append(c.hooks.NotificationSubscriptionGroup, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `notificationsubscriptiongroup.Intercept(f(g(h())))`.
+func (c *NotificationSubscriptionGroupClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NotificationSubscriptionGroup = append(c.inters.NotificationSubscriptionGroup, interceptors...)
+}
+
+// Create returns a builder for creating a NotificationSubscriptionGroup entity.
+func (c *NotificationSubscriptionGroupClient) Create() *NotificationSubscriptionGroupCreate {
+	mutation := newNotificationSubscriptionGroupMutation(c.config, OpCreate)
+	return &NotificationSubscriptionGroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NotificationSubscriptionGroup entities.
+func (c *NotificationSubscriptionGroupClient) CreateBulk(builders ...*NotificationSubscriptionGroupCreate) *NotificationSubscriptionGroupCreateBulk {
+	return &NotificationSubscriptionGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NotificationSubscriptionGroupClient) MapCreateBulk(slice any, setFunc func(*NotificationSubscriptionGroupCreate, int)) *NotificationSubscriptionGroupCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NotificationSubscriptionGroupCreateBulk{err: fmt.Errorf("calling to NotificationSubscriptionGroupClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NotificationSubscriptionGroupCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NotificationSubscriptionGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NotificationSubscriptionGroup.
+func (c *NotificationSubscriptionGroupClient) Update() *NotificationSubscriptionGroupUpdate {
+	mutation := newNotificationSubscriptionGroupMutation(c.config, OpUpdate)
+	return &NotificationSubscriptionGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NotificationSubscriptionGroupClient) UpdateOne(_m *NotificationSubscriptionGroup) *NotificationSubscriptionGroupUpdateOne {
+	mutation := newNotificationSubscriptionGroupMutation(c.config, OpUpdateOne, withNotificationSubscriptionGroup(_m))
+	return &NotificationSubscriptionGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NotificationSubscriptionGroupClient) UpdateOneID(id int) *NotificationSubscriptionGroupUpdateOne {
+	mutation := newNotificationSubscriptionGroupMutation(c.config, OpUpdateOne, withNotificationSubscriptionGroupID(id))
+	return &NotificationSubscriptionGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NotificationSubscriptionGroup.
+func (c *NotificationSubscriptionGroupClient) Delete() *NotificationSubscriptionGroupDelete {
+	mutation := newNotificationSubscriptionGroupMutation(c.config, OpDelete)
+	return &NotificationSubscriptionGroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NotificationSubscriptionGroupClient) DeleteOne(_m *NotificationSubscriptionGroup) *NotificationSubscriptionGroupDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NotificationSubscriptionGroupClient) DeleteOneID(id int) *NotificationSubscriptionGroupDeleteOne {
+	builder := c.Delete().Where(notificationsubscriptiongroup.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NotificationSubscriptionGroupDeleteOne{builder}
+}
+
+// Query returns a query builder for NotificationSubscriptionGroup.
+func (c *NotificationSubscriptionGroupClient) Query() *NotificationSubscriptionGroupQuery {
+	return &NotificationSubscriptionGroupQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNotificationSubscriptionGroup},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NotificationSubscriptionGroup entity by its id.
+func (c *NotificationSubscriptionGroupClient) Get(ctx context.Context, id int) (*NotificationSubscriptionGroup, error) {
+	return c.Query().Where(notificationsubscriptiongroup.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NotificationSubscriptionGroupClient) GetX(ctx context.Context, id int) *NotificationSubscriptionGroup {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *NotificationSubscriptionGroupClient) Hooks() []Hook {
+	return c.hooks.NotificationSubscriptionGroup
+}
+
+// Interceptors returns the client interceptors.
+func (c *NotificationSubscriptionGroupClient) Interceptors() []Interceptor {
+	return c.inters.NotificationSubscriptionGroup
+}
+
+func (c *NotificationSubscriptionGroupClient) mutate(ctx context.Context, m *NotificationSubscriptionGroupMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NotificationSubscriptionGroupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NotificationSubscriptionGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NotificationSubscriptionGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NotificationSubscriptionGroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NotificationSubscriptionGroup mutation op: %q", m.Op())
 	}
 }
 
@@ -4726,20 +4867,20 @@ func (c *UserOAuthClient) mutate(ctx context.Context, m *UserOAuthMutation) (Val
 type (
 	hooks struct {
 		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventFiring, AlertPage,
-		AlertRule, AlertRuleGroup, AlertRuleLevel, AlertRuleNotificationGroup, Captcha,
-		Datasource, EmailLoginCode, K8sProxyAudit, Member, MemberRole, MessageLog,
-		Namespace, NotificationChannel, NotificationGroup, NotificationPreset,
-		NotificationTask, NotificationTemplate, Permission, Role, RolePermission,
-		SFTPAudit, SSHCommand, SSHCommandAudit, User, UserAlertPage,
-		UserOAuth []ent.Hook
+		AlertRule, AlertRuleGroup, AlertRuleLevel, Captcha, Datasource, EmailLoginCode,
+		K8sProxyAudit, Member, MemberRole, MessageLog, Namespace, NotificationChannel,
+		NotificationGroup, NotificationPreset, NotificationSubscription,
+		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
+		Permission, Role, RolePermission, SFTPAudit, SSHCommand, SSHCommandAudit, User,
+		UserAlertPage, UserOAuth []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventFiring, AlertPage,
-		AlertRule, AlertRuleGroup, AlertRuleLevel, AlertRuleNotificationGroup, Captcha,
-		Datasource, EmailLoginCode, K8sProxyAudit, Member, MemberRole, MessageLog,
-		Namespace, NotificationChannel, NotificationGroup, NotificationPreset,
-		NotificationTask, NotificationTemplate, Permission, Role, RolePermission,
-		SFTPAudit, SSHCommand, SSHCommandAudit, User, UserAlertPage,
-		UserOAuth []ent.Interceptor
+		AlertRule, AlertRuleGroup, AlertRuleLevel, Captcha, Datasource, EmailLoginCode,
+		K8sProxyAudit, Member, MemberRole, MessageLog, Namespace, NotificationChannel,
+		NotificationGroup, NotificationPreset, NotificationSubscription,
+		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
+		Permission, Role, RolePermission, SFTPAudit, SSHCommand, SSHCommandAudit, User,
+		UserAlertPage, UserOAuth []ent.Interceptor
 	}
 )

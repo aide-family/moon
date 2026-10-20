@@ -24,14 +24,15 @@ import (
 var ProviderSet = wire.NewSet(NewUsecase)
 
 type Usecase struct {
-	repo   repository.NotificationRepo
-	access access.Checker
-	locks  *lock.Client
-	log    *slog.Logger
+	repo    repository.NotificationRepo
+	members repository.MemberRepo
+	access  access.Checker
+	locks   *lock.Client
+	log     *slog.Logger
 }
 
-func NewUsecase(repo repository.NotificationRepo, checker access.Checker, locks *lock.Client, logger *slog.Logger) *Usecase {
-	return &Usecase{repo: repo, access: checker, locks: locks, log: logger}
+func NewUsecase(repo repository.NotificationRepo, members repository.MemberRepo, checker access.Checker, locks *lock.Client, logger *slog.Logger) *Usecase {
+	return &Usecase{repo: repo, members: members, access: checker, locks: locks, log: logger}
 }
 
 const (
@@ -314,25 +315,10 @@ func (uc *Usecase) CreateGroup(ctx context.Context, in bo.NotificationGroup) (*b
 	if err != nil {
 		return nil, err
 	}
-	channel, err := uc.repo.GetChannel(ctx, ns, in.ChannelUID)
-	if err != nil {
-		return nil, uc.access.Wrap(err)
-	}
-	template, err := uc.repo.GetTemplate(ctx, ns, in.TemplateUID)
-	if err != nil {
-		return nil, uc.access.Wrap(err)
-	}
-	if err := validateGroupBinding(*channel, *template); err != nil {
-		return nil, err
-	}
-	if err := validateReceivers(channel.Type, in.Receivers); err != nil {
-		return nil, err
-	}
-	if strings.TrimSpace(in.Name) == "" {
-		return nil, merr.Invalid("name is required")
-	}
 	in.NamespaceUID = ns
-	in.Name = strings.TrimSpace(in.Name)
+	if err := uc.normalizeGroup(ctx, &in); err != nil {
+		return nil, err
+	}
 	item, err := uc.repo.CreateGroup(ctx, in)
 	return item, uc.access.Wrap(err)
 }
@@ -342,25 +328,10 @@ func (uc *Usecase) UpdateGroup(ctx context.Context, in bo.NotificationGroup) (*b
 	if err != nil {
 		return nil, err
 	}
-	channel, err := uc.repo.GetChannel(ctx, ns, in.ChannelUID)
-	if err != nil {
-		return nil, uc.access.Wrap(err)
-	}
-	template, err := uc.repo.GetTemplate(ctx, ns, in.TemplateUID)
-	if err != nil {
-		return nil, uc.access.Wrap(err)
-	}
-	if err := validateGroupBinding(*channel, *template); err != nil {
-		return nil, err
-	}
-	if err := validateReceivers(channel.Type, in.Receivers); err != nil {
-		return nil, err
-	}
-	if strings.TrimSpace(in.Name) == "" {
-		return nil, merr.Invalid("name is required")
-	}
 	in.NamespaceUID = ns
-	in.Name = strings.TrimSpace(in.Name)
+	if err := uc.normalizeGroup(ctx, &in); err != nil {
+		return nil, err
+	}
 	item, err := uc.repo.UpdateGroup(ctx, in)
 	return item, uc.access.Wrap(err)
 }

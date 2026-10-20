@@ -30,6 +30,8 @@ const (
 	FieldStatus = "status"
 	// FieldRuleUID holds the string denoting the rule_uid field in the database.
 	FieldRuleUID = "rule_uid"
+	// FieldSubscriptionUID holds the string denoting the subscription_uid field in the database.
+	FieldSubscriptionUID = "subscription_uid"
 	// FieldGroupUID holds the string denoting the group_uid field in the database.
 	FieldGroupUID = "group_uid"
 	// FieldChannelUID holds the string denoting the channel_uid field in the database.
@@ -65,6 +67,7 @@ var Columns = []string{
 	FieldPhase,
 	FieldStatus,
 	FieldRuleUID,
+	FieldSubscriptionUID,
 	FieldGroupUID,
 	FieldChannelUID,
 	FieldTemplateUID,
@@ -102,6 +105,8 @@ var (
 	DefaultEventUID string
 	// DefaultRuleUID holds the default value on creation for the "rule_uid" field.
 	DefaultRuleUID string
+	// DefaultSubscriptionUID holds the default value on creation for the "subscription_uid" field.
+	DefaultSubscriptionUID string
 	// DefaultGroupUID holds the default value on creation for the "group_uid" field.
 	DefaultGroupUID string
 	// ChannelUIDValidator is a validator for the "channel_uid" field. It is called by the builders before save.
@@ -224,6 +229,11 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByRuleUID orders the results by the rule_uid field.
 func ByRuleUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRuleUID, opts...).ToFunc()
+}
+
+// BySubscriptionUID orders the results by the subscription_uid field.
+func BySubscriptionUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSubscriptionUID, opts...).ToFunc()
 }
 
 // ByGroupUID orders the results by the group_uid field.

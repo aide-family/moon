@@ -117,18 +117,6 @@ func (f AlertRuleLevelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertRuleLevelMutation", m)
 }
 
-// The AlertRuleNotificationGroupFunc type is an adapter to allow the use of ordinary
-// function as AlertRuleNotificationGroup mutator.
-type AlertRuleNotificationGroupFunc func(context.Context, *ent.AlertRuleNotificationGroupMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f AlertRuleNotificationGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.AlertRuleNotificationGroupMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertRuleNotificationGroupMutation", m)
-}
-
 // The CaptchaFunc type is an adapter to allow the use of ordinary
 // function as Captcha mutator.
 type CaptchaFunc func(context.Context, *ent.CaptchaMutation) (ent.Value, error)
@@ -259,6 +247,30 @@ func (f NotificationPresetFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NotificationPresetMutation", m)
+}
+
+// The NotificationSubscriptionFunc type is an adapter to allow the use of ordinary
+// function as NotificationSubscription mutator.
+type NotificationSubscriptionFunc func(context.Context, *ent.NotificationSubscriptionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NotificationSubscriptionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NotificationSubscriptionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NotificationSubscriptionMutation", m)
+}
+
+// The NotificationSubscriptionGroupFunc type is an adapter to allow the use of ordinary
+// function as NotificationSubscriptionGroup mutator.
+type NotificationSubscriptionGroupFunc func(context.Context, *ent.NotificationSubscriptionGroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NotificationSubscriptionGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NotificationSubscriptionGroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NotificationSubscriptionGroupMutation", m)
 }
 
 // The NotificationTaskFunc type is an adapter to allow the use of ordinary

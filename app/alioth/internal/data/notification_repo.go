@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulenotificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelog"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationpreset"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscriptiongroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
@@ -120,16 +120,17 @@ func (r *notificationRepo) UpdateChannelStatus(ctx context.Context, namespaceUID
 }
 
 func (r *notificationRepo) DeleteChannel(ctx context.Context, namespaceUID, uid string) error {
-	used, err := r.client.NotificationGroup.Query().Where(
+	groups, err := r.client.NotificationGroup.Query().Where(
 		notificationgroup.NamespaceUIDEQ(namespaceUID),
-		notificationgroup.ChannelUIDEQ(uid),
 		notificationgroup.DeletedAtIsNil(),
-	).Exist(ctx)
+	).All(ctx)
 	if err != nil {
 		return r.fail(err)
 	}
-	if used {
-		return merr.Conflict("channel is used by a notification group")
+	for _, group := range groups {
+		if group.ChannelUID == uid || containsString(group.WebhookChannelUids, uid) {
+			return merr.Conflict("channel is used by a notification group")
+		}
 	}
 	n, err := r.client.NotificationChannel.Update().Where(
 		notificationchannel.NamespaceUIDEQ(namespaceUID),
@@ -271,8 +272,11 @@ func (r *notificationRepo) UpdateTemplateStatus(ctx context.Context, namespaceUI
 func (r *notificationRepo) DeleteTemplate(ctx context.Context, namespaceUID, uid string) error {
 	used, err := r.client.NotificationGroup.Query().Where(
 		notificationgroup.NamespaceUIDEQ(namespaceUID),
-		notificationgroup.TemplateUIDEQ(uid),
 		notificationgroup.DeletedAtIsNil(),
+		notificationgroup.Or(
+			notificationgroup.TemplateUIDEQ(uid),
+			notificationgroup.WebhookTemplateUIDEQ(uid),
+		),
 	).Exist(ctx)
 	if err != nil {
 		return r.fail(err)
@@ -374,6 +378,9 @@ func (r *notificationRepo) CreateGroup(ctx context.Context, in bo.NotificationGr
 		SetChannelUID(in.ChannelUID).
 		SetTemplateUID(in.TemplateUID).
 		SetReceivers(in.Receivers).
+		SetMemberUids(in.MemberUIDs).
+		SetWebhookChannelUids(in.WebhookChannelUIDs).
+		SetWebhookTemplateUID(in.WebhookTemplateUID).
 		SetRemark(in.Remark).
 		Save(ctx)
 	if err != nil {
@@ -397,6 +404,9 @@ func (r *notificationRepo) UpdateGroup(ctx context.Context, in bo.NotificationGr
 		SetChannelUID(in.ChannelUID).
 		SetTemplateUID(in.TemplateUID).
 		SetReceivers(in.Receivers).
+		SetMemberUids(in.MemberUIDs).
+		SetWebhookChannelUids(in.WebhookChannelUIDs).
+		SetWebhookTemplateUID(in.WebhookTemplateUID).
 		SetRemark(in.Remark).
 		Save(ctx)
 	if err != nil {
@@ -428,16 +438,16 @@ func (r *notificationRepo) UpdateGroupStatus(ctx context.Context, namespaceUID, 
 }
 
 func (r *notificationRepo) DeleteGroup(ctx context.Context, namespaceUID, uid string) error {
-	used, err := r.client.AlertRuleNotificationGroup.Query().Where(
-		alertrulenotificationgroup.NamespaceUIDEQ(namespaceUID),
-		alertrulenotificationgroup.GroupUIDEQ(uid),
-		alertrulenotificationgroup.DeletedAtIsNil(),
+	used, err := r.client.NotificationSubscriptionGroup.Query().Where(
+		notificationsubscriptiongroup.NamespaceUIDEQ(namespaceUID),
+		notificationsubscriptiongroup.GroupUIDEQ(uid),
+		notificationsubscriptiongroup.DeletedAtIsNil(),
 	).Exist(ctx)
 	if err != nil {
 		return r.fail(err)
 	}
 	if used {
-		return merr.Conflict("group is bound to an alert rule")
+		return merr.Conflict("group is bound to a notification subscription")
 	}
 	n, err := r.client.NotificationGroup.Update().Where(
 		notificationgroup.NamespaceUIDEQ(namespaceUID),
@@ -870,14 +880,17 @@ func toNotificationTemplate(row *ent.NotificationTemplate) bo.NotificationTempla
 func toNotificationGroup(row *ent.NotificationGroup) bo.NotificationGroup {
 	return bo.NotificationGroup{
 		UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name, Status: string(row.Status),
-		ChannelUID: row.ChannelUID, TemplateUID: row.TemplateUID, Receivers: row.Receivers, Remark: row.Remark,
+		ChannelUID: row.ChannelUID, TemplateUID: row.TemplateUID, Receivers: row.Receivers,
+		MemberUIDs: row.MemberUids, WebhookChannelUIDs: row.WebhookChannelUids,
+		WebhookTemplateUID: row.WebhookTemplateUID, Remark: row.Remark,
 	}
 }
 
 func toNotificationTask(row *ent.NotificationTask) bo.NotificationTask {
 	return bo.NotificationTask{
 		UID: row.UID, NamespaceUID: row.NamespaceUID, EventUID: row.EventUID,
-		Phase: string(row.Phase), Status: string(row.Status), RuleUID: row.RuleUID, GroupUID: row.GroupUID,
+		Phase: string(row.Phase), Status: string(row.Status), RuleUID: row.RuleUID,
+		SubscriptionUID: row.SubscriptionUID, GroupUID: row.GroupUID,
 		ChannelUID: row.ChannelUID, TemplateUID: row.TemplateUID, Receivers: row.Receivers,
 		Subject: row.Subject, Body: row.Body, Params: row.Params, RetriesLeft: row.RetriesLeft, LastError: row.LastError,
 	}

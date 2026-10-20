@@ -1135,6 +1135,292 @@ func (c *NotificationGroupServiceHTTPClientImpl) UpdateNotificationGroupStatus(c
 	return &out, nil
 }
 
+const OperationNotificationSubscriptionServiceCreateNotificationSubscription = "/alioth.v1.NotificationSubscriptionService/CreateNotificationSubscription"
+const OperationNotificationSubscriptionServiceDeleteNotificationSubscription = "/alioth.v1.NotificationSubscriptionService/DeleteNotificationSubscription"
+const OperationNotificationSubscriptionServiceGetNotificationSubscription = "/alioth.v1.NotificationSubscriptionService/GetNotificationSubscription"
+const OperationNotificationSubscriptionServiceListNotificationSubscriptions = "/alioth.v1.NotificationSubscriptionService/ListNotificationSubscriptions"
+const OperationNotificationSubscriptionServiceUpdateNotificationSubscription = "/alioth.v1.NotificationSubscriptionService/UpdateNotificationSubscription"
+const OperationNotificationSubscriptionServiceUpdateNotificationSubscriptionStatus = "/alioth.v1.NotificationSubscriptionService/UpdateNotificationSubscriptionStatus"
+
+type NotificationSubscriptionServiceHTTPServer interface {
+	// CreateNotificationSubscription 创建订阅。
+	CreateNotificationSubscription(context.Context, *CreateNotificationSubscriptionRequest) (*CreateNotificationSubscriptionResponse, error)
+	// DeleteNotificationSubscription 删除订阅。
+	DeleteNotificationSubscription(context.Context, *DeleteNotificationSubscriptionRequest) (*DeleteNotificationSubscriptionResponse, error)
+	// GetNotificationSubscription 获取订阅详情。
+	GetNotificationSubscription(context.Context, *GetNotificationSubscriptionRequest) (*GetNotificationSubscriptionResponse, error)
+	// ListNotificationSubscriptions 分页列出订阅。
+	ListNotificationSubscriptions(context.Context, *ListNotificationSubscriptionsRequest) (*ListNotificationSubscriptionsResponse, error)
+	// UpdateNotificationSubscription 更新订阅。
+	UpdateNotificationSubscription(context.Context, *UpdateNotificationSubscriptionRequest) (*UpdateNotificationSubscriptionResponse, error)
+	// UpdateNotificationSubscriptionStatus 启用或停用订阅。
+	UpdateNotificationSubscriptionStatus(context.Context, *UpdateNotificationSubscriptionStatusRequest) (*UpdateNotificationSubscriptionStatusResponse, error)
+}
+
+func RegisterNotificationSubscriptionServiceHTTPServer(s *http.Server, srv NotificationSubscriptionServiceHTTPServer) {
+	r := s.Route("/")
+	r.Handle("POST", "/v1/notification-subscription", _NotificationSubscriptionService_CreateNotificationSubscription0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/notification-subscription/{uid}", _NotificationSubscriptionService_UpdateNotificationSubscription0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/notification-subscription/{uid}/status", _NotificationSubscriptionService_UpdateNotificationSubscriptionStatus0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/v1/notification-subscription/{uid}", _NotificationSubscriptionService_DeleteNotificationSubscription0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/notification-subscription/{uid}", _NotificationSubscriptionService_GetNotificationSubscription0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/notification-subscriptions", _NotificationSubscriptionService_ListNotificationSubscriptions0_HTTP_Handler(srv))
+}
+
+func _NotificationSubscriptionService_CreateNotificationSubscription0_HTTP_Handler(srv NotificationSubscriptionServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateNotificationSubscriptionRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNotificationSubscriptionServiceCreateNotificationSubscription)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateNotificationSubscription(ctx, req.(*CreateNotificationSubscriptionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateNotificationSubscriptionResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NotificationSubscriptionService_UpdateNotificationSubscription0_HTTP_Handler(srv NotificationSubscriptionServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateNotificationSubscriptionRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNotificationSubscriptionServiceUpdateNotificationSubscription)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateNotificationSubscription(ctx, req.(*UpdateNotificationSubscriptionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateNotificationSubscriptionResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NotificationSubscriptionService_UpdateNotificationSubscriptionStatus0_HTTP_Handler(srv NotificationSubscriptionServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateNotificationSubscriptionStatusRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNotificationSubscriptionServiceUpdateNotificationSubscriptionStatus)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateNotificationSubscriptionStatus(ctx, req.(*UpdateNotificationSubscriptionStatusRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateNotificationSubscriptionStatusResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NotificationSubscriptionService_DeleteNotificationSubscription0_HTTP_Handler(srv NotificationSubscriptionServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteNotificationSubscriptionRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNotificationSubscriptionServiceDeleteNotificationSubscription)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteNotificationSubscription(ctx, req.(*DeleteNotificationSubscriptionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteNotificationSubscriptionResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NotificationSubscriptionService_GetNotificationSubscription0_HTTP_Handler(srv NotificationSubscriptionServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetNotificationSubscriptionRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNotificationSubscriptionServiceGetNotificationSubscription)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetNotificationSubscription(ctx, req.(*GetNotificationSubscriptionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetNotificationSubscriptionResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _NotificationSubscriptionService_ListNotificationSubscriptions0_HTTP_Handler(srv NotificationSubscriptionServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListNotificationSubscriptionsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNotificationSubscriptionServiceListNotificationSubscriptions)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListNotificationSubscriptions(ctx, req.(*ListNotificationSubscriptionsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListNotificationSubscriptionsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+type NotificationSubscriptionServiceHTTPClient interface {
+	// CreateNotificationSubscription 创建订阅。
+	CreateNotificationSubscription(ctx context.Context, req *CreateNotificationSubscriptionRequest, opts ...http.CallOption) (rsp *CreateNotificationSubscriptionResponse, err error)
+	// DeleteNotificationSubscription 删除订阅。
+	DeleteNotificationSubscription(ctx context.Context, req *DeleteNotificationSubscriptionRequest, opts ...http.CallOption) (rsp *DeleteNotificationSubscriptionResponse, err error)
+	// GetNotificationSubscription 获取订阅详情。
+	GetNotificationSubscription(ctx context.Context, req *GetNotificationSubscriptionRequest, opts ...http.CallOption) (rsp *GetNotificationSubscriptionResponse, err error)
+	// ListNotificationSubscriptions 分页列出订阅。
+	ListNotificationSubscriptions(ctx context.Context, req *ListNotificationSubscriptionsRequest, opts ...http.CallOption) (rsp *ListNotificationSubscriptionsResponse, err error)
+	// UpdateNotificationSubscription 更新订阅。
+	UpdateNotificationSubscription(ctx context.Context, req *UpdateNotificationSubscriptionRequest, opts ...http.CallOption) (rsp *UpdateNotificationSubscriptionResponse, err error)
+	// UpdateNotificationSubscriptionStatus 启用或停用订阅。
+	UpdateNotificationSubscriptionStatus(ctx context.Context, req *UpdateNotificationSubscriptionStatusRequest, opts ...http.CallOption) (rsp *UpdateNotificationSubscriptionStatusResponse, err error)
+}
+
+type NotificationSubscriptionServiceHTTPClientImpl struct {
+	cc *http.Client
+}
+
+func NewNotificationSubscriptionServiceHTTPClient(client *http.Client) NotificationSubscriptionServiceHTTPClient {
+	return &NotificationSubscriptionServiceHTTPClientImpl{client}
+}
+
+// CreateNotificationSubscription 创建订阅。
+func (c *NotificationSubscriptionServiceHTTPClientImpl) CreateNotificationSubscription(ctx context.Context, in *CreateNotificationSubscriptionRequest, opts ...http.CallOption) (*CreateNotificationSubscriptionResponse, error) {
+	var out CreateNotificationSubscriptionResponse
+	pattern := "/v1/notification-subscription"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationNotificationSubscriptionServiceCreateNotificationSubscription),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeleteNotificationSubscription 删除订阅。
+func (c *NotificationSubscriptionServiceHTTPClientImpl) DeleteNotificationSubscription(ctx context.Context, in *DeleteNotificationSubscriptionRequest, opts ...http.CallOption) (*DeleteNotificationSubscriptionResponse, error) {
+	var out DeleteNotificationSubscriptionResponse
+	pattern := "/v1/notification-subscription/{uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNotificationSubscriptionServiceDeleteNotificationSubscription),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetNotificationSubscription 获取订阅详情。
+func (c *NotificationSubscriptionServiceHTTPClientImpl) GetNotificationSubscription(ctx context.Context, in *GetNotificationSubscriptionRequest, opts ...http.CallOption) (*GetNotificationSubscriptionResponse, error) {
+	var out GetNotificationSubscriptionResponse
+	pattern := "/v1/notification-subscription/{uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNotificationSubscriptionServiceGetNotificationSubscription),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListNotificationSubscriptions 分页列出订阅。
+func (c *NotificationSubscriptionServiceHTTPClientImpl) ListNotificationSubscriptions(ctx context.Context, in *ListNotificationSubscriptionsRequest, opts ...http.CallOption) (*ListNotificationSubscriptionsResponse, error) {
+	var out ListNotificationSubscriptionsResponse
+	pattern := "/v1/notification-subscriptions"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationNotificationSubscriptionServiceListNotificationSubscriptions),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateNotificationSubscription 更新订阅。
+func (c *NotificationSubscriptionServiceHTTPClientImpl) UpdateNotificationSubscription(ctx context.Context, in *UpdateNotificationSubscriptionRequest, opts ...http.CallOption) (*UpdateNotificationSubscriptionResponse, error) {
+	var out UpdateNotificationSubscriptionResponse
+	pattern := "/v1/notification-subscription/{uid}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationNotificationSubscriptionServiceUpdateNotificationSubscription),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateNotificationSubscriptionStatus 启用或停用订阅。
+func (c *NotificationSubscriptionServiceHTTPClientImpl) UpdateNotificationSubscriptionStatus(ctx context.Context, in *UpdateNotificationSubscriptionStatusRequest, opts ...http.CallOption) (*UpdateNotificationSubscriptionStatusResponse, error) {
+	var out UpdateNotificationSubscriptionStatusResponse
+	pattern := "/v1/notification-subscription/{uid}/status"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationNotificationSubscriptionServiceUpdateNotificationSubscriptionStatus),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 const OperationMessageLogServiceCancelNotificationTask = "/alioth.v1.MessageLogService/CancelNotificationTask"
 const OperationMessageLogServiceGetMessageLog = "/alioth.v1.MessageLogService/GetMessageLog"
 const OperationMessageLogServiceListMessageLogs = "/alioth.v1.MessageLogService/ListMessageLogs"

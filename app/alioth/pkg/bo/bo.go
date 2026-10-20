@@ -125,23 +125,22 @@ type AlertRuleLevel struct {
 
 // AlertRule 是规则组里的一条规则。停用规则不会进入到期候选。
 type AlertRule struct {
-	UID                   string
-	NamespaceUID          string
-	GroupUID              string
-	Name                  string
-	Type                  string
-	Driver                string
-	Status                string
-	Expr                  string
-	Labels                string
-	DatasourceUID         string
-	DatasourceLabels      string
-	Summary               string
-	Description           string
-	NextEvalAt            *time.Time
-	ScheduledSlot         *time.Time
-	Levels                []AlertRuleLevel
-	NotificationGroupUIDs []string
+	UID              string
+	NamespaceUID     string
+	GroupUID         string
+	Name             string
+	Type             string
+	Driver           string
+	Status           string
+	Expr             string
+	Labels           string
+	DatasourceUID    string
+	DatasourceLabels string
+	Summary          string
+	Description      string
+	NextEvalAt       *time.Time
+	ScheduledSlot    *time.Time
+	Levels           []AlertRuleLevel
 }
 
 // Due 判断规则此刻是否该被调度。停用规则不进入候选。日志和链路规则可以进入候选，由评测方标明未评测。
@@ -280,33 +279,51 @@ type NotificationPreset struct {
 
 // NotificationGroup 是一条通知组。
 type NotificationGroup struct {
-	UID          string
-	NamespaceUID string
-	Name         string
-	Status       string
-	ChannelUID   string
-	TemplateUID  string
-	Receivers    string
-	Remark       string
+	UID                string
+	NamespaceUID       string
+	Name               string
+	Status             string
+	ChannelUID         string
+	TemplateUID        string
+	Receivers          string
+	MemberUIDs         []string
+	WebhookChannelUIDs []string
+	WebhookTemplateUID string
+	Remark             string
+}
+
+// NotificationSubscription 按标签、告警级别和数据源订阅事件。
+type NotificationSubscription struct {
+	UID            string
+	NamespaceUID   string
+	Name           string
+	Status         string
+	Labels         string
+	LevelUIDs      []string
+	DatasourceUIDs []string
+	GroupUIDs      []string
+	Remark         string
+	CreatedAt      time.Time
 }
 
 // NotificationTask 是一条投递任务。
 type NotificationTask struct {
-	UID          string
-	NamespaceUID string
-	EventUID     string
-	Phase        string
-	Status       string
-	RuleUID      string
-	GroupUID     string
-	ChannelUID   string
-	TemplateUID  string
-	Receivers    string
-	Subject      string
-	Body         string
-	Params       string
-	RetriesLeft  int
-	LastError    string
+	UID             string
+	NamespaceUID    string
+	EventUID        string
+	Phase           string
+	Status          string
+	RuleUID         string
+	SubscriptionUID string
+	GroupUID        string
+	ChannelUID      string
+	TemplateUID     string
+	Receivers       string
+	Subject         string
+	Body            string
+	Params          string
+	RetriesLeft     int
+	LastError       string
 }
 
 // MessageLog 是一次投递结果。

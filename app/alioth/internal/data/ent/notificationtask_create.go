@@ -116,6 +116,20 @@ func (_c *NotificationTaskCreate) SetNillableRuleUID(v *string) *NotificationTas
 	return _c
 }
 
+// SetSubscriptionUID sets the "subscription_uid" field.
+func (_c *NotificationTaskCreate) SetSubscriptionUID(v string) *NotificationTaskCreate {
+	_c.mutation.SetSubscriptionUID(v)
+	return _c
+}
+
+// SetNillableSubscriptionUID sets the "subscription_uid" field if the given value is not nil.
+func (_c *NotificationTaskCreate) SetNillableSubscriptionUID(v *string) *NotificationTaskCreate {
+	if v != nil {
+		_c.SetSubscriptionUID(*v)
+	}
+	return _c
+}
+
 // SetGroupUID sets the "group_uid" field.
 func (_c *NotificationTaskCreate) SetGroupUID(v string) *NotificationTaskCreate {
 	_c.mutation.SetGroupUID(v)
@@ -307,6 +321,10 @@ func (_c *NotificationTaskCreate) defaults() {
 		v := notificationtask.DefaultRuleUID
 		_c.mutation.SetRuleUID(v)
 	}
+	if _, ok := _c.mutation.SubscriptionUID(); !ok {
+		v := notificationtask.DefaultSubscriptionUID
+		_c.mutation.SetSubscriptionUID(v)
+	}
 	if _, ok := _c.mutation.GroupUID(); !ok {
 		v := notificationtask.DefaultGroupUID
 		_c.mutation.SetGroupUID(v)
@@ -386,6 +404,9 @@ func (_c *NotificationTaskCreate) check() error {
 	}
 	if _, ok := _c.mutation.RuleUID(); !ok {
 		return &ValidationError{Name: "rule_uid", err: errors.New(`ent: missing required field "NotificationTask.rule_uid"`)}
+	}
+	if _, ok := _c.mutation.SubscriptionUID(); !ok {
+		return &ValidationError{Name: "subscription_uid", err: errors.New(`ent: missing required field "NotificationTask.subscription_uid"`)}
 	}
 	if _, ok := _c.mutation.GroupUID(); !ok {
 		return &ValidationError{Name: "group_uid", err: errors.New(`ent: missing required field "NotificationTask.group_uid"`)}
@@ -476,6 +497,10 @@ func (_c *NotificationTaskCreate) createSpec() (*NotificationTask, *sqlgraph.Cre
 	if value, ok := _c.mutation.RuleUID(); ok {
 		_spec.SetField(notificationtask.FieldRuleUID, field.TypeString, value)
 		_node.RuleUID = value
+	}
+	if value, ok := _c.mutation.SubscriptionUID(); ok {
+		_spec.SetField(notificationtask.FieldSubscriptionUID, field.TypeString, value)
+		_node.SubscriptionUID = value
 	}
 	if value, ok := _c.mutation.GroupUID(); ok {
 		_spec.SetField(notificationtask.FieldGroupUID, field.TypeString, value)

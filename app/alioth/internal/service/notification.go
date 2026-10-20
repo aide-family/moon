@@ -185,7 +185,9 @@ func NewNotificationGroupService(uc *notification.Usecase) *NotificationGroupSer
 func (s *NotificationGroupService) CreateNotificationGroup(ctx context.Context, req *v1.CreateNotificationGroupRequest) (*v1.CreateNotificationGroupResponse, error) {
 	item, err := s.notify.CreateGroup(ctx, bo.NotificationGroup{
 		Name: req.GetName(), ChannelUID: req.GetChannelUid(), TemplateUID: req.GetTemplateUid(),
-		Receivers: req.GetReceivers(), Remark: req.GetRemark(),
+		Receivers: req.GetReceivers(), MemberUIDs: req.GetMemberUids(),
+		WebhookChannelUIDs: req.GetWebhookChannelUids(), WebhookTemplateUID: req.GetWebhookTemplateUid(),
+		Remark: req.GetRemark(),
 	})
 	if err != nil {
 		return nil, err
@@ -196,7 +198,9 @@ func (s *NotificationGroupService) CreateNotificationGroup(ctx context.Context, 
 func (s *NotificationGroupService) UpdateNotificationGroup(ctx context.Context, req *v1.UpdateNotificationGroupRequest) (*v1.UpdateNotificationGroupResponse, error) {
 	item, err := s.notify.UpdateGroup(ctx, bo.NotificationGroup{
 		UID: req.GetUid(), Name: req.GetName(), ChannelUID: req.GetChannelUid(), TemplateUID: req.GetTemplateUid(),
-		Receivers: req.GetReceivers(), Remark: req.GetRemark(),
+		Receivers: req.GetReceivers(), MemberUIDs: req.GetMemberUids(),
+		WebhookChannelUIDs: req.GetWebhookChannelUids(), WebhookTemplateUID: req.GetWebhookTemplateUid(),
+		Remark: req.GetRemark(),
 	})
 	if err != nil {
 		return nil, err
@@ -376,6 +380,8 @@ func notifyGroupItem(item bo.NotificationGroup) *v1.NotificationGroupItem {
 	return &v1.NotificationGroupItem{
 		Uid: item.UID, Name: item.Name, Status: item.Status, ChannelUid: item.ChannelUID,
 		TemplateUid: item.TemplateUID, Receivers: item.Receivers, Remark: item.Remark,
+		MemberUids: item.MemberUIDs, WebhookChannelUids: item.WebhookChannelUIDs,
+		WebhookTemplateUid: item.WebhookTemplateUID,
 	}
 }
 
@@ -406,8 +412,8 @@ func messageLogItems(items []bo.MessageLog) []*v1.MessageLogItem {
 func taskItem(item bo.NotificationTask) *v1.NotificationTaskItem {
 	return &v1.NotificationTaskItem{
 		Uid: item.UID, EventUid: item.EventUID, Phase: item.Phase, Status: item.Status,
-		RuleUid: item.RuleUID, GroupUid: item.GroupUID, ChannelUid: item.ChannelUID,
-		TemplateUid: item.TemplateUID, Receivers: item.Receivers, Subject: item.Subject,
+		RuleUid: item.RuleUID, SubscriptionUid: item.SubscriptionUID, GroupUid: item.GroupUID,
+		ChannelUid: item.ChannelUID, TemplateUid: item.TemplateUID, Receivers: item.Receivers, Subject: item.Subject,
 		RetriesLeft: int32(item.RetriesLeft), LastError: item.LastError,
 	}
 }

@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/predicate"
@@ -152,6 +153,44 @@ func (_u *NotificationGroupUpdate) SetNillableRemark(v *string) *NotificationGro
 	return _u
 }
 
+// SetMemberUids sets the "member_uids" field.
+func (_u *NotificationGroupUpdate) SetMemberUids(v []string) *NotificationGroupUpdate {
+	_u.mutation.SetMemberUids(v)
+	return _u
+}
+
+// AppendMemberUids appends value to the "member_uids" field.
+func (_u *NotificationGroupUpdate) AppendMemberUids(v []string) *NotificationGroupUpdate {
+	_u.mutation.AppendMemberUids(v)
+	return _u
+}
+
+// SetWebhookChannelUids sets the "webhook_channel_uids" field.
+func (_u *NotificationGroupUpdate) SetWebhookChannelUids(v []string) *NotificationGroupUpdate {
+	_u.mutation.SetWebhookChannelUids(v)
+	return _u
+}
+
+// AppendWebhookChannelUids appends value to the "webhook_channel_uids" field.
+func (_u *NotificationGroupUpdate) AppendWebhookChannelUids(v []string) *NotificationGroupUpdate {
+	_u.mutation.AppendWebhookChannelUids(v)
+	return _u
+}
+
+// SetWebhookTemplateUID sets the "webhook_template_uid" field.
+func (_u *NotificationGroupUpdate) SetWebhookTemplateUID(v string) *NotificationGroupUpdate {
+	_u.mutation.SetWebhookTemplateUID(v)
+	return _u
+}
+
+// SetNillableWebhookTemplateUID sets the "webhook_template_uid" field if the given value is not nil.
+func (_u *NotificationGroupUpdate) SetNillableWebhookTemplateUID(v *string) *NotificationGroupUpdate {
+	if v != nil {
+		_u.SetWebhookTemplateUID(*v)
+	}
+	return _u
+}
+
 // Mutation returns the NotificationGroupMutation object of the builder.
 func (_u *NotificationGroupUpdate) Mutation() *NotificationGroupMutation {
 	return _u.mutation
@@ -264,6 +303,25 @@ func (_u *NotificationGroupUpdate) sqlSave(ctx context.Context) (_node int, err 
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(notificationgroup.FieldRemark, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MemberUids(); ok {
+		_spec.SetField(notificationgroup.FieldMemberUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedMemberUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, notificationgroup.FieldMemberUids, value)
+		})
+	}
+	if value, ok := _u.mutation.WebhookChannelUids(); ok {
+		_spec.SetField(notificationgroup.FieldWebhookChannelUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedWebhookChannelUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, notificationgroup.FieldWebhookChannelUids, value)
+		})
+	}
+	if value, ok := _u.mutation.WebhookTemplateUID(); ok {
+		_spec.SetField(notificationgroup.FieldWebhookTemplateUID, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -405,6 +463,44 @@ func (_u *NotificationGroupUpdateOne) SetRemark(v string) *NotificationGroupUpda
 func (_u *NotificationGroupUpdateOne) SetNillableRemark(v *string) *NotificationGroupUpdateOne {
 	if v != nil {
 		_u.SetRemark(*v)
+	}
+	return _u
+}
+
+// SetMemberUids sets the "member_uids" field.
+func (_u *NotificationGroupUpdateOne) SetMemberUids(v []string) *NotificationGroupUpdateOne {
+	_u.mutation.SetMemberUids(v)
+	return _u
+}
+
+// AppendMemberUids appends value to the "member_uids" field.
+func (_u *NotificationGroupUpdateOne) AppendMemberUids(v []string) *NotificationGroupUpdateOne {
+	_u.mutation.AppendMemberUids(v)
+	return _u
+}
+
+// SetWebhookChannelUids sets the "webhook_channel_uids" field.
+func (_u *NotificationGroupUpdateOne) SetWebhookChannelUids(v []string) *NotificationGroupUpdateOne {
+	_u.mutation.SetWebhookChannelUids(v)
+	return _u
+}
+
+// AppendWebhookChannelUids appends value to the "webhook_channel_uids" field.
+func (_u *NotificationGroupUpdateOne) AppendWebhookChannelUids(v []string) *NotificationGroupUpdateOne {
+	_u.mutation.AppendWebhookChannelUids(v)
+	return _u
+}
+
+// SetWebhookTemplateUID sets the "webhook_template_uid" field.
+func (_u *NotificationGroupUpdateOne) SetWebhookTemplateUID(v string) *NotificationGroupUpdateOne {
+	_u.mutation.SetWebhookTemplateUID(v)
+	return _u
+}
+
+// SetNillableWebhookTemplateUID sets the "webhook_template_uid" field if the given value is not nil.
+func (_u *NotificationGroupUpdateOne) SetNillableWebhookTemplateUID(v *string) *NotificationGroupUpdateOne {
+	if v != nil {
+		_u.SetWebhookTemplateUID(*v)
 	}
 	return _u
 }
@@ -551,6 +647,25 @@ func (_u *NotificationGroupUpdateOne) sqlSave(ctx context.Context) (_node *Notif
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(notificationgroup.FieldRemark, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MemberUids(); ok {
+		_spec.SetField(notificationgroup.FieldMemberUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedMemberUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, notificationgroup.FieldMemberUids, value)
+		})
+	}
+	if value, ok := _u.mutation.WebhookChannelUids(); ok {
+		_spec.SetField(notificationgroup.FieldWebhookChannelUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedWebhookChannelUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, notificationgroup.FieldWebhookChannelUids, value)
+		})
+	}
+	if value, ok := _u.mutation.WebhookTemplateUID(); ok {
+		_spec.SetField(notificationgroup.FieldWebhookTemplateUID, field.TypeString, value)
 	}
 	_node = &NotificationGroup{config: _u.config}
 	_spec.Assign = _node.assignValues

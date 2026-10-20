@@ -45,6 +45,23 @@ func (r *memberRepo) ListMembers(ctx context.Context, namespaceUID string, page,
 	return items, total, err
 }
 
+// ListMembersByUIDs 只返回当前 Namespace 内、未删除的成员。
+// 通知组选择成员时使用，避免跨租户读取成员信息。
+func (r *memberRepo) ListMembersByUIDs(ctx context.Context, namespaceUID string, memberUIDs []string) ([]bo.Member, error) {
+	if len(memberUIDs) == 0 {
+		return nil, nil
+	}
+	rows, err := r.client.Member.Query().Where(
+		member.NamespaceUIDEQ(namespaceUID),
+		member.UIDIn(memberUIDs...),
+		member.DeletedAtIsNil(),
+	).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	return r.memberViews(ctx, namespaceUID, rows)
+}
+
 func (r *memberRepo) GetMember(ctx context.Context, namespaceUID, uid string) (*bo.Member, error) {
 	row, err := r.client.Member.Query().Where(member.NamespaceUIDEQ(namespaceUID), member.UIDEQ(uid), member.DeletedAtIsNil()).Only(ctx)
 	if err != nil {

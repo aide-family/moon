@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -38,8 +39,14 @@ type NotificationGroup struct {
 	// Receivers holds the value of the "receivers" field.
 	Receivers string `json:"receivers,omitempty"`
 	// Remark holds the value of the "remark" field.
-	Remark       string `json:"remark,omitempty"`
-	selectValues sql.SelectValues
+	Remark string `json:"remark,omitempty"`
+	// MemberUids holds the value of the "member_uids" field.
+	MemberUids []string `json:"member_uids,omitempty"`
+	// WebhookChannelUids holds the value of the "webhook_channel_uids" field.
+	WebhookChannelUids []string `json:"webhook_channel_uids,omitempty"`
+	// WebhookTemplateUID holds the value of the "webhook_template_uid" field.
+	WebhookTemplateUID string `json:"webhook_template_uid,omitempty"`
+	selectValues       sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -47,9 +54,11 @@ func (*NotificationGroup) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case notificationgroup.FieldMemberUids, notificationgroup.FieldWebhookChannelUids:
+			values[i] = new([]byte)
 		case notificationgroup.FieldID:
 			values[i] = new(sql.NullInt64)
-		case notificationgroup.FieldUID, notificationgroup.FieldNamespaceUID, notificationgroup.FieldName, notificationgroup.FieldStatus, notificationgroup.FieldChannelUID, notificationgroup.FieldTemplateUID, notificationgroup.FieldReceivers, notificationgroup.FieldRemark:
+		case notificationgroup.FieldUID, notificationgroup.FieldNamespaceUID, notificationgroup.FieldName, notificationgroup.FieldStatus, notificationgroup.FieldChannelUID, notificationgroup.FieldTemplateUID, notificationgroup.FieldReceivers, notificationgroup.FieldRemark, notificationgroup.FieldWebhookTemplateUID:
 			values[i] = new(sql.NullString)
 		case notificationgroup.FieldCreatedAt, notificationgroup.FieldUpdatedAt, notificationgroup.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -141,6 +150,28 @@ func (_m *NotificationGroup) assignValues(columns []string, values []any) error 
 			} else if value.Valid {
 				_m.Remark = value.String
 			}
+		case notificationgroup.FieldMemberUids:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field member_uids", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.MemberUids); err != nil {
+					return fmt.Errorf("unmarshal field member_uids: %w", err)
+				}
+			}
+		case notificationgroup.FieldWebhookChannelUids:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field webhook_channel_uids", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.WebhookChannelUids); err != nil {
+					return fmt.Errorf("unmarshal field webhook_channel_uids: %w", err)
+				}
+			}
+		case notificationgroup.FieldWebhookTemplateUID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field webhook_template_uid", values[i])
+			} else if value.Valid {
+				_m.WebhookTemplateUID = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -211,6 +242,15 @@ func (_m *NotificationGroup) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("remark=")
 	builder.WriteString(_m.Remark)
+	builder.WriteString(", ")
+	builder.WriteString("member_uids=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MemberUids))
+	builder.WriteString(", ")
+	builder.WriteString("webhook_channel_uids=")
+	builder.WriteString(fmt.Sprintf("%v", _m.WebhookChannelUids))
+	builder.WriteString(", ")
+	builder.WriteString("webhook_template_uid=")
+	builder.WriteString(_m.WebhookTemplateUID)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 
 import { testNotificationChannel } from "@/api/notification-channel"
 import type { NotificationChannelItem } from "@/api/notification-channel/types"
@@ -82,6 +83,7 @@ export function NotificationTestDialog({ target, channels, onClose }: Notificati
       } else {
         await testNotificationTemplate(target.item.uid, { channelUid, receivers: receivers.trim() })
       }
+      toast.success(t("channel.testDone"))
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : t("state.failed"))

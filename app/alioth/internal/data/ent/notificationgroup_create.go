@@ -134,6 +134,32 @@ func (_c *NotificationGroupCreate) SetNillableRemark(v *string) *NotificationGro
 	return _c
 }
 
+// SetMemberUids sets the "member_uids" field.
+func (_c *NotificationGroupCreate) SetMemberUids(v []string) *NotificationGroupCreate {
+	_c.mutation.SetMemberUids(v)
+	return _c
+}
+
+// SetWebhookChannelUids sets the "webhook_channel_uids" field.
+func (_c *NotificationGroupCreate) SetWebhookChannelUids(v []string) *NotificationGroupCreate {
+	_c.mutation.SetWebhookChannelUids(v)
+	return _c
+}
+
+// SetWebhookTemplateUID sets the "webhook_template_uid" field.
+func (_c *NotificationGroupCreate) SetWebhookTemplateUID(v string) *NotificationGroupCreate {
+	_c.mutation.SetWebhookTemplateUID(v)
+	return _c
+}
+
+// SetNillableWebhookTemplateUID sets the "webhook_template_uid" field if the given value is not nil.
+func (_c *NotificationGroupCreate) SetNillableWebhookTemplateUID(v *string) *NotificationGroupCreate {
+	if v != nil {
+		_c.SetWebhookTemplateUID(*v)
+	}
+	return _c
+}
+
 // Mutation returns the NotificationGroupMutation object of the builder.
 func (_c *NotificationGroupCreate) Mutation() *NotificationGroupMutation {
 	return _c.mutation
@@ -188,6 +214,18 @@ func (_c *NotificationGroupCreate) defaults() {
 	if _, ok := _c.mutation.Remark(); !ok {
 		v := notificationgroup.DefaultRemark
 		_c.mutation.SetRemark(v)
+	}
+	if _, ok := _c.mutation.MemberUids(); !ok {
+		v := notificationgroup.DefaultMemberUids
+		_c.mutation.SetMemberUids(v)
+	}
+	if _, ok := _c.mutation.WebhookChannelUids(); !ok {
+		v := notificationgroup.DefaultWebhookChannelUids
+		_c.mutation.SetWebhookChannelUids(v)
+	}
+	if _, ok := _c.mutation.WebhookTemplateUID(); !ok {
+		v := notificationgroup.DefaultWebhookTemplateUID
+		_c.mutation.SetWebhookTemplateUID(v)
 	}
 }
 
@@ -252,6 +290,15 @@ func (_c *NotificationGroupCreate) check() error {
 	}
 	if _, ok := _c.mutation.Remark(); !ok {
 		return &ValidationError{Name: "remark", err: errors.New(`ent: missing required field "NotificationGroup.remark"`)}
+	}
+	if _, ok := _c.mutation.MemberUids(); !ok {
+		return &ValidationError{Name: "member_uids", err: errors.New(`ent: missing required field "NotificationGroup.member_uids"`)}
+	}
+	if _, ok := _c.mutation.WebhookChannelUids(); !ok {
+		return &ValidationError{Name: "webhook_channel_uids", err: errors.New(`ent: missing required field "NotificationGroup.webhook_channel_uids"`)}
+	}
+	if _, ok := _c.mutation.WebhookTemplateUID(); !ok {
+		return &ValidationError{Name: "webhook_template_uid", err: errors.New(`ent: missing required field "NotificationGroup.webhook_template_uid"`)}
 	}
 	return nil
 }
@@ -322,6 +369,18 @@ func (_c *NotificationGroupCreate) createSpec() (*NotificationGroup, *sqlgraph.C
 	if value, ok := _c.mutation.Remark(); ok {
 		_spec.SetField(notificationgroup.FieldRemark, field.TypeString, value)
 		_node.Remark = value
+	}
+	if value, ok := _c.mutation.MemberUids(); ok {
+		_spec.SetField(notificationgroup.FieldMemberUids, field.TypeJSON, value)
+		_node.MemberUids = value
+	}
+	if value, ok := _c.mutation.WebhookChannelUids(); ok {
+		_spec.SetField(notificationgroup.FieldWebhookChannelUids, field.TypeJSON, value)
+		_node.WebhookChannelUids = value
+	}
+	if value, ok := _c.mutation.WebhookTemplateUID(); ok {
+		_spec.SetField(notificationgroup.FieldWebhookTemplateUID, field.TypeString, value)
+		_node.WebhookTemplateUID = value
 	}
 	return _node, _spec
 }

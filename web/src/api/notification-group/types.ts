@@ -6,6 +6,9 @@ export interface NotificationGroupItem {
   templateUid: string
   receivers: string
   remark: string
+  memberUids: string[]
+  webhookChannelUids: string[]
+  webhookTemplateUid: string
 }
 
 export interface ListNotificationGroupsParams {
@@ -27,6 +30,9 @@ export interface CreateNotificationGroupParams {
   templateUid: string
   receivers?: string
   remark?: string
+  memberUids?: string[]
+  webhookChannelUids?: string[]
+  webhookTemplateUid?: string
 }
 
 export interface UpdateNotificationGroupParams extends CreateNotificationGroupParams {

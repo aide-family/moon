@@ -11,68 +11,68 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulenotificationgroup"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscriptiongroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/predicate"
 )
 
-// AlertRuleNotificationGroupQuery is the builder for querying AlertRuleNotificationGroup entities.
-type AlertRuleNotificationGroupQuery struct {
+// NotificationSubscriptionGroupQuery is the builder for querying NotificationSubscriptionGroup entities.
+type NotificationSubscriptionGroupQuery struct {
 	config
 	ctx        *QueryContext
-	order      []alertrulenotificationgroup.OrderOption
+	order      []notificationsubscriptiongroup.OrderOption
 	inters     []Interceptor
-	predicates []predicate.AlertRuleNotificationGroup
+	predicates []predicate.NotificationSubscriptionGroup
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the AlertRuleNotificationGroupQuery builder.
-func (_q *AlertRuleNotificationGroupQuery) Where(ps ...predicate.AlertRuleNotificationGroup) *AlertRuleNotificationGroupQuery {
+// Where adds a new predicate for the NotificationSubscriptionGroupQuery builder.
+func (_q *NotificationSubscriptionGroupQuery) Where(ps ...predicate.NotificationSubscriptionGroup) *NotificationSubscriptionGroupQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *AlertRuleNotificationGroupQuery) Limit(limit int) *AlertRuleNotificationGroupQuery {
+func (_q *NotificationSubscriptionGroupQuery) Limit(limit int) *NotificationSubscriptionGroupQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *AlertRuleNotificationGroupQuery) Offset(offset int) *AlertRuleNotificationGroupQuery {
+func (_q *NotificationSubscriptionGroupQuery) Offset(offset int) *NotificationSubscriptionGroupQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *AlertRuleNotificationGroupQuery) Unique(unique bool) *AlertRuleNotificationGroupQuery {
+func (_q *NotificationSubscriptionGroupQuery) Unique(unique bool) *NotificationSubscriptionGroupQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *AlertRuleNotificationGroupQuery) Order(o ...alertrulenotificationgroup.OrderOption) *AlertRuleNotificationGroupQuery {
+func (_q *NotificationSubscriptionGroupQuery) Order(o ...notificationsubscriptiongroup.OrderOption) *NotificationSubscriptionGroupQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
-// First returns the first AlertRuleNotificationGroup entity from the query.
-// Returns a *NotFoundError when no AlertRuleNotificationGroup was found.
-func (_q *AlertRuleNotificationGroupQuery) First(ctx context.Context) (*AlertRuleNotificationGroup, error) {
+// First returns the first NotificationSubscriptionGroup entity from the query.
+// Returns a *NotFoundError when no NotificationSubscriptionGroup was found.
+func (_q *NotificationSubscriptionGroupQuery) First(ctx context.Context) (*NotificationSubscriptionGroup, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{alertrulenotificationgroup.Label}
+		return nil, &NotFoundError{notificationsubscriptiongroup.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *AlertRuleNotificationGroupQuery) FirstX(ctx context.Context) *AlertRuleNotificationGroup {
+func (_q *NotificationSubscriptionGroupQuery) FirstX(ctx context.Context) *NotificationSubscriptionGroup {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -80,22 +80,22 @@ func (_q *AlertRuleNotificationGroupQuery) FirstX(ctx context.Context) *AlertRul
 	return node
 }
 
-// FirstID returns the first AlertRuleNotificationGroup ID from the query.
-// Returns a *NotFoundError when no AlertRuleNotificationGroup ID was found.
-func (_q *AlertRuleNotificationGroupQuery) FirstID(ctx context.Context) (id int, err error) {
+// FirstID returns the first NotificationSubscriptionGroup ID from the query.
+// Returns a *NotFoundError when no NotificationSubscriptionGroup ID was found.
+func (_q *NotificationSubscriptionGroupQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{alertrulenotificationgroup.Label}
+		err = &NotFoundError{notificationsubscriptiongroup.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *AlertRuleNotificationGroupQuery) FirstIDX(ctx context.Context) int {
+func (_q *NotificationSubscriptionGroupQuery) FirstIDX(ctx context.Context) int {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -103,10 +103,10 @@ func (_q *AlertRuleNotificationGroupQuery) FirstIDX(ctx context.Context) int {
 	return id
 }
 
-// Only returns a single AlertRuleNotificationGroup entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one AlertRuleNotificationGroup entity is found.
-// Returns a *NotFoundError when no AlertRuleNotificationGroup entities are found.
-func (_q *AlertRuleNotificationGroupQuery) Only(ctx context.Context) (*AlertRuleNotificationGroup, error) {
+// Only returns a single NotificationSubscriptionGroup entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one NotificationSubscriptionGroup entity is found.
+// Returns a *NotFoundError when no NotificationSubscriptionGroup entities are found.
+func (_q *NotificationSubscriptionGroupQuery) Only(ctx context.Context) (*NotificationSubscriptionGroup, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -115,14 +115,14 @@ func (_q *AlertRuleNotificationGroupQuery) Only(ctx context.Context) (*AlertRule
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{alertrulenotificationgroup.Label}
+		return nil, &NotFoundError{notificationsubscriptiongroup.Label}
 	default:
-		return nil, &NotSingularError{alertrulenotificationgroup.Label}
+		return nil, &NotSingularError{notificationsubscriptiongroup.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *AlertRuleNotificationGroupQuery) OnlyX(ctx context.Context) *AlertRuleNotificationGroup {
+func (_q *NotificationSubscriptionGroupQuery) OnlyX(ctx context.Context) *NotificationSubscriptionGroup {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -130,10 +130,10 @@ func (_q *AlertRuleNotificationGroupQuery) OnlyX(ctx context.Context) *AlertRule
 	return node
 }
 
-// OnlyID is like Only, but returns the only AlertRuleNotificationGroup ID in the query.
-// Returns a *NotSingularError when more than one AlertRuleNotificationGroup ID is found.
+// OnlyID is like Only, but returns the only NotificationSubscriptionGroup ID in the query.
+// Returns a *NotSingularError when more than one NotificationSubscriptionGroup ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *AlertRuleNotificationGroupQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *NotificationSubscriptionGroupQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -142,15 +142,15 @@ func (_q *AlertRuleNotificationGroupQuery) OnlyID(ctx context.Context) (id int, 
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{alertrulenotificationgroup.Label}
+		err = &NotFoundError{notificationsubscriptiongroup.Label}
 	default:
-		err = &NotSingularError{alertrulenotificationgroup.Label}
+		err = &NotSingularError{notificationsubscriptiongroup.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *AlertRuleNotificationGroupQuery) OnlyIDX(ctx context.Context) int {
+func (_q *NotificationSubscriptionGroupQuery) OnlyIDX(ctx context.Context) int {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -158,18 +158,18 @@ func (_q *AlertRuleNotificationGroupQuery) OnlyIDX(ctx context.Context) int {
 	return id
 }
 
-// All executes the query and returns a list of AlertRuleNotificationGroups.
-func (_q *AlertRuleNotificationGroupQuery) All(ctx context.Context) ([]*AlertRuleNotificationGroup, error) {
+// All executes the query and returns a list of NotificationSubscriptionGroups.
+func (_q *NotificationSubscriptionGroupQuery) All(ctx context.Context) ([]*NotificationSubscriptionGroup, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*AlertRuleNotificationGroup, *AlertRuleNotificationGroupQuery]()
-	return withInterceptors[[]*AlertRuleNotificationGroup](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*NotificationSubscriptionGroup, *NotificationSubscriptionGroupQuery]()
+	return withInterceptors[[]*NotificationSubscriptionGroup](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *AlertRuleNotificationGroupQuery) AllX(ctx context.Context) []*AlertRuleNotificationGroup {
+func (_q *NotificationSubscriptionGroupQuery) AllX(ctx context.Context) []*NotificationSubscriptionGroup {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -177,20 +177,20 @@ func (_q *AlertRuleNotificationGroupQuery) AllX(ctx context.Context) []*AlertRul
 	return nodes
 }
 
-// IDs executes the query and returns a list of AlertRuleNotificationGroup IDs.
-func (_q *AlertRuleNotificationGroupQuery) IDs(ctx context.Context) (ids []int, err error) {
+// IDs executes the query and returns a list of NotificationSubscriptionGroup IDs.
+func (_q *NotificationSubscriptionGroupQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(alertrulenotificationgroup.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(notificationsubscriptiongroup.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *AlertRuleNotificationGroupQuery) IDsX(ctx context.Context) []int {
+func (_q *NotificationSubscriptionGroupQuery) IDsX(ctx context.Context) []int {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -199,16 +199,16 @@ func (_q *AlertRuleNotificationGroupQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (_q *AlertRuleNotificationGroupQuery) Count(ctx context.Context) (int, error) {
+func (_q *NotificationSubscriptionGroupQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*AlertRuleNotificationGroupQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*NotificationSubscriptionGroupQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *AlertRuleNotificationGroupQuery) CountX(ctx context.Context) int {
+func (_q *NotificationSubscriptionGroupQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -217,7 +217,7 @@ func (_q *AlertRuleNotificationGroupQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *AlertRuleNotificationGroupQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *NotificationSubscriptionGroupQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -230,7 +230,7 @@ func (_q *AlertRuleNotificationGroupQuery) Exist(ctx context.Context) (bool, err
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *AlertRuleNotificationGroupQuery) ExistX(ctx context.Context) bool {
+func (_q *NotificationSubscriptionGroupQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -238,18 +238,18 @@ func (_q *AlertRuleNotificationGroupQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the AlertRuleNotificationGroupQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the NotificationSubscriptionGroupQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *AlertRuleNotificationGroupQuery) Clone() *AlertRuleNotificationGroupQuery {
+func (_q *NotificationSubscriptionGroupQuery) Clone() *NotificationSubscriptionGroupQuery {
 	if _q == nil {
 		return nil
 	}
-	return &AlertRuleNotificationGroupQuery{
+	return &NotificationSubscriptionGroupQuery{
 		config:     _q.config,
 		ctx:        _q.ctx.Clone(),
-		order:      append([]alertrulenotificationgroup.OrderOption{}, _q.order...),
+		order:      append([]notificationsubscriptiongroup.OrderOption{}, _q.order...),
 		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.AlertRuleNotificationGroup{}, _q.predicates...),
+		predicates: append([]predicate.NotificationSubscriptionGroup{}, _q.predicates...),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -266,15 +266,15 @@ func (_q *AlertRuleNotificationGroupQuery) Clone() *AlertRuleNotificationGroupQu
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.AlertRuleNotificationGroup.Query().
-//		GroupBy(alertrulenotificationgroup.FieldCreatedAt).
+//	client.NotificationSubscriptionGroup.Query().
+//		GroupBy(notificationsubscriptiongroup.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *AlertRuleNotificationGroupQuery) GroupBy(field string, fields ...string) *AlertRuleNotificationGroupGroupBy {
+func (_q *NotificationSubscriptionGroupQuery) GroupBy(field string, fields ...string) *NotificationSubscriptionGroupGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &AlertRuleNotificationGroupGroupBy{build: _q}
+	grbuild := &NotificationSubscriptionGroupGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = alertrulenotificationgroup.Label
+	grbuild.label = notificationsubscriptiongroup.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -288,23 +288,23 @@ func (_q *AlertRuleNotificationGroupQuery) GroupBy(field string, fields ...strin
 //		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
-//	client.AlertRuleNotificationGroup.Query().
-//		Select(alertrulenotificationgroup.FieldCreatedAt).
+//	client.NotificationSubscriptionGroup.Query().
+//		Select(notificationsubscriptiongroup.FieldCreatedAt).
 //		Scan(ctx, &v)
-func (_q *AlertRuleNotificationGroupQuery) Select(fields ...string) *AlertRuleNotificationGroupSelect {
+func (_q *NotificationSubscriptionGroupQuery) Select(fields ...string) *NotificationSubscriptionGroupSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &AlertRuleNotificationGroupSelect{AlertRuleNotificationGroupQuery: _q}
-	sbuild.label = alertrulenotificationgroup.Label
+	sbuild := &NotificationSubscriptionGroupSelect{NotificationSubscriptionGroupQuery: _q}
+	sbuild.label = notificationsubscriptiongroup.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a AlertRuleNotificationGroupSelect configured with the given aggregations.
-func (_q *AlertRuleNotificationGroupQuery) Aggregate(fns ...AggregateFunc) *AlertRuleNotificationGroupSelect {
+// Aggregate returns a NotificationSubscriptionGroupSelect configured with the given aggregations.
+func (_q *NotificationSubscriptionGroupQuery) Aggregate(fns ...AggregateFunc) *NotificationSubscriptionGroupSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *AlertRuleNotificationGroupQuery) prepareQuery(ctx context.Context) error {
+func (_q *NotificationSubscriptionGroupQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -316,7 +316,7 @@ func (_q *AlertRuleNotificationGroupQuery) prepareQuery(ctx context.Context) err
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !alertrulenotificationgroup.ValidColumn(f) {
+		if !notificationsubscriptiongroup.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -330,16 +330,16 @@ func (_q *AlertRuleNotificationGroupQuery) prepareQuery(ctx context.Context) err
 	return nil
 }
 
-func (_q *AlertRuleNotificationGroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*AlertRuleNotificationGroup, error) {
+func (_q *NotificationSubscriptionGroupQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*NotificationSubscriptionGroup, error) {
 	var (
-		nodes = []*AlertRuleNotificationGroup{}
+		nodes = []*NotificationSubscriptionGroup{}
 		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*AlertRuleNotificationGroup).scanValues(nil, columns)
+		return (*NotificationSubscriptionGroup).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &AlertRuleNotificationGroup{config: _q.config}
+		node := &NotificationSubscriptionGroup{config: _q.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
 	}
@@ -355,7 +355,7 @@ func (_q *AlertRuleNotificationGroupQuery) sqlAll(ctx context.Context, hooks ...
 	return nodes, nil
 }
 
-func (_q *AlertRuleNotificationGroupQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *NotificationSubscriptionGroupQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -364,8 +364,8 @@ func (_q *AlertRuleNotificationGroupQuery) sqlCount(ctx context.Context) (int, e
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *AlertRuleNotificationGroupQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(alertrulenotificationgroup.Table, alertrulenotificationgroup.Columns, sqlgraph.NewFieldSpec(alertrulenotificationgroup.FieldID, field.TypeInt))
+func (_q *NotificationSubscriptionGroupQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(notificationsubscriptiongroup.Table, notificationsubscriptiongroup.Columns, sqlgraph.NewFieldSpec(notificationsubscriptiongroup.FieldID, field.TypeInt))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -374,9 +374,9 @@ func (_q *AlertRuleNotificationGroupQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, alertrulenotificationgroup.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, notificationsubscriptiongroup.FieldID)
 		for i := range fields {
-			if fields[i] != alertrulenotificationgroup.FieldID {
+			if fields[i] != notificationsubscriptiongroup.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
@@ -404,12 +404,12 @@ func (_q *AlertRuleNotificationGroupQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *AlertRuleNotificationGroupQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *NotificationSubscriptionGroupQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(alertrulenotificationgroup.Table)
+	t1 := builder.Table(notificationsubscriptiongroup.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = alertrulenotificationgroup.Columns
+		columns = notificationsubscriptiongroup.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -436,28 +436,28 @@ func (_q *AlertRuleNotificationGroupQuery) sqlQuery(ctx context.Context) *sql.Se
 	return selector
 }
 
-// AlertRuleNotificationGroupGroupBy is the group-by builder for AlertRuleNotificationGroup entities.
-type AlertRuleNotificationGroupGroupBy struct {
+// NotificationSubscriptionGroupGroupBy is the group-by builder for NotificationSubscriptionGroup entities.
+type NotificationSubscriptionGroupGroupBy struct {
 	selector
-	build *AlertRuleNotificationGroupQuery
+	build *NotificationSubscriptionGroupQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *AlertRuleNotificationGroupGroupBy) Aggregate(fns ...AggregateFunc) *AlertRuleNotificationGroupGroupBy {
+func (_g *NotificationSubscriptionGroupGroupBy) Aggregate(fns ...AggregateFunc) *NotificationSubscriptionGroupGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *AlertRuleNotificationGroupGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *NotificationSubscriptionGroupGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*AlertRuleNotificationGroupQuery, *AlertRuleNotificationGroupGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*NotificationSubscriptionGroupQuery, *NotificationSubscriptionGroupGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *AlertRuleNotificationGroupGroupBy) sqlScan(ctx context.Context, root *AlertRuleNotificationGroupQuery, v any) error {
+func (_g *NotificationSubscriptionGroupGroupBy) sqlScan(ctx context.Context, root *NotificationSubscriptionGroupQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -484,28 +484,28 @@ func (_g *AlertRuleNotificationGroupGroupBy) sqlScan(ctx context.Context, root *
 	return sql.ScanSlice(rows, v)
 }
 
-// AlertRuleNotificationGroupSelect is the builder for selecting fields of AlertRuleNotificationGroup entities.
-type AlertRuleNotificationGroupSelect struct {
-	*AlertRuleNotificationGroupQuery
+// NotificationSubscriptionGroupSelect is the builder for selecting fields of NotificationSubscriptionGroup entities.
+type NotificationSubscriptionGroupSelect struct {
+	*NotificationSubscriptionGroupQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *AlertRuleNotificationGroupSelect) Aggregate(fns ...AggregateFunc) *AlertRuleNotificationGroupSelect {
+func (_s *NotificationSubscriptionGroupSelect) Aggregate(fns ...AggregateFunc) *NotificationSubscriptionGroupSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *AlertRuleNotificationGroupSelect) Scan(ctx context.Context, v any) error {
+func (_s *NotificationSubscriptionGroupSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*AlertRuleNotificationGroupQuery, *AlertRuleNotificationGroupSelect](ctx, _s.AlertRuleNotificationGroupQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*NotificationSubscriptionGroupQuery, *NotificationSubscriptionGroupSelect](ctx, _s.NotificationSubscriptionGroupQuery, _s, _s.inters, v)
 }
 
-func (_s *AlertRuleNotificationGroupSelect) sqlScan(ctx context.Context, root *AlertRuleNotificationGroupQuery, v any) error {
+func (_s *NotificationSubscriptionGroupSelect) sqlScan(ctx context.Context, root *NotificationSubscriptionGroupQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

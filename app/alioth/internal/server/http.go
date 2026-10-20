@@ -36,6 +36,7 @@ func NewHTTPServer(
 	channels *service.NotificationChannelService,
 	templates *service.NotificationTemplateService,
 	groups *service.NotificationGroupService,
+	subscriptions *service.NotificationSubscriptionService,
 	logs *service.MessageLogService,
 	agents *service.AgentService,
 	sshCommands *service.SSHCommandService,
@@ -84,6 +85,7 @@ func NewHTTPServer(
 	v1.RegisterNotificationChannelServiceHTTPServer(srv, channels)
 	v1.RegisterNotificationTemplateServiceHTTPServer(srv, templates)
 	v1.RegisterNotificationGroupServiceHTTPServer(srv, groups)
+	v1.RegisterNotificationSubscriptionServiceHTTPServer(srv, subscriptions)
 	v1.RegisterMessageLogServiceHTTPServer(srv, logs)
 	v1.RegisterAgentServiceHTTPServer(srv, agents)
 	v1.RegisterSSHCommandServiceHTTPServer(srv, sshCommands)

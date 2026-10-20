@@ -379,43 +379,6 @@ var (
 			},
 		},
 	}
-	// AlertRuleNotificationGroupsColumns holds the columns for the "alert_rule_notification_groups" table.
-	AlertRuleNotificationGroupsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "namespace_uid", Type: field.TypeString},
-		{Name: "rule_uid", Type: field.TypeString},
-		{Name: "group_uid", Type: field.TypeString},
-	}
-	// AlertRuleNotificationGroupsTable holds the schema information for the "alert_rule_notification_groups" table.
-	AlertRuleNotificationGroupsTable = &schema.Table{
-		Name:       "alert_rule_notification_groups",
-		Columns:    AlertRuleNotificationGroupsColumns,
-		PrimaryKey: []*schema.Column{AlertRuleNotificationGroupsColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "alertrulenotificationgroup_uid",
-				Unique:  true,
-				Columns: []*schema.Column{AlertRuleNotificationGroupsColumns[4]},
-			},
-			{
-				Name:    "alertrulenotificationgroup_rule_uid_group_uid",
-				Unique:  true,
-				Columns: []*schema.Column{AlertRuleNotificationGroupsColumns[6], AlertRuleNotificationGroupsColumns[7]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "deleted_at IS NULL",
-				},
-			},
-			{
-				Name:    "alertrulenotificationgroup_rule_uid",
-				Unique:  false,
-				Columns: []*schema.Column{AlertRuleNotificationGroupsColumns[6]},
-			},
-		},
-	}
 	// CaptchasColumns holds the columns for the "captchas" table.
 	CaptchasColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -748,6 +711,9 @@ var (
 		{Name: "template_uid", Type: field.TypeString},
 		{Name: "receivers", Type: field.TypeString, Default: ""},
 		{Name: "remark", Type: field.TypeString, Default: ""},
+		{Name: "member_uids", Type: field.TypeJSON},
+		{Name: "webhook_channel_uids", Type: field.TypeJSON},
+		{Name: "webhook_template_uid", Type: field.TypeString, Default: ""},
 	}
 	// NotificationGroupsTable holds the schema information for the "notification_groups" table.
 	NotificationGroupsTable = &schema.Table{
@@ -812,6 +778,89 @@ var (
 			},
 		},
 	}
+	// NotificationSubscriptionsColumns holds the columns for the "notification_subscriptions" table.
+	NotificationSubscriptionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+		{Name: "labels", Type: field.TypeString, Default: "{}"},
+		{Name: "level_uids", Type: field.TypeJSON},
+		{Name: "datasource_uids", Type: field.TypeJSON},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+	}
+	// NotificationSubscriptionsTable holds the schema information for the "notification_subscriptions" table.
+	NotificationSubscriptionsTable = &schema.Table{
+		Name:       "notification_subscriptions",
+		Columns:    NotificationSubscriptionsColumns,
+		PrimaryKey: []*schema.Column{NotificationSubscriptionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "notificationsubscription_uid",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationSubscriptionsColumns[4]},
+			},
+			{
+				Name:    "notificationsubscription_namespace_uid_name",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationSubscriptionsColumns[5], NotificationSubscriptionsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "notificationsubscription_namespace_uid_status",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationSubscriptionsColumns[5], NotificationSubscriptionsColumns[7]},
+			},
+		},
+	}
+	// NotificationSubscriptionGroupsColumns holds the columns for the "notification_subscription_groups" table.
+	NotificationSubscriptionGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "subscription_uid", Type: field.TypeString},
+		{Name: "group_uid", Type: field.TypeString},
+	}
+	// NotificationSubscriptionGroupsTable holds the schema information for the "notification_subscription_groups" table.
+	NotificationSubscriptionGroupsTable = &schema.Table{
+		Name:       "notification_subscription_groups",
+		Columns:    NotificationSubscriptionGroupsColumns,
+		PrimaryKey: []*schema.Column{NotificationSubscriptionGroupsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "notificationsubscriptiongroup_uid",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationSubscriptionGroupsColumns[4]},
+			},
+			{
+				Name:    "notificationsubscriptiongroup_subscription_uid_group_uid",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationSubscriptionGroupsColumns[6], NotificationSubscriptionGroupsColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "notificationsubscriptiongroup_subscription_uid",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationSubscriptionGroupsColumns[6]},
+			},
+			{
+				Name:    "notificationsubscriptiongroup_group_uid",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationSubscriptionGroupsColumns[7]},
+			},
+		},
+	}
 	// NotificationTasksColumns holds the columns for the "notification_tasks" table.
 	NotificationTasksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -823,6 +872,7 @@ var (
 		{Name: "phase", Type: field.TypeEnum, Enums: []string{"FIRING", "RECOVERED", "TEST"}, Default: "TEST"},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "SENDING", "SENT", "FAILED", "CANCELLED"}, Default: "PENDING"},
 		{Name: "rule_uid", Type: field.TypeString, Default: ""},
+		{Name: "subscription_uid", Type: field.TypeString, Default: ""},
 		{Name: "group_uid", Type: field.TypeString, Default: ""},
 		{Name: "channel_uid", Type: field.TypeString},
 		{Name: "template_uid", Type: field.TypeString, Default: ""},
@@ -846,9 +896,9 @@ var (
 				Columns: []*schema.Column{NotificationTasksColumns[3]},
 			},
 			{
-				Name:    "notificationtask_event_uid_phase_group_uid",
+				Name:    "notificationtask_event_uid_phase_group_uid_channel_uid",
 				Unique:  true,
-				Columns: []*schema.Column{NotificationTasksColumns[5], NotificationTasksColumns[6], NotificationTasksColumns[9]},
+				Columns: []*schema.Column{NotificationTasksColumns[5], NotificationTasksColumns[6], NotificationTasksColumns[10], NotificationTasksColumns[11]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "event_uid <> ''",
 				},
@@ -861,7 +911,7 @@ var (
 			{
 				Name:    "notificationtask_status_next_attempt_at",
 				Unique:  false,
-				Columns: []*schema.Column{NotificationTasksColumns[7], NotificationTasksColumns[17]},
+				Columns: []*schema.Column{NotificationTasksColumns[7], NotificationTasksColumns[18]},
 			},
 			{
 				Name:    "notificationtask_namespace_uid_status",
@@ -1234,7 +1284,6 @@ var (
 		AlertRulesTable,
 		AlertRuleGroupsTable,
 		AlertRuleLevelsTable,
-		AlertRuleNotificationGroupsTable,
 		CaptchasTable,
 		DatasourcesTable,
 		EmailLoginCodesTable,
@@ -1246,6 +1295,8 @@ var (
 		NotificationChannelsTable,
 		NotificationGroupsTable,
 		NotificationPresetsTable,
+		NotificationSubscriptionsTable,
+		NotificationSubscriptionGroupsTable,
 		NotificationTasksTable,
 		NotificationTemplatesTable,
 		PermissionsTable,

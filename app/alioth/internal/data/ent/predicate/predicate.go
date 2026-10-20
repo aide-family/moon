@@ -33,9 +33,6 @@ type AlertRuleGroup func(*sql.Selector)
 // AlertRuleLevel is the predicate function for alertrulelevel builders.
 type AlertRuleLevel func(*sql.Selector)
 
-// AlertRuleNotificationGroup is the predicate function for alertrulenotificationgroup builders.
-type AlertRuleNotificationGroup func(*sql.Selector)
-
 // Captcha is the predicate function for captcha builders.
 type Captcha func(*sql.Selector)
 
@@ -68,6 +65,12 @@ type NotificationGroup func(*sql.Selector)
 
 // NotificationPreset is the predicate function for notificationpreset builders.
 type NotificationPreset func(*sql.Selector)
+
+// NotificationSubscription is the predicate function for notificationsubscription builders.
+type NotificationSubscription func(*sql.Selector)
+
+// NotificationSubscriptionGroup is the predicate function for notificationsubscriptiongroup builders.
+type NotificationSubscriptionGroup func(*sql.Selector)
 
 // NotificationTask is the predicate function for notificationtask builders.
 type NotificationTask func(*sql.Selector)

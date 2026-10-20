@@ -149,6 +149,43 @@ service NotificationGroupService {
   }
 }
 
+// 告警事件订阅的创建、查询和启停。
+service NotificationSubscriptionService {
+  // 创建订阅。
+  rpc CreateNotificationSubscription(CreateNotificationSubscriptionRequest) returns (CreateNotificationSubscriptionResponse) {
+    option (google.api.http) = {
+      post: "/v1/notification-subscription"
+      body: "*"
+    };
+  }
+  // 更新订阅。
+  rpc UpdateNotificationSubscription(UpdateNotificationSubscriptionRequest) returns (UpdateNotificationSubscriptionResponse) {
+    option (google.api.http) = {
+      put: "/v1/notification-subscription/{uid}"
+      body: "*"
+    };
+  }
+  // 启用或停用订阅。
+  rpc UpdateNotificationSubscriptionStatus(UpdateNotificationSubscriptionStatusRequest) returns (UpdateNotificationSubscriptionStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/notification-subscription/{uid}/status"
+      body: "*"
+    };
+  }
+  // 删除订阅。
+  rpc DeleteNotificationSubscription(DeleteNotificationSubscriptionRequest) returns (DeleteNotificationSubscriptionResponse) {
+    option (google.api.http) = {delete: "/v1/notification-subscription/{uid}"};
+  }
+  // 获取订阅详情。
+  rpc GetNotificationSubscription(GetNotificationSubscriptionRequest) returns (GetNotificationSubscriptionResponse) {
+    option (google.api.http) = {get: "/v1/notification-subscription/{uid}"};
+  }
+  // 分页列出订阅。
+  rpc ListNotificationSubscriptions(ListNotificationSubscriptionsRequest) returns (ListNotificationSubscriptionsResponse) {
+    option (google.api.http) = {get: "/v1/notification-subscriptions"};
+  }
+}
+
 // 消息日志与任务的查看、重试和取消。
 service MessageLogService {
   // 分页列出消息日志。
@@ -550,6 +587,12 @@ message NotificationGroupItem {
   string receivers = 6;
   // 备注。
   string remark = 7;
+  // 选中的成员标识。成员必须是当前 Namespace 内已加入的成员。
+  repeated string member_uids = 8 [json_name = "memberUids"];
+  // 选中的 Webhook 渠道标识。
+  repeated string webhook_channel_uids = 9 [json_name = "webhookChannelUids"];
+  // Webhook 消息模板标识。选择 Webhook 渠道时必填。
+  string webhook_template_uid = 10 [json_name = "webhookTemplateUid"];
 }
 
 // 创建通知组。
@@ -564,6 +607,12 @@ message CreateNotificationGroupRequest {
   string receivers = 4;
   // 备注。
   string remark = 5 [(buf.validate.field).string.max_len = 200];
+  // 选中的成员标识。
+  repeated string member_uids = 6 [json_name = "memberUids"];
+  // 选中的 Webhook 渠道标识。
+  repeated string webhook_channel_uids = 7 [json_name = "webhookChannelUids"];
+  // Webhook 消息模板标识。
+  string webhook_template_uid = 8 [json_name = "webhookTemplateUid"];
 }
 
 // 创建通知组的结果。
@@ -586,6 +635,12 @@ message UpdateNotificationGroupRequest {
   string receivers = 5;
   // 备注。
   string remark = 6 [(buf.validate.field).string.max_len = 200];
+  // 选中的成员标识。
+  repeated string member_uids = 7 [json_name = "memberUids"];
+  // 选中的 Webhook 渠道标识。
+  repeated string webhook_channel_uids = 8 [json_name = "webhookChannelUids"];
+  // Webhook 消息模板标识。
+  string webhook_template_uid = 9 [json_name = "webhookTemplateUid"];
 }
 
 // 更新通知组的结果。
@@ -669,6 +724,131 @@ message SelectNotificationGroupsResponse {
   string last_uid = 2 [json_name = "lastUid"];
 }
 
+// 一条告警事件订阅。条件全部满足时，事件会发送给订阅下的通知组。
+message NotificationSubscriptionItem {
+  // 标识。
+  string uid = 1;
+  // 名称。
+  string name = 2;
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 3;
+  // 标签匹配器 JSON 对象。所有键值都必须命中事件标签。
+  string labels = 4;
+  // 告警级别标识。为空表示不限制。
+  repeated string level_uids = 5 [json_name = "levelUids"];
+  // 数据源标识。为空表示不限制。
+  repeated string datasource_uids = 6 [json_name = "datasourceUids"];
+  // 通知组标识。
+  repeated string group_uids = 7 [json_name = "groupUids"];
+  // 备注。
+  string remark = 8;
+  // 创建时间，RFC3339。
+  string created_at = 9 [json_name = "createdAt"];
+}
+
+// 创建订阅。
+message CreateNotificationSubscriptionRequest {
+  // 名称。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 标签匹配器 JSON 对象。
+  string labels = 2 [(buf.validate.field).string.max_len = 4096];
+  // 告警级别标识。
+  repeated string level_uids = 3 [json_name = "levelUids"];
+  // 数据源标识。
+  repeated string datasource_uids = 4 [json_name = "datasourceUids"];
+  // 通知组标识。
+  repeated string group_uids = 5 [json_name = "groupUids", (buf.validate.field).repeated.min_items = 1];
+  // 备注。
+  string remark = 6 [(buf.validate.field).string.max_len = 200];
+}
+
+// 创建订阅的结果。
+message CreateNotificationSubscriptionResponse {
+  // 订阅。
+  NotificationSubscriptionItem subscription = 1;
+}
+
+// 更新订阅。
+message UpdateNotificationSubscriptionRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 名称。
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 标签匹配器 JSON 对象。
+  string labels = 3 [(buf.validate.field).string.max_len = 4096];
+  // 告警级别标识。
+  repeated string level_uids = 4 [json_name = "levelUids"];
+  // 数据源标识。
+  repeated string datasource_uids = 5 [json_name = "datasourceUids"];
+  // 通知组标识。保存时替换原有绑定。
+  repeated string group_uids = 6 [json_name = "groupUids", (buf.validate.field).repeated.min_items = 1];
+  // 备注。
+  string remark = 7 [(buf.validate.field).string.max_len = 200];
+}
+
+// 更新订阅的结果。
+message UpdateNotificationSubscriptionResponse {
+  // 订阅。
+  NotificationSubscriptionItem subscription = 1;
+}
+
+// 更新订阅状态。
+message UpdateNotificationSubscriptionStatusRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 状态，取值为 ACTIVE 或 DISABLED。
+  string status = 2 [(buf.validate.field).string = {in: ["ACTIVE", "DISABLED"]}];
+}
+
+// 更新订阅状态的结果。
+message UpdateNotificationSubscriptionStatusResponse {
+  // 订阅。
+  NotificationSubscriptionItem subscription = 1;
+}
+
+// 要删除的订阅。
+message DeleteNotificationSubscriptionRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 订阅已删除。
+message DeleteNotificationSubscriptionResponse {}
+
+// 要查询的订阅。
+message GetNotificationSubscriptionRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 订阅详情。
+message GetNotificationSubscriptionResponse {
+  // 订阅。
+  NotificationSubscriptionItem subscription = 1;
+}
+
+// 订阅分页查询。
+message ListNotificationSubscriptionsRequest {
+  // 页码。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 名称。
+  string name = 3;
+}
+
+// 订阅分页结果。
+message ListNotificationSubscriptionsResponse {
+  // 当前页数据。
+  repeated NotificationSubscriptionItem items = 1;
+  // 总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}
+
 // 一条消息日志。
 message MessageLogItem {
   // 标识。
@@ -749,6 +929,8 @@ message NotificationTaskItem {
   int32 retries_left = 11 [json_name = "retriesLeft"];
   // 最近错误。
   string last_error = 12 [json_name = "lastError"];
+  // 命中订阅的标识。规则绑定已移除，事件任务均由订阅产生。
+  string subscription_uid = 13 [json_name = "subscriptionUid"];
 }
 
 // 通知任务分页查询。

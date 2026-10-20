@@ -255,19 +255,6 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
           ) : null}
         </div>
       </div>
-      {hideHeader && canIntervene ? (
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <span className="text-sm text-muted-foreground">
-            {t("alertEvent.stats", { firing: stats.firing, suppressed: stats.suppressed, recovered: stats.recovered })}
-          </span>
-          <Button variant="outline" disabled={pending || selected.length === 0} onClick={() => void intervene(selected)}>
-            {t("alertEvent.batchIntervene")}
-          </Button>
-          <Button variant="outline" disabled={pending || selected.length === 0} onClick={() => setConfirm({ kind: "batch-recover", uids: selected })}>
-            {t("alertEvent.batchRecover")}
-          </Button>
-        </div>
-      ) : null}
       {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
       <ListFrame
         total={total}

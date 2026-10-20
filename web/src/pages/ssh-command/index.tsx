@@ -67,6 +67,7 @@ export function SSHCommandPage() {
   const [agentUids, setAgentUids] = useState<string[]>([])
   const [audits, setAudits] = useState<SSHCommandAuditItem[]>([])
   const [auditOpen, setAuditOpen] = useState(false)
+  const [auditTarget, setAuditTarget] = useState<SSHCommandItem | null>(null)
   const [lastAudits, setLastAudits] = useState<SSHCommandAuditItem[]>([])
   const [confirm, setConfirm] = useState<SSHCommandItem | null>(null)
   const [confirmError, setConfirmError] = useState("")
@@ -115,7 +116,7 @@ export function SSHCommandPage() {
   }
 
   async function openAudits(item: SSHCommandItem) {
-    setDetail(item)
+    setAuditTarget(item)
     try {
       const result = await listSSHCommandAudits({ page: 1, pageSize: 20, commandUid: item.uid })
       setAudits(result.items ?? [])
@@ -355,10 +356,18 @@ export function SSHCommandPage() {
           </div>
         </DialogContent>
       </Dialog>
-      <Dialog open={auditOpen} onOpenChange={setAuditOpen}>
+      <Dialog
+        open={auditOpen}
+        onOpenChange={(value) => {
+          setAuditOpen(value)
+          if (!value) {
+            setAuditTarget(null)
+          }
+        }}
+      >
         <DialogContent className="max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{detail?.name ?? t("ssh.audits")}</DialogTitle>
+            <DialogTitle>{auditTarget?.name ?? t("ssh.audits")}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3 text-sm">
             {audits.length === 0 ? <p className="text-muted-foreground">{t("state.empty")}</p> : null}
@@ -374,7 +383,7 @@ export function SSHCommandPage() {
         </DialogContent>
       </Dialog>
       <DetailSheet
-        open={detail !== null && !auditOpen}
+        open={detail !== null}
         title={detail?.name ?? ""}
         onOpenChange={(value) => {
           if (!value) {

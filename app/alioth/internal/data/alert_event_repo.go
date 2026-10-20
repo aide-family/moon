@@ -11,7 +11,6 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulenotificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/predicate"
@@ -143,7 +142,12 @@ func (r *alertEventRepo) applyHits(ctx context.Context, tx *ent.Tx, rule bo.Aler
 			Exec(ctx); err != nil {
 			return r.fail(err)
 		}
-		if err := createNotifyTasks(ctx, tx, rule, eventUID, notificationtask.PhaseFIRING, textOr(hit.Summary, rule.Summary), textOr(hit.Description, rule.Description), hit.Labels, fingerprint); err != nil {
+		if err := dispatchEventNotifications(ctx, tx, notifyEvent{
+			NamespaceUID: rule.NamespaceUID, EventUID: eventUID, RuleUID: rule.UID,
+			DatasourceUID: report.DatasourceUID, LevelUID: hit.LevelUID, Phase: "FIRING",
+			Summary: textOr(hit.Summary, rule.Summary), Description: textOr(hit.Description, rule.Description),
+			Labels: hit.Labels, Fingerprint: fingerprint,
+		}); err != nil {
 			return err
 		}
 	}
@@ -165,58 +169,11 @@ func (r *alertEventRepo) applyHits(ctx context.Context, tx *ent.Tx, rule bo.Aler
 		if _, err := tx.AlertEventFiring.Delete().Where(alerteventfiring.IDEQ(row.ID)).Exec(ctx); err != nil {
 			return r.fail(err)
 		}
-		if err := createNotifyTasks(ctx, tx, rule, row.EventUID, notificationtask.PhaseRECOVERED, event.Summary, event.Description, event.Labels, fingerprint); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func createNotifyTasks(ctx context.Context, tx *ent.Tx, rule bo.AlertRule, eventUID string, phase notificationtask.Phase, summary, description, labels, fingerprint string) error {
-	links, err := tx.AlertRuleNotificationGroup.Query().Where(
-		alertrulenotificationgroup.RuleUIDEQ(rule.UID),
-		alertrulenotificationgroup.NamespaceUIDEQ(rule.NamespaceUID),
-		alertrulenotificationgroup.DeletedAtIsNil(),
-	).All(ctx)
-	if err != nil {
-		return err
-	}
-	if len(links) == 0 {
-		return nil
-	}
-	groupUIDs := make([]string, 0, len(links))
-	for _, link := range links {
-		groupUIDs = append(groupUIDs, link.GroupUID)
-	}
-	groups, err := tx.NotificationGroup.Query().Where(
-		notificationgroup.UIDIn(groupUIDs...),
-		notificationgroup.NamespaceUIDEQ(rule.NamespaceUID),
-		notificationgroup.StatusEQ(notificationgroup.StatusACTIVE),
-		notificationgroup.DeletedAtIsNil(),
-	).All(ctx)
-	if err != nil {
-		return err
-	}
-	params := paramsJSON(eventUID, string(phase), summary, description, labels, fingerprint)
-	for _, group := range groups {
-		err := tx.NotificationTask.Create().
-			SetUID(id.New()).
-			SetNamespaceUID(rule.NamespaceUID).
-			SetEventUID(eventUID).
-			SetPhase(phase).
-			SetStatus(notificationtask.StatusPENDING).
-			SetRuleUID(rule.UID).
-			SetGroupUID(group.UID).
-			SetChannelUID(group.ChannelUID).
-			SetTemplateUID(group.TemplateUID).
-			SetReceivers(group.Receivers).
-			SetParams(params).
-			SetRetriesLeft(3).
-			Exec(ctx)
-		if err != nil {
-			if ent.IsConstraintError(err) {
-				continue
-			}
+		if err := dispatchEventNotifications(ctx, tx, notifyEvent{
+			NamespaceUID: rule.NamespaceUID, EventUID: row.EventUID, RuleUID: rule.UID,
+			DatasourceUID: event.DatasourceUID, LevelUID: event.LevelUID, Phase: "RECOVERED",
+			Summary: event.Summary, Description: event.Description, Labels: event.Labels, Fingerprint: fingerprint,
+		}); err != nil {
 			return err
 		}
 	}
@@ -300,10 +257,9 @@ func (r *alertEventRepo) ListEvents(ctx context.Context, namespaceUID string, fi
 	return items, total, nil
 }
 
-func (r *alertEventRepo) ListRuleUIDsForReceivers(ctx context.Context, namespaceUID string, tokens []string) ([]string, error) {
-	if len(tokens) == 0 {
-		return nil, nil
-	}
+// ListRuleUIDsForReceivers 返回当前成员能收到通知的规则。
+// 规则不再直接绑定通知组，成员关系由订阅下的通知组决定，任务表记录实际路由结果。
+func (r *alertEventRepo) ListRuleUIDsForReceivers(ctx context.Context, namespaceUID, memberUID string, tokens []string) ([]string, error) {
 	groups, err := r.client.NotificationGroup.Query().Where(
 		notificationgroup.NamespaceUIDEQ(namespaceUID),
 		notificationgroup.DeletedAtIsNil(),
@@ -314,29 +270,32 @@ func (r *alertEventRepo) ListRuleUIDsForReceivers(ctx context.Context, namespace
 	}
 	matched := make([]string, 0)
 	for _, group := range groups {
-		if receiversContain(group.Receivers, tokens) {
+		if (memberUID != "" && containsString(group.MemberUids, memberUID)) || receiversContain(group.Receivers, tokens) {
 			matched = append(matched, group.UID)
 		}
 	}
 	if len(matched) == 0 {
 		return nil, nil
 	}
-	links, err := r.client.AlertRuleNotificationGroup.Query().Where(
-		alertrulenotificationgroup.NamespaceUIDEQ(namespaceUID),
-		alertrulenotificationgroup.DeletedAtIsNil(),
-		alertrulenotificationgroup.GroupUIDIn(matched...),
+	tasks, err := r.client.NotificationTask.Query().Where(
+		notificationtask.NamespaceUIDEQ(namespaceUID),
+		notificationtask.GroupUIDIn(matched...),
+		notificationtask.EventUIDNEQ(""),
 	).All(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
-	seen := make(map[string]struct{}, len(links))
-	uids := make([]string, 0, len(links))
-	for _, link := range links {
-		if _, ok := seen[link.RuleUID]; ok {
+	seen := make(map[string]struct{}, len(tasks))
+	uids := make([]string, 0, len(tasks))
+	for _, task := range tasks {
+		if task.RuleUID == "" {
 			continue
 		}
-		seen[link.RuleUID] = struct{}{}
-		uids = append(uids, link.RuleUID)
+		if _, ok := seen[task.RuleUID]; ok {
+			continue
+		}
+		seen[task.RuleUID] = struct{}{}
+		uids = append(uids, task.RuleUID)
 	}
 	return uids, nil
 }
@@ -595,8 +554,11 @@ func (r *alertEventRepo) RecoverSource(ctx context.Context, namespaceUID string,
 		).Exec(ctx); err != nil {
 			return r.fail(err)
 		}
-		rule := bo.AlertRule{UID: row.RuleUID, NamespaceUID: namespaceUID, DatasourceUID: row.DatasourceUID}
-		if err := createNotifyTasks(ctx, tx, rule, row.UID, notificationtask.PhaseRECOVERED, row.Summary, row.Description, row.Labels, row.Fingerprint); err != nil {
+		if err := dispatchEventNotifications(ctx, tx, notifyEvent{
+			NamespaceUID: namespaceUID, EventUID: row.UID, RuleUID: row.RuleUID,
+			DatasourceUID: row.DatasourceUID, LevelUID: row.LevelUID, Phase: "RECOVERED",
+			Summary: row.Summary, Description: row.Description, Labels: row.Labels, Fingerprint: row.Fingerprint,
+		}); err != nil {
 			return err
 		}
 	}

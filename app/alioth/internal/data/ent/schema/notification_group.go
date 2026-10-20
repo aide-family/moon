@@ -26,6 +26,10 @@ func (NotificationGroup) Fields() []ent.Field {
 		field.String("template_uid").NotEmpty(),
 		field.String("receivers").Default(""),
 		field.String("remark").Default(""),
+		// member_uids 是当前 Namespace 内的成员标识，不是全局用户标识。
+		field.Strings("member_uids").Default([]string{}),
+		field.Strings("webhook_channel_uids").Default([]string{}),
+		field.String("webhook_template_uid").Default(""),
 	}
 }
 

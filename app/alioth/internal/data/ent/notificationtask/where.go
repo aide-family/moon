@@ -84,6 +84,11 @@ func RuleUID(v string) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldEQ(FieldRuleUID, v))
 }
 
+// SubscriptionUID applies equality check predicate on the "subscription_uid" field. It's identical to SubscriptionUIDEQ.
+func SubscriptionUID(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEQ(FieldSubscriptionUID, v))
+}
+
 // GroupUID applies equality check predicate on the "group_uid" field. It's identical to GroupUIDEQ.
 func GroupUID(v string) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldEQ(FieldGroupUID, v))
@@ -512,6 +517,71 @@ func RuleUIDEqualFold(v string) predicate.NotificationTask {
 // RuleUIDContainsFold applies the ContainsFold predicate on the "rule_uid" field.
 func RuleUIDContainsFold(v string) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldContainsFold(FieldRuleUID, v))
+}
+
+// SubscriptionUIDEQ applies the EQ predicate on the "subscription_uid" field.
+func SubscriptionUIDEQ(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEQ(FieldSubscriptionUID, v))
+}
+
+// SubscriptionUIDNEQ applies the NEQ predicate on the "subscription_uid" field.
+func SubscriptionUIDNEQ(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldNEQ(FieldSubscriptionUID, v))
+}
+
+// SubscriptionUIDIn applies the In predicate on the "subscription_uid" field.
+func SubscriptionUIDIn(vs ...string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldIn(FieldSubscriptionUID, vs...))
+}
+
+// SubscriptionUIDNotIn applies the NotIn predicate on the "subscription_uid" field.
+func SubscriptionUIDNotIn(vs ...string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldNotIn(FieldSubscriptionUID, vs...))
+}
+
+// SubscriptionUIDGT applies the GT predicate on the "subscription_uid" field.
+func SubscriptionUIDGT(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldGT(FieldSubscriptionUID, v))
+}
+
+// SubscriptionUIDGTE applies the GTE predicate on the "subscription_uid" field.
+func SubscriptionUIDGTE(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldGTE(FieldSubscriptionUID, v))
+}
+
+// SubscriptionUIDLT applies the LT predicate on the "subscription_uid" field.
+func SubscriptionUIDLT(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldLT(FieldSubscriptionUID, v))
+}
+
+// SubscriptionUIDLTE applies the LTE predicate on the "subscription_uid" field.
+func SubscriptionUIDLTE(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldLTE(FieldSubscriptionUID, v))
+}
+
+// SubscriptionUIDContains applies the Contains predicate on the "subscription_uid" field.
+func SubscriptionUIDContains(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldContains(FieldSubscriptionUID, v))
+}
+
+// SubscriptionUIDHasPrefix applies the HasPrefix predicate on the "subscription_uid" field.
+func SubscriptionUIDHasPrefix(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldHasPrefix(FieldSubscriptionUID, v))
+}
+
+// SubscriptionUIDHasSuffix applies the HasSuffix predicate on the "subscription_uid" field.
+func SubscriptionUIDHasSuffix(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldHasSuffix(FieldSubscriptionUID, v))
+}
+
+// SubscriptionUIDEqualFold applies the EqualFold predicate on the "subscription_uid" field.
+func SubscriptionUIDEqualFold(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEqualFold(FieldSubscriptionUID, v))
+}
+
+// SubscriptionUIDContainsFold applies the ContainsFold predicate on the "subscription_uid" field.
+func SubscriptionUIDContainsFold(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldContainsFold(FieldSubscriptionUID, v))
 }
 
 // GroupUIDEQ applies the EQ predicate on the "group_uid" field.

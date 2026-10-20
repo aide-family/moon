@@ -64,7 +64,7 @@ type AlertEventRepo interface {
 	ListFiringFingerprints(ctx context.Context, namespaceUID, ruleUID, datasourceUID string) ([]string, error)
 	AllBatchesRecorded(ctx context.Context, ruleUID string, datasourceUIDs []string, slot time.Time) (bool, error)
 	ListEvents(ctx context.Context, namespaceUID string, filter bo.AlertEventListFilter, page, pageSize int) ([]bo.AlertEvent, int, error)
-	ListRuleUIDsForReceivers(ctx context.Context, namespaceUID string, tokens []string) ([]string, error)
+	ListRuleUIDsForReceivers(ctx context.Context, namespaceUID, memberUID string, tokens []string) ([]string, error)
 	GetEvent(ctx context.Context, namespaceUID, uid string) (*bo.AlertEvent, error)
 	Intervene(ctx context.Context, namespaceUID string, uids []string, userUID string) error
 	Suppress(ctx context.Context, namespaceUID, uid string) error

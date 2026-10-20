@@ -88,13 +88,14 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 		cleanup()
 		return nil, nil, err
 	}
-	alerteventUsecase := alertevent.NewUsecase(alertRuleRepo, alertEventRepo, alertPageRepo, userRepo, datasourceRepo, client, checker, logger)
+	alerteventUsecase := alertevent.NewUsecase(alertRuleRepo, alertEventRepo, alertPageRepo, userRepo, memberRepo, datasourceRepo, client, checker, logger)
 	alertEventService := service.NewAlertEventService(alerteventUsecase)
 	notificationRepo := data.NewNotificationRepo(dataData, logger)
-	notificationUsecase := notification.NewUsecase(notificationRepo, checker, client, logger)
+	notificationUsecase := notification.NewUsecase(notificationRepo, memberRepo, checker, client, logger)
 	notificationChannelService := service.NewNotificationChannelService(notificationUsecase)
 	notificationTemplateService := service.NewNotificationTemplateService(notificationUsecase)
 	notificationGroupService := service.NewNotificationGroupService(notificationUsecase)
+	notificationSubscriptionService := service.NewNotificationSubscriptionService(notificationUsecase)
 	messageLogService := service.NewMessageLogService(notificationUsecase)
 	agentService := service.NewAgentService(agentUsecase)
 	sshCommandRepo := data.NewSSHCommandRepo(dataData, logger)
@@ -105,7 +106,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	sftpService := service.NewSFTPService(sftpUsecase)
 	k8sproxyUsecase := k8sproxy.NewUsecase(edgeAuditRepo, agentRepo, hub, checker)
 	k8sProxyService := service.NewK8sProxyService(k8sproxyUsecase)
-	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, messageLogService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
+	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, messageLogService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()
@@ -113,7 +114,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	}
 	evalService := service.NewEvalService(alerteventUsecase)
 	notifyService := service.NewNotifyService(notificationUsecase)
-	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, evalService, notificationChannelService, notificationTemplateService, notificationGroupService, messageLogService, notifyService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
+	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, evalService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, messageLogService, notifyService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()

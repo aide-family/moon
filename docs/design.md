@@ -232,7 +232,7 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 比较条件沿用 Moon：EQ、NE、GT、GTE、LT、LTE、IN、NOT_IN。采样方式沿用 FOR、MAX、MIN。
 
-一条规则绑定一个或多个 `NotificationGroup`。Moon 把通知组放在 marksman，又把带标签匹配的订阅放在 rabbit。Alioth 只保留规则到通知组的绑定。
+规则不再直接绑定通知组。告警事件统一由 `NotificationSubscription` 按标签、告警级别和数据源匹配，再路由到订阅下的通知组。
 
 日志和链路规则可以保存。`megrez` 见到尚未实现的驱动时跳过，并在回写里标明未评测，不产生 FIRING。
 
@@ -249,7 +249,7 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 3. 把 FIRING 或恢复结果回写 `alioth`（带 `datasource_uid`）。回写按 fingerprint 幂等。
 4. 释放锁。续期失败则不回写成功。
 
-`alioth` 把 FIRING、恢复写入 `AlertEvent`，并按规则上的通知组生成 `NotificationTask`。恢复检测是评测的一部分：原先 FIRING、本次未命中，则记为恢复并生成恢复通知。
+`alioth` 把 FIRING、恢复写入 `AlertEvent`，并在同一事务内按命中的订阅生成 `NotificationTask`。恢复检测是评测的一部分：原先 FIRING、本次未命中，则记为恢复并生成恢复通知。
 
 事件状态沿用 Moon：`FIRING`、`RECOVERED`、`RECOVERED_BY_MANUAL`。人工操作沿用实时告警上的介入、批量介入、抑制、恢复、批量恢复。实时列表是状态为 FIRING 且未被抑制的事件。历史列表是已恢复和已抑制的事件。`alert_events` 使用 PostgreSQL 声明式时间分区。Moon 按 Namespace 和周把事件拆进多张物理表；Alioth 用分区表表达同一件事，查询仍走 `alioth` 的列表接口。
 
@@ -265,14 +265,15 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 | `NotificationChannel`  | Moon 的 `email_configs` 与 `webhooks` | 一种投递配置。SMTP 的应用固定为 OTHER；Webhook 的应用为 OTHER、DINGTALK、WECHAT、FEISHU。密码和签名加密存储 |
 | `NotificationTemplate` | Moon 的 `templates`                  | 按 `MessageType` 存模板正文。首期类型为 EMAIL 与 WEBHOOK。`SMS_ALICLOUD` 只保留枚举            |
 | `NotificationPreset`   | Alioth 新增                           | 系统预置模板，只读、不属于租户。用户可以直接使用或修改后生成自己的模板                                          |
-| `NotificationGroup`    | Moon 的通知组与收件人组                      | Namespace 内的接收方集合，关联渠道与模板，可启停                                               |
+| `NotificationGroup`    | Moon 的通知组与收件人组                      | Namespace 内的接收方集合，关联主渠道/模板、成员和多个 Webhook 渠道，可启停                                   |
+| `NotificationSubscription` | Alioth 新增                       | 按标签、告警级别和数据源订阅事件，命中后发送给订阅下的通知组                                              |
 | `NotificationTask`     | Moon 发送任务的持久化形态                     | 待发送、发送中、已发送、失败、取消。状态名沿用 MessageStatus：PENDING、SENDING、SENT、FAILED、CANCELLED |
 | `MessageLog`           | Moon 的 `message_logs`               | 一次投递的结果。按时间分区。支持查看、重试、取消                                                    |
 
 
 人工试发也生成 `NotificationTask`，仍由 `merak` 投递。对应 Moon 发送台的直发和按模板发送，不在 `merak` 进程里同步等待 SMTP。投递失败按剩余次数退避后回到 PENDING，避免失败任务在轮询周期内反复重试。
 
-渠道、模板和通知组必须满足类型矩阵：SMTP 渠道只能绑定 EMAIL 模板；WEBHOOK 渠道只能绑定 WEBHOOK 模板。SMTP 通知组必须填写合法邮箱接收方；Webhook 通知组不需要接收方。保存、试发和建立通知组时都在服务端校验。
+渠道、模板和通知组必须满足类型矩阵：SMTP 渠道只能绑定 EMAIL 模板；WEBHOOK 渠道只能绑定 WEBHOOK 模板。SMTP 通知组的接收方由手填邮箱和成员邮箱合并而成，至少有一个；Webhook 通知组不需要接收方。通知组可额外选择多个 Webhook 渠道，共用一个 WEBHOOK 模板。保存、试发和建立通知组时都在服务端校验。
 
 `merak` 按渠道应用选择发送器：
 
@@ -352,11 +353,11 @@ Kubernetes API 代理是新增能力。Agent 使用挂载的 kubeconfig，或在
 | 账号    | 登录、注册、个人资料                      |
 | 租户与权限 | Namespace、用户、成员、角色与权限           |
 | 告警    | 数据源、规则组与规则、告警字典、告警页面、实时告警、历史告警 |
-| 通知    | 通知渠道、模板、通知组、消息日志                |
+| 通知    | 通知渠道、模板、通知组、告警订阅、消息日志            |
 | 边缘    | 机器、SSH 命令与审计、SFTP、Kubernetes 代理 |
 
 
-数据源的指标查询区需要表达式编辑器，交互对应 Moon Web 数据源页上的 PromQL 快查。规则编辑保存指标表达式、级别条件和通知组。实时告警支持筛选、详情、介入、抑制和恢复；页内用 Tab 切换「我的告警」与用户选定的告警页面。告警页面按标签匹配过滤实时事件，可设公开供同租户他人选用。
+数据源的指标查询区需要表达式编辑器，交互对应 Moon Web 数据源页上的 PromQL 快查。规则编辑保存指标表达式和级别条件。实时告警支持筛选、详情、介入、抑制和恢复；页内用 Tab 切换「我的告警」与用户选定的告警页面。告警页面按标签匹配过滤实时事件，可设公开供同租户他人选用。
 
 壳上保留 Moon Web 已有的 Namespace 切换、主题（light / dark / system）和中英文。切换 Namespace 后后续请求使用新的 `X-Namespace`。没有 Namespace 时引导创建。
 
@@ -387,6 +388,7 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 | 告警字典       | `/v1/alert-dictionary`、`/v1/alert-dictionaries`                                         |
 | 实时与历史告警    | `/v1/alert/realtime-alerts`、`/v1/alert/history-alerts`、介入、抑制、恢复、统计                      |
 | 通知组        | `/v1/notification-groups`                                                               |
+| 告警订阅       | `/v1/notification-subscription`、`/v1/notification-subscriptions`                          |
 | 邮件渠道       | `/v1/email/config`、`/v1/email/configs`                                                  |
 | Webhook 渠道 | `/v1/webhook/config`、`/v1/webhook/configs`                                              |
 | 模板         | `/v1/template`、`/v1/templates`                                                          |
@@ -410,10 +412,10 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 | Kubernetes 代理 | 经指定 Agent 转发 API 请求；查询 `K8sProxyAudit`   |
 | Agent         | 签发与吊销令牌；列表与详情（含在线状态）。注册和心跳不走浏览器 HTTP     |
 | 告警页面          | CRUD；公开/私有；个人实时 Tab 订阅。按标签匹配过滤实时告警。与 Moon 通知订阅无关 |
-| 我的告警          | 实时列表筛选：规则绑定通知组且 `receivers` 含当前用户邮箱或 UID           |
+| 我的告警          | 实时列表筛选：订阅下的通知组包含当前成员，或 `receivers` 含当前用户邮箱或 UID           |
 
 
-明确不迁入的 Moon HTTP：`/v1/probe-tasks`、`/v1/alert-subscriptions`（通知路由由规则绑定通知组替代；Alioth 的告警页面只做实时列表视图，不是 Moon 订阅）、`/v1/ssh-command-actions/dispatch`（由在线 Agent 替代）、rabbit 的 `POST /v1/alerts/prometheus/webhook`（评测结果改走内部回写）。
+明确不迁入的 Moon HTTP：`/v1/probe-tasks`、`/v1/ssh-command-actions/dispatch`（由在线 Agent 替代）、rabbit 的 `POST /v1/alerts/prometheus/webhook`（评测结果改走内部回写）。告警订阅由 Alioth 的 `NotificationSubscription` 提供，不复用 Moon 的 `/v1/alert-subscriptions`。
 
 ### 8.3 内部接口
 

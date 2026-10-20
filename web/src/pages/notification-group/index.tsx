@@ -2,6 +2,8 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { formMessage } from "@/lib/form-error"
 
+import { listMembers } from "@/api/member"
+import type { MemberItem } from "@/api/member/types"
 import { listNotificationChannels } from "@/api/notification-channel"
 import type { NotificationChannelItem } from "@/api/notification-channel/types"
 import {
@@ -59,12 +61,17 @@ export function NotificationGroupPage() {
   const [draft, setDraft] = useState(query.name)
   const [channels, setChannels] = useState<NotificationChannelItem[]>([])
   const [templates, setTemplates] = useState<NotificationTemplateItem[]>([])
+  const [members, setMembers] = useState<MemberItem[]>([])
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<NotificationGroupItem | null>(null)
   const [name, setName] = useState("")
   const [channelUid, setChannelUid] = useState("")
   const [templateUid, setTemplateUid] = useState("")
   const [receivers, setReceivers] = useState("")
+  const [memberUids, setMemberUids] = useState<string[]>([])
+  const [webhookChannelUids, setWebhookChannelUids] = useState<string[]>([])
+  const [webhookTemplateUid, setWebhookTemplateUid] = useState("")
+  const [memberFilter, setMemberFilter] = useState("")
   const [remark, setRemark] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
@@ -97,6 +104,15 @@ export function NotificationGroupPage() {
           setTemplates([])
         }
       })
+    void listMembers({ page: 1, pageSize: 100 })
+      .then((result) => {
+        if (active) {
+          setMembers(result.items ?? [])
+        }
+      })
+      .catch(() => {
+        if (active) setMembers([])
+      })
     return () => {
       active = false
     }
@@ -107,13 +123,31 @@ export function NotificationGroupPage() {
     return templates.filter((item) => item.type === expected)
   }
 
+  function webhookTemplates(): NotificationTemplateItem[] {
+    return templates.filter((item) => item.type === "WEBHOOK" && item.status === "ACTIVE")
+  }
+
   function selectChannel(uid: string) {
     setChannelUid(uid)
     const channel = channels.find((item) => item.uid === uid)
+    if (channel?.type !== "SMTP") {
+      setMemberUids([])
+    }
+    if (channel?.type === "WEBHOOK") {
+      setWebhookChannelUids((values) => values.filter((value) => value !== uid))
+    }
     const options = compatibleTemplates(channel?.type)
     if (!options.some((item) => item.uid === templateUid)) {
       setTemplateUid(options[0]?.uid ?? "")
     }
+  }
+
+  function toggleMember(uid: string) {
+    setMemberUids((values) => (values.includes(uid) ? values.filter((value) => value !== uid) : [...values, uid]))
+  }
+
+  function toggleWebhook(uid: string) {
+    setWebhookChannelUids((values) => (values.includes(uid) ? values.filter((value) => value !== uid) : [...values, uid]))
   }
 
   function openCreate() {
@@ -123,6 +157,10 @@ export function NotificationGroupPage() {
     setChannelUid(channel?.uid ?? "")
     setTemplateUid(compatibleTemplates(channel?.type)[0]?.uid ?? "")
     setReceivers("")
+    setMemberUids([])
+    setWebhookChannelUids([])
+    setWebhookTemplateUid("")
+    setMemberFilter("")
     setRemark("")
     setError("")
     setOpen(true)
@@ -134,6 +172,10 @@ export function NotificationGroupPage() {
     setChannelUid(item.channelUid)
     setTemplateUid(item.templateUid)
     setReceivers(item.receivers)
+    setMemberUids(item.memberUids ?? [])
+    setWebhookChannelUids(item.webhookChannelUids ?? [])
+    setWebhookTemplateUid(item.webhookTemplateUid ?? "")
+    setMemberFilter("")
     setRemark(item.remark)
     setError("")
     setOpen(true)
@@ -146,7 +188,8 @@ export function NotificationGroupPage() {
       requireTrimmed(name, t("form.required")),
       requireSelected(channelUid, t("form.required")),
       requireSelected(templateUid, t("form.required")),
-      channel?.type === "SMTP" ? requireTrimmed(receivers, t("form.required")) : null,
+      channel?.type === "SMTP" && !receivers.trim() && memberUids.length === 0 ? t("form.required") : null,
+      webhookChannelUids.length > 0 && !webhookTemplateUid ? t("form.required") : null,
     )
     if (invalid) {
       setError(invalid)
@@ -159,7 +202,10 @@ export function NotificationGroupPage() {
     setPending(true)
     setError("")
     try {
-      const payload = { name: name.trim(), channelUid, templateUid, receivers, remark }
+      const payload = {
+        name: name.trim(), channelUid, templateUid, receivers, remark,
+        memberUids, webhookChannelUids, webhookTemplateUid,
+      }
       if (editing) {
         await updateNotificationGroup({ ...payload, uid: editing.uid })
       } else {
@@ -261,7 +307,10 @@ export function NotificationGroupPage() {
                   <TableCell>{item.name}</TableCell>
                   <TableCell>{channels.find((channel) => channel.uid === item.channelUid)?.name ?? item.channelUid}</TableCell>
                   <TableCell>{templates.find((template) => template.uid === item.templateUid)?.name ?? item.templateUid}</TableCell>
-                  <TableCell>{item.receivers}</TableCell>
+                  <TableCell>
+                    {item.receivers}
+                    {((item.memberUids ?? []).length > 0 ? `${item.receivers ? " · " : ""}${t("group.memberCount", { count: (item.memberUids ?? []).length })}` : "")}
+                  </TableCell>
                   <TableCell>{enumLabel(t, item.status)}</TableCell>
                   <TableCell>
                     <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
@@ -318,6 +367,78 @@ export function NotificationGroupPage() {
             ) : (
               <p className="text-sm text-muted-foreground sm:col-span-full">{t("group.receiversWebhookHint")}</p>
             )}
+            {channels.find((item) => item.uid === channelUid)?.type === "SMTP" ? (
+              <div className="grid gap-2 sm:col-span-full">
+                <p className="text-sm font-medium">{t("group.members")}</p>
+                <p className="text-sm text-muted-foreground">{t("group.membersHint")}</p>
+                <Input
+                  value={memberFilter}
+                  placeholder={t("group.memberFilterPlaceholder")}
+                  onChange={(event) => setMemberFilter(event.target.value)}
+                />
+                <div className="grid max-h-44 gap-2 overflow-y-auto rounded-md border p-3">
+                  {members
+                    .filter((item) => item.status === "JOINED")
+                    .filter((item) => {
+                      const keyword = memberFilter.trim().toLowerCase()
+                      if (!keyword) {
+                        return true
+                      }
+                      return (item.name || item.email).toLowerCase().includes(keyword) || item.email.toLowerCase().includes(keyword)
+                    })
+                    .map((item) => (
+                      <label key={item.uid} className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={memberUids.includes(item.uid)}
+                          onChange={() => toggleMember(item.uid)}
+                        />
+                        <span>{item.name || item.email}</span>
+                        <span className="text-muted-foreground">{item.email}</span>
+                      </label>
+                    ))}
+                  {members.length === 0 ? <p className="text-sm text-muted-foreground">{t("group.memberEmpty")}</p> : null}
+                </div>
+              </div>
+            ) : null}
+            <div className="grid gap-2 sm:col-span-full">
+              <p className="text-sm font-medium">{t("group.webhooks")}</p>
+              <p className="text-sm text-muted-foreground">{t("group.webhooksHint")}</p>
+              <div className="grid max-h-44 gap-2 overflow-y-auto rounded-md border p-3">
+                {channels
+                  .filter((item) => item.type === "WEBHOOK" && item.status === "ACTIVE" && item.uid !== channelUid)
+                  .map((item) => (
+                    <label key={item.uid} className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={webhookChannelUids.includes(item.uid)}
+                        onChange={() => toggleWebhook(item.uid)}
+                      />
+                      {item.name}
+                    </label>
+                  ))}
+                {channels.filter((item) => item.type === "WEBHOOK" && item.status === "ACTIVE" && item.uid !== channelUid).length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t("group.webhookEmpty")}</p>
+                ) : null}
+              </div>
+            </div>
+            {webhookChannelUids.length > 0 ? (
+              <FormField label={t("group.webhookTemplate")} className="sm:col-span-full">
+                <Select value={webhookTemplateUid || "NONE"} onValueChange={(value) => setWebhookTemplateUid(value === "NONE" ? "" : value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("group.webhookTemplatePlaceholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectOption value="NONE">{t("group.webhookTemplatePlaceholder")}</SelectOption>
+                    {webhookTemplates().map((item) => (
+                      <SelectOption key={item.uid} value={item.uid}>
+                        {item.name}
+                      </SelectOption>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+            ) : null}
             <FormField label={t("group.remark")} htmlFor="group-remark" className="sm:col-span-full">
               <Input id="group-remark" value={remark} placeholder={t("group.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
             </FormField>
@@ -345,6 +466,21 @@ export function NotificationGroupPage() {
                 { label: t("group.channel"), value: channels.find((channel) => channel.uid === detail.channelUid)?.name ?? detail.channelUid },
                 { label: t("group.template"), value: templates.find((template) => template.uid === detail.templateUid)?.name ?? detail.templateUid },
                 { label: t("group.receivers"), value: detail.receivers },
+                {
+                  label: t("group.members"),
+                  value: (detail.memberUids ?? [])
+                    .map((uid) => {
+                      const item = members.find((member) => member.uid === uid)
+                      return item ? item.name || item.email : uid
+                    })
+                    .join(", "),
+                },
+                {
+                  label: t("group.webhooks"),
+                  value: (detail.webhookChannelUids ?? [])
+                    .map((uid) => channels.find((channel) => channel.uid === uid)?.name ?? uid)
+                    .join(", "),
+                },
               ]
             : []
         }

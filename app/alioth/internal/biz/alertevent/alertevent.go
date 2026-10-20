@@ -34,6 +34,7 @@ type Usecase struct {
 	events      repository.AlertEventRepo
 	pages       repository.AlertPageRepo
 	users       repository.UserRepo
+	members     repository.MemberRepo
 	datasources repository.DatasourceRepo
 	locks       *lock.Client
 	access      access.Checker
@@ -45,13 +46,14 @@ func NewUsecase(
 	events repository.AlertEventRepo,
 	pages repository.AlertPageRepo,
 	users repository.UserRepo,
+	members repository.MemberRepo,
 	datasources repository.DatasourceRepo,
 	locks *lock.Client,
 	checker access.Checker,
 	logger *slog.Logger,
 ) *Usecase {
 	return &Usecase{
-		rules: rules, events: events, pages: pages, users: users,
+		rules: rules, events: events, pages: pages, users: users, members: members,
 		datasources: datasources, locks: locks, access: checker, log: logger,
 	}
 }
@@ -217,7 +219,14 @@ func (uc *Usecase) ruleUIDsForCurrentUser(ctx context.Context, namespaceUID stri
 	if account.Email != "" {
 		tokens = append(tokens, account.Email)
 	}
-	uids, err := uc.events.ListRuleUIDsForReceivers(ctx, namespaceUID, tokens)
+	memberUID := ""
+	member, err := uc.members.MemberByUser(ctx, namespaceUID, userUID)
+	if err == nil {
+		memberUID = member.UID
+	} else if !merr.IsNotFound(err) {
+		return nil, uc.access.Wrap(err)
+	}
+	uids, err := uc.events.ListRuleUIDsForReceivers(ctx, namespaceUID, memberUID, tokens)
 	if err != nil {
 		return nil, uc.access.Wrap(err)
 	}

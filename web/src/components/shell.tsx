@@ -1,6 +1,7 @@
 import {
   Activity,
   Bell,
+  BellRing,
   Building2,
   ChevronRight,
   Database,
@@ -161,6 +162,12 @@ const notifyLinks: {
     label: "nav.groups",
     permission: "notification:read",
     icon: UsersRound,
+  },
+  {
+    to: "/notification-subscriptions",
+    label: "nav.subscriptions",
+    permission: "notification:read",
+    icon: BellRing,
   },
   {
     to: "/message-logs",

@@ -69,7 +69,6 @@ func (s *AlertRuleService) UpdateAlertRule(ctx context.Context, req *v1.UpdateAl
 		UID: req.GetUid(), GroupUID: req.GetGroupUid(), Name: req.GetName(), Type: req.GetType(), Driver: req.GetDriver(),
 		Expr: req.GetExpr(), Labels: req.GetLabels(), DatasourceLabels: req.GetDatasourceLabels(),
 		Summary: req.GetSummary(), Description: req.GetDescription(), Levels: levelInputs(req.GetLevels()),
-		NotificationGroupUIDs: req.GetNotificationGroupUids(),
 	}
 	item, err := s.rules.UpdateRule(ctx, in)
 	if err != nil {
@@ -114,6 +113,5 @@ func ruleInput(uid string, req *v1.CreateAlertRuleRequest) bo.AlertRule {
 		UID: uid, GroupUID: req.GetGroupUid(), Name: req.GetName(), Type: req.GetType(), Driver: req.GetDriver(),
 		Expr: req.GetExpr(), Labels: req.GetLabels(), DatasourceLabels: req.GetDatasourceLabels(),
 		Summary: req.GetSummary(), Description: req.GetDescription(), Levels: levelInputs(req.GetLevels()),
-		NotificationGroupUIDs: req.GetNotificationGroupUids(),
 	}
 }

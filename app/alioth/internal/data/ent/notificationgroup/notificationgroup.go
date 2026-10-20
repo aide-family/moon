@@ -36,6 +36,12 @@ const (
 	FieldReceivers = "receivers"
 	// FieldRemark holds the string denoting the remark field in the database.
 	FieldRemark = "remark"
+	// FieldMemberUids holds the string denoting the member_uids field in the database.
+	FieldMemberUids = "member_uids"
+	// FieldWebhookChannelUids holds the string denoting the webhook_channel_uids field in the database.
+	FieldWebhookChannelUids = "webhook_channel_uids"
+	// FieldWebhookTemplateUID holds the string denoting the webhook_template_uid field in the database.
+	FieldWebhookTemplateUID = "webhook_template_uid"
 	// Table holds the table name of the notificationgroup in the database.
 	Table = "notification_groups"
 )
@@ -54,6 +60,9 @@ var Columns = []string{
 	FieldTemplateUID,
 	FieldReceivers,
 	FieldRemark,
+	FieldMemberUids,
+	FieldWebhookChannelUids,
+	FieldWebhookTemplateUID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -87,6 +96,12 @@ var (
 	DefaultReceivers string
 	// DefaultRemark holds the default value on creation for the "remark" field.
 	DefaultRemark string
+	// DefaultMemberUids holds the default value on creation for the "member_uids" field.
+	DefaultMemberUids []string
+	// DefaultWebhookChannelUids holds the default value on creation for the "webhook_channel_uids" field.
+	DefaultWebhookChannelUids []string
+	// DefaultWebhookTemplateUID holds the default value on creation for the "webhook_template_uid" field.
+	DefaultWebhookTemplateUID string
 )
 
 // Status defines the type for the "status" enum field.
@@ -176,4 +191,9 @@ func ByReceivers(opts ...sql.OrderTermOption) OrderOption {
 // ByRemark orders the results by the remark field.
 func ByRemark(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRemark, opts...).ToFunc()
+}
+
+// ByWebhookTemplateUID orders the results by the webhook_template_uid field.
+func ByWebhookTemplateUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWebhookTemplateUID, opts...).ToFunc()
 }

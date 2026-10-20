@@ -21,7 +21,6 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulenotificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/captcha"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
@@ -33,6 +32,8 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationpreset"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscription"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscriptiongroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/permission"
@@ -104,38 +105,39 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			agent.Table:                      agent.ValidColumn,
-			alertdictionary.Table:            alertdictionary.ValidColumn,
-			alertevalbatch.Table:             alertevalbatch.ValidColumn,
-			alertevent.Table:                 alertevent.ValidColumn,
-			alerteventfiring.Table:           alerteventfiring.ValidColumn,
-			alertpage.Table:                  alertpage.ValidColumn,
-			alertrule.Table:                  alertrule.ValidColumn,
-			alertrulegroup.Table:             alertrulegroup.ValidColumn,
-			alertrulelevel.Table:             alertrulelevel.ValidColumn,
-			alertrulenotificationgroup.Table: alertrulenotificationgroup.ValidColumn,
-			captcha.Table:                    captcha.ValidColumn,
-			datasource.Table:                 datasource.ValidColumn,
-			emaillogincode.Table:             emaillogincode.ValidColumn,
-			k8sproxyaudit.Table:              k8sproxyaudit.ValidColumn,
-			member.Table:                     member.ValidColumn,
-			memberrole.Table:                 memberrole.ValidColumn,
-			messagelog.Table:                 messagelog.ValidColumn,
-			namespace.Table:                  namespace.ValidColumn,
-			notificationchannel.Table:        notificationchannel.ValidColumn,
-			notificationgroup.Table:          notificationgroup.ValidColumn,
-			notificationpreset.Table:         notificationpreset.ValidColumn,
-			notificationtask.Table:           notificationtask.ValidColumn,
-			notificationtemplate.Table:       notificationtemplate.ValidColumn,
-			permission.Table:                 permission.ValidColumn,
-			role.Table:                       role.ValidColumn,
-			rolepermission.Table:             rolepermission.ValidColumn,
-			sftpaudit.Table:                  sftpaudit.ValidColumn,
-			sshcommand.Table:                 sshcommand.ValidColumn,
-			sshcommandaudit.Table:            sshcommandaudit.ValidColumn,
-			user.Table:                       user.ValidColumn,
-			useralertpage.Table:              useralertpage.ValidColumn,
-			useroauth.Table:                  useroauth.ValidColumn,
+			agent.Table:                         agent.ValidColumn,
+			alertdictionary.Table:               alertdictionary.ValidColumn,
+			alertevalbatch.Table:                alertevalbatch.ValidColumn,
+			alertevent.Table:                    alertevent.ValidColumn,
+			alerteventfiring.Table:              alerteventfiring.ValidColumn,
+			alertpage.Table:                     alertpage.ValidColumn,
+			alertrule.Table:                     alertrule.ValidColumn,
+			alertrulegroup.Table:                alertrulegroup.ValidColumn,
+			alertrulelevel.Table:                alertrulelevel.ValidColumn,
+			captcha.Table:                       captcha.ValidColumn,
+			datasource.Table:                    datasource.ValidColumn,
+			emaillogincode.Table:                emaillogincode.ValidColumn,
+			k8sproxyaudit.Table:                 k8sproxyaudit.ValidColumn,
+			member.Table:                        member.ValidColumn,
+			memberrole.Table:                    memberrole.ValidColumn,
+			messagelog.Table:                    messagelog.ValidColumn,
+			namespace.Table:                     namespace.ValidColumn,
+			notificationchannel.Table:           notificationchannel.ValidColumn,
+			notificationgroup.Table:             notificationgroup.ValidColumn,
+			notificationpreset.Table:            notificationpreset.ValidColumn,
+			notificationsubscription.Table:      notificationsubscription.ValidColumn,
+			notificationsubscriptiongroup.Table: notificationsubscriptiongroup.ValidColumn,
+			notificationtask.Table:              notificationtask.ValidColumn,
+			notificationtemplate.Table:          notificationtemplate.ValidColumn,
+			permission.Table:                    permission.ValidColumn,
+			role.Table:                          role.ValidColumn,
+			rolepermission.Table:                rolepermission.ValidColumn,
+			sftpaudit.Table:                     sftpaudit.ValidColumn,
+			sshcommand.Table:                    sshcommand.ValidColumn,
+			sshcommandaudit.Table:               sshcommandaudit.ValidColumn,
+			user.Table:                          user.ValidColumn,
+			useralertpage.Table:                 useralertpage.ValidColumn,
+			useroauth.Table:                     useroauth.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

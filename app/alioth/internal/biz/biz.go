@@ -5,8 +5,8 @@ import (
 
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/agent"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/agenthub"
-	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertdictionary"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"

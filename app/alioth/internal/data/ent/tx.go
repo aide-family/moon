@@ -30,8 +30,6 @@ type Tx struct {
 	AlertRuleGroup *AlertRuleGroupClient
 	// AlertRuleLevel is the client for interacting with the AlertRuleLevel builders.
 	AlertRuleLevel *AlertRuleLevelClient
-	// AlertRuleNotificationGroup is the client for interacting with the AlertRuleNotificationGroup builders.
-	AlertRuleNotificationGroup *AlertRuleNotificationGroupClient
 	// Captcha is the client for interacting with the Captcha builders.
 	Captcha *CaptchaClient
 	// Datasource is the client for interacting with the Datasource builders.
@@ -54,6 +52,10 @@ type Tx struct {
 	NotificationGroup *NotificationGroupClient
 	// NotificationPreset is the client for interacting with the NotificationPreset builders.
 	NotificationPreset *NotificationPresetClient
+	// NotificationSubscription is the client for interacting with the NotificationSubscription builders.
+	NotificationSubscription *NotificationSubscriptionClient
+	// NotificationSubscriptionGroup is the client for interacting with the NotificationSubscriptionGroup builders.
+	NotificationSubscriptionGroup *NotificationSubscriptionGroupClient
 	// NotificationTask is the client for interacting with the NotificationTask builders.
 	NotificationTask *NotificationTaskClient
 	// NotificationTemplate is the client for interacting with the NotificationTemplate builders.
@@ -216,7 +218,6 @@ func (tx *Tx) init() {
 	tx.AlertRule = NewAlertRuleClient(tx.config)
 	tx.AlertRuleGroup = NewAlertRuleGroupClient(tx.config)
 	tx.AlertRuleLevel = NewAlertRuleLevelClient(tx.config)
-	tx.AlertRuleNotificationGroup = NewAlertRuleNotificationGroupClient(tx.config)
 	tx.Captcha = NewCaptchaClient(tx.config)
 	tx.Datasource = NewDatasourceClient(tx.config)
 	tx.EmailLoginCode = NewEmailLoginCodeClient(tx.config)
@@ -228,6 +229,8 @@ func (tx *Tx) init() {
 	tx.NotificationChannel = NewNotificationChannelClient(tx.config)
 	tx.NotificationGroup = NewNotificationGroupClient(tx.config)
 	tx.NotificationPreset = NewNotificationPresetClient(tx.config)
+	tx.NotificationSubscription = NewNotificationSubscriptionClient(tx.config)
+	tx.NotificationSubscriptionGroup = NewNotificationSubscriptionGroupClient(tx.config)
 	tx.NotificationTask = NewNotificationTaskClient(tx.config)
 	tx.NotificationTemplate = NewNotificationTemplateClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)

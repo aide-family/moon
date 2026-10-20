@@ -20,7 +20,6 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulenotificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/captcha"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
@@ -32,6 +31,8 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationpreset"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscription"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscriptiongroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/permission"
@@ -55,38 +56,39 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAgent                      = "Agent"
-	TypeAlertDictionary            = "AlertDictionary"
-	TypeAlertEvalBatch             = "AlertEvalBatch"
-	TypeAlertEvent                 = "AlertEvent"
-	TypeAlertEventFiring           = "AlertEventFiring"
-	TypeAlertPage                  = "AlertPage"
-	TypeAlertRule                  = "AlertRule"
-	TypeAlertRuleGroup             = "AlertRuleGroup"
-	TypeAlertRuleLevel             = "AlertRuleLevel"
-	TypeAlertRuleNotificationGroup = "AlertRuleNotificationGroup"
-	TypeCaptcha                    = "Captcha"
-	TypeDatasource                 = "Datasource"
-	TypeEmailLoginCode             = "EmailLoginCode"
-	TypeK8sProxyAudit              = "K8sProxyAudit"
-	TypeMember                     = "Member"
-	TypeMemberRole                 = "MemberRole"
-	TypeMessageLog                 = "MessageLog"
-	TypeNamespace                  = "Namespace"
-	TypeNotificationChannel        = "NotificationChannel"
-	TypeNotificationGroup          = "NotificationGroup"
-	TypeNotificationPreset         = "NotificationPreset"
-	TypeNotificationTask           = "NotificationTask"
-	TypeNotificationTemplate       = "NotificationTemplate"
-	TypePermission                 = "Permission"
-	TypeRole                       = "Role"
-	TypeRolePermission             = "RolePermission"
-	TypeSFTPAudit                  = "SFTPAudit"
-	TypeSSHCommand                 = "SSHCommand"
-	TypeSSHCommandAudit            = "SSHCommandAudit"
-	TypeUser                       = "User"
-	TypeUserAlertPage              = "UserAlertPage"
-	TypeUserOAuth                  = "UserOAuth"
+	TypeAgent                         = "Agent"
+	TypeAlertDictionary               = "AlertDictionary"
+	TypeAlertEvalBatch                = "AlertEvalBatch"
+	TypeAlertEvent                    = "AlertEvent"
+	TypeAlertEventFiring              = "AlertEventFiring"
+	TypeAlertPage                     = "AlertPage"
+	TypeAlertRule                     = "AlertRule"
+	TypeAlertRuleGroup                = "AlertRuleGroup"
+	TypeAlertRuleLevel                = "AlertRuleLevel"
+	TypeCaptcha                       = "Captcha"
+	TypeDatasource                    = "Datasource"
+	TypeEmailLoginCode                = "EmailLoginCode"
+	TypeK8sProxyAudit                 = "K8sProxyAudit"
+	TypeMember                        = "Member"
+	TypeMemberRole                    = "MemberRole"
+	TypeMessageLog                    = "MessageLog"
+	TypeNamespace                     = "Namespace"
+	TypeNotificationChannel           = "NotificationChannel"
+	TypeNotificationGroup             = "NotificationGroup"
+	TypeNotificationPreset            = "NotificationPreset"
+	TypeNotificationSubscription      = "NotificationSubscription"
+	TypeNotificationSubscriptionGroup = "NotificationSubscriptionGroup"
+	TypeNotificationTask              = "NotificationTask"
+	TypeNotificationTemplate          = "NotificationTemplate"
+	TypePermission                    = "Permission"
+	TypeRole                          = "Role"
+	TypeRolePermission                = "RolePermission"
+	TypeSFTPAudit                     = "SFTPAudit"
+	TypeSSHCommand                    = "SSHCommand"
+	TypeSSHCommandAudit               = "SSHCommandAudit"
+	TypeUser                          = "User"
+	TypeUserAlertPage                 = "UserAlertPage"
+	TypeUserOAuth                     = "UserOAuth"
 )
 
 // AgentMutation represents an operation that mutates the Agent nodes in the graph.
@@ -8328,678 +8330,6 @@ func (m *AlertRuleLevelMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown AlertRuleLevel edge %s", name)
 }
 
-// AlertRuleNotificationGroupMutation represents an operation that mutates the AlertRuleNotificationGroup nodes in the graph.
-type AlertRuleNotificationGroupMutation struct {
-	config
-	op            Op
-	typ           string
-	id            *int
-	created_at    *time.Time
-	updated_at    *time.Time
-	deleted_at    *time.Time
-	uid           *string
-	namespace_uid *string
-	rule_uid      *string
-	group_uid     *string
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*AlertRuleNotificationGroup, error)
-	predicates    []predicate.AlertRuleNotificationGroup
-}
-
-var _ ent.Mutation = (*AlertRuleNotificationGroupMutation)(nil)
-
-// alertrulenotificationgroupOption allows management of the mutation configuration using functional options.
-type alertrulenotificationgroupOption func(*AlertRuleNotificationGroupMutation)
-
-// newAlertRuleNotificationGroupMutation creates new mutation for the AlertRuleNotificationGroup entity.
-func newAlertRuleNotificationGroupMutation(c config, op Op, opts ...alertrulenotificationgroupOption) *AlertRuleNotificationGroupMutation {
-	m := &AlertRuleNotificationGroupMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeAlertRuleNotificationGroup,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withAlertRuleNotificationGroupID sets the ID field of the mutation.
-func withAlertRuleNotificationGroupID(id int) alertrulenotificationgroupOption {
-	return func(m *AlertRuleNotificationGroupMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *AlertRuleNotificationGroup
-		)
-		m.oldValue = func(ctx context.Context) (*AlertRuleNotificationGroup, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().AlertRuleNotificationGroup.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withAlertRuleNotificationGroup sets the old AlertRuleNotificationGroup of the mutation.
-func withAlertRuleNotificationGroup(node *AlertRuleNotificationGroup) alertrulenotificationgroupOption {
-	return func(m *AlertRuleNotificationGroupMutation) {
-		m.oldValue = func(context.Context) (*AlertRuleNotificationGroup, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m AlertRuleNotificationGroupMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m AlertRuleNotificationGroupMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *AlertRuleNotificationGroupMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *AlertRuleNotificationGroupMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().AlertRuleNotificationGroup.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (m *AlertRuleNotificationGroupMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *AlertRuleNotificationGroupMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the AlertRuleNotificationGroup entity.
-// If the AlertRuleNotificationGroup object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AlertRuleNotificationGroupMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *AlertRuleNotificationGroupMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (m *AlertRuleNotificationGroupMutation) SetUpdatedAt(t time.Time) {
-	m.updated_at = &t
-}
-
-// UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *AlertRuleNotificationGroupMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m.updated_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdatedAt returns the old "updated_at" field's value of the AlertRuleNotificationGroup entity.
-// If the AlertRuleNotificationGroup object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AlertRuleNotificationGroupMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
-	}
-	return oldValue.UpdatedAt, nil
-}
-
-// ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *AlertRuleNotificationGroupMutation) ResetUpdatedAt() {
-	m.updated_at = nil
-}
-
-// SetDeletedAt sets the "deleted_at" field.
-func (m *AlertRuleNotificationGroupMutation) SetDeletedAt(t time.Time) {
-	m.deleted_at = &t
-}
-
-// DeletedAt returns the value of the "deleted_at" field in the mutation.
-func (m *AlertRuleNotificationGroupMutation) DeletedAt() (r time.Time, exists bool) {
-	v := m.deleted_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDeletedAt returns the old "deleted_at" field's value of the AlertRuleNotificationGroup entity.
-// If the AlertRuleNotificationGroup object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AlertRuleNotificationGroupMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
-	}
-	return oldValue.DeletedAt, nil
-}
-
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (m *AlertRuleNotificationGroupMutation) ClearDeletedAt() {
-	m.deleted_at = nil
-	m.clearedFields[alertrulenotificationgroup.FieldDeletedAt] = struct{}{}
-}
-
-// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
-func (m *AlertRuleNotificationGroupMutation) DeletedAtCleared() bool {
-	_, ok := m.clearedFields[alertrulenotificationgroup.FieldDeletedAt]
-	return ok
-}
-
-// ResetDeletedAt resets all changes to the "deleted_at" field.
-func (m *AlertRuleNotificationGroupMutation) ResetDeletedAt() {
-	m.deleted_at = nil
-	delete(m.clearedFields, alertrulenotificationgroup.FieldDeletedAt)
-}
-
-// SetUID sets the "uid" field.
-func (m *AlertRuleNotificationGroupMutation) SetUID(s string) {
-	m.uid = &s
-}
-
-// UID returns the value of the "uid" field in the mutation.
-func (m *AlertRuleNotificationGroupMutation) UID() (r string, exists bool) {
-	v := m.uid
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUID returns the old "uid" field's value of the AlertRuleNotificationGroup entity.
-// If the AlertRuleNotificationGroup object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AlertRuleNotificationGroupMutation) OldUID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUID: %w", err)
-	}
-	return oldValue.UID, nil
-}
-
-// ResetUID resets all changes to the "uid" field.
-func (m *AlertRuleNotificationGroupMutation) ResetUID() {
-	m.uid = nil
-}
-
-// SetNamespaceUID sets the "namespace_uid" field.
-func (m *AlertRuleNotificationGroupMutation) SetNamespaceUID(s string) {
-	m.namespace_uid = &s
-}
-
-// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
-func (m *AlertRuleNotificationGroupMutation) NamespaceUID() (r string, exists bool) {
-	v := m.namespace_uid
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldNamespaceUID returns the old "namespace_uid" field's value of the AlertRuleNotificationGroup entity.
-// If the AlertRuleNotificationGroup object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AlertRuleNotificationGroupMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
-	}
-	return oldValue.NamespaceUID, nil
-}
-
-// ResetNamespaceUID resets all changes to the "namespace_uid" field.
-func (m *AlertRuleNotificationGroupMutation) ResetNamespaceUID() {
-	m.namespace_uid = nil
-}
-
-// SetRuleUID sets the "rule_uid" field.
-func (m *AlertRuleNotificationGroupMutation) SetRuleUID(s string) {
-	m.rule_uid = &s
-}
-
-// RuleUID returns the value of the "rule_uid" field in the mutation.
-func (m *AlertRuleNotificationGroupMutation) RuleUID() (r string, exists bool) {
-	v := m.rule_uid
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRuleUID returns the old "rule_uid" field's value of the AlertRuleNotificationGroup entity.
-// If the AlertRuleNotificationGroup object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AlertRuleNotificationGroupMutation) OldRuleUID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRuleUID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRuleUID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRuleUID: %w", err)
-	}
-	return oldValue.RuleUID, nil
-}
-
-// ResetRuleUID resets all changes to the "rule_uid" field.
-func (m *AlertRuleNotificationGroupMutation) ResetRuleUID() {
-	m.rule_uid = nil
-}
-
-// SetGroupUID sets the "group_uid" field.
-func (m *AlertRuleNotificationGroupMutation) SetGroupUID(s string) {
-	m.group_uid = &s
-}
-
-// GroupUID returns the value of the "group_uid" field in the mutation.
-func (m *AlertRuleNotificationGroupMutation) GroupUID() (r string, exists bool) {
-	v := m.group_uid
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldGroupUID returns the old "group_uid" field's value of the AlertRuleNotificationGroup entity.
-// If the AlertRuleNotificationGroup object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AlertRuleNotificationGroupMutation) OldGroupUID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGroupUID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGroupUID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGroupUID: %w", err)
-	}
-	return oldValue.GroupUID, nil
-}
-
-// ResetGroupUID resets all changes to the "group_uid" field.
-func (m *AlertRuleNotificationGroupMutation) ResetGroupUID() {
-	m.group_uid = nil
-}
-
-// Where appends a list predicates to the AlertRuleNotificationGroupMutation builder.
-func (m *AlertRuleNotificationGroupMutation) Where(ps ...predicate.AlertRuleNotificationGroup) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the AlertRuleNotificationGroupMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *AlertRuleNotificationGroupMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.AlertRuleNotificationGroup, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *AlertRuleNotificationGroupMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *AlertRuleNotificationGroupMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (AlertRuleNotificationGroup).
-func (m *AlertRuleNotificationGroupMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *AlertRuleNotificationGroupMutation) Fields() []string {
-	fields := make([]string, 0, 7)
-	if m.created_at != nil {
-		fields = append(fields, alertrulenotificationgroup.FieldCreatedAt)
-	}
-	if m.updated_at != nil {
-		fields = append(fields, alertrulenotificationgroup.FieldUpdatedAt)
-	}
-	if m.deleted_at != nil {
-		fields = append(fields, alertrulenotificationgroup.FieldDeletedAt)
-	}
-	if m.uid != nil {
-		fields = append(fields, alertrulenotificationgroup.FieldUID)
-	}
-	if m.namespace_uid != nil {
-		fields = append(fields, alertrulenotificationgroup.FieldNamespaceUID)
-	}
-	if m.rule_uid != nil {
-		fields = append(fields, alertrulenotificationgroup.FieldRuleUID)
-	}
-	if m.group_uid != nil {
-		fields = append(fields, alertrulenotificationgroup.FieldGroupUID)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *AlertRuleNotificationGroupMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case alertrulenotificationgroup.FieldCreatedAt:
-		return m.CreatedAt()
-	case alertrulenotificationgroup.FieldUpdatedAt:
-		return m.UpdatedAt()
-	case alertrulenotificationgroup.FieldDeletedAt:
-		return m.DeletedAt()
-	case alertrulenotificationgroup.FieldUID:
-		return m.UID()
-	case alertrulenotificationgroup.FieldNamespaceUID:
-		return m.NamespaceUID()
-	case alertrulenotificationgroup.FieldRuleUID:
-		return m.RuleUID()
-	case alertrulenotificationgroup.FieldGroupUID:
-		return m.GroupUID()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *AlertRuleNotificationGroupMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case alertrulenotificationgroup.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	case alertrulenotificationgroup.FieldUpdatedAt:
-		return m.OldUpdatedAt(ctx)
-	case alertrulenotificationgroup.FieldDeletedAt:
-		return m.OldDeletedAt(ctx)
-	case alertrulenotificationgroup.FieldUID:
-		return m.OldUID(ctx)
-	case alertrulenotificationgroup.FieldNamespaceUID:
-		return m.OldNamespaceUID(ctx)
-	case alertrulenotificationgroup.FieldRuleUID:
-		return m.OldRuleUID(ctx)
-	case alertrulenotificationgroup.FieldGroupUID:
-		return m.OldGroupUID(ctx)
-	}
-	return nil, fmt.Errorf("unknown AlertRuleNotificationGroup field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *AlertRuleNotificationGroupMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case alertrulenotificationgroup.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	case alertrulenotificationgroup.FieldUpdatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedAt(v)
-		return nil
-	case alertrulenotificationgroup.FieldDeletedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDeletedAt(v)
-		return nil
-	case alertrulenotificationgroup.FieldUID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUID(v)
-		return nil
-	case alertrulenotificationgroup.FieldNamespaceUID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetNamespaceUID(v)
-		return nil
-	case alertrulenotificationgroup.FieldRuleUID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRuleUID(v)
-		return nil
-	case alertrulenotificationgroup.FieldGroupUID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetGroupUID(v)
-		return nil
-	}
-	return fmt.Errorf("unknown AlertRuleNotificationGroup field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *AlertRuleNotificationGroupMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *AlertRuleNotificationGroupMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *AlertRuleNotificationGroupMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown AlertRuleNotificationGroup numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *AlertRuleNotificationGroupMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(alertrulenotificationgroup.FieldDeletedAt) {
-		fields = append(fields, alertrulenotificationgroup.FieldDeletedAt)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *AlertRuleNotificationGroupMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *AlertRuleNotificationGroupMutation) ClearField(name string) error {
-	switch name {
-	case alertrulenotificationgroup.FieldDeletedAt:
-		m.ClearDeletedAt()
-		return nil
-	}
-	return fmt.Errorf("unknown AlertRuleNotificationGroup nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *AlertRuleNotificationGroupMutation) ResetField(name string) error {
-	switch name {
-	case alertrulenotificationgroup.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	case alertrulenotificationgroup.FieldUpdatedAt:
-		m.ResetUpdatedAt()
-		return nil
-	case alertrulenotificationgroup.FieldDeletedAt:
-		m.ResetDeletedAt()
-		return nil
-	case alertrulenotificationgroup.FieldUID:
-		m.ResetUID()
-		return nil
-	case alertrulenotificationgroup.FieldNamespaceUID:
-		m.ResetNamespaceUID()
-		return nil
-	case alertrulenotificationgroup.FieldRuleUID:
-		m.ResetRuleUID()
-		return nil
-	case alertrulenotificationgroup.FieldGroupUID:
-		m.ResetGroupUID()
-		return nil
-	}
-	return fmt.Errorf("unknown AlertRuleNotificationGroup field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *AlertRuleNotificationGroupMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *AlertRuleNotificationGroupMutation) AddedIDs(name string) []ent.Value {
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *AlertRuleNotificationGroupMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *AlertRuleNotificationGroupMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *AlertRuleNotificationGroupMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *AlertRuleNotificationGroupMutation) EdgeCleared(name string) bool {
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *AlertRuleNotificationGroupMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown AlertRuleNotificationGroup unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *AlertRuleNotificationGroupMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown AlertRuleNotificationGroup edge %s", name)
-}
-
 // CaptchaMutation represents an operation that mutates the Captcha nodes in the graph.
 type CaptchaMutation struct {
 	config
@@ -16335,24 +15665,29 @@ func (m *NotificationChannelMutation) ResetEdge(name string) error {
 // NotificationGroupMutation represents an operation that mutates the NotificationGroup nodes in the graph.
 type NotificationGroupMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	created_at    *time.Time
-	updated_at    *time.Time
-	deleted_at    *time.Time
-	uid           *string
-	namespace_uid *string
-	name          *string
-	status        *notificationgroup.Status
-	channel_uid   *string
-	template_uid  *string
-	receivers     *string
-	remark        *string
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*NotificationGroup, error)
-	predicates    []predicate.NotificationGroup
+	op                         Op
+	typ                        string
+	id                         *int
+	created_at                 *time.Time
+	updated_at                 *time.Time
+	deleted_at                 *time.Time
+	uid                        *string
+	namespace_uid              *string
+	name                       *string
+	status                     *notificationgroup.Status
+	channel_uid                *string
+	template_uid               *string
+	receivers                  *string
+	remark                     *string
+	member_uids                *[]string
+	appendmember_uids          []string
+	webhook_channel_uids       *[]string
+	appendwebhook_channel_uids []string
+	webhook_template_uid       *string
+	clearedFields              map[string]struct{}
+	done                       bool
+	oldValue                   func(context.Context) (*NotificationGroup, error)
+	predicates                 []predicate.NotificationGroup
 }
 
 var _ ent.Mutation = (*NotificationGroupMutation)(nil)
@@ -16862,6 +16197,144 @@ func (m *NotificationGroupMutation) ResetRemark() {
 	m.remark = nil
 }
 
+// SetMemberUids sets the "member_uids" field.
+func (m *NotificationGroupMutation) SetMemberUids(s []string) {
+	m.member_uids = &s
+	m.appendmember_uids = nil
+}
+
+// MemberUids returns the value of the "member_uids" field in the mutation.
+func (m *NotificationGroupMutation) MemberUids() (r []string, exists bool) {
+	v := m.member_uids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMemberUids returns the old "member_uids" field's value of the NotificationGroup entity.
+// If the NotificationGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationGroupMutation) OldMemberUids(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMemberUids is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMemberUids requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMemberUids: %w", err)
+	}
+	return oldValue.MemberUids, nil
+}
+
+// AppendMemberUids adds s to the "member_uids" field.
+func (m *NotificationGroupMutation) AppendMemberUids(s []string) {
+	m.appendmember_uids = append(m.appendmember_uids, s...)
+}
+
+// AppendedMemberUids returns the list of values that were appended to the "member_uids" field in this mutation.
+func (m *NotificationGroupMutation) AppendedMemberUids() ([]string, bool) {
+	if len(m.appendmember_uids) == 0 {
+		return nil, false
+	}
+	return m.appendmember_uids, true
+}
+
+// ResetMemberUids resets all changes to the "member_uids" field.
+func (m *NotificationGroupMutation) ResetMemberUids() {
+	m.member_uids = nil
+	m.appendmember_uids = nil
+}
+
+// SetWebhookChannelUids sets the "webhook_channel_uids" field.
+func (m *NotificationGroupMutation) SetWebhookChannelUids(s []string) {
+	m.webhook_channel_uids = &s
+	m.appendwebhook_channel_uids = nil
+}
+
+// WebhookChannelUids returns the value of the "webhook_channel_uids" field in the mutation.
+func (m *NotificationGroupMutation) WebhookChannelUids() (r []string, exists bool) {
+	v := m.webhook_channel_uids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWebhookChannelUids returns the old "webhook_channel_uids" field's value of the NotificationGroup entity.
+// If the NotificationGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationGroupMutation) OldWebhookChannelUids(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWebhookChannelUids is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWebhookChannelUids requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWebhookChannelUids: %w", err)
+	}
+	return oldValue.WebhookChannelUids, nil
+}
+
+// AppendWebhookChannelUids adds s to the "webhook_channel_uids" field.
+func (m *NotificationGroupMutation) AppendWebhookChannelUids(s []string) {
+	m.appendwebhook_channel_uids = append(m.appendwebhook_channel_uids, s...)
+}
+
+// AppendedWebhookChannelUids returns the list of values that were appended to the "webhook_channel_uids" field in this mutation.
+func (m *NotificationGroupMutation) AppendedWebhookChannelUids() ([]string, bool) {
+	if len(m.appendwebhook_channel_uids) == 0 {
+		return nil, false
+	}
+	return m.appendwebhook_channel_uids, true
+}
+
+// ResetWebhookChannelUids resets all changes to the "webhook_channel_uids" field.
+func (m *NotificationGroupMutation) ResetWebhookChannelUids() {
+	m.webhook_channel_uids = nil
+	m.appendwebhook_channel_uids = nil
+}
+
+// SetWebhookTemplateUID sets the "webhook_template_uid" field.
+func (m *NotificationGroupMutation) SetWebhookTemplateUID(s string) {
+	m.webhook_template_uid = &s
+}
+
+// WebhookTemplateUID returns the value of the "webhook_template_uid" field in the mutation.
+func (m *NotificationGroupMutation) WebhookTemplateUID() (r string, exists bool) {
+	v := m.webhook_template_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWebhookTemplateUID returns the old "webhook_template_uid" field's value of the NotificationGroup entity.
+// If the NotificationGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationGroupMutation) OldWebhookTemplateUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWebhookTemplateUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWebhookTemplateUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWebhookTemplateUID: %w", err)
+	}
+	return oldValue.WebhookTemplateUID, nil
+}
+
+// ResetWebhookTemplateUID resets all changes to the "webhook_template_uid" field.
+func (m *NotificationGroupMutation) ResetWebhookTemplateUID() {
+	m.webhook_template_uid = nil
+}
+
 // Where appends a list predicates to the NotificationGroupMutation builder.
 func (m *NotificationGroupMutation) Where(ps ...predicate.NotificationGroup) {
 	m.predicates = append(m.predicates, ps...)
@@ -16896,7 +16369,7 @@ func (m *NotificationGroupMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NotificationGroupMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, notificationgroup.FieldCreatedAt)
 	}
@@ -16930,6 +16403,15 @@ func (m *NotificationGroupMutation) Fields() []string {
 	if m.remark != nil {
 		fields = append(fields, notificationgroup.FieldRemark)
 	}
+	if m.member_uids != nil {
+		fields = append(fields, notificationgroup.FieldMemberUids)
+	}
+	if m.webhook_channel_uids != nil {
+		fields = append(fields, notificationgroup.FieldWebhookChannelUids)
+	}
+	if m.webhook_template_uid != nil {
+		fields = append(fields, notificationgroup.FieldWebhookTemplateUID)
+	}
 	return fields
 }
 
@@ -16960,6 +16442,12 @@ func (m *NotificationGroupMutation) Field(name string) (ent.Value, bool) {
 		return m.Receivers()
 	case notificationgroup.FieldRemark:
 		return m.Remark()
+	case notificationgroup.FieldMemberUids:
+		return m.MemberUids()
+	case notificationgroup.FieldWebhookChannelUids:
+		return m.WebhookChannelUids()
+	case notificationgroup.FieldWebhookTemplateUID:
+		return m.WebhookTemplateUID()
 	}
 	return nil, false
 }
@@ -16991,6 +16479,12 @@ func (m *NotificationGroupMutation) OldField(ctx context.Context, name string) (
 		return m.OldReceivers(ctx)
 	case notificationgroup.FieldRemark:
 		return m.OldRemark(ctx)
+	case notificationgroup.FieldMemberUids:
+		return m.OldMemberUids(ctx)
+	case notificationgroup.FieldWebhookChannelUids:
+		return m.OldWebhookChannelUids(ctx)
+	case notificationgroup.FieldWebhookTemplateUID:
+		return m.OldWebhookTemplateUID(ctx)
 	}
 	return nil, fmt.Errorf("unknown NotificationGroup field %s", name)
 }
@@ -17076,6 +16570,27 @@ func (m *NotificationGroupMutation) SetField(name string, value ent.Value) error
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRemark(v)
+		return nil
+	case notificationgroup.FieldMemberUids:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMemberUids(v)
+		return nil
+	case notificationgroup.FieldWebhookChannelUids:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWebhookChannelUids(v)
+		return nil
+	case notificationgroup.FieldWebhookTemplateUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWebhookTemplateUID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown NotificationGroup field %s", name)
@@ -17167,6 +16682,15 @@ func (m *NotificationGroupMutation) ResetField(name string) error {
 		return nil
 	case notificationgroup.FieldRemark:
 		m.ResetRemark()
+		return nil
+	case notificationgroup.FieldMemberUids:
+		m.ResetMemberUids()
+		return nil
+	case notificationgroup.FieldWebhookChannelUids:
+		m.ResetWebhookChannelUids()
+		return nil
+	case notificationgroup.FieldWebhookTemplateUID:
+		m.ResetWebhookTemplateUID()
 		return nil
 	}
 	return fmt.Errorf("unknown NotificationGroup field %s", name)
@@ -18068,35 +17592,1628 @@ func (m *NotificationPresetMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown NotificationPreset edge %s", name)
 }
 
+// NotificationSubscriptionMutation represents an operation that mutates the NotificationSubscription nodes in the graph.
+type NotificationSubscriptionMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *int
+	created_at            *time.Time
+	updated_at            *time.Time
+	deleted_at            *time.Time
+	uid                   *string
+	namespace_uid         *string
+	name                  *string
+	status                *notificationsubscription.Status
+	labels                *string
+	level_uids            *[]string
+	appendlevel_uids      []string
+	datasource_uids       *[]string
+	appenddatasource_uids []string
+	remark                *string
+	clearedFields         map[string]struct{}
+	done                  bool
+	oldValue              func(context.Context) (*NotificationSubscription, error)
+	predicates            []predicate.NotificationSubscription
+}
+
+var _ ent.Mutation = (*NotificationSubscriptionMutation)(nil)
+
+// notificationsubscriptionOption allows management of the mutation configuration using functional options.
+type notificationsubscriptionOption func(*NotificationSubscriptionMutation)
+
+// newNotificationSubscriptionMutation creates new mutation for the NotificationSubscription entity.
+func newNotificationSubscriptionMutation(c config, op Op, opts ...notificationsubscriptionOption) *NotificationSubscriptionMutation {
+	m := &NotificationSubscriptionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNotificationSubscription,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNotificationSubscriptionID sets the ID field of the mutation.
+func withNotificationSubscriptionID(id int) notificationsubscriptionOption {
+	return func(m *NotificationSubscriptionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *NotificationSubscription
+		)
+		m.oldValue = func(ctx context.Context) (*NotificationSubscription, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().NotificationSubscription.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNotificationSubscription sets the old NotificationSubscription of the mutation.
+func withNotificationSubscription(node *NotificationSubscription) notificationsubscriptionOption {
+	return func(m *NotificationSubscriptionMutation) {
+		m.oldValue = func(context.Context) (*NotificationSubscription, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NotificationSubscriptionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NotificationSubscriptionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NotificationSubscriptionMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *NotificationSubscriptionMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().NotificationSubscription.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *NotificationSubscriptionMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *NotificationSubscriptionMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the NotificationSubscription entity.
+// If the NotificationSubscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *NotificationSubscriptionMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *NotificationSubscriptionMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *NotificationSubscriptionMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the NotificationSubscription entity.
+// If the NotificationSubscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *NotificationSubscriptionMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *NotificationSubscriptionMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *NotificationSubscriptionMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the NotificationSubscription entity.
+// If the NotificationSubscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *NotificationSubscriptionMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[notificationsubscription.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *NotificationSubscriptionMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[notificationsubscription.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *NotificationSubscriptionMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, notificationsubscription.FieldDeletedAt)
+}
+
+// SetUID sets the "uid" field.
+func (m *NotificationSubscriptionMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *NotificationSubscriptionMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the NotificationSubscription entity.
+// If the NotificationSubscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *NotificationSubscriptionMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *NotificationSubscriptionMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *NotificationSubscriptionMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the NotificationSubscription entity.
+// If the NotificationSubscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *NotificationSubscriptionMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetName sets the "name" field.
+func (m *NotificationSubscriptionMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *NotificationSubscriptionMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the NotificationSubscription entity.
+// If the NotificationSubscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *NotificationSubscriptionMutation) ResetName() {
+	m.name = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *NotificationSubscriptionMutation) SetStatus(n notificationsubscription.Status) {
+	m.status = &n
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *NotificationSubscriptionMutation) Status() (r notificationsubscription.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the NotificationSubscription entity.
+// If the NotificationSubscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionMutation) OldStatus(ctx context.Context) (v notificationsubscription.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *NotificationSubscriptionMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetLabels sets the "labels" field.
+func (m *NotificationSubscriptionMutation) SetLabels(s string) {
+	m.labels = &s
+}
+
+// Labels returns the value of the "labels" field in the mutation.
+func (m *NotificationSubscriptionMutation) Labels() (r string, exists bool) {
+	v := m.labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabels returns the old "labels" field's value of the NotificationSubscription entity.
+// If the NotificationSubscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionMutation) OldLabels(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
+	}
+	return oldValue.Labels, nil
+}
+
+// ResetLabels resets all changes to the "labels" field.
+func (m *NotificationSubscriptionMutation) ResetLabels() {
+	m.labels = nil
+}
+
+// SetLevelUids sets the "level_uids" field.
+func (m *NotificationSubscriptionMutation) SetLevelUids(s []string) {
+	m.level_uids = &s
+	m.appendlevel_uids = nil
+}
+
+// LevelUids returns the value of the "level_uids" field in the mutation.
+func (m *NotificationSubscriptionMutation) LevelUids() (r []string, exists bool) {
+	v := m.level_uids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLevelUids returns the old "level_uids" field's value of the NotificationSubscription entity.
+// If the NotificationSubscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionMutation) OldLevelUids(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLevelUids is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLevelUids requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLevelUids: %w", err)
+	}
+	return oldValue.LevelUids, nil
+}
+
+// AppendLevelUids adds s to the "level_uids" field.
+func (m *NotificationSubscriptionMutation) AppendLevelUids(s []string) {
+	m.appendlevel_uids = append(m.appendlevel_uids, s...)
+}
+
+// AppendedLevelUids returns the list of values that were appended to the "level_uids" field in this mutation.
+func (m *NotificationSubscriptionMutation) AppendedLevelUids() ([]string, bool) {
+	if len(m.appendlevel_uids) == 0 {
+		return nil, false
+	}
+	return m.appendlevel_uids, true
+}
+
+// ResetLevelUids resets all changes to the "level_uids" field.
+func (m *NotificationSubscriptionMutation) ResetLevelUids() {
+	m.level_uids = nil
+	m.appendlevel_uids = nil
+}
+
+// SetDatasourceUids sets the "datasource_uids" field.
+func (m *NotificationSubscriptionMutation) SetDatasourceUids(s []string) {
+	m.datasource_uids = &s
+	m.appenddatasource_uids = nil
+}
+
+// DatasourceUids returns the value of the "datasource_uids" field in the mutation.
+func (m *NotificationSubscriptionMutation) DatasourceUids() (r []string, exists bool) {
+	v := m.datasource_uids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDatasourceUids returns the old "datasource_uids" field's value of the NotificationSubscription entity.
+// If the NotificationSubscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionMutation) OldDatasourceUids(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDatasourceUids is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDatasourceUids requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDatasourceUids: %w", err)
+	}
+	return oldValue.DatasourceUids, nil
+}
+
+// AppendDatasourceUids adds s to the "datasource_uids" field.
+func (m *NotificationSubscriptionMutation) AppendDatasourceUids(s []string) {
+	m.appenddatasource_uids = append(m.appenddatasource_uids, s...)
+}
+
+// AppendedDatasourceUids returns the list of values that were appended to the "datasource_uids" field in this mutation.
+func (m *NotificationSubscriptionMutation) AppendedDatasourceUids() ([]string, bool) {
+	if len(m.appenddatasource_uids) == 0 {
+		return nil, false
+	}
+	return m.appenddatasource_uids, true
+}
+
+// ResetDatasourceUids resets all changes to the "datasource_uids" field.
+func (m *NotificationSubscriptionMutation) ResetDatasourceUids() {
+	m.datasource_uids = nil
+	m.appenddatasource_uids = nil
+}
+
+// SetRemark sets the "remark" field.
+func (m *NotificationSubscriptionMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *NotificationSubscriptionMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the NotificationSubscription entity.
+// If the NotificationSubscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionMutation) OldRemark(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *NotificationSubscriptionMutation) ResetRemark() {
+	m.remark = nil
+}
+
+// Where appends a list predicates to the NotificationSubscriptionMutation builder.
+func (m *NotificationSubscriptionMutation) Where(ps ...predicate.NotificationSubscription) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the NotificationSubscriptionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NotificationSubscriptionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.NotificationSubscription, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *NotificationSubscriptionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NotificationSubscriptionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (NotificationSubscription).
+func (m *NotificationSubscriptionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NotificationSubscriptionMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, notificationsubscription.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, notificationsubscription.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, notificationsubscription.FieldDeletedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, notificationsubscription.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, notificationsubscription.FieldNamespaceUID)
+	}
+	if m.name != nil {
+		fields = append(fields, notificationsubscription.FieldName)
+	}
+	if m.status != nil {
+		fields = append(fields, notificationsubscription.FieldStatus)
+	}
+	if m.labels != nil {
+		fields = append(fields, notificationsubscription.FieldLabels)
+	}
+	if m.level_uids != nil {
+		fields = append(fields, notificationsubscription.FieldLevelUids)
+	}
+	if m.datasource_uids != nil {
+		fields = append(fields, notificationsubscription.FieldDatasourceUids)
+	}
+	if m.remark != nil {
+		fields = append(fields, notificationsubscription.FieldRemark)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NotificationSubscriptionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case notificationsubscription.FieldCreatedAt:
+		return m.CreatedAt()
+	case notificationsubscription.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case notificationsubscription.FieldDeletedAt:
+		return m.DeletedAt()
+	case notificationsubscription.FieldUID:
+		return m.UID()
+	case notificationsubscription.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case notificationsubscription.FieldName:
+		return m.Name()
+	case notificationsubscription.FieldStatus:
+		return m.Status()
+	case notificationsubscription.FieldLabels:
+		return m.Labels()
+	case notificationsubscription.FieldLevelUids:
+		return m.LevelUids()
+	case notificationsubscription.FieldDatasourceUids:
+		return m.DatasourceUids()
+	case notificationsubscription.FieldRemark:
+		return m.Remark()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NotificationSubscriptionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case notificationsubscription.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case notificationsubscription.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case notificationsubscription.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case notificationsubscription.FieldUID:
+		return m.OldUID(ctx)
+	case notificationsubscription.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case notificationsubscription.FieldName:
+		return m.OldName(ctx)
+	case notificationsubscription.FieldStatus:
+		return m.OldStatus(ctx)
+	case notificationsubscription.FieldLabels:
+		return m.OldLabels(ctx)
+	case notificationsubscription.FieldLevelUids:
+		return m.OldLevelUids(ctx)
+	case notificationsubscription.FieldDatasourceUids:
+		return m.OldDatasourceUids(ctx)
+	case notificationsubscription.FieldRemark:
+		return m.OldRemark(ctx)
+	}
+	return nil, fmt.Errorf("unknown NotificationSubscription field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NotificationSubscriptionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case notificationsubscription.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case notificationsubscription.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case notificationsubscription.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case notificationsubscription.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case notificationsubscription.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case notificationsubscription.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case notificationsubscription.FieldStatus:
+		v, ok := value.(notificationsubscription.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case notificationsubscription.FieldLabels:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabels(v)
+		return nil
+	case notificationsubscription.FieldLevelUids:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLevelUids(v)
+		return nil
+	case notificationsubscription.FieldDatasourceUids:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDatasourceUids(v)
+		return nil
+	case notificationsubscription.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NotificationSubscription field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NotificationSubscriptionMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NotificationSubscriptionMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NotificationSubscriptionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown NotificationSubscription numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NotificationSubscriptionMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(notificationsubscription.FieldDeletedAt) {
+		fields = append(fields, notificationsubscription.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NotificationSubscriptionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NotificationSubscriptionMutation) ClearField(name string) error {
+	switch name {
+	case notificationsubscription.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown NotificationSubscription nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NotificationSubscriptionMutation) ResetField(name string) error {
+	switch name {
+	case notificationsubscription.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case notificationsubscription.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case notificationsubscription.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case notificationsubscription.FieldUID:
+		m.ResetUID()
+		return nil
+	case notificationsubscription.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case notificationsubscription.FieldName:
+		m.ResetName()
+		return nil
+	case notificationsubscription.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case notificationsubscription.FieldLabels:
+		m.ResetLabels()
+		return nil
+	case notificationsubscription.FieldLevelUids:
+		m.ResetLevelUids()
+		return nil
+	case notificationsubscription.FieldDatasourceUids:
+		m.ResetDatasourceUids()
+		return nil
+	case notificationsubscription.FieldRemark:
+		m.ResetRemark()
+		return nil
+	}
+	return fmt.Errorf("unknown NotificationSubscription field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NotificationSubscriptionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NotificationSubscriptionMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NotificationSubscriptionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NotificationSubscriptionMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NotificationSubscriptionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NotificationSubscriptionMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NotificationSubscriptionMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown NotificationSubscription unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NotificationSubscriptionMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown NotificationSubscription edge %s", name)
+}
+
+// NotificationSubscriptionGroupMutation represents an operation that mutates the NotificationSubscriptionGroup nodes in the graph.
+type NotificationSubscriptionGroupMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	created_at       *time.Time
+	updated_at       *time.Time
+	deleted_at       *time.Time
+	uid              *string
+	namespace_uid    *string
+	subscription_uid *string
+	group_uid        *string
+	clearedFields    map[string]struct{}
+	done             bool
+	oldValue         func(context.Context) (*NotificationSubscriptionGroup, error)
+	predicates       []predicate.NotificationSubscriptionGroup
+}
+
+var _ ent.Mutation = (*NotificationSubscriptionGroupMutation)(nil)
+
+// notificationsubscriptiongroupOption allows management of the mutation configuration using functional options.
+type notificationsubscriptiongroupOption func(*NotificationSubscriptionGroupMutation)
+
+// newNotificationSubscriptionGroupMutation creates new mutation for the NotificationSubscriptionGroup entity.
+func newNotificationSubscriptionGroupMutation(c config, op Op, opts ...notificationsubscriptiongroupOption) *NotificationSubscriptionGroupMutation {
+	m := &NotificationSubscriptionGroupMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNotificationSubscriptionGroup,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNotificationSubscriptionGroupID sets the ID field of the mutation.
+func withNotificationSubscriptionGroupID(id int) notificationsubscriptiongroupOption {
+	return func(m *NotificationSubscriptionGroupMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *NotificationSubscriptionGroup
+		)
+		m.oldValue = func(ctx context.Context) (*NotificationSubscriptionGroup, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().NotificationSubscriptionGroup.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNotificationSubscriptionGroup sets the old NotificationSubscriptionGroup of the mutation.
+func withNotificationSubscriptionGroup(node *NotificationSubscriptionGroup) notificationsubscriptiongroupOption {
+	return func(m *NotificationSubscriptionGroupMutation) {
+		m.oldValue = func(context.Context) (*NotificationSubscriptionGroup, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NotificationSubscriptionGroupMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NotificationSubscriptionGroupMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NotificationSubscriptionGroupMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *NotificationSubscriptionGroupMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().NotificationSubscriptionGroup.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *NotificationSubscriptionGroupMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *NotificationSubscriptionGroupMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the NotificationSubscriptionGroup entity.
+// If the NotificationSubscriptionGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionGroupMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *NotificationSubscriptionGroupMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *NotificationSubscriptionGroupMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *NotificationSubscriptionGroupMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the NotificationSubscriptionGroup entity.
+// If the NotificationSubscriptionGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionGroupMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *NotificationSubscriptionGroupMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *NotificationSubscriptionGroupMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *NotificationSubscriptionGroupMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the NotificationSubscriptionGroup entity.
+// If the NotificationSubscriptionGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionGroupMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *NotificationSubscriptionGroupMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[notificationsubscriptiongroup.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *NotificationSubscriptionGroupMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[notificationsubscriptiongroup.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *NotificationSubscriptionGroupMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, notificationsubscriptiongroup.FieldDeletedAt)
+}
+
+// SetUID sets the "uid" field.
+func (m *NotificationSubscriptionGroupMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *NotificationSubscriptionGroupMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the NotificationSubscriptionGroup entity.
+// If the NotificationSubscriptionGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionGroupMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *NotificationSubscriptionGroupMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *NotificationSubscriptionGroupMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *NotificationSubscriptionGroupMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the NotificationSubscriptionGroup entity.
+// If the NotificationSubscriptionGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionGroupMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *NotificationSubscriptionGroupMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetSubscriptionUID sets the "subscription_uid" field.
+func (m *NotificationSubscriptionGroupMutation) SetSubscriptionUID(s string) {
+	m.subscription_uid = &s
+}
+
+// SubscriptionUID returns the value of the "subscription_uid" field in the mutation.
+func (m *NotificationSubscriptionGroupMutation) SubscriptionUID() (r string, exists bool) {
+	v := m.subscription_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSubscriptionUID returns the old "subscription_uid" field's value of the NotificationSubscriptionGroup entity.
+// If the NotificationSubscriptionGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionGroupMutation) OldSubscriptionUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSubscriptionUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSubscriptionUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSubscriptionUID: %w", err)
+	}
+	return oldValue.SubscriptionUID, nil
+}
+
+// ResetSubscriptionUID resets all changes to the "subscription_uid" field.
+func (m *NotificationSubscriptionGroupMutation) ResetSubscriptionUID() {
+	m.subscription_uid = nil
+}
+
+// SetGroupUID sets the "group_uid" field.
+func (m *NotificationSubscriptionGroupMutation) SetGroupUID(s string) {
+	m.group_uid = &s
+}
+
+// GroupUID returns the value of the "group_uid" field in the mutation.
+func (m *NotificationSubscriptionGroupMutation) GroupUID() (r string, exists bool) {
+	v := m.group_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGroupUID returns the old "group_uid" field's value of the NotificationSubscriptionGroup entity.
+// If the NotificationSubscriptionGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationSubscriptionGroupMutation) OldGroupUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGroupUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGroupUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGroupUID: %w", err)
+	}
+	return oldValue.GroupUID, nil
+}
+
+// ResetGroupUID resets all changes to the "group_uid" field.
+func (m *NotificationSubscriptionGroupMutation) ResetGroupUID() {
+	m.group_uid = nil
+}
+
+// Where appends a list predicates to the NotificationSubscriptionGroupMutation builder.
+func (m *NotificationSubscriptionGroupMutation) Where(ps ...predicate.NotificationSubscriptionGroup) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the NotificationSubscriptionGroupMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NotificationSubscriptionGroupMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.NotificationSubscriptionGroup, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *NotificationSubscriptionGroupMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NotificationSubscriptionGroupMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (NotificationSubscriptionGroup).
+func (m *NotificationSubscriptionGroupMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NotificationSubscriptionGroupMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.created_at != nil {
+		fields = append(fields, notificationsubscriptiongroup.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, notificationsubscriptiongroup.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, notificationsubscriptiongroup.FieldDeletedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, notificationsubscriptiongroup.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, notificationsubscriptiongroup.FieldNamespaceUID)
+	}
+	if m.subscription_uid != nil {
+		fields = append(fields, notificationsubscriptiongroup.FieldSubscriptionUID)
+	}
+	if m.group_uid != nil {
+		fields = append(fields, notificationsubscriptiongroup.FieldGroupUID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NotificationSubscriptionGroupMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case notificationsubscriptiongroup.FieldCreatedAt:
+		return m.CreatedAt()
+	case notificationsubscriptiongroup.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case notificationsubscriptiongroup.FieldDeletedAt:
+		return m.DeletedAt()
+	case notificationsubscriptiongroup.FieldUID:
+		return m.UID()
+	case notificationsubscriptiongroup.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case notificationsubscriptiongroup.FieldSubscriptionUID:
+		return m.SubscriptionUID()
+	case notificationsubscriptiongroup.FieldGroupUID:
+		return m.GroupUID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NotificationSubscriptionGroupMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case notificationsubscriptiongroup.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case notificationsubscriptiongroup.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case notificationsubscriptiongroup.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case notificationsubscriptiongroup.FieldUID:
+		return m.OldUID(ctx)
+	case notificationsubscriptiongroup.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case notificationsubscriptiongroup.FieldSubscriptionUID:
+		return m.OldSubscriptionUID(ctx)
+	case notificationsubscriptiongroup.FieldGroupUID:
+		return m.OldGroupUID(ctx)
+	}
+	return nil, fmt.Errorf("unknown NotificationSubscriptionGroup field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NotificationSubscriptionGroupMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case notificationsubscriptiongroup.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case notificationsubscriptiongroup.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case notificationsubscriptiongroup.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case notificationsubscriptiongroup.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case notificationsubscriptiongroup.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case notificationsubscriptiongroup.FieldSubscriptionUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSubscriptionUID(v)
+		return nil
+	case notificationsubscriptiongroup.FieldGroupUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGroupUID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NotificationSubscriptionGroup field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NotificationSubscriptionGroupMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NotificationSubscriptionGroupMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NotificationSubscriptionGroupMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown NotificationSubscriptionGroup numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NotificationSubscriptionGroupMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(notificationsubscriptiongroup.FieldDeletedAt) {
+		fields = append(fields, notificationsubscriptiongroup.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NotificationSubscriptionGroupMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NotificationSubscriptionGroupMutation) ClearField(name string) error {
+	switch name {
+	case notificationsubscriptiongroup.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown NotificationSubscriptionGroup nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NotificationSubscriptionGroupMutation) ResetField(name string) error {
+	switch name {
+	case notificationsubscriptiongroup.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case notificationsubscriptiongroup.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case notificationsubscriptiongroup.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case notificationsubscriptiongroup.FieldUID:
+		m.ResetUID()
+		return nil
+	case notificationsubscriptiongroup.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case notificationsubscriptiongroup.FieldSubscriptionUID:
+		m.ResetSubscriptionUID()
+		return nil
+	case notificationsubscriptiongroup.FieldGroupUID:
+		m.ResetGroupUID()
+		return nil
+	}
+	return fmt.Errorf("unknown NotificationSubscriptionGroup field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NotificationSubscriptionGroupMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NotificationSubscriptionGroupMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NotificationSubscriptionGroupMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NotificationSubscriptionGroupMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NotificationSubscriptionGroupMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NotificationSubscriptionGroupMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NotificationSubscriptionGroupMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown NotificationSubscriptionGroup unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NotificationSubscriptionGroupMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown NotificationSubscriptionGroup edge %s", name)
+}
+
 // NotificationTaskMutation represents an operation that mutates the NotificationTask nodes in the graph.
 type NotificationTaskMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *int
-	created_at      *time.Time
-	updated_at      *time.Time
-	uid             *string
-	namespace_uid   *string
-	event_uid       *string
-	phase           *notificationtask.Phase
-	status          *notificationtask.Status
-	rule_uid        *string
-	group_uid       *string
-	channel_uid     *string
-	template_uid    *string
-	receivers       *string
-	subject         *string
-	body            *string
-	params          *string
-	retries_left    *int
-	addretries_left *int
-	next_attempt_at *time.Time
-	last_error      *string
-	clearedFields   map[string]struct{}
-	done            bool
-	oldValue        func(context.Context) (*NotificationTask, error)
-	predicates      []predicate.NotificationTask
+	op               Op
+	typ              string
+	id               *int
+	created_at       *time.Time
+	updated_at       *time.Time
+	uid              *string
+	namespace_uid    *string
+	event_uid        *string
+	phase            *notificationtask.Phase
+	status           *notificationtask.Status
+	rule_uid         *string
+	subscription_uid *string
+	group_uid        *string
+	channel_uid      *string
+	template_uid     *string
+	receivers        *string
+	subject          *string
+	body             *string
+	params           *string
+	retries_left     *int
+	addretries_left  *int
+	next_attempt_at  *time.Time
+	last_error       *string
+	clearedFields    map[string]struct{}
+	done             bool
+	oldValue         func(context.Context) (*NotificationTask, error)
+	predicates       []predicate.NotificationTask
 }
 
 var _ ent.Mutation = (*NotificationTaskMutation)(nil)
@@ -18483,6 +19600,42 @@ func (m *NotificationTaskMutation) OldRuleUID(ctx context.Context) (v string, er
 // ResetRuleUID resets all changes to the "rule_uid" field.
 func (m *NotificationTaskMutation) ResetRuleUID() {
 	m.rule_uid = nil
+}
+
+// SetSubscriptionUID sets the "subscription_uid" field.
+func (m *NotificationTaskMutation) SetSubscriptionUID(s string) {
+	m.subscription_uid = &s
+}
+
+// SubscriptionUID returns the value of the "subscription_uid" field in the mutation.
+func (m *NotificationTaskMutation) SubscriptionUID() (r string, exists bool) {
+	v := m.subscription_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSubscriptionUID returns the old "subscription_uid" field's value of the NotificationTask entity.
+// If the NotificationTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationTaskMutation) OldSubscriptionUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSubscriptionUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSubscriptionUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSubscriptionUID: %w", err)
+	}
+	return oldValue.SubscriptionUID, nil
+}
+
+// ResetSubscriptionUID resets all changes to the "subscription_uid" field.
+func (m *NotificationTaskMutation) ResetSubscriptionUID() {
+	m.subscription_uid = nil
 }
 
 // SetGroupUID sets the "group_uid" field.
@@ -18912,7 +20065,7 @@ func (m *NotificationTaskMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NotificationTaskMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.created_at != nil {
 		fields = append(fields, notificationtask.FieldCreatedAt)
 	}
@@ -18936,6 +20089,9 @@ func (m *NotificationTaskMutation) Fields() []string {
 	}
 	if m.rule_uid != nil {
 		fields = append(fields, notificationtask.FieldRuleUID)
+	}
+	if m.subscription_uid != nil {
+		fields = append(fields, notificationtask.FieldSubscriptionUID)
 	}
 	if m.group_uid != nil {
 		fields = append(fields, notificationtask.FieldGroupUID)
@@ -18991,6 +20147,8 @@ func (m *NotificationTaskMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case notificationtask.FieldRuleUID:
 		return m.RuleUID()
+	case notificationtask.FieldSubscriptionUID:
+		return m.SubscriptionUID()
 	case notificationtask.FieldGroupUID:
 		return m.GroupUID()
 	case notificationtask.FieldChannelUID:
@@ -19036,6 +20194,8 @@ func (m *NotificationTaskMutation) OldField(ctx context.Context, name string) (e
 		return m.OldStatus(ctx)
 	case notificationtask.FieldRuleUID:
 		return m.OldRuleUID(ctx)
+	case notificationtask.FieldSubscriptionUID:
+		return m.OldSubscriptionUID(ctx)
 	case notificationtask.FieldGroupUID:
 		return m.OldGroupUID(ctx)
 	case notificationtask.FieldChannelUID:
@@ -19120,6 +20280,13 @@ func (m *NotificationTaskMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRuleUID(v)
+		return nil
+	case notificationtask.FieldSubscriptionUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSubscriptionUID(v)
 		return nil
 	case notificationtask.FieldGroupUID:
 		v, ok := value.(string)
@@ -19287,6 +20454,9 @@ func (m *NotificationTaskMutation) ResetField(name string) error {
 		return nil
 	case notificationtask.FieldRuleUID:
 		m.ResetRuleUID()
+		return nil
+	case notificationtask.FieldSubscriptionUID:
+		m.ResetSubscriptionUID()
 		return nil
 	case notificationtask.FieldGroupUID:
 		m.ResetGroupUID()

@@ -20,8 +20,6 @@ import {
 import type { AlertRuleGroupItem, AlertRuleItem, AlertRuleLevelInput } from "@/api/alert-rule/types"
 import { listDatasources } from "@/api/datasource"
 import type { DatasourceItem } from "@/api/datasource/types"
-import { selectNotificationGroups } from "@/api/notification-group"
-import type { SelectItem as NotifyGroupOption } from "@/api/notification-group/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
@@ -90,7 +88,6 @@ interface RuleDraft {
   summary: string
   description: string
   levels: AlertRuleLevelInput[]
-  notificationGroupUids: string[]
 }
 
 const emptyLevel: AlertRuleLevelInput = {
@@ -111,7 +108,6 @@ const emptyRule: RuleDraft = {
   summary: "",
   description: "",
   levels: [{ ...emptyLevel }],
-  notificationGroupUids: [],
 }
 
 function matchDatasourceCount(sources: DatasourceItem[], type: string, matchers: LabelPair[]): number {
@@ -171,7 +167,6 @@ export function AlertRulePage() {
   const [ruleTotal, setRuleTotal] = useState(0)
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
   const [sources, setSources] = useState<DatasourceItem[]>([])
-  const [notifyGroups, setNotifyGroups] = useState<NotifyGroupOption[]>([])
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
   const [loadError, setLoadError] = useState("")
@@ -266,22 +261,19 @@ export function AlertRulePage() {
     let active = true
     async function load() {
       try {
-        const [levelResult, sourceResult, notifyResult] = await Promise.all([
+        const [levelResult, sourceResult] = await Promise.all([
           listAlertDictionaries({ page: 1, pageSize: 100, type: "ALERT" }),
           listDatasources({ page: 1, pageSize: 100 }),
-          selectNotificationGroups({ limit: 100, activeOnly: true }),
         ])
         if (!active) {
           return
         }
         setLevels(levelResult.items ?? [])
         setSources(sourceResult.items ?? [])
-        setNotifyGroups(notifyResult.items ?? [])
       } catch {
         if (active) {
           setLevels([])
           setSources([])
-          setNotifyGroups([])
         }
       }
     }
@@ -323,7 +315,6 @@ export function AlertRulePage() {
                   levelUid: level.levelUid,
                 }))
               : [{ ...emptyLevel }],
-            notificationGroupUids: item.notificationGroupUids ?? [],
           }
         : emptyRule,
     )
@@ -907,33 +898,6 @@ export function AlertRulePage() {
               <Button type="button" variant="outline" onClick={() => setForm({ ...form, levels: [...form.levels, { ...emptyLevel }] })}>
                 {t("alertRule.addLevel")}
               </Button>
-            </div>
-            <div className="grid gap-2 sm:col-span-full">
-              <Label>{t("alertRule.notify")}</Label>
-              {notifyGroups.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t("alertRule.notifyEmpty")}</p>
-              ) : (
-                <div className="grid gap-2">
-                  {notifyGroups.map((item) => {
-                    const checked = form.notificationGroupUids.includes(item.uid)
-                    return (
-                      <label key={item.uid} className="flex items-center gap-2 text-sm">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={(event) => {
-                            const next = event.target.checked
-                              ? [...form.notificationGroupUids, item.uid]
-                              : form.notificationGroupUids.filter((uid) => uid !== item.uid)
-                            setForm({ ...form, notificationGroupUids: next })
-                          }}
-                        />
-                        {item.name}
-                      </label>
-                    )
-                  })}
-                </div>
-              )}
             </div>
               </>
             ) : null}

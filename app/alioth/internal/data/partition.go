@@ -27,6 +27,12 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	if err := prepareAlertEventIntervene(ctx, db); err != nil {
 		return err
 	}
+	if err := prepareNotificationTaskChannels(ctx, db); err != nil {
+		return err
+	}
+	if err := dropRuleNotificationGroups(ctx, db); err != nil {
+		return err
+	}
 	opts := []entschema.MigrateOption{}
 	for _, name := range partitionedTables {
 		kind, err := relationKind(ctx, db, name)
@@ -336,4 +342,24 @@ func weekStart(at time.Time) (time.Time, time.Time) {
 func isoWeek(start time.Time) int {
 	_, week := start.ISOWeek()
 	return week
+}
+
+// prepareNotificationTaskChannels 把任务去重索引从 (event, phase, group) 改成
+// (event, phase, group, channel)。旧索引不删会挡住一个通知组投递多个 Webhook。
+func prepareNotificationTaskChannels(ctx context.Context, db *sql.DB) error {
+	if _, err := db.ExecContext(ctx, `DROP INDEX IF EXISTS notificationtask_event_uid_phase_group_uid`); err != nil {
+		slog.Default().Error(fmt.Sprintf("schema: %v", err))
+		return merr.Server("request failed")
+	}
+	return nil
+}
+
+// dropRuleNotificationGroups 移除规则直接绑定通知组的旧表。
+// 事件路由改由 NotificationSubscription 负责，旧绑定不再参与任何查询。
+func dropRuleNotificationGroups(ctx context.Context, db *sql.DB) error {
+	if _, err := db.ExecContext(ctx, `DROP TABLE IF EXISTS alert_rule_notification_groups`); err != nil {
+		slog.Default().Error(fmt.Sprintf("schema: %v", err))
+		return merr.Server("request failed")
+	}
+	return nil
 }

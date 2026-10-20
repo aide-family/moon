@@ -10,9 +10,10 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulenotificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscription"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscriptiongroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
@@ -36,6 +37,9 @@ func TestNotificationTaskDedup(t *testing.T) {
 	if err := ApplySchema(ctx, store.client, store.db); err != nil {
 		t.Fatal(err)
 	}
+	if err := seedNotificationPresets(ctx, store.client, slog.Default()); err != nil {
+		t.Fatal(err)
+	}
 
 	ns := "ns-notify-" + time.Now().Format("150405.000")
 	notify := NewNotificationRepo(store, slog.Default())
@@ -43,7 +47,8 @@ func TestNotificationTaskDedup(t *testing.T) {
 	rules := NewAlertRuleRepo(store, slog.Default())
 	t.Cleanup(func() {
 		_, _ = store.client.NotificationTask.Delete().Where(notificationtask.NamespaceUIDEQ(ns)).Exec(ctx)
-		_, _ = store.client.AlertRuleNotificationGroup.Delete().Where(alertrulenotificationgroup.NamespaceUIDEQ(ns)).Exec(ctx)
+		_, _ = store.client.NotificationSubscriptionGroup.Delete().Where(notificationsubscriptiongroup.NamespaceUIDEQ(ns)).Exec(ctx)
+		_, _ = store.client.NotificationSubscription.Delete().Where(notificationsubscription.NamespaceUIDEQ(ns)).Exec(ctx)
 		_, _ = store.client.AlertRuleLevel.Delete().Where(alertrulelevel.NamespaceUIDEQ(ns)).Exec(ctx)
 		_, _ = store.client.AlertRule.Delete().Where(alertrule.NamespaceUIDEQ(ns)).Exec(ctx)
 		_, _ = store.client.AlertRuleGroup.Delete().Where(alertrulegroup.NamespaceUIDEQ(ns)).Exec(ctx)
@@ -82,20 +87,22 @@ func TestNotificationTaskDedup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if _, err := notify.CreateSubscription(ctx, bo.NotificationSubscription{
+		NamespaceUID: ns, Name: "sub", Labels: "{}", GroupUIDs: []string{group.UID},
+	}); err != nil {
+		t.Fatal(err)
+	}
 	g, err := rules.CreateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, Name: "g1"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	rule, err := rules.CreateAlertRule(ctx, bo.AlertRule{
 		NamespaceUID: ns, GroupUID: g.UID, Name: "r1", Type: "METRICS", Driver: "METRICS_PROMETHEUS",
-		Expr: "up", NotificationGroupUIDs: []string{group.UID},
+		Expr:   "up",
 		Levels: []bo.AlertRuleLevel{{Condition: "EQ", Sample: "MAX", Threshold: "1", LevelUID: "lv"}},
 	})
 	if err != nil {
 		t.Fatal(err)
-	}
-	if len(rule.NotificationGroupUIDs) != 1 || rule.NotificationGroupUIDs[0] != group.UID {
-		t.Fatalf("bound groups = %v", rule.NotificationGroupUIDs)
 	}
 
 	slot := time.Now().UTC().Truncate(time.Minute)
@@ -139,7 +146,7 @@ func TestNotificationTaskDedup(t *testing.T) {
 	before := len(tasks)
 	rule2, err := rules.CreateAlertRule(ctx, bo.AlertRule{
 		NamespaceUID: ns, GroupUID: g.UID, Name: "r2", Type: "METRICS", Driver: "METRICS_PROMETHEUS",
-		Expr: "up", NotificationGroupUIDs: []string{group.UID},
+		Expr:   "up",
 		Levels: []bo.AlertRuleLevel{{Condition: "EQ", Sample: "MAX", Threshold: "1", LevelUID: "lv"}},
 	})
 	if err != nil {

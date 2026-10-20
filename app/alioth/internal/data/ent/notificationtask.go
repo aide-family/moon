@@ -33,6 +33,8 @@ type NotificationTask struct {
 	Status notificationtask.Status `json:"status,omitempty"`
 	// RuleUID holds the value of the "rule_uid" field.
 	RuleUID string `json:"rule_uid,omitempty"`
+	// SubscriptionUID holds the value of the "subscription_uid" field.
+	SubscriptionUID string `json:"subscription_uid,omitempty"`
 	// GroupUID holds the value of the "group_uid" field.
 	GroupUID string `json:"group_uid,omitempty"`
 	// ChannelUID holds the value of the "channel_uid" field.
@@ -63,7 +65,7 @@ func (*NotificationTask) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case notificationtask.FieldID, notificationtask.FieldRetriesLeft:
 			values[i] = new(sql.NullInt64)
-		case notificationtask.FieldUID, notificationtask.FieldNamespaceUID, notificationtask.FieldEventUID, notificationtask.FieldPhase, notificationtask.FieldStatus, notificationtask.FieldRuleUID, notificationtask.FieldGroupUID, notificationtask.FieldChannelUID, notificationtask.FieldTemplateUID, notificationtask.FieldReceivers, notificationtask.FieldSubject, notificationtask.FieldBody, notificationtask.FieldParams, notificationtask.FieldLastError:
+		case notificationtask.FieldUID, notificationtask.FieldNamespaceUID, notificationtask.FieldEventUID, notificationtask.FieldPhase, notificationtask.FieldStatus, notificationtask.FieldRuleUID, notificationtask.FieldSubscriptionUID, notificationtask.FieldGroupUID, notificationtask.FieldChannelUID, notificationtask.FieldTemplateUID, notificationtask.FieldReceivers, notificationtask.FieldSubject, notificationtask.FieldBody, notificationtask.FieldParams, notificationtask.FieldLastError:
 			values[i] = new(sql.NullString)
 		case notificationtask.FieldCreatedAt, notificationtask.FieldUpdatedAt, notificationtask.FieldNextAttemptAt:
 			values[i] = new(sql.NullTime)
@@ -135,6 +137,12 @@ func (_m *NotificationTask) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field rule_uid", values[i])
 			} else if value.Valid {
 				_m.RuleUID = value.String
+			}
+		case notificationtask.FieldSubscriptionUID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field subscription_uid", values[i])
+			} else if value.Valid {
+				_m.SubscriptionUID = value.String
 			}
 		case notificationtask.FieldGroupUID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -256,6 +264,9 @@ func (_m *NotificationTask) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("rule_uid=")
 	builder.WriteString(_m.RuleUID)
+	builder.WriteString(", ")
+	builder.WriteString("subscription_uid=")
+	builder.WriteString(_m.SubscriptionUID)
 	builder.WriteString(", ")
 	builder.WriteString("group_uid=")
 	builder.WriteString(_m.GroupUID)

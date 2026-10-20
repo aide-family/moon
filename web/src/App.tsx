@@ -16,6 +16,7 @@ import { MessageLogPage } from "@/pages/message-log"
 import { NamespacePage } from "@/pages/namespace"
 import { NotificationChannelPage } from "@/pages/notification-channel"
 import { NotificationGroupPage } from "@/pages/notification-group"
+import { NotificationSubscriptionPage } from "@/pages/notification-subscription"
 import { NotificationTemplatePage } from "@/pages/notification-template"
 import { ProfilePage } from "@/pages/profile"
 import { RegisterPage } from "@/pages/register"
@@ -47,6 +48,7 @@ export function App() {
         <Route path="/notification-channels" element={<NotificationChannelPage />} />
         <Route path="/notification-templates" element={<NotificationTemplatePage />} />
         <Route path="/notification-groups" element={<NotificationGroupPage />} />
+        <Route path="/notification-subscriptions" element={<NotificationSubscriptionPage />} />
         <Route path="/message-logs" element={<MessageLogPage />} />
         <Route path="/agents" element={<AgentPage />} />
         <Route path="/agents/:uid/shell" element={<AgentShellPage />} />

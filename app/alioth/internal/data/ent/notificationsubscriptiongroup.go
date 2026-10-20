@@ -9,11 +9,11 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulenotificationgroup"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscriptiongroup"
 )
 
-// AlertRuleNotificationGroup is the model entity for the AlertRuleNotificationGroup schema.
-type AlertRuleNotificationGroup struct {
+// NotificationSubscriptionGroup is the model entity for the NotificationSubscriptionGroup schema.
+type NotificationSubscriptionGroup struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
@@ -27,23 +27,23 @@ type AlertRuleNotificationGroup struct {
 	UID string `json:"uid,omitempty"`
 	// NamespaceUID holds the value of the "namespace_uid" field.
 	NamespaceUID string `json:"namespace_uid,omitempty"`
-	// RuleUID holds the value of the "rule_uid" field.
-	RuleUID string `json:"rule_uid,omitempty"`
+	// SubscriptionUID holds the value of the "subscription_uid" field.
+	SubscriptionUID string `json:"subscription_uid,omitempty"`
 	// GroupUID holds the value of the "group_uid" field.
 	GroupUID     string `json:"group_uid,omitempty"`
 	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*AlertRuleNotificationGroup) scanValues(columns []string) ([]any, error) {
+func (*NotificationSubscriptionGroup) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case alertrulenotificationgroup.FieldID:
+		case notificationsubscriptiongroup.FieldID:
 			values[i] = new(sql.NullInt64)
-		case alertrulenotificationgroup.FieldUID, alertrulenotificationgroup.FieldNamespaceUID, alertrulenotificationgroup.FieldRuleUID, alertrulenotificationgroup.FieldGroupUID:
+		case notificationsubscriptiongroup.FieldUID, notificationsubscriptiongroup.FieldNamespaceUID, notificationsubscriptiongroup.FieldSubscriptionUID, notificationsubscriptiongroup.FieldGroupUID:
 			values[i] = new(sql.NullString)
-		case alertrulenotificationgroup.FieldCreatedAt, alertrulenotificationgroup.FieldUpdatedAt, alertrulenotificationgroup.FieldDeletedAt:
+		case notificationsubscriptiongroup.FieldCreatedAt, notificationsubscriptiongroup.FieldUpdatedAt, notificationsubscriptiongroup.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -53,57 +53,57 @@ func (*AlertRuleNotificationGroup) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the AlertRuleNotificationGroup fields.
-func (_m *AlertRuleNotificationGroup) assignValues(columns []string, values []any) error {
+// to the NotificationSubscriptionGroup fields.
+func (_m *NotificationSubscriptionGroup) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case alertrulenotificationgroup.FieldID:
+		case notificationsubscriptiongroup.FieldID:
 			value, ok := values[i].(*sql.NullInt64)
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
-		case alertrulenotificationgroup.FieldCreatedAt:
+		case notificationsubscriptiongroup.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				_m.CreatedAt = value.Time
 			}
-		case alertrulenotificationgroup.FieldUpdatedAt:
+		case notificationsubscriptiongroup.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
 			}
-		case alertrulenotificationgroup.FieldDeletedAt:
+		case notificationsubscriptiongroup.FieldDeletedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
 			} else if value.Valid {
 				_m.DeletedAt = new(time.Time)
 				*_m.DeletedAt = value.Time
 			}
-		case alertrulenotificationgroup.FieldUID:
+		case notificationsubscriptiongroup.FieldUID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field uid", values[i])
 			} else if value.Valid {
 				_m.UID = value.String
 			}
-		case alertrulenotificationgroup.FieldNamespaceUID:
+		case notificationsubscriptiongroup.FieldNamespaceUID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field namespace_uid", values[i])
 			} else if value.Valid {
 				_m.NamespaceUID = value.String
 			}
-		case alertrulenotificationgroup.FieldRuleUID:
+		case notificationsubscriptiongroup.FieldSubscriptionUID:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field rule_uid", values[i])
+				return fmt.Errorf("unexpected type %T for field subscription_uid", values[i])
 			} else if value.Valid {
-				_m.RuleUID = value.String
+				_m.SubscriptionUID = value.String
 			}
-		case alertrulenotificationgroup.FieldGroupUID:
+		case notificationsubscriptiongroup.FieldGroupUID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field group_uid", values[i])
 			} else if value.Valid {
@@ -116,34 +116,34 @@ func (_m *AlertRuleNotificationGroup) assignValues(columns []string, values []an
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the AlertRuleNotificationGroup.
+// Value returns the ent.Value that was dynamically selected and assigned to the NotificationSubscriptionGroup.
 // This includes values selected through modifiers, order, etc.
-func (_m *AlertRuleNotificationGroup) Value(name string) (ent.Value, error) {
+func (_m *NotificationSubscriptionGroup) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// Update returns a builder for updating this AlertRuleNotificationGroup.
-// Note that you need to call AlertRuleNotificationGroup.Unwrap() before calling this method if this AlertRuleNotificationGroup
+// Update returns a builder for updating this NotificationSubscriptionGroup.
+// Note that you need to call NotificationSubscriptionGroup.Unwrap() before calling this method if this NotificationSubscriptionGroup
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (_m *AlertRuleNotificationGroup) Update() *AlertRuleNotificationGroupUpdateOne {
-	return NewAlertRuleNotificationGroupClient(_m.config).UpdateOne(_m)
+func (_m *NotificationSubscriptionGroup) Update() *NotificationSubscriptionGroupUpdateOne {
+	return NewNotificationSubscriptionGroupClient(_m.config).UpdateOne(_m)
 }
 
-// Unwrap unwraps the AlertRuleNotificationGroup entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the NotificationSubscriptionGroup entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (_m *AlertRuleNotificationGroup) Unwrap() *AlertRuleNotificationGroup {
+func (_m *NotificationSubscriptionGroup) Unwrap() *NotificationSubscriptionGroup {
 	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: AlertRuleNotificationGroup is not a transactional entity")
+		panic("ent: NotificationSubscriptionGroup is not a transactional entity")
 	}
 	_m.config.driver = _tx.drv
 	return _m
 }
 
 // String implements the fmt.Stringer.
-func (_m *AlertRuleNotificationGroup) String() string {
+func (_m *NotificationSubscriptionGroup) String() string {
 	var builder strings.Builder
-	builder.WriteString("AlertRuleNotificationGroup(")
+	builder.WriteString("NotificationSubscriptionGroup(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
@@ -162,8 +162,8 @@ func (_m *AlertRuleNotificationGroup) String() string {
 	builder.WriteString("namespace_uid=")
 	builder.WriteString(_m.NamespaceUID)
 	builder.WriteString(", ")
-	builder.WriteString("rule_uid=")
-	builder.WriteString(_m.RuleUID)
+	builder.WriteString("subscription_uid=")
+	builder.WriteString(_m.SubscriptionUID)
 	builder.WriteString(", ")
 	builder.WriteString("group_uid=")
 	builder.WriteString(_m.GroupUID)
@@ -171,5 +171,5 @@ func (_m *AlertRuleNotificationGroup) String() string {
 	return builder.String()
 }
 
-// AlertRuleNotificationGroups is a parsable slice of AlertRuleNotificationGroup.
-type AlertRuleNotificationGroups []*AlertRuleNotificationGroup
+// NotificationSubscriptionGroups is a parsable slice of NotificationSubscriptionGroup.
+type NotificationSubscriptionGroups []*NotificationSubscriptionGroup

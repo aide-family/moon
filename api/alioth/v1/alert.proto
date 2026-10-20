@@ -597,10 +597,11 @@ message AlertRuleItem {
   string description = 11;
   // 级别条件。
   repeated AlertRuleLevelItem levels = 12;
-  // 绑定的通知组标识。
-  repeated string notification_group_uids = 13 [json_name = "notificationGroupUids"];
   // 数据源标签匹配器 JSON 对象。空对象表示该类型下全部 ACTIVE 数据源。
   string datasource_labels = 14 [json_name = "datasourceLabels"];
+
+  reserved 13;
+  reserved "notification_group_uids";
 }
 
 // 创建规则。
@@ -625,10 +626,11 @@ message CreateAlertRuleRequest {
   string description = 9 [(buf.validate.field).string.max_len = 2000];
   // 级别条件。
   repeated AlertRuleLevelInput levels = 10;
-  // 绑定的通知组标识。
-  repeated string notification_group_uids = 11 [json_name = "notificationGroupUids"];
   // 数据源标签匹配器 JSON 对象。
   string datasource_labels = 12 [json_name = "datasourceLabels", (buf.validate.field).string.max_len = 4096];
+
+  reserved 11;
+  reserved "notification_group_uids";
 }
 
 // 创建规则的结果。
@@ -661,10 +663,11 @@ message UpdateAlertRuleRequest {
   string description = 10 [(buf.validate.field).string.max_len = 2000];
   // 级别条件。保存时替换原有条件。
   repeated AlertRuleLevelInput levels = 11;
-  // 绑定的通知组标识。保存时替换原有绑定。
-  repeated string notification_group_uids = 12 [json_name = "notificationGroupUids"];
   // 数据源标签匹配器 JSON 对象。
   string datasource_labels = 13 [json_name = "datasourceLabels", (buf.validate.field).string.max_len = 4096];
+
+  reserved 12;
+  reserved "notification_group_uids";
 }
 
 // 更新规则的结果。
