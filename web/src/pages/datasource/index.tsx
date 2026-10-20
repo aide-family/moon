@@ -52,7 +52,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { enumLabel } from "@/lib/enum-label"
-import { firstError, requireTrimmed } from "@/lib/form"
+import {
+  collectFieldErrors,
+  hasFieldErrors,
+  requireTrimmed,
+  type FieldErrors,
+} from "@/lib/form"
 import { readFormError } from "@/lib/form-error"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { usePagedList } from "@/hooks/use-paged-list"
@@ -217,23 +222,24 @@ export function DatasourcePage() {
     setOpen(true)
   }
 
-  function validateDatasourceStep(step: number): string | null {
+  function validateDatasourceStep(step: number): FieldErrors {
     if (step === 0) {
-      return firstError(
-        requireTrimmed(form.name, t("form.required")),
-        requireTrimmed(form.type, t("form.required")),
-        requireTrimmed(form.driver, t("form.required")),
-        requireTrimmed(form.endpoint, t("form.required")),
-      )
+      return collectFieldErrors([
+        ["name", requireTrimmed(form.name, t("form.required"))],
+        ["type", requireTrimmed(form.type, t("form.required"))],
+        ["driver", requireTrimmed(form.driver, t("form.required"))],
+        ["endpoint", requireTrimmed(form.endpoint, t("form.required"))],
+      ])
     }
-    return null
+    return {}
   }
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
-    const invalid = firstError(validateDatasourceStep(0), validateDatasourceStep(1), validateDatasourceStep(2))
-    if (invalid) {
-      setError(invalid)
+    const errors = validateDatasourceStep(0)
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
+      setFormStep(0)
       return
     }
     setPending(true)
@@ -465,22 +471,35 @@ export function DatasourcePage() {
             fieldsClassName="sm:grid-cols-2"
             onBack={() => setFormStep((value) => Math.max(0, value - 1))}
             onNext={() => {
-              const invalid = validateDatasourceStep(formStep)
-              if (invalid) {
-                setError(invalid)
+              const errors = validateDatasourceStep(formStep)
+              if (hasFieldErrors(errors)) {
+                setFieldErrors(errors)
+                setError("")
                 return
               }
               setError("")
+              setFieldErrors({})
               setFormStep((value) => Math.min(2, value + 1))
             }}
             onSubmit={onSave}
           >
             {formStep === 0 ? (
               <>
-            <FormField label={t("datasource.name")} htmlFor="ds-name" className="sm:col-span-full" error={fieldErrors.name}>
+            <FormField
+              label={t("datasource.name")}
+              htmlFor="ds-name"
+              className="sm:col-span-full"
+              required
+              error={fieldErrors.name}
+            >
               <Input id="ds-name" value={form.name} placeholder={t("datasource.namePlaceholder")} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
             </FormField>
-            <FormField label={t("datasource.type")} hint={t("datasource.typeHint")}>
+            <FormField
+              label={t("datasource.type")}
+              hint={t("datasource.typeHint")}
+              required
+              error={fieldErrors.type}
+            >
               <Select
                 value={form.type}
                 onValueChange={(value) => setForm({ ...form, type: value, driver: drivers[value][0] })}
@@ -497,7 +516,11 @@ export function DatasourcePage() {
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label={t("datasource.driver")}>
+            <FormField
+              label={t("datasource.driver")}
+              required
+              error={fieldErrors.driver}
+            >
               <Select value={form.driver} onValueChange={(value) => setForm({ ...form, driver: value })}>
                 <SelectTrigger aria-label={t("datasource.driver")}>
                   <SelectValue placeholder={t("datasource.driverPlaceholder")} />
@@ -511,7 +534,14 @@ export function DatasourcePage() {
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label={t("datasource.endpoint")} htmlFor="ds-endpoint" hint={t("datasource.endpointHint")} className="sm:col-span-full" error={fieldErrors.endpoint}>
+            <FormField
+              label={t("datasource.endpoint")}
+              htmlFor="ds-endpoint"
+              hint={t("datasource.endpointHint")}
+              className="sm:col-span-full"
+              required
+              error={fieldErrors.endpoint}
+            >
               <Input id="ds-endpoint" value={form.endpoint} placeholder="http://127.0.0.1:9090" onChange={(event) => setForm({ ...form, endpoint: event.target.value })} required />
             </FormField>
               </>

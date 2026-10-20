@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage } from "@/lib/form-error"
+import { formMessage, readFormError } from "@/lib/form-error"
 
 import { listAlertDictionaries } from "@/api/alert-dictionary"
 import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
@@ -40,7 +40,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { firstError, requireTrimmed } from "@/lib/form"
+import {
+  collectFieldErrors,
+  hasFieldErrors,
+  requireTrimmed,
+  type FieldErrors,
+} from "@/lib/form"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
@@ -64,6 +69,7 @@ export function NotificationSubscriptionPage() {
   const [groupUids, setGroupUids] = useState<string[]>([])
   const [remark, setRemark] = useState("")
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<NotificationSubscriptionItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationSubscriptionItem } | null>(null)
@@ -111,6 +117,7 @@ export function NotificationSubscriptionPage() {
     setGroupUids([])
     setRemark("")
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
@@ -123,6 +130,7 @@ export function NotificationSubscriptionPage() {
     setGroupUids(item.groupUids ?? [])
     setRemark(item.remark)
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
@@ -132,17 +140,25 @@ export function NotificationSubscriptionPage() {
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
-    const invalid = firstError(
-      requireTrimmed(name, t("form.required")),
-      groupUids.length === 0 ? t("form.required") : null,
-      labels.some((pair) => pair.key.trim() === "" && pair.value.trim() !== "") ? t("form.required") : null,
-    )
-    if (invalid) {
-      setError(invalid)
+    const errors = collectFieldErrors([
+      ["name", requireTrimmed(name, t("form.required"))],
+      ["groups", groupUids.length === 0 ? t("form.required") : null],
+      [
+        "labels",
+        labels.some(
+          (pair) => pair.key.trim() === "" && pair.value.trim() !== "",
+        )
+          ? t("form.required")
+          : null,
+      ],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       const payload = {
         name: name.trim(),
@@ -160,7 +176,9 @@ export function NotificationSubscriptionPage() {
       setOpen(false)
       reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -291,11 +309,20 @@ export function NotificationSubscriptionPage() {
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={onSave}>
-            <FormField label={t("subscription.name")} htmlFor="subscription-name">
+          <form noValidate className="grid gap-4" onSubmit={onSave}>
+            <FormField
+              label={t("subscription.name")}
+              htmlFor="subscription-name"
+              required
+              error={fieldErrors.name}
+            >
               <Input id="subscription-name" value={name} placeholder={t("subscription.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
-            <FormField label={t("subscription.labels")} hint={t("subscription.labelsHint")}>
+            <FormField
+              label={t("subscription.labels")}
+              hint={t("subscription.labelsHint")}
+              error={fieldErrors.labels}
+            >
               <div className="grid gap-2">
                 {labels.map((pair, index) => (
                   <div key={index} className="flex items-center gap-2">
@@ -357,8 +384,16 @@ export function NotificationSubscriptionPage() {
                 {datasources.length === 0 ? <p className="text-sm text-muted-foreground">{t("subscription.noDatasources")}</p> : null}
               </div>
             </FormField>
-            <FormField label={t("subscription.groups")}>
-              <div className="grid max-h-40 gap-2 overflow-y-auto rounded-md border p-3">
+            <FormField
+              label={t("subscription.groups")}
+              required
+              error={fieldErrors.groups}
+            >
+              <div
+                className={`grid max-h-40 gap-2 overflow-y-auto rounded-md border p-3 ${
+                  fieldErrors.groups ? "border-destructive" : ""
+                }`}
+              >
                 {groups.map((item) => (
                   <label key={item.uid} className="flex items-center gap-2 text-sm">
                     <input type="checkbox" checked={groupUids.includes(item.uid)} onChange={() => setGroupUids(toggle(groupUids, item.uid))} />

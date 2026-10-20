@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage } from "@/lib/form-error"
+import { formMessage, readFormError } from "@/lib/form-error"
 import { useSearchParams } from "react-router-dom"
 
 import {
@@ -42,7 +42,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { firstError, requireTrimmed } from "@/lib/form"
+import {
+  collectFieldErrors,
+  hasFieldErrors,
+  requireTrimmed,
+} from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
@@ -89,6 +93,7 @@ export function AlertDictionaryPage() {
   const [color, setColor] = useState("")
   const [levelType, setLevelType] = useState("ALERT")
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<AlertDictionaryItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: AlertDictionaryItem } | null>(null)
@@ -107,6 +112,7 @@ export function AlertDictionaryPage() {
     setColor("#d92d20")
     setLevelType("ALERT")
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
@@ -119,21 +125,26 @@ export function AlertDictionaryPage() {
     setColor(item.color)
     setLevelType(item.type)
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
-    const invalid = firstError(
-      requireTrimmed(name, t("form.required")),
-      editing ? null : requireTrimmed(levelType, t("form.required")),
-    )
-    if (invalid) {
-      setError(invalid)
+    const errors = collectFieldErrors([
+      ["name", requireTrimmed(name, t("form.required"))],
+      [
+        "type",
+        editing ? null : requireTrimmed(levelType, t("form.required")),
+      ],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       const nextColor = normalizeColor(color)
       if (editing) {
@@ -144,7 +155,9 @@ export function AlertDictionaryPage() {
       setOpen(false)
       reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -283,11 +296,21 @@ export function AlertDictionaryPage() {
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
-            <FormField label={t("alertDictionary.name")} htmlFor="level-name">
+          <form noValidate className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
+            <FormField
+              label={t("alertDictionary.name")}
+              htmlFor="level-name"
+              required
+              error={fieldErrors.name}
+            >
               <Input id="level-name" value={name} placeholder={t("alertDictionary.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
-            <FormField label={t("alertDictionary.color")} htmlFor="level-color" hint={t("alertDictionary.colorHint")}>
+            <FormField
+              label={t("alertDictionary.color")}
+              htmlFor="level-color"
+              hint={t("alertDictionary.colorHint")}
+              error={fieldErrors.color}
+            >
               <div className="flex items-center gap-2">
                 <input
                   type="color"
@@ -305,7 +328,12 @@ export function AlertDictionaryPage() {
               </div>
             </FormField>
             {!editing ? (
-              <FormField label={t("datasource.type")} className="sm:col-span-full">
+              <FormField
+                label={t("datasource.type")}
+                className="sm:col-span-full"
+                required
+                error={fieldErrors.type}
+              >
                 <div className="flex flex-wrap gap-4" role="radiogroup" aria-label={t("datasource.type")}>
                   <label className="flex items-center gap-2 text-sm">
                     <input

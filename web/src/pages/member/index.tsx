@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage } from "@/lib/form-error"
+import { formMessage, readFormError } from "@/lib/form-error"
 
 import {
   deleteMember,
@@ -16,7 +16,12 @@ import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
-import { firstError, requireSelected, requireTrimmed } from "@/lib/form"
+import {
+  collectFieldErrors,
+  hasFieldErrors,
+  requireSelected,
+  requireTrimmed,
+} from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
@@ -62,6 +67,7 @@ export function MemberPage() {
   const [assigning, setAssigning] = useState<MemberItem | null>(null)
   const [selected, setSelected] = useState<string[]>([])
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<MemberItem | null>(null)
   const [removing, setRemoving] = useState<MemberItem | null>(null)
@@ -92,20 +98,26 @@ export function MemberPage() {
 
   async function onInvite(event: React.FormEvent) {
     event.preventDefault()
-    const invalid = firstError(requireTrimmed(email, t("form.required")), requireSelected(roleUid, t("form.required")))
-    if (invalid) {
-      setError(invalid)
+    const errors = collectFieldErrors([
+      ["email", requireTrimmed(email, t("form.required"))],
+      ["role", requireSelected(roleUid, t("form.required"))],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       await inviteMember({ email: email.trim(), roleUid })
       setOpen(false)
       setEmail("")
       reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -116,14 +128,24 @@ export function MemberPage() {
     if (!assigning) {
       return
     }
+    const errors = collectFieldErrors([
+      ["roles", selected.length === 0 ? t("form.required") : null],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
+      return
+    }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       await updateMemberRoles(assigning.uid, selected)
       setAssigning(null)
       reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -134,6 +156,7 @@ export function MemberPage() {
     if (!value) {
       setEmail("")
       setError("")
+      setFieldErrors({})
     }
   }
 
@@ -142,6 +165,7 @@ export function MemberPage() {
       setAssigning(null)
       setSelected([])
       setError("")
+      setFieldErrors({})
     }
   }
 
@@ -160,6 +184,7 @@ export function MemberPage() {
           setAssigning(item)
           setSelected(item.roleUids ?? [])
           setError("")
+          setFieldErrors({})
         },
       },
       {
@@ -202,6 +227,7 @@ export function MemberPage() {
             onClick={() => {
               setEmail("")
               setError("")
+              setFieldErrors({})
               setOpen(true)
             }}
           >
@@ -288,8 +314,13 @@ export function MemberPage() {
           <DialogHeader>
             <DialogTitle>{t("action.invite")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={onInvite}>
-            <FormField label={t("member.email")} htmlFor="invite-email">
+          <form noValidate className="grid gap-4" onSubmit={onInvite}>
+            <FormField
+              label={t("member.email")}
+              htmlFor="invite-email"
+              required
+              error={fieldErrors.email}
+            >
               <Input
                 id="invite-email"
                 type="email"
@@ -303,6 +334,8 @@ export function MemberPage() {
               label={t("member.role")}
               htmlFor="invite-role"
               hint={t("member.roleHint")}
+              required
+              error={fieldErrors.role}
             >
               <Select value={roleUid || undefined} onValueChange={setRoleUid}>
                 <SelectTrigger id="invite-role" className="w-full">
@@ -319,7 +352,7 @@ export function MemberPage() {
             </FormField>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
-              <Button type="submit" disabled={pending || !roleUid}>
+              <Button type="submit" disabled={pending}>
                 {t("action.invite")}
               </Button>
             </DialogFooter>
@@ -331,26 +364,34 @@ export function MemberPage() {
           <DialogHeader>
             <DialogTitle>{t("action.assign")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={onAssign}>
-            {roles.map((role) => (
-              <div key={role.uid} className="flex items-center gap-2">
-                <Checkbox
-                  id={`assign-${role.uid}`}
-                  checked={selected.includes(role.uid)}
-                  onCheckedChange={(checked) => {
-                    setSelected((current) =>
-                      checked === true
-                        ? [...current, role.uid]
-                        : current.filter((uid) => uid !== role.uid)
-                    )
-                  }}
-                />
-                <Label htmlFor={`assign-${role.uid}`}>{role.name}</Label>
+          <form noValidate className="grid gap-4" onSubmit={onAssign}>
+            <FormField
+              label={t("member.role")}
+              required
+              error={fieldErrors.roles}
+            >
+              <div className="grid gap-2">
+                {roles.map((role) => (
+                  <div key={role.uid} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`assign-${role.uid}`}
+                      checked={selected.includes(role.uid)}
+                      onCheckedChange={(checked) => {
+                        setSelected((current) =>
+                          checked === true
+                            ? [...current, role.uid]
+                            : current.filter((uid) => uid !== role.uid)
+                        )
+                      }}
+                    />
+                    <Label htmlFor={`assign-${role.uid}`}>{role.name}</Label>
+                  </div>
+                ))}
               </div>
-            ))}
+            </FormField>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
-              <Button type="submit" disabled={pending || selected.length === 0}>
+              <Button type="submit" disabled={pending}>
                 {t("action.save")}
               </Button>
             </DialogFooter>

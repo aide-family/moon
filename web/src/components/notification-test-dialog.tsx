@@ -25,7 +25,12 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { firstInvalidReceiver } from "@/lib/email"
-import { requireSelected } from "@/lib/form"
+import {
+  collectFieldErrors,
+  hasFieldErrors,
+  requireSelected,
+} from "@/lib/form"
+import { readFormError } from "@/lib/form-error"
 
 type TestTarget =
   | { kind: "channel"; item: NotificationChannelItem }
@@ -48,35 +53,47 @@ export function NotificationTestDialog({ target, channels, onClose }: Notificati
   const [subject, setSubject] = useState(() => (isChannel && channelType === "SMTP" ? "test" : ""))
   const [body, setBody] = useState("hello")
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
 
   async function submit(event: React.FormEvent) {
     event.preventDefault()
-    if (!isChannel) {
-      const invalid = requireSelected(channelUid, t("form.required"))
-      if (invalid) {
-        setError(invalid)
-        return
-      }
+    const errors = collectFieldErrors([
+      [
+        "channel",
+        isChannel ? null : requireSelected(channelUid, t("form.required")),
+      ],
+      [
+        "receivers",
+        channelType === "SMTP" && !receivers.trim()
+          ? t("form.required")
+          : null,
+      ],
+      [
+        "subject",
+        isChannel && channelType === "SMTP" && !subject.trim()
+          ? t("form.required")
+          : null,
+      ],
+      [
+        "body",
+        isChannel && !body.trim() ? t("form.required") : null,
+      ],
+    ])
+    if (
+      channelType === "SMTP" &&
+      receivers.trim() &&
+      firstInvalidReceiver(receivers)
+    ) {
+      errors.receivers = t("form.invalidEmail")
     }
-    if (isChannel && !body.trim()) {
-      setError(t("form.required"))
-      return
-    }
-    if (isChannel && channelType === "SMTP" && !subject.trim()) {
-      setError(t("form.required"))
-      return
-    }
-    if (channelType === "SMTP" && !receivers.trim()) {
-      setError(t("form.required"))
-      return
-    }
-    if (channelType === "SMTP" && firstInvalidReceiver(receivers)) {
-      setError(t("form.invalidEmail"))
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       if (target.kind === "channel") {
         await testNotificationChannel(target.item.uid, { receivers: receivers.trim(), subject, body })
@@ -86,7 +103,9 @@ export function NotificationTestDialog({ target, channels, onClose }: Notificati
       toast.success(t("channel.testDone"))
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("state.failed"))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -100,9 +119,13 @@ export function NotificationTestDialog({ target, channels, onClose }: Notificati
             {t("action.test")} · {target.item.name}
           </DialogTitle>
         </DialogHeader>
-        <form className="grid gap-4" onSubmit={submit}>
+        <form noValidate className="grid gap-4" onSubmit={submit}>
           {target.kind === "template" ? (
-            <FormField label={t("template.channel")}>
+            <FormField
+              label={t("template.channel")}
+              required
+              error={fieldErrors.channel}
+            >
               <Select value={channelUid || "NONE"} onValueChange={(value) => setChannelUid(value === "NONE" ? "" : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder={t("template.channelPlaceholder")} />
@@ -119,7 +142,12 @@ export function NotificationTestDialog({ target, channels, onClose }: Notificati
             </FormField>
           ) : null}
           {channelType === "SMTP" ? (
-            <FormField label={t("channel.testReceivers")} htmlFor="notification-test-receivers">
+            <FormField
+              label={t("channel.testReceivers")}
+              htmlFor="notification-test-receivers"
+              required
+              error={fieldErrors.receivers}
+            >
               <Input
                 id="notification-test-receivers"
                 value={receivers}
@@ -130,7 +158,12 @@ export function NotificationTestDialog({ target, channels, onClose }: Notificati
             </FormField>
           ) : null}
           {isChannel && channelType === "SMTP" ? (
-            <FormField label={t("channel.testSubject")} htmlFor="notification-test-subject">
+            <FormField
+              label={t("channel.testSubject")}
+              htmlFor="notification-test-subject"
+              required
+              error={fieldErrors.subject}
+            >
               <Input
                 id="notification-test-subject"
                 value={subject}
@@ -140,7 +173,12 @@ export function NotificationTestDialog({ target, channels, onClose }: Notificati
             </FormField>
           ) : null}
           {isChannel ? (
-            <FormField label={t("channel.testBody")} htmlFor="notification-test-body">
+            <FormField
+              label={t("channel.testBody")}
+              htmlFor="notification-test-body"
+              required
+              error={fieldErrors.body}
+            >
               <Textarea
                 id="notification-test-body"
                 value={body}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage } from "@/lib/form-error"
+import { formMessage, readFormError } from "@/lib/form-error"
 
 import { listNotificationChannels } from "@/api/notification-channel"
 import type { NotificationChannelItem } from "@/api/notification-channel/types"
@@ -46,7 +46,11 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
-import { firstError, requireTrimmed } from "@/lib/form"
+import {
+  collectFieldErrors,
+  hasFieldErrors,
+  requireTrimmed,
+} from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
@@ -72,6 +76,7 @@ export function NotificationTemplatePage() {
   const [body, setBody] = useState("")
   const [remark, setRemark] = useState("")
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<NotificationTemplateItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationTemplateItem } | null>(null)
@@ -108,6 +113,7 @@ export function NotificationTemplatePage() {
     setBody("")
     setRemark("")
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
@@ -119,23 +125,28 @@ export function NotificationTemplatePage() {
     setBody(item.body)
     setRemark(item.remark)
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
-    const invalid = firstError(
-      requireTrimmed(name, t("form.required")),
-      requireTrimmed(type, t("form.required")),
-      type === "EMAIL" ? requireTrimmed(subject, t("form.required")) : null,
-      requireTrimmed(body, t("form.required")),
-    )
-    if (invalid) {
-      setError(invalid)
+    const errors = collectFieldErrors([
+      ["name", requireTrimmed(name, t("form.required"))],
+      ["type", requireTrimmed(type, t("form.required"))],
+      [
+        "subject",
+        type === "EMAIL" ? requireTrimmed(subject, t("form.required")) : null,
+      ],
+      ["body", requireTrimmed(body, t("form.required"))],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       const payload = { name: name.trim(), type, subject, body, remark }
       if (editing) {
@@ -146,7 +157,9 @@ export function NotificationTemplatePage() {
       setOpen(false)
       reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -314,11 +327,20 @@ export function NotificationTemplatePage() {
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
-            <FormField label={t("template.name")} htmlFor="tpl-name">
+          <form noValidate className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
+            <FormField
+              label={t("template.name")}
+              htmlFor="tpl-name"
+              required
+              error={fieldErrors.name}
+            >
               <Input id="tpl-name" value={name} placeholder={t("template.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
-            <FormField label={t("template.type")}>
+            <FormField
+              label={t("template.type")}
+              required
+              error={fieldErrors.type}
+            >
               <Select
                 value={type}
                 onValueChange={(value) => {
@@ -326,6 +348,7 @@ export function NotificationTemplatePage() {
                   if (value !== "EMAIL") {
                     setSubject("")
                   }
+                  setFieldErrors({})
                 }}
               >
                 <SelectTrigger>
@@ -341,11 +364,24 @@ export function NotificationTemplatePage() {
               </Select>
             </FormField>
             {type === "EMAIL" ? (
-              <FormField label={t("template.subject")} htmlFor="tpl-subject" hint={t("template.subjectEmailOnly")} className="sm:col-span-full">
+              <FormField
+                label={t("template.subject")}
+                htmlFor="tpl-subject"
+                hint={t("template.subjectEmailOnly")}
+                className="sm:col-span-full"
+                required
+                error={fieldErrors.subject}
+              >
                 <Input id="tpl-subject" value={subject} placeholder={t("template.subjectPlaceholder")} onChange={(event) => setSubject(event.target.value)} required />
               </FormField>
             ) : null}
-            <FormField label={t("template.body")} htmlFor="tpl-body" className="sm:col-span-full">
+            <FormField
+              label={t("template.body")}
+              htmlFor="tpl-body"
+              className="sm:col-span-full"
+              required
+              error={fieldErrors.body}
+            >
               <Textarea id="tpl-body" value={body} placeholder={t("template.bodyPlaceholder")} onChange={(event) => setBody(event.target.value)} />
             </FormField>
             <FormField label={t("template.remark")} htmlFor="tpl-remark" className="sm:col-span-full">

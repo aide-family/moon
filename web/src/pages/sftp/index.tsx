@@ -241,7 +241,7 @@ export function SFTPPage() {
       </div>
       {canWrite ? (
         <div className="flex flex-wrap items-end gap-2">
-          <FormField label={t("sftp.mkdir")} htmlFor="mkdir">
+          <FormField label={t("sftp.mkdir")} htmlFor="mkdir" required>
             <Input id="mkdir" value={mkdirName} placeholder={t("sftp.mkdirPlaceholder")} onChange={(event) => setMkdirName(event.target.value)} />
           </FormField>
           <Button disabled={pending || !mkdirName.trim()} onClick={() => void onMkdir()}>

@@ -14,15 +14,38 @@ interface FormFieldProps {
   htmlFor?: string
   hint?: string
   error?: string
+  required?: boolean
   className?: string
   children: ReactNode
 }
 
-export function FormField({ label, htmlFor, hint, error, className, children }: FormFieldProps) {
+// 表单字段统一出口：必填项在 label 前显示红色星号，校验失败时给控件加红框并在下方显示原因。
+export function FormField({
+  label,
+  htmlFor,
+  hint,
+  error,
+  required = false,
+  className,
+  children,
+}: FormFieldProps) {
   return (
-    <div className={cn("grid min-w-0 gap-2 [&_[data-slot=select-trigger]]:w-full", className)}>
+    <div
+      data-slot="form-field"
+      data-invalid={error ? "true" : undefined}
+      className={cn("grid min-w-0 gap-2 [&_[data-slot=select-trigger]]:w-full", className)}
+    >
       <div className="flex items-center gap-2">
-        <Label htmlFor={htmlFor}>{label}</Label>
+        <Label htmlFor={htmlFor} aria-required={required || undefined}>
+          <span className="inline-flex items-center gap-1">
+            {required ? (
+              <span aria-hidden="true" className="text-destructive">
+                *
+              </span>
+            ) : null}
+            <span>{label}</span>
+          </span>
+        </Label>
         {hint ? (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -39,7 +62,11 @@ export function FormField({ label, htmlFor, hint, error, className, children }: 
         ) : null}
       </div>
       {children}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
     </div>
   )
 }

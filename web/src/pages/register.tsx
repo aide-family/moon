@@ -7,6 +7,11 @@ import { getCaptcha } from "@/api/captcha"
 import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+  collectFieldErrors,
+  hasFieldErrors,
+  requireTrimmed,
+} from "@/lib/form"
 import { readFormError } from "@/lib/form-error"
 import { AuthShell } from "@/pages/auth-shell"
 
@@ -66,6 +71,16 @@ export function RegisterPage() {
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault()
+    const errors = collectFieldErrors([
+      ["email", requireTrimmed(email, t("form.required"))],
+      ["password", requireTrimmed(password, t("form.required"))],
+      ["captchaCode", requireTrimmed(captchaCode, t("form.required"))],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
+      setError("")
+      return
+    }
     setPending(true)
     setError("")
     setFieldErrors({})
@@ -92,7 +107,7 @@ export function RegisterPage() {
 
   return (
     <AuthShell title={t("register.welcome")} subtitle={t("register.welcomeSub")}>
-          <form className="grid gap-4" onSubmit={onSubmit}>
+          <form noValidate className="grid gap-4" onSubmit={onSubmit}>
             <FormField label={t("register.name")} htmlFor="name" error={fieldErrors.name}>
               <Input
                 id="name"
@@ -101,7 +116,12 @@ export function RegisterPage() {
                 onChange={(event) => setName(event.target.value)}
               />
             </FormField>
-            <FormField label={t("login.emailLabel")} htmlFor="email" error={fieldErrors.email}>
+            <FormField
+              label={t("login.emailLabel")}
+              htmlFor="email"
+              required
+              error={fieldErrors.email}
+            >
               <Input
                 id="email"
                 type="email"
@@ -115,6 +135,7 @@ export function RegisterPage() {
               label={t("login.passwordLabel")}
               htmlFor="password"
               hint={t("login.passwordHint")}
+              required
               error={fieldErrors.password}
             >
               <Input
@@ -131,6 +152,7 @@ export function RegisterPage() {
               label={t("register.captcha")}
               htmlFor="captcha"
               hint={t("register.captchaHint")}
+              required
               error={fieldErrors.captchaCode}
             >
               <button

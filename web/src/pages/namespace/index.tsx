@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage } from "@/lib/form-error"
+import { formMessage, readFormError } from "@/lib/form-error"
 
 import { listMembers } from "@/api/member"
 import type { MemberItem } from "@/api/member/types"
@@ -45,7 +45,12 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { enumLabel } from "@/lib/enum-label"
-import { requireSelected, requireTrimmed } from "@/lib/form"
+import {
+  collectFieldErrors,
+  hasFieldErrors,
+  requireSelected,
+  requireTrimmed,
+} from "@/lib/form"
 
 export function NamespacePage() {
   const { t } = useTranslation()
@@ -58,6 +63,7 @@ export function NamespacePage() {
   const [members, setMembers] = useState<MemberItem[]>([])
   const [target, setTarget] = useState("")
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<NamespaceItem | null>(null)
   const [confirm, setConfirm] = useState<
@@ -67,13 +73,16 @@ export function NamespacePage() {
 
   async function onCreate(event: React.FormEvent) {
     event.preventDefault()
-    const invalid = requireTrimmed(name, t("form.required"))
-    if (invalid) {
-      setError(invalid)
+    const errors = collectFieldErrors([
+      ["name", requireTrimmed(name, t("form.required"))],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       const result = await createNamespace({ name: name.trim(), remark })
       localStorage.setItem("namespace", result.namespace.uid)
@@ -82,7 +91,9 @@ export function NamespacePage() {
       setRemark("")
       session.reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -93,20 +104,25 @@ export function NamespacePage() {
     if (!editing) {
       return
     }
-    const invalid = requireTrimmed(name, t("form.required"))
-    if (invalid) {
-      setError(invalid)
+    const errors = collectFieldErrors([
+      ["name", requireTrimmed(name, t("form.required"))],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       localStorage.setItem("namespace", editing)
       await updateNamespace({ uid: editing, name: name.trim(), remark })
       setEditing(null)
       session.reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -164,9 +180,11 @@ export function NamespacePage() {
     if (!transferUid) {
       return
     }
-    const invalid = requireSelected(target, t("form.required"))
-    if (invalid) {
-      setError(invalid)
+    const errors = collectFieldErrors([
+      ["target", requireSelected(target, t("form.required"))],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setConfirmError("")
@@ -179,6 +197,7 @@ export function NamespacePage() {
       setName("")
       setRemark("")
       setError("")
+      setFieldErrors({})
     }
   }
 
@@ -188,6 +207,7 @@ export function NamespacePage() {
       setName("")
       setRemark("")
       setError("")
+      setFieldErrors({})
     }
   }
 
@@ -196,6 +216,7 @@ export function NamespacePage() {
       setTransferUid(null)
       setTarget("")
       setError("")
+      setFieldErrors({})
     }
   }
 
@@ -213,6 +234,7 @@ export function NamespacePage() {
           setName(item.name)
           setRemark(item.remark)
           setError("")
+          setFieldErrors({})
         },
       })
       if (item.status === "ACTIVE") {
@@ -265,6 +287,7 @@ export function NamespacePage() {
             setName("")
             setRemark("")
             setError("")
+            setFieldErrors({})
             setOpen(true)
           }}
         >
@@ -335,8 +358,13 @@ export function NamespacePage() {
           <DialogHeader>
             <DialogTitle>{t("namespace.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={onCreate}>
-            <FormField label={t("namespace.name")} htmlFor="ns-name">
+          <form noValidate className="grid gap-4" onSubmit={onCreate}>
+            <FormField
+              label={t("namespace.name")}
+              htmlFor="ns-name"
+              required
+              error={fieldErrors.name}
+            >
               <Input
                 id="ns-name"
                 value={name}
@@ -367,8 +395,13 @@ export function NamespacePage() {
           <DialogHeader>
             <DialogTitle>{t("action.edit")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={onRename}>
-            <FormField label={t("namespace.name")} htmlFor="edit-name">
+          <form noValidate className="grid gap-4" onSubmit={onRename}>
+            <FormField
+              label={t("namespace.name")}
+              htmlFor="edit-name"
+              required
+              error={fieldErrors.name}
+            >
               <Input
                 id="edit-name"
                 value={name}
@@ -391,7 +424,7 @@ export function NamespacePage() {
           <DialogHeader>
             <DialogTitle>{t("action.transfer")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={requestTransfer}>
+          <form noValidate className="grid gap-4" onSubmit={requestTransfer}>
             {members.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 {t("state.empty")}
@@ -400,6 +433,8 @@ export function NamespacePage() {
               <FormField
                 label={t("member.email")}
                 hint={t("namespace.transferHint")}
+                required
+                error={fieldErrors.target}
               >
                 <Select value={target || undefined} onValueChange={setTarget}>
                   <SelectTrigger
@@ -422,7 +457,7 @@ export function NamespacePage() {
             )}
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
-              <Button type="submit" disabled={pending || !target}>
+              <Button type="submit" disabled={pending}>
                 {t("action.save")}
               </Button>
             </DialogFooter>

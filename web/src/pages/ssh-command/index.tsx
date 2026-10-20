@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage } from "@/lib/form-error"
+import { formMessage, readFormError } from "@/lib/form-error"
 
 import { listAgents } from "@/api/agent"
 import type { AgentItem } from "@/api/agent/types"
@@ -41,7 +41,12 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
-import { firstError, requireTrimmed } from "@/lib/form"
+import {
+  collectFieldErrors,
+  hasFieldErrors,
+  requireTrimmed,
+  type FieldErrors,
+} from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
@@ -59,6 +64,7 @@ export function SSHCommandPage() {
   const [env, setEnv] = useState("")
   const [remark, setRemark] = useState("")
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<SSHCommandItem | null>(null)
   const [execOpen, setExecOpen] = useState(false)
@@ -88,6 +94,7 @@ export function SSHCommandPage() {
     setEnv("")
     setRemark("")
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
@@ -99,6 +106,7 @@ export function SSHCommandPage() {
     setEnv(item.env)
     setRemark(item.remark)
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
@@ -106,6 +114,7 @@ export function SSHCommandPage() {
     setExecuting(item)
     setAgentUids([])
     setError("")
+    setFieldErrors({})
     try {
       const result = await listAgents({ page: 1, pageSize: 100 })
       setAgents((result.items ?? []).filter((agent) => agent.online && agent.status === "ACTIVE"))
@@ -128,13 +137,17 @@ export function SSHCommandPage() {
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
-    const invalid = firstError(requireTrimmed(name, t("form.required")), requireTrimmed(command, t("form.required")))
-    if (invalid) {
-      setError(invalid)
+    const errors = collectFieldErrors([
+      ["name", requireTrimmed(name, t("form.required"))],
+      ["command", requireTrimmed(command, t("form.required"))],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       const body = { name: name.trim(), command: command.trim(), workdir, env, remark }
       if (editing) {
@@ -145,7 +158,9 @@ export function SSHCommandPage() {
       setOpen(false)
       reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -156,19 +171,25 @@ export function SSHCommandPage() {
     if (!executing) {
       return
     }
-    if (agentUids.length === 0) {
-      setError(t("form.required"))
+    const errors = collectFieldErrors([
+      ["agents", agentUids.length === 0 ? t("form.required") : null],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       const result = await executeSSHCommand(executing.uid, agentUids)
       setExecOpen(false)
       setLastAudits(result.audits ?? [])
       reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -273,14 +294,25 @@ export function SSHCommandPage() {
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
-            <FormField label={t("ssh.name")} htmlFor="ssh-name">
+          <form noValidate className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
+            <FormField
+              label={t("ssh.name")}
+              htmlFor="ssh-name"
+              required
+              error={fieldErrors.name}
+            >
               <Input id="ssh-name" value={name} placeholder={t("ssh.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
             <FormField label={t("ssh.workdir")} htmlFor="ssh-workdir">
               <Input id="ssh-workdir" value={workdir} placeholder={t("ssh.workdirPlaceholder")} onChange={(event) => setWorkdir(event.target.value)} />
             </FormField>
-            <FormField label={t("ssh.command")} htmlFor="ssh-command" className="sm:col-span-full">
+            <FormField
+              label={t("ssh.command")}
+              htmlFor="ssh-command"
+              className="sm:col-span-full"
+              required
+              error={fieldErrors.command}
+            >
               <Textarea id="ssh-command" value={command} placeholder={t("ssh.commandPlaceholder")} onChange={(event) => setCommand(event.target.value)} required />
             </FormField>
             <FormField label={t("ssh.env")} htmlFor="ssh-env" className="sm:col-span-full">
@@ -306,33 +338,43 @@ export function SSHCommandPage() {
           <DialogHeader>
             <DialogTitle>{t("ssh.execute")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={onExecute}>
-            <p className="text-sm text-muted-foreground">{t("ssh.pickAgents")}</p>
-            <div className="grid max-h-64 gap-2 overflow-auto">
-              {agents.map((agent) => {
-                const checked = agentUids.includes(agent.uid)
-                return (
-                  <label key={agent.uid} className="flex items-center gap-2 text-sm">
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={(value) => {
-                        setAgentUids((current) =>
-                          value === true ? [...current, agent.uid] : current.filter((uid) => uid !== agent.uid),
-                        )
-                      }}
-                    />
-                    <span>{agent.name} ({agent.hostname || agent.localIp || agent.uid})</span>
-                  </label>
-                )
-              })}
-            </div>
-            {agents.length === 0 ? <p className="text-sm text-muted-foreground">{t("ssh.noOnlineAgent")}</p> : null}
+          <form noValidate className="grid gap-4" onSubmit={onExecute}>
+            <FormField
+              label={t("ssh.agents")}
+              hint={t("ssh.pickAgents")}
+              required
+              error={fieldErrors.agents}
+            >
+              <div
+                className={`grid max-h-64 gap-2 overflow-auto rounded-md border p-3 ${
+                  fieldErrors.agents ? "border-destructive" : ""
+                }`}
+              >
+                {agents.map((agent) => {
+                  const checked = agentUids.includes(agent.uid)
+                  return (
+                    <label key={agent.uid} className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(value) => {
+                          setAgentUids((current) =>
+                            value === true ? [...current, agent.uid] : current.filter((uid) => uid !== agent.uid),
+                          )
+                        }}
+                      />
+                      <span>{agent.name} ({agent.hostname || agent.localIp || agent.uid})</span>
+                    </label>
+                  )
+                })}
+              </div>
+              {agents.length === 0 ? <p className="text-sm text-muted-foreground">{t("ssh.noOnlineAgent")}</p> : null}
+            </FormField>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setExecOpen(false)}>
                 {t("action.cancel")}
               </Button>
-              <Button type="submit" disabled={pending || agentUids.length === 0}>
+              <Button type="submit" disabled={pending}>
                 {t("ssh.execute")}
               </Button>
             </DialogFooter>

@@ -544,6 +544,7 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
   const [step, setStep] = useState("60")
   const [pending, setPending] = useState(false)
   const [queryError, setQueryError] = useState("")
+  const [exprError, setExprError] = useState("")
   const [statusText, setStatusText] = useState("")
   const [instantBody, setInstantBody] = useState("")
   const [rangeBody, setRangeBody] = useState("")
@@ -575,9 +576,11 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
   async function runMetricsQuery() {
     const trimmed = expr.trim()
     if (!trimmed) {
-      setQueryError(t("form.required"))
+      setExprError(t("form.required"))
+      setQueryError("")
       return
     }
+    setExprError("")
     const range = resolveRange()
     const stepSeconds = Number(step)
     if (!Number.isFinite(range.start) || !Number.isFinite(range.end) || range.end <= range.start) {
@@ -688,11 +691,22 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
       <div className="shrink-0">
-        <FormField label={t("datasource.expr")} htmlFor="metric-expr" hint={t("datasource.exprHint")}>
+        <FormField
+          label={t("datasource.expr")}
+          htmlFor="metric-expr"
+          hint={t("datasource.exprHint")}
+          required
+          error={exprError}
+        >
           <PromqlEditor
             value={expr}
             datasourceUid={datasource.uid}
-            onChange={setExpr}
+            onChange={(value) => {
+              setExpr(value)
+              if (exprError) {
+                setExprError("")
+              }
+            }}
             onSubmit={() => void runMetricsQuery()}
           />
         </FormField>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage } from "@/lib/form-error"
+import { formMessage, readFormError } from "@/lib/form-error"
 
 import {
   createRole,
@@ -18,7 +18,7 @@ import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
-import { requireTrimmed } from "@/lib/form"
+import { collectFieldErrors, hasFieldErrors, requireTrimmed } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
@@ -56,6 +56,7 @@ export function RolePage() {
   const [granting, setGranting] = useState<RoleItem | null>(null)
   const [selected, setSelected] = useState<string[]>([])
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<RoleItem | null>(null)
   const [confirm, setConfirm] = useState<{
@@ -91,20 +92,25 @@ export function RolePage() {
 
   async function onCreate(event: React.FormEvent) {
     event.preventDefault()
-    const invalid = requireTrimmed(name, t("form.required"))
-    if (invalid) {
-      setError(invalid)
+    const errors = collectFieldErrors([
+      ["name", requireTrimmed(name, t("form.required"))],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       await createRole({ name: name.trim() })
       setOpen(false)
       setName("")
       reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -115,19 +121,24 @@ export function RolePage() {
     if (!editing) {
       return
     }
-    const invalid = requireTrimmed(name, t("form.required"))
-    if (invalid) {
-      setError(invalid)
+    const errors = collectFieldErrors([
+      ["name", requireTrimmed(name, t("form.required"))],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       await updateRole({ uid: editing.uid, name: name.trim() })
       setEditing(null)
       reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -138,14 +149,24 @@ export function RolePage() {
     if (!granting) {
       return
     }
+    const errors = collectFieldErrors([
+      ["permissions", selected.length === 0 ? t("form.required") : null],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
+      return
+    }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       await updateRolePermissions(granting.uid, selected)
       setGranting(null)
       reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -157,6 +178,7 @@ export function RolePage() {
     if (!value) {
       setName("")
       setError("")
+      setFieldErrors({})
     }
   }
 
@@ -165,6 +187,7 @@ export function RolePage() {
       setEditing(null)
       setName("")
       setError("")
+      setFieldErrors({})
     }
   }
 
@@ -173,6 +196,7 @@ export function RolePage() {
       setGranting(null)
       setSelected([])
       setError("")
+      setFieldErrors({})
     }
   }
 
@@ -197,6 +221,7 @@ export function RolePage() {
           setGranting(item)
           setSelected(item.permissions ?? [])
           setError("")
+          setFieldErrors({})
         },
       },
       item.status === "ACTIVE"
@@ -346,8 +371,13 @@ export function RolePage() {
           <DialogHeader>
             <DialogTitle>{t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={onCreate}>
-            <FormField label={t("role.name")} htmlFor="role-name">
+          <form noValidate className="grid gap-4" onSubmit={onCreate}>
+            <FormField
+              label={t("role.name")}
+              htmlFor="role-name"
+              required
+              error={fieldErrors.name}
+            >
               <Input
                 id="role-name"
                 value={name}
@@ -370,8 +400,13 @@ export function RolePage() {
           <DialogHeader>
             <DialogTitle>{t("action.edit")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={onRename}>
-            <FormField label={t("role.name")} htmlFor="role-edit-name">
+          <form noValidate className="grid gap-4" onSubmit={onRename}>
+            <FormField
+              label={t("role.name")}
+              htmlFor="role-edit-name"
+              required
+              error={fieldErrors.name}
+            >
               <Input
                 id="role-edit-name"
                 value={name}
@@ -394,11 +429,13 @@ export function RolePage() {
           <DialogHeader>
             <DialogTitle>{t("action.permissions")}</DialogTitle>
           </DialogHeader>
-          <form className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onGrant}>
+          <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onGrant}>
             <div className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto">
             <FormField
               label={t("action.permissions")}
               hint={t("role.permissionHint")}
+              required
+              error={fieldErrors.permissions}
             >
               <div className="grid gap-2">
                 {catalog.map((item) => (
@@ -422,7 +459,7 @@ export function RolePage() {
             </div>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <DialogFooter>
-              <Button type="submit" disabled={pending || selected.length === 0}>
+              <Button type="submit" disabled={pending}>
                 {t("action.save")}
               </Button>
             </DialogFooter>

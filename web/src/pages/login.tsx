@@ -7,6 +7,11 @@ import type { LoginResult } from "@/api/auth/types"
 import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+  collectFieldErrors,
+  hasFieldErrors,
+  requireTrimmed,
+} from "@/lib/form"
 import { readFormError } from "@/lib/form-error"
 import { AuthShell } from "@/pages/auth-shell"
 
@@ -28,6 +33,17 @@ export function LoginPage() {
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault()
+    const errors = collectFieldErrors([
+      ["email", requireTrimmed(email, t("form.required"))],
+      mode === "password"
+        ? ["password", requireTrimmed(password, t("form.required"))]
+        : ["code", requireTrimmed(code, t("form.required"))],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
+      setError("")
+      return
+    }
     setPending(true)
     setError("")
     setFieldErrors({})
@@ -48,6 +64,11 @@ export function LoginPage() {
   }
 
   async function onSendCode() {
+    const emailError = requireTrimmed(email, t("form.required"))
+    if (emailError) {
+      setFieldErrors({ email: emailError })
+      return
+    }
     setPending(true)
     setError("")
     setFieldErrors({})
@@ -82,8 +103,13 @@ export function LoginPage() {
               {t("login.email")}
             </Button>
           </div>
-          <form className="grid gap-4" onSubmit={onSubmit}>
-            <FormField label={t("login.emailLabel")} htmlFor="email" error={fieldErrors.email}>
+          <form noValidate className="grid gap-4" onSubmit={onSubmit}>
+            <FormField
+              label={t("login.emailLabel")}
+              htmlFor="email"
+              required
+              error={fieldErrors.email}
+            >
               <Input
                 id="email"
                 type="email"
@@ -98,6 +124,8 @@ export function LoginPage() {
                 label={t("login.passwordLabel")}
                 htmlFor="password"
                 hint={t("login.passwordHint")}
+                required
+                error={fieldErrors.password}
               >
                 <Input
                   id="password"
@@ -113,6 +141,8 @@ export function LoginPage() {
                 label={t("login.codeLabel")}
                 htmlFor="code"
                 hint={t("login.codeHint")}
+                required
+                error={fieldErrors.code}
               >
                 <div className="flex gap-2">
                   <Input

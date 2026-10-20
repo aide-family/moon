@@ -150,7 +150,9 @@ SSH、SFTP、Kubernetes 代理写入审计。`member` 和 `viewer` 不能删除�
 - 页面放在 `web/src/pages`，请求函数放在 `web/src/api`。组件不直接使用 axios。
 - 请求带 `Authorization: Bearer <token>` 和 `X-Namespace`。401 时清除令牌并回到登录页。
 - 菜单按当前用户在当前 Namespace 的权限生成。
-- 壳提供 Namespace 切换、主题（light / dark / system）和中英文。
+- 壳提供 Namespace 切换、主题（light / dark / system）和中英文。主题只通过显式菜单切换，不注册 `d` 等单键全局快捷键。
+- 表单统一使用 `FormField`。必填项的 label 必须以红色 `*` 开头；提交时逐项校验，校验失败的输入框显示红色边框，并在对应输入框下显示该字段的错误原因。不要依赖浏览器原生气泡，提交表单使用 `noValidate`。
+- 「级别条件」等复合字段必须提供说明 label（可见说明或 `hint`），内部每个输入项也要有 label。
 - 列表页保留筛选、分页，并把查询条件放进 URL。新建和编辑用对话框。主从页面用左侧列表加右侧明细。
 - 页面验收在浏览器里走 `http://<web>:8080`，包含登录、提交和跳转。
 

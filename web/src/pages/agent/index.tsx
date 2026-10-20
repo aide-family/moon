@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { formMessage } from "@/lib/form-error"
+import { formMessage, readFormError } from "@/lib/form-error"
 
 import {
   createAgent,
@@ -37,7 +37,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
-import { requireTrimmed } from "@/lib/form"
+import { requireTrimmed, collectFieldErrors, hasFieldErrors } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
@@ -60,6 +60,7 @@ export function AgentPage() {
   const [token, setToken] = useState("")
   const [tokenOpen, setTokenOpen] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<AgentItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "revoke" | "delete"; item: AgentItem } | null>(null)
@@ -83,6 +84,7 @@ export function AgentPage() {
     setSshPrivateKey("")
     setRemark("")
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
@@ -96,18 +98,22 @@ export function AgentPage() {
     setSshPrivateKey("")
     setRemark(item.remark)
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
-    const invalid = requireTrimmed(name, t("form.required"))
-    if (invalid) {
-      setError(invalid)
+    const errors = collectFieldErrors([
+      ["name", requireTrimmed(name, t("form.required"))],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       const body = {
         name: name.trim(),
@@ -129,7 +135,9 @@ export function AgentPage() {
       }
       reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -265,8 +273,14 @@ export function AgentPage() {
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4 sm:grid-cols-3" onSubmit={onSave}>
-            <FormField label={t("agent.name")} htmlFor="agent-name" className="sm:col-span-full">
+          <form noValidate className="grid gap-4 sm:grid-cols-3" onSubmit={onSave}>
+            <FormField
+              label={t("agent.name")}
+              htmlFor="agent-name"
+              className="sm:col-span-full"
+              required
+              error={fieldErrors.name}
+            >
               <Input id="agent-name" value={name} placeholder={t("agent.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
             <FormField label={t("agent.sshHost")} htmlFor="agent-host">

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage } from "@/lib/form-error"
+import { formMessage, readFormError } from "@/lib/form-error"
 
 import {
   createNotificationChannel,
@@ -43,7 +43,12 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { isEmail } from "@/lib/email"
-import { firstError, requireTrimmed } from "@/lib/form"
+import {
+  collectFieldErrors,
+  hasFieldErrors,
+  requireTrimmed,
+  type FieldErrors,
+} from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
@@ -70,6 +75,7 @@ export function NotificationChannelPage() {
   const [fromAddress, setFromAddress] = useState("")
   const [remark, setRemark] = useState("")
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<NotificationChannelItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationChannelItem } | null>(null)
@@ -94,6 +100,7 @@ export function NotificationChannelPage() {
     setFromAddress("")
     setRemark("")
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
@@ -109,6 +116,7 @@ export function NotificationChannelPage() {
     setFromAddress(item.fromAddress)
     setRemark(item.remark)
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
@@ -119,35 +127,32 @@ export function NotificationChannelPage() {
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
-    const invalid = firstError(
-      requireTrimmed(name, t("form.required")),
-      requireTrimmed(type, t("form.required")),
-      requireTrimmed(endpoint, t("form.required")),
-    )
-    if (invalid) {
-      setError(invalid)
-      return
-    }
+    const errors = collectFieldErrors([
+      ["name", requireTrimmed(name, t("form.required"))],
+      ["type", requireTrimmed(type, t("form.required"))],
+      ["endpoint", requireTrimmed(endpoint, t("form.required"))],
+    ])
     const target = endpoint.trim()
-    if (type === "SMTP") {
+    if (target && type === "SMTP") {
       if (target.includes("://") || /\s/.test(target)) {
-        setError(t("form.invalidEndpoint"))
-        return
+        errors.endpoint = t("form.invalidEndpoint")
       }
       if (!fromAddress.trim() && !username.trim()) {
-        setError(t("form.required"))
-        return
+        errors.fromAddress = t("channel.senderRequired")
       }
       if (fromAddress.trim() && !isEmail(fromAddress)) {
-        setError(t("form.invalidEmail"))
-        return
+        errors.fromAddress = t("form.invalidEmail")
       }
-    } else if (!/^https?:\/\//.test(target)) {
-      setError(t("form.invalidUrl"))
+    } else if (target && !/^https?:\/\//.test(target)) {
+      errors.endpoint = t("form.invalidUrl")
+    }
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       const body = {
         name: name.trim(),
@@ -168,7 +173,9 @@ export function NotificationChannelPage() {
       setOpen(false)
       reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -278,17 +285,27 @@ export function NotificationChannelPage() {
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
-            <FormField label={t("channel.name")} htmlFor="channel-name">
+          <form noValidate className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
+            <FormField
+              label={t("channel.name")}
+              htmlFor="channel-name"
+              required
+              error={fieldErrors.name}
+            >
               <Input id="channel-name" value={name} placeholder={t("channel.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
-            <FormField label={t("channel.type")}>
+            <FormField
+              label={t("channel.type")}
+              required
+              error={fieldErrors.type}
+            >
               <Select
                 value={type}
                 onValueChange={(value) => {
                   setType(value)
                   setApp("OTHER")
                   setError("")
+                  setFieldErrors({})
                 }}
               >
                 <SelectTrigger>
@@ -304,7 +321,11 @@ export function NotificationChannelPage() {
               </Select>
             </FormField>
             {type === "WEBHOOK" ? (
-              <FormField label={t("channel.app")}>
+              <FormField
+                label={t("channel.app")}
+                required
+                error={fieldErrors.app}
+              >
                 <Select value={app} onValueChange={setApp}>
                   <SelectTrigger>
                     <SelectValue placeholder={t("channel.appPlaceholder")} />
@@ -319,7 +340,13 @@ export function NotificationChannelPage() {
                 </Select>
               </FormField>
             ) : null}
-            <FormField label={t("channel.endpoint")} htmlFor="channel-endpoint" className="sm:col-span-full">
+            <FormField
+              label={t("channel.endpoint")}
+              htmlFor="channel-endpoint"
+              className="sm:col-span-full"
+              required
+              error={fieldErrors.endpoint}
+            >
               <Input
                 id="channel-endpoint"
                 value={endpoint}
@@ -336,7 +363,11 @@ export function NotificationChannelPage() {
                 <FormField label={t("channel.password")} htmlFor="channel-password" hint={editing ? t("form.keepSecret") : undefined}>
                   <Input id="channel-password" type="password" value={password} placeholder={t("channel.passwordPlaceholder")} onChange={(event) => setPassword(event.target.value)} />
                 </FormField>
-                <FormField label={t("channel.fromAddress")} htmlFor="channel-from">
+                <FormField
+                  label={t("channel.fromAddress")}
+                  htmlFor="channel-from"
+                  error={fieldErrors.fromAddress}
+                >
                   <Input id="channel-from" value={fromAddress} placeholder={t("channel.fromAddressPlaceholder")} onChange={(event) => setFromAddress(event.target.value)} />
                 </FormField>
               </>

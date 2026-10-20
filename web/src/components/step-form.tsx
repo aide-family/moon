@@ -41,7 +41,7 @@ export function StepForm({
   }
 
   return (
-    <form className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onFormSubmit}>
+    <form noValidate className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={onFormSubmit}>
       <p className="text-sm text-muted-foreground">
         {t("form.step", { current: step + 1, total: stepCount })}
       </p>

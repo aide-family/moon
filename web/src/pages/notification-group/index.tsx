@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage } from "@/lib/form-error"
+import { formMessage, readFormError } from "@/lib/form-error"
 
 import { listMembers } from "@/api/member"
 import type { MemberItem } from "@/api/member/types"
@@ -48,7 +48,13 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { firstInvalidReceiver } from "@/lib/email"
-import { firstError, requireSelected, requireTrimmed } from "@/lib/form"
+import {
+  collectFieldErrors,
+  hasFieldErrors,
+  requireSelected,
+  requireTrimmed,
+  type FieldErrors,
+} from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
@@ -74,6 +80,7 @@ export function NotificationGroupPage() {
   const [memberFilter, setMemberFilter] = useState("")
   const [remark, setRemark] = useState("")
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<NotificationGroupItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationGroupItem } | null>(null)
@@ -140,6 +147,7 @@ export function NotificationGroupPage() {
     if (!options.some((item) => item.uid === templateUid)) {
       setTemplateUid(options[0]?.uid ?? "")
     }
+    setFieldErrors({})
   }
 
   function toggleMember(uid: string) {
@@ -163,6 +171,7 @@ export function NotificationGroupPage() {
     setMemberFilter("")
     setRemark("")
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
@@ -178,29 +187,46 @@ export function NotificationGroupPage() {
     setMemberFilter("")
     setRemark(item.remark)
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
     const channel = channels.find((item) => item.uid === channelUid)
-    const invalid = firstError(
-      requireTrimmed(name, t("form.required")),
-      requireSelected(channelUid, t("form.required")),
-      requireSelected(templateUid, t("form.required")),
-      channel?.type === "SMTP" && !receivers.trim() && memberUids.length === 0 ? t("form.required") : null,
-      webhookChannelUids.length > 0 && !webhookTemplateUid ? t("form.required") : null,
-    )
-    if (invalid) {
-      setError(invalid)
-      return
+    const errors = collectFieldErrors([
+      ["name", requireTrimmed(name, t("form.required"))],
+      ["channel", requireSelected(channelUid, t("form.required"))],
+      ["template", requireSelected(templateUid, t("form.required"))],
+      [
+        "receivers",
+        channel?.type === "SMTP" &&
+        !receivers.trim() &&
+        memberUids.length === 0
+          ? t("group.receiversSmtpHint")
+          : null,
+      ],
+      [
+        "webhookTemplate",
+        webhookChannelUids.length > 0 && !webhookTemplateUid
+          ? t("form.required")
+          : null,
+      ],
+    ])
+    if (
+      channel?.type === "SMTP" &&
+      receivers.trim() &&
+      firstInvalidReceiver(receivers)
+    ) {
+      errors.receivers = t("form.invalidEmail")
     }
-    if (channel?.type === "SMTP" && firstInvalidReceiver(receivers)) {
-      setError(t("form.invalidEmail"))
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       const payload = {
         name: name.trim(), channelUid, templateUid, receivers, remark,
@@ -214,7 +240,9 @@ export function NotificationGroupPage() {
       setOpen(false)
       reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -326,11 +354,20 @@ export function NotificationGroupPage() {
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
-            <FormField label={t("group.name")} htmlFor="group-name">
+          <form noValidate className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
+            <FormField
+              label={t("group.name")}
+              htmlFor="group-name"
+              required
+              error={fieldErrors.name}
+            >
               <Input id="group-name" value={name} placeholder={t("group.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
-            <FormField label={t("group.channel")}>
+            <FormField
+              label={t("group.channel")}
+              required
+              error={fieldErrors.channel}
+            >
               <Select value={channelUid || "NONE"} onValueChange={(value) => selectChannel(value === "NONE" ? "" : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder={t("group.channelPlaceholder")} />
@@ -345,7 +382,11 @@ export function NotificationGroupPage() {
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label={t("group.template")}>
+            <FormField
+              label={t("group.template")}
+              required
+              error={fieldErrors.template}
+            >
               <Select value={templateUid || "NONE"} onValueChange={(value) => setTemplateUid(value === "NONE" ? "" : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder={t("group.templatePlaceholder")} />
@@ -361,7 +402,13 @@ export function NotificationGroupPage() {
               </Select>
             </FormField>
             {channels.find((item) => item.uid === channelUid)?.type === "SMTP" ? (
-              <FormField label={t("group.receivers")} htmlFor="group-receivers" hint={t("group.receiversSmtpHint")} className="sm:col-span-full">
+              <FormField
+                label={t("group.receivers")}
+                htmlFor="group-receivers"
+                hint={t("group.receiversSmtpHint")}
+                className="sm:col-span-full"
+                error={fieldErrors.receivers}
+              >
                 <Input id="group-receivers" value={receivers} placeholder={t("group.receiversPlaceholder")} onChange={(event) => setReceivers(event.target.value)} />
               </FormField>
             ) : (
@@ -423,7 +470,12 @@ export function NotificationGroupPage() {
               </div>
             </div>
             {webhookChannelUids.length > 0 ? (
-              <FormField label={t("group.webhookTemplate")} className="sm:col-span-full">
+              <FormField
+                label={t("group.webhookTemplate")}
+                className="sm:col-span-full"
+                required
+                error={fieldErrors.webhookTemplate}
+              >
                 <Select value={webhookTemplateUid || "NONE"} onValueChange={(value) => setWebhookTemplateUid(value === "NONE" ? "" : value)}>
                   <SelectTrigger>
                     <SelectValue placeholder={t("group.webhookTemplatePlaceholder")} />

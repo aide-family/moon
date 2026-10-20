@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage } from "@/lib/form-error"
+import { formMessage, readFormError } from "@/lib/form-error"
 
 import {
   createAlertPage,
@@ -34,7 +34,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { firstError, requireTrimmed } from "@/lib/form"
+import {
+  collectFieldErrors,
+  hasFieldErrors,
+  requireTrimmed,
+} from "@/lib/form"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
@@ -51,6 +55,7 @@ export function AlertPageManagePage() {
   const [isPublic, setIsPublic] = useState(false)
   const [remark, setRemark] = useState("")
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<AlertPageItem | null>(null)
   const [confirm, setConfirm] = useState<AlertPageItem | null>(null)
@@ -70,6 +75,7 @@ export function AlertPageManagePage() {
     setIsPublic(false)
     setRemark("")
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
@@ -80,18 +86,22 @@ export function AlertPageManagePage() {
     setIsPublic(item.public)
     setRemark(item.remark)
     setError("")
+    setFieldErrors({})
     setOpen(true)
   }
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
-    const invalid = firstError(requireTrimmed(name, t("form.required")))
-    if (invalid) {
-      setError(invalid)
+    const errors = collectFieldErrors([
+      ["name", requireTrimmed(name, t("form.required"))],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
       return
     }
     setPending(true)
     setError("")
+    setFieldErrors({})
     try {
       const payload = {
         name: name.trim(),
@@ -107,7 +117,9 @@ export function AlertPageManagePage() {
       setOpen(false)
       reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
     } finally {
       setPending(false)
     }
@@ -217,8 +229,14 @@ export function AlertPageManagePage() {
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
-            <FormField label={t("alertPage.name")} htmlFor="alert-page-name" className="sm:col-span-full">
+          <form noValidate className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
+            <FormField
+              label={t("alertPage.name")}
+              htmlFor="alert-page-name"
+              className="sm:col-span-full"
+              required
+              error={fieldErrors.name}
+            >
               <Input
                 id="alert-page-name"
                 value={name}

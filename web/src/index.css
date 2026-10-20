@@ -222,3 +222,33 @@
 .dark *::-webkit-scrollbar-thumb:hover {
   background-color: rgba(255, 255, 255, 0.3);
 }
+
+/* 必填校验失败：对应输入框显示红色边框，错误原因由 FormField 显示在下方。 */
+[data-slot="form-field"][data-invalid="true"] :is(
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  [data-slot="select-trigger"]
+) {
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 15%, transparent);
+}
+
+[data-slot="form-field"][data-invalid="true"] :is(
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  [data-slot="select-trigger"]
+):focus-visible {
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 25%, transparent);
+}
+
+/* 单选组没有可染色的输入框边框，用红色分组边框标注。 */
+[data-slot="form-field"][data-invalid="true"] [role="radiogroup"] {
+  border: 1px solid var(--destructive);
+  border-radius: var(--radius-md);
+  padding: 0.5rem;
+}
+
+[data-slot="form-field"][data-invalid="true"] [role="radiogroup"] input[type="radio"] {
+  accent-color: var(--destructive);
+}
