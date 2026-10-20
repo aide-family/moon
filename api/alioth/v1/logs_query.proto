@@ -7,9 +7,9 @@ import "google/api/annotations.proto";
 
 option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
 
-// 日志数据源查询。首期实现 Loki。
+// 日志数据源查询。支持 Loki 和 Elasticsearch。
 service LogsQueryService {
-  // 查询一段时间内的日志。查询语句使用 LogQL。
+  // 查询一段时间内的日志。Loki 使用 LogQL，Elasticsearch 使用 Query DSL 或普通检索语句。
   rpc QueryLogs(QueryLogsRequest) returns (QueryLogsResponse) {
     option (google.api.http) = {
       post: "/v1/logs-query/query"
@@ -22,7 +22,7 @@ service LogsQueryService {
 message QueryLogsRequest {
   // 数据源标识。
   string datasource_uid = 1 [json_name = "datasourceUid", (buf.validate.field).string.min_len = 1];
-  // LogQL 查询语句。
+  // 查询语句。Loki 为 LogQL；Elasticsearch 为 Query DSL 对象或普通检索语句。
   string query = 2 [(buf.validate.field).string.min_len = 1];
   // 开始时间，Unix 秒。
   int64 start = 3;
@@ -34,7 +34,7 @@ message QueryLogsRequest {
   string direction = 6 [(buf.validate.field).string = {in: ["", "backward", "forward"]}];
 }
 
-// 日志查询结果。body 是 Loki 返回的原始 JSON。
+// 日志查询结果。body 是日志驱动返回的原始 JSON。
 message QueryLogsResponse {
   // 原始响应。
   string body = 1;

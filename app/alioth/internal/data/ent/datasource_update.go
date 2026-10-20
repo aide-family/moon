@@ -124,6 +124,34 @@ func (_u *DatasourceUpdate) SetNillableEndpoint(v *string) *DatasourceUpdate {
 	return _u
 }
 
+// SetIndexPattern sets the "index_pattern" field.
+func (_u *DatasourceUpdate) SetIndexPattern(v string) *DatasourceUpdate {
+	_u.mutation.SetIndexPattern(v)
+	return _u
+}
+
+// SetNillableIndexPattern sets the "index_pattern" field if the given value is not nil.
+func (_u *DatasourceUpdate) SetNillableIndexPattern(v *string) *DatasourceUpdate {
+	if v != nil {
+		_u.SetIndexPattern(*v)
+	}
+	return _u
+}
+
+// SetTimeField sets the "time_field" field.
+func (_u *DatasourceUpdate) SetTimeField(v string) *DatasourceUpdate {
+	_u.mutation.SetTimeField(v)
+	return _u
+}
+
+// SetNillableTimeField sets the "time_field" field if the given value is not nil.
+func (_u *DatasourceUpdate) SetNillableTimeField(v *string) *DatasourceUpdate {
+	if v != nil {
+		_u.SetTimeField(*v)
+	}
+	return _u
+}
+
 // SetUsername sets the "username" field.
 func (_u *DatasourceUpdate) SetUsername(v string) *DatasourceUpdate {
 	_u.mutation.SetUsername(v)
@@ -334,6 +362,12 @@ func (_u *DatasourceUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	if value, ok := _u.mutation.Endpoint(); ok {
 		_spec.SetField(datasource.FieldEndpoint, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.IndexPattern(); ok {
+		_spec.SetField(datasource.FieldIndexPattern, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TimeField(); ok {
+		_spec.SetField(datasource.FieldTimeField, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(datasource.FieldUsername, field.TypeString, value)
 	}
@@ -467,6 +501,34 @@ func (_u *DatasourceUpdateOne) SetEndpoint(v string) *DatasourceUpdateOne {
 func (_u *DatasourceUpdateOne) SetNillableEndpoint(v *string) *DatasourceUpdateOne {
 	if v != nil {
 		_u.SetEndpoint(*v)
+	}
+	return _u
+}
+
+// SetIndexPattern sets the "index_pattern" field.
+func (_u *DatasourceUpdateOne) SetIndexPattern(v string) *DatasourceUpdateOne {
+	_u.mutation.SetIndexPattern(v)
+	return _u
+}
+
+// SetNillableIndexPattern sets the "index_pattern" field if the given value is not nil.
+func (_u *DatasourceUpdateOne) SetNillableIndexPattern(v *string) *DatasourceUpdateOne {
+	if v != nil {
+		_u.SetIndexPattern(*v)
+	}
+	return _u
+}
+
+// SetTimeField sets the "time_field" field.
+func (_u *DatasourceUpdateOne) SetTimeField(v string) *DatasourceUpdateOne {
+	_u.mutation.SetTimeField(v)
+	return _u
+}
+
+// SetNillableTimeField sets the "time_field" field if the given value is not nil.
+func (_u *DatasourceUpdateOne) SetNillableTimeField(v *string) *DatasourceUpdateOne {
+	if v != nil {
+		_u.SetTimeField(*v)
 	}
 	return _u
 }
@@ -710,6 +772,12 @@ func (_u *DatasourceUpdateOne) sqlSave(ctx context.Context) (_node *Datasource, 
 	}
 	if value, ok := _u.mutation.Endpoint(); ok {
 		_spec.SetField(datasource.FieldEndpoint, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IndexPattern(); ok {
+		_spec.SetField(datasource.FieldIndexPattern, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TimeField(); ok {
+		_spec.SetField(datasource.FieldTimeField, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(datasource.FieldUsername, field.TypeString, value)

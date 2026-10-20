@@ -139,7 +139,7 @@ function matchedDatasourceUid(
   driver: string,
   matchers: LabelPair[],
 ): string {
-  if (type !== "METRICS" && driver !== "LOGS_LOKI") {
+  if (type !== "METRICS" && driver !== "LOGS_LOKI" && driver !== "LOGS_ELASTICSEARCH") {
     return ""
   }
   const matcherEntries = matchers
@@ -853,10 +853,21 @@ export function AlertRulePage() {
             ) : null}
             {formStep === 1 ? (
               <>
-            <FormField label={t("datasource.expr")} htmlFor="rule-expr" hint={t("datasource.exprHint")} className="sm:col-span-full">
+            <FormField
+              label={t("datasource.expr")}
+              htmlFor="rule-expr"
+              hint={form.driver === "LOGS_ELASTICSEARCH" ? t("datasource.esExprHint") : t("datasource.exprHint")}
+              className="sm:col-span-full"
+            >
               <PromqlEditor
                 value={form.expr}
-                variant={form.driver === "LOGS_LOKI" ? "logql" : "promql"}
+                variant={
+                  form.driver === "LOGS_LOKI"
+                    ? "logql"
+                    : form.driver === "LOGS_ELASTICSEARCH"
+                      ? "json"
+                      : "promql"
+                }
                 datasourceUid={matchedDatasourceUid(sources, form.type, form.driver, form.datasourceLabels)}
                 onChange={(value) => setForm({ ...form, expr: value })}
               />

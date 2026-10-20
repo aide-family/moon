@@ -49,7 +49,11 @@ type DatasourceItem struct {
 	// 备注。
 	Remark string `protobuf:"bytes,11,opt,name=remark,proto3" json:"remark,omitempty"`
 	// 标签 JSON 对象，供规则按标签匹配。
-	Labels        string `protobuf:"bytes,12,opt,name=labels,proto3" json:"labels,omitempty"`
+	Labels string `protobuf:"bytes,12,opt,name=labels,proto3" json:"labels,omitempty"`
+	// Elasticsearch 索引模式。留空表示搜索全部索引，仅对 LOGS_ELASTICSEARCH 生效。
+	IndexPattern string `protobuf:"bytes,13,opt,name=index_pattern,json=indexPattern,proto3" json:"index_pattern,omitempty"`
+	// Elasticsearch 时间字段。留空表示使用 @timestamp，仅对 LOGS_ELASTICSEARCH 生效。
+	TimeField     string `protobuf:"bytes,14,opt,name=time_field,json=timeField,proto3" json:"time_field,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -168,6 +172,20 @@ func (x *DatasourceItem) GetLabels() string {
 	return ""
 }
 
+func (x *DatasourceItem) GetIndexPattern() string {
+	if x != nil {
+		return x.IndexPattern
+	}
+	return ""
+}
+
+func (x *DatasourceItem) GetTimeField() string {
+	if x != nil {
+		return x.TimeField
+	}
+	return ""
+}
+
 // 创建数据源。
 type CreateDatasourceRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -190,7 +208,11 @@ type CreateDatasourceRequest struct {
 	// 备注。
 	Remark string `protobuf:"bytes,9,opt,name=remark,proto3" json:"remark,omitempty"`
 	// 标签 JSON 对象。
-	Labels        string `protobuf:"bytes,10,opt,name=labels,proto3" json:"labels,omitempty"`
+	Labels string `protobuf:"bytes,10,opt,name=labels,proto3" json:"labels,omitempty"`
+	// Elasticsearch 索引模式。留空表示搜索全部索引。
+	IndexPattern string `protobuf:"bytes,11,opt,name=index_pattern,json=indexPattern,proto3" json:"index_pattern,omitempty"`
+	// Elasticsearch 时间字段。留空表示使用 @timestamp。
+	TimeField     string `protobuf:"bytes,12,opt,name=time_field,json=timeField,proto3" json:"time_field,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -295,6 +317,20 @@ func (x *CreateDatasourceRequest) GetLabels() string {
 	return ""
 }
 
+func (x *CreateDatasourceRequest) GetIndexPattern() string {
+	if x != nil {
+		return x.IndexPattern
+	}
+	return ""
+}
+
+func (x *CreateDatasourceRequest) GetTimeField() string {
+	if x != nil {
+		return x.TimeField
+	}
+	return ""
+}
+
 // 创建数据源的结果。
 type CreateDatasourceResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -365,7 +401,11 @@ type UpdateDatasourceRequest struct {
 	// 备注。
 	Remark string `protobuf:"bytes,10,opt,name=remark,proto3" json:"remark,omitempty"`
 	// 标签 JSON 对象。
-	Labels        string `protobuf:"bytes,11,opt,name=labels,proto3" json:"labels,omitempty"`
+	Labels string `protobuf:"bytes,11,opt,name=labels,proto3" json:"labels,omitempty"`
+	// Elasticsearch 索引模式。留空表示搜索全部索引。
+	IndexPattern string `protobuf:"bytes,12,opt,name=index_pattern,json=indexPattern,proto3" json:"index_pattern,omitempty"`
+	// Elasticsearch 时间字段。留空表示使用 @timestamp。
+	TimeField     string `protobuf:"bytes,13,opt,name=time_field,json=timeField,proto3" json:"time_field,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -473,6 +513,20 @@ func (x *UpdateDatasourceRequest) GetRemark() string {
 func (x *UpdateDatasourceRequest) GetLabels() string {
 	if x != nil {
 		return x.Labels
+	}
+	return ""
+}
+
+func (x *UpdateDatasourceRequest) GetIndexPattern() string {
+	if x != nil {
+		return x.IndexPattern
+	}
+	return ""
+}
+
+func (x *UpdateDatasourceRequest) GetTimeField() string {
+	if x != nil {
+		return x.TimeField
 	}
 	return ""
 }
@@ -4133,7 +4187,7 @@ var File_alioth_v1_alert_proto protoreflect.FileDescriptor
 
 const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\n" +
-	"\x15alioth/v1/alert.proto\x12\talioth.v1\x1a\x18alioth/v1/identity.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\xbd\x02\n" +
+	"\x15alioth/v1/alert.proto\x12\talioth.v1\x1a\x18alioth/v1/identity.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"\x81\x03\n" +
 	"\x0eDatasourceItem\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
@@ -4149,7 +4203,10 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"level_name\x18\n" +
 	" \x01(\tR\tlevelName\x12\x16\n" +
 	"\x06remark\x18\v \x01(\tR\x06remark\x12\x16\n" +
-	"\x06labels\x18\f \x01(\tR\x06labels\"\xb9\x03\n" +
+	"\x06labels\x18\f \x01(\tR\x06labels\x12#\n" +
+	"\rindex_pattern\x18\r \x01(\tR\findexPattern\x12\x1d\n" +
+	"\n" +
+	"time_field\x18\x0e \x01(\tR\ttimeField\"\x91\x04\n" +
 	"\x17CreateDatasourceRequest\x12\x1d\n" +
 	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12/\n" +
 	"\x04type\x18\x02 \x01(\tB\x1b\xbaH\x18r\x16R\aMETRICSR\x04LOGSR\x05TRACER\x04type\x12x\n" +
@@ -4161,11 +4218,14 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\tlevel_uid\x18\b \x01(\tR\blevelUid\x12 \n" +
 	"\x06remark\x18\t \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\x06remark\x12 \n" +
 	"\x06labels\x18\n" +
-	" \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x06labels\"U\n" +
+	" \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x06labels\x12-\n" +
+	"\rindex_pattern\x18\v \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\findexPattern\x12'\n" +
+	"\n" +
+	"time_field\x18\f \x01(\tB\b\xbaH\x05r\x03\x18\x80\x01R\ttimeField\"U\n" +
 	"\x18CreateDatasourceResponse\x129\n" +
 	"\n" +
 	"datasource\x18\x01 \x01(\v2\x19.alioth.v1.DatasourceItemR\n" +
-	"datasource\"\xd4\x03\n" +
+	"datasource\"\xac\x04\n" +
 	"\x17UpdateDatasourceRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12\x1d\n" +
 	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12/\n" +
@@ -4178,7 +4238,10 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\tlevel_uid\x18\t \x01(\tR\blevelUid\x12 \n" +
 	"\x06remark\x18\n" +
 	" \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\x06remark\x12 \n" +
-	"\x06labels\x18\v \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x06labels\"U\n" +
+	"\x06labels\x18\v \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x06labels\x12-\n" +
+	"\rindex_pattern\x18\f \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\findexPattern\x12'\n" +
+	"\n" +
+	"time_field\x18\r \x01(\tB\b\xbaH\x05r\x03\x18\x80\x01R\ttimeField\"U\n" +
 	"\x18UpdateDatasourceResponse\x129\n" +
 	"\n" +
 	"datasource\x18\x01 \x01(\v2\x19.alioth.v1.DatasourceItemR\n" +

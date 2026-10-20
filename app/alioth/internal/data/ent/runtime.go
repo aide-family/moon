@@ -478,28 +478,36 @@ func init() {
 	datasourceDescEndpoint := datasourceFields[5].Descriptor()
 	// datasource.EndpointValidator is a validator for the "endpoint" field. It is called by the builders before save.
 	datasource.EndpointValidator = datasourceDescEndpoint.Validators[0].(func(string) error)
+	// datasourceDescIndexPattern is the schema descriptor for index_pattern field.
+	datasourceDescIndexPattern := datasourceFields[6].Descriptor()
+	// datasource.DefaultIndexPattern holds the default value on creation for the index_pattern field.
+	datasource.DefaultIndexPattern = datasourceDescIndexPattern.Default.(string)
+	// datasourceDescTimeField is the schema descriptor for time_field field.
+	datasourceDescTimeField := datasourceFields[7].Descriptor()
+	// datasource.DefaultTimeField holds the default value on creation for the time_field field.
+	datasource.DefaultTimeField = datasourceDescTimeField.Default.(string)
 	// datasourceDescUsername is the schema descriptor for username field.
-	datasourceDescUsername := datasourceFields[6].Descriptor()
+	datasourceDescUsername := datasourceFields[8].Descriptor()
 	// datasource.DefaultUsername holds the default value on creation for the username field.
 	datasource.DefaultUsername = datasourceDescUsername.Default.(string)
 	// datasourceDescPasswordCipher is the schema descriptor for password_cipher field.
-	datasourceDescPasswordCipher := datasourceFields[7].Descriptor()
+	datasourceDescPasswordCipher := datasourceFields[9].Descriptor()
 	// datasource.DefaultPasswordCipher holds the default value on creation for the password_cipher field.
 	datasource.DefaultPasswordCipher = datasourceDescPasswordCipher.Default.(string)
 	// datasourceDescSecretCipher is the schema descriptor for secret_cipher field.
-	datasourceDescSecretCipher := datasourceFields[8].Descriptor()
+	datasourceDescSecretCipher := datasourceFields[10].Descriptor()
 	// datasource.DefaultSecretCipher holds the default value on creation for the secret_cipher field.
 	datasource.DefaultSecretCipher = datasourceDescSecretCipher.Default.(string)
 	// datasourceDescLevelUID is the schema descriptor for level_uid field.
-	datasourceDescLevelUID := datasourceFields[10].Descriptor()
+	datasourceDescLevelUID := datasourceFields[12].Descriptor()
 	// datasource.DefaultLevelUID holds the default value on creation for the level_uid field.
 	datasource.DefaultLevelUID = datasourceDescLevelUID.Default.(string)
 	// datasourceDescLabels is the schema descriptor for labels field.
-	datasourceDescLabels := datasourceFields[11].Descriptor()
+	datasourceDescLabels := datasourceFields[13].Descriptor()
 	// datasource.DefaultLabels holds the default value on creation for the labels field.
 	datasource.DefaultLabels = datasourceDescLabels.Default.(string)
 	// datasourceDescRemark is the schema descriptor for remark field.
-	datasourceDescRemark := datasourceFields[12].Descriptor()
+	datasourceDescRemark := datasourceFields[14].Descriptor()
 	// datasource.DefaultRemark holds the default value on creation for the remark field.
 	datasource.DefaultRemark = datasourceDescRemark.Default.(string)
 	emaillogincodeMixin := schema.EmailLoginCode{}.Mixin()

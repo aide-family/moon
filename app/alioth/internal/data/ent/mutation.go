@@ -8967,6 +8967,8 @@ type DatasourceMutation struct {
 	_type           *datasource.Type
 	_driver         *datasource.Driver
 	endpoint        *string
+	index_pattern   *string
+	time_field      *string
 	username        *string
 	password_cipher *string
 	secret_cipher   *string
@@ -9415,6 +9417,78 @@ func (m *DatasourceMutation) ResetEndpoint() {
 	m.endpoint = nil
 }
 
+// SetIndexPattern sets the "index_pattern" field.
+func (m *DatasourceMutation) SetIndexPattern(s string) {
+	m.index_pattern = &s
+}
+
+// IndexPattern returns the value of the "index_pattern" field in the mutation.
+func (m *DatasourceMutation) IndexPattern() (r string, exists bool) {
+	v := m.index_pattern
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIndexPattern returns the old "index_pattern" field's value of the Datasource entity.
+// If the Datasource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceMutation) OldIndexPattern(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIndexPattern is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIndexPattern requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIndexPattern: %w", err)
+	}
+	return oldValue.IndexPattern, nil
+}
+
+// ResetIndexPattern resets all changes to the "index_pattern" field.
+func (m *DatasourceMutation) ResetIndexPattern() {
+	m.index_pattern = nil
+}
+
+// SetTimeField sets the "time_field" field.
+func (m *DatasourceMutation) SetTimeField(s string) {
+	m.time_field = &s
+}
+
+// TimeField returns the value of the "time_field" field in the mutation.
+func (m *DatasourceMutation) TimeField() (r string, exists bool) {
+	v := m.time_field
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimeField returns the old "time_field" field's value of the Datasource entity.
+// If the Datasource object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceMutation) OldTimeField(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTimeField is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTimeField requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimeField: %w", err)
+	}
+	return oldValue.TimeField, nil
+}
+
+// ResetTimeField resets all changes to the "time_field" field.
+func (m *DatasourceMutation) ResetTimeField() {
+	m.time_field = nil
+}
+
 // SetUsername sets the "username" field.
 func (m *DatasourceMutation) SetUsername(s string) {
 	m.username = &s
@@ -9701,7 +9775,7 @@ func (m *DatasourceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DatasourceMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 18)
 	if m.created_at != nil {
 		fields = append(fields, datasource.FieldCreatedAt)
 	}
@@ -9728,6 +9802,12 @@ func (m *DatasourceMutation) Fields() []string {
 	}
 	if m.endpoint != nil {
 		fields = append(fields, datasource.FieldEndpoint)
+	}
+	if m.index_pattern != nil {
+		fields = append(fields, datasource.FieldIndexPattern)
+	}
+	if m.time_field != nil {
+		fields = append(fields, datasource.FieldTimeField)
 	}
 	if m.username != nil {
 		fields = append(fields, datasource.FieldUsername)
@@ -9776,6 +9856,10 @@ func (m *DatasourceMutation) Field(name string) (ent.Value, bool) {
 		return m.Driver()
 	case datasource.FieldEndpoint:
 		return m.Endpoint()
+	case datasource.FieldIndexPattern:
+		return m.IndexPattern()
+	case datasource.FieldTimeField:
+		return m.TimeField()
 	case datasource.FieldUsername:
 		return m.Username()
 	case datasource.FieldPasswordCipher:
@@ -9817,6 +9901,10 @@ func (m *DatasourceMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldDriver(ctx)
 	case datasource.FieldEndpoint:
 		return m.OldEndpoint(ctx)
+	case datasource.FieldIndexPattern:
+		return m.OldIndexPattern(ctx)
+	case datasource.FieldTimeField:
+		return m.OldTimeField(ctx)
 	case datasource.FieldUsername:
 		return m.OldUsername(ctx)
 	case datasource.FieldPasswordCipher:
@@ -9902,6 +9990,20 @@ func (m *DatasourceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEndpoint(v)
+		return nil
+	case datasource.FieldIndexPattern:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIndexPattern(v)
+		return nil
+	case datasource.FieldTimeField:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimeField(v)
 		return nil
 	case datasource.FieldUsername:
 		v, ok := value.(string)
@@ -10036,6 +10138,12 @@ func (m *DatasourceMutation) ResetField(name string) error {
 		return nil
 	case datasource.FieldEndpoint:
 		m.ResetEndpoint()
+		return nil
+	case datasource.FieldIndexPattern:
+		m.ResetIndexPattern()
+		return nil
+	case datasource.FieldTimeField:
+		m.ResetTimeField()
 		return nil
 	case datasource.FieldUsername:
 		m.ResetUsername()

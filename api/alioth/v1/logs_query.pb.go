@@ -28,7 +28,7 @@ type QueryLogsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 数据源标识。
 	DatasourceUid string `protobuf:"bytes,1,opt,name=datasource_uid,json=datasourceUid,proto3" json:"datasource_uid,omitempty"`
-	// LogQL 查询语句。
+	// 查询语句。Loki 为 LogQL；Elasticsearch 为 Query DSL 对象或普通检索语句。
 	Query string `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
 	// 开始时间，Unix 秒。
 	Start int64 `protobuf:"varint,3,opt,name=start,proto3" json:"start,omitempty"`
@@ -114,7 +114,7 @@ func (x *QueryLogsRequest) GetDirection() string {
 	return ""
 }
 
-// 日志查询结果。body 是 Loki 返回的原始 JSON。
+// 日志查询结果。body 是日志驱动返回的原始 JSON。
 type QueryLogsResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 原始响应。

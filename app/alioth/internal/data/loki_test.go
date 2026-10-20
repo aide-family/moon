@@ -36,7 +36,7 @@ func TestQueryLogsSendsLokiRangeRequest(t *testing.T) {
 
 	repo := newLogTestRepo()
 	body, err := repo.QueryLogs(context.Background(), bo.Datasource{
-		UID: "ds-loki", Endpoint: srv.URL, Secret: "token",
+		UID: "ds-loki", Driver: "LOGS_LOKI", Endpoint: srv.URL, Secret: "token",
 	}, `{app="api"} |= "error"`, 100, 200, 50, "forward")
 	if err != nil {
 		t.Fatal(err)
@@ -69,6 +69,7 @@ func TestDatasourceStatusPathByDriver(t *testing.T) {
 		path   string
 	}{
 		{driver: "LOGS_LOKI", path: "/ready"},
+		{driver: "LOGS_ELASTICSEARCH", path: "/"},
 		{driver: "METRICS_PROMETHEUS", path: "/api/v1/status/buildinfo"},
 		{driver: "METRICS_VICTORIA_METRICS", path: "/api/v1/status/buildinfo"},
 	}
@@ -94,7 +95,7 @@ func TestDatasourceStatusPathByDriver(t *testing.T) {
 		})
 	}
 
-	if _, err := statusPath("LOGS_ELASTICSEARCH"); !merr.IsInvalid(err) {
+	if _, err := statusPath("TRACE_JAEGER"); !merr.IsInvalid(err) {
 		t.Fatalf("unsupported driver error = %v", err)
 	}
 }
@@ -106,7 +107,7 @@ func TestQueryLogsReportsUpstreamFailure(t *testing.T) {
 	defer srv.Close()
 
 	repo := newLogTestRepo()
-	if _, err := repo.QueryLogs(context.Background(), bo.Datasource{UID: "ds-loki", Endpoint: srv.URL}, "{}", 1, 2, 10, "backward"); err == nil {
+	if _, err := repo.QueryLogs(context.Background(), bo.Datasource{UID: "ds-loki", Driver: "LOGS_LOKI", Endpoint: srv.URL}, "{}", 1, 2, 10, "backward"); err == nil {
 		t.Fatal("upstream failure should return an error")
 	}
 	if _, err := repo.DatasourceStatus(context.Background(), bo.Datasource{UID: "ds-loki", Driver: "LOGS_LOKI", Endpoint: srv.URL}); err == nil {

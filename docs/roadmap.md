@@ -115,7 +115,7 @@ M5 依赖 M1 的身份与权限，不依赖告警评测。M9 补齐 M1 的平台
 交付：
 
 - 实体：`Datasource`、`AlertDictionary`、`AlertRuleGroup`、`AlertRule`、`AlertRuleLevel`
-- 数据源类型与驱动：Metrics（Prometheus、VictoriaMetrics）、Logs（Elasticsearch）、Trace（Jaeger）
+- 数据源类型与驱动：Metrics（Prometheus、VictoriaMetrics）、Logs（Elasticsearch、Loki）、Trace（Jaeger）
 - 指标数据源的状态、指标列表、指标详情、即时查询、区间查询、代理查询
 - 规则组、规则、比较条件（EQ、NE、GT、GTE、LT、LTE、IN、NOT_IN）和采样（FOR、MAX、MIN）
 - 密钥字段加密后入库

@@ -32,6 +32,7 @@ import {
   toTableRows,
   type PrometheusApiResponse,
 } from "@/pages/datasource/prometheus"
+import { ElasticsearchPanel } from "@/pages/datasource/elasticsearch-panel"
 import { LokiPanel } from "@/pages/datasource/loki-panel"
 import { resolveRange, type RangePreset } from "@/pages/datasource/range"
 
@@ -634,6 +635,10 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
 
   if (datasource.type === "LOGS" && datasource.driver === "LOGS_LOKI") {
     return <LokiPanel datasource={datasource} />
+  }
+
+  if (datasource.type === "LOGS" && datasource.driver === "LOGS_ELASTICSEARCH") {
+    return <ElasticsearchPanel datasource={datasource} />
   }
 
   if (datasource.type !== "METRICS") {

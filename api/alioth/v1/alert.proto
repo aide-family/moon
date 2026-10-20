@@ -47,7 +47,7 @@ service DatasourceService {
   rpc SelectDatasources(SelectDatasourcesRequest) returns (SelectDatasourcesResponse) {
     option (google.api.http) = {get: "/v1/datasources/select"};
   }
-  // 查看数据源是否可连通。支持指标数据源和 Loki 日志数据源。
+  // 查看数据源是否可连通。支持指标数据源、Loki 和 Elasticsearch 日志数据源。
   rpc GetDatasourceStatus(GetDatasourceStatusRequest) returns (GetDatasourceStatusResponse) {
     option (google.api.http) = {get: "/v1/datasource/{uid}/status"};
   }
@@ -211,6 +211,10 @@ message DatasourceItem {
   string remark = 11;
   // 标签 JSON 对象，供规则按标签匹配。
   string labels = 12;
+  // Elasticsearch 索引模式。留空表示搜索全部索引，仅对 LOGS_ELASTICSEARCH 生效。
+  string index_pattern = 13 [json_name = "indexPattern"];
+  // Elasticsearch 时间字段。留空表示使用 @timestamp，仅对 LOGS_ELASTICSEARCH 生效。
+  string time_field = 14 [json_name = "timeField"];
 }
 
 // 创建数据源。
@@ -235,6 +239,10 @@ message CreateDatasourceRequest {
   string remark = 9 [(buf.validate.field).string.max_len = 200];
   // 标签 JSON 对象。
   string labels = 10 [(buf.validate.field).string.max_len = 4096];
+  // Elasticsearch 索引模式。留空表示搜索全部索引。
+  string index_pattern = 11 [json_name = "indexPattern", (buf.validate.field).string.max_len = 256];
+  // Elasticsearch 时间字段。留空表示使用 @timestamp。
+  string time_field = 12 [json_name = "timeField", (buf.validate.field).string.max_len = 128];
 }
 
 // 创建数据源的结果。
@@ -267,6 +275,10 @@ message UpdateDatasourceRequest {
   string remark = 10 [(buf.validate.field).string.max_len = 200];
   // 标签 JSON 对象。
   string labels = 11 [(buf.validate.field).string.max_len = 4096];
+  // Elasticsearch 索引模式。留空表示搜索全部索引。
+  string index_pattern = 12 [json_name = "indexPattern", (buf.validate.field).string.max_len = 256];
+  // Elasticsearch 时间字段。留空表示使用 @timestamp。
+  string time_field = 13 [json_name = "timeField", (buf.validate.field).string.max_len = 128];
 }
 
 // 更新数据源的结果。

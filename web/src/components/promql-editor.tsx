@@ -3,6 +3,7 @@ import { promLanguageDefinition } from "monaco-promql"
 import { useEffect, useMemo, useRef } from "react"
 import * as monacoEditor from "monaco-editor"
 import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
+import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker"
 
 import { listDatasourceMetrics } from "@/api/datasource"
 import { proxyQuery } from "@/api/metric-query"
@@ -22,8 +23,8 @@ function ensureMonaco() {
   }
   monacoReady = true
   window.MonacoEnvironment = {
-    getWorker() {
-      return new editorWorker()
+    getWorker(_workerId, label) {
+      return label === "json" ? new jsonWorker() : new editorWorker()
     },
   }
   loader.config({ monaco: monacoEditor })
@@ -204,8 +205,8 @@ interface PromqlEditorProps {
   onChange: (value: string) => void
   datasourceUid?: string
   onSubmit?: () => void
-  /** logql 时使用 Loki 的标签接口补全。 */
-  variant?: "promql" | "logql"
+  /** logql 时使用 Loki 的标签接口补全；json 用于 Elasticsearch Query DSL。 */
+  variant?: "promql" | "logql" | "json"
 }
 
 export function PromqlEditor({
@@ -218,6 +219,7 @@ export function PromqlEditor({
   const { theme } = useTheme()
   const uidRef = useRef(datasourceUid)
   const lokiRef = useRef(variant === "logql")
+  const jsonRef = useRef(variant === "json")
   const onSubmitRef = useRef(onSubmit)
   const disposeRef = useRef<(() => void) | null>(null)
 
@@ -227,6 +229,10 @@ export function PromqlEditor({
 
   useEffect(() => {
     lokiRef.current = variant === "logql"
+  }, [variant])
+
+  useEffect(() => {
+    jsonRef.current = variant === "json"
   }, [variant])
 
   useEffect(() => {
@@ -251,8 +257,10 @@ export function PromqlEditor({
 
   const onMount: OnMount = (editor, monaco) => {
     disposeRef.current?.()
-    const provider = registerDataCompletion(monaco, uidRef, lokiRef)
-    disposeRef.current = () => provider.dispose()
+    if (!jsonRef.current) {
+      const provider = registerDataCompletion(monaco, uidRef, lokiRef)
+      disposeRef.current = () => provider.dispose()
+    }
 
     editor.addCommand(
       monaco.KeyCode.Enter,
@@ -278,10 +286,10 @@ export function PromqlEditor({
     >
       <Editor
         height={height}
-        language="promql"
+        language={variant === "json" ? "json" : "promql"}
         theme={editorTheme}
         value={value}
-        beforeMount={setupPromqlLanguage}
+        beforeMount={variant === "json" ? undefined : setupPromqlLanguage}
         onMount={onMount}
         onChange={(next) => onChange(next ?? "")}
         options={{

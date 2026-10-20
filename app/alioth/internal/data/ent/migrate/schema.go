@@ -414,6 +414,8 @@ var (
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"METRICS", "LOGS", "TRACE"}},
 		{Name: "driver", Type: field.TypeEnum, Enums: []string{"METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"}},
 		{Name: "endpoint", Type: field.TypeString},
+		{Name: "index_pattern", Type: field.TypeString, Default: ""},
+		{Name: "time_field", Type: field.TypeString, Default: ""},
 		{Name: "username", Type: field.TypeString, Default: ""},
 		{Name: "password_cipher", Type: field.TypeString, Default: ""},
 		{Name: "secret_cipher", Type: field.TypeString, Default: ""},

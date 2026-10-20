@@ -32,6 +32,10 @@ const (
 	FieldDriver = "driver"
 	// FieldEndpoint holds the string denoting the endpoint field in the database.
 	FieldEndpoint = "endpoint"
+	// FieldIndexPattern holds the string denoting the index_pattern field in the database.
+	FieldIndexPattern = "index_pattern"
+	// FieldTimeField holds the string denoting the time_field field in the database.
+	FieldTimeField = "time_field"
 	// FieldUsername holds the string denoting the username field in the database.
 	FieldUsername = "username"
 	// FieldPasswordCipher holds the string denoting the password_cipher field in the database.
@@ -62,6 +66,8 @@ var Columns = []string{
 	FieldType,
 	FieldDriver,
 	FieldEndpoint,
+	FieldIndexPattern,
+	FieldTimeField,
 	FieldUsername,
 	FieldPasswordCipher,
 	FieldSecretCipher,
@@ -96,6 +102,10 @@ var (
 	NameValidator func(string) error
 	// EndpointValidator is a validator for the "endpoint" field. It is called by the builders before save.
 	EndpointValidator func(string) error
+	// DefaultIndexPattern holds the default value on creation for the "index_pattern" field.
+	DefaultIndexPattern string
+	// DefaultTimeField holds the default value on creation for the "time_field" field.
+	DefaultTimeField string
 	// DefaultUsername holds the default value on creation for the "username" field.
 	DefaultUsername string
 	// DefaultPasswordCipher holds the default value on creation for the "password_cipher" field.
@@ -237,6 +247,16 @@ func ByDriver(opts ...sql.OrderTermOption) OrderOption {
 // ByEndpoint orders the results by the endpoint field.
 func ByEndpoint(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEndpoint, opts...).ToFunc()
+}
+
+// ByIndexPattern orders the results by the index_pattern field.
+func ByIndexPattern(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIndexPattern, opts...).ToFunc()
+}
+
+// ByTimeField orders the results by the time_field field.
+func ByTimeField(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTimeField, opts...).ToFunc()
 }
 
 // ByUsername orders the results by the username field.

@@ -243,11 +243,11 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 | DatasourceType | DatasourceDriver                            | 首期行为                |
 | -------------- | ------------------------------------------- | ------------------- |
 | METRICS        | METRICS_PROMETHEUS、METRICS_VICTORIA_METRICS | 管理、即时查询、区间查询、指标规则评测 |
-| LOGS           | LOGS_ELASTICSEARCH、LOGS_LOKI                | 管理与查询代理。Loki 另有日志区间查询和状态检查；评测器留接口 |
+| LOGS           | LOGS_ELASTICSEARCH、LOGS_LOKI                | 管理与查询代理。Loki、Elasticsearch 各有日志区间查询和状态检查；评测器留接口 |
 | TRACE          | TRACE_JAEGER                                | 管理与查询代理。评测器留接口      |
 
 
-数据源归属 Namespace，可启停，可绑定数据源级别（Moon 的 `LevelType_DATASOURCE`），并带 `labels` JSON 供规则按标签匹配。密钥字段加密后入库，沿用 Moon `EncryptString` 的做法。指标数据源保留 Moon 已有的能力：状态、指标列表、指标详情、`query`、`query_range`、代理查询。Loki 日志数据源的连通检查走 `/ready`，日志查询走 `/loki/api/v1/query_range`，查询语句为 LogQL。
+数据源归属 Namespace，可启停，可绑定数据源级别（Moon 的 `LevelType_DATASOURCE`），并带 `labels` JSON 供规则按标签匹配。密钥字段加密后入库，沿用 Moon `EncryptString` 的做法。指标数据源保留 Moon 已有的能力：状态、指标列表、指标详情、`query`、`query_range`、代理查询。Loki 日志数据源的连通检查走 `/ready`，日志查询走 `/loki/api/v1/query_range`，查询语句为 LogQL。Elasticsearch 日志数据源的连通检查走根路径，日志查询走 `/_search`，查询语句为 Query DSL 或普通检索语句，索引模式和时间字段随数据源保存。
 
 ### 4.2 规则
 
@@ -418,7 +418,7 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 | 系统消息       | `GET /v1/self/messages`、`GET /v1/self/messages/unread-count`、`PUT /v1/self/messages/{uid}/read`、`PUT /v1/self/messages/read-all`                |
 | 数据源        | `/v1/datasource`、`/v1/datasources`、状态、指标列表与详情                                           |
 | 指标查询       | `POST /v1/metric-query/query`、`query-range`、`proxy`                                     |
-| 日志查询       | `POST /v1/logs-query/query`。Loki 的日志区间查询，返回 Loki 原始 JSON                          |
+| 日志查询       | `POST /v1/logs-query/query`。Loki 与 Elasticsearch 的日志区间查询，返回驱动原始 JSON                |
 | 规则组 / 规则   | Moon 的 `/v1/strategy-group` 与 `/v1/strategy`。Alioth 资源名为 AlertRuleGroup、AlertRule       |
 | 指标条件与级别阈值  | Moon 的 `/v1/metric/strategy/{strategyUID}`                                              |
 | 告警字典       | `/v1/alert-dictionary`、`/v1/alert-dictionaries`                                         |

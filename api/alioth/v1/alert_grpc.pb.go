@@ -51,7 +51,7 @@ type DatasourceServiceClient interface {
 	ListDatasources(ctx context.Context, in *ListDatasourcesRequest, opts ...grpc.CallOption) (*ListDatasourcesResponse, error)
 	// 下拉选择数据源。
 	SelectDatasources(ctx context.Context, in *SelectDatasourcesRequest, opts ...grpc.CallOption) (*SelectDatasourcesResponse, error)
-	// 查看数据源是否可连通。支持指标数据源和 Loki 日志数据源。
+	// 查看数据源是否可连通。支持指标数据源、Loki 和 Elasticsearch 日志数据源。
 	GetDatasourceStatus(ctx context.Context, in *GetDatasourceStatusRequest, opts ...grpc.CallOption) (*GetDatasourceStatusResponse, error)
 	// 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(ctx context.Context, in *ListDatasourceMetricsRequest, opts ...grpc.CallOption) (*ListDatasourceMetricsResponse, error)
@@ -187,7 +187,7 @@ type DatasourceServiceServer interface {
 	ListDatasources(context.Context, *ListDatasourcesRequest) (*ListDatasourcesResponse, error)
 	// 下拉选择数据源。
 	SelectDatasources(context.Context, *SelectDatasourcesRequest) (*SelectDatasourcesResponse, error)
-	// 查看数据源是否可连通。支持指标数据源和 Loki 日志数据源。
+	// 查看数据源是否可连通。支持指标数据源、Loki 和 Elasticsearch 日志数据源。
 	GetDatasourceStatus(context.Context, *GetDatasourceStatusRequest) (*GetDatasourceStatusResponse, error)
 	// 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(context.Context, *ListDatasourceMetricsRequest) (*ListDatasourceMetricsResponse, error)

@@ -23,6 +23,9 @@ func (Datasource) Fields() []ent.Field {
 		field.Enum("type").Values("METRICS", "LOGS", "TRACE"),
 		field.Enum("driver").Values("METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"),
 		field.String("endpoint").NotEmpty(),
+		// Elasticsearch 的索引模式和时间字段。其他驱动留空，不使用这两个字段。
+		field.String("index_pattern").Default(""),
+		field.String("time_field").Default(""),
 		field.String("username").Default(""),
 		field.String("password_cipher").Sensitive().Default(""),
 		field.String("secret_cipher").Sensitive().Default(""),

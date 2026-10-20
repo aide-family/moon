@@ -84,14 +84,17 @@ func (r *datasourceRepo) DatasourceStatus(ctx context.Context, item bo.Datasourc
 	return "up", nil
 }
 
-// statusPath 按驱动选择健康检查路径。Loki 用 /ready，指标数据源沿用 Prometheus 的 buildinfo。
-// 其他日志和链路驱动还没有约定的探测路径，返回明确错误而不是探测一个无关接口。
+// statusPath 按驱动选择健康检查路径。Loki 用 /ready，Elasticsearch 用根路径，
+// 指标数据源沿用 Prometheus 的 buildinfo。其他驱动没有约定的探测路径，
+// 返回明确错误而不是探测一个无关接口。
 func statusPath(driver string) (string, error) {
 	switch driver {
 	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS":
 		return "/api/v1/status/buildinfo", nil
 	case "LOGS_LOKI":
 		return "/ready", nil
+	case "LOGS_ELASTICSEARCH":
+		return "/", nil
 	default:
 		return "", merr.Invalid("unsupported datasource driver")
 	}

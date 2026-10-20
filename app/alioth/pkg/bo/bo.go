@@ -120,6 +120,10 @@ type Datasource struct {
 	Type         string
 	Driver       string
 	Endpoint     string
+	// IndexPattern 和 TimeField 只对 Elasticsearch 日志数据源有意义。
+	// 留空时分别搜索全部索引、按 @timestamp 过滤和排序。
+	IndexPattern string
+	TimeField    string
 	Username     string
 	Password     string
 	Secret       string

@@ -26,6 +26,20 @@ func TestDriverMatchesLoki(t *testing.T) {
 	}
 }
 
+func TestNormalizeDatasourceKeepsElasticsearchSettings(t *testing.T) {
+	item := bo.Datasource{Driver: "LOGS_ELASTICSEARCH", IndexPattern: " logs-* ", TimeField: " event.time "}
+	normalizeDatasource(&item)
+	if item.IndexPattern != "logs-*" || item.TimeField != "event.time" {
+		t.Fatalf("normalized = %+v", item)
+	}
+
+	item = bo.Datasource{Driver: "LOGS_LOKI", IndexPattern: "logs-*", TimeField: "event.time"}
+	normalizeDatasource(&item)
+	if item.IndexPattern != "" || item.TimeField != "" {
+		t.Fatalf("loki settings should be cleared: %+v", item)
+	}
+}
+
 func TestNormalizeLogQuery(t *testing.T) {
 	query, size, direction, err := normalizeLogQuery(`{app="api"} |= "error"`, 100, 200, 0, "")
 	if err != nil {

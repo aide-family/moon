@@ -45,6 +45,7 @@ func (uc *Usecase) CreateDatasource(ctx context.Context, in bo.Datasource) (*bo.
 	if err := validateDatasource(in); err != nil {
 		return nil, err
 	}
+	normalizeDatasource(&in)
 	if err := uc.requireDatasourceLevel(ctx, ns, in.LevelUID); err != nil {
 		return nil, err
 	}
@@ -67,6 +68,7 @@ func (uc *Usecase) UpdateDatasource(ctx context.Context, in bo.Datasource) (*bo.
 	if err := validateDatasource(in); err != nil {
 		return nil, err
 	}
+	normalizeDatasource(&in)
 	if err := uc.requireDatasourceLevel(ctx, ns, in.LevelUID); err != nil {
 		return nil, err
 	}
@@ -185,7 +187,8 @@ func (uc *Usecase) QueryRange(ctx context.Context, uid, expr string, start, end,
 	return body, uc.access.Wrap(err)
 }
 
-// QueryLogs 只查询 Loki 日志数据源。时间窗口、条数和方向在这里收敛，避免把任意参数透传给上游。
+// QueryLogs 查询日志数据源。Loki 使用 LogQL，Elasticsearch 使用 Query DSL
+// 或普通检索语句。时间窗口、条数和方向在这里收敛，避免把任意参数透传给上游。
 func (uc *Usecase) QueryLogs(ctx context.Context, uid, query string, start, end int64, limit int32, direction string) (string, error) {
 	item, err := uc.logSource(ctx, uid)
 	if err != nil {
@@ -227,26 +230,31 @@ func (uc *Usecase) metricSource(ctx context.Context, uid string) (*bo.Datasource
 	return item, nil
 }
 
-// logSource 取 Loki 日志数据源。Elasticsearch 还没有日志查询接口，这里明确拒绝。
+// logSource 取日志数据源。Loki 与 Elasticsearch 都支持日志查询。
 func (uc *Usecase) logSource(ctx context.Context, uid string) (*bo.Datasource, error) {
 	item, err := uc.readSource(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	if item.Type != "LOGS" || item.Driver != "LOGS_LOKI" {
-		return nil, merr.Invalid("datasource is not loki")
+	if item.Type != "LOGS" {
+		return nil, merr.Invalid("datasource is not logs")
 	}
-	return item, nil
+	switch item.Driver {
+	case "LOGS_LOKI", "LOGS_ELASTICSEARCH":
+		return item, nil
+	default:
+		return nil, merr.Invalid("invalid request")
+	}
 }
 
-// statusSource 允许指标数据源和 Loki 日志数据源做连通检查。
+// statusSource 允许指标数据源、Loki 和 Elasticsearch 日志数据源做连通检查。
 func (uc *Usecase) statusSource(ctx context.Context, uid string) (*bo.Datasource, error) {
 	item, err := uc.readSource(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
 	switch item.Driver {
-	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_LOKI":
+	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_LOKI", "LOGS_ELASTICSEARCH":
 		return item, nil
 	default:
 		return nil, merr.Invalid("invalid request")
@@ -290,6 +298,16 @@ func validateDatasource(in bo.Datasource) error {
 	return nil
 }
 
+// normalizeDatasource 清理只在 Elasticsearch 上生效的设置，避免切换驱动后留下旧值。
+func normalizeDatasource(in *bo.Datasource) {
+	in.IndexPattern = strings.TrimSpace(in.IndexPattern)
+	in.TimeField = strings.TrimSpace(in.TimeField)
+	if in.Driver != "LOGS_ELASTICSEARCH" {
+		in.IndexPattern = ""
+		in.TimeField = ""
+	}
+}
+
 // DriverMatches 判断数据源类型和驱动是否匹配。
 func DriverMatches(kind, driver string) bool {
 	switch kind {
@@ -305,7 +323,7 @@ func DriverMatches(kind, driver string) bool {
 }
 
 // normalizeLogQuery 校验日志查询参数。limit 为 0 时取默认值，超过上限按上限截断；
-// direction 留空按 Loki 默认的 backward 处理。
+// direction 留空按默认的 backward 处理，日志驱动各自映射为对应的排序方向。
 func normalizeLogQuery(query string, start, end int64, limit int32, direction string) (string, int, string, error) {
 	query = strings.TrimSpace(query)
 	if query == "" || start < 0 || end <= start {

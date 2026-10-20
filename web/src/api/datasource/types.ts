@@ -13,6 +13,8 @@ export interface DatasourceItem {
   type: DatasourceType | string
   driver: DatasourceDriver | string
   endpoint: string
+  indexPattern: string
+  timeField: string
   username: string
   secretSet: boolean
   status: string
@@ -41,6 +43,8 @@ export interface CreateDatasourceParams {
   type: string
   driver: string
   endpoint: string
+  indexPattern?: string
+  timeField?: string
   username?: string
   password?: string
   secret?: string

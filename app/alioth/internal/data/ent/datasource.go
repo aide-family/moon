@@ -35,6 +35,10 @@ type Datasource struct {
 	Driver datasource.Driver `json:"driver,omitempty"`
 	// Endpoint holds the value of the "endpoint" field.
 	Endpoint string `json:"endpoint,omitempty"`
+	// IndexPattern holds the value of the "index_pattern" field.
+	IndexPattern string `json:"index_pattern,omitempty"`
+	// TimeField holds the value of the "time_field" field.
+	TimeField string `json:"time_field,omitempty"`
 	// Username holds the value of the "username" field.
 	Username string `json:"username,omitempty"`
 	// PasswordCipher holds the value of the "password_cipher" field.
@@ -59,7 +63,7 @@ func (*Datasource) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case datasource.FieldID:
 			values[i] = new(sql.NullInt64)
-		case datasource.FieldUID, datasource.FieldNamespaceUID, datasource.FieldName, datasource.FieldType, datasource.FieldDriver, datasource.FieldEndpoint, datasource.FieldUsername, datasource.FieldPasswordCipher, datasource.FieldSecretCipher, datasource.FieldStatus, datasource.FieldLevelUID, datasource.FieldLabels, datasource.FieldRemark:
+		case datasource.FieldUID, datasource.FieldNamespaceUID, datasource.FieldName, datasource.FieldType, datasource.FieldDriver, datasource.FieldEndpoint, datasource.FieldIndexPattern, datasource.FieldTimeField, datasource.FieldUsername, datasource.FieldPasswordCipher, datasource.FieldSecretCipher, datasource.FieldStatus, datasource.FieldLevelUID, datasource.FieldLabels, datasource.FieldRemark:
 			values[i] = new(sql.NullString)
 		case datasource.FieldCreatedAt, datasource.FieldUpdatedAt, datasource.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -138,6 +142,18 @@ func (_m *Datasource) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field endpoint", values[i])
 			} else if value.Valid {
 				_m.Endpoint = value.String
+			}
+		case datasource.FieldIndexPattern:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field index_pattern", values[i])
+			} else if value.Valid {
+				_m.IndexPattern = value.String
+			}
+		case datasource.FieldTimeField:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field time_field", values[i])
+			} else if value.Valid {
+				_m.TimeField = value.String
 			}
 		case datasource.FieldUsername:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -245,6 +261,12 @@ func (_m *Datasource) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("endpoint=")
 	builder.WriteString(_m.Endpoint)
+	builder.WriteString(", ")
+	builder.WriteString("index_pattern=")
+	builder.WriteString(_m.IndexPattern)
+	builder.WriteString(", ")
+	builder.WriteString("time_field=")
+	builder.WriteString(_m.TimeField)
 	builder.WriteString(", ")
 	builder.WriteString("username=")
 	builder.WriteString(_m.Username)

@@ -8,6 +8,7 @@ import (
 func datasourceItem(item bo.Datasource) *v1.DatasourceItem {
 	return &v1.DatasourceItem{
 		Uid: item.UID, Name: item.Name, Type: item.Type, Driver: item.Driver, Endpoint: item.Endpoint,
+		IndexPattern: item.IndexPattern, TimeField: item.TimeField,
 		Username: item.Username, SecretSet: item.SecretSet, Status: item.Status,
 		LevelUid: item.LevelUID, LevelName: item.LevelName, Labels: item.Labels, Remark: item.Remark,
 	}

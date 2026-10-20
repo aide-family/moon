@@ -34,6 +34,8 @@ func (r *datasourceRepo) CreateDatasource(ctx context.Context, in bo.Datasource)
 		SetType(kind).
 		SetDriver(driver).
 		SetEndpoint(in.Endpoint).
+		SetIndexPattern(in.IndexPattern).
+		SetTimeField(in.TimeField).
 		SetUsername(in.Username).
 		SetPasswordCipher(password).
 		SetSecretCipher(secret).
@@ -80,6 +82,8 @@ func (r *datasourceRepo) UpdateDatasource(ctx context.Context, in bo.Datasource)
 		SetType(kind).
 		SetDriver(driver).
 		SetEndpoint(in.Endpoint).
+		SetIndexPattern(in.IndexPattern).
+		SetTimeField(in.TimeField).
 		SetUsername(in.Username).
 		SetPasswordCipher(password).
 		SetSecretCipher(secret).
@@ -236,6 +240,7 @@ func toDatasource(row *ent.Datasource, levelName string, withSecret bool, r *dat
 	item := bo.Datasource{
 		UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name,
 		Type: string(row.Type), Driver: string(row.Driver), Endpoint: row.Endpoint,
+		IndexPattern: row.IndexPattern, TimeField: row.TimeField,
 		Username: row.Username, SecretSet: row.PasswordCipher != "" || row.SecretCipher != "",
 		Status: string(row.Status), LevelUID: row.LevelUID, LevelName: levelName,
 		Labels: row.Labels, Remark: row.Remark,

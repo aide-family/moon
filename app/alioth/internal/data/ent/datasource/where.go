@@ -89,6 +89,16 @@ func Endpoint(v string) predicate.Datasource {
 	return predicate.Datasource(sql.FieldEQ(FieldEndpoint, v))
 }
 
+// IndexPattern applies equality check predicate on the "index_pattern" field. It's identical to IndexPatternEQ.
+func IndexPattern(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldEQ(FieldIndexPattern, v))
+}
+
+// TimeField applies equality check predicate on the "time_field" field. It's identical to TimeFieldEQ.
+func TimeField(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldEQ(FieldTimeField, v))
+}
+
 // Username applies equality check predicate on the "username" field. It's identical to UsernameEQ.
 func Username(v string) predicate.Datasource {
 	return predicate.Datasource(sql.FieldEQ(FieldUsername, v))
@@ -547,6 +557,136 @@ func EndpointEqualFold(v string) predicate.Datasource {
 // EndpointContainsFold applies the ContainsFold predicate on the "endpoint" field.
 func EndpointContainsFold(v string) predicate.Datasource {
 	return predicate.Datasource(sql.FieldContainsFold(FieldEndpoint, v))
+}
+
+// IndexPatternEQ applies the EQ predicate on the "index_pattern" field.
+func IndexPatternEQ(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldEQ(FieldIndexPattern, v))
+}
+
+// IndexPatternNEQ applies the NEQ predicate on the "index_pattern" field.
+func IndexPatternNEQ(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldNEQ(FieldIndexPattern, v))
+}
+
+// IndexPatternIn applies the In predicate on the "index_pattern" field.
+func IndexPatternIn(vs ...string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldIn(FieldIndexPattern, vs...))
+}
+
+// IndexPatternNotIn applies the NotIn predicate on the "index_pattern" field.
+func IndexPatternNotIn(vs ...string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldNotIn(FieldIndexPattern, vs...))
+}
+
+// IndexPatternGT applies the GT predicate on the "index_pattern" field.
+func IndexPatternGT(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldGT(FieldIndexPattern, v))
+}
+
+// IndexPatternGTE applies the GTE predicate on the "index_pattern" field.
+func IndexPatternGTE(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldGTE(FieldIndexPattern, v))
+}
+
+// IndexPatternLT applies the LT predicate on the "index_pattern" field.
+func IndexPatternLT(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldLT(FieldIndexPattern, v))
+}
+
+// IndexPatternLTE applies the LTE predicate on the "index_pattern" field.
+func IndexPatternLTE(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldLTE(FieldIndexPattern, v))
+}
+
+// IndexPatternContains applies the Contains predicate on the "index_pattern" field.
+func IndexPatternContains(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldContains(FieldIndexPattern, v))
+}
+
+// IndexPatternHasPrefix applies the HasPrefix predicate on the "index_pattern" field.
+func IndexPatternHasPrefix(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldHasPrefix(FieldIndexPattern, v))
+}
+
+// IndexPatternHasSuffix applies the HasSuffix predicate on the "index_pattern" field.
+func IndexPatternHasSuffix(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldHasSuffix(FieldIndexPattern, v))
+}
+
+// IndexPatternEqualFold applies the EqualFold predicate on the "index_pattern" field.
+func IndexPatternEqualFold(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldEqualFold(FieldIndexPattern, v))
+}
+
+// IndexPatternContainsFold applies the ContainsFold predicate on the "index_pattern" field.
+func IndexPatternContainsFold(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldContainsFold(FieldIndexPattern, v))
+}
+
+// TimeFieldEQ applies the EQ predicate on the "time_field" field.
+func TimeFieldEQ(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldEQ(FieldTimeField, v))
+}
+
+// TimeFieldNEQ applies the NEQ predicate on the "time_field" field.
+func TimeFieldNEQ(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldNEQ(FieldTimeField, v))
+}
+
+// TimeFieldIn applies the In predicate on the "time_field" field.
+func TimeFieldIn(vs ...string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldIn(FieldTimeField, vs...))
+}
+
+// TimeFieldNotIn applies the NotIn predicate on the "time_field" field.
+func TimeFieldNotIn(vs ...string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldNotIn(FieldTimeField, vs...))
+}
+
+// TimeFieldGT applies the GT predicate on the "time_field" field.
+func TimeFieldGT(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldGT(FieldTimeField, v))
+}
+
+// TimeFieldGTE applies the GTE predicate on the "time_field" field.
+func TimeFieldGTE(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldGTE(FieldTimeField, v))
+}
+
+// TimeFieldLT applies the LT predicate on the "time_field" field.
+func TimeFieldLT(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldLT(FieldTimeField, v))
+}
+
+// TimeFieldLTE applies the LTE predicate on the "time_field" field.
+func TimeFieldLTE(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldLTE(FieldTimeField, v))
+}
+
+// TimeFieldContains applies the Contains predicate on the "time_field" field.
+func TimeFieldContains(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldContains(FieldTimeField, v))
+}
+
+// TimeFieldHasPrefix applies the HasPrefix predicate on the "time_field" field.
+func TimeFieldHasPrefix(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldHasPrefix(FieldTimeField, v))
+}
+
+// TimeFieldHasSuffix applies the HasSuffix predicate on the "time_field" field.
+func TimeFieldHasSuffix(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldHasSuffix(FieldTimeField, v))
+}
+
+// TimeFieldEqualFold applies the EqualFold predicate on the "time_field" field.
+func TimeFieldEqualFold(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldEqualFold(FieldTimeField, v))
+}
+
+// TimeFieldContainsFold applies the ContainsFold predicate on the "time_field" field.
+func TimeFieldContainsFold(v string) predicate.Datasource {
+	return predicate.Datasource(sql.FieldContainsFold(FieldTimeField, v))
 }
 
 // UsernameEQ applies the EQ predicate on the "username" field.

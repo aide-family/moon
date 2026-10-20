@@ -98,6 +98,34 @@ func (_c *DatasourceCreate) SetEndpoint(v string) *DatasourceCreate {
 	return _c
 }
 
+// SetIndexPattern sets the "index_pattern" field.
+func (_c *DatasourceCreate) SetIndexPattern(v string) *DatasourceCreate {
+	_c.mutation.SetIndexPattern(v)
+	return _c
+}
+
+// SetNillableIndexPattern sets the "index_pattern" field if the given value is not nil.
+func (_c *DatasourceCreate) SetNillableIndexPattern(v *string) *DatasourceCreate {
+	if v != nil {
+		_c.SetIndexPattern(*v)
+	}
+	return _c
+}
+
+// SetTimeField sets the "time_field" field.
+func (_c *DatasourceCreate) SetTimeField(v string) *DatasourceCreate {
+	_c.mutation.SetTimeField(v)
+	return _c
+}
+
+// SetNillableTimeField sets the "time_field" field if the given value is not nil.
+func (_c *DatasourceCreate) SetNillableTimeField(v *string) *DatasourceCreate {
+	if v != nil {
+		_c.SetTimeField(*v)
+	}
+	return _c
+}
+
 // SetUsername sets the "username" field.
 func (_c *DatasourceCreate) SetUsername(v string) *DatasourceCreate {
 	_c.mutation.SetUsername(v)
@@ -239,6 +267,14 @@ func (_c *DatasourceCreate) defaults() {
 		v := datasource.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.IndexPattern(); !ok {
+		v := datasource.DefaultIndexPattern
+		_c.mutation.SetIndexPattern(v)
+	}
+	if _, ok := _c.mutation.TimeField(); !ok {
+		v := datasource.DefaultTimeField
+		_c.mutation.SetTimeField(v)
+	}
 	if _, ok := _c.mutation.Username(); !ok {
 		v := datasource.DefaultUsername
 		_c.mutation.SetUsername(v)
@@ -324,6 +360,12 @@ func (_c *DatasourceCreate) check() error {
 		if err := datasource.EndpointValidator(v); err != nil {
 			return &ValidationError{Name: "endpoint", err: fmt.Errorf(`ent: validator failed for field "Datasource.endpoint": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.IndexPattern(); !ok {
+		return &ValidationError{Name: "index_pattern", err: errors.New(`ent: missing required field "Datasource.index_pattern"`)}
+	}
+	if _, ok := _c.mutation.TimeField(); !ok {
+		return &ValidationError{Name: "time_field", err: errors.New(`ent: missing required field "Datasource.time_field"`)}
 	}
 	if _, ok := _c.mutation.Username(); !ok {
 		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "Datasource.username"`)}
@@ -412,6 +454,14 @@ func (_c *DatasourceCreate) createSpec() (*Datasource, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Endpoint(); ok {
 		_spec.SetField(datasource.FieldEndpoint, field.TypeString, value)
 		_node.Endpoint = value
+	}
+	if value, ok := _c.mutation.IndexPattern(); ok {
+		_spec.SetField(datasource.FieldIndexPattern, field.TypeString, value)
+		_node.IndexPattern = value
+	}
+	if value, ok := _c.mutation.TimeField(); ok {
+		_spec.SetField(datasource.FieldTimeField, field.TypeString, value)
+		_node.TimeField = value
 	}
 	if value, ok := _c.mutation.Username(); ok {
 		_spec.SetField(datasource.FieldUsername, field.TypeString, value)

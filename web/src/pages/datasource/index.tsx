@@ -77,6 +77,8 @@ interface Draft {
   type: string
   driver: string
   endpoint: string
+  indexPattern: string
+  timeField: string
   username: string
   password: string
   secret: string
@@ -90,6 +92,8 @@ const emptyDraft: Draft = {
   type: "METRICS",
   driver: "METRICS_PROMETHEUS",
   endpoint: "",
+  indexPattern: "",
+  timeField: "",
   username: "",
   password: "",
   secret: "",
@@ -209,6 +213,8 @@ export function DatasourcePage() {
       type: item.type,
       driver: item.driver,
       endpoint: item.endpoint,
+      indexPattern: item.indexPattern ?? "",
+      timeField: item.timeField ?? "",
       username: item.username,
       password: "",
       secret: "",
@@ -548,6 +554,16 @@ export function DatasourcePage() {
             ) : null}
             {formStep === 1 ? (
               <>
+            {form.driver === "LOGS_ELASTICSEARCH" ? (
+              <>
+            <FormField label={t("datasource.indexPattern")} htmlFor="ds-index-pattern" hint={t("datasource.indexPatternHint")}>
+              <Input id="ds-index-pattern" value={form.indexPattern} placeholder={t("datasource.indexPatternPlaceholder")} onChange={(event) => setForm({ ...form, indexPattern: event.target.value })} />
+            </FormField>
+            <FormField label={t("datasource.timeField")} htmlFor="ds-time-field" hint={t("datasource.timeFieldHint")}>
+              <Input id="ds-time-field" value={form.timeField} placeholder={t("datasource.timeFieldPlaceholder")} onChange={(event) => setForm({ ...form, timeField: event.target.value })} />
+            </FormField>
+              </>
+            ) : null}
             <FormField label={t("datasource.username")} htmlFor="ds-user">
               <Input id="ds-user" value={form.username} placeholder={t("datasource.usernamePlaceholder")} onChange={(event) => setForm({ ...form, username: event.target.value })} />
             </FormField>
@@ -655,6 +671,18 @@ export function DatasourcePage() {
                 <dt className="text-muted-foreground">{t("datasource.endpoint")}</dt>
                 <dd className="break-all">{detailItem.endpoint}</dd>
               </div>
+              {detailItem.driver === "LOGS_ELASTICSEARCH" ? (
+                <>
+                  <div>
+                    <dt className="text-muted-foreground">{t("datasource.indexPattern")}</dt>
+                    <dd className="break-all">{detailItem.indexPattern || t("datasource.indexPatternAll")}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">{t("datasource.timeField")}</dt>
+                    <dd className="break-all">{detailItem.timeField || "@timestamp"}</dd>
+                  </div>
+                </>
+              ) : null}
             </dl>
           ) : null}
         </SheetContent>

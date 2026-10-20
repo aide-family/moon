@@ -26,9 +26,9 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// 日志数据源查询。首期实现 Loki。
+// 日志数据源查询。支持 Loki 和 Elasticsearch。
 type LogsQueryServiceClient interface {
-	// 查询一段时间内的日志。查询语句使用 LogQL。
+	// 查询一段时间内的日志。Loki 使用 LogQL，Elasticsearch 使用 Query DSL 或普通检索语句。
 	QueryLogs(ctx context.Context, in *QueryLogsRequest, opts ...grpc.CallOption) (*QueryLogsResponse, error)
 }
 
@@ -54,9 +54,9 @@ func (c *logsQueryServiceClient) QueryLogs(ctx context.Context, in *QueryLogsReq
 // All implementations must embed UnimplementedLogsQueryServiceServer
 // for forward compatibility.
 //
-// 日志数据源查询。首期实现 Loki。
+// 日志数据源查询。支持 Loki 和 Elasticsearch。
 type LogsQueryServiceServer interface {
-	// 查询一段时间内的日志。查询语句使用 LogQL。
+	// 查询一段时间内的日志。Loki 使用 LogQL，Elasticsearch 使用 Query DSL 或普通检索语句。
 	QueryLogs(context.Context, *QueryLogsRequest) (*QueryLogsResponse, error)
 	mustEmbedUnimplementedLogsQueryServiceServer()
 }

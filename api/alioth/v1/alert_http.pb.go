@@ -37,7 +37,7 @@ type DatasourceServiceHTTPServer interface {
 	GetDatasource(context.Context, *GetDatasourceRequest) (*GetDatasourceResponse, error)
 	// GetDatasourceMetric 查看一个指标的元数据。
 	GetDatasourceMetric(context.Context, *GetDatasourceMetricRequest) (*GetDatasourceMetricResponse, error)
-	// GetDatasourceStatus 查看数据源是否可连通。支持指标数据源和 Loki 日志数据源。
+	// GetDatasourceStatus 查看数据源是否可连通。支持指标数据源、Loki 和 Elasticsearch 日志数据源。
 	GetDatasourceStatus(context.Context, *GetDatasourceStatusRequest) (*GetDatasourceStatusResponse, error)
 	// ListDatasourceMetrics 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(context.Context, *ListDatasourceMetricsRequest) (*ListDatasourceMetricsResponse, error)
@@ -285,7 +285,7 @@ type DatasourceServiceHTTPClient interface {
 	GetDatasource(ctx context.Context, req *GetDatasourceRequest, opts ...http.CallOption) (rsp *GetDatasourceResponse, err error)
 	// GetDatasourceMetric 查看一个指标的元数据。
 	GetDatasourceMetric(ctx context.Context, req *GetDatasourceMetricRequest, opts ...http.CallOption) (rsp *GetDatasourceMetricResponse, err error)
-	// GetDatasourceStatus 查看数据源是否可连通。支持指标数据源和 Loki 日志数据源。
+	// GetDatasourceStatus 查看数据源是否可连通。支持指标数据源、Loki 和 Elasticsearch 日志数据源。
 	GetDatasourceStatus(ctx context.Context, req *GetDatasourceStatusRequest, opts ...http.CallOption) (rsp *GetDatasourceStatusResponse, err error)
 	// ListDatasourceMetrics 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(ctx context.Context, req *ListDatasourceMetricsRequest, opts ...http.CallOption) (rsp *ListDatasourceMetricsResponse, err error)
@@ -376,7 +376,7 @@ func (c *DatasourceServiceHTTPClientImpl) GetDatasourceMetric(ctx context.Contex
 	return &out, nil
 }
 
-// GetDatasourceStatus 查看数据源是否可连通。支持指标数据源和 Loki 日志数据源。
+// GetDatasourceStatus 查看数据源是否可连通。支持指标数据源、Loki 和 Elasticsearch 日志数据源。
 func (c *DatasourceServiceHTTPClientImpl) GetDatasourceStatus(ctx context.Context, in *GetDatasourceStatusRequest, opts ...http.CallOption) (*GetDatasourceStatusResponse, error) {
 	var out GetDatasourceStatusResponse
 	pattern := "/v1/datasource/{uid}/status"

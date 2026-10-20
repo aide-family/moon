@@ -20,7 +20,7 @@ const _ = http.SupportPackageIsVersion3
 const OperationLogsQueryServiceQueryLogs = "/alioth.v1.LogsQueryService/QueryLogs"
 
 type LogsQueryServiceHTTPServer interface {
-	// QueryLogs 查询一段时间内的日志。查询语句使用 LogQL。
+	// QueryLogs 查询一段时间内的日志。Loki 使用 LogQL，Elasticsearch 使用 Query DSL 或普通检索语句。
 	QueryLogs(context.Context, *QueryLogsRequest) (*QueryLogsResponse, error)
 }
 
@@ -49,7 +49,7 @@ func _LogsQueryService_QueryLogs0_HTTP_Handler(srv LogsQueryServiceHTTPServer) f
 }
 
 type LogsQueryServiceHTTPClient interface {
-	// QueryLogs 查询一段时间内的日志。查询语句使用 LogQL。
+	// QueryLogs 查询一段时间内的日志。Loki 使用 LogQL，Elasticsearch 使用 Query DSL 或普通检索语句。
 	QueryLogs(ctx context.Context, req *QueryLogsRequest, opts ...http.CallOption) (rsp *QueryLogsResponse, err error)
 }
 
@@ -61,7 +61,7 @@ func NewLogsQueryServiceHTTPClient(client *http.Client) LogsQueryServiceHTTPClie
 	return &LogsQueryServiceHTTPClientImpl{client}
 }
 
-// QueryLogs 查询一段时间内的日志。查询语句使用 LogQL。
+// QueryLogs 查询一段时间内的日志。Loki 使用 LogQL，Elasticsearch 使用 Query DSL 或普通检索语句。
 func (c *LogsQueryServiceHTTPClientImpl) QueryLogs(ctx context.Context, in *QueryLogsRequest, opts ...http.CallOption) (*QueryLogsResponse, error) {
 	var out QueryLogsResponse
 	pattern := "/v1/logs-query/query"
