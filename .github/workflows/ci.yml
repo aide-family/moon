@@ -1,0 +1,68 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: alioth
+          POSTGRES_PASSWORD: alioth
+          POSTGRES_DB: alioth_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U alioth -d alioth_test"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: pkg/go.mod
+      - name: test
+        env:
+          ALIOTH_TEST_DSN: postgres://alioth:alioth@127.0.0.1:5432/alioth_test?sslmode=disable
+          REDIS_ADDR: 127.0.0.1:6379
+        run: |
+          go vet -C pkg ./...
+          go vet -C api ./...
+          go vet -C app/alioth ./...
+          go vet -C app/megrez ./...
+          go vet -C app/merak ./...
+          go vet -C app/alkaid ./...
+          go test -C pkg ./...
+          go test -C api ./...
+          go test -C app/alioth ./...
+          go test -C app/megrez ./...
+          go test -C app/merak ./...
+          go test -C app/alkaid ./...
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --prefix web
+      - run: npm run typecheck --prefix web
+      - run: npm run lint --prefix web
+      - run: npm run build --prefix web

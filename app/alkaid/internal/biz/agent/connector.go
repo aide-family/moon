@@ -4,39 +4,50 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
+	"path"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/google/wire"
 	"github.com/pkg/sftp"
-	"github.com/robfig/cron/v3"
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/knownhosts"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
 	"github.com/aide-family/Alioth/app/alkaid/internal/data"
+	"github.com/aide-family/Alioth/pkg/grpctls"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
 const maxOutputBytes = 64 * 1024
 
+// maxSFTPBytes 是单次 SFTP 传输上限，与 grpc-go 默认 4 MiB 消息上限一致。
+// 超过时明确失败，不做截断，避免把半个文件当成成功结果返回。
+const maxSFTPBytes = 4 << 20
+
 var ProviderSet = wire.NewSet(NewConnector)
 
 // Connector 作为 kratos Server 跑出站流。
+// 控制面是多副本时，Agent 对每个副本各建一条流，任意副本都能直接处理该 Agent 的请求。
 type Connector struct {
-	addr      string
+	addrs     []string
 	token     string
 	heartbeat time.Duration
+	creds     credentials.TransportCredentials
 	log       *slog.Logger
 	cancel    context.CancelFunc
 	done      chan struct{}
@@ -53,8 +64,22 @@ func NewConnector(d *data.Data, logger *slog.Logger) (*Connector, error) {
 	if interval <= 0 {
 		interval = 15 * time.Second
 	}
+	addrs := parseEndpoints(d.AliothGRPC)
+	tlsConfig, err := grpctls.ClientFromEnv("ALKAID_ALIOTH_TLS")
+	if err != nil {
+		return nil, err
+	}
+	var creds credentials.TransportCredentials
+	if tlsConfig != nil {
+		if tlsConfig.ServerName == "" && len(addrs) > 0 {
+			if host, _, splitErr := net.SplitHostPort(addrs[0]); splitErr == nil && net.ParseIP(host) == nil {
+				tlsConfig.ServerName = host
+			}
+		}
+		creds = credentials.NewTLS(tlsConfig)
+	}
 	return &Connector{
-		addr: d.AliothGRPC, token: d.AgentToken, heartbeat: interval,
+		addrs: addrs, token: d.AgentToken, heartbeat: interval, creds: creds,
 		log: logger, done: make(chan struct{}),
 	}, nil
 }
@@ -64,7 +89,7 @@ func (c *Connector) Start(ctx context.Context) error {
 	c.cancel = cancel
 	go func() {
 		defer close(c.done)
-		c.loop(runCtx)
+		c.run(runCtx)
 	}()
 	return nil
 }
@@ -83,21 +108,66 @@ func (c *Connector) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (c *Connector) loop(ctx context.Context) {
-	if c.token == "" {
+// run 维护每个控制面副本一条流。DNS 变化时启动新副本的流并停掉已经不存在的副本。
+func (c *Connector) run(ctx context.Context) {
+	if c.token == "" || len(c.addrs) == 0 {
 		<-ctx.Done()
 		return
 	}
+	active := map[string]context.CancelFunc{}
+	resolve := func() {
+		desired := map[string]struct{}{}
+		for _, raw := range c.addrs {
+			for _, addr := range expandEndpoint(raw, net.LookupHost) {
+				desired[addr] = struct{}{}
+			}
+		}
+		for addr, cancel := range active {
+			if _, ok := desired[addr]; !ok {
+				cancel()
+				delete(active, addr)
+			}
+		}
+		for addr := range desired {
+			if _, ok := active[addr]; ok {
+				continue
+			}
+			streamCtx, cancel := context.WithCancel(ctx)
+			active[addr] = cancel
+			go c.loop(streamCtx, addr)
+		}
+	}
+	resolve()
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			for _, cancel := range active {
+				cancel()
+			}
+			return
+		case <-ticker.C:
+			resolve()
+		}
+	}
+}
+
+func (c *Connector) loop(ctx context.Context, addr string) {
 	backoff := time.Second
 	for {
 		if ctx.Err() != nil {
 			return
 		}
-		err := c.session(ctx)
+		started := time.Now()
+		err := c.session(ctx, addr)
 		if ctx.Err() != nil {
 			return
 		}
-		c.log.Warn(fmt.Sprintf("agent stream closed: %v; retry in %s", err, backoff))
+		if time.Since(started) > 30*time.Second {
+			backoff = time.Second
+		}
+		c.log.Warn(fmt.Sprintf("agent stream %s closed: %v; retry in %s", addr, err, backoff))
 		timer := time.NewTimer(backoff)
 		select {
 		case <-ctx.Done():
@@ -111,8 +181,49 @@ func (c *Connector) loop(ctx context.Context) {
 	}
 }
 
-func (c *Connector) session(ctx context.Context) error {
-	conn, err := grpc.NewClient(c.addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+// parseEndpoints 允许配置逗号分隔的多个控制面地址。
+func parseEndpoints(raw string) []string {
+	parts := strings.Split(raw, ",")
+	out := make([]string, 0, len(parts))
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part != "" {
+			out = append(out, part)
+		}
+	}
+	return out
+}
+
+// expandEndpoint 把主机名展开成 DNS 返回的每个地址；直接写 IP 时原样返回。
+func expandEndpoint(raw string, lookup func(string) ([]string, error)) []string {
+	host, port, err := net.SplitHostPort(raw)
+	if err != nil || host == "" {
+		return []string{raw}
+	}
+	if net.ParseIP(host) != nil {
+		return []string{raw}
+	}
+	ips, err := lookup(host)
+	if err != nil || len(ips) == 0 {
+		return []string{raw}
+	}
+	out := make([]string, 0, len(ips))
+	for _, ip := range ips {
+		out = append(out, net.JoinHostPort(ip, port))
+	}
+	return out
+}
+
+func (c *Connector) session(ctx context.Context, addr string) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	dialOpts := []grpc.DialOption{}
+	if c.creds != nil {
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(c.creds))
+	} else {
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	}
+	conn, err := grpc.NewClient(addr, dialOpts...)
 	if err != nil {
 		return merr.Server("alioth dial failed")
 	}
@@ -130,32 +241,10 @@ func (c *Connector) session(ctx context.Context) error {
 	}}); err != nil {
 		return err
 	}
-	if err := stream.Send(c.machineFrame()); err != nil {
+	if err := c.send(stream, c.machineFrame()); err != nil {
 		return err
 	}
-	errCh := make(chan error, 2)
-	heart := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DiscardLogger)))
-	var seq int64
-	if _, err := heart.AddFunc("@every "+c.heartbeat.String(), func() {
-		seq++
-		if err := c.send(stream, &v1.AgentFrame{Heartbeat: &v1.AgentHeartbeat{Seq: seq}}); err != nil {
-			select {
-			case errCh <- err:
-			default:
-			}
-			return
-		}
-		if err := stream.Send(c.machineFrame()); err != nil {
-			select {
-			case errCh <- err:
-			default:
-			}
-		}
-	}); err != nil {
-		return merr.Server("heartbeat cron failed")
-	}
-	heart.Start()
-	defer func() { <-heart.Stop().Done() }()
+	errCh := make(chan error, 3)
 	go func() {
 		<-ctx.Done()
 		select {
@@ -163,6 +252,43 @@ func (c *Connector) session(ctx context.Context) error {
 		default:
 		}
 	}()
+	go func() {
+		ticker := time.NewTicker(c.heartbeat)
+		defer ticker.Stop()
+		var seq int64
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				seq++
+				if err := c.send(stream, &v1.AgentFrame{Heartbeat: &v1.AgentHeartbeat{Seq: seq}}); err != nil {
+					select {
+					case errCh <- err:
+					default:
+					}
+					return
+				}
+				if err := c.send(stream, c.machineFrame()); err != nil {
+					select {
+					case errCh <- err:
+					default:
+					}
+					return
+				}
+			}
+		}
+	}()
+	// 慢命令不能阻塞后续帧；并发上限用来保护边缘主机的内存和进程数。
+	slots := make(chan struct{}, 8)
+	busy := func() bool {
+		select {
+		case slots <- struct{}{}:
+			return false
+		default:
+			return true
+		}
+	}
 	go func() {
 		for {
 			frame, err := stream.Recv()
@@ -179,25 +305,34 @@ func (c *Connector) session(ctx context.Context) error {
 				return
 			}
 			if req := frame.GetExecRequest(); req != nil {
-				result := c.exec(req)
-				if err := c.send(stream, &v1.AgentFrame{ExecResult: result}); err != nil {
-					errCh <- err
-					return
+				if busy() {
+					_ = c.send(stream, &v1.AgentFrame{ExecResult: &v1.AgentExecResult{RequestUid: req.GetRequestUid(), Error: "agent is busy", ExitCode: 1}})
+					continue
 				}
+				go func() {
+					defer func() { <-slots }()
+					_ = c.send(stream, &v1.AgentFrame{ExecResult: c.exec(req)})
+				}()
 			}
 			if req := frame.GetSftpRequest(); req != nil {
-				result := c.sftp(req)
-				if err := c.send(stream, &v1.AgentFrame{SftpResult: result}); err != nil {
-					errCh <- err
-					return
+				if busy() {
+					_ = c.send(stream, &v1.AgentFrame{SftpResult: &v1.AgentSFTPResult{RequestUid: req.GetRequestUid(), Error: "agent is busy"}})
+					continue
 				}
+				go func() {
+					defer func() { <-slots }()
+					_ = c.send(stream, &v1.AgentFrame{SftpResult: c.sftp(req)})
+				}()
 			}
 			if req := frame.GetK8SRequest(); req != nil {
-				result := c.k8s(req)
-				if err := c.send(stream, &v1.AgentFrame{K8SResult: result}); err != nil {
-					errCh <- err
-					return
+				if busy() {
+					_ = c.send(stream, &v1.AgentFrame{K8SResult: &v1.AgentK8SResult{RequestUid: req.GetRequestUid(), Error: "agent is busy"}})
+					continue
 				}
+				go func() {
+					defer func() { <-slots }()
+					_ = c.send(stream, &v1.AgentFrame{K8SResult: c.k8s(req)})
+				}()
 			}
 			c.handleShell(stream, frame)
 		}
@@ -286,9 +421,14 @@ func (c *Connector) sftp(req *v1.AgentSFTPRequest) *v1.AgentSFTPResult {
 		return out
 	}
 	defer fs.Close()
+	target, err := resolveSFTPPath(fs, req.GetPath())
+	if err != nil {
+		out.Error = err.Error()
+		return out
+	}
 	switch strings.ToUpper(req.GetAction()) {
 	case "LIST":
-		infos, err := fs.ReadDir(req.GetPath())
+		infos, err := fs.ReadDir(target)
 		if err != nil {
 			out.Error = err.Error()
 			return out
@@ -296,30 +436,35 @@ func (c *Connector) sftp(req *v1.AgentSFTPRequest) *v1.AgentSFTPResult {
 		for _, info := range infos {
 			name := info.Name()
 			out.Entries = append(out.Entries, &v1.AgentSFTPEntry{
-				Name: name, Path: strings.TrimSuffix(req.GetPath(), "/") + "/" + name,
+				Name: name, Path: strings.TrimSuffix(target, "/") + "/" + name,
 				IsDir: info.IsDir(), Size: info.Size(), Mode: info.Mode().String(), ModTime: info.ModTime().UTC().Format(time.RFC3339),
 			})
 		}
 		out.Ok = true
 	case "DOWNLOAD":
-		f, err := fs.Open(req.GetPath())
+		f, err := fs.Open(target)
 		if err != nil {
 			out.Error = err.Error()
 			return out
 		}
 		defer f.Close()
-		data, err := io.ReadAll(io.LimitReader(f, maxOutputBytes+1))
+		data, err := io.ReadAll(io.LimitReader(f, maxSFTPBytes+1))
 		if err != nil {
 			out.Error = err.Error()
 			return out
 		}
-		if len(data) > maxOutputBytes {
-			data = data[:maxOutputBytes]
+		if len(data) > maxSFTPBytes {
+			out.Error = "file too large"
+			return out
 		}
 		out.Content = data
 		out.Ok = true
 	case "UPLOAD":
-		f, err := fs.Create(req.GetPath())
+		if len(req.GetContent()) > maxSFTPBytes {
+			out.Error = "file too large"
+			return out
+		}
+		f, err := fs.Create(target)
 		if err != nil {
 			out.Error = err.Error()
 			return out
@@ -332,13 +477,13 @@ func (c *Connector) sftp(req *v1.AgentSFTPRequest) *v1.AgentSFTPResult {
 		_ = f.Close()
 		out.Ok = true
 	case "MKDIR":
-		if err := fs.MkdirAll(req.GetPath()); err != nil {
+		if err := fs.MkdirAll(target); err != nil {
 			out.Error = err.Error()
 			return out
 		}
 		out.Ok = true
 	case "DELETE":
-		if err := fs.RemoveAll(req.GetPath()); err != nil {
+		if err := fs.RemoveAll(target); err != nil {
 			out.Error = err.Error()
 			return out
 		}
@@ -349,56 +494,184 @@ func (c *Connector) sftp(req *v1.AgentSFTPRequest) *v1.AgentSFTPResult {
 	return out
 }
 
+const (
+	maxK8sRequestBytes  = 4 << 20
+	maxK8sResponseBytes = 4 << 20
+)
+
+var k8sMethods = map[string]struct{}{
+	http.MethodGet:    {},
+	http.MethodPost:   {},
+	http.MethodPut:    {},
+	http.MethodPatch:  {},
+	http.MethodDelete: {},
+	http.MethodHead:   {},
+}
+
 func (c *Connector) k8s(req *v1.AgentK8SRequest) *v1.AgentK8SResult {
 	out := &v1.AgentK8SResult{RequestUid: req.GetRequestUid()}
-	base := strings.TrimRight(os.Getenv("ALKAID_K8S_API"), "/")
-	if base == "" {
-		base = "https://kubernetes.default.svc"
+	method := strings.ToUpper(strings.TrimSpace(req.GetMethod()))
+	if _, ok := k8sMethods[method]; !ok {
+		out.Error = "unsupported method"
+		return out
 	}
-	token := os.Getenv("ALKAID_K8S_TOKEN")
-	if token == "" {
-		raw, err := os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
-		if err == nil {
-			token = strings.TrimSpace(string(raw))
-		}
-	}
-	u := base + req.GetPath()
-	if q := req.GetQuery(); q != "" {
-		if strings.Contains(u, "?") {
-			u += "&" + q
-		} else {
-			u += "?" + q
-		}
-	}
-	httpReq, err := http.NewRequest(req.GetMethod(), u, bytes.NewReader(req.GetBody()))
+	conn, err := k8sConnectionFromEnv()
 	if err != nil {
 		out.Error = err.Error()
 		return out
 	}
-	if token != "" {
-		httpReq.Header.Set("Authorization", "Bearer "+token)
+	if conn.base.Scheme != "https" && conn.base.Scheme != "http" {
+		out.Error = "invalid kubernetes api address"
+		return out
+	}
+	target, err := k8sTarget(conn.base, req.GetPath(), req.GetQuery())
+	if err != nil {
+		out.Error = err.Error()
+		return out
+	}
+	if len(req.GetBody()) > maxK8sRequestBytes {
+		out.Error = "request body too large"
+		return out
+	}
+	httpReq, err := http.NewRequest(method, target.String(), bytes.NewReader(req.GetBody()))
+	if err != nil {
+		out.Error = err.Error()
+		return out
+	}
+	httpReq.Header.Set("Accept", "application/json")
+	httpReq.Header.Set("User-Agent", "alkaid")
+	if conn.token != "" {
+		httpReq.Header.Set("Authorization", "Bearer "+conn.token)
+	} else if conn.username != "" {
+		httpReq.SetBasicAuth(conn.username, conn.password)
 	}
 	if hj := req.GetHeadersJson(); hj != "" {
 		var headers map[string]string
 		if json.Unmarshal([]byte(hj), &headers) == nil {
 			for k, v := range headers {
-				httpReq.Header.Set(k, v)
+				if k8sAllowedHeader(k) {
+					httpReq.Header.Set(k, v)
+				}
 			}
 		}
 	}
-	client := &http.Client{Timeout: 30 * time.Second, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
-	resp, err := client.Do(httpReq)
+	resp, err := conn.client.Do(httpReq)
 	if err != nil {
 		out.Error = err.Error()
 		return out
 	}
 	defer resp.Body.Close()
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, maxOutputBytes))
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxK8sResponseBytes+1))
+	if err != nil {
+		out.Error = err.Error()
+		return out
+	}
+	if len(body) > maxK8sResponseBytes {
+		out.Error = "response body too large"
+		return out
+	}
 	out.StatusCode = int32(resp.StatusCode)
 	out.Body = body
 	hdr, _ := json.Marshal(resp.Header)
 	out.HeadersJson = string(hdr)
 	return out
+}
+
+// k8sAPIBase 返回 API Server 地址，默认使用集群内 ServiceAccount 入口。
+func k8sAPIBase() string {
+	base := strings.TrimRight(strings.TrimSpace(os.Getenv("ALKAID_K8S_API")), "/")
+	if base == "" {
+		return "https://kubernetes.default.svc"
+	}
+	return base
+}
+
+// k8sTarget 只接受以单个 / 开头的相对路径，避免调用方把请求改到别的主机。
+func k8sTarget(base *url.URL, rawPath, rawQuery string) (*url.URL, error) {
+	rawPath = strings.TrimSpace(rawPath)
+	if !strings.HasPrefix(rawPath, "/") || strings.HasPrefix(rawPath, "//") || strings.Contains(rawPath, "\\") {
+		return nil, merr.Invalid("invalid path")
+	}
+	ref, err := url.Parse(rawPath)
+	if err != nil || ref.IsAbs() || ref.Host != "" || ref.User != nil {
+		return nil, merr.Invalid("invalid path")
+	}
+	for _, segment := range strings.Split(ref.Path, "/") {
+		if segment == ".." {
+			return nil, merr.Invalid("invalid path")
+		}
+	}
+	target := *base
+	target.Path = strings.TrimRight(base.Path, "/") + ref.Path
+	target.RawPath = ""
+	target.RawQuery = rawQuery
+	return &target, nil
+}
+
+// k8sAllowedHeader 只放行内容协商头，Authorization、Host、Impersonate-* 一律由 Agent 自己决定。
+func k8sAllowedHeader(name string) bool {
+	switch strings.ToLower(strings.TrimSpace(name)) {
+	case "accept", "content-type", "accept-encoding":
+		return true
+	default:
+		return false
+	}
+}
+
+// k8sTLSConfig 默认校验证书；只有显式设置 ALKAID_K8S_INSECURE=true 才跳过。
+func k8sTLSConfig(serverName string) *tls.Config {
+	cfg := &tls.Config{MinVersion: tls.VersionTLS12, ServerName: serverName}
+	if strings.EqualFold(os.Getenv("ALKAID_K8S_INSECURE"), "true") {
+		cfg.InsecureSkipVerify = true
+		return cfg
+	}
+	for _, path := range []string{
+		os.Getenv("ALKAID_K8S_CA"),
+		"/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
+	} {
+		if path == "" {
+			continue
+		}
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		pool := x509.NewCertPool()
+		if pool.AppendCertsFromPEM(raw) {
+			cfg.RootCAs = pool
+			break
+		}
+	}
+	return cfg
+}
+
+// resolveSFTPPath 在配置了 ALKAID_SFTP_ROOT 时把操作限制在根目录内。
+// 未配置时保持原行为，路径由 SSH 账户权限决定。
+func resolveSFTPPath(fs *sftp.Client, raw string) (string, error) {
+	root := strings.TrimSpace(os.Getenv("ALKAID_SFTP_ROOT"))
+	if root == "" {
+		return raw, nil
+	}
+	cleanRoot := path.Clean("/" + strings.TrimPrefix(root, "/"))
+	realRoot, err := fs.RealPath(cleanRoot)
+	if err != nil {
+		realRoot = cleanRoot
+	}
+	target := raw
+	if !strings.HasPrefix(target, "/") {
+		target = cleanRoot + "/" + target
+	}
+	target = path.Clean(target)
+	resolved := target
+	if real, err := fs.RealPath(target); err == nil {
+		resolved = real
+	} else if real, err := fs.RealPath(path.Dir(target)); err == nil {
+		resolved = path.Join(real, path.Base(target))
+	}
+	if resolved != realRoot && !strings.HasPrefix(resolved, realRoot+"/") {
+		return "", merr.Invalid("path is outside sftp root")
+	}
+	return target, nil
 }
 
 func sshDial(host string, port int32, user, password, privateKey string) (*ssh.Client, error) {
@@ -425,22 +698,46 @@ func sshDial(host string, port int32, user, password, privateKey string) (*ssh.C
 	if len(auths) == 0 {
 		return nil, merr.Invalid("ssh credentials missing")
 	}
+	hostKeyCallback, err := sshHostKeyCallback()
+	if err != nil {
+		return nil, err
+	}
 	cfg := &ssh.ClientConfig{
 		User:            user,
 		Auth:            auths,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: hostKeyCallback,
 		Timeout:         15 * time.Second,
 	}
 	addr := net.JoinHostPort(host, itoa(int(port)))
 	return ssh.Dial("tcp", addr, cfg)
 }
 
+// sshHostKeyCallback 在配置了 ALKAID_SSH_KNOWN_HOSTS 时校验目标主机密钥。
+// 未配置时保持旧行为，但部署文档要求生产设置该变量。
+func sshHostKeyCallback() (ssh.HostKeyCallback, error) {
+	path := strings.TrimSpace(os.Getenv("ALKAID_SSH_KNOWN_HOSTS"))
+	if path == "" {
+		return ssh.InsecureIgnoreHostKey(), nil
+	}
+	callback, err := knownhosts.New(path)
+	if err != nil {
+		return nil, merr.Server("failed to load ssh known_hosts")
+	}
+	return callback, nil
+}
+
 func readMachineID() string {
 	raw, err := os.ReadFile("/etc/machine-id")
-	if err != nil {
-		return "unknown"
+	if err == nil {
+		if value := strings.TrimSpace(string(raw)); value != "" {
+			return value
+		}
 	}
-	return strings.TrimSpace(string(raw))
+	// 没有 machine-id 的系统（例如 macOS 开发机）用主机名兜底，避免所有 Agent 都上报 "unknown"。
+	if hostname, err := os.Hostname(); err == nil && strings.TrimSpace(hostname) != "" {
+		return strings.TrimSpace(hostname)
+	}
+	return "unknown"
 }
 
 func localIP() string {

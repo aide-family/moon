@@ -4,7 +4,8 @@ import { formMessage } from "@/lib/form-error"
 
 import { listAgents } from "@/api/agent"
 import type { AgentItem } from "@/api/agent/types"
-import { proxyK8s } from "@/api/k8s"
+import { listK8sProxyAudits, proxyK8s } from "@/api/k8s"
+import type { K8sProxyAuditItem } from "@/api/k8s/types"
 import { useSession } from "@/auth/session"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
@@ -17,6 +18,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 
 export function K8sPage() {
@@ -29,18 +38,46 @@ export function K8sPage() {
   const [result, setResult] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
+  const [audits, setAudits] = useState<K8sProxyAuditItem[]>([])
+  const [auditError, setAuditError] = useState("")
+  const [auditAttempt, setAuditAttempt] = useState(0)
   const canProxy = session.can("k8s:proxy")
 
   useEffect(() => {
     let active = true
-    void listAgents({ page: 1, pageSize: 100 }).then((res) => {
-      if (!active) return
-      setAgents((res.items ?? []).filter((item) => item.online))
-    })
+    void listAgents({ page: 1, pageSize: 100 })
+      .then((res) => {
+        if (!active) return
+        setAgents((res.items ?? []).filter((item) => item.online))
+      })
+      .catch((err: unknown) => {
+        if (active) {
+          setError(err instanceof Error ? err.message : t("state.failed"))
+        }
+      })
     return () => {
       active = false
     }
-  }, [session.namespaceUid])
+  }, [session.namespaceUid, t])
+
+  useEffect(() => {
+    let active = true
+    void listK8sProxyAudits({ page: 1, pageSize: 20, agentUid: agentUid || undefined })
+      .then((res) => {
+        if (!active) return
+        setAudits(res.items ?? [])
+        setAuditError("")
+      })
+      .catch((err: unknown) => {
+        if (active) {
+          setAuditError(err instanceof Error ? err.message : t("state.failed"))
+          setAudits([])
+        }
+      })
+    return () => {
+      active = false
+    }
+  }, [agentUid, auditAttempt, t])
 
   async function onProxy() {
     if (!agentUid || !canProxy) return
@@ -50,6 +87,7 @@ export function K8sPage() {
       const reply = await proxyK8s({ agentUid, method, path })
       const body = reply.body ? atob(reply.body) : ""
       setResult(`${reply.statusCode}\n${body}`)
+      setAuditAttempt((value) => value + 1)
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
       setResult("")
@@ -81,10 +119,10 @@ export function K8sPage() {
           </Select>
         </FormField>
         <FormField label={t("k8s.method")} htmlFor="k8s-method">
-          <Input id="k8s-method" value={method} onChange={(e) => setMethod(e.target.value)} disabled={!canProxy} />
+          <Input id="k8s-method" value={method} placeholder={t("k8s.methodPlaceholder")} onChange={(e) => setMethod(e.target.value)} disabled={!canProxy} />
         </FormField>
         <FormField label={t("k8s.path")} htmlFor="k8s-path">
-          <Input id="k8s-path" value={path} onChange={(e) => setPath(e.target.value)} disabled={!canProxy} />
+          <Input id="k8s-path" value={path} placeholder={t("k8s.pathPlaceholder")} onChange={(e) => setPath(e.target.value)} disabled={!canProxy} />
         </FormField>
         {canProxy ? (
           <Button disabled={!agentUid || pending} onClick={() => void onProxy()}>
@@ -93,6 +131,36 @@ export function K8sPage() {
         ) : null}
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
         <Textarea className="min-h-48 font-mono text-xs" readOnly value={result} />
+      </div>
+      <div className="grid gap-2">
+        <h2 className="text-sm font-medium">{t("k8s.audits")}</h2>
+        {auditError ? <p className="text-sm text-destructive">{auditError}</p> : null}
+        {audits.length === 0 && !auditError ? (
+          <p className="text-sm text-muted-foreground">{t("state.empty")}</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("k8s.time")}</TableHead>
+                <TableHead>{t("k8s.operator")}</TableHead>
+                <TableHead>{t("k8s.method")}</TableHead>
+                <TableHead>{t("k8s.path")}</TableHead>
+                <TableHead>{t("k8s.result")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {audits.map((audit) => (
+                <TableRow key={audit.uid}>
+                  <TableCell className="font-mono text-xs">{audit.createdAt}</TableCell>
+                  <TableCell>{audit.operatorUid}</TableCell>
+                  <TableCell>{audit.method}</TableCell>
+                  <TableCell className="font-mono text-xs">{audit.resource}</TableCell>
+                  <TableCell>{audit.result}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
     </section>
   )

@@ -3,12 +3,15 @@ package data
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulenotificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelog"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationpreset"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
@@ -117,6 +120,17 @@ func (r *notificationRepo) UpdateChannelStatus(ctx context.Context, namespaceUID
 }
 
 func (r *notificationRepo) DeleteChannel(ctx context.Context, namespaceUID, uid string) error {
+	used, err := r.client.NotificationGroup.Query().Where(
+		notificationgroup.NamespaceUIDEQ(namespaceUID),
+		notificationgroup.ChannelUIDEQ(uid),
+		notificationgroup.DeletedAtIsNil(),
+	).Exist(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	if used {
+		return merr.Conflict("channel is used by a notification group")
+	}
 	n, err := r.client.NotificationChannel.Update().Where(
 		notificationchannel.NamespaceUIDEQ(namespaceUID),
 		notificationchannel.UIDEQ(uid),
@@ -165,7 +179,11 @@ func (r *notificationRepo) ListChannels(ctx context.Context, namespaceUID string
 }
 
 func (r *notificationRepo) SelectChannels(ctx context.Context, namespaceUID string, limit int, lastUID string) ([]bo.SelectItem, error) {
-	query := r.client.NotificationChannel.Query().Where(notificationchannel.NamespaceUIDEQ(namespaceUID), notificationchannel.DeletedAtIsNil())
+	query := r.client.NotificationChannel.Query().Where(
+		notificationchannel.NamespaceUIDEQ(namespaceUID),
+		notificationchannel.DeletedAtIsNil(),
+		notificationchannel.StatusEQ(notificationchannel.StatusACTIVE),
+	)
 	if lastUID != "" {
 		query = query.Where(notificationchannel.UIDGT(lastUID))
 	}
@@ -251,6 +269,17 @@ func (r *notificationRepo) UpdateTemplateStatus(ctx context.Context, namespaceUI
 }
 
 func (r *notificationRepo) DeleteTemplate(ctx context.Context, namespaceUID, uid string) error {
+	used, err := r.client.NotificationGroup.Query().Where(
+		notificationgroup.NamespaceUIDEQ(namespaceUID),
+		notificationgroup.TemplateUIDEQ(uid),
+		notificationgroup.DeletedAtIsNil(),
+	).Exist(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	if used {
+		return merr.Conflict("template is used by a notification group")
+	}
 	n, err := r.client.NotificationTemplate.Update().Where(
 		notificationtemplate.NamespaceUIDEQ(namespaceUID),
 		notificationtemplate.UIDEQ(uid),
@@ -299,7 +328,11 @@ func (r *notificationRepo) ListTemplates(ctx context.Context, namespaceUID strin
 }
 
 func (r *notificationRepo) SelectTemplates(ctx context.Context, namespaceUID string, limit int, lastUID string) ([]bo.SelectItem, error) {
-	query := r.client.NotificationTemplate.Query().Where(notificationtemplate.NamespaceUIDEQ(namespaceUID), notificationtemplate.DeletedAtIsNil())
+	query := r.client.NotificationTemplate.Query().Where(
+		notificationtemplate.NamespaceUIDEQ(namespaceUID),
+		notificationtemplate.DeletedAtIsNil(),
+		notificationtemplate.StatusEQ(notificationtemplate.StatusACTIVE),
+	)
 	if lastUID != "" {
 		query = query.Where(notificationtemplate.UIDGT(lastUID))
 	}
@@ -310,6 +343,24 @@ func (r *notificationRepo) SelectTemplates(ctx context.Context, namespaceUID str
 	items := make([]bo.SelectItem, 0, len(rows))
 	for _, row := range rows {
 		items = append(items, bo.SelectItem{UID: row.UID, Name: row.Name})
+	}
+	return items, nil
+}
+
+// ListPresets 返回系统预置模板，按 sort 排序。
+func (r *notificationRepo) ListPresets(ctx context.Context) ([]bo.NotificationPreset, error) {
+	rows, err := r.client.NotificationPreset.Query().Where(
+		notificationpreset.StatusEQ(notificationpreset.StatusACTIVE),
+	).Order(ent.Asc(notificationpreset.FieldSort), ent.Asc(notificationpreset.FieldName)).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	items := make([]bo.NotificationPreset, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, bo.NotificationPreset{
+			UID: row.UID, Name: row.Name, Type: string(row.Type), Subject: row.Subject,
+			Body: row.Body, Description: row.Description, Sort: row.Sort,
+		})
 	}
 	return items, nil
 }
@@ -377,6 +428,17 @@ func (r *notificationRepo) UpdateGroupStatus(ctx context.Context, namespaceUID, 
 }
 
 func (r *notificationRepo) DeleteGroup(ctx context.Context, namespaceUID, uid string) error {
+	used, err := r.client.AlertRuleNotificationGroup.Query().Where(
+		alertrulenotificationgroup.NamespaceUIDEQ(namespaceUID),
+		alertrulenotificationgroup.GroupUIDEQ(uid),
+		alertrulenotificationgroup.DeletedAtIsNil(),
+	).Exist(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	if used {
+		return merr.Conflict("group is bound to an alert rule")
+	}
 	n, err := r.client.NotificationGroup.Update().Where(
 		notificationgroup.NamespaceUIDEQ(namespaceUID),
 		notificationgroup.UIDEQ(uid),
@@ -500,6 +562,7 @@ func (r *notificationRepo) RetryTask(ctx context.Context, namespaceUID, uid stri
 		SetStatus(notificationtask.StatusPENDING).
 		SetRetriesLeft(3).
 		SetLastError("").
+		ClearNextAttemptAt().
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -515,6 +578,9 @@ func (r *notificationRepo) CancelTask(ctx context.Context, namespaceUID, uid str
 	).Only(ctx)
 	if err != nil {
 		return nil, r.fail(err)
+	}
+	if row.Status == notificationtask.StatusSENDING {
+		return nil, merr.Invalid("task is being delivered")
 	}
 	if row.Status == notificationtask.StatusSENT || row.Status == notificationtask.StatusCANCELLED {
 		return nil, merr.Invalid("task cannot be cancelled")
@@ -559,8 +625,13 @@ func (r *notificationRepo) GetMessageLog(ctx context.Context, namespaceUID, uid 
 }
 
 func (r *notificationRepo) ClaimPending(ctx context.Context, limit int) ([]bo.NotifySnapshot, error) {
+	now := time.Now().UTC()
 	rows, err := r.client.NotificationTask.Query().Where(
 		notificationtask.StatusEQ(notificationtask.StatusPENDING),
+		notificationtask.Or(
+			notificationtask.NextAttemptAtIsNil(),
+			notificationtask.NextAttemptAtLTE(now),
+		),
 	).Order(ent.Asc(notificationtask.FieldCreatedAt)).Limit(limit).All(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -569,11 +640,30 @@ func (r *notificationRepo) ClaimPending(ctx context.Context, limit int) ([]bo.No
 	for _, row := range rows {
 		snap, err := r.snapshot(ctx, row)
 		if err != nil {
-			return nil, err
+			// 渠道或模板被删除时，坏任务不能卡住整个队列：标记 FAILED 后继续领取后面的任务。
+			if _, updateErr := r.client.NotificationTask.Update().Where(
+				notificationtask.UIDEQ(row.UID),
+				notificationtask.StatusEQ(notificationtask.StatusPENDING),
+			).SetStatus(notificationtask.StatusFAILED).SetLastError(err.Error()).Save(ctx); updateErr != nil {
+				r.log.Error(fmt.Sprintf("drop invalid task %s: %v", row.UID, updateErr))
+			}
+			continue
 		}
 		out = append(out, snap)
 	}
 	return out, nil
+}
+
+// retryDelay 按剩余重试次数给出指数退避，避免失败任务每 2 秒被重新领取。
+func retryDelay(retries int) time.Duration {
+	switch retries {
+	case 2:
+		return 10 * time.Second
+	case 1:
+		return 30 * time.Second
+	default:
+		return time.Minute
+	}
 }
 
 func (r *notificationRepo) MarkSending(ctx context.Context, taskUID string) error {
@@ -598,7 +688,8 @@ func (r *notificationRepo) ApplyNotifyReport(ctx context.Context, report bo.Noti
 	if err != nil {
 		return r.fail(err)
 	}
-	if row.Status == notificationtask.StatusCANCELLED {
+	if row.Status != notificationtask.StatusSENDING {
+		// 只有 SENDING 接受回写。重复或迟到的报告不能把 SENT 退回 FAILED，也不能重复写消息日志。
 		return nil
 	}
 	logStatus := messagelog.StatusFAILED
@@ -620,11 +711,16 @@ func (r *notificationRepo) ApplyNotifyReport(ctx context.Context, report bo.Noti
 		return r.fail(err)
 	}
 	defer func() { _ = tx.Rollback() }()
-	if _, err := tx.NotificationTask.UpdateOne(row).
+	update := tx.NotificationTask.UpdateOne(row).
 		SetStatus(taskStatus).
 		SetRetriesLeft(retries).
-		SetLastError(lastError).
-		Save(ctx); err != nil {
+		SetLastError(lastError)
+	if taskStatus == notificationtask.StatusPENDING {
+		update.SetNextAttemptAt(time.Now().UTC().Add(retryDelay(retries)))
+	} else {
+		update.ClearNextAttemptAt()
+	}
+	if _, err := update.Save(ctx); err != nil {
 		return r.fail(err)
 	}
 	if err := tx.MessageLog.Create().
@@ -645,10 +741,65 @@ func (r *notificationRepo) ApplyNotifyReport(ctx context.Context, report bo.Noti
 	return nil
 }
 
+// ReapStaleSending 把长时间停留在 SENDING 的任务标记为失败。
+// merak 在改为 SENDING 后崩溃时不会回写，锁过期也不会自动释放任务。
+func (r *notificationRepo) ReapStaleSending(ctx context.Context, before time.Time, limit int) (int, error) {
+	if err := ensureMessageLogWeeks(ctx, r.db, time.Now().UTC()); err != nil {
+		return 0, err
+	}
+	rows, err := r.client.NotificationTask.Query().Where(
+		notificationtask.StatusEQ(notificationtask.StatusSENDING),
+		notificationtask.UpdatedAtLTE(before),
+	).Order(ent.Asc(notificationtask.FieldCreatedAt)).Limit(limit).All(ctx)
+	if err != nil {
+		return 0, r.fail(err)
+	}
+	reaped := 0
+	for _, row := range rows {
+		tx, err := r.client.Tx(ctx)
+		if err != nil {
+			return reaped, r.fail(err)
+		}
+		if _, err := tx.NotificationTask.UpdateOne(row).
+			SetStatus(notificationtask.StatusFAILED).
+			SetLastError("delivery timed out").
+			ClearNextAttemptAt().
+			Save(ctx); err != nil {
+			_ = tx.Rollback()
+			return reaped, r.fail(err)
+		}
+		if err := tx.MessageLog.Create().
+			SetUID(id.New()).
+			SetNamespaceUID(row.NamespaceUID).
+			SetTaskUID(row.UID).
+			SetStatus(messagelog.StatusFAILED).
+			SetChannelUID(row.ChannelUID).
+			SetTemplateUID(row.TemplateUID).
+			SetReceivers(row.Receivers).
+			SetDetail("delivery timed out").
+			Exec(ctx); err != nil {
+			_ = tx.Rollback()
+			return reaped, r.fail(err)
+		}
+		if err := tx.Commit(); err != nil {
+			return reaped, r.fail(err)
+		}
+		reaped++
+	}
+	return reaped, nil
+}
+
 func (r *notificationRepo) snapshot(ctx context.Context, row *ent.NotificationTask) (bo.NotifySnapshot, error) {
-	channel, err := r.client.NotificationChannel.Query().Where(notificationchannel.UIDEQ(row.ChannelUID)).Only(ctx)
+	channel, err := r.client.NotificationChannel.Query().Where(
+		notificationchannel.UIDEQ(row.ChannelUID),
+		notificationchannel.NamespaceUIDEQ(row.NamespaceUID),
+		notificationchannel.DeletedAtIsNil(),
+	).Only(ctx)
 	if err != nil {
 		return bo.NotifySnapshot{}, r.fail(err)
+	}
+	if channel.Status != notificationchannel.StatusACTIVE {
+		return bo.NotifySnapshot{}, merr.Invalid("channel is disabled")
 	}
 	password, err := r.box.decrypt(channel.PasswordCipher)
 	if err != nil {
@@ -663,9 +814,16 @@ func (r *notificationRepo) snapshot(ctx context.Context, row *ent.NotificationTa
 	templateType := ""
 	templateUID := row.TemplateUID
 	if templateUID != "" {
-		template, err := r.client.NotificationTemplate.Query().Where(notificationtemplate.UIDEQ(templateUID)).Only(ctx)
+		template, err := r.client.NotificationTemplate.Query().Where(
+			notificationtemplate.UIDEQ(templateUID),
+			notificationtemplate.NamespaceUIDEQ(row.NamespaceUID),
+			notificationtemplate.DeletedAtIsNil(),
+		).Only(ctx)
 		if err != nil {
 			return bo.NotifySnapshot{}, r.fail(err)
+		}
+		if template.Status != notificationtemplate.StatusACTIVE {
+			return bo.NotifySnapshot{}, merr.Invalid("template is disabled")
 		}
 		templateType = string(template.Type)
 		if subject == "" {

@@ -137,13 +137,16 @@ func (uc *Usecase) Execute(ctx context.Context, commandUID, agentUID string) (*b
 		return nil, uc.access.Wrap(err)
 	}
 	if machine.Status != "ACTIVE" {
+		uc.recordExec(ctx, ns, cmd, agentUID, "FAILED", "agent is revoked", 0, "", false)
 		return nil, merr.Forbidden("agent is revoked")
 	}
 	if !uc.hub.Online(agentUID) {
+		uc.recordExec(ctx, ns, cmd, agentUID, "FAILED", "agent is offline", 0, "", false)
 		return nil, merr.Invalid("agent is offline")
 	}
 	password, privateKey, err := uc.agents.GetSSHSecrets(ctx, agentUID)
 	if err != nil {
+		uc.recordExec(ctx, ns, cmd, agentUID, "FAILED", err.Error(), 0, "", false)
 		return nil, uc.access.Wrap(err)
 	}
 	requestUID := id.New()
@@ -161,6 +164,7 @@ func (uc *Usecase) Execute(ctx context.Context, commandUID, agentUID string) (*b
 		},
 	})
 	if err != nil {
+		uc.recordExec(ctx, ns, cmd, agentUID, "FAILED", err.Error(), 0, "", false)
 		return nil, err
 	}
 	timer := time.NewTimer(60 * time.Second)
@@ -168,12 +172,17 @@ func (uc *Usecase) Execute(ctx context.Context, commandUID, agentUID string) (*b
 	var result *v1.AgentExecResult
 	select {
 	case <-ctx.Done():
+		uc.hub.Drop(agentUID, requestUID)
+		uc.recordExec(ctx, ns, cmd, agentUID, "FAILED", "execute cancelled", 0, "", false)
 		return nil, merr.Invalid("execute cancelled")
 	case <-timer.C:
+		uc.hub.Drop(agentUID, requestUID)
+		uc.recordExec(ctx, ns, cmd, agentUID, "FAILED", "execute timed out", 0, "", false)
 		return nil, merr.Invalid("execute timed out")
 	case result = <-resultCh:
 	}
 	if result == nil {
+		uc.recordExec(ctx, ns, cmd, agentUID, "FAILED", "agent is offline", 0, "", false)
 		return nil, merr.Invalid("agent is offline")
 	}
 	output := result.GetOutput()
@@ -272,6 +281,25 @@ func (uc *Usecase) ExecuteMany(ctx context.Context, commandUIDs []string, agentU
 		audits = append(audits, *audit)
 	}
 	return audits, nil
+}
+
+// recordExec 为失败路径补审计。请求可能已超时或取消，因此使用 WithoutCancel 保证审计仍能落库。
+func (uc *Usecase) recordExec(ctx context.Context, namespaceUID string, cmd *bo.SSHCommand, agentUID, status, detail string, exitCode int, output string, truncated bool) {
+	if cmd == nil {
+		return
+	}
+	_, _ = uc.commands.AddExecAudit(context.WithoutCancel(ctx), bo.SSHCommandAudit{
+		NamespaceUID: namespaceUID,
+		CommandUID:   cmd.UID,
+		AgentUID:     agentUID,
+		OperatorUID:  operatorUID(ctx),
+		Status:       status,
+		Command:      cmd.Command,
+		ExitCode:     exitCode,
+		Output:       output,
+		Truncated:    truncated,
+		Detail:       detail,
+	})
 }
 
 func operatorUID(ctx context.Context) string {

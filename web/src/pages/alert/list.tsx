@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
+import type { TFunction } from "i18next"
 import { useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { failureText, formMessage } from "@/lib/form-error"
+import { formMessage } from "@/lib/form-error"
 
 import { listAlertDictionaries } from "@/api/alert-dictionary"
 import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
@@ -39,6 +40,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { enumLabel } from "@/lib/enum-label"
+import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 
 interface AlertEventListProps {
@@ -57,13 +59,26 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
   const [params, setParams] = useSearchParams()
   const level = view === "REALTIME" ? params.get("level") || "" : ""
   const [draft, setDraft] = useState(query.name)
-  const [items, setItems] = useState<AlertEventItem[]>([])
-  const [total, setTotal] = useState(0)
   const [stats, setStats] = useState<AlertEventStats>({ firing: 0, suppressed: 0, recovered: 0 })
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed] = useState(false)
-  const [loadError, setLoadError] = useState("")
-  const [attempt, setAttempt] = useState(0)
+  const { items, total, loading, failed, error: loadError, reload } = usePagedList<AlertEventItem>({
+    page: query.page,
+    pageSize: query.pageSize,
+    filterKey: `${session.namespaceUid}|${query.name}|${level}|${view}|${mine}|${pageUid}`,
+    fetch: (page, pageSize) =>
+      listAlertEvents({
+        page,
+        pageSize,
+        name: query.name,
+        view,
+        mine: mine || undefined,
+        pageUid: pageUid || undefined,
+        levelUid: level || undefined,
+      }),
+    onLoaded: () => {
+      setSelected([])
+      void alertEventStats().then(setStats).catch(() => undefined)
+    },
+  })
   const [detail, setDetail] = useState<AlertEventItem | null>(null)
   const [selected, setSelected] = useState<string[]>([])
   const [pending, setPending] = useState(false)
@@ -72,53 +87,8 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
   const [confirmError, setConfirmError] = useState("")
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
   const [now, setNow] = useState(() => Date.now())
-  const shown = useRef(confirm)
-  if (confirm) {
-    shown.current = confirm
-  }
   const canIntervene = view === "REALTIME" && session.can("alert:intervene")
   const title = view === "HISTORY" ? t("alertEvent.historyTitle") : t("alertEvent.title")
-
-  useEffect(() => {
-    let active = true
-    async function load() {
-      setLoading(true)
-      setFailed(false)
-      try {
-        const result = await listAlertEvents({
-          page: query.page,
-          pageSize: query.pageSize,
-          name: query.name,
-          view,
-          mine: mine || undefined,
-          pageUid: pageUid || undefined,
-          levelUid: level || undefined,
-        })
-        const counts = await alertEventStats()
-        if (!active) {
-          return
-        }
-        setItems(result.items ?? [])
-        setTotal(result.total ?? 0)
-        setStats(counts)
-        setSelected([])
-      } catch (err) {
-        if (active) {
-          setFailed(true)
-          setLoadError(failureText(err, ""))
-          setItems([])
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-    void load()
-    return () => {
-      active = false
-    }
-  }, [query.page, query.pageSize, query.name, level, view, mine, pageUid, attempt, session.namespaceUid])
 
   useEffect(() => {
     if (view !== "REALTIME") {
@@ -160,7 +130,7 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
       } else {
         await interveneAlertEvents({ uids })
       }
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setActionError(formMessage(err, t("state.failed")))
     } finally {
@@ -183,7 +153,7 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
         await recoverAlertEvents({ uids: confirm.uids })
       }
       setConfirm(null)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setConfirmError(formMessage(err, t("state.failed")))
     } finally {
@@ -262,7 +232,7 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
           </Button>
         </form>
         <div className="flex flex-nowrap items-center justify-end gap-2">
-          <span className="shrink-0 text-sm text-muted-foreground">{t("alertEvent.stats", stats)}</span>
+          <span className="shrink-0 text-sm text-muted-foreground">{t("alertEvent.stats", { firing: stats.firing, suppressed: stats.suppressed, recovered: stats.recovered })}</span>
           {canIntervene ? (
             <>
               <Button
@@ -285,6 +255,19 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
           ) : null}
         </div>
       </div>
+      {hideHeader && canIntervene ? (
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <span className="text-sm text-muted-foreground">
+            {t("alertEvent.stats", { firing: stats.firing, suppressed: stats.suppressed, recovered: stats.recovered })}
+          </span>
+          <Button variant="outline" disabled={pending || selected.length === 0} onClick={() => void intervene(selected)}>
+            {t("alertEvent.batchIntervene")}
+          </Button>
+          <Button variant="outline" disabled={pending || selected.length === 0} onClick={() => setConfirm({ kind: "batch-recover", uids: selected })}>
+            {t("alertEvent.batchRecover")}
+          </Button>
+        </div>
+      ) : null}
       {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
       <ListFrame
         total={total}
@@ -298,7 +281,7 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
         {!loading && failed ? (
           <div className="flex items-center gap-2">
             <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
-            <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>{t("action.retry")}</Button>
+            <Button variant="outline" onClick={() => reload()}>{t("action.retry")}</Button>
           </div>
         ) : null}
         {!loading && !failed && items.length === 0 ? <p className="text-sm text-muted-foreground">{t("alertEvent.empty")}</p> : null}
@@ -371,8 +354,8 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
       />
       <ConfirmAction
         open={confirm !== null}
-        title={shown.current?.kind === "suppress" ? t("confirm.suppressTitle") : t("confirm.recoverTitle")}
-        description={shown.current?.kind === "suppress" ? t("confirm.suppressDescription") : t("confirm.recoverDescription")}
+        title={confirm?.kind === "suppress" ? t("confirm.suppressTitle") : t("confirm.recoverTitle")}
+        description={confirm?.kind === "suppress" ? t("confirm.suppressDescription") : t("confirm.recoverDescription")}
         confirmLabel={t("action.confirm")}
         cancelLabel={t("action.cancel")}
         pending={pending}
@@ -435,7 +418,7 @@ function formatTime(value: string) {
   return date.toLocaleString()
 }
 
-function detailFields(item: AlertEventItem, t: (key: string) => string) {
+function detailFields(item: AlertEventItem, t: TFunction) {
   return [
     { label: t("detail.uid"), value: item.uid },
     { label: t("alertEvent.rule"), value: item.ruleUid },

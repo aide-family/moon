@@ -5,9 +5,11 @@ import { formMessage } from "@/lib/form-error"
 
 import { listAgents } from "@/api/agent"
 import type { AgentItem } from "@/api/agent/types"
-import { deleteSFTP, downloadSFTP, listSFTP, uploadSFTP } from "@/api/sftp"
-import type { SFTPEntry } from "@/api/sftp/types"
+import { deleteSFTP, downloadSFTP, listSFTP, listSFTPAudits, mkdirSFTP, uploadSFTP } from "@/api/sftp"
+import type { SFTPAuditItem, SFTPEntry } from "@/api/sftp/types"
 import { useSession } from "@/auth/session"
+import { ConfirmAction } from "@/components/confirm-action"
+import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,6 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 function crumbs(path: string) {
   const parts = path.split("/").filter(Boolean)
@@ -54,6 +64,11 @@ export function SFTPPage() {
   const [selected, setSelected] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
+  const [mkdirName, setMkdirName] = useState("")
+  const [confirmEntry, setConfirmEntry] = useState<SFTPEntry | null>(null)
+  const [audits, setAudits] = useState<SFTPAuditItem[]>([])
+  const [auditError, setAuditError] = useState("")
+  const [auditAttempt, setAuditAttempt] = useState(0)
   const canRead = session.can("sftp:read")
   const canWrite = session.can("sftp:write")
   const ordered = useMemo(
@@ -78,6 +93,23 @@ export function SFTPPage() {
     }
   }, [session.namespaceUid])
 
+  useEffect(() => {
+    let active = true
+    if (!agentUid) {
+      return
+    }
+    void listSFTPAudits({ page: 1, pageSize: 20, agentUid })
+      .then((result) => {
+        if (active) setAudits(result.items ?? [])
+      })
+      .catch((err) => {
+        if (active) setAuditError(formMessage(err, t("state.failed")))
+      })
+    return () => {
+      active = false
+    }
+  }, [agentUid, auditAttempt, session.namespaceUid, t])
+
   async function load(nextPath = path) {
     if (!agentUid) return
     setPending(true)
@@ -95,6 +127,23 @@ export function SFTPPage() {
     }
   }
 
+  async function onMkdir() {
+    if (!agentUid || !mkdirName.trim()) return
+    setPending(true)
+    setError("")
+    try {
+      const target = `${path.replace(/\/$/, "")}/${mkdirName.trim()}`
+      await mkdirSFTP({ agentUid, path: target })
+      setMkdirName("")
+      await load(path)
+      setAuditAttempt((value) => value + 1)
+    } catch (err) {
+      setError(formMessage(err, t("state.failed")))
+    } finally {
+      setPending(false)
+    }
+  }
+
   async function onUpload(file: File | null) {
     if (!file || !agentUid) return
     setPending(true)
@@ -107,6 +156,7 @@ export function SFTPPage() {
       })
       await uploadSFTP({ agentUid, path: `${path.replace(/\/$/, "")}/${file.name}`, content: btoa(binary) })
       await load(path)
+      setAuditAttempt((value) => value + 1)
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
@@ -127,12 +177,14 @@ export function SFTPPage() {
     }
   }
 
-  async function onDelete(entry: SFTPEntry) {
-    if (!agentUid || !canWrite) return
+  async function onDelete() {
+    if (!agentUid || !canWrite || !confirmEntry) return
     setPending(true)
     try {
-      await deleteSFTP({ agentUid, path: entry.path })
+      await deleteSFTP({ agentUid, path: confirmEntry.path })
+      setConfirmEntry(null)
       await load(path)
+      setAuditAttempt((value) => value + 1)
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
@@ -150,7 +202,14 @@ export function SFTPPage() {
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("sftp.title")} description={t("sftp.description")} />
       <div className="flex flex-wrap items-center gap-2">
-        <Select value={agentUid} onValueChange={setAgentUid}>
+        <Select
+          value={agentUid}
+          onValueChange={(value) => {
+            setAgentUid(value)
+            setAudits([])
+            setAuditError("")
+          }}
+        >
           <SelectTrigger className="w-56">
             <SelectValue placeholder={t("sftp.pickAgent")} />
           </SelectTrigger>
@@ -175,11 +234,21 @@ export function SFTPPage() {
           {t("sftp.download")}
         </Button>
         {canWrite ? (
-          <Button variant="outline" disabled={!current || pending} onClick={() => current && void onDelete(current)}>
+          <Button variant="outline" disabled={!current || pending} onClick={() => current && setConfirmEntry(current)}>
             {t("action.delete")}
           </Button>
         ) : null}
       </div>
+      {canWrite ? (
+        <div className="flex flex-wrap items-end gap-2">
+          <FormField label={t("sftp.mkdir")} htmlFor="mkdir">
+            <Input id="mkdir" value={mkdirName} placeholder={t("sftp.mkdirPlaceholder")} onChange={(event) => setMkdirName(event.target.value)} />
+          </FormField>
+          <Button disabled={pending || !mkdirName.trim()} onClick={() => void onMkdir()}>
+            {t("sftp.mkdir")}
+          </Button>
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-center gap-1 text-sm">
         {crumbs(path).map((crumb) => (
           <button key={crumb.path} className="text-primary" type="button" onClick={() => void load(crumb.path)}>
@@ -212,6 +281,46 @@ export function SFTPPage() {
           ))}
         </div>
       </div>
+      <div className="grid gap-2">
+        <h3 className="text-sm font-medium">{t("sftp.audits")}</h3>
+        {auditError ? <p className="text-sm text-destructive">{auditError}</p> : null}
+        {audits.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t("sftp.empty")}</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("sftp.time")}</TableHead>
+                <TableHead>{t("sftp.action")}</TableHead>
+                <TableHead>{t("sftp.path")}</TableHead>
+                <TableHead>{t("sftp.result")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {audits.map((audit) => (
+                <TableRow key={audit.uid}>
+                  <TableCell className="font-mono text-xs">{audit.createdAt}</TableCell>
+                  <TableCell>{audit.action}</TableCell>
+                  <TableCell className="font-mono text-xs">{audit.path}</TableCell>
+                  <TableCell>{audit.result}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+      <ConfirmAction
+        open={confirmEntry !== null}
+        title={t("confirm.deleteTitle")}
+        description={t("confirm.deleteDescription")}
+        confirmLabel={t("action.delete")}
+        cancelLabel={t("action.cancel")}
+        pending={pending}
+        onConfirm={() => void onDelete()}
+        onOpenChange={(open) => {
+          if (!open) setConfirmEntry(null)
+        }}
+      />
     </section>
   )
 }

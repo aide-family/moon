@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { failureText, formMessage } from "@/lib/form-error"
+import { formMessage } from "@/lib/form-error"
 
 import {
   createRole,
@@ -20,6 +20,7 @@ import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { requireTrimmed } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
+import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
@@ -41,19 +42,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { run } from "@/lib/action"
 
 export function RolePage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
   const [draft, setDraft] = useState(query.name)
-  const [items, setItems] = useState<RoleItem[]>([])
-  const [total, setTotal] = useState(0)
   const [catalog, setCatalog] = useState<PermissionItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed] = useState(false)
-  const [loadError, setLoadError] = useState("")
-  const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [editing, setEditing] = useState<RoleItem | null>(null)
@@ -67,55 +63,31 @@ export function RolePage() {
     item: RoleItem
   } | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const shownConfirm = useRef(confirm)
-  if (confirm) {
-    shownConfirm.current = confirm
-  }
-  const confirmCopy = shownConfirm.current
+  const { items, total, loading, failed, error: loadError, reload } = usePagedList<RoleItem>({
+    page: query.page,
+    pageSize: query.pageSize,
+    filterKey: `${session.namespaceUid}|${query.name}`,
+    fetch: (page, pageSize) => listRoles({ page, pageSize, name: query.name }),
+  })
 
   useEffect(() => {
     let active = true
-    async function load() {
-      setLoading(true)
-      setFailed(false)
-      try {
-        const [result, permissions] = await Promise.all([
-          listRoles({
-            page: query.page,
-            pageSize: query.pageSize,
-            name: query.name,
-          }),
-          listPermissions(),
-        ])
-        if (!active) {
-          return
-        }
-        setItems(result.items ?? [])
-        setTotal(result.total ?? 0)
+    void listPermissions()
+      .then((permissions) => {
+        if (!active) return
         setCatalog(
           (permissions.items ?? []).filter(
-            (item) =>
-              item.name !== "namespace:delete" &&
-              item.name !== "namespace:transfer"
-          )
+            (item) => item.name !== "namespace:delete" && item.name !== "namespace:transfer",
+          ),
         )
-      } catch (err) {
-        if (active) {
-          setFailed(true)
-          setLoadError(failureText(err, ""))
-          setItems([])
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-    void load()
+      })
+      .catch(() => {
+        if (active) setCatalog([])
+      })
     return () => {
       active = false
     }
-  }, [query.page, query.pageSize, query.name, attempt, session.namespaceUid])
+  }, [session.namespaceUid])
 
   async function onCreate(event: React.FormEvent) {
     event.preventDefault()
@@ -130,7 +102,7 @@ export function RolePage() {
       await createRole({ name: name.trim() })
       setOpen(false)
       setName("")
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
@@ -153,7 +125,7 @@ export function RolePage() {
     try {
       await updateRole({ uid: editing.uid, name: name.trim() })
       setEditing(null)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
@@ -171,13 +143,14 @@ export function RolePage() {
     try {
       await updateRolePermissions(granting.uid, selected)
       setGranting(null)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
   }
+
 
   function closeCreate(value: boolean) {
     setOpen(value)
@@ -240,8 +213,9 @@ export function RolePage() {
             key: "enable",
             label: t("action.enable"),
             onSelect: () =>
-              void updateRoleStatus(item.uid, "ACTIVE").then(() =>
-                setAttempt((value) => value + 1)
+              run(
+                updateRoleStatus(item.uid, "ACTIVE").then(() => reload()),
+                setError,
               ),
           },
       {
@@ -269,7 +243,7 @@ export function RolePage() {
         await updateRoleStatus(confirm.item.uid, "DISABLED")
       }
       setConfirm(null)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setConfirmError(formMessage(err, t("state.failed")))
     } finally {
@@ -327,7 +301,7 @@ export function RolePage() {
               <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
               <Button
                 variant="outline"
-                onClick={() => setAttempt((value) => value + 1)}
+                onClick={() => reload()}
               >
                 {t("action.retry")}
               </Button>
@@ -480,12 +454,12 @@ export function RolePage() {
       <ConfirmAction
         open={confirm !== null}
         title={
-          confirmCopy?.type === "delete"
+          confirm?.type === "delete"
             ? t("confirm.deleteTitle")
             : t("confirm.disableTitle")
         }
         description={
-          confirmCopy?.type === "delete"
+          confirm?.type === "delete"
             ? t("confirm.deleteDescription")
             : t("confirm.disableDescription")
         }

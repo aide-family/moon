@@ -2,7 +2,7 @@ import { get, post } from "@/api/http"
 
 import type { K8sProxyAuditItem } from "./types"
 
-/** POST /v1/k8s/proxy */
+/** POST /v1/k8s/proxy。body 为 base64 编码的 bytes。 */
 export function proxyK8s(body: {
   agentUid: string
   method: string

@@ -12,6 +12,7 @@ import (
 
 func TestAcquireRenewRelease(t *testing.T) {
 	addr := os.Getenv("REDIS_ADDR")
+	explicit := addr != ""
 	if addr == "" {
 		addr = "127.0.0.1:6379"
 	}
@@ -21,6 +22,9 @@ func TestAcquireRenewRelease(t *testing.T) {
 	rdb := redis.NewClient(&redis.Options{Addr: addr})
 	defer rdb.Close()
 	if err := rdb.Ping(ctx).Err(); err != nil {
+		if !explicit {
+			t.Skipf("redis %s is not available: %v", addr, err)
+		}
 		t.Fatalf("redis %s: %v", addr, err)
 	}
 

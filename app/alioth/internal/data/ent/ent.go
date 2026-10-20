@@ -32,6 +32,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationpreset"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/permission"
@@ -123,6 +124,7 @@ func checkColumn(t, c string) error {
 			namespace.Table:                  namespace.ValidColumn,
 			notificationchannel.Table:        notificationchannel.ValidColumn,
 			notificationgroup.Table:          notificationgroup.ValidColumn,
+			notificationpreset.Table:         notificationpreset.ValidColumn,
 			notificationtask.Table:           notificationtask.ValidColumn,
 			notificationtemplate.Table:       notificationtemplate.ValidColumn,
 			permission.Table:                 permission.ValidColumn,

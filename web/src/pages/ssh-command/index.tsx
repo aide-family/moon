@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { failureText, formMessage } from "@/lib/form-error"
+import { formMessage } from "@/lib/form-error"
 
 import { listAgents } from "@/api/agent"
 import type { AgentItem } from "@/api/agent/types"
@@ -43,6 +43,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { firstError, requireTrimmed } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
+import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 
 export function SSHCommandPage() {
@@ -50,12 +51,6 @@ export function SSHCommandPage() {
   const session = useSession()
   const query = useListQuery()
   const [draft, setDraft] = useState(query.name)
-  const [items, setItems] = useState<SSHCommandItem[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed] = useState(false)
-  const [loadError, setLoadError] = useState("")
-  const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<SSHCommandItem | null>(null)
   const [name, setName] = useState("")
@@ -75,42 +70,14 @@ export function SSHCommandPage() {
   const [lastAudits, setLastAudits] = useState<SSHCommandAuditItem[]>([])
   const [confirm, setConfirm] = useState<SSHCommandItem | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const shown = useRef(confirm)
-  if (confirm) {
-    shown.current = confirm
-  }
   const canWrite = session.can("ssh:write")
   const canExec = session.can("ssh:exec")
-
-  useEffect(() => {
-    let active = true
-    async function load() {
-      setLoading(true)
-      setFailed(false)
-      try {
-        const result = await listSSHCommands({ page: query.page, pageSize: query.pageSize, name: query.name })
-        if (!active) {
-          return
-        }
-        setItems(result.items ?? [])
-        setTotal(result.total ?? 0)
-      } catch (err) {
-        if (active) {
-          setFailed(true)
-          setLoadError(failureText(err, ""))
-          setItems([])
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-    void load()
-    return () => {
-      active = false
-    }
-  }, [query.page, query.pageSize, query.name, attempt, session.namespaceUid])
+  const { items, total, loading, failed, error: loadError, reload } = usePagedList<SSHCommandItem>({
+    page: query.page,
+    pageSize: query.pageSize,
+    filterKey: `${session.namespaceUid}|${query.name}`,
+    fetch: (page, pageSize) => listSSHCommands({ page, pageSize, name: query.name }),
+  })
 
   function openCreate() {
     setEditing(null)
@@ -175,7 +142,7 @@ export function SSHCommandPage() {
         await createSSHCommand(body)
       }
       setOpen(false)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
@@ -198,7 +165,7 @@ export function SSHCommandPage() {
       const result = await executeSSHCommand(executing.uid, agentUids)
       setExecOpen(false)
       setLastAudits(result.audits ?? [])
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
@@ -215,7 +182,7 @@ export function SSHCommandPage() {
     try {
       await deleteSSHCommand(confirm.uid)
       setConfirm(null)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setConfirmError(formMessage(err, t("state.failed")))
     } finally {
@@ -228,9 +195,9 @@ export function SSHCommandPage() {
     if (canWrite) {
       list.push({ key: "edit", label: t("action.edit"), onSelect: () => openEdit(item) })
       if (item.reviewStatus === "APPROVED") {
-        list.push({ key: "reject", label: t("ssh.reject"), destructive: true, onSelect: () => void rejectSSHCommand(item.uid).then(() => setAttempt((value) => value + 1)) })
+        list.push({ key: "reject", label: t("ssh.reject"), destructive: true, onSelect: () => void rejectSSHCommand(item.uid).then(() => reload()) })
       } else {
-        list.push({ key: "approve", label: t("ssh.approve"), onSelect: () => void approveSSHCommand(item.uid).then(() => setAttempt((value) => value + 1)) })
+        list.push({ key: "approve", label: t("ssh.approve"), onSelect: () => void approveSSHCommand(item.uid).then(() => reload()) })
       }
       list.push({ key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm(item) })
     }
@@ -269,7 +236,7 @@ export function SSHCommandPage() {
         {!loading && failed ? (
           <div className="flex items-center gap-2">
             <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
-            <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
+            <Button variant="outline" onClick={() => reload()}>
               {t("action.retry")}
             </Button>
           </div>

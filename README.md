@@ -4,6 +4,15 @@ Alioth 是运维平台。玉衡（`alioth`）保存业务数据，天权（`megr
 
 设计说明见 [docs/design.md](docs/design.md)。迭代步骤与验收见 [docs/roadmap.md](docs/roadmap.md)。各步开发细则见 [docs/iterations/conventions.md](docs/iterations/conventions.md)。
 
+## 本地依赖
+
+Docker Hub 不可达时，`make compose-up` 会先执行 [scripts/pull-compose-images.sh](scripts/pull-compose-images.sh)：按顺序尝试 `dockerproxy.net`、`docker.m.daocloud.io` 拉取 PostgreSQL/Redis/Mailpit，并重新 tag 成 compose 使用的官方名字。也可以指定自己的镜像代理：
+
+```bash
+MIRROR=dockerproxy.net make compose-images
+make compose-up
+```
+
 ## 服务
 
 | 中文 | 编码名 | 职责 | 监听 |

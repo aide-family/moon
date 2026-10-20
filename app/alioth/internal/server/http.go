@@ -49,7 +49,7 @@ func NewHTTPServer(
 	}
 	opts := []khttp.ServerOption{
 		khttp.Address(c.Http.Addr),
-		khttp.Middleware(recovery.Recovery(recovery.WithLogger(logger)), authenticate(uc)),
+		khttp.Middleware(recovery.Recovery(recovery.WithLogger(logger)), authenticate(uc), protoValidator()),
 	}
 	if c.Http.Network != "" {
 		opts = append(opts, khttp.Network(c.Http.Network))

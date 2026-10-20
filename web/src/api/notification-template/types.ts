@@ -33,7 +33,15 @@ export interface UpdateNotificationTemplateParams extends CreateNotificationTemp
   uid: string
 }
 
-export interface SelectItem {
+export interface NotificationPresetItem {
   uid: string
   name: string
+  type: string
+  subject: string
+  body: string
+  description: string
+}
+
+export interface ListNotificationPresetsResult {
+  items: NotificationPresetItem[]
 }

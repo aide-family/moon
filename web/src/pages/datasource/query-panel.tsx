@@ -187,10 +187,6 @@ function ResultGraph({ response }: { response: PrometheusApiResponse | null }) {
   const plotH = height - padding.top - padding.bottom
 
   useEffect(() => {
-    setSelected(new Set())
-  }, [response])
-
-  useEffect(() => {
     const node = containerRef.current
     if (!node) {
       return
@@ -765,7 +761,7 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
           {instantBody || rangeBody ? <ResultTable response={tableResponse} /> : null}
         </TabsContent>
         <TabsContent value="graph" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-          {rangeBody ? <ResultGraph response={graphResponse} /> : null}
+          {rangeBody ? <ResultGraph key={rangeBody} response={graphResponse} /> : null}
         </TabsContent>
         <TabsContent value="json" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           {instantBody || rangeBody ? (

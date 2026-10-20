@@ -46,11 +46,15 @@ func (uc *Usecase) Proxy(ctx context.Context, agentUID, method, path, query, hea
 	}
 	method = strings.ToUpper(strings.TrimSpace(method))
 	path = strings.TrimSpace(path)
-	if method == "" || path == "" {
-		return nil, merr.Client("method and path are required")
+	if !k8sMethodAllowed(method) || !validK8sPath(path) {
+		return nil, merr.Client("invalid method or path")
 	}
-	if _, err := uc.agents.GetAgent(ctx, ns, agentUID); err != nil {
+	agent, err := uc.agents.GetAgent(ctx, ns, agentUID)
+	if err != nil {
 		return nil, uc.access.Wrap(err)
+	}
+	if agent.Status != "ACTIVE" {
+		return nil, merr.Forbidden("agent is revoked")
 	}
 	kubeNS := extractKubeNamespace(path)
 	if !uc.hub.Online(agentUID) {
@@ -80,10 +84,12 @@ func (uc *Usecase) Proxy(ctx context.Context, agentUID, method, path, query, hea
 	var result *v1.AgentK8SResult
 	select {
 	case <-ctx.Done():
-		updated, _ := uc.audits.UpdateK8sAudit(ctx, audit.UID, "FAILED", "cancelled")
+		uc.hub.Drop(agentUID, reqUID)
+		updated, _ := uc.audits.UpdateK8sAudit(context.WithoutCancel(ctx), audit.UID, "FAILED", "cancelled")
 		return &ProxyResult{Audit: updated}, merr.Invalid("cancelled")
 	case <-timer.C:
-		updated, _ := uc.audits.UpdateK8sAudit(ctx, audit.UID, "FAILED", "timed out")
+		uc.hub.Drop(agentUID, reqUID)
+		updated, _ := uc.audits.UpdateK8sAudit(context.WithoutCancel(ctx), audit.UID, "FAILED", "timed out")
 		return &ProxyResult{Audit: updated}, merr.Invalid("timed out")
 	case result = <-resultCh:
 	}
@@ -122,6 +128,29 @@ func extractKubeNamespace(path string) string {
 		}
 	}
 	return ""
+}
+
+// k8sMethodAllowed 只接受 API Server 常用的读写方法，避免 CONNECT/TRACE 穿透代理。
+func k8sMethodAllowed(method string) bool {
+	switch method {
+	case "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD":
+		return true
+	default:
+		return false
+	}
+}
+
+// validK8sPath 只接受以单个 / 开头的 API 路径。拒绝 // 和 @，防止把请求解析到别的主机。
+func validK8sPath(path string) bool {
+	if !strings.HasPrefix(path, "/") || strings.HasPrefix(path, "//") || strings.ContainsAny(path, "\\@") {
+		return false
+	}
+	for _, segment := range strings.Split(path, "/") {
+		if segment == ".." {
+			return false
+		}
+	}
+	return true
 }
 
 func operatorUID(ctx context.Context) string {

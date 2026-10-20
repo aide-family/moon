@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v3"
-	"github.com/go-kratos/kratos/v3/config"
 	"github.com/go-kratos/kratos/v3/log"
 	"github.com/go-kratos/kratos/v3/transport/grpc"
 	"github.com/go-kratos/kratos/v3/transport/http"
@@ -37,7 +36,7 @@ func newServeCmd() *cobra.Command {
 		Use:   "serve",
 		Short: "Run the HTTP and gRPC servers",
 		RunE: func(*cobra.Command, []string) error {
-			bc, err := loadConfig(confPath)
+			bc, err := bootstrap.Load[conf.Bootstrap](confPath, slog.Default())
 			if err != nil {
 				return err
 			}
@@ -64,7 +63,7 @@ func newMigrateCmd() *cobra.Command {
 		Use:   "migrate",
 		Short: "Apply the ent schema to PostgreSQL",
 		RunE: func(*cobra.Command, []string) error {
-			bc, err := loadConfig(confPath)
+			bc, err := bootstrap.Load[conf.Bootstrap](confPath, slog.Default())
 			if err != nil {
 				return err
 			}
@@ -78,21 +77,6 @@ func newMigrateCmd() *cobra.Command {
 	}
 	cmd.Flags().StringVar(&confPath, "conf", "configs/config.yaml", "bootstrap config path")
 	return cmd
-}
-
-func loadConfig(path string) (*conf.Bootstrap, error) {
-	c := config.New(config.WithSource(bootstrap.NewSource(path)))
-	defer c.Close()
-	if err := c.Load(); err != nil {
-		slog.Default().Error(fmt.Sprintf("config: %v", err))
-		return nil, merr.Server("config load failed")
-	}
-	var bc conf.Bootstrap
-	if err := c.Scan(&bc); err != nil {
-		slog.Default().Error(fmt.Sprintf("config: %v", err))
-		return nil, merr.Server("config load failed")
-	}
-	return &bc, nil
 }
 
 func newApp(logger *slog.Logger, hs *http.Server, gs *grpc.Server, sched *server.Scheduler, hub *agenthub.Hub, d *data.Data) *kratos.App {

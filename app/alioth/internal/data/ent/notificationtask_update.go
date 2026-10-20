@@ -223,6 +223,26 @@ func (_u *NotificationTaskUpdate) AddRetriesLeft(v int) *NotificationTaskUpdate 
 	return _u
 }
 
+// SetNextAttemptAt sets the "next_attempt_at" field.
+func (_u *NotificationTaskUpdate) SetNextAttemptAt(v time.Time) *NotificationTaskUpdate {
+	_u.mutation.SetNextAttemptAt(v)
+	return _u
+}
+
+// SetNillableNextAttemptAt sets the "next_attempt_at" field if the given value is not nil.
+func (_u *NotificationTaskUpdate) SetNillableNextAttemptAt(v *time.Time) *NotificationTaskUpdate {
+	if v != nil {
+		_u.SetNextAttemptAt(*v)
+	}
+	return _u
+}
+
+// ClearNextAttemptAt clears the value of the "next_attempt_at" field.
+func (_u *NotificationTaskUpdate) ClearNextAttemptAt() *NotificationTaskUpdate {
+	_u.mutation.ClearNextAttemptAt()
+	return _u
+}
+
 // SetLastError sets the "last_error" field.
 func (_u *NotificationTaskUpdate) SetLastError(v string) *NotificationTaskUpdate {
 	_u.mutation.SetLastError(v)
@@ -359,6 +379,12 @@ func (_u *NotificationTaskUpdate) sqlSave(ctx context.Context) (_node int, err e
 	}
 	if value, ok := _u.mutation.AddedRetriesLeft(); ok {
 		_spec.AddField(notificationtask.FieldRetriesLeft, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.NextAttemptAt(); ok {
+		_spec.SetField(notificationtask.FieldNextAttemptAt, field.TypeTime, value)
+	}
+	if _u.mutation.NextAttemptAtCleared() {
+		_spec.ClearField(notificationtask.FieldNextAttemptAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.LastError(); ok {
 		_spec.SetField(notificationtask.FieldLastError, field.TypeString, value)
@@ -578,6 +604,26 @@ func (_u *NotificationTaskUpdateOne) AddRetriesLeft(v int) *NotificationTaskUpda
 	return _u
 }
 
+// SetNextAttemptAt sets the "next_attempt_at" field.
+func (_u *NotificationTaskUpdateOne) SetNextAttemptAt(v time.Time) *NotificationTaskUpdateOne {
+	_u.mutation.SetNextAttemptAt(v)
+	return _u
+}
+
+// SetNillableNextAttemptAt sets the "next_attempt_at" field if the given value is not nil.
+func (_u *NotificationTaskUpdateOne) SetNillableNextAttemptAt(v *time.Time) *NotificationTaskUpdateOne {
+	if v != nil {
+		_u.SetNextAttemptAt(*v)
+	}
+	return _u
+}
+
+// ClearNextAttemptAt clears the value of the "next_attempt_at" field.
+func (_u *NotificationTaskUpdateOne) ClearNextAttemptAt() *NotificationTaskUpdateOne {
+	_u.mutation.ClearNextAttemptAt()
+	return _u
+}
+
 // SetLastError sets the "last_error" field.
 func (_u *NotificationTaskUpdateOne) SetLastError(v string) *NotificationTaskUpdateOne {
 	_u.mutation.SetLastError(v)
@@ -744,6 +790,12 @@ func (_u *NotificationTaskUpdateOne) sqlSave(ctx context.Context) (_node *Notifi
 	}
 	if value, ok := _u.mutation.AddedRetriesLeft(); ok {
 		_spec.AddField(notificationtask.FieldRetriesLeft, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.NextAttemptAt(); ok {
+		_spec.SetField(notificationtask.FieldNextAttemptAt, field.TypeTime, value)
+	}
+	if _u.mutation.NextAttemptAtCleared() {
+		_spec.ClearField(notificationtask.FieldNextAttemptAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.LastError(); ok {
 		_spec.SetField(notificationtask.FieldLastError, field.TypeString, value)

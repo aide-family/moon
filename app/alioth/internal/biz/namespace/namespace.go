@@ -47,32 +47,35 @@ func (uc *Usecase) UpdateNamespace(ctx context.Context, uid, name, remark, logo 
 }
 
 func (uc *Usecase) UpdateNamespaceStatus(ctx context.Context, uid, status string) (*bo.Namespace, error) {
-	if err := uc.access.SameNamespace(ctx, uid); err != nil {
+	ns, err := uc.access.AllowAnyStatus(ctx, perm.NamespaceWrite)
+	if err != nil {
 		return nil, err
 	}
-	if err := uc.access.Require(ctx, perm.NamespaceWrite); err != nil {
-		return nil, err
+	if ns != uid {
+		return nil, merr.Client("namespace mismatch")
 	}
 	item, err := uc.namespaces.UpdateNamespaceStatus(ctx, uid, status)
 	return item, uc.access.Wrap(err)
 }
 
 func (uc *Usecase) DeleteNamespace(ctx context.Context, uid string) error {
-	if err := uc.access.SameNamespace(ctx, uid); err != nil {
+	ns, err := uc.access.AllowAnyStatus(ctx, perm.NamespaceDelete)
+	if err != nil {
 		return err
 	}
-	if err := uc.access.Require(ctx, perm.NamespaceDelete); err != nil {
-		return err
+	if ns != uid {
+		return merr.Client("namespace mismatch")
 	}
 	return uc.access.Wrap(uc.namespaces.DeleteNamespace(ctx, uid))
 }
 
 func (uc *Usecase) GetNamespace(ctx context.Context, uid string) (*bo.Namespace, error) {
-	if err := uc.access.SameNamespace(ctx, uid); err != nil {
+	ns, err := uc.access.AllowAnyStatus(ctx, perm.NamespaceRead)
+	if err != nil {
 		return nil, err
 	}
-	if err := uc.access.Require(ctx, perm.NamespaceRead); err != nil {
-		return nil, err
+	if ns != uid {
+		return nil, merr.Client("namespace mismatch")
 	}
 	item, err := uc.namespaces.GetNamespace(ctx, uid)
 	return item, uc.access.Wrap(err)

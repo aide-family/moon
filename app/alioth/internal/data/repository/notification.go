@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 )
@@ -23,6 +24,7 @@ type NotificationRepo interface {
 	GetTemplate(ctx context.Context, namespaceUID, uid string) (*bo.NotificationTemplate, error)
 	ListTemplates(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.NotificationTemplate, int, error)
 	SelectTemplates(ctx context.Context, namespaceUID string, limit int, lastUID string) ([]bo.SelectItem, error)
+	ListPresets(ctx context.Context) ([]bo.NotificationPreset, error)
 
 	CreateGroup(ctx context.Context, in bo.NotificationGroup) (*bo.NotificationGroup, error)
 	UpdateGroup(ctx context.Context, in bo.NotificationGroup) (*bo.NotificationGroup, error)
@@ -43,6 +45,7 @@ type NotificationRepo interface {
 	ClaimPending(ctx context.Context, limit int) ([]bo.NotifySnapshot, error)
 	MarkSending(ctx context.Context, taskUID string) error
 	ApplyNotifyReport(ctx context.Context, report bo.NotifyReport) error
+	ReapStaleSending(ctx context.Context, before time.Time, limit int) (int, error)
 }
 
 // NotifySnapshot 是 merak 领取到的任务，含解密后的渠道密钥。

@@ -1,13 +1,17 @@
 package main
 
 import (
+	"log/slog"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/aide-family/Alioth/app/merak/internal/conf"
+	"github.com/aide-family/Alioth/pkg/bootstrap"
 )
 
 func TestLoadConfig(t *testing.T) {
-	bc, err := loadConfig("../../configs/config.yaml")
+	bc, err := bootstrap.Load[conf.Bootstrap]("../../configs/config.yaml", slog.Default())
 	if err != nil {
 		t.Fatal(err)
 	}

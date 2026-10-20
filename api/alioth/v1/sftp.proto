@@ -86,63 +86,100 @@ message SFTPAuditItem {
   string created_at = 8 [json_name = "createdAt"];
 }
 
+// 列目录请求。
 message ListSFTPRequest {
+  // 机器标识。
   string agent_uid = 1 [json_name = "agentUid", (buf.validate.field).string.min_len = 1];
+  // 目录路径。
   string path = 2 [(buf.validate.field).string.min_len = 1];
 }
 
+// 列目录结果。
 message ListSFTPResponse {
+  // 目录项。
   repeated SFTPEntry entries = 1;
+  // 本次操作审计。
   SFTPAuditItem audit = 2;
 }
 
+// 下载文件请求。
 message DownloadSFTPRequest {
+  // 机器标识。
   string agent_uid = 1 [json_name = "agentUid", (buf.validate.field).string.min_len = 1];
+  // 文件路径。
   string path = 2 [(buf.validate.field).string.min_len = 1];
 }
 
+// 下载文件结果。content 是文件字节，单次最大 4 MiB。
 message DownloadSFTPResponse {
+  // 文件内容。
   bytes content = 1;
+  // 本次操作审计。
   SFTPAuditItem audit = 2;
 }
 
+// 上传文件请求。content 是文件字节，单次最大 4 MiB。
 message UploadSFTPRequest {
+  // 机器标识。
   string agent_uid = 1 [json_name = "agentUid", (buf.validate.field).string.min_len = 1];
+  // 文件路径。
   string path = 2 [(buf.validate.field).string.min_len = 1];
+  // 文件内容。
   bytes content = 3;
 }
 
+// 上传文件结果。
 message UploadSFTPResponse {
+  // 本次操作审计。
   SFTPAuditItem audit = 1;
 }
 
+// 创建目录请求。
 message MkdirSFTPRequest {
+  // 机器标识。
   string agent_uid = 1 [json_name = "agentUid", (buf.validate.field).string.min_len = 1];
+  // 目录路径。
   string path = 2 [(buf.validate.field).string.min_len = 1];
 }
 
+// 创建目录结果。
 message MkdirSFTPResponse {
+  // 本次操作审计。
   SFTPAuditItem audit = 1;
 }
 
+// 删除路径请求。目录会递归删除。
 message DeleteSFTPRequest {
+  // 机器标识。
   string agent_uid = 1 [json_name = "agentUid", (buf.validate.field).string.min_len = 1];
+  // 路径。
   string path = 2 [(buf.validate.field).string.min_len = 1];
 }
 
+// 删除路径结果。
 message DeleteSFTPResponse {
+  // 本次操作审计。
   SFTPAuditItem audit = 1;
 }
 
+// 分页查询 SFTP 审计请求。
 message ListSFTPAuditsRequest {
+  // 页码，从 1 开始。
   int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页数量，最大 100。
   int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 机器标识，可选。
   string agent_uid = 3 [json_name = "agentUid"];
 }
 
+// 分页查询 SFTP 审计结果。
 message ListSFTPAuditsResponse {
+  // 审计列表。
   repeated SFTPAuditItem items = 1;
+  // 总数。
   int32 total = 2;
+  // 当前页码。
   int32 page = 3;
+  // 每页数量。
   int32 page_size = 4 [json_name = "pageSize"];
 }

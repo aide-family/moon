@@ -10,6 +10,18 @@ stringData:
   POSTGRES_DB: alioth
   DATABASE_SOURCE: postgres://alioth:change-me@postgres:5432/alioth?sslmode=disable
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: alioth
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -33,11 +45,19 @@ spec:
           envFrom:
             - secretRef:
                 name: alioth-postgres
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              subPath: pgdata
           readinessProbe:
             exec:
               command: ["pg_isready", "-U", "alioth", "-d", "alioth"]
             initialDelaySeconds: 5
             periodSeconds: 5
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
 ---
 apiVersion: v1
 kind: Service

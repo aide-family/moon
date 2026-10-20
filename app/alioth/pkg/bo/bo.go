@@ -267,6 +267,17 @@ type NotificationTemplate struct {
 	Remark       string
 }
 
+// NotificationPreset 是系统预置的通知模板，不属于任何租户。
+type NotificationPreset struct {
+	UID         string
+	Name        string
+	Type        string
+	Subject     string
+	Body        string
+	Description string
+	Sort        int
+}
+
 // NotificationGroup 是一条通知组。
 type NotificationGroup struct {
 	UID          string

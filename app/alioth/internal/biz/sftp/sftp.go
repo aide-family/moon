@@ -20,6 +20,9 @@ import (
 
 var ProviderSet = wire.NewSet(NewUsecase)
 
+// maxTransferBytes 是单次上传上限，与 Agent 和 grpc-go 的 4 MiB 消息上限一致。
+const maxTransferBytes = 4 << 20
+
 type Usecase struct {
 	audits repository.EdgeAuditRepo
 	agents repository.AgentRepo
@@ -81,6 +84,9 @@ func (uc *Usecase) run(ctx context.Context, perm, agentUID, path, action string,
 	if path == "" {
 		return outcome{}, merr.Client("path is required")
 	}
+	if len(content) > maxTransferBytes {
+		return outcome{}, merr.Invalid("file is too large")
+	}
 	machine, err := uc.agents.GetAgent(ctx, ns, agentUID)
 	if err != nil {
 		return outcome{}, uc.access.Wrap(err)
@@ -119,10 +125,12 @@ func (uc *Usecase) run(ctx context.Context, perm, agentUID, path, action string,
 	var result *v1.AgentSFTPResult
 	select {
 	case <-ctx.Done():
-		updated, _ := uc.audits.UpdateSFTPAudit(ctx, audit.UID, "FAILED", "cancelled")
+		uc.hub.Drop(agentUID, reqUID)
+		updated, _ := uc.audits.UpdateSFTPAudit(context.WithoutCancel(ctx), audit.UID, "FAILED", "cancelled")
 		return outcome{audit: updated}, merr.Invalid("cancelled")
 	case <-timer.C:
-		updated, _ := uc.audits.UpdateSFTPAudit(ctx, audit.UID, "FAILED", "timed out")
+		uc.hub.Drop(agentUID, reqUID)
+		updated, _ := uc.audits.UpdateSFTPAudit(context.WithoutCancel(ctx), audit.UID, "FAILED", "timed out")
 		return outcome{audit: updated}, merr.Invalid("timed out")
 	case result = <-resultCh:
 	}

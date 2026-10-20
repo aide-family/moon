@@ -1,20 +1,21 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { failureText, formMessage } from "@/lib/form-error"
+import { formMessage } from "@/lib/form-error"
 
-import { selectNotificationChannels } from "@/api/notification-channel"
-import type { SelectItem } from "@/api/notification-channel/types"
+import { listNotificationChannels } from "@/api/notification-channel"
+import type { NotificationChannelItem } from "@/api/notification-channel/types"
 import {
   createNotificationTemplate,
   deleteNotificationTemplate,
+  listNotificationPresets,
   listNotificationTemplates,
-  testNotificationTemplate,
   updateNotificationTemplate,
   updateNotificationTemplateStatus,
 } from "@/api/notification-template"
-import type { NotificationTemplateItem } from "@/api/notification-template/types"
+import type { NotificationPresetItem, NotificationTemplateItem } from "@/api/notification-template/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
+import { NotificationTestDialog } from "@/components/notification-test-dialog"
 import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { ListFrame } from "@/components/list-frame"
@@ -45,26 +46,24 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
-import { firstError, requireSelected, requireTrimmed } from "@/lib/form"
+import { firstError, requireTrimmed } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
+import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
+import { run } from "@/lib/action"
 
-const types = ["EMAIL", "WEBHOOK", "SMS_ALICLOUD"]
+const types = ["EMAIL", "WEBHOOK"]
 
 export function NotificationTemplatePage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
   const [draft, setDraft] = useState(query.name)
-  const [items, setItems] = useState<NotificationTemplateItem[]>([])
-  const [channels, setChannels] = useState<SelectItem[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed] = useState(false)
-  const [loadError, setLoadError] = useState("")
-  const [attempt, setAttempt] = useState(0)
+  const [channels, setChannels] = useState<NotificationChannelItem[]>([])
   const [open, setOpen] = useState(false)
-  const [testOpen, setTestOpen] = useState(false)
+  const [presetOpen, setPresetOpen] = useState(false)
+  const [presets, setPresets] = useState<NotificationPresetItem[]>([])
+  const [presetError, setPresetError] = useState("")
   const [editing, setEditing] = useState<NotificationTemplateItem | null>(null)
   const [testing, setTesting] = useState<NotificationTemplateItem | null>(null)
   const [name, setName] = useState("")
@@ -72,52 +71,34 @@ export function NotificationTemplatePage() {
   const [subject, setSubject] = useState("")
   const [body, setBody] = useState("")
   const [remark, setRemark] = useState("")
-  const [channelUid, setChannelUid] = useState("")
-  const [receivers, setReceivers] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<NotificationTemplateItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationTemplateItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const shown = useRef(confirm)
-  if (confirm) {
-    shown.current = confirm
-  }
   const canWrite = session.can("notification:write")
+  const { items, total, loading, failed, error: loadError, reload } = usePagedList<NotificationTemplateItem>({
+    page: query.page,
+    pageSize: query.pageSize,
+    filterKey: `${session.namespaceUid}|${query.name}`,
+    fetch: (page, pageSize) => listNotificationTemplates({ page, pageSize, name: query.name }),
+  })
 
   useEffect(() => {
     let active = true
-    async function load() {
-      setLoading(true)
-      setFailed(false)
-      try {
-        const [result, channelResult] = await Promise.all([
-          listNotificationTemplates({ page: query.page, pageSize: query.pageSize, name: query.name }),
-          selectNotificationChannels({ limit: 100 }),
-        ])
-        if (!active) {
-          return
-        }
-        setItems(result.items ?? [])
-        setTotal(result.total ?? 0)
-        setChannels(channelResult.items ?? [])
-      } catch (err) {
+    void listNotificationChannels({ page: 1, pageSize: 100 })
+      .then((result) => {
         if (active) {
-          setFailed(true)
-          setLoadError(failureText(err, ""))
-          setItems([])
+          setChannels(result.items ?? [])
         }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-    void load()
+      })
+      .catch(() => {
+        if (active) setChannels([])
+      })
     return () => {
       active = false
     }
-  }, [query.page, query.pageSize, query.name, attempt, session.namespaceUid])
+  }, [session.namespaceUid])
 
   function openCreate() {
     setEditing(null)
@@ -143,7 +124,12 @@ export function NotificationTemplatePage() {
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
-    const invalid = firstError(requireTrimmed(name, t("form.required")), requireTrimmed(type, t("form.required")))
+    const invalid = firstError(
+      requireTrimmed(name, t("form.required")),
+      requireTrimmed(type, t("form.required")),
+      type === "EMAIL" ? requireTrimmed(subject, t("form.required")) : null,
+      requireTrimmed(body, t("form.required")),
+    )
     if (invalid) {
       setError(invalid)
       return
@@ -158,7 +144,7 @@ export function NotificationTemplatePage() {
         await createNotificationTemplate(payload)
       }
       setOpen(false)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
@@ -166,23 +152,47 @@ export function NotificationTemplatePage() {
     }
   }
 
-  async function onTest(event: React.FormEvent) {
-    event.preventDefault()
-    if (!testing) {
-      return
+  async function openPresets() {
+    setPresetError("")
+    setPresetOpen(true)
+    try {
+      const result = await listNotificationPresets()
+      setPresets(result.items ?? [])
+    } catch (err) {
+      setPresetError(err instanceof Error ? err.message : t("state.failed"))
+      setPresets([])
     }
-    const invalid = firstError(requireSelected(channelUid, t("form.required")), requireTrimmed(receivers, t("form.required")))
-    if (invalid) {
-      setError(invalid)
-      return
-    }
+  }
+
+  function applyPreset(preset: NotificationPresetItem) {
+    setEditing(null)
+    setName(preset.name)
+    setType(preset.type)
+    setSubject(preset.subject)
+    setBody(preset.body)
+    setRemark(preset.description)
+    setError("")
+    setPresetOpen(false)
+    setOpen(true)
+  }
+
+  async function createFromPreset(preset: NotificationPresetItem) {
     setPending(true)
     setError("")
     try {
-      await testNotificationTemplate(testing.uid, { channelUid, receivers: receivers.trim() })
-      setTestOpen(false)
+      await createNotificationTemplate({
+        name: `${preset.name} ${t("template.copySuffix")}`,
+        type: preset.type,
+        subject: preset.subject,
+        body: preset.body,
+        remark: preset.description,
+      })
+      setOpen(false)
+      setPresetOpen(false)
+      reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      setPresetError(err instanceof Error ? err.message : t("state.failed"))
+      setPresetOpen(true)
     } finally {
       setPending(false)
     }
@@ -201,7 +211,7 @@ export function NotificationTemplatePage() {
         await updateNotificationTemplateStatus(confirm.item.uid, "DISABLED")
       }
       setConfirm(null)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setConfirmError(formMessage(err, t("state.failed")))
     } finally {
@@ -220,15 +230,12 @@ export function NotificationTemplatePage() {
         label: t("action.test"),
         onSelect: () => {
           setTesting(item)
-          setChannelUid(channels[0]?.uid ?? "")
-          setReceivers("")
           setError("")
-          setTestOpen(true)
         },
       },
       item.status === "ACTIVE"
         ? { key: "disable", label: t("action.disable"), destructive: true, onSelect: () => setConfirm({ action: "disable", item }) }
-        : { key: "enable", label: t("action.enable"), onSelect: () => void updateNotificationTemplateStatus(item.uid, "ACTIVE").then(() => setAttempt((value) => value + 1)) },
+        : { key: "enable", label: t("action.enable"), onSelect: () => run(updateNotificationTemplateStatus(item.uid, "ACTIVE").then(() => reload()), setError) },
       { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm({ action: "delete", item }) },
     ]
   }
@@ -236,7 +243,14 @@ export function NotificationTemplatePage() {
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("template.title")} description={t("template.description")}>
-        {canWrite ? <Button onClick={openCreate}>{t("action.create")}</Button> : null}
+        {canWrite ? (
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => void openPresets()}>
+              {t("template.presets")}
+            </Button>
+            <Button onClick={openCreate}>{t("action.create")}</Button>
+          </div>
+        ) : null}
       </PageHeader>
       <form
         className="flex flex-wrap gap-2"
@@ -262,7 +276,7 @@ export function NotificationTemplatePage() {
         {!loading && failed ? (
           <div className="flex items-center gap-2">
             <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
-            <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
+            <Button variant="outline" onClick={() => reload()}>
               {t("action.retry")}
             </Button>
           </div>
@@ -305,7 +319,15 @@ export function NotificationTemplatePage() {
               <Input id="tpl-name" value={name} placeholder={t("template.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
             <FormField label={t("template.type")}>
-              <Select value={type} onValueChange={setType}>
+              <Select
+                value={type}
+                onValueChange={(value) => {
+                  setType(value)
+                  if (value !== "EMAIL") {
+                    setSubject("")
+                  }
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder={t("template.typePlaceholder")} />
                 </SelectTrigger>
@@ -318,9 +340,11 @@ export function NotificationTemplatePage() {
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label={t("template.subject")} htmlFor="tpl-subject" className="sm:col-span-full">
-              <Input id="tpl-subject" value={subject} placeholder={t("template.subjectPlaceholder")} onChange={(event) => setSubject(event.target.value)} />
-            </FormField>
+            {type === "EMAIL" ? (
+              <FormField label={t("template.subject")} htmlFor="tpl-subject" hint={t("template.subjectEmailOnly")} className="sm:col-span-full">
+                <Input id="tpl-subject" value={subject} placeholder={t("template.subjectPlaceholder")} onChange={(event) => setSubject(event.target.value)} required />
+              </FormField>
+            ) : null}
             <FormField label={t("template.body")} htmlFor="tpl-body" className="sm:col-span-full">
               <Textarea id="tpl-body" value={body} placeholder={t("template.bodyPlaceholder")} onChange={(event) => setBody(event.target.value)} />
             </FormField>
@@ -336,37 +360,43 @@ export function NotificationTemplatePage() {
           </form>
         </DialogContent>
       </Dialog>
-      <Dialog open={testOpen} onOpenChange={setTestOpen}>
-        <DialogContent>
+      {testing ? (
+        <NotificationTestDialog target={{ kind: "template", item: testing }} channels={channels} onClose={() => setTesting(null)} />
+      ) : null}
+      <Dialog open={presetOpen} onOpenChange={setPresetOpen}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{t("action.test")}</DialogTitle>
+            <DialogTitle>{t("template.presetTitle")}</DialogTitle>
           </DialogHeader>
-          <form className="grid gap-4" onSubmit={onTest}>
-            <FormField label={t("template.channel")}>
-              <Select value={channelUid || "NONE"} onValueChange={(value) => setChannelUid(value === "NONE" ? "" : value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("template.channelPlaceholder")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectOption value="NONE">{t("template.channelPlaceholder")}</SelectOption>
-                  {channels.map((item) => (
-                    <SelectOption key={item.uid} value={item.uid}>
-                      {item.name}
-                    </SelectOption>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-            <FormField label={t("channel.testReceivers")} htmlFor="tpl-receivers">
-              <Input id="tpl-receivers" value={receivers} placeholder={t("template.receiversPlaceholder")} onChange={(event) => setReceivers(event.target.value)} required />
-            </FormField>
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <DialogFooter>
-              <Button type="submit" disabled={pending}>
-                {t("action.test")}
-              </Button>
-            </DialogFooter>
-          </form>
+          <p className="text-sm text-muted-foreground">{t("template.presetHint")}</p>
+          {presetError ? <p className="text-sm text-destructive">{presetError}</p> : null}
+          {presets.length === 0 && !presetError ? (
+            <p className="text-sm text-muted-foreground">{t("template.presetEmpty")}</p>
+          ) : (
+            <div className="grid gap-3">
+              {presets.map((preset) => (
+                <div key={preset.uid} className="grid gap-2 rounded-lg border p-3">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <p className="font-medium">{preset.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {preset.type} · {preset.description}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" disabled={pending} onClick={() => applyPreset(preset)}>
+                        {t("template.usePresetAndEdit")}
+                      </Button>
+                      <Button size="sm" disabled={pending} onClick={() => void createFromPreset(preset)}>
+                        {t("template.usePreset")}
+                      </Button>
+                    </div>
+                  </div>
+                  <pre className="max-h-24 overflow-auto whitespace-pre-wrap text-xs text-muted-foreground">{preset.body}</pre>
+                </div>
+              ))}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
       <DetailSheet
@@ -390,8 +420,8 @@ export function NotificationTemplatePage() {
       />
       <ConfirmAction
         open={confirm !== null}
-        title={shown.current?.action === "delete" ? t("confirm.deleteTitle") : t("confirm.disableTitle")}
-        description={shown.current?.action === "delete" ? t("confirm.deleteDescription") : t("confirm.disableDescription")}
+        title={confirm?.action === "delete" ? t("confirm.deleteTitle") : t("confirm.disableTitle")}
+        description={confirm?.action === "delete" ? t("confirm.deleteDescription") : t("confirm.disableDescription")}
         confirmLabel={t("action.confirm")}
         cancelLabel={t("action.cancel")}
         pending={pending}

@@ -124,6 +124,11 @@ func RetriesLeft(v int) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldEQ(FieldRetriesLeft, v))
 }
 
+// NextAttemptAt applies equality check predicate on the "next_attempt_at" field. It's identical to NextAttemptAtEQ.
+func NextAttemptAt(v time.Time) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEQ(FieldNextAttemptAt, v))
+}
+
 // LastError applies equality check predicate on the "last_error" field. It's identical to LastErrorEQ.
 func LastError(v string) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldEQ(FieldLastError, v))
@@ -1002,6 +1007,56 @@ func RetriesLeftLT(v int) predicate.NotificationTask {
 // RetriesLeftLTE applies the LTE predicate on the "retries_left" field.
 func RetriesLeftLTE(v int) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldLTE(FieldRetriesLeft, v))
+}
+
+// NextAttemptAtEQ applies the EQ predicate on the "next_attempt_at" field.
+func NextAttemptAtEQ(v time.Time) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEQ(FieldNextAttemptAt, v))
+}
+
+// NextAttemptAtNEQ applies the NEQ predicate on the "next_attempt_at" field.
+func NextAttemptAtNEQ(v time.Time) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldNEQ(FieldNextAttemptAt, v))
+}
+
+// NextAttemptAtIn applies the In predicate on the "next_attempt_at" field.
+func NextAttemptAtIn(vs ...time.Time) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldIn(FieldNextAttemptAt, vs...))
+}
+
+// NextAttemptAtNotIn applies the NotIn predicate on the "next_attempt_at" field.
+func NextAttemptAtNotIn(vs ...time.Time) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldNotIn(FieldNextAttemptAt, vs...))
+}
+
+// NextAttemptAtGT applies the GT predicate on the "next_attempt_at" field.
+func NextAttemptAtGT(v time.Time) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldGT(FieldNextAttemptAt, v))
+}
+
+// NextAttemptAtGTE applies the GTE predicate on the "next_attempt_at" field.
+func NextAttemptAtGTE(v time.Time) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldGTE(FieldNextAttemptAt, v))
+}
+
+// NextAttemptAtLT applies the LT predicate on the "next_attempt_at" field.
+func NextAttemptAtLT(v time.Time) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldLT(FieldNextAttemptAt, v))
+}
+
+// NextAttemptAtLTE applies the LTE predicate on the "next_attempt_at" field.
+func NextAttemptAtLTE(v time.Time) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldLTE(FieldNextAttemptAt, v))
+}
+
+// NextAttemptAtIsNil applies the IsNil predicate on the "next_attempt_at" field.
+func NextAttemptAtIsNil() predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldIsNull(FieldNextAttemptAt))
+}
+
+// NextAttemptAtNotNil applies the NotNil predicate on the "next_attempt_at" field.
+func NextAttemptAtNotNil() predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldNotNull(FieldNextAttemptAt))
 }
 
 // LastErrorEQ applies the EQ predicate on the "last_error" field.

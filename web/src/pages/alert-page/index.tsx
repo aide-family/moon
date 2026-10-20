@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { failureText, formMessage } from "@/lib/form-error"
+import { formMessage } from "@/lib/form-error"
 
 import {
   createAlertPage,
@@ -35,46 +35,15 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { firstError, requireTrimmed } from "@/lib/form"
+import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
+import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
-
-interface LabelPair {
-  key: string
-  value: string
-}
-
-function parseLabels(raw: string): LabelPair[] {
-  try {
-    const data = JSON.parse(raw || "{}") as Record<string, string>
-    const pairs = Object.entries(data).map(([key, value]) => ({ key, value: String(value) }))
-    return pairs.length > 0 ? pairs : [{ key: "", value: "" }]
-  } catch {
-    return [{ key: "", value: "" }]
-  }
-}
-
-function serializeLabels(pairs: LabelPair[]): string {
-  const out: Record<string, string> = {}
-  for (const pair of pairs) {
-    const key = pair.key.trim()
-    if (!key) {
-      continue
-    }
-    out[key] = pair.value.trim()
-  }
-  return JSON.stringify(out)
-}
 
 export function AlertPageManagePage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
   const [draft, setDraft] = useState(query.name)
-  const [items, setItems] = useState<AlertPageItem[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed] = useState(false)
-  const [loadError, setLoadError] = useState("")
-  const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<AlertPageItem | null>(null)
   const [name, setName] = useState("")
@@ -86,46 +55,13 @@ export function AlertPageManagePage() {
   const [detail, setDetail] = useState<AlertPageItem | null>(null)
   const [confirm, setConfirm] = useState<AlertPageItem | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const shown = useRef(confirm)
-  if (confirm) {
-    shown.current = confirm
-  }
   const canWrite = session.can("alert:write")
-
-  useEffect(() => {
-    let active = true
-    async function load() {
-      setLoading(true)
-      setFailed(false)
-      try {
-        const result = await listAlertPages({
-          page: query.page,
-          pageSize: query.pageSize,
-          name: query.name,
-          scope: "manage",
-        })
-        if (!active) {
-          return
-        }
-        setItems(result.items ?? [])
-        setTotal(result.total ?? 0)
-      } catch (err) {
-        if (active) {
-          setFailed(true)
-          setLoadError(failureText(err, ""))
-          setItems([])
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-    void load()
-    return () => {
-      active = false
-    }
-  }, [query.page, query.pageSize, query.name, attempt, session.namespaceUid])
+  const { items, total, loading, failed, error: loadError, reload } = usePagedList<AlertPageItem>({
+    page: query.page,
+    pageSize: query.pageSize,
+    filterKey: `${session.namespaceUid}|${query.name}`,
+    fetch: (page, pageSize) => listAlertPages({ page, pageSize, name: query.name, scope: "manage" }),
+  })
 
   function openCreate() {
     setEditing(null)
@@ -140,7 +76,7 @@ export function AlertPageManagePage() {
   function openEdit(item: AlertPageItem) {
     setEditing(item)
     setName(item.name)
-    setLabels(parseLabels(item.labels))
+    setLabels(parseLabelPairs(item.labels))
     setIsPublic(item.public)
     setRemark(item.remark)
     setError("")
@@ -159,7 +95,7 @@ export function AlertPageManagePage() {
     try {
       const payload = {
         name: name.trim(),
-        labels: serializeLabels(labels),
+        labels: serializeLabelPairs(labels),
         public: isPublic,
         remark: remark.trim(),
       }
@@ -169,7 +105,7 @@ export function AlertPageManagePage() {
         await createAlertPage(payload)
       }
       setOpen(false)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
@@ -186,7 +122,7 @@ export function AlertPageManagePage() {
     try {
       await deleteAlertPage(confirm.uid)
       setConfirm(null)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setConfirmError(formMessage(err, t("state.failed")))
     } finally {
@@ -238,7 +174,7 @@ export function AlertPageManagePage() {
         {!loading && failed ? (
           <div className="flex items-center gap-2">
             <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
-            <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
+            <Button variant="outline" onClick={() => reload()}>
               {t("action.retry")}
             </Button>
           </div>

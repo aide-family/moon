@@ -11,11 +11,13 @@ import {
 } from "@/api/message-log"
 import type { MessageLogItem, NotificationTaskItem } from "@/api/message-log/types"
 import { useSession } from "@/auth/session"
+import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -25,6 +27,13 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { enumLabel } from "@/lib/enum-label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useListQuery } from "@/lib/list-query"
 
 export function MessageLogPage() {
@@ -39,10 +48,17 @@ export function MessageLogPage() {
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
   const [loadError, setLoadError] = useState("")
+  const [actionError, setActionError] = useState("")
+  const [pending, setPending] = useState(false)
   const [attempt, setAttempt] = useState(0)
   const [detailLog, setDetailLog] = useState<MessageLogItem | null>(null)
   const [detailTask, setDetailTask] = useState<NotificationTaskItem | null>(null)
+  const [confirmAction, setConfirmAction] = useState<{ kind: "retry" | "cancel"; item: NotificationTaskItem } | null>(null)
+  const [confirmError, setConfirmError] = useState("")
+  const statusFilter = params.get("status") ?? ""
+  const taskFilter = params.get("taskUid") ?? ""
   const canWrite = session.can("notification:write")
+  const taskStatuses = ["PENDING", "SENDING", "SENT", "FAILED", "CANCELLED"]
 
   useEffect(() => {
     let active = true
@@ -51,14 +67,22 @@ export function MessageLogPage() {
       setFailed(false)
       try {
         if (tab === "tasks") {
-          const result = await listNotificationTasks({ page: query.page, pageSize: query.pageSize })
+          const result = await listNotificationTasks({
+            page: query.page,
+            pageSize: query.pageSize,
+            status: statusFilter || undefined,
+          })
           if (!active) {
             return
           }
           setTasks(result.items ?? [])
           setTotal(result.total ?? 0)
         } else {
-          const result = await listMessageLogs({ page: query.page, pageSize: query.pageSize })
+          const result = await listMessageLogs({
+            page: query.page,
+            pageSize: query.pageSize,
+            taskUid: taskFilter || undefined,
+          })
           if (!active) {
             return
           }
@@ -82,7 +106,7 @@ export function MessageLogPage() {
     return () => {
       active = false
     }
-  }, [tab, query.page, query.pageSize, attempt, session.namespaceUid])
+  }, [tab, query.page, query.pageSize, attempt, session.namespaceUid, statusFilter, taskFilter])
 
   function setTab(value: "logs" | "tasks") {
     const next = new URLSearchParams(params)
@@ -92,35 +116,90 @@ export function MessageLogPage() {
       next.set("tab", value)
     }
     next.set("page", "1")
+    next.delete("status")
+    next.delete("taskUid")
+    setParams(next)
+  }
+
+  function setFilter(key: "status" | "taskUid", value: string) {
+    const next = new URLSearchParams(params)
+    if (value) {
+      next.set(key, value)
+    } else {
+      next.delete(key)
+    }
+    next.set("page", "1")
     setParams(next)
   }
 
   function taskActions(item: NotificationTaskItem): RowAction[] {
+    const actions: RowAction[] = [
+      {
+        key: "logs",
+        label: t("messageLog.viewLogs"),
+        onSelect: () => {
+          const next = new URLSearchParams(params)
+          next.set("tab", "logs")
+          next.set("taskUid", item.uid)
+          next.set("page", "1")
+          setParams(next)
+        },
+      },
+    ]
     if (!canWrite) {
-      return []
+      return actions
     }
-    const actions: RowAction[] = []
     if (item.status === "FAILED") {
       actions.push({
         key: "retry",
         label: t("action.retry"),
-        onSelect: () => void retryNotificationTask(item.uid).then(() => setAttempt((value) => value + 1)),
+        onSelect: () => {
+          setConfirmError("")
+          setConfirmAction({ kind: "retry", item })
+        },
       })
     }
-    if (item.status !== "SENT" && item.status !== "CANCELLED") {
+    if (item.status !== "SENT" && item.status !== "CANCELLED" && item.status !== "SENDING") {
       actions.push({
         key: "cancel",
         label: t("action.cancelTask"),
         destructive: true,
-        onSelect: () => void cancelNotificationTask(item.uid).then(() => setAttempt((value) => value + 1)),
+        onSelect: () => {
+          setConfirmError("")
+          setConfirmAction({ kind: "cancel", item })
+        },
       })
     }
     return actions
   }
 
+  async function runConfirm() {
+    if (!confirmAction) {
+      return
+    }
+    setPending(true)
+    setConfirmError("")
+    try {
+      if (confirmAction.kind === "retry") {
+        await retryNotificationTask(confirmAction.item.uid)
+      } else {
+        await cancelNotificationTask(confirmAction.item.uid)
+      }
+      setConfirmAction(null)
+      setAttempt((value) => value + 1)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t("state.failed")
+      setConfirmError(message)
+      setActionError(message)
+    } finally {
+      setPending(false)
+    }
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("messageLog.title")} description={t("messageLog.description")} />
+      {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
       <div className="flex gap-2">
         <Button variant={tab === "logs" ? "default" : "outline"} onClick={() => setTab("logs")}>
           {t("messageLog.logs")}
@@ -128,6 +207,37 @@ export function MessageLogPage() {
         <Button variant={tab === "tasks" ? "default" : "outline"} onClick={() => setTab("tasks")}>
           {t("messageLog.tasks")}
         </Button>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {tab === "tasks" ? (
+          <Select value={statusFilter || "ALL"} onValueChange={(value) => setFilter("status", value === "ALL" ? "" : value)}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder={t("messageLog.statusFilter")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">{t("messageLog.allStatus")}</SelectItem>
+              {taskStatuses.map((item) => (
+                <SelectItem key={item} value={item}>
+                  {item}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <>
+            <Input
+              className="max-w-sm"
+              value={taskFilter}
+              placeholder={t("messageLog.taskFilterPlaceholder")}
+              onChange={(event) => setFilter("taskUid", event.target.value)}
+            />
+            {taskFilter ? (
+              <Button variant="outline" onClick={() => setFilter("taskUid", "")}>
+                {t("messageLog.clearFilter")}
+              </Button>
+            ) : null}
+          </>
+        )}
       </div>
       <ListFrame
         total={total}
@@ -153,6 +263,7 @@ export function MessageLogPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>{t("messageLog.status")}</TableHead>
+                <TableHead>{t("messageLog.taskFilter")}</TableHead>
                 <TableHead>{t("messageLog.receivers")}</TableHead>
                 <TableHead>{t("messageLog.detail")}</TableHead>
                 <TableHead />
@@ -162,6 +273,7 @@ export function MessageLogPage() {
               {logs.map((item) => (
                 <TableRow key={item.uid}>
                   <TableCell>{enumLabel(t, item.status)}</TableCell>
+                  <TableCell className="font-mono text-xs">{item.taskUid}</TableCell>
                   <TableCell>{item.receivers}</TableCell>
                   <TableCell className="max-w-xs truncate">{item.detail}</TableCell>
                   <TableCell>
@@ -236,6 +348,22 @@ export function MessageLogPage() {
               ]
             : []
         }
+      />
+      <ConfirmAction
+        open={confirmAction !== null}
+        title={confirmAction?.kind === "retry" ? t("messageLog.retryTitle") : t("messageLog.cancelTitle")}
+        description={confirmAction?.kind === "retry" ? t("messageLog.retryDescription") : t("messageLog.cancelDescription")}
+        confirmLabel={t("action.confirm")}
+        cancelLabel={t("action.cancel")}
+        pending={pending}
+        error={confirmError}
+        onConfirm={() => void runConfirm()}
+        onOpenChange={(value) => {
+          if (!value) {
+            setConfirmAction(null)
+            setConfirmError("")
+          }
+        }}
       />
     </section>
   )

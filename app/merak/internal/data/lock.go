@@ -33,11 +33,7 @@ func NewLocker(c *conf.Redis, logger *slog.Logger) (repository.Locker, func(), e
 }
 
 func (c *lockClient) Available(ctx context.Context) error {
-	if err := c.rdb.Ping(ctx).Err(); err != nil {
-		slog.Default().Error(fmt.Sprintf("redis: %v", err))
-		return merr.Server("lock failed")
-	}
-	return nil
+	return c.locks.Available(ctx)
 }
 
 func (c *lockClient) Acquire(ctx context.Context, key string, ttl time.Duration) (repository.Hold, error) {

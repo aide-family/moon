@@ -33,6 +33,8 @@ func (NotificationTask) Fields() []ent.Field {
 		field.String("body").Default(""),
 		field.String("params").Default(""),
 		field.Int("retries_left").Default(3),
+		// 失败后的下一次可领取时间。为空表示立即可领取。
+		field.Time("next_attempt_at").Optional().Nillable(),
 		field.String("last_error").Default(""),
 	}
 }
@@ -42,6 +44,7 @@ func (NotificationTask) Indexes() []ent.Index {
 		index.Fields("uid").Unique(),
 		index.Fields("event_uid", "phase", "group_uid").Unique().Annotations(entsql.IndexWhere("event_uid <> ''")),
 		index.Fields("status"),
+		index.Fields("status", "next_attempt_at"),
 		index.Fields("namespace_uid", "status"),
 	}
 }

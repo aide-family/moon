@@ -20,7 +20,7 @@ import {
   UsersRound,
   type LucideIcon,
 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   NavLink,
@@ -205,20 +205,17 @@ const edgeLinks: {
 function NavGroup({
   label,
   icon: Icon,
-  open,
   active,
   links,
-  onOpenChange,
 }: {
   label: string
   icon: LucideIcon
-  open: boolean
   active: boolean
   links: { to: string; label: string; icon: LucideIcon }[]
-  onOpenChange: (open: boolean) => void
 }) {
   const { t } = useTranslation()
   const location = useLocation()
+  const [open, setOpen] = useState(active)
   if (links.length === 0) {
     return null
   }
@@ -226,7 +223,7 @@ function NavGroup({
     <Collapsible
       asChild
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={setOpen}
       className="group/collapsible"
     >
       <SidebarMenuItem>
@@ -291,30 +288,6 @@ function ShellFrame() {
   const alertActive = alerts.some((link) => location.pathname === link.to)
   const notifyActive = notifies.some((link) => location.pathname === link.to)
   const edgeActive = edges.some((link) => location.pathname === link.to)
-  const [systemOpen, setSystemOpen] = useState(systemActive)
-  const [alertOpen, setAlertOpen] = useState(alertActive)
-  const [notifyOpen, setNotifyOpen] = useState(notifyActive)
-  const [edgeOpen, setEdgeOpen] = useState(edgeActive)
-  useEffect(() => {
-    if (systemActive) {
-      setSystemOpen(true)
-    }
-  }, [systemActive])
-  useEffect(() => {
-    if (alertActive) {
-      setAlertOpen(true)
-    }
-  }, [alertActive])
-  useEffect(() => {
-    if (notifyActive) {
-      setNotifyOpen(true)
-    }
-  }, [notifyActive])
-  useEffect(() => {
-    if (edgeActive) {
-      setEdgeOpen(true)
-    }
-  }, [edgeActive])
   const token = localStorage.getItem("token")
   if (!token) {
     return <Navigate to="/login" replace />
@@ -350,36 +323,32 @@ function ShellFrame() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <NavGroup
+                    key={`alert-${alertActive}`}
                     label="nav.alert"
                     icon={Bell}
-                    open={alertOpen}
                     active={alertActive}
                     links={alerts}
-                    onOpenChange={setAlertOpen}
                   />
                   <NavGroup
+                    key={`notify-${notifyActive}`}
                     label="nav.notify"
                     icon={Mail}
-                    open={notifyOpen}
                     active={notifyActive}
                     links={notifies}
-                    onOpenChange={setNotifyOpen}
                   />
                   <NavGroup
+                    key={`edge-${edgeActive}`}
                     label="nav.edge"
                     icon={Server}
-                    open={edgeOpen}
                     active={edgeActive}
                     links={edges}
-                    onOpenChange={setEdgeOpen}
                   />
                   <NavGroup
+                    key={`system-${systemActive}`}
                     label="nav.system"
                     icon={Settings}
-                    open={systemOpen}
                     active={systemActive}
                     links={visible}
-                    onOpenChange={setSystemOpen}
                   />
                 </SidebarMenu>
               </SidebarGroupContent>

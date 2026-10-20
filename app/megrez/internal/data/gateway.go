@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
 	megrezv1 "github.com/aide-family/Alioth/api/megrez/v1"
 	"github.com/aide-family/Alioth/app/megrez/internal/conf"
 	"github.com/aide-family/Alioth/app/megrez/internal/data/repository"
 	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
+	"github.com/aide-family/Alioth/pkg/grpctls"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -24,7 +24,11 @@ func NewGateway(c *conf.Alioth) (repository.EvalGateway, func(), error) {
 	if c == nil || c.GetGrpcAddr() == "" || c.GetServiceKey() == "" {
 		return nil, nil, merr.Server("alioth grpc is empty")
 	}
-	conn, err := grpc.NewClient(c.GetGrpcAddr(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	dialOption, err := grpctls.ClientDialOption("ALIOTH_GRPC_TLS")
+	if err != nil {
+		return nil, nil, err
+	}
+	conn, err := grpc.NewClient(c.GetGrpcAddr(), dialOption)
 	if err != nil {
 		return nil, nil, merr.Server("alioth grpc is empty")
 	}
@@ -73,7 +77,7 @@ func (g *gateway) Report(ctx context.Context, report bo.EvalReport) error {
 	_, err := g.client.ReportEval(g.auth(ctx), &megrezv1.ReportEvalRequest{
 		RuleUid: report.RuleUID, DatasourceUid: report.DatasourceUID,
 		EvalSlot: report.EvalSlot.UTC().Format(time.RFC3339Nano),
-		Skipped: report.Skipped, Hits: hits,
+		Skipped:  report.Skipped, Hits: hits,
 	})
 	if err != nil {
 		return merr.Server("report failed")

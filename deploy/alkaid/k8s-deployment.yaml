@@ -42,8 +42,9 @@ spec:
               value: 0.0.0.0:8022
             - name: ALKAID_GRPC_ADDR
               value: 0.0.0.0:9022
+            # 无头 Service 会解析出全部 alioth 副本，Agent 对每个副本各建一条出站流。
             - name: ALKAID_ALIOTH_GRPC_ADDR
-              value: alioth:9000
+              value: alioth-headless:9000
             - name: ALKAID_AGENT_TOKEN
               valueFrom:
                 secretKeyRef:

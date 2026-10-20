@@ -249,6 +249,18 @@ func (f NotificationGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NotificationGroupMutation", m)
 }
 
+// The NotificationPresetFunc type is an adapter to allow the use of ordinary
+// function as NotificationPreset mutator.
+type NotificationPresetFunc func(context.Context, *ent.NotificationPresetMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NotificationPresetFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NotificationPresetMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NotificationPresetMutation", m)
+}
+
 // The NotificationTaskFunc type is an adapter to allow the use of ordinary
 // function as NotificationTask mutator.
 type NotificationTaskFunc func(context.Context, *ent.NotificationTaskMutation) (ent.Value, error)

@@ -220,6 +220,20 @@ func (_c *NotificationTaskCreate) SetNillableRetriesLeft(v *int) *NotificationTa
 	return _c
 }
 
+// SetNextAttemptAt sets the "next_attempt_at" field.
+func (_c *NotificationTaskCreate) SetNextAttemptAt(v time.Time) *NotificationTaskCreate {
+	_c.mutation.SetNextAttemptAt(v)
+	return _c
+}
+
+// SetNillableNextAttemptAt sets the "next_attempt_at" field if the given value is not nil.
+func (_c *NotificationTaskCreate) SetNillableNextAttemptAt(v *time.Time) *NotificationTaskCreate {
+	if v != nil {
+		_c.SetNextAttemptAt(*v)
+	}
+	return _c
+}
+
 // SetLastError sets the "last_error" field.
 func (_c *NotificationTaskCreate) SetLastError(v string) *NotificationTaskCreate {
 	_c.mutation.SetLastError(v)
@@ -494,6 +508,10 @@ func (_c *NotificationTaskCreate) createSpec() (*NotificationTask, *sqlgraph.Cre
 	if value, ok := _c.mutation.RetriesLeft(); ok {
 		_spec.SetField(notificationtask.FieldRetriesLeft, field.TypeInt, value)
 		_node.RetriesLeft = value
+	}
+	if value, ok := _c.mutation.NextAttemptAt(); ok {
+		_spec.SetField(notificationtask.FieldNextAttemptAt, field.TypeTime, value)
+		_node.NextAttemptAt = &value
 	}
 	if value, ok := _c.mutation.LastError(); ok {
 		_spec.SetField(notificationtask.FieldLastError, field.TypeString, value)

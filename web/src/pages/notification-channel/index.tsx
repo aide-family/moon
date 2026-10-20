@@ -1,18 +1,18 @@
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { failureText, formMessage } from "@/lib/form-error"
+import { formMessage } from "@/lib/form-error"
 
 import {
   createNotificationChannel,
   deleteNotificationChannel,
   listNotificationChannels,
-  testNotificationChannel,
   updateNotificationChannel,
   updateNotificationChannelStatus,
 } from "@/api/notification-channel"
 import type { NotificationChannelItem } from "@/api/notification-channel/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
+import { NotificationTestDialog } from "@/components/notification-test-dialog"
 import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { ListFrame } from "@/components/list-frame"
@@ -42,27 +42,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Textarea } from "@/components/ui/textarea"
+import { isEmail } from "@/lib/email"
 import { firstError, requireTrimmed } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
+import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
+import { run } from "@/lib/action"
 
 const types = ["SMTP", "WEBHOOK"]
-const apps = ["OTHER", "DINGTALK", "WECHAT", "FEISHU", "SMS_ALICLOUD"]
+const webhookApps = ["OTHER", "DINGTALK", "WECHAT", "FEISHU"]
 
 export function NotificationChannelPage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
   const [draft, setDraft] = useState(query.name)
-  const [items, setItems] = useState<NotificationChannelItem[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed] = useState(false)
-  const [loadError, setLoadError] = useState("")
-  const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
-  const [testOpen, setTestOpen] = useState(false)
   const [editing, setEditing] = useState<NotificationChannelItem | null>(null)
   const [testing, setTesting] = useState<NotificationChannelItem | null>(null)
   const [name, setName] = useState("")
@@ -74,49 +69,18 @@ export function NotificationChannelPage() {
   const [secret, setSecret] = useState("")
   const [fromAddress, setFromAddress] = useState("")
   const [remark, setRemark] = useState("")
-  const [receivers, setReceivers] = useState("")
-  const [subject, setSubject] = useState("")
-  const [body, setBody] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
   const [detail, setDetail] = useState<NotificationChannelItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationChannelItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const shown = useRef(confirm)
-  if (confirm) {
-    shown.current = confirm
-  }
   const canWrite = session.can("notification:write")
-
-  useEffect(() => {
-    let active = true
-    async function load() {
-      setLoading(true)
-      setFailed(false)
-      try {
-        const result = await listNotificationChannels({ page: query.page, pageSize: query.pageSize, name: query.name })
-        if (!active) {
-          return
-        }
-        setItems(result.items ?? [])
-        setTotal(result.total ?? 0)
-      } catch (err) {
-        if (active) {
-          setFailed(true)
-          setLoadError(failureText(err, ""))
-          setItems([])
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-    void load()
-    return () => {
-      active = false
-    }
-  }, [query.page, query.pageSize, query.name, attempt, session.namespaceUid])
+  const { items, total, loading, failed, error: loadError, reload } = usePagedList<NotificationChannelItem>({
+    page: query.page,
+    pageSize: query.pageSize,
+    filterKey: `${session.namespaceUid}|${query.name}`,
+    fetch: (page, pageSize) => listNotificationChannels({ page, pageSize, name: query.name }),
+  })
 
   function openCreate() {
     setEditing(null)
@@ -137,7 +101,7 @@ export function NotificationChannelPage() {
     setEditing(item)
     setName(item.name)
     setType(item.type)
-    setApp(item.app)
+    setApp(item.type === "SMTP" ? "OTHER" : item.app)
     setEndpoint(item.endpoint)
     setUsername(item.username)
     setPassword("")
@@ -150,11 +114,7 @@ export function NotificationChannelPage() {
 
   function openTest(item: NotificationChannelItem) {
     setTesting(item)
-    setReceivers("")
-    setSubject("test")
-    setBody("hello")
     setError("")
-    setTestOpen(true)
   }
 
   async function onSave(event: React.FormEvent) {
@@ -162,11 +122,28 @@ export function NotificationChannelPage() {
     const invalid = firstError(
       requireTrimmed(name, t("form.required")),
       requireTrimmed(type, t("form.required")),
-      requireTrimmed(app, t("form.required")),
       requireTrimmed(endpoint, t("form.required")),
     )
     if (invalid) {
       setError(invalid)
+      return
+    }
+    const target = endpoint.trim()
+    if (type === "SMTP") {
+      if (target.includes("://") || /\s/.test(target)) {
+        setError(t("form.invalidEndpoint"))
+        return
+      }
+      if (!fromAddress.trim() && !username.trim()) {
+        setError(t("form.required"))
+        return
+      }
+      if (fromAddress.trim() && !isEmail(fromAddress)) {
+        setError(t("form.invalidEmail"))
+        return
+      }
+    } else if (!/^https?:\/\//.test(target)) {
+      setError(t("form.invalidUrl"))
       return
     }
     setPending(true)
@@ -175,8 +152,8 @@ export function NotificationChannelPage() {
       const body = {
         name: name.trim(),
         type,
-        app,
-        endpoint: endpoint.trim(),
+        app: type === "SMTP" ? "OTHER" : app,
+        endpoint: target,
         username,
         password,
         secret,
@@ -189,30 +166,7 @@ export function NotificationChannelPage() {
         await createNotificationChannel(body)
       }
       setOpen(false)
-      setAttempt((value) => value + 1)
-    } catch (err) {
-      setError(formMessage(err, t("state.failed")))
-    } finally {
-      setPending(false)
-    }
-  }
-
-  async function onTest(event: React.FormEvent) {
-    event.preventDefault()
-    if (!testing) {
-      return
-    }
-    const invalid = requireTrimmed(receivers, t("form.required"))
-    if (invalid) {
-      setError(invalid)
-      return
-    }
-    setPending(true)
-    setError("")
-    try {
-      await testNotificationChannel(testing.uid, { receivers: receivers.trim(), subject, body })
-      setTestOpen(false)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
@@ -233,7 +187,7 @@ export function NotificationChannelPage() {
         await updateNotificationChannelStatus(confirm.item.uid, "DISABLED")
       }
       setConfirm(null)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setConfirmError(formMessage(err, t("state.failed")))
     } finally {
@@ -247,10 +201,10 @@ export function NotificationChannelPage() {
     }
     return [
       { key: "edit", label: t("action.edit"), onSelect: () => openEdit(item) },
-      { key: "test", label: t("action.test"), onSelect: () => openTest(item) },
+      ...(item.status === "ACTIVE" ? [{ key: "test", label: t("action.test"), onSelect: () => openTest(item) }] : []),
       item.status === "ACTIVE"
         ? { key: "disable", label: t("action.disable"), destructive: true, onSelect: () => setConfirm({ action: "disable", item }) }
-        : { key: "enable", label: t("action.enable"), onSelect: () => void updateNotificationChannelStatus(item.uid, "ACTIVE").then(() => setAttempt((value) => value + 1)) },
+        : { key: "enable", label: t("action.enable"), onSelect: () => run(updateNotificationChannelStatus(item.uid, "ACTIVE").then(() => reload()), setError) },
       { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm({ action: "delete", item }) },
     ]
   }
@@ -284,7 +238,7 @@ export function NotificationChannelPage() {
         {!loading && failed ? (
           <div className="flex items-center gap-2">
             <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
-            <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
+            <Button variant="outline" onClick={() => reload()}>
               {t("action.retry")}
             </Button>
           </div>
@@ -329,7 +283,14 @@ export function NotificationChannelPage() {
               <Input id="channel-name" value={name} placeholder={t("channel.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
             <FormField label={t("channel.type")}>
-              <Select value={type} onValueChange={setType}>
+              <Select
+                value={type}
+                onValueChange={(value) => {
+                  setType(value)
+                  setApp("OTHER")
+                  setError("")
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder={t("channel.typePlaceholder")} />
                 </SelectTrigger>
@@ -342,35 +303,48 @@ export function NotificationChannelPage() {
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label={t("channel.app")}>
-              <Select value={app} onValueChange={setApp}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("channel.appPlaceholder")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {apps.map((item) => (
-                    <SelectItem key={item} value={item}>
-                      {enumLabel(t, item)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
+            {type === "WEBHOOK" ? (
+              <FormField label={t("channel.app")}>
+                <Select value={app} onValueChange={setApp}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("channel.appPlaceholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {webhookApps.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {enumLabel(t, item)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+            ) : null}
             <FormField label={t("channel.endpoint")} htmlFor="channel-endpoint" className="sm:col-span-full">
-              <Input id="channel-endpoint" value={endpoint} placeholder={t("channel.endpointPlaceholder")} onChange={(event) => setEndpoint(event.target.value)} required />
+              <Input
+                id="channel-endpoint"
+                value={endpoint}
+                placeholder={type === "SMTP" ? t("channel.endpointSmtpPlaceholder") : t("channel.endpointWebhookPlaceholder")}
+                onChange={(event) => setEndpoint(event.target.value)}
+                required
+              />
             </FormField>
-            <FormField label={t("channel.username")} htmlFor="channel-username">
-              <Input id="channel-username" value={username} placeholder={t("channel.usernamePlaceholder")} onChange={(event) => setUsername(event.target.value)} />
-            </FormField>
-            <FormField label={t("channel.password")} htmlFor="channel-password">
-              <Input id="channel-password" type="password" value={password} placeholder={t("channel.passwordPlaceholder")} onChange={(event) => setPassword(event.target.value)} />
-            </FormField>
-            <FormField label={t("channel.secret")} htmlFor="channel-secret">
-              <Input id="channel-secret" type="password" value={secret} placeholder={t("channel.secretPlaceholder")} onChange={(event) => setSecret(event.target.value)} />
-            </FormField>
-            <FormField label={t("channel.fromAddress")} htmlFor="channel-from">
-              <Input id="channel-from" value={fromAddress} placeholder={t("channel.fromAddressPlaceholder")} onChange={(event) => setFromAddress(event.target.value)} />
-            </FormField>
+            {type === "SMTP" ? (
+              <>
+                <FormField label={t("channel.username")} htmlFor="channel-username">
+                  <Input id="channel-username" value={username} placeholder={t("channel.usernamePlaceholder")} onChange={(event) => setUsername(event.target.value)} />
+                </FormField>
+                <FormField label={t("channel.password")} htmlFor="channel-password" hint={editing ? t("form.keepSecret") : undefined}>
+                  <Input id="channel-password" type="password" value={password} placeholder={t("channel.passwordPlaceholder")} onChange={(event) => setPassword(event.target.value)} />
+                </FormField>
+                <FormField label={t("channel.fromAddress")} htmlFor="channel-from">
+                  <Input id="channel-from" value={fromAddress} placeholder={t("channel.fromAddressPlaceholder")} onChange={(event) => setFromAddress(event.target.value)} />
+                </FormField>
+              </>
+            ) : (
+              <FormField label={t("channel.secret")} htmlFor="channel-secret" hint={editing ? `${t("channel.secretHint")}；${t("form.keepSecret")}` : t("channel.secretHint")} className="sm:col-span-full">
+                <Input id="channel-secret" type="password" value={secret} placeholder={t("channel.secretPlaceholder")} onChange={(event) => setSecret(event.target.value)} />
+              </FormField>
+            )}
             <FormField label={t("channel.remark")} htmlFor="channel-remark" className="sm:col-span-full">
               <Input id="channel-remark" value={remark} placeholder={t("channel.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
             </FormField>
@@ -383,30 +357,9 @@ export function NotificationChannelPage() {
           </form>
         </DialogContent>
       </Dialog>
-      <Dialog open={testOpen} onOpenChange={setTestOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t("action.test")}</DialogTitle>
-          </DialogHeader>
-          <form className="grid gap-4" onSubmit={onTest}>
-            <FormField label={t("channel.testReceivers")} htmlFor="test-receivers">
-              <Input id="test-receivers" value={receivers} placeholder={t("channel.testReceiversPlaceholder")} onChange={(event) => setReceivers(event.target.value)} required />
-            </FormField>
-            <FormField label={t("channel.testSubject")} htmlFor="test-subject">
-              <Input id="test-subject" value={subject} placeholder={t("channel.testSubjectPlaceholder")} onChange={(event) => setSubject(event.target.value)} />
-            </FormField>
-            <FormField label={t("channel.testBody")} htmlFor="test-body">
-              <Textarea id="test-body" value={body} placeholder={t("channel.testBodyPlaceholder")} onChange={(event) => setBody(event.target.value)} />
-            </FormField>
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <DialogFooter>
-              <Button type="submit" disabled={pending}>
-                {t("action.test")}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {testing ? (
+        <NotificationTestDialog target={{ kind: "channel", item: testing }} channels={[]} onClose={() => setTesting(null)} />
+      ) : null}
       <DetailSheet
         open={detail !== null}
         title={detail?.name ?? ""}
@@ -429,8 +382,8 @@ export function NotificationChannelPage() {
       />
       <ConfirmAction
         open={confirm !== null}
-        title={shown.current?.action === "delete" ? t("confirm.deleteTitle") : t("confirm.disableTitle")}
-        description={shown.current?.action === "delete" ? t("confirm.deleteDescription") : t("confirm.disableDescription")}
+        title={confirm?.action === "delete" ? t("confirm.deleteTitle") : t("confirm.disableTitle")}
+        description={confirm?.action === "delete" ? t("confirm.deleteDescription") : t("confirm.disableDescription")}
         confirmLabel={t("action.confirm")}
         cancelLabel={t("action.cancel")}
         pending={pending}

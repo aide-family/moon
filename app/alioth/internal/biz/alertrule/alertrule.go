@@ -9,6 +9,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/access"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/page"
@@ -173,7 +174,7 @@ func (uc *Usecase) ListRules(ctx context.Context, pageNo, pageSize int32, groupU
 }
 
 func (uc *Usecase) prepare(ctx context.Context, namespaceUID string, in *bo.AlertRule) error {
-	if !driverMatches(in.Type, in.Driver) {
+	if !datasource.DriverMatches(in.Type, in.Driver) {
 		return merr.Invalid("invalid request")
 	}
 	if strings.TrimSpace(in.Labels) != "" && !json.Valid([]byte(in.Labels)) {
@@ -279,17 +280,4 @@ func changedLevelUIDs(previous, next []bo.AlertRuleLevel) (bool, []string) {
 
 func levelSignature(level bo.AlertRuleLevel) string {
 	return strings.Join([]string{level.Condition, level.Sample, level.Threshold, strconv.Itoa(level.ForSeconds), level.LevelUID}, "\x00")
-}
-
-func driverMatches(kind, driver string) bool {
-	switch kind {
-	case "METRICS":
-		return driver == "METRICS_PROMETHEUS" || driver == "METRICS_VICTORIA_METRICS"
-	case "LOGS":
-		return driver == "LOGS_ELASTICSEARCH"
-	case "TRACE":
-		return driver == "TRACE_JAEGER"
-	default:
-		return false
-	}
 }

@@ -237,6 +237,11 @@ func (r *alertRuleRepo) UpdateAlertRuleStatus(ctx context.Context, namespaceUID,
 	if n == 0 {
 		return nil, merr.NotFound("not found")
 	}
+	if value == alertrule.StatusDISABLED {
+		if err := recoverRuleFiring(ctx, r.client, namespaceUID, uid); err != nil {
+			return nil, r.fail(err)
+		}
+	}
 	return r.GetAlertRule(ctx, namespaceUID, uid)
 }
 
@@ -265,6 +270,9 @@ func (r *alertRuleRepo) DeleteAlertRule(ctx context.Context, namespaceUID, uid s
 		return merr.NotFound("not found")
 	}
 	if err := tx.Commit(); err != nil {
+		return r.fail(err)
+	}
+	if err := recoverRuleFiring(ctx, r.client, namespaceUID, uid); err != nil {
 		return r.fail(err)
 	}
 	return nil

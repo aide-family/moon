@@ -7,7 +7,7 @@ PROTO_INC ?= /opt/homebrew/include
 
 .PHONY: tools api conf build build-alioth build-megrez build-merak build-alkaid build-alkaid-linux build-web \
 	run-alioth run-megrez run-merak run-alkaid run-web \
-	test test-pkg migrate compose-up compose-down compose-alkaid tidy wire
+	test test-pkg migrate compose-images compose-up compose-down compose-alkaid tidy wire
 
 # Kratos v3 CLI and HTTP/error generators. Pin a known-good pseudo-version so PATH
 # does not keep a v2 protoc-gen-go-http. CLI install uses module cache + go build
@@ -89,7 +89,10 @@ test-pkg:
 migrate:
 	$(GO) run -C $(ROOT)app/alioth ./cmd/alioth migrate --conf configs/config.yaml
 
-compose-up:
+compose-images:
+	$(ROOT)scripts/pull-compose-images.sh
+
+compose-up: compose-images
 	docker compose -f $(ROOT)docker-compose.yaml up -d --wait
 
 compose-down:

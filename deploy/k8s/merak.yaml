@@ -22,14 +22,14 @@ spec:
           env:
             - name: MERAK_HTTP_ADDR
               value: 0.0.0.0:8002
-            - name: MERAK_ALIOTH_GRPC_ADDR
+            - name: ALIOTH_GRPC_ADDR
               value: alioth:9000
             - name: MERAK_SERVICE_KEY
               valueFrom:
                 secretKeyRef:
                   name: alioth-auth
                   key: MERAK_SERVICE_KEY
-            - name: MERAK_REDIS_ADDR
+            - name: REDIS_ADDR
               value: redis:6379
           readinessProbe:
             httpGet:

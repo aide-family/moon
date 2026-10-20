@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { failureText, formMessage } from "@/lib/form-error"
+import { formMessage } from "@/lib/form-error"
 
 import {
   deleteMember,
@@ -18,6 +18,7 @@ import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { firstError, requireSelected, requireTrimmed } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
+import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
@@ -54,13 +55,7 @@ export function MemberPage() {
   const session = useSession()
   const query = useListQuery()
   const [draft, setDraft] = useState(query.name)
-  const [items, setItems] = useState<MemberItem[]>([])
-  const [total, setTotal] = useState(0)
   const [roles, setRoles] = useState<RoleOption[]>([])
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed] = useState(false)
-  const [loadError, setLoadError] = useState("")
-  const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState("")
   const [roleUid, setRoleUid] = useState("")
@@ -71,48 +66,29 @@ export function MemberPage() {
   const [detail, setDetail] = useState<MemberItem | null>(null)
   const [removing, setRemoving] = useState<MemberItem | null>(null)
   const [confirmError, setConfirmError] = useState("")
+  const { items, total, loading, failed, error: loadError, reload } = usePagedList<MemberItem>({
+    page: query.page,
+    pageSize: query.pageSize,
+    filterKey: `${session.namespaceUid}|${query.name}`,
+    fetch: (page, pageSize) => listMembers({ page, pageSize, name: query.name }),
+  })
 
   useEffect(() => {
     let active = true
-    async function load() {
-      setLoading(true)
-      setFailed(false)
-      try {
-        const [result, options] = await Promise.all([
-          listMembers({
-            page: query.page,
-            pageSize: query.pageSize,
-            name: query.name,
-          }),
-          selectRoles(100),
-        ])
-        if (!active) {
-          return
-        }
-        setItems(result.items ?? [])
-        setTotal(result.total ?? 0)
-        const available = (options.items ?? []).filter(
-          (item) => item.name !== "owner"
-        )
+    void selectRoles(100)
+      .then((options) => {
+        if (!active) return
+        const available = (options.items ?? []).filter((item) => item.name !== "owner")
         setRoles(available)
-        setRoleUid(available[0]?.uid ?? "")
-      } catch (err) {
-        if (active) {
-          setFailed(true)
-          setLoadError(failureText(err, ""))
-          setItems([])
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-    void load()
+        setRoleUid((current) => current || available[0]?.uid || "")
+      })
+      .catch(() => {
+        if (active) setRoles([])
+      })
     return () => {
       active = false
     }
-  }, [query.page, query.pageSize, query.name, attempt, session.namespaceUid])
+  }, [session.namespaceUid])
 
   async function onInvite(event: React.FormEvent) {
     event.preventDefault()
@@ -127,7 +103,7 @@ export function MemberPage() {
       await inviteMember({ email: email.trim(), roleUid })
       setOpen(false)
       setEmail("")
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
@@ -145,7 +121,7 @@ export function MemberPage() {
     try {
       await updateMemberRoles(assigning.uid, selected)
       setAssigning(null)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
@@ -207,7 +183,7 @@ export function MemberPage() {
     try {
       await deleteMember(removing.uid)
       setRemoving(null)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setConfirmError(formMessage(err, t("state.failed")))
     } finally {
@@ -268,7 +244,7 @@ export function MemberPage() {
               <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
               <Button
                 variant="outline"
-                onClick={() => setAttempt((value) => value + 1)}
+                onClick={() => reload()}
               >
                 {t("action.retry")}
               </Button>

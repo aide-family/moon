@@ -91,6 +91,21 @@ func NewNotificationTemplateService(uc *notification.Usecase) *NotificationTempl
 	return &NotificationTemplateService{notify: uc}
 }
 
+func (s *NotificationTemplateService) ListNotificationPresets(ctx context.Context, _ *v1.ListNotificationPresetsRequest) (*v1.ListNotificationPresetsResponse, error) {
+	items, err := s.notify.ListPresets(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*v1.NotificationPresetItem, 0, len(items))
+	for i := range items {
+		out = append(out, &v1.NotificationPresetItem{
+			Uid: items[i].UID, Name: items[i].Name, Type: items[i].Type,
+			Subject: items[i].Subject, Body: items[i].Body, Description: items[i].Description,
+		})
+	}
+	return &v1.ListNotificationPresetsResponse{Items: out}, nil
+}
+
 func (s *NotificationTemplateService) CreateNotificationTemplate(ctx context.Context, req *v1.CreateNotificationTemplateRequest) (*v1.CreateNotificationTemplateResponse, error) {
 	item, err := s.notify.CreateTemplate(ctx, bo.NotificationTemplate{
 		Name: req.GetName(), Type: req.GetType(), Subject: req.GetSubject(), Body: req.GetBody(), Remark: req.GetRemark(),

@@ -4,13 +4,13 @@ import (
 	"context"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
 	merakv1 "github.com/aide-family/Alioth/api/merak/v1"
 	"github.com/aide-family/Alioth/app/merak/internal/conf"
 	"github.com/aide-family/Alioth/app/merak/internal/data/repository"
 	"github.com/aide-family/Alioth/app/merak/pkg/bo"
+	"github.com/aide-family/Alioth/pkg/grpctls"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -23,7 +23,11 @@ func NewGateway(c *conf.Alioth) (repository.NotifyGateway, func(), error) {
 	if c == nil || c.GetGrpcAddr() == "" || c.GetServiceKey() == "" {
 		return nil, nil, merr.Server("alioth grpc is empty")
 	}
-	conn, err := grpc.NewClient(c.GetGrpcAddr(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	dialOption, err := grpctls.ClientDialOption("ALIOTH_GRPC_TLS")
+	if err != nil {
+		return nil, nil, err
+	}
+	conn, err := grpc.NewClient(c.GetGrpcAddr(), dialOption)
 	if err != nil {
 		return nil, nil, merr.Server("alioth grpc is empty")
 	}

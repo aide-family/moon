@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { failureText, formMessage } from "@/lib/form-error"
+import { formMessage } from "@/lib/form-error"
 
-import { selectNotificationChannels } from "@/api/notification-channel"
-import type { SelectItem } from "@/api/notification-channel/types"
+import { listNotificationChannels } from "@/api/notification-channel"
+import type { NotificationChannelItem } from "@/api/notification-channel/types"
 import {
   createNotificationGroup,
   deleteNotificationGroup,
@@ -12,7 +12,8 @@ import {
   updateNotificationGroupStatus,
 } from "@/api/notification-group"
 import type { NotificationGroupItem } from "@/api/notification-group/types"
-import { selectNotificationTemplates } from "@/api/notification-template"
+import { listNotificationTemplates } from "@/api/notification-template"
+import type { NotificationTemplateItem } from "@/api/notification-template/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
@@ -44,23 +45,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { firstInvalidReceiver } from "@/lib/email"
 import { firstError, requireSelected, requireTrimmed } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
+import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
+import { run } from "@/lib/action"
 
 export function NotificationGroupPage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
   const [draft, setDraft] = useState(query.name)
-  const [items, setItems] = useState<NotificationGroupItem[]>([])
-  const [channels, setChannels] = useState<SelectItem[]>([])
-  const [templates, setTemplates] = useState<SelectItem[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed] = useState(false)
-  const [loadError, setLoadError] = useState("")
-  const [attempt, setAttempt] = useState(0)
+  const [channels, setChannels] = useState<NotificationChannelItem[]>([])
+  const [templates, setTemplates] = useState<NotificationTemplateItem[]>([])
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<NotificationGroupItem | null>(null)
   const [name, setName] = useState("")
@@ -73,53 +71,57 @@ export function NotificationGroupPage() {
   const [detail, setDetail] = useState<NotificationGroupItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: NotificationGroupItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const shown = useRef(confirm)
-  if (confirm) {
-    shown.current = confirm
-  }
   const canWrite = session.can("notification:write")
+  const { items, total, loading, failed, error: loadError, reload } = usePagedList<NotificationGroupItem>({
+    page: query.page,
+    pageSize: query.pageSize,
+    filterKey: `${session.namespaceUid}|${query.name}`,
+    fetch: (page, pageSize) => listNotificationGroups({ page, pageSize, name: query.name }),
+  })
 
   useEffect(() => {
     let active = true
-    async function load() {
-      setLoading(true)
-      setFailed(false)
-      try {
-        const [result, channelResult, templateResult] = await Promise.all([
-          listNotificationGroups({ page: query.page, pageSize: query.pageSize, name: query.name }),
-          selectNotificationChannels({ limit: 100 }),
-          selectNotificationTemplates({ limit: 100 }),
-        ])
-        if (!active) {
-          return
-        }
-        setItems(result.items ?? [])
-        setTotal(result.total ?? 0)
-        setChannels(channelResult.items ?? [])
-        setTemplates(templateResult.items ?? [])
-      } catch (err) {
+    void Promise.all([
+      listNotificationChannels({ page: 1, pageSize: 100 }),
+      listNotificationTemplates({ page: 1, pageSize: 100 }),
+    ])
+      .then(([channelResult, templateResult]) => {
         if (active) {
-          setFailed(true)
-          setLoadError(failureText(err, ""))
-          setItems([])
+          setChannels(channelResult.items ?? [])
+          setTemplates(templateResult.items ?? [])
         }
-      } finally {
+      })
+      .catch(() => {
         if (active) {
-          setLoading(false)
+          setChannels([])
+          setTemplates([])
         }
-      }
-    }
-    void load()
+      })
     return () => {
       active = false
     }
-  }, [query.page, query.pageSize, query.name, attempt, session.namespaceUid])
+  }, [session.namespaceUid])
+
+  function compatibleTemplates(kind: string | undefined): NotificationTemplateItem[] {
+    const expected = kind === "SMTP" ? "EMAIL" : "WEBHOOK"
+    return templates.filter((item) => item.type === expected)
+  }
+
+  function selectChannel(uid: string) {
+    setChannelUid(uid)
+    const channel = channels.find((item) => item.uid === uid)
+    const options = compatibleTemplates(channel?.type)
+    if (!options.some((item) => item.uid === templateUid)) {
+      setTemplateUid(options[0]?.uid ?? "")
+    }
+  }
 
   function openCreate() {
     setEditing(null)
     setName("")
-    setChannelUid(channels[0]?.uid ?? "")
-    setTemplateUid(templates[0]?.uid ?? "")
+    const channel = channels.find((item) => item.status === "ACTIVE") ?? channels[0]
+    setChannelUid(channel?.uid ?? "")
+    setTemplateUid(compatibleTemplates(channel?.type)[0]?.uid ?? "")
     setReceivers("")
     setRemark("")
     setError("")
@@ -139,13 +141,19 @@ export function NotificationGroupPage() {
 
   async function onSave(event: React.FormEvent) {
     event.preventDefault()
+    const channel = channels.find((item) => item.uid === channelUid)
     const invalid = firstError(
       requireTrimmed(name, t("form.required")),
       requireSelected(channelUid, t("form.required")),
       requireSelected(templateUid, t("form.required")),
+      channel?.type === "SMTP" ? requireTrimmed(receivers, t("form.required")) : null,
     )
     if (invalid) {
       setError(invalid)
+      return
+    }
+    if (channel?.type === "SMTP" && firstInvalidReceiver(receivers)) {
+      setError(t("form.invalidEmail"))
       return
     }
     setPending(true)
@@ -158,7 +166,7 @@ export function NotificationGroupPage() {
         await createNotificationGroup(payload)
       }
       setOpen(false)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
@@ -179,7 +187,7 @@ export function NotificationGroupPage() {
         await updateNotificationGroupStatus(confirm.item.uid, "DISABLED")
       }
       setConfirm(null)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setConfirmError(formMessage(err, t("state.failed")))
     } finally {
@@ -195,7 +203,7 @@ export function NotificationGroupPage() {
       { key: "edit", label: t("action.edit"), onSelect: () => openEdit(item) },
       item.status === "ACTIVE"
         ? { key: "disable", label: t("action.disable"), destructive: true, onSelect: () => setConfirm({ action: "disable", item }) }
-        : { key: "enable", label: t("action.enable"), onSelect: () => void updateNotificationGroupStatus(item.uid, "ACTIVE").then(() => setAttempt((value) => value + 1)) },
+        : { key: "enable", label: t("action.enable"), onSelect: () => run(updateNotificationGroupStatus(item.uid, "ACTIVE").then(() => reload()), setError) },
       { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm({ action: "delete", item }) },
     ]
   }
@@ -229,7 +237,7 @@ export function NotificationGroupPage() {
         {!loading && failed ? (
           <div className="flex items-center gap-2">
             <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
-            <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
+            <Button variant="outline" onClick={() => reload()}>
               {t("action.retry")}
             </Button>
           </div>
@@ -240,6 +248,8 @@ export function NotificationGroupPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>{t("group.name")}</TableHead>
+                <TableHead>{t("group.channel")}</TableHead>
+                <TableHead>{t("group.template")}</TableHead>
                 <TableHead>{t("group.receivers")}</TableHead>
                 <TableHead>{t("namespace.status")}</TableHead>
                 <TableHead />
@@ -249,6 +259,8 @@ export function NotificationGroupPage() {
               {items.map((item) => (
                 <TableRow key={item.uid}>
                   <TableCell>{item.name}</TableCell>
+                  <TableCell>{channels.find((channel) => channel.uid === item.channelUid)?.name ?? item.channelUid}</TableCell>
+                  <TableCell>{templates.find((template) => template.uid === item.templateUid)?.name ?? item.templateUid}</TableCell>
                   <TableCell>{item.receivers}</TableCell>
                   <TableCell>{enumLabel(t, item.status)}</TableCell>
                   <TableCell>
@@ -270,7 +282,7 @@ export function NotificationGroupPage() {
               <Input id="group-name" value={name} placeholder={t("group.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
             <FormField label={t("group.channel")}>
-              <Select value={channelUid || "NONE"} onValueChange={(value) => setChannelUid(value === "NONE" ? "" : value)}>
+              <Select value={channelUid || "NONE"} onValueChange={(value) => selectChannel(value === "NONE" ? "" : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder={t("group.channelPlaceholder")} />
                 </SelectTrigger>
@@ -278,7 +290,7 @@ export function NotificationGroupPage() {
                   <SelectOption value="NONE">{t("group.channelPlaceholder")}</SelectOption>
                   {channels.map((item) => (
                     <SelectOption key={item.uid} value={item.uid}>
-                      {item.name}
+                      {item.name}（{item.type}{item.status === "DISABLED" ? ` · ${t("action.disabled")}` : ""}）
                     </SelectOption>
                   ))}
                 </SelectContent>
@@ -291,7 +303,7 @@ export function NotificationGroupPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectOption value="NONE">{t("group.templatePlaceholder")}</SelectOption>
-                  {templates.map((item) => (
+                  {compatibleTemplates(channels.find((item) => item.uid === channelUid)?.type).map((item) => (
                     <SelectOption key={item.uid} value={item.uid}>
                       {item.name}
                     </SelectOption>
@@ -299,9 +311,13 @@ export function NotificationGroupPage() {
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label={t("group.receivers")} htmlFor="group-receivers">
-              <Input id="group-receivers" value={receivers} placeholder={t("group.receiversPlaceholder")} onChange={(event) => setReceivers(event.target.value)} />
-            </FormField>
+            {channels.find((item) => item.uid === channelUid)?.type === "SMTP" ? (
+              <FormField label={t("group.receivers")} htmlFor="group-receivers" hint={t("group.receiversSmtpHint")} className="sm:col-span-full">
+                <Input id="group-receivers" value={receivers} placeholder={t("group.receiversPlaceholder")} onChange={(event) => setReceivers(event.target.value)} />
+              </FormField>
+            ) : (
+              <p className="text-sm text-muted-foreground sm:col-span-full">{t("group.receiversWebhookHint")}</p>
+            )}
             <FormField label={t("group.remark")} htmlFor="group-remark" className="sm:col-span-full">
               <Input id="group-remark" value={remark} placeholder={t("group.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
             </FormField>
@@ -326,8 +342,8 @@ export function NotificationGroupPage() {
           detail
             ? [
                 { label: t("detail.uid"), value: detail.uid },
-                { label: t("group.channel"), value: detail.channelUid },
-                { label: t("group.template"), value: detail.templateUid },
+                { label: t("group.channel"), value: channels.find((channel) => channel.uid === detail.channelUid)?.name ?? detail.channelUid },
+                { label: t("group.template"), value: templates.find((template) => template.uid === detail.templateUid)?.name ?? detail.templateUid },
                 { label: t("group.receivers"), value: detail.receivers },
               ]
             : []
@@ -335,8 +351,8 @@ export function NotificationGroupPage() {
       />
       <ConfirmAction
         open={confirm !== null}
-        title={shown.current?.action === "delete" ? t("confirm.deleteTitle") : t("confirm.disableTitle")}
-        description={shown.current?.action === "delete" ? t("confirm.deleteDescription") : t("confirm.disableDescription")}
+        title={confirm?.action === "delete" ? t("confirm.deleteTitle") : t("confirm.disableTitle")}
+        description={confirm?.action === "delete" ? t("confirm.deleteDescription") : t("confirm.disableDescription")}
         confirmLabel={t("action.confirm")}
         cancelLabel={t("action.cancel")}
         pending={pending}

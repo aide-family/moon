@@ -7,12 +7,12 @@ export function listSFTP(body: { agentUid: string; path: string }) {
   return post<{ entries: SFTPEntry[]; audit: SFTPAuditItem }>("/sftp/list", body)
 }
 
-/** POST /v1/sftp/download */
+/** POST /v1/sftp/download。content 为 base64 编码的 bytes。 */
 export function downloadSFTP(body: { agentUid: string; path: string }) {
   return post<{ content: string; audit: SFTPAuditItem }>("/sftp/download", body)
 }
 
-/** POST /v1/sftp/upload */
+/** POST /v1/sftp/upload。content 为 base64 编码的 bytes，最大 4 MiB。 */
 export function uploadSFTP(body: { agentUid: string; path: string; content: string }) {
   return post<{ audit: SFTPAuditItem }>("/sftp/upload", body)
 }

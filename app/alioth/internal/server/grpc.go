@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/service"
+	"github.com/aide-family/Alioth/pkg/grpctls"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -49,7 +50,7 @@ func NewGRPCServer(
 	}
 	opts := []kgrpc.ServerOption{
 		kgrpc.Address(c.Grpc.Addr),
-		kgrpc.Middleware(recovery.Recovery(recovery.WithLogger(logger)), authenticate(uc)),
+		kgrpc.Middleware(recovery.Recovery(recovery.WithLogger(logger)), authenticate(uc), protoValidator()),
 		kgrpc.StreamMiddleware(recovery.Recovery(recovery.WithLogger(logger)), authenticate(uc)),
 	}
 	if c.Grpc.Network != "" {
@@ -57,6 +58,14 @@ func NewGRPCServer(
 	}
 	if c.Grpc.Timeout != nil {
 		opts = append(opts, kgrpc.Timeout(c.Grpc.Timeout.AsDuration()))
+	}
+	tlsConfig, err := grpctls.ServerFromEnv()
+	if err != nil {
+		return nil, err
+	}
+	if tlsConfig != nil {
+		opts = append(opts, kgrpc.TLSConfig(tlsConfig))
+		logger.Info("grpc TLS enabled")
 	}
 	srv := kgrpc.NewServer(opts...)
 	v1.RegisterHealthServiceServer(srv, health)

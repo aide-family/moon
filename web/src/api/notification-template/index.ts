@@ -4,8 +4,8 @@ import type {
   CreateNotificationTemplateParams,
   ListNotificationTemplatesParams,
   ListNotificationTemplatesResult,
+  NotificationPresetItem,
   NotificationTemplateItem,
-  SelectItem,
   UpdateNotificationTemplateParams,
 } from "./types"
 
@@ -14,9 +14,9 @@ export function listNotificationTemplates(params: ListNotificationTemplatesParam
   return get<ListNotificationTemplatesResult>("/notification-templates", params)
 }
 
-/** GET /v1/notification-templates/select */
-export function selectNotificationTemplates(params: { limit?: number; lastUid?: string } = {}): Promise<{ items: SelectItem[]; lastUid: string }> {
-  return get<{ items: SelectItem[]; lastUid: string }>("/notification-templates/select", params)
+/** GET /v1/notification-presets */
+export function listNotificationPresets(): Promise<{ items: NotificationPresetItem[] }> {
+  return get<{ items: NotificationPresetItem[] }>("/notification-presets")
 }
 
 /** POST /v1/notification-template */
@@ -53,6 +53,7 @@ export type {
   CreateNotificationTemplateParams,
   ListNotificationTemplatesParams,
   ListNotificationTemplatesResult,
+  NotificationPresetItem,
   NotificationTemplateItem,
   UpdateNotificationTemplateParams,
 } from "./types"

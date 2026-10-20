@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/pkg/merr"
@@ -87,8 +88,28 @@ func (r *userRepo) UpdateUserStatus(ctx context.Context, uid, status string) (*b
 	return r.UserByUID(ctx, uid)
 }
 
-func (r *userRepo) ListUsers(ctx context.Context, page, pageSize int, name string) ([]bo.Account, int, error) {
-	query := r.client.User.Query()
+func (r *userRepo) UserInNamespace(ctx context.Context, namespaceUID, userUID string) (bool, error) {
+	ok, err := r.client.Member.Query().Where(
+		member.NamespaceUIDEQ(namespaceUID),
+		member.UserUIDEQ(userUID),
+		member.DeletedAtIsNil(),
+		member.StatusEQ(member.StatusJOINED),
+	).Exist(ctx)
+	if err != nil {
+		return false, r.fail(err)
+	}
+	return ok, nil
+}
+
+func (r *userRepo) ListUsers(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.Account, int, error) {
+	uids, err := r.namespaceUserUIDs(ctx, namespaceUID)
+	if err != nil {
+		return nil, 0, err
+	}
+	if len(uids) == 0 {
+		return []bo.Account{}, 0, nil
+	}
+	query := r.client.User.Query().Where(user.UIDIn(uids...))
 	if name != "" {
 		query = query.Where(user.Or(user.NameContainsFold(name), user.EmailContainsFold(name)))
 	}
@@ -107,8 +128,15 @@ func (r *userRepo) ListUsers(ctx context.Context, page, pageSize int, name strin
 	return items, total, nil
 }
 
-func (r *userRepo) SelectUsers(ctx context.Context, limit int, lastUID string) ([]bo.SelectItem, error) {
-	query := r.client.User.Query()
+func (r *userRepo) SelectUsers(ctx context.Context, namespaceUID string, limit int, lastUID string) ([]bo.SelectItem, error) {
+	uids, err := r.namespaceUserUIDs(ctx, namespaceUID)
+	if err != nil {
+		return nil, err
+	}
+	if len(uids) == 0 {
+		return []bo.SelectItem{}, nil
+	}
+	query := r.client.User.Query().Where(user.UIDIn(uids...))
 	if lastUID != "" {
 		query = query.Where(user.UIDGT(lastUID))
 	}
@@ -125,6 +153,23 @@ func (r *userRepo) SelectUsers(ctx context.Context, limit int, lastUID string) (
 		items = append(items, bo.SelectItem{UID: row.UID, Name: label})
 	}
 	return items, nil
+}
+
+// namespaceUserUIDs 返回当前租户内已加入的成员用户。用户是全局实体，管理操作必须限定在这个集合内。
+func (r *userRepo) namespaceUserUIDs(ctx context.Context, namespaceUID string) ([]string, error) {
+	rows, err := r.client.Member.Query().Where(
+		member.NamespaceUIDEQ(namespaceUID),
+		member.DeletedAtIsNil(),
+		member.StatusEQ(member.StatusJOINED),
+	).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	uids := make([]string, 0, len(rows))
+	for _, row := range rows {
+		uids = append(uids, row.UserUID)
+	}
+	return uids, nil
 }
 
 func toAccount(row *ent.User) bo.Account {

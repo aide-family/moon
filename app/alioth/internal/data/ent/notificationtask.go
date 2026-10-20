@@ -49,6 +49,8 @@ type NotificationTask struct {
 	Params string `json:"params,omitempty"`
 	// RetriesLeft holds the value of the "retries_left" field.
 	RetriesLeft int `json:"retries_left,omitempty"`
+	// NextAttemptAt holds the value of the "next_attempt_at" field.
+	NextAttemptAt *time.Time `json:"next_attempt_at,omitempty"`
 	// LastError holds the value of the "last_error" field.
 	LastError    string `json:"last_error,omitempty"`
 	selectValues sql.SelectValues
@@ -63,7 +65,7 @@ func (*NotificationTask) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case notificationtask.FieldUID, notificationtask.FieldNamespaceUID, notificationtask.FieldEventUID, notificationtask.FieldPhase, notificationtask.FieldStatus, notificationtask.FieldRuleUID, notificationtask.FieldGroupUID, notificationtask.FieldChannelUID, notificationtask.FieldTemplateUID, notificationtask.FieldReceivers, notificationtask.FieldSubject, notificationtask.FieldBody, notificationtask.FieldParams, notificationtask.FieldLastError:
 			values[i] = new(sql.NullString)
-		case notificationtask.FieldCreatedAt, notificationtask.FieldUpdatedAt:
+		case notificationtask.FieldCreatedAt, notificationtask.FieldUpdatedAt, notificationtask.FieldNextAttemptAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -182,6 +184,13 @@ func (_m *NotificationTask) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.RetriesLeft = int(value.Int64)
 			}
+		case notificationtask.FieldNextAttemptAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field next_attempt_at", values[i])
+			} else if value.Valid {
+				_m.NextAttemptAt = new(time.Time)
+				*_m.NextAttemptAt = value.Time
+			}
 		case notificationtask.FieldLastError:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field last_error", values[i])
@@ -271,6 +280,11 @@ func (_m *NotificationTask) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("retries_left=")
 	builder.WriteString(fmt.Sprintf("%v", _m.RetriesLeft))
+	builder.WriteString(", ")
+	if v := _m.NextAttemptAt; v != nil {
+		builder.WriteString("next_attempt_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("last_error=")
 	builder.WriteString(_m.LastError)

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"sync"
 	"time"
 
 	"github.com/google/wire"
@@ -15,6 +14,7 @@ import (
 	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
 	"github.com/aide-family/Alioth/pkg/lock"
 	"github.com/aide-family/Alioth/pkg/merr"
+	pkgworker "github.com/aide-family/Alioth/pkg/worker"
 )
 
 const (
@@ -30,28 +30,24 @@ var ProviderSet = wire.NewSet(NewWorker)
 
 // Worker 领取规则、持有评测锁并回写。HTTP 健康检查不经过这里。
 type Worker struct {
-	gateway   repository.EvalGateway
-	locks     repository.Locker
-	query     repository.RangeQuery
-	log       *slog.Logger
-	cancel    context.CancelFunc
-	done      chan struct{}
-	now       func() time.Time
-	mu        sync.Mutex
-	busy      bool
-	notBefore time.Time
-	backoff   time.Duration
+	gateway repository.EvalGateway
+	locks   repository.Locker
+	query   repository.RangeQuery
+	log     *slog.Logger
+	cancel  context.CancelFunc
+	done    chan struct{}
+	now     func() time.Time
+	gate    *pkgworker.Gate
 }
 
 func NewWorker(gateway repository.EvalGateway, locks repository.Locker, query repository.RangeQuery, logger *slog.Logger) *Worker {
-	return &Worker{gateway: gateway, locks: locks, query: query, log: logger, now: time.Now}
+	return &Worker{gateway: gateway, locks: locks, query: query, log: logger, now: time.Now, gate: pkgworker.NewGate(pollEvery, backoffMax)}
 }
 
 func (w *Worker) Start(context.Context) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	w.cancel = cancel
 	w.done = make(chan struct{})
-	w.backoff = pollEvery
 	sched := cron.New(cron.WithSeconds())
 	if _, err := sched.AddFunc(pollSpec, func() { w.round(ctx) }); err != nil {
 		cancel()
@@ -83,7 +79,7 @@ func (w *Worker) Stop(ctx context.Context) error {
 }
 
 func (w *Worker) round(ctx context.Context) {
-	if ctx.Err() != nil || !w.beginRound() {
+	if ctx.Err() != nil || !w.gate.Begin() {
 		return
 	}
 	roundCtx, cancel := context.WithTimeout(ctx, roundTimeout)
@@ -99,7 +95,7 @@ func (w *Worker) round(ctx context.Context) {
 	case <-roundCtx.Done():
 		if ctx.Err() != nil {
 			cancel()
-			w.noteRound(false)
+			w.gate.Note(false)
 			return
 		}
 		timedOut = true
@@ -110,44 +106,7 @@ func (w *Worker) round(ctx context.Context) {
 	if !timedOut {
 		extend = stretch
 	}
-	w.noteRound(extend)
-}
-
-func (w *Worker) beginRound() bool {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	if w.busy || time.Now().Before(w.notBefore) {
-		return false
-	}
-	w.busy = true
-	return true
-}
-
-func (w *Worker) noteRound(stretch bool) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	w.busy = false
-	wait, next := advanceBackoff(w.backoff, stretch)
-	w.backoff = next
-	if wait == 0 {
-		w.notBefore = time.Time{}
-		return
-	}
-	w.notBefore = time.Now().Add(wait)
-}
-
-func advanceBackoff(current time.Duration, stretch bool) (time.Duration, time.Duration) {
-	if !stretch {
-		return 0, pollEvery
-	}
-	if current < pollEvery {
-		current = pollEvery
-	}
-	next := current * 2
-	if next > backoffMax {
-		next = backoffMax
-	}
-	return current, next
+	w.gate.Note(extend)
 }
 
 func (w *Worker) once(ctx context.Context) bool {

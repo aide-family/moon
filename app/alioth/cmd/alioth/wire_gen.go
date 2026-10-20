@@ -91,7 +91,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	alerteventUsecase := alertevent.NewUsecase(alertRuleRepo, alertEventRepo, alertPageRepo, userRepo, datasourceRepo, client, checker, logger)
 	alertEventService := service.NewAlertEventService(alerteventUsecase)
 	notificationRepo := data.NewNotificationRepo(dataData, logger)
-	notificationUsecase := notification.NewUsecase(notificationRepo, checker)
+	notificationUsecase := notification.NewUsecase(notificationRepo, checker, client, logger)
 	notificationChannelService := service.NewNotificationChannelService(notificationUsecase)
 	notificationTemplateService := service.NewNotificationTemplateService(notificationUsecase)
 	notificationGroupService := service.NewNotificationGroupService(notificationUsecase)
@@ -119,7 +119,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 		cleanup()
 		return nil, nil, err
 	}
-	scheduler := server.NewScheduler(alerteventUsecase, logger)
+	scheduler := server.NewScheduler(alerteventUsecase, notificationUsecase, logger)
 	app := newApp(logger, httpServer, grpcServer, scheduler, hub, dataData)
 	return app, func() {
 		cleanup2()

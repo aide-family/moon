@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v3"
-	"github.com/go-kratos/kratos/v3/config"
 	"github.com/go-kratos/kratos/v3/log"
 	"github.com/go-kratos/kratos/v3/transport"
 	"github.com/go-kratos/kratos/v3/transport/grpc"
@@ -18,7 +17,6 @@ import (
 	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
 	"github.com/aide-family/Alioth/app/alkaid/internal/data"
 	"github.com/aide-family/Alioth/pkg/bootstrap"
-	"github.com/aide-family/Alioth/pkg/merr"
 )
 
 func main() {
@@ -45,7 +43,7 @@ func main() {
 }
 
 func serve(confPath string) error {
-	bc, err := loadConfig(confPath)
+	bc, err := bootstrap.Load[conf.Bootstrap](confPath, slog.Default())
 	if err != nil {
 		return err
 	}
@@ -60,21 +58,6 @@ func serve(confPath string) error {
 	}
 	defer cleanup()
 	return app.Run()
-}
-
-func loadConfig(path string) (*conf.Bootstrap, error) {
-	c := config.New(config.WithSource(bootstrap.NewSource(path)))
-	defer c.Close()
-	if err := c.Load(); err != nil {
-		slog.Default().Error(fmt.Sprintf("config: %v", err))
-		return nil, merr.Server("config load failed")
-	}
-	var bc conf.Bootstrap
-	if err := c.Scan(&bc); err != nil {
-		slog.Default().Error(fmt.Sprintf("config: %v", err))
-		return nil, merr.Server("config load failed")
-	}
-	return &bc, nil
 }
 
 func newApp(logger *slog.Logger, hs *http.Server, gs *grpc.Server, connector *agentbiz.Connector, d *data.Data) *kratos.App {

@@ -183,6 +183,17 @@ func (r *memberRepo) UpdateMemberStatus(ctx context.Context, namespaceUID, uid, 
 	if err != nil {
 		return nil, err
 	}
+	ns, err := r.GetNamespace(ctx, namespaceUID)
+	if err != nil {
+		return nil, err
+	}
+	row, err := r.client.Member.Query().Where(member.NamespaceUIDEQ(namespaceUID), member.UIDEQ(uid), member.DeletedAtIsNil()).Only(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	if row.UserUID == ns.OwnerUID {
+		return nil, merr.Invalid("cannot change owner status")
+	}
 	n, err := r.client.Member.Update().Where(member.NamespaceUIDEQ(namespaceUID), member.UIDEQ(uid), member.DeletedAtIsNil()).SetStatus(value).Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -214,6 +225,9 @@ func (r *memberRepo) UpdateMemberRoles(ctx context.Context, namespaceUID, member
 		if item.Name == perm.RoleOwner {
 			hasOwner = true
 		}
+	}
+	if hasOwner && row.UserUID != ns.OwnerUID {
+		return nil, merr.Invalid("owner role is assigned by transfer owner")
 	}
 	if row.UserUID == ns.OwnerUID && !hasOwner {
 		return nil, merr.Invalid("invalid request")

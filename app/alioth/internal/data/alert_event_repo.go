@@ -47,10 +47,9 @@ func (r *alertEventRepo) ApplyReport(ctx context.Context, rule bo.AlertRule, rep
 		return nil
 	}
 	report.DatasourceUID = dsUID
-	if !report.Skipped {
-		if err := r.applyHits(ctx, tx, rule, report); err != nil {
-			return err
-		}
+	// 跳过评测也要走恢复判断：规则从指标改成日志/链路后，旧的 FIRING 不能永久留在实时列表里。
+	if err := r.applyHits(ctx, tx, rule, report); err != nil {
+		return err
 	}
 	if err := tx.AlertEvalBatch.Create().
 		SetRuleUID(report.RuleUID).
@@ -612,4 +611,30 @@ func textOr(value, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+// recoverRuleFiring 把某条规则当前所有 FIRING 事件转为恢复，并清空 firing 标记。
+// 停用或删除规则后不会再评测，必须在这里主动收口，否则实时告警会永久挂着。
+func recoverRuleFiring(ctx context.Context, client *ent.Client, namespaceUID, ruleUID string) error {
+	rows, err := client.AlertEventFiring.Query().Where(
+		alerteventfiring.NamespaceUIDEQ(namespaceUID),
+		alerteventfiring.RuleUIDEQ(ruleUID),
+	).All(ctx)
+	if err != nil {
+		return err
+	}
+	now := time.Now().UTC()
+	for _, row := range rows {
+		if _, err := client.AlertEvent.Update().Where(
+			alertevent.UIDEQ(row.EventUID),
+			alertevent.NamespaceUIDEQ(namespaceUID),
+			alertevent.StatusEQ(alertevent.StatusFIRING),
+		).SetStatus(alertevent.StatusRECOVERED).SetEndsAt(now).Save(ctx); err != nil {
+			return err
+		}
+		if _, err := client.AlertEventFiring.Delete().Where(alerteventfiring.IDEQ(row.ID)).Exec(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
 }

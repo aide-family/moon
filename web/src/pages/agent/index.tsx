@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { failureText, formMessage } from "@/lib/form-error"
+import { formMessage } from "@/lib/form-error"
 
 import {
   createAgent,
@@ -39,6 +39,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { requireTrimmed } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
+import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 
 export function AgentPage() {
@@ -47,12 +48,6 @@ export function AgentPage() {
   const session = useSession()
   const query = useListQuery()
   const [draft, setDraft] = useState(query.name)
-  const [items, setItems] = useState<AgentItem[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed] = useState(false)
-  const [loadError, setLoadError] = useState("")
-  const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<AgentItem | null>(null)
   const [name, setName] = useState("")
@@ -69,42 +64,14 @@ export function AgentPage() {
   const [detail, setDetail] = useState<AgentItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "revoke" | "delete"; item: AgentItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const shown = useRef(confirm)
-  if (confirm) {
-    shown.current = confirm
-  }
   const canWrite = session.can("agent:write")
   const canExec = session.can("ssh:exec")
-
-  useEffect(() => {
-    let active = true
-    async function load() {
-      setLoading(true)
-      setFailed(false)
-      try {
-        const result = await listAgents({ page: query.page, pageSize: query.pageSize, name: query.name })
-        if (!active) {
-          return
-        }
-        setItems(result.items ?? [])
-        setTotal(result.total ?? 0)
-      } catch (err) {
-        if (active) {
-          setFailed(true)
-          setLoadError(failureText(err, ""))
-          setItems([])
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-    void load()
-    return () => {
-      active = false
-    }
-  }, [query.page, query.pageSize, query.name, attempt, session.namespaceUid])
+  const { items, total, loading, failed, error: loadError, reload } = usePagedList<AgentItem>({
+    page: query.page,
+    pageSize: query.pageSize,
+    filterKey: `${session.namespaceUid}|${query.name}`,
+    fetch: (page, pageSize) => listAgents({ page, pageSize, name: query.name }),
+  })
 
   function openCreate() {
     setEditing(null)
@@ -160,7 +127,7 @@ export function AgentPage() {
         setToken(result.token)
         setTokenOpen(true)
       }
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
@@ -174,7 +141,7 @@ export function AgentPage() {
       const result = await rotateAgentToken(item.uid)
       setToken(result.token)
       setTokenOpen(true)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
@@ -195,7 +162,7 @@ export function AgentPage() {
         await revokeAgent(confirm.item.uid)
       }
       setConfirm(null)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setConfirmError(formMessage(err, t("state.failed")))
     } finally {
@@ -225,6 +192,7 @@ export function AgentPage() {
       <PageHeader title={t("agent.title")} description={t("agent.description")}>
         {canWrite ? <Button onClick={openCreate}>{t("action.create")}</Button> : null}
       </PageHeader>
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <form
         className="flex flex-wrap gap-2"
         onSubmit={(event) => {
@@ -249,7 +217,7 @@ export function AgentPage() {
         {!loading && failed ? (
           <div className="flex items-center gap-2">
             <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
-            <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
+            <Button variant="outline" onClick={() => reload()}>
               {t("action.retry")}
             </Button>
           </div>
@@ -379,7 +347,7 @@ export function AgentPage() {
       />
       <ConfirmAction
         open={confirm !== null}
-        title={shown.current?.action === "delete" ? t("action.delete") : t("agent.revoke")}
+        title={confirm?.action === "delete" ? t("action.delete") : t("agent.revoke")}
         description={t("agent.confirmBody")}
         confirmLabel={t("action.confirm")}
         cancelLabel={t("action.cancel")}

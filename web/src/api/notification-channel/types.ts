@@ -40,8 +40,3 @@ export interface CreateNotificationChannelParams {
 export interface UpdateNotificationChannelParams extends CreateNotificationChannelParams {
   uid: string
 }
-
-export interface SelectItem {
-  uid: string
-  name: string
-}

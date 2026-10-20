@@ -1,9 +1,15 @@
 package main
 
-import "testing"
+import (
+	"log/slog"
+	"testing"
+
+	"github.com/aide-family/Alioth/app/alkaid/internal/conf"
+	"github.com/aide-family/Alioth/pkg/bootstrap"
+)
 
 func TestLoadConfig(t *testing.T) {
-	bc, err := loadConfig("../../configs/config.yaml")
+	bc, err := bootstrap.Load[conf.Bootstrap]("../../configs/config.yaml", slog.Default())
 	if err != nil {
 		t.Fatal(err)
 	}

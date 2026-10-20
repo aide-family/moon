@@ -2,11 +2,12 @@ server:
   http:
     network: tcp
     addr: ${ALIOTH_HTTP_ADDR:0.0.0.0:8000}
-    timeout: 15s
+    # 边缘执行（SSH/SFTP/K8s 代理）内部等待 60s，超时必须大于它，否则审计来不及落库。
+    timeout: 90s
   grpc:
     network: tcp
     addr: ${ALIOTH_GRPC_ADDR:0.0.0.0:9000}
-    timeout: 15s
+    timeout: 90s
 data:
   database:
     driver: postgres

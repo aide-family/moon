@@ -8,19 +8,21 @@ import (
 	"github.com/robfig/cron/v3"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertevent"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/notification"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
 // Scheduler 按固定周期扫描到期规则。锁由用例获取，扫描结束后释放。
 type Scheduler struct {
 	uc     *alertevent.Usecase
+	notify *notification.Usecase
 	log    *slog.Logger
 	cancel context.CancelFunc
 	done   chan struct{}
 }
 
-func NewScheduler(uc *alertevent.Usecase, logger *slog.Logger) *Scheduler {
-	return &Scheduler{uc: uc, log: logger}
+func NewScheduler(uc *alertevent.Usecase, notify *notification.Usecase, logger *slog.Logger) *Scheduler {
+	return &Scheduler{uc: uc, notify: notify, log: logger}
 }
 
 func (s *Scheduler) Start(context.Context) error {
@@ -61,5 +63,8 @@ func (s *Scheduler) Stop(ctx context.Context) error {
 func (s *Scheduler) tick(ctx context.Context) {
 	if err := s.uc.Schedule(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("schedule eval: %v", err))
+	}
+	if err := s.notify.ReapStale(ctx); err != nil {
+		s.log.Error(fmt.Sprintf("reap notify: %v", err))
 	}
 }

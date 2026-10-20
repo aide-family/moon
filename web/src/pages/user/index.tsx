@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { failureText, formMessage } from "@/lib/form-error"
+import { formMessage } from "@/lib/form-error"
 
 import { banUser, listUsers, permitUser } from "@/api/user"
 import type { UserItem } from "@/api/user/types"
@@ -10,6 +10,7 @@ import { DetailSheet } from "@/components/detail-sheet"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { enumLabel } from "@/lib/enum-label"
+import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
@@ -28,54 +29,20 @@ export function UserPage() {
   const session = useSession()
   const query = useListQuery()
   const [draft, setDraft] = useState(query.name)
-  const [items, setItems] = useState<UserItem[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed] = useState(false)
-  const [loadError, setLoadError] = useState("")
-  const [attempt, setAttempt] = useState(0)
   const [detail, setDetail] = useState<UserItem | null>(null)
   const [banning, setBanning] = useState<UserItem | null>(null)
   const [pending, setPending] = useState(false)
   const [confirmError, setConfirmError] = useState("")
-
-  useEffect(() => {
-    let active = true
-    async function load() {
-      setLoading(true)
-      setFailed(false)
-      try {
-        const result = await listUsers({
-          page: query.page,
-          pageSize: query.pageSize,
-          name: query.name,
-        })
-        if (!active) {
-          return
-        }
-        setItems(result.items ?? [])
-        setTotal(result.total ?? 0)
-      } catch (err) {
-        if (active) {
-          setFailed(true)
-          setLoadError(failureText(err, ""))
-          setItems([])
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-    void load()
-    return () => {
-      active = false
-    }
-  }, [query.page, query.pageSize, query.name, attempt])
+  const { items, total, loading, failed, error: loadError, reload } = usePagedList<UserItem>({
+    page: query.page,
+    pageSize: query.pageSize,
+    filterKey: `${query.name}|${session.namespaceUid}`,
+    fetch: (page, pageSize) => listUsers({ page, pageSize, name: query.name }),
+  })
 
   async function onPermit(item: UserItem) {
     await permitUser(item.uid)
-    setAttempt((value) => value + 1)
+    reload()
   }
 
   async function onBan() {
@@ -87,7 +54,7 @@ export function UserPage() {
     try {
       await banUser(banning.uid)
       setBanning(null)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setConfirmError(formMessage(err, t("state.failed")))
     } finally {
@@ -159,7 +126,7 @@ export function UserPage() {
               <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
               <Button
                 variant="outline"
-                onClick={() => setAttempt((value) => value + 1)}
+                onClick={() => reload()}
               >
                 {t("action.retry")}
               </Button>

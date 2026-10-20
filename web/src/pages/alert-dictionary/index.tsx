@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { failureText, formMessage } from "@/lib/form-error"
+import { formMessage } from "@/lib/form-error"
 import { useSearchParams } from "react-router-dom"
 
 import {
@@ -10,7 +10,7 @@ import {
   updateAlertDictionary,
   updateAlertDictionaryStatus,
 } from "@/api/alert-dictionary"
-import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
+import type { AlertDictionaryItem, AlertDictionaryType } from "@/api/alert-dictionary/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
@@ -44,9 +44,37 @@ import {
 } from "@/components/ui/table"
 import { firstError, requireTrimmed } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
+import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
+import { run } from "@/lib/action"
 
 const types = ["ALERT", "DATASOURCE"]
+
+function normalizeColor(value: string): string {
+  const trimmed = value.trim()
+  if (/^#[0-9a-fA-F]{6}$/.test(trimmed)) {
+    return trimmed.toLowerCase()
+  }
+  if (/^[0-9a-fA-F]{6}$/.test(trimmed)) {
+    return `#${trimmed.toLowerCase()}`
+  }
+  return trimmed
+}
+
+function ColorChip({ value }: { value: string }) {
+  const hex = normalizeColor(value)
+  const swatch = /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : "#1677ff"
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span
+        aria-hidden
+        className="size-3 shrink-0 rounded-sm border border-border"
+        style={{ backgroundColor: swatch }}
+      />
+      <span>{value || "—"}</span>
+    </span>
+  )
+}
 
 export function AlertDictionaryPage() {
   const { t } = useTranslation()
@@ -55,12 +83,6 @@ export function AlertDictionaryPage() {
   const [params, setParams] = useSearchParams()
   const type = params.get("type") || ""
   const [draft, setDraft] = useState(query.name)
-  const [items, setItems] = useState<AlertDictionaryItem[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed] = useState(false)
-  const [loadError, setLoadError] = useState("")
-  const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<AlertDictionaryItem | null>(null)
   const [name, setName] = useState("")
@@ -71,46 +93,13 @@ export function AlertDictionaryPage() {
   const [detail, setDetail] = useState<AlertDictionaryItem | null>(null)
   const [confirm, setConfirm] = useState<{ action: "disable" | "delete"; item: AlertDictionaryItem } | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  const shown = useRef(confirm)
-  if (confirm) {
-    shown.current = confirm
-  }
   const canWrite = session.can("alert_rule:write")
-
-  useEffect(() => {
-    let active = true
-    async function load() {
-      setLoading(true)
-      setFailed(false)
-      try {
-        const result = await listAlertDictionaries({
-          page: query.page,
-          pageSize: query.pageSize,
-          name: query.name,
-          type,
-        })
-        if (!active) {
-          return
-        }
-        setItems(result.items ?? [])
-        setTotal(result.total ?? 0)
-      } catch (err) {
-        if (active) {
-          setFailed(true)
-          setLoadError(failureText(err, ""))
-          setItems([])
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-    void load()
-    return () => {
-      active = false
-    }
-  }, [query.page, query.pageSize, query.name, type, attempt, session.namespaceUid])
+  const { items, total, loading, failed, error: loadError, reload } = usePagedList<AlertDictionaryItem>({
+    page: query.page,
+    pageSize: query.pageSize,
+    filterKey: `${session.namespaceUid}|${query.name}|${type}`,
+    fetch: (page, pageSize) => listAlertDictionaries({ page, pageSize, name: query.name, type }),
+  })
 
   function openCreate() {
     setEditing(null)
@@ -121,31 +110,6 @@ export function AlertDictionaryPage() {
     setOpen(true)
   }
 
-  function normalizeColor(value: string): string {
-    const trimmed = value.trim()
-    if (/^#[0-9a-fA-F]{6}$/.test(trimmed)) {
-      return trimmed.toLowerCase()
-    }
-    if (/^[0-9a-fA-F]{6}$/.test(trimmed)) {
-      return `#${trimmed.toLowerCase()}`
-    }
-    return trimmed
-  }
-
-  function ColorChip({ value }: { value: string }) {
-    const hex = normalizeColor(value)
-    const swatch = /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : "#1677ff"
-    return (
-      <span className="inline-flex items-center gap-2">
-        <span
-          aria-hidden
-          className="size-3 shrink-0 rounded-sm border border-border"
-          style={{ backgroundColor: swatch }}
-        />
-        <span>{value || "—"}</span>
-      </span>
-    )
-  }
 
   const colorSwatch = /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#1677ff"
 
@@ -175,10 +139,10 @@ export function AlertDictionaryPage() {
       if (editing) {
         await updateAlertDictionary({ uid: editing.uid, name: name.trim(), color: nextColor })
       } else {
-        await createAlertDictionary({ name: name.trim(), color: nextColor, type: levelType })
+        await createAlertDictionary({ name: name.trim(), color: nextColor, type: levelType as AlertDictionaryType })
       }
       setOpen(false)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setError(formMessage(err, t("state.failed")))
     } finally {
@@ -199,7 +163,7 @@ export function AlertDictionaryPage() {
         await updateAlertDictionaryStatus(confirm.item.uid, "DISABLED")
       }
       setConfirm(null)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       setConfirmError(formMessage(err, t("state.failed")))
     } finally {
@@ -215,7 +179,7 @@ export function AlertDictionaryPage() {
       { key: "edit", label: t("action.edit"), onSelect: () => openEdit(item) },
       item.status === "ACTIVE"
         ? { key: "disable", label: t("action.disable"), destructive: true, onSelect: () => setConfirm({ action: "disable", item }) }
-        : { key: "enable", label: t("action.enable"), onSelect: () => void updateAlertDictionaryStatus(item.uid, "ACTIVE").then(() => setAttempt((value) => value + 1)) },
+        : { key: "enable", label: t("action.enable"), onSelect: () => run(updateAlertDictionaryStatus(item.uid, "ACTIVE").then(() => reload()), setError) },
       { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm({ action: "delete", item }) },
     ]
   }
@@ -274,7 +238,7 @@ export function AlertDictionaryPage() {
           {!loading && failed ? (
             <div className="flex items-center gap-2">
               <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
-              <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
+              <Button variant="outline" onClick={() => reload()}>
                 {t("action.retry")}
               </Button>
             </div>
@@ -396,8 +360,8 @@ export function AlertDictionaryPage() {
       />
       <ConfirmAction
         open={confirm !== null}
-        title={shown.current?.action === "delete" ? t("confirm.deleteTitle") : t("confirm.disableTitle")}
-        description={shown.current?.action === "delete" ? t("confirm.deleteDescription") : t("confirm.disableDescription")}
+        title={confirm?.action === "delete" ? t("confirm.deleteTitle") : t("confirm.disableTitle")}
+        description={confirm?.action === "delete" ? t("confirm.deleteDescription") : t("confirm.disableDescription")}
         confirmLabel={t("action.confirm")}
         cancelLabel={t("action.cancel")}
         pending={pending}

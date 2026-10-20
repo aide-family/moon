@@ -9,6 +9,7 @@ server:
     timeout: 1s
 alioth:
   grpc:
+    # 支持逗号分隔多个控制面副本；Kubernetes 内建议指向无头 Service。
     addr: ${ALKAID_ALIOTH_GRPC_ADDR:127.0.0.1:9000}
   agent_token: ${ALKAID_AGENT_TOKEN:ag-65cdb4631c20a45210fcd5dd3eeeab9aaa24f637f524b52a}
   heartbeat_interval: 15s

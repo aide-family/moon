@@ -228,13 +228,14 @@ func (uc *Usecase) requireDatasourceLevel(ctx context.Context, namespaceUID, lev
 }
 
 func validateDatasource(in bo.Datasource) error {
-	if !driverMatches(in.Type, in.Driver) || strings.TrimSpace(in.Endpoint) == "" {
+	if !DriverMatches(in.Type, in.Driver) || strings.TrimSpace(in.Endpoint) == "" {
 		return merr.Invalid("invalid request")
 	}
 	return nil
 }
 
-func driverMatches(kind, driver string) bool {
+// DriverMatches 判断数据源类型和驱动是否匹配。
+func DriverMatches(kind, driver string) bool {
 	switch kind {
 	case "METRICS":
 		return driver == "METRICS_PROMETHEUS" || driver == "METRICS_VICTORIA_METRICS"

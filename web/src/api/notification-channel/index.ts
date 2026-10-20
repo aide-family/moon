@@ -5,18 +5,12 @@ import type {
   ListNotificationChannelsParams,
   ListNotificationChannelsResult,
   NotificationChannelItem,
-  SelectItem,
   UpdateNotificationChannelParams,
 } from "./types"
 
 /** GET /v1/notification-channels */
 export function listNotificationChannels(params: ListNotificationChannelsParams = {}): Promise<ListNotificationChannelsResult> {
   return get<ListNotificationChannelsResult>("/notification-channels", params)
-}
-
-/** GET /v1/notification-channels/select */
-export function selectNotificationChannels(params: { limit?: number; lastUid?: string } = {}): Promise<{ items: SelectItem[]; lastUid: string }> {
-  return get<{ items: SelectItem[]; lastUid: string }>("/notification-channels/select", params)
 }
 
 /** POST /v1/notification-channel */

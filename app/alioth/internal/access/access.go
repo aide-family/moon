@@ -27,9 +27,19 @@ func NewChecker(namespaces repository.NamespaceRepo, roles repository.RoleRepo, 
 }
 
 // Allow 确认当前用户持有 code，并返回当前租户。
-// 缺少 X-Namespace、租户不存在、用户未登录或没有该权限时，调用方必须停止写操作。
+// 缺少 X-Namespace、租户不存在、租户已停用、用户未登录或没有该权限时，调用方必须停止写操作。
 func (c Checker) Allow(ctx context.Context, code string) (string, error) {
-	if err := c.Require(ctx, code); err != nil {
+	return c.allow(ctx, code, true)
+}
+
+// AllowAnyStatus 与 Allow 相同，但允许在已停用的租户上执行。
+// 只用于租户自身的查看、启停和删除，避免停用后无法再启用。
+func (c Checker) AllowAnyStatus(ctx context.Context, code string) (string, error) {
+	return c.allow(ctx, code, false)
+}
+
+func (c Checker) allow(ctx context.Context, code string, activeOnly bool) (string, error) {
+	if err := c.require(ctx, code, activeOnly); err != nil {
 		return "", err
 	}
 	ns, _ := actor.NamespaceID(ctx)
@@ -38,7 +48,11 @@ func (c Checker) Allow(ctx context.Context, code string) (string, error) {
 
 // Require 只检查权限，不返回租户。权限来自该用户在该租户的角色，页面隐藏按钮不能代替这里的拒绝。
 func (c Checker) Require(ctx context.Context, code string) error {
-	ns, err := c.currentNamespace(ctx)
+	return c.require(ctx, code, true)
+}
+
+func (c Checker) require(ctx context.Context, code string, activeOnly bool) error {
+	ns, err := c.currentNamespace(ctx, activeOnly)
 	if err != nil {
 		return err
 	}
@@ -58,7 +72,16 @@ func (c Checker) Require(ctx context.Context, code string) error {
 
 // SameNamespace 要求路径中的租户就是当前租户，避免用一个租户的令牌改另一个租户。
 func (c Checker) SameNamespace(ctx context.Context, uid string) error {
-	ns, err := c.currentNamespace(ctx)
+	return c.sameNamespace(ctx, uid, true)
+}
+
+// SameNamespaceAnyStatus 与 SameNamespace 相同，但允许已停用的租户，供查看、启停和删除使用。
+func (c Checker) SameNamespaceAnyStatus(ctx context.Context, uid string) error {
+	return c.sameNamespace(ctx, uid, false)
+}
+
+func (c Checker) sameNamespace(ctx context.Context, uid string, activeOnly bool) error {
+	ns, err := c.currentNamespace(ctx, activeOnly)
 	if err != nil {
 		return err
 	}
@@ -68,13 +91,17 @@ func (c Checker) SameNamespace(ctx context.Context, uid string) error {
 	return nil
 }
 
-func (c Checker) currentNamespace(ctx context.Context) (string, error) {
+func (c Checker) currentNamespace(ctx context.Context, activeOnly bool) (string, error) {
 	ns, ok := actor.NamespaceID(ctx)
 	if !ok {
 		return "", merr.Client("X-Namespace is required")
 	}
-	if _, err := c.Namespaces.GetNamespace(ctx, ns); err != nil {
+	item, err := c.Namespaces.GetNamespace(ctx, ns)
+	if err != nil {
 		return "", c.Wrap(err)
+	}
+	if activeOnly && item.Status != "ACTIVE" {
+		return "", merr.Forbidden("namespace is disabled")
 	}
 	return ns, nil
 }

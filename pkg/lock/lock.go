@@ -42,6 +42,15 @@ type Client struct {
 	instanceID string
 }
 
+// Available pings Redis. It is used by service health and readiness checks.
+func (c *Client) Available(ctx context.Context) error {
+	if err := c.rdb.Ping(ctx).Err(); err != nil {
+		slog.Default().Error(fmt.Sprintf("redis: %v", err))
+		return merr.Server("lock failed")
+	}
+	return nil
+}
+
 // Hold is one successful acquisition.
 type Hold struct {
 	client *Client

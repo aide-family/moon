@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { formMessage } from "@/lib/form-error"
 
@@ -64,11 +64,6 @@ export function NamespacePage() {
     { type: "delete" | "disable"; uid: string } | { type: "transfer" } | null
   >(null)
   const [confirmError, setConfirmError] = useState("")
-  const shownConfirm = useRef(confirm)
-  if (confirm) {
-    shownConfirm.current = confirm
-  }
-  const confirmCopy = shownConfirm.current
 
   async function onCreate(event: React.FormEvent) {
     event.preventDefault()
@@ -452,16 +447,16 @@ export function NamespacePage() {
       <ConfirmAction
         open={confirm !== null}
         title={
-          confirmCopy?.type === "delete"
+          confirm?.type === "delete"
             ? t("confirm.deleteTitle")
-            : confirmCopy?.type === "disable"
+            : confirm?.type === "disable"
               ? t("confirm.disableTitle")
               : t("confirm.transferTitle")
         }
         description={
-          confirmCopy?.type === "delete"
+          confirm?.type === "delete"
             ? t("confirm.deleteDescription")
-            : confirmCopy?.type === "disable"
+            : confirm?.type === "disable"
               ? t("confirm.disableDescription")
               : t("confirm.transferDescription")
         }

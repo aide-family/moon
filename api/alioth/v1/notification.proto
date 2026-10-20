@@ -102,6 +102,10 @@ service NotificationTemplateService {
       body: "*"
     };
   }
+  // 列出系统预设模板。预设只读，用户可从预设创建自己的模板。
+  rpc ListNotificationPresets(ListNotificationPresetsRequest) returns (ListNotificationPresetsResponse) {
+    option (google.api.http) = {get: "/v1/notification-presets"};
+  }
 }
 
 // 通知组的创建、查询和启停。
@@ -338,8 +342,8 @@ message TestNotificationChannelRequest {
   string uid = 1 [(buf.validate.field).string.min_len = 1];
   // 模板标识。可留空，此时使用 subject 和 body。
   string template_uid = 2 [json_name = "templateUid"];
-  // 接收方。
-  string receivers = 3 [(buf.validate.field).string.min_len = 1];
+  // 接收方。SMTP 必填，Webhook 可空。
+  string receivers = 3;
   // 主题。
   string subject = 4;
   // 正文。
@@ -487,14 +491,39 @@ message SelectNotificationTemplatesResponse {
   string last_uid = 2 [json_name = "lastUid"];
 }
 
+// 一条系统预设模板。
+message NotificationPresetItem {
+  // 标识。
+  string uid = 1;
+  // 名称。
+  string name = 2;
+  // 类型，取值为 EMAIL 或 WEBHOOK。
+  string type = 3;
+  // 主题。
+  string subject = 4;
+  // 正文。
+  string body = 5;
+  // 说明。
+  string description = 6;
+}
+
+// 列出系统预设模板。
+message ListNotificationPresetsRequest {}
+
+// 系统预设模板列表。
+message ListNotificationPresetsResponse {
+  // 预设。
+  repeated NotificationPresetItem items = 1;
+}
+
 // 按模板试发。
 message TestNotificationTemplateRequest {
   // 模板标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
   // 渠道标识。
   string channel_uid = 2 [json_name = "channelUid", (buf.validate.field).string.min_len = 1];
-  // 接收方。
-  string receivers = 3 [(buf.validate.field).string.min_len = 1];
+  // 接收方。SMTP 必填，Webhook 可空。
+  string receivers = 3;
   // 参数 JSON。
   string params = 4;
 }

@@ -25,9 +25,18 @@ func NewUsecase(users repository.UserRepo, checker access.Checker) *Usecase {
 	return &Usecase{users: users, access: checker}
 }
 
+// GetUser 读取当前租户内的用户。User 是全局实体，但租户管理员只能看到与自己同租户的用户。
 func (uc *Usecase) GetUser(ctx context.Context, uid string) (*bo.Account, error) {
-	if _, err := uc.access.Allow(ctx, perm.UserRead); err != nil {
+	ns, err := uc.access.Allow(ctx, perm.UserRead)
+	if err != nil {
 		return nil, err
+	}
+	ok, err := uc.users.UserInNamespace(ctx, ns, uid)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	if !ok {
+		return nil, merr.NotFound("not found")
 	}
 	account, err := uc.users.UserByUID(ctx, uid)
 	if err != nil {
@@ -38,11 +47,12 @@ func (uc *Usecase) GetUser(ctx context.Context, uid string) (*bo.Account, error)
 }
 
 func (uc *Usecase) ListUsers(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.Account, int, int, int, error) {
-	if _, err := uc.access.Allow(ctx, perm.UserRead); err != nil {
+	ns, err := uc.access.Allow(ctx, perm.UserRead)
+	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.users.ListUsers(ctx, p, s, name)
+	items, total, err := uc.users.ListUsers(ctx, ns, p, s, name)
 	if err != nil {
 		return nil, 0, 0, 0, uc.access.Wrap(err)
 	}
@@ -53,10 +63,11 @@ func (uc *Usecase) ListUsers(ctx context.Context, pageNo, pageSize int32, name s
 }
 
 func (uc *Usecase) SelectUsers(ctx context.Context, limit int32, lastUID string) ([]bo.SelectItem, error) {
-	if _, err := uc.access.Allow(ctx, perm.UserRead); err != nil {
+	ns, err := uc.access.Allow(ctx, perm.UserRead)
+	if err != nil {
 		return nil, err
 	}
-	items, err := uc.users.SelectUsers(ctx, page.Limit(limit), lastUID)
+	items, err := uc.users.SelectUsers(ctx, ns, page.Limit(limit), lastUID)
 	return items, uc.access.Wrap(err)
 }
 
@@ -70,14 +81,23 @@ func (uc *Usecase) PermitUser(ctx context.Context, uid string) (*bo.Account, err
 	return uc.setStatus(ctx, uid, "ACTIVE")
 }
 
-// setStatus 不允许用户改自己的状态，避免管理员把自己封死后无法恢复。
+// setStatus 不允许用户改自己的状态，也不允许跨租户封禁/解封。
+// 全局 User 的管理权限来自当前租户，因此目标用户必须已加入当前租户。
 func (uc *Usecase) setStatus(ctx context.Context, uid, status string) (*bo.Account, error) {
-	if _, err := uc.access.Allow(ctx, perm.UserWrite); err != nil {
+	ns, err := uc.access.Allow(ctx, perm.UserWrite)
+	if err != nil {
 		return nil, err
 	}
 	actorUID, _ := actor.UserID(ctx)
 	if actorUID == uid {
 		return nil, merr.Client("cannot change your own status")
+	}
+	ok, err := uc.users.UserInNamespace(ctx, ns, uid)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	if !ok {
+		return nil, merr.Forbidden("user is not in current namespace")
 	}
 	account, err := uc.users.UpdateUserStatus(ctx, uid, status)
 	if err != nil {

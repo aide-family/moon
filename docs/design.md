@@ -158,6 +158,8 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 
 用户是全局身份。成员是用户在某个 Namespace 中的身份。Moon 把角色直接写在 `members.role` 上。Alioth 增加可配置的 RBAC，预置角色覆盖原来的四档枚举。
 
+全局 `User` 的管理接口按当前 Namespace 授权：列表、详情、封禁和解封只作用于当前租户的成员。一个租户的管理员不能枚举或封禁其他租户的用户。
+
 
 | 实体               | 说明                                                                                     |
 | ---------------- | -------------------------------------------------------------------------------------- |
@@ -189,7 +191,7 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 - 注册为新增。邮箱、密码、图形验证码。图形验证码对应 Moon 的 `GET /v1/captcha`
 - 密码登录为新增
 - 邮箱验证码登录保留 Moon 的两步：`POST /v1/auth/email/login/code`、`POST /v1/auth/email/login`
-- OAuth2 保留 Moon 的 `POST /v1/auth/oauth2/login`，应用仍是 GitHub、Gitee、飞书
+- OAuth2 保留 Moon 的 `POST /v1/auth/oauth2/login`，应用仍是 GitHub、Gitee、飞书。只有第三方确认已验证的邮箱才能并入已有本地账号，避免用未验证邮箱接管账号；Gitee、飞书没有验证标记时不会并入已有账号
 - 访问令牌是 JWT。刷新对应 Moon 的 `GET /v1/self/refresh-token`
 - 服务间调用使用 Moon 已有的 service key，形态为 `Authorization: Bearer sk-...`，与用户 JWT 互斥
 - `alkaid` 使用独立的 Agent 令牌，只用于出站流，不能当用户令牌调用管理接口
@@ -260,28 +262,44 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 | 实体                     | 来源                                  | 说明                                                                          |
 | ---------------------- | ----------------------------------- | --------------------------------------------------------------------------- |
-| `NotificationChannel`  | Moon 的 `email_configs` 与 `webhooks` | 一种投递配置。邮件为 SMTP。Webhook 的应用仍是 OTHER、DINGTALK、WECHAT、FEISHU。密码和签名加密存储        |
-| `NotificationTemplate` | Moon 的 `templates`                  | 按 `MessageType` 存模板正文。首期类型为 EMAIL 与四种 WEBHOOK。`SMS_ALICLOUD` 只保留枚举          |
+| `NotificationChannel`  | Moon 的 `email_configs` 与 `webhooks` | 一种投递配置。SMTP 的应用固定为 OTHER；Webhook 的应用为 OTHER、DINGTALK、WECHAT、FEISHU。密码和签名加密存储 |
+| `NotificationTemplate` | Moon 的 `templates`                  | 按 `MessageType` 存模板正文。首期类型为 EMAIL 与 WEBHOOK。`SMS_ALICLOUD` 只保留枚举            |
+| `NotificationPreset`   | Alioth 新增                           | 系统预置模板，只读、不属于租户。用户可以直接使用或修改后生成自己的模板                                          |
 | `NotificationGroup`    | Moon 的通知组与收件人组                      | Namespace 内的接收方集合，关联渠道与模板，可启停                                               |
 | `NotificationTask`     | Moon 发送任务的持久化形态                     | 待发送、发送中、已发送、失败、取消。状态名沿用 MessageStatus：PENDING、SENDING、SENT、FAILED、CANCELLED |
 | `MessageLog`           | Moon 的 `message_logs`               | 一次投递的结果。按时间分区。支持查看、重试、取消                                                    |
 
 
-人工试发也生成 `NotificationTask`，仍由 `merak` 投递。对应 Moon 发送台的直发和按模板发送，不在 `merak` 进程里同步等待 SMTP。
+人工试发也生成 `NotificationTask`，仍由 `merak` 投递。对应 Moon 发送台的直发和按模板发送，不在 `merak` 进程里同步等待 SMTP。投递失败按剩余次数退避后回到 PENDING，避免失败任务在轮询周期内反复重试。
+
+渠道、模板和通知组必须满足类型矩阵：SMTP 渠道只能绑定 EMAIL 模板；WEBHOOK 渠道只能绑定 WEBHOOK 模板。SMTP 通知组必须填写合法邮箱接收方；Webhook 通知组不需要接收方。保存、试发和建立通知组时都在服务端校验。
+
+`merak` 按渠道应用选择发送器：
+
+- SMTP：纯文本邮件，支持 465 隐式 TLS、587 STARTTLS，主题和地址做头注入清洗。
+- OTHER：JSON 投递，配置签名时附带 `X-Alioth-Timestamp` 与 HMAC-SHA256 签名。
+- DINGTALK：文本消息，配置签名时按钉钉规则追加 `timestamp` 与 `sign` 查询参数。
+- FEISHU：文本消息，配置签名时在请求体带 `timestamp` 与 `sign`。
+- WECHAT：企业微信群机器人文本消息，检查 `errcode`。
+
+短信仍然只保留枚举，不实现发送。
 
 投递步骤：
 
 1. `merak` 向 `alioth` 读取 PENDING 任务。
 2. 对 `alioth:lock:notify:{task_uid}` 加锁。没拿到锁则跳过。
-3. 请 `alioth` 把该任务改为 SENDING，然后渲染模板并调用 SMTP 或 Webhook。
-4. 向 `alioth` 回写 SENT 或 FAILED，并写入 `MessageLog`。失败的任务按剩余重试次数回到 PENDING。
+3. 请 `alioth` 把该任务改为 SENDING，然后用对应渠道的发送器渲染模板并投递。
+4. 向 `alioth` 回写 SENT 或 FAILED，并写入 `MessageLog`。失败的任务按剩余重试次数退避后回到 PENDING。
 5. 释放锁。续期失败时不回写成功。
+6. `alioth` 的调度器在锁内回收超时仍停留在 SENDING 的任务，标记 FAILED 并写日志，处理 `merak` 崩溃后无法回写的情况。阈值默认 2 分钟，由 `ALIOTH_NOTIFY_STALE_SECONDS` 调整。
 
 同一事件不要生成多条等效任务。去重记录在 PostgreSQL，不放进 Redis。
 
 ## 6. 边缘 Agent
 
 `alkaid` 部署在目标机器上，或者部署在目标 Kubernetes 集群里。它主动连接 `alioth:9000`，用 Agent 令牌建立双向流。SSH、SFTP、Kubernetes API 代理都走这条流。
+
+`alioth` 多副本时，Agent 对每个副本各建一条流。Kubernetes 内把地址指向无头 Service，集群外把多个控制面地址用逗号分隔。这样任意副本都能直接执行该 Agent 的请求，不依赖负载均衡把请求恰好送到持有那条流的副本。副本扩缩容时 Agent 每 30 秒重新解析一次地址，自动补建或释放流。
 
 Moon 的玉树由控制面根据上报的 endpoint 回拨 Agent。边缘网络里控制面经常访问不到 Agent，所以 Alioth 改成出站连接。Agent 不在公网监听管理端口。
 
@@ -453,6 +471,7 @@ flowchart TB
 - 配置沿用 Moon 的 Bootstrap YAML，敏感项使用环境变量占位
 - 数据库迁移由 `alioth` 的 ent schema 执行。另外三个进程不建业务表
 - SMTP 密码、Webhook 密钥、数据源凭据、SSH 凭据以加密字段入库
+- 控制面与 `megrez`、`merak`、`alkaid` 的 gRPC 支持可选 TLS/mTLS；边缘 SSH 支持 known_hosts 校验。默认保持明文/不校验以兼容现有部署，生产按部署文档开启
 - 用户密码只保存哈希。Moon 的 `magicbox/password` 已有哈希能力，Alioth 把它用在注册和密码登录上
 - SSH、SFTP、Kubernetes 代理写入审计，审计记录不可由普通成员删除
 - Agent 令牌可吊销。吊销后已建立的流在下一次心跳被 `alioth` 关闭

@@ -123,7 +123,7 @@ func (uc *Usecase) Get(ctx context.Context, uid string) (*bo.Agent, error) {
 	}
 	item, err := uc.agents.GetAgent(ctx, ns, uid)
 	if item != nil {
-		item.Online = item.Online && uc.hub.Online(uid)
+		item.Online = uc.hub.Online(uid)
 	}
 	return item, uc.access.Wrap(err)
 }
@@ -136,7 +136,7 @@ func (uc *Usecase) List(ctx context.Context, pageNo, pageSize int32, name string
 	p, s := page.Normalize(pageNo, pageSize)
 	items, total, err := uc.agents.ListAgents(ctx, ns, p, s, strings.TrimSpace(name))
 	for i := range items {
-		items[i].Online = items[i].Online && uc.hub.Online(items[i].UID)
+		items[i].Online = uc.hub.Online(items[i].UID)
 	}
 	return items, total, p, s, uc.access.Wrap(err)
 }
@@ -164,10 +164,7 @@ func (uc *Usecase) Connect(ctx context.Context, stream v1.AgentService_ConnectSe
 	if err != nil {
 		return err
 	}
-	session := &agenthub.Session{
-		AgentUID: agent.UID, NamespaceUID: agent.NamespaceUID,
-		Send: make(chan *v1.AgentFrame, 128), Results: map[string]chan *v1.AgentExecResult{},
-	}
+	session := agenthub.NewSession(agent.UID, agent.NamespaceUID)
 	uc.hub.Put(session)
 	defer func() {
 		uc.hub.Remove(agent.UID, session)
@@ -181,11 +178,10 @@ func (uc *Usecase) Connect(ctx context.Context, stream v1.AgentService_ConnectSe
 			case <-ctx.Done():
 				errCh <- ctx.Err()
 				return
-			case frame, ok := <-session.Send:
-				if !ok {
-					errCh <- nil
-					return
-				}
+			case <-session.Closed():
+				errCh <- nil
+				return
+			case frame := <-session.Send:
 				if err := stream.Send(frame); err != nil {
 					errCh <- err
 					return

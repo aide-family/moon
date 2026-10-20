@@ -38,7 +38,7 @@ spec:
               value: 0.0.0.0:8000
             - name: ALIOTH_GRPC_ADDR
               value: 0.0.0.0:9000
-            - name: ALIOTH_DATABASE_SOURCE
+            - name: ALIOTH_DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: alioth-postgres
@@ -88,6 +88,20 @@ spec:
     - name: http
       port: 8000
       targetPort: http
+    - name: grpc
+      port: 9000
+      targetPort: grpc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alioth-headless
+  namespace: alioth
+spec:
+  clusterIP: None
+  selector:
+    app: alioth
+  ports:
     - name: grpc
       port: 9000
       targetPort: grpc

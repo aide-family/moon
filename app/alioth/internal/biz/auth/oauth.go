@@ -16,10 +16,11 @@ import (
 )
 
 type oauthProfile struct {
-	openID string
-	email  string
-	name   string
-	avatar string
+	openID        string
+	email         string
+	emailVerified bool
+	name          string
+	avatar        string
 }
 
 // OAuthLogin 先按第三方 open id 找已绑定账号。没有绑定时，用邮箱并入已有用户，否则新建用户再绑定。
@@ -44,6 +45,12 @@ func (uc *Usecase) OAuthLogin(ctx context.Context, provider, code, redirectURI s
 		return nil, uc.wrap(err)
 	}
 	email := normalizeEmail(profile.email)
+	if email != "" && !profile.emailVerified {
+		// 没有验证过的第三方邮箱不能并入已有本地账号，否则等于绕过邮箱所有权。
+		if _, err := uc.users.UserByEmail(ctx, email); err == nil {
+			return nil, merr.Client("oauth email is not verified")
+		}
+	}
 	if email == "" {
 		email = fmt.Sprintf("%s-%s@users.alioth.local", strings.ToLower(provider), profile.openID)
 	}
@@ -113,7 +120,25 @@ func exchangeGitHub(ctx context.Context, client oauthClient, code, redirectURI s
 	if name == "" {
 		name = user.Login
 	}
-	return oauthProfile{openID: fmt.Sprint(user.ID), email: user.Email, name: name, avatar: user.AvatarURL}, nil
+	profile := oauthProfile{openID: fmt.Sprint(user.ID), email: user.Email, name: name, avatar: user.AvatarURL}
+	// GitHub 的 /user 邮箱不一定验证过，只有 /user/emails 里 primary + verified 的地址才能并入本地账号。
+	var emails []struct {
+		Email    string `json:"email"`
+		Primary  bool   `json:"primary"`
+		Verified bool   `json:"verified"`
+	}
+	if err := oauthJSON(ctx, http.MethodGet, "https://api.github.com/user/emails", token.AccessToken, nil, &emails); err == nil {
+		for _, item := range emails {
+			if item.Verified && item.Email != "" {
+				profile.email = item.Email
+				profile.emailVerified = true
+				if item.Primary {
+					break
+				}
+			}
+		}
+	}
+	return profile, nil
 }
 
 func exchangeGitee(ctx context.Context, client oauthClient, code, redirectURI string) (oauthProfile, error) {

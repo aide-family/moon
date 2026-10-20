@@ -65,7 +65,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { enumLabel } from "@/lib/enum-label"
-import { firstError, requireTrimmed } from "@/lib/form"
+import { run } from "@/lib/action"
+import { firstError, requireSelected, requireTrimmed } from "@/lib/form"
 import { failureText, readFormError } from "@/lib/form-error"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
 import { useListQuery } from "@/lib/list-query"
@@ -367,6 +368,21 @@ export function AlertRulePage() {
         requireTrimmed(form.driver, t("form.required")),
       )
     }
+    if (step === 2) {
+      if (form.levels.length === 0) {
+        return t("form.required")
+      }
+      for (const level of form.levels) {
+        const invalid = firstError(
+          requireSelected(level.levelUid, t("form.required")),
+          requireTrimmed(level.threshold, t("form.required")),
+          level.forSeconds < 0 ? t("form.required") : null,
+        )
+        if (invalid) {
+          return invalid
+        }
+      }
+    }
     return null
   }
 
@@ -630,6 +646,26 @@ export function AlertRulePage() {
             <FormField label={t("alertRule.group")} htmlFor="group-name" error={error}>
               <Input id="group-name" value={groupName} placeholder={t("alertRule.groupPlaceholder")} onChange={(event) => setGroupName(event.target.value)} required />
             </FormField>
+            {editingGroup && canWrite ? (
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    if (editingGroup.status === "ACTIVE") {
+                      askConfirm("group", "disable", editingGroup.uid)
+                    } else {
+                      run(updateAlertRuleGroupStatus(editingGroup.uid, "ACTIVE").then(() => setAttempt((value) => value + 1)), setError)
+                    }
+                  }}
+                >
+                  {editingGroup.status === "ACTIVE" ? t("action.disable") : t("action.enable")}
+                </Button>
+                <Button type="button" variant="destructive" onClick={() => askConfirm("group", "delete", editingGroup.uid)}>
+                  {t("action.delete")}
+                </Button>
+              </div>
+            ) : null}
             <DialogFooter>
               <Button type="submit" disabled={pending}>
                 {t("action.save")}

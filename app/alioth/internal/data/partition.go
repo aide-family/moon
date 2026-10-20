@@ -47,6 +47,40 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 		if err := ensureWeekPartitions(ctx, db, name, time.Now().UTC()); err != nil {
 			return err
 		}
+		if err := ensurePartitionIndexes(ctx, db, name); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// partitionIndexes 是分区父表必须保留的查询索引。
+// CREATE TABLE ... (LIKE ...) 不会复制索引，转换后必须显式重建；这里用 IF NOT EXISTS 保证重复迁移安全。
+var partitionIndexes = map[string][]string{
+	"alert_events": {
+		`CREATE INDEX IF NOT EXISTS alert_events_ns_status_created ON alert_events (namespace_uid, status, created_at)`,
+		`CREATE INDEX IF NOT EXISTS alert_events_rule_uid ON alert_events (rule_uid)`,
+		`CREATE INDEX IF NOT EXISTS alert_events_fingerprint ON alert_events (fingerprint)`,
+	},
+	"message_logs": {
+		`CREATE INDEX IF NOT EXISTS message_logs_ns_created ON message_logs (namespace_uid, created_at)`,
+		`CREATE INDEX IF NOT EXISTS message_logs_task_uid ON message_logs (task_uid)`,
+	},
+}
+
+func ensurePartitionIndexes(ctx context.Context, db *sql.DB, name string) error {
+	kind, err := relationKind(ctx, db, name)
+	if err != nil {
+		return err
+	}
+	if kind != "p" {
+		return nil
+	}
+	for _, statement := range partitionIndexes[name] {
+		if _, err := db.ExecContext(ctx, statement); err != nil {
+			slog.Default().Error(fmt.Sprintf("index %s: %v", name, err))
+			return merr.Server("request failed")
+		}
 	}
 	return nil
 }
@@ -160,13 +194,30 @@ func partitionByCreatedAt(ctx context.Context, db *sql.DB, name string) error {
 		return merr.Server("request failed")
 	}
 	defer func() { _ = tx.Rollback() }()
+	// 旧表改名后，约束、索引和 identity 序列的名字不会跟着变。
+	// 新分区表要复用 table_pkey / table_id_seq 这些默认名，所以先把旧名字释放掉。
 	statements := []string{
 		fmt.Sprintf(`ALTER TABLE %s RENAME TO %s`, name, heap),
+		fmt.Sprintf(`ALTER SEQUENCE IF EXISTS %s_id_seq RENAME TO %s_id_seq`, name, heap),
+	}
+	for _, statement := range statements {
+		if _, err := tx.ExecContext(ctx, statement); err != nil {
+			slog.Default().Error(fmt.Sprintf("partition %s: %v", name, err))
+			return merr.Server("request failed")
+		}
+	}
+	if err := dropPrimaryKey(ctx, tx, heap); err != nil {
+		return err
+	}
+	if err := dropIndexes(ctx, tx, heap); err != nil {
+		return err
+	}
+	create := []string{
 		fmt.Sprintf(`CREATE TABLE %s (LIKE %s INCLUDING DEFAULTS INCLUDING IDENTITY) PARTITION BY RANGE (created_at)`, name, heap),
 		fmt.Sprintf(`ALTER TABLE %s ADD PRIMARY KEY (created_at, id)`, name),
 		fmt.Sprintf(`CREATE UNIQUE INDEX %s_uid_created_at ON %s (uid, created_at)`, name, name),
 	}
-	for _, statement := range statements {
+	for _, statement := range create {
 		if _, err := tx.ExecContext(ctx, statement); err != nil {
 			slog.Default().Error(fmt.Sprintf("partition %s: %v", name, err))
 			return merr.Server("request failed")
@@ -177,6 +228,54 @@ func partitionByCreatedAt(ctx context.Context, db *sql.DB, name string) error {
 		return merr.Server("request failed")
 	}
 	return tx.Commit()
+}
+
+// dropPrimaryKey 删除临时表的主键约束，释放默认的 <table>_pkey 索引名。
+func dropPrimaryKey(ctx context.Context, tx *sql.Tx, table string) error {
+	var name string
+	err := tx.QueryRowContext(ctx, `SELECT conname FROM pg_constraint WHERE conrelid = $1::regclass AND contype = 'p'`, table).Scan(&name)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	if err != nil {
+		slog.Default().Error(fmt.Sprintf("primary key %s: %v", table, err))
+		return merr.Server("request failed")
+	}
+	if _, err := tx.ExecContext(ctx, fmt.Sprintf(`ALTER TABLE %s DROP CONSTRAINT %q`, table, name)); err != nil {
+		slog.Default().Error(fmt.Sprintf("drop primary key %s: %v", table, err))
+		return merr.Server("request failed")
+	}
+	return nil
+}
+
+// dropIndexes 删除临时表上的普通索引。主键约束已经先删掉，剩余索引随 DROP TABLE 丢弃，这里只是释放索引名。
+func dropIndexes(ctx context.Context, tx *sql.Tx, table string) error {
+	rows, err := tx.QueryContext(ctx, `SELECT indexname FROM pg_indexes WHERE schemaname = 'public' AND tablename = $1`, table)
+	if err != nil {
+		slog.Default().Error(fmt.Sprintf("indexes %s: %v", table, err))
+		return merr.Server("request failed")
+	}
+	var names []string
+	for rows.Next() {
+		var index string
+		if err := rows.Scan(&index); err != nil {
+			_ = rows.Close()
+			return merr.Server("request failed")
+		}
+		names = append(names, index)
+	}
+	if err := rows.Err(); err != nil {
+		_ = rows.Close()
+		return merr.Server("request failed")
+	}
+	_ = rows.Close()
+	for _, index := range names {
+		if _, err := tx.ExecContext(ctx, fmt.Sprintf(`DROP INDEX IF EXISTS %q`, index)); err != nil {
+			slog.Default().Error(fmt.Sprintf("drop index %s: %v", index, err))
+			return merr.Server("request failed")
+		}
+	}
+	return nil
 }
 
 func ensureWeekPartitions(ctx context.Context, db *sql.DB, name string, now time.Time) error {

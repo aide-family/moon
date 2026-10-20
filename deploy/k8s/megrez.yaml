@@ -22,14 +22,14 @@ spec:
           env:
             - name: MEGREZ_HTTP_ADDR
               value: 0.0.0.0:8001
-            - name: MEGREZ_ALIOTH_GRPC_ADDR
+            - name: ALIOTH_GRPC_ADDR
               value: alioth:9000
             - name: MEGREZ_SERVICE_KEY
               valueFrom:
                 secretKeyRef:
                   name: alioth-auth
                   key: MEGREZ_SERVICE_KEY
-            - name: MEGREZ_REDIS_ADDR
+            - name: REDIS_ADDR
               value: redis:6379
           readinessProbe:
             httpGet:

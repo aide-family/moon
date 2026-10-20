@@ -46,6 +46,8 @@ const (
 	FieldParams = "params"
 	// FieldRetriesLeft holds the string denoting the retries_left field in the database.
 	FieldRetriesLeft = "retries_left"
+	// FieldNextAttemptAt holds the string denoting the next_attempt_at field in the database.
+	FieldNextAttemptAt = "next_attempt_at"
 	// FieldLastError holds the string denoting the last_error field in the database.
 	FieldLastError = "last_error"
 	// Table holds the table name of the notificationtask in the database.
@@ -71,6 +73,7 @@ var Columns = []string{
 	FieldBody,
 	FieldParams,
 	FieldRetriesLeft,
+	FieldNextAttemptAt,
 	FieldLastError,
 }
 
@@ -261,6 +264,11 @@ func ByParams(opts ...sql.OrderTermOption) OrderOption {
 // ByRetriesLeft orders the results by the retries_left field.
 func ByRetriesLeft(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRetriesLeft, opts...).ToFunc()
+}
+
+// ByNextAttemptAt orders the results by the next_attempt_at field.
+func ByNextAttemptAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNextAttemptAt, opts...).ToFunc()
 }
 
 // ByLastError orders the results by the last_error field.

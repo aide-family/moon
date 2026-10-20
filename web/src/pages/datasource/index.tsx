@@ -53,8 +53,9 @@ import {
 } from "@/components/ui/select"
 import { enumLabel } from "@/lib/enum-label"
 import { firstError, requireTrimmed } from "@/lib/form"
-import { failureText, readFormError } from "@/lib/form-error"
+import { readFormError } from "@/lib/form-error"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
+import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 import { MetadataPanel } from "@/pages/datasource/metadata-panel"
 import { QueryPanel } from "@/pages/datasource/query-panel"
@@ -100,16 +101,10 @@ export function DatasourcePage() {
   const type = params.get("type") || ""
   const selected = params.get("uid") || ""
   const [draftName, setDraftName] = useState(query.name)
-  const [items, setItems] = useState<DatasourceItem[]>([])
-  const [total, setTotal] = useState(0)
   const [current, setCurrent] = useState<DatasourceItem | null>(null)
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [failed, setFailed] = useState(false)
-  const [loadError, setLoadError] = useState("")
   const [detailItem, setDetailItem] = useState<DatasourceItem | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
-  const [attempt, setAttempt] = useState(0)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [formStep, setFormStep] = useState(0)
@@ -120,46 +115,17 @@ export function DatasourcePage() {
   const [confirmError, setConfirmError] = useState("")
   const [shownAction, setShownAction] = useState<"disable" | "delete">("disable")
   const canWrite = session.can("datasource:write")
+  const { items, total, loading, failed, error: loadError, version, reload, fail } = usePagedList<DatasourceItem>({
+    page: query.page,
+    pageSize: query.pageSize,
+    filterKey: `${session.namespaceUid}|${query.name}|${type}`,
+    fetch: (page, pageSize) => listDatasources({ page, pageSize, name: query.name, type }),
+  })
 
   function askConfirm(action: "disable" | "delete", uid: string) {
     setShownAction(action)
     setConfirm({ action, uid })
   }
-
-  useEffect(() => {
-    let active = true
-    async function load() {
-      setLoading(true)
-      setFailed(false)
-      try {
-        const result = await listDatasources({
-          page: query.page,
-          pageSize: query.pageSize,
-          name: query.name,
-          type,
-        })
-        if (!active) {
-          return
-        }
-        setItems(result.items ?? [])
-        setTotal(result.total ?? 0)
-      } catch (err) {
-        if (active) {
-          setFailed(true)
-          setLoadError(failureText(err, t("state.failed")))
-          setItems([])
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-    void load()
-    return () => {
-      active = false
-    }
-  }, [query.page, query.pageSize, query.name, type, attempt, session.namespaceUid, t])
 
   useEffect(() => {
     let active = true
@@ -183,7 +149,7 @@ export function DatasourcePage() {
     return () => {
       active = false
     }
-  }, [selected, attempt, session.namespaceUid])
+  }, [selected, version, session.namespaceUid])
 
   useEffect(() => {
     let active = true
@@ -206,7 +172,7 @@ export function DatasourcePage() {
     return () => {
       active = false
     }
-  }, [canWrite, session.namespaceUid, attempt])
+  }, [canWrite, session.namespaceUid, version])
 
   function setParam(key: string, value: string) {
     const next = new URLSearchParams(params)
@@ -287,7 +253,7 @@ export function DatasourcePage() {
         setParam("uid", created.datasource.uid)
       }
       setOpen(false)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
       setFieldErrors(failure.fields)
@@ -313,7 +279,7 @@ export function DatasourcePage() {
         await updateDatasourceStatus(confirm.uid, "DISABLED")
       }
       setConfirm(null)
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
       setConfirmError(failure.form)
@@ -325,12 +291,11 @@ export function DatasourcePage() {
   async function enableItem(item: DatasourceItem) {
     try {
       await updateDatasourceStatus(item.uid, "ACTIVE")
-      setAttempt((value) => value + 1)
+      reload()
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
       if (failure.form) {
-        setLoadError(failure.form)
-        setFailed(true)
+        fail(failure.form)
       }
     }
   }
@@ -383,7 +348,7 @@ export function DatasourcePage() {
             {!loading && failed ? (
               <div className="flex items-center gap-2">
                 <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
-                <Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>
+                <Button variant="outline" onClick={() => reload()}>
                   {t("action.retry")}
                 </Button>
               </div>

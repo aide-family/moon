@@ -100,7 +100,9 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 | service key，`Authorization: Bearer sk-...` | `megrez`、`merak` | 调用对应的内部 gRPC | 当作普通用户访问管理页面 |
 | Agent 令牌 | `alkaid` | 注册、心跳、接收执行帧 | 调用 Namespace、用户、规则等管理接口 |
 
-业务请求带 `X-Namespace`。`alioth` 把它写入上下文，查询和写入都加上这个租户条件。缺少租户头的业务接口返回客户端错误。
+业务请求带 `X-Namespace`。`alioth` 把它写入上下文，查询和写入都加上这个租户条件。缺少租户头的业务接口返回客户端错误。租户被停用后，除查看、启停和删除租户自身外，业务接口一律拒绝。
+
+`User` 是全局实体，但用户管理接口只作用于当前租户的成员：列表、详情、封禁和解封都不跨租户。
 
 预置角色：
 

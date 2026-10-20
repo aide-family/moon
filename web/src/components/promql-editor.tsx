@@ -69,7 +69,7 @@ function registerDataCompletion(monaco: Monaco, uidRef: { current: string }) {
 
   return monaco.languages.registerCompletionItemProvider("promql", {
     triggerCharacters: ["{", '"', ",", "="],
-    provideCompletionItems: async (model, position) => {
+    provideCompletionItems: async (model: monacoEditor.editor.ITextModel, position: monacoEditor.Position) => {
       const uid = uidRef.current
       if (!uid) {
         return { suggestions: [] }

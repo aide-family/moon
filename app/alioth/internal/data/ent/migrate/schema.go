@@ -775,6 +775,43 @@ var (
 			},
 		},
 	}
+	// NotificationPresetsColumns holds the columns for the "notification_presets" table.
+	NotificationPresetsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"EMAIL", "WEBHOOK"}},
+		{Name: "subject", Type: field.TypeString, Default: ""},
+		{Name: "body", Type: field.TypeString, Default: ""},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "sort", Type: field.TypeInt, Default: 0},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
+	}
+	// NotificationPresetsTable holds the schema information for the "notification_presets" table.
+	NotificationPresetsTable = &schema.Table{
+		Name:       "notification_presets",
+		Columns:    NotificationPresetsColumns,
+		PrimaryKey: []*schema.Column{NotificationPresetsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "notificationpreset_uid",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationPresetsColumns[3]},
+			},
+			{
+				Name:    "notificationpreset_name",
+				Unique:  true,
+				Columns: []*schema.Column{NotificationPresetsColumns[4]},
+			},
+			{
+				Name:    "notificationpreset_status_sort",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationPresetsColumns[10], NotificationPresetsColumns[9]},
+			},
+		},
+	}
 	// NotificationTasksColumns holds the columns for the "notification_tasks" table.
 	NotificationTasksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -794,6 +831,7 @@ var (
 		{Name: "body", Type: field.TypeString, Default: ""},
 		{Name: "params", Type: field.TypeString, Default: ""},
 		{Name: "retries_left", Type: field.TypeInt, Default: 3},
+		{Name: "next_attempt_at", Type: field.TypeTime, Nullable: true},
 		{Name: "last_error", Type: field.TypeString, Default: ""},
 	}
 	// NotificationTasksTable holds the schema information for the "notification_tasks" table.
@@ -819,6 +857,11 @@ var (
 				Name:    "notificationtask_status",
 				Unique:  false,
 				Columns: []*schema.Column{NotificationTasksColumns[7]},
+			},
+			{
+				Name:    "notificationtask_status_next_attempt_at",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationTasksColumns[7], NotificationTasksColumns[17]},
 			},
 			{
 				Name:    "notificationtask_namespace_uid_status",
@@ -1202,6 +1245,7 @@ var (
 		NamespacesTable,
 		NotificationChannelsTable,
 		NotificationGroupsTable,
+		NotificationPresetsTable,
 		NotificationTasksTable,
 		NotificationTemplatesTable,
 		PermissionsTable,

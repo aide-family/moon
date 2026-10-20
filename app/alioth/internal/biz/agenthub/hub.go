@@ -23,6 +23,44 @@ type Session struct {
 	shellClosed  chan string
 	shellUID     string
 	mu           sync.Mutex
+	closed       chan struct{}
+	closeOnce    sync.Once
+}
+
+// NewSession 创建一条会话。closed 用来通知等待方和发送方，Send 本身从不关闭。
+func NewSession(agentUID, namespaceUID string) *Session {
+	return &Session{
+		AgentUID: agentUID, NamespaceUID: namespaceUID,
+		Send:    make(chan *v1.AgentFrame, 128),
+		Results: map[string]chan *v1.AgentExecResult{},
+		closed:  make(chan struct{}),
+	}
+}
+
+// Closed 在会话被替换或断开时关闭，供流发送协程退出。
+func (s *Session) Closed() <-chan struct{} {
+	return s.closed
+}
+
+func (s *Session) close() {
+	s.closeOnce.Do(func() { close(s.closed) })
+}
+
+func (s *Session) send(frame *v1.AgentFrame) bool {
+	select {
+	case <-s.closed:
+		return false
+	default:
+	}
+	select {
+	case s.Send <- frame:
+		return true
+	case <-s.closed:
+		return false
+	default:
+		// 发送缓冲满时快速失败，避免请求线程一直等到 HTTP 超时。
+		return false
+	}
 }
 
 // Hub 保存本进程上的存活流。
@@ -40,7 +78,7 @@ func (h *Hub) Put(session *Session) {
 	defer h.mu.Unlock()
 	if old, ok := h.sessions[session.AgentUID]; ok {
 		old.finishShell("replaced")
-		close(old.Send)
+		old.close()
 	}
 	h.sessions[session.AgentUID] = session
 }
@@ -51,7 +89,7 @@ func (h *Hub) Remove(agentUID string, session *Session) {
 	if cur, ok := h.sessions[agentUID]; ok && cur == session {
 		delete(h.sessions, agentUID)
 		session.finishShell("disconnected")
-		close(session.Send)
+		session.close()
 	}
 }
 
@@ -63,8 +101,29 @@ func (h *Hub) Get(agentUID string) (*Session, bool) {
 }
 
 func (h *Hub) Online(agentUID string) bool {
-	_, ok := h.Get(agentUID)
-	return ok
+	session, ok := h.Get(agentUID)
+	if !ok {
+		return false
+	}
+	select {
+	case <-session.closed:
+		return false
+	default:
+		return true
+	}
+}
+
+// Drop 清理等待超时或取消后遗留的结果通道，避免会话内 map 无限增长。
+func (h *Hub) Drop(agentUID, requestUID string) {
+	session, ok := h.Get(agentUID)
+	if !ok {
+		return
+	}
+	session.mu.Lock()
+	delete(session.Results, requestUID)
+	delete(session.SFTPResults, requestUID)
+	delete(session.K8sResults, requestUID)
+	session.mu.Unlock()
 }
 
 // CloseAll 在进程退出前关闭全部存活流，避免 gRPC GracefulStop 一直等待。
@@ -73,11 +132,8 @@ func (h *Hub) CloseAll() {
 	defer h.mu.Unlock()
 	for uid, session := range h.sessions {
 		session.finishShell("shutdown")
-		select {
-		case session.Send <- &v1.AgentFrame{Close: &v1.AgentClose{Reason: "shutdown"}}:
-		default:
-		}
-		close(session.Send)
+		session.send(&v1.AgentFrame{Close: &v1.AgentClose{Reason: "shutdown"}})
+		session.close()
 		delete(h.sessions, uid)
 	}
 }
@@ -91,20 +147,13 @@ func (h *Hub) SendExec(agentUID string, frame *v1.AgentFrame) (<-chan *v1.AgentE
 	reqUID := frame.GetExecRequest().GetRequestUid()
 	ch := make(chan *v1.AgentExecResult, 1)
 	session.mu.Lock()
-	if session.Results == nil {
-		session.Results = map[string]chan *v1.AgentExecResult{}
-	}
 	session.Results[reqUID] = ch
 	session.mu.Unlock()
-	select {
-	case session.Send <- frame:
-		return ch, nil
-	default:
-		session.mu.Lock()
-		delete(session.Results, reqUID)
-		session.mu.Unlock()
+	if !session.send(frame) {
+		h.Drop(agentUID, reqUID)
 		return nil, merr.Invalid("agent is offline")
 	}
+	return ch, nil
 }
 
 func (s *Session) DeliverResult(result *v1.AgentExecResult) {
@@ -127,20 +176,13 @@ func (h *Hub) SendSFTP(agentUID string, frame *v1.AgentFrame) (<-chan *v1.AgentS
 	reqUID := frame.GetSftpRequest().GetRequestUid()
 	ch := make(chan *v1.AgentSFTPResult, 1)
 	session.mu.Lock()
-	if session.SFTPResults == nil {
-		session.SFTPResults = map[string]chan *v1.AgentSFTPResult{}
-	}
 	session.SFTPResults[reqUID] = ch
 	session.mu.Unlock()
-	select {
-	case session.Send <- frame:
-		return ch, nil
-	default:
-		session.mu.Lock()
-		delete(session.SFTPResults, reqUID)
-		session.mu.Unlock()
+	if !session.send(frame) {
+		h.Drop(agentUID, reqUID)
 		return nil, merr.Invalid("agent is offline")
 	}
+	return ch, nil
 }
 
 func (s *Session) DeliverSFTP(result *v1.AgentSFTPResult) {
@@ -163,20 +205,13 @@ func (h *Hub) SendK8s(agentUID string, frame *v1.AgentFrame) (<-chan *v1.AgentK8
 	reqUID := frame.GetK8SRequest().GetRequestUid()
 	ch := make(chan *v1.AgentK8SResult, 1)
 	session.mu.Lock()
-	if session.K8sResults == nil {
-		session.K8sResults = map[string]chan *v1.AgentK8SResult{}
-	}
 	session.K8sResults[reqUID] = ch
 	session.mu.Unlock()
-	select {
-	case session.Send <- frame:
-		return ch, nil
-	default:
-		session.mu.Lock()
-		delete(session.K8sResults, reqUID)
-		session.mu.Unlock()
+	if !session.send(frame) {
+		h.Drop(agentUID, reqUID)
 		return nil, merr.Invalid("agent is offline")
 	}
+	return ch, nil
 }
 
 // ClaimShell 占用这台机器上唯一的终端。新的登录会结束上一份终端。

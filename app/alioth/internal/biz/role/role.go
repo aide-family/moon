@@ -56,6 +56,13 @@ func (uc *Usecase) UpdateRoleStatus(ctx context.Context, uid, status string) (*b
 	if err != nil {
 		return nil, err
 	}
+	current, err := uc.roles.GetRole(ctx, ns, uid)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	if current.IsSystem {
+		return nil, merr.Client("invalid request")
+	}
 	item, err := uc.roles.UpdateRoleStatus(ctx, ns, uid, status)
 	return item, uc.access.Wrap(err)
 }

@@ -45,7 +45,7 @@ func ruleItem(item bo.AlertRule) *v1.AlertRuleItem {
 		Uid: item.UID, GroupUid: item.GroupUID, Name: item.Name, Type: item.Type, Driver: item.Driver,
 		Status: item.Status, Expr: item.Expr, Labels: item.Labels, DatasourceUid: item.DatasourceUID,
 		DatasourceLabels: item.DatasourceLabels,
-		Summary: item.Summary, Description: item.Description, Levels: levels,
+		Summary:          item.Summary, Description: item.Description, Levels: levels,
 		NotificationGroupUids: item.NotificationGroupUIDs,
 	}
 }

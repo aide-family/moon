@@ -100,7 +100,7 @@ func TestNotificationTaskDedup(t *testing.T) {
 
 	slot := time.Now().UTC().Truncate(time.Minute)
 	if err := events.ApplyReport(ctx, *rule, bo.EvalReport{
-		RuleUID: rule.UID, EvalSlot: slot,
+		RuleUID: rule.UID, DatasourceUID: "ds1", EvalSlot: slot,
 		Hits: []bo.EvalHit{{Fingerprint: "fp1", Labels: "{}", Value: "1", LevelUID: "lv", Summary: "fire"}},
 	}); err != nil {
 		t.Fatal(err)
@@ -114,7 +114,7 @@ func TestNotificationTaskDedup(t *testing.T) {
 	}
 
 	if err := events.ApplyReport(ctx, *rule, bo.EvalReport{
-		RuleUID: rule.UID, EvalSlot: slot.Add(time.Minute), Hits: nil,
+		RuleUID: rule.UID, DatasourceUID: "ds1", EvalSlot: slot.Add(time.Minute), Hits: nil,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -146,7 +146,7 @@ func TestNotificationTaskDedup(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := events.ApplyReport(ctx, *rule2, bo.EvalReport{
-		RuleUID: rule2.UID, EvalSlot: slot.Add(2 * time.Minute),
+		RuleUID: rule2.UID, DatasourceUID: "ds1", EvalSlot: slot.Add(2 * time.Minute),
 		Hits: []bo.EvalHit{{Fingerprint: "fp2", Labels: "{}", Value: "1", LevelUID: "lv"}},
 	}); err != nil {
 		t.Fatal(err)
@@ -168,5 +168,73 @@ func TestNotificationTaskDedup(t *testing.T) {
 	}
 	if task.Status != "PENDING" || task.Phase != "TEST" {
 		t.Fatalf("test task = %+v", task)
+	}
+
+	// 退避：next_attempt_at 在未来的任务不能被领取；到点后恢复可领取。
+	backoffUID := "task-backoff-" + ns
+	if _, err := store.client.NotificationTask.Create().
+		SetUID(backoffUID).
+		SetNamespaceUID(ns).
+		SetChannelUID(channel.UID).
+		SetStatus(notificationtask.StatusPENDING).
+		SetNextAttemptAt(time.Now().UTC().Add(time.Minute)).
+		SetReceivers("backoff@example.com").
+		Save(ctx); err != nil {
+		t.Fatal(err)
+	}
+	repo := NewNotificationRepo(store, slog.Default())
+	pending, err := repo.ClaimPending(ctx, 50)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, item := range pending {
+		if item.UID == backoffUID {
+			t.Fatal("task with future next_attempt_at was claimed")
+		}
+	}
+	if _, err := store.client.NotificationTask.Update().
+		Where(notificationtask.UIDEQ(backoffUID)).
+		SetNextAttemptAt(time.Now().UTC().Add(-time.Minute)).
+		Save(ctx); err != nil {
+		t.Fatal(err)
+	}
+	pending, err = repo.ClaimPending(ctx, 50)
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, item := range pending {
+		if item.UID == backoffUID {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("task with expired next_attempt_at was not claimed")
+	}
+
+	// SENDING 超时回收：模拟 merak 改为 SENDING 后崩溃。
+	if _, err := store.db.ExecContext(ctx,
+		`UPDATE notification_tasks SET status = 'SENDING', updated_at = now() - interval '10 minutes' WHERE uid = $1`,
+		task.UID,
+	); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := repo.ReapStaleSending(ctx, time.Now().Add(-2*time.Minute), 10); err != nil {
+		t.Fatal(err)
+	}
+	stale, err := store.client.NotificationTask.Query().Where(notificationtask.UIDEQ(task.UID)).Only(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if stale.Status != notificationtask.StatusFAILED || stale.LastError != "delivery timed out" {
+		t.Fatalf("stale task = %s / %s", stale.Status, stale.LastError)
+	}
+
+	presets, err := repo.ListPresets(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(presets) == 0 {
+		t.Fatal("no preset templates seeded")
 	}
 }

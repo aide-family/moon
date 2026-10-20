@@ -17,6 +17,8 @@ data:
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header Authorization $http_authorization;
         proxy_set_header X-Namespace $http_x_namespace;
+        proxy_read_timeout 120s;
+        proxy_send_timeout 120s;
       }
       location /health {
         return 200 'ok';

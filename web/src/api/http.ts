@@ -69,7 +69,54 @@ function notifyStatus(status: number, message: string) {
   }
 }
 
-export async function request(path: string, init: RequestInit = {}): Promise<Response> {
+let refreshing: Promise<boolean> | null = null
+
+function clearSession(): void {
+  localStorage.removeItem("token")
+  localStorage.removeItem("refreshToken")
+  if (window.location.pathname !== "/login") {
+    window.location.assign("/login")
+  }
+}
+
+// refreshAccessToken 用 refresh token 换新的 access token。
+// 并发 401 共享同一个刷新请求，避免同时发出多次刷新。
+async function refreshAccessToken(): Promise<boolean> {
+  const refreshToken = localStorage.getItem("refreshToken")
+  if (!refreshToken) {
+    return false
+  }
+  if (!refreshing) {
+    refreshing = (async () => {
+      try {
+        const headers = new Headers({ Authorization: `Bearer ${refreshToken}` })
+        const namespace = localStorage.getItem("namespace")
+        if (namespace) {
+          headers.set("X-Namespace", namespace)
+        }
+        const response = await fetch(`${baseURL}/self/refresh-token`, { headers })
+        if (!response.ok) {
+          return false
+        }
+        const data = (await response.json()) as { accessToken?: string }
+        if (!data.accessToken) {
+          return false
+        }
+        localStorage.setItem("token", data.accessToken)
+        return true
+      } catch {
+        return false
+      }
+    })()
+  }
+  try {
+    return await refreshing
+  } finally {
+    refreshing = null
+  }
+}
+
+export async function request(path: string, init: RequestInit = {}, retry = true): Promise<Response> {
   const headers = new Headers(init.headers)
   const token = localStorage.getItem("token") ?? ""
   const namespace = localStorage.getItem("namespace") ?? ""
@@ -84,12 +131,11 @@ export async function request(path: string, init: RequestInit = {}): Promise<Res
   }
 
   const response = await fetch(`${baseURL}${path}`, { ...init, headers })
-  if (response.status === 401 && !staysOnAuthForm(path)) {
-    localStorage.removeItem("token")
-    localStorage.removeItem("refreshToken")
-    if (window.location.pathname !== "/login") {
-      window.location.assign("/login")
+  if (response.status === 401 && retry && !staysOnAuthForm(path) && path !== "/self/refresh-token") {
+    if (await refreshAccessToken()) {
+      return request(path, init, false)
     }
+    clearSession()
   }
   if (response.status === 403 && window.location.pathname !== "/forbidden") {
     window.location.assign("/forbidden")
@@ -122,15 +168,15 @@ export async function send<T>(path: string, init: RequestInit = {}): Promise<T> 
 
 export function get<T>(
   path: string,
-  params?: Record<string, string | number | boolean | undefined>,
+  params?: object,
   init?: RequestInit,
 ): Promise<T> {
   const query = new URLSearchParams()
   for (const [key, value] of Object.entries(params ?? {})) {
-    if (value === undefined || value === "") {
+    if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") {
       continue
     }
-    if (value === false) {
+    if (value === "" || value === false) {
       continue
     }
     query.set(key, String(value))

@@ -25,6 +25,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationpreset"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/permission"
@@ -841,6 +842,45 @@ func init() {
 	notificationgroupDescRemark := notificationgroupFields[7].Descriptor()
 	// notificationgroup.DefaultRemark holds the default value on creation for the remark field.
 	notificationgroup.DefaultRemark = notificationgroupDescRemark.Default.(string)
+	notificationpresetMixin := schema.NotificationPreset{}.Mixin()
+	notificationpresetMixinFields0 := notificationpresetMixin[0].Fields()
+	_ = notificationpresetMixinFields0
+	notificationpresetFields := schema.NotificationPreset{}.Fields()
+	_ = notificationpresetFields
+	// notificationpresetDescCreatedAt is the schema descriptor for created_at field.
+	notificationpresetDescCreatedAt := notificationpresetMixinFields0[0].Descriptor()
+	// notificationpreset.DefaultCreatedAt holds the default value on creation for the created_at field.
+	notificationpreset.DefaultCreatedAt = notificationpresetDescCreatedAt.Default.(func() time.Time)
+	// notificationpresetDescUpdatedAt is the schema descriptor for updated_at field.
+	notificationpresetDescUpdatedAt := notificationpresetMixinFields0[1].Descriptor()
+	// notificationpreset.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	notificationpreset.DefaultUpdatedAt = notificationpresetDescUpdatedAt.Default.(func() time.Time)
+	// notificationpreset.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	notificationpreset.UpdateDefaultUpdatedAt = notificationpresetDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// notificationpresetDescUID is the schema descriptor for uid field.
+	notificationpresetDescUID := notificationpresetFields[0].Descriptor()
+	// notificationpreset.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	notificationpreset.UIDValidator = notificationpresetDescUID.Validators[0].(func(string) error)
+	// notificationpresetDescName is the schema descriptor for name field.
+	notificationpresetDescName := notificationpresetFields[1].Descriptor()
+	// notificationpreset.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	notificationpreset.NameValidator = notificationpresetDescName.Validators[0].(func(string) error)
+	// notificationpresetDescSubject is the schema descriptor for subject field.
+	notificationpresetDescSubject := notificationpresetFields[3].Descriptor()
+	// notificationpreset.DefaultSubject holds the default value on creation for the subject field.
+	notificationpreset.DefaultSubject = notificationpresetDescSubject.Default.(string)
+	// notificationpresetDescBody is the schema descriptor for body field.
+	notificationpresetDescBody := notificationpresetFields[4].Descriptor()
+	// notificationpreset.DefaultBody holds the default value on creation for the body field.
+	notificationpreset.DefaultBody = notificationpresetDescBody.Default.(string)
+	// notificationpresetDescDescription is the schema descriptor for description field.
+	notificationpresetDescDescription := notificationpresetFields[5].Descriptor()
+	// notificationpreset.DefaultDescription holds the default value on creation for the description field.
+	notificationpreset.DefaultDescription = notificationpresetDescDescription.Default.(string)
+	// notificationpresetDescSort is the schema descriptor for sort field.
+	notificationpresetDescSort := notificationpresetFields[6].Descriptor()
+	// notificationpreset.DefaultSort holds the default value on creation for the sort field.
+	notificationpreset.DefaultSort = notificationpresetDescSort.Default.(int)
 	notificationtaskMixin := schema.NotificationTask{}.Mixin()
 	notificationtaskMixinFields0 := notificationtaskMixin[0].Fields()
 	_ = notificationtaskMixinFields0
@@ -905,7 +945,7 @@ func init() {
 	// notificationtask.DefaultRetriesLeft holds the default value on creation for the retries_left field.
 	notificationtask.DefaultRetriesLeft = notificationtaskDescRetriesLeft.Default.(int)
 	// notificationtaskDescLastError is the schema descriptor for last_error field.
-	notificationtaskDescLastError := notificationtaskFields[14].Descriptor()
+	notificationtaskDescLastError := notificationtaskFields[15].Descriptor()
 	// notificationtask.DefaultLastError holds the default value on creation for the last_error field.
 	notificationtask.DefaultLastError = notificationtaskDescLastError.Default.(string)
 	notificationtemplateMixin := schema.NotificationTemplate{}.Mixin()

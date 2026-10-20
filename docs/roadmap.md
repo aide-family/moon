@@ -231,7 +231,7 @@ M5 依赖 M1 的身份与权限，不依赖告警评测。M7 在 M3、M4、M6 �
 
 - `web`、`alioth`、`megrez`、`merak` 的 Deployment，副本数至少为 2
 - PostgreSQL 与 Redis 独立部署。Redis 不承担业务持久化
-- `alkaid` 的 systemd 单元，以及 Kubernetes Deployment 或 DaemonSet 说明。配置包含 `alioth` 的 gRPC 地址和 Agent 令牌
+- `alkaid` 的 systemd 单元，以及 Kubernetes Deployment 或 DaemonSet 说明。配置包含 `alioth` 的 gRPC 地址和 Agent 令牌。多副本时 Agent 对每个 `alioth` 副本各建一条流；Kubernetes 使用无头 Service，集群外使用逗号分隔的地址列表
 - 只有 `web` 的 Service 对集群外开放
 
 验收：

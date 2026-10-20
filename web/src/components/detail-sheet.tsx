@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from "react"
+import type { ReactNode } from "react"
 
 import {
   Sheet,
@@ -30,11 +30,7 @@ export function DetailSheet({
   wide = false,
   onOpenChange,
 }: DetailSheetProps) {
-  const shown = useRef({ title, description, fields, wide })
-  if (open) {
-    shown.current = { title, description, fields, wide }
-  }
-  const current = shown.current
+  const current = { title, description, fields, wide }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

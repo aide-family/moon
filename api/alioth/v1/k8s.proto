@@ -44,31 +44,52 @@ message K8sProxyAuditItem {
   string created_at = 9 [json_name = "createdAt"];
 }
 
+// Kubernetes 代理请求。
 message ProxyK8sRequest {
+  // 机器标识。
   string agent_uid = 1 [json_name = "agentUid", (buf.validate.field).string.min_len = 1];
+  // HTTP 方法，取值为 GET、POST、PUT、PATCH、DELETE 或 HEAD。
   string method = 2 [(buf.validate.field).string.min_len = 1];
+  // API 路径，必须以单个 / 开头。
   string path = 3 [(buf.validate.field).string.min_len = 1];
+  // 查询参数。
   string query = 4;
+  // 附加请求头，JSON 对象。只放行 Accept、Content-Type、Accept-Encoding。
   string headers_json = 5 [json_name = "headersJson"];
+  // 请求体，最大 4 MiB。
   bytes body = 6;
 }
 
+// Kubernetes 代理结果。
 message ProxyK8sResponse {
+  // HTTP 状态码。
   int32 status_code = 1 [json_name = "statusCode"];
+  // 响应头，JSON 对象。
   string headers_json = 2 [json_name = "headersJson"];
+  // 响应体。
   bytes body = 3;
+  // 本次操作审计。
   K8sProxyAuditItem audit = 4;
 }
 
+// 分页查询 Kubernetes 代理审计请求。
 message ListK8sProxyAuditsRequest {
+  // 页码，从 1 开始。
   int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页数量，最大 100。
   int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 机器标识，可选。
   string agent_uid = 3 [json_name = "agentUid"];
 }
 
+// 分页查询 Kubernetes 代理审计结果。
 message ListK8sProxyAuditsResponse {
+  // 审计列表。
   repeated K8sProxyAuditItem items = 1;
+  // 总数。
   int32 total = 2;
+  // 当前页码。
   int32 page = 3;
+  // 每页数量。
   int32 page_size = 4 [json_name = "pageSize"];
 }
