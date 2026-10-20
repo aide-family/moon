@@ -551,6 +551,10 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
   const rangeResponse = useMemo(() => parsePrometheusBody(rangeBody), [rangeBody])
   const tableResponse = instantResponse ?? rangeResponse
   const graphResponse = rangeResponse
+  const exprHint =
+    datasource.driver === "METRICS_VICTORIA_METRICS"
+      ? t("datasource.vmExprHint")
+      : t("datasource.exprHint")
 
   function resolveQueryRange(): { start: number; end: number } {
     return resolveRange(rangePreset, customStart, customEnd)
@@ -685,7 +689,7 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
         <FormField
           label={t("datasource.expr")}
           htmlFor="metric-expr"
-          hint={t("datasource.exprHint")}
+          hint={exprHint}
           required
           error={exprError}
         >

@@ -856,7 +856,13 @@ export function AlertRulePage() {
             <FormField
               label={t("datasource.expr")}
               htmlFor="rule-expr"
-              hint={form.driver === "LOGS_ELASTICSEARCH" ? t("datasource.esExprHint") : t("datasource.exprHint")}
+              hint={
+                form.driver === "LOGS_ELASTICSEARCH"
+                  ? t("datasource.esExprHint")
+                  : form.driver === "METRICS_VICTORIA_METRICS"
+                    ? t("datasource.vmExprHint")
+                    : t("datasource.exprHint")
+              }
               className="sm:col-span-full"
             >
               <PromqlEditor

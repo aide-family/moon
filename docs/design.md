@@ -247,7 +247,7 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 | TRACE          | TRACE_JAEGER                                | 管理与查询代理。评测器留接口      |
 
 
-数据源归属 Namespace，可启停，可绑定数据源级别（Moon 的 `LevelType_DATASOURCE`），并带 `labels` JSON 供规则按标签匹配。密钥字段加密后入库，沿用 Moon `EncryptString` 的做法。指标数据源保留 Moon 已有的能力：状态、指标列表、指标详情、`query`、`query_range`、代理查询。Loki 日志数据源的连通检查走 `/ready`，日志查询走 `/loki/api/v1/query_range`，查询语句为 LogQL。Elasticsearch 日志数据源的连通检查走根路径，日志查询走 `/_search`，查询语句为 Query DSL 或普通检索语句，索引模式和时间字段随数据源保存。
+数据源归属 Namespace，可启停，可绑定数据源级别（Moon 的 `LevelType_DATASOURCE`），并带 `labels` JSON 供规则按标签匹配。密钥字段加密后入库，沿用 Moon `EncryptString` 的做法。指标数据源保留 Moon 已有的能力：状态、指标列表、指标详情、`query`、`query_range`、代理查询。Prometheus 的指标列表取 `/api/v1/metadata`；VictoriaMetrics 的 `/api/v1/metadata` 只是空的兼容占位，指标名改取最近 24 小时的 `/api/v1/label/__name__/values`，指标详情取 `/api/v1/series`。两者共用 `/api/v1/query`、`/api/v1/query_range`，VictoriaMetrics 查询语句为 MetricsQL（兼容 PromQL）。数据源地址可以带路径前缀，例如 VictoriaMetrics 集群的 `/select/<accountID>/prometheus`，管理端查询和 `megrez` 评测都保留该前缀。Loki 日志数据源的连通检查走 `/ready`，日志查询走 `/loki/api/v1/query_range`，查询语句为 LogQL。Elasticsearch 日志数据源的连通检查走根路径，日志查询走 `/_search`，查询语句为 Query DSL 或普通检索语句，索引模式和时间字段随数据源保存。
 
 ### 4.2 规则
 

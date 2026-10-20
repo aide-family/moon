@@ -8,12 +8,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { failureText } from "@/lib/form-error"
 
-export function MetadataPanel({ uid }: { uid: string }) {
+export function MetadataPanel({ uid, driver }: { uid: string; driver: string }) {
   const { t } = useTranslation()
   const [metrics, setMetrics] = useState<DatasourceMetricItem[]>([])
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState("")
   const [attempt, setAttempt] = useState(0)
+  const isVictoriaMetrics = driver === "METRICS_VICTORIA_METRICS"
 
   useEffect(() => {
     let active = true
@@ -57,12 +58,22 @@ export function MetadataPanel({ uid }: { uid: string }) {
     )
   }
   if (metrics.length === 0) {
-    return <p className="text-sm text-muted-foreground">{t("datasource.metadataEmpty")}</p>
+    return (
+      <div className="grid gap-2">
+        {isVictoriaMetrics ? (
+          <p className="text-sm text-muted-foreground">{t("datasource.vmMetadataNote")}</p>
+        ) : null}
+        <p className="text-sm text-muted-foreground">{t("datasource.metadataEmpty")}</p>
+      </div>
+    )
   }
 
   return (
     <TooltipProvider delayDuration={1500} skipDelayDuration={0}>
     <div className="flex min-h-0 flex-1 flex-col">
+      {isVictoriaMetrics ? (
+        <p className="shrink-0 pb-2 text-sm text-muted-foreground">{t("datasource.vmMetadataNote")}</p>
+      ) : null}
       <Table>
         <TableHeader>
           <TableRow>

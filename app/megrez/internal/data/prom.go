@@ -7,13 +7,13 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 
 	"github.com/aide-family/Alioth/app/megrez/internal/data/repository"
 	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
 	"github.com/aide-family/Alioth/pkg/merr"
+	"github.com/aide-family/Alioth/pkg/upstream"
 )
 
 var promClient = &http.Client{Timeout: 10 * time.Second}
@@ -25,13 +25,9 @@ func NewRangeQuery() repository.RangeQuery {
 }
 
 func (promQuery) QueryRange(ctx context.Context, item bo.RuleSnapshot, start, end, step int64) ([]bo.Sample, error) {
-	base, err := url.Parse(item.Endpoint)
-	if err != nil || base.Host == "" || (base.Scheme != "http" && base.Scheme != "https") {
-		return nil, merr.Invalid("invalid request")
-	}
-	target := base.ResolveReference(&url.URL{Path: "/api/v1/query_range"})
-	if target.Host != base.Host {
-		return nil, merr.Invalid("invalid request")
+	target, err := upstream.Resolve(item.Endpoint, "/api/v1/query_range")
+	if err != nil {
+		return nil, err
 	}
 	query := target.Query()
 	query.Set("query", item.Expr)

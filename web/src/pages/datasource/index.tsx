@@ -443,7 +443,7 @@ export function DatasourcePage() {
                 </TabsContent>
                 <TabsContent value="metadata" className="flex min-h-0 flex-1 flex-col overflow-hidden">
                   {current.type === "METRICS" ? (
-                    <MetadataPanel uid={current.uid} />
+                    <MetadataPanel uid={current.uid} driver={current.driver} />
                   ) : (
                     <p className="text-sm text-muted-foreground">{t("datasource.metadataMetricsOnly")}</p>
                   )}
