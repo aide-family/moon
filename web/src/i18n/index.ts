@@ -32,6 +32,7 @@ const zh = {
   },
   action: {
     save: "保存",
+    saving: "保存中…",
     create: "新建",
     cancel: "取消",
     refresh: "刷新",
@@ -143,9 +144,11 @@ const zh = {
   },
   profile: {
     title: "个人资料",
-    description: "查看邮箱并修改备注。",
+    description: "查看账号信息，维护备注。",
     remark: "备注",
-    remarkPlaceholder: "写一点备注",
+    remarkPlaceholder: "可选备注",
+    remarkHint: "可选。平台管理员可在用户详情中看到这条备注，最多 200 个字符。",
+    status: "状态",
     saved: "已保存",
   },
   namespace: {
@@ -844,6 +847,7 @@ const en = {
   },
   action: {
     save: "Save",
+    saving: "Saving…",
     create: "Create",
     cancel: "Cancel",
     refresh: "Refresh",
@@ -953,9 +957,12 @@ const en = {
   },
   profile: {
     title: "Profile",
-    description: "View your email and update the remark.",
+    description: "View your account details and update the remark.",
     remark: "Remark",
-    remarkPlaceholder: "Add a remark",
+    remarkPlaceholder: "Optional remark",
+    remarkHint:
+      "Optional. Platform admins can see this remark in your user details. Up to 200 characters.",
+    status: "Status",
     saved: "Saved",
   },
   namespace: {

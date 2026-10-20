@@ -2,6 +2,16 @@
 
 只记录用户确认后、之后每次做界面都要遵守的决定。新条目加在最上面。
 
+## 2026-10-21 个人资料页与同类设置页
+
+适用：个人资料页，以及以后同类的「只读信息 + 少量可编辑项」设置页。
+
+- 一张 `Card`：`CardHeader` 用 `CardTitle`（16px，身份取昵称/名称/邮箱）+ `CardDescription`（14px muted 邮箱，`break-all`）。只读字段放 `CardContent` 的 `dl`（`grid gap-4 sm:grid-cols-2`，每项 `grid gap-1`，`dt` 用 `text-sm text-muted-foreground`），不要在手写 `<p>` 里拼「标签: 值」。
+- 只读区与表单之间放 `Separator`，`CardContent` 用 `grid gap-6`。
+- 主操作放 `CardFooter`（`justify-end gap-2`）右对齐，不拉满卡片宽度；保存状态用 `role="status"` 放按钮左侧 `mr-auto`。表单用 `id` 与按钮 `form` 关联。
+- 宽度 `max-w-2xl`；内容卡用 `glass-card`；页面根节点不滚动，滚动交给内层 `min-h-0 flex-1 overflow-y-auto`。
+- 加载态在同一张卡里用 `Skeleton`（身份取 session，只给可编辑项占位），失败态在卡内给 `text-sm text-destructive` + `variant="outline"` 重试。
+
 ## 2026-10-19 重复条件卡片
 
 适用：告警规则级别条件，以及以后同类的重复条件卡片。
