@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/pkg/merr"
@@ -15,16 +14,34 @@ func (r *userRepo) CreateUser(ctx context.Context, in bo.Account) (*bo.Account, 
 	if in.Status == "BANNED" {
 		status = user.StatusBANNED
 	}
-	row, err := r.client.User.Create().
-		SetUID(in.UID).
-		SetName(in.Name).
-		SetNickname(in.Nickname).
-		SetEmail(in.Email).
-		SetAvatar(in.Avatar).
-		SetRemark(in.Remark).
-		SetStatus(status).
-		SetPasswordHash(in.PasswordHash).
-		Save(ctx)
+	count, err := r.client.User.Query().Count(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	systemRole := user.SystemRoleUSER
+	if count == 0 {
+		systemRole = user.SystemRoleSUPER_ADMIN
+	}
+	create := func(role user.SystemRole) (*ent.User, error) {
+		return r.client.User.Create().
+			SetUID(in.UID).
+			SetName(in.Name).
+			SetNickname(in.Nickname).
+			SetEmail(in.Email).
+			SetAvatar(in.Avatar).
+			SetRemark(in.Remark).
+			SetStatus(status).
+			SetPasswordHash(in.PasswordHash).
+			SetSystemRole(role).
+			Save(ctx)
+	}
+	row, err := create(systemRole)
+	if err != nil && systemRole == user.SystemRoleSUPER_ADMIN {
+		// 并发注册时另一个请求已经拿到唯一超级管理员，当前用户按普通用户创建。
+		if ent.IsConstraintError(err) {
+			row, err = create(user.SystemRoleUSER)
+		}
+	}
 	if err != nil {
 		return nil, r.fail(err)
 	}
@@ -88,28 +105,29 @@ func (r *userRepo) UpdateUserStatus(ctx context.Context, uid, status string) (*b
 	return r.UserByUID(ctx, uid)
 }
 
-func (r *userRepo) UserInNamespace(ctx context.Context, namespaceUID, userUID string) (bool, error) {
-	ok, err := r.client.Member.Query().Where(
-		member.NamespaceUIDEQ(namespaceUID),
-		member.UserUIDEQ(userUID),
-		member.DeletedAtIsNil(),
-		member.StatusEQ(member.StatusJOINED),
-	).Exist(ctx)
-	if err != nil {
-		return false, r.fail(err)
+func (r *userRepo) UpdateUserSystemRole(ctx context.Context, uid, role, authorizedBy string) (*bo.Account, error) {
+	value := user.SystemRole(role)
+	switch value {
+	case user.SystemRoleSYSTEM_ADMIN, user.SystemRoleUSER:
+	default:
+		return nil, merr.Invalid("invalid request")
 	}
-	return ok, nil
+	n, err := r.client.User.Update().
+		Where(user.UIDEQ(uid)).
+		SetSystemRole(value).
+		SetAuthorizedBy(authorizedBy).
+		Save(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	if n == 0 {
+		return nil, merr.NotFound("not found")
+	}
+	return r.UserByUID(ctx, uid)
 }
 
-func (r *userRepo) ListUsers(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.Account, int, error) {
-	uids, err := r.namespaceUserUIDs(ctx, namespaceUID)
-	if err != nil {
-		return nil, 0, err
-	}
-	if len(uids) == 0 {
-		return []bo.Account{}, 0, nil
-	}
-	query := r.client.User.Query().Where(user.UIDIn(uids...))
+func (r *userRepo) ListUsers(ctx context.Context, page, pageSize int, name string) ([]bo.Account, int, error) {
+	query := r.client.User.Query()
 	if name != "" {
 		query = query.Where(user.Or(user.NameContainsFold(name), user.EmailContainsFold(name)))
 	}
@@ -128,15 +146,8 @@ func (r *userRepo) ListUsers(ctx context.Context, namespaceUID string, page, pag
 	return items, total, nil
 }
 
-func (r *userRepo) SelectUsers(ctx context.Context, namespaceUID string, limit int, lastUID string) ([]bo.SelectItem, error) {
-	uids, err := r.namespaceUserUIDs(ctx, namespaceUID)
-	if err != nil {
-		return nil, err
-	}
-	if len(uids) == 0 {
-		return []bo.SelectItem{}, nil
-	}
-	query := r.client.User.Query().Where(user.UIDIn(uids...))
+func (r *userRepo) SelectUsers(ctx context.Context, limit int, lastUID string) ([]bo.SelectItem, error) {
+	query := r.client.User.Query()
 	if lastUID != "" {
 		query = query.Where(user.UIDGT(lastUID))
 	}
@@ -155,23 +166,6 @@ func (r *userRepo) SelectUsers(ctx context.Context, namespaceUID string, limit i
 	return items, nil
 }
 
-// namespaceUserUIDs 返回当前租户内已加入的成员用户。用户是全局实体，管理操作必须限定在这个集合内。
-func (r *userRepo) namespaceUserUIDs(ctx context.Context, namespaceUID string) ([]string, error) {
-	rows, err := r.client.Member.Query().Where(
-		member.NamespaceUIDEQ(namespaceUID),
-		member.DeletedAtIsNil(),
-		member.StatusEQ(member.StatusJOINED),
-	).All(ctx)
-	if err != nil {
-		return nil, r.fail(err)
-	}
-	uids := make([]string, 0, len(rows))
-	for _, row := range rows {
-		uids = append(uids, row.UserUID)
-	}
-	return uids, nil
-}
-
 func toAccount(row *ent.User) bo.Account {
 	return bo.Account{
 		UID:          row.UID,
@@ -182,5 +176,7 @@ func toAccount(row *ent.User) bo.Account {
 		Remark:       row.Remark,
 		Status:       string(row.Status),
 		PasswordHash: row.PasswordHash,
+		SystemRole:   string(row.SystemRole),
+		AuthorizedBy: row.AuthorizedBy,
 	}
 }

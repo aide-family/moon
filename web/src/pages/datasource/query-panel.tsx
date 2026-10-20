@@ -32,21 +32,13 @@ import {
   toTableRows,
   type PrometheusApiResponse,
 } from "@/pages/datasource/prometheus"
+import { LokiPanel } from "@/pages/datasource/loki-panel"
+import { resolveRange, type RangePreset } from "@/pages/datasource/range"
 
 const areaClass =
   "min-h-24 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
 
-type RangePreset = "1h" | "3h" | "6h" | "12h" | "1d" | "7d" | "custom"
 type ResultTab = "table" | "graph" | "json"
-
-const RANGE_PRESET_SECONDS: Record<Exclude<RangePreset, "custom">, number> = {
-  "1h": 3600,
-  "3h": 10800,
-  "6h": 21600,
-  "12h": 43200,
-  "1d": 86400,
-  "7d": 604800,
-}
 
 const CHART_COLORS = [
   "#1677ff",
@@ -559,18 +551,8 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
   const tableResponse = instantResponse ?? rangeResponse
   const graphResponse = rangeResponse
 
-  function resolveRange(): { start: number; end: number } {
-    if (rangePreset === "custom") {
-      return {
-        start: Number(customStart),
-        end: Number(customEnd),
-      }
-    }
-    const end = Math.floor(Date.now() / 1000)
-    return {
-      start: end - RANGE_PRESET_SECONDS[rangePreset],
-      end,
-    }
+  function resolveQueryRange(): { start: number; end: number } {
+    return resolveRange(rangePreset, customStart, customEnd)
   }
 
   async function runMetricsQuery() {
@@ -581,7 +563,7 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
       return
     }
     setExprError("")
-    const range = resolveRange()
+    const range = resolveQueryRange()
     const stepSeconds = Number(step)
     if (!Number.isFinite(range.start) || !Number.isFinite(range.end) || range.end <= range.start) {
       setQueryError(t("datasource.rangeInvalid"))
@@ -648,6 +630,10 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
     } finally {
       setPending(false)
     }
+  }
+
+  if (datasource.type === "LOGS" && datasource.driver === "LOGS_LOKI") {
+    return <LokiPanel datasource={datasource} />
   }
 
   if (datasource.type !== "METRICS") {

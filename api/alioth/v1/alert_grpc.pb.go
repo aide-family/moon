@@ -51,7 +51,7 @@ type DatasourceServiceClient interface {
 	ListDatasources(ctx context.Context, in *ListDatasourcesRequest, opts ...grpc.CallOption) (*ListDatasourcesResponse, error)
 	// 下拉选择数据源。
 	SelectDatasources(ctx context.Context, in *SelectDatasourcesRequest, opts ...grpc.CallOption) (*SelectDatasourcesResponse, error)
-	// 查看指标数据源是否可连通。
+	// 查看数据源是否可连通。支持指标数据源和 Loki 日志数据源。
 	GetDatasourceStatus(ctx context.Context, in *GetDatasourceStatusRequest, opts ...grpc.CallOption) (*GetDatasourceStatusResponse, error)
 	// 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(ctx context.Context, in *ListDatasourceMetricsRequest, opts ...grpc.CallOption) (*ListDatasourceMetricsResponse, error)
@@ -187,7 +187,7 @@ type DatasourceServiceServer interface {
 	ListDatasources(context.Context, *ListDatasourcesRequest) (*ListDatasourcesResponse, error)
 	// 下拉选择数据源。
 	SelectDatasources(context.Context, *SelectDatasourcesRequest) (*SelectDatasourcesResponse, error)
-	// 查看指标数据源是否可连通。
+	// 查看数据源是否可连通。支持指标数据源和 Loki 日志数据源。
 	GetDatasourceStatus(context.Context, *GetDatasourceStatusRequest) (*GetDatasourceStatusResponse, error)
 	// 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(context.Context, *ListDatasourceMetricsRequest) (*ListDatasourceMetricsResponse, error)
@@ -502,7 +502,7 @@ type MetricQueryServiceClient interface {
 	QueryMetric(ctx context.Context, in *QueryMetricRequest, opts ...grpc.CallOption) (*QueryMetricResponse, error)
 	// 对指标数据源做区间查询。
 	QueryMetricRange(ctx context.Context, in *QueryMetricRangeRequest, opts ...grpc.CallOption) (*QueryMetricRangeResponse, error)
-	// 把查询转发到数据源。Logs 和 Trace 只走这条，不产生评测记录。
+	// 把查询原样转发到数据源。未单独建模的日志和链路查询走这条，不产生评测记录。
 	ProxyQuery(ctx context.Context, in *ProxyQueryRequest, opts ...grpc.CallOption) (*ProxyQueryResponse, error)
 }
 
@@ -554,7 +554,7 @@ type MetricQueryServiceServer interface {
 	QueryMetric(context.Context, *QueryMetricRequest) (*QueryMetricResponse, error)
 	// 对指标数据源做区间查询。
 	QueryMetricRange(context.Context, *QueryMetricRangeRequest) (*QueryMetricRangeResponse, error)
-	// 把查询转发到数据源。Logs 和 Trace 只走这条，不产生评测记录。
+	// 把查询原样转发到数据源。未单独建模的日志和链路查询走这条，不产生评测记录。
 	ProxyQuery(context.Context, *ProxyQueryRequest) (*ProxyQueryResponse, error)
 	mustEmbedUnimplementedMetricQueryServiceServer()
 }

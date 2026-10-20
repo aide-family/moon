@@ -49,11 +49,26 @@ func (s *MemberService) SelectMembers(ctx context.Context, req *v1.SelectMembers
 }
 
 func (s *MemberService) InviteMember(ctx context.Context, req *v1.InviteMemberRequest) (*v1.InviteMemberResponse, error) {
-	item, err := s.members.InviteMember(ctx, req.GetEmail(), req.GetRoleUid())
+	item, sent, err := s.members.InviteMember(ctx, req.GetEmail(), req.GetRoleUid())
 	if err != nil {
 		return nil, err
 	}
-	return &v1.InviteMemberResponse{Member: memberItem(*item)}, nil
+	return &v1.InviteMemberResponse{Invitation: inviteItem(*item), EmailSent: sent}, nil
+}
+
+func (s *MemberService) ListMemberInvites(ctx context.Context, _ *v1.ListMemberInvitesRequest) (*v1.ListMemberInvitesResponse, error) {
+	items, err := s.members.ListInvites(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListMemberInvitesResponse{Items: inviteItems(items)}, nil
+}
+
+func (s *MemberService) RevokeMemberInvite(ctx context.Context, req *v1.RevokeMemberInviteRequest) (*v1.RevokeMemberInviteResponse, error) {
+	if err := s.members.RevokeInvite(ctx, req.GetUid()); err != nil {
+		return nil, err
+	}
+	return &v1.RevokeMemberInviteResponse{}, nil
 }
 
 func (s *MemberService) DeleteMember(ctx context.Context, req *v1.DeleteMemberRequest) (*v1.DeleteMemberResponse, error) {

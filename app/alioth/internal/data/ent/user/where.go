@@ -99,6 +99,11 @@ func PasswordHash(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldPasswordHash, v))
 }
 
+// AuthorizedBy applies equality check predicate on the "authorized_by" field. It's identical to AuthorizedByEQ.
+func AuthorizedBy(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldAuthorizedBy, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -652,6 +657,91 @@ func PasswordHashEqualFold(v string) predicate.User {
 // PasswordHashContainsFold applies the ContainsFold predicate on the "password_hash" field.
 func PasswordHashContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldPasswordHash, v))
+}
+
+// SystemRoleEQ applies the EQ predicate on the "system_role" field.
+func SystemRoleEQ(v SystemRole) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldSystemRole, v))
+}
+
+// SystemRoleNEQ applies the NEQ predicate on the "system_role" field.
+func SystemRoleNEQ(v SystemRole) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldSystemRole, v))
+}
+
+// SystemRoleIn applies the In predicate on the "system_role" field.
+func SystemRoleIn(vs ...SystemRole) predicate.User {
+	return predicate.User(sql.FieldIn(FieldSystemRole, vs...))
+}
+
+// SystemRoleNotIn applies the NotIn predicate on the "system_role" field.
+func SystemRoleNotIn(vs ...SystemRole) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldSystemRole, vs...))
+}
+
+// AuthorizedByEQ applies the EQ predicate on the "authorized_by" field.
+func AuthorizedByEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldAuthorizedBy, v))
+}
+
+// AuthorizedByNEQ applies the NEQ predicate on the "authorized_by" field.
+func AuthorizedByNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldAuthorizedBy, v))
+}
+
+// AuthorizedByIn applies the In predicate on the "authorized_by" field.
+func AuthorizedByIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldAuthorizedBy, vs...))
+}
+
+// AuthorizedByNotIn applies the NotIn predicate on the "authorized_by" field.
+func AuthorizedByNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldAuthorizedBy, vs...))
+}
+
+// AuthorizedByGT applies the GT predicate on the "authorized_by" field.
+func AuthorizedByGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldAuthorizedBy, v))
+}
+
+// AuthorizedByGTE applies the GTE predicate on the "authorized_by" field.
+func AuthorizedByGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldAuthorizedBy, v))
+}
+
+// AuthorizedByLT applies the LT predicate on the "authorized_by" field.
+func AuthorizedByLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldAuthorizedBy, v))
+}
+
+// AuthorizedByLTE applies the LTE predicate on the "authorized_by" field.
+func AuthorizedByLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldAuthorizedBy, v))
+}
+
+// AuthorizedByContains applies the Contains predicate on the "authorized_by" field.
+func AuthorizedByContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldAuthorizedBy, v))
+}
+
+// AuthorizedByHasPrefix applies the HasPrefix predicate on the "authorized_by" field.
+func AuthorizedByHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldAuthorizedBy, v))
+}
+
+// AuthorizedByHasSuffix applies the HasSuffix predicate on the "authorized_by" field.
+func AuthorizedByHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldAuthorizedBy, v))
+}
+
+// AuthorizedByEqualFold applies the EqualFold predicate on the "authorized_by" field.
+func AuthorizedByEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldAuthorizedBy, v))
+}
+
+// AuthorizedByContainsFold applies the ContainsFold predicate on the "authorized_by" field.
+func AuthorizedByContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldAuthorizedBy, v))
 }
 
 // And groups predicates with the AND operator between them.

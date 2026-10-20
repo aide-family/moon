@@ -26,3 +26,8 @@ export function banUser(uid: string): Promise<{ user: UserItem }> {
 export function permitUser(uid: string): Promise<{ user: UserItem }> {
   return put<{ user: UserItem }>(`/user/permit/${uid}`)
 }
+
+/** PUT /v1/user/{uid}/system-role */
+export function updateUserSystemRole(uid: string, role: string): Promise<{ user: UserItem }> {
+  return put<{ user: UserItem }>(`/user/${uid}/system-role`, { uid, role })
+}

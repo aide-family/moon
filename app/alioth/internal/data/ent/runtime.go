@@ -19,6 +19,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/k8sproxyaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelog"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
@@ -36,6 +37,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sftpaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommandaudit"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/systemmessage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useralertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useroauth"
@@ -605,6 +607,49 @@ func init() {
 	memberDescUserUID := memberFields[2].Descriptor()
 	// member.UserUIDValidator is a validator for the "user_uid" field. It is called by the builders before save.
 	member.UserUIDValidator = memberDescUserUID.Validators[0].(func(string) error)
+	memberinviteMixin := schema.MemberInvite{}.Mixin()
+	memberinviteMixinFields0 := memberinviteMixin[0].Fields()
+	_ = memberinviteMixinFields0
+	memberinviteFields := schema.MemberInvite{}.Fields()
+	_ = memberinviteFields
+	// memberinviteDescCreatedAt is the schema descriptor for created_at field.
+	memberinviteDescCreatedAt := memberinviteMixinFields0[0].Descriptor()
+	// memberinvite.DefaultCreatedAt holds the default value on creation for the created_at field.
+	memberinvite.DefaultCreatedAt = memberinviteDescCreatedAt.Default.(func() time.Time)
+	// memberinviteDescUpdatedAt is the schema descriptor for updated_at field.
+	memberinviteDescUpdatedAt := memberinviteMixinFields0[1].Descriptor()
+	// memberinvite.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	memberinvite.DefaultUpdatedAt = memberinviteDescUpdatedAt.Default.(func() time.Time)
+	// memberinvite.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	memberinvite.UpdateDefaultUpdatedAt = memberinviteDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// memberinviteDescUID is the schema descriptor for uid field.
+	memberinviteDescUID := memberinviteFields[0].Descriptor()
+	// memberinvite.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	memberinvite.UIDValidator = memberinviteDescUID.Validators[0].(func(string) error)
+	// memberinviteDescNamespaceUID is the schema descriptor for namespace_uid field.
+	memberinviteDescNamespaceUID := memberinviteFields[1].Descriptor()
+	// memberinvite.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	memberinvite.NamespaceUIDValidator = memberinviteDescNamespaceUID.Validators[0].(func(string) error)
+	// memberinviteDescEmail is the schema descriptor for email field.
+	memberinviteDescEmail := memberinviteFields[2].Descriptor()
+	// memberinvite.EmailValidator is a validator for the "email" field. It is called by the builders before save.
+	memberinvite.EmailValidator = memberinviteDescEmail.Validators[0].(func(string) error)
+	// memberinviteDescUserUID is the schema descriptor for user_uid field.
+	memberinviteDescUserUID := memberinviteFields[3].Descriptor()
+	// memberinvite.DefaultUserUID holds the default value on creation for the user_uid field.
+	memberinvite.DefaultUserUID = memberinviteDescUserUID.Default.(string)
+	// memberinviteDescRoleUID is the schema descriptor for role_uid field.
+	memberinviteDescRoleUID := memberinviteFields[4].Descriptor()
+	// memberinvite.RoleUIDValidator is a validator for the "role_uid" field. It is called by the builders before save.
+	memberinvite.RoleUIDValidator = memberinviteDescRoleUID.Validators[0].(func(string) error)
+	// memberinviteDescInviterUID is the schema descriptor for inviter_uid field.
+	memberinviteDescInviterUID := memberinviteFields[5].Descriptor()
+	// memberinvite.InviterUIDValidator is a validator for the "inviter_uid" field. It is called by the builders before save.
+	memberinvite.InviterUIDValidator = memberinviteDescInviterUID.Validators[0].(func(string) error)
+	// memberinviteDescTokenHash is the schema descriptor for token_hash field.
+	memberinviteDescTokenHash := memberinviteFields[6].Descriptor()
+	// memberinvite.TokenHashValidator is a validator for the "token_hash" field. It is called by the builders before save.
+	memberinvite.TokenHashValidator = memberinviteDescTokenHash.Validators[0].(func(string) error)
 	memberroleMixin := schema.MemberRole{}.Mixin()
 	memberroleMixinFields0 := memberroleMixin[0].Fields()
 	_ = memberroleMixinFields0
@@ -1285,6 +1330,53 @@ func init() {
 	sshcommandauditDescDetail := sshcommandauditFields[11].Descriptor()
 	// sshcommandaudit.DefaultDetail holds the default value on creation for the detail field.
 	sshcommandaudit.DefaultDetail = sshcommandauditDescDetail.Default.(string)
+	systemmessageMixin := schema.SystemMessage{}.Mixin()
+	systemmessageMixinFields0 := systemmessageMixin[0].Fields()
+	_ = systemmessageMixinFields0
+	systemmessageFields := schema.SystemMessage{}.Fields()
+	_ = systemmessageFields
+	// systemmessageDescCreatedAt is the schema descriptor for created_at field.
+	systemmessageDescCreatedAt := systemmessageMixinFields0[0].Descriptor()
+	// systemmessage.DefaultCreatedAt holds the default value on creation for the created_at field.
+	systemmessage.DefaultCreatedAt = systemmessageDescCreatedAt.Default.(func() time.Time)
+	// systemmessageDescUpdatedAt is the schema descriptor for updated_at field.
+	systemmessageDescUpdatedAt := systemmessageMixinFields0[1].Descriptor()
+	// systemmessage.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	systemmessage.DefaultUpdatedAt = systemmessageDescUpdatedAt.Default.(func() time.Time)
+	// systemmessage.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	systemmessage.UpdateDefaultUpdatedAt = systemmessageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// systemmessageDescUID is the schema descriptor for uid field.
+	systemmessageDescUID := systemmessageFields[0].Descriptor()
+	// systemmessage.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	systemmessage.UIDValidator = systemmessageDescUID.Validators[0].(func(string) error)
+	// systemmessageDescUserUID is the schema descriptor for user_uid field.
+	systemmessageDescUserUID := systemmessageFields[1].Descriptor()
+	// systemmessage.DefaultUserUID holds the default value on creation for the user_uid field.
+	systemmessage.DefaultUserUID = systemmessageDescUserUID.Default.(string)
+	// systemmessageDescEmail is the schema descriptor for email field.
+	systemmessageDescEmail := systemmessageFields[2].Descriptor()
+	// systemmessage.DefaultEmail holds the default value on creation for the email field.
+	systemmessage.DefaultEmail = systemmessageDescEmail.Default.(string)
+	// systemmessageDescActorName is the schema descriptor for actor_name field.
+	systemmessageDescActorName := systemmessageFields[4].Descriptor()
+	// systemmessage.DefaultActorName holds the default value on creation for the actor_name field.
+	systemmessage.DefaultActorName = systemmessageDescActorName.Default.(string)
+	// systemmessageDescNamespaceUID is the schema descriptor for namespace_uid field.
+	systemmessageDescNamespaceUID := systemmessageFields[5].Descriptor()
+	// systemmessage.DefaultNamespaceUID holds the default value on creation for the namespace_uid field.
+	systemmessage.DefaultNamespaceUID = systemmessageDescNamespaceUID.Default.(string)
+	// systemmessageDescNamespaceName is the schema descriptor for namespace_name field.
+	systemmessageDescNamespaceName := systemmessageFields[6].Descriptor()
+	// systemmessage.DefaultNamespaceName holds the default value on creation for the namespace_name field.
+	systemmessage.DefaultNamespaceName = systemmessageDescNamespaceName.Default.(string)
+	// systemmessageDescRoleName is the schema descriptor for role_name field.
+	systemmessageDescRoleName := systemmessageFields[7].Descriptor()
+	// systemmessage.DefaultRoleName holds the default value on creation for the role_name field.
+	systemmessage.DefaultRoleName = systemmessageDescRoleName.Default.(string)
+	// systemmessageDescInviteUID is the schema descriptor for invite_uid field.
+	systemmessageDescInviteUID := systemmessageFields[8].Descriptor()
+	// systemmessage.DefaultInviteUID holds the default value on creation for the invite_uid field.
+	systemmessage.DefaultInviteUID = systemmessageDescInviteUID.Default.(string)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0
@@ -1328,6 +1420,10 @@ func init() {
 	userDescPasswordHash := userFields[7].Descriptor()
 	// user.DefaultPasswordHash holds the default value on creation for the password_hash field.
 	user.DefaultPasswordHash = userDescPasswordHash.Default.(string)
+	// userDescAuthorizedBy is the schema descriptor for authorized_by field.
+	userDescAuthorizedBy := userFields[9].Descriptor()
+	// user.DefaultAuthorizedBy holds the default value on creation for the authorized_by field.
+	user.DefaultAuthorizedBy = userDescAuthorizedBy.Default.(string)
 	useralertpageMixin := schema.UserAlertPage{}.Mixin()
 	useralertpageMixinFields0 := useralertpageMixin[0].Fields()
 	_ = useralertpageMixinFields0

@@ -9,6 +9,11 @@ const messageKeys: Record<string, string> = {
   "invalid email or password": "error.invalidLogin",
   "invalid email or code": "error.invalidCode",
   "email is not registered": "error.emailNotRegistered",
+  "member already exists": "error.memberExists",
+  "invitation expired": "error.invitationExpired",
+  "invitation is not pending": "error.invitationHandled",
+  "invitation belongs to another user": "error.invitationNotYours",
+  "invitation email does not match": "error.invitationNotYours",
 }
 
 const fieldByMessage: Record<string, string> = {
@@ -137,13 +142,22 @@ export async function request(path: string, init: RequestInit = {}, retry = true
     }
     clearSession()
   }
-  if (response.status === 403 && window.location.pathname !== "/forbidden") {
+  if (
+    response.status === 403 &&
+    !path.startsWith("/invitation/") &&
+    window.location.pathname !== "/forbidden"
+  ) {
     window.location.assign("/forbidden")
   }
   return response
 }
 
-export async function send<T>(path: string, init: RequestInit = {}): Promise<T> {
+export interface RequestOptions {
+  // 后台轮询和列表加载由页面自己展示错误，不弹全局 toast。
+  silent?: boolean
+}
+
+export async function send<T>(path: string, init: RequestInit = {}, options: RequestOptions = {}): Promise<T> {
   const response = await request(path, init)
   const text = await response.text()
   let data: { message?: string } = {}
@@ -158,7 +172,7 @@ export async function send<T>(path: string, init: RequestInit = {}): Promise<T> 
     const raw = data.message || `request failed: ${response.status}`
     const message = localizeMessage(raw)
     const fields = response.status === 400 ? parseFieldErrors(raw) : {}
-    if (response.status === 404 || response.status >= 500) {
+    if (!options.silent && (response.status === 404 || response.status >= 500)) {
       notifyStatus(response.status, message)
     }
     throw new ApiError(response.status, message, fields)
@@ -170,6 +184,7 @@ export function get<T>(
   path: string,
   params?: object,
   init?: RequestInit,
+  options?: RequestOptions,
 ): Promise<T> {
   const query = new URLSearchParams()
   for (const [key, value] of Object.entries(params ?? {})) {
@@ -182,7 +197,7 @@ export function get<T>(
     query.set(key, String(value))
   }
   const suffix = query.size > 0 ? `?${query.toString()}` : ""
-  return send<T>(`${path}${suffix}`, init)
+  return send<T>(`${path}${suffix}`, init, options)
 }
 
 export function post<T>(path: string, body?: unknown): Promise<T> {

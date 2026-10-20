@@ -21,7 +21,7 @@ func (Datasource) Fields() []ent.Field {
 		field.String("namespace_uid").NotEmpty(),
 		field.String("name").NotEmpty(),
 		field.Enum("type").Values("METRICS", "LOGS", "TRACE"),
-		field.Enum("driver").Values("METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "TRACE_JAEGER"),
+		field.Enum("driver").Values("METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"),
 		field.String("endpoint").NotEmpty(),
 		field.String("username").Default(""),
 		field.String("password_cipher").Sensitive().Default(""),

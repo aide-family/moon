@@ -165,12 +165,20 @@ service MemberService {
   rpc SelectMembers(SelectMembersRequest) returns (SelectMembersResponse) {
     option (google.api.http) = {get: "/v1/members/select"};
   }
-  // 邀请已注册用户加入当前租户。不能指定 owner。
+  // 邀请用户加入当前租户。被邀请人同意后才会成为成员。不能指定 owner。
   rpc InviteMember(InviteMemberRequest) returns (InviteMemberResponse) {
     option (google.api.http) = {
       post: "/v1/member/invite"
       body: "*"
     };
+  }
+  // 列出当前租户等待确认的邀请。
+  rpc ListMemberInvites(ListMemberInvitesRequest) returns (ListMemberInvitesResponse) {
+    option (google.api.http) = {get: "/v1/member-invites"};
+  }
+  // 撤销一条等待确认的邀请。
+  rpc RevokeMemberInvite(RevokeMemberInviteRequest) returns (RevokeMemberInviteResponse) {
+    option (google.api.http) = {delete: "/v1/member/invite/{uid}"};
   }
   // 把成员移出当前租户。
   rpc DeleteMember(DeleteMemberRequest) returns (DeleteMemberResponse) {
@@ -213,6 +221,39 @@ service UserService {
   // 解除封禁，用户可以再次登录。
   rpc PermitUser(PermitUserRequest) returns (PermitUserResponse) {
     option (google.api.http) = {put: "/v1/user/permit/{uid}"};
+  }
+  // 授权或撤销系统管理员。只有超级管理员可以调用。
+  rpc UpdateUserSystemRole(UpdateUserSystemRoleRequest) returns (UpdateUserSystemRoleResponse) {
+    option (google.api.http) = {
+      put: "/v1/user/{uid}/system-role"
+      body: "*"
+    };
+  }
+}
+
+// 平台邀请消息。邀请独立于租户成员，必须由用户在平台确认。
+service InvitationService {
+  // 列出当前用户的平台邀请消息。
+  rpc ListSelfInvitations(ListSelfInvitationsRequest) returns (ListSelfInvitationsResponse) {
+    option (google.api.http) = {get: "/v1/self/invitations"};
+  }
+  // 按邮件链接里的令牌查看邀请函。此接口不需要登录。
+  rpc GetInvitation(GetInvitationRequest) returns (GetInvitationResponse) {
+    option (google.api.http) = {get: "/v1/invitation/{token}"};
+  }
+  // 同意邀请，成为租户成员。邮件链接用 token，平台消息用 uid。
+  rpc AcceptInvitation(AcceptInvitationRequest) returns (AcceptInvitationResponse) {
+    option (google.api.http) = {
+      post: "/v1/invitation/accept"
+      body: "*"
+    };
+  }
+  // 拒绝邀请，不会创建成员。
+  rpc DeclineInvitation(DeclineInvitationRequest) returns (DeclineInvitationResponse) {
+    option (google.api.http) = {
+      post: "/v1/invitation/decline"
+      body: "*"
+    };
   }
 }
 
@@ -268,6 +309,26 @@ service RoleService {
   }
 }
 
+// 平台系统消息。邀请收到、同意和拒绝都会产生一条消息。
+service SystemMessageService {
+  // 分页列出当前用户的系统消息。
+  rpc ListSelfMessages(ListSelfMessagesRequest) returns (ListSelfMessagesResponse) {
+    option (google.api.http) = {get: "/v1/self/messages"};
+  }
+  // 当前用户的未读消息数。
+  rpc GetUnreadMessageCount(GetUnreadMessageCountRequest) returns (GetUnreadMessageCountResponse) {
+    option (google.api.http) = {get: "/v1/self/messages/unread-count"};
+  }
+  // 标记一条消息为已读。
+  rpc MarkMessageRead(MarkMessageReadRequest) returns (MarkMessageReadResponse) {
+    option (google.api.http) = {put: "/v1/self/messages/{uid}/read"};
+  }
+  // 标记全部消息为已读。
+  rpc MarkAllMessagesRead(MarkAllMessagesReadRequest) returns (MarkAllMessagesReadResponse) {
+    option (google.api.http) = {put: "/v1/self/messages/read-all"};
+  }
+}
+
 // 用户资料。响应中不含密码。
 message UserItem {
   // 标识。
@@ -284,6 +345,10 @@ message UserItem {
   string remark = 6;
   // 状态。
   string status = 7;
+  // 平台角色：SUPER_ADMIN、SYSTEM_ADMIN 或 USER。
+  string system_role = 8 [json_name = "systemRole"];
+  // 授权该平台角色的超级管理员标识。
+  string authorized_by = 9 [json_name = "authorizedBy"];
 }
 
 // 租户。
@@ -459,6 +524,10 @@ message GetSelfInfoRequest {}
 message GetSelfInfoResponse {
   // 用户资料。
   UserItem user = 1;
+  // 平台角色。
+  string system_role = 2 [json_name = "systemRole"];
+  // 平台权限名列表。和租户权限分开。
+  repeated string system_permissions = 3 [json_name = "systemPermissions"];
 }
 
 // 列出租户不需要参数。
@@ -729,11 +798,53 @@ message InviteMemberRequest {
   string role_uid = 2 [json_name = "roleUid", (buf.validate.field).string.min_len = 1];
 }
 
-// 新成员。
+// 邀请已创建，等待被邀请人确认。
 message InviteMemberResponse {
-  // 成员。
-  MemberItem member = 1;
+  // 邀请消息。
+  MemberInviteItem invitation = 1;
+  // 邀请邮件是否发送成功。失败时用户仍可在平台消息中确认。
+  bool email_sent = 2 [json_name = "emailSent"];
 }
+
+// 租户邀请消息。
+message MemberInviteItem {
+  // 标识。
+  string uid = 1;
+  // 租户标识。
+  string namespace_uid = 2 [json_name = "namespaceUid"];
+  // 租户名称。
+  string namespace_name = 3 [json_name = "namespaceName"];
+  // 被邀请邮箱。
+  string email = 4;
+  // 角色标识。
+  string role_uid = 5 [json_name = "roleUid"];
+  // 角色名称。
+  string role_name = 6 [json_name = "roleName"];
+  // 邀请人名称。
+  string inviter_name = 7 [json_name = "inviterName"];
+  // 状态：PENDING、ACCEPTED、DECLINED、REVOKED、EXPIRED。
+  string status = 8;
+  // 过期时间，Unix 秒。
+  int64 expires_at = 9 [json_name = "expiresAt"];
+  // 创建时间，Unix 秒。
+  int64 created_at = 10 [json_name = "createdAt"];
+  // 邀请发出时邮箱是否已注册。
+  bool registered = 11;
+}
+
+// 租户邀请列表。
+message ListMemberInvitesRequest {}
+message ListMemberInvitesResponse {
+  // 等待确认的邀请。
+  repeated MemberInviteItem items = 1;
+}
+
+// 要撤销的邀请。
+message RevokeMemberInviteRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+message RevokeMemberInviteResponse {}
 
 // 要移出的成员。
 message DeleteMemberRequest {
@@ -842,6 +953,18 @@ message PermitUserRequest {
 
 // 解封后的用户。
 message PermitUserResponse {
+  // 用户资料。
+  UserItem user = 1;
+}
+
+// 修改平台角色的参数。
+message UpdateUserSystemRoleRequest {
+  // 用户标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 目标平台角色：SYSTEM_ADMIN 或 USER。
+  string role = 2 [(buf.validate.field).string = {in: ["SYSTEM_ADMIN", "USER"]}];
+}
+message UpdateUserSystemRoleResponse {
   // 用户资料。
   UserItem user = 1;
 }
@@ -967,3 +1090,98 @@ message ListPermissionsResponse {
   // 当前页数据。
   repeated PermissionItem items = 1;
 }
+
+// 当前用户的平台邀请消息。
+message ListSelfInvitationsRequest {}
+message ListSelfInvitationsResponse {
+  // 邀请消息。
+  repeated MemberInviteItem items = 1;
+}
+
+// 按令牌查看邀请。
+message GetInvitationRequest {
+  // 邮件链接中的邀请令牌。
+  string token = 1 [(buf.validate.field).string.min_len = 1];
+}
+message GetInvitationResponse {
+  // 邀请消息。
+  MemberInviteItem invitation = 1;
+}
+
+// 同意邀请。
+message AcceptInvitationRequest {
+  // 邮件链接中的邀请令牌。与 uid 二选一。
+  string token = 1;
+  // 平台消息里的邀请标识。与 token 二选一。
+  string uid = 2;
+}
+message AcceptInvitationResponse {
+  // 成为成员后的成员资料。
+  MemberItem member = 1;
+}
+
+// 拒绝邀请。
+message DeclineInvitationRequest {
+  // 邮件链接中的邀请令牌。与 uid 二选一。
+  string token = 1;
+  // 平台消息里的邀请标识。与 token 二选一。
+  string uid = 2;
+}
+message DeclineInvitationResponse {}
+
+// 系统消息。
+message SystemMessageItem {
+  // 标识。
+  string uid = 1;
+  // 类型：INVITE_RECEIVED、INVITE_ACCEPTED 或 INVITE_DECLINED。
+  string kind = 2;
+  // 触发这条消息的用户名称。
+  string actor_name = 3 [json_name = "actorName"];
+  // 租户标识。
+  string namespace_uid = 4 [json_name = "namespaceUid"];
+  // 租户名称。
+  string namespace_name = 5 [json_name = "namespaceName"];
+  // 邀请角色名称。
+  string role_name = 6 [json_name = "roleName"];
+  // 是否已读。
+  bool read = 7;
+  // 创建时间，Unix 秒。
+  int64 created_at = 8 [json_name = "createdAt"];
+}
+
+// 当前用户系统消息分页查询。
+message ListSelfMessagesRequest {
+  // 页码。0 表示使用默认页。
+  int32 page = 1 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
+  int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 只看未读。
+  bool unread_only = 3 [json_name = "unreadOnly"];
+}
+message ListSelfMessagesResponse {
+  // 当前页数据。
+  repeated SystemMessageItem items = 1;
+  // 符合条件的总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+  // 当前用户未读总数。
+  int32 unread = 5;
+}
+
+message GetUnreadMessageCountRequest {}
+message GetUnreadMessageCountResponse {
+  // 未读消息数。
+  int32 count = 1;
+}
+
+message MarkMessageReadRequest {
+  // 消息标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+message MarkMessageReadResponse {}
+
+message MarkAllMessagesReadRequest {}
+message MarkAllMessagesReadResponse {}

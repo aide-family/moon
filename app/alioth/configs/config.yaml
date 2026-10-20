@@ -25,6 +25,7 @@ auth:
     - name: merak
       key: ${MERAK_SERVICE_KEY:sk-merak-dev}
   encrypt_key: ${ALIOTH_ENCRYPT_KEY:dev-only-encrypt-key}
+  web_url: ${ALIOTH_WEB_URL:http://127.0.0.1:8080}
   smtp:
     host: ${ALIOTH_SMTP_HOST:127.0.0.1}
     port: 1025

@@ -25,7 +25,15 @@ func (s *SelfService) GetSelfInfo(ctx context.Context, _ *v1.GetSelfInfoRequest)
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetSelfInfoResponse{User: userItem(*account)}, nil
+	role, permissions, err := s.auth.SelfSystem(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetSelfInfoResponse{
+		User:              userItem(*account),
+		SystemRole:        role,
+		SystemPermissions: permissions,
+	}, nil
 }
 
 func (s *SelfService) ListSelfNamespaces(ctx context.Context, _ *v1.ListSelfNamespacesRequest) (*v1.ListSelfNamespacesResponse, error) {

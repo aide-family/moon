@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 
 import { register } from "@/api/auth"
 import { getCaptcha } from "@/api/captcha"
@@ -15,10 +15,19 @@ import {
 import { readFormError } from "@/lib/form-error"
 import { AuthShell } from "@/pages/auth-shell"
 
+function safeNext(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return "/namespaces"
+  }
+  return value
+}
+
 export function RegisterPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const [email, setEmail] = useState("")
+  const [params] = useSearchParams()
+  const next = safeNext(params.get("next"))
+  const [email, setEmail] = useState(params.get("email") ?? "")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
   const [captchaId, setCaptchaId] = useState("")
@@ -94,7 +103,7 @@ export function RegisterPage() {
       })
       localStorage.setItem("token", result.session.accessToken)
       localStorage.setItem("refreshToken", result.session.refreshToken)
-      navigate("/namespaces")
+      navigate(next)
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
       setFieldErrors(failure.fields)
@@ -183,10 +192,13 @@ export function RegisterPage() {
             </Button>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
           </form>
+          <p className="text-sm text-muted-foreground">
+            {t("register.platformHint")}
+          </p>
           <p className="text-sm">
             <Link
               className="text-primary underline-offset-4 hover:underline"
-              to="/login"
+              to={next === "/namespaces" ? "/login" : `/login?next=${encodeURIComponent(next)}`}
             >
               {t("register.hasAccount")}
             </Link>

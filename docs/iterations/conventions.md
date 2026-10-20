@@ -32,7 +32,8 @@ Alioth/
 | 业务对象 | `pkg/bo` | 本应用 biz 使用的结构体 |
 | 权限检查 | `internal/access` | 当前用户在当前租户是否持有权限。不和领域包放在同一目录 |
 | 仓储接口 | `internal/data/repository` | 只放接口，按聚合拆文件。不引用 ent，不写查询 |
-| 存储 | `internal/data` | 实现 `repository`。ent、迁移、种子、外部数据源客户端、SMTP、Webhook、SSH |
+| 存储 | `internal/data` | 实现 `repository`。ent、迁移、种子、外部数据源客户端、Webhook、SSH |
+| 事务邮件 | `internal/mailer` | SMTP 纯文本邮件发送。登录验证码和租户邀请共用，不直接写业务判断 |
 
 同一父目录下的包不能互相 import。父包可以汇总子包的 Wire `ProviderSet`。领域包需要的结构体和接口放到父目录之外。
 
@@ -88,7 +89,7 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 
 错误分为四类：客户端错误、未认证、无权限、服务端错误。列表用 `page` 与 `pageSize`。下拉选择用 `limit` 与 `lastUid`。写接口用 `buf.validate`。
 
-同一 Namespace 内，带名称的资源在未删除记录上满足 `(namespace_uid, name)` 唯一。全局资源是 `User`、`UserOAuth`、`Permission`。其余业务表带 `namespace_uid`。
+同一 Namespace 内，带名称的资源在未删除记录上满足 `(namespace_uid, name)` 唯一。平台级资源是 `User`、`UserOAuth`；`Permission` 是全局维护的租户权限定义，系统权限不建表。其余业务表带 `namespace_uid`。
 
 ## 身份
 
@@ -100,11 +101,20 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 | service key，`Authorization: Bearer sk-...` | `megrez`、`merak` | 调用对应的内部 gRPC | 当作普通用户访问管理页面 |
 | Agent 令牌 | `alkaid` | 注册、心跳、接收执行帧 | 调用 Namespace、用户、规则等管理接口 |
 
-业务请求带 `X-Namespace`。`alioth` 把它写入上下文，查询和写入都加上这个租户条件。缺少租户头的业务接口返回客户端错误。租户被停用后，除查看、启停和删除租户自身外，业务接口一律拒绝。
+业务请求带 `X-Namespace`。`alioth` 把它写入上下文，查询和写入都加上这个租户条件。缺少租户头的业务接口返回客户端错误。租户被停用后，除查看、启停和删除租户自身外，业务接口一律拒绝。平台用户管理和邀请消息不需要 `X-Namespace`。
 
-`User` 是全局实体，但用户管理接口只作用于当前租户的成员：列表、详情、封禁和解封都不跨租户。
+`User` 是平台实体，不属于任何租户；`Member` 才是用户在租户中的身份。用户列表、详情、封禁、解封和平台角色授权只按系统权限校验，不按当前租户过滤。租户管理员不能枚举或封禁平台用户。
 
-预置角色：
+系统权限和租户权限分开：
+
+| 类型 | 目录 | 授权载体 | 校验 |
+| --- | --- | --- | --- |
+| 系统权限 | `system:user:read`、`system:user:write`、`system:role:read`、`system:role:write`、`system:invite:read` | `User.system_role` | `access.RequireSystem`，不读 `X-Namespace` |
+| 租户权限 | `member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`agent`、`ssh`、`sftp`、`k8s` 的 `resource:action` | `Role` + `MemberRole` | `access.Allow` / `Require`，必须带 `X-Namespace` |
+
+平台角色固定三档：第一个注册用户是 `SUPER_ADMIN`；`SYSTEM_ADMIN` 由超级管理员授权，可查看和管理普通用户；`USER` 没有系统权限。超级管理员唯一性由数据库部分唯一索引保证。已有部署升级时，最早注册的用户补为超级管理员。`system:user:read` 及以上才能查看用户列表。
+
+租户预置角色：
 
 | 角色 | 边界 |
 | --- | --- |
@@ -113,7 +123,15 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 | `member` | 查看配置；处理告警；使用已授权的 SSH、SFTP、Kubernetes 代理 |
 | `viewer` | 只读 |
 
-权限名是 `resource:action`。资源为 `user`、`member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`agent`、`ssh`、`sftp`、`k8s`。动作至少有 `read` 与 `write`。告警另有 `intervene`。SFTP 分开 `sftp:read` 与 `sftp:write`。执行动作为 `ssh:exec` 与 `k8s:proxy`。具体枚举在 proto 中定稿后，服务端与 Web 菜单使用同一份。
+权限名是 `resource:action`。租户资源为 `member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`agent`、`ssh`、`sftp`、`k8s`；`user` 不属于租户权限。动作至少有 `read` 与 `write`。告警另有 `intervene`。SFTP 分开 `sftp:read` 与 `sftp:write`。执行动作为 `ssh:exec` 与 `k8s:proxy`。系统权限不写入 `permissions` 表，租户角色授权页也不返回它们。
+
+租户邀请不直接创建成员：
+
+1. `POST /v1/member/invite` 生成 `MemberInvite`，同一租户同一邮箱只保留一条待确认邀请。数据库只保存令牌摘要。
+2. 被邀请人在平台邀请列表确认；未注册邮箱可先注册。确认时校验邮箱或平台用户、有效期和角色，之后才创建 `Member` 并写入 `MemberRole`。
+3. 邀请邮件链接为 `{web_url}/invite/{token}`。`web_url` 来自 `auth.web_url` / `ALIOTH_WEB_URL`。邮件失败不回滚邀请。
+4. 邀请默认 7 天过期；拒绝为 `DECLINED`，撤销为 `REVOKED`，过期由服务端惰性标记。管理员不能直接把成员状态改成 `JOINED`。
+5. 邀请创建、同意和拒绝都写 `SystemMessage`。被邀请人收到 `INVITE_RECEIVED`，邀请人收到 `INVITE_ACCEPTED` / `INVITE_DECLINED`；同意或拒绝后把对应的收到消息标为已读。成员被移出租户时给被移除用户写 `MEMBER_REMOVED`。消息按 `user_uid` 或未注册邮箱匹配，接口在 `/v1/self/messages`。
 
 鉴权放在 `alioth` 的中间件和 biz。页面隐藏按钮不能代替服务端拒绝。
 
@@ -149,7 +167,7 @@ SSH、SFTP、Kubernetes 代理写入审计。`member` 和 `viewer` 不能删除�
 
 - 页面放在 `web/src/pages`，请求函数放在 `web/src/api`。组件不直接使用 axios。
 - 请求带 `Authorization: Bearer <token>` 和 `X-Namespace`。401 时清除令牌并回到登录页。
-- 菜单按当前用户在当前 Namespace 的权限生成。
+- 菜单分别按系统权限和当前用户在当前 Namespace 的租户权限生成。用户列表入口使用 `system:user:read`；邀请函和个人资料一样放在账户菜单里，不占侧栏菜单。
 - 壳提供 Namespace 切换、主题（light / dark / system）和中英文。主题只通过显式菜单切换，不注册 `d` 等单键全局快捷键。
 - 表单统一使用 `FormField`。必填项的 label 必须以红色 `*` 开头；提交时逐项校验，校验失败的输入框显示红色边框，并在对应输入框下显示该字段的错误原因。不要依赖浏览器原生气泡，提交表单使用 `noValidate`。
 - 「级别条件」等复合字段必须提供说明 label（可见说明或 `hint`），内部每个输入项也要有 label。

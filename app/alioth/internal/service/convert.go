@@ -9,6 +9,7 @@ func userItem(account bo.Account) *v1.UserItem {
 	return &v1.UserItem{
 		Uid: account.UID, Name: account.Name, Nickname: account.Nickname,
 		Email: account.Email, Avatar: account.Avatar, Remark: account.Remark, Status: account.Status,
+		SystemRole: account.SystemRole, AuthorizedBy: account.AuthorizedBy,
 	}
 }
 
@@ -62,6 +63,41 @@ func roleItems(items []bo.Role) []*v1.RoleItem {
 	out := make([]*v1.RoleItem, 0, len(items))
 	for _, item := range items {
 		out = append(out, roleItem(item))
+	}
+	return out
+}
+
+func inviteItem(item bo.MemberInvite) *v1.MemberInviteItem {
+	return &v1.MemberInviteItem{
+		Uid: item.UID, NamespaceUid: item.NamespaceUID, NamespaceName: item.NamespaceName,
+		Email: item.Email, RoleUid: item.RoleUID, RoleName: item.RoleName,
+		InviterName: item.InviterName, Status: item.Status,
+		ExpiresAt: item.ExpiresAt.Unix(), CreatedAt: item.CreatedAt.Unix(),
+		Registered: item.UserUID != "",
+	}
+}
+
+func inviteItems(items []bo.MemberInvite) []*v1.MemberInviteItem {
+	out := make([]*v1.MemberInviteItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, inviteItem(item))
+	}
+	return out
+}
+
+func systemMessageItem(item bo.SystemMessage) *v1.SystemMessageItem {
+	return &v1.SystemMessageItem{
+		Uid: item.UID, Kind: item.Kind, ActorName: item.ActorName,
+		NamespaceUid: item.NamespaceUID, NamespaceName: item.NamespaceName,
+		RoleName: item.RoleName, Read: item.ReadAt != nil,
+		CreatedAt: item.CreatedAt.Unix(),
+	}
+}
+
+func systemMessageItems(items []bo.SystemMessage) []*v1.SystemMessageItem {
+	out := make([]*v1.SystemMessageItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, systemMessageItem(item))
 	}
 	return out
 }

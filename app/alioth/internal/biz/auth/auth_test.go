@@ -24,7 +24,7 @@ func (userStub) UserByUID(context.Context, string) (*bo.Account, error) {
 }
 
 func TestClaimRejectsUserJWT(t *testing.T) {
-	uc, err := NewUsecase(userStub{}, nil, nil, nil, nil, &conf.Auth{
+	uc, err := NewUsecase(userStub{}, nil, nil, nil, nil, nil, &conf.Auth{
 		JwtSecret:   "test-secret",
 		ServiceKeys: []*conf.Auth_ServiceKey{{Name: "megrez", Key: "sk-megrez-dev"}},
 	}, slog.Default())

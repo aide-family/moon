@@ -77,7 +77,7 @@ import { useListQuery } from "@/lib/list-query"
 const types = ["METRICS", "LOGS", "TRACE"]
 const drivers: Record<string, string[]> = {
   METRICS: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS"],
-  LOGS: ["LOGS_ELASTICSEARCH"],
+  LOGS: ["LOGS_ELASTICSEARCH", "LOGS_LOKI"],
   TRACE: ["TRACE_JAEGER"],
 }
 const conditions = ["EQ", "NE", "GT", "GTE", "LT", "LTE", "IN", "NOT_IN"]
@@ -133,8 +133,13 @@ function matchDatasourceCount(sources: DatasourceItem[], type: string, matchers:
   }).length
 }
 
-function matchedMetricsUid(sources: DatasourceItem[], type: string, matchers: LabelPair[]): string {
-  if (type !== "METRICS") {
+function matchedDatasourceUid(
+  sources: DatasourceItem[],
+  type: string,
+  driver: string,
+  matchers: LabelPair[],
+): string {
+  if (type !== "METRICS" && driver !== "LOGS_LOKI") {
     return ""
   }
   const matcherEntries = matchers
@@ -142,7 +147,10 @@ function matchedMetricsUid(sources: DatasourceItem[], type: string, matchers: La
     .filter(([key]) => key.length > 0)
   return (
     sources.find((item) => {
-      if (item.type !== "METRICS" || item.status !== "ACTIVE") {
+      if (item.type !== type || item.status !== "ACTIVE") {
+        return false
+      }
+      if (type === "LOGS" && item.driver !== driver) {
         return false
       }
       let labels: Record<string, string> = {}
@@ -848,7 +856,8 @@ export function AlertRulePage() {
             <FormField label={t("datasource.expr")} htmlFor="rule-expr" hint={t("datasource.exprHint")} className="sm:col-span-full">
               <PromqlEditor
                 value={form.expr}
-                datasourceUid={matchedMetricsUid(sources, form.type, form.datasourceLabels)}
+                variant={form.driver === "LOGS_LOKI" ? "logql" : "promql"}
+                datasourceUid={matchedDatasourceUid(sources, form.type, form.driver, form.datasourceLabels)}
                 onChange={(value) => setForm({ ...form, expr: value })}
               />
             </FormField>

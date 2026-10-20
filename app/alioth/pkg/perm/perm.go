@@ -1,8 +1,6 @@
 package perm
 
 const (
-	UserRead          = "user:read"
-	UserWrite         = "user:write"
 	MemberRead        = "member:read"
 	MemberWrite       = "member:write"
 	RoleRead          = "role:read"
@@ -28,6 +26,15 @@ const (
 	K8sProxy = "k8s:proxy"
 )
 
+// 系统权限属于平台，不写入租户的 permission 表，也不参与租户角色授权。
+const (
+	SystemUserRead   = "system:user:read"
+	SystemUserWrite  = "system:user:write"
+	SystemRoleWrite  = "system:role:write"
+	SystemRoleRead   = "system:role:read"
+	SystemInviteRead = "system:invite:read"
+)
+
 const (
 	RoleOwner  = "owner"
 	RoleAdmin  = "admin"
@@ -35,8 +42,16 @@ const (
 	RoleViewer = "viewer"
 )
 
+// 平台角色只有固定三档。第一个注册用户是超级管理员，其余由超级管理员授权。
+const (
+	SystemRoleSuperAdmin  = "SUPER_ADMIN"
+	SystemRoleSystemAdmin = "SYSTEM_ADMIN"
+	SystemRoleUser        = "USER"
+)
+
+// resources 只包含租户资源。user 是平台资源，不在租户权限目录里。
 var resources = []string{
-	"user", "member", "role", "namespace", "datasource", "alert_rule",
+	"member", "role", "namespace", "datasource", "alert_rule",
 	"alert", "notification", "agent", "ssh", "sftp", "k8s",
 }
 
@@ -46,6 +61,7 @@ type Item struct {
 	Action   string
 }
 
+// Catalog 返回租户权限目录。
 func Catalog() []Item {
 	items := make([]Item, 0, len(resources)*2+5)
 	for _, resource := range resources {
@@ -64,8 +80,28 @@ func Catalog() []Item {
 	return items
 }
 
+// SystemCatalog 返回平台权限目录，和租户权限目录互不混用。
+func SystemCatalog() []Item {
+	return []Item{
+		{Name: SystemUserRead, Resource: "system", Action: "user:read"},
+		{Name: SystemUserWrite, Resource: "system", Action: "user:write"},
+		{Name: SystemRoleRead, Resource: "system", Action: "role:read"},
+		{Name: SystemRoleWrite, Resource: "system", Action: "role:write"},
+		{Name: SystemInviteRead, Resource: "system", Action: "invite:read"},
+	}
+}
+
 func Names() []string {
 	catalog := Catalog()
+	names := make([]string, len(catalog))
+	for i, item := range catalog {
+		names[i] = item.Name
+	}
+	return names
+}
+
+func SystemNames() []string {
+	catalog := SystemCatalog()
 	names := make([]string, len(catalog))
 	for i, item := range catalog {
 		names[i] = item.Name
@@ -88,8 +124,50 @@ func RolePermissions(role string) []string {
 	}
 }
 
-func SystemRoles() []string {
+// SystemPermissions 返回平台角色拥有的系统权限。
+// 系统权限不叠加租户权限；超级管理员要使用租户能力仍需成为该租户成员。
+func SystemPermissions(role string) []string {
+	switch role {
+	case SystemRoleSuperAdmin:
+		return SystemNames()
+	case SystemRoleSystemAdmin:
+		return []string{SystemUserRead, SystemUserWrite, SystemRoleRead, SystemInviteRead}
+	default:
+		return nil
+	}
+}
+
+// TenantRoles 返回每个租户预置的四个角色。
+func TenantRoles() []string {
 	return []string{RoleOwner, RoleAdmin, RoleMember, RoleViewer}
+}
+
+// SystemRoles 返回平台固定角色。
+func SystemRoles() []string {
+	return []string{SystemRoleSuperAdmin, SystemRoleSystemAdmin, SystemRoleUser}
+}
+
+// IsTenantPermission 只认租户权限目录。用于阻止把 user:* 或 system:* 授给租户角色。
+func IsTenantPermission(name string) bool {
+	for _, item := range Catalog() {
+		if item.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func IsSystemRole(role string) bool {
+	switch role {
+	case SystemRoleSuperAdmin, SystemRoleSystemAdmin, SystemRoleUser:
+		return true
+	default:
+		return false
+	}
+}
+
+func IsSystemAdmin(role string) bool {
+	return role == SystemRoleSuperAdmin || role == SystemRoleSystemAdmin
 }
 
 func readPermissions() []string {

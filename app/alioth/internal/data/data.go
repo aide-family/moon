@@ -26,6 +26,8 @@ var ProviderSet = wire.NewSet(
 	NewOAuthRepo,
 	NewNamespaceRepo,
 	NewMemberRepo,
+	NewInviteRepo,
+	NewMessageRepo,
 	NewRoleRepo,
 	NewDatasourceRepo,
 	NewAlertDictionaryRepo,

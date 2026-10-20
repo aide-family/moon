@@ -9,6 +9,7 @@ stringData:
   ENCRYPT_KEY: "0123456789abcdef0123456789abcdef"
   MEGREZ_SERVICE_KEY: sk-megrez-prod
   MERAK_SERVICE_KEY: sk-merak-prod
+  WEB_URL: http://alioth.example.com
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -55,6 +56,11 @@ spec:
                 secretKeyRef:
                   name: alioth-auth
                   key: ENCRYPT_KEY
+            - name: ALIOTH_WEB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: alioth-auth
+                  key: WEB_URL
             - name: MEGREZ_SERVICE_KEY
               valueFrom:
                 secretKeyRef:

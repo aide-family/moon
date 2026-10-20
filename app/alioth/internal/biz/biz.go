@@ -14,6 +14,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/health"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/k8sproxy"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/member"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/message"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/namespace"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/notification"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/role"
@@ -27,6 +28,7 @@ var ProviderSet = wire.NewSet(
 	health.ProviderSet,
 	namespace.ProviderSet,
 	member.ProviderSet,
+	message.ProviderSet,
 	user.ProviderSet,
 	role.ProviderSet,
 	datasource.ProviderSet,

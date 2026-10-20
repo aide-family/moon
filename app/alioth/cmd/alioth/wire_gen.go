@@ -19,6 +19,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/health"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/k8sproxy"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/member"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/message"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/namespace"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/notification"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/role"
@@ -27,6 +28,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/user"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/data"
+	"github.com/aide-family/Alioth/app/alioth/internal/mailer"
 	"github.com/aide-family/Alioth/app/alioth/internal/server"
 	"github.com/aide-family/Alioth/app/alioth/internal/service"
 	"github.com/go-kratos/kratos/v3"
@@ -50,9 +52,10 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	hub := agenthub.NewHub()
 	namespaceRepo := data.NewNamespaceRepo(dataData, logger)
 	roleRepo := data.NewRoleRepo(dataData, logger)
-	checker := access.NewChecker(namespaceRepo, roleRepo, logger)
+	checker := access.NewChecker(userRepo, namespaceRepo, roleRepo, logger)
 	agentUsecase := agent.NewUsecase(agentRepo, hub, checker)
-	authUsecase, err := auth.NewUsecase(userRepo, captchaRepo, emailCodeRepo, oAuthRepo, agentUsecase, confAuth, logger)
+	sender := mailer.New(confAuth, logger)
+	authUsecase, err := auth.NewUsecase(userRepo, captchaRepo, emailCodeRepo, oAuthRepo, agentUsecase, sender, confAuth, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
@@ -64,8 +67,13 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	selfService := service.NewSelfService(authUsecase, namespaceUsecase, roleUsecase)
 	namespaceService := service.NewNamespaceService(namespaceUsecase)
 	memberRepo := data.NewMemberRepo(dataData, logger)
-	memberUsecase := member.NewUsecase(memberRepo, roleRepo, checker)
+	inviteRepo := data.NewInviteRepo(dataData, logger)
+	memberUsecase := member.NewUsecase(memberRepo, inviteRepo, userRepo, roleRepo, checker, sender, confAuth, logger)
 	memberService := service.NewMemberService(memberUsecase)
+	invitationService := service.NewInvitationService(memberUsecase)
+	messageRepo := data.NewMessageRepo(dataData, logger)
+	messageUsecase := message.NewUsecase(messageRepo, userRepo, checker)
+	systemMessageService := service.NewSystemMessageService(messageUsecase)
 	userUsecase := user.NewUsecase(userRepo, checker)
 	userService := service.NewUserService(userUsecase)
 	roleService := service.NewRoleService(roleUsecase)
@@ -75,6 +83,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	datasourceUsecase := datasource.NewUsecase(datasourceRepo, alertDictionaryRepo, alertEventRepo, checker)
 	datasourceService := service.NewDatasourceService(datasourceUsecase)
 	metricQueryService := service.NewMetricQueryService(datasourceUsecase)
+	logsQueryService := service.NewLogsQueryService(datasourceUsecase)
 	alertRuleRepo := data.NewAlertRuleRepo(dataData, logger)
 	alertruleUsecase := alertrule.NewUsecase(alertRuleRepo, alertDictionaryRepo, datasourceRepo, alertEventRepo, checker)
 	alertRuleService := service.NewAlertRuleService(alertruleUsecase)
@@ -106,7 +115,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	sftpService := service.NewSFTPService(sftpUsecase)
 	k8sproxyUsecase := k8sproxy.NewUsecase(edgeAuditRepo, agentRepo, hub, checker)
 	k8sProxyService := service.NewK8sProxyService(k8sproxyUsecase)
-	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, messageLogService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
+	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, metricQueryService, logsQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, messageLogService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()
@@ -114,7 +123,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	}
 	evalService := service.NewEvalService(alerteventUsecase)
 	notifyService := service.NewNotifyService(notificationUsecase)
-	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, userService, roleService, datasourceService, metricQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, evalService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, messageLogService, notifyService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
+	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, metricQueryService, logsQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, evalService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, messageLogService, notifyService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()

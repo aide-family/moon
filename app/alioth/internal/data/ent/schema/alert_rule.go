@@ -22,7 +22,7 @@ func (AlertRule) Fields() []ent.Field {
 		field.String("group_uid").NotEmpty(),
 		field.String("name").NotEmpty(),
 		field.Enum("type").Values("METRICS", "LOGS", "TRACE"),
-		field.Enum("driver").Values("METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "TRACE_JAEGER"),
+		field.Enum("driver").Values("METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"),
 		field.Enum("status").Values("ACTIVE", "DISABLED").Default("ACTIVE"),
 		field.String("expr").Default(""),
 		field.String("labels").Default(""),

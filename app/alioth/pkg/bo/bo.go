@@ -2,7 +2,8 @@ package bo
 
 import "time"
 
-// Account 是全局用户。PasswordHash 只在登录校验时使用，离开用例前要清空。
+// Account 是平台级用户。PasswordHash 只在登录校验时使用，离开用例前要清空。
+// SystemRole 是平台角色，和租户内的 Member/Role 没有关系。
 type Account struct {
 	UID          string
 	Name         string
@@ -12,6 +13,8 @@ type Account struct {
 	Remark       string
 	Status       string
 	PasswordHash string
+	SystemRole   string
+	AuthorizedBy string
 }
 
 // Namespace 是租户。OwnerUID 指向当前负责人。
@@ -46,12 +49,54 @@ type Role struct {
 	Permissions  []string
 }
 
-// Permission 是全局权限定义。
+// Permission 是租户权限定义。系统权限由 perm.SystemCatalog 单独维护，不写入这张表。
 type Permission struct {
 	UID      string
 	Name     string
 	Resource string
 	Action   string
+}
+
+// MemberInvite 是平台发给用户的一条租户邀请消息。
+// 邀请只创建 INVITED 成员，用户确认后才成为 JOINED 成员。
+type MemberInvite struct {
+	UID           string
+	NamespaceUID  string
+	NamespaceName string
+	Email         string
+	UserUID       string
+	RoleUID       string
+	RoleName      string
+	InviterUID    string
+	InviterName   string
+	Status        string
+	ExpiresAt     time.Time
+	CreatedAt     time.Time
+	RespondedAt   *time.Time
+}
+
+// 系统消息类型。邀请收到、接受和拒绝都会产生一条消息。
+const (
+	MessageKindInviteReceived = "INVITE_RECEIVED"
+	MessageKindInviteAccepted = "INVITE_ACCEPTED"
+	MessageKindInviteDeclined = "INVITE_DECLINED"
+	MessageKindMemberRemoved  = "MEMBER_REMOVED"
+)
+
+// SystemMessage 是平台发给用户的系统消息。
+// UserUID 为空时按 Email 匹配，用于邀请尚未注册的邮箱。
+type SystemMessage struct {
+	UID           string
+	UserUID       string
+	Email         string
+	Kind          string
+	ActorName     string
+	NamespaceUID  string
+	NamespaceName string
+	RoleName      string
+	InviteUID     string
+	ReadAt        *time.Time
+	CreatedAt     time.Time
 }
 
 // SelectItem 是下拉列表中的一项。

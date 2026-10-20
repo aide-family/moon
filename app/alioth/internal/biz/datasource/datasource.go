@@ -17,6 +17,13 @@ import (
 
 var ProviderSet = wire.NewSet(NewUsecase)
 
+const (
+	// defaultLogLimit 是 Loki 日志查询未指定条数时的上限。
+	defaultLogLimit = 100
+	// maxLogLimit 是单次日志查询允许返回的最大条数。
+	maxLogLimit = 5000
+)
+
 type Usecase struct {
 	datasources  repository.DatasourceRepo
 	dictionaries repository.AlertDictionaryRepo
@@ -131,7 +138,7 @@ func (uc *Usecase) SelectDatasources(ctx context.Context, limit int32, lastUID, 
 }
 
 func (uc *Usecase) Status(ctx context.Context, uid string) (string, error) {
-	item, err := uc.metricSource(ctx, uid)
+	item, err := uc.statusSource(ctx, uid)
 	if err != nil {
 		return "", err
 	}
@@ -178,7 +185,21 @@ func (uc *Usecase) QueryRange(ctx context.Context, uid, expr string, start, end,
 	return body, uc.access.Wrap(err)
 }
 
-// Proxy 把查询原样转到数据源。日志和链路只走这里，不写评测批次或告警事件。
+// QueryLogs 只查询 Loki 日志数据源。时间窗口、条数和方向在这里收敛，避免把任意参数透传给上游。
+func (uc *Usecase) QueryLogs(ctx context.Context, uid, query string, start, end int64, limit int32, direction string) (string, error) {
+	item, err := uc.logSource(ctx, uid)
+	if err != nil {
+		return "", err
+	}
+	query, size, dir, err := normalizeLogQuery(query, start, end, limit, direction)
+	if err != nil {
+		return "", err
+	}
+	body, err := uc.datasources.QueryLogs(ctx, *item, query, start, end, size, dir)
+	return body, uc.access.Wrap(err)
+}
+
+// Proxy 把查询原样转到数据源。未单独建模的日志和链路查询走这里，不写评测批次或告警事件。
 func (uc *Usecase) Proxy(ctx context.Context, uid, method, path, body string) (string, error) {
 	ns, err := uc.access.Allow(ctx, perm.DatasourceRead)
 	if err != nil {
@@ -196,6 +217,44 @@ func (uc *Usecase) Proxy(ctx context.Context, uid, method, path, body string) (s
 }
 
 func (uc *Usecase) metricSource(ctx context.Context, uid string) (*bo.Datasource, error) {
+	item, err := uc.readSource(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	if item.Type != "METRICS" {
+		return nil, merr.Invalid("datasource is not metrics")
+	}
+	return item, nil
+}
+
+// logSource 取 Loki 日志数据源。Elasticsearch 还没有日志查询接口，这里明确拒绝。
+func (uc *Usecase) logSource(ctx context.Context, uid string) (*bo.Datasource, error) {
+	item, err := uc.readSource(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	if item.Type != "LOGS" || item.Driver != "LOGS_LOKI" {
+		return nil, merr.Invalid("datasource is not loki")
+	}
+	return item, nil
+}
+
+// statusSource 允许指标数据源和 Loki 日志数据源做连通检查。
+func (uc *Usecase) statusSource(ctx context.Context, uid string) (*bo.Datasource, error) {
+	item, err := uc.readSource(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	switch item.Driver {
+	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_LOKI":
+		return item, nil
+	default:
+		return nil, merr.Invalid("invalid request")
+	}
+}
+
+// readSource 读取当前租户的数据源并确认已启用。类型和驱动限制由调用方补充。
+func (uc *Usecase) readSource(ctx context.Context, uid string) (*bo.Datasource, error) {
 	ns, err := uc.access.Allow(ctx, perm.DatasourceRead)
 	if err != nil {
 		return nil, err
@@ -203,9 +262,6 @@ func (uc *Usecase) metricSource(ctx context.Context, uid string) (*bo.Datasource
 	item, err := uc.datasources.GetDatasource(ctx, ns, uid)
 	if err != nil {
 		return nil, uc.access.Wrap(err)
-	}
-	if item.Type != "METRICS" {
-		return nil, merr.Invalid("datasource is not metrics")
 	}
 	if item.Status != "ACTIVE" {
 		return nil, merr.Invalid("datasource is disabled")
@@ -240,12 +296,36 @@ func DriverMatches(kind, driver string) bool {
 	case "METRICS":
 		return driver == "METRICS_PROMETHEUS" || driver == "METRICS_VICTORIA_METRICS"
 	case "LOGS":
-		return driver == "LOGS_ELASTICSEARCH"
+		return driver == "LOGS_ELASTICSEARCH" || driver == "LOGS_LOKI"
 	case "TRACE":
 		return driver == "TRACE_JAEGER"
 	default:
 		return false
 	}
+}
+
+// normalizeLogQuery 校验日志查询参数。limit 为 0 时取默认值，超过上限按上限截断；
+// direction 留空按 Loki 默认的 backward 处理。
+func normalizeLogQuery(query string, start, end int64, limit int32, direction string) (string, int, string, error) {
+	query = strings.TrimSpace(query)
+	if query == "" || start < 0 || end <= start {
+		return "", 0, "", merr.Invalid("invalid request")
+	}
+	size := int(limit)
+	if size <= 0 {
+		size = defaultLogLimit
+	}
+	if size > maxLogLimit {
+		size = maxLogLimit
+	}
+	switch direction {
+	case "":
+		direction = "backward"
+	case "backward", "forward":
+	default:
+		return "", 0, "", merr.Invalid("invalid request")
+	}
+	return query, size, direction, nil
 }
 
 func redact(item *bo.Datasource) *bo.Datasource {

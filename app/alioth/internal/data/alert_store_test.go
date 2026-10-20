@@ -81,6 +81,16 @@ func TestAlertStore(t *testing.T) {
 	if !merr.IsConflict(err) {
 		t.Fatalf("duplicate name: %v", err)
 	}
+	loki, err := sources.CreateDatasource(ctx, bo.Datasource{
+		NamespaceUID: ns, Name: "loki", Type: "LOGS", Driver: "LOGS_LOKI",
+		Endpoint: "http://127.0.0.1:3100", Secret: "tenant-token",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loki.Driver != "LOGS_LOKI" || !loki.SecretSet || loki.Secret != "tenant-token" {
+		t.Fatalf("loki datasource: %+v", loki)
+	}
 
 	group, err := rules.CreateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, Name: "core"})
 	if err != nil {

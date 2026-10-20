@@ -6,6 +6,8 @@ export type UserItem = {
   avatar: string
   remark: string
   status: string
+  systemRole: string
+  authorizedBy: string
 }
 
 export type ListUsersParams = {

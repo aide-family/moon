@@ -40,6 +40,8 @@ type Tx struct {
 	K8sProxyAudit *K8sProxyAuditClient
 	// Member is the client for interacting with the Member builders.
 	Member *MemberClient
+	// MemberInvite is the client for interacting with the MemberInvite builders.
+	MemberInvite *MemberInviteClient
 	// MemberRole is the client for interacting with the MemberRole builders.
 	MemberRole *MemberRoleClient
 	// MessageLog is the client for interacting with the MessageLog builders.
@@ -72,6 +74,8 @@ type Tx struct {
 	SSHCommand *SSHCommandClient
 	// SSHCommandAudit is the client for interacting with the SSHCommandAudit builders.
 	SSHCommandAudit *SSHCommandAuditClient
+	// SystemMessage is the client for interacting with the SystemMessage builders.
+	SystemMessage *SystemMessageClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserAlertPage is the client for interacting with the UserAlertPage builders.
@@ -223,6 +227,7 @@ func (tx *Tx) init() {
 	tx.EmailLoginCode = NewEmailLoginCodeClient(tx.config)
 	tx.K8sProxyAudit = NewK8sProxyAuditClient(tx.config)
 	tx.Member = NewMemberClient(tx.config)
+	tx.MemberInvite = NewMemberInviteClient(tx.config)
 	tx.MemberRole = NewMemberRoleClient(tx.config)
 	tx.MessageLog = NewMessageLogClient(tx.config)
 	tx.Namespace = NewNamespaceClient(tx.config)
@@ -239,6 +244,7 @@ func (tx *Tx) init() {
 	tx.SFTPAudit = NewSFTPAuditClient(tx.config)
 	tx.SSHCommand = NewSSHCommandClient(tx.config)
 	tx.SSHCommandAudit = NewSSHCommandAuditClient(tx.config)
+	tx.SystemMessage = NewSystemMessageClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserAlertPage = NewUserAlertPageClient(tx.config)
 	tx.UserOAuth = NewUserOAuthClient(tx.config)

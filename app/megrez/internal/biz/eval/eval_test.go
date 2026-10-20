@@ -122,7 +122,7 @@ func TestUnimplementedDriverReportsSkipped(t *testing.T) {
 	gateway := &fakeGateway{}
 	worker := &Worker{gateway: gateway, query: fakeQuery{}, log: slog.Default(), now: time.Now}
 	slot := time.Now().UTC().Truncate(time.Second)
-	for _, driver := range []string{"LOGS_ELASTICSEARCH", "TRACE_JAEGER"} {
+	for _, driver := range []string{"LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"} {
 		gateway.reports = nil
 		if err := worker.finish(context.Background(), fakeHold{}, bo.RuleSnapshot{UID: "rule-1", Driver: driver, EvalSlot: slot}); err != nil {
 			t.Fatal(err)

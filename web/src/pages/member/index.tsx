@@ -5,10 +5,12 @@ import { formMessage, readFormError } from "@/lib/form-error"
 import {
   deleteMember,
   inviteMember,
+  listMemberInvites,
   listMembers,
+  revokeMemberInvite,
   updateMemberRoles,
 } from "@/api/member"
-import type { MemberItem } from "@/api/member/types"
+import type { MemberInviteItem, MemberItem } from "@/api/member/types"
 import { selectRoles } from "@/api/role"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
@@ -72,6 +74,10 @@ export function MemberPage() {
   const [detail, setDetail] = useState<MemberItem | null>(null)
   const [removing, setRemoving] = useState<MemberItem | null>(null)
   const [confirmError, setConfirmError] = useState("")
+  const [invites, setInvites] = useState<MemberInviteItem[]>([])
+  const [inviteTick, setInviteTick] = useState(0)
+  const [inviteNotice, setInviteNotice] = useState("")
+  const [revoking, setRevoking] = useState<MemberInviteItem | null>(null)
   const { items, total, loading, failed, error: loadError, reload } = usePagedList<MemberItem>({
     page: query.page,
     pageSize: query.pageSize,
@@ -96,6 +102,24 @@ export function MemberPage() {
     }
   }, [session.namespaceUid])
 
+  useEffect(() => {
+    let active = true
+    void listMemberInvites()
+      .then((result) => {
+        if (active) {
+          setInvites(result.items ?? [])
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setInvites([])
+        }
+      })
+    return () => {
+      active = false
+    }
+  }, [session.namespaceUid, inviteTick])
+
   async function onInvite(event: React.FormEvent) {
     event.preventDefault()
     const errors = collectFieldErrors([
@@ -110,9 +134,13 @@ export function MemberPage() {
     setError("")
     setFieldErrors({})
     try {
-      await inviteMember({ email: email.trim(), roleUid })
+      const result = await inviteMember({ email: email.trim(), roleUid })
       setOpen(false)
       setEmail("")
+      setInviteNotice(
+        result.emailSent ? t("member.inviteSent") : t("member.inviteMailFailed"),
+      )
+      setInviteTick((value) => value + 1)
       reload()
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
@@ -146,6 +174,23 @@ export function MemberPage() {
       const failure = readFormError(err, t("state.failed"))
       setFieldErrors(failure.fields)
       setError(failure.form)
+    } finally {
+      setPending(false)
+    }
+  }
+
+  async function onRevoke() {
+    if (!revoking) {
+      return
+    }
+    setPending(true)
+    setConfirmError("")
+    try {
+      await revokeMemberInvite(revoking.uid)
+      setRevoking(null)
+      setInviteTick((value) => value + 1)
+    } catch (err) {
+      setConfirmError(formMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -252,6 +297,54 @@ export function MemberPage() {
           {t("action.search")}
         </Button>
       </form>
+      {inviteNotice ? (
+        <p className="text-sm text-muted-foreground">{inviteNotice}</p>
+      ) : null}
+      {invites.length > 0 ? (
+        <div className="grid gap-2">
+          <h2 className="font-heading text-lg font-semibold">
+            {t("member.pendingTitle")}
+          </h2>
+          <p className="text-sm text-muted-foreground">{t("member.pendingHint")}</p>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("member.email")}</TableHead>
+                <TableHead>{t("member.role")}</TableHead>
+                <TableHead>{t("member.inviter")}</TableHead>
+                <TableHead>{t("member.expiresAt")}</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invites.map((item) => (
+                <TableRow key={item.uid}>
+                  <TableCell>{item.email}</TableCell>
+                  <TableCell>{item.roleName}</TableCell>
+                  <TableCell>{item.inviterName}</TableCell>
+                  <TableCell>
+                    {new Date(item.expiresAt * 1000).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    {session.can("member:write") ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setConfirmError("")
+                          setRevoking(item)
+                        }}
+                      >
+                        {t("member.revoke")}
+                      </Button>
+                    ) : null}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      ) : null}
       <ListFrame
         total={total}
         page={query.page}
@@ -416,6 +509,22 @@ export function MemberPage() {
           { label: t("member.status"), value: enumLabel(t, detail?.status ?? "") },
           { label: t("detail.uid"), value: detail?.uid ?? "" },
         ]}
+      />
+      <ConfirmAction
+        open={revoking !== null}
+        title={t("member.revokeTitle")}
+        description={t("member.revokeDescription")}
+        confirmLabel={t("action.confirm")}
+        cancelLabel={t("action.cancel")}
+        pending={pending}
+        error={confirmError}
+        onConfirm={() => void onRevoke()}
+        onOpenChange={(value) => {
+          if (!value) {
+            setRevoking(null)
+            setConfirmError("")
+          }
+        }}
       />
       <ConfirmAction
         open={removing !== null}

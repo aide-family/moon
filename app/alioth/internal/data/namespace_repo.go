@@ -47,7 +47,7 @@ func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, owner
 		byName[item.Name] = item.UID
 	}
 	var ownerRoleUID string
-	for _, roleName := range perm.SystemRoles() {
+	for _, roleName := range perm.TenantRoles() {
 		created, err := tx.Role.Create().
 			SetUID(id.New()).
 			SetNamespaceUID(ns.UID).

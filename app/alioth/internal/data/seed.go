@@ -10,6 +10,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/permission"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/rolepermission"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
 	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
 )
@@ -32,7 +33,10 @@ func seed(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 			return databaseErr(helper, err)
 		}
 	}
-	if err := syncSystemRoles(ctx, client, helper); err != nil {
+	if err := syncTenantRoles(ctx, client, helper); err != nil {
+		return err
+	}
+	if err := ensureSuperAdmin(ctx, client, helper); err != nil {
 		return err
 	}
 	return seedNotificationPresets(ctx, client, helper)
@@ -103,7 +107,7 @@ func seedNotificationPresets(ctx context.Context, client *ent.Client, helper *sl
 	return nil
 }
 
-func syncSystemRoles(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
+func syncTenantRoles(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
 	rows, err := client.Permission.Query().All(ctx)
 	if err != nil {
 		return databaseErr(helper, err)
@@ -142,6 +146,29 @@ func syncSystemRoles(ctx context.Context, client *ent.Client, helper *slog.Logge
 				return databaseErr(helper, err)
 			}
 		}
+	}
+	return nil
+}
+
+// ensureSuperAdmin 为已有部署补上超级管理员：第一个注册的用户。
+// 新库还没有用户时不写入；第一个用户由 CreateUser 在创建时确定。
+func ensureSuperAdmin(ctx context.Context, client *ent.Client, helper *slog.Logger) error {
+	exists, err := client.User.Query().Where(user.SystemRoleEQ(user.SystemRoleSUPER_ADMIN)).Exist(ctx)
+	if err != nil {
+		return databaseErr(helper, err)
+	}
+	if exists {
+		return nil
+	}
+	row, err := client.User.Query().Order(ent.Asc(user.FieldCreatedAt), ent.Asc(user.FieldUID)).First(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil
+		}
+		return databaseErr(helper, err)
+	}
+	if _, err := client.User.UpdateOne(row).SetSystemRole(user.SystemRoleSUPER_ADMIN).Save(ctx); err != nil {
+		return databaseErr(helper, err)
 	}
 	return nil
 }

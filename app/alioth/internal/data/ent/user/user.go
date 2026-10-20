@@ -34,6 +34,10 @@ const (
 	FieldStatus = "status"
 	// FieldPasswordHash holds the string denoting the password_hash field in the database.
 	FieldPasswordHash = "password_hash"
+	// FieldSystemRole holds the string denoting the system_role field in the database.
+	FieldSystemRole = "system_role"
+	// FieldAuthorizedBy holds the string denoting the authorized_by field in the database.
+	FieldAuthorizedBy = "authorized_by"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 )
@@ -51,6 +55,8 @@ var Columns = []string{
 	FieldRemark,
 	FieldStatus,
 	FieldPasswordHash,
+	FieldSystemRole,
+	FieldAuthorizedBy,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -84,6 +90,8 @@ var (
 	DefaultRemark string
 	// DefaultPasswordHash holds the default value on creation for the "password_hash" field.
 	DefaultPasswordHash string
+	// DefaultAuthorizedBy holds the default value on creation for the "authorized_by" field.
+	DefaultAuthorizedBy string
 )
 
 // Status defines the type for the "status" enum field.
@@ -109,6 +117,33 @@ func StatusValidator(s Status) error {
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for status field: %q", s)
+	}
+}
+
+// SystemRole defines the type for the "system_role" enum field.
+type SystemRole string
+
+// SystemRoleUSER is the default value of the SystemRole enum.
+const DefaultSystemRole = SystemRoleUSER
+
+// SystemRole values.
+const (
+	SystemRoleSUPER_ADMIN  SystemRole = "SUPER_ADMIN"
+	SystemRoleSYSTEM_ADMIN SystemRole = "SYSTEM_ADMIN"
+	SystemRoleUSER         SystemRole = "USER"
+)
+
+func (sr SystemRole) String() string {
+	return string(sr)
+}
+
+// SystemRoleValidator is a validator for the "system_role" field enum values. It is called by the builders before save.
+func SystemRoleValidator(sr SystemRole) error {
+	switch sr {
+	case SystemRoleSUPER_ADMIN, SystemRoleSYSTEM_ADMIN, SystemRoleUSER:
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for system_role field: %q", sr)
 	}
 }
 
@@ -168,4 +203,14 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByPasswordHash orders the results by the password_hash field.
 func ByPasswordHash(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPasswordHash, opts...).ToFunc()
+}
+
+// BySystemRole orders the results by the system_role field.
+func BySystemRole(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSystemRole, opts...).ToFunc()
+}
+
+// ByAuthorizedBy orders the results by the authorized_by field.
+func ByAuthorizedBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAuthorizedBy, opts...).ToFunc()
 }

@@ -1,20 +1,37 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage } from "@/lib/form-error"
+import { Navigate } from "react-router-dom"
+import { formMessage, readFormError } from "@/lib/form-error"
 
-import { banUser, listUsers, permitUser } from "@/api/user"
+import { banUser, listUsers, permitUser, updateUserSystemRole } from "@/api/user"
 import type { UserItem } from "@/api/user/types"
 import { useSession } from "@/auth/session"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
+import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { collectFieldErrors, hasFieldErrors, requireSelected } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -31,14 +48,22 @@ export function UserPage() {
   const [draft, setDraft] = useState(query.name)
   const [detail, setDetail] = useState<UserItem | null>(null)
   const [banning, setBanning] = useState<UserItem | null>(null)
+  const [granting, setGranting] = useState<UserItem | null>(null)
+  const [role, setRole] = useState("")
   const [pending, setPending] = useState(false)
+  const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [confirmError, setConfirmError] = useState("")
   const { items, total, loading, failed, error: loadError, reload } = usePagedList<UserItem>({
     page: query.page,
     pageSize: query.pageSize,
-    filterKey: `${query.name}|${session.namespaceUid}`,
+    filterKey: query.name,
     fetch: (page, pageSize) => listUsers({ page, pageSize, name: query.name }),
   })
+
+  if (!session.loading && !session.canSystem("system:user:read")) {
+    return <Navigate to="/forbidden" replace />
+  }
 
   async function onPermit(item: UserItem) {
     await permitUser(item.uid)
@@ -62,13 +87,44 @@ export function UserPage() {
     }
   }
 
-  function userActions(item: UserItem): RowAction[] {
-    if (!session.can("user:write") || item.uid === session.user?.uid) {
-      return []
+  async function onGrant(event: React.FormEvent) {
+    event.preventDefault()
+    if (!granting) {
+      return
     }
-    if (item.status === "ACTIVE") {
-      return [
-        {
+    const errors = collectFieldErrors([
+      ["role", requireSelected(role, t("form.required"))],
+    ])
+    if (hasFieldErrors(errors)) {
+      setFieldErrors(errors)
+      return
+    }
+    setPending(true)
+    setError("")
+    setFieldErrors({})
+    try {
+      await updateUserSystemRole(granting.uid, role)
+      setGranting(null)
+      setRole("")
+      reload()
+    } catch (err) {
+      const failure = readFormError(err, t("state.failed"))
+      setFieldErrors(failure.fields)
+      setError(failure.form)
+    } finally {
+      setPending(false)
+    }
+  }
+
+  function userActions(item: UserItem): RowAction[] {
+    const actions: RowAction[] = []
+    if (
+      session.canSystem("system:user:write") &&
+      item.uid !== session.user?.uid &&
+      item.systemRole !== "SUPER_ADMIN"
+    ) {
+      if (item.status === "ACTIVE") {
+        actions.push({
           key: "ban",
           label: t("action.ban"),
           destructive: true,
@@ -76,16 +132,32 @@ export function UserPage() {
             setConfirmError("")
             setBanning(item)
           },
-        },
-      ]
+        })
+      } else {
+        actions.push({
+          key: "permit",
+          label: t("action.permit"),
+          onSelect: () => void onPermit(item),
+        })
+      }
     }
-    return [
-      {
-        key: "permit",
-        label: t("action.permit"),
-        onSelect: () => void onPermit(item),
-      },
-    ]
+    if (
+      session.isSuperAdmin &&
+      item.uid !== session.user?.uid &&
+      item.systemRole !== "SUPER_ADMIN"
+    ) {
+      actions.push({
+        key: "grant",
+        label: t("user.grantRole"),
+        onSelect: () => {
+          setGranting(item)
+          setRole(item.systemRole === "SYSTEM_ADMIN" ? "SYSTEM_ADMIN" : "USER")
+          setError("")
+          setFieldErrors({})
+        },
+      })
+    }
+    return actions
   }
 
   return (
@@ -116,54 +188,51 @@ export function UserPage() {
         onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
         onNext={() => query.update({ page: query.page + 1 })}
       >
-          {loading ? (
-            <p className="text-sm text-muted-foreground">
-              {t("state.loading")}
-            </p>
-          ) : null}
-          {!loading && failed ? (
-            <div className="flex items-center gap-2">
-              <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
-              <Button
-                variant="outline"
-                onClick={() => reload()}
-              >
-                {t("action.retry")}
-              </Button>
-            </div>
-          ) : null}
-          {!loading && !failed && items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("user.empty")}</p>
-          ) : null}
-          {!loading && !failed && items.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("user.name")}</TableHead>
-                  <TableHead>{t("login.emailLabel")}</TableHead>
-                  <TableHead>{t("namespace.status")}</TableHead>
-                  <TableHead />
+        {loading ? (
+          <p className="text-sm text-muted-foreground">{t("state.loading")}</p>
+        ) : null}
+        {!loading && failed ? (
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-destructive">{loadError || t("state.failed")}</p>
+            <Button variant="outline" onClick={() => reload()}>
+              {t("action.retry")}
+            </Button>
+          </div>
+        ) : null}
+        {!loading && !failed && items.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t("user.empty")}</p>
+        ) : null}
+        {!loading && !failed && items.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("user.name")}</TableHead>
+                <TableHead>{t("login.emailLabel")}</TableHead>
+                <TableHead>{t("user.systemRole")}</TableHead>
+                <TableHead>{t("namespace.status")}</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((item) => (
+                <TableRow key={item.uid}>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell>{item.email}</TableCell>
+                  <TableCell>{enumLabel(t, item.systemRole)}</TableCell>
+                  <TableCell>{enumLabel(t, item.status)}</TableCell>
+                  <TableCell>
+                    <RowActions
+                      detailLabel={t("action.detail")}
+                      moreLabel={t("action.more")}
+                      onDetail={() => setDetail(item)}
+                      actions={userActions(item)}
+                    />
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.map((item) => (
-                  <TableRow key={item.uid}>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>{item.email}</TableCell>
-                    <TableCell>{enumLabel(t, item.status)}</TableCell>
-                    <TableCell>
-                      <RowActions
-                        detailLabel={t("action.detail")}
-                        moreLabel={t("action.more")}
-                        onDetail={() => setDetail(item)}
-                        actions={userActions(item)}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : null}
+              ))}
+            </TableBody>
+          </Table>
+        ) : null}
       </ListFrame>
       <DetailSheet
         open={detail !== null}
@@ -177,6 +246,7 @@ export function UserPage() {
           { label: t("user.name"), value: detail?.name ?? "" },
           { label: t("user.nickname"), value: detail?.nickname ?? "" },
           { label: t("login.emailLabel"), value: detail?.email ?? "" },
+          { label: t("user.systemRole"), value: enumLabel(t, detail?.systemRole ?? "") },
           { label: t("namespace.status"), value: enumLabel(t, detail?.status ?? "") },
           { label: t("profile.remark"), value: detail?.remark ?? "" },
           { label: t("detail.uid"), value: detail?.uid ?? "" },
@@ -198,6 +268,54 @@ export function UserPage() {
           }
         }}
       />
+      <Dialog
+        open={granting !== null}
+        onOpenChange={(value) => {
+          if (!value) {
+            setGranting(null)
+            setError("")
+            setFieldErrors({})
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("user.grantRole")}</DialogTitle>
+          </DialogHeader>
+          <form noValidate className="grid gap-4" onSubmit={onGrant}>
+            <FormField
+              label={t("user.systemRole")}
+              htmlFor="system-role"
+              hint={t("user.grantRoleHint")}
+              required
+              error={fieldErrors.role}
+            >
+              <Select value={role} onValueChange={setRole}>
+                <SelectTrigger id="system-role">
+                  <SelectValue placeholder={t("user.systemRolePlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SYSTEM_ADMIN">{t("user.systemAdmin")}</SelectItem>
+                  <SelectItem value="USER">{t("user.normalUser")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormField>
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setGranting(null)}
+              >
+                {t("action.cancel")}
+              </Button>
+              <Button type="submit" disabled={pending}>
+                {t("action.save")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }

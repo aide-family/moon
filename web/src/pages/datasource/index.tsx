@@ -68,7 +68,7 @@ import { QueryPanel } from "@/pages/datasource/query-panel"
 const types = ["METRICS", "LOGS", "TRACE"]
 const drivers: Record<string, string[]> = {
   METRICS: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS"],
-  LOGS: ["LOGS_ELASTICSEARCH"],
+  LOGS: ["LOGS_ELASTICSEARCH", "LOGS_LOKI"],
   TRACE: ["TRACE_JAEGER"],
 }
 

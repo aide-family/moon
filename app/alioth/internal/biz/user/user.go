@@ -7,7 +7,6 @@ import (
 
 	"github.com/aide-family/Alioth/app/alioth/internal/access"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
-	"github.com/aide-family/Alioth/app/alioth/pkg/actor"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/page"
 	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
@@ -16,6 +15,7 @@ import (
 
 var ProviderSet = wire.NewSet(NewUsecase)
 
+// Usecase 管理平台用户。用户不属于租户，这里不读取 X-Namespace。
 type Usecase struct {
 	users  repository.UserRepo
 	access access.Checker
@@ -25,18 +25,9 @@ func NewUsecase(users repository.UserRepo, checker access.Checker) *Usecase {
 	return &Usecase{users: users, access: checker}
 }
 
-// GetUser 读取当前租户内的用户。User 是全局实体，但租户管理员只能看到与自己同租户的用户。
 func (uc *Usecase) GetUser(ctx context.Context, uid string) (*bo.Account, error) {
-	ns, err := uc.access.Allow(ctx, perm.UserRead)
-	if err != nil {
+	if _, err := uc.access.RequireSystem(ctx, perm.SystemUserRead); err != nil {
 		return nil, err
-	}
-	ok, err := uc.users.UserInNamespace(ctx, ns, uid)
-	if err != nil {
-		return nil, uc.access.Wrap(err)
-	}
-	if !ok {
-		return nil, merr.NotFound("not found")
 	}
 	account, err := uc.users.UserByUID(ctx, uid)
 	if err != nil {
@@ -47,12 +38,11 @@ func (uc *Usecase) GetUser(ctx context.Context, uid string) (*bo.Account, error)
 }
 
 func (uc *Usecase) ListUsers(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.Account, int, int, int, error) {
-	ns, err := uc.access.Allow(ctx, perm.UserRead)
-	if err != nil {
+	if _, err := uc.access.RequireSystem(ctx, perm.SystemUserRead); err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.users.ListUsers(ctx, ns, p, s, name)
+	items, total, err := uc.users.ListUsers(ctx, p, s, name)
 	if err != nil {
 		return nil, 0, 0, 0, uc.access.Wrap(err)
 	}
@@ -63,43 +53,70 @@ func (uc *Usecase) ListUsers(ctx context.Context, pageNo, pageSize int32, name s
 }
 
 func (uc *Usecase) SelectUsers(ctx context.Context, limit int32, lastUID string) ([]bo.SelectItem, error) {
-	ns, err := uc.access.Allow(ctx, perm.UserRead)
-	if err != nil {
+	if _, err := uc.access.RequireSystem(ctx, perm.SystemUserRead); err != nil {
 		return nil, err
 	}
-	items, err := uc.users.SelectUsers(ctx, ns, page.Limit(limit), lastUID)
+	items, err := uc.users.SelectUsers(ctx, page.Limit(limit), lastUID)
 	return items, uc.access.Wrap(err)
 }
 
-// BanUser 把用户标为封禁。封禁后 Authenticate 和登录发令牌都会拒绝该用户。
+// BanUser 封禁平台用户。封禁后登录和已有令牌都会被拒绝。
 func (uc *Usecase) BanUser(ctx context.Context, uid string) (*bo.Account, error) {
 	return uc.setStatus(ctx, uid, "BANNED")
 }
 
-// PermitUser 恢复用户为可登录。这不是危险确认流程的一部分，调用即生效。
+// PermitUser 恢复用户为可登录。
 func (uc *Usecase) PermitUser(ctx context.Context, uid string) (*bo.Account, error) {
 	return uc.setStatus(ctx, uid, "ACTIVE")
 }
 
-// setStatus 不允许用户改自己的状态，也不允许跨租户封禁/解封。
-// 全局 User 的管理权限来自当前租户，因此目标用户必须已加入当前租户。
 func (uc *Usecase) setStatus(ctx context.Context, uid, status string) (*bo.Account, error) {
-	ns, err := uc.access.Allow(ctx, perm.UserWrite)
+	actorAccount, err := uc.access.RequireSystem(ctx, perm.SystemUserWrite)
 	if err != nil {
 		return nil, err
 	}
-	actorUID, _ := actor.UserID(ctx)
-	if actorUID == uid {
+	if actorAccount.UID == uid {
 		return nil, merr.Client("cannot change your own status")
 	}
-	ok, err := uc.users.UserInNamespace(ctx, ns, uid)
+	target, err := uc.users.UserByUID(ctx, uid)
 	if err != nil {
 		return nil, uc.access.Wrap(err)
 	}
-	if !ok {
-		return nil, merr.Forbidden("user is not in current namespace")
+	if target.SystemRole == perm.SystemRoleSuperAdmin {
+		return nil, merr.Forbidden("cannot change super admin")
+	}
+	if actorAccount.SystemRole != perm.SystemRoleSuperAdmin && target.SystemRole == perm.SystemRoleSystemAdmin {
+		return nil, merr.Forbidden("cannot change another system admin")
 	}
 	account, err := uc.users.UpdateUserStatus(ctx, uid, status)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	cleaned := publicAccount(*account)
+	return &cleaned, nil
+}
+
+// UpdateSystemRole 由超级管理员授权或撤销系统管理员。
+// 超级管理员只能是最早注册的那个用户，不能通过接口再授予或转移。
+func (uc *Usecase) UpdateSystemRole(ctx context.Context, uid, role string) (*bo.Account, error) {
+	actorAccount, err := uc.access.RequireSystem(ctx, perm.SystemRoleWrite)
+	if err != nil {
+		return nil, err
+	}
+	if actorAccount.UID == uid {
+		return nil, merr.Client("cannot change your own system role")
+	}
+	if role != perm.SystemRoleSystemAdmin && role != perm.SystemRoleUser {
+		return nil, merr.Invalid("invalid system role")
+	}
+	target, err := uc.users.UserByUID(ctx, uid)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	if target.SystemRole == perm.SystemRoleSuperAdmin {
+		return nil, merr.Forbidden("cannot change super admin")
+	}
+	account, err := uc.users.UpdateUserSystemRole(ctx, uid, role, actorAccount.UID)
 	if err != nil {
 		return nil, uc.access.Wrap(err)
 	}

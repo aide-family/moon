@@ -3,6 +3,8 @@ import type { UserItem } from "@/api/user/types"
 
 export type SelfInfo = {
   user: UserItem
+  systemRole?: string
+  systemPermissions?: string[]
 }
 
 export type SelfNamespaces = {

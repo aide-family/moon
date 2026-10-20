@@ -65,4 +65,6 @@ message Auth {
   SMTP smtp = 6;
   // 数据源密码和密钥的 AES-GCM 主密钥。
   string encrypt_key = 7;
+  // 管理台对外地址，用于邮件里的邀请快捷链接。
+  string web_url = 8;
 }

@@ -37,7 +37,7 @@ type DatasourceServiceHTTPServer interface {
 	GetDatasource(context.Context, *GetDatasourceRequest) (*GetDatasourceResponse, error)
 	// GetDatasourceMetric 查看一个指标的元数据。
 	GetDatasourceMetric(context.Context, *GetDatasourceMetricRequest) (*GetDatasourceMetricResponse, error)
-	// GetDatasourceStatus 查看指标数据源是否可连通。
+	// GetDatasourceStatus 查看数据源是否可连通。支持指标数据源和 Loki 日志数据源。
 	GetDatasourceStatus(context.Context, *GetDatasourceStatusRequest) (*GetDatasourceStatusResponse, error)
 	// ListDatasourceMetrics 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(context.Context, *ListDatasourceMetricsRequest) (*ListDatasourceMetricsResponse, error)
@@ -285,7 +285,7 @@ type DatasourceServiceHTTPClient interface {
 	GetDatasource(ctx context.Context, req *GetDatasourceRequest, opts ...http.CallOption) (rsp *GetDatasourceResponse, err error)
 	// GetDatasourceMetric 查看一个指标的元数据。
 	GetDatasourceMetric(ctx context.Context, req *GetDatasourceMetricRequest, opts ...http.CallOption) (rsp *GetDatasourceMetricResponse, err error)
-	// GetDatasourceStatus 查看指标数据源是否可连通。
+	// GetDatasourceStatus 查看数据源是否可连通。支持指标数据源和 Loki 日志数据源。
 	GetDatasourceStatus(ctx context.Context, req *GetDatasourceStatusRequest, opts ...http.CallOption) (rsp *GetDatasourceStatusResponse, err error)
 	// ListDatasourceMetrics 列出指标数据源中的指标元数据。
 	ListDatasourceMetrics(ctx context.Context, req *ListDatasourceMetricsRequest, opts ...http.CallOption) (rsp *ListDatasourceMetricsResponse, err error)
@@ -376,7 +376,7 @@ func (c *DatasourceServiceHTTPClientImpl) GetDatasourceMetric(ctx context.Contex
 	return &out, nil
 }
 
-// GetDatasourceStatus 查看指标数据源是否可连通。
+// GetDatasourceStatus 查看数据源是否可连通。支持指标数据源和 Loki 日志数据源。
 func (c *DatasourceServiceHTTPClientImpl) GetDatasourceStatus(ctx context.Context, in *GetDatasourceStatusRequest, opts ...http.CallOption) (*GetDatasourceStatusResponse, error) {
 	var out GetDatasourceStatusResponse
 	pattern := "/v1/datasource/{uid}/status"
@@ -485,7 +485,7 @@ const OperationMetricQueryServiceQueryMetric = "/alioth.v1.MetricQueryService/Qu
 const OperationMetricQueryServiceQueryMetricRange = "/alioth.v1.MetricQueryService/QueryMetricRange"
 
 type MetricQueryServiceHTTPServer interface {
-	// ProxyQuery 把查询转发到数据源。Logs 和 Trace 只走这条，不产生评测记录。
+	// ProxyQuery 把查询原样转发到数据源。未单独建模的日志和链路查询走这条，不产生评测记录。
 	ProxyQuery(context.Context, *ProxyQueryRequest) (*ProxyQueryResponse, error)
 	// QueryMetric 对指标数据源做即时查询。
 	QueryMetric(context.Context, *QueryMetricRequest) (*QueryMetricResponse, error)
@@ -558,7 +558,7 @@ func _MetricQueryService_ProxyQuery0_HTTP_Handler(srv MetricQueryServiceHTTPServ
 }
 
 type MetricQueryServiceHTTPClient interface {
-	// ProxyQuery 把查询转发到数据源。Logs 和 Trace 只走这条，不产生评测记录。
+	// ProxyQuery 把查询原样转发到数据源。未单独建模的日志和链路查询走这条，不产生评测记录。
 	ProxyQuery(ctx context.Context, req *ProxyQueryRequest, opts ...http.CallOption) (rsp *ProxyQueryResponse, err error)
 	// QueryMetric 对指标数据源做即时查询。
 	QueryMetric(ctx context.Context, req *QueryMetricRequest, opts ...http.CallOption) (rsp *QueryMetricResponse, err error)
@@ -574,7 +574,7 @@ func NewMetricQueryServiceHTTPClient(client *http.Client) MetricQueryServiceHTTP
 	return &MetricQueryServiceHTTPClientImpl{client}
 }
 
-// ProxyQuery 把查询转发到数据源。Logs 和 Trace 只走这条，不产生评测记录。
+// ProxyQuery 把查询原样转发到数据源。未单独建模的日志和链路查询走这条，不产生评测记录。
 func (c *MetricQueryServiceHTTPClientImpl) ProxyQuery(ctx context.Context, in *ProxyQueryRequest, opts ...http.CallOption) (*ProxyQueryResponse, error) {
 	var out ProxyQueryResponse
 	pattern := "/v1/metric-query/proxy"

@@ -18,6 +18,9 @@ import (
 
 var upstreamClient = &http.Client{Timeout: 10 * time.Second}
 
+// maxUpstreamBody 限制一次上游响应的读取量。日志查询可能返回上千行，上限比指标查询宽。
+const maxUpstreamBody = 4 << 20
+
 func (r *repoBase) callUpstream(ctx context.Context, item bo.Datasource, method, path, body string) (string, error) {
 	if !strings.HasPrefix(path, "/") || strings.Contains(path, "..") {
 		return "", merr.Invalid("invalid request")
@@ -58,7 +61,7 @@ func (r *repoBase) callUpstream(ctx context.Context, item bo.Datasource, method,
 		return "", merr.Server("upstream query failed")
 	}
 	defer resp.Body.Close()
-	payload, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	payload, err := io.ReadAll(io.LimitReader(resp.Body, maxUpstreamBody))
 	if err != nil {
 		r.log.Error(fmt.Sprintf("datasource %s read: %v", item.UID, err))
 		return "", merr.Server("upstream query failed")
@@ -71,10 +74,27 @@ func (r *repoBase) callUpstream(ctx context.Context, item bo.Datasource, method,
 }
 
 func (r *datasourceRepo) DatasourceStatus(ctx context.Context, item bo.Datasource) (string, error) {
-	if _, err := r.callUpstream(ctx, item, http.MethodGet, "/api/v1/status/buildinfo", ""); err != nil {
+	path, err := statusPath(item.Driver)
+	if err != nil {
+		return "", err
+	}
+	if _, err := r.callUpstream(ctx, item, http.MethodGet, path, ""); err != nil {
 		return "", err
 	}
 	return "up", nil
+}
+
+// statusPath 按驱动选择健康检查路径。Loki 用 /ready，指标数据源沿用 Prometheus 的 buildinfo。
+// 其他日志和链路驱动还没有约定的探测路径，返回明确错误而不是探测一个无关接口。
+func statusPath(driver string) (string, error) {
+	switch driver {
+	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS":
+		return "/api/v1/status/buildinfo", nil
+	case "LOGS_LOKI":
+		return "/ready", nil
+	default:
+		return "", merr.Invalid("unsupported datasource driver")
+	}
 }
 
 func (r *datasourceRepo) ListMetrics(ctx context.Context, item bo.Datasource) ([]bo.DatasourceMetric, error) {

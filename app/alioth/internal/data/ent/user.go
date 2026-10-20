@@ -37,6 +37,10 @@ type User struct {
 	Status user.Status `json:"status,omitempty"`
 	// PasswordHash holds the value of the "password_hash" field.
 	PasswordHash string `json:"-"`
+	// SystemRole holds the value of the "system_role" field.
+	SystemRole user.SystemRole `json:"system_role,omitempty"`
+	// AuthorizedBy holds the value of the "authorized_by" field.
+	AuthorizedBy string `json:"authorized_by,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -47,7 +51,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldUID, user.FieldName, user.FieldNickname, user.FieldEmail, user.FieldAvatar, user.FieldRemark, user.FieldStatus, user.FieldPasswordHash:
+		case user.FieldUID, user.FieldName, user.FieldNickname, user.FieldEmail, user.FieldAvatar, user.FieldRemark, user.FieldStatus, user.FieldPasswordHash, user.FieldSystemRole, user.FieldAuthorizedBy:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -132,6 +136,18 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.PasswordHash = value.String
 			}
+		case user.FieldSystemRole:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field system_role", values[i])
+			} else if value.Valid {
+				_m.SystemRole = user.SystemRole(value.String)
+			}
+		case user.FieldAuthorizedBy:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field authorized_by", values[i])
+			} else if value.Valid {
+				_m.AuthorizedBy = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -196,6 +212,12 @@ func (_m *User) String() string {
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))
 	builder.WriteString(", ")
 	builder.WriteString("password_hash=<sensitive>")
+	builder.WriteString(", ")
+	builder.WriteString("system_role=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SystemRole))
+	builder.WriteString(", ")
+	builder.WriteString("authorized_by=")
+	builder.WriteString(_m.AuthorizedBy)
 	builder.WriteByte(')')
 	return builder.String()
 }

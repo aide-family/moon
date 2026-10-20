@@ -55,3 +55,11 @@ func (s *UserService) PermitUser(ctx context.Context, req *v1.PermitUserRequest)
 	}
 	return &v1.PermitUserResponse{User: userItem(*account)}, nil
 }
+
+func (s *UserService) UpdateUserSystemRole(ctx context.Context, req *v1.UpdateUserSystemRoleRequest) (*v1.UpdateUserSystemRoleResponse, error) {
+	account, err := s.users.UpdateSystemRole(ctx, req.GetUid(), req.GetRole())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateUserSystemRoleResponse{User: userItem(*account)}, nil
+}

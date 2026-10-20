@@ -4,6 +4,7 @@ export type DatasourceDriver =
   | "METRICS_PROMETHEUS"
   | "METRICS_VICTORIA_METRICS"
   | "LOGS_ELASTICSEARCH"
+  | "LOGS_LOKI"
   | "TRACE_JAEGER"
 
 export interface DatasourceItem {

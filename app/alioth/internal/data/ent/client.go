@@ -28,6 +28,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/k8sproxyaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelog"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
@@ -44,6 +45,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sftpaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommandaudit"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/systemmessage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useralertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useroauth"
@@ -82,6 +84,8 @@ type Client struct {
 	K8sProxyAudit *K8sProxyAuditClient
 	// Member is the client for interacting with the Member builders.
 	Member *MemberClient
+	// MemberInvite is the client for interacting with the MemberInvite builders.
+	MemberInvite *MemberInviteClient
 	// MemberRole is the client for interacting with the MemberRole builders.
 	MemberRole *MemberRoleClient
 	// MessageLog is the client for interacting with the MessageLog builders.
@@ -114,6 +118,8 @@ type Client struct {
 	SSHCommand *SSHCommandClient
 	// SSHCommandAudit is the client for interacting with the SSHCommandAudit builders.
 	SSHCommandAudit *SSHCommandAuditClient
+	// SystemMessage is the client for interacting with the SystemMessage builders.
+	SystemMessage *SystemMessageClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserAlertPage is the client for interacting with the UserAlertPage builders.
@@ -145,6 +151,7 @@ func (c *Client) init() {
 	c.EmailLoginCode = NewEmailLoginCodeClient(c.config)
 	c.K8sProxyAudit = NewK8sProxyAuditClient(c.config)
 	c.Member = NewMemberClient(c.config)
+	c.MemberInvite = NewMemberInviteClient(c.config)
 	c.MemberRole = NewMemberRoleClient(c.config)
 	c.MessageLog = NewMessageLogClient(c.config)
 	c.Namespace = NewNamespaceClient(c.config)
@@ -161,6 +168,7 @@ func (c *Client) init() {
 	c.SFTPAudit = NewSFTPAuditClient(c.config)
 	c.SSHCommand = NewSSHCommandClient(c.config)
 	c.SSHCommandAudit = NewSSHCommandAuditClient(c.config)
+	c.SystemMessage = NewSystemMessageClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserAlertPage = NewUserAlertPageClient(c.config)
 	c.UserOAuth = NewUserOAuthClient(c.config)
@@ -270,6 +278,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		EmailLoginCode:                NewEmailLoginCodeClient(cfg),
 		K8sProxyAudit:                 NewK8sProxyAuditClient(cfg),
 		Member:                        NewMemberClient(cfg),
+		MemberInvite:                  NewMemberInviteClient(cfg),
 		MemberRole:                    NewMemberRoleClient(cfg),
 		MessageLog:                    NewMessageLogClient(cfg),
 		Namespace:                     NewNamespaceClient(cfg),
@@ -286,6 +295,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		SFTPAudit:                     NewSFTPAuditClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
 		SSHCommandAudit:               NewSSHCommandAuditClient(cfg),
+		SystemMessage:                 NewSystemMessageClient(cfg),
 		User:                          NewUserClient(cfg),
 		UserAlertPage:                 NewUserAlertPageClient(cfg),
 		UserOAuth:                     NewUserOAuthClient(cfg),
@@ -322,6 +332,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		EmailLoginCode:                NewEmailLoginCodeClient(cfg),
 		K8sProxyAudit:                 NewK8sProxyAuditClient(cfg),
 		Member:                        NewMemberClient(cfg),
+		MemberInvite:                  NewMemberInviteClient(cfg),
 		MemberRole:                    NewMemberRoleClient(cfg),
 		MessageLog:                    NewMessageLogClient(cfg),
 		Namespace:                     NewNamespaceClient(cfg),
@@ -338,6 +349,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		SFTPAudit:                     NewSFTPAuditClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
 		SSHCommandAudit:               NewSSHCommandAuditClient(cfg),
+		SystemMessage:                 NewSystemMessageClient(cfg),
 		User:                          NewUserClient(cfg),
 		UserAlertPage:                 NewUserAlertPageClient(cfg),
 		UserOAuth:                     NewUserOAuthClient(cfg),
@@ -372,12 +384,12 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventFiring,
 		c.AlertPage, c.AlertRule, c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha,
-		c.Datasource, c.EmailLoginCode, c.K8sProxyAudit, c.Member, c.MemberRole,
-		c.MessageLog, c.Namespace, c.NotificationChannel, c.NotificationGroup,
-		c.NotificationPreset, c.NotificationSubscription,
+		c.Datasource, c.EmailLoginCode, c.K8sProxyAudit, c.Member, c.MemberInvite,
+		c.MemberRole, c.MessageLog, c.Namespace, c.NotificationChannel,
+		c.NotificationGroup, c.NotificationPreset, c.NotificationSubscription,
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
 		c.Permission, c.Role, c.RolePermission, c.SFTPAudit, c.SSHCommand,
-		c.SSHCommandAudit, c.User, c.UserAlertPage, c.UserOAuth,
+		c.SSHCommandAudit, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
 	} {
 		n.Use(hooks...)
 	}
@@ -389,12 +401,12 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventFiring,
 		c.AlertPage, c.AlertRule, c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha,
-		c.Datasource, c.EmailLoginCode, c.K8sProxyAudit, c.Member, c.MemberRole,
-		c.MessageLog, c.Namespace, c.NotificationChannel, c.NotificationGroup,
-		c.NotificationPreset, c.NotificationSubscription,
+		c.Datasource, c.EmailLoginCode, c.K8sProxyAudit, c.Member, c.MemberInvite,
+		c.MemberRole, c.MessageLog, c.Namespace, c.NotificationChannel,
+		c.NotificationGroup, c.NotificationPreset, c.NotificationSubscription,
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
 		c.Permission, c.Role, c.RolePermission, c.SFTPAudit, c.SSHCommand,
-		c.SSHCommandAudit, c.User, c.UserAlertPage, c.UserOAuth,
+		c.SSHCommandAudit, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -431,6 +443,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.K8sProxyAudit.mutate(ctx, m)
 	case *MemberMutation:
 		return c.Member.mutate(ctx, m)
+	case *MemberInviteMutation:
+		return c.MemberInvite.mutate(ctx, m)
 	case *MemberRoleMutation:
 		return c.MemberRole.mutate(ctx, m)
 	case *MessageLogMutation:
@@ -463,6 +477,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.SSHCommand.mutate(ctx, m)
 	case *SSHCommandAuditMutation:
 		return c.SSHCommandAudit.mutate(ctx, m)
+	case *SystemMessageMutation:
+		return c.SystemMessage.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	case *UserAlertPageMutation:
@@ -2333,6 +2349,139 @@ func (c *MemberClient) mutate(ctx context.Context, m *MemberMutation) (Value, er
 		return (&MemberDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Member mutation op: %q", m.Op())
+	}
+}
+
+// MemberInviteClient is a client for the MemberInvite schema.
+type MemberInviteClient struct {
+	config
+}
+
+// NewMemberInviteClient returns a client for the MemberInvite from the given config.
+func NewMemberInviteClient(c config) *MemberInviteClient {
+	return &MemberInviteClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `memberinvite.Hooks(f(g(h())))`.
+func (c *MemberInviteClient) Use(hooks ...Hook) {
+	c.hooks.MemberInvite = append(c.hooks.MemberInvite, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `memberinvite.Intercept(f(g(h())))`.
+func (c *MemberInviteClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MemberInvite = append(c.inters.MemberInvite, interceptors...)
+}
+
+// Create returns a builder for creating a MemberInvite entity.
+func (c *MemberInviteClient) Create() *MemberInviteCreate {
+	mutation := newMemberInviteMutation(c.config, OpCreate)
+	return &MemberInviteCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MemberInvite entities.
+func (c *MemberInviteClient) CreateBulk(builders ...*MemberInviteCreate) *MemberInviteCreateBulk {
+	return &MemberInviteCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MemberInviteClient) MapCreateBulk(slice any, setFunc func(*MemberInviteCreate, int)) *MemberInviteCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MemberInviteCreateBulk{err: fmt.Errorf("calling to MemberInviteClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MemberInviteCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MemberInviteCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MemberInvite.
+func (c *MemberInviteClient) Update() *MemberInviteUpdate {
+	mutation := newMemberInviteMutation(c.config, OpUpdate)
+	return &MemberInviteUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MemberInviteClient) UpdateOne(_m *MemberInvite) *MemberInviteUpdateOne {
+	mutation := newMemberInviteMutation(c.config, OpUpdateOne, withMemberInvite(_m))
+	return &MemberInviteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MemberInviteClient) UpdateOneID(id int) *MemberInviteUpdateOne {
+	mutation := newMemberInviteMutation(c.config, OpUpdateOne, withMemberInviteID(id))
+	return &MemberInviteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MemberInvite.
+func (c *MemberInviteClient) Delete() *MemberInviteDelete {
+	mutation := newMemberInviteMutation(c.config, OpDelete)
+	return &MemberInviteDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MemberInviteClient) DeleteOne(_m *MemberInvite) *MemberInviteDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MemberInviteClient) DeleteOneID(id int) *MemberInviteDeleteOne {
+	builder := c.Delete().Where(memberinvite.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MemberInviteDeleteOne{builder}
+}
+
+// Query returns a query builder for MemberInvite.
+func (c *MemberInviteClient) Query() *MemberInviteQuery {
+	return &MemberInviteQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMemberInvite},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MemberInvite entity by its id.
+func (c *MemberInviteClient) Get(ctx context.Context, id int) (*MemberInvite, error) {
+	return c.Query().Where(memberinvite.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MemberInviteClient) GetX(ctx context.Context, id int) *MemberInvite {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *MemberInviteClient) Hooks() []Hook {
+	return c.hooks.MemberInvite
+}
+
+// Interceptors returns the client interceptors.
+func (c *MemberInviteClient) Interceptors() []Interceptor {
+	return c.inters.MemberInvite
+}
+
+func (c *MemberInviteClient) mutate(ctx context.Context, m *MemberInviteMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MemberInviteCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MemberInviteUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MemberInviteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MemberInviteDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MemberInvite mutation op: %q", m.Op())
 	}
 }
 
@@ -4464,6 +4613,139 @@ func (c *SSHCommandAuditClient) mutate(ctx context.Context, m *SSHCommandAuditMu
 	}
 }
 
+// SystemMessageClient is a client for the SystemMessage schema.
+type SystemMessageClient struct {
+	config
+}
+
+// NewSystemMessageClient returns a client for the SystemMessage from the given config.
+func NewSystemMessageClient(c config) *SystemMessageClient {
+	return &SystemMessageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `systemmessage.Hooks(f(g(h())))`.
+func (c *SystemMessageClient) Use(hooks ...Hook) {
+	c.hooks.SystemMessage = append(c.hooks.SystemMessage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `systemmessage.Intercept(f(g(h())))`.
+func (c *SystemMessageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SystemMessage = append(c.inters.SystemMessage, interceptors...)
+}
+
+// Create returns a builder for creating a SystemMessage entity.
+func (c *SystemMessageClient) Create() *SystemMessageCreate {
+	mutation := newSystemMessageMutation(c.config, OpCreate)
+	return &SystemMessageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SystemMessage entities.
+func (c *SystemMessageClient) CreateBulk(builders ...*SystemMessageCreate) *SystemMessageCreateBulk {
+	return &SystemMessageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SystemMessageClient) MapCreateBulk(slice any, setFunc func(*SystemMessageCreate, int)) *SystemMessageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SystemMessageCreateBulk{err: fmt.Errorf("calling to SystemMessageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SystemMessageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SystemMessageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SystemMessage.
+func (c *SystemMessageClient) Update() *SystemMessageUpdate {
+	mutation := newSystemMessageMutation(c.config, OpUpdate)
+	return &SystemMessageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SystemMessageClient) UpdateOne(_m *SystemMessage) *SystemMessageUpdateOne {
+	mutation := newSystemMessageMutation(c.config, OpUpdateOne, withSystemMessage(_m))
+	return &SystemMessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SystemMessageClient) UpdateOneID(id int) *SystemMessageUpdateOne {
+	mutation := newSystemMessageMutation(c.config, OpUpdateOne, withSystemMessageID(id))
+	return &SystemMessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SystemMessage.
+func (c *SystemMessageClient) Delete() *SystemMessageDelete {
+	mutation := newSystemMessageMutation(c.config, OpDelete)
+	return &SystemMessageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SystemMessageClient) DeleteOne(_m *SystemMessage) *SystemMessageDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SystemMessageClient) DeleteOneID(id int) *SystemMessageDeleteOne {
+	builder := c.Delete().Where(systemmessage.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SystemMessageDeleteOne{builder}
+}
+
+// Query returns a query builder for SystemMessage.
+func (c *SystemMessageClient) Query() *SystemMessageQuery {
+	return &SystemMessageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSystemMessage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SystemMessage entity by its id.
+func (c *SystemMessageClient) Get(ctx context.Context, id int) (*SystemMessage, error) {
+	return c.Query().Where(systemmessage.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SystemMessageClient) GetX(ctx context.Context, id int) *SystemMessage {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *SystemMessageClient) Hooks() []Hook {
+	return c.hooks.SystemMessage
+}
+
+// Interceptors returns the client interceptors.
+func (c *SystemMessageClient) Interceptors() []Interceptor {
+	return c.inters.SystemMessage
+}
+
+func (c *SystemMessageClient) mutate(ctx context.Context, m *SystemMessageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SystemMessageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SystemMessageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SystemMessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SystemMessageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SystemMessage mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -4868,19 +5150,20 @@ type (
 	hooks struct {
 		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventFiring, AlertPage,
 		AlertRule, AlertRuleGroup, AlertRuleLevel, Captcha, Datasource, EmailLoginCode,
-		K8sProxyAudit, Member, MemberRole, MessageLog, Namespace, NotificationChannel,
-		NotificationGroup, NotificationPreset, NotificationSubscription,
-		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		Permission, Role, RolePermission, SFTPAudit, SSHCommand, SSHCommandAudit, User,
-		UserAlertPage, UserOAuth []ent.Hook
+		K8sProxyAudit, Member, MemberInvite, MemberRole, MessageLog, Namespace,
+		NotificationChannel, NotificationGroup, NotificationPreset,
+		NotificationSubscription, NotificationSubscriptionGroup, NotificationTask,
+		NotificationTemplate, Permission, Role, RolePermission, SFTPAudit, SSHCommand,
+		SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventFiring, AlertPage,
 		AlertRule, AlertRuleGroup, AlertRuleLevel, Captcha, Datasource, EmailLoginCode,
-		K8sProxyAudit, Member, MemberRole, MessageLog, Namespace, NotificationChannel,
-		NotificationGroup, NotificationPreset, NotificationSubscription,
-		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		Permission, Role, RolePermission, SFTPAudit, SSHCommand, SSHCommandAudit, User,
-		UserAlertPage, UserOAuth []ent.Interceptor
+		K8sProxyAudit, Member, MemberInvite, MemberRole, MessageLog, Namespace,
+		NotificationChannel, NotificationGroup, NotificationPreset,
+		NotificationSubscription, NotificationSubscriptionGroup, NotificationTask,
+		NotificationTemplate, Permission, Role, RolePermission, SFTPAudit, SSHCommand,
+		SSHCommandAudit, SystemMessage, User, UserAlertPage,
+		UserOAuth []ent.Interceptor
 	}
 )

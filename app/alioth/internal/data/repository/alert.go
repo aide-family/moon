@@ -22,6 +22,7 @@ type DatasourceRepo interface {
 	MetricDetail(ctx context.Context, item bo.Datasource, name string) (string, error)
 	InstantQuery(ctx context.Context, item bo.Datasource, expr string, at int64) (string, error)
 	RangeQuery(ctx context.Context, item bo.Datasource, expr string, start, end, step int64) (string, error)
+	QueryLogs(ctx context.Context, item bo.Datasource, query string, start, end int64, limit int, direction string) (string, error)
 	ProxyQuery(ctx context.Context, item bo.Datasource, method, path, body string) (string, error)
 }
 

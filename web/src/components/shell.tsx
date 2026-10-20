@@ -85,7 +85,7 @@ const links: {
     permission: "namespace:read",
     icon: Building2,
   },
-  { to: "/users", label: "nav.users", permission: "user:read", icon: Users },
+  { to: "/users", label: "nav.users", permission: "system:user:read", icon: Users },
   {
     to: "/members",
     label: "nav.members",
@@ -280,6 +280,9 @@ function ShellFrame() {
     if (link.to === "/namespaces") {
       return true
     }
+    if (link.permission.startsWith("system:")) {
+      return session.canSystem(link.permission)
+    }
     return session.namespaceUid !== "" && session.can(link.permission)
   })
   const alerts = alertLinks.filter(
@@ -309,7 +312,7 @@ function ShellFrame() {
 
   return (
     <TooltipProvider>
-      <SidebarProvider className="h-svh">
+      <SidebarProvider className="h-svh overflow-hidden">
         <Sidebar collapsible="icon" variant="inset">
           <SidebarHeader>
             <SidebarMenu>
@@ -363,30 +366,47 @@ function ShellFrame() {
           </SidebarContent>
           <SidebarRail />
         </Sidebar>
-        <SidebarInset className="min-h-0 bg-transparent">
+        <SidebarInset className="min-h-0 min-w-0 bg-transparent">
           <header className="flex h-12 items-center gap-2 border-b border-border/60 bg-background/80 px-4 backdrop-blur-sm">
             <SidebarTrigger />
-            <div className="ml-auto flex min-w-0 items-center gap-2 overflow-x-auto">
-              {session.namespaces.length > 0 ? (
-                <Select
-                  value={session.namespaceUid}
-                  onValueChange={session.setNamespace}
+            <div className="ml-auto flex h-8 min-w-0 items-center gap-2 overflow-x-auto overflow-y-hidden">
+              <Select
+                value={session.namespaceUid || undefined}
+                onValueChange={session.setNamespace}
+                disabled={session.namespaces.length === 0}
+              >
+                <SelectTrigger
+                  className="w-28 shrink-0 md:w-56"
+                  aria-label={t("namespace.switch")}
                 >
-                  <SelectTrigger
-                    className="w-28 shrink-0 md:w-56"
-                    aria-label={t("namespace.switch")}
-                  >
-                    <SelectValue placeholder={t("namespace.switch")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {session.namespaces.map((item) => (
-                      <SelectItem key={item.uid} value={item.uid}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : null}
+                  <SelectValue
+                    placeholder={
+                      session.loading ? t("state.loading") : t("namespace.none")
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {session.namespaces.map((item) => (
+                    <SelectItem key={item.uid} value={item.uid}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative shrink-0"
+                aria-label={t("nav.messages")}
+                onClick={() => navigate("/messages")}
+              >
+                <Bell />
+                {session.unreadMessages > 0 ? (
+                  <span className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] leading-4 text-white">
+                    {session.unreadMessages > 99 ? "99+" : session.unreadMessages}
+                  </span>
+                ) : null}
+              </Button>
               <LocaleThemeMenu />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -406,6 +426,17 @@ function ShellFrame() {
                   <DropdownMenuItem onClick={() => navigate("/profile")}>
                     {t("nav.profile")}
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/invitations")}>
+                    {t("nav.invitations")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/messages")}>
+                    {t("nav.messages")}
+                    {session.unreadMessages > 0 ? (
+                      <span className="ml-auto rounded-full bg-destructive px-1.5 text-[10px] leading-4 text-white">
+                        {session.unreadMessages > 99 ? "99+" : session.unreadMessages}
+                      </span>
+                    ) : null}
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={logout}>
                     {t("action.logout")}
                   </DropdownMenuItem>
@@ -413,7 +444,7 @@ function ShellFrame() {
               </DropdownMenu>
             </div>
           </header>
-          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-hidden bg-transparent p-4 md:p-6">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-6 overflow-hidden bg-transparent p-4 md:p-6">
             {session.loading ? (
               <p className="text-sm text-muted-foreground">
                 {t("state.loading")}

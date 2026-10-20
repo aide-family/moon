@@ -144,6 +144,34 @@ func (_c *UserCreate) SetNillablePasswordHash(v *string) *UserCreate {
 	return _c
 }
 
+// SetSystemRole sets the "system_role" field.
+func (_c *UserCreate) SetSystemRole(v user.SystemRole) *UserCreate {
+	_c.mutation.SetSystemRole(v)
+	return _c
+}
+
+// SetNillableSystemRole sets the "system_role" field if the given value is not nil.
+func (_c *UserCreate) SetNillableSystemRole(v *user.SystemRole) *UserCreate {
+	if v != nil {
+		_c.SetSystemRole(*v)
+	}
+	return _c
+}
+
+// SetAuthorizedBy sets the "authorized_by" field.
+func (_c *UserCreate) SetAuthorizedBy(v string) *UserCreate {
+	_c.mutation.SetAuthorizedBy(v)
+	return _c
+}
+
+// SetNillableAuthorizedBy sets the "authorized_by" field if the given value is not nil.
+func (_c *UserCreate) SetNillableAuthorizedBy(v *string) *UserCreate {
+	if v != nil {
+		_c.SetAuthorizedBy(*v)
+	}
+	return _c
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_c *UserCreate) Mutation() *UserMutation {
 	return _c.mutation
@@ -211,6 +239,14 @@ func (_c *UserCreate) defaults() {
 		v := user.DefaultPasswordHash
 		_c.mutation.SetPasswordHash(v)
 	}
+	if _, ok := _c.mutation.SystemRole(); !ok {
+		v := user.DefaultSystemRole
+		_c.mutation.SetSystemRole(v)
+	}
+	if _, ok := _c.mutation.AuthorizedBy(); !ok {
+		v := user.DefaultAuthorizedBy
+		_c.mutation.SetAuthorizedBy(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -259,6 +295,17 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.PasswordHash(); !ok {
 		return &ValidationError{Name: "password_hash", err: errors.New(`ent: missing required field "User.password_hash"`)}
+	}
+	if _, ok := _c.mutation.SystemRole(); !ok {
+		return &ValidationError{Name: "system_role", err: errors.New(`ent: missing required field "User.system_role"`)}
+	}
+	if v, ok := _c.mutation.SystemRole(); ok {
+		if err := user.SystemRoleValidator(v); err != nil {
+			return &ValidationError{Name: "system_role", err: fmt.Errorf(`ent: validator failed for field "User.system_role": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.AuthorizedBy(); !ok {
+		return &ValidationError{Name: "authorized_by", err: errors.New(`ent: missing required field "User.authorized_by"`)}
 	}
 	return nil
 }
@@ -325,6 +372,14 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.PasswordHash(); ok {
 		_spec.SetField(user.FieldPasswordHash, field.TypeString, value)
 		_node.PasswordHash = value
+	}
+	if value, ok := _c.mutation.SystemRole(); ok {
+		_spec.SetField(user.FieldSystemRole, field.TypeEnum, value)
+		_node.SystemRole = value
+	}
+	if value, ok := _c.mutation.AuthorizedBy(); ok {
+		_spec.SetField(user.FieldAuthorizedBy, field.TypeString, value)
+		_node.AuthorizedBy = value
 	}
 	return _node, _spec
 }

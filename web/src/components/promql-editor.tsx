@@ -59,7 +59,12 @@ function parseStringList(body: string): string[] {
   }
 }
 
-function registerDataCompletion(monaco: Monaco, uidRef: { current: string }) {
+// PromQL 与 LogQL 共用的表达式编辑器。variant 决定补全从哪套标签接口取数。
+function registerDataCompletion(
+  monaco: Monaco,
+  uidRef: { current: string },
+  lokiRef: { current: boolean },
+) {
   const cache = {
     metrics: null as string[] | null,
     labels: null as string[] | null,
@@ -82,6 +87,7 @@ function registerDataCompletion(monaco: Monaco, uidRef: { current: string }) {
       }
       const line = model.getLineContent(position.lineNumber)
       const before = line.slice(0, position.column - 1)
+      const loki = lokiRef.current
       const labelValue = before.match(/([a-zA-Z_]\w*)\s*(=~?|!~?)\s*"([^"]*)$/)
       if (labelValue) {
         const labelName = labelValue[1]
@@ -91,7 +97,9 @@ function registerDataCompletion(monaco: Monaco, uidRef: { current: string }) {
             const response = await proxyQuery({
               datasourceUid: uid,
               method: "GET",
-              path: `/api/v1/label/${encodeURIComponent(labelName)}/values`,
+              path: loki
+                ? `/loki/api/v1/label/${encodeURIComponent(labelName)}/values`
+                : `/api/v1/label/${encodeURIComponent(labelName)}/values`,
             })
             cache.labelValues.set(labelName, parseStringList(response.body))
           } catch {
@@ -123,7 +131,7 @@ function registerDataCompletion(monaco: Monaco, uidRef: { current: string }) {
             const response = await proxyQuery({
               datasourceUid: uid,
               method: "GET",
-              path: "/api/v1/labels",
+              path: loki ? "/loki/api/v1/labels" : "/api/v1/labels",
             })
             cache.labels = parseStringList(response.body).filter((label) => label !== "__name__")
           } catch {
@@ -147,6 +155,11 @@ function registerDataCompletion(monaco: Monaco, uidRef: { current: string }) {
               },
             })),
         }
+      }
+
+      // LogQL 没有指标名，补充标签和标签值即可。
+      if (loki) {
+        return { suggestions: [] }
       }
 
       if (!cache.metrics) {
@@ -191,17 +204,30 @@ interface PromqlEditorProps {
   onChange: (value: string) => void
   datasourceUid?: string
   onSubmit?: () => void
+  /** logql 时使用 Loki 的标签接口补全。 */
+  variant?: "promql" | "logql"
 }
 
-export function PromqlEditor({ value, onChange, datasourceUid = "", onSubmit }: PromqlEditorProps) {
+export function PromqlEditor({
+  value,
+  onChange,
+  datasourceUid = "",
+  onSubmit,
+  variant = "promql",
+}: PromqlEditorProps) {
   const { theme } = useTheme()
   const uidRef = useRef(datasourceUid)
+  const lokiRef = useRef(variant === "logql")
   const onSubmitRef = useRef(onSubmit)
   const disposeRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     uidRef.current = datasourceUid
   }, [datasourceUid])
+
+  useEffect(() => {
+    lokiRef.current = variant === "logql"
+  }, [variant])
 
   useEffect(() => {
     onSubmitRef.current = onSubmit
@@ -225,7 +251,7 @@ export function PromqlEditor({ value, onChange, datasourceUid = "", onSubmit }: 
 
   const onMount: OnMount = (editor, monaco) => {
     disposeRef.current?.()
-    const provider = registerDataCompletion(monaco, uidRef)
+    const provider = registerDataCompletion(monaco, uidRef, lokiRef)
     disposeRef.current = () => provider.dispose()
 
     editor.addCommand(

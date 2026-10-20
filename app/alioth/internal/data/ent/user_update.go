@@ -132,6 +132,34 @@ func (_u *UserUpdate) SetNillablePasswordHash(v *string) *UserUpdate {
 	return _u
 }
 
+// SetSystemRole sets the "system_role" field.
+func (_u *UserUpdate) SetSystemRole(v user.SystemRole) *UserUpdate {
+	_u.mutation.SetSystemRole(v)
+	return _u
+}
+
+// SetNillableSystemRole sets the "system_role" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableSystemRole(v *user.SystemRole) *UserUpdate {
+	if v != nil {
+		_u.SetSystemRole(*v)
+	}
+	return _u
+}
+
+// SetAuthorizedBy sets the "authorized_by" field.
+func (_u *UserUpdate) SetAuthorizedBy(v string) *UserUpdate {
+	_u.mutation.SetAuthorizedBy(v)
+	return _u
+}
+
+// SetNillableAuthorizedBy sets the "authorized_by" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableAuthorizedBy(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetAuthorizedBy(*v)
+	}
+	return _u
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -185,6 +213,11 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.SystemRole(); ok {
+		if err := user.SystemRoleValidator(v); err != nil {
+			return &ValidationError{Name: "system_role", err: fmt.Errorf(`ent: validator failed for field "User.system_role": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -223,6 +256,12 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.PasswordHash(); ok {
 		_spec.SetField(user.FieldPasswordHash, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SystemRole(); ok {
+		_spec.SetField(user.FieldSystemRole, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.AuthorizedBy(); ok {
+		_spec.SetField(user.FieldAuthorizedBy, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -348,6 +387,34 @@ func (_u *UserUpdateOne) SetNillablePasswordHash(v *string) *UserUpdateOne {
 	return _u
 }
 
+// SetSystemRole sets the "system_role" field.
+func (_u *UserUpdateOne) SetSystemRole(v user.SystemRole) *UserUpdateOne {
+	_u.mutation.SetSystemRole(v)
+	return _u
+}
+
+// SetNillableSystemRole sets the "system_role" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableSystemRole(v *user.SystemRole) *UserUpdateOne {
+	if v != nil {
+		_u.SetSystemRole(*v)
+	}
+	return _u
+}
+
+// SetAuthorizedBy sets the "authorized_by" field.
+func (_u *UserUpdateOne) SetAuthorizedBy(v string) *UserUpdateOne {
+	_u.mutation.SetAuthorizedBy(v)
+	return _u
+}
+
+// SetNillableAuthorizedBy sets the "authorized_by" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableAuthorizedBy(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetAuthorizedBy(*v)
+	}
+	return _u
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
@@ -414,6 +481,11 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.SystemRole(); ok {
+		if err := user.SystemRoleValidator(v); err != nil {
+			return &ValidationError{Name: "system_role", err: fmt.Errorf(`ent: validator failed for field "User.system_role": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -469,6 +541,12 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.PasswordHash(); ok {
 		_spec.SetField(user.FieldPasswordHash, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SystemRole(); ok {
+		_spec.SetField(user.FieldSystemRole, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.AuthorizedBy(); ok {
+		_spec.SetField(user.FieldAuthorizedBy, field.TypeString, value)
 	}
 	_node = &User{config: _u.config}
 	_spec.Assign = _node.assignValues

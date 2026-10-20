@@ -24,10 +24,13 @@ func NewGRPCServer(
 	self *service.SelfService,
 	namespaces *service.NamespaceService,
 	members *service.MemberService,
+	invitations *service.InvitationService,
+	messages *service.SystemMessageService,
 	users *service.UserService,
 	roles *service.RoleService,
 	datasources *service.DatasourceService,
 	queries *service.MetricQueryService,
+	logQueries *service.LogsQueryService,
 	rules *service.AlertRuleService,
 	dictionaries *service.AlertDictionaryService,
 	alertPages *service.AlertPageService,
@@ -75,10 +78,13 @@ func NewGRPCServer(
 	v1.RegisterSelfServiceServer(srv, self)
 	v1.RegisterNamespaceServiceServer(srv, namespaces)
 	v1.RegisterMemberServiceServer(srv, members)
+	v1.RegisterInvitationServiceServer(srv, invitations)
+	v1.RegisterSystemMessageServiceServer(srv, messages)
 	v1.RegisterUserServiceServer(srv, users)
 	v1.RegisterRoleServiceServer(srv, roles)
 	v1.RegisterDatasourceServiceServer(srv, datasources)
 	v1.RegisterMetricQueryServiceServer(srv, queries)
+	v1.RegisterLogsQueryServiceServer(srv, logQueries)
 	v1.RegisterAlertRuleServiceServer(srv, rules)
 	v1.RegisterAlertDictionaryServiceServer(srv, dictionaries)
 	v1.RegisterAlertPageServiceServer(srv, alertPages)

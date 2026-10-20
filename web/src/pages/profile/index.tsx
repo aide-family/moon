@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { failureText, formMessage } from "@/lib/form-error"
+import { enumLabel } from "@/lib/enum-label"
 
 import { changeRemark, getSelfInfo } from "@/api/self"
 import type { UserItem } from "@/api/user/types"
@@ -96,6 +97,9 @@ export function ProfilePage() {
         <Card className="max-w-xl">
           <CardHeader>
             <CardDescription>{user.email}</CardDescription>
+            <p className="text-sm text-muted-foreground">
+              {t("user.systemRole")}: {enumLabel(t, user.systemRole)}
+            </p>
           </CardHeader>
           <CardContent>
             <form className="grid gap-4" onSubmit={onSubmit}>

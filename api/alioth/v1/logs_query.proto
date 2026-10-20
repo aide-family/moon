@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
+
+// 日志数据源查询。首期实现 Loki。
+service LogsQueryService {
+  // 查询一段时间内的日志。查询语句使用 LogQL。
+  rpc QueryLogs(QueryLogsRequest) returns (QueryLogsResponse) {
+    option (google.api.http) = {
+      post: "/v1/logs-query/query"
+      body: "*"
+    };
+  }
+}
+
+// 日志查询参数。
+message QueryLogsRequest {
+  // 数据源标识。
+  string datasource_uid = 1 [json_name = "datasourceUid", (buf.validate.field).string.min_len = 1];
+  // LogQL 查询语句。
+  string query = 2 [(buf.validate.field).string.min_len = 1];
+  // 开始时间，Unix 秒。
+  int64 start = 3;
+  // 结束时间，Unix 秒。
+  int64 end = 4;
+  // 返回条数上限，0 表示使用默认值 100。
+  int32 limit = 5 [(buf.validate.field).int32 = {gte: 0, lte: 5000}];
+  // 返回顺序，取值为 backward 或 forward，留空表示 backward。
+  string direction = 6 [(buf.validate.field).string = {in: ["", "backward", "forward"]}];
+}
+
+// 日志查询结果。body 是 Loki 返回的原始 JSON。
+message QueryLogsResponse {
+  // 原始响应。
+  string body = 1;
+}

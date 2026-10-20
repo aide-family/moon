@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	kerrors "github.com/go-kratos/kratos/v3/errors"
+
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
@@ -13,6 +15,9 @@ import (
 func (r *repoBase) fail(err error) error {
 	if err == nil {
 		return nil
+	}
+	if kerrors.Reason(err) != "" {
+		return err
 	}
 	if ent.IsNotFound(err) {
 		return merr.NotFound("not found")

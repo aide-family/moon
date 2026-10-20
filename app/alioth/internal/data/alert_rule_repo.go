@@ -524,7 +524,7 @@ func ruleEnums(kind, driver string) (alertrule.Type, alertrule.Driver, error) {
 	}
 	parsedDriver := alertrule.Driver(driver)
 	switch parsedDriver {
-	case alertrule.DriverMETRICS_PROMETHEUS, alertrule.DriverMETRICS_VICTORIA_METRICS, alertrule.DriverLOGS_ELASTICSEARCH, alertrule.DriverTRACE_JAEGER:
+	case alertrule.DriverMETRICS_PROMETHEUS, alertrule.DriverMETRICS_VICTORIA_METRICS, alertrule.DriverLOGS_ELASTICSEARCH, alertrule.DriverLOGS_LOKI, alertrule.DriverTRACE_JAEGER:
 	default:
 		return "", "", merr.Invalid("invalid request")
 	}

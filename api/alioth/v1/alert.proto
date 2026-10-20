@@ -47,7 +47,7 @@ service DatasourceService {
   rpc SelectDatasources(SelectDatasourcesRequest) returns (SelectDatasourcesResponse) {
     option (google.api.http) = {get: "/v1/datasources/select"};
   }
-  // 查看指标数据源是否可连通。
+  // 查看数据源是否可连通。支持指标数据源和 Loki 日志数据源。
   rpc GetDatasourceStatus(GetDatasourceStatusRequest) returns (GetDatasourceStatusResponse) {
     option (google.api.http) = {get: "/v1/datasource/{uid}/status"};
   }
@@ -77,7 +77,7 @@ service MetricQueryService {
       body: "*"
     };
   }
-  // 把查询转发到数据源。Logs 和 Trace 只走这条，不产生评测记录。
+  // 把查询原样转发到数据源。未单独建模的日志和链路查询走这条，不产生评测记录。
   rpc ProxyQuery(ProxyQueryRequest) returns (ProxyQueryResponse) {
     option (google.api.http) = {
       post: "/v1/metric-query/proxy"
@@ -220,7 +220,7 @@ message CreateDatasourceRequest {
   // 类型，取值为 METRICS、LOGS 或 TRACE。
   string type = 2 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
   // 驱动。
-  string driver = 3 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "TRACE_JAEGER"]}];
+  string driver = 3 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"]}];
   // 连接地址。
   string endpoint = 4 [(buf.validate.field).string.min_len = 1];
   // 用户名。
@@ -252,7 +252,7 @@ message UpdateDatasourceRequest {
   // 类型，取值为 METRICS、LOGS 或 TRACE。
   string type = 3 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
   // 驱动。
-  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "TRACE_JAEGER"]}];
+  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"]}];
   // 连接地址。
   string endpoint = 5 [(buf.validate.field).string.min_len = 1];
   // 用户名。
@@ -613,7 +613,7 @@ message CreateAlertRuleRequest {
   // 类型，取值为 METRICS、LOGS 或 TRACE。
   string type = 3 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
   // 驱动。
-  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "TRACE_JAEGER"]}];
+  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"]}];
   // 表达式。
   string expr = 5;
   // 标签，JSON 文本。
@@ -650,7 +650,7 @@ message UpdateAlertRuleRequest {
   // 类型，取值为 METRICS、LOGS 或 TRACE。
   string type = 4 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
   // 驱动。
-  string driver = 5 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "TRACE_JAEGER"]}];
+  string driver = 5 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"]}];
   // 表达式。
   string expr = 6;
   // 标签，JSON 文本。

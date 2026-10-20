@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/predicate"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/role"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/systemmessage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
@@ -114,83 +115,59 @@ func (r *memberRepo) SelectMembers(ctx context.Context, namespaceUID string, lim
 	return out, nil
 }
 
-func (r *memberRepo) InviteMember(ctx context.Context, namespaceUID, email, roleUID string) (*bo.Member, error) {
-	account, err := r.client.User.Query().Where(user.EmailEQ(email)).Only(ctx)
-	if err != nil {
-		return nil, r.fail(err)
-	}
-	exists, err := r.client.Member.Query().Where(
-		member.NamespaceUIDEQ(namespaceUID),
-		member.UserUIDEQ(account.UID),
-		member.DeletedAtIsNil(),
-	).Exist(ctx)
-	if err != nil {
-		return nil, r.fail(err)
-	}
-	if exists {
-		return nil, merr.Conflict("name already exists")
-	}
-	roleRow, err := r.client.Role.Query().Where(
-		role.NamespaceUIDEQ(namespaceUID),
-		role.UIDEQ(roleUID),
-		role.DeletedAtIsNil(),
-		role.StatusEQ(role.StatusACTIVE),
-	).Only(ctx)
-	if err != nil {
-		return nil, r.fail(err)
-	}
-	if roleRow.Name == perm.RoleOwner {
-		return nil, merr.Invalid("invalid request")
-	}
-	tx, err := r.client.Tx(ctx)
-	if err != nil {
-		return nil, r.fail(err)
-	}
-	defer func() { _ = tx.Rollback() }()
-	created, err := tx.Member.Create().
-		SetUID(id.New()).
-		SetNamespaceUID(namespaceUID).
-		SetUserUID(account.UID).
-		SetStatus(member.StatusJOINED).
-		Save(ctx)
-	if err != nil {
-		return nil, r.fail(err)
-	}
-	if _, err := tx.MemberRole.Create().
-		SetUID(id.New()).
-		SetNamespaceUID(namespaceUID).
-		SetMemberUID(created.UID).
-		SetRoleUID(roleRow.UID).
-		Save(ctx); err != nil {
-		return nil, r.fail(err)
-	}
-	if err := tx.Commit(); err != nil {
-		return nil, r.fail(err)
-	}
-	return r.GetMember(ctx, namespaceUID, created.UID)
-}
-
-func (r *memberRepo) DeleteMember(ctx context.Context, namespaceUID, uid string) error {
+func (r *memberRepo) DeleteMember(ctx context.Context, namespaceUID, uid, actorUID string) error {
 	ns, err := r.GetNamespace(ctx, namespaceUID)
 	if err != nil {
 		return err
 	}
-	row, err := r.client.Member.Query().Where(member.NamespaceUIDEQ(namespaceUID), member.UIDEQ(uid), member.DeletedAtIsNil()).Only(ctx)
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	row, err := tx.Member.Query().Where(member.NamespaceUIDEQ(namespaceUID), member.UIDEQ(uid), member.DeletedAtIsNil()).Only(ctx)
 	if err != nil {
 		return r.fail(err)
 	}
 	if row.UserUID == ns.OwnerUID {
 		return merr.Invalid("invalid request")
 	}
-	if _, err := r.client.MemberRole.Delete().Where(memberrole.NamespaceUIDEQ(namespaceUID), memberrole.MemberUIDEQ(uid)).Exec(ctx); err != nil {
+	if _, err := tx.MemberRole.Delete().Where(memberrole.NamespaceUIDEQ(namespaceUID), memberrole.MemberUIDEQ(uid)).Exec(ctx); err != nil {
 		return r.fail(err)
 	}
-	n, err := r.client.Member.Update().Where(member.UIDEQ(uid), member.NamespaceUIDEQ(namespaceUID), member.DeletedAtIsNil()).SetDeletedAt(time.Now()).Save(ctx)
+	n, err := tx.Member.Update().Where(member.UIDEQ(uid), member.NamespaceUIDEQ(namespaceUID), member.DeletedAtIsNil()).SetDeletedAt(time.Now()).Save(ctx)
 	if err != nil {
 		return r.fail(err)
 	}
 	if n == 0 {
 		return merr.NotFound("not found")
+	}
+	recipientEmail := ""
+	if recipient, err := tx.User.Query().Where(user.UIDEQ(row.UserUID)).Only(ctx); err == nil {
+		recipientEmail = recipient.Email
+	}
+	actorName := "Alioth"
+	if actorUID != "" {
+		if actor, err := tx.User.Query().Where(user.UIDEQ(actorUID)).Only(ctx); err == nil {
+			actorName = actor.Name
+			if actorName == "" {
+				actorName = actor.Email
+			}
+		}
+	}
+	if _, err := tx.SystemMessage.Create().
+		SetUID(id.New()).
+		SetUserUID(row.UserUID).
+		SetEmail(recipientEmail).
+		SetKind(systemmessage.KindMEMBER_REMOVED).
+		SetActorName(actorName).
+		SetNamespaceUID(namespaceUID).
+		SetNamespaceName(ns.Name).
+		Save(ctx); err != nil {
+		return r.fail(err)
+	}
+	if err := tx.Commit(); err != nil {
+		return r.fail(err)
 	}
 	return nil
 }

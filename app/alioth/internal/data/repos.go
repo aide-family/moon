@@ -25,6 +25,7 @@ type emailCodeRepo struct{ *repoBase }
 type oauthRepo struct{ *repoBase }
 type namespaceRepo struct{ *repoBase }
 type memberRepo struct{ *repoBase }
+type messageRepo struct{ *repoBase }
 type roleRepo struct{ *repoBase }
 type datasourceRepo struct{ *repoBase }
 type alertDictionaryRepo struct{ *repoBase }
@@ -57,6 +58,14 @@ func NewNamespaceRepo(d *Data, logger *slog.Logger) repository.NamespaceRepo {
 
 func NewMemberRepo(d *Data, logger *slog.Logger) repository.MemberRepo {
 	return &memberRepo{newBase(d, logger)}
+}
+
+func NewInviteRepo(d *Data, logger *slog.Logger) repository.InviteRepo {
+	return &inviteRepo{newBase(d, logger)}
+}
+
+func NewMessageRepo(d *Data, logger *slog.Logger) repository.MessageRepo {
+	return &messageRepo{newBase(d, logger)}
 }
 
 func NewRoleRepo(d *Data, logger *slog.Logger) repository.RoleRepo {

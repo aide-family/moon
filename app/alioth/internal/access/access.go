@@ -10,6 +10,8 @@ import (
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
 	"github.com/aide-family/Alioth/app/alioth/pkg/actor"
+	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -17,13 +19,52 @@ var ProviderSet = wire.NewSet(NewChecker)
 
 // Checker 在具体用例之前确认操作者和租户。
 type Checker struct {
+	Users      repository.UserRepo
 	Namespaces repository.NamespaceRepo
 	Roles      repository.RoleRepo
 	Log        *slog.Logger
 }
 
-func NewChecker(namespaces repository.NamespaceRepo, roles repository.RoleRepo, logger *slog.Logger) Checker {
-	return Checker{Namespaces: namespaces, Roles: roles, Log: logger}
+func NewChecker(users repository.UserRepo, namespaces repository.NamespaceRepo, roles repository.RoleRepo, logger *slog.Logger) Checker {
+	return Checker{Users: users, Namespaces: namespaces, Roles: roles, Log: logger}
+}
+
+// RequireSystem 校验平台权限。它不读取 X-Namespace，也不依赖租户成员身份。
+// 用户列表、封禁和系统角色授权只能走这里。
+func (c Checker) RequireSystem(ctx context.Context, code string) (*bo.Account, error) {
+	uid, ok := actor.UserID(ctx)
+	if !ok {
+		return nil, merr.Unauthenticated("missing token")
+	}
+	account, err := c.Users.UserByUID(ctx, uid)
+	if err != nil {
+		if merr.IsNotFound(err) {
+			return nil, merr.Unauthenticated("user is not active")
+		}
+		return nil, c.Wrap(err)
+	}
+	if account.Status != "ACTIVE" {
+		return nil, merr.Unauthenticated("user is not active")
+	}
+	for _, name := range perm.SystemPermissions(account.SystemRole) {
+		if name == code {
+			return account, nil
+		}
+	}
+	return nil, merr.Forbidden("permission denied")
+}
+
+// SystemPermissions 返回当前用户的平台权限，供 /self/info 使用。
+func (c Checker) SystemPermissions(ctx context.Context) ([]string, string, error) {
+	uid, ok := actor.UserID(ctx)
+	if !ok {
+		return nil, "", merr.Unauthenticated("missing token")
+	}
+	account, err := c.Users.UserByUID(ctx, uid)
+	if err != nil {
+		return nil, "", c.Wrap(err)
+	}
+	return perm.SystemPermissions(account.SystemRole), account.SystemRole, nil
 }
 
 // Allow 确认当前用户持有 code，并返回当前租户。

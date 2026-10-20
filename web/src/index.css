@@ -154,6 +154,8 @@
     @apply min-h-svh bg-background text-foreground antialiased;
     background-image: var(--app-gradient);
     background-attachment: fixed;
+    /* 页面级不出现横向滚动；临时浮层、下拉和 toast 不得把右侧布局撑开。 */
+    overflow-x: clip;
   }
   ::selection {
     background: color-mix(in oklab, var(--primary) 18%, transparent);

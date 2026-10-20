@@ -48,6 +48,9 @@ type K8sProxyAudit func(*sql.Selector)
 // Member is the predicate function for member builders.
 type Member func(*sql.Selector)
 
+// MemberInvite is the predicate function for memberinvite builders.
+type MemberInvite func(*sql.Selector)
+
 // MemberRole is the predicate function for memberrole builders.
 type MemberRole func(*sql.Selector)
 
@@ -95,6 +98,9 @@ type SSHCommand func(*sql.Selector)
 
 // SSHCommandAudit is the predicate function for sshcommandaudit builders.
 type SSHCommandAudit func(*sql.Selector)
+
+// SystemMessage is the predicate function for systemmessage builders.
+type SystemMessage func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

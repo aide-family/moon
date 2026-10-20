@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 
 import { emailLogin, passwordLogin, sendEmailLoginCode } from "@/api/auth"
 import type { LoginResult } from "@/api/auth/types"
@@ -20,9 +20,18 @@ function storeSession(result: LoginResult) {
   localStorage.setItem("refreshToken", result.session.refreshToken)
 }
 
+function safeNext(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return "/namespaces"
+  }
+  return value
+}
+
 export function LoginPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const next = safeNext(params.get("next"))
   const [mode, setMode] = useState<"password" | "email">("password")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -53,7 +62,7 @@ export function LoginPage() {
           ? await passwordLogin({ email, password })
           : await emailLogin({ email, code })
       storeSession(result)
-      navigate("/namespaces")
+      navigate(next)
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
       setFieldErrors(failure.fields)
@@ -174,7 +183,7 @@ export function LoginPage() {
           <p className="text-sm">
             <Link
               className="text-primary underline-offset-4 hover:underline"
-              to="/register"
+              to={next === "/namespaces" ? "/register" : `/register?next=${encodeURIComponent(next)}`}
             >
               {t("login.noAccount")}
             </Link>

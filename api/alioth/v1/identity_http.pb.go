@@ -1047,8 +1047,10 @@ func (c *NamespaceServiceHTTPClientImpl) UpdateNamespaceStatus(ctx context.Conte
 const OperationMemberServiceDeleteMember = "/alioth.v1.MemberService/DeleteMember"
 const OperationMemberServiceGetMember = "/alioth.v1.MemberService/GetMember"
 const OperationMemberServiceInviteMember = "/alioth.v1.MemberService/InviteMember"
+const OperationMemberServiceListMemberInvites = "/alioth.v1.MemberService/ListMemberInvites"
 const OperationMemberServiceListMembers = "/alioth.v1.MemberService/ListMembers"
 const OperationMemberServiceListUserMembers = "/alioth.v1.MemberService/ListUserMembers"
+const OperationMemberServiceRevokeMemberInvite = "/alioth.v1.MemberService/RevokeMemberInvite"
 const OperationMemberServiceSelectMembers = "/alioth.v1.MemberService/SelectMembers"
 const OperationMemberServiceUpdateMemberRoles = "/alioth.v1.MemberService/UpdateMemberRoles"
 const OperationMemberServiceUpdateMemberStatus = "/alioth.v1.MemberService/UpdateMemberStatus"
@@ -1058,12 +1060,16 @@ type MemberServiceHTTPServer interface {
 	DeleteMember(context.Context, *DeleteMemberRequest) (*DeleteMemberResponse, error)
 	// GetMember 获取当前租户的一名成员。
 	GetMember(context.Context, *GetMemberRequest) (*GetMemberResponse, error)
-	// InviteMember 邀请已注册用户加入当前租户。不能指定 owner。
+	// InviteMember 邀请用户加入当前租户。被邀请人同意后才会成为成员。不能指定 owner。
 	InviteMember(context.Context, *InviteMemberRequest) (*InviteMemberResponse, error)
+	// ListMemberInvites 列出当前租户等待确认的邀请。
+	ListMemberInvites(context.Context, *ListMemberInvitesRequest) (*ListMemberInvitesResponse, error)
 	// ListMembers 分页列出当前租户的成员。
 	ListMembers(context.Context, *ListMembersRequest) (*ListMembersResponse, error)
 	// ListUserMembers 按用户标识查找其在当前租户的成员身份。
 	ListUserMembers(context.Context, *ListUserMembersRequest) (*ListUserMembersResponse, error)
+	// RevokeMemberInvite 撤销一条等待确认的邀请。
+	RevokeMemberInvite(context.Context, *RevokeMemberInviteRequest) (*RevokeMemberInviteResponse, error)
 	// SelectMembers 按游标列出当前租户的成员，供选择。
 	SelectMembers(context.Context, *SelectMembersRequest) (*SelectMembersResponse, error)
 	// UpdateMemberRoles 替换成员的角色。包含 owner 时需要移交权限。
@@ -1079,6 +1085,8 @@ func RegisterMemberServiceHTTPServer(s *http.Server, srv MemberServiceHTTPServer
 	r.Handle("GET", "/v1/members/user/{user_uid}", _MemberService_ListUserMembers0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/members/select", _MemberService_SelectMembers0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/member/invite", _MemberService_InviteMember0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/member-invites", _MemberService_ListMemberInvites0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/v1/member/invite/{uid}", _MemberService_RevokeMemberInvite0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/v1/member/{uid}", _MemberService_DeleteMember0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/member/{uid}/status", _MemberService_UpdateMemberStatus0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/member/{uid}/roles", _MemberService_UpdateMemberRoles0_HTTP_Handler(srv))
@@ -1185,6 +1193,47 @@ func _MemberService_InviteMember0_HTTP_Handler(srv MemberServiceHTTPServer) func
 	}
 }
 
+func _MemberService_ListMemberInvites0_HTTP_Handler(srv MemberServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListMemberInvitesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMemberServiceListMemberInvites)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListMemberInvites(ctx, req.(*ListMemberInvitesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListMemberInvitesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MemberService_RevokeMemberInvite0_HTTP_Handler(srv MemberServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RevokeMemberInviteRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMemberServiceRevokeMemberInvite)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RevokeMemberInvite(ctx, req.(*RevokeMemberInviteRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RevokeMemberInviteResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _MemberService_DeleteMember0_HTTP_Handler(srv MemberServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in DeleteMemberRequest
@@ -1256,12 +1305,16 @@ type MemberServiceHTTPClient interface {
 	DeleteMember(ctx context.Context, req *DeleteMemberRequest, opts ...http.CallOption) (rsp *DeleteMemberResponse, err error)
 	// GetMember 获取当前租户的一名成员。
 	GetMember(ctx context.Context, req *GetMemberRequest, opts ...http.CallOption) (rsp *GetMemberResponse, err error)
-	// InviteMember 邀请已注册用户加入当前租户。不能指定 owner。
+	// InviteMember 邀请用户加入当前租户。被邀请人同意后才会成为成员。不能指定 owner。
 	InviteMember(ctx context.Context, req *InviteMemberRequest, opts ...http.CallOption) (rsp *InviteMemberResponse, err error)
+	// ListMemberInvites 列出当前租户等待确认的邀请。
+	ListMemberInvites(ctx context.Context, req *ListMemberInvitesRequest, opts ...http.CallOption) (rsp *ListMemberInvitesResponse, err error)
 	// ListMembers 分页列出当前租户的成员。
 	ListMembers(ctx context.Context, req *ListMembersRequest, opts ...http.CallOption) (rsp *ListMembersResponse, err error)
 	// ListUserMembers 按用户标识查找其在当前租户的成员身份。
 	ListUserMembers(ctx context.Context, req *ListUserMembersRequest, opts ...http.CallOption) (rsp *ListUserMembersResponse, err error)
+	// RevokeMemberInvite 撤销一条等待确认的邀请。
+	RevokeMemberInvite(ctx context.Context, req *RevokeMemberInviteRequest, opts ...http.CallOption) (rsp *RevokeMemberInviteResponse, err error)
 	// SelectMembers 按游标列出当前租户的成员，供选择。
 	SelectMembers(ctx context.Context, req *SelectMembersRequest, opts ...http.CallOption) (rsp *SelectMembersResponse, err error)
 	// UpdateMemberRoles 替换成员的角色。包含 owner 时需要移交权限。
@@ -1312,7 +1365,7 @@ func (c *MemberServiceHTTPClientImpl) GetMember(ctx context.Context, in *GetMemb
 	return &out, nil
 }
 
-// InviteMember 邀请已注册用户加入当前租户。不能指定 owner。
+// InviteMember 邀请用户加入当前租户。被邀请人同意后才会成为成员。不能指定 owner。
 func (c *MemberServiceHTTPClientImpl) InviteMember(ctx context.Context, in *InviteMemberRequest, opts ...http.CallOption) (*InviteMemberResponse, error) {
 	var out InviteMemberResponse
 	pattern := "/v1/member/invite"
@@ -1324,6 +1377,23 @@ func (c *MemberServiceHTTPClientImpl) InviteMember(ctx context.Context, in *Invi
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListMemberInvites 列出当前租户等待确认的邀请。
+func (c *MemberServiceHTTPClientImpl) ListMemberInvites(ctx context.Context, in *ListMemberInvitesRequest, opts ...http.CallOption) (*ListMemberInvitesResponse, error) {
+	var out ListMemberInvitesResponse
+	pattern := "/v1/member-invites"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationMemberServiceListMemberInvites),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1358,6 +1428,23 @@ func (c *MemberServiceHTTPClientImpl) ListUserMembers(ctx context.Context, in *L
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// RevokeMemberInvite 撤销一条等待确认的邀请。
+func (c *MemberServiceHTTPClientImpl) RevokeMemberInvite(ctx context.Context, in *RevokeMemberInviteRequest, opts ...http.CallOption) (*RevokeMemberInviteResponse, error) {
+	var out RevokeMemberInviteResponse
+	pattern := "/v1/member/invite/{uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationMemberServiceRevokeMemberInvite),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1422,6 +1509,7 @@ const OperationUserServiceGetUser = "/alioth.v1.UserService/GetUser"
 const OperationUserServiceListUsers = "/alioth.v1.UserService/ListUsers"
 const OperationUserServicePermitUser = "/alioth.v1.UserService/PermitUser"
 const OperationUserServiceSelectUsers = "/alioth.v1.UserService/SelectUsers"
+const OperationUserServiceUpdateUserSystemRole = "/alioth.v1.UserService/UpdateUserSystemRole"
 
 type UserServiceHTTPServer interface {
 	// BanUser 封禁用户。封禁后不能登录。
@@ -1434,6 +1522,8 @@ type UserServiceHTTPServer interface {
 	PermitUser(context.Context, *PermitUserRequest) (*PermitUserResponse, error)
 	// SelectUsers 按游标列出全局用户，供选择。
 	SelectUsers(context.Context, *SelectUsersRequest) (*SelectUsersResponse, error)
+	// UpdateUserSystemRole 授权或撤销系统管理员。只有超级管理员可以调用。
+	UpdateUserSystemRole(context.Context, *UpdateUserSystemRoleRequest) (*UpdateUserSystemRoleResponse, error)
 }
 
 func RegisterUserServiceHTTPServer(s *http.Server, srv UserServiceHTTPServer) {
@@ -1443,6 +1533,7 @@ func RegisterUserServiceHTTPServer(s *http.Server, srv UserServiceHTTPServer) {
 	r.Handle("GET", "/v1/users/select", _UserService_SelectUsers0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/user/ban/{uid}", _UserService_BanUser0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/user/permit/{uid}", _UserService_PermitUser0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/user/{uid}/system-role", _UserService_UpdateUserSystemRole0_HTTP_Handler(srv))
 }
 
 func _UserService_GetUser0_HTTP_Handler(srv UserServiceHTTPServer) func(ctx http.Context) error {
@@ -1549,6 +1640,28 @@ func _UserService_PermitUser0_HTTP_Handler(srv UserServiceHTTPServer) func(ctx h
 	}
 }
 
+func _UserService_UpdateUserSystemRole0_HTTP_Handler(srv UserServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateUserSystemRoleRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserServiceUpdateUserSystemRole)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateUserSystemRole(ctx, req.(*UpdateUserSystemRoleRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateUserSystemRoleResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type UserServiceHTTPClient interface {
 	// BanUser 封禁用户。封禁后不能登录。
 	BanUser(ctx context.Context, req *BanUserRequest, opts ...http.CallOption) (rsp *BanUserResponse, err error)
@@ -1560,6 +1673,8 @@ type UserServiceHTTPClient interface {
 	PermitUser(ctx context.Context, req *PermitUserRequest, opts ...http.CallOption) (rsp *PermitUserResponse, err error)
 	// SelectUsers 按游标列出全局用户，供选择。
 	SelectUsers(ctx context.Context, req *SelectUsersRequest, opts ...http.CallOption) (rsp *SelectUsersResponse, err error)
+	// UpdateUserSystemRole 授权或撤销系统管理员。只有超级管理员可以调用。
+	UpdateUserSystemRole(ctx context.Context, req *UpdateUserSystemRoleRequest, opts ...http.CallOption) (rsp *UpdateUserSystemRoleResponse, err error)
 }
 
 type UserServiceHTTPClientImpl struct {
@@ -1646,6 +1761,216 @@ func (c *UserServiceHTTPClientImpl) SelectUsers(ctx context.Context, in *SelectU
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationUserServiceSelectUsers),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateUserSystemRole 授权或撤销系统管理员。只有超级管理员可以调用。
+func (c *UserServiceHTTPClientImpl) UpdateUserSystemRole(ctx context.Context, in *UpdateUserSystemRoleRequest, opts ...http.CallOption) (*UpdateUserSystemRoleResponse, error) {
+	var out UpdateUserSystemRoleResponse
+	pattern := "/v1/user/{uid}/system-role"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationUserServiceUpdateUserSystemRole),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+const OperationInvitationServiceAcceptInvitation = "/alioth.v1.InvitationService/AcceptInvitation"
+const OperationInvitationServiceDeclineInvitation = "/alioth.v1.InvitationService/DeclineInvitation"
+const OperationInvitationServiceGetInvitation = "/alioth.v1.InvitationService/GetInvitation"
+const OperationInvitationServiceListSelfInvitations = "/alioth.v1.InvitationService/ListSelfInvitations"
+
+type InvitationServiceHTTPServer interface {
+	// AcceptInvitation 同意邀请，成为租户成员。邮件链接用 token，平台消息用 uid。
+	AcceptInvitation(context.Context, *AcceptInvitationRequest) (*AcceptInvitationResponse, error)
+	// DeclineInvitation 拒绝邀请，不会创建成员。
+	DeclineInvitation(context.Context, *DeclineInvitationRequest) (*DeclineInvitationResponse, error)
+	// GetInvitation 按邮件链接里的令牌查看邀请函。此接口不需要登录。
+	GetInvitation(context.Context, *GetInvitationRequest) (*GetInvitationResponse, error)
+	// ListSelfInvitations 列出当前用户的平台邀请消息。
+	ListSelfInvitations(context.Context, *ListSelfInvitationsRequest) (*ListSelfInvitationsResponse, error)
+}
+
+func RegisterInvitationServiceHTTPServer(s *http.Server, srv InvitationServiceHTTPServer) {
+	r := s.Route("/")
+	r.Handle("GET", "/v1/self/invitations", _InvitationService_ListSelfInvitations0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/invitation/{token}", _InvitationService_GetInvitation0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/invitation/accept", _InvitationService_AcceptInvitation0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/invitation/decline", _InvitationService_DeclineInvitation0_HTTP_Handler(srv))
+}
+
+func _InvitationService_ListSelfInvitations0_HTTP_Handler(srv InvitationServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListSelfInvitationsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInvitationServiceListSelfInvitations)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListSelfInvitations(ctx, req.(*ListSelfInvitationsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListSelfInvitationsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InvitationService_GetInvitation0_HTTP_Handler(srv InvitationServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetInvitationRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInvitationServiceGetInvitation)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetInvitation(ctx, req.(*GetInvitationRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetInvitationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InvitationService_AcceptInvitation0_HTTP_Handler(srv InvitationServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AcceptInvitationRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInvitationServiceAcceptInvitation)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AcceptInvitation(ctx, req.(*AcceptInvitationRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AcceptInvitationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _InvitationService_DeclineInvitation0_HTTP_Handler(srv InvitationServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeclineInvitationRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationInvitationServiceDeclineInvitation)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeclineInvitation(ctx, req.(*DeclineInvitationRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeclineInvitationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+type InvitationServiceHTTPClient interface {
+	// AcceptInvitation 同意邀请，成为租户成员。邮件链接用 token，平台消息用 uid。
+	AcceptInvitation(ctx context.Context, req *AcceptInvitationRequest, opts ...http.CallOption) (rsp *AcceptInvitationResponse, err error)
+	// DeclineInvitation 拒绝邀请，不会创建成员。
+	DeclineInvitation(ctx context.Context, req *DeclineInvitationRequest, opts ...http.CallOption) (rsp *DeclineInvitationResponse, err error)
+	// GetInvitation 按邮件链接里的令牌查看邀请函。此接口不需要登录。
+	GetInvitation(ctx context.Context, req *GetInvitationRequest, opts ...http.CallOption) (rsp *GetInvitationResponse, err error)
+	// ListSelfInvitations 列出当前用户的平台邀请消息。
+	ListSelfInvitations(ctx context.Context, req *ListSelfInvitationsRequest, opts ...http.CallOption) (rsp *ListSelfInvitationsResponse, err error)
+}
+
+type InvitationServiceHTTPClientImpl struct {
+	cc *http.Client
+}
+
+func NewInvitationServiceHTTPClient(client *http.Client) InvitationServiceHTTPClient {
+	return &InvitationServiceHTTPClientImpl{client}
+}
+
+// AcceptInvitation 同意邀请，成为租户成员。邮件链接用 token，平台消息用 uid。
+func (c *InvitationServiceHTTPClientImpl) AcceptInvitation(ctx context.Context, in *AcceptInvitationRequest, opts ...http.CallOption) (*AcceptInvitationResponse, error) {
+	var out AcceptInvitationResponse
+	pattern := "/v1/invitation/accept"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationInvitationServiceAcceptInvitation),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeclineInvitation 拒绝邀请，不会创建成员。
+func (c *InvitationServiceHTTPClientImpl) DeclineInvitation(ctx context.Context, in *DeclineInvitationRequest, opts ...http.CallOption) (*DeclineInvitationResponse, error) {
+	var out DeclineInvitationResponse
+	pattern := "/v1/invitation/decline"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationInvitationServiceDeclineInvitation),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetInvitation 按邮件链接里的令牌查看邀请函。此接口不需要登录。
+func (c *InvitationServiceHTTPClientImpl) GetInvitation(ctx context.Context, in *GetInvitationRequest, opts ...http.CallOption) (*GetInvitationResponse, error) {
+	var out GetInvitationResponse
+	pattern := "/v1/invitation/{token}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationInvitationServiceGetInvitation),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListSelfInvitations 列出当前用户的平台邀请消息。
+func (c *InvitationServiceHTTPClientImpl) ListSelfInvitations(ctx context.Context, in *ListSelfInvitationsRequest, opts ...http.CallOption) (*ListSelfInvitationsResponse, error) {
+	var out ListSelfInvitationsResponse
+	pattern := "/v1/self/invitations"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationInvitationServiceListSelfInvitations),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -2065,6 +2390,196 @@ func (c *RoleServiceHTTPClientImpl) UpdateRoleStatus(ctx context.Context, in *Up
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+const OperationSystemMessageServiceGetUnreadMessageCount = "/alioth.v1.SystemMessageService/GetUnreadMessageCount"
+const OperationSystemMessageServiceListSelfMessages = "/alioth.v1.SystemMessageService/ListSelfMessages"
+const OperationSystemMessageServiceMarkAllMessagesRead = "/alioth.v1.SystemMessageService/MarkAllMessagesRead"
+const OperationSystemMessageServiceMarkMessageRead = "/alioth.v1.SystemMessageService/MarkMessageRead"
+
+type SystemMessageServiceHTTPServer interface {
+	// GetUnreadMessageCount 当前用户的未读消息数。
+	GetUnreadMessageCount(context.Context, *GetUnreadMessageCountRequest) (*GetUnreadMessageCountResponse, error)
+	// ListSelfMessages 分页列出当前用户的系统消息。
+	ListSelfMessages(context.Context, *ListSelfMessagesRequest) (*ListSelfMessagesResponse, error)
+	// MarkAllMessagesRead 标记全部消息为已读。
+	MarkAllMessagesRead(context.Context, *MarkAllMessagesReadRequest) (*MarkAllMessagesReadResponse, error)
+	// MarkMessageRead 标记一条消息为已读。
+	MarkMessageRead(context.Context, *MarkMessageReadRequest) (*MarkMessageReadResponse, error)
+}
+
+func RegisterSystemMessageServiceHTTPServer(s *http.Server, srv SystemMessageServiceHTTPServer) {
+	r := s.Route("/")
+	r.Handle("GET", "/v1/self/messages", _SystemMessageService_ListSelfMessages0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/self/messages/unread-count", _SystemMessageService_GetUnreadMessageCount0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/self/messages/{uid}/read", _SystemMessageService_MarkMessageRead0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/self/messages/read-all", _SystemMessageService_MarkAllMessagesRead0_HTTP_Handler(srv))
+}
+
+func _SystemMessageService_ListSelfMessages0_HTTP_Handler(srv SystemMessageServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListSelfMessagesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemMessageServiceListSelfMessages)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListSelfMessages(ctx, req.(*ListSelfMessagesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListSelfMessagesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SystemMessageService_GetUnreadMessageCount0_HTTP_Handler(srv SystemMessageServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUnreadMessageCountRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemMessageServiceGetUnreadMessageCount)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUnreadMessageCount(ctx, req.(*GetUnreadMessageCountRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetUnreadMessageCountResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SystemMessageService_MarkMessageRead0_HTTP_Handler(srv SystemMessageServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in MarkMessageReadRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemMessageServiceMarkMessageRead)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.MarkMessageRead(ctx, req.(*MarkMessageReadRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*MarkMessageReadResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SystemMessageService_MarkAllMessagesRead0_HTTP_Handler(srv SystemMessageServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in MarkAllMessagesReadRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemMessageServiceMarkAllMessagesRead)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.MarkAllMessagesRead(ctx, req.(*MarkAllMessagesReadRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*MarkAllMessagesReadResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+type SystemMessageServiceHTTPClient interface {
+	// GetUnreadMessageCount 当前用户的未读消息数。
+	GetUnreadMessageCount(ctx context.Context, req *GetUnreadMessageCountRequest, opts ...http.CallOption) (rsp *GetUnreadMessageCountResponse, err error)
+	// ListSelfMessages 分页列出当前用户的系统消息。
+	ListSelfMessages(ctx context.Context, req *ListSelfMessagesRequest, opts ...http.CallOption) (rsp *ListSelfMessagesResponse, err error)
+	// MarkAllMessagesRead 标记全部消息为已读。
+	MarkAllMessagesRead(ctx context.Context, req *MarkAllMessagesReadRequest, opts ...http.CallOption) (rsp *MarkAllMessagesReadResponse, err error)
+	// MarkMessageRead 标记一条消息为已读。
+	MarkMessageRead(ctx context.Context, req *MarkMessageReadRequest, opts ...http.CallOption) (rsp *MarkMessageReadResponse, err error)
+}
+
+type SystemMessageServiceHTTPClientImpl struct {
+	cc *http.Client
+}
+
+func NewSystemMessageServiceHTTPClient(client *http.Client) SystemMessageServiceHTTPClient {
+	return &SystemMessageServiceHTTPClientImpl{client}
+}
+
+// GetUnreadMessageCount 当前用户的未读消息数。
+func (c *SystemMessageServiceHTTPClientImpl) GetUnreadMessageCount(ctx context.Context, in *GetUnreadMessageCountRequest, opts ...http.CallOption) (*GetUnreadMessageCountResponse, error) {
+	var out GetUnreadMessageCountResponse
+	pattern := "/v1/self/messages/unread-count"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSystemMessageServiceGetUnreadMessageCount),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListSelfMessages 分页列出当前用户的系统消息。
+func (c *SystemMessageServiceHTTPClientImpl) ListSelfMessages(ctx context.Context, in *ListSelfMessagesRequest, opts ...http.CallOption) (*ListSelfMessagesResponse, error) {
+	var out ListSelfMessagesResponse
+	pattern := "/v1/self/messages"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSystemMessageServiceListSelfMessages),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// MarkAllMessagesRead 标记全部消息为已读。
+func (c *SystemMessageServiceHTTPClientImpl) MarkAllMessagesRead(ctx context.Context, in *MarkAllMessagesReadRequest, opts ...http.CallOption) (*MarkAllMessagesReadResponse, error) {
+	var out MarkAllMessagesReadResponse
+	pattern := "/v1/self/messages/read-all"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSystemMessageServiceMarkAllMessagesRead),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// MarkMessageRead 标记一条消息为已读。
+func (c *SystemMessageServiceHTTPClientImpl) MarkMessageRead(ctx context.Context, in *MarkMessageReadRequest, opts ...http.CallOption) (*MarkMessageReadResponse, error) {
+	var out MarkMessageReadResponse
+	pattern := "/v1/self/messages/{uid}/read"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSystemMessageServiceMarkMessageRead),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

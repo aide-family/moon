@@ -177,6 +177,18 @@ func (f MemberFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MemberMutation", m)
 }
 
+// The MemberInviteFunc type is an adapter to allow the use of ordinary
+// function as MemberInvite mutator.
+type MemberInviteFunc func(context.Context, *ent.MemberInviteMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MemberInviteFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MemberInviteMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MemberInviteMutation", m)
+}
+
 // The MemberRoleFunc type is an adapter to allow the use of ordinary
 // function as MemberRole mutator.
 type MemberRoleFunc func(context.Context, *ent.MemberRoleMutation) (ent.Value, error)
@@ -367,6 +379,18 @@ func (f SSHCommandAuditFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SSHCommandAuditMutation", m)
+}
+
+// The SystemMessageFunc type is an adapter to allow the use of ordinary
+// function as SystemMessage mutator.
+type SystemMessageFunc func(context.Context, *ent.SystemMessageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SystemMessageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SystemMessageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SystemMessageMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

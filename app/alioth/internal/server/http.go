@@ -25,10 +25,13 @@ func NewHTTPServer(
 	self *service.SelfService,
 	namespaces *service.NamespaceService,
 	members *service.MemberService,
+	invitations *service.InvitationService,
+	messages *service.SystemMessageService,
 	users *service.UserService,
 	roles *service.RoleService,
 	datasources *service.DatasourceService,
 	queries *service.MetricQueryService,
+	logQueries *service.LogsQueryService,
 	rules *service.AlertRuleService,
 	dictionaries *service.AlertDictionaryService,
 	alertPages *service.AlertPageService,
@@ -74,10 +77,13 @@ func NewHTTPServer(
 	v1.RegisterSelfServiceHTTPServer(srv, self)
 	v1.RegisterNamespaceServiceHTTPServer(srv, namespaces)
 	v1.RegisterMemberServiceHTTPServer(srv, members)
+	v1.RegisterInvitationServiceHTTPServer(srv, invitations)
+	v1.RegisterSystemMessageServiceHTTPServer(srv, messages)
 	v1.RegisterUserServiceHTTPServer(srv, users)
 	v1.RegisterRoleServiceHTTPServer(srv, roles)
 	v1.RegisterDatasourceServiceHTTPServer(srv, datasources)
 	v1.RegisterMetricQueryServiceHTTPServer(srv, queries)
+	v1.RegisterLogsQueryServiceHTTPServer(srv, logQueries)
 	v1.RegisterAlertRuleServiceHTTPServer(srv, rules)
 	v1.RegisterAlertDictionaryServiceHTTPServer(srv, dictionaries)
 	v1.RegisterAlertPageServiceHTTPServer(srv, alertPages)

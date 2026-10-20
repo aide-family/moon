@@ -7,9 +7,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log/slog"
-	"net"
-	"net/smtp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -23,9 +20,11 @@ import (
 	merakv1 "github.com/aide-family/Alioth/api/merak/v1"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
+	"github.com/aide-family/Alioth/app/alioth/internal/mailer"
 	"github.com/aide-family/Alioth/app/alioth/pkg/actor"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
+	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -34,14 +33,6 @@ var ProviderSet = wire.NewSet(NewUsecase)
 // AgentTokenLookup 用明文 Agent 令牌解析机器。只给 Connect 用。
 type AgentTokenLookup interface {
 	AuthenticateToken(ctx context.Context, token string) (*bo.Agent, error)
-}
-
-type smtpConfig struct {
-	host     string
-	port     int
-	username string
-	password string
-	from     string
 }
 
 type oauthClient struct {
@@ -60,12 +51,12 @@ type Usecase struct {
 	accessTTL    time.Duration
 	refreshTTL   time.Duration
 	serviceKeys  map[string]string
-	smtp         smtpConfig
+	mail         *mailer.Sender
 	oauthClients map[string]oauthClient
 	log          *slog.Logger
 }
 
-func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emailCodes repository.EmailCodeRepo, oauth repository.OAuthRepo, agents AgentTokenLookup, auth *conf.Auth, logger *slog.Logger) (*Usecase, error) {
+func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emailCodes repository.EmailCodeRepo, oauth repository.OAuthRepo, agents AgentTokenLookup, mail *mailer.Sender, auth *conf.Auth, logger *slog.Logger) (*Usecase, error) {
 	if auth == nil || auth.GetJwtSecret() == "" {
 		return nil, merr.Server("jwt secret is empty")
 	}
@@ -87,16 +78,6 @@ func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emai
 	for _, item := range auth.GetOauth() {
 		clients[strings.ToUpper(item.GetProvider())] = oauthClient{id: item.GetClientId(), secret: item.GetClientSecret()}
 	}
-	mail := smtpConfig{}
-	if auth.GetSmtp() != nil {
-		mail = smtpConfig{
-			host:     auth.GetSmtp().GetHost(),
-			port:     int(auth.GetSmtp().GetPort()),
-			username: auth.GetSmtp().GetUsername(),
-			password: auth.GetSmtp().GetPassword(),
-			from:     auth.GetSmtp().GetFrom(),
-		}
-	}
 	return &Usecase{
 		users:        users,
 		captchas:     captchas,
@@ -107,7 +88,7 @@ func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emai
 		accessTTL:    access,
 		refreshTTL:   refresh,
 		serviceKeys:  keys,
-		smtp:         mail,
+		mail:         mail,
 		oauthClients: clients,
 		log:          logger,
 	}, nil
@@ -330,6 +311,19 @@ func (uc *Usecase) Self(ctx context.Context) (*bo.Account, error) {
 	return &cleaned, nil
 }
 
+// SelfSystem 返回当前用户的平台角色和平台权限。它和租户权限是两套目录。
+func (uc *Usecase) SelfSystem(ctx context.Context) (string, []string, error) {
+	uid, ok := actor.UserID(ctx)
+	if !ok {
+		return "", nil, merr.Unauthenticated("missing token")
+	}
+	account, err := uc.users.UserByUID(ctx, uid)
+	if err != nil {
+		return "", nil, uc.wrap(err)
+	}
+	return account.SystemRole, perm.SystemPermissions(account.SystemRole), nil
+}
+
 func (uc *Usecase) ChangeEmail(ctx context.Context, email string) (*bo.Account, error) {
 	uid, ok := actor.UserID(ctx)
 	if !ok {
@@ -438,20 +432,10 @@ func (uc *Usecase) digest(value string) string {
 }
 
 func (uc *Usecase) sendMail(to, code string) error {
-	if uc.smtp.host == "" || uc.smtp.port == 0 || uc.smtp.from == "" {
+	if uc.mail == nil {
 		return merr.Server("smtp is not configured")
 	}
-	addr := net.JoinHostPort(uc.smtp.host, strconv.Itoa(uc.smtp.port))
-	message := "From: " + uc.smtp.from + "\r\nTo: " + to + "\r\nSubject: Alioth login code\r\n\r\n" + code + "\r\n"
-	var auth smtp.Auth
-	if uc.smtp.username != "" {
-		auth = smtp.PlainAuth("", uc.smtp.username, uc.smtp.password, uc.smtp.host)
-	}
-	if err := smtp.SendMail(addr, auth, uc.smtp.from, []string{to}, []byte(message)); err != nil {
-		uc.log.Error(fmt.Sprintf("smtp: %v", err))
-		return merr.Server("failed to send email")
-	}
-	return nil
+	return uc.mail.Send(to, "Alioth login code", "Your Alioth login code is "+code+"\r\nIt expires in 10 minutes.\r\n")
 }
 
 func (uc *Usecase) wrap(err error) error {
@@ -509,7 +493,8 @@ func publicOperation(operation string) bool {
 		v1.OperationAuthServicePasswordLogin,
 		v1.OperationAuthServiceSendEmailLoginCode,
 		v1.OperationAuthServiceEmailLogin,
-		v1.OperationAuthServiceOAuth2Login:
+		v1.OperationAuthServiceOAuth2Login,
+		v1.OperationInvitationServiceGetInvitation:
 		return true
 	default:
 		return false
@@ -525,7 +510,20 @@ func namespaceOptional(operation string) bool {
 		v1.OperationSelfServiceChangeEmail,
 		v1.OperationSelfServiceChangeAvatar,
 		v1.OperationSelfServiceChangeRemark,
-		v1.OperationNamespaceServiceCreateNamespace:
+		v1.OperationNamespaceServiceCreateNamespace,
+		v1.OperationInvitationServiceListSelfInvitations,
+		v1.OperationInvitationServiceAcceptInvitation,
+		v1.OperationInvitationServiceDeclineInvitation,
+		v1.OperationSystemMessageServiceListSelfMessages,
+		v1.OperationSystemMessageServiceGetUnreadMessageCount,
+		v1.OperationSystemMessageServiceMarkMessageRead,
+		v1.OperationSystemMessageServiceMarkAllMessagesRead,
+		v1.OperationUserServiceGetUser,
+		v1.OperationUserServiceListUsers,
+		v1.OperationUserServiceSelectUsers,
+		v1.OperationUserServiceBanUser,
+		v1.OperationUserServicePermitUser,
+		v1.OperationUserServiceUpdateUserSystemRole:
 		return true
 	default:
 		return false

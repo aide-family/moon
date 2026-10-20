@@ -139,7 +139,7 @@ func (r *roleRepo) UpdateRolePermissions(ctx context.Context, namespaceUID, uid 
 		return nil, merr.Invalid("invalid request")
 	}
 	for _, name := range names {
-		if name == perm.NamespaceDelete || name == perm.NamespaceTransfer {
+		if !perm.IsTenantPermission(name) || name == perm.NamespaceDelete || name == perm.NamespaceTransfer {
 			return nil, merr.Invalid("invalid request")
 		}
 	}
@@ -175,7 +175,11 @@ func (r *roleRepo) UpdateRolePermissions(ctx context.Context, namespaceUID, uid 
 }
 
 func (r *roleRepo) ListPermissions(ctx context.Context) ([]bo.Permission, error) {
-	rows, err := r.client.Permission.Query().Order(ent.Asc(permission.FieldName)).All(ctx)
+	// 只返回租户权限目录。系统权限不在这张表里，避免租户角色误授平台能力。
+	rows, err := r.client.Permission.Query().
+		Where(permission.NameIn(perm.Names()...)).
+		Order(ent.Asc(permission.FieldName)).
+		All(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}

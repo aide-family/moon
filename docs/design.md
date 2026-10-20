@@ -156,21 +156,25 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 
 租户沿用 Moon 的 Namespace。请求头 `X-Namespace` 由 `alioth` 写入上下文。业务行带 `namespace_uid`。同一租户内名称唯一，规则与 Moon 相同：`(namespace_uid, name)` 在未删除记录上唯一。
 
-用户是全局身份。成员是用户在某个 Namespace 中的身份。Moon 把角色直接写在 `members.role` 上。Alioth 增加可配置的 RBAC，预置角色覆盖原来的四档枚举。
+用户是平台级身份，独立于租户；成员才是用户在某个 Namespace 中的身份。系统权限和租户权限是两套目录：`system:*` 由平台角色持有，租户角色永远拿不到；`resource:action` 由租户角色持有，平台角色也不会自动获得。第一个注册用户成为超级管理员，后续用户的平台角色由超级管理员授权。
 
-全局 `User` 的管理接口按当前 Namespace 授权：列表、详情、封禁和解封只作用于当前租户的成员。一个租户的管理员不能枚举或封禁其他租户的用户。
+平台用户管理不读取 `X-Namespace`。用户列表、详情、封禁、解封和平台角色授权都只要求系统权限。用户列表仅系统管理员及以上可见；租户管理员不能枚举或封禁平台用户，只能管理本租户成员。
+
+成员关系不再由租户管理员直接创建。租户内邀请会生成一条平台邀请消息，被邀请人在平台确认后才会创建 `Member` 并授予租户角色。邀请邮件携带快捷链接；未注册邮箱打开链接后先注册，注册完成自动登录并回到邀请函。
 
 
 | 实体               | 说明                                                                                     |
 | ---------------- | -------------------------------------------------------------------------------------- |
-| `User`           | 全局用户。Moon 已有 UID、名称、昵称、邮箱、头像、备注、状态（ACTIVE / BANNED）。Alioth 增加 `password_hash`，供注册和密码登录 |
+| `User`           | 平台用户，不隶属于任何租户。Moon 已有 UID、名称、昵称、邮箱、头像、备注、状态（ACTIVE / BANNED）。Alioth 增加 `password_hash`、`system_role`（SUPER_ADMIN / SYSTEM_ADMIN / USER）和 `authorized_by`。数据库用部分唯一索引保证最多一个超级管理员 |
 | `UserOAuth`      | 对应 Moon 的 `user_oauth2s`：OpenID、来源应用、原始资料。来源仍是 GitHub、Gitee、飞书                         |
 | `Namespace`      | 租户。Moon 已有 UID、名称、Secret、状态、负责人、Metadata、Logo、Banners                                  |
-| `Member`         | 用户与 Namespace 的关系。状态沿用 JOINED / INVITED / EXPIRED                                      |
-| `Role`           | Namespace 内角色，也可是系统预置角色                                                                |
-| `Permission`     | `resource:action`                                                                      |
-| `RolePermission` | 角色与权限                                                                                  |
-| `MemberRole`     | 成员与角色，一个成员可以有多个角色                                                                      |
+| `Member`         | 用户与 Namespace 的关系。新流程只在用户确认邀请后创建 JOINED 成员；INVITED / EXPIRED 仅用于兼容历史数据                              |
+| `MemberInvite`   | 平台邀请消息。记录租户、邮箱、平台用户、角色、邀请人、令牌摘要、状态和有效期。用户确认前不创建成员                              |
+| `SystemMessage`  | 平台系统消息。记录收件人（用户标识或邮箱）、类型、触发人、租户、角色和已读时间。邀请收到、接受、拒绝和成员被移除都会写一条                              |
+| `Role`           | Namespace 内角色，也可是租户预置角色                                                                |
+| `Permission`     | 租户权限 `resource:action`。系统权限不写入这张表，由代码中的 `system:*` 目录单独维护                                |
+| `RolePermission` | 租户角色与租户权限                                                                                  |
+| `MemberRole`     | 成员与租户角色，一个成员可以有多个角色                                                                      |
 
 
 预置角色：
@@ -184,7 +188,20 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 | `viewer` | 只读                                       |
 
 
-初始权限按资源划分：`user`、`member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`agent`、`ssh`、`sftp`、`k8s`。动作至少包含 `read` 与 `write`；告警另有 `intervene`；SFTP 分开 `sftp:read` 与 `sftp:write`；执行动作为 `ssh:exec` 与 `k8s:proxy`。具体权限名在 proto 枚举中定稿。Web 菜单按当前用户在当前 Namespace 的权限生成。Moon Web 的菜单是前端写死的，没有路由级权限。
+平台角色：
+
+
+| 角色             | 能力                                                              |
+| -------------- | --------------------------------------------------------------- |
+| `SUPER_ADMIN`  | 第一个注册用户。持有全部系统权限，可把其他用户授权为系统管理员，也可撤销该授权                          |
+| `SYSTEM_ADMIN` | 可查看平台用户、封禁或解封普通用户，但不能授权或撤销系统管理员，也不能操作超级管理员                      |
+| `USER`         | 没有系统权限。仍然可以通过租户邀请成为成员，并按租户角色使用管理台                                  |
+
+
+系统权限目录：`system:user:read`、`system:user:write`、`system:role:read`、`system:role:write`、`system:invite:read`。其中 `system:user:read` 决定用户列表可见性；`system:role:write` 只授予超级管理员。
+
+
+租户权限按资源划分：`member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`agent`、`ssh`、`sftp`、`k8s`。动作至少包含 `read` 与 `write`；告警另有 `intervene`；SFTP 分开 `sftp:read` 与 `sftp:write`；执行动作为 `ssh:exec` 与 `k8s:proxy`。`user` 是平台资源，不进入租户权限目录。具体权限名在 proto 枚举中定稿。Web 菜单分别按系统权限和当前用户在当前 Namespace 的租户权限生成。Moon Web 的菜单是前端写死的，没有路由级权限。
 
 认证：
 
@@ -196,7 +213,23 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 - 服务间调用使用 Moon 已有的 service key，形态为 `Authorization: Bearer sk-...`，与用户 JWT 互斥
 - `alkaid` 使用独立的 Agent 令牌，只用于出站流，不能当用户令牌调用管理接口
 
-个人资料沿用 Moon 的 `Self`：信息、所属 Namespace、修改邮箱、头像、备注。用户封禁与解封沿用 `BanUser` / `PermitUser`。成员邀请、移除、状态变更沿用 Member 服务的能力。
+个人资料沿用 Moon 的 `Self`：信息、所属 Namespace、修改邮箱、头像、备注。用户封禁与解封沿用 `BanUser` / `PermitUser`，但改为平台权限校验。成员邀请改为邀请消息，移除、角色分配仍由 Member 服务处理。
+
+邀请流程：
+
+1. 租户管理员提交邮箱和角色。服务端生成 256 位随机令牌，数据库只保存 SHA-256 摘要；同一租户同一邮箱只保留一条待确认邀请，重复邀请刷新令牌和有效期。
+2. 邀请出现在被邀请人的平台邀请列表。邮箱已注册时立即按邮箱匹配；未注册时，注册完成后按邮箱匹配。
+3. 服务端尝试发送邀请邮件，正文包含 `{web_url}/invite/{token}`。邮件发送失败不回滚邀请，用户仍可在平台确认。
+4. 打开链接先读取公开邀请函。未登录时引导登录或注册；未注册用户注册成功后自动登录并回到邀请函。登录用户点击同意后，服务端校验邮箱或平台用户一致、邀请未过期、角色仍有效，然后才创建 `Member`、写入 `MemberRole`，并把邀请标为 ACCEPTED。
+5. 拒绝只把邀请标为 DECLINED，不创建成员。超过 7 天标为 EXPIRED。租户管理员可以撤销待确认邀请。
+
+系统消息：
+
+- 邀请创建时给被邀请人写一条 `INVITE_RECEIVED` 消息。邮箱未注册时按 email 投递，注册后即可看到。
+- 被邀请人同意时给邀请人写一条 `INVITE_ACCEPTED`，拒绝时写 `INVITE_DECLINED`。
+- 成员被移出租户时给被移除用户写一条 `MEMBER_REMOVED`。
+- 同意或拒绝后把对应的 `INVITE_RECEIVED` 标为已读，避免未读角标残留。
+- 消息页支持分页、只看未读、单条已读和全部已读；未读数通过轮询刷新到顶栏提醒。
 
 ## 4. 告警
 
@@ -210,11 +243,11 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 | DatasourceType | DatasourceDriver                            | 首期行为                |
 | -------------- | ------------------------------------------- | ------------------- |
 | METRICS        | METRICS_PROMETHEUS、METRICS_VICTORIA_METRICS | 管理、即时查询、区间查询、指标规则评测 |
-| LOGS           | LOGS_ELASTICSEARCH                          | 管理与查询代理。评测器留接口      |
+| LOGS           | LOGS_ELASTICSEARCH、LOGS_LOKI                | 管理与查询代理。Loki 另有日志区间查询和状态检查；评测器留接口 |
 | TRACE          | TRACE_JAEGER                                | 管理与查询代理。评测器留接口      |
 
 
-数据源归属 Namespace，可启停，可绑定数据源级别（Moon 的 `LevelType_DATASOURCE`），并带 `labels` JSON 供规则按标签匹配。密钥字段加密后入库，沿用 Moon `EncryptString` 的做法。指标数据源保留 Moon 已有的能力：状态、指标列表、指标详情、`query`、`query_range`、代理查询。
+数据源归属 Namespace，可启停，可绑定数据源级别（Moon 的 `LevelType_DATASOURCE`），并带 `labels` JSON 供规则按标签匹配。密钥字段加密后入库，沿用 Moon `EncryptString` 的做法。指标数据源保留 Moon 已有的能力：状态、指标列表、指标详情、`query`、`query_range`、代理查询。Loki 日志数据源的连通检查走 `/ready`，日志查询走 `/loki/api/v1/query_range`，查询语句为 LogQL。
 
 ### 4.2 规则
 
@@ -379,10 +412,13 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 | 邮箱验证码登录    | `POST /v1/auth/email/login/code`、`POST /v1/auth/email/login`                            |
 | 当前用户       | `GET /v1/self/info`、`GET /v1/self/namespaces`、`GET /v1/self/refresh-token`，以及修改邮箱、头像、备注 |
 | Namespace  | `/v1/namespace`、`/v1/namespaces`                                                        |
-| 用户         | `/v1/users`、封禁与解封                                                                       |
-| 成员         | `/v1/members`、`POST /v1/member/invite`                                                  |
+| 用户         | `/v1/users`、`/v1/user/{uid}`、封禁与解封、`PUT /v1/user/{uid}/system-role`。平台权限校验，不需要 `X-Namespace`                                                                       |
+| 成员         | `/v1/members`、`POST /v1/member/invite`、`GET /v1/member-invites`、`DELETE /v1/member/invite/{uid}`                                                  |
+| 邀请消息       | `GET /v1/self/invitations`、`GET /v1/invitation/{token}`、`POST /v1/invitation/accept`、`POST /v1/invitation/decline`                                |
+| 系统消息       | `GET /v1/self/messages`、`GET /v1/self/messages/unread-count`、`PUT /v1/self/messages/{uid}/read`、`PUT /v1/self/messages/read-all`                |
 | 数据源        | `/v1/datasource`、`/v1/datasources`、状态、指标列表与详情                                           |
 | 指标查询       | `POST /v1/metric-query/query`、`query-range`、`proxy`                                     |
+| 日志查询       | `POST /v1/logs-query/query`。Loki 的日志区间查询，返回 Loki 原始 JSON                          |
 | 规则组 / 规则   | Moon 的 `/v1/strategy-group` 与 `/v1/strategy`。Alioth 资源名为 AlertRuleGroup、AlertRule       |
 | 指标条件与级别阈值  | Moon 的 `/v1/metric/strategy/{strategyUID}`                                              |
 | 告警字典       | `/v1/alert-dictionary`、`/v1/alert-dictionaries`                                         |
@@ -491,4 +527,4 @@ flowchart TB
 
 边缘：`Agent`、`SSHCommand`、`SSHCommandAudit`、`SFTPAudit`、`K8sProxyAudit`。
 
-以上业务表都在 `alioth` 的 ent schema 中。除全局的 `User`、`UserOAuth`、`Permission` 外，业务表带 `namespace_uid`。
+以上业务表都在 `alioth` 的 ent schema 中。除平台级的 `User`、`UserOAuth` 和全局维护的租户权限定义 `Permission` 外，业务表带 `namespace_uid`。系统权限不建表，由代码目录维护。

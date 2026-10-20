@@ -262,7 +262,7 @@ var (
 		{Name: "group_uid", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"METRICS", "LOGS", "TRACE"}},
-		{Name: "driver", Type: field.TypeEnum, Enums: []string{"METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "TRACE_JAEGER"}},
+		{Name: "driver", Type: field.TypeEnum, Enums: []string{"METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"}},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
 		{Name: "expr", Type: field.TypeString, Default: ""},
 		{Name: "labels", Type: field.TypeString, Default: ""},
@@ -412,7 +412,7 @@ var (
 		{Name: "namespace_uid", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"METRICS", "LOGS", "TRACE"}},
-		{Name: "driver", Type: field.TypeEnum, Enums: []string{"METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "TRACE_JAEGER"}},
+		{Name: "driver", Type: field.TypeEnum, Enums: []string{"METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"}},
 		{Name: "endpoint", Type: field.TypeString},
 		{Name: "username", Type: field.TypeString, Default: ""},
 		{Name: "password_cipher", Type: field.TypeString, Default: ""},
@@ -543,6 +543,58 @@ var (
 				Columns: []*schema.Column{MembersColumns[5], MembersColumns[6]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
+				},
+			},
+		},
+	}
+	// MemberInvitesColumns holds the columns for the "member_invites" table.
+	MemberInvitesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "email", Type: field.TypeString},
+		{Name: "user_uid", Type: field.TypeString, Default: ""},
+		{Name: "role_uid", Type: field.TypeString},
+		{Name: "inviter_uid", Type: field.TypeString},
+		{Name: "token_hash", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "ACCEPTED", "DECLINED", "REVOKED", "EXPIRED"}, Default: "PENDING"},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "responded_at", Type: field.TypeTime, Nullable: true},
+	}
+	// MemberInvitesTable holds the schema information for the "member_invites" table.
+	MemberInvitesTable = &schema.Table{
+		Name:       "member_invites",
+		Columns:    MemberInvitesColumns,
+		PrimaryKey: []*schema.Column{MemberInvitesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "memberinvite_uid",
+				Unique:  true,
+				Columns: []*schema.Column{MemberInvitesColumns[3]},
+			},
+			{
+				Name:    "memberinvite_token_hash",
+				Unique:  true,
+				Columns: []*schema.Column{MemberInvitesColumns[9]},
+			},
+			{
+				Name:    "memberinvite_user_uid",
+				Unique:  false,
+				Columns: []*schema.Column{MemberInvitesColumns[6]},
+			},
+			{
+				Name:    "memberinvite_email",
+				Unique:  false,
+				Columns: []*schema.Column{MemberInvitesColumns[5]},
+			},
+			{
+				Name:    "memberinvite_namespace_uid_email",
+				Unique:  true,
+				Columns: []*schema.Column{MemberInvitesColumns[4], MemberInvitesColumns[5]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "status = 'PENDING'",
 				},
 			},
 		},
@@ -1179,6 +1231,55 @@ var (
 			},
 		},
 	}
+	// SystemMessagesColumns holds the columns for the "system_messages" table.
+	SystemMessagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "user_uid", Type: field.TypeString, Default: ""},
+		{Name: "email", Type: field.TypeString, Default: ""},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"INVITE_RECEIVED", "INVITE_ACCEPTED", "INVITE_DECLINED", "MEMBER_REMOVED"}},
+		{Name: "actor_name", Type: field.TypeString, Default: ""},
+		{Name: "namespace_uid", Type: field.TypeString, Default: ""},
+		{Name: "namespace_name", Type: field.TypeString, Default: ""},
+		{Name: "role_name", Type: field.TypeString, Default: ""},
+		{Name: "invite_uid", Type: field.TypeString, Default: ""},
+		{Name: "read_at", Type: field.TypeTime, Nullable: true},
+	}
+	// SystemMessagesTable holds the schema information for the "system_messages" table.
+	SystemMessagesTable = &schema.Table{
+		Name:       "system_messages",
+		Columns:    SystemMessagesColumns,
+		PrimaryKey: []*schema.Column{SystemMessagesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "systemmessage_uid",
+				Unique:  true,
+				Columns: []*schema.Column{SystemMessagesColumns[3]},
+			},
+			{
+				Name:    "systemmessage_user_uid",
+				Unique:  false,
+				Columns: []*schema.Column{SystemMessagesColumns[4]},
+			},
+			{
+				Name:    "systemmessage_email",
+				Unique:  false,
+				Columns: []*schema.Column{SystemMessagesColumns[5]},
+			},
+			{
+				Name:    "systemmessage_invite_uid",
+				Unique:  false,
+				Columns: []*schema.Column{SystemMessagesColumns[11]},
+			},
+			{
+				Name:    "systemmessage_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{SystemMessagesColumns[1]},
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1192,6 +1293,8 @@ var (
 		{Name: "remark", Type: field.TypeString, Default: ""},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "BANNED"}, Default: "ACTIVE"},
 		{Name: "password_hash", Type: field.TypeString, Default: ""},
+		{Name: "system_role", Type: field.TypeEnum, Enums: []string{"SUPER_ADMIN", "SYSTEM_ADMIN", "USER"}, Default: "USER"},
+		{Name: "authorized_by", Type: field.TypeString, Default: ""},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -1208,6 +1311,14 @@ var (
 				Name:    "user_email",
 				Unique:  true,
 				Columns: []*schema.Column{UsersColumns[6]},
+			},
+			{
+				Name:    "user_system_role",
+				Unique:  true,
+				Columns: []*schema.Column{UsersColumns[11]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "system_role = 'SUPER_ADMIN'",
+				},
 			},
 		},
 	}
@@ -1289,6 +1400,7 @@ var (
 		EmailLoginCodesTable,
 		K8sProxyAuditsTable,
 		MembersTable,
+		MemberInvitesTable,
 		MemberRolesTable,
 		MessageLogsTable,
 		NamespacesTable,
@@ -1305,6 +1417,7 @@ var (
 		SftpAuditsTable,
 		SSHCommandsTable,
 		SSHCommandAuditsTable,
+		SystemMessagesTable,
 		UsersTable,
 		UserAlertPagesTable,
 		UserOauthsTable,

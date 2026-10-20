@@ -13,8 +13,7 @@ type MemberRepo interface {
 	GetMember(ctx context.Context, namespaceUID, uid string) (*bo.Member, error)
 	MemberByUser(ctx context.Context, namespaceUID, userUID string) (*bo.Member, error)
 	SelectMembers(ctx context.Context, namespaceUID string, limit int, lastUID string) ([]bo.SelectItem, error)
-	InviteMember(ctx context.Context, namespaceUID, email, roleUID string) (*bo.Member, error)
-	DeleteMember(ctx context.Context, namespaceUID, uid string) error
+	DeleteMember(ctx context.Context, namespaceUID, uid, actorUID string) error
 	UpdateMemberStatus(ctx context.Context, namespaceUID, uid, status string) (*bo.Member, error)
 	UpdateMemberRoles(ctx context.Context, namespaceUID, memberUID string, roleUIDs []string) (*bo.Member, error)
 }

@@ -23,25 +23,78 @@ func TestRoleBoundaries(t *testing.T) {
 	if _, ok := admin[NamespaceWrite]; !ok {
 		t.Fatal("admin missing namespace write")
 	}
-	if _, ok := member[SSHExec]; !ok || member["sftp:write"] == struct{}{} && false {
+	if _, ok := member[SSHExec]; !ok {
 		t.Fatal("member missing exec permissions")
 	}
 	if _, ok := member["sftp:write"]; !ok {
 		t.Fatal("member missing sftp write")
 	}
-	if _, ok := member[UserWrite]; ok {
-		t.Fatal("member has user write")
-	}
-	if _, ok := viewer[UserRead]; !ok {
-		t.Fatal("viewer missing user read")
-	}
-	if _, ok := viewer[UserWrite]; ok || viewer[SSHExec] != struct{}{} && false {
-		t.Fatal("viewer has a write permission")
+	if _, ok := viewer[SSHExec]; ok {
+		t.Fatal("viewer has exec permission")
 	}
 	for name := range viewer {
 		if len(name) < 5 || name[len(name)-5:] != ":read" {
 			t.Fatalf("viewer permission %s is not read", name)
 		}
+	}
+}
+
+// TestSystemTenantIsolation 确认租户角色拿不到平台权限，平台角色也不会自动获得租户权限。
+func TestSystemTenantIsolation(t *testing.T) {
+	tenant := set(Names())
+	for _, item := range SystemCatalog() {
+		if _, ok := tenant[item.Name]; ok {
+			t.Fatalf("tenant catalog contains system permission %s", item.Name)
+		}
+	}
+	system := set(SystemNames())
+	for _, item := range Catalog() {
+		if _, ok := system[item.Name]; ok {
+			t.Fatalf("system catalog contains tenant permission %s", item.Name)
+		}
+	}
+	super := set(SystemPermissions(SystemRoleSuperAdmin))
+	if _, ok := super[SystemUserRead]; !ok {
+		t.Fatal("super admin missing system user read")
+	}
+	if _, ok := super[SystemRoleWrite]; !ok {
+		t.Fatal("super admin missing system role write")
+	}
+	admin := set(SystemPermissions(SystemRoleSystemAdmin))
+	if _, ok := admin[SystemUserRead]; !ok {
+		t.Fatal("system admin missing system user read")
+	}
+	if _, ok := admin[SystemRoleWrite]; ok {
+		t.Fatal("system admin has system role write")
+	}
+	if len(SystemPermissions(SystemRoleUser)) != 0 {
+		t.Fatal("normal user has system permissions")
+	}
+}
+
+func TestTenantPermissionCatalog(t *testing.T) {
+	if IsTenantPermission(SystemUserRead) {
+		t.Fatal("system permission accepted as tenant permission")
+	}
+	if IsTenantPermission("user:read") {
+		t.Fatal("legacy user permission accepted as tenant permission")
+	}
+	if !IsTenantPermission(MemberRead) {
+		t.Fatal("member read is not a tenant permission")
+	}
+}
+
+func TestSystemRoles(t *testing.T) {
+	for _, role := range SystemRoles() {
+		if !IsSystemRole(role) {
+			t.Fatalf("role %s is not recognized", role)
+		}
+	}
+	if IsSystemAdmin(SystemRoleUser) {
+		t.Fatal("normal user treated as system admin")
+	}
+	if !IsSystemAdmin(SystemRoleSuperAdmin) || !IsSystemAdmin(SystemRoleSystemAdmin) {
+		t.Fatal("system admin roles not recognized")
 	}
 }
 

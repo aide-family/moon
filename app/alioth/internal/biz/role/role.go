@@ -127,7 +127,7 @@ func (uc *Usecase) UpdateRolePermissions(ctx context.Context, uid string, names 
 		return nil, merr.Client("invalid request")
 	}
 	for _, name := range names {
-		if name == perm.NamespaceDelete || name == perm.NamespaceTransfer {
+		if !perm.IsTenantPermission(name) || name == perm.NamespaceDelete || name == perm.NamespaceTransfer {
 			return nil, merr.Client("invalid request")
 		}
 	}

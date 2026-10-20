@@ -26,6 +26,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/k8sproxyaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/messagelog"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
@@ -42,6 +43,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sftpaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommandaudit"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/systemmessage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useralertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useroauth"
@@ -119,6 +121,7 @@ func checkColumn(t, c string) error {
 			emaillogincode.Table:                emaillogincode.ValidColumn,
 			k8sproxyaudit.Table:                 k8sproxyaudit.ValidColumn,
 			member.Table:                        member.ValidColumn,
+			memberinvite.Table:                  memberinvite.ValidColumn,
 			memberrole.Table:                    memberrole.ValidColumn,
 			messagelog.Table:                    messagelog.ValidColumn,
 			namespace.Table:                     namespace.ValidColumn,
@@ -135,6 +138,7 @@ func checkColumn(t, c string) error {
 			sftpaudit.Table:                     sftpaudit.ValidColumn,
 			sshcommand.Table:                    sshcommand.ValidColumn,
 			sshcommandaudit.Table:               sshcommandaudit.ValidColumn,
+			systemmessage.Table:                 systemmessage.ValidColumn,
 			user.Table:                          user.ValidColumn,
 			useralertpage.Table:                 useralertpage.ValidColumn,
 			useroauth.Table:                     useroauth.ValidColumn,
