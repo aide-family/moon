@@ -319,9 +319,11 @@ function ShellFrame() {
               <SidebarMenuItem>
                 <SidebarMenuButton size="lg" asChild tooltip="Alioth">
                   <div>
-                    <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
-                      A
-                    </span>
+                    <img
+                      src="/alioth.svg"
+                      alt=""
+                      className="size-8 shrink-0 rounded-[9px]"
+                    />
                     <span className="font-heading font-semibold">Alioth</span>
                   </div>
                 </SidebarMenuButton>

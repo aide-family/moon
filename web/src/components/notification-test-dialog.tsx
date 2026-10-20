@@ -6,6 +6,7 @@ import { testNotificationChannel } from "@/api/notification-channel"
 import type { NotificationChannelItem } from "@/api/notification-channel/types"
 import { testNotificationTemplate } from "@/api/notification-template"
 import type { NotificationTemplateItem } from "@/api/notification-template/types"
+import { ChannelLogo } from "@/components/channel-logo"
 import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,6 +31,7 @@ import {
   hasFieldErrors,
   requireSelected,
 } from "@/lib/form"
+import { enumLabel } from "@/lib/enum-label"
 import { readFormError } from "@/lib/form-error"
 
 type TestTarget =
@@ -55,6 +57,7 @@ export function NotificationTestDialog({ target, channels, onClose }: Notificati
   const [error, setError] = useState("")
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
+  const selectedChannel = compatibleChannels.find((item) => item.uid === channelUid)
 
   async function submit(event: React.FormEvent) {
     event.preventDefault()
@@ -128,13 +131,27 @@ export function NotificationTestDialog({ target, channels, onClose }: Notificati
             >
               <Select value={channelUid || "NONE"} onValueChange={(value) => setChannelUid(value === "NONE" ? "" : value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t("template.channelPlaceholder")} />
+                  <SelectValue placeholder={t("template.channelPlaceholder")}>
+                    {selectedChannel ? (
+                      <span className="flex min-w-0 items-center gap-2">
+                        <ChannelLogo type={selectedChannel.type} app={selectedChannel.app} className="size-4" />
+                        <span className="truncate">{selectedChannel.name}</span>
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">{t("template.channelPlaceholder")}</span>
+                    )}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="NONE">{t("template.channelPlaceholder")}</SelectItem>
                   {compatibleChannels.map((item) => (
                     <SelectItem key={item.uid} value={item.uid}>
-                      {item.name}（{item.type}）
+                      <span className="flex items-center gap-2">
+                        <ChannelLogo type={item.type} app={item.app} className="size-4" />
+                        <span>
+                          {item.name}（{enumLabel(t, item.type)}）
+                        </span>
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>

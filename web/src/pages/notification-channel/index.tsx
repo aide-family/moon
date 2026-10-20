@@ -11,6 +11,7 @@ import {
 } from "@/api/notification-channel"
 import type { NotificationChannelItem } from "@/api/notification-channel/types"
 import { useSession } from "@/auth/session"
+import { ChannelLogo } from "@/components/channel-logo"
 import { ConfirmAction } from "@/components/confirm-action"
 import { NotificationTestDialog } from "@/components/notification-test-dialog"
 import { DetailSheet } from "@/components/detail-sheet"
@@ -266,7 +267,16 @@ export function NotificationChannelPage() {
             <TableBody>
               {items.map((item) => (
                 <TableRow key={item.uid}>
-                  <TableCell>{item.name}</TableCell>
+                  <TableCell>
+                    <span className="flex min-w-0 items-center gap-2">
+                      <ChannelLogo
+                        type={item.type}
+                        app={item.app}
+                        className="size-5 rounded-md border bg-background p-0.5"
+                      />
+                      <span className="truncate">{item.name}</span>
+                    </span>
+                  </TableCell>
                   <TableCell>{enumLabel(t, item.type)}</TableCell>
                   <TableCell>{enumLabel(t, item.app)}</TableCell>
                   <TableCell className="max-w-xs truncate">{item.endpoint}</TableCell>
@@ -309,12 +319,20 @@ export function NotificationChannelPage() {
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={t("channel.typePlaceholder")} />
+                  <SelectValue placeholder={t("channel.typePlaceholder")}>
+                    <span className="flex items-center gap-2">
+                      <ChannelLogo type={type} className="size-4" />
+                      <span>{enumLabel(t, type)}</span>
+                    </span>
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {types.map((item) => (
                     <SelectItem key={item} value={item}>
-                      {enumLabel(t, item)}
+                      <span className="flex items-center gap-2">
+                        <ChannelLogo type={item} className="size-4" />
+                        <span>{enumLabel(t, item)}</span>
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -328,12 +346,20 @@ export function NotificationChannelPage() {
               >
                 <Select value={app} onValueChange={setApp}>
                   <SelectTrigger>
-                    <SelectValue placeholder={t("channel.appPlaceholder")} />
+                    <SelectValue placeholder={t("channel.appPlaceholder")}>
+                      <span className="flex items-center gap-2">
+                        <ChannelLogo type="WEBHOOK" app={app} className="size-4" />
+                        <span>{enumLabel(t, app)}</span>
+                      </span>
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {webhookApps.map((item) => (
                       <SelectItem key={item} value={item}>
-                        {enumLabel(t, item)}
+                        <span className="flex items-center gap-2">
+                          <ChannelLogo type="WEBHOOK" app={item} className="size-4" />
+                          <span>{enumLabel(t, item)}</span>
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -403,7 +429,15 @@ export function NotificationChannelPage() {
           detail
             ? [
                 { label: t("detail.uid"), value: detail.uid },
-                { label: t("channel.type"), value: enumLabel(t, detail.type) },
+                {
+                  label: t("channel.type"),
+                  value: (
+                    <span className="flex items-center gap-2">
+                      <ChannelLogo type={detail.type} app={detail.app} className="size-4" />
+                      {enumLabel(t, detail.type)}
+                    </span>
+                  ),
+                },
                 { label: t("channel.app"), value: enumLabel(t, detail.app) },
                 { label: t("channel.endpoint"), value: detail.endpoint },
                 { label: t("namespace.status"), value: enumLabel(t, detail.status) },

@@ -17,6 +17,7 @@ import type { NotificationGroupItem } from "@/api/notification-group/types"
 import { listNotificationTemplates } from "@/api/notification-template"
 import type { NotificationTemplateItem } from "@/api/notification-template/types"
 import { useSession } from "@/auth/session"
+import { ChannelLogo } from "@/components/channel-logo"
 import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
@@ -282,6 +283,8 @@ export function NotificationGroupPage() {
     ]
   }
 
+  const selectedChannel = channels.find((item) => item.uid === channelUid)
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("group.title")} description={t("group.description")}>
@@ -333,7 +336,17 @@ export function NotificationGroupPage() {
               {items.map((item) => (
                 <TableRow key={item.uid}>
                   <TableCell>{item.name}</TableCell>
-                  <TableCell>{channels.find((channel) => channel.uid === item.channelUid)?.name ?? item.channelUid}</TableCell>
+                  <TableCell>
+                    {(() => {
+                      const channel = channels.find((entry) => entry.uid === item.channelUid)
+                      return (
+                        <span className="flex min-w-0 items-center gap-2">
+                          <ChannelLogo type={channel?.type ?? ""} app={channel?.app} className="size-5 rounded-md border bg-background p-0.5" />
+                          <span className="truncate">{channel?.name ?? item.channelUid}</span>
+                        </span>
+                      )
+                    })()}
+                  </TableCell>
                   <TableCell>{templates.find((template) => template.uid === item.templateUid)?.name ?? item.templateUid}</TableCell>
                   <TableCell>
                     {item.receivers}
@@ -370,13 +383,27 @@ export function NotificationGroupPage() {
             >
               <Select value={channelUid || "NONE"} onValueChange={(value) => selectChannel(value === "NONE" ? "" : value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t("group.channelPlaceholder")} />
+                  <SelectValue placeholder={t("group.channelPlaceholder")}>
+                    {selectedChannel ? (
+                      <span className="flex min-w-0 items-center gap-2">
+                        <ChannelLogo type={selectedChannel.type} app={selectedChannel.app} className="size-4" />
+                        <span className="truncate">{selectedChannel.name}</span>
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">{t("group.channelPlaceholder")}</span>
+                    )}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectOption value="NONE">{t("group.channelPlaceholder")}</SelectOption>
                   {channels.map((item) => (
                     <SelectOption key={item.uid} value={item.uid}>
-                      {item.name}（{item.type}{item.status === "DISABLED" ? ` · ${t("action.disabled")}` : ""}）
+                      <span className="flex items-center gap-2">
+                        <ChannelLogo type={item.type} app={item.app} className="size-4" />
+                        <span>
+                          {item.name}（{enumLabel(t, item.type)}{item.status === "DISABLED" ? ` · ${t("action.disabled")}` : ""}）
+                        </span>
+                      </span>
                     </SelectOption>
                   ))}
                 </SelectContent>

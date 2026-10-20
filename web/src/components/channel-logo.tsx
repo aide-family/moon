@@ -1,0 +1,45 @@
+import { Mail, Webhook } from "lucide-react"
+
+import dingtalk from "@/assets/brands/dingtalk.svg"
+import feishu from "@/assets/brands/feishu.svg"
+import wecom from "@/assets/brands/wecom.svg"
+import { cn } from "@/lib/utils"
+
+const appLogos: Record<string, string> = {
+  DINGTALK: dingtalk,
+  WECHAT: wecom,
+  FEISHU: feishu,
+}
+
+/**
+ * 通知渠道的产品标记：Webhook 应用优先展示对应产品 logo，
+ * 否则按渠道类型回退到邮件或 Webhook 图标。
+ */
+export function ChannelLogo({
+  type,
+  app,
+  className,
+}: {
+  type: string
+  app?: string
+  className?: string
+}) {
+  const logo = app ? appLogos[app] : undefined
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center",
+        className
+      )}
+      aria-hidden
+    >
+      {logo ? (
+        <img src={logo} alt="" className="size-full object-contain" />
+      ) : type === "SMTP" ? (
+        <Mail className="size-full text-primary" />
+      ) : (
+        <Webhook className="size-full text-muted-foreground" />
+      )}
+    </span>
+  )
+}

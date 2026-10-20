@@ -94,7 +94,12 @@ export function AuthShell({
       <AuthIntro />
       <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-4 py-16 sm:px-10">
         <Card className="glass-card w-full max-w-md rounded-2xl border-0 shadow-none">
-          <CardHeader className="text-center">
+          <CardHeader className="items-center text-center">
+            <img
+              src="/alioth.svg"
+              alt="Alioth"
+              className="mx-auto mb-2 size-12 rounded-xl"
+            />
             <CardTitle className="font-heading text-2xl">{title}</CardTitle>
             <p className="text-sm text-muted-foreground">{subtitle}</p>
           </CardHeader>
