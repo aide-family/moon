@@ -7,7 +7,6 @@ type RuleSnapshot struct {
 	UID           string
 	NamespaceUID  string
 	Name          string
-	Type          string
 	Driver        string
 	Expr          string
 	Labels        string

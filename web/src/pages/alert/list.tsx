@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
+import type { TFunction } from "i18next"
+import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { formMessage } from "@/lib/form-error"
 
 import { listAlertDictionaries } from "@/api/alert-dictionary"
 import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
+import type { AlertColumnItem } from "@/api/alert-page/types"
 import {
   alertEventStats,
   interveneAlertEvent,
@@ -46,6 +49,12 @@ import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 import { EventChartDialog } from "@/pages/alert/event-chart"
 import { AlertEventDetail } from "@/pages/alert/event-detail"
+import {
+  DEFAULT_HISTORY_COLUMNS,
+  DEFAULT_REALTIME_COLUMNS,
+  fieldLabel,
+  parseEventLabels,
+} from "@/pages/alert/columns"
 import { formatDuration, formatTime } from "@/pages/alert/format"
 import { SuppressDialog } from "@/pages/alert/suppress-dialog"
 import type { SuppressInput } from "@/pages/alert/suppress-dialog"
@@ -60,6 +69,8 @@ interface AlertEventListProps {
   // 实时页从独立统计接口取数并下发，列表不再为统计条额外请求；
   // 历史页不传，仍由列表自己加载。
   stats?: AlertEventStats
+  // 实时页下发的自定义列；为空时使用视图默认列。
+  columns?: AlertColumnItem[]
 }
 
 type ConfirmKind = "recover" | "batch-recover"
@@ -71,6 +82,7 @@ export function AlertEventList({
   hideHeader = false,
   refreshKey = 0,
   stats: sharedStats,
+  columns,
 }: AlertEventListProps) {
   const { t } = useTranslation()
   const session = useSession()
@@ -140,6 +152,12 @@ export function AlertEventList({
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
   const [now, setNow] = useState(() => Date.now())
   const canIntervene = view === "REALTIME" && session.can("alert:intervene")
+  const visibleColumns =
+    columns && columns.length > 0
+      ? columns
+      : view === "HISTORY"
+        ? DEFAULT_HISTORY_COLUMNS
+        : DEFAULT_REALTIME_COLUMNS
   const title =
     view === "HISTORY" ? t("alertEvent.historyTitle") : t("alertEvent.title")
 
@@ -420,22 +438,15 @@ export function AlertEventList({
                     />
                   </TableHead>
                 ) : null}
-                <TableHead>{t("alertEvent.summary")}</TableHead>
-                <TableHead>{t("alertEvent.datasource")}</TableHead>
-                {view === "REALTIME" ? (
-                  <TableHead>{t("alertEvent.level")}</TableHead>
-                ) : null}
-                {view === "HISTORY" ? (
-                  <TableHead>{t("alertEvent.status")}</TableHead>
-                ) : null}
-                <TableHead>{t("alertEvent.sample")}</TableHead>
-                <TableHead>{t("alertEvent.startsAt")}</TableHead>
-                {view === "REALTIME" ? (
-                  <TableHead>{t("alertEvent.duration")}</TableHead>
-                ) : null}
-                {view === "REALTIME" ? (
-                  <TableHead>{t("alertEvent.intervened")}</TableHead>
-                ) : null}
+                {visibleColumns.map((column) => (
+                  <TableHead key={`${column.type}:${column.key}`}>
+                    {column.label.trim()
+                      ? column.label
+                      : column.type === "FIELD"
+                        ? fieldLabel(t, column.key)
+                        : column.key}
+                  </TableHead>
+                ))}
                 <TableHead />
               </TableRow>
             </TableHeader>
@@ -452,42 +463,11 @@ export function AlertEventList({
                       />
                     </TableCell>
                   ) : null}
-                  <TableCell>{item.summary || item.fingerprint}</TableCell>
-                  <TableCell>
-                    <span
-                      className="block max-w-[12rem] truncate"
-                      title={item.datasourceName || item.datasourceUid}
-                    >
-                      {item.datasourceName || item.datasourceUid || "—"}
-                    </span>
-                  </TableCell>
-                  {view === "REALTIME" ? (
-                    <TableCell>{levelCell(item.levelUid, levels)}</TableCell>
-                  ) : null}
-                  {view === "HISTORY" ? (
-                    <TableCell>{enumLabel(t, item.status)}</TableCell>
-                  ) : null}
-                  <TableCell>{item.sampleValue}</TableCell>
-                  <TableCell>{formatTime(item.startsAt)}</TableCell>
-                  {view === "REALTIME" ? (
-                    <TableCell className="font-mono">
-                      {formatDuration(item.startsAt, now)}
+                  {visibleColumns.map((column) => (
+                    <TableCell key={`${column.type}:${column.key}`}>
+                      {eventCell(item, column, levels, now, t)}
                     </TableCell>
-                  ) : null}
-                  {view === "REALTIME" ? (
-                    <TableCell>
-                      {item.intervenedBy ? (
-                        <div className="grid">
-                          <span>
-                            {item.intervenedName || item.intervenedBy}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {formatTime(item.intervenedAt)}
-                          </span>
-                        </div>
-                      ) : null}
-                    </TableCell>
-                  ) : null}
+                  ))}
                   <TableCell>
                     <RowActions
                       detailLabel={t("action.detail")}
@@ -558,6 +538,86 @@ export function AlertEventList({
       />
     </section>
   )
+}
+
+function eventCell(
+  item: AlertEventItem,
+  column: AlertColumnItem,
+  levels: AlertDictionaryItem[],
+  now: number,
+  t: TFunction
+): ReactNode {
+  if (column.type === "LABEL") {
+    const labels = parseEventLabels(item.labels)
+    const value = labels[column.key]
+    return value ? (
+      <span className="block max-w-[16rem] truncate" title={value}>
+        {value}
+      </span>
+    ) : (
+      "—"
+    )
+  }
+  switch (column.key) {
+    case "summary":
+      return item.summary || item.fingerprint
+    case "datasource":
+      return (
+        <span
+          className="block max-w-[12rem] truncate"
+          title={item.datasourceName || item.datasourceUid}
+        >
+          {item.datasourceName || item.datasourceUid || "—"}
+        </span>
+      )
+    case "level":
+      return levelCell(item.levelUid, levels)
+    case "sample_value":
+      return item.sampleValue
+    case "starts_at":
+      return formatTime(item.startsAt)
+    case "duration":
+      return <span className="font-mono">{formatDuration(item.startsAt, now)}</span>
+    case "intervened":
+      return item.intervenedBy ? (
+        <div className="grid">
+          <span>{item.intervenedName || item.intervenedBy}</span>
+          <span className="text-xs text-muted-foreground">
+            {formatTime(item.intervenedAt)}
+          </span>
+        </div>
+      ) : null
+    case "status":
+      return enumLabel(t, item.status)
+    case "description":
+      return (
+        <span className="block max-w-[20rem] truncate" title={item.description}>
+          {item.description || "—"}
+        </span>
+      )
+    case "expr":
+      return (
+        <span
+          className="block max-w-[20rem] truncate font-mono text-xs"
+          title={item.expr}
+        >
+          {item.expr || "—"}
+        </span>
+      )
+    case "fingerprint":
+      return (
+        <span
+          className="block max-w-[12rem] truncate font-mono text-xs"
+          title={item.fingerprint}
+        >
+          {item.fingerprint}
+        </span>
+      )
+    case "rule":
+      return item.ruleName || item.ruleUid || "—"
+    default:
+      return null
+  }
 }
 
 function levelCell(uid: string, levels: AlertDictionaryItem[]) {

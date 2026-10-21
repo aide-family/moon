@@ -96,7 +96,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	alertRuleRepo := data.NewAlertRuleRepo(dataData, logger)
 	alertruleUsecase := alertrule.NewUsecase(alertRuleRepo, alertDictionaryRepo, datasourceRepo, alertEventRepo, accessChecker)
 	alertRuleService := service.NewAlertRuleService(alertruleUsecase)
-	alertdictionaryUsecase := alertdictionary.NewUsecase(alertDictionaryRepo, accessChecker)
+	alertdictionaryUsecase := alertdictionary.NewUsecase(alertDictionaryRepo, datasourceRepo, alertEventRepo, accessChecker)
 	alertDictionaryService := service.NewAlertDictionaryService(alertdictionaryUsecase)
 	alertPageRepo := data.NewAlertPageRepo(dataData, logger)
 	alertpageUsecase := alertpage.NewUsecase(alertPageRepo, accessChecker)

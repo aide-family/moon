@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerthistoryevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
@@ -28,7 +29,7 @@ func TestAlertEventReport(t *testing.T) {
 	if err != nil {
 		t.Skip(err)
 	}
-	defer cleanup()
+	t.Cleanup(cleanup)
 	if err := store.db.PingContext(ctx); err != nil {
 		t.Skip(err)
 	}
@@ -47,6 +48,7 @@ func TestAlertEventReport(t *testing.T) {
 		_, _ = store.client.AlertEventFiring.Delete().Where(alerteventfiring.NamespaceUIDEQ(ns)).Exec(ctx)
 		_, _ = store.client.AlertEvent.Delete().Where(alertevent.NamespaceUIDEQ(ns)).Exec(ctx)
 		_, _ = store.client.AlertEvalBatch.Delete().Where(alertevalbatch.RuleUIDEQ(rule.UID)).Exec(ctx)
+		_ = store.history.dropTenant(context.Background(), ns)
 	})
 
 	if err := events.ApplyReport(ctx, rule, report); err != nil {
@@ -119,6 +121,18 @@ func TestAlertEventReport(t *testing.T) {
 	if len(history) != 1 || history[0].Status != "RECOVERED" {
 		t.Fatalf("history = %+v", history)
 	}
+	// 恢复事件应落到「前缀 + 租户」库的「前缀 + 周一」周表，主库不再保留。
+	archived, err := store.history.list(ctx, ns)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(archived) != 1 || archived[0].UID != history[0].UID {
+		t.Fatalf("archived history = %+v", archived)
+	}
+	table, _ := store.history.tableName(archived[0].CreatedAt)
+	if table != "alert_events_"+historyWeekStart(archived[0].CreatedAt).Format("20060102") {
+		t.Fatalf("history table = %s", table)
+	}
 	again, _, err := events.ListEvents(ctx, ns, bo.AlertEventListFilter{View: "REALTIME"}, 1, 20)
 	if err != nil {
 		t.Fatal(err)
@@ -141,7 +155,7 @@ func TestAlertEventDatasourceLabels(t *testing.T) {
 	if err != nil {
 		t.Skip(err)
 	}
-	defer cleanup()
+	t.Cleanup(cleanup)
 	if err := store.db.PingContext(ctx); err != nil {
 		t.Skip(err)
 	}
@@ -164,6 +178,7 @@ func TestAlertEventDatasourceLabels(t *testing.T) {
 		_, _ = store.client.AlertRule.Delete().Where(alertrule.UIDEQ(ruleUID)).Exec(ctx)
 		_, _ = store.client.AlertDictionary.Delete().Where(alertdictionary.UIDIn(levelUID, datasourceLevelUID)).Exec(ctx)
 		_, _ = store.client.Datasource.Delete().Where(datasource.UIDEQ(datasourceUID)).Exec(ctx)
+		_ = store.history.dropTenant(context.Background(), ns)
 	})
 
 	if err := store.client.Datasource.Create().
@@ -183,7 +198,6 @@ func TestAlertEventDatasourceLabels(t *testing.T) {
 		SetNamespaceUID(ns).
 		SetGroupUID(groupUID).
 		SetName("CPU high").
-		SetType("METRICS").
 		SetDriver("METRICS_PROMETHEUS").
 		SetDatasourceUID(datasourceUID).
 		Exec(ctx); err != nil {
@@ -240,6 +254,67 @@ func TestAlertEventDatasourceLabels(t *testing.T) {
 		firing[0].RuleGroupUID != groupUID || firing[0].LevelName != "P1" {
 		t.Fatalf("event names = %+v", firing[0])
 	}
+
+	// 修改数据源等级和名称后，下一次命中必须刷新事件标签里的元数据；
+	// 旧实现只补缺失键，导致实时列表一直显示旧等级。
+	newLevelUID := "datasource-level-new-" + ns
+	if err := store.client.AlertDictionary.Create().
+		SetUID(newLevelUID).
+		SetNamespaceUID(ns).
+		SetName("P9").
+		SetType("DATASOURCE").
+		Exec(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.client.Datasource.Update().
+		Where(datasource.UIDEQ(datasourceUID)).
+		SetName("prom-prod-2").
+		SetLevelUID(newLevelUID).
+		Save(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if err := events.ApplyReport(ctx, rule, bo.EvalReport{
+		RuleUID: ruleUID, DatasourceUID: datasourceUID, EvalSlot: slot.Add(time.Second),
+		Hits: []bo.EvalHit{{
+			Fingerprint: "fp-1", Labels: `{"job":"api","env":"staging"}`,
+			Value: "1", LevelUID: levelUID,
+		}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	firing, _, err = events.ListEvents(ctx, ns, bo.AlertEventListFilter{View: "REALTIME"}, 1, 20)
+	if err != nil || len(firing) != 1 {
+		t.Fatalf("firing after metadata change = %+v, err = %v", firing, err)
+	}
+	labels = nil
+	if err := json.Unmarshal([]byte(firing[0].Labels), &labels); err != nil {
+		t.Fatal(err)
+	}
+	if labels["datasource"] != "prom-prod-2" || labels["datasource_level"] != "P9" {
+		t.Fatalf("metadata labels not refreshed: %s", firing[0].Labels)
+	}
+
+	// 收口旧事件后再次命中会生成新的告警事件，而不是复用已经恢复的记录。
+	oldUID := firing[0].UID
+	if err := events.RecoverSource(ctx, ns, []string{ruleUID}, nil, nil); err != nil {
+		t.Fatal(err)
+	}
+	if err := events.ApplyReport(ctx, rule, bo.EvalReport{
+		RuleUID: ruleUID, DatasourceUID: datasourceUID, EvalSlot: slot.Add(2 * time.Second),
+		Hits: []bo.EvalHit{{
+			Fingerprint: "fp-1", Labels: `{"job":"api","env":"staging"}`,
+			Value: "1", LevelUID: levelUID,
+		}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	firing, _, err = events.ListEvents(ctx, ns, bo.AlertEventListFilter{View: "REALTIME"}, 1, 20)
+	if err != nil || len(firing) != 1 {
+		t.Fatalf("new firing = %+v, err = %v", firing, err)
+	}
+	if firing[0].UID == oldUID {
+		t.Fatal("recovered event was reused instead of creating a new one")
+	}
 }
 
 // TestAlertEventSuppression 校验按秒抑制、抑制到期回到实时列表，
@@ -255,7 +330,7 @@ func TestAlertEventSuppression(t *testing.T) {
 	if err != nil {
 		t.Skip(err)
 	}
-	defer cleanup()
+	t.Cleanup(cleanup)
 	if err := store.db.PingContext(ctx); err != nil {
 		t.Skip(err)
 	}
@@ -273,6 +348,7 @@ func TestAlertEventSuppression(t *testing.T) {
 		_, _ = store.client.AlertEventFiring.Delete().Where(alerteventfiring.NamespaceUIDEQ(ns)).Exec(ctx)
 		_, _ = store.client.AlertEvent.Delete().Where(alertevent.NamespaceUIDEQ(ns)).Exec(ctx)
 		_, _ = store.client.AlertEvalBatch.Delete().Where(alertevalbatch.RuleUIDEQ(rule.UID)).Exec(ctx)
+		_ = store.history.dropTenant(context.Background(), ns)
 	})
 	if err := events.ApplyReport(ctx, rule, report); err != nil {
 		t.Fatal(err)
@@ -335,5 +411,68 @@ func TestAlertEventSuppression(t *testing.T) {
 	}
 	if stats, err := events.Stats(ctx, ns); err != nil || stats.Suppressed != 1 || stats.Firing != 0 {
 		t.Fatalf("stats after permanent suppress = %+v, err = %v", stats, err)
+	}
+}
+
+func TestBackfillHistory(t *testing.T) {
+	source := testDSN(t)
+	ctx := context.Background()
+	store, cleanup, err := NewData(
+		&conf.Data{Database: &conf.Data_Database{Source: source}},
+		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
+		slog.Default(),
+	)
+	if err != nil {
+		t.Skip(err)
+	}
+	t.Cleanup(cleanup)
+	if err := ApplySchema(ctx, store.client, store.db); err != nil {
+		t.Fatal(err)
+	}
+	events := NewAlertEventRepo(store, slog.Default())
+	namespaces := []string{"ns-backfill-a-" + time.Now().Format("150405.000"), "ns-backfill-b-" + time.Now().Format("150405.000")}
+	t.Cleanup(func() {
+		for _, ns := range namespaces {
+			_, _ = store.client.AlertEvent.Delete().Where(alertevent.NamespaceUIDEQ(ns)).Exec(ctx)
+			_ = store.history.dropTenant(context.Background(), ns)
+		}
+	})
+	now := time.Now().UTC().Truncate(time.Second)
+	for index, ns := range namespaces {
+		if _, err := store.client.AlertEvent.Create().
+			SetUID("event-backfill-" + string(rune('a'+index)) + ns).
+			SetNamespaceUID(ns).
+			SetRuleUID("rule-" + ns).
+			SetFingerprint("fp-" + ns).
+			SetStatus(alertevent.StatusRECOVERED).
+			SetStartsAt(now).
+			SetEvalSlot(now).
+			SetCreatedAt(now).
+			Save(ctx); err != nil {
+			t.Fatal(err)
+		}
+	}
+	n, err := events.BackfillHistory(ctx, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n < 2 {
+		t.Fatalf("backfilled = %d", n)
+	}
+	for _, ns := range namespaces {
+		hot, err := store.client.AlertEvent.Query().Where(alertevent.NamespaceUIDEQ(ns)).Count(ctx)
+		if err != nil || hot != 0 {
+			t.Fatalf("hot events for %s = %d, err = %v", ns, hot, err)
+		}
+		history, _, err := events.ListEvents(ctx, ns, bo.AlertEventListFilter{View: "HISTORY"}, 1, 20)
+		if err != nil || len(history) != 1 {
+			t.Fatalf("history for %s = %+v, err = %v", ns, history, err)
+		}
+		index, err := store.client.AlertHistoryEvent.Query().Where(
+			alerthistoryevent.NamespaceUIDEQ(ns),
+		).Only(ctx)
+		if err != nil || index.NamespaceUID != ns {
+			t.Fatalf("history index for %s = %+v, err = %v", ns, index, err)
+		}
 	}
 }

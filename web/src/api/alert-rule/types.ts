@@ -26,7 +26,6 @@ export interface AlertRuleItem {
   uid: string
   groupUid: string
   name: string
-  type: string
   driver: string
   status: string
   expr: string
@@ -69,7 +68,6 @@ export interface SaveAlertRuleParams {
   uid?: string
   groupUid: string
   name: string
-  type: string
   driver: string
   expr?: string
   labels?: string

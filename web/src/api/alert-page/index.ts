@@ -1,6 +1,7 @@
 import { del, get, post, put } from "@/api/http"
 
 import type {
+  AlertColumnItem,
   AlertPageItem,
   ListAlertPagesParams,
   ListAlertPagesResult,
@@ -43,7 +44,24 @@ export function setMyRealtimeTabs(alertPageUids: string[]): Promise<{ tabs: Real
   return put<{ tabs: RealtimeAlertTab[] }>("/alert-pages/my-tabs", { alertPageUids })
 }
 
+/** GET /v1/alert-pages/my-columns */
+export function getMyAlertColumns(scope: string): Promise<{ columns: AlertColumnItem[] }> {
+  return get<{ columns: AlertColumnItem[] }>("/alert-pages/my-columns", { scope })
+}
+
+/** PUT /v1/alert-pages/my-columns */
+export function saveMyAlertColumns(
+  scope: string,
+  columns: AlertColumnItem[]
+): Promise<{ columns: AlertColumnItem[] }> {
+  return put<{ columns: AlertColumnItem[] }>("/alert-pages/my-columns", {
+    scope,
+    columns,
+  })
+}
+
 export type {
+  AlertColumnItem,
   AlertPageItem,
   ListAlertPagesParams,
   ListAlertPagesResult,

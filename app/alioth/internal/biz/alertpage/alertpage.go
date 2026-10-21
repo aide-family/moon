@@ -3,6 +3,7 @@ package alertpage
 import (
 	"context"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/google/wire"
 
@@ -216,4 +217,134 @@ func uniqueNonEmpty(uids []string) []string {
 		out = append(out, uid)
 	}
 	return out
+}
+
+const (
+	// ColumnKindField 是内置字段列，例如 summary、datasource。
+	ColumnKindField = "FIELD"
+	// ColumnKindLabel 是标签列，key 为事件标签键。
+	ColumnKindLabel = "LABEL"
+	// MaxAlertColumns 是单个视图允许配置的列数。
+	MaxAlertColumns = 20
+	// maxColumnAlias 是列名的长度上限。
+	maxColumnAlias = 64
+	// maxLabelKey 是标签键的长度上限。
+	maxLabelKey = 128
+)
+
+// allowedFieldColumns 是实时表格支持的内置字段列。字段名固定，前端只负责渲染。
+var allowedFieldColumns = map[string]struct{}{
+	"summary": {}, "datasource": {}, "level": {}, "sample_value": {}, "starts_at": {},
+	"duration": {}, "intervened": {}, "status": {}, "description": {}, "fingerprint": {},
+	"expr": {},
+}
+
+// GetColumns 读取当前用户在 mine 或某个告警页面上的列配置。
+func (uc *Usecase) GetColumns(ctx context.Context, scope string) ([]bo.AlertColumn, error) {
+	ns, err := uc.access.Allow(ctx, perm.AlertRead)
+	if err != nil {
+		return nil, err
+	}
+	userUID, ok := actor.UserID(ctx)
+	if !ok {
+		return nil, merr.Unauthenticated("unauthorized")
+	}
+	if err := uc.requireScope(ctx, ns, userUID, scope); err != nil {
+		return nil, err
+	}
+	return uc.pages.GetAlertColumns(ctx, ns, userUID, scope)
+}
+
+// SetColumns 覆盖保存当前用户在 mine 或某个告警页面上的列配置。
+func (uc *Usecase) SetColumns(ctx context.Context, scope string, columns []bo.AlertColumn) ([]bo.AlertColumn, error) {
+	ns, err := uc.access.Allow(ctx, perm.AlertRead)
+	if err != nil {
+		return nil, err
+	}
+	userUID, ok := actor.UserID(ctx)
+	if !ok {
+		return nil, merr.Unauthenticated("unauthorized")
+	}
+	normalized, err := normalizeColumns(columns)
+	if err != nil {
+		return nil, err
+	}
+	if err := uc.requireScope(ctx, ns, userUID, scope); err != nil {
+		return nil, err
+	}
+	if err := uc.pages.SetAlertColumns(ctx, ns, userUID, scope, normalized); err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	return normalized, nil
+}
+
+// requireScope 校验视图标识。mine 固定可用；告警页面必须是当前用户自己的或公开的。
+func (uc *Usecase) requireScope(ctx context.Context, namespaceUID, userUID, scope string) error {
+	scope = strings.TrimSpace(scope)
+	if scope == tabMine {
+		return nil
+	}
+	if scope == "" {
+		return merr.Invalid("invalid request")
+	}
+	item, err := uc.pages.GetAlertPage(ctx, namespaceUID, scope)
+	if err != nil {
+		return uc.access.Wrap(err)
+	}
+	if item.OwnerUID != userUID && !item.Public {
+		return merr.Forbidden("forbidden")
+	}
+	return nil
+}
+
+// normalizeColumns 清理并校验列配置。同一个字段或标签只能出现一次，避免表头重复。
+func normalizeColumns(columns []bo.AlertColumn) ([]bo.AlertColumn, error) {
+	if len(columns) > MaxAlertColumns {
+		return nil, merr.Invalid("too many columns")
+	}
+	seen := make(map[string]struct{}, len(columns))
+	out := make([]bo.AlertColumn, 0, len(columns))
+	for _, column := range columns {
+		key := strings.TrimSpace(column.Key)
+		kind := strings.ToUpper(strings.TrimSpace(column.Type))
+		label := strings.TrimSpace(column.Label)
+		if key == "" || utf8.RuneCountInString(label) > maxColumnAlias {
+			return nil, merr.Invalid("invalid request")
+		}
+		switch kind {
+		case ColumnKindField:
+			if _, ok := allowedFieldColumns[key]; !ok {
+				return nil, merr.Invalid("invalid request")
+			}
+		case ColumnKindLabel:
+			if len(key) > maxLabelKey || !validLabelKey(key) {
+				return nil, merr.Invalid("invalid request")
+			}
+		default:
+			return nil, merr.Invalid("invalid request")
+		}
+		identity := kind + "\x00" + key
+		if _, ok := seen[identity]; ok {
+			return nil, merr.Invalid("invalid request")
+		}
+		seen[identity] = struct{}{}
+		out = append(out, bo.AlertColumn{Key: key, Type: kind, Label: label})
+	}
+	return out, nil
+}
+
+// validLabelKey 与 Prometheus 标签名保持一致，避免把任意文本当成列键。
+func validLabelKey(key string) bool {
+	for index, r := range key {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r == '_':
+		case r >= '0' && r <= '9':
+			if index == 0 {
+				return false
+			}
+		default:
+			return false
+		}
+	}
+	return key != ""
 }

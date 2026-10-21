@@ -20,8 +20,12 @@ type Tx struct {
 	AlertEvalBatch *AlertEvalBatchClient
 	// AlertEvent is the client for interacting with the AlertEvent builders.
 	AlertEvent *AlertEventClient
+	// AlertEventColumn is the client for interacting with the AlertEventColumn builders.
+	AlertEventColumn *AlertEventColumnClient
 	// AlertEventFiring is the client for interacting with the AlertEventFiring builders.
 	AlertEventFiring *AlertEventFiringClient
+	// AlertHistoryEvent is the client for interacting with the AlertHistoryEvent builders.
+	AlertHistoryEvent *AlertHistoryEventClient
 	// AlertPage is the client for interacting with the AlertPage builders.
 	AlertPage *AlertPageClient
 	// AlertRule is the client for interacting with the AlertRule builders.
@@ -219,7 +223,9 @@ func (tx *Tx) init() {
 	tx.AlertDictionary = NewAlertDictionaryClient(tx.config)
 	tx.AlertEvalBatch = NewAlertEvalBatchClient(tx.config)
 	tx.AlertEvent = NewAlertEventClient(tx.config)
+	tx.AlertEventColumn = NewAlertEventColumnClient(tx.config)
 	tx.AlertEventFiring = NewAlertEventFiringClient(tx.config)
+	tx.AlertHistoryEvent = NewAlertHistoryEventClient(tx.config)
 	tx.AlertPage = NewAlertPageClient(tx.config)
 	tx.AlertRule = NewAlertRuleClient(tx.config)
 	tx.AlertRuleGroup = NewAlertRuleGroupClient(tx.config)

@@ -55,7 +55,7 @@ func (g *gateway) Claim(ctx context.Context) ([]bo.RuleSnapshot, error) {
 			})
 		}
 		items = append(items, bo.RuleSnapshot{
-			UID: rule.GetUid(), NamespaceUID: rule.GetNamespaceUid(), Name: rule.GetName(), Type: rule.GetType(),
+			UID: rule.GetUid(), NamespaceUID: rule.GetNamespaceUid(), Name: rule.GetName(),
 			Driver: rule.GetDriver(), Expr: rule.GetExpr(), Labels: rule.GetLabels(), Summary: rule.GetSummary(),
 			Description: rule.GetDescription(), EvalSlot: slot.UTC(), DatasourceUID: rule.GetDatasourceUid(),
 			Endpoint: rule.GetDatasourceEndpoint(), Username: rule.GetDatasourceUsername(),

@@ -26,6 +26,8 @@ const (
 	AlertPageService_ListAlertPages_FullMethodName     = "/alioth.v1.AlertPageService/ListAlertPages"
 	AlertPageService_ListMyRealtimeTabs_FullMethodName = "/alioth.v1.AlertPageService/ListMyRealtimeTabs"
 	AlertPageService_SetMyRealtimeTabs_FullMethodName  = "/alioth.v1.AlertPageService/SetMyRealtimeTabs"
+	AlertPageService_GetMyAlertColumns_FullMethodName  = "/alioth.v1.AlertPageService/GetMyAlertColumns"
+	AlertPageService_SaveMyAlertColumns_FullMethodName = "/alioth.v1.AlertPageService/SaveMyAlertColumns"
 )
 
 // AlertPageServiceClient is the client API for AlertPageService service.
@@ -48,6 +50,10 @@ type AlertPageServiceClient interface {
 	ListMyRealtimeTabs(ctx context.Context, in *ListMyRealtimeTabsRequest, opts ...grpc.CallOption) (*ListMyRealtimeTabsResponse, error)
 	// 设置当前用户要显示的告警页面 Tab。
 	SetMyRealtimeTabs(ctx context.Context, in *SetMyRealtimeTabsRequest, opts ...grpc.CallOption) (*SetMyRealtimeTabsResponse, error)
+	// 读取当前用户在 mine 或某个告警页面上的自定义列。
+	GetMyAlertColumns(ctx context.Context, in *GetMyAlertColumnsRequest, opts ...grpc.CallOption) (*GetMyAlertColumnsResponse, error)
+	// 覆盖保存当前用户在 mine 或某个告警页面上的自定义列。
+	SaveMyAlertColumns(ctx context.Context, in *SaveMyAlertColumnsRequest, opts ...grpc.CallOption) (*SaveMyAlertColumnsResponse, error)
 }
 
 type alertPageServiceClient struct {
@@ -128,6 +134,26 @@ func (c *alertPageServiceClient) SetMyRealtimeTabs(ctx context.Context, in *SetM
 	return out, nil
 }
 
+func (c *alertPageServiceClient) GetMyAlertColumns(ctx context.Context, in *GetMyAlertColumnsRequest, opts ...grpc.CallOption) (*GetMyAlertColumnsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMyAlertColumnsResponse)
+	err := c.cc.Invoke(ctx, AlertPageService_GetMyAlertColumns_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *alertPageServiceClient) SaveMyAlertColumns(ctx context.Context, in *SaveMyAlertColumnsRequest, opts ...grpc.CallOption) (*SaveMyAlertColumnsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveMyAlertColumnsResponse)
+	err := c.cc.Invoke(ctx, AlertPageService_SaveMyAlertColumns_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AlertPageServiceServer is the server API for AlertPageService service.
 // All implementations must embed UnimplementedAlertPageServiceServer
 // for forward compatibility.
@@ -148,6 +174,10 @@ type AlertPageServiceServer interface {
 	ListMyRealtimeTabs(context.Context, *ListMyRealtimeTabsRequest) (*ListMyRealtimeTabsResponse, error)
 	// 设置当前用户要显示的告警页面 Tab。
 	SetMyRealtimeTabs(context.Context, *SetMyRealtimeTabsRequest) (*SetMyRealtimeTabsResponse, error)
+	// 读取当前用户在 mine 或某个告警页面上的自定义列。
+	GetMyAlertColumns(context.Context, *GetMyAlertColumnsRequest) (*GetMyAlertColumnsResponse, error)
+	// 覆盖保存当前用户在 mine 或某个告警页面上的自定义列。
+	SaveMyAlertColumns(context.Context, *SaveMyAlertColumnsRequest) (*SaveMyAlertColumnsResponse, error)
 	mustEmbedUnimplementedAlertPageServiceServer()
 }
 
@@ -178,6 +208,12 @@ func (UnimplementedAlertPageServiceServer) ListMyRealtimeTabs(context.Context, *
 }
 func (UnimplementedAlertPageServiceServer) SetMyRealtimeTabs(context.Context, *SetMyRealtimeTabsRequest) (*SetMyRealtimeTabsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetMyRealtimeTabs not implemented")
+}
+func (UnimplementedAlertPageServiceServer) GetMyAlertColumns(context.Context, *GetMyAlertColumnsRequest) (*GetMyAlertColumnsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMyAlertColumns not implemented")
+}
+func (UnimplementedAlertPageServiceServer) SaveMyAlertColumns(context.Context, *SaveMyAlertColumnsRequest) (*SaveMyAlertColumnsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SaveMyAlertColumns not implemented")
 }
 func (UnimplementedAlertPageServiceServer) mustEmbedUnimplementedAlertPageServiceServer() {}
 func (UnimplementedAlertPageServiceServer) testEmbeddedByValue()                          {}
@@ -326,6 +362,42 @@ func _AlertPageService_SetMyRealtimeTabs_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AlertPageService_GetMyAlertColumns_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMyAlertColumnsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertPageServiceServer).GetMyAlertColumns(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertPageService_GetMyAlertColumns_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertPageServiceServer).GetMyAlertColumns(ctx, req.(*GetMyAlertColumnsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AlertPageService_SaveMyAlertColumns_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveMyAlertColumnsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertPageServiceServer).SaveMyAlertColumns(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertPageService_SaveMyAlertColumns_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertPageServiceServer).SaveMyAlertColumns(ctx, req.(*SaveMyAlertColumnsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AlertPageService_ServiceDesc is the grpc.ServiceDesc for AlertPageService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -360,6 +432,14 @@ var AlertPageService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetMyRealtimeTabs",
 			Handler:    _AlertPageService_SetMyRealtimeTabs_Handler,
+		},
+		{
+			MethodName: "GetMyAlertColumns",
+			Handler:    _AlertPageService_GetMyAlertColumns_Handler,
+		},
+		{
+			MethodName: "SaveMyAlertColumns",
+			Handler:    _AlertPageService_SaveMyAlertColumns_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

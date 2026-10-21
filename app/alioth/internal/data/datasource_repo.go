@@ -212,26 +212,40 @@ func (r *datasourceRepo) ListDatasources(ctx context.Context, namespaceUID strin
 	return r.presentMany(ctx, rows, false), total, nil
 }
 
-func (r *datasourceRepo) ListDatasourcesByMatchers(ctx context.Context, namespaceUID, kind, matchersJSON string) ([]bo.Datasource, error) {
-	if kind != "METRICS" && kind != "LOGS" && kind != "TRACE" {
+func (r *datasourceRepo) ListDatasourcesByMatchers(ctx context.Context, namespaceUID, driver, matchersJSON string) ([]bo.Datasource, error) {
+	if !validDatasourceDriver(driver) {
 		return nil, merr.Invalid("invalid request")
 	}
+	matchers, err := labelsutil.ParseObject(matchersJSON)
+	if err != nil {
+		return nil, err
+	}
+	matches := labelsutil.CompileMatchers(matchers)
 	rows, err := r.client.Datasource.Query().Where(
 		datasource.NamespaceUIDEQ(namespaceUID),
 		datasource.DeletedAtIsNil(),
 		datasource.StatusEQ(datasource.StatusACTIVE),
-		datasource.TypeEQ(datasource.Type(kind)),
+		// 规则只保存驱动；这里只匹配同驱动的数据源，日志的 Loki、VictoriaLogs、
+		// Elasticsearch 不会再被同一条规则混在一起评测。
+		datasource.DriverEQ(datasource.Driver(driver)),
 	).Order(ent.Asc(datasource.FieldUID)).All(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
+	levelUIDs := make([]string, 0, len(rows))
+	for _, row := range rows {
+		if row.LevelUID != "" {
+			levelUIDs = append(levelUIDs, row.LevelUID)
+		}
+	}
+	levelNames := r.levelNames(ctx, levelUIDs)
 	items := make([]bo.Datasource, 0, len(rows))
 	for _, row := range rows {
-		ok, err := labelsutil.MatchersJSONContained(matchersJSON, row.Labels)
+		target, err := datasourceMatchLabels(row, levelNames)
 		if err != nil {
 			return nil, err
 		}
-		if !ok {
+		if !matches(target) {
 			continue
 		}
 		item, err := r.present(ctx, row, true)
@@ -241,6 +255,53 @@ func (r *datasourceRepo) ListDatasourcesByMatchers(ctx context.Context, namespac
 		items = append(items, *item)
 	}
 	return items, nil
+}
+
+// datasourceMatchLabels 把数据源自身标签和可匹配的元数据合并。
+// datasource_level 是数据源等级名称，datasource 是数据源名称，规则可以直接用这两个键；
+// 自身 labels 里的同名键被元数据覆盖，保证等级改名或数据源改名后匹配语义稳定。
+func datasourceMatchLabels(row *ent.Datasource, levelNames map[string]string) (map[string]string, error) {
+	target, err := labelsutil.ParseObject(row.Labels)
+	if err != nil {
+		return nil, err
+	}
+	target["datasource"] = row.Name
+	if name := levelNames[row.LevelUID]; name != "" {
+		target["datasource_level"] = name
+	} else {
+		delete(target, "datasource_level")
+	}
+	return target, nil
+}
+
+func validDatasourceDriver(driver string) bool {
+	switch datasource.Driver(driver) {
+	case datasource.DriverMETRICS_PROMETHEUS, datasource.DriverMETRICS_VICTORIA_METRICS,
+		datasource.DriverLOGS_ELASTICSEARCH, datasource.DriverLOGS_LOKI, datasource.DriverLOGS_VLOGS,
+		datasource.DriverTRACE_JAEGER:
+		return true
+	default:
+		return false
+	}
+}
+
+func (r *datasourceRepo) ListDatasourceUIDsByLevel(ctx context.Context, namespaceUID, levelUID string) ([]string, error) {
+	if levelUID == "" {
+		return nil, nil
+	}
+	rows, err := r.client.Datasource.Query().Where(
+		datasource.NamespaceUIDEQ(namespaceUID),
+		datasource.DeletedAtIsNil(),
+		datasource.LevelUIDEQ(levelUID),
+	).All(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	uids := make([]string, 0, len(rows))
+	for _, row := range rows {
+		uids = append(uids, row.UID)
+	}
+	return uids, nil
 }
 
 func (r *datasourceRepo) SelectDatasources(ctx context.Context, namespaceUID string, limit int, lastUID, kind string) ([]bo.SelectItem, error) {

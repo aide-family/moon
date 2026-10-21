@@ -122,7 +122,7 @@ func (r *alertRuleRepo) ListAlertRuleGroups(ctx context.Context, namespaceUID st
 }
 
 func (r *alertRuleRepo) CreateAlertRule(ctx context.Context, in bo.AlertRule) (*bo.AlertRule, error) {
-	kind, driver, err := ruleEnums(in.Type, in.Driver)
+	driver, err := ruleDriver(in.Driver)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,6 @@ func (r *alertRuleRepo) CreateAlertRule(ctx context.Context, in bo.AlertRule) (*
 		SetNamespaceUID(in.NamespaceUID).
 		SetGroupUID(in.GroupUID).
 		SetName(in.Name).
-		SetType(kind).
 		SetDriver(driver).
 		SetStatus(alertrule.StatusACTIVE).
 		SetExpr(in.Expr).
@@ -162,7 +161,7 @@ func (r *alertRuleRepo) CreateAlertRule(ctx context.Context, in bo.AlertRule) (*
 }
 
 func (r *alertRuleRepo) UpdateAlertRule(ctx context.Context, in bo.AlertRule) (*bo.AlertRule, error) {
-	kind, driver, err := ruleEnums(in.Type, in.Driver)
+	driver, err := ruleDriver(in.Driver)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +177,6 @@ func (r *alertRuleRepo) UpdateAlertRule(ctx context.Context, in bo.AlertRule) (*
 	).
 		SetGroupUID(in.GroupUID).
 		SetName(in.Name).
-		SetType(kind).
 		SetDriver(driver).
 		SetExpr(in.Expr).
 		SetLabels(in.Labels).
@@ -231,7 +229,7 @@ func (r *alertRuleRepo) UpdateAlertRuleStatus(ctx context.Context, namespaceUID,
 		return nil, merr.NotFound("not found")
 	}
 	if value == alertrule.StatusDISABLED {
-		if err := recoverRuleFiring(ctx, r.client, namespaceUID, uid); err != nil {
+		if err := recoverRuleFiring(ctx, r.client, r.history, r.log, namespaceUID, uid); err != nil {
 			return nil, r.fail(err)
 		}
 	}
@@ -265,7 +263,7 @@ func (r *alertRuleRepo) DeleteAlertRule(ctx context.Context, namespaceUID, uid s
 	if err := tx.Commit(); err != nil {
 		return r.fail(err)
 	}
-	if err := recoverRuleFiring(ctx, r.client, namespaceUID, uid); err != nil {
+	if err := recoverRuleFiring(ctx, r.client, r.history, r.log, namespaceUID, uid); err != nil {
 		return r.fail(err)
 	}
 	return nil
@@ -499,7 +497,7 @@ func toGroup(row *ent.AlertRuleGroup) bo.AlertRuleGroup {
 func toRule(row *ent.AlertRule, levels []bo.AlertRuleLevel) bo.AlertRule {
 	return bo.AlertRule{
 		UID: row.UID, NamespaceUID: row.NamespaceUID, GroupUID: row.GroupUID, Name: row.Name,
-		Type: string(row.Type), Driver: string(row.Driver), Status: string(row.Status),
+		Driver: string(row.Driver), Status: string(row.Status),
 		Expr: row.Expr, Labels: row.Labels, DatasourceUID: row.DatasourceUID, DatasourceLabels: row.DatasourceLabels,
 		Summary: row.Summary, Description: row.Description, NextEvalAt: row.NextEvalAt,
 		ScheduledSlot: row.ScheduledSlot, Levels: levels,
@@ -515,20 +513,14 @@ func groupStatus(status string) (alertrulegroup.Status, error) {
 	}
 }
 
-func ruleEnums(kind, driver string) (alertrule.Type, alertrule.Driver, error) {
-	parsedType := alertrule.Type(kind)
-	switch parsedType {
-	case alertrule.TypeMETRICS, alertrule.TypeLOGS, alertrule.TypeTRACE:
-	default:
-		return "", "", merr.Invalid("invalid request")
-	}
+func ruleDriver(driver string) (alertrule.Driver, error) {
 	parsedDriver := alertrule.Driver(driver)
 	switch parsedDriver {
 	case alertrule.DriverMETRICS_PROMETHEUS, alertrule.DriverMETRICS_VICTORIA_METRICS, alertrule.DriverLOGS_ELASTICSEARCH, alertrule.DriverLOGS_LOKI, alertrule.DriverLOGS_VLOGS, alertrule.DriverTRACE_JAEGER:
+		return parsedDriver, nil
 	default:
-		return "", "", merr.Invalid("invalid request")
+		return "", merr.Invalid("invalid request")
 	}
-	return parsedType, parsedDriver, nil
 }
 
 func levelEnums(condition, sample string) (string, alertrulelevel.Sample, error) {

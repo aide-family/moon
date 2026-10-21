@@ -24,6 +24,7 @@ type Scheduler struct {
 	log               *slog.Logger
 	lastCheck         time.Time
 	lastWorkerCleanup time.Time
+	lastBackfill      time.Time
 	cancel            context.CancelFunc
 	done              chan struct{}
 }
@@ -81,6 +82,7 @@ func (s *Scheduler) tick(ctx context.Context) {
 		s.log.Error(fmt.Sprintf("reap notify: %v", err))
 	}
 	s.maintainPartitions(ctx)
+	s.backfillHistory(ctx)
 	s.cleanupWorkerInstances(ctx)
 }
 
@@ -92,6 +94,18 @@ func (s *Scheduler) cleanupWorkerInstances(ctx context.Context) {
 	s.lastWorkerCleanup = time.Now()
 	if err := s.workers.CleanupStale(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("cleanup worker instances: %v", err))
+	}
+}
+
+// backfillHistory 每小时把主库遗留的已恢复事件写入历史分库分表。
+// 首次 tick 会执行，已有部署升级后历史告警会逐步迁入租户库。
+func (s *Scheduler) backfillHistory(ctx context.Context) {
+	if time.Since(s.lastBackfill) < partition.MaintenanceInterval {
+		return
+	}
+	s.lastBackfill = time.Now()
+	if _, err := s.uc.BackfillHistory(ctx); err != nil {
+		s.log.Error(fmt.Sprintf("backfill alert history: %v", err))
 	}
 }
 

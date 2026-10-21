@@ -82,8 +82,24 @@ func (uc *Usecase) UpdateDatasource(ctx context.Context, in bo.Datasource) (*bo.
 	}
 	in.Labels = labels
 	in.NamespaceUID = ns
+	previous, err := uc.datasources.GetDatasource(ctx, ns, in.UID)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
 	item, err := uc.datasources.UpdateDatasource(ctx, in)
-	return redact(item), uc.access.Wrap(err)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	// 等级、标签、类型或驱动变了，旧事件要么级别名称过期，要么可能不再被规则匹配。
+	// 先收口成恢复，下一轮评测会按新配置重新产生事件；否则旧事件会一直挂在实时列表，
+	// 用户看到的就是「规则已经满足条件，但没有触发新事件」。
+	if previous.LevelUID != item.LevelUID || previous.Labels != item.Labels ||
+		previous.Type != item.Type || previous.Driver != item.Driver {
+		if err := uc.events.RecoverSource(ctx, ns, nil, []string{item.UID}, nil); err != nil {
+			return nil, uc.access.Wrap(err)
+		}
+	}
+	return redact(item), nil
 }
 
 func (uc *Usecase) UpdateDatasourceStatus(ctx context.Context, uid, status string) (*bo.Datasource, error) {
@@ -340,16 +356,26 @@ func normalizeDatasource(in *bo.Datasource) {
 
 // DriverMatches 判断数据源类型和驱动是否匹配。
 func DriverMatches(kind, driver string) bool {
-	switch kind {
-	case "METRICS":
-		return driver == "METRICS_PROMETHEUS" || driver == "METRICS_VICTORIA_METRICS"
-	case "LOGS":
-		return driver == "LOGS_ELASTICSEARCH" || driver == "LOGS_LOKI" || driver == "LOGS_VLOGS"
-	case "TRACE":
-		return driver == "TRACE_JAEGER"
+	return TypeForDriver(driver) == kind
+}
+
+// TypeForDriver 从驱动推导数据源类型。告警规则只保存驱动，类型由这里统一推导。
+func TypeForDriver(driver string) string {
+	switch driver {
+	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS":
+		return "METRICS"
+	case "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS":
+		return "LOGS"
+	case "TRACE_JAEGER":
+		return "TRACE"
 	default:
-		return false
+		return ""
 	}
+}
+
+// ValidDriver 判断驱动是否属于已支持的枚举。
+func ValidDriver(driver string) bool {
+	return TypeForDriver(driver) != ""
 }
 
 // normalizeLogQuery 校验日志查询参数。limit 为 0 时取默认值，超过上限按上限截断；

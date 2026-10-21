@@ -21,6 +21,9 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	if err := renameAlertDictionaries(ctx, db); err != nil {
 		return err
 	}
+	if err := prepareAlertRuleDriverOnly(ctx, db); err != nil {
+		return err
+	}
 	if err := prepareAlertEvalBatches(ctx, db); err != nil {
 		return err
 	}
@@ -141,6 +144,20 @@ func renameAlertDictionaries(ctx context.Context, db *sql.DB) error {
 			slog.Default().Error(fmt.Sprintf("schema: %v", err))
 			return merr.Server("request failed")
 		}
+	}
+	return nil
+}
+
+// prepareAlertRuleDriverOnly 删除规则表的 type 列。规则只保存驱动，类型由驱动推导；
+// 旧部署升级后列仍在，会让「规则不再有类型」的模型与库结构不一致，这里幂等删除。
+func prepareAlertRuleDriverOnly(ctx context.Context, db *sql.DB) error {
+	kind, err := relationKind(ctx, db, "alert_rules")
+	if err != nil || kind != "r" {
+		return err
+	}
+	if _, err := db.ExecContext(ctx, `ALTER TABLE alert_rules DROP COLUMN IF EXISTS type`); err != nil {
+		slog.Default().Error(fmt.Sprintf("schema: %v", err))
+		return merr.Server("request failed")
 	}
 	return nil
 }

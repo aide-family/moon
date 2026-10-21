@@ -45,9 +45,10 @@ var ProviderSet = wire.NewSet(
 )
 
 type Data struct {
-	db     *sql.DB
-	client *ent.Client
-	box    *secretBox
+	db      *sql.DB
+	client  *ent.Client
+	box     *secretBox
+	history *historyStore
 }
 
 func NewData(c *conf.Data, auth *conf.Auth, logger *slog.Logger) (*Data, func(), error) {
@@ -67,12 +68,14 @@ func NewData(c *conf.Data, auth *conf.Auth, logger *slog.Logger) (*Data, func(),
 		return nil, nil, err
 	}
 	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, db)))
+	history := newHistoryStore(db, c.Database.Source, c.GetHistory().GetDatabasePrefix(), c.GetHistory().GetTablePrefix(), logger)
 	cleanup := func() {
+		history.close()
 		if err := client.Close(); err != nil {
 			logger.Error(fmt.Sprintf("close database: %v", err))
 		}
 	}
-	return &Data{db: db, client: client, box: box}, cleanup, nil
+	return &Data{db: db, client: client, box: box, history: history}, cleanup, nil
 }
 
 func Migrate(ctx context.Context, source string) error {

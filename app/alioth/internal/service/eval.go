@@ -84,7 +84,7 @@ func snapshotItem(item bo.RuleSnapshot) *megrezv1.RuleSnapshot {
 		slot = item.Rule.ScheduledSlot.UTC().Format(time.RFC3339Nano)
 	}
 	return &megrezv1.RuleSnapshot{
-		Uid: item.Rule.UID, NamespaceUid: item.Rule.NamespaceUID, Type: item.Rule.Type, Driver: item.Rule.Driver,
+		Uid: item.Rule.UID, NamespaceUid: item.Rule.NamespaceUID, Driver: item.Rule.Driver,
 		Expr: item.Rule.Expr, Labels: item.Rule.Labels, Summary: item.Rule.Summary, Description: item.Rule.Description,
 		EvalSlot: slot, DatasourceEndpoint: item.Datasource.Endpoint, DatasourceUsername: item.Datasource.Username,
 		DatasourcePassword: item.Datasource.Password, DatasourceSecret: item.Datasource.Secret,

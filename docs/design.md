@@ -257,7 +257,7 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 | Moon                     | Alioth           | 内容                        |
 | ------------------------ | ---------------- | ------------------------- |
 | `strategy_groups`        | `AlertRuleGroup` | Namespace 内唯一名称，可启停       |
-| `strategies`             | `AlertRule`      | 属于一个组，带类型与驱动，可启停          |
+| `strategies`             | `AlertRule`      | 属于一个组，只带驱动，可启停            |
 | `strategy_metrics`       | 规则上的指标定义         | 表达式、标签、`datasource_labels` 匹配范围、摘要、描述 |
 | `strategy_metric_levels` | `AlertRuleLevel` | 比较条件、采样方式、阈值、持续秒数，并指向告警字典 |
 | `levels`（ALERT）          | `AlertDictionary` | 名称与展示色                    |
@@ -273,7 +273,7 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 `alioth` 在 `alioth:lock:schedule:eval` 下扫描 `next_eval_at <= now` 的已启用指标规则，写下一次评测时间，然后释放调度锁。`megrez` 向 `alioth` 领取这批规则的快照。
 
-规则用类型 + `datasource_labels` 匹配 ACTIVE 数据源（匹配器的键必须出现在数据源 labels 中，值按完整匹配正则命中；空匹配器 = 该类型全部 ACTIVE）。Claim 对每个匹配数据源各发一条快照；无匹配则不发。fingerprint 为 `Of(rule_uid, datasource_uid, labels)`。
+规则只保存驱动，不再保存类型。规则用驱动 + `datasource_labels` 匹配 ACTIVE 数据源：匹配器优先读数据源 labels，`datasource_level` 匹配数据源等级名称、`datasource` 匹配数据源名称，值按完整匹配正则命中；空匹配器 = 该驱动下全部 ACTIVE 数据源。这样 Loki、VictoriaLogs 和 Elasticsearch 不会再被同一条日志规则混在一起评测。Claim 对每个匹配数据源各发一条快照；无匹配则不发。fingerprint 为 `Of(rule_uid, datasource_uid, rule_labels + labels)`，规则标签修改后旧事件恢复、新指纹建立新事件。
 
 单条（规则, 数据源）的步骤：
 
@@ -284,7 +284,9 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 `alioth` 把 FIRING、恢复写入 `AlertEvent`，并在同一事务内按命中的订阅生成 `NotificationTask`。恢复检测是评测的一部分：原先 FIRING、本次未命中，则记为恢复并生成恢复通知。事件标签在采样标签之外附加数据源名称（`datasource=<名称>`）和数据源自身的 `labels`，指标标签优先、同名键不覆盖；告警页面和通知订阅的标签匹配使用附加后的标签集合。
 
-事件状态沿用 Moon：`FIRING`、`RECOVERED`、`RECOVERED_BY_MANUAL`。人工操作沿用实时告警上的介入、批量介入、抑制、恢复、批量恢复。实时列表是状态为 FIRING 且未被抑制的事件。历史列表是已恢复和已抑制的事件。`alert_events` 使用 PostgreSQL 声明式时间分区。Moon 按 Namespace 和周把事件拆进多张物理表；Alioth 用分区表表达同一件事，查询仍走 `alioth` 的列表接口。列表和详情按 UID 补出规则名称、规则组标识和级别名称，规则或字典软删除后历史事件仍显示名称。
+事件状态沿用 Moon：`FIRING`、`RECOVERED`、`RECOVERED_BY_MANUAL`。人工操作沿用实时告警上的介入、批量介入、抑制、恢复、批量恢复。实时列表是状态为 FIRING 且未被抑制的事件。历史列表是已恢复和已抑制的事件。
+
+历史告警按「租户库 + 周表」分库分表：库名为 `ALIOTH_HISTORY_DATABASE_PREFIX` + 租户标识（Namespace UID），表名为 `ALIOTH_HISTORY_TABLE_PREFIX` + 事件所在周的周一日期 `YYYYMMDD`（UTC）。事件恢复时在事务提交后写入租户历史库并删除主库行，`alert_history_events` 只保存事件 UID 与分片位置用于详情定位。归档失败时保留主库行，历史列表会合并主库兜底；调度器每小时把升级前遗留的已恢复事件迁移到分片。主库 `alert_events` 继续承载实时告警。列表和详情按 UID 补出规则名称、规则组标识和级别名称，规则或字典软删除后历史事件仍显示名称。
 
 统计沿用 Moon 的告警统计能力，由 `alioth` 对 `AlertEvent` 聚合。
 
@@ -392,7 +394,7 @@ Kubernetes API 代理是新增能力。Agent 使用挂载的 kubeconfig，或在
 | 边缘    | 机器、SSH 命令与审计、SFTP、Kubernetes 代理 |
 
 
-数据源的指标查询区需要表达式编辑器，交互对应 Moon Web 数据源页上的 PromQL 快查。规则编辑保存指标表达式和级别条件。实时告警支持筛选、详情、介入、抑制和恢复；页内用 Tab 切换「我的告警」与用户选定的告警页面。抑制需要选择时长，提供 5 分钟到 24 小时的常用梯度和自定义输入，限制在 1 分钟到 30 天，到期后事件自动回到实时列表。告警页面按标签匹配过滤实时事件，标签值按完整匹配正则命中；可设公开供同租户他人选用。事件标签附带数据源名称、告警等级名称和数据源等级名称，规则列表与实时告警详情用同一种表达式展示块。
+数据源的指标查询区需要表达式编辑器，交互对应 Moon Web 数据源页上的 PromQL 快查。规则编辑保存指标表达式和级别条件。实时告警支持筛选、详情、介入、抑制和恢复；页内用 Tab 切换「我的告警」与用户选定的告警页面。表格列可自定义：内置字段列和事件标签列都可以作为列，列名支持别名，标签列没有别名时显示标签键并渲染该标签的值；`AlertEventColumn` 按用户和视图（`mine` 或告警页面 UID）固化列配置。抑制需要选择时长，提供 5 分钟到 24 小时的常用梯度和自定义输入，限制在 1 分钟到 30 天，到期后事件自动回到实时列表。告警页面按标签匹配过滤实时事件，标签值按完整匹配正则命中；可设公开供同租户他人选用。事件标签附带数据源名称、告警等级名称和数据源等级名称，规则列表与实时告警详情用同一种表达式展示块。
 
 壳上保留 Moon Web 已有的 Namespace 切换、主题（light / dark / system）和中英文。切换 Namespace 后后续请求使用新的 `X-Namespace`。没有 Namespace 时引导创建。
 
@@ -523,7 +525,7 @@ flowchart TB
 
 身份：`User`、`UserOAuth`、`Namespace`、`Member`、`Role`、`Permission`、`RolePermission`、`MemberRole`。
 
-告警：`Datasource`、`AlertRuleGroup`、`AlertRule`、`AlertRuleLevel`、`AlertDictionary`、`AlertEvent`。
+告警：`Datasource`、`AlertRuleGroup`、`AlertRule`、`AlertRuleLevel`、`AlertDictionary`、`AlertEvent`、`AlertHistoryEvent`（历史分片索引）、`AlertEventColumn`（实时告警自定义列）。
 
 通知：`NotificationChannel`、`NotificationTemplate`、`NotificationGroup`、`NotificationTask`、`MessageLog`。
 

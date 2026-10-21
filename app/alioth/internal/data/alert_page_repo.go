@@ -2,9 +2,11 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventcolumn"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useralertpage"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
@@ -61,11 +63,16 @@ func (r *alertPageRepo) DeleteAlertPage(ctx context.Context, namespaceUID, uid s
 	if n == 0 {
 		return merr.NotFound("not found")
 	}
-	_, err = r.client.UserAlertPage.Delete().Where(
+	if _, err := r.client.UserAlertPage.Delete().Where(
 		useralertpage.NamespaceUIDEQ(namespaceUID),
 		useralertpage.AlertPageUIDEQ(uid),
-	).Exec(ctx)
-	if err != nil {
+	).Exec(ctx); err != nil {
+		return r.fail(err)
+	}
+	if _, err := r.client.AlertEventColumn.Delete().Where(
+		alerteventcolumn.NamespaceUIDEQ(namespaceUID),
+		alerteventcolumn.ScopeEQ(uid),
+	).Exec(ctx); err != nil {
 		return r.fail(err)
 	}
 	return nil
@@ -212,4 +219,56 @@ func toAlertPage(row *ent.AlertPage) bo.AlertPage {
 		Public:       row.Public,
 		Remark:       row.Remark,
 	}
+}
+
+// GetAlertColumns 读取用户保存的列配置。列以 JSON 数组存储，顺序就是表格列顺序。
+func (r *alertPageRepo) GetAlertColumns(ctx context.Context, namespaceUID, userUID, scope string) ([]bo.AlertColumn, error) {
+	row, err := r.client.AlertEventColumn.Query().Where(
+		alerteventcolumn.NamespaceUIDEQ(namespaceUID),
+		alerteventcolumn.UserUIDEQ(userUID),
+		alerteventcolumn.ScopeEQ(scope),
+	).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, r.fail(err)
+	}
+	columns := make([]bo.AlertColumn, 0)
+	if err := json.Unmarshal([]byte(row.ColumnsJSON), &columns); err != nil {
+		// 配置损坏时按未配置处理，前端会回退到默认列，不阻塞实时告警页。
+		r.log.Error("alert columns: " + err.Error())
+		return nil, nil
+	}
+	return columns, nil
+}
+
+// SetAlertColumns 覆盖写入列配置。scope 为 mine 或告警页面 UID。
+func (r *alertPageRepo) SetAlertColumns(ctx context.Context, namespaceUID, userUID, scope string, columns []bo.AlertColumn) error {
+	encoded, err := json.Marshal(columns)
+	if err != nil {
+		return merr.Invalid("invalid request")
+	}
+	existing, err := r.client.AlertEventColumn.Query().Where(
+		alerteventcolumn.NamespaceUIDEQ(namespaceUID),
+		alerteventcolumn.UserUIDEQ(userUID),
+		alerteventcolumn.ScopeEQ(scope),
+	).Only(ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return r.fail(err)
+	}
+	if err == nil {
+		_, err = r.client.AlertEventColumn.Update().Where(
+			alerteventcolumn.IDEQ(existing.ID),
+		).SetColumnsJSON(string(encoded)).Save(ctx)
+		return r.fail(err)
+	}
+	_, err = r.client.AlertEventColumn.Create().
+		SetUID(id.New()).
+		SetNamespaceUID(namespaceUID).
+		SetUserUID(userUID).
+		SetScope(scope).
+		SetColumnsJSON(string(encoded)).
+		Save(ctx)
+	return r.fail(err)
 }

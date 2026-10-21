@@ -519,26 +519,6 @@ func NameContainsFold(v string) predicate.AlertRule {
 	return predicate.AlertRule(sql.FieldContainsFold(FieldName, v))
 }
 
-// TypeEQ applies the EQ predicate on the "type" field.
-func TypeEQ(v Type) predicate.AlertRule {
-	return predicate.AlertRule(sql.FieldEQ(FieldType, v))
-}
-
-// TypeNEQ applies the NEQ predicate on the "type" field.
-func TypeNEQ(v Type) predicate.AlertRule {
-	return predicate.AlertRule(sql.FieldNEQ(FieldType, v))
-}
-
-// TypeIn applies the In predicate on the "type" field.
-func TypeIn(vs ...Type) predicate.AlertRule {
-	return predicate.AlertRule(sql.FieldIn(FieldType, vs...))
-}
-
-// TypeNotIn applies the NotIn predicate on the "type" field.
-func TypeNotIn(vs ...Type) predicate.AlertRule {
-	return predicate.AlertRule(sql.FieldNotIn(FieldType, vs...))
-}
-
 // DriverEQ applies the EQ predicate on the "driver" field.
 func DriverEQ(v Driver) predicate.AlertRule {
 	return predicate.AlertRule(sql.FieldEQ(FieldDriver, v))

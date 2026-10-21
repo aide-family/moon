@@ -15,6 +15,11 @@ data:
   redis:
     addr: ${ALIOTH_REDIS_ADDR:127.0.0.1:6379}
     password: ${ALIOTH_REDIS_PASSWORD:}
+  # 历史告警按租户库 + 周表归档。库名为 database_prefix + 租户标识，
+  # 表名为 table_prefix + 周一日期（YYYYMMDD）。
+  history:
+    database_prefix: ${ALIOTH_HISTORY_DATABASE_PREFIX:alioth_alert_}
+    table_prefix: ${ALIOTH_HISTORY_TABLE_PREFIX:alert_events_}
 auth:
   jwt_secret: ${ALIOTH_JWT_SECRET:dev-only-change-me}
   access_ttl_seconds: 7200

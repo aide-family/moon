@@ -20,8 +20,10 @@ const _ = http.SupportPackageIsVersion3
 const OperationAlertPageServiceCreateAlertPage = "/alioth.v1.AlertPageService/CreateAlertPage"
 const OperationAlertPageServiceDeleteAlertPage = "/alioth.v1.AlertPageService/DeleteAlertPage"
 const OperationAlertPageServiceGetAlertPage = "/alioth.v1.AlertPageService/GetAlertPage"
+const OperationAlertPageServiceGetMyAlertColumns = "/alioth.v1.AlertPageService/GetMyAlertColumns"
 const OperationAlertPageServiceListAlertPages = "/alioth.v1.AlertPageService/ListAlertPages"
 const OperationAlertPageServiceListMyRealtimeTabs = "/alioth.v1.AlertPageService/ListMyRealtimeTabs"
+const OperationAlertPageServiceSaveMyAlertColumns = "/alioth.v1.AlertPageService/SaveMyAlertColumns"
 const OperationAlertPageServiceSetMyRealtimeTabs = "/alioth.v1.AlertPageService/SetMyRealtimeTabs"
 const OperationAlertPageServiceUpdateAlertPage = "/alioth.v1.AlertPageService/UpdateAlertPage"
 
@@ -32,10 +34,14 @@ type AlertPageServiceHTTPServer interface {
 	DeleteAlertPage(context.Context, *DeleteAlertPageRequest) (*DeleteAlertPageResponse, error)
 	// GetAlertPage 获取告警页面。
 	GetAlertPage(context.Context, *GetAlertPageRequest) (*GetAlertPageResponse, error)
+	// GetMyAlertColumns 读取当前用户在 mine 或某个告警页面上的自定义列。
+	GetMyAlertColumns(context.Context, *GetMyAlertColumnsRequest) (*GetMyAlertColumnsResponse, error)
 	// ListAlertPages 分页列出告警页面。scope 为 manage 或 selectable。
 	ListAlertPages(context.Context, *ListAlertPagesRequest) (*ListAlertPagesResponse, error)
 	// ListMyRealtimeTabs 列出当前用户实时告警 Tab（含固定的我的告警）。
 	ListMyRealtimeTabs(context.Context, *ListMyRealtimeTabsRequest) (*ListMyRealtimeTabsResponse, error)
+	// SaveMyAlertColumns 覆盖保存当前用户在 mine 或某个告警页面上的自定义列。
+	SaveMyAlertColumns(context.Context, *SaveMyAlertColumnsRequest) (*SaveMyAlertColumnsResponse, error)
 	// SetMyRealtimeTabs 设置当前用户要显示的告警页面 Tab。
 	SetMyRealtimeTabs(context.Context, *SetMyRealtimeTabsRequest) (*SetMyRealtimeTabsResponse, error)
 	// UpdateAlertPage 更新告警页面。
@@ -51,6 +57,8 @@ func RegisterAlertPageServiceHTTPServer(s *http.Server, srv AlertPageServiceHTTP
 	r.Handle("GET", "/v1/alert-pages", _AlertPageService_ListAlertPages0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/alert-pages/my-tabs", _AlertPageService_ListMyRealtimeTabs0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/alert-pages/my-tabs", _AlertPageService_SetMyRealtimeTabs0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/alert-pages/my-columns", _AlertPageService_GetMyAlertColumns0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/alert-pages/my-columns", _AlertPageService_SaveMyAlertColumns0_HTTP_Handler(srv))
 }
 
 func _AlertPageService_CreateAlertPage0_HTTP_Handler(srv AlertPageServiceHTTPServer) func(ctx http.Context) error {
@@ -195,6 +203,44 @@ func _AlertPageService_SetMyRealtimeTabs0_HTTP_Handler(srv AlertPageServiceHTTPS
 	}
 }
 
+func _AlertPageService_GetMyAlertColumns0_HTTP_Handler(srv AlertPageServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetMyAlertColumnsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertPageServiceGetMyAlertColumns)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetMyAlertColumns(ctx, req.(*GetMyAlertColumnsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetMyAlertColumnsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AlertPageService_SaveMyAlertColumns0_HTTP_Handler(srv AlertPageServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SaveMyAlertColumnsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertPageServiceSaveMyAlertColumns)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SaveMyAlertColumns(ctx, req.(*SaveMyAlertColumnsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SaveMyAlertColumnsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AlertPageServiceHTTPClient interface {
 	// CreateAlertPage 创建告警页面。
 	CreateAlertPage(ctx context.Context, req *CreateAlertPageRequest, opts ...http.CallOption) (rsp *CreateAlertPageResponse, err error)
@@ -202,10 +248,14 @@ type AlertPageServiceHTTPClient interface {
 	DeleteAlertPage(ctx context.Context, req *DeleteAlertPageRequest, opts ...http.CallOption) (rsp *DeleteAlertPageResponse, err error)
 	// GetAlertPage 获取告警页面。
 	GetAlertPage(ctx context.Context, req *GetAlertPageRequest, opts ...http.CallOption) (rsp *GetAlertPageResponse, err error)
+	// GetMyAlertColumns 读取当前用户在 mine 或某个告警页面上的自定义列。
+	GetMyAlertColumns(ctx context.Context, req *GetMyAlertColumnsRequest, opts ...http.CallOption) (rsp *GetMyAlertColumnsResponse, err error)
 	// ListAlertPages 分页列出告警页面。scope 为 manage 或 selectable。
 	ListAlertPages(ctx context.Context, req *ListAlertPagesRequest, opts ...http.CallOption) (rsp *ListAlertPagesResponse, err error)
 	// ListMyRealtimeTabs 列出当前用户实时告警 Tab（含固定的我的告警）。
 	ListMyRealtimeTabs(ctx context.Context, req *ListMyRealtimeTabsRequest, opts ...http.CallOption) (rsp *ListMyRealtimeTabsResponse, err error)
+	// SaveMyAlertColumns 覆盖保存当前用户在 mine 或某个告警页面上的自定义列。
+	SaveMyAlertColumns(ctx context.Context, req *SaveMyAlertColumnsRequest, opts ...http.CallOption) (rsp *SaveMyAlertColumnsResponse, err error)
 	// SetMyRealtimeTabs 设置当前用户要显示的告警页面 Tab。
 	SetMyRealtimeTabs(ctx context.Context, req *SetMyRealtimeTabsRequest, opts ...http.CallOption) (rsp *SetMyRealtimeTabsResponse, err error)
 	// UpdateAlertPage 更新告警页面。
@@ -272,6 +322,23 @@ func (c *AlertPageServiceHTTPClientImpl) GetAlertPage(ctx context.Context, in *G
 	return &out, nil
 }
 
+// GetMyAlertColumns 读取当前用户在 mine 或某个告警页面上的自定义列。
+func (c *AlertPageServiceHTTPClientImpl) GetMyAlertColumns(ctx context.Context, in *GetMyAlertColumnsRequest, opts ...http.CallOption) (*GetMyAlertColumnsResponse, error) {
+	var out GetMyAlertColumnsResponse
+	pattern := "/v1/alert-pages/my-columns"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAlertPageServiceGetMyAlertColumns),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListAlertPages 分页列出告警页面。scope 为 manage 或 selectable。
 func (c *AlertPageServiceHTTPClientImpl) ListAlertPages(ctx context.Context, in *ListAlertPagesRequest, opts ...http.CallOption) (*ListAlertPagesResponse, error) {
 	var out ListAlertPagesResponse
@@ -300,6 +367,24 @@ func (c *AlertPageServiceHTTPClientImpl) ListMyRealtimeTabs(ctx context.Context,
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SaveMyAlertColumns 覆盖保存当前用户在 mine 或某个告警页面上的自定义列。
+func (c *AlertPageServiceHTTPClientImpl) SaveMyAlertColumns(ctx context.Context, in *SaveMyAlertColumnsRequest, opts ...http.CallOption) (*SaveMyAlertColumnsResponse, error) {
+	var out SaveMyAlertColumnsResponse
+	pattern := "/v1/alert-pages/my-columns"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAlertPageServiceSaveMyAlertColumns),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

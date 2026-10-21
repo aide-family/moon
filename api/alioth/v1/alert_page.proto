@@ -46,6 +46,17 @@ service AlertPageService {
       body: "*"
     };
   }
+  // 读取当前用户在 mine 或某个告警页面上的自定义列。
+  rpc GetMyAlertColumns(GetMyAlertColumnsRequest) returns (GetMyAlertColumnsResponse) {
+    option (google.api.http) = {get: "/v1/alert-pages/my-columns"};
+  }
+  // 覆盖保存当前用户在 mine 或某个告警页面上的自定义列。
+  rpc SaveMyAlertColumns(SaveMyAlertColumnsRequest) returns (SaveMyAlertColumnsResponse) {
+    option (google.api.http) = {
+      put: "/v1/alert-pages/my-columns"
+      body: "*"
+    };
+  }
 }
 
 // 告警页面。
@@ -176,4 +187,41 @@ message SetMyRealtimeTabsRequest {
 message SetMyRealtimeTabsResponse {
   // 更新后的 Tab 列表。
   repeated RealtimeAlertTab tabs = 1;
+}
+
+// 实时告警表格的一列。type 为 FIELD 时 key 是内置字段名，为 LABEL 时 key 是标签键；
+// label 是列名别名，标签列留空时显示标签键。
+message AlertColumnItem {
+  // 内置字段名或标签键。
+  string key = 1 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
+  // 列类型，取值为 FIELD 或 LABEL。
+  string type = 2 [(buf.validate.field).string = {in: ["FIELD", "LABEL"]}];
+  // 列名别名，最多 64 个字符。
+  string label = 3 [(buf.validate.field).string.max_len = 64];
+}
+
+// 读取自定义列。scope 为 mine 或告警页面 uid。
+message GetMyAlertColumnsRequest {
+  // 视图标识。
+  string scope = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 当前用户在指定视图上的列配置。
+message GetMyAlertColumnsResponse {
+  // 列配置，按显示顺序排列。空表示使用默认列。
+  repeated AlertColumnItem columns = 1;
+}
+
+// 保存自定义列。
+message SaveMyAlertColumnsRequest {
+  // 视图标识。
+  string scope = 1 [(buf.validate.field).string.min_len = 1];
+  // 列配置，最多 20 列。
+  repeated AlertColumnItem columns = 2 [(buf.validate.field).repeated.max_items = 20];
+}
+
+// 保存后的列配置。
+message SaveMyAlertColumnsResponse {
+  // 列配置，按显示顺序排列。
+  repeated AlertColumnItem columns = 1;
 }

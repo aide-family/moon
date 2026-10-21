@@ -17,4 +17,9 @@ type AlertPageRepo interface {
 
 	ListUserAlertPages(ctx context.Context, namespaceUID, userUID string) ([]bo.AlertPage, error)
 	SetUserAlertPages(ctx context.Context, namespaceUID, userUID string, pageUIDs []string) error
+
+	// GetAlertColumns 读取用户在某个实时视图上保存的自定义列。没有配置时返回空。
+	GetAlertColumns(ctx context.Context, namespaceUID, userUID, scope string) ([]bo.AlertColumn, error)
+	// SetAlertColumns 覆盖写入用户在某个实时视图上的自定义列。
+	SetAlertColumns(ctx context.Context, namespaceUID, userUID, scope string, columns []bo.AlertColumn) error
 }

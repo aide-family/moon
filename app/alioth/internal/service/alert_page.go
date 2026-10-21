@@ -100,3 +100,35 @@ func realtimeTabs(items []bo.RealtimeAlertTab) []*v1.RealtimeAlertTab {
 	}
 	return out
 }
+
+func (s *AlertPageService) GetMyAlertColumns(ctx context.Context, req *v1.GetMyAlertColumnsRequest) (*v1.GetMyAlertColumnsResponse, error) {
+	columns, err := s.pages.GetColumns(ctx, req.GetScope())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetMyAlertColumnsResponse{Columns: alertColumnItems(columns)}, nil
+}
+
+func (s *AlertPageService) SaveMyAlertColumns(ctx context.Context, req *v1.SaveMyAlertColumnsRequest) (*v1.SaveMyAlertColumnsResponse, error) {
+	columns, err := s.pages.SetColumns(ctx, req.GetScope(), alertColumnInputs(req.GetColumns()))
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SaveMyAlertColumnsResponse{Columns: alertColumnItems(columns)}, nil
+}
+
+func alertColumnItems(items []bo.AlertColumn) []*v1.AlertColumnItem {
+	out := make([]*v1.AlertColumnItem, 0, len(items))
+	for _, item := range items {
+		out = append(out, &v1.AlertColumnItem{Key: item.Key, Type: item.Type, Label: item.Label})
+	}
+	return out
+}
+
+func alertColumnInputs(items []*v1.AlertColumnItem) []bo.AlertColumn {
+	out := make([]bo.AlertColumn, 0, len(items))
+	for _, item := range items {
+		out = append(out, bo.AlertColumn{Key: item.GetKey(), Type: item.GetType(), Label: item.GetLabel()})
+	}
+	return out
+}

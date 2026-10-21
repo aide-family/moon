@@ -65,6 +65,10 @@ spec:
                   key: DATABASE_SOURCE
             - name: ALIOTH_REDIS_ADDR
               value: redis:6379
+            - name: ALIOTH_HISTORY_DATABASE_PREFIX
+              value: alioth_alert_
+            - name: ALIOTH_HISTORY_TABLE_PREFIX
+              value: alert_events_
             - name: ALIOTH_JWT_SECRET
               valueFrom:
                 secretKeyRef:

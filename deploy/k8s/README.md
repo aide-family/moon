@@ -80,6 +80,16 @@ Sealed Secrets），避免占位值覆盖真实值。
 `alioth` 会回收长时间停留在 SENDING 的通知任务，默认 2 分钟。需要调整时给 `alioth` 增加环境变量
 `ALIOTH_NOTIFY_STALE_SECONDS`（秒）。
 
+## 历史告警分库分表
+
+恢复的告警事件写入「租户库 + 周表」：库名为 `ALIOTH_HISTORY_DATABASE_PREFIX` + 租户标识
+（`Namespace` UID），表名为 `ALIOTH_HISTORY_TABLE_PREFIX` + 周一日期 `YYYYMMDD`。默认前缀为
+`alioth_alert_` 与 `alert_events_`。
+
+- 数据库账号需要 `CREATEDB` 权限，alioth 会在首次归档某个租户时创建该租户库。
+- 历史库与主库在同一个 PostgreSQL 实例；归档失败时事件保留在主库，历史列表会兜底展示，恢复权限后由每小时回填迁移。
+- 连接按租户缓存，连接数会计入 PostgreSQL 的 `max_connections`，租户很多时需要相应上调。
+
 ## nginx
 
 `web` 只把 `/v1` 转到 `alioth:8000`。配置只有一份来源：[web/nginx.conf](../../web/nginx.conf)，

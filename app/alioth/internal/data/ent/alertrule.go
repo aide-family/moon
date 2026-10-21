@@ -31,8 +31,6 @@ type AlertRule struct {
 	GroupUID string `json:"group_uid,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Type holds the value of the "type" field.
-	Type alertrule.Type `json:"type,omitempty"`
 	// Driver holds the value of the "driver" field.
 	Driver alertrule.Driver `json:"driver,omitempty"`
 	// Status holds the value of the "status" field.
@@ -63,7 +61,7 @@ func (*AlertRule) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case alertrule.FieldID:
 			values[i] = new(sql.NullInt64)
-		case alertrule.FieldUID, alertrule.FieldNamespaceUID, alertrule.FieldGroupUID, alertrule.FieldName, alertrule.FieldType, alertrule.FieldDriver, alertrule.FieldStatus, alertrule.FieldExpr, alertrule.FieldLabels, alertrule.FieldDatasourceUID, alertrule.FieldDatasourceLabels, alertrule.FieldSummary, alertrule.FieldDescription:
+		case alertrule.FieldUID, alertrule.FieldNamespaceUID, alertrule.FieldGroupUID, alertrule.FieldName, alertrule.FieldDriver, alertrule.FieldStatus, alertrule.FieldExpr, alertrule.FieldLabels, alertrule.FieldDatasourceUID, alertrule.FieldDatasourceLabels, alertrule.FieldSummary, alertrule.FieldDescription:
 			values[i] = new(sql.NullString)
 		case alertrule.FieldCreatedAt, alertrule.FieldUpdatedAt, alertrule.FieldDeletedAt, alertrule.FieldNextEvalAt, alertrule.FieldScheduledSlot:
 			values[i] = new(sql.NullTime)
@@ -130,12 +128,6 @@ func (_m *AlertRule) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				_m.Name = value.String
-			}
-		case alertrule.FieldType:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field type", values[i])
-			} else if value.Valid {
-				_m.Type = alertrule.Type(value.String)
 			}
 		case alertrule.FieldDriver:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -257,9 +249,6 @@ func (_m *AlertRule) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
-	builder.WriteString(", ")
-	builder.WriteString("type=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Type))
 	builder.WriteString(", ")
 	builder.WriteString("driver=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Driver))

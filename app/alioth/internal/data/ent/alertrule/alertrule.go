@@ -28,8 +28,6 @@ const (
 	FieldGroupUID = "group_uid"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-	// FieldType holds the string denoting the type field in the database.
-	FieldType = "type"
 	// FieldDriver holds the string denoting the driver field in the database.
 	FieldDriver = "driver"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -64,7 +62,6 @@ var Columns = []string{
 	FieldNamespaceUID,
 	FieldGroupUID,
 	FieldName,
-	FieldType,
 	FieldDriver,
 	FieldStatus,
 	FieldExpr,
@@ -115,30 +112,6 @@ var (
 	// DefaultDescription holds the default value on creation for the "description" field.
 	DefaultDescription string
 )
-
-// Type defines the type for the "type" enum field.
-type Type string
-
-// Type values.
-const (
-	TypeMETRICS Type = "METRICS"
-	TypeLOGS    Type = "LOGS"
-	TypeTRACE   Type = "TRACE"
-)
-
-func (_type Type) String() string {
-	return string(_type)
-}
-
-// TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
-func TypeValidator(_type Type) error {
-	switch _type {
-	case TypeMETRICS, TypeLOGS, TypeTRACE:
-		return nil
-	default:
-		return fmt.Errorf("alertrule: invalid enum value for type field: %q", _type)
-	}
-}
 
 // Driver defines the type for the "driver" enum field.
 type Driver string
@@ -234,11 +207,6 @@ func ByGroupUID(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
-}
-
-// ByType orders the results by the type field.
-func ByType(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldType, opts...).ToFunc()
 }
 
 // ByDriver orders the results by the driver field.

@@ -36,10 +36,7 @@ func HitsWithQuery(ctx context.Context, rule bo.RuleSnapshot, samples []bo.Sampl
 			if !ok {
 				continue
 			}
-			labels := sample.Labels
-			if labels == nil {
-				labels = map[string]string{}
-			}
+			labels := mergeRuleLabels(rule.Labels, sample.Labels)
 			encoded, err := json.Marshal(labels)
 			if err != nil {
 				encoded = []byte("{}")
@@ -155,6 +152,28 @@ func window(rule bo.RuleSnapshot, now time.Time) (int64, int64, int64) {
 	}
 	end := now.UTC().Unix()
 	return end - int64(seconds), end, 15
+}
+
+// mergeRuleLabels 把规则上配置的标签并入采样标签。采样标签优先，规则标签只补缺，
+// 这样规则标签修改后 fingerprint 会变化，旧事件恢复、新事件按新标签建立。
+func mergeRuleLabels(raw string, sample map[string]string) map[string]string {
+	labels := make(map[string]string, len(sample))
+	for key, value := range sample {
+		labels[key] = value
+	}
+	if strings.TrimSpace(raw) == "" {
+		return labels
+	}
+	extra := map[string]string{}
+	if err := json.Unmarshal([]byte(raw), &extra); err != nil {
+		return labels
+	}
+	for key, value := range extra {
+		if _, ok := labels[key]; !ok {
+			labels[key] = value
+		}
+	}
+	return labels
 }
 
 // renderAlert 用 pkg/alerttmpl 展开摘要和描述。数据、快捷变量和函数与通知

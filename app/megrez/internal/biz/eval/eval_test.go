@@ -59,6 +59,17 @@ func TestHitsConditions(t *testing.T) {
 	if len(filled) != 1 || filled[0].Description != "up指标测试，告警明细 "+canonicalLabels+" ; value: 3" || filled[0].Labels != canonicalLabels {
 		t.Fatalf("event labels and description template diverged = %+v", filled)
 	}
+	// 规则标签参与 fingerprint 和事件标签，修改规则标签会产生新事件。
+	rule.Labels = `{"cluster":"prod"}`
+	withRuleLabels := Hits(rule, []bo.Sample{{Labels: map[string]string{"job": "api"}, Points: points}})
+	if len(withRuleLabels) != 1 || !strings.Contains(withRuleLabels[0].Labels, `"cluster":"prod"`) {
+		t.Fatalf("rule labels = %+v", withRuleLabels)
+	}
+	if withRuleLabels[0].Fingerprint == filled[0].Fingerprint {
+		t.Fatal("rule label change must change fingerprint")
+	}
+	rule.Labels = ""
+
 	rule.Endpoint = "https://prometheus.example/base"
 	rule.Description = `{{ $labels.instance }} {{ printf "%.2f" $value }} {{ humanize1024 2048 }} {{ $externalURL }}`
 	filled = Hits(rule, []bo.Sample{{Labels: map[string]string{"instance": "localhost:9090"}, Points: points}})

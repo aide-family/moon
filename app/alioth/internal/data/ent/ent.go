@@ -16,7 +16,9 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventcolumn"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerthistoryevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
@@ -112,7 +114,9 @@ func checkColumn(t, c string) error {
 			alertdictionary.Table:               alertdictionary.ValidColumn,
 			alertevalbatch.Table:                alertevalbatch.ValidColumn,
 			alertevent.Table:                    alertevent.ValidColumn,
+			alerteventcolumn.Table:              alerteventcolumn.ValidColumn,
 			alerteventfiring.Table:              alerteventfiring.ValidColumn,
+			alerthistoryevent.Table:             alerthistoryevent.ValidColumn,
 			alertpage.Table:                     alertpage.ValidColumn,
 			alertrule.Table:                     alertrule.ValidColumn,
 			alertrulegroup.Table:                alertrulegroup.ValidColumn,

@@ -12,6 +12,8 @@ x-service-env: &service-env
   ALIOTH_WEB_URL: ${ALIOTH_WEB_URL:-http://127.0.0.1:8080}
   ALIOTH_SMTP_HOST: mailpit
   ALIOTH_SMTP_PORT: "1025"
+  ALIOTH_HISTORY_DATABASE_PREFIX: ${ALIOTH_HISTORY_DATABASE_PREFIX:-alioth_alert_}
+  ALIOTH_HISTORY_TABLE_PREFIX: ${ALIOTH_HISTORY_TABLE_PREFIX:-alert_events_}
 
 services:
   postgres:

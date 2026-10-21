@@ -14,12 +14,12 @@ func TestDue(t *testing.T) {
 		rule AlertRule
 		want bool
 	}{
-		{name: "enabled metrics without schedule", rule: AlertRule{Status: "ACTIVE", Type: "METRICS"}, want: true},
-		{name: "enabled metrics already due", rule: AlertRule{Status: "ACTIVE", Type: "METRICS", NextEvalAt: &past}, want: true},
-		{name: "enabled metrics not yet due", rule: AlertRule{Status: "ACTIVE", Type: "METRICS", NextEvalAt: &future}, want: false},
-		{name: "disabled metrics", rule: AlertRule{Status: "DISABLED", Type: "METRICS"}, want: false},
-		{name: "enabled logs", rule: AlertRule{Status: "ACTIVE", Type: "LOGS"}, want: true},
-		{name: "enabled trace", rule: AlertRule{Status: "ACTIVE", Type: "TRACE"}, want: true},
+		{name: "enabled without schedule", rule: AlertRule{Status: "ACTIVE"}, want: true},
+		{name: "enabled already due", rule: AlertRule{Status: "ACTIVE", NextEvalAt: &past}, want: true},
+		{name: "enabled not yet due", rule: AlertRule{Status: "ACTIVE", NextEvalAt: &future}, want: false},
+		{name: "disabled", rule: AlertRule{Status: "DISABLED"}, want: false},
+		{name: "enabled second rule", rule: AlertRule{Status: "ACTIVE"}, want: true},
+		{name: "enabled third rule", rule: AlertRule{Status: "ACTIVE"}, want: true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

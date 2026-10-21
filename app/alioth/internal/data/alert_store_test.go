@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulelevel"
@@ -134,13 +135,13 @@ func TestAlertStore(t *testing.T) {
 		t.Fatalf("duplicate group: %v", err)
 	}
 	enabled, err := rules.CreateAlertRule(ctx, bo.AlertRule{
-		NamespaceUID: ns, GroupUID: group.UID, Name: "cpu", Type: "METRICS", Driver: "METRICS_PROMETHEUS", Expr: "up",
+		NamespaceUID: ns, GroupUID: group.UID, Name: "cpu", Driver: "METRICS_PROMETHEUS", Expr: "up",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	disabled, err := rules.CreateAlertRule(ctx, bo.AlertRule{
-		NamespaceUID: ns, GroupUID: group.UID, Name: "mem", Type: "METRICS", Driver: "METRICS_PROMETHEUS", Expr: "up",
+		NamespaceUID: ns, GroupUID: group.UID, Name: "mem", Driver: "METRICS_PROMETHEUS", Expr: "up",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -149,7 +150,7 @@ func TestAlertStore(t *testing.T) {
 		t.Fatal(err)
 	}
 	logs, err := rules.CreateAlertRule(ctx, bo.AlertRule{
-		NamespaceUID: ns, GroupUID: group.UID, Name: "errors", Type: "LOGS", Driver: "LOGS_ELASTICSEARCH", Expr: "error",
+		NamespaceUID: ns, GroupUID: group.UID, Name: "errors", Driver: "LOGS_ELASTICSEARCH", Expr: "error",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -166,5 +167,59 @@ func TestAlertStore(t *testing.T) {
 	}
 	if !seen[enabled.UID] || seen[disabled.UID] || !seen[logs.UID] {
 		t.Fatalf("candidates = %v", seen)
+	}
+}
+
+func TestDatasourceMatcherIncludesLevel(t *testing.T) {
+	source := testDSN(t)
+	ctx := context.Background()
+	store, cleanup, err := NewData(
+		&conf.Data{Database: &conf.Data_Database{Source: source}},
+		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
+		slog.Default(),
+	)
+	if err != nil {
+		t.Skip(err)
+	}
+	t.Cleanup(cleanup)
+	if err := ApplySchema(ctx, store.client, store.db); err != nil {
+		t.Fatal(err)
+	}
+	ns := "ns-matcher-" + time.Now().Format("150405.000")
+	t.Cleanup(func() {
+		_, _ = store.client.Datasource.Delete().Where(datasource.NamespaceUIDEQ(ns)).Exec(ctx)
+		_, _ = store.client.AlertDictionary.Delete().Where(alertdictionary.NamespaceUIDEQ(ns)).Exec(ctx)
+	})
+	dictionaries := NewAlertDictionaryRepo(store, slog.Default())
+	level, err := dictionaries.CreateAlertDictionary(ctx, bo.AlertDictionary{
+		NamespaceUID: ns, Name: "低优", Type: "DATASOURCE", Status: "ACTIVE",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	sources := NewDatasourceRepo(store, slog.Default())
+	if _, err := sources.CreateDatasource(ctx, bo.Datasource{
+		NamespaceUID: ns, Name: "victoriametrics", Type: "METRICS", Driver: "METRICS_VICTORIA_METRICS",
+		Endpoint: "http://127.0.0.1:8428", LevelUID: level.UID, Labels: "{}",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	cases := []struct {
+		matchers string
+		want     int
+	}{
+		{`{"datasource_level":"低优"}`, 1},
+		{`{"datasource_level":"高优"}`, 0},
+		{`{"datasource":"victoriametrics"}`, 1},
+		{`{"datasource_level":"低.+","datasource":"victoria.*"}`, 1},
+	}
+	for _, tc := range cases {
+		items, err := sources.ListDatasourcesByMatchers(ctx, ns, "METRICS_VICTORIA_METRICS", tc.matchers)
+		if err != nil {
+			t.Fatalf("%s: %v", tc.matchers, err)
+		}
+		if len(items) != tc.want {
+			t.Fatalf("%s: got %d items", tc.matchers, len(items))
+		}
 	}
 }

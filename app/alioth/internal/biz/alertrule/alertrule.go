@@ -153,14 +153,16 @@ func (uc *Usecase) UpdateRuleStatus(ctx context.Context, uid, status string) (*b
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.rules.UpdateAlertRuleStatus(ctx, ns, uid, status)
-	if err != nil {
-		return nil, uc.access.Wrap(err)
-	}
+	// 先收口事件再停用规则：恢复走 events.RecoverSource 会归档到历史库，
+	// 如果等仓储把事件改回 RECOVERED，恢复扫描就看不到 FIRING，历史分片会漏记录。
 	if status == "DISABLED" {
 		if err := uc.events.RecoverSource(ctx, ns, []string{uid}, nil, nil); err != nil {
 			return nil, uc.access.Wrap(err)
 		}
+	}
+	item, err := uc.rules.UpdateAlertRuleStatus(ctx, ns, uid, status)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
 	}
 	return item, nil
 }
@@ -196,7 +198,7 @@ func (uc *Usecase) ListRules(ctx context.Context, pageNo, pageSize int32, groupU
 }
 
 func (uc *Usecase) prepare(ctx context.Context, namespaceUID string, in *bo.AlertRule) error {
-	if !datasource.DriverMatches(in.Type, in.Driver) {
+	if !datasource.ValidDriver(in.Driver) {
 		return merr.Invalid("invalid request")
 	}
 	if strings.TrimSpace(in.Labels) != "" && !json.Valid([]byte(in.Labels)) {
@@ -229,7 +231,11 @@ func (uc *Usecase) recoverChangedRule(ctx context.Context, namespaceUID string, 
 	if previous == nil || next == nil {
 		return nil
 	}
+	// 驱动或表达式变化会改变整条规则的评测语义，旧事件不能继续代表新配置。
 	recoverAll, levelUIDs := changedLevelUIDs(previous.Levels, next.Levels)
+	if previous.Driver != next.Driver || previous.Expr != next.Expr {
+		recoverAll = true
+	}
 	if recoverAll {
 		return uc.access.Wrap(uc.events.RecoverSource(ctx, namespaceUID, []string{next.UID}, nil, nil))
 	}
@@ -249,11 +255,11 @@ func (uc *Usecase) recoverChangedRule(ctx context.Context, namespaceUID string, 
 }
 
 func (uc *Usecase) droppedDatasources(ctx context.Context, namespaceUID string, previous, next *bo.AlertRule) ([]string, error) {
-	before, err := uc.datasources.ListDatasourcesByMatchers(ctx, namespaceUID, previous.Type, previous.DatasourceLabels)
+	before, err := uc.datasources.ListDatasourcesByMatchers(ctx, namespaceUID, previous.Driver, previous.DatasourceLabels)
 	if err != nil {
 		return nil, uc.access.Wrap(err)
 	}
-	after, err := uc.datasources.ListDatasourcesByMatchers(ctx, namespaceUID, next.Type, next.DatasourceLabels)
+	after, err := uc.datasources.ListDatasourcesByMatchers(ctx, namespaceUID, next.Driver, next.DatasourceLabels)
 	if err != nil {
 		return nil, uc.access.Wrap(err)
 	}
@@ -271,30 +277,26 @@ func (uc *Usecase) droppedDatasources(ctx context.Context, namespaceUID string, 
 	return dropped, nil
 }
 
+// changedLevelUIDs 找出条件或级别发生变化的旧级别。同一个级别标识如果阈值、
+// 采样方式或持续秒数变了，也要恢复旧事件，让下一轮按新条件产生新事件；
+// 否则实时列表会一直显示旧条件算出的时长和采样值。
 func changedLevelUIDs(previous, next []bo.AlertRuleLevel) (bool, []string) {
 	if len(next) == 0 && len(previous) > 0 {
 		return true, nil
 	}
-	remaining := map[string]int{}
+	kept := make(map[string]struct{}, len(next))
 	for _, level := range next {
-		remaining[levelSignature(level)]++
+		kept[levelSignature(level)] = struct{}{}
 	}
-	kept := map[string]struct{}{}
 	gone := map[string]struct{}{}
 	for _, level := range previous {
-		signature := levelSignature(level)
-		if remaining[signature] > 0 {
-			remaining[signature]--
-			kept[level.LevelUID] = struct{}{}
+		if _, ok := kept[levelSignature(level)]; ok {
 			continue
 		}
 		gone[level.LevelUID] = struct{}{}
 	}
-	uids := make([]string, 0)
+	uids := make([]string, 0, len(gone))
 	for uid := range gone {
-		if _, ok := kept[uid]; ok {
-			continue
-		}
 		uids = append(uids, uid)
 	}
 	return false, uids

@@ -30,7 +30,7 @@ func TestNotificationTaskDedup(t *testing.T) {
 	if err != nil {
 		t.Skip(err)
 	}
-	defer cleanup()
+	t.Cleanup(cleanup)
 	if err := store.db.PingContext(ctx); err != nil {
 		t.Skip(err)
 	}
@@ -55,6 +55,7 @@ func TestNotificationTaskDedup(t *testing.T) {
 		_, _ = store.client.NotificationGroup.Delete().Where(notificationgroup.NamespaceUIDEQ(ns)).Exec(ctx)
 		_, _ = store.client.NotificationTemplate.Delete().Where(notificationtemplate.NamespaceUIDEQ(ns)).Exec(ctx)
 		_, _ = store.client.NotificationChannel.Delete().Where(notificationchannel.NamespaceUIDEQ(ns)).Exec(ctx)
+		_ = store.history.dropTenant(context.Background(), ns)
 	})
 
 	channel, err := notify.CreateChannel(ctx, bo.NotificationChannel{
@@ -97,7 +98,7 @@ func TestNotificationTaskDedup(t *testing.T) {
 		t.Fatal(err)
 	}
 	rule, err := rules.CreateAlertRule(ctx, bo.AlertRule{
-		NamespaceUID: ns, GroupUID: g.UID, Name: "r1", Type: "METRICS", Driver: "METRICS_PROMETHEUS",
+		NamespaceUID: ns, GroupUID: g.UID, Name: "r1", Driver: "METRICS_PROMETHEUS",
 		Expr:   "up",
 		Levels: []bo.AlertRuleLevel{{Condition: "EQ", Sample: "MAX", Threshold: "1", LevelUID: "lv"}},
 	})
@@ -170,7 +171,7 @@ func TestNotificationTaskDedup(t *testing.T) {
 	}
 	before := len(tasks)
 	rule2, err := rules.CreateAlertRule(ctx, bo.AlertRule{
-		NamespaceUID: ns, GroupUID: g.UID, Name: "r2", Type: "METRICS", Driver: "METRICS_PROMETHEUS",
+		NamespaceUID: ns, GroupUID: g.UID, Name: "r2", Driver: "METRICS_PROMETHEUS",
 		Expr:   "up",
 		Levels: []bo.AlertRuleLevel{{Condition: "EQ", Sample: "MAX", Threshold: "1", LevelUID: "lv"}},
 	})

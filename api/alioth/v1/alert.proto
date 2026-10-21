@@ -638,9 +638,9 @@ message AlertRuleItem {
   string group_uid = 2 [json_name = "groupUid"];
   // 名称。
   string name = 3;
-  // 类型。
-  string type = 4;
-  // 驱动。
+  reserved 4;
+  reserved "type";
+  // 驱动。规则不再保存类型，数据源匹配只按驱动。
   string driver = 5;
   // 状态，取值为 ACTIVE 或 DISABLED。
   string status = 6;
@@ -669,9 +669,9 @@ message CreateAlertRuleRequest {
   string group_uid = 1 [json_name = "groupUid", (buf.validate.field).string.min_len = 1];
   // 名称。
   string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  // 类型，取值为 METRICS、LOGS 或 TRACE。
-  string type = 3 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
-  // 驱动。
+  reserved 3;
+  reserved "type";
+  // 驱动。类型由驱动推导。
   string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER"]}];
   // 表达式。
   string expr = 5;
@@ -706,9 +706,9 @@ message UpdateAlertRuleRequest {
   string group_uid = 2 [json_name = "groupUid", (buf.validate.field).string.min_len = 1];
   // 名称。
   string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  // 类型，取值为 METRICS、LOGS 或 TRACE。
-  string type = 4 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
-  // 驱动。
+  reserved 4;
+  reserved "type";
+  // 驱动。类型由驱动推导。
   string driver = 5 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER"]}];
   // 表达式。
   string expr = 6;

@@ -6,13 +6,21 @@ import { formMessage } from "@/lib/form-error"
 import { alertEventRealtimeStats } from "@/api/alert-event"
 import type { AlertEventStats } from "@/api/alert-event/types"
 import {
+  getMyAlertColumns,
   listAlertPages,
   listMyRealtimeTabs,
+  saveMyAlertColumns,
   setMyRealtimeTabs,
 } from "@/api/alert-page"
-import type { AlertPageItem, RealtimeAlertTab } from "@/api/alert-page/types"
+import type {
+  AlertColumnItem,
+  AlertPageItem,
+  RealtimeAlertTab,
+} from "@/api/alert-page/types"
 import { useSession } from "@/auth/session"
 import { PageHeader } from "@/components/page-header"
+import { AlertColumnDialog } from "@/pages/alert/column-dialog"
+import { DEFAULT_REALTIME_COLUMNS } from "@/pages/alert/columns"
 import { AlertEventList } from "@/pages/alert/list"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -62,6 +70,12 @@ export function AlertRealtimePage() {
     suppressed: 0,
     recovered: 0,
   })
+  const [columns, setColumns] = useState<AlertColumnItem[]>(
+    DEFAULT_REALTIME_COLUMNS
+  )
+  const [columnOpen, setColumnOpen] = useState(false)
+  const [columnPending, setColumnPending] = useState(false)
+  const [columnError, setColumnError] = useState("")
 
   useEffect(() => {
     let alive = true
@@ -125,6 +139,46 @@ export function AlertRealtimePage() {
       alive = false
     }
   }, [attempt, session.namespaceUid, refreshKey])
+
+  // 每个 Tab 的列配置存在后端。切换 Tab 时读取当前视图的配置，没有配置就用默认列。
+  useEffect(() => {
+    let alive = true
+    async function loadColumns() {
+      try {
+        const result = await getMyAlertColumns(active)
+        if (!alive) {
+          return
+        }
+        setColumns(
+          result.columns?.length
+            ? result.columns
+            : DEFAULT_REALTIME_COLUMNS
+        )
+      } catch {
+        if (alive) {
+          setColumns(DEFAULT_REALTIME_COLUMNS)
+        }
+      }
+    }
+    void loadColumns()
+    return () => {
+      alive = false
+    }
+  }, [active, attempt, session.namespaceUid])
+
+  async function saveColumns(next: AlertColumnItem[]) {
+    setColumnPending(true)
+    setColumnError("")
+    try {
+      const result = await saveMyAlertColumns(active, next)
+      setColumns(result.columns?.length ? result.columns : DEFAULT_REALTIME_COLUMNS)
+      setColumnOpen(false)
+    } catch (err) {
+      setColumnError(formMessage(err, t("state.failed")))
+    } finally {
+      setColumnPending(false)
+    }
+  }
 
   async function openPicker() {
     setError("")
@@ -259,6 +313,15 @@ export function AlertRealtimePage() {
       >
         <Button
           variant="outline"
+          onClick={() => {
+            setColumnError("")
+            setColumnOpen(true)
+          }}
+        >
+          {t("alertEvent.columns")}
+        </Button>
+        <Button
+          variant="outline"
           onClick={() => void openPicker()}
           disabled={pending}
         >
@@ -358,6 +421,7 @@ export function AlertRealtimePage() {
         hideHeader
         refreshKey={refreshKey}
         stats={stats}
+        columns={columns}
       />
       <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
         <DialogContent className="flex max-h-[80vh] flex-col gap-4 overflow-hidden sm:max-w-2xl">
@@ -515,6 +579,20 @@ export function AlertRealtimePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <AlertColumnDialog
+        key={columnOpen ? `columns-${active}` : "columns-closed"}
+        open={columnOpen}
+        columns={columns}
+        pending={columnPending}
+        error={columnError}
+        onSave={(next) => void saveColumns(next)}
+        onOpenChange={(value) => {
+          if (!value) {
+            setColumnOpen(false)
+            setColumnError("")
+          }
+        }}
+      />
     </section>
   )
 }

@@ -9,14 +9,15 @@ import (
 )
 
 type repoBase struct {
-	client *ent.Client
-	db     *sql.DB
-	box    *secretBox
-	log    *slog.Logger
+	client  *ent.Client
+	db      *sql.DB
+	box     *secretBox
+	log     *slog.Logger
+	history *historyStore
 }
 
 func newBase(d *Data, logger *slog.Logger) *repoBase {
-	return &repoBase{client: d.client, db: d.db, box: d.box, log: logger}
+	return &repoBase{client: d.client, db: d.db, box: d.box, log: logger, history: d.history}
 }
 
 type userRepo struct{ *repoBase }

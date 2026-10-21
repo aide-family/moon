@@ -15,7 +15,9 @@ type DatasourceRepo interface {
 	DeleteDatasource(ctx context.Context, namespaceUID, uid string) error
 	GetDatasource(ctx context.Context, namespaceUID, uid string) (*bo.Datasource, error)
 	ListDatasources(ctx context.Context, namespaceUID string, page, pageSize int, name, kind string) ([]bo.Datasource, int, error)
-	ListDatasourcesByMatchers(ctx context.Context, namespaceUID, kind, matchersJSON string) ([]bo.Datasource, error)
+	ListDatasourcesByMatchers(ctx context.Context, namespaceUID, driver, matchersJSON string) ([]bo.Datasource, error)
+	// ListDatasourceUIDsByLevel 返回使用某个数据源等级的数据源，等级改名或删除后用于收口事件。
+	ListDatasourceUIDsByLevel(ctx context.Context, namespaceUID, levelUID string) ([]string, error)
 	SelectDatasources(ctx context.Context, namespaceUID string, limit int, lastUID, kind string) ([]bo.SelectItem, error)
 	DatasourceStatus(ctx context.Context, item bo.Datasource) (string, error)
 	DatasourceMetadata(ctx context.Context, item bo.Datasource) (*bo.DatasourceMetadata, error)
@@ -77,4 +79,6 @@ type AlertEventRepo interface {
 	// RecoverSource 把仍在触发的事件记为恢复。规则、数据源、级别都为空时不处理。
 	RecoverSource(ctx context.Context, namespaceUID string, ruleUIDs, datasourceUIDs, levelUIDs []string) error
 	Stats(ctx context.Context, namespaceUID string) (bo.AlertStats, error)
+	// BackfillHistory 把主库里遗留的已恢复事件迁移到历史分片，兼容升级前的数据。
+	BackfillHistory(ctx context.Context, limit int) (int, error)
 }

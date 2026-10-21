@@ -86,12 +86,6 @@ func (_c *AlertRuleCreate) SetName(v string) *AlertRuleCreate {
 	return _c
 }
 
-// SetType sets the "type" field.
-func (_c *AlertRuleCreate) SetType(v alertrule.Type) *AlertRuleCreate {
-	_c.mutation.SetType(v)
-	return _c
-}
-
 // SetDriver sets the "driver" field.
 func (_c *AlertRuleCreate) SetDriver(v alertrule.Driver) *AlertRuleCreate {
 	_c.mutation.SetDriver(v)
@@ -337,14 +331,6 @@ func (_c *AlertRuleCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "AlertRule.name": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.GetType(); !ok {
-		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "AlertRule.type"`)}
-	}
-	if v, ok := _c.mutation.GetType(); ok {
-		if err := alertrule.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "AlertRule.type": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.Driver(); !ok {
 		return &ValidationError{Name: "driver", err: errors.New(`ent: missing required field "AlertRule.driver"`)}
 	}
@@ -432,10 +418,6 @@ func (_c *AlertRuleCreate) createSpec() (*AlertRule, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(alertrule.FieldName, field.TypeString, value)
 		_node.Name = value
-	}
-	if value, ok := _c.mutation.GetType(); ok {
-		_spec.SetField(alertrule.FieldType, field.TypeEnum, value)
-		_node.Type = value
 	}
 	if value, ok := _c.mutation.Driver(); ok {
 		_spec.SetField(alertrule.FieldDriver, field.TypeEnum, value)

@@ -101,7 +101,7 @@ func (uc *Usecase) Claim(ctx context.Context) ([]bo.RuleSnapshot, error) {
 		if rule.ScheduledSlot == nil {
 			continue
 		}
-		sources, err := uc.datasources.ListDatasourcesByMatchers(ctx, rule.NamespaceUID, rule.Type, rule.DatasourceLabels)
+		sources, err := uc.datasources.ListDatasourcesByMatchers(ctx, rule.NamespaceUID, rule.Driver, rule.DatasourceLabels)
 		if err != nil {
 			return nil, uc.access.Wrap(err)
 		}
@@ -146,7 +146,7 @@ func (uc *Usecase) Report(ctx context.Context, report bo.EvalReport) error {
 	if err := uc.events.ApplyReport(ctx, *rule, report); err != nil {
 		return uc.access.Wrap(err)
 	}
-	sources, err := uc.datasources.ListDatasourcesByMatchers(ctx, rule.NamespaceUID, rule.Type, rule.DatasourceLabels)
+	sources, err := uc.datasources.ListDatasourcesByMatchers(ctx, rule.NamespaceUID, rule.Driver, rule.DatasourceLabels)
 	if err != nil {
 		return uc.access.Wrap(err)
 	}
@@ -398,6 +398,12 @@ func (uc *Usecase) Recover(ctx context.Context, uids []string) error {
 		return err
 	}
 	return uc.access.Wrap(uc.events.RecoverManual(ctx, ns, uids))
+}
+
+// BackfillHistory 把升级前留在主库的已恢复事件迁移到分片。调度器每小时做一小批，
+// 写入失败时保留主库行，下一次继续重试。
+func (uc *Usecase) BackfillHistory(ctx context.Context) (int, error) {
+	return uc.events.BackfillHistory(ctx, 200)
 }
 
 func (uc *Usecase) requireMegrez(ctx context.Context) error {

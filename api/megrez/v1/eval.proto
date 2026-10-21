@@ -29,9 +29,9 @@ message RuleSnapshot {
   string uid = 1;
   // 租户标识。
   string namespace_uid = 2;
-  // 规则类型，取值为 METRICS、LOGS 或 TRACE。
-  string type = 3;
-  // 驱动。
+  reserved 3;
+  reserved "type";
+  // 驱动。规则只保存驱动，类型由驱动推导。
   string driver = 4;
   // 表达式。
   string expr = 5;

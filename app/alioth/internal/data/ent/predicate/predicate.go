@@ -18,8 +18,14 @@ type AlertEvalBatch func(*sql.Selector)
 // AlertEvent is the predicate function for alertevent builders.
 type AlertEvent func(*sql.Selector)
 
+// AlertEventColumn is the predicate function for alerteventcolumn builders.
+type AlertEventColumn func(*sql.Selector)
+
 // AlertEventFiring is the predicate function for alerteventfiring builders.
 type AlertEventFiring func(*sql.Selector)
+
+// AlertHistoryEvent is the predicate function for alerthistoryevent builders.
+type AlertHistoryEvent func(*sql.Selector)
 
 // AlertPage is the predicate function for alertpage builders.
 type AlertPage func(*sql.Selector)

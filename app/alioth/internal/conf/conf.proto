@@ -36,8 +36,15 @@ message Data {
     string addr = 1;
     string password = 2;
   }
+  // History 是历史告警分库分表的命名规则。库名 = database_prefix + 租户标识，
+  // 表名 = table_prefix + 周一日期（YYYYMMDD）。
+  message History {
+    string database_prefix = 1;
+    string table_prefix = 2;
+  }
   Database database = 1;
   Redis redis = 2;
+  History history = 3;
 }
 
 message Auth {

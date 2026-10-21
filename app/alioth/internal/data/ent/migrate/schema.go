@@ -176,6 +176,40 @@ var (
 			},
 		},
 	}
+	// AlertEventColumnsColumns holds the columns for the "alert_event_columns" table.
+	AlertEventColumnsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "user_uid", Type: field.TypeString},
+		{Name: "scope", Type: field.TypeString},
+		{Name: "columns_json", Type: field.TypeString, Default: "[]"},
+	}
+	// AlertEventColumnsTable holds the schema information for the "alert_event_columns" table.
+	AlertEventColumnsTable = &schema.Table{
+		Name:       "alert_event_columns",
+		Columns:    AlertEventColumnsColumns,
+		PrimaryKey: []*schema.Column{AlertEventColumnsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alerteventcolumn_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertEventColumnsColumns[3]},
+			},
+			{
+				Name:    "alerteventcolumn_namespace_uid_user_uid_scope",
+				Unique:  true,
+				Columns: []*schema.Column{AlertEventColumnsColumns[4], AlertEventColumnsColumns[5], AlertEventColumnsColumns[6]},
+			},
+			{
+				Name:    "alerteventcolumn_namespace_uid_user_uid",
+				Unique:  false,
+				Columns: []*schema.Column{AlertEventColumnsColumns[4], AlertEventColumnsColumns[5]},
+			},
+		},
+	}
 	// AlertEventFiringsColumns holds the columns for the "alert_event_firings" table.
 	AlertEventFiringsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -204,6 +238,36 @@ var (
 				Name:    "alerteventfiring_rule_uid",
 				Unique:  false,
 				Columns: []*schema.Column{AlertEventFiringsColumns[4]},
+			},
+		},
+	}
+	// AlertHistoryEventsColumns holds the columns for the "alert_history_events" table.
+	AlertHistoryEventsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "event_uid", Type: field.TypeString, Unique: true},
+		{Name: "database_name", Type: field.TypeString},
+		{Name: "table_name", Type: field.TypeString},
+		{Name: "week_start", Type: field.TypeTime},
+	}
+	// AlertHistoryEventsTable holds the schema information for the "alert_history_events" table.
+	AlertHistoryEventsTable = &schema.Table{
+		Name:       "alert_history_events",
+		Columns:    AlertHistoryEventsColumns,
+		PrimaryKey: []*schema.Column{AlertHistoryEventsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "alerthistoryevent_uid",
+				Unique:  true,
+				Columns: []*schema.Column{AlertHistoryEventsColumns[3]},
+			},
+			{
+				Name:    "alerthistoryevent_namespace_uid_week_start",
+				Unique:  false,
+				Columns: []*schema.Column{AlertHistoryEventsColumns[4], AlertHistoryEventsColumns[8]},
 			},
 		},
 	}
@@ -262,7 +326,6 @@ var (
 		{Name: "namespace_uid", Type: field.TypeString},
 		{Name: "group_uid", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"METRICS", "LOGS", "TRACE"}},
 		{Name: "driver", Type: field.TypeEnum, Enums: []string{"METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER"}},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DISABLED"}, Default: "ACTIVE"},
 		{Name: "expr", Type: field.TypeString, Default: ""},
@@ -296,7 +359,7 @@ var (
 			{
 				Name:    "alertrule_namespace_uid_status",
 				Unique:  false,
-				Columns: []*schema.Column{AlertRulesColumns[5], AlertRulesColumns[10]},
+				Columns: []*schema.Column{AlertRulesColumns[5], AlertRulesColumns[9]},
 			},
 			{
 				Name:    "alertrule_group_uid",
@@ -1437,7 +1500,9 @@ var (
 		AlertDictionariesTable,
 		AlertEvalBatchesTable,
 		AlertEventsTable,
+		AlertEventColumnsTable,
 		AlertEventFiringsTable,
+		AlertHistoryEventsTable,
 		AlertPagesTable,
 		AlertRulesTable,
 		AlertRuleGroupsTable,

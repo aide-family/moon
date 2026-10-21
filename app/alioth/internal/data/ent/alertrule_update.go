@@ -96,20 +96,6 @@ func (_u *AlertRuleUpdate) SetNillableName(v *string) *AlertRuleUpdate {
 	return _u
 }
 
-// SetType sets the "type" field.
-func (_u *AlertRuleUpdate) SetType(v alertrule.Type) *AlertRuleUpdate {
-	_u.mutation.SetType(v)
-	return _u
-}
-
-// SetNillableType sets the "type" field if the given value is not nil.
-func (_u *AlertRuleUpdate) SetNillableType(v *alertrule.Type) *AlertRuleUpdate {
-	if v != nil {
-		_u.SetType(*v)
-	}
-	return _u
-}
-
 // SetDriver sets the "driver" field.
 func (_u *AlertRuleUpdate) SetDriver(v alertrule.Driver) *AlertRuleUpdate {
 	_u.mutation.SetDriver(v)
@@ -320,11 +306,6 @@ func (_u *AlertRuleUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "AlertRule.name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.GetType(); ok {
-		if err := alertrule.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "AlertRule.type": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Driver(); ok {
 		if err := alertrule.DriverValidator(v); err != nil {
 			return &ValidationError{Name: "driver", err: fmt.Errorf(`ent: validator failed for field "AlertRule.driver": %w`, err)}
@@ -367,9 +348,6 @@ func (_u *AlertRuleUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(alertrule.FieldName, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.GetType(); ok {
-		_spec.SetField(alertrule.FieldType, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Driver(); ok {
 		_spec.SetField(alertrule.FieldDriver, field.TypeEnum, value)
@@ -491,20 +469,6 @@ func (_u *AlertRuleUpdateOne) SetName(v string) *AlertRuleUpdateOne {
 func (_u *AlertRuleUpdateOne) SetNillableName(v *string) *AlertRuleUpdateOne {
 	if v != nil {
 		_u.SetName(*v)
-	}
-	return _u
-}
-
-// SetType sets the "type" field.
-func (_u *AlertRuleUpdateOne) SetType(v alertrule.Type) *AlertRuleUpdateOne {
-	_u.mutation.SetType(v)
-	return _u
-}
-
-// SetNillableType sets the "type" field if the given value is not nil.
-func (_u *AlertRuleUpdateOne) SetNillableType(v *alertrule.Type) *AlertRuleUpdateOne {
-	if v != nil {
-		_u.SetType(*v)
 	}
 	return _u
 }
@@ -732,11 +696,6 @@ func (_u *AlertRuleUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "AlertRule.name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.GetType(); ok {
-		if err := alertrule.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "AlertRule.type": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Driver(); ok {
 		if err := alertrule.DriverValidator(v); err != nil {
 			return &ValidationError{Name: "driver", err: fmt.Errorf(`ent: validator failed for field "AlertRule.driver": %w`, err)}
@@ -796,9 +755,6 @@ func (_u *AlertRuleUpdateOne) sqlSave(ctx context.Context) (_node *AlertRule, er
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(alertrule.FieldName, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.GetType(); ok {
-		_spec.SetField(alertrule.FieldType, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Driver(); ok {
 		_spec.SetField(alertrule.FieldDriver, field.TypeEnum, value)

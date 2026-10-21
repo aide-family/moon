@@ -66,7 +66,7 @@ func (s *AlertRuleService) CreateAlertRule(ctx context.Context, req *v1.CreateAl
 
 func (s *AlertRuleService) UpdateAlertRule(ctx context.Context, req *v1.UpdateAlertRuleRequest) (*v1.UpdateAlertRuleResponse, error) {
 	in := bo.AlertRule{
-		UID: req.GetUid(), GroupUID: req.GetGroupUid(), Name: req.GetName(), Type: req.GetType(), Driver: req.GetDriver(),
+		UID: req.GetUid(), GroupUID: req.GetGroupUid(), Name: req.GetName(), Driver: req.GetDriver(),
 		Expr: req.GetExpr(), Labels: req.GetLabels(), DatasourceLabels: req.GetDatasourceLabels(),
 		Summary: req.GetSummary(), Description: req.GetDescription(), Levels: levelInputs(req.GetLevels()),
 	}
@@ -110,7 +110,7 @@ func (s *AlertRuleService) ListAlertRules(ctx context.Context, req *v1.ListAlert
 
 func ruleInput(uid string, req *v1.CreateAlertRuleRequest) bo.AlertRule {
 	return bo.AlertRule{
-		UID: uid, GroupUID: req.GetGroupUid(), Name: req.GetName(), Type: req.GetType(), Driver: req.GetDriver(),
+		UID: uid, GroupUID: req.GetGroupUid(), Name: req.GetName(), Driver: req.GetDriver(),
 		Expr: req.GetExpr(), Labels: req.GetLabels(), DatasourceLabels: req.GetDatasourceLabels(),
 		Summary: req.GetSummary(), Description: req.GetDescription(), Levels: levelInputs(req.GetLevels()),
 	}

@@ -9,7 +9,9 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventcolumn"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerthistoryevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
@@ -239,6 +241,41 @@ func init() {
 	alerteventDescIntervenedBy := alerteventFields[17].Descriptor()
 	// alertevent.DefaultIntervenedBy holds the default value on creation for the intervened_by field.
 	alertevent.DefaultIntervenedBy = alerteventDescIntervenedBy.Default.(string)
+	alerteventcolumnMixin := schema.AlertEventColumn{}.Mixin()
+	alerteventcolumnMixinFields0 := alerteventcolumnMixin[0].Fields()
+	_ = alerteventcolumnMixinFields0
+	alerteventcolumnFields := schema.AlertEventColumn{}.Fields()
+	_ = alerteventcolumnFields
+	// alerteventcolumnDescCreatedAt is the schema descriptor for created_at field.
+	alerteventcolumnDescCreatedAt := alerteventcolumnMixinFields0[0].Descriptor()
+	// alerteventcolumn.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alerteventcolumn.DefaultCreatedAt = alerteventcolumnDescCreatedAt.Default.(func() time.Time)
+	// alerteventcolumnDescUpdatedAt is the schema descriptor for updated_at field.
+	alerteventcolumnDescUpdatedAt := alerteventcolumnMixinFields0[1].Descriptor()
+	// alerteventcolumn.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	alerteventcolumn.DefaultUpdatedAt = alerteventcolumnDescUpdatedAt.Default.(func() time.Time)
+	// alerteventcolumn.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	alerteventcolumn.UpdateDefaultUpdatedAt = alerteventcolumnDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// alerteventcolumnDescUID is the schema descriptor for uid field.
+	alerteventcolumnDescUID := alerteventcolumnFields[0].Descriptor()
+	// alerteventcolumn.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	alerteventcolumn.UIDValidator = alerteventcolumnDescUID.Validators[0].(func(string) error)
+	// alerteventcolumnDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alerteventcolumnDescNamespaceUID := alerteventcolumnFields[1].Descriptor()
+	// alerteventcolumn.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alerteventcolumn.NamespaceUIDValidator = alerteventcolumnDescNamespaceUID.Validators[0].(func(string) error)
+	// alerteventcolumnDescUserUID is the schema descriptor for user_uid field.
+	alerteventcolumnDescUserUID := alerteventcolumnFields[2].Descriptor()
+	// alerteventcolumn.UserUIDValidator is a validator for the "user_uid" field. It is called by the builders before save.
+	alerteventcolumn.UserUIDValidator = alerteventcolumnDescUserUID.Validators[0].(func(string) error)
+	// alerteventcolumnDescScope is the schema descriptor for scope field.
+	alerteventcolumnDescScope := alerteventcolumnFields[3].Descriptor()
+	// alerteventcolumn.ScopeValidator is a validator for the "scope" field. It is called by the builders before save.
+	alerteventcolumn.ScopeValidator = alerteventcolumnDescScope.Validators[0].(func(string) error)
+	// alerteventcolumnDescColumnsJSON is the schema descriptor for columns_json field.
+	alerteventcolumnDescColumnsJSON := alerteventcolumnFields[4].Descriptor()
+	// alerteventcolumn.DefaultColumnsJSON holds the default value on creation for the columns_json field.
+	alerteventcolumn.DefaultColumnsJSON = alerteventcolumnDescColumnsJSON.Default.(string)
 	alerteventfiringFields := schema.AlertEventFiring{}.Fields()
 	_ = alerteventfiringFields
 	// alerteventfiringDescNamespaceUID is the schema descriptor for namespace_uid field.
@@ -257,6 +294,41 @@ func init() {
 	alerteventfiringDescRuleUID := alerteventfiringFields[3].Descriptor()
 	// alerteventfiring.RuleUIDValidator is a validator for the "rule_uid" field. It is called by the builders before save.
 	alerteventfiring.RuleUIDValidator = alerteventfiringDescRuleUID.Validators[0].(func(string) error)
+	alerthistoryeventMixin := schema.AlertHistoryEvent{}.Mixin()
+	alerthistoryeventMixinFields0 := alerthistoryeventMixin[0].Fields()
+	_ = alerthistoryeventMixinFields0
+	alerthistoryeventFields := schema.AlertHistoryEvent{}.Fields()
+	_ = alerthistoryeventFields
+	// alerthistoryeventDescCreatedAt is the schema descriptor for created_at field.
+	alerthistoryeventDescCreatedAt := alerthistoryeventMixinFields0[0].Descriptor()
+	// alerthistoryevent.DefaultCreatedAt holds the default value on creation for the created_at field.
+	alerthistoryevent.DefaultCreatedAt = alerthistoryeventDescCreatedAt.Default.(func() time.Time)
+	// alerthistoryeventDescUpdatedAt is the schema descriptor for updated_at field.
+	alerthistoryeventDescUpdatedAt := alerthistoryeventMixinFields0[1].Descriptor()
+	// alerthistoryevent.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	alerthistoryevent.DefaultUpdatedAt = alerthistoryeventDescUpdatedAt.Default.(func() time.Time)
+	// alerthistoryevent.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	alerthistoryevent.UpdateDefaultUpdatedAt = alerthistoryeventDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// alerthistoryeventDescUID is the schema descriptor for uid field.
+	alerthistoryeventDescUID := alerthistoryeventFields[0].Descriptor()
+	// alerthistoryevent.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	alerthistoryevent.UIDValidator = alerthistoryeventDescUID.Validators[0].(func(string) error)
+	// alerthistoryeventDescNamespaceUID is the schema descriptor for namespace_uid field.
+	alerthistoryeventDescNamespaceUID := alerthistoryeventFields[1].Descriptor()
+	// alerthistoryevent.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	alerthistoryevent.NamespaceUIDValidator = alerthistoryeventDescNamespaceUID.Validators[0].(func(string) error)
+	// alerthistoryeventDescEventUID is the schema descriptor for event_uid field.
+	alerthistoryeventDescEventUID := alerthistoryeventFields[2].Descriptor()
+	// alerthistoryevent.EventUIDValidator is a validator for the "event_uid" field. It is called by the builders before save.
+	alerthistoryevent.EventUIDValidator = alerthistoryeventDescEventUID.Validators[0].(func(string) error)
+	// alerthistoryeventDescDatabaseName is the schema descriptor for database_name field.
+	alerthistoryeventDescDatabaseName := alerthistoryeventFields[3].Descriptor()
+	// alerthistoryevent.DatabaseNameValidator is a validator for the "database_name" field. It is called by the builders before save.
+	alerthistoryevent.DatabaseNameValidator = alerthistoryeventDescDatabaseName.Validators[0].(func(string) error)
+	// alerthistoryeventDescTableName is the schema descriptor for table_name field.
+	alerthistoryeventDescTableName := alerthistoryeventFields[4].Descriptor()
+	// alerthistoryevent.TableNameValidator is a validator for the "table_name" field. It is called by the builders before save.
+	alerthistoryevent.TableNameValidator = alerthistoryeventDescTableName.Validators[0].(func(string) error)
 	alertpageMixin := schema.AlertPage{}.Mixin()
 	alertpageMixinFields0 := alertpageMixin[0].Fields()
 	_ = alertpageMixinFields0
@@ -332,27 +404,27 @@ func init() {
 	// alertrule.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	alertrule.NameValidator = alertruleDescName.Validators[0].(func(string) error)
 	// alertruleDescExpr is the schema descriptor for expr field.
-	alertruleDescExpr := alertruleFields[7].Descriptor()
+	alertruleDescExpr := alertruleFields[6].Descriptor()
 	// alertrule.DefaultExpr holds the default value on creation for the expr field.
 	alertrule.DefaultExpr = alertruleDescExpr.Default.(string)
 	// alertruleDescLabels is the schema descriptor for labels field.
-	alertruleDescLabels := alertruleFields[8].Descriptor()
+	alertruleDescLabels := alertruleFields[7].Descriptor()
 	// alertrule.DefaultLabels holds the default value on creation for the labels field.
 	alertrule.DefaultLabels = alertruleDescLabels.Default.(string)
 	// alertruleDescDatasourceUID is the schema descriptor for datasource_uid field.
-	alertruleDescDatasourceUID := alertruleFields[9].Descriptor()
+	alertruleDescDatasourceUID := alertruleFields[8].Descriptor()
 	// alertrule.DefaultDatasourceUID holds the default value on creation for the datasource_uid field.
 	alertrule.DefaultDatasourceUID = alertruleDescDatasourceUID.Default.(string)
 	// alertruleDescDatasourceLabels is the schema descriptor for datasource_labels field.
-	alertruleDescDatasourceLabels := alertruleFields[10].Descriptor()
+	alertruleDescDatasourceLabels := alertruleFields[9].Descriptor()
 	// alertrule.DefaultDatasourceLabels holds the default value on creation for the datasource_labels field.
 	alertrule.DefaultDatasourceLabels = alertruleDescDatasourceLabels.Default.(string)
 	// alertruleDescSummary is the schema descriptor for summary field.
-	alertruleDescSummary := alertruleFields[11].Descriptor()
+	alertruleDescSummary := alertruleFields[10].Descriptor()
 	// alertrule.DefaultSummary holds the default value on creation for the summary field.
 	alertrule.DefaultSummary = alertruleDescSummary.Default.(string)
 	// alertruleDescDescription is the schema descriptor for description field.
-	alertruleDescDescription := alertruleFields[12].Descriptor()
+	alertruleDescDescription := alertruleFields[11].Descriptor()
 	// alertrule.DefaultDescription holds the default value on creation for the description field.
 	alertrule.DefaultDescription = alertruleDescDescription.Default.(string)
 	alertrulegroupMixin := schema.AlertRuleGroup{}.Mixin()

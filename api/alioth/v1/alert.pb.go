@@ -2876,9 +2876,7 @@ type AlertRuleItem struct {
 	GroupUid string `protobuf:"bytes,2,opt,name=group_uid,json=groupUid,proto3" json:"group_uid,omitempty"`
 	// 名称。
 	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	// 类型。
-	Type string `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`
-	// 驱动。
+	// 驱动。规则不再保存类型，数据源匹配只按驱动。
 	Driver string `protobuf:"bytes,5,opt,name=driver,proto3" json:"driver,omitempty"`
 	// 状态，取值为 ACTIVE 或 DISABLED。
 	Status string `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
@@ -2894,7 +2892,7 @@ type AlertRuleItem struct {
 	Description string `protobuf:"bytes,11,opt,name=description,proto3" json:"description,omitempty"`
 	// 级别条件。
 	Levels []*AlertRuleLevelItem `protobuf:"bytes,12,rep,name=levels,proto3" json:"levels,omitempty"`
-	// 数据源标签匹配器 JSON 对象。空对象表示该类型下全部 ACTIVE 数据源。
+	// 数据源标签匹配器 JSON 对象，值按完整匹配正则命中。空对象表示该类型下全部 ACTIVE 数据源。
 	DatasourceLabels string `protobuf:"bytes,14,opt,name=datasource_labels,json=datasourceLabels,proto3" json:"datasource_labels,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
@@ -2947,13 +2945,6 @@ func (x *AlertRuleItem) GetGroupUid() string {
 func (x *AlertRuleItem) GetName() string {
 	if x != nil {
 		return x.Name
-	}
-	return ""
-}
-
-func (x *AlertRuleItem) GetType() string {
-	if x != nil {
-		return x.Type
 	}
 	return ""
 }
@@ -3028,9 +3019,7 @@ type CreateAlertRuleRequest struct {
 	GroupUid string `protobuf:"bytes,1,opt,name=group_uid,json=groupUid,proto3" json:"group_uid,omitempty"`
 	// 名称。
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// 类型，取值为 METRICS、LOGS 或 TRACE。
-	Type string `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
-	// 驱动。
+	// 驱动。类型由驱动推导。
 	Driver string `protobuf:"bytes,4,opt,name=driver,proto3" json:"driver,omitempty"`
 	// 表达式。
 	Expr string `protobuf:"bytes,5,opt,name=expr,proto3" json:"expr,omitempty"`
@@ -3044,7 +3033,7 @@ type CreateAlertRuleRequest struct {
 	Description string `protobuf:"bytes,9,opt,name=description,proto3" json:"description,omitempty"`
 	// 级别条件。
 	Levels []*AlertRuleLevelInput `protobuf:"bytes,10,rep,name=levels,proto3" json:"levels,omitempty"`
-	// 数据源标签匹配器 JSON 对象。
+	// 数据源标签匹配器 JSON 对象，值按完整匹配正则命中。
 	DatasourceLabels string `protobuf:"bytes,12,opt,name=datasource_labels,json=datasourceLabels,proto3" json:"datasource_labels,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
@@ -3090,13 +3079,6 @@ func (x *CreateAlertRuleRequest) GetGroupUid() string {
 func (x *CreateAlertRuleRequest) GetName() string {
 	if x != nil {
 		return x.Name
-	}
-	return ""
-}
-
-func (x *CreateAlertRuleRequest) GetType() string {
-	if x != nil {
-		return x.Type
 	}
 	return ""
 }
@@ -3212,9 +3194,7 @@ type UpdateAlertRuleRequest struct {
 	GroupUid string `protobuf:"bytes,2,opt,name=group_uid,json=groupUid,proto3" json:"group_uid,omitempty"`
 	// 名称。
 	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	// 类型，取值为 METRICS、LOGS 或 TRACE。
-	Type string `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`
-	// 驱动。
+	// 驱动。类型由驱动推导。
 	Driver string `protobuf:"bytes,5,opt,name=driver,proto3" json:"driver,omitempty"`
 	// 表达式。
 	Expr string `protobuf:"bytes,6,opt,name=expr,proto3" json:"expr,omitempty"`
@@ -3228,7 +3208,7 @@ type UpdateAlertRuleRequest struct {
 	Description string `protobuf:"bytes,10,opt,name=description,proto3" json:"description,omitempty"`
 	// 级别条件。保存时替换原有条件。
 	Levels []*AlertRuleLevelInput `protobuf:"bytes,11,rep,name=levels,proto3" json:"levels,omitempty"`
-	// 数据源标签匹配器 JSON 对象。
+	// 数据源标签匹配器 JSON 对象，值按完整匹配正则命中。
 	DatasourceLabels string `protobuf:"bytes,13,opt,name=datasource_labels,json=datasourceLabels,proto3" json:"datasource_labels,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
@@ -3281,13 +3261,6 @@ func (x *UpdateAlertRuleRequest) GetGroupUid() string {
 func (x *UpdateAlertRuleRequest) GetName() string {
 	if x != nil {
 		return x.Name
-	}
-	return ""
-}
-
-func (x *UpdateAlertRuleRequest) GetType() string {
-	if x != nil {
-		return x.Type
 	}
 	return ""
 }
@@ -4650,12 +4623,11 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\tthreshold\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\tthreshold\x12(\n" +
 	"\vfor_seconds\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\n" +
 	"forSeconds\x12$\n" +
-	"\tlevel_uid\x18\x05 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\blevelUid\"\xa8\x03\n" +
+	"\tlevel_uid\x18\x05 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\blevelUid\"\xa0\x03\n" +
 	"\rAlertRuleItem\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x1b\n" +
 	"\tgroup_uid\x18\x02 \x01(\tR\bgroupUid\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12\x12\n" +
-	"\x04type\x18\x04 \x01(\tR\x04type\x12\x16\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
 	"\x06driver\x18\x05 \x01(\tR\x06driver\x12\x16\n" +
 	"\x06status\x18\x06 \x01(\tR\x06status\x12\x12\n" +
 	"\x04expr\x18\a \x01(\tR\x04expr\x12\x16\n" +
@@ -4665,11 +4637,10 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	" \x01(\tR\asummary\x12 \n" +
 	"\vdescription\x18\v \x01(\tR\vdescription\x125\n" +
 	"\x06levels\x18\f \x03(\v2\x1d.alioth.v1.AlertRuleLevelItemR\x06levels\x12+\n" +
-	"\x11datasource_labels\x18\x0e \x01(\tR\x10datasourceLabelsJ\x04\b\r\x10\x0eR\x17notification_group_uids\"\xc6\x04\n" +
+	"\x11datasource_labels\x18\x0e \x01(\tR\x10datasourceLabelsJ\x04\b\x04\x10\x05J\x04\b\r\x10\x0eR\x04typeR\x17notification_group_uids\"\xa1\x04\n" +
 	"\x16CreateAlertRuleRequest\x12$\n" +
 	"\tgroup_uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bgroupUid\x12\x1d\n" +
-	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12/\n" +
-	"\x04type\x18\x03 \x01(\tB\x1b\xbaH\x18r\x16R\aMETRICSR\x04LOGSR\x05TRACER\x04type\x12\x84\x01\n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12\x84\x01\n" +
 	"\x06driver\x18\x04 \x01(\tBl\xbaHirgR\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\n" +
 	"LOGS_VLOGSR\fTRACE_JAEGERR\x06driver\x12\x12\n" +
 	"\x04expr\x18\x05 \x01(\tR\x04expr\x12\x16\n" +
@@ -4679,14 +4650,13 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\vdescription\x18\t \x01(\tB\b\xbaH\x05r\x03\x18\xd0\x0fR\vdescription\x126\n" +
 	"\x06levels\x18\n" +
 	" \x03(\v2\x1e.alioth.v1.AlertRuleLevelInputR\x06levels\x125\n" +
-	"\x11datasource_labels\x18\f \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x10datasourceLabelsJ\x04\b\v\x10\fR\x17notification_group_uids\"G\n" +
+	"\x11datasource_labels\x18\f \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x10datasourceLabelsJ\x04\b\x03\x10\x04J\x04\b\v\x10\fR\x04typeR\x17notification_group_uids\"G\n" +
 	"\x17CreateAlertRuleResponse\x12,\n" +
-	"\x04rule\x18\x01 \x01(\v2\x18.alioth.v1.AlertRuleItemR\x04rule\"\xe1\x04\n" +
+	"\x04rule\x18\x01 \x01(\v2\x18.alioth.v1.AlertRuleItemR\x04rule\"\xbc\x04\n" +
 	"\x16UpdateAlertRuleRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12$\n" +
 	"\tgroup_uid\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bgroupUid\x12\x1d\n" +
-	"\x04name\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12/\n" +
-	"\x04type\x18\x04 \x01(\tB\x1b\xbaH\x18r\x16R\aMETRICSR\x04LOGSR\x05TRACER\x04type\x12\x84\x01\n" +
+	"\x04name\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12\x84\x01\n" +
 	"\x06driver\x18\x05 \x01(\tBl\xbaHirgR\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\n" +
 	"LOGS_VLOGSR\fTRACE_JAEGERR\x06driver\x12\x12\n" +
 	"\x04expr\x18\x06 \x01(\tR\x04expr\x12\x16\n" +
@@ -4696,7 +4666,7 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\vdescription\x18\n" +
 	" \x01(\tB\b\xbaH\x05r\x03\x18\xd0\x0fR\vdescription\x126\n" +
 	"\x06levels\x18\v \x03(\v2\x1e.alioth.v1.AlertRuleLevelInputR\x06levels\x125\n" +
-	"\x11datasource_labels\x18\r \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x10datasourceLabelsJ\x04\b\f\x10\rR\x17notification_group_uids\"G\n" +
+	"\x11datasource_labels\x18\r \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x10datasourceLabelsJ\x04\b\x04\x10\x05J\x04\b\f\x10\rR\x04typeR\x17notification_group_uids\"G\n" +
 	"\x17UpdateAlertRuleResponse\x12,\n" +
 	"\x04rule\x18\x01 \x01(\v2\x18.alioth.v1.AlertRuleItemR\x04rule\"j\n" +
 	"\x1cUpdateAlertRuleStatusRequest\x12\x19\n" +

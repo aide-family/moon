@@ -203,7 +203,6 @@ type AlertRule struct {
 	NamespaceUID     string
 	GroupUID         string
 	Name             string
-	Type             string
 	Driver           string
 	Status           string
 	Expr             string
@@ -303,6 +302,14 @@ type RealtimeAlertTab struct {
 	ID   string
 	Name string
 	Kind string
+}
+
+// AlertColumn 是实时告警表格的一列。Type 为 FIELD 时 Key 是内置字段名，
+// 为 LABEL 时 Key 是标签键；Label 是用户设置的列名，留空时标签列显示标签键。
+type AlertColumn struct {
+	Key   string
+	Type  string
+	Label string
 }
 
 // AlertEventListFilter 是告警事件列表的过滤条件。

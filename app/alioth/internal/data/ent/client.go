@@ -18,7 +18,9 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventcolumn"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerthistoryevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrule"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertrulegroup"
@@ -65,8 +67,12 @@ type Client struct {
 	AlertEvalBatch *AlertEvalBatchClient
 	// AlertEvent is the client for interacting with the AlertEvent builders.
 	AlertEvent *AlertEventClient
+	// AlertEventColumn is the client for interacting with the AlertEventColumn builders.
+	AlertEventColumn *AlertEventColumnClient
 	// AlertEventFiring is the client for interacting with the AlertEventFiring builders.
 	AlertEventFiring *AlertEventFiringClient
+	// AlertHistoryEvent is the client for interacting with the AlertHistoryEvent builders.
+	AlertHistoryEvent *AlertHistoryEventClient
 	// AlertPage is the client for interacting with the AlertPage builders.
 	AlertPage *AlertPageClient
 	// AlertRule is the client for interacting with the AlertRule builders.
@@ -144,7 +150,9 @@ func (c *Client) init() {
 	c.AlertDictionary = NewAlertDictionaryClient(c.config)
 	c.AlertEvalBatch = NewAlertEvalBatchClient(c.config)
 	c.AlertEvent = NewAlertEventClient(c.config)
+	c.AlertEventColumn = NewAlertEventColumnClient(c.config)
 	c.AlertEventFiring = NewAlertEventFiringClient(c.config)
+	c.AlertHistoryEvent = NewAlertHistoryEventClient(c.config)
 	c.AlertPage = NewAlertPageClient(c.config)
 	c.AlertRule = NewAlertRuleClient(c.config)
 	c.AlertRuleGroup = NewAlertRuleGroupClient(c.config)
@@ -272,7 +280,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		AlertDictionary:               NewAlertDictionaryClient(cfg),
 		AlertEvalBatch:                NewAlertEvalBatchClient(cfg),
 		AlertEvent:                    NewAlertEventClient(cfg),
+		AlertEventColumn:              NewAlertEventColumnClient(cfg),
 		AlertEventFiring:              NewAlertEventFiringClient(cfg),
+		AlertHistoryEvent:             NewAlertHistoryEventClient(cfg),
 		AlertPage:                     NewAlertPageClient(cfg),
 		AlertRule:                     NewAlertRuleClient(cfg),
 		AlertRuleGroup:                NewAlertRuleGroupClient(cfg),
@@ -327,7 +337,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		AlertDictionary:               NewAlertDictionaryClient(cfg),
 		AlertEvalBatch:                NewAlertEvalBatchClient(cfg),
 		AlertEvent:                    NewAlertEventClient(cfg),
+		AlertEventColumn:              NewAlertEventColumnClient(cfg),
 		AlertEventFiring:              NewAlertEventFiringClient(cfg),
+		AlertHistoryEvent:             NewAlertHistoryEventClient(cfg),
 		AlertPage:                     NewAlertPageClient(cfg),
 		AlertRule:                     NewAlertRuleClient(cfg),
 		AlertRuleGroup:                NewAlertRuleGroupClient(cfg),
@@ -388,15 +400,15 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventFiring,
-		c.AlertPage, c.AlertRule, c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha,
-		c.Datasource, c.EmailLoginCode, c.K8sProxyAudit, c.Member, c.MemberInvite,
-		c.MemberRole, c.MessageLog, c.Namespace, c.NotificationChannel,
-		c.NotificationGroup, c.NotificationPreset, c.NotificationSubscription,
-		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
-		c.Permission, c.Role, c.RolePermission, c.SFTPAudit, c.SSHCommand,
-		c.SSHCommandAudit, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
-		c.WorkerInstance,
+		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventColumn,
+		c.AlertEventFiring, c.AlertHistoryEvent, c.AlertPage, c.AlertRule,
+		c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha, c.Datasource, c.EmailLoginCode,
+		c.K8sProxyAudit, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
+		c.Namespace, c.NotificationChannel, c.NotificationGroup, c.NotificationPreset,
+		c.NotificationSubscription, c.NotificationSubscriptionGroup,
+		c.NotificationTask, c.NotificationTemplate, c.Permission, c.Role,
+		c.RolePermission, c.SFTPAudit, c.SSHCommand, c.SSHCommandAudit,
+		c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Use(hooks...)
 	}
@@ -406,15 +418,15 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventFiring,
-		c.AlertPage, c.AlertRule, c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha,
-		c.Datasource, c.EmailLoginCode, c.K8sProxyAudit, c.Member, c.MemberInvite,
-		c.MemberRole, c.MessageLog, c.Namespace, c.NotificationChannel,
-		c.NotificationGroup, c.NotificationPreset, c.NotificationSubscription,
-		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
-		c.Permission, c.Role, c.RolePermission, c.SFTPAudit, c.SSHCommand,
-		c.SSHCommandAudit, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
-		c.WorkerInstance,
+		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventColumn,
+		c.AlertEventFiring, c.AlertHistoryEvent, c.AlertPage, c.AlertRule,
+		c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha, c.Datasource, c.EmailLoginCode,
+		c.K8sProxyAudit, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
+		c.Namespace, c.NotificationChannel, c.NotificationGroup, c.NotificationPreset,
+		c.NotificationSubscription, c.NotificationSubscriptionGroup,
+		c.NotificationTask, c.NotificationTemplate, c.Permission, c.Role,
+		c.RolePermission, c.SFTPAudit, c.SSHCommand, c.SSHCommandAudit,
+		c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -431,8 +443,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AlertEvalBatch.mutate(ctx, m)
 	case *AlertEventMutation:
 		return c.AlertEvent.mutate(ctx, m)
+	case *AlertEventColumnMutation:
+		return c.AlertEventColumn.mutate(ctx, m)
 	case *AlertEventFiringMutation:
 		return c.AlertEventFiring.mutate(ctx, m)
+	case *AlertHistoryEventMutation:
+		return c.AlertHistoryEvent.mutate(ctx, m)
 	case *AlertPageMutation:
 		return c.AlertPage.mutate(ctx, m)
 	case *AlertRuleMutation:
@@ -1032,6 +1048,139 @@ func (c *AlertEventClient) mutate(ctx context.Context, m *AlertEventMutation) (V
 	}
 }
 
+// AlertEventColumnClient is a client for the AlertEventColumn schema.
+type AlertEventColumnClient struct {
+	config
+}
+
+// NewAlertEventColumnClient returns a client for the AlertEventColumn from the given config.
+func NewAlertEventColumnClient(c config) *AlertEventColumnClient {
+	return &AlertEventColumnClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `alerteventcolumn.Hooks(f(g(h())))`.
+func (c *AlertEventColumnClient) Use(hooks ...Hook) {
+	c.hooks.AlertEventColumn = append(c.hooks.AlertEventColumn, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `alerteventcolumn.Intercept(f(g(h())))`.
+func (c *AlertEventColumnClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AlertEventColumn = append(c.inters.AlertEventColumn, interceptors...)
+}
+
+// Create returns a builder for creating a AlertEventColumn entity.
+func (c *AlertEventColumnClient) Create() *AlertEventColumnCreate {
+	mutation := newAlertEventColumnMutation(c.config, OpCreate)
+	return &AlertEventColumnCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AlertEventColumn entities.
+func (c *AlertEventColumnClient) CreateBulk(builders ...*AlertEventColumnCreate) *AlertEventColumnCreateBulk {
+	return &AlertEventColumnCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AlertEventColumnClient) MapCreateBulk(slice any, setFunc func(*AlertEventColumnCreate, int)) *AlertEventColumnCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AlertEventColumnCreateBulk{err: fmt.Errorf("calling to AlertEventColumnClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AlertEventColumnCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AlertEventColumnCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AlertEventColumn.
+func (c *AlertEventColumnClient) Update() *AlertEventColumnUpdate {
+	mutation := newAlertEventColumnMutation(c.config, OpUpdate)
+	return &AlertEventColumnUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AlertEventColumnClient) UpdateOne(_m *AlertEventColumn) *AlertEventColumnUpdateOne {
+	mutation := newAlertEventColumnMutation(c.config, OpUpdateOne, withAlertEventColumn(_m))
+	return &AlertEventColumnUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AlertEventColumnClient) UpdateOneID(id int) *AlertEventColumnUpdateOne {
+	mutation := newAlertEventColumnMutation(c.config, OpUpdateOne, withAlertEventColumnID(id))
+	return &AlertEventColumnUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AlertEventColumn.
+func (c *AlertEventColumnClient) Delete() *AlertEventColumnDelete {
+	mutation := newAlertEventColumnMutation(c.config, OpDelete)
+	return &AlertEventColumnDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AlertEventColumnClient) DeleteOne(_m *AlertEventColumn) *AlertEventColumnDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AlertEventColumnClient) DeleteOneID(id int) *AlertEventColumnDeleteOne {
+	builder := c.Delete().Where(alerteventcolumn.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AlertEventColumnDeleteOne{builder}
+}
+
+// Query returns a query builder for AlertEventColumn.
+func (c *AlertEventColumnClient) Query() *AlertEventColumnQuery {
+	return &AlertEventColumnQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAlertEventColumn},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AlertEventColumn entity by its id.
+func (c *AlertEventColumnClient) Get(ctx context.Context, id int) (*AlertEventColumn, error) {
+	return c.Query().Where(alerteventcolumn.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AlertEventColumnClient) GetX(ctx context.Context, id int) *AlertEventColumn {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AlertEventColumnClient) Hooks() []Hook {
+	return c.hooks.AlertEventColumn
+}
+
+// Interceptors returns the client interceptors.
+func (c *AlertEventColumnClient) Interceptors() []Interceptor {
+	return c.inters.AlertEventColumn
+}
+
+func (c *AlertEventColumnClient) mutate(ctx context.Context, m *AlertEventColumnMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AlertEventColumnCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AlertEventColumnUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AlertEventColumnUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AlertEventColumnDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AlertEventColumn mutation op: %q", m.Op())
+	}
+}
+
 // AlertEventFiringClient is a client for the AlertEventFiring schema.
 type AlertEventFiringClient struct {
 	config
@@ -1162,6 +1311,139 @@ func (c *AlertEventFiringClient) mutate(ctx context.Context, m *AlertEventFiring
 		return (&AlertEventFiringDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AlertEventFiring mutation op: %q", m.Op())
+	}
+}
+
+// AlertHistoryEventClient is a client for the AlertHistoryEvent schema.
+type AlertHistoryEventClient struct {
+	config
+}
+
+// NewAlertHistoryEventClient returns a client for the AlertHistoryEvent from the given config.
+func NewAlertHistoryEventClient(c config) *AlertHistoryEventClient {
+	return &AlertHistoryEventClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `alerthistoryevent.Hooks(f(g(h())))`.
+func (c *AlertHistoryEventClient) Use(hooks ...Hook) {
+	c.hooks.AlertHistoryEvent = append(c.hooks.AlertHistoryEvent, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `alerthistoryevent.Intercept(f(g(h())))`.
+func (c *AlertHistoryEventClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AlertHistoryEvent = append(c.inters.AlertHistoryEvent, interceptors...)
+}
+
+// Create returns a builder for creating a AlertHistoryEvent entity.
+func (c *AlertHistoryEventClient) Create() *AlertHistoryEventCreate {
+	mutation := newAlertHistoryEventMutation(c.config, OpCreate)
+	return &AlertHistoryEventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AlertHistoryEvent entities.
+func (c *AlertHistoryEventClient) CreateBulk(builders ...*AlertHistoryEventCreate) *AlertHistoryEventCreateBulk {
+	return &AlertHistoryEventCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AlertHistoryEventClient) MapCreateBulk(slice any, setFunc func(*AlertHistoryEventCreate, int)) *AlertHistoryEventCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AlertHistoryEventCreateBulk{err: fmt.Errorf("calling to AlertHistoryEventClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AlertHistoryEventCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AlertHistoryEventCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AlertHistoryEvent.
+func (c *AlertHistoryEventClient) Update() *AlertHistoryEventUpdate {
+	mutation := newAlertHistoryEventMutation(c.config, OpUpdate)
+	return &AlertHistoryEventUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AlertHistoryEventClient) UpdateOne(_m *AlertHistoryEvent) *AlertHistoryEventUpdateOne {
+	mutation := newAlertHistoryEventMutation(c.config, OpUpdateOne, withAlertHistoryEvent(_m))
+	return &AlertHistoryEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AlertHistoryEventClient) UpdateOneID(id int) *AlertHistoryEventUpdateOne {
+	mutation := newAlertHistoryEventMutation(c.config, OpUpdateOne, withAlertHistoryEventID(id))
+	return &AlertHistoryEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AlertHistoryEvent.
+func (c *AlertHistoryEventClient) Delete() *AlertHistoryEventDelete {
+	mutation := newAlertHistoryEventMutation(c.config, OpDelete)
+	return &AlertHistoryEventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AlertHistoryEventClient) DeleteOne(_m *AlertHistoryEvent) *AlertHistoryEventDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AlertHistoryEventClient) DeleteOneID(id int) *AlertHistoryEventDeleteOne {
+	builder := c.Delete().Where(alerthistoryevent.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AlertHistoryEventDeleteOne{builder}
+}
+
+// Query returns a query builder for AlertHistoryEvent.
+func (c *AlertHistoryEventClient) Query() *AlertHistoryEventQuery {
+	return &AlertHistoryEventQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAlertHistoryEvent},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AlertHistoryEvent entity by its id.
+func (c *AlertHistoryEventClient) Get(ctx context.Context, id int) (*AlertHistoryEvent, error) {
+	return c.Query().Where(alerthistoryevent.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AlertHistoryEventClient) GetX(ctx context.Context, id int) *AlertHistoryEvent {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AlertHistoryEventClient) Hooks() []Hook {
+	return c.hooks.AlertHistoryEvent
+}
+
+// Interceptors returns the client interceptors.
+func (c *AlertHistoryEventClient) Interceptors() []Interceptor {
+	return c.inters.AlertHistoryEvent
+}
+
+func (c *AlertHistoryEventClient) mutate(ctx context.Context, m *AlertHistoryEventMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AlertHistoryEventCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AlertHistoryEventUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AlertHistoryEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AlertHistoryEventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AlertHistoryEvent mutation op: %q", m.Op())
 	}
 }
 
@@ -5291,23 +5573,23 @@ func (c *WorkerInstanceClient) mutate(ctx context.Context, m *WorkerInstanceMuta
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventFiring, AlertPage,
-		AlertRule, AlertRuleGroup, AlertRuleLevel, Captcha, Datasource, EmailLoginCode,
-		K8sProxyAudit, Member, MemberInvite, MemberRole, MessageLog, Namespace,
-		NotificationChannel, NotificationGroup, NotificationPreset,
-		NotificationSubscription, NotificationSubscriptionGroup, NotificationTask,
-		NotificationTemplate, Permission, Role, RolePermission, SFTPAudit, SSHCommand,
-		SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
-		WorkerInstance []ent.Hook
+		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventColumn,
+		AlertEventFiring, AlertHistoryEvent, AlertPage, AlertRule, AlertRuleGroup,
+		AlertRuleLevel, Captcha, Datasource, EmailLoginCode, K8sProxyAudit, Member,
+		MemberInvite, MemberRole, MessageLog, Namespace, NotificationChannel,
+		NotificationGroup, NotificationPreset, NotificationSubscription,
+		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
+		Permission, Role, RolePermission, SFTPAudit, SSHCommand, SSHCommandAudit,
+		SystemMessage, User, UserAlertPage, UserOAuth, WorkerInstance []ent.Hook
 	}
 	inters struct {
-		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventFiring, AlertPage,
-		AlertRule, AlertRuleGroup, AlertRuleLevel, Captcha, Datasource, EmailLoginCode,
-		K8sProxyAudit, Member, MemberInvite, MemberRole, MessageLog, Namespace,
-		NotificationChannel, NotificationGroup, NotificationPreset,
-		NotificationSubscription, NotificationSubscriptionGroup, NotificationTask,
-		NotificationTemplate, Permission, Role, RolePermission, SFTPAudit, SSHCommand,
-		SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
-		WorkerInstance []ent.Interceptor
+		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventColumn,
+		AlertEventFiring, AlertHistoryEvent, AlertPage, AlertRule, AlertRuleGroup,
+		AlertRuleLevel, Captcha, Datasource, EmailLoginCode, K8sProxyAudit, Member,
+		MemberInvite, MemberRole, MessageLog, Namespace, NotificationChannel,
+		NotificationGroup, NotificationPreset, NotificationSubscription,
+		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
+		Permission, Role, RolePermission, SFTPAudit, SSHCommand, SSHCommandAudit,
+		SystemMessage, User, UserAlertPage, UserOAuth, WorkerInstance []ent.Interceptor
 	}
 )

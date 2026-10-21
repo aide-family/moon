@@ -86,18 +86,20 @@ import {
 } from "@/lib/labels"
 import { useListQuery } from "@/lib/list-query"
 
-const types = ["METRICS", "LOGS", "TRACE"]
-const drivers: Record<string, string[]> = {
-  METRICS: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS"],
-  LOGS: ["LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS"],
-  TRACE: ["TRACE_JAEGER"],
-}
+// 规则不再保存类型，只保存驱动；数据源匹配也只按驱动。
+const drivers = [
+  "METRICS_PROMETHEUS",
+  "METRICS_VICTORIA_METRICS",
+  "LOGS_ELASTICSEARCH",
+  "LOGS_LOKI",
+  "LOGS_VLOGS",
+  "TRACE_JAEGER",
+]
 const conditions = ["EQ", "NE", "GT", "GTE", "LT", "LTE", "IN", "NOT_IN"]
 const samples = ["FOR", "MAX", "MIN"]
 
 interface RuleDraft {
   name: string
-  type: string
   driver: string
   expr: string
   labels: string
@@ -117,7 +119,6 @@ const emptyLevel: AlertRuleLevelInput = {
 
 const emptyRule: RuleDraft = {
   name: "",
-  type: "METRICS",
   driver: "METRICS_PROMETHEUS",
   expr: "",
   labels: "",
@@ -135,38 +136,48 @@ function parseDatasourceLabels(raw: string): Record<string, string> | null {
   }
 }
 
+// datasourceMatchLabels 与后端保持一致：数据源自身标签之外，
+// datasource_level 和 datasource 也可以被规则匹配。
+function datasourceMatchLabels(item: DatasourceItem): Record<string, string> | null {
+  const labels = parseDatasourceLabels(item.labels)
+  if (labels === null) {
+    return null
+  }
+  return {
+    ...labels,
+    datasource: item.name,
+    ...(item.levelName ? { datasource_level: item.levelName } : {}),
+  }
+}
+
 function matchDatasourceCount(
   sources: DatasourceItem[],
-  type: string,
+  driver: string,
   matchers: LabelPair[]
 ): number {
   return sources.filter((item) => {
-    if (item.type !== type || item.status !== "ACTIVE") {
+    if (item.driver !== driver || item.status !== "ACTIVE") {
       return false
     }
-    const labels = parseDatasourceLabels(item.labels)
+    const labels = datasourceMatchLabels(item)
     return labels !== null && labelMatchersMatch(matchers, labels)
   }).length
 }
 
 function matchedDatasourceUid(
   sources: DatasourceItem[],
-  type: string,
   driver: string,
   matchers: LabelPair[]
 ): string {
-  if (type !== "METRICS" && type !== "LOGS") {
+  if (!driver.startsWith("METRICS_")) {
     return ""
   }
   return (
     sources.find((item) => {
-      if (item.type !== type || item.status !== "ACTIVE") {
+      if (item.driver !== driver || item.status !== "ACTIVE") {
         return false
       }
-      if (type === "LOGS" && item.driver !== driver) {
-        return false
-      }
-      const labels = parseDatasourceLabels(item.labels)
+      const labels = datasourceMatchLabels(item)
       return labels !== null && labelMatchersMatch(matchers, labels)
     })?.uid ?? ""
   )
@@ -372,7 +383,6 @@ export function AlertRulePage() {
       item
         ? {
             name: item.name,
-            type: item.type,
             driver: item.driver,
             expr: item.expr,
             labels: item.labels,
@@ -435,7 +445,6 @@ export function AlertRulePage() {
       return collectFieldErrors([
         ["name", requireTrimmed(form.name, t("form.required"))],
         ["name", maxLength(form.name, 64, t("form.nameTooLong"))],
-        ["type", requireTrimmed(form.type, t("form.required"))],
         ["driver", requireTrimmed(form.driver, t("form.required"))],
       ])
     }
@@ -791,7 +800,7 @@ export function AlertRulePage() {
                   <TableRow>
                     <TableHead>{t("alertRule.name")}</TableHead>
                     <TableHead>{t("datasource.expr")}</TableHead>
-                    <TableHead>{t("datasource.type")}</TableHead>
+                    <TableHead>{t("datasource.driver")}</TableHead>
                     <TableHead>{t("namespace.status")}</TableHead>
                     <TableHead />
                   </TableRow>
@@ -807,7 +816,7 @@ export function AlertRulePage() {
                           maxHeightClass="max-h-24"
                         />
                       </TableCell>
-                      <TableCell>{enumLabel(t, item.type)}</TableCell>
+                      <TableCell>{enumLabel(t, item.driver)}</TableCell>
                       <TableCell>{enumLabel(t, item.status)}</TableCell>
                       <TableCell>
                         <RowActions
@@ -904,35 +913,6 @@ export function AlertRulePage() {
                   />
                 </FormField>
                 <FormField
-                  label={t("datasource.type")}
-                  required
-                  error={fieldErrors.type}
-                >
-                  <Select
-                    value={form.type}
-                    onValueChange={(value) =>
-                      setForm({
-                        ...form,
-                        type: value,
-                        driver: drivers[value][0],
-                      })
-                    }
-                  >
-                    <SelectTrigger aria-label={t("datasource.type")}>
-                      <SelectValue
-                        placeholder={t("datasource.typePlaceholder")}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {types.map((item) => (
-                        <SelectItem key={item} value={item}>
-                          {enumLabel(t, item)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormField>
-                <FormField
                   label={t("datasource.driver")}
                   required
                   error={fieldErrors.driver}
@@ -949,7 +929,7 @@ export function AlertRulePage() {
                       />
                     </SelectTrigger>
                     <SelectContent>
-                      {(drivers[form.type] ?? []).map((item) => (
+                      {drivers.map((item) => (
                         <SelectItem key={item} value={item}>
                           {enumLabel(t, item)}
                         </SelectItem>
@@ -1018,7 +998,7 @@ export function AlertRulePage() {
                     {t("alertRule.datasourceMatchPreview", {
                       count: matchDatasourceCount(
                         sources,
-                        form.type,
+                        form.driver,
                         form.datasourceLabels
                       ),
                     })}
@@ -1080,7 +1060,6 @@ export function AlertRulePage() {
                     }
                     datasourceUid={matchedDatasourceUid(
                       sources,
-                      form.type,
                       form.driver,
                       form.datasourceLabels
                     )}
@@ -1323,8 +1302,8 @@ export function AlertRulePage() {
             ? [
                 { label: t("detail.uid"), value: detail.uid },
                 {
-                  label: t("datasource.type"),
-                  value: enumLabel(t, detail.type),
+                  label: t("datasource.driver"),
+                  value: enumLabel(t, detail.driver),
                 },
                 {
                   label: t("namespace.status"),

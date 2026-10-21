@@ -57,6 +57,18 @@ func (f AlertEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertEventMutation", m)
 }
 
+// The AlertEventColumnFunc type is an adapter to allow the use of ordinary
+// function as AlertEventColumn mutator.
+type AlertEventColumnFunc func(context.Context, *ent.AlertEventColumnMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertEventColumnFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertEventColumnMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertEventColumnMutation", m)
+}
+
 // The AlertEventFiringFunc type is an adapter to allow the use of ordinary
 // function as AlertEventFiring mutator.
 type AlertEventFiringFunc func(context.Context, *ent.AlertEventFiringMutation) (ent.Value, error)
@@ -67,6 +79,18 @@ func (f AlertEventFiringFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertEventFiringMutation", m)
+}
+
+// The AlertHistoryEventFunc type is an adapter to allow the use of ordinary
+// function as AlertHistoryEvent mutator.
+type AlertHistoryEventFunc func(context.Context, *ent.AlertHistoryEventMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AlertHistoryEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AlertHistoryEventMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AlertHistoryEventMutation", m)
 }
 
 // The AlertPageFunc type is an adapter to allow the use of ordinary

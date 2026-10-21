@@ -7,6 +7,12 @@ export interface AlertPageItem {
   remark: string
 }
 
+export interface AlertColumnItem {
+  key: string
+  type: "FIELD" | "LABEL"
+  label: string
+}
+
 export interface RealtimeAlertTab {
   id: string
   name: string
