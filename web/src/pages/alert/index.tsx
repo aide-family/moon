@@ -1,4 +1,4 @@
-import { GripVertical } from "lucide-react"
+import { Columns3, GripVertical } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { formMessage } from "@/lib/form-error"
@@ -313,15 +313,6 @@ export function AlertRealtimePage() {
       >
         <Button
           variant="outline"
-          onClick={() => {
-            setColumnError("")
-            setColumnOpen(true)
-          }}
-        >
-          {t("alertEvent.columns")}
-        </Button>
-        <Button
-          variant="outline"
           onClick={() => void openPicker()}
           disabled={pending}
         >
@@ -422,6 +413,22 @@ export function AlertRealtimePage() {
         refreshKey={refreshKey}
         stats={stats}
         columns={columns}
+        columnsAction={
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-8"
+            aria-label={t("alertEvent.columns")}
+            title={t("alertEvent.columns")}
+            onClick={() => {
+              setColumnError("")
+              setColumnOpen(true)
+            }}
+          >
+            <Columns3 aria-hidden />
+          </Button>
+        }
       />
       <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
         <DialogContent className="flex max-h-[80vh] flex-col gap-4 overflow-hidden sm:max-w-2xl">

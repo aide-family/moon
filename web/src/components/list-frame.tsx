@@ -11,6 +11,8 @@ interface ListFrameProps {
   showPager: boolean
   onPrev: () => void
   onNext: () => void
+  // actions 渲染在分页控件右侧，供列表页放工具栏图标按钮。
+  actions?: ReactNode
   children: ReactNode
 }
 
@@ -21,6 +23,7 @@ export function ListFrame({
   showPager,
   onPrev,
   onNext,
+  actions,
   children,
 }: ListFrameProps) {
   const { t } = useTranslation()
@@ -32,29 +35,32 @@ export function ListFrame({
         <span className="font-mono text-sm text-muted-foreground">
           {t("list.total", { count: total })}
         </span>
-        {showPager ? (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={onPrev}
-            >
-              {t("action.prev")}
-            </Button>
-            <span className="font-mono text-sm text-muted-foreground">
-              {page} / {pages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page * pageSize >= total}
-              onClick={onNext}
-            >
-              {t("action.next")}
-            </Button>
-          </div>
-        ) : null}
+        <div className="flex items-center gap-2">
+          {showPager ? (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={onPrev}
+              >
+                {t("action.prev")}
+              </Button>
+              <span className="font-mono text-sm text-muted-foreground">
+                {page} / {pages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page * pageSize >= total}
+                onClick={onNext}
+              >
+                {t("action.next")}
+              </Button>
+            </>
+          ) : null}
+          {actions}
+        </div>
       </div>
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
         {children}

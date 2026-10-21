@@ -71,6 +71,8 @@ interface AlertEventListProps {
   stats?: AlertEventStats
   // 实时页下发的自定义列；为空时使用视图默认列。
   columns?: AlertColumnItem[]
+  // 表头右侧的图标操作，实时页用来打开自定义列。
+  columnsAction?: ReactNode
 }
 
 type ConfirmKind = "recover" | "batch-recover"
@@ -83,6 +85,7 @@ export function AlertEventList({
   refreshKey = 0,
   stats: sharedStats,
   columns,
+  columnsAction,
 }: AlertEventListProps) {
   const { t } = useTranslation()
   const session = useSession()
@@ -399,6 +402,7 @@ export function AlertEventList({
         page={query.page}
         pageSize={query.pageSize}
         showPager={!loading && !failed && items.length > 0}
+        actions={columnsAction}
         onPrev={() => query.update({ page: Math.max(1, query.page - 1) })}
         onNext={() => query.update({ page: query.page + 1 })}
       >

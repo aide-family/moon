@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react"
+import { GripVertical, Plus, Trash2 } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 import { FIELD_COLUMNS, fieldLabel } from "@/pages/alert/columns"
 
 interface AlertColumnDialogProps {
@@ -30,8 +31,6 @@ interface AlertColumnDialogProps {
   onSave: (columns: AlertColumnItem[]) => void
   onOpenChange: (open: boolean) => void
 }
-
-const NONE = "__none__"
 
 export function AlertColumnDialog({
   open,
@@ -54,6 +53,9 @@ export function AlertColumnDialog({
   const [labelKey, setLabelKey] = useState("")
   const [labelAlias, setLabelAlias] = useState("")
   const [localError, setLocalError] = useState("")
+  // 拖动排序：dragIndex 是被拖动的行，dropIndex 是当前悬停的目标行。
+  const [dragIndex, setDragIndex] = useState(-1)
+  const [dropIndex, setDropIndex] = useState(-1)
 
   const used = useMemo(
     () => new Set(draft.map((item) => `${item.type}:${item.key}`)),
@@ -62,27 +64,31 @@ export function AlertColumnDialog({
   const remainingFields = FIELD_COLUMNS.filter(
     (item) => !used.has(`FIELD:${item.key}`)
   )
+  // 用户选中的字段被添加或被移出后，自动回落到第一个仍可添加的字段。
+  const effectiveFieldKey =
+    fieldKey && remainingFields.some((item) => item.key === fieldKey)
+      ? fieldKey
+      : (remainingFields[0]?.key ?? "")
 
-  function move(index: number, delta: number) {
-    const next = [...draft]
-    const target = index + delta
-    if (target < 0 || target >= next.length) {
+  function reorder(from: number, to: number) {
+    if (from === to || from < 0 || to < 0) {
       return
     }
-    ;[next[index], next[target]] = [next[target], next[index]]
+    if (from >= draft.length || to >= draft.length) {
+      return
+    }
+    const next = [...draft]
+    const [moved] = next.splice(from, 1)
+    next.splice(to, 0, moved)
     setDraft(next)
   }
 
   function addField() {
-    if (!fieldKey || used.has(`FIELD:${fieldKey}`)) {
+    if (!effectiveFieldKey || used.has(`FIELD:${effectiveFieldKey}`)) {
       return
     }
-    const nextUsed = new Set([...used, `FIELD:${fieldKey}`])
-    const nextKey = FIELD_COLUMNS.find(
-      (item) => !nextUsed.has(`FIELD:${item.key}`)
-    )?.key
-    setDraft([...draft, { key: fieldKey, type: "FIELD", label: "" }])
-    setFieldKey(nextKey ?? "")
+    setDraft([...draft, { key: effectiveFieldKey, type: "FIELD", label: "" }])
+    setFieldKey("")
     setLocalError("")
   }
 
@@ -130,8 +136,41 @@ export function AlertColumnDialog({
           {draft.map((column, index) => (
             <div
               key={`${column.type}:${column.key}`}
-              className="flex items-center gap-2 rounded-lg border p-2"
+              className={cn(
+                "flex items-center gap-2 rounded-lg border p-2",
+                dropIndex === index &&
+                  dragIndex !== index &&
+                  "border-primary/60 ring-1 ring-primary/30"
+              )}
+              draggable
+              onDragStart={(event) => {
+                event.dataTransfer.effectAllowed = "move"
+                event.dataTransfer.setData("text/plain", String(index))
+                setDragIndex(index)
+              }}
+              onDragOver={(event) => {
+                event.preventDefault()
+                event.dataTransfer.dropEffect = "move"
+                if (dropIndex !== index) {
+                  setDropIndex(index)
+                }
+              }}
+              onDrop={(event) => {
+                event.preventDefault()
+                const from = Number(event.dataTransfer.getData("text/plain"))
+                reorder(Number.isNaN(from) ? dragIndex : from, index)
+                setDragIndex(-1)
+                setDropIndex(-1)
+              }}
+              onDragEnd={() => {
+                setDragIndex(-1)
+                setDropIndex(-1)
+              }}
             >
+              <GripVertical
+                className="size-4 shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
+                aria-hidden
+              />
               <span className="min-w-0 flex-1 truncate font-mono text-xs">
                 {column.type === "FIELD"
                   ? fieldLabel(t, column.key)
@@ -147,27 +186,9 @@ export function AlertColumnDialog({
                 }
                 aria-label={t("alertEvent.columnAlias")}
                 onChange={(event) => updateAlias(index, event.target.value)}
+                // 输入框内拖动文字不应触发整行排序。
+                onDragStart={(event) => event.preventDefault()}
               />
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                disabled={index === 0}
-                aria-label={t("alertEvent.columnMoveUp")}
-                onClick={() => move(index, -1)}
-              >
-                <ArrowUp aria-hidden />
-              </Button>
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                disabled={index === draft.length - 1}
-                aria-label={t("alertEvent.columnMoveDown")}
-                onClick={() => move(index, 1)}
-              >
-                <ArrowDown aria-hidden />
-              </Button>
               <Button
                 type="button"
                 size="icon"
@@ -181,37 +202,36 @@ export function AlertColumnDialog({
           ))}
         </div>
         <div className="grid shrink-0 gap-3 border-t pt-3">
-          <div className="flex flex-wrap items-end gap-2">
-            <FormField label={t("alertEvent.addFieldColumn")}>
-              <Select value={fieldKey} onValueChange={setFieldKey}>
-                <SelectTrigger className="w-48" aria-label={t("alertEvent.addFieldColumn")}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {remainingFields.length === 0 ? (
-                    <SelectItem value={NONE} disabled>
-                      {t("alertEvent.columnsAllFields")}
-                    </SelectItem>
-                  ) : (
-                    remainingFields.map((item) => (
+          {remainingFields.length > 0 ? (
+            <div className="flex flex-wrap items-end gap-2">
+              <FormField label={t("alertEvent.addFieldColumn")}>
+                <Select value={effectiveFieldKey} onValueChange={setFieldKey}>
+                  <SelectTrigger
+                    className="w-48"
+                    aria-label={t("alertEvent.addFieldColumn")}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {remainingFields.map((item) => (
                       <SelectItem key={item.key} value={item.key}>
                         {t(item.labelKey)}
                       </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </FormField>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={remainingFields.length === 0 || used.has(`FIELD:${fieldKey}`)}
-              onClick={addField}
-            >
-              <Plus aria-hidden />
-              {t("action.add")}
-            </Button>
-          </div>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={!effectiveFieldKey}
+                onClick={addField}
+              >
+                <Plus aria-hidden />
+                {t("action.add")}
+              </Button>
+            </div>
+          ) : null}
           <div className="flex flex-wrap items-end gap-2">
             <FormField label={t("alertEvent.addLabelColumn")}>
               <Input
@@ -241,14 +261,14 @@ export function AlertColumnDialog({
           ) : null}
         </div>
         <DialogFooter className="shrink-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            {t("action.cancel")}
-          </Button>
           <Button
             type="button"
-            disabled={pending}
-            onClick={() => onSave(draft)}
+            variant="outline"
+            onClick={() => onOpenChange(false)}
           >
+            {t("action.cancel")}
+          </Button>
+          <Button type="button" disabled={pending} onClick={() => onSave(draft)}>
             {t("action.save")}
           </Button>
         </DialogFooter>

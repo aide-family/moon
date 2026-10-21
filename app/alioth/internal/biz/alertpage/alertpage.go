@@ -236,7 +236,7 @@ const (
 var allowedFieldColumns = map[string]struct{}{
 	"summary": {}, "datasource": {}, "level": {}, "sample_value": {}, "starts_at": {},
 	"duration": {}, "intervened": {}, "status": {}, "description": {}, "fingerprint": {},
-	"expr": {},
+	"expr": {}, "rule": {},
 }
 
 // GetColumns 读取当前用户在 mine 或某个告警页面上的列配置。
