@@ -378,6 +378,7 @@ export function NotificationTemplatePage() {
             <FormField
               label={t("template.body")}
               htmlFor="tpl-body"
+              hint={t("template.bodyHint")}
               className="sm:col-span-full"
               required
               error={fieldErrors.body}

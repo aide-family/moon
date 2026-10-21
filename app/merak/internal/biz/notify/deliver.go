@@ -1,13 +1,15 @@
 package notify
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"text/template"
+	"net/url"
+	"time"
 
 	"github.com/aide-family/Alioth/app/merak/pkg/bo"
+	"github.com/aide-family/Alioth/pkg/alerttmpl"
 )
 
 // sender 是某一类渠道的投递实现。每种 Webhook 应用有自己的签名和响应格式。
@@ -81,22 +83,34 @@ func senderFor(kind, app string) (sender, error) {
 	}
 }
 
-// render 用任务参数渲染模板。解析或执行失败时返回错误，避免把未替换的模板当成成功内容发出去。
+// render 用任务参数渲染模板。告警摘要、描述和通知模板共用 pkg/alerttmpl 的
+// 数据和函数，所以 $labels、$value、.Labels、.Value、{{ . }} 两边含义一致。
+// 解析或执行失败时返回错误，避免把未替换的模板当成成功内容发出去。
 func render(raw, paramsJSON string) (string, error) {
 	if raw == "" {
 		return "", nil
 	}
-	data := map[string]any{}
+	params := map[string]any{}
 	if paramsJSON != "" {
-		_ = json.Unmarshal([]byte(paramsJSON), &data)
+		if err := json.Unmarshal([]byte(paramsJSON), &params); err != nil {
+			return "", fmt.Errorf("template params invalid: %w", err)
+		}
 	}
-	tpl, err := template.New("notify").Option("missingkey=zero").Parse(raw)
+	data := alerttmpl.FromParams(params)
+	externalURL, _ := url.Parse(stringValue(data["ExternalURL"]))
+	result, err := alerttmpl.Render(context.Background(), raw, data, "notify", time.Now(), unavailableQuery, externalURL)
 	if err != nil {
-		return "", fmt.Errorf("template parse failed: %w", err)
-	}
-	var buf bytes.Buffer
-	if err := tpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("template render failed: %w", err)
 	}
-	return buf.String(), nil
+	return result, nil
+}
+
+// unavailableQuery 说明 query 模板函数依赖数据源，只在评测阶段可用。
+func unavailableQuery(context.Context, string, time.Time) ([]alerttmpl.Sample, error) {
+	return nil, errors.New("query is not available in notification templates")
+}
+
+func stringValue(value any) string {
+	text, _ := value.(string)
+	return text
 }

@@ -48,11 +48,13 @@ interface AlertEventListProps {
   mine?: boolean
   pageUid?: string
   hideHeader?: boolean
+  // refreshKey 变化时静默刷新列表；由实时页的自动轮询驱动。
+  refreshKey?: number
 }
 
 type ConfirmKind = "suppress" | "recover" | "batch-recover"
 
-export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = false }: AlertEventListProps) {
+export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = false, refreshKey = 0 }: AlertEventListProps) {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
@@ -64,6 +66,7 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
     page: query.page,
     pageSize: query.pageSize,
     filterKey: `${session.namespaceUid}|${query.name}|${level}|${view}|${mine}|${pageUid}`,
+    refreshKey,
     fetch: (page, pageSize) =>
       listAlertEvents({
         page,
@@ -74,8 +77,16 @@ export function AlertEventList({ view, mine = false, pageUid = "", hideHeader = 
         pageUid: pageUid || undefined,
         levelUid: level || undefined,
       }),
-    onLoaded: () => {
-      setSelected([])
+    onLoaded: (data, meta) => {
+      // 静默刷新时保留勾选，只丢弃已经离开实时列表的事件。
+      setSelected((current) => {
+        if (!meta.silent) {
+          return current.length === 0 ? current : []
+        }
+        const visible = new Set((data.items ?? []).map((item) => item.uid))
+        const next = current.filter((uid) => visible.has(uid))
+        return next.length === current.length ? current : next
+      })
       void alertEventStats().then(setStats).catch(() => undefined)
     },
   })

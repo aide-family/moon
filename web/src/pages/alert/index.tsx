@@ -23,6 +23,9 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 
+// 实时告警页的自动刷新节奏：列表、Tab 统计和统计条在同一 tick 刷新。
+const REALTIME_REFRESH_MS = 30000
+
 export function AlertRealtimePage() {
   const { t } = useTranslation()
   const session = useSession()
@@ -34,6 +37,7 @@ export function AlertRealtimePage() {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState("")
   const [attempt, setAttempt] = useState(0)
+  const [refreshKey, setRefreshKey] = useState(0)
   const [counts, setCounts] = useState<Record<string, number>>({})
 
   useEffect(() => {
@@ -61,6 +65,11 @@ export function AlertRealtimePage() {
   }, [attempt, session.namespaceUid])
 
   useEffect(() => {
+    const timer = window.setInterval(() => setRefreshKey((value) => value + 1), REALTIME_REFRESH_MS)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
     let alive = true
     async function loadCounts() {
       const next: Record<string, number> = {}
@@ -76,21 +85,19 @@ export function AlertRealtimePage() {
             })
             next[tab.id] = result.total ?? 0
           } catch {
-            next[tab.id] = 0
+            // 保留上一次成功统计，避免瞬时失败把数量清零。
           }
         }),
       )
       if (alive) {
-        setCounts(next)
+        setCounts((current) => ({ ...current, ...next }))
       }
     }
     void loadCounts()
-    const timer = window.setInterval(() => void loadCounts(), 60000)
     return () => {
       alive = false
-      window.clearInterval(timer)
     }
-  }, [tabs, session.namespaceUid])
+  }, [tabs, session.namespaceUid, refreshKey])
 
   async function openPicker() {
     setError("")
@@ -133,6 +140,12 @@ export function AlertRealtimePage() {
     return tab.kind === "mine" ? t("alertEvent.mineTitle") : tab.name
   }
 
+  function selectTab(id: string) {
+    setActive(id)
+    // 切 Tab 也刷新一轮统计，保证其他页面的数量与当前列表同步。
+    setRefreshKey((value) => value + 1)
+  }
+
   const mine = active === "mine"
   const pageUid = mine ? "" : active
 
@@ -151,7 +164,7 @@ export function AlertRealtimePage() {
             size="sm"
             variant={active === tab.id ? "default" : "ghost"}
             className={cn(active === tab.id ? "" : "text-muted-foreground")}
-            onClick={() => setActive(tab.id)}
+            onClick={() => selectTab(tab.id)}
           >
             {tabLabel(tab)}
             <span className="font-mono">{counts[tab.id] ?? 0}</span>
@@ -164,6 +177,7 @@ export function AlertRealtimePage() {
         mine={mine}
         pageUid={pageUid}
         hideHeader
+        refreshKey={refreshKey}
       />
       <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
         <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">

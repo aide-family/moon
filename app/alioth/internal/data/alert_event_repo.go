@@ -11,6 +11,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevalbatch"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alerteventfiring"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/predicate"
@@ -94,6 +95,7 @@ func (r *alertEventRepo) applyHits(ctx context.Context, tx *ent.Tx, rule bo.Aler
 		hits[hit.Fingerprint] = hit
 	}
 	now := time.Now().UTC()
+	externalURL := r.datasourceEndpoint(ctx, tx, report.DatasourceUID)
 	for fingerprint, hit := range hits {
 		if row, ok := current[fingerprint]; ok {
 			if _, err := tx.AlertEvent.Update().Where(
@@ -144,7 +146,7 @@ func (r *alertEventRepo) applyHits(ctx context.Context, tx *ent.Tx, rule bo.Aler
 			NamespaceUID: rule.NamespaceUID, EventUID: eventUID, RuleUID: rule.UID,
 			DatasourceUID: report.DatasourceUID, LevelUID: hit.LevelUID, Phase: "FIRING",
 			Summary: textOr(hit.Summary, rule.Summary), Description: textOr(hit.Description, rule.Description),
-			Labels: hit.Labels, Fingerprint: fingerprint,
+			Labels: hit.Labels, Value: hit.Value, ExternalURL: externalURL, Fingerprint: fingerprint,
 		}); err != nil {
 			return err
 		}
@@ -170,7 +172,8 @@ func (r *alertEventRepo) applyHits(ctx context.Context, tx *ent.Tx, rule bo.Aler
 		if err := dispatchEventNotifications(ctx, tx, notifyEvent{
 			NamespaceUID: rule.NamespaceUID, EventUID: row.EventUID, RuleUID: rule.UID,
 			DatasourceUID: event.DatasourceUID, LevelUID: event.LevelUID, Phase: "RECOVERED",
-			Summary: event.Summary, Description: event.Description, Labels: event.Labels, Fingerprint: fingerprint,
+			Summary: event.Summary, Description: event.Description, Labels: event.Labels,
+			Value: event.SampleValue, ExternalURL: externalURL, Fingerprint: fingerprint,
 		}); err != nil {
 			return err
 		}
@@ -555,7 +558,9 @@ func (r *alertEventRepo) RecoverSource(ctx context.Context, namespaceUID string,
 		if err := dispatchEventNotifications(ctx, tx, notifyEvent{
 			NamespaceUID: namespaceUID, EventUID: row.UID, RuleUID: row.RuleUID,
 			DatasourceUID: row.DatasourceUID, LevelUID: row.LevelUID, Phase: "RECOVERED",
-			Summary: row.Summary, Description: row.Description, Labels: row.Labels, Fingerprint: row.Fingerprint,
+			Summary: row.Summary, Description: row.Description, Labels: row.Labels,
+			Value: row.SampleValue, ExternalURL: r.datasourceEndpoint(ctx, tx, row.DatasourceUID),
+			Fingerprint: row.Fingerprint,
 		}); err != nil {
 			return err
 		}
@@ -564,6 +569,21 @@ func (r *alertEventRepo) RecoverSource(ctx context.Context, namespaceUID string,
 		return r.fail(err)
 	}
 	return nil
+}
+
+// datasourceEndpoint 返回数据源地址，作为模板里的 $externalURL，和 megrez 评测时一致。
+func (r *alertEventRepo) datasourceEndpoint(ctx context.Context, tx *ent.Tx, datasourceUID string) string {
+	if datasourceUID == "" {
+		return ""
+	}
+	row, err := tx.Datasource.Query().Where(
+		datasource.UIDEQ(datasourceUID),
+		datasource.DeletedAtIsNil(),
+	).Only(ctx)
+	if err != nil {
+		return ""
+	}
+	return row.Endpoint
 }
 
 func textOr(value, fallback string) string {

@@ -1,6 +1,9 @@
 package data
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
 
 func TestLabelsMatch(t *testing.T) {
 	tests := []struct {
@@ -30,5 +33,33 @@ func TestContainsString(t *testing.T) {
 	}
 	if containsString([]string{"a"}, "b") {
 		t.Fatal("unexpected b")
+	}
+}
+
+// 通知任务参数要和告警模板共用同一套字段，Prometheus 写法在投递时才能展开。
+func TestParamsJSONCarriesTemplateFields(t *testing.T) {
+	raw := paramsJSON(notifyEvent{
+		EventUID: "evt-1", Phase: "FIRING", Summary: "测试告警", Description: "测试告警, value: 1",
+		Labels: `{"job":"api"}`, Value: "1", ExternalURL: "http://prometheus.example", Fingerprint: "fp",
+	})
+	params := map[string]any{}
+	if err := json.Unmarshal([]byte(raw), &params); err != nil {
+		t.Fatalf("params json = %s: %v", raw, err)
+	}
+	if params["phase"] != "FIRING" || params["summary"] != "测试告警" || params["eventUid"] != "evt-1" {
+		t.Fatalf("event fields = %#v", params)
+	}
+	if params["labels"] != `{"job":"api"}` {
+		t.Fatalf("labels placeholder changed: %#v", params["labels"])
+	}
+	labels, ok := params["Labels"].(map[string]any)
+	if !ok || labels["job"] != "api" {
+		t.Fatalf("structured labels = %#v", params["Labels"])
+	}
+	if params["Value"] != 1.0 || params["value"] != 1.0 {
+		t.Fatalf("sample value = %#v", params["Value"])
+	}
+	if params["ExternalURL"] != "http://prometheus.example" || params["externalURL"] != "http://prometheus.example" {
+		t.Fatalf("external url = %#v", params["ExternalURL"])
 	}
 }

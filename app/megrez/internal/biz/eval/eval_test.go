@@ -9,6 +9,7 @@ import (
 
 	"github.com/aide-family/Alioth/app/megrez/internal/data/repository"
 	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
+	"github.com/aide-family/Alioth/pkg/alerttmpl"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -46,6 +47,12 @@ func TestHitsConditions(t *testing.T) {
 	if len(filled) != 1 || filled[0].Summary != "测试告警, value: 3 job api" || filled[0].Description != "测试告警, value: 3" {
 		t.Fatalf("template hit = %+v", filled)
 	}
+	// {{ . }} 是采样值，不是 Prometheus 的 AlertTemplateData 结构体。
+	rule.Description = "测试告警, value: {{ . }}"
+	filled = Hits(rule, []bo.Sample{{Labels: map[string]string{"job": "api"}, Points: points}})
+	if len(filled) != 1 || filled[0].Description != "测试告警, value: 3" || strings.Contains(filled[0].Description, "map[") {
+		t.Fatalf("dot template = %+v", filled)
+	}
 	rule.Description = "up指标测试，告警明细 {{ .labels }} ; value: {{ $value }}"
 	canonicalLabels := `{"__name__":"up","instance":"localhost:9090","job":"prometheus"}`
 	filled = Hits(rule, []bo.Sample{{Labels: map[string]string{"__name__": "up", "instance": "localhost:9090", "job": "prometheus"}, Points: points}})
@@ -59,8 +66,8 @@ func TestHitsConditions(t *testing.T) {
 		t.Fatalf("Prometheus native template = %+v", filled)
 	}
 	rule.Description = `{{ with query "up" }}{{ with first . }}{{ .Labels.instance }}={{ value . }}{{ end }}{{ end }}`
-	query := func(context.Context, bo.RuleSnapshot, string, time.Time) ([]bo.Sample, error) {
-		return []bo.Sample{{Labels: map[string]string{"instance": "query-target"}, Points: []bo.Point{{Value: 9, Raw: "9"}}}}, nil
+	query := func(context.Context, string, time.Time) ([]alerttmpl.Sample, error) {
+		return []alerttmpl.Sample{{Labels: map[string]string{"instance": "query-target"}, Value: 9}}, nil
 	}
 	filled = HitsWithQuery(context.Background(), rule, []bo.Sample{{Labels: map[string]string{"instance": "localhost:9090"}, Points: points}}, now, query)
 	if len(filled) != 1 || filled[0].Description != "query-target=9" {

@@ -519,6 +519,7 @@ const zh = {
     usePreset: "直接使用",
     usePresetAndEdit: "修改后使用",
     subjectEmailOnly: "仅邮件模板需要主题",
+    bodyHint: "可用 {{ .summary }}、{{ .description }}、{{ .phase }}、{{ $labels.job }}、{{ $value }}、{{ . }} 等变量",
     copySuffix: "（自定义）",
   },
   group: {
@@ -1399,6 +1400,7 @@ const en = {
     usePreset: "Use directly",
     usePresetAndEdit: "Edit and use",
     subjectEmailOnly: "Only email templates use a subject",
+    bodyHint: "Variables: {{ .summary }}, {{ .description }}, {{ .phase }}, {{ $labels.job }}, {{ $value }}, {{ . }}",
     copySuffix: "(custom)",
   },
   group: {
@@ -1744,7 +1746,9 @@ void i18n.use(initReactI18next).init({
   resources: { zh: { translation: zh }, en: { translation: en } },
   lng: localStorage.getItem("lang") || "zh",
   fallbackLng: "zh",
-  interpolation: { escapeValue: false },
+  // 提示文案里会展示 {{ $labels.job }}、{{ . }} 这类模板写法，
+  // 不能当成 i18n 插值吃掉；有取值的插值仍然正常替换。
+  interpolation: { escapeValue: false, skipOnVariables: true },
 })
 
 export default i18n

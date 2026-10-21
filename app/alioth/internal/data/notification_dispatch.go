@@ -30,6 +30,8 @@ type notifyEvent struct {
 	Summary       string
 	Description   string
 	Labels        string
+	Value         string
+	ExternalURL   string
 	Fingerprint   string
 }
 
@@ -129,7 +131,7 @@ func dispatchEventNotifications(ctx context.Context, tx *ent.Tx, event notifyEve
 	if err != nil {
 		return err
 	}
-	params := paramsJSON(event.EventUID, event.Phase, event.Summary, event.Description, event.Labels, event.Fingerprint)
+	params := paramsJSON(event)
 	for _, group := range groups {
 		targets, err := resolveGroupTargets(ctx, tx, group)
 		if err != nil {

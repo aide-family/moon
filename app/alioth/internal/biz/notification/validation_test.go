@@ -41,10 +41,17 @@ func TestValidateTemplate(t *testing.T) {
 	if err := validateTemplate(bo.NotificationTemplate{Type: "WEBHOOK", Body: "{{.summary}}"}); err != nil {
 		t.Fatalf("valid webhook rejected: %v", err)
 	}
+	// 通知模板和告警摘要、描述共用模板实现，Prometheus 写法必须合法。
+	if err := validateTemplate(bo.NotificationTemplate{
+		Type: "WEBHOOK", Body: "【{{ .phase }}】{{ $labels.job }} {{ humanize $value }} {{ . }}",
+	}); err != nil {
+		t.Fatalf("prometheus template rejected: %v", err)
+	}
 	invalid := []bo.NotificationTemplate{
 		{Type: "EMAIL", Body: "body"},
 		{Type: "EMAIL", Subject: "subject"},
 		{Type: "EMAIL", Subject: "subject", Body: "{{.summary"},
+		{Type: "WEBHOOK", Body: "{{ $labels.job "},
 		{Type: "WEBHOOK", Body: ""},
 		{Type: "SMS_ALICLOUD", Subject: "s", Body: "b"},
 	}

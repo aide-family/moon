@@ -38,5 +38,19 @@
     "GOTOOLCHAIN": "local",
     "GOPROXY": "https://goproxy.cn,direct",
     "PATH": "/usr/local/go/bin:${env:PATH}"
+  },
+  // 根目录 docker-compose.yaml 改用仓库内 schema 副本校验：YAML 扩展直连
+  // raw.githubusercontent.com 拉 compose-spec 会被重置（read ECONNRESET）。
+  // 更新副本（走镜像）：
+  //   curl -o .vscode/schemas/compose-spec.json https://ghproxy.net/https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+  "yaml.schemas": {
+    "./.vscode/schemas/compose-spec.json": [
+      "docker-compose.yaml",
+      "docker-compose.yml",
+      "docker-compose.*.yaml",
+      "docker-compose.*.yml",
+      "compose.yaml",
+      "compose.yml"
+    ]
   }
 }

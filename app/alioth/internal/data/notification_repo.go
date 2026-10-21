@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
@@ -16,6 +18,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
+	"github.com/aide-family/Alioth/pkg/alerttmpl"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -1027,11 +1030,18 @@ func templateEnums(kind, status string) (notificationtemplate.Type, notification
 	return notificationtemplate.Type(kind), st, nil
 }
 
-// paramsJSON 把告警字段打成模板参数。
-func paramsJSON(eventUID, phase, summary, description, labels, fingerprint string) string {
-	raw, _ := json.Marshal(map[string]string{
-		"eventUid": eventUID, "phase": phase, "summary": summary,
-		"description": description, "labels": labels, "fingerprint": fingerprint,
+// paramsJSON 把告警字段打成模板参数。字段与告警摘要、描述模板共用 pkg/alerttmpl，
+// 所以 $labels、$value、.Labels、.Value、{{ . }} 在通知模板里同样可用。
+func paramsJSON(event notifyEvent) string {
+	labels := map[string]string{}
+	if event.Labels != "" {
+		_ = json.Unmarshal([]byte(event.Labels), &labels)
+	}
+	value, _ := strconv.ParseFloat(strings.TrimSpace(event.Value), 64)
+	data := alerttmpl.New(labels, event.Labels, value, event.ExternalURL, map[string]any{
+		"eventUid": event.EventUID, "phase": event.Phase, "summary": event.Summary,
+		"description": event.Description, "fingerprint": event.Fingerprint,
 	})
+	raw, _ := json.Marshal(data)
 	return string(raw)
 }

@@ -6,10 +6,10 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"text/template"
 	"unicode/utf8"
 
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/Alioth/pkg/alerttmpl"
 	"github.com/aide-family/Alioth/pkg/merr"
 	pkgnotify "github.com/aide-family/Alioth/pkg/notify"
 )
@@ -95,10 +95,11 @@ func validateTemplate(in bo.NotificationTemplate) error {
 	if utf8.RuneCountInString(body) > maxBodyRunes {
 		return merr.Invalid("body is too long")
 	}
-	if _, err := template.New("subject").Parse(in.Subject); err != nil {
+	// 用和投递相同的模板实现校验，Prometheus 的 $labels、$value 才算合法写法。
+	if err := alerttmpl.Validate(in.Subject, "subject"); err != nil {
 		return merr.Invalid("invalid subject template")
 	}
-	if _, err := template.New("body").Parse(in.Body); err != nil {
+	if err := alerttmpl.Validate(in.Body, "body"); err != nil {
 		return merr.Invalid("invalid body template")
 	}
 	return nil

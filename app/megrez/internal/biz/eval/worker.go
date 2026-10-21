@@ -14,6 +14,7 @@ import (
 
 	"github.com/aide-family/Alioth/app/megrez/internal/data/repository"
 	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
+	"github.com/aide-family/Alioth/pkg/alerttmpl"
 	"github.com/aide-family/Alioth/pkg/lock"
 	"github.com/aide-family/Alioth/pkg/merr"
 	pkgworker "github.com/aide-family/Alioth/pkg/worker"
@@ -268,8 +269,20 @@ func (w *Worker) finish(ctx context.Context, hold repository.Hold, rule bo.RuleS
 	if !report.Skipped {
 		var templateQuery TemplateQuery
 		if instant, ok := w.query.(repository.InstantQuery); ok {
-			templateQuery = func(ctx context.Context, rule bo.RuleSnapshot, expr string, at time.Time) ([]bo.Sample, error) {
-				return instant.QueryInstant(ctx, rule, expr, at)
+			templateQuery = func(ctx context.Context, expr string, at time.Time) ([]alerttmpl.Sample, error) {
+				queried, err := instant.QueryInstant(ctx, rule, expr, at)
+				if err != nil {
+					return nil, err
+				}
+				out := make([]alerttmpl.Sample, 0, len(queried))
+				for _, item := range queried {
+					if len(item.Points) == 0 {
+						continue
+					}
+					point := item.Points[len(item.Points)-1]
+					out = append(out, alerttmpl.Sample{Labels: item.Labels, Value: point.Value})
+				}
+				return out, nil
 			}
 		}
 		report.Hits = HitsWithQuery(ctx, rule, samples, rule.EvalSlot, templateQuery)

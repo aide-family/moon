@@ -304,6 +304,8 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 | `MessageLog`           | Moon 的 `message_logs`               | 一次投递的结果。按时间分区。支持查看、重试、取消                                                    |
 
 
+告警摘要、描述和通知模板共用 `pkg/alerttmpl`：数据字段和展开语义在评测与投递两处保持一致，Prometheus 的 `$labels`、`$value`、`.Labels`、`.Value`、`humanize` 等写法可直接使用。`{{ . }}` 在两层都表示采样值，和 `{{ $value }}` 同值；`query` 模板函数依赖数据源，只在评测阶段可用。`$externalURL` 取数据源地址。保存模板时用同一套实现做语法校验。
+
 人工试发也生成 `NotificationTask`，仍由 `merak` 投递。对应 Moon 发送台的直发和按模板发送，不在 `merak` 进程里同步等待 SMTP。投递失败按剩余次数退避后回到 PENDING，避免失败任务在轮询周期内反复重试。
 
 渠道、模板和通知组必须满足类型矩阵：SMTP 渠道只能绑定 EMAIL 模板；WEBHOOK 渠道只能绑定 WEBHOOK 模板。SMTP 通知组的接收方由手填邮箱和成员邮箱合并而成，至少有一个；Webhook 通知组不需要接收方。通知组可额外选择多个 Webhook 渠道，共用一个 WEBHOOK 模板。保存、试发和建立通知组时都在服务端校验。
