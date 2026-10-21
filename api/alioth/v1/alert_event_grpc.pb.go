@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AlertEventService_ListAlertEvents_FullMethodName      = "/alioth.v1.AlertEventService/ListAlertEvents"
-	AlertEventService_GetAlertEvent_FullMethodName        = "/alioth.v1.AlertEventService/GetAlertEvent"
-	AlertEventService_AlertEventStats_FullMethodName      = "/alioth.v1.AlertEventService/AlertEventStats"
-	AlertEventService_InterveneAlertEvent_FullMethodName  = "/alioth.v1.AlertEventService/InterveneAlertEvent"
-	AlertEventService_InterveneAlertEvents_FullMethodName = "/alioth.v1.AlertEventService/InterveneAlertEvents"
-	AlertEventService_SuppressAlertEvent_FullMethodName   = "/alioth.v1.AlertEventService/SuppressAlertEvent"
-	AlertEventService_RecoverAlertEvent_FullMethodName    = "/alioth.v1.AlertEventService/RecoverAlertEvent"
-	AlertEventService_RecoverAlertEvents_FullMethodName   = "/alioth.v1.AlertEventService/RecoverAlertEvents"
+	AlertEventService_ListAlertEvents_FullMethodName         = "/alioth.v1.AlertEventService/ListAlertEvents"
+	AlertEventService_GetAlertEvent_FullMethodName           = "/alioth.v1.AlertEventService/GetAlertEvent"
+	AlertEventService_GetAlertEventChart_FullMethodName      = "/alioth.v1.AlertEventService/GetAlertEventChart"
+	AlertEventService_AlertEventStats_FullMethodName         = "/alioth.v1.AlertEventService/AlertEventStats"
+	AlertEventService_AlertEventRealtimeStats_FullMethodName = "/alioth.v1.AlertEventService/AlertEventRealtimeStats"
+	AlertEventService_InterveneAlertEvent_FullMethodName     = "/alioth.v1.AlertEventService/InterveneAlertEvent"
+	AlertEventService_InterveneAlertEvents_FullMethodName    = "/alioth.v1.AlertEventService/InterveneAlertEvents"
+	AlertEventService_SuppressAlertEvent_FullMethodName      = "/alioth.v1.AlertEventService/SuppressAlertEvent"
+	AlertEventService_RecoverAlertEvent_FullMethodName       = "/alioth.v1.AlertEventService/RecoverAlertEvent"
+	AlertEventService_RecoverAlertEvents_FullMethodName      = "/alioth.v1.AlertEventService/RecoverAlertEvents"
 )
 
 // AlertEventServiceClient is the client API for AlertEventService service.
@@ -39,8 +41,12 @@ type AlertEventServiceClient interface {
 	ListAlertEvents(ctx context.Context, in *ListAlertEventsRequest, opts ...grpc.CallOption) (*ListAlertEventsResponse, error)
 	// 获取一条告警事件。
 	GetAlertEvent(ctx context.Context, in *GetAlertEventRequest, opts ...grpc.CallOption) (*GetAlertEventResponse, error)
+	// 查询事件开始至今的原始区间数据，用于事件图表。
+	GetAlertEventChart(ctx context.Context, in *GetAlertEventChartRequest, opts ...grpc.CallOption) (*GetAlertEventChartResponse, error)
 	// 统计当前租户的实时、抑制和已恢复数量。
 	AlertEventStats(ctx context.Context, in *AlertEventStatsRequest, opts ...grpc.CallOption) (*AlertEventStatsResponse, error)
+	// 实时告警页刷新时一次返回已选 Tab 的数量和全局数量，列表不再为每个 Tab 单独查询。
+	AlertEventRealtimeStats(ctx context.Context, in *AlertEventRealtimeStatsRequest, opts ...grpc.CallOption) (*AlertEventRealtimeStatsResponse, error)
 	// 介入一条实时告警。
 	InterveneAlertEvent(ctx context.Context, in *InterveneAlertEventRequest, opts ...grpc.CallOption) (*InterveneAlertEventResponse, error)
 	// 批量介入实时告警。
@@ -81,10 +87,30 @@ func (c *alertEventServiceClient) GetAlertEvent(ctx context.Context, in *GetAler
 	return out, nil
 }
 
+func (c *alertEventServiceClient) GetAlertEventChart(ctx context.Context, in *GetAlertEventChartRequest, opts ...grpc.CallOption) (*GetAlertEventChartResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAlertEventChartResponse)
+	err := c.cc.Invoke(ctx, AlertEventService_GetAlertEventChart_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *alertEventServiceClient) AlertEventStats(ctx context.Context, in *AlertEventStatsRequest, opts ...grpc.CallOption) (*AlertEventStatsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AlertEventStatsResponse)
 	err := c.cc.Invoke(ctx, AlertEventService_AlertEventStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *alertEventServiceClient) AlertEventRealtimeStats(ctx context.Context, in *AlertEventRealtimeStatsRequest, opts ...grpc.CallOption) (*AlertEventRealtimeStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AlertEventRealtimeStatsResponse)
+	err := c.cc.Invoke(ctx, AlertEventService_AlertEventRealtimeStats_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -151,8 +177,12 @@ type AlertEventServiceServer interface {
 	ListAlertEvents(context.Context, *ListAlertEventsRequest) (*ListAlertEventsResponse, error)
 	// 获取一条告警事件。
 	GetAlertEvent(context.Context, *GetAlertEventRequest) (*GetAlertEventResponse, error)
+	// 查询事件开始至今的原始区间数据，用于事件图表。
+	GetAlertEventChart(context.Context, *GetAlertEventChartRequest) (*GetAlertEventChartResponse, error)
 	// 统计当前租户的实时、抑制和已恢复数量。
 	AlertEventStats(context.Context, *AlertEventStatsRequest) (*AlertEventStatsResponse, error)
+	// 实时告警页刷新时一次返回已选 Tab 的数量和全局数量，列表不再为每个 Tab 单独查询。
+	AlertEventRealtimeStats(context.Context, *AlertEventRealtimeStatsRequest) (*AlertEventRealtimeStatsResponse, error)
 	// 介入一条实时告警。
 	InterveneAlertEvent(context.Context, *InterveneAlertEventRequest) (*InterveneAlertEventResponse, error)
 	// 批量介入实时告警。
@@ -179,8 +209,14 @@ func (UnimplementedAlertEventServiceServer) ListAlertEvents(context.Context, *Li
 func (UnimplementedAlertEventServiceServer) GetAlertEvent(context.Context, *GetAlertEventRequest) (*GetAlertEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAlertEvent not implemented")
 }
+func (UnimplementedAlertEventServiceServer) GetAlertEventChart(context.Context, *GetAlertEventChartRequest) (*GetAlertEventChartResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAlertEventChart not implemented")
+}
 func (UnimplementedAlertEventServiceServer) AlertEventStats(context.Context, *AlertEventStatsRequest) (*AlertEventStatsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AlertEventStats not implemented")
+}
+func (UnimplementedAlertEventServiceServer) AlertEventRealtimeStats(context.Context, *AlertEventRealtimeStatsRequest) (*AlertEventRealtimeStatsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AlertEventRealtimeStats not implemented")
 }
 func (UnimplementedAlertEventServiceServer) InterveneAlertEvent(context.Context, *InterveneAlertEventRequest) (*InterveneAlertEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InterveneAlertEvent not implemented")
@@ -254,6 +290,24 @@ func _AlertEventService_GetAlertEvent_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AlertEventService_GetAlertEventChart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAlertEventChartRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertEventServiceServer).GetAlertEventChart(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertEventService_GetAlertEventChart_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertEventServiceServer).GetAlertEventChart(ctx, req.(*GetAlertEventChartRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AlertEventService_AlertEventStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AlertEventStatsRequest)
 	if err := dec(in); err != nil {
@@ -268,6 +322,24 @@ func _AlertEventService_AlertEventStats_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AlertEventServiceServer).AlertEventStats(ctx, req.(*AlertEventStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AlertEventService_AlertEventRealtimeStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AlertEventRealtimeStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertEventServiceServer).AlertEventRealtimeStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertEventService_AlertEventRealtimeStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertEventServiceServer).AlertEventRealtimeStats(ctx, req.(*AlertEventRealtimeStatsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -378,8 +450,16 @@ var AlertEventService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AlertEventService_GetAlertEvent_Handler,
 		},
 		{
+			MethodName: "GetAlertEventChart",
+			Handler:    _AlertEventService_GetAlertEventChart_Handler,
+		},
+		{
 			MethodName: "AlertEventStats",
 			Handler:    _AlertEventService_AlertEventStats_Handler,
+		},
+		{
+			MethodName: "AlertEventRealtimeStats",
+			Handler:    _AlertEventService_AlertEventRealtimeStats_Handler,
 		},
 		{
 			MethodName: "InterveneAlertEvent",

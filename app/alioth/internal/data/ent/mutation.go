@@ -2724,33 +2724,34 @@ func (m *AlertEvalBatchMutation) ResetEdge(name string) error {
 // AlertEventMutation represents an operation that mutates the AlertEvent nodes in the graph.
 type AlertEventMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	created_at     *time.Time
-	updated_at     *time.Time
-	uid            *string
-	namespace_uid  *string
-	rule_uid       *string
-	datasource_uid *string
-	fingerprint    *string
-	status         *alertevent.Status
-	expr           *string
-	labels         *string
-	summary        *string
-	description    *string
-	sample_value   *string
-	level_uid      *string
-	starts_at      *time.Time
-	ends_at        *time.Time
-	eval_slot      *time.Time
-	suppressed     *bool
-	intervened_by  *string
-	intervened_at  *time.Time
-	clearedFields  map[string]struct{}
-	done           bool
-	oldValue       func(context.Context) (*AlertEvent, error)
-	predicates     []predicate.AlertEvent
+	op               Op
+	typ              string
+	id               *int
+	created_at       *time.Time
+	updated_at       *time.Time
+	uid              *string
+	namespace_uid    *string
+	rule_uid         *string
+	datasource_uid   *string
+	fingerprint      *string
+	status           *alertevent.Status
+	expr             *string
+	labels           *string
+	summary          *string
+	description      *string
+	sample_value     *string
+	level_uid        *string
+	starts_at        *time.Time
+	ends_at          *time.Time
+	eval_slot        *time.Time
+	suppressed       *bool
+	suppressed_until *time.Time
+	intervened_by    *string
+	intervened_at    *time.Time
+	clearedFields    map[string]struct{}
+	done             bool
+	oldValue         func(context.Context) (*AlertEvent, error)
+	predicates       []predicate.AlertEvent
 }
 
 var _ ent.Mutation = (*AlertEventMutation)(nil)
@@ -3512,6 +3513,55 @@ func (m *AlertEventMutation) ResetSuppressed() {
 	m.suppressed = nil
 }
 
+// SetSuppressedUntil sets the "suppressed_until" field.
+func (m *AlertEventMutation) SetSuppressedUntil(t time.Time) {
+	m.suppressed_until = &t
+}
+
+// SuppressedUntil returns the value of the "suppressed_until" field in the mutation.
+func (m *AlertEventMutation) SuppressedUntil() (r time.Time, exists bool) {
+	v := m.suppressed_until
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSuppressedUntil returns the old "suppressed_until" field's value of the AlertEvent entity.
+// If the AlertEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AlertEventMutation) OldSuppressedUntil(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSuppressedUntil is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSuppressedUntil requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSuppressedUntil: %w", err)
+	}
+	return oldValue.SuppressedUntil, nil
+}
+
+// ClearSuppressedUntil clears the value of the "suppressed_until" field.
+func (m *AlertEventMutation) ClearSuppressedUntil() {
+	m.suppressed_until = nil
+	m.clearedFields[alertevent.FieldSuppressedUntil] = struct{}{}
+}
+
+// SuppressedUntilCleared returns if the "suppressed_until" field was cleared in this mutation.
+func (m *AlertEventMutation) SuppressedUntilCleared() bool {
+	_, ok := m.clearedFields[alertevent.FieldSuppressedUntil]
+	return ok
+}
+
+// ResetSuppressedUntil resets all changes to the "suppressed_until" field.
+func (m *AlertEventMutation) ResetSuppressedUntil() {
+	m.suppressed_until = nil
+	delete(m.clearedFields, alertevent.FieldSuppressedUntil)
+}
+
 // SetIntervenedBy sets the "intervened_by" field.
 func (m *AlertEventMutation) SetIntervenedBy(s string) {
 	m.intervened_by = &s
@@ -3631,7 +3681,7 @@ func (m *AlertEventMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AlertEventMutation) Fields() []string {
-	fields := make([]string, 0, 20)
+	fields := make([]string, 0, 21)
 	if m.created_at != nil {
 		fields = append(fields, alertevent.FieldCreatedAt)
 	}
@@ -3686,6 +3736,9 @@ func (m *AlertEventMutation) Fields() []string {
 	if m.suppressed != nil {
 		fields = append(fields, alertevent.FieldSuppressed)
 	}
+	if m.suppressed_until != nil {
+		fields = append(fields, alertevent.FieldSuppressedUntil)
+	}
 	if m.intervened_by != nil {
 		fields = append(fields, alertevent.FieldIntervenedBy)
 	}
@@ -3736,6 +3789,8 @@ func (m *AlertEventMutation) Field(name string) (ent.Value, bool) {
 		return m.EvalSlot()
 	case alertevent.FieldSuppressed:
 		return m.Suppressed()
+	case alertevent.FieldSuppressedUntil:
+		return m.SuppressedUntil()
 	case alertevent.FieldIntervenedBy:
 		return m.IntervenedBy()
 	case alertevent.FieldIntervenedAt:
@@ -3785,6 +3840,8 @@ func (m *AlertEventMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldEvalSlot(ctx)
 	case alertevent.FieldSuppressed:
 		return m.OldSuppressed(ctx)
+	case alertevent.FieldSuppressedUntil:
+		return m.OldSuppressedUntil(ctx)
 	case alertevent.FieldIntervenedBy:
 		return m.OldIntervenedBy(ctx)
 	case alertevent.FieldIntervenedAt:
@@ -3924,6 +3981,13 @@ func (m *AlertEventMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSuppressed(v)
 		return nil
+	case alertevent.FieldSuppressedUntil:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSuppressedUntil(v)
+		return nil
 	case alertevent.FieldIntervenedBy:
 		v, ok := value.(string)
 		if !ok {
@@ -3971,6 +4035,9 @@ func (m *AlertEventMutation) ClearedFields() []string {
 	if m.FieldCleared(alertevent.FieldEndsAt) {
 		fields = append(fields, alertevent.FieldEndsAt)
 	}
+	if m.FieldCleared(alertevent.FieldSuppressedUntil) {
+		fields = append(fields, alertevent.FieldSuppressedUntil)
+	}
 	if m.FieldCleared(alertevent.FieldIntervenedAt) {
 		fields = append(fields, alertevent.FieldIntervenedAt)
 	}
@@ -3990,6 +4057,9 @@ func (m *AlertEventMutation) ClearField(name string) error {
 	switch name {
 	case alertevent.FieldEndsAt:
 		m.ClearEndsAt()
+		return nil
+	case alertevent.FieldSuppressedUntil:
+		m.ClearSuppressedUntil()
 		return nil
 	case alertevent.FieldIntervenedAt:
 		m.ClearIntervenedAt()
@@ -4055,6 +4125,9 @@ func (m *AlertEventMutation) ResetField(name string) error {
 		return nil
 	case alertevent.FieldSuppressed:
 		m.ResetSuppressed()
+		return nil
+	case alertevent.FieldSuppressedUntil:
+		m.ResetSuppressedUntil()
 		return nil
 	case alertevent.FieldIntervenedBy:
 		m.ResetIntervenedBy()
@@ -29310,6 +29383,8 @@ type UserAlertPageMutation struct {
 	namespace_uid  *string
 	user_uid       *string
 	alert_page_uid *string
+	sort           *int
+	addsort        *int
 	clearedFields  map[string]struct{}
 	done           bool
 	oldValue       func(context.Context) (*UserAlertPage, error)
@@ -29630,6 +29705,62 @@ func (m *UserAlertPageMutation) ResetAlertPageUID() {
 	m.alert_page_uid = nil
 }
 
+// SetSort sets the "sort" field.
+func (m *UserAlertPageMutation) SetSort(i int) {
+	m.sort = &i
+	m.addsort = nil
+}
+
+// Sort returns the value of the "sort" field in the mutation.
+func (m *UserAlertPageMutation) Sort() (r int, exists bool) {
+	v := m.sort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSort returns the old "sort" field's value of the UserAlertPage entity.
+// If the UserAlertPage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserAlertPageMutation) OldSort(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSort is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSort requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSort: %w", err)
+	}
+	return oldValue.Sort, nil
+}
+
+// AddSort adds i to the "sort" field.
+func (m *UserAlertPageMutation) AddSort(i int) {
+	if m.addsort != nil {
+		*m.addsort += i
+	} else {
+		m.addsort = &i
+	}
+}
+
+// AddedSort returns the value that was added to the "sort" field in this mutation.
+func (m *UserAlertPageMutation) AddedSort() (r int, exists bool) {
+	v := m.addsort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSort resets all changes to the "sort" field.
+func (m *UserAlertPageMutation) ResetSort() {
+	m.sort = nil
+	m.addsort = nil
+}
+
 // Where appends a list predicates to the UserAlertPageMutation builder.
 func (m *UserAlertPageMutation) Where(ps ...predicate.UserAlertPage) {
 	m.predicates = append(m.predicates, ps...)
@@ -29664,7 +29795,7 @@ func (m *UserAlertPageMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserAlertPageMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, useralertpage.FieldCreatedAt)
 	}
@@ -29682,6 +29813,9 @@ func (m *UserAlertPageMutation) Fields() []string {
 	}
 	if m.alert_page_uid != nil {
 		fields = append(fields, useralertpage.FieldAlertPageUID)
+	}
+	if m.sort != nil {
+		fields = append(fields, useralertpage.FieldSort)
 	}
 	return fields
 }
@@ -29703,6 +29837,8 @@ func (m *UserAlertPageMutation) Field(name string) (ent.Value, bool) {
 		return m.UserUID()
 	case useralertpage.FieldAlertPageUID:
 		return m.AlertPageUID()
+	case useralertpage.FieldSort:
+		return m.Sort()
 	}
 	return nil, false
 }
@@ -29724,6 +29860,8 @@ func (m *UserAlertPageMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldUserUID(ctx)
 	case useralertpage.FieldAlertPageUID:
 		return m.OldAlertPageUID(ctx)
+	case useralertpage.FieldSort:
+		return m.OldSort(ctx)
 	}
 	return nil, fmt.Errorf("unknown UserAlertPage field %s", name)
 }
@@ -29775,6 +29913,13 @@ func (m *UserAlertPageMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAlertPageUID(v)
 		return nil
+	case useralertpage.FieldSort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSort(v)
+		return nil
 	}
 	return fmt.Errorf("unknown UserAlertPage field %s", name)
 }
@@ -29782,13 +29927,21 @@ func (m *UserAlertPageMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *UserAlertPageMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addsort != nil {
+		fields = append(fields, useralertpage.FieldSort)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *UserAlertPageMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case useralertpage.FieldSort:
+		return m.AddedSort()
+	}
 	return nil, false
 }
 
@@ -29797,6 +29950,13 @@ func (m *UserAlertPageMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *UserAlertPageMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case useralertpage.FieldSort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSort(v)
+		return nil
 	}
 	return fmt.Errorf("unknown UserAlertPage numeric field %s", name)
 }
@@ -29841,6 +30001,9 @@ func (m *UserAlertPageMutation) ResetField(name string) error {
 		return nil
 	case useralertpage.FieldAlertPageUID:
 		m.ResetAlertPageUID()
+		return nil
+	case useralertpage.FieldSort:
+		m.ResetSort()
 		return nil
 	}
 	return fmt.Errorf("unknown UserAlertPage field %s", name)

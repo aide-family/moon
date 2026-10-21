@@ -230,7 +230,10 @@ type AlertEvent struct {
 	UID            string
 	NamespaceUID   string
 	RuleUID        string
+	RuleName       string
+	RuleGroupUID   string
 	DatasourceUID  string
+	DatasourceName string
 	Fingerprint    string
 	Status         string
 	Expr           string
@@ -239,18 +242,46 @@ type AlertEvent struct {
 	Description    string
 	SampleValue    string
 	LevelUID       string
+	LevelName      string
 	StartsAt       time.Time
 	EndsAt         *time.Time
 	EvalSlot       time.Time
 	Suppressed     bool
-	IntervenedBy   string
-	IntervenedName string
-	IntervenedAt   *time.Time
-	CreatedAt      time.Time
+	// SuppressedUntil 是抑制到期时间；为空表示旧数据未设置时长，仍持续抑制。
+	SuppressedUntil *time.Time
+	IntervenedBy    string
+	IntervenedName  string
+	IntervenedAt    *time.Time
+	CreatedAt       time.Time
+}
+
+// AlertEventChart 是告警事件对应的数据源区间查询。
+type AlertEventChart struct {
+	DatasourceName string
+	Expr           string
+	Start          int64
+	End            int64
+	Step           int64
+	Body           string
 }
 
 // AlertStats 是当前租户的告警数量。
 type AlertStats struct {
+	Firing     int
+	Suppressed int
+	Recovered  int
+}
+
+// RealtimeAlertTabCount 是一个实时 Tab 的告警数量。
+type RealtimeAlertTabCount struct {
+	ID    string
+	Count int
+}
+
+// RealtimeAlertStats 是实时告警页一次刷新使用的数量统计。
+// Tabs 只包含当前用户已选择显示的页面，不含未选择页面的统计。
+type RealtimeAlertStats struct {
+	Tabs       []RealtimeAlertTabCount
 	Firing     int
 	Suppressed int
 	Recovered  int

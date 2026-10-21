@@ -144,6 +144,7 @@ var (
 		{Name: "ends_at", Type: field.TypeTime, Nullable: true},
 		{Name: "eval_slot", Type: field.TypeTime},
 		{Name: "suppressed", Type: field.TypeBool, Default: false},
+		{Name: "suppressed_until", Type: field.TypeTime, Nullable: true},
 		{Name: "intervened_by", Type: field.TypeString, Default: ""},
 		{Name: "intervened_at", Type: field.TypeTime, Nullable: true},
 	}
@@ -441,6 +442,14 @@ var (
 				Columns: []*schema.Column{DatasourcesColumns[5], DatasourcesColumns[6]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "datasource_namespace_uid_type_endpoint_index_pattern",
+				Unique:  true,
+				Columns: []*schema.Column{DatasourcesColumns[5], DatasourcesColumns[7], DatasourcesColumns[9], DatasourcesColumns[10]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL AND status = 'ACTIVE'",
 				},
 			},
 			{
@@ -1338,6 +1347,7 @@ var (
 		{Name: "namespace_uid", Type: field.TypeString},
 		{Name: "user_uid", Type: field.TypeString},
 		{Name: "alert_page_uid", Type: field.TypeString},
+		{Name: "sort", Type: field.TypeInt, Default: 0},
 	}
 	// UserAlertPagesTable holds the schema information for the "user_alert_pages" table.
 	UserAlertPagesTable = &schema.Table{

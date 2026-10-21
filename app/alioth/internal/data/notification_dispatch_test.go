@@ -14,9 +14,14 @@ func TestLabelsMatch(t *testing.T) {
 	}{
 		{name: "empty selector", selector: "{}", labels: `{"env":"prod"}`, want: true},
 		{name: "exact match", selector: `{"env":"prod"}`, labels: `{"env":"prod","team":"ops"}`, want: true},
+		{name: "regex match", selector: `{"instance":"10\\.0\\..*"}`, labels: `{"instance":"10.0.0.1:9100"}`, want: true},
+		{name: "regex is fully anchored", selector: `{"env":"prod"}`, labels: `{"env":"production"}`, want: false},
+		{name: "regex alternation", selector: `{"env":"prod|staging"}`, labels: `{"env":"staging"}`, want: true},
 		{name: "missing key", selector: `{"env":"prod"}`, labels: `{"team":"ops"}`, want: false},
+		{name: "empty value requires the key", selector: `{"env":""}`, labels: `{"team":"ops"}`, want: false},
 		{name: "different value", selector: `{"env":"prod"}`, labels: `{"env":"dev"}`, want: false},
 		{name: "invalid event labels", selector: `{"env":"prod"}`, labels: `not-json`, want: false},
+		{name: "invalid pattern falls back to literal", selector: `{"env":"prod["}`, labels: `{"env":"prod["}`, want: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

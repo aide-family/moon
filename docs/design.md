@@ -273,7 +273,7 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 `alioth` 在 `alioth:lock:schedule:eval` 下扫描 `next_eval_at <= now` 的已启用指标规则，写下一次评测时间，然后释放调度锁。`megrez` 向 `alioth` 领取这批规则的快照。
 
-规则用类型 + `datasource_labels` 匹配 ACTIVE 数据源（匹配器 ⊆ 数据源 labels；空匹配器 = 该类型全部 ACTIVE）。Claim 对每个匹配数据源各发一条快照；无匹配则不发。fingerprint 为 `Of(rule_uid, datasource_uid, labels)`。
+规则用类型 + `datasource_labels` 匹配 ACTIVE 数据源（匹配器的键必须出现在数据源 labels 中，值按完整匹配正则命中；空匹配器 = 该类型全部 ACTIVE）。Claim 对每个匹配数据源各发一条快照；无匹配则不发。fingerprint 为 `Of(rule_uid, datasource_uid, labels)`。
 
 单条（规则, 数据源）的步骤：
 
@@ -282,9 +282,9 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 3. 把 FIRING 或恢复结果回写 `alioth`（带 `datasource_uid`）。回写按 fingerprint 幂等。
 4. 释放锁。续期失败则不回写成功。
 
-`alioth` 把 FIRING、恢复写入 `AlertEvent`，并在同一事务内按命中的订阅生成 `NotificationTask`。恢复检测是评测的一部分：原先 FIRING、本次未命中，则记为恢复并生成恢复通知。
+`alioth` 把 FIRING、恢复写入 `AlertEvent`，并在同一事务内按命中的订阅生成 `NotificationTask`。恢复检测是评测的一部分：原先 FIRING、本次未命中，则记为恢复并生成恢复通知。事件标签在采样标签之外附加数据源名称（`datasource=<名称>`）和数据源自身的 `labels`，指标标签优先、同名键不覆盖；告警页面和通知订阅的标签匹配使用附加后的标签集合。
 
-事件状态沿用 Moon：`FIRING`、`RECOVERED`、`RECOVERED_BY_MANUAL`。人工操作沿用实时告警上的介入、批量介入、抑制、恢复、批量恢复。实时列表是状态为 FIRING 且未被抑制的事件。历史列表是已恢复和已抑制的事件。`alert_events` 使用 PostgreSQL 声明式时间分区。Moon 按 Namespace 和周把事件拆进多张物理表；Alioth 用分区表表达同一件事，查询仍走 `alioth` 的列表接口。
+事件状态沿用 Moon：`FIRING`、`RECOVERED`、`RECOVERED_BY_MANUAL`。人工操作沿用实时告警上的介入、批量介入、抑制、恢复、批量恢复。实时列表是状态为 FIRING 且未被抑制的事件。历史列表是已恢复和已抑制的事件。`alert_events` 使用 PostgreSQL 声明式时间分区。Moon 按 Namespace 和周把事件拆进多张物理表；Alioth 用分区表表达同一件事，查询仍走 `alioth` 的列表接口。列表和详情按 UID 补出规则名称、规则组标识和级别名称，规则或字典软删除后历史事件仍显示名称。
 
 统计沿用 Moon 的告警统计能力，由 `alioth` 对 `AlertEvent` 聚合。
 
@@ -392,7 +392,7 @@ Kubernetes API 代理是新增能力。Agent 使用挂载的 kubeconfig，或在
 | 边缘    | 机器、SSH 命令与审计、SFTP、Kubernetes 代理 |
 
 
-数据源的指标查询区需要表达式编辑器，交互对应 Moon Web 数据源页上的 PromQL 快查。规则编辑保存指标表达式和级别条件。实时告警支持筛选、详情、介入、抑制和恢复；页内用 Tab 切换「我的告警」与用户选定的告警页面。告警页面按标签匹配过滤实时事件，可设公开供同租户他人选用。
+数据源的指标查询区需要表达式编辑器，交互对应 Moon Web 数据源页上的 PromQL 快查。规则编辑保存指标表达式和级别条件。实时告警支持筛选、详情、介入、抑制和恢复；页内用 Tab 切换「我的告警」与用户选定的告警页面。抑制需要选择时长，提供 5 分钟到 24 小时的常用梯度和自定义输入，限制在 1 分钟到 30 天，到期后事件自动回到实时列表。告警页面按标签匹配过滤实时事件，标签值按完整匹配正则命中；可设公开供同租户他人选用。事件标签附带数据源名称、告警等级名称和数据源等级名称，规则列表与实时告警详情用同一种表达式展示块。
 
 壳上保留 Moon Web 已有的 Namespace 切换、主题（light / dark / system）和中英文。切换 Namespace 后后续请求使用新的 `X-Namespace`。没有 Namespace 时引导创建。
 
@@ -449,7 +449,7 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 | SFTP          | 列目录、上传、下载、建目录、删除；查询 `SFTPAudit`          |
 | Kubernetes 代理 | 经指定 Agent 转发 API 请求；查询 `K8sProxyAudit`   |
 | Agent         | 签发与吊销令牌；列表与详情（含在线状态）。注册和心跳不走浏览器 HTTP     |
-| 告警页面          | CRUD；公开/私有；个人实时 Tab 订阅。按标签匹配过滤实时告警。与 Moon 通知订阅无关 |
+| 告警页面          | CRUD；公开/私有；个人实时 Tab 订阅。按标签匹配过滤实时告警，标签值支持完整匹配正则。与 Moon 通知订阅无关 |
 | 我的告警          | 实时列表筛选：订阅下的通知组包含当前成员，或 `receivers` 含当前用户邮箱或 UID           |
 
 

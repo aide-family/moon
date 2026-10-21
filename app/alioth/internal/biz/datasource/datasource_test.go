@@ -1,6 +1,7 @@
 package datasource
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
@@ -36,7 +37,7 @@ func TestValidateDatasourceEndpoint(t *testing.T) {
 		" http://victoriametrics.moon.com/select/0/prometheus ",
 	}
 	for _, endpoint := range valid {
-		if err := validateDatasource(bo.Datasource{Type: "METRICS", Driver: "METRICS_PROMETHEUS", Endpoint: endpoint}); err != nil {
+		if err := validateDatasource(bo.Datasource{Name: "prom", Type: "METRICS", Driver: "METRICS_PROMETHEUS", Endpoint: endpoint}); err != nil {
 			t.Fatalf("validateDatasource(%q) error = %v", endpoint, err)
 		}
 	}
@@ -50,13 +51,27 @@ func TestValidateDatasourceEndpoint(t *testing.T) {
 		"http://exa mple.com",
 	}
 	for _, endpoint := range invalid {
-		if err := validateDatasource(bo.Datasource{Type: "LOGS", Driver: "LOGS_ELASTICSEARCH", Endpoint: endpoint}); !merr.IsInvalid(err) {
+		if err := validateDatasource(bo.Datasource{Name: "es", Type: "LOGS", Driver: "LOGS_ELASTICSEARCH", Endpoint: endpoint}); !merr.IsInvalid(err) {
 			t.Fatalf("validateDatasource(%q) error = %v", endpoint, err)
 		}
 	}
 
-	if err := validateDatasource(bo.Datasource{Type: "METRICS", Driver: "LOGS_LOKI", Endpoint: "http://loki"}); !merr.IsInvalid(err) {
+	if err := validateDatasource(bo.Datasource{Name: "bad", Type: "METRICS", Driver: "LOGS_LOKI", Endpoint: "http://loki"}); !merr.IsInvalid(err) {
 		t.Fatalf("mismatched driver error = %v", err)
+	}
+	if err := validateDatasource(bo.Datasource{Type: "METRICS", Driver: "METRICS_PROMETHEUS", Endpoint: "http://prom"}); !merr.IsInvalid(err) {
+		t.Fatalf("empty name error = %v", err)
+	}
+	if err := validateDatasource(bo.Datasource{Name: strings.Repeat("长", maxDatasourceName+1), Type: "METRICS", Driver: "METRICS_PROMETHEUS", Endpoint: "http://prom"}); !merr.IsInvalid(err) {
+		t.Fatalf("long name error = %v", err)
+	}
+}
+
+func TestNormalizeDatasourceEndpoint(t *testing.T) {
+	item := bo.Datasource{Name: " prom ", Endpoint: " HTTP://Prometheus.Moon.com:9090/ "}
+	normalizeDatasource(&item)
+	if item.Name != "prom" || item.Endpoint != "http://prometheus.moon.com:9090" {
+		t.Fatalf("normalized = %+v", item)
 	}
 }
 

@@ -15,6 +15,8 @@ const messageKeys: Record<string, string> = {
   "invitation belongs to another user": "error.invitationNotYours",
   "invitation email does not match": "error.invitationNotYours",
   "invalid datasource endpoint": "form.invalidUrl",
+  "datasource connection already exists": "datasource.connectionExists",
+  "name is too long": "form.nameTooLong",
 }
 
 const fieldByMessage: Record<string, string> = {

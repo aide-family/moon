@@ -50,6 +50,8 @@ const (
 	FieldEvalSlot = "eval_slot"
 	// FieldSuppressed holds the string denoting the suppressed field in the database.
 	FieldSuppressed = "suppressed"
+	// FieldSuppressedUntil holds the string denoting the suppressed_until field in the database.
+	FieldSuppressedUntil = "suppressed_until"
 	// FieldIntervenedBy holds the string denoting the intervened_by field in the database.
 	FieldIntervenedBy = "intervened_by"
 	// FieldIntervenedAt holds the string denoting the intervened_at field in the database.
@@ -79,6 +81,7 @@ var Columns = []string{
 	FieldEndsAt,
 	FieldEvalSlot,
 	FieldSuppressed,
+	FieldSuppressedUntil,
 	FieldIntervenedBy,
 	FieldIntervenedAt,
 }
@@ -248,6 +251,11 @@ func ByEvalSlot(opts ...sql.OrderTermOption) OrderOption {
 // BySuppressed orders the results by the suppressed field.
 func BySuppressed(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSuppressed, opts...).ToFunc()
+}
+
+// BySuppressedUntil orders the results by the suppressed_until field.
+func BySuppressedUntil(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSuppressedUntil, opts...).ToFunc()
 }
 
 // ByIntervenedBy orders the results by the intervened_by field.

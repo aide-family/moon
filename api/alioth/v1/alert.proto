@@ -656,7 +656,7 @@ message AlertRuleItem {
   string description = 11;
   // 级别条件。
   repeated AlertRuleLevelItem levels = 12;
-  // 数据源标签匹配器 JSON 对象。空对象表示该类型下全部 ACTIVE 数据源。
+  // 数据源标签匹配器 JSON 对象，值按完整匹配正则命中。空对象表示该类型下全部 ACTIVE 数据源。
   string datasource_labels = 14 [json_name = "datasourceLabels"];
 
   reserved 13;
@@ -685,7 +685,7 @@ message CreateAlertRuleRequest {
   string description = 9 [(buf.validate.field).string.max_len = 2000];
   // 级别条件。
   repeated AlertRuleLevelInput levels = 10;
-  // 数据源标签匹配器 JSON 对象。
+  // 数据源标签匹配器 JSON 对象，值按完整匹配正则命中。
   string datasource_labels = 12 [json_name = "datasourceLabels", (buf.validate.field).string.max_len = 4096];
 
   reserved 11;
@@ -722,7 +722,7 @@ message UpdateAlertRuleRequest {
   string description = 10 [(buf.validate.field).string.max_len = 2000];
   // 级别条件。保存时替换原有条件。
   repeated AlertRuleLevelInput levels = 11;
-  // 数据源标签匹配器 JSON 对象。
+  // 数据源标签匹配器 JSON 对象，值按完整匹配正则命中。
   string datasource_labels = 13 [json_name = "datasourceLabels", (buf.validate.field).string.max_len = 4096];
 
   reserved 12;

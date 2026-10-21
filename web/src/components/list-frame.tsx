@@ -27,7 +27,7 @@ export function ListFrame({
   const pages = Math.max(1, Math.ceil(total / Math.max(pageSize, 1)))
 
   return (
-    <div className={cn("glass-card flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl")}>
+    <div className={cn("glass-card flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl")}>
       <div className="data-table-control-bar justify-between gap-2">
         <span className="font-mono text-sm text-muted-foreground">
           {t("list.total", { count: total })}

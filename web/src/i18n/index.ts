@@ -67,6 +67,8 @@ const zh = {
     copy: "复制",
     copied: "已复制",
     copyFailed: "复制失败",
+    close: "关闭",
+    eventChart: "事件图表",
   },
   shell: {
     account: "账户",
@@ -103,6 +105,7 @@ const zh = {
     invalidEndpoint: "地址格式不正确",
     invalidEmail: "邮箱格式不正确",
     invalidUrl: "URL 必须以 http:// 或 https:// 开头",
+    nameTooLong: "名称不能超过 64 个字符",
     keepSecret: "留空表示保持已保存的值",
   },
   login: {
@@ -140,7 +143,8 @@ const zh = {
     namePlaceholder: "你的名称",
     captchaPlaceholder: "输入图中的字符",
     captchaHint: "看不清时点击图片刷新。",
-    platformHint: "用户属于平台。第一个注册用户会成为超级管理员；加入租户需要接受邀请。",
+    platformHint:
+      "用户属于平台。第一个注册用户会成为超级管理员；加入租户需要接受邀请。",
     hasAccount: "已有账号？去登录",
   },
   profile: {
@@ -170,12 +174,14 @@ const zh = {
   },
   worker: {
     title: "后台工作进程",
-    description: "查看 Megrez 告警评测与 Merak 通知投递实例的实时心跳和当前任务。",
+    description:
+      "查看 Megrez 告警评测与 Merak 通知投递实例的实时心跳和当前任务。",
     megrezDescription: "天权 · 告警规则评测",
     merakDescription: "天璇 · 通知任务投递",
     onlineNow: "当前在线实例",
     capacityLine: "{{busy}} 正在工作 · {{idle}} 空闲",
-    heartbeatHint: "在线统计基于最近 15 秒心跳。任务列表每 5 秒刷新；当前工作进程不提供可量化的百分比进度。",
+    heartbeatHint:
+      "在线统计基于最近 15 秒心跳。任务列表每 5 秒刷新；当前工作进程不提供可量化的百分比进度。",
     working: "工作中",
     idle: "空闲",
     online: "在线",
@@ -201,13 +207,15 @@ const zh = {
   },
   user: {
     title: "平台用户",
-    description: "用户属于平台，不隶属于任何租户。用户列表仅系统管理员及以上可见。",
+    description:
+      "用户属于平台，不隶属于任何租户。用户列表仅系统管理员及以上可见。",
     name: "名称或邮箱",
     empty: "没有匹配的用户。换个条件再搜。",
     nickname: "昵称",
     systemRole: "平台角色",
     grantRole: "授权平台角色",
-    grantRoleHint: "系统管理员可以查看和管理平台用户，但不能授权其他系统管理员。",
+    grantRoleHint:
+      "系统管理员可以查看和管理平台用户，但不能授权其他系统管理员。",
     systemRolePlaceholder: "选择平台角色",
     superAdmin: "超级管理员",
     systemAdmin: "系统管理员",
@@ -231,7 +239,8 @@ const zh = {
     revokeTitle: "撤销邀请",
     revokeDescription: "撤销后，对方将不能再通过这条邀请加入租户。",
     inviteSent: "邀请已发送，等待对方在平台确认。",
-    inviteMailFailed: "邀请已创建。邀请邮件发送失败，对方仍可在平台邀请列表中确认。",
+    inviteMailFailed:
+      "邀请已创建。邀请邮件发送失败，对方仍可在平台邀请列表中确认。",
   },
   invitation: {
     title: "邀请函",
@@ -255,7 +264,8 @@ const zh = {
     markRead: "标记已读",
     markAllRead: "全部已读",
     inviteReceivedTitle: "收到租户邀请",
-    inviteReceivedBody: "{{actor}} 邀请你加入「{{namespace}}」，角色：{{role}}。",
+    inviteReceivedBody:
+      "{{actor}} 邀请你加入「{{namespace}}」，角色：{{role}}。",
     inviteAcceptedTitle: "邀请已接受",
     inviteAcceptedBody: "{{actor}} 已接受加入「{{namespace}}」的邀请。",
     inviteDeclinedTitle: "邀请被拒绝",
@@ -287,7 +297,8 @@ const zh = {
     driver: "驱动",
     driverPlaceholder: "选择驱动",
     endpoint: "地址",
-    endpointHint: "填写数据源的根地址；可以带路径前缀，例如 VictoriaMetrics 集群的 /select/0/prometheus。查询路径由服务拼接。",
+    endpointHint:
+      "填写数据源的根地址；可以带路径前缀，例如 VictoriaMetrics 集群的 /select/0/prometheus。查询路径由服务拼接。",
     username: "用户名",
     usernamePlaceholder: "可选用户名",
     password: "密码",
@@ -307,6 +318,7 @@ const zh = {
     labelValuePlaceholder: "标签值",
     remark: "备注",
     remarkPlaceholder: "可选备注",
+    connectionExists: "相同连接的数据源已存在，不能重复添加。",
     empty: "还没有数据源。新建一个之后可以在右侧查询。",
     pick: "从左侧选择一个数据源。",
     expr: "表达式",
@@ -327,7 +339,8 @@ const zh = {
     tabMetadata: "元数据",
     tabQuery: "查询",
     metadataEmpty: "暂无元数据",
-    vmMetadataNote: "指标名取自 VictoriaMetrics 最近 24 小时的标签值；VictoriaMetrics 不提供说明、类型和单位。",
+    vmMetadataNote:
+      "指标名取自 VictoriaMetrics 最近 24 小时的标签值；VictoriaMetrics 不提供说明、类型和单位。",
     statusUp: "可用",
     statusGreen: "健康",
     statusYellow: "有风险",
@@ -387,9 +400,11 @@ const zh = {
     logsDirection: "排序方向",
     logsDirectionBackward: "从新到旧",
     logsDirectionForward: "从旧到新",
-    logsExprHint: "使用 LogQL 查询，例如 {app=\"api\"} |= \"error\"。",
-    vlogsExprHint: "使用 LogsQL 查询，例如 error、_time:5m error 或 level:error。",
-    esExprHint: "使用 Elasticsearch Query DSL，例如 {\"match\": {\"level\": \"error\"}}；也可以直接输入检索语句。",
+    logsExprHint: '使用 LogQL 查询，例如 {app="api"} |= "error"。',
+    vlogsExprHint:
+      "使用 LogsQL 查询，例如 error、_time:5m error 或 level:error。",
+    esExprHint:
+      '使用 Elasticsearch Query DSL，例如 {"match": {"level": "error"}}；也可以直接输入检索语句。',
     esQueryInvalid: "请填写有效的 Query DSL JSON 对象",
     esDocument: "索引 / 文档",
     esSource: "文档内容",
@@ -428,17 +443,19 @@ const zh = {
     labelsHint: "填写 JSON 对象。留空表示不设置标签。",
     datasourcePlaceholder: "选择数据源",
     datasourceLabels: "数据源标签匹配",
-    datasourceLabelsHint: "每个键值都必须出现在数据源标签中；留空表示匹配该类型下全部启用数据源。",
+    datasourceLabelsHint:
+      "每个标签值按正则完整匹配数据源标签；全部命中才算匹配，留空表示匹配该类型下全部启用数据源。",
     addDatasourceLabel: "添加匹配标签",
     datasourceLabelKeyPlaceholder: "匹配键",
-    datasourceLabelValuePlaceholder: "匹配值",
+    datasourceLabelValuePlaceholder: "匹配值（支持正则）",
     datasourceMatchPreview: "将匹配 {{count}} 个启用数据源",
     summary: "摘要",
     summaryPlaceholder: "告警标题，可用 {{ $labels.job }} 等模板",
     descriptionField: "描述",
     descriptionPlaceholder: "告警内容，可用 {{ $labels.instance }} 等模板",
     levels: "级别条件",
-    levelsHint: "为同一规则添加多个告警级别。每条条件需选择告警级别并填写阈值，指标满足比较条件并持续指定秒数后触发。",
+    levelsHint:
+      "为同一规则添加多个告警级别。每条条件需选择告警级别并填写阈值，指标满足比较条件并持续指定秒数后触发。",
     levelLabel: "告警级别",
     condition: "比较条件",
     sample: "时间方式",
@@ -519,7 +536,8 @@ const zh = {
     usePreset: "直接使用",
     usePresetAndEdit: "修改后使用",
     subjectEmailOnly: "仅邮件模板需要主题",
-    bodyHint: "可用 {{ .summary }}、{{ .description }}、{{ .phase }}、{{ $labels.job }}、{{ $value }}、{{ . }} 等变量",
+    bodyHint:
+      "可用 {{ .summary }}、{{ .description }}、{{ .phase }}、{{ $labels.job }}、{{ $value }}、{{ . }} 等变量",
     copySuffix: "（自定义）",
   },
   group: {
@@ -551,11 +569,13 @@ const zh = {
   },
   subscription: {
     title: "告警订阅",
-    description: "按标签、告警级别和数据源订阅事件，命中后发送给订阅下的通知组。",
+    description:
+      "按标签、告警级别和数据源订阅事件，命中后发送给订阅下的通知组。",
     name: "名称",
     namePlaceholder: "订阅名称",
     labels: "标签",
-    labelsHint: "所有标签都命中才算匹配。留空表示不限制。",
+    labelsHint:
+      "标签值支持正则（完整匹配）；所有标签都命中才算匹配。留空表示不限制。",
     labelKey: "标签键",
     labelValue: "标签值",
     addLabel: "添加标签",
@@ -765,7 +785,46 @@ const zh = {
     no: "否",
     mineTitle: "我的告警",
     choosePages: "选择告警页面",
-    choosePagesHint: "「我的告警」始终显示。勾选要出现在实时页的其他告警页面。",
+    choosePagesHint:
+      "「我的告警」始终显示。勾选要出现在实时页的其他告警页面，保存后可在 Tab 上拖动调整顺序。",
+    choosePagesLimit:
+      "最多同时显示 {{max}} 个告警页面，不含固定的「我的告警」。",
+    pickerLimitReached: "最多同时选择 {{max}} 个告警页面。",
+    dragHint: "拖动调整页面顺序",
+    levelCondition: "级别条件",
+    conditionSummary:
+      "{{level}}：{{sample}}{{condition}} {{threshold}} · {{forSeconds}} 秒",
+    datasource: "数据源",
+    eventChart: "事件图表",
+    chartGraph: "图表",
+    chartRaw: "原始数据",
+    chartRange: "时间范围",
+    chartStep: "步长 {{step}} 秒",
+    chartNoMatch: "区间内没有与这条事件的标签匹配的数据。",
+    suppressTitle: "抑制告警",
+    suppressPreset: "常用时长",
+    suppressCustom: "自定义",
+    suppressDuration: "抑制时长",
+    suppressCustomPlaceholder: "输入时长",
+    suppressUnit: "时间单位",
+    suppressUnitMinute: "分钟",
+    suppressUnitHour: "小时",
+    suppressUnitDay: "天",
+    suppressDurationMinutes: "{{count}} 分钟",
+    suppressDurationHours: "{{count}} 小时",
+    suppressDurationDays: "{{count}} 天",
+    suppressRangeHint: "支持 1 分钟到 30 天；到期后告警自动回到实时列表。",
+    suppressUntilHint: "将抑制至 {{until}}",
+    suppressInvalid: "抑制时长需要在 1 分钟到 30 天之间。",
+    suppressPermanent: "永久",
+    suppressPermanentHint: "永久抑制不会自动到期，需要手动恢复。",
+    suppressedUntil: "抑制结束",
+    pickerSelectAll: "全选",
+    pickerClearAll: "取消全选",
+    pickerSelectPrivate: "选私有",
+    pickerFilterPlaceholder: "按名称、标签或备注筛选",
+    pickerSelected: "已选 {{selected}} / {{total}}",
+    pickerNoMatch: "没有匹配的告警页面",
   },
   alertPage: {
     title: "告警页面",
@@ -773,8 +832,9 @@ const zh = {
     name: "名称",
     namePlaceholder: "页面名称",
     labels: "标签匹配",
+    labelsHint: "标签值支持正则（完整匹配）；所有标签都命中才算匹配。",
     labelKeyPlaceholder: "标签键",
-    labelValuePlaceholder: "标签值",
+    labelValuePlaceholder: "标签值（支持正则）",
     addLabel: "添加标签",
     visibility: "可见性",
     public: "公开",
@@ -937,6 +997,8 @@ const en = {
     copy: "Copy",
     copied: "Copied",
     copyFailed: "Copy failed",
+    close: "Close",
+    eventChart: "Event chart",
   },
   shell: {
     account: "Account",
@@ -969,6 +1031,7 @@ const en = {
     invalidEndpoint: "Invalid endpoint",
     invalidEmail: "Invalid email address",
     invalidUrl: "URL must start with http:// or https://",
+    nameTooLong: "Name must be at most 64 characters",
     keepSecret: "Leave blank to keep the stored value",
   },
   login: {
@@ -1040,12 +1103,14 @@ const en = {
   },
   worker: {
     title: "Background workers",
-    description: "Live heartbeats and active tasks for Megrez alert evaluation and Merak notification delivery.",
+    description:
+      "Live heartbeats and active tasks for Megrez alert evaluation and Merak notification delivery.",
     megrezDescription: "Megrez · Alert rule evaluation",
     merakDescription: "Merak · Notification delivery",
     onlineNow: "Online instances now",
     capacityLine: "{{busy}} working · {{idle}} idle",
-    heartbeatHint: "Online means a heartbeat within 15 seconds. Tasks refresh every 5 seconds; workers do not expose a measurable percentage of task progress.",
+    heartbeatHint:
+      "Online means a heartbeat within 15 seconds. Tasks refresh every 5 seconds; workers do not expose a measurable percentage of task progress.",
     working: "Working",
     idle: "Idle",
     online: "Online",
@@ -1053,7 +1118,8 @@ const en = {
     onlineUnits: "{{count}} online",
     workingUnits: "working",
     waitingHeartbeat: "No instance heartbeat yet",
-    waitingHeartbeatHint: "Instances register on startup and refresh their status every 5 seconds.",
+    waitingHeartbeatHint:
+      "Instances register on startup and refresh their status every 5 seconds.",
     noActiveTask: "No task is currently running",
     unnamedTask: "Unnamed task",
     runningFor: "Running for {{duration}}",
@@ -1063,10 +1129,13 @@ const en = {
     seconds: "{{count}}s",
     minutes: "{{count}}m {{seconds}}s",
     hours: "{{count}}h {{minutes}}m",
-    unavailableHint: "There is no successful status snapshot, so worker presence is unknown.",
-    autoRefresh: "Auto-refreshes every 5 seconds; instances seen within the last minute are shown.",
+    unavailableHint:
+      "There is no successful status snapshot, so worker presence is unknown.",
+    autoRefresh:
+      "Auto-refreshes every 5 seconds; instances seen within the last minute are shown.",
     lastUpdated: "Data as of {{time}}",
-    refreshFailed: "Refresh failed; the last successful snapshot is still shown.",
+    refreshFailed:
+      "Refresh failed; the last successful snapshot is still shown.",
     loadFailed: "Worker status could not be loaded. Try again in a moment.",
   },
   user: {
@@ -1095,7 +1164,8 @@ const en = {
     empty: "No members yet. Invite someone into this namespace.",
     emailPlaceholder: "name@example.com",
     rolePlaceholder: "Choose a role",
-    roleHint: "The owner role cannot be assigned here. The invitee joins after accepting.",
+    roleHint:
+      "The owner role cannot be assigned here. The invitee joins after accepting.",
     pendingTitle: "Pending invitations",
     pendingHint:
       "Invitations are sent. The invitee appears in the member list only after accepting on the platform.",
@@ -1105,7 +1175,8 @@ const en = {
     revokeTitle: "Revoke invitation",
     revokeDescription:
       "After revoking, the link can no longer be used to join this namespace.",
-    inviteSent: "Invitation sent. Waiting for the invitee to confirm on the platform.",
+    inviteSent:
+      "Invitation sent. Waiting for the invitee to confirm on the platform.",
     inviteMailFailed:
       "Invitation created. The email could not be sent; the invitee can still confirm it from the platform inbox.",
   },
@@ -1134,16 +1205,15 @@ const en = {
     markAllRead: "Mark all as read",
     inviteReceivedTitle: "Tenant invitation received",
     inviteReceivedBody:
-      "{{actor}} invited you to join \"{{namespace}}\" as {{role}}.",
+      '{{actor}} invited you to join "{{namespace}}" as {{role}}.',
     inviteAcceptedTitle: "Invitation accepted",
     inviteAcceptedBody:
-      "{{actor}} accepted the invitation to join \"{{namespace}}\".",
+      '{{actor}} accepted the invitation to join "{{namespace}}".',
     inviteDeclinedTitle: "Invitation declined",
     inviteDeclinedBody:
-      "{{actor}} declined the invitation to join \"{{namespace}}\".",
+      '{{actor}} declined the invitation to join "{{namespace}}".',
     memberRemovedTitle: "Removed from a namespace",
-    memberRemovedBody:
-      "{{actor}} removed you from \"{{namespace}}\".",
+    memberRemovedBody: '{{actor}} removed you from "{{namespace}}".',
     viewInvitation: "View invitation",
     viewMembers: "View members",
     viewNamespaces: "View namespaces",
@@ -1160,7 +1230,8 @@ const en = {
   },
   datasource: {
     title: "Datasources",
-    description: "Manage metrics, logs, and trace sources, then query on the right.",
+    description:
+      "Manage metrics, logs, and trace sources, then query on the right.",
     name: "Name",
     namePlaceholder: "Datasource name",
     type: "Type",
@@ -1170,7 +1241,8 @@ const en = {
     driver: "Driver",
     driverPlaceholder: "Choose a driver",
     endpoint: "Endpoint",
-    endpointHint: "Enter the datasource root. A path prefix is allowed, for example /select/0/prometheus on VictoriaMetrics cluster. The service builds the query path.",
+    endpointHint:
+      "Enter the datasource root. A path prefix is allowed, for example /select/0/prometheus on VictoriaMetrics cluster. The service builds the query path.",
     username: "Username",
     usernamePlaceholder: "Optional username",
     password: "Password",
@@ -1190,12 +1262,14 @@ const en = {
     labelValuePlaceholder: "Label value",
     remark: "Remark",
     remarkPlaceholder: "Optional remark",
+    connectionExists: "A datasource with the same connection already exists.",
     empty: "No datasources yet. Create one to query it on the right.",
     pick: "Select a datasource from the list.",
     expr: "Expression",
     exprPlaceholder: "up",
     exprHint: "Instant and range queries both use this expression.",
-    vmExprHint: "Query with MetricsQL. PromQL expressions such as up or rate(foo[5m]) work too.",
+    vmExprHint:
+      "Query with MetricsQL. PromQL expressions such as up or rate(foo[5m]) work too.",
     instant: "Instant query",
     range: "Range query",
     start: "Start",
@@ -1210,7 +1284,8 @@ const en = {
     tabMetadata: "Metadata",
     tabQuery: "Query",
     metadataEmpty: "No metadata",
-    vmMetadataNote: "Metric names come from VictoriaMetrics label values in the last 24 hours. VictoriaMetrics does not provide help, type, or unit.",
+    vmMetadataNote:
+      "Metric names come from VictoriaMetrics label values in the last 24 hours. VictoriaMetrics does not provide help, type, or unit.",
     statusUp: "Up",
     statusGreen: "Healthy",
     statusYellow: "At risk",
@@ -1270,18 +1345,22 @@ const en = {
     logsDirection: "Direction",
     logsDirectionBackward: "Newest first",
     logsDirectionForward: "Oldest first",
-    logsExprHint: "Query with LogQL, for example {app=\"api\"} |= \"error\".",
-    vlogsExprHint: "Query with LogsQL, for example error, _time:5m error, or level:error.",
-    esExprHint: "Use an Elasticsearch Query DSL object, for example {\"match\": {\"level\": \"error\"}}, or enter a plain search expression.",
+    logsExprHint: 'Query with LogQL, for example {app="api"} |= "error".',
+    vlogsExprHint:
+      "Query with LogsQL, for example error, _time:5m error, or level:error.",
+    esExprHint:
+      'Use an Elasticsearch Query DSL object, for example {"match": {"level": "error"}}, or enter a plain search expression.',
     esQueryInvalid: "Enter a valid Query DSL JSON object",
     esDocument: "Index / document",
     esSource: "Document",
     indexPattern: "Index pattern",
-    indexPatternHint: "Leave blank to search all indices. Wildcards are supported, for example logs-*.",
+    indexPatternHint:
+      "Leave blank to search all indices. Wildcards are supported, for example logs-*.",
     indexPatternPlaceholder: "For example logs-*",
     indexPatternAll: "All indices",
     timeField: "Time field",
-    timeFieldHint: "Used for the time range filter and sorting. Blank means @timestamp.",
+    timeFieldHint:
+      "Used for the time range filter and sorting. Blank means @timestamp.",
     timeFieldPlaceholder: "@timestamp",
     logsEmpty: "No matching logs",
     logsLine: "Log line",
@@ -1298,7 +1377,8 @@ const en = {
   },
   alertRule: {
     title: "Alert rules",
-    description: "Manage rules by group. Saving writes the expression, level conditions, and duration.",
+    description:
+      "Manage rules by group. Saving writes the expression, level conditions, and duration.",
     group: "Group",
     groupPlaceholder: "Group name",
     createGroup: "Create group",
@@ -1311,17 +1391,21 @@ const en = {
     labelsHint: "Enter a JSON object, or leave it blank.",
     datasourcePlaceholder: "Choose a datasource",
     datasourceLabels: "Datasource label matchers",
-    datasourceLabelsHint: "Each key/value must appear on the datasource. Leave empty to match all active datasources of this type.",
+    datasourceLabelsHint:
+      "Each value is a regular expression matched against the datasource label in full. All matchers must match; leave empty to match all active datasources of this type.",
     addDatasourceLabel: "Add matcher",
     datasourceLabelKeyPlaceholder: "Matcher key",
-    datasourceLabelValuePlaceholder: "Matcher value",
+    datasourceLabelValuePlaceholder: "Matcher value (regex)",
     datasourceMatchPreview: "Will match {{count}} active datasource(s)",
     summary: "Summary",
-    summaryPlaceholder: "Alert title; templates like {{ $labels.job }} are supported",
+    summaryPlaceholder:
+      "Alert title; templates like {{ $labels.job }} are supported",
     descriptionField: "Description",
-    descriptionPlaceholder: "Alert body; templates like {{ $labels.instance }} are supported",
+    descriptionPlaceholder:
+      "Alert body; templates like {{ $labels.instance }} are supported",
     levels: "Level conditions",
-    levelsHint: "Add one or more alert levels to this rule. Each condition needs an alert level and a threshold; the rule fires after the comparison holds for the configured duration.",
+    levelsHint:
+      "Add one or more alert levels to this rule. Each condition needs an alert level and a threshold; the rule fires after the comparison holds for the configured duration.",
     levelLabel: "Alert level",
     condition: "Condition",
     sample: "Time mode",
@@ -1343,11 +1427,13 @@ const en = {
     colorPicker: "Pick color",
     typeAlert: "Alert level",
     typeDatasource: "Datasource level",
-    empty: "No entries yet. Create one before attaching it to a rule or datasource.",
+    empty:
+      "No entries yet. Create one before attaching it to a rule or datasource.",
   },
   channel: {
     title: "Notification channels",
-    description: "Configure SMTP or Webhook. Passwords and secrets are only sent when saving.",
+    description:
+      "Configure SMTP or Webhook. Passwords and secrets are only sent when saving.",
     name: "Name",
     namePlaceholder: "Channel name",
     type: "Type",
@@ -1362,7 +1448,8 @@ const en = {
     passwordPlaceholder: "Optional password",
     secret: "Secret",
     secretPlaceholder: "Optional secret",
-    secretHint: "DingTalk and Feishu use this signature; WeChat and OTHER are optional",
+    secretHint:
+      "DingTalk and Feishu use this signature; WeChat and OTHER are optional",
     fromAddress: "From address",
     fromAddressPlaceholder: "Optional from address",
     senderRequired: "Enter a from address or a username",
@@ -1395,12 +1482,14 @@ const en = {
     channelPlaceholder: "Choose a channel",
     presets: "Preset templates",
     presetTitle: "Create from preset",
-    presetHint: "Presets are read-only. Using one creates an editable custom template.",
+    presetHint:
+      "Presets are read-only. Using one creates an editable custom template.",
     presetEmpty: "No preset templates yet.",
     usePreset: "Use directly",
     usePresetAndEdit: "Edit and use",
     subjectEmailOnly: "Only email templates use a subject",
-    bodyHint: "Variables: {{ .summary }}, {{ .description }}, {{ .phase }}, {{ $labels.job }}, {{ $value }}, {{ . }}",
+    bodyHint:
+      "Variables: {{ .summary }}, {{ .description }}, {{ .phase }}, {{ $labels.job }}, {{ $value }}, {{ . }}",
     copySuffix: "(custom)",
   },
   group: {
@@ -1417,12 +1506,14 @@ const en = {
     receiversSmtpHint: "SMTP groups need receivers or at least one member",
     receiversWebhookHint: "Webhook groups do not use receivers",
     members: "Members",
-    membersHint: "Choose recipients from the current tenant. Member emails are resolved at delivery time.",
+    membersHint:
+      "Choose recipients from the current tenant. Member emails are resolved at delivery time.",
     memberFilterPlaceholder: "Filter members by name or email",
     memberEmpty: "This tenant has no members yet.",
     memberCount: "{{count}} members",
     webhooks: "Webhook channels",
-    webhooksHint: "Choose additional webhook channels. Multiple selection is allowed.",
+    webhooksHint:
+      "Choose additional webhook channels. Multiple selection is allowed.",
     webhookEmpty: "No active webhook channels.",
     webhookTemplate: "Webhook template",
     webhookTemplatePlaceholder: "Choose a webhook template",
@@ -1432,11 +1523,13 @@ const en = {
   },
   subscription: {
     title: "Alert subscriptions",
-    description: "Subscribe to events by labels, alert level, and datasource, then send matches to the selected notification groups.",
+    description:
+      "Subscribe to events by labels, alert level, and datasource, then send matches to the selected notification groups.",
     name: "Name",
     namePlaceholder: "Subscription name",
     labels: "Labels",
-    labelsHint: "All labels must match. Leave empty for no label restriction.",
+    labelsHint:
+      "Label values are regular expressions matched in full. All labels must match. Leave empty for no label restriction.",
     labelKey: "Label key",
     labelValue: "Label value",
     addLabel: "Add label",
@@ -1542,7 +1635,8 @@ const en = {
     execResult: "Execution result",
     exitCode: "Exit code",
     status: "Status",
-    auditTimelineDescription: "Review command creation, approval, and execution events over time.",
+    auditTimelineDescription:
+      "Review command creation, approval, and execution events over time.",
     viewExecutionRecord: "View execution record",
     operator: "Operator",
     output: "Standard output",
@@ -1598,7 +1692,8 @@ const en = {
     transferTitle: "Confirm transfer",
     transferDescription: "The selected member becomes the owner.",
     suppressTitle: "Suppress this alert",
-    suppressDescription: "It leaves the realtime list and keeps the current firing slot.",
+    suppressDescription:
+      "It leaves the realtime list and keeps the current firing slot.",
     recoverTitle: "Recover this alert",
     recoverDescription: "It is marked recovered by hand and can fire again.",
   },
@@ -1608,7 +1703,8 @@ const en = {
   alertEvent: {
     title: "Realtime alerts",
     historyTitle: "Alert history",
-    description: "Alerts that are firing and not suppressed. Switch tabs to browse alert pages.",
+    description:
+      "Alerts that are firing and not suppressed. Switch tabs to browse alert pages.",
     historyDescription: "Alerts that are recovered or suppressed.",
     namePlaceholder: "Summary or fingerprint",
     summary: "Summary",
@@ -1620,7 +1716,8 @@ const en = {
     intervenedAt: "Intervened at",
     fingerprint: "Fingerprint",
     empty: "No alerts",
-    stats: "Firing {{firing}}, suppressed {{suppressed}}, recovered {{recovered}}",
+    stats:
+      "Firing {{firing}}, suppressed {{suppressed}}, recovered {{recovered}}",
     batchIntervene: "Intervene selected",
     batchRecover: "Recover selected",
     expr: "Expression",
@@ -1636,21 +1733,67 @@ const en = {
     no: "No",
     mineTitle: "My alerts",
     choosePages: "Choose alert pages",
-    choosePagesHint: "My alerts always stays. Select other pages to show on the realtime view.",
+    choosePagesHint:
+      "My alerts always stays. Select other pages to show on the realtime view, then drag the tabs to reorder them.",
+    choosePagesLimit:
+      "Up to {{max}} alert pages can be shown at once, not counting My alerts.",
+    pickerLimitReached: "Up to {{max}} alert pages can be selected at once.",
+    dragHint: "Drag to reorder pages",
+    levelCondition: "Level condition",
+    conditionSummary:
+      "{{level}}: {{sample}} {{condition}} {{threshold}} · {{forSeconds}}s",
+    datasource: "Datasource",
+    eventChart: "Event chart",
+    chartGraph: "Chart",
+    chartRaw: "Raw data",
+    chartRange: "Time range",
+    chartStep: "step {{step}}s",
+    chartNoMatch: "No data in this range matches the event labels.",
+    suppressTitle: "Suppress alert",
+    suppressPreset: "Common durations",
+    suppressCustom: "Custom",
+    suppressDuration: "Suppression duration",
+    suppressCustomPlaceholder: "Enter a duration",
+    suppressUnit: "Time unit",
+    suppressUnitMinute: "Minutes",
+    suppressUnitHour: "Hours",
+    suppressUnitDay: "Days",
+    suppressDurationMinutes: "{{count}} min",
+    suppressDurationHours: "{{count}} h",
+    suppressDurationDays: "{{count}} d",
+    suppressRangeHint:
+      "Between 1 minute and 30 days. The alert returns to the realtime list when it expires.",
+    suppressUntilHint: "Suppressed until {{until}}",
+    suppressInvalid:
+      "The suppression duration must be between 1 minute and 30 days.",
+    suppressPermanent: "Permanent",
+    suppressPermanentHint:
+      "A permanent suppression never expires and must be recovered manually.",
+    suppressedUntil: "Suppression ends",
+    pickerSelectAll: "Select all",
+    pickerClearAll: "Clear all",
+    pickerSelectPrivate: "Select private",
+    pickerFilterPlaceholder: "Filter by name, labels, or remark",
+    pickerSelected: "{{selected}} / {{total}} selected",
+    pickerNoMatch: "No alert pages match the filter",
   },
   alertPage: {
     title: "Alert pages",
-    description: "Define realtime alert views by label matchers. Public pages can be selected by others in the namespace.",
+    description:
+      "Define realtime alert views by label matchers. Public pages can be selected by others in the namespace.",
     name: "Name",
     namePlaceholder: "Page name",
     labels: "Label matchers",
+    labelsHint:
+      "Label values are regular expressions matched in full. All labels must match.",
     labelKeyPlaceholder: "Label key",
-    labelValuePlaceholder: "Label value",
+    labelValuePlaceholder: "Label value (regex)",
     addLabel: "Add label",
     visibility: "Visibility",
     public: "Public",
     private: "Private",
-    publicHint: "Public: others in the namespace can show this on realtime alerts",
+    publicHint:
+      "Public: others in the namespace can show this on realtime alerts",
     remark: "Remark",
     remarkPlaceholder: "Optional remark",
     empty: "No alert pages yet",

@@ -250,6 +250,26 @@ func (_u *AlertEventUpdate) SetNillableSuppressed(v *bool) *AlertEventUpdate {
 	return _u
 }
 
+// SetSuppressedUntil sets the "suppressed_until" field.
+func (_u *AlertEventUpdate) SetSuppressedUntil(v time.Time) *AlertEventUpdate {
+	_u.mutation.SetSuppressedUntil(v)
+	return _u
+}
+
+// SetNillableSuppressedUntil sets the "suppressed_until" field if the given value is not nil.
+func (_u *AlertEventUpdate) SetNillableSuppressedUntil(v *time.Time) *AlertEventUpdate {
+	if v != nil {
+		_u.SetSuppressedUntil(*v)
+	}
+	return _u
+}
+
+// ClearSuppressedUntil clears the value of the "suppressed_until" field.
+func (_u *AlertEventUpdate) ClearSuppressedUntil() *AlertEventUpdate {
+	_u.mutation.ClearSuppressedUntil()
+	return _u
+}
+
 // SetIntervenedBy sets the "intervened_by" field.
 func (_u *AlertEventUpdate) SetIntervenedBy(v string) *AlertEventUpdate {
 	_u.mutation.SetIntervenedBy(v)
@@ -412,6 +432,12 @@ func (_u *AlertEventUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if value, ok := _u.mutation.Suppressed(); ok {
 		_spec.SetField(alertevent.FieldSuppressed, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SuppressedUntil(); ok {
+		_spec.SetField(alertevent.FieldSuppressedUntil, field.TypeTime, value)
+	}
+	if _u.mutation.SuppressedUntilCleared() {
+		_spec.ClearField(alertevent.FieldSuppressedUntil, field.TypeTime)
 	}
 	if value, ok := _u.mutation.IntervenedBy(); ok {
 		_spec.SetField(alertevent.FieldIntervenedBy, field.TypeString, value)
@@ -664,6 +690,26 @@ func (_u *AlertEventUpdateOne) SetNillableSuppressed(v *bool) *AlertEventUpdateO
 	return _u
 }
 
+// SetSuppressedUntil sets the "suppressed_until" field.
+func (_u *AlertEventUpdateOne) SetSuppressedUntil(v time.Time) *AlertEventUpdateOne {
+	_u.mutation.SetSuppressedUntil(v)
+	return _u
+}
+
+// SetNillableSuppressedUntil sets the "suppressed_until" field if the given value is not nil.
+func (_u *AlertEventUpdateOne) SetNillableSuppressedUntil(v *time.Time) *AlertEventUpdateOne {
+	if v != nil {
+		_u.SetSuppressedUntil(*v)
+	}
+	return _u
+}
+
+// ClearSuppressedUntil clears the value of the "suppressed_until" field.
+func (_u *AlertEventUpdateOne) ClearSuppressedUntil() *AlertEventUpdateOne {
+	_u.mutation.ClearSuppressedUntil()
+	return _u
+}
+
 // SetIntervenedBy sets the "intervened_by" field.
 func (_u *AlertEventUpdateOne) SetIntervenedBy(v string) *AlertEventUpdateOne {
 	_u.mutation.SetIntervenedBy(v)
@@ -856,6 +902,12 @@ func (_u *AlertEventUpdateOne) sqlSave(ctx context.Context) (_node *AlertEvent, 
 	}
 	if value, ok := _u.mutation.Suppressed(); ok {
 		_spec.SetField(alertevent.FieldSuppressed, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SuppressedUntil(); ok {
+		_spec.SetField(alertevent.FieldSuppressedUntil, field.TypeTime, value)
+	}
+	if _u.mutation.SuppressedUntilCleared() {
+		_spec.ClearField(alertevent.FieldSuppressedUntil, field.TypeTime)
 	}
 	if value, ok := _u.mutation.IntervenedBy(); ok {
 		_spec.SetField(alertevent.FieldIntervenedBy, field.TypeString, value)

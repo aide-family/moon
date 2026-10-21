@@ -139,6 +139,11 @@ func Suppressed(v bool) predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldEQ(FieldSuppressed, v))
 }
 
+// SuppressedUntil applies equality check predicate on the "suppressed_until" field. It's identical to SuppressedUntilEQ.
+func SuppressedUntil(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldEQ(FieldSuppressedUntil, v))
+}
+
 // IntervenedBy applies equality check predicate on the "intervened_by" field. It's identical to IntervenedByEQ.
 func IntervenedBy(v string) predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldEQ(FieldIntervenedBy, v))
@@ -1102,6 +1107,56 @@ func SuppressedEQ(v bool) predicate.AlertEvent {
 // SuppressedNEQ applies the NEQ predicate on the "suppressed" field.
 func SuppressedNEQ(v bool) predicate.AlertEvent {
 	return predicate.AlertEvent(sql.FieldNEQ(FieldSuppressed, v))
+}
+
+// SuppressedUntilEQ applies the EQ predicate on the "suppressed_until" field.
+func SuppressedUntilEQ(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldEQ(FieldSuppressedUntil, v))
+}
+
+// SuppressedUntilNEQ applies the NEQ predicate on the "suppressed_until" field.
+func SuppressedUntilNEQ(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNEQ(FieldSuppressedUntil, v))
+}
+
+// SuppressedUntilIn applies the In predicate on the "suppressed_until" field.
+func SuppressedUntilIn(vs ...time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldIn(FieldSuppressedUntil, vs...))
+}
+
+// SuppressedUntilNotIn applies the NotIn predicate on the "suppressed_until" field.
+func SuppressedUntilNotIn(vs ...time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNotIn(FieldSuppressedUntil, vs...))
+}
+
+// SuppressedUntilGT applies the GT predicate on the "suppressed_until" field.
+func SuppressedUntilGT(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldGT(FieldSuppressedUntil, v))
+}
+
+// SuppressedUntilGTE applies the GTE predicate on the "suppressed_until" field.
+func SuppressedUntilGTE(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldGTE(FieldSuppressedUntil, v))
+}
+
+// SuppressedUntilLT applies the LT predicate on the "suppressed_until" field.
+func SuppressedUntilLT(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldLT(FieldSuppressedUntil, v))
+}
+
+// SuppressedUntilLTE applies the LTE predicate on the "suppressed_until" field.
+func SuppressedUntilLTE(v time.Time) predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldLTE(FieldSuppressedUntil, v))
+}
+
+// SuppressedUntilIsNil applies the IsNil predicate on the "suppressed_until" field.
+func SuppressedUntilIsNil() predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldIsNull(FieldSuppressedUntil))
+}
+
+// SuppressedUntilNotNil applies the NotNil predicate on the "suppressed_until" field.
+func SuppressedUntilNotNil() predicate.AlertEvent {
+	return predicate.AlertEvent(sql.FieldNotNull(FieldSuppressedUntil))
 }
 
 // IntervenedByEQ applies the EQ predicate on the "intervened_by" field.

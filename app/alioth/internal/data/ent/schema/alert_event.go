@@ -34,6 +34,8 @@ func (AlertEvent) Fields() []ent.Field {
 		field.Time("ends_at").Optional().Nillable(),
 		field.Time("eval_slot"),
 		field.Bool("suppressed").Default(false),
+		// 抑制结束时间。为空表示没有设置时长，仍按旧行为一直抑制。
+		field.Time("suppressed_until").Optional().Nillable(),
 		field.String("intervened_by").Default(""),
 		field.Time("intervened_at").Optional().Nillable(),
 	}

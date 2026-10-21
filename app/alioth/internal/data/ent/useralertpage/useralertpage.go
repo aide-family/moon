@@ -25,6 +25,8 @@ const (
 	FieldUserUID = "user_uid"
 	// FieldAlertPageUID holds the string denoting the alert_page_uid field in the database.
 	FieldAlertPageUID = "alert_page_uid"
+	// FieldSort holds the string denoting the sort field in the database.
+	FieldSort = "sort"
 	// Table holds the table name of the useralertpage in the database.
 	Table = "user_alert_pages"
 )
@@ -38,6 +40,7 @@ var Columns = []string{
 	FieldNamespaceUID,
 	FieldUserUID,
 	FieldAlertPageUID,
+	FieldSort,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -65,6 +68,8 @@ var (
 	UserUIDValidator func(string) error
 	// AlertPageUIDValidator is a validator for the "alert_page_uid" field. It is called by the builders before save.
 	AlertPageUIDValidator func(string) error
+	// DefaultSort holds the default value on creation for the "sort" field.
+	DefaultSort int
 )
 
 // OrderOption defines the ordering options for the UserAlertPage queries.
@@ -103,4 +108,9 @@ func ByUserUID(opts ...sql.OrderTermOption) OrderOption {
 // ByAlertPageUID orders the results by the alert_page_uid field.
 func ByAlertPageUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAlertPageUID, opts...).ToFunc()
+}
+
+// BySort orders the results by the sort field.
+func BySort(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSort, opts...).ToFunc()
 }

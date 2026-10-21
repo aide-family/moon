@@ -732,7 +732,7 @@ message NotificationSubscriptionItem {
   string name = 2;
   // 状态，取值为 ACTIVE 或 DISABLED。
   string status = 3;
-  // 标签匹配器 JSON 对象。所有键值都必须命中事件标签。
+  // 标签匹配器 JSON 对象。所有键值都必须命中事件标签，值按完整匹配正则解释。
   string labels = 4;
   // 告警级别标识。为空表示不限制。
   repeated string level_uids = 5 [json_name = "levelUids"];
@@ -750,7 +750,7 @@ message NotificationSubscriptionItem {
 message CreateNotificationSubscriptionRequest {
   // 名称。
   string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  // 标签匹配器 JSON 对象。
+  // 标签匹配器 JSON 对象，值按完整匹配正则解释。
   string labels = 2 [(buf.validate.field).string.max_len = 4096];
   // 告警级别标识。
   repeated string level_uids = 3 [json_name = "levelUids"];
@@ -774,7 +774,7 @@ message UpdateNotificationSubscriptionRequest {
   string uid = 1 [(buf.validate.field).string.min_len = 1];
   // 名称。
   string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  // 标签匹配器 JSON 对象。
+  // 标签匹配器 JSON 对象，值按完整匹配正则解释。
   string labels = 3 [(buf.validate.field).string.max_len = 4096];
   // 告警级别标识。
   repeated string level_uids = 4 [json_name = "levelUids"];

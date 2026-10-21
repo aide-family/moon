@@ -29,6 +29,8 @@ type UserAlertPage struct {
 	UserUID string `json:"user_uid,omitempty"`
 	// AlertPageUID holds the value of the "alert_page_uid" field.
 	AlertPageUID string `json:"alert_page_uid,omitempty"`
+	// Sort holds the value of the "sort" field.
+	Sort         int `json:"sort,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -37,7 +39,7 @@ func (*UserAlertPage) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case useralertpage.FieldID:
+		case useralertpage.FieldID, useralertpage.FieldSort:
 			values[i] = new(sql.NullInt64)
 		case useralertpage.FieldUID, useralertpage.FieldNamespaceUID, useralertpage.FieldUserUID, useralertpage.FieldAlertPageUID:
 			values[i] = new(sql.NullString)
@@ -100,6 +102,12 @@ func (_m *UserAlertPage) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.AlertPageUID = value.String
 			}
+		case useralertpage.FieldSort:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field sort", values[i])
+			} else if value.Valid {
+				_m.Sort = int(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -153,6 +161,9 @@ func (_m *UserAlertPage) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("alert_page_uid=")
 	builder.WriteString(_m.AlertPageUID)
+	builder.WriteString(", ")
+	builder.WriteString("sort=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Sort))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -2,12 +2,12 @@ package notification
 
 import (
 	"context"
-	"encoding/json"
 	"strings"
 
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/page"
 	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
+	labelsutil "github.com/aide-family/Alioth/pkg/labels"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -94,23 +94,13 @@ func (uc *Usecase) normalizeSubscription(ctx context.Context, in *bo.Notificatio
 			return uc.access.Wrap(err)
 		}
 	}
-	labels := map[string]string{}
-	raw := strings.TrimSpace(in.Labels)
-	if raw != "" && raw != "{}" {
-		if err := json.Unmarshal([]byte(raw), &labels); err != nil {
-			return merr.Invalid("invalid labels")
-		}
-	}
-	if labels == nil {
-		labels = map[string]string{}
-	}
-	normalized, err := json.Marshal(labels)
+	normalized, err := labelsutil.NormalizeMatchers(in.Labels)
 	if err != nil {
-		return merr.Invalid("invalid labels")
+		return err
 	}
 	if len(normalized) > 4096 {
 		return merr.Invalid("labels is too long")
 	}
-	in.Labels = string(normalized)
+	in.Labels = normalized
 	return nil
 }

@@ -17,8 +17,10 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationAlertEventServiceAlertEventRealtimeStats = "/alioth.v1.AlertEventService/AlertEventRealtimeStats"
 const OperationAlertEventServiceAlertEventStats = "/alioth.v1.AlertEventService/AlertEventStats"
 const OperationAlertEventServiceGetAlertEvent = "/alioth.v1.AlertEventService/GetAlertEvent"
+const OperationAlertEventServiceGetAlertEventChart = "/alioth.v1.AlertEventService/GetAlertEventChart"
 const OperationAlertEventServiceInterveneAlertEvent = "/alioth.v1.AlertEventService/InterveneAlertEvent"
 const OperationAlertEventServiceInterveneAlertEvents = "/alioth.v1.AlertEventService/InterveneAlertEvents"
 const OperationAlertEventServiceListAlertEvents = "/alioth.v1.AlertEventService/ListAlertEvents"
@@ -27,10 +29,14 @@ const OperationAlertEventServiceRecoverAlertEvents = "/alioth.v1.AlertEventServi
 const OperationAlertEventServiceSuppressAlertEvent = "/alioth.v1.AlertEventService/SuppressAlertEvent"
 
 type AlertEventServiceHTTPServer interface {
+	// AlertEventRealtimeStats 实时告警页刷新时一次返回已选 Tab 的数量和全局数量，列表不再为每个 Tab 单独查询。
+	AlertEventRealtimeStats(context.Context, *AlertEventRealtimeStatsRequest) (*AlertEventRealtimeStatsResponse, error)
 	// AlertEventStats 统计当前租户的实时、抑制和已恢复数量。
 	AlertEventStats(context.Context, *AlertEventStatsRequest) (*AlertEventStatsResponse, error)
 	// GetAlertEvent 获取一条告警事件。
 	GetAlertEvent(context.Context, *GetAlertEventRequest) (*GetAlertEventResponse, error)
+	// GetAlertEventChart 查询事件开始至今的原始区间数据，用于事件图表。
+	GetAlertEventChart(context.Context, *GetAlertEventChartRequest) (*GetAlertEventChartResponse, error)
 	// InterveneAlertEvent 介入一条实时告警。
 	InterveneAlertEvent(context.Context, *InterveneAlertEventRequest) (*InterveneAlertEventResponse, error)
 	// InterveneAlertEvents 批量介入实时告警。
@@ -49,7 +55,9 @@ func RegisterAlertEventServiceHTTPServer(s *http.Server, srv AlertEventServiceHT
 	r := s.Route("/")
 	r.Handle("GET", "/v1/alert-events", _AlertEventService_ListAlertEvents0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/alert-events/{uid}", _AlertEventService_GetAlertEvent0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/alert-events/{uid}/chart", _AlertEventService_GetAlertEventChart0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/alert-event-stats", _AlertEventService_AlertEventStats0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/alert-event-realtime-stats", _AlertEventService_AlertEventRealtimeStats0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/alert-events/{uid}/intervene", _AlertEventService_InterveneAlertEvent0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/alert-events/intervene", _AlertEventService_InterveneAlertEvents0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/alert-events/{uid}/suppress", _AlertEventService_SuppressAlertEvent0_HTTP_Handler(srv))
@@ -98,6 +106,28 @@ func _AlertEventService_GetAlertEvent0_HTTP_Handler(srv AlertEventServiceHTTPSer
 	}
 }
 
+func _AlertEventService_GetAlertEventChart0_HTTP_Handler(srv AlertEventServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAlertEventChartRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertEventServiceGetAlertEventChart)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAlertEventChart(ctx, req.(*GetAlertEventChartRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAlertEventChartResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AlertEventService_AlertEventStats0_HTTP_Handler(srv AlertEventServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in AlertEventStatsRequest
@@ -113,6 +143,25 @@ func _AlertEventService_AlertEventStats0_HTTP_Handler(srv AlertEventServiceHTTPS
 			return err
 		}
 		reply := out.(*AlertEventStatsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AlertEventService_AlertEventRealtimeStats0_HTTP_Handler(srv AlertEventServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in AlertEventRealtimeStatsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAlertEventServiceAlertEventRealtimeStats)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.AlertEventRealtimeStats(ctx, req.(*AlertEventRealtimeStatsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AlertEventRealtimeStatsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -222,10 +271,14 @@ func _AlertEventService_RecoverAlertEvents0_HTTP_Handler(srv AlertEventServiceHT
 }
 
 type AlertEventServiceHTTPClient interface {
+	// AlertEventRealtimeStats 实时告警页刷新时一次返回已选 Tab 的数量和全局数量，列表不再为每个 Tab 单独查询。
+	AlertEventRealtimeStats(ctx context.Context, req *AlertEventRealtimeStatsRequest, opts ...http.CallOption) (rsp *AlertEventRealtimeStatsResponse, err error)
 	// AlertEventStats 统计当前租户的实时、抑制和已恢复数量。
 	AlertEventStats(ctx context.Context, req *AlertEventStatsRequest, opts ...http.CallOption) (rsp *AlertEventStatsResponse, err error)
 	// GetAlertEvent 获取一条告警事件。
 	GetAlertEvent(ctx context.Context, req *GetAlertEventRequest, opts ...http.CallOption) (rsp *GetAlertEventResponse, err error)
+	// GetAlertEventChart 查询事件开始至今的原始区间数据，用于事件图表。
+	GetAlertEventChart(ctx context.Context, req *GetAlertEventChartRequest, opts ...http.CallOption) (rsp *GetAlertEventChartResponse, err error)
 	// InterveneAlertEvent 介入一条实时告警。
 	InterveneAlertEvent(ctx context.Context, req *InterveneAlertEventRequest, opts ...http.CallOption) (rsp *InterveneAlertEventResponse, err error)
 	// InterveneAlertEvents 批量介入实时告警。
@@ -246,6 +299,23 @@ type AlertEventServiceHTTPClientImpl struct {
 
 func NewAlertEventServiceHTTPClient(client *http.Client) AlertEventServiceHTTPClient {
 	return &AlertEventServiceHTTPClientImpl{client}
+}
+
+// AlertEventRealtimeStats 实时告警页刷新时一次返回已选 Tab 的数量和全局数量，列表不再为每个 Tab 单独查询。
+func (c *AlertEventServiceHTTPClientImpl) AlertEventRealtimeStats(ctx context.Context, in *AlertEventRealtimeStatsRequest, opts ...http.CallOption) (*AlertEventRealtimeStatsResponse, error) {
+	var out AlertEventRealtimeStatsResponse
+	pattern := "/v1/alert-event-realtime-stats"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAlertEventServiceAlertEventRealtimeStats),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // AlertEventStats 统计当前租户的实时、抑制和已恢复数量。
@@ -273,6 +343,23 @@ func (c *AlertEventServiceHTTPClientImpl) GetAlertEvent(ctx context.Context, in 
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationAlertEventServiceGetAlertEvent),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAlertEventChart 查询事件开始至今的原始区间数据，用于事件图表。
+func (c *AlertEventServiceHTTPClientImpl) GetAlertEventChart(ctx context.Context, in *GetAlertEventChartRequest, opts ...http.CallOption) (*GetAlertEventChartResponse, error) {
+	var out GetAlertEventChartResponse
+	pattern := "/v1/alert-events/{uid}/chart"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAlertEventServiceGetAlertEventChart),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

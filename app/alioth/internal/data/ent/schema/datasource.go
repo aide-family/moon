@@ -40,6 +40,10 @@ func (Datasource) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("uid").Unique(),
 		index.Fields("namespace_uid", "name").Unique().Annotations(entsql.IndexWhere("deleted_at IS NULL")),
+		// 同一租户、同一类型、同一地址和索引模式只允许一个启用中的数据源。
+		// 停用的历史数据源保留，便于用户查看或删除，但不能与启用项同时评测。
+		index.Fields("namespace_uid", "type", "endpoint", "index_pattern").Unique().
+			Annotations(entsql.IndexWhere("deleted_at IS NULL AND status = 'ACTIVE'")),
 		index.Fields("namespace_uid"),
 	}
 }

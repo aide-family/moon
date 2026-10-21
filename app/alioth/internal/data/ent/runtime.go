@@ -236,7 +236,7 @@ func init() {
 	// alertevent.DefaultSuppressed holds the default value on creation for the suppressed field.
 	alertevent.DefaultSuppressed = alerteventDescSuppressed.Default.(bool)
 	// alerteventDescIntervenedBy is the schema descriptor for intervened_by field.
-	alerteventDescIntervenedBy := alerteventFields[16].Descriptor()
+	alerteventDescIntervenedBy := alerteventFields[17].Descriptor()
 	// alertevent.DefaultIntervenedBy holds the default value on creation for the intervened_by field.
 	alertevent.DefaultIntervenedBy = alerteventDescIntervenedBy.Default.(string)
 	alerteventfiringFields := schema.AlertEventFiring{}.Fields()
@@ -1484,6 +1484,10 @@ func init() {
 	useralertpageDescAlertPageUID := useralertpageFields[3].Descriptor()
 	// useralertpage.AlertPageUIDValidator is a validator for the "alert_page_uid" field. It is called by the builders before save.
 	useralertpage.AlertPageUIDValidator = useralertpageDescAlertPageUID.Validators[0].(func(string) error)
+	// useralertpageDescSort is the schema descriptor for sort field.
+	useralertpageDescSort := useralertpageFields[4].Descriptor()
+	// useralertpage.DefaultSort holds the default value on creation for the sort field.
+	useralertpage.DefaultSort = useralertpageDescSort.Default.(int)
 	useroauthMixin := schema.UserOAuth{}.Mixin()
 	useroauthMixinFields0 := useroauthMixin[0].Fields()
 	_ = useroauthMixinFields0

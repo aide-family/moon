@@ -137,9 +137,14 @@ func (r *alertPageRepo) ListSelectableByUIDs(ctx context.Context, namespaceUID, 
 }
 
 func (r *alertPageRepo) ListUserAlertPages(ctx context.Context, namespaceUID, userUID string) ([]bo.AlertPage, error) {
+	// 实时告警页的 Tab 顺序由用户拖动决定，读取时按 sort 升序；旧数据全为 0 时按写入时间兜底。
 	links, err := r.client.UserAlertPage.Query().Where(
 		useralertpage.NamespaceUIDEQ(namespaceUID),
 		useralertpage.UserUIDEQ(userUID),
+	).Order(
+		useralertpage.BySort(),
+		useralertpage.ByCreatedAt(),
+		useralertpage.ByID(),
 	).All(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -180,12 +185,13 @@ func (r *alertPageRepo) SetUserAlertPages(ctx context.Context, namespaceUID, use
 	).Exec(ctx); err != nil {
 		return r.fail(err)
 	}
-	for _, pageUID := range pageUIDs {
+	for index, pageUID := range pageUIDs {
 		if _, err := tx.UserAlertPage.Create().
 			SetUID(id.New()).
 			SetNamespaceUID(namespaceUID).
 			SetUserUID(userUID).
 			SetAlertPageUID(pageUID).
+			SetSort(index).
 			Save(ctx); err != nil {
 			return r.fail(err)
 		}

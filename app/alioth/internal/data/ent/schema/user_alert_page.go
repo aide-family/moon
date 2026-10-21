@@ -21,6 +21,8 @@ func (UserAlertPage) Fields() []ent.Field {
 		field.String("namespace_uid").NotEmpty(),
 		field.String("user_uid").NotEmpty(),
 		field.String("alert_page_uid").NotEmpty(),
+		// sort 是用户在实时告警页拖动后的 Tab 顺序，从 0 开始递增。
+		field.Int("sort").Default(0),
 	}
 }
 

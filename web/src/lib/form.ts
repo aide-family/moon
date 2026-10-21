@@ -6,6 +6,11 @@ export function requireTrimmed(value: string, message: string): string | null {
   return null
 }
 
+/** Return an error message when the trimmed value is longer than max characters; otherwise null. */
+export function maxLength(value: string, max: number, message: string): string | null {
+  return Array.from(value.trim()).length > max ? message : null
+}
+
 /** Return an error message when value is empty or the sentinel NONE; otherwise null. */
 export function requireSelected(value: string, message: string): string | null {
   if (value.trim() === "" || value === "NONE") {

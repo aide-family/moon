@@ -27,10 +27,17 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	if err := prepareAlertEventIntervene(ctx, db); err != nil {
 		return err
 	}
+	if err := prepareAlertEventSuppression(ctx, db); err != nil {
+		return err
+	}
 	if err := prepareNotificationTaskChannels(ctx, db); err != nil {
 		return err
 	}
 	if err := dropRuleNotificationGroups(ctx, db); err != nil {
+		return err
+	}
+	disabledSources, err := prepareDatasourceConnections(ctx, db)
+	if err != nil {
 		return err
 	}
 	opts := []entschema.MigrateOption{}
@@ -48,6 +55,9 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	}
 	if err := ensureNotificationAuditFields(ctx, db); err != nil {
 		return err
+	}
+	if err := recoverDisabledDatasourceFiring(ctx, client, disabledSources); err != nil {
+		return databaseErr(slog.Default(), err)
 	}
 	for _, name := range partitionedTables {
 		if err := partitionByCreatedAt(ctx, db, name); err != nil {
@@ -176,6 +186,20 @@ func prepareAlertEventIntervene(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	if _, err := db.ExecContext(ctx, `ALTER TABLE alert_events ADD COLUMN IF NOT EXISTS intervened_at timestamptz NULL`); err != nil {
+		slog.Default().Error(fmt.Sprintf("schema: %v", err))
+		return merr.Server("request failed")
+	}
+	return nil
+}
+
+// prepareAlertEventSuppression 给已分区的告警事件补上抑制到期时间。
+// 分区表会被 Ent 自动迁移跳过，显式 DDL 会作用到父表和所有分区。
+func prepareAlertEventSuppression(ctx context.Context, db *sql.DB) error {
+	kind, err := relationKind(ctx, db, "alert_events")
+	if err != nil || kind == "" {
+		return err
+	}
+	if _, err := db.ExecContext(ctx, `ALTER TABLE alert_events ADD COLUMN IF NOT EXISTS suppressed_until timestamptz NULL`); err != nil {
 		slog.Default().Error(fmt.Sprintf("schema: %v", err))
 		return merr.Server("request failed")
 	}

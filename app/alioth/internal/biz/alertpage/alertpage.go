@@ -2,7 +2,6 @@ package alertpage
 
 import (
 	"context"
-	"encoding/json"
 	"strings"
 
 	"github.com/google/wire"
@@ -13,6 +12,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/page"
 	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
+	labelsutil "github.com/aide-family/Alioth/pkg/labels"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -22,6 +22,8 @@ const (
 	tabMine  = "mine"
 	kindMine = "mine"
 	kindPage = "page"
+	// MaxRealtimeTabs 是实时告警页同时显示的告警页面数量上限，不含固定的「我的告警」。
+	MaxRealtimeTabs = 10
 )
 
 // Usecase 管理告警页面定义与实时 Tab 订阅。
@@ -43,7 +45,7 @@ func (uc *Usecase) Create(ctx context.Context, in bo.AlertPage) (*bo.AlertPage, 
 	if !ok {
 		return nil, merr.Unauthenticated("unauthorized")
 	}
-	labels, err := normalizeLabels(in.Labels)
+	labels, err := labelsutil.NormalizeMatchers(in.Labels)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +74,7 @@ func (uc *Usecase) Update(ctx context.Context, in bo.AlertPage) (*bo.AlertPage, 
 	if existing.OwnerUID != userUID {
 		return nil, merr.Forbidden("forbidden")
 	}
-	labels, err := normalizeLabels(in.Labels)
+	labels, err := labelsutil.NormalizeMatchers(in.Labels)
 	if err != nil {
 		return nil, err
 	}
@@ -168,6 +170,9 @@ func (uc *Usecase) SetMyTabs(ctx context.Context, pageUIDs []string) ([]bo.Realt
 		return nil, merr.Unauthenticated("unauthorized")
 	}
 	unique := uniqueNonEmpty(pageUIDs)
+	if len(unique) > MaxRealtimeTabs {
+		return nil, merr.Invalid("too many alert pages")
+	}
 	if len(unique) > 0 {
 		allowed, err := uc.pages.ListSelectableByUIDs(ctx, ns, userUID, unique)
 		if err != nil {
@@ -194,22 +199,6 @@ func buildTabs(pages []bo.AlertPage) []bo.RealtimeAlertTab {
 		tabs = append(tabs, bo.RealtimeAlertTab{ID: page.UID, Name: page.Name, Kind: kindPage})
 	}
 	return tabs
-}
-
-func normalizeLabels(raw string) (string, error) {
-	raw = strings.TrimSpace(raw)
-	if raw == "" {
-		return "{}", nil
-	}
-	var values map[string]string
-	if err := json.Unmarshal([]byte(raw), &values); err != nil {
-		return "", merr.Invalid("invalid labels")
-	}
-	out, err := json.Marshal(values)
-	if err != nil {
-		return "", merr.Invalid("invalid labels")
-	}
-	return string(out), nil
 }
 
 func uniqueNonEmpty(uids []string) []string {

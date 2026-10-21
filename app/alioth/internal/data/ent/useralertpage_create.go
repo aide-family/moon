@@ -72,6 +72,20 @@ func (_c *UserAlertPageCreate) SetAlertPageUID(v string) *UserAlertPageCreate {
 	return _c
 }
 
+// SetSort sets the "sort" field.
+func (_c *UserAlertPageCreate) SetSort(v int) *UserAlertPageCreate {
+	_c.mutation.SetSort(v)
+	return _c
+}
+
+// SetNillableSort sets the "sort" field if the given value is not nil.
+func (_c *UserAlertPageCreate) SetNillableSort(v *int) *UserAlertPageCreate {
+	if v != nil {
+		_c.SetSort(*v)
+	}
+	return _c
+}
+
 // Mutation returns the UserAlertPageMutation object of the builder.
 func (_c *UserAlertPageCreate) Mutation() *UserAlertPageMutation {
 	return _c.mutation
@@ -115,6 +129,10 @@ func (_c *UserAlertPageCreate) defaults() {
 		v := useralertpage.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.Sort(); !ok {
+		v := useralertpage.DefaultSort
+		_c.mutation.SetSort(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -156,6 +174,9 @@ func (_c *UserAlertPageCreate) check() error {
 		if err := useralertpage.AlertPageUIDValidator(v); err != nil {
 			return &ValidationError{Name: "alert_page_uid", err: fmt.Errorf(`ent: validator failed for field "UserAlertPage.alert_page_uid": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.Sort(); !ok {
+		return &ValidationError{Name: "sort", err: errors.New(`ent: missing required field "UserAlertPage.sort"`)}
 	}
 	return nil
 }
@@ -206,6 +227,10 @@ func (_c *UserAlertPageCreate) createSpec() (*UserAlertPage, *sqlgraph.CreateSpe
 	if value, ok := _c.mutation.AlertPageUID(); ok {
 		_spec.SetField(useralertpage.FieldAlertPageUID, field.TypeString, value)
 		_node.AlertPageUID = value
+	}
+	if value, ok := _c.mutation.Sort(); ok {
+		_spec.SetField(useralertpage.FieldSort, field.TypeInt, value)
+		_node.Sort = value
 	}
 	return _node, _spec
 }

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { formMessage, readFormError } from "@/lib/form-error"
 import { useSearchParams } from "react-router-dom"
@@ -86,6 +86,7 @@ export function AlertDictionaryPage() {
   const query = useListQuery()
   const [params, setParams] = useSearchParams()
   const type = params.get("type") || ""
+  const detailUid = params.get("uid") || ""
   const [draft, setDraft] = useState(query.name)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<AlertDictionaryItem | null>(null)
@@ -105,6 +106,32 @@ export function AlertDictionaryPage() {
     filterKey: `${session.namespaceUid}|${query.name}|${type}`,
     fetch: (page, pageSize) => listAlertDictionaries({ page, pageSize, name: query.name, type }),
   })
+
+  // 实时告警详情的级别名称链接带上 uid，进入本页后直接打开字典项详情。
+  useEffect(() => {
+    if (!detailUid) {
+      return
+    }
+    let active = true
+    async function load() {
+      try {
+        const result = await listAlertDictionaries({ page: 1, pageSize: 100, type: "ALERT" })
+        if (!active) {
+          return
+        }
+        const found = (result.items ?? []).find((item) => item.uid === detailUid)
+        if (found) {
+          setDetail(found)
+        }
+      } catch {
+        // 字典项已删除或无权访问时保持列表，不打开空详情。
+      }
+    }
+    void load()
+    return () => {
+      active = false
+    }
+  }, [detailUid, session.namespaceUid])
 
   function openCreate() {
     setEditing(null)
@@ -373,6 +400,11 @@ export function AlertDictionaryPage() {
         onOpenChange={(value) => {
           if (!value) {
             setDetail(null)
+            if (detailUid) {
+              const next = new URLSearchParams(params)
+              next.delete("uid")
+              setParams(next)
+            }
           }
         }}
         fields={

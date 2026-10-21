@@ -35,12 +35,40 @@ func (s *AlertEventService) GetAlertEvent(ctx context.Context, req *v1.GetAlertE
 	return &v1.GetAlertEventResponse{Event: eventItem(*item)}, nil
 }
 
+func (s *AlertEventService) GetAlertEventChart(ctx context.Context, req *v1.GetAlertEventChartRequest) (*v1.GetAlertEventChartResponse, error) {
+	chart, err := s.events.Chart(ctx, req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetAlertEventChartResponse{
+		DatasourceName: chart.DatasourceName, Expr: chart.Expr,
+		Start: chart.Start, End: chart.End, Step: chart.Step, Body: chart.Body,
+	}, nil
+}
+
 func (s *AlertEventService) AlertEventStats(ctx context.Context, _ *v1.AlertEventStatsRequest) (*v1.AlertEventStatsResponse, error) {
 	stats, err := s.events.Stats(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return &v1.AlertEventStatsResponse{Firing: int32(stats.Firing), Suppressed: int32(stats.Suppressed), Recovered: int32(stats.Recovered)}, nil
+}
+
+func (s *AlertEventService) AlertEventRealtimeStats(ctx context.Context, _ *v1.AlertEventRealtimeStatsRequest) (*v1.AlertEventRealtimeStatsResponse, error) {
+	stats, err := s.events.RealtimeStats(ctx)
+	if err != nil {
+		return nil, err
+	}
+	tabs := make([]*v1.AlertEventRealtimeTabStat, 0, len(stats.Tabs))
+	for _, tab := range stats.Tabs {
+		tabs = append(tabs, &v1.AlertEventRealtimeTabStat{Id: tab.ID, Count: int32(tab.Count)})
+	}
+	return &v1.AlertEventRealtimeStatsResponse{
+		Tabs:       tabs,
+		Firing:     int32(stats.Firing),
+		Suppressed: int32(stats.Suppressed),
+		Recovered:  int32(stats.Recovered),
+	}, nil
 }
 
 func (s *AlertEventService) InterveneAlertEvent(ctx context.Context, req *v1.InterveneAlertEventRequest) (*v1.InterveneAlertEventResponse, error) {
@@ -58,10 +86,15 @@ func (s *AlertEventService) InterveneAlertEvents(ctx context.Context, req *v1.In
 }
 
 func (s *AlertEventService) SuppressAlertEvent(ctx context.Context, req *v1.SuppressAlertEventRequest) (*v1.SuppressAlertEventResponse, error) {
-	if err := s.events.Suppress(ctx, req.GetUid()); err != nil {
+	until, err := s.events.Suppress(ctx, req.GetUid(), req.GetSuppressedSeconds(), req.GetPermanent())
+	if err != nil {
 		return nil, err
 	}
-	return &v1.SuppressAlertEventResponse{}, nil
+	if until.IsZero() {
+		// 永久抑制没有到期时间，返回空字符串让前端显示「永久」。
+		return &v1.SuppressAlertEventResponse{}, nil
+	}
+	return &v1.SuppressAlertEventResponse{SuppressedUntil: until.UTC().Format(time.RFC3339Nano)}, nil
 }
 
 func (s *AlertEventService) RecoverAlertEvent(ctx context.Context, req *v1.RecoverAlertEventRequest) (*v1.RecoverAlertEventResponse, error) {
@@ -95,12 +128,18 @@ func eventItem(item bo.AlertEvent) *v1.AlertEventItem {
 	if item.IntervenedAt != nil {
 		intervenedAt = item.IntervenedAt.UTC().Format(time.RFC3339Nano)
 	}
+	suppressedUntil := ""
+	if item.SuppressedUntil != nil {
+		suppressedUntil = item.SuppressedUntil.UTC().Format(time.RFC3339Nano)
+	}
 	return &v1.AlertEventItem{
-		Uid: item.UID, RuleUid: item.RuleUID, DatasourceUid: item.DatasourceUID, Fingerprint: item.Fingerprint,
+		Uid: item.UID, RuleUid: item.RuleUID, RuleName: item.RuleName, RuleGroupUid: item.RuleGroupUID,
+		DatasourceUid: item.DatasourceUID, DatasourceName: item.DatasourceName, Fingerprint: item.Fingerprint,
 		Status: item.Status, Expr: item.Expr, Labels: item.Labels, Summary: item.Summary, Description: item.Description,
-		SampleValue: item.SampleValue, LevelUid: item.LevelUID, StartsAt: item.StartsAt.UTC().Format(time.RFC3339Nano),
+		SampleValue: item.SampleValue, LevelUid: item.LevelUID, LevelName: item.LevelName, StartsAt: item.StartsAt.UTC().Format(time.RFC3339Nano),
 		EndsAt: ends, EvalSlot: item.EvalSlot.UTC().Format(time.RFC3339Nano), Suppressed: item.Suppressed,
-		IntervenedBy: item.IntervenedBy, IntervenedName: item.IntervenedName, IntervenedAt: intervenedAt,
+		SuppressedUntil: suppressedUntil,
+		IntervenedBy:    item.IntervenedBy, IntervenedName: item.IntervenedName, IntervenedAt: intervenedAt,
 		CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339Nano),
 	}
 }

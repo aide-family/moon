@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"encoding/json"
 	"net/url"
 	"strings"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtemplate"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
+	labelsutil "github.com/aide-family/Alioth/pkg/labels"
 	pkgnotify "github.com/aide-family/Alioth/pkg/notify"
 )
 
@@ -179,25 +179,11 @@ func matchSubscription(subscription *ent.NotificationSubscription, event notifyE
 }
 
 func labelsMatch(selector, eventLabels string) bool {
-	selectorMap := map[string]string{}
-	if strings.TrimSpace(selector) != "" && selector != "{}" {
-		if err := json.Unmarshal([]byte(selector), &selectorMap); err != nil {
-			return false
-		}
-	}
-	if len(selectorMap) == 0 {
-		return true
-	}
-	eventMap := map[string]string{}
-	if err := json.Unmarshal([]byte(eventLabels), &eventMap); err != nil {
+	matched, err := labelsutil.MatchersJSONContained(selector, eventLabels)
+	if err != nil {
 		return false
 	}
-	for key, value := range selectorMap {
-		if eventMap[key] != value {
-			return false
-		}
-	}
-	return true
+	return matched
 }
 
 func containsString(values []string, value string) bool {

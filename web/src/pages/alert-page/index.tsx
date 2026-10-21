@@ -257,6 +257,7 @@ export function AlertPageManagePage() {
                   {t("alertPage.addLabel")}
                 </Button>
               </div>
+              <p className="text-xs text-muted-foreground">{t("alertPage.labelsHint")}</p>
               {labels.map((pair, index) => (
                 <div key={index} className="grid gap-2 sm:grid-cols-2">
                   <Input

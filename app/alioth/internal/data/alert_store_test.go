@@ -81,6 +81,39 @@ func TestAlertStore(t *testing.T) {
 	if !merr.IsConflict(err) {
 		t.Fatalf("duplicate name: %v", err)
 	}
+	// 同一地址即使换个名称或指标驱动也属于同一连接，不能再建。
+	_, err = sources.CreateDatasource(ctx, bo.Datasource{
+		NamespaceUID: ns, Name: "prom-copy", Type: "METRICS", Driver: "METRICS_PROMETHEUS",
+		Endpoint: " http://127.0.0.1:9090/ ",
+	})
+	if !merr.IsConflict(err) {
+		t.Fatalf("duplicate metrics connection: %v", err)
+	}
+	_, err = sources.CreateDatasource(ctx, bo.Datasource{
+		NamespaceUID: ns, Name: "prom-vm", Type: "METRICS", Driver: "METRICS_VICTORIA_METRICS",
+		Endpoint: "http://127.0.0.1:9090",
+	})
+	if !merr.IsConflict(err) {
+		t.Fatalf("duplicate endpoint across metrics drivers: %v", err)
+	}
+	// 同地址不同类型是不同的数据面，允许同时存在。
+	if _, err := sources.CreateDatasource(ctx, bo.Datasource{
+		NamespaceUID: ns, Name: "same-host-logs", Type: "LOGS", Driver: "LOGS_LOKI",
+		Endpoint: "http://127.0.0.1:9090",
+	}); err != nil {
+		t.Fatalf("logs datasource on a metrics host: %v", err)
+	}
+	// 停用后仍占用连接，避免用户用“停用再新增”绕过限制。
+	if _, err := sources.UpdateDatasourceStatus(ctx, ns, created.UID, "DISABLED"); err != nil {
+		t.Fatal(err)
+	}
+	_, err = sources.CreateDatasource(ctx, bo.Datasource{
+		NamespaceUID: ns, Name: "prom-after-disable", Type: "METRICS", Driver: "METRICS_PROMETHEUS",
+		Endpoint: "http://127.0.0.1:9090",
+	})
+	if !merr.IsConflict(err) {
+		t.Fatalf("disabled datasource should keep its connection: %v", err)
+	}
 	loki, err := sources.CreateDatasource(ctx, bo.Datasource{
 		NamespaceUID: ns, Name: "loki", Type: "LOGS", Driver: "LOGS_LOKI",
 		Endpoint: "http://127.0.0.1:3100", Secret: "tenant-token",

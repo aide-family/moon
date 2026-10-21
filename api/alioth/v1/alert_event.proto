@@ -17,9 +17,17 @@ service AlertEventService {
   rpc GetAlertEvent(GetAlertEventRequest) returns (GetAlertEventResponse) {
     option (google.api.http) = {get: "/v1/alert-events/{uid}"};
   }
+  // 查询事件开始至今的原始区间数据，用于事件图表。
+  rpc GetAlertEventChart(GetAlertEventChartRequest) returns (GetAlertEventChartResponse) {
+    option (google.api.http) = {get: "/v1/alert-events/{uid}/chart"};
+  }
   // 统计当前租户的实时、抑制和已恢复数量。
   rpc AlertEventStats(AlertEventStatsRequest) returns (AlertEventStatsResponse) {
     option (google.api.http) = {get: "/v1/alert-event-stats"};
+  }
+  // 实时告警页刷新时一次返回已选 Tab 的数量和全局数量，列表不再为每个 Tab 单独查询。
+  rpc AlertEventRealtimeStats(AlertEventRealtimeStatsRequest) returns (AlertEventRealtimeStatsResponse) {
+    option (google.api.http) = {get: "/v1/alert-event-realtime-stats"};
   }
   // 介入一条实时告警。
   rpc InterveneAlertEvent(InterveneAlertEventRequest) returns (InterveneAlertEventResponse) {
@@ -98,6 +106,16 @@ message AlertEventItem {
   string intervened_at = 18 [json_name = "intervenedAt"];
   // 介入人展示名。优先昵称，其次姓名，再次邮箱。
   string intervened_name = 19 [json_name = "intervenedName"];
+  // 数据源名称。数据源被删除后仍保留历史名称。
+  string datasource_name = 20 [json_name = "datasourceName"];
+  // 规则名称。规则被删除后仍保留历史名称。
+  string rule_name = 21 [json_name = "ruleName"];
+  // 规则所属规则组标识，用于跳转规则详情。
+  string rule_group_uid = 22 [json_name = "ruleGroupUid"];
+  // 告警级别名称。级别被删除后仍保留历史名称。
+  string level_name = 23 [json_name = "levelName"];
+  // 抑制结束时间，RFC3339。未抑制或未设置时长时为空。
+  string suppressed_until = 24 [json_name = "suppressedUntil"];
 }
 
 // 告警分页查询。
@@ -142,6 +160,28 @@ message GetAlertEventResponse {
   AlertEventItem event = 1;
 }
 
+// 要查询图表的告警。
+message GetAlertEventChartRequest {
+  // 标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 告警事件开始至今的原始区间数据。
+message GetAlertEventChartResponse {
+  // 数据源名称。
+  string datasource_name = 1 [json_name = "datasourceName"];
+  // 规则表达式。
+  string expr = 2;
+  // 开始时间，Unix 秒。
+  int64 start = 3;
+  // 结束时间，Unix 秒。
+  int64 end = 4;
+  // 查询步长，秒。
+  int64 step = 5;
+  // 数据源原始响应，通常是指标数据的 JSON 文本。
+  string body = 6;
+}
+
 // 统计不需要参数。
 message AlertEventStatsRequest {}
 
@@ -153,6 +193,29 @@ message AlertEventStatsResponse {
   int32 suppressed = 2;
   // 已恢复数量。
   int32 recovered = 3;
+}
+
+// 实时告警页刷新不需要参数。统计范围由当前用户已选择的 Tab 决定。
+message AlertEventRealtimeStatsRequest {}
+
+// 一个实时 Tab 的告警数量。
+message AlertEventRealtimeTabStat {
+  // Tab 标识，我的告警固定为 mine，其余为告警页面 uid。
+  string id = 1;
+  // 该 Tab 下未抑制的 FIRING 数量。
+  int32 count = 2;
+}
+
+// 实时告警页一次刷新使用的数量统计。
+message AlertEventRealtimeStatsResponse {
+  // 已选择显示的 Tab 数量，首项为我的告警，与 ListMyRealtimeTabs 的顺序一致。
+  repeated AlertEventRealtimeTabStat tabs = 1;
+  // 未抑制的 FIRING 数量。
+  int32 firing = 2;
+  // 已抑制且仍为 FIRING 的数量。
+  int32 suppressed = 3;
+  // 已恢复数量。
+  int32 recovered = 4;
 }
 
 // 要介入的告警。
@@ -177,10 +240,17 @@ message InterveneAlertEventsResponse {}
 message SuppressAlertEventRequest {
   // 标识。
   string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 抑制时长，秒。范围为 0 到 2592000（30 天）；0 表示沿用默认时长，permanent 为真时忽略。
+  int64 suppressed_seconds = 2 [json_name = "suppressedSeconds", (buf.validate.field).int64 = {gte: 0, lte: 2592000}];
+  // 永久抑制。为真时不设置到期时间，直到人工恢复。
+  bool permanent = 3;
 }
 
 // 抑制已记录。
-message SuppressAlertEventResponse {}
+message SuppressAlertEventResponse {
+  // 抑制结束时间，RFC3339。永久抑制时为空。
+  string suppressed_until = 1 [json_name = "suppressedUntil"];
+}
 
 // 要手工恢复的告警。
 message RecoverAlertEventRequest {

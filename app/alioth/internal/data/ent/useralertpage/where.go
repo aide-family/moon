@@ -84,6 +84,11 @@ func AlertPageUID(v string) predicate.UserAlertPage {
 	return predicate.UserAlertPage(sql.FieldEQ(FieldAlertPageUID, v))
 }
 
+// Sort applies equality check predicate on the "sort" field. It's identical to SortEQ.
+func Sort(v int) predicate.UserAlertPage {
+	return predicate.UserAlertPage(sql.FieldEQ(FieldSort, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.UserAlertPage {
 	return predicate.UserAlertPage(sql.FieldEQ(FieldCreatedAt, v))
@@ -422,6 +427,46 @@ func AlertPageUIDEqualFold(v string) predicate.UserAlertPage {
 // AlertPageUIDContainsFold applies the ContainsFold predicate on the "alert_page_uid" field.
 func AlertPageUIDContainsFold(v string) predicate.UserAlertPage {
 	return predicate.UserAlertPage(sql.FieldContainsFold(FieldAlertPageUID, v))
+}
+
+// SortEQ applies the EQ predicate on the "sort" field.
+func SortEQ(v int) predicate.UserAlertPage {
+	return predicate.UserAlertPage(sql.FieldEQ(FieldSort, v))
+}
+
+// SortNEQ applies the NEQ predicate on the "sort" field.
+func SortNEQ(v int) predicate.UserAlertPage {
+	return predicate.UserAlertPage(sql.FieldNEQ(FieldSort, v))
+}
+
+// SortIn applies the In predicate on the "sort" field.
+func SortIn(vs ...int) predicate.UserAlertPage {
+	return predicate.UserAlertPage(sql.FieldIn(FieldSort, vs...))
+}
+
+// SortNotIn applies the NotIn predicate on the "sort" field.
+func SortNotIn(vs ...int) predicate.UserAlertPage {
+	return predicate.UserAlertPage(sql.FieldNotIn(FieldSort, vs...))
+}
+
+// SortGT applies the GT predicate on the "sort" field.
+func SortGT(v int) predicate.UserAlertPage {
+	return predicate.UserAlertPage(sql.FieldGT(FieldSort, v))
+}
+
+// SortGTE applies the GTE predicate on the "sort" field.
+func SortGTE(v int) predicate.UserAlertPage {
+	return predicate.UserAlertPage(sql.FieldGTE(FieldSort, v))
+}
+
+// SortLT applies the LT predicate on the "sort" field.
+func SortLT(v int) predicate.UserAlertPage {
+	return predicate.UserAlertPage(sql.FieldLT(FieldSort, v))
+}
+
+// SortLTE applies the LTE predicate on the "sort" field.
+func SortLTE(v int) predicate.UserAlertPage {
+	return predicate.UserAlertPage(sql.FieldLTE(FieldSort, v))
 }
 
 // And groups predicates with the AND operator between them.

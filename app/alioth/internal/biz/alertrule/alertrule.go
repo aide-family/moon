@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/google/wire"
 
@@ -19,6 +20,9 @@ import (
 )
 
 var ProviderSet = wire.NewSet(NewUsecase)
+
+// maxGroupName 与 proto 校验保持一致，避免绕过 HTTP 的调用写入超长名称。
+const maxGroupName = 64
 
 type Usecase struct {
 	rules        repository.AlertRuleRepo
@@ -37,7 +41,11 @@ func (uc *Usecase) CreateGroup(ctx context.Context, name string) (*bo.AlertRuleG
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.rules.CreateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, Name: strings.TrimSpace(name)})
+	trimmed := strings.TrimSpace(name)
+	if err := validateGroupName(trimmed); err != nil {
+		return nil, err
+	}
+	item, err := uc.rules.CreateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, Name: trimmed})
 	return item, uc.access.Wrap(err)
 }
 
@@ -46,7 +54,11 @@ func (uc *Usecase) UpdateGroup(ctx context.Context, uid, name string) (*bo.Alert
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.rules.UpdateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, UID: uid, Name: strings.TrimSpace(name)})
+	trimmed := strings.TrimSpace(name)
+	if err := validateGroupName(trimmed); err != nil {
+		return nil, err
+	}
+	item, err := uc.rules.UpdateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, UID: uid, Name: trimmed})
 	return item, uc.access.Wrap(err)
 }
 
@@ -87,6 +99,16 @@ func (uc *Usecase) ListGroups(ctx context.Context, pageNo, pageSize int32, name 
 	p, s := page.Normalize(pageNo, pageSize)
 	items, total, err := uc.rules.ListAlertRuleGroups(ctx, ns, p, s, strings.TrimSpace(name))
 	return items, total, p, s, uc.access.Wrap(err)
+}
+
+func validateGroupName(name string) error {
+	if name == "" {
+		return merr.Invalid("invalid request")
+	}
+	if utf8.RuneCountInString(name) > maxGroupName {
+		return merr.Invalid("name is too long")
+	}
+	return nil
 }
 
 // SaveRule 只写规则和级别条件，不写评测批次或告警事件。
@@ -180,7 +202,7 @@ func (uc *Usecase) prepare(ctx context.Context, namespaceUID string, in *bo.Aler
 	if strings.TrimSpace(in.Labels) != "" && !json.Valid([]byte(in.Labels)) {
 		return merr.Invalid("invalid request")
 	}
-	dsLabels, err := labelsutil.NormalizeObject(in.DatasourceLabels)
+	dsLabels, err := labelsutil.NormalizeMatchers(in.DatasourceLabels)
 	if err != nil {
 		return err
 	}

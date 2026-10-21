@@ -53,6 +53,8 @@ type AlertEvent struct {
 	EvalSlot time.Time `json:"eval_slot,omitempty"`
 	// Suppressed holds the value of the "suppressed" field.
 	Suppressed bool `json:"suppressed,omitempty"`
+	// SuppressedUntil holds the value of the "suppressed_until" field.
+	SuppressedUntil *time.Time `json:"suppressed_until,omitempty"`
 	// IntervenedBy holds the value of the "intervened_by" field.
 	IntervenedBy string `json:"intervened_by,omitempty"`
 	// IntervenedAt holds the value of the "intervened_at" field.
@@ -71,7 +73,7 @@ func (*AlertEvent) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case alertevent.FieldUID, alertevent.FieldNamespaceUID, alertevent.FieldRuleUID, alertevent.FieldDatasourceUID, alertevent.FieldFingerprint, alertevent.FieldStatus, alertevent.FieldExpr, alertevent.FieldLabels, alertevent.FieldSummary, alertevent.FieldDescription, alertevent.FieldSampleValue, alertevent.FieldLevelUID, alertevent.FieldIntervenedBy:
 			values[i] = new(sql.NullString)
-		case alertevent.FieldCreatedAt, alertevent.FieldUpdatedAt, alertevent.FieldStartsAt, alertevent.FieldEndsAt, alertevent.FieldEvalSlot, alertevent.FieldIntervenedAt:
+		case alertevent.FieldCreatedAt, alertevent.FieldUpdatedAt, alertevent.FieldStartsAt, alertevent.FieldEndsAt, alertevent.FieldEvalSlot, alertevent.FieldSuppressedUntil, alertevent.FieldIntervenedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -203,6 +205,13 @@ func (_m *AlertEvent) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Suppressed = value.Bool
 			}
+		case alertevent.FieldSuppressedUntil:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field suppressed_until", values[i])
+			} else if value.Valid {
+				_m.SuppressedUntil = new(time.Time)
+				*_m.SuppressedUntil = value.Time
+			}
 		case alertevent.FieldIntervenedBy:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field intervened_by", values[i])
@@ -307,6 +316,11 @@ func (_m *AlertEvent) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("suppressed=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Suppressed))
+	builder.WriteString(", ")
+	if v := _m.SuppressedUntil; v != nil {
+		builder.WriteString("suppressed_until=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("intervened_by=")
 	builder.WriteString(_m.IntervenedBy)

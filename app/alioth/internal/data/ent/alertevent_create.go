@@ -216,6 +216,20 @@ func (_c *AlertEventCreate) SetNillableSuppressed(v *bool) *AlertEventCreate {
 	return _c
 }
 
+// SetSuppressedUntil sets the "suppressed_until" field.
+func (_c *AlertEventCreate) SetSuppressedUntil(v time.Time) *AlertEventCreate {
+	_c.mutation.SetSuppressedUntil(v)
+	return _c
+}
+
+// SetNillableSuppressedUntil sets the "suppressed_until" field if the given value is not nil.
+func (_c *AlertEventCreate) SetNillableSuppressedUntil(v *time.Time) *AlertEventCreate {
+	if v != nil {
+		_c.SetSuppressedUntil(*v)
+	}
+	return _c
+}
+
 // SetIntervenedBy sets the "intervened_by" field.
 func (_c *AlertEventCreate) SetIntervenedBy(v string) *AlertEventCreate {
 	_c.mutation.SetIntervenedBy(v)
@@ -503,6 +517,10 @@ func (_c *AlertEventCreate) createSpec() (*AlertEvent, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Suppressed(); ok {
 		_spec.SetField(alertevent.FieldSuppressed, field.TypeBool, value)
 		_node.Suppressed = value
+	}
+	if value, ok := _c.mutation.SuppressedUntil(); ok {
+		_spec.SetField(alertevent.FieldSuppressedUntil, field.TypeTime, value)
+		_node.SuppressedUntil = &value
 	}
 	if value, ok := _c.mutation.IntervenedBy(); ok {
 		_spec.SetField(alertevent.FieldIntervenedBy, field.TypeString, value)

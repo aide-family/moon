@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/google/wire"
@@ -24,6 +25,13 @@ const (
 	EvalInterval = 15 * time.Second
 	// ScheduleLockKey 是到期扫描使用的锁。玉衡不持有评测锁。
 	ScheduleLockKey = "alioth:lock:schedule:eval"
+	// tabMineID 是实时告警页固定的「我的告警」Tab 标识。
+	tabMineID = "mine"
+	// SuppressDefaultSeconds 是调用方没有传抑制时长时使用的默认值，保持旧接口可用。
+	SuppressDefaultSeconds int64 = 30 * 60
+	// SuppressMinSeconds 和 SuppressMaxSeconds 是允许的抑制时长范围，30 天。
+	SuppressMinSeconds int64 = 60
+	SuppressMaxSeconds int64 = 30 * 24 * 60 * 60
 )
 
 var ProviderSet = wire.NewSet(NewUsecase)
@@ -233,6 +241,58 @@ func (uc *Usecase) ruleUIDsForCurrentUser(ctx context.Context, namespaceUID stri
 	return uids, nil
 }
 
+// Chart 用事件对应的数据源和规则表达式查询事件开始至今的原始区间数据。
+// 图表是告警详情的只读部分，按告警读权限放行，不要求额外的数据源权限。
+func (uc *Usecase) Chart(ctx context.Context, uid string) (*bo.AlertEventChart, error) {
+	ns, err := uc.access.Allow(ctx, perm.AlertRead)
+	if err != nil {
+		return nil, err
+	}
+	event, err := uc.events.GetEvent(ctx, ns, uid)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	if event.DatasourceUID == "" || strings.TrimSpace(event.Expr) == "" {
+		return nil, merr.Invalid("invalid request")
+	}
+	source, err := uc.datasources.GetDatasource(ctx, ns, event.DatasourceUID)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	if source.Type != "METRICS" {
+		return nil, merr.Invalid("datasource is not metrics")
+	}
+	start, end, step := chartWindow(event.StartsAt, time.Now())
+	body, err := uc.datasources.RangeQuery(ctx, *source, event.Expr, start, end, step)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	return &bo.AlertEventChart{
+		DatasourceName: source.Name, Expr: event.Expr,
+		Start: start, End: end, Step: step, Body: body,
+	}, nil
+}
+
+// chartWindow 把事件开始时间到当前时间切成最多 300 个点，步长向上取整到 15 秒，
+// 既保持曲线细节，又避免长事件拉取过多样本。
+func chartWindow(startsAt, now time.Time) (int64, int64, int64) {
+	start := startsAt.UTC().Unix()
+	end := now.UTC().Unix()
+	if end <= start {
+		end = start + 1
+	}
+	const (
+		minStep   = int64(15)
+		maxPoints = int64(300)
+	)
+	step := minStep
+	if span := end - start; span > maxPoints*minStep {
+		step = (span + maxPoints - 1) / maxPoints
+		step = ((step + minStep - 1) / minStep) * minStep
+	}
+	return start, end, step
+}
+
 func (uc *Usecase) Get(ctx context.Context, uid string) (*bo.AlertEvent, error) {
 	ns, err := uc.access.Allow(ctx, perm.AlertRead)
 	if err != nil {
@@ -251,6 +311,58 @@ func (uc *Usecase) Stats(ctx context.Context) (bo.AlertStats, error) {
 	return stats, uc.access.Wrap(err)
 }
 
+// RealtimeStats 返回实时告警页一次刷新所需的全部数量：已选 Tab 的数量和全局数量。
+// 只统计当前用户已选择显示的页面，未选择的页面不参与查询；这里只做 count，不读列表数据。
+func (uc *Usecase) RealtimeStats(ctx context.Context) (bo.RealtimeAlertStats, error) {
+	ns, err := uc.access.Allow(ctx, perm.AlertRead)
+	if err != nil {
+		return bo.RealtimeAlertStats{}, err
+	}
+	userUID, ok := actor.UserID(ctx)
+	if !ok {
+		return bo.RealtimeAlertStats{}, merr.Unauthenticated("unauthorized")
+	}
+	pages, err := uc.pages.ListUserAlertPages(ctx, ns, userUID)
+	if err != nil {
+		return bo.RealtimeAlertStats{}, uc.access.Wrap(err)
+	}
+	stats, err := uc.events.Stats(ctx, ns)
+	if err != nil {
+		return bo.RealtimeAlertStats{}, uc.access.Wrap(err)
+	}
+	out := bo.RealtimeAlertStats{
+		Tabs:       make([]bo.RealtimeAlertTabCount, 0, len(pages)+1),
+		Firing:     stats.Firing,
+		Suppressed: stats.Suppressed,
+		Recovered:  stats.Recovered,
+	}
+
+	ruleUIDs, err := uc.ruleUIDsForCurrentUser(ctx, ns)
+	if err != nil {
+		return bo.RealtimeAlertStats{}, err
+	}
+	mineCount, err := uc.events.CountEvents(ctx, ns, bo.AlertEventListFilter{
+		View:          "REALTIME",
+		FilterByRules: true,
+		RuleUIDs:      ruleUIDs,
+	})
+	if err != nil {
+		return bo.RealtimeAlertStats{}, uc.access.Wrap(err)
+	}
+	out.Tabs = append(out.Tabs, bo.RealtimeAlertTabCount{ID: tabMineID, Count: mineCount})
+	for _, item := range pages {
+		count, err := uc.events.CountEvents(ctx, ns, bo.AlertEventListFilter{
+			View:       "REALTIME",
+			LabelsJSON: item.Labels,
+		})
+		if err != nil {
+			return bo.RealtimeAlertStats{}, uc.access.Wrap(err)
+		}
+		out.Tabs = append(out.Tabs, bo.RealtimeAlertTabCount{ID: item.UID, Count: count})
+	}
+	return out, nil
+}
+
 func (uc *Usecase) Intervene(ctx context.Context, uids []string) error {
 	ns, err := uc.access.Allow(ctx, perm.AlertIntervene)
 	if err != nil {
@@ -260,12 +372,24 @@ func (uc *Usecase) Intervene(ctx context.Context, uids []string) error {
 	return uc.access.Wrap(uc.events.Intervene(ctx, ns, uids, userUID))
 }
 
-func (uc *Usecase) Suppress(ctx context.Context, uid string) error {
+// Suppress 抑制一条实时告警，并返回抑制到期时间。permanent 为真时不设到期时间。
+// 时长为 0 时使用默认值，兼容还没传时长的旧客户端。
+func (uc *Usecase) Suppress(ctx context.Context, uid string, seconds int64, permanent bool) (time.Time, error) {
 	ns, err := uc.access.Allow(ctx, perm.AlertIntervene)
 	if err != nil {
-		return err
+		return time.Time{}, err
 	}
-	return uc.access.Wrap(uc.events.Suppress(ctx, ns, uid))
+	if permanent {
+		return time.Time{}, uc.access.Wrap(uc.events.Suppress(ctx, ns, uid, nil))
+	}
+	if seconds == 0 {
+		seconds = SuppressDefaultSeconds
+	}
+	if seconds < SuppressMinSeconds || seconds > SuppressMaxSeconds {
+		return time.Time{}, merr.Invalid("invalid request")
+	}
+	until := time.Now().UTC().Add(time.Duration(seconds) * time.Second)
+	return until, uc.access.Wrap(uc.events.Suppress(ctx, ns, uid, &until))
 }
 
 func (uc *Usecase) Recover(ctx context.Context, uids []string) error {

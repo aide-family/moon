@@ -76,6 +76,27 @@ func (_u *UserAlertPageUpdate) SetNillableAlertPageUID(v *string) *UserAlertPage
 	return _u
 }
 
+// SetSort sets the "sort" field.
+func (_u *UserAlertPageUpdate) SetSort(v int) *UserAlertPageUpdate {
+	_u.mutation.ResetSort()
+	_u.mutation.SetSort(v)
+	return _u
+}
+
+// SetNillableSort sets the "sort" field if the given value is not nil.
+func (_u *UserAlertPageUpdate) SetNillableSort(v *int) *UserAlertPageUpdate {
+	if v != nil {
+		_u.SetSort(*v)
+	}
+	return _u
+}
+
+// AddSort adds value to the "sort" field.
+func (_u *UserAlertPageUpdate) AddSort(v int) *UserAlertPageUpdate {
+	_u.mutation.AddSort(v)
+	return _u
+}
+
 // Mutation returns the UserAlertPageMutation object of the builder.
 func (_u *UserAlertPageUpdate) Mutation() *UserAlertPageMutation {
 	return _u.mutation
@@ -161,6 +182,12 @@ func (_u *UserAlertPageUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	if value, ok := _u.mutation.AlertPageUID(); ok {
 		_spec.SetField(useralertpage.FieldAlertPageUID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Sort(); ok {
+		_spec.SetField(useralertpage.FieldSort, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSort(); ok {
+		_spec.AddField(useralertpage.FieldSort, field.TypeInt, value)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{useralertpage.Label}
@@ -226,6 +253,27 @@ func (_u *UserAlertPageUpdateOne) SetNillableAlertPageUID(v *string) *UserAlertP
 	if v != nil {
 		_u.SetAlertPageUID(*v)
 	}
+	return _u
+}
+
+// SetSort sets the "sort" field.
+func (_u *UserAlertPageUpdateOne) SetSort(v int) *UserAlertPageUpdateOne {
+	_u.mutation.ResetSort()
+	_u.mutation.SetSort(v)
+	return _u
+}
+
+// SetNillableSort sets the "sort" field if the given value is not nil.
+func (_u *UserAlertPageUpdateOne) SetNillableSort(v *int) *UserAlertPageUpdateOne {
+	if v != nil {
+		_u.SetSort(*v)
+	}
+	return _u
+}
+
+// AddSort adds value to the "sort" field.
+func (_u *UserAlertPageUpdateOne) AddSort(v int) *UserAlertPageUpdateOne {
+	_u.mutation.AddSort(v)
 	return _u
 }
 
@@ -343,6 +391,12 @@ func (_u *UserAlertPageUpdateOne) sqlSave(ctx context.Context) (_node *UserAlert
 	}
 	if value, ok := _u.mutation.AlertPageUID(); ok {
 		_spec.SetField(useralertpage.FieldAlertPageUID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Sort(); ok {
+		_spec.SetField(useralertpage.FieldSort, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedSort(); ok {
+		_spec.AddField(useralertpage.FieldSort, field.TypeInt, value)
 	}
 	_node = &UserAlertPage{config: _u.config}
 	_spec.Assign = _node.assignValues

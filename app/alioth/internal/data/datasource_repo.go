@@ -9,6 +9,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/alertdictionary"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/Alioth/app/alioth/pkg/endpoint"
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
 	labelsutil "github.com/aide-family/Alioth/pkg/labels"
 	"github.com/aide-family/Alioth/pkg/merr"
@@ -17,6 +18,10 @@ import (
 func (r *datasourceRepo) CreateDatasource(ctx context.Context, in bo.Datasource) (*bo.Datasource, error) {
 	kind, driver, status, err := datasourceEnums(in.Type, in.Driver, "ACTIVE")
 	if err != nil {
+		return nil, err
+	}
+	in.Endpoint = endpoint.Normalize(in.Endpoint)
+	if err := r.requireUniqueConnection(ctx, in.NamespaceUID, string(kind), in.Endpoint, in.IndexPattern, ""); err != nil {
 		return nil, err
 	}
 	password, err := r.box.encrypt(in.Password)
@@ -63,6 +68,10 @@ func (r *datasourceRepo) UpdateDatasource(ctx context.Context, in bo.Datasource)
 	if err != nil {
 		return nil, err
 	}
+	in.Endpoint = endpoint.Normalize(in.Endpoint)
+	if err := r.requireUniqueConnection(ctx, in.NamespaceUID, string(kind), in.Endpoint, in.IndexPattern, in.UID); err != nil {
+		return nil, err
+	}
 	password := row.PasswordCipher
 	if in.Password != "" {
 		password, err = r.box.encrypt(in.Password)
@@ -97,12 +106,48 @@ func (r *datasourceRepo) UpdateDatasource(ctx context.Context, in bo.Datasource)
 	return r.present(ctx, updated, true)
 }
 
+// requireUniqueConnection 拒绝同租户、同类型、同地址和同索引模式的数据源。
+// 判断范围包含已停用但未删除的数据源，避免用户通过停用一个再新增另一个绕过限制。
+func (r *datasourceRepo) requireUniqueConnection(ctx context.Context, namespaceUID, kind, endpoint, indexPattern, excludeUID string) error {
+	query := r.client.Datasource.Query().Where(
+		datasource.NamespaceUIDEQ(namespaceUID),
+		datasource.TypeEQ(datasource.Type(kind)),
+		datasource.EndpointEQ(endpoint),
+		datasource.IndexPatternEQ(indexPattern),
+		datasource.DeletedAtIsNil(),
+	)
+	if excludeUID != "" {
+		query = query.Where(datasource.UIDNEQ(excludeUID))
+	}
+	exists, err := query.Exist(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	if exists {
+		return merr.Conflict("datasource connection already exists")
+	}
+	return nil
+}
+
 func (r *datasourceRepo) UpdateDatasourceStatus(ctx context.Context, namespaceUID, uid, status string) (*bo.Datasource, error) {
 	value := datasource.StatusACTIVE
 	if status == "DISABLED" {
 		value = datasource.StatusDISABLED
 	} else if status != "ACTIVE" {
 		return nil, merr.Invalid("invalid request")
+	}
+	if value == datasource.StatusACTIVE {
+		row, err := r.client.Datasource.Query().Where(
+			datasource.NamespaceUIDEQ(namespaceUID),
+			datasource.UIDEQ(uid),
+			datasource.DeletedAtIsNil(),
+		).Only(ctx)
+		if err != nil {
+			return nil, r.fail(err)
+		}
+		if err := r.requireUniqueConnection(ctx, namespaceUID, string(row.Type), row.Endpoint, row.IndexPattern, uid); err != nil {
+			return nil, err
+		}
 	}
 	n, err := r.client.Datasource.Update().Where(
 		datasource.NamespaceUIDEQ(namespaceUID),

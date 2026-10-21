@@ -4,12 +4,14 @@ import (
 	"context"
 	"net/url"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/google/wire"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/access"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+	"github.com/aide-family/Alioth/app/alioth/pkg/endpoint"
 	"github.com/aide-family/Alioth/app/alioth/pkg/page"
 	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
 	labelsutil "github.com/aide-family/Alioth/pkg/labels"
@@ -23,6 +25,8 @@ const (
 	defaultLogLimit = 100
 	// maxLogLimit 是单次日志查询允许返回的最大条数。
 	maxLogLimit = 5000
+	// maxDatasourceName 与 proto 校验保持一致，避免绕过 HTTP 的调用写入超长名称。
+	maxDatasourceName = 64
 )
 
 type Usecase struct {
@@ -43,10 +47,10 @@ func (uc *Usecase) CreateDatasource(ctx context.Context, in bo.Datasource) (*bo.
 	if err != nil {
 		return nil, err
 	}
+	normalizeDatasource(&in)
 	if err := validateDatasource(in); err != nil {
 		return nil, err
 	}
-	normalizeDatasource(&in)
 	if err := uc.requireDatasourceLevel(ctx, ns, in.LevelUID); err != nil {
 		return nil, err
 	}
@@ -56,7 +60,6 @@ func (uc *Usecase) CreateDatasource(ctx context.Context, in bo.Datasource) (*bo.
 	}
 	in.Labels = labels
 	in.NamespaceUID = ns
-	in.Name = strings.TrimSpace(in.Name)
 	item, err := uc.datasources.CreateDatasource(ctx, in)
 	return redact(item), uc.access.Wrap(err)
 }
@@ -66,10 +69,10 @@ func (uc *Usecase) UpdateDatasource(ctx context.Context, in bo.Datasource) (*bo.
 	if err != nil {
 		return nil, err
 	}
+	normalizeDatasource(&in)
 	if err := validateDatasource(in); err != nil {
 		return nil, err
 	}
-	normalizeDatasource(&in)
 	if err := uc.requireDatasourceLevel(ctx, ns, in.LevelUID); err != nil {
 		return nil, err
 	}
@@ -79,7 +82,6 @@ func (uc *Usecase) UpdateDatasource(ctx context.Context, in bo.Datasource) (*bo.
 	}
 	in.Labels = labels
 	in.NamespaceUID = ns
-	in.Name = strings.TrimSpace(in.Name)
 	item, err := uc.datasources.UpdateDatasource(ctx, in)
 	return redact(item), uc.access.Wrap(err)
 }
@@ -308,6 +310,12 @@ func validateDatasource(in bo.Datasource) error {
 	if !DriverMatches(in.Type, in.Driver) {
 		return merr.Invalid("invalid request")
 	}
+	if in.Name == "" {
+		return merr.Invalid("invalid request")
+	}
+	if utf8.RuneCountInString(in.Name) > maxDatasourceName {
+		return merr.Invalid("name is too long")
+	}
 	// 地址必须能被数据层拼成上游请求。`htp://` 这类拼写错误如果放进来，
 	// 要等到用户点查询才在数据层报 invalid request，保存时就该拒绝。
 	endpoint, err := url.Parse(strings.TrimSpace(in.Endpoint))
@@ -317,8 +325,11 @@ func validateDatasource(in bo.Datasource) error {
 	return nil
 }
 
-// normalizeDatasource 清理只在 Elasticsearch 上生效的设置，避免切换驱动后留下旧值。
+// normalizeDatasource 清理名称和地址，并清理只在 Elasticsearch 上生效的设置，
+// 避免切换驱动后留下旧值。地址去掉末尾斜杠后再做唯一性判断。
 func normalizeDatasource(in *bo.Datasource) {
+	in.Name = strings.TrimSpace(in.Name)
+	in.Endpoint = endpoint.Normalize(in.Endpoint)
 	in.IndexPattern = strings.TrimSpace(in.IndexPattern)
 	in.TimeField = strings.TrimSpace(in.TimeField)
 	if in.Driver != "LOGS_ELASTICSEARCH" {

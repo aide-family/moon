@@ -143,6 +143,28 @@ func TestNotificationTaskDedup(t *testing.T) {
 		t.Fatalf("phases = %v", phases)
 	}
 
+	// 停用数据源会把仍在触发的事件收口，并给命中的订阅补发恢复通知。
+	if err := events.ApplyReport(ctx, *rule, bo.EvalReport{
+		RuleUID: rule.UID, DatasourceUID: "ds1", EvalSlot: slot.Add(2 * time.Minute),
+		Hits: []bo.EvalHit{{Fingerprint: "fp3", Labels: "{}", Value: "1", LevelUID: "lv"}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := events.RecoverSource(ctx, ns, nil, []string{"ds1"}, nil); err != nil {
+		t.Fatal(err)
+	}
+	tasks, _, err = notify.ListTasks(ctx, ns, "", 1, 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	phases = map[string]int{}
+	for _, task := range tasks {
+		phases[task.Phase]++
+	}
+	if phases["FIRING"] != 2 || phases["RECOVERED"] != 2 {
+		t.Fatalf("phases after source recovery = %v", phases)
+	}
+
 	if _, err := notify.UpdateGroupStatus(ctx, ns, group.UID, "DISABLED"); err != nil {
 		t.Fatal(err)
 	}

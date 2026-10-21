@@ -56,7 +56,7 @@ message AlertPageItem {
   string name = 2;
   // 创建者用户标识。
   string owner_uid = 3 [json_name = "ownerUid"];
-  // 标签匹配 JSON 对象，例如 {"env":"prod"}。
+  // 标签匹配 JSON 对象，值为完整匹配正则，例如 {"env":"prod"}。
   string labels = 4;
   // 是否公开。公开后同租户其他人可选用。
   bool public = 5;
@@ -78,7 +78,7 @@ message RealtimeAlertTab {
 message CreateAlertPageRequest {
   // 名称。
   string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  // 标签匹配 JSON 对象。
+  // 标签匹配 JSON 对象，值为完整匹配正则。
   string labels = 2 [(buf.validate.field).string.max_len = 4096];
   // 是否公开。
   bool public = 3;
@@ -98,7 +98,7 @@ message UpdateAlertPageRequest {
   string uid = 1 [(buf.validate.field).string.min_len = 1];
   // 名称。
   string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  // 标签匹配 JSON 对象。
+  // 标签匹配 JSON 对象，值为完整匹配正则。
   string labels = 3 [(buf.validate.field).string.max_len = 4096];
   // 是否公开。
   bool public = 4;
@@ -168,8 +168,8 @@ message ListMyRealtimeTabsResponse {
 
 // 设置要显示的告警页面。
 message SetMyRealtimeTabsRequest {
-  // 要显示的告警页面标识列表。不含 mine。
-  repeated string alert_page_uids = 1 [json_name = "alertPageUids"];
+  // 要显示的告警页面标识列表。不含 mine，最多 10 个。
+  repeated string alert_page_uids = 1 [json_name = "alertPageUids", (buf.validate.field).repeated.max_items = 10];
 }
 
 // 设置结果。
