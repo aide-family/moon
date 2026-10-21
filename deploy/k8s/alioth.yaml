@@ -1,3 +1,5 @@
+# 示例 Secret。生产环境不要提交真实值：用 External Secrets / Sealed Secrets
+# 或 `kubectl create secret generic alioth-auth --from-literal=...` 覆盖后再部署。
 apiVersion: v1
 kind: Secret
 metadata:
@@ -5,10 +7,10 @@ metadata:
   namespace: alioth
 type: Opaque
 stringData:
-  JWT_SECRET: change-me-jwt
-  ENCRYPT_KEY: "0123456789abcdef0123456789abcdef"
-  MEGREZ_SERVICE_KEY: sk-megrez-prod
-  MERAK_SERVICE_KEY: sk-merak-prod
+  JWT_SECRET: replace-me-with-32-bytes-of-random
+  ENCRYPT_KEY: replace-me-with-32-bytes-of-random
+  MEGREZ_SERVICE_KEY: sk-megrez-replace-me
+  MERAK_SERVICE_KEY: sk-merak-replace-me
   WEB_URL: http://alioth.example.com
 ---
 apiVersion: apps/v1
@@ -16,8 +18,16 @@ kind: Deployment
 metadata:
   name: alioth
   namespace: alioth
+  labels:
+    app: alioth
 spec:
   replicas: 2
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app: alioth
@@ -26,9 +36,18 @@ spec:
       labels:
         app: alioth
     spec:
+      # 优雅退出：10s StopTimeout 之外再留出边缘请求与 shell 会话收尾时间。
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: alioth
           image: alioth/alioth:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8000
@@ -71,16 +90,37 @@ spec:
                 secretKeyRef:
                   name: alioth-auth
                   key: MERAK_SERVICE_KEY
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          startupProbe:
+            httpGet:
+              path: /livez
+              port: http
+            failureThreshold: 30
+            periodSeconds: 2
+          # readiness 查依赖（PG/Redis），liveness 只查进程，避免依赖抖动导致重启风暴。
           readinessProbe:
             httpGet:
-              path: /health
+              path: /readyz
               port: http
             periodSeconds: 5
+            timeoutSeconds: 3
           livenessProbe:
             httpGet:
-              path: /health
+              path: /livez
               port: http
             periodSeconds: 10
+            timeoutSeconds: 3
 ---
 apiVersion: v1
 kind: Service

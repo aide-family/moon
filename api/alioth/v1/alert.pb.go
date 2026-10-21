@@ -4665,12 +4665,13 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	" \x01(\tR\asummary\x12 \n" +
 	"\vdescription\x18\v \x01(\tR\vdescription\x125\n" +
 	"\x06levels\x18\f \x03(\v2\x1d.alioth.v1.AlertRuleLevelItemR\x06levels\x12+\n" +
-	"\x11datasource_labels\x18\x0e \x01(\tR\x10datasourceLabelsJ\x04\b\r\x10\x0eR\x17notification_group_uids\"\xb9\x04\n" +
+	"\x11datasource_labels\x18\x0e \x01(\tR\x10datasourceLabelsJ\x04\b\r\x10\x0eR\x17notification_group_uids\"\xc6\x04\n" +
 	"\x16CreateAlertRuleRequest\x12$\n" +
 	"\tgroup_uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bgroupUid\x12\x1d\n" +
 	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12/\n" +
-	"\x04type\x18\x03 \x01(\tB\x1b\xbaH\x18r\x16R\aMETRICSR\x04LOGSR\x05TRACER\x04type\x12x\n" +
-	"\x06driver\x18\x04 \x01(\tB`\xbaH]r[R\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\fTRACE_JAEGERR\x06driver\x12\x12\n" +
+	"\x04type\x18\x03 \x01(\tB\x1b\xbaH\x18r\x16R\aMETRICSR\x04LOGSR\x05TRACER\x04type\x12\x84\x01\n" +
+	"\x06driver\x18\x04 \x01(\tBl\xbaHirgR\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\n" +
+	"LOGS_VLOGSR\fTRACE_JAEGERR\x06driver\x12\x12\n" +
 	"\x04expr\x18\x05 \x01(\tR\x04expr\x12\x16\n" +
 	"\x06labels\x18\x06 \x01(\tR\x06labels\x12%\n" +
 	"\x0edatasource_uid\x18\a \x01(\tR\rdatasourceUid\x12\"\n" +
@@ -4680,13 +4681,14 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	" \x03(\v2\x1e.alioth.v1.AlertRuleLevelInputR\x06levels\x125\n" +
 	"\x11datasource_labels\x18\f \x01(\tB\b\xbaH\x05r\x03\x18\x80 R\x10datasourceLabelsJ\x04\b\v\x10\fR\x17notification_group_uids\"G\n" +
 	"\x17CreateAlertRuleResponse\x12,\n" +
-	"\x04rule\x18\x01 \x01(\v2\x18.alioth.v1.AlertRuleItemR\x04rule\"\xd4\x04\n" +
+	"\x04rule\x18\x01 \x01(\v2\x18.alioth.v1.AlertRuleItemR\x04rule\"\xe1\x04\n" +
 	"\x16UpdateAlertRuleRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12$\n" +
 	"\tgroup_uid\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bgroupUid\x12\x1d\n" +
 	"\x04name\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12/\n" +
-	"\x04type\x18\x04 \x01(\tB\x1b\xbaH\x18r\x16R\aMETRICSR\x04LOGSR\x05TRACER\x04type\x12x\n" +
-	"\x06driver\x18\x05 \x01(\tB`\xbaH]r[R\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\fTRACE_JAEGERR\x06driver\x12\x12\n" +
+	"\x04type\x18\x04 \x01(\tB\x1b\xbaH\x18r\x16R\aMETRICSR\x04LOGSR\x05TRACER\x04type\x12\x84\x01\n" +
+	"\x06driver\x18\x05 \x01(\tBl\xbaHirgR\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\n" +
+	"LOGS_VLOGSR\fTRACE_JAEGERR\x06driver\x12\x12\n" +
 	"\x04expr\x18\x06 \x01(\tR\x04expr\x12\x16\n" +
 	"\x06labels\x18\a \x01(\tR\x06labels\x12%\n" +
 	"\x0edatasource_uid\x18\b \x01(\tR\rdatasourceUid\x12\"\n" +

@@ -19,3 +19,8 @@ func NewHealthService(uc *health.Usecase) *HealthService {
 func (s *HealthService) Check(context.Context, *v1.CheckRequest) (*v1.CheckResponse, error) {
 	return &v1.CheckResponse{Status: s.uc.Status()}, nil
 }
+
+// Ready 供 /readyz 使用：检查 PostgreSQL 与 Redis 是否可达。
+func (s *HealthService) Ready(ctx context.Context) error {
+	return s.uc.Ready(ctx)
+}

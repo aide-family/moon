@@ -23,7 +23,7 @@ func NewLocker(c *conf.Redis, logger *slog.Logger) (repository.Locker, func(), e
 	if c == nil || c.GetAddr() == "" {
 		return nil, nil, merr.Server("redis addr is empty")
 	}
-	rdb := redis.NewClient(&redis.Options{Addr: c.GetAddr(), Password: c.GetPassword()})
+	rdb := lock.NewRedisClient(c.GetAddr(), c.GetPassword())
 	cleanup := func() {
 		if err := rdb.Close(); err != nil {
 			logger.Error(fmt.Sprintf("close redis: %v", err))

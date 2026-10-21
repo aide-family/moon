@@ -17,6 +17,9 @@ import (
 	"github.com/aide-family/Alioth/pkg/bootstrap"
 )
 
+// version 由构建注入：-ldflags "-X main.version=v1.2.3"。
+var version = "dev"
+
 func main() {
 	var confPath string
 	cmd := &cobra.Command{
@@ -31,6 +34,13 @@ func main() {
 		Short: "Run the health server and notification worker",
 		RunE: func(*cobra.Command, []string) error {
 			return serve(confPath)
+		},
+	})
+	cmd.AddCommand(&cobra.Command{
+		Use:   "version",
+		Short: "Print the build version",
+		Run: func(*cobra.Command, []string) {
+			fmt.Println(version)
 		},
 	})
 	cmd.PersistentFlags().StringVar(&confPath, "conf", "configs/config.yaml", "bootstrap config path")

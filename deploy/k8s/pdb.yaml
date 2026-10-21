@@ -1,0 +1,44 @@
+# PDB 保证滚动更新/节点 drain 时每类服务至少留一个可用副本。
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: alioth
+  namespace: alioth
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: alioth
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: megrez
+  namespace: alioth
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: megrez
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: merak
+  namespace: alioth
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: merak
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: web
+  namespace: alioth
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: web

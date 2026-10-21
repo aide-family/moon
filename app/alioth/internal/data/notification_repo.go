@@ -558,17 +558,13 @@ func (r *notificationRepo) ListTasks(ctx context.Context, namespaceUID, status s
 }
 
 func (r *notificationRepo) RetryTask(ctx context.Context, namespaceUID, uid string) (*bo.NotificationTask, error) {
-	row, err := r.client.NotificationTask.Query().Where(
+	// 条件更新代替“先读后写”：merak 可能在同一时刻把任务改成 SENDING，
+	// 只有仍然是 FAILED 的一行才允许重置。
+	updated, err := r.client.NotificationTask.Update().Where(
 		notificationtask.NamespaceUIDEQ(namespaceUID),
 		notificationtask.UIDEQ(uid),
-	).Only(ctx)
-	if err != nil {
-		return nil, r.fail(err)
-	}
-	if row.Status != notificationtask.StatusFAILED {
-		return nil, merr.Invalid("only failed tasks can be retried")
-	}
-	updated, err := r.client.NotificationTask.UpdateOne(row).
+		notificationtask.StatusEQ(notificationtask.StatusFAILED),
+	).
 		SetStatus(notificationtask.StatusPENDING).
 		SetRetriesLeft(3).
 		SetLastError("").
@@ -577,11 +573,9 @@ func (r *notificationRepo) RetryTask(ctx context.Context, namespaceUID, uid stri
 	if err != nil {
 		return nil, r.fail(err)
 	}
-	item := toNotificationTask(updated)
-	return &item, nil
-}
-
-func (r *notificationRepo) CancelTask(ctx context.Context, namespaceUID, uid string) (*bo.NotificationTask, error) {
+	if updated == 0 {
+		return nil, r.notifyTaskConflict(ctx, namespaceUID, uid, "only failed tasks can be retried")
+	}
 	row, err := r.client.NotificationTask.Query().Where(
 		notificationtask.NamespaceUIDEQ(namespaceUID),
 		notificationtask.UIDEQ(uid),
@@ -589,20 +583,49 @@ func (r *notificationRepo) CancelTask(ctx context.Context, namespaceUID, uid str
 	if err != nil {
 		return nil, r.fail(err)
 	}
-	if row.Status == notificationtask.StatusSENDING {
-		return nil, merr.Invalid("task is being delivered")
-	}
-	if row.Status == notificationtask.StatusSENT || row.Status == notificationtask.StatusCANCELLED {
-		return nil, merr.Invalid("task cannot be cancelled")
-	}
-	updated, err := r.client.NotificationTask.UpdateOne(row).
+	item := toNotificationTask(row)
+	return &item, nil
+}
+
+func (r *notificationRepo) CancelTask(ctx context.Context, namespaceUID, uid string) (*bo.NotificationTask, error) {
+	// 只允许取消未开始投递的任务；状态条件放在 WHERE 里，避免与 ClaimPending 竞态。
+	updated, err := r.client.NotificationTask.Update().Where(
+		notificationtask.NamespaceUIDEQ(namespaceUID),
+		notificationtask.UIDEQ(uid),
+		notificationtask.StatusIn(notificationtask.StatusPENDING, notificationtask.StatusFAILED),
+	).
 		SetStatus(notificationtask.StatusCANCELLED).
 		Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
-	item := toNotificationTask(updated)
+	if updated == 0 {
+		return nil, r.notifyTaskConflict(ctx, namespaceUID, uid, "task cannot be cancelled")
+	}
+	row, err := r.client.NotificationTask.Query().Where(
+		notificationtask.NamespaceUIDEQ(namespaceUID),
+		notificationtask.UIDEQ(uid),
+	).Only(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	item := toNotificationTask(row)
 	return &item, nil
+}
+
+// notifyTaskConflict 在条件更新没有命中时给出稳定语义：不存在返回 404，状态不允许返回 400。
+func (r *notificationRepo) notifyTaskConflict(ctx context.Context, namespaceUID, uid, reason string) error {
+	exists, err := r.client.NotificationTask.Query().Where(
+		notificationtask.NamespaceUIDEQ(namespaceUID),
+		notificationtask.UIDEQ(uid),
+	).Exist(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	if !exists {
+		return merr.NotFound("not found")
+	}
+	return merr.Invalid(reason)
 }
 
 func (r *notificationRepo) ListMessageLogs(ctx context.Context, namespaceUID, taskUID string, page, pageSize int) ([]bo.MessageLog, int, error) {
@@ -691,9 +714,7 @@ func (r *notificationRepo) MarkSending(ctx context.Context, taskUID string) erro
 }
 
 func (r *notificationRepo) ApplyNotifyReport(ctx context.Context, report bo.NotifyReport) error {
-	if err := ensureMessageLogWeeks(ctx, r.db, time.Now().UTC()); err != nil {
-		return err
-	}
+	// 分区由 partition.Usecase 定时预创建，写路径只做条件更新与日志插入。
 	row, err := r.client.NotificationTask.Query().Where(notificationtask.UIDEQ(report.TaskUID)).Only(ctx)
 	if err != nil {
 		return r.fail(err)
@@ -721,7 +742,13 @@ func (r *notificationRepo) ApplyNotifyReport(ctx context.Context, report bo.Noti
 		return r.fail(err)
 	}
 	defer func() { _ = tx.Rollback() }()
-	update := tx.NotificationTask.UpdateOne(row).
+	update := tx.NotificationTask.Update().
+		Where(
+			notificationtask.UIDEQ(row.UID),
+			notificationtask.StatusEQ(notificationtask.StatusSENDING),
+			// retries_left 一起做乐观校验：reaper 与迟到回写并发时只有一方能成功。
+			notificationtask.RetriesLeftEQ(row.RetriesLeft),
+		).
 		SetStatus(taskStatus).
 		SetRetriesLeft(retries).
 		SetLastError(lastError)
@@ -730,8 +757,13 @@ func (r *notificationRepo) ApplyNotifyReport(ctx context.Context, report bo.Noti
 	} else {
 		update.ClearNextAttemptAt()
 	}
-	if _, err := update.Save(ctx); err != nil {
+	affected, err := update.Save(ctx)
+	if err != nil {
 		return r.fail(err)
+	}
+	if affected == 0 {
+		// 状态已被其他写入者推进（重复回写或 reaper 先到）：不写消息日志，整体放弃本次回写。
+		return nil
 	}
 	if err := tx.MessageLog.Create().
 		SetUID(id.New()).
@@ -754,9 +786,6 @@ func (r *notificationRepo) ApplyNotifyReport(ctx context.Context, report bo.Noti
 // ReapStaleSending 把长时间停留在 SENDING 的任务标记为失败。
 // merak 在改为 SENDING 后崩溃时不会回写，锁过期也不会自动释放任务。
 func (r *notificationRepo) ReapStaleSending(ctx context.Context, before time.Time, limit int) (int, error) {
-	if err := ensureMessageLogWeeks(ctx, r.db, time.Now().UTC()); err != nil {
-		return 0, err
-	}
 	rows, err := r.client.NotificationTask.Query().Where(
 		notificationtask.StatusEQ(notificationtask.StatusSENDING),
 		notificationtask.UpdatedAtLTE(before),
@@ -770,13 +799,24 @@ func (r *notificationRepo) ReapStaleSending(ctx context.Context, before time.Tim
 		if err != nil {
 			return reaped, r.fail(err)
 		}
-		if _, err := tx.NotificationTask.UpdateOne(row).
+		affected, err := tx.NotificationTask.Update().
+			Where(
+				notificationtask.UIDEQ(row.UID),
+				notificationtask.StatusEQ(notificationtask.StatusSENDING),
+				notificationtask.UpdatedAtLTE(before),
+			).
 			SetStatus(notificationtask.StatusFAILED).
 			SetLastError("delivery timed out").
 			ClearNextAttemptAt().
-			Save(ctx); err != nil {
+			Save(ctx)
+		if err != nil {
 			_ = tx.Rollback()
 			return reaped, r.fail(err)
+		}
+		if affected == 0 {
+			// 回写已经先到，任务不再停留在 SENDING：跳过日志，避免重复记录。
+			_ = tx.Rollback()
+			continue
 		}
 		if err := tx.MessageLog.Create().
 			SetUID(id.New()).

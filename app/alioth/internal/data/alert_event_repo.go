@@ -21,9 +21,7 @@ import (
 )
 
 func (r *alertEventRepo) ApplyReport(ctx context.Context, rule bo.AlertRule, report bo.EvalReport) error {
-	if err := ensureAlertEventWeeks(ctx, r.db, time.Now().UTC()); err != nil {
-		return err
-	}
+	// 分区由 partition.Usecase 定时预创建：写路径不再执行 DDL，避免 catalog 锁和写延迟。
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		return r.fail(err)

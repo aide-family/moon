@@ -17,6 +17,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/message"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/namespace"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/notification"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/partition"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/role"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/sftp"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/ssh"
@@ -42,5 +43,6 @@ var ProviderSet = wire.NewSet(
 	ssh.ProviderSet,
 	sftp.ProviderSet,
 	k8sproxy.ProviderSet,
+	partition.ProviderSet,
 	wire.Bind(new(auth.AgentTokenLookup), new(*agent.Usecase)),
 )

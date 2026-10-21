@@ -21,12 +21,25 @@ import (
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
+// version 由构建注入：-ldflags "-X main.version=v1.2.3"。
+var version = "dev"
+
 func main() {
 	root := &cobra.Command{Use: "alioth", Short: "Alioth control plane"}
-	root.AddCommand(newServeCmd(), newMigrateCmd())
+	root.AddCommand(newServeCmd(), newMigrateCmd(), newVersionCmd())
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
+	}
+}
+
+func newVersionCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "version",
+		Short: "Print the build version",
+		Run: func(*cobra.Command, []string) {
+			fmt.Println(version)
+		},
 	}
 }
 

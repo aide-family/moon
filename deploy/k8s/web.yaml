@@ -1,38 +1,20 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: web-nginx
-  namespace: alioth
-data:
-  default.conf: |
-    server {
-      listen 8080;
-      root /usr/share/nginx/html;
-      location / {
-        try_files $uri /index.html;
-      }
-      location /v1/ {
-        proxy_pass http://alioth:8000/v1/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header Authorization $http_authorization;
-        proxy_set_header X-Namespace $http_x_namespace;
-        proxy_read_timeout 120s;
-        proxy_send_timeout 120s;
-      }
-      location /health {
-        return 200 'ok';
-        add_header Content-Type text/plain;
-      }
-    }
----
+# nginx 配置由 web 镜像内置（web/nginx.conf），这里不再维护第二份 ConfigMap：
+# 两份手写配置已经漂移过一次，k8s 版缺 Upgrade 头会让交互式 shell 无法握手。
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: web
   namespace: alioth
+  labels:
+    app: web
 spec:
   replicas: 2
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app: web
@@ -41,25 +23,60 @@ spec:
       labels:
         app: web
     spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: web
           image: alioth/web:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8080
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
           volumeMounts:
-            - name: nginx
-              mountPath: /etc/nginx/conf.d/default.conf
-              subPath: default.conf
+            # nginx 需要可写的临时目录与 pid 文件；根文件系统保持只读。
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            failureThreshold: 30
+            periodSeconds: 2
           readinessProbe:
             httpGet:
               path: /health
               port: http
             periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
       volumes:
-        - name: nginx
-          configMap:
-            name: web-nginx
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

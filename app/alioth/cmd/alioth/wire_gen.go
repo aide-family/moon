@@ -22,6 +22,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/message"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/namespace"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/notification"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/partition"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/role"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/sftp"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/ssh"
@@ -38,12 +39,18 @@ import (
 // Injectors from wire.go:
 
 func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, logger *slog.Logger) (*kratos.App, func(), error) {
-	usecase := health.NewUsecase()
-	healthService := service.NewHealthService(usecase)
 	dataData, cleanup, err := data.NewData(confData, confAuth, logger)
 	if err != nil {
 		return nil, nil, err
 	}
+	client, cleanup2, err := data.NewLock(confData, logger)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	checker := data.NewReadiness(dataData, client)
+	usecase := health.NewUsecase(checker)
+	healthService := service.NewHealthService(usecase)
 	userRepo := data.NewUserRepo(dataData, logger)
 	captchaRepo := data.NewCaptchaRepo(dataData, logger)
 	emailCodeRepo := data.NewEmailCodeRepo(dataData, logger)
@@ -52,55 +59,51 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	hub := agenthub.NewHub()
 	namespaceRepo := data.NewNamespaceRepo(dataData, logger)
 	roleRepo := data.NewRoleRepo(dataData, logger)
-	checker := access.NewChecker(userRepo, namespaceRepo, roleRepo, logger)
-	agentUsecase := agent.NewUsecase(agentRepo, hub, checker)
+	accessChecker := access.NewChecker(userRepo, namespaceRepo, roleRepo, logger)
+	agentUsecase := agent.NewUsecase(agentRepo, hub, accessChecker)
 	sender := mailer.New(confAuth, logger)
 	authUsecase, err := auth.NewUsecase(userRepo, captchaRepo, emailCodeRepo, oAuthRepo, agentUsecase, sender, confAuth, logger)
 	if err != nil {
+		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
 	captchaService := service.NewCaptchaService(authUsecase)
 	authService := service.NewAuthService(authUsecase)
-	namespaceUsecase := namespace.NewUsecase(namespaceRepo, checker)
-	roleUsecase := role.NewUsecase(roleRepo, checker)
+	namespaceUsecase := namespace.NewUsecase(namespaceRepo, accessChecker)
+	roleUsecase := role.NewUsecase(roleRepo, accessChecker)
 	selfService := service.NewSelfService(authUsecase, namespaceUsecase, roleUsecase)
 	namespaceService := service.NewNamespaceService(namespaceUsecase)
 	memberRepo := data.NewMemberRepo(dataData, logger)
 	inviteRepo := data.NewInviteRepo(dataData, logger)
-	memberUsecase := member.NewUsecase(memberRepo, inviteRepo, userRepo, roleRepo, checker, sender, confAuth, logger)
+	memberUsecase := member.NewUsecase(memberRepo, inviteRepo, userRepo, roleRepo, accessChecker, sender, confAuth, logger)
 	memberService := service.NewMemberService(memberUsecase)
 	invitationService := service.NewInvitationService(memberUsecase)
 	messageRepo := data.NewMessageRepo(dataData, logger)
-	messageUsecase := message.NewUsecase(messageRepo, userRepo, checker)
+	messageUsecase := message.NewUsecase(messageRepo, userRepo, accessChecker)
 	systemMessageService := service.NewSystemMessageService(messageUsecase)
-	userUsecase := user.NewUsecase(userRepo, checker)
+	userUsecase := user.NewUsecase(userRepo, accessChecker)
 	userService := service.NewUserService(userUsecase)
 	roleService := service.NewRoleService(roleUsecase)
 	datasourceRepo := data.NewDatasourceRepo(dataData, logger)
 	alertDictionaryRepo := data.NewAlertDictionaryRepo(dataData, logger)
 	alertEventRepo := data.NewAlertEventRepo(dataData, logger)
-	datasourceUsecase := datasource.NewUsecase(datasourceRepo, alertDictionaryRepo, alertEventRepo, checker)
+	datasourceUsecase := datasource.NewUsecase(datasourceRepo, alertDictionaryRepo, alertEventRepo, accessChecker)
 	datasourceService := service.NewDatasourceService(datasourceUsecase)
 	metricQueryService := service.NewMetricQueryService(datasourceUsecase)
 	logsQueryService := service.NewLogsQueryService(datasourceUsecase)
 	alertRuleRepo := data.NewAlertRuleRepo(dataData, logger)
-	alertruleUsecase := alertrule.NewUsecase(alertRuleRepo, alertDictionaryRepo, datasourceRepo, alertEventRepo, checker)
+	alertruleUsecase := alertrule.NewUsecase(alertRuleRepo, alertDictionaryRepo, datasourceRepo, alertEventRepo, accessChecker)
 	alertRuleService := service.NewAlertRuleService(alertruleUsecase)
-	alertdictionaryUsecase := alertdictionary.NewUsecase(alertDictionaryRepo, checker)
+	alertdictionaryUsecase := alertdictionary.NewUsecase(alertDictionaryRepo, accessChecker)
 	alertDictionaryService := service.NewAlertDictionaryService(alertdictionaryUsecase)
 	alertPageRepo := data.NewAlertPageRepo(dataData, logger)
-	alertpageUsecase := alertpage.NewUsecase(alertPageRepo, checker)
+	alertpageUsecase := alertpage.NewUsecase(alertPageRepo, accessChecker)
 	alertPageService := service.NewAlertPageService(alertpageUsecase)
-	client, cleanup2, err := data.NewLock(confData, logger)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	alerteventUsecase := alertevent.NewUsecase(alertRuleRepo, alertEventRepo, alertPageRepo, userRepo, memberRepo, datasourceRepo, client, checker, logger)
+	alerteventUsecase := alertevent.NewUsecase(alertRuleRepo, alertEventRepo, alertPageRepo, userRepo, memberRepo, datasourceRepo, client, accessChecker, logger)
 	alertEventService := service.NewAlertEventService(alerteventUsecase)
 	notificationRepo := data.NewNotificationRepo(dataData, logger)
-	notificationUsecase := notification.NewUsecase(notificationRepo, memberRepo, checker, client, logger)
+	notificationUsecase := notification.NewUsecase(notificationRepo, memberRepo, accessChecker, client, logger)
 	notificationChannelService := service.NewNotificationChannelService(notificationUsecase)
 	notificationTemplateService := service.NewNotificationTemplateService(notificationUsecase)
 	notificationGroupService := service.NewNotificationGroupService(notificationUsecase)
@@ -108,12 +111,12 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	messageLogService := service.NewMessageLogService(notificationUsecase)
 	agentService := service.NewAgentService(agentUsecase)
 	sshCommandRepo := data.NewSSHCommandRepo(dataData, logger)
-	sshUsecase := ssh.NewUsecase(sshCommandRepo, agentRepo, hub, checker)
+	sshUsecase := ssh.NewUsecase(sshCommandRepo, agentRepo, hub, accessChecker)
 	sshCommandService := service.NewSSHCommandService(sshUsecase)
 	edgeAuditRepo := data.NewEdgeAuditRepo(dataData, logger)
-	sftpUsecase := sftp.NewUsecase(edgeAuditRepo, agentRepo, hub, checker)
+	sftpUsecase := sftp.NewUsecase(edgeAuditRepo, agentRepo, hub, accessChecker)
 	sftpService := service.NewSFTPService(sftpUsecase)
-	k8sproxyUsecase := k8sproxy.NewUsecase(edgeAuditRepo, agentRepo, hub, checker)
+	k8sproxyUsecase := k8sproxy.NewUsecase(edgeAuditRepo, agentRepo, hub, accessChecker)
 	k8sProxyService := service.NewK8sProxyService(k8sproxyUsecase)
 	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, metricQueryService, logsQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, messageLogService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
 	if err != nil {
@@ -129,7 +132,9 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 		cleanup()
 		return nil, nil, err
 	}
-	scheduler := server.NewScheduler(alerteventUsecase, notificationUsecase, logger)
+	partitionRepo := data.NewPartitionRepo(dataData, logger)
+	partitionUsecase := partition.NewUsecase(partitionRepo, client, logger)
+	scheduler := server.NewScheduler(alerteventUsecase, notificationUsecase, partitionUsecase, logger)
 	app := newApp(logger, httpServer, grpcServer, scheduler, hub, dataData)
 	return app, func() {
 		cleanup2()

@@ -1,0 +1,14 @@
+.git
+.gitignore
+.github
+.cache
+.vscode
+.cursor
+bin
+web/node_modules
+web/dist
+**/node_modules
+**/*.log
+*.log
+coverage.out
+deploy/alkaid/alkaid.env

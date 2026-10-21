@@ -77,7 +77,7 @@ import { useListQuery } from "@/lib/list-query"
 const types = ["METRICS", "LOGS", "TRACE"]
 const drivers: Record<string, string[]> = {
   METRICS: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS"],
-  LOGS: ["LOGS_ELASTICSEARCH", "LOGS_LOKI"],
+  LOGS: ["LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS"],
   TRACE: ["TRACE_JAEGER"],
 }
 const conditions = ["EQ", "NE", "GT", "GTE", "LT", "LTE", "IN", "NOT_IN"]
@@ -139,7 +139,7 @@ function matchedDatasourceUid(
   driver: string,
   matchers: LabelPair[],
 ): string {
-  if (type !== "METRICS" && driver !== "LOGS_LOKI" && driver !== "LOGS_ELASTICSEARCH") {
+  if (type !== "METRICS" && type !== "LOGS") {
     return ""
   }
   const matcherEntries = matchers
@@ -868,7 +868,7 @@ export function AlertRulePage() {
               <PromqlEditor
                 value={form.expr}
                 variant={
-                  form.driver === "LOGS_LOKI"
+                  form.driver === "LOGS_LOKI" || form.driver === "LOGS_VLOGS"
                     ? "logql"
                     : form.driver === "LOGS_ELASTICSEARCH"
                       ? "json"

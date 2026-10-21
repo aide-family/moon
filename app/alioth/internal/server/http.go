@@ -71,6 +71,20 @@ func NewHTTPServer(
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(reply)
 	})
+	// liveness 与 readiness 分开：依赖抖动只摘流量，不重启进程。
+	srv.HandleFunc("/livez", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	})
+	srv.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if err := health.Ready(r.Context()); err != nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_ = json.NewEncoder(w).Encode(map[string]string{"status": "unavailable", "error": err.Error()})
+			return
+		}
+		_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	})
 	v1.RegisterHealthServiceHTTPServer(srv, health)
 	v1.RegisterCaptchaServiceHTTPServer(srv, captcha)
 	v1.RegisterAuthServiceHTTPServer(srv, authn)

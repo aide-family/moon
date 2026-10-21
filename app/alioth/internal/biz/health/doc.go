@@ -1,2 +1,2 @@
-// Package health 提供进程健康状态，不访问业务数据。
+// Package health 提供进程健康状态与依赖探测。
 package health

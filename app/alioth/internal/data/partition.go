@@ -284,7 +284,14 @@ func dropIndexes(ctx context.Context, tx *sql.Tx, table string) error {
 	return nil
 }
 
+// partitionLeadWeeks 是维护任务预创建的未来周数。
+const partitionLeadWeeks = 4
+
 func ensureWeekPartitions(ctx context.Context, db *sql.DB, name string, now time.Time) error {
+	return ensureUpcomingPartitions(ctx, db, name, now, 2)
+}
+
+func ensureUpcomingPartitions(ctx context.Context, db *sql.DB, name string, now time.Time, weeks int) error {
 	kind, err := relationKind(ctx, db, name)
 	if err != nil {
 		return err
@@ -292,8 +299,12 @@ func ensureWeekPartitions(ctx context.Context, db *sql.DB, name string, now time
 	if kind != "p" {
 		return nil
 	}
+	if weeks < 1 {
+		weeks = 1
+	}
 	start, _ := weekStart(now)
-	for _, at := range []time.Time{start, start.AddDate(0, 0, 7)} {
+	for i := 0; i < weeks; i++ {
+		at := start.AddDate(0, 0, 7*i)
 		from, until := weekStart(at)
 		part := fmt.Sprintf("%s_y%04dw%02d", name, from.Year(), isoWeek(from))
 		statement := fmt.Sprintf(

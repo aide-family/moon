@@ -3,8 +3,16 @@ kind: Deployment
 metadata:
   name: merak
   namespace: alioth
+  labels:
+    app: merak
 spec:
   replicas: 2
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app: merak
@@ -13,9 +21,18 @@ spec:
       labels:
         app: merak
     spec:
+      # 一次通知投递最长 30s，SIGTERM 后不要立刻掐断正在发送的任务。
+      terminationGracePeriodSeconds: 45
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: merak
           image: alioth/merak:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8002
@@ -31,11 +48,36 @@ spec:
                   key: MERAK_SERVICE_KEY
             - name: REDIS_ADDR
               value: redis:6379
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          startupProbe:
+            httpGet:
+              path: /livez
+              port: http
+            failureThreshold: 30
+            periodSeconds: 2
           readinessProbe:
             httpGet:
-              path: /health
+              path: /readyz
               port: http
             periodSeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
 ---
 apiVersion: v1
 kind: Service

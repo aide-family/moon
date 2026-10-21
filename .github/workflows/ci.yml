@@ -4,9 +4,44 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GOCACHE: ${{ github.workspace }}/.cache/go-build
+
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: pkg/go.mod
+          cache-dependency-path: |
+            pkg/go.sum
+            api/go.sum
+            app/alioth/go.sum
+            app/megrez/go.sum
+            app/merak/go.sum
+            app/alkaid/go.sum
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.47.2"
+      - name: buf deps
+        run: buf dep update
+      # gofmt + buf lint；与本地 `make lint` 同一条命令，避免两套真相。
+      - name: lint
+        run: make lint
+
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
@@ -35,34 +70,99 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: pkg/go.mod
+          cache-dependency-path: |
+            pkg/go.sum
+            api/go.sum
+            app/alioth/go.sum
+            app/megrez/go.sum
+            app/merak/go.sum
+            app/alkaid/go.sum
+      - name: vet
+        run: make vet
+      # -race 才能暴露多副本/并发状态机问题（通知回写、验证码消费）。
       - name: test
         env:
           ALIOTH_TEST_DSN: postgres://alioth:alioth@127.0.0.1:5432/alioth_test?sslmode=disable
           REDIS_ADDR: 127.0.0.1:6379
-        run: |
-          go vet -C pkg ./...
-          go vet -C api ./...
-          go vet -C app/alioth ./...
-          go vet -C app/megrez ./...
-          go vet -C app/merak ./...
-          go vet -C app/alkaid ./...
-          go test -C pkg ./...
-          go test -C api ./...
-          go test -C app/alioth ./...
-          go test -C app/megrez ./...
-          go test -C app/merak ./...
-          go test -C app/alkaid ./...
+        run: make test-race
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: pkg/go.mod
+          cache-dependency-path: |
+            pkg/go.sum
+            api/go.sum
+            app/alioth/go.sum
+            app/megrez/go.sum
+            app/merak/go.sum
+            app/alkaid/go.sum
+      # 只构建 Go 服务；web 在下一个 job。确保 -ldflags 注入的版本戳不会让构建失败。
+      - name: build binaries
+        run: make build-alioth build-megrez build-merak build-alkaid VERSION=${GITHUB_SHA::12}
 
   web:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "24"
+          node-version: "22"
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci --prefix web
       - run: npm run typecheck --prefix web
       - run: npm run lint --prefix web
       - run: npm run build --prefix web
+
+  # 镜像构建只在主分支与 tag 上跑：验证四个 Dockerfile 可用，不推送到任何 registry。
+  images:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: build alioth image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/alioth/Dockerfile
+          push: false
+          build-args: |
+            VERSION=${{ github.sha }}
+      - name: build megrez image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/megrez/Dockerfile
+          push: false
+          build-args: |
+            VERSION=${{ github.sha }}
+      - name: build merak image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/merak/Dockerfile
+          push: false
+          build-args: |
+            VERSION=${{ github.sha }}
+      - name: build alkaid image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/alkaid/Dockerfile
+          push: false
+          build-args: |
+            VERSION=${{ github.sha }}
+      - name: build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/web/Dockerfile
+          push: false

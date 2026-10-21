@@ -1,0 +1,52 @@
+# 迁移 Job：先于 Deployment 滚动完成。部署顺序见 deploy/k8s/README.md。
+# 迁移本身是幂等的（ent Schema.Create + seed + 分区），重复执行安全。
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: alioth-migrate
+  namespace: alioth
+  labels:
+    app: migrate
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: migrate
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: migrate
+          image: alioth/alioth:latest
+          imagePullPolicy: IfNotPresent
+          command: ["/app/alioth", "migrate", "--conf", "/app/configs/config.yaml"]
+          env:
+            - name: ALIOTH_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: alioth-postgres
+                  key: DATABASE_SOURCE
+            - name: ALIOTH_ENCRYPT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: alioth-auth
+                  key: ENCRYPT_KEY
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]

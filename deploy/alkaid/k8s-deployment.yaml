@@ -50,10 +50,24 @@ spec:
                 secretKeyRef:
                   name: alkaid-token
                   key: ALKAID_AGENT_TOKEN
+          # alkaid 自带 sshd（SFTP 用），必须以 root 启动，因此这里只收紧资源与探针。
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
           readinessProbe:
             httpGet:
-              path: /health
+              path: /readyz
               port: http
             periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
 # Use a DaemonSet instead when the agent must see node-local files:
 # kind: DaemonSet, and keep the same container env / ServiceAccount.

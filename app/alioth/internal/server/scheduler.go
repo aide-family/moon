@@ -4,25 +4,29 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/robfig/cron/v3"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/notification"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/partition"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
 // Scheduler 按固定周期扫描到期规则。锁由用例获取，扫描结束后释放。
 type Scheduler struct {
-	uc     *alertevent.Usecase
-	notify *notification.Usecase
-	log    *slog.Logger
-	cancel context.CancelFunc
-	done   chan struct{}
+	uc         *alertevent.Usecase
+	notify     *notification.Usecase
+	partitions *partition.Usecase
+	log        *slog.Logger
+	lastCheck  time.Time
+	cancel     context.CancelFunc
+	done       chan struct{}
 }
 
-func NewScheduler(uc *alertevent.Usecase, notify *notification.Usecase, logger *slog.Logger) *Scheduler {
-	return &Scheduler{uc: uc, notify: notify, log: logger}
+func NewScheduler(uc *alertevent.Usecase, notify *notification.Usecase, partitions *partition.Usecase, logger *slog.Logger) *Scheduler {
+	return &Scheduler{uc: uc, notify: notify, partitions: partitions, log: logger}
 }
 
 func (s *Scheduler) Start(context.Context) error {
@@ -66,5 +70,18 @@ func (s *Scheduler) tick(ctx context.Context) {
 	}
 	if err := s.notify.ReapStale(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("reap notify: %v", err))
+	}
+	s.maintainPartitions(ctx)
+}
+
+// maintainPartitions 每小时预创建一次周分区。首次 tick 会立即执行，
+// 保证新部署在写入前就有当前周与未来 4 周的分区。
+func (s *Scheduler) maintainPartitions(ctx context.Context) {
+	if s.partitions == nil || time.Since(s.lastCheck) < partition.MaintenanceInterval {
+		return
+	}
+	s.lastCheck = time.Now()
+	if err := s.partitions.Maintain(ctx); err != nil {
+		s.log.Error(fmt.Sprintf("maintain partitions: %v", err))
 	}
 }

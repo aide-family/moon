@@ -9,3 +9,8 @@ lint:
     - STANDARD
   except:
     - PACKAGE_VERSION_SUFFIX
+    # Agent 双向流只有一种帧类型：Connect 的请求和响应都是 AgentFrame，
+    # 单帧类型是这个协议的核心设计，不按请求/响应各建一个空壳类型。
+    - RPC_REQUEST_STANDARD_NAME
+    - RPC_RESPONSE_STANDARD_NAME
+    - RPC_REQUEST_RESPONSE_UNIQUE

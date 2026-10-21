@@ -1,11 +1,27 @@
 package data
 
-import "github.com/google/wire"
+import (
+	"time"
 
-var ProviderSet = wire.NewSet(NewData, NewLocker, NewGateway, NewRangeQuery)
+	"github.com/google/wire"
+
+	"github.com/aide-family/Alioth/app/megrez/internal/data/repository"
+	"github.com/aide-family/Alioth/pkg/healthcheck"
+)
+
+var ProviderSet = wire.NewSet(NewData, NewLocker, NewGateway, NewRangeQuery, NewReadiness)
 
 type Data struct{}
 
 func NewData() (*Data, func(), error) {
 	return &Data{}, func() {}, nil
+}
+
+// NewReadiness 只探测 Redis：megrez 通过 gRPC 访问控制面，不直连 PostgreSQL。
+func NewReadiness(locker repository.Locker) healthcheck.Checker {
+	checks := healthcheck.New(2 * time.Second)
+	if locker != nil {
+		checks.Add("redis", locker.Available)
+	}
+	return checks
 }

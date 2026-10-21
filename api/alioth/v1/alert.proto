@@ -672,7 +672,7 @@ message CreateAlertRuleRequest {
   // 类型，取值为 METRICS、LOGS 或 TRACE。
   string type = 3 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
   // 驱动。
-  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"]}];
+  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER"]}];
   // 表达式。
   string expr = 5;
   // 标签，JSON 文本。
@@ -709,7 +709,7 @@ message UpdateAlertRuleRequest {
   // 类型，取值为 METRICS、LOGS 或 TRACE。
   string type = 4 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
   // 驱动。
-  string driver = 5 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"]}];
+  string driver = 5 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER"]}];
   // 表达式。
   string expr = 6;
   // 标签，JSON 文本。

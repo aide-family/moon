@@ -2,10 +2,8 @@ package data
 
 import (
 	"context"
-	"crypto/subtle"
 	"time"
 
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/captcha"
 )
 
@@ -18,19 +16,21 @@ func (r *captchaRepo) SaveCaptcha(ctx context.Context, id, answerHash string, ex
 	return r.fail(err)
 }
 
+// ConsumeCaptcha 原子消费一次性图形验证码。
+// 先查后改会让并发请求拿到同一个验证码：这里把 used_at IS NULL、过期时间
+// 和答案匹配全部下推到 UPDATE 的 WHERE，只有受影响行数为 1 才算消费成功。
 func (r *captchaRepo) ConsumeCaptcha(ctx context.Context, id, answerHash string, now time.Time) (bool, error) {
-	row, err := r.client.Captcha.Query().Where(captcha.UIDEQ(id), captcha.UsedAtIsNil()).Only(ctx)
-	if ent.IsNotFound(err) {
-		return false, nil
-	}
+	affected, err := r.client.Captcha.Update().
+		Where(
+			captcha.UIDEQ(id),
+			captcha.UsedAtIsNil(),
+			captcha.ExpiresAtGT(now),
+			captcha.AnswerHashEQ(answerHash),
+		).
+		SetUsedAt(now).
+		Save(ctx)
 	if err != nil {
 		return false, r.fail(err)
 	}
-	if now.After(row.ExpiresAt) || subtle.ConstantTimeCompare([]byte(row.AnswerHash), []byte(answerHash)) != 1 {
-		return false, nil
-	}
-	if err := r.client.Captcha.UpdateOne(row).SetUsedAt(now).Exec(ctx); err != nil {
-		return false, r.fail(err)
-	}
-	return true, nil
+	return affected == 1, nil
 }

@@ -28,7 +28,7 @@ auth:
   web_url: ${ALIOTH_WEB_URL:http://127.0.0.1:8080}
   smtp:
     host: ${ALIOTH_SMTP_HOST:127.0.0.1}
-    port: 1025
+    port: ${ALIOTH_SMTP_PORT:1025}
     username: ${ALIOTH_SMTP_USERNAME:}
     password: ${ALIOTH_SMTP_PASSWORD:}
     from: ${ALIOTH_SMTP_FROM:alioth@localhost}

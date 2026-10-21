@@ -39,6 +39,8 @@ var ProviderSet = wire.NewSet(
 	NewSSHCommandRepo,
 	NewEdgeAuditRepo,
 	NewLock,
+	NewReadiness,
+	NewPartitionRepo,
 )
 
 type Data struct {
@@ -95,6 +97,11 @@ func openDB(source string, helper *slog.Logger) (*sql.DB, error) {
 	if err != nil {
 		return nil, databaseErr(helper, err)
 	}
+	// 多副本部署时连接数按副本累加，必须显式设上限，否则 PostgreSQL 会被打满。
+	db.SetMaxOpenConns(dbMaxOpenConns)
+	db.SetMaxIdleConns(dbMaxIdleConns)
+	db.SetConnMaxLifetime(dbConnMaxLifetime)
+	db.SetConnMaxIdleTime(dbConnMaxIdleTime)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := db.PingContext(ctx); err != nil {
@@ -103,6 +110,14 @@ func openDB(source string, helper *slog.Logger) (*sql.DB, error) {
 	}
 	return db, nil
 }
+
+const (
+	// dbMaxOpenConns 是单副本的连接上限；多副本合计仍应小于 PostgreSQL 的 max_connections。
+	dbMaxOpenConns    = 20
+	dbMaxIdleConns    = 10
+	dbConnMaxLifetime = 30 * time.Minute
+	dbConnMaxIdleTime = 5 * time.Minute
+)
 
 func databaseErr(helper *slog.Logger, err error) error {
 	if err == nil {

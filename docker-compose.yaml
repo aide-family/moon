@@ -1,3 +1,18 @@
+name: alioth
+
+# 本地全栈：docker compose up 即可获得 PostgreSQL、Redis、邮件沙箱、一次迁移，
+# 以及 alioth / megrez / merak / web。数据保存在 pgdata 卷里，down 不会丢。
+x-service-env: &service-env
+  ALIOTH_DATABASE_URL: postgres://alioth:alioth@postgres:5432/alioth?sslmode=disable
+  ALIOTH_REDIS_ADDR: redis:6379
+  ALIOTH_JWT_SECRET: ${ALIOTH_JWT_SECRET:-dev-only-change-me}
+  ALIOTH_ENCRYPT_KEY: ${ALIOTH_ENCRYPT_KEY:-dev-only-encrypt-key}
+  MEGREZ_SERVICE_KEY: ${MEGREZ_SERVICE_KEY:-sk-megrez-dev}
+  MERAK_SERVICE_KEY: ${MERAK_SERVICE_KEY:-sk-merak-dev}
+  ALIOTH_WEB_URL: ${ALIOTH_WEB_URL:-http://127.0.0.1:8080}
+  ALIOTH_SMTP_HOST: mailpit
+  ALIOTH_SMTP_PORT: "1025"
+
 services:
   postgres:
     image: postgres:16
@@ -7,37 +22,127 @@ services:
       POSTGRES_DB: alioth
     ports:
       - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U alioth -d alioth"]
       interval: 2s
       timeout: 5s
       retries: 20
+
   redis:
     image: redis:7
+    command: ["redis-server", "--appendonly", "yes"]
     ports:
       - "6379:6379"
+    volumes:
+      - redisdata:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 2s
       timeout: 5s
       retries: 20
+
   mailpit:
     image: axllent/mailpit
     ports:
       - "1025:1025"
       - "8025:8025"
+
+  # 一次性迁移：先于四个服务完成，避免新代码遇到旧 schema。
+  migrate:
+    build:
+      context: .
+      dockerfile: deploy/alioth/Dockerfile
+    image: ${IMAGE_PREFIX:-alioth}/alioth:${VERSION:-dev}
+    command: ["migrate", "--conf", "/app/configs/config.yaml"]
+    environment: *service-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  alioth:
+    build:
+      context: .
+      dockerfile: deploy/alioth/Dockerfile
+    image: ${IMAGE_PREFIX:-alioth}/alioth:${VERSION:-dev}
+    environment:
+      <<: *service-env
+      ALIOTH_HTTP_ADDR: 0.0.0.0:8000
+      ALIOTH_GRPC_ADDR: 0.0.0.0:9000
+    ports:
+      - "8000:8000"
+      - "9000:9000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      mailpit:
+        condition: service_started
+
+  megrez:
+    build:
+      context: .
+      dockerfile: deploy/megrez/Dockerfile
+    image: ${IMAGE_PREFIX:-alioth}/megrez:${VERSION:-dev}
+    environment:
+      MEGREZ_HTTP_ADDR: 0.0.0.0:8001
+      ALIOTH_GRPC_ADDR: alioth:9000
+      REDIS_ADDR: redis:6379
+      MEGREZ_SERVICE_KEY: ${MEGREZ_SERVICE_KEY:-sk-megrez-dev}
+    depends_on:
+      alioth:
+        condition: service_started
+      redis:
+        condition: service_healthy
+
+  merak:
+    build:
+      context: .
+      dockerfile: deploy/merak/Dockerfile
+    image: ${IMAGE_PREFIX:-alioth}/merak:${VERSION:-dev}
+    environment:
+      MERAK_HTTP_ADDR: 0.0.0.0:8002
+      ALIOTH_GRPC_ADDR: alioth:9000
+      REDIS_ADDR: redis:6379
+      MERAK_SERVICE_KEY: ${MERAK_SERVICE_KEY:-sk-merak-dev}
+    depends_on:
+      alioth:
+        condition: service_started
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/web/Dockerfile
+    image: ${IMAGE_PREFIX:-alioth}/web:${VERSION:-dev}
+    ports:
+      - "8080:8080"
+    depends_on:
+      alioth:
+        condition: service_started
+
+  # 把本机当作被管机器时启用：docker compose --profile alkaid up -d alkaid
   alkaid:
     profiles: ["alkaid"]
     build:
-      context: ./deploy/alkaid
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    env_file:
-      - ./deploy/alkaid/alkaid.env
+      context: .
+      dockerfile: deploy/alkaid/Dockerfile
+    image: ${IMAGE_PREFIX:-alioth}/alkaid:${VERSION:-dev}
     environment:
-      ALKAID_ALIOTH_GRPC_ADDR: host.docker.internal:9000
-    volumes:
-      - ./bin/alkaid-linux:/usr/local/bin/alkaid:ro
-      - ./deploy/alkaid/alkaid.yaml:/etc/alioth/alkaid.yaml:ro
+      ALKAID_AGENT_TOKEN: ${ALKAID_AGENT_TOKEN:-}
+      ALKAID_ALIOTH_GRPC_ADDR: alioth:9000
     ports:
       - "2222:22"
+    depends_on:
+      alioth:
+        condition: service_started
+
+volumes:
+  pgdata:
+  redisdata:

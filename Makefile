@@ -5,9 +5,17 @@ GOBIN := $(shell $(GO) env GOPATH)/bin
 export PATH := $(GOBIN):$(PATH)
 PROTO_INC ?= /opt/homebrew/include
 
-.PHONY: tools api conf build build-alioth build-megrez build-merak build-alkaid build-alkaid-linux build-web \
+# 镜像版本戳：注入 main.version 并作为镜像 tag，避免所有部署都用 :latest。
+VERSION ?= $(shell git -C $(ROOT) describe --tags --always --dirty 2>/dev/null || echo dev)
+IMAGE_PREFIX ?= alioth
+
+.PHONY: tools api conf vet lint build build-alioth build-megrez build-merak build-alkaid build-alkaid-linux build-web \
+	image-alioth image-megrez image-merak image-alkaid image-web images \
 	run-alioth run-megrez run-merak run-alkaid run-web \
-	test test-pkg migrate compose-images compose-up compose-down compose-alkaid tidy wire
+	test test-pkg test-race migrate migrate-in-docker compose-images compose-up compose-down compose-alkaid dev-up dev-down tidy wire
+
+# 版本戳注入：$(call ldflags) 用于本地构建，Dockerfile 内用 --build-arg VERSION 注入。
+version_ldflags = -X main.version=$(VERSION)
 
 # Kratos v3 CLI and HTTP/error generators. Pin a known-good pseudo-version so PATH
 # does not keep a v2 protoc-gen-go-http. CLI install uses module cache + go build
@@ -40,26 +48,63 @@ conf-app:
 		--go_out=$(ROOT)app/$(APP) --go_opt=module=github.com/aide-family/Alioth/app/$(APP) \
 		$(ROOT)app/$(APP)/internal/conf/conf.proto
 
+vet:
+	$(GO) vet -C $(ROOT)pkg ./...
+	$(GO) vet -C $(ROOT)api ./...
+	$(GO) vet -C $(ROOT)app/alioth ./...
+	$(GO) vet -C $(ROOT)app/megrez ./...
+	$(GO) vet -C $(ROOT)app/merak ./...
+	$(GO) vet -C $(ROOT)app/alkaid ./...
+
+# gofmt 与 buf lint 是 CI 的硬门禁；本地先跑一遍避免 PR 变红。
+lint:
+	@out=$$(gofmt -l $(ROOT)pkg $(ROOT)api $(ROOT)app); \
+	if [ -n "$$out" ]; then echo "gofmt needed:"; echo "$$out"; exit 1; fi
+	cd $(ROOT) && buf lint
+
 build: build-alioth build-megrez build-merak build-alkaid build-web
 
 build-alioth:
-	$(GO) build -C $(ROOT)app/alioth -o $(BIN)/alioth ./cmd/alioth
+	$(GO) build -C $(ROOT)app/alioth -ldflags "$(version_ldflags)" -o $(BIN)/alioth ./cmd/alioth
 
 build-megrez:
-	$(GO) build -C $(ROOT)app/megrez -o $(BIN)/megrez ./cmd/megrez
+	$(GO) build -C $(ROOT)app/megrez -ldflags "$(version_ldflags)" -o $(BIN)/megrez ./cmd/megrez
 
 build-merak:
-	$(GO) build -C $(ROOT)app/merak -o $(BIN)/merak ./cmd/merak
+	$(GO) build -C $(ROOT)app/merak -ldflags "$(version_ldflags)" -o $(BIN)/merak ./cmd/merak
 
 build-alkaid:
-	$(GO) build -C $(ROOT)app/alkaid -o $(BIN)/alkaid ./cmd/alkaid
+	$(GO) build -C $(ROOT)app/alkaid -ldflags "$(version_ldflags)" -o $(BIN)/alkaid ./cmd/alkaid
 
 build-alkaid-linux:
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GO) build -C $(ROOT)app/alkaid -o $(BIN)/alkaid-linux ./cmd/alkaid
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GO) build -C $(ROOT)app/alkaid -ldflags "$(version_ldflags)" -o $(BIN)/alkaid-linux ./cmd/alkaid
 
 build-web:
 	npm --prefix $(ROOT)web ci
 	npm --prefix $(ROOT)web run build
+
+# 构建上下文固定为仓库根目录，四个 Go 服务都依赖 api/ 与 pkg/。
+image-alioth:
+	docker build -f $(ROOT)deploy/alioth/Dockerfile --build-arg VERSION=$(VERSION) \
+		-t $(IMAGE_PREFIX)/alioth:$(VERSION) $(ROOT)
+
+image-megrez:
+	docker build -f $(ROOT)deploy/megrez/Dockerfile --build-arg VERSION=$(VERSION) \
+		-t $(IMAGE_PREFIX)/megrez:$(VERSION) $(ROOT)
+
+image-merak:
+	docker build -f $(ROOT)deploy/merak/Dockerfile --build-arg VERSION=$(VERSION) \
+		-t $(IMAGE_PREFIX)/merak:$(VERSION) $(ROOT)
+
+image-alkaid:
+	docker build -f $(ROOT)deploy/alkaid/Dockerfile --build-arg VERSION=$(VERSION) \
+		-t $(IMAGE_PREFIX)/alkaid:$(VERSION) $(ROOT)
+
+image-web:
+	docker build -f $(ROOT)deploy/web/Dockerfile \
+		-t $(IMAGE_PREFIX)/web:$(VERSION) $(ROOT)
+
+images: image-alioth image-megrez image-merak image-alkaid image-web
 
 run-alioth:
 	$(GO) run -C $(ROOT)app/alioth ./cmd/alioth serve --conf configs/config.yaml
@@ -86,8 +131,21 @@ test: test-pkg
 test-pkg:
 	$(GO) test -C $(ROOT)pkg ./...
 
+# 本地多副本/并发问题靠竞态检测暴露；CI 的 backend job 也跑这一档。
+test-race:
+	$(GO) test -race -C $(ROOT)pkg ./...
+	$(GO) test -race -C $(ROOT)api ./...
+	$(GO) test -race -C $(ROOT)app/alioth ./...
+	$(GO) test -race -C $(ROOT)app/megrez ./...
+	$(GO) test -race -C $(ROOT)app/merak ./...
+	$(GO) test -race -C $(ROOT)app/alkaid ./...
+
 migrate:
 	$(GO) run -C $(ROOT)app/alioth ./cmd/alioth migrate --conf configs/config.yaml
+
+# compose 全栈里迁移由一次性容器执行，避免宿主机没装 Go 时卡住。
+migrate-in-docker:
+	docker compose -f $(ROOT)docker-compose.yaml run --rm migrate
 
 compose-images:
 	$(ROOT)scripts/pull-compose-images.sh
@@ -96,6 +154,13 @@ compose-up: compose-images
 	docker compose -f $(ROOT)docker-compose.yaml up -d --wait
 
 compose-down:
+	docker compose -f $(ROOT)docker-compose.yaml down
+
+# 一条命令起依赖 + 迁移 + 四个服务 + web；数据落在 pgdata 卷里。
+dev-up: compose-images
+	docker compose -f $(ROOT)docker-compose.yaml up -d --build --wait
+
+dev-down:
 	docker compose -f $(ROOT)docker-compose.yaml down
 
 compose-alkaid: build-alkaid-linux
