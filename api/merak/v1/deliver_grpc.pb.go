@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	NotifyService_ClaimTasks_FullMethodName   = "/merak.v1.NotifyService/ClaimTasks"
-	NotifyService_MarkSending_FullMethodName  = "/merak.v1.NotifyService/MarkSending"
-	NotifyService_ReportNotify_FullMethodName = "/merak.v1.NotifyService/ReportNotify"
+	NotifyService_ClaimTasks_FullMethodName         = "/merak.v1.NotifyService/ClaimTasks"
+	NotifyService_MarkSending_FullMethodName        = "/merak.v1.NotifyService/MarkSending"
+	NotifyService_ReportNotify_FullMethodName       = "/merak.v1.NotifyService/ReportNotify"
+	NotifyService_ReportWorkerStatus_FullMethodName = "/merak.v1.NotifyService/ReportWorkerStatus"
 )
 
 // NotifyServiceClient is the client API for NotifyService service.
@@ -36,6 +37,8 @@ type NotifyServiceClient interface {
 	MarkSending(ctx context.Context, in *MarkSendingRequest, opts ...grpc.CallOption) (*MarkSendingResponse, error)
 	// 回写 SENT 或 FAILED，并写入消息日志。
 	ReportNotify(ctx context.Context, in *ReportNotifyRequest, opts ...grpc.CallOption) (*ReportNotifyResponse, error)
+	// 上报天璇实例心跳与当前投递任务。
+	ReportWorkerStatus(ctx context.Context, in *ReportWorkerStatusRequest, opts ...grpc.CallOption) (*ReportWorkerStatusResponse, error)
 }
 
 type notifyServiceClient struct {
@@ -76,6 +79,16 @@ func (c *notifyServiceClient) ReportNotify(ctx context.Context, in *ReportNotify
 	return out, nil
 }
 
+func (c *notifyServiceClient) ReportWorkerStatus(ctx context.Context, in *ReportWorkerStatusRequest, opts ...grpc.CallOption) (*ReportWorkerStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReportWorkerStatusResponse)
+	err := c.cc.Invoke(ctx, NotifyService_ReportWorkerStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NotifyServiceServer is the server API for NotifyService service.
 // All implementations must embed UnimplementedNotifyServiceServer
 // for forward compatibility.
@@ -88,6 +101,8 @@ type NotifyServiceServer interface {
 	MarkSending(context.Context, *MarkSendingRequest) (*MarkSendingResponse, error)
 	// 回写 SENT 或 FAILED，并写入消息日志。
 	ReportNotify(context.Context, *ReportNotifyRequest) (*ReportNotifyResponse, error)
+	// 上报天璇实例心跳与当前投递任务。
+	ReportWorkerStatus(context.Context, *ReportWorkerStatusRequest) (*ReportWorkerStatusResponse, error)
 	mustEmbedUnimplementedNotifyServiceServer()
 }
 
@@ -106,6 +121,9 @@ func (UnimplementedNotifyServiceServer) MarkSending(context.Context, *MarkSendin
 }
 func (UnimplementedNotifyServiceServer) ReportNotify(context.Context, *ReportNotifyRequest) (*ReportNotifyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReportNotify not implemented")
+}
+func (UnimplementedNotifyServiceServer) ReportWorkerStatus(context.Context, *ReportWorkerStatusRequest) (*ReportWorkerStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReportWorkerStatus not implemented")
 }
 func (UnimplementedNotifyServiceServer) mustEmbedUnimplementedNotifyServiceServer() {}
 func (UnimplementedNotifyServiceServer) testEmbeddedByValue()                       {}
@@ -182,6 +200,24 @@ func _NotifyService_ReportNotify_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NotifyService_ReportWorkerStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReportWorkerStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NotifyServiceServer).ReportWorkerStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NotifyService_ReportWorkerStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NotifyServiceServer).ReportWorkerStatus(ctx, req.(*ReportWorkerStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NotifyService_ServiceDesc is the grpc.ServiceDesc for NotifyService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -200,6 +236,10 @@ var NotifyService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReportNotify",
 			Handler:    _NotifyService_ReportNotify_Handler,
+		},
+		{
+			MethodName: "ReportWorkerStatus",
+			Handler:    _NotifyService_ReportWorkerStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	EvalService_ClaimRules_FullMethodName = "/megrez.v1.EvalService/ClaimRules"
-	EvalService_ReportEval_FullMethodName = "/megrez.v1.EvalService/ReportEval"
+	EvalService_ClaimRules_FullMethodName         = "/megrez.v1.EvalService/ClaimRules"
+	EvalService_ReportEval_FullMethodName         = "/megrez.v1.EvalService/ReportEval"
+	EvalService_ReportWorkerStatus_FullMethodName = "/megrez.v1.EvalService/ReportWorkerStatus"
 )
 
 // EvalServiceClient is the client API for EvalService service.
@@ -33,6 +34,8 @@ type EvalServiceClient interface {
 	ClaimRules(ctx context.Context, in *ClaimRulesRequest, opts ...grpc.CallOption) (*ClaimRulesResponse, error)
 	// 回写命中、恢复，或标明驱动尚未实现。
 	ReportEval(ctx context.Context, in *ReportEvalRequest, opts ...grpc.CallOption) (*ReportEvalResponse, error)
+	// 上报天权实例心跳与当前评测任务。
+	ReportWorkerStatus(ctx context.Context, in *ReportWorkerStatusRequest, opts ...grpc.CallOption) (*ReportWorkerStatusResponse, error)
 }
 
 type evalServiceClient struct {
@@ -63,6 +66,16 @@ func (c *evalServiceClient) ReportEval(ctx context.Context, in *ReportEvalReques
 	return out, nil
 }
 
+func (c *evalServiceClient) ReportWorkerStatus(ctx context.Context, in *ReportWorkerStatusRequest, opts ...grpc.CallOption) (*ReportWorkerStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReportWorkerStatusResponse)
+	err := c.cc.Invoke(ctx, EvalService_ReportWorkerStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EvalServiceServer is the server API for EvalService service.
 // All implementations must embed UnimplementedEvalServiceServer
 // for forward compatibility.
@@ -73,6 +86,8 @@ type EvalServiceServer interface {
 	ClaimRules(context.Context, *ClaimRulesRequest) (*ClaimRulesResponse, error)
 	// 回写命中、恢复，或标明驱动尚未实现。
 	ReportEval(context.Context, *ReportEvalRequest) (*ReportEvalResponse, error)
+	// 上报天权实例心跳与当前评测任务。
+	ReportWorkerStatus(context.Context, *ReportWorkerStatusRequest) (*ReportWorkerStatusResponse, error)
 	mustEmbedUnimplementedEvalServiceServer()
 }
 
@@ -88,6 +103,9 @@ func (UnimplementedEvalServiceServer) ClaimRules(context.Context, *ClaimRulesReq
 }
 func (UnimplementedEvalServiceServer) ReportEval(context.Context, *ReportEvalRequest) (*ReportEvalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReportEval not implemented")
+}
+func (UnimplementedEvalServiceServer) ReportWorkerStatus(context.Context, *ReportWorkerStatusRequest) (*ReportWorkerStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReportWorkerStatus not implemented")
 }
 func (UnimplementedEvalServiceServer) mustEmbedUnimplementedEvalServiceServer() {}
 func (UnimplementedEvalServiceServer) testEmbeddedByValue()                     {}
@@ -146,6 +164,24 @@ func _EvalService_ReportEval_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EvalService_ReportWorkerStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReportWorkerStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EvalServiceServer).ReportWorkerStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EvalService_ReportWorkerStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EvalServiceServer).ReportWorkerStatus(ctx, req.(*ReportWorkerStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EvalService_ServiceDesc is the grpc.ServiceDesc for EvalService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -160,6 +196,10 @@ var EvalService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReportEval",
 			Handler:    _EvalService_ReportEval_Handler,
+		},
+		{
+			MethodName: "ReportWorkerStatus",
+			Handler:    _EvalService_ReportWorkerStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

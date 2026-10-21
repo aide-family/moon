@@ -100,6 +100,20 @@ func (_c *MessageLogCreate) SetNillableTemplateUID(v *string) *MessageLogCreate 
 	return _c
 }
 
+// SetSender sets the "sender" field.
+func (_c *MessageLogCreate) SetSender(v string) *MessageLogCreate {
+	_c.mutation.SetSender(v)
+	return _c
+}
+
+// SetNillableSender sets the "sender" field if the given value is not nil.
+func (_c *MessageLogCreate) SetNillableSender(v *string) *MessageLogCreate {
+	if v != nil {
+		_c.SetSender(*v)
+	}
+	return _c
+}
+
 // SetReceivers sets the "receivers" field.
 func (_c *MessageLogCreate) SetReceivers(v string) *MessageLogCreate {
 	_c.mutation.SetReceivers(v)
@@ -110,6 +124,34 @@ func (_c *MessageLogCreate) SetReceivers(v string) *MessageLogCreate {
 func (_c *MessageLogCreate) SetNillableReceivers(v *string) *MessageLogCreate {
 	if v != nil {
 		_c.SetReceivers(*v)
+	}
+	return _c
+}
+
+// SetSubject sets the "subject" field.
+func (_c *MessageLogCreate) SetSubject(v string) *MessageLogCreate {
+	_c.mutation.SetSubject(v)
+	return _c
+}
+
+// SetNillableSubject sets the "subject" field if the given value is not nil.
+func (_c *MessageLogCreate) SetNillableSubject(v *string) *MessageLogCreate {
+	if v != nil {
+		_c.SetSubject(*v)
+	}
+	return _c
+}
+
+// SetContent sets the "content" field.
+func (_c *MessageLogCreate) SetContent(v string) *MessageLogCreate {
+	_c.mutation.SetContent(v)
+	return _c
+}
+
+// SetNillableContent sets the "content" field if the given value is not nil.
+func (_c *MessageLogCreate) SetNillableContent(v *string) *MessageLogCreate {
+	if v != nil {
+		_c.SetContent(*v)
 	}
 	return _c
 }
@@ -179,9 +221,21 @@ func (_c *MessageLogCreate) defaults() {
 		v := messagelog.DefaultTemplateUID
 		_c.mutation.SetTemplateUID(v)
 	}
+	if _, ok := _c.mutation.Sender(); !ok {
+		v := messagelog.DefaultSender
+		_c.mutation.SetSender(v)
+	}
 	if _, ok := _c.mutation.Receivers(); !ok {
 		v := messagelog.DefaultReceivers
 		_c.mutation.SetReceivers(v)
+	}
+	if _, ok := _c.mutation.Subject(); !ok {
+		v := messagelog.DefaultSubject
+		_c.mutation.SetSubject(v)
+	}
+	if _, ok := _c.mutation.Content(); !ok {
+		v := messagelog.DefaultContent
+		_c.mutation.SetContent(v)
 	}
 	if _, ok := _c.mutation.Detail(); !ok {
 		v := messagelog.DefaultDetail
@@ -235,8 +289,17 @@ func (_c *MessageLogCreate) check() error {
 	if _, ok := _c.mutation.TemplateUID(); !ok {
 		return &ValidationError{Name: "template_uid", err: errors.New(`ent: missing required field "MessageLog.template_uid"`)}
 	}
+	if _, ok := _c.mutation.Sender(); !ok {
+		return &ValidationError{Name: "sender", err: errors.New(`ent: missing required field "MessageLog.sender"`)}
+	}
 	if _, ok := _c.mutation.Receivers(); !ok {
 		return &ValidationError{Name: "receivers", err: errors.New(`ent: missing required field "MessageLog.receivers"`)}
+	}
+	if _, ok := _c.mutation.Subject(); !ok {
+		return &ValidationError{Name: "subject", err: errors.New(`ent: missing required field "MessageLog.subject"`)}
+	}
+	if _, ok := _c.mutation.Content(); !ok {
+		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "MessageLog.content"`)}
 	}
 	if _, ok := _c.mutation.Detail(); !ok {
 		return &ValidationError{Name: "detail", err: errors.New(`ent: missing required field "MessageLog.detail"`)}
@@ -299,9 +362,21 @@ func (_c *MessageLogCreate) createSpec() (*MessageLog, *sqlgraph.CreateSpec) {
 		_spec.SetField(messagelog.FieldTemplateUID, field.TypeString, value)
 		_node.TemplateUID = value
 	}
+	if value, ok := _c.mutation.Sender(); ok {
+		_spec.SetField(messagelog.FieldSender, field.TypeString, value)
+		_node.Sender = value
+	}
 	if value, ok := _c.mutation.Receivers(); ok {
 		_spec.SetField(messagelog.FieldReceivers, field.TypeString, value)
 		_node.Receivers = value
+	}
+	if value, ok := _c.mutation.Subject(); ok {
+		_spec.SetField(messagelog.FieldSubject, field.TypeString, value)
+		_node.Subject = value
+	}
+	if value, ok := _c.mutation.Content(); ok {
+		_spec.SetField(messagelog.FieldContent, field.TypeString, value)
+		_node.Content = value
 	}
 	if value, ok := _c.mutation.Detail(); ok {
 		_spec.SetField(messagelog.FieldDetail, field.TypeString, value)

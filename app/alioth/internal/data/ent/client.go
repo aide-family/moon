@@ -49,6 +49,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useralertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useroauth"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/workerinstance"
 )
 
 // Client is the client that holds all ent builders.
@@ -126,6 +127,8 @@ type Client struct {
 	UserAlertPage *UserAlertPageClient
 	// UserOAuth is the client for interacting with the UserOAuth builders.
 	UserOAuth *UserOAuthClient
+	// WorkerInstance is the client for interacting with the WorkerInstance builders.
+	WorkerInstance *WorkerInstanceClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -172,6 +175,7 @@ func (c *Client) init() {
 	c.User = NewUserClient(c.config)
 	c.UserAlertPage = NewUserAlertPageClient(c.config)
 	c.UserOAuth = NewUserOAuthClient(c.config)
+	c.WorkerInstance = NewWorkerInstanceClient(c.config)
 }
 
 type (
@@ -299,6 +303,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		User:                          NewUserClient(cfg),
 		UserAlertPage:                 NewUserAlertPageClient(cfg),
 		UserOAuth:                     NewUserOAuthClient(cfg),
+		WorkerInstance:                NewWorkerInstanceClient(cfg),
 	}, nil
 }
 
@@ -353,6 +358,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		User:                          NewUserClient(cfg),
 		UserAlertPage:                 NewUserAlertPageClient(cfg),
 		UserOAuth:                     NewUserOAuthClient(cfg),
+		WorkerInstance:                NewWorkerInstanceClient(cfg),
 	}, nil
 }
 
@@ -390,6 +396,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
 		c.Permission, c.Role, c.RolePermission, c.SFTPAudit, c.SSHCommand,
 		c.SSHCommandAudit, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
+		c.WorkerInstance,
 	} {
 		n.Use(hooks...)
 	}
@@ -407,6 +414,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.NotificationSubscriptionGroup, c.NotificationTask, c.NotificationTemplate,
 		c.Permission, c.Role, c.RolePermission, c.SFTPAudit, c.SSHCommand,
 		c.SSHCommandAudit, c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth,
+		c.WorkerInstance,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -485,6 +493,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.UserAlertPage.mutate(ctx, m)
 	case *UserOAuthMutation:
 		return c.UserOAuth.mutate(ctx, m)
+	case *WorkerInstanceMutation:
+		return c.WorkerInstance.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -5145,6 +5155,139 @@ func (c *UserOAuthClient) mutate(ctx context.Context, m *UserOAuthMutation) (Val
 	}
 }
 
+// WorkerInstanceClient is a client for the WorkerInstance schema.
+type WorkerInstanceClient struct {
+	config
+}
+
+// NewWorkerInstanceClient returns a client for the WorkerInstance from the given config.
+func NewWorkerInstanceClient(c config) *WorkerInstanceClient {
+	return &WorkerInstanceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `workerinstance.Hooks(f(g(h())))`.
+func (c *WorkerInstanceClient) Use(hooks ...Hook) {
+	c.hooks.WorkerInstance = append(c.hooks.WorkerInstance, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `workerinstance.Intercept(f(g(h())))`.
+func (c *WorkerInstanceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.WorkerInstance = append(c.inters.WorkerInstance, interceptors...)
+}
+
+// Create returns a builder for creating a WorkerInstance entity.
+func (c *WorkerInstanceClient) Create() *WorkerInstanceCreate {
+	mutation := newWorkerInstanceMutation(c.config, OpCreate)
+	return &WorkerInstanceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of WorkerInstance entities.
+func (c *WorkerInstanceClient) CreateBulk(builders ...*WorkerInstanceCreate) *WorkerInstanceCreateBulk {
+	return &WorkerInstanceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *WorkerInstanceClient) MapCreateBulk(slice any, setFunc func(*WorkerInstanceCreate, int)) *WorkerInstanceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &WorkerInstanceCreateBulk{err: fmt.Errorf("calling to WorkerInstanceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*WorkerInstanceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &WorkerInstanceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for WorkerInstance.
+func (c *WorkerInstanceClient) Update() *WorkerInstanceUpdate {
+	mutation := newWorkerInstanceMutation(c.config, OpUpdate)
+	return &WorkerInstanceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *WorkerInstanceClient) UpdateOne(_m *WorkerInstance) *WorkerInstanceUpdateOne {
+	mutation := newWorkerInstanceMutation(c.config, OpUpdateOne, withWorkerInstance(_m))
+	return &WorkerInstanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *WorkerInstanceClient) UpdateOneID(id int) *WorkerInstanceUpdateOne {
+	mutation := newWorkerInstanceMutation(c.config, OpUpdateOne, withWorkerInstanceID(id))
+	return &WorkerInstanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for WorkerInstance.
+func (c *WorkerInstanceClient) Delete() *WorkerInstanceDelete {
+	mutation := newWorkerInstanceMutation(c.config, OpDelete)
+	return &WorkerInstanceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *WorkerInstanceClient) DeleteOne(_m *WorkerInstance) *WorkerInstanceDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *WorkerInstanceClient) DeleteOneID(id int) *WorkerInstanceDeleteOne {
+	builder := c.Delete().Where(workerinstance.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &WorkerInstanceDeleteOne{builder}
+}
+
+// Query returns a query builder for WorkerInstance.
+func (c *WorkerInstanceClient) Query() *WorkerInstanceQuery {
+	return &WorkerInstanceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeWorkerInstance},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a WorkerInstance entity by its id.
+func (c *WorkerInstanceClient) Get(ctx context.Context, id int) (*WorkerInstance, error) {
+	return c.Query().Where(workerinstance.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *WorkerInstanceClient) GetX(ctx context.Context, id int) *WorkerInstance {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *WorkerInstanceClient) Hooks() []Hook {
+	return c.hooks.WorkerInstance
+}
+
+// Interceptors returns the client interceptors.
+func (c *WorkerInstanceClient) Interceptors() []Interceptor {
+	return c.inters.WorkerInstance
+}
+
+func (c *WorkerInstanceClient) mutate(ctx context.Context, m *WorkerInstanceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WorkerInstanceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WorkerInstanceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WorkerInstanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WorkerInstanceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown WorkerInstance mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
@@ -5154,7 +5297,8 @@ type (
 		NotificationChannel, NotificationGroup, NotificationPreset,
 		NotificationSubscription, NotificationSubscriptionGroup, NotificationTask,
 		NotificationTemplate, Permission, Role, RolePermission, SFTPAudit, SSHCommand,
-		SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth []ent.Hook
+		SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventFiring, AlertPage,
@@ -5163,7 +5307,7 @@ type (
 		NotificationChannel, NotificationGroup, NotificationPreset,
 		NotificationSubscription, NotificationSubscriptionGroup, NotificationTask,
 		NotificationTemplate, Permission, Role, RolePermission, SFTPAudit, SSHCommand,
-		SSHCommandAudit, SystemMessage, User, UserAlertPage,
-		UserOAuth []ent.Interceptor
+		SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Interceptor
 	}
 )

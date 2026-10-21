@@ -13,6 +13,9 @@ export interface SSHCommandAuditItem {
   commandUid: string
   agentUid: string
   operatorUid: string
+  operatorName: string
+  operatorNickname: string
+  operatorAvatar: string
   kind: string
   status: string
   command: string

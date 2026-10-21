@@ -24,7 +24,7 @@ func NewRangeQuery() repository.RangeQuery {
 	return promQuery{}
 }
 
-func (promQuery) QueryRange(ctx context.Context, item bo.RuleSnapshot, start, end, step int64) ([]bo.Sample, error) {
+func (p promQuery) QueryRange(ctx context.Context, item bo.RuleSnapshot, start, end, step int64) ([]bo.Sample, error) {
 	target, err := upstream.Resolve(item.Endpoint, "/api/v1/query_range")
 	if err != nil {
 		return nil, err
@@ -35,9 +35,33 @@ func (promQuery) QueryRange(ctx context.Context, item bo.RuleSnapshot, start, en
 	query.Set("end", strconv.FormatInt(end, 10))
 	query.Set("step", strconv.FormatInt(step, 10))
 	target.RawQuery = query.Encode()
+	payload, err := p.request(ctx, item, target.String())
+	if err != nil {
+		return nil, err
+	}
+	return decodeMatrix(payload)
+}
+
+func (p promQuery) QueryInstant(ctx context.Context, item bo.RuleSnapshot, expr string, at time.Time) ([]bo.Sample, error) {
+	target, err := upstream.Resolve(item.Endpoint, "/api/v1/query")
+	if err != nil {
+		return nil, err
+	}
+	query := target.Query()
+	query.Set("query", expr)
+	query.Set("time", strconv.FormatFloat(float64(at.UnixNano())/float64(time.Second), 'f', -1, 64))
+	target.RawQuery = query.Encode()
+	payload, err := p.request(ctx, item, target.String())
+	if err != nil {
+		return nil, err
+	}
+	return decodeVector(payload)
+}
+
+func (promQuery) request(ctx context.Context, item bo.RuleSnapshot, target string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, target.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, target, nil)
 	if err != nil {
 		return nil, merr.Server("upstream query failed")
 	}
@@ -61,8 +85,11 @@ func (promQuery) QueryRange(ctx context.Context, item bo.RuleSnapshot, start, en
 		slog.Default().Error(fmt.Sprintf("rule %s status %d", item.UID, resp.StatusCode))
 		return nil, merr.Server("upstream query failed")
 	}
-	return decodeMatrix(payload)
+	return payload, nil
 }
+
+var _ repository.InstantQuery = promQuery{}
+var _ repository.RangeQuery = promQuery{}
 
 func decodeMatrix(payload []byte) ([]bo.Sample, error) {
 	var body struct {
@@ -82,21 +109,53 @@ func decodeMatrix(payload []byte) ([]bo.Sample, error) {
 	for _, series := range body.Data.Result {
 		points := make([]bo.Point, 0, len(series.Values))
 		for _, pair := range series.Values {
-			if len(pair) != 2 {
-				continue
+			point, ok := decodePoint(pair)
+			if ok {
+				points = append(points, point)
 			}
-			at, ok := pair[0].(float64)
-			raw, okRaw := pair[1].(string)
-			if !ok || !okRaw {
-				continue
-			}
-			value, err := strconv.ParseFloat(raw, 64)
-			if err != nil {
-				continue
-			}
-			points = append(points, bo.Point{At: time.Unix(int64(at), 0).UTC(), Value: value, Raw: raw})
 		}
 		samples = append(samples, bo.Sample{Labels: series.Metric, Points: points})
 	}
 	return samples, nil
+}
+
+func decodeVector(payload []byte) ([]bo.Sample, error) {
+	var body struct {
+		Status string `json:"status"`
+		Data   struct {
+			ResultType string `json:"resultType"`
+			Result     []struct {
+				Metric map[string]string `json:"metric"`
+				Value  []any             `json:"value"`
+			} `json:"result"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(payload, &body); err != nil || body.Status != "success" || body.Data.ResultType != "vector" {
+		return nil, merr.Server("upstream query failed")
+	}
+	samples := make([]bo.Sample, 0, len(body.Data.Result))
+	for _, series := range body.Data.Result {
+		point, ok := decodePoint(series.Value)
+		if !ok {
+			continue
+		}
+		samples = append(samples, bo.Sample{Labels: series.Metric, Points: []bo.Point{point}})
+	}
+	return samples, nil
+}
+
+func decodePoint(pair []any) (bo.Point, bool) {
+	if len(pair) != 2 {
+		return bo.Point{}, false
+	}
+	at, ok := pair[0].(float64)
+	raw, okRaw := pair[1].(string)
+	if !ok || !okRaw {
+		return bo.Point{}, false
+	}
+	value, err := strconv.ParseFloat(raw, 64)
+	if err != nil {
+		return bo.Point{}, false
+	}
+	return bo.Point{At: time.Unix(0, int64(at*float64(time.Second))).UTC(), Value: value, Raw: raw}, true
 }

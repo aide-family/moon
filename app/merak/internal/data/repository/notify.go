@@ -12,6 +12,7 @@ type NotifyGateway interface {
 	Claim(ctx context.Context) ([]bo.TaskSnapshot, error)
 	MarkSending(ctx context.Context, taskUID string) error
 	Report(ctx context.Context, report bo.NotifyReport) error
+	ReportStatus(ctx context.Context, status bo.WorkerStatus) error
 }
 
 // Locker 管理投递锁。

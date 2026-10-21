@@ -173,7 +173,7 @@
 
 @layer utilities {
   .glass-card {
-    @apply bg-card/80 backdrop-blur-sm ring-1 ring-border/50;
+    @apply bg-card/80 backdrop-blur-sm border border-border/50;
   }
 
   .data-table-control-bar {

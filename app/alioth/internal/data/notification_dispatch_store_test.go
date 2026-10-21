@@ -60,7 +60,7 @@ func TestNotificationSubscriptionFanout(t *testing.T) {
 		t.Fatal(err)
 	}
 	webhook, err := notify.CreateChannel(ctx, bo.NotificationChannel{
-		NamespaceUID: ns, Name: "hook", Type: "WEBHOOK", App: "OTHER", Endpoint: "https://example.com/hook",
+		NamespaceUID: ns, Name: "hook", Type: "WEBHOOK", App: "OTHER", Endpoint: "https://example.com/hook?token=secret",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -128,8 +128,15 @@ func TestNotificationSubscriptionFanout(t *testing.T) {
 	if !strings.Contains(emailTask.Receivers, "manual@example.com") || !strings.Contains(emailTask.Receivers, "member-"+ns+"@example.com") {
 		t.Fatalf("smtp receivers = %q", emailTask.Receivers)
 	}
-	if _, ok := byChannel[webhook.UID]; !ok {
+	if emailTask.Sender != "from@example.com" || emailTask.Subject != "alert" || emailTask.Body != "{{.summary}}" || emailTask.Content != "{{.summary}}" || emailTask.Status != "PENDING" {
+		t.Fatalf("smtp task audit fields = %+v", emailTask)
+	}
+	webhookTask, ok := byChannel[webhook.UID]
+	if !ok {
 		t.Fatal("missing webhook task")
+	}
+	if webhookTask.Sender != "hook" || webhookTask.Receivers != "https://example.com/hook" || webhookTask.Body != "{{.summary}}" || webhookTask.Content != "{{.summary}}" || webhookTask.Status != "PENDING" {
+		t.Fatalf("webhook task audit fields = %+v", webhookTask)
 	}
 
 	// 条件不匹配时不产生任务。

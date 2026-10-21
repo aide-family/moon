@@ -27,6 +27,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/sftp"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/ssh"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/user"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/worker"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/data"
 	"github.com/aide-family/Alioth/app/alioth/internal/mailer"
@@ -109,6 +110,9 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	notificationGroupService := service.NewNotificationGroupService(notificationUsecase)
 	notificationSubscriptionService := service.NewNotificationSubscriptionService(notificationUsecase)
 	messageLogService := service.NewMessageLogService(notificationUsecase)
+	workerRepo := data.NewWorkerRepo(dataData, logger)
+	workerUsecase := worker.NewUsecase(workerRepo, accessChecker)
+	workerService := service.NewWorkerService(workerUsecase)
 	agentService := service.NewAgentService(agentUsecase)
 	sshCommandRepo := data.NewSSHCommandRepo(dataData, logger)
 	sshUsecase := ssh.NewUsecase(sshCommandRepo, agentRepo, hub, accessChecker)
@@ -118,15 +122,15 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	sftpService := service.NewSFTPService(sftpUsecase)
 	k8sproxyUsecase := k8sproxy.NewUsecase(edgeAuditRepo, agentRepo, hub, accessChecker)
 	k8sProxyService := service.NewK8sProxyService(k8sproxyUsecase)
-	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, metricQueryService, logsQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, messageLogService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
+	httpServer, err := server.NewHTTPServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, metricQueryService, logsQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, messageLogService, workerService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
-	evalService := service.NewEvalService(alerteventUsecase)
-	notifyService := service.NewNotifyService(notificationUsecase)
-	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, metricQueryService, logsQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, evalService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, messageLogService, notifyService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
+	evalService := service.NewEvalService(alerteventUsecase, workerUsecase)
+	notifyService := service.NewNotifyService(notificationUsecase, workerUsecase)
+	grpcServer, err := server.NewGRPCServer(confServer, healthService, captchaService, authService, selfService, namespaceService, memberService, invitationService, systemMessageService, userService, roleService, datasourceService, metricQueryService, logsQueryService, alertRuleService, alertDictionaryService, alertPageService, alertEventService, evalService, notificationChannelService, notificationTemplateService, notificationGroupService, notificationSubscriptionService, messageLogService, workerService, notifyService, agentService, sshCommandService, sftpService, k8sProxyService, authUsecase, logger)
 	if err != nil {
 		cleanup2()
 		cleanup()
@@ -134,7 +138,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	}
 	partitionRepo := data.NewPartitionRepo(dataData, logger)
 	partitionUsecase := partition.NewUsecase(partitionRepo, client, logger)
-	scheduler := server.NewScheduler(alerteventUsecase, notificationUsecase, partitionUsecase, logger)
+	scheduler := server.NewScheduler(alerteventUsecase, notificationUsecase, partitionUsecase, workerUsecase, logger)
 	app := newApp(logger, httpServer, grpcServer, scheduler, hub, dataData)
 	return app, func() {
 		cleanup2()

@@ -104,6 +104,11 @@ func TemplateUID(v string) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldEQ(FieldTemplateUID, v))
 }
 
+// Sender applies equality check predicate on the "sender" field. It's identical to SenderEQ.
+func Sender(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEQ(FieldSender, v))
+}
+
 // Receivers applies equality check predicate on the "receivers" field. It's identical to ReceiversEQ.
 func Receivers(v string) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldEQ(FieldReceivers, v))
@@ -117,6 +122,11 @@ func Subject(v string) predicate.NotificationTask {
 // Body applies equality check predicate on the "body" field. It's identical to BodyEQ.
 func Body(v string) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldEQ(FieldBody, v))
+}
+
+// Content applies equality check predicate on the "content" field. It's identical to ContentEQ.
+func Content(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEQ(FieldContent, v))
 }
 
 // Params applies equality check predicate on the "params" field. It's identical to ParamsEQ.
@@ -779,6 +789,71 @@ func TemplateUIDContainsFold(v string) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldContainsFold(FieldTemplateUID, v))
 }
 
+// SenderEQ applies the EQ predicate on the "sender" field.
+func SenderEQ(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEQ(FieldSender, v))
+}
+
+// SenderNEQ applies the NEQ predicate on the "sender" field.
+func SenderNEQ(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldNEQ(FieldSender, v))
+}
+
+// SenderIn applies the In predicate on the "sender" field.
+func SenderIn(vs ...string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldIn(FieldSender, vs...))
+}
+
+// SenderNotIn applies the NotIn predicate on the "sender" field.
+func SenderNotIn(vs ...string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldNotIn(FieldSender, vs...))
+}
+
+// SenderGT applies the GT predicate on the "sender" field.
+func SenderGT(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldGT(FieldSender, v))
+}
+
+// SenderGTE applies the GTE predicate on the "sender" field.
+func SenderGTE(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldGTE(FieldSender, v))
+}
+
+// SenderLT applies the LT predicate on the "sender" field.
+func SenderLT(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldLT(FieldSender, v))
+}
+
+// SenderLTE applies the LTE predicate on the "sender" field.
+func SenderLTE(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldLTE(FieldSender, v))
+}
+
+// SenderContains applies the Contains predicate on the "sender" field.
+func SenderContains(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldContains(FieldSender, v))
+}
+
+// SenderHasPrefix applies the HasPrefix predicate on the "sender" field.
+func SenderHasPrefix(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldHasPrefix(FieldSender, v))
+}
+
+// SenderHasSuffix applies the HasSuffix predicate on the "sender" field.
+func SenderHasSuffix(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldHasSuffix(FieldSender, v))
+}
+
+// SenderEqualFold applies the EqualFold predicate on the "sender" field.
+func SenderEqualFold(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEqualFold(FieldSender, v))
+}
+
+// SenderContainsFold applies the ContainsFold predicate on the "sender" field.
+func SenderContainsFold(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldContainsFold(FieldSender, v))
+}
+
 // ReceiversEQ applies the EQ predicate on the "receivers" field.
 func ReceiversEQ(v string) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldEQ(FieldReceivers, v))
@@ -972,6 +1047,71 @@ func BodyEqualFold(v string) predicate.NotificationTask {
 // BodyContainsFold applies the ContainsFold predicate on the "body" field.
 func BodyContainsFold(v string) predicate.NotificationTask {
 	return predicate.NotificationTask(sql.FieldContainsFold(FieldBody, v))
+}
+
+// ContentEQ applies the EQ predicate on the "content" field.
+func ContentEQ(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEQ(FieldContent, v))
+}
+
+// ContentNEQ applies the NEQ predicate on the "content" field.
+func ContentNEQ(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldNEQ(FieldContent, v))
+}
+
+// ContentIn applies the In predicate on the "content" field.
+func ContentIn(vs ...string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldIn(FieldContent, vs...))
+}
+
+// ContentNotIn applies the NotIn predicate on the "content" field.
+func ContentNotIn(vs ...string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldNotIn(FieldContent, vs...))
+}
+
+// ContentGT applies the GT predicate on the "content" field.
+func ContentGT(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldGT(FieldContent, v))
+}
+
+// ContentGTE applies the GTE predicate on the "content" field.
+func ContentGTE(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldGTE(FieldContent, v))
+}
+
+// ContentLT applies the LT predicate on the "content" field.
+func ContentLT(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldLT(FieldContent, v))
+}
+
+// ContentLTE applies the LTE predicate on the "content" field.
+func ContentLTE(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldLTE(FieldContent, v))
+}
+
+// ContentContains applies the Contains predicate on the "content" field.
+func ContentContains(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldContains(FieldContent, v))
+}
+
+// ContentHasPrefix applies the HasPrefix predicate on the "content" field.
+func ContentHasPrefix(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldHasPrefix(FieldContent, v))
+}
+
+// ContentHasSuffix applies the HasSuffix predicate on the "content" field.
+func ContentHasSuffix(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldHasSuffix(FieldContent, v))
+}
+
+// ContentEqualFold applies the EqualFold predicate on the "content" field.
+func ContentEqualFold(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldEqualFold(FieldContent, v))
+}
+
+// ContentContainsFold applies the ContainsFold predicate on the "content" field.
+func ContentContainsFold(v string) predicate.NotificationTask {
+	return predicate.NotificationTask(sql.FieldContainsFold(FieldContent, v))
 }
 
 // ParamsEQ applies the EQ predicate on the "params" field.

@@ -104,6 +104,20 @@ func (_u *MessageLogUpdate) SetNillableTemplateUID(v *string) *MessageLogUpdate 
 	return _u
 }
 
+// SetSender sets the "sender" field.
+func (_u *MessageLogUpdate) SetSender(v string) *MessageLogUpdate {
+	_u.mutation.SetSender(v)
+	return _u
+}
+
+// SetNillableSender sets the "sender" field if the given value is not nil.
+func (_u *MessageLogUpdate) SetNillableSender(v *string) *MessageLogUpdate {
+	if v != nil {
+		_u.SetSender(*v)
+	}
+	return _u
+}
+
 // SetReceivers sets the "receivers" field.
 func (_u *MessageLogUpdate) SetReceivers(v string) *MessageLogUpdate {
 	_u.mutation.SetReceivers(v)
@@ -114,6 +128,34 @@ func (_u *MessageLogUpdate) SetReceivers(v string) *MessageLogUpdate {
 func (_u *MessageLogUpdate) SetNillableReceivers(v *string) *MessageLogUpdate {
 	if v != nil {
 		_u.SetReceivers(*v)
+	}
+	return _u
+}
+
+// SetSubject sets the "subject" field.
+func (_u *MessageLogUpdate) SetSubject(v string) *MessageLogUpdate {
+	_u.mutation.SetSubject(v)
+	return _u
+}
+
+// SetNillableSubject sets the "subject" field if the given value is not nil.
+func (_u *MessageLogUpdate) SetNillableSubject(v *string) *MessageLogUpdate {
+	if v != nil {
+		_u.SetSubject(*v)
+	}
+	return _u
+}
+
+// SetContent sets the "content" field.
+func (_u *MessageLogUpdate) SetContent(v string) *MessageLogUpdate {
+	_u.mutation.SetContent(v)
+	return _u
+}
+
+// SetNillableContent sets the "content" field if the given value is not nil.
+func (_u *MessageLogUpdate) SetNillableContent(v *string) *MessageLogUpdate {
+	if v != nil {
+		_u.SetContent(*v)
 	}
 	return _u
 }
@@ -223,8 +265,17 @@ func (_u *MessageLogUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	if value, ok := _u.mutation.TemplateUID(); ok {
 		_spec.SetField(messagelog.FieldTemplateUID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Sender(); ok {
+		_spec.SetField(messagelog.FieldSender, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Receivers(); ok {
 		_spec.SetField(messagelog.FieldReceivers, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Subject(); ok {
+		_spec.SetField(messagelog.FieldSubject, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Content(); ok {
+		_spec.SetField(messagelog.FieldContent, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Detail(); ok {
 		_spec.SetField(messagelog.FieldDetail, field.TypeString, value)
@@ -325,6 +376,20 @@ func (_u *MessageLogUpdateOne) SetNillableTemplateUID(v *string) *MessageLogUpda
 	return _u
 }
 
+// SetSender sets the "sender" field.
+func (_u *MessageLogUpdateOne) SetSender(v string) *MessageLogUpdateOne {
+	_u.mutation.SetSender(v)
+	return _u
+}
+
+// SetNillableSender sets the "sender" field if the given value is not nil.
+func (_u *MessageLogUpdateOne) SetNillableSender(v *string) *MessageLogUpdateOne {
+	if v != nil {
+		_u.SetSender(*v)
+	}
+	return _u
+}
+
 // SetReceivers sets the "receivers" field.
 func (_u *MessageLogUpdateOne) SetReceivers(v string) *MessageLogUpdateOne {
 	_u.mutation.SetReceivers(v)
@@ -335,6 +400,34 @@ func (_u *MessageLogUpdateOne) SetReceivers(v string) *MessageLogUpdateOne {
 func (_u *MessageLogUpdateOne) SetNillableReceivers(v *string) *MessageLogUpdateOne {
 	if v != nil {
 		_u.SetReceivers(*v)
+	}
+	return _u
+}
+
+// SetSubject sets the "subject" field.
+func (_u *MessageLogUpdateOne) SetSubject(v string) *MessageLogUpdateOne {
+	_u.mutation.SetSubject(v)
+	return _u
+}
+
+// SetNillableSubject sets the "subject" field if the given value is not nil.
+func (_u *MessageLogUpdateOne) SetNillableSubject(v *string) *MessageLogUpdateOne {
+	if v != nil {
+		_u.SetSubject(*v)
+	}
+	return _u
+}
+
+// SetContent sets the "content" field.
+func (_u *MessageLogUpdateOne) SetContent(v string) *MessageLogUpdateOne {
+	_u.mutation.SetContent(v)
+	return _u
+}
+
+// SetNillableContent sets the "content" field if the given value is not nil.
+func (_u *MessageLogUpdateOne) SetNillableContent(v *string) *MessageLogUpdateOne {
+	if v != nil {
+		_u.SetContent(*v)
 	}
 	return _u
 }
@@ -474,8 +567,17 @@ func (_u *MessageLogUpdateOne) sqlSave(ctx context.Context) (_node *MessageLog, 
 	if value, ok := _u.mutation.TemplateUID(); ok {
 		_spec.SetField(messagelog.FieldTemplateUID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Sender(); ok {
+		_spec.SetField(messagelog.FieldSender, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Receivers(); ok {
 		_spec.SetField(messagelog.FieldReceivers, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Subject(); ok {
+		_spec.SetField(messagelog.FieldSubject, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Content(); ok {
+		_spec.SetField(messagelog.FieldContent, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Detail(); ok {
 		_spec.SetField(messagelog.FieldDetail, field.TypeString, value)

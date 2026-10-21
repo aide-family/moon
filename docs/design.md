@@ -350,7 +350,7 @@ Moon 的玉树由控制面根据上报的 endpoint 回拨 Agent。边缘网络�
 - 提交新建或更新，生成审计，种类为 CREATE / UPDATE，状态为 PENDING
 - 通过或拒绝。通过后写入可执行的 `SSHCommand`（名称、命令、工作目录、环境变量）
 - 执行单条或批量执行。`alioth` 鉴权 `ssh:exec`，把命令帧送到 Agent
-- Agent 使用目标主机上的 SSH（本机或已配置的主机凭据）执行，回传退出码与输出
+- Agent 在自身所在机器上执行本地 shell 命令，回传退出码与输出；`alioth` 不通过 SSH 回连目标
 - 每次执行写入审计
 
 Moon 的下发计数和按 endpoint 派发（`/v1/ssh-command-actions/dispatch`）由「选择在线 Agent」替代。

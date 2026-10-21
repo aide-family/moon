@@ -119,6 +119,9 @@ func TestNotificationTaskDedup(t *testing.T) {
 	if len(tasks) != 1 || tasks[0].Phase != "FIRING" {
 		t.Fatalf("firing tasks = %+v", tasks)
 	}
+	if tasks[0].Sender != "a@example.com" || tasks[0].Receivers != "ops@example.com" || tasks[0].Subject != "hi" || tasks[0].Body != "{{.summary}}" || tasks[0].Content != "{{.summary}}" || tasks[0].Status != "PENDING" {
+		t.Fatalf("firing task audit fields = %+v", tasks[0])
+	}
 
 	if err := events.ApplyReport(ctx, *rule, bo.EvalReport{
 		RuleUID: rule.UID, DatasourceUID: "ds1", EvalSlot: slot.Add(time.Minute), Hits: nil,
@@ -175,6 +178,9 @@ func TestNotificationTaskDedup(t *testing.T) {
 	}
 	if task.Status != "PENDING" || task.Phase != "TEST" {
 		t.Fatalf("test task = %+v", task)
+	}
+	if task.Sender != "a@example.com" || task.Receivers != "test@example.com" || task.Subject != "t" || task.Body != "b" || task.Content != "b" {
+		t.Fatalf("test task audit fields = %+v", task)
 	}
 
 	// 退避：next_attempt_at 在未来的任务不能被领取；到点后恢复可领取。

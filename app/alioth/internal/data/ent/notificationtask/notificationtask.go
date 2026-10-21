@@ -38,12 +38,16 @@ const (
 	FieldChannelUID = "channel_uid"
 	// FieldTemplateUID holds the string denoting the template_uid field in the database.
 	FieldTemplateUID = "template_uid"
+	// FieldSender holds the string denoting the sender field in the database.
+	FieldSender = "sender"
 	// FieldReceivers holds the string denoting the receivers field in the database.
 	FieldReceivers = "receivers"
 	// FieldSubject holds the string denoting the subject field in the database.
 	FieldSubject = "subject"
 	// FieldBody holds the string denoting the body field in the database.
 	FieldBody = "body"
+	// FieldContent holds the string denoting the content field in the database.
+	FieldContent = "content"
 	// FieldParams holds the string denoting the params field in the database.
 	FieldParams = "params"
 	// FieldRetriesLeft holds the string denoting the retries_left field in the database.
@@ -71,9 +75,11 @@ var Columns = []string{
 	FieldGroupUID,
 	FieldChannelUID,
 	FieldTemplateUID,
+	FieldSender,
 	FieldReceivers,
 	FieldSubject,
 	FieldBody,
+	FieldContent,
 	FieldParams,
 	FieldRetriesLeft,
 	FieldNextAttemptAt,
@@ -113,12 +119,16 @@ var (
 	ChannelUIDValidator func(string) error
 	// DefaultTemplateUID holds the default value on creation for the "template_uid" field.
 	DefaultTemplateUID string
+	// DefaultSender holds the default value on creation for the "sender" field.
+	DefaultSender string
 	// DefaultReceivers holds the default value on creation for the "receivers" field.
 	DefaultReceivers string
 	// DefaultSubject holds the default value on creation for the "subject" field.
 	DefaultSubject string
 	// DefaultBody holds the default value on creation for the "body" field.
 	DefaultBody string
+	// DefaultContent holds the default value on creation for the "content" field.
+	DefaultContent string
 	// DefaultParams holds the default value on creation for the "params" field.
 	DefaultParams string
 	// DefaultRetriesLeft holds the default value on creation for the "retries_left" field.
@@ -251,6 +261,11 @@ func ByTemplateUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTemplateUID, opts...).ToFunc()
 }
 
+// BySender orders the results by the sender field.
+func BySender(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSender, opts...).ToFunc()
+}
+
 // ByReceivers orders the results by the receivers field.
 func ByReceivers(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldReceivers, opts...).ToFunc()
@@ -264,6 +279,11 @@ func BySubject(opts ...sql.OrderTermOption) OrderOption {
 // ByBody orders the results by the body field.
 func ByBody(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBody, opts...).ToFunc()
+}
+
+// ByContent orders the results by the content field.
+func ByContent(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContent, opts...).ToFunc()
 }
 
 // ByParams orders the results by the params field.

@@ -33,8 +33,14 @@ type MessageLog struct {
 	ChannelUID string `json:"channel_uid,omitempty"`
 	// TemplateUID holds the value of the "template_uid" field.
 	TemplateUID string `json:"template_uid,omitempty"`
+	// Sender holds the value of the "sender" field.
+	Sender string `json:"sender,omitempty"`
 	// Receivers holds the value of the "receivers" field.
 	Receivers string `json:"receivers,omitempty"`
+	// Subject holds the value of the "subject" field.
+	Subject string `json:"subject,omitempty"`
+	// Content holds the value of the "content" field.
+	Content string `json:"content,omitempty"`
 	// Detail holds the value of the "detail" field.
 	Detail       string `json:"detail,omitempty"`
 	selectValues sql.SelectValues
@@ -47,7 +53,7 @@ func (*MessageLog) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case messagelog.FieldID:
 			values[i] = new(sql.NullInt64)
-		case messagelog.FieldUID, messagelog.FieldNamespaceUID, messagelog.FieldTaskUID, messagelog.FieldStatus, messagelog.FieldChannelUID, messagelog.FieldTemplateUID, messagelog.FieldReceivers, messagelog.FieldDetail:
+		case messagelog.FieldUID, messagelog.FieldNamespaceUID, messagelog.FieldTaskUID, messagelog.FieldStatus, messagelog.FieldChannelUID, messagelog.FieldTemplateUID, messagelog.FieldSender, messagelog.FieldReceivers, messagelog.FieldSubject, messagelog.FieldContent, messagelog.FieldDetail:
 			values[i] = new(sql.NullString)
 		case messagelog.FieldCreatedAt, messagelog.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -120,11 +126,29 @@ func (_m *MessageLog) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.TemplateUID = value.String
 			}
+		case messagelog.FieldSender:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field sender", values[i])
+			} else if value.Valid {
+				_m.Sender = value.String
+			}
 		case messagelog.FieldReceivers:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field receivers", values[i])
 			} else if value.Valid {
 				_m.Receivers = value.String
+			}
+		case messagelog.FieldSubject:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field subject", values[i])
+			} else if value.Valid {
+				_m.Subject = value.String
+			}
+		case messagelog.FieldContent:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field content", values[i])
+			} else if value.Valid {
+				_m.Content = value.String
 			}
 		case messagelog.FieldDetail:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -192,8 +216,17 @@ func (_m *MessageLog) String() string {
 	builder.WriteString("template_uid=")
 	builder.WriteString(_m.TemplateUID)
 	builder.WriteString(", ")
+	builder.WriteString("sender=")
+	builder.WriteString(_m.Sender)
+	builder.WriteString(", ")
 	builder.WriteString("receivers=")
 	builder.WriteString(_m.Receivers)
+	builder.WriteString(", ")
+	builder.WriteString("subject=")
+	builder.WriteString(_m.Subject)
+	builder.WriteString(", ")
+	builder.WriteString("content=")
+	builder.WriteString(_m.Content)
 	builder.WriteString(", ")
 	builder.WriteString("detail=")
 	builder.WriteString(_m.Detail)

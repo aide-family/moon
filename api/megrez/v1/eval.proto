@@ -10,6 +10,8 @@ service EvalService {
   rpc ClaimRules(ClaimRulesRequest) returns (ClaimRulesResponse);
   // 回写命中、恢复，或标明驱动尚未实现。
   rpc ReportEval(ReportEvalRequest) returns (ReportEvalResponse);
+  // 上报天权实例心跳与当前评测任务。
+  rpc ReportWorkerStatus(ReportWorkerStatusRequest) returns (ReportWorkerStatusResponse);
 }
 
 // 领取不需要参数，也不要求租户头。
@@ -105,3 +107,22 @@ message EvalHit {
 
 // 回写已接受。
 message ReportEvalResponse {}
+
+// 天权实例的一次状态心跳。
+message ReportWorkerStatusRequest {
+  // 进程实例唯一标识。
+  string instance_uid = 1;
+  // 运行主机或容器名称。
+  string hostname = 2;
+  // 是否正在评测。
+  bool busy = 3;
+  // 当前规则标识；空值表示空闲。
+  string task_uid = 4;
+  // 当前规则名称。
+  string task_name = 5;
+  // 当前任务开始时间，RFC3339；空值表示无活动任务。
+  string task_started_at = 6;
+}
+
+// 状态已记录。
+message ReportWorkerStatusResponse {}

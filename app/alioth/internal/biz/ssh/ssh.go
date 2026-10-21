@@ -144,23 +144,13 @@ func (uc *Usecase) Execute(ctx context.Context, commandUID, agentUID string) (*b
 		uc.recordExec(ctx, ns, cmd, agentUID, "FAILED", "agent is offline", 0, "", false)
 		return nil, merr.Invalid("agent is offline")
 	}
-	password, privateKey, err := uc.agents.GetSSHSecrets(ctx, agentUID)
-	if err != nil {
-		uc.recordExec(ctx, ns, cmd, agentUID, "FAILED", err.Error(), 0, "", false)
-		return nil, uc.access.Wrap(err)
-	}
 	requestUID := id.New()
 	resultCh, err := uc.hub.SendExec(agentUID, &v1.AgentFrame{
 		ExecRequest: &v1.AgentExecRequest{
-			RequestUid:    requestUID,
-			Command:       cmd.Command,
-			Workdir:       cmd.Workdir,
-			Env:           cmd.Env,
-			SshHost:       machine.SSHHost,
-			SshPort:       int32(machine.SSHPort),
-			SshUser:       machine.SSHUser,
-			SshPassword:   password,
-			SshPrivateKey: privateKey,
+			RequestUid: requestUID,
+			Command:    cmd.Command,
+			Workdir:    cmd.Workdir,
+			Env:        cmd.Env,
 		},
 	})
 	if err != nil {

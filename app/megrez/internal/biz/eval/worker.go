@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
+	"sync"
 	"time"
 
 	"github.com/google/wire"
@@ -18,12 +20,13 @@ import (
 )
 
 const (
-	evalLockTTL  = 30 * time.Second
-	renewEvery   = 10 * time.Second
-	pollEvery    = 2 * time.Second
-	roundTimeout = 30 * time.Second
-	backoffMax   = 30 * time.Second
-	pollSpec     = "*/2 * * * * *"
+	evalLockTTL    = 30 * time.Second
+	renewEvery     = 10 * time.Second
+	pollEvery      = 2 * time.Second
+	heartbeatEvery = 5 * time.Second
+	roundTimeout   = 30 * time.Second
+	backoffMax     = 30 * time.Second
+	pollSpec       = "*/2 * * * * *"
 )
 
 var ProviderSet = wire.NewSet(NewWorker)
@@ -38,10 +41,27 @@ type Worker struct {
 	done    chan struct{}
 	now     func() time.Time
 	gate    *pkgworker.Gate
+
+	mu            sync.RWMutex
+	reportMu      sync.Mutex
+	instanceUID   string
+	hostname      string
+	busy          bool
+	taskUID       string
+	taskName      string
+	taskStartedAt time.Time
 }
 
 func NewWorker(gateway repository.EvalGateway, locks repository.Locker, query repository.RangeQuery, logger *slog.Logger) *Worker {
-	return &Worker{gateway: gateway, locks: locks, query: query, log: logger, now: time.Now, gate: pkgworker.NewGate(pollEvery, backoffMax)}
+	hostname, err := os.Hostname()
+	if err != nil || hostname == "" {
+		hostname = "unknown"
+	}
+	instanceUID := fmt.Sprintf("%s-%d-%d", hostname, os.Getpid(), time.Now().UnixNano())
+	return &Worker{
+		gateway: gateway, locks: locks, query: query, log: logger, now: time.Now,
+		gate: pkgworker.NewGate(pollEvery, backoffMax), instanceUID: instanceUID, hostname: hostname,
+	}
 }
 
 func (w *Worker) Start(context.Context) error {
@@ -53,8 +73,14 @@ func (w *Worker) Start(context.Context) error {
 		cancel()
 		return merr.Server("eval cron failed")
 	}
+	heartbeatDone := make(chan struct{})
+	go func() {
+		defer close(heartbeatDone)
+		w.heartbeat(ctx)
+	}()
 	go func() {
 		defer close(w.done)
+		defer func() { <-heartbeatDone }()
 		w.round(ctx)
 		sched.Start()
 		<-ctx.Done()
@@ -76,6 +102,45 @@ func (w *Worker) Stop(ctx context.Context) error {
 		w.log.Error("eval worker stop timed out")
 	}
 	return nil
+}
+
+func (w *Worker) heartbeat(ctx context.Context) {
+	ticker := time.NewTicker(heartbeatEvery)
+	defer ticker.Stop()
+	for {
+		w.reportStatus(ctx)
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+		}
+	}
+}
+
+func (w *Worker) setStatus(ctx context.Context, busy bool, taskUID, taskName string, startedAt time.Time) {
+	w.mu.Lock()
+	w.busy = busy
+	w.taskUID = taskUID
+	w.taskName = taskName
+	w.taskStartedAt = startedAt
+	w.mu.Unlock()
+	w.reportStatus(ctx)
+}
+
+func (w *Worker) reportStatus(parent context.Context) {
+	w.reportMu.Lock()
+	defer w.reportMu.Unlock()
+	w.mu.RLock()
+	status := bo.WorkerStatus{
+		InstanceUID: w.instanceUID, Hostname: w.hostname, Busy: w.busy,
+		TaskUID: w.taskUID, TaskName: w.taskName, TaskStartedAt: w.taskStartedAt,
+	}
+	w.mu.RUnlock()
+	ctx, cancel := context.WithTimeout(parent, 2*time.Second)
+	defer cancel()
+	if err := w.gateway.ReportStatus(ctx, status); err != nil && parent.Err() == nil {
+		w.log.Error(fmt.Sprintf("report worker status: %v", err))
+	}
 }
 
 func (w *Worker) round(ctx context.Context) {
@@ -148,6 +213,12 @@ func (w *Worker) evalOne(ctx context.Context, rule bo.RuleSnapshot) error {
 		return err
 	}
 	defer func() { _ = hold.Release(context.Background()) }()
+	name := rule.Name
+	if name == "" {
+		name = rule.UID
+	}
+	w.setStatus(ctx, true, rule.UID, name, w.now().UTC())
+	defer w.setStatus(context.Background(), false, "", "", time.Time{})
 	return w.finish(ctx, hold, rule)
 }
 
@@ -195,7 +266,13 @@ func (w *Worker) finish(ctx context.Context, hold repository.Hold, rule bo.RuleS
 		return err
 	}
 	if !report.Skipped {
-		report.Hits = Hits(rule, samples)
+		var templateQuery TemplateQuery
+		if instant, ok := w.query.(repository.InstantQuery); ok {
+			templateQuery = func(ctx context.Context, rule bo.RuleSnapshot, expr string, at time.Time) ([]bo.Sample, error) {
+				return instant.QueryInstant(ctx, rule, expr, at)
+			}
+		}
+		report.Hits = HitsWithQuery(ctx, rule, samples, rule.EvalSlot, templateQuery)
 	}
 	if err := w.gateway.Report(ctx, report); err != nil {
 		return err

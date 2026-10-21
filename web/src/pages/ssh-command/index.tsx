@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { createSearchParams, Link, useNavigate } from "react-router-dom"
 import { formMessage, readFormError } from "@/lib/form-error"
 
 import { listAgents } from "@/api/agent"
@@ -42,6 +43,13 @@ import {
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
+import {
   collectFieldErrors,
   hasFieldErrors,
   requireTrimmed,
@@ -53,6 +61,7 @@ import { useListQuery } from "@/lib/list-query"
 
 export function SSHCommandPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const session = useSession()
   const query = useListQuery()
   const [draft, setDraft] = useState(query.name)
@@ -74,7 +83,6 @@ export function SSHCommandPage() {
   const [audits, setAudits] = useState<SSHCommandAuditItem[]>([])
   const [auditOpen, setAuditOpen] = useState(false)
   const [auditTarget, setAuditTarget] = useState<SSHCommandItem | null>(null)
-  const [lastAudits, setLastAudits] = useState<SSHCommandAuditItem[]>([])
   const [confirm, setConfirm] = useState<SSHCommandItem | null>(null)
   const [confirmError, setConfirmError] = useState("")
   const canWrite = session.can("ssh:write")
@@ -127,7 +135,7 @@ export function SSHCommandPage() {
   async function openAudits(item: SSHCommandItem) {
     setAuditTarget(item)
     try {
-      const result = await listSSHCommandAudits({ page: 1, pageSize: 20, commandUid: item.uid })
+      const result = await listSSHCommandAudits({ page: 1, pageSize: 100, commandUid: item.uid })
       setAudits(result.items ?? [])
     } catch {
       setAudits([])
@@ -184,8 +192,15 @@ export function SSHCommandPage() {
     try {
       const result = await executeSSHCommand(executing.uid, agentUids)
       setExecOpen(false)
-      setLastAudits(result.audits ?? [])
       reload()
+      const params = createSearchParams({ run: "1" })
+      for (const audit of result.audits ?? []) {
+        if (audit.uid) params.append("audit", audit.uid)
+      }
+      navigate({
+        pathname: `/ssh-commands/${executing.uid}/results`,
+        search: params.toString(),
+      })
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
       setFieldErrors(failure.fields)
@@ -381,49 +396,82 @@ export function SSHCommandPage() {
           </form>
         </DialogContent>
       </Dialog>
-      <Dialog open={lastAudits.length > 0} onOpenChange={(value) => !value && setLastAudits([])}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{t("ssh.execResult")}</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-3 text-sm">
-            {lastAudits.map((audit) => (
-              <div key={audit.uid || audit.agentUid} className="grid gap-1 rounded-md border p-2">
-                <p>{audit.agentUid}</p>
-                <p>{t("ssh.exitCode")}: {audit.exitCode}</p>
-                <p>{t("ssh.status")}: {enumLabel(t, audit.status)}</p>
-                <pre className="max-h-40 overflow-auto rounded-md border p-2 text-xs">{audit.output || audit.detail || "-"}</pre>
-              </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-      <Dialog
+      <Sheet
         open={auditOpen}
         onOpenChange={(value) => {
           setAuditOpen(value)
-          if (!value) {
-            setAuditTarget(null)
-          }
+          if (!value) setAuditTarget(null)
         }}
       >
-        <DialogContent className="max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{auditTarget?.name ?? t("ssh.audits")}</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-3 text-sm">
-            {audits.length === 0 ? <p className="text-muted-foreground">{t("state.empty")}</p> : null}
-            {audits.map((audit) => (
-              <div key={audit.uid} className="rounded-md border p-2">
-                <p>{enumLabel(t, audit.kind)} / {enumLabel(t, audit.status)}</p>
-                <p>{audit.createdAt}</p>
-                {audit.kind === "EXECUTE" ? <p>{t("ssh.exitCode")}: {audit.exitCode}</p> : null}
-                {audit.output ? <pre className="mt-1 max-h-32 overflow-auto text-xs">{audit.output}</pre> : null}
-              </div>
-            ))}
+        <SheetContent className="gap-0 p-0" style={{ width: "60vw", maxWidth: "none" }}>
+          <SheetHeader className="border-b px-6 py-5 pr-14">
+            <SheetTitle>{auditTarget?.name ?? t("ssh.audits")}</SheetTitle>
+            <SheetDescription>{t("ssh.auditTimelineDescription")}</SheetDescription>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+            {audits.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">{t("state.empty")}</p>
+            ) : (
+              <ol className="grid">
+                {audits.map((audit, index) => {
+                  const isFailed = audit.status === "FAILED"
+                  const operatorName = audit.operatorNickname || audit.operatorName || audit.operatorUid
+                  return (
+                    <li key={audit.uid} className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-x-3 pb-7 last:pb-0">
+                      <span className="relative flex justify-center">
+                        <span className={`relative z-10 mt-1 size-2.5 rounded-full ring-4 ring-background ${isFailed ? "bg-destructive" : audit.kind === "EXECUTE" ? "bg-emerald-600 dark:bg-emerald-400" : "bg-muted-foreground"}`} />
+                        {index < audits.length - 1 ? <span className="absolute top-4 bottom-[-1.75rem] w-px bg-border" /> : null}
+                      </span>
+                      <article className="min-w-0 rounded-lg border bg-card p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{enumLabel(t, audit.kind)}</span>
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isFailed ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>
+                              {enumLabel(t, audit.status)}
+                            </span>
+                          </div>
+                          <time className="text-xs text-muted-foreground">{new Date(audit.createdAt).toLocaleString()}</time>
+                        </div>
+                        {audit.operatorUid ? (
+                          <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                            {audit.operatorAvatar ? (
+                              <img src={audit.operatorAvatar} alt="" className="size-6 rounded-full object-cover" />
+                            ) : (
+                              <span className="flex size-6 items-center justify-center rounded-full bg-muted font-medium text-foreground">
+                                {operatorName.slice(0, 1).toUpperCase()}
+                              </span>
+                            )}
+                            <span>
+                              {t("ssh.operator")}: <span className="font-medium text-foreground">{operatorName}</span>
+                              {audit.operatorNickname && audit.operatorName && audit.operatorNickname !== audit.operatorName ? (
+                                <span className="ml-1">({audit.operatorName})</span>
+                              ) : null}
+                            </span>
+                          </div>
+                        ) : null}
+                        {audit.kind === "EXECUTE" ? (
+                          <Link
+                            to={`/ssh-commands/${audit.commandUid || auditTarget?.uid}/results?${createSearchParams({ audit: audit.uid })}`}
+                            className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+                          >
+                            {t("ssh.viewExecutionRecord")}
+                            <span aria-hidden="true">→</span>
+                          </Link>
+                        ) : (
+                          <>
+                            {audit.command ? <pre className="mt-3 whitespace-pre-wrap break-words rounded-md bg-muted/50 p-3 font-mono text-xs leading-5">$ {audit.command}</pre> : null}
+                            {audit.detail ? <p className="mt-3 text-sm text-muted-foreground">{audit.detail}</p> : null}
+                          </>
+                        )}
+                      </article>
+                    </li>
+                  )
+                })}
+              </ol>
+            )}
           </div>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
       <DetailSheet
         open={detail !== null}
         title={detail?.name ?? ""}

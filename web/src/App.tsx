@@ -27,7 +27,9 @@ import { RolePage } from "@/pages/role"
 import { K8sPage } from "@/pages/k8s"
 import { SFTPPage } from "@/pages/sftp"
 import { SSHCommandPage } from "@/pages/ssh-command"
+import { SSHCommandResultsPage } from "@/pages/ssh-command/results"
 import { UserPage } from "@/pages/user"
+import { WorkerStatusPage } from "@/pages/workers"
 
 export function App() {
   return (
@@ -41,6 +43,7 @@ export function App() {
         <Route path="/forbidden" element={<ForbiddenPage />} />
         <Route path="/namespaces" element={<NamespacePage />} />
         <Route path="/users" element={<UserPage />} />
+        <Route path="/workers" element={<WorkerStatusPage />} />
         <Route path="/invitations" element={<InvitationPage />} />
         <Route path="/messages" element={<MessagePage />} />
         <Route path="/members" element={<MemberPage />} />
@@ -59,6 +62,7 @@ export function App() {
         <Route path="/agents" element={<AgentPage />} />
         <Route path="/agents/:uid/shell" element={<AgentShellPage />} />
         <Route path="/ssh-commands" element={<SSHCommandPage />} />
+        <Route path="/ssh-commands/:uid/results" element={<SSHCommandResultsPage />} />
         <Route path="/sftp" element={<SFTPPage />} />
         <Route path="/k8s" element={<K8sPage />} />
       </Route>

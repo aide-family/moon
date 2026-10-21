@@ -867,6 +867,12 @@ message MessageLogItem {
   string detail = 7;
   // 创建时间，RFC3339。
   string created_at = 8 [json_name = "createdAt"];
+  // 发送方标识（邮件地址或通知渠道名称）。
+  string sender = 9;
+  // 邮件主题或消息标题。
+  string subject = 10;
+  // 实际发送正文；历史记录可能为空。
+  string content = 11;
 }
 
 // 消息日志分页查询。
@@ -931,6 +937,10 @@ message NotificationTaskItem {
   string last_error = 12 [json_name = "lastError"];
   // 命中订阅的标识。规则绑定已移除，事件任务均由订阅产生。
   string subscription_uid = 13 [json_name = "subscriptionUid"];
+  // 发送方标识（邮件地址或通知渠道名称）。
+  string sender = 14;
+  // 消息正文；投递完成后为最终渲染内容。
+  string content = 15;
 }
 
 // 通知任务分页查询。

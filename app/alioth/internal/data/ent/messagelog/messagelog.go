@@ -30,8 +30,14 @@ const (
 	FieldChannelUID = "channel_uid"
 	// FieldTemplateUID holds the string denoting the template_uid field in the database.
 	FieldTemplateUID = "template_uid"
+	// FieldSender holds the string denoting the sender field in the database.
+	FieldSender = "sender"
 	// FieldReceivers holds the string denoting the receivers field in the database.
 	FieldReceivers = "receivers"
+	// FieldSubject holds the string denoting the subject field in the database.
+	FieldSubject = "subject"
+	// FieldContent holds the string denoting the content field in the database.
+	FieldContent = "content"
 	// FieldDetail holds the string denoting the detail field in the database.
 	FieldDetail = "detail"
 	// Table holds the table name of the messagelog in the database.
@@ -49,7 +55,10 @@ var Columns = []string{
 	FieldStatus,
 	FieldChannelUID,
 	FieldTemplateUID,
+	FieldSender,
 	FieldReceivers,
+	FieldSubject,
+	FieldContent,
 	FieldDetail,
 }
 
@@ -80,8 +89,14 @@ var (
 	DefaultChannelUID string
 	// DefaultTemplateUID holds the default value on creation for the "template_uid" field.
 	DefaultTemplateUID string
+	// DefaultSender holds the default value on creation for the "sender" field.
+	DefaultSender string
 	// DefaultReceivers holds the default value on creation for the "receivers" field.
 	DefaultReceivers string
+	// DefaultSubject holds the default value on creation for the "subject" field.
+	DefaultSubject string
+	// DefaultContent holds the default value on creation for the "content" field.
+	DefaultContent string
 	// DefaultDetail holds the default value on creation for the "detail" field.
 	DefaultDetail string
 )
@@ -157,9 +172,24 @@ func ByTemplateUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTemplateUID, opts...).ToFunc()
 }
 
+// BySender orders the results by the sender field.
+func BySender(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSender, opts...).ToFunc()
+}
+
 // ByReceivers orders the results by the receivers field.
 func ByReceivers(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldReceivers, opts...).ToFunc()
+}
+
+// BySubject orders the results by the subject field.
+func BySubject(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSubject, opts...).ToFunc()
+}
+
+// ByContent orders the results by the content field.
+func ByContent(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContent, opts...).ToFunc()
 }
 
 // ByDetail orders the results by the detail field.

@@ -36,6 +36,10 @@ import {
 } from "@/components/ui/select"
 import { useListQuery } from "@/lib/list-query"
 
+function deliveryContent(subject?: string, content?: string): string {
+  return [subject?.trim(), content?.trim()].filter((value): value is string => Boolean(value)).join("\n\n")
+}
+
 export function MessageLogPage() {
   const { t } = useTranslation()
   const session = useSession()
@@ -259,13 +263,14 @@ export function MessageLogPage() {
         {!loading && !failed && tab === "logs" && logs.length === 0 ? <p className="text-sm text-muted-foreground">{t("messageLog.empty")}</p> : null}
         {!loading && !failed && tab === "tasks" && tasks.length === 0 ? <p className="text-sm text-muted-foreground">{t("messageLog.empty")}</p> : null}
         {!loading && !failed && tab === "logs" && logs.length > 0 ? (
-          <Table>
+          <Table className="min-w-[56rem]">
             <TableHeader>
               <TableRow>
                 <TableHead>{t("messageLog.status")}</TableHead>
-                <TableHead>{t("messageLog.taskFilter")}</TableHead>
+                <TableHead>{t("messageLog.sender")}</TableHead>
                 <TableHead>{t("messageLog.receivers")}</TableHead>
-                <TableHead>{t("messageLog.detail")}</TableHead>
+                <TableHead>{t("messageLog.content")}</TableHead>
+                <TableHead>{t("messageLog.taskFilter")}</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
@@ -273,9 +278,10 @@ export function MessageLogPage() {
               {logs.map((item) => (
                 <TableRow key={item.uid}>
                   <TableCell>{enumLabel(t, item.status)}</TableCell>
+                  <TableCell className="max-w-xs truncate" title={item.sender || undefined}>{item.sender || t("messageLog.notProvided")}</TableCell>
+                  <TableCell className="max-w-xs truncate" title={item.receivers || undefined}>{item.receivers || t("messageLog.notProvided")}</TableCell>
+                  <TableCell className="max-w-sm truncate" title={deliveryContent(item.subject, item.content) || undefined}>{deliveryContent(item.subject, item.content) || t("messageLog.notProvided")}</TableCell>
                   <TableCell className="font-mono text-xs">{item.taskUid}</TableCell>
-                  <TableCell>{item.receivers}</TableCell>
-                  <TableCell className="max-w-xs truncate">{item.detail}</TableCell>
                   <TableCell>
                     <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetailLog(item)} actions={[]} />
                   </TableCell>
@@ -285,11 +291,14 @@ export function MessageLogPage() {
           </Table>
         ) : null}
         {!loading && !failed && tab === "tasks" && tasks.length > 0 ? (
-          <Table>
+          <Table className="min-w-[72rem]">
             <TableHeader>
               <TableRow>
                 <TableHead>{t("messageLog.phase")}</TableHead>
                 <TableHead>{t("messageLog.status")}</TableHead>
+                <TableHead>{t("messageLog.sender")}</TableHead>
+                <TableHead>{t("messageLog.receivers")}</TableHead>
+                <TableHead>{t("messageLog.content")}</TableHead>
                 <TableHead>{t("messageLog.retries")}</TableHead>
                 <TableHead>{t("messageLog.detail")}</TableHead>
                 <TableHead />
@@ -300,8 +309,11 @@ export function MessageLogPage() {
                 <TableRow key={item.uid}>
                   <TableCell>{enumLabel(t, item.phase)}</TableCell>
                   <TableCell>{enumLabel(t, item.status)}</TableCell>
+                  <TableCell className="max-w-xs truncate" title={item.sender || undefined}>{item.sender || t("messageLog.notProvided")}</TableCell>
+                  <TableCell className="max-w-xs truncate" title={item.receivers || undefined}>{item.receivers || t("messageLog.notProvided")}</TableCell>
+                  <TableCell className="max-w-sm truncate" title={deliveryContent(item.subject, item.content) || undefined}>{deliveryContent(item.subject, item.content) || t("messageLog.notProvided")}</TableCell>
                   <TableCell>{item.retriesLeft}</TableCell>
-                  <TableCell className="max-w-xs truncate">{item.lastError}</TableCell>
+                  <TableCell className="max-w-xs truncate" title={item.lastError || undefined}>{item.lastError || t("messageLog.notProvided")}</TableCell>
                   <TableCell>
                     <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetailTask(item)} actions={taskActions(item)} />
                   </TableCell>
@@ -324,8 +336,12 @@ export function MessageLogPage() {
             ? [
                 { label: t("detail.uid"), value: detailLog.uid },
                 { label: t("messageLog.status"), value: enumLabel(t, detailLog.status) },
-                { label: t("messageLog.receivers"), value: detailLog.receivers },
-                { label: t("messageLog.detail"), value: detailLog.detail },
+                { label: t("messageLog.sender"), value: detailLog.sender || t("messageLog.notProvided") },
+                { label: t("messageLog.receivers"), value: detailLog.receivers || t("messageLog.notProvided") },
+                { label: t("messageLog.subject"), value: detailLog.subject || t("messageLog.notProvided") },
+                { label: t("messageLog.content"), value: <span className="whitespace-pre-wrap">{detailLog.content || t("messageLog.notProvided")}</span> },
+                { label: t("messageLog.taskFilter"), value: detailLog.taskUid },
+                { label: t("messageLog.detail"), value: detailLog.detail || t("messageLog.notProvided") },
               ]
             : []
         }
@@ -344,7 +360,12 @@ export function MessageLogPage() {
                 { label: t("detail.uid"), value: detailTask.uid },
                 { label: t("messageLog.phase"), value: enumLabel(t, detailTask.phase) },
                 { label: t("messageLog.status"), value: enumLabel(t, detailTask.status) },
-                { label: t("messageLog.detail"), value: detailTask.lastError },
+                { label: t("messageLog.sender"), value: detailTask.sender || t("messageLog.notProvided") },
+                { label: t("messageLog.receivers"), value: detailTask.receivers || t("messageLog.notProvided") },
+                { label: t("messageLog.subject"), value: detailTask.subject || t("messageLog.notProvided") },
+                { label: t("messageLog.content"), value: <span className="whitespace-pre-wrap">{detailTask.content || t("messageLog.notProvided")}</span> },
+                { label: t("messageLog.retries"), value: detailTask.retriesLeft },
+                { label: t("messageLog.detail"), value: detailTask.lastError || t("messageLog.notProvided") },
               ]
             : []
         }

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
+	"sync"
 	"time"
 
 	"github.com/google/wire"
@@ -19,12 +21,13 @@ import (
 )
 
 const (
-	notifyLockTTL = 60 * time.Second
-	renewEvery    = 20 * time.Second
-	pollEvery     = 2 * time.Second
-	roundTimeout  = 30 * time.Second
-	backoffMax    = 30 * time.Second
-	pollSpec      = "*/2 * * * * *"
+	notifyLockTTL  = 60 * time.Second
+	renewEvery     = 20 * time.Second
+	pollEvery      = 2 * time.Second
+	heartbeatEvery = 5 * time.Second
+	roundTimeout   = 30 * time.Second
+	backoffMax     = 30 * time.Second
+	pollSpec       = "*/2 * * * * *"
 )
 
 var ProviderSet = wire.NewSet(NewWorker)
@@ -38,6 +41,15 @@ type Worker struct {
 	cancel  context.CancelFunc
 	done    chan struct{}
 	gate    *pkgworker.Gate
+
+	mu            sync.RWMutex
+	reportMu      sync.Mutex
+	instanceUID   string
+	hostname      string
+	busy          bool
+	taskUID       string
+	taskName      string
+	taskStartedAt time.Time
 }
 
 func NewWorker(gateway repository.NotifyGateway, locks repository.Locker, notify *conf.Notify, logger *slog.Logger) *Worker {
@@ -45,7 +57,15 @@ func NewWorker(gateway repository.NotifyGateway, locks repository.Locker, notify
 	if notify != nil && notify.GetTimeout() != nil {
 		timeout = notify.GetTimeout().AsDuration()
 	}
-	return &Worker{gateway: gateway, locks: locks, timeout: timeout, log: logger, gate: pkgworker.NewGate(pollEvery, backoffMax)}
+	hostname, err := os.Hostname()
+	if err != nil || hostname == "" {
+		hostname = "unknown"
+	}
+	instanceUID := fmt.Sprintf("%s-%d-%d", hostname, os.Getpid(), time.Now().UnixNano())
+	return &Worker{
+		gateway: gateway, locks: locks, timeout: timeout, log: logger,
+		gate: pkgworker.NewGate(pollEvery, backoffMax), instanceUID: instanceUID, hostname: hostname,
+	}
 }
 
 func (w *Worker) Start(context.Context) error {
@@ -57,8 +77,14 @@ func (w *Worker) Start(context.Context) error {
 		cancel()
 		return merr.Server("notify cron failed")
 	}
+	heartbeatDone := make(chan struct{})
+	go func() {
+		defer close(heartbeatDone)
+		w.heartbeat(ctx)
+	}()
 	go func() {
 		defer close(w.done)
+		defer func() { <-heartbeatDone }()
 		w.round(ctx)
 		sched.Start()
 		<-ctx.Done()
@@ -80,6 +106,45 @@ func (w *Worker) Stop(ctx context.Context) error {
 		w.log.Error("notify worker stop timed out")
 	}
 	return nil
+}
+
+func (w *Worker) heartbeat(ctx context.Context) {
+	ticker := time.NewTicker(heartbeatEvery)
+	defer ticker.Stop()
+	for {
+		w.reportStatus(ctx)
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+		}
+	}
+}
+
+func (w *Worker) setStatus(ctx context.Context, busy bool, taskUID, taskName string, startedAt time.Time) {
+	w.mu.Lock()
+	w.busy = busy
+	w.taskUID = taskUID
+	w.taskName = taskName
+	w.taskStartedAt = startedAt
+	w.mu.Unlock()
+	w.reportStatus(ctx)
+}
+
+func (w *Worker) reportStatus(parent context.Context) {
+	w.reportMu.Lock()
+	defer w.reportMu.Unlock()
+	w.mu.RLock()
+	status := bo.WorkerStatus{
+		InstanceUID: w.instanceUID, Hostname: w.hostname, Busy: w.busy,
+		TaskUID: w.taskUID, TaskName: w.taskName, TaskStartedAt: w.taskStartedAt,
+	}
+	w.mu.RUnlock()
+	ctx, cancel := context.WithTimeout(parent, 2*time.Second)
+	defer cancel()
+	if err := w.gateway.ReportStatus(ctx, status); err != nil && parent.Err() == nil {
+		w.log.Error(fmt.Sprintf("report worker status: %v", err))
+	}
 }
 
 func (w *Worker) round(ctx context.Context) {
@@ -152,6 +217,12 @@ func (w *Worker) deliverOne(ctx context.Context, task bo.TaskSnapshot) error {
 		return err
 	}
 	defer func() { _ = hold.Release(context.Background()) }()
+	taskName := task.Phase + " · " + task.ChannelUID
+	if task.ChannelUID == "" {
+		taskName = task.Phase + " notification"
+	}
+	w.setStatus(ctx, true, task.UID, taskName, time.Now().UTC())
+	defer w.setStatus(context.Background(), false, "", "", time.Time{})
 	return w.finish(ctx, hold, task)
 }
 
@@ -181,22 +252,29 @@ func (w *Worker) finish(ctx context.Context, hold repository.Hold, task bo.TaskS
 	}
 	deliverCtx, deliverCancel := context.WithTimeout(ctx, w.timeout)
 	defer deliverCancel()
-	ok, detail := Deliver(deliverCtx, task)
+	delivery := Deliver(deliverCtx, task)
 	select {
 	case err := <-renewFailed:
 		w.log.Error(fmt.Sprintf("renew %s: %v", task.UID, err))
-		if ok {
-			return w.gateway.Report(context.Background(), bo.NotifyReport{TaskUID: task.UID, OK: false, Detail: "lock renew failed"})
+		detail := delivery.Detail
+		if delivery.OK {
+			detail = "lock renew failed"
 		}
-		return w.gateway.Report(context.Background(), bo.NotifyReport{TaskUID: task.UID, OK: false, Detail: detail})
+		return w.gateway.Report(context.Background(), bo.NotifyReport{
+			TaskUID: task.UID, OK: false, Detail: detail, Subject: delivery.Subject, Content: delivery.Content,
+		})
 	default:
 	}
-	if ctx.Err() != nil && ok {
+	if ctx.Err() != nil && delivery.OK {
 		detail := "lock renew failed"
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			detail = "round timed out"
 		}
-		return w.gateway.Report(context.Background(), bo.NotifyReport{TaskUID: task.UID, OK: false, Detail: detail})
+		return w.gateway.Report(context.Background(), bo.NotifyReport{
+			TaskUID: task.UID, OK: false, Detail: detail, Subject: delivery.Subject, Content: delivery.Content,
+		})
 	}
-	return w.gateway.Report(context.Background(), bo.NotifyReport{TaskUID: task.UID, OK: ok, Detail: detail})
+	return w.gateway.Report(context.Background(), bo.NotifyReport{
+		TaskUID: task.UID, OK: delivery.OK, Detail: delivery.Detail, Subject: delivery.Subject, Content: delivery.Content,
+	})
 }

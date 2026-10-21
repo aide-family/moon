@@ -3,8 +3,54 @@ package agent
 import (
 	"fmt"
 	"net/url"
+	"path/filepath"
+	"strings"
 	"testing"
+
+	v1 "github.com/aide-family/Alioth/api/alioth/v1"
 )
+
+func TestExecRunsLocallyWithoutSSHCredentials(t *testing.T) {
+	workdir, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	result := (&Connector{}).exec(&v1.AgentExecRequest{
+		RequestUid: "request-1",
+		Command:    `printf '%s:%s' "$(pwd)" "$AGENT_TEST_VALUE"`,
+		Workdir:    workdir,
+		Env:        `{"AGENT_TEST_VALUE":"available"}`,
+	})
+	if result.GetRequestUid() != "request-1" {
+		t.Fatalf("request uid = %q, want request-1", result.GetRequestUid())
+	}
+	if result.GetExitCode() != 0 || result.GetError() != "" {
+		t.Fatalf("execution failed: exit=%d error=%q output=%q", result.GetExitCode(), result.GetError(), result.GetOutput())
+	}
+	if got, want := strings.TrimSpace(result.GetOutput()), workdir+":available"; got != want {
+		t.Fatalf("output = %q, want %q", got, want)
+	}
+}
+
+func TestExecExpandsHomeWorkdir(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	result := (&Connector{}).exec(&v1.AgentExecRequest{
+		RequestUid: "home-request",
+		Command:    "pwd -P",
+		Workdir:    "~",
+	})
+	if result.GetExitCode() != 0 || result.GetError() != "" {
+		t.Fatalf("execution failed: exit=%d error=%q output=%q", result.GetExitCode(), result.GetError(), result.GetOutput())
+	}
+	canonicalHome, err := filepath.EvalSymlinks(home)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.TrimSpace(result.GetOutput()); got != canonicalHome {
+		t.Fatalf("output = %q, want home directory %q", got, canonicalHome)
+	}
+}
 
 func TestK8STargetRejectsHostInjection(t *testing.T) {
 	base, err := url.Parse("https://kubernetes.default.svc")

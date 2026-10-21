@@ -82,6 +82,8 @@ type Tx struct {
 	UserAlertPage *UserAlertPageClient
 	// UserOAuth is the client for interacting with the UserOAuth builders.
 	UserOAuth *UserOAuthClient
+	// WorkerInstance is the client for interacting with the WorkerInstance builders.
+	WorkerInstance *WorkerInstanceClient
 
 	// lazily loaded.
 	client     *Client
@@ -248,6 +250,7 @@ func (tx *Tx) init() {
 	tx.User = NewUserClient(tx.config)
 	tx.UserAlertPage = NewUserAlertPageClient(tx.config)
 	tx.UserOAuth = NewUserOAuthClient(tx.config)
+	tx.WorkerInstance = NewWorkerInstanceClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

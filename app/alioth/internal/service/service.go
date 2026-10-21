@@ -31,4 +31,5 @@ var ProviderSet = wire.NewSet(
 	NewSSHCommandService,
 	NewSFTPService,
 	NewK8sProxyService,
+	NewWorkerService,
 )

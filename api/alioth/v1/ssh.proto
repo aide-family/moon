@@ -113,6 +113,12 @@ message SSHCommandAuditItem {
   string detail = 11;
   // 创建时间，RFC3339。
   string created_at = 12 [json_name = "createdAt"];
+  // 操作者真实姓名。
+  string operator_name = 13 [json_name = "operatorName"];
+  // 操作者昵称。
+  string operator_nickname = 14 [json_name = "operatorNickname"];
+  // 操作者头像地址。
+  string operator_avatar = 15 [json_name = "operatorAvatar"];
 }
 
 // 创建命令。

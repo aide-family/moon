@@ -22,6 +22,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/sftp"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/ssh"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/user"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/worker"
 )
 
 var ProviderSet = wire.NewSet(
@@ -31,6 +32,7 @@ var ProviderSet = wire.NewSet(
 	member.ProviderSet,
 	message.ProviderSet,
 	user.ProviderSet,
+	worker.ProviderSet,
 	role.ProviderSet,
 	datasource.ProviderSet,
 	alertdictionary.ProviderSet,

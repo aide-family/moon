@@ -1,0 +1,15 @@
+package repository
+
+import (
+	"context"
+	"time"
+
+	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
+)
+
+// WorkerRepo persists recent heartbeats from background worker processes.
+type WorkerRepo interface {
+	Report(ctx context.Context, status bo.WorkerStatus, now time.Time) error
+	ListRecent(ctx context.Context, since time.Time) ([]bo.WorkerInstance, error)
+	CleanupBefore(ctx context.Context, cutoff time.Time) error
+}

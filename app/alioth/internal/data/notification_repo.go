@@ -516,6 +516,18 @@ func (r *notificationRepo) SelectGroups(ctx context.Context, namespaceUID string
 }
 
 func (r *notificationRepo) CreateTestTask(ctx context.Context, in bo.NotificationTask) (*bo.NotificationTask, error) {
+	channel, err := r.client.NotificationChannel.Query().Where(
+		notificationchannel.NamespaceUIDEQ(in.NamespaceUID),
+		notificationchannel.UIDEQ(in.ChannelUID),
+		notificationchannel.DeletedAtIsNil(),
+	).Only(ctx)
+	if err != nil {
+		return nil, r.fail(err)
+	}
+	receivers := in.Receivers
+	if receivers == "" {
+		receivers = notificationReceiver(channel)
+	}
 	row, err := r.client.NotificationTask.Create().
 		SetUID(id.New()).
 		SetNamespaceUID(in.NamespaceUID).
@@ -524,9 +536,11 @@ func (r *notificationRepo) CreateTestTask(ctx context.Context, in bo.Notificatio
 		SetStatus(notificationtask.StatusPENDING).
 		SetChannelUID(in.ChannelUID).
 		SetTemplateUID(in.TemplateUID).
-		SetReceivers(in.Receivers).
+		SetSender(notificationSender(channel)).
+		SetReceivers(receivers).
 		SetSubject(in.Subject).
 		SetBody(in.Body).
+		SetContent(in.Body).
 		SetParams(in.Params).
 		SetRetriesLeft(3).
 		Save(ctx)
@@ -682,6 +696,14 @@ func (r *notificationRepo) ClaimPending(ctx context.Context, limit int) ([]bo.No
 			}
 			continue
 		}
+		if row.Sender == "" && snap.Sender != "" {
+			// 历史任务没有发送方快照：首次领取时保存当前渠道身份，后续日志仍有可靠值。
+			if _, err := r.client.NotificationTask.Update().Where(
+				notificationtask.UIDEQ(row.UID), notificationtask.SenderEQ(""),
+			).SetSender(snap.Sender).Save(ctx); err != nil {
+				return nil, r.fail(err)
+			}
+		}
 		out = append(out, snap)
 	}
 	return out, nil
@@ -737,6 +759,17 @@ func (r *notificationRepo) ApplyNotifyReport(ctx context.Context, report bo.Noti
 			taskStatus = notificationtask.StatusPENDING
 		}
 	}
+	// 新版 merak 回传已渲染内容；旧版/历史报告不带这些字段时保留任务快照。
+	subject, content := row.Subject, row.Content
+	if content == "" {
+		content = row.Body
+	}
+	if report.Subject != "" {
+		subject = report.Subject
+	}
+	if report.Content != "" {
+		content = report.Content
+	}
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		return r.fail(err)
@@ -751,6 +784,8 @@ func (r *notificationRepo) ApplyNotifyReport(ctx context.Context, report bo.Noti
 		).
 		SetStatus(taskStatus).
 		SetRetriesLeft(retries).
+		SetSubject(subject).
+		SetContent(content).
 		SetLastError(lastError)
 	if taskStatus == notificationtask.StatusPENDING {
 		update.SetNextAttemptAt(time.Now().UTC().Add(retryDelay(retries)))
@@ -772,7 +807,10 @@ func (r *notificationRepo) ApplyNotifyReport(ctx context.Context, report bo.Noti
 		SetStatus(logStatus).
 		SetChannelUID(row.ChannelUID).
 		SetTemplateUID(row.TemplateUID).
+		SetSender(row.Sender).
 		SetReceivers(row.Receivers).
+		SetSubject(subject).
+		SetContent(content).
 		SetDetail(report.Detail).
 		Exec(ctx); err != nil {
 		return r.fail(err)
@@ -818,6 +856,10 @@ func (r *notificationRepo) ReapStaleSending(ctx context.Context, before time.Tim
 			_ = tx.Rollback()
 			continue
 		}
+		content := row.Content
+		if content == "" {
+			content = row.Body
+		}
 		if err := tx.MessageLog.Create().
 			SetUID(id.New()).
 			SetNamespaceUID(row.NamespaceUID).
@@ -825,7 +867,10 @@ func (r *notificationRepo) ReapStaleSending(ctx context.Context, before time.Tim
 			SetStatus(messagelog.StatusFAILED).
 			SetChannelUID(row.ChannelUID).
 			SetTemplateUID(row.TemplateUID).
+			SetSender(row.Sender).
 			SetReceivers(row.Receivers).
+			SetSubject(row.Subject).
+			SetContent(content).
 			SetDetail("delivery timed out").
 			Exec(ctx); err != nil {
 			_ = tx.Rollback()
@@ -850,6 +895,10 @@ func (r *notificationRepo) snapshot(ctx context.Context, row *ent.NotificationTa
 	}
 	if channel.Status != notificationchannel.StatusACTIVE {
 		return bo.NotifySnapshot{}, merr.Invalid("channel is disabled")
+	}
+	sender := row.Sender
+	if sender == "" {
+		sender = notificationSender(channel)
 	}
 	password, err := r.box.decrypt(channel.PasswordCipher)
 	if err != nil {
@@ -886,7 +935,7 @@ func (r *notificationRepo) snapshot(ctx context.Context, row *ent.NotificationTa
 			UID: row.UID, NamespaceUID: row.NamespaceUID, Phase: string(row.Phase),
 			ChannelUID: channel.UID, ChannelType: string(channel.Type), ChannelApp: string(channel.App),
 			ChannelEndpoint: channel.Endpoint, ChannelUsername: channel.Username,
-			ChannelPassword: password, ChannelSecret: secret, ChannelFrom: channel.FromAddress,
+			ChannelPassword: password, ChannelSecret: secret, ChannelFrom: channel.FromAddress, Sender: sender,
 			TemplateUID: template.UID, TemplateType: templateType, TemplateSubject: template.Subject, TemplateBody: template.Body,
 			Receivers: row.Receivers, Params: row.Params, Subject: subject, Body: body,
 		}, nil
@@ -895,7 +944,7 @@ func (r *notificationRepo) snapshot(ctx context.Context, row *ent.NotificationTa
 		UID: row.UID, NamespaceUID: row.NamespaceUID, Phase: string(row.Phase),
 		ChannelUID: channel.UID, ChannelType: string(channel.Type), ChannelApp: string(channel.App),
 		ChannelEndpoint: channel.Endpoint, ChannelUsername: channel.Username,
-		ChannelPassword: password, ChannelSecret: secret, ChannelFrom: channel.FromAddress,
+		ChannelPassword: password, ChannelSecret: secret, ChannelFrom: channel.FromAddress, Sender: sender,
 		TemplateUID: templateUID, TemplateType: templateType, TemplateSubject: subject, TemplateBody: body,
 		Receivers: row.Receivers, Params: row.Params, Subject: subject, Body: body,
 	}, nil
@@ -931,15 +980,16 @@ func toNotificationTask(row *ent.NotificationTask) bo.NotificationTask {
 		UID: row.UID, NamespaceUID: row.NamespaceUID, EventUID: row.EventUID,
 		Phase: string(row.Phase), Status: string(row.Status), RuleUID: row.RuleUID,
 		SubscriptionUID: row.SubscriptionUID, GroupUID: row.GroupUID,
-		ChannelUID: row.ChannelUID, TemplateUID: row.TemplateUID, Receivers: row.Receivers,
-		Subject: row.Subject, Body: row.Body, Params: row.Params, RetriesLeft: row.RetriesLeft, LastError: row.LastError,
+		ChannelUID: row.ChannelUID, TemplateUID: row.TemplateUID, Sender: row.Sender, Receivers: row.Receivers,
+		Subject: row.Subject, Body: row.Body, Content: row.Content, Params: row.Params, RetriesLeft: row.RetriesLeft, LastError: row.LastError,
 	}
 }
 
 func toMessageLog(row *ent.MessageLog) bo.MessageLog {
 	return bo.MessageLog{
 		UID: row.UID, NamespaceUID: row.NamespaceUID, TaskUID: row.TaskUID, Status: string(row.Status),
-		ChannelUID: row.ChannelUID, TemplateUID: row.TemplateUID, Receivers: row.Receivers,
+		ChannelUID: row.ChannelUID, TemplateUID: row.TemplateUID, Sender: row.Sender,
+		Receivers: row.Receivers, Subject: row.Subject, Content: row.Content,
 		Detail: row.Detail, CreatedAt: row.CreatedAt,
 	}
 }

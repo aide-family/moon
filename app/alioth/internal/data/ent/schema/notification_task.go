@@ -30,9 +30,13 @@ func (NotificationTask) Fields() []ent.Field {
 		field.String("group_uid").Default(""),
 		field.String("channel_uid").NotEmpty(),
 		field.String("template_uid").Default(""),
+		// 投递时的发送方快照，避免渠道配置后续变更影响任务审计。
+		field.String("sender").Default(""),
 		field.String("receivers").Default(""),
 		field.String("subject").Default(""),
 		field.String("body").Default(""),
+		// 最终渲染后的发送正文；body 保留原始模板以支持安全重试。
+		field.String("content").Default(""),
 		field.String("params").Default(""),
 		field.Int("retries_left").Default(3),
 		// 失败后的下一次可领取时间。为空表示立即可领取。

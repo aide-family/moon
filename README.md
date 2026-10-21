@@ -17,13 +17,14 @@ make compose-up
 
 ## 本地全栈
 
-`docker-compose.yaml` 现在包含完整链路：PostgreSQL（`pgdata` 持久卷）、Redis、Mailpit、一次性迁移，
+`docker-compose.yaml` 现在包含完整链路：PostgreSQL（`pgdata` 持久卷）、Redis、Mailpit、Prometheus（`prometheusdata` 持久卷）、一次性迁移，
 以及 `alioth` / `megrez` / `merak` / `web` 四个服务。干净 clone 后一条命令即可：
 
 ```bash
 make dev-up          # 构建镜像、跑迁移、起全部服务
 open http://127.0.0.1:8080
-make dev-down        # 停止服务，数据留在 pgdata 卷里
+# Prometheus UI: http://127.0.0.1:9090；容器内数据源地址：http://prometheus:9090
+make dev-down        # 停止服务，数据留在命名卷里
 ```
 
 只想在宿主机跑 Go 进程时，仍然可以用依赖 + 手工启动：

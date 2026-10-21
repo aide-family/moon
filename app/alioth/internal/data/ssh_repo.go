@@ -7,6 +7,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommandaudit"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
 	"github.com/aide-family/Alioth/pkg/merr"
@@ -208,8 +209,34 @@ func (r *sshCommandRepo) ListAudits(ctx context.Context, namespaceUID, commandUI
 		return nil, 0, r.fail(err)
 	}
 	items := make([]bo.SSHCommandAudit, 0, len(rows))
+	operatorUIDs := make([]string, 0, len(rows))
+	seenOperators := make(map[string]struct{}, len(rows))
 	for _, row := range rows {
-		items = append(items, toSSHAudit(row))
+		item := toSSHAudit(row)
+		items = append(items, item)
+		if item.OperatorUID != "" {
+			if _, ok := seenOperators[item.OperatorUID]; !ok {
+				seenOperators[item.OperatorUID] = struct{}{}
+				operatorUIDs = append(operatorUIDs, item.OperatorUID)
+			}
+		}
+	}
+	if len(operatorUIDs) > 0 {
+		users, err := r.client.User.Query().Where(user.UIDIn(operatorUIDs...)).All(ctx)
+		if err != nil {
+			return nil, 0, r.fail(err)
+		}
+		profiles := make(map[string]*ent.User, len(users))
+		for _, account := range users {
+			profiles[account.UID] = account
+		}
+		for i := range items {
+			if account, ok := profiles[items[i].OperatorUID]; ok {
+				items[i].OperatorName = account.Name
+				items[i].OperatorNickname = account.Nickname
+				items[i].OperatorAvatar = account.Avatar
+			}
+		}
 	}
 	return items, total, nil
 }

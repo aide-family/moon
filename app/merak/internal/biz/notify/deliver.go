@@ -15,10 +15,18 @@ type sender interface {
 	send(ctx context.Context, task bo.TaskSnapshot, subject, body string) error
 }
 
+// DeliveryResult 包含这次投递尝试实际使用的渲染内容，供日志审计。
+type DeliveryResult struct {
+	OK      bool
+	Detail  string
+	Subject string
+	Content string
+}
+
 // Deliver 渲染模板并投递。短信类型直接失败，不报 SENT。
-func Deliver(ctx context.Context, task bo.TaskSnapshot) (bool, string) {
+func Deliver(ctx context.Context, task bo.TaskSnapshot) DeliveryResult {
 	if task.ChannelApp == "SMS_ALICLOUD" || task.TemplateType == "SMS_ALICLOUD" {
-		return false, "sms delivery is not implemented"
+		return DeliveryResult{Detail: "sms delivery is not implemented", Subject: task.Subject, Content: task.Body}
 	}
 	subject := task.Subject
 	body := task.Body
@@ -30,20 +38,25 @@ func Deliver(ctx context.Context, task bo.TaskSnapshot) (bool, string) {
 	}
 	subject, err := render(subject, task.Params)
 	if err != nil {
-		return false, err.Error()
+		return DeliveryResult{Detail: err.Error(), Subject: subject, Content: body}
 	}
 	body, err = render(body, task.Params)
 	if err != nil {
-		return false, err.Error()
+		return DeliveryResult{Detail: err.Error(), Subject: subject, Content: body}
 	}
+	result := DeliveryResult{Subject: subject, Content: body}
 	impl, err := senderFor(task.ChannelType, task.ChannelApp)
 	if err != nil {
-		return false, err.Error()
+		result.Detail = err.Error()
+		return result
 	}
 	if err := impl.send(ctx, task, subject, body); err != nil {
-		return false, err.Error()
+		result.Detail = err.Error()
+		return result
 	}
-	return true, "sent"
+	result.OK = true
+	result.Detail = "sent"
+	return result
 }
 
 func senderFor(kind, app string) (sender, error) {

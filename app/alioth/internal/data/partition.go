@@ -46,6 +46,9 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	if err := client.Schema.Create(ctx, opts...); err != nil {
 		return err
 	}
+	if err := ensureNotificationAuditFields(ctx, db); err != nil {
+		return err
+	}
 	for _, name := range partitionedTables {
 		if err := partitionByCreatedAt(ctx, db, name); err != nil {
 			return err
@@ -72,6 +75,25 @@ var partitionIndexes = map[string][]string{
 		`CREATE INDEX IF NOT EXISTS message_logs_ns_created ON message_logs (namespace_uid, created_at)`,
 		`CREATE INDEX IF NOT EXISTS message_logs_task_uid ON message_logs (task_uid)`,
 	},
+}
+
+// ensureNotificationAuditFields 为已有表补充审计字段。message_logs 已分区时被 Ent 自动迁移跳过，
+// 因此这里显式执行幂等 DDL；空字符串默认值保证旧数据和滚动升级期间的旧写入兼容。
+func ensureNotificationAuditFields(ctx context.Context, db *sql.DB) error {
+	statements := []string{
+		`ALTER TABLE notification_tasks ADD COLUMN IF NOT EXISTS sender VARCHAR NOT NULL DEFAULT ''`,
+		`ALTER TABLE notification_tasks ADD COLUMN IF NOT EXISTS content VARCHAR NOT NULL DEFAULT ''`,
+		`ALTER TABLE message_logs ADD COLUMN IF NOT EXISTS sender VARCHAR NOT NULL DEFAULT ''`,
+		`ALTER TABLE message_logs ADD COLUMN IF NOT EXISTS subject VARCHAR NOT NULL DEFAULT ''`,
+		`ALTER TABLE message_logs ADD COLUMN IF NOT EXISTS content VARCHAR NOT NULL DEFAULT ''`,
+	}
+	for _, statement := range statements {
+		if _, err := db.ExecContext(ctx, statement); err != nil {
+			slog.Default().Error(fmt.Sprintf("notification audit schema: %v", err))
+			return merr.Server("request failed")
+		}
+	}
+	return nil
 }
 
 func ensurePartitionIndexes(ctx context.Context, db *sql.DB, name string) error {

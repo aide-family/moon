@@ -43,6 +43,17 @@ type EvalHit struct {
 }
 
 // EvalReport 是回写内容。Skipped 表示驱动尚未实现。
+// WorkerStatus is the safe instance heartbeat sent to Alioth.
+type WorkerStatus struct {
+	InstanceUID   string
+	Hostname      string
+	Busy          bool
+	TaskUID       string
+	TaskName      string
+	TaskStartedAt time.Time
+}
+
+// EvalReport is a rule evaluation result.
 type EvalReport struct {
 	RuleUID       string
 	DatasourceUID string

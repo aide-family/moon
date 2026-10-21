@@ -41,12 +41,16 @@ type NotificationTask struct {
 	ChannelUID string `json:"channel_uid,omitempty"`
 	// TemplateUID holds the value of the "template_uid" field.
 	TemplateUID string `json:"template_uid,omitempty"`
+	// Sender holds the value of the "sender" field.
+	Sender string `json:"sender,omitempty"`
 	// Receivers holds the value of the "receivers" field.
 	Receivers string `json:"receivers,omitempty"`
 	// Subject holds the value of the "subject" field.
 	Subject string `json:"subject,omitempty"`
 	// Body holds the value of the "body" field.
 	Body string `json:"body,omitempty"`
+	// Content holds the value of the "content" field.
+	Content string `json:"content,omitempty"`
 	// Params holds the value of the "params" field.
 	Params string `json:"params,omitempty"`
 	// RetriesLeft holds the value of the "retries_left" field.
@@ -65,7 +69,7 @@ func (*NotificationTask) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case notificationtask.FieldID, notificationtask.FieldRetriesLeft:
 			values[i] = new(sql.NullInt64)
-		case notificationtask.FieldUID, notificationtask.FieldNamespaceUID, notificationtask.FieldEventUID, notificationtask.FieldPhase, notificationtask.FieldStatus, notificationtask.FieldRuleUID, notificationtask.FieldSubscriptionUID, notificationtask.FieldGroupUID, notificationtask.FieldChannelUID, notificationtask.FieldTemplateUID, notificationtask.FieldReceivers, notificationtask.FieldSubject, notificationtask.FieldBody, notificationtask.FieldParams, notificationtask.FieldLastError:
+		case notificationtask.FieldUID, notificationtask.FieldNamespaceUID, notificationtask.FieldEventUID, notificationtask.FieldPhase, notificationtask.FieldStatus, notificationtask.FieldRuleUID, notificationtask.FieldSubscriptionUID, notificationtask.FieldGroupUID, notificationtask.FieldChannelUID, notificationtask.FieldTemplateUID, notificationtask.FieldSender, notificationtask.FieldReceivers, notificationtask.FieldSubject, notificationtask.FieldBody, notificationtask.FieldContent, notificationtask.FieldParams, notificationtask.FieldLastError:
 			values[i] = new(sql.NullString)
 		case notificationtask.FieldCreatedAt, notificationtask.FieldUpdatedAt, notificationtask.FieldNextAttemptAt:
 			values[i] = new(sql.NullTime)
@@ -162,6 +166,12 @@ func (_m *NotificationTask) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.TemplateUID = value.String
 			}
+		case notificationtask.FieldSender:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field sender", values[i])
+			} else if value.Valid {
+				_m.Sender = value.String
+			}
 		case notificationtask.FieldReceivers:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field receivers", values[i])
@@ -179,6 +189,12 @@ func (_m *NotificationTask) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field body", values[i])
 			} else if value.Valid {
 				_m.Body = value.String
+			}
+		case notificationtask.FieldContent:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field content", values[i])
+			} else if value.Valid {
+				_m.Content = value.String
 			}
 		case notificationtask.FieldParams:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -277,6 +293,9 @@ func (_m *NotificationTask) String() string {
 	builder.WriteString("template_uid=")
 	builder.WriteString(_m.TemplateUID)
 	builder.WriteString(", ")
+	builder.WriteString("sender=")
+	builder.WriteString(_m.Sender)
+	builder.WriteString(", ")
 	builder.WriteString("receivers=")
 	builder.WriteString(_m.Receivers)
 	builder.WriteString(", ")
@@ -285,6 +304,9 @@ func (_m *NotificationTask) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("body=")
 	builder.WriteString(_m.Body)
+	builder.WriteString(", ")
+	builder.WriteString("content=")
+	builder.WriteString(_m.Content)
 	builder.WriteString(", ")
 	builder.WriteString("params=")
 	builder.WriteString(_m.Params)

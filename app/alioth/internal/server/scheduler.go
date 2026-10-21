@@ -11,22 +11,31 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertevent"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/notification"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/partition"
+	workerbiz "github.com/aide-family/Alioth/app/alioth/internal/biz/worker"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
 // Scheduler 按固定周期扫描到期规则。锁由用例获取，扫描结束后释放。
 type Scheduler struct {
-	uc         *alertevent.Usecase
-	notify     *notification.Usecase
-	partitions *partition.Usecase
-	log        *slog.Logger
-	lastCheck  time.Time
-	cancel     context.CancelFunc
-	done       chan struct{}
+	uc                *alertevent.Usecase
+	notify            *notification.Usecase
+	partitions        *partition.Usecase
+	workers           *workerbiz.Usecase
+	log               *slog.Logger
+	lastCheck         time.Time
+	lastWorkerCleanup time.Time
+	cancel            context.CancelFunc
+	done              chan struct{}
 }
 
-func NewScheduler(uc *alertevent.Usecase, notify *notification.Usecase, partitions *partition.Usecase, logger *slog.Logger) *Scheduler {
-	return &Scheduler{uc: uc, notify: notify, partitions: partitions, log: logger}
+func NewScheduler(
+	uc *alertevent.Usecase,
+	notify *notification.Usecase,
+	partitions *partition.Usecase,
+	workers *workerbiz.Usecase,
+	logger *slog.Logger,
+) *Scheduler {
+	return &Scheduler{uc: uc, notify: notify, partitions: partitions, workers: workers, log: logger}
 }
 
 func (s *Scheduler) Start(context.Context) error {
@@ -72,6 +81,18 @@ func (s *Scheduler) tick(ctx context.Context) {
 		s.log.Error(fmt.Sprintf("reap notify: %v", err))
 	}
 	s.maintainPartitions(ctx)
+	s.cleanupWorkerInstances(ctx)
+}
+
+// cleanupWorkerInstances periodically prunes stopped process identities independently of dashboard traffic.
+func (s *Scheduler) cleanupWorkerInstances(ctx context.Context) {
+	if s.workers == nil || time.Since(s.lastWorkerCleanup) < time.Hour {
+		return
+	}
+	s.lastWorkerCleanup = time.Now()
+	if err := s.workers.CleanupStale(ctx); err != nil {
+		s.log.Error(fmt.Sprintf("cleanup worker instances: %v", err))
+	}
 }
 
 // maintainPartitions 每小时预创建一次周分区。首次 tick 会立即执行，

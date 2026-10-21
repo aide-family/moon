@@ -47,6 +47,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useralertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useroauth"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/workerinstance"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -142,6 +143,7 @@ func checkColumn(t, c string) error {
 			user.Table:                          user.ValidColumn,
 			useralertpage.Table:                 useralertpage.ValidColumn,
 			useroauth.Table:                     useroauth.ValidColumn,
+			workerinstance.Table:                workerinstance.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

@@ -23,7 +23,10 @@ func (MessageLog) Fields() []ent.Field {
 		field.Enum("status").Values("SENT", "FAILED"),
 		field.String("channel_uid").Default(""),
 		field.String("template_uid").Default(""),
+		field.String("sender").Default(""),
 		field.String("receivers").Default(""),
+		field.String("subject").Default(""),
+		field.String("content").Default(""),
 		field.String("detail").Default(""),
 	}
 }

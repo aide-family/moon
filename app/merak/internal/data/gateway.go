@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -47,7 +48,7 @@ func (g *gateway) Claim(ctx context.Context) ([]bo.TaskSnapshot, error) {
 			ChannelUID: task.GetChannelUid(), ChannelType: task.GetChannelType(), ChannelApp: task.GetChannelApp(),
 			ChannelEndpoint: task.GetChannelEndpoint(), ChannelUsername: task.GetChannelUsername(),
 			ChannelPassword: task.GetChannelPassword(), ChannelSecret: task.GetChannelSecret(),
-			ChannelFrom: task.GetChannelFrom(), TemplateUID: task.GetTemplateUid(), TemplateType: task.GetTemplateType(),
+			ChannelFrom: task.GetChannelFrom(), Sender: task.GetSender(), TemplateUID: task.GetTemplateUid(), TemplateType: task.GetTemplateType(),
 			TemplateSubject: task.GetTemplateSubject(), TemplateBody: task.GetTemplateBody(),
 			Receivers: task.GetReceivers(), Params: task.GetParams(), Subject: task.GetSubject(), Body: task.GetBody(),
 		})
@@ -66,9 +67,25 @@ func (g *gateway) MarkSending(ctx context.Context, taskUID string) error {
 func (g *gateway) Report(ctx context.Context, report bo.NotifyReport) error {
 	_, err := g.client.ReportNotify(g.auth(ctx), &merakv1.ReportNotifyRequest{
 		TaskUid: report.TaskUID, Ok: report.OK, Detail: report.Detail,
+		Subject: report.Subject, Content: report.Content,
 	})
 	if err != nil {
 		return merr.Server("report failed")
+	}
+	return nil
+}
+
+func (g *gateway) ReportStatus(ctx context.Context, status bo.WorkerStatus) error {
+	startedAt := ""
+	if !status.TaskStartedAt.IsZero() {
+		startedAt = status.TaskStartedAt.UTC().Format(time.RFC3339Nano)
+	}
+	_, err := g.client.ReportWorkerStatus(g.auth(ctx), &merakv1.ReportWorkerStatusRequest{
+		InstanceUid: status.InstanceUID, Hostname: status.Hostname, Busy: status.Busy,
+		TaskUid: status.TaskUID, TaskName: status.TaskName, TaskStartedAt: startedAt,
+	})
+	if err != nil {
+		return merr.Server("report worker status failed")
 	}
 	return nil
 }

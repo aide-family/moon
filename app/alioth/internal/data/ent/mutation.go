@@ -47,6 +47,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useralertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useroauth"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/workerinstance"
 )
 
 const (
@@ -93,6 +94,7 @@ const (
 	TypeUser                          = "User"
 	TypeUserAlertPage                 = "UserAlertPage"
 	TypeUserOAuth                     = "UserOAuth"
+	TypeWorkerInstance                = "WorkerInstance"
 )
 
 // AgentMutation represents an operation that mutates the Agent nodes in the graph.
@@ -13980,7 +13982,10 @@ type MessageLogMutation struct {
 	status        *messagelog.Status
 	channel_uid   *string
 	template_uid  *string
+	sender        *string
 	receivers     *string
+	subject       *string
+	content       *string
 	detail        *string
 	clearedFields map[string]struct{}
 	done          bool
@@ -14374,6 +14379,42 @@ func (m *MessageLogMutation) ResetTemplateUID() {
 	m.template_uid = nil
 }
 
+// SetSender sets the "sender" field.
+func (m *MessageLogMutation) SetSender(s string) {
+	m.sender = &s
+}
+
+// Sender returns the value of the "sender" field in the mutation.
+func (m *MessageLogMutation) Sender() (r string, exists bool) {
+	v := m.sender
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSender returns the old "sender" field's value of the MessageLog entity.
+// If the MessageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLogMutation) OldSender(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSender is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSender requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSender: %w", err)
+	}
+	return oldValue.Sender, nil
+}
+
+// ResetSender resets all changes to the "sender" field.
+func (m *MessageLogMutation) ResetSender() {
+	m.sender = nil
+}
+
 // SetReceivers sets the "receivers" field.
 func (m *MessageLogMutation) SetReceivers(s string) {
 	m.receivers = &s
@@ -14408,6 +14449,78 @@ func (m *MessageLogMutation) OldReceivers(ctx context.Context) (v string, err er
 // ResetReceivers resets all changes to the "receivers" field.
 func (m *MessageLogMutation) ResetReceivers() {
 	m.receivers = nil
+}
+
+// SetSubject sets the "subject" field.
+func (m *MessageLogMutation) SetSubject(s string) {
+	m.subject = &s
+}
+
+// Subject returns the value of the "subject" field in the mutation.
+func (m *MessageLogMutation) Subject() (r string, exists bool) {
+	v := m.subject
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSubject returns the old "subject" field's value of the MessageLog entity.
+// If the MessageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLogMutation) OldSubject(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSubject is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSubject requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSubject: %w", err)
+	}
+	return oldValue.Subject, nil
+}
+
+// ResetSubject resets all changes to the "subject" field.
+func (m *MessageLogMutation) ResetSubject() {
+	m.subject = nil
+}
+
+// SetContent sets the "content" field.
+func (m *MessageLogMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *MessageLogMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the MessageLog entity.
+// If the MessageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageLogMutation) OldContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *MessageLogMutation) ResetContent() {
+	m.content = nil
 }
 
 // SetDetail sets the "detail" field.
@@ -14480,7 +14593,7 @@ func (m *MessageLogMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MessageLogMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, messagelog.FieldCreatedAt)
 	}
@@ -14505,8 +14618,17 @@ func (m *MessageLogMutation) Fields() []string {
 	if m.template_uid != nil {
 		fields = append(fields, messagelog.FieldTemplateUID)
 	}
+	if m.sender != nil {
+		fields = append(fields, messagelog.FieldSender)
+	}
 	if m.receivers != nil {
 		fields = append(fields, messagelog.FieldReceivers)
+	}
+	if m.subject != nil {
+		fields = append(fields, messagelog.FieldSubject)
+	}
+	if m.content != nil {
+		fields = append(fields, messagelog.FieldContent)
 	}
 	if m.detail != nil {
 		fields = append(fields, messagelog.FieldDetail)
@@ -14535,8 +14657,14 @@ func (m *MessageLogMutation) Field(name string) (ent.Value, bool) {
 		return m.ChannelUID()
 	case messagelog.FieldTemplateUID:
 		return m.TemplateUID()
+	case messagelog.FieldSender:
+		return m.Sender()
 	case messagelog.FieldReceivers:
 		return m.Receivers()
+	case messagelog.FieldSubject:
+		return m.Subject()
+	case messagelog.FieldContent:
+		return m.Content()
 	case messagelog.FieldDetail:
 		return m.Detail()
 	}
@@ -14564,8 +14692,14 @@ func (m *MessageLogMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldChannelUID(ctx)
 	case messagelog.FieldTemplateUID:
 		return m.OldTemplateUID(ctx)
+	case messagelog.FieldSender:
+		return m.OldSender(ctx)
 	case messagelog.FieldReceivers:
 		return m.OldReceivers(ctx)
+	case messagelog.FieldSubject:
+		return m.OldSubject(ctx)
+	case messagelog.FieldContent:
+		return m.OldContent(ctx)
 	case messagelog.FieldDetail:
 		return m.OldDetail(ctx)
 	}
@@ -14633,12 +14767,33 @@ func (m *MessageLogMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTemplateUID(v)
 		return nil
+	case messagelog.FieldSender:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSender(v)
+		return nil
 	case messagelog.FieldReceivers:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetReceivers(v)
+		return nil
+	case messagelog.FieldSubject:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSubject(v)
+		return nil
+	case messagelog.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
 		return nil
 	case messagelog.FieldDetail:
 		v, ok := value.(string)
@@ -14720,8 +14875,17 @@ func (m *MessageLogMutation) ResetField(name string) error {
 	case messagelog.FieldTemplateUID:
 		m.ResetTemplateUID()
 		return nil
+	case messagelog.FieldSender:
+		m.ResetSender()
+		return nil
 	case messagelog.FieldReceivers:
 		m.ResetReceivers()
+		return nil
+	case messagelog.FieldSubject:
+		m.ResetSubject()
+		return nil
+	case messagelog.FieldContent:
+		m.ResetContent()
 		return nil
 	case messagelog.FieldDetail:
 		m.ResetDetail()
@@ -20256,9 +20420,11 @@ type NotificationTaskMutation struct {
 	group_uid        *string
 	channel_uid      *string
 	template_uid     *string
+	sender           *string
 	receivers        *string
 	subject          *string
 	body             *string
+	content          *string
 	params           *string
 	retries_left     *int
 	addretries_left  *int
@@ -20800,6 +20966,42 @@ func (m *NotificationTaskMutation) ResetTemplateUID() {
 	m.template_uid = nil
 }
 
+// SetSender sets the "sender" field.
+func (m *NotificationTaskMutation) SetSender(s string) {
+	m.sender = &s
+}
+
+// Sender returns the value of the "sender" field in the mutation.
+func (m *NotificationTaskMutation) Sender() (r string, exists bool) {
+	v := m.sender
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSender returns the old "sender" field's value of the NotificationTask entity.
+// If the NotificationTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationTaskMutation) OldSender(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSender is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSender requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSender: %w", err)
+	}
+	return oldValue.Sender, nil
+}
+
+// ResetSender resets all changes to the "sender" field.
+func (m *NotificationTaskMutation) ResetSender() {
+	m.sender = nil
+}
+
 // SetReceivers sets the "receivers" field.
 func (m *NotificationTaskMutation) SetReceivers(s string) {
 	m.receivers = &s
@@ -20906,6 +21108,42 @@ func (m *NotificationTaskMutation) OldBody(ctx context.Context) (v string, err e
 // ResetBody resets all changes to the "body" field.
 func (m *NotificationTaskMutation) ResetBody() {
 	m.body = nil
+}
+
+// SetContent sets the "content" field.
+func (m *NotificationTaskMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *NotificationTaskMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the NotificationTask entity.
+// If the NotificationTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationTaskMutation) OldContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *NotificationTaskMutation) ResetContent() {
+	m.content = nil
 }
 
 // SetParams sets the "params" field.
@@ -21119,7 +21357,7 @@ func (m *NotificationTaskMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NotificationTaskMutation) Fields() []string {
-	fields := make([]string, 0, 19)
+	fields := make([]string, 0, 21)
 	if m.created_at != nil {
 		fields = append(fields, notificationtask.FieldCreatedAt)
 	}
@@ -21156,6 +21394,9 @@ func (m *NotificationTaskMutation) Fields() []string {
 	if m.template_uid != nil {
 		fields = append(fields, notificationtask.FieldTemplateUID)
 	}
+	if m.sender != nil {
+		fields = append(fields, notificationtask.FieldSender)
+	}
 	if m.receivers != nil {
 		fields = append(fields, notificationtask.FieldReceivers)
 	}
@@ -21164,6 +21405,9 @@ func (m *NotificationTaskMutation) Fields() []string {
 	}
 	if m.body != nil {
 		fields = append(fields, notificationtask.FieldBody)
+	}
+	if m.content != nil {
+		fields = append(fields, notificationtask.FieldContent)
 	}
 	if m.params != nil {
 		fields = append(fields, notificationtask.FieldParams)
@@ -21209,12 +21453,16 @@ func (m *NotificationTaskMutation) Field(name string) (ent.Value, bool) {
 		return m.ChannelUID()
 	case notificationtask.FieldTemplateUID:
 		return m.TemplateUID()
+	case notificationtask.FieldSender:
+		return m.Sender()
 	case notificationtask.FieldReceivers:
 		return m.Receivers()
 	case notificationtask.FieldSubject:
 		return m.Subject()
 	case notificationtask.FieldBody:
 		return m.Body()
+	case notificationtask.FieldContent:
+		return m.Content()
 	case notificationtask.FieldParams:
 		return m.Params()
 	case notificationtask.FieldRetriesLeft:
@@ -21256,12 +21504,16 @@ func (m *NotificationTaskMutation) OldField(ctx context.Context, name string) (e
 		return m.OldChannelUID(ctx)
 	case notificationtask.FieldTemplateUID:
 		return m.OldTemplateUID(ctx)
+	case notificationtask.FieldSender:
+		return m.OldSender(ctx)
 	case notificationtask.FieldReceivers:
 		return m.OldReceivers(ctx)
 	case notificationtask.FieldSubject:
 		return m.OldSubject(ctx)
 	case notificationtask.FieldBody:
 		return m.OldBody(ctx)
+	case notificationtask.FieldContent:
+		return m.OldContent(ctx)
 	case notificationtask.FieldParams:
 		return m.OldParams(ctx)
 	case notificationtask.FieldRetriesLeft:
@@ -21363,6 +21615,13 @@ func (m *NotificationTaskMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetTemplateUID(v)
 		return nil
+	case notificationtask.FieldSender:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSender(v)
+		return nil
 	case notificationtask.FieldReceivers:
 		v, ok := value.(string)
 		if !ok {
@@ -21383,6 +21642,13 @@ func (m *NotificationTaskMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBody(v)
+		return nil
+	case notificationtask.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
 		return nil
 	case notificationtask.FieldParams:
 		v, ok := value.(string)
@@ -21521,6 +21787,9 @@ func (m *NotificationTaskMutation) ResetField(name string) error {
 	case notificationtask.FieldTemplateUID:
 		m.ResetTemplateUID()
 		return nil
+	case notificationtask.FieldSender:
+		m.ResetSender()
+		return nil
 	case notificationtask.FieldReceivers:
 		m.ResetReceivers()
 		return nil
@@ -21529,6 +21798,9 @@ func (m *NotificationTaskMutation) ResetField(name string) error {
 		return nil
 	case notificationtask.FieldBody:
 		m.ResetBody()
+		return nil
+	case notificationtask.FieldContent:
+		m.ResetContent()
 		return nil
 	case notificationtask.FieldParams:
 		m.ResetParams()
@@ -30270,4 +30542,730 @@ func (m *UserOAuthMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *UserOAuthMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown UserOAuth edge %s", name)
+}
+
+// WorkerInstanceMutation represents an operation that mutates the WorkerInstance nodes in the graph.
+type WorkerInstanceMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *int
+	service         *workerinstance.Service
+	instance_uid    *string
+	hostname        *string
+	busy            *bool
+	task_uid        *string
+	task_name       *string
+	task_started_at *time.Time
+	last_seen_at    *time.Time
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*WorkerInstance, error)
+	predicates      []predicate.WorkerInstance
+}
+
+var _ ent.Mutation = (*WorkerInstanceMutation)(nil)
+
+// workerinstanceOption allows management of the mutation configuration using functional options.
+type workerinstanceOption func(*WorkerInstanceMutation)
+
+// newWorkerInstanceMutation creates new mutation for the WorkerInstance entity.
+func newWorkerInstanceMutation(c config, op Op, opts ...workerinstanceOption) *WorkerInstanceMutation {
+	m := &WorkerInstanceMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeWorkerInstance,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withWorkerInstanceID sets the ID field of the mutation.
+func withWorkerInstanceID(id int) workerinstanceOption {
+	return func(m *WorkerInstanceMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *WorkerInstance
+		)
+		m.oldValue = func(ctx context.Context) (*WorkerInstance, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().WorkerInstance.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withWorkerInstance sets the old WorkerInstance of the mutation.
+func withWorkerInstance(node *WorkerInstance) workerinstanceOption {
+	return func(m *WorkerInstanceMutation) {
+		m.oldValue = func(context.Context) (*WorkerInstance, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m WorkerInstanceMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m WorkerInstanceMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *WorkerInstanceMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *WorkerInstanceMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().WorkerInstance.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetService sets the "service" field.
+func (m *WorkerInstanceMutation) SetService(w workerinstance.Service) {
+	m.service = &w
+}
+
+// Service returns the value of the "service" field in the mutation.
+func (m *WorkerInstanceMutation) Service() (r workerinstance.Service, exists bool) {
+	v := m.service
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldService returns the old "service" field's value of the WorkerInstance entity.
+// If the WorkerInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkerInstanceMutation) OldService(ctx context.Context) (v workerinstance.Service, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldService is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldService requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldService: %w", err)
+	}
+	return oldValue.Service, nil
+}
+
+// ResetService resets all changes to the "service" field.
+func (m *WorkerInstanceMutation) ResetService() {
+	m.service = nil
+}
+
+// SetInstanceUID sets the "instance_uid" field.
+func (m *WorkerInstanceMutation) SetInstanceUID(s string) {
+	m.instance_uid = &s
+}
+
+// InstanceUID returns the value of the "instance_uid" field in the mutation.
+func (m *WorkerInstanceMutation) InstanceUID() (r string, exists bool) {
+	v := m.instance_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInstanceUID returns the old "instance_uid" field's value of the WorkerInstance entity.
+// If the WorkerInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkerInstanceMutation) OldInstanceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInstanceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInstanceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInstanceUID: %w", err)
+	}
+	return oldValue.InstanceUID, nil
+}
+
+// ResetInstanceUID resets all changes to the "instance_uid" field.
+func (m *WorkerInstanceMutation) ResetInstanceUID() {
+	m.instance_uid = nil
+}
+
+// SetHostname sets the "hostname" field.
+func (m *WorkerInstanceMutation) SetHostname(s string) {
+	m.hostname = &s
+}
+
+// Hostname returns the value of the "hostname" field in the mutation.
+func (m *WorkerInstanceMutation) Hostname() (r string, exists bool) {
+	v := m.hostname
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHostname returns the old "hostname" field's value of the WorkerInstance entity.
+// If the WorkerInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkerInstanceMutation) OldHostname(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHostname is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHostname requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHostname: %w", err)
+	}
+	return oldValue.Hostname, nil
+}
+
+// ResetHostname resets all changes to the "hostname" field.
+func (m *WorkerInstanceMutation) ResetHostname() {
+	m.hostname = nil
+}
+
+// SetBusy sets the "busy" field.
+func (m *WorkerInstanceMutation) SetBusy(b bool) {
+	m.busy = &b
+}
+
+// Busy returns the value of the "busy" field in the mutation.
+func (m *WorkerInstanceMutation) Busy() (r bool, exists bool) {
+	v := m.busy
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBusy returns the old "busy" field's value of the WorkerInstance entity.
+// If the WorkerInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkerInstanceMutation) OldBusy(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBusy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBusy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBusy: %w", err)
+	}
+	return oldValue.Busy, nil
+}
+
+// ResetBusy resets all changes to the "busy" field.
+func (m *WorkerInstanceMutation) ResetBusy() {
+	m.busy = nil
+}
+
+// SetTaskUID sets the "task_uid" field.
+func (m *WorkerInstanceMutation) SetTaskUID(s string) {
+	m.task_uid = &s
+}
+
+// TaskUID returns the value of the "task_uid" field in the mutation.
+func (m *WorkerInstanceMutation) TaskUID() (r string, exists bool) {
+	v := m.task_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaskUID returns the old "task_uid" field's value of the WorkerInstance entity.
+// If the WorkerInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkerInstanceMutation) OldTaskUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaskUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaskUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaskUID: %w", err)
+	}
+	return oldValue.TaskUID, nil
+}
+
+// ResetTaskUID resets all changes to the "task_uid" field.
+func (m *WorkerInstanceMutation) ResetTaskUID() {
+	m.task_uid = nil
+}
+
+// SetTaskName sets the "task_name" field.
+func (m *WorkerInstanceMutation) SetTaskName(s string) {
+	m.task_name = &s
+}
+
+// TaskName returns the value of the "task_name" field in the mutation.
+func (m *WorkerInstanceMutation) TaskName() (r string, exists bool) {
+	v := m.task_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaskName returns the old "task_name" field's value of the WorkerInstance entity.
+// If the WorkerInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkerInstanceMutation) OldTaskName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaskName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaskName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaskName: %w", err)
+	}
+	return oldValue.TaskName, nil
+}
+
+// ResetTaskName resets all changes to the "task_name" field.
+func (m *WorkerInstanceMutation) ResetTaskName() {
+	m.task_name = nil
+}
+
+// SetTaskStartedAt sets the "task_started_at" field.
+func (m *WorkerInstanceMutation) SetTaskStartedAt(t time.Time) {
+	m.task_started_at = &t
+}
+
+// TaskStartedAt returns the value of the "task_started_at" field in the mutation.
+func (m *WorkerInstanceMutation) TaskStartedAt() (r time.Time, exists bool) {
+	v := m.task_started_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaskStartedAt returns the old "task_started_at" field's value of the WorkerInstance entity.
+// If the WorkerInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkerInstanceMutation) OldTaskStartedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaskStartedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaskStartedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaskStartedAt: %w", err)
+	}
+	return oldValue.TaskStartedAt, nil
+}
+
+// ClearTaskStartedAt clears the value of the "task_started_at" field.
+func (m *WorkerInstanceMutation) ClearTaskStartedAt() {
+	m.task_started_at = nil
+	m.clearedFields[workerinstance.FieldTaskStartedAt] = struct{}{}
+}
+
+// TaskStartedAtCleared returns if the "task_started_at" field was cleared in this mutation.
+func (m *WorkerInstanceMutation) TaskStartedAtCleared() bool {
+	_, ok := m.clearedFields[workerinstance.FieldTaskStartedAt]
+	return ok
+}
+
+// ResetTaskStartedAt resets all changes to the "task_started_at" field.
+func (m *WorkerInstanceMutation) ResetTaskStartedAt() {
+	m.task_started_at = nil
+	delete(m.clearedFields, workerinstance.FieldTaskStartedAt)
+}
+
+// SetLastSeenAt sets the "last_seen_at" field.
+func (m *WorkerInstanceMutation) SetLastSeenAt(t time.Time) {
+	m.last_seen_at = &t
+}
+
+// LastSeenAt returns the value of the "last_seen_at" field in the mutation.
+func (m *WorkerInstanceMutation) LastSeenAt() (r time.Time, exists bool) {
+	v := m.last_seen_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastSeenAt returns the old "last_seen_at" field's value of the WorkerInstance entity.
+// If the WorkerInstance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkerInstanceMutation) OldLastSeenAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastSeenAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastSeenAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastSeenAt: %w", err)
+	}
+	return oldValue.LastSeenAt, nil
+}
+
+// ResetLastSeenAt resets all changes to the "last_seen_at" field.
+func (m *WorkerInstanceMutation) ResetLastSeenAt() {
+	m.last_seen_at = nil
+}
+
+// Where appends a list predicates to the WorkerInstanceMutation builder.
+func (m *WorkerInstanceMutation) Where(ps ...predicate.WorkerInstance) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the WorkerInstanceMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *WorkerInstanceMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.WorkerInstance, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *WorkerInstanceMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *WorkerInstanceMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (WorkerInstance).
+func (m *WorkerInstanceMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *WorkerInstanceMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.service != nil {
+		fields = append(fields, workerinstance.FieldService)
+	}
+	if m.instance_uid != nil {
+		fields = append(fields, workerinstance.FieldInstanceUID)
+	}
+	if m.hostname != nil {
+		fields = append(fields, workerinstance.FieldHostname)
+	}
+	if m.busy != nil {
+		fields = append(fields, workerinstance.FieldBusy)
+	}
+	if m.task_uid != nil {
+		fields = append(fields, workerinstance.FieldTaskUID)
+	}
+	if m.task_name != nil {
+		fields = append(fields, workerinstance.FieldTaskName)
+	}
+	if m.task_started_at != nil {
+		fields = append(fields, workerinstance.FieldTaskStartedAt)
+	}
+	if m.last_seen_at != nil {
+		fields = append(fields, workerinstance.FieldLastSeenAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *WorkerInstanceMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case workerinstance.FieldService:
+		return m.Service()
+	case workerinstance.FieldInstanceUID:
+		return m.InstanceUID()
+	case workerinstance.FieldHostname:
+		return m.Hostname()
+	case workerinstance.FieldBusy:
+		return m.Busy()
+	case workerinstance.FieldTaskUID:
+		return m.TaskUID()
+	case workerinstance.FieldTaskName:
+		return m.TaskName()
+	case workerinstance.FieldTaskStartedAt:
+		return m.TaskStartedAt()
+	case workerinstance.FieldLastSeenAt:
+		return m.LastSeenAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *WorkerInstanceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case workerinstance.FieldService:
+		return m.OldService(ctx)
+	case workerinstance.FieldInstanceUID:
+		return m.OldInstanceUID(ctx)
+	case workerinstance.FieldHostname:
+		return m.OldHostname(ctx)
+	case workerinstance.FieldBusy:
+		return m.OldBusy(ctx)
+	case workerinstance.FieldTaskUID:
+		return m.OldTaskUID(ctx)
+	case workerinstance.FieldTaskName:
+		return m.OldTaskName(ctx)
+	case workerinstance.FieldTaskStartedAt:
+		return m.OldTaskStartedAt(ctx)
+	case workerinstance.FieldLastSeenAt:
+		return m.OldLastSeenAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown WorkerInstance field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *WorkerInstanceMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case workerinstance.FieldService:
+		v, ok := value.(workerinstance.Service)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetService(v)
+		return nil
+	case workerinstance.FieldInstanceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInstanceUID(v)
+		return nil
+	case workerinstance.FieldHostname:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHostname(v)
+		return nil
+	case workerinstance.FieldBusy:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBusy(v)
+		return nil
+	case workerinstance.FieldTaskUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaskUID(v)
+		return nil
+	case workerinstance.FieldTaskName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaskName(v)
+		return nil
+	case workerinstance.FieldTaskStartedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaskStartedAt(v)
+		return nil
+	case workerinstance.FieldLastSeenAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastSeenAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown WorkerInstance field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *WorkerInstanceMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *WorkerInstanceMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *WorkerInstanceMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown WorkerInstance numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *WorkerInstanceMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(workerinstance.FieldTaskStartedAt) {
+		fields = append(fields, workerinstance.FieldTaskStartedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *WorkerInstanceMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *WorkerInstanceMutation) ClearField(name string) error {
+	switch name {
+	case workerinstance.FieldTaskStartedAt:
+		m.ClearTaskStartedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown WorkerInstance nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *WorkerInstanceMutation) ResetField(name string) error {
+	switch name {
+	case workerinstance.FieldService:
+		m.ResetService()
+		return nil
+	case workerinstance.FieldInstanceUID:
+		m.ResetInstanceUID()
+		return nil
+	case workerinstance.FieldHostname:
+		m.ResetHostname()
+		return nil
+	case workerinstance.FieldBusy:
+		m.ResetBusy()
+		return nil
+	case workerinstance.FieldTaskUID:
+		m.ResetTaskUID()
+		return nil
+	case workerinstance.FieldTaskName:
+		m.ResetTaskName()
+		return nil
+	case workerinstance.FieldTaskStartedAt:
+		m.ResetTaskStartedAt()
+		return nil
+	case workerinstance.FieldLastSeenAt:
+		m.ResetLastSeenAt()
+		return nil
+	}
+	return fmt.Errorf("unknown WorkerInstance field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *WorkerInstanceMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *WorkerInstanceMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *WorkerInstanceMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *WorkerInstanceMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *WorkerInstanceMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *WorkerInstanceMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *WorkerInstanceMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown WorkerInstance unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *WorkerInstanceMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown WorkerInstance edge %s", name)
 }

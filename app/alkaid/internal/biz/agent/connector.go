@@ -13,7 +13,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	osExec "os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -358,53 +360,55 @@ func (c *Connector) machineFrame() *v1.AgentFrame {
 
 func (c *Connector) exec(req *v1.AgentExecRequest) *v1.AgentExecResult {
 	out := &v1.AgentExecResult{RequestUid: req.GetRequestUid()}
-	client, err := sshDial(req.GetSshHost(), req.GetSshPort(), req.GetSshUser(), req.GetSshPassword(), req.GetSshPrivateKey())
-	if err != nil {
-		out.Error = err.Error()
-		out.ExitCode = 1
-		return out
+	command := osExec.Command("/bin/sh", "-c", req.GetCommand())
+	if workdir := strings.TrimSpace(req.GetWorkdir()); workdir != "" {
+		resolved, err := expandHomeDir(workdir)
+		if err != nil {
+			out.ExitCode = 1
+			out.Error = err.Error()
+			return out
+		}
+		command.Dir = resolved
 	}
-	defer client.Close()
-	session, err := client.NewSession()
-	if err != nil {
-		out.Error = err.Error()
-		out.ExitCode = 1
-		return out
-	}
-	defer session.Close()
 	if env := req.GetEnv(); env != "" {
 		var vars map[string]string
 		if json.Unmarshal([]byte(env), &vars) == nil {
-			for k, v := range vars {
-				_ = session.Setenv(k, v)
+			extraEnv := make([]string, 0, len(vars))
+			for key, value := range vars {
+				extraEnv = append(extraEnv, key+"="+value)
 			}
+			command.Env = append(os.Environ(), extraEnv...)
 		}
 	}
-	command := req.GetCommand()
-	if wd := strings.TrimSpace(req.GetWorkdir()); wd != "" {
-		command = "cd " + shellQuote(wd) + " && " + command
-	}
-	var buf bytes.Buffer
-	session.Stdout = &buf
-	session.Stderr = &buf
-	runErr := session.Run(command)
-	output := buf.String()
-	truncated := false
+	output, runErr := command.CombinedOutput()
 	if len(output) > maxOutputBytes {
 		output = output[:maxOutputBytes]
-		truncated = true
+		out.Truncated = true
 	}
-	out.Output = output
-	out.Truncated = truncated
+	out.Output = string(output)
 	if runErr != nil {
-		if ee, ok := runErr.(*ssh.ExitError); ok {
-			out.ExitCode = int32(ee.ExitStatus())
+		if ee, ok := runErr.(*osExec.ExitError); ok {
+			out.ExitCode = int32(ee.ExitCode())
 		} else {
 			out.ExitCode = 1
 			out.Error = runErr.Error()
 		}
 	}
 	return out
+}
+
+func expandHomeDir(workdir string) (string, error) {
+	if workdir != "~" && !strings.HasPrefix(workdir, "~/") {
+		return workdir, nil
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("resolve home directory: %w", err)
+	}
+	if workdir == "~" {
+		return home, nil
+	}
+	return filepath.Join(home, workdir[2:]), nil
 }
 
 func (c *Connector) sftp(req *v1.AgentSFTPRequest) *v1.AgentSFTPResult {

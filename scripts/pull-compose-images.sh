@@ -10,6 +10,7 @@ images=(
   "postgres:16|library/postgres|16"
   "redis:7|library/redis|7"
   "axllent/mailpit:latest|axllent/mailpit|latest"
+  "prom/prometheus:v3.5.0|prom/prometheus|v3.5.0"
 )
 
 # 可用 MIRROR 覆盖，例如：MIRROR=dockerproxy.net make compose-images
@@ -55,6 +56,6 @@ for entry in "${images[@]}"; do
   echo "tagged ${pulled} -> ${target}"
 done
 
-docker image inspect postgres:16 redis:7 axllent/mailpit:latest \
+docker image inspect postgres:16 redis:7 axllent/mailpit:latest prom/prometheus:v3.5.0 \
   --format '{{index .RepoTags 0}} arch={{.Architecture}}/{{.Os}}'
 echo "compose images are ready: ${ROOT}/docker-compose.yaml"

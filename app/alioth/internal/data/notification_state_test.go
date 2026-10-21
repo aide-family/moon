@@ -42,7 +42,10 @@ func TestNotificationStateCAS(t *testing.T) {
 		SetNamespaceUID(ns).
 		SetChannelUID("channel-1").
 		SetStatus(notificationtask.StatusPENDING).
+		SetSender("alerts@example.com").
 		SetReceivers("ops@example.com").
+		SetSubject("Alert: {{.summary}}").
+		SetBody("{{.description}}").
 		Save(ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +86,9 @@ func TestNotificationStateCAS(t *testing.T) {
 	if _, err := repo.CancelTask(ctx, ns, uid); err == nil {
 		t.Fatal("cancel on SENDING must fail")
 	}
-	if err := repo.ApplyNotifyReport(ctx, bo.NotifyReport{TaskUID: uid, OK: true}); err != nil {
+	if err := repo.ApplyNotifyReport(ctx, bo.NotifyReport{
+		TaskUID: uid, OK: true, Subject: "Alert: node-1", Content: "node-1 is down",
+	}); err != nil {
 		t.Fatal(err)
 	}
 	row, err := store.client.NotificationTask.Query().Where(notificationtask.UIDEQ(uid)).Only(ctx)
@@ -92,6 +97,16 @@ func TestNotificationStateCAS(t *testing.T) {
 	}
 	if row.Status != notificationtask.StatusSENT {
 		t.Fatalf("status = %s, want SENT", row.Status)
+	}
+	if row.Sender != "alerts@example.com" || row.Receivers != "ops@example.com" || row.Subject != "Alert: node-1" || row.Body != "{{.description}}" || row.Content != "node-1 is down" {
+		t.Fatalf("task audit fields = sender %q receivers %q subject %q body %q content %q", row.Sender, row.Receivers, row.Subject, row.Body, row.Content)
+	}
+	logs, err := store.client.MessageLog.Query().Where(messagelog.TaskUIDEQ(uid)).All(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(logs) != 1 || logs[0].Status != messagelog.StatusSENT || logs[0].Sender != "alerts@example.com" || logs[0].Receivers != "ops@example.com" || logs[0].Subject != "Alert: node-1" || logs[0].Content != "node-1 is down" {
+		t.Fatalf("message audit fields = %+v", logs)
 	}
 	if logCount() != 1 {
 		t.Fatalf("message logs = %d, want 1", logCount())

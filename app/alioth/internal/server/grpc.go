@@ -41,6 +41,7 @@ func NewGRPCServer(
 	groups *service.NotificationGroupService,
 	subscriptions *service.NotificationSubscriptionService,
 	logs *service.MessageLogService,
+	workers *service.WorkerService,
 	notify *service.NotifyService,
 	agents *service.AgentService,
 	sshCommands *service.SSHCommandService,
@@ -94,6 +95,7 @@ func NewGRPCServer(
 	v1.RegisterNotificationGroupServiceServer(srv, groups)
 	v1.RegisterNotificationSubscriptionServiceServer(srv, subscriptions)
 	v1.RegisterMessageLogServiceServer(srv, logs)
+	v1.RegisterWorkerServiceServer(srv, workers)
 	megrezv1.RegisterEvalServiceServer(srv, eval)
 	merakv1.RegisterNotifyServiceServer(srv, notify)
 	v1.RegisterAgentServiceServer(srv, agents)

@@ -476,9 +476,9 @@ func isAgentToken(token string) bool {
 
 func serviceOperation(operation string) (string, bool) {
 	switch operation {
-	case megrezv1.EvalService_ClaimRules_FullMethodName, megrezv1.EvalService_ReportEval_FullMethodName:
+	case megrezv1.EvalService_ClaimRules_FullMethodName, megrezv1.EvalService_ReportEval_FullMethodName, megrezv1.EvalService_ReportWorkerStatus_FullMethodName:
 		return "megrez", true
-	case merakv1.NotifyService_ClaimTasks_FullMethodName, merakv1.NotifyService_MarkSending_FullMethodName, merakv1.NotifyService_ReportNotify_FullMethodName:
+	case merakv1.NotifyService_ClaimTasks_FullMethodName, merakv1.NotifyService_MarkSending_FullMethodName, merakv1.NotifyService_ReportNotify_FullMethodName, merakv1.NotifyService_ReportWorkerStatus_FullMethodName:
 		return "merak", true
 	default:
 		return "", false
@@ -523,7 +523,8 @@ func namespaceOptional(operation string) bool {
 		v1.OperationUserServiceSelectUsers,
 		v1.OperationUserServiceBanUser,
 		v1.OperationUserServicePermitUser,
-		v1.OperationUserServiceUpdateUserSystemRole:
+		v1.OperationUserServiceUpdateUserSystemRole,
+		v1.OperationWorkerServiceListWorkerInstances:
 		return true
 	default:
 		return false

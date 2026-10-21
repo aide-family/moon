@@ -89,9 +89,24 @@ func TemplateUID(v string) predicate.MessageLog {
 	return predicate.MessageLog(sql.FieldEQ(FieldTemplateUID, v))
 }
 
+// Sender applies equality check predicate on the "sender" field. It's identical to SenderEQ.
+func Sender(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldEQ(FieldSender, v))
+}
+
 // Receivers applies equality check predicate on the "receivers" field. It's identical to ReceiversEQ.
 func Receivers(v string) predicate.MessageLog {
 	return predicate.MessageLog(sql.FieldEQ(FieldReceivers, v))
+}
+
+// Subject applies equality check predicate on the "subject" field. It's identical to SubjectEQ.
+func Subject(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldEQ(FieldSubject, v))
+}
+
+// Content applies equality check predicate on the "content" field. It's identical to ContentEQ.
+func Content(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldEQ(FieldContent, v))
 }
 
 // Detail applies equality check predicate on the "detail" field. It's identical to DetailEQ.
@@ -524,6 +539,71 @@ func TemplateUIDContainsFold(v string) predicate.MessageLog {
 	return predicate.MessageLog(sql.FieldContainsFold(FieldTemplateUID, v))
 }
 
+// SenderEQ applies the EQ predicate on the "sender" field.
+func SenderEQ(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldEQ(FieldSender, v))
+}
+
+// SenderNEQ applies the NEQ predicate on the "sender" field.
+func SenderNEQ(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldNEQ(FieldSender, v))
+}
+
+// SenderIn applies the In predicate on the "sender" field.
+func SenderIn(vs ...string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldIn(FieldSender, vs...))
+}
+
+// SenderNotIn applies the NotIn predicate on the "sender" field.
+func SenderNotIn(vs ...string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldNotIn(FieldSender, vs...))
+}
+
+// SenderGT applies the GT predicate on the "sender" field.
+func SenderGT(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldGT(FieldSender, v))
+}
+
+// SenderGTE applies the GTE predicate on the "sender" field.
+func SenderGTE(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldGTE(FieldSender, v))
+}
+
+// SenderLT applies the LT predicate on the "sender" field.
+func SenderLT(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldLT(FieldSender, v))
+}
+
+// SenderLTE applies the LTE predicate on the "sender" field.
+func SenderLTE(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldLTE(FieldSender, v))
+}
+
+// SenderContains applies the Contains predicate on the "sender" field.
+func SenderContains(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldContains(FieldSender, v))
+}
+
+// SenderHasPrefix applies the HasPrefix predicate on the "sender" field.
+func SenderHasPrefix(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldHasPrefix(FieldSender, v))
+}
+
+// SenderHasSuffix applies the HasSuffix predicate on the "sender" field.
+func SenderHasSuffix(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldHasSuffix(FieldSender, v))
+}
+
+// SenderEqualFold applies the EqualFold predicate on the "sender" field.
+func SenderEqualFold(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldEqualFold(FieldSender, v))
+}
+
+// SenderContainsFold applies the ContainsFold predicate on the "sender" field.
+func SenderContainsFold(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldContainsFold(FieldSender, v))
+}
+
 // ReceiversEQ applies the EQ predicate on the "receivers" field.
 func ReceiversEQ(v string) predicate.MessageLog {
 	return predicate.MessageLog(sql.FieldEQ(FieldReceivers, v))
@@ -587,6 +667,136 @@ func ReceiversEqualFold(v string) predicate.MessageLog {
 // ReceiversContainsFold applies the ContainsFold predicate on the "receivers" field.
 func ReceiversContainsFold(v string) predicate.MessageLog {
 	return predicate.MessageLog(sql.FieldContainsFold(FieldReceivers, v))
+}
+
+// SubjectEQ applies the EQ predicate on the "subject" field.
+func SubjectEQ(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldEQ(FieldSubject, v))
+}
+
+// SubjectNEQ applies the NEQ predicate on the "subject" field.
+func SubjectNEQ(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldNEQ(FieldSubject, v))
+}
+
+// SubjectIn applies the In predicate on the "subject" field.
+func SubjectIn(vs ...string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldIn(FieldSubject, vs...))
+}
+
+// SubjectNotIn applies the NotIn predicate on the "subject" field.
+func SubjectNotIn(vs ...string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldNotIn(FieldSubject, vs...))
+}
+
+// SubjectGT applies the GT predicate on the "subject" field.
+func SubjectGT(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldGT(FieldSubject, v))
+}
+
+// SubjectGTE applies the GTE predicate on the "subject" field.
+func SubjectGTE(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldGTE(FieldSubject, v))
+}
+
+// SubjectLT applies the LT predicate on the "subject" field.
+func SubjectLT(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldLT(FieldSubject, v))
+}
+
+// SubjectLTE applies the LTE predicate on the "subject" field.
+func SubjectLTE(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldLTE(FieldSubject, v))
+}
+
+// SubjectContains applies the Contains predicate on the "subject" field.
+func SubjectContains(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldContains(FieldSubject, v))
+}
+
+// SubjectHasPrefix applies the HasPrefix predicate on the "subject" field.
+func SubjectHasPrefix(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldHasPrefix(FieldSubject, v))
+}
+
+// SubjectHasSuffix applies the HasSuffix predicate on the "subject" field.
+func SubjectHasSuffix(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldHasSuffix(FieldSubject, v))
+}
+
+// SubjectEqualFold applies the EqualFold predicate on the "subject" field.
+func SubjectEqualFold(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldEqualFold(FieldSubject, v))
+}
+
+// SubjectContainsFold applies the ContainsFold predicate on the "subject" field.
+func SubjectContainsFold(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldContainsFold(FieldSubject, v))
+}
+
+// ContentEQ applies the EQ predicate on the "content" field.
+func ContentEQ(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldEQ(FieldContent, v))
+}
+
+// ContentNEQ applies the NEQ predicate on the "content" field.
+func ContentNEQ(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldNEQ(FieldContent, v))
+}
+
+// ContentIn applies the In predicate on the "content" field.
+func ContentIn(vs ...string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldIn(FieldContent, vs...))
+}
+
+// ContentNotIn applies the NotIn predicate on the "content" field.
+func ContentNotIn(vs ...string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldNotIn(FieldContent, vs...))
+}
+
+// ContentGT applies the GT predicate on the "content" field.
+func ContentGT(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldGT(FieldContent, v))
+}
+
+// ContentGTE applies the GTE predicate on the "content" field.
+func ContentGTE(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldGTE(FieldContent, v))
+}
+
+// ContentLT applies the LT predicate on the "content" field.
+func ContentLT(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldLT(FieldContent, v))
+}
+
+// ContentLTE applies the LTE predicate on the "content" field.
+func ContentLTE(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldLTE(FieldContent, v))
+}
+
+// ContentContains applies the Contains predicate on the "content" field.
+func ContentContains(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldContains(FieldContent, v))
+}
+
+// ContentHasPrefix applies the HasPrefix predicate on the "content" field.
+func ContentHasPrefix(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldHasPrefix(FieldContent, v))
+}
+
+// ContentHasSuffix applies the HasSuffix predicate on the "content" field.
+func ContentHasSuffix(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldHasSuffix(FieldContent, v))
+}
+
+// ContentEqualFold applies the EqualFold predicate on the "content" field.
+func ContentEqualFold(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldEqualFold(FieldContent, v))
+}
+
+// ContentContainsFold applies the ContainsFold predicate on the "content" field.
+func ContentContainsFold(v string) predicate.MessageLog {
+	return predicate.MessageLog(sql.FieldContainsFold(FieldContent, v))
 }
 
 // DetailEQ applies the EQ predicate on the "detail" field.

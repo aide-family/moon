@@ -160,6 +160,20 @@ func (_u *NotificationTaskUpdate) SetNillableTemplateUID(v *string) *Notificatio
 	return _u
 }
 
+// SetSender sets the "sender" field.
+func (_u *NotificationTaskUpdate) SetSender(v string) *NotificationTaskUpdate {
+	_u.mutation.SetSender(v)
+	return _u
+}
+
+// SetNillableSender sets the "sender" field if the given value is not nil.
+func (_u *NotificationTaskUpdate) SetNillableSender(v *string) *NotificationTaskUpdate {
+	if v != nil {
+		_u.SetSender(*v)
+	}
+	return _u
+}
+
 // SetReceivers sets the "receivers" field.
 func (_u *NotificationTaskUpdate) SetReceivers(v string) *NotificationTaskUpdate {
 	_u.mutation.SetReceivers(v)
@@ -198,6 +212,20 @@ func (_u *NotificationTaskUpdate) SetBody(v string) *NotificationTaskUpdate {
 func (_u *NotificationTaskUpdate) SetNillableBody(v *string) *NotificationTaskUpdate {
 	if v != nil {
 		_u.SetBody(*v)
+	}
+	return _u
+}
+
+// SetContent sets the "content" field.
+func (_u *NotificationTaskUpdate) SetContent(v string) *NotificationTaskUpdate {
+	_u.mutation.SetContent(v)
+	return _u
+}
+
+// SetNillableContent sets the "content" field if the given value is not nil.
+func (_u *NotificationTaskUpdate) SetNillableContent(v *string) *NotificationTaskUpdate {
+	if v != nil {
+		_u.SetContent(*v)
 	}
 	return _u
 }
@@ -379,6 +407,9 @@ func (_u *NotificationTaskUpdate) sqlSave(ctx context.Context) (_node int, err e
 	if value, ok := _u.mutation.TemplateUID(); ok {
 		_spec.SetField(notificationtask.FieldTemplateUID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Sender(); ok {
+		_spec.SetField(notificationtask.FieldSender, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Receivers(); ok {
 		_spec.SetField(notificationtask.FieldReceivers, field.TypeString, value)
 	}
@@ -387,6 +418,9 @@ func (_u *NotificationTaskUpdate) sqlSave(ctx context.Context) (_node int, err e
 	}
 	if value, ok := _u.mutation.Body(); ok {
 		_spec.SetField(notificationtask.FieldBody, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Content(); ok {
+		_spec.SetField(notificationtask.FieldContent, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Params(); ok {
 		_spec.SetField(notificationtask.FieldParams, field.TypeString, value)
@@ -558,6 +592,20 @@ func (_u *NotificationTaskUpdateOne) SetNillableTemplateUID(v *string) *Notifica
 	return _u
 }
 
+// SetSender sets the "sender" field.
+func (_u *NotificationTaskUpdateOne) SetSender(v string) *NotificationTaskUpdateOne {
+	_u.mutation.SetSender(v)
+	return _u
+}
+
+// SetNillableSender sets the "sender" field if the given value is not nil.
+func (_u *NotificationTaskUpdateOne) SetNillableSender(v *string) *NotificationTaskUpdateOne {
+	if v != nil {
+		_u.SetSender(*v)
+	}
+	return _u
+}
+
 // SetReceivers sets the "receivers" field.
 func (_u *NotificationTaskUpdateOne) SetReceivers(v string) *NotificationTaskUpdateOne {
 	_u.mutation.SetReceivers(v)
@@ -596,6 +644,20 @@ func (_u *NotificationTaskUpdateOne) SetBody(v string) *NotificationTaskUpdateOn
 func (_u *NotificationTaskUpdateOne) SetNillableBody(v *string) *NotificationTaskUpdateOne {
 	if v != nil {
 		_u.SetBody(*v)
+	}
+	return _u
+}
+
+// SetContent sets the "content" field.
+func (_u *NotificationTaskUpdateOne) SetContent(v string) *NotificationTaskUpdateOne {
+	_u.mutation.SetContent(v)
+	return _u
+}
+
+// SetNillableContent sets the "content" field if the given value is not nil.
+func (_u *NotificationTaskUpdateOne) SetNillableContent(v *string) *NotificationTaskUpdateOne {
+	if v != nil {
+		_u.SetContent(*v)
 	}
 	return _u
 }
@@ -807,6 +869,9 @@ func (_u *NotificationTaskUpdateOne) sqlSave(ctx context.Context) (_node *Notifi
 	if value, ok := _u.mutation.TemplateUID(); ok {
 		_spec.SetField(notificationtask.FieldTemplateUID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Sender(); ok {
+		_spec.SetField(notificationtask.FieldSender, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Receivers(); ok {
 		_spec.SetField(notificationtask.FieldReceivers, field.TypeString, value)
 	}
@@ -815,6 +880,9 @@ func (_u *NotificationTaskUpdateOne) sqlSave(ctx context.Context) (_node *Notifi
 	}
 	if value, ok := _u.mutation.Body(); ok {
 		_spec.SetField(notificationtask.FieldBody, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Content(); ok {
+		_spec.SetField(notificationtask.FieldContent, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Params(); ok {
 		_spec.SetField(notificationtask.FieldParams, field.TypeString, value)

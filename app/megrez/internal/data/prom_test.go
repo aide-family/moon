@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/aide-family/Alioth/app/megrez/pkg/bo"
 	"github.com/aide-family/Alioth/pkg/merr"
@@ -41,6 +42,31 @@ func TestQueryRangeKeepsEndpointPrefix(t *testing.T) {
 	}
 	if samples[0].Points[1].Value != 2 || samples[0].Points[1].Raw != "2" {
 		t.Fatalf("point = %+v", samples[0].Points[1])
+	}
+}
+
+func TestQueryInstantSupportsTemplateQueries(t *testing.T) {
+	var gotPath, gotExpr, gotAt string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		gotExpr = r.URL.Query().Get("query")
+		gotAt = r.URL.Query().Get("time")
+		_, _ = w.Write([]byte(`{"status":"success","data":{"resultType":"vector","result":[{"metric":{"instance":"query-target"},"value":[123.456,"9"]}]}}`))
+	}))
+	defer srv.Close()
+
+	at := time.Unix(123, 456000000).UTC()
+	samples, err := (promQuery{}).QueryInstant(context.Background(), bo.RuleSnapshot{
+		UID: "rule-1", Endpoint: srv.URL + "/select/0/prometheus",
+	}, "up", at)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gotPath != "/select/0/prometheus/api/v1/query" || gotExpr != "up" || gotAt != "123.456" {
+		t.Fatalf("path/query/time = %q/%q/%q", gotPath, gotExpr, gotAt)
+	}
+	if len(samples) != 1 || samples[0].Labels["instance"] != "query-target" || len(samples[0].Points) != 1 || samples[0].Points[0].Value != 9 {
+		t.Fatalf("samples = %+v", samples)
 	}
 }
 

@@ -23,9 +23,15 @@ type Locker interface {
 type EvalGateway interface {
 	Claim(ctx context.Context) ([]bo.RuleSnapshot, error)
 	Report(ctx context.Context, report bo.EvalReport) error
+	ReportStatus(ctx context.Context, status bo.WorkerStatus) error
 }
 
 // RangeQuery 向指标数据源查询区间数据。
 type RangeQuery interface {
 	QueryRange(ctx context.Context, item bo.RuleSnapshot, start, end, step int64) ([]bo.Sample, error)
+}
+
+// InstantQuery 为 Prometheus 模板中的 query 函数查询瞬时向量。
+type InstantQuery interface {
+	QueryInstant(ctx context.Context, item bo.RuleSnapshot, expr string, at time.Time) ([]bo.Sample, error)
 }

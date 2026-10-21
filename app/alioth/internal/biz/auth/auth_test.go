@@ -10,6 +10,7 @@ import (
 
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
 	megrezv1 "github.com/aide-family/Alioth/api/megrez/v1"
+	merakv1 "github.com/aide-family/Alioth/api/merak/v1"
 	"github.com/aide-family/Alioth/app/alioth/internal/conf"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/repository"
 	"github.com/aide-family/Alioth/app/alioth/pkg/actor"
@@ -46,6 +47,17 @@ func TestClaimRejectsUserJWT(t *testing.T) {
 	name, ok := actor.ServiceName(ctx)
 	if !ok || name != "megrez" {
 		t.Fatalf("service = %q ok=%v", name, ok)
+	}
+	statusCtx, err := uc.Authenticate(context.Background(), megrezv1.EvalService_ReportWorkerStatus_FullMethodName, "Bearer sk-megrez-dev", "")
+	if err != nil {
+		t.Fatalf("megrez status report: %v", err)
+	}
+	if name, ok := actor.ServiceName(statusCtx); !ok || name != "megrez" {
+		t.Fatalf("status reporter = %q ok=%v", name, ok)
+	}
+	_, err = uc.Authenticate(context.Background(), merakv1.NotifyService_ReportWorkerStatus_FullMethodName, "Bearer sk-megrez-dev", "")
+	if kerrors.Reason(err) != merr.ReasonForbidden {
+		t.Fatalf("megrez key reached merak heartbeat: %v", err)
 	}
 	_, err = uc.Authenticate(context.Background(), v1.OperationAlertEventServiceListAlertEvents, "Bearer sk-megrez-dev", "ns")
 	if kerrors.Reason(err) != merr.ReasonForbidden {

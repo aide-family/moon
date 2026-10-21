@@ -53,9 +53,9 @@ func TestDingTalkSignatureAndPayload(t *testing.T) {
 	}))
 	defer server.Close()
 
-	ok, detail := Deliver(context.Background(), webhookTask(server.URL, "DINGTALK", secret))
-	if !ok {
-		t.Fatalf("deliver failed: %s", detail)
+	result := Deliver(context.Background(), webhookTask(server.URL, "DINGTALK", secret))
+	if !result.OK {
+		t.Fatalf("deliver failed: %s", result.Detail)
 	}
 }
 
@@ -83,9 +83,9 @@ func TestFeishuSignatureAndPayload(t *testing.T) {
 	}))
 	defer server.Close()
 
-	ok, detail := Deliver(context.Background(), webhookTask(server.URL, "FEISHU", secret))
-	if !ok {
-		t.Fatalf("deliver failed: %s", detail)
+	result := Deliver(context.Background(), webhookTask(server.URL, "FEISHU", secret))
+	if !result.OK {
+		t.Fatalf("deliver failed: %s", result.Detail)
 	}
 }
 
@@ -105,9 +105,9 @@ func TestWechatPayloadAndError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	ok, detail := Deliver(context.Background(), webhookTask(server.URL, "WECHAT", ""))
-	if ok || !strings.Contains(detail, "93000") {
-		t.Fatalf("ok=%v detail=%s", ok, detail)
+	result := Deliver(context.Background(), webhookTask(server.URL, "WECHAT", ""))
+	if result.OK || !strings.Contains(result.Detail, "93000") {
+		t.Fatalf("ok=%v detail=%s", result.OK, result.Detail)
 	}
 }
 
@@ -130,9 +130,9 @@ func TestOtherSignatureAndNoSecretInBody(t *testing.T) {
 	}))
 	defer server.Close()
 
-	ok, detail := Deliver(context.Background(), webhookTask(server.URL, "OTHER", secret))
-	if !ok {
-		t.Fatalf("deliver failed: %s", detail)
+	result := Deliver(context.Background(), webhookTask(server.URL, "OTHER", secret))
+	if !result.OK {
+		t.Fatalf("deliver failed: %s", result.Detail)
 	}
 }
 

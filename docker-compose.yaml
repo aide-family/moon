@@ -1,7 +1,7 @@
 name: alioth
 
-# 本地全栈：docker compose up 即可获得 PostgreSQL、Redis、邮件沙箱、一次迁移，
-# 以及 alioth / megrez / merak / web。数据保存在 pgdata 卷里，down 不会丢。
+# 本地全栈：docker compose up 即可获得 PostgreSQL、Redis、邮件沙箱、Prometheus、一次迁移，
+# 以及 alioth / megrez / merak / web。数据保存在命名卷里，down 不会丢。
 x-service-env: &service-env
   ALIOTH_DATABASE_URL: postgres://alioth:alioth@postgres:5432/alioth?sslmode=disable
   ALIOTH_REDIS_ADDR: redis:6379
@@ -48,6 +48,25 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheusdata:/prometheus
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9090/-/healthy"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
 
   # 一次性迁移：先于四个服务完成，避免新代码遇到旧 schema。
   migrate:
@@ -146,3 +165,4 @@ services:
 volumes:
   pgdata:
   redisdata:
+  prometheusdata:

@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"encoding/json"
+	"net/url"
 	"strings"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
@@ -35,7 +36,37 @@ type notifyEvent struct {
 type notifyTarget struct {
 	ChannelUID  string
 	TemplateUID string
+	Sender      string
 	Receivers   string
+	Subject     string
+	Body        string
+}
+
+// notificationSender 返回可供审计展示的实际发送身份，不包含渠道凭据或连接地址。
+func notificationSender(channel *ent.NotificationChannel) string {
+	if channel.FromAddress != "" {
+		return channel.FromAddress
+	}
+	if channel.Type == notificationchannel.TypeSMTP && channel.Username != "" {
+		return channel.Username
+	}
+	return channel.Name
+}
+
+// notificationReceiver 返回可审计的 Webhook 接收端；去除 URL 用户信息、查询参数和 fragment，避免记录密钥。
+func notificationReceiver(channel *ent.NotificationChannel) string {
+	if channel.Type != notificationchannel.TypeWEBHOOK {
+		return ""
+	}
+	parsed, err := url.Parse(channel.Endpoint)
+	if err != nil {
+		return channel.Name
+	}
+	parsed.User = nil
+	parsed.RawQuery = ""
+	parsed.ForceQuery = false
+	parsed.Fragment = ""
+	return parsed.String()
 }
 
 // dispatchEventNotifications 按订阅条件把事件发给订阅下的通知组。
@@ -116,7 +147,11 @@ func dispatchEventNotifications(ctx context.Context, tx *ent.Tx, event notifyEve
 				SetGroupUID(group.UID).
 				SetChannelUID(target.ChannelUID).
 				SetTemplateUID(target.TemplateUID).
+				SetSender(target.Sender).
 				SetReceivers(target.Receivers).
+				SetSubject(target.Subject).
+				SetBody(target.Body).
+				SetContent(target.Body).
 				SetParams(params).
 				SetRetriesLeft(3).
 				Exec(ctx)
@@ -205,7 +240,11 @@ func resolveGroupTargets(ctx context.Context, tx *ent.Tx, group *ent.Notificatio
 			}
 			// SMTP 没有任何有效接收方时只跳过主目标，不影响 Webhook 目标。
 			if channel.Type != notificationchannel.TypeSMTP || receivers != "" {
-				targets = append(targets, notifyTarget{ChannelUID: channel.UID, TemplateUID: template.UID, Receivers: receivers})
+				targets = append(targets, notifyTarget{
+					ChannelUID: channel.UID, TemplateUID: template.UID,
+					Sender: notificationSender(channel), Receivers: receivers,
+					Subject: template.Subject, Body: template.Body,
+				})
 				seen[channel.UID] = struct{}{}
 			}
 		}
@@ -241,7 +280,11 @@ func resolveGroupTargets(ctx context.Context, tx *ent.Tx, group *ent.Notificatio
 			continue
 		}
 		seen[webhook.UID] = struct{}{}
-		targets = append(targets, notifyTarget{ChannelUID: webhook.UID, TemplateUID: webhookTemplate.UID})
+		targets = append(targets, notifyTarget{
+			ChannelUID: webhook.UID, TemplateUID: webhookTemplate.UID,
+			Sender: notificationSender(webhook), Receivers: notificationReceiver(webhook),
+			Subject: webhookTemplate.Subject, Body: webhookTemplate.Body,
+		})
 	}
 	return targets, nil
 }

@@ -645,7 +645,10 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"SENT", "FAILED"}},
 		{Name: "channel_uid", Type: field.TypeString, Default: ""},
 		{Name: "template_uid", Type: field.TypeString, Default: ""},
+		{Name: "sender", Type: field.TypeString, Default: ""},
 		{Name: "receivers", Type: field.TypeString, Default: ""},
+		{Name: "subject", Type: field.TypeString, Default: ""},
+		{Name: "content", Type: field.TypeString, Default: ""},
 		{Name: "detail", Type: field.TypeString, Default: ""},
 	}
 	// MessageLogsTable holds the schema information for the "message_logs" table.
@@ -930,9 +933,11 @@ var (
 		{Name: "group_uid", Type: field.TypeString, Default: ""},
 		{Name: "channel_uid", Type: field.TypeString},
 		{Name: "template_uid", Type: field.TypeString, Default: ""},
+		{Name: "sender", Type: field.TypeString, Default: ""},
 		{Name: "receivers", Type: field.TypeString, Default: ""},
 		{Name: "subject", Type: field.TypeString, Default: ""},
 		{Name: "body", Type: field.TypeString, Default: ""},
+		{Name: "content", Type: field.TypeString, Default: ""},
 		{Name: "params", Type: field.TypeString, Default: ""},
 		{Name: "retries_left", Type: field.TypeInt, Default: 3},
 		{Name: "next_attempt_at", Type: field.TypeTime, Nullable: true},
@@ -965,7 +970,7 @@ var (
 			{
 				Name:    "notificationtask_status_next_attempt_at",
 				Unique:  false,
-				Columns: []*schema.Column{NotificationTasksColumns[7], NotificationTasksColumns[18]},
+				Columns: []*schema.Column{NotificationTasksColumns[7], NotificationTasksColumns[20]},
 			},
 			{
 				Name:    "notificationtask_namespace_uid_status",
@@ -1386,6 +1391,36 @@ var (
 			},
 		},
 	}
+	// WorkerInstancesColumns holds the columns for the "worker_instances" table.
+	WorkerInstancesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "service", Type: field.TypeEnum, Enums: []string{"MEGREZ", "MERAK"}},
+		{Name: "instance_uid", Type: field.TypeString},
+		{Name: "hostname", Type: field.TypeString, Default: ""},
+		{Name: "busy", Type: field.TypeBool, Default: false},
+		{Name: "task_uid", Type: field.TypeString, Default: ""},
+		{Name: "task_name", Type: field.TypeString, Default: ""},
+		{Name: "task_started_at", Type: field.TypeTime, Nullable: true},
+		{Name: "last_seen_at", Type: field.TypeTime},
+	}
+	// WorkerInstancesTable holds the schema information for the "worker_instances" table.
+	WorkerInstancesTable = &schema.Table{
+		Name:       "worker_instances",
+		Columns:    WorkerInstancesColumns,
+		PrimaryKey: []*schema.Column{WorkerInstancesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "workerinstance_service_instance_uid",
+				Unique:  true,
+				Columns: []*schema.Column{WorkerInstancesColumns[1], WorkerInstancesColumns[2]},
+			},
+			{
+				Name:    "workerinstance_last_seen_at",
+				Unique:  false,
+				Columns: []*schema.Column{WorkerInstancesColumns[8]},
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AgentsTable,
@@ -1423,6 +1458,7 @@ var (
 		UsersTable,
 		UserAlertPagesTable,
 		UserOauthsTable,
+		WorkerInstancesTable,
 	}
 )
 

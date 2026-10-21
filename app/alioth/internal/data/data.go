@@ -35,6 +35,7 @@ var ProviderSet = wire.NewSet(
 	NewAlertEventRepo,
 	NewAlertPageRepo,
 	NewNotificationRepo,
+	NewWorkerRepo,
 	NewAgentRepo,
 	NewSSHCommandRepo,
 	NewEdgeAuditRepo,

@@ -164,6 +164,20 @@ func (_c *NotificationTaskCreate) SetNillableTemplateUID(v *string) *Notificatio
 	return _c
 }
 
+// SetSender sets the "sender" field.
+func (_c *NotificationTaskCreate) SetSender(v string) *NotificationTaskCreate {
+	_c.mutation.SetSender(v)
+	return _c
+}
+
+// SetNillableSender sets the "sender" field if the given value is not nil.
+func (_c *NotificationTaskCreate) SetNillableSender(v *string) *NotificationTaskCreate {
+	if v != nil {
+		_c.SetSender(*v)
+	}
+	return _c
+}
+
 // SetReceivers sets the "receivers" field.
 func (_c *NotificationTaskCreate) SetReceivers(v string) *NotificationTaskCreate {
 	_c.mutation.SetReceivers(v)
@@ -202,6 +216,20 @@ func (_c *NotificationTaskCreate) SetBody(v string) *NotificationTaskCreate {
 func (_c *NotificationTaskCreate) SetNillableBody(v *string) *NotificationTaskCreate {
 	if v != nil {
 		_c.SetBody(*v)
+	}
+	return _c
+}
+
+// SetContent sets the "content" field.
+func (_c *NotificationTaskCreate) SetContent(v string) *NotificationTaskCreate {
+	_c.mutation.SetContent(v)
+	return _c
+}
+
+// SetNillableContent sets the "content" field if the given value is not nil.
+func (_c *NotificationTaskCreate) SetNillableContent(v *string) *NotificationTaskCreate {
+	if v != nil {
+		_c.SetContent(*v)
 	}
 	return _c
 }
@@ -333,6 +361,10 @@ func (_c *NotificationTaskCreate) defaults() {
 		v := notificationtask.DefaultTemplateUID
 		_c.mutation.SetTemplateUID(v)
 	}
+	if _, ok := _c.mutation.Sender(); !ok {
+		v := notificationtask.DefaultSender
+		_c.mutation.SetSender(v)
+	}
 	if _, ok := _c.mutation.Receivers(); !ok {
 		v := notificationtask.DefaultReceivers
 		_c.mutation.SetReceivers(v)
@@ -344,6 +376,10 @@ func (_c *NotificationTaskCreate) defaults() {
 	if _, ok := _c.mutation.Body(); !ok {
 		v := notificationtask.DefaultBody
 		_c.mutation.SetBody(v)
+	}
+	if _, ok := _c.mutation.Content(); !ok {
+		v := notificationtask.DefaultContent
+		_c.mutation.SetContent(v)
 	}
 	if _, ok := _c.mutation.Params(); !ok {
 		v := notificationtask.DefaultParams
@@ -422,6 +458,9 @@ func (_c *NotificationTaskCreate) check() error {
 	if _, ok := _c.mutation.TemplateUID(); !ok {
 		return &ValidationError{Name: "template_uid", err: errors.New(`ent: missing required field "NotificationTask.template_uid"`)}
 	}
+	if _, ok := _c.mutation.Sender(); !ok {
+		return &ValidationError{Name: "sender", err: errors.New(`ent: missing required field "NotificationTask.sender"`)}
+	}
 	if _, ok := _c.mutation.Receivers(); !ok {
 		return &ValidationError{Name: "receivers", err: errors.New(`ent: missing required field "NotificationTask.receivers"`)}
 	}
@@ -430,6 +469,9 @@ func (_c *NotificationTaskCreate) check() error {
 	}
 	if _, ok := _c.mutation.Body(); !ok {
 		return &ValidationError{Name: "body", err: errors.New(`ent: missing required field "NotificationTask.body"`)}
+	}
+	if _, ok := _c.mutation.Content(); !ok {
+		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "NotificationTask.content"`)}
 	}
 	if _, ok := _c.mutation.Params(); !ok {
 		return &ValidationError{Name: "params", err: errors.New(`ent: missing required field "NotificationTask.params"`)}
@@ -514,6 +556,10 @@ func (_c *NotificationTaskCreate) createSpec() (*NotificationTask, *sqlgraph.Cre
 		_spec.SetField(notificationtask.FieldTemplateUID, field.TypeString, value)
 		_node.TemplateUID = value
 	}
+	if value, ok := _c.mutation.Sender(); ok {
+		_spec.SetField(notificationtask.FieldSender, field.TypeString, value)
+		_node.Sender = value
+	}
 	if value, ok := _c.mutation.Receivers(); ok {
 		_spec.SetField(notificationtask.FieldReceivers, field.TypeString, value)
 		_node.Receivers = value
@@ -525,6 +571,10 @@ func (_c *NotificationTaskCreate) createSpec() (*NotificationTask, *sqlgraph.Cre
 	if value, ok := _c.mutation.Body(); ok {
 		_spec.SetField(notificationtask.FieldBody, field.TypeString, value)
 		_node.Body = value
+	}
+	if value, ok := _c.mutation.Content(); ok {
+		_spec.SetField(notificationtask.FieldContent, field.TypeString, value)
+		_node.Content = value
 	}
 	if value, ok := _c.mutation.Params(); ok {
 		_spec.SetField(notificationtask.FieldParams, field.TypeString, value)

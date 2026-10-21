@@ -93,6 +93,12 @@ const links: {
     icon: UserRound,
   },
   { to: "/roles", label: "nav.roles", permission: "role:read", icon: Shield },
+  {
+    to: "/workers",
+    label: "nav.workers",
+    permission: "system:user:read",
+    icon: Activity,
+  },
 ]
 
 const alertLinks: {
@@ -253,7 +259,10 @@ function NavGroup({
                 <SidebarMenuSubItem key={link.to}>
                   <SidebarMenuSubButton
                     asChild
-                    isActive={location.pathname === link.to}
+                    isActive={
+                      location.pathname === link.to ||
+                      (link.to === "/ssh-commands" && location.pathname.startsWith("/ssh-commands/"))
+                    }
                     className="border-l-2 border-transparent data-active:border-primary"
                   >
                     <NavLink to={link.to}>
@@ -297,7 +306,11 @@ function ShellFrame() {
   const systemActive = visible.some((link) => location.pathname === link.to)
   const alertActive = alerts.some((link) => location.pathname === link.to)
   const notifyActive = notifies.some((link) => location.pathname === link.to)
-  const edgeActive = edges.some((link) => location.pathname === link.to)
+  const edgeActive = edges.some(
+    (link) =>
+      location.pathname === link.to ||
+      (link.to === "/ssh-commands" && location.pathname.startsWith("/ssh-commands/")),
+  )
   const token = localStorage.getItem("token")
   if (!token) {
     return <Navigate to="/login" replace />

@@ -85,6 +85,21 @@ func (g *gateway) Report(ctx context.Context, report bo.EvalReport) error {
 	return nil
 }
 
+func (g *gateway) ReportStatus(ctx context.Context, status bo.WorkerStatus) error {
+	startedAt := ""
+	if !status.TaskStartedAt.IsZero() {
+		startedAt = status.TaskStartedAt.UTC().Format(time.RFC3339Nano)
+	}
+	_, err := g.client.ReportWorkerStatus(g.auth(ctx), &megrezv1.ReportWorkerStatusRequest{
+		InstanceUid: status.InstanceUID, Hostname: status.Hostname, Busy: status.Busy,
+		TaskUid: status.TaskUID, TaskName: status.TaskName, TaskStartedAt: startedAt,
+	})
+	if err != nil {
+		return merr.Server("report worker status failed")
+	}
+	return nil
+}
+
 func (g *gateway) auth(ctx context.Context) context.Context {
 	return metadata.NewOutgoingContext(ctx, metadata.Pairs("authorization", "Bearer "+g.key))
 }

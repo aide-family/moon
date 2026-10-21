@@ -392,9 +392,11 @@ type NotificationTask struct {
 	GroupUID        string
 	ChannelUID      string
 	TemplateUID     string
+	Sender          string
 	Receivers       string
 	Subject         string
 	Body            string
+	Content         string
 	Params          string
 	RetriesLeft     int
 	LastError       string
@@ -408,7 +410,10 @@ type MessageLog struct {
 	Status       string
 	ChannelUID   string
 	TemplateUID  string
+	Sender       string
 	Receivers    string
+	Subject      string
+	Content      string
 	Detail       string
 	CreatedAt    time.Time
 }
@@ -418,6 +423,8 @@ type NotifyReport struct {
 	TaskUID string
 	OK      bool
 	Detail  string
+	Subject string
+	Content string
 }
 
 // Agent 是一条边缘机器。Token 只在签发时返回明文。
@@ -457,19 +464,22 @@ type SSHCommand struct {
 
 // SSHCommandAudit 是一条 SSH 审计。
 type SSHCommandAudit struct {
-	UID          string
-	NamespaceUID string
-	CommandUID   string
-	AgentUID     string
-	OperatorUID  string
-	Kind         string
-	Status       string
-	Command      string
-	ExitCode     int
-	Output       string
-	Truncated    bool
-	Detail       string
-	CreatedAt    time.Time
+	UID              string
+	NamespaceUID     string
+	CommandUID       string
+	AgentUID         string
+	OperatorUID      string
+	OperatorName     string
+	OperatorNickname string
+	OperatorAvatar   string
+	Kind             string
+	Status           string
+	Command          string
+	ExitCode         int
+	Output           string
+	Truncated        bool
+	Detail           string
+	CreatedAt        time.Time
 }
 
 // AgentExecResult 是 Agent 回传的执行结果。
@@ -531,6 +541,7 @@ type NotifySnapshot struct {
 	ChannelPassword string
 	ChannelSecret   string
 	ChannelFrom     string
+	Sender          string
 	TemplateUID     string
 	TemplateType    string
 	TemplateSubject string

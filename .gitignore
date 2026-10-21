@@ -8,3 +8,4 @@ web/dist/
 *.log
 coverage.out
 .cache/
+.env

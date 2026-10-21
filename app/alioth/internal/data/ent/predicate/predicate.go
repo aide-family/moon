@@ -110,3 +110,6 @@ type UserAlertPage func(*sql.Selector)
 
 // UserOAuth is the predicate function for useroauth builders.
 type UserOAuth func(*sql.Selector)
+
+// WorkerInstance is the predicate function for workerinstance builders.
+type WorkerInstance func(*sql.Selector)

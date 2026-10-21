@@ -6,16 +6,18 @@ import (
 
 	megrezv1 "github.com/aide-family/Alioth/api/megrez/v1"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/alertevent"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/worker"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 )
 
 type EvalService struct {
 	megrezv1.UnimplementedEvalServiceServer
-	events *alertevent.Usecase
+	events  *alertevent.Usecase
+	workers *worker.Usecase
 }
 
-func NewEvalService(uc *alertevent.Usecase) *EvalService {
-	return &EvalService{events: uc}
+func NewEvalService(uc *alertevent.Usecase, workers *worker.Usecase) *EvalService {
+	return &EvalService{events: uc, workers: workers}
 }
 
 func (s *EvalService) ClaimRules(ctx context.Context, _ *megrezv1.ClaimRulesRequest) (*megrezv1.ClaimRulesResponse, error) {
@@ -49,6 +51,24 @@ func (s *EvalService) ReportEval(ctx context.Context, req *megrezv1.ReportEvalRe
 		return nil, err
 	}
 	return &megrezv1.ReportEvalResponse{}, nil
+}
+
+func (s *EvalService) ReportWorkerStatus(ctx context.Context, req *megrezv1.ReportWorkerStatusRequest) (*megrezv1.ReportWorkerStatusResponse, error) {
+	var startedAt *time.Time
+	if req.GetBusy() {
+		parsed, err := parseSlot(req.GetTaskStartedAt())
+		if err != nil {
+			return nil, err
+		}
+		startedAt = &parsed
+	}
+	if err := s.workers.Report(ctx, "MEGREZ", bo.WorkerStatus{
+		InstanceUID: req.GetInstanceUid(), Hostname: req.GetHostname(), Busy: req.GetBusy(),
+		TaskUID: req.GetTaskUid(), TaskName: req.GetTaskName(), TaskStartedAt: startedAt,
+	}); err != nil {
+		return nil, err
+	}
+	return &megrezv1.ReportWorkerStatusResponse{}, nil
 }
 
 func snapshotItem(item bo.RuleSnapshot) *megrezv1.RuleSnapshot {

@@ -12,6 +12,8 @@ service NotifyService {
   rpc MarkSending(MarkSendingRequest) returns (MarkSendingResponse);
   // 回写 SENT 或 FAILED，并写入消息日志。
   rpc ReportNotify(ReportNotifyRequest) returns (ReportNotifyResponse);
+  // 上报天璇实例心跳与当前投递任务。
+  rpc ReportWorkerStatus(ReportWorkerStatusRequest) returns (ReportWorkerStatusResponse);
 }
 
 // 领取不需要参数，也不要求租户头。
@@ -63,6 +65,8 @@ message TaskSnapshot {
   string channel_uid = 18;
   // 模板标识。
   string template_uid = 19;
+  // 发送方快照，SMTP 为发件地址，其余渠道为渠道标识名称。
+  string sender = 20;
 }
 
 // 把任务改为发送中。
@@ -82,7 +86,30 @@ message ReportNotifyRequest {
   bool ok = 2;
   // 结果说明或错误信息。
   string detail = 3;
+  // 投递时的最终渲染主题。
+  string subject = 4;
+  // 投递时的最终渲染正文。
+  string content = 5;
 }
 
 // 回写已接受。
 message ReportNotifyResponse {}
+
+// 天璇实例的一次状态心跳。
+message ReportWorkerStatusRequest {
+  // 进程实例唯一标识。
+  string instance_uid = 1;
+  // 运行主机或容器名称。
+  string hostname = 2;
+  // 是否正在投递。
+  bool busy = 3;
+  // 当前通知任务标识；空值表示空闲。
+  string task_uid = 4;
+  // 当前任务简要说明。
+  string task_name = 5;
+  // 当前任务开始时间，RFC3339；空值表示无活动任务。
+  string task_started_at = 6;
+}
+
+// 状态已记录。
+message ReportWorkerStatusResponse {}

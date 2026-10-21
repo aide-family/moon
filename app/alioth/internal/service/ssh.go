@@ -132,6 +132,7 @@ func sshAuditItem(item bo.SSHCommandAudit) *v1.SSHCommandAuditItem {
 	}
 	return &v1.SSHCommandAuditItem{
 		Uid: item.UID, CommandUid: item.CommandUID, AgentUid: item.AgentUID, OperatorUid: item.OperatorUID,
+		OperatorName: item.OperatorName, OperatorNickname: item.OperatorNickname, OperatorAvatar: item.OperatorAvatar,
 		Kind: item.Kind, Status: item.Status, Command: item.Command, ExitCode: int32(item.ExitCode),
 		Output: item.Output, Truncated: item.Truncated, Detail: item.Detail, CreatedAt: created,
 	}

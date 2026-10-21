@@ -7,6 +7,7 @@ import (
 	v1 "github.com/aide-family/Alioth/api/alioth/v1"
 	merakv1 "github.com/aide-family/Alioth/api/merak/v1"
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/notification"
+	"github.com/aide-family/Alioth/app/alioth/internal/biz/worker"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 )
 
@@ -298,11 +299,12 @@ func (s *MessageLogService) CancelNotificationTask(ctx context.Context, req *v1.
 
 type NotifyService struct {
 	merakv1.UnimplementedNotifyServiceServer
-	notify *notification.Usecase
+	notify  *notification.Usecase
+	workers *worker.Usecase
 }
 
-func NewNotifyService(uc *notification.Usecase) *NotifyService {
-	return &NotifyService{notify: uc}
+func NewNotifyService(uc *notification.Usecase, workers *worker.Usecase) *NotifyService {
+	return &NotifyService{notify: uc, workers: workers}
 }
 
 func (s *NotifyService) ClaimTasks(ctx context.Context, _ *merakv1.ClaimTasksRequest) (*merakv1.ClaimTasksResponse, error) {
@@ -316,7 +318,7 @@ func (s *NotifyService) ClaimTasks(ctx context.Context, _ *merakv1.ClaimTasksReq
 			Uid: item.UID, NamespaceUid: item.NamespaceUID, Phase: item.Phase,
 			ChannelType: item.ChannelType, ChannelApp: item.ChannelApp, ChannelEndpoint: item.ChannelEndpoint,
 			ChannelUsername: item.ChannelUsername, ChannelPassword: item.ChannelPassword, ChannelSecret: item.ChannelSecret,
-			ChannelFrom: item.ChannelFrom, TemplateType: item.TemplateType, TemplateSubject: item.TemplateSubject,
+			ChannelFrom: item.ChannelFrom, Sender: item.Sender, TemplateType: item.TemplateType, TemplateSubject: item.TemplateSubject,
 			TemplateBody: item.TemplateBody, Receivers: item.Receivers, Params: item.Params,
 			Subject: item.Subject, Body: item.Body, ChannelUid: item.ChannelUID, TemplateUid: item.TemplateUID,
 		})
@@ -332,10 +334,31 @@ func (s *NotifyService) MarkSending(ctx context.Context, req *merakv1.MarkSendin
 }
 
 func (s *NotifyService) ReportNotify(ctx context.Context, req *merakv1.ReportNotifyRequest) (*merakv1.ReportNotifyResponse, error) {
-	if err := s.notify.Report(ctx, bo.NotifyReport{TaskUID: req.GetTaskUid(), OK: req.GetOk(), Detail: req.GetDetail()}); err != nil {
+	if err := s.notify.Report(ctx, bo.NotifyReport{
+		TaskUID: req.GetTaskUid(), OK: req.GetOk(), Detail: req.GetDetail(),
+		Subject: req.GetSubject(), Content: req.GetContent(),
+	}); err != nil {
 		return nil, err
 	}
 	return &merakv1.ReportNotifyResponse{}, nil
+}
+
+func (s *NotifyService) ReportWorkerStatus(ctx context.Context, req *merakv1.ReportWorkerStatusRequest) (*merakv1.ReportWorkerStatusResponse, error) {
+	var startedAt *time.Time
+	if req.GetBusy() {
+		parsed, err := parseSlot(req.GetTaskStartedAt())
+		if err != nil {
+			return nil, err
+		}
+		startedAt = &parsed
+	}
+	if err := s.workers.Report(ctx, "MERAK", bo.WorkerStatus{
+		InstanceUID: req.GetInstanceUid(), Hostname: req.GetHostname(), Busy: req.GetBusy(),
+		TaskUID: req.GetTaskUid(), TaskName: req.GetTaskName(), TaskStartedAt: startedAt,
+	}); err != nil {
+		return nil, err
+	}
+	return &merakv1.ReportWorkerStatusResponse{}, nil
 }
 
 func channelInput(uid, name, kind, app, endpoint, username, password, secret, from, remark string) bo.NotificationChannel {
@@ -396,7 +419,8 @@ func notifyGroupItems(items []bo.NotificationGroup) []*v1.NotificationGroupItem 
 func messageLogItem(item bo.MessageLog) *v1.MessageLogItem {
 	return &v1.MessageLogItem{
 		Uid: item.UID, TaskUid: item.TaskUID, Status: item.Status, ChannelUid: item.ChannelUID,
-		TemplateUid: item.TemplateUID, Receivers: item.Receivers, Detail: item.Detail,
+		TemplateUid: item.TemplateUID, Sender: item.Sender, Receivers: item.Receivers,
+		Subject: item.Subject, Content: item.Content, Detail: item.Detail,
 		CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339),
 	}
 }
@@ -413,7 +437,8 @@ func taskItem(item bo.NotificationTask) *v1.NotificationTaskItem {
 	return &v1.NotificationTaskItem{
 		Uid: item.UID, EventUid: item.EventUID, Phase: item.Phase, Status: item.Status,
 		RuleUid: item.RuleUID, SubscriptionUid: item.SubscriptionUID, GroupUid: item.GroupUID,
-		ChannelUid: item.ChannelUID, TemplateUid: item.TemplateUID, Receivers: item.Receivers, Subject: item.Subject,
+		ChannelUid: item.ChannelUID, TemplateUid: item.TemplateUID, Sender: item.Sender,
+		Receivers: item.Receivers, Subject: item.Subject, Content: item.Content,
 		RetriesLeft: int32(item.RetriesLeft), LastError: item.LastError,
 	}
 }

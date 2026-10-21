@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/Alioth/api/alioth/v1;v1";
+
+// 后台工作进程状态查询，仅系统管理员可以查看。
+service WorkerService {
+  // 查询最近活动的 Megrez 与 Merak 实例及其当前任务。
+  rpc ListWorkerInstances(ListWorkerInstancesRequest) returns (ListWorkerInstancesResponse) {
+    option (google.api.http) = {get: "/v1/worker-instances"};
+  }
+}
+
+// 查询不需要参数。
+message ListWorkerInstancesRequest {}
+
+// 后台工作实例。
+message WorkerInstanceItem {
+  // 服务名称，MEGREZ 或 MERAK。
+  string service = 1;
+  // 进程实例唯一标识。
+  string instance_uid = 2;
+  // 运行主机或容器名称。
+  string hostname = 3;
+  // 是否正在执行任务。
+  bool busy = 4;
+  // 当前任务标识；空值表示空闲。
+  string task_uid = 5;
+  // 当前任务简要说明。
+  string task_name = 6;
+  // 当前任务开始时间，RFC3339。
+  string task_started_at = 7;
+  // 最近一次心跳，RFC3339。
+  string last_seen_at = 8;
+  // 是否在 15 秒内上报心跳。
+  bool online = 9;
+}
+
+// 实例清单与聚合数量。
+message ListWorkerInstancesResponse {
+  // 最近一分钟出现过心跳的实例。
+  repeated WorkerInstanceItem items = 1;
+  // 最近 15 秒内在线实例数。
+  int32 online_count = 2;
+  // 最近 15 秒内正在执行任务的实例数。
+  int32 busy_count = 3;
+  // 最近 15 秒内空闲实例数。
+  int32 idle_count = 4;
+  // 最近一次数据聚合时间，RFC3339。
+  string observed_at = 5;
+}

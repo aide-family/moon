@@ -4,7 +4,10 @@ export interface MessageLogItem {
   status: string
   channelUid: string
   templateUid: string
+  sender?: string
   receivers: string
+  subject?: string
+  content?: string
   detail: string
   createdAt: string
 }
@@ -31,8 +34,10 @@ export interface NotificationTaskItem {
   groupUid: string
   channelUid: string
   templateUid: string
+  sender?: string
   receivers: string
   subject: string
+  content?: string
   retriesLeft: number
   lastError: string
 }

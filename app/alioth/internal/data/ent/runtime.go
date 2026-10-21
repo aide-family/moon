@@ -41,6 +41,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useralertpage"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/useroauth"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/workerinstance"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -724,12 +725,24 @@ func init() {
 	messagelogDescTemplateUID := messagelogFields[5].Descriptor()
 	// messagelog.DefaultTemplateUID holds the default value on creation for the template_uid field.
 	messagelog.DefaultTemplateUID = messagelogDescTemplateUID.Default.(string)
+	// messagelogDescSender is the schema descriptor for sender field.
+	messagelogDescSender := messagelogFields[6].Descriptor()
+	// messagelog.DefaultSender holds the default value on creation for the sender field.
+	messagelog.DefaultSender = messagelogDescSender.Default.(string)
 	// messagelogDescReceivers is the schema descriptor for receivers field.
-	messagelogDescReceivers := messagelogFields[6].Descriptor()
+	messagelogDescReceivers := messagelogFields[7].Descriptor()
 	// messagelog.DefaultReceivers holds the default value on creation for the receivers field.
 	messagelog.DefaultReceivers = messagelogDescReceivers.Default.(string)
+	// messagelogDescSubject is the schema descriptor for subject field.
+	messagelogDescSubject := messagelogFields[8].Descriptor()
+	// messagelog.DefaultSubject holds the default value on creation for the subject field.
+	messagelog.DefaultSubject = messagelogDescSubject.Default.(string)
+	// messagelogDescContent is the schema descriptor for content field.
+	messagelogDescContent := messagelogFields[9].Descriptor()
+	// messagelog.DefaultContent holds the default value on creation for the content field.
+	messagelog.DefaultContent = messagelogDescContent.Default.(string)
 	// messagelogDescDetail is the schema descriptor for detail field.
-	messagelogDescDetail := messagelogFields[7].Descriptor()
+	messagelogDescDetail := messagelogFields[10].Descriptor()
 	// messagelog.DefaultDetail holds the default value on creation for the detail field.
 	messagelog.DefaultDetail = messagelogDescDetail.Default.(string)
 	namespaceMixin := schema.Namespace{}.Mixin()
@@ -1037,28 +1050,36 @@ func init() {
 	notificationtaskDescTemplateUID := notificationtaskFields[9].Descriptor()
 	// notificationtask.DefaultTemplateUID holds the default value on creation for the template_uid field.
 	notificationtask.DefaultTemplateUID = notificationtaskDescTemplateUID.Default.(string)
+	// notificationtaskDescSender is the schema descriptor for sender field.
+	notificationtaskDescSender := notificationtaskFields[10].Descriptor()
+	// notificationtask.DefaultSender holds the default value on creation for the sender field.
+	notificationtask.DefaultSender = notificationtaskDescSender.Default.(string)
 	// notificationtaskDescReceivers is the schema descriptor for receivers field.
-	notificationtaskDescReceivers := notificationtaskFields[10].Descriptor()
+	notificationtaskDescReceivers := notificationtaskFields[11].Descriptor()
 	// notificationtask.DefaultReceivers holds the default value on creation for the receivers field.
 	notificationtask.DefaultReceivers = notificationtaskDescReceivers.Default.(string)
 	// notificationtaskDescSubject is the schema descriptor for subject field.
-	notificationtaskDescSubject := notificationtaskFields[11].Descriptor()
+	notificationtaskDescSubject := notificationtaskFields[12].Descriptor()
 	// notificationtask.DefaultSubject holds the default value on creation for the subject field.
 	notificationtask.DefaultSubject = notificationtaskDescSubject.Default.(string)
 	// notificationtaskDescBody is the schema descriptor for body field.
-	notificationtaskDescBody := notificationtaskFields[12].Descriptor()
+	notificationtaskDescBody := notificationtaskFields[13].Descriptor()
 	// notificationtask.DefaultBody holds the default value on creation for the body field.
 	notificationtask.DefaultBody = notificationtaskDescBody.Default.(string)
+	// notificationtaskDescContent is the schema descriptor for content field.
+	notificationtaskDescContent := notificationtaskFields[14].Descriptor()
+	// notificationtask.DefaultContent holds the default value on creation for the content field.
+	notificationtask.DefaultContent = notificationtaskDescContent.Default.(string)
 	// notificationtaskDescParams is the schema descriptor for params field.
-	notificationtaskDescParams := notificationtaskFields[13].Descriptor()
+	notificationtaskDescParams := notificationtaskFields[15].Descriptor()
 	// notificationtask.DefaultParams holds the default value on creation for the params field.
 	notificationtask.DefaultParams = notificationtaskDescParams.Default.(string)
 	// notificationtaskDescRetriesLeft is the schema descriptor for retries_left field.
-	notificationtaskDescRetriesLeft := notificationtaskFields[14].Descriptor()
+	notificationtaskDescRetriesLeft := notificationtaskFields[16].Descriptor()
 	// notificationtask.DefaultRetriesLeft holds the default value on creation for the retries_left field.
 	notificationtask.DefaultRetriesLeft = notificationtaskDescRetriesLeft.Default.(int)
 	// notificationtaskDescLastError is the schema descriptor for last_error field.
-	notificationtaskDescLastError := notificationtaskFields[16].Descriptor()
+	notificationtaskDescLastError := notificationtaskFields[18].Descriptor()
 	// notificationtask.DefaultLastError holds the default value on creation for the last_error field.
 	notificationtask.DefaultLastError = notificationtaskDescLastError.Default.(string)
 	notificationtemplateMixin := schema.NotificationTemplate{}.Mixin()
@@ -1494,4 +1515,32 @@ func init() {
 	useroauthDescEmail := useroauthFields[4].Descriptor()
 	// useroauth.DefaultEmail holds the default value on creation for the email field.
 	useroauth.DefaultEmail = useroauthDescEmail.Default.(string)
+	workerinstanceFields := schema.WorkerInstance{}.Fields()
+	_ = workerinstanceFields
+	// workerinstanceDescInstanceUID is the schema descriptor for instance_uid field.
+	workerinstanceDescInstanceUID := workerinstanceFields[1].Descriptor()
+	// workerinstance.InstanceUIDValidator is a validator for the "instance_uid" field. It is called by the builders before save.
+	workerinstance.InstanceUIDValidator = workerinstanceDescInstanceUID.Validators[0].(func(string) error)
+	// workerinstanceDescHostname is the schema descriptor for hostname field.
+	workerinstanceDescHostname := workerinstanceFields[2].Descriptor()
+	// workerinstance.DefaultHostname holds the default value on creation for the hostname field.
+	workerinstance.DefaultHostname = workerinstanceDescHostname.Default.(string)
+	// workerinstanceDescBusy is the schema descriptor for busy field.
+	workerinstanceDescBusy := workerinstanceFields[3].Descriptor()
+	// workerinstance.DefaultBusy holds the default value on creation for the busy field.
+	workerinstance.DefaultBusy = workerinstanceDescBusy.Default.(bool)
+	// workerinstanceDescTaskUID is the schema descriptor for task_uid field.
+	workerinstanceDescTaskUID := workerinstanceFields[4].Descriptor()
+	// workerinstance.DefaultTaskUID holds the default value on creation for the task_uid field.
+	workerinstance.DefaultTaskUID = workerinstanceDescTaskUID.Default.(string)
+	// workerinstanceDescTaskName is the schema descriptor for task_name field.
+	workerinstanceDescTaskName := workerinstanceFields[5].Descriptor()
+	// workerinstance.DefaultTaskName holds the default value on creation for the task_name field.
+	workerinstance.DefaultTaskName = workerinstanceDescTaskName.Default.(string)
+	// workerinstanceDescLastSeenAt is the schema descriptor for last_seen_at field.
+	workerinstanceDescLastSeenAt := workerinstanceFields[7].Descriptor()
+	// workerinstance.DefaultLastSeenAt holds the default value on creation for the last_seen_at field.
+	workerinstance.DefaultLastSeenAt = workerinstanceDescLastSeenAt.Default.(func() time.Time)
+	// workerinstance.UpdateDefaultLastSeenAt holds the default value on update for the last_seen_at field.
+	workerinstance.UpdateDefaultLastSeenAt = workerinstanceDescLastSeenAt.UpdateDefault.(func() time.Time)
 }
