@@ -231,12 +231,19 @@ export function DatasourcePage() {
 
   function validateDatasourceStep(step: number): FieldErrors {
     if (step === 0) {
-      return collectFieldErrors([
+      const errors = collectFieldErrors([
         ["name", requireTrimmed(form.name, t("form.required"))],
         ["type", requireTrimmed(form.type, t("form.required"))],
         ["driver", requireTrimmed(form.driver, t("form.required"))],
         ["endpoint", requireTrimmed(form.endpoint, t("form.required"))],
       ])
+      // 后端只接受 http(s) 根地址；`htp://` 这类拼写错误要在保存时拦住，
+      // 否则要等到查询时才由数据层报一个没有上下文的 invalid request。
+      const endpoint = form.endpoint.trim()
+      if (!errors.endpoint && endpoint && !/^https?:\/\/\S+/i.test(endpoint)) {
+        errors.endpoint = t("form.invalidUrl")
+      }
+      return errors
     }
     return {}
   }

@@ -19,7 +19,7 @@ const apiVersionSuffix = "/api/v1"
 func Resolve(endpoint, apiPath string) (*url.URL, error) {
 	base, err := url.Parse(strings.TrimSpace(endpoint))
 	if err != nil || base.Host == "" || (base.Scheme != "http" && base.Scheme != "https") {
-		return nil, merr.Invalid("invalid request")
+		return nil, merr.Invalid("invalid datasource endpoint")
 	}
 	if strings.Contains(base.Path, "..") {
 		return nil, merr.Invalid("invalid request")

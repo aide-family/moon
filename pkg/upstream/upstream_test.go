@@ -3,6 +3,8 @@ package upstream
 import (
 	"testing"
 
+	kerrors "github.com/go-kratos/kratos/v3/errors"
+
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -54,6 +56,13 @@ func TestResolveKeepsEndpointPathPrefix(t *testing.T) {
 				t.Fatalf("Resolve() = %q, want %q", got.String(), tc.want)
 			}
 		})
+	}
+}
+
+func TestResolveNamesInvalidDatasourceEndpoint(t *testing.T) {
+	_, err := Resolve("htp://es.moon.com", "/_search")
+	if !merr.IsInvalid(err) || kerrors.FromError(err).Message != "invalid datasource endpoint" {
+		t.Fatalf("Resolve() error = %v", err)
 	}
 }
 

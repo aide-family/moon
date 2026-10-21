@@ -2,6 +2,7 @@ package datasource
 
 import (
 	"context"
+	"net/url"
 	"strings"
 
 	"github.com/google/wire"
@@ -304,7 +305,13 @@ func (uc *Usecase) requireDatasourceLevel(ctx context.Context, namespaceUID, lev
 }
 
 func validateDatasource(in bo.Datasource) error {
-	if !DriverMatches(in.Type, in.Driver) || strings.TrimSpace(in.Endpoint) == "" {
+	if !DriverMatches(in.Type, in.Driver) {
+		return merr.Invalid("invalid request")
+	}
+	// 地址必须能被数据层拼成上游请求。`htp://` 这类拼写错误如果放进来，
+	// 要等到用户点查询才在数据层报 invalid request，保存时就该拒绝。
+	endpoint, err := url.Parse(strings.TrimSpace(in.Endpoint))
+	if err != nil || endpoint.Host == "" || (endpoint.Scheme != "http" && endpoint.Scheme != "https") {
 		return merr.Invalid("invalid request")
 	}
 	return nil

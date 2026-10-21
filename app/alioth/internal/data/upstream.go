@@ -18,6 +18,25 @@ var upstreamClient = &http.Client{Timeout: 10 * time.Second}
 // maxUpstreamBody 限制一次上游响应的读取量。日志查询可能返回上千行，上限比指标查询宽。
 const maxUpstreamBody = 4 << 20
 
+// maxUpstreamReason 限制错误响应摘要的长度。上游可能返回整页 HTML 或超长 JSON，
+// 日志和调用方提示只需要第一段可读原因。
+const maxUpstreamReason = 300
+
+// upstreamReason 把上游错误响应压成一行摘要。
+// VictoriaMetrics、Loki 等返回的 4xx 原因通常就是纯文本或 JSON 的 error 字段，
+// 丢掉它只会留下无法定位的 “status 400”。摘要只用于日志和调用方提示，长度受限。
+func upstreamReason(payload []byte) string {
+	reason := strings.Join(strings.Fields(string(payload)), " ")
+	if reason == "" {
+		return ""
+	}
+	runes := []rune(reason)
+	if len(runes) > maxUpstreamReason {
+		return string(runes[:maxUpstreamReason]) + "…"
+	}
+	return reason
+}
+
 func (r *repoBase) callUpstream(ctx context.Context, item bo.Datasource, method, path, body string) (string, error) {
 	target, err := upstream.Resolve(item.Endpoint, path)
 	if err != nil {
@@ -53,8 +72,12 @@ func (r *repoBase) callUpstream(ctx context.Context, item bo.Datasource, method,
 		return "", merr.Server("upstream query failed")
 	}
 	if resp.StatusCode >= 300 {
-		r.log.Error(fmt.Sprintf("datasource %s status %d", item.UID, resp.StatusCode))
-		return "", merr.Client("upstream query failed")
+		reason := upstreamReason(payload)
+		if reason == "" {
+			reason = http.StatusText(resp.StatusCode)
+		}
+		r.log.Error(fmt.Sprintf("datasource %s %s %s status %d: %s", item.UID, method, target.Path, resp.StatusCode, reason))
+		return "", merr.Client("upstream query failed: " + reason)
 	}
 	return string(payload), nil
 }

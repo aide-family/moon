@@ -29,6 +29,37 @@ func TestDriverMatchesLoki(t *testing.T) {
 	}
 }
 
+func TestValidateDatasourceEndpoint(t *testing.T) {
+	valid := []string{
+		"http://127.0.0.1:9090",
+		"https://metrics.example.com/prometheus",
+		" http://victoriametrics.moon.com/select/0/prometheus ",
+	}
+	for _, endpoint := range valid {
+		if err := validateDatasource(bo.Datasource{Type: "METRICS", Driver: "METRICS_PROMETHEUS", Endpoint: endpoint}); err != nil {
+			t.Fatalf("validateDatasource(%q) error = %v", endpoint, err)
+		}
+	}
+
+	invalid := []string{
+		"",
+		"htp://es.moon.com",
+		"es.moon.com",
+		"ftp://es.moon.com",
+		"http://",
+		"http://exa mple.com",
+	}
+	for _, endpoint := range invalid {
+		if err := validateDatasource(bo.Datasource{Type: "LOGS", Driver: "LOGS_ELASTICSEARCH", Endpoint: endpoint}); !merr.IsInvalid(err) {
+			t.Fatalf("validateDatasource(%q) error = %v", endpoint, err)
+		}
+	}
+
+	if err := validateDatasource(bo.Datasource{Type: "METRICS", Driver: "LOGS_LOKI", Endpoint: "http://loki"}); !merr.IsInvalid(err) {
+		t.Fatalf("mismatched driver error = %v", err)
+	}
+}
+
 func TestNormalizeDatasourceKeepsElasticsearchSettings(t *testing.T) {
 	item := bo.Datasource{Driver: "LOGS_ELASTICSEARCH", IndexPattern: " logs-* ", TimeField: " event.time "}
 	normalizeDatasource(&item)

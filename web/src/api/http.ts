@@ -14,6 +14,7 @@ const messageKeys: Record<string, string> = {
   "invitation is not pending": "error.invitationHandled",
   "invitation belongs to another user": "error.invitationNotYours",
   "invitation email does not match": "error.invitationNotYours",
+  "invalid datasource endpoint": "form.invalidUrl",
 }
 
 const fieldByMessage: Record<string, string> = {
