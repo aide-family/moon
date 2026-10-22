@@ -35,12 +35,28 @@ export const FIELD_COLUMNS: Array<{ key: string; labelKey: string }> = [
   { key: "rule", labelKey: "alertEvent.rule" },
 ]
 
-const fieldLabels = new Map(FIELD_COLUMNS.map((item) => [item.key, item.labelKey]))
+const fieldLabels = new Map(
+  FIELD_COLUMNS.map((item) => [item.key, item.labelKey])
+)
 
-// fieldLabel 返回内置字段在表格里的默认列名；标签列没有别名时直接用标签键。
+// fieldLabel 返回内置字段在表格里的默认列名，未知字段回退到键。
 export function fieldLabel(t: (key: string) => string, key: string): string {
   const textKey = fieldLabels.get(key)
   return textKey ? t(textKey) : key
+}
+
+// columnTitle 返回表格列头：内置字段优先用别名，没有别名时走 i18n 名称；
+// 标签列的别名通常是中文，所以英文界面统一显示标签键，其他语言显示别名。
+export function columnTitle(
+  t: (key: string) => string,
+  lang: string,
+  column: AlertColumnItem
+): string {
+  const alias = column.label.trim()
+  if (column.type === "LABEL") {
+    return lang.startsWith("en") ? column.key : alias || column.key
+  }
+  return alias || fieldLabel(t, column.key)
 }
 
 export function isFieldMetricCount(key: string): boolean {

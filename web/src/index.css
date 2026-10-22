@@ -179,6 +179,19 @@
   .data-table-control-bar {
     @apply flex h-12 shrink-0 items-center border-b border-border bg-background px-3;
   }
+
+  /* 横向滚动的固定列：内侧分隔线 + 柔和投影，让滚动内容看起来是从固定列底下穿过去的。 */
+  .table-pin-left {
+    box-shadow:
+      inset -1px 0 0 0 var(--border),
+      10px 0 14px -12px color-mix(in oklab, var(--foreground) 30%, transparent);
+  }
+
+  .table-pin-right {
+    box-shadow:
+      inset 1px 0 0 0 var(--border),
+      -10px 0 14px -12px color-mix(in oklab, var(--foreground) 30%, transparent);
+  }
 }
 
 * {

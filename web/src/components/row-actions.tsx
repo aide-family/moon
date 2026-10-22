@@ -21,6 +21,8 @@ interface RowActionsProps {
   actions: RowAction[]
   // 为真时所有操作都收进“更多”菜单，适合把只读操作和写操作放在一起的列表。
   forceMenu?: boolean
+  // 为真时按钮不换行，用于列宽固定、需要保持一行两个按钮的表格。
+  nowrap?: boolean
 }
 
 export function RowActions({
@@ -29,6 +31,7 @@ export function RowActions({
   onDetail,
   actions,
   forceMenu = false,
+  nowrap = false,
 }: RowActionsProps) {
   const inline = [
     {
@@ -42,10 +45,13 @@ export function RowActions({
   // 危险操作统一排在普通操作之后，并用分割线隔开，避免和编辑、详情混在一起。
   const normal = actions.filter((action) => !action.destructive)
   const dangerous = actions.filter((action) => action.destructive)
+  const rowClass = nowrap
+    ? "flex flex-nowrap justify-end gap-2"
+    : "flex flex-wrap justify-end gap-2"
 
   if (inline.length > 2 || (forceMenu && actions.length > 0)) {
     return (
-      <div className="flex flex-wrap justify-end gap-2">
+      <div className={rowClass}>
         <Button variant="outline" size="sm" onClick={onDetail}>
           {detailLabel}
         </Button>
@@ -80,7 +86,7 @@ export function RowActions({
   }
 
   return (
-    <div className="flex flex-wrap justify-end gap-2">
+    <div className={rowClass}>
       {[
         ...inline.filter((action) => !action.destructive),
         ...inline.filter((action) => action.destructive),

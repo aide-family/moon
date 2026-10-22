@@ -797,6 +797,7 @@ const zh = {
       "{{level}}：{{sample}}{{condition}} {{threshold}} · {{forSeconds}} 秒",
     datasource: "数据源",
     eventChart: "事件图表",
+    actions: "操作",
     chartGraph: "图表",
     chartRaw: "原始数据",
     chartRange: "时间范围",
@@ -829,7 +830,7 @@ const zh = {
     columns: "自定义列",
     columnsTitle: "自定义列",
     columnsHint:
-      "选择内置字段或标签作为表格列。标签列不填别名时显示标签键，表格展示该标签的值。",
+      "选择内置字段或标签作为表格列。标签列在中文界面显示别名（不填则显示标签键），英文界面固定显示标签键，表格展示该标签的值。",
     columnsEmpty: "还没有自定义列。保存空列表会使用默认列。",
     addFieldColumn: "添加字段列",
     addLabelColumn: "添加标签列",
@@ -1762,6 +1763,7 @@ const en = {
       "{{level}}: {{sample}} {{condition}} {{threshold}} · {{forSeconds}}s",
     datasource: "Datasource",
     eventChart: "Event chart",
+    actions: "Actions",
     chartGraph: "Chart",
     chartRaw: "Raw data",
     chartRange: "Time range",
@@ -1797,7 +1799,7 @@ const en = {
     columns: "Custom columns",
     columnsTitle: "Custom columns",
     columnsHint:
-      "Pick built-in fields or labels as table columns. A label column without an alias shows the label key and renders that label's value.",
+      "Pick built-in fields or labels as table columns. A label column shows its alias in Chinese and always shows the label key in English; the cell renders that label's value.",
     columnsEmpty: "No custom columns yet. Saving an empty list falls back to defaults.",
     addFieldColumn: "Add field column",
     addLabelColumn: "Add label column",

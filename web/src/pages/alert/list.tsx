@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import type { TFunction } from "i18next"
 import type { ReactNode } from "react"
@@ -50,9 +50,9 @@ import { useListQuery } from "@/lib/list-query"
 import { EventChartDialog } from "@/pages/alert/event-chart"
 import { AlertEventDetail } from "@/pages/alert/event-detail"
 import {
+  columnTitle,
   DEFAULT_HISTORY_COLUMNS,
   DEFAULT_REALTIME_COLUMNS,
-  fieldLabel,
   parseEventLabels,
 } from "@/pages/alert/columns"
 import { formatDuration, formatTime } from "@/pages/alert/format"
@@ -87,7 +87,7 @@ export function AlertEventList({
   columns,
   columnsAction,
 }: AlertEventListProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const session = useSession()
   const query = useListQuery()
   const [params, setParams] = useSearchParams()
@@ -154,6 +154,9 @@ export function AlertEventList({
   const [suppressError, setSuppressError] = useState("")
   const [levels, setLevels] = useState<AlertDictionaryItem[]>([])
   const [now, setNow] = useState(() => Date.now())
+  // 勾选列的实际宽度，用来定位紧随其后的固定列。
+  const checkHeadRef = useRef<HTMLTableCellElement | null>(null)
+  const [checkColumnWidth, setCheckColumnWidth] = useState(0)
   const canIntervene = view === "REALTIME" && session.can("alert:intervene")
   const visibleColumns =
     columns && columns.length > 0
@@ -161,6 +164,20 @@ export function AlertEventList({
       : view === "HISTORY"
         ? DEFAULT_HISTORY_COLUMNS
         : DEFAULT_REALTIME_COLUMNS
+  // 横向滚动时钉住左边两列：勾选列（有操作权限时）和排在第一个的展示列。
+  // 用户怎么调整列，钉住的都是当前排第一的那一列，而不是写死某个字段。
+  // 勾选列的宽度是浏览器按内容算出来的（表格横向溢出时并不等于 2.5rem），
+  // 所以第二列的 left 用实测宽度做偏移，否则第二列会整体右移，压住第三列的左侧内容。
+  const pin = "sticky bg-background table-pin-left"
+  const pinnedHead = `${pin} z-20`
+  const pinnedCell = `${pin} group-hover:bg-muted`
+  const pinnedCheckHead = `${pin} left-0 z-20`
+  const pinnedCheckCell = `${pin} left-0 group-hover:bg-muted`
+  const pinnedLeft = canIntervene ? checkColumnWidth : 0
+  // 操作列固定在右侧：不换行，宽度跟着两个按钮走（w-px 让它缩到内容宽度）。
+  const actionsHead = "sticky right-0 z-20 w-px bg-background table-pin-right"
+  const actionsCell =
+    "sticky right-0 w-px bg-background table-pin-right group-hover:bg-muted"
   const title =
     view === "HISTORY" ? t("alertEvent.historyTitle") : t("alertEvent.title")
 
@@ -190,6 +207,22 @@ export function AlertEventList({
       active = false
     }
   }, [view, session.namespaceUid])
+
+  useLayoutEffect(() => {
+    const node = checkHeadRef.current
+    if (!node) {
+      setCheckColumnWidth(0)
+      return
+    }
+    const sync = () => setCheckColumnWidth(node.getBoundingClientRect().width)
+    sync()
+    if (typeof ResizeObserver === "undefined") {
+      return
+    }
+    const observer = new ResizeObserver(sync)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [canIntervene, loading, failed, items.length])
 
   useEffect(() => {
     if (view !== "REALTIME") {
@@ -429,7 +462,10 @@ export function AlertEventList({
             <TableHeader>
               <TableRow>
                 {canIntervene ? (
-                  <TableHead className="w-10">
+                  <TableHead
+                    ref={checkHeadRef}
+                    className={`w-10 ${pinnedCheckHead}`}
+                  >
                     <input
                       type="checkbox"
                       aria-label={t("alertEvent.batchIntervene")}
@@ -442,23 +478,25 @@ export function AlertEventList({
                     />
                   </TableHead>
                 ) : null}
-                {visibleColumns.map((column) => (
-                  <TableHead key={`${column.type}:${column.key}`}>
-                    {column.label.trim()
-                      ? column.label
-                      : column.type === "FIELD"
-                        ? fieldLabel(t, column.key)
-                        : column.key}
+                {visibleColumns.map((column, index) => (
+                  <TableHead
+                    key={`${column.type}:${column.key}`}
+                    className={index === 0 ? pinnedHead : undefined}
+                    style={index === 0 ? { left: pinnedLeft } : undefined}
+                  >
+                    {columnTitle(t, i18n.language, column)}
                   </TableHead>
                 ))}
-                <TableHead />
+                <TableHead className={actionsHead}>
+                  {t("alertEvent.actions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {items.map((item) => (
-                <TableRow key={item.uid}>
+                <TableRow key={item.uid} className="group">
                   {canIntervene ? (
-                    <TableCell>
+                    <TableCell className={pinnedCheckCell}>
                       <input
                         type="checkbox"
                         aria-label={item.summary || item.uid}
@@ -467,18 +505,23 @@ export function AlertEventList({
                       />
                     </TableCell>
                   ) : null}
-                  {visibleColumns.map((column) => (
-                    <TableCell key={`${column.type}:${column.key}`}>
+                  {visibleColumns.map((column, index) => (
+                    <TableCell
+                      key={`${column.type}:${column.key}`}
+                      className={index === 0 ? pinnedCell : undefined}
+                      style={index === 0 ? { left: pinnedLeft } : undefined}
+                    >
                       {eventCell(item, column, levels, now, t)}
                     </TableCell>
                   ))}
-                  <TableCell>
+                  <TableCell className={actionsCell}>
                     <RowActions
                       detailLabel={t("action.detail")}
                       moreLabel={t("action.more")}
                       onDetail={() => setDetail(item)}
                       actions={actions(item)}
                       forceMenu
+                      nowrap
                     />
                   </TableCell>
                 </TableRow>
@@ -581,7 +624,9 @@ function eventCell(
     case "starts_at":
       return formatTime(item.startsAt)
     case "duration":
-      return <span className="font-mono">{formatDuration(item.startsAt, now)}</span>
+      return (
+        <span className="font-mono">{formatDuration(item.startsAt, now)}</span>
+      )
     case "intervened":
       return item.intervenedBy ? (
         <div className="grid">
