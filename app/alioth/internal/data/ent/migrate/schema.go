@@ -551,44 +551,6 @@ var (
 			},
 		},
 	}
-	// K8sProxyAuditsColumns holds the columns for the "k8s_proxy_audits" table.
-	K8sProxyAuditsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "namespace_uid", Type: field.TypeString},
-		{Name: "agent_uid", Type: field.TypeString, Default: ""},
-		{Name: "operator_uid", Type: field.TypeString, Default: ""},
-		{Name: "method", Type: field.TypeString, Default: ""},
-		{Name: "resource", Type: field.TypeString, Default: ""},
-		{Name: "kube_namespace", Type: field.TypeString, Default: ""},
-		{Name: "result", Type: field.TypeString, Default: "PENDING"},
-		{Name: "detail", Type: field.TypeString, Default: ""},
-	}
-	// K8sProxyAuditsTable holds the schema information for the "k8s_proxy_audits" table.
-	K8sProxyAuditsTable = &schema.Table{
-		Name:       "k8s_proxy_audits",
-		Columns:    K8sProxyAuditsColumns,
-		PrimaryKey: []*schema.Column{K8sProxyAuditsColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "k8sproxyaudit_uid",
-				Unique:  true,
-				Columns: []*schema.Column{K8sProxyAuditsColumns[3]},
-			},
-			{
-				Name:    "k8sproxyaudit_namespace_uid",
-				Unique:  false,
-				Columns: []*schema.Column{K8sProxyAuditsColumns[4]},
-			},
-			{
-				Name:    "k8sproxyaudit_agent_uid",
-				Unique:  false,
-				Columns: []*schema.Column{K8sProxyAuditsColumns[5]},
-			},
-		},
-	}
 	// MembersColumns holds the columns for the "members" table.
 	MembersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1186,43 +1148,6 @@ var (
 			},
 		},
 	}
-	// SftpAuditsColumns holds the columns for the "sftp_audits" table.
-	SftpAuditsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "namespace_uid", Type: field.TypeString},
-		{Name: "agent_uid", Type: field.TypeString, Default: ""},
-		{Name: "operator_uid", Type: field.TypeString, Default: ""},
-		{Name: "path", Type: field.TypeString, Default: ""},
-		{Name: "action", Type: field.TypeString, Default: ""},
-		{Name: "result", Type: field.TypeString, Default: "PENDING"},
-		{Name: "detail", Type: field.TypeString, Default: ""},
-	}
-	// SftpAuditsTable holds the schema information for the "sftp_audits" table.
-	SftpAuditsTable = &schema.Table{
-		Name:       "sftp_audits",
-		Columns:    SftpAuditsColumns,
-		PrimaryKey: []*schema.Column{SftpAuditsColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "sftpaudit_uid",
-				Unique:  true,
-				Columns: []*schema.Column{SftpAuditsColumns[3]},
-			},
-			{
-				Name:    "sftpaudit_namespace_uid",
-				Unique:  false,
-				Columns: []*schema.Column{SftpAuditsColumns[4]},
-			},
-			{
-				Name:    "sftpaudit_agent_uid",
-				Unique:  false,
-				Columns: []*schema.Column{SftpAuditsColumns[5]},
-			},
-		},
-	}
 	// SSHCommandsColumns holds the columns for the "ssh_commands" table.
 	SSHCommandsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1510,7 +1435,6 @@ var (
 		CaptchasTable,
 		DatasourcesTable,
 		EmailLoginCodesTable,
-		K8sProxyAuditsTable,
 		MembersTable,
 		MemberInvitesTable,
 		MemberRolesTable,
@@ -1526,7 +1450,6 @@ var (
 		PermissionsTable,
 		RolesTable,
 		RolePermissionsTable,
-		SftpAuditsTable,
 		SSHCommandsTable,
 		SSHCommandAuditsTable,
 		SystemMessagesTable,

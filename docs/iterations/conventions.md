@@ -85,7 +85,7 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 
 - `api/megrez/v1`：领取到期规则快照，回写评测结果，并上报实例心跳与当前规则
 - `api/merak/v1`：领取待发送任务，回写投递结果，并上报实例心跳与当前通知任务
-- `api/alioth/v1` 中的 Agent 双向流：注册、心跳、SSH、SFTP、Kubernetes 代理
+- `api/alioth/v1` 中的 Agent 双向流：注册、心跳、SSH 执行、Web Shell
 - 平台管理员通过 `GET /v1/worker-instances` 查看近期工作实例；心跳保存在 PostgreSQL，在线窗口为 15 秒，列表保留最近一分钟的实例
 
 错误分为四类：客户端错误、未认证、无权限、服务端错误。列表用 `page` 与 `pageSize`。下拉选择用 `limit` 与 `lastUid`。写接口用 `buf.validate`。
@@ -111,7 +111,7 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 | 类型 | 目录 | 授权载体 | 校验 |
 | --- | --- | --- | --- |
 | 系统权限 | `system:user:read`、`system:user:write`、`system:role:read`、`system:role:write`、`system:invite:read` | `User.system_role` | `access.RequireSystem`，不读 `X-Namespace` |
-| 租户权限 | `member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`agent`、`ssh`、`sftp`、`k8s` 的 `resource:action` | `Role` + `MemberRole` | `access.Allow` / `Require`，必须带 `X-Namespace` |
+| 租户权限 | `member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`agent`、`ssh` 的 `resource:action` | `Role` + `MemberRole` | `access.Allow` / `Require`，必须带 `X-Namespace` |
 
 平台角色固定三档：第一个注册用户是 `SUPER_ADMIN`；`SYSTEM_ADMIN` 由超级管理员授权，可查看和管理普通用户；`USER` 没有系统权限。超级管理员唯一性由数据库部分唯一索引保证。已有部署升级时，最早注册的用户补为超级管理员。`system:user:read` 及以上才能查看用户列表。
 
@@ -121,10 +121,10 @@ Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.ht
 | --- | --- |
 | `owner` | 该 Namespace 的全部权限，含删除 Namespace、移交 owner |
 | `admin` | 管理资源。不含删除 Namespace、移交 owner |
-| `member` | 查看配置；处理告警；使用已授权的 SSH、SFTP、Kubernetes 代理 |
+| `member` | 查看配置；处理告警；使用已授权的 SSH 与 Web Shell |
 | `viewer` | 只读 |
 
-权限名是 `resource:action`。租户资源为 `member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`agent`、`ssh`、`sftp`、`k8s`；`user` 不属于租户权限。动作至少有 `read` 与 `write`。告警另有 `intervene`。SFTP 分开 `sftp:read` 与 `sftp:write`。执行动作为 `ssh:exec` 与 `k8s:proxy`。系统权限不写入 `permissions` 表，租户角色授权页也不返回它们。
+权限名是 `resource:action`。租户资源为 `member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`agent`、`ssh`；`user` 不属于租户权限。动作至少有 `read` 与 `write`。告警另有 `intervene`。执行动作为 `ssh:exec`。系统权限不写入 `permissions` 表，租户角色授权页也不返回它们。
 
 租户邀请不直接创建成员：
 
@@ -160,7 +160,7 @@ PostgreSQL 用唯一约束挡住锁失效窗口内的重复写入，例如评测
 
 用户密码只存哈希。数据源凭据、SMTP 密码、Webhook 签名、SSH 凭据加密后入库。接口响应不回明文密钥，更新时用空值表示保持原值。
 
-SSH、SFTP、Kubernetes 代理写入审计。`member` 和 `viewer` 不能删除审计。
+SSH 命令与终端操作写入审计。`member` 和 `viewer` 不能删除审计。
 
 ## Web
 

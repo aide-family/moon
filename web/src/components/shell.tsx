@@ -201,18 +201,6 @@ const edgeLinks: {
     permission: "ssh:read",
     icon: Terminal,
   },
-  {
-    to: "/sftp",
-    label: "nav.sftp",
-    permission: "sftp:read",
-    icon: FileText,
-  },
-  {
-    to: "/k8s",
-    label: "nav.k8s",
-    permission: "k8s:read",
-    icon: Gauge,
-  },
 ]
 
 function NavGroup({

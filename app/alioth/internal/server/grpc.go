@@ -45,8 +45,6 @@ func NewGRPCServer(
 	notify *service.NotifyService,
 	agents *service.AgentService,
 	sshCommands *service.SSHCommandService,
-	sftpSvc *service.SFTPService,
-	k8sSvc *service.K8sProxyService,
 	uc *auth.Usecase,
 	logger *slog.Logger,
 ) (*kgrpc.Server, error) {
@@ -100,7 +98,5 @@ func NewGRPCServer(
 	merakv1.RegisterNotifyServiceServer(srv, notify)
 	v1.RegisterAgentServiceServer(srv, agents)
 	v1.RegisterSSHCommandServiceServer(srv, sshCommands)
-	v1.RegisterSFTPServiceServer(srv, sftpSvc)
-	v1.RegisterK8SProxyServiceServer(srv, k8sSvc)
 	return srv, nil
 }

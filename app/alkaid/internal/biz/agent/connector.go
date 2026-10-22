@@ -1,27 +1,20 @@
 package agent
 
 import (
-	"bytes"
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
 	"net"
-	"net/http"
-	"net/url"
 	"os"
 	osExec "os/exec"
-	"path"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/google/wire"
-	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/knownhosts"
 	"google.golang.org/grpc"
@@ -36,10 +29,6 @@ import (
 )
 
 const maxOutputBytes = 64 * 1024
-
-// maxSFTPBytes 是单次 SFTP 传输上限，与 grpc-go 默认 4 MiB 消息上限一致。
-// 超过时明确失败，不做截断，避免把半个文件当成成功结果返回。
-const maxSFTPBytes = 4 << 20
 
 var ProviderSet = wire.NewSet(NewConnector)
 
@@ -316,26 +305,6 @@ func (c *Connector) session(ctx context.Context, addr string) error {
 					_ = c.send(stream, &v1.AgentFrame{ExecResult: c.exec(req)})
 				}()
 			}
-			if req := frame.GetSftpRequest(); req != nil {
-				if busy() {
-					_ = c.send(stream, &v1.AgentFrame{SftpResult: &v1.AgentSFTPResult{RequestUid: req.GetRequestUid(), Error: "agent is busy"}})
-					continue
-				}
-				go func() {
-					defer func() { <-slots }()
-					_ = c.send(stream, &v1.AgentFrame{SftpResult: c.sftp(req)})
-				}()
-			}
-			if req := frame.GetK8SRequest(); req != nil {
-				if busy() {
-					_ = c.send(stream, &v1.AgentFrame{K8SResult: &v1.AgentK8SResult{RequestUid: req.GetRequestUid(), Error: "agent is busy"}})
-					continue
-				}
-				go func() {
-					defer func() { <-slots }()
-					_ = c.send(stream, &v1.AgentFrame{K8SResult: c.k8s(req)})
-				}()
-			}
 			c.handleShell(stream, frame)
 		}
 	}()
@@ -409,273 +378,6 @@ func expandHomeDir(workdir string) (string, error) {
 		return home, nil
 	}
 	return filepath.Join(home, workdir[2:]), nil
-}
-
-func (c *Connector) sftp(req *v1.AgentSFTPRequest) *v1.AgentSFTPResult {
-	out := &v1.AgentSFTPResult{RequestUid: req.GetRequestUid()}
-	client, err := sshDial(req.GetSshHost(), req.GetSshPort(), req.GetSshUser(), req.GetSshPassword(), req.GetSshPrivateKey())
-	if err != nil {
-		out.Error = err.Error()
-		return out
-	}
-	defer client.Close()
-	fs, err := sftp.NewClient(client)
-	if err != nil {
-		out.Error = err.Error()
-		return out
-	}
-	defer fs.Close()
-	target, err := resolveSFTPPath(fs, req.GetPath())
-	if err != nil {
-		out.Error = err.Error()
-		return out
-	}
-	switch strings.ToUpper(req.GetAction()) {
-	case "LIST":
-		infos, err := fs.ReadDir(target)
-		if err != nil {
-			out.Error = err.Error()
-			return out
-		}
-		for _, info := range infos {
-			name := info.Name()
-			out.Entries = append(out.Entries, &v1.AgentSFTPEntry{
-				Name: name, Path: strings.TrimSuffix(target, "/") + "/" + name,
-				IsDir: info.IsDir(), Size: info.Size(), Mode: info.Mode().String(), ModTime: info.ModTime().UTC().Format(time.RFC3339),
-			})
-		}
-		out.Ok = true
-	case "DOWNLOAD":
-		f, err := fs.Open(target)
-		if err != nil {
-			out.Error = err.Error()
-			return out
-		}
-		defer f.Close()
-		data, err := io.ReadAll(io.LimitReader(f, maxSFTPBytes+1))
-		if err != nil {
-			out.Error = err.Error()
-			return out
-		}
-		if len(data) > maxSFTPBytes {
-			out.Error = "file too large"
-			return out
-		}
-		out.Content = data
-		out.Ok = true
-	case "UPLOAD":
-		if len(req.GetContent()) > maxSFTPBytes {
-			out.Error = "file too large"
-			return out
-		}
-		f, err := fs.Create(target)
-		if err != nil {
-			out.Error = err.Error()
-			return out
-		}
-		if _, err := f.Write(req.GetContent()); err != nil {
-			_ = f.Close()
-			out.Error = err.Error()
-			return out
-		}
-		_ = f.Close()
-		out.Ok = true
-	case "MKDIR":
-		if err := fs.MkdirAll(target); err != nil {
-			out.Error = err.Error()
-			return out
-		}
-		out.Ok = true
-	case "DELETE":
-		if err := fs.RemoveAll(target); err != nil {
-			out.Error = err.Error()
-			return out
-		}
-		out.Ok = true
-	default:
-		out.Error = "unknown sftp action"
-	}
-	return out
-}
-
-const (
-	maxK8sRequestBytes  = 4 << 20
-	maxK8sResponseBytes = 4 << 20
-)
-
-var k8sMethods = map[string]struct{}{
-	http.MethodGet:    {},
-	http.MethodPost:   {},
-	http.MethodPut:    {},
-	http.MethodPatch:  {},
-	http.MethodDelete: {},
-	http.MethodHead:   {},
-}
-
-func (c *Connector) k8s(req *v1.AgentK8SRequest) *v1.AgentK8SResult {
-	out := &v1.AgentK8SResult{RequestUid: req.GetRequestUid()}
-	method := strings.ToUpper(strings.TrimSpace(req.GetMethod()))
-	if _, ok := k8sMethods[method]; !ok {
-		out.Error = "unsupported method"
-		return out
-	}
-	conn, err := k8sConnectionFromEnv()
-	if err != nil {
-		out.Error = err.Error()
-		return out
-	}
-	if conn.base.Scheme != "https" && conn.base.Scheme != "http" {
-		out.Error = "invalid kubernetes api address"
-		return out
-	}
-	target, err := k8sTarget(conn.base, req.GetPath(), req.GetQuery())
-	if err != nil {
-		out.Error = err.Error()
-		return out
-	}
-	if len(req.GetBody()) > maxK8sRequestBytes {
-		out.Error = "request body too large"
-		return out
-	}
-	httpReq, err := http.NewRequest(method, target.String(), bytes.NewReader(req.GetBody()))
-	if err != nil {
-		out.Error = err.Error()
-		return out
-	}
-	httpReq.Header.Set("Accept", "application/json")
-	httpReq.Header.Set("User-Agent", "alkaid")
-	if conn.token != "" {
-		httpReq.Header.Set("Authorization", "Bearer "+conn.token)
-	} else if conn.username != "" {
-		httpReq.SetBasicAuth(conn.username, conn.password)
-	}
-	if hj := req.GetHeadersJson(); hj != "" {
-		var headers map[string]string
-		if json.Unmarshal([]byte(hj), &headers) == nil {
-			for k, v := range headers {
-				if k8sAllowedHeader(k) {
-					httpReq.Header.Set(k, v)
-				}
-			}
-		}
-	}
-	resp, err := conn.client.Do(httpReq)
-	if err != nil {
-		out.Error = err.Error()
-		return out
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(io.LimitReader(resp.Body, maxK8sResponseBytes+1))
-	if err != nil {
-		out.Error = err.Error()
-		return out
-	}
-	if len(body) > maxK8sResponseBytes {
-		out.Error = "response body too large"
-		return out
-	}
-	out.StatusCode = int32(resp.StatusCode)
-	out.Body = body
-	hdr, _ := json.Marshal(resp.Header)
-	out.HeadersJson = string(hdr)
-	return out
-}
-
-// k8sAPIBase 返回 API Server 地址，默认使用集群内 ServiceAccount 入口。
-func k8sAPIBase() string {
-	base := strings.TrimRight(strings.TrimSpace(os.Getenv("ALKAID_K8S_API")), "/")
-	if base == "" {
-		return "https://kubernetes.default.svc"
-	}
-	return base
-}
-
-// k8sTarget 只接受以单个 / 开头的相对路径，避免调用方把请求改到别的主机。
-func k8sTarget(base *url.URL, rawPath, rawQuery string) (*url.URL, error) {
-	rawPath = strings.TrimSpace(rawPath)
-	if !strings.HasPrefix(rawPath, "/") || strings.HasPrefix(rawPath, "//") || strings.Contains(rawPath, "\\") {
-		return nil, merr.Invalid("invalid path")
-	}
-	ref, err := url.Parse(rawPath)
-	if err != nil || ref.IsAbs() || ref.Host != "" || ref.User != nil {
-		return nil, merr.Invalid("invalid path")
-	}
-	for _, segment := range strings.Split(ref.Path, "/") {
-		if segment == ".." {
-			return nil, merr.Invalid("invalid path")
-		}
-	}
-	target := *base
-	target.Path = strings.TrimRight(base.Path, "/") + ref.Path
-	target.RawPath = ""
-	target.RawQuery = rawQuery
-	return &target, nil
-}
-
-// k8sAllowedHeader 只放行内容协商头，Authorization、Host、Impersonate-* 一律由 Agent 自己决定。
-func k8sAllowedHeader(name string) bool {
-	switch strings.ToLower(strings.TrimSpace(name)) {
-	case "accept", "content-type", "accept-encoding":
-		return true
-	default:
-		return false
-	}
-}
-
-// k8sTLSConfig 默认校验证书；只有显式设置 ALKAID_K8S_INSECURE=true 才跳过。
-func k8sTLSConfig(serverName string) *tls.Config {
-	cfg := &tls.Config{MinVersion: tls.VersionTLS12, ServerName: serverName}
-	if strings.EqualFold(os.Getenv("ALKAID_K8S_INSECURE"), "true") {
-		cfg.InsecureSkipVerify = true
-		return cfg
-	}
-	for _, path := range []string{
-		os.Getenv("ALKAID_K8S_CA"),
-		"/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
-	} {
-		if path == "" {
-			continue
-		}
-		raw, err := os.ReadFile(path)
-		if err != nil {
-			continue
-		}
-		pool := x509.NewCertPool()
-		if pool.AppendCertsFromPEM(raw) {
-			cfg.RootCAs = pool
-			break
-		}
-	}
-	return cfg
-}
-
-// resolveSFTPPath 在配置了 ALKAID_SFTP_ROOT 时把操作限制在根目录内。
-// 未配置时保持原行为，路径由 SSH 账户权限决定。
-func resolveSFTPPath(fs *sftp.Client, raw string) (string, error) {
-	root := strings.TrimSpace(os.Getenv("ALKAID_SFTP_ROOT"))
-	if root == "" {
-		return raw, nil
-	}
-	cleanRoot := path.Clean("/" + strings.TrimPrefix(root, "/"))
-	realRoot, err := fs.RealPath(cleanRoot)
-	if err != nil {
-		realRoot = cleanRoot
-	}
-	target := raw
-	if !strings.HasPrefix(target, "/") {
-		target = cleanRoot + "/" + target
-	}
-	target = path.Clean(target)
-	resolved := target
-	if real, err := fs.RealPath(target); err == nil {
-		resolved = real
-	} else if real, err := fs.RealPath(path.Dir(target)); err == nil {
-		resolved = path.Join(real, path.Base(target))
-	}
-	if resolved != realRoot && !strings.HasPrefix(resolved, realRoot+"/") {
-		return "", merr.Invalid("path is outside sftp root")
-	}
-	return target, nil
 }
 
 func sshDial(host string, port int32, user, password, privateKey string) (*ssh.Client, error) {

@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# 构建上下文是仓库根目录：镜像内直接编译 alkaid，并附带 sshd（SFTP 需要）。
+# 构建上下文是仓库根目录：镜像内直接编译 alkaid，并附带 sshd（Web Shell 使用）。
 ARG GO_VERSION=1.26
 
 FROM golang:${GO_VERSION}-alpine AS build

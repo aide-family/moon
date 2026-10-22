@@ -48,9 +48,6 @@ type Datasource func(*sql.Selector)
 // EmailLoginCode is the predicate function for emaillogincode builders.
 type EmailLoginCode func(*sql.Selector)
 
-// K8sProxyAudit is the predicate function for k8sproxyaudit builders.
-type K8sProxyAudit func(*sql.Selector)
-
 // Member is the predicate function for member builders.
 type Member func(*sql.Selector)
 
@@ -95,9 +92,6 @@ type Role func(*sql.Selector)
 
 // RolePermission is the predicate function for rolepermission builders.
 type RolePermission func(*sql.Selector)
-
-// SFTPAudit is the predicate function for sftpaudit builders.
-type SFTPAudit func(*sql.Selector)
 
 // SSHCommand is the predicate function for sshcommand builders.
 type SSHCommand func(*sql.Selector)

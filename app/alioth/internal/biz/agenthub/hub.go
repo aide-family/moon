@@ -17,8 +17,6 @@ type Session struct {
 	NamespaceUID string
 	Send         chan *v1.AgentFrame
 	Results      map[string]chan *v1.AgentExecResult
-	SFTPResults  map[string]chan *v1.AgentSFTPResult
-	K8sResults   map[string]chan *v1.AgentK8SResult
 	shellData    chan []byte
 	shellClosed  chan string
 	shellUID     string
@@ -31,11 +29,9 @@ type Session struct {
 func NewSession(agentUID, namespaceUID string) *Session {
 	return &Session{
 		AgentUID: agentUID, NamespaceUID: namespaceUID,
-		Send:        make(chan *v1.AgentFrame, 128),
-		Results:     map[string]chan *v1.AgentExecResult{},
-		SFTPResults: map[string]chan *v1.AgentSFTPResult{},
-		K8sResults:  map[string]chan *v1.AgentK8SResult{},
-		closed:      make(chan struct{}),
+		Send:    make(chan *v1.AgentFrame, 128),
+		Results: map[string]chan *v1.AgentExecResult{},
+		closed:  make(chan struct{}),
 	}
 }
 
@@ -52,33 +48,15 @@ func (s *Session) close() {
 }
 
 // failPending 让还在等待结果的请求立即失败。
-// 进程退出时不能只关闭连接，否则 HTTP/SFTP 处理协程会等到自己的超时。
+// 进程退出时不能只关闭连接，否则 HTTP 处理协程会等到自己的超时。
 func (s *Session) failPending(reason string) {
 	s.mu.Lock()
 	execResults := s.Results
-	sftpResults := s.SFTPResults
-	k8sResults := s.K8sResults
 	s.Results = map[string]chan *v1.AgentExecResult{}
-	s.SFTPResults = map[string]chan *v1.AgentSFTPResult{}
-	s.K8sResults = map[string]chan *v1.AgentK8SResult{}
 	s.mu.Unlock()
 	for uid, ch := range execResults {
 		select {
 		case ch <- &v1.AgentExecResult{RequestUid: uid, Error: reason}:
-		default:
-		}
-		close(ch)
-	}
-	for uid, ch := range sftpResults {
-		select {
-		case ch <- &v1.AgentSFTPResult{RequestUid: uid, Error: reason}:
-		default:
-		}
-		close(ch)
-	}
-	for uid, ch := range k8sResults {
-		select {
-		case ch <- &v1.AgentK8SResult{RequestUid: uid, Error: reason}:
 		default:
 		}
 		close(ch)
@@ -160,8 +138,6 @@ func (h *Hub) Drop(agentUID, requestUID string) {
 	}
 	session.mu.Lock()
 	delete(session.Results, requestUID)
-	delete(session.SFTPResults, requestUID)
-	delete(session.K8sResults, requestUID)
 	session.mu.Unlock()
 }
 
@@ -205,18 +181,6 @@ func (s *Session) addExecResult(requestUID string, ch chan *v1.AgentExecResult) 
 	s.Results[requestUID] = ch
 }
 
-func (s *Session) addSFTPResult(requestUID string, ch chan *v1.AgentSFTPResult) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.SFTPResults[requestUID] = ch
-}
-
-func (s *Session) addK8sResult(requestUID string, ch chan *v1.AgentK8SResult) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.K8sResults[requestUID] = ch
-}
-
 func (s *Session) DeliverResult(result *v1.AgentExecResult) {
 	s.mu.Lock()
 	ch := s.Results[result.GetRequestUid()]
@@ -226,49 +190,6 @@ func (s *Session) DeliverResult(result *v1.AgentExecResult) {
 		ch <- result
 		close(ch)
 	}
-}
-
-// SendSFTP 下发 SFTP 帧并等待结果。
-func (h *Hub) SendSFTP(agentUID string, frame *v1.AgentFrame) (<-chan *v1.AgentSFTPResult, error) {
-	session, ok := h.Get(agentUID)
-	if !ok || frame.GetSftpRequest() == nil {
-		return nil, merr.Invalid("agent is offline")
-	}
-	reqUID := frame.GetSftpRequest().GetRequestUid()
-	ch := make(chan *v1.AgentSFTPResult, 1)
-	session.addSFTPResult(reqUID, ch)
-	if !session.send(frame) {
-		h.Drop(agentUID, reqUID)
-		return nil, merr.Invalid("agent is offline")
-	}
-	return ch, nil
-}
-
-func (s *Session) DeliverSFTP(result *v1.AgentSFTPResult) {
-	s.mu.Lock()
-	ch := s.SFTPResults[result.GetRequestUid()]
-	delete(s.SFTPResults, result.GetRequestUid())
-	s.mu.Unlock()
-	if ch != nil {
-		ch <- result
-		close(ch)
-	}
-}
-
-// SendK8s 下发 Kubernetes 代理帧并等待结果。
-func (h *Hub) SendK8s(agentUID string, frame *v1.AgentFrame) (<-chan *v1.AgentK8SResult, error) {
-	session, ok := h.Get(agentUID)
-	if !ok || frame.GetK8SRequest() == nil {
-		return nil, merr.Invalid("agent is offline")
-	}
-	reqUID := frame.GetK8SRequest().GetRequestUid()
-	ch := make(chan *v1.AgentK8SResult, 1)
-	session.addK8sResult(reqUID, ch)
-	if !session.send(frame) {
-		h.Drop(agentUID, reqUID)
-		return nil, merr.Invalid("agent is offline")
-	}
-	return ch, nil
 }
 
 // ClaimShell 占用这台机器上唯一的终端。新的登录会结束上一份终端。
@@ -347,15 +268,4 @@ func (s *Session) finishShell(reason string) {
 	s.shellData = nil
 	s.shellClosed = nil
 	s.shellUID = ""
-}
-
-func (s *Session) DeliverK8s(result *v1.AgentK8SResult) {
-	s.mu.Lock()
-	ch := s.K8sResults[result.GetRequestUid()]
-	delete(s.K8sResults, result.GetRequestUid())
-	s.mu.Unlock()
-	if ch != nil {
-		ch <- result
-		close(ch)
-	}
 }

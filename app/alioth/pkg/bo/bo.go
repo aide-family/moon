@@ -529,43 +529,6 @@ type AgentExecResult struct {
 	Error      string
 }
 
-// SFTPAudit 是一条 SFTP 审计。
-type SFTPAudit struct {
-	UID          string
-	NamespaceUID string
-	AgentUID     string
-	OperatorUID  string
-	Path         string
-	Action       string
-	Result       string
-	Detail       string
-	CreatedAt    time.Time
-}
-
-// SFTPEntry 是一条目录项。
-type SFTPEntry struct {
-	Name    string
-	Path    string
-	IsDir   bool
-	Size    int64
-	Mode    string
-	ModTime string
-}
-
-// K8sProxyAudit 是一条 Kubernetes 代理审计。
-type K8sProxyAudit struct {
-	UID           string
-	NamespaceUID  string
-	AgentUID      string
-	OperatorUID   string
-	Method        string
-	Resource      string
-	KubeNamespace string
-	Result        string
-	Detail        string
-	CreatedAt     time.Time
-}
-
 // NotifySnapshot 是 merak 领取到的任务，含解密后的渠道密钥。
 type NotifySnapshot struct {
 	UID             string

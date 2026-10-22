@@ -10,6 +10,9 @@ import (
 	entschema "entgo.io/ent/dialect/sql/schema"
 
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/permission"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/rolepermission"
+	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
@@ -39,6 +42,9 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	if err := dropRuleNotificationGroups(ctx, db); err != nil {
 		return err
 	}
+	if err := dropLegacyEdgeAudits(ctx, db); err != nil {
+		return err
+	}
 	disabledSources, err := prepareDatasourceConnections(ctx, db)
 	if err != nil {
 		return err
@@ -54,6 +60,9 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 		}
 	}
 	if err := client.Schema.Create(ctx, opts...); err != nil {
+		return err
+	}
+	if err := dropStalePermissions(ctx, client); err != nil {
 		return err
 	}
 	if err := ensureNotificationAuditFields(ctx, db); err != nil {
@@ -434,6 +443,48 @@ func dropRuleNotificationGroups(ctx context.Context, db *sql.DB) error {
 	if _, err := db.ExecContext(ctx, `DROP TABLE IF EXISTS alert_rule_notification_groups`); err != nil {
 		slog.Default().Error(fmt.Sprintf("schema: %v", err))
 		return merr.Server("request failed")
+	}
+	return nil
+}
+
+// dropLegacyEdgeAudits 删除已移除能力的审计表。迁移可重复执行。
+func dropLegacyEdgeAudits(ctx context.Context, db *sql.DB) error {
+	if _, err := db.ExecContext(ctx, `DROP TABLE IF EXISTS sftp_audits, k8s_proxy_audits`); err != nil {
+		slog.Default().Error(fmt.Sprintf("schema: %v", err))
+		return merr.Server("request failed")
+	}
+	return nil
+}
+
+// dropStalePermissions 删除代码目录里已经不存在的权限定义及其角色授权。
+// 租户权限只由 perm.Catalog 定义，库里多出来的行都是旧版本遗留。
+func dropStalePermissions(ctx context.Context, client *ent.Client) error {
+	valid := make(map[string]struct{}, len(perm.Catalog()))
+	for _, item := range perm.Catalog() {
+		valid[item.Name] = struct{}{}
+	}
+	rows, err := client.Permission.Query().All(ctx)
+	if err != nil {
+		return databaseErr(slog.Default(), err)
+	}
+	stale := make([]string, 0, len(rows))
+	for _, row := range rows {
+		if _, ok := valid[row.Name]; !ok {
+			stale = append(stale, row.UID)
+		}
+	}
+	if len(stale) == 0 {
+		return nil
+	}
+	if _, err := client.RolePermission.Delete().
+		Where(rolepermission.PermissionUIDIn(stale...)).
+		Exec(ctx); err != nil {
+		return databaseErr(slog.Default(), err)
+	}
+	if _, err := client.Permission.Delete().
+		Where(permission.UIDIn(stale...)).
+		Exec(ctx); err != nil {
+		return databaseErr(slog.Default(), err)
 	}
 	return nil
 }

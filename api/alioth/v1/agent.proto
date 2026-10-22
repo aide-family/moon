@@ -255,14 +255,8 @@ message AgentFrame {
   AgentExecResult exec_result = 5;
   // 关闭说明。
   AgentClose close = 6;
-  // SFTP 请求，由玉衡下发。
-  AgentSFTPRequest sftp_request = 7;
-  // SFTP 结果，由 Agent 回传。
-  AgentSFTPResult sftp_result = 8;
-  // Kubernetes 代理请求，由玉衡下发。
-  AgentK8sRequest k8s_request = 9;
-  // Kubernetes 代理结果，由 Agent 回传。
-  AgentK8sResult k8s_result = 10;
+  // 7-10 已废弃，保留字段号避免复用。
+  reserved 7, 8, 9, 10;
   // 打开终端，由玉衡下发。
   AgentShellOpen shell_open = 11;
   // 终端字节。
@@ -349,74 +343,6 @@ message AgentClose {
   string reason = 1;
 }
 
-// SFTP 请求。
-message AgentSFTPRequest {
-  // 请求标识。
-  string request_uid = 1;
-  // 动作，取值为 LIST、DOWNLOAD、UPLOAD、MKDIR 或 DELETE。
-  string action = 2;
-  // 路径。
-  string path = 3;
-  // 文件内容，仅上传使用。
-  bytes content = 4;
-  // SSH 主机。
-  string ssh_host = 5;
-  // SSH 端口。
-  int32 ssh_port = 6;
-  // SSH 用户。
-  string ssh_user = 7;
-  // SSH 密码。
-  string ssh_password = 8;
-  // SSH 私钥。
-  string ssh_private_key = 9;
-}
-
-// 一条目录项。
-message AgentSFTPEntry {
-  // 名称。
-  string name = 1;
-  // 完整路径。
-  string path = 2;
-  // 是否目录。
-  bool is_dir = 3;
-  // 大小。
-  int64 size = 4;
-  // 权限字符串。
-  string mode = 5;
-  // 修改时间，RFC3339。
-  string mod_time = 6;
-}
-
-// SFTP 结果。
-message AgentSFTPResult {
-  // 请求标识。
-  string request_uid = 1;
-  // 是否成功。
-  bool ok = 2;
-  // 错误说明。
-  string error = 3;
-  // 目录项，仅 LIST 使用。
-  repeated AgentSFTPEntry entries = 4;
-  // 文件内容，仅 DOWNLOAD 使用。
-  bytes content = 5;
-}
-
-// Kubernetes 代理请求。
-message AgentK8sRequest {
-  // 请求标识。
-  string request_uid = 1;
-  // HTTP 方法。
-  string method = 2;
-  // API 路径。
-  string path = 3;
-  // 查询串。
-  string query = 4;
-  // 请求头 JSON。
-  string headers_json = 5;
-  // 请求体。
-  bytes body = 6;
-}
-
 // 打开交互终端。
 message AgentShellOpen {
   // 会话标识。
@@ -461,18 +387,4 @@ message AgentShellClose {
   string session_uid = 1;
   // 原因。
   string reason = 2;
-}
-
-// Kubernetes 代理结果。
-message AgentK8sResult {
-  // 请求标识。
-  string request_uid = 1;
-  // HTTP 状态码。
-  int32 status_code = 2;
-  // 响应头 JSON。
-  string headers_json = 3;
-  // 响应体。
-  bytes body = 4;
-  // 错误说明。
-  string error = 5;
 }

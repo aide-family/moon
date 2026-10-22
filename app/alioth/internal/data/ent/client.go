@@ -28,7 +28,6 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/captcha"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/k8sproxyaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
@@ -44,7 +43,6 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/permission"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/rolepermission"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sftpaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommandaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/systemmessage"
@@ -87,8 +85,6 @@ type Client struct {
 	Datasource *DatasourceClient
 	// EmailLoginCode is the client for interacting with the EmailLoginCode builders.
 	EmailLoginCode *EmailLoginCodeClient
-	// K8sProxyAudit is the client for interacting with the K8sProxyAudit builders.
-	K8sProxyAudit *K8sProxyAuditClient
 	// Member is the client for interacting with the Member builders.
 	Member *MemberClient
 	// MemberInvite is the client for interacting with the MemberInvite builders.
@@ -119,8 +115,6 @@ type Client struct {
 	Role *RoleClient
 	// RolePermission is the client for interacting with the RolePermission builders.
 	RolePermission *RolePermissionClient
-	// SFTPAudit is the client for interacting with the SFTPAudit builders.
-	SFTPAudit *SFTPAuditClient
 	// SSHCommand is the client for interacting with the SSHCommand builders.
 	SSHCommand *SSHCommandClient
 	// SSHCommandAudit is the client for interacting with the SSHCommandAudit builders.
@@ -160,7 +154,6 @@ func (c *Client) init() {
 	c.Captcha = NewCaptchaClient(c.config)
 	c.Datasource = NewDatasourceClient(c.config)
 	c.EmailLoginCode = NewEmailLoginCodeClient(c.config)
-	c.K8sProxyAudit = NewK8sProxyAuditClient(c.config)
 	c.Member = NewMemberClient(c.config)
 	c.MemberInvite = NewMemberInviteClient(c.config)
 	c.MemberRole = NewMemberRoleClient(c.config)
@@ -176,7 +169,6 @@ func (c *Client) init() {
 	c.Permission = NewPermissionClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.RolePermission = NewRolePermissionClient(c.config)
-	c.SFTPAudit = NewSFTPAuditClient(c.config)
 	c.SSHCommand = NewSSHCommandClient(c.config)
 	c.SSHCommandAudit = NewSSHCommandAuditClient(c.config)
 	c.SystemMessage = NewSystemMessageClient(c.config)
@@ -290,7 +282,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Captcha:                       NewCaptchaClient(cfg),
 		Datasource:                    NewDatasourceClient(cfg),
 		EmailLoginCode:                NewEmailLoginCodeClient(cfg),
-		K8sProxyAudit:                 NewK8sProxyAuditClient(cfg),
 		Member:                        NewMemberClient(cfg),
 		MemberInvite:                  NewMemberInviteClient(cfg),
 		MemberRole:                    NewMemberRoleClient(cfg),
@@ -306,7 +297,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Permission:                    NewPermissionClient(cfg),
 		Role:                          NewRoleClient(cfg),
 		RolePermission:                NewRolePermissionClient(cfg),
-		SFTPAudit:                     NewSFTPAuditClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
 		SSHCommandAudit:               NewSSHCommandAuditClient(cfg),
 		SystemMessage:                 NewSystemMessageClient(cfg),
@@ -347,7 +337,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Captcha:                       NewCaptchaClient(cfg),
 		Datasource:                    NewDatasourceClient(cfg),
 		EmailLoginCode:                NewEmailLoginCodeClient(cfg),
-		K8sProxyAudit:                 NewK8sProxyAuditClient(cfg),
 		Member:                        NewMemberClient(cfg),
 		MemberInvite:                  NewMemberInviteClient(cfg),
 		MemberRole:                    NewMemberRoleClient(cfg),
@@ -363,7 +352,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Permission:                    NewPermissionClient(cfg),
 		Role:                          NewRoleClient(cfg),
 		RolePermission:                NewRolePermissionClient(cfg),
-		SFTPAudit:                     NewSFTPAuditClient(cfg),
 		SSHCommand:                    NewSSHCommandClient(cfg),
 		SSHCommandAudit:               NewSSHCommandAuditClient(cfg),
 		SystemMessage:                 NewSystemMessageClient(cfg),
@@ -403,12 +391,12 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventColumn,
 		c.AlertEventFiring, c.AlertHistoryEvent, c.AlertPage, c.AlertRule,
 		c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha, c.Datasource, c.EmailLoginCode,
-		c.K8sProxyAudit, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
-		c.Namespace, c.NotificationChannel, c.NotificationGroup, c.NotificationPreset,
+		c.Member, c.MemberInvite, c.MemberRole, c.MessageLog, c.Namespace,
+		c.NotificationChannel, c.NotificationGroup, c.NotificationPreset,
 		c.NotificationSubscription, c.NotificationSubscriptionGroup,
 		c.NotificationTask, c.NotificationTemplate, c.Permission, c.Role,
-		c.RolePermission, c.SFTPAudit, c.SSHCommand, c.SSHCommandAudit,
-		c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.RolePermission, c.SSHCommand, c.SSHCommandAudit, c.SystemMessage, c.User,
+		c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Use(hooks...)
 	}
@@ -421,12 +409,12 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Agent, c.AlertDictionary, c.AlertEvalBatch, c.AlertEvent, c.AlertEventColumn,
 		c.AlertEventFiring, c.AlertHistoryEvent, c.AlertPage, c.AlertRule,
 		c.AlertRuleGroup, c.AlertRuleLevel, c.Captcha, c.Datasource, c.EmailLoginCode,
-		c.K8sProxyAudit, c.Member, c.MemberInvite, c.MemberRole, c.MessageLog,
-		c.Namespace, c.NotificationChannel, c.NotificationGroup, c.NotificationPreset,
+		c.Member, c.MemberInvite, c.MemberRole, c.MessageLog, c.Namespace,
+		c.NotificationChannel, c.NotificationGroup, c.NotificationPreset,
 		c.NotificationSubscription, c.NotificationSubscriptionGroup,
 		c.NotificationTask, c.NotificationTemplate, c.Permission, c.Role,
-		c.RolePermission, c.SFTPAudit, c.SSHCommand, c.SSHCommandAudit,
-		c.SystemMessage, c.User, c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
+		c.RolePermission, c.SSHCommand, c.SSHCommandAudit, c.SystemMessage, c.User,
+		c.UserAlertPage, c.UserOAuth, c.WorkerInstance,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -463,8 +451,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Datasource.mutate(ctx, m)
 	case *EmailLoginCodeMutation:
 		return c.EmailLoginCode.mutate(ctx, m)
-	case *K8sProxyAuditMutation:
-		return c.K8sProxyAudit.mutate(ctx, m)
 	case *MemberMutation:
 		return c.Member.mutate(ctx, m)
 	case *MemberInviteMutation:
@@ -495,8 +481,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Role.mutate(ctx, m)
 	case *RolePermissionMutation:
 		return c.RolePermission.mutate(ctx, m)
-	case *SFTPAuditMutation:
-		return c.SFTPAudit.mutate(ctx, m)
 	case *SSHCommandMutation:
 		return c.SSHCommand.mutate(ctx, m)
 	case *SSHCommandAuditMutation:
@@ -2375,139 +2359,6 @@ func (c *EmailLoginCodeClient) mutate(ctx context.Context, m *EmailLoginCodeMuta
 		return (&EmailLoginCodeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown EmailLoginCode mutation op: %q", m.Op())
-	}
-}
-
-// K8sProxyAuditClient is a client for the K8sProxyAudit schema.
-type K8sProxyAuditClient struct {
-	config
-}
-
-// NewK8sProxyAuditClient returns a client for the K8sProxyAudit from the given config.
-func NewK8sProxyAuditClient(c config) *K8sProxyAuditClient {
-	return &K8sProxyAuditClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `k8sproxyaudit.Hooks(f(g(h())))`.
-func (c *K8sProxyAuditClient) Use(hooks ...Hook) {
-	c.hooks.K8sProxyAudit = append(c.hooks.K8sProxyAudit, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `k8sproxyaudit.Intercept(f(g(h())))`.
-func (c *K8sProxyAuditClient) Intercept(interceptors ...Interceptor) {
-	c.inters.K8sProxyAudit = append(c.inters.K8sProxyAudit, interceptors...)
-}
-
-// Create returns a builder for creating a K8sProxyAudit entity.
-func (c *K8sProxyAuditClient) Create() *K8sProxyAuditCreate {
-	mutation := newK8sProxyAuditMutation(c.config, OpCreate)
-	return &K8sProxyAuditCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of K8sProxyAudit entities.
-func (c *K8sProxyAuditClient) CreateBulk(builders ...*K8sProxyAuditCreate) *K8sProxyAuditCreateBulk {
-	return &K8sProxyAuditCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *K8sProxyAuditClient) MapCreateBulk(slice any, setFunc func(*K8sProxyAuditCreate, int)) *K8sProxyAuditCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &K8sProxyAuditCreateBulk{err: fmt.Errorf("calling to K8sProxyAuditClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*K8sProxyAuditCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &K8sProxyAuditCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for K8sProxyAudit.
-func (c *K8sProxyAuditClient) Update() *K8sProxyAuditUpdate {
-	mutation := newK8sProxyAuditMutation(c.config, OpUpdate)
-	return &K8sProxyAuditUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *K8sProxyAuditClient) UpdateOne(_m *K8sProxyAudit) *K8sProxyAuditUpdateOne {
-	mutation := newK8sProxyAuditMutation(c.config, OpUpdateOne, withK8sProxyAudit(_m))
-	return &K8sProxyAuditUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *K8sProxyAuditClient) UpdateOneID(id int) *K8sProxyAuditUpdateOne {
-	mutation := newK8sProxyAuditMutation(c.config, OpUpdateOne, withK8sProxyAuditID(id))
-	return &K8sProxyAuditUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for K8sProxyAudit.
-func (c *K8sProxyAuditClient) Delete() *K8sProxyAuditDelete {
-	mutation := newK8sProxyAuditMutation(c.config, OpDelete)
-	return &K8sProxyAuditDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *K8sProxyAuditClient) DeleteOne(_m *K8sProxyAudit) *K8sProxyAuditDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *K8sProxyAuditClient) DeleteOneID(id int) *K8sProxyAuditDeleteOne {
-	builder := c.Delete().Where(k8sproxyaudit.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &K8sProxyAuditDeleteOne{builder}
-}
-
-// Query returns a query builder for K8sProxyAudit.
-func (c *K8sProxyAuditClient) Query() *K8sProxyAuditQuery {
-	return &K8sProxyAuditQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeK8sProxyAudit},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a K8sProxyAudit entity by its id.
-func (c *K8sProxyAuditClient) Get(ctx context.Context, id int) (*K8sProxyAudit, error) {
-	return c.Query().Where(k8sproxyaudit.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *K8sProxyAuditClient) GetX(ctx context.Context, id int) *K8sProxyAudit {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *K8sProxyAuditClient) Hooks() []Hook {
-	return c.hooks.K8sProxyAudit
-}
-
-// Interceptors returns the client interceptors.
-func (c *K8sProxyAuditClient) Interceptors() []Interceptor {
-	return c.inters.K8sProxyAudit
-}
-
-func (c *K8sProxyAuditClient) mutate(ctx context.Context, m *K8sProxyAuditMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&K8sProxyAuditCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&K8sProxyAuditUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&K8sProxyAuditUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&K8sProxyAuditDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown K8sProxyAudit mutation op: %q", m.Op())
 	}
 }
 
@@ -4506,139 +4357,6 @@ func (c *RolePermissionClient) mutate(ctx context.Context, m *RolePermissionMuta
 	}
 }
 
-// SFTPAuditClient is a client for the SFTPAudit schema.
-type SFTPAuditClient struct {
-	config
-}
-
-// NewSFTPAuditClient returns a client for the SFTPAudit from the given config.
-func NewSFTPAuditClient(c config) *SFTPAuditClient {
-	return &SFTPAuditClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `sftpaudit.Hooks(f(g(h())))`.
-func (c *SFTPAuditClient) Use(hooks ...Hook) {
-	c.hooks.SFTPAudit = append(c.hooks.SFTPAudit, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `sftpaudit.Intercept(f(g(h())))`.
-func (c *SFTPAuditClient) Intercept(interceptors ...Interceptor) {
-	c.inters.SFTPAudit = append(c.inters.SFTPAudit, interceptors...)
-}
-
-// Create returns a builder for creating a SFTPAudit entity.
-func (c *SFTPAuditClient) Create() *SFTPAuditCreate {
-	mutation := newSFTPAuditMutation(c.config, OpCreate)
-	return &SFTPAuditCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of SFTPAudit entities.
-func (c *SFTPAuditClient) CreateBulk(builders ...*SFTPAuditCreate) *SFTPAuditCreateBulk {
-	return &SFTPAuditCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *SFTPAuditClient) MapCreateBulk(slice any, setFunc func(*SFTPAuditCreate, int)) *SFTPAuditCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &SFTPAuditCreateBulk{err: fmt.Errorf("calling to SFTPAuditClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*SFTPAuditCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &SFTPAuditCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for SFTPAudit.
-func (c *SFTPAuditClient) Update() *SFTPAuditUpdate {
-	mutation := newSFTPAuditMutation(c.config, OpUpdate)
-	return &SFTPAuditUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *SFTPAuditClient) UpdateOne(_m *SFTPAudit) *SFTPAuditUpdateOne {
-	mutation := newSFTPAuditMutation(c.config, OpUpdateOne, withSFTPAudit(_m))
-	return &SFTPAuditUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *SFTPAuditClient) UpdateOneID(id int) *SFTPAuditUpdateOne {
-	mutation := newSFTPAuditMutation(c.config, OpUpdateOne, withSFTPAuditID(id))
-	return &SFTPAuditUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for SFTPAudit.
-func (c *SFTPAuditClient) Delete() *SFTPAuditDelete {
-	mutation := newSFTPAuditMutation(c.config, OpDelete)
-	return &SFTPAuditDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *SFTPAuditClient) DeleteOne(_m *SFTPAudit) *SFTPAuditDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *SFTPAuditClient) DeleteOneID(id int) *SFTPAuditDeleteOne {
-	builder := c.Delete().Where(sftpaudit.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &SFTPAuditDeleteOne{builder}
-}
-
-// Query returns a query builder for SFTPAudit.
-func (c *SFTPAuditClient) Query() *SFTPAuditQuery {
-	return &SFTPAuditQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeSFTPAudit},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a SFTPAudit entity by its id.
-func (c *SFTPAuditClient) Get(ctx context.Context, id int) (*SFTPAudit, error) {
-	return c.Query().Where(sftpaudit.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *SFTPAuditClient) GetX(ctx context.Context, id int) *SFTPAudit {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *SFTPAuditClient) Hooks() []Hook {
-	return c.hooks.SFTPAudit
-}
-
-// Interceptors returns the client interceptors.
-func (c *SFTPAuditClient) Interceptors() []Interceptor {
-	return c.inters.SFTPAudit
-}
-
-func (c *SFTPAuditClient) mutate(ctx context.Context, m *SFTPAuditMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&SFTPAuditCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&SFTPAuditUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&SFTPAuditUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&SFTPAuditDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown SFTPAudit mutation op: %q", m.Op())
-	}
-}
-
 // SSHCommandClient is a client for the SSHCommand schema.
 type SSHCommandClient struct {
 	config
@@ -5575,21 +5293,21 @@ type (
 	hooks struct {
 		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventColumn,
 		AlertEventFiring, AlertHistoryEvent, AlertPage, AlertRule, AlertRuleGroup,
-		AlertRuleLevel, Captcha, Datasource, EmailLoginCode, K8sProxyAudit, Member,
-		MemberInvite, MemberRole, MessageLog, Namespace, NotificationChannel,
-		NotificationGroup, NotificationPreset, NotificationSubscription,
-		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		Permission, Role, RolePermission, SFTPAudit, SSHCommand, SSHCommandAudit,
-		SystemMessage, User, UserAlertPage, UserOAuth, WorkerInstance []ent.Hook
+		AlertRuleLevel, Captcha, Datasource, EmailLoginCode, Member, MemberInvite,
+		MemberRole, MessageLog, Namespace, NotificationChannel, NotificationGroup,
+		NotificationPreset, NotificationSubscription, NotificationSubscriptionGroup,
+		NotificationTask, NotificationTemplate, Permission, Role, RolePermission,
+		SSHCommand, SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEvalBatch, AlertEvent, AlertEventColumn,
 		AlertEventFiring, AlertHistoryEvent, AlertPage, AlertRule, AlertRuleGroup,
-		AlertRuleLevel, Captcha, Datasource, EmailLoginCode, K8sProxyAudit, Member,
-		MemberInvite, MemberRole, MessageLog, Namespace, NotificationChannel,
-		NotificationGroup, NotificationPreset, NotificationSubscription,
-		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		Permission, Role, RolePermission, SFTPAudit, SSHCommand, SSHCommandAudit,
-		SystemMessage, User, UserAlertPage, UserOAuth, WorkerInstance []ent.Interceptor
+		AlertRuleLevel, Captcha, Datasource, EmailLoginCode, Member, MemberInvite,
+		MemberRole, MessageLog, Namespace, NotificationChannel, NotificationGroup,
+		NotificationPreset, NotificationSubscription, NotificationSubscriptionGroup,
+		NotificationTask, NotificationTemplate, Permission, Role, RolePermission,
+		SSHCommand, SSHCommandAudit, SystemMessage, User, UserAlertPage, UserOAuth,
+		WorkerInstance []ent.Interceptor
 	}
 )

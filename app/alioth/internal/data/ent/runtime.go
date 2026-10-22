@@ -19,7 +19,6 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/captcha"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/k8sproxyaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
@@ -36,7 +35,6 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/rolepermission"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/schema"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sftpaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommandaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/systemmessage"
@@ -610,57 +608,6 @@ func init() {
 	emaillogincodeDescCodeHash := emaillogincodeFields[2].Descriptor()
 	// emaillogincode.CodeHashValidator is a validator for the "code_hash" field. It is called by the builders before save.
 	emaillogincode.CodeHashValidator = emaillogincodeDescCodeHash.Validators[0].(func(string) error)
-	k8sproxyauditMixin := schema.K8sProxyAudit{}.Mixin()
-	k8sproxyauditMixinFields0 := k8sproxyauditMixin[0].Fields()
-	_ = k8sproxyauditMixinFields0
-	k8sproxyauditFields := schema.K8sProxyAudit{}.Fields()
-	_ = k8sproxyauditFields
-	// k8sproxyauditDescCreatedAt is the schema descriptor for created_at field.
-	k8sproxyauditDescCreatedAt := k8sproxyauditMixinFields0[0].Descriptor()
-	// k8sproxyaudit.DefaultCreatedAt holds the default value on creation for the created_at field.
-	k8sproxyaudit.DefaultCreatedAt = k8sproxyauditDescCreatedAt.Default.(func() time.Time)
-	// k8sproxyauditDescUpdatedAt is the schema descriptor for updated_at field.
-	k8sproxyauditDescUpdatedAt := k8sproxyauditMixinFields0[1].Descriptor()
-	// k8sproxyaudit.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	k8sproxyaudit.DefaultUpdatedAt = k8sproxyauditDescUpdatedAt.Default.(func() time.Time)
-	// k8sproxyaudit.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	k8sproxyaudit.UpdateDefaultUpdatedAt = k8sproxyauditDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// k8sproxyauditDescUID is the schema descriptor for uid field.
-	k8sproxyauditDescUID := k8sproxyauditFields[0].Descriptor()
-	// k8sproxyaudit.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
-	k8sproxyaudit.UIDValidator = k8sproxyauditDescUID.Validators[0].(func(string) error)
-	// k8sproxyauditDescNamespaceUID is the schema descriptor for namespace_uid field.
-	k8sproxyauditDescNamespaceUID := k8sproxyauditFields[1].Descriptor()
-	// k8sproxyaudit.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
-	k8sproxyaudit.NamespaceUIDValidator = k8sproxyauditDescNamespaceUID.Validators[0].(func(string) error)
-	// k8sproxyauditDescAgentUID is the schema descriptor for agent_uid field.
-	k8sproxyauditDescAgentUID := k8sproxyauditFields[2].Descriptor()
-	// k8sproxyaudit.DefaultAgentUID holds the default value on creation for the agent_uid field.
-	k8sproxyaudit.DefaultAgentUID = k8sproxyauditDescAgentUID.Default.(string)
-	// k8sproxyauditDescOperatorUID is the schema descriptor for operator_uid field.
-	k8sproxyauditDescOperatorUID := k8sproxyauditFields[3].Descriptor()
-	// k8sproxyaudit.DefaultOperatorUID holds the default value on creation for the operator_uid field.
-	k8sproxyaudit.DefaultOperatorUID = k8sproxyauditDescOperatorUID.Default.(string)
-	// k8sproxyauditDescMethod is the schema descriptor for method field.
-	k8sproxyauditDescMethod := k8sproxyauditFields[4].Descriptor()
-	// k8sproxyaudit.DefaultMethod holds the default value on creation for the method field.
-	k8sproxyaudit.DefaultMethod = k8sproxyauditDescMethod.Default.(string)
-	// k8sproxyauditDescResource is the schema descriptor for resource field.
-	k8sproxyauditDescResource := k8sproxyauditFields[5].Descriptor()
-	// k8sproxyaudit.DefaultResource holds the default value on creation for the resource field.
-	k8sproxyaudit.DefaultResource = k8sproxyauditDescResource.Default.(string)
-	// k8sproxyauditDescKubeNamespace is the schema descriptor for kube_namespace field.
-	k8sproxyauditDescKubeNamespace := k8sproxyauditFields[6].Descriptor()
-	// k8sproxyaudit.DefaultKubeNamespace holds the default value on creation for the kube_namespace field.
-	k8sproxyaudit.DefaultKubeNamespace = k8sproxyauditDescKubeNamespace.Default.(string)
-	// k8sproxyauditDescResult is the schema descriptor for result field.
-	k8sproxyauditDescResult := k8sproxyauditFields[7].Descriptor()
-	// k8sproxyaudit.DefaultResult holds the default value on creation for the result field.
-	k8sproxyaudit.DefaultResult = k8sproxyauditDescResult.Default.(string)
-	// k8sproxyauditDescDetail is the schema descriptor for detail field.
-	k8sproxyauditDescDetail := k8sproxyauditFields[8].Descriptor()
-	// k8sproxyaudit.DefaultDetail holds the default value on creation for the detail field.
-	k8sproxyaudit.DefaultDetail = k8sproxyauditDescDetail.Default.(string)
 	memberMixin := schema.Member{}.Mixin()
 	memberMixinFields0 := memberMixin[0].Fields()
 	_ = memberMixinFields0
@@ -1286,53 +1233,6 @@ func init() {
 	rolepermissionDescPermissionUID := rolepermissionFields[3].Descriptor()
 	// rolepermission.PermissionUIDValidator is a validator for the "permission_uid" field. It is called by the builders before save.
 	rolepermission.PermissionUIDValidator = rolepermissionDescPermissionUID.Validators[0].(func(string) error)
-	sftpauditMixin := schema.SFTPAudit{}.Mixin()
-	sftpauditMixinFields0 := sftpauditMixin[0].Fields()
-	_ = sftpauditMixinFields0
-	sftpauditFields := schema.SFTPAudit{}.Fields()
-	_ = sftpauditFields
-	// sftpauditDescCreatedAt is the schema descriptor for created_at field.
-	sftpauditDescCreatedAt := sftpauditMixinFields0[0].Descriptor()
-	// sftpaudit.DefaultCreatedAt holds the default value on creation for the created_at field.
-	sftpaudit.DefaultCreatedAt = sftpauditDescCreatedAt.Default.(func() time.Time)
-	// sftpauditDescUpdatedAt is the schema descriptor for updated_at field.
-	sftpauditDescUpdatedAt := sftpauditMixinFields0[1].Descriptor()
-	// sftpaudit.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	sftpaudit.DefaultUpdatedAt = sftpauditDescUpdatedAt.Default.(func() time.Time)
-	// sftpaudit.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	sftpaudit.UpdateDefaultUpdatedAt = sftpauditDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// sftpauditDescUID is the schema descriptor for uid field.
-	sftpauditDescUID := sftpauditFields[0].Descriptor()
-	// sftpaudit.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
-	sftpaudit.UIDValidator = sftpauditDescUID.Validators[0].(func(string) error)
-	// sftpauditDescNamespaceUID is the schema descriptor for namespace_uid field.
-	sftpauditDescNamespaceUID := sftpauditFields[1].Descriptor()
-	// sftpaudit.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
-	sftpaudit.NamespaceUIDValidator = sftpauditDescNamespaceUID.Validators[0].(func(string) error)
-	// sftpauditDescAgentUID is the schema descriptor for agent_uid field.
-	sftpauditDescAgentUID := sftpauditFields[2].Descriptor()
-	// sftpaudit.DefaultAgentUID holds the default value on creation for the agent_uid field.
-	sftpaudit.DefaultAgentUID = sftpauditDescAgentUID.Default.(string)
-	// sftpauditDescOperatorUID is the schema descriptor for operator_uid field.
-	sftpauditDescOperatorUID := sftpauditFields[3].Descriptor()
-	// sftpaudit.DefaultOperatorUID holds the default value on creation for the operator_uid field.
-	sftpaudit.DefaultOperatorUID = sftpauditDescOperatorUID.Default.(string)
-	// sftpauditDescPath is the schema descriptor for path field.
-	sftpauditDescPath := sftpauditFields[4].Descriptor()
-	// sftpaudit.DefaultPath holds the default value on creation for the path field.
-	sftpaudit.DefaultPath = sftpauditDescPath.Default.(string)
-	// sftpauditDescAction is the schema descriptor for action field.
-	sftpauditDescAction := sftpauditFields[5].Descriptor()
-	// sftpaudit.DefaultAction holds the default value on creation for the action field.
-	sftpaudit.DefaultAction = sftpauditDescAction.Default.(string)
-	// sftpauditDescResult is the schema descriptor for result field.
-	sftpauditDescResult := sftpauditFields[6].Descriptor()
-	// sftpaudit.DefaultResult holds the default value on creation for the result field.
-	sftpaudit.DefaultResult = sftpauditDescResult.Default.(string)
-	// sftpauditDescDetail is the schema descriptor for detail field.
-	sftpauditDescDetail := sftpauditFields[7].Descriptor()
-	// sftpaudit.DefaultDetail holds the default value on creation for the detail field.
-	sftpaudit.DefaultDetail = sftpauditDescDetail.Default.(string)
 	sshcommandMixin := schema.SSHCommand{}.Mixin()
 	sshcommandMixinFields0 := sshcommandMixin[0].Fields()
 	_ = sshcommandMixinFields0

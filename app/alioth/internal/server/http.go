@@ -44,8 +44,6 @@ func NewHTTPServer(
 	workers *service.WorkerService,
 	agents *service.AgentService,
 	sshCommands *service.SSHCommandService,
-	sftpSvc *service.SFTPService,
-	k8sSvc *service.K8sProxyService,
 	uc *auth.Usecase,
 	logger *slog.Logger,
 ) (*khttp.Server, error) {
@@ -111,8 +109,6 @@ func NewHTTPServer(
 	v1.RegisterWorkerServiceHTTPServer(srv, workers)
 	v1.RegisterAgentServiceHTTPServer(srv, agents)
 	v1.RegisterSSHCommandServiceHTTPServer(srv, sshCommands)
-	v1.RegisterSFTPServiceHTTPServer(srv, sftpSvc)
-	v1.RegisterK8SProxyServiceHTTPServer(srv, k8sSvc)
 	srv.HandleFunc("/v1/agent/{uid}/shell", agents.ServeShell)
 	return srv, nil
 }

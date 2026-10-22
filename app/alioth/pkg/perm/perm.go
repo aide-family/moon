@@ -22,8 +22,7 @@ const (
 	NotificationRead  = "notification:read"
 	NotificationWrite = "notification:write"
 
-	SSHExec  = "ssh:exec"
-	K8sProxy = "k8s:proxy"
+	SSHExec = "ssh:exec"
 )
 
 // 系统权限属于平台，不写入租户的 permission 表，也不参与租户角色授权。
@@ -52,7 +51,7 @@ const (
 // resources 只包含租户资源。user 是平台资源，不在租户权限目录里。
 var resources = []string{
 	"member", "role", "namespace", "datasource", "alert_rule",
-	"alert", "notification", "agent", "ssh", "sftp", "k8s",
+	"alert", "notification", "agent", "ssh",
 }
 
 type Item struct {
@@ -63,7 +62,7 @@ type Item struct {
 
 // Catalog 返回租户权限目录。
 func Catalog() []Item {
-	items := make([]Item, 0, len(resources)*2+5)
+	items := make([]Item, 0, len(resources)*2+4)
 	for _, resource := range resources {
 		items = append(items,
 			Item{Name: resource + ":read", Resource: resource, Action: "read"},
@@ -73,7 +72,6 @@ func Catalog() []Item {
 	items = append(items,
 		Item{Name: AlertIntervene, Resource: "alert", Action: "intervene"},
 		Item{Name: SSHExec, Resource: "ssh", Action: "exec"},
-		Item{Name: K8sProxy, Resource: "k8s", Action: "proxy"},
 		Item{Name: NamespaceDelete, Resource: "namespace", Action: "delete"},
 		Item{Name: NamespaceTransfer, Resource: "namespace", Action: "transfer"},
 	)
@@ -180,7 +178,7 @@ func readPermissions() []string {
 
 func memberPermissions() []string {
 	names := readPermissions()
-	return append(names, AlertIntervene, SSHExec, "sftp:write", K8sProxy)
+	return append(names, AlertIntervene, SSHExec)
 }
 
 func without(names []string, drop ...string) []string {

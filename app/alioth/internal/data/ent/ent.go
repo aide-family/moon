@@ -26,7 +26,6 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/captcha"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/datasource"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/emaillogincode"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/k8sproxyaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/member"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberinvite"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/memberrole"
@@ -42,7 +41,6 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/permission"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/role"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/rolepermission"
-	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sftpaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommand"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/sshcommandaudit"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/systemmessage"
@@ -124,7 +122,6 @@ func checkColumn(t, c string) error {
 			captcha.Table:                       captcha.ValidColumn,
 			datasource.Table:                    datasource.ValidColumn,
 			emaillogincode.Table:                emaillogincode.ValidColumn,
-			k8sproxyaudit.Table:                 k8sproxyaudit.ValidColumn,
 			member.Table:                        member.ValidColumn,
 			memberinvite.Table:                  memberinvite.ValidColumn,
 			memberrole.Table:                    memberrole.ValidColumn,
@@ -140,7 +137,6 @@ func checkColumn(t, c string) error {
 			permission.Table:                    permission.ValidColumn,
 			role.Table:                          role.ValidColumn,
 			rolepermission.Table:                rolepermission.ValidColumn,
-			sftpaudit.Table:                     sftpaudit.ValidColumn,
 			sshcommand.Table:                    sshcommand.ValidColumn,
 			sshcommandaudit.Table:               sshcommandaudit.ValidColumn,
 			systemmessage.Table:                 systemmessage.ValidColumn,

@@ -177,18 +177,6 @@ func (f EmailLoginCodeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EmailLoginCodeMutation", m)
 }
 
-// The K8sProxyAuditFunc type is an adapter to allow the use of ordinary
-// function as K8sProxyAudit mutator.
-type K8sProxyAuditFunc func(context.Context, *ent.K8sProxyAuditMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f K8sProxyAuditFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.K8sProxyAuditMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.K8sProxyAuditMutation", m)
-}
-
 // The MemberFunc type is an adapter to allow the use of ordinary
 // function as Member mutator.
 type MemberFunc func(context.Context, *ent.MemberMutation) (ent.Value, error)
@@ -367,18 +355,6 @@ func (f RolePermissionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RolePermissionMutation", m)
-}
-
-// The SFTPAuditFunc type is an adapter to allow the use of ordinary
-// function as SFTPAudit mutator.
-type SFTPAuditFunc func(context.Context, *ent.SFTPAuditMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f SFTPAuditFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.SFTPAuditMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SFTPAuditMutation", m)
 }
 
 // The SSHCommandFunc type is an adapter to allow the use of ordinary

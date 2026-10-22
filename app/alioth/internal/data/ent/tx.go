@@ -40,8 +40,6 @@ type Tx struct {
 	Datasource *DatasourceClient
 	// EmailLoginCode is the client for interacting with the EmailLoginCode builders.
 	EmailLoginCode *EmailLoginCodeClient
-	// K8sProxyAudit is the client for interacting with the K8sProxyAudit builders.
-	K8sProxyAudit *K8sProxyAuditClient
 	// Member is the client for interacting with the Member builders.
 	Member *MemberClient
 	// MemberInvite is the client for interacting with the MemberInvite builders.
@@ -72,8 +70,6 @@ type Tx struct {
 	Role *RoleClient
 	// RolePermission is the client for interacting with the RolePermission builders.
 	RolePermission *RolePermissionClient
-	// SFTPAudit is the client for interacting with the SFTPAudit builders.
-	SFTPAudit *SFTPAuditClient
 	// SSHCommand is the client for interacting with the SSHCommand builders.
 	SSHCommand *SSHCommandClient
 	// SSHCommandAudit is the client for interacting with the SSHCommandAudit builders.
@@ -233,7 +229,6 @@ func (tx *Tx) init() {
 	tx.Captcha = NewCaptchaClient(tx.config)
 	tx.Datasource = NewDatasourceClient(tx.config)
 	tx.EmailLoginCode = NewEmailLoginCodeClient(tx.config)
-	tx.K8sProxyAudit = NewK8sProxyAuditClient(tx.config)
 	tx.Member = NewMemberClient(tx.config)
 	tx.MemberInvite = NewMemberInviteClient(tx.config)
 	tx.MemberRole = NewMemberRoleClient(tx.config)
@@ -249,7 +244,6 @@ func (tx *Tx) init() {
 	tx.Permission = NewPermissionClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.RolePermission = NewRolePermissionClient(tx.config)
-	tx.SFTPAudit = NewSFTPAuditClient(tx.config)
 	tx.SSHCommand = NewSSHCommandClient(tx.config)
 	tx.SSHCommandAudit = NewSSHCommandAuditClient(tx.config)
 	tx.SystemMessage = NewSystemMessageClient(tx.config)

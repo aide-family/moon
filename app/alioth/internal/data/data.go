@@ -38,7 +38,6 @@ var ProviderSet = wire.NewSet(
 	NewWorkerRepo,
 	NewAgentRepo,
 	NewSSHCommandRepo,
-	NewEdgeAuditRepo,
 	NewLock,
 	NewReadiness,
 	NewPartitionRepo,

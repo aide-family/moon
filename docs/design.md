@@ -14,7 +14,7 @@ Moon 是 Kratos 单仓，四个服务各自持有存储（默认 SQLite，可换
 | goddess（嫦娥）   | 邮箱验证码登录、OAuth2、用户、Namespace、成员角色枚举 | `alioth` 的身份与租户，并增加注册、密码登录和 RBAC                      |
 | marksman（后羿）  | 数据源、策略组、策略、级别、实时/历史告警；进程内评测指标规则    | 配置与事件在 `alioth`；评测在 `megrez`                          |
 | rabbit（玉兔）    | 邮件、Webhook、模板、收件人组、发送与消息日志         | 配置与任务在 `alioth`；投递在 `merak`                           |
-| jade_tree（玉树） | 机器信息上报、SSH 命令审核与执行                 | `alkaid`；连接方向改为 Agent 出站，并增加 SFTP 与 Kubernetes API 代理 |
+| jade_tree（玉树） | 机器信息上报、SSH 命令审核与执行                 | `alkaid`；连接方向改为 Agent 出站 |
 | moon-web      | 微前端壳和四个子应用                         | 一个 `web` 应用                                           |
 
 
@@ -22,7 +22,7 @@ Moon 是 Kratos 单仓，四个服务各自持有存储（默认 SQLite，可换
 
 - 后台：注册、登录、用户、角色、权限、多租户
 - 告警：多数据源、多类型数据源、规则、规则组、通知组、通知方式、实时告警与历史告警
-- 边缘：主机 SSH、SFTP、Kubernetes API 代理
+- 边缘：主机 SSH 与 Web Shell
 - Web 管理台
 
 本期不做：
@@ -39,7 +39,7 @@ Moon 里已有、Alioth 改变边界的事实：
 - goddess 没有密码注册和密码登录，成员只有 `MemberRole`（MEMBER / OWNER / ADMIN / VIEW），没有权限表，业务接口也没有按角色拦截
 - marksman 的数据源类型含 METRICS、LOGS、TRACE，评测实现只有指标。LOGS 驱动为 Elasticsearch，TRACE 驱动为 Jaeger
 - marksman 与 rabbit 用进程内 channel 传递评测结果和发送任务，服务间没有消息队列
-- jade_tree 没有 SFTP、没有 Kubernetes API 代理、没有独立心跳 RPC。机器在线靠 `POST /v1/machine-info/report`。控制面按 Agent 的 endpoint 回拨 HTTP
+- jade_tree 没有独立心跳 RPC。机器在线靠 `POST /v1/machine-info/report`。控制面按 Agent 的 endpoint 回拨 HTTP
 
 
 
@@ -79,8 +79,7 @@ flowchart LR
   merak -->|"claim and report"| alioth
   alkaid -->|"outbound stream"| alioth
   megrez --> ds
-  alkaid --> hostSSH[Host SSH and SFTP]
-  alkaid --> k8sAPI[Kubernetes API]
+  alkaid --> hostSSH[Host SSH]
 ```
 
 
@@ -184,7 +183,7 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 | -------- | ---------------------------------------- |
 | `owner`  | 该 Namespace 的全部权限，含删除 Namespace、移交 owner |
 | `admin`  | 管理资源。不含删除 Namespace、移交 owner             |
-| `member` | 查看配置；处理告警；使用已授权的 SSH、SFTP、Kubernetes 代理  |
+| `member` | 查看配置；处理告警；使用已授权的 SSH 与 Web Shell  |
 | `viewer` | 只读                                       |
 
 
@@ -201,7 +200,7 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 系统权限目录：`system:user:read`、`system:user:write`、`system:role:read`、`system:role:write`、`system:invite:read`。其中 `system:user:read` 决定用户列表可见性；`system:role:write` 只授予超级管理员。
 
 
-租户权限按资源划分：`member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`agent`、`ssh`、`sftp`、`k8s`。动作至少包含 `read` 与 `write`；告警另有 `intervene`；SFTP 分开 `sftp:read` 与 `sftp:write`；执行动作为 `ssh:exec` 与 `k8s:proxy`。`user` 是平台资源，不进入租户权限目录。具体权限名在 proto 枚举中定稿。Web 菜单分别按系统权限和当前用户在当前 Namespace 的租户权限生成。Moon Web 的菜单是前端写死的，没有路由级权限。
+租户权限按资源划分：`member`、`role`、`namespace`、`datasource`、`alert_rule`、`alert`、`notification`、`agent`、`ssh`。动作至少包含 `read` 与 `write`；告警另有 `intervene`；执行动作为 `ssh:exec`。`user` 是平台资源，不进入租户权限目录。具体权限名在 proto 枚举中定稿。Web 菜单分别按系统权限和当前用户在当前 Namespace 的租户权限生成。Moon Web 的菜单是前端写死的，没有路由级权限。
 
 认证：
 
@@ -335,7 +334,7 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 ## 6. 边缘 Agent
 
-`alkaid` 部署在目标机器上，或者部署在目标 Kubernetes 集群里。它主动连接 `alioth:9000`，用 Agent 令牌建立双向流。SSH、SFTP、Kubernetes API 代理都走这条流。
+`alkaid` 部署在目标机器上，或者部署在目标 Kubernetes 集群里。它主动连接 `alioth:9000`，用 Agent 令牌建立双向流。SSH 与 Web Shell 都走这条流。
 
 `alioth` 多副本时，Agent 对每个副本各建一条流。Kubernetes 内把地址指向无头 Service，集群外把多个控制面地址用逗号分隔。这样任意副本都能直接执行该 Agent 的请求，不依赖负载均衡把请求恰好送到持有那条流的副本。副本扩缩容时 Agent 每 30 秒重新解析一次地址，自动补建或释放流。
 
@@ -359,20 +358,10 @@ Moon 的玉树由控制面根据上报的 endpoint 回拨 Agent。边缘网络�
 
 Moon 的下发计数和按 endpoint 派发（`/v1/ssh-command-actions/dispatch`）由「选择在线 Agent」替代。
 
-### 6.3 SFTP
-
-SFTP 是新增能力。操作限于：列目录、上传、下载、建目录、删除。`sftp:read` 覆盖列目录和下载，`sftp:write` 覆盖上传、建目录和删除。每次操作写入 `SFTPAudit`（操作者、Agent、路径、动作、结果）。文件字节流经 `alioth` 转发，不在玉衡落盘。
-
-### 6.4 Kubernetes API 代理
-
-Kubernetes API 代理是新增能力。Agent 使用挂载的 kubeconfig，或在集群内使用 ServiceAccount。浏览器和 `megrez` 都不直连 API Server。
-
-路径是：浏览器到 Web nginx，到 `alioth`，到该 Agent 的流，到 API Server。`alioth` 检查 `k8s:proxy`，把操作者、动词、资源、命名空间写入 `K8sProxyAudit`，再转发。Agent 令牌不能绕过这个权限。代理不是对公网开放的端口。
-
-### 6.5 安装形态
+### 6.3 安装形态
 
 - 单机：systemd 单元，类似玉树的 RPM / systemd 安装方式。配置里只有 `alioth` 的 gRPC 地址和 Agent 令牌
-- Kubernetes：Deployment 或需要节点文件能力时的 DaemonSet。集群内访问 API Server 时使用 ServiceAccount
+- Kubernetes：Deployment，或需要访问节点文件能力时的 DaemonSet
 
 
 
@@ -391,7 +380,7 @@ Kubernetes API 代理是新增能力。Agent 使用挂载的 kubeconfig，或在
 | 租户与权限 | Namespace、用户、成员、角色与权限           |
 | 告警    | 数据源、规则组与规则、告警字典、告警页面、实时告警、历史告警 |
 | 通知    | 通知渠道、模板、通知组、告警订阅、消息日志            |
-| 边缘    | 机器、SSH 命令与审计、SFTP、Kubernetes 代理 |
+| 边缘    | 机器、SSH 命令与审计、Web Shell |
 
 
 数据源的指标查询区需要表达式编辑器，交互对应 Moon Web 数据源页上的 PromQL 快查。规则编辑保存指标表达式和级别条件。实时告警支持筛选、详情、介入、抑制和恢复；页内用 Tab 切换「我的告警」与用户选定的告警页面。表格列可自定义：内置字段列和事件标签列都可以作为列，列名支持别名，标签列没有别名时显示标签键并渲染该标签的值；`AlertEventColumn` 按用户和视图（`mine` 或告警页面 UID）固化列配置。抑制需要选择时长，提供 5 分钟到 24 小时的常用梯度和自定义输入，限制在 1 分钟到 30 天，到期后事件自动回到实时列表。告警页面按标签匹配过滤实时事件，标签值按完整匹配正则命中；可设公开供同租户他人选用。事件标签附带数据源名称、告警等级名称和数据源等级名称，规则列表与实时告警详情用同一种表达式展示块。
@@ -448,8 +437,6 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 | ------------- | ---------------------------------------- |
 | 注册与密码登录       | 注册、密码登录                                  |
 | 角色与权限         | 角色的增删改查与启停；为角色分配权限；为成员分配角色；读取当前用户权限供菜单使用 |
-| SFTP          | 列目录、上传、下载、建目录、删除；查询 `SFTPAudit`          |
-| Kubernetes 代理 | 经指定 Agent 转发 API 请求；查询 `K8sProxyAudit`   |
 | Agent         | 签发与吊销令牌；列表与详情（含在线状态）。注册和心跳不走浏览器 HTTP     |
 | 告警页面          | CRUD；公开/私有；个人实时 Tab 订阅。按标签匹配过滤实时告警，标签值支持完整匹配正则。与 Moon 通知订阅无关 |
 | 我的告警          | 实时列表筛选：订阅下的通知组包含当前成员，或 `receivers` 含当前用户邮箱或 UID           |
@@ -474,7 +461,7 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 `api/alioth/v1` 中的 Agent 双向流，调用者 `alkaid`：
 
 - 注册与心跳
-- 接收 SSH、SFTP、Kubernetes 代理帧并回传结果
+- 接收 SSH 命令与终端帧并回传结果
 
 调用方使用 service key 或 Agent 令牌。用户 JWT 不能调用领取类内部方法。
 
@@ -515,7 +502,7 @@ flowchart TB
 - SMTP 密码、Webhook 密钥、数据源凭据、SSH 凭据以加密字段入库
 - 控制面与 `megrez`、`merak`、`alkaid` 的 gRPC 支持可选 TLS/mTLS；边缘 SSH 支持 known_hosts 校验。默认保持明文/不校验以兼容现有部署，生产按部署文档开启
 - 用户密码只保存哈希。Moon 的 `magicbox/password` 已有哈希能力，Alioth 把它用在注册和密码登录上
-- SSH、SFTP、Kubernetes 代理写入审计，审计记录不可由普通成员删除
+- SSH 命令与终端操作写入审计，审计记录不可由普通成员删除
 - Agent 令牌可吊销。吊销后已建立的流在下一次心跳被 `alioth` 关闭
 - 服务间 service key 按调用方分开，可轮换
 
@@ -529,6 +516,6 @@ flowchart TB
 
 通知：`NotificationChannel`、`NotificationTemplate`、`NotificationGroup`、`NotificationTask`、`MessageLog`。
 
-边缘：`Agent`、`SSHCommand`、`SSHCommandAudit`、`SFTPAudit`、`K8sProxyAudit`。
+边缘：`Agent`、`SSHCommand`、`SSHCommandAudit`。
 
 以上业务表都在 `alioth` 的 ent schema 中。除平台级的 `User`、`UserOAuth` 和全局维护的租户权限定义 `Permission` 外，业务表带 `namespace_uid`。系统权限不建表，由代码目录维护。

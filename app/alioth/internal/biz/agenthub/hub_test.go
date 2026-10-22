@@ -58,30 +58,6 @@ func TestDropRemovesPendingResult(t *testing.T) {
 	}
 }
 
-func TestSendSFTPAndK8sRegisterResults(t *testing.T) {
-	hub := NewHub()
-	session := NewSession("agent-1", "ns-1")
-	hub.Put(session)
-
-	sftpCh, err := hub.SendSFTP("agent-1", &v1.AgentFrame{SftpRequest: &v1.AgentSFTPRequest{RequestUid: "sftp-1"}})
-	if err != nil {
-		t.Fatalf("send sftp: %v", err)
-	}
-	session.DeliverSFTP(&v1.AgentSFTPResult{RequestUid: "sftp-1", Ok: true})
-	if result := <-sftpCh; !result.GetOk() {
-		t.Fatal("sftp result was not delivered")
-	}
-
-	k8sCh, err := hub.SendK8s("agent-1", &v1.AgentFrame{K8SRequest: &v1.AgentK8SRequest{RequestUid: "k8s-1"}})
-	if err != nil {
-		t.Fatalf("send k8s: %v", err)
-	}
-	session.DeliverK8s(&v1.AgentK8SResult{RequestUid: "k8s-1", StatusCode: 200})
-	if result := <-k8sCh; result.GetStatusCode() != 200 {
-		t.Fatal("k8s result was not delivered")
-	}
-}
-
 func TestCloseAllClosesEverySession(t *testing.T) {
 	hub := NewHub()
 	first := NewSession("agent-1", "ns-1")
@@ -112,23 +88,9 @@ func TestCloseFailsPendingResults(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	sftpCh, err := hub.SendSFTP("agent-1", &v1.AgentFrame{SftpRequest: &v1.AgentSFTPRequest{RequestUid: "sftp-1"}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	k8sCh, err := hub.SendK8s("agent-1", &v1.AgentFrame{K8SRequest: &v1.AgentK8SRequest{RequestUid: "k8s-1"}})
-	if err != nil {
-		t.Fatal(err)
-	}
 	hub.Remove("agent-1", session)
 
 	if result := <-execCh; result.GetError() == "" {
 		t.Fatal("pending exec result was not failed")
-	}
-	if result := <-sftpCh; result.GetError() == "" {
-		t.Fatal("pending sftp result was not failed")
-	}
-	if result := <-k8sCh; result.GetError() == "" {
-		t.Fatal("pending k8s result was not failed")
 	}
 }

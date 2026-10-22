@@ -230,12 +230,6 @@ func (uc *Usecase) handleFrame(ctx context.Context, agent *bo.Agent, session *ag
 	case frame.GetExecResult() != nil:
 		session.DeliverResult(frame.GetExecResult())
 		return nil
-	case frame.GetSftpResult() != nil:
-		session.DeliverSFTP(frame.GetSftpResult())
-		return nil
-	case frame.GetK8SResult() != nil:
-		session.DeliverK8s(frame.GetK8SResult())
-		return nil
 	case frame.GetShellData() != nil:
 		session.DeliverShell(frame.GetShellData().GetSessionUid(), frame.GetShellData().GetData())
 		return nil

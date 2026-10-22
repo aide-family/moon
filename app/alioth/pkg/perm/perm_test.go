@@ -26,9 +26,6 @@ func TestRoleBoundaries(t *testing.T) {
 	if _, ok := member[SSHExec]; !ok {
 		t.Fatal("member missing exec permissions")
 	}
-	if _, ok := member["sftp:write"]; !ok {
-		t.Fatal("member missing sftp write")
-	}
 	if _, ok := viewer[SSHExec]; ok {
 		t.Fatal("viewer has exec permission")
 	}

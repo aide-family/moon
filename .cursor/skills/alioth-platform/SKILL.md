@@ -18,7 +18,7 @@ description: >-
 | `alioth` | 玉衡。唯一写入 PostgreSQL 的控制面 |
 | `megrez` | 天权。只评测告警规则 |
 | `merak` | 天璇。只投递通知 |
-| `alkaid` | 摇光。出站连接 `alioth:9000`，执行 SSH、SFTP、Kubernetes 代理 |
+| `alkaid` | 摇光。出站连接 `alioth:9000`，执行 SSH 与 Web Shell |
 | `web` | 集群外唯一入口 |
 
 ## 端口

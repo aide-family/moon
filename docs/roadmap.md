@@ -1,6 +1,6 @@
 # Alioth 迭代与验收
 
-本文把 [设计文档](design.md) 拆成十个可独立验收的里程碑。M9 是在 M1 身份模型上的平台化调整。后一步只叠加能力，不把业务数据从玉衡挪走，也不把 Redis 改成缓存或队列。不估工期。
+本文把 [设计文档](design.md) 拆成九个可独立验收的里程碑。M9 是在 M1 身份模型上的平台化调整。后一步只叠加能力，不把业务数据从玉衡挪走，也不把 Redis 改成缓存或队列。不估工期。
 
 通用规范见 [iterations/conventions.md](iterations/conventions.md)。每步的开发细则和可勾选验收：
 
@@ -10,7 +10,6 @@
 - [M3 天权评测](iterations/m3.md)
 - [M4 天璇通知](iterations/m4.md)
 - [M5 摇光 SSH](iterations/m5.md)
-- [M6 SFTP 与 Kubernetes 代理](iterations/m6.md)
 - [M7 多副本部署](iterations/m7.md)
 - [M8 通知增强](iterations/m8.md)
 - [M9 平台用户与邀请确认](iterations/m9.md)
@@ -41,20 +40,18 @@ flowchart LR
   m3[M3 天权评测]
   m4[M4 天璇通知]
   m5[M5 摇光 SSH]
-  m6[M6 SFTP 与 Kubernetes]
   m7[M7 多副本部署]
   m8[M8 通知增强]
   m9[M9 平台用户与邀请确认]
   m0 --> m1 --> m2 --> m3 --> m4
-  m1 --> m5 --> m6
+  m1 --> m5
   m1 --> m9
   m3 --> m7
   m4 --> m7
   m4 --> m8
-  m6 --> m7
 ```
 
-M5 依赖 M1 的身份与权限，不依赖告警评测。M9 补齐 M1 的平台用户和邀请确认模型。M7 在 M3、M4、M6 都通过之后做整平台的多副本验收。
+M5 依赖 M1 的身份与权限，不依赖告警评测。M9 补齐 M1 的平台用户和邀请确认模型。M7 在 M3、M4、M5 都通过之后做整平台的多副本验收。
 
 ## M0 骨架
 
@@ -205,33 +202,11 @@ M5 依赖 M1 的身份与权限，不依赖告警评测。M9 补齐 M1 的平台
 5. 没有 `ssh:exec` 的用户不能执行。`viewer` 只能查看命令和审计。
 6. 用户 JWT 不能打开 Agent 流。Agent 令牌不能调用 Namespace、用户或规则接口。
 
-## M6 SFTP 与 Kubernetes 代理
-
-目标：同一条出站流上增加文件操作和 Kubernetes API 转发，并留下审计。
-
-依赖：M5。
-
-交付：
-
-- 实体：`SFTPAudit`、`K8sProxyAudit`
-- SFTP：列目录、上传、下载、建目录、删除。`sftp:read` 覆盖列目录和下载，`sftp:write` 覆盖上传、建目录和删除
-- Kubernetes 代理：Agent 使用 kubeconfig 或集群内 ServiceAccount。浏览器经 Web 到 `alioth`，再经 Agent 流到 API Server
-- Web 页面：SFTP、Kubernetes 代理
-
-验收：
-
-1. 只有 `sftp:read` 的用户可以列目录和下载，上传、建目录、删除被拒绝。补上 `sftp:write` 后这三项成功。
-2. 每次 SFTP 操作都有 `SFTPAudit`，含操作者、Agent、路径、动作和结果。
-3. 上传一个文件后再下载。字节经 `alioth` 转发，玉衡磁盘上没有该文件的副本。
-4. 没有 `k8s:proxy` 的用户转发 API 请求被拒绝。有权限时请求到达 API Server，`K8sProxyAudit` 含操作者、动词、资源和命名空间。
-5. Agent 令牌不能直接调用代理接口来绕过 `k8s:proxy`。
-6. 目标 Agent 离线时，SFTP 和代理都立即失败。
-
 ## M7 多副本部署
 
 目标：控制面和两个工作进程可以多副本运行，集群外仍然只有 Web。
 
-依赖：M3、M4、M6。
+依赖：M3、M4、M5。
 
 交付：
 
@@ -247,7 +222,7 @@ M5 依赖 M1 的身份与权限，不依赖告警评测。M9 补齐 M1 的平台
 3. 从集群外只能访问 `web` 的 8080。8000、8001、8002、8022、9000、9022 都不可达。
 4. 集群内探针可以访问 `megrez:8001/readyz` 和 `merak:8002/readyz`。
 5. 按 systemd 说明安装一台 `alkaid`，以及按 Kubernetes 说明安装一个 `alkaid`。两者都出站注册到 `alioth:9000`，并在机器页显示在线。
-6. 抽查一条数据源密钥、一条渠道密钥和一条用户记录：库里没有明文密码。SSH、SFTP、Kubernetes 审计不能被 `member` 或 `viewer` 删除。
+6. 抽查一条数据源密钥、一条渠道密钥和一条用户记录：库里没有明文密码。SSH 审计不能被 `member` 或 `viewer` 删除。
 
 ## M9 平台用户与邀请确认
 
@@ -274,4 +249,4 @@ M5 依赖 M1 的身份与权限，不依赖告警评测。M9 补齐 M1 的平台
 
 ## 完成标准
 
-M0 到 M9 的验收全部通过，并且没有把本期不做的能力做进主干。此时平台满足设计文档：浏览器只访问 Web，业务数据在玉衡，天权评测，天璇按告警订阅路由并投递，摇光出站执行 SSH、SFTP 和 Kubernetes API 代理，多副本互斥用 Redis 锁。
+各里程碑的验收全部通过，并且没有把本期不做的能力做进主干。此时平台满足设计文档：浏览器只访问 Web，业务数据在玉衡，天权评测，天璇按告警订阅路由并投递，摇光出站执行 SSH 与 Web Shell，多副本互斥用 Redis 锁。

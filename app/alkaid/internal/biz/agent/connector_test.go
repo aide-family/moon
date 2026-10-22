@@ -2,7 +2,6 @@ package agent
 
 import (
 	"fmt"
-	"net/url"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -49,57 +48,6 @@ func TestExecExpandsHomeWorkdir(t *testing.T) {
 	}
 	if got := strings.TrimSpace(result.GetOutput()); got != canonicalHome {
 		t.Fatalf("output = %q, want home directory %q", got, canonicalHome)
-	}
-}
-
-func TestK8STargetRejectsHostInjection(t *testing.T) {
-	base, err := url.Parse("https://kubernetes.default.svc")
-	if err != nil {
-		t.Fatal(err)
-	}
-	bad := []string{
-		"",
-		"api/v1/pods",
-		"@evil.example/x",
-		"//evil.example/x",
-		"https://evil.example/x",
-		"/api/../secrets",
-		`/api\v1\pods`,
-	}
-	for _, path := range bad {
-		if _, err := k8sTarget(base, path, ""); err == nil {
-			t.Fatalf("k8sTarget(%q) accepted an unsafe path", path)
-		}
-	}
-}
-
-func TestK8STargetKeepsBaseHost(t *testing.T) {
-	base, err := url.Parse("https://kubernetes.default.svc")
-	if err != nil {
-		t.Fatal(err)
-	}
-	target, err := k8sTarget(base, "/api/v1/pods", "labelSelector=app%3Dapi")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if target.Host != "kubernetes.default.svc" || target.Scheme != "https" {
-		t.Fatalf("target = %s", target)
-	}
-	if target.Path != "/api/v1/pods" || target.RawQuery != "labelSelector=app%3Dapi" {
-		t.Fatalf("target = %s", target)
-	}
-}
-
-func TestK8SAllowedHeader(t *testing.T) {
-	for _, name := range []string{"Accept", "content-type", "Accept-Encoding"} {
-		if !k8sAllowedHeader(name) {
-			t.Fatalf("%s should be allowed", name)
-		}
-	}
-	for _, name := range []string{"Authorization", "Host", "Impersonate-User", "X-Forwarded-For"} {
-		if k8sAllowedHeader(name) {
-			t.Fatalf("%s should be rejected", name)
-		}
 	}
 }
 

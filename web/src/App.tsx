@@ -24,8 +24,6 @@ import { NotificationTemplatePage } from "@/pages/notification-template"
 import { ProfilePage } from "@/pages/profile"
 import { RegisterPage } from "@/pages/register"
 import { RolePage } from "@/pages/role"
-import { K8sPage } from "@/pages/k8s"
-import { SFTPPage } from "@/pages/sftp"
 import { SSHCommandPage } from "@/pages/ssh-command"
 import { SSHCommandResultsPage } from "@/pages/ssh-command/results"
 import { UserPage } from "@/pages/user"
@@ -63,8 +61,6 @@ export function App() {
         <Route path="/agents/:uid/shell" element={<AgentShellPage />} />
         <Route path="/ssh-commands" element={<SSHCommandPage />} />
         <Route path="/ssh-commands/:uid/results" element={<SSHCommandResultsPage />} />
-        <Route path="/sftp" element={<SFTPPage />} />
-        <Route path="/k8s" element={<K8sPage />} />
       </Route>
     </Routes>
   )
