@@ -16,15 +16,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { failureMessage } from "@/lib/form-error"
 import {
+  LogResultTable,
+  StatResult,
+  type ResultLogRow,
+} from "@/pages/datasource/result-view"
+import { formatResultTimestamp } from "@/pages/datasource/result-data"
+import {
   extractLokiResult,
-  formatLokiLabels,
+  lokiResultStat,
+  lokiResultView,
+  lokiTableRows,
   parseLokiBody,
   toLokiRows,
   type LokiLogRow,
+  type LokiTableRow,
 } from "@/pages/datasource/loki"
 import { resolveRange, type RangePreset } from "@/pages/datasource/range"
 
@@ -33,21 +49,28 @@ type ResultTab = "logs" | "graph" | "json"
 
 const MAX_LOG_LIMIT = 5000
 
-function formatTimestamp(timestamp: number): string {
-  if (!timestamp) {
-    return "—"
-  }
-  const date = new Date(timestamp)
-  const pad = (value: number, size = 2) => String(value).padStart(size, "0")
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}`
+function lokiLogRows(rows: LokiLogRow[]): ResultLogRow[] {
+  return rows.map((row) => ({
+    key: row.key,
+    time: formatResultTimestamp(row.timestamp),
+    line: row.line || "—",
+    labels: Object.entries(row.labels).map(([key, value]) => ({ key, value })),
+  }))
 }
 
-function LogTable({ rows }: { rows: LokiLogRow[] }) {
+// 无法归类的返回形状（例如非数值 matrix）保留表格兜底，
+// 日志和数值结果分别交给共用视图。
+function LokiResultTable({ rows }: { rows: LokiTableRow[] }) {
   const { t } = useTranslation()
-  const stickyHead = "sticky top-0 z-20 bg-background shadow-[inset_0_-1px_0_0_hsl(var(--border))]"
+  const stickyHead =
+    "sticky top-0 z-20 bg-background shadow-[inset_0_-1px_0_0_hsl(var(--border))]"
 
   if (rows.length === 0) {
-    return <p className="text-sm text-muted-foreground">{t("datasource.logsEmpty")}</p>
+    return (
+      <p className="text-sm text-muted-foreground">
+        {t("datasource.queryEmpty")}
+      </p>
+    )
   }
 
   return (
@@ -55,26 +78,30 @@ function LogTable({ rows }: { rows: LokiLogRow[] }) {
       <Table className="w-full">
         <TableHeader>
           <TableRow>
+            <TableHead className={`${stickyHead} w-64 whitespace-nowrap`}>
+              {t("datasource.resultSeries")}
+            </TableHead>
             <TableHead className={`${stickyHead} w-48 whitespace-nowrap`}>
               {t("datasource.resultTime")}
             </TableHead>
-            <TableHead className={`${stickyHead} w-64 whitespace-nowrap`}>
-              {t("datasource.logsStream")}
+            <TableHead className={`${stickyHead} whitespace-nowrap`}>
+              {t("datasource.resultValue")}
             </TableHead>
-            <TableHead className={`${stickyHead} whitespace-nowrap`}>{t("datasource.logsLine")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {rows.map((row) => (
             <TableRow key={row.key} className="align-top">
-              <TableCell className="whitespace-nowrap align-top font-mono text-xs text-muted-foreground">
-                {formatTimestamp(row.timestamp)}
-              </TableCell>
               <TableCell className="max-w-64 align-top font-mono text-xs text-muted-foreground">
-                <pre className="whitespace-pre-wrap break-all">{formatLokiLabels(row.labels)}</pre>
+                <pre className="break-all whitespace-pre-wrap">
+                  {row.series}
+                </pre>
               </TableCell>
-              <TableCell className="align-top font-mono text-xs">
-                <pre className="whitespace-pre-wrap break-all">{row.line}</pre>
+              <TableCell className="align-top font-mono text-xs whitespace-nowrap text-muted-foreground">
+                {row.time || "—"}
+              </TableCell>
+              <TableCell className="text-right align-top font-mono text-xs tabular-nums">
+                {row.value || "—"}
               </TableCell>
             </TableRow>
           ))}
@@ -105,7 +132,20 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
     parsedResponse?.status === "success" && resultType === "matrix"
   const rows = useMemo(
     () => toLokiRows(parsedResponse, direction),
-    [direction, parsedResponse],
+    [direction, parsedResponse]
+  )
+  const resultView = useMemo(
+    () => lokiResultView(parsedResponse),
+    [parsedResponse]
+  )
+  const statResult = useMemo(
+    () => lokiResultStat(parsedResponse),
+    [parsedResponse]
+  )
+  const logRows = useMemo(() => lokiLogRows(rows), [rows])
+  const tableRows = useMemo(
+    () => lokiTableRows(parsedResponse, direction),
+    [direction, parsedResponse]
   )
   const jsonText = useMemo(() => {
     if (!body) {
@@ -121,6 +161,14 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
     }
   }, [body, parsedResponse])
 
+  const resultTabLabel = !body
+    ? t("enum.LOGS")
+    : resultView === "value"
+      ? t("datasource.statsValue")
+      : resultView === "table"
+        ? t("datasource.resultTable")
+        : t("enum.LOGS")
+
   async function runQuery() {
     const trimmed = expr.trim()
     if (!trimmed) {
@@ -130,7 +178,11 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
     }
     setExprError("")
     const range = resolveRange(rangePreset, customStart, customEnd)
-    if (!Number.isFinite(range.start) || !Number.isFinite(range.end) || range.end <= range.start) {
+    if (
+      !Number.isFinite(range.start) ||
+      !Number.isFinite(range.end) ||
+      range.end <= range.start
+    ) {
       setQueryError(t("datasource.rangeInvalid"))
       return
     }
@@ -153,13 +205,7 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
       })
       const queryResponse = parseLokiBody(response.body)
       setBody(response.body)
-      setResultTab(
-        queryResponse?.status === "success" && queryResponse.data?.resultType === "streams"
-          ? "logs"
-          : queryResponse?.status === "success" && queryResponse.data?.resultType === "matrix"
-            ? "graph"
-            : "json",
-      )
+      setResultTab(queryResponse?.status === "success" ? "logs" : "json")
     } catch (err) {
       setBody("")
       setResultTab("logs")
@@ -213,12 +259,28 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
       >
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
           <div className="flex flex-nowrap items-center gap-2">
-            <Select value={rangePreset} onValueChange={(value) => setRangePreset(value as RangePreset)}>
-              <SelectTrigger className="w-36 shrink-0" aria-label={t("datasource.rangePreset")}>
+            <Select
+              value={rangePreset}
+              onValueChange={(value) => setRangePreset(value as RangePreset)}
+            >
+              <SelectTrigger
+                className="w-36 shrink-0"
+                aria-label={t("datasource.rangePreset")}
+              >
                 <SelectValue placeholder={t("datasource.rangePreset")} />
               </SelectTrigger>
               <SelectContent>
-                {(["1h", "3h", "6h", "12h", "1d", "7d", "custom"] as RangePreset[]).map((item) => (
+                {(
+                  [
+                    "1h",
+                    "3h",
+                    "6h",
+                    "12h",
+                    "1d",
+                    "7d",
+                    "custom",
+                  ] as RangePreset[]
+                ).map((item) => (
                   <SelectItem key={item} value={item}>
                     {t(`datasource.preset.${item}`)}
                   </SelectItem>
@@ -248,16 +310,31 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
               placeholder={t("datasource.logsLimit")}
               onChange={(event) => setLimit(event.target.value)}
             />
-            <Select value={direction} onValueChange={(value) => setDirection(value as LogDirection)}>
-              <SelectTrigger className="w-32 shrink-0" aria-label={t("datasource.logsDirection")}>
+            <Select
+              value={direction}
+              onValueChange={(value) => setDirection(value as LogDirection)}
+            >
+              <SelectTrigger
+                className="w-32 shrink-0"
+                aria-label={t("datasource.logsDirection")}
+              >
                 <SelectValue placeholder={t("datasource.logsDirection")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="backward">{t("datasource.logsDirectionBackward")}</SelectItem>
-                <SelectItem value="forward">{t("datasource.logsDirectionForward")}</SelectItem>
+                <SelectItem value="backward">
+                  {t("datasource.logsDirectionBackward")}
+                </SelectItem>
+                <SelectItem value="forward">
+                  {t("datasource.logsDirectionForward")}
+                </SelectItem>
               </SelectContent>
             </Select>
-            <Button type="button" className="shrink-0" disabled={pending} onClick={() => void runQuery()}>
+            <Button
+              type="button"
+              className="shrink-0"
+              disabled={pending}
+              onClick={() => void runQuery()}
+            >
               {t("datasource.runQuery")}
             </Button>
             <Button
@@ -271,11 +348,11 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
             </Button>
           </div>
           <TabsList className="shrink-0">
-            {!body || resultType === "streams" ? (
-              <TabsTrigger value="logs">{t("enum.LOGS")}</TabsTrigger>
-            ) : null}
+            <TabsTrigger value="logs">{resultTabLabel}</TabsTrigger>
             {isMetricMatrix ? (
-              <TabsTrigger value="graph">{t("datasource.resultGraph")}</TabsTrigger>
+              <TabsTrigger value="graph">
+                {t("datasource.resultGraph")}
+              </TabsTrigger>
             ) : null}
             <TabsTrigger value="json">{t("datasource.resultJson")}</TabsTrigger>
           </TabsList>
@@ -285,11 +362,31 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
             {t("datasource.statusResult")}: {statusText}
           </p>
         ) : null}
-        {queryError ? <p className="shrink-0 text-sm text-destructive">{queryError}</p> : null}
-        <TabsContent value="logs" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-          {body ? <LogTable rows={rows} /> : null}
+        {queryError ? (
+          <p className="shrink-0 text-sm text-destructive">{queryError}</p>
+        ) : null}
+        <TabsContent
+          value="logs"
+          className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+        >
+          {body ? (
+            resultView === "logs" ? (
+              <LogResultTable key={`${direction}-${body}`} rows={logRows} />
+            ) : resultView === "value" && statResult ? (
+              <StatResult
+                key={`${direction}-${body}`}
+                groups={statResult.groups}
+                fields={statResult.fields}
+              />
+            ) : (
+              <LokiResultTable rows={tableRows} />
+            )
+          ) : null}
         </TabsContent>
-        <TabsContent value="graph" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <TabsContent
+          value="graph"
+          className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+        >
           {isMetricMatrix ? (
             <MetricGraph
               key={body}
@@ -298,7 +395,10 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
             />
           ) : null}
         </TabsContent>
-        <TabsContent value="json" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <TabsContent
+          value="json"
+          className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+        >
           {jsonText ? (
             <pre className="min-h-0 flex-1 overflow-auto rounded-lg border bg-background p-3 font-mono text-xs">
               {jsonText}

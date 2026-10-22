@@ -27,11 +27,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { failureMessage } from "@/lib/form-error"
 import { resolveRange, type RangePreset } from "@/pages/datasource/range"
 import {
+  LogResultTable,
+  StatResult,
+  type ResultLogRow,
+} from "@/pages/datasource/result-view"
+import {
   formatVlogsTimestamp,
   isNumericVlogsColumn,
   parseVlogsBody,
   sortVlogsEntries,
+  vlogsLabelFields,
+  vlogsLogLabels,
+  vlogsMetricFields,
   vlogsResultFields,
+  vlogsResultView,
+  vlogsStatGroups,
   type VlogsLogEntry,
 } from "@/pages/datasource/vlogs"
 
@@ -57,6 +67,14 @@ function vlogsFieldLabel(t: (key: string) => string, field: string): string {
   }
 }
 
+function vlogsTimeLabel(value: string | undefined): string {
+  const raw = value ?? ""
+  const timestamp = Date.parse(raw)
+  return timestamp ? formatVlogsTimestamp(timestamp) : raw || "—"
+}
+
+// VlogsTable 只用于无法归类的返回形状（例如全部是字符串字段），
+// 日志和数值结果分别交给上面的专用视图。
 function VlogsTable({
   entries,
   fields,
@@ -66,7 +84,8 @@ function VlogsTable({
 }) {
   const { t } = useTranslation()
   const numericFields = useMemo(
-    () => new Set(fields.filter((field) => isNumericVlogsColumn(entries, field))),
+    () =>
+      new Set(fields.filter((field) => isNumericVlogsColumn(entries, field))),
     [entries, fields]
   )
   const stickyHead =
@@ -136,9 +155,7 @@ function VlogsTable({
                   <TableCell
                     key={field}
                     className={`align-top font-mono text-xs ${
-                      field === "_msg"
-                        ? ""
-                        : "max-w-64 text-muted-foreground"
+                      field === "_msg" ? "" : "max-w-64 text-muted-foreground"
                     }`}
                   >
                     <pre className="break-all whitespace-pre-wrap">
@@ -175,6 +192,35 @@ export function VlogsPanel({ datasource }: { datasource: DatasourceItem }) {
   const orderedEntries = useMemo(
     () => sortVlogsEntries(entries, direction),
     [entries, direction]
+  )
+  const resultView = useMemo(
+    () => vlogsResultView(entries, fields),
+    [entries, fields]
+  )
+  const logRows = useMemo<ResultLogRow[]>(
+    () =>
+      resultView === "logs"
+        ? orderedEntries.map((entry, index) => ({
+            key: `${entry._time ?? ""}-${index}`,
+            time: vlogsTimeLabel(entry._time),
+            line: entry._msg || "—",
+            labels: vlogsLogLabels(entry),
+          }))
+        : [],
+    [orderedEntries, resultView]
+  )
+  const metricFields = useMemo(
+    () => vlogsMetricFields(entries, fields),
+    [entries, fields]
+  )
+  const statGroups = useMemo(
+    () =>
+      vlogsStatGroups(
+        orderedEntries,
+        metricFields,
+        vlogsLabelFields(fields, metricFields)
+      ),
+    [orderedEntries, metricFields, fields]
   )
   const jsonText = useMemo(() => {
     if (!body) {
@@ -240,6 +286,14 @@ export function VlogsPanel({ datasource }: { datasource: DatasourceItem }) {
       setPending(false)
     }
   }
+
+  const resultTabLabel = !body
+    ? t("enum.LOGS")
+    : resultView === "value"
+      ? t("datasource.statsValue")
+      : resultView === "table"
+        ? t("datasource.resultTable")
+        : t("enum.LOGS")
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
@@ -360,7 +414,7 @@ export function VlogsPanel({ datasource }: { datasource: DatasourceItem }) {
             </Button>
           </div>
           <TabsList className="shrink-0">
-            <TabsTrigger value="logs">{t("enum.LOGS")}</TabsTrigger>
+            <TabsTrigger value="logs">{resultTabLabel}</TabsTrigger>
             <TabsTrigger value="json">{t("datasource.resultJson")}</TabsTrigger>
           </TabsList>
         </div>
@@ -377,7 +431,18 @@ export function VlogsPanel({ datasource }: { datasource: DatasourceItem }) {
           className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
         >
           {body ? (
-            <VlogsTable entries={orderedEntries} fields={fields} />
+            resultView === "logs" ? (
+              <LogResultTable key={`${direction}-${body}`} rows={logRows} />
+            ) : resultView === "value" ? (
+              <StatResult
+                key={`${direction}-${body}`}
+                groups={statGroups}
+                fields={metricFields}
+                fieldLabel={(field) => vlogsFieldLabel(t, field)}
+              />
+            ) : (
+              <VlogsTable entries={orderedEntries} fields={fields} />
+            )
           ) : null}
         </TabsContent>
         <TabsContent

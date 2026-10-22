@@ -11,18 +11,8 @@ import {
   toTimeSeriesGraphSeries,
   type TimeSeriesApiResponse,
 } from "@/pages/datasource/time-series"
+import { chartColor } from "@/lib/chart-colors"
 import { cn } from "@/lib/class-names"
-
-const CHART_COLORS = [
-  "#1677ff",
-  "#52c41a",
-  "#faad14",
-  "#eb2f96",
-  "#13c2c2",
-  "#722ed1",
-  "#fa541c",
-  "#2f54eb",
-]
 
 export interface MetricGraphDomain {
   start: number
@@ -70,10 +60,6 @@ function findNearestPoint(
     }
   }
   return nearest
-}
-
-function seriesColor(index: number): string {
-  return CHART_COLORS[index % CHART_COLORS.length]
 }
 
 export function MetricGraph({
@@ -313,7 +299,7 @@ export function MetricGraph({
                   key={item.name}
                   d={path}
                   fill="none"
-                  stroke={seriesColor(index)}
+                  stroke={chartColor(index)}
                   strokeWidth={1.5}
                 />
               )
@@ -350,7 +336,7 @@ export function MetricGraph({
                     return {
                       name: item.name,
                       value: nearest.value,
-                      color: seriesColor(index),
+                      color: chartColor(index),
                     }
                   })
                   .filter(
@@ -381,7 +367,7 @@ export function MetricGraph({
             </p>
             <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-2 pt-0">
               {series.map((item, index) => {
-                const color = seriesColor(index)
+                const color = chartColor(index)
                 const dimmed = selected.size > 0 && !selected.has(item.name)
                 return (
                   <Tooltip key={item.name}>

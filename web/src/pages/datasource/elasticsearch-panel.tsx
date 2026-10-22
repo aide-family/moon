@@ -15,10 +15,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { failureMessage } from "@/lib/form-error"
+import { formatResultTimestamp } from "@/pages/datasource/result-data"
 import {
+  LogResultTable,
+  StatResult,
+  type ResultLogRow,
+} from "@/pages/datasource/result-view"
+import {
+  elasticsearchAggregationStat,
+  elasticsearchResultView,
   extractElasticsearchResult,
   parseElasticsearchBody,
   toElasticsearchRows,
@@ -32,21 +47,43 @@ type ResultTab = "logs" | "json"
 const MAX_LOG_LIMIT = 5000
 const DEFAULT_QUERY = '{\n  "match_all": {}\n}'
 
-function formatTimestamp(timestamp: number): string {
-  if (!timestamp) {
-    return "—"
-  }
-  const date = new Date(timestamp)
-  const pad = (value: number, size = 2) => String(value).padStart(size, "0")
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}`
+function elasticsearchLogRows(rows: ElasticsearchLogRow[]): ResultLogRow[] {
+  return rows.map((row) => ({
+    key: row.key,
+    time: formatResultTimestamp(row.timestamp),
+    line: row.line || "—",
+    labels: row.labels,
+  }))
 }
 
-function LogTable({ rows }: { rows: ElasticsearchLogRow[] }) {
+function elasticsearchFieldLabel(
+  t: (key: string) => string,
+  field: string
+): string {
+  if (field === "doc_count") {
+    return t("datasource.esDocCount")
+  }
+  const parts = field.split(".")
+  if (parts.length === 1) {
+    return field
+  }
+  const last = parts[parts.length - 1]
+  const prefix = parts.slice(0, -1).join(".")
+  return last === "value" ? prefix : `${prefix} · ${last}`
+}
+
+// 无法识别日志正文的文档保留原有表格；日志和数值结果分别交给共用视图。
+function HitsTable({ rows }: { rows: ElasticsearchLogRow[] }) {
   const { t } = useTranslation()
-  const stickyHead = "sticky top-0 z-20 bg-background shadow-[inset_0_-1px_0_0_hsl(var(--border))]"
+  const stickyHead =
+    "sticky top-0 z-20 bg-background shadow-[inset_0_-1px_0_0_hsl(var(--border))]"
 
   if (rows.length === 0) {
-    return <p className="text-sm text-muted-foreground">{t("datasource.logsEmpty")}</p>
+    return (
+      <p className="text-sm text-muted-foreground">
+        {t("datasource.logsEmpty")}
+      </p>
+    )
   }
 
   return (
@@ -60,23 +97,25 @@ function LogTable({ rows }: { rows: ElasticsearchLogRow[] }) {
             <TableHead className={`${stickyHead} w-64 whitespace-nowrap`}>
               {t("datasource.esDocument")}
             </TableHead>
-            <TableHead className={`${stickyHead} whitespace-nowrap`}>{t("datasource.esSource")}</TableHead>
+            <TableHead className={`${stickyHead} whitespace-nowrap`}>
+              {t("datasource.esSource")}
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {rows.map((row) => (
             <TableRow key={row.key} className="align-top">
-              <TableCell className="whitespace-nowrap align-top font-mono text-xs text-muted-foreground">
-                {formatTimestamp(row.timestamp)}
+              <TableCell className="align-top font-mono text-xs whitespace-nowrap text-muted-foreground">
+                {formatResultTimestamp(row.timestamp)}
               </TableCell>
               <TableCell className="max-w-64 align-top font-mono text-xs text-muted-foreground">
-                <pre className="whitespace-pre-wrap break-all">
+                <pre className="break-all whitespace-pre-wrap">
                   {row.index}
                   {row.id ? `\n${row.id}` : ""}
                 </pre>
               </TableCell>
               <TableCell className="align-top font-mono text-xs">
-                <pre className="whitespace-pre-wrap break-all">
+                <pre className="break-all whitespace-pre-wrap">
                   {JSON.stringify(row.source, null, 2)}
                 </pre>
               </TableCell>
@@ -88,7 +127,11 @@ function LogTable({ rows }: { rows: ElasticsearchLogRow[] }) {
   )
 }
 
-export function ElasticsearchPanel({ datasource }: { datasource: DatasourceItem }) {
+export function ElasticsearchPanel({
+  datasource,
+}: {
+  datasource: DatasourceItem
+}) {
   const { t } = useTranslation()
   const [expr, setExpr] = useState(DEFAULT_QUERY)
   const [rangePreset, setRangePreset] = useState<RangePreset>("1h")
@@ -105,7 +148,19 @@ export function ElasticsearchPanel({ datasource }: { datasource: DatasourceItem 
 
   const timeField = datasource.timeField || "@timestamp"
   const parsed = useMemo(() => parseElasticsearchBody(body), [body])
-  const rows = useMemo(() => toElasticsearchRows(parsed, direction, timeField), [parsed, direction, timeField])
+  const rows = useMemo(
+    () => toElasticsearchRows(parsed, direction, timeField),
+    [parsed, direction, timeField]
+  )
+  const resultView = useMemo(
+    () => elasticsearchResultView(parsed, timeField),
+    [parsed, timeField]
+  )
+  const statResult = useMemo(
+    () => elasticsearchAggregationStat(parsed),
+    [parsed]
+  )
+  const logRows = useMemo(() => elasticsearchLogRows(rows), [rows])
   const jsonText = useMemo(() => {
     if (!body) {
       return ""
@@ -119,6 +174,14 @@ export function ElasticsearchPanel({ datasource }: { datasource: DatasourceItem 
       return body
     }
   }, [body, parsed])
+
+  const resultTabLabel = !body
+    ? t("enum.LOGS")
+    : resultView === "value"
+      ? t("datasource.statsValue")
+      : resultView === "table"
+        ? t("datasource.resultTable")
+        : t("enum.LOGS")
 
   async function runQuery() {
     const trimmed = expr.trim()
@@ -134,7 +197,11 @@ export function ElasticsearchPanel({ datasource }: { datasource: DatasourceItem 
     }
     setExprError("")
     const range = resolveRange(rangePreset, customStart, customEnd)
-    if (!Number.isFinite(range.start) || !Number.isFinite(range.end) || range.end <= range.start) {
+    if (
+      !Number.isFinite(range.start) ||
+      !Number.isFinite(range.end) ||
+      range.end <= range.start
+    ) {
       setQueryError(t("datasource.rangeInvalid"))
       return
     }
@@ -203,7 +270,8 @@ export function ElasticsearchPanel({ datasource }: { datasource: DatasourceItem 
           />
         </FormField>
         <p className="mt-2 text-xs text-muted-foreground">
-          {t("datasource.indexPattern")}: {datasource.indexPattern || t("datasource.indexPatternAll")} ·{" "}
+          {t("datasource.indexPattern")}:{" "}
+          {datasource.indexPattern || t("datasource.indexPatternAll")} ·{" "}
           {t("datasource.timeField")}: {timeField}
         </p>
       </div>
@@ -214,12 +282,28 @@ export function ElasticsearchPanel({ datasource }: { datasource: DatasourceItem 
       >
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
           <div className="flex flex-nowrap items-center gap-2">
-            <Select value={rangePreset} onValueChange={(value) => setRangePreset(value as RangePreset)}>
-              <SelectTrigger className="w-36 shrink-0" aria-label={t("datasource.rangePreset")}>
+            <Select
+              value={rangePreset}
+              onValueChange={(value) => setRangePreset(value as RangePreset)}
+            >
+              <SelectTrigger
+                className="w-36 shrink-0"
+                aria-label={t("datasource.rangePreset")}
+              >
                 <SelectValue placeholder={t("datasource.rangePreset")} />
               </SelectTrigger>
               <SelectContent>
-                {(["1h", "3h", "6h", "12h", "1d", "7d", "custom"] as RangePreset[]).map((item) => (
+                {(
+                  [
+                    "1h",
+                    "3h",
+                    "6h",
+                    "12h",
+                    "1d",
+                    "7d",
+                    "custom",
+                  ] as RangePreset[]
+                ).map((item) => (
                   <SelectItem key={item} value={item}>
                     {t(`datasource.preset.${item}`)}
                   </SelectItem>
@@ -249,16 +333,31 @@ export function ElasticsearchPanel({ datasource }: { datasource: DatasourceItem 
               placeholder={t("datasource.logsLimit")}
               onChange={(event) => setLimit(event.target.value)}
             />
-            <Select value={direction} onValueChange={(value) => setDirection(value as LogDirection)}>
-              <SelectTrigger className="w-32 shrink-0" aria-label={t("datasource.logsDirection")}>
+            <Select
+              value={direction}
+              onValueChange={(value) => setDirection(value as LogDirection)}
+            >
+              <SelectTrigger
+                className="w-32 shrink-0"
+                aria-label={t("datasource.logsDirection")}
+              >
                 <SelectValue placeholder={t("datasource.logsDirection")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="backward">{t("datasource.logsDirectionBackward")}</SelectItem>
-                <SelectItem value="forward">{t("datasource.logsDirectionForward")}</SelectItem>
+                <SelectItem value="backward">
+                  {t("datasource.logsDirectionBackward")}
+                </SelectItem>
+                <SelectItem value="forward">
+                  {t("datasource.logsDirectionForward")}
+                </SelectItem>
               </SelectContent>
             </Select>
-            <Button type="button" className="shrink-0" disabled={pending} onClick={() => void runQuery()}>
+            <Button
+              type="button"
+              className="shrink-0"
+              disabled={pending}
+              onClick={() => void runQuery()}
+            >
               {t("datasource.runQuery")}
             </Button>
             <Button
@@ -272,7 +371,7 @@ export function ElasticsearchPanel({ datasource }: { datasource: DatasourceItem 
             </Button>
           </div>
           <TabsList className="shrink-0">
-            <TabsTrigger value="logs">{t("enum.LOGS")}</TabsTrigger>
+            <TabsTrigger value="logs">{resultTabLabel}</TabsTrigger>
             <TabsTrigger value="json">{t("datasource.resultJson")}</TabsTrigger>
           </TabsList>
         </div>
@@ -281,11 +380,32 @@ export function ElasticsearchPanel({ datasource }: { datasource: DatasourceItem 
             {t("datasource.statusResult")}: {statusText}
           </p>
         ) : null}
-        {queryError ? <p className="shrink-0 text-sm text-destructive">{queryError}</p> : null}
-        <TabsContent value="logs" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-          {body ? <LogTable rows={rows} /> : null}
+        {queryError ? (
+          <p className="shrink-0 text-sm text-destructive">{queryError}</p>
+        ) : null}
+        <TabsContent
+          value="logs"
+          className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+        >
+          {body ? (
+            resultView === "logs" ? (
+              <LogResultTable key={`${direction}-${body}`} rows={logRows} />
+            ) : resultView === "value" && statResult ? (
+              <StatResult
+                key={`${direction}-${body}`}
+                groups={statResult.groups}
+                fields={statResult.fields}
+                fieldLabel={(field) => elasticsearchFieldLabel(t, field)}
+              />
+            ) : (
+              <HitsTable rows={rows} />
+            )
+          ) : null}
         </TabsContent>
-        <TabsContent value="json" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <TabsContent
+          value="json"
+          className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+        >
           {jsonText ? (
             <pre className="min-h-0 flex-1 overflow-auto rounded-lg border bg-background p-3 font-mono text-xs">
               {jsonText}
@@ -300,7 +420,9 @@ export function ElasticsearchPanel({ datasource }: { datasource: DatasourceItem 
 function isJSONObject(value: string): boolean {
   try {
     const parsed = JSON.parse(value) as unknown
-    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+    return (
+      typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+    )
   } catch {
     return false
   }

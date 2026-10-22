@@ -407,8 +407,8 @@ const zh = {
     logsLimit: "返回条数",
     logsLimitInvalid: "请填写 1 到 5000 之间的返回条数",
     logsDirection: "排序方向",
-    logsDirectionBackward: "从新到旧",
-    logsDirectionForward: "从旧到新",
+    logsDirectionBackward: "倒序",
+    logsDirectionForward: "正序",
     logsExprHint: '使用 LogQL 查询，例如 {app="api"} |= "error"。',
     lokiMetricExprHint:
       '告警需使用返回数值序列的 LogQL 指标查询，不能只返回日志流。例如 sum by (app) (count_over_time({app="api"} |= "error" [5m]))。',
@@ -421,6 +421,7 @@ const zh = {
     esQueryInvalid: "请填写有效的 Query DSL JSON 对象",
     esDocument: "索引 / 文档",
     esSource: "文档内容",
+    esDocCount: "文档数",
     indexPattern: "索引模式",
     indexPatternHint: "留空时搜索全部索引。支持通配符，例如 logs-*。",
     indexPatternPlaceholder: "例如 logs-*",
@@ -432,6 +433,7 @@ const zh = {
     logsLine: "日志",
     logsStream: "标签",
     statsValue: "数值",
+    statsChartAria: "数值结果柱状图",
     preset: {
       "1h": "近 1 小时",
       "3h": "近 3 小时",
@@ -1413,8 +1415,8 @@ const en = {
     logsLimit: "Limit",
     logsLimitInvalid: "Enter a limit between 1 and 5000",
     logsDirection: "Direction",
-    logsDirectionBackward: "Newest first",
-    logsDirectionForward: "Oldest first",
+    logsDirectionBackward: "Descending",
+    logsDirectionForward: "Ascending",
     logsExprHint: 'Query with LogQL, for example {app="api"} |= "error".',
     lokiMetricExprHint:
       'Alerts require a LogQL metric query that returns numeric series, not a raw log stream. For example: sum by (app) (count_over_time({app="api"} |= "error" [5m])).',
@@ -1427,6 +1429,7 @@ const en = {
     esQueryInvalid: "Enter a valid Query DSL JSON object",
     esDocument: "Index / document",
     esSource: "Document",
+    esDocCount: "Docs",
     indexPattern: "Index pattern",
     indexPatternHint:
       "Leave blank to search all indices. Wildcards are supported, for example logs-*.",
@@ -1440,6 +1443,7 @@ const en = {
     logsLine: "Log line",
     logsStream: "Labels",
     statsValue: "Value",
+    statsChartAria: "Numeric result bar chart",
     preset: {
       "1h": "Last 1 hour",
       "3h": "Last 3 hours",

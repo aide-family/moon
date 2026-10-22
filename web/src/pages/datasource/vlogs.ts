@@ -1,3 +1,5 @@
+import { formatResultTimestamp } from "./result-data"
+
 export type VlogsLogEntry = Record<string, string>
 
 /** VictoriaLogs 的 /select/logsql/query 返回 JSON Lines，逐行解析，坏行直接跳过。 */
@@ -100,11 +102,160 @@ export function isNumericVlogsColumn(
   return found
 }
 
-export function formatVlogsTimestamp(timestamp: number): string {
-  if (!timestamp) {
-    return "—"
-  }
-  const date = new Date(timestamp)
-  const pad = (value: number, size = 2) => String(value).padStart(size, "0")
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}`
+export interface VlogsLabelPair {
+  key: string
+  value: string
 }
+
+/** VictoriaLogs 的 _stream 是一组标签，形如 {app="api", env="local"}。 */
+export function parseVlogsStreamLabels(stream: string): VlogsLabelPair[] {
+  const trimmed = stream.trim()
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
+    return []
+  }
+  const pairs: VlogsLabelPair[] = []
+  const pattern = /([A-Za-z0-9_.-]+)\s*=\s*"((?:[^"\\]|\\.)*)"/g
+  for (const match of trimmed.slice(1, -1).matchAll(pattern)) {
+    pairs.push({
+      key: match[1],
+      value: match[2].replace(/\\(["\\])/g, "$1"),
+    })
+  }
+  return pairs
+}
+
+/**
+ * 折叠行展开后的标签：先展开 _stream 里的标签，再补充独立字段，
+ * _stream 无法解析时保留原文，避免丢信息。
+ */
+export function vlogsLogLabels(entry: VlogsLogEntry): VlogsLabelPair[] {
+  const pairs: VlogsLabelPair[] = []
+  const seen = new Set<string>()
+  for (const pair of parseVlogsStreamLabels(entry._stream ?? "")) {
+    if (seen.has(pair.key)) {
+      continue
+    }
+    seen.add(pair.key)
+    pairs.push(pair)
+  }
+  for (const [key, value] of Object.entries(entry)) {
+    if (key === "_time" || key === "_msg" || key === "_stream") {
+      continue
+    }
+    if (seen.has(key)) {
+      continue
+    }
+    seen.add(key)
+    pairs.push({ key, value })
+  }
+  if (pairs.length === 0 && entry._stream) {
+    pairs.push({ key: "_stream", value: entry._stream })
+  }
+  return pairs
+}
+
+const VLOGS_RESERVED_FIELDS = new Set(["_time", "_stream", "_msg"])
+
+/** stats 结果的数值字段；_time/_stream/_msg 是日志元数据，不参与统计。 */
+export function vlogsMetricFields(
+  entries: VlogsLogEntry[],
+  fields: string[]
+): string[] {
+  const numeric = fields.filter(
+    (field) =>
+      !VLOGS_RESERVED_FIELDS.has(field) && isNumericVlogsColumn(entries, field)
+  )
+  // 统计值按项目约定输出为 value；此时其余数值字段（例如按状态码分组的
+  // status_code）是分组标签，不能当成第二根柱子。
+  if (numeric.includes("value")) {
+    return ["value"]
+  }
+  return numeric
+}
+
+/** 除数值字段外的其余字段，用于柱状图的分组标签。 */
+export function vlogsLabelFields(
+  fields: string[],
+  metricFields: string[]
+): string[] {
+  return fields.filter((field) => !metricFields.includes(field))
+}
+
+export type VlogsResultView = "logs" | "value" | "table"
+
+/**
+ * 有 _msg 的结果按日志行展示；stats 结果的数值字段按单值或柱状图展示；
+ * 其余形状（例如只返回字符串字段）保留通用表格。
+ */
+export function vlogsResultView(
+  entries: VlogsLogEntry[],
+  fields: string[]
+): VlogsResultView {
+  if (entries.some((entry) => "_msg" in entry)) {
+    return "logs"
+  }
+  return vlogsMetricFields(entries, fields).length > 0 ? "value" : "table"
+}
+
+export interface VlogsStatValue {
+  field: string
+  raw: string
+  value: number
+}
+
+export interface VlogsStatGroup {
+  key: string
+  label: string
+  values: VlogsStatValue[]
+}
+
+/**
+ * 把 stats 结果按行归组成柱状图分组：每行一个分组，
+ * 每个数值字段一根柱子，多个数值字段时分组内并排。
+ */
+export function vlogsStatGroups(
+  entries: VlogsLogEntry[],
+  metricFields: string[],
+  labelFields: string[]
+): VlogsStatGroup[] {
+  return entries.map((entry, index) => ({
+    key: `${index}`,
+    label: vlogsGroupLabel(entry, labelFields, index),
+    values: metricFields.map((field) => {
+      const raw = entry[field] ?? ""
+      return { field, raw, value: raw === "" ? 0 : Number(raw) }
+    }),
+  }))
+}
+
+function vlogsGroupLabel(
+  entry: VlogsLogEntry,
+  labelFields: string[],
+  index: number
+): string {
+  const parts: string[] = []
+  for (const field of labelFields) {
+    const value = entry[field] ?? ""
+    if (!value) {
+      continue
+    }
+    if (field === "_time") {
+      const timestamp = Date.parse(value)
+      parts.push(timestamp ? formatResultTimestamp(timestamp) : value)
+      continue
+    }
+    parts.push(`${field}=${value}`)
+  }
+  return parts.length > 0 ? parts.join(" · ") : `#${index + 1}`
+}
+
+// 时间格式和柱状图布局由日志数据源共用；这里保留 VictoriaLogs 的旧导出名，
+// 避免既有调用方跟着改名。
+export {
+  formatResultTimestamp as formatVlogsTimestamp,
+  resultChartLayout as vlogsChartLayout,
+} from "./result-data"
+export type {
+  ResultChartLayout as VlogsChartLayout,
+  ResultChartPadding as VlogsChartPadding,
+} from "./result-data"
