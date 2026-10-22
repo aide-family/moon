@@ -13,7 +13,7 @@ RUN go build -C app/alkaid -trimpath \
 	-ldflags "-s -w -X main.version=${VERSION}" \
 	-o /out/alkaid ./cmd/alkaid
 
-FROM public.ecr.aws/docker/library/ubuntu:24.04
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
