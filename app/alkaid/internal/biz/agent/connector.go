@@ -47,15 +47,15 @@ type Connector struct {
 	shell     *liveShell
 }
 
-func NewConnector(d *data.Data, logger *slog.Logger) (*Connector, error) {
-	if d.AgentToken == "" {
+func NewConnector(settings *data.ConnectionSettings, logger *slog.Logger) (*Connector, error) {
+	if settings.AgentToken == "" {
 		logger.Warn("agent token is empty; outbound stream disabled")
 	}
-	interval := d.Heartbeat
+	interval := settings.Heartbeat
 	if interval <= 0 {
 		interval = 15 * time.Second
 	}
-	addrs := parseEndpoints(d.AliothGRPC)
+	addrs := parseEndpoints(settings.AliothGRPC)
 	tlsConfig, err := grpctls.ClientFromEnv("ALKAID_ALIOTH_TLS")
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func NewConnector(d *data.Data, logger *slog.Logger) (*Connector, error) {
 		creds = credentials.NewTLS(tlsConfig)
 	}
 	return &Connector{
-		addrs: addrs, token: d.AgentToken, heartbeat: interval, creds: creds,
+		addrs: addrs, token: settings.AgentToken, heartbeat: interval, creds: creds,
 		log: logger, done: make(chan struct{}),
 	}, nil
 }

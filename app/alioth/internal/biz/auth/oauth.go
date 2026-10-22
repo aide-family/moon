@@ -25,45 +25,45 @@ type oauthProfile struct {
 
 // OAuthLogin 先按第三方 open id 找已绑定账号。没有绑定时，用邮箱并入已有用户，否则新建用户再绑定。
 // 第三方没有邮箱时使用本地占位邮箱，避免和真实邮箱冲突。封禁用户仍由 session 拒绝签发令牌。
-func (uc *Usecase) OAuthLogin(ctx context.Context, provider, code, redirectURI string) (*bo.Session, error) {
+func (authenticator *Authenticator) OAuthLogin(ctx context.Context, provider, code, redirectURI string) (*bo.Session, error) {
 	provider = strings.ToUpper(strings.TrimSpace(provider))
-	client, ok := uc.oauthClients[provider]
+	client, ok := authenticator.oauthClients[provider]
 	if !ok || client.id == "" || client.secret == "" {
 		return nil, merr.Client("oauth provider is not configured")
 	}
 	profile, err := exchangeOAuth(ctx, provider, client, code, redirectURI)
 	if err != nil {
-		uc.log.Error(fmt.Sprintf("oauth exchange failed for %s", provider))
+		authenticator.log.Error(fmt.Sprintf("oauth exchange failed for %s", provider))
 		return nil, merr.Client("oauth login failed")
 	}
 	if profile.openID == "" {
 		return nil, merr.Client("oauth login failed")
 	}
-	if linked, err := uc.oauth.OAuthAccount(ctx, provider, profile.openID); err == nil {
-		return uc.session(linked)
+	if linked, err := authenticator.oauth.OAuthAccount(ctx, provider, profile.openID); err == nil {
+		return authenticator.session(linked)
 	} else if err != nil && !merr.IsNotFound(err) {
-		return nil, uc.wrap(err)
+		return nil, authenticator.wrap(err)
 	}
 	email := normalizeEmail(profile.email)
 	if email != "" && !profile.emailVerified {
 		// 没有验证过的第三方邮箱不能并入已有本地账号，否则等于绕过邮箱所有权。
-		if _, err := uc.users.UserByEmail(ctx, email); err == nil {
+		if _, err := authenticator.users.UserByEmail(ctx, email); err == nil {
 			return nil, merr.Client("oauth email is not verified")
 		}
 	}
 	if email == "" {
 		email = fmt.Sprintf("%s-%s@users.alioth.local", strings.ToLower(provider), profile.openID)
 	}
-	account, err := uc.users.UserByEmail(ctx, email)
+	account, err := authenticator.users.UserByEmail(ctx, email)
 	if err != nil {
 		if !merr.IsNotFound(err) {
-			return nil, uc.wrap(err)
+			return nil, authenticator.wrap(err)
 		}
 		name := profile.name
 		if name == "" {
 			name = strings.Split(email, "@")[0]
 		}
-		account, err = uc.users.CreateUser(ctx, bo.Account{
+		account, err = authenticator.users.CreateUser(ctx, bo.Account{
 			UID:      id.New(),
 			Name:     name,
 			Nickname: name,
@@ -72,13 +72,13 @@ func (uc *Usecase) OAuthLogin(ctx context.Context, provider, code, redirectURI s
 			Status:   "ACTIVE",
 		})
 		if err != nil {
-			return nil, uc.wrap(err)
+			return nil, authenticator.wrap(err)
 		}
 	}
-	if err := uc.oauth.LinkOAuth(ctx, account.UID, provider, profile.openID, email); err != nil {
-		return nil, uc.wrap(err)
+	if err := authenticator.oauth.LinkOAuth(ctx, account.UID, provider, profile.openID, email); err != nil {
+		return nil, authenticator.wrap(err)
 	}
-	return uc.session(account)
+	return authenticator.session(account)
 }
 
 func exchangeOAuth(ctx context.Context, provider string, client oauthClient, code, redirectURI string) (oauthProfile, error) {

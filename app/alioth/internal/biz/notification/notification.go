@@ -24,9 +24,10 @@ import (
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
-var ProviderSet = wire.NewSet(NewUsecase)
+var ProviderSet = wire.NewSet(NewCenter)
 
-type Usecase struct {
+// Center 管理通知渠道、模板、通知组和投递任务。
+type Center struct {
 	repo    repository.NotificationRepo
 	members repository.MemberRepo
 	access  access.Checker
@@ -34,8 +35,8 @@ type Usecase struct {
 	log     *slog.Logger
 }
 
-func NewUsecase(repo repository.NotificationRepo, members repository.MemberRepo, checker access.Checker, locks *lock.Client, logger *slog.Logger) *Usecase {
-	return &Usecase{repo: repo, members: members, access: checker, locks: locks, log: logger}
+func NewCenter(repo repository.NotificationRepo, members repository.MemberRepo, checker access.Checker, locks *lock.Client, logger *slog.Logger) *Center {
+	return &Center{repo: repo, members: members, access: checker, locks: locks, log: logger}
 }
 
 const (
@@ -56,11 +57,11 @@ func staleAfter() time.Duration {
 }
 
 // ReapStale 回收长时间停留在 SENDING 的任务。merak 崩溃后不会回写，只能由控制面兜底。
-func (uc *Usecase) ReapStale(ctx context.Context) error {
-	if uc.locks == nil {
+func (center *Center) ReapStale(ctx context.Context) error {
+	if center.locks == nil {
 		return merr.Server("lock failed")
 	}
-	hold, err := uc.locks.Acquire(ctx, reapLockKey, 15*time.Second)
+	hold, err := center.locks.Acquire(ctx, reapLockKey, 15*time.Second)
 	if err != nil {
 		if errors.Is(err, lock.ErrNotAcquired) {
 			return nil
@@ -68,18 +69,18 @@ func (uc *Usecase) ReapStale(ctx context.Context) error {
 		return err
 	}
 	defer func() { _ = hold.Release(context.Background()) }()
-	reaped, err := uc.repo.ReapStaleSending(ctx, time.Now().Add(-staleAfter()), 100)
+	reaped, err := center.repo.ReapStaleSending(ctx, time.Now().Add(-staleAfter()), 100)
 	if err != nil {
-		return uc.access.Wrap(err)
+		return center.access.Wrap(err)
 	}
-	if reaped > 0 && uc.log != nil {
-		uc.log.Warn("reaped stale notification tasks", slog.Int("count", reaped))
+	if reaped > 0 && center.log != nil {
+		center.log.Warn("reaped stale notification tasks", slog.Int("count", reaped))
 	}
 	return nil
 }
 
-func (uc *Usecase) CreateChannel(ctx context.Context, in bo.NotificationChannel) (*bo.NotificationChannel, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationWrite)
+func (center *Center) CreateChannel(ctx context.Context, in bo.NotificationChannel) (*bo.NotificationChannel, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -95,12 +96,12 @@ func (uc *Usecase) CreateChannel(ctx context.Context, in bo.NotificationChannel)
 	}
 	in.NamespaceUID = ns
 	in.Name = strings.TrimSpace(in.Name)
-	item, err := uc.repo.CreateChannel(ctx, in)
-	return redactChannel(item), uc.access.Wrap(err)
+	item, err := center.repo.CreateChannel(ctx, in)
+	return redactChannel(item), center.access.Wrap(err)
 }
 
-func (uc *Usecase) UpdateChannel(ctx context.Context, in bo.NotificationChannel) (*bo.NotificationChannel, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationWrite)
+func (center *Center) UpdateChannel(ctx context.Context, in bo.NotificationChannel) (*bo.NotificationChannel, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -113,70 +114,70 @@ func (uc *Usecase) UpdateChannel(ctx context.Context, in bo.NotificationChannel)
 	}
 	in.NamespaceUID = ns
 	in.Name = strings.TrimSpace(in.Name)
-	item, err := uc.repo.UpdateChannel(ctx, in)
-	return redactChannel(item), uc.access.Wrap(err)
+	item, err := center.repo.UpdateChannel(ctx, in)
+	return redactChannel(item), center.access.Wrap(err)
 }
 
-func (uc *Usecase) UpdateChannelStatus(ctx context.Context, uid, status string) (*bo.NotificationChannel, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationWrite)
+func (center *Center) UpdateChannelStatus(ctx context.Context, uid, status string) (*bo.NotificationChannel, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.repo.UpdateChannelStatus(ctx, ns, uid, status)
-	return redactChannel(item), uc.access.Wrap(err)
+	item, err := center.repo.UpdateChannelStatus(ctx, ns, uid, status)
+	return redactChannel(item), center.access.Wrap(err)
 }
 
-func (uc *Usecase) DeleteChannel(ctx context.Context, uid string) error {
-	ns, err := uc.access.Allow(ctx, perm.NotificationWrite)
+func (center *Center) DeleteChannel(ctx context.Context, uid string) error {
+	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
 	if err != nil {
 		return err
 	}
-	return uc.access.Wrap(uc.repo.DeleteChannel(ctx, ns, uid))
+	return center.access.Wrap(center.repo.DeleteChannel(ctx, ns, uid))
 }
 
-func (uc *Usecase) GetChannel(ctx context.Context, uid string) (*bo.NotificationChannel, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationRead)
+func (center *Center) GetChannel(ctx context.Context, uid string) (*bo.NotificationChannel, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.repo.GetChannel(ctx, ns, uid)
-	return redactChannel(item), uc.access.Wrap(err)
+	item, err := center.repo.GetChannel(ctx, ns, uid)
+	return redactChannel(item), center.access.Wrap(err)
 }
 
-func (uc *Usecase) ListChannels(ctx context.Context, pageNo, pageSize int32, name, kind, app string) ([]bo.NotificationChannel, int, int, int, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationRead)
+func (center *Center) ListChannels(ctx context.Context, pageNo, pageSize int32, name, kind, app string) ([]bo.NotificationChannel, int, int, int, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.repo.ListChannels(ctx, ns, p, s, strings.TrimSpace(name), kind, app)
+	items, total, err := center.repo.ListChannels(ctx, ns, p, s, strings.TrimSpace(name), kind, app)
 	out := make([]bo.NotificationChannel, 0, len(items))
 	for i := range items {
 		if item := redactChannel(&items[i]); item != nil {
 			out = append(out, *item)
 		}
 	}
-	return out, total, p, s, uc.access.Wrap(err)
+	return out, total, p, s, center.access.Wrap(err)
 }
 
-func (uc *Usecase) SelectChannels(ctx context.Context, limit int32, lastUID string) ([]bo.SelectItem, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationRead)
+func (center *Center) SelectChannels(ctx context.Context, limit int32, lastUID string) ([]bo.SelectItem, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, err
 	}
-	items, err := uc.repo.SelectChannels(ctx, ns, page.Limit(limit), lastUID)
-	return items, uc.access.Wrap(err)
+	items, err := center.repo.SelectChannels(ctx, ns, page.Limit(limit), lastUID)
+	return items, center.access.Wrap(err)
 }
 
 // TestChannel 只写入 PENDING 任务。短信类型直接拒绝，避免被报成 SENT。
-func (uc *Usecase) TestChannel(ctx context.Context, channelUID, templateUID, receivers, subject, body, params string) (string, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationWrite)
+func (center *Center) TestChannel(ctx context.Context, channelUID, templateUID, receivers, subject, body, params string) (string, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
 	if err != nil {
 		return "", err
 	}
-	channel, err := uc.repo.GetChannel(ctx, ns, channelUID)
+	channel, err := center.repo.GetChannel(ctx, ns, channelUID)
 	if err != nil {
-		return "", uc.access.Wrap(err)
+		return "", center.access.Wrap(err)
 	}
 	if channel.Status != "ACTIVE" {
 		return "", merr.Invalid("channel is disabled")
@@ -188,9 +189,9 @@ func (uc *Usecase) TestChannel(ctx context.Context, channelUID, templateUID, rec
 		return "", err
 	}
 	if templateUID != "" {
-		template, err := uc.repo.GetTemplate(ctx, ns, templateUID)
+		template, err := center.repo.GetTemplate(ctx, ns, templateUID)
 		if err != nil {
-			return "", uc.access.Wrap(err)
+			return "", center.access.Wrap(err)
 		}
 		if template.Status != "ACTIVE" {
 			return "", merr.Invalid("template is disabled")
@@ -211,7 +212,7 @@ func (uc *Usecase) TestChannel(ctx context.Context, channelUID, templateUID, rec
 	if channel.Type == "SMTP" && strings.TrimSpace(subject) == "" {
 		return "", merr.Invalid("subject is required")
 	}
-	task, err := uc.repo.CreateTestTask(ctx, bo.NotificationTask{
+	task, err := center.repo.CreateTestTask(ctx, bo.NotificationTask{
 		NamespaceUID: ns,
 		ChannelUID:   channelUID,
 		TemplateUID:  templateUID,
@@ -221,13 +222,13 @@ func (uc *Usecase) TestChannel(ctx context.Context, channelUID, templateUID, rec
 		Params:       params,
 	})
 	if err != nil {
-		return "", uc.access.Wrap(err)
+		return "", center.access.Wrap(err)
 	}
 	return task.UID, nil
 }
 
-func (uc *Usecase) CreateTemplate(ctx context.Context, in bo.NotificationTemplate) (*bo.NotificationTemplate, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationWrite)
+func (center *Center) CreateTemplate(ctx context.Context, in bo.NotificationTemplate) (*bo.NotificationTemplate, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -240,12 +241,12 @@ func (uc *Usecase) CreateTemplate(ctx context.Context, in bo.NotificationTemplat
 	}
 	in.NamespaceUID = ns
 	in.Name = strings.TrimSpace(in.Name)
-	item, err := uc.repo.CreateTemplate(ctx, in)
-	return item, uc.access.Wrap(err)
+	item, err := center.repo.CreateTemplate(ctx, in)
+	return item, center.access.Wrap(err)
 }
 
-func (uc *Usecase) UpdateTemplate(ctx context.Context, in bo.NotificationTemplate) (*bo.NotificationTemplate, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationWrite)
+func (center *Center) UpdateTemplate(ctx context.Context, in bo.NotificationTemplate) (*bo.NotificationTemplate, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -258,72 +259,72 @@ func (uc *Usecase) UpdateTemplate(ctx context.Context, in bo.NotificationTemplat
 	}
 	in.NamespaceUID = ns
 	in.Name = strings.TrimSpace(in.Name)
-	item, err := uc.repo.UpdateTemplate(ctx, in)
-	return item, uc.access.Wrap(err)
+	item, err := center.repo.UpdateTemplate(ctx, in)
+	return item, center.access.Wrap(err)
 }
 
-func (uc *Usecase) UpdateTemplateStatus(ctx context.Context, uid, status string) (*bo.NotificationTemplate, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationWrite)
+func (center *Center) UpdateTemplateStatus(ctx context.Context, uid, status string) (*bo.NotificationTemplate, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.repo.UpdateTemplateStatus(ctx, ns, uid, status)
-	return item, uc.access.Wrap(err)
+	item, err := center.repo.UpdateTemplateStatus(ctx, ns, uid, status)
+	return item, center.access.Wrap(err)
 }
 
-func (uc *Usecase) DeleteTemplate(ctx context.Context, uid string) error {
-	ns, err := uc.access.Allow(ctx, perm.NotificationWrite)
+func (center *Center) DeleteTemplate(ctx context.Context, uid string) error {
+	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
 	if err != nil {
 		return err
 	}
-	return uc.access.Wrap(uc.repo.DeleteTemplate(ctx, ns, uid))
+	return center.access.Wrap(center.repo.DeleteTemplate(ctx, ns, uid))
 }
 
-func (uc *Usecase) GetTemplate(ctx context.Context, uid string) (*bo.NotificationTemplate, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationRead)
+func (center *Center) GetTemplate(ctx context.Context, uid string) (*bo.NotificationTemplate, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.repo.GetTemplate(ctx, ns, uid)
-	return item, uc.access.Wrap(err)
+	item, err := center.repo.GetTemplate(ctx, ns, uid)
+	return item, center.access.Wrap(err)
 }
 
-func (uc *Usecase) ListTemplates(ctx context.Context, pageNo, pageSize int32, name, kind, app string) ([]bo.NotificationTemplate, int, int, int, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationRead)
+func (center *Center) ListTemplates(ctx context.Context, pageNo, pageSize int32, name, kind, app string) ([]bo.NotificationTemplate, int, int, int, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.repo.ListTemplates(ctx, ns, p, s, strings.TrimSpace(name), kind, app)
-	return items, total, p, s, uc.access.Wrap(err)
+	items, total, err := center.repo.ListTemplates(ctx, ns, p, s, strings.TrimSpace(name), kind, app)
+	return items, total, p, s, center.access.Wrap(err)
 }
 
-func (uc *Usecase) SelectTemplates(ctx context.Context, limit int32, lastUID string) ([]bo.SelectItem, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationRead)
+func (center *Center) SelectTemplates(ctx context.Context, limit int32, lastUID string) ([]bo.SelectItem, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, err
 	}
-	items, err := uc.repo.SelectTemplates(ctx, ns, page.Limit(limit), lastUID)
-	return items, uc.access.Wrap(err)
+	items, err := center.repo.SelectTemplates(ctx, ns, page.Limit(limit), lastUID)
+	return items, center.access.Wrap(err)
 }
 
 // ListPresets 返回系统预设模板。预设是只读的，用户从预设创建自己的模板。
-func (uc *Usecase) ListPresets(ctx context.Context) ([]bo.NotificationPreset, error) {
-	if _, err := uc.access.Allow(ctx, perm.NotificationRead); err != nil {
+func (center *Center) ListPresets(ctx context.Context) ([]bo.NotificationPreset, error) {
+	if _, err := center.access.Allow(ctx, perm.NotificationRead); err != nil {
 		return nil, err
 	}
-	items, err := uc.repo.ListPresets(ctx)
-	return items, uc.access.Wrap(err)
+	items, err := center.repo.ListPresets(ctx)
+	return items, center.access.Wrap(err)
 }
 
-func (uc *Usecase) TestTemplate(ctx context.Context, templateUID, channelUID, receivers, params string) (string, error) {
-	return uc.TestChannel(ctx, channelUID, templateUID, receivers, "", "", params)
+func (center *Center) TestTemplate(ctx context.Context, templateUID, channelUID, receivers, params string) (string, error) {
+	return center.TestChannel(ctx, channelUID, templateUID, receivers, "", "", params)
 }
 
 // PreviewTemplate 用固定的 mock 事件渲染模板，只用于编辑器和预设页预览，不创建任务。
 // 渲染和投递共用 pkg/alerttmpl，因此预览里能用的字段、函数与真实发送一致。
-func (uc *Usecase) PreviewTemplate(ctx context.Context, in bo.NotificationTemplate) (string, string, error) {
-	if _, err := uc.access.Allow(ctx, perm.NotificationRead); err != nil {
+func (center *Center) PreviewTemplate(ctx context.Context, in bo.NotificationTemplate) (string, string, error) {
+	if _, err := center.access.Allow(ctx, perm.NotificationRead); err != nil {
 		return "", "", err
 	}
 	normalizeTemplate(&in)
@@ -356,7 +357,7 @@ func (uc *Usecase) PreviewTemplate(ctx context.Context, in bo.NotificationTempla
 		"fingerprint":     "fp-preview-0001",
 		"externalURL":     externalURL,
 	}
-	data := alerttmpl.New(labels, string(labelsJSON), 1, externalURL, params)
+	data := alerttmpl.NewData(labels, string(labelsJSON), 1, externalURL, params)
 	parsedURL, _ := url.Parse(externalURL)
 	renderCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
@@ -393,98 +394,98 @@ func normalizeTemplate(in *bo.NotificationTemplate) {
 	}
 }
 
-func (uc *Usecase) CreateGroup(ctx context.Context, in bo.NotificationGroup) (*bo.NotificationGroup, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationWrite)
+func (center *Center) CreateGroup(ctx context.Context, in bo.NotificationGroup) (*bo.NotificationGroup, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
 	if err != nil {
 		return nil, err
 	}
 	in.NamespaceUID = ns
-	if err := uc.normalizeGroup(ctx, &in); err != nil {
+	if err := center.normalizeGroup(ctx, &in); err != nil {
 		return nil, err
 	}
-	item, err := uc.repo.CreateGroup(ctx, in)
-	return item, uc.access.Wrap(err)
+	item, err := center.repo.CreateGroup(ctx, in)
+	return item, center.access.Wrap(err)
 }
 
-func (uc *Usecase) UpdateGroup(ctx context.Context, in bo.NotificationGroup) (*bo.NotificationGroup, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationWrite)
+func (center *Center) UpdateGroup(ctx context.Context, in bo.NotificationGroup) (*bo.NotificationGroup, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
 	if err != nil {
 		return nil, err
 	}
 	in.NamespaceUID = ns
-	if err := uc.normalizeGroup(ctx, &in); err != nil {
+	if err := center.normalizeGroup(ctx, &in); err != nil {
 		return nil, err
 	}
-	item, err := uc.repo.UpdateGroup(ctx, in)
-	return item, uc.access.Wrap(err)
+	item, err := center.repo.UpdateGroup(ctx, in)
+	return item, center.access.Wrap(err)
 }
 
-func (uc *Usecase) UpdateGroupStatus(ctx context.Context, uid, status string) (*bo.NotificationGroup, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationWrite)
+func (center *Center) UpdateGroupStatus(ctx context.Context, uid, status string) (*bo.NotificationGroup, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.repo.UpdateGroupStatus(ctx, ns, uid, status)
-	return item, uc.access.Wrap(err)
+	item, err := center.repo.UpdateGroupStatus(ctx, ns, uid, status)
+	return item, center.access.Wrap(err)
 }
 
-func (uc *Usecase) DeleteGroup(ctx context.Context, uid string) error {
-	ns, err := uc.access.Allow(ctx, perm.NotificationWrite)
+func (center *Center) DeleteGroup(ctx context.Context, uid string) error {
+	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
 	if err != nil {
 		return err
 	}
-	return uc.access.Wrap(uc.repo.DeleteGroup(ctx, ns, uid))
+	return center.access.Wrap(center.repo.DeleteGroup(ctx, ns, uid))
 }
 
-func (uc *Usecase) GetGroup(ctx context.Context, uid string) (*bo.NotificationGroup, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationRead)
+func (center *Center) GetGroup(ctx context.Context, uid string) (*bo.NotificationGroup, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.repo.GetGroup(ctx, ns, uid)
-	return item, uc.access.Wrap(err)
+	item, err := center.repo.GetGroup(ctx, ns, uid)
+	return item, center.access.Wrap(err)
 }
 
-func (uc *Usecase) ListGroups(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.NotificationGroup, int, int, int, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationRead)
+func (center *Center) ListGroups(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.NotificationGroup, int, int, int, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.repo.ListGroups(ctx, ns, p, s, strings.TrimSpace(name))
-	return items, total, p, s, uc.access.Wrap(err)
+	items, total, err := center.repo.ListGroups(ctx, ns, p, s, strings.TrimSpace(name))
+	return items, total, p, s, center.access.Wrap(err)
 }
 
-func (uc *Usecase) SelectGroups(ctx context.Context, limit int32, lastUID string, activeOnly bool) ([]bo.SelectItem, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationRead)
+func (center *Center) SelectGroups(ctx context.Context, limit int32, lastUID string, activeOnly bool) ([]bo.SelectItem, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, err
 	}
-	items, err := uc.repo.SelectGroups(ctx, ns, page.Limit(limit), lastUID, activeOnly)
-	return items, uc.access.Wrap(err)
+	items, err := center.repo.SelectGroups(ctx, ns, page.Limit(limit), lastUID, activeOnly)
+	return items, center.access.Wrap(err)
 }
 
-func (uc *Usecase) ListMessageLogs(ctx context.Context, pageNo, pageSize int32, taskUID string) ([]bo.MessageLog, int, int, int, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationRead)
+func (center *Center) ListMessageLogs(ctx context.Context, pageNo, pageSize int32, taskUID string) ([]bo.MessageLog, int, int, int, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.repo.ListMessageLogs(ctx, ns, taskUID, p, s)
-	return items, total, p, s, uc.access.Wrap(err)
+	items, total, err := center.repo.ListMessageLogs(ctx, ns, taskUID, p, s)
+	return items, total, p, s, center.access.Wrap(err)
 }
 
-func (uc *Usecase) GetMessageLog(ctx context.Context, uid string) (*bo.MessageLog, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationRead)
+func (center *Center) GetMessageLog(ctx context.Context, uid string) (*bo.MessageLog, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.repo.GetMessageLog(ctx, ns, uid)
-	return item, uc.access.Wrap(err)
+	item, err := center.repo.GetMessageLog(ctx, ns, uid)
+	return item, center.access.Wrap(err)
 }
 
-func (uc *Usecase) ListTasks(ctx context.Context, pageNo, pageSize int32, status string) ([]bo.NotificationTask, int, int, int, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationRead)
+func (center *Center) ListTasks(ctx context.Context, pageNo, pageSize int32, status string) ([]bo.NotificationTask, int, int, int, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
@@ -492,48 +493,48 @@ func (uc *Usecase) ListTasks(ctx context.Context, pageNo, pageSize int32, status
 		return nil, 0, 0, 0, merr.Invalid("invalid task status")
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.repo.ListTasks(ctx, ns, status, p, s)
-	return items, total, p, s, uc.access.Wrap(err)
+	items, total, err := center.repo.ListTasks(ctx, ns, status, p, s)
+	return items, total, p, s, center.access.Wrap(err)
 }
 
-func (uc *Usecase) RetryTask(ctx context.Context, uid string) (*bo.NotificationTask, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationWrite)
+func (center *Center) RetryTask(ctx context.Context, uid string) (*bo.NotificationTask, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.repo.RetryTask(ctx, ns, uid)
-	return item, uc.access.Wrap(err)
+	item, err := center.repo.RetryTask(ctx, ns, uid)
+	return item, center.access.Wrap(err)
 }
 
-func (uc *Usecase) CancelTask(ctx context.Context, uid string) (*bo.NotificationTask, error) {
-	ns, err := uc.access.Allow(ctx, perm.NotificationWrite)
+func (center *Center) CancelTask(ctx context.Context, uid string) (*bo.NotificationTask, error) {
+	ns, err := center.access.Allow(ctx, perm.NotificationWrite)
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.repo.CancelTask(ctx, ns, uid)
-	return item, uc.access.Wrap(err)
+	item, err := center.repo.CancelTask(ctx, ns, uid)
+	return item, center.access.Wrap(err)
 }
 
 // Claim 返回 PENDING 任务。只接受名为 merak 的 service key。
-func (uc *Usecase) Claim(ctx context.Context) ([]bo.NotifySnapshot, error) {
+func (center *Center) Claim(ctx context.Context) ([]bo.NotifySnapshot, error) {
 	if err := requireMerak(ctx); err != nil {
 		return nil, err
 	}
-	return uc.repo.ClaimPending(ctx, 20)
+	return center.repo.ClaimPending(ctx, 20)
 }
 
-func (uc *Usecase) MarkSending(ctx context.Context, taskUID string) error {
+func (center *Center) MarkSending(ctx context.Context, taskUID string) error {
 	if err := requireMerak(ctx); err != nil {
 		return err
 	}
-	return uc.repo.MarkSending(ctx, taskUID)
+	return center.repo.MarkSending(ctx, taskUID)
 }
 
-func (uc *Usecase) Report(ctx context.Context, report bo.NotifyReport) error {
+func (center *Center) Report(ctx context.Context, report bo.NotifyReport) error {
 	if err := requireMerak(ctx); err != nil {
 		return err
 	}
-	return uc.repo.ApplyNotifyReport(ctx, report)
+	return center.repo.ApplyNotifyReport(ctx, report)
 }
 
 func validTaskStatus(status string) bool {

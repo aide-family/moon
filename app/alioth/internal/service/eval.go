@@ -12,16 +12,16 @@ import (
 
 type EvalService struct {
 	megrezv1.UnimplementedEvalServiceServer
-	events  *alertevent.Usecase
-	workers *worker.Usecase
+	coordinator *alertevent.Coordinator
+	roster      *worker.Roster
 }
 
-func NewEvalService(uc *alertevent.Usecase, workers *worker.Usecase) *EvalService {
-	return &EvalService{events: uc, workers: workers}
+func NewEvalService(coordinator *alertevent.Coordinator, roster *worker.Roster) *EvalService {
+	return &EvalService{coordinator: coordinator, roster: roster}
 }
 
 func (s *EvalService) ClaimRules(ctx context.Context, _ *megrezv1.ClaimRulesRequest) (*megrezv1.ClaimRulesResponse, error) {
-	items, err := s.events.Claim(ctx)
+	items, err := s.coordinator.Claim(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (s *EvalService) ReportEval(ctx context.Context, req *megrezv1.ReportEvalRe
 			LevelUID: hit.GetLevelUid(), Summary: hit.GetSummary(), Description: hit.GetDescription(),
 		})
 	}
-	if err := s.events.Report(ctx, bo.EvalReport{
+	if err := s.coordinator.Report(ctx, bo.EvalReport{
 		RuleUID: req.GetRuleUid(), DatasourceUID: req.GetDatasourceUid(),
 		EvalSlot: slot.UTC(), Skipped: req.GetSkipped(), Hits: hits,
 	}); err != nil {
@@ -62,7 +62,7 @@ func (s *EvalService) ReportWorkerStatus(ctx context.Context, req *megrezv1.Repo
 		}
 		startedAt = &parsed
 	}
-	if err := s.workers.Report(ctx, "MEGREZ", bo.WorkerStatus{
+	if err := s.roster.Report(ctx, "MEGREZ", bo.WorkerStatus{
 		InstanceUID: req.GetInstanceUid(), Hostname: req.GetHostname(), Busy: req.GetBusy(),
 		TaskUID: req.GetTaskUid(), TaskName: req.GetTaskName(), TaskStartedAt: startedAt,
 	}); err != nil {

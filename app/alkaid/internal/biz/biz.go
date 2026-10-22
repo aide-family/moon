@@ -9,26 +9,26 @@ import (
 	"github.com/aide-family/Alioth/pkg/healthcheck"
 )
 
-var ProviderSet = wire.NewSet(NewHealthUsecase, agent.ProviderSet)
+var ProviderSet = wire.NewSet(NewHealthProber, agent.ProviderSet)
 
-// HealthUsecase 提供 liveness 与 readiness 两个视角。
+// HealthProber 提供 liveness 与 readiness 两个视角。
 // alkaid 的“就绪”以能否连上 alioth 为准，由 Connector 上报；这里不额外探测依赖，
 // 否则控制面滚动更新时会把所有 Agent 一起摘掉。
-type HealthUsecase struct {
+type HealthProber struct {
 	ready healthcheck.Checker
 }
 
-func NewHealthUsecase(ready healthcheck.Checker) *HealthUsecase {
-	return &HealthUsecase{ready: ready}
+func NewHealthProber(ready healthcheck.Checker) *HealthProber {
+	return &HealthProber{ready: ready}
 }
 
-func (uc *HealthUsecase) Status() string {
+func (prober *HealthProber) Status() string {
 	return "ok"
 }
 
-func (uc *HealthUsecase) Ready(ctx context.Context) error {
-	if uc == nil || uc.ready == nil {
+func (prober *HealthProber) Ready(ctx context.Context) error {
+	if prober == nil || prober.ready == nil {
 		return nil
 	}
-	return uc.ready.Check(ctx)
+	return prober.ready.Check(ctx)
 }

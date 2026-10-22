@@ -10,15 +10,15 @@ import (
 
 type DatasourceService struct {
 	v1.UnimplementedDatasourceServiceServer
-	datasources *datasource.Usecase
+	gateway *datasource.Gateway
 }
 
-func NewDatasourceService(uc *datasource.Usecase) *DatasourceService {
-	return &DatasourceService{datasources: uc}
+func NewDatasourceService(gateway *datasource.Gateway) *DatasourceService {
+	return &DatasourceService{gateway: gateway}
 }
 
 func (s *DatasourceService) CreateDatasource(ctx context.Context, req *v1.CreateDatasourceRequest) (*v1.CreateDatasourceResponse, error) {
-	item, err := s.datasources.CreateDatasource(ctx, datasourceInput(req))
+	item, err := s.gateway.CreateDatasource(ctx, datasourceInput(req))
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (s *DatasourceService) CreateDatasource(ctx context.Context, req *v1.Create
 func (s *DatasourceService) UpdateDatasource(ctx context.Context, req *v1.UpdateDatasourceRequest) (*v1.UpdateDatasourceResponse, error) {
 	in := datasourceInput(req)
 	in.UID = req.GetUid()
-	item, err := s.datasources.UpdateDatasource(ctx, in)
+	item, err := s.gateway.UpdateDatasource(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (s *DatasourceService) UpdateDatasource(ctx context.Context, req *v1.Update
 }
 
 func (s *DatasourceService) UpdateDatasourceStatus(ctx context.Context, req *v1.UpdateDatasourceStatusRequest) (*v1.UpdateDatasourceStatusResponse, error) {
-	item, err := s.datasources.UpdateDatasourceStatus(ctx, req.GetUid(), req.GetStatus())
+	item, err := s.gateway.UpdateDatasourceStatus(ctx, req.GetUid(), req.GetStatus())
 	if err != nil {
 		return nil, err
 	}
@@ -44,14 +44,14 @@ func (s *DatasourceService) UpdateDatasourceStatus(ctx context.Context, req *v1.
 }
 
 func (s *DatasourceService) DeleteDatasource(ctx context.Context, req *v1.DeleteDatasourceRequest) (*v1.DeleteDatasourceResponse, error) {
-	if err := s.datasources.DeleteDatasource(ctx, req.GetUid()); err != nil {
+	if err := s.gateway.DeleteDatasource(ctx, req.GetUid()); err != nil {
 		return nil, err
 	}
 	return &v1.DeleteDatasourceResponse{}, nil
 }
 
 func (s *DatasourceService) GetDatasource(ctx context.Context, req *v1.GetDatasourceRequest) (*v1.GetDatasourceResponse, error) {
-	item, err := s.datasources.GetDatasource(ctx, req.GetUid())
+	item, err := s.gateway.GetDatasource(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (s *DatasourceService) GetDatasource(ctx context.Context, req *v1.GetDataso
 }
 
 func (s *DatasourceService) ListDatasources(ctx context.Context, req *v1.ListDatasourcesRequest) (*v1.ListDatasourcesResponse, error) {
-	items, total, page, pageSize, err := s.datasources.ListDatasources(ctx, req.GetPage(), req.GetPageSize(), req.GetName(), req.GetType())
+	items, total, page, pageSize, err := s.gateway.ListDatasources(ctx, req.GetPage(), req.GetPageSize(), req.GetName(), req.GetType())
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (s *DatasourceService) ListDatasources(ctx context.Context, req *v1.ListDat
 }
 
 func (s *DatasourceService) SelectDatasources(ctx context.Context, req *v1.SelectDatasourcesRequest) (*v1.SelectDatasourcesResponse, error) {
-	items, err := s.datasources.SelectDatasources(ctx, req.GetLimit(), req.GetLastUid(), req.GetType())
+	items, err := s.gateway.SelectDatasources(ctx, req.GetLimit(), req.GetLastUid(), req.GetType())
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (s *DatasourceService) SelectDatasources(ctx context.Context, req *v1.Selec
 }
 
 func (s *DatasourceService) GetDatasourceStatus(ctx context.Context, req *v1.GetDatasourceStatusRequest) (*v1.GetDatasourceStatusResponse, error) {
-	status, err := s.datasources.Status(ctx, req.GetUid())
+	status, err := s.gateway.Status(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (s *DatasourceService) GetDatasourceStatus(ctx context.Context, req *v1.Get
 }
 
 func (s *DatasourceService) GetDatasourceMetadata(ctx context.Context, req *v1.GetDatasourceMetadataRequest) (*v1.GetDatasourceMetadataResponse, error) {
-	metadata, err := s.datasources.Metadata(ctx, req.GetUid())
+	metadata, err := s.gateway.Metadata(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (s *DatasourceService) GetDatasourceMetadata(ctx context.Context, req *v1.G
 }
 
 func (s *DatasourceService) ListDatasourceMetrics(ctx context.Context, req *v1.ListDatasourceMetricsRequest) (*v1.ListDatasourceMetricsResponse, error) {
-	metrics, err := s.datasources.Metrics(ctx, req.GetUid())
+	metrics, err := s.gateway.Metrics(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (s *DatasourceService) ListDatasourceMetrics(ctx context.Context, req *v1.L
 }
 
 func (s *DatasourceService) GetDatasourceMetric(ctx context.Context, req *v1.GetDatasourceMetricRequest) (*v1.GetDatasourceMetricResponse, error) {
-	body, err := s.datasources.Metric(ctx, req.GetUid(), req.GetName())
+	body, err := s.gateway.Metric(ctx, req.GetUid(), req.GetName())
 	if err != nil {
 		return nil, err
 	}

@@ -27,8 +27,8 @@ type Checks struct {
 	items   []namedCheck
 }
 
-// New 创建探测集合。timeout 是单个依赖的超时，<=0 时取 1 秒。
-func New(timeout time.Duration) *Checks {
+// NewChecks 创建探测集合。timeout 是单个依赖的超时，<=0 时取 1 秒。
+func NewChecks(timeout time.Duration) *Checks {
 	if timeout <= 0 {
 		timeout = time.Second
 	}

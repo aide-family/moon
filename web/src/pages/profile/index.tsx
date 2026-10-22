@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { StatusBadge } from "@/components/status-badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { failureText, readFormError } from "@/lib/form-error"
+import { failureMessage, readFormError } from "@/lib/form-error"
 
 // 备注上限以后端 ChangeRemark 的 buf.validate 为准。
 const remarkLimit = 200
@@ -58,7 +58,7 @@ export function ProfilePage() {
       } catch (err) {
         if (active) {
           setFailed(true)
-          setLoadError(failureText(err, ""))
+          setLoadError(failureMessage(err, ""))
         }
       } finally {
         if (active) {

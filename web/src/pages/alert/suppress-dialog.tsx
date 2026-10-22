@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/class-names"
 
 // 默认抑制时长梯度，秒。范围和后端 buf.validate 保持一致。
 const PRESETS = [
@@ -49,7 +49,7 @@ export interface SuppressInput {
   permanent: boolean
 }
 
-interface SuppressDialogProps {
+interface AlertEventSuppressDialogProps {
   event: AlertEventItem | null
   open: boolean
   pending: boolean
@@ -62,14 +62,14 @@ interface SuppressDialogProps {
  * 实时告警抑制对话框：给一组常用时长，也允许按时长 + 单位自定义，或永久抑制。
  * 提交前在前端限制在后端允许的 1 分钟到 30 天之间，避免空值和越界请求。
  */
-export function SuppressDialog({
+export function AlertEventSuppressDialog({
   event,
   open,
   pending,
   error,
   onConfirm,
   onOpenChange,
-}: SuppressDialogProps) {
+}: AlertEventSuppressDialogProps) {
   const { t } = useTranslation()
   const [preset, setPreset] = useState<Preset>(DEFAULT_SECONDS)
   const [customValue, setCustomValue] = useState("30")

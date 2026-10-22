@@ -9,7 +9,7 @@ import { proxyQuery, queryMetric, queryMetricRange } from "@/api/metric-query"
 import type { DatasourceItem } from "@/api/datasource/types"
 import { FormField } from "@/components/form-field"
 import { MetricGraph } from "@/components/metric-graph"
-import { PromqlEditor } from "@/components/promql-editor"
+import { PromQLEditor } from "@/components/query-expression-editor"
 import { useTheme } from "@/components/theme-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,8 +22,8 @@ import {
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { cn } from "@/lib/utils"
-import { failureText } from "@/lib/form-error"
+import { cn } from "@/lib/class-names"
+import { failureMessage } from "@/lib/form-error"
 import {
   collectLabelKeys,
   extractPrometheusResultData,
@@ -284,7 +284,7 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
     } catch (err) {
       setInstantBody("")
       setRangeBody("")
-      setQueryError(failureText(err, t("state.failed")))
+      setQueryError(failureMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -298,7 +298,7 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
       setStatusText(response.status)
     } catch (err) {
       setStatusText("")
-      setQueryError(failureText(err, t("state.failed")))
+      setQueryError(failureMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -317,7 +317,7 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
       setProxyResult(response.body)
     } catch (err) {
       setProxyResult("")
-      setQueryError(failureText(err, t("state.failed")))
+      setQueryError(failureMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -383,7 +383,7 @@ export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
           required
           error={exprError}
         >
-          <PromqlEditor
+          <PromQLEditor
             value={expr}
             datasourceUid={datasource.uid}
             onChange={(value) => {

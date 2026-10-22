@@ -20,9 +20,9 @@ import (
 // Injectors from wire.go:
 
 func wireApp(confServer *conf.Server, alioth *conf.Alioth, logger *slog.Logger) (*kratos.App, func(), error) {
-	checker := data.NewReadiness()
-	healthUsecase := biz.NewHealthUsecase(checker)
-	healthService := service.NewHealthService(healthUsecase)
+	checker := data.NewReadinessChecker()
+	healthProber := biz.NewHealthProber(checker)
+	healthService := service.NewHealthService(healthProber)
 	httpServer, err := server.NewHTTPServer(confServer, healthService, logger)
 	if err != nil {
 		return nil, nil, err
@@ -31,16 +31,16 @@ func wireApp(confServer *conf.Server, alioth *conf.Alioth, logger *slog.Logger) 
 	if err != nil {
 		return nil, nil, err
 	}
-	dataData, cleanup, err := data.NewData(alioth)
+	connectionSettings, cleanup, err := data.NewConnectionSettings(alioth)
 	if err != nil {
 		return nil, nil, err
 	}
-	connector, err := agent.NewConnector(dataData, logger)
+	connector, err := agent.NewConnector(connectionSettings, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	app := newApp(logger, httpServer, grpcServer, connector, dataData)
+	app := newApp(logger, httpServer, grpcServer, connector, connectionSettings)
 	return app, func() {
 		cleanup()
 	}, nil

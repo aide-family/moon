@@ -1,7 +1,7 @@
 import { Columns3, GripVertical } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage } from "@/lib/form-error"
+import { formErrorMessage } from "@/lib/form-error"
 
 import { alertEventRealtimeStats } from "@/api/alert-event"
 import type { AlertEventStats } from "@/api/alert-event/types"
@@ -34,7 +34,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/class-names"
 
 // 实时告警页的自动刷新节奏：每次 tick 只发两个请求，数量统计和当前 Tab 的列表。
 const REALTIME_REFRESH_MS = 30000
@@ -175,7 +175,7 @@ export function AlertRealtimePage() {
       setColumns(result.columns?.length ? result.columns : DEFAULT_REALTIME_COLUMNS)
       setColumnOpen(false)
     } catch (err) {
-      setColumnError(formMessage(err, t("state.failed")))
+      setColumnError(formErrorMessage(err, t("state.failed")))
     } finally {
       setColumnPending(false)
     }
@@ -198,7 +198,7 @@ export function AlertRealtimePage() {
       setPickerFilter("")
       setPickerOpen(true)
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      setError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -221,7 +221,7 @@ export function AlertRealtimePage() {
         return next.some((tab) => tab.id === current) ? current : MINE_TAB_ID
       })
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      setError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -257,7 +257,7 @@ export function AlertRealtimePage() {
       }
     } catch (err) {
       setTabs(previous)
-      setOrderError(formMessage(err, t("state.failed")))
+      setOrderError(formErrorMessage(err, t("state.failed")))
     } finally {
       setOrdering(false)
     }

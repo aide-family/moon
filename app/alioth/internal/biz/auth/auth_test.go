@@ -25,22 +25,22 @@ func (userStub) UserByUID(context.Context, string) (*bo.Account, error) {
 }
 
 func TestClaimRejectsUserJWT(t *testing.T) {
-	uc, err := NewUsecase(userStub{}, nil, nil, nil, nil, nil, &conf.Auth{
+	authenticator, err := NewAuthenticator(userStub{}, nil, nil, nil, nil, nil, &conf.Auth{
 		JwtSecret:   "test-secret",
 		ServiceKeys: []*conf.Auth_ServiceKey{{Name: "megrez", Key: "sk-megrez-dev"}},
 	}, slog.Default())
 	if err != nil {
 		t.Fatal(err)
 	}
-	token, err := uc.sign("user-1", "access", time.Hour)
+	token, err := authenticator.sign("user-1", "access", time.Hour)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = uc.Authenticate(context.Background(), megrezv1.EvalService_ClaimRules_FullMethodName, "Bearer "+token, "")
+	_, err = authenticator.Authenticate(context.Background(), megrezv1.EvalService_ClaimRules_FullMethodName, "Bearer "+token, "")
 	if kerrors.Reason(err) != merr.ReasonForbidden {
 		t.Fatalf("user jwt claim: %v", err)
 	}
-	ctx, err := uc.Authenticate(context.Background(), megrezv1.EvalService_ReportEval_FullMethodName, "Bearer sk-megrez-dev", "")
+	ctx, err := authenticator.Authenticate(context.Background(), megrezv1.EvalService_ReportEval_FullMethodName, "Bearer sk-megrez-dev", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,18 +48,18 @@ func TestClaimRejectsUserJWT(t *testing.T) {
 	if !ok || name != "megrez" {
 		t.Fatalf("service = %q ok=%v", name, ok)
 	}
-	statusCtx, err := uc.Authenticate(context.Background(), megrezv1.EvalService_ReportWorkerStatus_FullMethodName, "Bearer sk-megrez-dev", "")
+	statusCtx, err := authenticator.Authenticate(context.Background(), megrezv1.EvalService_ReportWorkerStatus_FullMethodName, "Bearer sk-megrez-dev", "")
 	if err != nil {
 		t.Fatalf("megrez status report: %v", err)
 	}
 	if name, ok := actor.ServiceName(statusCtx); !ok || name != "megrez" {
 		t.Fatalf("status reporter = %q ok=%v", name, ok)
 	}
-	_, err = uc.Authenticate(context.Background(), merakv1.NotifyService_ReportWorkerStatus_FullMethodName, "Bearer sk-megrez-dev", "")
+	_, err = authenticator.Authenticate(context.Background(), merakv1.NotifyService_ReportWorkerStatus_FullMethodName, "Bearer sk-megrez-dev", "")
 	if kerrors.Reason(err) != merr.ReasonForbidden {
 		t.Fatalf("megrez key reached merak heartbeat: %v", err)
 	}
-	_, err = uc.Authenticate(context.Background(), v1.OperationAlertEventServiceListAlertEvents, "Bearer sk-megrez-dev", "ns")
+	_, err = authenticator.Authenticate(context.Background(), v1.OperationAlertEventServiceListAlertEvents, "Bearer sk-megrez-dev", "ns")
 	if kerrors.Reason(err) != merr.ReasonForbidden {
 		t.Fatalf("service key list: %v", err)
 	}

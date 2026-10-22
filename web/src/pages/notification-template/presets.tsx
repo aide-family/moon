@@ -16,8 +16,8 @@ import { TemplateEditor } from "@/components/template-editor"
 import { TemplatePreviewDialog } from "@/components/template-preview-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { failureText, readFormError } from "@/lib/form-error"
-import { cn } from "@/lib/utils"
+import { failureMessage, readFormError } from "@/lib/form-error"
+import { cn } from "@/lib/class-names"
 
 /**
  * 预设模板主从页：左侧预设名称列表，右侧编辑内容。
@@ -68,7 +68,7 @@ export function NotificationPresetPage() {
       } catch (err) {
         if (active) {
           setFailed(true)
-          setLoadError(failureText(err, t("state.failed")))
+          setLoadError(failureMessage(err, t("state.failed")))
         }
       } finally {
         if (active) {

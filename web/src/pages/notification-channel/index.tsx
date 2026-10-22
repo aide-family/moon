@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage, readFormError } from "@/lib/form-error"
+import { formErrorMessage, readFormError } from "@/lib/form-error"
 
 import {
   createNotificationChannel,
@@ -53,8 +53,8 @@ import {
 } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
-import { useListQuery } from "@/lib/list-query"
-import { run } from "@/lib/action"
+import { useListQuery } from "@/hooks/use-list-query"
+import { runAction } from "@/lib/action"
 
 const types = ["SMTP", "SMS", "WEBHOOK"]
 const webhookApps = ["OTHER", "DINGTALK", "WECHAT", "FEISHU"]
@@ -219,7 +219,7 @@ export function NotificationChannelPage() {
       setConfirm(null)
       reload()
     } catch (err) {
-      setConfirmError(formMessage(err, t("state.failed")))
+      setConfirmError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -234,7 +234,7 @@ export function NotificationChannelPage() {
       ...(item.status === "ACTIVE" && item.type !== "SMS" ? [{ key: "test", label: t("action.test"), onSelect: () => openTest(item) }] : []),
       item.status === "ACTIVE"
         ? { key: "disable", label: t("action.disable"), destructive: true, onSelect: () => setConfirm({ action: "disable", item }) }
-        : { key: "enable", label: t("action.enable"), onSelect: () => run(updateNotificationChannelStatus(item.uid, "ACTIVE").then(() => reload()), setError) },
+        : { key: "enable", label: t("action.enable"), onSelect: () => runAction(updateNotificationChannelStatus(item.uid, "ACTIVE").then(() => reload()), setError) },
       { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm({ action: "delete", item }) },
     ]
   }

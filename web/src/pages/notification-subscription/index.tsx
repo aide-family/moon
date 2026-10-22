@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage, readFormError } from "@/lib/form-error"
+import { formErrorMessage, readFormError } from "@/lib/form-error"
 
 import { listAlertDictionaries } from "@/api/alert-dictionary"
 import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
@@ -48,9 +48,9 @@ import {
   type FieldErrors,
 } from "@/lib/form"
 import { usePagedList } from "@/hooks/use-paged-list"
-import { useListQuery } from "@/lib/list-query"
+import { useListQuery } from "@/hooks/use-list-query"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
-import { run } from "@/lib/action"
+import { runAction } from "@/lib/action"
 
 export function NotificationSubscriptionPage() {
   const { t } = useTranslation()
@@ -199,7 +199,7 @@ export function NotificationSubscriptionPage() {
       setConfirm(null)
       reload()
     } catch (err) {
-      setConfirmError(formMessage(err, t("state.failed")))
+      setConfirmError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -213,7 +213,7 @@ export function NotificationSubscriptionPage() {
       { key: "edit", label: t("action.edit"), onSelect: () => openEdit(item) },
       item.status === "ACTIVE"
         ? { key: "disable", label: t("action.disable"), destructive: true, onSelect: () => setConfirm({ action: "disable", item }) }
-        : { key: "enable", label: t("action.enable"), onSelect: () => run(updateNotificationSubscriptionStatus(item.uid, "ACTIVE").then(() => reload()), setError) },
+        : { key: "enable", label: t("action.enable"), onSelect: () => runAction(updateNotificationSubscriptionStatus(item.uid, "ACTIVE").then(() => reload()), setError) },
       { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm({ action: "delete", item }) },
     ]
   }

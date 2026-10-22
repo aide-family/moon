@@ -62,7 +62,7 @@ import {
   type LabelPair,
 } from "@/lib/labels"
 import { usePagedList } from "@/hooks/use-paged-list"
-import { useListQuery } from "@/lib/list-query"
+import { useListQuery } from "@/hooks/use-list-query"
 import { MetadataPanel } from "@/pages/datasource/metadata-panel"
 import { QueryPanel } from "@/pages/datasource/query-panel"
 

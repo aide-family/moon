@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { failureText } from "@/lib/form-error"
+import { failureMessage } from "@/lib/form-error"
 import { useSearchParams } from "react-router-dom"
 
 import {
@@ -36,7 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useListQuery } from "@/lib/list-query"
+import { useListQuery } from "@/hooks/use-list-query"
 
 function deliveryContent(subject?: string, content?: string): string {
   return [subject?.trim(), content?.trim()].filter((value): value is string => Boolean(value)).join("\n\n")
@@ -98,7 +98,7 @@ export function MessageLogPage() {
       } catch (err) {
         if (active) {
           setFailed(true)
-          setLoadError(failureText(err, ""))
+          setLoadError(failureMessage(err, ""))
           setLogs([])
           setTasks([])
         }

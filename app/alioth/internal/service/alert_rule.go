@@ -10,15 +10,15 @@ import (
 
 type AlertRuleService struct {
 	v1.UnimplementedAlertRuleServiceServer
-	rules *alertrule.Usecase
+	rulebook *alertrule.Rulebook
 }
 
-func NewAlertRuleService(uc *alertrule.Usecase) *AlertRuleService {
-	return &AlertRuleService{rules: uc}
+func NewAlertRuleService(rulebook *alertrule.Rulebook) *AlertRuleService {
+	return &AlertRuleService{rulebook: rulebook}
 }
 
 func (s *AlertRuleService) CreateAlertRuleGroup(ctx context.Context, req *v1.CreateAlertRuleGroupRequest) (*v1.CreateAlertRuleGroupResponse, error) {
-	item, err := s.rules.CreateGroup(ctx, req.GetName())
+	item, err := s.rulebook.CreateGroup(ctx, req.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func (s *AlertRuleService) CreateAlertRuleGroup(ctx context.Context, req *v1.Cre
 }
 
 func (s *AlertRuleService) UpdateAlertRuleGroup(ctx context.Context, req *v1.UpdateAlertRuleGroupRequest) (*v1.UpdateAlertRuleGroupResponse, error) {
-	item, err := s.rules.UpdateGroup(ctx, req.GetUid(), req.GetName())
+	item, err := s.rulebook.UpdateGroup(ctx, req.GetUid(), req.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (s *AlertRuleService) UpdateAlertRuleGroup(ctx context.Context, req *v1.Upd
 }
 
 func (s *AlertRuleService) UpdateAlertRuleGroupStatus(ctx context.Context, req *v1.UpdateAlertRuleGroupStatusRequest) (*v1.UpdateAlertRuleGroupStatusResponse, error) {
-	item, err := s.rules.UpdateGroupStatus(ctx, req.GetUid(), req.GetStatus())
+	item, err := s.rulebook.UpdateGroupStatus(ctx, req.GetUid(), req.GetStatus())
 	if err != nil {
 		return nil, err
 	}
@@ -42,14 +42,14 @@ func (s *AlertRuleService) UpdateAlertRuleGroupStatus(ctx context.Context, req *
 }
 
 func (s *AlertRuleService) DeleteAlertRuleGroup(ctx context.Context, req *v1.DeleteAlertRuleGroupRequest) (*v1.DeleteAlertRuleGroupResponse, error) {
-	if err := s.rules.DeleteGroup(ctx, req.GetUid()); err != nil {
+	if err := s.rulebook.DeleteGroup(ctx, req.GetUid()); err != nil {
 		return nil, err
 	}
 	return &v1.DeleteAlertRuleGroupResponse{}, nil
 }
 
 func (s *AlertRuleService) ListAlertRuleGroups(ctx context.Context, req *v1.ListAlertRuleGroupsRequest) (*v1.ListAlertRuleGroupsResponse, error) {
-	items, total, page, pageSize, err := s.rules.ListGroups(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
+	items, total, page, pageSize, err := s.rulebook.ListGroups(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (s *AlertRuleService) ListAlertRuleGroups(ctx context.Context, req *v1.List
 }
 
 func (s *AlertRuleService) CreateAlertRule(ctx context.Context, req *v1.CreateAlertRuleRequest) (*v1.CreateAlertRuleResponse, error) {
-	item, err := s.rules.CreateRule(ctx, ruleInput("", req))
+	item, err := s.rulebook.CreateRule(ctx, ruleInput("", req))
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (s *AlertRuleService) UpdateAlertRule(ctx context.Context, req *v1.UpdateAl
 		Expr: req.GetExpr(), Labels: req.GetLabels(), DatasourceLabels: req.GetDatasourceLabels(),
 		Summary: req.GetSummary(), Description: req.GetDescription(), Levels: levelInputs(req.GetLevels()),
 	}
-	item, err := s.rules.UpdateRule(ctx, in)
+	item, err := s.rulebook.UpdateRule(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (s *AlertRuleService) UpdateAlertRule(ctx context.Context, req *v1.UpdateAl
 }
 
 func (s *AlertRuleService) UpdateAlertRuleStatus(ctx context.Context, req *v1.UpdateAlertRuleStatusRequest) (*v1.UpdateAlertRuleStatusResponse, error) {
-	item, err := s.rules.UpdateRuleStatus(ctx, req.GetUid(), req.GetStatus())
+	item, err := s.rulebook.UpdateRuleStatus(ctx, req.GetUid(), req.GetStatus())
 	if err != nil {
 		return nil, err
 	}
@@ -86,14 +86,14 @@ func (s *AlertRuleService) UpdateAlertRuleStatus(ctx context.Context, req *v1.Up
 }
 
 func (s *AlertRuleService) DeleteAlertRule(ctx context.Context, req *v1.DeleteAlertRuleRequest) (*v1.DeleteAlertRuleResponse, error) {
-	if err := s.rules.DeleteRule(ctx, req.GetUid()); err != nil {
+	if err := s.rulebook.DeleteRule(ctx, req.GetUid()); err != nil {
 		return nil, err
 	}
 	return &v1.DeleteAlertRuleResponse{}, nil
 }
 
 func (s *AlertRuleService) GetAlertRule(ctx context.Context, req *v1.GetAlertRuleRequest) (*v1.GetAlertRuleResponse, error) {
-	item, err := s.rules.GetRule(ctx, req.GetUid())
+	item, err := s.rulebook.GetRule(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (s *AlertRuleService) GetAlertRule(ctx context.Context, req *v1.GetAlertRul
 }
 
 func (s *AlertRuleService) ListAlertRules(ctx context.Context, req *v1.ListAlertRulesRequest) (*v1.ListAlertRulesResponse, error) {
-	items, total, page, pageSize, err := s.rules.ListRules(ctx, req.GetPage(), req.GetPageSize(), req.GetGroupUid(), req.GetName())
+	items, total, page, pageSize, err := s.rulebook.ListRules(ctx, req.GetPage(), req.GetPageSize(), req.GetGroupUid(), req.GetName())
 	if err != nil {
 		return nil, err
 	}

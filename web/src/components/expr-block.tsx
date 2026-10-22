@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/class-names"
 
 interface ExprBlockProps {
   // 规则表达式原文，保留换行和空格。

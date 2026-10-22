@@ -233,7 +233,7 @@ func renderAlert(ctx context.Context, rule bo.RuleSnapshot, raw string, value fl
 		externalURL = &url.URL{}
 	}
 	externalURL.User = nil
-	data := alerttmpl.New(labels, labelsJSON, value, externalURL.String(), nil)
+	data := alerttmpl.NewData(labels, labelsJSON, value, externalURL.String(), nil)
 	result, err := alerttmpl.Render(ctx, raw, data, "__alert_"+rule.Name, at, query, externalURL)
 	if err != nil {
 		return fmt.Sprintf("<error expanding template: %s>", err)

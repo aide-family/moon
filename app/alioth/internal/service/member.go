@@ -9,15 +9,15 @@ import (
 
 type MemberService struct {
 	v1.UnimplementedMemberServiceServer
-	members *member.Usecase
+	membership *member.Membership
 }
 
-func NewMemberService(uc *member.Usecase) *MemberService {
-	return &MemberService{members: uc}
+func NewMemberService(membership *member.Membership) *MemberService {
+	return &MemberService{membership: membership}
 }
 
 func (s *MemberService) ListMembers(ctx context.Context, req *v1.ListMembersRequest) (*v1.ListMembersResponse, error) {
-	items, total, page, pageSize, err := s.members.ListMembers(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
+	items, total, page, pageSize, err := s.membership.ListMembers(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func (s *MemberService) ListMembers(ctx context.Context, req *v1.ListMembersRequ
 }
 
 func (s *MemberService) GetMember(ctx context.Context, req *v1.GetMemberRequest) (*v1.GetMemberResponse, error) {
-	item, err := s.members.GetMember(ctx, req.GetUid())
+	item, err := s.membership.GetMember(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (s *MemberService) GetMember(ctx context.Context, req *v1.GetMemberRequest)
 }
 
 func (s *MemberService) ListUserMembers(ctx context.Context, req *v1.ListUserMembersRequest) (*v1.ListUserMembersResponse, error) {
-	items, err := s.members.ListUserMembers(ctx, req.GetUserUid())
+	items, err := s.membership.ListUserMembers(ctx, req.GetUserUid())
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (s *MemberService) ListUserMembers(ctx context.Context, req *v1.ListUserMem
 }
 
 func (s *MemberService) SelectMembers(ctx context.Context, req *v1.SelectMembersRequest) (*v1.SelectMembersResponse, error) {
-	items, err := s.members.SelectMembers(ctx, req.GetLimit(), req.GetLastUid())
+	items, err := s.membership.SelectMembers(ctx, req.GetLimit(), req.GetLastUid())
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (s *MemberService) SelectMembers(ctx context.Context, req *v1.SelectMembers
 }
 
 func (s *MemberService) InviteMember(ctx context.Context, req *v1.InviteMemberRequest) (*v1.InviteMemberResponse, error) {
-	item, sent, err := s.members.InviteMember(ctx, req.GetEmail(), req.GetRoleUid())
+	item, sent, err := s.membership.InviteMember(ctx, req.GetEmail(), req.GetRoleUid())
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (s *MemberService) InviteMember(ctx context.Context, req *v1.InviteMemberRe
 }
 
 func (s *MemberService) ListMemberInvites(ctx context.Context, _ *v1.ListMemberInvitesRequest) (*v1.ListMemberInvitesResponse, error) {
-	items, err := s.members.ListInvites(ctx)
+	items, err := s.membership.ListInvites(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -65,21 +65,21 @@ func (s *MemberService) ListMemberInvites(ctx context.Context, _ *v1.ListMemberI
 }
 
 func (s *MemberService) RevokeMemberInvite(ctx context.Context, req *v1.RevokeMemberInviteRequest) (*v1.RevokeMemberInviteResponse, error) {
-	if err := s.members.RevokeInvite(ctx, req.GetUid()); err != nil {
+	if err := s.membership.RevokeInvite(ctx, req.GetUid()); err != nil {
 		return nil, err
 	}
 	return &v1.RevokeMemberInviteResponse{}, nil
 }
 
 func (s *MemberService) DeleteMember(ctx context.Context, req *v1.DeleteMemberRequest) (*v1.DeleteMemberResponse, error) {
-	if err := s.members.DeleteMember(ctx, req.GetUid()); err != nil {
+	if err := s.membership.DeleteMember(ctx, req.GetUid()); err != nil {
 		return nil, err
 	}
 	return &v1.DeleteMemberResponse{}, nil
 }
 
 func (s *MemberService) UpdateMemberStatus(ctx context.Context, req *v1.UpdateMemberStatusRequest) (*v1.UpdateMemberStatusResponse, error) {
-	item, err := s.members.UpdateMemberStatus(ctx, req.GetUid(), req.GetStatus())
+	item, err := s.membership.UpdateMemberStatus(ctx, req.GetUid(), req.GetStatus())
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (s *MemberService) UpdateMemberStatus(ctx context.Context, req *v1.UpdateMe
 }
 
 func (s *MemberService) UpdateMemberRoles(ctx context.Context, req *v1.UpdateMemberRolesRequest) (*v1.UpdateMemberRolesResponse, error) {
-	item, err := s.members.UpdateMemberRoles(ctx, req.GetUid(), req.GetRoleUids())
+	item, err := s.membership.UpdateMemberRoles(ctx, req.GetUid(), req.GetRoleUids())
 	if err != nil {
 		return nil, err
 	}

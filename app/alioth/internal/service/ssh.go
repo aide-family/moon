@@ -11,15 +11,15 @@ import (
 
 type SSHCommandService struct {
 	v1.UnimplementedSSHCommandServiceServer
-	commands *ssh.Usecase
+	executor *ssh.Executor
 }
 
-func NewSSHCommandService(uc *ssh.Usecase) *SSHCommandService {
-	return &SSHCommandService{commands: uc}
+func NewSSHCommandService(executor *ssh.Executor) *SSHCommandService {
+	return &SSHCommandService{executor: executor}
 }
 
 func (s *SSHCommandService) CreateSSHCommand(ctx context.Context, req *v1.CreateSSHCommandRequest) (*v1.CreateSSHCommandResponse, error) {
-	item, err := s.commands.Create(ctx, sshInput("", req.GetName(), req.GetCommand(), req.GetWorkdir(), req.GetEnv(), req.GetRemark()))
+	item, err := s.executor.Create(ctx, sshInput("", req.GetName(), req.GetCommand(), req.GetWorkdir(), req.GetEnv(), req.GetRemark()))
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func (s *SSHCommandService) CreateSSHCommand(ctx context.Context, req *v1.Create
 }
 
 func (s *SSHCommandService) UpdateSSHCommand(ctx context.Context, req *v1.UpdateSSHCommandRequest) (*v1.UpdateSSHCommandResponse, error) {
-	item, err := s.commands.Update(ctx, sshInput(req.GetUid(), req.GetName(), req.GetCommand(), req.GetWorkdir(), req.GetEnv(), req.GetRemark()))
+	item, err := s.executor.Update(ctx, sshInput(req.GetUid(), req.GetName(), req.GetCommand(), req.GetWorkdir(), req.GetEnv(), req.GetRemark()))
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (s *SSHCommandService) UpdateSSHCommand(ctx context.Context, req *v1.Update
 }
 
 func (s *SSHCommandService) ApproveSSHCommand(ctx context.Context, req *v1.ApproveSSHCommandRequest) (*v1.ApproveSSHCommandResponse, error) {
-	item, err := s.commands.Approve(ctx, req.GetUid())
+	item, err := s.executor.Approve(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (s *SSHCommandService) ApproveSSHCommand(ctx context.Context, req *v1.Appro
 }
 
 func (s *SSHCommandService) RejectSSHCommand(ctx context.Context, req *v1.RejectSSHCommandRequest) (*v1.RejectSSHCommandResponse, error) {
-	item, err := s.commands.Reject(ctx, req.GetUid())
+	item, err := s.executor.Reject(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -51,14 +51,14 @@ func (s *SSHCommandService) RejectSSHCommand(ctx context.Context, req *v1.Reject
 }
 
 func (s *SSHCommandService) DeleteSSHCommand(ctx context.Context, req *v1.DeleteSSHCommandRequest) (*v1.DeleteSSHCommandResponse, error) {
-	if err := s.commands.Delete(ctx, req.GetUid()); err != nil {
+	if err := s.executor.Delete(ctx, req.GetUid()); err != nil {
 		return nil, err
 	}
 	return &v1.DeleteSSHCommandResponse{}, nil
 }
 
 func (s *SSHCommandService) GetSSHCommand(ctx context.Context, req *v1.GetSSHCommandRequest) (*v1.GetSSHCommandResponse, error) {
-	item, err := s.commands.Get(ctx, req.GetUid())
+	item, err := s.executor.Get(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (s *SSHCommandService) GetSSHCommand(ctx context.Context, req *v1.GetSSHCom
 }
 
 func (s *SSHCommandService) ListSSHCommands(ctx context.Context, req *v1.ListSSHCommandsRequest) (*v1.ListSSHCommandsResponse, error) {
-	items, total, page, pageSize, err := s.commands.List(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
+	items, total, page, pageSize, err := s.executor.List(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (s *SSHCommandService) ExecuteSSHCommand(ctx context.Context, req *v1.Execu
 	if len(uids) == 0 && req.GetAgentUid() != "" {
 		uids = []string{req.GetAgentUid()}
 	}
-	audits, err := s.commands.ExecuteOnAgents(ctx, req.GetUid(), uids)
+	audits, err := s.executor.ExecuteOnAgents(ctx, req.GetUid(), uids)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (s *SSHCommandService) ExecuteSSHCommand(ctx context.Context, req *v1.Execu
 }
 
 func (s *SSHCommandService) ExecuteSSHCommands(ctx context.Context, req *v1.ExecuteSSHCommandsRequest) (*v1.ExecuteSSHCommandsResponse, error) {
-	audits, err := s.commands.ExecuteMany(ctx, req.GetUids(), req.GetAgentUid())
+	audits, err := s.executor.ExecuteMany(ctx, req.GetUids(), req.GetAgentUid())
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (s *SSHCommandService) ExecuteSSHCommands(ctx context.Context, req *v1.Exec
 }
 
 func (s *SSHCommandService) ListSSHCommandAudits(ctx context.Context, req *v1.ListSSHCommandAuditsRequest) (*v1.ListSSHCommandAuditsResponse, error) {
-	items, total, page, pageSize, err := s.commands.ListAudits(ctx, req.GetCommandUid(), req.GetAgentUid(), req.GetPage(), req.GetPageSize())
+	items, total, page, pageSize, err := s.executor.ListAudits(ctx, req.GetCommandUid(), req.GetAgentUid(), req.GetPage(), req.GetPageSize())
 	if err != nil {
 		return nil, err
 	}

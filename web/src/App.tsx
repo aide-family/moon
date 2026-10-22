@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom"
 
-import { Shell } from "@/components/shell"
+import { AppShell } from "@/components/app-shell"
 import { AgentPage } from "@/pages/agent"
 import { AgentShellPage } from "@/pages/agent/shell"
 import { AlertHistoryPage } from "@/pages/alert/history"
@@ -36,7 +36,7 @@ export function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/invite/:token" element={<InvitePage />} />
-      <Route element={<Shell />}>
+      <Route element={<AppShell />}>
         <Route path="/" element={<Navigate to="/profile" replace />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/forbidden" element={<ForbiddenPage />} />

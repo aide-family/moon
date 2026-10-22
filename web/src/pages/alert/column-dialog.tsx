@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/class-names"
 import { FIELD_COLUMNS, fieldLabel } from "@/pages/alert/columns"
 
 interface AlertColumnDialogProps {

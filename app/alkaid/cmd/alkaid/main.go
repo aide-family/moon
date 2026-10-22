@@ -53,7 +53,7 @@ func main() {
 }
 
 func serve(confPath string) error {
-	bc, err := bootstrap.Load[conf.Bootstrap](confPath, slog.Default())
+	cfg, err := bootstrap.Load[conf.Bootstrap](confPath, slog.Default())
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func serve(confPath string) error {
 		log.WithFormat(log.FormatJSON),
 		log.WithAddSource(true),
 	)).With(slog.String("service", "alkaid"))
-	app, cleanup, err := wireApp(bc.Server, bc.Alioth, logger)
+	app, cleanup, err := wireApp(cfg.Server, cfg.Alioth, logger)
 	if err != nil {
 		return err
 	}
@@ -70,9 +70,9 @@ func serve(confPath string) error {
 	return app.Run()
 }
 
-func newApp(logger *slog.Logger, hs *http.Server, gs *grpc.Server, connector *agentbiz.Connector, d *data.Data) *kratos.App {
-	logger.Info(fmt.Sprintf("alioth grpc endpoint configured: %s", d.AliothGRPC))
-	servers := []transport.Server{hs, gs}
+func newApp(logger *slog.Logger, httpServer *http.Server, grpcServer *grpc.Server, connector *agentbiz.Connector, settings *data.ConnectionSettings) *kratos.App {
+	logger.Info(fmt.Sprintf("alioth grpc endpoint configured: %s", settings.AliothGRPC))
+	servers := []transport.Server{httpServer, grpcServer}
 	if connector != nil {
 		servers = append(servers, connector)
 	}

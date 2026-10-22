@@ -12,15 +12,15 @@ import (
 
 type AlertEventService struct {
 	v1.UnimplementedAlertEventServiceServer
-	events *alertevent.Usecase
+	coordinator *alertevent.Coordinator
 }
 
-func NewAlertEventService(uc *alertevent.Usecase) *AlertEventService {
-	return &AlertEventService{events: uc}
+func NewAlertEventService(coordinator *alertevent.Coordinator) *AlertEventService {
+	return &AlertEventService{coordinator: coordinator}
 }
 
 func (s *AlertEventService) ListAlertEvents(ctx context.Context, req *v1.ListAlertEventsRequest) (*v1.ListAlertEventsResponse, error) {
-	items, total, page, pageSize, err := s.events.List(ctx, req.GetView(), req.GetName(), req.GetMine(), req.GetPageUid(), req.GetLevelUid(), req.GetPage(), req.GetPageSize())
+	items, total, page, pageSize, err := s.coordinator.List(ctx, req.GetView(), req.GetName(), req.GetMine(), req.GetPageUid(), req.GetLevelUid(), req.GetPage(), req.GetPageSize())
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (s *AlertEventService) ListAlertEvents(ctx context.Context, req *v1.ListAle
 }
 
 func (s *AlertEventService) GetAlertEvent(ctx context.Context, req *v1.GetAlertEventRequest) (*v1.GetAlertEventResponse, error) {
-	item, err := s.events.Get(ctx, req.GetUid())
+	item, err := s.coordinator.Get(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (s *AlertEventService) GetAlertEvent(ctx context.Context, req *v1.GetAlertE
 }
 
 func (s *AlertEventService) GetAlertEventChart(ctx context.Context, req *v1.GetAlertEventChartRequest) (*v1.GetAlertEventChartResponse, error) {
-	chart, err := s.events.Chart(ctx, req.GetUid())
+	chart, err := s.coordinator.Chart(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (s *AlertEventService) GetAlertEventChart(ctx context.Context, req *v1.GetA
 }
 
 func (s *AlertEventService) AlertEventStats(ctx context.Context, _ *v1.AlertEventStatsRequest) (*v1.AlertEventStatsResponse, error) {
-	stats, err := s.events.Stats(ctx)
+	stats, err := s.coordinator.Stats(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (s *AlertEventService) AlertEventStats(ctx context.Context, _ *v1.AlertEven
 }
 
 func (s *AlertEventService) AlertEventRealtimeStats(ctx context.Context, _ *v1.AlertEventRealtimeStatsRequest) (*v1.AlertEventRealtimeStatsResponse, error) {
-	stats, err := s.events.RealtimeStats(ctx)
+	stats, err := s.coordinator.RealtimeStats(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -72,21 +72,21 @@ func (s *AlertEventService) AlertEventRealtimeStats(ctx context.Context, _ *v1.A
 }
 
 func (s *AlertEventService) InterveneAlertEvent(ctx context.Context, req *v1.InterveneAlertEventRequest) (*v1.InterveneAlertEventResponse, error) {
-	if err := s.events.Intervene(ctx, []string{req.GetUid()}); err != nil {
+	if err := s.coordinator.Intervene(ctx, []string{req.GetUid()}); err != nil {
 		return nil, err
 	}
 	return &v1.InterveneAlertEventResponse{}, nil
 }
 
 func (s *AlertEventService) InterveneAlertEvents(ctx context.Context, req *v1.InterveneAlertEventsRequest) (*v1.InterveneAlertEventsResponse, error) {
-	if err := s.events.Intervene(ctx, req.GetUids()); err != nil {
+	if err := s.coordinator.Intervene(ctx, req.GetUids()); err != nil {
 		return nil, err
 	}
 	return &v1.InterveneAlertEventsResponse{}, nil
 }
 
 func (s *AlertEventService) SuppressAlertEvent(ctx context.Context, req *v1.SuppressAlertEventRequest) (*v1.SuppressAlertEventResponse, error) {
-	until, err := s.events.Suppress(ctx, req.GetUid(), req.GetSuppressedSeconds(), req.GetPermanent())
+	until, err := s.coordinator.Suppress(ctx, req.GetUid(), req.GetSuppressedSeconds(), req.GetPermanent())
 	if err != nil {
 		return nil, err
 	}
@@ -98,14 +98,14 @@ func (s *AlertEventService) SuppressAlertEvent(ctx context.Context, req *v1.Supp
 }
 
 func (s *AlertEventService) RecoverAlertEvent(ctx context.Context, req *v1.RecoverAlertEventRequest) (*v1.RecoverAlertEventResponse, error) {
-	if err := s.events.Recover(ctx, []string{req.GetUid()}); err != nil {
+	if err := s.coordinator.Recover(ctx, []string{req.GetUid()}); err != nil {
 		return nil, err
 	}
 	return &v1.RecoverAlertEventResponse{}, nil
 }
 
 func (s *AlertEventService) RecoverAlertEvents(ctx context.Context, req *v1.RecoverAlertEventsRequest) (*v1.RecoverAlertEventsResponse, error) {
-	if err := s.events.Recover(ctx, req.GetUids()); err != nil {
+	if err := s.coordinator.Recover(ctx, req.GetUids()); err != nil {
 		return nil, err
 	}
 	return &v1.RecoverAlertEventsResponse{}, nil

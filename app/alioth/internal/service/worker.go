@@ -11,15 +11,15 @@ import (
 // WorkerService exposes background worker telemetry to authorized administrators.
 type WorkerService struct {
 	v1.UnimplementedWorkerServiceServer
-	workers *worker.Usecase
+	roster *worker.Roster
 }
 
-func NewWorkerService(uc *worker.Usecase) *WorkerService {
-	return &WorkerService{workers: uc}
+func NewWorkerService(roster *worker.Roster) *WorkerService {
+	return &WorkerService{roster: roster}
 }
 
 func (s *WorkerService) ListWorkerInstances(ctx context.Context, _ *v1.ListWorkerInstancesRequest) (*v1.ListWorkerInstancesResponse, error) {
-	items, online, busy, idle, observedAt, err := s.workers.List(ctx)
+	items, online, busy, idle, observedAt, err := s.roster.List(ctx)
 	if err != nil {
 		return nil, err
 	}

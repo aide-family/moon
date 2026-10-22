@@ -24,9 +24,9 @@ func wireApp(confServer *conf.Server, alioth *conf.Alioth, redis *conf.Redis, lo
 	if err != nil {
 		return nil, nil, err
 	}
-	checker := data.NewReadiness(locker)
-	healthUsecase := biz.NewHealthUsecase(checker)
-	healthService := service.NewHealthService(healthUsecase)
+	checker := data.NewReadinessChecker(locker)
+	healthProber := biz.NewHealthProber(checker)
+	healthService := service.NewHealthService(healthProber)
 	httpServer, err := server.NewHTTPServer(confServer, healthService, logger)
 	if err != nil {
 		cleanup()
@@ -39,15 +39,8 @@ func wireApp(confServer *conf.Server, alioth *conf.Alioth, redis *conf.Redis, lo
 	}
 	rangeQuery := data.NewRangeQuery()
 	worker := eval.NewWorker(evalGateway, locker, rangeQuery, logger)
-	dataData, cleanup3, err := data.NewData()
-	if err != nil {
-		cleanup2()
-		cleanup()
-		return nil, nil, err
-	}
-	app := newApp(logger, httpServer, worker, dataData)
+	app := newApp(logger, httpServer, worker)
 	return app, func() {
-		cleanup3()
 		cleanup2()
 		cleanup()
 	}, nil

@@ -15,8 +15,8 @@ type partitionRepo struct {
 	log *slog.Logger
 }
 
-func NewPartitionRepo(d *Data, logger *slog.Logger) repository.PartitionRepo {
-	return &partitionRepo{db: d.db, log: logger}
+func NewPartitionRepo(deps *Dependencies, logger *slog.Logger) repository.PartitionRepo {
+	return &partitionRepo{db: deps.db, log: logger}
 }
 
 // EnsurePartitions 预创建 4 周分区。迁移已建当前周与下一周，

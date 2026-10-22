@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/class-names"
 
 export function StatusDot({ active }: { active: boolean }) {
   return (

@@ -952,7 +952,7 @@ func (r *notificationRepo) MarkSending(ctx context.Context, taskUID string) erro
 }
 
 func (r *notificationRepo) ApplyNotifyReport(ctx context.Context, report bo.NotifyReport) error {
-	// 分区由 partition.Usecase 定时预创建，写路径只做条件更新与日志插入。
+	// 分区由 partition.Maintainer 定时预创建，写路径只做条件更新与日志插入。
 	row, err := r.client.NotificationTask.Query().Where(notificationtask.UIDEQ(report.TaskUID)).Only(ctx)
 	if err != nil {
 		return r.fail(err)
@@ -1286,7 +1286,7 @@ func paramsJSON(event notifyEvent) string {
 		_ = json.Unmarshal([]byte(event.Labels), &labels)
 	}
 	value, _ := strconv.ParseFloat(strings.TrimSpace(event.Value), 64)
-	data := alerttmpl.New(labels, event.Labels, value, event.ExternalURL, map[string]any{
+	data := alerttmpl.NewData(labels, event.Labels, value, event.ExternalURL, map[string]any{
 		"eventUid": event.EventUID, "phase": event.Phase, "summary": event.Summary,
 		"description": event.Description, "fingerprint": event.Fingerprint,
 	})

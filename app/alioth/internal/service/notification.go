@@ -13,15 +13,15 @@ import (
 
 type NotificationChannelService struct {
 	v1.UnimplementedNotificationChannelServiceServer
-	notify *notification.Usecase
+	center *notification.Center
 }
 
-func NewNotificationChannelService(uc *notification.Usecase) *NotificationChannelService {
-	return &NotificationChannelService{notify: uc}
+func NewNotificationChannelService(center *notification.Center) *NotificationChannelService {
+	return &NotificationChannelService{center: center}
 }
 
 func (s *NotificationChannelService) CreateNotificationChannel(ctx context.Context, req *v1.CreateNotificationChannelRequest) (*v1.CreateNotificationChannelResponse, error) {
-	item, err := s.notify.CreateChannel(ctx, channelInput("", req.GetName(), req.GetType(), req.GetApp(), req.GetEndpoint(), req.GetUsername(), req.GetPassword(), req.GetSecret(), req.GetFromAddress(), req.GetRemark()))
+	item, err := s.center.CreateChannel(ctx, channelInput("", req.GetName(), req.GetType(), req.GetApp(), req.GetEndpoint(), req.GetUsername(), req.GetPassword(), req.GetSecret(), req.GetFromAddress(), req.GetRemark()))
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (s *NotificationChannelService) CreateNotificationChannel(ctx context.Conte
 }
 
 func (s *NotificationChannelService) UpdateNotificationChannel(ctx context.Context, req *v1.UpdateNotificationChannelRequest) (*v1.UpdateNotificationChannelResponse, error) {
-	item, err := s.notify.UpdateChannel(ctx, channelInput(req.GetUid(), req.GetName(), req.GetType(), req.GetApp(), req.GetEndpoint(), req.GetUsername(), req.GetPassword(), req.GetSecret(), req.GetFromAddress(), req.GetRemark()))
+	item, err := s.center.UpdateChannel(ctx, channelInput(req.GetUid(), req.GetName(), req.GetType(), req.GetApp(), req.GetEndpoint(), req.GetUsername(), req.GetPassword(), req.GetSecret(), req.GetFromAddress(), req.GetRemark()))
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (s *NotificationChannelService) UpdateNotificationChannel(ctx context.Conte
 }
 
 func (s *NotificationChannelService) UpdateNotificationChannelStatus(ctx context.Context, req *v1.UpdateNotificationChannelStatusRequest) (*v1.UpdateNotificationChannelStatusResponse, error) {
-	item, err := s.notify.UpdateChannelStatus(ctx, req.GetUid(), req.GetStatus())
+	item, err := s.center.UpdateChannelStatus(ctx, req.GetUid(), req.GetStatus())
 	if err != nil {
 		return nil, err
 	}
@@ -45,14 +45,14 @@ func (s *NotificationChannelService) UpdateNotificationChannelStatus(ctx context
 }
 
 func (s *NotificationChannelService) DeleteNotificationChannel(ctx context.Context, req *v1.DeleteNotificationChannelRequest) (*v1.DeleteNotificationChannelResponse, error) {
-	if err := s.notify.DeleteChannel(ctx, req.GetUid()); err != nil {
+	if err := s.center.DeleteChannel(ctx, req.GetUid()); err != nil {
 		return nil, err
 	}
 	return &v1.DeleteNotificationChannelResponse{}, nil
 }
 
 func (s *NotificationChannelService) GetNotificationChannel(ctx context.Context, req *v1.GetNotificationChannelRequest) (*v1.GetNotificationChannelResponse, error) {
-	item, err := s.notify.GetChannel(ctx, req.GetUid())
+	item, err := s.center.GetChannel(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (s *NotificationChannelService) GetNotificationChannel(ctx context.Context,
 }
 
 func (s *NotificationChannelService) ListNotificationChannels(ctx context.Context, req *v1.ListNotificationChannelsRequest) (*v1.ListNotificationChannelsResponse, error) {
-	items, total, page, pageSize, err := s.notify.ListChannels(ctx, req.GetPage(), req.GetPageSize(), req.GetName(), req.GetType(), req.GetApp())
+	items, total, page, pageSize, err := s.center.ListChannels(ctx, req.GetPage(), req.GetPageSize(), req.GetName(), req.GetType(), req.GetApp())
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (s *NotificationChannelService) ListNotificationChannels(ctx context.Contex
 }
 
 func (s *NotificationChannelService) SelectNotificationChannels(ctx context.Context, req *v1.SelectNotificationChannelsRequest) (*v1.SelectNotificationChannelsResponse, error) {
-	items, err := s.notify.SelectChannels(ctx, req.GetLimit(), req.GetLastUid())
+	items, err := s.center.SelectChannels(ctx, req.GetLimit(), req.GetLastUid())
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (s *NotificationChannelService) SelectNotificationChannels(ctx context.Cont
 }
 
 func (s *NotificationChannelService) TestNotificationChannel(ctx context.Context, req *v1.TestNotificationChannelRequest) (*v1.TestNotificationChannelResponse, error) {
-	uid, err := s.notify.TestChannel(ctx, req.GetUid(), req.GetTemplateUid(), req.GetReceivers(), req.GetSubject(), req.GetBody(), req.GetParams())
+	uid, err := s.center.TestChannel(ctx, req.GetUid(), req.GetTemplateUid(), req.GetReceivers(), req.GetSubject(), req.GetBody(), req.GetParams())
 	if err != nil {
 		return nil, err
 	}
@@ -85,15 +85,15 @@ func (s *NotificationChannelService) TestNotificationChannel(ctx context.Context
 
 type NotificationTemplateService struct {
 	v1.UnimplementedNotificationTemplateServiceServer
-	notify *notification.Usecase
+	center *notification.Center
 }
 
-func NewNotificationTemplateService(uc *notification.Usecase) *NotificationTemplateService {
-	return &NotificationTemplateService{notify: uc}
+func NewNotificationTemplateService(center *notification.Center) *NotificationTemplateService {
+	return &NotificationTemplateService{center: center}
 }
 
 func (s *NotificationTemplateService) ListNotificationPresets(ctx context.Context, _ *v1.ListNotificationPresetsRequest) (*v1.ListNotificationPresetsResponse, error) {
-	items, err := s.notify.ListPresets(ctx)
+	items, err := s.center.ListPresets(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (s *NotificationTemplateService) ListNotificationPresets(ctx context.Contex
 }
 
 func (s *NotificationTemplateService) CreateNotificationTemplate(ctx context.Context, req *v1.CreateNotificationTemplateRequest) (*v1.CreateNotificationTemplateResponse, error) {
-	item, err := s.notify.CreateTemplate(ctx, bo.NotificationTemplate{
+	item, err := s.center.CreateTemplate(ctx, bo.NotificationTemplate{
 		Name: req.GetName(), Type: req.GetType(), App: req.GetApp(),
 		Subject: req.GetSubject(), Body: req.GetBody(), Remark: req.GetRemark(),
 	})
@@ -119,7 +119,7 @@ func (s *NotificationTemplateService) CreateNotificationTemplate(ctx context.Con
 }
 
 func (s *NotificationTemplateService) UpdateNotificationTemplate(ctx context.Context, req *v1.UpdateNotificationTemplateRequest) (*v1.UpdateNotificationTemplateResponse, error) {
-	item, err := s.notify.UpdateTemplate(ctx, bo.NotificationTemplate{
+	item, err := s.center.UpdateTemplate(ctx, bo.NotificationTemplate{
 		UID: req.GetUid(), Name: req.GetName(), Type: req.GetType(), App: req.GetApp(),
 		Subject: req.GetSubject(), Body: req.GetBody(), Remark: req.GetRemark(),
 	})
@@ -130,7 +130,7 @@ func (s *NotificationTemplateService) UpdateNotificationTemplate(ctx context.Con
 }
 
 func (s *NotificationTemplateService) UpdateNotificationTemplateStatus(ctx context.Context, req *v1.UpdateNotificationTemplateStatusRequest) (*v1.UpdateNotificationTemplateStatusResponse, error) {
-	item, err := s.notify.UpdateTemplateStatus(ctx, req.GetUid(), req.GetStatus())
+	item, err := s.center.UpdateTemplateStatus(ctx, req.GetUid(), req.GetStatus())
 	if err != nil {
 		return nil, err
 	}
@@ -138,14 +138,14 @@ func (s *NotificationTemplateService) UpdateNotificationTemplateStatus(ctx conte
 }
 
 func (s *NotificationTemplateService) DeleteNotificationTemplate(ctx context.Context, req *v1.DeleteNotificationTemplateRequest) (*v1.DeleteNotificationTemplateResponse, error) {
-	if err := s.notify.DeleteTemplate(ctx, req.GetUid()); err != nil {
+	if err := s.center.DeleteTemplate(ctx, req.GetUid()); err != nil {
 		return nil, err
 	}
 	return &v1.DeleteNotificationTemplateResponse{}, nil
 }
 
 func (s *NotificationTemplateService) GetNotificationTemplate(ctx context.Context, req *v1.GetNotificationTemplateRequest) (*v1.GetNotificationTemplateResponse, error) {
-	item, err := s.notify.GetTemplate(ctx, req.GetUid())
+	item, err := s.center.GetTemplate(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func (s *NotificationTemplateService) GetNotificationTemplate(ctx context.Contex
 }
 
 func (s *NotificationTemplateService) ListNotificationTemplates(ctx context.Context, req *v1.ListNotificationTemplatesRequest) (*v1.ListNotificationTemplatesResponse, error) {
-	items, total, page, pageSize, err := s.notify.ListTemplates(ctx, req.GetPage(), req.GetPageSize(), req.GetName(), req.GetType(), req.GetApp())
+	items, total, page, pageSize, err := s.center.ListTemplates(ctx, req.GetPage(), req.GetPageSize(), req.GetName(), req.GetType(), req.GetApp())
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (s *NotificationTemplateService) ListNotificationTemplates(ctx context.Cont
 }
 
 func (s *NotificationTemplateService) SelectNotificationTemplates(ctx context.Context, req *v1.SelectNotificationTemplatesRequest) (*v1.SelectNotificationTemplatesResponse, error) {
-	items, err := s.notify.SelectTemplates(ctx, req.GetLimit(), req.GetLastUid())
+	items, err := s.center.SelectTemplates(ctx, req.GetLimit(), req.GetLastUid())
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func (s *NotificationTemplateService) SelectNotificationTemplates(ctx context.Co
 }
 
 func (s *NotificationTemplateService) TestNotificationTemplate(ctx context.Context, req *v1.TestNotificationTemplateRequest) (*v1.TestNotificationTemplateResponse, error) {
-	uid, err := s.notify.TestTemplate(ctx, req.GetUid(), req.GetChannelUid(), req.GetReceivers(), req.GetParams())
+	uid, err := s.center.TestTemplate(ctx, req.GetUid(), req.GetChannelUid(), req.GetReceivers(), req.GetParams())
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func (s *NotificationTemplateService) TestNotificationTemplate(ctx context.Conte
 }
 
 func (s *NotificationTemplateService) PreviewNotificationTemplate(ctx context.Context, req *v1.PreviewNotificationTemplateRequest) (*v1.PreviewNotificationTemplateResponse, error) {
-	subject, body, err := s.notify.PreviewTemplate(ctx, bo.NotificationTemplate{
+	subject, body, err := s.center.PreviewTemplate(ctx, bo.NotificationTemplate{
 		Type: req.GetType(), App: req.GetApp(), Subject: req.GetSubject(), Body: req.GetBody(),
 	})
 	if err != nil {
@@ -188,15 +188,15 @@ func (s *NotificationTemplateService) PreviewNotificationTemplate(ctx context.Co
 
 type NotificationGroupService struct {
 	v1.UnimplementedNotificationGroupServiceServer
-	notify *notification.Usecase
+	center *notification.Center
 }
 
-func NewNotificationGroupService(uc *notification.Usecase) *NotificationGroupService {
-	return &NotificationGroupService{notify: uc}
+func NewNotificationGroupService(center *notification.Center) *NotificationGroupService {
+	return &NotificationGroupService{center: center}
 }
 
 func (s *NotificationGroupService) CreateNotificationGroup(ctx context.Context, req *v1.CreateNotificationGroupRequest) (*v1.CreateNotificationGroupResponse, error) {
-	item, err := s.notify.CreateGroup(ctx, createGroupInput(req))
+	item, err := s.center.CreateGroup(ctx, createGroupInput(req))
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func (s *NotificationGroupService) CreateNotificationGroup(ctx context.Context, 
 }
 
 func (s *NotificationGroupService) UpdateNotificationGroup(ctx context.Context, req *v1.UpdateNotificationGroupRequest) (*v1.UpdateNotificationGroupResponse, error) {
-	item, err := s.notify.UpdateGroup(ctx, updateGroupInput(req))
+	item, err := s.center.UpdateGroup(ctx, updateGroupInput(req))
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +212,7 @@ func (s *NotificationGroupService) UpdateNotificationGroup(ctx context.Context, 
 }
 
 func (s *NotificationGroupService) UpdateNotificationGroupStatus(ctx context.Context, req *v1.UpdateNotificationGroupStatusRequest) (*v1.UpdateNotificationGroupStatusResponse, error) {
-	item, err := s.notify.UpdateGroupStatus(ctx, req.GetUid(), req.GetStatus())
+	item, err := s.center.UpdateGroupStatus(ctx, req.GetUid(), req.GetStatus())
 	if err != nil {
 		return nil, err
 	}
@@ -220,14 +220,14 @@ func (s *NotificationGroupService) UpdateNotificationGroupStatus(ctx context.Con
 }
 
 func (s *NotificationGroupService) DeleteNotificationGroup(ctx context.Context, req *v1.DeleteNotificationGroupRequest) (*v1.DeleteNotificationGroupResponse, error) {
-	if err := s.notify.DeleteGroup(ctx, req.GetUid()); err != nil {
+	if err := s.center.DeleteGroup(ctx, req.GetUid()); err != nil {
 		return nil, err
 	}
 	return &v1.DeleteNotificationGroupResponse{}, nil
 }
 
 func (s *NotificationGroupService) GetNotificationGroup(ctx context.Context, req *v1.GetNotificationGroupRequest) (*v1.GetNotificationGroupResponse, error) {
-	item, err := s.notify.GetGroup(ctx, req.GetUid())
+	item, err := s.center.GetGroup(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +235,7 @@ func (s *NotificationGroupService) GetNotificationGroup(ctx context.Context, req
 }
 
 func (s *NotificationGroupService) ListNotificationGroups(ctx context.Context, req *v1.ListNotificationGroupsRequest) (*v1.ListNotificationGroupsResponse, error) {
-	items, total, page, pageSize, err := s.notify.ListGroups(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
+	items, total, page, pageSize, err := s.center.ListGroups(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +243,7 @@ func (s *NotificationGroupService) ListNotificationGroups(ctx context.Context, r
 }
 
 func (s *NotificationGroupService) SelectNotificationGroups(ctx context.Context, req *v1.SelectNotificationGroupsRequest) (*v1.SelectNotificationGroupsResponse, error) {
-	items, err := s.notify.SelectGroups(ctx, req.GetLimit(), req.GetLastUid(), req.GetActiveOnly())
+	items, err := s.center.SelectGroups(ctx, req.GetLimit(), req.GetLastUid(), req.GetActiveOnly())
 	if err != nil {
 		return nil, err
 	}
@@ -252,15 +252,15 @@ func (s *NotificationGroupService) SelectNotificationGroups(ctx context.Context,
 
 type MessageLogService struct {
 	v1.UnimplementedMessageLogServiceServer
-	notify *notification.Usecase
+	center *notification.Center
 }
 
-func NewMessageLogService(uc *notification.Usecase) *MessageLogService {
-	return &MessageLogService{notify: uc}
+func NewMessageLogService(center *notification.Center) *MessageLogService {
+	return &MessageLogService{center: center}
 }
 
 func (s *MessageLogService) ListMessageLogs(ctx context.Context, req *v1.ListMessageLogsRequest) (*v1.ListMessageLogsResponse, error) {
-	items, total, page, pageSize, err := s.notify.ListMessageLogs(ctx, req.GetPage(), req.GetPageSize(), req.GetTaskUid())
+	items, total, page, pageSize, err := s.center.ListMessageLogs(ctx, req.GetPage(), req.GetPageSize(), req.GetTaskUid())
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +268,7 @@ func (s *MessageLogService) ListMessageLogs(ctx context.Context, req *v1.ListMes
 }
 
 func (s *MessageLogService) GetMessageLog(ctx context.Context, req *v1.GetMessageLogRequest) (*v1.GetMessageLogResponse, error) {
-	item, err := s.notify.GetMessageLog(ctx, req.GetUid())
+	item, err := s.center.GetMessageLog(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +276,7 @@ func (s *MessageLogService) GetMessageLog(ctx context.Context, req *v1.GetMessag
 }
 
 func (s *MessageLogService) ListNotificationTasks(ctx context.Context, req *v1.ListNotificationTasksRequest) (*v1.ListNotificationTasksResponse, error) {
-	items, total, page, pageSize, err := s.notify.ListTasks(ctx, req.GetPage(), req.GetPageSize(), req.GetStatus())
+	items, total, page, pageSize, err := s.center.ListTasks(ctx, req.GetPage(), req.GetPageSize(), req.GetStatus())
 	if err != nil {
 		return nil, err
 	}
@@ -284,7 +284,7 @@ func (s *MessageLogService) ListNotificationTasks(ctx context.Context, req *v1.L
 }
 
 func (s *MessageLogService) RetryNotificationTask(ctx context.Context, req *v1.RetryNotificationTaskRequest) (*v1.RetryNotificationTaskResponse, error) {
-	item, err := s.notify.RetryTask(ctx, req.GetUid())
+	item, err := s.center.RetryTask(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -292,7 +292,7 @@ func (s *MessageLogService) RetryNotificationTask(ctx context.Context, req *v1.R
 }
 
 func (s *MessageLogService) CancelNotificationTask(ctx context.Context, req *v1.CancelNotificationTaskRequest) (*v1.CancelNotificationTaskResponse, error) {
-	item, err := s.notify.CancelTask(ctx, req.GetUid())
+	item, err := s.center.CancelTask(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -301,16 +301,16 @@ func (s *MessageLogService) CancelNotificationTask(ctx context.Context, req *v1.
 
 type NotifyService struct {
 	merakv1.UnimplementedNotifyServiceServer
-	notify  *notification.Usecase
-	workers *worker.Usecase
+	center *notification.Center
+	roster *worker.Roster
 }
 
-func NewNotifyService(uc *notification.Usecase, workers *worker.Usecase) *NotifyService {
-	return &NotifyService{notify: uc, workers: workers}
+func NewNotifyService(center *notification.Center, roster *worker.Roster) *NotifyService {
+	return &NotifyService{center: center, roster: roster}
 }
 
 func (s *NotifyService) ClaimTasks(ctx context.Context, _ *merakv1.ClaimTasksRequest) (*merakv1.ClaimTasksResponse, error) {
-	items, err := s.notify.Claim(ctx)
+	items, err := s.center.Claim(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -329,14 +329,14 @@ func (s *NotifyService) ClaimTasks(ctx context.Context, _ *merakv1.ClaimTasksReq
 }
 
 func (s *NotifyService) MarkSending(ctx context.Context, req *merakv1.MarkSendingRequest) (*merakv1.MarkSendingResponse, error) {
-	if err := s.notify.MarkSending(ctx, req.GetTaskUid()); err != nil {
+	if err := s.center.MarkSending(ctx, req.GetTaskUid()); err != nil {
 		return nil, err
 	}
 	return &merakv1.MarkSendingResponse{}, nil
 }
 
 func (s *NotifyService) ReportNotify(ctx context.Context, req *merakv1.ReportNotifyRequest) (*merakv1.ReportNotifyResponse, error) {
-	if err := s.notify.Report(ctx, bo.NotifyReport{
+	if err := s.center.Report(ctx, bo.NotifyReport{
 		TaskUID: req.GetTaskUid(), OK: req.GetOk(), Detail: req.GetDetail(),
 		Subject: req.GetSubject(), Content: req.GetContent(),
 	}); err != nil {
@@ -354,7 +354,7 @@ func (s *NotifyService) ReportWorkerStatus(ctx context.Context, req *merakv1.Rep
 		}
 		startedAt = &parsed
 	}
-	if err := s.workers.Report(ctx, "MERAK", bo.WorkerStatus{
+	if err := s.roster.Report(ctx, "MERAK", bo.WorkerStatus{
 		InstanceUID: req.GetInstanceUid(), Hostname: req.GetHostname(), Busy: req.GetBusy(),
 		TaskUID: req.GetTaskUid(), TaskName: req.GetTaskName(), TaskStartedAt: startedAt,
 	}); err != nil {

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { createSearchParams, Link, useNavigate } from "react-router-dom"
-import { formMessage, readFormError } from "@/lib/form-error"
+import { formErrorMessage, readFormError } from "@/lib/form-error"
 
 import { listAgents } from "@/api/agent"
 import type { AgentItem } from "@/api/agent/types"
@@ -57,7 +57,7 @@ import {
   type FieldErrors,
 } from "@/lib/form"
 import { usePagedList } from "@/hooks/use-paged-list"
-import { useListQuery } from "@/lib/list-query"
+import { useListQuery } from "@/hooks/use-list-query"
 
 export function SSHCommandPage() {
   const { t } = useTranslation()
@@ -221,7 +221,7 @@ export function SSHCommandPage() {
       setConfirm(null)
       reload()
     } catch (err) {
-      setConfirmError(formMessage(err, t("state.failed")))
+      setConfirmError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }

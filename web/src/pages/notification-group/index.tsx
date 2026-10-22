@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage, readFormError } from "@/lib/form-error"
+import { formErrorMessage, readFormError } from "@/lib/form-error"
 
 import { listMembers } from "@/api/member"
 import type { MemberItem } from "@/api/member/types"
@@ -58,8 +58,8 @@ import {
 } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
-import { useListQuery } from "@/lib/list-query"
-import { run } from "@/lib/action"
+import { useListQuery } from "@/hooks/use-list-query"
+import { runAction } from "@/lib/action"
 
 const phonePattern = /^\+?[0-9]{6,20}$/
 
@@ -405,7 +405,7 @@ export function NotificationGroupPage() {
       setConfirm(null)
       reload()
     } catch (err) {
-      setConfirmError(formMessage(err, t("state.failed")))
+      setConfirmError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -419,7 +419,7 @@ export function NotificationGroupPage() {
       { key: "edit", label: t("action.edit"), onSelect: () => openEdit(item) },
       item.status === "ACTIVE"
         ? { key: "disable", label: t("action.disable"), destructive: true, onSelect: () => setConfirm({ action: "disable", item }) }
-        : { key: "enable", label: t("action.enable"), onSelect: () => run(updateNotificationGroupStatus(item.uid, "ACTIVE").then(() => reload()), setError) },
+        : { key: "enable", label: t("action.enable"), onSelect: () => runAction(updateNotificationGroupStatus(item.uid, "ACTIVE").then(() => reload()), setError) },
       { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm({ action: "delete", item }) },
     ]
   }

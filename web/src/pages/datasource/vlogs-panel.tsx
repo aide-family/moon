@@ -5,7 +5,7 @@ import { getDatasourceStatus } from "@/api/datasource"
 import type { DatasourceItem } from "@/api/datasource/types"
 import { queryLogs } from "@/api/logs-query"
 import { FormField } from "@/components/form-field"
-import { LogsqlEditor } from "@/components/promql-editor"
+import { LogsQLEditor } from "@/components/query-expression-editor"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -24,7 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { failureText } from "@/lib/form-error"
+import { failureMessage } from "@/lib/form-error"
 import { resolveRange, type RangePreset } from "@/pages/datasource/range"
 import {
   formatVlogsTimestamp,
@@ -221,7 +221,7 @@ export function VlogsPanel({ datasource }: { datasource: DatasourceItem }) {
       setResultTab("logs")
     } catch (err) {
       setBody("")
-      setQueryError(failureText(err, t("state.failed")))
+      setQueryError(failureMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -235,7 +235,7 @@ export function VlogsPanel({ datasource }: { datasource: DatasourceItem }) {
       setStatusText(response.status)
     } catch (err) {
       setStatusText("")
-      setQueryError(failureText(err, t("state.failed")))
+      setQueryError(failureMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -251,7 +251,7 @@ export function VlogsPanel({ datasource }: { datasource: DatasourceItem }) {
           required
           error={exprError}
         >
-          <LogsqlEditor
+          <LogsQLEditor
             value={expr}
             datasourceUid={datasource.uid}
             onChange={(value) => {

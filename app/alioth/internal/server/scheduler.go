@@ -15,12 +15,12 @@ import (
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
-// Scheduler 按固定周期扫描到期规则。锁由用例获取，扫描结束后释放。
+// Scheduler 按固定周期扫描到期规则。锁由 biz 层获取，扫描结束后释放。
 type Scheduler struct {
-	uc                *alertevent.Usecase
-	notify            *notification.Usecase
-	partitions        *partition.Usecase
-	workers           *workerbiz.Usecase
+	coordinator       *alertevent.Coordinator
+	center            *notification.Center
+	maintainer        *partition.Maintainer
+	roster            *workerbiz.Roster
 	log               *slog.Logger
 	lastCheck         time.Time
 	lastWorkerCleanup time.Time
@@ -30,13 +30,13 @@ type Scheduler struct {
 }
 
 func NewScheduler(
-	uc *alertevent.Usecase,
-	notify *notification.Usecase,
-	partitions *partition.Usecase,
-	workers *workerbiz.Usecase,
+	coordinator *alertevent.Coordinator,
+	center *notification.Center,
+	maintainer *partition.Maintainer,
+	roster *workerbiz.Roster,
 	logger *slog.Logger,
 ) *Scheduler {
-	return &Scheduler{uc: uc, notify: notify, partitions: partitions, workers: workers, log: logger}
+	return &Scheduler{coordinator: coordinator, center: center, maintainer: maintainer, roster: roster, log: logger}
 }
 
 func (s *Scheduler) Start(context.Context) error {
@@ -75,10 +75,10 @@ func (s *Scheduler) Stop(ctx context.Context) error {
 }
 
 func (s *Scheduler) tick(ctx context.Context) {
-	if err := s.uc.Schedule(ctx); err != nil {
+	if err := s.coordinator.Schedule(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("schedule eval: %v", err))
 	}
-	if err := s.notify.ReapStale(ctx); err != nil {
+	if err := s.center.ReapStale(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("reap notify: %v", err))
 	}
 	s.maintainPartitions(ctx)
@@ -88,11 +88,11 @@ func (s *Scheduler) tick(ctx context.Context) {
 
 // cleanupWorkerInstances periodically prunes stopped process identities independently of dashboard traffic.
 func (s *Scheduler) cleanupWorkerInstances(ctx context.Context) {
-	if s.workers == nil || time.Since(s.lastWorkerCleanup) < time.Hour {
+	if s.roster == nil || time.Since(s.lastWorkerCleanup) < time.Hour {
 		return
 	}
 	s.lastWorkerCleanup = time.Now()
-	if err := s.workers.CleanupStale(ctx); err != nil {
+	if err := s.roster.CleanupStale(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("cleanup worker instances: %v", err))
 	}
 }
@@ -104,7 +104,7 @@ func (s *Scheduler) backfillHistory(ctx context.Context) {
 		return
 	}
 	s.lastBackfill = time.Now()
-	if _, err := s.uc.BackfillHistory(ctx); err != nil {
+	if _, err := s.coordinator.BackfillHistory(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("backfill alert history: %v", err))
 	}
 }
@@ -112,11 +112,11 @@ func (s *Scheduler) backfillHistory(ctx context.Context) {
 // maintainPartitions 每小时预创建一次周分区。首次 tick 会立即执行，
 // 保证新部署在写入前就有当前周与未来 4 周的分区。
 func (s *Scheduler) maintainPartitions(ctx context.Context) {
-	if s.partitions == nil || time.Since(s.lastCheck) < partition.MaintenanceInterval {
+	if s.maintainer == nil || time.Since(s.lastCheck) < partition.MaintenanceInterval {
 		return
 	}
 	s.lastCheck = time.Now()
-	if err := s.partitions.Maintain(ctx); err != nil {
+	if err := s.maintainer.Maintain(ctx); err != nil {
 		s.log.Error(fmt.Sprintf("maintain partitions: %v", err))
 	}
 }

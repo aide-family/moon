@@ -3,7 +3,7 @@ import { Mail, MessageSquareText, Webhook } from "lucide-react"
 import dingtalk from "@/assets/brands/dingtalk.svg"
 import feishu from "@/assets/brands/feishu.svg"
 import wecom from "@/assets/brands/wecom.svg"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/class-names"
 
 const appLogos: Record<string, string> = {
   DINGTALK: dingtalk,

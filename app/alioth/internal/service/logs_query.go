@@ -9,15 +9,15 @@ import (
 
 type LogsQueryService struct {
 	v1.UnimplementedLogsQueryServiceServer
-	datasources *datasource.Usecase
+	gateway *datasource.Gateway
 }
 
-func NewLogsQueryService(uc *datasource.Usecase) *LogsQueryService {
-	return &LogsQueryService{datasources: uc}
+func NewLogsQueryService(gateway *datasource.Gateway) *LogsQueryService {
+	return &LogsQueryService{gateway: gateway}
 }
 
 func (s *LogsQueryService) QueryLogs(ctx context.Context, req *v1.QueryLogsRequest) (*v1.QueryLogsResponse, error) {
-	body, err := s.datasources.QueryLogs(ctx, req.GetDatasourceUid(), req.GetQuery(), req.GetStart(), req.GetEnd(), req.GetLimit(), req.GetDirection())
+	body, err := s.gateway.QueryLogs(ctx, req.GetDatasourceUid(), req.GetQuery(), req.GetStart(), req.GetEnd(), req.GetLimit(), req.GetDirection())
 	if err != nil {
 		return nil, err
 	}

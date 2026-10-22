@@ -34,4 +34,17 @@ description: >-
 
 菜单按当前用户在当前 Namespace 的权限生成。文案使用 i18n，不在页面里写死业务文案。
 
+## 命名
+
+完整规则见 [conventions Web/命名](../../../docs/iterations/conventions.md)。要点：
+
+- 文件 kebab-case，一个文件一个主导出；跨页面组件文件名等于导出名的 kebab（`app-shell.tsx` → `AppShell`）。
+- 页面目录用路由名，入口 `index.tsx`，导出 `<业务实体>Page`（`workers/index.tsx` → `WorkerStatusPage`）；领域名以 Page 结尾时写 `<领域>ManagePage`。
+- 页面私有组件放该页面目录，文件用 `<部件>.tsx`，导出加领域前缀（`column-dialog.tsx` → `AlertColumnDialog`）。
+- 壳用 `<用途>Shell`（`AppShell`、`AuthShell`）；专有名词按官方写法（`GitHub`、`PromQL`、`LogQL`、`LogsQL`、`SSH`）。
+- hook 以 `use` 开头，文件名 `use-<hook 名>.ts`；跨页面 hook 放 `src/hooks`，页面私有 hook 留页面目录。
+- `src/lib` 只放纯函数（`runAction`、`readFormError`、`formErrorMessage`、`failureMessage`），不用 `utils`、`helpers`、`common`、`misc`、`shared` 文件名。
+- API 函数名等于 RPC 名 lowerCamel；类型 `XxxItem`、`ListXxxParams`、`ListXxxResult`、`Create/UpdateXxxParams`，单对象响应用业务对象名，共用写载荷 `Save<资源>Params`，嵌套写载荷 `<资源><子对象>Input`。
+- shadcn 生成目录 `src/components/ui` 不参与重命名。
+
 做具体页面时遵循 [alioth-web-page](../alioth-web-page/SKILL.md)。后端 OpenAPI 变更时遵循 [alioth-update-api](../alioth-update-api/SKILL.md)。

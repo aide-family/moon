@@ -58,8 +58,8 @@ type Hold struct {
 	token  string
 }
 
-// New binds a lock client to a Redis connection and an instance id.
-func New(rdb *redis.Client, instanceID string) *Client {
+// NewClient binds a lock client to a Redis connection and an instance id.
+func NewClient(rdb *redis.Client, instanceID string) *Client {
 	if instanceID == "" {
 		instanceID = randomToken()
 	}

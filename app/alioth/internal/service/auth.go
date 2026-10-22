@@ -10,15 +10,15 @@ import (
 
 type CaptchaService struct {
 	v1.UnimplementedCaptchaServiceServer
-	auth *auth.Usecase
+	authenticator *auth.Authenticator
 }
 
-func NewCaptchaService(uc *auth.Usecase) *CaptchaService {
-	return &CaptchaService{auth: uc}
+func NewCaptchaService(authenticator *auth.Authenticator) *CaptchaService {
+	return &CaptchaService{authenticator: authenticator}
 }
 
 func (s *CaptchaService) GetCaptcha(ctx context.Context, _ *v1.GetCaptchaRequest) (*v1.GetCaptchaResponse, error) {
-	id, image, err := s.auth.GetCaptcha(ctx)
+	id, image, err := s.authenticator.GetCaptcha(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -27,15 +27,15 @@ func (s *CaptchaService) GetCaptcha(ctx context.Context, _ *v1.GetCaptchaRequest
 
 type AuthService struct {
 	v1.UnimplementedAuthServiceServer
-	auth *auth.Usecase
+	authenticator *auth.Authenticator
 }
 
-func NewAuthService(uc *auth.Usecase) *AuthService {
-	return &AuthService{auth: uc}
+func NewAuthService(authenticator *auth.Authenticator) *AuthService {
+	return &AuthService{authenticator: authenticator}
 }
 
 func (s *AuthService) Register(ctx context.Context, req *v1.RegisterRequest) (*v1.RegisterResponse, error) {
-	session, err := s.auth.Register(ctx, req.GetEmail(), req.GetPassword(), req.GetName(), req.GetCaptchaId(), req.GetCaptchaCode())
+	session, err := s.authenticator.Register(ctx, req.GetEmail(), req.GetPassword(), req.GetName(), req.GetCaptchaId(), req.GetCaptchaCode())
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (s *AuthService) Register(ctx context.Context, req *v1.RegisterRequest) (*v
 }
 
 func (s *AuthService) PasswordLogin(ctx context.Context, req *v1.PasswordLoginRequest) (*v1.PasswordLoginResponse, error) {
-	session, err := s.auth.PasswordLogin(ctx, req.GetEmail(), req.GetPassword())
+	session, err := s.authenticator.PasswordLogin(ctx, req.GetEmail(), req.GetPassword())
 	if err != nil {
 		return nil, err
 	}
@@ -51,14 +51,14 @@ func (s *AuthService) PasswordLogin(ctx context.Context, req *v1.PasswordLoginRe
 }
 
 func (s *AuthService) SendEmailLoginCode(ctx context.Context, req *v1.SendEmailLoginCodeRequest) (*v1.SendEmailLoginCodeResponse, error) {
-	if err := s.auth.SendEmailLoginCode(ctx, req.GetEmail()); err != nil {
+	if err := s.authenticator.SendEmailLoginCode(ctx, req.GetEmail()); err != nil {
 		return nil, err
 	}
 	return &v1.SendEmailLoginCodeResponse{}, nil
 }
 
 func (s *AuthService) EmailLogin(ctx context.Context, req *v1.EmailLoginRequest) (*v1.EmailLoginResponse, error) {
-	session, err := s.auth.EmailLogin(ctx, req.GetEmail(), req.GetCode())
+	session, err := s.authenticator.EmailLogin(ctx, req.GetEmail(), req.GetCode())
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (s *AuthService) EmailLogin(ctx context.Context, req *v1.EmailLoginRequest)
 }
 
 func (s *AuthService) OAuth2Login(ctx context.Context, req *v1.OAuth2LoginRequest) (*v1.OAuth2LoginResponse, error) {
-	session, err := s.auth.OAuthLogin(ctx, req.GetProvider(), req.GetCode(), req.GetRedirectUri())
+	session, err := s.authenticator.OAuthLogin(ctx, req.GetProvider(), req.GetCode(), req.GetRedirectUri())
 	if err != nil {
 		return nil, err
 	}

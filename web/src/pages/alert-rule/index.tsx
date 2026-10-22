@@ -32,10 +32,10 @@ import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import {
-  LogqlEditor,
-  LogsqlEditor,
-  PromqlEditor,
-} from "@/components/promql-editor"
+  LogQLEditor,
+  LogsQLEditor,
+  PromQLEditor,
+} from "@/components/query-expression-editor"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { ListFrame } from "@/components/list-frame"
 import { StatusBadge } from "@/components/status-badge"
@@ -81,14 +81,14 @@ import {
   requireTrimmed,
   type FieldErrors,
 } from "@/lib/form"
-import { failureText, readFormError } from "@/lib/form-error"
+import { failureMessage, readFormError } from "@/lib/form-error"
 import {
   labelMatchersMatch,
   parseLabelPairs,
   serializeLabelPairs,
   type LabelPair,
 } from "@/lib/labels"
-import { useListQuery } from "@/lib/list-query"
+import { useListQuery } from "@/hooks/use-list-query"
 
 // 规则不再保存类型，只保存驱动；数据源匹配也只按驱动。
 const drivers = [
@@ -269,7 +269,7 @@ export function AlertRulePage() {
       } catch (err) {
         if (active) {
           setFailed(true)
-          setLoadError(failureText(err, ""))
+          setLoadError(failureMessage(err, ""))
           setGroups([])
         }
       } finally {
@@ -1069,7 +1069,7 @@ export function AlertRulePage() {
                   error={fieldErrors.expr}
                 >
                   {form.driver === "LOGS_LOKI" ? (
-                    <LogqlEditor
+                    <LogQLEditor
                       value={form.expr}
                       datasourceUid={matchedDatasourceUid(
                         sources,
@@ -1079,7 +1079,7 @@ export function AlertRulePage() {
                       onChange={(value) => setForm({ ...form, expr: value })}
                     />
                   ) : form.driver === "LOGS_VLOGS" ? (
-                    <LogsqlEditor
+                    <LogsQLEditor
                       value={form.expr}
                       datasourceUid={matchedDatasourceUid(
                         sources,
@@ -1089,7 +1089,7 @@ export function AlertRulePage() {
                       onChange={(value) => setForm({ ...form, expr: value })}
                     />
                   ) : (
-                    <PromqlEditor
+                    <PromQLEditor
                       value={form.expr}
                       variant={
                         form.driver === "LOGS_ELASTICSEARCH" ? "json" : "promql"

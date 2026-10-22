@@ -13,17 +13,17 @@ import (
 
 var _ repository.WorkerRepo = (*workerRepo)(nil)
 
-func NewWorkerRepo(data *Data, logger *slog.Logger) repository.WorkerRepo {
-	return &workerRepo{data: data, log: logger}
+func NewWorkerRepo(deps *Dependencies, logger *slog.Logger) repository.WorkerRepo {
+	return &workerRepo{deps: deps, log: logger}
 }
 
 type workerRepo struct {
-	data *Data
+	deps *Dependencies
 	log  *slog.Logger
 }
 
 func (r *workerRepo) Report(ctx context.Context, status bo.WorkerStatus, now time.Time) error {
-	_, err := r.data.db.ExecContext(ctx, `
+	_, err := r.deps.db.ExecContext(ctx, `
 		INSERT INTO worker_instances
 			(service, instance_uid, hostname, busy, task_uid, task_name, task_started_at, last_seen_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -45,7 +45,7 @@ func (r *workerRepo) Report(ctx context.Context, status bo.WorkerStatus, now tim
 }
 
 func (r *workerRepo) CleanupBefore(ctx context.Context, cutoff time.Time) error {
-	if _, err := r.data.db.ExecContext(ctx, `DELETE FROM worker_instances WHERE last_seen_at < $1`, cutoff.UTC()); err != nil {
+	if _, err := r.deps.db.ExecContext(ctx, `DELETE FROM worker_instances WHERE last_seen_at < $1`, cutoff.UTC()); err != nil {
 		r.log.Error(fmt.Sprintf("cleanup stale worker instances: %v", err))
 		return databaseErr(r.log, err)
 	}
@@ -53,7 +53,7 @@ func (r *workerRepo) CleanupBefore(ctx context.Context, cutoff time.Time) error 
 }
 
 func (r *workerRepo) ListRecent(ctx context.Context, since time.Time) ([]bo.WorkerInstance, error) {
-	rows, err := r.data.db.QueryContext(ctx, `
+	rows, err := r.deps.db.QueryContext(ctx, `
 		SELECT service, instance_uid, hostname, busy, task_uid, task_name, task_started_at, last_seen_at
 		FROM worker_instances
 		WHERE last_seen_at >= $1

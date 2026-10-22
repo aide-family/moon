@@ -23,14 +23,15 @@ import (
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
-var ProviderSet = wire.NewSet(NewUsecase)
+var ProviderSet = wire.NewSet(NewRegistry)
 
 type shellTicket struct {
 	agentUID string
 	expires  time.Time
 }
 
-type Usecase struct {
+// Registry 管理 Agent 的注册、令牌和在线连接。
+type Registry struct {
 	agents   repository.AgentRepo
 	hub      *agenthub.Hub
 	access   access.Checker
@@ -38,115 +39,115 @@ type Usecase struct {
 	tickets  map[string]shellTicket
 }
 
-func NewUsecase(agents repository.AgentRepo, hub *agenthub.Hub, checker access.Checker) *Usecase {
-	return &Usecase{agents: agents, hub: hub, access: checker, tickets: map[string]shellTicket{}}
+func NewRegistry(agents repository.AgentRepo, hub *agenthub.Hub, checker access.Checker) *Registry {
+	return &Registry{agents: agents, hub: hub, access: checker, tickets: map[string]shellTicket{}}
 }
 
-func (uc *Usecase) Create(ctx context.Context, in bo.Agent) (*bo.Agent, error) {
-	ns, err := uc.access.Allow(ctx, "agent:write")
+func (registry *Registry) Create(ctx context.Context, in bo.Agent) (*bo.Agent, error) {
+	ns, err := registry.access.Allow(ctx, "agent:write")
 	if err != nil {
 		return nil, err
 	}
 	in.NamespaceUID = ns
 	in.Name = strings.TrimSpace(in.Name)
 	token := newAgentToken()
-	item, err := uc.agents.CreateAgent(ctx, in, hashToken(token))
+	item, err := registry.agents.CreateAgent(ctx, in, hashToken(token))
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, registry.access.Wrap(err)
 	}
 	item.Token = token
 	return item, nil
 }
 
-func (uc *Usecase) Update(ctx context.Context, in bo.Agent) (*bo.Agent, error) {
-	ns, err := uc.access.Allow(ctx, "agent:write")
+func (registry *Registry) Update(ctx context.Context, in bo.Agent) (*bo.Agent, error) {
+	ns, err := registry.access.Allow(ctx, "agent:write")
 	if err != nil {
 		return nil, err
 	}
 	in.NamespaceUID = ns
-	item, err := uc.agents.UpdateAgent(ctx, in)
-	return item, uc.access.Wrap(err)
+	item, err := registry.agents.UpdateAgent(ctx, in)
+	return item, registry.access.Wrap(err)
 }
 
-func (uc *Usecase) Rotate(ctx context.Context, uid string) (*bo.Agent, error) {
-	ns, err := uc.access.Allow(ctx, "agent:write")
+func (registry *Registry) Rotate(ctx context.Context, uid string) (*bo.Agent, error) {
+	ns, err := registry.access.Allow(ctx, "agent:write")
 	if err != nil {
 		return nil, err
 	}
 	token := newAgentToken()
-	item, err := uc.agents.SetTokenHash(ctx, ns, uid, hashToken(token), "ACTIVE")
+	item, err := registry.agents.SetTokenHash(ctx, ns, uid, hashToken(token), "ACTIVE")
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, registry.access.Wrap(err)
 	}
-	if session, ok := uc.hub.Get(uid); ok {
-		uc.hub.Remove(uid, session)
+	if session, ok := registry.hub.Get(uid); ok {
+		registry.hub.Remove(uid, session)
 	}
 	item.Token = token
 	return item, nil
 }
 
-func (uc *Usecase) Revoke(ctx context.Context, uid string) (*bo.Agent, error) {
-	ns, err := uc.access.Allow(ctx, "agent:write")
+func (registry *Registry) Revoke(ctx context.Context, uid string) (*bo.Agent, error) {
+	ns, err := registry.access.Allow(ctx, "agent:write")
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.agents.SetTokenHash(ctx, ns, uid, hashToken("revoked-"+uid), "REVOKED")
+	item, err := registry.agents.SetTokenHash(ctx, ns, uid, hashToken("revoked-"+uid), "REVOKED")
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, registry.access.Wrap(err)
 	}
-	_ = uc.agents.SetOnline(ctx, uid, false, "", "", "", "", "")
-	if session, ok := uc.hub.Get(uid); ok {
+	_ = registry.agents.SetOnline(ctx, uid, false, "", "", "", "", "")
+	if session, ok := registry.hub.Get(uid); ok {
 		select {
 		case session.Send <- &v1.AgentFrame{Close: &v1.AgentClose{Reason: "revoked"}}:
 		default:
 		}
-		uc.hub.Remove(uid, session)
+		registry.hub.Remove(uid, session)
 	}
 	return item, nil
 }
 
-func (uc *Usecase) Delete(ctx context.Context, uid string) error {
-	ns, err := uc.access.Allow(ctx, "agent:write")
+func (registry *Registry) Delete(ctx context.Context, uid string) error {
+	ns, err := registry.access.Allow(ctx, "agent:write")
 	if err != nil {
 		return err
 	}
-	if session, ok := uc.hub.Get(uid); ok {
-		uc.hub.Remove(uid, session)
+	if session, ok := registry.hub.Get(uid); ok {
+		registry.hub.Remove(uid, session)
 	}
-	return uc.access.Wrap(uc.agents.DeleteAgent(ctx, ns, uid))
+	return registry.access.Wrap(registry.agents.DeleteAgent(ctx, ns, uid))
 }
 
-func (uc *Usecase) Get(ctx context.Context, uid string) (*bo.Agent, error) {
-	ns, err := uc.access.Allow(ctx, "agent:read")
+func (registry *Registry) Get(ctx context.Context, uid string) (*bo.Agent, error) {
+	ns, err := registry.access.Allow(ctx, "agent:read")
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.agents.GetAgent(ctx, ns, uid)
+	item, err := registry.agents.GetAgent(ctx, ns, uid)
 	if item != nil {
-		item.Online = uc.hub.Online(uid)
+		item.Online = registry.hub.Online(uid)
 	}
-	return item, uc.access.Wrap(err)
+	return item, registry.access.Wrap(err)
 }
 
-func (uc *Usecase) List(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.Agent, int, int, int, error) {
-	ns, err := uc.access.Allow(ctx, "agent:read")
+func (registry *Registry) List(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.Agent, int, int, int, error) {
+	ns, err := registry.access.Allow(ctx, "agent:read")
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.agents.ListAgents(ctx, ns, p, s, strings.TrimSpace(name))
+	items, total, err := registry.agents.ListAgents(ctx, ns, p, s, strings.TrimSpace(name))
 	for i := range items {
-		items[i].Online = uc.hub.Online(items[i].UID)
+		items[i].Online = registry.hub.Online(items[i].UID)
 	}
-	return items, total, p, s, uc.access.Wrap(err)
+	return items, total, p, s, registry.access.Wrap(err)
 }
 
 // AuthenticateToken 用令牌哈希解析 Agent。
-func (uc *Usecase) AuthenticateToken(ctx context.Context, token string) (*bo.Agent, error) {
+func (registry *Registry) AuthenticateToken(ctx context.Context, token string) (*bo.Agent, error) {
 	if !strings.HasPrefix(token, "ag-") {
 		return nil, merr.Unauthenticated("invalid token")
 	}
-	item, err := uc.agents.GetAgentByTokenHash(ctx, hashToken(token))
+	item, err := registry.agents.GetAgentByTokenHash(ctx, hashToken(token))
 	if err != nil {
 		return nil, merr.Unauthenticated("invalid token")
 	}
@@ -155,20 +156,20 @@ func (uc *Usecase) AuthenticateToken(ctx context.Context, token string) (*bo.Age
 
 // Connect 处理出站双向流。
 // 双向流不会走 unary 中间件写入的上下文，所以这里从 metadata 再取一次令牌。
-func (uc *Usecase) Connect(ctx context.Context, stream v1.AgentService_ConnectServer) error {
+func (registry *Registry) Connect(ctx context.Context, stream v1.AgentService_ConnectServer) error {
 	token, _ := actor.AgentToken(ctx)
 	if token == "" {
 		token = bearerFromMetadata(ctx)
 	}
-	agent, err := uc.AuthenticateToken(ctx, token)
+	agent, err := registry.AuthenticateToken(ctx, token)
 	if err != nil {
 		return err
 	}
 	session := agenthub.NewSession(agent.UID, agent.NamespaceUID)
-	uc.hub.Put(session)
+	registry.hub.Put(session)
 	defer func() {
-		uc.hub.Remove(agent.UID, session)
-		_ = uc.agents.SetOnline(context.Background(), agent.UID, false, "", "", "", "", "")
+		registry.hub.Remove(agent.UID, session)
+		_ = registry.agents.SetOnline(context.Background(), agent.UID, false, "", "", "", "", "")
 	}()
 
 	errCh := make(chan error, 2)
@@ -200,7 +201,7 @@ func (uc *Usecase) Connect(ctx context.Context, stream v1.AgentService_ConnectSe
 				errCh <- err
 				return
 			}
-			if err := uc.handleFrame(ctx, agent, session, frame); err != nil {
+			if err := registry.handleFrame(ctx, agent, session, frame); err != nil {
 				errCh <- err
 				return
 			}
@@ -209,8 +210,8 @@ func (uc *Usecase) Connect(ctx context.Context, stream v1.AgentService_ConnectSe
 	return <-errCh
 }
 
-func (uc *Usecase) handleFrame(ctx context.Context, agent *bo.Agent, session *agenthub.Session, frame *v1.AgentFrame) error {
-	current, err := uc.agents.GetAgentByUID(ctx, agent.UID)
+func (registry *Registry) handleFrame(ctx context.Context, agent *bo.Agent, session *agenthub.Session, frame *v1.AgentFrame) error {
+	current, err := registry.agents.GetAgentByUID(ctx, agent.UID)
 	if err != nil {
 		return err
 	}
@@ -221,12 +222,12 @@ func (uc *Usecase) handleFrame(ctx context.Context, agent *bo.Agent, session *ag
 	switch {
 	case frame.GetRegister() != nil:
 		reg := frame.GetRegister()
-		return uc.agents.SetOnline(ctx, agent.UID, true, reg.GetHostname(), reg.GetMachineId(), reg.GetLocalIp(), reg.GetVersion(), "")
+		return registry.agents.SetOnline(ctx, agent.UID, true, reg.GetHostname(), reg.GetMachineId(), reg.GetLocalIp(), reg.GetVersion(), "")
 	case frame.GetHeartbeat() != nil:
-		return uc.agents.SetOnline(ctx, agent.UID, true, "", "", "", "", "")
+		return registry.agents.SetOnline(ctx, agent.UID, true, "", "", "", "", "")
 	case frame.GetMachineInfo() != nil:
 		info := frame.GetMachineInfo()
-		return uc.agents.SetOnline(ctx, agent.UID, true, info.GetHostname(), info.GetMachineId(), info.GetLocalIp(), info.GetVersion(), info.GetCollectJson())
+		return registry.agents.SetOnline(ctx, agent.UID, true, info.GetHostname(), info.GetMachineId(), info.GetLocalIp(), info.GetVersion(), info.GetCollectJson())
 	case frame.GetExecResult() != nil:
 		session.DeliverResult(frame.GetExecResult())
 		return nil

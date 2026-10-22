@@ -45,7 +45,7 @@ func NewGRPCServer(
 	notify *service.NotifyService,
 	agents *service.AgentService,
 	sshCommands *service.SSHCommandService,
-	uc *auth.Usecase,
+	authenticator *auth.Authenticator,
 	logger *slog.Logger,
 ) (*kgrpc.Server, error) {
 	if c == nil || c.Grpc == nil || c.Grpc.Addr == "" {
@@ -53,8 +53,8 @@ func NewGRPCServer(
 	}
 	opts := []kgrpc.ServerOption{
 		kgrpc.Address(c.Grpc.Addr),
-		kgrpc.Middleware(recovery.Recovery(recovery.WithLogger(logger)), authenticate(uc), protoValidator()),
-		kgrpc.StreamMiddleware(recovery.Recovery(recovery.WithLogger(logger)), authenticate(uc)),
+		kgrpc.Middleware(recovery.Recovery(recovery.WithLogger(logger)), authenticate(authenticator), protoValidator()),
+		kgrpc.StreamMiddleware(recovery.Recovery(recovery.WithLogger(logger)), authenticate(authenticator)),
 	}
 	if c.Grpc.Network != "" {
 		opts = append(opts, kgrpc.Network(c.Grpc.Network))

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { formMessage, readFormError } from "@/lib/form-error"
+import { formErrorMessage, readFormError } from "@/lib/form-error"
 
 import {
   createAgent,
@@ -40,7 +40,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { requireTrimmed, collectFieldErrors, hasFieldErrors } from "@/lib/form"
 import { usePagedList } from "@/hooks/use-paged-list"
-import { useListQuery } from "@/lib/list-query"
+import { useListQuery } from "@/hooks/use-list-query"
 
 export function AgentPage() {
   const { t } = useTranslation()
@@ -151,7 +151,7 @@ export function AgentPage() {
       setTokenOpen(true)
       reload()
     } catch (err) {
-      setError(formMessage(err, t("state.failed")))
+      setError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -172,7 +172,7 @@ export function AgentPage() {
       setConfirm(null)
       reload()
     } catch (err) {
-      setConfirmError(formMessage(err, t("state.failed")))
+      setConfirmError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }

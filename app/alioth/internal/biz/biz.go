@@ -42,5 +42,5 @@ var ProviderSet = wire.NewSet(
 	agent.ProviderSet,
 	ssh.ProviderSet,
 	partition.ProviderSet,
-	wire.Bind(new(auth.AgentTokenLookup), new(*agent.Usecase)),
+	wire.Bind(new(auth.AgentTokenLookup), new(*agent.Registry)),
 )

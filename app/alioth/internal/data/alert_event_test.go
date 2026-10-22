@@ -21,7 +21,7 @@ import (
 func TestAlertEventReport(t *testing.T) {
 	source := testDSN(t)
 	ctx := context.Background()
-	store, cleanup, err := NewData(
+	store, cleanup, err := NewDependencies(
 		&conf.Data{Database: &conf.Data_Database{Source: source}},
 		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
 		slog.Default(),
@@ -147,7 +147,7 @@ func TestAlertEventReport(t *testing.T) {
 func TestAlertEventDatasourceLabels(t *testing.T) {
 	source := testDSN(t)
 	ctx := context.Background()
-	store, cleanup, err := NewData(
+	store, cleanup, err := NewDependencies(
 		&conf.Data{Database: &conf.Data_Database{Source: source}},
 		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
 		slog.Default(),
@@ -322,7 +322,7 @@ func TestAlertEventDatasourceLabels(t *testing.T) {
 func TestAlertEventSuppression(t *testing.T) {
 	dsn := testDSN(t)
 	ctx := context.Background()
-	store, cleanup, err := NewData(
+	store, cleanup, err := NewDependencies(
 		&conf.Data{Database: &conf.Data_Database{Source: dsn}},
 		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
 		slog.Default(),
@@ -417,7 +417,7 @@ func TestAlertEventSuppression(t *testing.T) {
 func TestBackfillHistory(t *testing.T) {
 	source := testDSN(t)
 	ctx := context.Background()
-	store, cleanup, err := NewData(
+	store, cleanup, err := NewDependencies(
 		&conf.Data{Database: &conf.Data_Database{Source: source}},
 		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
 		slog.Default(),

@@ -10,15 +10,15 @@ import (
 // SystemMessageService 是平台系统消息入口。
 type SystemMessageService struct {
 	v1.UnimplementedSystemMessageServiceServer
-	messages *message.Usecase
+	inbox *message.Inbox
 }
 
-func NewSystemMessageService(uc *message.Usecase) *SystemMessageService {
-	return &SystemMessageService{messages: uc}
+func NewSystemMessageService(inbox *message.Inbox) *SystemMessageService {
+	return &SystemMessageService{inbox: inbox}
 }
 
 func (s *SystemMessageService) ListSelfMessages(ctx context.Context, req *v1.ListSelfMessagesRequest) (*v1.ListSelfMessagesResponse, error) {
-	items, total, page, pageSize, unread, err := s.messages.List(ctx, req.GetPage(), req.GetPageSize(), req.GetUnreadOnly())
+	items, total, page, pageSize, unread, err := s.inbox.List(ctx, req.GetPage(), req.GetPageSize(), req.GetUnreadOnly())
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (s *SystemMessageService) ListSelfMessages(ctx context.Context, req *v1.Lis
 }
 
 func (s *SystemMessageService) GetUnreadMessageCount(ctx context.Context, _ *v1.GetUnreadMessageCountRequest) (*v1.GetUnreadMessageCountResponse, error) {
-	count, err := s.messages.UnreadCount(ctx)
+	count, err := s.inbox.UnreadCount(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -37,14 +37,14 @@ func (s *SystemMessageService) GetUnreadMessageCount(ctx context.Context, _ *v1.
 }
 
 func (s *SystemMessageService) MarkMessageRead(ctx context.Context, req *v1.MarkMessageReadRequest) (*v1.MarkMessageReadResponse, error) {
-	if err := s.messages.MarkRead(ctx, req.GetUid()); err != nil {
+	if err := s.inbox.MarkRead(ctx, req.GetUid()); err != nil {
 		return nil, err
 	}
 	return &v1.MarkMessageReadResponse{}, nil
 }
 
 func (s *SystemMessageService) MarkAllMessagesRead(ctx context.Context, _ *v1.MarkAllMessagesReadRequest) (*v1.MarkAllMessagesReadResponse, error) {
-	if err := s.messages.MarkAllRead(ctx); err != nil {
+	if err := s.inbox.MarkAllRead(ctx); err != nil {
 		return nil, err
 	}
 	return &v1.MarkAllMessagesReadResponse{}, nil

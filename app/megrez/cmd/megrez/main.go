@@ -13,7 +13,6 @@ import (
 
 	"github.com/aide-family/Alioth/app/megrez/internal/biz/eval"
 	"github.com/aide-family/Alioth/app/megrez/internal/conf"
-	"github.com/aide-family/Alioth/app/megrez/internal/data"
 	"github.com/aide-family/Alioth/pkg/bootstrap"
 )
 
@@ -51,7 +50,7 @@ func main() {
 }
 
 func serve(confPath string) error {
-	bc, err := bootstrap.Load[conf.Bootstrap](confPath, slog.Default())
+	cfg, err := bootstrap.Load[conf.Bootstrap](confPath, slog.Default())
 	if err != nil {
 		return err
 	}
@@ -60,7 +59,7 @@ func serve(confPath string) error {
 		log.WithFormat(log.FormatJSON),
 		log.WithAddSource(true),
 	)).With(slog.String("service", "megrez"))
-	app, cleanup, err := wireApp(bc.Server, bc.Alioth, bc.Redis, logger)
+	app, cleanup, err := wireApp(cfg.Server, cfg.Alioth, cfg.Redis, logger)
 	if err != nil {
 		return err
 	}
@@ -68,14 +67,11 @@ func serve(confPath string) error {
 	return app.Run()
 }
 
-func newApp(logger *slog.Logger, hs *http.Server, worker *eval.Worker, d *data.Data) *kratos.App {
-	if d == nil {
-		panic("data layer is missing")
-	}
+func newApp(logger *slog.Logger, httpServer *http.Server, worker *eval.Worker) *kratos.App {
 	return kratos.New(
 		kratos.Name("megrez"),
 		kratos.Logger(logger),
-		kratos.Server(hs, worker),
+		kratos.Server(httpServer, worker),
 		kratos.StopTimeout(10*time.Second),
 	)
 }

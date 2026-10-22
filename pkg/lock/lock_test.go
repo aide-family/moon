@@ -31,8 +31,8 @@ func TestAcquireRenewRelease(t *testing.T) {
 	key := "alioth:lock:test:" + randomToken()
 	t.Cleanup(func() { _ = rdb.Del(context.Background(), key).Err() })
 
-	first := New(rdb, "proc-a")
-	second := New(rdb, "proc-b")
+	first := NewClient(rdb, "proc-a")
+	second := NewClient(rdb, "proc-b")
 
 	hold, err := first.Acquire(ctx, key, 2*time.Second)
 	if err != nil {
@@ -92,7 +92,7 @@ func TestRedisUnavailable(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	_, err := New(rdb, "down").Acquire(ctx, "alioth:lock:test:down", time.Second)
+	_, err := NewClient(rdb, "down").Acquire(ctx, "alioth:lock:test:down", time.Second)
 	if err == nil {
 		t.Fatal("acquire against a closed redis returned success")
 	}

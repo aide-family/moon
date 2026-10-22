@@ -155,6 +155,6 @@ func (c Checker) Wrap(err error) error {
 	if kerrors.Reason(err) != "" {
 		return err
 	}
-	c.Log.Error(fmt.Sprintf("usecase: %v", err))
+	c.Log.Error(fmt.Sprintf("biz: %v", err))
 	return merr.Server("request failed")
 }

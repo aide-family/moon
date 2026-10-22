@@ -9,7 +9,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/biz/auth"
 )
 
-func authenticate(uc *auth.Usecase) middleware.Middleware {
+func authenticate(authenticator *auth.Authenticator) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req interface{}) (interface{}, error) {
 			tr, ok := transport.FromServerContext(ctx)
@@ -25,7 +25,7 @@ func authenticate(uc *auth.Usecase) middleware.Middleware {
 			if namespace == "" {
 				namespace = header.Get("x-namespace")
 			}
-			next, err := uc.Authenticate(ctx, tr.Operation(), authorization, namespace)
+			next, err := authenticator.Authenticate(ctx, tr.Operation(), authorization, namespace)
 			if err != nil {
 				return nil, err
 			}

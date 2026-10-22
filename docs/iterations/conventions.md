@@ -35,6 +35,8 @@ Alioth/
 | 存储 | `internal/data` | 实现 `repository`。ent、迁移、种子、外部数据源客户端、Webhook、SSH |
 | 事务邮件 | `internal/mailer` | SMTP 纯文本邮件发送。登录验证码和租户邀请共用，不直接写业务判断 |
 
+各层类型、构造函数、字段和接收者的命名规则见下文「命名」。
+
 同一父目录下的包不能互相 import。父包可以汇总子包的 Wire `ProviderSet`。领域包需要的结构体和接口放到父目录之外。
 
 调用方向是 `server` → `service` → `biz` → `data/repository`。`data` 实现仓储接口，依赖 `repository` 和本应用的 `pkg/bo`，不依赖具体用例包。用 Wire 组装。应用之间不 import 对方的 `internal`。
@@ -54,6 +56,41 @@ proto 的 service、rpc、message 和字段都写中文注释。
 Go 1.25+，Kratos v3，Cobra，Wire，protobuf，`buf.validate`，`google.api.http`。ORM 使用 ent，数据库使用 PostgreSQL。
 
 日志使用标准库 `log/slog`（经 Kratos v3 `log.NewLogger` / `log.NewHandler` 构造），禁止再使用 Kratos v2 的 `log.Logger` / `log.Helper`。手写代码与生成代码的 import 与生成器均使用 `github.com/go-kratos/kratos/v3`（含 `protoc-gen-go-http/v3`）。HTTP JSON 在迁移期 blank-import `github.com/go-kratos/kratos/contrib/encoding/json/v3`，以保持与 Web 现有契约；不要同时注册 core `json` 与该兼容 codec。SSE、`config.Get[T]`、自定义 ValidatorFunc 等 v3 可选能力按需采用，不是默认交付。
+
+## 命名
+
+名字要说明业务对象和业务行为，不写层次，也不写实现手段。本节规则适用于四个应用和 `pkg`，类型名由 `scripts/check-naming.sh` 在 `make lint` 中检查。前端（`web/`）的命名规则见下文「Web / 命名」。
+
+### 通用
+
+- 禁止只说明层次的类型名：`Usecase`、`Biz`、`Manager`、`Helper`、`Util`、`Utils`、`Impl`、`Common`、`Base`、`Abstract`、`Repository`、`Handler`、`Controller`。`ent`、`*.pb.go`、`wire_gen.go` 生成代码除外。
+- `Data` 只有在包名已经限定业务时才能用（`alerttmpl.Data` 是模板数据）；`data.Data` 这种和包名重复的名字不允许。
+- 构造函数写 `New<类型>`，与返回类型同名；返回接口时用接口名（`NewUserRepo` 返回 `repository.UserRepo`）。包名本身就是被创建的对象、且返回内置类型时允许写 `New`（`id.New()`）。
+- 接收者用类型名的业务小写形式，如 `func (registry *Registry)`。不用 `this`、`self`、`uc`、`d` 这类占位名；单字母只留给循环下标。
+- 形参和字段用注入对象的业务名：service 持有 `coordinator`、`gateway`、`center`、`prober`，biz 持有 `agents`、`rules`、`access`。同一个依赖在各文件用同一个名字。
+- 同一业务概念在各层用同一个词干：proto 资源 `NotificationChannel` ↔ `notification.Center` ↔ `service.NotificationChannelService` ↔ `repository.NotificationChannelRepo`。
+- 缩写只保留业内通用写法：`HTTP`、`gRPC`、`SSH`、`ID`、`UID`、`URL`、`DSN`、`JWT`、`TLS`、`SQL`、`API`、`authn`、`authz`。不自造缩写。
+- 进程内变量不用 `hs`、`gs`、`sched`、`bc` 这类缩写：写 `httpServer`、`grpcServer`、`scheduler`、`cfg`。
+- 包名用一个小写单词，不用复数、下划线，不用 `utils`、`common`、`helpers`。
+
+### 分层
+
+| 层 | 类型 | 构造函数 | 例 |
+| --- | --- | --- | --- |
+| 入口 | `newApp`；Wire 入口固定为 `wireApp` | — | `newApp` |
+| 传输 | `<协议>Server` 或常驻角色名 | `New<类型>` | `HTTPServer`、`GRPCServer`、`Scheduler` |
+| 接口 | `<资源>Service`，与 proto service 同名 | `New<资源>Service` | `AlertRuleService` |
+| 用例 | 业务角色名：认证、协调、注册、台账 | `New<类型>` | `Authenticator`、`Coordinator`、`Registry`、`Membership`、`Inbox` |
+| 权限检查 | 能力名 | `New<类型>` | `Checker` |
+| 仓储接口 | `<聚合>Repo`，按聚合拆文件 | — | `AlertRuleRepo` |
+| 存储 | 实现不导出；共享容器按职责命名 | `New<聚合>Repo` | `Dependencies`、`NewAlertRuleRepo` |
+| 事务邮件 | 角色名 | `New<类型>` | `Sender`、`NewSender` |
+| 公共包 | 能力包名 + 具体类型 | `New<类型>` | `healthcheck.Checks`、`lock.Client`、`NewClient` |
+| 业务对象 | 业务对象名词，不带 `DTO`、`DO` 后缀 | — | `AlertRule`、`MemberInvite` |
+
+`internal/data` 的容器只持有本层共享连接（数据库、加密、历史库），叫 `Dependencies`。没有可持有的依赖时不要为 Wire 造空结构体。
+
+`internal/service` 的字段、构造函数形参和 biz 类型名保持一致：`AlertEventService{coordinator *alertevent.Coordinator}`、`DatasourceService{gateway *datasource.Gateway}`。
 
 ## 端口与入口
 
@@ -174,6 +211,21 @@ SSH 命令与终端操作写入审计。`member` 和 `viewer` 不能删除审计
 - 「级别条件」等复合字段必须提供说明 label（可见说明或 `hint`），内部每个输入项也要有 label。
 - 列表页保留筛选、分页，并把查询条件放进 URL。新建和编辑用对话框。主从页面用左侧列表加右侧明细。
 - 页面验收在浏览器里走 `http://<web>:8080`，包含登录、提交和跳转。
+
+### 命名
+
+- 文件和目录用 kebab-case；一个文件一个主导出。跨页面组件的文件名等于主导出的 kebab 形式（`app-shell.tsx` → `AppShell`、`query-expression-editor.tsx` → `QueryExpressionEditor`）。`main.tsx`、`App.tsx` 是 Vite 入口，保留 PascalCase。
+- 页面目录用路由名，入口固定 `index.tsx`，导出 `<业务实体>Page`（`workers/index.tsx` → `WorkerStatusPage`、`alert/index.tsx` → `AlertRealtimePage`、`member/index.tsx` → `MemberPage`）。领域名本身以 Page 结尾时写 `<领域>ManagePage`（`AlertPageManagePage`），不写 `AlertPagePage`。
+- 页面私有子组件放该页面目录，文件用 `<部件>.tsx`，导出加领域前缀：`column-dialog.tsx` → `AlertColumnDialog`，`event-chart.tsx` → `AlertEventChartDialog` / `AlertEventChartBody`，`suppress-dialog.tsx` → `AlertEventSuppressDialog`。
+- 壳和整页布局用 `<用途>Shell`（`AppShell`、`AuthShell`）。
+- 专有名词和缩写按官方写法：`GitHub`、`PromQL`、`LogQL`、`LogsQL`、`SSH`、`HTTP`（`github-icon.tsx` 导出 `GitHubIcon`）。
+- hook 以 `use` 开头，文件名 `use-<hook 名>.ts`。跨页面 hook 放 `web/src/hooks`；只服务一个页面的 hook 留在页面目录（`pages/alert/level-condition.ts` 的 `useEventLevelCondition`）。
+- `web/src/lib` 只放纯函数，名字用动词开头：`runAction`、`readFormError`、`formErrorMessage`、`failureMessage`。不用 `utils`、`helpers`、`common`、`misc`、`shared` 这类占位文件名。
+- 类名合并统一用 `cn`（`@/lib/class-names` 转发 shadcn 生态的 `cn`）；不另造 `classNames`、`cx`。`src/components/ui` 是 shadcn 生成目录，文件名和导出保持生成结果，不参与重命名。
+- API 层一个资源一个目录（`api/<资源>/index.ts` + `types.ts`）。函数名等于 RPC 名的 lowerCamel（`ListAlertEvents` → `listAlertEvents`）。类型：请求 `<Rpc>Params`，列表项 `XxxItem`，列表结果 `ListXxxResult`，单对象响应直接用业务对象名（`TokenPair`、`SelfInfo`），嵌套写载荷 `<资源><子对象>Input`，创建/更新共用载荷 `Save<资源>Params`，枚举 `<资源><概念>`（`AlertEventStatus`）。
+- i18n key 用域名开头加 lowerCamel（`alertRule.title`），不在运行时拼接 key。
+
+`make lint` 的命名检查会拒绝 `src/lib` 下的 `utils`/`helpers`/`common` 等占位文件、与导出不同名的 hook 文件，以及 `src/lib` 里导出的 hook。
 
 ## 本期不做
 

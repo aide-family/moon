@@ -18,7 +18,7 @@ const (
 // normalizeGroup 校验渠道、模板、成员和 Webhook。
 // channel_uids 与 template_uids 一一对应：邮件渠道、短信渠道和每个 Webhook 接收者各一项；
 // 邮件和短信同类型最多一个，Webhook 可多选。成员只取当前 Namespace 的成员。
-func (uc *Usecase) normalizeGroup(ctx context.Context, in *bo.NotificationGroup) error {
+func (center *Center) normalizeGroup(ctx context.Context, in *bo.NotificationGroup) error {
 	if strings.TrimSpace(in.Name) == "" {
 		return merr.Invalid("name is required")
 	}
@@ -66,7 +66,7 @@ func (uc *Usecase) normalizeGroup(ctx context.Context, in *bo.NotificationGroup)
 		return merr.Invalid("too many members")
 	}
 
-	members, err := uc.groupMembers(ctx, in)
+	members, err := center.groupMembers(ctx, in)
 	if err != nil {
 		return err
 	}
@@ -76,13 +76,13 @@ func (uc *Usecase) normalizeGroup(ctx context.Context, in *bo.NotificationGroup)
 	webhookUIDs := make([]string, 0, len(in.ChannelUIDs))
 	webhookTemplates := map[string]struct{}{}
 	for index, channelUID := range in.ChannelUIDs {
-		channel, err := uc.repo.GetChannel(ctx, in.NamespaceUID, channelUID)
+		channel, err := center.repo.GetChannel(ctx, in.NamespaceUID, channelUID)
 		if err != nil {
-			return uc.access.Wrap(err)
+			return center.access.Wrap(err)
 		}
-		template, err := uc.repo.GetTemplate(ctx, in.NamespaceUID, in.TemplateUIDs[index])
+		template, err := center.repo.GetTemplate(ctx, in.NamespaceUID, in.TemplateUIDs[index])
 		if err != nil {
-			return uc.access.Wrap(err)
+			return center.access.Wrap(err)
 		}
 		if err := validateGroupBinding(*channel, *template); err != nil {
 			return err
@@ -114,7 +114,7 @@ func (uc *Usecase) normalizeGroup(ctx context.Context, in *bo.NotificationGroup)
 			return merr.Invalid("email receivers require an email channel")
 		}
 	} else {
-		emails, err := uc.memberEmails(members, in.EmailMemberUIDs)
+		emails, err := center.memberEmails(members, in.EmailMemberUIDs)
 		if err != nil {
 			return err
 		}
@@ -131,7 +131,7 @@ func (uc *Usecase) normalizeGroup(ctx context.Context, in *bo.NotificationGroup)
 			return merr.Invalid("sms receivers require an sms channel")
 		}
 	} else {
-		phones, err := uc.memberPhones(members, in.SMSMemberUIDs)
+		phones, err := center.memberPhones(members, in.SMSMemberUIDs)
 		if err != nil {
 			return err
 		}
@@ -185,14 +185,14 @@ func normalizeLegacyGroup(in *bo.NotificationGroup) {
 }
 
 // groupMembers 一次读取邮件和短信选择的成员，避免逐个查询。
-func (uc *Usecase) groupMembers(ctx context.Context, in *bo.NotificationGroup) (map[string]bo.Member, error) {
+func (center *Center) groupMembers(ctx context.Context, in *bo.NotificationGroup) (map[string]bo.Member, error) {
 	uids := uniqueStrings(append(append([]string{}, in.EmailMemberUIDs...), in.SMSMemberUIDs...))
 	if len(uids) == 0 {
 		return map[string]bo.Member{}, nil
 	}
-	members, err := uc.members.ListMembersByUIDs(ctx, in.NamespaceUID, uids)
+	members, err := center.members.ListMembersByUIDs(ctx, in.NamespaceUID, uids)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, center.access.Wrap(err)
 	}
 	if len(members) != len(uids) {
 		return nil, merr.Invalid("member not found")
@@ -204,7 +204,7 @@ func (uc *Usecase) groupMembers(ctx context.Context, in *bo.NotificationGroup) (
 	return out, nil
 }
 
-func (uc *Usecase) memberEmails(members map[string]bo.Member, uids []string) ([]string, error) {
+func (center *Center) memberEmails(members map[string]bo.Member, uids []string) ([]string, error) {
 	out := make([]string, 0, len(uids))
 	for _, uid := range uids {
 		item, ok := members[uid]
@@ -222,7 +222,7 @@ func (uc *Usecase) memberEmails(members map[string]bo.Member, uids []string) ([]
 	return out, nil
 }
 
-func (uc *Usecase) memberPhones(members map[string]bo.Member, uids []string) ([]string, error) {
+func (center *Center) memberPhones(members map[string]bo.Member, uids []string) ([]string, error) {
 	out := make([]string, 0, len(uids))
 	for _, uid := range uids {
 		item, ok := members[uid]

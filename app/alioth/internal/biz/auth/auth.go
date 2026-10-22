@@ -29,7 +29,7 @@ import (
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
-var ProviderSet = wire.NewSet(NewUsecase)
+var ProviderSet = wire.NewSet(NewAuthenticator)
 
 var phonePattern = regexp.MustCompile(`^\+?[0-9]{6,20}$`)
 
@@ -43,8 +43,8 @@ type oauthClient struct {
 	secret string
 }
 
-// Usecase 负责身份凭证。租户、成员和角色的判断不放在这里。
-type Usecase struct {
+// Authenticator 负责身份凭证。租户、成员和角色的判断不放在这里。
+type Authenticator struct {
 	users        repository.UserRepo
 	captchas     repository.CaptchaRepo
 	emailCodes   repository.EmailCodeRepo
@@ -59,7 +59,7 @@ type Usecase struct {
 	log          *slog.Logger
 }
 
-func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emailCodes repository.EmailCodeRepo, oauth repository.OAuthRepo, agents AgentTokenLookup, mail *mailer.Sender, auth *conf.Auth, logger *slog.Logger) (*Usecase, error) {
+func NewAuthenticator(users repository.UserRepo, captchas repository.CaptchaRepo, emailCodes repository.EmailCodeRepo, oauth repository.OAuthRepo, agents AgentTokenLookup, mail *mailer.Sender, auth *conf.Auth, logger *slog.Logger) (*Authenticator, error) {
 	if auth == nil || auth.GetJwtSecret() == "" {
 		return nil, merr.Server("jwt secret is empty")
 	}
@@ -81,7 +81,7 @@ func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emai
 	for _, item := range auth.GetOauth() {
 		clients[strings.ToUpper(item.GetProvider())] = oauthClient{id: item.GetClientId(), secret: item.GetClientSecret()}
 	}
-	return &Usecase{
+	return &Authenticator{
 		users:        users,
 		captchas:     captchas,
 		emailCodes:   emailCodes,
@@ -103,10 +103,10 @@ func NewUsecase(users repository.UserRepo, captchas repository.CaptchaRepo, emai
 // 公开接口不要求令牌。刷新接口只接受 refresh token，其余接口只接受 access token。
 // 被封禁的用户在这里拒绝，后面的用例不再重复判断账号是否可登录。
 // 个人资料、刷新令牌和创建租户可以不带 X-Namespace；带了则记入上下文。其他接口必须带租户。
-func (uc *Usecase) Authenticate(ctx context.Context, operation, authorization, namespace string) (context.Context, error) {
+func (authenticator *Authenticator) Authenticate(ctx context.Context, operation, authorization, namespace string) (context.Context, error) {
 	token := bearerToken(authorization)
 	if isServiceKey(token) {
-		name, ok := uc.serviceKeys[token]
+		name, ok := authenticator.serviceKeys[token]
 		if !ok {
 			return nil, merr.Forbidden("service key is not accepted")
 		}
@@ -125,10 +125,10 @@ func (uc *Usecase) Authenticate(ctx context.Context, operation, authorization, n
 		if operation != v1.AgentService_Connect_FullMethodName {
 			return nil, merr.Forbidden("agent token cannot call this api")
 		}
-		if uc.agents == nil {
+		if authenticator.agents == nil {
 			return nil, merr.Unauthenticated("invalid token")
 		}
-		item, err := uc.agents.AuthenticateToken(ctx, token)
+		item, err := authenticator.agents.AuthenticateToken(ctx, token)
 		if err != nil {
 			return nil, err
 		}
@@ -147,7 +147,7 @@ func (uc *Usecase) Authenticate(ctx context.Context, operation, authorization, n
 	if token == "" {
 		return nil, merr.Unauthenticated("missing token")
 	}
-	uid, kind, err := uc.parseToken(token)
+	uid, kind, err := authenticator.parseToken(token)
 	if err != nil {
 		return nil, merr.Unauthenticated("invalid token")
 	}
@@ -158,7 +158,7 @@ func (uc *Usecase) Authenticate(ctx context.Context, operation, authorization, n
 	} else if kind != "access" {
 		return nil, merr.Unauthenticated("access token required")
 	}
-	account, err := uc.users.UserByUID(ctx, uid)
+	account, err := authenticator.users.UserByUID(ctx, uid)
 	if err != nil || account.Status != "ACTIVE" {
 		return nil, merr.Unauthenticated("user is not active")
 	}
@@ -176,41 +176,41 @@ func (uc *Usecase) Authenticate(ctx context.Context, operation, authorization, n
 }
 
 // GetCaptcha 生成 4 位验证码。保存的是摘要，答案只出现在返回的图片里，5 分钟后过期。
-func (uc *Usecase) GetCaptcha(ctx context.Context) (string, string, error) {
+func (authenticator *Authenticator) GetCaptcha(ctx context.Context) (string, string, error) {
 	code, err := randomCode(4)
 	if err != nil {
 		return "", "", merr.Server("request failed")
 	}
 	image, err := drawCaptcha(code)
 	if err != nil {
-		uc.log.Error(fmt.Sprintf("draw captcha: %v", err))
+		authenticator.log.Error(fmt.Sprintf("draw captcha: %v", err))
 		return "", "", merr.Server("request failed")
 	}
 	captchaID := id.New()
-	if err := uc.captchas.SaveCaptcha(ctx, captchaID, uc.digest(code), time.Now().Add(5*time.Minute)); err != nil {
-		return "", "", uc.wrap(err)
+	if err := authenticator.captchas.SaveCaptcha(ctx, captchaID, authenticator.digest(code), time.Now().Add(5*time.Minute)); err != nil {
+		return "", "", authenticator.wrap(err)
 	}
 	return captchaID, image, nil
 }
 
 // Register 先消费验证码，再创建用户。验证码只能成功使用一次，密码至少 8 位。
 // 邮箱已存在时返回客户端错误，不覆盖原账号。
-func (uc *Usecase) Register(ctx context.Context, email, password, name, captchaID, captchaCode string) (*bo.Session, error) {
+func (authenticator *Authenticator) Register(ctx context.Context, email, password, name, captchaID, captchaCode string) (*bo.Session, error) {
 	email = normalizeEmail(email)
 	if !strings.Contains(email, "@") || len(password) < 8 || captchaID == "" || strings.TrimSpace(captchaCode) == "" {
 		return nil, merr.Client("invalid register request")
 	}
-	ok, err := uc.captchas.ConsumeCaptcha(ctx, captchaID, uc.digest(captchaCode), time.Now())
+	ok, err := authenticator.captchas.ConsumeCaptcha(ctx, captchaID, authenticator.digest(captchaCode), time.Now())
 	if err != nil {
-		return nil, uc.wrap(err)
+		return nil, authenticator.wrap(err)
 	}
 	if !ok {
 		return nil, merr.Client("captcha is invalid")
 	}
-	if _, err := uc.users.UserByEmail(ctx, email); err == nil {
+	if _, err := authenticator.users.UserByEmail(ctx, email); err == nil {
 		return nil, merr.Client("email already exists")
 	} else if !merr.IsNotFound(err) {
-		return nil, uc.wrap(err)
+		return nil, authenticator.wrap(err)
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -219,7 +219,7 @@ func (uc *Usecase) Register(ctx context.Context, email, password, name, captchaI
 	if strings.TrimSpace(name) == "" {
 		name = strings.Split(email, "@")[0]
 	}
-	account, err := uc.users.CreateUser(ctx, bo.Account{
+	account, err := authenticator.users.CreateUser(ctx, bo.Account{
 		UID:          id.New(),
 		Name:         name,
 		Nickname:     name,
@@ -228,153 +228,153 @@ func (uc *Usecase) Register(ctx context.Context, email, password, name, captchaI
 		PasswordHash: string(hash),
 	})
 	if err != nil {
-		return nil, uc.wrap(err)
+		return nil, authenticator.wrap(err)
 	}
-	return uc.session(account)
+	return authenticator.session(account)
 }
 
-func (uc *Usecase) PasswordLogin(ctx context.Context, email, password string) (*bo.Session, error) {
-	account, err := uc.users.UserByEmail(ctx, normalizeEmail(email))
+func (authenticator *Authenticator) PasswordLogin(ctx context.Context, email, password string) (*bo.Session, error) {
+	account, err := authenticator.users.UserByEmail(ctx, normalizeEmail(email))
 	if err != nil {
 		if merr.IsNotFound(err) {
 			return nil, merr.Unauthenticated("invalid email or password")
 		}
-		return nil, uc.wrap(err)
+		return nil, authenticator.wrap(err)
 	}
 	if bcrypt.CompareHashAndPassword([]byte(account.PasswordHash), []byte(password)) != nil {
 		return nil, merr.Unauthenticated("invalid email or password")
 	}
-	return uc.session(account)
+	return authenticator.session(account)
 }
 
 // SendEmailLoginCode 只给已注册邮箱发码。码保存为摘要，10 分钟内有效，发出去的明文不再落库。
-func (uc *Usecase) SendEmailLoginCode(ctx context.Context, email string) error {
+func (authenticator *Authenticator) SendEmailLoginCode(ctx context.Context, email string) error {
 	email = normalizeEmail(email)
-	if _, err := uc.users.UserByEmail(ctx, email); err != nil {
+	if _, err := authenticator.users.UserByEmail(ctx, email); err != nil {
 		if merr.IsNotFound(err) {
 			return merr.Client("email is not registered")
 		}
-		return uc.wrap(err)
+		return authenticator.wrap(err)
 	}
 	code, err := randomDigits(6)
 	if err != nil {
 		return merr.Server("request failed")
 	}
-	if err := uc.emailCodes.SaveEmailCode(ctx, email, uc.digest(code), time.Now().Add(10*time.Minute)); err != nil {
-		return uc.wrap(err)
+	if err := authenticator.emailCodes.SaveEmailCode(ctx, email, authenticator.digest(code), time.Now().Add(10*time.Minute)); err != nil {
+		return authenticator.wrap(err)
 	}
-	if err := uc.sendMail(email, code); err != nil {
+	if err := authenticator.sendMail(email, code); err != nil {
 		return err
 	}
 	return nil
 }
 
 // EmailLogin 消费邮箱验证码。同一封码不能登录两次。
-func (uc *Usecase) EmailLogin(ctx context.Context, email, code string) (*bo.Session, error) {
+func (authenticator *Authenticator) EmailLogin(ctx context.Context, email, code string) (*bo.Session, error) {
 	email = normalizeEmail(email)
-	ok, err := uc.emailCodes.ConsumeEmailCode(ctx, email, uc.digest(code), time.Now())
+	ok, err := authenticator.emailCodes.ConsumeEmailCode(ctx, email, authenticator.digest(code), time.Now())
 	if err != nil {
-		return nil, uc.wrap(err)
+		return nil, authenticator.wrap(err)
 	}
 	if !ok {
 		return nil, merr.Unauthenticated("invalid email or code")
 	}
-	account, err := uc.users.UserByEmail(ctx, email)
+	account, err := authenticator.users.UserByEmail(ctx, email)
 	if err != nil {
 		if merr.IsNotFound(err) {
 			return nil, merr.Unauthenticated("invalid email or code")
 		}
-		return nil, uc.wrap(err)
+		return nil, authenticator.wrap(err)
 	}
-	return uc.session(account)
+	return authenticator.session(account)
 }
 
-func (uc *Usecase) Refresh(ctx context.Context) (string, error) {
+func (authenticator *Authenticator) Refresh(ctx context.Context) (string, error) {
 	uid, ok := actor.UserID(ctx)
 	if !ok {
 		return "", merr.Unauthenticated("missing token")
 	}
-	account, err := uc.users.UserByUID(ctx, uid)
+	account, err := authenticator.users.UserByUID(ctx, uid)
 	if err != nil || account.Status != "ACTIVE" {
 		return "", merr.Unauthenticated("user is not active")
 	}
-	return uc.sign(uid, "access", uc.accessTTL)
+	return authenticator.sign(uid, "access", authenticator.accessTTL)
 }
 
-func (uc *Usecase) Self(ctx context.Context) (*bo.Account, error) {
+func (authenticator *Authenticator) Self(ctx context.Context) (*bo.Account, error) {
 	uid, ok := actor.UserID(ctx)
 	if !ok {
 		return nil, merr.Unauthenticated("missing token")
 	}
-	account, err := uc.users.UserByUID(ctx, uid)
+	account, err := authenticator.users.UserByUID(ctx, uid)
 	if err != nil {
-		return nil, uc.wrap(err)
+		return nil, authenticator.wrap(err)
 	}
 	cleaned := publicAccount(*account)
 	return &cleaned, nil
 }
 
 // SelfSystem 返回当前用户的平台角色和平台权限。它和租户权限是两套目录。
-func (uc *Usecase) SelfSystem(ctx context.Context) (string, []string, error) {
+func (authenticator *Authenticator) SelfSystem(ctx context.Context) (string, []string, error) {
 	uid, ok := actor.UserID(ctx)
 	if !ok {
 		return "", nil, merr.Unauthenticated("missing token")
 	}
-	account, err := uc.users.UserByUID(ctx, uid)
+	account, err := authenticator.users.UserByUID(ctx, uid)
 	if err != nil {
-		return "", nil, uc.wrap(err)
+		return "", nil, authenticator.wrap(err)
 	}
 	return account.SystemRole, perm.SystemPermissions(account.SystemRole), nil
 }
 
-func (uc *Usecase) ChangeEmail(ctx context.Context, email string) (*bo.Account, error) {
+func (authenticator *Authenticator) ChangeEmail(ctx context.Context, email string) (*bo.Account, error) {
 	uid, ok := actor.UserID(ctx)
 	if !ok {
 		return nil, merr.Unauthenticated("missing token")
 	}
 	email = normalizeEmail(email)
-	existing, err := uc.users.UserByEmail(ctx, email)
+	existing, err := authenticator.users.UserByEmail(ctx, email)
 	if err == nil && existing.UID != uid {
 		return nil, merr.Client("email already exists")
 	}
 	if err != nil && !merr.IsNotFound(err) {
-		return nil, uc.wrap(err)
+		return nil, authenticator.wrap(err)
 	}
-	account, err := uc.users.UpdateUserProfile(ctx, uid, &email, nil, nil, nil)
+	account, err := authenticator.users.UpdateUserProfile(ctx, uid, &email, nil, nil, nil)
 	if err != nil {
-		return nil, uc.wrap(err)
+		return nil, authenticator.wrap(err)
 	}
 	cleaned := publicAccount(*account)
 	return &cleaned, nil
 }
 
-func (uc *Usecase) ChangeAvatar(ctx context.Context, avatar string) (*bo.Account, error) {
+func (authenticator *Authenticator) ChangeAvatar(ctx context.Context, avatar string) (*bo.Account, error) {
 	uid, ok := actor.UserID(ctx)
 	if !ok {
 		return nil, merr.Unauthenticated("missing token")
 	}
-	account, err := uc.users.UpdateUserProfile(ctx, uid, nil, nil, &avatar, nil)
+	account, err := authenticator.users.UpdateUserProfile(ctx, uid, nil, nil, &avatar, nil)
 	if err != nil {
-		return nil, uc.wrap(err)
+		return nil, authenticator.wrap(err)
 	}
 	cleaned := publicAccount(*account)
 	return &cleaned, nil
 }
 
-func (uc *Usecase) ChangeRemark(ctx context.Context, remark string) (*bo.Account, error) {
+func (authenticator *Authenticator) ChangeRemark(ctx context.Context, remark string) (*bo.Account, error) {
 	uid, ok := actor.UserID(ctx)
 	if !ok {
 		return nil, merr.Unauthenticated("missing token")
 	}
-	account, err := uc.users.UpdateUserProfile(ctx, uid, nil, nil, nil, &remark)
+	account, err := authenticator.users.UpdateUserProfile(ctx, uid, nil, nil, nil, &remark)
 	if err != nil {
-		return nil, uc.wrap(err)
+		return nil, authenticator.wrap(err)
 	}
 	cleaned := publicAccount(*account)
 	return &cleaned, nil
 }
 
-func (uc *Usecase) ChangePhone(ctx context.Context, phone string) (*bo.Account, error) {
+func (authenticator *Authenticator) ChangePhone(ctx context.Context, phone string) (*bo.Account, error) {
 	uid, ok := actor.UserID(ctx)
 	if !ok {
 		return nil, merr.Unauthenticated("missing token")
@@ -383,31 +383,31 @@ func (uc *Usecase) ChangePhone(ctx context.Context, phone string) (*bo.Account, 
 	if phone != "" && !phonePattern.MatchString(phone) {
 		return nil, merr.Invalid("invalid phone number")
 	}
-	account, err := uc.users.UpdateUserProfile(ctx, uid, nil, &phone, nil, nil)
+	account, err := authenticator.users.UpdateUserProfile(ctx, uid, nil, &phone, nil, nil)
 	if err != nil {
-		return nil, uc.wrap(err)
+		return nil, authenticator.wrap(err)
 	}
 	cleaned := publicAccount(*account)
 	return &cleaned, nil
 }
 
 // session 签发访问令牌和刷新令牌。封禁用户不能拿到新会话，即使密码正确。
-func (uc *Usecase) session(account *bo.Account) (*bo.Session, error) {
+func (authenticator *Authenticator) session(account *bo.Account) (*bo.Session, error) {
 	if account.Status != "ACTIVE" {
 		return nil, merr.Unauthenticated("user is banned")
 	}
-	access, err := uc.sign(account.UID, "access", uc.accessTTL)
+	access, err := authenticator.sign(account.UID, "access", authenticator.accessTTL)
 	if err != nil {
 		return nil, merr.Server("request failed")
 	}
-	refresh, err := uc.sign(account.UID, "refresh", uc.refreshTTL)
+	refresh, err := authenticator.sign(account.UID, "refresh", authenticator.refreshTTL)
 	if err != nil {
 		return nil, merr.Server("request failed")
 	}
 	return &bo.Session{AccessToken: access, RefreshToken: refresh, User: publicAccount(*account)}, nil
 }
 
-func (uc *Usecase) sign(uid, kind string, ttl time.Duration) (string, error) {
+func (authenticator *Authenticator) sign(uid, kind string, ttl time.Duration) (string, error) {
 	now := time.Now()
 	claims := jwt.MapClaims{
 		"uid":  uid,
@@ -416,20 +416,20 @@ func (uc *Usecase) sign(uid, kind string, ttl time.Duration) (string, error) {
 		"exp":  now.Add(ttl).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signed, err := token.SignedString([]byte(uc.secret))
+	signed, err := token.SignedString([]byte(authenticator.secret))
 	if err != nil {
-		uc.log.Error(fmt.Sprintf("jwt: %v", err))
+		authenticator.log.Error(fmt.Sprintf("jwt: %v", err))
 		return "", merr.Server("request failed")
 	}
 	return signed, nil
 }
 
-func (uc *Usecase) parseToken(raw string) (string, string, error) {
+func (authenticator *Authenticator) parseToken(raw string) (string, string, error) {
 	token, err := jwt.Parse(raw, func(token *jwt.Token) (interface{}, error) {
 		if token.Method != jwt.SigningMethodHS256 {
 			return nil, merr.Unauthenticated("invalid token")
 		}
-		return []byte(uc.secret), nil
+		return []byte(authenticator.secret), nil
 	})
 	if err != nil || !token.Valid {
 		return "", "", merr.Unauthenticated("invalid token")
@@ -446,26 +446,26 @@ func (uc *Usecase) parseToken(raw string) (string, string, error) {
 	return uid, kind, nil
 }
 
-func (uc *Usecase) digest(value string) string {
-	sum := sha256.Sum256([]byte(uc.secret + ":" + strings.ToLower(strings.TrimSpace(value))))
+func (authenticator *Authenticator) digest(value string) string {
+	sum := sha256.Sum256([]byte(authenticator.secret + ":" + strings.ToLower(strings.TrimSpace(value))))
 	return hex.EncodeToString(sum[:])
 }
 
-func (uc *Usecase) sendMail(to, code string) error {
-	if uc.mail == nil {
+func (authenticator *Authenticator) sendMail(to, code string) error {
+	if authenticator.mail == nil {
 		return merr.Server("smtp is not configured")
 	}
-	return uc.mail.Send(to, "Alioth login code", "Your Alioth login code is "+code+"\r\nIt expires in 10 minutes.\r\n")
+	return authenticator.mail.Send(to, "Alioth login code", "Your Alioth login code is "+code+"\r\nIt expires in 10 minutes.\r\n")
 }
 
-func (uc *Usecase) wrap(err error) error {
+func (authenticator *Authenticator) wrap(err error) error {
 	if err == nil {
 		return nil
 	}
 	if kerrors.Reason(err) != "" {
 		return err
 	}
-	uc.log.Error(fmt.Sprintf("identity: %v", err))
+	authenticator.log.Error(fmt.Sprintf("identity: %v", err))
 	return merr.Server("request failed")
 }
 

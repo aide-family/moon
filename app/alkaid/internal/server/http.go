@@ -20,5 +20,5 @@ func NewHTTPServer(c *conf.Server, health *service.HealthService, logger *slog.L
 	if c.Http.Timeout != nil {
 		timeout = c.Http.Timeout.AsDuration()
 	}
-	return healthserver.New(c.Http.Addr, c.Http.Network, timeout, health, health, logger)
+	return healthserver.NewServer(c.Http.Addr, c.Http.Network, timeout, health, health, logger)
 }

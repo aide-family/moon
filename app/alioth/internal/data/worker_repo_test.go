@@ -12,7 +12,7 @@ import (
 
 func TestWorkerRepoHeartbeatUpsert(t *testing.T) {
 	ctx := context.Background()
-	store, cleanup, err := NewData(
+	store, cleanup, err := NewDependencies(
 		&conf.Data{Database: &conf.Data_Database{Source: testDSN(t)}},
 		&conf.Auth{EncryptKey: "dev-only-encrypt-key"}, slog.Default(),
 	)

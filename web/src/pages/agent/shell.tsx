@@ -8,7 +8,7 @@ import "@xterm/xterm/css/xterm.css"
 import { issueShellTicket } from "@/api/agent"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
-import { formMessage } from "@/lib/form-error"
+import { formErrorMessage } from "@/lib/form-error"
 
 export function AgentShellPage() {
   const { t } = useTranslation()
@@ -78,7 +78,7 @@ export function AgentShellPage() {
       })
       .catch((err: unknown) => {
         if (active) {
-          setError(formMessage(err, t("agent.shellFailed")))
+          setError(formErrorMessage(err, t("agent.shellFailed")))
         }
       })
 

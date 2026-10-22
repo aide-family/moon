@@ -12,7 +12,7 @@ import type { MemberInviteItem } from "@/api/invitation/types"
 import { useSession } from "@/auth/session"
 import { PageHeader } from "@/components/page-header"
 import { StatusBadge } from "@/components/status-badge"
-import { failureText } from "@/lib/form-error"
+import { failureMessage } from "@/lib/form-error"
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -67,7 +67,7 @@ export function InvitationPage() {
       session.setNamespace(result.member.namespaceUid)
       navigate("/members")
     } catch (err) {
-      toast.error(failureText(err, t("state.failed")))
+      toast.error(failureMessage(err, t("state.failed")))
     } finally {
       setPendingUid("")
     }
@@ -79,7 +79,7 @@ export function InvitationPage() {
       await declineInvitation({ uid: item.uid })
       setTick((value) => value + 1)
     } catch (err) {
-      toast.error(failureText(err, t("state.failed")))
+      toast.error(failureMessage(err, t("state.failed")))
     } finally {
       setPendingUid("")
     }

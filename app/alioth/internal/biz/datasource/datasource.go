@@ -18,7 +18,7 @@ import (
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
-var ProviderSet = wire.NewSet(NewUsecase)
+var ProviderSet = wire.NewSet(NewGateway)
 
 const (
 	// defaultLogLimit 是 Loki 日志查询未指定条数时的上限。
@@ -29,21 +29,22 @@ const (
 	maxDatasourceName = 64
 )
 
-type Usecase struct {
+// Gateway 管理数据源配置，并把查询请求转发给对应驱动。
+type Gateway struct {
 	datasources  repository.DatasourceRepo
 	dictionaries repository.AlertDictionaryRepo
 	events       repository.AlertEventRepo
 	access       access.Checker
 }
 
-func NewUsecase(datasources repository.DatasourceRepo, dictionaries repository.AlertDictionaryRepo, events repository.AlertEventRepo, checker access.Checker) *Usecase {
-	return &Usecase{datasources: datasources, dictionaries: dictionaries, events: events, access: checker}
+func NewGateway(datasources repository.DatasourceRepo, dictionaries repository.AlertDictionaryRepo, events repository.AlertEventRepo, checker access.Checker) *Gateway {
+	return &Gateway{datasources: datasources, dictionaries: dictionaries, events: events, access: checker}
 }
 
 // CreateDatasource 先核对类型和驱动是否成对，再确认数据源级别属于当前租户。
 // 密码和密钥由仓储加密，这里只拒绝空地址和错配的驱动。
-func (uc *Usecase) CreateDatasource(ctx context.Context, in bo.Datasource) (*bo.Datasource, error) {
-	ns, err := uc.access.Allow(ctx, perm.DatasourceWrite)
+func (gateway *Gateway) CreateDatasource(ctx context.Context, in bo.Datasource) (*bo.Datasource, error) {
+	ns, err := gateway.access.Allow(ctx, perm.DatasourceWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +52,7 @@ func (uc *Usecase) CreateDatasource(ctx context.Context, in bo.Datasource) (*bo.
 	if err := validateDatasource(in); err != nil {
 		return nil, err
 	}
-	if err := uc.requireDatasourceLevel(ctx, ns, in.LevelUID); err != nil {
+	if err := gateway.requireDatasourceLevel(ctx, ns, in.LevelUID); err != nil {
 		return nil, err
 	}
 	labels, err := labelsutil.NormalizeObject(in.Labels)
@@ -60,12 +61,12 @@ func (uc *Usecase) CreateDatasource(ctx context.Context, in bo.Datasource) (*bo.
 	}
 	in.Labels = labels
 	in.NamespaceUID = ns
-	item, err := uc.datasources.CreateDatasource(ctx, in)
-	return redact(item), uc.access.Wrap(err)
+	item, err := gateway.datasources.CreateDatasource(ctx, in)
+	return redact(item), gateway.access.Wrap(err)
 }
 
-func (uc *Usecase) UpdateDatasource(ctx context.Context, in bo.Datasource) (*bo.Datasource, error) {
-	ns, err := uc.access.Allow(ctx, perm.DatasourceWrite)
+func (gateway *Gateway) UpdateDatasource(ctx context.Context, in bo.Datasource) (*bo.Datasource, error) {
+	ns, err := gateway.access.Allow(ctx, perm.DatasourceWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +74,7 @@ func (uc *Usecase) UpdateDatasource(ctx context.Context, in bo.Datasource) (*bo.
 	if err := validateDatasource(in); err != nil {
 		return nil, err
 	}
-	if err := uc.requireDatasourceLevel(ctx, ns, in.LevelUID); err != nil {
+	if err := gateway.requireDatasourceLevel(ctx, ns, in.LevelUID); err != nil {
 		return nil, err
 	}
 	labels, err := labelsutil.NormalizeObject(in.Labels)
@@ -82,146 +83,146 @@ func (uc *Usecase) UpdateDatasource(ctx context.Context, in bo.Datasource) (*bo.
 	}
 	in.Labels = labels
 	in.NamespaceUID = ns
-	previous, err := uc.datasources.GetDatasource(ctx, ns, in.UID)
+	previous, err := gateway.datasources.GetDatasource(ctx, ns, in.UID)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, gateway.access.Wrap(err)
 	}
-	item, err := uc.datasources.UpdateDatasource(ctx, in)
+	item, err := gateway.datasources.UpdateDatasource(ctx, in)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, gateway.access.Wrap(err)
 	}
 	// 等级、标签、类型或驱动变了，旧事件要么级别名称过期，要么可能不再被规则匹配。
 	// 先收口成恢复，下一轮评测会按新配置重新产生事件；否则旧事件会一直挂在实时列表，
 	// 用户看到的就是「规则已经满足条件，但没有触发新事件」。
 	if previous.LevelUID != item.LevelUID || previous.Labels != item.Labels ||
 		previous.Type != item.Type || previous.Driver != item.Driver {
-		if err := uc.events.RecoverSource(ctx, ns, nil, []string{item.UID}, nil); err != nil {
-			return nil, uc.access.Wrap(err)
+		if err := gateway.events.RecoverSource(ctx, ns, nil, []string{item.UID}, nil); err != nil {
+			return nil, gateway.access.Wrap(err)
 		}
 	}
 	return redact(item), nil
 }
 
-func (uc *Usecase) UpdateDatasourceStatus(ctx context.Context, uid, status string) (*bo.Datasource, error) {
-	ns, err := uc.access.Allow(ctx, perm.DatasourceWrite)
+func (gateway *Gateway) UpdateDatasourceStatus(ctx context.Context, uid, status string) (*bo.Datasource, error) {
+	ns, err := gateway.access.Allow(ctx, perm.DatasourceWrite)
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.datasources.UpdateDatasourceStatus(ctx, ns, uid, status)
+	item, err := gateway.datasources.UpdateDatasourceStatus(ctx, ns, uid, status)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, gateway.access.Wrap(err)
 	}
 	if status == "DISABLED" {
-		if err := uc.events.RecoverSource(ctx, ns, nil, []string{uid}, nil); err != nil {
-			return nil, uc.access.Wrap(err)
+		if err := gateway.events.RecoverSource(ctx, ns, nil, []string{uid}, nil); err != nil {
+			return nil, gateway.access.Wrap(err)
 		}
 	}
 	return redact(item), nil
 }
 
-func (uc *Usecase) DeleteDatasource(ctx context.Context, uid string) error {
-	ns, err := uc.access.Allow(ctx, perm.DatasourceWrite)
+func (gateway *Gateway) DeleteDatasource(ctx context.Context, uid string) error {
+	ns, err := gateway.access.Allow(ctx, perm.DatasourceWrite)
 	if err != nil {
 		return err
 	}
-	if err := uc.events.RecoverSource(ctx, ns, nil, []string{uid}, nil); err != nil {
-		return uc.access.Wrap(err)
+	if err := gateway.events.RecoverSource(ctx, ns, nil, []string{uid}, nil); err != nil {
+		return gateway.access.Wrap(err)
 	}
-	return uc.access.Wrap(uc.datasources.DeleteDatasource(ctx, ns, uid))
+	return gateway.access.Wrap(gateway.datasources.DeleteDatasource(ctx, ns, uid))
 }
 
-func (uc *Usecase) GetDatasource(ctx context.Context, uid string) (*bo.Datasource, error) {
-	ns, err := uc.access.Allow(ctx, perm.DatasourceRead)
+func (gateway *Gateway) GetDatasource(ctx context.Context, uid string) (*bo.Datasource, error) {
+	ns, err := gateway.access.Allow(ctx, perm.DatasourceRead)
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.datasources.GetDatasource(ctx, ns, uid)
-	return redact(item), uc.access.Wrap(err)
+	item, err := gateway.datasources.GetDatasource(ctx, ns, uid)
+	return redact(item), gateway.access.Wrap(err)
 }
 
-func (uc *Usecase) ListDatasources(ctx context.Context, pageNo, pageSize int32, name, kind string) ([]bo.Datasource, int, int, int, error) {
-	ns, err := uc.access.Allow(ctx, perm.DatasourceRead)
+func (gateway *Gateway) ListDatasources(ctx context.Context, pageNo, pageSize int32, name, kind string) ([]bo.Datasource, int, int, int, error) {
+	ns, err := gateway.access.Allow(ctx, perm.DatasourceRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.datasources.ListDatasources(ctx, ns, p, s, strings.TrimSpace(name), kind)
-	return items, total, p, s, uc.access.Wrap(err)
+	items, total, err := gateway.datasources.ListDatasources(ctx, ns, p, s, strings.TrimSpace(name), kind)
+	return items, total, p, s, gateway.access.Wrap(err)
 }
 
-func (uc *Usecase) SelectDatasources(ctx context.Context, limit int32, lastUID, kind string) ([]bo.SelectItem, error) {
-	ns, err := uc.access.Allow(ctx, perm.DatasourceRead)
+func (gateway *Gateway) SelectDatasources(ctx context.Context, limit int32, lastUID, kind string) ([]bo.SelectItem, error) {
+	ns, err := gateway.access.Allow(ctx, perm.DatasourceRead)
 	if err != nil {
 		return nil, err
 	}
-	items, err := uc.datasources.SelectDatasources(ctx, ns, page.Limit(limit), lastUID, kind)
-	return items, uc.access.Wrap(err)
+	items, err := gateway.datasources.SelectDatasources(ctx, ns, page.Limit(limit), lastUID, kind)
+	return items, gateway.access.Wrap(err)
 }
 
-func (uc *Usecase) Status(ctx context.Context, uid string) (string, error) {
-	item, err := uc.statusSource(ctx, uid)
+func (gateway *Gateway) Status(ctx context.Context, uid string) (string, error) {
+	item, err := gateway.statusSource(ctx, uid)
 	if err != nil {
 		return "", err
 	}
-	status, err := uc.datasources.DatasourceStatus(ctx, *item)
-	return status, uc.access.Wrap(err)
+	status, err := gateway.datasources.DatasourceStatus(ctx, *item)
+	return status, gateway.access.Wrap(err)
 }
 
-func (uc *Usecase) Metrics(ctx context.Context, uid string) ([]bo.DatasourceMetric, error) {
-	item, err := uc.metricSource(ctx, uid)
+func (gateway *Gateway) Metrics(ctx context.Context, uid string) ([]bo.DatasourceMetric, error) {
+	item, err := gateway.metricSource(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	metrics, err := uc.datasources.ListMetrics(ctx, *item)
-	return metrics, uc.access.Wrap(err)
+	metrics, err := gateway.datasources.ListMetrics(ctx, *item)
+	return metrics, gateway.access.Wrap(err)
 }
 
 // Metadata 读取日志数据源的关键信息。指标数据源继续走 Metrics，
 // 这条路径只服务 Loki、VictoriaLogs 和 Elasticsearch。
-func (uc *Usecase) Metadata(ctx context.Context, uid string) (*bo.DatasourceMetadata, error) {
-	item, err := uc.logSource(ctx, uid)
+func (gateway *Gateway) Metadata(ctx context.Context, uid string) (*bo.DatasourceMetadata, error) {
+	item, err := gateway.logSource(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	metadata, err := uc.datasources.DatasourceMetadata(ctx, *item)
-	return metadata, uc.access.Wrap(err)
+	metadata, err := gateway.datasources.DatasourceMetadata(ctx, *item)
+	return metadata, gateway.access.Wrap(err)
 }
 
-func (uc *Usecase) Metric(ctx context.Context, uid, name string) (string, error) {
-	item, err := uc.metricSource(ctx, uid)
+func (gateway *Gateway) Metric(ctx context.Context, uid, name string) (string, error) {
+	item, err := gateway.metricSource(ctx, uid)
 	if err != nil {
 		return "", err
 	}
-	body, err := uc.datasources.MetricDetail(ctx, *item, name)
-	return body, uc.access.Wrap(err)
+	body, err := gateway.datasources.MetricDetail(ctx, *item, name)
+	return body, gateway.access.Wrap(err)
 }
 
-func (uc *Usecase) Query(ctx context.Context, uid, expr string, at int64) (string, error) {
-	item, err := uc.metricSource(ctx, uid)
+func (gateway *Gateway) Query(ctx context.Context, uid, expr string, at int64) (string, error) {
+	item, err := gateway.metricSource(ctx, uid)
 	if err != nil {
 		return "", err
 	}
-	body, err := uc.datasources.InstantQuery(ctx, *item, expr, at)
-	return body, uc.access.Wrap(err)
+	body, err := gateway.datasources.InstantQuery(ctx, *item, expr, at)
+	return body, gateway.access.Wrap(err)
 }
 
-func (uc *Usecase) QueryRange(ctx context.Context, uid, expr string, start, end, step int64) (string, error) {
-	item, err := uc.metricSource(ctx, uid)
+func (gateway *Gateway) QueryRange(ctx context.Context, uid, expr string, start, end, step int64) (string, error) {
+	item, err := gateway.metricSource(ctx, uid)
 	if err != nil {
 		return "", err
 	}
 	if end < start {
 		return "", merr.Invalid("invalid request")
 	}
-	body, err := uc.datasources.RangeQuery(ctx, *item, expr, start, end, step)
-	return body, uc.access.Wrap(err)
+	body, err := gateway.datasources.RangeQuery(ctx, *item, expr, start, end, step)
+	return body, gateway.access.Wrap(err)
 }
 
 // QueryLogs 查询日志数据源。Loki 使用 LogQL，VictoriaLogs 使用 LogsQL，
 // Elasticsearch 使用 Query DSL 或普通检索语句。时间窗口、条数和方向在这里收敛，
 // 避免把任意参数透传给上游。
-func (uc *Usecase) QueryLogs(ctx context.Context, uid, query string, start, end int64, limit int32, direction string) (string, error) {
-	item, err := uc.logSource(ctx, uid)
+func (gateway *Gateway) QueryLogs(ctx context.Context, uid, query string, start, end int64, limit int32, direction string) (string, error) {
+	item, err := gateway.logSource(ctx, uid)
 	if err != nil {
 		return "", err
 	}
@@ -229,29 +230,29 @@ func (uc *Usecase) QueryLogs(ctx context.Context, uid, query string, start, end 
 	if err != nil {
 		return "", err
 	}
-	body, err := uc.datasources.QueryLogs(ctx, *item, query, start, end, size, dir)
-	return body, uc.access.Wrap(err)
+	body, err := gateway.datasources.QueryLogs(ctx, *item, query, start, end, size, dir)
+	return body, gateway.access.Wrap(err)
 }
 
 // Proxy 把查询原样转到数据源。未单独建模的日志和链路查询走这里，不写评测批次或告警事件。
-func (uc *Usecase) Proxy(ctx context.Context, uid, method, path, body string) (string, error) {
-	ns, err := uc.access.Allow(ctx, perm.DatasourceRead)
+func (gateway *Gateway) Proxy(ctx context.Context, uid, method, path, body string) (string, error) {
+	ns, err := gateway.access.Allow(ctx, perm.DatasourceRead)
 	if err != nil {
 		return "", err
 	}
-	item, err := uc.datasources.GetDatasource(ctx, ns, uid)
+	item, err := gateway.datasources.GetDatasource(ctx, ns, uid)
 	if err != nil {
-		return "", uc.access.Wrap(err)
+		return "", gateway.access.Wrap(err)
 	}
 	if item.Status != "ACTIVE" {
 		return "", merr.Invalid("datasource is disabled")
 	}
-	result, err := uc.datasources.ProxyQuery(ctx, *item, method, path, body)
-	return result, uc.access.Wrap(err)
+	result, err := gateway.datasources.ProxyQuery(ctx, *item, method, path, body)
+	return result, gateway.access.Wrap(err)
 }
 
-func (uc *Usecase) metricSource(ctx context.Context, uid string) (*bo.Datasource, error) {
-	item, err := uc.readSource(ctx, uid)
+func (gateway *Gateway) metricSource(ctx context.Context, uid string) (*bo.Datasource, error) {
+	item, err := gateway.readSource(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -262,8 +263,8 @@ func (uc *Usecase) metricSource(ctx context.Context, uid string) (*bo.Datasource
 }
 
 // logSource 取日志数据源。Loki、VictoriaLogs 与 Elasticsearch 都支持日志查询。
-func (uc *Usecase) logSource(ctx context.Context, uid string) (*bo.Datasource, error) {
-	item, err := uc.readSource(ctx, uid)
+func (gateway *Gateway) logSource(ctx context.Context, uid string) (*bo.Datasource, error) {
+	item, err := gateway.readSource(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -279,8 +280,8 @@ func (uc *Usecase) logSource(ctx context.Context, uid string) (*bo.Datasource, e
 }
 
 // statusSource 允许指标数据源、Loki、VictoriaLogs 和 Elasticsearch 日志数据源做连通检查。
-func (uc *Usecase) statusSource(ctx context.Context, uid string) (*bo.Datasource, error) {
-	item, err := uc.readSource(ctx, uid)
+func (gateway *Gateway) statusSource(ctx context.Context, uid string) (*bo.Datasource, error) {
+	item, err := gateway.readSource(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -293,14 +294,14 @@ func (uc *Usecase) statusSource(ctx context.Context, uid string) (*bo.Datasource
 }
 
 // readSource 读取当前租户的数据源并确认已启用。类型和驱动限制由调用方补充。
-func (uc *Usecase) readSource(ctx context.Context, uid string) (*bo.Datasource, error) {
-	ns, err := uc.access.Allow(ctx, perm.DatasourceRead)
+func (gateway *Gateway) readSource(ctx context.Context, uid string) (*bo.Datasource, error) {
+	ns, err := gateway.access.Allow(ctx, perm.DatasourceRead)
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.datasources.GetDatasource(ctx, ns, uid)
+	item, err := gateway.datasources.GetDatasource(ctx, ns, uid)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, gateway.access.Wrap(err)
 	}
 	if item.Status != "ACTIVE" {
 		return nil, merr.Invalid("datasource is disabled")
@@ -308,13 +309,13 @@ func (uc *Usecase) readSource(ctx context.Context, uid string) (*bo.Datasource, 
 	return item, nil
 }
 
-func (uc *Usecase) requireDatasourceLevel(ctx context.Context, namespaceUID, levelUID string) error {
+func (gateway *Gateway) requireDatasourceLevel(ctx context.Context, namespaceUID, levelUID string) error {
 	if levelUID == "" {
 		return nil
 	}
-	level, err := uc.dictionaries.GetAlertDictionary(ctx, namespaceUID, levelUID)
+	level, err := gateway.dictionaries.GetAlertDictionary(ctx, namespaceUID, levelUID)
 	if err != nil {
-		return uc.access.Wrap(err)
+		return gateway.access.Wrap(err)
 	}
 	if level.Type != "DATASOURCE" || level.Status != "ACTIVE" {
 		return merr.Invalid("invalid request")

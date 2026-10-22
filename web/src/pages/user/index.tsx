@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Navigate } from "react-router-dom"
-import { formMessage, readFormError } from "@/lib/form-error"
+import { formErrorMessage, readFormError } from "@/lib/form-error"
 
 import { banUser, listUsers, permitUser, updateUserSystemRole } from "@/api/user"
 import type { UserItem } from "@/api/user/types"
@@ -14,7 +14,7 @@ import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import { collectFieldErrors, hasFieldErrors, requireSelected } from "@/lib/form"
 import { usePagedList } from "@/hooks/use-paged-list"
-import { useListQuery } from "@/lib/list-query"
+import { useListQuery } from "@/hooks/use-list-query"
 import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
 import {
@@ -81,7 +81,7 @@ export function UserPage() {
       setBanning(null)
       reload()
     } catch (err) {
-      setConfirmError(formMessage(err, t("state.failed")))
+      setConfirmError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }

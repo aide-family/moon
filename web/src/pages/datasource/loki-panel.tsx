@@ -6,7 +6,7 @@ import type { DatasourceItem } from "@/api/datasource/types"
 import { queryLogs } from "@/api/logs-query"
 import { FormField } from "@/components/form-field"
 import { MetricGraph } from "@/components/metric-graph"
-import { LogqlEditor } from "@/components/promql-editor"
+import { LogQLEditor } from "@/components/query-expression-editor"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { failureText } from "@/lib/form-error"
+import { failureMessage } from "@/lib/form-error"
 import {
   extractLokiResult,
   formatLokiLabels,
@@ -163,7 +163,7 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
     } catch (err) {
       setBody("")
       setResultTab("logs")
-      setQueryError(failureText(err, t("state.failed")))
+      setQueryError(failureMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -177,7 +177,7 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
       setStatusText(response.status)
     } catch (err) {
       setStatusText("")
-      setQueryError(failureText(err, t("state.failed")))
+      setQueryError(failureMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -193,7 +193,7 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
           required
           error={exprError}
         >
-          <LogqlEditor
+          <LogQLEditor
             value={expr}
             datasourceUid={datasource.uid}
             onChange={(value) => {

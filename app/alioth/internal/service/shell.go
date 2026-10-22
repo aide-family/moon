@@ -12,7 +12,7 @@ import (
 )
 
 func (s *AgentService) IssueShellTicket(ctx context.Context, req *v1.IssueShellTicketRequest) (*v1.IssueShellTicketResponse, error) {
-	ticket, err := s.agents.IssueShellTicket(ctx, req.GetUid())
+	ticket, err := s.registry.IssueShellTicket(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +24,7 @@ var shellUpgrader = websocket.Upgrader{CheckOrigin: func(*http.Request) bool { r
 // ServeShell 把浏览器 WebSocket 接到这台机器的终端。
 func (s *AgentService) ServeShell(w http.ResponseWriter, r *http.Request) {
 	uid := mux.Vars(r)["uid"]
-	link, err := s.agents.OpenShell(context.WithoutCancel(r.Context()), uid, r.URL.Query().Get("ticket"), 80, 24)
+	link, err := s.registry.OpenShell(context.WithoutCancel(r.Context()), uid, r.URL.Query().Get("ticket"), 80, 24)
 	if err != nil {
 		http.Error(w, "shell unavailable", http.StatusUnauthorized)
 		return

@@ -44,7 +44,7 @@ func NewHTTPServer(
 	workers *service.WorkerService,
 	agents *service.AgentService,
 	sshCommands *service.SSHCommandService,
-	uc *auth.Usecase,
+	authenticator *auth.Authenticator,
 	logger *slog.Logger,
 ) (*khttp.Server, error) {
 	if c == nil || c.Http == nil || c.Http.Addr == "" {
@@ -52,7 +52,7 @@ func NewHTTPServer(
 	}
 	opts := []khttp.ServerOption{
 		khttp.Address(c.Http.Addr),
-		khttp.Middleware(recovery.Recovery(recovery.WithLogger(logger)), authenticate(uc), protoValidator()),
+		khttp.Middleware(recovery.Recovery(recovery.WithLogger(logger)), authenticate(authenticator), protoValidator()),
 	}
 	if c.Http.Network != "" {
 		opts = append(opts, khttp.Network(c.Http.Network))

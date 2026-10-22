@@ -10,15 +10,15 @@ import (
 
 type AlertPageService struct {
 	v1.UnimplementedAlertPageServiceServer
-	pages *alertpage.Usecase
+	layout *alertpage.Layout
 }
 
-func NewAlertPageService(uc *alertpage.Usecase) *AlertPageService {
-	return &AlertPageService{pages: uc}
+func NewAlertPageService(layout *alertpage.Layout) *AlertPageService {
+	return &AlertPageService{layout: layout}
 }
 
 func (s *AlertPageService) CreateAlertPage(ctx context.Context, req *v1.CreateAlertPageRequest) (*v1.CreateAlertPageResponse, error) {
-	item, err := s.pages.Create(ctx, bo.AlertPage{
+	item, err := s.layout.Create(ctx, bo.AlertPage{
 		Name: req.GetName(), Labels: req.GetLabels(), Public: req.GetPublic(), Remark: req.GetRemark(),
 	})
 	if err != nil {
@@ -28,7 +28,7 @@ func (s *AlertPageService) CreateAlertPage(ctx context.Context, req *v1.CreateAl
 }
 
 func (s *AlertPageService) UpdateAlertPage(ctx context.Context, req *v1.UpdateAlertPageRequest) (*v1.UpdateAlertPageResponse, error) {
-	item, err := s.pages.Update(ctx, bo.AlertPage{
+	item, err := s.layout.Update(ctx, bo.AlertPage{
 		UID: req.GetUid(), Name: req.GetName(), Labels: req.GetLabels(), Public: req.GetPublic(), Remark: req.GetRemark(),
 	})
 	if err != nil {
@@ -38,14 +38,14 @@ func (s *AlertPageService) UpdateAlertPage(ctx context.Context, req *v1.UpdateAl
 }
 
 func (s *AlertPageService) DeleteAlertPage(ctx context.Context, req *v1.DeleteAlertPageRequest) (*v1.DeleteAlertPageResponse, error) {
-	if err := s.pages.Delete(ctx, req.GetUid()); err != nil {
+	if err := s.layout.Delete(ctx, req.GetUid()); err != nil {
 		return nil, err
 	}
 	return &v1.DeleteAlertPageResponse{}, nil
 }
 
 func (s *AlertPageService) GetAlertPage(ctx context.Context, req *v1.GetAlertPageRequest) (*v1.GetAlertPageResponse, error) {
-	item, err := s.pages.Get(ctx, req.GetUid())
+	item, err := s.layout.Get(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (s *AlertPageService) GetAlertPage(ctx context.Context, req *v1.GetAlertPag
 }
 
 func (s *AlertPageService) ListAlertPages(ctx context.Context, req *v1.ListAlertPagesRequest) (*v1.ListAlertPagesResponse, error) {
-	items, total, page, pageSize, err := s.pages.List(ctx, req.GetPage(), req.GetPageSize(), req.GetName(), req.GetScope())
+	items, total, page, pageSize, err := s.layout.List(ctx, req.GetPage(), req.GetPageSize(), req.GetName(), req.GetScope())
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (s *AlertPageService) ListAlertPages(ctx context.Context, req *v1.ListAlert
 }
 
 func (s *AlertPageService) ListMyRealtimeTabs(ctx context.Context, _ *v1.ListMyRealtimeTabsRequest) (*v1.ListMyRealtimeTabsResponse, error) {
-	tabs, err := s.pages.ListMyTabs(ctx)
+	tabs, err := s.layout.ListMyTabs(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (s *AlertPageService) ListMyRealtimeTabs(ctx context.Context, _ *v1.ListMyR
 }
 
 func (s *AlertPageService) SetMyRealtimeTabs(ctx context.Context, req *v1.SetMyRealtimeTabsRequest) (*v1.SetMyRealtimeTabsResponse, error) {
-	tabs, err := s.pages.SetMyTabs(ctx, req.GetAlertPageUids())
+	tabs, err := s.layout.SetMyTabs(ctx, req.GetAlertPageUids())
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func realtimeTabs(items []bo.RealtimeAlertTab) []*v1.RealtimeAlertTab {
 }
 
 func (s *AlertPageService) GetMyAlertColumns(ctx context.Context, req *v1.GetMyAlertColumnsRequest) (*v1.GetMyAlertColumnsResponse, error) {
-	columns, err := s.pages.GetColumns(ctx, req.GetScope())
+	columns, err := s.layout.GetColumns(ctx, req.GetScope())
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (s *AlertPageService) GetMyAlertColumns(ctx context.Context, req *v1.GetMyA
 }
 
 func (s *AlertPageService) SaveMyAlertColumns(ctx context.Context, req *v1.SaveMyAlertColumnsRequest) (*v1.SaveMyAlertColumnsResponse, error) {
-	columns, err := s.pages.SetColumns(ctx, req.GetScope(), alertColumnInputs(req.GetColumns()))
+	columns, err := s.layout.SetColumns(ctx, req.GetScope(), alertColumnInputs(req.GetColumns()))
 	if err != nil {
 		return nil, err
 	}

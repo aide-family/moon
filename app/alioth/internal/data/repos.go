@@ -16,8 +16,8 @@ type repoBase struct {
 	history *historyStore
 }
 
-func newBase(d *Data, logger *slog.Logger) *repoBase {
-	return &repoBase{client: d.client, db: d.db, box: d.box, log: logger, history: d.history}
+func newBase(deps *Dependencies, logger *slog.Logger) *repoBase {
+	return &repoBase{client: deps.client, db: deps.db, box: deps.box, log: logger, history: deps.history}
 }
 
 type userRepo struct{ *repoBase }
@@ -37,70 +37,70 @@ type notificationRepo struct{ *repoBase }
 type agentRepo struct{ *repoBase }
 type sshCommandRepo struct{ *repoBase }
 
-func NewUserRepo(d *Data, logger *slog.Logger) repository.UserRepo {
-	return &userRepo{newBase(d, logger)}
+func NewUserRepo(deps *Dependencies, logger *slog.Logger) repository.UserRepo {
+	return &userRepo{newBase(deps, logger)}
 }
 
-func NewCaptchaRepo(d *Data, logger *slog.Logger) repository.CaptchaRepo {
-	return &captchaRepo{newBase(d, logger)}
+func NewCaptchaRepo(deps *Dependencies, logger *slog.Logger) repository.CaptchaRepo {
+	return &captchaRepo{newBase(deps, logger)}
 }
 
-func NewEmailCodeRepo(d *Data, logger *slog.Logger) repository.EmailCodeRepo {
-	return &emailCodeRepo{newBase(d, logger)}
+func NewEmailCodeRepo(deps *Dependencies, logger *slog.Logger) repository.EmailCodeRepo {
+	return &emailCodeRepo{newBase(deps, logger)}
 }
 
-func NewOAuthRepo(d *Data, logger *slog.Logger) repository.OAuthRepo {
-	return &oauthRepo{newBase(d, logger)}
+func NewOAuthRepo(deps *Dependencies, logger *slog.Logger) repository.OAuthRepo {
+	return &oauthRepo{newBase(deps, logger)}
 }
 
-func NewNamespaceRepo(d *Data, logger *slog.Logger) repository.NamespaceRepo {
-	return &namespaceRepo{newBase(d, logger)}
+func NewNamespaceRepo(deps *Dependencies, logger *slog.Logger) repository.NamespaceRepo {
+	return &namespaceRepo{newBase(deps, logger)}
 }
 
-func NewMemberRepo(d *Data, logger *slog.Logger) repository.MemberRepo {
-	return &memberRepo{newBase(d, logger)}
+func NewMemberRepo(deps *Dependencies, logger *slog.Logger) repository.MemberRepo {
+	return &memberRepo{newBase(deps, logger)}
 }
 
-func NewInviteRepo(d *Data, logger *slog.Logger) repository.InviteRepo {
-	return &inviteRepo{newBase(d, logger)}
+func NewInviteRepo(deps *Dependencies, logger *slog.Logger) repository.InviteRepo {
+	return &inviteRepo{newBase(deps, logger)}
 }
 
-func NewMessageRepo(d *Data, logger *slog.Logger) repository.MessageRepo {
-	return &messageRepo{newBase(d, logger)}
+func NewMessageRepo(deps *Dependencies, logger *slog.Logger) repository.MessageRepo {
+	return &messageRepo{newBase(deps, logger)}
 }
 
-func NewRoleRepo(d *Data, logger *slog.Logger) repository.RoleRepo {
-	return &roleRepo{newBase(d, logger)}
+func NewRoleRepo(deps *Dependencies, logger *slog.Logger) repository.RoleRepo {
+	return &roleRepo{newBase(deps, logger)}
 }
 
-func NewDatasourceRepo(d *Data, logger *slog.Logger) repository.DatasourceRepo {
-	return &datasourceRepo{newBase(d, logger)}
+func NewDatasourceRepo(deps *Dependencies, logger *slog.Logger) repository.DatasourceRepo {
+	return &datasourceRepo{newBase(deps, logger)}
 }
 
-func NewAlertDictionaryRepo(d *Data, logger *slog.Logger) repository.AlertDictionaryRepo {
-	return &alertDictionaryRepo{newBase(d, logger)}
+func NewAlertDictionaryRepo(deps *Dependencies, logger *slog.Logger) repository.AlertDictionaryRepo {
+	return &alertDictionaryRepo{newBase(deps, logger)}
 }
 
-func NewAlertRuleRepo(d *Data, logger *slog.Logger) repository.AlertRuleRepo {
-	return &alertRuleRepo{newBase(d, logger)}
+func NewAlertRuleRepo(deps *Dependencies, logger *slog.Logger) repository.AlertRuleRepo {
+	return &alertRuleRepo{newBase(deps, logger)}
 }
 
-func NewAlertEventRepo(d *Data, logger *slog.Logger) repository.AlertEventRepo {
-	return &alertEventRepo{newBase(d, logger)}
+func NewAlertEventRepo(deps *Dependencies, logger *slog.Logger) repository.AlertEventRepo {
+	return &alertEventRepo{newBase(deps, logger)}
 }
 
-func NewAlertPageRepo(d *Data, logger *slog.Logger) repository.AlertPageRepo {
-	return &alertPageRepo{newBase(d, logger)}
+func NewAlertPageRepo(deps *Dependencies, logger *slog.Logger) repository.AlertPageRepo {
+	return &alertPageRepo{newBase(deps, logger)}
 }
 
-func NewNotificationRepo(d *Data, logger *slog.Logger) repository.NotificationRepo {
-	return &notificationRepo{newBase(d, logger)}
+func NewNotificationRepo(deps *Dependencies, logger *slog.Logger) repository.NotificationRepo {
+	return &notificationRepo{newBase(deps, logger)}
 }
 
-func NewAgentRepo(d *Data, logger *slog.Logger) repository.AgentRepo {
-	return &agentRepo{newBase(d, logger)}
+func NewAgentRepo(deps *Dependencies, logger *slog.Logger) repository.AgentRepo {
+	return &agentRepo{newBase(deps, logger)}
 }
 
-func NewSSHCommandRepo(d *Data, logger *slog.Logger) repository.SSHCommandRepo {
-	return &sshCommandRepo{newBase(d, logger)}
+func NewSSHCommandRepo(deps *Dependencies, logger *slog.Logger) repository.SSHCommandRepo {
+	return &sshCommandRepo{newBase(deps, logger)}
 }

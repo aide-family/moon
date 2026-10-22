@@ -19,6 +19,7 @@ description: >-
 ## 结构
 
 - 页面放在 `web/src/pages/<领域>/`。跨页组件放在 `web/src/components/`。
+- 页面组件写 `<业务实体>Page`（`MemberPage`、`WorkerStatusPage`），领域名本身以 Page 结尾时写 `<领域>ManagePage`；页面私有组件放该页目录，文件用 `<部件>.tsx`，导出加领域前缀（`AlertColumnDialog`）。
 - 单页过长时，把只供本页使用的子组件放到该页目录下的 `components/`。
 - Props 用 `interface`。类型用 `import type`。
 - 列表、筛选和分页的字段与 API 类型一致，并把查询条件放进 URL。

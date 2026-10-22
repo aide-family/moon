@@ -13,69 +13,69 @@ import (
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
-var ProviderSet = wire.NewSet(NewUsecase)
+var ProviderSet = wire.NewSet(NewInbox)
 
-// Usecase 读取当前用户的系统消息。消息是平台级的，不要求 X-Namespace。
-type Usecase struct {
+// Inbox 读取当前用户的系统消息。消息是平台级的，不要求 X-Namespace。
+type Inbox struct {
 	messages repository.MessageRepo
 	users    repository.UserRepo
 	access   access.Checker
 }
 
-func NewUsecase(messages repository.MessageRepo, users repository.UserRepo, checker access.Checker) *Usecase {
-	return &Usecase{messages: messages, users: users, access: checker}
+func NewInbox(messages repository.MessageRepo, users repository.UserRepo, checker access.Checker) *Inbox {
+	return &Inbox{messages: messages, users: users, access: checker}
 }
 
-func (uc *Usecase) List(ctx context.Context, pageNo, pageSize int32, unreadOnly bool) ([]bo.SystemMessage, int, int, int, int, error) {
-	uid, email, err := uc.recipient(ctx)
+func (inbox *Inbox) List(ctx context.Context, pageNo, pageSize int32, unreadOnly bool) ([]bo.SystemMessage, int, int, int, int, error) {
+	uid, email, err := inbox.recipient(ctx)
 	if err != nil {
 		return nil, 0, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.messages.ListMessages(ctx, uid, email, p, s, unreadOnly)
+	items, total, err := inbox.messages.ListMessages(ctx, uid, email, p, s, unreadOnly)
 	if err != nil {
-		return nil, 0, 0, 0, 0, uc.access.Wrap(err)
+		return nil, 0, 0, 0, 0, inbox.access.Wrap(err)
 	}
-	unread, err := uc.messages.UnreadCount(ctx, uid, email)
+	unread, err := inbox.messages.UnreadCount(ctx, uid, email)
 	if err != nil {
-		return nil, 0, 0, 0, 0, uc.access.Wrap(err)
+		return nil, 0, 0, 0, 0, inbox.access.Wrap(err)
 	}
 	return items, total, p, s, unread, nil
 }
 
-func (uc *Usecase) UnreadCount(ctx context.Context) (int, error) {
-	uid, email, err := uc.recipient(ctx)
+func (inbox *Inbox) UnreadCount(ctx context.Context) (int, error) {
+	uid, email, err := inbox.recipient(ctx)
 	if err != nil {
 		return 0, err
 	}
-	count, err := uc.messages.UnreadCount(ctx, uid, email)
-	return count, uc.access.Wrap(err)
+	count, err := inbox.messages.UnreadCount(ctx, uid, email)
+	return count, inbox.access.Wrap(err)
 }
 
-func (uc *Usecase) MarkRead(ctx context.Context, uid string) error {
-	userUID, email, err := uc.recipient(ctx)
+func (inbox *Inbox) MarkRead(ctx context.Context, uid string) error {
+	userUID, email, err := inbox.recipient(ctx)
 	if err != nil {
 		return err
 	}
-	return uc.access.Wrap(uc.messages.MarkRead(ctx, userUID, email, uid))
+	return inbox.access.Wrap(inbox.messages.MarkRead(ctx, userUID, email, uid))
 }
 
-func (uc *Usecase) MarkAllRead(ctx context.Context) error {
-	userUID, email, err := uc.recipient(ctx)
+func (inbox *Inbox) MarkAllRead(ctx context.Context) error {
+	userUID, email, err := inbox.recipient(ctx)
 	if err != nil {
 		return err
 	}
-	return uc.access.Wrap(uc.messages.MarkAllRead(ctx, userUID, email))
+	return inbox.access.Wrap(inbox.messages.MarkAllRead(ctx, userUID, email))
 }
 
-func (uc *Usecase) recipient(ctx context.Context) (string, string, error) {
+func (inbox *Inbox) recipient(ctx context.Context) (string, string, error) {
 	uid, ok := actor.UserID(ctx)
 	if !ok {
 		return "", "", merr.Unauthenticated("missing token")
 	}
-	account, err := uc.users.UserByUID(ctx, uid)
+	account, err := inbox.users.UserByUID(ctx, uid)
 	if err != nil {
-		return "", "", uc.access.Wrap(err)
+		return "", "", inbox.access.Wrap(err)
 	}
 	return uid, account.Email, nil
 }

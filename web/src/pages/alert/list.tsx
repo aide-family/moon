@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage } from "@/lib/form-error"
+import { formErrorMessage } from "@/lib/form-error"
 
 import { listAlertDictionaries } from "@/api/alert-dictionary"
 import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
@@ -45,8 +45,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { usePagedList } from "@/hooks/use-paged-list"
-import { useListQuery } from "@/lib/list-query"
-import { EventChartDialog } from "@/pages/alert/event-chart"
+import { useListQuery } from "@/hooks/use-list-query"
+import { AlertEventChartDialog } from "@/pages/alert/event-chart"
 import { AlertEventDetail } from "@/pages/alert/event-detail"
 import {
   columnTitle,
@@ -55,7 +55,7 @@ import {
   parseEventLabels,
 } from "@/pages/alert/columns"
 import { formatDuration, formatTime } from "@/pages/alert/format"
-import { SuppressDialog } from "@/pages/alert/suppress-dialog"
+import { AlertEventSuppressDialog } from "@/pages/alert/suppress-dialog"
 import type { SuppressInput } from "@/pages/alert/suppress-dialog"
 
 interface AlertEventListProps {
@@ -243,7 +243,7 @@ export function AlertEventList({
       }
       reload()
     } catch (err) {
-      setActionError(formMessage(err, t("state.failed")))
+      setActionError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -264,7 +264,7 @@ export function AlertEventList({
       setConfirm(null)
       reload()
     } catch (err) {
-      setConfirmError(formMessage(err, t("state.failed")))
+      setConfirmError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -285,7 +285,7 @@ export function AlertEventList({
       setSuppressEvent(null)
       reload()
     } catch (err) {
-      setSuppressError(formMessage(err, t("state.failed")))
+      setSuppressError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -530,7 +530,7 @@ export function AlertEventList({
           </Table>
         ) : null}
       </ListFrame>
-      <EventChartDialog
+      <AlertEventChartDialog
         event={chartEvent}
         open={chartEvent !== null}
         onOpenChange={(value) => {
@@ -553,7 +553,7 @@ export function AlertEventList({
         }}
       />
       {suppressEvent ? (
-        <SuppressDialog
+        <AlertEventSuppressDialog
           event={suppressEvent}
           open
           pending={pending}

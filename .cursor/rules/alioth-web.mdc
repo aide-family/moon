@@ -7,6 +7,7 @@ alwaysApply: false
 # Alioth Web
 
 - 保持一个 Vite 应用。组件使用 shadcn/ui，不引入 `antd`。布局和间距先读 [alioth-web-design](../skills/alioth-web-design/SKILL.md)。
+- 命名：文件 kebab-case，组件 PascalCase 且与文件同名，页面 `<领域>Page`，hook 写成 `use-xxx` 并放 `hooks/`，`lib` 只放纯函数；不用 `utils`、`helpers`、`common` 这类占位名。完整规则见 [conventions Web/命名](../../docs/iterations/conventions.md)，`make lint` 会检查。
 - 页面只调用 `web/src/api` 导出的函数，不直接使用 axios。
 - 请求带 `Authorization: Bearer <token>` 和 `X-Namespace`。不请求 8001、8002、8022、9022。
 - 菜单来自当前用户权限。业务文案走 i18n，不在 JSX 里写死。

@@ -15,9 +15,10 @@ description: >-
 2. 请求 base URL 是 `/v1`。OpenAPI 路径已含 `/v1` 时，函数里的路径去掉这个前缀。
 3. 按资源放到 `web/src/api/<资源>/`。每个目录有 `index.ts` 和 `types.ts`。
 4. 在 `index.ts` 用统一的 `http.get`、`http.post`、`http.put`、`http.patch`、`http.delete` 导出函数。路径参数用模板字符串，query 和 body 作为后续参数。每个函数上方写一行 JSDoc，包含方法和路径。
-5. `types.ts` 用 `interface` 描述对象，枚举与后端一致时导出枚举或字符串联合。命名沿用 `XxxItem`、`ListXxxParams`、`CreateXxxParams`、`UpdateXxxParams`。
-6. 在 `web/src/api/index.ts` 导出新模块。
-7. 搜索 `web/src/pages` 和 `web/src/components` 里对已变更函数、类型、枚举的引用，一并修改。被删除或重命名的符号不能留下旧引用。
+5. `types.ts` 用 `interface` 描述对象，枚举与后端一致时导出枚举或字符串联合。类型命名：列表项 `XxxItem`，列表结果 `ListXxxResult`，请求 `ListXxxParams` / `Create/UpdateXxxParams`，单对象响应直接用业务对象名（`TokenPair`、`SelfInfo`），创建与更新共用写载荷用 `Save<资源>Params`，嵌套写载荷用 `<资源><子对象>Input`，枚举用 `<资源><概念>`（`AlertEventStatus`）。
+6. 函数名等于 RPC 名的 lowerCamel（`ListAlertEvents` → `listAlertEvents`），不要另起动词。
+7. 在 `web/src/api/index.ts` 导出新模块。
+8. 搜索 `web/src/pages` 和 `web/src/components` 里对已变更函数、类型、枚举的引用，一并修改。被删除或重命名的符号不能留下旧引用。
 
 不改 `web/src/api` 的 HTTP 封装签名，除非这一步就是在建立该封装。不在页面文件里补请求函数。
 

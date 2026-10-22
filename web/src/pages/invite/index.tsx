@@ -6,7 +6,7 @@ import { acceptInvitation, declineInvitation, getInvitation } from "@/api/invita
 import type { MemberInviteItem } from "@/api/invitation/types"
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
-import { failureText } from "@/lib/form-error"
+import { failureMessage } from "@/lib/form-error"
 import { AuthShell } from "@/pages/auth-shell"
 
 export function InvitePage() {
@@ -30,7 +30,7 @@ export function InvitePage() {
       })
       .catch((err) => {
         if (active) {
-          setError(failureText(err, t("state.failed")))
+          setError(failureMessage(err, t("state.failed")))
         }
       })
       .finally(() => {
@@ -60,7 +60,7 @@ export function InvitePage() {
       localStorage.setItem("namespace", result.member.namespaceUid)
       navigate("/members")
     } catch (err) {
-      setError(failureText(err, t("state.failed")))
+      setError(failureMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -73,7 +73,7 @@ export function InvitePage() {
       await declineInvitation({ token })
       setInvitation((current) => (current ? { ...current, status: "DECLINED" } : current))
     } catch (err) {
-      setError(failureText(err, t("state.failed")))
+      setError(failureMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }

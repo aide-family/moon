@@ -6,7 +6,7 @@ import loki from "@/assets/brands/loki.svg"
 import prometheus from "@/assets/brands/prometheus.svg"
 import victoriametrics from "@/assets/brands/victoriametrics.svg"
 import vlogs from "@/assets/brands/vlogs.svg"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/class-names"
 
 const brandLogos: Record<string, string> = {
   METRICS_PROMETHEUS: prometheus,

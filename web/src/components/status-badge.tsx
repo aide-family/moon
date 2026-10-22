@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/class-names"
 import { enumLabel } from "@/lib/enum-label"
 
 export type BadgeTone =

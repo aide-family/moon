@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { failureText } from "@/lib/form-error"
+import { failureMessage } from "@/lib/form-error"
 
 interface TemplatePreviewDialogProps {
   open: boolean
@@ -48,7 +48,7 @@ export function TemplatePreviewDialog({ open, onClose, type, app, subject, body 
         }
       } catch (err) {
         if (active) {
-          setError(failureText(err, t("state.failed")))
+          setError(failureMessage(err, t("state.failed")))
         }
       } finally {
         if (active) {

@@ -10,22 +10,22 @@ import (
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
-var ProviderSet = wire.NewSet(NewData, NewReadiness)
+var ProviderSet = wire.NewSet(NewConnectionSettings, NewReadinessChecker)
 
-// NewReadiness 返回 nil：alkaid 不持有可探测的本地依赖，
+// NewReadinessChecker 返回 nil：alkaid 不持有可探测的本地依赖，
 // 与 alioth 的连接状态由 Connector 自己的重连循环负责。
-func NewReadiness() healthcheck.Checker {
+func NewReadinessChecker() healthcheck.Checker {
 	return nil
 }
 
-// Data 保存出站连接配置。alkaid 不连业务库。
-type Data struct {
+// ConnectionSettings 保存摇光连接玉衡的参数。alkaid 不连业务库。
+type ConnectionSettings struct {
 	AliothGRPC string
 	AgentToken string
 	Heartbeat  time.Duration
 }
 
-func NewData(c *conf.Alioth) (*Data, func(), error) {
+func NewConnectionSettings(c *conf.Alioth) (*ConnectionSettings, func(), error) {
 	if c == nil || c.Grpc == nil || c.Grpc.Addr == "" {
 		return nil, nil, merr.Server("alioth grpc address is empty")
 	}
@@ -33,7 +33,7 @@ func NewData(c *conf.Alioth) (*Data, func(), error) {
 	if c.HeartbeatInterval != nil {
 		heartbeat = c.HeartbeatInterval.AsDuration()
 	}
-	return &Data{
+	return &ConnectionSettings{
 		AliothGRPC: c.Grpc.Addr,
 		AgentToken: c.AgentToken,
 		Heartbeat:  heartbeat,

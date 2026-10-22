@@ -21,22 +21,22 @@ import (
 
 const maxOutputBytes = 64 * 1024
 
-var ProviderSet = wire.NewSet(NewUsecase)
+var ProviderSet = wire.NewSet(NewExecutor)
 
-// Usecase 负责 SSH 命令审核与执行。
-type Usecase struct {
+// Executor 负责 SSH 命令审核与执行。
+type Executor struct {
 	commands repository.SSHCommandRepo
 	agents   repository.AgentRepo
 	hub      *agenthub.Hub
 	access   access.Checker
 }
 
-func NewUsecase(commands repository.SSHCommandRepo, agents repository.AgentRepo, hub *agenthub.Hub, checker access.Checker) *Usecase {
-	return &Usecase{commands: commands, agents: agents, hub: hub, access: checker}
+func NewExecutor(commands repository.SSHCommandRepo, agents repository.AgentRepo, hub *agenthub.Hub, checker access.Checker) *Executor {
+	return &Executor{commands: commands, agents: agents, hub: hub, access: checker}
 }
 
-func (uc *Usecase) Create(ctx context.Context, in bo.SSHCommand) (*bo.SSHCommand, error) {
-	ns, err := uc.access.Allow(ctx, "ssh:write")
+func (executor *Executor) Create(ctx context.Context, in bo.SSHCommand) (*bo.SSHCommand, error) {
+	ns, err := executor.access.Allow(ctx, "ssh:write")
 	if err != nil {
 		return nil, err
 	}
@@ -46,12 +46,12 @@ func (uc *Usecase) Create(ctx context.Context, in bo.SSHCommand) (*bo.SSHCommand
 	if in.Name == "" || in.Command == "" {
 		return nil, merr.Client("name and command are required")
 	}
-	item, err := uc.commands.CreateCommand(ctx, in, operatorUID(ctx))
-	return item, uc.access.Wrap(err)
+	item, err := executor.commands.CreateCommand(ctx, in, operatorUID(ctx))
+	return item, executor.access.Wrap(err)
 }
 
-func (uc *Usecase) Update(ctx context.Context, in bo.SSHCommand) (*bo.SSHCommand, error) {
-	ns, err := uc.access.Allow(ctx, "ssh:write")
+func (executor *Executor) Update(ctx context.Context, in bo.SSHCommand) (*bo.SSHCommand, error) {
+	ns, err := executor.access.Allow(ctx, "ssh:write")
 	if err != nil {
 		return nil, err
 	}
@@ -61,91 +61,91 @@ func (uc *Usecase) Update(ctx context.Context, in bo.SSHCommand) (*bo.SSHCommand
 	if in.Name == "" || in.Command == "" {
 		return nil, merr.Client("name and command are required")
 	}
-	item, err := uc.commands.UpdateCommandPending(ctx, in, operatorUID(ctx))
-	return item, uc.access.Wrap(err)
+	item, err := executor.commands.UpdateCommandPending(ctx, in, operatorUID(ctx))
+	return item, executor.access.Wrap(err)
 }
 
-func (uc *Usecase) Approve(ctx context.Context, uid string) (*bo.SSHCommand, error) {
-	ns, err := uc.access.Allow(ctx, "ssh:write")
+func (executor *Executor) Approve(ctx context.Context, uid string) (*bo.SSHCommand, error) {
+	ns, err := executor.access.Allow(ctx, "ssh:write")
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.commands.ApproveCommand(ctx, ns, uid, operatorUID(ctx))
-	return item, uc.access.Wrap(err)
+	item, err := executor.commands.ApproveCommand(ctx, ns, uid, operatorUID(ctx))
+	return item, executor.access.Wrap(err)
 }
 
-func (uc *Usecase) Reject(ctx context.Context, uid string) (*bo.SSHCommand, error) {
-	ns, err := uc.access.Allow(ctx, "ssh:write")
+func (executor *Executor) Reject(ctx context.Context, uid string) (*bo.SSHCommand, error) {
+	ns, err := executor.access.Allow(ctx, "ssh:write")
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.commands.RejectCommand(ctx, ns, uid, operatorUID(ctx))
-	return item, uc.access.Wrap(err)
+	item, err := executor.commands.RejectCommand(ctx, ns, uid, operatorUID(ctx))
+	return item, executor.access.Wrap(err)
 }
 
-func (uc *Usecase) Delete(ctx context.Context, uid string) error {
-	ns, err := uc.access.Allow(ctx, "ssh:write")
+func (executor *Executor) Delete(ctx context.Context, uid string) error {
+	ns, err := executor.access.Allow(ctx, "ssh:write")
 	if err != nil {
 		return err
 	}
-	return uc.access.Wrap(uc.commands.DeleteCommand(ctx, ns, uid))
+	return executor.access.Wrap(executor.commands.DeleteCommand(ctx, ns, uid))
 }
 
-func (uc *Usecase) Get(ctx context.Context, uid string) (*bo.SSHCommand, error) {
-	ns, err := uc.access.Allow(ctx, "ssh:read")
+func (executor *Executor) Get(ctx context.Context, uid string) (*bo.SSHCommand, error) {
+	ns, err := executor.access.Allow(ctx, "ssh:read")
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.commands.GetCommand(ctx, ns, uid)
-	return item, uc.access.Wrap(err)
+	item, err := executor.commands.GetCommand(ctx, ns, uid)
+	return item, executor.access.Wrap(err)
 }
 
-func (uc *Usecase) List(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.SSHCommand, int, int, int, error) {
-	ns, err := uc.access.Allow(ctx, "ssh:read")
+func (executor *Executor) List(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.SSHCommand, int, int, int, error) {
+	ns, err := executor.access.Allow(ctx, "ssh:read")
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.commands.ListCommands(ctx, ns, p, s, strings.TrimSpace(name))
-	return items, total, p, s, uc.access.Wrap(err)
+	items, total, err := executor.commands.ListCommands(ctx, ns, p, s, strings.TrimSpace(name))
+	return items, total, p, s, executor.access.Wrap(err)
 }
 
-func (uc *Usecase) ListAudits(ctx context.Context, commandUID, agentUID string, pageNo, pageSize int32) ([]bo.SSHCommandAudit, int, int, int, error) {
-	ns, err := uc.access.Allow(ctx, "ssh:read")
+func (executor *Executor) ListAudits(ctx context.Context, commandUID, agentUID string, pageNo, pageSize int32) ([]bo.SSHCommandAudit, int, int, int, error) {
+	ns, err := executor.access.Allow(ctx, "ssh:read")
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.commands.ListAudits(ctx, ns, commandUID, agentUID, p, s)
-	return items, total, p, s, uc.access.Wrap(err)
+	items, total, err := executor.commands.ListAudits(ctx, ns, commandUID, agentUID, p, s)
+	return items, total, p, s, executor.access.Wrap(err)
 }
 
-func (uc *Usecase) Execute(ctx context.Context, commandUID, agentUID string) (*bo.SSHCommandAudit, error) {
-	ns, err := uc.access.Allow(ctx, "ssh:exec")
+func (executor *Executor) Execute(ctx context.Context, commandUID, agentUID string) (*bo.SSHCommandAudit, error) {
+	ns, err := executor.access.Allow(ctx, "ssh:exec")
 	if err != nil {
 		return nil, err
 	}
-	cmd, err := uc.commands.GetCommand(ctx, ns, commandUID)
+	cmd, err := executor.commands.GetCommand(ctx, ns, commandUID)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, executor.access.Wrap(err)
 	}
 	if cmd.ReviewStatus != "APPROVED" {
 		return nil, merr.Forbidden("command is not approved")
 	}
-	machine, err := uc.agents.GetAgent(ctx, ns, agentUID)
+	machine, err := executor.agents.GetAgent(ctx, ns, agentUID)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, executor.access.Wrap(err)
 	}
 	if machine.Status != "ACTIVE" {
-		uc.recordExec(ctx, ns, cmd, agentUID, "FAILED", "agent is revoked", 0, "", false)
+		executor.recordExec(ctx, ns, cmd, agentUID, "FAILED", "agent is revoked", 0, "", false)
 		return nil, merr.Forbidden("agent is revoked")
 	}
-	if !uc.hub.Online(agentUID) {
-		uc.recordExec(ctx, ns, cmd, agentUID, "FAILED", "agent is offline", 0, "", false)
+	if !executor.hub.Online(agentUID) {
+		executor.recordExec(ctx, ns, cmd, agentUID, "FAILED", "agent is offline", 0, "", false)
 		return nil, merr.Invalid("agent is offline")
 	}
 	requestUID := id.New()
-	resultCh, err := uc.hub.SendExec(agentUID, &v1.AgentFrame{
+	resultCh, err := executor.hub.SendExec(agentUID, &v1.AgentFrame{
 		ExecRequest: &v1.AgentExecRequest{
 			RequestUid: requestUID,
 			Command:    cmd.Command,
@@ -154,7 +154,7 @@ func (uc *Usecase) Execute(ctx context.Context, commandUID, agentUID string) (*b
 		},
 	})
 	if err != nil {
-		uc.recordExec(ctx, ns, cmd, agentUID, "FAILED", err.Error(), 0, "", false)
+		executor.recordExec(ctx, ns, cmd, agentUID, "FAILED", err.Error(), 0, "", false)
 		return nil, err
 	}
 	timer := time.NewTimer(60 * time.Second)
@@ -162,17 +162,17 @@ func (uc *Usecase) Execute(ctx context.Context, commandUID, agentUID string) (*b
 	var result *v1.AgentExecResult
 	select {
 	case <-ctx.Done():
-		uc.hub.Drop(agentUID, requestUID)
-		uc.recordExec(ctx, ns, cmd, agentUID, "FAILED", "execute cancelled", 0, "", false)
+		executor.hub.Drop(agentUID, requestUID)
+		executor.recordExec(ctx, ns, cmd, agentUID, "FAILED", "execute cancelled", 0, "", false)
 		return nil, merr.Invalid("execute cancelled")
 	case <-timer.C:
-		uc.hub.Drop(agentUID, requestUID)
-		uc.recordExec(ctx, ns, cmd, agentUID, "FAILED", "execute timed out", 0, "", false)
+		executor.hub.Drop(agentUID, requestUID)
+		executor.recordExec(ctx, ns, cmd, agentUID, "FAILED", "execute timed out", 0, "", false)
 		return nil, merr.Invalid("execute timed out")
 	case result = <-resultCh:
 	}
 	if result == nil {
-		uc.recordExec(ctx, ns, cmd, agentUID, "FAILED", "agent is offline", 0, "", false)
+		executor.recordExec(ctx, ns, cmd, agentUID, "FAILED", "agent is offline", 0, "", false)
 		return nil, merr.Invalid("agent is offline")
 	}
 	output := result.GetOutput()
@@ -186,7 +186,7 @@ func (uc *Usecase) Execute(ctx context.Context, commandUID, agentUID string) (*b
 	if detail != "" || result.GetExitCode() != 0 {
 		status = "FAILED"
 	}
-	audit, err := uc.commands.AddExecAudit(ctx, bo.SSHCommandAudit{
+	audit, err := executor.commands.AddExecAudit(ctx, bo.SSHCommandAudit{
 		NamespaceUID: ns,
 		CommandUID:   commandUID,
 		AgentUID:     agentUID,
@@ -198,22 +198,22 @@ func (uc *Usecase) Execute(ctx context.Context, commandUID, agentUID string) (*b
 		Truncated:    truncated,
 		Detail:       detail,
 	})
-	return audit, uc.access.Wrap(err)
+	return audit, executor.access.Wrap(err)
 }
 
 // ExecuteOnAgents 把同一条已通过的命令分别送到多台机器。一台失败仍继续其余机器，并为失败的机器留下审计。
-func (uc *Usecase) ExecuteOnAgents(ctx context.Context, commandUID string, agentUIDs []string) ([]bo.SSHCommandAudit, error) {
+func (executor *Executor) ExecuteOnAgents(ctx context.Context, commandUID string, agentUIDs []string) ([]bo.SSHCommandAudit, error) {
 	if len(agentUIDs) == 0 {
 		return nil, merr.Invalid("select an online agent")
 	}
 	audits := make([]bo.SSHCommandAudit, 0, len(agentUIDs))
 	for _, agentUID := range agentUIDs {
-		audit, err := uc.Execute(ctx, commandUID, agentUID)
+		audit, err := executor.Execute(ctx, commandUID, agentUID)
 		if err != nil {
 			if abortAgentBatch(err) {
 				return nil, err
 			}
-			failed, ferr := uc.failExec(ctx, commandUID, agentUID, err)
+			failed, ferr := executor.failExec(ctx, commandUID, agentUID, err)
 			if ferr != nil {
 				return nil, ferr
 			}
@@ -225,20 +225,20 @@ func (uc *Usecase) ExecuteOnAgents(ctx context.Context, commandUID string, agent
 	return audits, nil
 }
 
-func (uc *Usecase) failExec(ctx context.Context, commandUID, agentUID string, cause error) (*bo.SSHCommandAudit, error) {
-	ns, err := uc.access.Allow(ctx, "ssh:exec")
+func (executor *Executor) failExec(ctx context.Context, commandUID, agentUID string, cause error) (*bo.SSHCommandAudit, error) {
+	ns, err := executor.access.Allow(ctx, "ssh:exec")
 	if err != nil {
 		return nil, err
 	}
 	command := commandUID
-	if cmd, err := uc.commands.GetCommand(ctx, ns, commandUID); err == nil {
+	if cmd, err := executor.commands.GetCommand(ctx, ns, commandUID); err == nil {
 		command = cmd.Command
 	}
 	detail := kerrors.FromError(cause).Message
 	if detail == "" {
 		detail = "execute failed"
 	}
-	return uc.commands.AddExecAudit(ctx, bo.SSHCommandAudit{
+	return executor.commands.AddExecAudit(ctx, bo.SSHCommandAudit{
 		NamespaceUID: ns,
 		CommandUID:   commandUID,
 		AgentUID:     agentUID,
@@ -261,10 +261,10 @@ func abortAgentBatch(err error) bool {
 	return false
 }
 
-func (uc *Usecase) ExecuteMany(ctx context.Context, commandUIDs []string, agentUID string) ([]bo.SSHCommandAudit, error) {
+func (executor *Executor) ExecuteMany(ctx context.Context, commandUIDs []string, agentUID string) ([]bo.SSHCommandAudit, error) {
 	audits := make([]bo.SSHCommandAudit, 0, len(commandUIDs))
 	for _, uid := range commandUIDs {
-		audit, err := uc.Execute(ctx, uid, agentUID)
+		audit, err := executor.Execute(ctx, uid, agentUID)
 		if err != nil {
 			return audits, err
 		}
@@ -274,11 +274,11 @@ func (uc *Usecase) ExecuteMany(ctx context.Context, commandUIDs []string, agentU
 }
 
 // recordExec 为失败路径补审计。请求可能已超时或取消，因此使用 WithoutCancel 保证审计仍能落库。
-func (uc *Usecase) recordExec(ctx context.Context, namespaceUID string, cmd *bo.SSHCommand, agentUID, status, detail string, exitCode int, output string, truncated bool) {
+func (executor *Executor) recordExec(ctx context.Context, namespaceUID string, cmd *bo.SSHCommand, agentUID, status, detail string, exitCode int, output string, truncated bool) {
 	if cmd == nil {
 		return
 	}
-	_, _ = uc.commands.AddExecAudit(context.WithoutCancel(ctx), bo.SSHCommandAudit{
+	_, _ = executor.commands.AddExecAudit(context.WithoutCancel(ctx), bo.SSHCommandAudit{
 		NamespaceUID: namespaceUID,
 		CommandUID:   cmd.UID,
 		AgentUID:     agentUID,

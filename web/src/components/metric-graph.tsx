@@ -11,7 +11,7 @@ import {
   toTimeSeriesGraphSeries,
   type TimeSeriesApiResponse,
 } from "@/pages/datasource/time-series"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/class-names"
 
 const CHART_COLORS = [
   "#1677ff",

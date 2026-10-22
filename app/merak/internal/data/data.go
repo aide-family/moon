@@ -9,17 +9,11 @@ import (
 	"github.com/aide-family/Alioth/pkg/healthcheck"
 )
 
-var ProviderSet = wire.NewSet(NewData, NewLocker, NewGateway, NewReadiness)
+var ProviderSet = wire.NewSet(NewLocker, NewGateway, NewReadinessChecker)
 
-type Data struct{}
-
-func NewData() (*Data, func(), error) {
-	return &Data{}, func() {}, nil
-}
-
-// NewReadiness 只探测 Redis：merak 通过 gRPC 访问控制面，不直连 PostgreSQL。
-func NewReadiness(locker repository.Locker) healthcheck.Checker {
-	checks := healthcheck.New(2 * time.Second)
+// NewReadinessChecker 只探测 Redis：merak 通过 gRPC 访问控制面，不直连 PostgreSQL。
+func NewReadinessChecker(locker repository.Locker) healthcheck.Checker {
+	checks := healthcheck.NewChecks(2 * time.Second)
 	if locker != nil {
 		checks.Add("redis", locker.Available)
 	}

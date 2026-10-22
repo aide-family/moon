@@ -1,6 +1,6 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react"
 
-import { failureText } from "@/lib/form-error"
+import { failureMessage } from "@/lib/form-error"
 
 export interface PagedListData<T> {
   items?: T[]
@@ -62,7 +62,7 @@ export function usePagedList<T>({
       // 静默刷新失败时保留上一次成功的数据，避免实时页闪空。
       if (!silent) {
         setFailed(true)
-        setError(failureText(err, ""))
+        setError(failureMessage(err, ""))
         setItems([])
         setTotal(0)
       }

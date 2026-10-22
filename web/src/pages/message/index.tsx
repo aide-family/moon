@@ -17,8 +17,8 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { usePagedList } from "@/hooks/use-paged-list"
-import { useListQuery } from "@/lib/list-query"
-import { failureText } from "@/lib/form-error"
+import { useListQuery } from "@/hooks/use-list-query"
+import { failureMessage } from "@/lib/form-error"
 
 export function MessagePage() {
   const { t } = useTranslation()
@@ -88,7 +88,7 @@ export function MessagePage() {
       session.refreshUnreadMessages()
       reload()
     } catch (err) {
-      toast.error(failureText(err, t("state.failed")))
+      toast.error(failureMessage(err, t("state.failed")))
     } finally {
       setPendingUid("")
     }
@@ -101,7 +101,7 @@ export function MessagePage() {
       session.refreshUnreadMessages()
       reload()
     } catch (err) {
-      toast.error(failureText(err, t("state.failed")))
+      toast.error(failureMessage(err, t("state.failed")))
     } finally {
       setMarkingAll(false)
     }

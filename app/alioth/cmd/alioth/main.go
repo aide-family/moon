@@ -49,7 +49,7 @@ func newServeCmd() *cobra.Command {
 		Use:   "serve",
 		Short: "Run the HTTP and gRPC servers",
 		RunE: func(*cobra.Command, []string) error {
-			bc, err := bootstrap.Load[conf.Bootstrap](confPath, slog.Default())
+			cfg, err := bootstrap.Load[conf.Bootstrap](confPath, slog.Default())
 			if err != nil {
 				return err
 			}
@@ -58,7 +58,7 @@ func newServeCmd() *cobra.Command {
 				log.WithFormat(log.FormatJSON),
 				log.WithAddSource(true),
 			)).With(slog.String("service", "alioth"))
-			app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Auth, logger)
+			app, cleanup, err := wireApp(cfg.Server, cfg.Data, cfg.Auth, logger)
 			if err != nil {
 				return err
 			}
@@ -76,30 +76,30 @@ func newMigrateCmd() *cobra.Command {
 		Use:   "migrate",
 		Short: "Apply the ent schema to PostgreSQL",
 		RunE: func(*cobra.Command, []string) error {
-			bc, err := bootstrap.Load[conf.Bootstrap](confPath, slog.Default())
+			cfg, err := bootstrap.Load[conf.Bootstrap](confPath, slog.Default())
 			if err != nil {
 				return err
 			}
-			if bc.Data == nil || bc.Data.Database == nil || bc.Data.Database.Source == "" {
+			if cfg.Data == nil || cfg.Data.Database == nil || cfg.Data.Database.Source == "" {
 				return merr.Server("database source is empty")
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
-			return data.Migrate(ctx, bc.Data.Database.Source)
+			return data.Migrate(ctx, cfg.Data.Database.Source)
 		},
 	}
 	cmd.Flags().StringVar(&confPath, "conf", "configs/config.yaml", "bootstrap config path")
 	return cmd
 }
 
-func newApp(logger *slog.Logger, hs *http.Server, gs *grpc.Server, sched *server.Scheduler, hub *agenthub.Hub, d *data.Data) *kratos.App {
-	if d == nil {
+func newApp(logger *slog.Logger, httpServer *http.Server, grpcServer *grpc.Server, scheduler *server.Scheduler, hub *agenthub.Hub, deps *data.Dependencies) *kratos.App {
+	if deps == nil {
 		panic("database is not connected")
 	}
 	return kratos.New(
 		kratos.Name("alioth"),
 		kratos.Logger(logger),
-		kratos.Server(hs, gs, sched),
+		kratos.Server(httpServer, grpcServer, scheduler),
 		kratos.StopTimeout(10*time.Second),
 		kratos.BeforeStop(func(_ context.Context) error {
 			hub.CloseAll()

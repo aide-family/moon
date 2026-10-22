@@ -22,26 +22,26 @@ const (
 	lockTTL = 15 * time.Second
 )
 
-var ProviderSet = wire.NewSet(NewUsecase)
+var ProviderSet = wire.NewSet(NewMaintainer)
 
-// Usecase 预创建 alert_events 与 message_logs 的周分区。
+// Maintainer 预创建 alert_events 与 message_logs 的周分区。
 // 分区创建从写路径移走后，写请求不再执行 DDL；维护任务停摆最多影响未来第 4 周的写入。
-type Usecase struct {
+type Maintainer struct {
 	repo  repository.PartitionRepo
 	locks *lock.Client
 	log   *slog.Logger
 }
 
-func NewUsecase(repo repository.PartitionRepo, locks *lock.Client, logger *slog.Logger) *Usecase {
-	return &Usecase{repo: repo, locks: locks, log: logger}
+func NewMaintainer(repo repository.PartitionRepo, locks *lock.Client, logger *slog.Logger) *Maintainer {
+	return &Maintainer{repo: repo, locks: locks, log: logger}
 }
 
 // Maintain 在锁内补齐未来 4 周分区。没拿到锁说明另一个副本在做，直接跳过。
-func (uc *Usecase) Maintain(ctx context.Context) error {
-	if uc.locks == nil {
+func (maintainer *Maintainer) Maintain(ctx context.Context) error {
+	if maintainer.locks == nil {
 		return merr.Server("lock failed")
 	}
-	hold, err := uc.locks.Acquire(ctx, LockKey, lockTTL)
+	hold, err := maintainer.locks.Acquire(ctx, LockKey, lockTTL)
 	if err != nil {
 		if errors.Is(err, lock.ErrNotAcquired) {
 			return nil
@@ -49,5 +49,5 @@ func (uc *Usecase) Maintain(ctx context.Context) error {
 		return err
 	}
 	defer func() { _ = hold.Release(context.Background()) }()
-	return uc.repo.EnsurePartitions(ctx, time.Now().UTC())
+	return maintainer.repo.EnsurePartitions(ctx, time.Now().UTC())
 }

@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react"
 import * as monacoEditor from "monaco-editor"
 import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
 
-import { useMonacoOverflowNode } from "@/components/monaco-overflow"
+import { useMonacoOverflowNode } from "@/hooks/use-monaco-overflow-node"
 import { useTheme } from "@/components/theme-provider"
 
 let monacoReady = false

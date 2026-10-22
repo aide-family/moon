@@ -37,8 +37,8 @@ func (d Data) String() string {
 	return ""
 }
 
-// New 构造模板数据。extra 用于追加事件字段，不会覆盖保留字段。
-func New(labels map[string]string, labelsJSON string, value float64, externalURL string, extra map[string]any) Data {
+// NewData 构造模板数据。extra 用于追加事件字段，不会覆盖保留字段。
+func NewData(labels map[string]string, labelsJSON string, value float64, externalURL string, extra map[string]any) Data {
 	if labels == nil {
 		labels = map[string]string{}
 	}

@@ -20,21 +20,21 @@ const (
 	recordRetention = 24 * time.Hour
 )
 
-var ProviderSet = wire.NewSet(NewUsecase)
+var ProviderSet = wire.NewSet(NewRoster)
 
-// Usecase validates internal heartbeats and provides the admin worker overview.
-type Usecase struct {
+// Roster 接收工作实例心跳，并给出管理员视角的在线实例列表。
+type Roster struct {
 	repo   repository.WorkerRepo
 	access access.Checker
 	now    func() time.Time
 }
 
-func NewUsecase(repo repository.WorkerRepo, checker access.Checker) *Usecase {
-	return &Usecase{repo: repo, access: checker, now: time.Now}
+func NewRoster(repo repository.WorkerRepo, checker access.Checker) *Roster {
+	return &Roster{repo: repo, access: checker, now: time.Now}
 }
 
 // Report stores one process heartbeat. The service name is fixed by the caller's internal gRPC endpoint.
-func (uc *Usecase) Report(ctx context.Context, service string, status bo.WorkerStatus) error {
+func (roster *Roster) Report(ctx context.Context, service string, status bo.WorkerStatus) error {
 	service = strings.ToUpper(strings.TrimSpace(service))
 	if service != "MEGREZ" && service != "MERAK" {
 		return merr.Client("invalid worker service")
@@ -60,20 +60,20 @@ func (uc *Usecase) Report(ctx context.Context, service string, status bo.WorkerS
 	if runes := []rune(status.Hostname); len(runes) > 160 {
 		status.Hostname = string(runes[:160])
 	}
-	return uc.repo.Report(ctx, status, uc.now().UTC())
+	return roster.repo.Report(ctx, status, roster.now().UTC())
 }
 
 // CleanupStale removes worker records that have exceeded the dashboard retention window.
-func (uc *Usecase) CleanupStale(ctx context.Context) error {
-	return uc.repo.CleanupBefore(ctx, uc.now().UTC().Add(-recordRetention))
+func (roster *Roster) CleanupStale(ctx context.Context) error {
+	return roster.repo.CleanupBefore(ctx, roster.now().UTC().Add(-recordRetention))
 }
 
-func (uc *Usecase) List(ctx context.Context) ([]bo.WorkerInstance, int, int, int, time.Time, error) {
-	if _, err := uc.access.RequireSystem(ctx, perm.SystemUserRead); err != nil {
+func (roster *Roster) List(ctx context.Context) ([]bo.WorkerInstance, int, int, int, time.Time, error) {
+	if _, err := roster.access.RequireSystem(ctx, perm.SystemUserRead); err != nil {
 		return nil, 0, 0, 0, time.Time{}, err
 	}
-	now := uc.now().UTC()
-	items, err := uc.repo.ListRecent(ctx, now.Add(-recentWindow))
+	now := roster.now().UTC()
+	items, err := roster.repo.ListRecent(ctx, now.Add(-recentWindow))
 	if err != nil {
 		return nil, 0, 0, 0, time.Time{}, err
 	}

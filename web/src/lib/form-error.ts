@@ -25,12 +25,12 @@ export function readFormError(err: unknown, fallback: string): FormFailure {
   return { form: fallback, fields: {} }
 }
 
-export function formMessage(err: unknown, fallback: string): string {
+export function formErrorMessage(err: unknown, fallback: string): string {
   const failure = readFormError(err, fallback)
   return failure.form || Object.values(failure.fields)[0] || ""
 }
 
-export function failureText(err: unknown, fallback: string): string {
+export function failureMessage(err: unknown, fallback: string): string {
   if (err instanceof Error && err.message) {
     return err.message
   }

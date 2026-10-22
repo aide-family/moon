@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { formMessage, readFormError } from "@/lib/form-error"
+import { formErrorMessage, readFormError } from "@/lib/form-error"
 
 import { listNotificationChannels } from "@/api/notification-channel"
 import type { NotificationChannelItem } from "@/api/notification-channel/types"
@@ -57,8 +57,8 @@ import {
 } from "@/lib/form"
 import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
-import { useListQuery } from "@/lib/list-query"
-import { run } from "@/lib/action"
+import { useListQuery } from "@/hooks/use-list-query"
+import { runAction } from "@/lib/action"
 
 const types = ["EMAIL", "WEBHOOK", "SMS_ALICLOUD"]
 const webhookApps = ["OTHER", "DINGTALK", "WECHAT", "FEISHU"]
@@ -213,7 +213,7 @@ export function NotificationTemplatePage() {
       setConfirm(null)
       reload()
     } catch (err) {
-      setConfirmError(formMessage(err, t("state.failed")))
+      setConfirmError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }
@@ -234,7 +234,7 @@ export function NotificationTemplatePage() {
           } }]),
       item.status === "ACTIVE"
         ? { key: "disable", label: t("action.disable"), destructive: true, onSelect: () => setConfirm({ action: "disable", item }) }
-        : { key: "enable", label: t("action.enable"), onSelect: () => run(updateNotificationTemplateStatus(item.uid, "ACTIVE").then(() => reload()), setError) },
+        : { key: "enable", label: t("action.enable"), onSelect: () => runAction(updateNotificationTemplateStatus(item.uid, "ACTIVE").then(() => reload()), setError) },
       { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => setConfirm({ action: "delete", item }) },
     ]
   }

@@ -29,7 +29,7 @@ func NewLocker(c *conf.Redis, logger *slog.Logger) (repository.Locker, func(), e
 			logger.Error(fmt.Sprintf("close redis: %v", err))
 		}
 	}
-	return &lockClient{rdb: rdb, locks: lock.New(rdb, "merak")}, cleanup, nil
+	return &lockClient{rdb: rdb, locks: lock.NewClient(rdb, "merak")}, cleanup, nil
 }
 
 func (c *lockClient) Available(ctx context.Context) error {

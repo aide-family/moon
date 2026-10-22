@@ -24,8 +24,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { StatusBadge } from "@/components/status-badge"
-import { failureText } from "@/lib/form-error"
-import { cn } from "@/lib/utils"
+import { failureMessage } from "@/lib/form-error"
+import { cn } from "@/lib/class-names"
 
 function statusLabel(t: (key: string) => string, value: string): string {
   switch (value) {
@@ -99,7 +99,7 @@ function useDriverMetadata(uid: string) {
       } catch (err) {
         if (active) {
           setMetadata(null)
-          setFailed(failureText(err, t("state.failed")))
+          setFailed(failureMessage(err, t("state.failed")))
         }
       } finally {
         if (active) {
@@ -352,7 +352,7 @@ function MetricsMetadata({ uid, driver }: { uid: string; driver: string }) {
       } catch (err) {
         if (active) {
           setMetrics([])
-          setFailed(failureText(err, t("state.failed")))
+          setFailed(failureMessage(err, t("state.failed")))
         }
       } finally {
         if (active) {

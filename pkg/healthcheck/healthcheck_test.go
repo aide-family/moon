@@ -15,7 +15,7 @@ func TestChecksNilIsReady(t *testing.T) {
 }
 
 func TestChecksAllPass(t *testing.T) {
-	checks := New(time.Second)
+	checks := NewChecks(time.Second)
 	checks.Add("postgres", func(context.Context) error { return nil })
 	checks.Add("redis", func(context.Context) error { return nil })
 	if err := checks.Check(context.Background()); err != nil {
@@ -24,7 +24,7 @@ func TestChecksAllPass(t *testing.T) {
 }
 
 func TestChecksReportsFailingDependency(t *testing.T) {
-	checks := New(time.Second)
+	checks := NewChecks(time.Second)
 	checks.Add("postgres", func(context.Context) error { return nil })
 	checks.Add("redis", func(context.Context) error { return errors.New("down") })
 	err := checks.Check(context.Background())
@@ -38,7 +38,7 @@ func TestChecksReportsFailingDependency(t *testing.T) {
 }
 
 func TestChecksTimeout(t *testing.T) {
-	checks := New(20 * time.Millisecond)
+	checks := NewChecks(20 * time.Millisecond)
 	checks.Add("slow", func(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
@@ -57,7 +57,7 @@ func TestChecksTimeout(t *testing.T) {
 }
 
 func TestChecksIgnoresNilFunc(t *testing.T) {
-	checks := New(time.Second)
+	checks := NewChecks(time.Second)
 	checks.Add("noop", nil)
 	if err := checks.Check(context.Background()); err != nil {
 		t.Fatalf("Check() = %v, want nil", err)

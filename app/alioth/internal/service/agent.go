@@ -11,15 +11,15 @@ import (
 
 type AgentService struct {
 	v1.UnimplementedAgentServiceServer
-	agents *agent.Usecase
+	registry *agent.Registry
 }
 
-func NewAgentService(uc *agent.Usecase) *AgentService {
-	return &AgentService{agents: uc}
+func NewAgentService(registry *agent.Registry) *AgentService {
+	return &AgentService{registry: registry}
 }
 
 func (s *AgentService) CreateAgent(ctx context.Context, req *v1.CreateAgentRequest) (*v1.CreateAgentResponse, error) {
-	item, err := s.agents.Create(ctx, agentInput("", req.GetName(), req.GetSshHost(), req.GetSshUser(), req.GetSshPassword(), req.GetSshPrivateKey(), req.GetRemark(), int(req.GetSshPort())))
+	item, err := s.registry.Create(ctx, agentInput("", req.GetName(), req.GetSshHost(), req.GetSshUser(), req.GetSshPassword(), req.GetSshPrivateKey(), req.GetRemark(), int(req.GetSshPort())))
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func (s *AgentService) CreateAgent(ctx context.Context, req *v1.CreateAgentReque
 }
 
 func (s *AgentService) UpdateAgent(ctx context.Context, req *v1.UpdateAgentRequest) (*v1.UpdateAgentResponse, error) {
-	item, err := s.agents.Update(ctx, agentInput(req.GetUid(), req.GetName(), req.GetSshHost(), req.GetSshUser(), req.GetSshPassword(), req.GetSshPrivateKey(), req.GetRemark(), int(req.GetSshPort())))
+	item, err := s.registry.Update(ctx, agentInput(req.GetUid(), req.GetName(), req.GetSshHost(), req.GetSshUser(), req.GetSshPassword(), req.GetSshPrivateKey(), req.GetRemark(), int(req.GetSshPort())))
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (s *AgentService) UpdateAgent(ctx context.Context, req *v1.UpdateAgentReque
 }
 
 func (s *AgentService) RotateAgentToken(ctx context.Context, req *v1.RotateAgentTokenRequest) (*v1.RotateAgentTokenResponse, error) {
-	item, err := s.agents.Rotate(ctx, req.GetUid())
+	item, err := s.registry.Rotate(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (s *AgentService) RotateAgentToken(ctx context.Context, req *v1.RotateAgent
 }
 
 func (s *AgentService) RevokeAgent(ctx context.Context, req *v1.RevokeAgentRequest) (*v1.RevokeAgentResponse, error) {
-	item, err := s.agents.Revoke(ctx, req.GetUid())
+	item, err := s.registry.Revoke(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -51,14 +51,14 @@ func (s *AgentService) RevokeAgent(ctx context.Context, req *v1.RevokeAgentReque
 }
 
 func (s *AgentService) DeleteAgent(ctx context.Context, req *v1.DeleteAgentRequest) (*v1.DeleteAgentResponse, error) {
-	if err := s.agents.Delete(ctx, req.GetUid()); err != nil {
+	if err := s.registry.Delete(ctx, req.GetUid()); err != nil {
 		return nil, err
 	}
 	return &v1.DeleteAgentResponse{}, nil
 }
 
 func (s *AgentService) GetAgent(ctx context.Context, req *v1.GetAgentRequest) (*v1.GetAgentResponse, error) {
-	item, err := s.agents.Get(ctx, req.GetUid())
+	item, err := s.registry.Get(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (s *AgentService) GetAgent(ctx context.Context, req *v1.GetAgentRequest) (*
 }
 
 func (s *AgentService) ListAgents(ctx context.Context, req *v1.ListAgentsRequest) (*v1.ListAgentsResponse, error) {
-	items, total, page, pageSize, err := s.agents.List(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
+	items, total, page, pageSize, err := s.registry.List(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (s *AgentService) ListAgents(ctx context.Context, req *v1.ListAgentsRequest
 }
 
 func (s *AgentService) Connect(stream v1.AgentService_ConnectServer) error {
-	return s.agents.Connect(stream.Context(), stream)
+	return s.registry.Connect(stream.Context(), stream)
 }
 
 func agentInput(uid, name, host, user, password, privateKey, remark string, port int) bo.Agent {

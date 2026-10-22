@@ -15,7 +15,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { EventChartBody } from "@/pages/alert/event-chart"
+import { AlertEventChartBody } from "@/pages/alert/event-chart"
 import { formatDuration, formatTime } from "@/pages/alert/format"
 import {
   conditionSummary,
@@ -123,7 +123,7 @@ export function AlertEventDetail({
               <h3 className="text-sm text-muted-foreground">
                 {t("alertEvent.eventChart")}
               </h3>
-              <EventChartBody
+              <AlertEventChartBody
                 key={event.uid}
                 event={event}
                 compact

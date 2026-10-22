@@ -19,7 +19,7 @@ import (
 )
 
 var ProviderSet = wire.NewSet(
-	NewData,
+	NewDependencies,
 	NewUserRepo,
 	NewCaptchaRepo,
 	NewEmailCodeRepo,
@@ -38,19 +38,20 @@ var ProviderSet = wire.NewSet(
 	NewWorkerRepo,
 	NewAgentRepo,
 	NewSSHCommandRepo,
-	NewLock,
-	NewReadiness,
+	NewLockClient,
+	NewReadinessChecker,
 	NewPartitionRepo,
 )
 
-type Data struct {
+// Dependencies 持有数据层共享的数据库连接、ent 客户端、加密盒和历史库。
+type Dependencies struct {
 	db      *sql.DB
 	client  *ent.Client
 	box     *secretBox
 	history *historyStore
 }
 
-func NewData(c *conf.Data, auth *conf.Auth, logger *slog.Logger) (*Data, func(), error) {
+func NewDependencies(c *conf.Data, auth *conf.Auth, logger *slog.Logger) (*Dependencies, func(), error) {
 	if c == nil || c.Database == nil || c.Database.Source == "" {
 		return nil, nil, merr.Server("database source is empty")
 	}
@@ -74,7 +75,7 @@ func NewData(c *conf.Data, auth *conf.Auth, logger *slog.Logger) (*Data, func(),
 			logger.Error(fmt.Sprintf("close database: %v", err))
 		}
 	}
-	return &Data{db: db, client: client, box: box, history: history}, cleanup, nil
+	return &Dependencies{db: db, client: client, box: box, history: history}, cleanup, nil
 }
 
 func Migrate(ctx context.Context, source string) error {

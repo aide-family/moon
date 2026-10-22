@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 
 import { listSelfNamespaces, getSelfInfo, getSelfPermissions } from "@/api/self"
 import { getUnreadMessageCount } from "@/api/message"
-import { failureText } from "@/lib/form-error"
+import { failureMessage } from "@/lib/form-error"
 import type { NamespaceItem } from "@/api/namespace/types"
 import type { UserItem } from "@/api/user/types"
 
@@ -84,7 +84,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         if (active) {
           setFailed(true)
-          setLoadError(failureText(err, ""))
+          setLoadError(failureMessage(err, ""))
         }
       } finally {
         if (active) {

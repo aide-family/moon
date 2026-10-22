@@ -32,7 +32,7 @@ import {
 } from "react-router-dom"
 
 import { SessionProvider, useSession } from "@/auth/session"
-import { GithubIcon } from "@/components/github-icon"
+import { GitHubIcon } from "@/components/github-icon"
 import { LocaleThemeMenu } from "@/components/locale-theme-menu"
 import { Button } from "@/components/ui/button"
 import {
@@ -426,7 +426,7 @@ function ShellFrame() {
                   rel="noreferrer"
                   aria-label={t("shell.github")}
                 >
-                  <GithubIcon />
+                  <GitHubIcon />
                 </a>
               </Button>
               <DropdownMenu>
@@ -479,7 +479,7 @@ function ShellFrame() {
   )
 }
 
-export function Shell() {
+export function AppShell() {
   return (
     <SessionProvider>
       <ShellFrame />

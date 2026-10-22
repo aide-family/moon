@@ -9,15 +9,15 @@ import (
 
 type MetricQueryService struct {
 	v1.UnimplementedMetricQueryServiceServer
-	datasources *datasource.Usecase
+	gateway *datasource.Gateway
 }
 
-func NewMetricQueryService(uc *datasource.Usecase) *MetricQueryService {
-	return &MetricQueryService{datasources: uc}
+func NewMetricQueryService(gateway *datasource.Gateway) *MetricQueryService {
+	return &MetricQueryService{gateway: gateway}
 }
 
 func (s *MetricQueryService) QueryMetric(ctx context.Context, req *v1.QueryMetricRequest) (*v1.QueryMetricResponse, error) {
-	body, err := s.datasources.Query(ctx, req.GetDatasourceUid(), req.GetExpr(), req.GetTime())
+	body, err := s.gateway.Query(ctx, req.GetDatasourceUid(), req.GetExpr(), req.GetTime())
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func (s *MetricQueryService) QueryMetric(ctx context.Context, req *v1.QueryMetri
 }
 
 func (s *MetricQueryService) QueryMetricRange(ctx context.Context, req *v1.QueryMetricRangeRequest) (*v1.QueryMetricRangeResponse, error) {
-	body, err := s.datasources.QueryRange(ctx, req.GetDatasourceUid(), req.GetExpr(), req.GetStart(), req.GetEnd(), req.GetStep())
+	body, err := s.gateway.QueryRange(ctx, req.GetDatasourceUid(), req.GetExpr(), req.GetStart(), req.GetEnd(), req.GetStep())
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (s *MetricQueryService) QueryMetricRange(ctx context.Context, req *v1.Query
 }
 
 func (s *MetricQueryService) ProxyQuery(ctx context.Context, req *v1.ProxyQueryRequest) (*v1.ProxyQueryResponse, error) {
-	body, err := s.datasources.Proxy(ctx, req.GetDatasourceUid(), req.GetMethod(), req.GetPath(), req.GetBody())
+	body, err := s.gateway.Proxy(ctx, req.GetDatasourceUid(), req.GetMethod(), req.GetPath(), req.GetBody())
 	if err != nil {
 		return nil, err
 	}

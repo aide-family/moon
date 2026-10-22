@@ -27,7 +27,7 @@ import (
 )
 
 func (r *alertEventRepo) ApplyReport(ctx context.Context, rule bo.AlertRule, report bo.EvalReport) error {
-	// 分区由 partition.Usecase 定时预创建：写路径不再执行 DDL，避免 catalog 锁和写延迟。
+	// 分区由 partition.Maintainer 定时预创建：写路径不再执行 DDL，避免 catalog 锁和写延迟。
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		return r.fail(err)

@@ -45,8 +45,8 @@ func (r fakeWorkerUsers) UserByUID(context.Context, string) (*bo.Account, error)
 
 func TestReportNormalizesIdleAndService(t *testing.T) {
 	repo := &fakeWorkerRepo{}
-	uc := NewUsecase(repo, access.Checker{})
-	if err := uc.Report(context.Background(), " megrez ", bo.WorkerStatus{
+	roster := NewRoster(repo, access.Checker{})
+	if err := roster.Report(context.Background(), " megrez ", bo.WorkerStatus{
 		InstanceUID: "node-1", Busy: false, TaskUID: "stale-task", TaskName: "stale name",
 	}); err != nil {
 		t.Fatal(err)
@@ -59,9 +59,9 @@ func TestReportNormalizesIdleAndService(t *testing.T) {
 func TestCleanupStaleAppliesRetentionWindow(t *testing.T) {
 	now := time.Date(2026, 10, 21, 8, 0, 0, 0, time.UTC)
 	repo := &fakeWorkerRepo{}
-	uc := NewUsecase(repo, access.Checker{})
-	uc.now = func() time.Time { return now }
-	if err := uc.CleanupStale(context.Background()); err != nil {
+	roster := NewRoster(repo, access.Checker{})
+	roster.now = func() time.Time { return now }
+	if err := roster.CleanupStale(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	if want := now.Add(-recordRetention); !repo.cleanedBefore.Equal(want) {
@@ -70,8 +70,8 @@ func TestCleanupStaleAppliesRetentionWindow(t *testing.T) {
 }
 
 func TestReportRejectsIncompleteBusyTask(t *testing.T) {
-	uc := NewUsecase(&fakeWorkerRepo{}, access.Checker{})
-	err := uc.Report(context.Background(), "MERAK", bo.WorkerStatus{InstanceUID: "node-1", Busy: true})
+	roster := NewRoster(&fakeWorkerRepo{}, access.Checker{})
+	err := roster.Report(context.Background(), "MERAK", bo.WorkerStatus{InstanceUID: "node-1", Busy: true})
 	if kerrors.Reason(err) != merr.ReasonClient {
 		t.Fatalf("expected client error for missing task details, got %v", err)
 	}
@@ -84,11 +84,11 @@ func TestListCountsFreshWorkersAndRequiresSystemAccess(t *testing.T) {
 		{Service: "MERAK", InstanceUID: "idle", LastSeenAt: now.Add(-10 * time.Second)},
 		{Service: "MERAK", InstanceUID: "stale", Busy: true, LastSeenAt: now.Add(-30 * time.Second)},
 	}}
-	uc := NewUsecase(repo, access.Checker{Users: fakeWorkerUsers{account: &bo.Account{UID: "admin", Status: "ACTIVE", SystemRole: "SUPER_ADMIN"}}})
-	uc.now = func() time.Time { return now }
+	roster := NewRoster(repo, access.Checker{Users: fakeWorkerUsers{account: &bo.Account{UID: "admin", Status: "ACTIVE", SystemRole: "SUPER_ADMIN"}}})
+	roster.now = func() time.Time { return now }
 
 	ctx := actor.WithUser(context.Background(), "admin")
-	items, online, busy, idle, observedAt, err := uc.List(ctx)
+	items, online, busy, idle, observedAt, err := roster.List(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +98,7 @@ func TestListCountsFreshWorkersAndRequiresSystemAccess(t *testing.T) {
 	if items[2].Online {
 		t.Fatal("stale worker should not count as online")
 	}
-	if _, _, _, _, _, err := uc.List(context.Background()); kerrors.Reason(err) != merr.ReasonUnauthenticated {
+	if _, _, _, _, _, err := roster.List(context.Background()); kerrors.Reason(err) != merr.ReasonUnauthenticated {
 		t.Fatalf("expected missing user to be rejected, got %v", err)
 	}
 }

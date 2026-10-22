@@ -22,7 +22,7 @@ import (
 func TestNotificationTaskDedup(t *testing.T) {
 	source := testDSN(t)
 	ctx := context.Background()
-	store, cleanup, err := NewData(
+	store, cleanup, err := NewDependencies(
 		&conf.Data{Database: &conf.Data_Database{Source: source}},
 		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
 		slog.Default(),

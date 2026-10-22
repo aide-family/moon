@@ -56,10 +56,11 @@ vet:
 	$(GO) vet -C $(ROOT)app/merak ./...
 	$(GO) vet -C $(ROOT)app/alkaid ./...
 
-# gofmt 与 buf lint 是 CI 的硬门禁；本地先跑一遍避免 PR 变红。
+# gofmt、命名检查与 buf lint 是 CI 的硬门禁；本地先跑一遍避免 PR 变红。
 lint:
 	@out=$$(gofmt -l $(ROOT)pkg $(ROOT)api $(ROOT)app); \
 	if [ -n "$$out" ]; then echo "gofmt needed:"; echo "$$out"; exit 1; fi
+	$(ROOT)scripts/check-naming.sh
 	cd $(ROOT) && buf lint
 
 build: build-alioth build-megrez build-merak build-alkaid build-web

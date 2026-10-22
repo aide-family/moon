@@ -19,12 +19,13 @@ import (
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
-var ProviderSet = wire.NewSet(NewUsecase)
+var ProviderSet = wire.NewSet(NewRulebook)
 
 // maxGroupName 与 proto 校验保持一致，避免绕过 HTTP 的调用写入超长名称。
 const maxGroupName = 64
 
-type Usecase struct {
+// Rulebook 管理告警规则与规则分组。
+type Rulebook struct {
 	rules        repository.AlertRuleRepo
 	dictionaries repository.AlertDictionaryRepo
 	datasources  repository.DatasourceRepo
@@ -32,12 +33,12 @@ type Usecase struct {
 	access       access.Checker
 }
 
-func NewUsecase(rules repository.AlertRuleRepo, dictionaries repository.AlertDictionaryRepo, datasources repository.DatasourceRepo, events repository.AlertEventRepo, checker access.Checker) *Usecase {
-	return &Usecase{rules: rules, dictionaries: dictionaries, datasources: datasources, events: events, access: checker}
+func NewRulebook(rules repository.AlertRuleRepo, dictionaries repository.AlertDictionaryRepo, datasources repository.DatasourceRepo, events repository.AlertEventRepo, checker access.Checker) *Rulebook {
+	return &Rulebook{rules: rules, dictionaries: dictionaries, datasources: datasources, events: events, access: checker}
 }
 
-func (uc *Usecase) CreateGroup(ctx context.Context, name string) (*bo.AlertRuleGroup, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertRuleWrite)
+func (rulebook *Rulebook) CreateGroup(ctx context.Context, name string) (*bo.AlertRuleGroup, error) {
+	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -45,12 +46,12 @@ func (uc *Usecase) CreateGroup(ctx context.Context, name string) (*bo.AlertRuleG
 	if err := validateGroupName(trimmed); err != nil {
 		return nil, err
 	}
-	item, err := uc.rules.CreateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, Name: trimmed})
-	return item, uc.access.Wrap(err)
+	item, err := rulebook.rules.CreateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, Name: trimmed})
+	return item, rulebook.access.Wrap(err)
 }
 
-func (uc *Usecase) UpdateGroup(ctx context.Context, uid, name string) (*bo.AlertRuleGroup, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertRuleWrite)
+func (rulebook *Rulebook) UpdateGroup(ctx context.Context, uid, name string) (*bo.AlertRuleGroup, error) {
+	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -58,47 +59,47 @@ func (uc *Usecase) UpdateGroup(ctx context.Context, uid, name string) (*bo.Alert
 	if err := validateGroupName(trimmed); err != nil {
 		return nil, err
 	}
-	item, err := uc.rules.UpdateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, UID: uid, Name: trimmed})
-	return item, uc.access.Wrap(err)
+	item, err := rulebook.rules.UpdateAlertRuleGroup(ctx, bo.AlertRuleGroup{NamespaceUID: ns, UID: uid, Name: trimmed})
+	return item, rulebook.access.Wrap(err)
 }
 
-func (uc *Usecase) UpdateGroupStatus(ctx context.Context, uid, status string) (*bo.AlertRuleGroup, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertRuleWrite)
+func (rulebook *Rulebook) UpdateGroupStatus(ctx context.Context, uid, status string) (*bo.AlertRuleGroup, error) {
+	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleWrite)
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.rules.UpdateAlertRuleGroupStatus(ctx, ns, uid, status)
+	item, err := rulebook.rules.UpdateAlertRuleGroupStatus(ctx, ns, uid, status)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, rulebook.access.Wrap(err)
 	}
 	if status == "DISABLED" {
-		ruleUIDs, listErr := uc.rules.ListRuleUIDs(ctx, ns, uid)
+		ruleUIDs, listErr := rulebook.rules.ListRuleUIDs(ctx, ns, uid)
 		if listErr != nil {
-			return nil, uc.access.Wrap(listErr)
+			return nil, rulebook.access.Wrap(listErr)
 		}
-		if err := uc.events.RecoverSource(ctx, ns, ruleUIDs, nil, nil); err != nil {
-			return nil, uc.access.Wrap(err)
+		if err := rulebook.events.RecoverSource(ctx, ns, ruleUIDs, nil, nil); err != nil {
+			return nil, rulebook.access.Wrap(err)
 		}
 	}
 	return item, nil
 }
 
-func (uc *Usecase) DeleteGroup(ctx context.Context, uid string) error {
-	ns, err := uc.access.Allow(ctx, perm.AlertRuleWrite)
+func (rulebook *Rulebook) DeleteGroup(ctx context.Context, uid string) error {
+	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleWrite)
 	if err != nil {
 		return err
 	}
-	return uc.access.Wrap(uc.rules.DeleteAlertRuleGroup(ctx, ns, uid))
+	return rulebook.access.Wrap(rulebook.rules.DeleteAlertRuleGroup(ctx, ns, uid))
 }
 
-func (uc *Usecase) ListGroups(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.AlertRuleGroup, int, int, int, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertRuleRead)
+func (rulebook *Rulebook) ListGroups(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.AlertRuleGroup, int, int, int, error) {
+	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.rules.ListAlertRuleGroups(ctx, ns, p, s, strings.TrimSpace(name))
-	return items, total, p, s, uc.access.Wrap(err)
+	items, total, err := rulebook.rules.ListAlertRuleGroups(ctx, ns, p, s, strings.TrimSpace(name))
+	return items, total, p, s, rulebook.access.Wrap(err)
 }
 
 func validateGroupName(name string) error {
@@ -113,91 +114,91 @@ func validateGroupName(name string) error {
 
 // SaveRule 只写规则和级别条件，不写评测批次或告警事件。
 // 停用后的规则仍留在库里，但到期候选查询要求状态为启用且类型为指标。
-func (uc *Usecase) CreateRule(ctx context.Context, in bo.AlertRule) (*bo.AlertRule, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertRuleWrite)
+func (rulebook *Rulebook) CreateRule(ctx context.Context, in bo.AlertRule) (*bo.AlertRule, error) {
+	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleWrite)
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.prepare(ctx, ns, &in); err != nil {
+	if err := rulebook.prepare(ctx, ns, &in); err != nil {
 		return nil, err
 	}
-	item, err := uc.rules.CreateAlertRule(ctx, in)
-	return item, uc.access.Wrap(err)
+	item, err := rulebook.rules.CreateAlertRule(ctx, in)
+	return item, rulebook.access.Wrap(err)
 }
 
-func (uc *Usecase) UpdateRule(ctx context.Context, in bo.AlertRule) (*bo.AlertRule, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertRuleWrite)
+func (rulebook *Rulebook) UpdateRule(ctx context.Context, in bo.AlertRule) (*bo.AlertRule, error) {
+	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleWrite)
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.prepare(ctx, ns, &in); err != nil {
+	if err := rulebook.prepare(ctx, ns, &in); err != nil {
 		return nil, err
 	}
-	previous, err := uc.rules.GetAlertRule(ctx, ns, in.UID)
+	previous, err := rulebook.rules.GetAlertRule(ctx, ns, in.UID)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, rulebook.access.Wrap(err)
 	}
-	item, err := uc.rules.UpdateAlertRule(ctx, in)
+	item, err := rulebook.rules.UpdateAlertRule(ctx, in)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, rulebook.access.Wrap(err)
 	}
-	if err := uc.recoverChangedRule(ctx, ns, previous, item); err != nil {
+	if err := rulebook.recoverChangedRule(ctx, ns, previous, item); err != nil {
 		return nil, err
 	}
 	return item, nil
 }
 
 // UpdateRuleStatus 只切换启用状态，不改下一次评测时间。停用后候选查询看不到它，重新启用后才会出现。
-func (uc *Usecase) UpdateRuleStatus(ctx context.Context, uid, status string) (*bo.AlertRule, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertRuleWrite)
+func (rulebook *Rulebook) UpdateRuleStatus(ctx context.Context, uid, status string) (*bo.AlertRule, error) {
+	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleWrite)
 	if err != nil {
 		return nil, err
 	}
 	// 先收口事件再停用规则：恢复走 events.RecoverSource 会归档到历史库，
 	// 如果等仓储把事件改回 RECOVERED，恢复扫描就看不到 FIRING，历史分片会漏记录。
 	if status == "DISABLED" {
-		if err := uc.events.RecoverSource(ctx, ns, []string{uid}, nil, nil); err != nil {
-			return nil, uc.access.Wrap(err)
+		if err := rulebook.events.RecoverSource(ctx, ns, []string{uid}, nil, nil); err != nil {
+			return nil, rulebook.access.Wrap(err)
 		}
 	}
-	item, err := uc.rules.UpdateAlertRuleStatus(ctx, ns, uid, status)
+	item, err := rulebook.rules.UpdateAlertRuleStatus(ctx, ns, uid, status)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, rulebook.access.Wrap(err)
 	}
 	return item, nil
 }
 
-func (uc *Usecase) DeleteRule(ctx context.Context, uid string) error {
-	ns, err := uc.access.Allow(ctx, perm.AlertRuleWrite)
+func (rulebook *Rulebook) DeleteRule(ctx context.Context, uid string) error {
+	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleWrite)
 	if err != nil {
 		return err
 	}
-	if err := uc.events.RecoverSource(ctx, ns, []string{uid}, nil, nil); err != nil {
-		return uc.access.Wrap(err)
+	if err := rulebook.events.RecoverSource(ctx, ns, []string{uid}, nil, nil); err != nil {
+		return rulebook.access.Wrap(err)
 	}
-	return uc.access.Wrap(uc.rules.DeleteAlertRule(ctx, ns, uid))
+	return rulebook.access.Wrap(rulebook.rules.DeleteAlertRule(ctx, ns, uid))
 }
 
-func (uc *Usecase) GetRule(ctx context.Context, uid string) (*bo.AlertRule, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertRuleRead)
+func (rulebook *Rulebook) GetRule(ctx context.Context, uid string) (*bo.AlertRule, error) {
+	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleRead)
 	if err != nil {
 		return nil, err
 	}
-	item, err := uc.rules.GetAlertRule(ctx, ns, uid)
-	return item, uc.access.Wrap(err)
+	item, err := rulebook.rules.GetAlertRule(ctx, ns, uid)
+	return item, rulebook.access.Wrap(err)
 }
 
-func (uc *Usecase) ListRules(ctx context.Context, pageNo, pageSize int32, groupUID, name string) ([]bo.AlertRule, int, int, int, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertRuleRead)
+func (rulebook *Rulebook) ListRules(ctx context.Context, pageNo, pageSize int32, groupUID, name string) ([]bo.AlertRule, int, int, int, error) {
+	ns, err := rulebook.access.Allow(ctx, perm.AlertRuleRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.rules.ListAlertRules(ctx, ns, p, s, groupUID, strings.TrimSpace(name))
-	return items, total, p, s, uc.access.Wrap(err)
+	items, total, err := rulebook.rules.ListAlertRules(ctx, ns, p, s, groupUID, strings.TrimSpace(name))
+	return items, total, p, s, rulebook.access.Wrap(err)
 }
 
-func (uc *Usecase) prepare(ctx context.Context, namespaceUID string, in *bo.AlertRule) error {
+func (rulebook *Rulebook) prepare(ctx context.Context, namespaceUID string, in *bo.AlertRule) error {
 	if !datasource.ValidDriver(in.Driver) {
 		return merr.Invalid("invalid request")
 	}
@@ -210,13 +211,13 @@ func (uc *Usecase) prepare(ctx context.Context, namespaceUID string, in *bo.Aler
 	}
 	in.DatasourceLabels = dsLabels
 	in.DatasourceUID = ""
-	if _, err := uc.rules.GetAlertRuleGroup(ctx, namespaceUID, in.GroupUID); err != nil {
-		return uc.access.Wrap(err)
+	if _, err := rulebook.rules.GetAlertRuleGroup(ctx, namespaceUID, in.GroupUID); err != nil {
+		return rulebook.access.Wrap(err)
 	}
 	for _, level := range in.Levels {
-		item, err := uc.dictionaries.GetAlertDictionary(ctx, namespaceUID, level.LevelUID)
+		item, err := rulebook.dictionaries.GetAlertDictionary(ctx, namespaceUID, level.LevelUID)
 		if err != nil {
-			return uc.access.Wrap(err)
+			return rulebook.access.Wrap(err)
 		}
 		if item.Type != "ALERT" || item.Status != "ACTIVE" {
 			return merr.Invalid("invalid request")
@@ -227,7 +228,7 @@ func (uc *Usecase) prepare(ctx context.Context, namespaceUID string, in *bo.Aler
 	return nil
 }
 
-func (uc *Usecase) recoverChangedRule(ctx context.Context, namespaceUID string, previous, next *bo.AlertRule) error {
+func (rulebook *Rulebook) recoverChangedRule(ctx context.Context, namespaceUID string, previous, next *bo.AlertRule) error {
 	if previous == nil || next == nil {
 		return nil
 	}
@@ -237,31 +238,31 @@ func (uc *Usecase) recoverChangedRule(ctx context.Context, namespaceUID string, 
 		recoverAll = true
 	}
 	if recoverAll {
-		return uc.access.Wrap(uc.events.RecoverSource(ctx, namespaceUID, []string{next.UID}, nil, nil))
+		return rulebook.access.Wrap(rulebook.events.RecoverSource(ctx, namespaceUID, []string{next.UID}, nil, nil))
 	}
 	if len(levelUIDs) > 0 {
-		if err := uc.events.RecoverSource(ctx, namespaceUID, []string{next.UID}, nil, levelUIDs); err != nil {
-			return uc.access.Wrap(err)
+		if err := rulebook.events.RecoverSource(ctx, namespaceUID, []string{next.UID}, nil, levelUIDs); err != nil {
+			return rulebook.access.Wrap(err)
 		}
 	}
-	dropped, err := uc.droppedDatasources(ctx, namespaceUID, previous, next)
+	dropped, err := rulebook.droppedDatasources(ctx, namespaceUID, previous, next)
 	if err != nil {
 		return err
 	}
 	if len(dropped) == 0 {
 		return nil
 	}
-	return uc.access.Wrap(uc.events.RecoverSource(ctx, namespaceUID, []string{next.UID}, dropped, nil))
+	return rulebook.access.Wrap(rulebook.events.RecoverSource(ctx, namespaceUID, []string{next.UID}, dropped, nil))
 }
 
-func (uc *Usecase) droppedDatasources(ctx context.Context, namespaceUID string, previous, next *bo.AlertRule) ([]string, error) {
-	before, err := uc.datasources.ListDatasourcesByMatchers(ctx, namespaceUID, previous.Driver, previous.DatasourceLabels)
+func (rulebook *Rulebook) droppedDatasources(ctx context.Context, namespaceUID string, previous, next *bo.AlertRule) ([]string, error) {
+	before, err := rulebook.datasources.ListDatasourcesByMatchers(ctx, namespaceUID, previous.Driver, previous.DatasourceLabels)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, rulebook.access.Wrap(err)
 	}
-	after, err := uc.datasources.ListDatasourcesByMatchers(ctx, namespaceUID, next.Driver, next.DatasourceLabels)
+	after, err := rulebook.datasources.ListDatasourcesByMatchers(ctx, namespaceUID, next.Driver, next.DatasourceLabels)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, rulebook.access.Wrap(err)
 	}
 	kept := map[string]struct{}{}
 	for _, item := range after {

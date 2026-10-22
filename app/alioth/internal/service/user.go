@@ -9,15 +9,15 @@ import (
 
 type UserService struct {
 	v1.UnimplementedUserServiceServer
-	users *user.Usecase
+	directory *user.Directory
 }
 
-func NewUserService(uc *user.Usecase) *UserService {
-	return &UserService{users: uc}
+func NewUserService(directory *user.Directory) *UserService {
+	return &UserService{directory: directory}
 }
 
 func (s *UserService) GetUser(ctx context.Context, req *v1.GetUserRequest) (*v1.GetUserResponse, error) {
-	account, err := s.users.GetUser(ctx, req.GetUid())
+	account, err := s.directory.GetUser(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func (s *UserService) GetUser(ctx context.Context, req *v1.GetUserRequest) (*v1.
 }
 
 func (s *UserService) ListUsers(ctx context.Context, req *v1.ListUsersRequest) (*v1.ListUsersResponse, error) {
-	items, total, page, pageSize, err := s.users.ListUsers(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
+	items, total, page, pageSize, err := s.directory.ListUsers(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (s *UserService) ListUsers(ctx context.Context, req *v1.ListUsersRequest) (
 }
 
 func (s *UserService) SelectUsers(ctx context.Context, req *v1.SelectUsersRequest) (*v1.SelectUsersResponse, error) {
-	items, err := s.users.SelectUsers(ctx, req.GetLimit(), req.GetLastUid())
+	items, err := s.directory.SelectUsers(ctx, req.GetLimit(), req.GetLastUid())
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (s *UserService) SelectUsers(ctx context.Context, req *v1.SelectUsersReques
 }
 
 func (s *UserService) BanUser(ctx context.Context, req *v1.BanUserRequest) (*v1.BanUserResponse, error) {
-	account, err := s.users.BanUser(ctx, req.GetUid())
+	account, err := s.directory.BanUser(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (s *UserService) BanUser(ctx context.Context, req *v1.BanUserRequest) (*v1.
 }
 
 func (s *UserService) PermitUser(ctx context.Context, req *v1.PermitUserRequest) (*v1.PermitUserResponse, error) {
-	account, err := s.users.PermitUser(ctx, req.GetUid())
+	account, err := s.directory.PermitUser(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (s *UserService) PermitUser(ctx context.Context, req *v1.PermitUserRequest)
 }
 
 func (s *UserService) UpdateUserSystemRole(ctx context.Context, req *v1.UpdateUserSystemRoleRequest) (*v1.UpdateUserSystemRoleResponse, error) {
-	account, err := s.users.UpdateSystemRole(ctx, req.GetUid(), req.GetRole())
+	account, err := s.directory.UpdateSystemRole(ctx, req.GetUid(), req.GetRole())
 	if err != nil {
 		return nil, err
 	}

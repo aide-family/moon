@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { formMessage } from "@/lib/form-error"
+import { formErrorMessage } from "@/lib/form-error"
 import {
   conditionSummary,
   useEventLevelCondition,
@@ -23,7 +23,7 @@ import {
 import type { TimeSeriesApiResponse } from "@/pages/datasource/time-series"
 import { parseTimeSeriesBody } from "@/pages/datasource/time-series"
 
-interface EventChartDialogProps {
+interface AlertEventChartDialogProps {
   event: AlertEventItem | null
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -65,11 +65,11 @@ function filterSeriesByLabels(
   return { ...response, data: { ...response.data, result: matched } }
 }
 
-export function EventChartDialog({
+export function AlertEventChartDialog({
   event,
   open,
   onOpenChange,
-}: EventChartDialogProps) {
+}: AlertEventChartDialogProps) {
   const { t } = useTranslation()
 
   return (
@@ -82,7 +82,7 @@ export function EventChartDialog({
           </DialogDescription>
         </DialogHeader>
         {open && event ? (
-          <EventChartBody key={event.uid} event={event} />
+          <AlertEventChartBody key={event.uid} event={event} />
         ) : null}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
@@ -94,7 +94,7 @@ export function EventChartDialog({
   )
 }
 
-export function EventChartBody({
+export function AlertEventChartBody({
   event,
   compact = false,
   levelCondition,
@@ -127,7 +127,7 @@ export function EventChartBody({
       })
       .catch((err: unknown) => {
         if (alive) {
-          setError(formMessage(err, t("state.failed")))
+          setError(formErrorMessage(err, t("state.failed")))
         }
       })
       .finally(() => {

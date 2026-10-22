@@ -11,21 +11,21 @@ import (
 
 type SelfService struct {
 	v1.UnimplementedSelfServiceServer
-	auth       *auth.Usecase
-	namespaces *namespace.Usecase
-	roles      *role.Usecase
+	authenticator *auth.Authenticator
+	tenancy       *namespace.Tenancy
+	authority     *role.Authority
 }
 
-func NewSelfService(uc *auth.Usecase, namespaces *namespace.Usecase, roles *role.Usecase) *SelfService {
-	return &SelfService{auth: uc, namespaces: namespaces, roles: roles}
+func NewSelfService(authenticator *auth.Authenticator, tenancy *namespace.Tenancy, authority *role.Authority) *SelfService {
+	return &SelfService{authenticator: authenticator, tenancy: tenancy, authority: authority}
 }
 
 func (s *SelfService) GetSelfInfo(ctx context.Context, _ *v1.GetSelfInfoRequest) (*v1.GetSelfInfoResponse, error) {
-	account, err := s.auth.Self(ctx)
+	account, err := s.authenticator.Self(ctx)
 	if err != nil {
 		return nil, err
 	}
-	role, permissions, err := s.auth.SelfSystem(ctx)
+	role, permissions, err := s.authenticator.SelfSystem(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (s *SelfService) GetSelfInfo(ctx context.Context, _ *v1.GetSelfInfoRequest)
 }
 
 func (s *SelfService) ListSelfNamespaces(ctx context.Context, _ *v1.ListSelfNamespacesRequest) (*v1.ListSelfNamespacesResponse, error) {
-	items, err := s.namespaces.ListMine(ctx)
+	items, err := s.tenancy.ListMine(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (s *SelfService) ListSelfNamespaces(ctx context.Context, _ *v1.ListSelfName
 }
 
 func (s *SelfService) RefreshToken(ctx context.Context, _ *v1.RefreshTokenRequest) (*v1.RefreshTokenResponse, error) {
-	token, err := s.auth.Refresh(ctx)
+	token, err := s.authenticator.Refresh(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (s *SelfService) RefreshToken(ctx context.Context, _ *v1.RefreshTokenReques
 }
 
 func (s *SelfService) ChangeEmail(ctx context.Context, req *v1.ChangeEmailRequest) (*v1.ChangeEmailResponse, error) {
-	account, err := s.auth.ChangeEmail(ctx, req.GetEmail())
+	account, err := s.authenticator.ChangeEmail(ctx, req.GetEmail())
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (s *SelfService) ChangeEmail(ctx context.Context, req *v1.ChangeEmailReques
 }
 
 func (s *SelfService) ChangeAvatar(ctx context.Context, req *v1.ChangeAvatarRequest) (*v1.ChangeAvatarResponse, error) {
-	account, err := s.auth.ChangeAvatar(ctx, req.GetAvatar())
+	account, err := s.authenticator.ChangeAvatar(ctx, req.GetAvatar())
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (s *SelfService) ChangeAvatar(ctx context.Context, req *v1.ChangeAvatarRequ
 }
 
 func (s *SelfService) ChangeRemark(ctx context.Context, req *v1.ChangeRemarkRequest) (*v1.ChangeRemarkResponse, error) {
-	account, err := s.auth.ChangeRemark(ctx, req.GetRemark())
+	account, err := s.authenticator.ChangeRemark(ctx, req.GetRemark())
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (s *SelfService) ChangeRemark(ctx context.Context, req *v1.ChangeRemarkRequ
 }
 
 func (s *SelfService) ChangePhone(ctx context.Context, req *v1.ChangePhoneRequest) (*v1.ChangePhoneResponse, error) {
-	account, err := s.auth.ChangePhone(ctx, req.GetPhone())
+	account, err := s.authenticator.ChangePhone(ctx, req.GetPhone())
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (s *SelfService) ChangePhone(ctx context.Context, req *v1.ChangePhoneReques
 }
 
 func (s *SelfService) GetSelfPermissions(ctx context.Context, _ *v1.GetSelfPermissionsRequest) (*v1.GetSelfPermissionsResponse, error) {
-	names, err := s.roles.Mine(ctx)
+	names, err := s.authority.Mine(ctx)
 	if err != nil {
 		return nil, err
 	}

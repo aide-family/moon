@@ -24,7 +24,7 @@ type Sender struct {
 	log      *slog.Logger
 }
 
-func New(auth *conf.Auth, logger *slog.Logger) *Sender {
+func NewSender(auth *conf.Auth, logger *slog.Logger) *Sender {
 	sender := &Sender{log: logger}
 	if auth != nil && auth.GetSmtp() != nil {
 		sender.host = auth.GetSmtp().GetHost()

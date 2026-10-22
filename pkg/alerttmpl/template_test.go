@@ -10,7 +10,7 @@ import (
 
 func TestNewKeepsPrometheusAndMessageFields(t *testing.T) {
 	labels := map[string]string{"job": "api"}
-	data := New(labels, `{"job":"api"}`, 3, "http://prometheus.example", map[string]any{
+	data := NewData(labels, `{"job":"api"}`, 3, "http://prometheus.example", map[string]any{
 		"phase": "FIRING", "Value": "overridden",
 	})
 	if data["Value"] != 3.0 {
@@ -48,7 +48,7 @@ func TestRenderSupportsQuery(t *testing.T) {
 	query := func(context.Context, string, time.Time) ([]Sample, error) {
 		return []Sample{{Labels: map[string]string{"instance": "target"}, Value: 9}}, nil
 	}
-	data := New(map[string]string{"instance": "local"}, `{}`, 1, "", nil)
+	data := NewData(map[string]string{"instance": "local"}, `{}`, 1, "", nil)
 	got, err := Render(context.Background(),
 		`{{ with query "up" }}{{ with first . }}{{ .Labels.instance }}={{ value . }}{{ end }}{{ end }}`,
 		data, "t", time.Now(), query, nil)
@@ -61,7 +61,7 @@ func TestRenderSupportsQuery(t *testing.T) {
 }
 
 func TestRenderReportsBrokenTemplate(t *testing.T) {
-	if _, err := Render(context.Background(), "{{ .Labels ", New(nil, "{}", 0, "", nil), "t", time.Now(), nil, nil); err == nil {
+	if _, err := Render(context.Background(), "{{ .Labels ", NewData(nil, "{}", 0, "", nil), "t", time.Now(), nil, nil); err == nil {
 		t.Fatal("broken template accepted")
 	}
 }

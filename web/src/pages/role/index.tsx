@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { formMessage, readFormError } from "@/lib/form-error"
+import { formErrorMessage, readFormError } from "@/lib/form-error"
 
 import {
   createRole,
@@ -21,7 +21,7 @@ import { RowActions, type RowAction } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
 import { collectFieldErrors, hasFieldErrors, requireTrimmed } from "@/lib/form"
 import { usePagedList } from "@/hooks/use-paged-list"
-import { useListQuery } from "@/lib/list-query"
+import { useListQuery } from "@/hooks/use-list-query"
 import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -42,7 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { run } from "@/lib/action"
+import { runAction } from "@/lib/action"
 
 export function RolePage() {
   const { t } = useTranslation()
@@ -238,7 +238,7 @@ export function RolePage() {
             key: "enable",
             label: t("action.enable"),
             onSelect: () =>
-              run(
+              runAction(
                 updateRoleStatus(item.uid, "ACTIVE").then(() => reload()),
                 setError,
               ),
@@ -270,7 +270,7 @@ export function RolePage() {
       setConfirm(null)
       reload()
     } catch (err) {
-      setConfirmError(formMessage(err, t("state.failed")))
+      setConfirmError(formErrorMessage(err, t("state.failed")))
     } finally {
       setPending(false)
     }

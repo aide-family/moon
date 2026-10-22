@@ -7,7 +7,7 @@ import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker"
 
 import { listDatasourceMetrics } from "@/api/datasource"
 import { proxyQuery } from "@/api/metric-query"
-import { useMonacoOverflowNode } from "@/components/monaco-overflow"
+import { useMonacoOverflowNode } from "@/hooks/use-monaco-overflow-node"
 import { useTheme } from "@/components/theme-provider"
 
 let monacoReady = false
@@ -815,17 +815,17 @@ export function QueryExpressionEditor({
   )
 }
 
-export function PromqlEditor(props: QueryExpressionEditorProps) {
+export function PromQLEditor(props: QueryExpressionEditorProps) {
   return <QueryExpressionEditor {...props} />
 }
 
-export function LogqlEditor(
+export function LogQLEditor(
   props: Omit<QueryExpressionEditorProps, "variant">
 ) {
   return <QueryExpressionEditor {...props} variant="logql" />
 }
 
-export function LogsqlEditor(
+export function LogsQLEditor(
   props: Omit<QueryExpressionEditorProps, "variant">
 ) {
   return <QueryExpressionEditor {...props} variant="logsql" />

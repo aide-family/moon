@@ -35,7 +35,7 @@ func (testRoles) Permissions(context.Context, string, string) (map[string]struct
 func TestUpdateDatasourceLevelRecoversEvents(t *testing.T) {
 	source := testDSN(t)
 	ctx := context.Background()
-	store, cleanup, err := NewData(
+	store, cleanup, err := NewDependencies(
 		&conf.Data{Database: &conf.Data_Database{Source: source}},
 		&conf.Auth{EncryptKey: "dev-only-encrypt-key"},
 		slog.Default(),
@@ -87,11 +87,11 @@ func TestUpdateDatasourceLevelRecoversEvents(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	uc := datasource.NewUsecase(sources, dictionaries, events, access.Checker{
+	gateway := datasource.NewGateway(sources, dictionaries, events, access.Checker{
 		Namespaces: testNamespaces{}, Roles: testRoles{}, Log: slog.Default(),
 	})
 	runCtx := actor.WithUser(actor.WithNamespace(ctx, ns), userUID)
-	if _, err := uc.UpdateDatasource(runCtx, bo.Datasource{
+	if _, err := gateway.UpdateDatasource(runCtx, bo.Datasource{
 		UID: created.UID, NamespaceUID: ns, Name: "prom", Type: "METRICS", Driver: "METRICS_PROMETHEUS",
 		Endpoint: "http://127.0.0.1:9090", LevelUID: levels[1].UID, Labels: "{}",
 	}); err != nil {

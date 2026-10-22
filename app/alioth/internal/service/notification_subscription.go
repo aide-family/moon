@@ -11,15 +11,15 @@ import (
 
 type NotificationSubscriptionService struct {
 	v1.UnimplementedNotificationSubscriptionServiceServer
-	notify *notification.Usecase
+	center *notification.Center
 }
 
-func NewNotificationSubscriptionService(uc *notification.Usecase) *NotificationSubscriptionService {
-	return &NotificationSubscriptionService{notify: uc}
+func NewNotificationSubscriptionService(center *notification.Center) *NotificationSubscriptionService {
+	return &NotificationSubscriptionService{center: center}
 }
 
 func (s *NotificationSubscriptionService) CreateNotificationSubscription(ctx context.Context, req *v1.CreateNotificationSubscriptionRequest) (*v1.CreateNotificationSubscriptionResponse, error) {
-	item, err := s.notify.CreateSubscription(ctx, subscriptionInput("", req.GetName(), req.GetLabels(), req.GetLevelUids(), req.GetDatasourceUids(), req.GetGroupUids(), req.GetRemark()))
+	item, err := s.center.CreateSubscription(ctx, subscriptionInput("", req.GetName(), req.GetLabels(), req.GetLevelUids(), req.GetDatasourceUids(), req.GetGroupUids(), req.GetRemark()))
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func (s *NotificationSubscriptionService) CreateNotificationSubscription(ctx con
 }
 
 func (s *NotificationSubscriptionService) UpdateNotificationSubscription(ctx context.Context, req *v1.UpdateNotificationSubscriptionRequest) (*v1.UpdateNotificationSubscriptionResponse, error) {
-	item, err := s.notify.UpdateSubscription(ctx, subscriptionInput(req.GetUid(), req.GetName(), req.GetLabels(), req.GetLevelUids(), req.GetDatasourceUids(), req.GetGroupUids(), req.GetRemark()))
+	item, err := s.center.UpdateSubscription(ctx, subscriptionInput(req.GetUid(), req.GetName(), req.GetLabels(), req.GetLevelUids(), req.GetDatasourceUids(), req.GetGroupUids(), req.GetRemark()))
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (s *NotificationSubscriptionService) UpdateNotificationSubscription(ctx con
 }
 
 func (s *NotificationSubscriptionService) UpdateNotificationSubscriptionStatus(ctx context.Context, req *v1.UpdateNotificationSubscriptionStatusRequest) (*v1.UpdateNotificationSubscriptionStatusResponse, error) {
-	item, err := s.notify.UpdateSubscriptionStatus(ctx, req.GetUid(), req.GetStatus())
+	item, err := s.center.UpdateSubscriptionStatus(ctx, req.GetUid(), req.GetStatus())
 	if err != nil {
 		return nil, err
 	}
@@ -43,14 +43,14 @@ func (s *NotificationSubscriptionService) UpdateNotificationSubscriptionStatus(c
 }
 
 func (s *NotificationSubscriptionService) DeleteNotificationSubscription(ctx context.Context, req *v1.DeleteNotificationSubscriptionRequest) (*v1.DeleteNotificationSubscriptionResponse, error) {
-	if err := s.notify.DeleteSubscription(ctx, req.GetUid()); err != nil {
+	if err := s.center.DeleteSubscription(ctx, req.GetUid()); err != nil {
 		return nil, err
 	}
 	return &v1.DeleteNotificationSubscriptionResponse{}, nil
 }
 
 func (s *NotificationSubscriptionService) GetNotificationSubscription(ctx context.Context, req *v1.GetNotificationSubscriptionRequest) (*v1.GetNotificationSubscriptionResponse, error) {
-	item, err := s.notify.GetSubscription(ctx, req.GetUid())
+	item, err := s.center.GetSubscription(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (s *NotificationSubscriptionService) GetNotificationSubscription(ctx contex
 }
 
 func (s *NotificationSubscriptionService) ListNotificationSubscriptions(ctx context.Context, req *v1.ListNotificationSubscriptionsRequest) (*v1.ListNotificationSubscriptionsResponse, error) {
-	items, total, page, pageSize, err := s.notify.ListSubscriptions(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
+	items, total, page, pageSize, err := s.center.ListSubscriptions(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
 	if err != nil {
 		return nil, err
 	}

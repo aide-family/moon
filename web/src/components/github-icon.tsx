@@ -1,5 +1,5 @@
 // GitHub 品牌图标。lucide 1.x 已移除品牌图标，这里用官方 mark 的路径并跟随文字颜色。
-export function GithubIcon({ className }: { className?: string }) {
+export function GitHubIcon({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"

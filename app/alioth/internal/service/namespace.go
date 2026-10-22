@@ -9,15 +9,15 @@ import (
 
 type NamespaceService struct {
 	v1.UnimplementedNamespaceServiceServer
-	namespaces *namespace.Usecase
+	tenancy *namespace.Tenancy
 }
 
-func NewNamespaceService(uc *namespace.Usecase) *NamespaceService {
-	return &NamespaceService{namespaces: uc}
+func NewNamespaceService(tenancy *namespace.Tenancy) *NamespaceService {
+	return &NamespaceService{tenancy: tenancy}
 }
 
 func (s *NamespaceService) CreateNamespace(ctx context.Context, req *v1.CreateNamespaceRequest) (*v1.CreateNamespaceResponse, error) {
-	item, err := s.namespaces.CreateNamespace(ctx, req.GetName(), req.GetRemark())
+	item, err := s.tenancy.CreateNamespace(ctx, req.GetName(), req.GetRemark())
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func (s *NamespaceService) CreateNamespace(ctx context.Context, req *v1.CreateNa
 }
 
 func (s *NamespaceService) UpdateNamespace(ctx context.Context, req *v1.UpdateNamespaceRequest) (*v1.UpdateNamespaceResponse, error) {
-	item, err := s.namespaces.UpdateNamespace(ctx, req.GetUid(), req.GetName(), req.GetRemark(), req.GetLogo())
+	item, err := s.tenancy.UpdateNamespace(ctx, req.GetUid(), req.GetName(), req.GetRemark(), req.GetLogo())
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (s *NamespaceService) UpdateNamespace(ctx context.Context, req *v1.UpdateNa
 }
 
 func (s *NamespaceService) UpdateNamespaceStatus(ctx context.Context, req *v1.UpdateNamespaceStatusRequest) (*v1.UpdateNamespaceStatusResponse, error) {
-	item, err := s.namespaces.UpdateNamespaceStatus(ctx, req.GetUid(), req.GetStatus())
+	item, err := s.tenancy.UpdateNamespaceStatus(ctx, req.GetUid(), req.GetStatus())
 	if err != nil {
 		return nil, err
 	}
@@ -41,14 +41,14 @@ func (s *NamespaceService) UpdateNamespaceStatus(ctx context.Context, req *v1.Up
 }
 
 func (s *NamespaceService) DeleteNamespace(ctx context.Context, req *v1.DeleteNamespaceRequest) (*v1.DeleteNamespaceResponse, error) {
-	if err := s.namespaces.DeleteNamespace(ctx, req.GetUid()); err != nil {
+	if err := s.tenancy.DeleteNamespace(ctx, req.GetUid()); err != nil {
 		return nil, err
 	}
 	return &v1.DeleteNamespaceResponse{}, nil
 }
 
 func (s *NamespaceService) GetNamespace(ctx context.Context, req *v1.GetNamespaceRequest) (*v1.GetNamespaceResponse, error) {
-	item, err := s.namespaces.GetNamespace(ctx, req.GetUid())
+	item, err := s.tenancy.GetNamespace(ctx, req.GetUid())
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (s *NamespaceService) GetNamespace(ctx context.Context, req *v1.GetNamespac
 }
 
 func (s *NamespaceService) ListNamespaces(ctx context.Context, req *v1.ListNamespacesRequest) (*v1.ListNamespacesResponse, error) {
-	items, total, page, pageSize, err := s.namespaces.ListNamespaces(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
+	items, total, page, pageSize, err := s.tenancy.ListNamespaces(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (s *NamespaceService) ListNamespaces(ctx context.Context, req *v1.ListNames
 }
 
 func (s *NamespaceService) SelectNamespaces(ctx context.Context, req *v1.SelectNamespacesRequest) (*v1.SelectNamespacesResponse, error) {
-	items, err := s.namespaces.SelectNamespaces(ctx, req.GetLimit(), req.GetLastUid())
+	items, err := s.tenancy.SelectNamespaces(ctx, req.GetLimit(), req.GetLastUid())
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (s *NamespaceService) SelectNamespaces(ctx context.Context, req *v1.SelectN
 }
 
 func (s *NamespaceService) ListSimpleNamespaces(ctx context.Context, req *v1.ListSimpleNamespacesRequest) (*v1.ListSimpleNamespacesResponse, error) {
-	items, total, _, _, err := s.namespaces.ListNamespaces(ctx, req.GetPage(), req.GetPageSize(), "")
+	items, total, _, _, err := s.tenancy.ListNamespaces(ctx, req.GetPage(), req.GetPageSize(), "")
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (s *NamespaceService) ListSimpleNamespaces(ctx context.Context, req *v1.Lis
 }
 
 func (s *NamespaceService) TransferNamespaceOwner(ctx context.Context, req *v1.TransferNamespaceOwnerRequest) (*v1.TransferNamespaceOwnerResponse, error) {
-	item, err := s.namespaces.TransferOwner(ctx, req.GetUid(), req.GetUserUid())
+	item, err := s.tenancy.TransferOwner(ctx, req.GetUid(), req.GetUserUid())
 	if err != nil {
 		return nil, err
 	}

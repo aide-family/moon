@@ -26,6 +26,16 @@ description: >-
 
 同一父目录下的包不能互相 import。父包可以汇总子包的 ProviderSet。
 
+## 命名
+
+完整规则见 [docs/iterations/conventions.md](../../../docs/iterations/conventions.md#命名)，`make lint` 会跑 `scripts/check-naming.sh`。要点：
+
+- 类型名说明业务对象或业务行为，不用 `Usecase`、`Biz`、`Manager`、`Helper`、`Util`、`Impl`、`Common`、`Base` 这类层次名。`Data` 只有在包名已经限定业务时保留（`alerttmpl.Data`），`data.Data` 不行。
+- biz 类型用业务角色：`Authenticator`（认证与会话）、`Coordinator`（告警事件调度与处置）、`Registry`（Agent 注册与在线连接）、`Membership`（成员与邀请）、`Inbox`（系统消息）、`Gateway`（数据源配置与查询出口）。
+- 构造函数写 `New<类型>`；参数用注入对象的业务名；接收者用类型名小写（`func (registry *Registry)`），不用 `this`、`self`、`uc`、`d`。
+- service 类型与 proto service 同名，字段用 biz 业务名（`AlertEventService{coordinator *alertevent.Coordinator}`）；仓储接口 `<聚合>Repo`；data 层实现不导出，共享容器叫 `Dependencies`。
+- 同一概念在各层用同一个词干，缩写只用 `HTTP`、`gRPC`、`SSH`、`ID`、`UID`、`URL`、`DSN`、`JWT`、`TLS`、`SQL`、`API`。
+
 biz 的关键判断要写清为什么拒绝、状态怎么变、以及和别的领域怎么配合。
 
 每个手写包有 `doc.go`。手写 Go 的 import 按空白导入、标准库、第三方、本仓库四组排列，组间空一行。生成的 `ent`、`*.pb.go`、`wire_gen.go` 不手改。proto 的 service、rpc、message 和字段都写中文注释。

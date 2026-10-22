@@ -17,7 +17,7 @@ import (
 	"github.com/aide-family/Alioth/pkg/merr"
 )
 
-var ProviderSet = wire.NewSet(NewUsecase)
+var ProviderSet = wire.NewSet(NewLayout)
 
 const (
 	tabMine  = "mine"
@@ -27,18 +27,18 @@ const (
 	MaxRealtimeTabs = 10
 )
 
-// Usecase 管理告警页面定义与实时 Tab 订阅。
-type Usecase struct {
+// Layout 管理告警页面定义与实时 Tab 订阅。
+type Layout struct {
 	pages  repository.AlertPageRepo
 	access access.Checker
 }
 
-func NewUsecase(pages repository.AlertPageRepo, checker access.Checker) *Usecase {
-	return &Usecase{pages: pages, access: checker}
+func NewLayout(pages repository.AlertPageRepo, checker access.Checker) *Layout {
+	return &Layout{pages: pages, access: checker}
 }
 
-func (uc *Usecase) Create(ctx context.Context, in bo.AlertPage) (*bo.AlertPage, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertWrite)
+func (layout *Layout) Create(ctx context.Context, in bo.AlertPage) (*bo.AlertPage, error) {
+	ns, err := layout.access.Allow(ctx, perm.AlertWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -55,12 +55,12 @@ func (uc *Usecase) Create(ctx context.Context, in bo.AlertPage) (*bo.AlertPage, 
 	in.Name = strings.TrimSpace(in.Name)
 	in.Labels = labels
 	in.Remark = strings.TrimSpace(in.Remark)
-	item, err := uc.pages.CreateAlertPage(ctx, in)
-	return item, uc.access.Wrap(err)
+	item, err := layout.pages.CreateAlertPage(ctx, in)
+	return item, layout.access.Wrap(err)
 }
 
-func (uc *Usecase) Update(ctx context.Context, in bo.AlertPage) (*bo.AlertPage, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertWrite)
+func (layout *Layout) Update(ctx context.Context, in bo.AlertPage) (*bo.AlertPage, error) {
+	ns, err := layout.access.Allow(ctx, perm.AlertWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -68,9 +68,9 @@ func (uc *Usecase) Update(ctx context.Context, in bo.AlertPage) (*bo.AlertPage, 
 	if !ok {
 		return nil, merr.Unauthenticated("unauthorized")
 	}
-	existing, err := uc.pages.GetAlertPage(ctx, ns, in.UID)
+	existing, err := layout.pages.GetAlertPage(ctx, ns, in.UID)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, layout.access.Wrap(err)
 	}
 	if existing.OwnerUID != userUID {
 		return nil, merr.Forbidden("forbidden")
@@ -83,12 +83,12 @@ func (uc *Usecase) Update(ctx context.Context, in bo.AlertPage) (*bo.AlertPage, 
 	in.Name = strings.TrimSpace(in.Name)
 	in.Labels = labels
 	in.Remark = strings.TrimSpace(in.Remark)
-	item, err := uc.pages.UpdateAlertPage(ctx, in)
-	return item, uc.access.Wrap(err)
+	item, err := layout.pages.UpdateAlertPage(ctx, in)
+	return item, layout.access.Wrap(err)
 }
 
-func (uc *Usecase) Delete(ctx context.Context, uid string) error {
-	ns, err := uc.access.Allow(ctx, perm.AlertWrite)
+func (layout *Layout) Delete(ctx context.Context, uid string) error {
+	ns, err := layout.access.Allow(ctx, perm.AlertWrite)
 	if err != nil {
 		return err
 	}
@@ -96,18 +96,18 @@ func (uc *Usecase) Delete(ctx context.Context, uid string) error {
 	if !ok {
 		return merr.Unauthenticated("unauthorized")
 	}
-	existing, err := uc.pages.GetAlertPage(ctx, ns, uid)
+	existing, err := layout.pages.GetAlertPage(ctx, ns, uid)
 	if err != nil {
-		return uc.access.Wrap(err)
+		return layout.access.Wrap(err)
 	}
 	if existing.OwnerUID != userUID {
 		return merr.Forbidden("forbidden")
 	}
-	return uc.access.Wrap(uc.pages.DeleteAlertPage(ctx, ns, uid))
+	return layout.access.Wrap(layout.pages.DeleteAlertPage(ctx, ns, uid))
 }
 
-func (uc *Usecase) Get(ctx context.Context, uid string) (*bo.AlertPage, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertRead)
+func (layout *Layout) Get(ctx context.Context, uid string) (*bo.AlertPage, error) {
+	ns, err := layout.access.Allow(ctx, perm.AlertRead)
 	if err != nil {
 		return nil, err
 	}
@@ -115,9 +115,9 @@ func (uc *Usecase) Get(ctx context.Context, uid string) (*bo.AlertPage, error) {
 	if !ok {
 		return nil, merr.Unauthenticated("unauthorized")
 	}
-	item, err := uc.pages.GetAlertPage(ctx, ns, uid)
+	item, err := layout.pages.GetAlertPage(ctx, ns, uid)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, layout.access.Wrap(err)
 	}
 	if item.OwnerUID != userUID && !item.Public {
 		return nil, merr.Forbidden("forbidden")
@@ -125,8 +125,8 @@ func (uc *Usecase) Get(ctx context.Context, uid string) (*bo.AlertPage, error) {
 	return item, nil
 }
 
-func (uc *Usecase) List(ctx context.Context, pageNo, pageSize int32, name, scope string) ([]bo.AlertPage, int, int, int, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertRead)
+func (layout *Layout) List(ctx context.Context, pageNo, pageSize int32, name, scope string) ([]bo.AlertPage, int, int, int, error) {
+	ns, err := layout.access.Allow(ctx, perm.AlertRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
@@ -141,12 +141,12 @@ func (uc *Usecase) List(ctx context.Context, pageNo, pageSize int32, name, scope
 		return nil, 0, 0, 0, merr.Invalid("invalid request")
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.pages.ListAlertPages(ctx, ns, userUID, scope, strings.TrimSpace(name), p, s)
-	return items, total, p, s, uc.access.Wrap(err)
+	items, total, err := layout.pages.ListAlertPages(ctx, ns, userUID, scope, strings.TrimSpace(name), p, s)
+	return items, total, p, s, layout.access.Wrap(err)
 }
 
-func (uc *Usecase) ListMyTabs(ctx context.Context) ([]bo.RealtimeAlertTab, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertRead)
+func (layout *Layout) ListMyTabs(ctx context.Context) ([]bo.RealtimeAlertTab, error) {
+	ns, err := layout.access.Allow(ctx, perm.AlertRead)
 	if err != nil {
 		return nil, err
 	}
@@ -154,15 +154,15 @@ func (uc *Usecase) ListMyTabs(ctx context.Context) ([]bo.RealtimeAlertTab, error
 	if !ok {
 		return nil, merr.Unauthenticated("unauthorized")
 	}
-	pages, err := uc.pages.ListUserAlertPages(ctx, ns, userUID)
+	pages, err := layout.pages.ListUserAlertPages(ctx, ns, userUID)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, layout.access.Wrap(err)
 	}
 	return buildTabs(pages), nil
 }
 
-func (uc *Usecase) SetMyTabs(ctx context.Context, pageUIDs []string) ([]bo.RealtimeAlertTab, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertRead)
+func (layout *Layout) SetMyTabs(ctx context.Context, pageUIDs []string) ([]bo.RealtimeAlertTab, error) {
+	ns, err := layout.access.Allow(ctx, perm.AlertRead)
 	if err != nil {
 		return nil, err
 	}
@@ -175,20 +175,20 @@ func (uc *Usecase) SetMyTabs(ctx context.Context, pageUIDs []string) ([]bo.Realt
 		return nil, merr.Invalid("too many alert pages")
 	}
 	if len(unique) > 0 {
-		allowed, err := uc.pages.ListSelectableByUIDs(ctx, ns, userUID, unique)
+		allowed, err := layout.pages.ListSelectableByUIDs(ctx, ns, userUID, unique)
 		if err != nil {
-			return nil, uc.access.Wrap(err)
+			return nil, layout.access.Wrap(err)
 		}
 		if len(allowed) != len(unique) {
 			return nil, merr.Forbidden("forbidden")
 		}
 	}
-	if err := uc.pages.SetUserAlertPages(ctx, ns, userUID, unique); err != nil {
-		return nil, uc.access.Wrap(err)
+	if err := layout.pages.SetUserAlertPages(ctx, ns, userUID, unique); err != nil {
+		return nil, layout.access.Wrap(err)
 	}
-	pages, err := uc.pages.ListUserAlertPages(ctx, ns, userUID)
+	pages, err := layout.pages.ListUserAlertPages(ctx, ns, userUID)
 	if err != nil {
-		return nil, uc.access.Wrap(err)
+		return nil, layout.access.Wrap(err)
 	}
 	return buildTabs(pages), nil
 }
@@ -240,8 +240,8 @@ var allowedFieldColumns = map[string]struct{}{
 }
 
 // GetColumns 读取当前用户在 mine 或某个告警页面上的列配置。
-func (uc *Usecase) GetColumns(ctx context.Context, scope string) ([]bo.AlertColumn, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertRead)
+func (layout *Layout) GetColumns(ctx context.Context, scope string) ([]bo.AlertColumn, error) {
+	ns, err := layout.access.Allow(ctx, perm.AlertRead)
 	if err != nil {
 		return nil, err
 	}
@@ -249,15 +249,15 @@ func (uc *Usecase) GetColumns(ctx context.Context, scope string) ([]bo.AlertColu
 	if !ok {
 		return nil, merr.Unauthenticated("unauthorized")
 	}
-	if err := uc.requireScope(ctx, ns, userUID, scope); err != nil {
+	if err := layout.requireScope(ctx, ns, userUID, scope); err != nil {
 		return nil, err
 	}
-	return uc.pages.GetAlertColumns(ctx, ns, userUID, scope)
+	return layout.pages.GetAlertColumns(ctx, ns, userUID, scope)
 }
 
 // SetColumns 覆盖保存当前用户在 mine 或某个告警页面上的列配置。
-func (uc *Usecase) SetColumns(ctx context.Context, scope string, columns []bo.AlertColumn) ([]bo.AlertColumn, error) {
-	ns, err := uc.access.Allow(ctx, perm.AlertRead)
+func (layout *Layout) SetColumns(ctx context.Context, scope string, columns []bo.AlertColumn) ([]bo.AlertColumn, error) {
+	ns, err := layout.access.Allow(ctx, perm.AlertRead)
 	if err != nil {
 		return nil, err
 	}
@@ -269,17 +269,17 @@ func (uc *Usecase) SetColumns(ctx context.Context, scope string, columns []bo.Al
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.requireScope(ctx, ns, userUID, scope); err != nil {
+	if err := layout.requireScope(ctx, ns, userUID, scope); err != nil {
 		return nil, err
 	}
-	if err := uc.pages.SetAlertColumns(ctx, ns, userUID, scope, normalized); err != nil {
-		return nil, uc.access.Wrap(err)
+	if err := layout.pages.SetAlertColumns(ctx, ns, userUID, scope, normalized); err != nil {
+		return nil, layout.access.Wrap(err)
 	}
 	return normalized, nil
 }
 
 // requireScope 校验视图标识。mine 固定可用；告警页面必须是当前用户自己的或公开的。
-func (uc *Usecase) requireScope(ctx context.Context, namespaceUID, userUID, scope string) error {
+func (layout *Layout) requireScope(ctx context.Context, namespaceUID, userUID, scope string) error {
 	scope = strings.TrimSpace(scope)
 	if scope == tabMine {
 		return nil
@@ -287,9 +287,9 @@ func (uc *Usecase) requireScope(ctx context.Context, namespaceUID, userUID, scop
 	if scope == "" {
 		return merr.Invalid("invalid request")
 	}
-	item, err := uc.pages.GetAlertPage(ctx, namespaceUID, scope)
+	item, err := layout.pages.GetAlertPage(ctx, namespaceUID, scope)
 	if err != nil {
-		return uc.access.Wrap(err)
+		return layout.access.Wrap(err)
 	}
 	if item.OwnerUID != userUID && !item.Public {
 		return merr.Forbidden("forbidden")

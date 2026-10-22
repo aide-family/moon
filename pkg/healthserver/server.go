@@ -24,9 +24,9 @@ type Readiness interface {
 	Ready(context.Context) error
 }
 
-// New 构造健康检查 HTTP 服务。
+// NewServer 构造健康检查 HTTP 服务。
 // /livez 只证明进程存活；/readyz 检查依赖；/health 保留旧契约给探针和脚本。
-func New(addr, network string, timeout time.Duration, health Health, ready Readiness, logger *slog.Logger) (*khttp.Server, error) {
+func NewServer(addr, network string, timeout time.Duration, health Health, ready Readiness, logger *slog.Logger) (*khttp.Server, error) {
 	if addr == "" {
 		return nil, merr.Server("http addr is empty")
 	}
