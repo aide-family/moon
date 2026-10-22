@@ -444,6 +444,26 @@ func TypeNotIn(vs ...Type) predicate.NotificationTemplate {
 	return predicate.NotificationTemplate(sql.FieldNotIn(FieldType, vs...))
 }
 
+// AppEQ applies the EQ predicate on the "app" field.
+func AppEQ(v App) predicate.NotificationTemplate {
+	return predicate.NotificationTemplate(sql.FieldEQ(FieldApp, v))
+}
+
+// AppNEQ applies the NEQ predicate on the "app" field.
+func AppNEQ(v App) predicate.NotificationTemplate {
+	return predicate.NotificationTemplate(sql.FieldNEQ(FieldApp, v))
+}
+
+// AppIn applies the In predicate on the "app" field.
+func AppIn(vs ...App) predicate.NotificationTemplate {
+	return predicate.NotificationTemplate(sql.FieldIn(FieldApp, vs...))
+}
+
+// AppNotIn applies the NotIn predicate on the "app" field.
+func AppNotIn(vs ...App) predicate.NotificationTemplate {
+	return predicate.NotificationTemplate(sql.FieldNotIn(FieldApp, vs...))
+}
+
 // StatusEQ applies the EQ predicate on the "status" field.
 func StatusEQ(v Status) predicate.NotificationTemplate {
 	return predicate.NotificationTemplate(sql.FieldEQ(FieldStatus, v))

@@ -102,6 +102,20 @@ func (_c *UserCreate) SetNillableAvatar(v *string) *UserCreate {
 	return _c
 }
 
+// SetPhone sets the "phone" field.
+func (_c *UserCreate) SetPhone(v string) *UserCreate {
+	_c.mutation.SetPhone(v)
+	return _c
+}
+
+// SetNillablePhone sets the "phone" field if the given value is not nil.
+func (_c *UserCreate) SetNillablePhone(v *string) *UserCreate {
+	if v != nil {
+		_c.SetPhone(*v)
+	}
+	return _c
+}
+
 // SetRemark sets the "remark" field.
 func (_c *UserCreate) SetRemark(v string) *UserCreate {
 	_c.mutation.SetRemark(v)
@@ -227,6 +241,10 @@ func (_c *UserCreate) defaults() {
 		v := user.DefaultAvatar
 		_c.mutation.SetAvatar(v)
 	}
+	if _, ok := _c.mutation.Phone(); !ok {
+		v := user.DefaultPhone
+		_c.mutation.SetPhone(v)
+	}
 	if _, ok := _c.mutation.Remark(); !ok {
 		v := user.DefaultRemark
 		_c.mutation.SetRemark(v)
@@ -281,6 +299,9 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.Avatar(); !ok {
 		return &ValidationError{Name: "avatar", err: errors.New(`ent: missing required field "User.avatar"`)}
+	}
+	if _, ok := _c.mutation.Phone(); !ok {
+		return &ValidationError{Name: "phone", err: errors.New(`ent: missing required field "User.phone"`)}
 	}
 	if _, ok := _c.mutation.Remark(); !ok {
 		return &ValidationError{Name: "remark", err: errors.New(`ent: missing required field "User.remark"`)}
@@ -360,6 +381,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Avatar(); ok {
 		_spec.SetField(user.FieldAvatar, field.TypeString, value)
 		_node.Avatar = value
+	}
+	if value, ok := _c.mutation.Phone(); ok {
+		_spec.SetField(user.FieldPhone, field.TypeString, value)
+		_node.Phone = value
 	}
 	if value, ok := _c.mutation.Remark(); ok {
 		_spec.SetField(user.FieldRemark, field.TypeString, value)

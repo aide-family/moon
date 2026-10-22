@@ -2,8 +2,10 @@ package notification
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log/slog"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -17,6 +19,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/page"
 	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
+	"github.com/aide-family/Alioth/pkg/alerttmpl"
 	"github.com/aide-family/Alioth/pkg/lock"
 	"github.com/aide-family/Alioth/pkg/merr"
 )
@@ -80,8 +83,12 @@ func (uc *Usecase) CreateChannel(ctx context.Context, in bo.NotificationChannel)
 	if err != nil {
 		return nil, err
 	}
+	normalizeChannel(&in)
 	if err := validateChannel(in); err != nil {
 		return nil, err
+	}
+	if in.Type == channelTypeSMS && strings.TrimSpace(in.Password) == "" {
+		return nil, merr.Invalid("sms access key is required")
 	}
 	if strings.TrimSpace(in.Name) == "" {
 		return nil, merr.Invalid("name is required")
@@ -97,6 +104,7 @@ func (uc *Usecase) UpdateChannel(ctx context.Context, in bo.NotificationChannel)
 	if err != nil {
 		return nil, err
 	}
+	normalizeChannel(&in)
 	if err := validateChannel(in); err != nil {
 		return nil, err
 	}
@@ -135,13 +143,13 @@ func (uc *Usecase) GetChannel(ctx context.Context, uid string) (*bo.Notification
 	return redactChannel(item), uc.access.Wrap(err)
 }
 
-func (uc *Usecase) ListChannels(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.NotificationChannel, int, int, int, error) {
+func (uc *Usecase) ListChannels(ctx context.Context, pageNo, pageSize int32, name, kind, app string) ([]bo.NotificationChannel, int, int, int, error) {
 	ns, err := uc.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.repo.ListChannels(ctx, ns, p, s, strings.TrimSpace(name))
+	items, total, err := uc.repo.ListChannels(ctx, ns, p, s, strings.TrimSpace(name), kind, app)
 	out := make([]bo.NotificationChannel, 0, len(items))
 	for i := range items {
 		if item := redactChannel(&items[i]); item != nil {
@@ -223,6 +231,7 @@ func (uc *Usecase) CreateTemplate(ctx context.Context, in bo.NotificationTemplat
 	if err != nil {
 		return nil, err
 	}
+	normalizeTemplate(&in)
 	if err := validateTemplate(in); err != nil {
 		return nil, err
 	}
@@ -240,6 +249,7 @@ func (uc *Usecase) UpdateTemplate(ctx context.Context, in bo.NotificationTemplat
 	if err != nil {
 		return nil, err
 	}
+	normalizeTemplate(&in)
 	if err := validateTemplate(in); err != nil {
 		return nil, err
 	}
@@ -278,13 +288,13 @@ func (uc *Usecase) GetTemplate(ctx context.Context, uid string) (*bo.Notificatio
 	return item, uc.access.Wrap(err)
 }
 
-func (uc *Usecase) ListTemplates(ctx context.Context, pageNo, pageSize int32, name string) ([]bo.NotificationTemplate, int, int, int, error) {
+func (uc *Usecase) ListTemplates(ctx context.Context, pageNo, pageSize int32, name, kind, app string) ([]bo.NotificationTemplate, int, int, int, error) {
 	ns, err := uc.access.Allow(ctx, perm.NotificationRead)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
 	p, s := page.Normalize(pageNo, pageSize)
-	items, total, err := uc.repo.ListTemplates(ctx, ns, p, s, strings.TrimSpace(name))
+	items, total, err := uc.repo.ListTemplates(ctx, ns, p, s, strings.TrimSpace(name), kind, app)
 	return items, total, p, s, uc.access.Wrap(err)
 }
 
@@ -308,6 +318,79 @@ func (uc *Usecase) ListPresets(ctx context.Context) ([]bo.NotificationPreset, er
 
 func (uc *Usecase) TestTemplate(ctx context.Context, templateUID, channelUID, receivers, params string) (string, error) {
 	return uc.TestChannel(ctx, channelUID, templateUID, receivers, "", "", params)
+}
+
+// PreviewTemplate 用固定的 mock 事件渲染模板，只用于编辑器和预设页预览，不创建任务。
+// 渲染和投递共用 pkg/alerttmpl，因此预览里能用的字段、函数与真实发送一致。
+func (uc *Usecase) PreviewTemplate(ctx context.Context, in bo.NotificationTemplate) (string, string, error) {
+	if _, err := uc.access.Allow(ctx, perm.NotificationRead); err != nil {
+		return "", "", err
+	}
+	normalizeTemplate(&in)
+	switch in.Type {
+	case templateTypeEmail, templateTypeHook, templateTypeSMS:
+	default:
+		return "", "", merr.Invalid("invalid template type")
+	}
+	if err := alerttmpl.Validate(in.Subject, "subject"); err != nil {
+		return "", "", merr.Invalid("invalid subject template")
+	}
+	if err := alerttmpl.Validate(in.Body, "body"); err != nil {
+		return "", "", merr.Invalid("invalid body template")
+	}
+	labels := map[string]string{
+		"app": "metallb", "namespace": "metallb-system", "pod": "controller-6bb4fd4547-fhvh4",
+		"job": "kubernetes-pods", "instance": "192.168.182.10:7472",
+		"alert_level": "P0", "datasource": "prometheus", "datasource_level": "低优",
+	}
+	labelsJSON, _ := json.Marshal(labels)
+	externalURL := "http://prometheus.example.com/graph"
+	params := map[string]any{
+		"summary":         "测试告警：metallb controller 不可用",
+		"description":     "这是 mock 数据，用于预览模板渲染效果。",
+		"phase":           "FIRING",
+		"eventUid":        "evt-preview-0001",
+		"ruleUid":         "rule-preview-0001",
+		"subscriptionUid": "sub-preview-0001",
+		"groupUid":        "group-preview-0001",
+		"fingerprint":     "fp-preview-0001",
+		"externalURL":     externalURL,
+	}
+	data := alerttmpl.New(labels, string(labelsJSON), 1, externalURL, params)
+	parsedURL, _ := url.Parse(externalURL)
+	renderCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+	renderedSubject, err := alerttmpl.Render(renderCtx, in.Subject, data, "subject", time.Now(), nil, parsedURL)
+	if err != nil {
+		return "", "", merr.Invalid("invalid subject template")
+	}
+	renderedBody, err := alerttmpl.Render(renderCtx, in.Body, data, "body", time.Now(), nil, parsedURL)
+	if err != nil {
+		return "", "", merr.Invalid("invalid body template")
+	}
+	return renderedSubject, renderedBody, nil
+}
+
+func normalizeChannel(in *bo.NotificationChannel) {
+	in.Type = strings.ToUpper(strings.TrimSpace(in.Type))
+	in.App = strings.ToUpper(strings.TrimSpace(in.App))
+	if in.Type == channelTypeSMTP || in.Type == channelTypeSMS {
+		in.App = appSMSAliCloud
+		if in.Type == channelTypeSMTP {
+			in.App = "OTHER"
+		}
+	}
+}
+
+func normalizeTemplate(in *bo.NotificationTemplate) {
+	in.Type = strings.ToUpper(strings.TrimSpace(in.Type))
+	in.App = strings.ToUpper(strings.TrimSpace(in.App))
+	if in.Type == templateTypeEmail || in.Type == templateTypeSMS {
+		in.App = "OTHER"
+	}
+	if in.App == "" {
+		in.App = "OTHER"
+	}
 }
 
 func (uc *Usecase) CreateGroup(ctx context.Context, in bo.NotificationGroup) (*bo.NotificationGroup, error) {

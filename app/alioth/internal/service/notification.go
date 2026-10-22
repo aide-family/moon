@@ -60,7 +60,7 @@ func (s *NotificationChannelService) GetNotificationChannel(ctx context.Context,
 }
 
 func (s *NotificationChannelService) ListNotificationChannels(ctx context.Context, req *v1.ListNotificationChannelsRequest) (*v1.ListNotificationChannelsResponse, error) {
-	items, total, page, pageSize, err := s.notify.ListChannels(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
+	items, total, page, pageSize, err := s.notify.ListChannels(ctx, req.GetPage(), req.GetPageSize(), req.GetName(), req.GetType(), req.GetApp())
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (s *NotificationTemplateService) ListNotificationPresets(ctx context.Contex
 	out := make([]*v1.NotificationPresetItem, 0, len(items))
 	for i := range items {
 		out = append(out, &v1.NotificationPresetItem{
-			Uid: items[i].UID, Name: items[i].Name, Type: items[i].Type,
+			Uid: items[i].UID, Name: items[i].Name, Type: items[i].Type, App: items[i].App,
 			Subject: items[i].Subject, Body: items[i].Body, Description: items[i].Description,
 		})
 	}
@@ -109,7 +109,8 @@ func (s *NotificationTemplateService) ListNotificationPresets(ctx context.Contex
 
 func (s *NotificationTemplateService) CreateNotificationTemplate(ctx context.Context, req *v1.CreateNotificationTemplateRequest) (*v1.CreateNotificationTemplateResponse, error) {
 	item, err := s.notify.CreateTemplate(ctx, bo.NotificationTemplate{
-		Name: req.GetName(), Type: req.GetType(), Subject: req.GetSubject(), Body: req.GetBody(), Remark: req.GetRemark(),
+		Name: req.GetName(), Type: req.GetType(), App: req.GetApp(),
+		Subject: req.GetSubject(), Body: req.GetBody(), Remark: req.GetRemark(),
 	})
 	if err != nil {
 		return nil, err
@@ -119,7 +120,8 @@ func (s *NotificationTemplateService) CreateNotificationTemplate(ctx context.Con
 
 func (s *NotificationTemplateService) UpdateNotificationTemplate(ctx context.Context, req *v1.UpdateNotificationTemplateRequest) (*v1.UpdateNotificationTemplateResponse, error) {
 	item, err := s.notify.UpdateTemplate(ctx, bo.NotificationTemplate{
-		UID: req.GetUid(), Name: req.GetName(), Type: req.GetType(), Subject: req.GetSubject(), Body: req.GetBody(), Remark: req.GetRemark(),
+		UID: req.GetUid(), Name: req.GetName(), Type: req.GetType(), App: req.GetApp(),
+		Subject: req.GetSubject(), Body: req.GetBody(), Remark: req.GetRemark(),
 	})
 	if err != nil {
 		return nil, err
@@ -151,7 +153,7 @@ func (s *NotificationTemplateService) GetNotificationTemplate(ctx context.Contex
 }
 
 func (s *NotificationTemplateService) ListNotificationTemplates(ctx context.Context, req *v1.ListNotificationTemplatesRequest) (*v1.ListNotificationTemplatesResponse, error) {
-	items, total, page, pageSize, err := s.notify.ListTemplates(ctx, req.GetPage(), req.GetPageSize(), req.GetName())
+	items, total, page, pageSize, err := s.notify.ListTemplates(ctx, req.GetPage(), req.GetPageSize(), req.GetName(), req.GetType(), req.GetApp())
 	if err != nil {
 		return nil, err
 	}
@@ -174,6 +176,16 @@ func (s *NotificationTemplateService) TestNotificationTemplate(ctx context.Conte
 	return &v1.TestNotificationTemplateResponse{TaskUid: uid}, nil
 }
 
+func (s *NotificationTemplateService) PreviewNotificationTemplate(ctx context.Context, req *v1.PreviewNotificationTemplateRequest) (*v1.PreviewNotificationTemplateResponse, error) {
+	subject, body, err := s.notify.PreviewTemplate(ctx, bo.NotificationTemplate{
+		Type: req.GetType(), App: req.GetApp(), Subject: req.GetSubject(), Body: req.GetBody(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.PreviewNotificationTemplateResponse{Subject: subject, Body: body}, nil
+}
+
 type NotificationGroupService struct {
 	v1.UnimplementedNotificationGroupServiceServer
 	notify *notification.Usecase
@@ -184,12 +196,7 @@ func NewNotificationGroupService(uc *notification.Usecase) *NotificationGroupSer
 }
 
 func (s *NotificationGroupService) CreateNotificationGroup(ctx context.Context, req *v1.CreateNotificationGroupRequest) (*v1.CreateNotificationGroupResponse, error) {
-	item, err := s.notify.CreateGroup(ctx, bo.NotificationGroup{
-		Name: req.GetName(), ChannelUID: req.GetChannelUid(), TemplateUID: req.GetTemplateUid(),
-		Receivers: req.GetReceivers(), MemberUIDs: req.GetMemberUids(),
-		WebhookChannelUIDs: req.GetWebhookChannelUids(), WebhookTemplateUID: req.GetWebhookTemplateUid(),
-		Remark: req.GetRemark(),
-	})
+	item, err := s.notify.CreateGroup(ctx, createGroupInput(req))
 	if err != nil {
 		return nil, err
 	}
@@ -197,12 +204,7 @@ func (s *NotificationGroupService) CreateNotificationGroup(ctx context.Context, 
 }
 
 func (s *NotificationGroupService) UpdateNotificationGroup(ctx context.Context, req *v1.UpdateNotificationGroupRequest) (*v1.UpdateNotificationGroupResponse, error) {
-	item, err := s.notify.UpdateGroup(ctx, bo.NotificationGroup{
-		UID: req.GetUid(), Name: req.GetName(), ChannelUID: req.GetChannelUid(), TemplateUID: req.GetTemplateUid(),
-		Receivers: req.GetReceivers(), MemberUIDs: req.GetMemberUids(),
-		WebhookChannelUIDs: req.GetWebhookChannelUids(), WebhookTemplateUID: req.GetWebhookTemplateUid(),
-		Remark: req.GetRemark(),
-	})
+	item, err := s.notify.UpdateGroup(ctx, updateGroupInput(req))
 	if err != nil {
 		return nil, err
 	}
@@ -361,6 +363,30 @@ func (s *NotifyService) ReportWorkerStatus(ctx context.Context, req *merakv1.Rep
 	return &merakv1.ReportWorkerStatusResponse{}, nil
 }
 
+func createGroupInput(req *v1.CreateNotificationGroupRequest) bo.NotificationGroup {
+	return bo.NotificationGroup{
+		Name: req.GetName(), ChannelUID: req.GetChannelUid(), TemplateUID: req.GetTemplateUid(),
+		Receivers: req.GetReceivers(), MemberUIDs: req.GetMemberUids(),
+		WebhookChannelUIDs: req.GetWebhookChannelUids(), WebhookTemplateUID: req.GetWebhookTemplateUid(),
+		ChannelUIDs: req.GetChannelUids(), TemplateUIDs: req.GetTemplateUids(),
+		EmailReceivers: req.GetEmailReceivers(), SMSReceivers: req.GetSmsReceivers(),
+		EmailMemberUIDs: req.GetEmailMemberUids(), SMSMemberUIDs: req.GetSmsMemberUids(),
+		Remark: req.GetRemark(),
+	}
+}
+
+func updateGroupInput(req *v1.UpdateNotificationGroupRequest) bo.NotificationGroup {
+	return bo.NotificationGroup{
+		UID: req.GetUid(), Name: req.GetName(), ChannelUID: req.GetChannelUid(), TemplateUID: req.GetTemplateUid(),
+		Receivers: req.GetReceivers(), MemberUIDs: req.GetMemberUids(),
+		WebhookChannelUIDs: req.GetWebhookChannelUids(), WebhookTemplateUID: req.GetWebhookTemplateUid(),
+		ChannelUIDs: req.GetChannelUids(), TemplateUIDs: req.GetTemplateUids(),
+		EmailReceivers: req.GetEmailReceivers(), SMSReceivers: req.GetSmsReceivers(),
+		EmailMemberUIDs: req.GetEmailMemberUids(), SMSMemberUIDs: req.GetSmsMemberUids(),
+		Remark: req.GetRemark(),
+	}
+}
+
 func channelInput(uid, name, kind, app, endpoint, username, password, secret, from, remark string) bo.NotificationChannel {
 	return bo.NotificationChannel{
 		UID: uid, Name: name, Type: kind, App: app, Endpoint: endpoint, Username: username,
@@ -386,7 +412,7 @@ func channelItems(items []bo.NotificationChannel) []*v1.NotificationChannelItem 
 
 func templateItem(item bo.NotificationTemplate) *v1.NotificationTemplateItem {
 	return &v1.NotificationTemplateItem{
-		Uid: item.UID, Name: item.Name, Type: item.Type, Status: item.Status,
+		Uid: item.UID, Name: item.Name, Type: item.Type, App: item.App, Status: item.Status,
 		Subject: item.Subject, Body: item.Body, Remark: item.Remark,
 	}
 }
@@ -401,10 +427,13 @@ func templateItems(items []bo.NotificationTemplate) []*v1.NotificationTemplateIt
 
 func notifyGroupItem(item bo.NotificationGroup) *v1.NotificationGroupItem {
 	return &v1.NotificationGroupItem{
-		Uid: item.UID, Name: item.Name, Status: item.Status, ChannelUid: item.ChannelUID,
-		TemplateUid: item.TemplateUID, Receivers: item.Receivers, Remark: item.Remark,
-		MemberUids: item.MemberUIDs, WebhookChannelUids: item.WebhookChannelUIDs,
-		WebhookTemplateUid: item.WebhookTemplateUID,
+		Uid: item.UID, Name: item.Name, Status: item.Status,
+		ChannelUid: item.ChannelUID, TemplateUid: item.TemplateUID, Receivers: item.Receivers,
+		Remark: item.Remark, MemberUids: item.MemberUIDs,
+		WebhookChannelUids: item.WebhookChannelUIDs, WebhookTemplateUid: item.WebhookTemplateUID,
+		ChannelUids: item.ChannelUIDs, TemplateUids: item.TemplateUIDs,
+		EmailReceivers: item.EmailReceivers, SmsReceivers: item.SMSReceivers,
+		EmailMemberUids: item.EmailMemberUIDs, SmsMemberUids: item.SMSMemberUIDs,
 	}
 }
 
@@ -421,6 +450,7 @@ func messageLogItem(item bo.MessageLog) *v1.MessageLogItem {
 		Uid: item.UID, TaskUid: item.TaskUID, Status: item.Status, ChannelUid: item.ChannelUID,
 		TemplateUid: item.TemplateUID, Sender: item.Sender, Receivers: item.Receivers,
 		Subject: item.Subject, Content: item.Content, Detail: item.Detail,
+		GroupName: item.GroupName, SubscriptionName: item.SubscriptionName,
 		CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339),
 	}
 }
@@ -440,6 +470,8 @@ func taskItem(item bo.NotificationTask) *v1.NotificationTaskItem {
 		ChannelUid: item.ChannelUID, TemplateUid: item.TemplateUID, Sender: item.Sender,
 		Receivers: item.Receivers, Subject: item.Subject, Content: item.Content,
 		RetriesLeft: int32(item.RetriesLeft), LastError: item.LastError,
+		GroupName: item.GroupName, SubscriptionName: item.SubscriptionName,
+		ChannelName: item.ChannelName, TemplateName: item.TemplateName,
 	}
 }
 

@@ -90,6 +90,20 @@ func (_u *UserUpdate) SetNillableAvatar(v *string) *UserUpdate {
 	return _u
 }
 
+// SetPhone sets the "phone" field.
+func (_u *UserUpdate) SetPhone(v string) *UserUpdate {
+	_u.mutation.SetPhone(v)
+	return _u
+}
+
+// SetNillablePhone sets the "phone" field if the given value is not nil.
+func (_u *UserUpdate) SetNillablePhone(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetPhone(*v)
+	}
+	return _u
+}
+
 // SetRemark sets the "remark" field.
 func (_u *UserUpdate) SetRemark(v string) *UserUpdate {
 	_u.mutation.SetRemark(v)
@@ -248,6 +262,9 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Avatar(); ok {
 		_spec.SetField(user.FieldAvatar, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Phone(); ok {
+		_spec.SetField(user.FieldPhone, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(user.FieldRemark, field.TypeString, value)
 	}
@@ -341,6 +358,20 @@ func (_u *UserUpdateOne) SetAvatar(v string) *UserUpdateOne {
 func (_u *UserUpdateOne) SetNillableAvatar(v *string) *UserUpdateOne {
 	if v != nil {
 		_u.SetAvatar(*v)
+	}
+	return _u
+}
+
+// SetPhone sets the "phone" field.
+func (_u *UserUpdateOne) SetPhone(v string) *UserUpdateOne {
+	_u.mutation.SetPhone(v)
+	return _u
+}
+
+// SetNillablePhone sets the "phone" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillablePhone(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetPhone(*v)
 	}
 	return _u
 }
@@ -532,6 +563,9 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.Avatar(); ok {
 		_spec.SetField(user.FieldAvatar, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Phone(); ok {
+		_spec.SetField(user.FieldPhone, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(user.FieldRemark, field.TypeString, value)

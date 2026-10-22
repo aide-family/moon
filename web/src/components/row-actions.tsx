@@ -52,12 +52,12 @@ export function RowActions({
   if (inline.length > 2 || (forceMenu && actions.length > 0)) {
     return (
       <div className={rowClass}>
-        <Button variant="outline" size="sm" onClick={onDetail}>
+        <Button variant="link" size="sm" className="h-auto px-0" onClick={onDetail}>
           {detailLabel}
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button variant="link" size="sm" className="h-auto px-0">
               {moreLabel}
             </Button>
           </DropdownMenuTrigger>
@@ -93,8 +93,9 @@ export function RowActions({
       ].map((action) => (
         <Button
           key={action.key}
-          variant={action.destructive ? "destructive" : "outline"}
+          variant={action.destructive ? "destructive" : "link"}
           size="sm"
+          className={action.destructive ? undefined : "h-auto px-0"}
           onClick={action.onSelect}
         >
           {action.label}

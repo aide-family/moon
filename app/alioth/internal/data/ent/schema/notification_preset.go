@@ -20,7 +20,9 @@ func (NotificationPreset) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("uid").NotEmpty().Immutable(),
 		field.String("name").NotEmpty(),
-		field.Enum("type").Values("EMAIL", "WEBHOOK"),
+		field.Enum("type").Values("EMAIL", "WEBHOOK", "SMS_ALICLOUD"),
+		// app 区分 Webhook 预设的应用；OTHER 是通用模板。
+		field.Enum("app").Values("OTHER", "DINGTALK", "WECHAT", "FEISHU", "SMS_ALICLOUD").Default("OTHER"),
 		field.String("subject").Default(""),
 		field.String("body").Default(""),
 		field.String("description").Default(""),

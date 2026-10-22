@@ -201,7 +201,7 @@ export function AlertPageManagePage() {
                 <TableHead>{t("alertPage.name")}</TableHead>
                 <TableHead>{t("alertPage.labels")}</TableHead>
                 <TableHead>{t("alertPage.visibility")}</TableHead>
-                <TableHead />
+                <TableHead className="text-right">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

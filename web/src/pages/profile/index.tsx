@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import { changeRemark, getSelfInfo } from "@/api/self"
+import { changePhone, changeRemark, getSelfInfo } from "@/api/self"
 import type { UserItem } from "@/api/user/types"
 import { useSession } from "@/auth/session"
 import { FormField } from "@/components/form-field"
@@ -29,6 +29,7 @@ export function ProfilePage() {
   const session = useSession()
   const [user, setUser] = useState<UserItem | null>(null)
   const [remark, setRemark] = useState("")
+  const [phone, setPhone] = useState("")
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
   const [loadError, setLoadError] = useState("")
@@ -52,6 +53,7 @@ export function ProfilePage() {
         }
         setUser(info.user)
         setRemark(info.user.remark)
+        setPhone(info.user.phone ?? "")
         setSaved(false)
       } catch (err) {
         if (active) {
@@ -71,7 +73,8 @@ export function ProfilePage() {
   }, [attempt])
 
   const profile = user ?? session.user
-  const dirty = !!user && remark !== user.remark
+  const phoneDirty = !!user && phone !== (user.phone ?? "")
+  const dirty = !!user && (remark !== user.remark || phoneDirty)
   const displayName =
     profile?.nickname || profile?.name || profile?.email || "—"
 
@@ -85,9 +88,16 @@ export function ProfilePage() {
     setFormError("")
     setSaved(false)
     try {
-      const info = await changeRemark(remark.trim())
+      let info = await getSelfInfo()
+      if (phoneDirty) {
+        info = await changePhone(phone.trim())
+      }
+      if (remark !== info.user.remark) {
+        info = await changeRemark(remark.trim())
+      }
       setUser(info.user)
       setRemark(info.user.remark)
+      setPhone(info.user.phone ?? "")
       setSaved(true)
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
@@ -153,6 +163,25 @@ export function ProfilePage() {
                 noValidate
                 onSubmit={onSubmit}
               >
+                <FormField
+                  label={t("profile.phone")}
+                  htmlFor="profile-phone"
+                  hint={t("profile.phoneHint")}
+                  error={fieldErrors.phone}
+                >
+                  <Input
+                    id="profile-phone"
+                    value={phone}
+                    placeholder={t("profile.phonePlaceholder")}
+                    aria-invalid={fieldErrors.phone ? true : undefined}
+                    onChange={(event) => {
+                      setPhone(event.target.value)
+                      setSaved(false)
+                      setFormError("")
+                      setFieldErrors({})
+                    }}
+                  />
+                </FormField>
                 <FormField
                   label={t("profile.remark")}
                   htmlFor="profile-remark"

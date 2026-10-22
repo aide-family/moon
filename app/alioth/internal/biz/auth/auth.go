@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log/slog"
+	"regexp"
 	"strings"
 	"time"
 
@@ -29,6 +30,8 @@ import (
 )
 
 var ProviderSet = wire.NewSet(NewUsecase)
+
+var phonePattern = regexp.MustCompile(`^\+?[0-9]{6,20}$`)
 
 // AgentTokenLookup 用明文 Agent 令牌解析机器。只给 Connect 用。
 type AgentTokenLookup interface {
@@ -337,7 +340,7 @@ func (uc *Usecase) ChangeEmail(ctx context.Context, email string) (*bo.Account, 
 	if err != nil && !merr.IsNotFound(err) {
 		return nil, uc.wrap(err)
 	}
-	account, err := uc.users.UpdateUserProfile(ctx, uid, &email, nil, nil)
+	account, err := uc.users.UpdateUserProfile(ctx, uid, &email, nil, nil, nil)
 	if err != nil {
 		return nil, uc.wrap(err)
 	}
@@ -350,7 +353,7 @@ func (uc *Usecase) ChangeAvatar(ctx context.Context, avatar string) (*bo.Account
 	if !ok {
 		return nil, merr.Unauthenticated("missing token")
 	}
-	account, err := uc.users.UpdateUserProfile(ctx, uid, nil, &avatar, nil)
+	account, err := uc.users.UpdateUserProfile(ctx, uid, nil, nil, &avatar, nil)
 	if err != nil {
 		return nil, uc.wrap(err)
 	}
@@ -363,7 +366,24 @@ func (uc *Usecase) ChangeRemark(ctx context.Context, remark string) (*bo.Account
 	if !ok {
 		return nil, merr.Unauthenticated("missing token")
 	}
-	account, err := uc.users.UpdateUserProfile(ctx, uid, nil, nil, &remark)
+	account, err := uc.users.UpdateUserProfile(ctx, uid, nil, nil, nil, &remark)
+	if err != nil {
+		return nil, uc.wrap(err)
+	}
+	cleaned := publicAccount(*account)
+	return &cleaned, nil
+}
+
+func (uc *Usecase) ChangePhone(ctx context.Context, phone string) (*bo.Account, error) {
+	uid, ok := actor.UserID(ctx)
+	if !ok {
+		return nil, merr.Unauthenticated("missing token")
+	}
+	phone = strings.TrimSpace(phone)
+	if phone != "" && !phonePattern.MatchString(phone) {
+		return nil, merr.Invalid("invalid phone number")
+	}
+	account, err := uc.users.UpdateUserProfile(ctx, uid, nil, &phone, nil, nil)
 	if err != nil {
 		return nil, uc.wrap(err)
 	}

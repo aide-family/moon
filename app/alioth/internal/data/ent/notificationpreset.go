@@ -27,6 +27,8 @@ type NotificationPreset struct {
 	Name string `json:"name,omitempty"`
 	// Type holds the value of the "type" field.
 	Type notificationpreset.Type `json:"type,omitempty"`
+	// App holds the value of the "app" field.
+	App notificationpreset.App `json:"app,omitempty"`
 	// Subject holds the value of the "subject" field.
 	Subject string `json:"subject,omitempty"`
 	// Body holds the value of the "body" field.
@@ -47,7 +49,7 @@ func (*NotificationPreset) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case notificationpreset.FieldID, notificationpreset.FieldSort:
 			values[i] = new(sql.NullInt64)
-		case notificationpreset.FieldUID, notificationpreset.FieldName, notificationpreset.FieldType, notificationpreset.FieldSubject, notificationpreset.FieldBody, notificationpreset.FieldDescription, notificationpreset.FieldStatus:
+		case notificationpreset.FieldUID, notificationpreset.FieldName, notificationpreset.FieldType, notificationpreset.FieldApp, notificationpreset.FieldSubject, notificationpreset.FieldBody, notificationpreset.FieldDescription, notificationpreset.FieldStatus:
 			values[i] = new(sql.NullString)
 		case notificationpreset.FieldCreatedAt, notificationpreset.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -101,6 +103,12 @@ func (_m *NotificationPreset) assignValues(columns []string, values []any) error
 				return fmt.Errorf("unexpected type %T for field type", values[i])
 			} else if value.Valid {
 				_m.Type = notificationpreset.Type(value.String)
+			}
+		case notificationpreset.FieldApp:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field app", values[i])
+			} else if value.Valid {
+				_m.App = notificationpreset.App(value.String)
 			}
 		case notificationpreset.FieldSubject:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -182,6 +190,9 @@ func (_m *NotificationPreset) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Type))
+	builder.WriteString(", ")
+	builder.WriteString("app=")
+	builder.WriteString(fmt.Sprintf("%v", _m.App))
 	builder.WriteString(", ")
 	builder.WriteString("subject=")
 	builder.WriteString(_m.Subject)

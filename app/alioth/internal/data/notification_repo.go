@@ -13,6 +13,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationgroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationpreset"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscription"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationsubscriptiongroup"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtask"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtemplate"
@@ -131,7 +132,7 @@ func (r *notificationRepo) DeleteChannel(ctx context.Context, namespaceUID, uid 
 		return r.fail(err)
 	}
 	for _, group := range groups {
-		if group.ChannelUID == uid || containsString(group.WebhookChannelUids, uid) {
+		if group.ChannelUID == uid || containsString(group.ChannelUids, uid) || containsString(group.WebhookChannelUids, uid) {
 			return merr.Conflict("channel is used by a notification group")
 		}
 	}
@@ -162,10 +163,16 @@ func (r *notificationRepo) GetChannel(ctx context.Context, namespaceUID, uid str
 	return &item, nil
 }
 
-func (r *notificationRepo) ListChannels(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.NotificationChannel, int, error) {
+func (r *notificationRepo) ListChannels(ctx context.Context, namespaceUID string, page, pageSize int, name, kind, app string) ([]bo.NotificationChannel, int, error) {
 	query := r.client.NotificationChannel.Query().Where(notificationchannel.NamespaceUIDEQ(namespaceUID), notificationchannel.DeletedAtIsNil())
 	if name != "" {
 		query = query.Where(notificationchannel.NameContainsFold(name))
+	}
+	if kind = strings.ToUpper(strings.TrimSpace(kind)); kind != "" {
+		query = query.Where(notificationchannel.TypeEQ(notificationchannel.Type(kind)))
+	}
+	if app = strings.ToUpper(strings.TrimSpace(app)); app != "" {
+		query = query.Where(notificationchannel.AppEQ(notificationchannel.App(app)))
 	}
 	total, err := query.Count(ctx)
 	if err != nil {
@@ -207,11 +214,16 @@ func (r *notificationRepo) CreateTemplate(ctx context.Context, in bo.Notificatio
 	if err != nil {
 		return nil, err
 	}
+	app, err := templateApp(in.App)
+	if err != nil {
+		return nil, err
+	}
 	row, err := r.client.NotificationTemplate.Create().
 		SetUID(id.New()).
 		SetNamespaceUID(in.NamespaceUID).
 		SetName(in.Name).
 		SetType(kind).
+		SetApp(app).
 		SetStatus(status).
 		SetSubject(in.Subject).
 		SetBody(in.Body).
@@ -237,9 +249,14 @@ func (r *notificationRepo) UpdateTemplate(ctx context.Context, in bo.Notificatio
 	if err != nil {
 		return nil, err
 	}
+	app, err := templateApp(in.App)
+	if err != nil {
+		return nil, err
+	}
 	updated, err := r.client.NotificationTemplate.UpdateOne(row).
 		SetName(in.Name).
 		SetType(kind).
+		SetApp(app).
 		SetSubject(in.Subject).
 		SetBody(in.Body).
 		SetRemark(in.Remark).
@@ -273,19 +290,17 @@ func (r *notificationRepo) UpdateTemplateStatus(ctx context.Context, namespaceUI
 }
 
 func (r *notificationRepo) DeleteTemplate(ctx context.Context, namespaceUID, uid string) error {
-	used, err := r.client.NotificationGroup.Query().Where(
+	groups, err := r.client.NotificationGroup.Query().Where(
 		notificationgroup.NamespaceUIDEQ(namespaceUID),
 		notificationgroup.DeletedAtIsNil(),
-		notificationgroup.Or(
-			notificationgroup.TemplateUIDEQ(uid),
-			notificationgroup.WebhookTemplateUIDEQ(uid),
-		),
-	).Exist(ctx)
+	).All(ctx)
 	if err != nil {
 		return r.fail(err)
 	}
-	if used {
-		return merr.Conflict("template is used by a notification group")
+	for _, group := range groups {
+		if group.TemplateUID == uid || group.WebhookTemplateUID == uid || containsString(group.TemplateUids, uid) {
+			return merr.Conflict("template is used by a notification group")
+		}
 	}
 	n, err := r.client.NotificationTemplate.Update().Where(
 		notificationtemplate.NamespaceUIDEQ(namespaceUID),
@@ -314,10 +329,16 @@ func (r *notificationRepo) GetTemplate(ctx context.Context, namespaceUID, uid st
 	return &item, nil
 }
 
-func (r *notificationRepo) ListTemplates(ctx context.Context, namespaceUID string, page, pageSize int, name string) ([]bo.NotificationTemplate, int, error) {
+func (r *notificationRepo) ListTemplates(ctx context.Context, namespaceUID string, page, pageSize int, name, kind, app string) ([]bo.NotificationTemplate, int, error) {
 	query := r.client.NotificationTemplate.Query().Where(notificationtemplate.NamespaceUIDEQ(namespaceUID), notificationtemplate.DeletedAtIsNil())
 	if name != "" {
 		query = query.Where(notificationtemplate.NameContainsFold(name))
+	}
+	if kind = strings.ToUpper(strings.TrimSpace(kind)); kind != "" {
+		query = query.Where(notificationtemplate.TypeEQ(notificationtemplate.Type(kind)))
+	}
+	if app = strings.ToUpper(strings.TrimSpace(app)); app != "" {
+		query = query.Where(notificationtemplate.AppEQ(notificationtemplate.App(app)))
 	}
 	total, err := query.Count(ctx)
 	if err != nil {
@@ -365,8 +386,8 @@ func (r *notificationRepo) ListPresets(ctx context.Context) ([]bo.NotificationPr
 	items := make([]bo.NotificationPreset, 0, len(rows))
 	for _, row := range rows {
 		items = append(items, bo.NotificationPreset{
-			UID: row.UID, Name: row.Name, Type: string(row.Type), Subject: row.Subject,
-			Body: row.Body, Description: row.Description, Sort: row.Sort,
+			UID: row.UID, Name: row.Name, Type: string(row.Type), App: string(row.App),
+			Subject: row.Subject, Body: row.Body, Description: row.Description, Sort: row.Sort,
 		})
 	}
 	return items, nil
@@ -378,6 +399,13 @@ func (r *notificationRepo) CreateGroup(ctx context.Context, in bo.NotificationGr
 		SetNamespaceUID(in.NamespaceUID).
 		SetName(in.Name).
 		SetStatus(notificationgroup.StatusACTIVE).
+		SetChannelUids(in.ChannelUIDs).
+		SetTemplateUids(in.TemplateUIDs).
+		SetEmailReceivers(in.EmailReceivers).
+		SetSmsReceivers(in.SMSReceivers).
+		SetEmailMemberUids(in.EmailMemberUIDs).
+		SetSmsMemberUids(in.SMSMemberUIDs).
+		// 旧字段同时写入，保证回滚到旧版本时仍有可用数据。
 		SetChannelUID(in.ChannelUID).
 		SetTemplateUID(in.TemplateUID).
 		SetReceivers(in.Receivers).
@@ -404,6 +432,12 @@ func (r *notificationRepo) UpdateGroup(ctx context.Context, in bo.NotificationGr
 	}
 	updated, err := r.client.NotificationGroup.UpdateOne(row).
 		SetName(in.Name).
+		SetChannelUids(in.ChannelUIDs).
+		SetTemplateUids(in.TemplateUIDs).
+		SetEmailReceivers(in.EmailReceivers).
+		SetSmsReceivers(in.SMSReceivers).
+		SetEmailMemberUids(in.EmailMemberUIDs).
+		SetSmsMemberUids(in.SMSMemberUIDs).
 		SetChannelUID(in.ChannelUID).
 		SetTemplateUID(in.TemplateUID).
 		SetReceivers(in.Receivers).
@@ -571,7 +605,111 @@ func (r *notificationRepo) ListTasks(ctx context.Context, namespaceUID, status s
 	for _, row := range rows {
 		items = append(items, toNotificationTask(row))
 	}
+	if err := r.fillTaskNames(ctx, namespaceUID, items); err != nil {
+		return nil, 0, err
+	}
 	return items, total, nil
+}
+
+// fillTaskNames 给任务列表补出通知组、订阅、渠道和模板名称。
+// 这些记录可能已经软删除，名称仍要显示，方便定位历史投递来源。
+func (r *notificationRepo) fillTaskNames(ctx context.Context, namespaceUID string, items []bo.NotificationTask) error {
+	if len(items) == 0 {
+		return nil
+	}
+	groupUIDs := make([]string, 0, len(items))
+	subscriptionUIDs := make([]string, 0, len(items))
+	channelUIDs := make([]string, 0, len(items))
+	templateUIDs := make([]string, 0, len(items))
+	for _, item := range items {
+		if item.GroupUID != "" {
+			groupUIDs = append(groupUIDs, item.GroupUID)
+		}
+		if item.SubscriptionUID != "" {
+			subscriptionUIDs = append(subscriptionUIDs, item.SubscriptionUID)
+		}
+		if item.ChannelUID != "" {
+			channelUIDs = append(channelUIDs, item.ChannelUID)
+		}
+		if item.TemplateUID != "" {
+			templateUIDs = append(templateUIDs, item.TemplateUID)
+		}
+	}
+	groupNames, err := func() (map[string]string, error) {
+		rows, err := r.client.NotificationGroup.Query().Where(
+			notificationgroup.NamespaceUIDEQ(namespaceUID),
+			notificationgroup.UIDIn(uniqueStrings(groupUIDs)...),
+		).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		out := make(map[string]string, len(rows))
+		for _, row := range rows {
+			out[row.UID] = row.Name
+		}
+		return out, nil
+	}()
+	if err != nil {
+		return r.fail(err)
+	}
+	subscriptionNames, err := func() (map[string]string, error) {
+		rows, err := r.client.NotificationSubscription.Query().Where(
+			notificationsubscription.NamespaceUIDEQ(namespaceUID),
+			notificationsubscription.UIDIn(uniqueStrings(subscriptionUIDs)...),
+		).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		out := make(map[string]string, len(rows))
+		for _, row := range rows {
+			out[row.UID] = row.Name
+		}
+		return out, nil
+	}()
+	if err != nil {
+		return r.fail(err)
+	}
+	channelNames, err := func() (map[string]string, error) {
+		rows, err := r.client.NotificationChannel.Query().Where(
+			notificationchannel.NamespaceUIDEQ(namespaceUID),
+			notificationchannel.UIDIn(uniqueStrings(channelUIDs)...),
+		).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		out := make(map[string]string, len(rows))
+		for _, row := range rows {
+			out[row.UID] = row.Name
+		}
+		return out, nil
+	}()
+	if err != nil {
+		return r.fail(err)
+	}
+	templateNames, err := func() (map[string]string, error) {
+		rows, err := r.client.NotificationTemplate.Query().Where(
+			notificationtemplate.NamespaceUIDEQ(namespaceUID),
+			notificationtemplate.UIDIn(uniqueStrings(templateUIDs)...),
+		).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		out := make(map[string]string, len(rows))
+		for _, row := range rows {
+			out[row.UID] = row.Name
+		}
+		return out, nil
+	}()
+	if err != nil {
+		return r.fail(err)
+	}
+	for i := range items {
+		items[i].GroupName = groupNames[items[i].GroupUID]
+		items[i].SubscriptionName = subscriptionNames[items[i].SubscriptionUID]
+		items[i].ChannelName = channelNames[items[i].ChannelUID]
+		items[i].TemplateName = templateNames[items[i].TemplateUID]
+	}
+	return nil
 }
 
 func (r *notificationRepo) RetryTask(ctx context.Context, namespaceUID, uid string) (*bo.NotificationTask, error) {
@@ -662,7 +800,82 @@ func (r *notificationRepo) ListMessageLogs(ctx context.Context, namespaceUID, ta
 	for _, row := range rows {
 		items = append(items, toMessageLog(row))
 	}
+	if err := r.fillLogSources(ctx, namespaceUID, items); err != nil {
+		return nil, 0, err
+	}
 	return items, total, nil
+}
+
+// fillLogSources 沿着消息日志的任务标识补出通知组和订阅名称。
+// 用户看到一封邮件时可以直接判断它来自哪个订阅，而不是只看渠道和接收方。
+func (r *notificationRepo) fillLogSources(ctx context.Context, namespaceUID string, items []bo.MessageLog) error {
+	if len(items) == 0 {
+		return nil
+	}
+	taskUIDs := make([]string, 0, len(items))
+	for _, item := range items {
+		if item.TaskUID != "" {
+			taskUIDs = append(taskUIDs, item.TaskUID)
+		}
+	}
+	taskUIDs = uniqueStrings(taskUIDs)
+	if len(taskUIDs) == 0 {
+		return nil
+	}
+	tasks, err := r.client.NotificationTask.Query().Where(
+		notificationtask.NamespaceUIDEQ(namespaceUID),
+		notificationtask.UIDIn(taskUIDs...),
+	).All(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	byTask := make(map[string]*ent.NotificationTask, len(tasks))
+	groupUIDs := make([]string, 0, len(tasks))
+	subscriptionUIDs := make([]string, 0, len(tasks))
+	for _, task := range tasks {
+		byTask[task.UID] = task
+		if task.GroupUID != "" {
+			groupUIDs = append(groupUIDs, task.GroupUID)
+		}
+		if task.SubscriptionUID != "" {
+			subscriptionUIDs = append(subscriptionUIDs, task.SubscriptionUID)
+		}
+	}
+	groupNames := map[string]string{}
+	if values := uniqueStrings(groupUIDs); len(values) > 0 {
+		rows, err := r.client.NotificationGroup.Query().Where(
+			notificationgroup.NamespaceUIDEQ(namespaceUID),
+			notificationgroup.UIDIn(values...),
+		).All(ctx)
+		if err != nil {
+			return r.fail(err)
+		}
+		for _, row := range rows {
+			groupNames[row.UID] = row.Name
+		}
+	}
+	subscriptionNames := map[string]string{}
+	if values := uniqueStrings(subscriptionUIDs); len(values) > 0 {
+		rows, err := r.client.NotificationSubscription.Query().Where(
+			notificationsubscription.NamespaceUIDEQ(namespaceUID),
+			notificationsubscription.UIDIn(values...),
+		).All(ctx)
+		if err != nil {
+			return r.fail(err)
+		}
+		for _, row := range rows {
+			subscriptionNames[row.UID] = row.Name
+		}
+	}
+	for i := range items {
+		task := byTask[items[i].TaskUID]
+		if task == nil {
+			continue
+		}
+		items[i].GroupName = groupNames[task.GroupUID]
+		items[i].SubscriptionName = subscriptionNames[task.SubscriptionUID]
+	}
+	return nil
 }
 
 func (r *notificationRepo) GetMessageLog(ctx context.Context, namespaceUID, uid string) (*bo.MessageLog, error) {
@@ -965,17 +1178,43 @@ func toNotificationChannel(row *ent.NotificationChannel) bo.NotificationChannel 
 func toNotificationTemplate(row *ent.NotificationTemplate) bo.NotificationTemplate {
 	return bo.NotificationTemplate{
 		UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name,
-		Type: string(row.Type), Status: string(row.Status), Subject: row.Subject, Body: row.Body, Remark: row.Remark,
+		Type: string(row.Type), App: string(row.App), Status: string(row.Status), Subject: row.Subject, Body: row.Body, Remark: row.Remark,
 	}
 }
 
 func toNotificationGroup(row *ent.NotificationGroup) bo.NotificationGroup {
+	channelUIDs := row.ChannelUids
+	templateUIDs := row.TemplateUids
+	emailReceivers := row.EmailReceivers
+	emailMembers := row.EmailMemberUids
+	// 历史数据只有旧版单渠道字段时，读出来直接映射成新结构，避免升级后通知组不可编辑。
+	if len(channelUIDs) == 0 && row.ChannelUID != "" {
+		channelUIDs = append([]string{row.ChannelUID}, row.WebhookChannelUids...)
+		templateUIDs = append([]string{row.TemplateUID}, repeatedString(row.WebhookTemplateUID, len(row.WebhookChannelUids))...)
+		emailReceivers = row.Receivers
+		emailMembers = row.MemberUids
+	}
 	return bo.NotificationGroup{
 		UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name, Status: string(row.Status),
+		ChannelUIDs: channelUIDs, TemplateUIDs: templateUIDs,
+		EmailReceivers: emailReceivers, SMSReceivers: row.SmsReceivers,
+		EmailMemberUIDs: emailMembers, SMSMemberUIDs: row.SmsMemberUids,
+		Remark:     row.Remark,
 		ChannelUID: row.ChannelUID, TemplateUID: row.TemplateUID, Receivers: row.Receivers,
 		MemberUIDs: row.MemberUids, WebhookChannelUIDs: row.WebhookChannelUids,
-		WebhookTemplateUID: row.WebhookTemplateUID, Remark: row.Remark,
+		WebhookTemplateUID: row.WebhookTemplateUID,
 	}
+}
+
+func repeatedString(value string, count int) []string {
+	if value == "" || count <= 0 {
+		return nil
+	}
+	out := make([]string, count)
+	for i := range out {
+		out[i] = value
+	}
+	return out
 }
 
 func toNotificationTask(row *ent.NotificationTask) bo.NotificationTask {
@@ -998,7 +1237,7 @@ func toMessageLog(row *ent.MessageLog) bo.MessageLog {
 }
 
 func channelEnums(kind, app, status string) (notificationchannel.Type, notificationchannel.App, notificationchannel.Status, error) {
-	if kind != "SMTP" && kind != "WEBHOOK" {
+	if kind != "SMTP" && kind != "WEBHOOK" && kind != "SMS" {
 		return "", "", "", merr.Invalid("invalid request")
 	}
 	switch app {
@@ -1013,6 +1252,15 @@ func channelEnums(kind, app, status string) (notificationchannel.Type, notificat
 		return "", "", "", merr.Invalid("invalid request")
 	}
 	return notificationchannel.Type(kind), notificationchannel.App(app), st, nil
+}
+
+func templateApp(app string) (notificationtemplate.App, error) {
+	switch app {
+	case "OTHER", "DINGTALK", "WECHAT", "FEISHU", "SMS_ALICLOUD":
+		return notificationtemplate.App(app), nil
+	default:
+		return "", merr.Invalid("invalid request")
+	}
 }
 
 func templateEnums(kind, status string) (notificationtemplate.Type, notificationtemplate.Status, error) {

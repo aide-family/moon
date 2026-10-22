@@ -10,6 +10,8 @@ export interface MessageLogItem {
   content?: string
   detail: string
   createdAt: string
+  groupName?: string
+  subscriptionName?: string
 }
 
 export interface ListMessageLogsParams {
@@ -40,6 +42,11 @@ export interface NotificationTaskItem {
   content?: string
   retriesLeft: number
   lastError: string
+  subscriptionUid?: string
+  groupName?: string
+  subscriptionName?: string
+  channelName?: string
+  templateName?: string
 }
 
 export interface ListNotificationTasksParams {

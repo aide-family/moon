@@ -28,14 +28,26 @@ const (
 	FieldName = "name"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldChannelUids holds the string denoting the channel_uids field in the database.
+	FieldChannelUids = "channel_uids"
+	// FieldTemplateUids holds the string denoting the template_uids field in the database.
+	FieldTemplateUids = "template_uids"
+	// FieldEmailReceivers holds the string denoting the email_receivers field in the database.
+	FieldEmailReceivers = "email_receivers"
+	// FieldSmsReceivers holds the string denoting the sms_receivers field in the database.
+	FieldSmsReceivers = "sms_receivers"
+	// FieldEmailMemberUids holds the string denoting the email_member_uids field in the database.
+	FieldEmailMemberUids = "email_member_uids"
+	// FieldSmsMemberUids holds the string denoting the sms_member_uids field in the database.
+	FieldSmsMemberUids = "sms_member_uids"
+	// FieldRemark holds the string denoting the remark field in the database.
+	FieldRemark = "remark"
 	// FieldChannelUID holds the string denoting the channel_uid field in the database.
 	FieldChannelUID = "channel_uid"
 	// FieldTemplateUID holds the string denoting the template_uid field in the database.
 	FieldTemplateUID = "template_uid"
 	// FieldReceivers holds the string denoting the receivers field in the database.
 	FieldReceivers = "receivers"
-	// FieldRemark holds the string denoting the remark field in the database.
-	FieldRemark = "remark"
 	// FieldMemberUids holds the string denoting the member_uids field in the database.
 	FieldMemberUids = "member_uids"
 	// FieldWebhookChannelUids holds the string denoting the webhook_channel_uids field in the database.
@@ -56,10 +68,16 @@ var Columns = []string{
 	FieldNamespaceUID,
 	FieldName,
 	FieldStatus,
+	FieldChannelUids,
+	FieldTemplateUids,
+	FieldEmailReceivers,
+	FieldSmsReceivers,
+	FieldEmailMemberUids,
+	FieldSmsMemberUids,
+	FieldRemark,
 	FieldChannelUID,
 	FieldTemplateUID,
 	FieldReceivers,
-	FieldRemark,
 	FieldMemberUids,
 	FieldWebhookChannelUids,
 	FieldWebhookTemplateUID,
@@ -88,14 +106,26 @@ var (
 	NamespaceUIDValidator func(string) error
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
-	// ChannelUIDValidator is a validator for the "channel_uid" field. It is called by the builders before save.
-	ChannelUIDValidator func(string) error
-	// TemplateUIDValidator is a validator for the "template_uid" field. It is called by the builders before save.
-	TemplateUIDValidator func(string) error
-	// DefaultReceivers holds the default value on creation for the "receivers" field.
-	DefaultReceivers string
+	// DefaultChannelUids holds the default value on creation for the "channel_uids" field.
+	DefaultChannelUids []string
+	// DefaultTemplateUids holds the default value on creation for the "template_uids" field.
+	DefaultTemplateUids []string
+	// DefaultEmailReceivers holds the default value on creation for the "email_receivers" field.
+	DefaultEmailReceivers string
+	// DefaultSmsReceivers holds the default value on creation for the "sms_receivers" field.
+	DefaultSmsReceivers string
+	// DefaultEmailMemberUids holds the default value on creation for the "email_member_uids" field.
+	DefaultEmailMemberUids []string
+	// DefaultSmsMemberUids holds the default value on creation for the "sms_member_uids" field.
+	DefaultSmsMemberUids []string
 	// DefaultRemark holds the default value on creation for the "remark" field.
 	DefaultRemark string
+	// DefaultChannelUID holds the default value on creation for the "channel_uid" field.
+	DefaultChannelUID string
+	// DefaultTemplateUID holds the default value on creation for the "template_uid" field.
+	DefaultTemplateUID string
+	// DefaultReceivers holds the default value on creation for the "receivers" field.
+	DefaultReceivers string
 	// DefaultMemberUids holds the default value on creation for the "member_uids" field.
 	DefaultMemberUids []string
 	// DefaultWebhookChannelUids holds the default value on creation for the "webhook_channel_uids" field.
@@ -173,6 +203,21 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
 }
 
+// ByEmailReceivers orders the results by the email_receivers field.
+func ByEmailReceivers(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEmailReceivers, opts...).ToFunc()
+}
+
+// BySmsReceivers orders the results by the sms_receivers field.
+func BySmsReceivers(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSmsReceivers, opts...).ToFunc()
+}
+
+// ByRemark orders the results by the remark field.
+func ByRemark(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRemark, opts...).ToFunc()
+}
+
 // ByChannelUID orders the results by the channel_uid field.
 func ByChannelUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldChannelUID, opts...).ToFunc()
@@ -186,11 +231,6 @@ func ByTemplateUID(opts ...sql.OrderTermOption) OrderOption {
 // ByReceivers orders the results by the receivers field.
 func ByReceivers(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldReceivers, opts...).ToFunc()
-}
-
-// ByRemark orders the results by the remark field.
-func ByRemark(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldRemark, opts...).ToFunc()
 }
 
 // ByWebhookTemplateUID orders the results by the webhook_template_uid field.

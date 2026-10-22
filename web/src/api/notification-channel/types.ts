@@ -16,6 +16,8 @@ export interface ListNotificationChannelsParams {
   page?: number
   pageSize?: number
   name?: string
+  type?: string
+  app?: string
 }
 
 export interface ListNotificationChannelsResult {

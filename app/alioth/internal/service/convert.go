@@ -8,7 +8,7 @@ import (
 func userItem(account bo.Account) *v1.UserItem {
 	return &v1.UserItem{
 		Uid: account.UID, Name: account.Name, Nickname: account.Nickname,
-		Email: account.Email, Avatar: account.Avatar, Remark: account.Remark, Status: account.Status,
+		Email: account.Email, Phone: account.Phone, Avatar: account.Avatar, Remark: account.Remark, Status: account.Status,
 		SystemRole: account.SystemRole, AuthorizedBy: account.AuthorizedBy,
 	}
 }
@@ -39,7 +39,7 @@ func namespaceItems(items []bo.Namespace) []*v1.NamespaceItem {
 func memberItem(item bo.Member) *v1.MemberItem {
 	return &v1.MemberItem{
 		Uid: item.UID, NamespaceUid: item.NamespaceUID, UserUid: item.UserUID,
-		Email: item.Email, Name: item.Name, Status: item.Status,
+		Email: item.Email, Phone: item.Phone, Name: item.Name, Status: item.Status,
 		RoleUids: item.RoleUIDs, RoleNames: item.RoleNames,
 	}
 }

@@ -84,6 +84,21 @@ func Name(v string) predicate.NotificationGroup {
 	return predicate.NotificationGroup(sql.FieldEQ(FieldName, v))
 }
 
+// EmailReceivers applies equality check predicate on the "email_receivers" field. It's identical to EmailReceiversEQ.
+func EmailReceivers(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldEQ(FieldEmailReceivers, v))
+}
+
+// SmsReceivers applies equality check predicate on the "sms_receivers" field. It's identical to SmsReceiversEQ.
+func SmsReceivers(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldEQ(FieldSmsReceivers, v))
+}
+
+// Remark applies equality check predicate on the "remark" field. It's identical to RemarkEQ.
+func Remark(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldEQ(FieldRemark, v))
+}
+
 // ChannelUID applies equality check predicate on the "channel_uid" field. It's identical to ChannelUIDEQ.
 func ChannelUID(v string) predicate.NotificationGroup {
 	return predicate.NotificationGroup(sql.FieldEQ(FieldChannelUID, v))
@@ -97,11 +112,6 @@ func TemplateUID(v string) predicate.NotificationGroup {
 // Receivers applies equality check predicate on the "receivers" field. It's identical to ReceiversEQ.
 func Receivers(v string) predicate.NotificationGroup {
 	return predicate.NotificationGroup(sql.FieldEQ(FieldReceivers, v))
-}
-
-// Remark applies equality check predicate on the "remark" field. It's identical to RemarkEQ.
-func Remark(v string) predicate.NotificationGroup {
-	return predicate.NotificationGroup(sql.FieldEQ(FieldRemark, v))
 }
 
 // WebhookTemplateUID applies equality check predicate on the "webhook_template_uid" field. It's identical to WebhookTemplateUIDEQ.
@@ -454,6 +464,201 @@ func StatusNotIn(vs ...Status) predicate.NotificationGroup {
 	return predicate.NotificationGroup(sql.FieldNotIn(FieldStatus, vs...))
 }
 
+// EmailReceiversEQ applies the EQ predicate on the "email_receivers" field.
+func EmailReceiversEQ(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldEQ(FieldEmailReceivers, v))
+}
+
+// EmailReceiversNEQ applies the NEQ predicate on the "email_receivers" field.
+func EmailReceiversNEQ(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldNEQ(FieldEmailReceivers, v))
+}
+
+// EmailReceiversIn applies the In predicate on the "email_receivers" field.
+func EmailReceiversIn(vs ...string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldIn(FieldEmailReceivers, vs...))
+}
+
+// EmailReceiversNotIn applies the NotIn predicate on the "email_receivers" field.
+func EmailReceiversNotIn(vs ...string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldNotIn(FieldEmailReceivers, vs...))
+}
+
+// EmailReceiversGT applies the GT predicate on the "email_receivers" field.
+func EmailReceiversGT(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldGT(FieldEmailReceivers, v))
+}
+
+// EmailReceiversGTE applies the GTE predicate on the "email_receivers" field.
+func EmailReceiversGTE(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldGTE(FieldEmailReceivers, v))
+}
+
+// EmailReceiversLT applies the LT predicate on the "email_receivers" field.
+func EmailReceiversLT(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldLT(FieldEmailReceivers, v))
+}
+
+// EmailReceiversLTE applies the LTE predicate on the "email_receivers" field.
+func EmailReceiversLTE(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldLTE(FieldEmailReceivers, v))
+}
+
+// EmailReceiversContains applies the Contains predicate on the "email_receivers" field.
+func EmailReceiversContains(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldContains(FieldEmailReceivers, v))
+}
+
+// EmailReceiversHasPrefix applies the HasPrefix predicate on the "email_receivers" field.
+func EmailReceiversHasPrefix(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldHasPrefix(FieldEmailReceivers, v))
+}
+
+// EmailReceiversHasSuffix applies the HasSuffix predicate on the "email_receivers" field.
+func EmailReceiversHasSuffix(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldHasSuffix(FieldEmailReceivers, v))
+}
+
+// EmailReceiversEqualFold applies the EqualFold predicate on the "email_receivers" field.
+func EmailReceiversEqualFold(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldEqualFold(FieldEmailReceivers, v))
+}
+
+// EmailReceiversContainsFold applies the ContainsFold predicate on the "email_receivers" field.
+func EmailReceiversContainsFold(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldContainsFold(FieldEmailReceivers, v))
+}
+
+// SmsReceiversEQ applies the EQ predicate on the "sms_receivers" field.
+func SmsReceiversEQ(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldEQ(FieldSmsReceivers, v))
+}
+
+// SmsReceiversNEQ applies the NEQ predicate on the "sms_receivers" field.
+func SmsReceiversNEQ(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldNEQ(FieldSmsReceivers, v))
+}
+
+// SmsReceiversIn applies the In predicate on the "sms_receivers" field.
+func SmsReceiversIn(vs ...string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldIn(FieldSmsReceivers, vs...))
+}
+
+// SmsReceiversNotIn applies the NotIn predicate on the "sms_receivers" field.
+func SmsReceiversNotIn(vs ...string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldNotIn(FieldSmsReceivers, vs...))
+}
+
+// SmsReceiversGT applies the GT predicate on the "sms_receivers" field.
+func SmsReceiversGT(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldGT(FieldSmsReceivers, v))
+}
+
+// SmsReceiversGTE applies the GTE predicate on the "sms_receivers" field.
+func SmsReceiversGTE(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldGTE(FieldSmsReceivers, v))
+}
+
+// SmsReceiversLT applies the LT predicate on the "sms_receivers" field.
+func SmsReceiversLT(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldLT(FieldSmsReceivers, v))
+}
+
+// SmsReceiversLTE applies the LTE predicate on the "sms_receivers" field.
+func SmsReceiversLTE(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldLTE(FieldSmsReceivers, v))
+}
+
+// SmsReceiversContains applies the Contains predicate on the "sms_receivers" field.
+func SmsReceiversContains(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldContains(FieldSmsReceivers, v))
+}
+
+// SmsReceiversHasPrefix applies the HasPrefix predicate on the "sms_receivers" field.
+func SmsReceiversHasPrefix(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldHasPrefix(FieldSmsReceivers, v))
+}
+
+// SmsReceiversHasSuffix applies the HasSuffix predicate on the "sms_receivers" field.
+func SmsReceiversHasSuffix(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldHasSuffix(FieldSmsReceivers, v))
+}
+
+// SmsReceiversEqualFold applies the EqualFold predicate on the "sms_receivers" field.
+func SmsReceiversEqualFold(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldEqualFold(FieldSmsReceivers, v))
+}
+
+// SmsReceiversContainsFold applies the ContainsFold predicate on the "sms_receivers" field.
+func SmsReceiversContainsFold(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldContainsFold(FieldSmsReceivers, v))
+}
+
+// RemarkEQ applies the EQ predicate on the "remark" field.
+func RemarkEQ(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldEQ(FieldRemark, v))
+}
+
+// RemarkNEQ applies the NEQ predicate on the "remark" field.
+func RemarkNEQ(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldNEQ(FieldRemark, v))
+}
+
+// RemarkIn applies the In predicate on the "remark" field.
+func RemarkIn(vs ...string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldIn(FieldRemark, vs...))
+}
+
+// RemarkNotIn applies the NotIn predicate on the "remark" field.
+func RemarkNotIn(vs ...string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldNotIn(FieldRemark, vs...))
+}
+
+// RemarkGT applies the GT predicate on the "remark" field.
+func RemarkGT(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldGT(FieldRemark, v))
+}
+
+// RemarkGTE applies the GTE predicate on the "remark" field.
+func RemarkGTE(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldGTE(FieldRemark, v))
+}
+
+// RemarkLT applies the LT predicate on the "remark" field.
+func RemarkLT(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldLT(FieldRemark, v))
+}
+
+// RemarkLTE applies the LTE predicate on the "remark" field.
+func RemarkLTE(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldLTE(FieldRemark, v))
+}
+
+// RemarkContains applies the Contains predicate on the "remark" field.
+func RemarkContains(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldContains(FieldRemark, v))
+}
+
+// RemarkHasPrefix applies the HasPrefix predicate on the "remark" field.
+func RemarkHasPrefix(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldHasPrefix(FieldRemark, v))
+}
+
+// RemarkHasSuffix applies the HasSuffix predicate on the "remark" field.
+func RemarkHasSuffix(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldHasSuffix(FieldRemark, v))
+}
+
+// RemarkEqualFold applies the EqualFold predicate on the "remark" field.
+func RemarkEqualFold(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldEqualFold(FieldRemark, v))
+}
+
+// RemarkContainsFold applies the ContainsFold predicate on the "remark" field.
+func RemarkContainsFold(v string) predicate.NotificationGroup {
+	return predicate.NotificationGroup(sql.FieldContainsFold(FieldRemark, v))
+}
+
 // ChannelUIDEQ applies the EQ predicate on the "channel_uid" field.
 func ChannelUIDEQ(v string) predicate.NotificationGroup {
 	return predicate.NotificationGroup(sql.FieldEQ(FieldChannelUID, v))
@@ -647,71 +852,6 @@ func ReceiversEqualFold(v string) predicate.NotificationGroup {
 // ReceiversContainsFold applies the ContainsFold predicate on the "receivers" field.
 func ReceiversContainsFold(v string) predicate.NotificationGroup {
 	return predicate.NotificationGroup(sql.FieldContainsFold(FieldReceivers, v))
-}
-
-// RemarkEQ applies the EQ predicate on the "remark" field.
-func RemarkEQ(v string) predicate.NotificationGroup {
-	return predicate.NotificationGroup(sql.FieldEQ(FieldRemark, v))
-}
-
-// RemarkNEQ applies the NEQ predicate on the "remark" field.
-func RemarkNEQ(v string) predicate.NotificationGroup {
-	return predicate.NotificationGroup(sql.FieldNEQ(FieldRemark, v))
-}
-
-// RemarkIn applies the In predicate on the "remark" field.
-func RemarkIn(vs ...string) predicate.NotificationGroup {
-	return predicate.NotificationGroup(sql.FieldIn(FieldRemark, vs...))
-}
-
-// RemarkNotIn applies the NotIn predicate on the "remark" field.
-func RemarkNotIn(vs ...string) predicate.NotificationGroup {
-	return predicate.NotificationGroup(sql.FieldNotIn(FieldRemark, vs...))
-}
-
-// RemarkGT applies the GT predicate on the "remark" field.
-func RemarkGT(v string) predicate.NotificationGroup {
-	return predicate.NotificationGroup(sql.FieldGT(FieldRemark, v))
-}
-
-// RemarkGTE applies the GTE predicate on the "remark" field.
-func RemarkGTE(v string) predicate.NotificationGroup {
-	return predicate.NotificationGroup(sql.FieldGTE(FieldRemark, v))
-}
-
-// RemarkLT applies the LT predicate on the "remark" field.
-func RemarkLT(v string) predicate.NotificationGroup {
-	return predicate.NotificationGroup(sql.FieldLT(FieldRemark, v))
-}
-
-// RemarkLTE applies the LTE predicate on the "remark" field.
-func RemarkLTE(v string) predicate.NotificationGroup {
-	return predicate.NotificationGroup(sql.FieldLTE(FieldRemark, v))
-}
-
-// RemarkContains applies the Contains predicate on the "remark" field.
-func RemarkContains(v string) predicate.NotificationGroup {
-	return predicate.NotificationGroup(sql.FieldContains(FieldRemark, v))
-}
-
-// RemarkHasPrefix applies the HasPrefix predicate on the "remark" field.
-func RemarkHasPrefix(v string) predicate.NotificationGroup {
-	return predicate.NotificationGroup(sql.FieldHasPrefix(FieldRemark, v))
-}
-
-// RemarkHasSuffix applies the HasSuffix predicate on the "remark" field.
-func RemarkHasSuffix(v string) predicate.NotificationGroup {
-	return predicate.NotificationGroup(sql.FieldHasSuffix(FieldRemark, v))
-}
-
-// RemarkEqualFold applies the EqualFold predicate on the "remark" field.
-func RemarkEqualFold(v string) predicate.NotificationGroup {
-	return predicate.NotificationGroup(sql.FieldEqualFold(FieldRemark, v))
-}
-
-// RemarkContainsFold applies the ContainsFold predicate on the "remark" field.
-func RemarkContainsFold(v string) predicate.NotificationGroup {
-	return predicate.NotificationGroup(sql.FieldContainsFold(FieldRemark, v))
 }
 
 // WebhookTemplateUIDEQ applies the EQ predicate on the "webhook_template_uid" field.

@@ -22,6 +22,11 @@ export function changeRemark(remark: string): Promise<SelfInfo> {
   return put<SelfInfo>("/self/change-remark", { remark })
 }
 
+/** PUT /v1/self/change-phone */
+export function changePhone(phone: string): Promise<SelfInfo> {
+  return put<SelfInfo>("/self/change-phone", { phone })
+}
+
 /** PUT /v1/self/change-email */
 export function changeEmail(email: string): Promise<SelfInfo> {
   return put<SelfInfo>("/self/change-email", { email })

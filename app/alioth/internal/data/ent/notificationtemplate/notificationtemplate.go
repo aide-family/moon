@@ -28,6 +28,8 @@ const (
 	FieldName = "name"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
+	// FieldApp holds the string denoting the app field in the database.
+	FieldApp = "app"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldSubject holds the string denoting the subject field in the database.
@@ -50,6 +52,7 @@ var Columns = []string{
 	FieldNamespaceUID,
 	FieldName,
 	FieldType,
+	FieldApp,
 	FieldStatus,
 	FieldSubject,
 	FieldBody,
@@ -108,6 +111,35 @@ func TypeValidator(_type Type) error {
 		return nil
 	default:
 		return fmt.Errorf("notificationtemplate: invalid enum value for type field: %q", _type)
+	}
+}
+
+// App defines the type for the "app" enum field.
+type App string
+
+// AppOTHER is the default value of the App enum.
+const DefaultApp = AppOTHER
+
+// App values.
+const (
+	AppOTHER        App = "OTHER"
+	AppDINGTALK     App = "DINGTALK"
+	AppWECHAT       App = "WECHAT"
+	AppFEISHU       App = "FEISHU"
+	AppSMS_ALICLOUD App = "SMS_ALICLOUD"
+)
+
+func (a App) String() string {
+	return string(a)
+}
+
+// AppValidator is a validator for the "app" field enum values. It is called by the builders before save.
+func AppValidator(a App) error {
+	switch a {
+	case AppOTHER, AppDINGTALK, AppWECHAT, AppFEISHU, AppSMS_ALICLOUD:
+		return nil
+	default:
+		return fmt.Errorf("notificationtemplate: invalid enum value for app field: %q", a)
 	}
 }
 
@@ -178,6 +210,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByType orders the results by the type field.
 func ByType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldType, opts...).ToFunc()
+}
+
+// ByApp orders the results by the app field.
+func ByApp(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldApp, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.

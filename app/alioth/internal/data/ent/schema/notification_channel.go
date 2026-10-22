@@ -21,7 +21,7 @@ func (NotificationChannel) Fields() []ent.Field {
 		field.String("uid").NotEmpty().Immutable(),
 		field.String("namespace_uid").NotEmpty(),
 		field.String("name").NotEmpty(),
-		field.Enum("type").Values("SMTP", "WEBHOOK"),
+		field.Enum("type").Values("SMTP", "WEBHOOK", "SMS"),
 		field.Enum("app").Values("OTHER", "DINGTALK", "WECHAT", "FEISHU", "SMS_ALICLOUD").Default("OTHER"),
 		field.Enum("status").Values("ACTIVE", "DISABLED").Default("ACTIVE"),
 		field.String("endpoint").Default(""),

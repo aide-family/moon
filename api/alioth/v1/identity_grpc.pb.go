@@ -401,6 +401,7 @@ const (
 	SelfService_ChangeEmail_FullMethodName        = "/alioth.v1.SelfService/ChangeEmail"
 	SelfService_ChangeAvatar_FullMethodName       = "/alioth.v1.SelfService/ChangeAvatar"
 	SelfService_ChangeRemark_FullMethodName       = "/alioth.v1.SelfService/ChangeRemark"
+	SelfService_ChangePhone_FullMethodName        = "/alioth.v1.SelfService/ChangePhone"
 	SelfService_GetSelfPermissions_FullMethodName = "/alioth.v1.SelfService/GetSelfPermissions"
 )
 
@@ -422,6 +423,8 @@ type SelfServiceClient interface {
 	ChangeAvatar(ctx context.Context, in *ChangeAvatarRequest, opts ...grpc.CallOption) (*ChangeAvatarResponse, error)
 	// 修改当前用户的备注。
 	ChangeRemark(ctx context.Context, in *ChangeRemarkRequest, opts ...grpc.CallOption) (*ChangeRemarkResponse, error)
+	// 修改当前用户的手机号。短信通知使用该号码。
+	ChangePhone(ctx context.Context, in *ChangePhoneRequest, opts ...grpc.CallOption) (*ChangePhoneResponse, error)
 	// 获取当前用户在当前租户的权限名。未选租户时为空。
 	GetSelfPermissions(ctx context.Context, in *GetSelfPermissionsRequest, opts ...grpc.CallOption) (*GetSelfPermissionsResponse, error)
 }
@@ -494,6 +497,16 @@ func (c *selfServiceClient) ChangeRemark(ctx context.Context, in *ChangeRemarkRe
 	return out, nil
 }
 
+func (c *selfServiceClient) ChangePhone(ctx context.Context, in *ChangePhoneRequest, opts ...grpc.CallOption) (*ChangePhoneResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ChangePhoneResponse)
+	err := c.cc.Invoke(ctx, SelfService_ChangePhone_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *selfServiceClient) GetSelfPermissions(ctx context.Context, in *GetSelfPermissionsRequest, opts ...grpc.CallOption) (*GetSelfPermissionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetSelfPermissionsResponse)
@@ -522,6 +535,8 @@ type SelfServiceServer interface {
 	ChangeAvatar(context.Context, *ChangeAvatarRequest) (*ChangeAvatarResponse, error)
 	// 修改当前用户的备注。
 	ChangeRemark(context.Context, *ChangeRemarkRequest) (*ChangeRemarkResponse, error)
+	// 修改当前用户的手机号。短信通知使用该号码。
+	ChangePhone(context.Context, *ChangePhoneRequest) (*ChangePhoneResponse, error)
 	// 获取当前用户在当前租户的权限名。未选租户时为空。
 	GetSelfPermissions(context.Context, *GetSelfPermissionsRequest) (*GetSelfPermissionsResponse, error)
 	mustEmbedUnimplementedSelfServiceServer()
@@ -551,6 +566,9 @@ func (UnimplementedSelfServiceServer) ChangeAvatar(context.Context, *ChangeAvata
 }
 func (UnimplementedSelfServiceServer) ChangeRemark(context.Context, *ChangeRemarkRequest) (*ChangeRemarkResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ChangeRemark not implemented")
+}
+func (UnimplementedSelfServiceServer) ChangePhone(context.Context, *ChangePhoneRequest) (*ChangePhoneResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ChangePhone not implemented")
 }
 func (UnimplementedSelfServiceServer) GetSelfPermissions(context.Context, *GetSelfPermissionsRequest) (*GetSelfPermissionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSelfPermissions not implemented")
@@ -684,6 +702,24 @@ func _SelfService_ChangeRemark_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SelfService_ChangePhone_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangePhoneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SelfServiceServer).ChangePhone(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SelfService_ChangePhone_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SelfServiceServer).ChangePhone(ctx, req.(*ChangePhoneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SelfService_GetSelfPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetSelfPermissionsRequest)
 	if err := dec(in); err != nil {
@@ -732,6 +768,10 @@ var SelfService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangeRemark",
 			Handler:    _SelfService_ChangeRemark_Handler,
+		},
+		{
+			MethodName: "ChangePhone",
+			Handler:    _SelfService_ChangePhone_Handler,
 		},
 		{
 			MethodName: "GetSelfPermissions",

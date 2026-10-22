@@ -278,7 +278,7 @@ export function NotificationSubscriptionPage() {
                 <TableHead>{t("subscription.conditions")}</TableHead>
                 <TableHead>{t("subscription.groups")}</TableHead>
                 <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead />
+                <TableHead className="text-right">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -319,10 +319,31 @@ export function NotificationSubscriptionPage() {
               <Input id="subscription-name" value={name} placeholder={t("subscription.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
             <FormField
-              label={t("subscription.labels")}
-              hint={t("subscription.labelsHint")}
-              error={fieldErrors.labels}
+              label={t("subscription.groups")}
+              hint={t("subscription.groupsHint")}
+              required
+              error={fieldErrors.groups}
             >
+              <div
+                className={`flex flex-wrap gap-2 rounded-md ${fieldErrors.groups ? "border border-destructive p-2" : ""}`}
+              >
+                {groups.map((item) => (
+                  <label
+                    key={item.uid}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={groupUids.includes(item.uid)}
+                      onChange={() => setGroupUids(toggle(groupUids, item.uid))}
+                    />
+                    {item.name}
+                  </label>
+                ))}
+                {groups.length === 0 ? <p className="text-sm text-muted-foreground">{t("subscription.noGroups")}</p> : null}
+              </div>
+            </FormField>
+            <FormField label={t("subscription.labels")} hint={t("subscription.labelsHint")} error={fieldErrors.labels}>
               <div className="grid gap-2">
                 {labels.map((pair, index) => (
                   <div key={index} className="flex items-center gap-2">
@@ -359,9 +380,12 @@ export function NotificationSubscriptionPage() {
               </div>
             </FormField>
             <FormField label={t("subscription.levels")} hint={t("subscription.levelsHint")}>
-              <div className="grid max-h-32 gap-2 overflow-y-auto rounded-md border p-3">
+              <div className="flex flex-wrap gap-2 rounded-md">
                 {levels.map((item) => (
-                  <label key={item.uid} className="flex items-center gap-2 text-sm">
+                  <label
+                    key={item.uid}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm"
+                  >
                     <input type="checkbox" checked={levelUids.includes(item.uid)} onChange={() => setLevelUids(toggle(levelUids, item.uid))} />
                     {item.name}
                   </label>
@@ -370,9 +394,12 @@ export function NotificationSubscriptionPage() {
               </div>
             </FormField>
             <FormField label={t("subscription.datasources")} hint={t("subscription.datasourcesHint")}>
-              <div className="grid max-h-32 gap-2 overflow-y-auto rounded-md border p-3">
+              <div className="flex flex-wrap gap-2 rounded-md">
                 {datasources.map((item) => (
-                  <label key={item.uid} className="flex items-center gap-2 text-sm">
+                  <label
+                    key={item.uid}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm"
+                  >
                     <input
                       type="checkbox"
                       checked={datasourceUids.includes(item.uid)}
@@ -382,25 +409,6 @@ export function NotificationSubscriptionPage() {
                   </label>
                 ))}
                 {datasources.length === 0 ? <p className="text-sm text-muted-foreground">{t("subscription.noDatasources")}</p> : null}
-              </div>
-            </FormField>
-            <FormField
-              label={t("subscription.groups")}
-              required
-              error={fieldErrors.groups}
-            >
-              <div
-                className={`grid max-h-40 gap-2 overflow-y-auto rounded-md border p-3 ${
-                  fieldErrors.groups ? "border-destructive" : ""
-                }`}
-              >
-                {groups.map((item) => (
-                  <label key={item.uid} className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" checked={groupUids.includes(item.uid)} onChange={() => setGroupUids(toggle(groupUids, item.uid))} />
-                    {item.name}
-                  </label>
-                ))}
-                {groups.length === 0 ? <p className="text-sm text-muted-foreground">{t("subscription.noGroups")}</p> : null}
               </div>
             </FormField>
             <FormField label={t("subscription.remark")} htmlFor="subscription-remark">

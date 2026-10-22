@@ -197,91 +197,139 @@ func containsString(values []string, value string) bool {
 
 // resolveGroupTargets 把一个通知组展开成实际投递目标：主渠道一次，每个选中的 Webhook 各一次。
 func resolveGroupTargets(ctx context.Context, tx *ent.Tx, group *ent.NotificationGroup) ([]notifyTarget, error) {
-	targets := make([]notifyTarget, 0, 2)
+	channelUIDs, templateUIDs := groupChannelTargets(group)
+	targets := make([]notifyTarget, 0, len(channelUIDs))
 	seen := map[string]struct{}{}
-	channel, err := tx.NotificationChannel.Query().Where(
-		notificationchannel.UIDEQ(group.ChannelUID),
-		notificationchannel.NamespaceUIDEQ(group.NamespaceUID),
-		notificationchannel.DeletedAtIsNil(),
-		notificationchannel.StatusEQ(notificationchannel.StatusACTIVE),
-	).Only(ctx)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, err
-	}
-	if err == nil {
-		template, templateErr := tx.NotificationTemplate.Query().Where(
-			notificationtemplate.UIDEQ(group.TemplateUID),
+	for index, channelUID := range channelUIDs {
+		if _, ok := seen[channelUID]; ok {
+			continue
+		}
+		if strings.TrimSpace(channelUID) == "" {
+			continue
+		}
+		templateUID := ""
+		if index < len(templateUIDs) {
+			templateUID = strings.TrimSpace(templateUIDs[index])
+		}
+		if templateUID == "" {
+			continue
+		}
+		channel, err := tx.NotificationChannel.Query().Where(
+			notificationchannel.UIDEQ(channelUID),
+			notificationchannel.NamespaceUIDEQ(group.NamespaceUID),
+			notificationchannel.DeletedAtIsNil(),
+			notificationchannel.StatusEQ(notificationchannel.StatusACTIVE),
+		).Only(ctx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				continue
+			}
+			return nil, err
+		}
+		template, err := tx.NotificationTemplate.Query().Where(
+			notificationtemplate.UIDEQ(templateUID),
 			notificationtemplate.NamespaceUIDEQ(group.NamespaceUID),
 			notificationtemplate.DeletedAtIsNil(),
 			notificationtemplate.StatusEQ(notificationtemplate.StatusACTIVE),
 		).Only(ctx)
-		if templateErr != nil && !ent.IsNotFound(templateErr) {
-			return nil, templateErr
-		}
-		if templateErr == nil {
-			receivers := ""
-			if channel.Type == notificationchannel.TypeSMTP {
-				receivers, err = resolveGroupReceivers(ctx, tx, group)
-				if err != nil {
-					return nil, err
-				}
+		if err != nil {
+			if ent.IsNotFound(err) {
+				continue
 			}
-			// SMTP 没有任何有效接收方时只跳过主目标，不影响 Webhook 目标。
-			if channel.Type != notificationchannel.TypeSMTP || receivers != "" {
-				targets = append(targets, notifyTarget{
-					ChannelUID: channel.UID, TemplateUID: template.UID,
-					Sender: notificationSender(channel), Receivers: receivers,
-					Subject: template.Subject, Body: template.Body,
-				})
-				seen[channel.UID] = struct{}{}
-			}
+			return nil, err
 		}
-	}
-	if len(group.WebhookChannelUids) == 0 || group.WebhookTemplateUID == "" {
-		return targets, nil
-	}
-	webhookTemplate, err := tx.NotificationTemplate.Query().Where(
-		notificationtemplate.UIDEQ(group.WebhookTemplateUID),
-		notificationtemplate.NamespaceUIDEQ(group.NamespaceUID),
-		notificationtemplate.DeletedAtIsNil(),
-		notificationtemplate.StatusEQ(notificationtemplate.StatusACTIVE),
-		notificationtemplate.TypeEQ(notificationtemplate.TypeWEBHOOK),
-	).Only(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return targets, nil
-		}
-		return nil, err
-	}
-	channels, err := tx.NotificationChannel.Query().Where(
-		notificationchannel.UIDIn(group.WebhookChannelUids...),
-		notificationchannel.NamespaceUIDEQ(group.NamespaceUID),
-		notificationchannel.DeletedAtIsNil(),
-		notificationchannel.StatusEQ(notificationchannel.StatusACTIVE),
-		notificationchannel.TypeEQ(notificationchannel.TypeWEBHOOK),
-	).Order(ent.Asc(notificationchannel.FieldUID)).All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	for _, webhook := range channels {
-		if _, ok := seen[webhook.UID]; ok {
+		if !templateCoversChannel(channel, template) {
 			continue
 		}
-		seen[webhook.UID] = struct{}{}
+		receivers := ""
+		switch channel.Type {
+		case notificationchannel.TypeSMTP:
+			receivers, err = resolveGroupReceivers(ctx, tx, group, channel.Type)
+			if err != nil {
+				return nil, err
+			}
+			if receivers == "" {
+				continue
+			}
+		case notificationchannel.TypeSMS:
+			receivers, err = resolveGroupReceivers(ctx, tx, group, channel.Type)
+			if err != nil {
+				return nil, err
+			}
+			if receivers == "" {
+				continue
+			}
+		default:
+			receivers = notificationReceiver(channel)
+		}
+		seen[channelUID] = struct{}{}
 		targets = append(targets, notifyTarget{
-			ChannelUID: webhook.UID, TemplateUID: webhookTemplate.UID,
-			Sender: notificationSender(webhook), Receivers: notificationReceiver(webhook),
-			Subject: webhookTemplate.Subject, Body: webhookTemplate.Body,
+			ChannelUID: channel.UID, TemplateUID: template.UID,
+			Sender: notificationSender(channel), Receivers: receivers,
+			Subject: template.Subject, Body: template.Body,
 		})
 	}
 	return targets, nil
 }
 
-func resolveGroupReceivers(ctx context.Context, tx *ent.Tx, group *ent.NotificationGroup) (string, error) {
-	values := pkgnotify.SplitReceivers(group.Receivers)
-	if len(group.MemberUids) > 0 {
+// groupChannelTargets 返回渠道和模板的一一对应列表。历史通知组只有旧版单渠道字段，
+// 这里按旧字段展开，升级后无需手工重建通知组。
+func groupChannelTargets(group *ent.NotificationGroup) ([]string, []string) {
+	if len(group.ChannelUids) > 0 {
+		return group.ChannelUids, group.TemplateUids
+	}
+	if strings.TrimSpace(group.ChannelUID) == "" {
+		return nil, nil
+	}
+	channelUIDs := []string{group.ChannelUID}
+	templateUIDs := []string{group.TemplateUID}
+	for range group.WebhookChannelUids {
+		channelUIDs = append(channelUIDs, "")
+		templateUIDs = append(templateUIDs, group.WebhookTemplateUID)
+	}
+	copy(channelUIDs[1:], group.WebhookChannelUids)
+	return channelUIDs, templateUIDs
+}
+
+// templateCoversChannel 判断模板是否能覆盖渠道。OTHER Webhook 模板可以覆盖任意应用。
+func templateCoversChannel(channel *ent.NotificationChannel, template *ent.NotificationTemplate) bool {
+	switch channel.Type {
+	case notificationchannel.TypeSMTP:
+		return template.Type == notificationtemplate.TypeEMAIL
+	case notificationchannel.TypeSMS:
+		return template.Type == notificationtemplate.TypeSMS_ALICLOUD
+	case notificationchannel.TypeWEBHOOK:
+		return template.Type == notificationtemplate.TypeWEBHOOK &&
+			(template.App == notificationtemplate.AppOTHER || string(template.App) == string(channel.App))
+	default:
+		return false
+	}
+}
+
+// resolveGroupReceivers 按渠道类型合并手填接收方和成员资料。
+// 邮件取成员邮箱，短信取成员手机号；同一个人只保留一次。
+func resolveGroupReceivers(ctx context.Context, tx *ent.Tx, group *ent.NotificationGroup, kind notificationchannel.Type) (string, error) {
+	base := group.EmailReceivers
+	memberUIDs := group.EmailMemberUids
+	field := "email"
+	if kind == notificationchannel.TypeSMS {
+		base = group.SmsReceivers
+		memberUIDs = group.SmsMemberUids
+		field = "phone"
+	}
+	// 历史数据没有新字段时回退到旧版邮件接收方和成员。
+	if kind == notificationchannel.TypeSMTP {
+		if base == "" {
+			base = group.Receivers
+		}
+		if len(memberUIDs) == 0 {
+			memberUIDs = group.MemberUids
+		}
+	}
+	values := pkgnotify.SplitReceivers(base)
+	if len(memberUIDs) > 0 {
 		members, err := tx.Member.Query().Where(
-			member.UIDIn(group.MemberUids...),
+			member.UIDIn(memberUIDs...),
 			member.NamespaceUIDEQ(group.NamespaceUID),
 			member.StatusEQ(member.StatusJOINED),
 			member.DeletedAtIsNil(),
@@ -302,8 +350,12 @@ func resolveGroupReceivers(ctx context.Context, tx *ent.Tx, group *ent.Notificat
 				return "", err
 			}
 			for _, account := range users {
-				if strings.TrimSpace(account.Email) != "" {
-					values = append(values, account.Email)
+				value := account.Email
+				if field == "phone" {
+					value = account.Phone
+				}
+				if strings.TrimSpace(value) != "" {
+					values = append(values, value)
 				}
 			}
 		}
@@ -311,14 +363,15 @@ func resolveGroupReceivers(ctx context.Context, tx *ent.Tx, group *ent.Notificat
 	seen := map[string]struct{}{}
 	out := make([]string, 0, len(values))
 	for _, value := range values {
-		value = strings.ToLower(strings.TrimSpace(value))
+		value = strings.TrimSpace(value)
 		if value == "" {
 			continue
 		}
-		if _, ok := seen[value]; ok {
+		key := strings.ToLower(value)
+		if _, ok := seen[key]; ok {
 			continue
 		}
-		seen[value] = struct{}{}
+		seen[key] = struct{}{}
 		out = append(out, value)
 	}
 	return strings.Join(out, ","), nil

@@ -324,6 +324,26 @@ func TypeNotIn(vs ...Type) predicate.NotificationPreset {
 	return predicate.NotificationPreset(sql.FieldNotIn(FieldType, vs...))
 }
 
+// AppEQ applies the EQ predicate on the "app" field.
+func AppEQ(v App) predicate.NotificationPreset {
+	return predicate.NotificationPreset(sql.FieldEQ(FieldApp, v))
+}
+
+// AppNEQ applies the NEQ predicate on the "app" field.
+func AppNEQ(v App) predicate.NotificationPreset {
+	return predicate.NotificationPreset(sql.FieldNEQ(FieldApp, v))
+}
+
+// AppIn applies the In predicate on the "app" field.
+func AppIn(vs ...App) predicate.NotificationPreset {
+	return predicate.NotificationPreset(sql.FieldIn(FieldApp, vs...))
+}
+
+// AppNotIn applies the NotIn predicate on the "app" field.
+func AppNotIn(vs ...App) predicate.NotificationPreset {
+	return predicate.NotificationPreset(sql.FieldNotIn(FieldApp, vs...))
+}
+
 // SubjectEQ applies the EQ predicate on the "subject" field.
 func SubjectEQ(v string) predicate.NotificationPreset {
 	return predicate.NotificationPreset(sql.FieldEQ(FieldSubject, v))

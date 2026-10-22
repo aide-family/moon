@@ -96,6 +96,20 @@ func (_u *NotificationTemplateUpdate) SetNillableType(v *notificationtemplate.Ty
 	return _u
 }
 
+// SetApp sets the "app" field.
+func (_u *NotificationTemplateUpdate) SetApp(v notificationtemplate.App) *NotificationTemplateUpdate {
+	_u.mutation.SetApp(v)
+	return _u
+}
+
+// SetNillableApp sets the "app" field if the given value is not nil.
+func (_u *NotificationTemplateUpdate) SetNillableApp(v *notificationtemplate.App) *NotificationTemplateUpdate {
+	if v != nil {
+		_u.SetApp(*v)
+	}
+	return _u
+}
+
 // SetStatus sets the "status" field.
 func (_u *NotificationTemplateUpdate) SetStatus(v notificationtemplate.Status) *NotificationTemplateUpdate {
 	_u.mutation.SetStatus(v)
@@ -210,6 +224,11 @@ func (_u *NotificationTemplateUpdate) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "NotificationTemplate.type": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.App(); ok {
+		if err := notificationtemplate.AppValidator(v); err != nil {
+			return &ValidationError{Name: "app", err: fmt.Errorf(`ent: validator failed for field "NotificationTemplate.app": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Status(); ok {
 		if err := notificationtemplate.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "NotificationTemplate.status": %w`, err)}
@@ -247,6 +266,9 @@ func (_u *NotificationTemplateUpdate) sqlSave(ctx context.Context) (_node int, e
 	}
 	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(notificationtemplate.FieldType, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.App(); ok {
+		_spec.SetField(notificationtemplate.FieldApp, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(notificationtemplate.FieldStatus, field.TypeEnum, value)
@@ -344,6 +366,20 @@ func (_u *NotificationTemplateUpdateOne) SetType(v notificationtemplate.Type) *N
 func (_u *NotificationTemplateUpdateOne) SetNillableType(v *notificationtemplate.Type) *NotificationTemplateUpdateOne {
 	if v != nil {
 		_u.SetType(*v)
+	}
+	return _u
+}
+
+// SetApp sets the "app" field.
+func (_u *NotificationTemplateUpdateOne) SetApp(v notificationtemplate.App) *NotificationTemplateUpdateOne {
+	_u.mutation.SetApp(v)
+	return _u
+}
+
+// SetNillableApp sets the "app" field if the given value is not nil.
+func (_u *NotificationTemplateUpdateOne) SetNillableApp(v *notificationtemplate.App) *NotificationTemplateUpdateOne {
+	if v != nil {
+		_u.SetApp(*v)
 	}
 	return _u
 }
@@ -475,6 +511,11 @@ func (_u *NotificationTemplateUpdateOne) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "NotificationTemplate.type": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.App(); ok {
+		if err := notificationtemplate.AppValidator(v); err != nil {
+			return &ValidationError{Name: "app", err: fmt.Errorf(`ent: validator failed for field "NotificationTemplate.app": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Status(); ok {
 		if err := notificationtemplate.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "NotificationTemplate.status": %w`, err)}
@@ -529,6 +570,9 @@ func (_u *NotificationTemplateUpdateOne) sqlSave(ctx context.Context) (_node *No
 	}
 	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(notificationtemplate.FieldType, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.App(); ok {
+		_spec.SetField(notificationtemplate.FieldApp, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(notificationtemplate.FieldStatus, field.TypeEnum, value)

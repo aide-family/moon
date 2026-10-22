@@ -22,6 +22,8 @@ func (NotificationTemplate) Fields() []ent.Field {
 		field.String("namespace_uid").NotEmpty(),
 		field.String("name").NotEmpty(),
 		field.Enum("type").Values("EMAIL", "WEBHOOK", "SMS_ALICLOUD"),
+		// app 区分 Webhook 模板的接收应用；OTHER 是通用模板，EMAIL 和短信固定 OTHER。
+		field.Enum("app").Values("OTHER", "DINGTALK", "WECHAT", "FEISHU", "SMS_ALICLOUD").Default("OTHER"),
 		field.Enum("status").Values("ACTIVE", "DISABLED").Default("ACTIVE"),
 		field.String("subject").Default(""),
 		field.String("body").Default(""),

@@ -9,6 +9,7 @@ type Account struct {
 	Name         string
 	Nickname     string
 	Email        string
+	Phone        string
 	Avatar       string
 	Remark       string
 	Status       string
@@ -33,6 +34,7 @@ type Member struct {
 	NamespaceUID string
 	UserUID      string
 	Email        string
+	Phone        string
 	Name         string
 	Status       string
 	RoleUIDs     []string
@@ -372,6 +374,7 @@ type NotificationTemplate struct {
 	NamespaceUID string
 	Name         string
 	Type         string
+	App          string
 	Status       string
 	Subject      string
 	Body         string
@@ -383,6 +386,7 @@ type NotificationPreset struct {
 	UID         string
 	Name        string
 	Type        string
+	App         string
 	Subject     string
 	Body        string
 	Description string
@@ -391,17 +395,24 @@ type NotificationPreset struct {
 
 // NotificationGroup 是一条通知组。
 type NotificationGroup struct {
-	UID                string
-	NamespaceUID       string
-	Name               string
-	Status             string
+	UID             string
+	NamespaceUID    string
+	Name            string
+	Status          string
+	ChannelUIDs     []string
+	TemplateUIDs    []string
+	EmailReceivers  string
+	SMSReceivers    string
+	EmailMemberUIDs []string
+	SMSMemberUIDs   []string
+	Remark          string
+	// 以下字段只用于兼容旧客户端和迁移历史数据，新代码使用上面的数组字段。
 	ChannelUID         string
 	TemplateUID        string
 	Receivers          string
 	MemberUIDs         []string
 	WebhookChannelUIDs []string
 	WebhookTemplateUID string
-	Remark             string
 }
 
 // NotificationSubscription 按标签、告警级别和数据源订阅事件。
@@ -438,6 +449,11 @@ type NotificationTask struct {
 	Params          string
 	RetriesLeft     int
 	LastError       string
+	// 以下字段只在列表展示时补出，用于定位消息来源。
+	GroupName        string
+	SubscriptionName string
+	ChannelName      string
+	TemplateName     string
 }
 
 // MessageLog 是一次投递结果。
@@ -454,6 +470,9 @@ type MessageLog struct {
 	Content      string
 	Detail       string
 	CreatedAt    time.Time
+	// 以下字段在列表展示时补出，用于定位消息来源。
+	GroupName        string
+	SubscriptionName string
 }
 
 // NotifyReport 是 merak 回写的投递结果。

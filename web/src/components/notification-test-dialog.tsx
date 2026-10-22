@@ -48,7 +48,14 @@ interface NotificationTestDialogProps {
 export function NotificationTestDialog({ target, channels, onClose }: NotificationTestDialogProps) {
   const { t } = useTranslation()
   const isChannel = target.kind === "channel"
-  const channelType = target.kind === "channel" ? target.item.type : target.item.type === "EMAIL" ? "SMTP" : "WEBHOOK"
+  const channelType =
+    target.kind === "channel"
+      ? target.item.type
+      : target.item.type === "EMAIL"
+        ? "SMTP"
+        : target.item.type === "SMS_ALICLOUD"
+          ? "SMS"
+          : "WEBHOOK"
   const compatibleChannels = channels.filter((item) => item.status === "ACTIVE" && item.type === channelType)
   const [channelUid, setChannelUid] = useState(() => compatibleChannels[0]?.uid ?? "")
   const [receivers, setReceivers] = useState("")

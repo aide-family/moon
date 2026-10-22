@@ -89,6 +89,13 @@ service SelfService {
       body: "*"
     };
   }
+  // 修改当前用户的手机号。短信通知使用该号码。
+  rpc ChangePhone(ChangePhoneRequest) returns (ChangePhoneResponse) {
+    option (google.api.http) = {
+      put: "/v1/self/change-phone"
+      body: "*"
+    };
+  }
   // 获取当前用户在当前租户的权限名。未选租户时为空。
   rpc GetSelfPermissions(GetSelfPermissionsRequest) returns (GetSelfPermissionsResponse) {
     option (google.api.http) = {get: "/v1/self/permissions"};
@@ -349,6 +356,8 @@ message UserItem {
   string system_role = 8 [json_name = "systemRole"];
   // 授权该平台角色的超级管理员标识。
   string authorized_by = 9 [json_name = "authorizedBy"];
+  // 手机号，用于短信通知。
+  string phone = 10;
 }
 
 // 租户。
@@ -385,6 +394,8 @@ message MemberItem {
   repeated string role_uids = 7 [json_name = "roleUids"];
   // 角色名称列表。
   repeated string role_names = 8 [json_name = "roleNames"];
+  // 手机号，用于短信通知。
+  string phone = 9;
 }
 
 // 租户角色。
@@ -580,6 +591,18 @@ message ChangeRemarkRequest {
 
 // 修改后的用户资料。
 message ChangeRemarkResponse {
+  // 用户资料。
+  UserItem user = 1;
+}
+
+// 新手机号。留空表示清除。
+message ChangePhoneRequest {
+  // 手机号，6 到 20 位数字，可带国家码前缀 +。
+  string phone = 1 [(buf.validate.field).string.pattern = "^(?:\\+?[0-9]{6,20})?$"];
+}
+
+// 修改后的用户资料。
+message ChangePhoneResponse {
   // 用户资料。
   UserItem user = 1;
 }

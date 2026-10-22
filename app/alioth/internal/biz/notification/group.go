@@ -12,93 +12,235 @@ import (
 const (
 	maxGroupMembers  = 100
 	maxGroupWebhooks = 20
+	maxGroupChannels = 32
 )
 
-// normalizeGroup 校验主渠道、模板、成员和 Webhook，并把重复项去掉。
-// 成员只取当前 Namespace 的成员，避免跨租户读取用户。
+// normalizeGroup 校验渠道、模板、成员和 Webhook。
+// channel_uids 与 template_uids 一一对应：邮件渠道、短信渠道和每个 Webhook 接收者各一项；
+// 邮件和短信同类型最多一个，Webhook 可多选。成员只取当前 Namespace 的成员。
 func (uc *Usecase) normalizeGroup(ctx context.Context, in *bo.NotificationGroup) error {
 	if strings.TrimSpace(in.Name) == "" {
 		return merr.Invalid("name is required")
 	}
 	in.Name = strings.TrimSpace(in.Name)
-	channel, err := uc.repo.GetChannel(ctx, in.NamespaceUID, in.ChannelUID)
-	if err != nil {
-		return uc.access.Wrap(err)
+	normalizeLegacyGroup(in)
+	// channel_uids 与 template_uids 按下标对应，去重时必须成对删除。
+	dedupedChannels := make([]string, 0, len(in.ChannelUIDs))
+	dedupedTemplates := make([]string, 0, len(in.TemplateUIDs))
+	seenChannels := map[string]struct{}{}
+	for index, uid := range in.ChannelUIDs {
+		uid = strings.TrimSpace(uid)
+		if uid == "" {
+			continue
+		}
+		if _, ok := seenChannels[uid]; ok {
+			continue
+		}
+		seenChannels[uid] = struct{}{}
+		dedupedChannels = append(dedupedChannels, uid)
+		if index < len(in.TemplateUIDs) {
+			dedupedTemplates = append(dedupedTemplates, strings.TrimSpace(in.TemplateUIDs[index]))
+		} else {
+			dedupedTemplates = append(dedupedTemplates, "")
+		}
 	}
-	template, err := uc.repo.GetTemplate(ctx, in.NamespaceUID, in.TemplateUID)
-	if err != nil {
-		return uc.access.Wrap(err)
+	in.ChannelUIDs = dedupedChannels
+	in.TemplateUIDs = dedupedTemplates
+	in.EmailMemberUIDs = uniqueStrings(in.EmailMemberUIDs)
+	in.SMSMemberUIDs = uniqueStrings(in.SMSMemberUIDs)
+	if len(in.ChannelUIDs) == 0 {
+		return merr.Invalid("notification group requires at least one channel")
 	}
-	if err := validateGroupBinding(*channel, *template); err != nil {
-		return err
+	if len(in.ChannelUIDs) > maxGroupChannels {
+		return merr.Invalid("too many channels")
 	}
-
-	in.MemberUIDs = uniqueStrings(in.MemberUIDs)
-	in.WebhookChannelUIDs = uniqueStrings(in.WebhookChannelUIDs)
-	if len(in.MemberUIDs) > maxGroupMembers {
+	if len(in.TemplateUIDs) != len(in.ChannelUIDs) {
+		return merr.Invalid("channel and template counts do not match")
+	}
+	for _, uid := range in.TemplateUIDs {
+		if strings.TrimSpace(uid) == "" {
+			return merr.Invalid("template is required for every channel")
+		}
+	}
+	if len(in.EmailMemberUIDs) > maxGroupMembers || len(in.SMSMemberUIDs) > maxGroupMembers {
 		return merr.Invalid("too many members")
 	}
-	if len(in.WebhookChannelUIDs) > maxGroupWebhooks {
-		return merr.Invalid("too many webhook channels")
-	}
-	memberEmails := make([]string, 0, len(in.MemberUIDs))
-	if len(in.MemberUIDs) > 0 {
-		if channel.Type != channelTypeSMTP {
-			return merr.Invalid("members require an smtp channel")
-		}
-		members, err := uc.members.ListMembersByUIDs(ctx, in.NamespaceUID, in.MemberUIDs)
-		if err != nil {
-			return uc.access.Wrap(err)
-		}
-		if len(members) != len(in.MemberUIDs) {
-			return merr.Invalid("member not found")
-		}
-		for _, item := range members {
-			if item.Status != "JOINED" {
-				return merr.Invalid("member is not joined")
-			}
-			if strings.TrimSpace(item.Email) == "" {
-				return merr.Invalid("member has no email")
-			}
-			memberEmails = append(memberEmails, item.Email)
-		}
-	}
-	if err := validateReceivers(channel.Type, mergeReceivers(in.Receivers, memberEmails)); err != nil {
+
+	members, err := uc.groupMembers(ctx, in)
+	if err != nil {
 		return err
 	}
 
-	if channel.Type == channelTypeWebhook {
-		for i, uid := range in.WebhookChannelUIDs {
-			if uid == in.ChannelUID {
-				in.WebhookChannelUIDs = append(in.WebhookChannelUIDs[:i], in.WebhookChannelUIDs[i+1:]...)
-				break
-			}
-		}
-	}
-	if len(in.WebhookChannelUIDs) == 0 {
-		in.WebhookTemplateUID = ""
-		return nil
-	}
-	if strings.TrimSpace(in.WebhookTemplateUID) == "" {
-		return merr.Invalid("webhook template is required")
-	}
-	webhookTemplate, err := uc.repo.GetTemplate(ctx, in.NamespaceUID, in.WebhookTemplateUID)
-	if err != nil {
-		return uc.access.Wrap(err)
-	}
-	if webhookTemplate.Status != "ACTIVE" || webhookTemplate.Type != "WEBHOOK" {
-		return merr.Invalid("invalid webhook template")
-	}
-	for _, uid := range in.WebhookChannelUIDs {
-		webhook, err := uc.repo.GetChannel(ctx, in.NamespaceUID, uid)
+	emailChannelUID := ""
+	smsChannelUID := ""
+	webhookUIDs := make([]string, 0, len(in.ChannelUIDs))
+	webhookTemplates := map[string]struct{}{}
+	for index, channelUID := range in.ChannelUIDs {
+		channel, err := uc.repo.GetChannel(ctx, in.NamespaceUID, channelUID)
 		if err != nil {
 			return uc.access.Wrap(err)
 		}
-		if webhook.Type != channelTypeWebhook || webhook.Status != "ACTIVE" {
-			return merr.Invalid("invalid webhook channel")
+		template, err := uc.repo.GetTemplate(ctx, in.NamespaceUID, in.TemplateUIDs[index])
+		if err != nil {
+			return uc.access.Wrap(err)
+		}
+		if err := validateGroupBinding(*channel, *template); err != nil {
+			return err
+		}
+		switch channel.Type {
+		case channelTypeSMTP:
+			if emailChannelUID != "" {
+				return merr.Invalid("only one email channel is allowed")
+			}
+			emailChannelUID = channelUID
+		case channelTypeSMS:
+			if smsChannelUID != "" {
+				return merr.Invalid("only one sms channel is allowed")
+			}
+			smsChannelUID = channelUID
+		case channelTypeWebhook:
+			webhookUIDs = append(webhookUIDs, channelUID)
+			webhookTemplates[template.UID] = struct{}{}
+		}
+	}
+	if len(webhookUIDs) > maxGroupWebhooks {
+		return merr.Invalid("too many webhook channels")
+	}
+
+	emailReceivers := mergeReceivers(in.EmailReceivers, nil)
+	smsReceivers := mergeReceivers(in.SMSReceivers, nil)
+	if emailChannelUID == "" {
+		if emailReceivers != "" || len(in.EmailMemberUIDs) > 0 {
+			return merr.Invalid("email receivers require an email channel")
+		}
+	} else {
+		emails, err := uc.memberEmails(members, in.EmailMemberUIDs)
+		if err != nil {
+			return err
+		}
+		merged := mergeReceivers(emailReceivers, emails)
+		if merged == "" {
+			return merr.Invalid("email channel requires at least one receiver")
+		}
+		if err := validateReceivers(channelTypeSMTP, merged); err != nil {
+			return err
+		}
+	}
+	if smsChannelUID == "" {
+		if smsReceivers != "" || len(in.SMSMemberUIDs) > 0 {
+			return merr.Invalid("sms receivers require an sms channel")
+		}
+	} else {
+		phones, err := uc.memberPhones(members, in.SMSMemberUIDs)
+		if err != nil {
+			return err
+		}
+		merged := mergeReceivers(smsReceivers, phones)
+		if merged == "" {
+			return merr.Invalid("sms channel requires at least one receiver")
+		}
+		if err := validateReceivers(channelTypeSMS, merged); err != nil {
+			return err
+		}
+	}
+	// 只保存手填接收方；成员邮箱/手机号在投递时按 member_uids 实时解析，
+	// 避免编辑时把成员地址复制进手填框。
+	in.EmailReceivers = emailReceivers
+	in.SMSReceivers = smsReceivers
+
+	// 兼容旧客户端和旧版投递字段：写入第一组渠道/模板和 Webhook 快照。
+	in.ChannelUID = in.ChannelUIDs[0]
+	in.TemplateUID = in.TemplateUIDs[0]
+	in.Receivers = in.EmailReceivers
+	in.MemberUIDs = in.EmailMemberUIDs
+	in.WebhookChannelUIDs = webhookUIDs
+	in.WebhookTemplateUID = ""
+	if len(webhookTemplates) == 1 {
+		for uid := range webhookTemplates {
+			in.WebhookTemplateUID = uid
 		}
 	}
 	return nil
+}
+
+// normalizeLegacyGroup 把旧版单渠道字段并入新数组，方便旧客户端继续保存。
+func normalizeLegacyGroup(in *bo.NotificationGroup) {
+	if len(in.ChannelUIDs) > 0 {
+		return
+	}
+	if strings.TrimSpace(in.ChannelUID) == "" {
+		return
+	}
+	in.ChannelUIDs = []string{in.ChannelUID}
+	in.TemplateUIDs = []string{in.TemplateUID}
+	in.EmailReceivers = in.Receivers
+	in.EmailMemberUIDs = in.MemberUIDs
+	for _, uid := range in.WebhookChannelUIDs {
+		if strings.TrimSpace(uid) == "" {
+			continue
+		}
+		in.ChannelUIDs = append(in.ChannelUIDs, uid)
+		in.TemplateUIDs = append(in.TemplateUIDs, in.WebhookTemplateUID)
+	}
+}
+
+// groupMembers 一次读取邮件和短信选择的成员，避免逐个查询。
+func (uc *Usecase) groupMembers(ctx context.Context, in *bo.NotificationGroup) (map[string]bo.Member, error) {
+	uids := uniqueStrings(append(append([]string{}, in.EmailMemberUIDs...), in.SMSMemberUIDs...))
+	if len(uids) == 0 {
+		return map[string]bo.Member{}, nil
+	}
+	members, err := uc.members.ListMembersByUIDs(ctx, in.NamespaceUID, uids)
+	if err != nil {
+		return nil, uc.access.Wrap(err)
+	}
+	if len(members) != len(uids) {
+		return nil, merr.Invalid("member not found")
+	}
+	out := make(map[string]bo.Member, len(members))
+	for _, item := range members {
+		out[item.UID] = item
+	}
+	return out, nil
+}
+
+func (uc *Usecase) memberEmails(members map[string]bo.Member, uids []string) ([]string, error) {
+	out := make([]string, 0, len(uids))
+	for _, uid := range uids {
+		item, ok := members[uid]
+		if !ok {
+			return nil, merr.Invalid("member not found")
+		}
+		if item.Status != "JOINED" {
+			return nil, merr.Invalid("member is not joined")
+		}
+		if strings.TrimSpace(item.Email) == "" {
+			return nil, merr.Invalid("member has no email")
+		}
+		out = append(out, item.Email)
+	}
+	return out, nil
+}
+
+func (uc *Usecase) memberPhones(members map[string]bo.Member, uids []string) ([]string, error) {
+	out := make([]string, 0, len(uids))
+	for _, uid := range uids {
+		item, ok := members[uid]
+		if !ok {
+			return nil, merr.Invalid("member not found")
+		}
+		if item.Status != "JOINED" {
+			return nil, merr.Invalid("member is not joined")
+		}
+		if strings.TrimSpace(item.Phone) == "" {
+			return nil, merr.Invalid("member has no phone")
+		}
+		if err := validatePhone(item.Phone); err != nil {
+			return nil, err
+		}
+		out = append(out, strings.TrimSpace(item.Phone))
+	}
+	return out, nil
 }
 
 func mergeReceivers(extra string, emails []string) string {

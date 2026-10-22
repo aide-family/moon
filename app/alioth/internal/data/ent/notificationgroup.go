@@ -32,14 +32,26 @@ type NotificationGroup struct {
 	Name string `json:"name,omitempty"`
 	// Status holds the value of the "status" field.
 	Status notificationgroup.Status `json:"status,omitempty"`
+	// ChannelUids holds the value of the "channel_uids" field.
+	ChannelUids []string `json:"channel_uids,omitempty"`
+	// TemplateUids holds the value of the "template_uids" field.
+	TemplateUids []string `json:"template_uids,omitempty"`
+	// EmailReceivers holds the value of the "email_receivers" field.
+	EmailReceivers string `json:"email_receivers,omitempty"`
+	// SmsReceivers holds the value of the "sms_receivers" field.
+	SmsReceivers string `json:"sms_receivers,omitempty"`
+	// EmailMemberUids holds the value of the "email_member_uids" field.
+	EmailMemberUids []string `json:"email_member_uids,omitempty"`
+	// SmsMemberUids holds the value of the "sms_member_uids" field.
+	SmsMemberUids []string `json:"sms_member_uids,omitempty"`
+	// Remark holds the value of the "remark" field.
+	Remark string `json:"remark,omitempty"`
 	// ChannelUID holds the value of the "channel_uid" field.
 	ChannelUID string `json:"channel_uid,omitempty"`
 	// TemplateUID holds the value of the "template_uid" field.
 	TemplateUID string `json:"template_uid,omitempty"`
 	// Receivers holds the value of the "receivers" field.
 	Receivers string `json:"receivers,omitempty"`
-	// Remark holds the value of the "remark" field.
-	Remark string `json:"remark,omitempty"`
 	// MemberUids holds the value of the "member_uids" field.
 	MemberUids []string `json:"member_uids,omitempty"`
 	// WebhookChannelUids holds the value of the "webhook_channel_uids" field.
@@ -54,11 +66,11 @@ func (*NotificationGroup) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case notificationgroup.FieldMemberUids, notificationgroup.FieldWebhookChannelUids:
+		case notificationgroup.FieldChannelUids, notificationgroup.FieldTemplateUids, notificationgroup.FieldEmailMemberUids, notificationgroup.FieldSmsMemberUids, notificationgroup.FieldMemberUids, notificationgroup.FieldWebhookChannelUids:
 			values[i] = new([]byte)
 		case notificationgroup.FieldID:
 			values[i] = new(sql.NullInt64)
-		case notificationgroup.FieldUID, notificationgroup.FieldNamespaceUID, notificationgroup.FieldName, notificationgroup.FieldStatus, notificationgroup.FieldChannelUID, notificationgroup.FieldTemplateUID, notificationgroup.FieldReceivers, notificationgroup.FieldRemark, notificationgroup.FieldWebhookTemplateUID:
+		case notificationgroup.FieldUID, notificationgroup.FieldNamespaceUID, notificationgroup.FieldName, notificationgroup.FieldStatus, notificationgroup.FieldEmailReceivers, notificationgroup.FieldSmsReceivers, notificationgroup.FieldRemark, notificationgroup.FieldChannelUID, notificationgroup.FieldTemplateUID, notificationgroup.FieldReceivers, notificationgroup.FieldWebhookTemplateUID:
 			values[i] = new(sql.NullString)
 		case notificationgroup.FieldCreatedAt, notificationgroup.FieldUpdatedAt, notificationgroup.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -126,6 +138,56 @@ func (_m *NotificationGroup) assignValues(columns []string, values []any) error 
 			} else if value.Valid {
 				_m.Status = notificationgroup.Status(value.String)
 			}
+		case notificationgroup.FieldChannelUids:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field channel_uids", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.ChannelUids); err != nil {
+					return fmt.Errorf("unmarshal field channel_uids: %w", err)
+				}
+			}
+		case notificationgroup.FieldTemplateUids:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field template_uids", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.TemplateUids); err != nil {
+					return fmt.Errorf("unmarshal field template_uids: %w", err)
+				}
+			}
+		case notificationgroup.FieldEmailReceivers:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field email_receivers", values[i])
+			} else if value.Valid {
+				_m.EmailReceivers = value.String
+			}
+		case notificationgroup.FieldSmsReceivers:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field sms_receivers", values[i])
+			} else if value.Valid {
+				_m.SmsReceivers = value.String
+			}
+		case notificationgroup.FieldEmailMemberUids:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field email_member_uids", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.EmailMemberUids); err != nil {
+					return fmt.Errorf("unmarshal field email_member_uids: %w", err)
+				}
+			}
+		case notificationgroup.FieldSmsMemberUids:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field sms_member_uids", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.SmsMemberUids); err != nil {
+					return fmt.Errorf("unmarshal field sms_member_uids: %w", err)
+				}
+			}
+		case notificationgroup.FieldRemark:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field remark", values[i])
+			} else if value.Valid {
+				_m.Remark = value.String
+			}
 		case notificationgroup.FieldChannelUID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field channel_uid", values[i])
@@ -143,12 +205,6 @@ func (_m *NotificationGroup) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field receivers", values[i])
 			} else if value.Valid {
 				_m.Receivers = value.String
-			}
-		case notificationgroup.FieldRemark:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field remark", values[i])
-			} else if value.Valid {
-				_m.Remark = value.String
 			}
 		case notificationgroup.FieldMemberUids:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -231,6 +287,27 @@ func (_m *NotificationGroup) String() string {
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))
 	builder.WriteString(", ")
+	builder.WriteString("channel_uids=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ChannelUids))
+	builder.WriteString(", ")
+	builder.WriteString("template_uids=")
+	builder.WriteString(fmt.Sprintf("%v", _m.TemplateUids))
+	builder.WriteString(", ")
+	builder.WriteString("email_receivers=")
+	builder.WriteString(_m.EmailReceivers)
+	builder.WriteString(", ")
+	builder.WriteString("sms_receivers=")
+	builder.WriteString(_m.SmsReceivers)
+	builder.WriteString(", ")
+	builder.WriteString("email_member_uids=")
+	builder.WriteString(fmt.Sprintf("%v", _m.EmailMemberUids))
+	builder.WriteString(", ")
+	builder.WriteString("sms_member_uids=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SmsMemberUids))
+	builder.WriteString(", ")
+	builder.WriteString("remark=")
+	builder.WriteString(_m.Remark)
+	builder.WriteString(", ")
 	builder.WriteString("channel_uid=")
 	builder.WriteString(_m.ChannelUID)
 	builder.WriteString(", ")
@@ -239,9 +316,6 @@ func (_m *NotificationGroup) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("receivers=")
 	builder.WriteString(_m.Receivers)
-	builder.WriteString(", ")
-	builder.WriteString("remark=")
-	builder.WriteString(_m.Remark)
 	builder.WriteString(", ")
 	builder.WriteString("member_uids=")
 	builder.WriteString(fmt.Sprintf("%v", _m.MemberUids))

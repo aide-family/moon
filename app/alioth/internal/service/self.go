@@ -76,6 +76,14 @@ func (s *SelfService) ChangeRemark(ctx context.Context, req *v1.ChangeRemarkRequ
 	return &v1.ChangeRemarkResponse{User: userItem(*account)}, nil
 }
 
+func (s *SelfService) ChangePhone(ctx context.Context, req *v1.ChangePhoneRequest) (*v1.ChangePhoneResponse, error) {
+	account, err := s.auth.ChangePhone(ctx, req.GetPhone())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ChangePhoneResponse{User: userItem(*account)}, nil
+}
+
 func (s *SelfService) GetSelfPermissions(ctx context.Context, _ *v1.GetSelfPermissionsRequest) (*v1.GetSelfPermissionsResponse, error) {
 	names, err := s.roles.Mine(ctx)
 	if err != nil {

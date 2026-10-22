@@ -313,7 +313,7 @@ export function MemberPage() {
                 <TableHead>{t("member.role")}</TableHead>
                 <TableHead>{t("member.inviter")}</TableHead>
                 <TableHead>{t("member.expiresAt")}</TableHead>
-                <TableHead />
+                <TableHead className="text-right">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -379,7 +379,7 @@ export function MemberPage() {
                   <TableHead>{t("member.email")}</TableHead>
                   <TableHead>{t("member.role")}</TableHead>
                   <TableHead>{t("member.status")}</TableHead>
-                  <TableHead />
+                  <TableHead className="text-right">{t("action.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -31,6 +31,8 @@ type NotificationTemplate struct {
 	Name string `json:"name,omitempty"`
 	// Type holds the value of the "type" field.
 	Type notificationtemplate.Type `json:"type,omitempty"`
+	// App holds the value of the "app" field.
+	App notificationtemplate.App `json:"app,omitempty"`
 	// Status holds the value of the "status" field.
 	Status notificationtemplate.Status `json:"status,omitempty"`
 	// Subject holds the value of the "subject" field.
@@ -49,7 +51,7 @@ func (*NotificationTemplate) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case notificationtemplate.FieldID:
 			values[i] = new(sql.NullInt64)
-		case notificationtemplate.FieldUID, notificationtemplate.FieldNamespaceUID, notificationtemplate.FieldName, notificationtemplate.FieldType, notificationtemplate.FieldStatus, notificationtemplate.FieldSubject, notificationtemplate.FieldBody, notificationtemplate.FieldRemark:
+		case notificationtemplate.FieldUID, notificationtemplate.FieldNamespaceUID, notificationtemplate.FieldName, notificationtemplate.FieldType, notificationtemplate.FieldApp, notificationtemplate.FieldStatus, notificationtemplate.FieldSubject, notificationtemplate.FieldBody, notificationtemplate.FieldRemark:
 			values[i] = new(sql.NullString)
 		case notificationtemplate.FieldCreatedAt, notificationtemplate.FieldUpdatedAt, notificationtemplate.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -116,6 +118,12 @@ func (_m *NotificationTemplate) assignValues(columns []string, values []any) err
 				return fmt.Errorf("unexpected type %T for field type", values[i])
 			} else if value.Valid {
 				_m.Type = notificationtemplate.Type(value.String)
+			}
+		case notificationtemplate.FieldApp:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field app", values[i])
+			} else if value.Valid {
+				_m.App = notificationtemplate.App(value.String)
 			}
 		case notificationtemplate.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -199,6 +207,9 @@ func (_m *NotificationTemplate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Type))
+	builder.WriteString(", ")
+	builder.WriteString("app=")
+	builder.WriteString(fmt.Sprintf("%v", _m.App))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))

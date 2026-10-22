@@ -28,6 +28,8 @@ const (
 	FieldEmail = "email"
 	// FieldAvatar holds the string denoting the avatar field in the database.
 	FieldAvatar = "avatar"
+	// FieldPhone holds the string denoting the phone field in the database.
+	FieldPhone = "phone"
 	// FieldRemark holds the string denoting the remark field in the database.
 	FieldRemark = "remark"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -52,6 +54,7 @@ var Columns = []string{
 	FieldNickname,
 	FieldEmail,
 	FieldAvatar,
+	FieldPhone,
 	FieldRemark,
 	FieldStatus,
 	FieldPasswordHash,
@@ -86,6 +89,8 @@ var (
 	EmailValidator func(string) error
 	// DefaultAvatar holds the default value on creation for the "avatar" field.
 	DefaultAvatar string
+	// DefaultPhone holds the default value on creation for the "phone" field.
+	DefaultPhone string
 	// DefaultRemark holds the default value on creation for the "remark" field.
 	DefaultRemark string
 	// DefaultPasswordHash holds the default value on creation for the "password_hash" field.
@@ -188,6 +193,11 @@ func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 // ByAvatar orders the results by the avatar field.
 func ByAvatar(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAvatar, opts...).ToFunc()
+}
+
+// ByPhone orders the results by the phone field.
+func ByPhone(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPhone, opts...).ToFunc()
 }
 
 // ByRemark orders the results by the remark field.

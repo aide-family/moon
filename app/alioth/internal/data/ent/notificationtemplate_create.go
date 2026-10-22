@@ -86,6 +86,20 @@ func (_c *NotificationTemplateCreate) SetType(v notificationtemplate.Type) *Noti
 	return _c
 }
 
+// SetApp sets the "app" field.
+func (_c *NotificationTemplateCreate) SetApp(v notificationtemplate.App) *NotificationTemplateCreate {
+	_c.mutation.SetApp(v)
+	return _c
+}
+
+// SetNillableApp sets the "app" field if the given value is not nil.
+func (_c *NotificationTemplateCreate) SetNillableApp(v *notificationtemplate.App) *NotificationTemplateCreate {
+	if v != nil {
+		_c.SetApp(*v)
+	}
+	return _c
+}
+
 // SetStatus sets the "status" field.
 func (_c *NotificationTemplateCreate) SetStatus(v notificationtemplate.Status) *NotificationTemplateCreate {
 	_c.mutation.SetStatus(v)
@@ -185,6 +199,10 @@ func (_c *NotificationTemplateCreate) defaults() {
 		v := notificationtemplate.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.App(); !ok {
+		v := notificationtemplate.DefaultApp
+		_c.mutation.SetApp(v)
+	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := notificationtemplate.DefaultStatus
 		_c.mutation.SetStatus(v)
@@ -241,6 +259,14 @@ func (_c *NotificationTemplateCreate) check() error {
 	if v, ok := _c.mutation.GetType(); ok {
 		if err := notificationtemplate.TypeValidator(v); err != nil {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "NotificationTemplate.type": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.App(); !ok {
+		return &ValidationError{Name: "app", err: errors.New(`ent: missing required field "NotificationTemplate.app"`)}
+	}
+	if v, ok := _c.mutation.App(); ok {
+		if err := notificationtemplate.AppValidator(v); err != nil {
+			return &ValidationError{Name: "app", err: fmt.Errorf(`ent: validator failed for field "NotificationTemplate.app": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
@@ -313,6 +339,10 @@ func (_c *NotificationTemplateCreate) createSpec() (*NotificationTemplate, *sqlg
 	if value, ok := _c.mutation.GetType(); ok {
 		_spec.SetField(notificationtemplate.FieldType, field.TypeEnum, value)
 		_node.Type = value
+	}
+	if value, ok := _c.mutation.App(); ok {
+		_spec.SetField(notificationtemplate.FieldApp, field.TypeEnum, value)
+		_node.App = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(notificationtemplate.FieldStatus, field.TypeEnum, value)

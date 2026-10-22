@@ -24,6 +24,8 @@ func (User) Fields() []ent.Field {
 		field.String("nickname").Default(""),
 		field.String("email").NotEmpty(),
 		field.String("avatar").Default(""),
+		// phone 用于短信通知；留空表示未配置。
+		field.String("phone").Default(""),
 		field.String("remark").Default(""),
 		field.Enum("status").Values("ACTIVE", "BANNED").Default("ACTIVE"),
 		field.String("password_hash").Sensitive().Default(""),

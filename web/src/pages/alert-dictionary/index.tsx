@@ -292,7 +292,7 @@ export function AlertDictionaryPage() {
                   <TableHead>{t("alertDictionary.color")}</TableHead>
                   <TableHead>{t("datasource.type")}</TableHead>
                   <TableHead>{t("namespace.status")}</TableHead>
-                  <TableHead />
+                  <TableHead className="text-right">{t("action.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

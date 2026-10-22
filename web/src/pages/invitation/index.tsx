@@ -114,7 +114,7 @@ export function InvitationPage() {
               <TableHead>{t("invitation.inviter")}</TableHead>
               <TableHead>{t("member.expiresAt")}</TableHead>
               <TableHead>{t("member.status")}</TableHead>
-              <TableHead />
+              <TableHead className="text-right">{t("action.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

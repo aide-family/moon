@@ -396,6 +396,7 @@ const OperationNotificationTemplateServiceDeleteNotificationTemplate = "/alioth.
 const OperationNotificationTemplateServiceGetNotificationTemplate = "/alioth.v1.NotificationTemplateService/GetNotificationTemplate"
 const OperationNotificationTemplateServiceListNotificationPresets = "/alioth.v1.NotificationTemplateService/ListNotificationPresets"
 const OperationNotificationTemplateServiceListNotificationTemplates = "/alioth.v1.NotificationTemplateService/ListNotificationTemplates"
+const OperationNotificationTemplateServicePreviewNotificationTemplate = "/alioth.v1.NotificationTemplateService/PreviewNotificationTemplate"
 const OperationNotificationTemplateServiceSelectNotificationTemplates = "/alioth.v1.NotificationTemplateService/SelectNotificationTemplates"
 const OperationNotificationTemplateServiceTestNotificationTemplate = "/alioth.v1.NotificationTemplateService/TestNotificationTemplate"
 const OperationNotificationTemplateServiceUpdateNotificationTemplate = "/alioth.v1.NotificationTemplateService/UpdateNotificationTemplate"
@@ -412,6 +413,8 @@ type NotificationTemplateServiceHTTPServer interface {
 	ListNotificationPresets(context.Context, *ListNotificationPresetsRequest) (*ListNotificationPresetsResponse, error)
 	// ListNotificationTemplates 分页列出模板。
 	ListNotificationTemplates(context.Context, *ListNotificationTemplatesRequest) (*ListNotificationTemplatesResponse, error)
+	// PreviewNotificationTemplate 用 mock 事件渲染模板，供编辑器和预设页预览使用，不写入任务。
+	PreviewNotificationTemplate(context.Context, *PreviewNotificationTemplateRequest) (*PreviewNotificationTemplateResponse, error)
 	// SelectNotificationTemplates 下拉选择模板。
 	SelectNotificationTemplates(context.Context, *SelectNotificationTemplatesRequest) (*SelectNotificationTemplatesResponse, error)
 	// TestNotificationTemplate 按模板试发。
@@ -432,6 +435,7 @@ func RegisterNotificationTemplateServiceHTTPServer(s *http.Server, srv Notificat
 	r.Handle("GET", "/v1/notification-templates", _NotificationTemplateService_ListNotificationTemplates0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/notification-templates/select", _NotificationTemplateService_SelectNotificationTemplates0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/notification-template/{uid}/test", _NotificationTemplateService_TestNotificationTemplate0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/notification-template/preview", _NotificationTemplateService_PreviewNotificationTemplate0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/notification-presets", _NotificationTemplateService_ListNotificationPresets0_HTTP_Handler(srv))
 }
 
@@ -602,6 +606,25 @@ func _NotificationTemplateService_TestNotificationTemplate0_HTTP_Handler(srv Not
 	}
 }
 
+func _NotificationTemplateService_PreviewNotificationTemplate0_HTTP_Handler(srv NotificationTemplateServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PreviewNotificationTemplateRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNotificationTemplateServicePreviewNotificationTemplate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PreviewNotificationTemplate(ctx, req.(*PreviewNotificationTemplateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PreviewNotificationTemplateResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _NotificationTemplateService_ListNotificationPresets0_HTTP_Handler(srv NotificationTemplateServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListNotificationPresetsRequest
@@ -632,6 +655,8 @@ type NotificationTemplateServiceHTTPClient interface {
 	ListNotificationPresets(ctx context.Context, req *ListNotificationPresetsRequest, opts ...http.CallOption) (rsp *ListNotificationPresetsResponse, err error)
 	// ListNotificationTemplates 分页列出模板。
 	ListNotificationTemplates(ctx context.Context, req *ListNotificationTemplatesRequest, opts ...http.CallOption) (rsp *ListNotificationTemplatesResponse, err error)
+	// PreviewNotificationTemplate 用 mock 事件渲染模板，供编辑器和预设页预览使用，不写入任务。
+	PreviewNotificationTemplate(ctx context.Context, req *PreviewNotificationTemplateRequest, opts ...http.CallOption) (rsp *PreviewNotificationTemplateResponse, err error)
 	// SelectNotificationTemplates 下拉选择模板。
 	SelectNotificationTemplates(ctx context.Context, req *SelectNotificationTemplatesRequest, opts ...http.CallOption) (rsp *SelectNotificationTemplatesResponse, err error)
 	// TestNotificationTemplate 按模板试发。
@@ -730,6 +755,24 @@ func (c *NotificationTemplateServiceHTTPClientImpl) ListNotificationTemplates(ct
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PreviewNotificationTemplate 用 mock 事件渲染模板，供编辑器和预设页预览使用，不写入任务。
+func (c *NotificationTemplateServiceHTTPClientImpl) PreviewNotificationTemplate(ctx context.Context, in *PreviewNotificationTemplateRequest, opts ...http.CallOption) (*PreviewNotificationTemplateResponse, error) {
+	var out PreviewNotificationTemplateResponse
+	pattern := "/v1/notification-template/preview"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationNotificationTemplateServicePreviewNotificationTemplate),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

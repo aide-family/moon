@@ -210,7 +210,7 @@ export function UserPage() {
                 <TableHead>{t("login.emailLabel")}</TableHead>
                 <TableHead>{t("user.systemRole")}</TableHead>
                 <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead />
+                <TableHead className="text-right">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

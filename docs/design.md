@@ -314,10 +314,10 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 | 实体                     | 来源                                  | 说明                                                                          |
 | ---------------------- | ----------------------------------- | --------------------------------------------------------------------------- |
-| `NotificationChannel`  | Moon 的 `email_configs` 与 `webhooks` | 一种投递配置。SMTP 的应用固定为 OTHER；Webhook 的应用为 OTHER、DINGTALK、WECHAT、FEISHU。密码和签名加密存储 |
-| `NotificationTemplate` | Moon 的 `templates`                  | 按 `MessageType` 存模板正文。首期类型为 EMAIL 与 WEBHOOK。`SMS_ALICLOUD` 只保留枚举            |
-| `NotificationPreset`   | Alioth 新增                           | 系统预置模板，只读、不属于租户。用户可以直接使用或修改后生成自己的模板                                          |
-| `NotificationGroup`    | Moon 的通知组与收件人组                      | Namespace 内的接收方集合，关联主渠道/模板、成员和多个 Webhook 渠道，可启停                                   |
+| `NotificationChannel`  | Moon 的 `email_configs` 与 `webhooks` | 一种投递配置。类型为 SMTP、WEBHOOK 或 SMS；SMTP 应用固定 OTHER，Webhook 应用为 OTHER、DINGTALK、WECHAT、FEISHU，SMS 应用固定 SMS_ALICLOUD。密码和签名加密存储 |
+| `NotificationTemplate` | Moon 的 `templates`                  | 按消息类型和应用存模板。类型为 EMAIL、WEBHOOK、SMS_ALICLOUD；WEBHOOK 模板的 app 区分 OTHER、DINGTALK、WECHAT、FEISHU，OTHER 是通用模板。EMAIL 和 SMS_ALICLOUD 固定 OTHER |
+| `NotificationPreset`   | Alioth 新增                           | 系统预置模板，只读、不属于租户。预设页支持预览，编辑后保存为当前 Namespace 的副本                                          |
+| `NotificationGroup`    | Moon 的通知组与收件人组                      | Namespace 内的接收方集合。邮件渠道和短信渠道各最多一个，Webhook 作为接收者可多选；每个选中渠道都绑定一个能覆盖它的模板，至少有一个接收方或 Webhook |
 | `NotificationSubscription` | Alioth 新增                       | 按标签、告警级别和数据源订阅事件，命中后发送给订阅下的通知组                                              |
 | `NotificationTask`     | Moon 发送任务的持久化形态                     | 待发送、发送中、已发送、失败、取消。状态名沿用 MessageStatus：PENDING、SENDING、SENT、FAILED、CANCELLED |
 | `MessageLog`           | Moon 的 `message_logs`               | 一次投递的结果。按时间分区。支持查看、重试、取消                                                    |
@@ -327,7 +327,7 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 人工试发也生成 `NotificationTask`，仍由 `merak` 投递。对应 Moon 发送台的直发和按模板发送，不在 `merak` 进程里同步等待 SMTP。投递失败按剩余次数退避后回到 PENDING，避免失败任务在轮询周期内反复重试。
 
-渠道、模板和通知组必须满足类型矩阵：SMTP 渠道只能绑定 EMAIL 模板；WEBHOOK 渠道只能绑定 WEBHOOK 模板。SMTP 通知组的接收方由手填邮箱和成员邮箱合并而成，至少有一个；Webhook 通知组不需要接收方。通知组可额外选择多个 Webhook 渠道，共用一个 WEBHOOK 模板。保存、试发和建立通知组时都在服务端校验。
+渠道、模板和通知组必须满足类型矩阵：SMTP 渠道只能绑定 EMAIL 模板；SMS 渠道只能绑定 SMS_ALICLOUD 模板；WEBHOOK 渠道只能绑定 WEBHOOK 模板，且模板 app 必须等于渠道 app 或为 OTHER。通知组保存 `channel_uids` 与 `template_uids` 两个一一对应的数组：邮件渠道、短信渠道和每个 Webhook 接收者各占一项，邮件和短信同类型最多一个。邮件接收方由手填邮箱和成员邮箱合并，短信接收方由手填手机号和成员手机号合并；选择邮件/短信渠道后必须至少有一个接收方，选择 Webhook 时 Webhook 本身算接收方。通知组没有任何渠道、或邮件/短信渠道没有接收方时拒绝保存。保存、试发和建立通知组时都在服务端校验。成员手机号来自用户资料，短信发送实现尚未接入，短信任务会以明确原因失败。
 
 `merak` 按渠道应用选择发送器：
 
@@ -337,7 +337,7 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 - FEISHU：文本消息，配置签名时在请求体带 `timestamp` 与 `sign`。
 - WECHAT：企业微信群机器人文本消息，检查 `errcode`。
 
-短信仍然只保留枚举，不实现发送。
+短信仍然只保存渠道和模板配置，不实现发送；`merak` 对短信任务回写 FAILED（`sms delivery is not implemented`），不会误报 SENT。预设页提供 mock 事件预览，渲染和真实投递共用 `pkg/alerttmpl`。
 
 投递步骤：
 

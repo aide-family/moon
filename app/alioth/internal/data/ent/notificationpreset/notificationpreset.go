@@ -24,6 +24,8 @@ const (
 	FieldName = "name"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
+	// FieldApp holds the string denoting the app field in the database.
+	FieldApp = "app"
 	// FieldSubject holds the string denoting the subject field in the database.
 	FieldSubject = "subject"
 	// FieldBody holds the string denoting the body field in the database.
@@ -46,6 +48,7 @@ var Columns = []string{
 	FieldUID,
 	FieldName,
 	FieldType,
+	FieldApp,
 	FieldSubject,
 	FieldBody,
 	FieldDescription,
@@ -89,8 +92,9 @@ type Type string
 
 // Type values.
 const (
-	TypeEMAIL   Type = "EMAIL"
-	TypeWEBHOOK Type = "WEBHOOK"
+	TypeEMAIL        Type = "EMAIL"
+	TypeWEBHOOK      Type = "WEBHOOK"
+	TypeSMS_ALICLOUD Type = "SMS_ALICLOUD"
 )
 
 func (_type Type) String() string {
@@ -100,10 +104,39 @@ func (_type Type) String() string {
 // TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
 func TypeValidator(_type Type) error {
 	switch _type {
-	case TypeEMAIL, TypeWEBHOOK:
+	case TypeEMAIL, TypeWEBHOOK, TypeSMS_ALICLOUD:
 		return nil
 	default:
 		return fmt.Errorf("notificationpreset: invalid enum value for type field: %q", _type)
+	}
+}
+
+// App defines the type for the "app" enum field.
+type App string
+
+// AppOTHER is the default value of the App enum.
+const DefaultApp = AppOTHER
+
+// App values.
+const (
+	AppOTHER        App = "OTHER"
+	AppDINGTALK     App = "DINGTALK"
+	AppWECHAT       App = "WECHAT"
+	AppFEISHU       App = "FEISHU"
+	AppSMS_ALICLOUD App = "SMS_ALICLOUD"
+)
+
+func (a App) String() string {
+	return string(a)
+}
+
+// AppValidator is a validator for the "app" field enum values. It is called by the builders before save.
+func AppValidator(a App) error {
+	switch a {
+	case AppOTHER, AppDINGTALK, AppWECHAT, AppFEISHU, AppSMS_ALICLOUD:
+		return nil
+	default:
+		return fmt.Errorf("notificationpreset: invalid enum value for app field: %q", a)
 	}
 }
 
@@ -164,6 +197,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByType orders the results by the type field.
 func ByType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldType, opts...).ToFunc()
+}
+
+// ByApp orders the results by the app field.
+func ByApp(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldApp, opts...).ToFunc()
 }
 
 // BySubject orders the results by the subject field.

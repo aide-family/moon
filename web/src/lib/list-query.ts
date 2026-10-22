@@ -13,8 +13,10 @@ export function useListQuery() {
   const page = boundedInt(params.get("page"), 1, 1, 1_000_000)
   const pageSize = boundedInt(params.get("pageSize"), 20, 1, 100)
   const name = params.get("name") || ""
+  const type = params.get("type") || ""
+  const app = params.get("app") || ""
 
-  function update(next: { page?: number; name?: string }) {
+  function update(next: { page?: number; name?: string; type?: string; app?: string }) {
     const query = new URLSearchParams(params)
     if (next.page !== undefined) {
       query.set("page", String(next.page))
@@ -27,9 +29,25 @@ export function useListQuery() {
       }
       query.set("page", "1")
     }
+    if (next.type !== undefined) {
+      if (next.type) {
+        query.set("type", next.type)
+      } else {
+        query.delete("type")
+      }
+      query.set("page", "1")
+    }
+    if (next.app !== undefined) {
+      if (next.app) {
+        query.set("app", next.app)
+      } else {
+        query.delete("app")
+      }
+      query.set("page", "1")
+    }
     query.set("pageSize", String(pageSize))
     setParams(query)
   }
 
-  return { page, pageSize, name, update }
+  return { page, pageSize, name, type, app, update }
 }

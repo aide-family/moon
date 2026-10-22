@@ -341,7 +341,7 @@ export function RolePage() {
                 <TableRow>
                   <TableHead>{t("role.name")}</TableHead>
                   <TableHead>{t("namespace.status")}</TableHead>
-                  <TableHead />
+                  <TableHead className="text-right">{t("action.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

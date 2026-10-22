@@ -3,6 +3,10 @@ package data
 import (
 	"encoding/json"
 	"testing"
+
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationchannel"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/notificationtemplate"
 )
 
 func TestLabelsMatch(t *testing.T) {
@@ -29,6 +33,30 @@ func TestLabelsMatch(t *testing.T) {
 				t.Fatalf("labelsMatch(%q, %q) = %v, want %v", tt.selector, tt.labels, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestTemplateCoversChannel(t *testing.T) {
+	webhook := &ent.NotificationChannel{Type: notificationchannel.TypeWEBHOOK, App: notificationchannel.AppWECHAT}
+	if !templateCoversChannel(webhook, &ent.NotificationTemplate{Type: notificationtemplate.TypeWEBHOOK, App: notificationtemplate.AppWECHAT}) {
+		t.Fatal("wechat webhook + wechat template should match")
+	}
+	if !templateCoversChannel(webhook, &ent.NotificationTemplate{Type: notificationtemplate.TypeWEBHOOK, App: notificationtemplate.AppOTHER}) {
+		t.Fatal("generic webhook template should cover any app")
+	}
+	if templateCoversChannel(webhook, &ent.NotificationTemplate{Type: notificationtemplate.TypeWEBHOOK, App: notificationtemplate.AppDINGTALK}) {
+		t.Fatal("dingtalk template must not cover wechat")
+	}
+	smtp := &ent.NotificationChannel{Type: notificationchannel.TypeSMTP, App: notificationchannel.AppOTHER}
+	if !templateCoversChannel(smtp, &ent.NotificationTemplate{Type: notificationtemplate.TypeEMAIL, App: notificationtemplate.AppOTHER}) {
+		t.Fatal("smtp + email template should match")
+	}
+	if templateCoversChannel(smtp, &ent.NotificationTemplate{Type: notificationtemplate.TypeWEBHOOK, App: notificationtemplate.AppOTHER}) {
+		t.Fatal("smtp + webhook template accepted")
+	}
+	sms := &ent.NotificationChannel{Type: notificationchannel.TypeSMS, App: notificationchannel.AppSMS_ALICLOUD}
+	if !templateCoversChannel(sms, &ent.NotificationTemplate{Type: notificationtemplate.TypeSMS_ALICLOUD, App: notificationtemplate.AppOTHER}) {
+		t.Fatal("sms + sms template should match")
 	}
 }
 

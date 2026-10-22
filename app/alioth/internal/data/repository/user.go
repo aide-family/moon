@@ -12,7 +12,7 @@ type UserRepo interface {
 	CreateUser(ctx context.Context, in bo.Account) (*bo.Account, error)
 	UserByEmail(ctx context.Context, email string) (*bo.Account, error)
 	UserByUID(ctx context.Context, uid string) (*bo.Account, error)
-	UpdateUserProfile(ctx context.Context, uid string, email, avatar, remark *string) (*bo.Account, error)
+	UpdateUserProfile(ctx context.Context, uid string, email, phone, avatar, remark *string) (*bo.Account, error)
 	UpdateUserStatus(ctx context.Context, uid, status string) (*bo.Account, error)
 	// UpdateUserSystemRole 只改平台角色，并记录授权人。超级管理员唯一性由数据库索引保证。
 	UpdateUserSystemRole(ctx context.Context, uid, role, authorizedBy string) (*bo.Account, error)

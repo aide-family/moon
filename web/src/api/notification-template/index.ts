@@ -6,6 +6,8 @@ import type {
   ListNotificationTemplatesResult,
   NotificationPresetItem,
   NotificationTemplateItem,
+  PreviewNotificationTemplateParams,
+  PreviewNotificationTemplateResult,
   UpdateNotificationTemplateParams,
 } from "./types"
 
@@ -44,6 +46,13 @@ export function getNotificationTemplate(uid: string): Promise<{ template: Notifi
   return get<{ template: NotificationTemplateItem }>(`/notification-template/${uid}`)
 }
 
+/** POST /v1/notification-template/preview */
+export function previewNotificationTemplate(
+  body: PreviewNotificationTemplateParams,
+): Promise<PreviewNotificationTemplateResult> {
+  return post<PreviewNotificationTemplateResult>("/notification-template/preview", body)
+}
+
 /** POST /v1/notification-template/{uid}/test */
 export function testNotificationTemplate(uid: string, body: { channelUid: string; receivers: string; params?: string }): Promise<{ taskUid: string }> {
   return post<{ taskUid: string }>(`/notification-template/${uid}/test`, body)
@@ -55,5 +64,7 @@ export type {
   ListNotificationTemplatesResult,
   NotificationPresetItem,
   NotificationTemplateItem,
+  PreviewNotificationTemplateParams,
+  PreviewNotificationTemplateResult,
   UpdateNotificationTemplateParams,
 } from "./types"

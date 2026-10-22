@@ -17400,10 +17400,20 @@ type NotificationGroupMutation struct {
 	namespace_uid              *string
 	name                       *string
 	status                     *notificationgroup.Status
+	channel_uids               *[]string
+	appendchannel_uids         []string
+	template_uids              *[]string
+	appendtemplate_uids        []string
+	email_receivers            *string
+	sms_receivers              *string
+	email_member_uids          *[]string
+	appendemail_member_uids    []string
+	sms_member_uids            *[]string
+	appendsms_member_uids      []string
+	remark                     *string
 	channel_uid                *string
 	template_uid               *string
 	receivers                  *string
-	remark                     *string
 	member_uids                *[]string
 	appendmember_uids          []string
 	webhook_channel_uids       *[]string
@@ -17778,6 +17788,318 @@ func (m *NotificationGroupMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetChannelUids sets the "channel_uids" field.
+func (m *NotificationGroupMutation) SetChannelUids(s []string) {
+	m.channel_uids = &s
+	m.appendchannel_uids = nil
+}
+
+// ChannelUids returns the value of the "channel_uids" field in the mutation.
+func (m *NotificationGroupMutation) ChannelUids() (r []string, exists bool) {
+	v := m.channel_uids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChannelUids returns the old "channel_uids" field's value of the NotificationGroup entity.
+// If the NotificationGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationGroupMutation) OldChannelUids(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChannelUids is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChannelUids requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChannelUids: %w", err)
+	}
+	return oldValue.ChannelUids, nil
+}
+
+// AppendChannelUids adds s to the "channel_uids" field.
+func (m *NotificationGroupMutation) AppendChannelUids(s []string) {
+	m.appendchannel_uids = append(m.appendchannel_uids, s...)
+}
+
+// AppendedChannelUids returns the list of values that were appended to the "channel_uids" field in this mutation.
+func (m *NotificationGroupMutation) AppendedChannelUids() ([]string, bool) {
+	if len(m.appendchannel_uids) == 0 {
+		return nil, false
+	}
+	return m.appendchannel_uids, true
+}
+
+// ResetChannelUids resets all changes to the "channel_uids" field.
+func (m *NotificationGroupMutation) ResetChannelUids() {
+	m.channel_uids = nil
+	m.appendchannel_uids = nil
+}
+
+// SetTemplateUids sets the "template_uids" field.
+func (m *NotificationGroupMutation) SetTemplateUids(s []string) {
+	m.template_uids = &s
+	m.appendtemplate_uids = nil
+}
+
+// TemplateUids returns the value of the "template_uids" field in the mutation.
+func (m *NotificationGroupMutation) TemplateUids() (r []string, exists bool) {
+	v := m.template_uids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTemplateUids returns the old "template_uids" field's value of the NotificationGroup entity.
+// If the NotificationGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationGroupMutation) OldTemplateUids(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTemplateUids is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTemplateUids requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTemplateUids: %w", err)
+	}
+	return oldValue.TemplateUids, nil
+}
+
+// AppendTemplateUids adds s to the "template_uids" field.
+func (m *NotificationGroupMutation) AppendTemplateUids(s []string) {
+	m.appendtemplate_uids = append(m.appendtemplate_uids, s...)
+}
+
+// AppendedTemplateUids returns the list of values that were appended to the "template_uids" field in this mutation.
+func (m *NotificationGroupMutation) AppendedTemplateUids() ([]string, bool) {
+	if len(m.appendtemplate_uids) == 0 {
+		return nil, false
+	}
+	return m.appendtemplate_uids, true
+}
+
+// ResetTemplateUids resets all changes to the "template_uids" field.
+func (m *NotificationGroupMutation) ResetTemplateUids() {
+	m.template_uids = nil
+	m.appendtemplate_uids = nil
+}
+
+// SetEmailReceivers sets the "email_receivers" field.
+func (m *NotificationGroupMutation) SetEmailReceivers(s string) {
+	m.email_receivers = &s
+}
+
+// EmailReceivers returns the value of the "email_receivers" field in the mutation.
+func (m *NotificationGroupMutation) EmailReceivers() (r string, exists bool) {
+	v := m.email_receivers
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmailReceivers returns the old "email_receivers" field's value of the NotificationGroup entity.
+// If the NotificationGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationGroupMutation) OldEmailReceivers(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEmailReceivers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEmailReceivers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmailReceivers: %w", err)
+	}
+	return oldValue.EmailReceivers, nil
+}
+
+// ResetEmailReceivers resets all changes to the "email_receivers" field.
+func (m *NotificationGroupMutation) ResetEmailReceivers() {
+	m.email_receivers = nil
+}
+
+// SetSmsReceivers sets the "sms_receivers" field.
+func (m *NotificationGroupMutation) SetSmsReceivers(s string) {
+	m.sms_receivers = &s
+}
+
+// SmsReceivers returns the value of the "sms_receivers" field in the mutation.
+func (m *NotificationGroupMutation) SmsReceivers() (r string, exists bool) {
+	v := m.sms_receivers
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSmsReceivers returns the old "sms_receivers" field's value of the NotificationGroup entity.
+// If the NotificationGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationGroupMutation) OldSmsReceivers(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSmsReceivers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSmsReceivers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSmsReceivers: %w", err)
+	}
+	return oldValue.SmsReceivers, nil
+}
+
+// ResetSmsReceivers resets all changes to the "sms_receivers" field.
+func (m *NotificationGroupMutation) ResetSmsReceivers() {
+	m.sms_receivers = nil
+}
+
+// SetEmailMemberUids sets the "email_member_uids" field.
+func (m *NotificationGroupMutation) SetEmailMemberUids(s []string) {
+	m.email_member_uids = &s
+	m.appendemail_member_uids = nil
+}
+
+// EmailMemberUids returns the value of the "email_member_uids" field in the mutation.
+func (m *NotificationGroupMutation) EmailMemberUids() (r []string, exists bool) {
+	v := m.email_member_uids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmailMemberUids returns the old "email_member_uids" field's value of the NotificationGroup entity.
+// If the NotificationGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationGroupMutation) OldEmailMemberUids(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEmailMemberUids is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEmailMemberUids requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmailMemberUids: %w", err)
+	}
+	return oldValue.EmailMemberUids, nil
+}
+
+// AppendEmailMemberUids adds s to the "email_member_uids" field.
+func (m *NotificationGroupMutation) AppendEmailMemberUids(s []string) {
+	m.appendemail_member_uids = append(m.appendemail_member_uids, s...)
+}
+
+// AppendedEmailMemberUids returns the list of values that were appended to the "email_member_uids" field in this mutation.
+func (m *NotificationGroupMutation) AppendedEmailMemberUids() ([]string, bool) {
+	if len(m.appendemail_member_uids) == 0 {
+		return nil, false
+	}
+	return m.appendemail_member_uids, true
+}
+
+// ResetEmailMemberUids resets all changes to the "email_member_uids" field.
+func (m *NotificationGroupMutation) ResetEmailMemberUids() {
+	m.email_member_uids = nil
+	m.appendemail_member_uids = nil
+}
+
+// SetSmsMemberUids sets the "sms_member_uids" field.
+func (m *NotificationGroupMutation) SetSmsMemberUids(s []string) {
+	m.sms_member_uids = &s
+	m.appendsms_member_uids = nil
+}
+
+// SmsMemberUids returns the value of the "sms_member_uids" field in the mutation.
+func (m *NotificationGroupMutation) SmsMemberUids() (r []string, exists bool) {
+	v := m.sms_member_uids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSmsMemberUids returns the old "sms_member_uids" field's value of the NotificationGroup entity.
+// If the NotificationGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationGroupMutation) OldSmsMemberUids(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSmsMemberUids is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSmsMemberUids requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSmsMemberUids: %w", err)
+	}
+	return oldValue.SmsMemberUids, nil
+}
+
+// AppendSmsMemberUids adds s to the "sms_member_uids" field.
+func (m *NotificationGroupMutation) AppendSmsMemberUids(s []string) {
+	m.appendsms_member_uids = append(m.appendsms_member_uids, s...)
+}
+
+// AppendedSmsMemberUids returns the list of values that were appended to the "sms_member_uids" field in this mutation.
+func (m *NotificationGroupMutation) AppendedSmsMemberUids() ([]string, bool) {
+	if len(m.appendsms_member_uids) == 0 {
+		return nil, false
+	}
+	return m.appendsms_member_uids, true
+}
+
+// ResetSmsMemberUids resets all changes to the "sms_member_uids" field.
+func (m *NotificationGroupMutation) ResetSmsMemberUids() {
+	m.sms_member_uids = nil
+	m.appendsms_member_uids = nil
+}
+
+// SetRemark sets the "remark" field.
+func (m *NotificationGroupMutation) SetRemark(s string) {
+	m.remark = &s
+}
+
+// Remark returns the value of the "remark" field in the mutation.
+func (m *NotificationGroupMutation) Remark() (r string, exists bool) {
+	v := m.remark
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRemark returns the old "remark" field's value of the NotificationGroup entity.
+// If the NotificationGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationGroupMutation) OldRemark(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRemark requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
+	}
+	return oldValue.Remark, nil
+}
+
+// ResetRemark resets all changes to the "remark" field.
+func (m *NotificationGroupMutation) ResetRemark() {
+	m.remark = nil
+}
+
 // SetChannelUID sets the "channel_uid" field.
 func (m *NotificationGroupMutation) SetChannelUID(s string) {
 	m.channel_uid = &s
@@ -17884,42 +18206,6 @@ func (m *NotificationGroupMutation) OldReceivers(ctx context.Context) (v string,
 // ResetReceivers resets all changes to the "receivers" field.
 func (m *NotificationGroupMutation) ResetReceivers() {
 	m.receivers = nil
-}
-
-// SetRemark sets the "remark" field.
-func (m *NotificationGroupMutation) SetRemark(s string) {
-	m.remark = &s
-}
-
-// Remark returns the value of the "remark" field in the mutation.
-func (m *NotificationGroupMutation) Remark() (r string, exists bool) {
-	v := m.remark
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRemark returns the old "remark" field's value of the NotificationGroup entity.
-// If the NotificationGroup object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotificationGroupMutation) OldRemark(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRemark requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRemark: %w", err)
-	}
-	return oldValue.Remark, nil
-}
-
-// ResetRemark resets all changes to the "remark" field.
-func (m *NotificationGroupMutation) ResetRemark() {
-	m.remark = nil
 }
 
 // SetMemberUids sets the "member_uids" field.
@@ -18094,7 +18380,7 @@ func (m *NotificationGroupMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NotificationGroupMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 20)
 	if m.created_at != nil {
 		fields = append(fields, notificationgroup.FieldCreatedAt)
 	}
@@ -18116,6 +18402,27 @@ func (m *NotificationGroupMutation) Fields() []string {
 	if m.status != nil {
 		fields = append(fields, notificationgroup.FieldStatus)
 	}
+	if m.channel_uids != nil {
+		fields = append(fields, notificationgroup.FieldChannelUids)
+	}
+	if m.template_uids != nil {
+		fields = append(fields, notificationgroup.FieldTemplateUids)
+	}
+	if m.email_receivers != nil {
+		fields = append(fields, notificationgroup.FieldEmailReceivers)
+	}
+	if m.sms_receivers != nil {
+		fields = append(fields, notificationgroup.FieldSmsReceivers)
+	}
+	if m.email_member_uids != nil {
+		fields = append(fields, notificationgroup.FieldEmailMemberUids)
+	}
+	if m.sms_member_uids != nil {
+		fields = append(fields, notificationgroup.FieldSmsMemberUids)
+	}
+	if m.remark != nil {
+		fields = append(fields, notificationgroup.FieldRemark)
+	}
 	if m.channel_uid != nil {
 		fields = append(fields, notificationgroup.FieldChannelUID)
 	}
@@ -18124,9 +18431,6 @@ func (m *NotificationGroupMutation) Fields() []string {
 	}
 	if m.receivers != nil {
 		fields = append(fields, notificationgroup.FieldReceivers)
-	}
-	if m.remark != nil {
-		fields = append(fields, notificationgroup.FieldRemark)
 	}
 	if m.member_uids != nil {
 		fields = append(fields, notificationgroup.FieldMemberUids)
@@ -18159,14 +18463,26 @@ func (m *NotificationGroupMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case notificationgroup.FieldStatus:
 		return m.Status()
+	case notificationgroup.FieldChannelUids:
+		return m.ChannelUids()
+	case notificationgroup.FieldTemplateUids:
+		return m.TemplateUids()
+	case notificationgroup.FieldEmailReceivers:
+		return m.EmailReceivers()
+	case notificationgroup.FieldSmsReceivers:
+		return m.SmsReceivers()
+	case notificationgroup.FieldEmailMemberUids:
+		return m.EmailMemberUids()
+	case notificationgroup.FieldSmsMemberUids:
+		return m.SmsMemberUids()
+	case notificationgroup.FieldRemark:
+		return m.Remark()
 	case notificationgroup.FieldChannelUID:
 		return m.ChannelUID()
 	case notificationgroup.FieldTemplateUID:
 		return m.TemplateUID()
 	case notificationgroup.FieldReceivers:
 		return m.Receivers()
-	case notificationgroup.FieldRemark:
-		return m.Remark()
 	case notificationgroup.FieldMemberUids:
 		return m.MemberUids()
 	case notificationgroup.FieldWebhookChannelUids:
@@ -18196,14 +18512,26 @@ func (m *NotificationGroupMutation) OldField(ctx context.Context, name string) (
 		return m.OldName(ctx)
 	case notificationgroup.FieldStatus:
 		return m.OldStatus(ctx)
+	case notificationgroup.FieldChannelUids:
+		return m.OldChannelUids(ctx)
+	case notificationgroup.FieldTemplateUids:
+		return m.OldTemplateUids(ctx)
+	case notificationgroup.FieldEmailReceivers:
+		return m.OldEmailReceivers(ctx)
+	case notificationgroup.FieldSmsReceivers:
+		return m.OldSmsReceivers(ctx)
+	case notificationgroup.FieldEmailMemberUids:
+		return m.OldEmailMemberUids(ctx)
+	case notificationgroup.FieldSmsMemberUids:
+		return m.OldSmsMemberUids(ctx)
+	case notificationgroup.FieldRemark:
+		return m.OldRemark(ctx)
 	case notificationgroup.FieldChannelUID:
 		return m.OldChannelUID(ctx)
 	case notificationgroup.FieldTemplateUID:
 		return m.OldTemplateUID(ctx)
 	case notificationgroup.FieldReceivers:
 		return m.OldReceivers(ctx)
-	case notificationgroup.FieldRemark:
-		return m.OldRemark(ctx)
 	case notificationgroup.FieldMemberUids:
 		return m.OldMemberUids(ctx)
 	case notificationgroup.FieldWebhookChannelUids:
@@ -18268,6 +18596,55 @@ func (m *NotificationGroupMutation) SetField(name string, value ent.Value) error
 		}
 		m.SetStatus(v)
 		return nil
+	case notificationgroup.FieldChannelUids:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChannelUids(v)
+		return nil
+	case notificationgroup.FieldTemplateUids:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTemplateUids(v)
+		return nil
+	case notificationgroup.FieldEmailReceivers:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmailReceivers(v)
+		return nil
+	case notificationgroup.FieldSmsReceivers:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSmsReceivers(v)
+		return nil
+	case notificationgroup.FieldEmailMemberUids:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmailMemberUids(v)
+		return nil
+	case notificationgroup.FieldSmsMemberUids:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSmsMemberUids(v)
+		return nil
+	case notificationgroup.FieldRemark:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRemark(v)
+		return nil
 	case notificationgroup.FieldChannelUID:
 		v, ok := value.(string)
 		if !ok {
@@ -18288,13 +18665,6 @@ func (m *NotificationGroupMutation) SetField(name string, value ent.Value) error
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetReceivers(v)
-		return nil
-	case notificationgroup.FieldRemark:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRemark(v)
 		return nil
 	case notificationgroup.FieldMemberUids:
 		v, ok := value.([]string)
@@ -18396,6 +18766,27 @@ func (m *NotificationGroupMutation) ResetField(name string) error {
 	case notificationgroup.FieldStatus:
 		m.ResetStatus()
 		return nil
+	case notificationgroup.FieldChannelUids:
+		m.ResetChannelUids()
+		return nil
+	case notificationgroup.FieldTemplateUids:
+		m.ResetTemplateUids()
+		return nil
+	case notificationgroup.FieldEmailReceivers:
+		m.ResetEmailReceivers()
+		return nil
+	case notificationgroup.FieldSmsReceivers:
+		m.ResetSmsReceivers()
+		return nil
+	case notificationgroup.FieldEmailMemberUids:
+		m.ResetEmailMemberUids()
+		return nil
+	case notificationgroup.FieldSmsMemberUids:
+		m.ResetSmsMemberUids()
+		return nil
+	case notificationgroup.FieldRemark:
+		m.ResetRemark()
+		return nil
 	case notificationgroup.FieldChannelUID:
 		m.ResetChannelUID()
 		return nil
@@ -18404,9 +18795,6 @@ func (m *NotificationGroupMutation) ResetField(name string) error {
 		return nil
 	case notificationgroup.FieldReceivers:
 		m.ResetReceivers()
-		return nil
-	case notificationgroup.FieldRemark:
-		m.ResetRemark()
 		return nil
 	case notificationgroup.FieldMemberUids:
 		m.ResetMemberUids()
@@ -18480,6 +18868,7 @@ type NotificationPresetMutation struct {
 	uid           *string
 	name          *string
 	_type         *notificationpreset.Type
+	app           *notificationpreset.App
 	subject       *string
 	body          *string
 	description   *string
@@ -18770,6 +19159,42 @@ func (m *NotificationPresetMutation) ResetType() {
 	m._type = nil
 }
 
+// SetApp sets the "app" field.
+func (m *NotificationPresetMutation) SetApp(n notificationpreset.App) {
+	m.app = &n
+}
+
+// App returns the value of the "app" field in the mutation.
+func (m *NotificationPresetMutation) App() (r notificationpreset.App, exists bool) {
+	v := m.app
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldApp returns the old "app" field's value of the NotificationPreset entity.
+// If the NotificationPreset object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationPresetMutation) OldApp(ctx context.Context) (v notificationpreset.App, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldApp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldApp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldApp: %w", err)
+	}
+	return oldValue.App, nil
+}
+
+// ResetApp resets all changes to the "app" field.
+func (m *NotificationPresetMutation) ResetApp() {
+	m.app = nil
+}
+
 // SetSubject sets the "subject" field.
 func (m *NotificationPresetMutation) SetSubject(s string) {
 	m.subject = &s
@@ -19004,7 +19429,7 @@ func (m *NotificationPresetMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NotificationPresetMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
 		fields = append(fields, notificationpreset.FieldCreatedAt)
 	}
@@ -19019,6 +19444,9 @@ func (m *NotificationPresetMutation) Fields() []string {
 	}
 	if m._type != nil {
 		fields = append(fields, notificationpreset.FieldType)
+	}
+	if m.app != nil {
+		fields = append(fields, notificationpreset.FieldApp)
 	}
 	if m.subject != nil {
 		fields = append(fields, notificationpreset.FieldSubject)
@@ -19053,6 +19481,8 @@ func (m *NotificationPresetMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case notificationpreset.FieldType:
 		return m.GetType()
+	case notificationpreset.FieldApp:
+		return m.App()
 	case notificationpreset.FieldSubject:
 		return m.Subject()
 	case notificationpreset.FieldBody:
@@ -19082,6 +19512,8 @@ func (m *NotificationPresetMutation) OldField(ctx context.Context, name string) 
 		return m.OldName(ctx)
 	case notificationpreset.FieldType:
 		return m.OldType(ctx)
+	case notificationpreset.FieldApp:
+		return m.OldApp(ctx)
 	case notificationpreset.FieldSubject:
 		return m.OldSubject(ctx)
 	case notificationpreset.FieldBody:
@@ -19135,6 +19567,13 @@ func (m *NotificationPresetMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetType(v)
+		return nil
+	case notificationpreset.FieldApp:
+		v, ok := value.(notificationpreset.App)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetApp(v)
 		return nil
 	case notificationpreset.FieldSubject:
 		v, ok := value.(string)
@@ -19249,6 +19688,9 @@ func (m *NotificationPresetMutation) ResetField(name string) error {
 		return nil
 	case notificationpreset.FieldType:
 		m.ResetType()
+		return nil
+	case notificationpreset.FieldApp:
+		m.ResetApp()
 		return nil
 	case notificationpreset.FieldSubject:
 		m.ResetSubject()
@@ -22386,6 +22828,7 @@ type NotificationTemplateMutation struct {
 	namespace_uid *string
 	name          *string
 	_type         *notificationtemplate.Type
+	app           *notificationtemplate.App
 	status        *notificationtemplate.Status
 	subject       *string
 	body          *string
@@ -22759,6 +23202,42 @@ func (m *NotificationTemplateMutation) ResetType() {
 	m._type = nil
 }
 
+// SetApp sets the "app" field.
+func (m *NotificationTemplateMutation) SetApp(n notificationtemplate.App) {
+	m.app = &n
+}
+
+// App returns the value of the "app" field in the mutation.
+func (m *NotificationTemplateMutation) App() (r notificationtemplate.App, exists bool) {
+	v := m.app
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldApp returns the old "app" field's value of the NotificationTemplate entity.
+// If the NotificationTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationTemplateMutation) OldApp(ctx context.Context) (v notificationtemplate.App, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldApp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldApp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldApp: %w", err)
+	}
+	return oldValue.App, nil
+}
+
+// ResetApp resets all changes to the "app" field.
+func (m *NotificationTemplateMutation) ResetApp() {
+	m.app = nil
+}
+
 // SetStatus sets the "status" field.
 func (m *NotificationTemplateMutation) SetStatus(n notificationtemplate.Status) {
 	m.status = &n
@@ -22937,7 +23416,7 @@ func (m *NotificationTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NotificationTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, notificationtemplate.FieldCreatedAt)
 	}
@@ -22958,6 +23437,9 @@ func (m *NotificationTemplateMutation) Fields() []string {
 	}
 	if m._type != nil {
 		fields = append(fields, notificationtemplate.FieldType)
+	}
+	if m.app != nil {
+		fields = append(fields, notificationtemplate.FieldApp)
 	}
 	if m.status != nil {
 		fields = append(fields, notificationtemplate.FieldStatus)
@@ -22993,6 +23475,8 @@ func (m *NotificationTemplateMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case notificationtemplate.FieldType:
 		return m.GetType()
+	case notificationtemplate.FieldApp:
+		return m.App()
 	case notificationtemplate.FieldStatus:
 		return m.Status()
 	case notificationtemplate.FieldSubject:
@@ -23024,6 +23508,8 @@ func (m *NotificationTemplateMutation) OldField(ctx context.Context, name string
 		return m.OldName(ctx)
 	case notificationtemplate.FieldType:
 		return m.OldType(ctx)
+	case notificationtemplate.FieldApp:
+		return m.OldApp(ctx)
 	case notificationtemplate.FieldStatus:
 		return m.OldStatus(ctx)
 	case notificationtemplate.FieldSubject:
@@ -23089,6 +23575,13 @@ func (m *NotificationTemplateMutation) SetField(name string, value ent.Value) er
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetType(v)
+		return nil
+	case notificationtemplate.FieldApp:
+		v, ok := value.(notificationtemplate.App)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetApp(v)
 		return nil
 	case notificationtemplate.FieldStatus:
 		v, ok := value.(notificationtemplate.Status)
@@ -23196,6 +23689,9 @@ func (m *NotificationTemplateMutation) ResetField(name string) error {
 		return nil
 	case notificationtemplate.FieldType:
 		m.ResetType()
+		return nil
+	case notificationtemplate.FieldApp:
+		m.ResetApp()
 		return nil
 	case notificationtemplate.FieldStatus:
 		m.ResetStatus()
@@ -28086,6 +28582,7 @@ type UserMutation struct {
 	nickname      *string
 	email         *string
 	avatar        *string
+	phone         *string
 	remark        *string
 	status        *user.Status
 	password_hash *string
@@ -28447,6 +28944,42 @@ func (m *UserMutation) ResetAvatar() {
 	m.avatar = nil
 }
 
+// SetPhone sets the "phone" field.
+func (m *UserMutation) SetPhone(s string) {
+	m.phone = &s
+}
+
+// Phone returns the value of the "phone" field in the mutation.
+func (m *UserMutation) Phone() (r string, exists bool) {
+	v := m.phone
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPhone returns the old "phone" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldPhone(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPhone is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPhone requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPhone: %w", err)
+	}
+	return oldValue.Phone, nil
+}
+
+// ResetPhone resets all changes to the "phone" field.
+func (m *UserMutation) ResetPhone() {
+	m.phone = nil
+}
+
 // SetRemark sets the "remark" field.
 func (m *UserMutation) SetRemark(s string) {
 	m.remark = &s
@@ -28661,7 +29194,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -28682,6 +29215,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.avatar != nil {
 		fields = append(fields, user.FieldAvatar)
+	}
+	if m.phone != nil {
+		fields = append(fields, user.FieldPhone)
 	}
 	if m.remark != nil {
 		fields = append(fields, user.FieldRemark)
@@ -28720,6 +29256,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Email()
 	case user.FieldAvatar:
 		return m.Avatar()
+	case user.FieldPhone:
+		return m.Phone()
 	case user.FieldRemark:
 		return m.Remark()
 	case user.FieldStatus:
@@ -28753,6 +29291,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldEmail(ctx)
 	case user.FieldAvatar:
 		return m.OldAvatar(ctx)
+	case user.FieldPhone:
+		return m.OldPhone(ctx)
 	case user.FieldRemark:
 		return m.OldRemark(ctx)
 	case user.FieldStatus:
@@ -28820,6 +29360,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAvatar(v)
+		return nil
+	case user.FieldPhone:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPhone(v)
 		return nil
 	case user.FieldRemark:
 		v, ok := value.(string)
@@ -28925,6 +29472,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldAvatar:
 		m.ResetAvatar()
+		return nil
+	case user.FieldPhone:
+		m.ResetPhone()
 		return nil
 	case user.FieldRemark:
 		m.ResetRemark()

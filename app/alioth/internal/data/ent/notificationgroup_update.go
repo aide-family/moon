@@ -97,6 +97,96 @@ func (_u *NotificationGroupUpdate) SetNillableStatus(v *notificationgroup.Status
 	return _u
 }
 
+// SetChannelUids sets the "channel_uids" field.
+func (_u *NotificationGroupUpdate) SetChannelUids(v []string) *NotificationGroupUpdate {
+	_u.mutation.SetChannelUids(v)
+	return _u
+}
+
+// AppendChannelUids appends value to the "channel_uids" field.
+func (_u *NotificationGroupUpdate) AppendChannelUids(v []string) *NotificationGroupUpdate {
+	_u.mutation.AppendChannelUids(v)
+	return _u
+}
+
+// SetTemplateUids sets the "template_uids" field.
+func (_u *NotificationGroupUpdate) SetTemplateUids(v []string) *NotificationGroupUpdate {
+	_u.mutation.SetTemplateUids(v)
+	return _u
+}
+
+// AppendTemplateUids appends value to the "template_uids" field.
+func (_u *NotificationGroupUpdate) AppendTemplateUids(v []string) *NotificationGroupUpdate {
+	_u.mutation.AppendTemplateUids(v)
+	return _u
+}
+
+// SetEmailReceivers sets the "email_receivers" field.
+func (_u *NotificationGroupUpdate) SetEmailReceivers(v string) *NotificationGroupUpdate {
+	_u.mutation.SetEmailReceivers(v)
+	return _u
+}
+
+// SetNillableEmailReceivers sets the "email_receivers" field if the given value is not nil.
+func (_u *NotificationGroupUpdate) SetNillableEmailReceivers(v *string) *NotificationGroupUpdate {
+	if v != nil {
+		_u.SetEmailReceivers(*v)
+	}
+	return _u
+}
+
+// SetSmsReceivers sets the "sms_receivers" field.
+func (_u *NotificationGroupUpdate) SetSmsReceivers(v string) *NotificationGroupUpdate {
+	_u.mutation.SetSmsReceivers(v)
+	return _u
+}
+
+// SetNillableSmsReceivers sets the "sms_receivers" field if the given value is not nil.
+func (_u *NotificationGroupUpdate) SetNillableSmsReceivers(v *string) *NotificationGroupUpdate {
+	if v != nil {
+		_u.SetSmsReceivers(*v)
+	}
+	return _u
+}
+
+// SetEmailMemberUids sets the "email_member_uids" field.
+func (_u *NotificationGroupUpdate) SetEmailMemberUids(v []string) *NotificationGroupUpdate {
+	_u.mutation.SetEmailMemberUids(v)
+	return _u
+}
+
+// AppendEmailMemberUids appends value to the "email_member_uids" field.
+func (_u *NotificationGroupUpdate) AppendEmailMemberUids(v []string) *NotificationGroupUpdate {
+	_u.mutation.AppendEmailMemberUids(v)
+	return _u
+}
+
+// SetSmsMemberUids sets the "sms_member_uids" field.
+func (_u *NotificationGroupUpdate) SetSmsMemberUids(v []string) *NotificationGroupUpdate {
+	_u.mutation.SetSmsMemberUids(v)
+	return _u
+}
+
+// AppendSmsMemberUids appends value to the "sms_member_uids" field.
+func (_u *NotificationGroupUpdate) AppendSmsMemberUids(v []string) *NotificationGroupUpdate {
+	_u.mutation.AppendSmsMemberUids(v)
+	return _u
+}
+
+// SetRemark sets the "remark" field.
+func (_u *NotificationGroupUpdate) SetRemark(v string) *NotificationGroupUpdate {
+	_u.mutation.SetRemark(v)
+	return _u
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_u *NotificationGroupUpdate) SetNillableRemark(v *string) *NotificationGroupUpdate {
+	if v != nil {
+		_u.SetRemark(*v)
+	}
+	return _u
+}
+
 // SetChannelUID sets the "channel_uid" field.
 func (_u *NotificationGroupUpdate) SetChannelUID(v string) *NotificationGroupUpdate {
 	_u.mutation.SetChannelUID(v)
@@ -135,20 +225,6 @@ func (_u *NotificationGroupUpdate) SetReceivers(v string) *NotificationGroupUpda
 func (_u *NotificationGroupUpdate) SetNillableReceivers(v *string) *NotificationGroupUpdate {
 	if v != nil {
 		_u.SetReceivers(*v)
-	}
-	return _u
-}
-
-// SetRemark sets the "remark" field.
-func (_u *NotificationGroupUpdate) SetRemark(v string) *NotificationGroupUpdate {
-	_u.mutation.SetRemark(v)
-	return _u
-}
-
-// SetNillableRemark sets the "remark" field if the given value is not nil.
-func (_u *NotificationGroupUpdate) SetNillableRemark(v *string) *NotificationGroupUpdate {
-	if v != nil {
-		_u.SetRemark(*v)
 	}
 	return _u
 }
@@ -249,16 +325,6 @@ func (_u *NotificationGroupUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "NotificationGroup.status": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.ChannelUID(); ok {
-		if err := notificationgroup.ChannelUIDValidator(v); err != nil {
-			return &ValidationError{Name: "channel_uid", err: fmt.Errorf(`ent: validator failed for field "NotificationGroup.channel_uid": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.TemplateUID(); ok {
-		if err := notificationgroup.TemplateUIDValidator(v); err != nil {
-			return &ValidationError{Name: "template_uid", err: fmt.Errorf(`ent: validator failed for field "NotificationGroup.template_uid": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -292,6 +358,47 @@ func (_u *NotificationGroupUpdate) sqlSave(ctx context.Context) (_node int, err 
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(notificationgroup.FieldStatus, field.TypeEnum, value)
 	}
+	if value, ok := _u.mutation.ChannelUids(); ok {
+		_spec.SetField(notificationgroup.FieldChannelUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedChannelUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, notificationgroup.FieldChannelUids, value)
+		})
+	}
+	if value, ok := _u.mutation.TemplateUids(); ok {
+		_spec.SetField(notificationgroup.FieldTemplateUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedTemplateUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, notificationgroup.FieldTemplateUids, value)
+		})
+	}
+	if value, ok := _u.mutation.EmailReceivers(); ok {
+		_spec.SetField(notificationgroup.FieldEmailReceivers, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SmsReceivers(); ok {
+		_spec.SetField(notificationgroup.FieldSmsReceivers, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.EmailMemberUids(); ok {
+		_spec.SetField(notificationgroup.FieldEmailMemberUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedEmailMemberUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, notificationgroup.FieldEmailMemberUids, value)
+		})
+	}
+	if value, ok := _u.mutation.SmsMemberUids(); ok {
+		_spec.SetField(notificationgroup.FieldSmsMemberUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedSmsMemberUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, notificationgroup.FieldSmsMemberUids, value)
+		})
+	}
+	if value, ok := _u.mutation.Remark(); ok {
+		_spec.SetField(notificationgroup.FieldRemark, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.ChannelUID(); ok {
 		_spec.SetField(notificationgroup.FieldChannelUID, field.TypeString, value)
 	}
@@ -300,9 +407,6 @@ func (_u *NotificationGroupUpdate) sqlSave(ctx context.Context) (_node int, err 
 	}
 	if value, ok := _u.mutation.Receivers(); ok {
 		_spec.SetField(notificationgroup.FieldReceivers, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Remark(); ok {
-		_spec.SetField(notificationgroup.FieldRemark, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.MemberUids(); ok {
 		_spec.SetField(notificationgroup.FieldMemberUids, field.TypeJSON, value)
@@ -411,6 +515,96 @@ func (_u *NotificationGroupUpdateOne) SetNillableStatus(v *notificationgroup.Sta
 	return _u
 }
 
+// SetChannelUids sets the "channel_uids" field.
+func (_u *NotificationGroupUpdateOne) SetChannelUids(v []string) *NotificationGroupUpdateOne {
+	_u.mutation.SetChannelUids(v)
+	return _u
+}
+
+// AppendChannelUids appends value to the "channel_uids" field.
+func (_u *NotificationGroupUpdateOne) AppendChannelUids(v []string) *NotificationGroupUpdateOne {
+	_u.mutation.AppendChannelUids(v)
+	return _u
+}
+
+// SetTemplateUids sets the "template_uids" field.
+func (_u *NotificationGroupUpdateOne) SetTemplateUids(v []string) *NotificationGroupUpdateOne {
+	_u.mutation.SetTemplateUids(v)
+	return _u
+}
+
+// AppendTemplateUids appends value to the "template_uids" field.
+func (_u *NotificationGroupUpdateOne) AppendTemplateUids(v []string) *NotificationGroupUpdateOne {
+	_u.mutation.AppendTemplateUids(v)
+	return _u
+}
+
+// SetEmailReceivers sets the "email_receivers" field.
+func (_u *NotificationGroupUpdateOne) SetEmailReceivers(v string) *NotificationGroupUpdateOne {
+	_u.mutation.SetEmailReceivers(v)
+	return _u
+}
+
+// SetNillableEmailReceivers sets the "email_receivers" field if the given value is not nil.
+func (_u *NotificationGroupUpdateOne) SetNillableEmailReceivers(v *string) *NotificationGroupUpdateOne {
+	if v != nil {
+		_u.SetEmailReceivers(*v)
+	}
+	return _u
+}
+
+// SetSmsReceivers sets the "sms_receivers" field.
+func (_u *NotificationGroupUpdateOne) SetSmsReceivers(v string) *NotificationGroupUpdateOne {
+	_u.mutation.SetSmsReceivers(v)
+	return _u
+}
+
+// SetNillableSmsReceivers sets the "sms_receivers" field if the given value is not nil.
+func (_u *NotificationGroupUpdateOne) SetNillableSmsReceivers(v *string) *NotificationGroupUpdateOne {
+	if v != nil {
+		_u.SetSmsReceivers(*v)
+	}
+	return _u
+}
+
+// SetEmailMemberUids sets the "email_member_uids" field.
+func (_u *NotificationGroupUpdateOne) SetEmailMemberUids(v []string) *NotificationGroupUpdateOne {
+	_u.mutation.SetEmailMemberUids(v)
+	return _u
+}
+
+// AppendEmailMemberUids appends value to the "email_member_uids" field.
+func (_u *NotificationGroupUpdateOne) AppendEmailMemberUids(v []string) *NotificationGroupUpdateOne {
+	_u.mutation.AppendEmailMemberUids(v)
+	return _u
+}
+
+// SetSmsMemberUids sets the "sms_member_uids" field.
+func (_u *NotificationGroupUpdateOne) SetSmsMemberUids(v []string) *NotificationGroupUpdateOne {
+	_u.mutation.SetSmsMemberUids(v)
+	return _u
+}
+
+// AppendSmsMemberUids appends value to the "sms_member_uids" field.
+func (_u *NotificationGroupUpdateOne) AppendSmsMemberUids(v []string) *NotificationGroupUpdateOne {
+	_u.mutation.AppendSmsMemberUids(v)
+	return _u
+}
+
+// SetRemark sets the "remark" field.
+func (_u *NotificationGroupUpdateOne) SetRemark(v string) *NotificationGroupUpdateOne {
+	_u.mutation.SetRemark(v)
+	return _u
+}
+
+// SetNillableRemark sets the "remark" field if the given value is not nil.
+func (_u *NotificationGroupUpdateOne) SetNillableRemark(v *string) *NotificationGroupUpdateOne {
+	if v != nil {
+		_u.SetRemark(*v)
+	}
+	return _u
+}
+
 // SetChannelUID sets the "channel_uid" field.
 func (_u *NotificationGroupUpdateOne) SetChannelUID(v string) *NotificationGroupUpdateOne {
 	_u.mutation.SetChannelUID(v)
@@ -449,20 +643,6 @@ func (_u *NotificationGroupUpdateOne) SetReceivers(v string) *NotificationGroupU
 func (_u *NotificationGroupUpdateOne) SetNillableReceivers(v *string) *NotificationGroupUpdateOne {
 	if v != nil {
 		_u.SetReceivers(*v)
-	}
-	return _u
-}
-
-// SetRemark sets the "remark" field.
-func (_u *NotificationGroupUpdateOne) SetRemark(v string) *NotificationGroupUpdateOne {
-	_u.mutation.SetRemark(v)
-	return _u
-}
-
-// SetNillableRemark sets the "remark" field if the given value is not nil.
-func (_u *NotificationGroupUpdateOne) SetNillableRemark(v *string) *NotificationGroupUpdateOne {
-	if v != nil {
-		_u.SetRemark(*v)
 	}
 	return _u
 }
@@ -576,16 +756,6 @@ func (_u *NotificationGroupUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "NotificationGroup.status": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.ChannelUID(); ok {
-		if err := notificationgroup.ChannelUIDValidator(v); err != nil {
-			return &ValidationError{Name: "channel_uid", err: fmt.Errorf(`ent: validator failed for field "NotificationGroup.channel_uid": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.TemplateUID(); ok {
-		if err := notificationgroup.TemplateUIDValidator(v); err != nil {
-			return &ValidationError{Name: "template_uid", err: fmt.Errorf(`ent: validator failed for field "NotificationGroup.template_uid": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -636,6 +806,47 @@ func (_u *NotificationGroupUpdateOne) sqlSave(ctx context.Context) (_node *Notif
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(notificationgroup.FieldStatus, field.TypeEnum, value)
 	}
+	if value, ok := _u.mutation.ChannelUids(); ok {
+		_spec.SetField(notificationgroup.FieldChannelUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedChannelUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, notificationgroup.FieldChannelUids, value)
+		})
+	}
+	if value, ok := _u.mutation.TemplateUids(); ok {
+		_spec.SetField(notificationgroup.FieldTemplateUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedTemplateUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, notificationgroup.FieldTemplateUids, value)
+		})
+	}
+	if value, ok := _u.mutation.EmailReceivers(); ok {
+		_spec.SetField(notificationgroup.FieldEmailReceivers, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SmsReceivers(); ok {
+		_spec.SetField(notificationgroup.FieldSmsReceivers, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.EmailMemberUids(); ok {
+		_spec.SetField(notificationgroup.FieldEmailMemberUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedEmailMemberUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, notificationgroup.FieldEmailMemberUids, value)
+		})
+	}
+	if value, ok := _u.mutation.SmsMemberUids(); ok {
+		_spec.SetField(notificationgroup.FieldSmsMemberUids, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedSmsMemberUids(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, notificationgroup.FieldSmsMemberUids, value)
+		})
+	}
+	if value, ok := _u.mutation.Remark(); ok {
+		_spec.SetField(notificationgroup.FieldRemark, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.ChannelUID(); ok {
 		_spec.SetField(notificationgroup.FieldChannelUID, field.TypeString, value)
 	}
@@ -644,9 +855,6 @@ func (_u *NotificationGroupUpdateOne) sqlSave(ctx context.Context) (_node *Notif
 	}
 	if value, ok := _u.mutation.Receivers(); ok {
 		_spec.SetField(notificationgroup.FieldReceivers, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Remark(); ok {
-		_spec.SetField(notificationgroup.FieldRemark, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.MemberUids(); ok {
 		_spec.SetField(notificationgroup.FieldMemberUids, field.TypeJSON, value)

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	entschema "entgo.io/ent/dialect/sql/schema"
@@ -49,6 +50,9 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
+	if err := prepareNotificationColumns(ctx, db); err != nil {
+		return err
+	}
 	opts := []entschema.MigrateOption{}
 	for _, name := range partitionedTables {
 		kind, err := relationKind(ctx, db, name)
@@ -65,6 +69,9 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	if err := dropStalePermissions(ctx, client); err != nil {
 		return err
 	}
+	if err := backfillNotificationGroupTargets(ctx, client); err != nil {
+		return databaseErr(slog.Default(), err)
+	}
 	if err := ensureNotificationAuditFields(ctx, db); err != nil {
 		return err
 	}
@@ -79,6 +86,75 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 			return err
 		}
 		if err := ensurePartitionIndexes(ctx, db, name); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// prepareNotificationColumns 先给已经存在的表补上新增列。
+// ent 在已有数据上直接 ADD COLUMN NOT NULL 不会自动回填默认值，会报 23502；
+// 这里用 IF NOT EXISTS + DEFAULT 预建列，新库由 ent 自己建表时跳过。
+func prepareNotificationColumns(ctx context.Context, db *sql.DB) error {
+	columns := map[string][]string{
+		"notification_groups": {
+			`ALTER TABLE notification_groups ADD COLUMN IF NOT EXISTS channel_uids jsonb NOT NULL DEFAULT '[]'::jsonb`,
+			`ALTER TABLE notification_groups ADD COLUMN IF NOT EXISTS template_uids jsonb NOT NULL DEFAULT '[]'::jsonb`,
+			`ALTER TABLE notification_groups ADD COLUMN IF NOT EXISTS email_receivers character varying NOT NULL DEFAULT ''`,
+			`ALTER TABLE notification_groups ADD COLUMN IF NOT EXISTS sms_receivers character varying NOT NULL DEFAULT ''`,
+			`ALTER TABLE notification_groups ADD COLUMN IF NOT EXISTS email_member_uids jsonb NOT NULL DEFAULT '[]'::jsonb`,
+			`ALTER TABLE notification_groups ADD COLUMN IF NOT EXISTS sms_member_uids jsonb NOT NULL DEFAULT '[]'::jsonb`,
+		},
+		"notification_templates": {
+			`ALTER TABLE notification_templates ADD COLUMN IF NOT EXISTS app character varying NOT NULL DEFAULT 'OTHER'`,
+		},
+		"notification_presets": {
+			`ALTER TABLE notification_presets ADD COLUMN IF NOT EXISTS app character varying NOT NULL DEFAULT 'OTHER'`,
+		},
+		"users": {
+			`ALTER TABLE users ADD COLUMN IF NOT EXISTS phone character varying NOT NULL DEFAULT ''`,
+		},
+	}
+	for table, statements := range columns {
+		var exists bool
+		if err := db.QueryRowContext(ctx, `SELECT to_regclass($1) IS NOT NULL`, table).Scan(&exists); err != nil {
+			return err
+		}
+		if !exists {
+			continue
+		}
+		for _, statement := range statements {
+			if _, err := db.ExecContext(ctx, statement); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// backfillNotificationGroupTargets 把旧版单渠道通知组展开成新的
+// channel_uids/template_uids 数组，升级后旧通知组仍可编辑和投递。
+func backfillNotificationGroupTargets(ctx context.Context, client *ent.Client) error {
+	groups, err := client.NotificationGroup.Query().All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, group := range groups {
+		if len(group.ChannelUids) > 0 || strings.TrimSpace(group.ChannelUID) == "" {
+			continue
+		}
+		channelUIDs := []string{group.ChannelUID}
+		templateUIDs := []string{group.TemplateUID}
+		for _, webhookUID := range group.WebhookChannelUids {
+			channelUIDs = append(channelUIDs, webhookUID)
+			templateUIDs = append(templateUIDs, group.WebhookTemplateUID)
+		}
+		if _, err := group.Update().
+			SetChannelUids(channelUIDs).
+			SetTemplateUids(templateUIDs).
+			SetEmailReceivers(group.Receivers).
+			SetEmailMemberUids(group.MemberUids).
+			Save(ctx); err != nil {
 			return err
 		}
 	}

@@ -302,6 +302,7 @@ func (r *memberRepo) memberViews(ctx context.Context, namespaceUID string, rows 
 		}
 		if account := byUser[row.UserUID]; account != nil {
 			item.Email = account.Email
+			item.Phone = account.Phone
 			item.Name = account.Name
 		}
 		for _, linked := range rolesByMember[row.UID] {

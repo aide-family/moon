@@ -21,6 +21,7 @@ import { NotificationChannelPage } from "@/pages/notification-channel"
 import { NotificationGroupPage } from "@/pages/notification-group"
 import { NotificationSubscriptionPage } from "@/pages/notification-subscription"
 import { NotificationTemplatePage } from "@/pages/notification-template"
+import { NotificationPresetPage } from "@/pages/notification-template/presets"
 import { ProfilePage } from "@/pages/profile"
 import { RegisterPage } from "@/pages/register"
 import { RolePage } from "@/pages/role"
@@ -54,6 +55,7 @@ export function App() {
         <Route path="/alert-history" element={<AlertHistoryPage />} />
         <Route path="/notification-channels" element={<NotificationChannelPage />} />
         <Route path="/notification-templates" element={<NotificationTemplatePage />} />
+        <Route path="/notification-templates/presets" element={<NotificationPresetPage />} />
         <Route path="/notification-groups" element={<NotificationGroupPage />} />
         <Route path="/notification-subscriptions" element={<NotificationSubscriptionPage />} />
         <Route path="/message-logs" element={<MessageLogPage />} />

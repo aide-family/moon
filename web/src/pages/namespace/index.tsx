@@ -324,7 +324,7 @@ export function NamespacePage() {
                 <TableRow>
                   <TableHead>{t("namespace.name")}</TableHead>
                   <TableHead>{t("namespace.status")}</TableHead>
-                  <TableHead />
+                  <TableHead className="text-right">{t("action.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

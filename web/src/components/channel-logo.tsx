@@ -1,4 +1,4 @@
-import { Mail, Webhook } from "lucide-react"
+import { Mail, MessageSquareText, Webhook } from "lucide-react"
 
 import dingtalk from "@/assets/brands/dingtalk.svg"
 import feishu from "@/assets/brands/feishu.svg"
@@ -35,8 +35,10 @@ export function ChannelLogo({
     >
       {logo ? (
         <img src={logo} alt="" className="size-full object-contain" />
-      ) : type === "SMTP" ? (
+      ) : type === "SMTP" || type === "EMAIL" ? (
         <Mail className="size-full text-primary" />
+      ) : type === "SMS" || type === "SMS_ALICLOUD" ? (
+        <MessageSquareText className="size-full text-emerald-600 dark:text-emerald-400" />
       ) : (
         <Webhook className="size-full text-muted-foreground" />
       )}

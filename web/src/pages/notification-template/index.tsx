@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { formMessage, readFormError } from "@/lib/form-error"
 
 import { listNotificationChannels } from "@/api/notification-channel"
@@ -7,20 +9,22 @@ import type { NotificationChannelItem } from "@/api/notification-channel/types"
 import {
   createNotificationTemplate,
   deleteNotificationTemplate,
-  listNotificationPresets,
   listNotificationTemplates,
   updateNotificationTemplate,
   updateNotificationTemplateStatus,
 } from "@/api/notification-template"
-import type { NotificationPresetItem, NotificationTemplateItem } from "@/api/notification-template/types"
+import type { NotificationTemplateItem } from "@/api/notification-template/types"
 import { useSession } from "@/auth/session"
+import { ChannelLogo } from "@/components/channel-logo"
 import { ConfirmAction } from "@/components/confirm-action"
-import { NotificationTestDialog } from "@/components/notification-test-dialog"
 import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { ListFrame } from "@/components/list-frame"
+import { NotificationTestDialog } from "@/components/notification-test-dialog"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { TemplateEditor } from "@/components/template-editor"
+import { TemplatePreviewDialog } from "@/components/template-preview-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -45,7 +49,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Textarea } from "@/components/ui/textarea"
 import {
   collectFieldErrors,
   hasFieldErrors,
@@ -56,22 +59,31 @@ import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 import { run } from "@/lib/action"
 
-const types = ["EMAIL", "WEBHOOK"]
+const types = ["EMAIL", "WEBHOOK", "SMS_ALICLOUD"]
+const webhookApps = ["OTHER", "DINGTALK", "WECHAT", "FEISHU"]
+
+function templateAppLabel(t: TFunction, type: string, app: string): string {
+  if (type !== "WEBHOOK") {
+    return enumLabel(t, "OTHER")
+  }
+  return enumLabel(t, app || "OTHER")
+}
 
 export function NotificationTemplatePage() {
   const { t } = useTranslation()
   const session = useSession()
   const query = useListQuery()
+  const navigate = useNavigate()
   const [draft, setDraft] = useState(query.name)
   const [channels, setChannels] = useState<NotificationChannelItem[]>([])
   const [open, setOpen] = useState(false)
-  const [presetOpen, setPresetOpen] = useState(false)
-  const [presets, setPresets] = useState<NotificationPresetItem[]>([])
-  const [presetError, setPresetError] = useState("")
   const [editing, setEditing] = useState<NotificationTemplateItem | null>(null)
   const [testing, setTesting] = useState<NotificationTemplateItem | null>(null)
+  const [previewing, setPreviewing] = useState<NotificationTemplateItem | null>(null)
+  const [formPreview, setFormPreview] = useState(false)
   const [name, setName] = useState("")
   const [type, setType] = useState("EMAIL")
+  const [app, setApp] = useState("OTHER")
   const [subject, setSubject] = useState("")
   const [body, setBody] = useState("")
   const [remark, setRemark] = useState("")
@@ -85,8 +97,8 @@ export function NotificationTemplatePage() {
   const { items, total, loading, failed, error: loadError, reload } = usePagedList<NotificationTemplateItem>({
     page: query.page,
     pageSize: query.pageSize,
-    filterKey: `${session.namespaceUid}|${query.name}`,
-    fetch: (page, pageSize) => listNotificationTemplates({ page, pageSize, name: query.name }),
+    filterKey: `${session.namespaceUid}|${query.name}|${query.type}|${query.app}`,
+    fetch: (page, pageSize) => listNotificationTemplates({ page, pageSize, name: query.name, type: query.type, app: query.app }),
   })
 
   useEffect(() => {
@@ -109,6 +121,7 @@ export function NotificationTemplatePage() {
     setEditing(null)
     setName("")
     setType("EMAIL")
+    setApp("OTHER")
     setSubject("")
     setBody("")
     setRemark("")
@@ -121,12 +134,24 @@ export function NotificationTemplatePage() {
     setEditing(item)
     setName(item.name)
     setType(item.type)
+    setApp(item.app || "OTHER")
     setSubject(item.subject)
     setBody(item.body)
     setRemark(item.remark)
     setError("")
     setFieldErrors({})
     setOpen(true)
+  }
+
+  function selectType(value: string) {
+    setType(value)
+    if (value !== "WEBHOOK") {
+      setApp("OTHER")
+    }
+    if (value !== "EMAIL") {
+      setSubject("")
+    }
+    setFieldErrors({})
   }
 
   async function onSave(event: React.FormEvent) {
@@ -148,7 +173,14 @@ export function NotificationTemplatePage() {
     setError("")
     setFieldErrors({})
     try {
-      const payload = { name: name.trim(), type, subject, body, remark }
+      const payload = {
+        name: name.trim(),
+        type,
+        app: type === "WEBHOOK" ? app : "OTHER",
+        subject: type === "EMAIL" ? subject : "",
+        body,
+        remark,
+      }
       if (editing) {
         await updateNotificationTemplate({ ...payload, uid: editing.uid })
       } else {
@@ -160,52 +192,6 @@ export function NotificationTemplatePage() {
       const failure = readFormError(err, t("state.failed"))
       setFieldErrors(failure.fields)
       setError(failure.form)
-    } finally {
-      setPending(false)
-    }
-  }
-
-  async function openPresets() {
-    setPresetError("")
-    setPresetOpen(true)
-    try {
-      const result = await listNotificationPresets()
-      setPresets(result.items ?? [])
-    } catch (err) {
-      setPresetError(err instanceof Error ? err.message : t("state.failed"))
-      setPresets([])
-    }
-  }
-
-  function applyPreset(preset: NotificationPresetItem) {
-    setEditing(null)
-    setName(preset.name)
-    setType(preset.type)
-    setSubject(preset.subject)
-    setBody(preset.body)
-    setRemark(preset.description)
-    setError("")
-    setPresetOpen(false)
-    setOpen(true)
-  }
-
-  async function createFromPreset(preset: NotificationPresetItem) {
-    setPending(true)
-    setError("")
-    try {
-      await createNotificationTemplate({
-        name: `${preset.name} ${t("template.copySuffix")}`,
-        type: preset.type,
-        subject: preset.subject,
-        body: preset.body,
-        remark: preset.description,
-      })
-      setOpen(false)
-      setPresetOpen(false)
-      reload()
-    } catch (err) {
-      setPresetError(err instanceof Error ? err.message : t("state.failed"))
-      setPresetOpen(true)
     } finally {
       setPending(false)
     }
@@ -238,14 +224,13 @@ export function NotificationTemplatePage() {
     }
     return [
       { key: "edit", label: t("action.edit"), onSelect: () => openEdit(item) },
-      {
-        key: "test",
-        label: t("action.test"),
-        onSelect: () => {
-          setTesting(item)
-          setError("")
-        },
-      },
+      { key: "preview", label: t("template.preview"), onSelect: () => setPreviewing(item) },
+      ...(item.type === "SMS_ALICLOUD"
+        ? []
+        : [{ key: "test", label: t("action.test"), onSelect: () => {
+            setTesting(item)
+            setError("")
+          } }]),
       item.status === "ACTIVE"
         ? { key: "disable", label: t("action.disable"), destructive: true, onSelect: () => setConfirm({ action: "disable", item }) }
         : { key: "enable", label: t("action.enable"), onSelect: () => run(updateNotificationTemplateStatus(item.uid, "ACTIVE").then(() => reload()), setError) },
@@ -253,12 +238,26 @@ export function NotificationTemplatePage() {
     ]
   }
 
+  const formPreviewDialog = useMemo(
+    () => (
+      <TemplatePreviewDialog
+        open={formPreview}
+        onClose={() => setFormPreview(false)}
+        type={type}
+        app={type === "WEBHOOK" ? app : "OTHER"}
+        subject={subject}
+        body={body}
+      />
+    ),
+    [formPreview, type, app, subject, body],
+  )
+
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("template.title")} description={t("template.description")}>
         {canWrite ? (
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => void openPresets()}>
+            <Button variant="outline" onClick={() => navigate("/notification-templates/presets")}>
               {t("template.presets")}
             </Button>
             <Button onClick={openCreate}>{t("action.create")}</Button>
@@ -272,10 +271,54 @@ export function NotificationTemplatePage() {
           query.update({ name: draft })
         }}
       >
-        <Input className="max-w-sm" value={draft} placeholder={t("template.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
-        <Button type="submit" variant="outline">
-          {t("action.search")}
-        </Button>
+        <div className="flex flex-nowrap gap-2">
+          <Input className="max-w-sm" value={draft} placeholder={t("template.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
+          <Button type="submit" variant="outline" className="shrink-0">
+            {t("action.search")}
+          </Button>
+        </div>
+        <Select value={query.type || "ALL"} onValueChange={(value) => query.update({ type: value === "ALL" ? "" : value })}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder={t("template.typeFilter")}>
+              <span className="flex items-center gap-2">
+                <ChannelLogo type={query.type || "EMAIL"} className="size-4" />
+                <span>{query.type ? enumLabel(t, query.type) : t("template.allTypes")}</span>
+              </span>
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectOption value="ALL">{t("template.allTypes")}</SelectOption>
+            {types.map((item) => (
+              <SelectOption key={item} value={item}>
+                <span className="flex items-center gap-2">
+                  <ChannelLogo type={item} className="size-4" />
+                  <span>{enumLabel(t, item)}</span>
+                </span>
+              </SelectOption>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={query.app || "ALL"} onValueChange={(value) => query.update({ app: value === "ALL" ? "" : value })}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder={t("template.appFilter")}>
+              <span className="flex items-center gap-2">
+                <ChannelLogo type="WEBHOOK" app={query.app || "OTHER"} className="size-4" />
+                <span>{query.app ? enumLabel(t, query.app) : t("template.allApps")}</span>
+              </span>
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectOption value="ALL">{t("template.allApps")}</SelectOption>
+            {webhookApps.map((item) => (
+              <SelectOption key={item} value={item}>
+                <span className="flex items-center gap-2">
+                  <ChannelLogo type="WEBHOOK" app={item} className="size-4" />
+                  <span>{enumLabel(t, item)}</span>
+                </span>
+              </SelectOption>
+            ))}
+          </SelectContent>
+        </Select>
       </form>
       <ListFrame
         total={total}
@@ -301,17 +344,29 @@ export function NotificationTemplatePage() {
               <TableRow>
                 <TableHead>{t("template.name")}</TableHead>
                 <TableHead>{t("template.type")}</TableHead>
+                <TableHead>{t("template.app")}</TableHead>
                 <TableHead>{t("template.subject")}</TableHead>
                 <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead />
+                <TableHead className="text-right">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {items.map((item) => (
                 <TableRow key={item.uid}>
                   <TableCell>{item.name}</TableCell>
-                  <TableCell>{enumLabel(t, item.type)}</TableCell>
-                  <TableCell>{item.subject}</TableCell>
+                  <TableCell>
+                    <span className="flex min-w-0 items-center gap-2">
+                      <ChannelLogo type={item.type} app={item.app} className="size-4" />
+                      <span>{enumLabel(t, item.type)}</span>
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="flex min-w-0 items-center gap-2">
+                      <ChannelLogo type={item.type} app={item.app} className="size-4" />
+                      <span>{templateAppLabel(t, item.type, item.app)}</span>
+                    </span>
+                  </TableCell>
+                  <TableCell className="max-w-xs truncate">{item.subject}</TableCell>
                   <TableCell>{enumLabel(t, item.status)}</TableCell>
                   <TableCell>
                     <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
@@ -323,56 +378,82 @@ export function NotificationTemplatePage() {
         ) : null}
       </ListFrame>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
+        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>{editing ? t("action.edit") : t("action.create")}</DialogTitle>
           </DialogHeader>
           <form noValidate className="grid gap-4 sm:grid-cols-2" onSubmit={onSave}>
-            <FormField
-              label={t("template.name")}
-              htmlFor="tpl-name"
-              required
-              error={fieldErrors.name}
-            >
+            <FormField label={t("template.name")} htmlFor="tpl-name" required error={fieldErrors.name}>
               <Input id="tpl-name" value={name} placeholder={t("template.namePlaceholder")} onChange={(event) => setName(event.target.value)} required />
             </FormField>
-            <FormField
-              label={t("template.type")}
-              required
-              error={fieldErrors.type}
-            >
-              <Select
-                value={type}
-                onValueChange={(value) => {
-                  setType(value)
-                  if (value !== "EMAIL") {
-                    setSubject("")
-                  }
-                  setFieldErrors({})
-                }}
-              >
+            <FormField label={t("template.type")} required error={fieldErrors.type}>
+              <Select value={type} onValueChange={selectType}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t("template.typePlaceholder")} />
+                  <SelectValue placeholder={t("template.typePlaceholder")}>
+                    <span className="flex items-center gap-2">
+                      <ChannelLogo type={type} app={app} className="size-4" />
+                      <span>{enumLabel(t, type)}</span>
+                    </span>
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {types.map((item) => (
                     <SelectOption key={item} value={item}>
-                      {enumLabel(t, item)}
+                      <span className="flex items-center gap-2">
+                        <ChannelLogo type={item} className="size-4" />
+                        <span>{enumLabel(t, item)}</span>
+                      </span>
                     </SelectOption>
                   ))}
                 </SelectContent>
               </Select>
             </FormField>
+            {type === "WEBHOOK" ? (
+              <FormField label={t("template.app")} required error={fieldErrors.app}>
+                <Select
+                  value={app}
+                  onValueChange={(value) => {
+                    setApp(value)
+                    setFieldErrors({})
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("template.appPlaceholder")}>
+                      <span className="flex items-center gap-2">
+                        <ChannelLogo type="WEBHOOK" app={app} className="size-4" />
+                        <span>{enumLabel(t, app)}</span>
+                      </span>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {webhookApps.map((item) => (
+                      <SelectOption key={item} value={item}>
+                        <span className="flex items-center gap-2">
+                          <ChannelLogo type="WEBHOOK" app={item} className="size-4" />
+                          <span>{enumLabel(t, item)}</span>
+                        </span>
+                      </SelectOption>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+            ) : null}
             {type === "EMAIL" ? (
               <FormField
                 label={t("template.subject")}
                 htmlFor="tpl-subject"
-                hint={t("template.subjectEmailOnly")}
+                hint={t("template.subjectHint")}
                 className="sm:col-span-full"
                 required
                 error={fieldErrors.subject}
               >
-                <Input id="tpl-subject" value={subject} placeholder={t("template.subjectPlaceholder")} onChange={(event) => setSubject(event.target.value)} required />
+                <TemplateEditor
+                  value={subject}
+                  onChange={setSubject}
+                  singleLine
+                  placeholder={t("template.subjectPlaceholder")}
+                  ariaLabel={t("template.subject")}
+                />
               </FormField>
             ) : null}
             <FormField
@@ -383,13 +464,22 @@ export function NotificationTemplatePage() {
               required
               error={fieldErrors.body}
             >
-              <Textarea id="tpl-body" value={body} placeholder={t("template.bodyPlaceholder")} onChange={(event) => setBody(event.target.value)} />
+              <TemplateEditor
+                value={body}
+                onChange={setBody}
+                height={260}
+                placeholder={t("template.bodyPlaceholder")}
+                ariaLabel={t("template.body")}
+              />
             </FormField>
             <FormField label={t("template.remark")} htmlFor="tpl-remark" className="sm:col-span-full">
               <Input id="tpl-remark" value={remark} placeholder={t("template.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
             </FormField>
             {error ? <p className="sm:col-span-full text-sm text-destructive">{error}</p> : null}
             <DialogFooter className="sm:col-span-full">
+              <Button type="button" variant="outline" onClick={() => setFormPreview(true)}>
+                {t("template.preview")}
+              </Button>
               <Button type="submit" disabled={pending}>
                 {t("action.save")}
               </Button>
@@ -397,45 +487,20 @@ export function NotificationTemplatePage() {
           </form>
         </DialogContent>
       </Dialog>
+      {formPreviewDialog}
+      {previewing ? (
+        <TemplatePreviewDialog
+          open
+          onClose={() => setPreviewing(null)}
+          type={previewing.type}
+          app={previewing.app}
+          subject={previewing.subject}
+          body={previewing.body}
+        />
+      ) : null}
       {testing ? (
         <NotificationTestDialog target={{ kind: "template", item: testing }} channels={channels} onClose={() => setTesting(null)} />
       ) : null}
-      <Dialog open={presetOpen} onOpenChange={setPresetOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{t("template.presetTitle")}</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">{t("template.presetHint")}</p>
-          {presetError ? <p className="text-sm text-destructive">{presetError}</p> : null}
-          {presets.length === 0 && !presetError ? (
-            <p className="text-sm text-muted-foreground">{t("template.presetEmpty")}</p>
-          ) : (
-            <div className="grid gap-3">
-              {presets.map((preset) => (
-                <div key={preset.uid} className="grid gap-2 rounded-lg border p-3">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <p className="font-medium">{preset.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {preset.type} · {preset.description}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" disabled={pending} onClick={() => applyPreset(preset)}>
-                        {t("template.usePresetAndEdit")}
-                      </Button>
-                      <Button size="sm" disabled={pending} onClick={() => void createFromPreset(preset)}>
-                        {t("template.usePreset")}
-                      </Button>
-                    </div>
-                  </div>
-                  <pre className="max-h-24 overflow-auto whitespace-pre-wrap text-xs text-muted-foreground">{preset.body}</pre>
-                </div>
-              ))}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
       <DetailSheet
         open={detail !== null}
         title={detail?.name ?? ""}
@@ -448,9 +513,18 @@ export function NotificationTemplatePage() {
           detail
             ? [
                 { label: t("detail.uid"), value: detail.uid },
-                { label: t("template.type"), value: enumLabel(t, detail.type) },
+                {
+                  label: t("template.type"),
+                  value: (
+                    <span className="flex items-center gap-2">
+                      <ChannelLogo type={detail.type} app={detail.app} className="size-4" />
+                      {enumLabel(t, detail.type)}
+                    </span>
+                  ),
+                },
+                { label: t("template.app"), value: templateAppLabel(t, detail.type, detail.app) },
                 { label: t("template.subject"), value: detail.subject },
-                { label: t("template.body"), value: detail.body },
+                { label: t("template.body"), value: <span className="whitespace-pre-wrap break-words">{detail.body}</span> },
               ]
             : []
         }

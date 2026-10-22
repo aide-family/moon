@@ -55,8 +55,18 @@ import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 import { run } from "@/lib/action"
 
-const types = ["SMTP", "WEBHOOK"]
+const types = ["SMTP", "SMS", "WEBHOOK"]
 const webhookApps = ["OTHER", "DINGTALK", "WECHAT", "FEISHU"]
+
+function appFor(type: string, app: string): string {
+  if (type === "SMS") {
+    return "SMS_ALICLOUD"
+  }
+  if (type === "SMTP") {
+    return "OTHER"
+  }
+  return app
+}
 
 export function NotificationChannelPage() {
   const { t } = useTranslation()
@@ -85,8 +95,8 @@ export function NotificationChannelPage() {
   const { items, total, loading, failed, error: loadError, reload } = usePagedList<NotificationChannelItem>({
     page: query.page,
     pageSize: query.pageSize,
-    filterKey: `${session.namespaceUid}|${query.name}`,
-    fetch: (page, pageSize) => listNotificationChannels({ page, pageSize, name: query.name }),
+    filterKey: `${session.namespaceUid}|${query.name}|${query.type}|${query.app}`,
+    fetch: (page, pageSize) => listNotificationChannels({ page, pageSize, name: query.name, type: query.type, app: query.app }),
   })
 
   function openCreate() {
@@ -147,6 +157,17 @@ export function NotificationChannelPage() {
     } else if (target && !/^https?:\/\//.test(target)) {
       errors.endpoint = t("form.invalidUrl")
     }
+    if (target && type === "SMS") {
+      if (!username.trim()) {
+        errors.username = t("form.required")
+      }
+      if (!editing && !password.trim()) {
+        errors.password = t("form.required")
+      }
+      if (!fromAddress.trim()) {
+        errors.fromAddress = t("form.required")
+      }
+    }
     if (hasFieldErrors(errors)) {
       setFieldErrors(errors)
       return
@@ -158,7 +179,7 @@ export function NotificationChannelPage() {
       const body = {
         name: name.trim(),
         type,
-        app: type === "SMTP" ? "OTHER" : app,
+        app: appFor(type, app),
         endpoint: target,
         username,
         password,
@@ -209,7 +230,7 @@ export function NotificationChannelPage() {
     }
     return [
       { key: "edit", label: t("action.edit"), onSelect: () => openEdit(item) },
-      ...(item.status === "ACTIVE" ? [{ key: "test", label: t("action.test"), onSelect: () => openTest(item) }] : []),
+      ...(item.status === "ACTIVE" && item.type !== "SMS" ? [{ key: "test", label: t("action.test"), onSelect: () => openTest(item) }] : []),
       item.status === "ACTIVE"
         ? { key: "disable", label: t("action.disable"), destructive: true, onSelect: () => setConfirm({ action: "disable", item }) }
         : { key: "enable", label: t("action.enable"), onSelect: () => run(updateNotificationChannelStatus(item.uid, "ACTIVE").then(() => reload()), setError) },
@@ -229,10 +250,54 @@ export function NotificationChannelPage() {
           query.update({ name: draft })
         }}
       >
-        <Input className="max-w-sm" value={draft} placeholder={t("channel.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
-        <Button type="submit" variant="outline">
-          {t("action.search")}
-        </Button>
+        <div className="flex flex-nowrap gap-2">
+          <Input className="max-w-sm" value={draft} placeholder={t("channel.namePlaceholder")} onChange={(event) => setDraft(event.target.value)} />
+          <Button type="submit" variant="outline" className="shrink-0">
+            {t("action.search")}
+          </Button>
+        </div>
+        <Select value={query.type || "ALL"} onValueChange={(value) => query.update({ type: value === "ALL" ? "" : value })}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder={t("channel.typeFilter")}>
+              <span className="flex items-center gap-2">
+                <ChannelLogo type={query.type || "SMTP"} className="size-4" />
+                <span>{query.type ? enumLabel(t, query.type) : t("channel.allTypes")}</span>
+              </span>
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">{t("channel.allTypes")}</SelectItem>
+            {types.map((item) => (
+              <SelectItem key={item} value={item}>
+                <span className="flex items-center gap-2">
+                  <ChannelLogo type={item} className="size-4" />
+                  <span>{enumLabel(t, item)}</span>
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={query.app || "ALL"} onValueChange={(value) => query.update({ app: value === "ALL" ? "" : value })}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder={t("channel.appFilter")}>
+              <span className="flex items-center gap-2">
+                <ChannelLogo type="WEBHOOK" app={query.app || "OTHER"} className="size-4" />
+                <span>{query.app ? enumLabel(t, query.app) : t("channel.allApps")}</span>
+              </span>
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">{t("channel.allApps")}</SelectItem>
+            {["OTHER", ...webhookApps.filter((item) => item !== "OTHER")].map((item) => (
+              <SelectItem key={item} value={item}>
+                <span className="flex items-center gap-2">
+                  <ChannelLogo type="WEBHOOK" app={item} className="size-4" />
+                  <span>{enumLabel(t, item)}</span>
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </form>
       <ListFrame
         total={total}
@@ -261,7 +326,7 @@ export function NotificationChannelPage() {
                 <TableHead>{t("channel.app")}</TableHead>
                 <TableHead>{t("channel.endpoint")}</TableHead>
                 <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead />
+                <TableHead className="text-right">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -277,8 +342,18 @@ export function NotificationChannelPage() {
                       <span className="truncate">{item.name}</span>
                     </span>
                   </TableCell>
-                  <TableCell>{enumLabel(t, item.type)}</TableCell>
-                  <TableCell>{enumLabel(t, item.app)}</TableCell>
+                  <TableCell>
+                    <span className="flex min-w-0 items-center gap-2">
+                      <ChannelLogo type={item.type} app={item.app} className="size-4" />
+                      <span>{enumLabel(t, item.type)}</span>
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="flex min-w-0 items-center gap-2">
+                      <ChannelLogo type={item.type} app={item.app} className="size-4" />
+                      <span>{enumLabel(t, item.app)}</span>
+                    </span>
+                  </TableCell>
                   <TableCell className="max-w-xs truncate">{item.endpoint}</TableCell>
                   <TableCell>{enumLabel(t, item.status)}</TableCell>
                   <TableCell>
@@ -313,7 +388,7 @@ export function NotificationChannelPage() {
                 value={type}
                 onValueChange={(value) => {
                   setType(value)
-                  setApp("OTHER")
+                  setApp(value === "SMS" ? "SMS_ALICLOUD" : "OTHER")
                   setError("")
                   setFieldErrors({})
                 }}
@@ -376,25 +451,54 @@ export function NotificationChannelPage() {
               <Input
                 id="channel-endpoint"
                 value={endpoint}
-                placeholder={type === "SMTP" ? t("channel.endpointSmtpPlaceholder") : t("channel.endpointWebhookPlaceholder")}
+                placeholder={
+                  type === "SMTP"
+                    ? t("channel.endpointSmtpPlaceholder")
+                    : type === "SMS"
+                      ? t("channel.endpointSmsPlaceholder")
+                      : t("channel.endpointWebhookPlaceholder")
+                }
                 onChange={(event) => setEndpoint(event.target.value)}
                 required
               />
             </FormField>
-            {type === "SMTP" ? (
+            {type === "SMTP" || type === "SMS" ? (
               <>
-                <FormField label={t("channel.username")} htmlFor="channel-username">
-                  <Input id="channel-username" value={username} placeholder={t("channel.usernamePlaceholder")} onChange={(event) => setUsername(event.target.value)} />
-                </FormField>
-                <FormField label={t("channel.password")} htmlFor="channel-password" hint={editing ? t("form.keepSecret") : undefined}>
-                  <Input id="channel-password" type="password" value={password} placeholder={t("channel.passwordPlaceholder")} onChange={(event) => setPassword(event.target.value)} />
+                <FormField
+                  label={type === "SMS" ? t("channel.accessKeyId") : t("channel.username")}
+                  htmlFor="channel-username"
+                  required={type === "SMS"}
+                  error={fieldErrors.username}
+                >
+                  <Input
+                    id="channel-username"
+                    value={username}
+                    placeholder={type === "SMS" ? t("channel.accessKeyIdPlaceholder") : t("channel.usernamePlaceholder")}
+                    onChange={(event) => setUsername(event.target.value)}
+                  />
                 </FormField>
                 <FormField
-                  label={t("channel.fromAddress")}
+                  label={type === "SMS" ? t("channel.accessKeySecret") : t("channel.password")}
+                  htmlFor="channel-password"
+                  required={type === "SMS" && !editing}
+                  hint={editing ? t("form.keepSecret") : undefined}
+                  error={fieldErrors.password}
+                >
+                  <Input
+                    id="channel-password"
+                    type="password"
+                    value={password}
+                    placeholder={type === "SMS" ? t("channel.accessKeySecretPlaceholder") : t("channel.passwordPlaceholder")}
+                    onChange={(event) => setPassword(event.target.value)}
+                  />
+                </FormField>
+                <FormField
+                  label={type === "SMS" ? t("channel.smsSignName") : t("channel.fromAddress")}
                   htmlFor="channel-from"
+                  required={type === "SMS"}
                   error={fieldErrors.fromAddress}
                 >
-                  <Input id="channel-from" value={fromAddress} placeholder={t("channel.fromAddressPlaceholder")} onChange={(event) => setFromAddress(event.target.value)} />
+                  <Input id="channel-from" value={fromAddress} placeholder={type === "SMS" ? t("channel.smsSignNamePlaceholder") : t("channel.fromAddressPlaceholder")} onChange={(event) => setFromAddress(event.target.value)} />
                 </FormField>
               </>
             ) : (
@@ -405,6 +509,9 @@ export function NotificationChannelPage() {
             <FormField label={t("channel.remark")} htmlFor="channel-remark" className="sm:col-span-full">
               <Input id="channel-remark" value={remark} placeholder={t("channel.remarkPlaceholder")} onChange={(event) => setRemark(event.target.value)} />
             </FormField>
+            {type === "SMS" ? (
+              <p className="text-sm text-muted-foreground sm:col-span-full">{t("channel.smsNotImplemented")}</p>
+            ) : null}
             {error ? <p className="sm:col-span-full text-sm text-destructive">{error}</p> : null}
             <DialogFooter className="sm:col-span-full">
               <Button type="submit" disabled={pending}>
@@ -438,7 +545,15 @@ export function NotificationChannelPage() {
                     </span>
                   ),
                 },
-                { label: t("channel.app"), value: enumLabel(t, detail.app) },
+                {
+                  label: t("channel.app"),
+                  value: (
+                    <span className="flex items-center gap-2">
+                      <ChannelLogo type={detail.type} app={detail.app} className="size-4" />
+                      {enumLabel(t, detail.app)}
+                    </span>
+                  ),
+                },
                 { label: t("channel.endpoint"), value: detail.endpoint },
                 { label: t("namespace.status"), value: enumLabel(t, detail.status) },
               ]

@@ -47,40 +47,47 @@ func seedNotificationPresets(ctx context.Context, client *ent.Client, helper *sl
 	presets := []struct {
 		name        string
 		kind        string
+		app         string
 		subject     string
 		body        string
 		description string
 		sort        int
 	}{
 		{
-			name: "邮件告警（默认）", kind: "EMAIL",
+			name: "邮件告警（默认）", kind: "EMAIL", app: "OTHER",
 			subject:     "[{{.phase}}] {{.summary}}",
 			body:        "告警标题：{{.summary}}\n告警描述：{{.description}}\n事件标识：{{.eventUid}}\n标签：{{.labels}}",
 			description: "适用于 SMTP 渠道的纯文本邮件", sort: 10,
 		},
 		{
-			name: "钉钉告警（文本）", kind: "WEBHOOK",
+			name: "钉钉告警（文本）", kind: "WEBHOOK", app: "DINGTALK",
 			subject:     "{{.summary}}",
 			body:        "【{{.phase}}】{{.summary}}\n{{.description}}\n标签：{{.labels}}",
 			description: "钉钉自定义机器人，渠道配置签名后自动加签", sort: 20,
 		},
 		{
-			name: "飞书告警（文本）", kind: "WEBHOOK",
+			name: "飞书告警（文本）", kind: "WEBHOOK", app: "FEISHU",
 			subject:     "{{.summary}}",
 			body:        "【{{.phase}}】{{.summary}}\n{{.description}}\n标签：{{.labels}}",
 			description: "飞书自定义机器人，渠道配置签名后自动加签", sort: 30,
 		},
 		{
-			name: "企业微信告警（文本）", kind: "WEBHOOK",
+			name: "企业微信告警（文本）", kind: "WEBHOOK", app: "WECHAT",
 			subject:     "{{.summary}}",
 			body:        "【{{.phase}}】{{.summary}}\n{{.description}}\n标签：{{.labels}}",
 			description: "企业微信群机器人", sort: 40,
 		},
 		{
-			name: "Webhook 通用模板", kind: "WEBHOOK",
+			name: "Webhook 通用模板", kind: "WEBHOOK", app: "OTHER",
 			subject:     "{{.summary}}",
 			body:        "{{.phase}} {{.summary}}\n{{.description}}\n事件：{{.eventUid}}",
 			description: "OTHER 类型 Webhook，服务端会以 JSON 发送并附带签名", sort: 50,
+		},
+		{
+			name: "短信告警（默认）", kind: "SMS_ALICLOUD", app: "OTHER",
+			subject:     "",
+			body:        "【{{.phase}}】{{.summary}}，值 {{.value}}",
+			description: "短信渠道使用的基础模板。当前版本只保存配置，发送实现尚未接入", sort: 60,
 		},
 	}
 	for _, item := range presets {
@@ -89,12 +96,20 @@ func seedNotificationPresets(ctx context.Context, client *ent.Client, helper *sl
 			return databaseErr(helper, err)
 		}
 		if exists {
+			// 预设的 app 是后加字段：老数据按名称补齐，避免企业微信预设仍然只能被通用模板匹配。
+			if _, err := client.NotificationPreset.Update().
+				Where(notificationpreset.NameEQ(item.name)).
+				SetApp(notificationpreset.App(item.app)).
+				Save(ctx); err != nil {
+				return databaseErr(helper, err)
+			}
 			continue
 		}
 		if _, err := client.NotificationPreset.Create().
 			SetUID(id.New()).
 			SetName(item.name).
 			SetType(notificationpreset.Type(item.kind)).
+			SetApp(notificationpreset.App(item.app)).
 			SetSubject(item.subject).
 			SetBody(item.body).
 			SetDescription(item.description).

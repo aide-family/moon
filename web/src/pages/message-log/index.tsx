@@ -18,6 +18,7 @@ import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Table,
   TableBody,
@@ -204,44 +205,44 @@ export function MessageLogPage() {
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader title={t("messageLog.title")} description={t("messageLog.description")} />
       {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
-      <div className="flex gap-2">
-        <Button variant={tab === "logs" ? "default" : "outline"} onClick={() => setTab("logs")}>
-          {t("messageLog.logs")}
-        </Button>
-        <Button variant={tab === "tasks" ? "default" : "outline"} onClick={() => setTab("tasks")}>
-          {t("messageLog.tasks")}
-        </Button>
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        {tab === "tasks" ? (
-          <Select value={statusFilter || "ALL"} onValueChange={(value) => setFilter("status", value === "ALL" ? "" : value)}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder={t("messageLog.statusFilter")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">{t("messageLog.allStatus")}</SelectItem>
-              {taskStatuses.map((item) => (
-                <SelectItem key={item} value={item}>
-                  {item}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          <>
-            <Input
-              className="max-w-sm"
-              value={taskFilter}
-              placeholder={t("messageLog.taskFilterPlaceholder")}
-              onChange={(event) => setFilter("taskUid", event.target.value)}
-            />
-            {taskFilter ? (
-              <Button variant="outline" onClick={() => setFilter("taskUid", "")}>
-                {t("messageLog.clearFilter")}
-              </Button>
-            ) : null}
-          </>
-        )}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {tab === "tasks" ? (
+            <Select value={statusFilter || "ALL"} onValueChange={(value) => setFilter("status", value === "ALL" ? "" : value)}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder={t("messageLog.statusFilter")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">{t("messageLog.allStatus")}</SelectItem>
+                {taskStatuses.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {enumLabel(t, item)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <>
+              <Input
+                className="max-w-sm"
+                value={taskFilter}
+                placeholder={t("messageLog.taskFilterPlaceholder")}
+                onChange={(event) => setFilter("taskUid", event.target.value)}
+              />
+              {taskFilter ? (
+                <Button variant="outline" onClick={() => setFilter("taskUid", "")}>
+                  {t("messageLog.clearFilter")}
+                </Button>
+              ) : null}
+            </>
+          )}
+        </div>
+        <Tabs value={tab} onValueChange={(value) => setTab(value as "logs" | "tasks")}>
+          <TabsList>
+            <TabsTrigger value="logs">{t("messageLog.logs")}</TabsTrigger>
+            <TabsTrigger value="tasks">{t("messageLog.tasks")}</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
       <ListFrame
         total={total}
@@ -263,15 +264,17 @@ export function MessageLogPage() {
         {!loading && !failed && tab === "logs" && logs.length === 0 ? <p className="text-sm text-muted-foreground">{t("messageLog.empty")}</p> : null}
         {!loading && !failed && tab === "tasks" && tasks.length === 0 ? <p className="text-sm text-muted-foreground">{t("messageLog.empty")}</p> : null}
         {!loading && !failed && tab === "logs" && logs.length > 0 ? (
-          <Table className="min-w-[56rem]">
+          <Table className="min-w-[72rem]">
             <TableHeader>
               <TableRow>
                 <TableHead>{t("messageLog.status")}</TableHead>
                 <TableHead>{t("messageLog.sender")}</TableHead>
                 <TableHead>{t("messageLog.receivers")}</TableHead>
                 <TableHead>{t("messageLog.content")}</TableHead>
+                <TableHead>{t("messageLog.group")}</TableHead>
+                <TableHead>{t("messageLog.subscription")}</TableHead>
                 <TableHead>{t("messageLog.taskFilter")}</TableHead>
-                <TableHead />
+                <TableHead className="text-right">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -281,6 +284,8 @@ export function MessageLogPage() {
                   <TableCell className="max-w-xs truncate" title={item.sender || undefined}>{item.sender || t("messageLog.notProvided")}</TableCell>
                   <TableCell className="max-w-xs truncate" title={item.receivers || undefined}>{item.receivers || t("messageLog.notProvided")}</TableCell>
                   <TableCell className="max-w-sm truncate" title={deliveryContent(item.subject, item.content) || undefined}>{deliveryContent(item.subject, item.content) || t("messageLog.notProvided")}</TableCell>
+                  <TableCell className="max-w-xs truncate" title={item.groupName || undefined}>{item.groupName || t("messageLog.notProvided")}</TableCell>
+                  <TableCell className="max-w-xs truncate" title={item.subscriptionName || undefined}>{item.subscriptionName || t("messageLog.notProvided")}</TableCell>
                   <TableCell className="font-mono text-xs">{item.taskUid}</TableCell>
                   <TableCell>
                     <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetailLog(item)} actions={[]} />
@@ -298,10 +303,12 @@ export function MessageLogPage() {
                 <TableHead>{t("messageLog.status")}</TableHead>
                 <TableHead>{t("messageLog.sender")}</TableHead>
                 <TableHead>{t("messageLog.receivers")}</TableHead>
+                <TableHead>{t("messageLog.group")}</TableHead>
+                <TableHead>{t("messageLog.subscription")}</TableHead>
                 <TableHead>{t("messageLog.content")}</TableHead>
                 <TableHead>{t("messageLog.retries")}</TableHead>
                 <TableHead>{t("messageLog.detail")}</TableHead>
-                <TableHead />
+                <TableHead className="text-right">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -311,6 +318,8 @@ export function MessageLogPage() {
                   <TableCell>{enumLabel(t, item.status)}</TableCell>
                   <TableCell className="max-w-xs truncate" title={item.sender || undefined}>{item.sender || t("messageLog.notProvided")}</TableCell>
                   <TableCell className="max-w-xs truncate" title={item.receivers || undefined}>{item.receivers || t("messageLog.notProvided")}</TableCell>
+                  <TableCell className="max-w-xs truncate" title={item.groupName || item.groupUid}>{item.groupName || item.groupUid}</TableCell>
+                  <TableCell className="max-w-xs truncate" title={item.subscriptionName || item.subscriptionUid}>{item.subscriptionName || item.subscriptionUid || t("messageLog.notProvided")}</TableCell>
                   <TableCell className="max-w-sm truncate" title={deliveryContent(item.subject, item.content) || undefined}>{deliveryContent(item.subject, item.content) || t("messageLog.notProvided")}</TableCell>
                   <TableCell>{item.retriesLeft}</TableCell>
                   <TableCell className="max-w-xs truncate" title={item.lastError || undefined}>{item.lastError || t("messageLog.notProvided")}</TableCell>
@@ -340,6 +349,8 @@ export function MessageLogPage() {
                 { label: t("messageLog.receivers"), value: detailLog.receivers || t("messageLog.notProvided") },
                 { label: t("messageLog.subject"), value: detailLog.subject || t("messageLog.notProvided") },
                 { label: t("messageLog.content"), value: <span className="whitespace-pre-wrap">{detailLog.content || t("messageLog.notProvided")}</span> },
+                { label: t("messageLog.group"), value: detailLog.groupName || t("messageLog.notProvided") },
+                { label: t("messageLog.subscription"), value: detailLog.subscriptionName || t("messageLog.notProvided") },
                 { label: t("messageLog.taskFilter"), value: detailLog.taskUid },
                 { label: t("messageLog.detail"), value: detailLog.detail || t("messageLog.notProvided") },
               ]
@@ -364,6 +375,10 @@ export function MessageLogPage() {
                 { label: t("messageLog.receivers"), value: detailTask.receivers || t("messageLog.notProvided") },
                 { label: t("messageLog.subject"), value: detailTask.subject || t("messageLog.notProvided") },
                 { label: t("messageLog.content"), value: <span className="whitespace-pre-wrap">{detailTask.content || t("messageLog.notProvided")}</span> },
+                { label: t("messageLog.group"), value: detailTask.groupName || detailTask.groupUid },
+                { label: t("messageLog.subscription"), value: detailTask.subscriptionName || detailTask.subscriptionUid || t("messageLog.notProvided") },
+                { label: t("messageLog.channel"), value: detailTask.channelName || detailTask.channelUid },
+                { label: t("messageLog.template"), value: detailTask.templateName || detailTask.templateUid },
                 { label: t("messageLog.retries"), value: detailTask.retriesLeft },
                 { label: t("messageLog.detail"), value: detailTask.lastError || t("messageLog.notProvided") },
               ]

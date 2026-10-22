@@ -9,6 +9,12 @@ export interface NotificationGroupItem {
   memberUids: string[]
   webhookChannelUids: string[]
   webhookTemplateUid: string
+  channelUids: string[]
+  templateUids: string[]
+  emailReceivers: string
+  smsReceivers: string
+  emailMemberUids: string[]
+  smsMemberUids: string[]
 }
 
 export interface ListNotificationGroupsParams {
@@ -26,13 +32,13 @@ export interface ListNotificationGroupsResult {
 
 export interface CreateNotificationGroupParams {
   name: string
-  channelUid: string
-  templateUid: string
-  receivers?: string
+  channelUids: string[]
+  templateUids: string[]
+  emailReceivers?: string
+  smsReceivers?: string
+  emailMemberUids?: string[]
+  smsMemberUids?: string[]
   remark?: string
-  memberUids?: string[]
-  webhookChannelUids?: string[]
-  webhookTemplateUid?: string
 }
 
 export interface UpdateNotificationGroupParams extends CreateNotificationGroupParams {

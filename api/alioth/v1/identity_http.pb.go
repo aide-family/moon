@@ -314,6 +314,7 @@ func (c *AuthServiceHTTPClientImpl) SendEmailLoginCode(ctx context.Context, in *
 
 const OperationSelfServiceChangeAvatar = "/alioth.v1.SelfService/ChangeAvatar"
 const OperationSelfServiceChangeEmail = "/alioth.v1.SelfService/ChangeEmail"
+const OperationSelfServiceChangePhone = "/alioth.v1.SelfService/ChangePhone"
 const OperationSelfServiceChangeRemark = "/alioth.v1.SelfService/ChangeRemark"
 const OperationSelfServiceGetSelfInfo = "/alioth.v1.SelfService/GetSelfInfo"
 const OperationSelfServiceGetSelfPermissions = "/alioth.v1.SelfService/GetSelfPermissions"
@@ -325,6 +326,8 @@ type SelfServiceHTTPServer interface {
 	ChangeAvatar(context.Context, *ChangeAvatarRequest) (*ChangeAvatarResponse, error)
 	// ChangeEmail 修改当前用户的邮箱。
 	ChangeEmail(context.Context, *ChangeEmailRequest) (*ChangeEmailResponse, error)
+	// ChangePhone 修改当前用户的手机号。短信通知使用该号码。
+	ChangePhone(context.Context, *ChangePhoneRequest) (*ChangePhoneResponse, error)
 	// ChangeRemark 修改当前用户的备注。
 	ChangeRemark(context.Context, *ChangeRemarkRequest) (*ChangeRemarkResponse, error)
 	// GetSelfInfo 获取当前登录用户的资料。
@@ -345,6 +348,7 @@ func RegisterSelfServiceHTTPServer(s *http.Server, srv SelfServiceHTTPServer) {
 	r.Handle("PUT", "/v1/self/change-email", _SelfService_ChangeEmail0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/self/change-avatar", _SelfService_ChangeAvatar0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/self/change-remark", _SelfService_ChangeRemark0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/self/change-phone", _SelfService_ChangePhone0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/self/permissions", _SelfService_GetSelfPermissions0_HTTP_Handler(srv))
 }
 
@@ -462,6 +466,25 @@ func _SelfService_ChangeRemark0_HTTP_Handler(srv SelfServiceHTTPServer) func(ctx
 	}
 }
 
+func _SelfService_ChangePhone0_HTTP_Handler(srv SelfServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ChangePhoneRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSelfServiceChangePhone)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ChangePhone(ctx, req.(*ChangePhoneRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ChangePhoneResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _SelfService_GetSelfPermissions0_HTTP_Handler(srv SelfServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetSelfPermissionsRequest
@@ -486,6 +509,8 @@ type SelfServiceHTTPClient interface {
 	ChangeAvatar(ctx context.Context, req *ChangeAvatarRequest, opts ...http.CallOption) (rsp *ChangeAvatarResponse, err error)
 	// ChangeEmail 修改当前用户的邮箱。
 	ChangeEmail(ctx context.Context, req *ChangeEmailRequest, opts ...http.CallOption) (rsp *ChangeEmailResponse, err error)
+	// ChangePhone 修改当前用户的手机号。短信通知使用该号码。
+	ChangePhone(ctx context.Context, req *ChangePhoneRequest, opts ...http.CallOption) (rsp *ChangePhoneResponse, err error)
 	// ChangeRemark 修改当前用户的备注。
 	ChangeRemark(ctx context.Context, req *ChangeRemarkRequest, opts ...http.CallOption) (rsp *ChangeRemarkResponse, err error)
 	// GetSelfInfo 获取当前登录用户的资料。
@@ -533,6 +558,24 @@ func (c *SelfServiceHTTPClientImpl) ChangeEmail(ctx context.Context, in *ChangeE
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSelfServiceChangeEmail),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ChangePhone 修改当前用户的手机号。短信通知使用该号码。
+func (c *SelfServiceHTTPClientImpl) ChangePhone(ctx context.Context, in *ChangePhoneRequest, opts ...http.CallOption) (*ChangePhoneResponse, error) {
+	var out ChangePhoneResponse
+	pattern := "/v1/self/change-phone"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSelfServiceChangePhone),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

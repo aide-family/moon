@@ -29,6 +29,7 @@ func (r *userRepo) CreateUser(ctx context.Context, in bo.Account) (*bo.Account, 
 			SetNickname(in.Nickname).
 			SetEmail(in.Email).
 			SetAvatar(in.Avatar).
+			SetPhone(in.Phone).
 			SetRemark(in.Remark).
 			SetStatus(status).
 			SetPasswordHash(in.PasswordHash).
@@ -67,10 +68,13 @@ func (r *userRepo) UserByUID(ctx context.Context, uid string) (*bo.Account, erro
 	return &account, nil
 }
 
-func (r *userRepo) UpdateUserProfile(ctx context.Context, uid string, email, avatar, remark *string) (*bo.Account, error) {
+func (r *userRepo) UpdateUserProfile(ctx context.Context, uid string, email, phone, avatar, remark *string) (*bo.Account, error) {
 	update := r.client.User.Update().Where(user.UIDEQ(uid))
 	if email != nil {
 		update.SetEmail(*email)
+	}
+	if phone != nil {
+		update.SetPhone(*phone)
 	}
 	if avatar != nil {
 		update.SetAvatar(*avatar)
@@ -172,6 +176,7 @@ func toAccount(row *ent.User) bo.Account {
 		Name:         row.Name,
 		Nickname:     row.Nickname,
 		Email:        row.Email,
+		Phone:        row.Phone,
 		Avatar:       row.Avatar,
 		Remark:       row.Remark,
 		Status:       string(row.Status),

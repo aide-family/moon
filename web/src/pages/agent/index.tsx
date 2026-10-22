@@ -244,7 +244,7 @@ export function AgentPage() {
                 <TableHead>{t("agent.disk")}</TableHead>
                 <TableHead>{t("agent.online")}</TableHead>
                 <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead />
+                <TableHead className="text-right">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -416,6 +416,7 @@ const (
 	NotificationTemplateService_ListNotificationTemplates_FullMethodName        = "/alioth.v1.NotificationTemplateService/ListNotificationTemplates"
 	NotificationTemplateService_SelectNotificationTemplates_FullMethodName      = "/alioth.v1.NotificationTemplateService/SelectNotificationTemplates"
 	NotificationTemplateService_TestNotificationTemplate_FullMethodName         = "/alioth.v1.NotificationTemplateService/TestNotificationTemplate"
+	NotificationTemplateService_PreviewNotificationTemplate_FullMethodName      = "/alioth.v1.NotificationTemplateService/PreviewNotificationTemplate"
 	NotificationTemplateService_ListNotificationPresets_FullMethodName          = "/alioth.v1.NotificationTemplateService/ListNotificationPresets"
 )
 
@@ -441,6 +442,8 @@ type NotificationTemplateServiceClient interface {
 	SelectNotificationTemplates(ctx context.Context, in *SelectNotificationTemplatesRequest, opts ...grpc.CallOption) (*SelectNotificationTemplatesResponse, error)
 	// 按模板试发。
 	TestNotificationTemplate(ctx context.Context, in *TestNotificationTemplateRequest, opts ...grpc.CallOption) (*TestNotificationTemplateResponse, error)
+	// 用 mock 事件渲染模板，供编辑器和预设页预览使用，不写入任务。
+	PreviewNotificationTemplate(ctx context.Context, in *PreviewNotificationTemplateRequest, opts ...grpc.CallOption) (*PreviewNotificationTemplateResponse, error)
 	// 列出系统预设模板。预设只读，用户可从预设创建自己的模板。
 	ListNotificationPresets(ctx context.Context, in *ListNotificationPresetsRequest, opts ...grpc.CallOption) (*ListNotificationPresetsResponse, error)
 }
@@ -533,6 +536,16 @@ func (c *notificationTemplateServiceClient) TestNotificationTemplate(ctx context
 	return out, nil
 }
 
+func (c *notificationTemplateServiceClient) PreviewNotificationTemplate(ctx context.Context, in *PreviewNotificationTemplateRequest, opts ...grpc.CallOption) (*PreviewNotificationTemplateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PreviewNotificationTemplateResponse)
+	err := c.cc.Invoke(ctx, NotificationTemplateService_PreviewNotificationTemplate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *notificationTemplateServiceClient) ListNotificationPresets(ctx context.Context, in *ListNotificationPresetsRequest, opts ...grpc.CallOption) (*ListNotificationPresetsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListNotificationPresetsResponse)
@@ -565,6 +578,8 @@ type NotificationTemplateServiceServer interface {
 	SelectNotificationTemplates(context.Context, *SelectNotificationTemplatesRequest) (*SelectNotificationTemplatesResponse, error)
 	// 按模板试发。
 	TestNotificationTemplate(context.Context, *TestNotificationTemplateRequest) (*TestNotificationTemplateResponse, error)
+	// 用 mock 事件渲染模板，供编辑器和预设页预览使用，不写入任务。
+	PreviewNotificationTemplate(context.Context, *PreviewNotificationTemplateRequest) (*PreviewNotificationTemplateResponse, error)
 	// 列出系统预设模板。预设只读，用户可从预设创建自己的模板。
 	ListNotificationPresets(context.Context, *ListNotificationPresetsRequest) (*ListNotificationPresetsResponse, error)
 	mustEmbedUnimplementedNotificationTemplateServiceServer()
@@ -600,6 +615,9 @@ func (UnimplementedNotificationTemplateServiceServer) SelectNotificationTemplate
 }
 func (UnimplementedNotificationTemplateServiceServer) TestNotificationTemplate(context.Context, *TestNotificationTemplateRequest) (*TestNotificationTemplateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TestNotificationTemplate not implemented")
+}
+func (UnimplementedNotificationTemplateServiceServer) PreviewNotificationTemplate(context.Context, *PreviewNotificationTemplateRequest) (*PreviewNotificationTemplateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PreviewNotificationTemplate not implemented")
 }
 func (UnimplementedNotificationTemplateServiceServer) ListNotificationPresets(context.Context, *ListNotificationPresetsRequest) (*ListNotificationPresetsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListNotificationPresets not implemented")
@@ -770,6 +788,24 @@ func _NotificationTemplateService_TestNotificationTemplate_Handler(srv interface
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NotificationTemplateService_PreviewNotificationTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PreviewNotificationTemplateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NotificationTemplateServiceServer).PreviewNotificationTemplate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NotificationTemplateService_PreviewNotificationTemplate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NotificationTemplateServiceServer).PreviewNotificationTemplate(ctx, req.(*PreviewNotificationTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _NotificationTemplateService_ListNotificationPresets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListNotificationPresetsRequest)
 	if err := dec(in); err != nil {
@@ -826,6 +862,10 @@ var NotificationTemplateService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TestNotificationTemplate",
 			Handler:    _NotificationTemplateService_TestNotificationTemplate_Handler,
+		},
+		{
+			MethodName: "PreviewNotificationTemplate",
+			Handler:    _NotificationTemplateService_PreviewNotificationTemplate_Handler,
 		},
 		{
 			MethodName: "ListNotificationPresets",

@@ -66,6 +66,20 @@ func (_c *NotificationPresetCreate) SetType(v notificationpreset.Type) *Notifica
 	return _c
 }
 
+// SetApp sets the "app" field.
+func (_c *NotificationPresetCreate) SetApp(v notificationpreset.App) *NotificationPresetCreate {
+	_c.mutation.SetApp(v)
+	return _c
+}
+
+// SetNillableApp sets the "app" field if the given value is not nil.
+func (_c *NotificationPresetCreate) SetNillableApp(v *notificationpreset.App) *NotificationPresetCreate {
+	if v != nil {
+		_c.SetApp(*v)
+	}
+	return _c
+}
+
 // SetSubject sets the "subject" field.
 func (_c *NotificationPresetCreate) SetSubject(v string) *NotificationPresetCreate {
 	_c.mutation.SetSubject(v)
@@ -179,6 +193,10 @@ func (_c *NotificationPresetCreate) defaults() {
 		v := notificationpreset.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.App(); !ok {
+		v := notificationpreset.DefaultApp
+		_c.mutation.SetApp(v)
+	}
 	if _, ok := _c.mutation.Subject(); !ok {
 		v := notificationpreset.DefaultSubject
 		_c.mutation.SetSubject(v)
@@ -231,6 +249,14 @@ func (_c *NotificationPresetCreate) check() error {
 	if v, ok := _c.mutation.GetType(); ok {
 		if err := notificationpreset.TypeValidator(v); err != nil {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "NotificationPreset.type": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.App(); !ok {
+		return &ValidationError{Name: "app", err: errors.New(`ent: missing required field "NotificationPreset.app"`)}
+	}
+	if v, ok := _c.mutation.App(); ok {
+		if err := notificationpreset.AppValidator(v); err != nil {
+			return &ValidationError{Name: "app", err: fmt.Errorf(`ent: validator failed for field "NotificationPreset.app": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Subject(); !ok {
@@ -298,6 +324,10 @@ func (_c *NotificationPresetCreate) createSpec() (*NotificationPreset, *sqlgraph
 	if value, ok := _c.mutation.GetType(); ok {
 		_spec.SetField(notificationpreset.FieldType, field.TypeEnum, value)
 		_node.Type = value
+	}
+	if value, ok := _c.mutation.App(); ok {
+		_spec.SetField(notificationpreset.FieldApp, field.TypeEnum, value)
+		_node.App = value
 	}
 	if value, ok := _c.mutation.Subject(); ok {
 		_spec.SetField(notificationpreset.FieldSubject, field.TypeString, value)

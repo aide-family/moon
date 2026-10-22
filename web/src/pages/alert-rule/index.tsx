@@ -817,7 +817,7 @@ export function AlertRulePage() {
                     <TableHead>{t("datasource.expr")}</TableHead>
                     <TableHead>{t("datasource.driver")}</TableHead>
                     <TableHead>{t("namespace.status")}</TableHead>
-                    <TableHead />
+                    <TableHead className="text-right">{t("action.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

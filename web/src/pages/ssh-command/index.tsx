@@ -286,7 +286,7 @@ export function SSHCommandPage() {
                 <TableHead>{t("ssh.name")}</TableHead>
                 <TableHead>{t("ssh.command")}</TableHead>
                 <TableHead>{t("ssh.reviewStatus")}</TableHead>
-                <TableHead />
+                <TableHead className="text-right">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

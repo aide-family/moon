@@ -94,29 +94,55 @@ func (_c *NotificationGroupCreate) SetNillableStatus(v *notificationgroup.Status
 	return _c
 }
 
-// SetChannelUID sets the "channel_uid" field.
-func (_c *NotificationGroupCreate) SetChannelUID(v string) *NotificationGroupCreate {
-	_c.mutation.SetChannelUID(v)
+// SetChannelUids sets the "channel_uids" field.
+func (_c *NotificationGroupCreate) SetChannelUids(v []string) *NotificationGroupCreate {
+	_c.mutation.SetChannelUids(v)
 	return _c
 }
 
-// SetTemplateUID sets the "template_uid" field.
-func (_c *NotificationGroupCreate) SetTemplateUID(v string) *NotificationGroupCreate {
-	_c.mutation.SetTemplateUID(v)
+// SetTemplateUids sets the "template_uids" field.
+func (_c *NotificationGroupCreate) SetTemplateUids(v []string) *NotificationGroupCreate {
+	_c.mutation.SetTemplateUids(v)
 	return _c
 }
 
-// SetReceivers sets the "receivers" field.
-func (_c *NotificationGroupCreate) SetReceivers(v string) *NotificationGroupCreate {
-	_c.mutation.SetReceivers(v)
+// SetEmailReceivers sets the "email_receivers" field.
+func (_c *NotificationGroupCreate) SetEmailReceivers(v string) *NotificationGroupCreate {
+	_c.mutation.SetEmailReceivers(v)
 	return _c
 }
 
-// SetNillableReceivers sets the "receivers" field if the given value is not nil.
-func (_c *NotificationGroupCreate) SetNillableReceivers(v *string) *NotificationGroupCreate {
+// SetNillableEmailReceivers sets the "email_receivers" field if the given value is not nil.
+func (_c *NotificationGroupCreate) SetNillableEmailReceivers(v *string) *NotificationGroupCreate {
 	if v != nil {
-		_c.SetReceivers(*v)
+		_c.SetEmailReceivers(*v)
 	}
+	return _c
+}
+
+// SetSmsReceivers sets the "sms_receivers" field.
+func (_c *NotificationGroupCreate) SetSmsReceivers(v string) *NotificationGroupCreate {
+	_c.mutation.SetSmsReceivers(v)
+	return _c
+}
+
+// SetNillableSmsReceivers sets the "sms_receivers" field if the given value is not nil.
+func (_c *NotificationGroupCreate) SetNillableSmsReceivers(v *string) *NotificationGroupCreate {
+	if v != nil {
+		_c.SetSmsReceivers(*v)
+	}
+	return _c
+}
+
+// SetEmailMemberUids sets the "email_member_uids" field.
+func (_c *NotificationGroupCreate) SetEmailMemberUids(v []string) *NotificationGroupCreate {
+	_c.mutation.SetEmailMemberUids(v)
+	return _c
+}
+
+// SetSmsMemberUids sets the "sms_member_uids" field.
+func (_c *NotificationGroupCreate) SetSmsMemberUids(v []string) *NotificationGroupCreate {
+	_c.mutation.SetSmsMemberUids(v)
 	return _c
 }
 
@@ -130,6 +156,48 @@ func (_c *NotificationGroupCreate) SetRemark(v string) *NotificationGroupCreate 
 func (_c *NotificationGroupCreate) SetNillableRemark(v *string) *NotificationGroupCreate {
 	if v != nil {
 		_c.SetRemark(*v)
+	}
+	return _c
+}
+
+// SetChannelUID sets the "channel_uid" field.
+func (_c *NotificationGroupCreate) SetChannelUID(v string) *NotificationGroupCreate {
+	_c.mutation.SetChannelUID(v)
+	return _c
+}
+
+// SetNillableChannelUID sets the "channel_uid" field if the given value is not nil.
+func (_c *NotificationGroupCreate) SetNillableChannelUID(v *string) *NotificationGroupCreate {
+	if v != nil {
+		_c.SetChannelUID(*v)
+	}
+	return _c
+}
+
+// SetTemplateUID sets the "template_uid" field.
+func (_c *NotificationGroupCreate) SetTemplateUID(v string) *NotificationGroupCreate {
+	_c.mutation.SetTemplateUID(v)
+	return _c
+}
+
+// SetNillableTemplateUID sets the "template_uid" field if the given value is not nil.
+func (_c *NotificationGroupCreate) SetNillableTemplateUID(v *string) *NotificationGroupCreate {
+	if v != nil {
+		_c.SetTemplateUID(*v)
+	}
+	return _c
+}
+
+// SetReceivers sets the "receivers" field.
+func (_c *NotificationGroupCreate) SetReceivers(v string) *NotificationGroupCreate {
+	_c.mutation.SetReceivers(v)
+	return _c
+}
+
+// SetNillableReceivers sets the "receivers" field if the given value is not nil.
+func (_c *NotificationGroupCreate) SetNillableReceivers(v *string) *NotificationGroupCreate {
+	if v != nil {
+		_c.SetReceivers(*v)
 	}
 	return _c
 }
@@ -207,13 +275,45 @@ func (_c *NotificationGroupCreate) defaults() {
 		v := notificationgroup.DefaultStatus
 		_c.mutation.SetStatus(v)
 	}
-	if _, ok := _c.mutation.Receivers(); !ok {
-		v := notificationgroup.DefaultReceivers
-		_c.mutation.SetReceivers(v)
+	if _, ok := _c.mutation.ChannelUids(); !ok {
+		v := notificationgroup.DefaultChannelUids
+		_c.mutation.SetChannelUids(v)
+	}
+	if _, ok := _c.mutation.TemplateUids(); !ok {
+		v := notificationgroup.DefaultTemplateUids
+		_c.mutation.SetTemplateUids(v)
+	}
+	if _, ok := _c.mutation.EmailReceivers(); !ok {
+		v := notificationgroup.DefaultEmailReceivers
+		_c.mutation.SetEmailReceivers(v)
+	}
+	if _, ok := _c.mutation.SmsReceivers(); !ok {
+		v := notificationgroup.DefaultSmsReceivers
+		_c.mutation.SetSmsReceivers(v)
+	}
+	if _, ok := _c.mutation.EmailMemberUids(); !ok {
+		v := notificationgroup.DefaultEmailMemberUids
+		_c.mutation.SetEmailMemberUids(v)
+	}
+	if _, ok := _c.mutation.SmsMemberUids(); !ok {
+		v := notificationgroup.DefaultSmsMemberUids
+		_c.mutation.SetSmsMemberUids(v)
 	}
 	if _, ok := _c.mutation.Remark(); !ok {
 		v := notificationgroup.DefaultRemark
 		_c.mutation.SetRemark(v)
+	}
+	if _, ok := _c.mutation.ChannelUID(); !ok {
+		v := notificationgroup.DefaultChannelUID
+		_c.mutation.SetChannelUID(v)
+	}
+	if _, ok := _c.mutation.TemplateUID(); !ok {
+		v := notificationgroup.DefaultTemplateUID
+		_c.mutation.SetTemplateUID(v)
+	}
+	if _, ok := _c.mutation.Receivers(); !ok {
+		v := notificationgroup.DefaultReceivers
+		_c.mutation.SetReceivers(v)
 	}
 	if _, ok := _c.mutation.MemberUids(); !ok {
 		v := notificationgroup.DefaultMemberUids
@@ -269,27 +369,35 @@ func (_c *NotificationGroupCreate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "NotificationGroup.status": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.ChannelUids(); !ok {
+		return &ValidationError{Name: "channel_uids", err: errors.New(`ent: missing required field "NotificationGroup.channel_uids"`)}
+	}
+	if _, ok := _c.mutation.TemplateUids(); !ok {
+		return &ValidationError{Name: "template_uids", err: errors.New(`ent: missing required field "NotificationGroup.template_uids"`)}
+	}
+	if _, ok := _c.mutation.EmailReceivers(); !ok {
+		return &ValidationError{Name: "email_receivers", err: errors.New(`ent: missing required field "NotificationGroup.email_receivers"`)}
+	}
+	if _, ok := _c.mutation.SmsReceivers(); !ok {
+		return &ValidationError{Name: "sms_receivers", err: errors.New(`ent: missing required field "NotificationGroup.sms_receivers"`)}
+	}
+	if _, ok := _c.mutation.EmailMemberUids(); !ok {
+		return &ValidationError{Name: "email_member_uids", err: errors.New(`ent: missing required field "NotificationGroup.email_member_uids"`)}
+	}
+	if _, ok := _c.mutation.SmsMemberUids(); !ok {
+		return &ValidationError{Name: "sms_member_uids", err: errors.New(`ent: missing required field "NotificationGroup.sms_member_uids"`)}
+	}
+	if _, ok := _c.mutation.Remark(); !ok {
+		return &ValidationError{Name: "remark", err: errors.New(`ent: missing required field "NotificationGroup.remark"`)}
+	}
 	if _, ok := _c.mutation.ChannelUID(); !ok {
 		return &ValidationError{Name: "channel_uid", err: errors.New(`ent: missing required field "NotificationGroup.channel_uid"`)}
-	}
-	if v, ok := _c.mutation.ChannelUID(); ok {
-		if err := notificationgroup.ChannelUIDValidator(v); err != nil {
-			return &ValidationError{Name: "channel_uid", err: fmt.Errorf(`ent: validator failed for field "NotificationGroup.channel_uid": %w`, err)}
-		}
 	}
 	if _, ok := _c.mutation.TemplateUID(); !ok {
 		return &ValidationError{Name: "template_uid", err: errors.New(`ent: missing required field "NotificationGroup.template_uid"`)}
 	}
-	if v, ok := _c.mutation.TemplateUID(); ok {
-		if err := notificationgroup.TemplateUIDValidator(v); err != nil {
-			return &ValidationError{Name: "template_uid", err: fmt.Errorf(`ent: validator failed for field "NotificationGroup.template_uid": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.Receivers(); !ok {
 		return &ValidationError{Name: "receivers", err: errors.New(`ent: missing required field "NotificationGroup.receivers"`)}
-	}
-	if _, ok := _c.mutation.Remark(); !ok {
-		return &ValidationError{Name: "remark", err: errors.New(`ent: missing required field "NotificationGroup.remark"`)}
 	}
 	if _, ok := _c.mutation.MemberUids(); !ok {
 		return &ValidationError{Name: "member_uids", err: errors.New(`ent: missing required field "NotificationGroup.member_uids"`)}
@@ -354,6 +462,34 @@ func (_c *NotificationGroupCreate) createSpec() (*NotificationGroup, *sqlgraph.C
 		_spec.SetField(notificationgroup.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
+	if value, ok := _c.mutation.ChannelUids(); ok {
+		_spec.SetField(notificationgroup.FieldChannelUids, field.TypeJSON, value)
+		_node.ChannelUids = value
+	}
+	if value, ok := _c.mutation.TemplateUids(); ok {
+		_spec.SetField(notificationgroup.FieldTemplateUids, field.TypeJSON, value)
+		_node.TemplateUids = value
+	}
+	if value, ok := _c.mutation.EmailReceivers(); ok {
+		_spec.SetField(notificationgroup.FieldEmailReceivers, field.TypeString, value)
+		_node.EmailReceivers = value
+	}
+	if value, ok := _c.mutation.SmsReceivers(); ok {
+		_spec.SetField(notificationgroup.FieldSmsReceivers, field.TypeString, value)
+		_node.SmsReceivers = value
+	}
+	if value, ok := _c.mutation.EmailMemberUids(); ok {
+		_spec.SetField(notificationgroup.FieldEmailMemberUids, field.TypeJSON, value)
+		_node.EmailMemberUids = value
+	}
+	if value, ok := _c.mutation.SmsMemberUids(); ok {
+		_spec.SetField(notificationgroup.FieldSmsMemberUids, field.TypeJSON, value)
+		_node.SmsMemberUids = value
+	}
+	if value, ok := _c.mutation.Remark(); ok {
+		_spec.SetField(notificationgroup.FieldRemark, field.TypeString, value)
+		_node.Remark = value
+	}
 	if value, ok := _c.mutation.ChannelUID(); ok {
 		_spec.SetField(notificationgroup.FieldChannelUID, field.TypeString, value)
 		_node.ChannelUID = value
@@ -365,10 +501,6 @@ func (_c *NotificationGroupCreate) createSpec() (*NotificationGroup, *sqlgraph.C
 	if value, ok := _c.mutation.Receivers(); ok {
 		_spec.SetField(notificationgroup.FieldReceivers, field.TypeString, value)
 		_node.Receivers = value
-	}
-	if value, ok := _c.mutation.Remark(); ok {
-		_spec.SetField(notificationgroup.FieldRemark, field.TypeString, value)
-		_node.Remark = value
 	}
 	if value, ok := _c.mutation.MemberUids(); ok {
 		_spec.SetField(notificationgroup.FieldMemberUids, field.TypeJSON, value)

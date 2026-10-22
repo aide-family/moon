@@ -102,6 +102,13 @@ service NotificationTemplateService {
       body: "*"
     };
   }
+  // 用 mock 事件渲染模板，供编辑器和预设页预览使用，不写入任务。
+  rpc PreviewNotificationTemplate(PreviewNotificationTemplateRequest) returns (PreviewNotificationTemplateResponse) {
+    option (google.api.http) = {
+      post: "/v1/notification-template/preview"
+      body: "*"
+    };
+  }
   // 列出系统预设模板。预设只读，用户可从预设创建自己的模板。
   rpc ListNotificationPresets(ListNotificationPresetsRequest) returns (ListNotificationPresetsResponse) {
     option (google.api.http) = {get: "/v1/notification-presets"};
@@ -222,9 +229,9 @@ message NotificationChannelItem {
   string uid = 1;
   // 名称。
   string name = 2;
-  // 类型，取值为 SMTP 或 WEBHOOK。
+  // 类型，取值为 SMTP、WEBHOOK 或 SMS。
   string type = 3;
-  // 应用，取值为 OTHER、DINGTALK、WECHAT、FEISHU 或 SMS_ALICLOUD。
+  // 应用，取值为 OTHER、DINGTALK、WECHAT、FEISHU 或 SMS_ALICLOUD。SMTP 固定 OTHER，SMS 固定 SMS_ALICLOUD。
   string app = 4;
   // 状态，取值为 ACTIVE 或 DISABLED。
   string status = 5;
@@ -246,9 +253,9 @@ message NotificationChannelItem {
 message CreateNotificationChannelRequest {
   // 名称。
   string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  // 类型，取值为 SMTP 或 WEBHOOK。
-  string type = 2 [(buf.validate.field).string = {in: ["SMTP", "WEBHOOK"]}];
-  // 应用，取值为 OTHER、DINGTALK、WECHAT、FEISHU 或 SMS_ALICLOUD。
+  // 类型，取值为 SMTP、WEBHOOK 或 SMS。
+  string type = 2 [(buf.validate.field).string = {in: ["SMTP", "WEBHOOK", "SMS"]}];
+  // 应用，取值为 OTHER、DINGTALK、WECHAT、FEISHU 或 SMS_ALICLOUD。SMTP 固定 OTHER，SMS 固定 SMS_ALICLOUD。
   string app = 3 [(buf.validate.field).string = {in: ["OTHER", "DINGTALK", "WECHAT", "FEISHU", "SMS_ALICLOUD"]}];
   // 地址。
   string endpoint = 4 [(buf.validate.field).string.min_len = 1];
@@ -276,9 +283,9 @@ message UpdateNotificationChannelRequest {
   string uid = 1 [(buf.validate.field).string.min_len = 1];
   // 名称。
   string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  // 类型，取值为 SMTP 或 WEBHOOK。
-  string type = 3 [(buf.validate.field).string = {in: ["SMTP", "WEBHOOK"]}];
-  // 应用，取值为 OTHER、DINGTALK、WECHAT、FEISHU 或 SMS_ALICLOUD。
+  // 类型，取值为 SMTP、WEBHOOK 或 SMS。
+  string type = 3 [(buf.validate.field).string = {in: ["SMTP", "WEBHOOK", "SMS"]}];
+  // 应用，取值为 OTHER、DINGTALK、WECHAT、FEISHU 或 SMS_ALICLOUD。SMTP 固定 OTHER，SMS 固定 SMS_ALICLOUD。
   string app = 4 [(buf.validate.field).string = {in: ["OTHER", "DINGTALK", "WECHAT", "FEISHU", "SMS_ALICLOUD"]}];
   // 地址。
   string endpoint = 5 [(buf.validate.field).string.min_len = 1];
@@ -343,6 +350,10 @@ message ListNotificationChannelsRequest {
   int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
   // 名称。
   string name = 3;
+  // 渠道类型，取值为 SMTP、WEBHOOK 或 SMS。留空表示不限制。
+  string type = 4;
+  // 应用。留空表示不限制。
+  string app = 5;
 }
 
 // 渠道分页结果。
@@ -411,6 +422,9 @@ message NotificationTemplateItem {
   string body = 6;
   // 备注。
   string remark = 7;
+  // 应用，取值为 OTHER、DINGTALK、WECHAT、FEISHU 或 SMS_ALICLOUD。
+  // WEBHOOK 模板按应用区分；OTHER 表示通用 Webhook 模板。EMAIL 和 SMS_ALICLOUD 固定 OTHER。
+  string app = 8;
 }
 
 // 创建模板。
@@ -425,6 +439,9 @@ message CreateNotificationTemplateRequest {
   string body = 4;
   // 备注。
   string remark = 5 [(buf.validate.field).string.max_len = 200];
+  // 应用，取值为 OTHER、DINGTALK、WECHAT、FEISHU 或 SMS_ALICLOUD。
+  // WEBHOOK 模板按应用区分；OTHER 表示通用 Webhook 模板。EMAIL 和 SMS_ALICLOUD 固定 OTHER。
+  string app = 6 [(buf.validate.field).string = {in: ["OTHER", "DINGTALK", "WECHAT", "FEISHU", "SMS_ALICLOUD"]}];
 }
 
 // 创建模板的结果。
@@ -447,6 +464,9 @@ message UpdateNotificationTemplateRequest {
   string body = 5;
   // 备注。
   string remark = 6 [(buf.validate.field).string.max_len = 200];
+  // 应用，取值为 OTHER、DINGTALK、WECHAT、FEISHU 或 SMS_ALICLOUD。
+  // WEBHOOK 模板按应用区分；OTHER 表示通用 Webhook 模板。EMAIL 和 SMS_ALICLOUD 固定 OTHER。
+  string app = 7 [(buf.validate.field).string = {in: ["OTHER", "DINGTALK", "WECHAT", "FEISHU", "SMS_ALICLOUD"]}];
 }
 
 // 更新模板的结果。
@@ -498,6 +518,10 @@ message ListNotificationTemplatesRequest {
   int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
   // 名称。
   string name = 3;
+  // 模板类型，取值为 EMAIL、WEBHOOK 或 SMS_ALICLOUD。留空表示不限制。
+  string type = 4;
+  // 应用。留空表示不限制。
+  string app = 5;
 }
 
 // 模板分页结果。
@@ -534,7 +558,7 @@ message NotificationPresetItem {
   string uid = 1;
   // 名称。
   string name = 2;
-  // 类型，取值为 EMAIL 或 WEBHOOK。
+  // 类型，取值为 EMAIL、WEBHOOK 或 SMS_ALICLOUD。
   string type = 3;
   // 主题。
   string subject = 4;
@@ -542,6 +566,8 @@ message NotificationPresetItem {
   string body = 5;
   // 说明。
   string description = 6;
+  // 应用，取值为 OTHER、DINGTALK、WECHAT、FEISHU 或 SMS_ALICLOUD。
+  string app = 7;
 }
 
 // 列出系统预设模板。
@@ -571,6 +597,26 @@ message TestNotificationTemplateResponse {
   string task_uid = 1 [json_name = "taskUid"];
 }
 
+// 按 mock 事件预览模板。只渲染，不创建任务。
+message PreviewNotificationTemplateRequest {
+  // 模板类型，取值为 EMAIL、WEBHOOK 或 SMS_ALICLOUD。
+  string type = 1 [(buf.validate.field).string = {in: ["EMAIL", "WEBHOOK", "SMS_ALICLOUD"]}];
+  // 应用，取值为 OTHER、DINGTALK、WECHAT、FEISHU 或 SMS_ALICLOUD。留空按 OTHER 处理。
+  string app = 2;
+  // 主题模板。
+  string subject = 3;
+  // 正文模板。
+  string body = 4;
+}
+
+// 预览结果。渲染失败时由接口返回 400。
+message PreviewNotificationTemplateResponse {
+  // 渲染后的主题。
+  string subject = 1;
+  // 渲染后的正文。
+  string body = 2;
+}
+
 // 一条通知组。
 message NotificationGroupItem {
   // 标识。
@@ -593,26 +639,50 @@ message NotificationGroupItem {
   repeated string webhook_channel_uids = 9 [json_name = "webhookChannelUids"];
   // Webhook 消息模板标识。选择 Webhook 渠道时必填。
   string webhook_template_uid = 10 [json_name = "webhookTemplateUid"];
+  // 选中的投递渠道标识。邮件渠道、短信渠道和每个 Webhook 接收者各一项。
+  repeated string channel_uids = 11 [json_name = "channelUids"];
+  // 与 channel_uids 一一对应的模板标识。每个渠道必须有类型匹配的模板。
+  repeated string template_uids = 12 [json_name = "templateUids"];
+  // 手填的邮件接收方，逗号分隔。
+  string email_receivers = 13 [json_name = "emailReceivers"];
+  // 手填的短信接收手机号，逗号分隔。
+  string sms_receivers = 14 [json_name = "smsReceivers"];
+  // 选中的邮件接收成员标识。
+  repeated string email_member_uids = 15 [json_name = "emailMemberUids"];
+  // 选中的短信接收成员标识。成员必须配置手机号。
+  repeated string sms_member_uids = 16 [json_name = "smsMemberUids"];
 }
 
 // 创建通知组。
 message CreateNotificationGroupRequest {
   // 名称。
   string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  // 渠道标识。
-  string channel_uid = 2 [json_name = "channelUid", (buf.validate.field).string.min_len = 1];
-  // 模板标识。
-  string template_uid = 3 [json_name = "templateUid", (buf.validate.field).string.min_len = 1];
-  // 接收方。
+  // 兼容旧客户端的单渠道标识。新客户端使用 channel_uids。
+  string channel_uid = 2 [json_name = "channelUid"];
+  // 兼容旧客户端的单模板标识。新客户端使用 template_uids。
+  string template_uid = 3 [json_name = "templateUid"];
+  // 兼容旧客户端的邮件接收方。新客户端使用 email_receivers。
   string receivers = 4;
   // 备注。
   string remark = 5 [(buf.validate.field).string.max_len = 200];
-  // 选中的成员标识。
+  // 兼容旧客户端的邮件成员标识。
   repeated string member_uids = 6 [json_name = "memberUids"];
-  // 选中的 Webhook 渠道标识。
+  // 兼容旧客户端的 Webhook 渠道标识。
   repeated string webhook_channel_uids = 7 [json_name = "webhookChannelUids"];
-  // Webhook 消息模板标识。
+  // 兼容旧客户端的 Webhook 模板标识。
   string webhook_template_uid = 8 [json_name = "webhookTemplateUid"];
+  // 选中的投递渠道标识。为必填项，至少一个渠道。
+  repeated string channel_uids = 9 [json_name = "channelUids"];
+  // 与 channel_uids 一一对应的模板标识。
+  repeated string template_uids = 10 [json_name = "templateUids"];
+  // 手填的邮件接收方。
+  string email_receivers = 11 [json_name = "emailReceivers"];
+  // 手填的短信接收手机号。
+  string sms_receivers = 12 [json_name = "smsReceivers"];
+  // 选中的邮件接收成员标识。
+  repeated string email_member_uids = 13 [json_name = "emailMemberUids"];
+  // 选中的短信接收成员标识。
+  repeated string sms_member_uids = 14 [json_name = "smsMemberUids"];
 }
 
 // 创建通知组的结果。
@@ -627,20 +697,32 @@ message UpdateNotificationGroupRequest {
   string uid = 1 [(buf.validate.field).string.min_len = 1];
   // 名称。
   string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  // 渠道标识。
-  string channel_uid = 3 [json_name = "channelUid", (buf.validate.field).string.min_len = 1];
-  // 模板标识。
-  string template_uid = 4 [json_name = "templateUid", (buf.validate.field).string.min_len = 1];
-  // 接收方。
+  // 兼容旧客户端的单渠道标识。新客户端使用 channel_uids。
+  string channel_uid = 3 [json_name = "channelUid"];
+  // 兼容旧客户端的单模板标识。新客户端使用 template_uids。
+  string template_uid = 4 [json_name = "templateUid"];
+  // 兼容旧客户端的邮件接收方。新客户端使用 email_receivers。
   string receivers = 5;
   // 备注。
   string remark = 6 [(buf.validate.field).string.max_len = 200];
-  // 选中的成员标识。
+  // 兼容旧客户端的邮件成员标识。
   repeated string member_uids = 7 [json_name = "memberUids"];
-  // 选中的 Webhook 渠道标识。
+  // 兼容旧客户端的 Webhook 渠道标识。
   repeated string webhook_channel_uids = 8 [json_name = "webhookChannelUids"];
-  // Webhook 消息模板标识。
+  // 兼容旧客户端的 Webhook 模板标识。
   string webhook_template_uid = 9 [json_name = "webhookTemplateUid"];
+  // 选中的投递渠道标识。
+  repeated string channel_uids = 10 [json_name = "channelUids"];
+  // 与 channel_uids 一一对应的模板标识。
+  repeated string template_uids = 11 [json_name = "templateUids"];
+  // 手填的邮件接收方。
+  string email_receivers = 12 [json_name = "emailReceivers"];
+  // 手填的短信接收手机号。
+  string sms_receivers = 13 [json_name = "smsReceivers"];
+  // 选中的邮件接收成员标识。
+  repeated string email_member_uids = 14 [json_name = "emailMemberUids"];
+  // 选中的短信接收成员标识。
+  repeated string sms_member_uids = 15 [json_name = "smsMemberUids"];
 }
 
 // 更新通知组的结果。
@@ -873,6 +955,10 @@ message MessageLogItem {
   string subject = 10;
   // 实际发送正文；历史记录可能为空。
   string content = 11;
+  // 通知组名称。
+  string group_name = 12 [json_name = "groupName"];
+  // 命中订阅的名称。
+  string subscription_name = 13 [json_name = "subscriptionName"];
 }
 
 // 消息日志分页查询。
@@ -941,6 +1027,14 @@ message NotificationTaskItem {
   string sender = 14;
   // 消息正文；投递完成后为最终渲染内容。
   string content = 15;
+  // 通知组名称，供消息日志定位来源。
+  string group_name = 16 [json_name = "groupName"];
+  // 命中订阅的名称，供消息日志定位来源。
+  string subscription_name = 17 [json_name = "subscriptionName"];
+  // 渠道名称。
+  string channel_name = 18 [json_name = "channelName"];
+  // 模板名称。
+  string template_name = 19 [json_name = "templateName"];
 }
 
 // 通知任务分页查询。

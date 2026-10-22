@@ -3,6 +3,7 @@ export type UserItem = {
   name: string
   nickname: string
   email: string
+  phone: string
   avatar: string
   remark: string
   status: string

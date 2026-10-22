@@ -3,6 +3,7 @@ export type MemberItem = {
   namespaceUid: string
   userUid: string
   email: string
+  phone: string
   name: string
   status: string
   roleUids?: string[]
