@@ -24,6 +24,13 @@ const (
 	defaultHistoryTablePrefix = "alert_events_"
 	// historyIdentMaxLen 是 PostgreSQL 标识符的长度上限。
 	historyIdentMaxLen = 63
+	// id.New 生成 16 字节随机数的十六进制 UID。
+	historyNamespaceUIDLen = 32
+	// YYYYMMDD 周日期后缀的长度。
+	historyWeekDateLen = 8
+	// 前缀长度确保拼接完整租户 UID 或周日期后不超过 PostgreSQL 上限。
+	maxHistoryDatabasePrefixLen = historyIdentMaxLen - historyNamespaceUIDLen
+	maxHistoryTablePrefixLen    = historyIdentMaxLen - historyWeekDateLen
 )
 
 var historyIdentPattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
@@ -46,13 +53,13 @@ func newHistoryStore(admin *sql.DB, source, dbPrefix, tablePrefix string, logger
 	if logger == nil {
 		logger = slog.Default()
 	}
-	if !validHistoryPrefix(dbPrefix) {
+	if !validHistoryPrefix(dbPrefix, maxHistoryDatabasePrefixLen) {
 		if dbPrefix != "" {
 			logger.Error(fmt.Sprintf("invalid history database prefix %q, using default", dbPrefix))
 		}
 		dbPrefix = defaultHistoryDatabasePrefix
 	}
-	if !validHistoryPrefix(tablePrefix) {
+	if !validHistoryPrefix(tablePrefix, maxHistoryTablePrefixLen) {
 		if tablePrefix != "" {
 			logger.Error(fmt.Sprintf("invalid history table prefix %q, using default", tablePrefix))
 		}
@@ -64,8 +71,8 @@ func newHistoryStore(admin *sql.DB, source, dbPrefix, tablePrefix string, logger
 	}
 }
 
-func validHistoryPrefix(value string) bool {
-	return value != "" && len(value) < historyIdentMaxLen && historyIdentPattern.MatchString(value)
+func validHistoryPrefix(value string, maxLen int) bool {
+	return value != "" && len(value) <= maxLen && historyIdentPattern.MatchString(value)
 }
 
 func (s *historyStore) close() {
