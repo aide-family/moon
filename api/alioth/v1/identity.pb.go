@@ -164,7 +164,11 @@ type NamespaceItem struct {
 	// 备注。
 	Remark string `protobuf:"bytes,5,opt,name=remark,proto3" json:"remark,omitempty"`
 	// 状态。
-	Status        string `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
+	Status string `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
+	// 负责人的名称。
+	OwnerName string `protobuf:"bytes,7,opt,name=owner_name,json=ownerName,proto3" json:"owner_name,omitempty"`
+	// 负责人的邮箱。
+	OwnerEmail    string `protobuf:"bytes,8,opt,name=owner_email,json=ownerEmail,proto3" json:"owner_email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -237,6 +241,20 @@ func (x *NamespaceItem) GetRemark() string {
 func (x *NamespaceItem) GetStatus() string {
 	if x != nil {
 		return x.Status
+	}
+	return ""
+}
+
+func (x *NamespaceItem) GetOwnerName() string {
+	if x != nil {
+		return x.OwnerName
+	}
+	return ""
+}
+
+func (x *NamespaceItem) GetOwnerEmail() string {
+	if x != nil {
+		return x.OwnerEmail
 	}
 	return ""
 }
@@ -6447,14 +6465,18 @@ const file_alioth_v1_identity_proto_rawDesc = "" +
 	"systemRole\x12#\n" +
 	"\rauthorized_by\x18\t \x01(\tR\fauthorizedBy\x12\x14\n" +
 	"\x05phone\x18\n" +
-	" \x01(\tR\x05phone\"\x96\x01\n" +
+	" \x01(\tR\x05phone\"\xd6\x01\n" +
 	"\rNamespaceItem\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1b\n" +
 	"\towner_uid\x18\x03 \x01(\tR\bownerUid\x12\x12\n" +
 	"\x04logo\x18\x04 \x01(\tR\x04logo\x12\x16\n" +
 	"\x06remark\x18\x05 \x01(\tR\x06remark\x12\x16\n" +
-	"\x06status\x18\x06 \x01(\tR\x06status\"\xf2\x01\n" +
+	"\x06status\x18\x06 \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"owner_name\x18\a \x01(\tR\townerName\x12\x1f\n" +
+	"\vowner_email\x18\b \x01(\tR\n" +
+	"ownerEmail\"\xf2\x01\n" +
 	"\n" +
 	"MemberItem\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12#\n" +

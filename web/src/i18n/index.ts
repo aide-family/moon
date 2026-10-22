@@ -72,6 +72,7 @@ const zh = {
   },
   shell: {
     account: "账户",
+    github: "项目 GitHub 仓库",
   },
   state: {
     loading: "加载中",
@@ -168,6 +169,7 @@ const zh = {
     name: "名称",
     remark: "备注",
     status: "状态",
+    leader: "管理员",
     switch: "切换租户",
     none: "无租户",
     current: "当前",
@@ -1057,6 +1059,7 @@ const en = {
   },
   shell: {
     account: "Account",
+    github: "Project GitHub repository",
   },
   state: {
     loading: "Loading",
@@ -1152,6 +1155,7 @@ const en = {
     name: "Name",
     remark: "Remark",
     status: "Status",
+    leader: "Leader",
     switch: "Switch namespace",
     none: "No namespace",
     current: "Current",

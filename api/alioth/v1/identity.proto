@@ -374,6 +374,10 @@ message NamespaceItem {
   string remark = 5;
   // 状态。
   string status = 6;
+  // 负责人的名称。
+  string owner_name = 7 [json_name = "ownerName"];
+  // 负责人的邮箱。
+  string owner_email = 8 [json_name = "ownerEmail"];
 }
 
 // 租户成员。

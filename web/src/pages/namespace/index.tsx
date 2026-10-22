@@ -323,6 +323,7 @@ export function NamespacePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("namespace.name")}</TableHead>
+                  <TableHead>{t("namespace.leader")}</TableHead>
                   <TableHead>{t("namespace.status")}</TableHead>
                   <TableHead className="text-right">{t("action.actions")}</TableHead>
                 </TableRow>
@@ -335,6 +336,18 @@ export function NamespacePage() {
                         {item.name}
                         {item.uid === session.namespaceUid ? (
                           <Badge>{t("namespace.current")}</Badge>
+                        ) : null}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="flex flex-col">
+                        <span className="break-all">
+                          {item.ownerName || item.ownerEmail || item.ownerUid}
+                        </span>
+                        {item.ownerName && item.ownerEmail ? (
+                          <span className="break-all text-xs text-muted-foreground">
+                            {item.ownerEmail}
+                          </span>
                         ) : null}
                       </span>
                     </TableCell>
@@ -474,6 +487,19 @@ export function NamespacePage() {
         }}
         fields={[
           { label: t("namespace.name"), value: detail?.name ?? "" },
+          {
+            label: t("namespace.leader"),
+            value: (
+              <span className="flex flex-col">
+                <span>{detail?.ownerName || detail?.ownerEmail || detail?.ownerUid}</span>
+                {detail?.ownerName && detail?.ownerEmail ? (
+                  <span className="text-xs text-muted-foreground">
+                    {detail.ownerEmail}
+                  </span>
+                ) : null}
+              </span>
+            ),
+          },
           { label: t("namespace.status"), value: enumLabel(t, detail?.status ?? "") },
           { label: t("namespace.remark"), value: detail?.remark ?? "" },
           { label: t("detail.uid"), value: detail?.uid ?? "" },

@@ -2,6 +2,8 @@ export type NamespaceItem = {
   uid: string
   name: string
   ownerUid: string
+  ownerName?: string
+  ownerEmail?: string
   logo: string
   remark: string
   status: string

@@ -12,6 +12,7 @@ import (
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/namespace"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/predicate"
 	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/role"
+	"github.com/aide-family/Alioth/app/alioth/internal/data/ent/user"
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/app/alioth/pkg/id"
 	"github.com/aide-family/Alioth/app/alioth/pkg/perm"
@@ -96,8 +97,56 @@ func (r *namespaceRepo) CreateNamespace(ctx context.Context, name, remark, owner
 	if err := tx.Commit(); err != nil {
 		return nil, r.fail(err)
 	}
-	item := toNamespace(ns)
-	return &item, nil
+	return r.GetNamespace(ctx, ns.UID)
+}
+
+// GetNamespace 返回租户，并补齐负责人的名称和邮箱。
+func (r *namespaceRepo) GetNamespace(ctx context.Context, uid string) (*bo.Namespace, error) {
+	item, err := r.repoBase.GetNamespace(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	items := []bo.Namespace{*item}
+	if err := r.fillOwners(ctx, items); err != nil {
+		return nil, err
+	}
+	return &items[0], nil
+}
+
+// fillOwners 按负责人 UID 批量补齐用户展示信息，避免逐行查询。
+func (r *namespaceRepo) fillOwners(ctx context.Context, items []bo.Namespace) error {
+	ownerUIDs := make([]string, 0, len(items))
+	seen := make(map[string]struct{}, len(items))
+	for _, item := range items {
+		if item.OwnerUID == "" {
+			continue
+		}
+		if _, ok := seen[item.OwnerUID]; ok {
+			continue
+		}
+		seen[item.OwnerUID] = struct{}{}
+		ownerUIDs = append(ownerUIDs, item.OwnerUID)
+	}
+	if len(ownerUIDs) == 0 {
+		return nil
+	}
+	rows, err := r.client.User.Query().Where(user.UIDIn(ownerUIDs...)).All(ctx)
+	if err != nil {
+		return r.fail(err)
+	}
+	byUID := make(map[string]*ent.User, len(rows))
+	for _, row := range rows {
+		byUID[row.UID] = row
+	}
+	for i := range items {
+		row, ok := byUID[items[i].OwnerUID]
+		if !ok {
+			continue
+		}
+		items[i].OwnerName = row.Name
+		items[i].OwnerEmail = row.Email
+	}
+	return nil
 }
 
 func (r *namespaceRepo) joinedNamespaceUIDs(ctx context.Context, userUID string) ([]string, error) {
@@ -125,7 +174,11 @@ func (r *namespaceRepo) ListUserNamespaces(ctx context.Context, userUID string) 
 	if err != nil {
 		return nil, r.fail(err)
 	}
-	return toNamespaces(rows), nil
+	items := toNamespaces(rows)
+	if err := r.fillOwners(ctx, items); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 func (r *namespaceRepo) ListNamespaces(ctx context.Context, userUID string, page, pageSize int, name string) ([]bo.Namespace, int, error) {
@@ -146,7 +199,11 @@ func (r *namespaceRepo) ListNamespaces(ctx context.Context, userUID string, page
 	if err != nil {
 		return nil, 0, r.fail(err)
 	}
-	return toNamespaces(rows), total, nil
+	items := toNamespaces(rows)
+	if err := r.fillOwners(ctx, items); err != nil {
+		return nil, 0, err
+	}
+	return items, total, nil
 }
 
 func (r *namespaceRepo) SelectNamespaces(ctx context.Context, userUID string, limit int, lastUID string) ([]bo.SelectItem, error) {

@@ -19,13 +19,16 @@ type Account struct {
 }
 
 // Namespace 是租户。OwnerUID 指向当前负责人。
+// OwnerName 和 OwnerEmail 是负责人的展示信息，由仓储在查询租户时补齐。
 type Namespace struct {
-	UID      string
-	Name     string
-	OwnerUID string
-	Logo     string
-	Remark   string
-	Status   string
+	UID        string
+	Name       string
+	OwnerUID   string
+	OwnerName  string
+	OwnerEmail string
+	Logo       string
+	Remark     string
+	Status     string
 }
 
 // Member 是用户在某个租户中的成员身份。

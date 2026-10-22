@@ -32,6 +32,7 @@ import {
 } from "react-router-dom"
 
 import { SessionProvider, useSession } from "@/auth/session"
+import { GithubIcon } from "@/components/github-icon"
 import { LocaleThemeMenu } from "@/components/locale-theme-menu"
 import { Button } from "@/components/ui/button"
 import {
@@ -72,6 +73,8 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
+
+const repositoryURL = "https://github.com/aide-family/Alioth"
 
 const links: {
   to: string
@@ -379,7 +382,7 @@ function ShellFrame() {
                 disabled={session.namespaces.length === 0}
               >
                 <SelectTrigger
-                  className="w-28 shrink-0 md:w-56"
+                  className="w-28 shrink-0 border-0 bg-transparent shadow-none dark:bg-transparent dark:hover:bg-transparent md:w-56"
                   aria-label={t("namespace.switch")}
                 >
                   <SelectValue
@@ -411,6 +414,16 @@ function ShellFrame() {
                 ) : null}
               </Button>
               <LocaleThemeMenu />
+              <Button variant="ghost" size="icon" className="shrink-0" asChild>
+                <a
+                  href={repositoryURL}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={t("shell.github")}
+                >
+                  <GithubIcon />
+                </a>
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button

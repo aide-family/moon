@@ -24,6 +24,7 @@ func userItems(items []bo.Account) []*v1.UserItem {
 func namespaceItem(item bo.Namespace) *v1.NamespaceItem {
 	return &v1.NamespaceItem{
 		Uid: item.UID, Name: item.Name, OwnerUid: item.OwnerUID,
+		OwnerName: item.OwnerName, OwnerEmail: item.OwnerEmail,
 		Logo: item.Logo, Remark: item.Remark, Status: item.Status,
 	}
 }
