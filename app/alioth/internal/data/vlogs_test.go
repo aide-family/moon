@@ -71,3 +71,42 @@ func TestQueryVlogsLogsSortsForOldest(t *testing.T) {
 		t.Fatalf("limit should be part of the LogsQL pipe, got %q", gotLimit)
 	}
 }
+
+func TestVlogsMetricRangeQueryUsesStatsRange(t *testing.T) {
+	var gotPath, gotQuery, gotStart, gotEnd, gotStep, gotLimit, gotAuth string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		values := r.URL.Query()
+		gotQuery = values.Get("query")
+		gotStart = values.Get("start")
+		gotEnd = values.Get("end")
+		gotStep = values.Get("step")
+		gotLimit = values.Get("limit")
+		gotAuth = r.Header.Get("Authorization")
+		_, _ = w.Write([]byte(`{"status":"success","data":{"resultType":"matrix","result":[]}}`))
+	}))
+	defer srv.Close()
+
+	expr := `level:error | stats by (app, level) count() as value`
+	body, err := newLogTestRepo().RangeQuery(context.Background(), bo.Datasource{
+		UID: "ds-vlogs", Driver: driverLogsVlogs, Endpoint: srv.URL + "/logs", Secret: "vlogs-token",
+	}, expr, 100, 200, 15)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gotPath != "/logs/select/logsql/stats_query_range" {
+		t.Fatalf("path = %q", gotPath)
+	}
+	if gotQuery != expr || gotStart != "100" || gotEnd != "200" || gotStep != "15s" {
+		t.Fatalf("query/start/end/step = %q/%q/%q/%q", gotQuery, gotStart, gotEnd, gotStep)
+	}
+	if gotLimit != "" {
+		t.Fatalf("stats range must not send limit, got %q", gotLimit)
+	}
+	if gotAuth != "Bearer vlogs-token" {
+		t.Fatalf("authorization = %q", gotAuth)
+	}
+	if body == "" {
+		t.Fatal("body is empty")
+	}
+}

@@ -80,6 +80,19 @@ services:
       - lokidata:/loki
     restart: unless-stopped
 
+  # VictoriaLogs 单机版。日志查询和告警评测共用 /select/logsql/* 接口。
+  victorialogs:
+    image: victoriametrics/victoria-logs:v1.46.0
+    command:
+      - -storageDataPath=/vlogs
+      - -httpListenAddr=:9428
+      - -retentionPeriod=7d
+    ports:
+      - "9428:9428"
+    volumes:
+      - vlogsdata:/vlogs
+    restart: unless-stopped
+
   # Opt-in synthetic logs; leave the normal local stack free of demo noise.
   loki-demo-logs:
     profiles: ["loki-demo"]
@@ -92,6 +105,21 @@ services:
       - ./scripts/loki-demo-logs.sh:/scripts/loki-demo-logs.sh:ro
     depends_on:
       loki:
+        condition: service_started
+    restart: unless-stopped
+
+  # Opt-in synthetic VictoriaLogs data, mirroring the Loki demo.
+  vlogs-demo-logs:
+    profiles: ["vlogs-demo"]
+    image: curlimages/curl:8.12.1
+    entrypoint: ["/bin/sh", "/scripts/vlogs-demo-logs.sh"]
+    environment:
+      VLOGS_URL: http://victorialogs:9428
+      VLOGS_DEMO_INTERVAL: "5"
+    volumes:
+      - ./scripts/vlogs-demo-logs.sh:/scripts/vlogs-demo-logs.sh:ro
+    depends_on:
+      victorialogs:
         condition: service_started
     restart: unless-stopped
 
@@ -194,3 +222,4 @@ volumes:
   redisdata:
   prometheusdata:
   lokidata:
+  vlogsdata:

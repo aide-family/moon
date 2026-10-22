@@ -12,6 +12,7 @@ images=(
   "axllent/mailpit:latest|axllent/mailpit|latest"
   "prom/prometheus:v3.5.0|prom/prometheus|v3.5.0"
   "grafana/loki:3.5.0|grafana/loki|3.5.0"
+  "victoriametrics/victoria-logs:v1.46.0|victoriametrics/victoria-logs|v1.46.0"
   "curlimages/curl:8.12.1|curlimages/curl|8.12.1"
 )
 
@@ -58,6 +59,6 @@ for entry in "${images[@]}"; do
   echo "tagged ${pulled} -> ${target}"
 done
 
-docker image inspect postgres:16 redis:7 axllent/mailpit:latest prom/prometheus:v3.5.0 grafana/loki:3.5.0 curlimages/curl:8.12.1 \
+docker image inspect postgres:16 redis:7 axllent/mailpit:latest prom/prometheus:v3.5.0 grafana/loki:3.5.0 victoriametrics/victoria-logs:v1.46.0 curlimages/curl:8.12.1 \
   --format '{{index .RepoTags 0}} arch={{.Architecture}}/{{.Os}}'
 echo "compose images are ready: ${ROOT}/docker-compose.yaml"

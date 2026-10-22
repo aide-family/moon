@@ -12,7 +12,7 @@ IMAGE_PREFIX ?= alioth
 .PHONY: tools api conf vet lint build build-alioth build-megrez build-merak build-alkaid build-alkaid-linux build-web \
 	image-alioth image-megrez image-merak image-alkaid image-web images \
 	run-alioth run-megrez run-merak run-alkaid run-web \
-	test test-pkg test-race migrate migrate-in-docker compose-images compose-up compose-down compose-alkaid dev-up dev-down loki-demo loki-demo-stop tidy wire
+	test test-pkg test-race migrate migrate-in-docker compose-images compose-up compose-down compose-alkaid dev-up dev-down loki-demo loki-demo-stop vlogs-demo vlogs-demo-stop tidy wire
 
 # 版本戳注入：$(call ldflags) 用于本地构建，Dockerfile 内用 --build-arg VERSION 注入。
 version_ldflags = -X main.version=$(VERSION)
@@ -161,6 +161,12 @@ loki-demo: compose-images
 
 loki-demo-stop:
 	docker compose -f $(ROOT)docker-compose.yaml --profile loki-demo stop loki-demo-logs
+
+vlogs-demo: compose-images
+	docker compose -f $(ROOT)docker-compose.yaml --profile vlogs-demo up -d vlogs-demo-logs
+
+vlogs-demo-stop:
+	docker compose -f $(ROOT)docker-compose.yaml --profile vlogs-demo stop vlogs-demo-logs
 
 # 一条命令起依赖 + 迁移 + 四个服务 + web；数据落在 pgdata 卷里。
 dev-up: compose-images

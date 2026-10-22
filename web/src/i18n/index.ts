@@ -402,8 +402,10 @@ const zh = {
     logsExprHint: '使用 LogQL 查询，例如 {app="api"} |= "error"。',
     lokiMetricExprHint:
       '告警需使用返回数值序列的 LogQL 指标查询，不能只返回日志流。例如 sum by (app) (count_over_time({app="api"} |= "error" [5m]))。',
+    vlogsMetricExprHint:
+      "告警需使用 LogsQL stats 查询，输出数值序列。例如 level:error | stats by (app, level) count() as value。时间桶由引擎的 step 参数切分，不要在表达式里写 _time:15s 或相对的 _time 过滤。",
     vlogsExprHint:
-      "使用 LogsQL 查询，例如 error、_time:5m error 或 level:error。",
+      '使用 LogsQL 查询，例如 error、_stream:{app="api"} 或 level:error；输入字段名和字段值时会从 VictoriaLogs 补全。告警规则需要 stats 查询，例如 level:error | stats by (app, level) count() as value。',
     esExprHint:
       '使用 Elasticsearch Query DSL，例如 {"match": {"level": "error"}}；也可以直接输入检索语句。',
     esQueryInvalid: "请填写有效的 Query DSL JSON 对象",
@@ -1333,8 +1335,10 @@ const en = {
     logsExprHint: 'Query with LogQL, for example {app="api"} |= "error".',
     lokiMetricExprHint:
       'Alerts require a LogQL metric query that returns numeric series, not a raw log stream. For example: sum by (app) (count_over_time({app="api"} |= "error" [5m])).',
+    vlogsMetricExprHint:
+      "Alerts require a LogsQL stats query that returns a numeric series. For example: level:error | stats by (app, level) count() as value. The engine supplies time buckets through the step parameter; do not add _time:15s buckets or relative _time filters.",
     vlogsExprHint:
-      "Query with LogsQL, for example error, _time:5m error, or level:error.",
+      'Query with LogsQL, for example error, _stream:{app="api"}, or level:error. Field names and values complete from VictoriaLogs. Alerts need a stats query, for example level:error | stats by (app, level) count() as value.',
     esExprHint:
       'Use an Elasticsearch Query DSL object, for example {"match": {"level": "error"}}, or enter a plain search expression.',
     esQueryInvalid: "Enter a valid Query DSL JSON object",
@@ -1736,7 +1740,8 @@ const en = {
     columnsTitle: "Custom columns",
     columnsHint:
       "Pick built-in fields or labels as table columns. A label column shows its alias in Chinese and always shows the label key in English; the cell renders that label's value.",
-    columnsEmpty: "No custom columns yet. Saving an empty list falls back to defaults.",
+    columnsEmpty:
+      "No custom columns yet. Saving an empty list falls back to defaults.",
     addFieldColumn: "Add field column",
     addLabelColumn: "Add label column",
     columnAlias: "Column name",

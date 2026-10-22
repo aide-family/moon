@@ -32,7 +32,7 @@ func HitsWithQuery(ctx context.Context, rule bo.RuleSnapshot, samples []bo.Sampl
 	hits := make([]bo.EvalHit, 0)
 	for _, sample := range samples {
 		for _, level := range rule.Levels {
-			value, raw, ok := matchLevel(level, sample.Points)
+			value, raw, ok := matchLevel(level, sample.Points, sample.Step)
 			if !ok {
 				continue
 			}
@@ -55,7 +55,10 @@ func HitsWithQuery(ctx context.Context, rule bo.RuleSnapshot, samples []bo.Sampl
 	return hits
 }
 
-func matchLevel(level bo.Level, points []bo.Point) (float64, string, bool) {
+// matchLevel 按级别条件比较采样点。step 是数据源的时间桶秒数，只有
+// VictoriaLogs stats 这类按桶返回的数据才非 0；FOR 必须保证桶连续，
+// 否则窗口中间缺失的桶会被首末点跨度掩盖，形成误告警。
+func matchLevel(level bo.Level, points []bo.Point, step int64) (float64, string, bool) {
 	if len(points) == 0 {
 		return 0, "", false
 	}
@@ -84,6 +87,14 @@ func matchLevel(level bo.Level, points []bo.Point) (float64, string, bool) {
 		for _, point := range points {
 			if !compare(level.Condition, point.Value, level.Threshold) {
 				return 0, "", false
+			}
+		}
+		if step > 0 {
+			gap := time.Duration(step) * time.Second
+			for index := 1; index < len(points); index++ {
+				if points[index].At.Sub(points[index-1].At) > gap {
+					return 0, "", false
+				}
 			}
 		}
 		span := points[len(points)-1].At.Sub(points[0].At)
@@ -144,14 +155,34 @@ func atof(value string) (float64, bool) {
 }
 
 func window(rule bo.RuleSnapshot, now time.Time) (int64, int64, int64) {
-	seconds := 15
+	const step = 15
+	seconds := step
+	hasFor := false
 	for _, level := range rule.Levels {
+		if level.Sample == "FOR" && level.ForSeconds > 0 {
+			hasFor = true
+		}
 		if level.ForSeconds > seconds {
 			seconds = level.ForSeconds
 		}
 	}
 	end := now.UTC().Unix()
-	return end - int64(seconds), end, 15
+	if rule.Driver == "LOGS_VLOGS" {
+		// stats_query_range 按 step 对齐时间桶。结束时间落在桶中间时，最后一个
+		// 桶只统计了部分日志，count 偏低会让 FOR / MAX 误判；先对齐到桶边界。
+		end -= end % step
+		// 起始时间也要对齐，避免第一个桶只覆盖部分时间。
+		if remainder := seconds % step; remainder != 0 {
+			seconds += step - remainder
+		}
+		// [start, end) 按 step 切出的桶数比闭区间少一个：ForSeconds 的跨度会
+		// 差一个步长。多查一个桶，让 FOR 的跨度覆盖完整窗口。
+		if hasFor {
+			seconds += step
+		}
+		return end - int64(seconds), end, step
+	}
+	return end - int64(seconds), end, step
 }
 
 // mergeRuleLabels 把规则上配置的标签并入采样标签。采样标签优先，规则标签只补缺，
@@ -197,4 +228,10 @@ func renderAlert(ctx context.Context, rule bo.RuleSnapshot, raw string, value fl
 
 func metricsDriver(driver string) bool {
 	return driver == "METRICS_PROMETHEUS" || driver == "METRICS_VICTORIA_METRICS"
+}
+
+// numericDriver 返回会产出数值采样的驱动。Loki 的数值型 LogQL 与
+// VictoriaLogs 的 stats 查询各有独立查询路径，但都复用同一套阈值判定。
+func numericDriver(driver string) bool {
+	return metricsDriver(driver) || driver == "LOGS_LOKI" || driver == "LOGS_VLOGS"
 }

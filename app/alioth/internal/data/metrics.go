@@ -48,26 +48,30 @@ func (r *datasourceRepo) InstantQuery(ctx context.Context, item bo.Datasource, e
 	return r.callUpstream(ctx, item, http.MethodGet, "/api/v1/query?"+values.Encode(), "")
 }
 
+// RangeQuery 执行告警详情图表的区间查询。指标与 Loki 走各自的 query_range，
+// VictoriaLogs 走 stats_query_range：返回 Prometheus matrix，时间桶由 step 决定。
 func (r *datasourceRepo) RangeQuery(ctx context.Context, item bo.Datasource, expr string, start, end, step int64) (string, error) {
 	path := "/api/v1/query_range"
-	startValue := strconv.FormatInt(start, 10)
-	endValue := strconv.FormatInt(end, 10)
-	stepValue := strconv.FormatInt(step, 10)
+	values := url.Values{}
+	values.Set("query", expr)
 	switch {
 	case isMetricsDriver(item.Driver):
+		values.Set("start", strconv.FormatInt(start, 10))
+		values.Set("end", strconv.FormatInt(end, 10))
+		values.Set("step", strconv.FormatInt(step, 10))
 	case item.Driver == driverLogsLoki:
 		path = "/loki/api/v1/query_range"
-		startValue = strconv.FormatInt(time.Unix(start, 0).UnixNano(), 10)
-		endValue = strconv.FormatInt(time.Unix(end, 0).UnixNano(), 10)
-		stepValue += "s"
+		values.Set("start", strconv.FormatInt(time.Unix(start, 0).UnixNano(), 10))
+		values.Set("end", strconv.FormatInt(time.Unix(end, 0).UnixNano(), 10))
+		values.Set("step", strconv.FormatInt(step, 10)+"s")
+	case item.Driver == driverLogsVlogs:
+		path = vlogsStatsRangePath
+		values.Set("start", strconv.FormatInt(start, 10))
+		values.Set("end", strconv.FormatInt(end, 10))
+		values.Set("step", strconv.FormatInt(step, 10)+"s")
 	default:
 		return "", merr.Invalid("unsupported datasource driver")
 	}
-	values := url.Values{}
-	values.Set("query", expr)
-	values.Set("start", startValue)
-	values.Set("end", endValue)
-	values.Set("step", stepValue)
 	return r.callUpstream(ctx, item, http.MethodGet, path+"?"+values.Encode(), "")
 }
 

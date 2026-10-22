@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -30,6 +31,8 @@ func (q rangeQuery) QueryRange(ctx context.Context, item bo.RuleSnapshot, start,
 	switch item.Driver {
 	case "LOGS_LOKI":
 		return lokiQuery{}.QueryRange(ctx, item, start, end, step)
+	case "LOGS_VLOGS":
+		return vlogsQuery{}.QueryRange(ctx, item, start, end, step)
 	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS":
 		return promQuery{}.QueryRange(ctx, item, start, end, step)
 	default:
@@ -41,6 +44,8 @@ func (q rangeQuery) QueryInstant(ctx context.Context, item bo.RuleSnapshot, expr
 	switch item.Driver {
 	case "LOGS_LOKI":
 		return lokiQuery{}.QueryInstant(ctx, item, expr, at)
+	case "LOGS_VLOGS":
+		return vlogsQuery{}.QueryInstant(ctx, item, expr, at)
 	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS":
 		return promQuery{}.QueryInstant(ctx, item, expr, at)
 	default:
@@ -116,6 +121,17 @@ var _ repository.InstantQuery = promQuery{}
 var _ repository.RangeQuery = promQuery{}
 
 func decodeMatrix(payload []byte) ([]bo.Sample, error) {
+	return decodeMatrixPoints(payload, false)
+}
+
+// decodeMatrixStrict 用于 VictoriaLogs 的 stats 结果：采样点必须全部能解析成
+// 数值。stats 也可以输出字符串（例如 values(level)），静默跳过会得到空采样，
+// 从而把仍在触发的事件错误恢复。
+func decodeMatrixStrict(payload []byte) ([]bo.Sample, error) {
+	return decodeMatrixPoints(payload, true)
+}
+
+func decodeMatrixPoints(payload []byte, strict bool) ([]bo.Sample, error) {
 	var body struct {
 		Status string `json:"status"`
 		Data   struct {
@@ -134,9 +150,19 @@ func decodeMatrix(payload []byte) ([]bo.Sample, error) {
 		points := make([]bo.Point, 0, len(series.Values))
 		for _, pair := range series.Values {
 			point, ok := decodePoint(pair)
-			if ok {
-				points = append(points, point)
+			if !ok {
+				if strict {
+					return nil, merr.Server("upstream query failed")
+				}
+				continue
 			}
+			if strict && (math.IsNaN(point.Value) || math.IsInf(point.Value, 0)) {
+				return nil, merr.Server("upstream query failed")
+			}
+			points = append(points, point)
+		}
+		if strict && len(points) == 0 {
+			return nil, merr.Server("upstream query failed")
 		}
 		samples = append(samples, bo.Sample{Labels: series.Metric, Points: points})
 	}

@@ -31,7 +31,11 @@ import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
-import { LogqlEditor, PromqlEditor } from "@/components/promql-editor"
+import {
+  LogqlEditor,
+  LogsqlEditor,
+  PromqlEditor,
+} from "@/components/promql-editor"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { ListFrame } from "@/components/list-frame"
 import { StatusDot } from "@/components/status-dot"
@@ -138,7 +142,9 @@ function parseDatasourceLabels(raw: string): Record<string, string> | null {
 
 // datasourceMatchLabels 与后端保持一致：数据源自身标签之外，
 // datasource_level 和 datasource 也可以被规则匹配。
-function datasourceMatchLabels(item: DatasourceItem): Record<string, string> | null {
+function datasourceMatchLabels(
+  item: DatasourceItem
+): Record<string, string> | null {
   const labels = parseDatasourceLabels(item.labels)
   if (labels === null) {
     return null
@@ -169,7 +175,11 @@ function matchedDatasourceUid(
   driver: string,
   matchers: LabelPair[]
 ): string {
-  if (!driver.startsWith("METRICS_") && driver !== "LOGS_LOKI") {
+  if (
+    !driver.startsWith("METRICS_") &&
+    driver !== "LOGS_LOKI" &&
+    driver !== "LOGS_VLOGS"
+  ) {
     return ""
   }
   return (
@@ -1046,12 +1056,14 @@ export function AlertRulePage() {
                   htmlFor="rule-expr"
                   hint={
                     form.driver === "LOGS_LOKI"
-                      ? t("alertRule.lokiMetricExprHint")
-                      : form.driver === "LOGS_ELASTICSEARCH"
-                        ? t("datasource.esExprHint")
-                        : form.driver === "METRICS_VICTORIA_METRICS"
-                          ? t("datasource.vmExprHint")
-                          : t("datasource.exprHint")
+                      ? t("datasource.lokiMetricExprHint")
+                      : form.driver === "LOGS_VLOGS"
+                        ? t("datasource.vlogsMetricExprHint")
+                        : form.driver === "LOGS_ELASTICSEARCH"
+                          ? t("datasource.esExprHint")
+                          : form.driver === "METRICS_VICTORIA_METRICS"
+                            ? t("datasource.vmExprHint")
+                            : t("datasource.exprHint")
                   }
                   className="sm:col-span-full"
                   error={fieldErrors.expr}
@@ -1066,15 +1078,21 @@ export function AlertRulePage() {
                       )}
                       onChange={(value) => setForm({ ...form, expr: value })}
                     />
+                  ) : form.driver === "LOGS_VLOGS" ? (
+                    <LogsqlEditor
+                      value={form.expr}
+                      datasourceUid={matchedDatasourceUid(
+                        sources,
+                        form.driver,
+                        form.datasourceLabels
+                      )}
+                      onChange={(value) => setForm({ ...form, expr: value })}
+                    />
                   ) : (
                     <PromqlEditor
                       value={form.expr}
                       variant={
-                        form.driver === "LOGS_VLOGS"
-                          ? "logsql"
-                          : form.driver === "LOGS_ELASTICSEARCH"
-                            ? "json"
-                            : "promql"
+                        form.driver === "LOGS_ELASTICSEARCH" ? "json" : "promql"
                       }
                       datasourceUid={matchedDatasourceUid(
                         sources,

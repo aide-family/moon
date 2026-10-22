@@ -61,10 +61,12 @@ type EvalReport struct {
 	Hits          []EvalHit
 }
 
-// Sample 是一个时间序列。
+// Sample 是一个时间序列。Step 是数据源的时间桶秒数，只有按桶聚合的结果
+// （VictoriaLogs stats）才非 0；FOR 用它判断相邻采样点之间是否缺桶。
 type Sample struct {
 	Labels map[string]string
 	Points []Point
+	Step   int64
 }
 
 // Point 是一个采样点。

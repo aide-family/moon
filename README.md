@@ -17,8 +17,8 @@ make compose-up
 
 ## 本地全栈
 
-`docker-compose.yaml` 现在包含完整链路：PostgreSQL（`pgdata` 持久卷）、Redis、Mailpit、Prometheus（`prometheusdata` 持久卷）、Loki（`lokidata` 持久卷）、一次性迁移，
-以及 `alioth` / `megrez` / `merak` / `web` 四个服务。Loki 对宿主机开放 3100 端口，容器内可用 `http://loki:3100` 配置数据源。干净 clone 后一条命令即可：
+`docker-compose.yaml` 现在包含完整链路：PostgreSQL（`pgdata` 持久卷）、Redis、Mailpit、Prometheus（`prometheusdata` 持久卷）、Loki（`lokidata` 持久卷）、VictoriaLogs（`vlogsdata` 持久卷）、一次性迁移，
+以及 `alioth` / `megrez` / `merak` / `web` 四个服务。Loki 对宿主机开放 3100 端口，容器内可用 `http://loki:3100` 配置数据源；VictoriaLogs 开放 9428 端口，容器内地址是 `http://victorialogs:9428`。干净 clone 后一条命令即可：
 
 ```bash
 make dev-up          # 构建镜像、跑迁移、起全部服务
@@ -27,10 +27,17 @@ open http://127.0.0.1:8080
 # Loki readiness: http://127.0.0.1:3100/ready；宿主机数据源地址：http://127.0.0.1:3100
 # 在 Alioth 内添加 LOGS_LOKI 数据源时，地址用 http://loki:3100（本地 Loki 未启用认证）
 curl http://127.0.0.1:3100/ready
+# VictoriaLogs health: http://127.0.0.1:9428/health；容器内数据源地址：http://victorialogs:9428
+# 在 Alioth 内添加 LOGS_VLOGS 数据源时，地址用 http://victorialogs:9428（本地未启用认证）
+curl http://127.0.0.1:9428/health
 make loki-demo       # 可选：每 5 秒持续写入 api/error 和 web/info 示例日志
 # 普通日志查询：{source="alioth-demo", app="api", level="error"}
 # 告警数值表达式：sum by (app) (count_over_time({source="alioth-demo", app="api", level="error"} |= "request timeout" [1m]))
 make loki-demo-stop  # 停止生成；Loki 和已写入日志保留
+make vlogs-demo      # 可选：每 5 秒向 VictoriaLogs 写入 api/error 和 web/info 示例日志
+# 普通日志查询：app:api level:error source:alioth-demo "request timeout"
+# 告警数值表达式：app:api level:error source:alioth-demo "request timeout" | stats by (app, level) count() as value
+make vlogs-demo-stop # 停止生成；VictoriaLogs 和已写入日志保留
 make dev-down        # 停止服务，数据留在命名卷里
 ```
 
@@ -39,7 +46,7 @@ make dev-down        # 停止服务，数据留在命名卷里
 ```bash
 make compose-images  # 准备本地依赖镜像
 # 只启动基础设施，不启动 compose 中的应用服务
-docker compose up -d postgres redis mailpit prometheus loki
+docker compose up -d postgres redis mailpit prometheus loki victorialogs
 make migrate         # 建表 + seed + 分区
 make run-alioth      # 另开终端跑其余服务
 ```

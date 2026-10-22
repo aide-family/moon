@@ -246,7 +246,7 @@ func (w *Worker) finish(ctx context.Context, hold repository.Hold, rule bo.RuleS
 	}()
 	report := bo.EvalReport{
 		RuleUID: rule.UID, DatasourceUID: rule.DatasourceUID,
-		EvalSlot: rule.EvalSlot, Skipped: !metricsDriver(rule.Driver) && rule.Driver != "LOGS_LOKI",
+		EvalSlot: rule.EvalSlot, Skipped: !numericDriver(rule.Driver),
 	}
 	var samples []bo.Sample
 	var err error

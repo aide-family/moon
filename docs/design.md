@@ -32,7 +32,7 @@ Moon 是 Kratos 单仓，四个服务各自持有存储（默认 SQLite，可换
 - 每个服务一块业务库
 - 把 Redis 当作缓存、会话或消息队列
 - 短信的完整发送链路。Moon 有 `MessageType_SMS_ALICLOUD` 和 `pkg/message/sms/alicloud`，告警主路径是邮件和 Webhook。Alioth 保留该枚举，不设计阿里云短信参数
-- 日志与链路的规则评测。数据源可以创建，查询可以代理；评测器按类型扩展，首期只实现指标
+- 除 Loki LogQL 与 VictoriaLogs LogsQL 数值型告警外的日志与链路规则评测。数据源可以创建，查询可以代理；评测器按类型扩展，Elasticsearch 与 Jaeger 仍未实现
 
 Moon 里已有、Alioth 改变边界的事实：
 
@@ -242,7 +242,7 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 | DatasourceType | DatasourceDriver                            | 首期行为                |
 | -------------- | ------------------------------------------- | ------------------- |
 | METRICS        | METRICS_PROMETHEUS、METRICS_VICTORIA_METRICS | 管理、即时查询、区间查询、指标规则评测 |
-| LOGS           | LOGS_ELASTICSEARCH、LOGS_LOKI、LOGS_VLOGS     | 管理与查询代理。Loki、VictoriaLogs、Elasticsearch 各有日志区间查询和状态检查；评测器留接口 |
+| LOGS           | LOGS_ELASTICSEARCH、LOGS_LOKI、LOGS_VLOGS     | 管理与查询代理。Loki、VictoriaLogs、Elasticsearch 各有日志区间查询和状态检查；Loki LogQL 与 VictoriaLogs LogsQL 支持数值型规则评测，Elasticsearch 留接口 |
 | TRACE          | TRACE_JAEGER                                | 管理与查询代理。评测器留接口      |
 
 
@@ -266,7 +266,7 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 规则不再直接绑定通知组。告警事件统一由 `NotificationSubscription` 按标签、告警级别和数据源匹配，再路由到订阅下的通知组。
 
-日志和链路规则可以保存。`megrez` 对尚未实现的驱动跳过，并在回写里标明未评测，不产生 FIRING。Loki 是例外：它使用独立的 LogQL 数值型规则评测路径，不能走 Prometheus API；原始日志流结果不是可比较的采样值，不会被当成空矩阵或恢复信号。
+日志和链路规则可以保存。`megrez` 对尚未实现的驱动跳过，并在回写里标明未评测，不产生 FIRING。Loki 和 VictoriaLogs 是例外：它们使用独立的数值型规则评测路径，不能走 Prometheus API；原始日志结果不是可比较的采样值，不会被当成空结果或恢复信号。
 
 #### Loki LogQL 告警扩展
 
@@ -274,18 +274,28 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 - 可评测表达式必须是返回数值序列的 LogQL 指标查询，例如 `sum by (app) (count_over_time({app="api"} |= "error" [5m]))`。Loki 原始日志 selector 返回 `streams`，不是采样值；Megrez 严格要求数值 matrix，收到 stream 或无效响应时评测失败且不回写，从而不会误恢复仍在触发的告警。
 - Megrez 严格按 `LOGS_LOKI` driver 调用 `/loki/api/v1/query_range`，传递 Unix 纳秒范围与 duration 步长；模板 `query` 使用 `/loki/api/v1/query`。LogQL 数值结果沿用现有告警级别、FOR / MAX / MIN 条件、指纹去重和事件回写。
 - Loki FIRING 与恢复进入共用 `AlertEvent` 与 `NotificationSubscription` 路由，之后由 `merak` 投递；实时/历史列表、通知收件、介入、抑制、手工恢复均使用现有公共流程。事件详情图表读取 Loki 数值矩阵并按事件标签收敛序列。
-- Loki 告警只匹配 ACTIVE 的 `LOGS_LOKI` 数据源。Elasticsearch、VictoriaLogs 与 Jaeger 仍标记为未实现并跳过；Prometheus / VictoriaMetrics 查询路径保持不变。
+- Loki 告警只匹配 ACTIVE 的 `LOGS_LOKI` 数据源。Elasticsearch 与 Jaeger 仍标记为未实现并跳过；Prometheus / VictoriaMetrics 查询路径保持不变。
+
+#### VictoriaLogs LogsQL 告警扩展
+
+- Web 的 VictoriaLogs 查询面板和告警规则表单使用独立 `logsql` 编辑语言；字段名和字段值分别从 `/select/logsql/field_names` 与 `/select/logsql/field_values` 补全，不复用 PromQL / LogQL 语言定义或 Prometheus / Loki 查询路径。
+- 可评测表达式必须是带 `| stats ...` 的 LogsQL 查询，例如 `level:error | stats by (app, level) count() as value`。`stats by (...)` 的分组字段成为序列标签，stats 输出字段成为 `__name__`。时间桶由引擎的 `step` 参数决定，表达式里不写 `_time:<步长>`，也不要加相对的 `_time` 过滤。
+- Megrez 严格按 `LOGS_VLOGS` driver 调用 `/select/logsql/stats_query_range`，传入 `query`、Unix 秒 `start` / `end` 和 `<step>s`，返回 Prometheus matrix。模板 `query` 使用 `/select/logsql/stats_query`，范围取查询时刻之前的一个步长。
+- 原始日志查询、非 matrix / vector 响应、非数值 stats 点、无效 JSON 和上游错误都会使评测失败且不回写；有效的空 matrix 才是“本次没有采样”，用于恢复旧事件。这样不会把原始日志或上游故障误当成恢复信号。
+- `stats_query_range` 的桶按 step 对齐，结束时间落在桶中间时最后一个桶只统计部分日志。Megrez 把结束时间向下对齐到 15 秒桶边界，FOR 再多查一个桶并要求采样点连续，缺失桶不会被首末跨度掩盖。
+- FIRING 与恢复进入共用 `AlertEvent` 与 `NotificationSubscription` 路由，之后由 `merak` 投递；实时/历史列表、通知收件、介入、抑制、手工恢复均使用现有公共流程。事件详情图表调用同一个 `stats_query_range` 并按事件标签收敛 matrix 序列。
+- VictoriaLogs 告警只匹配 ACTIVE 的 `LOGS_VLOGS` 数据源。Elasticsearch 与 Jaeger 仍未实现；Prometheus / VictoriaMetrics / Loki 查询路径保持不变。
 
 ### 4.3 评测
 
-`alioth` 在 `alioth:lock:schedule:eval` 下扫描 `next_eval_at <= now` 的已启用指标与 Loki LogQL 数值规则，写下一次评测时间，然后释放调度锁。`megrez` 向 `alioth` 领取这批规则的快照。
+`alioth` 在 `alioth:lock:schedule:eval` 下扫描 `next_eval_at <= now` 的已启用指标、Loki LogQL 与 VictoriaLogs LogsQL 数值规则，写下一次评测时间，然后释放调度锁。`megrez` 向 `alioth` 领取这批规则的快照。
 
 规则只保存驱动，不再保存类型。规则用驱动 + `datasource_labels` 匹配 ACTIVE 数据源：匹配器优先读数据源 labels，`datasource_level` 匹配数据源等级名称、`datasource` 匹配数据源名称，值按完整匹配正则命中；空匹配器 = 该驱动下全部 ACTIVE 数据源。这样 Loki、VictoriaLogs 和 Elasticsearch 不会再被同一条日志规则混在一起评测。Claim 对每个匹配数据源各发一条快照；无匹配则不发。fingerprint 为 `Of(rule_uid, datasource_uid, rule_labels + labels)`，规则标签修改后旧事件恢复、新指纹建立新事件。
 
 单条（规则, 数据源）的步骤：
 
 1. `megrez` 对 `alioth:lock:eval:{rule_uid}:{datasource_uid}` 加锁。没拿到锁就跳过。
-2. 按该数据源驱动查询。指标规则使用 Prometheus-compatible PromQL/MetricsQL `query_range`；Loki 规则使用 `/loki/api/v1/query_range` 和数值型 LogQL matrix。二者复用条件、采样与 fingerprint 语义，不共用查询 endpoint。
+2. 按该数据源驱动查询。指标规则使用 Prometheus-compatible PromQL/MetricsQL `query_range`；Loki 规则使用 `/loki/api/v1/query_range` 和数值型 LogQL matrix；VictoriaLogs 规则使用 `/select/logsql/stats_query_range` 和 LogsQL stats matrix。三者复用条件、采样与 fingerprint 语义，不共用查询 endpoint。
 3. 把 FIRING 或恢复结果回写 `alioth`（带 `datasource_uid`）。回写按 fingerprint 幂等。
 4. 释放锁。续期失败则不回写成功。
 

@@ -197,7 +197,7 @@ func TestUnimplementedDriverReportsSkipped(t *testing.T) {
 	gateway := &fakeGateway{}
 	worker := &Worker{gateway: gateway, query: fakeQuery{}, log: slog.Default(), now: time.Now}
 	slot := time.Now().UTC().Truncate(time.Second)
-	for _, driver := range []string{"LOGS_ELASTICSEARCH", "LOGS_VLOGS", "TRACE_JAEGER"} {
+	for _, driver := range []string{"LOGS_ELASTICSEARCH", "TRACE_JAEGER"} {
 		gateway.reports = nil
 		if err := worker.finish(context.Background(), fakeHold{}, bo.RuleSnapshot{UID: "rule-1", Driver: driver, EvalSlot: slot}); err != nil {
 			t.Fatal(err)
@@ -256,5 +256,113 @@ func TestLokiEmptyMatrixReportsSuccessfulNoHit(t *testing.T) {
 	}
 	if len(gateway.reports) != 1 || gateway.reports[0].Skipped || len(gateway.reports[0].Hits) != 0 {
 		t.Fatalf("empty Loki matrix report = %+v", gateway.reports)
+	}
+}
+
+func TestVlogsDriverEvaluatesNumericStatsSamples(t *testing.T) {
+	gateway := &fakeGateway{}
+	points := []bo.Point{
+		{At: time.Now().Add(-15 * time.Second), Value: 3, Raw: "3"},
+		{At: time.Now(), Value: 4, Raw: "4"},
+	}
+	query := &recordingQuery{samples: []bo.Sample{{
+		Labels: map[string]string{"app": "api", "level": "error"},
+		Points: points,
+	}}}
+	worker := &Worker{gateway: gateway, query: query, log: slog.Default(), now: time.Now}
+	rule := bo.RuleSnapshot{
+		UID: "vlogs-rule", Driver: "LOGS_VLOGS", DatasourceUID: "vlogs-ds", EvalSlot: time.Now().UTC(),
+		Expr:   `level:error | stats by (app, level) count() as value`,
+		Levels: []bo.Level{{Condition: "GT", Sample: "MAX", Threshold: "2", LevelUID: "high"}},
+	}
+	if err := worker.finish(context.Background(), fakeHold{}, rule); err != nil {
+		t.Fatal(err)
+	}
+	if query.driver != "LOGS_VLOGS" {
+		t.Fatalf("query driver = %q", query.driver)
+	}
+	if len(gateway.reports) != 1 || gateway.reports[0].Skipped || len(gateway.reports[0].Hits) != 1 {
+		t.Fatalf("VictoriaLogs eval report = %+v", gateway.reports)
+	}
+	hit := gateway.reports[0].Hits[0]
+	if hit.Value != "4" || hit.LevelUID != "high" || !strings.Contains(hit.Labels, `"app":"api"`) {
+		t.Fatalf("VictoriaLogs hit = %+v", hit)
+	}
+}
+
+func TestVlogsEmptyStatsReportsSuccessfulNoHit(t *testing.T) {
+	gateway := &fakeGateway{}
+	query := &recordingQuery{}
+	worker := &Worker{gateway: gateway, query: query, log: slog.Default(), now: time.Now}
+	err := worker.finish(context.Background(), fakeHold{}, bo.RuleSnapshot{
+		UID: "vlogs-rule", Driver: "LOGS_VLOGS", DatasourceUID: "vlogs-ds", EvalSlot: time.Now().UTC(),
+		Expr: `level:error | stats by (app) count() as value`,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(gateway.reports) != 1 || gateway.reports[0].Skipped || len(gateway.reports[0].Hits) != 0 {
+		t.Fatalf("empty VictoriaLogs stats report = %+v", gateway.reports)
+	}
+}
+
+func TestVlogsWindowCoversConfiguredForDuration(t *testing.T) {
+	now := time.Date(2026, 10, 22, 12, 0, 7, 0, time.UTC)
+	rule := bo.RuleSnapshot{
+		Driver: "LOGS_VLOGS",
+		Expr:   `level:error | stats by (app) count() as value`,
+		Levels: []bo.Level{{Condition: "GT", Sample: "FOR", Threshold: "1", ForSeconds: 300}},
+	}
+	start, end, step := window(rule, now)
+	if step != 15 || end != now.Truncate(15*time.Second).Unix() || end-start != 315 {
+		t.Fatalf("window = %d..%d step %d, want aligned 315s window", start, end, step)
+	}
+
+	rule.Levels = []bo.Level{{Condition: "GT", Sample: "FOR", Threshold: "1", ForSeconds: 100}}
+	start, end, step = window(rule, now)
+	if step != 15 || end%15 != 0 || start%15 != 0 || end-start != 120 {
+		t.Fatalf("100s FOR window = %d..%d step %d, want aligned 120s window", start, end, step)
+	}
+
+	rule.Levels = []bo.Level{{Condition: "GT", Sample: "MAX", Threshold: "1"}}
+	start, end, step = window(rule, now)
+	if step != 15 || end-start != 15 {
+		t.Fatalf("max window = %d..%d step %d, want one full bucket", start, end, step)
+	}
+
+	start, end, _ = window(bo.RuleSnapshot{
+		Driver: "LOGS_LOKI",
+		Levels: []bo.Level{{Condition: "GT", Sample: "FOR", Threshold: "1", ForSeconds: 300}},
+	}, now)
+	if end != now.Unix() || end-start != 300 {
+		t.Fatalf("Loki window changed by VictoriaLogs padding: %d..%d", start, end)
+	}
+}
+
+func TestVlogsForRejectsMissingBuckets(t *testing.T) {
+	at := time.Date(2026, 10, 22, 12, 0, 0, 0, time.UTC)
+	rule := bo.RuleSnapshot{Levels: []bo.Level{{
+		Condition: "GT", Sample: "FOR", Threshold: "0", ForSeconds: 30,
+	}}}
+	continuous := []bo.Sample{{
+		Points: []bo.Point{
+			{At: at, Value: 1, Raw: "1"},
+			{At: at.Add(15 * time.Second), Value: 1, Raw: "1"},
+			{At: at.Add(30 * time.Second), Value: 1, Raw: "1"},
+		},
+		Step: 15,
+	}}
+	if hits := Hits(rule, continuous); len(hits) != 1 {
+		t.Fatalf("continuous buckets = %+v", hits)
+	}
+	gapped := []bo.Sample{{
+		Points: []bo.Point{
+			{At: at, Value: 1, Raw: "1"},
+			{At: at.Add(45 * time.Second), Value: 1, Raw: "1"},
+		},
+		Step: 15,
+	}}
+	if hits := Hits(rule, gapped); len(hits) != 0 {
+		t.Fatalf("missing bucket must not satisfy FOR: %+v", hits)
 	}
 }

@@ -2,6 +2,8 @@
 
 M10 在 M3 指标评测、M4 通知投递与现有通用告警处置上增加 Loki 专属告警能力。Prometheus / VictoriaMetrics 的 PromQL/MetricsQL 路径不变；Elasticsearch、VictoriaLogs 和 Jaeger 仍不参与规则评测。
 
+> M11 之后 VictoriaLogs 已加入数值型评测，见 [m11-vlogs-alerts.md](m11-vlogs-alerts.md)。本文保留 M10 当时的验收范围，其中「VictoriaLogs 未实现」的表述不再是当前状态。
+
 ## 目标与依赖
 
 操作者可以在 Loki 查询页和告警规则表单中编写 LogQL，使用 Loki 数据源验证查询；规则由 Megrez 定时评测，FIRING/恢复进入通用事件存储与通知订阅路由，接收人可查看告警、收到通知并处置。

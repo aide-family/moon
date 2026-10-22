@@ -5,7 +5,7 @@ import { getDatasourceStatus } from "@/api/datasource"
 import type { DatasourceItem } from "@/api/datasource/types"
 import { queryLogs } from "@/api/logs-query"
 import { FormField } from "@/components/form-field"
-import { PromqlEditor } from "@/components/promql-editor"
+import { LogsqlEditor } from "@/components/promql-editor"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -186,9 +186,8 @@ export function VlogsPanel({ datasource }: { datasource: DatasourceItem }) {
           required
           error={exprError}
         >
-          <PromqlEditor
+          <LogsqlEditor
             value={expr}
-            variant="logsql"
             datasourceUid={datasource.uid}
             onChange={(value) => {
               setExpr(value)
