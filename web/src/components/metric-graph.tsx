@@ -8,9 +8,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import {
-  toGraphSeries,
-  type PrometheusApiResponse,
-} from "@/pages/datasource/prometheus"
+  toTimeSeriesGraphSeries,
+  type TimeSeriesApiResponse,
+} from "@/pages/datasource/time-series"
 import { cn } from "@/lib/utils"
 
 const CHART_COLORS = [
@@ -30,7 +30,7 @@ export interface MetricGraphDomain {
 }
 
 interface MetricGraphProps {
-  response: PrometheusApiResponse | null
+  response: TimeSeriesApiResponse | null
   emptyText?: string
   // 固定横轴范围，单位秒；事件图表用它保证时间轴从事件开始到今天。
   domain?: MetricGraphDomain
@@ -93,7 +93,7 @@ export function MetricGraph({
   } | null>(null)
 
   const series = useMemo(
-    () => (response ? toGraphSeries(response) : []),
+    () => (response ? toTimeSeriesGraphSeries(response) : []),
     [response]
   )
   const visibleSeries = useMemo(

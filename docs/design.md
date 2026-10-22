@@ -266,18 +266,26 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 
 规则不再直接绑定通知组。告警事件统一由 `NotificationSubscription` 按标签、告警级别和数据源匹配，再路由到订阅下的通知组。
 
-日志和链路规则可以保存。`megrez` 见到尚未实现的驱动时跳过，并在回写里标明未评测，不产生 FIRING。
+日志和链路规则可以保存。`megrez` 对尚未实现的驱动跳过，并在回写里标明未评测，不产生 FIRING。Loki 是例外：它使用独立的 LogQL 数值型规则评测路径，不能走 Prometheus API；原始日志流结果不是可比较的采样值，不会被当成空矩阵或恢复信号。
+
+#### Loki LogQL 告警扩展
+
+- Web 的 Loki 查询面板和告警规则表单使用独立 `logql` 编辑语言、Loki 标签/标签值补全和 Loki endpoint；不复用 PromQL 语言定义或 Prometheus 查询路径。VictoriaLogs 的 LogsQL 与 Elasticsearch 的 Query DSL 保持各自入口。
+- 可评测表达式必须是返回数值序列的 LogQL 指标查询，例如 `sum by (app) (count_over_time({app="api"} |= "error" [5m]))`。Loki 原始日志 selector 返回 `streams`，不是采样值；Megrez 严格要求数值 matrix，收到 stream 或无效响应时评测失败且不回写，从而不会误恢复仍在触发的告警。
+- Megrez 严格按 `LOGS_LOKI` driver 调用 `/loki/api/v1/query_range`，传递 Unix 纳秒范围与 duration 步长；模板 `query` 使用 `/loki/api/v1/query`。LogQL 数值结果沿用现有告警级别、FOR / MAX / MIN 条件、指纹去重和事件回写。
+- Loki FIRING 与恢复进入共用 `AlertEvent` 与 `NotificationSubscription` 路由，之后由 `merak` 投递；实时/历史列表、通知收件、介入、抑制、手工恢复均使用现有公共流程。事件详情图表读取 Loki 数值矩阵并按事件标签收敛序列。
+- Loki 告警只匹配 ACTIVE 的 `LOGS_LOKI` 数据源。Elasticsearch、VictoriaLogs 与 Jaeger 仍标记为未实现并跳过；Prometheus / VictoriaMetrics 查询路径保持不变。
 
 ### 4.3 评测
 
-`alioth` 在 `alioth:lock:schedule:eval` 下扫描 `next_eval_at <= now` 的已启用指标规则，写下一次评测时间，然后释放调度锁。`megrez` 向 `alioth` 领取这批规则的快照。
+`alioth` 在 `alioth:lock:schedule:eval` 下扫描 `next_eval_at <= now` 的已启用指标与 Loki LogQL 数值规则，写下一次评测时间，然后释放调度锁。`megrez` 向 `alioth` 领取这批规则的快照。
 
 规则只保存驱动，不再保存类型。规则用驱动 + `datasource_labels` 匹配 ACTIVE 数据源：匹配器优先读数据源 labels，`datasource_level` 匹配数据源等级名称、`datasource` 匹配数据源名称，值按完整匹配正则命中；空匹配器 = 该驱动下全部 ACTIVE 数据源。这样 Loki、VictoriaLogs 和 Elasticsearch 不会再被同一条日志规则混在一起评测。Claim 对每个匹配数据源各发一条快照；无匹配则不发。fingerprint 为 `Of(rule_uid, datasource_uid, rule_labels + labels)`，规则标签修改后旧事件恢复、新指纹建立新事件。
 
 单条（规则, 数据源）的步骤：
 
 1. `megrez` 对 `alioth:lock:eval:{rule_uid}:{datasource_uid}` 加锁。没拿到锁就跳过。
-2. 按该数据源驱动查询。指标规则使用 Moon 已实现的路径：PromQL、`query_range`、条件与采样、fingerprint。
+2. 按该数据源驱动查询。指标规则使用 Prometheus-compatible PromQL/MetricsQL `query_range`；Loki 规则使用 `/loki/api/v1/query_range` 和数值型 LogQL matrix。二者复用条件、采样与 fingerprint 语义，不共用查询 endpoint。
 3. 把 FIRING 或恢复结果回写 `alioth`（带 `datasource_uid`）。回写按 fingerprint 幂等。
 4. 释放锁。续期失败则不回写成功。
 

@@ -31,7 +31,7 @@ import { ConfirmAction } from "@/components/confirm-action"
 import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
-import { PromqlEditor } from "@/components/promql-editor"
+import { LogqlEditor, PromqlEditor } from "@/components/promql-editor"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { ListFrame } from "@/components/list-frame"
 import { StatusDot } from "@/components/status-dot"
@@ -169,7 +169,7 @@ function matchedDatasourceUid(
   driver: string,
   matchers: LabelPair[]
 ): string {
-  if (!driver.startsWith("METRICS_")) {
+  if (!driver.startsWith("METRICS_") && driver !== "LOGS_LOKI") {
     return ""
   }
   return (
@@ -446,6 +446,11 @@ export function AlertRulePage() {
         ["name", requireTrimmed(form.name, t("form.required"))],
         ["name", maxLength(form.name, 64, t("form.nameTooLong"))],
         ["driver", requireTrimmed(form.driver, t("form.required"))],
+      ])
+    }
+    if (step === 1) {
+      return collectFieldErrors([
+        ["expr", requireTrimmed(form.expr, t("form.required"))],
       ])
     }
     if (step === 2) {
@@ -1040,31 +1045,45 @@ export function AlertRulePage() {
                   label={t("datasource.expr")}
                   htmlFor="rule-expr"
                   hint={
-                    form.driver === "LOGS_ELASTICSEARCH"
-                      ? t("datasource.esExprHint")
-                      : form.driver === "METRICS_VICTORIA_METRICS"
-                        ? t("datasource.vmExprHint")
-                        : t("datasource.exprHint")
+                    form.driver === "LOGS_LOKI"
+                      ? t("alertRule.lokiMetricExprHint")
+                      : form.driver === "LOGS_ELASTICSEARCH"
+                        ? t("datasource.esExprHint")
+                        : form.driver === "METRICS_VICTORIA_METRICS"
+                          ? t("datasource.vmExprHint")
+                          : t("datasource.exprHint")
                   }
                   className="sm:col-span-full"
+                  error={fieldErrors.expr}
                 >
-                  <PromqlEditor
-                    value={form.expr}
-                    variant={
-                      form.driver === "LOGS_LOKI" ||
-                      form.driver === "LOGS_VLOGS"
-                        ? "logql"
-                        : form.driver === "LOGS_ELASTICSEARCH"
-                          ? "json"
-                          : "promql"
-                    }
-                    datasourceUid={matchedDatasourceUid(
-                      sources,
-                      form.driver,
-                      form.datasourceLabels
-                    )}
-                    onChange={(value) => setForm({ ...form, expr: value })}
-                  />
+                  {form.driver === "LOGS_LOKI" ? (
+                    <LogqlEditor
+                      value={form.expr}
+                      datasourceUid={matchedDatasourceUid(
+                        sources,
+                        form.driver,
+                        form.datasourceLabels
+                      )}
+                      onChange={(value) => setForm({ ...form, expr: value })}
+                    />
+                  ) : (
+                    <PromqlEditor
+                      value={form.expr}
+                      variant={
+                        form.driver === "LOGS_VLOGS"
+                          ? "logsql"
+                          : form.driver === "LOGS_ELASTICSEARCH"
+                            ? "json"
+                            : "promql"
+                      }
+                      datasourceUid={matchedDatasourceUid(
+                        sources,
+                        form.driver,
+                        form.datasourceLabels
+                      )}
+                      onChange={(value) => setForm({ ...form, expr: value })}
+                    />
+                  )}
                 </FormField>
                 <FormField
                   label={t("alertRule.labels")}

@@ -1,6 +1,6 @@
 name: alioth
 
-# 本地全栈：docker compose up 即可获得 PostgreSQL、Redis、邮件沙箱、Prometheus、一次迁移，
+# 本地全栈：docker compose up 即可获得 PostgreSQL、Redis、邮件沙箱、Prometheus、Loki、一次迁移，
 # 以及 alioth / megrez / merak / web。数据保存在命名卷里，down 不会丢。
 x-service-env: &service-env
   ALIOTH_DATABASE_URL: postgres://alioth:alioth@postgres:5432/alioth?sslmode=disable
@@ -68,6 +68,31 @@ services:
       timeout: 3s
       retries: 10
       start_period: 10s
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:3.5.0
+    command: ["-config.file=/etc/loki/config.yaml"]
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./deploy/loki/config.yaml:/etc/loki/config.yaml:ro
+      - lokidata:/loki
+    restart: unless-stopped
+
+  # Opt-in synthetic logs; leave the normal local stack free of demo noise.
+  loki-demo-logs:
+    profiles: ["loki-demo"]
+    image: curlimages/curl:8.12.1
+    entrypoint: ["/bin/sh", "/scripts/loki-demo-logs.sh"]
+    environment:
+      LOKI_URL: http://loki:3100
+      LOKI_DEMO_INTERVAL: "5"
+    volumes:
+      - ./scripts/loki-demo-logs.sh:/scripts/loki-demo-logs.sh:ro
+    depends_on:
+      loki:
+        condition: service_started
     restart: unless-stopped
 
   # 一次性迁移：先于四个服务完成，避免新代码遇到旧 schema。
@@ -168,3 +193,4 @@ volumes:
   pgdata:
   redisdata:
   prometheusdata:
+  lokidata:

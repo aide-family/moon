@@ -374,7 +374,7 @@ function ShellFrame() {
             <SidebarTrigger />
             <div className="ml-auto flex h-8 min-w-0 items-center gap-2 overflow-x-auto overflow-y-hidden">
               <Select
-                value={session.namespaceUid || undefined}
+                value={session.namespaceUid || ""}
                 onValueChange={session.setNamespace}
                 disabled={session.namespaces.length === 0}
               >

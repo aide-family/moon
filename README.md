@@ -8,7 +8,7 @@ Alioth 是运维平台。玉衡（`alioth`）保存业务数据，天权（`megr
 
 ## 本地依赖
 
-Docker Hub 不可达时，`make compose-up` 会先执行 [scripts/pull-compose-images.sh](scripts/pull-compose-images.sh)：按顺序尝试 `dockerproxy.net`、`docker.m.daocloud.io` 拉取 PostgreSQL/Redis/Mailpit，并重新 tag 成 compose 使用的官方名字。也可以指定自己的镜像代理：
+Docker Hub 不可达时，`make compose-up` 会先执行 [scripts/pull-compose-images.sh](scripts/pull-compose-images.sh)：按顺序尝试 `dockerproxy.net`、`docker.m.daocloud.io` 拉取 PostgreSQL、Redis、Mailpit、Prometheus 和 Loki，并重新 tag 成 compose 使用的官方名字。也可以指定自己的镜像代理：
 
 ```bash
 MIRROR=dockerproxy.net make compose-images
@@ -17,20 +17,29 @@ make compose-up
 
 ## 本地全栈
 
-`docker-compose.yaml` 现在包含完整链路：PostgreSQL（`pgdata` 持久卷）、Redis、Mailpit、Prometheus（`prometheusdata` 持久卷）、一次性迁移，
-以及 `alioth` / `megrez` / `merak` / `web` 四个服务。干净 clone 后一条命令即可：
+`docker-compose.yaml` 现在包含完整链路：PostgreSQL（`pgdata` 持久卷）、Redis、Mailpit、Prometheus（`prometheusdata` 持久卷）、Loki（`lokidata` 持久卷）、一次性迁移，
+以及 `alioth` / `megrez` / `merak` / `web` 四个服务。Loki 对宿主机开放 3100 端口，容器内可用 `http://loki:3100` 配置数据源。干净 clone 后一条命令即可：
 
 ```bash
 make dev-up          # 构建镜像、跑迁移、起全部服务
 open http://127.0.0.1:8080
 # Prometheus UI: http://127.0.0.1:9090；容器内数据源地址：http://prometheus:9090
+# Loki readiness: http://127.0.0.1:3100/ready；宿主机数据源地址：http://127.0.0.1:3100
+# 在 Alioth 内添加 LOGS_LOKI 数据源时，地址用 http://loki:3100（本地 Loki 未启用认证）
+curl http://127.0.0.1:3100/ready
+make loki-demo       # 可选：每 5 秒持续写入 api/error 和 web/info 示例日志
+# 普通日志查询：{source="alioth-demo", app="api", level="error"}
+# 告警数值表达式：sum by (app) (count_over_time({source="alioth-demo", app="api", level="error"} |= "request timeout" [1m]))
+make loki-demo-stop  # 停止生成；Loki 和已写入日志保留
 make dev-down        # 停止服务，数据留在命名卷里
 ```
 
 只想在宿主机跑 Go 进程时，仍然可以用依赖 + 手工启动：
 
 ```bash
-make compose-up      # 只起 postgres/redis/mailpit
+make compose-images  # 准备本地依赖镜像
+# 只启动基础设施，不启动 compose 中的应用服务
+docker compose up -d postgres redis mailpit prometheus loki
 make migrate         # 建表 + seed + 分区
 make run-alioth      # 另开终端跑其余服务
 ```

@@ -259,8 +259,8 @@ func (uc *Usecase) Chart(ctx context.Context, uid string) (*bo.AlertEventChart, 
 	if err != nil {
 		return nil, uc.access.Wrap(err)
 	}
-	if source.Type != "METRICS" {
-		return nil, merr.Invalid("datasource is not metrics")
+	if source.Type != "METRICS" && source.Driver != "LOGS_LOKI" {
+		return nil, merr.Invalid("datasource does not support alert charts")
 	}
 	start, end, step := chartWindow(event.StartsAt, time.Now())
 	body, err := uc.datasources.RangeQuery(ctx, *source, event.Expr, start, end, step)

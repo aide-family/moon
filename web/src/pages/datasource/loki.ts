@@ -1,17 +1,11 @@
+import type { TimeSeriesApiResponse } from "./time-series"
+
 export interface LokiStream {
   stream: Record<string, string>
   values: [string, string][]
 }
 
-export interface LokiApiResponse {
-  status?: string
-  data?: {
-    resultType?: string
-    result?: LokiStream[]
-  }
-  error?: string
-  errorType?: string
-}
+export type LokiApiResponse = TimeSeriesApiResponse
 
 export interface LokiLogRow {
   key: string
@@ -38,7 +32,29 @@ export function formatLokiLabels(labels: Record<string, string>): string {
   return `{${entries.map(([key, value]) => `${key}="${value}"`).join(", ")}}`
 }
 
-/** Loki 的时间戳是纳秒字符串。展示和排序只需要毫秒，避免 Number 转换丢失纳秒精度。 */
+function isLokiStream(value: unknown): value is LokiStream {
+  if (!value || typeof value !== "object") {
+    return false
+  }
+  const stream = value as { stream?: unknown; values?: unknown }
+  if (
+    stream.stream === null ||
+    typeof stream.stream !== "object" ||
+    Array.isArray(stream.stream) ||
+    !Array.isArray(stream.values)
+  ) {
+    return false
+  }
+  return stream.values.every(
+    (entry) =>
+      Array.isArray(entry) &&
+      entry.length >= 2 &&
+      typeof entry[0] === "string" &&
+      typeof entry[1] === "string",
+  )
+}
+
+/** Loki 的 stream 时间戳是纳秒字符串；只转换到毫秒，避免精度丢失。 */
 function nanosToMillis(nanoseconds: string): number {
   if (!/^\d+$/.test(nanoseconds) || nanoseconds.length <= 6) {
     return 0
@@ -51,13 +67,22 @@ export function toLokiRows(
   response: LokiApiResponse | null,
   direction: "backward" | "forward" = "backward",
 ): LokiLogRow[] {
-  if (!response || response.status !== "success") {
+  const result = response?.data?.result
+  if (
+    !response ||
+    response.status !== "success" ||
+    response.data?.resultType !== "streams" ||
+    !Array.isArray(result)
+  ) {
     return []
   }
   const rows: LokiLogRow[] = []
-  ;(response.data?.result ?? []).forEach((stream, streamIndex) => {
-    const labels = stream.stream ?? {}
-    ;(stream.values ?? []).forEach(([timestamp, line], valueIndex) => {
+  result.forEach((item, streamIndex) => {
+    if (!isLokiStream(item)) {
+      return
+    }
+    const { stream: labels, values } = item
+    values.forEach(([timestamp, line], valueIndex) => {
       rows.push({
         key: `${streamIndex}-${valueIndex}-${timestamp}`,
         labels,

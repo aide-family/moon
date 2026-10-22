@@ -20,10 +20,8 @@ import {
   conditionSummary,
   useEventLevelCondition,
 } from "@/pages/alert/level-condition"
-import {
-  parsePrometheusBody,
-  type PrometheusApiResponse,
-} from "@/pages/datasource/prometheus"
+import type { TimeSeriesApiResponse } from "@/pages/datasource/time-series"
+import { parseTimeSeriesBody } from "@/pages/datasource/time-series"
 
 interface EventChartDialogProps {
   event: AlertEventItem | null
@@ -45,9 +43,9 @@ function formatTime(value: number | string): string {
  * 不影响匹配。命中为空时返回空结果，不再回退展示表达式的全部序列。
  */
 function filterSeriesByLabels(
-  response: PrometheusApiResponse | null,
+  response: TimeSeriesApiResponse | null,
   labels: Record<string, string>
-): PrometheusApiResponse | null {
+): TimeSeriesApiResponse | null {
   if (
     !response ||
     response.status !== "success" ||
@@ -143,7 +141,7 @@ export function EventChartBody({
   }, [event.uid, t])
 
   const response = useMemo(
-    () => (chart ? parsePrometheusBody(chart.body) : null),
+    () => (chart ? parseTimeSeriesBody(chart.body) : null),
     [chart]
   )
   const eventLabels = useMemo(() => {

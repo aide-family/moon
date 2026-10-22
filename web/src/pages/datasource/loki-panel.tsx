@@ -5,7 +5,8 @@ import { getDatasourceStatus } from "@/api/datasource"
 import type { DatasourceItem } from "@/api/datasource/types"
 import { queryLogs } from "@/api/logs-query"
 import { FormField } from "@/components/form-field"
-import { PromqlEditor } from "@/components/promql-editor"
+import { MetricGraph } from "@/components/metric-graph"
+import { LogqlEditor } from "@/components/promql-editor"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -28,7 +29,7 @@ import {
 import { resolveRange, type RangePreset } from "@/pages/datasource/range"
 
 type LogDirection = "backward" | "forward"
-type ResultTab = "logs" | "json"
+type ResultTab = "logs" | "graph" | "json"
 
 const MAX_LOG_LIMIT = 5000
 
@@ -98,21 +99,27 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
   const [body, setBody] = useState("")
   const [resultTab, setResultTab] = useState<ResultTab>("logs")
 
-  const rows = useMemo(() => toLokiRows(parseLokiBody(body), direction), [body, direction])
+  const parsedResponse = useMemo(() => parseLokiBody(body), [body])
+  const resultType = parsedResponse?.data?.resultType
+  const isMetricMatrix =
+    parsedResponse?.status === "success" && resultType === "matrix"
+  const rows = useMemo(
+    () => toLokiRows(parsedResponse, direction),
+    [direction, parsedResponse],
+  )
   const jsonText = useMemo(() => {
     if (!body) {
       return ""
     }
-    const parsed = parseLokiBody(body)
-    if (!parsed) {
+    if (!parsedResponse) {
       return body
     }
     try {
-      return JSON.stringify(extractLokiResult(parsed), null, 2)
+      return JSON.stringify(extractLokiResult(parsedResponse), null, 2)
     } catch {
       return body
     }
-  }, [body])
+  }, [body, parsedResponse])
 
   async function runQuery() {
     const trimmed = expr.trim()
@@ -144,10 +151,18 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
         limit: size,
         direction,
       })
+      const queryResponse = parseLokiBody(response.body)
       setBody(response.body)
-      setResultTab("logs")
+      setResultTab(
+        queryResponse?.status === "success" && queryResponse.data?.resultType === "streams"
+          ? "logs"
+          : queryResponse?.status === "success" && queryResponse.data?.resultType === "matrix"
+            ? "graph"
+            : "json",
+      )
     } catch (err) {
       setBody("")
+      setResultTab("logs")
       setQueryError(failureText(err, t("state.failed")))
     } finally {
       setPending(false)
@@ -178,9 +193,8 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
           required
           error={exprError}
         >
-          <PromqlEditor
+          <LogqlEditor
             value={expr}
-            variant="logql"
             datasourceUid={datasource.uid}
             onChange={(value) => {
               setExpr(value)
@@ -257,7 +271,12 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
             </Button>
           </div>
           <TabsList className="shrink-0">
-            <TabsTrigger value="logs">{t("enum.LOGS")}</TabsTrigger>
+            {!body || resultType === "streams" ? (
+              <TabsTrigger value="logs">{t("enum.LOGS")}</TabsTrigger>
+            ) : null}
+            {isMetricMatrix ? (
+              <TabsTrigger value="graph">{t("datasource.resultGraph")}</TabsTrigger>
+            ) : null}
             <TabsTrigger value="json">{t("datasource.resultJson")}</TabsTrigger>
           </TabsList>
         </div>
@@ -269,6 +288,15 @@ export function LokiPanel({ datasource }: { datasource: DatasourceItem }) {
         {queryError ? <p className="shrink-0 text-sm text-destructive">{queryError}</p> : null}
         <TabsContent value="logs" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           {body ? <LogTable rows={rows} /> : null}
+        </TabsContent>
+        <TabsContent value="graph" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          {isMetricMatrix ? (
+            <MetricGraph
+              key={body}
+              response={parsedResponse}
+              emptyText={t("datasource.queryGraphEmpty")}
+            />
+          ) : null}
         </TabsContent>
         <TabsContent value="json" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           {jsonText ? (

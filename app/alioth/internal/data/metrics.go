@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/aide-family/Alioth/app/alioth/pkg/bo"
 	"github.com/aide-family/Alioth/pkg/merr"
@@ -48,15 +49,26 @@ func (r *datasourceRepo) InstantQuery(ctx context.Context, item bo.Datasource, e
 }
 
 func (r *datasourceRepo) RangeQuery(ctx context.Context, item bo.Datasource, expr string, start, end, step int64) (string, error) {
-	if !isMetricsDriver(item.Driver) {
+	path := "/api/v1/query_range"
+	startValue := strconv.FormatInt(start, 10)
+	endValue := strconv.FormatInt(end, 10)
+	stepValue := strconv.FormatInt(step, 10)
+	switch {
+	case isMetricsDriver(item.Driver):
+	case item.Driver == driverLogsLoki:
+		path = "/loki/api/v1/query_range"
+		startValue = strconv.FormatInt(time.Unix(start, 0).UnixNano(), 10)
+		endValue = strconv.FormatInt(time.Unix(end, 0).UnixNano(), 10)
+		stepValue += "s"
+	default:
 		return "", merr.Invalid("unsupported datasource driver")
 	}
 	values := url.Values{}
 	values.Set("query", expr)
-	values.Set("start", strconv.FormatInt(start, 10))
-	values.Set("end", strconv.FormatInt(end, 10))
-	values.Set("step", strconv.FormatInt(step, 10))
-	return r.callUpstream(ctx, item, http.MethodGet, "/api/v1/query_range?"+values.Encode(), "")
+	values.Set("start", startValue)
+	values.Set("end", endValue)
+	values.Set("step", stepValue)
+	return r.callUpstream(ctx, item, http.MethodGet, path+"?"+values.Encode(), "")
 }
 
 func (r *datasourceRepo) ProxyQuery(ctx context.Context, item bo.Datasource, method, path, body string) (string, error) {

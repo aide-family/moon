@@ -26,7 +26,7 @@ func TestQueryRangeKeepsEndpointPrefix(t *testing.T) {
 	defer srv.Close()
 
 	samples, err := NewRangeQuery().QueryRange(context.Background(), bo.RuleSnapshot{
-		UID: "rule-1", Endpoint: srv.URL + "/select/0/prometheus", Expr: "up",
+		UID: "rule-1", Driver: "METRICS_PROMETHEUS", Endpoint: srv.URL + "/select/0/prometheus", Expr: "up",
 	}, 100, 200, 15)
 	if err != nil {
 		t.Fatal(err)
@@ -73,7 +73,7 @@ func TestQueryInstantSupportsTemplateQueries(t *testing.T) {
 func TestQueryRangeRejectsInvalidEndpoint(t *testing.T) {
 	for _, endpoint := range []string{"", "127.0.0.1:9090", "ftp://127.0.0.1"} {
 		if _, err := NewRangeQuery().QueryRange(context.Background(), bo.RuleSnapshot{
-			UID: "rule-1", Endpoint: endpoint, Expr: "up",
+			UID: "rule-1", Driver: "METRICS_PROMETHEUS", Endpoint: endpoint, Expr: "up",
 		}, 100, 200, 15); !merr.IsInvalid(err) {
 			t.Fatalf("endpoint %q error = %v", endpoint, err)
 		}

@@ -400,6 +400,8 @@ const zh = {
     logsDirectionBackward: "从新到旧",
     logsDirectionForward: "从旧到新",
     logsExprHint: '使用 LogQL 查询，例如 {app="api"} |= "error"。',
+    lokiMetricExprHint:
+      '告警需使用返回数值序列的 LogQL 指标查询，不能只返回日志流。例如 sum by (app) (count_over_time({app="api"} |= "error" [5m]))。',
     vlogsExprHint:
       "使用 LogsQL 查询，例如 error、_time:5m error 或 level:error。",
     esExprHint:
@@ -454,7 +456,7 @@ const zh = {
     descriptionPlaceholder: "告警内容，可用 {{ $labels.instance }} 等模板",
     levels: "级别条件",
     levelsHint:
-      "为同一规则添加多个告警级别。每条条件需选择告警级别并填写阈值，指标满足比较条件并持续指定秒数后触发。",
+      "为同一规则添加多个告警级别。每条条件需选择告警级别并填写阈值；表达式采样值满足比较条件并持续指定秒数后触发。",
     levelLabel: "告警级别",
     condition: "比较条件",
     sample: "时间方式",
@@ -1329,6 +1331,8 @@ const en = {
     logsDirectionBackward: "Newest first",
     logsDirectionForward: "Oldest first",
     logsExprHint: 'Query with LogQL, for example {app="api"} |= "error".',
+    lokiMetricExprHint:
+      'Alerts require a LogQL metric query that returns numeric series, not a raw log stream. For example: sum by (app) (count_over_time({app="api"} |= "error" [5m])).',
     vlogsExprHint:
       "Query with LogsQL, for example error, _time:5m error, or level:error.",
     esExprHint:

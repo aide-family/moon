@@ -197,7 +197,7 @@ func TestUnimplementedDriverReportsSkipped(t *testing.T) {
 	gateway := &fakeGateway{}
 	worker := &Worker{gateway: gateway, query: fakeQuery{}, log: slog.Default(), now: time.Now}
 	slot := time.Now().UTC().Truncate(time.Second)
-	for _, driver := range []string{"LOGS_ELASTICSEARCH", "LOGS_LOKI", "TRACE_JAEGER"} {
+	for _, driver := range []string{"LOGS_ELASTICSEARCH", "LOGS_VLOGS", "TRACE_JAEGER"} {
 		gateway.reports = nil
 		if err := worker.finish(context.Background(), fakeHold{}, bo.RuleSnapshot{UID: "rule-1", Driver: driver, EvalSlot: slot}); err != nil {
 			t.Fatal(err)
@@ -205,5 +205,56 @@ func TestUnimplementedDriverReportsSkipped(t *testing.T) {
 		if len(gateway.reports) != 1 || !gateway.reports[0].Skipped || len(gateway.reports[0].Hits) != 0 {
 			t.Fatalf("driver %s report = %+v", driver, gateway.reports)
 		}
+	}
+}
+
+type recordingQuery struct {
+	driver  string
+	samples []bo.Sample
+}
+
+func (q *recordingQuery) QueryRange(_ context.Context, rule bo.RuleSnapshot, _, _, _ int64) ([]bo.Sample, error) {
+	q.driver = rule.Driver
+	return q.samples, nil
+}
+
+func TestLokiDriverEvaluatesNumericLogQLSamples(t *testing.T) {
+	gateway := &fakeGateway{}
+	query := &recordingQuery{samples: []bo.Sample{{
+		Labels: map[string]string{"app": "api"},
+		Points: []bo.Point{{At: time.Now(), Value: 3, Raw: "3"}},
+	}}}
+	worker := &Worker{gateway: gateway, query: query, log: slog.Default(), now: time.Now}
+	rule := bo.RuleSnapshot{
+		UID: "loki-rule", Driver: "LOGS_LOKI", DatasourceUID: "loki-ds", EvalSlot: time.Now().UTC(),
+		Expr:   `sum by (app) (count_over_time({app="api"} |= "error" [5m]))`,
+		Levels: []bo.Level{{Condition: "GT", Sample: "MAX", Threshold: "2", LevelUID: "high"}},
+	}
+	if err := worker.finish(context.Background(), fakeHold{}, rule); err != nil {
+		t.Fatal(err)
+	}
+	if query.driver != "LOGS_LOKI" {
+		t.Fatalf("query driver = %q", query.driver)
+	}
+	if len(gateway.reports) != 1 || gateway.reports[0].Skipped || len(gateway.reports[0].Hits) != 1 {
+		t.Fatalf("Loki eval report = %+v", gateway.reports)
+	}
+	if gateway.reports[0].Hits[0].Value != "3" || gateway.reports[0].Hits[0].LevelUID != "high" {
+		t.Fatalf("Loki hit = %+v", gateway.reports[0].Hits[0])
+	}
+}
+
+func TestLokiEmptyMatrixReportsSuccessfulNoHit(t *testing.T) {
+	gateway := &fakeGateway{}
+	query := &recordingQuery{}
+	worker := &Worker{gateway: gateway, query: query, log: slog.Default(), now: time.Now}
+	err := worker.finish(context.Background(), fakeHold{}, bo.RuleSnapshot{
+		UID: "loki-rule", Driver: "LOGS_LOKI", DatasourceUID: "loki-ds", EvalSlot: time.Now().UTC(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(gateway.reports) != 1 || gateway.reports[0].Skipped || len(gateway.reports[0].Hits) != 0 {
+		t.Fatalf("empty Loki matrix report = %+v", gateway.reports)
 	}
 }

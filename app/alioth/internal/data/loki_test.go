@@ -63,6 +63,36 @@ func TestQueryLogsSendsLokiRangeRequest(t *testing.T) {
 	}
 }
 
+func TestLokiMetricRangeQueryUsesLokiAPI(t *testing.T) {
+	var gotPath, gotQuery, gotStart, gotEnd, gotStep, gotAuth string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		values := r.URL.Query()
+		gotQuery = values.Get("query")
+		gotStart = values.Get("start")
+		gotEnd = values.Get("end")
+		gotStep = values.Get("step")
+		gotAuth = r.Header.Get("Authorization")
+		_, _ = w.Write([]byte(`{"status":"success","data":{"resultType":"matrix","result":[]}}`))
+	}))
+	defer srv.Close()
+
+	body, err := newLogTestRepo().RangeQuery(context.Background(), bo.Datasource{
+		UID: "ds-loki", Type: "LOGS", Driver: "LOGS_LOKI", Endpoint: srv.URL, Secret: "loki-token",
+	}, `sum(count_over_time({app="api"}[5m]))`, 100, 200, 15)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantStart := strconv.FormatInt(time.Unix(100, 0).UnixNano(), 10)
+	wantEnd := strconv.FormatInt(time.Unix(200, 0).UnixNano(), 10)
+	if gotPath != "/loki/api/v1/query_range" || gotQuery != `sum(count_over_time({app="api"}[5m]))` || gotStart != wantStart || gotEnd != wantEnd || gotStep != "15s" || gotAuth != "Bearer loki-token" {
+		t.Fatalf("path/query/start/end/step/auth = %q/%q/%q/%q/%q/%q", gotPath, gotQuery, gotStart, gotEnd, gotStep, gotAuth)
+	}
+	if body == "" {
+		t.Fatal("Loki matrix response should be returned")
+	}
+}
+
 func TestDatasourceStatusPathByDriver(t *testing.T) {
 	cases := []struct {
 		driver string

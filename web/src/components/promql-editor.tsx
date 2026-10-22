@@ -11,6 +11,7 @@ import { useTheme } from "@/components/theme-provider"
 
 let monacoReady = false
 let promqlLanguageReady = false
+let logqlLanguageReady = false
 
 const LINE_HEIGHT = 20
 const EDITOR_PADDING_Y = 8
@@ -48,6 +49,105 @@ function setupPromqlLanguage(monaco: Monaco) {
   promqlLanguageReady = true
 }
 
+function setupLogqlLanguage(monaco: Monaco) {
+  if (logqlLanguageReady) {
+    return
+  }
+  monaco.languages.register({ id: "logql" })
+  monaco.languages.setLanguageConfiguration("logql", {
+    comments: { lineComment: "#" },
+    brackets: [
+      ["{", "}"],
+      ["[", "]"],
+      ["(", ")"],
+    ],
+    autoClosingPairs: [
+      { open: "{", close: "}" },
+      { open: "[", close: "]" },
+      { open: "(", close: ")" },
+      { open: '"', close: '"', notIn: ["string"] },
+    ],
+    surroundingPairs: [
+      { open: "{", close: "}" },
+      { open: "[", close: "]" },
+      { open: "(", close: ")" },
+      { open: '"', close: '"' },
+    ],
+  })
+  monaco.languages.setMonarchTokensProvider("logql", {
+    keywords: [
+      "and",
+      "or",
+      "unless",
+      "by",
+      "without",
+      "on",
+      "ignoring",
+      "group_left",
+      "group_right",
+      "sum",
+      "avg",
+      "count",
+      "min",
+      "max",
+      "topk",
+      "bottomk",
+      "sort",
+      "sort_desc",
+      "stddev",
+      "stdvar",
+      "quantile",
+      "absent",
+      "rate",
+      "rate_counter",
+      "count_over_time",
+      "bytes_over_time",
+      "bytes_rate",
+      "sum_over_time",
+      "avg_over_time",
+      "min_over_time",
+      "max_over_time",
+      "first_over_time",
+      "last_over_time",
+      "quantile_over_time",
+      "stdvar_over_time",
+      "stddev_over_time",
+      "absent_over_time",
+      "unwrap",
+      "json",
+      "logfmt",
+      "pattern",
+      "regexp",
+      "line_format",
+      "label_format",
+      "decolorize",
+      "drop",
+      "keep",
+      "duration",
+      "bytes",
+    ],
+    tokenizer: {
+      root: [
+        [/#.*$/, "comment"],
+        [/"(?:[^"\\]|\\.)*"/, "string"],
+        [/\b\d+(?:\.\d+)?(?:ms|[smhdwy])\b/, "number"],
+        [/\b\d+(?:\.\d+)?\b/, "number"],
+        [/\|=|\|~|\|>|\|!|!=|!~|=~|==|>=|<=|>|<|=|!|\|\||&&|\|/, "operator"],
+        [/[{}()[\]]/, "@brackets"],
+        [/[,+\-*/%^]/, "operator"],
+        [/[a-zA-Z_][\w:]*/, { cases: { "@keywords": "keyword", "@default": "identifier" } }],
+        [/\s+/, "white"],
+      ],
+    },
+  })
+  logqlLanguageReady = true
+}
+
+function setupExpressionLanguages(monaco: Monaco) {
+  setupPromqlLanguage(monaco)
+  setupLogqlLanguage(monaco)
+}
+
 function parseStringList(body: string): string[] {
   try {
     const payload = JSON.parse(body) as { status?: string; data?: unknown }
@@ -60,9 +160,10 @@ function parseStringList(body: string): string[] {
   }
 }
 
-// PromQL 与 LogQL 共用的表达式编辑器。variant 决定补全从哪套标签接口取数。
+// 两种查询语言共享 Monaco 运行时和标签补全逻辑；LogQL 使用独立语言 ID 与语法定义。
 function registerDataCompletion(
   monaco: Monaco,
+  languageId: "promql" | "logql",
   uidRef: { current: string },
   lokiRef: { current: boolean },
   plainRef: { current: boolean },
@@ -74,10 +175,11 @@ function registerDataCompletion(
     uid: "",
   }
 
-  return monaco.languages.registerCompletionItemProvider("promql", {
+  return monaco.languages.registerCompletionItemProvider(languageId, {
     triggerCharacters: ["{", '"', ",", "="],
     provideCompletionItems: async (model: monacoEditor.editor.ITextModel, position: monacoEditor.Position) => {
-      if (plainRef.current) {
+      const loki = languageId === "logql"
+      if (plainRef.current || lokiRef.current !== loki) {
         return { suggestions: [] }
       }
       const uid = uidRef.current
@@ -92,7 +194,6 @@ function registerDataCompletion(
       }
       const line = model.getLineContent(position.lineNumber)
       const before = line.slice(0, position.column - 1)
-      const loki = lokiRef.current
       const labelValue = before.match(/([a-zA-Z_]\w*)\s*(=~?|!~?)\s*"([^"]*)$/)
       if (labelValue) {
         const labelName = labelValue[1]
@@ -204,27 +305,26 @@ function lineCountOf(value: string): number {
   return value.split("\n").length
 }
 
-interface PromqlEditorProps {
+interface QueryExpressionEditorProps {
   value: string
   onChange: (value: string) => void
   datasourceUid?: string
   onSubmit?: () => void
-  /** logql 使用 Loki 的标签接口补全，logsql 不接数据源补全，json 用于 Elasticsearch Query DSL。 */
+  /** LogQL 使用独立语法与 Loki 标签补全；LogsQL 为纯文本，json 用于 Elasticsearch Query DSL。 */
   variant?: "promql" | "logql" | "logsql" | "json"
 }
 
-export function PromqlEditor({
+export function QueryExpressionEditor({
   value,
   onChange,
   datasourceUid = "",
   onSubmit,
   variant = "promql",
-}: PromqlEditorProps) {
+}: QueryExpressionEditorProps) {
   const { theme } = useTheme()
   const uidRef = useRef(datasourceUid)
   const lokiRef = useRef(variant === "logql")
   const plainRef = useRef(variant === "logsql")
-  const jsonRef = useRef(variant === "json")
   const onSubmitRef = useRef(onSubmit)
   const disposeRef = useRef<(() => void) | null>(null)
 
@@ -238,10 +338,6 @@ export function PromqlEditor({
 
   useEffect(() => {
     plainRef.current = variant === "logsql"
-  }, [variant])
-
-  useEffect(() => {
-    jsonRef.current = variant === "json"
   }, [variant])
 
   useEffect(() => {
@@ -266,10 +362,10 @@ export function PromqlEditor({
 
   const onMount: OnMount = (editor, monaco) => {
     disposeRef.current?.()
-    if (!jsonRef.current) {
-      const provider = registerDataCompletion(monaco, uidRef, lokiRef, plainRef)
-      disposeRef.current = () => provider.dispose()
-    }
+    const providers = (["promql", "logql"] as const).map((languageId) =>
+      registerDataCompletion(monaco, languageId, uidRef, lokiRef, plainRef),
+    )
+    disposeRef.current = () => providers.forEach((provider) => provider.dispose())
 
     editor.addCommand(
       monaco.KeyCode.Enter,
@@ -295,10 +391,18 @@ export function PromqlEditor({
     >
       <Editor
         height={height}
-        language={variant === "json" ? "json" : "promql"}
+        language={
+          variant === "json"
+            ? "json"
+            : variant === "logsql"
+              ? "plaintext"
+              : variant === "logql"
+                ? "logql"
+                : "promql"
+        }
         theme={editorTheme}
         value={value}
-        beforeMount={variant === "json" ? undefined : setupPromqlLanguage}
+        beforeMount={setupExpressionLanguages}
         onMount={onMount}
         onChange={(next) => onChange(next ?? "")}
         options={{
@@ -335,4 +439,12 @@ export function PromqlEditor({
       />
     </div>
   )
+}
+
+export function PromqlEditor(props: QueryExpressionEditorProps) {
+  return <QueryExpressionEditor {...props} />
+}
+
+export function LogqlEditor(props: Omit<QueryExpressionEditorProps, "variant">) {
+  return <QueryExpressionEditor {...props} variant="logql" />
 }

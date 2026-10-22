@@ -16,12 +16,36 @@ import (
 	"github.com/aide-family/Alioth/pkg/upstream"
 )
 
-var promClient = &http.Client{Timeout: 10 * time.Second}
+var datasourceQueryClient = &http.Client{Timeout: 10 * time.Second}
 
 type promQuery struct{}
 
 func NewRangeQuery() repository.RangeQuery {
-	return promQuery{}
+	return rangeQuery{}
+}
+
+type rangeQuery struct{}
+
+func (q rangeQuery) QueryRange(ctx context.Context, item bo.RuleSnapshot, start, end, step int64) ([]bo.Sample, error) {
+	switch item.Driver {
+	case "LOGS_LOKI":
+		return lokiQuery{}.QueryRange(ctx, item, start, end, step)
+	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS":
+		return promQuery{}.QueryRange(ctx, item, start, end, step)
+	default:
+		return nil, merr.Invalid("unsupported datasource driver")
+	}
+}
+
+func (q rangeQuery) QueryInstant(ctx context.Context, item bo.RuleSnapshot, expr string, at time.Time) ([]bo.Sample, error) {
+	switch item.Driver {
+	case "LOGS_LOKI":
+		return lokiQuery{}.QueryInstant(ctx, item, expr, at)
+	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS":
+		return promQuery{}.QueryInstant(ctx, item, expr, at)
+	default:
+		return nil, merr.Invalid("unsupported datasource driver")
+	}
 }
 
 func (p promQuery) QueryRange(ctx context.Context, item bo.RuleSnapshot, start, end, step int64) ([]bo.Sample, error) {
@@ -35,7 +59,7 @@ func (p promQuery) QueryRange(ctx context.Context, item bo.RuleSnapshot, start, 
 	query.Set("end", strconv.FormatInt(end, 10))
 	query.Set("step", strconv.FormatInt(step, 10))
 	target.RawQuery = query.Encode()
-	payload, err := p.request(ctx, item, target.String())
+	payload, err := requestDatasource(ctx, item, target.String())
 	if err != nil {
 		return nil, err
 	}
@@ -51,14 +75,14 @@ func (p promQuery) QueryInstant(ctx context.Context, item bo.RuleSnapshot, expr 
 	query.Set("query", expr)
 	query.Set("time", strconv.FormatFloat(float64(at.UnixNano())/float64(time.Second), 'f', -1, 64))
 	target.RawQuery = query.Encode()
-	payload, err := p.request(ctx, item, target.String())
+	payload, err := requestDatasource(ctx, item, target.String())
 	if err != nil {
 		return nil, err
 	}
 	return decodeVector(payload)
 }
 
-func (promQuery) request(ctx context.Context, item bo.RuleSnapshot, target string) ([]byte, error) {
+func requestDatasource(ctx context.Context, item bo.RuleSnapshot, target string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, target, nil)
@@ -70,7 +94,7 @@ func (promQuery) request(ctx context.Context, item bo.RuleSnapshot, target strin
 	} else if item.Secret != "" {
 		req.Header.Set("Authorization", "Bearer "+item.Secret)
 	}
-	resp, err := promClient.Do(req)
+	resp, err := datasourceQueryClient.Do(req)
 	if err != nil {
 		slog.Default().Error(fmt.Sprintf("rule %s query: %v", item.UID, err))
 		return nil, merr.Server("upstream query failed")

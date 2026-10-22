@@ -1,14 +1,13 @@
-export type PrometheusLabelSet = Record<string, string>
+import {
+  parseTimeSeriesBody,
+  toTimeSeriesGraphSeries,
+  type TimeSeriesApiResponse,
+  type TimeSeriesGraphSeries,
+} from "./time-series"
 
-export interface PrometheusApiResponse {
-  status: string
-  data?: {
-    resultType?: string
-    result?: unknown
-  }
-  error?: string
-  errorType?: string
-}
+export type PrometheusLabelSet = Record<string, string>
+export type PrometheusApiResponse = TimeSeriesApiResponse
+export type PrometheusGraphSeries = TimeSeriesGraphSeries
 
 interface PrometheusVectorResult {
   metric: PrometheusLabelSet
@@ -43,11 +42,7 @@ function isVectorResult(
 }
 
 export function parsePrometheusBody(body: string): PrometheusApiResponse | null {
-  try {
-    return JSON.parse(body) as PrometheusApiResponse
-  } catch {
-    return null
-  }
+  return parseTimeSeriesBody(body)
 }
 
 export function toTableRows(response: PrometheusApiResponse): PrometheusTableRow[] {
@@ -103,25 +98,8 @@ export function toTableRows(response: PrometheusApiResponse): PrometheusTableRow
   return rows
 }
 
-export interface PrometheusGraphSeries {
-  name: string
-  points: { time: number; value: number }[]
-}
-
-export function toGraphSeries(response: PrometheusApiResponse): PrometheusGraphSeries[] {
-  if (response.status !== "success" || response.data?.resultType !== "matrix") {
-    return []
-  }
-
-  return ((response.data.result ?? []) as PrometheusMatrixResult[]).map((item, index) => ({
-    name: formatSeriesName(item.metric) || `series-${index}`,
-    points: (item.values ?? [])
-      .map(([time, value]) => ({
-        time,
-        value: Number.parseFloat(value),
-      }))
-      .filter((point) => Number.isFinite(point.value)),
-  }))
+export function toGraphSeries(response: TimeSeriesApiResponse): PrometheusGraphSeries[] {
+  return toTimeSeriesGraphSeries(response)
 }
 
 export function collectLabelKeys(rows: PrometheusTableRow[]): string[] {
