@@ -7,8 +7,8 @@ import { listAgents } from "@/api/agent"
 import type { AgentItem } from "@/api/agent/types"
 import { getSSHCommand, listSSHCommandAudits } from "@/api/ssh-command"
 import type { SSHCommandAuditItem, SSHCommandItem } from "@/api/ssh-command/types"
+import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
-import { enumLabel } from "@/lib/enum-label"
 
 function formatTimestamp(value: string) {
   const date = new Date(value)
@@ -123,7 +123,7 @@ export function SSHCommandResultsPage() {
                     <span className={`block truncate text-sm font-medium ${isFailed ? "text-destructive" : "text-foreground"}`}>{machineName(audit)}</span>
                     <span className="block truncate text-xs text-muted-foreground">{agentsByUid.get(audit.agentUid)?.hostname || agentsByUid.get(audit.agentUid)?.localIp || audit.agentUid}</span>
                   </span>
-                  <span className={`shrink-0 text-xs ${isFailed ? "text-destructive" : "text-muted-foreground"}`}>{enumLabel(t, audit.status)}</span>
+                  <StatusBadge value={audit.status} />
                 </button>
               )
             })}
@@ -176,10 +176,10 @@ export function SSHCommandResultsPage() {
                     </span>
                   </div>
                 ) : null}
-                <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${selectedAudit.status === "FAILED" ? "bg-destructive/10 text-destructive" : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"}`}>
-                  {selectedAudit.status === "FAILED" ? <CircleX className="size-3.5" aria-hidden="true" /> : <Check className="size-3.5" aria-hidden="true" />}
-                  {enumLabel(t, selectedAudit.status)}
-                </div>
+                <span className="inline-flex items-center gap-1.5">
+                  {selectedAudit.status === "FAILED" ? <CircleX className="size-3.5 text-destructive" aria-hidden="true" /> : <Check className="size-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />}
+                  <StatusBadge value={selectedAudit.status} />
+                </span>
               </div>
               <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4 md:p-6">
                 <section className="grid gap-2">

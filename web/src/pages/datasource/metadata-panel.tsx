@@ -23,7 +23,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { enumLabel } from "@/lib/enum-label"
+import { StatusBadge } from "@/components/status-badge"
 import { failureText } from "@/lib/form-error"
 import { cn } from "@/lib/utils"
 
@@ -169,7 +169,7 @@ function MetadataHeader({
         className="size-10 rounded-lg border bg-background p-1.5"
       />
       <div className="min-w-0 flex-1">
-        <p className="font-medium">{enumLabel(t, datasource.driver)}</p>
+        <div className="font-medium"><StatusBadge value={datasource.driver} /></div>
         <p className="truncate font-mono text-xs text-muted-foreground">
           {datasource.endpoint}
         </p>

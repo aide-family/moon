@@ -24,6 +24,7 @@ import { FormField } from "@/components/form-field"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -496,7 +497,7 @@ export function NotificationGroupPage() {
                 <TableHead>{t("group.channels")}</TableHead>
                 <TableHead>{t("group.receiversSummary")}</TableHead>
                 <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead className="text-right">{t("action.actions")}</TableHead>
+                <TableHead className="text-center">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -517,7 +518,7 @@ export function NotificationGroupPage() {
                     </div>
                   </TableCell>
                   <TableCell className="max-w-md text-sm text-muted-foreground">{receiversSummary(item)}</TableCell>
-                  <TableCell>{enumLabel(t, item.status)}</TableCell>
+                  <TableCell><StatusBadge value={item.status} /></TableCell>
                   <TableCell>
                     <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
                   </TableCell>

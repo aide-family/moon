@@ -46,8 +46,8 @@ export function RowActions({
   const normal = actions.filter((action) => !action.destructive)
   const dangerous = actions.filter((action) => action.destructive)
   const rowClass = nowrap
-    ? "flex flex-nowrap justify-end gap-2"
-    : "flex flex-wrap justify-end gap-2"
+    ? "flex flex-nowrap justify-center gap-2"
+    : "flex flex-wrap justify-center gap-2"
 
   if (inline.length > 2 || (forceMenu && actions.length > 0)) {
     return (

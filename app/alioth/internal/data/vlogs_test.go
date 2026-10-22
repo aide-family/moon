@@ -72,6 +72,51 @@ func TestQueryVlogsLogsSortsForOldest(t *testing.T) {
 	}
 }
 
+func TestQueryVlogsLogsKeepsStatsQueryForForwardDirection(t *testing.T) {
+	var gotQuery, gotLimit string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotQuery = r.URL.Query().Get("query")
+		gotLimit = r.URL.Query().Get("limit")
+		_, _ = w.Write([]byte(`{"host.name":"api","value":"3"}` + "\n"))
+	}))
+	defer srv.Close()
+
+	expr := "_msg:RegistryConnectionError AND _msg:ENOTFOUND | stats by (host.name) count() as value"
+	repo := newLogTestRepo()
+	if _, err := repo.QueryLogs(context.Background(), bo.Datasource{
+		UID: "ds-vlogs", Driver: driverLogsVlogs, Endpoint: srv.URL,
+	}, expr, 100, 200, 20, "forward"); err != nil {
+		t.Fatal(err)
+	}
+	// stats 结果没有 _time，追加 sort by (_time) 会让 VictoriaLogs 拒绝整条查询。
+	if gotQuery != expr {
+		t.Fatalf("query = %q, want original stats query", gotQuery)
+	}
+	if gotLimit != "20" {
+		t.Fatalf("limit = %q, want 20", gotLimit)
+	}
+}
+
+func TestHasVlogsStatsPipe(t *testing.T) {
+	cases := []struct {
+		query string
+		want  bool
+	}{
+		{"error", false},
+		{`_msg:ENOTFOUND | fields _msg`, false},
+		{`_msg:ENOTFOUND | stats by (host.name) count() as value`, true},
+		{`_msg:ENOTFOUND | stats count() as value`, true},
+		{`_msg:ENOTFOUND | count() as value`, true},
+		{`_msg:ENOTFOUND | count_uniq(host) as value`, true},
+		{`_msg:ENOTFOUND | sort by (_time) | limit 10`, false},
+	}
+	for _, tc := range cases {
+		if got := hasVlogsStatsPipe(tc.query); got != tc.want {
+			t.Fatalf("hasVlogsStatsPipe(%q) = %v, want %v", tc.query, got, tc.want)
+		}
+	}
+}
+
 func TestVlogsMetricRangeQueryUsesStatsRange(t *testing.T) {
 	var gotPath, gotQuery, gotStart, gotEnd, gotStep, gotLimit, gotAuth string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

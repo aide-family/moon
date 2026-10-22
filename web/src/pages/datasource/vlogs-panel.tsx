@@ -28,9 +28,11 @@ import { failureText } from "@/lib/form-error"
 import { resolveRange, type RangePreset } from "@/pages/datasource/range"
 import {
   formatVlogsTimestamp,
+  isNumericVlogsColumn,
   parseVlogsBody,
-  toVlogsRows,
-  type VlogsLogRow,
+  sortVlogsEntries,
+  vlogsResultFields,
+  type VlogsLogEntry,
 } from "@/pages/datasource/vlogs"
 
 type LogDirection = "backward" | "forward"
@@ -38,12 +40,39 @@ type ResultTab = "logs" | "json"
 
 const MAX_LOG_LIMIT = 5000
 
-function LogTable({ rows }: { rows: VlogsLogRow[] }) {
+// vlogsFieldLabel 复用普通日志的列名；stats 结果的新字段直接显示字段名，
+// 这样 host.name、value 等统计列不会被固定三列表格吞掉。
+function vlogsFieldLabel(t: (key: string) => string, field: string): string {
+  switch (field) {
+    case "_time":
+      return t("datasource.resultTime")
+    case "_stream":
+      return t("datasource.logsStream")
+    case "_msg":
+      return t("datasource.logsLine")
+    case "value":
+      return t("datasource.statsValue")
+    default:
+      return field
+  }
+}
+
+function VlogsTable({
+  entries,
+  fields,
+}: {
+  entries: VlogsLogEntry[]
+  fields: string[]
+}) {
   const { t } = useTranslation()
+  const numericFields = useMemo(
+    () => new Set(fields.filter((field) => isNumericVlogsColumn(entries, field))),
+    [entries, fields]
+  )
   const stickyHead =
     "sticky top-0 z-20 bg-background shadow-[inset_0_-1px_0_0_hsl(var(--border))]"
 
-  if (rows.length === 0) {
+  if (entries.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
         {t("datasource.logsEmpty")}
@@ -56,33 +85,68 @@ function LogTable({ rows }: { rows: VlogsLogRow[] }) {
       <Table className="w-full">
         <TableHeader>
           <TableRow>
-            <TableHead className={`${stickyHead} w-48 whitespace-nowrap`}>
-              {t("datasource.resultTime")}
-            </TableHead>
-            <TableHead className={`${stickyHead} w-64 whitespace-nowrap`}>
-              {t("datasource.logsStream")}
-            </TableHead>
-            <TableHead className={`${stickyHead} whitespace-nowrap`}>
-              {t("datasource.logsLine")}
-            </TableHead>
+            {fields.map((field) => (
+              <TableHead
+                key={field}
+                className={`${stickyHead} whitespace-nowrap ${
+                  field === "_time"
+                    ? "w-48"
+                    : field === "_stream"
+                      ? "w-64"
+                      : numericFields.has(field)
+                        ? "w-28 text-right"
+                        : ""
+                }`}
+              >
+                {vlogsFieldLabel(t, field)}
+              </TableHead>
+            ))}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.key} className="align-top">
-              <TableCell className="align-top font-mono text-xs whitespace-nowrap text-muted-foreground">
-                {formatVlogsTimestamp(row.timestamp)}
-              </TableCell>
-              <TableCell className="max-w-64 align-top font-mono text-xs text-muted-foreground">
-                <pre className="break-all whitespace-pre-wrap">
-                  {row.stream || "—"}
-                </pre>
-              </TableCell>
-              <TableCell className="align-top font-mono text-xs">
-                <pre className="break-all whitespace-pre-wrap">
-                  {row.message || "—"}
-                </pre>
-              </TableCell>
+          {entries.map((entry, index) => (
+            <TableRow key={index} className="align-top">
+              {fields.map((field) => {
+                const value = entry[field] ?? ""
+                const numeric = numericFields.has(field)
+                if (field === "_time") {
+                  const timestamp = Date.parse(value)
+                  return (
+                    <TableCell
+                      key={field}
+                      className="align-top font-mono text-xs whitespace-nowrap text-muted-foreground"
+                    >
+                      {timestamp
+                        ? formatVlogsTimestamp(timestamp)
+                        : value || "—"}
+                    </TableCell>
+                  )
+                }
+                if (numeric) {
+                  return (
+                    <TableCell
+                      key={field}
+                      className="text-right align-top font-mono text-xs tabular-nums"
+                    >
+                      {value || "—"}
+                    </TableCell>
+                  )
+                }
+                return (
+                  <TableCell
+                    key={field}
+                    className={`align-top font-mono text-xs ${
+                      field === "_msg"
+                        ? ""
+                        : "max-w-64 text-muted-foreground"
+                    }`}
+                  >
+                    <pre className="break-all whitespace-pre-wrap">
+                      {value || "—"}
+                    </pre>
+                  </TableCell>
+                )
+              })}
             </TableRow>
           ))}
         </TableBody>
@@ -107,8 +171,9 @@ export function VlogsPanel({ datasource }: { datasource: DatasourceItem }) {
   const [resultTab, setResultTab] = useState<ResultTab>("logs")
 
   const entries = useMemo(() => parseVlogsBody(body), [body])
-  const rows = useMemo(
-    () => toVlogsRows(entries, direction),
+  const fields = useMemo(() => vlogsResultFields(entries), [entries])
+  const orderedEntries = useMemo(
+    () => sortVlogsEntries(entries, direction),
     [entries, direction]
   )
   const jsonText = useMemo(() => {
@@ -311,7 +376,9 @@ export function VlogsPanel({ datasource }: { datasource: DatasourceItem }) {
           value="logs"
           className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
         >
-          {body ? <LogTable rows={rows} /> : null}
+          {body ? (
+            <VlogsTable entries={orderedEntries} fields={fields} />
+          ) : null}
         </TabsContent>
         <TabsContent
           value="json"

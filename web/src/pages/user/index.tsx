@@ -11,8 +11,8 @@ import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { StatusBadge } from "@/components/status-badge"
 import { collectFieldErrors, hasFieldErrors, requireSelected } from "@/lib/form"
-import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 import { ListFrame } from "@/components/list-frame"
@@ -210,7 +210,7 @@ export function UserPage() {
                 <TableHead>{t("login.emailLabel")}</TableHead>
                 <TableHead>{t("user.systemRole")}</TableHead>
                 <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead className="text-right">{t("action.actions")}</TableHead>
+                <TableHead className="text-center">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -218,8 +218,8 @@ export function UserPage() {
                 <TableRow key={item.uid}>
                   <TableCell>{item.name}</TableCell>
                   <TableCell>{item.email}</TableCell>
-                  <TableCell>{enumLabel(t, item.systemRole)}</TableCell>
-                  <TableCell>{enumLabel(t, item.status)}</TableCell>
+                  <TableCell><StatusBadge value={item.systemRole} /></TableCell>
+                  <TableCell><StatusBadge value={item.status} /></TableCell>
                   <TableCell>
                     <RowActions
                       detailLabel={t("action.detail")}
@@ -246,8 +246,8 @@ export function UserPage() {
           { label: t("user.name"), value: detail?.name ?? "" },
           { label: t("user.nickname"), value: detail?.nickname ?? "" },
           { label: t("login.emailLabel"), value: detail?.email ?? "" },
-          { label: t("user.systemRole"), value: enumLabel(t, detail?.systemRole ?? "") },
-          { label: t("namespace.status"), value: enumLabel(t, detail?.status ?? "") },
+          { label: t("user.systemRole"), value: <StatusBadge value={detail?.systemRole ?? ""} /> },
+          { label: t("namespace.status"), value: <StatusBadge value={detail?.status ?? ""} /> },
           { label: t("profile.remark"), value: detail?.remark ?? "" },
           { label: t("detail.uid"), value: detail?.uid ?? "" },
         ]}

@@ -19,7 +19,7 @@ M11 在 M3 指标评测、M4 通知投递与 M10 通用告警处置基础上增�
 - 时间桶由 Megrez 通过 `stats_query_range` 的 `step` 参数切分，表达式里不要写 `stats by (_time:<步长>)`，也不要加 `_time:5m` 这类相对时间过滤；它们会和引擎窗口冲突。
 - 原始日志查询没有 stats 语义。告警评测严格要求 Prometheus matrix 且每个采样点都是有限数值：原始日志、非 matrix 响应、非数值 stats（例如 `values(level)`）、无效 JSON 和上游失败不得回写空报告，不得使既有 FIRING 事件错误恢复。有效的空 matrix 才表示本次没有采样，用于恢复旧事件。
 - datasource matcher 的 driver 必须为 `LOGS_VLOGS` 且数据源 ACTIVE。不得因为 labels 相同而把规则扩展到 Prometheus、Loki 或 Elasticsearch。
-- `stats_query_range` 的桶按 step 对齐，结束时间落在桶中间时最后一个桶只统计部分日志。引擎把结束时间向下对齐到 15 秒桶边界；规则使用 FOR 时再多查一个桶，让桶跨度覆盖配置的持续秒数。
+- `stats_query_range` 的桶按 step 对齐，结束时间落在桶中间时最后一个桶只统计部分日志。引擎把结束时间向下对齐到桶边界；默认步长 15 秒，FOR 短于 15 秒时改用与 FOR 相同的桶宽（例如 10 秒），避免短规则被放大成两个 15 秒桶。规则使用 FOR 时再多查一个桶，让桶跨度覆盖配置的持续秒数。
 - FOR 要求时间桶连续。VictoriaLogs 不会为没有命中的桶返回 0，缺失桶会让 FOR 不满足，不能只凭首末两桶的跨度判定持续命中。
 
 ## 评测和事件

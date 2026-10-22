@@ -73,6 +73,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { ServerErrorPage } from "@/pages/server-error"
 
 const repositoryURL = "https://github.com/aide-family/Alioth"
 
@@ -306,6 +307,10 @@ function ShellFrame() {
   if (!token) {
     return <Navigate to="/login" replace />
   }
+  // 后端接口失败时直接给出标准 502 页面，而不是在内容区残留“加载失败 + 重试”。
+  if (session.failed) {
+    return <ServerErrorPage detail={session.loadError} onRetry={session.reload} />
+  }
 
   function logout() {
     localStorage.removeItem("token")
@@ -466,15 +471,7 @@ function ShellFrame() {
                 {t("state.loading")}
               </p>
             ) : null}
-            {!session.loading && session.failed ? (
-              <div className="flex items-center gap-2">
-                <p className="text-sm text-destructive">{t("state.failed")}</p>
-                <Button variant="outline" onClick={session.reload}>
-                  {t("action.retry")}
-                </Button>
-              </div>
-            ) : null}
-            {!session.loading && !session.failed ? <Outlet /> : null}
+            {!session.loading ? <Outlet /> : null}
           </div>
         </SidebarInset>
       </SidebarProvider>

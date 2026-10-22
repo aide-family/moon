@@ -100,6 +100,36 @@ func TestVlogsQueryInstantUsesStatsQuery(t *testing.T) {
 	}
 }
 
+func TestVlogsStatsRangeAcceptsNumericProxyPayload(t *testing.T) {
+	body := `{"status":"success","data":{"resultType":"matrix","result":[
+{"metric":{"__name__":"value","host.name":"api-1"},"values":[[1735689600,3],["1735689610",2]]}]}}`
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(body))
+	}))
+	defer srv.Close()
+
+	samples, err := rangeQuery{}.QueryRange(context.Background(), bo.RuleSnapshot{
+		UID: "vlogs-rule", Driver: "LOGS_VLOGS", Endpoint: srv.URL,
+		Expr: `_msg:RegistryConnectionError AND _msg:ENOTFOUND | stats by (host.name) count() as value`,
+	}, 1735689590, 1735689610, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(samples) != 1 {
+		t.Fatalf("samples = %+v", samples)
+	}
+	sample := samples[0]
+	if sample.Labels["host.name"] != "api-1" || sample.Step != 10 || len(sample.Points) != 2 {
+		t.Fatalf("sample = %+v", sample)
+	}
+	if sample.Points[0].Value != 3 || sample.Points[0].Raw != "3" {
+		t.Fatalf("numeric point = %+v", sample.Points[0])
+	}
+	if sample.Points[1].At.Unix() != 1735689610 || sample.Points[1].Value != 2 {
+		t.Fatalf("string timestamp point = %+v", sample.Points[1])
+	}
+}
+
 func TestVlogsRangeAcceptsEmptyMatrix(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte(`{"status":"success","data":{"resultType":"matrix","result":[]}}`))

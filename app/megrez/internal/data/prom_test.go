@@ -92,9 +92,36 @@ func TestDecodeMatrixRejectsInvalidPayload(t *testing.T) {
 	}
 }
 
+func TestDecodeMatrixAcceptsNumericValuesAndStringTimestamps(t *testing.T) {
+	samples, err := decodeMatrix([]byte(`{"status":"success","data":{"resultType":"matrix","result":[
+		{"metric":{"__name__":"up"},"values":[[1735689600,"1"],[1735689615,2],["1735689630",3],[1735689645000,4]]}
+	]}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(samples) != 1 || len(samples[0].Points) != 4 {
+		t.Fatalf("samples = %+v", samples)
+	}
+	points := samples[0].Points
+	if points[0].At.Unix() != 1735689600 || points[0].Raw != "1" {
+		t.Fatalf("string point = %+v", points[0])
+	}
+	if points[1].At.Unix() != 1735689615 || points[1].Value != 2 || points[1].Raw != "2" {
+		t.Fatalf("numeric point = %+v", points[1])
+	}
+	// 兼容把秒级时间戳编码成字符串的代理。
+	if points[2].At.Unix() != 1735689630 || points[2].Value != 3 {
+		t.Fatalf("string timestamp point = %+v", points[2])
+	}
+	// 兼容毫秒级时间戳。
+	if points[3].At.Unix() != 1735689645 || points[3].Value != 4 {
+		t.Fatalf("millisecond timestamp point = %+v", points[3])
+	}
+}
+
 func TestDecodeMatrixSkipsInvalidPoints(t *testing.T) {
 	samples, err := decodeMatrix([]byte(`{"status":"success","data":{"resultType":"matrix","result":[
-		{"metric":{"__name__":"up"},"values":[[100,"1"],[115,2],[130,"nan"]]}
+		{"metric":{"__name__":"up"},"values":[[100,"1"],[115,true],[130,"nan"]]}
 	]}}`))
 	if err != nil {
 		t.Fatal(err)

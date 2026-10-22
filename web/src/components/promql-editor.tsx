@@ -7,6 +7,7 @@ import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker"
 
 import { listDatasourceMetrics } from "@/api/datasource"
 import { proxyQuery } from "@/api/metric-query"
+import { useMonacoOverflowNode } from "@/components/monaco-overflow"
 import { useTheme } from "@/components/theme-provider"
 
 let monacoReady = false
@@ -691,6 +692,7 @@ export function QueryExpressionEditor({
   variant = "promql",
 }: QueryExpressionEditorProps) {
   const { theme } = useTheme()
+  const overflowWidgetsDomNode = useMonacoOverflowNode()
   const uidRef = useRef(datasourceUid)
   const variantRef = useRef(variant)
   const onSubmitRef = useRef(onSubmit)
@@ -778,6 +780,7 @@ export function QueryExpressionEditor({
         onChange={(next) => onChange(next ?? "")}
         options={{
           fixedOverflowWidgets: true,
+          overflowWidgetsDomNode: overflowWidgetsDomNode ?? undefined,
           minimap: { enabled: false },
           fontSize: 13,
           fontFamily: 'JetBrains Mono, Menlo, Monaco, "Courier New", monospace',

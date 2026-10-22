@@ -90,9 +90,12 @@ func matchLevel(level bo.Level, points []bo.Point, step int64) (float64, string,
 			}
 		}
 		if step > 0 {
+			// 允许半个步长的容差：上游可能把桶时间戳编码成浮点
+			// 秒或毫秒，换回纳秒时有微小抖动；超过一个半步长仍然说明
+			// 中间缺桶。
 			gap := time.Duration(step) * time.Second
 			for index := 1; index < len(points); index++ {
-				if points[index].At.Sub(points[index-1].At) > gap {
+				if points[index].At.Sub(points[index-1].At) > gap+gap/2 {
 					return 0, "", false
 				}
 			}
@@ -155,15 +158,27 @@ func atof(value string) (float64, bool) {
 }
 
 func window(rule bo.RuleSnapshot, now time.Time) (int64, int64, int64) {
-	const step = 15
-	seconds := step
+	step := int64(15)
 	hasFor := false
+	shortestFor := int64(0)
 	for _, level := range rule.Levels {
 		if level.Sample == "FOR" && level.ForSeconds > 0 {
 			hasFor = true
+			forSeconds := int64(level.ForSeconds)
+			if shortestFor == 0 || forSeconds < shortestFor {
+				shortestFor = forSeconds
+			}
 		}
-		if level.ForSeconds > seconds {
-			seconds = level.ForSeconds
+	}
+	if rule.Driver == "LOGS_VLOGS" && shortestFor > 0 && shortestFor < step {
+		// 持续 10 秒的规则若仍按 15 秒切桶，至少需要两个满桶（30 秒）才能命中，
+		// 与配置语义相差一个量级。短窗口改用与 FOR 相同的桶宽，两个桶即可覆盖。
+		step = shortestFor
+	}
+	seconds := step
+	for _, level := range rule.Levels {
+		if int64(level.ForSeconds) > seconds {
+			seconds = int64(level.ForSeconds)
 		}
 	}
 	end := now.UTC().Unix()
@@ -180,9 +195,9 @@ func window(rule bo.RuleSnapshot, now time.Time) (int64, int64, int64) {
 		if hasFor {
 			seconds += step
 		}
-		return end - int64(seconds), end, step
+		return end - seconds, end, step
 	}
-	return end - int64(seconds), end, step
+	return end - seconds, end, step
 }
 
 // mergeRuleLabels 把规则上配置的标签并入采样标签。采样标签优先，规则标签只补缺，

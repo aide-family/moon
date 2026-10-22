@@ -23,6 +23,7 @@ import { FormField } from "@/components/form-field"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -55,7 +56,6 @@ import {
   requireTrimmed,
   type FieldErrors,
 } from "@/lib/form"
-import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 
@@ -286,7 +286,7 @@ export function SSHCommandPage() {
                 <TableHead>{t("ssh.name")}</TableHead>
                 <TableHead>{t("ssh.command")}</TableHead>
                 <TableHead>{t("ssh.reviewStatus")}</TableHead>
-                <TableHead className="text-right">{t("action.actions")}</TableHead>
+                <TableHead className="text-center">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -294,7 +294,7 @@ export function SSHCommandPage() {
                 <TableRow key={item.uid}>
                   <TableCell>{item.name}</TableCell>
                   <TableCell className="max-w-md truncate font-mono text-xs">{item.command}</TableCell>
-                  <TableCell>{enumLabel(t, item.reviewStatus)}</TableCell>
+                  <TableCell><StatusBadge value={item.reviewStatus} /></TableCell>
                   <TableCell>
                     <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
                   </TableCell>
@@ -425,10 +425,8 @@ export function SSHCommandPage() {
                       <article className="min-w-0 rounded-lg border bg-card p-4">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium">{enumLabel(t, audit.kind)}</span>
-                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isFailed ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>
-                              {enumLabel(t, audit.status)}
-                            </span>
+                            <StatusBadge value={audit.kind} className="font-medium" />
+                            <StatusBadge value={audit.status} tone={isFailed ? "danger" : "neutral"} />
                           </div>
                           <time className="text-xs text-muted-foreground">{new Date(audit.createdAt).toLocaleString()}</time>
                         </div>
@@ -487,7 +485,7 @@ export function SSHCommandPage() {
                 { label: t("ssh.command"), value: detail.command },
                 { label: t("ssh.workdir"), value: detail.workdir || "-" },
                 { label: t("ssh.env"), value: detail.env || "-" },
-                { label: t("ssh.reviewStatus"), value: enumLabel(t, detail.reviewStatus) },
+                { label: t("ssh.reviewStatus"), value: <StatusBadge value={detail.reviewStatus} /> },
                 { label: t("ssh.remark"), value: detail.remark || "-" },
               ]
             : []

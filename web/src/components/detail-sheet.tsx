@@ -16,7 +16,7 @@ interface DetailField {
 interface DetailSheetProps {
   open: boolean
   title: string
-  description?: string
+  description?: ReactNode
   fields: DetailField[]
   wide?: boolean
   onOpenChange: (open: boolean) => void

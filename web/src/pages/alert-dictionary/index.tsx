@@ -17,6 +17,7 @@ import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { StatusBadge } from "@/components/status-badge"
 import { ListFrame } from "@/components/list-frame"
 import { Button } from "@/components/ui/button"
 import {
@@ -292,7 +293,7 @@ export function AlertDictionaryPage() {
                   <TableHead>{t("alertDictionary.color")}</TableHead>
                   <TableHead>{t("datasource.type")}</TableHead>
                   <TableHead>{t("namespace.status")}</TableHead>
-                  <TableHead className="text-right">{t("action.actions")}</TableHead>
+                  <TableHead className="text-center">{t("action.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -302,8 +303,8 @@ export function AlertDictionaryPage() {
                     <TableCell>
                       <ColorChip value={item.color} />
                     </TableCell>
-                    <TableCell>{enumLabel(t, item.type)}</TableCell>
-                    <TableCell>{enumLabel(t, item.status)}</TableCell>
+                    <TableCell><StatusBadge value={item.type} /></TableCell>
+                    <TableCell><StatusBadge value={item.status} /></TableCell>
                     <TableCell>
                       <RowActions
                         detailLabel={t("action.detail")}
@@ -412,8 +413,8 @@ export function AlertDictionaryPage() {
             ? [
                 { label: t("detail.uid"), value: detail.uid },
                 { label: t("alertDictionary.color"), value: <ColorChip value={detail.color} /> },
-                { label: t("datasource.type"), value: enumLabel(t, detail.type) },
-                { label: t("namespace.status"), value: enumLabel(t, detail.status) },
+                { label: t("datasource.type"), value: <StatusBadge value={detail.type} /> },
+                { label: t("namespace.status"), value: <StatusBadge value={detail.status} /> },
               ]
             : []
         }

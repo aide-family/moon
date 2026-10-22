@@ -82,6 +82,9 @@ const zh = {
   error: {
     notFound: "没有找到请求的资源",
     server: "服务暂时不可用",
+    badGatewayTitle: "网关无法连接后端服务",
+    badGatewayDescription:
+      "后端接口暂时不可用，页面无法加载。请稍后重试；如果持续出现，请联系运维检查后端服务与网关状态。",
     forbiddenTitle: "没有权限",
     forbiddenDescription: "当前账号不能访问这个页面。",
     captchaInvalid: "验证码不正确",
@@ -428,6 +431,7 @@ const zh = {
     logsEmpty: "没有匹配的日志",
     logsLine: "日志",
     logsStream: "标签",
+    statsValue: "数值",
     preset: {
       "1h": "近 1 小时",
       "3h": "近 3 小时",
@@ -1069,6 +1073,9 @@ const en = {
   error: {
     notFound: "The requested resource was not found",
     server: "The service is temporarily unavailable",
+    badGatewayTitle: "The gateway cannot reach the backend",
+    badGatewayDescription:
+      "The backend API is temporarily unavailable, so this page cannot load. Try again shortly; if it persists, ask operations to check the backend and gateway.",
     forbiddenTitle: "No permission",
     forbiddenDescription: "This account cannot open this page.",
     captchaInvalid: "The captcha is incorrect",
@@ -1432,6 +1439,7 @@ const en = {
     logsEmpty: "No matching logs",
     logsLine: "Log line",
     logsStream: "Labels",
+    statsValue: "Value",
     preset: {
       "1h": "Last 1 hour",
       "3h": "Last 3 hours",

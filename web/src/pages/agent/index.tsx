@@ -19,6 +19,7 @@ import { FormField } from "@/components/form-field"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -38,7 +39,6 @@ import {
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { requireTrimmed, collectFieldErrors, hasFieldErrors } from "@/lib/form"
-import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 
@@ -244,7 +244,7 @@ export function AgentPage() {
                 <TableHead>{t("agent.disk")}</TableHead>
                 <TableHead>{t("agent.online")}</TableHead>
                 <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead className="text-right">{t("action.actions")}</TableHead>
+                <TableHead className="text-center">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -257,8 +257,8 @@ export function AgentPage() {
                   <TableCell className="max-w-48 truncate" title={item.cpu}>{item.cpu || "-"}</TableCell>
                   <TableCell>{item.memory || "-"}</TableCell>
                   <TableCell>{item.disk || "-"}</TableCell>
-                  <TableCell>{item.online ? t("agent.onlineYes") : t("agent.onlineNo")}</TableCell>
-                  <TableCell>{enumLabel(t, item.status)}</TableCell>
+                  <TableCell><StatusBadge value={item.online ? "ONLINE" : "OFFLINE"} label={item.online ? t("agent.onlineYes") : t("agent.onlineNo")} /></TableCell>
+                  <TableCell><StatusBadge value={item.status} /></TableCell>
                   <TableCell>
                     <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
                   </TableCell>
@@ -350,7 +350,7 @@ export function AgentPage() {
                 { label: t("agent.bootTime"), value: detail.bootTime || "-" },
                 { label: t("agent.timeServer"), value: detail.timeServer || "-" },
                 { label: t("agent.version"), value: detail.version || "-" },
-                { label: t("agent.online"), value: detail.online ? t("agent.onlineYes") : t("agent.onlineNo") },
+                { label: t("agent.online"), value: <StatusBadge value={detail.online ? "ONLINE" : "OFFLINE"} label={detail.online ? t("agent.onlineYes") : t("agent.onlineNo")} /> },
                 { label: t("agent.sshHost"), value: detail.sshHost || "-" },
                 { label: t("agent.sshPort"), value: String(detail.sshPort || 22) },
                 { label: t("agent.sshUser"), value: detail.sshUser || "-" },

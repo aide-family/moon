@@ -17,8 +17,8 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
+import { StatusBadge } from "@/components/status-badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { enumLabel } from "@/lib/enum-label"
 import { failureText, readFormError } from "@/lib/form-error"
 
 // 备注上限以后端 ChangeRemark 的 buf.validate 为准。
@@ -128,13 +128,13 @@ export function ProfilePage() {
                 <dt className="text-sm text-muted-foreground">
                   {t("user.systemRole")}
                 </dt>
-                <dd>{enumLabel(t, profile?.systemRole ?? "") || "—"}</dd>
+                <dd><StatusBadge value={profile?.systemRole ?? ""} /></dd>
               </div>
               <div className="grid gap-1">
                 <dt className="text-sm text-muted-foreground">
                   {t("profile.status")}
                 </dt>
-                <dd>{enumLabel(t, profile?.status ?? "") || "—"}</dd>
+                <dd><StatusBadge value={profile?.status ?? ""} /></dd>
               </div>
             </dl>
             <Separator />

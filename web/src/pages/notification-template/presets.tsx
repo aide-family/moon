@@ -11,11 +11,11 @@ import type { NotificationPresetItem } from "@/api/notification-template/types"
 import { ChannelLogo } from "@/components/channel-logo"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
+import { StatusBadge } from "@/components/status-badge"
 import { TemplateEditor } from "@/components/template-editor"
 import { TemplatePreviewDialog } from "@/components/template-preview-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { enumLabel } from "@/lib/enum-label"
 import { failureText, readFormError } from "@/lib/form-error"
 import { cn } from "@/lib/utils"
 
@@ -199,9 +199,9 @@ export function NotificationPresetPage() {
                 <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                   <span className="flex items-center gap-2">
                     <ChannelLogo type={selected.type} app={selected.app} className="size-4" />
-                    {enumLabel(t, selected.type)}
+                    <StatusBadge value={selected.type} />
                   </span>
-                  {selected.type === "WEBHOOK" ? <span>· {enumLabel(t, selected.app)}</span> : null}
+                  {selected.type === "WEBHOOK" ? <StatusBadge value={selected.app} /> : null}
                   <span>· {t("template.presetReadonlyHint")}</span>
                 </div>
                 <FormField label={t("template.name")} htmlFor="preset-name" required error={fieldErrors.name}>

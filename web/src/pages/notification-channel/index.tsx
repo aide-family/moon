@@ -19,6 +19,7 @@ import { FormField } from "@/components/form-field"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -326,7 +327,7 @@ export function NotificationChannelPage() {
                 <TableHead>{t("channel.app")}</TableHead>
                 <TableHead>{t("channel.endpoint")}</TableHead>
                 <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead className="text-right">{t("action.actions")}</TableHead>
+                <TableHead className="text-center">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -345,17 +346,17 @@ export function NotificationChannelPage() {
                   <TableCell>
                     <span className="flex min-w-0 items-center gap-2">
                       <ChannelLogo type={item.type} app={item.app} className="size-4" />
-                      <span>{enumLabel(t, item.type)}</span>
+                      <StatusBadge value={item.type} />
                     </span>
                   </TableCell>
                   <TableCell>
                     <span className="flex min-w-0 items-center gap-2">
                       <ChannelLogo type={item.type} app={item.app} className="size-4" />
-                      <span>{enumLabel(t, item.app)}</span>
+                      <StatusBadge value={item.app} />
                     </span>
                   </TableCell>
                   <TableCell className="max-w-xs truncate">{item.endpoint}</TableCell>
-                  <TableCell>{enumLabel(t, item.status)}</TableCell>
+                  <TableCell><StatusBadge value={item.status} /></TableCell>
                   <TableCell>
                     <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
                   </TableCell>
@@ -541,7 +542,7 @@ export function NotificationChannelPage() {
                   value: (
                     <span className="flex items-center gap-2">
                       <ChannelLogo type={detail.type} app={detail.app} className="size-4" />
-                      {enumLabel(t, detail.type)}
+                      <StatusBadge value={detail.type} />
                     </span>
                   ),
                 },
@@ -550,12 +551,12 @@ export function NotificationChannelPage() {
                   value: (
                     <span className="flex items-center gap-2">
                       <ChannelLogo type={detail.type} app={detail.app} className="size-4" />
-                      {enumLabel(t, detail.app)}
+                      <StatusBadge value={detail.app} />
                     </span>
                   ),
                 },
                 { label: t("channel.endpoint"), value: detail.endpoint },
-                { label: t("namespace.status"), value: enumLabel(t, detail.status) },
+                { label: t("namespace.status"), value: <StatusBadge value={detail.status} /> },
               ]
             : []
         }

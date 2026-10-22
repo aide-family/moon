@@ -11,7 +11,7 @@ import {
 import type { MemberInviteItem } from "@/api/invitation/types"
 import { useSession } from "@/auth/session"
 import { PageHeader } from "@/components/page-header"
-import { enumLabel } from "@/lib/enum-label"
+import { StatusBadge } from "@/components/status-badge"
 import { failureText } from "@/lib/form-error"
 import { Button } from "@/components/ui/button"
 import {
@@ -114,7 +114,7 @@ export function InvitationPage() {
               <TableHead>{t("invitation.inviter")}</TableHead>
               <TableHead>{t("member.expiresAt")}</TableHead>
               <TableHead>{t("member.status")}</TableHead>
-              <TableHead className="text-right">{t("action.actions")}</TableHead>
+              <TableHead className="text-center">{t("action.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -126,10 +126,10 @@ export function InvitationPage() {
                 <TableCell>
                   {new Date(item.expiresAt * 1000).toLocaleString()}
                 </TableCell>
-                <TableCell>{enumLabel(t, item.status)}</TableCell>
-                <TableCell>
+                <TableCell><StatusBadge value={item.status} /></TableCell>
+                <TableCell className="text-center">
                   {item.status === "PENDING" ? (
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-center gap-2">
                       <Button
                         size="sm"
                         disabled={pendingUid === item.uid}

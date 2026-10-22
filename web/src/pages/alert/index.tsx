@@ -23,6 +23,7 @@ import { AlertColumnDialog } from "@/pages/alert/column-dialog"
 import { DEFAULT_REALTIME_COLUMNS } from "@/pages/alert/columns"
 import { AlertEventList } from "@/pages/alert/list"
 import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -547,14 +548,15 @@ export function AlertRealtimePage() {
                         <span className="min-w-0 truncate font-medium">
                           {item.name}
                         </span>
-                        <Badge
-                          variant={item.public ? "secondary" : "outline"}
+                        <StatusBadge
+                          value={item.public ? "PUBLIC" : "PRIVATE"}
+                          label={
+                            item.public
+                              ? t("alertPage.public")
+                              : t("alertPage.private")
+                          }
                           className="shrink-0"
-                        >
-                          {item.public
-                            ? t("alertPage.public")
-                            : t("alertPage.private")}
-                        </Badge>
+                        />
                       </span>
                       <span className="truncate font-mono text-xs text-muted-foreground">
                         {item.labels || "{}"}

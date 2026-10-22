@@ -4,8 +4,8 @@ import { Link, useNavigate, useParams } from "react-router-dom"
 
 import { acceptInvitation, declineInvitation, getInvitation } from "@/api/invitation"
 import type { MemberInviteItem } from "@/api/invitation/types"
+import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
-import { enumLabel } from "@/lib/enum-label"
 import { failureText } from "@/lib/form-error"
 import { AuthShell } from "@/pages/auth-shell"
 
@@ -105,7 +105,7 @@ export function InvitePage() {
           </div>
           <div className="flex justify-between gap-4">
             <span className="text-muted-foreground">{t("member.status")}</span>
-            <span>{enumLabel(t, invitation.status)}</span>
+            <StatusBadge value={invitation.status} />
           </div>
           {invitation.status !== "PENDING" ? (
             <p className="text-muted-foreground">{t("invitation.notPending")}</p>

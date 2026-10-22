@@ -3,6 +3,7 @@ package eval
 import (
 	"context"
 	"log/slog"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -324,6 +325,24 @@ func TestVlogsWindowCoversConfiguredForDuration(t *testing.T) {
 		t.Fatalf("100s FOR window = %d..%d step %d, want aligned 120s window", start, end, step)
 	}
 
+	// 短于默认步长的持续窗口按 FOR 秒数切桶，避免 10 秒规则要等满两个 15 秒桶。
+	rule.Levels = []bo.Level{{Condition: "GT", Sample: "FOR", Threshold: "0", ForSeconds: 10}}
+	start, end, step = window(rule, now)
+	if step != 10 || end%10 != 0 || start%10 != 0 || end-start != 20 {
+		t.Fatalf("10s FOR window = %d..%d step %d, want aligned 20s window", start, end, step)
+	}
+	at := time.Unix(end, 0).UTC()
+	points := []bo.Point{
+		{At: at.Add(-10 * time.Second), Value: 1, Raw: "1"},
+		{At: at.Add(-20 * time.Second), Value: 1, Raw: "1"},
+	}
+	// 采样按时间升序排列，和 vlogsQuery 返回顺序保持一致。
+	slices.SortFunc(points, func(left, right bo.Point) int { return left.At.Compare(right.At) })
+	hits := Hits(bo.RuleSnapshot{Driver: "LOGS_VLOGS", Levels: rule.Levels}, []bo.Sample{{Points: points, Step: step}})
+	if len(hits) != 1 {
+		t.Fatalf("10s FOR buckets = %+v, want one hit", hits)
+	}
+
 	rule.Levels = []bo.Level{{Condition: "GT", Sample: "MAX", Threshold: "1"}}
 	start, end, step = window(rule, now)
 	if step != 15 || end-start != 15 {
@@ -364,5 +383,17 @@ func TestVlogsForRejectsMissingBuckets(t *testing.T) {
 	}}
 	if hits := Hits(rule, gapped); len(hits) != 0 {
 		t.Fatalf("missing bucket must not satisfy FOR: %+v", hits)
+	}
+	// 上游时间戳可能带亚秒抖动，不能因此把连续桶判成缺桶。
+	jittered := []bo.Sample{{
+		Points: []bo.Point{
+			{At: at, Value: 1, Raw: "1"},
+			{At: at.Add(15*time.Second + time.Millisecond), Value: 1, Raw: "1"},
+			{At: at.Add(30*time.Second + 2*time.Millisecond), Value: 1, Raw: "1"},
+		},
+		Step: 15,
+	}}
+	if hits := Hits(rule, jittered); len(hits) != 1 {
+		t.Fatalf("sub-second timestamp jitter must not break FOR: %+v", hits)
 	}
 }

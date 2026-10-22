@@ -282,7 +282,7 @@ Moon 的策略组与策略在 Alioth 中改名为规则组与规则。条件语�
 - 可评测表达式必须是带 `| stats ...` 的 LogsQL 查询，例如 `level:error | stats by (app, level) count() as value`。`stats by (...)` 的分组字段成为序列标签，stats 输出字段成为 `__name__`。时间桶由引擎的 `step` 参数决定，表达式里不写 `_time:<步长>`，也不要加相对的 `_time` 过滤。
 - Megrez 严格按 `LOGS_VLOGS` driver 调用 `/select/logsql/stats_query_range`，传入 `query`、Unix 秒 `start` / `end` 和 `<step>s`，返回 Prometheus matrix。模板 `query` 使用 `/select/logsql/stats_query`，范围取查询时刻之前的一个步长。
 - 原始日志查询、非 matrix / vector 响应、非数值 stats 点、无效 JSON 和上游错误都会使评测失败且不回写；有效的空 matrix 才是“本次没有采样”，用于恢复旧事件。这样不会把原始日志或上游故障误当成恢复信号。
-- `stats_query_range` 的桶按 step 对齐，结束时间落在桶中间时最后一个桶只统计部分日志。Megrez 把结束时间向下对齐到 15 秒桶边界，FOR 再多查一个桶并要求采样点连续，缺失桶不会被首末跨度掩盖。
+- `stats_query_range` 的桶按 step 对齐，结束时间落在桶中间时最后一个桶只统计部分日志。Megrez 把结束时间向下对齐到桶边界；默认步长 15 秒，持续秒数短于 15 秒时改用与 FOR 相同的桶宽（例如 10 秒），避免 10 秒规则实际要求 30 秒连续日志。FOR 再多查一个桶并要求采样点连续，缺失桶不会被首末跨度掩盖。
 - FIRING 与恢复进入共用 `AlertEvent` 与 `NotificationSubscription` 路由，之后由 `merak` 投递；实时/历史列表、通知收件、介入、抑制、手工恢复均使用现有公共流程。事件详情图表调用同一个 `stats_query_range` 并按事件标签收敛 matrix 序列。
 - VictoriaLogs 告警只匹配 ACTIVE 的 `LOGS_VLOGS` 数据源。Elasticsearch 与 Jaeger 仍未实现；Prometheus / VictoriaMetrics / Loki 查询路径保持不变。
 
@@ -457,7 +457,7 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 | 角色与权限         | 角色的增删改查与启停；为角色分配权限；为成员分配角色；读取当前用户权限供菜单使用 |
 | Agent         | 签发与吊销令牌；列表与详情（含在线状态）。注册和心跳不走浏览器 HTTP     |
 | 告警页面          | CRUD；公开/私有；个人实时 Tab 订阅。按标签匹配过滤实时告警，标签值支持完整匹配正则。与 Moon 通知订阅无关 |
-| 我的告警          | 实时列表筛选：订阅下的通知组包含当前成员，或 `receivers` 含当前用户邮箱或 UID           |
+| 我的告警          | 实时列表筛选：按实际生成的 `NotificationTask` 事件标识过滤。通知组包含当前成员，或任务 `receivers` 含当前用户邮箱/手机号/UID 时，该事件才算当前用户的告警；不能按规则放行整条规则下的事件 |
 
 
 明确不迁入的 Moon HTTP：`/v1/probe-tasks`、`/v1/ssh-command-actions/dispatch`（由在线 Agent 替代）、rabbit 的 `POST /v1/alerts/prometheus/webhook`（评测结果改走内部回写）。告警订阅由 Alioth 的 `NotificationSubscription` 提供，不复用 Moon 的 `/v1/alert-subscriptions`。

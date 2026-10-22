@@ -38,7 +38,7 @@ import {
 } from "@/components/promql-editor"
 import { RowActions, type RowAction } from "@/components/row-actions"
 import { ListFrame } from "@/components/list-frame"
-import { StatusDot } from "@/components/status-dot"
+import { StatusBadge } from "@/components/status-badge"
 import { StepForm } from "@/components/step-form"
 import { Button } from "@/components/ui/button"
 import {
@@ -682,13 +682,13 @@ export function AlertRulePage() {
                     onClick={() => setParam("groupUid", item.uid)}
                   >
                     <span className="flex w-full min-w-0 items-center gap-2">
-                      <StatusDot active={item.status === "ACTIVE"} />
                       <span
                         className="min-w-0 flex-1 truncate text-left"
                         title={item.name}
                       >
                         {item.name}
                       </span>
+                      <StatusBadge value={item.status} />
                     </span>
                   </Button>
                   <DropdownMenu>
@@ -817,7 +817,7 @@ export function AlertRulePage() {
                     <TableHead>{t("datasource.expr")}</TableHead>
                     <TableHead>{t("datasource.driver")}</TableHead>
                     <TableHead>{t("namespace.status")}</TableHead>
-                    <TableHead className="text-right">{t("action.actions")}</TableHead>
+                    <TableHead className="text-center">{t("action.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -831,8 +831,8 @@ export function AlertRulePage() {
                           maxHeightClass="max-h-24"
                         />
                       </TableCell>
-                      <TableCell>{enumLabel(t, item.driver)}</TableCell>
-                      <TableCell>{enumLabel(t, item.status)}</TableCell>
+                      <TableCell><StatusBadge value={item.driver} /></TableCell>
+                      <TableCell><StatusBadge value={item.status} /></TableCell>
                       <TableCell>
                         <RowActions
                           detailLabel={t("action.detail")}
@@ -1340,11 +1340,11 @@ export function AlertRulePage() {
                 { label: t("detail.uid"), value: detail.uid },
                 {
                   label: t("datasource.driver"),
-                  value: enumLabel(t, detail.driver),
+                  value: <StatusBadge value={detail.driver} />,
                 },
                 {
                   label: t("namespace.status"),
-                  value: enumLabel(t, detail.status),
+                  value: <StatusBadge value={detail.status} />,
                 },
                 {
                   label: t("datasource.expr"),
@@ -1366,7 +1366,7 @@ export function AlertRulePage() {
       <DetailSheet
         open={groupDetail !== null}
         title={groupDetail?.name ?? ""}
-        description={groupDetail ? enumLabel(t, groupDetail.status) : ""}
+        description={groupDetail ? <StatusBadge value={groupDetail.status} /> : ""}
         onOpenChange={(value) => {
           if (!value) {
             setGroupDetail(null)

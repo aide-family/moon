@@ -18,13 +18,13 @@ import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { StatusBadge } from "@/components/status-badge"
 import {
   collectFieldErrors,
   hasFieldErrors,
   requireSelected,
   requireTrimmed,
 } from "@/lib/form"
-import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 import { ListFrame } from "@/components/list-frame"
@@ -313,19 +313,19 @@ export function MemberPage() {
                 <TableHead>{t("member.role")}</TableHead>
                 <TableHead>{t("member.inviter")}</TableHead>
                 <TableHead>{t("member.expiresAt")}</TableHead>
-                <TableHead className="text-right">{t("action.actions")}</TableHead>
+                <TableHead className="text-center">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {invites.map((item) => (
                 <TableRow key={item.uid}>
                   <TableCell>{item.email}</TableCell>
-                  <TableCell>{item.roleName}</TableCell>
+                  <TableCell><StatusBadge value={item.roleName} label={item.roleName} tone="info" /></TableCell>
                   <TableCell>{item.inviterName}</TableCell>
                   <TableCell>
                     {new Date(item.expiresAt * 1000).toLocaleString()}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-center">
                     {session.can("member:write") ? (
                       <Button
                         variant="outline"
@@ -379,15 +379,21 @@ export function MemberPage() {
                   <TableHead>{t("member.email")}</TableHead>
                   <TableHead>{t("member.role")}</TableHead>
                   <TableHead>{t("member.status")}</TableHead>
-                  <TableHead className="text-right">{t("action.actions")}</TableHead>
+                  <TableHead className="text-center">{t("action.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.map((item) => (
                   <TableRow key={item.uid}>
                     <TableCell>{item.email}</TableCell>
-                    <TableCell>{(item.roleNames ?? []).join(", ")}</TableCell>
-                    <TableCell>{enumLabel(t, item.status)}</TableCell>
+                    <TableCell>
+                      <span className="flex flex-wrap gap-1">
+                        {(item.roleNames ?? []).map((name) => (
+                          <StatusBadge key={name} value={name} label={name} tone="info" />
+                        ))}
+                      </span>
+                    </TableCell>
+                    <TableCell><StatusBadge value={item.status} /></TableCell>
                     <TableCell>
                       <RowActions
                         detailLabel={t("action.detail")}
@@ -504,9 +510,15 @@ export function MemberPage() {
           { label: t("user.name"), value: detail?.name ?? "" },
           {
             label: t("member.role"),
-            value: (detail?.roleNames ?? []).join(", "),
+            value: (
+              <span className="flex flex-wrap gap-1">
+                {(detail?.roleNames ?? []).map((name) => (
+                  <StatusBadge key={name} value={name} label={name} tone="info" />
+                ))}
+              </span>
+            ),
           },
-          { label: t("member.status"), value: enumLabel(t, detail?.status ?? "") },
+          { label: t("member.status"), value: <StatusBadge value={detail?.status ?? ""} /> },
           { label: t("detail.uid"), value: detail?.uid ?? "" },
         ]}
       />

@@ -9,6 +9,7 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aide-family/Alioth/app/megrez/internal/data/repository"
@@ -198,14 +199,69 @@ func decodePoint(pair []any) (bo.Point, bool) {
 	if len(pair) != 2 {
 		return bo.Point{}, false
 	}
-	at, ok := pair[0].(float64)
-	raw, okRaw := pair[1].(string)
-	if !ok || !okRaw {
+	at, ok := decodeTimestamp(pair[0])
+	if !ok {
 		return bo.Point{}, false
 	}
-	value, err := strconv.ParseFloat(raw, 64)
-	if err != nil {
+	value, raw, ok := decodeSampleValue(pair[1])
+	if !ok {
 		return bo.Point{}, false
 	}
 	return bo.Point{At: time.Unix(0, int64(at*float64(time.Second))).UTC(), Value: value, Raw: raw}, true
+}
+
+// decodeTimestamp 兼容不同上游/代理的时间戳写法：
+// Prometheus 与 VictoriaLogs 返回秒级数字，但部分反向代理会把数字编码成
+// 字符串，也有实现返回毫秒/微秒/纳秒。统一折算成 Unix 秒，避免时间戳类型
+// 不匹配时整条序列被丢弃、告警永远不触发。
+func decodeTimestamp(value any) (float64, bool) {
+	var seconds float64
+	switch typed := value.(type) {
+	case float64:
+		seconds = typed
+	case string:
+		parsed, err := strconv.ParseFloat(strings.TrimSpace(typed), 64)
+		if err != nil {
+			return 0, false
+		}
+		seconds = parsed
+	default:
+		return 0, false
+	}
+	if math.IsNaN(seconds) || math.IsInf(seconds, 0) {
+		return 0, false
+	}
+	// 阈值按数量级判断：1e11 秒已是公元 5138 年，正常秒级时间戳不会超过它。
+	switch magnitude := math.Abs(seconds); {
+	case magnitude >= 1e17:
+		return seconds / 1e9, true
+	case magnitude >= 1e14:
+		return seconds / 1e6, true
+	case magnitude >= 1e11:
+		return seconds / 1e3, true
+	default:
+		return seconds, true
+	}
+}
+
+// decodeSampleValue 同时接受字符串和 JSON 数字。VictoriaLogs 官方输出统一
+// 是字符串，但代理或兼容实现可能返回数字；只认字符串会让 stats 结果变成
+// 空采样，告警既不触发也不会报错。
+func decodeSampleValue(value any) (float64, string, bool) {
+	switch typed := value.(type) {
+	case string:
+		parsed, err := strconv.ParseFloat(strings.TrimSpace(typed), 64)
+		if err != nil {
+			return 0, "", false
+		}
+		return parsed, typed, true
+	case float64:
+		return typed, strconv.FormatFloat(typed, 'f', -1, 64), true
+	case int:
+		return float64(typed), strconv.Itoa(typed), true
+	case int64:
+		return float64(typed), strconv.FormatInt(typed, 10), true
+	default:
+		return 0, "", false
+	}
 }

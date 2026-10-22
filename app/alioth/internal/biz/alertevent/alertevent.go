@@ -185,12 +185,12 @@ func (uc *Usecase) List(ctx context.Context, view, name string, mine bool, pageU
 	}
 	filter := bo.AlertEventListFilter{View: view, Name: name, LevelUID: levelUID}
 	if mine {
-		ruleUIDs, err := uc.ruleUIDsForCurrentUser(ctx, ns)
+		eventUIDs, err := uc.eventUIDsForCurrentUser(ctx, ns)
 		if err != nil {
 			return nil, 0, 0, 0, err
 		}
-		filter.FilterByRules = true
-		filter.RuleUIDs = ruleUIDs
+		filter.FilterByEvents = true
+		filter.EventUIDs = eventUIDs
 	}
 	if pageUID != "" {
 		userUID, ok := actor.UserID(ctx)
@@ -214,7 +214,10 @@ func (uc *Usecase) List(ctx context.Context, view, name string, mine bool, pageU
 	return items, total, p, s, nil
 }
 
-func (uc *Usecase) ruleUIDsForCurrentUser(ctx context.Context, namespaceUID string) ([]string, error) {
+// eventUIDsForCurrentUser 返回当前用户作为通知接收人的实时事件标识。
+// 不能按规则放行：同一规则下只有命中了用户订阅的事件才会生成任务，
+// 「我的告警」必须按实际任务的事件标识过滤，否则会把同规则下发给别人的事件也显示出来。
+func (uc *Usecase) eventUIDsForCurrentUser(ctx context.Context, namespaceUID string) ([]string, error) {
 	userUID, ok := actor.UserID(ctx)
 	if !ok {
 		return nil, merr.Unauthenticated("unauthorized")
@@ -227,6 +230,9 @@ func (uc *Usecase) ruleUIDsForCurrentUser(ctx context.Context, namespaceUID stri
 	if account.Email != "" {
 		tokens = append(tokens, account.Email)
 	}
+	if account.Phone != "" {
+		tokens = append(tokens, account.Phone)
+	}
 	memberUID := ""
 	member, err := uc.members.MemberByUser(ctx, namespaceUID, userUID)
 	if err == nil {
@@ -234,7 +240,7 @@ func (uc *Usecase) ruleUIDsForCurrentUser(ctx context.Context, namespaceUID stri
 	} else if !merr.IsNotFound(err) {
 		return nil, uc.access.Wrap(err)
 	}
-	uids, err := uc.events.ListRuleUIDsForReceivers(ctx, namespaceUID, memberUID, tokens)
+	uids, err := uc.events.ListEventUIDsForUser(ctx, namespaceUID, memberUID, tokens)
 	if err != nil {
 		return nil, uc.access.Wrap(err)
 	}
@@ -337,14 +343,14 @@ func (uc *Usecase) RealtimeStats(ctx context.Context) (bo.RealtimeAlertStats, er
 		Recovered:  stats.Recovered,
 	}
 
-	ruleUIDs, err := uc.ruleUIDsForCurrentUser(ctx, ns)
+	eventUIDs, err := uc.eventUIDsForCurrentUser(ctx, ns)
 	if err != nil {
 		return bo.RealtimeAlertStats{}, err
 	}
 	mineCount, err := uc.events.CountEvents(ctx, ns, bo.AlertEventListFilter{
-		View:          "REALTIME",
-		FilterByRules: true,
-		RuleUIDs:      ruleUIDs,
+		View:           "REALTIME",
+		FilterByEvents: true,
+		EventUIDs:      eventUIDs,
 	})
 	if err != nil {
 		return bo.RealtimeAlertStats{}, uc.access.Wrap(err)

@@ -18,6 +18,7 @@ import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { StatusBadge } from "@/components/status-badge"
 import { ListFrame } from "@/components/list-frame"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -44,7 +45,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { enumLabel } from "@/lib/enum-label"
 import {
   collectFieldErrors,
   hasFieldErrors,
@@ -325,7 +325,7 @@ export function NamespacePage() {
                   <TableHead>{t("namespace.name")}</TableHead>
                   <TableHead>{t("namespace.leader")}</TableHead>
                   <TableHead>{t("namespace.status")}</TableHead>
-                  <TableHead className="text-right">{t("action.actions")}</TableHead>
+                  <TableHead className="text-center">{t("action.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -351,7 +351,7 @@ export function NamespacePage() {
                         ) : null}
                       </span>
                     </TableCell>
-                    <TableCell>{enumLabel(t, item.status)}</TableCell>
+                    <TableCell><StatusBadge value={item.status} /></TableCell>
                     <TableCell>
                       <RowActions
                         detailLabel={t("action.detail")}
@@ -500,7 +500,7 @@ export function NamespacePage() {
               </span>
             ),
           },
-          { label: t("namespace.status"), value: enumLabel(t, detail?.status ?? "") },
+          { label: t("namespace.status"), value: <StatusBadge value={detail?.status ?? ""} /> },
           { label: t("namespace.remark"), value: detail?.remark ?? "" },
           { label: t("detail.uid"), value: detail?.uid ?? "" },
         ]}

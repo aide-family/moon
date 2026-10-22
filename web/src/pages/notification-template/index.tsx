@@ -23,6 +23,7 @@ import { ListFrame } from "@/components/list-frame"
 import { NotificationTestDialog } from "@/components/notification-test-dialog"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { StatusBadge } from "@/components/status-badge"
 import { TemplateEditor } from "@/components/template-editor"
 import { TemplatePreviewDialog } from "@/components/template-preview-dialog"
 import { Button } from "@/components/ui/button"
@@ -347,7 +348,7 @@ export function NotificationTemplatePage() {
                 <TableHead>{t("template.app")}</TableHead>
                 <TableHead>{t("template.subject")}</TableHead>
                 <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead className="text-right">{t("action.actions")}</TableHead>
+                <TableHead className="text-center">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -357,17 +358,17 @@ export function NotificationTemplatePage() {
                   <TableCell>
                     <span className="flex min-w-0 items-center gap-2">
                       <ChannelLogo type={item.type} app={item.app} className="size-4" />
-                      <span>{enumLabel(t, item.type)}</span>
+                      <StatusBadge value={item.type} />
                     </span>
                   </TableCell>
                   <TableCell>
                     <span className="flex min-w-0 items-center gap-2">
                       <ChannelLogo type={item.type} app={item.app} className="size-4" />
-                      <span>{templateAppLabel(t, item.type, item.app)}</span>
+                      <StatusBadge value={item.app} label={templateAppLabel(t, item.type, item.app)} />
                     </span>
                   </TableCell>
                   <TableCell className="max-w-xs truncate">{item.subject}</TableCell>
-                  <TableCell>{enumLabel(t, item.status)}</TableCell>
+                  <TableCell><StatusBadge value={item.status} /></TableCell>
                   <TableCell>
                     <RowActions detailLabel={t("action.detail")} moreLabel={t("action.more")} onDetail={() => setDetail(item)} actions={actions(item)} />
                   </TableCell>
@@ -518,7 +519,7 @@ export function NotificationTemplatePage() {
                   value: (
                     <span className="flex items-center gap-2">
                       <ChannelLogo type={detail.type} app={detail.app} className="size-4" />
-                      {enumLabel(t, detail.type)}
+                      <StatusBadge value={detail.type} />
                     </span>
                   ),
                 },

@@ -16,6 +16,7 @@ import { FormField } from "@/components/form-field"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -201,7 +202,7 @@ export function AlertPageManagePage() {
                 <TableHead>{t("alertPage.name")}</TableHead>
                 <TableHead>{t("alertPage.labels")}</TableHead>
                 <TableHead>{t("alertPage.visibility")}</TableHead>
-                <TableHead className="text-right">{t("action.actions")}</TableHead>
+                <TableHead className="text-center">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -209,7 +210,12 @@ export function AlertPageManagePage() {
                 <TableRow key={item.uid}>
                   <TableCell>{item.name}</TableCell>
                   <TableCell className="max-w-xs truncate font-mono text-xs">{item.labels}</TableCell>
-                  <TableCell>{item.public ? t("alertPage.public") : t("alertPage.private")}</TableCell>
+                  <TableCell>
+                    <StatusBadge
+                      value={item.public ? "PUBLIC" : "PRIVATE"}
+                      label={item.public ? t("alertPage.public") : t("alertPage.private")}
+                    />
+                  </TableCell>
                   <TableCell>
                     <RowActions
                       detailLabel={t("action.detail")}
@@ -317,7 +323,12 @@ export function AlertPageManagePage() {
                 { label: t("alertPage.labels"), value: detail.labels },
                 {
                   label: t("alertPage.visibility"),
-                  value: detail.public ? t("alertPage.public") : t("alertPage.private"),
+                  value: (
+                    <StatusBadge
+                      value={detail.public ? "PUBLIC" : "PRIVATE"}
+                      label={detail.public ? t("alertPage.public") : t("alertPage.private")}
+                    />
+                  ),
                 },
                 { label: t("alertPage.remark"), value: detail.remark },
               ]

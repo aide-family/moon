@@ -70,7 +70,7 @@ type AlertEventRepo interface {
 	ListEvents(ctx context.Context, namespaceUID string, filter bo.AlertEventListFilter, page, pageSize int) ([]bo.AlertEvent, int, error)
 	// CountEvents 只统计符合条件的告警数量，不读取列表数据。
 	CountEvents(ctx context.Context, namespaceUID string, filter bo.AlertEventListFilter) (int, error)
-	ListRuleUIDsForReceivers(ctx context.Context, namespaceUID, memberUID string, tokens []string) ([]string, error)
+	ListEventUIDsForUser(ctx context.Context, namespaceUID, memberUID string, tokens []string) ([]string, error)
 	GetEvent(ctx context.Context, namespaceUID, uid string) (*bo.AlertEvent, error)
 	Intervene(ctx context.Context, namespaceUID string, uids []string, userUID string) error
 	// Suppress 抑制一条实时告警。until 为空表示永久抑制，不设到期时间。

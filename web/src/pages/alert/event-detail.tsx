@@ -7,6 +7,7 @@ import type { AlertDictionaryItem } from "@/api/alert-dictionary/types"
 import type { AlertEventItem } from "@/api/alert-event/types"
 import { ExprBlock } from "@/components/expr-block"
 import { LabelTags } from "@/components/label-tags"
+import { StatusBadge } from "@/components/status-badge"
 import {
   Sheet,
   SheetContent,
@@ -14,7 +15,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { enumLabel } from "@/lib/enum-label"
 import { EventChartBody } from "@/pages/alert/event-chart"
 import { formatDuration, formatTime } from "@/pages/alert/format"
 import {
@@ -62,7 +62,7 @@ export function AlertEventDetail({
         <SheetHeader className="shrink-0 gap-1 border-b border-border/60 pr-10">
           <SheetTitle className="break-words">{title}</SheetTitle>
           <SheetDescription>
-            {event ? enumLabel(t, event.status) : ""}
+            {event ? <StatusBadge value={event.status} /> : ""}
           </SheetDescription>
         </SheetHeader>
         {event ? (
@@ -164,7 +164,7 @@ function detailFields(
           )
         : event.datasourceName || "—",
     },
-    { label: t("alertEvent.status"), value: enumLabel(t, event.status) },
+    { label: t("alertEvent.status"), value: <StatusBadge value={event.status} /> },
     { label: t("alertEvent.sample"), value: event.sampleValue },
     {
       label: t("alertEvent.duration"),

@@ -21,7 +21,7 @@ import { FormField } from "@/components/form-field"
 import { LabelTags } from "@/components/label-tags"
 import { PageHeader } from "@/components/page-header"
 import { ListFrame } from "@/components/list-frame"
-import { StatusDot } from "@/components/status-dot"
+import { StatusBadge } from "@/components/status-badge"
 import { StepForm } from "@/components/step-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -426,16 +426,16 @@ export function DatasourcePage() {
                       driver={item.driver}
                       className="size-5 shrink-0 rounded-md border bg-background p-0.5"
                     />
-                    <StatusDot active={item.status === "ACTIVE"} />
-                    <span className="flex min-w-0 flex-1 flex-col items-start">
+                    <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
                       <span
                         className="w-full truncate text-left"
                         title={item.name}
                       >
                         {item.name}
                       </span>
-                      <span className="text-xs text-muted-foreground">
-                        {enumLabel(t, item.type)}
+                      <span className="flex flex-wrap gap-1">
+                        <StatusBadge value={item.type} />
+                        <StatusBadge value={item.status} />
                       </span>
                     </span>
                   </span>
@@ -518,18 +518,18 @@ export function DatasourcePage() {
                           driver={current.driver}
                           className="size-7 rounded-md border bg-background p-0.5"
                         />
-                        <StatusDot active={current.status === "ACTIVE"} />
                         <span className="min-w-0 truncate" title={current.name}>
                           {current.name}
                         </span>
                       </h2>
                       <p className="text-sm text-muted-foreground">
-                        {enumLabel(t, current.driver)} · {current.endpoint}
+                        {current.endpoint}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        {enumLabel(t, current.type)} ·{" "}
-                        {enumLabel(t, current.status)}
-                      </p>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <StatusBadge value={current.type} />
+                        <StatusBadge value={current.driver} />
+                        <StatusBadge value={current.status} />
+                      </div>
                     </div>
                     <dl className="grid min-w-0 gap-4 sm:grid-cols-2">
                       <div className="grid min-w-0 gap-1">

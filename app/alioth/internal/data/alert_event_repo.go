@@ -280,6 +280,9 @@ func (r *alertEventRepo) ListEvents(ctx context.Context, namespaceUID string, fi
 	if filter.FilterByRules && len(filter.RuleUIDs) == 0 {
 		return nil, 0, nil
 	}
+	if filter.FilterByEvents && len(filter.EventUIDs) == 0 {
+		return nil, 0, nil
+	}
 	if filter.View == "HISTORY" {
 		return r.listHistoryEvents(ctx, namespaceUID, filter, page, pageSize)
 	}
@@ -359,6 +362,9 @@ func (r *alertEventRepo) CountEvents(ctx context.Context, namespaceUID string, f
 	if filter.FilterByRules && len(filter.RuleUIDs) == 0 {
 		return 0, nil
 	}
+	if filter.FilterByEvents && len(filter.EventUIDs) == 0 {
+		return 0, nil
+	}
 	if filter.View == "HISTORY" {
 		items, err := r.historyItems(ctx, namespaceUID, filter)
 		if err != nil {
@@ -397,9 +403,11 @@ func (r *alertEventRepo) CountEvents(ctx context.Context, namespaceUID string, f
 	return total, nil
 }
 
-// ListRuleUIDsForReceivers 返回当前成员能收到通知的规则。
-// 规则不再直接绑定通知组，成员关系由订阅下的通知组决定，任务表记录实际路由结果。
-func (r *alertEventRepo) ListRuleUIDsForReceivers(ctx context.Context, namespaceUID, memberUID string, tokens []string) ([]string, error) {
+// ListEventUIDsForUser 返回当前成员实际能收到通知的事件。
+// 这里按 NotificationTask 的事件标识判断，而不是先取规则再放行整个规则：
+// 同一规则下可能只有部分事件命中用户的订阅，不能因为规则曾投递给该用户，
+// 就把该规则的所有实时事件都算成「我的告警」。
+func (r *alertEventRepo) ListEventUIDsForUser(ctx context.Context, namespaceUID, memberUID string, tokens []string) ([]string, error) {
 	groups, err := r.client.NotificationGroup.Query().Where(
 		notificationgroup.NamespaceUIDEQ(namespaceUID),
 		notificationgroup.DeletedAtIsNil(),
@@ -408,36 +416,71 @@ func (r *alertEventRepo) ListRuleUIDsForReceivers(ctx context.Context, namespace
 	if err != nil {
 		return nil, r.fail(err)
 	}
-	matched := make([]string, 0)
+	groupUIDs := make([]string, 0, len(groups))
 	for _, group := range groups {
-		if (memberUID != "" && containsString(group.MemberUids, memberUID)) || receiversContain(group.Receivers, tokens) {
-			matched = append(matched, group.UID)
+		if groupMatchesUser(group, memberUID, tokens) {
+			groupUIDs = append(groupUIDs, group.UID)
 		}
 	}
-	if len(matched) == 0 {
+
+	conditions := make([]predicate.NotificationTask, 0, len(groupUIDs)+len(tokens))
+	if len(groupUIDs) > 0 {
+		conditions = append(conditions, notificationtask.GroupUIDIn(groupUIDs...))
+	}
+	for _, token := range tokens {
+		if strings.TrimSpace(token) != "" {
+			conditions = append(conditions, notificationtask.ReceiversContainsFold(token))
+		}
+	}
+	if len(conditions) == 0 {
 		return nil, nil
 	}
 	tasks, err := r.client.NotificationTask.Query().Where(
 		notificationtask.NamespaceUIDEQ(namespaceUID),
-		notificationtask.GroupUIDIn(matched...),
 		notificationtask.EventUIDNEQ(""),
+		notificationtask.Or(conditions...),
 	).All(ctx)
 	if err != nil {
 		return nil, r.fail(err)
 	}
+	groupSet := make(map[string]struct{}, len(groupUIDs))
+	for _, uid := range groupUIDs {
+		groupSet[uid] = struct{}{}
+	}
 	seen := make(map[string]struct{}, len(tasks))
 	uids := make([]string, 0, len(tasks))
 	for _, task := range tasks {
-		if task.RuleUID == "" {
+		if task.EventUID == "" {
 			continue
 		}
-		if _, ok := seen[task.RuleUID]; ok {
+		_, byGroup := groupSet[task.GroupUID]
+		// SQL 的 ContainsFold 只是粗筛，接收方是逗号分隔列表，必须再按完整项比较，
+		// 避免 alice@example.com 命中 alice@example.com.cn。
+		if !byGroup && !receiversContain(task.Receivers, tokens) {
 			continue
 		}
-		seen[task.RuleUID] = struct{}{}
-		uids = append(uids, task.RuleUID)
+		if _, ok := seen[task.EventUID]; ok {
+			continue
+		}
+		seen[task.EventUID] = struct{}{}
+		uids = append(uids, task.EventUID)
 	}
+	sort.Strings(uids)
 	return uids, nil
+}
+
+// groupMatchesUser 判断当前成员是否是通知组的接收人。
+// 同时检查新字段和旧版字段，保证升级前后创建的通知组都能识别。
+func groupMatchesUser(group *ent.NotificationGroup, memberUID string, tokens []string) bool {
+	if memberUID != "" &&
+		(containsString(group.MemberUids, memberUID) ||
+			containsString(group.EmailMemberUids, memberUID) ||
+			containsString(group.SmsMemberUids, memberUID)) {
+		return true
+	}
+	return receiversContain(group.Receivers, tokens) ||
+		receiversContain(group.EmailReceivers, tokens) ||
+		receiversContain(group.SmsReceivers, tokens)
 }
 
 func receiversContain(receivers string, tokens []string) bool {
@@ -481,6 +524,9 @@ func eventWhere(namespaceUID string, filter bo.AlertEventListFilter, now time.Ti
 	}
 	if filter.FilterByRules {
 		where = append(where, alertevent.RuleUIDIn(filter.RuleUIDs...))
+	}
+	if filter.FilterByEvents {
+		where = append(where, alertevent.UIDIn(filter.EventUIDs...))
 	}
 	matchers := map[string]string{}
 	if filter.LabelsJSON != "" && filter.LabelsJSON != "{}" {
@@ -1220,6 +1266,18 @@ func filterHistoryItems(items []bo.AlertEvent, filter bo.AlertEventListFilter) (
 			allowed := false
 			for _, uid := range filter.RuleUIDs {
 				if uid == item.RuleUID {
+					allowed = true
+					break
+				}
+			}
+			if !allowed {
+				continue
+			}
+		}
+		if filter.FilterByEvents {
+			allowed := false
+			for _, uid := range filter.EventUIDs {
+				if uid == item.UID {
 					allowed = true
 					break
 				}

@@ -23,6 +23,7 @@ import { FormField } from "@/components/form-field"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -49,7 +50,6 @@ import {
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 import { parseLabelPairs, serializeLabelPairs, type LabelPair } from "@/lib/labels"
-import { enumLabel } from "@/lib/enum-label"
 import { run } from "@/lib/action"
 
 export function NotificationSubscriptionPage() {
@@ -278,7 +278,7 @@ export function NotificationSubscriptionPage() {
                 <TableHead>{t("subscription.conditions")}</TableHead>
                 <TableHead>{t("subscription.groups")}</TableHead>
                 <TableHead>{t("namespace.status")}</TableHead>
-                <TableHead className="text-right">{t("action.actions")}</TableHead>
+                <TableHead className="text-center">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -289,7 +289,7 @@ export function NotificationSubscriptionPage() {
                   <TableCell>
                     {(item.groupUids ?? []).map((uid) => groups.find((group) => group.uid === uid)?.name ?? uid).join(", ")}
                   </TableCell>
-                  <TableCell>{enumLabel(t, item.status)}</TableCell>
+                  <TableCell><StatusBadge value={item.status} /></TableCell>
                   <TableCell>
                     <RowActions
                       detailLabel={t("action.detail")}
@@ -440,7 +440,7 @@ export function NotificationSubscriptionPage() {
                   label: t("subscription.groups"),
                   value: (detail.groupUids ?? []).map((uid) => groups.find((group) => group.uid === uid)?.name ?? uid).join(", "),
                 },
-                { label: t("namespace.status"), value: enumLabel(t, detail.status) },
+                { label: t("namespace.status"), value: <StatusBadge value={detail.status} /> },
                 { label: t("subscription.remark"), value: detail.remark },
               ]
             : []

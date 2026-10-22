@@ -18,8 +18,8 @@ import { DetailSheet } from "@/components/detail-sheet"
 import { FormField } from "@/components/form-field"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { StatusBadge } from "@/components/status-badge"
 import { collectFieldErrors, hasFieldErrors, requireTrimmed } from "@/lib/form"
-import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 import { ListFrame } from "@/components/list-frame"
@@ -341,7 +341,7 @@ export function RolePage() {
                 <TableRow>
                   <TableHead>{t("role.name")}</TableHead>
                   <TableHead>{t("namespace.status")}</TableHead>
-                  <TableHead className="text-right">{t("action.actions")}</TableHead>
+                  <TableHead className="text-center">{t("action.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -351,7 +351,7 @@ export function RolePage() {
                       {item.name}
                       {item.isSystem ? ` (${t("role.system")})` : ""}
                     </TableCell>
-                    <TableCell>{enumLabel(t, item.status)}</TableCell>
+                    <TableCell><StatusBadge value={item.status} /></TableCell>
                     <TableCell>
                       <RowActions
                         detailLabel={t("action.detail")}
@@ -476,7 +476,7 @@ export function RolePage() {
         }}
         fields={[
           { label: t("role.name"), value: detail?.name ?? "" },
-          { label: t("namespace.status"), value: enumLabel(t, detail?.status ?? "") },
+          { label: t("namespace.status"), value: <StatusBadge value={detail?.status ?? ""} /> },
           {
             label: t("role.system"),
             value: detail?.isSystem ? t("role.system") : "",

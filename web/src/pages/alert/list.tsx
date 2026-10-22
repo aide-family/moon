@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import type { TFunction } from "i18next"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { formMessage } from "@/lib/form-error"
@@ -27,6 +26,7 @@ import { ConfirmAction } from "@/components/confirm-action"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { LevelBadge, StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -44,7 +44,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { enumLabel } from "@/lib/enum-label"
 import { usePagedList } from "@/hooks/use-paged-list"
 import { useListQuery } from "@/lib/list-query"
 import { EventChartDialog } from "@/pages/alert/event-chart"
@@ -175,9 +174,10 @@ export function AlertEventList({
   const pinnedCheckCell = `${pin} left-0 group-hover:bg-muted`
   const pinnedLeft = canIntervene ? checkColumnWidth : 0
   // 操作列固定在右侧：不换行，宽度跟着两个按钮走（w-px 让它缩到内容宽度）。
-  const actionsHead = "sticky right-0 z-20 w-px bg-background table-pin-right"
+  const actionsHead =
+    "sticky right-0 z-20 w-px bg-background text-center table-pin-right"
   const actionsCell =
-    "sticky right-0 w-px bg-background table-pin-right group-hover:bg-muted"
+    "sticky right-0 w-px bg-background text-center table-pin-right group-hover:bg-muted"
   const title =
     view === "HISTORY" ? t("alertEvent.historyTitle") : t("alertEvent.title")
 
@@ -511,7 +511,7 @@ export function AlertEventList({
                       className={index === 0 ? pinnedCell : undefined}
                       style={index === 0 ? { left: pinnedLeft } : undefined}
                     >
-                      {eventCell(item, column, levels, now, t)}
+                      {eventCell(item, column, levels, now)}
                     </TableCell>
                   ))}
                   <TableCell className={actionsCell}>
@@ -591,8 +591,7 @@ function eventCell(
   item: AlertEventItem,
   column: AlertColumnItem,
   levels: AlertDictionaryItem[],
-  now: number,
-  t: TFunction
+  now: number
 ): ReactNode {
   if (column.type === "LABEL") {
     const labels = parseEventLabels(item.labels)
@@ -637,7 +636,7 @@ function eventCell(
         </div>
       ) : null
     case "status":
-      return enumLabel(t, item.status)
+      return <StatusBadge value={item.status} />
     case "description":
       return (
         <span className="block max-w-[20rem] truncate" title={item.description}>
@@ -675,15 +674,7 @@ function levelCell(uid: string, levels: AlertDictionaryItem[]) {
   }
   const level = levels.find((item) => item.uid === uid)
   if (!level) {
-    return uid
+    return <LevelBadge name={uid} />
   }
-  return (
-    <span className="inline-flex items-center gap-2">
-      <span
-        className="size-2 shrink-0 rounded-full"
-        style={{ backgroundColor: level.color || "#1677ff" }}
-      />
-      {level.name}
-    </span>
-  )
+  return <LevelBadge name={level.name} color={level.color} />
 }

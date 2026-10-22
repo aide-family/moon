@@ -16,6 +16,7 @@ import { DetailSheet } from "@/components/detail-sheet"
 import { ListFrame } from "@/components/list-frame"
 import { PageHeader } from "@/components/page-header"
 import { RowActions, type RowAction } from "@/components/row-actions"
+import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -274,13 +275,13 @@ export function MessageLogPage() {
                 <TableHead>{t("messageLog.group")}</TableHead>
                 <TableHead>{t("messageLog.subscription")}</TableHead>
                 <TableHead>{t("messageLog.taskFilter")}</TableHead>
-                <TableHead className="text-right">{t("action.actions")}</TableHead>
+                <TableHead className="text-center">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {logs.map((item) => (
                 <TableRow key={item.uid}>
-                  <TableCell>{enumLabel(t, item.status)}</TableCell>
+                  <TableCell><StatusBadge value={item.status} /></TableCell>
                   <TableCell className="max-w-xs truncate" title={item.sender || undefined}>{item.sender || t("messageLog.notProvided")}</TableCell>
                   <TableCell className="max-w-xs truncate" title={item.receivers || undefined}>{item.receivers || t("messageLog.notProvided")}</TableCell>
                   <TableCell className="max-w-sm truncate" title={deliveryContent(item.subject, item.content) || undefined}>{deliveryContent(item.subject, item.content) || t("messageLog.notProvided")}</TableCell>
@@ -308,14 +309,14 @@ export function MessageLogPage() {
                 <TableHead>{t("messageLog.content")}</TableHead>
                 <TableHead>{t("messageLog.retries")}</TableHead>
                 <TableHead>{t("messageLog.detail")}</TableHead>
-                <TableHead className="text-right">{t("action.actions")}</TableHead>
+                <TableHead className="text-center">{t("action.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {tasks.map((item) => (
                 <TableRow key={item.uid}>
-                  <TableCell>{enumLabel(t, item.phase)}</TableCell>
-                  <TableCell>{enumLabel(t, item.status)}</TableCell>
+                  <TableCell><StatusBadge value={item.phase} /></TableCell>
+                  <TableCell><StatusBadge value={item.status} /></TableCell>
                   <TableCell className="max-w-xs truncate" title={item.sender || undefined}>{item.sender || t("messageLog.notProvided")}</TableCell>
                   <TableCell className="max-w-xs truncate" title={item.receivers || undefined}>{item.receivers || t("messageLog.notProvided")}</TableCell>
                   <TableCell className="max-w-xs truncate" title={item.groupName || item.groupUid}>{item.groupName || item.groupUid}</TableCell>
@@ -344,7 +345,7 @@ export function MessageLogPage() {
           detailLog
             ? [
                 { label: t("detail.uid"), value: detailLog.uid },
-                { label: t("messageLog.status"), value: enumLabel(t, detailLog.status) },
+                { label: t("messageLog.status"), value: <StatusBadge value={detailLog.status} /> },
                 { label: t("messageLog.sender"), value: detailLog.sender || t("messageLog.notProvided") },
                 { label: t("messageLog.receivers"), value: detailLog.receivers || t("messageLog.notProvided") },
                 { label: t("messageLog.subject"), value: detailLog.subject || t("messageLog.notProvided") },
@@ -369,8 +370,8 @@ export function MessageLogPage() {
           detailTask
             ? [
                 { label: t("detail.uid"), value: detailTask.uid },
-                { label: t("messageLog.phase"), value: enumLabel(t, detailTask.phase) },
-                { label: t("messageLog.status"), value: enumLabel(t, detailTask.status) },
+                { label: t("messageLog.phase"), value: <StatusBadge value={detailTask.phase} /> },
+                { label: t("messageLog.status"), value: <StatusBadge value={detailTask.status} /> },
                 { label: t("messageLog.sender"), value: detailTask.sender || t("messageLog.notProvided") },
                 { label: t("messageLog.receivers"), value: detailTask.receivers || t("messageLog.notProvided") },
                 { label: t("messageLog.subject"), value: detailTask.subject || t("messageLog.notProvided") },

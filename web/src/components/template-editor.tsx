@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react"
 import * as monacoEditor from "monaco-editor"
 import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
 
+import { useMonacoOverflowNode } from "@/components/monaco-overflow"
 import { useTheme } from "@/components/theme-provider"
 
 let monacoReady = false
@@ -236,6 +237,7 @@ export function TemplateEditor({
 }: TemplateEditorProps) {
   const { theme } = useTheme()
   const onChangeRef = useRef(onChange)
+  const overflowWidgetsDomNode = useMonacoOverflowNode()
   const editorHeight = singleLine ? 40 : height
 
   useEffect(() => {
@@ -282,6 +284,7 @@ export function TemplateEditor({
         onChange={(next) => onChangeRef.current(next ?? "")}
         options={{
           fixedOverflowWidgets: true,
+          overflowWidgetsDomNode: overflowWidgetsDomNode ?? undefined,
           minimap: { enabled: false },
           fontSize: 13,
           fontFamily: 'JetBrains Mono, Menlo, Monaco, "Courier New", monospace',

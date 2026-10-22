@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next"
 import { listWorkerInstances } from "@/api/worker-instances"
 import type { ListWorkerInstancesResult, WorkerInstanceItem } from "@/api/worker-instances"
 import { PageHeader } from "@/components/page-header"
-import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -42,13 +42,15 @@ function WorkerRow({ item, now }: { item: WorkerInstanceItem; now: number }) {
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <span className="max-w-full truncate font-medium">{item.hostname || item.instanceUid}</span>
-          <Badge variant={item.online ? "default" : "secondary"} className={item.online ? "bg-emerald-600 text-white hover:bg-emerald-600" : ""}>
-            {item.online ? t("worker.online") : t("worker.offline")}
-          </Badge>
+          <StatusBadge
+            value={item.online ? "ONLINE" : "OFFLINE"}
+            label={item.online ? t("worker.online") : t("worker.offline")}
+          />
           {item.online ? (
-            <Badge variant={item.busy ? "outline" : "secondary"} className={item.busy ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300" : ""}>
-              {item.busy ? t("worker.working") : t("worker.idle")}
-            </Badge>
+            <StatusBadge
+              value={item.busy ? "BUSY" : "IDLE"}
+              label={item.busy ? t("worker.working") : t("worker.idle")}
+            />
           ) : null}
         </div>
         <p className="mt-1 truncate font-mono text-xs text-muted-foreground" title={item.instanceUid}>{item.instanceUid}</p>

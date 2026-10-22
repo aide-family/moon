@@ -153,4 +153,23 @@ func TestNotificationSubscriptionFanout(t *testing.T) {
 	if len(tasks) != 2 {
 		t.Fatalf("non-matching event created tasks: %d", len(tasks))
 	}
+
+	// 「我的告警」按实际通知任务的事件标识过滤：只有命中订阅并生成任务的
+	// 事件才属于当前成员，不能把同规则下未投递给他的事件一起放行。
+	eventUIDs, err := events.ListEventUIDsForUser(ctx, ns, memberRow.UID, []string{"member-" + ns + "@example.com"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(eventUIDs) != 1 {
+		t.Fatalf("receiver event uids = %v, want 1", eventUIDs)
+	}
+	mine, total, err := events.ListEvents(ctx, ns, bo.AlertEventListFilter{
+		View: "REALTIME", FilterByEvents: true, EventUIDs: eventUIDs,
+	}, 1, 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if total != 1 || len(mine) != 1 || mine[0].Summary != "fire" {
+		t.Fatalf("my alerts = %+v total=%d, want only the matching event", mine, total)
+	}
 }
